@@ -306,30 +306,35 @@ static DateTimeNode *makeDateTime(char *str) {
 
    // get minute
    int minute = get_int_2(p);
-   ++p;
 
-   // get second
-   int second = get_int_2(p);
-
+   int second;
    int us = 0;
-   // get milliseconds or microseconds if present
-   if ((*p) == '.') {
+   if ((*p) == ':') {
       ++p;
-      us = get_int_3(p) * 1000;	 
-      if (isdigit(*p))
-	 us += get_int_3(p);
+      // get second
+      second = get_int_2(p);
+
+      // get milliseconds or microseconds if present
+      if ((*p) == '.') {
+	 ++p;
+	 us = get_int_3(p) * 1000;	 
+	 if (isdigit(*p))
+	    us += get_int_3(p);
+      }
    }
+   else
+      second = 0;
 
    // get zone if present, otherwise assume local zone
-   const AbstractQoreZoneInfo *zone = 0;
+   const AbstractQoreZoneInfo *zone;
    if ((*p) == '+' || (*p) == '-')
       zone = QTZM.findCreateOffsetZone(p);
+   else if ((*p) == 'Z')
+      zone = 0;
    else
       zone = currentTZ();
 
-   DateTimeNode *rv = new DateTimeNode;
-   rv->setDate(zone, year, month, day, hour, minute, second, us);
-   return rv;
+   return DateTimeNode::makeNew(zone, year, month, day, hour, minute, second, us);
 }
 
 static inline DateTimeNode *makeDate(char *str) {
@@ -433,7 +438,7 @@ MS              [0-9]{3}
 US              [0-9]{6}
 D2              [0-9]{2}
 BINARY          <({HEX_DIGIT}{HEX_DIGIT})+>
-TZ              [+-][01][0-9](:[01][0-9](:[01][0-9])?)?
+TZ              (Z|([+-][01][0-9](:[01][0-9](:[01][0-9])?)?))
 
 %%
 ^%no-global-vars{WS}*$                  getProgram()->parseSetParseOptions(PO_NO_GLOBAL_VARS);
@@ -982,8 +987,8 @@ public{WS}*\(                           yylval->string = strdup("public"); retur
 					      unput(yytext[7]);
 					   return DOT_KW_IDENTIFIER;
                                         }
-{YEAR}-{MONTH}-{DAY}[T-]{HOUR}:{MSEC}:{MSEC}(\.{MS})?{TZ}?   yylval->datetime = makeDateTime(yytext); return DATETIME;
-{YEAR}-{MONTH}-{DAY}[T-]{HOUR}:{MSEC}:{MSEC}(\.{US})?{TZ}?   yylval->datetime = makeDateTime(yytext); return DATETIME;
+{YEAR}-{MONTH}-{DAY}[T-]{HOUR}:{MSEC}(:{MSEC}(\.{MS})?)?{TZ}?   yylval->datetime = makeDateTime(yytext); return DATETIME;
+{YEAR}-{MONTH}-{DAY}[T-]{HOUR}:{MSEC}(:{MSEC}(\.{US})?)?{TZ}?   yylval->datetime = makeDateTime(yytext); return DATETIME;
 {YEAR}-{MONTH}-{DAY}                    yylval->datetime = makeDate(yytext); return DATETIME;
 {HOUR}:{MSEC}:{MSEC}(\.{MS})?           yylval->datetime = makeTime(yytext); return DATETIME;
 P{YEAR}-{D2}-{D2}T{D2}:{D2}:{D2}(\.{MS})?   yylval->datetime = makeRelativeDateTime(yytext+1); return DATETIME;

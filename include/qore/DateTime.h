@@ -50,6 +50,9 @@ protected:
 
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
    DLLLOCAL DateTime& operator=(const DateTime&);
+   
+   //! this constructor is not exported in the library
+   DLLLOCAL DateTime(qore_date_private *n_priv);
       
 public:
    //! constructor for an empty object
@@ -71,12 +74,6 @@ public:
    */
    DLLEXPORT DateTime(int n_year, int n_month, int n_day, int n_hour = 0, int n_minute = 0, int n_second = 0, short n_ms = 0, bool n_relative = false);
 
-   //! constructor to create an absolute time, including microseconds
-   DLLEXPORT DateTime(const AbstractQoreZoneInfo *n_zone, int n_year, int n_month, int n_day, int n_hour = 0, int n_minute = 0, int n_second = 0, int n_us = 0);
-
-   //! constructor to create an absolute time as an offset from the epoch, including microseconds
-   DLLEXPORT DateTime(const AbstractQoreZoneInfo *n_zone, int64 seconds, int n_us = 0);
-
    //! constructor for setting an absolute date based on the number of seconds from January 1, 1970
    /** note that the local time zone will be assumed
        @param seconds the number of seconds from January 1, 1970
@@ -89,6 +86,14 @@ public:
        @param ms the milliseconds portion of the time	 
    */
    DLLEXPORT DateTime(int64 seconds, int ms);
+
+   //! constructor to create an absolute time as an offset from the epoch, including microseconds
+   /**
+      @param zone time zone for the date/time value, 0 = UTC, @see currentTZ()
+      @param seconds the number of seconds from January 1, 1970
+      @param us the microseconds portion of the time	 
+   */
+   DLLEXPORT DateTime(const AbstractQoreZoneInfo *zone, int64 seconds, int us = 0);
 
    //! constructor for setting the date from a string in the format YYYYMMDDHHmmSS
    /** additionally a milliseconds value can be appended with a period and 3 integers in the format [.xxx]
@@ -320,6 +325,9 @@ public:
 
    //! returns -1, 0, or 1 if the left date is less than, equal, or greater than the right date
    DLLEXPORT static int compareDates(const DateTime *left, const DateTime *right);
+
+   //! static "constructor" to create an absolute time, including microseconds
+   DLLEXPORT static DateTime *makeNew(const AbstractQoreZoneInfo *n_zone, int n_year, int n_month, int n_day, int n_hour = 0, int n_minute = 0, int n_second = 0, int n_us = 0);
 };
 
 #endif

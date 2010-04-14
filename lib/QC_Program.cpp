@@ -25,8 +25,7 @@
 
 qore_classid_t CID_PROGRAM;
 
-static void PROGRAM_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
-{
+static void PROGRAM_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink) {
    const AbstractQoreNode *p0;
    int parse_opt;
 
@@ -38,8 +37,7 @@ static void PROGRAM_constructor(QoreObject *self, const QoreListNode *params, Ex
    self->setPrivate(CID_PROGRAM, new QoreProgram(getProgram(), parse_opt));
 }
 
-static void PROGRAM_copy(QoreObject *self, QoreObject *old, QoreProgram *p, ExceptionSink *xsink)
-{
+static void PROGRAM_copy(QoreObject *self, QoreObject *old, QoreProgram *p, ExceptionSink *xsink) {
    xsink->raiseException("PROGRAM-COPY-ERROR", "copying Program objects is currently unsupported");
 }
 

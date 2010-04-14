@@ -32,9 +32,7 @@ static AbstractQoreNode *f_now_ms(const QoreListNode *params, ExceptionSink *xsi
    int us;
    int64 seconds = q_epoch_us(us);
 
-   DateTimeNode *rv = new DateTimeNode;
-   rv->setDate(currentTZ(), seconds, (us / 1000) * 1000);
-   return rv;
+   return new DateTimeNode(currentTZ(), seconds, (us / 1000) * 1000);
 }
 
 // returns the current date and time with a resolution to the microsecond
@@ -42,9 +40,7 @@ static AbstractQoreNode *f_now_us(const QoreListNode *params, ExceptionSink *xsi
    int us;
    int64 seconds = q_epoch_us(us);
 
-   DateTimeNode *rv = new DateTimeNode;
-   rv->setDate(currentTZ(), seconds, us);
-   return rv;
+   return new DateTimeNode(currentTZ(), seconds, us);
 }
 
 // returns the current GMT date and time with a resolution to the millisecond
@@ -52,9 +48,7 @@ static AbstractQoreNode *f_now_gmt_ms(const QoreListNode *params, ExceptionSink 
    int us;
    int64 seconds = q_epoch_us(us);
 
-   DateTimeNode *rv = new DateTimeNode;
-   rv->setDate(0, seconds, (us / 1000) * 1000);
-   return rv;
+   return new DateTimeNode(NULL, seconds, (us / 1000) * 1000);
 }
 
 // returns the current date and time with a resolution to the microsecond
@@ -62,9 +56,7 @@ static AbstractQoreNode *f_now_gmt_us(const QoreListNode *params, ExceptionSink 
    int us;
    int64 seconds = q_epoch_us(us);
 
-   DateTimeNode *rv = new DateTimeNode;
-   rv->setDate(0, seconds, us);
-   return rv;
+   return new DateTimeNode(NULL, seconds, us);
 }
 
 static AbstractQoreNode *f_format_date(const QoreListNode *params, ExceptionSink *xsink) {
@@ -80,27 +72,19 @@ static AbstractQoreNode *f_format_date(const QoreListNode *params, ExceptionSink
 
 // returns the current date and time with a resolution to the second
 static AbstractQoreNode *f_localtime(const QoreListNode *params, ExceptionSink *xsink) {
-   DateTimeNode *rv = new DateTimeNode;
-   rv->setDate(currentTZ(), (int64)time(0), 0);
-   return rv;
+   return new DateTimeNode(currentTZ(), (int64)time(0), 0);
 }
 
 static AbstractQoreNode *f_localtime_int_int(const QoreListNode *params, ExceptionSink *xsink) {
-   DateTimeNode *rv = new DateTimeNode;
-   rv->setDate(currentTZ(), HARD_QORE_INT(params, 0), HARD_QORE_INT(params, 1));
-   return rv;
+   return new DateTimeNode(currentTZ(), HARD_QORE_INT(params, 0), HARD_QORE_INT(params, 1));
 }
 
 static AbstractQoreNode *f_gmtime(const QoreListNode *params, ExceptionSink *xsink) {
-   DateTimeNode *rv = new DateTimeNode;
-   rv->setDate(0, (int64)time(0), 0);
-   return rv;
+   return new DateTimeNode(NULL, (int64)time(0), 0);
 }
 
 static AbstractQoreNode *f_gmtime_int_int(const QoreListNode *params, ExceptionSink *xsink) {
-   DateTimeNode *rv = new DateTimeNode;
-   rv->setDate(0, HARD_QORE_INT(params, 0), HARD_QORE_INT(params, 1));
-   return rv;
+   return new DateTimeNode(NULL, HARD_QORE_INT(params, 0), HARD_QORE_INT(params, 1));
 }
 
 static AbstractQoreNode *f_mktime(const QoreListNode *params, ExceptionSink *xsink) {

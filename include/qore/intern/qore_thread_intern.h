@@ -113,9 +113,6 @@ DLLLOCAL void parseRestoreCodeInfo(const char *parse_code, const QoreTypeInfo *r
 DLLLOCAL const QoreTypeInfo *saveReturnTypeInfo(const QoreTypeInfo *returnTypeInfo);
 DLLLOCAL const QoreTypeInfo *getReturnTypeInfo();
 
-// gets the current time zone
-DLLLOCAL const AbstractQoreZoneInfo *currentTZ();
-
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
 DLLLOCAL void pushCall(CallNode *cn);
 DLLLOCAL void popCall(ExceptionSink *xsink);

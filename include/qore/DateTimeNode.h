@@ -30,6 +30,8 @@
 #include <qore/AbstractQoreNode.h>
 #include <qore/DateTime.h>
 
+class qore_date_private;
+
 //! Qore's parse tree/value type for date-time values, reference-counted, dynamically-allocated only
 class DateTimeNode : public SimpleValueQoreNode, public DateTime {
 private:
@@ -63,6 +65,9 @@ private:
       @return the seconds offset from 1970-01-01 00:00:00 (start of the UNIX epoch) 
    */
    DLLEXPORT virtual double getAsFloatImpl() const;
+
+   //! this constructor is not exported in the library
+   DLLLOCAL DateTimeNode(qore_date_private *n_priv);
 
 protected:
    //! protected destructor only called when references = 0, use deref() instead
@@ -100,6 +105,14 @@ public:
       @param ms the milliseconds portion of the time	 
    */
    DLLEXPORT DateTimeNode(int64 seconds, int ms);
+
+   //! constructor to create an absolute time as an offset from the epoch, including microseconds
+   /**
+      @param zone time zone for the date/time value, 0 = UTC, @see currentTZ()
+      @param seconds the number of seconds from January 1, 1970
+      @param us the microseconds portion of the time	 
+   */
+   DLLEXPORT DateTimeNode(const AbstractQoreZoneInfo *zone, int64 seconds, int us = 0);
 
    //! constructor for setting the date from a string in the format YYYYMMDDHHmmSS
    /** additionally a milliseconds value can be appended with a period and 3 integers in the format [.xxx]
@@ -215,6 +228,9 @@ public:
        @param xsink if an error occurs, the Qore-language exception information will be added here
    */
    DLLEXPORT static DateTimeNode *getDateFromISOWeek(int year, int week, int day, ExceptionSink *xsink);
+
+   //! static "constructor" to create an absolute time, including microseconds
+   DLLEXPORT static DateTimeNode *makeNew(const AbstractQoreZoneInfo *n_zone, int n_year, int n_month, int n_day, int n_hour = 0, int n_minute = 0, int n_second = 0, int n_us = 0);
 };
 
 DLLEXPORT extern DateTimeNode *ZeroDate;

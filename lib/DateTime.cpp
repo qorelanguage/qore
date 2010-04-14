@@ -27,6 +27,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+DateTime::DateTime(qore_date_private *n_priv) : priv(n_priv) {
+}
+
 DateTime::DateTime(bool r) : priv(new qore_date_private(r)) {
 }
 
@@ -34,9 +37,6 @@ DateTime::DateTime(const DateTime &dt) : priv(new qore_date_private(*dt.priv)) {
 }
 
 DateTime::DateTime(int y, int mo, int d, int h, int mi, int s, short ms, bool r) : priv(new qore_date_private(y, mo, d, h, mi, s, (int)ms * 1000, r)) {
-}
-
-DateTime::DateTime(const AbstractQoreZoneInfo *z, int y, int mo, int d, int h, int mi, int s, int u) : priv(new qore_date_private(z, y, mo, d, h, mi, s, u)) {
 }
 
 DateTime::DateTime(const AbstractQoreZoneInfo *z, int64 seconds, int n_us) : priv(new qore_date_private) {
@@ -251,4 +251,8 @@ DateTime *DateTime::unaryMinus() const {
 
 void DateTime::unaryMinusInPlace() {
    priv->unaryMinus();
+}
+
+DateTime *DateTime::makeNew(const AbstractQoreZoneInfo *z, int y, int mo, int d, int h, int mi, int s, int u) {
+   return new DateTime(new qore_date_private(z, y, mo, d, h, mi, s, u));
 }

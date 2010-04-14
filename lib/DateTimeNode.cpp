@@ -25,6 +25,9 @@
 #include <qore/Qore.h>
 #include <qore/intern/qore_date_private.h>
 
+DateTimeNode::DateTimeNode(qore_date_private *n_priv) : SimpleValueQoreNode(NT_DATE), DateTime(n_priv) {
+}
+
 DateTimeNode::DateTimeNode(bool r) : SimpleValueQoreNode(NT_DATE), DateTime(r) {
 }
 
@@ -34,13 +37,8 @@ DateTimeNode::~DateTimeNode() {
 DateTimeNode::DateTimeNode(int y, int mo, int d, int h, int mi, int s, short ms, bool r) : SimpleValueQoreNode(NT_DATE), DateTime(y, mo, d, h, mi, s, ms, r) {
 }
 
-/*
-DateTimeNode::DateTimeNode(const AbstractQoreZoneInfo *z, int y, int mo, int d, int h, int mi, int s, int u) : DateTime(z, y, mo, d, h, mi, s, u) {
+DateTimeNode::DateTimeNode(const AbstractQoreZoneInfo *z, int64 seconds, int n_us) : SimpleValueQoreNode(NT_DATE), DateTime(z, seconds, n_us) {
 }
-
-DateTimeNode::DateTimeNode(const AbstractQoreZoneInfo *z, int64 seconds, int n_us) : DateTime(z, seconds, n_us) {
-}
-*/
 
 DateTimeNode::DateTimeNode(int64 seconds) : SimpleValueQoreNode(NT_DATE), DateTime(seconds) {
 }
@@ -182,4 +180,8 @@ DateTimeNode *DateTimeNode::unaryMinus() const {
    DateTimeNode *rv = new DateTimeNode(*this);
    rv->priv->unaryMinus();
    return rv;
+}
+
+DateTimeNode *DateTimeNode::makeNew(const AbstractQoreZoneInfo *z, int y, int mo, int d, int h, int mi, int s, int u) {
+   return new DateTimeNode(new qore_date_private(z, y, mo, d, h, mi, s, u));
 }
