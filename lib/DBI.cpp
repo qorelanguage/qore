@@ -31,24 +31,27 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#define NUM_DBI_CAPS 4
+#define NUM_DBI_CAPS 8
 
 typedef safe_dslist<DBIDriver *> dbi_list_t;
 
 // global qore library class for DBI driver management
 DBIDriverList DBI;
 
-struct dbi_cap_hash
-{
+struct dbi_cap_hash {
    int cap;
    const char *desc;
 };
 
 struct dbi_cap_hash dbi_cap_list[] =
-{ { DBI_CAP_CHARSET_SUPPORT,        "CharsetSupport" },
+{ { DBI_CAP_TIME_ZONE_SUPPORT,      "TimeZoneSupport" },
+  { DBI_CAP_CHARSET_SUPPORT,        "CharsetSupport" },
   { DBI_CAP_TRANSACTION_MANAGEMENT, "TransactionManagement" },
   { DBI_CAP_STORED_PROCEDURES,      "StoredProcedures" },
   { DBI_CAP_LOB_SUPPORT,            "LargeObjectSupport" },
+  { DBI_CAP_BIND_BY_VALUE,          "BindByValue" },
+  { DBI_CAP_BIND_BY_PLACEHOLDER,    "BindByPlaceholder" },
+  { DBI_CAP_HAS_EXEC_RAW,           "HasExecRaw" },
 };
 
 class DBIDriverFunctions {
@@ -626,12 +629,14 @@ QoreNamespace *getSQLNamespace() {
    SQLNS->addConstant("DSTimesTen", new QoreStringNode("timesten"));
 
    // for DBI driver capabilities
+   SQLNS->addConstant("DBI_CAP_TIME_ZONE_SUPPORT",      new QoreBigIntNode(DBI_CAP_TIME_ZONE_SUPPORT));
    SQLNS->addConstant("DBI_CAP_CHARSET_SUPPORT",        new QoreBigIntNode(DBI_CAP_CHARSET_SUPPORT));
    SQLNS->addConstant("DBI_CAP_TRANSACTION_MANAGEMENT", new QoreBigIntNode(DBI_CAP_TRANSACTION_MANAGEMENT));
    SQLNS->addConstant("DBI_CAP_STORED_PROCEDURES",      new QoreBigIntNode(DBI_CAP_STORED_PROCEDURES));
    SQLNS->addConstant("DBI_CAP_LOB_SUPPORT",            new QoreBigIntNode(DBI_CAP_LOB_SUPPORT));
    SQLNS->addConstant("DBI_CAP_BIND_BY_VALUE",          new QoreBigIntNode(DBI_CAP_BIND_BY_VALUE));
    SQLNS->addConstant("DBI_CAP_BIND_BY_PLACEHOLDER",    new QoreBigIntNode(DBI_CAP_BIND_BY_PLACEHOLDER));
+   SQLNS->addConstant("DBI_CAP_HAS_EXEC_RAW",           new QoreBigIntNode(DBI_CAP_HAS_EXEC_RAW));
 
    // for column types for binding
    SQLNS->addConstant("VARCHAR",  new QoreStringNode("string"));
@@ -644,4 +649,3 @@ QoreNamespace *getSQLNamespace() {
 
    return SQLNS;
 }
-

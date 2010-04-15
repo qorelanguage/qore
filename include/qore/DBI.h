@@ -59,7 +59,6 @@
 #define QDBI_METHOD_GET_CLIENT_VERSION       11
 #define QDBI_METHOD_EXECRAW                  12
 
-
 #define QDBI_VALID_CODES 13
 
 class Datasource;
