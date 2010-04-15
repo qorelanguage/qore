@@ -383,8 +383,8 @@ QoreClass *initDatasourceClass() {
 
    QC_DATASOURCE->addMethodExtended("beginTransaction",  (q_method_t)DS_beginTransaction, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
    QC_DATASOURCE->addMethodExtended("reset",             (q_method_t)DS_reset, false, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
-   QC_DATASOURCE->addMethodExtended("getCapabilities",   (q_method_t)DS_getCapabilities, false, QC_NOOP, QDOM_DEFAULT, bigIntTypeInfo);
-   QC_DATASOURCE->addMethodExtended("getCapabilityList", (q_method_t)DS_getCapabilityList, false, QC_NOOP, QDOM_DEFAULT, listTypeInfo);
+   QC_DATASOURCE->addMethodExtended("getCapabilities",   (q_method_t)DS_getCapabilities, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_DATASOURCE->addMethodExtended("getCapabilityList", (q_method_t)DS_getCapabilityList, false, QC_NO_FLAGS, QDOM_DEFAULT, listTypeInfo);
 
    QC_DATASOURCE->addMethodExtended("setUserName",       (q_method_t)class_noop, false, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    QC_DATASOURCE->addMethodExtended("setUserName",       (q_method_t)DS_setUserName, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
