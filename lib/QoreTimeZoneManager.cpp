@@ -506,3 +506,7 @@ const AbstractQoreZoneInfo *QoreTimeZoneManager::findLoadRegion(const char *name
    // find or load region
    return processFile(name, xsink);
 }
+
+const AbstractQoreZoneInfo *findCreateOffsetZone(int seconds_east) {
+   return QTZM.findCreateOffsetZone(seconds_east);
+}

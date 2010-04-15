@@ -387,6 +387,21 @@ struct qore_time_info : public qore_simple_tm {
 
       return *this;
    }
+
+   DLLLOCAL void copyTo(qore_tm &info) {
+      info.year          = year;
+      info.month         = month;
+      info.day           = day;
+      info.hour          = hour;
+      info.minute        = minute;
+      info.second        = second;
+      info.us            = us;
+      info.zone_name     = zname;
+      info.region_name   = zone->getRegionName();
+      info.gmt_secs_east = gmtoffset;
+      info.dst           = isdst;
+      info.zone          = zone;
+   }
 };
 
 // with constructors, for use with absolute dates
@@ -546,6 +561,13 @@ public:
    }
 
    DLLLOCAL void get(qore_time_info &info) const {
+      const char *zname;
+      bool isdst;
+      int offset = zone->getGMTOffset(epoch, isdst, zname);
+      info.set(epoch, us, offset, isdst, zname, zone);
+   }
+
+   DLLLOCAL void get(const AbstractQoreZoneInfo *z, qore_time_info &info) const {
       const char *zname;
       bool isdst;
       int offset = zone->getGMTOffset(epoch, isdst, zname);
@@ -1206,6 +1228,13 @@ public:
          d.rel.get(info);
       else
          d.abs.get(info);
+   }
+
+   DLLLOCAL void get(const AbstractQoreZoneInfo *zone, qore_time_info &info) const {
+      if (relative)
+         d.rel.get(info);
+      else
+         d.abs.get(zone, info);
    }
 
    DLLLOCAL void format(QoreString &str, const char *fmt) const;

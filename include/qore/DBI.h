@@ -31,12 +31,14 @@
 
 // DBI Driver capabilities
 #define DBI_CAP_NONE                     0
+#define DBI_CAP_TIME_ZONE_SUPPORT        (1 << 0)
 #define DBI_CAP_CHARSET_SUPPORT          (1 << 1)
 #define DBI_CAP_TRANSACTION_MANAGEMENT   (1 << 2)
 #define DBI_CAP_STORED_PROCEDURES        (1 << 3)
 #define DBI_CAP_LOB_SUPPORT              (1 << 4)
 #define DBI_CAP_BIND_BY_VALUE            (1 << 5)
 #define DBI_CAP_BIND_BY_PLACEHOLDER      (1 << 6)
+#define DBI_CAP_HAS_EXEC_RAW             (1 << 7)
 
 #define BN_PLACEHOLDER  0
 #define BN_VALUE        1

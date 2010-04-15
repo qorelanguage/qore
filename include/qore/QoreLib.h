@@ -57,6 +57,9 @@
 //! defined because this version of Qore supports the execRaw() DBI function
 #define _QORE_HAS_DBI_EXECRAW 1
 
+//! defined because this version of Qore has time zone support
+#define _QORE_HAS_TIME_ZONES 1
+
 // qore code flags
 #define QC_NO_FLAGS                 0   //! no flag
 #define QC_NOOP               (1 << 0)  //! this function is a noop, meaning it is only there for backwards compatibility and does nothing
@@ -270,6 +273,11 @@ DLLEXPORT BinaryNode     *qore_bzip2(void *ptr, unsigned long len, int level, Ex
 DLLEXPORT QoreStringNode *qore_bunzip2_to_string(const BinaryNode *bin, const QoreEncoding *enc, ExceptionSink *xsink);
 //! decompresses bzip2 data to a binary
 DLLEXPORT BinaryNode     *qore_bunzip2_to_binary(const BinaryNode *bin, ExceptionSink *xsink);
+
+class AbstractQoreZoneInfo;
+
+//! returns a time zone for the given time
+DLLEXPORT const AbstractQoreZoneInfo *findCreateOffsetZone(int seconds_east);
 
 //! option: atomic operations
 #define QORE_OPT_ATOMIC_OPERATIONS       "atomic operations"

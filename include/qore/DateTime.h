@@ -29,6 +29,15 @@
 
 class AbstractQoreZoneInfo;
 
+//! for returning broken-down time information
+struct qore_tm {
+   int year, month, day, hour, minute, second, us, gmt_secs_east;
+   bool dst;
+   const char *zone_name;
+   const char *region_name;
+   const AbstractQoreZoneInfo *zone;
+};
+
 //! Holds absolute and relative date/time values in Qore with precision to the millisecond
 /** Date arithmetic and date formatting is supported by this class.  Conversion to and from
     integers is based on a 64-bit offset in seconds since January 1, 1970 (the start of the
@@ -304,6 +313,12 @@ public:
 
    //! converts the current value to the negative of itself
    DLLEXPORT void unaryMinusInPlace();
+
+   //! returns the broken-down time in the given time zone (zone = 0 means UTC)
+   DLLEXPORT void getInfo(const AbstractQoreZoneInfo *n_zone, qore_tm &info) const;
+
+   //! returns the broken-down time in the current time zone
+   DLLEXPORT void getInfo(qore_tm &info) const;
 
    // static methods
    //! returns true if the year passed is a leap year according to a proleptic gregorian calendar

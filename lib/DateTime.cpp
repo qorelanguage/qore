@@ -253,6 +253,18 @@ void DateTime::unaryMinusInPlace() {
    priv->unaryMinus();
 }
 
+void DateTime::getInfo(const AbstractQoreZoneInfo *n_zone, qore_tm &info) const {
+   qore_time_info i;
+   priv->get(n_zone, i);
+   i.copyTo(info);
+}
+
+void DateTime::getInfo(qore_tm &info) const {
+   qore_time_info i;
+   priv->get(i);
+   i.copyTo(info);
+}
+
 DateTime *DateTime::makeAbsolute(const AbstractQoreZoneInfo *z, int y, int mo, int d, int h, int mi, int s, int u) {
    return new DateTime(new qore_date_private(z, y, mo, d, h, mi, s, u));
 }
