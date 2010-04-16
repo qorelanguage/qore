@@ -38,7 +38,7 @@
 #define DBI_CAP_LOB_SUPPORT              (1 << 4)
 #define DBI_CAP_BIND_BY_VALUE            (1 << 5)
 #define DBI_CAP_BIND_BY_PLACEHOLDER      (1 << 6)
-#define DBI_CAP_HAS_EXEC_RAW             (1 << 7)
+#define DBI_CAP_HAS_EXECRAW             (1 << 7)
 
 #define BN_PLACEHOLDER  0
 #define BN_VALUE        1

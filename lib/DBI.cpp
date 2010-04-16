@@ -51,7 +51,7 @@ struct dbi_cap_hash dbi_cap_list[] =
   { DBI_CAP_LOB_SUPPORT,            "LargeObjectSupport" },
   { DBI_CAP_BIND_BY_VALUE,          "BindByValue" },
   { DBI_CAP_BIND_BY_PLACEHOLDER,    "BindByPlaceholder" },
-  { DBI_CAP_HAS_EXEC_RAW,           "HasExecRaw" },
+  { DBI_CAP_HAS_EXECRAW,           "HasExecRaw" },
 };
 
 class DBIDriverFunctions {
@@ -622,7 +622,7 @@ QoreNamespace *getSQLNamespace() {
    SQLNS->addConstant("DSPGSQL",    new QoreStringNode("pgsql"));
    SQLNS->addConstant("DSMSSQL",    new QoreStringNode("freetds"));
    SQLNS->addConstant("DSFreeTDS",  new QoreStringNode("freetds"));
-   SQLNS->addConstant("DSSQLite",   new QoreStringNode("sqlite"));
+   SQLNS->addConstant("DSSQLite3",   new QoreStringNode("sqlite3"));
    // the following have no drivers yet
    SQLNS->addConstant("DSDB2",      new QoreStringNode("db2"));
    SQLNS->addConstant("DSInformix", new QoreStringNode("informix"));
@@ -636,7 +636,7 @@ QoreNamespace *getSQLNamespace() {
    SQLNS->addConstant("DBI_CAP_LOB_SUPPORT",            new QoreBigIntNode(DBI_CAP_LOB_SUPPORT));
    SQLNS->addConstant("DBI_CAP_BIND_BY_VALUE",          new QoreBigIntNode(DBI_CAP_BIND_BY_VALUE));
    SQLNS->addConstant("DBI_CAP_BIND_BY_PLACEHOLDER",    new QoreBigIntNode(DBI_CAP_BIND_BY_PLACEHOLDER));
-   SQLNS->addConstant("DBI_CAP_HAS_EXEC_RAW",           new QoreBigIntNode(DBI_CAP_HAS_EXEC_RAW));
+   SQLNS->addConstant("DBI_CAP_HAS_EXECRAW",            new QoreBigIntNode(DBI_CAP_HAS_EXECRAW));
 
    // for column types for binding
    SQLNS->addConstant("VARCHAR",  new QoreStringNode("string"));
