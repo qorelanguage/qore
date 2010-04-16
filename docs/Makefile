@@ -9,11 +9,15 @@ clean:
 distclean:	clean
 	
 
-# TODO/FIXME: use this "modern way" in the future...
-#xsltproc --stringparam html.stylesheet qore-style.css \
-#         --stringparam use.id.as.filename 1 \
-#         --stringparam generate.toc "book toc,title" \
-#         --output qore.html \
-#         /usr/share/xml/docbook/stylesheet/nwalsh5/current/xhtml/docbook.xsl \
-#         docbook/qore.docbook
+# "modern" way how to handle docbook files
+# opensuse
+#/usr/share/xml/docbook/stylesheet/nwalsh5/current/xhtml/docbook.xsl \
+# macports
+experimental:
+	xsltproc --stringparam html.stylesheet qore-style-exp.css \
+	         --stringparam use.id.as.filename 1 \
+	         --stringparam generate.toc "book toc,title" \
+	         --output qore.html \
+	         /opt/local/share/xsl/docbook-xsl/xhtml/chunk.xsl \
+	         docbook/qore.docbook
 

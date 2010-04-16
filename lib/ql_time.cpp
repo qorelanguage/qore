@@ -48,7 +48,7 @@ static AbstractQoreNode *f_now_gmt_ms(const QoreListNode *params, ExceptionSink 
    int us;
    int64 seconds = q_epoch_us(us);
 
-   return new DateTimeNode(NULL, seconds, (us / 1000) * 1000);
+   return DateTimeNode::makeAbsolute(NULL, seconds, (us / 1000) * 1000);
 }
 
 // returns the current date and time with a resolution to the microsecond
@@ -56,7 +56,7 @@ static AbstractQoreNode *f_now_gmt_us(const QoreListNode *params, ExceptionSink 
    int us;
    int64 seconds = q_epoch_us(us);
 
-   return new DateTimeNode(NULL, seconds, us);
+   return DateTimeNode::makeAbsolute(NULL, seconds, us);
 }
 
 static AbstractQoreNode *f_format_date(const QoreListNode *params, ExceptionSink *xsink) {
@@ -65,7 +65,7 @@ static AbstractQoreNode *f_format_date(const QoreListNode *params, ExceptionSink
 
    QoreStringNode *rv = new QoreStringNode;
    p1->format(*rv, p0->getBuffer());
-   
+
    printd(5, "format_date() returning \"%s\"\n", rv->getBuffer());
    return rv;
 }
@@ -80,11 +80,11 @@ static AbstractQoreNode *f_localtime_int_int(const QoreListNode *params, Excepti
 }
 
 static AbstractQoreNode *f_gmtime(const QoreListNode *params, ExceptionSink *xsink) {
-   return new DateTimeNode(NULL, (int64)time(0), 0);
+   return DateTimeNode::makeAbsolute(NULL, (int64)time(0), 0);
 }
 
 static AbstractQoreNode *f_gmtime_int_int(const QoreListNode *params, ExceptionSink *xsink) {
-   return new DateTimeNode(NULL, HARD_QORE_INT(params, 0), HARD_QORE_INT(params, 1));
+   return DateTimeNode::makeAbsolute(NULL, HARD_QORE_INT(params, 0), HARD_QORE_INT(params, 1));
 }
 
 static AbstractQoreNode *f_mktime(const QoreListNode *params, ExceptionSink *xsink) {
@@ -229,14 +229,14 @@ static AbstractQoreNode *f_getISOWeekHash(const QoreListNode *params, ExceptionS
    h->setKeyValue("year", new QoreBigIntNode(year), 0);
    h->setKeyValue("week", new QoreBigIntNode(week), 0);
    h->setKeyValue("day", new QoreBigIntNode(day), 0);
-   
+
    return h;
 }
 
 // returns a string corresponding to the ISO-8601 year and calendar week for the date passed
 static AbstractQoreNode *f_getISOWeekString(const QoreListNode *params, ExceptionSink *xsink) {
    const DateTimeNode *p0 = HARD_QORE_DATE(params, 0);
-   
+
    int year, week, day;
    p0->getISOWeek(year, week, day);
    QoreStringNode *str = new QoreStringNode();
@@ -280,7 +280,7 @@ static AbstractQoreNode *f_clock_getnanos(const QoreListNode *params, ExceptionS
    int ns;
    int64 seconds = q_epoch_ns(ns);
 
-   return new QoreBigIntNode(seconds * 1000000000ll + ns); 
+   return new QoreBigIntNode(seconds * 1000000000ll + ns);
 }
 
 /* qore: clock_getmicros()
@@ -301,10 +301,10 @@ static AbstractQoreNode *f_date_ms(const QoreListNode *params, ExceptionSink *xs
 
 void init_time_functions() {
    builtinFunctions.add2("now", f_localtime, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo);
-   builtinFunctions.add2("now_ms", f_now_ms, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo); 
-   builtinFunctions.add2("now_us", f_now_us, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo); 
-   builtinFunctions.add2("now_gmt_ms", f_now_gmt_ms, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo); 
-   builtinFunctions.add2("now_gmt_us", f_now_gmt_us, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo); 
+   builtinFunctions.add2("now_ms", f_now_ms, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo);
+   builtinFunctions.add2("now_us", f_now_us, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo);
+   builtinFunctions.add2("now_gmt_ms", f_now_gmt_ms, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo);
+   builtinFunctions.add2("now_gmt_us", f_now_gmt_us, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo);
 
    builtinFunctions.add2("format_date", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("format_date", f_format_date, QC_CONSTANT, QDOM_DEFAULT, stringTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, dateTypeInfo, QORE_PARAM_NO_ARG);
@@ -326,7 +326,7 @@ void init_time_functions() {
 
    builtinFunctions.add2("years", f_reldate_noop, QC_NOOP, QDOM_DEFAULT, dateTypeInfo);
    builtinFunctions.add2("years", f_years, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
-   
+
    builtinFunctions.add2("months", f_reldate_noop, QC_NOOP, QDOM_DEFAULT, dateTypeInfo);
    builtinFunctions.add2("months", f_months, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
 
@@ -338,10 +338,10 @@ void init_time_functions() {
 
    builtinFunctions.add2("minutes", f_reldate_noop, QC_NOOP, QDOM_DEFAULT, dateTypeInfo);
    builtinFunctions.add2("minutes", f_minutes, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
-   
+
    builtinFunctions.add2("seconds", f_reldate_noop, QC_NOOP, QDOM_DEFAULT, dateTypeInfo);
    builtinFunctions.add2("seconds", f_seconds, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
-   
+
    builtinFunctions.add2("milliseconds", f_reldate_noop, QC_NOOP, QDOM_DEFAULT, dateTypeInfo);
    builtinFunctions.add2("milliseconds", f_milliseconds, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
 
@@ -350,25 +350,25 @@ void init_time_functions() {
 
    builtinFunctions.add2("get_months", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("get_months", f_get_months, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
-   
+
    builtinFunctions.add2("get_days", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("get_days", f_get_days, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
-   
+
    builtinFunctions.add2("get_hours", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("get_hours", f_get_hours, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
-   
+
    builtinFunctions.add2("get_minutes", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("get_minutes", f_get_minutes, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
-   
+
    builtinFunctions.add2("get_seconds", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("get_seconds", f_get_seconds, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
-   
+
    builtinFunctions.add2("get_milliseconds", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("get_milliseconds", f_get_milliseconds, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
-   
+
    builtinFunctions.add2("get_midnight", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("get_midnight", f_get_midnight, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
-   
+
    builtinFunctions.add2("getDayNumber", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("getDayNumber", f_getDayNumber, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
 
@@ -385,7 +385,7 @@ void init_time_functions() {
    builtinFunctions.add2("getISOWeekString", f_getISOWeekString, QC_CONSTANT, QDOM_DEFAULT, stringTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add2("getDateFromISOWeek", f_getDateFromISOWeek, QC_NO_FLAGS, QDOM_DEFAULT, dateTypeInfo, 3, softBigIntTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
-   
+
    builtinFunctions.add2("clock_getmillis",     f_clock_getmillis, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo);
    builtinFunctions.add2("clock_getnanos",      f_clock_getnanos, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo);
    builtinFunctions.add2("clock_getmicros",     f_clock_getmicros, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo);
