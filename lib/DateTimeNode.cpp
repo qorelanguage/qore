@@ -37,9 +37,6 @@ DateTimeNode::~DateTimeNode() {
 DateTimeNode::DateTimeNode(int y, int mo, int d, int h, int mi, int s, short ms, bool r) : SimpleValueQoreNode(NT_DATE), DateTime(y, mo, d, h, mi, s, ms, r) {
 }
 
-DateTimeNode::DateTimeNode(const AbstractQoreZoneInfo *z, int64 seconds, int n_us) : SimpleValueQoreNode(NT_DATE), DateTime(z, seconds, n_us) {
-}
-
 DateTimeNode::DateTimeNode(int64 seconds) : SimpleValueQoreNode(NT_DATE), DateTime(seconds) {
 }
 

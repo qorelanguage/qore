@@ -39,10 +39,6 @@ DateTime::DateTime(const DateTime &dt) : priv(new qore_date_private(*dt.priv)) {
 DateTime::DateTime(int y, int mo, int d, int h, int mi, int s, short ms, bool r) : priv(new qore_date_private(y, mo, d, h, mi, s, (int)ms * 1000, r)) {
 }
 
-DateTime::DateTime(const AbstractQoreZoneInfo *z, int64 seconds, int n_us) : priv(new qore_date_private) {
-   setDate(z, seconds, n_us);
-}
-
 DateTime::DateTime(const struct tm *tms) : priv(new qore_date_private) {
    setDate(tms);
 }

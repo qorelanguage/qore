@@ -106,14 +106,6 @@ public:
    */
    DLLEXPORT DateTimeNode(int64 seconds, int ms);
 
-   //! constructor to create an absolute time as an offset from the epoch, including microseconds
-   /**
-      @param zone time zone for the date/time value, 0 = UTC, @see currentTZ()
-      @param seconds the number of seconds from January 1, 1970
-      @param us the microseconds portion of the time	 
-   */
-   DLLEXPORT DateTimeNode(const AbstractQoreZoneInfo *zone, int64 seconds, int us = 0);
-
    //! constructor for setting the date from a string in the format YYYYMMDDHHmmSS
    /** additionally a milliseconds value can be appended with a period and 3 integers in the format [.xxx]
        @param date the string to use to set the date in the format YYYYMMDDHHmmSS[.xxx]
