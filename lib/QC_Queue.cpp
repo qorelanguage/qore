@@ -27,7 +27,7 @@ qore_classid_t CID_QUEUE;
 QoreClass *QC_QUEUE;
 
 static void QUEUE_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink) {
-   self->setPrivate(CID_QUEUE, new Queue());
+   self->setPrivate(CID_QUEUE, new Queue);
 }
 
 static void QUEUE_destructor(QoreObject *self, Queue *tq, ExceptionSink *xsink) {
@@ -95,15 +95,26 @@ QoreClass *initQueueClass() {
 
    QC_QUEUE = new QoreClass("Queue", QDOM_THREAD_CLASS);
    CID_QUEUE = QC_QUEUE->getID();
-   QC_QUEUE->setConstructor(QUEUE_constructor);
+
+   QC_QUEUE->setConstructorExtended(QUEUE_constructor);
+
    QC_QUEUE->setDestructor((q_destructor_t)QUEUE_destructor);
    QC_QUEUE->setCopy((q_copy_t)QUEUE_copy);
-   QC_QUEUE->addMethod("push",          (q_method_t)QUEUE_push);
-   QC_QUEUE->addMethod("insert",        (q_method_t)QUEUE_insert);
-   QC_QUEUE->addMethod("get",           (q_method_t)QUEUE_get);
-   QC_QUEUE->addMethod("pop",           (q_method_t)QUEUE_pop);
-   QC_QUEUE->addMethod("size",          (q_method_t)QUEUE_size);
-   QC_QUEUE->addMethod("getWaiting",    (q_method_t)QUEUE_getWaiting);
+
+   // Queue::push()
+   QC_QUEUE->addMethodExtended("push",          (q_method_t)QUEUE_push, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, anyTypeInfo, QORE_PARAM_NO_ARG);
+   QC_QUEUE->addMethodExtended("insert",        (q_method_t)QUEUE_insert, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, anyTypeInfo, QORE_PARAM_NO_ARG);
+
+   QC_QUEUE->addMethodExtended("get",           (q_method_t)QUEUE_get, false, QC_NO_FLAGS, QDOM_DEFAULT, 0);
+   QC_QUEUE->addMethodExtended("get",           (q_method_t)QUEUE_get, false, QC_NO_FLAGS, QDOM_DEFAULT, 0, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
+   QC_QUEUE->addMethodExtended("get",           (q_method_t)QUEUE_get, false, QC_NO_FLAGS, QDOM_DEFAULT, 0, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
+
+   QC_QUEUE->addMethodExtended("pop",           (q_method_t)QUEUE_pop, false, QC_NO_FLAGS, QDOM_DEFAULT, 0);
+   QC_QUEUE->addMethodExtended("pop",           (q_method_t)QUEUE_pop, false, QC_NO_FLAGS, QDOM_DEFAULT, 0, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
+   QC_QUEUE->addMethodExtended("pop",           (q_method_t)QUEUE_pop, false, QC_NO_FLAGS, QDOM_DEFAULT, 0, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
+
+   QC_QUEUE->addMethodExtended("size",          (q_method_t)QUEUE_size, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_QUEUE->addMethodExtended("getWaiting",    (q_method_t)QUEUE_getWaiting, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
 
    return QC_QUEUE;
 }
