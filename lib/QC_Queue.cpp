@@ -113,8 +113,8 @@ QoreClass *initQueueClass() {
    QC_QUEUE->addMethodExtended("pop",           (q_method_t)QUEUE_pop, false, QC_NO_FLAGS, QDOM_DEFAULT, 0, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
    QC_QUEUE->addMethodExtended("pop",           (q_method_t)QUEUE_pop, false, QC_NO_FLAGS, QDOM_DEFAULT, 0, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
 
-   QC_QUEUE->addMethodExtended("size",          (q_method_t)QUEUE_size, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
-   QC_QUEUE->addMethodExtended("getWaiting",    (q_method_t)QUEUE_getWaiting, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_QUEUE->addMethodExtended("size",          (q_method_t)QUEUE_size, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_QUEUE->addMethodExtended("getWaiting",    (q_method_t)QUEUE_getWaiting, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo);
 
    return QC_QUEUE;
 }

@@ -120,11 +120,11 @@ QoreClass *initRWLockClass(QoreClass *AbstractSmartLock) {
 
    QC_RWLOCK->addMethodExtended("tryWriteLock",    (q_method_t)RWLOCK_tryWriteLock, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
 
-   QC_RWLOCK->addMethodExtended("numReaders",      (q_method_t)RWLOCK_numReaders, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_RWLOCK->addMethodExtended("numReaders",      (q_method_t)RWLOCK_numReaders, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo);
 
-   QC_RWLOCK->addMethodExtended("getReadWaiting",  (q_method_t)RWLOCK_getReadWaiting, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_RWLOCK->addMethodExtended("getReadWaiting",  (q_method_t)RWLOCK_getReadWaiting, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo);
 
-   QC_RWLOCK->addMethodExtended("getWriteWaiting", (q_method_t)RWLOCK_getWriteWaiting, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_RWLOCK->addMethodExtended("getWriteWaiting", (q_method_t)RWLOCK_getWriteWaiting, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo);
 
    return QC_RWLOCK;
 }

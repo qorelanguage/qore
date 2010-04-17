@@ -39,11 +39,11 @@ static inline AbstractQoreNode *doReadResult(int rc, int64 val, const char *meth
 }
 
 static void SOCKET_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink) {
-   self->setPrivate(CID_SOCKET, new mySocket());
+   self->setPrivate(CID_SOCKET, new mySocket);
 }
 
 static void SOCKET_copy(QoreObject *self, QoreObject *old, AbstractPrivateData *obj, ExceptionSink *xsink) {
-   self->setPrivate(CID_SOCKET, new mySocket());
+   self->setPrivate(CID_SOCKET, new mySocket);
 }
 
 // currently hardcoded to SOCK_STREAM
@@ -52,16 +52,20 @@ static void SOCKET_copy(QoreObject *self, QoreObject *old, AbstractPrivateData *
 // * connect("hostname:<port_number>");
 // for AF_UNIX sockets:
 // * connect("filename");
-static AbstractQoreNode *SOCKET_connect(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
-   const QoreStringNode *p0;
-   // if parameters are not correct
-   if (!(p0 = test_string_param(params, 0))) {
-      xsink->raiseException("SOCKET-CONNECT-PARAMETER-ERROR",
-			    "expecting string parameter (INET: 'hostname:port', UNIX: 'path/filename') for Socket::connect() call");
-      return 0;
-   }
 
+// Socket::connect(string $sock, int|date $timeout_ms = -1)
+static AbstractQoreNode *SOCKET_connect_str_timeout(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
+   const QoreStringNode *p0 = HARD_QORE_STRING(params, 0);
    s->connect(p0->getBuffer(), getMsMinusOneInt(get_param(params, 1)), xsink);
+   return 0;
+}
+
+// Socket::connect(string $host, int $port, int|date $timeout_ms) returns nothing
+static AbstractQoreNode *SOCKET_connect_str_int_timeout(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
+   const QoreStringNode *p0 = HARD_QORE_STRING(params, 0);
+   int port = HARD_QORE_INT(params, 1);
+   int timeout_ms = HARD_QORE_INT(params, 2);
+   s->connectINET(p0->getBuffer(), port, timeout_ms, xsink);
    return 0;
 }
 
@@ -872,7 +876,15 @@ QoreClass *initSocketClass() {
    
    QC_SOCKET->setConstructor(SOCKET_constructor);
    QC_SOCKET->setCopy(SOCKET_copy);
-   QC_SOCKET->addMethod("connect",                   (q_method_t)SOCKET_connect);
+
+   // Socket::connect(string $sock, int|date $timeout_ms = -1)
+   QC_SOCKET->addMethodExtended("connect",                   (q_method_t)SOCKET_connect_str_timeout, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, new QoreBigIntNode(-1));
+   QC_SOCKET->addMethodExtended("connect",                   (q_method_t)SOCKET_connect_str_timeout, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, dateTypeInfo, QORE_PARAM_NO_ARG);
+
+   // Socket::connect(string $host, int $port, int|date $timeout_ms) returns nothing
+   QC_SOCKET->addMethodExtended("connect",                   (q_method_t)SOCKET_connect_str_int_timeout, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 3, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, new QoreBigIntNode(-1));
+   QC_SOCKET->addMethodExtended("connect",                   (q_method_t)SOCKET_connect_str_int_timeout, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 3, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, QORE_PARAM_NO_ARG, dateTypeInfo, QORE_PARAM_NO_ARG);
+
    QC_SOCKET->addMethod("connectSSL",                (q_method_t)SOCKET_connectSSL);
    QC_SOCKET->addMethod("bind",                      (q_method_t)SOCKET_bind);
 
@@ -931,7 +943,7 @@ QoreClass *initSocketClass() {
    QC_SOCKET->addMethod("setEventQueue",             (q_method_t)SOCKET_setEventQueue);
 
    QC_SOCKET->addMethodExtended("setNoDelay",                (q_method_t)SOCKET_setNoDelay, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
-   QC_SOCKET->addMethodExtended("getNoDelay",                (q_method_t)SOCKET_getNoDelay, false, QC_NO_FLAGS, QDOM_DEFAULT, boolTypeInfo);
+   QC_SOCKET->addMethodExtended("getNoDelay",                (q_method_t)SOCKET_getNoDelay, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, boolTypeInfo);
 
    return QC_SOCKET;
 }

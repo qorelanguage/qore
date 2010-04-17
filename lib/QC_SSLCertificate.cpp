@@ -126,19 +126,19 @@ QoreClass *initSSLCertificateClass() {
    QC_SSLCERTIFICATE->setConstructorExtended(SSLCERT_constructor_bin, false, QC_NO_FLAGS, QDOM_DEFAULT, 1, binaryTypeInfo, QORE_PARAM_NO_ARG);
    QC_SSLCERTIFICATE->setCopy((q_copy_t)SSLCERT_copy);
 
-   QC_SSLCERTIFICATE->addMethodExtended("getPEM",                (q_method_t)SSLCERT_getPEM, false, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo);
-   QC_SSLCERTIFICATE->addMethodExtended("getInfo",               (q_method_t)SSLCERT_getInfo, false, QC_NO_FLAGS, QDOM_DEFAULT, hashTypeInfo);
-   QC_SSLCERTIFICATE->addMethodExtended("getSignatureType",      (q_method_t)SSLCERT_getSignatureType, false, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo);
-   QC_SSLCERTIFICATE->addMethodExtended("getSignature",          (q_method_t)SSLCERT_getSignature, false, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo);
-   QC_SSLCERTIFICATE->addMethodExtended("getPublicKeyAlgorithm", (q_method_t)SSLCERT_getPublicKeyAlgorithm, false, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo);
-   QC_SSLCERTIFICATE->addMethodExtended("getPublicKey",          (q_method_t)SSLCERT_getPublicKey, false, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo);
-   QC_SSLCERTIFICATE->addMethodExtended("getSubjectHash",        (q_method_t)SSLCERT_getSubjectHash, false, QC_NO_FLAGS, QDOM_DEFAULT, hashTypeInfo);
-   QC_SSLCERTIFICATE->addMethodExtended("getIssuerHash",         (q_method_t)SSLCERT_getIssuerHash, false, QC_NO_FLAGS, QDOM_DEFAULT, hashTypeInfo);
-   QC_SSLCERTIFICATE->addMethodExtended("getSerialNumber",       (q_method_t)SSLCERT_getSerialNumber, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
-   QC_SSLCERTIFICATE->addMethodExtended("getVersion",            (q_method_t)SSLCERT_getVersion, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
-   QC_SSLCERTIFICATE->addMethodExtended("getPurposeHash",        (q_method_t)SSLCERT_getPurposeHash, false, QC_NO_FLAGS, QDOM_DEFAULT, hashTypeInfo);
-   QC_SSLCERTIFICATE->addMethodExtended("getNotBeforeDate",      (q_method_t)SSLCERT_getNotBeforeDate, false, QC_NO_FLAGS, QDOM_DEFAULT, dateTypeInfo);
-   QC_SSLCERTIFICATE->addMethodExtended("getNotAfterDate",       (q_method_t)SSLCERT_getNotAfterDate, false, QC_NO_FLAGS, QDOM_DEFAULT, dateTypeInfo);
+   QC_SSLCERTIFICATE->addMethodExtended("getPEM",                (q_method_t)SSLCERT_getPEM, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringTypeInfo);
+   QC_SSLCERTIFICATE->addMethodExtended("getInfo",               (q_method_t)SSLCERT_getInfo, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, hashTypeInfo);
+   QC_SSLCERTIFICATE->addMethodExtended("getSignatureType",      (q_method_t)SSLCERT_getSignatureType, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringTypeInfo);
+   QC_SSLCERTIFICATE->addMethodExtended("getSignature",          (q_method_t)SSLCERT_getSignature, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, binaryTypeInfo);
+   QC_SSLCERTIFICATE->addMethodExtended("getPublicKeyAlgorithm", (q_method_t)SSLCERT_getPublicKeyAlgorithm, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringTypeInfo);
+   QC_SSLCERTIFICATE->addMethodExtended("getPublicKey",          (q_method_t)SSLCERT_getPublicKey, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, binaryTypeInfo);
+   QC_SSLCERTIFICATE->addMethodExtended("getSubjectHash",        (q_method_t)SSLCERT_getSubjectHash, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, hashTypeInfo);
+   QC_SSLCERTIFICATE->addMethodExtended("getIssuerHash",         (q_method_t)SSLCERT_getIssuerHash, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, hashTypeInfo);
+   QC_SSLCERTIFICATE->addMethodExtended("getSerialNumber",       (q_method_t)SSLCERT_getSerialNumber, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_SSLCERTIFICATE->addMethodExtended("getVersion",            (q_method_t)SSLCERT_getVersion, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_SSLCERTIFICATE->addMethodExtended("getPurposeHash",        (q_method_t)SSLCERT_getPurposeHash, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, hashTypeInfo);
+   QC_SSLCERTIFICATE->addMethodExtended("getNotBeforeDate",      (q_method_t)SSLCERT_getNotBeforeDate, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, dateTypeInfo);
+   QC_SSLCERTIFICATE->addMethodExtended("getNotAfterDate",       (q_method_t)SSLCERT_getNotAfterDate, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, dateTypeInfo);
 
    return QC_SSLCERTIFICATE;
 }
