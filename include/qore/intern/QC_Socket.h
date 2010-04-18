@@ -27,7 +27,7 @@
 
 #define _QORE_CLASS_SOCKET_H
 
-DLLLOCAL QoreClass *initSocketClass();
+DLLLOCAL QoreClass *initSocketClass(QoreClass *SSLCert, QoreClass *SSLPrivKey);
 DLLEXPORT extern qore_classid_t CID_SOCKET;
 
 class Queue;

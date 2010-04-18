@@ -1513,12 +1513,13 @@ void StaticSystemNamespace::init() {
 
    qoreNS->addInitialNamespace(get_thread_ns());
 
+   QoreClass *TermIOS, *File, *SSLCert, *SSLPrivKey;
+
    // add system object types
-   qoreNS->addSystemClass(initSocketClass());
-   qoreNS->addSystemClass(initSSLCertificateClass());
-   qoreNS->addSystemClass(initSSLPrivateKeyClass());
+   qoreNS->addSystemClass(SSLCert = initSSLCertificateClass());
+   qoreNS->addSystemClass(SSLPrivKey = initSSLPrivateKeyClass());
+   qoreNS->addSystemClass(initSocketClass(SSLCert, SSLPrivKey));
    qoreNS->addSystemClass(initProgramClass());
-   QoreClass *TermIOS, *File;
    qoreNS->addSystemClass(TermIOS = initTermIOSClass());
    qoreNS->addSystemClass(File = initFileClass(TermIOS));
    qoreNS->addSystemClass(initDirClass(File));
