@@ -26,7 +26,7 @@
 qore_classid_t CID_TERMIOS;
 
 static void TERMIOS_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink) {
-   self->setPrivate(CID_TERMIOS, new QoreTermIOS());
+   self->setPrivate(CID_TERMIOS, new QoreTermIOS);
 }
 
 static void TERMIOS_copy(QoreObject *self, QoreObject *old, QoreTermIOS *s, ExceptionSink *xsink) {
@@ -50,44 +50,33 @@ static AbstractQoreNode *TERMIOS_getIFlag(QoreObject *self, QoreTermIOS *s, cons
 }
 
 static AbstractQoreNode *TERMIOS_setLFlag(QoreObject *self, QoreTermIOS *s, const QoreListNode *params, ExceptionSink *xsink) {
-   const AbstractQoreNode *p = get_param(params, 0);
-   s->set_lflag(p ? p->getAsBigInt() : 0);
+   s->set_lflag(HARD_QORE_INT(params, 0));
    return 0;
 }
 
 static AbstractQoreNode *TERMIOS_setCFlag(QoreObject *self, QoreTermIOS *s, const QoreListNode *params, ExceptionSink *xsink) {
-   const AbstractQoreNode *p = get_param(params, 0);
-   s->set_cflag(p ? p->getAsBigInt() : 0);
+   s->set_cflag(HARD_QORE_INT(params, 0));
    return 0;
 }
 
 static AbstractQoreNode *TERMIOS_setOFlag(QoreObject *self, QoreTermIOS *s, const QoreListNode *params, ExceptionSink *xsink) {
-   const AbstractQoreNode *p = get_param(params, 0);
-   s->set_oflag(p ? p->getAsBigInt() : 0);
+   s->set_oflag(HARD_QORE_INT(params, 0));
    return 0;
 }
 
 static AbstractQoreNode *TERMIOS_setIFlag(QoreObject *self, QoreTermIOS *s, const QoreListNode *params, ExceptionSink *xsink) {
-   const AbstractQoreNode *p = get_param(params, 0);
-   s->set_iflag(p ? p->getAsBigInt() : 0);
+   s->set_iflag(HARD_QORE_INT(params, 0));
    return 0;
 }
 
 static AbstractQoreNode *TERMIOS_getCC(QoreObject *self, QoreTermIOS *s, const QoreListNode *params, ExceptionSink *xsink) {
-   const AbstractQoreNode *p = get_param(params, 0);
-
-   int64 rc = s->get_cc(p ? p->getAsBigInt() : 0, xsink);
-   if (*xsink)
-      return 0;
-   return new QoreBigIntNode(rc);
+   int64 rc = s->get_cc(HARD_QORE_INT(params, 0), xsink);
+   return *xsink ? 0 : new QoreBigIntNode(rc);
 }
 
-// setCC(offset, value)
+// TermIOS::setCC(softint $offset = 0, softint $value = 0) returns nothing
 static AbstractQoreNode *TERMIOS_setCC(QoreObject *self, QoreTermIOS *s, const QoreListNode *params, ExceptionSink *xsink) {
-   const AbstractQoreNode *p0 = get_param(params, 0);
-   const AbstractQoreNode *p1 = get_param(params, 1);
-
-   s->set_cc(p0 ? p0->getAsBigInt() : 0, p1 ? p1->getAsInt() : 0, xsink);
+   s->set_cc(HARD_QORE_INT(params, 0), HARD_QORE_INT(params, 1), xsink);
    return 0;
 }
 
@@ -109,7 +98,7 @@ static AbstractQoreNode *f_TERMIOS_getWindowSize(const QoreListNode *params, Exc
    if (QoreTermIOS::getWindowSize(rows, columns, xsink))
       return 0;
 
-   QoreHashNode *rv = new QoreHashNode();
+   QoreHashNode *rv = new QoreHashNode;
    rv->setKeyValue("rows", new QoreBigIntNode(rows), xsink);
    rv->setKeyValue("columns", new QoreBigIntNode(columns), xsink);
    return rv;
@@ -124,20 +113,33 @@ QoreClass *initTermIOSClass() {
    QC_TERMIOS->setConstructor(TERMIOS_constructor);
    QC_TERMIOS->setCopy((q_copy_t)TERMIOS_copy);
 
-   QC_TERMIOS->addMethod("getLFlag", (q_method_t)TERMIOS_getLFlag);
-   QC_TERMIOS->addMethod("getCFlag", (q_method_t)TERMIOS_getCFlag);
-   QC_TERMIOS->addMethod("getOFlag", (q_method_t)TERMIOS_getOFlag);
-   QC_TERMIOS->addMethod("getIFlag", (q_method_t)TERMIOS_getIFlag);
-   QC_TERMIOS->addMethod("setLFlag", (q_method_t)TERMIOS_setLFlag);
-   QC_TERMIOS->addMethod("setCFlag", (q_method_t)TERMIOS_setCFlag);
-   QC_TERMIOS->addMethod("setOFlag", (q_method_t)TERMIOS_setOFlag);
-   QC_TERMIOS->addMethod("setIFlag", (q_method_t)TERMIOS_setIFlag);
-   QC_TERMIOS->addMethod("getCC",    (q_method_t)TERMIOS_getCC);
-   QC_TERMIOS->addMethod("setCC",    (q_method_t)TERMIOS_setCC);
-   QC_TERMIOS->addMethod("isEqual",  (q_method_t)TERMIOS_isEqual);
+   QC_TERMIOS->addMethodExtended("getLFlag", (q_method_t)TERMIOS_getLFlag, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_TERMIOS->addMethodExtended("getCFlag", (q_method_t)TERMIOS_getCFlag, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_TERMIOS->addMethodExtended("getOFlag", (q_method_t)TERMIOS_getOFlag, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_TERMIOS->addMethodExtended("getIFlag", (q_method_t)TERMIOS_getIFlag, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo);
+
+   // TermIOS::setLFlag(softint $flag = 0) returns nothing
+   QC_TERMIOS->addMethodExtended("setLFlag", (q_method_t)TERMIOS_setLFlag, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, softBigIntTypeInfo, zero());
+
+   // TermIOS::setCFlag(softint $flag = 0) returns nothing
+   QC_TERMIOS->addMethodExtended("setCFlag", (q_method_t)TERMIOS_setCFlag, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, softBigIntTypeInfo, zero());
+
+   // TermIOS::setOFlag(softint $flag = 0) returns nothing
+   QC_TERMIOS->addMethodExtended("setOFlag", (q_method_t)TERMIOS_setOFlag, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, softBigIntTypeInfo, zero());
+
+   // TermIOS::setIFlag(softint $flag = 0) returns nothing
+   QC_TERMIOS->addMethodExtended("setIFlag", (q_method_t)TERMIOS_setIFlag, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, softBigIntTypeInfo, zero());
+
+   // TermIOS::getCC(softint $offset = 0) returns int
+   QC_TERMIOS->addMethodExtended("getCC",    (q_method_t)TERMIOS_getCC, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo, 1, softBigIntTypeInfo, zero());
+
+   // TermIOS::setCC(softint $offset = 0, softint $value = 0) returns nothing
+   QC_TERMIOS->addMethodExtended("setCC",    (q_method_t)TERMIOS_setCC, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 2, softBigIntTypeInfo, zero(), softBigIntTypeInfo, zero());
+
+   QC_TERMIOS->addMethodExtended("isEqual",  (q_method_t)TERMIOS_isEqual, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, boolTypeInfo, 1, QC_TERMIOS->getTypeInfo(), QORE_PARAM_NO_ARG);
 
    // static methods
-   QC_TERMIOS->addStaticMethod("getWindowSize", f_TERMIOS_getWindowSize);
+   QC_TERMIOS->addStaticMethodExtended("getWindowSize", f_TERMIOS_getWindowSize, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, hashTypeInfo);
 
    return QC_TERMIOS;
 }
