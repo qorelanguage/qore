@@ -99,30 +99,29 @@ QoreXmlNodeData *doNode(xmlNodePtr p, QoreXmlDocData *doc) {
    return new QoreXmlNodeData(p, doc);
 }
 
-static void XMLDOC_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink) {
-   const AbstractQoreNode *n = get_param(params, 0);
-   qore_type_t t = n ? n->getType() : NT_NOTHING;
-   SimpleRefHolder<QoreXmlDocData> xd;
-
-   if (t == NT_HASH) {
-      SimpleRefHolder<QoreStringNode> xml(makeXMLString(QCS_UTF8, *(reinterpret_cast<const QoreHashNode *>(n)), false, xsink));
-      if (!xml)
-	 return;
-      xd = new QoreXmlDocData(*xml);
-   }
-   else if (t == NT_STRING)
-      xd = new QoreXmlDocData(reinterpret_cast<const QoreStringNode *>(n));
-   else {
-      xsink->raiseException("XMLDOC-CONSTRUCTOR-ERROR", "missing required string or hash argument to XmlDoc::constructor()");
+static void XMLDOC_constructor_hash(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink) {
+   const QoreHashNode *h = HARD_QORE_HASH(params, 0);
+   SimpleRefHolder<QoreStringNode> xml(makeXMLString(QCS_UTF8, *h, false, xsink));
+   if (!xml)
       return;
-   }
-
+   SimpleRefHolder<QoreXmlDocData> xd(new QoreXmlDocData(*xml));
    if (!xd->isValid()) {
       xsink->raiseException("XMLDOC-CONSTRUCTOR-ERROR", "error parsing XML string");
       return;
    }
 
-   self->setPrivate(CID_XMLDOC, xd.release());
+   self->setPrivate(CID_XMLDOC, xd.release());   
+}
+
+static void XMLDOC_constructor_str(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink) {
+   const QoreStringNode *str = HARD_QORE_STRING(params, 0);
+   SimpleRefHolder<QoreXmlDocData> xd(new QoreXmlDocData(str));
+   if (!xd->isValid()) {
+      xsink->raiseException("XMLDOC-CONSTRUCTOR-ERROR", "error parsing XML string");
+      return;
+   }
+
+   self->setPrivate(CID_XMLDOC, xd.release());   
 }
 
 static void XMLDOC_copy(QoreObject *self, QoreObject *old, QoreXmlDocData *xd, ExceptionSink *xsink) {
@@ -152,12 +151,7 @@ static AbstractQoreNode *XMLDOC_toString(QoreObject *self, QoreXmlDocData *xd, c
 }
 
 static AbstractQoreNode *XMLDOC_evalXPath(QoreObject *self, QoreXmlDocData *xd, const QoreListNode *params, ExceptionSink *xsink) {
-   const QoreStringNode *expr = test_string_param(params, 0);
-   if (!expr) {
-      xsink->raiseException("XMLDOC-EVAL-XPATH-ERROR", "missing the XPath expression as the first argument to XmlDoc::evalXPath()");
-      return 0;
-   }
-
+   const QoreStringNode *expr = HARD_QORE_STRING(params, 0);
    QoreXPath xp(xd, xsink);
    if (!xp)
       return 0;
@@ -173,13 +167,7 @@ static AbstractQoreNode *XMLDOC_getRootElement(QoreObject *self, QoreXmlDocData 
 
 static AbstractQoreNode *XMLDOC_validateRelaxNG(QoreObject *self, QoreXmlDocData *xd, const QoreListNode *params, ExceptionSink *xsink) {
 #ifdef HAVE_XMLTEXTREADERRELAXNGSETSCHEMA
-   const QoreStringNode *rng = test_string_param(params, 0);
-
-   if (!rng) {
-      xsink->raiseException("XMLDOC-VALIDATERELAXNG-ERROR", "expecting RelaxNG schema string as sole argument to XmlDoc::validateRelaxNG()");
-      return 0;
-   }
-
+   const QoreStringNode *rng = HARD_QORE_STRING(params, 0);
    // convert to UTF-8 
    TempEncodingHelper nrng(rng, QCS_UTF8, xsink);
    if (!nrng)
@@ -194,13 +182,7 @@ static AbstractQoreNode *XMLDOC_validateRelaxNG(QoreObject *self, QoreXmlDocData
 
 static AbstractQoreNode *XMLDOC_validateSchema(QoreObject *self, QoreXmlDocData *xd, const QoreListNode *params, ExceptionSink *xsink) {
 #ifdef HAVE_XMLTEXTREADERSETSCHEMA
-   const QoreStringNode *xsd = test_string_param(params, 0);
-
-   if (!xsd) {
-      xsink->raiseException("XMLDOC-VALIDATESCHEMA-ERROR", "expecting XSD schema string as sole argument to XmlDoc::validateSchema()");
-      return 0;
-   }
-
+   const QoreStringNode *xsd = HARD_QORE_STRING(params, 0);
    // convert to UTF-8 
    TempEncodingHelper nxsd(xsd, QCS_UTF8, xsink);
    if (!nxsd)
@@ -218,17 +200,20 @@ QoreClass *initXmlDocClass() {
 
    QoreClass *QC_XMLDOC = new QoreClass("XmlDoc");
    CID_XMLDOC = QC_XMLDOC->getID();
-   QC_XMLDOC->setConstructor(XMLDOC_constructor);
+
+   QC_XMLDOC->setConstructorExtended(XMLDOC_constructor_hash, false, QC_NO_FLAGS, QDOM_DEFAULT, 1, hashTypeInfo, QORE_PARAM_NO_ARG);
+   QC_XMLDOC->setConstructorExtended(XMLDOC_constructor_str, false, QC_NO_FLAGS, QDOM_DEFAULT, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+
    QC_XMLDOC->setCopy((q_copy_t)XMLDOC_copy);
 
-   QC_XMLDOC->addMethod("getVersion",      (q_method_t)XMLDOC_getVersion);
-   QC_XMLDOC->addMethod("toQore",          (q_method_t)XMLDOC_toQore);
-   QC_XMLDOC->addMethod("toQoreData",      (q_method_t)XMLDOC_toQoreData);
-   QC_XMLDOC->addMethod("toString",        (q_method_t)XMLDOC_toString);
-   QC_XMLDOC->addMethod("evalXPath",       (q_method_t)XMLDOC_evalXPath);
-   QC_XMLDOC->addMethod("getRootElement",  (q_method_t)XMLDOC_getRootElement);
-   QC_XMLDOC->addMethod("validateRelaxNG", (q_method_t)XMLDOC_validateRelaxNG);
-   QC_XMLDOC->addMethod("validateSchema",  (q_method_t)XMLDOC_validateSchema);
+   QC_XMLDOC->addMethodExtended("getVersion",      (q_method_t)XMLDOC_getVersion, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringTypeInfo);
+   QC_XMLDOC->addMethodExtended("toQore",          (q_method_t)XMLDOC_toQore, false, QC_RET_VALUE_ONLY);
+   QC_XMLDOC->addMethodExtended("toQoreData",      (q_method_t)XMLDOC_toQoreData, false, QC_RET_VALUE_ONLY);
+   QC_XMLDOC->addMethodExtended("toString",        (q_method_t)XMLDOC_toString, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringTypeInfo);
+   QC_XMLDOC->addMethodExtended("evalXPath",       (q_method_t)XMLDOC_evalXPath, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, listTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   QC_XMLDOC->addMethodExtended("getRootElement",  (q_method_t)XMLDOC_getRootElement, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, QC_XMLNODE->getTypeInfo());
+   QC_XMLDOC->addMethodExtended("validateRelaxNG", (q_method_t)XMLDOC_validateRelaxNG, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   QC_XMLDOC->addMethodExtended("validateSchema",  (q_method_t)XMLDOC_validateSchema, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    return QC_XMLDOC;   
 }
