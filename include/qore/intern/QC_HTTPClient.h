@@ -26,6 +26,38 @@
 DLLEXPORT extern qore_classid_t CID_HTTPCLIENT;
 DLLLOCAL class QoreClass *initHTTPClientClass();
 
+class HTTPInfoRefHelper {
+protected:
+   const ReferenceNode *ref;
+   ExceptionSink *xsink;
+   ReferenceHolder<QoreHashNode> info;
+
+public:
+   DLLLOCAL HTTPInfoRefHelper(const ReferenceNode *n_ref, QoreStringNode *msg, ExceptionSink *n_xsink) : ref(n_ref), xsink(n_xsink), info(new QoreHashNode, xsink) {
+      info->setKeyValue("request", msg, xsink);
+   }
+   DLLLOCAL ~HTTPInfoRefHelper() {
+      // we have to create a temporary ExceptionSink if there is
+      // an active exception, otherwise writing back the reference will fail
+      ExceptionSink *txsink = *xsink ? new ExceptionSink : xsink;
+      
+      // write info hash to reference
+      AutoVLock vl(txsink);
+      QoreTypeSafeReferenceHelper rh(ref, vl, txsink);
+      if (!rh)
+         return;
+
+      if (rh.assign(info.release(), txsink))
+         return;   
+
+      if (txsink != xsink)
+         xsink->assimilate(txsink);
+   }
+   DLLLOCAL QoreHashNode *operator*() {
+      return *info;
+   }
+};
+
 #endif
 
 // EOF

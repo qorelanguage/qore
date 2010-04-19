@@ -89,8 +89,10 @@ static AbstractQoreNode *make_jsonrpc_call(QoreHTTPClient *client, QoreStringNod
       return 0;
 
    AbstractQoreNode *ah = *ans;
-   if (info)
+   if (info) {
       info->setKeyValue("response", ans.release(), xsink);
+      info->setKeyValue("response_headers", response.release(), xsink);
+   }
    
    if (ah->getType() != NT_STRING) {
       xsink->raiseException("JSONRPCCLIENT-RESPONSE-ERROR", "undecoded binary response received from remote server");
@@ -119,38 +121,6 @@ static AbstractQoreNode *JRC_call(QoreObject *self, QoreHTTPClient *client, cons
    return make_jsonrpc_call(client, *msg, 0, xsink);
 }
 
-class JRCInfoRefHelper {
-protected:
-   const ReferenceNode *ref;
-   ExceptionSink *xsink;
-   ReferenceHolder<QoreHashNode> info;
-
-public:
-   DLLLOCAL JRCInfoRefHelper(const ReferenceNode *n_ref, QoreStringNode *msg, ExceptionSink *n_xsink) : ref(n_ref), xsink(n_xsink), info(new QoreHashNode, xsink) {
-      info->setKeyValue("request", msg, xsink);
-   }
-   DLLLOCAL ~JRCInfoRefHelper() {
-      // we have to create a temporary ExceptionSink if there is
-      // an active exception, otherwise writing back the reference will fail
-      ExceptionSink *txsink = *xsink ? new ExceptionSink : xsink;
-      
-      // write info hash to reference
-      AutoVLock vl(txsink);
-      QoreTypeSafeReferenceHelper rh(ref, vl, txsink);
-      if (!rh)
-	 return;
-
-      if (rh.assign(info.release(), txsink))
-	 return;   
-
-      if (txsink != xsink)
-	 xsink->assimilate(txsink);
-   }
-   DLLLOCAL QoreHashNode *operator*() {
-      return *info;
-   }
-};
-
 static AbstractQoreNode *JRC_callArgsWithInfo(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink) {
    // get info reference
    const ReferenceNode *ref = HARD_QORE_REF(params, 0);
@@ -163,9 +133,9 @@ static AbstractQoreNode *JRC_callArgsWithInfo(QoreObject *self, QoreHTTPClient *
    if (!msg)
       return 0;
 
-   JRCInfoRefHelper irh(ref, msg, xsink);
+   HTTPInfoRefHelper irh(ref, msg, xsink);
 
-   // send the message to the server and get the response as an XML string
+   // send the message to the server and get the response as a JSON string
    ReferenceHolder<AbstractQoreNode> rv(make_jsonrpc_call(client, msg, *irh, xsink), xsink);
 
    return *xsink ? 0 : rv.release();
@@ -183,9 +153,9 @@ static AbstractQoreNode *JRC_callWithInfo(QoreObject *self, QoreHTTPClient *clie
    if (!msg)
       return 0;
 
-   JRCInfoRefHelper irh(ref, msg, xsink);
+   HTTPInfoRefHelper irh(ref, msg, xsink);
 
-   // send the message to the server and get the response as an XML string
+   // send the message to the server and get the response as a JSON string
    ReferenceHolder<AbstractQoreNode> rv(make_jsonrpc_call(client, msg, *irh, xsink), xsink);
 
    return *xsink ? 0 : rv.release();
@@ -205,7 +175,7 @@ static AbstractQoreNode *JRC_setEventQueue_queue(QoreObject *self, QoreHTTPClien
    return 0;
 }
 
-QoreClass *initJsonRpcClientClass(class QoreClass *http_client) {
+QoreClass *initJsonRpcClientClass(QoreClass *http_client) {
    assert(QC_QUEUE);
 
    QoreClass* client = new QoreClass("JsonRpcClient", QDOM_NETWORK);
