@@ -712,7 +712,7 @@ void init_lib_functions() {
    builtinFunctions.add2("readlink",    f_readlink, QC_NO_FLAGS, QDOM_FILESYSTEM, stringTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
 #ifdef DEBUG
-   builtinFunctions.add("runQoreTests", runQoreTests);
-   builtinFunctions.add("runRecentQoreTests", runRecentQoreTests);
+   builtinFunctions.add2("runQoreTests", runQoreTests);
+   builtinFunctions.add2("runRecentQoreTests", runRecentQoreTests);
 #endif
 }
