@@ -306,8 +306,7 @@ int QoreZoneInfo::getGMTOffsetImpl(int64 epoch_offset, bool &is_dst, const char 
 
 // format: S00[[:]00[[:]00]]
 const QoreOffsetZoneInfo *QoreTimeZoneManager::findCreateOffsetZone(const char *offset) {
-   unsigned len = strlen(offset);
-   assert(len > 1);
+   assert(strlen(offset) > 1);
 
    const char *p = offset + 1;
    assert(isdigit(*p));
