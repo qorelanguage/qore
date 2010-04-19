@@ -87,25 +87,13 @@ static AbstractQoreNode *XMLNODE_getPath(QoreObject *self, QoreXmlNodeData *xn, 
 }
 
 static AbstractQoreNode *XMLNODE_getNsProp(QoreObject *self, QoreXmlNodeData *xn, const QoreListNode *params, ExceptionSink *xsink) {
-   const QoreStringNode *prop = test_string_param(params, 0);
-   if (!prop) {
-      xsink->raiseException("XMLNODE-GETNSPROP-ERROR", "missing property name as first parameter to XmlNode::getNsProp()");
-      return 0;
-   }
-   const QoreStringNode *ns = test_string_param(params, 1);
-   if (!ns) {
-      xsink->raiseException("XMLNODE-GETNSPROP-ERROR", "missing namespace name as second parameter to XmlNode::getNsProp()");
-      return 0;
-   }
+   const QoreStringNode *prop = HARD_QORE_STRING(params, 0);
+   const QoreStringNode *ns = HARD_QORE_STRING(params, 1);
    return xn->getNsProp(prop->getBuffer(), ns->getBuffer());
 }
 
 static AbstractQoreNode *XMLNODE_getProp(QoreObject *self, QoreXmlNodeData *xn, const QoreListNode *params, ExceptionSink *xsink) {
-   const QoreStringNode *prop = test_string_param(params, 0);
-   if (!prop) {
-      xsink->raiseException("XMLNODE-GETPROP-ERROR", "missing property name as sole parameter to XmlNode::getProp()");
-      return 0;
-   }
+   const QoreStringNode *prop = HARD_QORE_STRING(params, 0);
    return xn->getProp(prop->getBuffer());
 }
 
@@ -144,29 +132,57 @@ static QoreClass *initXmlNodeClass() {
 
    QC_XMLNODE = new QoreClass("XmlNode");
    CID_XMLNODE = QC_XMLNODE->getID();
-   QC_XMLNODE->setConstructor(XMLNODE_constructor);
+   QC_XMLNODE->setConstructorExtended(XMLNODE_constructor);
    QC_XMLNODE->setCopy((q_copy_t)XMLNODE_copy);
 
-   QC_XMLNODE->addMethod("childElementCount",      (q_method_t)XMLNODE_childElementCount);
-   QC_XMLNODE->addMethod("getSpacePreserve",       (q_method_t)XMLNODE_getSpacePreserve);
-   QC_XMLNODE->addMethod("getLineNumber",          (q_method_t)XMLNODE_getLineNumber);
-   QC_XMLNODE->addMethod("getElementType",         (q_method_t)XMLNODE_getElementType);
-   QC_XMLNODE->addMethod("getElementTypeName",     (q_method_t)XMLNODE_getElementTypeName);
-   QC_XMLNODE->addMethod("firstElementChild",      (q_method_t)XMLNODE_firstElementChild);
-   QC_XMLNODE->addMethod("getLastChild",           (q_method_t)XMLNODE_getLastChild);
-   QC_XMLNODE->addMethod("lastElementChild",       (q_method_t)XMLNODE_lastElementChild);
-   QC_XMLNODE->addMethod("nextElementSibling",     (q_method_t)XMLNODE_nextElementSibling);
-   QC_XMLNODE->addMethod("previousElementSibling", (q_method_t)XMLNODE_previousElementSibling);
-   QC_XMLNODE->addMethod("getPath",                (q_method_t)XMLNODE_getPath);
-   QC_XMLNODE->addMethod("getNsProp",              (q_method_t)XMLNODE_getNsProp);
-   QC_XMLNODE->addMethod("getProp",                (q_method_t)XMLNODE_getProp);
+   QC_XMLNODE->addMethodExtended("childElementCount",      (q_method_t)XMLNODE_childElementCount, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_XMLNODE->addMethodExtended("getSpacePreserve",       (q_method_t)XMLNODE_getSpacePreserve, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_XMLNODE->addMethodExtended("getLineNumber",          (q_method_t)XMLNODE_getLineNumber, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_XMLNODE->addMethodExtended("getElementType",         (q_method_t)XMLNODE_getElementType, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo);
+
+   // XmlNode::getElementTypeName() returns string|nothing
+   QC_XMLNODE->addMethodExtended("getElementTypeName",     (q_method_t)XMLNODE_getElementTypeName, false, QC_RET_VALUE_ONLY);
+
+   // XmlNode::firstElementChild() returns string|nothing
+   QC_XMLNODE->addMethodExtended("firstElementChild",      (q_method_t)XMLNODE_firstElementChild, false, QC_RET_VALUE_ONLY);
+
+   // XmlNode::getLastChild() returns string|nothing
+   QC_XMLNODE->addMethodExtended("getLastChild",           (q_method_t)XMLNODE_getLastChild, false, QC_RET_VALUE_ONLY);
+
+   // XmlNode::lastElementChild() returns string|nothing
+   QC_XMLNODE->addMethodExtended("lastElementChild",       (q_method_t)XMLNODE_lastElementChild, false, QC_RET_VALUE_ONLY);
+
+   // XmlNode::nextElementSibling() returns string|nothing
+   QC_XMLNODE->addMethodExtended("nextElementSibling",     (q_method_t)XMLNODE_nextElementSibling, false, QC_RET_VALUE_ONLY);
+
+   // XmlNode::previousElementSibling() returns string|nothing
+   QC_XMLNODE->addMethodExtended("previousElementSibling", (q_method_t)XMLNODE_previousElementSibling, false, QC_RET_VALUE_ONLY);
+
+   QC_XMLNODE->addMethodExtended("getPath",                (q_method_t)XMLNODE_getPath, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringTypeInfo);
+
+   // XmlNode::getNsProp(string $prop, string $ns) returns string|nothing
+   QC_XMLNODE->addMethodExtended("getNsProp",              (q_method_t)XMLNODE_getNsProp, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, 0, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
+
+   // XmlNode::getProp(string $prop) returns string|nothing
+   QC_XMLNODE->addMethodExtended("getProp",                (q_method_t)XMLNODE_getProp, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, 0, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+
    //QC_XMLNODE->addMethod("getBase",                (q_method_t)XMLNODE_getBase);
-   QC_XMLNODE->addMethod("getContent",             (q_method_t)XMLNODE_getContent);
-   QC_XMLNODE->addMethod("getLang",                (q_method_t)XMLNODE_getLang);
-   QC_XMLNODE->addMethod("getName",                (q_method_t)XMLNODE_getName);
-   QC_XMLNODE->addMethod("isText",                 (q_method_t)XMLNODE_isText);
-   QC_XMLNODE->addMethod("isBlank",                (q_method_t)XMLNODE_isBlank);
-   QC_XMLNODE->addMethod("getXML",                 (q_method_t)XMLNODE_getXML);
+
+   // XmlNode::getContent() returns string|nothing
+   QC_XMLNODE->addMethodExtended("getContent",             (q_method_t)XMLNODE_getContent, false, QC_RET_VALUE_ONLY);
+
+   // XmlNode::getLang() returns string|nothing
+   QC_XMLNODE->addMethodExtended("getLang",                (q_method_t)XMLNODE_getLang, false, QC_RET_VALUE_ONLY);
+
+   // XmlNode::getName() returns string|nothing
+   QC_XMLNODE->addMethodExtended("getName",                (q_method_t)XMLNODE_getName, false, QC_RET_VALUE_ONLY);
+
+   QC_XMLNODE->addMethodExtended("isText",                 (q_method_t)XMLNODE_isText, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, boolTypeInfo);
+
+   QC_XMLNODE->addMethodExtended("isBlank",                (q_method_t)XMLNODE_isBlank, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, boolTypeInfo);
+
+   // XmlNode::getXML() returns string|nothing
+   QC_XMLNODE->addMethodExtended("getXML",                 (q_method_t)XMLNODE_getXML, false, QC_RET_VALUE_ONLY);
 
    return QC_XMLNODE;   
 }
