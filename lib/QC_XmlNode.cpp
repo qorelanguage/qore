@@ -279,9 +279,10 @@ QoreNamespace *initXmlNs() {
 
    xns->addConstant("NodeTypeMap", xm);
 
+   QoreClass *XmlDoc;
    xns->addSystemClass(initXmlNodeClass());
-   xns->addSystemClass(initXmlDocClass());
-   xns->addSystemClass(initXmlReaderClass());
+   xns->addSystemClass(XmlDoc = initXmlDocClass());
+   xns->addSystemClass(initXmlReaderClass(XmlDoc));
 
    return xns;
 }

@@ -30,7 +30,7 @@
 #include <qore/intern/QC_XmlDoc.h>
 
 DLLEXPORT extern qore_classid_t CID_XMLREADER;
-DLLLOCAL QoreClass *initXmlReaderClass();
+DLLLOCAL QoreClass *initXmlReaderClass(QoreClass *XmlDoc);
 
 class QoreXmlReaderData : public AbstractPrivateData, public QoreXmlReader {
 private:
@@ -41,7 +41,8 @@ private:
    DLLLOCAL QoreXmlReaderData(const QoreXmlReaderData &orig);
 
 public:
-   DLLLOCAL QoreXmlReaderData(const QoreStringNode *n_xml, ExceptionSink *xsink) : QoreXmlReader(xsink, n_xml, QORE_XML_PARSER_OPTIONS), doc(0), xmlstr(n_xml->stringRefSelf()) {
+   // n_xml must be in UTF8 encoding and must be referenced for the object
+   DLLLOCAL QoreXmlReaderData(QoreStringNode *n_xml, ExceptionSink *xsink) : QoreXmlReader(xsink, n_xml, QORE_XML_PARSER_OPTIONS), doc(0), xmlstr(n_xml) {
    }
 
    DLLLOCAL QoreXmlReaderData(QoreXmlDocData *n_doc, ExceptionSink *xsink) : QoreXmlReader(xsink, n_doc->getDocPtr()), doc(n_doc), xmlstr(0) {
@@ -60,10 +61,8 @@ public:
 	 assert(!xmlstr);
 	 doc->deref();
       }
-      else {
-	 assert(!doc);
+      else
 	 xmlstr->deref();
-      }
    }
 };
 

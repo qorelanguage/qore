@@ -27,32 +27,34 @@
 
 qore_classid_t CID_XMLREADER;
 
-static void XMLREADER_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink) {
-   const AbstractQoreNode *n = get_param(params, 0);
-   qore_type_t t = n ? n->getType() : NT_NOTHING;
-   SimpleRefHolder<QoreXmlReaderData> xr;
+static void XMLREADER_constructor_xmldoc(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink) {
+   HARD_QORE_OBJ_DATA(doc, QoreXmlDocData, params, 0, CID_XMLDOC, "XmlReader::constructor()", "XmlDoc", xsink);
+   if (*xsink)
+      return;
 
-   if (t == NT_OBJECT) {
-      const QoreObject *obj = reinterpret_cast<const QoreObject *>(n);
-      ReferenceHolder<QoreXmlDocData> doc(reinterpret_cast<QoreXmlDocData *>(obj->getReferencedPrivateData(CID_XMLDOC, xsink)), xsink);
-      if (!doc) {
-	 if (!*xsink)
-	    xsink->raiseException("XMLREADER-CONSTRUCTOR-ERROR", "object passed to XmlReader::constructor() is not derived from XmlDoc (got class %s instead)", obj->getClassName());
-	 return;
-      }
-      xr = new QoreXmlReaderData(*doc, xsink);
-   }
-   else if (t == NT_STRING)
-      xr = new QoreXmlReaderData(reinterpret_cast<const QoreStringNode *>(n), xsink);
+   ReferenceHolder<QoreXmlDocData> doc_holder(doc, xsink);
+
+   SimpleRefHolder<QoreXmlReaderData> xr(new QoreXmlReaderData(doc, xsink));
+   if (*xsink)
+      return;
+
+   self->setPrivate(CID_XMLREADER, xr.release());   
+}
+
+static void XMLREADER_constructor_str(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink) {
+   const QoreStringNode *p0 = HARD_QORE_STRING(params, 0);
+
+   if (p0->getEncoding() == QCS_UTF8)
+      p0->ref();
    else {
-      xsink->raiseException("XMLREADER-CONSTRUCTOR-ERROR", "missing required string or XmlDoc argument to XmlReader::constructor()");
-      return;
+      p0 = p0->convertEncoding(QCS_UTF8, xsink);
+      if (!p0)
+	 return;
    }
 
-   if (!xr) {
-      xsink->raiseException("XMLREADER-CONSTRUCTOR-ERROR", "error parsing XML string");
+   SimpleRefHolder<QoreXmlReaderData> xr(new QoreXmlReaderData(const_cast<QoreStringNode *>(p0), xsink));
+   if (*xsink)
       return;
-   }
 
    self->setPrivate(CID_XMLREADER, xr.release());
 }
@@ -168,69 +170,44 @@ static AbstractQoreNode *XMLREADER_xmlVersion(QoreObject *self, QoreXmlReaderDat
 }
 
 static AbstractQoreNode *XMLREADER_getAttribute(QoreObject *self, QoreXmlReaderData *xr, const QoreListNode *params, ExceptionSink *xsink) {
-   const QoreStringNode *attr = test_string_param(params, 0);
-   if (!attr) {
-      xsink->raiseException("XMLREADER-GETATTRIBUTE-ERROR", "missing attribute name as sole argument to XmlReader::getAttribute()");
-      return 0;
-   }
-
+   const QoreStringNode *attr = HARD_QORE_STRING(params, 0);
    return xr->getAttribute(attr->getBuffer());
 }
 
 static AbstractQoreNode *XMLREADER_getAttributeOffset(QoreObject *self, QoreXmlReaderData *xr, const QoreListNode *params, ExceptionSink *xsink) {
-   return xr->getAttributeOffset(get_bigint_param(params, 0));
+   return xr->getAttributeOffset(HARD_QORE_INT(params, 0));
 }
 
 static AbstractQoreNode *XMLREADER_getAttributeNs(QoreObject *self, QoreXmlReaderData *xr, const QoreListNode *params, ExceptionSink *xsink) {
-   const QoreStringNode *lname = test_string_param(params, 0);
-   if (!lname || lname->strlen()) {
-      xsink->raiseException("XMLREADER-GETATTRIBUTENS-ERROR", "missing attribute local name as first argument to XmlReader::getAttributeNs()");
-      return 0;
-   }
-
-   const QoreStringNode *ns = test_string_param(params, 1);
-   if (!lname || ns->strlen()) {
-      xsink->raiseException("XMLREADER-GETATTRIBUTENS-ERROR", "missing attribute namespace as second argument to XmlReader::getAttributeNs()");
-      return 0;
-   }
-
+   const QoreStringNode *lname = HARD_QORE_STRING(params, 0);
+   const QoreStringNode *ns = HARD_QORE_STRING(params, 1);
    return xr->getAttributeNs(lname->getBuffer(), ns->getBuffer());
 }
 
+// XmlReader::lookupNamespace() returns string|nothing
 static AbstractQoreNode *XMLREADER_lookupNamespace(QoreObject *self, QoreXmlReaderData *xr, const QoreListNode *params, ExceptionSink *xsink) {
-   const QoreStringNode *prefix = test_string_param(params, 0);
+   return xr->lookupNamespace(0);
+}
 
-   return xr->lookupNamespace(prefix ? prefix->getBuffer() : 0);
+static AbstractQoreNode *XMLREADER_lookupNamespace_str(QoreObject *self, QoreXmlReaderData *xr, const QoreListNode *params, ExceptionSink *xsink) {
+   const QoreStringNode *prefix = HARD_QORE_STRING(params, 0);
+   return xr->lookupNamespace(prefix->getBuffer());
 }
 
 static AbstractQoreNode *XMLREADER_moveToAttribute(QoreObject *self, QoreXmlReaderData *xr, const QoreListNode *params, ExceptionSink *xsink) {
-   const QoreStringNode *attr = test_string_param(params, 0);
-   if (!attr) {
-      xsink->raiseException("XMLREADER-MOVETOATTRIBUTE-ERROR", "missing attribute name as sole argument to XmlReader::moveToAttribute()");
-      return 0;
-   }
-
+   const QoreStringNode *attr = HARD_QORE_STRING(params, 0);
    int rc = xr->moveToAttribute(attr->getBuffer(), xsink);
    return rc == -1 ? 0 : get_bool_node(rc);
 }
 
 static AbstractQoreNode *XMLREADER_moveToAttributeOffset(QoreObject *self, QoreXmlReaderData *xr, const QoreListNode *params, ExceptionSink *xsink) {
-   int rc = xr->moveToAttributeOffset(get_bigint_param(params, 0), xsink);
+   int rc = xr->moveToAttributeOffset(HARD_QORE_INT(params, 0), xsink);
    return rc == -1 ? 0 : get_bool_node(rc);
 }
 
 static AbstractQoreNode *XMLREADER_moveToAttributeNs(QoreObject *self, QoreXmlReaderData *xr, const QoreListNode *params, ExceptionSink *xsink) {
-   const QoreStringNode *lname = test_string_param(params, 0);
-   if (!lname || lname->strlen()) {
-      xsink->raiseException("XMLREADER-MOVETOATTRIBUTENS-ERROR", "missing attribute local name as first argument to XmlReader::moveToAttributeNs()");
-      return 0;
-   }
-
-   const QoreStringNode *ns = test_string_param(params, 1);
-   if (!lname || ns->strlen()) {
-      xsink->raiseException("XMLREADER-MOVETOATTRIBUTENS-ERROR", "missing attribute namespace as second argument to XmlReader::moveToAttributeNs()");
-      return 0;
-   }
+   const QoreStringNode *lname = HARD_QORE_STRING(params, 0);
+   const QoreStringNode *ns = HARD_QORE_STRING(params, 1);
 
    int rc = xr->moveToAttributeNs(lname->getBuffer(), ns->getBuffer(), xsink);
    return rc == -1 ? 0 : get_bool_node(rc);
@@ -266,12 +243,7 @@ static AbstractQoreNode *XMLREADER_getOuterXml(QoreObject *self, QoreXmlReaderDa
 
 static AbstractQoreNode *XMLREADER_relaxNGValidate(QoreObject *self, QoreXmlReaderData *xr, const QoreListNode *params, ExceptionSink *xsink) {
 #ifdef HAVE_XMLTEXTREADERRELAXNGSETSCHEMA
-   const QoreStringNode *rng = test_string_param(params, 0);
-   if (!rng) {
-      xsink->raiseException("XMLREADER-RELAXNGVALIDATE-ERROR", "missing string giving the RelaxNG schema as sole argument to XmlReader::relaxNGValidate()");
-      return 0;
-   }
-
+   const QoreStringNode *rng = HARD_QORE_STRING(params, 0);
    xr->relaxNGValidate(rng->getBuffer(), xsink);
 #else
    xsink->raiseException("MISSING-FEATURE-ERROR", "the libxml2 version used to compile the qore library did not support the xmlTextReaderRelaxNGValidate() function, therefore XmlReader::relaxNGValidate() is not available in Qore; for maximum portability, use the constant Option::HAVE_PARSEXMLWITHRELAXNG to check if this method is implemented before calling");
@@ -281,12 +253,7 @@ static AbstractQoreNode *XMLREADER_relaxNGValidate(QoreObject *self, QoreXmlRead
 
 static AbstractQoreNode *XMLREADER_schemaValidate(QoreObject *self, QoreXmlReaderData *xr, const QoreListNode *params, ExceptionSink *xsink) {
 #ifdef HAVE_XMLTEXTREADERSETSCHEMA
-   const QoreStringNode *xsd = test_string_param(params, 0);
-   if (!xsd) {
-      xsink->raiseException("XMLREADER-SCHEMAVALIDATE-ERROR", "missing string giving the W3C XSD schema as sole argument to XmlReader::schemaValidate()");
-      return 0;
-   }
-
+   const QoreStringNode *xsd = HARD_QORE_STRING(params, 0);
    xr->schemaValidate(xsd->getBuffer(), xsink);
 #else
    xsink->raiseException("MISSING-FEATURE-ERROR", "the libxml2 version used to compile the qore library did not support the xmlTextReaderSchemaValidate() function, therefore XmlReader::schemaValidate() is not available in Qore; for maximum portability, use the constant Option::HAVE_PARSEXMLWITHSCHEMA to check if this method is implemented before calling");
@@ -294,52 +261,103 @@ static AbstractQoreNode *XMLREADER_schemaValidate(QoreObject *self, QoreXmlReade
    return 0;
 }
 
-QoreClass *initXmlReaderClass() {
+QoreClass *initXmlReaderClass(QoreClass *XmlDoc) {
    QORE_TRACE("initXmlReaderClass()");
 
    QoreClass *QC_XMLREADER = new QoreClass("XmlReader");
    CID_XMLREADER = QC_XMLREADER->getID();
-   QC_XMLREADER->setConstructor(XMLREADER_constructor);
+
+   QC_XMLREADER->setConstructorExtended(XMLREADER_constructor_xmldoc, false, QC_NO_FLAGS, QDOM_DEFAULT, 1, XmlDoc->getTypeInfo(), QORE_PARAM_NO_ARG);
+   QC_XMLREADER->setConstructorExtended(XMLREADER_constructor_str, false, QC_NO_FLAGS, QDOM_DEFAULT, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+
    QC_XMLREADER->setCopy((q_copy_t)XMLREADER_copy);
 
-   QC_XMLREADER->addMethod("read",                      (q_method_t)XMLREADER_read);
-   QC_XMLREADER->addMethod("readSkipWhitespace",        (q_method_t)XMLREADER_readSkipWhitespace);
-   QC_XMLREADER->addMethod("nodeType",                  (q_method_t)XMLREADER_nodeType);
-   QC_XMLREADER->addMethod("nodeTypeName",              (q_method_t)XMLREADER_nodeTypeName);
-   QC_XMLREADER->addMethod("depth",                     (q_method_t)XMLREADER_depth);
-   QC_XMLREADER->addMethod("name",                      (q_method_t)XMLREADER_name);
-   QC_XMLREADER->addMethod("value",                     (q_method_t)XMLREADER_value);
-   QC_XMLREADER->addMethod("hasAttributes",             (q_method_t)XMLREADER_hasAttributes);
-   QC_XMLREADER->addMethod("hasValue",                  (q_method_t)XMLREADER_hasValue);
-   QC_XMLREADER->addMethod("isDefault",                 (q_method_t)XMLREADER_isDefault);
-   QC_XMLREADER->addMethod("isEmptyElement",            (q_method_t)XMLREADER_isEmptyElement);
-   QC_XMLREADER->addMethod("isNamespaceDecl",           (q_method_t)XMLREADER_isNamespaceDecl);
-   QC_XMLREADER->addMethod("isValid",                   (q_method_t)XMLREADER_isValid);
-   QC_XMLREADER->addMethod("toQore",                    (q_method_t)XMLREADER_toQore);
-   QC_XMLREADER->addMethod("toQoreData",                (q_method_t)XMLREADER_toQoreData);
-   QC_XMLREADER->addMethod("attributeCount",            (q_method_t)XMLREADER_attributeCount);
-   QC_XMLREADER->addMethod("baseUri",                   (q_method_t)XMLREADER_baseUri);
-   QC_XMLREADER->addMethod("encoding",                  (q_method_t)XMLREADER_encoding);
-   QC_XMLREADER->addMethod("localName",                 (q_method_t)XMLREADER_localName);
-   QC_XMLREADER->addMethod("namespaceUri",              (q_method_t)XMLREADER_namespaceUri);
-   QC_XMLREADER->addMethod("prefix",                    (q_method_t)XMLREADER_prefix);
-   QC_XMLREADER->addMethod("xmlLang",                   (q_method_t)XMLREADER_xmlLang);
-   QC_XMLREADER->addMethod("xmlVersion",                (q_method_t)XMLREADER_xmlVersion);
-   QC_XMLREADER->addMethod("getAttribute",              (q_method_t)XMLREADER_getAttribute);
-   QC_XMLREADER->addMethod("getAttributeOffset",        (q_method_t)XMLREADER_getAttributeOffset);
-   QC_XMLREADER->addMethod("getAttributeNs",            (q_method_t)XMLREADER_getAttributeNs);
-   QC_XMLREADER->addMethod("lookupNamespace",           (q_method_t)XMLREADER_lookupNamespace);
-   QC_XMLREADER->addMethod("moveToAttribute",           (q_method_t)XMLREADER_moveToAttribute);
-   QC_XMLREADER->addMethod("moveToAttributeOffset",     (q_method_t)XMLREADER_moveToAttributeOffset);
-   QC_XMLREADER->addMethod("moveToAttributeNs",         (q_method_t)XMLREADER_moveToAttributeNs);
-   QC_XMLREADER->addMethod("moveToElement",             (q_method_t)XMLREADER_moveToElement);
-   QC_XMLREADER->addMethod("moveToFirstAttribute",      (q_method_t)XMLREADER_moveToFirstAttribute);
-   QC_XMLREADER->addMethod("moveToNextAttribute",       (q_method_t)XMLREADER_moveToNextAttribute);
-   QC_XMLREADER->addMethod("next",                      (q_method_t)XMLREADER_next);
-   QC_XMLREADER->addMethod("getInnerXml",               (q_method_t)XMLREADER_getInnerXml);
-   QC_XMLREADER->addMethod("getOuterXml",               (q_method_t)XMLREADER_getOuterXml);
-   QC_XMLREADER->addMethod("relaxNGValidate",           (q_method_t)XMLREADER_relaxNGValidate);
-   QC_XMLREADER->addMethod("schemaValidate",            (q_method_t)XMLREADER_schemaValidate);
+   QC_XMLREADER->addMethodExtended("read",                      (q_method_t)XMLREADER_read, false, QC_NO_FLAGS, QDOM_DEFAULT, boolTypeInfo);
+   QC_XMLREADER->addMethodExtended("readSkipWhitespace",        (q_method_t)XMLREADER_readSkipWhitespace, false, QC_NO_FLAGS, QDOM_DEFAULT, boolTypeInfo);
+   QC_XMLREADER->addMethodExtended("nodeType",                  (q_method_t)XMLREADER_nodeType, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo);
+
+   // XmlReader::nodeTypeName() returns string|nothing
+   QC_XMLREADER->addMethodExtended("nodeTypeName",              (q_method_t)XMLREADER_nodeTypeName, false, QC_RET_VALUE_ONLY);
+
+   QC_XMLREADER->addMethodExtended("depth",                     (q_method_t)XMLREADER_depth, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo);
+
+   // XmlReader::name() returns string|nothing
+   QC_XMLREADER->addMethodExtended("name",                      (q_method_t)XMLREADER_name, false, QC_RET_VALUE_ONLY);
+
+   // XmlReader::value() returns string|nothing
+   QC_XMLREADER->addMethodExtended("value",                     (q_method_t)XMLREADER_value, false, QC_RET_VALUE_ONLY);
+
+   QC_XMLREADER->addMethodExtended("hasAttributes",             (q_method_t)XMLREADER_hasAttributes, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, boolTypeInfo);
+   QC_XMLREADER->addMethodExtended("hasValue",                  (q_method_t)XMLREADER_hasValue, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, boolTypeInfo);
+   QC_XMLREADER->addMethodExtended("isDefault",                 (q_method_t)XMLREADER_isDefault, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, boolTypeInfo);
+   QC_XMLREADER->addMethodExtended("isEmptyElement",            (q_method_t)XMLREADER_isEmptyElement, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, boolTypeInfo);
+   QC_XMLREADER->addMethodExtended("isNamespaceDecl",           (q_method_t)XMLREADER_isNamespaceDecl, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, boolTypeInfo);
+   QC_XMLREADER->addMethodExtended("isValid",                   (q_method_t)XMLREADER_isValid, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, boolTypeInfo);
+   QC_XMLREADER->addMethodExtended("toQore",                    (q_method_t)XMLREADER_toQore, false, QC_RET_VALUE_ONLY);
+   QC_XMLREADER->addMethodExtended("toQoreData",                (q_method_t)XMLREADER_toQoreData, false, QC_RET_VALUE_ONLY);
+   QC_XMLREADER->addMethodExtended("attributeCount",            (q_method_t)XMLREADER_attributeCount, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo);
+
+   // XmlReader::baseUri() returns string|nothing
+   QC_XMLREADER->addMethodExtended("baseUri",                   (q_method_t)XMLREADER_baseUri, false, QC_RET_VALUE_ONLY);
+
+   // XmlReader::encoding() returns string|nothing
+   QC_XMLREADER->addMethodExtended("encoding",                  (q_method_t)XMLREADER_encoding, false, QC_RET_VALUE_ONLY);
+
+   // XmlReader::localName() returns string|nothing
+   QC_XMLREADER->addMethodExtended("localName",                 (q_method_t)XMLREADER_localName, false, QC_RET_VALUE_ONLY);
+
+   // XmlReader::namespaceUri() returns string|nothing
+   QC_XMLREADER->addMethodExtended("namespaceUri",              (q_method_t)XMLREADER_namespaceUri, false, QC_RET_VALUE_ONLY);
+
+   // XmlReader::prefix() returns string|nothing
+   QC_XMLREADER->addMethodExtended("prefix",                    (q_method_t)XMLREADER_prefix, false, QC_RET_VALUE_ONLY);
+
+   // XmlReader::xmlLang() returns string|nothing
+   QC_XMLREADER->addMethodExtended("xmlLang",                   (q_method_t)XMLREADER_xmlLang, false, QC_RET_VALUE_ONLY);
+
+   // XmlReader::xmlVersion() returns string|nothing
+   QC_XMLREADER->addMethodExtended("xmlVersion",                (q_method_t)XMLREADER_xmlVersion, false, QC_RET_VALUE_ONLY);
+
+   // XmlReader::getAttribute(string $attr) returns string|nothing
+   QC_XMLREADER->addMethodExtended("getAttribute",              (q_method_t)XMLREADER_getAttribute, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, 0, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+
+   // XmlReader::getAttribute(softint $offset = 0) returns string|nothing
+   QC_XMLREADER->addMethodExtended("getAttributeOffset",        (q_method_t)XMLREADER_getAttributeOffset, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, 0, 1, softBigIntTypeInfo, zero());
+
+   // XmlReader::getAttributeNs(string $attr, string $ns) returns string|nothing
+   QC_XMLREADER->addMethodExtended("getAttributeNs",            (q_method_t)XMLREADER_getAttributeNs, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, 0, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
+
+   QC_XMLREADER->addMethodExtended("lookupNamespace",           (q_method_t)XMLREADER_lookupNamespace, false, QC_RET_VALUE_ONLY);
+   QC_XMLREADER->addMethodExtended("lookupNamespace",           (q_method_t)XMLREADER_lookupNamespace_str, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, 0, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+
+   // XmlReader::moveToAttribute(string $attr) returns bool
+   QC_XMLREADER->addMethodExtended("moveToAttribute",           (q_method_t)XMLREADER_moveToAttribute, false, QC_NO_FLAGS, QDOM_DEFAULT, boolTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+
+   // XmlReader::moveToAttributeOffset(softint $offset = 0) returns bool
+   QC_XMLREADER->addMethodExtended("moveToAttributeOffset",     (q_method_t)XMLREADER_moveToAttributeOffset, false, QC_NO_FLAGS, QDOM_DEFAULT, boolTypeInfo, 1, softBigIntTypeInfo, zero());
+
+   // XmlReader::moveToAttributeNs(string $attr, string $ns) returns bool
+   QC_XMLREADER->addMethodExtended("moveToAttributeNs",         (q_method_t)XMLREADER_moveToAttributeNs, false, QC_NO_FLAGS, QDOM_DEFAULT, boolTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
+
+   QC_XMLREADER->addMethodExtended("moveToElement",             (q_method_t)XMLREADER_moveToElement, false, QC_NO_FLAGS, QDOM_DEFAULT, boolTypeInfo);
+
+   QC_XMLREADER->addMethodExtended("moveToFirstAttribute",      (q_method_t)XMLREADER_moveToFirstAttribute, false, QC_NO_FLAGS, QDOM_DEFAULT, boolTypeInfo);
+
+   QC_XMLREADER->addMethodExtended("moveToNextAttribute",       (q_method_t)XMLREADER_moveToNextAttribute, false, QC_NO_FLAGS, QDOM_DEFAULT, boolTypeInfo);
+
+   QC_XMLREADER->addMethodExtended("next",                      (q_method_t)XMLREADER_next, false, QC_NO_FLAGS, QDOM_DEFAULT, boolTypeInfo);
+
+   // XmlReader::getInnerXml() returns string|nothing
+   QC_XMLREADER->addMethodExtended("getInnerXml",               (q_method_t)XMLREADER_getInnerXml, false, QC_RET_VALUE_ONLY);
+
+   // XmlReader::getOuterXml() returns string|nothing
+   QC_XMLREADER->addMethodExtended("getOuterXml",               (q_method_t)XMLREADER_getOuterXml, false, QC_RET_VALUE_ONLY);
+
+   // XmlReader::relaxNGValidate() returns nothing
+   QC_XMLREADER->addMethodExtended("relaxNGValidate",           (q_method_t)XMLREADER_relaxNGValidate, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+
+   // XmlReader::schemaValidate() returns nothing
+   QC_XMLREADER->addMethodExtended("schemaValidate",            (q_method_t)XMLREADER_schemaValidate, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    return QC_XMLREADER;   
 }
