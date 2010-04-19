@@ -182,13 +182,13 @@ static AbstractQoreNode *XMLREADER_getAttributeOffset(QoreObject *self, QoreXmlR
 
 static AbstractQoreNode *XMLREADER_getAttributeNs(QoreObject *self, QoreXmlReaderData *xr, const QoreListNode *params, ExceptionSink *xsink) {
    const QoreStringNode *lname = test_string_param(params, 0);
-   if (!lname || lname->strlen()) {
+   if (!lname) {
       xsink->raiseException("XMLREADER-GETATTRIBUTENS-ERROR", "missing attribute local name as first argument to XmlReader::getAttributeNs()");
       return 0;
    }
 
    const QoreStringNode *ns = test_string_param(params, 1);
-   if (!lname || ns->strlen()) {
+   if (!ns) {
       xsink->raiseException("XMLREADER-GETATTRIBUTENS-ERROR", "missing attribute namespace as second argument to XmlReader::getAttributeNs()");
       return 0;
    }
@@ -220,13 +220,13 @@ static AbstractQoreNode *XMLREADER_moveToAttributeOffset(QoreObject *self, QoreX
 
 static AbstractQoreNode *XMLREADER_moveToAttributeNs(QoreObject *self, QoreXmlReaderData *xr, const QoreListNode *params, ExceptionSink *xsink) {
    const QoreStringNode *lname = test_string_param(params, 0);
-   if (!lname || lname->strlen()) {
+   if (!lname) {
       xsink->raiseException("XMLREADER-MOVETOATTRIBUTENS-ERROR", "missing attribute local name as first argument to XmlReader::moveToAttributeNs()");
       return 0;
    }
 
    const QoreStringNode *ns = test_string_param(params, 1);
-   if (!lname || ns->strlen()) {
+   if (!ns) {
       xsink->raiseException("XMLREADER-MOVETOATTRIBUTENS-ERROR", "missing attribute namespace as second argument to XmlReader::moveToAttributeNs()");
       return 0;
    }

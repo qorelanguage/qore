@@ -1,3 +1,7 @@
+2010.04.19: David Nichols
+	 * fixed some bugs processing arguments in the XmlReader class
+	   (backported from trunk)
+
 2010.04.12: David Nichols
 	 * fixed a memory bug in the context statement when an exception
 	   occurs in the context expression (backported from trunk)
