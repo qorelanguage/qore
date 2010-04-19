@@ -26,13 +26,11 @@
 qore_classid_t CID_SEQUENCE;
 
 static void SEQUENCE_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink) {
-   int start;
-   const AbstractQoreNode *p0 = get_param(params, 0);
-   if (p0)
-      start = p0->getAsInt();
-   else
-      start = 0;
-   self->setPrivate(CID_SEQUENCE, new QoreSequence(start));
+   self->setPrivate(CID_SEQUENCE, new QoreSequence);
+}
+
+static void SEQUENCE_constructor_int(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink) {
+   self->setPrivate(CID_SEQUENCE, new QoreSequence(HARD_QORE_INT(params, 0)));
 }
 
 static void SEQUENCE_copy(QoreObject *self, QoreObject *old, QoreSequence *s, ExceptionSink *xsink) {
@@ -53,7 +51,10 @@ QoreClass *initSequenceClass() {
    // note that this does not block therefore has no QDOM_THREAD
    QoreClass *QC_SEQUENCE = new QoreClass("Sequence");
    CID_SEQUENCE = QC_SEQUENCE->getID();
-   QC_SEQUENCE->setConstructor(SEQUENCE_constructor);
+
+   QC_SEQUENCE->setConstructorExtended(SEQUENCE_constructor);
+   QC_SEQUENCE->setConstructorExtended(SEQUENCE_constructor_int, false, QC_NO_FLAGS, QDOM_DEFAULT, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
+
    QC_SEQUENCE->setCopy((q_copy_t)SEQUENCE_copy);
 
    QC_SEQUENCE->addMethodExtended("next",        (q_method_t)SEQUENCE_next, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);

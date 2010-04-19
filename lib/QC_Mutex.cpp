@@ -26,7 +26,7 @@
 qore_classid_t CID_MUTEX;
 
 static void MUTEX_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink) {
-   self->setPrivate(CID_MUTEX, new SmartMutex());
+   self->setPrivate(CID_MUTEX, new SmartMutex);
 }
 
 static void MUTEX_destructor(QoreObject *self, SmartMutex *m, ExceptionSink *xsink) {
@@ -35,7 +35,7 @@ static void MUTEX_destructor(QoreObject *self, SmartMutex *m, ExceptionSink *xsi
 }
 
 static void MUTEX_copy(QoreObject *self, QoreObject *old, SmartMutex *m, ExceptionSink *xsink) {
-   self->setPrivate(CID_MUTEX, new SmartMutex());
+   self->setPrivate(CID_MUTEX, new SmartMutex);
 }
 
 static AbstractQoreNode *MUTEX_lock(QoreObject *self, SmartMutex *m, const QoreListNode *params, ExceptionSink *xsink) {
@@ -67,7 +67,8 @@ QoreClass *initMutexClass(QoreClass *AbstractSmartLock) {
 
    QC_MUTEX->addBuiltinVirtualBaseClass(AbstractSmartLock);
 
-   QC_MUTEX->setConstructor(MUTEX_constructor);
+   QC_MUTEX->setConstructorExtended(MUTEX_constructor);
+
    QC_MUTEX->setDestructor((q_destructor_t)MUTEX_destructor);
    QC_MUTEX->setCopy((q_copy_t)MUTEX_copy);
 

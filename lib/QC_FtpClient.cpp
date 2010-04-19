@@ -312,7 +312,7 @@ QoreClass *initFtpClientClass() {
    QoreClass *QC_FTPCLIENT = new QoreClass("FtpClient", QDOM_NETWORK);
    CID_FTPCLIENT = QC_FTPCLIENT->getID();
 
-   QC_FTPCLIENT->setConstructor(FC_constructor);
+   QC_FTPCLIENT->setConstructorExtended(FC_constructor);
    QC_FTPCLIENT->setConstructorExtended(FC_constructor_str, false, QC_NO_FLAGS, QDOM_DEFAULT, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    QC_FTPCLIENT->setDestructor((q_destructor_t)FC_destructor);
@@ -322,23 +322,23 @@ QoreClass *initFtpClientClass() {
    QC_FTPCLIENT->addMethodExtended("disconnect",            (q_method_t)FC_disconnect, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
 
    // returns string or nothing
-   QC_FTPCLIENT->addMethodExtended("list",                  (q_method_t)FC_list, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT);
-   QC_FTPCLIENT->addMethodExtended("list",                  (q_method_t)FC_list_str, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, 0, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   QC_FTPCLIENT->addMethodExtended("list",                  (q_method_t)FC_list, false, QC_NO_FLAGS, QDOM_DEFAULT);
+   QC_FTPCLIENT->addMethodExtended("list",                  (q_method_t)FC_list_str, false, QC_NO_FLAGS, QDOM_DEFAULT, 0, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    // returns string or nothing
-   QC_FTPCLIENT->addMethodExtended("nlst",                  (q_method_t)FC_nlst, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT);
-   QC_FTPCLIENT->addMethodExtended("nlst",                  (q_method_t)FC_nlst_str, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, 0, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   QC_FTPCLIENT->addMethodExtended("nlst",                  (q_method_t)FC_nlst, false, QC_NO_FLAGS, QDOM_DEFAULT);
+   QC_FTPCLIENT->addMethodExtended("nlst",                  (q_method_t)FC_nlst_str, false, QC_NO_FLAGS, QDOM_DEFAULT, 0, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   QC_FTPCLIENT->addMethodExtended("pwd",                   (q_method_t)FC_pwd, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringTypeInfo);
+   QC_FTPCLIENT->addMethodExtended("pwd",                   (q_method_t)FC_pwd, false, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo);
 
    QC_FTPCLIENT->addMethodExtended("cwd",                   (q_method_t)FC_cwd, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    // accesses filesystem so tagged with QDOM_FILESYSTEM
-   QC_FTPCLIENT->addMethodExtended("get",                   (q_method_t)FC_get_str, false, QC_RET_VALUE_ONLY, QDOM_FILESYSTEM, bigIntTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
-   QC_FTPCLIENT->addMethodExtended("get",                   (q_method_t)FC_get_str_str, false, QC_RET_VALUE_ONLY, QDOM_FILESYSTEM, bigIntTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
+   QC_FTPCLIENT->addMethodExtended("get",                   (q_method_t)FC_get_str, false, QC_NO_FLAGS, QDOM_FILESYSTEM, bigIntTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   QC_FTPCLIENT->addMethodExtended("get",                   (q_method_t)FC_get_str_str, false, QC_NO_FLAGS, QDOM_FILESYSTEM, bigIntTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   QC_FTPCLIENT->addMethodExtended("getAsString",           (q_method_t)FC_getAsString, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
-   QC_FTPCLIENT->addMethodExtended("getAsBinary",           (q_method_t)FC_getAsBinary, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, binaryTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   QC_FTPCLIENT->addMethodExtended("getAsString",           (q_method_t)FC_getAsString, false, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   QC_FTPCLIENT->addMethodExtended("getAsBinary",           (q_method_t)FC_getAsBinary, false, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    // accesses filesystem so tagged with QDOM_FILESYSTEM
    QC_FTPCLIENT->addMethodExtended("put",                   (q_method_t)FC_put_str, false, QC_NO_FLAGS, QDOM_FILESYSTEM, bigIntTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);

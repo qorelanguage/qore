@@ -51,198 +51,170 @@ struct dbi_cap_hash dbi_cap_list[] =
   { DBI_CAP_LOB_SUPPORT,            "LargeObjectSupport" },
   { DBI_CAP_BIND_BY_VALUE,          "BindByValue" },
   { DBI_CAP_BIND_BY_PLACEHOLDER,    "BindByPlaceholder" },
-  { DBI_CAP_HAS_EXECRAW,           "HasExecRaw" },
+  { DBI_CAP_HAS_EXECRAW,            "HasExecRaw" },
 };
 
 class DBIDriverFunctions {
-   public:
-      q_dbi_open_t open;
-      q_dbi_close_t close;
-      q_dbi_select_t select;
-      q_dbi_select_rows_t selectRows;
-      q_dbi_exec_t execSQL;
-      q_dbi_execraw_t execRawSQL;
-      q_dbi_commit_t commit;
-      q_dbi_rollback_t rollback;
-      q_dbi_begin_transaction_t begin_transaction; // for DBI drivers that require explicit transaction starts
-      q_dbi_abort_transaction_start_t abort_transaction_start;  // for DBI drivers that require a rollback in order to use
-							        // the connection after an exception as the first statement
-							        // in a transaction
-      q_dbi_get_server_version_t get_server_version;
-      q_dbi_get_client_version_t get_client_version;
+public:
+   q_dbi_open_t open;
+   q_dbi_close_t close;
+   q_dbi_select_t select;
+   q_dbi_select_rows_t selectRows;
+   q_dbi_exec_t execSQL;
+   q_dbi_execraw_t execRawSQL;
+   q_dbi_commit_t commit;
+   q_dbi_rollback_t rollback;
+   q_dbi_begin_transaction_t begin_transaction; // for DBI drivers that require explicit transaction starts
+   q_dbi_abort_transaction_start_t abort_transaction_start;  // for DBI drivers that require a rollback in order to use
+   // the connection after an exception as the first statement
+   // in a transaction
+   q_dbi_get_server_version_t get_server_version;
+   q_dbi_get_client_version_t get_client_version;
       
-      DLLLOCAL DBIDriverFunctions()
-      {
-	 open = 0;
-	 close = 0;
-	 select = 0;
-	 selectRows = 0;
-	 execSQL = 0;
-	 execRawSQL = 0;
-	 commit = 0;
-	 rollback = 0;
-	 begin_transaction = 0;
-	 abort_transaction_start = 0;
-	 get_server_version = 0;
-	 get_client_version = 0;
-      }
+   DLLLOCAL DBIDriverFunctions() : open(0), close(0), select(0), selectRows(0), execSQL(0), execRawSQL(0), 
+				   commit(0), rollback(0), begin_transaction(0), abort_transaction_start(0),
+				   get_server_version(0), get_client_version(0) {
+   }
 };
 
 struct qore_dbi_mlist_private {
       dbi_method_list_t l;
 };
 
-qore_dbi_method_list::qore_dbi_method_list() : priv(new qore_dbi_mlist_private)
-{
+qore_dbi_method_list::qore_dbi_method_list() : priv(new qore_dbi_mlist_private) {
 }
 
-qore_dbi_method_list::~qore_dbi_method_list()
-{
+qore_dbi_method_list::~qore_dbi_method_list() {
    delete priv;
 }
 
 // covers open, commit, rollback, and begin transaction
-void qore_dbi_method_list::add(int code, q_dbi_open_t method)
-{
+void qore_dbi_method_list::add(int code, q_dbi_open_t method) {
    priv->l.push_back(std::make_pair(code, (void *)method));
 }
 
 // for close
-void qore_dbi_method_list::add(int code, q_dbi_close_t method)
-{
+void qore_dbi_method_list::add(int code, q_dbi_close_t method) {
    priv->l.push_back(std::make_pair(code, (void *)method));
 }
 
 // covers select, select_rows. and exec
-void qore_dbi_method_list::add(int code, q_dbi_select_t method)
-{
+void qore_dbi_method_list::add(int code, q_dbi_select_t method) {
    priv->l.push_back(std::make_pair(code, (void *)method));
 }
 
 // covers execRaw
-void qore_dbi_method_list::add(int code, q_dbi_execraw_t method)
-{
+void qore_dbi_method_list::add(int code, q_dbi_execraw_t method) {
    priv->l.push_back(std::make_pair(code, (void *)method));
 }
 
 // covers get_server_version
-void qore_dbi_method_list::add(int code, q_dbi_get_server_version_t method)
-{
+void qore_dbi_method_list::add(int code, q_dbi_get_server_version_t method) {
    priv->l.push_back(std::make_pair(code, (void *)method));
 }
 
 // covers get_client_version
-void qore_dbi_method_list::add(int code, q_dbi_get_client_version_t method)
-{
+void qore_dbi_method_list::add(int code, q_dbi_get_client_version_t method) {
    priv->l.push_back(std::make_pair(code, (void *)method));
 }
 
-dbi_method_list_t *qore_dbi_method_list::getMethods() const
-{
+dbi_method_list_t *qore_dbi_method_list::getMethods() const {
    return &priv->l;
 }
 
 struct qore_dbi_private {
-      DBIDriverFunctions f;
-      int caps;
-      const char *name;
-      DLLLOCAL qore_dbi_private(const char *nme, const dbi_method_list_t &methods, int cps)
-      {
-	 // add methods to internal data structure
-	 for (dbi_method_list_t::const_iterator i = methods.begin(), e = methods.end(); i != e; ++i)
-	 {
-	    assert((*i).first >= 0 && (*i).first < QDBI_VALID_CODES);
-	    switch ((*i).first)
-	    {
-	       case QDBI_METHOD_OPEN:
-		  assert(!f.open);
-		  f.open = (q_dbi_open_t)(*i).second;
-		  break;
-	       case QDBI_METHOD_CLOSE:
-		  assert(!f.close);
-		  f.close = (q_dbi_close_t)(*i).second;
-		  break;
-	       case QDBI_METHOD_SELECT:
-		  assert(!f.select);
-		  f.select = (q_dbi_select_t)(*i).second;
-		  break;
-	       case QDBI_METHOD_SELECT_ROWS:
-		  assert(!f.selectRows);
-		  f.selectRows = (q_dbi_select_rows_t)(*i).second;
-		  break;
-	       case QDBI_METHOD_EXEC:
-		  assert(!f.execSQL);
-		  f.execSQL = (q_dbi_exec_t)(*i).second;
-		  break;
-           case QDBI_METHOD_EXECRAW:
+   DBIDriverFunctions f;
+   int caps;
+   const char *name;
+   DLLLOCAL qore_dbi_private(const char *nme, const dbi_method_list_t &methods, int cps) {
+      // add methods to internal data structure
+      for (dbi_method_list_t::const_iterator i = methods.begin(), e = methods.end(); i != e; ++i) {
+	 assert((*i).first >= 0 && (*i).first < QDBI_VALID_CODES);
+	 switch ((*i).first) {
+	    case QDBI_METHOD_OPEN:
+	       assert(!f.open);
+	       f.open = (q_dbi_open_t)(*i).second;
+	       break;
+	    case QDBI_METHOD_CLOSE:
+	       assert(!f.close);
+	       f.close = (q_dbi_close_t)(*i).second;
+	       break;
+	    case QDBI_METHOD_SELECT:
+	       assert(!f.select);
+	       f.select = (q_dbi_select_t)(*i).second;
+	       break;
+	    case QDBI_METHOD_SELECT_ROWS:
+	       assert(!f.selectRows);
+	       f.selectRows = (q_dbi_select_rows_t)(*i).second;
+	       break;
+	    case QDBI_METHOD_EXEC:
+	       assert(!f.execSQL);
+	       f.execSQL = (q_dbi_exec_t)(*i).second;
+	       break;
+	    case QDBI_METHOD_EXECRAW:
                assert(!f.execRawSQL);
                f.execRawSQL = (q_dbi_execraw_t)(*i).second;
                break;
-	       case QDBI_METHOD_COMMIT:
-		  assert(!f.commit);
-		  f.commit = (q_dbi_commit_t)(*i).second;
-		  break;
-	       case QDBI_METHOD_ROLLBACK:
-		  assert(!f.rollback);
-		  f.rollback = (q_dbi_rollback_t)(*i).second;
-		  break;
-	       case QDBI_METHOD_BEGIN_TRANSACTION:
-		  assert(!f.begin_transaction);
-		  f.begin_transaction = (q_dbi_begin_transaction_t)(*i).second;
-		  break;
-	       case QDBI_METHOD_ABORT_TRANSACTION_START:
-		  assert(!f.abort_transaction_start);
-		  f.abort_transaction_start = (q_dbi_abort_transaction_start_t)(*i).second;
-		  break;
-	       case QDBI_METHOD_GET_SERVER_VERSION:
-		  assert(!f.get_server_version);
-		  f.get_server_version = (q_dbi_get_server_version_t)(*i).second;
-		  break;
-	       case QDBI_METHOD_GET_CLIENT_VERSION:
-		  assert(!f.get_client_version);
-		  f.get_client_version = (q_dbi_get_client_version_t)(*i).second;
-		  break;
+	    case QDBI_METHOD_COMMIT:
+	       assert(!f.commit);
+	       f.commit = (q_dbi_commit_t)(*i).second;
+	       break;
+	    case QDBI_METHOD_ROLLBACK:
+	       assert(!f.rollback);
+	       f.rollback = (q_dbi_rollback_t)(*i).second;
+	       break;
+	    case QDBI_METHOD_BEGIN_TRANSACTION:
+	       assert(!f.begin_transaction);
+	       f.begin_transaction = (q_dbi_begin_transaction_t)(*i).second;
+	       break;
+	    case QDBI_METHOD_ABORT_TRANSACTION_START:
+	       assert(!f.abort_transaction_start);
+	       f.abort_transaction_start = (q_dbi_abort_transaction_start_t)(*i).second;
+	       break;
+	    case QDBI_METHOD_GET_SERVER_VERSION:
+	       assert(!f.get_server_version);
+	       f.get_server_version = (q_dbi_get_server_version_t)(*i).second;
+	       break;
+	    case QDBI_METHOD_GET_CLIENT_VERSION:
+	       assert(!f.get_client_version);
+	       f.get_client_version = (q_dbi_get_client_version_t)(*i).second;
+	       break;
 #ifdef DEBUG
-	       default:
-		  assert(false);
+	    default:
+	       assert(false);
 #endif
-	    }
 	 }
-	 // ensure minimum methods are defined
-	 assert(f.open);
-	 assert(f.close);
-	 assert(f.select);
-	 assert(f.selectRows);
-	 assert(f.execSQL);
-	 assert(f.commit);
-	 assert(f.rollback);
-   
-	 name = nme;
-	 caps = cps;
       }
+      // ensure minimum methods are defined
+      assert(f.open);
+      assert(f.close);
+      assert(f.select);
+      assert(f.selectRows);
+      assert(f.execSQL);
+      assert(f.commit);
+      assert(f.rollback);
+   
+      name = nme;
+      caps = cps;
+   }
 };
 
-DBIDriver::DBIDriver(const char *nme, const dbi_method_list_t &methods, int cps) : priv(new qore_dbi_private(nme, methods, cps))
-{
+DBIDriver::DBIDriver(const char *nme, const dbi_method_list_t &methods, int cps) : priv(new qore_dbi_private(nme, methods, cps)) {
 }
 
-DBIDriver::~DBIDriver()
-{
+DBIDriver::~DBIDriver() {
    delete priv;
 }
 
-const char *DBIDriver::getName() const
-{
+const char *DBIDriver::getName() const {
    return priv->name;
 }
 
-int DBIDriver::getCaps() const
-{
+int DBIDriver::getCaps() const {
    return priv->caps;
 }
 
-QoreListNode *DBIDriver::getCapList() const
-{
+QoreListNode *DBIDriver::getCapList() const {
    QoreListNode *l = new QoreListNode();
    for (int i = 0; i < NUM_DBI_CAPS; i++)
       if (priv->caps & dbi_cap_list[i].cap)
@@ -250,28 +222,23 @@ QoreListNode *DBIDriver::getCapList() const
    return l;
 }
 
-int DBIDriver::init(Datasource *ds, ExceptionSink *xsink)
-{
+int DBIDriver::init(Datasource *ds, ExceptionSink *xsink) {
    return priv->f.open(ds, xsink);
 }
 
-int DBIDriver::close(Datasource *ds)
-{
+int DBIDriver::close(Datasource *ds) {
    return priv->f.close(ds);
 }
 
-AbstractQoreNode *DBIDriver::select(Datasource *ds, const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink)
-{
+AbstractQoreNode *DBIDriver::select(Datasource *ds, const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink) {
    return priv->f.select(ds, sql, args, xsink);
 }
 
-AbstractQoreNode *DBIDriver::selectRows(Datasource *ds, const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink)
-{
+AbstractQoreNode *DBIDriver::selectRows(Datasource *ds, const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink) {
    return priv->f.selectRows(ds, sql, args, xsink);
 }
 
-AbstractQoreNode *DBIDriver::execSQL(Datasource *ds, const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink)
-{
+AbstractQoreNode *DBIDriver::execSQL(Datasource *ds, const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink) {
    return priv->f.execSQL(ds, sql, args, xsink);
 }
 
@@ -283,25 +250,21 @@ AbstractQoreNode *DBIDriver::execRawSQL(Datasource *ds, const QoreString *sql, E
    return priv->f.execRawSQL(ds, sql, xsink);
 }
 
-int DBIDriver::commit(Datasource *ds, ExceptionSink *xsink)
-{
+int DBIDriver::commit(Datasource *ds, ExceptionSink *xsink) {
    return priv->f.commit(ds, xsink);
 }
 
-int DBIDriver::rollback(Datasource *ds, ExceptionSink *xsink)
-{
+int DBIDriver::rollback(Datasource *ds, ExceptionSink *xsink) {
    return priv->f.rollback(ds, xsink);
 }
 
-int DBIDriver::beginTransaction(Datasource *ds, ExceptionSink *xsink)
-{
+int DBIDriver::beginTransaction(Datasource *ds, ExceptionSink *xsink) {
    if (priv->f.begin_transaction)
       return priv->f.begin_transaction(ds, xsink);
    return 0; // 0 = OK
 }
 
-int DBIDriver::autoCommit(Datasource *ds, ExceptionSink *xsink)
-{
+int DBIDriver::autoCommit(Datasource *ds, ExceptionSink *xsink) {
    // if the driver does not require explicit "begin" statements to
    // start a transaction, then we have to explicitly call "commit" here
    if (!priv->f.begin_transaction)
@@ -310,22 +273,19 @@ int DBIDriver::autoCommit(Datasource *ds, ExceptionSink *xsink)
    return 0; // 0 = OK
 }
 
-int DBIDriver::abortTransactionStart(Datasource *ds, ExceptionSink *xsink)
-{
+int DBIDriver::abortTransactionStart(Datasource *ds, ExceptionSink *xsink) {
    if (priv->f.abort_transaction_start)
       return priv->f.abort_transaction_start(ds, xsink);
    return 0; // 0 = OK
 }
 
-AbstractQoreNode *DBIDriver::getServerVersion(Datasource *ds, ExceptionSink *xsink)
-{
+AbstractQoreNode *DBIDriver::getServerVersion(Datasource *ds, ExceptionSink *xsink) {
    if (priv->f.get_server_version)
       return priv->f.get_server_version(ds, xsink);
    return 0;
 }
 
-AbstractQoreNode *DBIDriver::getClientVersion(const Datasource *ds, ExceptionSink *xsink)
-{
+AbstractQoreNode *DBIDriver::getClientVersion(const Datasource *ds, ExceptionSink *xsink) {
    if (priv->f.get_client_version)
       return priv->f.get_client_version(ds, xsink);
    return 0;
@@ -339,53 +299,46 @@ AbstractQoreNode *DBIDriver::getClientVersion(const Datasource *ds, ExceptionSin
    should be acceptable...
 */
 struct qore_dbi_dlist_private {
-      dbi_list_t l;
+   dbi_list_t l;
 
-      DLLLOCAL ~qore_dbi_dlist_private()
-      {
-	 dbi_list_t::iterator i;
-	 while ((i = l.begin()) != l.end())
-	 {
-	    DBIDriver *driv = *i;
-	    l.erase(i);
-	    delete driv;
-	 }
+   DLLLOCAL ~qore_dbi_dlist_private() {
+      dbi_list_t::iterator i;
+      while ((i = l.begin()) != l.end()) {
+	 DBIDriver *driv = *i;
+	 l.erase(i);
+	 delete driv;
       }
+   }
 
-      DLLLOCAL DBIDriver *find_intern(const char *name) const
-      {
-	 for (dbi_list_t::const_iterator i = l.begin(); i != l.end(); i++)
-	    if (!strcmp(name, (*i)->getName()))
-	       return *i;
+   DLLLOCAL DBIDriver *find_intern(const char *name) const {
+      for (dbi_list_t::const_iterator i = l.begin(); i != l.end(); i++)
+	 if (!strcmp(name, (*i)->getName()))
+	    return *i;
 	 
+      return 0;
+   }
+
+   DLLLOCAL QoreListNode *getDriverList() const {
+      if (l.empty())
 	 return 0;
-      }
-
-      DLLLOCAL QoreListNode *getDriverList() const
-      {
-	 if (l.empty())
-	    return 0;
 	 
-	 QoreListNode *lst = new QoreListNode();
+      QoreListNode *lst = new QoreListNode();
 	 
-	 for (dbi_list_t::const_iterator i = l.begin(); i != l.end(); i++)
-	    lst->push(new QoreStringNode((*i)->getName()));
+      for (dbi_list_t::const_iterator i = l.begin(); i != l.end(); i++)
+	 lst->push(new QoreStringNode((*i)->getName()));
 	 
-	 return lst;
-      }
+      return lst;
+   }
 };
 
-DBIDriverList::DBIDriverList() : priv(new qore_dbi_dlist_private)
-{
+DBIDriverList::DBIDriverList() : priv(new qore_dbi_dlist_private) {
 }
 
-DBIDriverList::~DBIDriverList()
-{
+DBIDriverList::~DBIDriverList() {
    delete priv;
 }
 
-DBIDriver *DBIDriverList::find_intern(const char *name) const
-{
+DBIDriver *DBIDriverList::find_intern(const char *name) const {
    return priv->find_intern(name);
 }
 
@@ -415,8 +368,7 @@ DBIDriver *DBIDriverList::find(const char *name, ExceptionSink *xsink) const {
    return priv->find_intern(name);
 }
 
-DBIDriver *DBIDriverList::registerDriver(const char *name, const struct qore_dbi_method_list &methods, int caps)
-{
+DBIDriver *DBIDriverList::registerDriver(const char *name, const struct qore_dbi_method_list &methods, int caps) {
    assert(!priv->find_intern(name));
    
    DBIDriver *dd = new DBIDriver(name, *(methods.getMethods()), caps);
@@ -424,29 +376,24 @@ DBIDriver *DBIDriverList::registerDriver(const char *name, const struct qore_dbi
    return dd;
 }
 
-QoreListNode *DBIDriverList::getDriverList() const
-{
+QoreListNode *DBIDriverList::getDriverList() const {
    return priv->getDriverList();
 }
 
-void DBI_concat_numeric(QoreString *str, const AbstractQoreNode *v)
-{
-   if (is_nothing(v) || is_null(v))
-   {
+void DBI_concat_numeric(QoreString *str, const AbstractQoreNode *v) {
+   if (is_nothing(v) || is_null(v)) {
       str->concat("null");
       return;
    }
 
-   if (v->getType() == NT_FLOAT || (v->getType() == NT_STRING && strchr((reinterpret_cast<const QoreStringNode *>(v))->getBuffer(), '.')))
-   {
+   if (v->getType() == NT_FLOAT || (v->getType() == NT_STRING && strchr((reinterpret_cast<const QoreStringNode *>(v))->getBuffer(), '.'))) {
       str->sprintf("%g", v->getAsFloat());
       return;
    }
    str->sprintf("%lld", v->getAsBigInt());
 }
 
-int DBI_concat_string(QoreString *str, const AbstractQoreNode *v, ExceptionSink *xsink)
-{
+int DBI_concat_string(QoreString *str, const AbstractQoreNode *v, ExceptionSink *xsink) {
    if (is_nothing(v) || is_null(v))
       return 0;
 
@@ -466,19 +413,19 @@ int DBI_concat_string(QoreString *str, const AbstractQoreNode *v, ExceptionSink 
   driver, charset, and host are optional
 */
 
-QoreHashNode *parseDatasource(const char *ds, ExceptionSink *xsink)
-{
-   if (!ds || !ds[0])
+QoreHashNode *parseDatasource(const char *ds, ExceptionSink *xsink) {
+   if (!ds || !ds[0]) {
+      xsink->raiseException("DATASOURCE-PARSE-ERROR", "empty text passed to parseDatasource()");
       return 0;
+   }
 
    // use a QoreString to create a temporary buffer
    QoreString tmp(ds);
    char *str = const_cast<char *>(tmp.getBuffer());
 
-   ReferenceHolder<QoreHashNode> h(new QoreHashNode(), xsink);
+   ReferenceHolder<QoreHashNode> h(new QoreHashNode, xsink);
    char *p = strchr(str, ':');
-   if (p)
-   {
+   if (p) {
       *p = '\0';
       h->setKeyValue("type", new QoreStringNode(str), 0);
       str = p + 1;
@@ -486,8 +433,7 @@ QoreHashNode *parseDatasource(const char *ds, ExceptionSink *xsink)
 
    bool has_pass = false;
    p = strchr(str, '/');
-   if (p)
-   {
+   if (p) {
       *p = '\0';
       h->setKeyValue("user", new QoreStringNode(str), 0);
       str = p + 1;
@@ -495,15 +441,13 @@ QoreHashNode *parseDatasource(const char *ds, ExceptionSink *xsink)
    }
 
    p = strrchr(str, '@');
-   if (!p)
-   {
+   if (!p) {
       xsink->raiseException("DATASOURCE-PARSE-ERROR", "missing database name delimited by '@' in '%s'", ds);
       return 0;
    }
 
    *p = '\0';
-   if (p != str)
-   {
+   if (p != str) {
       if (has_pass)
 	 h->setKeyValue("pass", new QoreStringNode(str), 0);
       else
@@ -563,11 +507,7 @@ QoreHashNode *parseDatasource(const char *ds, ExceptionSink *xsink)
 }
 
 AbstractQoreNode *f_parseDatasource(const QoreListNode *params, ExceptionSink *xsink) {
-   const QoreStringNode *p0;
-
-   if (!(p0 = test_string_param(params, 0)))
-      return 0;
-
+   const QoreStringNode *p0 = HARD_QORE_STRING(params, 0);
    return parseDatasource(p0->getBuffer(), xsink);
 }
 
@@ -576,36 +516,33 @@ AbstractQoreNode *f_getDBIDriverList(const QoreListNode *params, ExceptionSink *
 }
 
 AbstractQoreNode *f_getDBIDriverCapabilityList(const QoreListNode *params, ExceptionSink *xsink) {
-   const QoreStringNode *p0;
-
-   if (!(p0 = test_string_param(params, 0)))
-      return 0;
+   const QoreStringNode *p0 = HARD_QORE_STRING(params, 0);
 
    DBIDriver *dd = DBI.find(p0->getBuffer());
-   if (!dd)
-      return 0;
-
-   return dd->getCapList();
+   return !dd ? 0 : dd->getCapList();
 }
 
 AbstractQoreNode *f_getDBIDriverCapabilities(const QoreListNode *params, ExceptionSink *xsink) {
-   const QoreStringNode *p0;
-
-   if (!(p0 = test_string_param(params, 0)))
-      return 0;
+   const QoreStringNode *p0 = HARD_QORE_STRING(params, 0);
 
    DBIDriver *dd = DBI.find(p0->getBuffer());
-   if (!dd)
-      return 0;
-
-   return new QoreBigIntNode(dd->getCaps());
+   return !dd ? 0 : new QoreBigIntNode(dd->getCaps());
 }
 
 void init_dbi_functions() {
-   builtinFunctions.add("getDBIDriverList", f_getDBIDriverList);
-   builtinFunctions.add("getDBIDriverCapabilityList", f_getDBIDriverCapabilityList);
-   builtinFunctions.add("getDBIDriverCapabilities", f_getDBIDriverCapabilities);
-   builtinFunctions.add("parseDatasource", f_parseDatasource);
+   // returns list|nothing
+   builtinFunctions.add2("getDBIDriverList", f_getDBIDriverList, QC_RET_VALUE_ONLY);
+
+   builtinFunctions.add2("getDBIDriverCapabilityList", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   // returns list|nothing
+   builtinFunctions.add2("getDBIDriverCapabilityList", f_getDBIDriverCapabilityList, QC_RET_VALUE_ONLY, QDOM_DEFAULT, 0, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+
+   builtinFunctions.add2("getDBIDriverCapabilities", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   // returns int|nothing
+   builtinFunctions.add2("getDBIDriverCapabilities", f_getDBIDriverCapabilities, QC_RET_VALUE_ONLY, QDOM_DEFAULT, 0, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+
+   builtinFunctions.add2("parseDatasource", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   builtinFunctions.add2("parseDatasource", f_parseDatasource, QC_RET_VALUE_ONLY, QDOM_DEFAULT, hashTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 }
 
 QoreNamespace *getSQLNamespace() {

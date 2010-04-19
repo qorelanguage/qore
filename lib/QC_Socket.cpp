@@ -681,7 +681,8 @@ QoreClass *initSocketClass(QoreClass *SSLCert, QoreClass *SSLPrivKey) {
    // to be run in new Qore >= 0.8
    QC_SOCKET->unsetPublicMemberFlag();
    
-   QC_SOCKET->setConstructor(SOCKET_constructor);
+   QC_SOCKET->setConstructorExtended(SOCKET_constructor);
+
    QC_SOCKET->setCopy(SOCKET_copy);
 
    // Socket::connect(string $sock, int $timeout_ms = -1)

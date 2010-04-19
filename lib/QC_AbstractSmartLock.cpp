@@ -38,7 +38,7 @@ QoreClass *initAbstractSmartLockClass() {
    
    QoreClass *QC_AbstractSmartLock = new QoreClass("AbstractSmartLock", QDOM_THREAD_CLASS);
    CID_ABSTRACTSMARTLOCK = QC_AbstractSmartLock->getID();
-   QC_AbstractSmartLock->setConstructor(ASL_constructor);
+   QC_AbstractSmartLock->setConstructorExtended(ASL_constructor);
 
    QC_AbstractSmartLock->addMethodExtended("getName", (q_method_t)ASL_getName, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringTypeInfo);
    

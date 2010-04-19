@@ -88,7 +88,7 @@ QoreClass *initConditionClass(QoreClass *AbstractSmartLock) {
    QoreClass *QC_CONDITION = new QoreClass("Condition", QDOM_THREAD_CLASS);
    CID_CONDITION = QC_CONDITION->getID();
 
-   QC_CONDITION->setConstructor(CONDITION_constructor);
+   QC_CONDITION->setConstructorExtended(CONDITION_constructor);
    QC_CONDITION->setCopy((q_copy_t)CONDITION_copy);
 
    QC_CONDITION->addMethodExtended("signal",        (q_method_t)CONDITION_signal, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);

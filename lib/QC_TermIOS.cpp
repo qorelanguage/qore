@@ -110,7 +110,9 @@ QoreClass *initTermIOSClass() {
    // note that this class does not block therefore has no QDOM_THREAD
    QoreClass *QC_TERMIOS = new QoreClass("TermIOS", QDOM_TERMINAL_IO);
    CID_TERMIOS = QC_TERMIOS->getID();
-   QC_TERMIOS->setConstructor(TERMIOS_constructor);
+
+   QC_TERMIOS->setConstructorExtended(TERMIOS_constructor);
+
    QC_TERMIOS->setCopy((q_copy_t)TERMIOS_copy);
 
    QC_TERMIOS->addMethodExtended("getLFlag", (q_method_t)TERMIOS_getLFlag, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo);
