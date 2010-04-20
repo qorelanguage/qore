@@ -31,9 +31,21 @@ static void invalid_access(AbstractQoreFunction *func) {
    parse_error("parse options do not allow access to builtin %s '%s%s%s()'", class_name ? "method" : "function", class_name ? class_name : "", class_name ? "::" : "", func->getName());
 }
 
-static void retval_ignored(AbstractQoreFunction *func) {
+static void warn_retval_ignored(AbstractQoreFunction *func) {
    const char *class_name = func->className();
-   getProgram()->makeParseWarning(QP_WARN_RETURN_VALUE_IGNORED, "RETURN-VALUE-IGNORED", "call to %s %s%s%s() does not have any side effects and the return value is ignored", class_name ? "method" : "function", class_name ? class_name : "", class_name ? "::" : "", func->getName());
+   getProgram()->makeParseWarning(QP_WARN_RETURN_VALUE_IGNORED, "RETURN-VALUE-IGNORED", "call to %s %s%s%s() does not have any side effects and the return value is ignored; to disable this warning, use '%%disable-warning return-value-ignored' in your code", class_name ? "method" : "function", class_name ? class_name : "", class_name ? "::" : "", func->getName());
+}
+
+static void warn_deprecated(AbstractQoreFunction *func) {
+   const char *class_name = func->className();
+   getProgram()->makeParseWarning(QP_WARN_DEPRECATED, "DEPRECATED", "call to deprecated %s %s%s%s(); to disable this warning, use '%%disable-warning deprecated' in your code", class_name ? "method" : "function", class_name ? class_name : "", class_name ? "::" : "", func->getName());
+}
+
+static void check_flags(AbstractQoreFunction *func, int64 flags, int64 pflag) {
+   if ((pflag & PF_RETURN_VALUE_IGNORED) && (flags & QC_RET_VALUE_ONLY))
+      warn_retval_ignored(func);
+   if (flags & QC_DEPRECATED)
+      warn_deprecated(func);
 }
 
 int FunctionCallBase::parseArgsFindVariant(LocalVar *oflag, int pflag, AbstractQoreFunction *func, const QoreTypeInfo *&returnTypeInfo) {
@@ -91,16 +103,14 @@ int FunctionCallBase::parseArgsFindVariant(LocalVar *oflag, int pflag, AbstractQ
 
       if (variant->getFunctionality() & po)
 	 invalid_access(func);
-      if ((pflag & PF_RETURN_VALUE_IGNORED) && (variant->getFlags() & QC_RET_VALUE_ONLY))
-	 retval_ignored(func);
+      check_flags(func, variant->getFlags(), pflag);
    }
    else if (func) {
       //printd(5, "FunctionCallBase::parseArgsFindVariant() this=%p func=%p f=%lld (%lld) c=%lld (%lld)\n", this, func, func->getUniqueFunctionality(), func->getUniqueFunctionality() & po, func->getUniqueFlags(), func->getUniqueFlags() & QC_RET_VALUE_ONLY);
 
       if (func->getUniqueFunctionality() & po)
 	 invalid_access(func);
-      if ((pflag & PF_RETURN_VALUE_IGNORED) && (func->getUniqueFlags() & QC_RET_VALUE_ONLY))
-	 retval_ignored(func);
+      check_flags(func, func->getUniqueFlags(), pflag);
    }
 
    returnTypeInfo = variant ? variant->parseGetReturnTypeInfo() : (func ? func->parseGetUniqueReturnTypeInfo() : 0);

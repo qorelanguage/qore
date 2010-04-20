@@ -776,7 +776,7 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
       desc->sprintf("%s(%s) is a backwards-compatible variant that returns a constant value when incorrect data types are passed to the function", getName(), variant->getSignature()->getSignatureText());
       const QoreTypeInfo *rti = variant->getReturnTypeInfo();
       if (rti->hasType() && !variant->numParams()) {
-	 desc->concat("and always returns ");
+	 desc->concat(" and always returns ");
 	 if (rti->qc || className()) {
 	    rti->getThisType(*desc);
 	 }

@@ -1631,6 +1631,7 @@ void StaticSystemNamespace::init() {
    qoreNS->addConstant("WARN_INVALID_OPERATION",         new QoreBigIntNode(QP_WARN_INVALID_OPERATION));
    qoreNS->addConstant("WARN_CALL_WITH_TYPE_ERRORS",     new QoreBigIntNode(QP_WARN_CALL_WITH_TYPE_ERRORS));
    qoreNS->addConstant("WARN_RETURN_VALUE_IGNORED",      new QoreBigIntNode(QP_WARN_RETURN_VALUE_IGNORED));
+   qoreNS->addConstant("WARN_DEPRECATED",                new QoreBigIntNode(QP_WARN_DEPRECATED));
    qoreNS->addConstant("WARN_ALL",                       new QoreBigIntNode(QP_WARN_ALL));
 
    // event constants
