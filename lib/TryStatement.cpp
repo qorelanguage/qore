@@ -107,7 +107,7 @@ int TryStatement::parseInitImpl(LocalVar *oflag, int pflag) {
    
    // prepare catch block and params
    if (param) {
-      id = push_local_var(param, hashTypeInfo);
+      id = push_local_var(param, 0);
       printd(3, "TryStatement::parseInitImpl() reg. local var %s (id=%08p)\n", param, id);
    }
    else
