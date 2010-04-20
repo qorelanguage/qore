@@ -1,6 +1,44 @@
 RELEASE NOTES for qore v0.7.8
 
-development in progress
+release summary: 19 bug fixes from 0.7.7 plus a single enhancement
+
+* BUG FIX: fixed a bug processing arguments to in-object method calls in the
+      	   background operator
+* BUG FIX: fixed a bug processing arguments to static method calls in the
+      	   background operator
+* BUG FIX: fixed a bug where the File class would reset the encoding given in
+           the constructor on ::open*()
+* BUG FIX: fixed a bug where if local variables were used in a reference 
+           expression with the background operator, whenever the reference
+           was accessed in the called code a crash would result
+* BUG FIX: eliminated string parsing in block comments, fixed a bug where the
+           parser was not terminated at EOF in a block comment
+* BUG FIX: check for PO_NO_FILESYSTEM in FtpClient::put()
+* BUG FIX: fixed a cosmetic bug in exception string in FtpClient::get()
+* BUG FIX: fixed a bug in SSLCertificate::getSignature()
+* BUG FIX: fixed a bug in SSLCertificate::getInfo()
+* BUG FIX: fixed CANNOT-PROVIDE-FEATURE exception text
+* BUG FIX: fixed getpwnam() to use q_getgrnam() and correct a thread and
+           functional error in QC_Dir.cc
+* BUG FIX: fixed non-thread-safe usage of getpwnam() in QC_Dir.cc
+* BUG FIX: fixed adding virtual private data to classes with multiple virtual
+           base classes
+* BUG FIX: fixed Socket::recv() and Socket::recvBinary() when reading all data
+           available on the socket when the remote ends closes the connection
+           in an orderly way
+* BUG FIX: fixed parsing negative numbers in json strings
+* BUG FIX: fixed limited XML node size
+* BUG FIX: fixed a memory bug in the context statement when an exception
+           occurs in the context expression
+* BUG FIX: fixed a memory bug in the binary += operation; if the operand for
+           BinaryNode::append() is equal to the current buffer, a crash would
+           result
+* BUG FIX: fixed some bugs processing arguments in the XmlReader class
+* enhancement: added a QoreSocket::recvBinary() function to receive all data
+               available on the socket (with an optional initial timeout 
+	       value) and return it as a binary object; if 
+	       Socket::recvBinary() is called with buffer-size <= 0, then this
+	       variant is used
 
 
 ***********************

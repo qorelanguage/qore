@@ -1,3 +1,6 @@
+2010.04.20: David Nichols
+	 * updated bitop code from trunk	 
+
 2010.04.19: David Nichols
 	 * fixed some bugs processing arguments in the XmlReader class
 	   (backported from trunk)
