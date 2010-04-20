@@ -165,7 +165,7 @@
 	</row>
 	<row>
 	  <entry><para><code>qt-core, qt-gui, qt-svn, qt-opengl</code></para></entry>
-	  <entry><para>DEPRECATED: old QT4 module: please use the much more complete qt4 module.</para></entry>
+	  <entry><para>DEPRECATED: old QT4 modules: please use the much more complete qt4 module.</para></entry>
 	</row>
 	<row>
 	  <entry><para><code>qt4</code></para></entry>
