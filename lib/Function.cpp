@@ -590,17 +590,20 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
 	       //printd(5, "AbstractQoreFunction::parseFindVariant() %s(%s) pi=%d t=%s (has type: %d) a=%s (%p) t->parseEqual(a)=%d\n", getName(), sig->getSignatureText(), pi, t->getName(), t->hasType(), a->getName(), a, t->parseEqual(a));
 	       
 	       int rc = -1;
-	       if (t->hasType() && !a->hasType()) {
-		  if (sig->hasDefaultArg(pi))
-		     rc = QTI_IDENT;
-		  else {
+	       if (t->hasType()) {
+		  if (!a->hasType()) {
 		     if (pi < num_args) {
 			variant_missing_types = true;
 			++variant_pmatch;
 			continue;
 		     }
-		     a = nothingTypeInfo;
+		     else if (sig->hasDefaultArg(pi))
+			rc = QTI_IDENT;
+		     else
+			a = nothingTypeInfo;
 		  }
+		  else if (nothingTypeInfo->parseEqual(a) && sig->hasDefaultArg(pi))
+		     rc = QTI_IDENT;
 	       }
 
 	       if (rc == -1)
@@ -673,17 +676,20 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
 	       const QoreTypeInfo *a = (num_args && num_args > pi) ? argTypeInfo[pi] : 0;
 
 	       int rc = -1;
-	       if (t->hasType() && !a->hasType()) {
-		  if (sig->hasDefaultArg(pi))
-		     rc = QTI_IDENT;
-		  else {
+	       if (t->hasType()) {
+		  if (!a->hasType()) {
 		     if (pi < num_args) {
 			variant_missing_types = true;
 			++variant_pmatch;
 			continue;
 		     }
-		     a = nothingTypeInfo;
+		     else if (sig->hasDefaultArg(pi))
+			rc = QTI_IDENT;
+		     else
+			a = nothingTypeInfo;
 		  }
+		  else if (nothingTypeInfo->parseEqual(a) && sig->hasDefaultArg(pi))
+		     rc = QTI_IDENT;
 	       }
 
 	       if (rc == -1)
