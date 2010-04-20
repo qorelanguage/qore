@@ -100,6 +100,10 @@ public:
    }
 
    DLLLOCAL AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
+
+   DLLLOCAL UserClosureFunction *getFunction() const {
+      return uf;
+   }
 };
 
 #endif

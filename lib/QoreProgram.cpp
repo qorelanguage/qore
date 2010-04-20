@@ -54,7 +54,8 @@ static const char *qore_warnings_l[] = {
    "unreachable-code",
    "non-existent-method-call",
    "invalid-operation",
-   "call-with-type-errors"
+   "call-with-type-errors",
+   "return-value-ignored"
 };
 #define NUM_WARNINGS (sizeof(qore_warnings_l)/sizeof(const char *))
 

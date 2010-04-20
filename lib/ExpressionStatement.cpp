@@ -62,7 +62,7 @@ int ExpressionStatement::parseInitImpl(LocalVar *oflag, int pflag) {
    int lvids = 0;
    if (exp) {
       const QoreTypeInfo *argTypeInfo = 0;
-      exp = exp->parseInit(oflag, pflag, lvids, argTypeInfo);
+      exp = exp->parseInit(oflag, pflag | PF_RETURN_VALUE_IGNORED, lvids, argTypeInfo);
    }
    return lvids;
 }

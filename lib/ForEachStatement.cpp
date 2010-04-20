@@ -24,7 +24,7 @@
 #include <qore/intern/ForEachStatement.h>
 #include <qore/intern/StatementBlock.h>
 
-ForEachStatement::ForEachStatement(int start_line, int end_line, AbstractQoreNode *v, AbstractQoreNode *l, class StatementBlock *cd) : AbstractStatement(start_line, end_line), var(v), list(l), code(cd), lvars(0) {
+ForEachStatement::ForEachStatement(int start_line, int end_line, AbstractQoreNode *v, AbstractQoreNode *l, StatementBlock *cd) : AbstractStatement(start_line, end_line), var(v), list(l), code(cd), lvars(0) {
 }
 
 ForEachStatement::~ForEachStatement() {

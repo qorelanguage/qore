@@ -24,7 +24,7 @@
 #include <qore/intern/ForStatement.h>
 #include <qore/intern/StatementBlock.h>
 
-ForStatement::ForStatement(int start_line, int end_line, AbstractQoreNode *a, AbstractQoreNode *c, AbstractQoreNode *i, class StatementBlock *cd) : AbstractStatement(start_line, end_line) {
+ForStatement::ForStatement(int start_line, int end_line, AbstractQoreNode *a, AbstractQoreNode *c, AbstractQoreNode *i, StatementBlock *cd) : AbstractStatement(start_line, end_line) {
    assignment = a;
    cond = c;
    iterator = i;
@@ -85,7 +85,7 @@ int ForStatement::parseInitImpl(LocalVar *oflag, int pflag) {
 
    const QoreTypeInfo *argTypeInfo = 0;
    if (assignment) {
-      assignment = assignment->parseInit(oflag, pflag, lvids, argTypeInfo);
+      assignment = assignment->parseInit(oflag, pflag | PF_RETURN_VALUE_IGNORED, lvids, argTypeInfo);
        // enable optimizations when return value is ignored for operator expressions
       QoreTreeNode *tree = dynamic_cast<QoreTreeNode *>(assignment);
       if (tree)
@@ -94,7 +94,7 @@ int ForStatement::parseInitImpl(LocalVar *oflag, int pflag) {
    if (cond)
       cond = cond->parseInit(oflag, pflag, lvids, argTypeInfo);
    if (iterator) {
-      iterator = iterator->parseInit(oflag, pflag, lvids, argTypeInfo);
+      iterator = iterator->parseInit(oflag, pflag | PF_RETURN_VALUE_IGNORED, lvids, argTypeInfo);
       // enable optimizations when return value is ignored for operator expressions
 
       QoreTreeNode *tree = dynamic_cast<QoreTreeNode *>(iterator);

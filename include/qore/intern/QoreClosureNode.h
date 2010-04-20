@@ -52,6 +52,10 @@ public:
    DLLLOCAL static const char *getStaticTypeName() {
       return "closure";
    }      
+
+   DLLLOCAL virtual AbstractQoreFunction *getFunction() {
+      return closure->getFunction();
+   }
 };
 
 class QoreClosureNode : public QoreClosureBase {

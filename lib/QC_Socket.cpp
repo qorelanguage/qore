@@ -859,7 +859,7 @@ QoreClass *initSocketClass(QoreClass *SSLCert, QoreClass *SSLPrivKey) {
 
    QC_SOCKET->addMethodExtended("getCharset",                (q_method_t)SOCKET_getCharset, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringTypeInfo);
 
-   QC_SOCKET->addMethodExtended("setCharset",                (q_method_t)SOCKET_setCharset, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, nothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   QC_SOCKET->addMethodExtended("setCharset",                (q_method_t)SOCKET_setCharset, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    // Socket::isDataAvailable(softint $timeout_ms = 0)
    QC_SOCKET->addMethodExtended("isDataAvailable",           (q_method_t)SOCKET_isDataAvailable, false, QC_NO_FLAGS, QDOM_DEFAULT, boolTypeInfo, 1, softBigIntTypeInfo, zero());

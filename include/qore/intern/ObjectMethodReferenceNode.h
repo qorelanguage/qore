@@ -25,134 +25,129 @@
 
 #define _QORE_OBJECTMETHODREFERENCE_H
 
-class AbstractParseObjectMethodReferenceNode : public ParseNode
-{
-   protected:
-      // returns a RunTimeObjectMethodReference or NULL if there's an exception
-      DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *xsink) const = 0;
-
-      //! optionally evaluates the argument
-      /** return value requires a deref(xsink) if needs_deref is true
-	  @see AbstractQoreNode::eval()
-      */
-      DLLLOCAL virtual AbstractQoreNode *evalImpl(bool &needs_deref, class ExceptionSink *xsink) const = 0;
-
-      DLLLOCAL virtual int64 bigIntEvalImpl(ExceptionSink *xsink) const = 0;
-      DLLLOCAL virtual int integerEvalImpl(ExceptionSink *xsink) const = 0;
-      DLLLOCAL virtual bool boolEvalImpl(ExceptionSink *xsink) const = 0;
-      DLLLOCAL virtual double floatEvalImpl(ExceptionSink *xsink) const = 0;
-
-   public:
-      DLLLOCAL AbstractParseObjectMethodReferenceNode() : ParseNode(NT_OBJMETHREF)
-      {
-      }
-
-      DLLLOCAL virtual ~AbstractParseObjectMethodReferenceNode()
-      {
-      }
-
-      DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const
-      {
-	 str.sprintf("object method reference (0x%08p)", this);
-	 return 0;
-      }
-
-      // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
-      DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const
-      {
-	 del = true;
-	 QoreString *rv = new QoreString();
-	 getAsString(*rv, foff, xsink);
-	 return rv;
-      }
-
-      // returns the type name as a c string
-      DLLLOCAL virtual const char *getTypeName() const {
-	 return "object method reference";
-      }
-};
-
-class ParseObjectMethodReferenceNode : public AbstractParseObjectMethodReferenceNode
-{
-   private:
-      AbstractQoreNode *exp;
-      char *method;
-
-      DLLLOCAL virtual ~ParseObjectMethodReferenceNode();
-
-   protected:
-      // returns a RunTimeObjectMethodReference or NULL if there's an exception
-      DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *xsink) const;
-
-      //! optionally evaluates the argument
-      /** return value requires a deref(xsink) if needs_deref is true
-	  @see AbstractQoreNode::eval()
-      */
-      DLLLOCAL virtual AbstractQoreNode *evalImpl(bool &needs_deref, class ExceptionSink *xsink) const;
-
-      DLLLOCAL virtual int64 bigIntEvalImpl(ExceptionSink *xsink) const;
-      DLLLOCAL virtual int integerEvalImpl(ExceptionSink *xsink) const;
-      DLLLOCAL virtual bool boolEvalImpl(ExceptionSink *xsink) const;
-      DLLLOCAL virtual double floatEvalImpl(ExceptionSink *xsink) const;
+class AbstractParseObjectMethodReferenceNode : public ParseNode {
+protected:
+   // returns a RunTimeObjectMethodReference or NULL if there's an exception
+   DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *xsink) const = 0;
    
-   public:
-      DLLLOCAL ParseObjectMethodReferenceNode(AbstractQoreNode *n_exp, char *n_method);
-      DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
-};
+   //! optionally evaluates the argument
+   /** return value requires a deref(xsink) if needs_deref is true
+       @see AbstractQoreNode::eval()
+   */
+   DLLLOCAL virtual AbstractQoreNode *evalImpl(bool &needs_deref, class ExceptionSink *xsink) const = 0;
 
-class ParseSelfMethodReferenceNode : public AbstractParseObjectMethodReferenceNode
-{
-   private:
-      char *method;
+   DLLLOCAL virtual int64 bigIntEvalImpl(ExceptionSink *xsink) const = 0;
+   DLLLOCAL virtual int integerEvalImpl(ExceptionSink *xsink) const = 0;
+   DLLLOCAL virtual bool boolEvalImpl(ExceptionSink *xsink) const = 0;
+   DLLLOCAL virtual double floatEvalImpl(ExceptionSink *xsink) const = 0;
 
-      DLLLOCAL virtual ~ParseSelfMethodReferenceNode();
+public:
+   DLLLOCAL AbstractParseObjectMethodReferenceNode() : ParseNode(NT_OBJMETHREF) {
+   }
+
+   DLLLOCAL virtual ~AbstractParseObjectMethodReferenceNode() {
+   }
+
+   DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {
+      str.sprintf("object method reference (0x%08p)", this);
+      return 0;
+   }
+
+   // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
+   DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const {
+      del = true;
+      QoreString *rv = new QoreString();
+      getAsString(*rv, foff, xsink);
+      return rv;
+   }
    
-   protected:
-      // returns a RunTimeObjectMethodReference or NULL if there's an exception
-      DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *xsink) const;
-
-      //! optionally evaluates the argument
-      /** return value requires a deref(xsink) if needs_deref is true
-	  @see AbstractQoreNode::eval()
-      */
-      DLLLOCAL virtual AbstractQoreNode *evalImpl(bool &needs_deref, class ExceptionSink *xsink) const;
-
-      DLLLOCAL virtual int64 bigIntEvalImpl(ExceptionSink *xsink) const;
-      DLLLOCAL virtual int integerEvalImpl(ExceptionSink *xsink) const;
-      DLLLOCAL virtual bool boolEvalImpl(ExceptionSink *xsink) const;
-      DLLLOCAL virtual double floatEvalImpl(ExceptionSink *xsink) const;
-
-   public:
-      DLLLOCAL ParseSelfMethodReferenceNode(char *n_method);
-      DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
+   // returns the type name as a c string
+   DLLLOCAL virtual const char *getTypeName() const {
+      return "object method reference";
+   }
 };
 
-class ParseScopedSelfMethodReferenceNode : public AbstractParseObjectMethodReferenceNode
-{
-   private:
-      class NamedScope *nscope;
-      const class QoreMethod *method;
+class ParseObjectMethodReferenceNode : public AbstractParseObjectMethodReferenceNode {
+private:
+   AbstractQoreNode *exp;
+   char *method;
+   const QoreClass *qc;
+   const QoreMethod *m;
 
-      DLLLOCAL virtual ~ParseScopedSelfMethodReferenceNode();
+   DLLLOCAL virtual ~ParseObjectMethodReferenceNode();
+
+protected:
+   // returns a RunTimeObjectMethodReference or NULL if there's an exception
+   DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *xsink) const;
+
+   //! optionally evaluates the argument
+   /** return value requires a deref(xsink) if needs_deref is true
+       @see AbstractQoreNode::eval()
+   */
+   DLLLOCAL virtual AbstractQoreNode *evalImpl(bool &needs_deref, ExceptionSink *xsink) const;
+
+   DLLLOCAL virtual int64 bigIntEvalImpl(ExceptionSink *xsink) const;
+   DLLLOCAL virtual int integerEvalImpl(ExceptionSink *xsink) const;
+   DLLLOCAL virtual bool boolEvalImpl(ExceptionSink *xsink) const;
+   DLLLOCAL virtual double floatEvalImpl(ExceptionSink *xsink) const;
+   
+public:
+   DLLLOCAL ParseObjectMethodReferenceNode(AbstractQoreNode *n_exp, char *n_method);
+   DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
+};
+
+class ParseSelfMethodReferenceNode : public AbstractParseObjectMethodReferenceNode {
+private:
+   char *method;
+   const QoreMethod *meth;
+
+   DLLLOCAL virtual ~ParseSelfMethodReferenceNode();
+   
+protected:
+   // returns a RunTimeObjectMethodReference or NULL if there's an exception
+   DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *xsink) const;
+
+   //! optionally evaluates the argument
+   /** return value requires a deref(xsink) if needs_deref is true
+       @see AbstractQoreNode::eval()
+   */
+   DLLLOCAL virtual AbstractQoreNode *evalImpl(bool &needs_deref, class ExceptionSink *xsink) const;
+
+   DLLLOCAL virtual int64 bigIntEvalImpl(ExceptionSink *xsink) const;
+   DLLLOCAL virtual int integerEvalImpl(ExceptionSink *xsink) const;
+   DLLLOCAL virtual bool boolEvalImpl(ExceptionSink *xsink) const;
+   DLLLOCAL virtual double floatEvalImpl(ExceptionSink *xsink) const;
+
+public:
+   DLLLOCAL ParseSelfMethodReferenceNode(char *n_method);
+   DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
+};
+
+class ParseScopedSelfMethodReferenceNode : public AbstractParseObjectMethodReferenceNode {
+private:
+   NamedScope *nscope;
+   const QoreMethod *method;
+
+   DLLLOCAL virtual ~ParseScopedSelfMethodReferenceNode();
       
-   protected:
-      // returns a RunTimeObjectMethodReference or NULL if there's an exception
-      DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *xsink) const;
+protected:
+   // returns a RunTimeObjectMethodReference or NULL if there's an exception
+   DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *xsink) const;
 
-      //! optionally evaluates the argument
-      /** return value requires a deref(xsink) if needs_deref is true
-	  @see AbstractQoreNode::eval()
-      */
-      DLLLOCAL virtual AbstractQoreNode *evalImpl(bool &needs_deref, class ExceptionSink *xsink) const;
+   //! optionally evaluates the argument
+   /** return value requires a deref(xsink) if needs_deref is true
+       @see AbstractQoreNode::eval()
+   */
+   DLLLOCAL virtual AbstractQoreNode *evalImpl(bool &needs_deref, class ExceptionSink *xsink) const;
 
-      DLLLOCAL virtual int64 bigIntEvalImpl(ExceptionSink *xsink) const;
-      DLLLOCAL virtual int integerEvalImpl(ExceptionSink *xsink) const;
-      DLLLOCAL virtual bool boolEvalImpl(ExceptionSink *xsink) const;
-      DLLLOCAL virtual double floatEvalImpl(ExceptionSink *xsink) const;
+   DLLLOCAL virtual int64 bigIntEvalImpl(ExceptionSink *xsink) const;
+   DLLLOCAL virtual int integerEvalImpl(ExceptionSink *xsink) const;
+   DLLLOCAL virtual bool boolEvalImpl(ExceptionSink *xsink) const;
+   DLLLOCAL virtual double floatEvalImpl(ExceptionSink *xsink) const;
 
-   public:
-      DLLLOCAL ParseScopedSelfMethodReferenceNode(NamedScope *n_nscope);
-      DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
+public:
+   DLLLOCAL ParseScopedSelfMethodReferenceNode(NamedScope *n_nscope);
+   DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
 };
 
 #endif

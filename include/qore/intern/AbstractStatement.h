@@ -31,45 +31,46 @@
 #define RC_BREAK        2
 #define RC_CONTINUE     3
 
-#define PF_BACKGROUND     (1 << 1)
-#define PF_REFERENCE_OK   (1 << 2)
-#define PF_RETHROW_OK     (1 << 3)
-#define PF_FOR_ASSIGNMENT (1 << 4)
+#define PF_RETURN_VALUE_IGNORED  (1 << 0)
+#define PF_BACKGROUND            (1 << 1)
+#define PF_REFERENCE_OK          (1 << 2)
+#define PF_RETHROW_OK            (1 << 3)
+#define PF_FOR_ASSIGNMENT        (1 << 4)
 
 // all definitions in this file are private to the library and subject to change
 
 class AbstractStatement {
-   private:
-      DLLLOCAL virtual int execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink) = 0;
-      DLLLOCAL virtual int parseInitImpl(LocalVar *oflag, int pflag = 0) = 0;   
+private:
+   DLLLOCAL virtual int execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink) = 0;
+   DLLLOCAL virtual int parseInitImpl(LocalVar *oflag, int pflag = 0) = 0;   
 
-   public:
-      int LineNumber;
-      int EndLineNumber;
-      const char *FileName;
+public:
+   int LineNumber;
+   int EndLineNumber;
+   const char *FileName;
 
-      DLLLOCAL AbstractStatement(int start_line, int end_line);
+   DLLLOCAL AbstractStatement(int start_line, int end_line);
 
-      DLLLOCAL virtual ~AbstractStatement() {}
+   DLLLOCAL virtual ~AbstractStatement() {}
 
-      DLLLOCAL int exec(AbstractQoreNode **return_value, ExceptionSink *xsink);
-      DLLLOCAL int parseInit(LocalVar *oflag, int pflag = 0);
+   DLLLOCAL int exec(AbstractQoreNode **return_value, ExceptionSink *xsink);
+   DLLLOCAL int parseInit(LocalVar *oflag, int pflag = 0);
 
-      // statement should return true if it ends a block (break, continue, return, throw, etc)
-      // meaning that any subsequent statements will be unconditionally skipped
-      DLLLOCAL virtual bool endsBlock() const {
-	 return false;
-      }
+   // statement should return true if it ends a block (break, continue, return, throw, etc)
+   // meaning that any subsequent statements will be unconditionally skipped
+   DLLLOCAL virtual bool endsBlock() const {
+      return false;
+   }
 
-      // should return true if the statement is a declaration processed at parse time and should not go into the parse tree
-      DLLLOCAL virtual bool isParseDeclaration() const {
-	 return false;
-      }
+   // should return true if the statement is a declaration processed at parse time and should not go into the parse tree
+   DLLLOCAL virtual bool isParseDeclaration() const {
+      return false;
+   }
 
-      // should return true if the statement is a declaration and does not represent an executable statement
-      DLLLOCAL virtual bool isDeclaration() const {
-	 return false;
-      }
+   // should return true if the statement is a declaration and does not represent an executable statement
+   DLLLOCAL virtual bool isDeclaration() const {
+      return false;
+   }
 };
 
 DLLLOCAL void push_cvar(const char *name);

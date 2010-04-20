@@ -441,6 +441,7 @@ protected:
    // if true means all variants have the same return value
    bool same_return_type, parse_same_return_type;
    int64 unique_functionality;
+   int64 unique_flags;
 
    // convenience function for returning the first variant in the list
    DLLLOCAL const AbstractQoreFunctionVariant *first() const {
@@ -472,25 +473,29 @@ protected:
 	 same_return_type = false;
 
       int64 vf = variant->getFunctionality();
-      if (vlist.empty())
+      int64 vflags = variant->getFlags();
+      if (vlist.empty()) {
 	 unique_functionality = vf;
+         unique_flags = vflags;
+      }
       else {
-	 if (vf != unique_functionality)
-	    unique_functionality = QDOM_DEFAULT;
+         unique_functionality &= vf;
+         unique_flags &= vflags;
       }
 
       vlist.push_back(variant);
    }
 
 public:
-   DLLLOCAL AbstractQoreFunction() : same_return_type(true), parse_same_return_type(true), unique_functionality(QDOM_DEFAULT) {
+   DLLLOCAL AbstractQoreFunction() : same_return_type(true), parse_same_return_type(true), unique_functionality(QDOM_DEFAULT), unique_flags(QC_NO_FLAGS) {
       ilist.push_back(this);
    }
 
    // copy constructor (used by method functions when copied)
    DLLLOCAL AbstractQoreFunction(const AbstractQoreFunction &old) : same_return_type(old.same_return_type), 
                                                                     parse_same_return_type(old.parse_same_return_type), 
-                                                                    unique_functionality(old.unique_functionality) {      
+                                                                    unique_functionality(old.unique_functionality),
+                                                                    unique_flags(old.unique_flags) {      
       // copy variants by reference
       for (vlist_t::const_iterator i = old.vlist.begin(), e = old.vlist.end(); i != e; ++i)
          vlist.push_back((*i)->ref());
@@ -536,6 +541,10 @@ public:
 
    DLLLOCAL int64 getUniqueFunctionality() const {
       return unique_functionality;
+   }
+
+   DLLLOCAL int64 getUniqueFlags() const {
+      return unique_flags;
    }
 
    // object takes ownership of variant or deletes it if it can't be added

@@ -25,12 +25,20 @@
 
 #include <vector>
 
+static void invalid_access(AbstractQoreFunction *func) {
+   // func will always be non-zero with builtin functions
+   const char *class_name = func->className();
+   parse_error("parse options do not allow access to builtin %s '%s%s%s()'", class_name ? "method" : "function", class_name ? class_name : "", class_name ? "::" : "", func->getName());
+}
+
+static void retval_ignored(AbstractQoreFunction *func) {
+   const char *class_name = func->className();
+   getProgram()->makeParseWarning(QP_WARN_RETURN_VALUE_IGNORED, "RETURN-VALUE-IGNORED", "call to %s %s%s%s() does not have any side effects and the return value is ignored", class_name ? "method" : "function", class_name ? class_name : "", class_name ? "::" : "", func->getName());
+}
+
 int FunctionCallBase::parseArgsFindVariant(LocalVar *oflag, int pflag, AbstractQoreFunction *func, const QoreTypeInfo *&returnTypeInfo) {
    // number of local variables declared in arguments
    int lvids = 0;
-
-   // turn off reference ok flag
-   pflag &= ~PF_REFERENCE_OK;
 
    // number of arguments in call
    unsigned num_args = args ? args->size() : 0;
@@ -44,6 +52,9 @@ int FunctionCallBase::parseArgsFindVariant(LocalVar *oflag, int pflag, AbstractQ
    if (num_args) {
       // do arguments need to be evaluated?
       bool needs_eval = args->needs_eval();
+
+      // turn off reference ok and retval ignored flags
+      int n_pflag = pflag & ~(PF_REFERENCE_OK | PF_RETURN_VALUE_IGNORED);
       
       // loop through all args
       for (unsigned i = 0; i < num_args; ++i) {
@@ -52,9 +63,9 @@ int FunctionCallBase::parseArgsFindVariant(LocalVar *oflag, int pflag, AbstractQ
 	 argTypeInfo.push_back(0);
 	 //printd(5, "FunctionCallBase::parseArgsFindVariant() this=%p (%s) oflag=%p pflag=%d func=%p i=%d/%d arg=%p (%d %s)\n", this, func ? func->getName() : "n/a", oflag, pflag, func, i, num_args, *n, (*n)->getType(), (*n)->getTypeName());
 	 if ((*n)->getType() == NT_REFERENCE)
-	    (*n) = (*n)->parseInit(oflag, pflag | PF_REFERENCE_OK, lvids, argTypeInfo[i]);
+	    (*n) = (*n)->parseInit(oflag, n_pflag | PF_REFERENCE_OK, lvids, argTypeInfo[i]);
 	 else
-	    (*n) = (*n)->parseInit(oflag, pflag, lvids, argTypeInfo[i]);
+	    (*n) = (*n)->parseInit(oflag, n_pflag, lvids, argTypeInfo[i]);
 	 if (!have_arg_type_info && argTypeInfo[i])
 	    have_arg_type_info = true;
 	 if (!needs_eval && (*n)->needs_eval()) {
@@ -71,11 +82,25 @@ int FunctionCallBase::parseArgsFindVariant(LocalVar *oflag, int pflag, AbstractQ
    // find variant
    variant = func && have_arg_type_info ? func->parseFindVariant(argTypeInfo) : 0;
 
-   if (variant && variant->getFunctionality() & getProgram()->getParseOptions()) {
-      // func will always be non-zero with builtin functions
-      const char *class_name = func->className();
-      parse_error("parse options do not allow access to builtin %s '%s%s%s()'", class_name ? "method" : "function", class_name ? class_name : "", class_name ? "::" : "", func->getName());
-      return 0;
+   int64 po = getProgram()->getParseOptions64();
+
+   //printd(5, "FunctionCallBase::parseArgsFindVariant() this=%p po=%lld, ign=%d\n", this, po, pflag & PF_RETURN_VALUE_IGNORED);
+
+   if (variant) {
+      //printd(5, "FunctionCallBase::parseArgsFindVariant() this=%p variant=%p f=%lld (%lld) c=%lld (%lld)\n", this, variant, variant->getFunctionality(), variant->getFunctionality() & po, variant->getFlags(), variant->getFlags() & QC_RET_VALUE_ONLY);
+
+      if (variant->getFunctionality() & po)
+	 invalid_access(func);
+      if ((pflag & PF_RETURN_VALUE_IGNORED) && (variant->getFlags() & QC_RET_VALUE_ONLY))
+	 retval_ignored(func);
+   }
+   else if (func) {
+      //printd(5, "FunctionCallBase::parseArgsFindVariant() this=%p func=%p f=%lld (%lld) c=%lld (%lld)\n", this, func, func->getUniqueFunctionality(), func->getUniqueFunctionality() & po, func->getUniqueFlags(), func->getUniqueFlags() & QC_RET_VALUE_ONLY);
+
+      if (func->getUniqueFunctionality() & po)
+	 invalid_access(func);
+      if ((pflag & PF_RETURN_VALUE_IGNORED) && (func->getUniqueFlags() & QC_RET_VALUE_ONLY))
+	 retval_ignored(func);
    }
 
    returnTypeInfo = variant ? variant->parseGetReturnTypeInfo() : (func ? func->parseGetUniqueReturnTypeInfo() : 0);
