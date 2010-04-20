@@ -301,6 +301,8 @@ DLLEXPORT const AbstractQoreZoneInfo *findCreateOffsetZone(int seconds_east);
 #define QORE_OPT_MDC2                    "openssl mdc2"
 //! option: rc5 algorithm supported (depends on openssl used to compile qore)
 #define QORE_OPT_RC5                     "openssl rc5"
+//! option: md2 algorithm supported (depends on openssl used to compile qore)
+#define QORE_OPT_MD2                     "openssl md2"
 //! option: round() function available
 #define QORE_OPT_FUNC_ROUND              "round()"
 //! option: timegm() function available

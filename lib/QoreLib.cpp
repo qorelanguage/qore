@@ -194,6 +194,15 @@ const qore_option_s qore_option_list_l[] = {
      false
 #endif
    },
+   { QORE_OPT_MD2,
+     "HAVE_MD2",
+     QO_ALGORITHM,
+#ifndef OPENSSL_NO_MD2
+     true
+#else
+     false
+#endif
+   },
    { QORE_OPT_FUNC_ROUND,
      "HAVE_ROUND",
      QO_FUNCTION,

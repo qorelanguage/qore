@@ -240,7 +240,16 @@ const char *getBuiltinTypeName(qore_type_t type) {
       return i->second;
 
    const QoreTypeInfo *typeInfo = getExternalTypeInfoForType(type);
-   return typeInfo ? typeInfo->getName() : "<unknown type>";
+   if (typeInfo)
+      return typeInfo->getName();
+
+   // implement for types that should not be available in user code
+   switch (type) {
+      case NT_DATA:
+	 return "string|binary";
+   }
+
+   return "<unknown type>";
 }
 
 const QoreTypeInfo *QoreParseTypeInfo::resolveAndDelete() {

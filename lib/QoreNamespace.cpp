@@ -1933,6 +1933,12 @@ void StaticSystemNamespace::init() {
    option->addConstant("HAVE_MDC2",  &False);
 #endif
 
+#ifndef OPENSSL_NO_MD2
+   option->addConstant("HAVE_MD2",  &True);
+#else
+   option->addConstant("HAVE_MD2",  &False);
+#endif
+
 #ifndef OPENSSL_NO_RC5
    option->addConstant("HAVE_RC5",  &True);
 #else

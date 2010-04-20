@@ -259,6 +259,10 @@ public:
    }
 };
 
+static void missing_openssl_feature(const char *f, ExceptionSink *xsink) {
+   xsink->raiseException("MISSING-FEATURE-ERROR", "the openssl library version that qore was compiled with did not support the %s algorithm; for maximum portability, check Option::HAVE_%s before calling this function", f, f);
+}
+
 static AbstractQoreNode *f_blowfish_encrypt_cbc(const QoreListNode *params, ExceptionSink *xsink) {
    CryptoHelper ch;
 
@@ -524,7 +528,7 @@ static AbstractQoreNode *f_rc5_encrypt_cbc(const QoreListNode *params, Exception
 
    return ch.getBinary();
 #else
-   xsink->raiseException("MISSING-FEATURE-ERROR", "the openssl library version that qore was compiled with did not support the RC5 algorithm; for maximum portability, check Option::HAVE_RC5 before calling this function");
+   missing_openssl_feature("RC5", xsink);
    return 0;
 #endif
 }
@@ -539,7 +543,7 @@ static AbstractQoreNode *f_rc5_decrypt_cbc(const QoreListNode *params, Exception
 
    return ch.getBinary();
 #else
-   xsink->raiseException("MISSING-FEATURE-ERROR", "the openssl library version that qore was compiled with did not support the RC5 algorithm; for maximum portability, check Option::HAVE_RC5 before calling this function");
+   missing_openssl_feature("RC5", xsink);
    return 0;
 #endif
 }
@@ -554,18 +558,23 @@ static AbstractQoreNode *f_rc5_decrypt_cbc_to_string(const QoreListNode *params,
 
    return ch.getString();
 #else
-   xsink->raiseException("MISSING-FEATURE-ERROR", "the openssl library version that qore was compiled with did not support the RC5 algorithm; for maximum portability, check Option::HAVE_RC5 before calling this function");
+   missing_openssl_feature("RC5", xsink);
    return 0;
 #endif
 }
 
 #define MD2_ERR "MD2-DIGEST-ERROR"
 static AbstractQoreNode *f_MD2(const QoreListNode *params, ExceptionSink *xsink) {
+#ifndef OPENSSL_NO_MD2
    DigestHelper dh(params);
    if (dh.doDigest(MD2_ERR, EVP_md2(), xsink))
       return 0;
 
    return dh.getString();
+#else
+   missing_openssl_feature("MD2", xsink);
+   return 0;
+#endif
 }
 
 #define MD4_ERR "MD4-DIGEST-ERROR"
@@ -613,7 +622,7 @@ static AbstractQoreNode *f_SHA224(const QoreListNode *params, ExceptionSink *xsi
 
    return dh.getString();
 #else
-   xsink->raiseException("MISSING-FEATURE-ERROR", "the openssl library version that qore was compiled with did not support the SHA224 algorithm; for maximum portability, check Option::HAVE_SHA224 before calling this function");
+   missing_openssl_feature("SHA224", xsink);
    return 0;
 #endif
 }
@@ -627,7 +636,7 @@ static AbstractQoreNode *f_SHA256(const QoreListNode *params, ExceptionSink *xsi
 
    return dh.getString();
 #else
-   xsink->raiseException("MISSING-FEATURE-ERROR", "the openssl library version that qore was compiled with did not support the SHA256 algorithm; for maximum portability, check Option::HAVE_SHA256 before calling this function");
+   missing_openssl_feature("SHA256", xsink);
    return 0;
 #endif
 }
@@ -641,7 +650,7 @@ static AbstractQoreNode *f_SHA384(const QoreListNode *params, ExceptionSink *xsi
 
    return dh.getString();
 #else
-   xsink->raiseException("MISSING-FEATURE-ERROR", "the openssl library version that qore was compiled with did not support the SHA384 algorithm; for maximum portability, check Option::HAVE_SHA384 before calling this function");
+   missing_openssl_feature("SHA384", xsink);
    return 0;
 #endif
 }
@@ -655,7 +664,7 @@ static AbstractQoreNode *f_SHA512(const QoreListNode *params, ExceptionSink *xsi
 
    return dh.getString();
 #else
-   xsink->raiseException("MISSING-FEATURE-ERROR", "the openssl library version that qore was compiled with did not support the SHA512 algorithm; for maximum portability, check Option::HAVE_SHA512 before calling this function");
+   missing_openssl_feature("SHA512", xsink);
    return 0;
 #endif
 }
@@ -749,7 +758,7 @@ static AbstractQoreNode *f_SHA224_bin(const QoreListNode *params, ExceptionSink 
    
    return dh.getBinary();
 #else
-   xsink->raiseException("MISSING-FEATURE-ERROR", "the openssl library version that qore was compiled with did not support the SHA224 algorithm; for maximum portability, check Option::HAVE_SHA224 before calling this function");
+   missing_openssl_feature("SHA224", xsink);
    return 0;
 #endif
 }
@@ -762,7 +771,7 @@ static AbstractQoreNode *f_SHA256_bin(const QoreListNode *params, ExceptionSink 
    
    return dh.getBinary();
 #else
-   xsink->raiseException("MISSING-FEATURE-ERROR", "the openssl library version that qore was compiled with did not support the SHA256 algorithm; for maximum portability, check Option::HAVE_SHA256 before calling this function");
+   missing_openssl_feature("SHA256", xsink);
    return 0;
 #endif
 }
@@ -775,7 +784,7 @@ static AbstractQoreNode *f_SHA384_bin(const QoreListNode *params, ExceptionSink 
    
    return dh.getBinary();
 #else
-   xsink->raiseException("MISSING-FEATURE-ERROR", "the openssl library version that qore was compiled with did not support the SHA384 algorithm; for maximum portability, check Option::HAVE_SHA384 before calling this function");
+   missing_openssl_feature("SHA384", xsink);
    return 0;
 #endif
 }
@@ -788,7 +797,7 @@ static AbstractQoreNode *f_SHA512_bin(const QoreListNode *params, ExceptionSink 
    
    return dh.getBinary();
 #else
-   xsink->raiseException("MISSING-FEATURE-ERROR", "the openssl library version that qore was compiled with did not support the SHA512 algorithm; for maximum portability, check Option::HAVE_SHA512 before calling this function");
+   missing_openssl_feature("SHA512", xsink);
    return 0;
 #endif
 }
@@ -817,7 +826,7 @@ static AbstractQoreNode *f_MDC2_bin(const QoreListNode *params, ExceptionSink *x
    
    return dh.getBinary();
 #else
-   xsink->raiseException("MISSING-FEATURE-ERROR", "the openssl library version that qore was compiled with did not support the MDC2 algorithm; for maximum portability, check Option::HAVE_MDC2 before calling this function");
+   missing_openssl_feature("MDC2", xsink);
    return 0;
 #endif
 }
