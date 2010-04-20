@@ -56,7 +56,8 @@ static const char *qore_warnings_l[] = {
    "invalid-operation",
    "call-with-type-errors",
    "return-value-ignored",
-   "deprecated"
+   "deprecated",
+   "excess-args"
 };
 #define NUM_WARNINGS (sizeof(qore_warnings_l)/sizeof(const char *))
 

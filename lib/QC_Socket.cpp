@@ -658,7 +658,7 @@ static AbstractQoreNode *SOCKET_setEventQueue_queue(QoreObject *self, mySocket *
 }
 
 static AbstractQoreNode *SOCKET_setNoDelay(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
-   return new QoreBigIntNode(s->setNoDelay(get_int_param(params, 0)));
+   return new QoreBigIntNode(s->setNoDelay(HARD_QORE_BOOL(params, 0)));
 }
 
 static AbstractQoreNode *SOCKET_getNoDelay(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
@@ -906,7 +906,7 @@ QoreClass *initSocketClass(QoreClass *SSLCert, QoreClass *SSLPrivKey) {
    // Socket::setEventQueue(Queue $queue) returns nothing
    QC_SOCKET->addMethodExtended("setEventQueue",             (q_method_t)SOCKET_setEventQueue_queue, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, QC_QUEUE->getTypeInfo(), QORE_PARAM_NO_ARG);
 
-   QC_SOCKET->addMethodExtended("setNoDelay",                (q_method_t)SOCKET_setNoDelay, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_SOCKET->addMethodExtended("setNoDelay",                (q_method_t)SOCKET_setNoDelay, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, boolTypeInfo, &False);
 
    QC_SOCKET->addMethodExtended("getNoDelay",                (q_method_t)SOCKET_getNoDelay, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, boolTypeInfo);
 

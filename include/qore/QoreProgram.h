@@ -44,6 +44,7 @@
 #define QP_WARN_CALL_WITH_TYPE_ERRORS    (1 << 8)   //!< when a function or method call always returns a fixed value due to type errors
 #define QP_WARN_RETURN_VALUE_IGNORED     (1 << 9)   //!< when a function or method call has no side effects and the return value is ignored
 #define QP_WARN_DEPRECATED               (1 << 10)  //!< when depcrecated functionality is accessed
+#define QP_WARN_EXCESS_ARGS              (1 << 11)  //!< when excess arguments are given to a function that does not access them
 #define QP_WARN_ALL                      -1         //!< for all possible warnings
 
 #define QP_WARN_DEFAULT (QP_WARN_UNKNOWN_WARNING|QP_WARN_UNREACHABLE_CODE|QP_WARN_NONEXISTENT_METHOD_CALL|QP_WARN_INVALID_OPERATION|QP_WARN_CALL_WITH_TYPE_ERRORS|QP_WARN_RETURN_VALUE_IGNORED)

@@ -311,7 +311,7 @@ public:
 
 // the following defines the pure virtual functions that are common to all user variants
 #define COMMON_USER_VARIANT_FUNCTIONS DLLLOCAL virtual qore_call_t getCallType() const { return CT_USER; } \
-   DLLLOCAL virtual int64 getFlags() const { return QC_NO_FLAGS; } \
+   DLLLOCAL virtual int64 getFlags() const { return QC_USES_EXTRA_ARGS; } \
    DLLLOCAL virtual int64 getFunctionality() const { return QDOM_DEFAULT; } \
    DLLLOCAL virtual UserVariantBase *getUserVariantBase() { return static_cast<UserVariantBase *>(this); } \
    DLLLOCAL virtual AbstractFunctionSignature *getSignature() const { return const_cast<UserSignature *>(&signature); } \
