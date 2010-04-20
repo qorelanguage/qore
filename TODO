@@ -1,8 +1,5 @@
 * cover case when multiple types could be returned (? : operator, functions, etc)
-* add warning about supplying extra arguments
-* add function information to parse exceptions (parse_code)
 * do not allow access to QC_NOOP code if 'require-types' is set
-* raise a warning if a function is used that has no effect except returning a value and the return value is ignored
 * allow variants with the "constant" flag be be used in constant expressions
 * implement methods to run on lists, hashes, and strings as if they were classes (ex: <hash>.lastKey(), etc)
 * fix memory leaks caused by circular references
@@ -42,6 +39,9 @@
 * implement GZFile and BZFile classes
 
 done 0.8.0:
+* add warning about supplying extra arguments
+* add function information to parse exceptions (parse_code)
+* raise a warning if a function is used that has no effect except returning a value and the return value is ignored
 * implemented optimization for method calls (save method and compare class at runtime)
 * fixed class copying in subprograms; subprograms can no longer modify parent classes
 * ensure only one variant for methodGate(), memberGate(), and memberNotification() methods, check signatures

@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2007 Qore Technologies
+  Copyright (C) 2007 - 2010 Qore Technologies
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -24,12 +24,10 @@
 #ifndef INC_UTILS_STRING_INLINE_PRINTF_H_PV20061219_
 #define INC_UTILS_STRING_INLINE_PRINTF_H_PV20061219_
 
-
 #include <qore/common.h>
 #include <string>
 #include <stdarg.h>
 #include <assert.h>
-
 
 // helper
 extern DLLEXPORT std::string inline_printf_helper_format_string(const char* fmt, va_list arg);

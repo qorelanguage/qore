@@ -3,7 +3,7 @@
  
  Qore Programming Language
  
- Copyright (C) 2003, 2004
+ Copyright (C) 2003 - 2010
  
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public
@@ -22,17 +22,13 @@
 
 #include <qore/Qore.h>
 
-QoreReferenceCounter::QoreReferenceCounter()
-{
-   references = 1;
+QoreReferenceCounter::QoreReferenceCounter() : references(1) {
 }
 
-QoreReferenceCounter::~QoreReferenceCounter()
-{
+QoreReferenceCounter::~QoreReferenceCounter() {
 }
 
-void QoreReferenceCounter::ROreference() const
-{
+void QoreReferenceCounter::ROreference() const {
 #ifdef DEBUG
    if (references < 0 || references > 10000000) {
       printd(0, "QoreReferenceCounter::ROreference() this=%08p references=%d\n", this, references);
@@ -49,8 +45,7 @@ void QoreReferenceCounter::ROreference() const
 }
 
 // returns true when references reach zero
-bool QoreReferenceCounter::ROdereference() const
-{
+bool QoreReferenceCounter::ROdereference() const {
 #ifdef DEBUG
    if (references <= 0 || references > 10000000) {
       printd(0, "QoreReferenceCounter::ROdereference() this=%08p references=%d\n", this, references);
