@@ -861,7 +861,7 @@ else
     SAVE_LDFLAGS="$LDFLAGS"
     CPPFLAGS="$CPPFLAGS $QORE_LIB_CPPFLAGS $OPENSSL_CPPFLAGS"
     LDFLAGS="$LDFLAGS $QORE_LIB_LDFLAGS $OPENSSL_LDFLAGS"
-
+    
     AC_MSG_CHECKING([const correctness in openssl headers])
     AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
     [[#include <openssl/x509.h>]],
@@ -869,6 +869,15 @@ else
        [AC_MSG_RESULT([ok])
         AC_DEFINE([HAVE_OPENSSL_CONST], 1, [Define if openssl headers correctly use const])],
        [AC_MSG_RESULT([old style, not const correct])])
+
+    # check for const required with SSL_CTX_new
+    AC_MSG_CHECKING([const required with SSL_CTX_new in openssl headers])
+    AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+    [[#include <openssl/ssl.h>]],
+    [[const SSL_METHOD *meth; SSL_CTX_new(meth);]])],
+       [AC_MSG_RESULT([ok])
+        AC_DEFINE([NEED_SSL_CTX_NEW_CONST], 1, [Define if SSL_CTX_new() requires a const argument])],
+       [AC_MSG_RESULT([no const required])])
 
     CPPFLAGS="$SAVE_CPPFLAGS"
     LDFLAGS="$SAVE_LDFLAGS"

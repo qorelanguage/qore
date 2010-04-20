@@ -26,9 +26,15 @@
 
 #define _QORE_SSLSOCKETHELPER_H
 
+#ifdef NEED_SSL_CTX_NEW_CONST
+#define SSL_METHOD_CONST const
+#else
+#define SSL_METHOD_CONST
+#endif
+
 class SSLSocketHelper {
    private:
-      SSL_METHOD *meth;
+      SSL_METHOD_CONST SSL_METHOD *meth;
       SSL_CTX *ctx;
       SSL *ssl;
 
