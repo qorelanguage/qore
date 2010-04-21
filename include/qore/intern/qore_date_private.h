@@ -524,6 +524,10 @@ public:
       zone = p.zone;
    }
 
+   DLLLOCAL void setZone(const AbstractQoreZoneInfo *n_zone) {
+      zone = n_zone;
+   }
+
    DLLLOCAL void setTime(int h, int m, int s, int usecs) {
       qore_simple_tm2 tm(epoch + zone->getGMTOffset(epoch), us);
       //printd(5, "qore_absolute_time::setTime(h=%d, m=%d, s=%d, usecs=%d) %04d-%02d-%02d\n", h, m, s, usecs, tm.year, tm.month, tm.day);
@@ -670,15 +674,27 @@ public:
    }
 
    DLLLOCAL int64 getEpochSeconds() const {
-      return epoch;
+      return epoch + zone->getGMTOffset(epoch);
    }
 
    DLLLOCAL int64 getEpochMilliseconds() const {
-      return epoch * 1000 + (us / 1000);
+      return getEpochSeconds() * 1000 + (us / 1000);
    }
 
    DLLLOCAL int64 getEpochMicroseconds() const {
+      return getEpochSeconds() * 1000000 + us;
+   }
+
+   DLLLOCAL int64 getEpochSecondsGMT() const {
+      return epoch;
+   }
+
+   DLLLOCAL int64 getEpochMicrosecondsGMT() const {
       return epoch * 1000000 + us;
+   }
+
+   DLLLOCAL int64 getEpochMillisecondsGMT() const {
+      return epoch * 1000 + (us / 1000);
    }
 
    DLLLOCAL qore_absolute_time &operator+=(const qore_relative_time &dt);
@@ -961,7 +977,6 @@ public:
       d.abs.set(zone, seconds, us);
    }
 
-
    DLLLOCAL qore_date_private(const AbstractQoreZoneInfo *zone, int y, int mo, int dy, int h, int mi, int s, int us) : relative(false) {
       d.abs.set(zone, y, mo, dy, h, mi, s, us);
    }
@@ -1059,6 +1074,11 @@ public:
       return relative;
    }
 
+   DLLLOCAL void setZone(const AbstractQoreZoneInfo *n_zone) {
+      if (!relative)
+         d.abs.setZone(n_zone);
+   }
+
    DLLLOCAL short getYear() const {
       return relative ? d.rel.getYear() : d.abs.getYear();
    }
@@ -1087,7 +1107,7 @@ public:
       return relative ? d.rel.getMillisecond() : d.abs.getMillisecond();
    }
 
-   DLLLOCAL int getMicroSecond() const {
+   DLLLOCAL int getMicrosecond() const {
       return relative ? d.rel.getMicrosecond() : d.abs.getMicrosecond();
    }
 
@@ -1097,6 +1117,18 @@ public:
 
    DLLLOCAL int64 getEpochSeconds() const {
       return relative ? d.rel.getRelativeSeconds() : d.abs.getEpochSeconds();
+   }
+
+   DLLLOCAL int64 getEpochSecondsGMT() const {
+      return relative ? d.rel.getRelativeSeconds() : d.abs.getEpochSecondsGMT();
+   }
+
+   DLLLOCAL int64 getEpochMillisecondsGMT() const {
+      return relative ? d.rel.getRelativeMilliseconds() : d.abs.getEpochMillisecondsGMT();
+   }
+
+   DLLLOCAL int64 getEpochMicrosecondsGMT() const {
+      return relative ? d.rel.getRelativeMicroseconds() : d.abs.getEpochMicrosecondsGMT();
    }
 
    DLLLOCAL int getDayNumber() const {
@@ -1109,7 +1141,7 @@ public:
          if (dt.relative)
             d.abs += dt.d.rel;
          else
-            setDate(getEpochSeconds() + dt.d.abs.getEpochSeconds(), d.abs.getMicrosecond() + dt.d.abs.getMicrosecond());
+            setDate(getEpochSecondsGMT() + dt.d.abs.getEpochSecondsGMT(), d.abs.getMicrosecond() + dt.d.abs.getMicrosecond());
          return;
       }
 
@@ -1130,7 +1162,7 @@ public:
          if (dt.relative)
             d.abs -= dt.d.rel;
          else {
-            int64 secs = d.abs.getEpochSeconds();
+            int64 secs = d.abs.getEpochSecondsGMT();
             int us = d.abs.getMicrosecond();
             relative = true;
             d.rel.setDifference(secs, us, dt.d.abs);
@@ -1164,9 +1196,14 @@ public:
       d.abs.set(currentTZ(), seconds, us);
    }
 
-   DLLLOCAL void setLocalDate(int64 seconds, int us = 0) {
+   DLLLOCAL void setLocalDate(int64 seconds, int us) {
       relative = false;
       d.abs.setLocal(currentTZ(), seconds, us);
+   }
+
+   DLLLOCAL void setLocalDate(const AbstractQoreZoneInfo *zone, int64 seconds, int us) {
+      relative = false;
+      d.abs.setLocal(zone, seconds, us);
    }
 
    DLLLOCAL void setDateLiteral(int64 date, int us = 0) {
@@ -1296,7 +1333,7 @@ public:
       }
    
       // get seconds for date of start of iso-8601 calendar year, add seconds for day offset and create new time
-      result.setLocalDate(qore_date_info::getEpochSeconds(y, m, d) + ((week - 1) * 7 + (day - 1)) * 86400);
+      result.setLocalDate(qore_date_info::getEpochSeconds(y, m, d) + ((week - 1) * 7 + (day - 1)) * 86400, 0);
       return 0;
    }
 };

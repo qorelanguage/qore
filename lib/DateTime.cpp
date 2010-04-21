@@ -95,6 +95,10 @@ int DateTime::getMillisecond() const {
    return priv->getMillisecond();
 }
 
+int DateTime::getMicrosecond() const {
+   return priv->getMicrosecond();
+}
+
 void DateTime::setTime(int h, int m, int s, short ms) {
    priv->setTime(h, m, s, (int)ms * 1000);
 }
@@ -113,7 +117,7 @@ void DateTime::format(QoreString &str, const char *fmt) const {
 
 // set the date from the number of seconds since January 1, 1970 (UNIX epoch) plus milliseconds
 void DateTime::setDate(int64 seconds, int ms) {
-   priv->setDate(seconds, ms * 1000);
+   priv->setLocalDate(seconds, ms * 1000);
 }
 
 // set the date from the number of seconds since January 1, 1970 (UNIX epoch) plus microseconds
@@ -123,7 +127,7 @@ void DateTime::setDate(const AbstractQoreZoneInfo *n_zone, int64 seconds, int us
 
 // set the date from the number of seconds since January 1, 1970 (UNIX epoch)
 void DateTime::setDate(int64 seconds) {
-   priv->setDate(seconds);
+   priv->setLocalDate(seconds, 0);
 }
 
 void DateTime::setDate(const DateTime &date) {
@@ -134,9 +138,24 @@ void DateTime::setDate(const AbstractQoreZoneInfo *n_zone, int n_year, int n_mon
    priv->setDate(n_zone, n_year, n_month, n_day, n_hour, n_minute, n_second, n_us);
 }
 
-// get the number of seconds before or after January 1, 1970 (UNIX epoch)
+// get the number of seconds before or after January 1, 1970 (UNIX epoch) offset in local time
 int64 DateTime::getEpochSeconds() const {
    return priv->getEpochSeconds();
+}
+
+// get the number of seconds before or after January 1, 1970 (UNIX epoch) 
+int64 DateTime::getEpochSecondsGMT() const {
+   return priv->getEpochSecondsGMT();
+}
+
+// get the number of milliseconds before or after January 1, 1970 (UNIX epoch) 
+int64 DateTime::getEpochMillisecondsGMT() const {
+   return priv->getEpochMillisecondsGMT();
+}
+
+// get the number of microseconds before or after January 1, 1970 (UNIX epoch) 
+int64 DateTime::getEpochMicrosecondsGMT() const {
+   return priv->getEpochMicrosecondsGMT();
 }
 
 void DateTime::setDateLiteral(int64 date) {
@@ -261,12 +280,22 @@ void DateTime::getInfo(qore_tm &info) const {
    i.copyTo(info);
 }
 
+void DateTime::setZone(const AbstractQoreZoneInfo *n_zone) {
+   priv->setZone(n_zone);
+}
+
 DateTime *DateTime::makeAbsolute(const AbstractQoreZoneInfo *z, int y, int mo, int d, int h, int mi, int s, int u) {
    return new DateTime(new qore_date_private(z, y, mo, d, h, mi, s, u));
 }
 
 DateTime *DateTime::makeAbsolute(const AbstractQoreZoneInfo *zone, int64 seconds, int us) {
    return new DateTime(new qore_date_private(zone, seconds, us));
+}
+
+DateTime *DateTime::makeAbsoluteLocal(const AbstractQoreZoneInfo *zone, int64 seconds, int us) {
+   DateTime *rv = new DateTime(new qore_date_private);
+   rv->priv->setLocalDate(zone, seconds, us);
+   return rv;
 }
 
 DateTime *DateTime::makeRelative(int y, int mo, int d, int h, int mi, int s, int u) {

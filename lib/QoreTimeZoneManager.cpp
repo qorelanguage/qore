@@ -343,8 +343,14 @@ const QoreOffsetZoneInfo *QoreTimeZoneManager::findCreateOffsetZone(const char *
    if (*offset == '-')
       secs = -secs;
 
+   // first search standard zones (unlocked)
+   tzomap_t::iterator i = tzo_std_map.find(secs);
+   if (i != tzo_std_map.end())
+      return i->second;
+
+   // now search custom zones
    QoreAutoRWWriteLocker al(rwl_offset);
-   tzomap_t::iterator i = tzomap.find(secs);
+   i = tzomap.find(secs);
    if (i != tzomap.end())
       return i->second;
 
@@ -425,9 +431,128 @@ int QoreTimeZoneManager::setLocalTZ(std::string fname) {
    return 0;
 }
 
+#define MAKE_STD_ZONE(offset, name) tzo_std_map[offset] = new QoreOffsetZoneInfo((name), (offset))
+
 QoreTimeZoneManager::QoreTimeZoneManager() : tzsize(0), our_gmtoffset(0), root(ZONEINFO_LOCATION), localtz(0) {
    // remove trailing "/" characters from root
    root.trim_trailing('/');
+
+   // create offset time zones for current common time zones to make it
+   // possible to have unlocked searched for these
+
+   // UTC+01
+   MAKE_STD_ZONE(1 * SECS_PER_HOUR, "+01");
+
+   // UTC+02
+   MAKE_STD_ZONE(2 * SECS_PER_HOUR, "+02");
+
+   // UTC+03
+   MAKE_STD_ZONE(3 * SECS_PER_HOUR, "+03");
+
+   // UTC+03:30
+   MAKE_STD_ZONE(3 * SECS_PER_HOUR + 30 * SECS_PER_MINUTE, "+03:30");
+
+   // UTC+04
+   MAKE_STD_ZONE(4 * SECS_PER_HOUR, "+04");
+
+   // UTC+04:30
+   MAKE_STD_ZONE(4 * SECS_PER_HOUR + 30 * SECS_PER_MINUTE, "+04:30");
+
+   // UTC+05
+   MAKE_STD_ZONE(5 * SECS_PER_HOUR, "+05");
+
+   // UTC+05:30
+   MAKE_STD_ZONE(5 * SECS_PER_HOUR + 30 * SECS_PER_MINUTE, "+05:30");
+
+   // UTC+05:45
+   MAKE_STD_ZONE(5 * SECS_PER_HOUR + 45 * SECS_PER_MINUTE, "+05:45");
+
+   // UTC+06
+   MAKE_STD_ZONE(6 * SECS_PER_HOUR, "+06");
+
+   // UTC+06:30
+   MAKE_STD_ZONE(6 * SECS_PER_HOUR + 30 * SECS_PER_MINUTE, "+06:30");
+
+   // UTC+07
+   MAKE_STD_ZONE(7 * SECS_PER_HOUR, "+07");
+
+   // UTC+08
+   MAKE_STD_ZONE(8 * SECS_PER_HOUR, "+08");
+
+   // UTC+09
+   MAKE_STD_ZONE(9 * SECS_PER_HOUR, "+09");
+
+   // UTC+09:30
+   MAKE_STD_ZONE(9 * SECS_PER_HOUR + 30 * SECS_PER_MINUTE, "+09:30");
+
+   // UTC+10
+   MAKE_STD_ZONE(10 * SECS_PER_HOUR, "+10");
+
+   // UTC+10:30
+   MAKE_STD_ZONE(10 * SECS_PER_HOUR + 30 * SECS_PER_MINUTE, "+10:30");
+
+   // UTC+11
+   MAKE_STD_ZONE(11 * SECS_PER_HOUR, "+11");
+
+   // UTC+11:30
+   MAKE_STD_ZONE(11 * SECS_PER_HOUR + 30 * SECS_PER_MINUTE, "+11:30");
+
+   // UTC+12
+   MAKE_STD_ZONE(12 * SECS_PER_HOUR, "+12");
+
+   // UTC+12:45
+   MAKE_STD_ZONE(12 * SECS_PER_HOUR + 45 * SECS_PER_MINUTE, "+12:45");
+
+   // UTC+13
+   MAKE_STD_ZONE(13 * SECS_PER_HOUR, "+13");
+
+   // UTC+14
+   MAKE_STD_ZONE(14 * SECS_PER_HOUR, "+14");
+
+   // UTC-01
+   MAKE_STD_ZONE(-1 * SECS_PER_HOUR, "-01");
+
+   // UTC-02
+   MAKE_STD_ZONE(-2 * SECS_PER_HOUR, "-02");
+
+   // UTC-03
+   MAKE_STD_ZONE(-3 * SECS_PER_HOUR, "-03");
+
+   // UTC-03:30
+   MAKE_STD_ZONE(-3 * SECS_PER_HOUR - 30 * SECS_PER_MINUTE, "-03:30");
+
+   // UTC-04
+   MAKE_STD_ZONE(-4 * SECS_PER_HOUR, "-04");
+
+   // UTC-04:30
+   MAKE_STD_ZONE(-4 * SECS_PER_HOUR - 30 * SECS_PER_MINUTE, "-04:30");
+
+   // UTC-05
+   MAKE_STD_ZONE(-5 * SECS_PER_HOUR, "-05");
+
+   // UTC-06
+   MAKE_STD_ZONE(-6 * SECS_PER_HOUR, "-06");
+
+   // UTC-07
+   MAKE_STD_ZONE(-7 * SECS_PER_HOUR, "-07");
+
+   // UTC-08
+   MAKE_STD_ZONE(-8 * SECS_PER_HOUR, "-08");
+
+   // UTC-09
+   MAKE_STD_ZONE(-9 * SECS_PER_HOUR, "-09");
+
+   // UTC-09:30
+   MAKE_STD_ZONE(-9 * SECS_PER_HOUR - 30 * SECS_PER_MINUTE, "-09:30");
+
+   // UTC-10
+   MAKE_STD_ZONE(-10 * SECS_PER_HOUR, "-10");
+
+   // UTC-11
+   MAKE_STD_ZONE(-11 * SECS_PER_HOUR, "-11");
+
+   // UTC-12
+   MAKE_STD_ZONE(-12 * SECS_PER_HOUR, "-12");
 }
 
 void QoreTimeZoneManager::init_intern(QoreString &TZ) {

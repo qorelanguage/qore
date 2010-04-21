@@ -170,11 +170,29 @@ public:
    DLLEXPORT DateTime *add(const DateTime *dt) const;
    DLLEXPORT DateTime *subtractBy(const DateTime *dt) const;
 
-   //! gets the number of seconds since January 1, 1970 for the current date
+   //! gets the number of seconds since January 1, 1970 for the current date offset in local time
    /**
-      @return the number of seconds since January 1, 1970
+      @return the number of seconds since January 1, 1970 offset in local time
    */
    DLLEXPORT int64 getEpochSeconds() const;
+
+   //! gets the number of seconds since January 1, 1970Z for the current date
+   /**
+      @return the number of seconds since January 1, 1970Z
+   */
+   DLLEXPORT int64 getEpochSecondsGMT() const;
+
+   //! gets the number of microseconds since January 1, 1970Z for the current date
+   /**
+      @return the number of microseconds since January 1, 1970Z
+   */
+   DLLEXPORT int64 getEpochMicrosecondsGMT() const;
+
+   //! gets the number of milliseconds since January 1, 1970Z for the current date
+   /**
+      @return the number of milliseconds since January 1, 1970Z
+   */
+   DLLEXPORT int64 getEpochMillisecondsGMT() const;
 
    //! returns the ordinal number of the day in the year for absolute dates, sometimes (mistakenly) referred to as the Julian date
    /** does not return sensible values for relative dates
@@ -285,6 +303,12 @@ public:
    */
    DLLEXPORT int getMillisecond() const;
 
+   //! returns the microsecond portion of the date-time value
+   /**
+      @return the microsecond portion of the date-time value
+   */
+   DLLEXPORT int getMicrosecond() const;
+
    //! returns the difference as the number of seconds between the date/time value and the local time at the moment of the call
    /**
       @return the difference as the number of seconds between the date/time value and the local time at the moment of the call
@@ -311,6 +335,9 @@ public:
 
    //! returns the broken-down time in the current time zone
    DLLEXPORT void getInfo(qore_tm &info) const;
+
+   //! changes the time zone for the time without updating the epoch offset
+   DLLEXPORT void setZone(const AbstractQoreZoneInfo *n_zone);
 
    // static methods
    //! returns true if the year passed is a leap year according to a proleptic gregorian calendar
@@ -339,10 +366,18 @@ public:
    //! static "constructor" to create an absolute time as an offset from the epoch, including microseconds
    /**
       @param zone time zone for the date/time value, 0 = UTC, @see currentTZ()
-      @param seconds the number of seconds from January 1, 1970
+      @param seconds the number of seconds from January 1, 1970Z
       @param us the microseconds portion of the time	 
    */
    DLLEXPORT static DateTime *makeAbsolute(const AbstractQoreZoneInfo *zone, int64 seconds, int us = 0);
+
+   //! static "constructor" to create an absolute time as an offset from the given time zone's epoch, including microseconds
+   /**
+      @param zone time zone for the date/time value, 0 = UTC, @see currentTZ()
+      @param seconds the number of seconds from January 1, 1970 in the time zone passed as the first argument
+      @param us the microseconds portion of the time
+   */
+   DLLEXPORT static DateTime *makeAbsoluteLocal(const AbstractQoreZoneInfo *zone, int64 seconds, int us = 0);
 
    //! static "constructor" to create a relative time, including microseconds
    DLLEXPORT static DateTime *makeRelative(int n_year, int n_month, int n_day, int n_hour = 0, int n_minute = 0, int n_second = 0, int n_us = 0);

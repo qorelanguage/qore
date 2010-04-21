@@ -189,7 +189,7 @@ protected:
    // read-write lock to manage real (non-offset) zone info objects
    mutable QoreRWLock rwl;
 
-   // read-write lock to guard access to offset zone info objects
+   // read-write lock to guard access to offset custom zone info objects
    mutable QoreRWLock rwl_offset;
 
    // time zone info map (ex: "Europe/Prague" -> QoreZoneInfo*)
@@ -205,6 +205,11 @@ protected:
 
    QoreString root;
    tzmap_t tzmap;
+
+   // standard (unlocked) zone offset map
+   tzomap_t tzo_std_map;
+
+   // custom (locked) zone offset map
    tzomap_t tzomap;
 
    // pointer to our regional time information
@@ -229,6 +234,14 @@ public:
 
    DLLLOCAL ~QoreTimeZoneManager() {
       for (tzmap_t::iterator i = tzmap.begin(), e = tzmap.end(); i != e; ++i)
+	 delete i->second;
+
+      for (tzomap_t::iterator i = tzo_std_map.begin(), e = tzo_std_map.end(); i != e; ++i) {
+         printd(0, "QoreTimeZoneManager::~QoreTimeZoneManager() deleting %d: %s\n", i->first, i->second->getRegionName());
+	 delete i->second;
+      }
+
+      for (tzomap_t::iterator i = tzomap.begin(), e = tzomap.end(); i != e; ++i)
 	 delete i->second;
    }
 

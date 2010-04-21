@@ -232,6 +232,14 @@ public:
    */
    DLLEXPORT static DateTimeNode *makeAbsolute(const AbstractQoreZoneInfo *zone, int64 seconds, int us = 0);
 
+   //! static "constructor" to create an absolute time as an offset from the given time zone's epoch, including microseconds
+   /**
+      @param zone time zone for the date/time value, 0 = UTC, @see currentTZ()
+      @param seconds the number of seconds from January 1, 1970 in the time zone passed as the first argument
+      @param us the microseconds portion of the time
+   */
+   DLLEXPORT static DateTimeNode *makeAbsoluteLocal(const AbstractQoreZoneInfo *zone, int64 seconds, int us = 0);
+
    //! static "constructor" to create a relative time, including microseconds
    DLLEXPORT static DateTimeNode *makeRelative(int n_year, int n_month, int n_day, int n_hour = 0, int n_minute = 0, int n_second = 0, int n_us = 0);
 };
