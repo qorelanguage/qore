@@ -24,6 +24,7 @@
 #include <qore/intern/QC_XmlRpcClient.h>
 #include <qore/intern/QC_HTTPClient.h>
 #include <qore/intern/QC_JsonRpcClient.h>
+#include <qore/intern/QC_Queue.h>
 #include <qore/QoreHTTPClient.h>
 #include <qore/ReferenceHolder.h>
 #include <qore/intern/ql_xml.h>
@@ -175,6 +176,8 @@ static AbstractQoreNode *XRC_setEventQueue_queue(QoreObject *self, QoreHTTPClien
 }
 
 QoreClass *initXmlRpcClientClass(QoreClass *http_client) {
+   assert(QC_QUEUE);
+
    QoreClass* client = new QoreClass("XmlRpcClient", QDOM_NETWORK); 
    CID_XMLRPCCLIENT = client->getID();
 
