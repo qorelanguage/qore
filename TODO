@@ -15,7 +15,6 @@
 * fix crash on exit() with running threads on Darwin <- CANNOT REPRODUCE
 * implement function class hierarchies for returning different types (bool, int64, double, node)
 * add $# for list element offset in list operators (map, select)
-* add warning for duplicate hash keys
 * optimize object method calls from the same object to avoid the reference and dereference
 * fix broken callstacks - only reports for calls since the try statement
 * implement warning for local variables that are not referenced/used
@@ -39,9 +38,11 @@
 * implement GZFile and BZFile classes
 
 done 0.8.0:
-* add warning about supplying extra arguments
+* add warning for duplicate hash keys: duplicate-hash-keys
+* add warning about supplying extra arguments: excess-args
+* add warning about using deprecated functions/features: deprecated
 * add function information to parse exceptions (parse_code)
-* raise a warning if a function is used that has no effect except returning a value and the return value is ignored
+* raise a warning if a function is used that has no effect except returning a value and the return value is ignored: return-value-ignored
 * implemented optimization for method calls (save method and compare class at runtime)
 * fixed class copying in subprograms; subprograms can no longer modify parent classes
 * ensure only one variant for methodGate(), memberGate(), and memberNotification() methods, check signatures

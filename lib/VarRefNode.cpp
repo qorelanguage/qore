@@ -275,8 +275,12 @@ void VarRefFunctionCallBase::parseInitConstructorCall(LocalVar *oflag, int pflag
 
    //printd(5, "LocalVarRefNewObjectNode::parseInit() this=%p constructor=%p variant=%p\n", this, constructor, variant);
 
-   if (((constructor && constructor->parseIsPrivate()) || (variant && CONMV_const(variant)->isPrivate())) && !parseCheckPrivateClassAccess(qc))
-      parse_error("illegal external access to private constructor of class %s", qc->getName());
+   if (((constructor && constructor->parseIsPrivate()) || (variant && CONMV_const(variant)->isPrivate())) && !parseCheckPrivateClassAccess(qc)) {
+      if (variant)
+         parse_error("illegal external access to private constructor %s::constructor(%s)", qc->getName(), variant->getSignature()->getSignatureText());
+      else
+	 parse_error("illegal external access to private constructor of class %s", qc->getName());
+   }
 
    //printd(5, "LocalVarRefNewObjectNode::parseInit() this=%p class=%s (%p) constructor=%p function=%p variant=%p\n", this, qc->getName(), qc, constructor, constructor ? constructor->getFunction() : 0, variant);
 
