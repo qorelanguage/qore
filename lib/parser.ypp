@@ -71,13 +71,13 @@
           while (0)
 
 class HashElement {
-   public:
-      char *key;
-      AbstractQoreNode *value;
+public:
+   char *key;
+   AbstractQoreNode *value;
  
-      DLLLOCAL HashElement(AbstractQoreNode *k, AbstractQoreNode *v);
-      DLLLOCAL HashElement(int tag, char *constant, AbstractQoreNode *v);
-      DLLLOCAL ~HashElement();
+   DLLLOCAL HashElement(AbstractQoreNode *k, AbstractQoreNode *v);
+   DLLLOCAL HashElement(int tag, char *constant, AbstractQoreNode *v);
+   DLLLOCAL ~HashElement();
 };
 
 static AbstractQoreNode *makeErrorTree(AbstractQoreNode *left, AbstractQoreNode *right) {
@@ -126,7 +126,7 @@ static void addUserFunctionVariant(char *name, UserFunctionVariant *variant) {
 HashElement::HashElement(AbstractQoreNode *k, AbstractQoreNode *v) {
    //tracein("HashElement::HashElement()");
    if (!k || k->getType() != NT_STRING) {
-      parse_error("object member name must be a string value!");
+      parse_error("hash member name must be a string value!");
       key = strdup("");
    }
    else
@@ -1659,6 +1659,8 @@ hash:
 	   delete $1;
 	}
 	| hash ',' hash_element	{
+	   if ($1->existsKey($3->key))
+	      QoreHashNode::doDuplicateKeyWarning($3->key);
 	   $1->setKeyValue($3->key, $3->value, 0);
 	   delete $3;
 	   $$ = $1;

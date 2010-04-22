@@ -49,8 +49,7 @@ class HashMember {
 };
 
 struct qore_hash_private {
-   class HashMember *member_list;
-   class HashMember *tail;
+   HashMember *member_list, *tail;
    qore_size_t len;
    hm_hm_t hm;
 
@@ -74,6 +73,19 @@ struct qore_hash_private {
 
       found = false;
       return 0;
+   }
+
+   DLLLOCAL bool existsKey(const char *key) const {
+      assert(key);	 
+      return hm.find(key) != hm.end();
+   }
+
+   DLLLOCAL bool existsKeyValue(const char *key) const {
+      assert(key);	 
+      hm_hm_t::const_iterator i = hm.find(key);
+      if (i == hm.end())
+	 return false;
+      return !is_nothing(i->second->node);
    }
 
    DLLLOCAL AbstractQoreNode **getKeyValuePtr(const char *key) {
@@ -636,6 +648,14 @@ bool QoreHashNode::empty() const {
    return !priv->len;
 }
 
+bool QoreHashNode::existsKey(const char *key) const {
+   return priv->existsKey(key);
+}
+
+bool QoreHashNode::existsKeyValue(const char *key) const {
+   return priv->existsKeyValue(key);   
+}
+
 void QoreHashNode::clearNeedsEval() {
    value = true;
    needs_eval_flag = false;
@@ -783,6 +803,11 @@ AbstractQoreNode *QoreHashNode::parseInit(LocalVar *oflag, int pflag, int &lvids
 	    // reference value for new hash key
 	    if (*value)
 	       (*value)->ref();
+
+	    // check for duplicate key definitions
+	    if (priv->existsKey(t->getBuffer()))
+	       doDuplicateKeyWarning(t->getBuffer());
+
 	    // not possible to have an exception here
 	    setKeyValue(t->getBuffer(), *value, 0);
 	    
@@ -805,6 +830,13 @@ AbstractQoreNode *QoreHashNode::parseInit(LocalVar *oflag, int pflag, int &lvids
       }
    }
    return this;
+}
+
+// static function
+void QoreHashNode::doDuplicateKeyWarning(const char *key) {
+   if (key[0] < 32)
+      ++key;
+   getProgram()->makeParseWarning(QP_WARN_DUPLICATE_HASH_KEY, "DUPLICATE-HASH-KEY", "hash key '%s' has already been given in this hash; the value given in the last occurrence will be assigned to the hash; to avoid seeing this warning, remove the extraneous key definitions or turn off the warning by using '%%disable-warning duplicate-hash-key' in your code", key);
 }
 
 HashIterator::HashIterator(QoreHashNode *qh) {
