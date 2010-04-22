@@ -162,15 +162,26 @@ static AbstractQoreNode *DIR_list(QoreObject *self, Dir *d, const QoreListNode *
    return d->list(xsink, -1);
 }
 
+static AbstractQoreNode *DIR_list_str(QoreObject *self, Dir *d, const QoreListNode *params, ExceptionSink *xsink) {
+   const QoreStringNode *p0 = HARD_QORE_STRING(params, 0);
+   return d->list(xsink, -1, p0, 0);
+}
+
 static AbstractQoreNode *DIR_list_str_int(QoreObject *self, Dir *d, const QoreListNode *params, ExceptionSink *xsink) {
    const QoreStringNode *p0 = HARD_QORE_STRING(params, 0);
-   int regex_options = HARD_QORE_INT(params, 1);
+   int regex_options = HARD_QORE_INT(params, 1);   
    return d->list(xsink, -1, p0, regex_options);
 }
 
 // listFiles()
 static AbstractQoreNode *DIR_listFiles(QoreObject *self, Dir *d, const QoreListNode *params, ExceptionSink *xsink) {
    return d->list(xsink, S_IFMT^S_IFDIR);
+}
+
+// lists all files
+static AbstractQoreNode *DIR_listFiles_str(QoreObject *self, Dir *d, const QoreListNode *params, ExceptionSink *xsink) {
+   const QoreStringNode *p0 = HARD_QORE_STRING(params, 0);
+   return d->list(xsink, S_IFMT^S_IFDIR, p0, 0);
 }
 
 // lists all files
@@ -183,6 +194,12 @@ static AbstractQoreNode *DIR_listFiles_str_int(QoreObject *self, Dir *d, const Q
 // listDirs()
 static AbstractQoreNode *DIR_listDirs(QoreObject *self, Dir *d, const QoreListNode *params, ExceptionSink *xsink) {
    return d->list(xsink, S_IFDIR);
+}
+
+// lists all directoreis but ignore '.' and '..'
+static AbstractQoreNode *DIR_listDirs_str(QoreObject *self, Dir *d, const QoreListNode *params, ExceptionSink *xsink) {
+   const QoreStringNode *p0 = HARD_QORE_STRING(params, 0);
+   return d->list(xsink, S_IFDIR, p0, 0);
 }
 
 // lists all directoreis but ignore '.' and '..'
@@ -305,13 +322,16 @@ QoreClass *initDirClass(QoreClass *QC_FILE) {
    QC_DIR->addMethodExtended("rmdir",		(q_method_t)DIR_rmdir, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    QC_DIR->addMethodExtended("list",		(q_method_t)DIR_list, false, QC_NO_FLAGS, QDOM_DEFAULT, listTypeInfo);
-   QC_DIR->addMethodExtended("list",		(q_method_t)DIR_list_str_int, false, QC_NO_FLAGS, QDOM_DEFAULT, listTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, zero());
+   QC_DIR->addMethodExtended("list",		(q_method_t)DIR_list_str, false, QC_NO_FLAGS, QDOM_DEFAULT, listTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   QC_DIR->addMethodExtended("list",		(q_method_t)DIR_list_str_int, false, QC_NO_FLAGS, QDOM_DEFAULT, listTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
 
    QC_DIR->addMethodExtended("listFiles",	(q_method_t)DIR_listFiles, false, QC_NO_FLAGS, QDOM_DEFAULT, listTypeInfo);
-   QC_DIR->addMethodExtended("listFiles",	(q_method_t)DIR_listFiles_str_int, false, QC_NO_FLAGS, QDOM_DEFAULT, listTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, zero());
+   QC_DIR->addMethodExtended("listFiles",	(q_method_t)DIR_listFiles_str, false, QC_NO_FLAGS, QDOM_DEFAULT, listTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   QC_DIR->addMethodExtended("listFiles",	(q_method_t)DIR_listFiles_str_int, false, QC_NO_FLAGS, QDOM_DEFAULT, listTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
 
    QC_DIR->addMethodExtended("listDirs",	(q_method_t)DIR_listDirs, false, QC_NO_FLAGS, QDOM_DEFAULT, listTypeInfo);
-   QC_DIR->addMethodExtended("listDirs",	(q_method_t)DIR_listDirs_str_int, false, QC_NO_FLAGS, QDOM_DEFAULT, listTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, zero());
+   QC_DIR->addMethodExtended("listDirs",	(q_method_t)DIR_listDirs_str, false, QC_NO_FLAGS, QDOM_DEFAULT, listTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   QC_DIR->addMethodExtended("listDirs",	(q_method_t)DIR_listDirs_str_int, false, QC_NO_FLAGS, QDOM_DEFAULT, listTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
 
    QC_DIR->addMethodExtended("openDir",		(q_method_t)DIR_openDir, false, QC_NO_FLAGS, QDOM_DEFAULT, QC_DIR->getTypeInfo(), 1, stringTypeInfo, QORE_PARAM_NO_ARG);
    QC_DIR->addMethodExtended("openDir",		(q_method_t)DIR_openDir, false, QC_NO_FLAGS, QDOM_DEFAULT, QC_DIR->getTypeInfo(), 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
