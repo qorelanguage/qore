@@ -3153,7 +3153,7 @@ void ConstructorMethodFunction::evalConstructor(const AbstractQoreFunctionVarian
    }
    
    if (CONMV_const(variant)->isPrivate() && !runtimeCheckPrivateClassAccess(&thisclass)) {
-      xsink->raiseException("CONSTRUCTOR-IS-PRIVATE", "%s::constructor() is private and therefore this class cannot be directly instantiated with the new operator by external code", thisclass.getName());
+      xsink->raiseException("CONSTRUCTOR-IS-PRIVATE", "%s::constructor(%s) is private and therefore this class cannot be directly instantiated with the new operator by external code", thisclass.getName(), variant->getSignature()->getSignatureText());
       return;
    }
    if (ceh.processDefaultArgs(variant, xsink))
