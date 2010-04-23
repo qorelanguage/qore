@@ -79,12 +79,22 @@ static AbstractQoreNode *f_localtime_int_int(const QoreListNode *params, Excepti
    return DateTimeNode::makeAbsolute(currentTZ(), HARD_QORE_INT(params, 0), HARD_QORE_INT(params, 1));
 }
 
+static AbstractQoreNode *f_localtime_date(const QoreListNode *params, ExceptionSink *xsink) {
+   const DateTimeNode *d = HARD_QORE_DATE(params, 0);
+   return DateTimeNode::makeAbsolute(currentTZ(), d->getEpochSecondsGMT(), d->getMicrosecond());
+}
+
 static AbstractQoreNode *f_gmtime(const QoreListNode *params, ExceptionSink *xsink) {
    return DateTimeNode::makeAbsolute(NULL, (int64)time(0), 0);
 }
 
 static AbstractQoreNode *f_gmtime_int_int(const QoreListNode *params, ExceptionSink *xsink) {
    return DateTimeNode::makeAbsolute(NULL, HARD_QORE_INT(params, 0), HARD_QORE_INT(params, 1));
+}
+
+static AbstractQoreNode *f_gmtime_date(const QoreListNode *params, ExceptionSink *xsink) {
+   const DateTimeNode *d = HARD_QORE_DATE(params, 0);
+   return DateTimeNode::makeAbsolute(NULL, d->getEpochSecondsGMT(), d->getMicrosecond());
 }
 
 static AbstractQoreNode *f_mktime(const QoreListNode *params, ExceptionSink *xsink) {
@@ -149,6 +159,10 @@ static AbstractQoreNode *f_milliseconds(const QoreListNode *params, ExceptionSin
    return new DateTimeNode(0, 0, 0, 0, 0, 0, HARD_QORE_INT(params, 0), true);
 }
 
+static AbstractQoreNode *f_microseconds(const QoreListNode *params, ExceptionSink *xsink) {
+   return DateTimeNode::makeRelative(0, 0, 0, 0, 0, 0, HARD_QORE_INT(params, 0));
+}
+
 // returns an integer corresponding to the year value in the date
 static AbstractQoreNode *f_get_years(const QoreListNode *params, ExceptionSink *xsink) {
    const DateTimeNode *p0 = HARD_QORE_DATE(params, 0);
@@ -189,6 +203,12 @@ static AbstractQoreNode *f_get_seconds(const QoreListNode *params, ExceptionSink
 static AbstractQoreNode *f_get_milliseconds(const QoreListNode *params, ExceptionSink *xsink) {
    const DateTimeNode *p0 = HARD_QORE_DATE(params, 0);
    return new QoreBigIntNode(p0->getMillisecond());
+}
+
+// returns an integer corresponding to the microsecond value in the date
+static AbstractQoreNode *f_get_microseconds(const QoreListNode *params, ExceptionSink *xsink) {
+   const DateTimeNode *p0 = HARD_QORE_DATE(params, 0);
+   return new QoreBigIntNode(p0->getMicrosecond());
 }
 
 // returns midnight on the date passed (strips the time component on the new value)
@@ -295,8 +315,12 @@ static AbstractQoreNode *f_clock_getmicros(const QoreListNode *params, Exception
 
 static AbstractQoreNode *f_date_ms(const QoreListNode *params, ExceptionSink *xsink) {
    int64 ms = HARD_QORE_INT(params, 0);
-   int64 secs = ms / 1000;
-   return new DateTimeNode(secs, (int)(ms - secs * 1000));
+   return new DateTimeNode(ms / 1000, (int)(ms % 1000));
+}
+
+static AbstractQoreNode *f_date_us(const QoreListNode *params, ExceptionSink *xsink) {
+   int64 us = HARD_QORE_INT(params, 0);
+   return new DateTimeNode(us / 1000000, (int)(us % 1000000));
 }
 
 void init_time_functions() {
@@ -311,9 +335,11 @@ void init_time_functions() {
 
    builtinFunctions.add2("localtime", f_localtime, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo);
    builtinFunctions.add2("localtime", f_localtime_int_int, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo, 2, softBigIntTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, zero());
+   builtinFunctions.add2("localtime", f_localtime_date, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add2("gmtime", f_gmtime, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo);
    builtinFunctions.add2("gmtime", f_gmtime_int_int, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo, 2, softBigIntTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, zero());
+   builtinFunctions.add2("gmtime", f_gmtime_date, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add2("mktime", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("mktime", f_mktime, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
@@ -345,6 +371,8 @@ void init_time_functions() {
    builtinFunctions.add2("milliseconds", f_reldate_noop, QC_NOOP, QDOM_DEFAULT, dateTypeInfo);
    builtinFunctions.add2("milliseconds", f_milliseconds, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
 
+   builtinFunctions.add2("microseconds", f_microseconds, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
+
    builtinFunctions.add2("get_years", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("get_years", f_get_years, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
 
@@ -365,6 +393,8 @@ void init_time_functions() {
 
    builtinFunctions.add2("get_milliseconds", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("get_milliseconds", f_get_milliseconds, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
+
+   builtinFunctions.add2("get_microseconds", f_get_microseconds, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add2("get_midnight", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("get_midnight", f_get_midnight, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
@@ -392,4 +422,6 @@ void init_time_functions() {
 
    builtinFunctions.add2("date_ms", f_date_noop, QC_NOOP, QDOM_DEFAULT, dateTypeInfo);
    builtinFunctions.add2("date_ms", f_date_ms, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
+
+   builtinFunctions.add2("date_us", f_date_us, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
 }

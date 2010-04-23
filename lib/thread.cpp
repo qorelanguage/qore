@@ -870,7 +870,8 @@ const QoreTypeInfo *saveReturnTypeInfo(const QoreTypeInfo *returnTypeInfo) {
 }
 
 const AbstractQoreZoneInfo *currentTZ() {
-   return QTZM.getLocalZoneInfo();
+   QoreProgram *pgm = (thread_data.get())->current_pgm;
+   return pgm ? pgm->currentTZ() : QTZM.getLocalZoneInfo();
 }
 
 ObjectSubstitutionHelper::ObjectSubstitutionHelper(QoreObject *obj) {

@@ -50,6 +50,9 @@
 #include <qore/intern/QC_XmlRpcClient.h>
 #include <qore/intern/QC_JsonRpcClient.h>
 #include <qore/intern/QC_TermIOS.h>
+#include <qore/intern/QC_TimeZone.h>
+
+// for initXmlNs()
 #include <qore/intern/QC_XmlNode.h>
 
 #include <string.h>
@@ -1516,6 +1519,7 @@ void StaticSystemNamespace::init() {
    QoreClass *TermIOS, *File, *SSLCert, *SSLPrivKey;
 
    // add system object types
+   qoreNS->addSystemClass(initTimeZoneClass());
    qoreNS->addSystemClass(SSLCert = initSSLCertificateClass());
    qoreNS->addSystemClass(SSLPrivKey = initSSLPrivateKeyClass());
    qoreNS->addSystemClass(initSocketClass(SSLCert, SSLPrivKey));

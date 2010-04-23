@@ -5,7 +5,6 @@
 * fix memory leaks caused by circular references
 * implement support for specifying base class methods like this: $exp.Base::method()
 * implement support for universal references - removed checking for passing a reference to user code with declared param
-* check object method references at parse time to verify the type of the object expression if available (and then check if the the method exists)
 * implement a new C++ API for adding functions internally, check BuiltinFunctionList::add*() for duplicates when used by modules
 * fix %n and %N to not output private members when called outside the class
 * fix parse directives to ignore comments after them
@@ -57,6 +56,7 @@ done 0.8.0:
 * verify behavior of private copy methods
 * make changes so constructors can be private
 * check for illegal arguments to copy methods in self calls ($.copy())
+* check object method references at parse time to verify the type of the object expression if available (and then check if the the method exists)
 
 docs:
 * add links to HTTPClient::connect() text

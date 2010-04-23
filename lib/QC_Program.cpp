@@ -22,6 +22,7 @@
 
 #include <qore/Qore.h>
 #include <qore/intern/QC_Program.h>
+#include <qore/intern/QC_TimeZone.h>
 
 qore_classid_t CID_PROGRAM;
 
@@ -250,6 +251,39 @@ static AbstractQoreNode *PROGRAM_getGlobalVariable(QoreObject *self, QoreProgram
     return rv.release();
 }
 
+// Program::setTimeZoneRegion(string $region) returns nothing
+static AbstractQoreNode *PROGRAM_setTimeZoneRegion(QoreObject *self, QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink) {
+   const QoreStringNode *str = HARD_QORE_STRING(params, 0);
+   const AbstractQoreZoneInfo *zone = QTZM.findLoadRegion(str->getBuffer(), xsink);
+   if (*xsink)
+      return 0;
+
+   p->setTZ(zone);
+   return 0;
+}
+
+// Program::setTimeZoneUTCOffset(softint $seconds_east) returns nothing
+static AbstractQoreNode *PROGRAM_setTimeZoneUTCOffset(QoreObject *self, QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink) {
+   int seconds_east = HARD_QORE_INT(params, 0);
+   const AbstractQoreZoneInfo *zone = QTZM.findCreateOffsetZone(seconds_east);
+   p->setTZ(zone);
+   return 0;
+}
+
+// Program::setTimeZone(TimeZone $zone) returns nothing
+static AbstractQoreNode *PROGRAM_setTimeZone(QoreObject *self, QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink) {
+   HARD_QORE_OBJ_DATA(zone, TimeZoneData, params, 0, CID_TIMEZONE, "TimeZone", "Program::setTimeZone", xsink);
+   if (*xsink)
+      return 0;
+   p->setTZ(zone->get());
+   return 0;
+}
+
+// Program::getTimeZone() returns TimeZone
+static AbstractQoreNode *PROGRAM_getTimeZone(QoreObject *self, QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink) {
+   return new QoreObject(QC_TIMEZONE, 0, new TimeZoneData(p->currentTZ()));
+}
+
 QoreClass *initProgramClass() {
    QORE_TRACE("initProgramClass()");
 
@@ -332,6 +366,18 @@ QoreClass *initProgramClass() {
    QC_PROGRAM->addMethodExtended("getGlobalVariable",    (q_method_t)PROGRAM_getGlobalVariable, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, 0, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
    // Program::getGlobalVariable(string $varname, reference $ref) returns any
    QC_PROGRAM->addMethodExtended("getGlobalVariable",    (q_method_t)PROGRAM_getGlobalVariable, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, 0, 2, stringTypeInfo, QORE_PARAM_NO_ARG, referenceTypeInfo, QORE_PARAM_NO_ARG);
+
+   // Program::setTimeZoneRegion(string $region) returns nothing
+   QC_PROGRAM->addMethodExtended("setTimeZoneRegion",    (q_method_t)PROGRAM_setTimeZoneRegion, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+
+   // Program::setTimeZoneOffset(softint $minutes_east) returns nothing
+   QC_PROGRAM->addMethodExtended("setTimeZoneUTCOffset", (q_method_t)PROGRAM_setTimeZoneUTCOffset, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
+
+   // Program::setTimeZone(TimeZone $zone) returns nothing
+   QC_PROGRAM->addMethodExtended("setTimeZone",          (q_method_t)PROGRAM_setTimeZone, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, QC_TIMEZONE->getTypeInfo(), QORE_PARAM_NO_ARG);
+
+   // Program::getTimeZone() returns TimeZone
+   QC_PROGRAM->addMethodExtended("getTimeZone",          (q_method_t)PROGRAM_getTimeZone, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, QC_TIMEZONE->getTypeInfo());
 
    return QC_PROGRAM;
 }

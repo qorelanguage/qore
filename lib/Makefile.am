@@ -186,6 +186,7 @@ libqore_la_SOURCES = \
 	QC_XmlNode.cpp \
 	QC_XmlReader.cpp \
 	QC_AbstractSmartLock.cpp \
+	QC_TimeZone.cpp \
 	QoreHTTPClient.cpp \
 	minitest.cpp
 

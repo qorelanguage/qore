@@ -154,10 +154,15 @@ struct qore_program_private {
       include_path;
    bool po_locked, exec_class, base_object, requires_exception;
 
+   // thread-local data (could be inherited from another program)
    qpgm_thread_local_storage_t *thread_local_storage;
+
+   // time zone setting for the program
+   const AbstractQoreZoneInfo *TZ;
+
    QoreProgram *pgm;
 
-   DLLLOCAL qore_program_private(QoreProgram *n_pgm, int64 n_parse_options) : thread_count(0), parse_options(n_parse_options), pgm(n_pgm) {
+   DLLLOCAL qore_program_private(QoreProgram *n_pgm, int64 n_parse_options, const AbstractQoreZoneInfo *n_TZ = QTZM.getLocalZoneInfo()) : thread_count(0), parse_options(n_parse_options), TZ(n_TZ), pgm(n_pgm) {
       printd(5, "QoreProgram::QoreProgram() (init()) this=%08p\n", this);
       only_first_except = false;
       exceptions_raised = 0;
@@ -667,6 +672,13 @@ struct qore_program_private {
       thread_local_storage->set(new QoreHashNode);
    }
 
+   const AbstractQoreZoneInfo *currentTZ() const {
+      return TZ;
+   }
+
+   void setTZ(const AbstractQoreZoneInfo *n_TZ) {
+      TZ = n_TZ;
+   }
 };
 
 inline SBNode::~SBNode() {
@@ -693,7 +705,7 @@ QoreProgram::QoreProgram(int64 po) : priv(new qore_program_private(this, po)) {
    priv->new_program();
 }
 
-QoreProgram::QoreProgram(QoreProgram *pgm, int64 po, bool ec, const char *ecn) : priv(new qore_program_private(this, po)) {
+QoreProgram::QoreProgram(QoreProgram *pgm, int64 po, bool ec, const char *ecn) : priv(new qore_program_private(this, po, pgm->currentTZ())) {
    // flag as derived object
    priv->base_object = false;
 
@@ -1518,6 +1530,14 @@ void QoreProgram::parseSetIncludePath(const char *path) {
 // only called when parsing, therefore in the parse thread lock
 const char *QoreProgram::parseGetIncludePath() const {
    return priv->include_path.empty() ? 0 : priv->include_path.c_str();
+}
+
+const AbstractQoreZoneInfo *QoreProgram::currentTZ() const {
+   return priv->currentTZ();
+}
+
+void QoreProgram::setTZ(const AbstractQoreZoneInfo *n_TZ) {
+   priv->setTZ(n_TZ);
 }
 
 int get_warning_code(const char *str) {

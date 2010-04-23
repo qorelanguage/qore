@@ -135,7 +135,7 @@ static void do_maps(qore_type_t t, const char *name, const QoreTypeInfo *typeInf
 void init_qore_types() {
    // initialize global default values                                                                                                                                    
    NullString    = new QoreStringNode;
-   ZeroDate      = new DateTimeNode;
+   ZeroDate      = DateTimeNode::makeAbsolute(0, 0, 0);
    Zero          = new QoreBigIntNode;
 
    emptyList     = new QoreListNode;

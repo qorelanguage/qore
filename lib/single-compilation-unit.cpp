@@ -166,6 +166,7 @@
 #include "QC_XmlNode.cpp"
 #include "QC_XmlReader.cpp"
 #include "QC_AbstractSmartLock.cpp"
+#include "QC_TimeZone.cpp"
 #include "minitest.cpp"
 //#include "inline_printf.cpp"
 //#include "QException.h"

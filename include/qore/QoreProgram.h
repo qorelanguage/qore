@@ -78,6 +78,7 @@ class QoreTypeInfo;
 class QoreParseTypeInfo;
 class ParamList;
 class AbstractQoreFunction;
+class AbstractQoreZoneInfo;
 
 //! supports parsing and executing Qore-language code, reference counted, dynamically-allocated only
 /** This class implements a transaction and thread-safe container for qore-language code
@@ -455,6 +456,12 @@ public:
        @return the value of the global variable given; if a non-zero pointer is returned, the caller owns the reference count returned
    */
    DLLEXPORT AbstractQoreNode *getGlobalVariableValue(const char *var, bool &found) const;
+
+   // retrieves the time zone setting for the program
+   DLLEXPORT const AbstractQoreZoneInfo *currentTZ() const;
+
+   // sets the program's time zone
+   DLLEXPORT void setTZ(const AbstractQoreZoneInfo *n_TZ);
 
    /// returns a pointed to the given user function if it exists (otherwise returns 0)
    DLLLOCAL UserFunction *findUserFunction(const char *name);
