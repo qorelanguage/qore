@@ -31,7 +31,7 @@ class AbstractQoreZoneInfo;
 
 //! for returning broken-down time information
 struct qore_tm {
-   int year, month, day, hour, minute, second, us, gmt_secs_east;
+   int year, month, day, hour, minute, second, us, utc_secs_east;
    bool dst;
    const char *zone_name;
    const char *region_name;
@@ -180,19 +180,19 @@ public:
    /**
       @return the number of seconds since January 1, 1970Z
    */
-   DLLEXPORT int64 getEpochSecondsGMT() const;
+   DLLEXPORT int64 getEpochSecondsUTC() const;
 
    //! gets the number of microseconds since January 1, 1970Z for the current date
    /**
       @return the number of microseconds since January 1, 1970Z
    */
-   DLLEXPORT int64 getEpochMicrosecondsGMT() const;
+   DLLEXPORT int64 getEpochMicrosecondsUTC() const;
 
    //! gets the number of milliseconds since January 1, 1970Z for the current date
    /**
       @return the number of milliseconds since January 1, 1970Z
    */
-   DLLEXPORT int64 getEpochMillisecondsGMT() const;
+   DLLEXPORT int64 getEpochMillisecondsUTC() const;
 
    //! returns the ordinal number of the day in the year for absolute dates, sometimes (mistakenly) referred to as the Julian date
    /** does not return sensible values for relative dates

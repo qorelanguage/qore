@@ -144,18 +144,18 @@ int64 DateTime::getEpochSeconds() const {
 }
 
 // get the number of seconds before or after January 1, 1970 (UNIX epoch) 
-int64 DateTime::getEpochSecondsGMT() const {
-   return priv->getEpochSecondsGMT();
+int64 DateTime::getEpochSecondsUTC() const {
+   return priv->getEpochSecondsUTC();
 }
 
 // get the number of milliseconds before or after January 1, 1970 (UNIX epoch) 
-int64 DateTime::getEpochMillisecondsGMT() const {
-   return priv->getEpochMillisecondsGMT();
+int64 DateTime::getEpochMillisecondsUTC() const {
+   return priv->getEpochMillisecondsUTC();
 }
 
 // get the number of microseconds before or after January 1, 1970 (UNIX epoch) 
-int64 DateTime::getEpochMicrosecondsGMT() const {
-   return priv->getEpochMicrosecondsGMT();
+int64 DateTime::getEpochMicrosecondsUTC() const {
+   return priv->getEpochMicrosecondsUTC();
 }
 
 void DateTime::setDateLiteral(int64 date) {

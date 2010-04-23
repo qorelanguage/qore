@@ -49,7 +49,7 @@ static void TIMEZONE_copy(QoreObject *self, QoreObject *old, TimeZoneData *z, Ex
 
 // TimeZone::getUTCOffset() returns int
 static AbstractQoreNode *TZ_UTCOffset(QoreObject *self, TimeZoneData *z, const QoreListNode *params, ExceptionSink *xsink) {
-   return new QoreBigIntNode((*z)->getGMTOffset());
+   return new QoreBigIntNode((*z)->getUTCOffset());
 }
 
 // TimeZone::hasDST() returns bool
@@ -60,6 +60,29 @@ static AbstractQoreNode *TZ_hasDST(QoreObject *self, TimeZoneData *z, const Qore
 // TimeZone::region() returns string
 static AbstractQoreNode *TZ_region(QoreObject *self, TimeZoneData *z, const QoreListNode *params, ExceptionSink *xsink) {
    return new QoreStringNode((*z)->getRegionName());
+}
+
+// TimeZone::date(softint) returns date
+static AbstractQoreNode *TZ_date_int(QoreObject *self, TimeZoneData *z, const QoreListNode *params, ExceptionSink *xsink) {
+   return DateTimeNode::makeAbsolute(z->get(), HARD_QORE_INT(params, 0), 0);
+}
+
+// TimeZone::date(date) returns date
+static AbstractQoreNode *TZ_date_date(QoreObject *self, TimeZoneData *z, const QoreListNode *params, ExceptionSink *xsink) {
+   const DateTimeNode *d = HARD_QORE_DATE(params, 0);
+   return DateTimeNode::makeAbsolute(z->get(), d->getEpochSecondsUTC(), d->getMicrosecond());
+}
+
+// TimeZone::dateMs(softint) returns date
+static AbstractQoreNode *TZ_dateMs(QoreObject *self, TimeZoneData *z, const QoreListNode *params, ExceptionSink *xsink) {
+   int64 ms = HARD_QORE_INT(params, 0);
+   return DateTimeNode::makeAbsolute(z->get(), ms / 1000, (ms % 1000) * 1000);
+}
+
+// TimeZone::dateUs(softint) returns date
+static AbstractQoreNode *TZ_dateUs(QoreObject *self, TimeZoneData *z, const QoreListNode *params, ExceptionSink *xsink) {
+   int64 us = HARD_QORE_INT(params, 0);
+   return DateTimeNode::makeAbsolute(z->get(), us / 1000000, us % 1000000);
 }
 
 // static methods
@@ -114,6 +137,17 @@ QoreClass *initTimeZoneClass() {
 
    // TimeZone::region() returns string
    QC_TIMEZONE->addMethodExtended("region", (q_method_t)TZ_region, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringTypeInfo);
+
+   // TimeZone::date(softint) returns date
+   QC_TIMEZONE->addMethodExtended("date", (q_method_t)TZ_date_int, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, dateTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
+   // TimeZone::date(date) returns date
+   QC_TIMEZONE->addMethodExtended("date", (q_method_t)TZ_date_date, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, dateTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
+
+   // TimeZone::dateMs(softint) returns date
+   QC_TIMEZONE->addMethodExtended("dateMs", (q_method_t)TZ_dateMs, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, dateTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
+
+   // TimeZone::dateUs(softint) returns date
+   QC_TIMEZONE->addMethodExtended("dateUs", (q_method_t)TZ_dateUs, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, dateTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
 
    // static methods
    // TimeZone::get() returns TimeZone
