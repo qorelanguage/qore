@@ -240,17 +240,18 @@ void UserSignature::parseInitPushLocalVars(const QoreTypeInfo *classTypeInfo) {
    if (selfid)
       push_self_var(selfid);
    else if (classTypeInfo)
-      selfid = push_local_var("self", classTypeInfo, false);
+      selfid = push_local_var("self", classTypeInfo, false, true);
    
    // push $argv var on stack and save id
-   argvid = push_local_var("argv", 0, false);
+   argvid = push_local_var("argv", 0, false, true);
    printd(5, "UserSignature::parseInitPushLocalVars() this=%p argvid=%p\n", this, argvid);
 
    resolve();
 
-   // init param ids and push local param vars on stack
+   // init param ids and push local parameter vars on stack
    for (unsigned i = 0; i < typeList.size(); ++i) {
-      lv.push_back(push_local_var(names[i].c_str(), typeList[i]));
+      // check for dups but do not check if the variables are referenced in the block
+      lv.push_back(push_local_var(names[i].c_str(), typeList[i], true, true));
       printd(5, "UserSignature::parseInitPushLocalVars() registered local var %s (id=%p)\n", names[i].c_str(), lv[i]);
    }
 }

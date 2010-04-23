@@ -58,7 +58,8 @@ static const char *qore_warnings_l[] = {
    "return-value-ignored",
    "deprecated",
    "excess-args",
-   "duplicate-hash-key"
+   "duplicate-hash-key",
+   "unreferenced-variable"
 };
 #define NUM_WARNINGS (sizeof(qore_warnings_l)/sizeof(const char *))
 
@@ -373,6 +374,8 @@ struct qore_program_private {
    }
 
    DLLLOCAL int parsePending(const char *code, const char *label, ExceptionSink *xsink, ExceptionSink *wS, int wm) {
+      //printd(5, "qore_program_private::parsePending() wm=0x%x UV=0x%x on=%d\n", wm, QP_WARN_UNREFERENCED_VARIABLE, wm & QP_WARN_UNREFERENCED_VARIABLE);
+
       // grab program-level parse lock
       AutoLocker al(&plock);
       warnSink = wS;
@@ -900,6 +903,26 @@ void QoreProgram::makeParseWarning(int code, const char *warn, const char *fmt, 
    priv->warnSink->raiseException(ne);
 }
 
+void QoreProgram::makeParseWarning(int sline, int eline, const char *file, int code, const char *warn, const char *fmt, ...) {
+   QORE_TRACE("QoreProgram::makeParseWarning()");
+
+   //printd(5, "QP::mPW(code=%d, warn='%s', fmt='%s') priv->warn_mask=%d priv->warnSink=%08p %s\n", code, warn, fmt, priv->warn_mask, priv->warnSink, priv->warnSink && (code & priv->warn_mask) ? "OK" : "SKIPPED");
+   if (!priv->warnSink || !(code & priv->warn_mask))
+      return;
+
+   QoreStringNode *desc = new QoreStringNode();
+   while (true) {
+      va_list args;
+      va_start(args, fmt);
+      int rc = desc->vsprintf(fmt, args);
+      va_end(args);
+      if (!rc)
+         break;
+   }
+   QoreException *ne = new ParseException(sline, eline, file, warn, desc);
+   priv->warnSink->raiseException(ne);
+}
+
 void QoreProgram::makeParseWarning(int code, const char *warn, QoreStringNode *desc) {
    QORE_TRACE("QoreProgram::makeParseWarning()");
 
@@ -1074,7 +1097,7 @@ int QoreProgram::getWarningMask() const {
    return priv->warnSink ? priv->warn_mask : 0; 
 }
 
-void QoreProgram::addStatement(class AbstractStatement *s) {
+void QoreProgram::addStatement(AbstractStatement *s) {
    if (!priv->sb_tail->statements) {
       if (typeid(s) != typeid(StatementBlock))
 	 priv->sb_tail->statements = new StatementBlock(s);

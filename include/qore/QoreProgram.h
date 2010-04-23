@@ -46,6 +46,7 @@
 #define QP_WARN_DEPRECATED               (1 << 10)  //!< when depcrecated functionality is accessed
 #define QP_WARN_EXCESS_ARGS              (1 << 11)  //!< when excess arguments are given to a function that does not access them
 #define QP_WARN_DUPLICATE_HASH_KEY       (1 << 12)  //!< when a hash key has been defined more than once in a literal hash
+#define QP_WARN_UNREFERENCED_VARIABLE    (1 << 13)  //!< when a variable is declared but not referenced
 #define QP_WARN_ALL                      -1         //!< for all possible warnings
 
 #define QP_WARN_DEFAULT (QP_WARN_UNKNOWN_WARNING|QP_WARN_UNREACHABLE_CODE|QP_WARN_NONEXISTENT_METHOD_CALL|QP_WARN_INVALID_OPERATION|QP_WARN_CALL_WITH_TYPE_ERRORS|QP_WARN_RETURN_VALUE_IGNORED|QP_WARN_DUPLICATE_HASH_KEY)
@@ -491,6 +492,7 @@ public:
    DLLLOCAL void addParseException(ExceptionSink *xsink);
    // returns 0 if a "requires" exception has already occurred
    DLLLOCAL ExceptionSink *getParseExceptionSink();
+   DLLLOCAL void makeParseWarning(int sline, int eline, const char *file, int code, const char *warn, const char *fmt, ...);
    DLLLOCAL void makeParseWarning(int code, const char *warn, const char *fmt, ...);
    // takes over ownership of "desc"
    DLLLOCAL void makeParseWarning(int code, const char *warn, QoreStringNode *desc);

@@ -151,7 +151,7 @@ void init_thread_functions() {
 
    builtinFunctions.add2("save_thread_data", f_noop, QC_NOOP, QDOM_THREAD_CONTROL, nothingTypeInfo);
    builtinFunctions.add2("save_thread_data", f_save_thread_data_hash, QC_NO_FLAGS, QDOM_THREAD_CONTROL, nothingTypeInfo, 1, hashTypeInfo, QORE_PARAM_NO_ARG);
-   builtinFunctions.add2("save_thread_data", f_save_thread_data_str_any, QC_NO_FLAGS, QDOM_THREAD_CONTROL, nothingTypeInfo, 2, hashTypeInfo, QORE_PARAM_NO_ARG, anyTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("save_thread_data", f_save_thread_data_str_any, QC_NO_FLAGS, QDOM_THREAD_CONTROL, nothingTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, anyTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add2("delete_thread_data", f_delete_thread_data, QC_USES_EXTRA_ARGS, QDOM_THREAD_CONTROL, nothingTypeInfo);
    builtinFunctions.add2("delete_thread_data", f_delete_thread_data_list, QC_USES_EXTRA_ARGS, QDOM_THREAD_CONTROL, nothingTypeInfo, 1, listTypeInfo, QORE_PARAM_NO_ARG);

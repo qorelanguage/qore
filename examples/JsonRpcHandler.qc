@@ -1,10 +1,10 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
 # JSON-RPC handler class definition
 #
 
 # to be registered as a handler in the HTTPServer class
 
-namespace JsonRpcHandler
-{
+namespace JsonRpcHandler {
     const Version = "0.1";
 
     const InternalMethods = (("function" : "help",
@@ -24,19 +24,19 @@ namespace JsonRpcHandler
 			      ));
 }
 
-class JsonRpcHandler::JsonRpcHandler {
-    private $.methods, $.mi;
+class JsonRpcHandler::JsonRpcHandler inherits public HTTPRequestHandler {
+    private {
+        list $.methods = ();
+        hash $.mi;
+        int $.loglevel;
+    }
 
-    constructor($methods)
-    {
-	$.methods = ();
-
+    constructor(list $methods) {
 	# add internal methods
-	foreach my $im in (JsonRpcHandler::InternalMethods)
+	foreach my hash $im in (JsonRpcHandler::InternalMethods)
 	    $.addMethodInternal($im + ( "internal" : True ));
 	
-	foreach my $m in ($methods)
-	{
+	foreach my hash $m in ($methods) {
 	    if (!exists $m.name)
 		throw "JSON-RPC-CONSTRUCTOR-ERROR", sprintf("expecting 'name' key in method hash (%n)", $m);
 	    if (!exists $m.function)
@@ -49,9 +49,8 @@ class JsonRpcHandler::JsonRpcHandler {
 	}
     }
 
-    addMethod($name, $func, $text, $help, $logopt, $cmark)
-    {
-	if (!exists $func || !exists $text)
+    addMethod(string $name, any $func, string $text, string $help, any $logopt, any $cmark) {
+	if (!exists $func)
 	    throw "JSON-RPC-HANDLER-ADD-METHOD-ERROR", "expecting function name and text name as hash key in argument";
 
 	$.addMethodInternal(( "name"     : $name,
@@ -62,10 +61,9 @@ class JsonRpcHandler::JsonRpcHandler {
 			      "cmark"    : $cmark ));
     }
 
-    private addMethodInternal($h)
-    {
+    private addMethodInternal(hash $h) {
 	# check for duplicate in method index
-	my $i = $.mi.($h.text);
+	my any $i = $.mi.($h.text);
 	if (!exists $i)
 	    $i = elements $.methods;
 
@@ -74,11 +72,9 @@ class JsonRpcHandler::JsonRpcHandler {
 	$.methods[$i] = $h;
     }
 
-    private help($c)
-    {
-	my $h;
-	foreach my $m in ($.methods)
-	{
+    private help() returns hash {
+	my hash $h;
+	foreach my hash $m in ($.methods) {
 	    $h.($m.text).description = $m.help;
 	    if (exists $m.params)
 		$h.($m.text).params  = $m.params;
@@ -86,12 +82,11 @@ class JsonRpcHandler::JsonRpcHandler {
 	return $h;
     }
 
-    private system_describe()
-    {
-	my $address = "http://localhost/JSON";
-	my $procs = ();
+    private system_describe() returns hash {
+	my string $address = "http://localhost/JSON";
+	my list $procs = ();
 
-	foreach my $m in ($.methods)
+	foreach my hash $m in ($.methods)
 	    if ($m.text != "service.describe")
 		$procs += ( "name" : $m.text,
 			    "summary" : $m.help );
@@ -105,17 +100,15 @@ class JsonRpcHandler::JsonRpcHandler {
 		 "procs" : $procs ); 
     }
 
-    private listMethods($c)
-    {
-	my $l = ();
-	foreach my $m in ($.methods)
+    private listMethods() returns list {
+	my list $l = ();
+	foreach my hash $m in ($.methods)
 	    $l += $m.text;
 	return $l;
     }
 
-    private log($context, $str)
-    {
-        my $msg = "JSON-RPC ";
+    private log(hash $context, string $str) {
+        my string $msg = "JSON-RPC ";
         if (exists $context.user)
             $msg += sprintf("user %s ", $context.user);
         $msg += sprintf("from %s: ", $context.source);
@@ -124,45 +117,34 @@ class JsonRpcHandler::JsonRpcHandler {
         call_function_args($context.logfunc, $msg);
     }
 
-    private callMethod($context, $params)
-    {
-	my $h;
-
-	my $method = $context.method;
+    private callMethod(hash $context, any $params) returns hash {
+	my string $method = $context.method;
 	# find method function
-	my $found;
-	foreach my $m in ($.methods)
-	{
-	    if (regex($method, $m.name))
-	    {
+	my hash $found;
+	foreach my hash $m in ($.methods) {
+	    if (regex($method, $m.name)) {
 		$found = $m;
 		break;
 	    }
 	}
 	
-	if (exists $found)
-	{
+	if (exists $found) {
 	    # add context marker, if any
 	    $context.cmark = $found.cmark;
 	    $context.function = $found.function;
 
-	    if (($found.logopt & LP_LEVELMASK) <= $.loglevel && exists $context.logfunc)
-	    {
-		my $msg = $method;          
+	    if (($found.logopt & LP_LEVELMASK) <= $.loglevel && exists $context.logfunc) {
+		my string $msg = $method;
 		# add arguments to log message
-		if ($found.logopt & LP_LOGPARAMS)
-		{
+		if ($found.logopt & LP_LOGPARAMS) {
 		    $msg += sprintf("(");
-		    my $i = 0;
-		    foreach my $arg in ($params)
-		    {
+		    my int $i = 0;
+                    foreach my any $arg in ($params) {
 			if (inlist($i++, $found.maskargs))
 			    $msg += "<masked>, ";
-			else if (type($arg) == Type::Hash && elements $arg)
-			{
+			else if (type($arg) == Type::Hash && elements $arg) {
 			    $msg += "(";
-			    foreach my $k in (keys $arg)
-			    {
+			    foreach my string $k in (keys $arg) {
 				if ($k == $found.maskkey)
 				    $msg += sprintf("%s=<masked>, ", $k);
 			        else
@@ -183,7 +165,7 @@ class JsonRpcHandler::JsonRpcHandler {
                 $.log($context, $msg);
 	    }
 	    #printf("about to call function '%s' (method=%s params=%n)\n", $found.function, $method, $params);
-	    my $rv;
+	    my any $rv;
 	    if (type($params) == Type::List)
 		unshift $params, $context;
 	    else if (exists $params)
@@ -196,18 +178,15 @@ class JsonRpcHandler::JsonRpcHandler {
 	    else
 		$rv = call_function_args($found.function, $params);
 
-	    $h.body = makeJSONRPCResponseString("1.1", $context.jsonid, $rv);
-
+            my hash $h.body = makeJSONRPCResponseString("1.1", $context.jsonid, $rv);
 	    return $h;
 	}
 	else
 	    return ( "code" : 500, "body" : sprintf("JSON-RPC-SERVER-UNKNOWN-METHOD: unknown method %n", $method) );
     }
 
-    do_param($value, $param)
-    {
-	if (exists $param)
-	{
+    do_param(any $value, reference $param) {
+	if (exists $param) {
 	    if (type($param) != Type::List)
 		$param = list($param);
 	    $param += $value;
@@ -217,40 +196,35 @@ class JsonRpcHandler::JsonRpcHandler {
     }
 
     # method called by HTTPServer
-    handleRequest($context, $hdr, $body, $close)
-    {
+    handleRequest(hash $context, hash $hdr, any $body, any $close) returns hash {
 	#printf("jsonrpc handler context=%n hdr=%n body=%n\n", $context, $hdr, $body);
 
-	my $jsonrpc;
+	my hash $jsonrpc;
 
-	if ($hdr.method == "GET")
-	{
-	    my $path = substr($hdr.path, index($hdr.path, "/") + 1);
+	if ($hdr.method == "GET") {
+	    my string $path = substr($hdr.path, index($hdr.path, "/") + 1);
 	    
 	    if (!strlen($path))
 		return ( "code" : 501,
 			 "desc" : "invalid HTTP GET: no path/JSON-RPC method name given" ); 
 
-	    my $args = split("?", $path);
+	    my list $args = split("?", $path);
 	    $jsonrpc.method = shift $args;
 
 	    $args = split("&", $args[0]);
 
 	    # process arguments
-	    if (elements $args)
-	    {
-		my $params;
-		foreach my $arg in ($args)
-		{
-		    my $i;
+	    if (elements $args) {
+		my any $params;
+		foreach my any $arg in ($args) {
+		    my int $i;
 		    if (($i = index($arg, "=")) == -1)
 			continue;
 
-		    my $key = substr($arg, 0, $i);
-		    my $value = substr($arg, $i + 1);
+		    my string $key = substr($arg, 0, $i);
+		    my string $value = substr($arg, $i + 1);
 		    # if it is a positional parameter
-		    if (int($key) == $key)
-		    {
+		    if (int($key) == $key) {
 			# check for reasonable argument limits, otherwise ignore
 			if ($key > 0 && $key < 9999)
 			    $.do_param($value, \$params[$key - 1]);
@@ -265,8 +239,7 @@ class JsonRpcHandler::JsonRpcHandler {
 	    if (index($jsonrpc.method, ".") == -1)
 		$jsonrpc.method = "omq.system." + $jsonrpc.method;
 	}
-	else
-	{
+	else {
 	    if ($hdr.method != "POST")
 		return ( "code" : 501,
 			 "body" : sprintf("don't know how to handle method %n", $hdr.method) );
@@ -279,9 +252,8 @@ class JsonRpcHandler::JsonRpcHandler {
 	    try {
 		$jsonrpc = parseJSON($body);
 	    }
-	    catch ($ex)
-	    {
-		my $estr = sprintf("%s: %s", $ex.err, $ex.desc);
+	    catch (hash $ex) {
+		my string $estr = sprintf("%s: %s", $ex.err, $ex.desc);
 		return ( "code"   : 500,
 			 "errlog" : $estr,
 			 "body"   : $estr );
@@ -293,9 +265,8 @@ class JsonRpcHandler::JsonRpcHandler {
 	    #printf("msg=%s\nxmlrpc=%N\n", $body, $jsonrpc);fflush();
 	    return ( "code" : 200, "hdr" : ( "Content-Type" : "application/json" ) ) + $.callMethod($context, $jsonrpc.params);
 	}
-	catch ($ex)
-	{
-	    my $str = sprintf("%s: %s", $ex.err, $ex.desc);
+	catch (hash $ex) {
+	    my string $str = sprintf("%s: %s", $ex.err, $ex.desc);
 	    return ( "code"   : 200,
 		     "errlog" : $str,
 		     "hdr"    : ( "Content-Type" : "application/json" ),

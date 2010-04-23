@@ -43,6 +43,9 @@
 # versions of these methods.  However, these special methods can be 
 # explicitly called from subclasses
 
+# we require qore >= 0.8 because we use the cast<> operator below
+%requires qore >= 0.8
+
 # require global variables to be declared with "our" before use
 %require-our
 %enable-all-warnings
@@ -73,7 +76,9 @@ class Base1 {
 	# Base::subclass(), which is not what we want), but "$self.subclass()"
 	# is resolved at run-time, and so will run the "subclass" method in the
 	# derived class
-	printf("Base1 hello (%n, derived class %n)\n", $.a, $self.subclass());
+
+	# to avoid a warning about the unknown method, we use the cast<> operator	
+	printf("Base1 hello (%n, derived class %n)\n", $.a, cast<Mid>($self).subclass());
     }
 
     # note that "Base1" here is just a regular method, the constructor

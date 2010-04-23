@@ -62,7 +62,7 @@ class Final inherits Mid, Base1, Base2
     }
 }
 
-$f = new Final("final");
+our $f = new Final("final");
 $f.hello();
 
 printf("goodbye!\n");

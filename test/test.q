@@ -243,7 +243,8 @@ sub array_tests() {
     ($l[0], $l[1]) = ("hi3", "shoo2", "bean1");
     test_value($l, ("hi3", "shoo2"), "third list assigment");
     my int $v2 = pop $l1;
-    test_value($l1, (3,2,4,1,6), "pop");
+    test_value($v2, 5, "first pop");
+    test_value($l1, (3,2,4,1,6), "second pop");
     push $l1, "hi";
 
     # splice tests
@@ -631,6 +632,7 @@ sub statement_tests() {
     test_value($b, 3, "foreach exec");
 
     my any $list = my list $x;
+    test_value($x, NOTHING, "unassigned typed variable");
     foreach my string $y in (\$list) $y = "test";
     test_value($list, NOTHING, "first foreach reference");
     
@@ -1452,7 +1454,7 @@ sub class_library_tests() {
 
     my any $t2 = new Test2();
     $test = "read object's private member";
-    try { my any $x = $t2.a; err($test); } catch($ex) { check($ex.err, $test); }
+    try { my any $x = $t2.a + $x; err($test); } catch($ex) { check($ex.err, $test); }
 
     # test memberGate
     test_value($t.a, "memberGate-a", "object memberGate() methods");

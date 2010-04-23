@@ -9,6 +9,10 @@ ChangeLog
 
 * default argument values
 
+* time zone support in absolute date/time values
+
+* date/time values have resolution to the microsecond
+
 * new functions
 getpwuid2()
 getpwnam()
@@ -32,18 +36,34 @@ getgrname2()
 
 * new warning: call-with-type-errors
 
-* implemented new parse option PO_NO_THREAD_INFO
+* new warning: return-value-ignored
+
+* new warning: deprecated
+
+* new warning: excess-args
+
+* new warning: duplicate-hash-key
+
+* default warning mask updated
+
+* new parse option PO_REQUIRE_TYPES
+
+* new parse option PO_NO_THREAD_INFO
 
 * tagged the following functions with QDOM_THREAD_INFO
 gettid(), num_threads(), thread_list(), get_thread_data(), get_all_thread_data(), getAllThreadCallStacks()
 
-* implemented new parse option PO_NO_EXTERNAL_INFO
+* new parse option PO_NO_EXTERNAL_INFO
 
 * tagged the following functions with QDOM_EXTERNAL_INFO
 getuid(), geteuid(), getgid(), getegid(), getpid(), getppid(), gethostname(),
 gethostbyname(), gethostbyaddr(), gethostbyname_long(), gethostbyaddr_long(),
 getcwd(), getcwd2(), getpwuid(), getpwuid2(), getpwnam(), getpwnam2()
 
+* new parse option PO_NO_LOCALE_CONTROL
+
+* tagged the following functions with QDOM_LOCALE_CONTROL
+TimeZone::set()
 
 
 ***********************

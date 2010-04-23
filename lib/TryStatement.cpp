@@ -24,16 +24,14 @@
 #include <qore/intern/TryStatement.h>
 #include <qore/intern/StatementBlock.h>
 
-TryStatement::TryStatement(int start_line, int end_line, class StatementBlock *t, class StatementBlock *c, char *p) : AbstractStatement(start_line, end_line)
-{
+TryStatement::TryStatement(int start_line, int end_line, class StatementBlock *t, class StatementBlock *c, char *p) : AbstractStatement(start_line, end_line) {
    try_block = t;
    catch_block = c;
    param = p;
    //finally = f;
 }
 
-TryStatement::~TryStatement()
-{
+TryStatement::~TryStatement() {
    if (param)
       free(param);
    if (try_block)
@@ -44,8 +42,7 @@ TryStatement::~TryStatement()
    //delete finally;
 }
 
-int TryStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink)
-{
+int TryStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink) {
    AbstractQoreNode *trv = 0;
    
    QORE_TRACE("TryStatement::execImpl()");
@@ -60,12 +57,10 @@ int TryStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink
     */
    
    class QoreException *except = xsink->catchException();
-   if (except)
-   {
+   if (except) {
       printd(5, "TryStatement::execImpl() entering catch handler, e=%08p\n", except);
       
-      if (catch_block)
-      {
+      if (catch_block) {
 	 // save exception
 	 catchSaveException(except);
 	 
@@ -107,7 +102,7 @@ int TryStatement::parseInitImpl(LocalVar *oflag, int pflag) {
    
    // prepare catch block and params
    if (param) {
-      id = push_local_var(param, 0);
+      id = push_local_var(param, 0, true, true);
       printd(3, "TryStatement::parseInitImpl() reg. local var %s (id=%08p)\n", param, id);
    }
    else

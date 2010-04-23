@@ -4,17 +4,16 @@
 # by David Nichols
 
 # default 10000 hash keys
-$size = int(shift $ARGV);
+our $size = int(shift $ARGV);
 if (!$size)
     $size = 10000;
 
 # default minimum hash key length = 20 characters
-$min_length = int(shift $ARGV);
+our $min_length = int(shift $ARGV);
 if (!$min_length)
     $min_length = 20;
 
-sub rstr($len)
-{
+sub rstr($len) {
     my $str = "";
 
     for (my $i = 0; $i < $len; $i++)
@@ -23,8 +22,7 @@ sub rstr($len)
     return $str;
 }
 
-sub doChar($v)
-{
+sub doChar($v) {
     if ($v < 26)
 	return chr($v + ord("A"));
     return chr($v - 26 + ord("a"));
@@ -46,9 +44,8 @@ sub getKey($n)
     return $str;
 }
 
-sub hash_test()
-{
-    srand();
+sub hash_test() {
+    srand(now());
 
     my $h;
     my $l = ();
@@ -67,7 +64,7 @@ sub hash_test()
 
     my $search = clock_getmicros();
     printf("done in %.6fs, running search: ", ($search - $start) / 1000000.0); flush();
-    my $l = keys $h;
+    $l = keys $h;
     my $end = $size / 2;
     for (my $i = 0; $i < $end; $i++)
 	my $v = $h.($l[$i]);

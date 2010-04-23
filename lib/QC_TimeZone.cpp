@@ -154,13 +154,13 @@ QoreClass *initTimeZoneClass() {
    QC_TIMEZONE->addStaticMethodExtended("get", f_TZ_get, false, QC_CONSTANT, QDOM_DEFAULT, QC_TIMEZONE->getTypeInfo());
 
    // TimeZone::set(TimeZone) returns nothing
-   QC_TIMEZONE->addStaticMethodExtended("set", f_TZ_set, false, QC_NO_FLAGS, QDOM_LOCALE, nothingTypeInfo, 1, QC_TIMEZONE->getTypeInfo(), QORE_PARAM_NO_ARG);
+   QC_TIMEZONE->addStaticMethodExtended("set", f_TZ_set, false, QC_NO_FLAGS, QDOM_LOCALE_CONTROL, nothingTypeInfo, 1, QC_TIMEZONE->getTypeInfo(), QORE_PARAM_NO_ARG);
 
    // TimeZone::setUTCOffset(int $seconds_offset) returns nothing
-   QC_TIMEZONE->addStaticMethodExtended("setUTCOffset", f_TZ_setUTCOffset, false, QC_NO_FLAGS, QDOM_LOCALE, nothingTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
+   QC_TIMEZONE->addStaticMethodExtended("setUTCOffset", f_TZ_setUTCOffset, false, QC_NO_FLAGS, QDOM_LOCALE_CONTROL, nothingTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
 
    // TimeZone::setRegion(string $region) returns nothing
-   QC_TIMEZONE->addStaticMethodExtended("setRegion", f_TZ_setRegion, false, QC_NO_FLAGS, QDOM_LOCALE, nothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   QC_TIMEZONE->addStaticMethodExtended("setRegion", f_TZ_setRegion, false, QC_NO_FLAGS, QDOM_LOCALE_CONTROL, nothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    return QC_TIMEZONE;
 }

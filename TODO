@@ -1,3 +1,4 @@
+* implement a mechanism for a thread to sleep until another thread terminates (join)
 * cover case when multiple types could be returned (? : operator, functions, etc)
 * do not allow access to QC_NOOP code if 'require-types' is set
 * allow variants with the "constant" flag be be used in constant expressions
@@ -8,7 +9,6 @@
 * implement a new C++ API for adding functions internally, check BuiltinFunctionList::add*() for duplicates when used by modules
 * fix %n and %N to not output private members when called outside the class
 * fix parse directives to ignore comments after them
-* fix strange problem with unknown parse directives (i.e. %warnings-as-errors)
 * make sure exit() will exit - may need to interrupt threads (ex: thread waiting on accept() will not exit)
 * document Datasource::getAutoCommit()
 * fix crash on exit() with running threads on Darwin <- CANNOT REPRODUCE
@@ -16,9 +16,7 @@
 * add $# for list element offset in list operators (map, select)
 * optimize object method calls from the same object to avoid the reference and dereference
 * fix broken callstacks - only reports for calls since the try statement
-* implement warning for local variables that are not referenced/used
 * implement auto-reconnect for pgsql (possibly not needed?)
-* implement a mechanism for a thread to sleep until another thread terminates (join)
 * implement optimized foreach statement for hash key iteration
 * implement find_key operator, taking a regular expression to find a key in a hash
 * implement split operator taking regular expression
@@ -27,7 +25,7 @@
 * track include files, make sure they are only included once
 * have QoreStringNode::getAsString() return a standard empty string ("") when possible (also should not be reference counted)
 * remove QoreNothingNode and use 0 everywhere instead
-* add API compatibility info to to module data
+* add API compatibility info to module data
 * update round() to allow the specification of significant digits
 * implement public_instanceof operator
 * add support for special ::toString() method to serialize an object to a string (very useful for debugging)
@@ -37,6 +35,7 @@
 * implement GZFile and BZFile classes
 
 done 0.8.0:
+* add warning for local variables that are not referenced/used
 * add warning for duplicate hash keys: duplicate-hash-keys
 * add warning about supplying extra arguments: excess-args
 * add warning about using deprecated functions/features: deprecated

@@ -39,12 +39,34 @@
 
 // parse variable stack
 class VNode {
+protected:
+   // has been referenced?
+   bool ref;
+
+   // to store parse location in case of errors
+   int first_line, last_line;
+   const char *file;
+
 public:
    LocalVar *lvar;
    VNode *next;
 
-   DLLLOCAL VNode(LocalVar *lv) : lvar(lv), next(getVStack()) {
+   DLLLOCAL VNode(LocalVar *lv, bool n_ref = false) : ref(n_ref), file(get_parse_file()), lvar(lv), next(getVStack()) {
+      get_parse_location(first_line, last_line);
       updateVStack(this);
+   }
+
+   DLLLOCAL ~VNode() {
+      if (!ref)
+	 getProgram()->makeParseWarning(first_line, last_line, file, QP_WARN_UNREFERENCED_VARIABLE, "UNREFERENCED-VARIABLE", "local variable '%s' was declared in this block but not referenced; to disable this warning, use '%%disable-warning unreferenced-variable' in your code", lvar->getName());
+   }
+
+   DLLLOCAL void setRef() {
+      ref = true;
+   }
+
+   DLLLOCAL bool isReferenced() const {
+      return ref;
    }
 
    DLLLOCAL const char *getName() const {
@@ -150,10 +172,10 @@ void StatementBlock::exec() {
 
 // used for constructor methods sharing a common "self" local variable
 void push_self_var(LocalVar *lv) {
-   new VNode(lv);
+   new VNode(lv, true);
 }
 
-LocalVar *push_local_var(const char *name, const QoreTypeInfo *typeInfo, bool check_dup) {
+LocalVar *push_local_var(const char *name, const QoreTypeInfo *typeInfo, bool check_dup, bool n_ref) {
    QoreProgram *pgm = getProgram();
 
    LocalVar *lv = pgm->createLocalVar(name, typeInfo);
@@ -171,7 +193,7 @@ LocalVar *push_local_var(const char *name, const QoreTypeInfo *typeInfo, bool ch
    }
    
    //printd(5, "push_local_var(): pushing var %s\n", name);
-   new VNode(lv);
+   new VNode(lv, n_ref);
    return lv;
 }
 
@@ -197,6 +219,7 @@ LocalVar *find_local_var(const char *name, bool &in_closure) {
       if (!strcmp(vnode->getName(), name)) {
 	 if (in_closure)
 	    cenv->add(vnode->lvar);
+	 vnode->setRef();
 	 return vnode->lvar;
       }
       vnode = vnode->next;

@@ -78,7 +78,7 @@ DLLLOCAL void pop_cvar();
 DLLLOCAL LocalVar *pop_local_var();
 // used for constructor methods sharing a common "self" local variable
 DLLLOCAL void push_self_var(LocalVar *lv);
-DLLLOCAL LocalVar *push_local_var(const char *name, const QoreTypeInfo *typeInfo, bool check_dup = true);
+DLLLOCAL LocalVar *push_local_var(const char *name, const QoreTypeInfo *typeInfo, bool check_dup = true, bool n_ref = false);
 DLLLOCAL LocalVar *find_local_var(const char *name, bool &in_closure);
 
 #endif // _QORE_ABSTRACTSTATEMENT_H

@@ -185,63 +185,53 @@ class ThreadTest inherits Mutex {
         $.g.exit();
         return $rv;
     }
-    setGateData($hash)
-    {
+    setGateData($hash) {
         $.g.enter();
         foreach my $key in (keys $hash)
             $.gdata.$key = $hash.$key;
         $.g.exit();
     }
-    worker()
-    {
-        for (my $i = 0; $i < $.iters; $i++)
-        {
+    worker() {
+        for (my $i = 0; $i < $.iters; $i++) {
             #if (!($i % 1000))
             #    printf("TID %3d: %d/%d\n", gettid(), $i, $.iters);
             my $c = rand() % 7;
             my $key1 = sprintf("key%d", rand() % 10);
             my $key2 = sprintf("key%d", (rand() % 10) + 10);
             my $key3 = sprintf("key%d", rand() % 20);
-            if (!$c)
-            {
+            if (!$c) {
                 my $hash.$key1 = rand() % 10;
                 $hash.$key2 = rand() % 10;
                 $.setData($hash);
                 continue;
             }
-            if ($c == 1)
-            {
-                my $data = $.getData(($key1, $key2, $key3));
+            if ($c == 1) {
+                $.getData(($key1, $key2, $key3));
                 continue;
             }
-            if ($c == 2)
-            {
+            if ($c == 2) {
                 my $hash.$key1 = rand() % 10;
                 $hash.$key2 = rand() % 10;
                 $.setRWData($hash);
                 continue;
             }
-            if ($c == 3)
-            {
-                my $data = $.getRWData(($key1, $key2, $key3));
+            if ($c == 3) {
+                $.getRWData(($key1, $key2, $key3));
                 continue;
             }
-            if ($c == 4)
-            {
+            if ($c == 4) {
                 my $hash.$key1 = rand() % 10;
                 $hash.$key2 = rand() % 10;
                 $.setGateData($hash);
                 continue;
             }
-            if ($c == 5)
-            {
-                my $data = $.getGateData(($key1, $key2, $key3));
+            if ($c == 5) {
+                $.getGateData(($key1, $key2, $key3));
                 continue;
             }
-            if ($c == 6)
-            {
+            if ($c == 6) {
                 my $str = makeXMLRPCValueString($.getData());
-                my $d = parseXML($str);
+                parseXML($str);
             }
         }
 	$.c.dec();

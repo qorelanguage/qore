@@ -81,6 +81,6 @@
 #define QDOM_TERMINAL_IO        PO_NO_TERMINAL_IO         //!< provides terminal I/O functionality
 #define QDOM_EXTERNAL_INFO      PO_NO_EXTERNAL_INFO       //!< provides access to external information (ex: hostname, pid, process uid, etc)
 #define QDOM_THREAD_INFO        PO_NO_THREAD_INFO         //!< provides access to information regarding threading (tid, active threads, etc)
-#define QDOM_LOCALE             PO_NO_LOCALE_CONTROL      //!< provices access to functionality that changes locale information
+#define QDOM_LOCALE_CONTROL     PO_NO_LOCALE_CONTROL      //!< provices access to functionality that changes locale information
 
 #endif //_QORE_DOMAIN_H

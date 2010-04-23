@@ -1638,6 +1638,7 @@ void StaticSystemNamespace::init() {
    qoreNS->addConstant("WARN_DEPRECATED",                new QoreBigIntNode(QP_WARN_DEPRECATED));
    qoreNS->addConstant("WARN_EXCESS_ARGS",               new QoreBigIntNode(QP_WARN_EXCESS_ARGS));
    qoreNS->addConstant("WARN_DUPLICATE_HASH_KEY",        new QoreBigIntNode(QP_WARN_DUPLICATE_HASH_KEY));
+   qoreNS->addConstant("WARN_UNREFERENCED_VARIABLE",     new QoreBigIntNode(QP_WARN_UNREFERENCED_VARIABLE));
    qoreNS->addConstant("WARN_ALL",                       new QoreBigIntNode(QP_WARN_ALL));
 
    // event constants
