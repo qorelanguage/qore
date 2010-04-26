@@ -1142,10 +1142,16 @@ int QoreObject::getAsString(QoreString &str, int foff, ExceptionSink *xsink) con
       if (foff != FMT_NONE)
          str.sprintf("%d member%s)\n", h->size(), h->size() == 1 ? "" : "s");
 
+      //bool private_access_ok = runtimeCheckPrivateClassAccess(priv->theclass);
+
       HashIterator hi(*h);
 
       bool first = false;
       while (hi.next()) {
+	 // skip private members when accessed outside the class
+	 //if (!private_access_ok && priv->checkMemberAccessIntern(hi.getKey(), false, false) == QOA_PRIV_ERROR)
+	 //   continue;
+
          if (first)
             if (foff != FMT_NONE)
                str.concat('\n');

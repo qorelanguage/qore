@@ -128,12 +128,16 @@ static void dni(QoreStringNode *s, const AbstractQoreNode *n, int indent, Except
 
    if (ntype == NT_DATE) {
       const DateTimeNode *date = reinterpret_cast<const DateTimeNode *>(n);
-      if (date) {
-	 s->sprintf("%04d-%02d-%02d %02d:%02d:%02d.%03d (rel=%s)", 
-		    date->getYear(), date->getMonth(), date->getDay(), date->getHour(),
-		    date->getMinute(), date->getSecond(), date->getMillisecond(), date->isRelative() ? "True" : "False");
-	 return;
-      }
+      qore_tm info;
+      date->getInfo(info);
+      s->sprintf("%04d-%02d-%02d %02d:%02d:%02d.%06d",
+		 info.year, info.month, info.day, info.hour,
+		 info.minute, info.second, info.us);
+      if (date->isRelative())
+	 s->concat(" (relative)");
+      else
+	 s->sprintf(" %s (%s)", info.zone_name, info.region_name);
+      return;
    }
 
    if (ntype == NT_BINARY) {

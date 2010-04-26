@@ -46,6 +46,8 @@
 #include <sys/time.h>
 #include <assert.h>
 
+#include <vector>
+
 #if defined(DARWIN) && MAX_QORE_THREADS > 2560
 // testing has revealed that darwin's pthread_create will not return an error when more than 2560 threads
 // are running, however the threads are not actually started, therefore we set MAX_QORE_THREADS to 2560 on 
@@ -322,6 +324,57 @@ public:
    }
 };
 
+class ArgvRefStack {
+protected:
+   typedef std::vector<int> rvec_t;
+   rvec_t stack;
+   // ignore numeric count
+   int in;
+
+public:
+   DLLLOCAL ArgvRefStack() : in(0) {
+      stack.push_back(0);
+   }
+   DLLLOCAL ~ArgvRefStack() {
+   }
+   DLLLOCAL void push() {
+      stack.push_back(0);
+   }
+   DLLLOCAL int pop() {
+      int rc = stack[stack.size() - 1];
+      if (stack.size() > 1) 
+	 stack.pop_back();
+      else
+	 stack[0] = 0;
+      return rc;
+   }
+   DLLLOCAL int get() {
+      assert(stack.size() == 1);
+      int rc = stack[0];
+      stack[0] = 0;
+      return rc;
+   }
+   DLLLOCAL void push_numeric() {
+      ++in;
+   }
+   DLLLOCAL void pop_numeric() {
+      --in;
+      assert(in >= 0);
+   }
+   DLLLOCAL void inc_numeric() {
+      if (in)
+	 return;
+      inc();
+   }
+   DLLLOCAL void inc() {
+      ++stack[stack.size() - 1];
+   }
+   DLLLOCAL void clear() {
+      stack.clear();
+      stack.push_back(0);
+   }
+};
+
 // this structure holds all thread-specific data
 class ThreadData {
 public:
@@ -341,8 +394,10 @@ public:
    QoreException *catchException;
    std::list<block_list_t::iterator> on_block_exit_list;
    ThreadResourceList trlist;
+
    // current function/method name
    const char *current_code;
+
    // current object context
    QoreObject *current_obj;
 
@@ -368,6 +423,8 @@ public:
    // already-instantiated thread-local variables
    ProgramContextHelper *pch_link;
 
+   ArgvRefStack argv_refs;
+
 #ifdef QORE_MANAGE_STACK
    size_t stack_limit;
 #ifdef IA64_64
@@ -382,11 +439,10 @@ public:
    const QoreTypeInfo *returnTypeInfo;
 
    DLLLOCAL ThreadData(int ptid, QoreProgram *p) : 
-      tid(ptid), vlock(ptid), 
-      context_stack(0), plStack(0),
-      parse_line_start(0), parse_line_end(0), 
-      parse_file(0), pgm_counter_start(0), pgm_counter_end(0),
-      pgm_file(0), parse_code(0), parseState(0), vstack(0), cvarstack(0),
+      tid(ptid), vlock(ptid), context_stack(0), plStack(0), 
+      parse_line_start(0), parse_line_end(0), parse_file(0), 
+      pgm_counter_start(0), pgm_counter_end(0), pgm_file(0), 
+      parse_code(0), parseState(0), vstack(0), cvarstack(0),
       parseClass(0), catchException(0), current_code(0),
       current_obj(0), current_pgm(p), current_implicit_arg(0),
       closure_parse_env(0), closure_rt_env(0), pch_link(0),
@@ -605,7 +661,7 @@ ThreadData::~ThreadData() {
 #ifdef QORE_MANAGE_STACK
 int check_stack(ExceptionSink *xsink) {
    ThreadData *td = thread_data.get();
-   //printd(5, "check_stack() current=%p limit=%p\n", get_stack_pos(), td->stack_limit);
+   printd(5, "check_stack() current=%p limit=%p\n", get_stack_pos(), td->stack_limit);
 #ifdef IA64_64
    //printd(5, "check_stack() bsp current=%p limit=%p\n", get_rse_bsp(), td->rse_limit);
    if (td->rse_limit < get_rse_bsp()) {
@@ -874,6 +930,41 @@ const AbstractQoreZoneInfo *currentTZ() {
    return pgm ? pgm->currentTZ() : QTZM.getLocalZoneInfo();
 }
 
+// pushes a new argv reference counter
+void new_argv_ref() {
+   thread_data.get()->argv_refs.push();
+}
+
+// increments the parse argv reference counter
+void inc_argv_ref() {
+   thread_data.get()->argv_refs.inc();
+}
+
+// pushes an "ignore numeric reference" context
+void push_ignore_numeric_argv_ref() {
+   thread_data.get()->argv_refs.push_numeric();
+}
+
+// pops an "ignore numeric reference" context
+void pop_ignore_numeric_argv_ref() {
+   thread_data.get()->argv_refs.pop_numeric();
+}
+
+// increments the parse argv numeric reference counter
+void inc_numeric_argv_ref() {
+   thread_data.get()->argv_refs.inc_numeric();
+}
+
+// gets the parse argv reference counter and pops the context
+int get_pop_argv_ref() {
+   return thread_data.get()->argv_refs.pop();
+}
+
+// clears the argv reference stack
+void clear_argv_ref() {
+   thread_data.get()->argv_refs.clear();
+}
+
 ObjectSubstitutionHelper::ObjectSubstitutionHelper(QoreObject *obj) {
    ThreadData *td  = thread_data.get();
    old_obj = td->current_obj;
@@ -907,16 +998,14 @@ CodeContextHelper::~CodeContextHelper() {
    td->current_obj = old_obj;
 }
 
-ArgvContextHelper::ArgvContextHelper(QoreListNode *argv, ExceptionSink *n_xsink) : xsink(n_xsink)
-{
+ArgvContextHelper::ArgvContextHelper(QoreListNode *argv, ExceptionSink *n_xsink) : xsink(n_xsink) {
    ThreadData *td  = thread_data.get();
    old_argv = td->current_implicit_arg;
    td->current_implicit_arg = argv;
    //printd(5, "ArgvContextHelper::ArgvContextHelper() setting argv=%p\n", argv);
 }
 
-ArgvContextHelper::~ArgvContextHelper()
-{
+ArgvContextHelper::~ArgvContextHelper() {
    ThreadData *td  = thread_data.get();
    if (td->current_implicit_arg)
       td->current_implicit_arg->deref(xsink);
@@ -945,8 +1034,7 @@ SingleArgvContextHelper::~SingleArgvContextHelper() {
    td->current_implicit_arg = old_argv;
 }
 
-const QoreListNode *thread_get_implicit_args()
-{
+const QoreListNode *thread_get_implicit_args() {
    //printd(5, "thread_get_implicit_args() returning %p\n", thread_data.get()->current_implicit_arg);
    return thread_data.get()->current_implicit_arg;
 }
@@ -964,8 +1052,7 @@ QoreListNode *getCallStackList() {
    return thread_list[gettid()].callStack->getCallStack();
 }
 
-CallStack *getCallStack()
-{
+CallStack *getCallStack() {
    return thread_list[gettid()].callStack;
 }
 #endif
@@ -1309,19 +1396,21 @@ void init_qore_threads() {
 #endif // #if TARGET_BITS == 32
 #else
 #ifdef WIN32
-#else
-   qore_thread_stack_size = ta_default.getstacksize();
-   assert(qore_thread_stack_size);
-#endif // #ifdef WIN32
    // FIXME: get real thread stack size via win API call
    qore_thread_stack_size = 1024*1024;
+#else // !WIN32 && !SOLARIS
+   qore_thread_stack_size = ta_default.getstacksize();
+   assert(qore_thread_stack_size);
+   //printd(0, "getstacksize() returned: %ld\n", qore_thread_stack_size);
+#endif // #ifdef WIN32
 #endif // #ifdef SOLARIS
+
 #ifdef IA64_64
    // the top half of the stack is for the normal stack, the bottom half is for the register stack
    qore_thread_stack_size /= 2;
 #endif // #ifdef IA64_64
    qore_thread_stack_limit = qore_thread_stack_size - QORE_STACK_GUARD;
-   printd(5, "default stack size %ld, limit %ld\n", qore_thread_stack_size, qore_thread_stack_limit);
+   //printd(5, "default stack size %ld, limit %ld\n", qore_thread_stack_size, qore_thread_stack_limit);
 #endif // #ifdef QORE_MANAGE_STACK
 
    // setup parent thread data

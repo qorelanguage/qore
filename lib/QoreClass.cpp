@@ -3063,7 +3063,7 @@ void UserConstructorVariant::parseInitConstructor(const QoreClass &parent_class,
 
    //printd(5, "UserConstructorVariant::parseInitConstructor() this=%p %s::constructor() params=%d\n", this, parent_class.getName(), signature.numParams());
    // must be called even if statements is NULL
-   statements->parseInitConstructor(parent_class.getTypeInfo(), &signature, bcal, bcl);
+   statements->parseInitConstructor(parent_class.getTypeInfo(), this, bcal, bcl);
 }
 
 void UserCopyVariant::evalCopy(const QoreClass &thisclass, QoreObject *self, QoreObject *old, CodeEvaluationHelper &ceh, BCList *scl, ExceptionSink *xsink) const {
@@ -3100,7 +3100,7 @@ void UserCopyVariant::parseInitCopy(const QoreClass &parent_class) {
    ParseCodeInfoHelper rtih("copy", nothingTypeInfo);
    
    // must be called even if statements is NULL
-   statements->parseInitMethod(parent_class.getTypeInfo(), &signature);
+   statements->parseInitMethod(parent_class.getTypeInfo(), this);
    
    // see if there is a type specification for the sole parameter and make sure it matches the class if there is
    if (signature.numParams()) {

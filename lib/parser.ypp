@@ -478,6 +478,9 @@ static int checkMethod(const char *name, BCAList *bcal, RetTypeInfo *returnTypeI
 }
 
 static inline MethodVariantBase *newMethodVariant(const char *name, int mod, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode *params, BCAList *bcal, RetTypeInfo *returnTypeInfo, StatementBlock *b) {
+
+   int64 flags = get_pop_argv_ref() ? QC_USES_EXTRA_ARGS : QC_NO_FLAGS;
+
    if (bcal && strcmp(name, "constructor")) {
       parse_error("only constructors may have base class constructor arguments");
       delete bcal;
@@ -490,7 +493,7 @@ static inline MethodVariantBase *newMethodVariant(const char *name, int mod, int
 	 parse_error("return type information cannot be defined for constructors");
 	 delete returnTypeInfo;
       }
-      return new UserConstructorVariant(mod & OFM_PRIVATE, b, n_sig_first_line, n_sig_last_line, params, bcal);
+      return new UserConstructorVariant(mod & OFM_PRIVATE, b, n_sig_first_line, n_sig_last_line, params, bcal, flags);
    }
    if (!strcmp(name, "destructor")) {
       if (params) {
@@ -510,7 +513,7 @@ static inline MethodVariantBase *newMethodVariant(const char *name, int mod, int
    if (!strcmp(name, "copy") && !(mod & OFM_SYNCED))
       return new UserCopyVariant(mod & OFM_PRIVATE, b, n_sig_first_line, n_sig_last_line, params, returnTypeInfo, mod & OFM_SYNCED);
 
-   return new UserMethodVariant(mod & OFM_PRIVATE, b, n_sig_first_line, n_sig_last_line, params, returnTypeInfo, mod & OFM_SYNCED);
+   return new UserMethodVariant(mod & OFM_PRIVATE, b, n_sig_first_line, n_sig_last_line, params, returnTypeInfo, mod & OFM_SYNCED, flags);
 }
 
 static inline void tryAddMethod(int mod, char *n, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode *params, BCAList *bcal, RetTypeInfo *returnTypeInfo, StatementBlock *b) {
@@ -600,42 +603,34 @@ static AbstractQoreNode *checkRewriteList(QoreListNode *l) {
    QoreListNode *list;
    AbstractStatement *statement;
    class MemberInfo *memberinfo;
-   class StatementBlock *sblock;
-   class ContextModList *cmods;
-   class ContextMod *cmod;
+   StatementBlock *sblock;
+   ContextModList *cmods;
+   ContextMod *cmod;
    class HashElement *hashelement;
-   class UserFunction *userfunc;	
+   UserFunction *userfunc;	
    class MethodNode *methodnode;
    class MemberList *memberlist;
-   class QoreClass *qoreclass;
+   QoreClass *qoreclass;
    class ConstNode *constnode;
-   class QoreNamespace *ns;
+   QoreNamespace *ns;
    class NSNode *nsn;
    class ObjClassDef *classdef;
-   class DateTimeNode *datetime;
-   class RegexSubstNode *RegexSubst;
-   class RegexTransNode *RegexTrans;
-   class SwitchStatement *switchstmt;
-   class CaseNode *casenode;
-   class BCList *sclist;
+   DateTimeNode *datetime;
+   RegexSubstNode *RegexSubst;
+   RegexTransNode *RegexTrans;
+   SwitchStatement *switchstmt;
+   CaseNode *casenode;
+   BCList *sclist;
    class BCNode *sclnode;
-   class BCAList *bcalist;
-   class BCANode *bcanode;
-   class NamedScope *nscope;
-   class QoreRegexNode *Regex;
-   class QoreImplicitArgumentNode *implicit_arg;
-   class RetTypeInfo *returnTypeInfo;
+   BCAList *bcalist;
+   BCANode *bcanode;
+   NamedScope *nscope;
+   QoreRegexNode *Regex;
+   QoreImplicitArgumentNode *implicit_arg;
+   RetTypeInfo *returnTypeInfo;
 }
 
 %{
-
-//#define YYSTYPE char const *
-//#define LEX_PARAMETERS YYSTYPE *lvalp, struct YYLTYPE *llocp
-//#define ERROR_PARAMETERS struct YYLTYPE *llocp, char const *s
-//#define LEX_PARAMETERS YYSTYPE *lvalp, yyscan_t scanner
-//#define LEX_PARAMETERS void
-//#define ERROR_PARAMETERS char const *s
-//int yylex();
 
 #define LEX_PARAMETERS YYSTYPE *lvalp, YYLTYPE *loc, yyscan_t scanner
 
@@ -855,8 +850,7 @@ top_level_commands:
 
 top_level_command:
         sub_def                      // registered directly
-        | class_def		     
-        {
+        | class_def {
 	   addClass($1->name, $1->oc); 
 	   // see if class definitions are allowed
 	   if (checkParseOption(PO_NO_CLASS_DEFS))
@@ -864,8 +858,7 @@ top_level_command:
 			  $1->oc->getName());
 	   delete $1;
 	}
-	| scoped_const_decl 
-        { 
+	| scoped_const_decl { 
 	   addConstant($1->name, $1->value);
 	   // see if constant definitions are allowed
 	   if (checkParseOption(PO_NO_CONSTANT_DEFS))
@@ -874,8 +867,7 @@ top_level_command:
 
 	   delete $1;
 	}
-        | unscoped_const_decl
-        { 
+        | unscoped_const_decl { 
 	   getRootNS()->addConstant($1->name, $1->value); 
 	   // see if constant definitions are allowed
 	   if (checkParseOption(PO_NO_CONSTANT_DEFS))
@@ -897,8 +889,7 @@ top_level_command:
 	   $2->EndLineNumber = @2.last_line;
 	   getProgram()->addStatement($2);
         }
-        | top_namespace_decl
-        {
+        | top_namespace_decl {
 	   getRootNS()->parseAddNamespace($1); 
 	   // see if ns declaration is legal
 	   if (checkParseOption(PO_NO_NAMESPACE_DEFS))
@@ -919,40 +910,35 @@ namespace_decls:
 	   addNSNode(ns, $1);
 	   $$ = ns;
         }
-	| namespace_decls namespace_decl
-	{  
+        | namespace_decls namespace_decl { 
 	   addNSNode($1, $2);
 	   $$ = $1;
 	}
 	;
 
 namespace_decl:
-	scoped_const_decl     
-        { 
+	scoped_const_decl { 
 	   $$ = new NSNode($1); 
 	   // see if constant definitions are allowed
 	   if (checkParseOption(PO_NO_CONSTANT_DEFS))
 	      parse_error("illegal constant definition \"%s\" (conflicts with parse option NO_CONSTANT_DEFS)",
 			  $1->name->ostr);
         }
-        | unscoped_const_decl 
-        { 
+        | unscoped_const_decl { 
 	   $$ = new NSNode($1); 
 	   // see if constant definitions are allowed
 	   if (checkParseOption(PO_NO_CONSTANT_DEFS))
 	      parse_error("illegal constant definition \"%s\" (conflicts with parse option NO_CONSTANT_DEFS)",
 			  $1->name->ostr);
 	}
-	| class_def          
-        { 
+	| class_def { 
 	   $$ = new NSNode($1); 
 	   // see if class definitions are allowed
 	   if (checkParseOption(PO_NO_CLASS_DEFS))
 	      parse_error("illegal class definition \"%s\" (conflicts with parse option NO_CLASS_DEFS)",
 			  $1->oc->getName());
 	}
-	| top_namespace_decl  
-        { 
+	| top_namespace_decl { 
 	   $$ = new NSNode($1); 
 	   // see if ns declaration is legal
 	   if (checkParseOption(PO_NO_NAMESPACE_DEFS))
@@ -960,8 +946,7 @@ namespace_decl:
 	}
 
 unscoped_const_decl: 
-	TOK_CONST IDENTIFIER '=' exp ';'
-        { 
+	TOK_CONST IDENTIFIER '=' exp ';' { 
 	   if ($4 && $4->getType() == NT_FUNCREF)
 	      parse_error("constants may not be assigned to call references");
 	   else if (needsEval($4))
@@ -971,8 +956,7 @@ unscoped_const_decl:
         ;
 
 scoped_const_decl:
-	TOK_CONST SCOPED_REF '=' exp ';'
-        {
+	TOK_CONST SCOPED_REF '=' exp ';' {
 	   if ($4 && $4->getType() == NT_FUNCREF)
 	      parse_error("constants may not be assigned to call references");
 	   else if (needsEval($4))
@@ -1044,80 +1028,63 @@ statement:
 	}
         | try_statement
         { $$ = $1; }
-	| TOK_RETHROW ';'
-	{
+        | TOK_RETHROW ';' {
 	   $$ = new RethrowStatement(@1.first_line, @1.last_line);
 	}
-        | TOK_THROW exp ';'
-        {
+        | TOK_THROW exp ';' {
 	   $$ = new ThrowStatement(@1.first_line, @2.last_line, $2);
 	}
-        | TOK_ON_EXIT statement_or_block
-        {
+        | TOK_ON_EXIT statement_or_block {
 	   $$ = new OnBlockExitStatement(@1.first_line, @2.last_line, $2, OBE_Unconditional);
 	}
-        | TOK_ON_SUCCESS statement_or_block
-        {
+        | TOK_ON_SUCCESS statement_or_block {
 	   $$ = new OnBlockExitStatement(@1.first_line, @2.last_line, $2, OBE_Success);
 	}
-        | TOK_ON_ERROR statement_or_block
-        {
+        | TOK_ON_ERROR statement_or_block {
 	   $$ = new OnBlockExitStatement(@1.first_line, @2.last_line, $2, OBE_Error);
 	}
-        | TOK_SUB_CONTEXT context_mods statement_or_block
-        {
+        | TOK_SUB_CONTEXT context_mods statement_or_block {
 	   $$ = new ContextStatement(@1.first_line, @3.last_line, 0, 0, $2, $3);
 	}
-        | TOK_SUMMARIZE optname '(' exp ')' TOK_BY '(' exp ')' context_mods statement_or_block
-        {
+        | TOK_SUMMARIZE optname '(' exp ')' TOK_BY '(' exp ')' context_mods statement_or_block {
 	   $$ = new SummarizeStatement(@1.first_line, @11.last_line, $2, $4, $10, $11, $8);
 	}
-        | TOK_CONTEXT optname '(' exp ')' context_mods statement_or_block
-        {
+        | TOK_CONTEXT optname '(' exp ')' context_mods statement_or_block {
 	   $$ = new ContextStatement(@1.first_line, @7.last_line, $2, $4, $6, $7);
         }
-	| TOK_IF '(' exp ')' statement_or_block %prec IFX
-        {	
+	| TOK_IF '(' exp ')' statement_or_block %prec IFX {	
 	   $$ = new IfStatement(@1.first_line, @5.last_line, $3, $5);
 	}
-        | TOK_IF '(' exp ')' statement_or_block TOK_ELSE statement_or_block
-        {
+        | TOK_IF '(' exp ')' statement_or_block TOK_ELSE statement_or_block {
 	   $$ = new IfStatement(@1.first_line, @7.last_line, $3, $5, $7);
 	}
-	| TOK_WHILE '(' exp ')' statement_or_block
-        {
+	| TOK_WHILE '(' exp ')' statement_or_block {
 	   $$ = new WhileStatement(@1.first_line, @5.last_line, $3, $5);
 	}
-	| TOK_DO statement_or_block TOK_WHILE '(' exp ')' ';'
-        {
+	| TOK_DO statement_or_block TOK_WHILE '(' exp ')' ';' {
 	   $$ = new DoWhileStatement(@1.first_line, @5.last_line, $5, $2);
 	}
-	| TOK_FOR '(' myexp ';' myexp ';' myexp ')' statement_or_block
-        {
+	| TOK_FOR '(' myexp ';' myexp ';' myexp ')' statement_or_block {
 	   $$ = new ForStatement(@1.first_line, @9.last_line, $3, $5, $7, $9);
 	}
-        | TOK_FOREACH exp TOK_IN '(' exp ')' statement_or_block
-        {
+        | TOK_FOREACH exp TOK_IN '(' exp ')' statement_or_block {
 	   $$ = new ForEachStatement(@1.first_line, @7.last_line, $2, $5, $7);
 	   qore_type_t t = $2 ? $2->getType() : 0;
 	   if (t != NT_VARREF && t != NT_SELF_VARREF)
 	      parse_error("foreach variable expression is not a variable reference");
 	}
         | return_statement ';' { $$ = $1; }
-        | TOK_THREAD_EXIT ';'  
-	{ 
+        | TOK_THREAD_EXIT ';' {
 	   // see if thread exit is allowed
 	   if (checkParseOption(PO_NO_THREAD_CONTROL))
 	      parse_error("illegal use of \"thread_exit\" (conflicts with parse option NO_THREAD_CONTROL)");
 
 	   $$ = new ThreadExitStatement(@1.first_line, @1.last_line); 
 	}
-        | TOK_BREAK ';'
-        {
+        | TOK_BREAK ';' {
 	  $$ = new BreakStatement(@1.first_line, @1.last_line);
 	}
-        | TOK_CONTINUE ';'
-        {
+        | TOK_CONTINUE ';' {
 	  $$ = new ContinueStatement(@1.first_line, @1.last_line);
 	}
         | switch_statement { $$ = $1; }
@@ -1128,12 +1095,10 @@ context_mods:
 	// empty 
         { $$ = 0; }
         | 
-	context_mods context_mod
-        { 
+	context_mods context_mod { 
 	   if (!$1) 
 	      $$ = new ContextModList($2); 
-	   else 
-	   { 
+	   else { 
 	      $1->addContextMod($2); 
 	      $$ = $1; 
 	   }
@@ -1282,11 +1247,9 @@ case_code:
         ;
 
 try_statement:
-        TOK_TRY statement_or_block TOK_CATCH '(' myexp ')' statement_or_block
-        {
+        TOK_TRY statement_or_block TOK_CATCH '(' myexp ')' statement_or_block {
 	   char *param = 0;
-	   if ($5)
-	   {
+	   if ($5) {
 	      if ($5->getType() == NT_VARREF) 
 		 param = reinterpret_cast<VarRefNode *>($5)->takeName();
 	      else
@@ -1302,39 +1265,33 @@ myexp:     /* empty */          { $$ = 0; }
         ;
 
 class_def:
-	TOK_CLASS IDENTIFIER inheritance_list '{' class_attributes '}'
-        {
+	TOK_CLASS IDENTIFIER inheritance_list '{' class_attributes '}' {
 	   $5->setName($2);
 	   $5->parseSetBaseClassList($3);
 	   $$ = new ObjClassDef($2, $5); 
 	}
-        | TOK_CLASS SCOPED_REF inheritance_list '{' class_attributes '}'
-        { 
+        | TOK_CLASS SCOPED_REF inheritance_list '{' class_attributes '}' { 
 	   $$ = new ObjClassDef($2, $5); 
 	   $5->setName($$->name->getIdentifier()); 
 	   $5->parseSetBaseClassList($3);
 	}
-	| TOK_CLASS IDENTIFIER inheritance_list ';'
-        { 
+	| TOK_CLASS IDENTIFIER inheritance_list ';' { 
 	   QoreClass *qc = new QoreClass($2);
 	   qc->parseSetBaseClassList($3);
 	   $$ = new ObjClassDef($2, qc); 	   
 	}
-	| TOK_CLASS SCOPED_REF inheritance_list ';'
-        { 
+	| TOK_CLASS SCOPED_REF inheritance_list ';' { 
 	   QoreClass *qc = new QoreClass();
 	   $$ = new ObjClassDef($2, qc);
 	   qc->setName($$->name->getIdentifier());
 	   qc->parseSetBaseClassList($3);
 	}
-	| TOK_CLASS IDENTIFIER inheritance_list '{' '}'
-        { 
+	| TOK_CLASS IDENTIFIER inheritance_list '{' '}' { 
 	   QoreClass *qc = new QoreClass($2);
 	   qc->parseSetBaseClassList($3);
 	   $$ = new ObjClassDef($2, qc); 	   
 	}
-	| TOK_CLASS SCOPED_REF inheritance_list '{' '}'
-        { 
+	| TOK_CLASS SCOPED_REF inheritance_list '{' '}' { 
 	   QoreClass *qc = new QoreClass();
 	   $$ = new ObjClassDef($2, qc);
 	   qc->setName($$->name->getIdentifier());
@@ -1550,12 +1507,10 @@ object_outofline_function_def:
 	;
 
 base_constructor_list:
-        ':' base_constructors
-        {
+        ':' base_constructors {
 	   $$ = $2;
 	}
-	| // nothing
-        {
+        | { // nothing
 	   $$ = 0;
 	}
 	;
@@ -1564,28 +1519,24 @@ base_constructors:
         base_constructor {
 	   $$ = new BCAList($1);
 	}
-	| base_constructors ',' base_constructor
-	{
+        | base_constructors ',' base_constructor {
 	   $1->push_back($3);
 	   $$ = $1;
 	}
 	;
 
 base_constructor:
-        IDENTIFIER '(' myexp ')'
-        {
+        IDENTIFIER '(' myexp ')' {
 	   $$ = new BCANode($1, makeArgs($3));
 	}
-	| SCOPED_REF '(' myexp ')'
-        {
+	| SCOPED_REF '(' myexp ')' {
 	   $$ = new BCANode(new NamedScope($1), makeArgs($3));
 	}
 	;
 
 method_modifiers:
         method_modifier { $$ = $1; }
-        | method_modifiers method_modifier 
-        {
+        | method_modifiers method_modifier {
 	   if (($1 | $2) == $1)
 	      parse_error("double object method modifier");
 	   $$ = $1 | $2; 
@@ -1621,16 +1572,20 @@ return_value:
 
 sub_def:
         TOK_SUB IDENTIFIER '(' myexp ')' return_value block { 
-	   addUserFunctionVariant($2, new UserFunctionVariant($7, @4.first_line, @4.last_line, $4, $6, false));
+	   int ar = get_pop_argv_ref();
+	   addUserFunctionVariant($2, new UserFunctionVariant($7, @4.first_line, @4.last_line, $4, $6, false, ar > 0 ? QC_USES_EXTRA_ARGS : QC_NO_FLAGS));
 	}
         | TOK_SYNCHRONIZED TOK_SUB IDENTIFIER '(' myexp ')' return_value block {
-	   addUserFunctionVariant($3, new UserFunctionVariant($8, @5.first_line, @5.last_line, $5, $7, true));
+	   int ar = get_pop_argv_ref();
+	   addUserFunctionVariant($3, new UserFunctionVariant($8, @5.first_line, @5.last_line, $5, $7, true, ar > 0 ? QC_USES_EXTRA_ARGS : QC_NO_FLAGS));
 	}
 	| TOK_SUB KW_IDENTIFIER_OPENPAREN myexp ')' return_value block { 
-	   addUserFunctionVariant($2, new UserFunctionVariant($6, @3.first_line, @3.last_line, $3, $5, false));
+	   int ar = get_pop_argv_ref();
+	   addUserFunctionVariant($2, new UserFunctionVariant($6, @3.first_line, @3.last_line, $3, $5, false, ar > 0 ? QC_USES_EXTRA_ARGS : QC_NO_FLAGS));
 	}
 	| TOK_SYNCHRONIZED TOK_SUB KW_IDENTIFIER_OPENPAREN myexp ')' return_value block {
-	   addUserFunctionVariant($3, new UserFunctionVariant($7, @4.first_line, @4.last_line, $4, $6, true)); 
+	   int ar = get_pop_argv_ref();
+	   addUserFunctionVariant($3, new UserFunctionVariant($7, @4.first_line, @4.last_line, $4, $6, true, ar > 0 ? QC_USES_EXTRA_ARGS : QC_NO_FLAGS)); 
 	}
 	;
 
@@ -1688,8 +1643,11 @@ exp:    scalar
 	{ $$ = $2; }
         | SCOPED_REF
         { $$ = new ConstantNode($1); }
-        | VAR_REF
-        { $$ = new VarRefNode($1, VT_UNRESOLVED); }
+        | VAR_REF { 
+	   if (!strcmp($1, "argv"))
+	      inc_argv_ref();
+	   $$ = new VarRefNode($1, VT_UNRESOLVED);	   
+	}
         | IDENTIFIER VAR_REF {
 	   const QoreTypeInfo *t = getBuiltinUserTypeInfo($1);
 	   if (t) {
@@ -2052,6 +2010,7 @@ exp:    scalar
 	   }
 	}
         | TOK_MAP exp {
+	   pop_ignore_numeric_argv_ref();
 	   QoreListNode *l = $2 && $2->getType() == NT_LIST ? reinterpret_cast<QoreListNode *>($2) : 0;
 	   int len = l ? l->size() : 0;
 	   if (!l || len < 2 || len > 3) {
@@ -2069,8 +2028,8 @@ exp:    scalar
 	      $$ = new QoreTreeNode(map_exp, OP_MAP_SELECT, l);
 	   }
 	}
-        | TOK_FOLDR exp
-        {
+        | TOK_FOLDR exp {
+	   pop_ignore_numeric_argv_ref();
 	   QoreListNode *l = $2 && $2->getType() == NT_LIST ? reinterpret_cast<QoreListNode *>($2) : 0;
 	   if (!l || l->size() != 2) {
 	      parse_error("invalid arguments to foldr operator, expected: 2-element list expected: 2-element list (fold expression and list expression), got: '%s'", get_type_name($2));
@@ -2083,8 +2042,8 @@ exp:    scalar
 	      $2->deref(0);
 	   }
 	}
-        | TOK_FOLDL exp
-        {
+        | TOK_FOLDL exp {
+	   pop_ignore_numeric_argv_ref();
 	   QoreListNode *l = $2 && $2->getType() == NT_LIST ? reinterpret_cast<QoreListNode *>($2) : 0;
 	   if (!l || l->size() != 2) {
 	      parse_error("invalid arguments to foldl operator, expected: 2-element list (fold expression and list expression), got: '%s'", get_type_name($2));
@@ -2097,8 +2056,8 @@ exp:    scalar
 	      $2->deref(0);
 	   }
 	}
-        | TOK_SELECT exp
-	{
+        | TOK_SELECT exp {
+	   pop_ignore_numeric_argv_ref();
 	   QoreListNode *l = $2 && $2->getType() == NT_LIST ? reinterpret_cast<QoreListNode *>($2) : 0;
 	   if (!l || l->size() != 2) {
 	      parse_error("invalid arguments to select operator, expected: 2-element list (list expression and select expression) got: '%s'", get_type_name($2));
@@ -2388,20 +2347,24 @@ exp:    scalar
 	{
 	   $$ = makeTree(OP_OBJECT_REF, $1, $2);
 	}
-	| '(' exp ')'                
-        { 
+	| '(' exp ')' { 
 	   $$ = $2;
 	   if ($2 && $2->getType() == NT_LIST)
 	      reinterpret_cast<QoreListNode *>($2)->setFinalized(); 
 	}
-        | '(' ')' { QoreListNode *l = new QoreListNode(); l->setFinalized(); $$ = l; }
-        | TOK_SUB '(' myexp ')' return_value block { 
-	   $$ = new QoreClosureParseNode(new UserClosureFunction($6, @3.first_line, @3.last_line, $3, $5));
+        | '(' ')' { QoreListNode *l = new QoreListNode; l->setFinalized(); $$ = l; }
+        | TOK_SUB '(' myexp ')' return_value block {
+	   int ar = get_pop_argv_ref();
+	   $$ = new QoreClosureParseNode(new UserClosureFunction($6, @3.first_line, @3.last_line, $3, $5, false, ar > 0 ? QC_USES_EXTRA_ARGS : QC_NO_FLAGS));
 	}
 	| TOK_SYNCHRONIZED TOK_SUB '(' myexp ')' return_value block {
-	   $$ = new QoreClosureParseNode(new UserClosureFunction($7, @4.first_line, @4.last_line, $4, $6, true));
+	   int ar = get_pop_argv_ref();
+	   $$ = new QoreClosureParseNode(new UserClosureFunction($7, @4.first_line, @4.last_line, $4, $6, true, ar > 0 ? QC_USES_EXTRA_ARGS : QC_NO_FLAGS));
 	}
-        | IMPLICIT_ARG_REF { $$ = $1; }
+        | IMPLICIT_ARG_REF { 
+	   $$ = $1; 
+	   inc_numeric_argv_ref();
+	}
         | TOK_DELETE exp {
 	   $$ = new QoreDeleteOperatorNode($2);
 	   if (check_vars($2))

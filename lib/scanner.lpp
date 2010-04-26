@@ -749,7 +749,7 @@ foreach                                 return TOK_FOREACH;
 in                                      return TOK_IN;
 elements                                return TOK_ELEMENTS;
 keys                                    return TOK_KEYS;
-sub                                     return TOK_SUB;
+sub                                     { new_argv_ref(); return TOK_SUB; }
 const                                   return TOK_CONST;
 namespace				return TOK_NAMESPACE;
 return					return TOK_RETURN;
@@ -795,10 +795,10 @@ trim					return TOK_TRIM;
 on_exit 		 		return TOK_ON_EXIT;
 on_success				return TOK_ON_SUCCESS;
 on_error 				return TOK_ON_ERROR;
-map                                     return TOK_MAP;
-foldr                                   return TOK_FOLDR;
-foldl                                   return TOK_FOLDL;
-select                                  return TOK_SELECT;
+map                                     { push_ignore_numeric_argv_ref(); return TOK_MAP; }
+foldr                                   { push_ignore_numeric_argv_ref(); return TOK_FOLDR; }
+foldl                                   { push_ignore_numeric_argv_ref(); return TOK_FOLDL; }
+select                                  { push_ignore_numeric_argv_ref(); return TOK_SELECT; }
 static                                  return TOK_STATIC;
 interface\(                             yylval->string = strdup("interface"); return KW_IDENTIFIER_OPENPAREN;
 class\(                                 yylval->string = strdup("class"); return KW_IDENTIFIER_OPENPAREN;

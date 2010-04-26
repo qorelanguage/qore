@@ -234,16 +234,24 @@ void UserSignature::pushParam(VarRefNode *v, AbstractQoreNode *defArg, bool need
       parse_error(parse_file, first_line, last_line, "invalid global variable declaration in argument list; by default all variables declared in argument lists are local");
 }
 
+void UserVariantBase::parseInitPushLocalVars(const QoreTypeInfo *classTypeInfo) {
+   signature.parseInitPushLocalVars(classTypeInfo);
+}
+
+void UserVariantBase::parseInitPopLocalVars() {
+   signature.parseInitPopLocalVars();
+}
+
 void UserSignature::parseInitPushLocalVars(const QoreTypeInfo *classTypeInfo) {
    lv.reserve(parseTypeList.size());
-
+   
    if (selfid)
       push_self_var(selfid);
    else if (classTypeInfo)
-      selfid = push_local_var("self", classTypeInfo, false, true);
+      selfid = push_local_var("self", classTypeInfo, false, 1);
    
    // push $argv var on stack and save id
-   argvid = push_local_var("argv", 0, false, true);
+   argvid = push_local_var("argv", 0, false, 1);
    printd(5, "UserSignature::parseInitPushLocalVars() this=%p argvid=%p\n", this, argvid);
 
    resolve();
@@ -251,7 +259,7 @@ void UserSignature::parseInitPushLocalVars(const QoreTypeInfo *classTypeInfo) {
    // init param ids and push local parameter vars on stack
    for (unsigned i = 0; i < typeList.size(); ++i) {
       // check for dups but do not check if the variables are referenced in the block
-      lv.push_back(push_local_var(names[i].c_str(), typeList[i], true, true));
+      lv.push_back(push_local_var(names[i].c_str(), typeList[i], true, 1));
       printd(5, "UserSignature::parseInitPushLocalVars() registered local var %s (id=%p)\n", names[i].c_str(), lv[i]);
    }
 }
@@ -262,7 +270,7 @@ void UserSignature::parseInitPopLocalVars() {
    
    // pop $argv param off stack
    pop_local_var();
-
+   
    // pop $self off stack if present
    if (selfid)
       pop_local_var();
@@ -357,6 +365,33 @@ void addArgs(QoreStringNode &desc, const QoreListNode *args) {
    }
 }
 
+static QoreStringNode *getNoopError(const AbstractQoreFunction *func, const AbstractQoreFunction *aqf, const AbstractQoreFunctionVariant *variant) {
+   QoreStringNode *desc = new QoreStringNode;
+   if (aqf->className())
+      desc->sprintf("%s::", aqf->className());
+   desc->sprintf("%s(%s) is a backwards-compatible variant that returns a constant value when incorrect data types are passed to the function", func->getName(), variant->getSignature()->getSignatureText());
+   const QoreTypeInfo *rti = variant->getReturnTypeInfo();
+   if (rti->hasType() && !variant->numParams()) {
+      desc->concat(" and always returns ");
+      if (rti->qc || func->className()) {
+	 rti->getThisType(*desc);
+      }
+      else {
+	 // get actual value and include in warning
+	 ReferenceHolder<AbstractQoreNode> v(variant->evalFunction(func->getName(), 0, 0), 0);
+	 if (is_nothing(*v))
+	    desc->concat("NOTHING");
+	 else {
+	    QoreNodeAsStringHelper vs(*v, FMT_NONE, 0);
+	    desc->sprintf("the following value: %s (", vs->getBuffer());
+	    rti->getThisType(*desc);
+	    desc->concat(')');
+	 }
+      }
+   }
+   return desc;
+}
+
 // finds a variant at runtime
 const AbstractQoreFunctionVariant *AbstractQoreFunction::findVariant(const QoreListNode *args, bool only_user, ExceptionSink *xsink) const {
    unsigned match = 0;
@@ -443,9 +478,11 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::findVariant(const QoreL
       }
       xsink->raiseException("RUNTIME-OVERLOAD-ERROR", desc);
    }
-   else {
+   else if (variant) {
+      int64 po = getProgram()->getParseOptions64();
+
       // check parse options
-      if (variant && variant->getFunctionality() & getProgram()->getParseOptions()) {
+      if (variant->getFunctionality() & po) {
 	 //printd(5, "AbstractQoreFunction::findVariant() this=%p %s(%s) getProgram()=%p getProgram()->getParseOptions()=%x variant->getFunctionality()=%x\n", this, getName(), variant->getSignature()->getSignatureText(), getProgram(), getProgram()->getParseOptions(), variant->getFunctionality());
 	 if (!only_user) {
 	    const char *class_name = className();
@@ -777,33 +814,11 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
       getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
    }
    else if (variant && variant->getFlags() & QC_NOOP) {
-      QoreStringNode *desc = new QoreStringNode;
-      if (aqf->className())
-	 desc->sprintf("%s::", aqf->className());
-      desc->sprintf("%s(%s) is a backwards-compatible variant that returns a constant value when incorrect data types are passed to the function", getName(), variant->getSignature()->getSignatureText());
-      const QoreTypeInfo *rti = variant->getReturnTypeInfo();
-      if (rti->hasType() && !variant->numParams()) {
-	 desc->concat(" and always returns ");
-	 if (rti->qc || className()) {
-	    rti->getThisType(*desc);
-	 }
-	 else {
-	    // get actual value and include in warning
-	    ReferenceHolder<AbstractQoreNode> v(variant->evalFunction(getName(), 0, 0), 0);
-	    if (is_nothing(*v))
-	       desc->concat("NOTHING");
-	    else {
-	       QoreNodeAsStringHelper vs(*v, FMT_NONE, 0);
-	       desc->sprintf("the following value: %s (", vs->getBuffer());
-	       rti->getThisType(*desc);
-	       desc->concat(')');
-	    }
-	 }
-      }
+      QoreStringNode *desc = getNoopError(this, aqf, variant);
       desc->concat("; to disable this warning, use '%disable-warning invalid-operation' in your code");
       getProgram()->makeParseWarning(QP_WARN_CALL_WITH_TYPE_ERRORS, "CALL-WITH-TYPE-ERRORS", desc);
    }
-   printd(5, "AbstractQoreFunction::parseFindVariant() this=%p %s%s%s() returning %p %s(%s) flags=%lld\n", this, className() ? className() : "", className() ? "::" : "", getName(), variant, getName(), variant ? variant->getSignature()->getSignatureText() : "n/a", variant ? variant->getFlags() : 0ll);
+   //printd(5, "AbstractQoreFunction::parseFindVariant() this=%p %s%s%s() returning %p %s(%s) flags=%lld\n", this, className() ? className() : "", className() ? "::" : "", getName(), variant, getName(), variant ? variant->getSignature()->getSignatureText() : "n/a", variant ? variant->getFlags() : 0ll);
    return variant;
 }
 
@@ -891,9 +906,9 @@ UserVariantExecHelper::~UserVariantExecHelper() {
       sig->lv[i]->uninstantiate(xsink);
 }
 
-UserVariantBase::UserVariantBase(StatementBlock *b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode *params, RetTypeInfo *rv, bool synced) 
+UserVariantBase::UserVariantBase(StatementBlock *b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode *params, RetTypeInfo *rv, bool synced, int64 n_flags) 
    : statements(b), signature(n_sig_first_line, n_sig_last_line, params, rv), synchronized(synced), gate(synced ? new VRMutex() : 0),
-     recheck(false) {
+     recheck(false), flags(n_flags) {
    printd(5, "UserVariantBase::UserVariantBase() params=%p rv=%p b=%p synced=%d\n", params, rv, b, synced);
 }
 
@@ -1349,7 +1364,7 @@ void UserFunctionVariant::parseInit(const char *fname) {
    ParseCodeInfoHelper rtih(fname, signature.getReturnTypeInfo());
    
    // can (and must) be called even if statements is NULL
-   statements->parseInit(&signature);
+   statements->parseInit(this);
 }
 
 void UserClosureVariant::parseInitClosure(const QoreTypeInfo *classTypeInfo, lvar_set_t *vlist) {
@@ -1358,7 +1373,7 @@ void UserClosureVariant::parseInitClosure(const QoreTypeInfo *classTypeInfo, lva
    // resolve and push current return type on stack
    ParseCodeInfoHelper rtih("<anonymous closure>", signature.getReturnTypeInfo());
 
-   statements->parseInitClosure(&signature, classTypeInfo, vlist);
+   statements->parseInitClosure(this, classTypeInfo, vlist);
 }
 
 // this will only be called with lvalue expressions

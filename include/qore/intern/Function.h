@@ -231,7 +231,7 @@ public:
    }
 
    DLLLOCAL void parseInitPushLocalVars(const QoreTypeInfo *classTypeInfo);
-
+   // returns the $argv reference count
    DLLLOCAL void parseInitPopLocalVars();
 };
 
@@ -289,13 +289,15 @@ protected:
    VRMutex *gate;
    // flag to recheck params against committed after type resolution
    bool recheck;
+   // code flags
+   int64 flags;
 
    DLLLOCAL AbstractQoreNode *evalIntern(ReferenceHolder<QoreListNode> &argv, QoreObject *self, ExceptionSink *xsink, const char *class_name) const;
    DLLLOCAL AbstractQoreNode *eval(const char *name, const QoreListNode *args, QoreObject *self, ExceptionSink *xsink, const char *class_name = 0) const;
    DLLLOCAL int setupCall(const QoreListNode *args, ReferenceHolder<QoreListNode> &argv, ExceptionSink *xsink) const;
 
 public:
-   DLLLOCAL UserVariantBase(StatementBlock *b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode *params, RetTypeInfo *rv, bool synced);
+   DLLLOCAL UserVariantBase(StatementBlock *b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode *params, RetTypeInfo *rv, bool synced, int64 n_flags = QC_NO_FLAGS);
    DLLLOCAL virtual ~UserVariantBase();
    DLLLOCAL UserSignature *getUserSignature() const {
       return const_cast<UserSignature *>(&signature);
@@ -307,11 +309,14 @@ public:
    DLLLOCAL bool getRecheck() const {
       return recheck;
    }
+
+   DLLLOCAL void parseInitPushLocalVars(const QoreTypeInfo *classTypeInfo);
+   DLLLOCAL void parseInitPopLocalVars();
 };
 
 // the following defines the pure virtual functions that are common to all user variants
 #define COMMON_USER_VARIANT_FUNCTIONS DLLLOCAL virtual qore_call_t getCallType() const { return CT_USER; } \
-   DLLLOCAL virtual int64 getFlags() const { return QC_USES_EXTRA_ARGS; } \
+   DLLLOCAL virtual int64 getFlags() const { return flags; } \
    DLLLOCAL virtual int64 getFunctionality() const { return QDOM_DEFAULT; } \
    DLLLOCAL virtual UserVariantBase *getUserVariantBase() { return static_cast<UserVariantBase *>(this); } \
    DLLLOCAL virtual AbstractFunctionSignature *getSignature() const { return const_cast<UserSignature *>(&signature); } \
@@ -346,7 +351,7 @@ protected:
    }
 
 public:
-   DLLLOCAL UserFunctionVariant(StatementBlock *b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode *params, RetTypeInfo *rv, bool synced) : UserVariantBase(b, n_sig_first_line, n_sig_last_line, params, rv, synced) {
+   DLLLOCAL UserFunctionVariant(StatementBlock *b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode *params, RetTypeInfo *rv, bool synced, int64 n_flags = QC_NO_FLAGS) : UserVariantBase(b, n_sig_first_line, n_sig_last_line, params, rv, synced, n_flags) {
    }
 
    // the following defines the pure virtual functions that are common to all user variants
@@ -495,7 +500,7 @@ public:
    DLLLOCAL AbstractQoreFunction(const AbstractQoreFunction &old) : same_return_type(old.same_return_type), 
                                                                     parse_same_return_type(old.parse_same_return_type), 
                                                                     unique_functionality(old.unique_functionality),
-                                                                    unique_flags(old.unique_flags) {      
+                                                                    unique_flags(old.unique_flags) {
       // copy variants by reference
       for (vlist_t::const_iterator i = old.vlist.begin(), e = old.vlist.end(); i != e; ++i)
          vlist.push_back((*i)->ref());
@@ -711,21 +716,21 @@ public:
 
 class UserParamListLocalVarHelper {
 protected:
-   UserSignature *l;
+   UserVariantBase *uvb;
 
 public:
-   DLLLOCAL UserParamListLocalVarHelper(UserSignature *n_l, const QoreTypeInfo *classTypeInfo = 0) : l(n_l) {
-      l->parseInitPushLocalVars(classTypeInfo);
+   DLLLOCAL UserParamListLocalVarHelper(UserVariantBase *n_uvb, const QoreTypeInfo *classTypeInfo = 0) : uvb(n_uvb) {
+      uvb->parseInitPushLocalVars(classTypeInfo);
    }
    DLLLOCAL ~UserParamListLocalVarHelper() {
-      l->parseInitPopLocalVars();
+      uvb->parseInitPopLocalVars();
    }
 };
 
 class UserClosureVariant : public UserFunctionVariant {
 protected:
 public:
-   DLLLOCAL UserClosureVariant(StatementBlock *b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode *params, RetTypeInfo *rv, bool synced = false) : UserFunctionVariant(b, n_sig_first_line, n_sig_last_line, params, rv, synced) {
+   DLLLOCAL UserClosureVariant(StatementBlock *b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode *params, RetTypeInfo *rv, bool synced = false, int64 n_flags = QC_NO_FLAGS) : UserFunctionVariant(b, n_sig_first_line, n_sig_last_line, params, rv, synced, n_flags) {
    }
    DLLLOCAL void parseInitClosure(const QoreTypeInfo *classTypeInfo, lvar_set_t *vlist);
    DLLLOCAL AbstractQoreNode *evalClosure(const QoreListNode *args, QoreObject *self, ExceptionSink *xsink) const {
@@ -740,8 +745,8 @@ class UserClosureFunction : public AbstractQoreFunction {
 protected:
 
 public:
-   DLLLOCAL UserClosureFunction(StatementBlock *b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode *params, RetTypeInfo *rv, bool synced = false) {
-      parseAddVariant(new UserClosureVariant(b, n_sig_first_line, n_sig_last_line, params, rv, synced));
+   DLLLOCAL UserClosureFunction(StatementBlock *b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode *params, RetTypeInfo *rv, bool synced = false, int64 n_flags = QC_NO_FLAGS) {
+      parseAddVariant(new UserClosureVariant(b, n_sig_first_line, n_sig_last_line, params, rv, synced, n_flags));
    }
 
    DLLLOCAL virtual const char *getName() const {

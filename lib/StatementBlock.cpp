@@ -40,8 +40,8 @@
 // parse variable stack
 class VNode {
 protected:
-   // has been referenced?
-   bool ref;
+   // # of times this variable is referenced in code
+   int refs;
 
    // to store parse location in case of errors
    int first_line, last_line;
@@ -51,22 +51,26 @@ public:
    LocalVar *lvar;
    VNode *next;
 
-   DLLLOCAL VNode(LocalVar *lv, bool n_ref = false) : ref(n_ref), file(get_parse_file()), lvar(lv), next(getVStack()) {
+   DLLLOCAL VNode(LocalVar *lv, int n_refs = 0) : refs(n_refs), file(get_parse_file()), lvar(lv), next(getVStack()) {
       get_parse_location(first_line, last_line);
       updateVStack(this);
    }
 
    DLLLOCAL ~VNode() {
-      if (!ref)
+      if (!refs)
 	 getProgram()->makeParseWarning(first_line, last_line, file, QP_WARN_UNREFERENCED_VARIABLE, "UNREFERENCED-VARIABLE", "local variable '%s' was declared in this block but not referenced; to disable this warning, use '%%disable-warning unreferenced-variable' in your code", lvar->getName());
    }
 
    DLLLOCAL void setRef() {
-      ref = true;
+      ++refs;
    }
 
    DLLLOCAL bool isReferenced() const {
-      return ref;
+      return refs;
+   }
+
+   DLLLOCAL int refCount() const {
+      return refs;
    }
 
    DLLLOCAL const char *getName() const {
@@ -175,7 +179,7 @@ void push_self_var(LocalVar *lv) {
    new VNode(lv, true);
 }
 
-LocalVar *push_local_var(const char *name, const QoreTypeInfo *typeInfo, bool check_dup, bool n_ref) {
+LocalVar *push_local_var(const char *name, const QoreTypeInfo *typeInfo, bool check_dup, int n_refs) {
    QoreProgram *pgm = getProgram();
 
    LocalVar *lv = pgm->createLocalVar(name, typeInfo);
@@ -193,18 +197,25 @@ LocalVar *push_local_var(const char *name, const QoreTypeInfo *typeInfo, bool ch
    }
    
    //printd(5, "push_local_var(): pushing var %s\n", name);
-   new VNode(lv, n_ref);
+   new VNode(lv, n_refs);
    return lv;
 }
 
-LocalVar *pop_local_var() {
-   VNode *vnode = getVStack();
-   LocalVar *rc = vnode->lvar;
+int pop_local_var_get_id() {
+   std::auto_ptr<VNode> vnode(getVStack());
+   assert(vnode.get());
+   int refs = vnode->refCount();
+   printd(5, "pop_local_var_get_id(): popping var %s (refs=%d)\n", vnode->lvar->getName(), refs);
+   updateVStack(vnode->next);
+   return refs;
+}
 
-   assert(vnode);
+LocalVar *pop_local_var() {
+   std::auto_ptr<VNode> vnode(getVStack());
+   assert(vnode.get());
+   LocalVar *rc = vnode->lvar;
    printd(5, "pop_local_var(): popping var %s\n", rc->getName());
    updateVStack(vnode->next);
-   delete vnode;
    return rc;
 }
 
@@ -287,10 +298,10 @@ int StatementBlock::parseInitImpl(LocalVar *oflag, int pflag) {
 }
 
 // can also be called with this = 0
-void StatementBlock::parseInit(UserSignature *sig) {
+void StatementBlock::parseInit(UserVariantBase *uvb) {
    QORE_TRACE("StatementBlock::parseInit");
 
-   UserParamListLocalVarHelper ph(sig);
+   UserParamListLocalVarHelper ph(uvb);
 
    // initialize code block
    if (this)
@@ -298,21 +309,21 @@ void StatementBlock::parseInit(UserSignature *sig) {
 }
 
 // can also be called with this=NULL
-void StatementBlock::parseInitMethod(const QoreTypeInfo *typeInfo, UserSignature *sig) {
+void StatementBlock::parseInitMethod(const QoreTypeInfo *typeInfo, UserVariantBase *uvb) {
    QORE_TRACE("StatementBlock::parseInitMethod");
 
-   UserParamListLocalVarHelper ph(sig, typeInfo);
+   UserParamListLocalVarHelper ph(uvb, typeInfo);
 
    // initialize code block
    if (this)
-      parseInitImpl(sig->selfid);
+      parseInitImpl(uvb->getUserSignature()->selfid);
 }
 
 // can also be called with this=NULL
-void StatementBlock::parseInitConstructor(const QoreTypeInfo *typeInfo, UserSignature *sig, BCAList *bcal, BCList *bcl) {
+void StatementBlock::parseInitConstructor(const QoreTypeInfo *typeInfo, UserVariantBase *uvb, BCAList *bcal, BCList *bcl) {
    QORE_TRACE("StatementBlock::parseInitConstructor");
 
-   UserParamListLocalVarHelper ph(sig, typeInfo);
+   UserParamListLocalVarHelper ph(uvb, typeInfo);
 
    // if there is a base constructor list, resolve all classes and 
    // ensure that all classes referenced are base classes of this class
@@ -324,18 +335,18 @@ void StatementBlock::parseInitConstructor(const QoreTypeInfo *typeInfo, UserSign
 
    // initialize code block
    if (this)
-      parseInitImpl(sig->selfid);
+      parseInitImpl(uvb->getUserSignature()->selfid);
 }
 
 // can also be called with this=NULL
-void StatementBlock::parseInitClosure(UserSignature *sig, const QoreTypeInfo *classTypeInfo, lvar_set_t *vlist) {
+void StatementBlock::parseInitClosure(UserVariantBase *uvb, const QoreTypeInfo *classTypeInfo, lvar_set_t *vlist) {
    QORE_TRACE("StatementBlock::parseInitClosure");
 
    ClosureParseEnvironment cenv(vlist);
 
-   UserParamListLocalVarHelper ph(sig, classTypeInfo);
+   UserParamListLocalVarHelper ph(uvb, classTypeInfo);
 
    // initialize code block
    if (this)
-      parseInitImpl(sig->selfid);
+      parseInitImpl(uvb->getUserSignature()->selfid);
 }

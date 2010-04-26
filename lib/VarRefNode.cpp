@@ -172,7 +172,7 @@ AbstractQoreNode *VarRefNode::parseInitIntern(LocalVar *oflag, int pflag, int &l
    // if it is a new variable being declared
    if (type == VT_LOCAL) {
       outTypeInfo = typeInfo;
-      ref.id = push_local_var(name, typeInfo, true, is_new);
+      ref.id = push_local_var(name, typeInfo, true, is_new ? 1 : 0);
       ++lvids;
       //printd(5, "VarRefNode::parseInitIntern() this=%p local var '%s' declared (id=%p)\n", this, name, ref.id);
    }

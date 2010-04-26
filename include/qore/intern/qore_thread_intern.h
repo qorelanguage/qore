@@ -107,6 +107,31 @@ DLLLOCAL QoreObject *substituteObject(QoreObject *o);
 DLLLOCAL void catchSaveException(QoreException *e);
 DLLLOCAL QoreException *catchGetException();
 DLLLOCAL VLock *getVLock();
+
+// pushes a new argv reference counter
+DLLLOCAL void new_argv_ref();
+
+// increments the parse argv reference counter
+DLLLOCAL void inc_argv_ref();
+
+// pushes an "ignore numeric reference" context
+DLLLOCAL void push_ignore_numeric_argv_ref();
+
+// pops an "ignore numeric reference" context
+DLLLOCAL void pop_ignore_numeric_argv_ref();
+
+// increments the parse argv reference counter for numeric references (ex: $1)
+DLLLOCAL void inc_numeric_argv_ref();
+
+// gets the parse argv reference counter and pops the context
+DLLLOCAL int get_pop_argv_ref();
+
+// clears the argv reference stack
+DLLLOCAL void clear_argv_ref();
+
+// ignore further local references to $argv
+//DLLLOCAL void ignore_local_argv();
+
 DLLLOCAL void parseSetCodeInfo(const char *parse_code, const QoreTypeInfo *returnTypeInfo, const char *&old_code, const QoreTypeInfo *&old_returnTypeInfo);
 DLLLOCAL void parseRestoreCodeInfo(const char *parse_code, const QoreTypeInfo *returnTypeInfo);
 // sets the new type and returns the old

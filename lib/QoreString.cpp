@@ -181,8 +181,11 @@ QoreString::QoreString(double f) : priv(new qore_string_private) {
 QoreString::QoreString(const DateTime *d) : priv(new qore_string_private) {
    priv->allocated = 15;
    priv->buf = (char *)malloc(sizeof(char) * priv->allocated);
-   priv->len = ::sprintf(priv->buf, "%04d%02d%02d%02d%02d%02d", d->getYear(), d->getMonth(), d->getDay(),
-		   d->getHour(), d->getMinute(), d->getSecond());
+
+   qore_tm info;
+   d->getInfo(info);
+   priv->len = ::sprintf(priv->buf, "%04d%02d%02d%02d%02d%02d", info.year, info.month, 
+			 info.day, info.hour, info.minute, info.second);
    priv->charset = QCS_DEFAULT;
 }
 
@@ -1391,11 +1394,15 @@ qore_size_t QoreString::length() const {
 }
 
 void QoreString::concat(const DateTime *d) {
-   sprintf("%04d%02d%02d%02d%02d%02d", d->getYear(), d->getMonth(), d->getDay(), d->getHour(), d->getMinute(), d->getSecond());
+   qore_tm info;
+   d->getInfo(info);
+   sprintf("%04d%02d%02d%02d%02d%02d", info.year, info.month, info.day, info.hour, info.minute, info.second);
 }
 
 void QoreString::concatISO8601DateTime(const DateTime *d) {
-   sprintf("%04d%02d%02dT%02d:%02d:%02d", d->getYear(), d->getMonth(), d->getDay(), d->getHour(), d->getMinute(), d->getSecond());
+   qore_tm info;
+   d->getInfo(info);
+   sprintf("%04d%02d%02dT%02d:%02d:%02d", info.year, info.month, info.day, info.hour, info.minute, info.second);
 }
 
 void QoreString::concatHex(const BinaryNode *b) {

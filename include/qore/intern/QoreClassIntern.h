@@ -122,7 +122,7 @@ public:
 
 class UserMethodVariant : public MethodVariant, public UserVariantBase {
 public:
-   DLLLOCAL UserMethodVariant(bool n_priv_flag, StatementBlock *b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode *params, RetTypeInfo *rv, bool synced) : MethodVariant(n_priv_flag), UserVariantBase(b, n_sig_first_line, n_sig_last_line, params, rv, synced) {
+   DLLLOCAL UserMethodVariant(bool n_priv_flag, StatementBlock *b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode *params, RetTypeInfo *rv, bool synced, int64 n_flags) : MethodVariant(n_priv_flag), UserVariantBase(b, n_sig_first_line, n_sig_last_line, params, rv, synced, n_flags) {
    }
 
    // the following defines the pure virtual functions that are common to all user variants
@@ -135,9 +135,9 @@ public:
       
       // must be called even if statements is NULL
       if (!static_flag)
-	 statements->parseInitMethod(parent_class.getTypeInfo(), &signature);
+	 statements->parseInitMethod(parent_class.getTypeInfo(), this);
       else
-	 statements->parseInit(&signature);
+	 statements->parseInit(this);
    }
    DLLLOCAL virtual AbstractQoreNode *evalStaticMethod(const QoreListNode *args, ExceptionSink *xsink) const {
       return eval(qmethod->getName(), args, 0, xsink, qmethod->getClass()->getName());
@@ -158,7 +158,7 @@ protected:
    DLLLOCAL virtual ~UserConstructorVariant();
 
 public:
-   DLLLOCAL UserConstructorVariant(bool n_priv_flag, StatementBlock *b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode *params, BCAList *n_bcal) : ConstructorMethodVariant(n_priv_flag), UserVariantBase(b, n_sig_first_line, n_sig_last_line, params, 0, false), bcal(n_bcal) {
+      DLLLOCAL UserConstructorVariant(bool n_priv_flag, StatementBlock *b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode *params, BCAList *n_bcal, int64 n_flags = QC_NO_FLAGS) : ConstructorMethodVariant(n_priv_flag), UserVariantBase(b, n_sig_first_line, n_sig_last_line, params, 0, false, n_flags), bcal(n_bcal) {
    }
 
    // the following defines the pure virtual functions that are common to all user variants
@@ -208,7 +208,7 @@ public:
       ParseCodeInfoHelper rtih("destructor", nothingTypeInfo);
 
       // must be called even if statements is NULL
-      statements->parseInitMethod(parent_class.getTypeInfo(), &signature);
+      statements->parseInitMethod(parent_class.getTypeInfo(), this);
    }
 
    DLLLOCAL virtual void evalDestructor(const QoreClass &thisclass, QoreObject *self, ExceptionSink *xsink) const {
