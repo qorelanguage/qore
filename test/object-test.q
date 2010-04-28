@@ -53,12 +53,12 @@ sub et($t)
 {
     $t.a = "123";
     #$t.getType();
-    #my $t = new Test(1, 2, 3);
+    #my $t = new Test(1);
     #throw("gee");
 }
 
-our $t = new Test(1, 2, 3);
-(new Test(3, 4, 5)).hello();
+our $t = new Test(1);
+(new Test(3)).hello();
 #$t.p1();
 #$t.p2();
 printf("object type=%s\n", $t.getType());

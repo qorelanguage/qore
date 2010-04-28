@@ -92,6 +92,7 @@ static AbstractQoreNode *makeTree(Operator *op, AbstractQoreNode *left, Abstract
 	  left, left->getTypeName(), left->is_value(), 
 	  right, right ? right->getTypeName() : "n/a", right ? right->is_value() : false, op->getName());
 
+/*
    // if both nodes are values, then evaluate immediately
    if (left->is_value() && (!right || right->is_value())) {
       ExceptionSink xsink;
@@ -108,6 +109,7 @@ static AbstractQoreNode *makeTree(Operator *op, AbstractQoreNode *left, Abstract
       //traceout("makeTree()");
       return n_node ? n_node : nothing();
    }
+*/
    // otherwise, put nodes and operator into tree for runtime evaluation
    return new QoreTreeNode(left, op, right);
 }
@@ -949,8 +951,10 @@ unscoped_const_decl:
 	TOK_CONST IDENTIFIER '=' exp ';' { 
 	   if ($4 && $4->getType() == NT_FUNCREF)
 	      parse_error("constants may not be assigned to call references");
+	   /*
 	   else if (needsEval($4))
 	      parse_error("constant expression needs run-time evaluation");
+	   */
 	   $$ = new ConstNode($2, $4); 
 	}
         ;
@@ -959,8 +963,10 @@ scoped_const_decl:
 	TOK_CONST SCOPED_REF '=' exp ';' {
 	   if ($4 && $4->getType() == NT_FUNCREF)
 	      parse_error("constants may not be assigned to call references");
+	   /*
 	   else if (needsEval($4))
 	      parse_error("constant expression needs run-time evaluation");
+	   */
 	   $$ = new ConstNode($2, $4); 
 	}
         ;
@@ -2362,7 +2368,7 @@ exp:    scalar
 	   $$ = new QoreClosureParseNode(new UserClosureFunction($7, @4.first_line, @4.last_line, $4, $6, true, ar > 0 ? QC_USES_EXTRA_ARGS : QC_NO_FLAGS));
 	}
         | IMPLICIT_ARG_REF { 
-	   $$ = $1; 
+	   $$ = $1;
 	   inc_numeric_argv_ref();
 	}
         | TOK_DELETE exp {

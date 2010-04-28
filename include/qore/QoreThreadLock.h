@@ -60,11 +60,7 @@ class QoreThreadLock {
 
       //! destroys the lock
       DLLLOCAL ~QoreThreadLock() {
-#ifndef NDEBUG
-	 int rc =
-#endif
 	 pthread_mutex_destroy(&ptm_lock);
-	 assert(!rc);
       }
 
       //! creates a new object (not based on the original lock status)

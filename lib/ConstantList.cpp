@@ -137,20 +137,40 @@ void ConstantList::assimilate(ConstantList *n, ConstantList *otherlist, const ch
 class LocalVar;
 void ConstantList::parseInit() {
    RootQoreNamespace *rns = getRootNS();
-   for (hm_qn_t::iterator i = hm.begin(); i != hm.end(); i++) {
+   for (hm_qn_t::iterator i = hm.begin(); i != hm.end(); ++i) {
       printd(5, "ConstantList::parseInit() %s\n", i->first);
       rns->parseInitConstantValue(&i->second.node, 0);
       printd(5, "ConstantList::parseInit() constant %s resolved to %08p %s\n", i->first, i->second.node, i->second.node ? i->second.node->getTypeName() : "n/a");
+      if (!i->second.node->is_value()) {
+	 ExceptionSink xsink;
+	 {
+	    // FIXME: set location?
+	    ReferenceHolder<AbstractQoreNode> v(i->second.node->eval(&xsink), &xsink);
+	    if (!xsink) {
+	       i->second.node->deref(&xsink);
+	       i->second.node = v.release();
+	    }
+	 }
+
+	 if (xsink.isEvent())
+	    getProgram()->addParseException(&xsink);
+#ifdef DEBUG
+	 else
+	    assert(i->second.node->is_value());
+#endif
+      }
+
       if (i->second.node && !i->second.typeInfo) {
 	 int lvids = 0;
 	 i->second.node = i->second.node->parseInit((LocalVar *)0, 0, lvids, i->second.typeInfo);
 	 
 	 assert(!lvids);
       }
+
       // ensure that the value is not 0
       if (!i->second.node)
 	 i->second.node = nothing();
-
+      
       //printd(0, "ConstantList::parseInit() %s: %p (%s type %s %s)\n", i->first, i->second.node, i->second.node->getTypeName(), i->second.typeInfo && i->second.typeInfo->getType() ? getBuiltinTypeName(i->second.typeInfo->qt) : "n/a", i->second.typeInfo && i->second.typeInfo->qc ? i->second.typeInfo->qc->getName() : "n/a");
    }
 }

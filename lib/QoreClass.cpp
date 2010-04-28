@@ -1292,26 +1292,28 @@ void BCANode::parseInit(BCList *bcl, const char *classname) {
       name = 0;
    }
 
-   if (sclass && !bcl->match(sclass))
-      parse_error("%s in base constructor argument list is not a base class of %s", sclass->getName(), classname);
-   else {
-      classid = sclass->getID();
-
-      // find constructor variant
-      const QoreMethod *m = sclass->getConstructor();
-      int lvids = 0;
-      const QoreTypeInfo *argTypeInfo;	 
-      if (m) {
-	 lvids = parseArgsFindVariant(0, 0, m->getFunction(), argTypeInfo);
-      }
+   if (sclass) {
+      if (!bcl->match(sclass))
+	 parse_error("%s in base constructor argument list is not a base class of %s", sclass->getName(), classname);
       else {
-	 if (args)
-	    args = args->parseInitList(0, PF_REFERENCE_OK, lvids, argTypeInfo);
-      }
-      if (lvids) {
-         parse_error("illegal local variable declaration in base class constructor argument");
-         while (lvids--)
-            pop_local_var();
+	 classid = sclass->getID();
+
+	 // find constructor variant
+	 const QoreMethod *m = sclass->getConstructor();
+	 int lvids = 0;
+	 const QoreTypeInfo *argTypeInfo;	 
+	 if (m) {
+	    lvids = parseArgsFindVariant(0, 0, m->getFunction(), argTypeInfo);
+	 }
+	 else {
+	    if (args)
+	       args = args->parseInitList(0, PF_REFERENCE_OK, lvids, argTypeInfo);
+	 }
+	 if (lvids) {
+	    parse_error("illegal local variable declaration in base class constructor argument");
+	    while (lvids--)
+	       pop_local_var();
+	 }
       }
    }
 }
@@ -1321,12 +1323,20 @@ void BCNode::parseInit(QoreClass *cls, bool &has_delete_blocker) {
       if (cname) {
 	 sclass = getRootNS()->parseFindScopedClass(cname);
 	 printd(5, "BCList::parseInit() %s inheriting %s (%p)\n", cls->getName(), cname->ostr, sclass);
+#ifdef DEBUG
+	 if (!sclass)
+	    printd(0, "BCList::parseInit() %s cannot find base class %s\n", cls->getName(), cname->ostr);
+#endif
 	 delete cname;
 	 cname = 0;
       }
       else {
 	 sclass = getRootNS()->parseFindClass(cstr);
 	 printd(5, "BCList::parseInit() %s inheriting %s (%p)\n", cls->getName(), cstr, sclass);
+#ifdef DEBUG
+	 if (!sclass)
+	    printd(0, "BCList::parseInit() %s cannot find base class %s\n", cls->getName(), cstr);
+#endif
 	 free(cstr);
 	 cstr = 0;
       }
@@ -1353,7 +1363,7 @@ void BCList::parseInit(QoreClass *cls, bool &has_delete_blocker) {
       if ((*i)->sclass) {
 	 bclist_t::iterator j = i;
 	 while (++j != end())
-	    if ((*i)->sclass == (*j)->sclass)
+	    if ((*i)->sclass->getID() == (*j)->sclass->getID())
 	       parse_error("class '%s' cannot inherit '%s' more than once", cls->getName(), (*i)->sclass->getName());
       }	 
    }
@@ -1593,7 +1603,11 @@ void BCList::addStaticAncestors(QoreMethod *m) {
 void BCList::parseAddAncestors(QoreMethod *m) {
    const char *name = m->getName();
    for (bclist_t::iterator i = begin(), e = end(); i != e; ++i) {
+      // if there was a parse error finding the base class, then skip
       QoreClass *qc = (*i)->sclass;
+      if (!qc)
+	 continue;
+
       assert(qc);
       const QoreMethod *w = qc->priv->parseFindLocalMethod(name);
       //printd(5, "BCList::parseAddAncestors(%p %s) this=%p qc=%p w=%p\n", m, m->getName(), this, qc, w);
@@ -1940,11 +1954,15 @@ void QoreClass::addPrivateMember(const char *name, const QoreTypeInfo *n_typeInf
 bool BCSMList::isBaseClass(QoreClass *qc) const {
    class_list_t::const_iterator i = begin();
    while (i != end()) {
-      //printd(5, "BCSMList::isBaseClass() %s (%d) == %s (%d)\n", qc->getName(), qc->getID(), (*i).first->getName(), (*i).first->getID());
-      if (qc == (*i).first)
+      QoreClass *sc = (*i).first;
+      printd(5, "BCSMList::isBaseClass() %p %s (%d) == %s (%d)\n", this, qc->getName(), qc->getID(), sc->getName(), sc->getID());
+      if (qc->getID() == sc->getID() || (sc->priv->scl && sc->priv->scl->sml.isBaseClass(qc))) {
+	 //printd(5, "BCSMList::isBaseClass() %p %s (%d) TRUE\n", this, qc->getName(), qc->getID());
 	 return true;
-      i++;
+      }
+      ++i;
    }
+   //printd(5, "BCSMList::isBaseClass() %p %s (%d) FALSE\n", this, qc->getName(), qc->getID());
    return false;
 }
 
@@ -1955,7 +1973,7 @@ void BCSMList::addBaseClassesToSubclass(QoreClass *thisclass, QoreClass *sc, boo
 }
 
 void BCSMList::add(QoreClass *thisclass, QoreClass *qc, bool is_virtual) {
-   if (thisclass == qc) {
+   if (thisclass->getID() == qc->getID()) {
       parse_error("class '%s' cannot inherit itself", thisclass->getName());
       return;
    }
@@ -1963,9 +1981,9 @@ void BCSMList::add(QoreClass *thisclass, QoreClass *qc, bool is_virtual) {
    // see if class already exists in list
    class_list_t::const_iterator i = begin();
    while (i != end()) {
-      if ((*i).first == qc)
+      if ((*i).first->getID() == qc->getID())
          return;
-      if ((*i).first == thisclass) {
+      if ((*i).first->getID() == thisclass->getID()) {
       	 parse_error("circular reference in class hierarchy, '%s' is an ancestor of itself", thisclass->getName());
       	 return;
       }
