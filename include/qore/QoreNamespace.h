@@ -219,8 +219,6 @@ public:
    // returns 0 for success, non-zero for error
    DLLLOCAL int resolveSimpleConstant(AbstractQoreNode **, int level, const QoreTypeInfo *&) const;
    // returns 0 for success, non-zero for error
-   DLLLOCAL int parseInitConstantValue(AbstractQoreNode **, int level);
-   // returns 0 for success, non-zero for error
    DLLLOCAL int resolveScopedConstant(AbstractQoreNode **, int level, const QoreTypeInfo *&) const;
    // returns 0 for success, non-zero for error
    DLLLOCAL int addMethodToClass(NamedScope *name, MethodVariantBase *qcmethod, bool static_flag);

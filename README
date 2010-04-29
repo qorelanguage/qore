@@ -54,8 +54,8 @@ examples/:
  * requires openssl headers and libraries
  * requires zlib & bzlib headers and libraries
  * optionally support for Oracle, MySQL, PostgreSQL, Sybase, MS SQL Server,
-   ncurses, OpenGL, GLUT, QT4, TIBCO Rendezvous, TIBCO AE Adapters, and Bea 
-   Tuxedo can be built (see README-MODULES for details)
+   ncurses, OpenGL, GLUT, QT4, TIBCO Rendezvou and AE Adapters, SSH2, Bea 
+   Tuxedo and more can be built (see README-MODULES for details)
 
 
 ***************

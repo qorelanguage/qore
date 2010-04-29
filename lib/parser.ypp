@@ -86,35 +86,6 @@ static AbstractQoreNode *makeErrorTree(AbstractQoreNode *left, AbstractQoreNode 
    return &False;
 }
 
-static AbstractQoreNode *makeTree(Operator *op, AbstractQoreNode *left, AbstractQoreNode *right) {
-   //tracein("makeTree()");
-   printd(5, "makeTree(): l=%08p (%s, value=%d), r=%08p (%s, value=%d), op=%s\n", 
-	  left, left->getTypeName(), left->is_value(), 
-	  right, right ? right->getTypeName() : "n/a", right ? right->is_value() : false, op->getName());
-
-/*
-   // if both nodes are values, then evaluate immediately
-   if (left->is_value() && (!right || right->is_value())) {
-      ExceptionSink xsink;
-
-      AbstractQoreNode *n_node = op->eval(left, right, true, &xsink);
-      //printd(5, "makeTree(): l=%08p (%s), r=%08p (%s), op=%s, returning %08p\n", left, left->getTypeName(), right, right ? right->getTypeName() : "n/a", op->getName(), n_node);
-      left->deref(0);
-      if (right)
-	 right->deref(0);
-
-      if (xsink.isEvent())
-	 getProgram()->addParseException(&xsink);
-
-      //traceout("makeTree()");
-      return n_node ? n_node : nothing();
-   }
-*/
-
-   // otherwise, put nodes and operator into tree for runtime evaluation
-   return new QoreTreeNode(left, op, right);
-}
-
 static int checkParseOption(int o) {
    return getParseOptions() & o;
 }
@@ -329,7 +300,7 @@ static AbstractQoreNode *process_dot(AbstractQoreNode *l, AbstractQoreNode *r) {
    qore_type_t rtype = r->getType();
    if (rtype == NT_BAREWORD) {
       BarewordNode *b = reinterpret_cast<BarewordNode *>(r);
-      AbstractQoreNode *rv = makeTree(OP_OBJECT_REF, l, b->makeQoreStringNode());
+      AbstractQoreNode *rv = new QoreTreeNode(l, OP_OBJECT_REF, b->makeQoreStringNode());
       b->deref();
       return rv;
    }
@@ -339,10 +310,11 @@ static AbstractQoreNode *process_dot(AbstractQoreNode *l, AbstractQoreNode *r) {
       assert(!f->getFunction());
       MethodCallNode *m = new MethodCallNode(f->takeName(), f->take_args());
       f->deref();
-      return makeTree(OP_OBJECT_FUNC_REF, l, m);
+
+      return new QoreTreeNode(l, OP_OBJECT_FUNC_REF, m);
    }
 
-   return makeTree(OP_OBJECT_REF, l, r);
+   return new QoreTreeNode(l, OP_OBJECT_REF, r);
 }
 
 // returns 0 for OK, -1 for error
@@ -1780,7 +1752,7 @@ exp:    scalar
 	      $$ = makeErrorTree($1, $3);
 	   }
 	   else
-	      $$ = makeTree(OP_PLUS_EQUALS, $1, $3);
+	      $$ = new QoreTreeNode($1, OP_PLUS_EQUALS, $3);
 	}
         | exp MINUS_EQUALS exp {
 	   if (check_lvalue($1)) {
@@ -1788,8 +1760,7 @@ exp:    scalar
 	      $$ = makeErrorTree($1, $3);
 	   }
 	   else
-	      $$ = makeTree(OP_MINUS_EQUALS, $1, $3);
-
+	      $$ = new QoreTreeNode($1, OP_MINUS_EQUALS, $3);
 	}
         | exp AND_EQUALS exp {
 	   if (check_lvalue($1)) {
@@ -1797,7 +1768,7 @@ exp:    scalar
 	      $$ = makeErrorTree($1, $3);
 	   }
 	   else
-	      $$ = makeTree(OP_AND_EQUALS, $1, $3);
+	      $$ = new QoreTreeNode($1, OP_AND_EQUALS, $3);
 	}
         | exp OR_EQUALS exp {
 	   if (check_lvalue($1)) {
@@ -1805,7 +1776,7 @@ exp:    scalar
 	      $$ = makeErrorTree($1, $3);
 	   }
 	   else
-	      $$ = makeTree(OP_OR_EQUALS, $1, $3);
+	      $$ = new QoreTreeNode($1, OP_OR_EQUALS, $3);
 	}
         | exp MODULA_EQUALS exp {
 	   if (check_lvalue($1)) {
@@ -1813,7 +1784,7 @@ exp:    scalar
 	      $$ = makeErrorTree($1, $3);
 	   }
 	   else
-	      $$ = makeTree(OP_MODULA_EQUALS, $1, $3);
+	      $$ = new QoreTreeNode($1, OP_MODULA_EQUALS, $3);
 	}
         | exp MULTIPLY_EQUALS exp {
 	   if (check_lvalue($1)) {
@@ -1821,7 +1792,7 @@ exp:    scalar
 	      $$ = makeErrorTree($1, $3);
 	   }
 	   else
-	      $$ = makeTree(OP_MULTIPLY_EQUALS, $1, $3);
+	      $$ = new QoreTreeNode($1, OP_MULTIPLY_EQUALS, $3);
 	}
         | exp DIVIDE_EQUALS exp {
 	   if (check_lvalue($1)) {
@@ -1829,7 +1800,7 @@ exp:    scalar
 	      $$ = makeErrorTree($1, $3);
 	   }
 	   else
-	      $$ = makeTree(OP_DIVIDE_EQUALS, $1, $3);
+	      $$ = new QoreTreeNode($1, OP_DIVIDE_EQUALS, $3);
 	}
         | exp XOR_EQUALS exp {
 	   if (check_lvalue($1)) {
@@ -1837,7 +1808,7 @@ exp:    scalar
 	      $$ = makeErrorTree($1, $3);
 	   }
 	   else
-	      $$ = makeTree(OP_XOR_EQUALS, $1, $3);
+	      $$ = new QoreTreeNode($1, OP_XOR_EQUALS, $3);
 	}
         | exp SHIFT_LEFT_EQUALS exp {
 	   if (check_lvalue($1))
@@ -1846,7 +1817,7 @@ exp:    scalar
 	      $$ = makeErrorTree($1, $3);
 	   }
 	   else
-	      $$ = makeTree(OP_SHIFT_LEFT_EQUALS, $1, $3);
+	      $$ = new QoreTreeNode($1, OP_SHIFT_LEFT_EQUALS, $3);
 	}
         | exp SHIFT_RIGHT_EQUALS exp {
 	   if (check_lvalue($1))
@@ -1855,7 +1826,7 @@ exp:    scalar
 	      $$ = makeErrorTree($1, $3);
 	   }
 	   else
-	      $$ = makeTree(OP_SHIFT_RIGHT_EQUALS, $1, $3);
+	      $$ = new QoreTreeNode($1, OP_SHIFT_RIGHT_EQUALS, $3);
 	}
 	| exp '=' exp {
 	   if ($1 && $1->getType() == NT_LIST) {
@@ -1869,7 +1840,7 @@ exp:    scalar
 		 }
 	      }
 	      if (ok)
-		 $$ = makeTree(OP_LIST_ASSIGNMENT, $1, $3);
+		 $$ = new QoreTreeNode($1, OP_LIST_ASSIGNMENT, $3);
 	      else
 		 $$ = makeErrorTree($1, $3);
 	   }
@@ -1879,26 +1850,23 @@ exp:    scalar
 		 $$ = makeErrorTree($1, $3);
 	      }
 	      else
-		 $$ = makeTree(OP_ASSIGNMENT, $1, $3);
+		 $$ = new QoreTreeNode($1, OP_ASSIGNMENT, $3);
 	   }
 	   //print_tree($1, 0);
 	}
         | TOK_EXISTS exp
-        { $$ = makeTree(OP_EXISTS, $2, 0); }
+        { $$ = new QoreTreeNode($2, OP_EXISTS, 0); }
         | TOK_ELEMENTS exp
-        { $$ = makeTree(OP_ELEMENTS, $2, 0); }
-        | exp TOK_INSTANCEOF IDENTIFIER
-        {
-	   $$ = makeTree(OP_INSTANCEOF, $1, new ClassRefNode($3));
+        { $$ = new QoreTreeNode($2, OP_ELEMENTS, 0); }
+        | exp TOK_INSTANCEOF IDENTIFIER {
+	   $$ = new QoreTreeNode($1, OP_INSTANCEOF, new ClassRefNode($3));
 	}
-        | exp TOK_INSTANCEOF SCOPED_REF
-        {
-	   $$ = makeTree(OP_INSTANCEOF, $1, new ClassRefNode($3));
+        | exp TOK_INSTANCEOF SCOPED_REF {
+	   $$ = new QoreTreeNode($1, OP_INSTANCEOF, new ClassRefNode($3));
 	}
         | TOK_KEYS exp
-        { $$ = makeTree(OP_KEYS, $2, 0); }
-        | TOK_UNSHIFT exp  // unshift list, element
-        {
+        { $$ = new QoreTreeNode($2, OP_KEYS, 0); }
+        | TOK_UNSHIFT exp {  // unshift list, element
 	   QoreListNode *l = $2 && $2->getType() == NT_LIST ? reinterpret_cast<QoreListNode *>($2) : 0;
 	   if (!l || l->size() != 2) {
 	      parse_error("invalid arguments to unshift, expected: lvalue, expression (%s)", $2->getTypeName());
@@ -1906,55 +1874,47 @@ exp:    scalar
 	   }
 	   else {
 	      AbstractQoreNode *lv = l->shift();
-	      if (check_lvalue(lv))
-	      {
+	      if (check_lvalue(lv)) {
 		 parse_error("first argument to unshift is not an lvalue");
 		 $$ = makeErrorTree(lv, l->shift());
 	      }
 	      else
-		 $$ = makeTree(OP_UNSHIFT, lv, l->shift());
+		 $$ = new QoreTreeNode(lv, OP_UNSHIFT, l->shift());
 	      $2->deref(0);
 	   }
 	}
-	| TOK_SHIFT exp
-	{ 
-	   if (check_lvalue($2))
-	   {
+	| TOK_SHIFT exp {
+	   if (check_lvalue($2)) {
 	      parse_error("argument to shift operator is not an lvalue");
 	      $$ = makeErrorTree($2, 0); 
 	   }
 	   else
-	      $$ = makeTree(OP_SHIFT, $2, 0); 
+	      $$ = new QoreTreeNode($2, OP_SHIFT, 0); 
 	}
-        | TOK_PUSH exp  // push lvalue-list, element
-        {
+        | TOK_PUSH exp {  // push lvalue-list, element
 	   QoreListNode *l = $2 && $2->getType() == NT_LIST ? reinterpret_cast<QoreListNode *>($2) : 0;
 	   if (!l || l->size() != 2) {
 	      parse_error("invalid arguments to push, expected: lvalue, expression (%s)", $2->getTypeName());
 	      $$ = makeErrorTree($2, 0);
 	   }
-	   else
-	   {
+	   else {
 	      AbstractQoreNode *lv = l->shift();
-	      if (check_lvalue(lv))
-	      {
+	      if (check_lvalue(lv)) {
 		 parse_error("first argument to push is not an lvalue");
 		 $$ = makeErrorTree(lv, l->shift());
 	      }
 	      else
-		 $$ = makeTree(OP_PUSH, lv, l->shift());
+		 $$ = new QoreTreeNode(lv, OP_PUSH, l->shift());
 	      $2->deref(0);
 	   }
 	}
-	| TOK_POP exp
-	{
-	   if (check_lvalue($2))
-	   {
+        | TOK_POP exp {
+	   if (check_lvalue($2)) {
 	      parse_error("argument to pop operator is not an lvalue");
 	      $$ = makeErrorTree($2, 0); 
 	   }
 	   else
-	      $$ = makeTree(OP_POP, $2, 0); 
+	      $$ = new QoreTreeNode($2, OP_POP, 0); 
 	}
 	| TOK_CHOMP exp {
 	   if (check_lvalue($2)) {
@@ -1962,16 +1922,15 @@ exp:    scalar
 	      $$ = makeErrorTree($2, 0); 
 	   }
 	   else
-	      $$ = makeTree(OP_CHOMP, $2, 0); 
+	      $$ = new QoreTreeNode($2, OP_CHOMP, 0); 
 	}
 	| TOK_TRIM exp {
-	   if (check_lvalue($2))
-	   {
+	   if (check_lvalue($2)) {
 	      parse_error("argument to trim operator is not an lvalue (use the trim() function instead)");
 	      $$ = makeErrorTree($2, 0); 
 	   }
 	   else
-	      $$ = makeTree(OP_TRIM, $2, 0); 
+	      $$ = new QoreTreeNode($2, OP_TRIM, 0); 
 	}
         | TOK_SPLICE exp {  // splice lvalue-list, offset, [length, list]
 	   QoreListNode *l = $2 && $2->getType() == NT_LIST ? reinterpret_cast<QoreListNode *>($2) : 0;
@@ -2094,7 +2053,7 @@ exp:    scalar
 	      $$ = makeErrorTree($2, 0);
 	   }
 	   else
-	      $$ = makeTree(OP_PRE_INCREMENT, $2, 0);
+	      $$ = new QoreTreeNode($2, OP_PRE_INCREMENT, 0);
         }
         | exp P_INCREMENT {  // post-increment
 	   if (check_lvalue($1)) {
@@ -2102,7 +2061,7 @@ exp:    scalar
 	      $$ = makeErrorTree($1, 0);
 	   }
 	   else
-	      $$ = makeTree(OP_POST_INCREMENT, $1, 0);
+	      $$ = new QoreTreeNode($1, OP_POST_INCREMENT, 0);
         }
         | P_DECREMENT exp {  // pre-decrement
 	   if (check_lvalue($2)) {
@@ -2110,7 +2069,7 @@ exp:    scalar
 	      $$ = makeErrorTree($2, 0);
 	   }
 	   else
-	      $$ = makeTree(OP_PRE_DECREMENT, $2, 0);
+	      $$ = new QoreTreeNode($2, OP_PRE_DECREMENT, 0);
         }
         | exp P_DECREMENT {   // post-decrement
 	   if (check_lvalue($1)) {
@@ -2118,7 +2077,7 @@ exp:    scalar
 	      $$ = makeErrorTree($1, 0);
 	   }
 	   else
-	      $$ = makeTree(OP_POST_DECREMENT, $1, 0);
+	      $$ = new QoreTreeNode($1, OP_POST_DECREMENT, 0);
         }
 	| exp '(' myexp ')' {
 	   //printd(5, "1=%s (%08p), 3=%s (%08p)\n", $1->getTypeName(), $1, $3 ? $3->getTypeName() : "n/a", $3); 
@@ -2204,67 +2163,63 @@ exp:    scalar
 	   $$ = new FunctionCallNode($1, makeArgs($2));
         }
         | SELF_REF                   { $$ = new SelfVarrefNode($1); }
-	| exp LOGICAL_AND exp	     { $$ = makeTree(OP_LOG_AND, $1, $3); }
-	| exp LOGICAL_OR exp	     { $$ = makeTree(OP_LOG_OR, $1, $3); }
-	| exp '|' exp		     { $$ = makeTree(OP_BIN_OR, $1, $3); }
-	| exp '&' exp		     { $$ = makeTree(OP_BIN_AND, $1, $3); }
-	| exp '^' exp		     { $$ = makeTree(OP_BIN_XOR, $1, $3); }
+        | exp LOGICAL_AND exp	     { $$ = new QoreTreeNode($1, OP_LOG_AND, $3); }
+        | exp LOGICAL_OR exp	     { $$ = new QoreTreeNode($1, OP_LOG_OR, $3); }
+        | exp '|' exp		     { $$ = new QoreTreeNode($1, OP_BIN_OR, $3); }
+        | exp '&' exp		     { $$ = new QoreTreeNode($1, OP_BIN_AND, $3); }
+        | exp '^' exp		     { $$ = new QoreTreeNode($1, OP_BIN_XOR, $3); }
         | exp REGEX_MATCH REGEX {
-	   $$ = makeTree(OP_REGEX_MATCH, $1, $3);
+	   $$ = new QoreTreeNode($1, OP_REGEX_MATCH, $3);
 	}
         | exp REGEX_NMATCH REGEX {
-	   $$ = makeTree(OP_REGEX_NMATCH, $1, $3);
+	   $$ = new QoreTreeNode($1, OP_REGEX_NMATCH, $3);
 	}
-        | exp REGEX_MATCH REGEX_SUBST
-        {
+        | exp REGEX_MATCH REGEX_SUBST {
 	   if (check_lvalue($1)) {
 	      parse_error("left-hand side of regular expression substitution operator is not an lvalue");
 	      $$ = makeErrorTree($1, $3);
 	   }
 	   else {
 	      //printf("REGEX_SUBST: '%s'\n", $3->getPattern()->getBuffer());
-	      $$ = makeTree(OP_REGEX_SUBST, $1, $3);
+	      $$ = new QoreTreeNode($1, OP_REGEX_SUBST, $3);
 	   }
 	}
         | exp REGEX_MATCH REGEX_TRANS {
-	   if (check_lvalue($1))
-	   {
+	   if (check_lvalue($1))  {
 	      parse_error("left-hand side of transliteration operator is not an lvalue");
 	      $$ = makeErrorTree($1, $3);
 	   }
-	   else
-	   {
-	      $$ = makeTree(OP_REGEX_TRANS, $1, $3);
+	   else {
+	      $$ = new QoreTreeNode($1, OP_REGEX_TRANS, $3);
 	   }
 	}
         | exp REGEX_MATCH REGEX_EXTRACT
-        { $$ = makeTree(OP_REGEX_EXTRACT, $1, $3); }
-	| exp '>' exp		     { $$ = makeTree(OP_LOG_GT, $1, $3); }
-	| exp '<' exp		     { $$ = makeTree(OP_LOG_LT, $1, $3); }
-	| exp LOGICAL_CMP exp	     { $$ = makeTree(OP_LOG_CMP, $1, $3); }
-	| exp LOGICAL_EQ exp	     { $$ = makeTree(OP_LOG_EQ, $1, $3); }
-        | exp ABSOLUTE_EQ exp        { $$ = makeTree(OP_ABSOLUTE_EQ, $1, $3); }
-        | exp ABSOLUTE_NE exp        { $$ = makeTree(OP_ABSOLUTE_NE, $1, $3); }
-	| exp LOGICAL_NE exp	     { $$ = makeTree(OP_LOG_NE, $1, $3); }
-	| exp LOGICAL_LE exp	     { $$ = makeTree(OP_LOG_LE, $1, $3); }
-	| exp LOGICAL_GE exp	     { $$ = makeTree(OP_LOG_GE, $1, $3); }
-        | exp SHIFT_LEFT exp	     { $$ = makeTree(OP_SHIFT_LEFT, $1, $3); }
-        | exp SHIFT_RIGHT exp	     { $$ = makeTree(OP_SHIFT_RIGHT, $1, $3); }
-        | exp '+' exp		     { $$ = makeTree(OP_PLUS, $1, $3); }
-	| exp '-' exp		     { $$ = makeTree(OP_MINUS, $1, $3); }
-        | exp '%' exp		     { $$ = makeTree(OP_MODULA, $1, $3); }
-	| exp '/' exp		     { $$ = makeTree(OP_DIV, $1, $3); }
-	| exp '*' exp		     { $$ = makeTree(OP_MULT, $1, $3); }
+        { $$ = new QoreTreeNode($1, OP_REGEX_EXTRACT, $3); }
+        | exp '>' exp		     { $$ = new QoreTreeNode($1, OP_LOG_GT, $3); }
+        | exp '<' exp		     { $$ = new QoreTreeNode($1, OP_LOG_LT, $3); }
+        | exp LOGICAL_CMP exp	     { $$ = new QoreTreeNode($1, OP_LOG_CMP, $3); }
+        | exp LOGICAL_EQ exp	     { $$ = new QoreTreeNode($1, OP_LOG_EQ, $3); }
+        | exp ABSOLUTE_EQ exp        { $$ = new QoreTreeNode($1, OP_ABSOLUTE_EQ, $3); }
+        | exp ABSOLUTE_NE exp        { $$ = new QoreTreeNode($1, OP_ABSOLUTE_NE, $3); }
+        | exp LOGICAL_NE exp	     { $$ = new QoreTreeNode($1, OP_LOG_NE, $3); }
+        | exp LOGICAL_LE exp	     { $$ = new QoreTreeNode($1, OP_LOG_LE, $3); }
+        | exp LOGICAL_GE exp	     { $$ = new QoreTreeNode($1, OP_LOG_GE, $3); }
+        | exp SHIFT_LEFT exp	     { $$ = new QoreTreeNode($1, OP_SHIFT_LEFT, $3); }
+        | exp SHIFT_RIGHT exp	     { $$ = new QoreTreeNode($1, OP_SHIFT_RIGHT, $3); }
+        | exp '+' exp		     { $$ = new QoreTreeNode($1, OP_PLUS, $3); }
+        | exp '-' exp		     { $$ = new QoreTreeNode($1, OP_MINUS, $3); }
+        | exp '%' exp		     { $$ = new QoreTreeNode($1, OP_MODULA, $3); }
+        | exp '/' exp		     { $$ = new QoreTreeNode($1, OP_DIV, $3); }
+        | exp '*' exp		     { $$ = new QoreTreeNode($1, OP_MULT, $3); }
         | '-' exp %prec NEG	     { 
 	   // FIXME: need to expand constant expression checking to determine
 	   //        if the expression can throw an exception at run-time
 	   // first check for constant expressions
 	   $$ = QoreUnaryMinusOperatorNode::makeNode($2);
 	}
-        | '~' exp		     { $$ = makeTree(OP_BIN_NOT, $2, 0); }
-        | '!' exp                    { $$ = makeTree(OP_NOT, $2, 0); }
-        | '\\' exp
-        {
+        | '~' exp		     { $$ = new QoreTreeNode($2, OP_BIN_NOT, 0); }
+        | '!' exp                    { $$ = new QoreTreeNode($2, OP_NOT, 0); }
+        | '\\' exp {
 	   qore_type_t t = $2 ? $2->getType() : 0;
 	   //printd(5, "backslash exp line %d, type %s\n", @2.first_line, $2->getTypeName());
 
@@ -2340,28 +2295,25 @@ exp:    scalar
 	      parse_error("illegal use of the 'new' operator (conflicts with parse option NO_NEW)");
         }
         | TOK_BACKGROUND exp {
-	   $$ = makeTree(OP_BACKGROUND, $2, 0);
+	   $$ = new QoreTreeNode($2, OP_BACKGROUND, 0);
 	   // check to see if the expression is legal
 	   if (checkParseOption(PO_NO_THREAD_CONTROL))
 	      parse_error("illegal use of \"background\" operator (conflicts with parse option NO_THREAD_CONTROL)");
 	   else if (!hasEffect($2))
 	      parse_error("argument to background operator has no effect");
 	}
-        | BACKQUOTE
-        {
+        | BACKQUOTE {
 	   $$ = new BackquoteNode($1);
 	   if (checkParseOption(PO_NO_EXTERNAL_PROCESS))
 	      parse_error("illegal use of backquote operator (conflicts with parse option NO_EXTERNAL_PROCESS)");
 	}
-        | exp '[' exp ']'            { $$ = makeTree(OP_LIST_REF, $1, $3); }
-	| exp '{' exp '}'            { $$ = makeTree(OP_OBJECT_REF, $1, $3); }
-	| exp '.' exp
-	{
+        | exp '[' exp ']'            { $$ = new QoreTreeNode($1, OP_LIST_REF, $3); }
+        | exp '{' exp '}'            { $$ = new QoreTreeNode($1, OP_OBJECT_REF, $3); }
+        | exp '.' exp {
 	   $$ = process_dot($1, $3);
 	}
-        | exp DOT_KW_IDENTIFIER
-	{
-	   $$ = makeTree(OP_OBJECT_REF, $1, $2);
+        | exp DOT_KW_IDENTIFIER {
+	   $$ = new QoreTreeNode($1, OP_OBJECT_REF, $2);
 	}
 	| '(' exp ')' { 
 	   $$ = $2;

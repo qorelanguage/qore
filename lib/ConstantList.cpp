@@ -143,9 +143,6 @@ void ConstantList::parseInit() {
       if (!i->second.node)
 	 continue;
 
-      //rns->parseInitConstantValue(&i->second.node, 0);
-      //printd(5, "ConstantList::parseInit() constant %s resolved to %08p %s\n", i->first, i->second.node, i->second.node ? i->second.node->getTypeName() : "n/a");
-
       // this while loop is just to avoid goto's
       while (true) {
 	 int lvids = 0;

@@ -30,9 +30,9 @@ source: https://qore.svn.sourceforge.net/svnroot/qore/module-tuxedo/trunk
 ncurses module
 source: https://qore.svn.sourceforge.net/svnroot/qore/module-ncurses/trunk
 
-* qt modules (qt-core, qt-gui, qt-svn, qt-opengl, etc)
-QT4 modules
-source: https://qore.svn.sourceforge.net/svnroot/qore/module-qt/trunk
+* qt4 module
+QT4 module
+source: https://qore.svn.sourceforge.net/svnroot/qore/module-qt4/trunk
 
 * opengl
 opengl module
@@ -50,4 +50,10 @@ source: https://qore.svn.sourceforge.net/svnroot/qore/module-asn1/trunk
 xml security (xmlenc and xmldsig) module
 source: https://qore.svn.sourceforge.net/svnroot/qore/module-xmlsec/trunk
 
+* ssh2
+sftp and ssh2 functionality
+source: https://qore.svn.sourceforge.net/svnroot/qore/module-ssh2/trunk
 
+* sqlite3
+SQLite3 driver
+source: https://qore.svn.sourceforge.net/svnroot/qore/module-sqlite3/trunk

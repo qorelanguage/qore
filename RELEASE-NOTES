@@ -1,7 +1,6 @@
 RELEASE NOTES for qore v0.8.0
 
-release summary: under development - no release notes available yet; check
-ChangeLog
+release summary: under development; check ChangeLog for details
 
 * hard typing
 
@@ -10,8 +9,11 @@ ChangeLog
 * default argument values
 
 * time zone support in absolute date/time values
+Qore uses the system's zoneinfo information to determine the UTC offset and daylight saving's time changes
+Dates given without a time zone portion are assumed to be in local time
 
 * date/time values have resolution to the microsecond
+previously was to the millisecond
 
 * new functions
 getpwuid2()
@@ -21,6 +23,7 @@ getgrgid()
 getgrgid2()
 getgrnam()
 getgrname2()
+readlink()
 
 * cast<> operator
 
@@ -29,6 +32,9 @@ getgrname2()
 * new remove operator
 
 * new extract operator
+
+* constants may be assigned with any expression that does not have side effects
+this includes builtin functions that have been tagged as safe to use in constant expressions
 
 * new warning: non-existent-method-call
 
@@ -45,25 +51,27 @@ getgrname2()
 * new warning: duplicate-hash-key
 
 * default warning mask updated
+the default warning mask includes: unknown-warning, unreachable-code, nonexistent-method-call, invalid-operation, call-with-type-errors, return-value-ignored, duplicate-hash-key
 
 * new parse option PO_REQUIRE_TYPES
 
-* new parse option PO_NO_THREAD_INFO
-
-* tagged the following functions with QDOM_THREAD_INFO
+* new parse option PO_NO_THREAD_INFO, domain QDOM_THREAD_INFO
+the following functions were tagged with QDOM_THREAD_INFO:
 gettid(), num_threads(), thread_list(), get_thread_data(), get_all_thread_data(), getAllThreadCallStacks()
 
-* new parse option PO_NO_EXTERNAL_INFO
-
-* tagged the following functions with QDOM_EXTERNAL_INFO
+* new parse option PO_NO_EXTERNAL_INFO, domain QDOM_EXTERNAL_INFO
+the following functions were tagged with QDOM_EXTERNAL_INFO:
 getuid(), geteuid(), getgid(), getegid(), getpid(), getppid(), gethostname(),
 gethostbyname(), gethostbyaddr(), gethostbyname_long(), gethostbyaddr_long(),
 getcwd(), getcwd2(), getpwuid(), getpwuid2(), getpwnam(), getpwnam2()
 
-* new parse option PO_NO_LOCALE_CONTROL
-
-* tagged the following functions with QDOM_LOCALE_CONTROL
+* new parse option PO_NO_LOCALE_CONTROL, domain QDOM_LOCALE_CONTROL
+the following functions were tagged with QDOM_LOCALE_CONTROL:
 TimeZone::set()
+
+* new methods:
+Datasource::constructor(hash)
+DatasourcePool::constructor(hash)
 
 
 ***********************
@@ -132,13 +140,15 @@ Parsing
    able to support simultaneous parsing on different program objects.
 
 *) Parsing is atomic; it is executed in 2 stages - 1) parse to pending data
-   structures, and 2) commit the pending data structures to the Qore Program
-   object.  References are resolved in the second stage, which allows flexible
-   referencing of functions, constants, classes, etc before they are declared.
+   structures, and 2) resolve references.  References are resolved in the
+   second stage, which allows flexible referencing of functions, constants,
+   classes, etc before they are declared.
+   Stage 2 parsing happens when Program::parseCommit() is called; if any
+   errors occur in stage 2 parsing, then the commit fails.
    Any parse errors at any stage will cause all the uncomitted parsing to be
    rolled back.  The Qore Program class allows the programmer control over the
    2 stages of parsing with the Program::parsePending(),
-   Program::parseCommit(), and Program::parseRollback() methods.
+   Program::parseCommit(), and Program::parseRollback() methods.   
 
 
 *********************
@@ -178,7 +188,7 @@ release.
 There is no defined roadmap for 1.0; this milestone will be declared when the
 time feels right (typical of open-source projects).
 
-Version 0.7.0 brings qore a lot closer to the 1.0 release; one main set of
+Version 0.8.0 brings qore a lot closer to the 1.0 release; one main set of
 features that may be added before then are hooks for debugging, tracing,
 breakpoints, etc.
 
@@ -206,7 +216,7 @@ explicitly tested.
 
 Stability & Bugs
 ----------------
-NOTE that while qore is version 0.7.*, this does not indicate a lack of
+NOTE that while qore is version 0.8.*, this does not indicate a lack of
 stability.  The qore language is in heavy commercial use and must absolutely
 remain stable and without memory leaks.
 
@@ -217,6 +227,103 @@ unknown bugs out there.
 ---------------------
 RELEASE NOTES HISTORY
 ---------------------
+
+*****************************
+RELEASE NOTES for qore v0.7.8
+*****************************
+
+release summary: 19 bug fixes from 0.7.7 plus a single enhancement
+
+* BUG FIX: fixed a bug processing arguments to in-object method calls in the
+           background operator
+* BUG FIX: fixed a bug processing arguments to static method calls in the
+           background operator
+* BUG FIX: fixed a bug where the File class would reset the encoding given in
+           the constructor on ::open*()
+* BUG FIX: fixed a bug where if local variables were used in a reference 
+           expression with the background operator, whenever the reference
+           was accessed in the called code a crash would result
+* BUG FIX: eliminated string parsing in block comments, fixed a bug where the
+           parser was not terminated at EOF in a block comment
+* BUG FIX: check for PO_NO_FILESYSTEM in FtpClient::put()
+* BUG FIX: fixed a cosmetic bug in exception string in FtpClient::get()
+* BUG FIX: fixed a bug in SSLCertificate::getSignature()
+* BUG FIX: fixed a bug in SSLCertificate::getInfo()
+* BUG FIX: fixed CANNOT-PROVIDE-FEATURE exception text
+* BUG FIX: fixed getpwnam() to use q_getgrnam() and correct a thread and
+           functional error in QC_Dir.cc
+* BUG FIX: fixed non-thread-safe usage of getpwnam() in QC_Dir.cc
+* BUG FIX: fixed adding virtual private data to classes with multiple virtual
+           base classes
+* BUG FIX: fixed Socket::recv() and Socket::recvBinary() when reading all data
+           available on the socket when the remote ends closes the connection
+           in an orderly way
+* BUG FIX: fixed parsing negative numbers in json strings
+* BUG FIX: fixed limited XML node size
+* BUG FIX: fixed a memory bug in the context statement when an exception
+           occurs in the context expression
+* BUG FIX: fixed a memory bug in the binary += operation; if the operand for
+           BinaryNode::append() is equal to the current buffer, a crash would
+           result
+* BUG FIX: fixed some bugs processing arguments in the XmlReader class
+* enhancement: added a QoreSocket::recvBinary() function to receive all data
+               available on the socket (with an optional initial timeout 
+               value) and return it as a binary object; if 
+               Socket::recvBinary() is called with buffer-size <= 0, then this
+               variant is used
+
+
+*****************************
+RELEASE NOTES for qore v0.7.7
+*****************************
+
+release summary: 15 bug fixes from 0.7.6
+
+* BUG FIX: fixed a bug where taking a slice from an object could return
+           private members when called outside the class (backported from
+           trunk)
+* BUG FIX: fixed a bug making a hash slice where the character encoding was
+           not ensured to be QCS_DEFAULT before trying to match key names
+           (backported from trunk)
+* BUG FIX: fixed a bug returning the last builtin data type ID; affects qore
+           modules that implement new builtin types (ex qt module, qt4 module)
+* BUG FIX: fixed a reference counting bug in callObjectMethodArgs() that could
+           lead to a crash if a list is passed as the 3rd argument
+* BUG FIX: fixed a bug executing builtin functions if an exception is raised
+           when evaluating the arguments (the function was erroneously 
+           executed)
+* BUG FIX: fixed a bug in the FtpClient class that caused the connection to
+           never get established
+* BUG FIX: fixed a bug when a builtin class tries to access private data of an
+           object that's already been deleted; now an appropriate exception is
+           thrown; previously it would silently fail
+* BUG FIX: fixed examples/WSDL.qc de/serializing "int" and "short" from
+           negative numbers
+* BUG FIX: removed an extraneous reference and dereference in objects when
+           launching new threads in objects (slightly better performance
+           launching new threads in objects)
+* BUG FIX: fixed a rare race condition in object constructors when an object
+           launches threads in the object and then the constructor throws an
+           exception afterwards
+* BUG FIX: fixed handling in the Datasource and DatasourcePool classes when
+           auto-reconnects fail (connection aborted handling) - now the
+           Datasource class tags the connection as aborted and closes the
+           connection when Datasource::connectionAborted() is called by the 
+           DBI drivers, and the DatasourcePool class correctly returns the 
+           Datasource to the pool.  Additionally, the Datasource class will
+           not execute any action on the Datasource once the connection has
+           been aborted.  The flag is cleared when the connection is opened
+           again.
+* BUG FIX: fixed memory leaks in parse exceptions with static method call
+           references (backported from 0.8.0/trunk)
+* BUG FIX: detected erroneous variable list declarations like:
+           our (my $x, ...) or my (our $x) and throw a parse exception
+           (backported from 0.8.0/trunk)
+* BUG FIX: fixed a harmless bug in TempEncodingHelper to remove a message from
+           valgrind (backported from 0.8.0/trunk)
+* BUG FIX: fixed memory bug in CryptoHelper - removed unnecessary and incorrect
+           string termination code (backported from 0.8.0/trunk)
+
 
 *****************************
 RELEASE NOTES for qore v0.7.6
