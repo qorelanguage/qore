@@ -655,7 +655,8 @@ protected:
       if (!n) return false;
       qore_type_t t = n->getType();
       if (t == NT_INT) return true;
-      if (t != NT_FLOAT && t != NT_STRING && t != NT_BOOLEAN && t != NT_DATE)
+      if (t != NT_FLOAT && t != NT_STRING && t != NT_BOOLEAN && t != NT_DATE
+          && t != NT_SOFTSTRING && t != NT_SOFTFLOAT && t != NT_SOFTBOOLEAN && t != NT_SOFTDATE)
          return false;
       int64 rv = n->getAsBigInt();
       n->deref(xsink);
@@ -666,13 +667,17 @@ protected:
       qore_type_t t = n ? n->getType() : NT_NOTHING;
       if (t == NT_INT)
          return QTI_IDENT;
-      return t == NT_FLOAT || t == NT_STRING || t == NT_BOOLEAN || t == NT_DATE ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
+      return t == NT_FLOAT || t == NT_STRING || t == NT_BOOLEAN || t == NT_DATE
+         || t == NT_SOFTSTRING || t == NT_SOFTFLOAT || t == NT_SOFTBOOLEAN || t == NT_SOFTDATE
+         ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
    }
    DLLLOCAL virtual int parseEqualImpl(const QoreTypeInfo *typeInfo) const {
       qore_type_t t = typeInfo ? typeInfo->getType() : NT_NOTHING;
       if (t == NT_INT)
          return QTI_IDENT;
-      return t == NT_FLOAT || t == NT_STRING || t == NT_BOOLEAN || t == NT_DATE ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
+      return t == NT_FLOAT || t == NT_STRING || t == NT_BOOLEAN || t == NT_DATE
+         || t == NT_SOFTSTRING || t == NT_SOFTFLOAT || t == NT_SOFTBOOLEAN || t == NT_SOFTDATE
+         ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
    }
 
 public:
@@ -687,7 +692,8 @@ protected:
       if (!n) return false;
       qore_type_t t = n->getType();
       if (t == NT_FLOAT) return true;
-      if (t != NT_INT && t != NT_STRING && t != NT_BOOLEAN && t != NT_DATE)
+      if (t != NT_INT && t != NT_STRING && t != NT_BOOLEAN && t != NT_DATE
+          && t != NT_SOFTSTRING && t != NT_SOFTINT && t != NT_SOFTBOOLEAN && t != NT_SOFTDATE)
          return false;
       double rv = n->getAsFloat();
       n->deref(xsink);
@@ -698,13 +704,17 @@ protected:
       qore_type_t t = n ? n->getType() : NT_NOTHING;
       if (t == NT_FLOAT)
          return QTI_IDENT;
-      return t == NT_INT || t == NT_STRING || t == NT_BOOLEAN || t == NT_DATE ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
+      return t == NT_INT || t == NT_STRING || t == NT_BOOLEAN || t == NT_DATE
+         || t == NT_SOFTSTRING || t == NT_SOFTINT || t == NT_SOFTBOOLEAN || t == NT_SOFTDATE
+         ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
    }
    DLLLOCAL virtual int parseEqualImpl(const QoreTypeInfo *typeInfo) const {
       qore_type_t t = typeInfo ? typeInfo->getType() : NT_NOTHING;
       if (t == NT_FLOAT)
          return QTI_IDENT;
-      return t == NT_INT || t == NT_STRING || t == NT_BOOLEAN || t == NT_DATE ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
+      return t == NT_INT || t == NT_STRING || t == NT_BOOLEAN || t == NT_DATE
+         || t == NT_SOFTSTRING || t == NT_SOFTINT || t == NT_SOFTBOOLEAN || t == NT_SOFTDATE
+         ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
    }
 
 public:
@@ -719,7 +729,8 @@ protected:
       if (!n) return false;
       qore_type_t t = n->getType();
       if (t == NT_BOOLEAN) return true;
-      if (t != NT_INT && t != NT_STRING && t != NT_FLOAT && t != NT_DATE)
+      if (t != NT_INT && t != NT_STRING && t != NT_FLOAT && t != NT_DATE
+          && t != NT_SOFTSTRING && t != NT_SOFTFLOAT && t != NT_SOFTINT && t != NT_SOFTDATE)
          return false;
       bool rv = n->getAsBool();
       n->deref(xsink);
@@ -730,13 +741,17 @@ protected:
       qore_type_t t = n ? n->getType() : NT_NOTHING;
       if (t == NT_BOOLEAN)
          return QTI_IDENT;
-      return t == NT_INT || t == NT_FLOAT || t == NT_STRING || t == NT_DATE ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
+      return t == NT_INT || t == NT_FLOAT || t == NT_STRING || t == NT_DATE
+         || t == NT_SOFTSTRING || t == NT_SOFTFLOAT || t == NT_SOFTINT || t == NT_SOFTDATE
+         ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
    }
    DLLLOCAL virtual int parseEqualImpl(const QoreTypeInfo *typeInfo) const {
       qore_type_t t = typeInfo ? typeInfo->getType() : NT_NOTHING;
       if (t == NT_BOOLEAN)
          return QTI_IDENT;
-      return t == NT_INT || t == NT_FLOAT || t == NT_STRING || t == NT_DATE ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
+      return t == NT_INT || t == NT_FLOAT || t == NT_STRING || t == NT_DATE
+         || t == NT_SOFTSTRING || t == NT_SOFTFLOAT || t == NT_SOFTINT || t == NT_SOFTDATE
+         ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
    }
 
 public:
@@ -751,7 +766,8 @@ protected:
       if (!n) return false;
       qore_type_t t = n->getType();
       if (t == NT_STRING) return true;
-      if (t != NT_INT && t != NT_BOOLEAN && t != NT_FLOAT && t != NT_DATE)
+      if (t != NT_INT && t != NT_BOOLEAN && t != NT_FLOAT && t != NT_DATE
+          && t != NT_SOFTINT && t != NT_SOFTFLOAT && t != NT_SOFTBOOLEAN && t != NT_SOFTDATE)
          return false;
       QoreStringNodeValueHelper str(n);
       QoreStringNode *rv = str.getReferencedValue();
@@ -763,13 +779,17 @@ protected:
       qore_type_t t = n ? n->getType() : NT_NOTHING;
       if (t == NT_STRING)
          return QTI_IDENT;
-      return t == NT_INT || t == NT_FLOAT || t == NT_BOOLEAN || t == NT_DATE ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
+      return t == NT_INT || t == NT_FLOAT || t == NT_BOOLEAN || t == NT_DATE
+         || t == NT_SOFTINT || t == NT_SOFTFLOAT || t == NT_SOFTBOOLEAN || t == NT_SOFTDATE
+         ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
    }
    DLLLOCAL virtual int parseEqualImpl(const QoreTypeInfo *typeInfo) const {
       qore_type_t t = typeInfo ? typeInfo->getType() : NT_NOTHING;
       if (t == NT_STRING)
          return QTI_IDENT;
-      return t == NT_INT || t == NT_FLOAT || t == NT_BOOLEAN || t == NT_DATE ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
+      return t == NT_INT || t == NT_FLOAT || t == NT_BOOLEAN || t == NT_DATE
+         || t == NT_SOFTINT || t == NT_SOFTFLOAT || t == NT_SOFTBOOLEAN || t == NT_SOFTDATE
+         ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
    }
 
 public:

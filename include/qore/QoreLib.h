@@ -86,6 +86,9 @@ DLLEXPORT struct tm *q_localtime(const time_t *clock, struct tm *tms);
 //! thread-safe version of "gmtime()"
 DLLEXPORT struct tm *q_gmtime(const time_t *clock, struct tm *tms);
 
+//! returns the seconds from the epoch
+DLLEXPORT int64 q_epoch();
+
 //! returns the seconds and microseconds from the epoch
 DLLEXPORT int64 q_epoch_us(int &us);
 
