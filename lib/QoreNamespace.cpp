@@ -857,11 +857,13 @@ int RootQoreNamespace::parseInitConstantValue(AbstractQoreNode **val, int level)
 	       return -1;
       }
 
+      /*
       //printd(5, "evaluating constant expression %08p\n", *val);
       ExceptionSink xsink;
       AbstractQoreNode *n = (*val)->eval(&xsink);
       (*val)->deref(&xsink);
       *val = n;
+      */
    }
 
    return 0;

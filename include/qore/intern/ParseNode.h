@@ -25,86 +25,102 @@
 
 #define _QORE_PARSENODE_H
 
-class ParseNode : public SimpleQoreNode
-{
-   private:
-      // not implemented
-      DLLLOCAL ParseNode& operator=(const ParseNode&);
+class ParseNode : public SimpleQoreNode {
+private:
+   // not implemented
+   DLLLOCAL ParseNode& operator=(const ParseNode&);
 
-   protected:
+protected:
+   //! if the node has an effect when evaluated (changes something)
+   bool effect : 1;
 
-   public:
-      DLLLOCAL ParseNode(qore_type_t t, bool n_needs_eval = true) : SimpleQoreNode(t, false, n_needs_eval)
-      {
-      }
-      DLLLOCAL ParseNode(const ParseNode &) : SimpleQoreNode(type, false, needs_eval_flag)
-      {
-      }
-      // parse types should never be copied
-      DLLLOCAL virtual class AbstractQoreNode *realCopy() const
-      {
-	 assert(false);
-	 return 0;
-      }
-      DLLLOCAL virtual bool is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const
-      {
-	 assert(false);
-	 return false;
-      }
-      DLLLOCAL virtual bool is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const
-      {
-	 assert(false);
-	 return false;
-      }
+   //! if the return value is ignored
+   bool ref_rv : 1;
+
+   //! if the node can be used to assign a constant
+   bool const_ok : 1;
+
+public:
+   DLLLOCAL ParseNode(qore_type_t t, bool n_needs_eval = true) : SimpleQoreNode(t, false, n_needs_eval), effect(n_needs_eval), ref_rv(true), const_ok(!n_needs_eval) {
+   }
+   DLLLOCAL ParseNode(qore_type_t t, bool n_needs_eval, bool n_effect) : SimpleQoreNode(t, false, n_needs_eval), effect(n_effect), ref_rv(true), const_ok(!n_effect) {
+   }
+   DLLLOCAL ParseNode(qore_type_t t, bool n_needs_eval, bool n_effect, bool n_const_ok) : SimpleQoreNode(t, false, n_needs_eval), effect(n_effect), ref_rv(true), const_ok(n_const_ok) {
+   }
+   DLLLOCAL ParseNode(const ParseNode &old) : SimpleQoreNode(old.type, false, old.needs_eval_flag), effect(old.effect), ref_rv(old.ref_rv), const_ok(old.const_ok) {
+   }
+   // parse types should never be copied
+   DLLLOCAL virtual AbstractQoreNode *realCopy() const {
+      assert(false);
+      return 0;
+   }
+   DLLLOCAL virtual bool is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const {
+      assert(false);
+      return false;
+   }
+   DLLLOCAL virtual bool is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const {
+      assert(false);
+      return false;
+   }
+   DLLLOCAL void set_effect(bool n_effect) {
+      effect = n_effect;
+   }
+   DLLLOCAL bool has_effect() const {
+      return effect;
+   }
+   DLLLOCAL void set_const_ok(bool n_const_ok) {
+      const_ok = n_const_ok;
+   }
+   DLLLOCAL bool is_const_ok() const {
+      return const_ok;
+   }
+   DLLLOCAL void ignore_rv() {
+      ref_rv = false;
+   }
+   DLLLOCAL bool need_rv() const {
+      return ref_rv;
+   }
 };
 
 // these objects will never be copied or referenced therefore they can have 
 // public destructors - the deref() functions just call "delete this;"
-class ParseNoEvalNode : public ParseNode
-{
-   private:
-      // not implemented
-      DLLLOCAL ParseNoEvalNode& operator=(const ParseNoEvalNode&);
+class ParseNoEvalNode : public ParseNode {
+private:
+   // not implemented
+   DLLLOCAL ParseNoEvalNode& operator=(const ParseNoEvalNode&);
 
-   protected:
-      DLLLOCAL virtual int64 bigIntEvalImpl(class ExceptionSink *xsink) const
-      {
-	 assert(false);
-	 return 0;
-      }
-      DLLLOCAL virtual int integerEvalImpl(class ExceptionSink *xsink) const
-      {
-	 assert(false);
-	 return 0;
-      }
-      DLLLOCAL virtual bool boolEvalImpl(class ExceptionSink *xsink) const
-      {
-	 assert(false);
-	 return false;
-      }
-      DLLLOCAL virtual double floatEvalImpl(class ExceptionSink *xsink) const
-      {
-	 assert(false);
-	 return 0.0;
-      }
-      DLLLOCAL virtual AbstractQoreNode *evalImpl(class ExceptionSink *xsink) const
-      {
-	 assert(false);
-	 return 0;
-      }
-      DLLLOCAL virtual AbstractQoreNode *evalImpl(bool &needs_deref, class ExceptionSink *xsink) const
-      {
-	 assert(false);
-	 return 0;
-      }
+protected:
+   DLLLOCAL virtual int64 bigIntEvalImpl(ExceptionSink *xsink) const {
+      assert(false);
+      return 0;
+   }
+   DLLLOCAL virtual int integerEvalImpl(ExceptionSink *xsink) const {
+      assert(false);
+      return 0;
+   }
+   DLLLOCAL virtual bool boolEvalImpl(ExceptionSink *xsink) const {
+      assert(false);
+      return false;
+   }
+   DLLLOCAL virtual double floatEvalImpl(ExceptionSink *xsink) const {
+      assert(false);
+      return 0.0;
+   }
+   DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *xsink) const {
+      assert(false);
+      return 0;
+   }
+   DLLLOCAL virtual AbstractQoreNode *evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
+      assert(false);
+      return 0;
+   }
 
-   public:
-      DLLLOCAL ParseNoEvalNode(qore_type_t t) : ParseNode(t, false)
-      {
-      }
-      DLLLOCAL ParseNoEvalNode(const ParseNode &) : ParseNode(type, false)
-      {
-      }
+public:
+   DLLLOCAL ParseNoEvalNode(qore_type_t t) : ParseNode(t, false) {
+   }
+
+   DLLLOCAL ParseNoEvalNode(const ParseNoEvalNode &old) : ParseNode(old) {
+   }
 };
 
 #endif

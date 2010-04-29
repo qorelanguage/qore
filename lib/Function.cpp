@@ -164,8 +164,8 @@ UserSignature::UserSignature(int n_first_line, int n_last_line, AbstractQoreNode
 }
 
 void UserSignature::pushParam(QoreTreeNode *t, bool needs_types) {
-   if (t->op != OP_ASSIGNMENT)
-      parse_error("invalid expression with the '%s' operator in parameter list; only simple assignments to default values are allowed", t->op->getName());
+   if (t->getOp() != OP_ASSIGNMENT)
+      parse_error("invalid expression with the '%s' operator in parameter list; only simple assignments to default values are allowed", t->getOp()->getName());
    else if (t->left && t->left->getType() != NT_VARREF)
       param_error();
    else {
@@ -189,7 +189,7 @@ void UserSignature::pushParam(VarRefNode *v, AbstractQoreNode *defArg, bool need
       parse_error(parse_file, first_line, last_line, "parameter '$%s' declared without type information, but parse options require all declarations to have type information", v->getName());
 
    // see if this is a new object call
-   if (v->hasEffect()) {
+   if (v->has_effect()) {
       // here we make 4 virtual function calls when 2 would be enough, but no need to optimize for speed for an exception
       parse_error(parse_file, first_line, last_line, "parameter '$%s' may not be declared with new object syntax; instead use: '%s $%s = new %s()'", v->getName(), v->getNewObjectClassName(), v->getName(), v->getNewObjectClassName());
    }
@@ -1386,7 +1386,7 @@ AbstractQoreNode *doPartialEval(AbstractQoreNode *n, bool *is_self_ref, Exceptio
       if (*xsink)
 	 return 0;
 
-      SimpleRefHolder<QoreTreeNode> t(new QoreTreeNode(doPartialEval(tree->left, is_self_ref, xsink), tree->op, nn ? nn.release() : nothing()));
+      SimpleRefHolder<QoreTreeNode> t(new QoreTreeNode(doPartialEval(tree->left, is_self_ref, xsink), tree->getOp(), nn ? nn.release() : nothing()));
       if (t->left)
 	 rv = t.release();
    }

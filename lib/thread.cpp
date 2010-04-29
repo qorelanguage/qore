@@ -545,7 +545,7 @@ public:
       }
       else if (fctype == NT_TREE) {
 	 QoreTreeNode *tree = reinterpret_cast<QoreTreeNode *>(fc);
-	 if (tree->op == OP_OBJECT_FUNC_REF) {
+	 if (tree->getOp() == OP_OBJECT_FUNC_REF) {
 	    // evaluate object
 	    QoreNodeEvalOptionalRefHolder n(tree->left, xsink);
 	    if (*xsink || is_nothing(*n))

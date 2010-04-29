@@ -3135,7 +3135,7 @@ AbstractQoreNode *Operator::parseInit(QoreTreeNode *tree, LocalVar *oflag, int p
    }
 
    if (!check_args)
-      return tree->defaultParseInit(oflag, pflag, lvids);
+      return tree->defaultParseInit(oflag, pflag, lvids, resultTypeInfo);
    
    return check_args(tree, oflag, pflag, lvids, resultTypeInfo, name, description);
 }
@@ -3442,7 +3442,7 @@ static inline void checkSelf(AbstractQoreNode *n, LocalVar *selfid) {
 
    // left must be variable reference, check if the tree is                                                                                                               
    // a list reference; if so, it's invalid                                                                                                                               
-   if (v->getType() == VT_LOCAL && v->ref.id == selfid  && tree->op == OP_LIST_REF)
+   if (v->getType() == VT_LOCAL && v->ref.id == selfid  && tree->getOp() == OP_LIST_REF)
       parse_error("illegal conversion of $self to a list");
 }
 
@@ -3587,7 +3587,7 @@ static AbstractQoreNode *check_op_object_func_ref(QoreTreeNode *tree, LocalVar *
    mc->parseSetClassAndMethod(typeInfo->qc, m);
 
    // check parameters, if any
-   lvids += mc->parseArgsFindVariant(oflag, pflag, m->getFunction(), returnTypeInfo);
+   lvids += mc->parseArgs(oflag, pflag, m->getFunction(), returnTypeInfo);
 
    printd(5, "check_op_object_func_ref() %s::%s() method=%p (%s::%s()) (private=%s, static=%s) rv=%s\n", typeInfo->qc->getName(), meth, m, m ? m->getClassName() : "n/a", meth, m && m->parseIsPrivate() ? "true" : "false", m->isStatic() ? "true" : "false", returnTypeInfo->getName());
 
@@ -3597,13 +3597,13 @@ static AbstractQoreNode *check_op_object_func_ref(QoreTreeNode *tree, LocalVar *
 // for logical operators that always return a boolean
 static AbstractQoreNode *check_op_logical(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo, const char *name, const char *desc) {
    returnTypeInfo = boolTypeInfo;
-   return tree->defaultParseInit(oflag, pflag, lvids);
+   return tree->defaultParseInit(oflag, pflag, lvids, returnTypeInfo);
 }
 
 // for operators that always return an integer
 static AbstractQoreNode *check_op_returns_integer(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo, const char *name, const char *desc) {
    returnTypeInfo = bigIntTypeInfo;
-   return tree->defaultParseInit(oflag, pflag, lvids);
+   return tree->defaultParseInit(oflag, pflag, lvids, returnTypeInfo);
 }
 
 static void check_lvalue_int(const QoreTypeInfo *&typeInfo, const char *name) {
@@ -3619,7 +3619,7 @@ static void check_lvalue_int(const QoreTypeInfo *&typeInfo, const char *name) {
 }
 
 static void check_lvalue_float(const QoreTypeInfo *&typeInfo, const char *name) {
-   // make sure the lvalue can take an integer value
+   // make sure the lvalue can take a floating-point value
    // note that QoreTypeInfo::parseEqual() can be called with this=0
    // raise a parse exception only if parse exceptions are not suppressed
    if (!floatTypeInfo->parseEqual(typeInfo) && getProgram()->getParseExceptionSink()) {
@@ -3667,6 +3667,9 @@ static AbstractQoreNode *check_op_minus(QoreTreeNode *tree, LocalVar *oflag, int
    const QoreTypeInfo *rightTypeInfo = 0;
    tree->rightParseInit(oflag, pflag, lvids, rightTypeInfo);
 
+   if (tree->constArgs())
+      return tree->evalSubst(returnTypeInfo);
+
    if (leftTypeInfo->hasType() || rightTypeInfo->hasType()) {
       if (leftTypeInfo->parseExactMatch(NT_DATE) 
 	  || rightTypeInfo->parseExactMatch(NT_DATE))
@@ -3697,6 +3700,9 @@ static AbstractQoreNode *check_op_plus(QoreTreeNode *tree, LocalVar *oflag, int 
 
    const QoreTypeInfo *rightTypeInfo = 0;
    tree->rightParseInit(oflag, pflag, lvids, rightTypeInfo);
+
+   if (tree->constArgs())
+      return tree->evalSubst(returnTypeInfo);
 
    if (leftTypeInfo->hasType() || rightTypeInfo->hasType()) {
       if (leftTypeInfo->parseExactMatch(NT_LIST) 
@@ -3745,6 +3751,9 @@ static AbstractQoreNode *check_op_multiply(QoreTreeNode *tree, LocalVar *oflag, 
 
    const QoreTypeInfo *rightTypeInfo = 0;
    tree->rightParseInit(oflag, pflag, lvids, rightTypeInfo);
+
+   if (tree->constArgs())
+      return tree->evalSubst(returnTypeInfo);
 
    if (leftTypeInfo->parseExactMatch(NT_FLOAT) || rightTypeInfo->parseExactMatch(NT_FLOAT))
       returnTypeInfo = floatTypeInfo;
@@ -3841,6 +3850,9 @@ static AbstractQoreNode *check_op_list_ref(QoreTreeNode *tree, LocalVar *oflag, 
    const QoreTypeInfo *rightTypeInfo = 0;
    tree->rightParseInit(oflag, pflag, lvids, rightTypeInfo);
 
+   if (tree->constArgs())
+      return tree->evalSubst(returnTypeInfo);
+
    if (leftTypeInfo->hasType()) {
       // if we are trying to convert to a list
       if (pflag & PF_FOR_ASSIGNMENT) {
@@ -3933,6 +3945,9 @@ static AbstractQoreNode *check_op_keys(QoreTreeNode *tree, LocalVar *oflag, int 
    const QoreTypeInfo *rightTypeInfo = 0;
    tree->rightParseInit(oflag, pflag, lvids, rightTypeInfo);
 
+   if (tree->constArgs())
+      return tree->evalSubst(returnTypeInfo);
+
    if (leftTypeInfo->hasType()
        && !hashTypeInfo->parseEqual(leftTypeInfo)
        && !objectTypeInfo->parseEqual(leftTypeInfo)) {
@@ -3951,6 +3966,9 @@ static AbstractQoreNode *check_op_question_mark(QoreTreeNode *tree, LocalVar *of
 
    const QoreTypeInfo *rightTypeInfo = 0;
    tree->rightParseInit(oflag, pflag, lvids, rightTypeInfo);
+
+   if (tree->constArgs())
+      return tree->evalSubst(returnTypeInfo);
 
    if (leftTypeInfo->hasType() && 
        (hashTypeInfo->parseEqual(leftTypeInfo)

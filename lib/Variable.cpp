@@ -388,7 +388,7 @@ AbstractQoreNode **get_var_value_ptr(const AbstractQoreNode *n, AutoVLock *vlp, 
 
    // it must be a tree
    const QoreTreeNode *tree = reinterpret_cast<const QoreTreeNode *>(n);
-   if (tree->op == OP_LIST_REF)
+   if (tree->getOp() == OP_LIST_REF)
       return do_list_val_ptr(tree, vlp, xsink);
    return do_object_val_ptr(tree, vlp, typeInfo, xsink);
 }
@@ -411,7 +411,7 @@ AbstractQoreNode *getNoEvalVarValue(AbstractQoreNode *n, AutoVLock *vl, Exceptio
       return 0;
 
    // if it's a list reference
-   if (tree->op == OP_LIST_REF) {
+   if (tree->getOp() == OP_LIST_REF) {
       if (val->getType() != NT_LIST)
 	 return 0;
       // if it's not a list then return 0
@@ -460,13 +460,13 @@ AbstractQoreNode *getExistingVarValue(const AbstractQoreNode *n, ExceptionSink *
 
    // it's a variable reference tree
    const QoreTreeNode *tree = ntype == NT_TREE ? reinterpret_cast<const QoreTreeNode *>(n) : 0;
-   if (tree && (tree->op == OP_LIST_REF || tree->op == OP_OBJECT_REF)) {
+   if (tree && (tree->getOp() == OP_LIST_REF || tree->getOp() == OP_OBJECT_REF)) {
       AbstractQoreNode *val = getExistingVarValue(tree->left, xsink, vl, pt);
       if (!val)
 	 return 0;
 
       // if it's a list reference
-      if (tree->op == OP_LIST_REF) {
+      if (tree->getOp() == OP_LIST_REF) {
 	 // if it's not a list then return 0
 	 if (val->getType() != NT_LIST)
 	    return 0;
@@ -476,7 +476,7 @@ AbstractQoreNode *getExistingVarValue(const AbstractQoreNode *n, ExceptionSink *
       }
       
       // if it's an object reference
-      if (tree->op == OP_OBJECT_REF) {
+      if (tree->getOp() == OP_OBJECT_REF) {
 	 QoreHashNode *h = val->getType() == NT_HASH ? reinterpret_cast<QoreHashNode *>(val) : 0;
 	 QoreObject *o;
 	 if (!h)
@@ -538,14 +538,14 @@ static AbstractQoreNode **getUniqueExistingVarValuePtr(AbstractQoreNode *n, Exce
    // it's a variable reference tree
    QoreTreeNode *tree = ntype == NT_TREE ? reinterpret_cast<QoreTreeNode *>(n) : 0;
 
-   assert(tree && (tree->op == OP_LIST_REF || tree->op == OP_OBJECT_REF));
+   assert(tree && (tree->getOp() == OP_LIST_REF || tree->getOp() == OP_OBJECT_REF));
 
    AbstractQoreNode **val = getUniqueExistingVarValuePtr(tree->left, xsink, vl);
    if (!val || !(*val))
       return 0;
 
    // if it's a list reference
-   if (tree->op == OP_LIST_REF) {
+   if (tree->getOp() == OP_LIST_REF) {
       if ((*val)->getType() != NT_LIST)  // if it's not a list then return 0
 	 return 0;
       // otherwise return value
@@ -609,7 +609,7 @@ AbstractQoreNode *remove_lvalue(AbstractQoreNode *lvalue, ExceptionSink *xsink) 
    // can be only a list or object (hash) reference
 
    // if it's a list reference, see if the reference exists, if so, then remove it
-   if (tree->op == OP_LIST_REF) {
+   if (tree->getOp() == OP_LIST_REF) {
       int offset = tree->right->integerEval(xsink);
       if (*xsink)
 	 return 0;
@@ -624,7 +624,7 @@ AbstractQoreNode *remove_lvalue(AbstractQoreNode *lvalue, ExceptionSink *xsink) 
       // delete the value if it exists
       return l->swap(offset, 0);
    }
-   assert(tree->op == OP_OBJECT_REF);
+   assert(tree->getOp() == OP_OBJECT_REF);
 
    // get the member name
    QoreNodeEvalOptionalRefHolder member(tree->right, xsink);
@@ -712,7 +712,7 @@ void delete_lvalue(AbstractQoreNode *lvalue, ExceptionSink *xsink) {
    // otherwise it is a list or object (hash) reference
 
    // if it's a list reference, see if the reference exists, if so, then delete it;
-   if (tree->op == OP_LIST_REF) {
+   if (tree->getOp() == OP_LIST_REF) {
       int offset = tree->right->integerEval(xsink);
       if (*xsink)
 	 return;
@@ -728,7 +728,7 @@ void delete_lvalue(AbstractQoreNode *lvalue, ExceptionSink *xsink) {
       l->delete_entry(offset, xsink);
       return;
    }
-   assert(tree->op == OP_OBJECT_REF);
+   assert(tree->getOp() == OP_OBJECT_REF);
 
    // get the member name
    QoreNodeEvalOptionalRefHolder member(tree->right, xsink);

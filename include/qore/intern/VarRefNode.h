@@ -65,10 +65,10 @@ public:
    } ref;
 
    // takes over memory for "n"
-   DLLLOCAL VarRefNode(char *n, qore_var_t t) : ParseNode(NT_VARREF), name(n), type(t), new_decl(t == VT_LOCAL) {
+   DLLLOCAL VarRefNode(char *n, qore_var_t t, bool n_has_effect = false) : ParseNode(NT_VARREF, true, n_has_effect, false), name(n), type(t), new_decl(t == VT_LOCAL) {
       assert(type != VT_GLOBAL);
    }
-   DLLLOCAL VarRefNode(char *n, Var *n_var) : ParseNode(NT_VARREF), name(n), type(VT_GLOBAL), new_decl(true) {      
+   DLLLOCAL VarRefNode(char *n, Var *n_var, bool n_has_effect = false) : ParseNode(NT_VARREF, true, n_has_effect, false), name(n), type(VT_GLOBAL), new_decl(true) {      
       ref.var = n_var;
    }
    
@@ -83,10 +83,6 @@ public:
 
    DLLLOCAL virtual bool stayInTree() const {
       return !(type == VT_GLOBAL);
-   }
-
-   DLLLOCAL virtual bool hasEffect() const {
-      return false;
    }
 
    DLLLOCAL virtual bool isDecl() const { return false; }
@@ -130,7 +126,7 @@ protected:
    QoreParseTypeInfo *parseTypeInfo;
    const QoreTypeInfo *typeInfo;
 
-   DLLLOCAL VarRefDeclNode(char *n, qore_var_t t, const QoreTypeInfo *n_typeInfo, QoreParseTypeInfo *n_parseTypeInfo) : VarRefNode(n, t), parseTypeInfo(n_parseTypeInfo), typeInfo(n_typeInfo) {
+   DLLLOCAL VarRefDeclNode(char *n, qore_var_t t, const QoreTypeInfo *n_typeInfo, QoreParseTypeInfo *n_parseTypeInfo, bool n_has_effect) : VarRefNode(n, t, n_has_effect), parseTypeInfo(n_parseTypeInfo), typeInfo(n_typeInfo) {
       //printd(5, "VarRefDeclNode::VarRefDeclNode() typeInfo=%p %s type=%d (%s)\n", typeInfo, n, n_qt, getBuiltinTypeName(n_qt));
    }
 
@@ -201,17 +197,13 @@ protected:
    DLLLOCAL AbstractQoreNode *evalImpl(bool &needs_deref, ExceptionSink *xsink) const;
    
 public:
-   DLLLOCAL LocalVarRefNewObjectNode(char *n, const QoreTypeInfo *n_typeInfo, QoreParseTypeInfo *n_parseTypeInfo, QoreListNode *n_args) : VarRefDeclNode(n, VT_LOCAL, n_typeInfo, n_parseTypeInfo), VarRefFunctionCallBase(n_args) {
+   DLLLOCAL LocalVarRefNewObjectNode(char *n, const QoreTypeInfo *n_typeInfo, QoreParseTypeInfo *n_parseTypeInfo, QoreListNode *n_args) : VarRefDeclNode(n, VT_LOCAL, n_typeInfo, n_parseTypeInfo, true), VarRefFunctionCallBase(n_args) {
    }
    /*
    DLLLOCAL virtual ~LocalVarRefNewObjectNode() {
       //printd(0, "VarRefNewObjectNode::~VarRefNewObjectNode() this=%p (%s)\n", this, getName());
    }
    */
-
-   DLLLOCAL virtual bool hasEffect() const {
-      return true;
-   }
 
    DLLLOCAL virtual bool stayInTree() const {
       return true;
@@ -241,11 +233,7 @@ protected:
 
 public:
    // for making a reference to a global variable
-   DLLLOCAL GlobalVarRefNewObjectNode(char *n, Var *var, QoreListNode *n_args) : VarRefNode(n, var), VarRefFunctionCallBase(n_args) {
-   }
-
-   DLLLOCAL virtual bool hasEffect() const {
-      return true;
+   DLLLOCAL GlobalVarRefNewObjectNode(char *n, Var *var, QoreListNode *n_args) : VarRefNode(n, var, true), VarRefFunctionCallBase(n_args) {
    }
 
    DLLLOCAL virtual bool stayInTree() const {

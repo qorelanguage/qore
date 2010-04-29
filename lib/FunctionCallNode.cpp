@@ -53,7 +53,7 @@ static void check_flags(AbstractQoreFunction *func, int64 flags, int64 pflag) {
       warn_deprecated(func);
 }
 
-int FunctionCallBase::parseArgsFindVariant(LocalVar *oflag, int pflag, AbstractQoreFunction *func, const QoreTypeInfo *&returnTypeInfo) {
+int FunctionCallBase::parseArgsVariant(LocalVar *oflag, int pflag, AbstractQoreFunction *func, const QoreTypeInfo *&returnTypeInfo) {
    // number of local variables declared in arguments
    int lvids = 0;
 
@@ -78,7 +78,7 @@ int FunctionCallBase::parseArgsFindVariant(LocalVar *oflag, int pflag, AbstractQ
 	 AbstractQoreNode **n = args->get_entry_ptr(i);
 	 assert(*n);
 	 argTypeInfo.push_back(0);
-	 //printd(5, "FunctionCallBase::parseArgsFindVariant() this=%p (%s) oflag=%p pflag=%d func=%p i=%d/%d arg=%p (%d %s)\n", this, func ? func->getName() : "n/a", oflag, pflag, func, i, num_args, *n, (*n)->getType(), (*n)->getTypeName());
+	 //printd(5, "FunctionCallBase::parseArgsVariant() this=%p (%s) oflag=%p pflag=%d func=%p i=%d/%d arg=%p (%d %s)\n", this, func ? func->getName() : "n/a", oflag, pflag, func, i, num_args, *n, (*n)->getType(), (*n)->getTypeName());
 	 if ((*n)->getType() == NT_REFERENCE)
 	    (*n) = (*n)->parseInit(oflag, n_pflag | PF_REFERENCE_OK, lvids, argTypeInfo[i]);
 	 else
@@ -101,10 +101,10 @@ int FunctionCallBase::parseArgsFindVariant(LocalVar *oflag, int pflag, AbstractQ
 
    int64 po = getProgram()->getParseOptions64();
 
-   //printd(5, "FunctionCallBase::parseArgsFindVariant() this=%p po=%lld, ign=%d\n", this, po, pflag & PF_RETURN_VALUE_IGNORED);
+   //printd(5, "FunctionCallBase::parseArgsVariant() this=%p po=%lld, ign=%d\n", this, po, pflag & PF_RETURN_VALUE_IGNORED);
 
    if (variant) {
-      //printd(5, "FunctionCallBase::parseArgsFindVariant() this=%p variant=%p f=%lld (%lld) c=%lld (%lld)\n", this, variant, variant->getFunctionality(), variant->getFunctionality() & po, variant->getFlags(), variant->getFlags() & QC_RET_VALUE_ONLY);
+      //printd(5, "FunctionCallBase::parseArgsVariant() this=%p variant=%p f=%lld (%lld) c=%lld (%lld)\n", this, variant, variant->getFunctionality(), variant->getFunctionality() & po, variant->getFlags(), variant->getFlags() & QC_RET_VALUE_ONLY);
 
       if (variant->getFunctionality() & po)
 	 invalid_access(func);
@@ -115,7 +115,7 @@ int FunctionCallBase::parseArgsFindVariant(LocalVar *oflag, int pflag, AbstractQ
 	 warn_excess_args(func, num_args, sig);
    }
    else if (func) {
-      //printd(5, "FunctionCallBase::parseArgsFindVariant() this=%p func=%p f=%lld (%lld) c=%lld (%lld)\n", this, func, func->getUniqueFunctionality(), func->getUniqueFunctionality() & po, func->getUniqueFlags(), func->getUniqueFlags() & QC_RET_VALUE_ONLY);
+      //printd(5, "FunctionCallBase::parseArgsVariant() this=%p func=%p f=%lld (%lld) c=%lld (%lld)\n", this, func, func->getUniqueFunctionality(), func->getUniqueFunctionality() & po, func->getUniqueFlags(), func->getUniqueFlags() & QC_RET_VALUE_ONLY);
 
       if (func->getUniqueFunctionality() & po)
 	 invalid_access(func);
@@ -195,7 +195,7 @@ AbstractQoreNode *SelfFunctionCallNode::parseInit(LocalVar *oflag, int pflag, in
    else
       method = getParseClass()->parseResolveSelfMethod(ns);
 
-   lvids += parseArgsFindVariant(oflag, pflag, method ? method->getFunction() : 0, returnTypeInfo);
+   lvids += parseArgs(oflag, pflag, method ? method->getFunction() : 0, returnTypeInfo);
 
    if (method) {
       printd(5, "SelfFunctionCallNode::parseInit() this=%p resolved '%s' to %p\n", this, method->getName(), method);
@@ -293,7 +293,7 @@ AbstractQoreNode *FunctionCallNode::parseInit(LocalVar *oflag, int pflag, int &l
    if (!func)
       return this;
 
-   lvids += parseArgsFindVariant(oflag, pflag, const_cast<AbstractQoreFunction *>(func), returnTypeInfo);
+   lvids += parseArgs(oflag, pflag, const_cast<AbstractQoreFunction *>(func), returnTypeInfo);
 
    return this;
 }
@@ -315,7 +315,7 @@ AbstractQoreNode *ScopedObjectCallNode::parseInit(LocalVar *oflag, int pflag, in
 #endif
 
    const QoreMethod *constructor = oc ? oc->parseGetConstructor() : 0;
-   lvids += parseArgsFindVariant(oflag, pflag, constructor ? constructor->getFunction() : 0, typeInfo);
+   lvids += parseArgs(oflag, pflag, constructor ? constructor->getFunction() : 0, typeInfo);
 
    if (oc) {
       typeInfo = oc->getTypeInfo();

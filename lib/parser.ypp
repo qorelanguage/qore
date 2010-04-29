@@ -110,6 +110,7 @@ static AbstractQoreNode *makeTree(Operator *op, AbstractQoreNode *left, Abstract
       return n_node ? n_node : nothing();
    }
 */
+
    // otherwise, put nodes and operator into tree for runtime evaluation
    return new QoreTreeNode(left, op, right);
 }
@@ -205,7 +206,7 @@ static void addNSNode(class QoreNamespace *ns, struct NSNode *n) {
 }
 
 static QoreListNode *make_list(AbstractQoreNode *a1, AbstractQoreNode *a2) {
-   QoreListNode *l = new QoreListNode(true);
+   QoreListNode *l = new QoreListNode;
    l->push(a1);
    l->push(a2);
    return l;
@@ -353,7 +354,7 @@ static int check_lvalue(AbstractQoreNode *node) {
 
    if (ntype == NT_TREE) {
       QoreTreeNode *t = reinterpret_cast<QoreTreeNode *>(node);
-      if (t->op == OP_LIST_REF || t->op == OP_OBJECT_REF)
+      if (t->getOp() == OP_LIST_REF || t->getOp() == OP_OBJECT_REF)
 	 return check_lvalue(t->left);
       else
 	 return -1;
@@ -375,7 +376,7 @@ static inline int check_vars(AbstractQoreNode *n) {
 }
 
 // returns true if the node needs run-time evaluation, false if not
-bool needsEval(AbstractQoreNode *n) {
+static bool needsEval(AbstractQoreNode *n) {
    if (!n)
       return false;
 
@@ -416,7 +417,7 @@ bool needsEval(AbstractQoreNode *n) {
 
       if (needsEval(tree->left) || (tree->right && needsEval(tree->right)))
 	 return true;
-      return tree->op->hasEffect();
+      return tree->getOp()->hasEffect();
    }
 
    //printd(5, "needsEval() type %s = true\n", n->getTypeName());
@@ -424,7 +425,16 @@ bool needsEval(AbstractQoreNode *n) {
    return !n->is_value();
 }
 
-int check_case(const char *op, AbstractQoreNode *exp) {
+static void const_ok(AbstractQoreNode *v) {
+   if (v && v->getType() == NT_FUNCREF)
+      parse_error("constants may not be assigned to call references");
+   /*
+   else if (needsEval(v))
+     parse_error("constant expression needs run-time evaluation");
+   */
+}
+
+static int check_case(const char *op, AbstractQoreNode *exp) {
    // ignore if NULL (= NOTHING)
    if (exp && needsEval(exp)) {
       if (op)
@@ -436,6 +446,15 @@ int check_case(const char *op, AbstractQoreNode *exp) {
    return 0;
 }
 
+static bool hasEffect(AbstractQoreNode *n) {
+   if (!n || n->is_value())
+      return false;
+
+   ParseNode *pn = dynamic_cast<ParseNode *>(n);
+   return pn ? pn->has_effect() : true;
+}
+
+/*
 static bool hasEffect(AbstractQoreNode *n) {
    // check for expressions with no effect
    qore_type_t ntype = n->getType();
@@ -456,6 +475,7 @@ static bool hasEffect(AbstractQoreNode *n) {
    //printd(5, "hasEffect() node %08p type=%s\n", n, n->getTypeName());
    return false;
 }
+*/
 
 #define OFM_PRIVATE 1
 #define OFM_SYNCED  2
@@ -569,10 +589,10 @@ static AbstractQoreNode *checkRewriteList(QoreListNode *l) {
    if (!l->isFinalized() && e0 && e0->getType() == NT_TREE) {
       QoreTreeNode *t = reinterpret_cast<QoreTreeNode *>(e0);
       QoreTreeNode *top = t;
-      if (is_rewritable_op(t->op)) {
+      if (is_rewritable_op(t->getOp())) {
 	 //printd(5, "checkRewriteList() rewriting list l=%p finalized=%d size=%d\n", l, l->isFinalized(), l->size());
 	 while (t->right && t->right->getType() == NT_TREE
-		&& is_rewritable_op(reinterpret_cast<QoreTreeNode *>(t->right)->op)) {
+		&& is_rewritable_op(reinterpret_cast<QoreTreeNode *>(t->right)->getOp())) {
 	    t = reinterpret_cast<QoreTreeNode *>(t->right);
 	 }
 	 // take first element from list (the tree) and make it the new expression
@@ -949,24 +969,14 @@ namespace_decl:
 
 unscoped_const_decl: 
 	TOK_CONST IDENTIFIER '=' exp ';' { 
-	   if ($4 && $4->getType() == NT_FUNCREF)
-	      parse_error("constants may not be assigned to call references");
-	   /*
-	   else if (needsEval($4))
-	      parse_error("constant expression needs run-time evaluation");
-	   */
+	   const_ok($4);
 	   $$ = new ConstNode($2, $4); 
 	}
         ;
 
 scoped_const_decl:
 	TOK_CONST SCOPED_REF '=' exp ';' {
-	   if ($4 && $4->getType() == NT_FUNCREF)
-	      parse_error("constants may not be assigned to call references");
-	   /*
-	   else if (needsEval($4))
-	      parse_error("constant expression needs run-time evaluation");
-	   */
+	   const_ok($4);
 	   $$ = new ConstNode($2, $4); 
 	}
         ;
@@ -1603,7 +1613,7 @@ list:
 	   if ($1 && $1->getType() == NT_LIST) 
 	      l = reinterpret_cast<QoreListNode *>($1);
 	   else {
-	      l = new QoreListNode();
+	      l = new QoreListNode;
 	      l->push($1);
 	      // parse_error("problem in parsing ',' in list: left side of comma is not a list (type: '%s')", $1 ? $1->getTypeName() : "NOTHING");
 	      // so we don't insert null values in the parse tree
@@ -1615,7 +1625,7 @@ list:
 
 hash:
         hash_element {
-	   $$ = new QoreHashNode(true);
+	   $$ = new QoreHashNode;
 	   $$->setKeyValue($1->key, $1->value, 0);
 	   delete $1;
 	}
@@ -2143,7 +2153,7 @@ exp:    scalar
 	      
 	      if (t == NT_TREE) {
 		 tree = reinterpret_cast<QoreTreeNode *>($1);
-		 if (!(tree->op == OP_OBJECT_REF && tree->right && tree->right->getType() == NT_STRING))
+		 if (!(tree->getOp() == OP_OBJECT_REF && tree->right && tree->right->getType() == NT_STRING))
 		    tree = 0;
 	      }
 	      else
@@ -2160,7 +2170,7 @@ exp:    scalar
 
 		 MethodCallNode *mc = new MethodCallNode(cstr, makeArgs($3));
 		 tree->right = mc;
-		 tree->op = OP_OBJECT_FUNC_REF;
+		 tree->setOp(OP_OBJECT_FUNC_REF);
 		 $$ = $1;
 	      }
 	      else {
@@ -2289,7 +2299,7 @@ exp:    scalar
 
 	      if (t == NT_TREE) {
 		 QoreTreeNode *tree = reinterpret_cast<QoreTreeNode *>($2);
-		 if (tree->op == OP_OBJECT_FUNC_REF) {
+		 if (tree->getOp() == OP_OBJECT_FUNC_REF) {
 		    assert(tree->right->getType() == NT_METHOD_CALL);
 		    MethodCallNode *m = reinterpret_cast<MethodCallNode *>(tree->right);
 		    if (m->getArgs()) {

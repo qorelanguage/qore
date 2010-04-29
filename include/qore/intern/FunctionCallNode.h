@@ -40,7 +40,7 @@ public:
 	 args->deref(0);
    }
    DLLLOCAL const QoreListNode *getArgs() const { return args; }
-   DLLLOCAL int parseArgsFindVariant(LocalVar *oflag, int pflag, AbstractQoreFunction *func, const QoreTypeInfo *&returnTypeInfo);
+   DLLLOCAL int parseArgsVariant(LocalVar *oflag, int pflag, AbstractQoreFunction *func, const QoreTypeInfo *&returnTypeInfo);
    DLLLOCAL const AbstractQoreFunctionVariant *getVariant() const {
       return variant;
    }
@@ -57,6 +57,13 @@ protected:
    DLLLOCAL virtual bool boolEvalImpl(ExceptionSink *xsink) const;
    DLLLOCAL virtual double floatEvalImpl(ExceptionSink *xsink) const;
 
+   DLLLOCAL void doFlags(int64 flags) {
+      if (flags & QC_RET_VALUE_ONLY)
+         set_effect(false);
+      if (flags & QC_CONSTANT)
+         set_const_ok(true);
+   }
+
 public:
    DLLLOCAL AbstractFunctionCallNode(qore_type_t t, QoreListNode *n_args, bool needs_eval = true) : ParseNode(t, needs_eval), FunctionCallBase(n_args) {}
    DLLLOCAL virtual ~AbstractFunctionCallNode() {
@@ -66,6 +73,16 @@ public:
 	 args->deref(&xsink);
 	 args = 0;
       }
+   }
+
+   DLLLOCAL int parseArgs(LocalVar *oflag, int pflag, AbstractQoreFunction *func, const QoreTypeInfo *&returnTypeInfo) {
+      int lvids = parseArgsVariant(oflag, pflag, func, returnTypeInfo);
+      // clear "effect" flag if possible, only if QC_CONSTANT is set on the variant or function
+      if (variant)
+         doFlags(variant->getFlags());
+      else if (func)
+         doFlags(func->getUniqueFlags());
+      return lvids;
    }
 
    DLLLOCAL virtual const char *getName() const = 0;
@@ -224,7 +241,7 @@ public:
    // note that the class and method are set in Operator.cpp:check_op_object_func_ref()
    DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
       typeInfo = 0;
-      lvids += parseArgsFindVariant(oflag, pflag, 0, typeInfo);
+      lvids += parseArgs(oflag, pflag, 0, typeInfo);
       return this;
    }
 
@@ -336,7 +353,7 @@ public:
 	 return this;
       }
 
-      lvids += parseArgsFindVariant(oflag, pflag, method->getFunction(), typeInfo);
+      lvids += parseArgs(oflag, pflag, method->getFunction(), typeInfo);
       return this;
    }
 

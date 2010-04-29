@@ -22,11 +22,8 @@
 
 #include <qore/Qore.h>
 
-QoreTreeNode::QoreTreeNode(AbstractQoreNode *l, Operator *o, AbstractQoreNode *r) : ParseNode(NT_TREE) {
-   left = l;
-   op = o;
-   right = r;
-   ref_rv = true;
+QoreTreeNode::QoreTreeNode(AbstractQoreNode *l, Operator *o, AbstractQoreNode *r) : ParseNode(NT_TREE, true, o->hasEffect()), op(o), left(l), right(r) {
+   //printd(5, "QoreTreeNode::QoreTreeNode() this=%p left=%p (%s) right=%p (%s) op=%s has_effect=%d\n", this, left, get_type_name(left), right, get_type_name(right), op->getDescription(), has_effect());
 }
 
 QoreTreeNode::~QoreTreeNode() {
@@ -44,7 +41,7 @@ void QoreTreeNode::ignoreReturnValue() {
    else if (op == OP_POST_DECREMENT)
       op = OP_PRE_DECREMENT;
       
-   ref_rv = false;
+   ignore_rv();
 }
 
 // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
@@ -54,14 +51,13 @@ void QoreTreeNode::ignoreReturnValue() {
 // FIXME: no deep effect - or is this ever needed?
 int QoreTreeNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {
    str.sprintf("tree (left=%s (%p) op=%s right=%s (%p))", get_type_name(left), left, op->getName(), get_type_name(right), right);
-
    return 0;
 }
 
 // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
 QoreString *QoreTreeNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const {
    del = true;
-   QoreString *rv = new QoreString();
+   QoreString *rv = new QoreString;
    getAsString(*rv, foff, xsink);
    return rv;
 }
@@ -73,12 +69,12 @@ const char *QoreTreeNode::getTypeName() const {
 
 // eval(): return value requires a deref(xsink)
 AbstractQoreNode *QoreTreeNode::evalImpl(ExceptionSink *xsink) const {
-   return op->eval(left, right, ref_rv, xsink);
+   return op->eval(left, right, need_rv(), xsink);
 }
 
 AbstractQoreNode *QoreTreeNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
    needs_deref = true;
-   return op->eval(left, right, ref_rv, xsink);
+   return op->eval(left, right, need_rv(), xsink);
 }
 
 int64 QoreTreeNode::bigIntEvalImpl(ExceptionSink *xsink) const {

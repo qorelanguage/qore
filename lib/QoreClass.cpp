@@ -1303,7 +1303,7 @@ void BCANode::parseInit(BCList *bcl, const char *classname) {
 	 int lvids = 0;
 	 const QoreTypeInfo *argTypeInfo;	 
 	 if (m) {
-	    lvids = parseArgsFindVariant(0, 0, m->getFunction(), argTypeInfo);
+	    lvids = parseArgsVariant(0, 0, m->getFunction(), argTypeInfo);
 	 }
 	 else {
 	    if (args)

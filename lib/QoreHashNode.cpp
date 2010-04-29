@@ -311,7 +311,7 @@ void QoreHashNode::setKeyValue(const QoreString *key, AbstractQoreNode *val, Exc
 
 void QoreHashNode::setKeyValue(const char *key, AbstractQoreNode *val, ExceptionSink *xsink) {
    AbstractQoreNode **v = priv->getKeyValuePtr(key);
-   //printd(5, "QoreHashNode::setKeyValue(%s, %08p) v=%08p *v=%08p\n", key, val, v, *v);
+   //printd(5, "QoreHashNode::setKeyValue(%s, %p) v=%p *v=%p\n", key, val, v, *v);
    if (*v)
       (*v)->deref(xsink);
    *v = val;
@@ -327,7 +327,7 @@ AbstractQoreNode *QoreHashNode::swapKeyValue(const QoreString *key, AbstractQore
 
 AbstractQoreNode *QoreHashNode::swapKeyValue(const char *key, AbstractQoreNode *val) {
    AbstractQoreNode **v = priv->getKeyValuePtr(key);
-   //printd(5, "QoreHashNode::setKeyValue(%s, %08p) v=%08p *v=%08p\n", key, val, v, *v);
+   //printd(5, "QoreHashNode::setKeyValue(%s, %p) v=%p *v=%p\n", key, val, v, *v);
    AbstractQoreNode *rv = *v;
    *v = val;
    return rv;
@@ -596,12 +596,12 @@ AbstractQoreNode **QoreHashNode::getExistingValuePtr(const char *key)
 
 bool QoreHashNode::derefImpl(ExceptionSink *xsink)
 {
-   //printd(5, "QoreHashNode::derefImpl() this=%08p priv->member_list=%08p\n", this, priv->member_list);
+   //printd(5, "QoreHashNode::derefImpl() this=%p priv->member_list=%p\n", this, priv->member_list);
    class HashMember *where = priv->member_list;
    while (where)
    {
 #if 0
-      printd(5, "QoreHashNode::derefImpl() this=%08p %s=%08p type=%s references=%d\n", this,
+      printd(5, "QoreHashNode::derefImpl() this=%p %s=%p type=%s references=%d\n", this,
 	     where->key ? where->key : "(null)",
 	     where->node, where->node ? where->node->getTypeName() : "(null)",
 	     where->node ? where->node->reference_count() : 0);
@@ -822,9 +822,12 @@ AbstractQoreNode *QoreHashNode::parseInit(LocalVar *oflag, int pflag, int &lvids
 
       if (value && *value) {
 	 const QoreTypeInfo *argTypeInfo = 0;
+
+	 //printd(5, "checking hash %p key '%s' val=%p (%s)\n", this, k, *value, get_type_name(*value));
+
 	 (*value) = (*value)->parseInit(oflag, pflag & ~PF_REFERENCE_OK, lvids, argTypeInfo);
 	 if (!needs_eval_flag && *value && (*value)->needs_eval()) {
-	    //printd(5, "setting needs_eval on hash %08p\n", this);
+	    //printd(5, "setting needs_eval on hash %p key '%s' val=%p (%s)\n", this, k, *value, get_type_name(*value));
 	    setNeedsEval();
 	 }
       }

@@ -80,6 +80,26 @@ AbstractQoreNode *QoreUnaryMinusOperatorNode::parseInit(LocalVar *oflag, int pfl
    if (exp) {
       exp = exp->parseInit(oflag, pflag & ~PF_REFERENCE_OK, lvids, typeInfo);
 
+      // evaluate immediately if possible
+      if (exp->is_value()) {
+	 SimpleRefHolder<QoreUnaryMinusOperatorNode> th(this);
+
+	 qore_type_t t = exp->getType();
+	 if (t == NT_INT)
+	    return new QoreBigIntNode(-reinterpret_cast<const QoreBigIntNode *>(exp)->val);
+	 if (t == NT_FLOAT)
+	    return new QoreFloatNode(-reinterpret_cast<const QoreFloatNode *>(exp)->f);
+	 if (t == NT_DATE)
+	    return reinterpret_cast<const DateTimeNode *>(exp)->unaryMinus();
+
+	 th.release();	 
+      }
+
+      ParseNode *pn = dynamic_cast<ParseNode *>(exp);
+      if (pn) {
+	 set_const_ok(pn->is_const_ok());
+      }
+
       if (typeInfo->hasType()) {
 	 if (typeInfo->parseExactMatch(NT_FLOAT))
 	    typeInfo = floatTypeInfo;
@@ -87,7 +107,7 @@ AbstractQoreNode *QoreUnaryMinusOperatorNode::parseInit(LocalVar *oflag, int pfl
 	    typeInfo = dateTypeInfo;
 	 else
 	    typeInfo = bigIntTypeInfo;
-	 // FIXME add invalid operation warning for types that can't convert to int
+	 // FIXME: add invalid operation warning for types that can't convert to int
       }
    }
    else

@@ -637,6 +637,9 @@ class Operator {
       DLLLOCAL bool needsLValue() const {
 	 return lvalue;
       }
+      DLLLOCAL int numArgs() const {
+         return args;
+      }
       DLLLOCAL void addFunction(op_bool_str_str_func_t f) {
 	 functions.push_back(new BoolStrStrOperatorFunction(f));
       }

@@ -28,7 +28,7 @@ ExpressionStatement::ExpressionStatement(int start_line, int end_line, AbstractQ
    if (exp->getType() == NT_VARREF) {
       VarRefNode *vr = reinterpret_cast<VarRefNode *>(exp);
       // used by QoreProgram to detect invalid top-level statements
-      is_declaration = !vr->hasEffect();
+      is_declaration = !vr->has_effect();
       // used in parsing to eliminate noops from the parse tree
       is_parse_declaration = !vr->stayInTree();
       return;
