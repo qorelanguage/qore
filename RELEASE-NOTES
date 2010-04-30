@@ -26,6 +26,9 @@ getgrname2()
 readlink()
 is_date_relative(date) returns bool
 is_date_absolute(date) returns bool
+get_duration_seconds(date) returns int
+get_duration_milliseconds(date) returns int
+get_duration_microseconds(date) returns int
 
 * cast<> operator
 

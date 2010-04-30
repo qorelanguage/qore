@@ -310,16 +310,22 @@ public:
    DLLEXPORT int getMicrosecond() const;
 
    //! returns the difference as the number of seconds between the date/time value and the local time at the moment of the call
-   /**
-      @return the difference as the number of seconds between the date/time value and the local time at the moment of the call
+   /** if the object is a relative date/time value, then the duration is converted to seconds and returned as an integer
+       @return the difference as the number of seconds between the date/time value and the local time at the moment of the call
    */
    DLLEXPORT int64 getRelativeSeconds() const;
 
    //! returns the difference as the number of milliseconds between the date/time value and the local time at the moment of the call
-   /**
-      @return the difference as the number of milliseconds between the date/time value and the local time at the moment of the call
+   /** if the object is a relative date/time value, then the duration is converted to milliseconds and returned as an integer
+       @return the difference as the number of milliseconds between the date/time value and the local time at the moment of the call
    */
    DLLEXPORT int64 getRelativeMilliseconds() const;
+
+   //! returns the difference as the number of microseconds between the date/time value and the local time at the moment of the call
+   /** if the object is a relative date/time value, then the duration is converted to microseconds and returned as an integer
+       @return the difference as the number of microseconds between the date/time value and the local time at the moment of the call
+   */
+   DLLEXPORT int64 getRelativeMicroseconds() const;
 
    //! returns true if the object has a value, false if not (zero value = 1970-01-01Z for absolute times, or all relative components = 0)
    DLLEXPORT bool hasValue() const;
