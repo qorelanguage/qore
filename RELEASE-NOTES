@@ -15,6 +15,18 @@ Dates given without a time zone portion are assumed to be in local time
 * date/time values have resolution to the microsecond
 previously was to the millisecond
 
+* new TimeZone class
+TimeZone::date(softint)
+TimeZone::date(date)
+TimeZone::dateMs(softint)
+TimeZone::dateUs(softint)
+
+* new Program methods
+Program::setTimeZoneRegion(string)
+Program::setTimeZoneUTCOffset(softint)
+Program::setTimeZone(TimeZone)
+Program::getTimeZone() returns TimeZone
+
 * new functions
 getpwuid2()
 getpwnam()
@@ -29,6 +41,25 @@ is_date_absolute(date) returns bool
 get_duration_seconds(date) returns int
 get_duration_milliseconds(date) returns int
 get_duration_microseconds(date) returns int
+now_us() returns date
+now_gmt_us() returns date
+date_us(softint) returns date
+microseconds(softint) returns date
+get_microseconds(date) returns int
+
+* new overloaded variants of existing functions
+gmtime(date) returns date
+localtime(date) returns date
+
+* new Socket methods
+Socket::connectINET()
+Socket::connectINETSSL()
+Socket::connectUNIX()
+Socket::connectUNIXSSL()
+Socket::setCertificate(binary)
+Socket::setCertificate(string)
+Socket::setPrivateKey(binary)
+Socket::setPrivateKey(string)
 
 * cast<> operator
 
@@ -74,8 +105,10 @@ getcwd(), getcwd2(), getpwuid(), getpwuid2(), getpwnam(), getpwnam2()
 the following functions were tagged with QDOM_LOCALE_CONTROL:
 TimeZone::set()
 
-* new methods:
+* new Datasource method:
 Datasource::constructor(hash)
+
+* new DatasourcePool method:
 DatasourcePool::constructor(hash)
 
 
