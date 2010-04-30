@@ -1096,6 +1096,7 @@ int AbstractQoreFunction::parseCheckDuplicateSignature(UserVariantBase *variant)
    UserSignature *sig = variant->getUserSignature();
    assert(!sig->resolved);
 
+   unsigned vnp = sig->numParams();
    unsigned vtp = sig->getParamTypes();
    unsigned vmp = sig->getMinParamTypes();
 
@@ -1120,10 +1121,12 @@ int AbstractQoreFunction::parseCheckDuplicateSignature(UserVariantBase *variant)
 	 return -1;
       }
 
+      unsigned np = vs->numParams();
+
       bool dup = true;
       bool ambiguous = false;
       bool recheck = false;
-      unsigned max = QORE_MAX(tp, vtp);
+      unsigned max = QORE_MAX(np, vnp);
       for (unsigned pi = 0; pi < max; ++pi) {
 	 const QoreTypeInfo *variantTypeInfo = vs->getParamTypeInfo(pi);
 	 const QoreParseTypeInfo *variantParseTypeInfo = vs->getParseParamTypeInfo(pi);
@@ -1181,6 +1184,7 @@ int AbstractQoreFunction::parseCheckDuplicateSignature(UserVariantBase *variant)
 	       break;
 	    }
 	 }
+	 //printd(5, "AbstractQoreFunction::parseCheckDuplicateSignature() %s(%s) == %s(%s) i=%d: %s <=> %s dup=%d\n", getName(), sig->getSignatureText(), getName(), vs->getSignatureText(), pi, typeInfo->getName(), variantTypeInfo->getName(), dup);
       }
       if (dup) {
 	 if (ambiguous)
@@ -1211,9 +1215,11 @@ int AbstractQoreFunction::parseCheckDuplicateSignature(UserVariantBase *variant)
 	 return -1;
       }
 
+      unsigned np = uvsig->numParams();
+
       bool dup = true;
       bool ambiguous = false;
-      unsigned max = QORE_MAX(tp, vtp);
+      unsigned max = QORE_MAX(np, vnp);
       bool recheck = false;
       for (unsigned pi = 0; pi < max; ++pi) {
 	 const QoreTypeInfo *variantTypeInfo = uvsig->getParamTypeInfo(pi);
