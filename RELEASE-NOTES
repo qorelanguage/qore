@@ -24,6 +24,8 @@ getgrgid2()
 getgrnam()
 getgrname2()
 readlink()
+is_date_relative(date) returns bool
+is_date_absolute(date) returns bool
 
 * cast<> operator
 

@@ -113,6 +113,16 @@ static AbstractQoreNode *f_binary_to_string_bin_str(const QoreListNode *params, 
    return new QoreStringNode((const char *)b->getPtr(), b->size(), qcs);
 }
 
+static AbstractQoreNode *f_is_date_relative(const QoreListNode *params, ExceptionSink *xsink) {
+   const DateTimeNode *d = HARD_QORE_DATE(params, 0);
+   return get_bool_node(d->isRelative());
+}
+
+static AbstractQoreNode *f_is_date_absolute(const QoreListNode *params, ExceptionSink *xsink) {
+   const DateTimeNode *d = HARD_QORE_DATE(params, 0);
+   return get_bool_node(d->isAbsolute());
+}
+
 void init_type_functions() {
    // do not flag with QC_NOOP, as it is used as an initializer
    builtinFunctions.add2("boolean", f_bool_noop, QC_CONSTANT, QDOM_DEFAULT, boolTypeInfo);
@@ -151,4 +161,7 @@ void init_type_functions() {
 
    builtinFunctions.add2("binary_to_string", f_binary_to_string, QC_CONSTANT, QDOM_DEFAULT, stringTypeInfo, 1, binaryTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("binary_to_string", f_binary_to_string_bin_str, QC_CONSTANT, QDOM_DEFAULT, stringTypeInfo, 2, binaryTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
+
+   builtinFunctions.add2("is_date_relative", f_is_date_relative, QC_CONSTANT, QDOM_DEFAULT, boolTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("is_date_absolute", f_is_date_absolute, QC_CONSTANT, QDOM_DEFAULT, boolTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
 }
