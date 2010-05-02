@@ -38,11 +38,21 @@ struct qore_tm {
    const AbstractQoreZoneInfo *zone;
 };
 
-//! Holds absolute and relative date/time values in Qore with precision to the millisecond
-/** Date arithmetic and date formatting is supported by this class.  Conversion to and from
-    integers is based on a 64-bit offset in seconds since January 1, 1970 (the start of the
-    UNIX epoch).  Qore's DateTime values have years, months, days, hours, minutes, seconds,
-    and millisecond fields.
+//! Holds absolute and relative date/time values in Qore with precision to the microsecond
+/** Date arithmetic and date formatting is supported by this class.
+    As of qore 0.8.0, the internal representation for absolute date/time values has changed.
+    Now, absolute date/time values are stored internally as a 64-bit offset in seconds since
+    the UNIX epoch (January 1, 1970 UTC), plus a 4-byte integer microseconds offset, plus a
+    pointer to an AbstractQoreZoneInfo object, which gives the time zone information (UTC
+    offset, daylights savings time transitions, if any, etc).
+
+    Therefore, for absolute date/time values, it is expensive to functions that get discrete
+    values for the date (such as getYear(), getMonth(), etc), because to return the value, the
+    entire date must be calculated for each call.  Instead DateTime::getInfo() should be used.
+
+    Relative date/time values are stored with discrete values for years, months, days, hours,
+    minutes, seconds, and microseconds.
+
     This is a "normal" (i.e. not reference counted) class, for the equivalent Qore value
     type, see DateTimeNode
     @see DateTimeNode
@@ -114,7 +124,7 @@ public:
    //! destroys the object and frees all memory
    DLLEXPORT ~DateTime();
 
-   //! sets a "struct tm" from the current date/time value for the time zone for the object
+   //! sets a "struct tm" from the current date/time value for the time zone for the object; use DateTime::getInfo() instead
    DLLEXPORT void getTM(struct tm *tms) const;
 
    //! sets the absolute date value based on the number of seconds from January 1, 1970
@@ -216,7 +226,6 @@ public:
 
    //! formats the date/time value to a QoreString
    /** the formatted date/time value will be appended to the QoreString argument according to the format string
-       FIXME: currently locale settings are ignored
        Format codes are as follows:
        - YY: last two-digits of year
        - YYYY: four-digit year
@@ -240,10 +249,16 @@ public:
        - mm: minute number (00 - 59), zero padded
        - S: second number (0 - 59)
        - SS: second number (00 - 59), zero padded
-       - ms: milliseconds (000 - 999), zero padded
+       - u: milliseconds (0 - 999)
+       - uu or ms: milliseconds (000 - 999), zero padded
+       - x: microseconds (0 - 999999)
+       - xx: microseconds (000000 - 999999), zero padded
+       - z: local time zone name (i.e. 'EST') if available, otherwise the UTC offset (see 'Z')
+       - Z: UTC offset like +HH:mm[:SS], seconds are included if non-zero
        - P: AM or PM
        - p: am or pm
        .
+       @note currently locale settings are ignored
        @param str the QoreString where the formatted date data will be written (appended)
        @param fmt the format string as per the above description
    */
@@ -262,68 +277,69 @@ public:
    DLLEXPORT bool isAbsolute() const;
 
    //! returns the year portion of the date-time value
-   /**
-      @return the year portion of the date-time value
+   /** @note if more than one of DateTime::getYear(), DateTime::getMonth(), etc is called, then DateTime::getInfo() should be used instead to avoid the broken-down components of the date being calculated for each call that retrieves a discrete value from the date.  This restriction does not apply to relative date/time values.
+       @return the year portion of the date-time value
    */
    DLLEXPORT short getYear() const;
 
    //! returns the month portion of the date-time value
-   /**
-      @return the month portion of the date-time value
+   /** @note if more than one of DateTime::getYear(), DateTime::getMonth(), etc is called for an absolute date/time value, then DateTime::getInfo() should be used instead to avoid the broken-down components of the date being calculated for each call that retrieves a discrete value from the date.  This restriction does not apply to relative date/time values.
+       @return the month portion of the date-time value
    */
    DLLEXPORT int getMonth() const;
 
    //! returns the day portion of the date-time value
-   /**
-      @return the day portion of the date-time value
+   /** @note if more than one of DateTime::getYear(), DateTime::getMonth(), DateTime::getDay(), etc is called for an absolute date/time value, then DateTime::getInfo() should be used instead to avoid the broken-down components of the date being calculated for each call that retrieves a discrete value from the date.  This restriction does not apply to relative date/time values.
+       @return the day portion of the date-time value
    */
    DLLEXPORT int getDay() const;
 
    //! returns the hour portion of the date-time value
-   /**
-      @return the hour portion of the date-time value
+   /** @note if more than one of DateTime::getYear(), DateTime::getMonth(), DateTime::getHour(), etc is called for an absolute date/time value, then DateTime::getInfo() should be used instead to avoid the broken-down components of the date being calculated for each call that retrieves a discrete value from the date
+       @return the hour portion of the date-time value
    */
    DLLEXPORT int getHour() const;
 
    //! returns the minute portion of the date-time value
-   /**
-      @return the minute portion of the date-time value
+   /** @note if more than one of DateTime::getYear(), DateTime::getMonth(), DateTime::getMinute(), etc is called for an absolute date/time value, then DateTime::getInfo() should be used instead to avoid the broken-down components of the date being calculated for each call that retrieves a discrete value from the date
+       @return the minute portion of the date-time value
    */
    DLLEXPORT int getMinute() const;
 
    //! returns the second portion of the date-time value
-   /**
-      @return the second portion of the date-time value
+   /** @note if more than one of DateTime::getYear(), DateTime::getMonth(), DateTime::getSecond(), etc is called for an absolute date/time value, then DateTime::getInfo() should be used instead to avoid the broken-down components of the date being calculated for each call that retrieves a discrete value from the date
+       @return the second portion of the date-time value
    */
    DLLEXPORT int getSecond() const;
 
-   //! returns the millisecond portion of the date-time value
-   /**
-      @return the millisecond portion of the date-time value
+   //! returns the microsecond portion of the date-time value divided by 1000
+   /** @note if more than one of DateTime::getYear(), DateTime::getMonth(), DateTime::getMillisecond() etc is called for an absolute date/time value, then DateTime::getInfo() should be used instead to avoid the broken-down components of the date being calculated for each call that retrieves a discrete value from the date.  This restriction does not apply to relative date/time values.
+       @return the microsecond portion of the date-time value divided by 1000
+       @see DateTime::getMicrosecond(), DateTime::getInfo()
    */
    DLLEXPORT int getMillisecond() const;
 
    //! returns the microsecond portion of the date-time value
-   /**
-      @return the microsecond portion of the date-time value
+   /** @note if more than one of DateTime::getYear(), DateTime::getMonth(), DateTime::getMicrosecond() etc is called for an absolute date/time value, then DateTime::getInfo() should be used instead to avoid the broken-down components of the date being calculated for each call that retrieves a discrete value from the date.  This restriction does not apply to relative date/time values.
+       @return the microsecond portion of the date-time value
    */
    DLLEXPORT int getMicrosecond() const;
 
-   //! returns the difference as the number of seconds between the date/time value and the local time at the moment of the call
-   /** if the object is a relative date/time value, then the duration is converted to seconds and returned as an integer
-       @return the difference as the number of seconds between the date/time value and the local time at the moment of the call
+   //! returns the difference as the number of seconds between the date/time value and the local time at the moment of the call for absolute date/time values; for relative date/time values, the duration is converted to seconds and returned as an integer
+   /**
+       @return the difference as the number of seconds between the date/time value and the local time at the moment of the call for absolute date/time values; for relative date/time values, the duration is converted to seconds and returned as an integer
    */
    DLLEXPORT int64 getRelativeSeconds() const;
 
-   //! returns the difference as the number of milliseconds between the date/time value and the local time at the moment of the call
-   /** if the object is a relative date/time value, then the duration is converted to milliseconds and returned as an integer
-       @return the difference as the number of milliseconds between the date/time value and the local time at the moment of the call
+   //! returns the difference as the number of milliseconds between the date/time value and the local time at the moment of the call, for absolute date/time values; for relative date/time values, the duration is converted to milliseconds and returned as an integer
+   /**
+       @return the difference as the number of milliseconds between the date/time value and the local time at the moment of the call, for absolute date/time values; for relative date/time values, the duration is converted to milliseconds and returned as an integer
    */
    DLLEXPORT int64 getRelativeMilliseconds() const;
 
-   //! returns the difference as the number of microseconds between the date/time value and the local time at the moment of the call
-   /** if the object is a relative date/time value, then the duration is converted to microseconds and returned as an integer
-       @return the difference as the number of microseconds between the date/time value and the local time at the moment of the call
+   //! returns the difference as the number of microseconds between the date/time value and the local time at the moment of the call, for absolute date/time values; for relative date/time values, the duration is converted to microseconds and returned as an integer
+   /** 
+       @return the difference as the number of microseconds between the date/time value and the local time at the moment of the call, for absolute date/time values; for relative date/time values, the duration is converted to microseconds and returned as an integer
    */
    DLLEXPORT int64 getRelativeMicroseconds() const;
 
@@ -336,7 +352,7 @@ public:
    //! converts the current value to the negative of itself
    DLLEXPORT void unaryMinusInPlace();
 
-   //! returns the broken-down time in the given time zone (zone = 0 means UTC)
+   //! returns the broken-down time in the given time zone (n_zone = 0 means UTC)
    DLLEXPORT void getInfo(const AbstractQoreZoneInfo *n_zone, qore_tm &info) const;
 
    //! returns the broken-down time in the current time zone
