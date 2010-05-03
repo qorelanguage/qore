@@ -1,23 +1,36 @@
-all:	qore.html
-
-qore.html:	docbook/*docbook
-	docbook2html -u docbook/qore.docbook
-
-clean:
-	rm -fv qore.html
-
-distclean:	clean
+#all:	qore.html
+#
+#qore.html:	docbook/*docbook
+#	docbook2html -u docbook/qore.docbook
+#
+#clean:
+#	rm -fv qore.html
+#
+#distclean:	clean
 	
 
 # "modern" way how to handle docbook files
-# opensuse
-#/usr/share/xml/docbook/stylesheet/nwalsh5/current/xhtml/docbook.xsl \
-# macports
-experimental:
-	xsltproc --stringparam html.stylesheet qore-style-exp.css \
+# PATHS /usr/share/xml/docbook/stylesheet/nwalsh5/current/xhtml # opensuse                               
+#       /opt/local/share/xsl/docbook-xsl/xhtml                  # macpors                                
+#       /usr/share/sgml/docbook/xsl-stylesheets/xhtml           # fedora  
+all: docbook/*docbook
+	xsltproc --stringparam html.stylesheet qore-style.css \
 	         --stringparam use.id.as.filename 1 \
 	         --stringparam generate.toc "book toc,title" \
+	         --stringparam toc.max.depth 2 \
 	         --output qore.html \
-	         /opt/local/share/xsl/docbook-xsl/xhtml/chunk.xsl \
+	         /usr/share/xml/docbook/stylesheet/nwalsh5/current/xhtml/docbook.xsl \
+	         docbook/qore.docbook 
+	xsltproc --stringparam html.stylesheet qore-style.css \
+	         --stringparam use.id.as.filename 1 \
+	         --stringparam generate.toc "book toc,title" \
+	         --stringparam toc.max.depth 2 \
+	         --stringparam base.dir "qore-html/" \
+	         /usr/share/xml/docbook/stylesheet/nwalsh5/current/xhtml/chunk.xsl \
 	         docbook/qore.docbook
 
+clean:
+	rm -fv qore.html
+	rm -rfv qore-html
+
+distclean: clean

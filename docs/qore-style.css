@@ -1,34 +1,14 @@
-BODY
+body
 {
-        font-family: verdana;
+    font-family: verdana, sans-serif;
+    font-size: 10pt;
+    margin: 0;
+    padding: 1em;
 }
 
 div.revhistory { display: none; }
 
-DIV.ABSTRACT
-{
-        border: solid 2px;
-        padding-left: 10pt;
-        padding-right: 10pt;
-}
-PRE.SCREEN
-{
-        font-family:monospace;
-        white-space: pre;
-        width: 100%;
-        background-color: #ffffcc;
-        border:solid;
-        color: #000000;
-        border-color: #009999;
-        border-left: solid #009999 2px;
-        border-right: solid #009999 2px;
-        border-top: solid #009999 2px;
-        border-bottom: solid #009999 2px;
-
-        padding-left: 15pt;
-}
-
-PRE.PROGRAMLISTING
+.programlisting
 {
     font-family:monospace;
     white-space: pre;
@@ -47,7 +27,26 @@ PRE.PROGRAMLISTING
     padding-bottom: 5pt;
 }
 
-H1
+.code
+{
+        font-family: monospace;
+        font-size: 10pt;
+        white-space: pre;
+        background-color: #ffffcc;
+}
+
+.command {
+        font-family: monospace;
+        font-size: 10pt;
+        font-weight: bold;
+        color: navy;
+}
+
+a {
+        text-decoration: underline;
+}
+
+h1
 {
         color: #ffffff;
         border: solid 3px #a0a0d0;
@@ -56,31 +55,22 @@ H1
         width: 100%;
 }
 
-H1.TITLE
-{
-        color: #ffffff;
-        border: solid 3px #a0d0a0;
-        background-color: #609060;
-        font-variant: small-caps;
-        width: 100%;
-}
-
-.TITLE a {
+.title a {
         color: #ffffff; 
         text-decoration: none;
 }
 
-.TITLE a:active {
+.title a:active {
         color: #ffffff; 
         text-decoration: none;
 }
 
-.TITLE a:visited {
+.title a:visited {
         color: #ffffff; 
         text-decoration: none;
 }
 
-H2
+h2
 {       
         COLOR: #ffffff ;
         font-style: italic;
@@ -89,60 +79,76 @@ H2
         PADDING: 1px
 }
 
-TABLE.IMPORTANT
+h3 {
+}
+
+.important
 {
         font-style:italic;
         border: solid 2px #ff0000;
-        width: 70%;
-        margin-left: 15%;       
+        margin: 1em 15% 1em 15%;
+        padding: 0 1em 0 1em;
 }
-TABLE.CAUTION
+.caution
 {
         font-style:italic;
         border: ridge 2px #ffff00;
-        width: 70%;
-        margin-left: 15%;       
+        margin: 1em 15% 1em 15%;
+        padding: 0 1em 0 1em;
 }
-
-TABLE.NOTE
+.note
 {
         font-style:italic;
         border: solid 1px #000000;
-        width: 70%;
-        margin-left: 15%;       
+        margin: 1em 15% 1em 15%;
+        padding: 0 1em 0 1em;
 }
-TABLE.TIP
+.tip
 {
         font-style:italic;
         border: solid 1px #000000;
-        width: 70%;
-        margin-left: 15%;       
+        margin: 1em 15% 1em 15%;
+        padding: 0 1em 0 1em;
 }
-
-TABLE.WARNING
+.warning
 {
         font-style:italic;
         font-weight: bold;
         border: ridge 4px #ff0000;
-        
-        width: 70%;
-        margin-left: 15%;       
+        margin: 1em 15% 1em 15%;
+        padding: 0 1em 0 1em;
 }
 
-DIV.VARIABLELIST {
+.variablelist {
         font-family: sans-serif;
         font-style: normal;
         font-weight: normal;
         padding-left: 20px;
 }
 
-.VARLISTENTRY {
+.varlistentry {
         font-weight: bold;
         margin-top: 10px;
         COLOR: #ffffff ;
         BACKGROUND-color: #a0a0d0;
         BORDER: solid 1px #609060;
         PADDING: 1px
+}
+
+.table {
+        margin: 0 1em 0 1em;
+}
+.table table, .table tr, .table th, .table td {
+        border: 1px solid black;
+        border-collapse: collapse;
+}
+.table th, .table td {
+        padding: 0 1em 0 1em;
+        vertical-align: top;
+}
+.table th {
+        font-weight: bold;
+        background-color: #a0d0a0;
 }
 
 /*
@@ -223,80 +229,69 @@ a[href$=".rtf"] {
 
 
 /* ...or to the translation links on each page */
-DIV.translatelink > a[href^="http:"] {
+div.translatelink > a[href^="http:"] {
         background: transparent;
         padding-right: 0px;
 }
 
-DIV.translatelink > a[href^="http:"]:hover {
+div.translatelink > a[href^="http:"]:hover {
         background: transparent;
 }
 
 /* ...or to any images  */
-DIV.imagelink  a[href^="http:"] {
+div.imagelink  a[href^="http:"] {
         background: transparent;
         padding-right: 0px;
 }
 
-DIV.imagelink  a[href^="http:"]:hover {
+div.imagelink  a[href^="http:"]:hover {
         background: transparent;
 }
 
 
-P.C2 {
-        COLOR: #ffffff ;
-        BACKGROUND-color: #a0a0d0;
-        BORDER: solid 1px #609060;
-        PADDING: 1px
-}
-
-
-DIV.NAVFOOTER {
-        color: #000000;
-        background-color: #EFEFF8;
-        padding: 5px;
-        margin-top: 10px;
-        width: 100%;
+.navfooter, .navheader {
+        margin: -1em -1em -1em -1em;
+        background-color: ##a0d0a0;
         border: thin solid #a0a0d0;
+        border-width: 1px 0 1px 0;
+}
+.navheader {
+        margin-bottom: 1em;
+}
+.navheader hr {
+        display: none;
+}
+.navheader table, .navheader tr, .navheader th, .navheader td {
+        border: 0 0 0 0;
+}
+.navfooter {
+        margin-top: 1em;
+}
+.navfooter hr {
+        display: none;
+}
+.navfooter table, .navfooter tr, .navfooter th, .navfooter td {
+        border: 0 0 0 0;
 }
 
-DIV.NUKEFOOTER {
-        color: #000000;
-        background-color: #B0E0E6;
-        padding: 5px;
-        margin-top: 10px;
-        width: 100%;
-        border: thin solid #a0a0d0;
+.sect1, .sect2, .sect3 {
+       margin-left: .5em;
 }
 
-DIV.NAVHEADER {
-        color: #000000;
-        background-color: #EFEFF8;
-        padding: 5px;
-        margin-bottom: 10px;
-        width: 100%;
-        border: thin solid #a0a0d0;
-}
-
-DIV.SECT1,DIV.SECT2,DIV.SECT3 {
-        margin-left: 20px;
-}
-
-DIV.EXAMPLE,DIV.TOC {
+.example, .toc {
         border: thin dotted #70AAE5;
-        padding-left: 10px;
-        padding-right: 10px;
+        padding-left: 1em;
+        padding-right: 1em;
         color: #000000;
         background-color: #EFF8F8;
 }
 
-DIV.TOC {
-        margin-left: 20px;
-        margin-right: 20px;
-        width: 95%;
+.toc {
+        margin-left: 2em;
+        margin-right: 2em;
 }
 
-UL  {
+ul  {
         list-style: url("img/tux-bullet.png") disc;
     }
 	

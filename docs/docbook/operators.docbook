@@ -470,7 +470,8 @@
     </varlistentry>
   </variablelist>
 
-  <informaltable>
+  <table>
+    <title>Arguments Processed by ``</title>
     <tgroup cols='2' align='left' colsep='1' rowsep='1'>
       <thead>
 	<row>
@@ -485,7 +486,7 @@
 	</row>
       </tbody>
     </tgroup>
-  </informaltable>
+  </table>
 
   <table>
     <title>Exceptions Thrown by ``</title>
