@@ -120,32 +120,47 @@ static void DSP_constructor_hash(QoreObject *self, const QoreListNode *params, E
    if (*xsink) return;
 
    bool found;
-   int min = h->getKeyAsBigInt("min", found);
-   if (found) {
-      if (min <= 0) {
-	 xsink->raiseException(DSPC_ERR, "minimum connections must be > 0 (value given: %d)", min);
-	 return;
-      }
-   }
-   else
-      min = DP_MIN;
-
-   int max = h->getKeyAsBigInt("max", found);
-   if (found ) {
-      if (max < min) {
-	 xsink->raiseException(DSPC_ERR, "maximum connections must be >= min(%d) (value given: %d)", min, max);
-	 return;
-      }
-   }
-   else
-      max = DP_MAX;
-   
    int port = h->getKeyAsBigInt("port", found);
    if (port < 0) {
       xsink->raiseException(DSPC_ERR, "port value must be zero (meaning use the default port) or positive (value given: %d)", port);
       return;
    }
 
+   // get options
+   int min = 0, max = 0;
+
+   const AbstractQoreNode *p = h->getKeyValue("options");
+   if (!is_nothing(p)) {
+      if (p->getType() != NT_HASH) {
+	 xsink->raiseException(DSPC_ERR, "'options' key is not hash, instead got type '%s'", p->getTypeName());
+	 return;
+      }
+     
+      h = reinterpret_cast<const QoreHashNode *>(p);
+
+      min = h->getKeyAsBigInt("min", found);
+      if (found) {
+	 if (min < 0) {
+	    xsink->raiseException(DSPC_ERR, "minimum connections must be > 0 (value given: %d)", min);
+	    return;
+	 }
+      }
+
+      int max = h->getKeyAsBigInt("max", found);
+      if (found ) {
+	 if (max < min) {
+	    xsink->raiseException(DSPC_ERR, "maximum connections must be >= min(%d) (value given: %d)", min, max);
+	    return;
+	 }
+      }
+   }
+
+   if (!min)
+      min = DP_MIN;
+   
+   if (!max)
+      max = DP_MAX;
+   
    SimpleRefHolder<DatasourcePool> ds(new DatasourcePool(db_driver, user, pass, db, charset, host, min, max, port, xsink));
    if (!*xsink)
       self->setPrivate(CID_DATASOURCEPOOL, ds.release());
