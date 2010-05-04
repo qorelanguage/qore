@@ -2097,7 +2097,7 @@ AbstractQoreNode *QoreMethod::evalNormalVariant(QoreObject *self, const QoreExte
    ceh.setCallType(variant->getCallType());
    ceh.setReturnTypeInfo(variant->getReturnTypeInfo());
 
-   return METHV_const(variant)->evalNormalMethod(self, ceh.getArgs(), xsink);      
+   return METHV_const(variant)->evalMethod(self, ceh.getArgs(), xsink);      
 }
 
 AbstractQoreNode *QoreMethod::eval(QoreObject *self, const QoreListNode *args, ExceptionSink *xsink) const {
@@ -3229,7 +3229,7 @@ AbstractQoreNode *MethodFunction::evalNormalMethod(const AbstractQoreFunctionVar
    ceh.setCallType(variant->getCallType());
    ceh.setReturnTypeInfo(variant->getReturnTypeInfo());
 
-   return METHV_const(variant)->evalNormalMethod(self, ceh.getArgs(), xsink);      
+   return METHV_const(variant)->evalMethod(self, ceh.getArgs(), xsink);      
 }
 
 // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
@@ -3253,7 +3253,7 @@ AbstractQoreNode *MethodFunction::evalStaticMethod(const AbstractQoreFunctionVar
    ceh.setCallType(variant->getCallType());
    ceh.setReturnTypeInfo(variant->getReturnTypeInfo());
 
-   return METHV_const(variant)->evalStaticMethod(ceh.getArgs(), xsink);      
+   return METHV_const(variant)->evalMethod(0, ceh.getArgs(), xsink);      
 }
 
 class qmi_priv {

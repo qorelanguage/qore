@@ -970,9 +970,11 @@ int UserVariantBase::setupCall(const QoreListNode *args, ReferenceHolder<QoreLis
 
 AbstractQoreNode *UserVariantBase::evalIntern(ReferenceHolder<QoreListNode> &argv, QoreObject *self, ExceptionSink *xsink, const char *class_name) const {
    AbstractQoreNode *val = 0;
-   if (statements) {
-      if (self)
+   if (statements) {      
+      if (signature.selfid) {
+	 assert(self);
          signature.selfid->instantiate_object(self);
+      }
 
       // instantiate argv and push id on stack
       signature.argvid->instantiate(argv ? argv->refSelf() : 0);
@@ -995,7 +997,7 @@ AbstractQoreNode *UserVariantBase::evalIntern(ReferenceHolder<QoreListNode> &arg
       signature.argvid->uninstantiate(xsink);
 
       // if self then uninstantiate
-      if (self)
+      if (signature.selfid)
          signature.selfid->uninstantiate(xsink);
    }
    else
