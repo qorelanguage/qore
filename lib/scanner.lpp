@@ -398,6 +398,12 @@ static char *make_cast(const char *s) {
    return str.giveBuffer();
 }
 
+#define QORE_FLEX_DO_EOF { /* delete current buffer */ yy_delete_buffer(YY_CURRENT_BUFFER, yyscanner); \
+      /* get last parse state */ YY_BUFFER_STATE yybs = (YY_BUFFER_STATE)endParsing(); \
+      if (yybs) { /* need to close file and switch to previous buffer */ \
+	 fclose(yyin); if (yybs) yy_switch_to_buffer(yybs, yyscanner);	\
+      } else yyterminate(); }
+
 %}
 
 %option noyywrap nomain noyy_top_state warn
@@ -568,20 +574,9 @@ TZ              (Z|([+-][01][0-9](:{MSEC}(:{MSEC})?)?))
 					   }
                                         }
 <<EOF>>                                 {
-					   // delete current buffer
-					   yy_delete_buffer(YY_CURRENT_BUFFER, yyscanner);
-					   // get last parse state
-					   YY_BUFFER_STATE yybs = (YY_BUFFER_STATE)endParsing();
-					   if (yybs) {
-					      // need to close file and switch to previous buffer
-					      fclose(yyin);
-					      if (yybs)
-						 yy_switch_to_buffer(yybs, yyscanner);
-					   }
-					   else
-					      yyterminate();
+                                           QORE_FLEX_DO_EOF
                                         }
-\"					yylval->String = new QoreStringNode(); yylloc->setExplicitFirst(yylineno); BEGIN(str_state);
+\"					yylval->String = new QoreStringNode; yylloc->setExplicitFirst(yylineno); BEGIN(str_state);
 <str_state>{
       \"				BEGIN(INITIAL); return QUOTED_WORD;
       \n				yylval->String->concat('\n');
@@ -723,10 +718,17 @@ TZ              (Z|([+-][01][0-9](:{MSEC}(:{MSEC})?)?))
 					      yylval->Regex->concat(*(yptr++));
 					}
 }
-<line_comment>{
-   .*$					BEGIN(INITIAL);
-}
-\#                                      BEGIN(line_comment);
+\#                                      {
+                                           int c;
+					   while ((c = yyinput(yyscanner))) {
+					      if (c == '\n')
+						 break;
+					      else if (c == EOF) {
+						 QORE_FLEX_DO_EOF
+						 break;
+					      }
+					   }
+                                        }
 where					return TOK_WHERE;
 NULL					return TOK_NULL;
 NOTHING					return TOK_NOTHING;
@@ -1037,7 +1039,6 @@ cast\<{WS}*{WORD}{WS}*\>                yylval->string = make_cast(yytext); retu
 \^{WS}*=                                return XOR_EQUALS;
 \>{WS}*\>{WS}*=				return SHIFT_RIGHT_EQUALS;
 \<{WS}*\<{WS}*=				return SHIFT_LEFT_EQUALS;
-
 \/\*                                    {
                                            int c;
 					   while ((c = yyinput(yyscanner))) {
@@ -1049,8 +1050,11 @@ cast\<{WS}*{WORD}{WS}*\>                yylval->string = make_cast(yytext); retu
 						 if (c == '/') 
 						    break;
 					      }
-					      if (c == EOF)
-						 yyterminate();
+					      if (c == EOF) {
+						 parse_error("open block comment at EOF");
+						 QORE_FLEX_DO_EOF;
+						 break;
+					      }
 					   }
                                         }
 <regex_googleplex>{
