@@ -40,6 +40,7 @@ static inline short LSBi2(short i);
 static inline int64 i8MSB(int64 i);
 static inline int64 MSBi8(int64 i);
 
+//! used to swap byte order of 8-byte values
 union qore_i8_u {
    char buf[8];
    int64 i;
@@ -57,6 +58,7 @@ union qore_i8_u {
    }
 };
 
+//! swaps byte order of 8-byte integer values
 static inline int64 swapi8(int64 i) { 
    char *ibuf = (char *)&i;
    qore_i8_u i8;
@@ -64,6 +66,7 @@ static inline int64 swapi8(int64 i) {
    return i8.i;
 }
 
+//! swaps byte order of 8-byte floating-point values
 static inline double swapf8(double f) { 
    char *ibuf = (char *)&f;
    qore_i8_u f8;
@@ -71,6 +74,7 @@ static inline double swapf8(double f) {
    return f8.f;
 }
 
+//! used to swap byte order of 4-byte values
 union qore_i4_u {
    char buf[4];
    int i;
@@ -84,6 +88,7 @@ union qore_i4_u {
    }
 };
 
+//! swaps byte order of 8-byte integer values
 static inline int swapi4(int i) { 
    char *ibuf = (char *)&i;
    qore_i4_u i4;
@@ -91,6 +96,7 @@ static inline int swapi4(int i) {
    return i4.i;
 }
 
+//! swaps byte order of 4-byte floating-point values
 static inline float swapf4(float f) { 
    char *ibuf = (char *)&f;
    qore_i4_u f4;
@@ -98,8 +104,9 @@ static inline float swapf4(float f) {
    return f4.f;
 }
 
+//! used to swap 2-byte integers
 union qore_i2_u {
-   char buf[4];
+   char buf[2];
    int i;
 
    DLLLOCAL void swap(char *ibuf) {
@@ -108,6 +115,7 @@ union qore_i2_u {
    }
 };
 
+//! swaps byte order of 8-byte integer values
 static inline short swapi2(short i) { 
    char *ibuf = (char *)&i;
    qore_i2_u i2;

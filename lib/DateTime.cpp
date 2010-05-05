@@ -305,3 +305,11 @@ DateTime *DateTime::makeAbsoluteLocal(const AbstractQoreZoneInfo *zone, int64 se
 DateTime *DateTime::makeRelative(int y, int mo, int d, int h, int mi, int s, int u) {
    return new DateTime(new qore_date_private(y, mo, d, h, mi, s, u, true));
 }
+
+int qore_tm::secsEast() const {
+   return zone->getUTCOffset();
+}
+
+const char *qore_tm::regionName() const {
+   return zone->getRegionName();
+}

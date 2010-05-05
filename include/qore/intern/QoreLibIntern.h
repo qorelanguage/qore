@@ -198,8 +198,6 @@ DLLLOCAL extern QoreThreadLock lck_gmtime;
 DLLLOCAL extern char table64[64];
 
 DLLLOCAL int get_nibble(char c, ExceptionSink *xsink);
-DLLLOCAL BinaryNode *parseBase64(const char *buf, int len, ExceptionSink *xsink);
-DLLLOCAL BinaryNode *parseHex(const char *buf, int len, ExceptionSink *xsink);
 DLLLOCAL BinaryNode *parseHex(const char *buf, int len);
 DLLLOCAL void print_node(FILE *fp, const AbstractQoreNode *node);
 DLLLOCAL void delete_global_variables();

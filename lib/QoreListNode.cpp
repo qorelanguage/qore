@@ -930,6 +930,10 @@ ListIterator::ListIterator(QoreListNode *lst, qore_size_t n_pos) : l(lst) {
    set(n_pos);
 }
 
+ListIterator::ListIterator(QoreListNode &lst, qore_size_t n_pos) : l(&lst) {
+   set(n_pos);
+}
+
 bool ListIterator::next() {
    if (l->size() == 0) return false; // empty
    if (pos == l->size()) {
@@ -994,6 +998,10 @@ bool ListIterator::first() const {
 } 
 
 ConstListIterator::ConstListIterator(const QoreListNode *lst, qore_size_t n_pos) : l(lst) {
+   set(n_pos);
+}
+
+ConstListIterator::ConstListIterator(const QoreListNode &lst, qore_size_t n_pos) : l(&lst) {
    set(n_pos);
 }
 

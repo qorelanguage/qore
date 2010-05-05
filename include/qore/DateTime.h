@@ -34,8 +34,17 @@ struct qore_tm {
    int year, month, day, hour, minute, second, us, utc_secs_east;
    bool dst;
    const char *zone_name;
-   const char *region_name;
    const AbstractQoreZoneInfo *zone;
+
+   DLLLOCAL bool isTimeNull() const {
+      return !hour && !minute && !second && !us;
+   }
+
+   //! returns seconds east of UTC for zone
+   DLLEXPORT int secsEast() const;
+
+   //! returns the region name of the zone
+   DLLEXPORT const char *regionName() const;
 };
 
 //! Holds absolute and relative date/time values in Qore with precision to the microsecond

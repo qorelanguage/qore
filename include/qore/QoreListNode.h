@@ -508,6 +508,12 @@ public:
    */
    DLLEXPORT ListIterator(QoreListNode *lst, qore_size_t n_pos = -1);
 
+   //! initializes the iterator to the position given or, if omitted, just before the first element
+   /** @param lst the list to iterate
+       @param n_pos the starting position (-1 means just before the first element so that the initial call to next() or prev() will )
+   */
+   DLLEXPORT ListIterator(QoreListNode &lst, qore_size_t n_pos = -1);
+
    //! moves the iterator to the next element, returns true if the iterator is pointing to an element of the list
    /** if the iterator is on the last element, it moves to an invalid position before the first element and returns false
        note that a subsequent call to next() after it returns false will move the iterator to the first element again
@@ -594,6 +600,12 @@ public:
        @param n_pos the starting position (-1 means just before the first element so that the initial call to next() or prev() will )
    */
    DLLEXPORT ConstListIterator(const QoreListNode *lst, qore_size_t n_pos = -1);
+
+   //! initializes the iterator to the position given or, if omitted, just before the first element
+   /** @param lst the list to iterate
+       @param n_pos the starting position (-1 means just before the first element so that the initial call to next() or prev() will )
+   */
+   DLLEXPORT ConstListIterator(const QoreListNode &lst, qore_size_t n_pos = -1);
 
    //! moves the iterator to the next element, returns true if the iterator is pointing to an element of the list
    /** if the iterator is on the last element, it moves to an invalid position before the first element and returns false

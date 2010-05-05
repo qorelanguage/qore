@@ -443,7 +443,7 @@ typedef ReferenceHolder<QoreHashNode> QoreHashNodeHolder;
 */
 class HashIterator {
 private:
-   class QoreHashNode *h;
+   QoreHashNode *h;
    HashMember *ptr;
 
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used

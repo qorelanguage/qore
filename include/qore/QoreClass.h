@@ -796,6 +796,7 @@ public:
    DLLLOCAL void parseInitPartial();
 };
 
+//! To be used to iterate throu a class' normal (non-static) methods
 class QoreMethodIterator {
 private:
    void *priv;
@@ -807,6 +808,7 @@ public:
    DLLEXPORT const QoreMethod *getMethod() const;
 };
 
+//! To be used to iterate throu a class' static methods
 class QoreStaticMethodIterator {
 private:
    void *priv;

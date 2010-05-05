@@ -397,7 +397,6 @@ struct qore_time_info : public qore_simple_tm {
       info.second        = second;
       info.us            = us;
       info.zone_name     = zname;
-      info.region_name   = zone->getRegionName();
       info.utc_secs_east = utcoffset;
       info.dst           = isdst;
       info.zone          = zone;

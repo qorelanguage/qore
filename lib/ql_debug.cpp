@@ -136,7 +136,7 @@ static void dni(QoreStringNode *s, const AbstractQoreNode *n, int indent, Except
       if (date->isRelative())
 	 s->concat(" (relative)");
       else
-	 s->sprintf(" %s (%s)", info.zone_name, info.region_name);
+	 s->sprintf(" %s (%s)", info.zone_name, info.regionName());
       return;
    }
 

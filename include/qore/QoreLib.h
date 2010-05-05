@@ -277,9 +277,15 @@ DLLEXPORT QoreStringNode *qore_bunzip2_to_string(const BinaryNode *bin, const Qo
 //! decompresses bzip2 data to a binary
 DLLEXPORT BinaryNode     *qore_bunzip2_to_binary(const BinaryNode *bin, ExceptionSink *xsink);
 
+//! parses a string of base64-encoded data and returns a BinaryNode
+DLLEXPORT BinaryNode *parseBase64(const char *buf, int len, ExceptionSink *xsink);
+
+//! parses a string of hex characters and returns a BinaryNode
+DLLEXPORT BinaryNode *parseHex(const char *buf, int len, ExceptionSink *xsink);
+
 class AbstractQoreZoneInfo;
 
-//! returns a time zone for the given time
+//! returns a time zone for the given time zone UTC offset
 DLLEXPORT const AbstractQoreZoneInfo *findCreateOffsetZone(int seconds_east);
 
 //! option: atomic operations
