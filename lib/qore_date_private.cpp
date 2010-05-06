@@ -71,12 +71,8 @@ static int ampm(int hour) {
 }
 
 bool qore_date_info::isLeapYear(int year) {
-   if (!(year % 100)) {
-      if (!(year % 400))
-	 return true;
-      else
-	 return false;
-   }
+   if (!(year % 100))
+      return !(year % 400) ? true : false;
    return (year % 4) ? false : true;
 }
 

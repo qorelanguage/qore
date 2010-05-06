@@ -217,7 +217,7 @@ struct qore_date_info {
 
    // number of leap days from 1970-01-01Z to a certain month and year
    DLLLOCAL static int leap_days_from_epoch(int year, int month) {
-      // 1968 was the 477th leap year from year 0 assuming a proleptic gregorian calendar
+      // 1968-02-29 was the 478th leap day from year 0 assuming a proleptic gregorian calendar
       int d;
       if (year >= 1970) {
          d = year/4 - year/100 + year/400 - 477;
@@ -227,6 +227,8 @@ struct qore_date_info {
       else {
          --year;
          d = year/4 - year/100 + year/400 - 477;
+         if (year < 0)
+            --d;
          // first leap year before 1970 is 1968
          // adjust for negative leap days
          if (month > 2 && isLeapYear(year + 1))
@@ -250,13 +252,16 @@ struct qore_date_info {
 
    // assumes UTC, returns seconds from 1970-01-01Z
    DLLLOCAL static int64 getEpochSeconds(int year, int month, int day) {
-      //printd(5, "qore_date_info::getEpochSeconds(year=%d, month=%d, day=%d) leap days to %d: %d\n", year, month, day, year, leap_days_from_epoch(year, month));
-      assert(month > 0 && month < 13);
+      //printd(5, "qore_date_info::getEpochSeconds(year=%d, month=%d, day=%d) leap days from epoch: %d\n", year, month, day, leap_days_from_epoch(year, month));
+      if (month < 1)
+         month = 1;
+      if (day < 1)
+         day = 1;
 
       // calculate seconds
       int64 epoch = (year - 1970) * SECS_PER_YEAR + (positive_months[month - 1] + day - 1 + leap_days_from_epoch(year, month)) * SECS_PER_DAY;
 
-      //printd(5, "qore_date_info::getEpochSeconds(year=%d, month=%d, day=%d) epoch=%lld\n", year, month, day, epoch);
+      //printd(5, "qore_date_info::getEpochSeconds(year=%d, month=%d, day=%d) epoch=%lld (leap days from epoch=%d)\n", year, month, day, epoch, leap_days_from_epoch(year, month));
       return epoch;
    }
 
