@@ -162,6 +162,9 @@ void init_type_functions() {
    builtinFunctions.add2("binary_to_string", f_binary_to_string, QC_CONSTANT, QDOM_DEFAULT, stringTypeInfo, 1, binaryTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("binary_to_string", f_binary_to_string_bin_str, QC_CONSTANT, QDOM_DEFAULT, stringTypeInfo, 2, binaryTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
 
+   builtinFunctions.add2("is_date_relative", f_bool_noop, QC_NOOP, QDOM_DEFAULT, boolTypeInfo, 1, anyTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("is_date_relative", f_is_date_relative, QC_CONSTANT, QDOM_DEFAULT, boolTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
+
+   builtinFunctions.add2("is_date_absolute", f_bool_noop, QC_NOOP, QDOM_DEFAULT, boolTypeInfo, 1, anyTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("is_date_absolute", f_is_date_absolute, QC_CONSTANT, QDOM_DEFAULT, boolTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
 }
