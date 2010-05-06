@@ -563,14 +563,14 @@ static AbstractQoreNode *f_trim_ref_str(const QoreListNode *args, ExceptionSink 
 }
 
 void init_string_functions() {
-   builtinFunctions.add2("length", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
-   builtinFunctions.add2("length", f_int_noop, QC_NOOP, QDOM_DEFAULT, bigIntTypeInfo, 1, anyTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("length", f_length_str, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo, 1, softStringTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("length", f_length_bin, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo, 1, binaryTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("length", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   builtinFunctions.add2("length", f_int_noop, QC_NOOP, QDOM_DEFAULT, bigIntTypeInfo, 1, anyTypeInfo, QORE_PARAM_NO_ARG);
 
+   builtinFunctions.add2("strlen", f_strlen_str, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo, 1, softStringTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("strlen", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("strlen", f_int_noop, QC_NOOP, QDOM_DEFAULT, bigIntTypeInfo, 1, anyTypeInfo, QORE_PARAM_NO_ARG);
-   builtinFunctions.add2("strlen", f_strlen_str, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo, 1, softStringTypeInfo, QORE_PARAM_NO_ARG);
 
    // tolower() called without a string argument returns 0
    builtinFunctions.add2("tolower", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
@@ -600,9 +600,9 @@ void init_string_functions() {
    builtinFunctions.add2("ord", f_ord_str, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo, 1, softStringTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("ord", f_ord_str_int, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo, 2, softStringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("chr", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
-   builtinFunctions.add2("chr", f_chr_noop, QC_NOOP, QDOM_DEFAULT, stringTypeInfo, 1, anyTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("chr", f_chr_int, QC_CONSTANT, QDOM_DEFAULT, stringTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("chr", f_chr_noop, QC_NOOP, QDOM_DEFAULT, stringTypeInfo, 1, anyTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("chr", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
 
    // an empty list was returned by split() if the types were not correct
    builtinFunctions.add2("split", f_list_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
