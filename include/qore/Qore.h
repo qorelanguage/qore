@@ -29,6 +29,11 @@
     the main header file for the Qore library.  All code using any part of the Qore library's functionality should include this file
 */
 
+// include configuration first if compiling the library
+#ifdef _QORE_LIB_INTERN
+#include <qore/intern/config.h>
+#endif
+
 #include <qore/common.h>
 #include <qore/QoreEncoding.h>
 #include <qore/ReferenceHolder.h>
@@ -145,11 +150,6 @@ DLLEXPORT void qore_init(qore_license_t license = QL_GPL, const char *default_en
     @see qore_init()
  */
 DLLEXPORT void qore_cleanup();
-
-// include configuration before support.h if compiling the library
-#ifdef _QORE_LIB_INTERN
-#include <qore/intern/config.h>
-#endif
 
 #include <qore/support.h>
 

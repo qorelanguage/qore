@@ -222,18 +222,12 @@ static inline DateTimeNode *makeMilliseconds(int ms) {
    return new DateTimeNode(0, 0, 0, 0, 0, 0, ms, true);
 }
 
-static inline int get_int_2(const char *&p) {
-   int rv = (*p - '0') * 10;
-   ++p;
-   rv += (*p - '0');
-   ++p;
-   return rv;
+static inline DateTimeNode *makeMicroseconds(int us) {
+   return DateTimeNode::makeRelative(0, 0, 0, 0, 0, 0, us);
 }
 
-static inline int get_int_3(const char *&p) {
-   int rv = (*p - '0') * 100;
-   ++p;
-   rv += (*p - '0') * 10;
+static inline int get_int_2(const char *&p) {
+   int rv = (*p - '0') * 10;
    ++p;
    rv += (*p - '0');
    ++p;
@@ -270,9 +264,25 @@ static void parse_time(const char *&p, int &hour, int &minute, int &second, int 
       // get milliseconds or microseconds if present
       if ((*p) == '.') {
 	 ++p;
-	 us = get_int_3(p) * 1000;	 
-	 if (isdigit(*p))
-	    us += get_int_3(p);
+
+	 // read all digits
+	 int len = 0;
+	 while (isdigit(*p)) {
+	    us *= 10;
+	    us += *p - '0';
+	    ++len;
+	    ++p;
+	 }
+	 
+	 // adjust to microseconds
+	 while (len < 6) {
+	    us *= 10;
+	    ++len;
+	 }
+	 while (len > 6) {
+	    us /= 10;
+	    --len;
+	 }
       }
    }
 }
@@ -427,8 +437,7 @@ MONTH           (0[1-9])|(1[012])
 DAY             ((0[1-9])|([12][0-9])|(3[01]))
 HOUR            ([01][0-9])|(2[0-3])
 MSEC            [0-5][0-9]
-MS              [0-9]{3}
-US              [0-9]{6}
+US              [0-9]{1,6}
 D2              [0-9]{2}
 BINARY          <({HEX_DIGIT}{HEX_DIGIT})+>
 TZ              (Z|([+-][01][0-9](:{MSEC}(:{MSEC})?)?))
@@ -976,18 +985,12 @@ public{WS}*\(                           yylval->string = strdup("public"); retur
 					      unput(yytext[7]);
 					   return DOT_KW_IDENTIFIER;
                                         }
-{YEAR}-{MONTH}-{DAY}T{HOUR}:{MSEC}(:{MSEC}(\.{MS})?)?{TZ}?   yylval->datetime = makeDateTime(yytext, true); return DATETIME;
 {YEAR}-{MONTH}-{DAY}T{HOUR}:{MSEC}(:{MSEC}(\.{US})?)?{TZ}?   yylval->datetime = makeDateTime(yytext, true); return DATETIME;
-{YEAR}-{MONTH}-{DAY}-{HOUR}:{MSEC}:{MSEC}(\.{MS})?{TZ}?      yylval->datetime = makeDateTime(yytext, true); return DATETIME;
 {YEAR}-{MONTH}-{DAY}-{HOUR}:{MSEC}:{MSEC}(\.{US})?{TZ}?      yylval->datetime = makeDateTime(yytext, true); return DATETIME;
 {YEAR}-{MONTH}-{DAY}?{TZ}?                                   yylval->datetime = makeDateTime(yytext, false); return DATETIME;
-{HOUR}:{MSEC}(:{MSEC}(\.{MS})?)?{TZ}?   yylval->datetime = makeTime(yytext); return DATETIME;
 {HOUR}:{MSEC}(:{MSEC}(\.{US})?)?{TZ}?   yylval->datetime = makeTime(yytext); return DATETIME;
-P{YEAR}-{D2}-{D2}(T{D2}:{D2}(:{D2}(\.{MS})?)?)?   yylval->datetime = makeRelativeDateTime(yytext+1); return DATETIME;
 P{YEAR}-{D2}-{D2}(T{D2}:{D2}(:{D2}(\.{US})?)?)?   yylval->datetime = makeRelativeDateTime(yytext+1); return DATETIME;
-PT{D2}:{D2}(:{D2}(\.{MS})?)?            yylval->datetime = makeRelativeTime(yytext+2); return DATETIME;
 PT{D2}:{D2}(:{D2}(\.{US})?)?            yylval->datetime = makeRelativeTime(yytext+2); return DATETIME;
-P{D2}:{D2}(:{D2}(\.{MS})?)?             yylval->datetime = makeRelativeTime(yytext+1); return DATETIME;
 P{D2}:{D2}(:{D2}(\.{US})?)?             yylval->datetime = makeRelativeTime(yytext+1); return DATETIME;
 ({WORD}::)+{WORD}                       yylval->string = strdup(yytext); return SCOPED_REF;
 cast\<{WS}*({WORD}::)+{WORD}{WS}*\>     yylval->string = make_cast(yytext); return QORE_CAST;
@@ -1001,6 +1004,7 @@ cast\<{WS}*{WORD}{WS}*\>                yylval->string = make_cast(yytext); retu
 {DIGIT}+D                               yylval->datetime = makeDays(strtol(yytext, 0, 10));    return DATETIME;
 {DIGIT}+h                               yylval->datetime = makeHours(strtol(yytext, 0, 10));   return DATETIME;
 {DIGIT}+ms                              yylval->datetime = makeMilliseconds(strtol(yytext, 0, 10)); return DATETIME;
+{DIGIT}+us                              yylval->datetime = makeMicroseconds(strtol(yytext, 0, 10)); return DATETIME;
 {DIGIT}+m                               yylval->datetime = makeMinutes(strtol(yytext, 0, 10)); return DATETIME;
 {DIGIT}+s                               yylval->datetime = makeSeconds(strtol(yytext, 0, 10)); return DATETIME;
 {HEX_CONST}				yylval->integer = strtoll(yytext, 0, 16); return INTEGER;

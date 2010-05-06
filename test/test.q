@@ -781,7 +781,7 @@ sub date_time_tests() {
     test_value($date - hours(2),          2004-02-01-10:30:00, "second date hour subtraction");
     test_value($date - minutes(25),       2004-02-01-12:05:00, "second date minute subtraction");
     test_value($date - seconds(11),       2004-02-01-12:29:49, "second date second subtraction");
-    test_value($date - milliseconds(500), 2004-02-01-12:29:59.500, "second date millisecond subtraction");
+    test_value($date - milliseconds(500), 2004-02-01-12:29:59.5, "second date millisecond subtraction");
 
     test_value($date + years(2),          2006-02-01-12:30:00, "second date year addition");
     test_value($date + months(5),         2004-07-01-12:30:00, "second date month addition");

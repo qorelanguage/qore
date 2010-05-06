@@ -74,9 +74,9 @@ public:
 class BuiltinFunctionListPrivate {
    friend class BuiltinFunctionListOptionalLockHelper;
 protected:
-   DLLLOCAL hm_bf_t hm;
+   hm_bf_t hm;
    // the mutex is needed because the list is global and also searched at runtime
-   DLLLOCAL mutable QoreThreadLock mutex;
+   mutable QoreThreadLock mutex;
 
    DLLLOCAL int add_intern(const char *name, BuiltinFunctionVariant *bfv) {
       BFLAutoLocker al(library_init_done ? &mutex : 0);

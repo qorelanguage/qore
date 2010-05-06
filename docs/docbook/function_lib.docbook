@@ -2896,7 +2896,7 @@
           <entry>
             <para>Y</para>
           </entry>
-          <entry><para>deserializies an XML-RPC value tree, returning a Qore data structure representing the information.</para></entry>
+          <entry><para>deserializies an XML-RPC value tree, returning Qore data representing the information.</para></entry>
         </row>
         <row>
           <entry>
@@ -23529,13 +23529,13 @@ the resulting string will correspond to the encoding given as the first argument
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>parseXMLRPCValue(<replaceable>xmlrpc_value_string, [output_encoding]</replaceable>)</programlisting>
+	<programlisting>parseXMLRPCValue(string <replaceable>xmlrpc_value_string, [string output_encoding]</replaceable>) returns any</programlisting>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Example</term>
       <listitem>
-	<programlisting>$hash = parseXMLRPCValue($xml);</programlisting>
+	<programlisting>my any $data = parseXMLRPCValue($xml);</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -23553,7 +23553,7 @@ the resulting string will correspond to the encoding given as the first argument
       <tbody>
 	<row>
 	  <entry><para>String, [String]</para></entry>
-	  <entry><para>Hash</para></entry>
+	  <entry><para>Any</para></entry>
 	  <entry><para>Deserializies an XML-RPC value string, returning Qore data representing the value data.</para></entry>
 	</row>
       </tbody>
@@ -23561,7 +23561,7 @@ the resulting string will correspond to the encoding given as the first argument
   </table>
 
       <table>
-	<title>Exceptions Thrown by parseXMLRPCResponse()</title>
+	<title>Exceptions Thrown by parseXMLRPCValue()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
