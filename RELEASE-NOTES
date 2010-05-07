@@ -1,12 +1,47 @@
 RELEASE NOTES for qore v0.8.0
 
-release summary: under development; check ChangeLog for details
+release summary: major Qore release with significant new functionality
 
-* hard typing
+* hard typing, function and method overloading, and default argument values
+declaring a variable with type info:
+  ex: our int $i = 1;
+      # the following 2 are functionally identical
+      my Mutex $m = new Mutex();
+      my Mutex $m();
 
-* overloaded functions and methods
+declaring a function with argument types, default argument values and return types:
+  ex:
+  sub example(int $i = 0, bool $force = False) returns string {
+      return "test";
+  }
 
-* default argument values
+builtin types: int, float, bool, string, hash, object, reference, binary, date, nothing, null
+
+soft types:
+softint: converts automatically from string, float, bool, and date
+softbool: converts automatically from string, float, int, and date
+softstring: converts automatically from int, float, bool, and date
+softfloat: converts automatically from string, int, bool, and date
+
+composite types:
+data: either string or binary
+any: any value (including nothing)
+code: either a call reference or a closure
+
+the special type names "callref" and "closure" are synonyms for "code" and cannot be used to restrict a value to one or the other types.
+
+limitations of hard typing:
+no complex types are available yet (reference to hash, list of Condition, etc).
+many functions and methods can return more than one data type depending on the arguments (values, not types); in this case the return types are tagged as "any" even though only a small number of types can be returned.  In general, whenever an expression can return more than one type, this is currently covered by returning type "any".
+
+Type information has been propagated through the parser; so many more errors can be caught at parse time, sometimes even if types are not declared in code (such as with code written for older versions of qore, for example).  See below for warnings (non-existent-method-call, invalid-operation, call-with-type-errors, return-value-ignored, deprecated, excess-args, duplicate-hash-key) and parse directives (ex %require-types) added, most of them related to typing.
+
+class methods restrictions: the following methods may not be overloaded:
+      <class>::copy()
+      <class>::destructor()
+      <class>::memberNotification(string $member)
+      <class>::memberGate(string $member)
+      <class>::methodGate(string $method, ...)
 
 * time zone support in absolute date/time values
 Qore uses the system's zoneinfo information to determine the UTC offset and daylight saving's time changes
@@ -20,9 +55,11 @@ date in Zulu time (UTC) (time component = 00:00:00Z)
 2001-01-01Z
 
 * date/time values have resolution to the microsecond
-previously was to the millisecond
+previously was to the millisecond; applies to both relative and absolute date/time values
 
 parser accepts a new relative time format: <x>us, ex: 45us = 45 microseconds
+
+* class constuctor methods can now be declared private
 
 * new TimeZone class
 TimeZone::date(softint)
@@ -37,14 +74,14 @@ Program::setTimeZone(TimeZone)
 Program::getTimeZone() returns TimeZone
 
 * new functions
-getpwuid2()
-getpwnam()
-getpwnam2()
-getgrgid()
-getgrgid2()
-getgrnam()
-getgrname2()
-readlink()
+getpwuid2(softint) returns hash
+getpwnam(string) returns any
+getpwnam2(string) returns hash
+getgrgid(softint) returns any
+getgrgid2(softint) returns hash
+getgrnam(string) returns any
+getgrname2(string) returns hash
+readlink(string) returns string
 is_date_relative(date) returns bool
 is_date_absolute(date) returns bool
 get_duration_seconds(date) returns int
@@ -60,28 +97,44 @@ get_microseconds(date) returns int
 gmtime(date) returns date
 localtime(date) returns date
 
-* new Socket methods
-Socket::connectINET()
-Socket::connectINETSSL()
-Socket::connectUNIX()
-Socket::connectUNIXSSL()
-Socket::setCertificate(binary)
-Socket::setCertificate(string)
-Socket::setPrivateKey(binary)
-Socket::setPrivateKey(string)
+* new Socket methods and variants
+Socket::connectINET(string $host, int $port, int $timeout_ms = -1) returns nothing
+Socket::connectINET(string $host, int $port, date $timeout_ms) returns nothing
+Socket::connectINETSSL(string $host, int $port, int $timeout_ms = -1) returns nothing
+Socket::connectINETSSL(string $host, int $port, date $timeout_ms) returns nothing
+Socket::connectUNIX(string $path) returns nothing
+Socket::connectUNIXSSL(string $path) returns nothing
+Socket::setCertificate(binary) returns nothing
+Socket::setCertificate(string) returns nothing
+Socket::setPrivateKey(binary) returns nothing
+Socket::setPrivateKey(string) returns nothing
+
+* new object creation syntax
+to create an object without explicitly using the "new" operator, use the "my" or "our" keywords then give the class name followed by the arguments to the constructor in parentheses as in the following example:
+   my File $f();
 
 * cast<> operator
+This operator can be used to suppress warnings such as the non-existent-method-call warning; for example, if you make a method call from a base class to a method that only exists in a subclass, because qore has no way of defining "pure virtual" methods like in C++, the parser raises a "non-existent-method-call" warning.  You can use the cast<> operator to supress this warning as in the following example:
+     cast<ChildClass>($self).methodCall();
 
 * delete statement is now the delete operator
+so now the delete operator can be used in "map" expressions, for example
 
 * new remove operator
+the remove operator works in a way similar to the delete operator, but does not call the destructor when operating on objects.  It also returns the value removed.
+For example:
+    my string $str = remove $hash.key;
+
+This would remove "key" from $hash and return the value removed.
 
 * new extract operator
+The extract operator is identical to the "splice" operator, except the extract operator returns any values removed from the list or string operated on
 
 * constants may be assigned with any expression that does not have side effects
 this includes builtin functions that have been tagged as safe to use in constant expressions
 
 * new warning: non-existent-method-call
+raised when a given method name cannot be found in the current class or base classes.  such calls may be valid if the method itself is called from a derived class where the method exists
 
 * new warning: invalid-operation
 
@@ -98,7 +151,7 @@ this includes builtin functions that have been tagged as safe to use in constant
 * default warning mask updated
 the default warning mask includes: unknown-warning, unreachable-code, nonexistent-method-call, invalid-operation, call-with-type-errors, return-value-ignored, duplicate-hash-key
 
-* new parse option PO_REQUIRE_TYPES
+* new parse option PO_REQUIRE_TYPES (%require-types)
 
 * new parse option PO_NO_THREAD_INFO, domain QDOM_THREAD_INFO
 the following functions were tagged with QDOM_THREAD_INFO:
@@ -114,11 +167,37 @@ getcwd(), getcwd2(), getpwuid(), getpwuid2(), getpwnam(), getpwnam2()
 the following functions were tagged with QDOM_LOCALE_CONTROL:
 TimeZone::set()
 
+* parseDatasource() function updated
+parseDatasource() will now parse options at the end of a datasource string in curly brackets ('{' '}') such as the following:
+oracle:user/pass@db(al32utf8)%localhost:1521{min=5,max=10}
+
+Any option name can be placed there, whitespace is ignored; options must have the form <key>=<value>
+
+Options are placed in a hash under the "options" key in the value returned from parseDatasource().
+The example above would produce the following output:
+hash: (8 members)
+  type : "oracle"
+  user : "user"
+  pass : "pass"
+  charset : "al32utf8"
+  db : "db"
+  host : "localhost"
+  port : 1521
+  options : hash: (2 members)
+    min : "5"
+    max : "10"
+
+Only "min" and "max" options are now currently used - when the DatasourcePool(hash) constructor is used are these options respected if they are present in the hash.
+
 * new Datasource method:
 Datasource::constructor(hash)
 
+expects a hash as produced by parseDatasource()
+
 * new DatasourcePool method:
 DatasourcePool::constructor(hash)
+
+expects a hash as produced by parseDatasource()
 
 * HTTP-CLIENT-RECEIVE-ERROR exception
 now returns more information - the exception argument "arg" is a hash with the following keys:
