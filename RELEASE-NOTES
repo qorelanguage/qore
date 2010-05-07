@@ -12,8 +12,17 @@ release summary: under development; check ChangeLog for details
 Qore uses the system's zoneinfo information to determine the UTC offset and daylight saving's time changes
 Dates given without a time zone portion are assumed to be in local time
 
+* more flexible time input when parsing:
+UTC offset in time east plus hundreths of a second (1-6 digits after the decimal point are accepted):
+2001-01-01T11:35:21.53+06:00
+
+date in Zulu time (UTC) (time component = 00:00:00Z)
+2001-01-01Z
+
 * date/time values have resolution to the microsecond
 previously was to the millisecond
+
+parser accepts a new relative time format: <x>us, ex: 45us = 45 microseconds
 
 * new TimeZone class
 TimeZone::date(softint)
@@ -110,6 +119,11 @@ Datasource::constructor(hash)
 
 * new DatasourcePool method:
 DatasourcePool::constructor(hash)
+
+* HTTP-CLIENT-RECEIVE-ERROR exception
+now returns more information - the exception argument "arg" is a hash with the following keys:
+code: the HTTP code received
+body: the message body received
 
 
 ***********************
