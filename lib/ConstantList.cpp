@@ -70,6 +70,7 @@ void ConstantList::add(const char *name, AbstractQoreNode *value, const QoreType
 AbstractQoreNode *ConstantList::find(const char *name, const QoreTypeInfo *&constantTypeInfo) {
    hm_qn_t::iterator i = hm.find(name);
    if (i != hm.end()) {
+      i->second.parseInit(i->first);
       constantTypeInfo = i->second.typeInfo;
       return i->second.node;
    }
@@ -134,72 +135,11 @@ void ConstantList::assimilate(ConstantList *n, ConstantList *otherlist, const ch
    }
 }
 
-class LocalVar;
 void ConstantList::parseInit() {
    //RootQoreNamespace *rns = getRootNS();
    for (hm_qn_t::iterator i = hm.begin(); i != hm.end(); ++i) {
       printd(5, "ConstantList::parseInit() %s %p\n", i->first, i->second.node);
-
-      if (!i->second.node)
-	 continue;
-
-      // this while loop is just to avoid goto's
-      while (true) {
-	 int lvids = 0;
-	 // call parseInit on the value
-	 i->second.node = i->second.node->parseInit((LocalVar *)0, 0, lvids, i->second.typeInfo);
-	 if (lvids) {
-	    parse_error("illegal local variable declaration in assignment expression for constant '%s'", i->first);
-	    while (lvids--)
-	       pop_local_var();
-	    break;
-	 }
-	 
-	 if (i->second.node->is_value())
-	    break;
-
-	 ParseNode *pn = dynamic_cast<ParseNode *>(i->second.node);
-	 if (pn && !pn->is_const_ok()) {
-	    parse_error("invalid expression assigned to constant '%s' (possible side effects)", i->first);
-	    break;
-	 }
-
-	 // evaluate expression
-	 ExceptionSink xsink;
-	 {
-	    // FIXME: set location?
-	    ReferenceHolder<AbstractQoreNode> v(i->second.node->eval(&xsink), &xsink);
-	    if (!xsink) {
-	       i->second.node->deref(&xsink);
-	       i->second.node = v.release();
-	    }
-	 }
-	       
-	 if (xsink.isEvent())
-	    getProgram()->addParseException(&xsink);
-#ifdef DEBUG
-	 else
-	    assert(!i->second.node || i->second.node->is_value());
-#endif
-	 if (!i->second.node->is_value())
-	    parse_error("invalid expression of type '%s' assigned to constant '%s' (possible side effects) v=%p", get_type_name(i->second.node), i->first, i->second.node);
-	 break;
-      }
-
-      if (i->second.node && i->second.node->is_value() && !i->second.typeInfo) {
-	 int lvids = 0;
-	 i->second.node = i->second.node->parseInit((LocalVar *)0, 0, lvids, i->second.typeInfo);
-	 
-	 assert(!lvids);
-      }
-
-      // ensure that the value is not 0
-      if (!i->second.node) {
-	 i->second.node = nothing();
-	 i->second.typeInfo = nothingTypeInfo;
-      }
-      
-      //printd(0, "ConstantList::parseInit() %s: %p (%s type %s %s)\n", i->first, i->second.node, i->second.node->getTypeName(), i->second.typeInfo && i->second.typeInfo->getType() ? getBuiltinTypeName(i->second.typeInfo->qt) : "n/a", i->second.typeInfo && i->second.typeInfo->qc ? i->second.typeInfo->qc->getName() : "n/a");
+      i->second.parseInit(i->first);
    }
 }
 
