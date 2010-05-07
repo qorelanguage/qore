@@ -421,10 +421,10 @@ QoreStringNode *QoreHTTPClient::getURL() {
    if (!priv->username.empty())
       pstr->sprintf("%s:%s@", priv->username.c_str(), priv->password.c_str());
 
-   pstr->concat(priv->proxy_host.c_str());
+   pstr->concat(priv->host.c_str());
    if (priv->port != 80)
       pstr->sprintf(":%d", priv->port);
-   pstr->concat(priv->proxy_path.c_str());
+   pstr->concat(priv->path.c_str());
    return pstr;
 }
 
@@ -530,8 +530,7 @@ int QoreHTTPClient::set_proxy_url_unlocked(const char *pstr, ExceptionSink *xsin
    return 0;
 }
 
-int QoreHTTPClient::setProxyURL(const char *proxy, ExceptionSink *xsink) 
-{
+int QoreHTTPClient::setProxyURL(const char *proxy, ExceptionSink *xsink)  {
    SafeLocker sl(priv->m);
    priv->disconnect_unlocked();
    if (!proxy || !proxy[0]) {
@@ -541,8 +540,7 @@ int QoreHTTPClient::setProxyURL(const char *proxy, ExceptionSink *xsink)
    return set_proxy_url_unlocked(proxy, xsink);
 }
 
-QoreStringNode *QoreHTTPClient::getProxyURL() 
-{
+QoreStringNode *QoreHTTPClient::getProxyURL()  {
    SafeLocker sl(priv->m);
 
    if (!priv->proxy_port)
@@ -563,8 +561,7 @@ QoreStringNode *QoreHTTPClient::getProxyURL()
    return pstr;
 }
 
-void QoreHTTPClient::clearProxyURL()
-{
+void QoreHTTPClient::clearProxyURL() {
    SafeLocker sl(priv->m);
    priv->proxy_port = 0;
    priv->proxy_username.clear();
@@ -575,32 +572,27 @@ void QoreHTTPClient::clearProxyURL()
    setSocketPath();
 }
 
-void QoreHTTPClient::setSecure(bool is_secure) 
-{ 
+void QoreHTTPClient::setSecure(bool is_secure) { 
    lock();
    priv->ssl = is_secure; 
    unlock();
 }
 
-bool QoreHTTPClient::isSecure() const 
-{ 
+bool QoreHTTPClient::isSecure() const { 
    return priv->ssl; 
 }
 
-void QoreHTTPClient::setProxySecure(bool is_secure) 
-{ 
+void QoreHTTPClient::setProxySecure(bool is_secure) { 
    lock();
    priv->proxy_ssl = is_secure; 
    unlock();
 }
 
-bool QoreHTTPClient::isProxySecure() const 
-{ 
+bool QoreHTTPClient::isProxySecure() const { 
    return priv->proxy_ssl; 
 }
 
-long QoreHTTPClient::verifyPeerCertificate()
-{ 
+long QoreHTTPClient::verifyPeerCertificate() { 
    SafeLocker sl(priv->m);
    return priv->m_socket.verifyPeerCertificate(); 
 }
@@ -659,7 +651,7 @@ const char *QoreHTTPClient::getMsgPath(const char *mpath, class QoreString &pstr
    return (const char *)pstr.getBuffer();
 }
 
-QoreHashNode *QoreHTTPClient::getResponseHeader(const char *meth, const char *mpath, const QoreHashNode &nh, const void *data, unsigned size, int &code, bool suppress_content_length, ExceptionSink *xsink) {
+QoreHashNode *QoreHTTPClient::getResponseHeader(const char *meth, const char *mpath, const QoreHashNode &nh, const void *data, unsigned size, int &code, bool suppress_content_length, QoreHashNode *info, ExceptionSink *xsink) {
    QoreString pathstr(priv->m_socket.getEncoding());
    const char *msgpath = getMsgPath(mpath, pathstr);
 
@@ -667,7 +659,7 @@ QoreHashNode *QoreHTTPClient::getResponseHeader(const char *meth, const char *mp
       return 0;
 
    // send the message
-   int rc = priv->m_socket.sendHTTPMessage(meth, msgpath, priv->http11 ? "1.1" : "1.0", &nh, data, size, QORE_SOURCE_HTTPCLIENT);
+   int rc = priv->m_socket.sendHTTPMessage(info, meth, msgpath, priv->http11 ? "1.1" : "1.0", &nh, data, size, QORE_SOURCE_HTTPCLIENT);
 
    if (rc) {
       if (rc == -2) {
@@ -681,7 +673,7 @@ QoreHashNode *QoreHTTPClient::getResponseHeader(const char *meth, const char *mp
 
    QoreHashNode *ah = 0;
    while (true) {
-      ReferenceHolder<AbstractQoreNode> ans(priv->m_socket.readHTTPHeader(priv->timeout, &rc, QORE_SOURCE_HTTPCLIENT), xsink);
+      ReferenceHolder<AbstractQoreNode> ans(priv->m_socket.readHTTPHeader(info, priv->timeout, &rc, QORE_SOURCE_HTTPCLIENT), xsink);
       if (!(*ans)) {
 	 priv->disconnect_unlocked();
 	 xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", "socket %s closed on remote end without a response", priv->socketpath.c_str());
@@ -917,7 +909,7 @@ QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath,
       }
 
       // send HTTP message and get response header
-      ans = getResponseHeader(meth, mpath, *(*nh), data, size, code, suppress_content_length, xsink);
+      ans = getResponseHeader(meth, mpath, *(*nh), data, size, code, suppress_content_length, info, xsink);
       if (!ans)
 	 return 0;
 

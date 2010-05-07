@@ -1696,10 +1696,19 @@ static void do_headers(QoreString &hdr, const QoreHashNode *headers, qore_size_t
 
 // returns 0 for success
 int QoreSocket::sendHTTPMessage(const char *method, const char *path, const char *http_version, const QoreHashNode *headers, const void *data, qore_size_t size, int source) {
+   return sendHTTPMessage(0, method, path, http_version, headers, data, size, source);
+}
+
+// returns 0 for success
+int QoreSocket::sendHTTPMessage(QoreHashNode *info, const char *method, const char *path, const char *http_version, const QoreHashNode *headers, const void *data, qore_size_t size, int source) {
    // prepare header string
    QoreString hdr(priv->charsetid);
 
    hdr.sprintf("%s %s HTTP/%s", method, path && path[0] ? path : "/", http_version);
+
+   // write request-uri key if info hash is non-null
+   if (info)
+      info->setKeyValue("request-uri", new QoreStringNode(hdr), 0);
 
    priv->do_send_http_message(hdr, headers, source);
    hdr.concat("\r\n");
@@ -1847,12 +1856,16 @@ void QoreSocket::convertHeaderToHash(QoreHashNode *h, char *p) {
    }
 }
 
+AbstractQoreNode *QoreSocket::readHTTPHeader(int timeout, int *rc, int source) {
+   return readHTTPHeader(0, timeout, rc, source);
+}
+
 // rc is:
 //    0 for remote end shutdown
 //   -1 for socket error
 //   -2 for socket not open
 //   -3 for timeout
-AbstractQoreNode *QoreSocket::readHTTPHeader(int timeout, int *rc, int source) {
+AbstractQoreNode *QoreSocket::readHTTPHeader(QoreHashNode *info, int timeout, int *rc, int source) {
    if (!priv->sock) {
       *rc = QSE_NOT_OPEN;
       return 0;
@@ -1882,7 +1895,7 @@ AbstractQoreNode *QoreSocket::readHTTPHeader(int timeout, int *rc, int source) {
    if (!(t1 = (char *)strstr(buf, "HTTP/1.")))
       return hdr.release();
 
-   QoreHashNode *h = new QoreHashNode();
+   QoreHashNode *h = new QoreHashNode;
 
 #if 0
    h->setKeyValue("dbg_hdr", new QoreStringNode(buf), 0);
@@ -1903,6 +1916,8 @@ AbstractQoreNode *QoreSocket::readHTTPHeader(int timeout, int *rc, int source) {
 	    }
 	 }
       }
+      if (info)
+	 info->setKeyValue("response-uri", new QoreStringNode(buf), 0);
    }
    else { // get method and path
       char *t2 = (char *)strchr(buf, ' ');
@@ -1917,6 +1932,8 @@ AbstractQoreNode *QoreSocket::readHTTPHeader(int timeout, int *rc, int source) {
 	    // the path is returned as-is with no decodings - use decode_url() to decode
 	    h->setKeyValue("path", new QoreStringNode(t2, priv->charsetid), 0);
 	 }
+	 if (info)
+	    info->setKeyValue("request-uri", new QoreStringNode(buf), 0);
       }
    }
    
