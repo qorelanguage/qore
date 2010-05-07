@@ -1321,22 +1321,16 @@ void BCANode::parseInit(BCList *bcl, const char *classname) {
 void BCNode::parseInit(QoreClass *cls, bool &has_delete_blocker) {
    if (!sclass) {
       if (cname) {
+	 // if the class cannot be found, RootQoreNamespace::parseFindScopedClass() will throw the appropriate exception
 	 sclass = getRootNS()->parseFindScopedClass(cname);
 	 printd(5, "BCList::parseInit() %s inheriting %s (%p)\n", cls->getName(), cname->ostr, sclass);
-#ifdef DEBUG
-	 if (!sclass)
-	    printd(0, "BCList::parseInit() %s cannot find base class %s\n", cls->getName(), cname->ostr);
-#endif
 	 delete cname;
 	 cname = 0;
       }
       else {
+	 // if the class cannot be found, RootQoreNamespace::parseFindClass() will throw the appropriate exception
 	 sclass = getRootNS()->parseFindClass(cstr);
 	 printd(5, "BCList::parseInit() %s inheriting %s (%p)\n", cls->getName(), cstr, sclass);
-#ifdef DEBUG
-	 if (!sclass)
-	    printd(0, "BCList::parseInit() %s cannot find base class %s\n", cls->getName(), cstr);
-#endif
 	 free(cstr);
 	 cstr = 0;
       }
@@ -1608,7 +1602,6 @@ void BCList::parseAddAncestors(QoreMethod *m) {
       if (!qc)
 	 continue;
 
-      assert(qc);
       const QoreMethod *w = qc->priv->parseFindLocalMethod(name);
       //printd(5, "BCList::parseAddAncestors(%p %s) this=%p qc=%p w=%p\n", m, m->getName(), this, qc, w);
 
@@ -1623,7 +1616,9 @@ void BCList::parseAddStaticAncestors(QoreMethod *m) {
    const char *name = m->getName();
    for (bclist_t::iterator i = begin(), e = end(); i != e; ++i) {
       QoreClass *qc = (*i)->sclass;
-      assert(qc);
+      // qc may be 0 if there were a parse error with an unknown class earlier
+      if (!qc)
+	 continue;
       const QoreMethod *w = qc->priv->parseFindLocalStaticMethod(name);
       if (w)
 	 m->getFunction()->addAncestor(w->getFunction());

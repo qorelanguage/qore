@@ -164,7 +164,9 @@ public:
    // parse-only interfaces are not exported
    DLLLOCAL QoreNamespace();
    DLLLOCAL void addClass(NamedScope *n, QoreClass *oc);
-   DLLLOCAL void addConstant(NamedScope *name, AbstractQoreNode *value);
+
+   DLLLOCAL void parseAddConstant(NamedScope *name, AbstractQoreNode *value);
+
    DLLLOCAL void addClass(QoreClass *oc);
    DLLLOCAL void parseAddNamespace(QoreNamespace *ns);
    DLLLOCAL void parseInit();

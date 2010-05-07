@@ -166,7 +166,7 @@ static void addNSNode(class QoreNamespace *ns, struct NSNode *n) {
 	 delete n->n.cn;
 	 break;
       case NSN_CONST:
-	 ns->addConstant(n->n.cn->name, n->n.cn->value);
+	 ns->parseAddConstant(n->n.cn->name, n->n.cn->value);
 	 delete n->n.cn;
 	 break;
       case NSN_NS:
@@ -280,7 +280,7 @@ public:
    }
 };
 
-static inline void addConstant(NamedScope *name, AbstractQoreNode *value) {
+static inline void parseAddConstant(NamedScope *name, AbstractQoreNode *value) {
    getRootNS()->rootAddConstant(name, value);
 }
 
@@ -853,7 +853,7 @@ top_level_command:
 	   delete $1;
 	}
 	| scoped_const_decl { 
-	   addConstant($1->name, $1->value);
+	   parseAddConstant($1->name, $1->value);
 	   // see if constant definitions are allowed
 	   if (checkParseOption(PO_NO_CONSTANT_DEFS))
 	      parse_error("illegal constant definition \"%s\" (conflicts with parse option NO_CONSTANT_DEFS)",
@@ -862,7 +862,7 @@ top_level_command:
 	   delete $1;
 	}
         | unscoped_const_decl { 
-	   getRootNS()->addConstant($1->name, $1->value); 
+	   getRootNS()->parseAddConstant($1->name, $1->value); 
 	   // see if constant definitions are allowed
 	   if (checkParseOption(PO_NO_CONSTANT_DEFS))
 	      parse_error("illegal constant definition \"%s\" (conflicts with parse option NO_CONSTANT_DEFS)", $1->name->ostr);

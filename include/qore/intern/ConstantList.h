@@ -48,60 +48,8 @@ public:
    bool init;
 
    DLLLOCAL ConstantEntry() : typeInfo(0), node(0), init(false) {}
-   DLLLOCAL ConstantEntry(AbstractQoreNode *v, const QoreTypeInfo *ti = 0) : typeInfo(ti), node(v), init(false) {}
-   DLLLOCAL void parseInit(const char *name) {
-      //printd(5, "ConstantEntry::parseInit() this=%p %s init=%d node=%p (%s)\n", this, name, init, node, get_type_name(node));
-      
-      if (init)
-         return;
-      init = true;
-      if (!node)
-         return;
-
-      int lvids = 0;
-      node = node->parseInit((LocalVar *)0, 0, lvids, typeInfo);
-
-      //printd(5, "ConstantEntry::parseInit() this=%p %s initialized to node=%p (%s)\n", this, name, node, get_type_name(node));
-
-      if (lvids) {
-         parse_error("illegal local variable declaration in assignment expression for constant '%s'", name);
-         while (lvids--)
-            pop_local_var();
-         return;
-      }
-
-      if (node->is_value())
-         return;
-
-      ParseNode *pn = dynamic_cast<ParseNode *>(node);
-      if (pn && !pn->is_const_ok()) {
-         parse_error("invalid expression assigned to constant '%s' (possible side effects)", name);
-         return;
-      }
-
-      // evaluate expression
-      ExceptionSink xsink;
-      {
-         // FIXME: set location?
-         ReferenceHolder<AbstractQoreNode> v(node->eval(&xsink), &xsink);
-
-         //printd(5, "ConstantEntry::parseInit() this=%p %s evaluated to node=%p (%s)\n", this, name, *v, get_type_name(*v));
-
-         if (!xsink) {
-            node->deref(&xsink);
-            node = v.release();
-            if (!node) {
-               node = nothing();
-               typeInfo = nothingTypeInfo;
-            }
-         }
-      }
-	       
-      if (xsink.isEvent())
-         getProgram()->addParseException(&xsink);
-      else if (!node->is_value())
-         parse_error("invalid expression of type '%s' assigned to constant '%s' (possible side effects)", get_type_name(node), name);      
-   }
+   DLLLOCAL ConstantEntry(AbstractQoreNode *v, const QoreTypeInfo *ti = 0, bool n_init = false) : typeInfo(ti), node(v), init(n_init) {}
+   DLLLOCAL void parseInit(const char *name);
 };
 
 typedef std::map<const char*, ConstantEntry, class ltstr> hm_qn_t;
@@ -115,6 +63,7 @@ private:
 public:
    DLLLOCAL ~ConstantList();
    DLLLOCAL void add(const char *name, AbstractQoreNode *val, const QoreTypeInfo *typeInfo = 0);
+   DLLLOCAL void parseAdd(const char *name, AbstractQoreNode *val, const QoreTypeInfo *typeInfo = 0);
    DLLLOCAL AbstractQoreNode *find(const char *name, const QoreTypeInfo *&constantTypeInfo);
    DLLLOCAL bool inList(const char *name) const;
    DLLLOCAL ConstantList *copy();

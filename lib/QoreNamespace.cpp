@@ -180,7 +180,7 @@ AbstractQoreNode *QoreNamespace::getConstantValue(const char *cname, const QoreT
 }
 
 // only called while parsing before addition to namespace tree, no locking needed
-void QoreNamespace::addConstant(NamedScope *nscope, AbstractQoreNode *value) {
+void QoreNamespace::parseAddConstant(NamedScope *nscope, AbstractQoreNode *value) {
    QoreNamespace *sns = resolveNameScope(nscope);
    if (!sns)
       value->deref(0);
@@ -191,7 +191,7 @@ void QoreNamespace::addConstant(NamedScope *nscope, AbstractQoreNode *value) {
 	 value->deref(0);
       }
       else 
-	 sns->priv->pendConstant->add(cname, value);
+	 sns->priv->pendConstant->parseAdd(cname, value);
    }
 }
 
@@ -1094,7 +1094,7 @@ void RootQoreNamespace::rootAddConstant(NamedScope *nscope, AbstractQoreNode *va
    if (sns) {
       printd(5, "RootQoreNamespace::rootAddConstant() %s: adding %s to %s (value=%08p type=%s)\n", nscope->ostr, 
 	     nscope->getIdentifier(), sns->priv->name.c_str(), value, value ? value->getTypeName() : "(none)");
-      sns->priv->pendConstant->add(nscope->strlist[nscope->elements - 1], value);
+      sns->priv->pendConstant->parseAdd(nscope->strlist[nscope->elements - 1], value);
    }
    else
       value->deref(0);
