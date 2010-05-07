@@ -206,7 +206,7 @@ static AbstractQoreNode *HC_post(QoreObject *self, QoreHTTPClient *client, const
       size = b->size();
    }
 
-   const QoreHashNode *ph = HARD_QORE_HASH(args, 1);
+   const QoreHashNode *ph = HARD_QORE_HASH(args, 2);
 
    OptHashRefHelper ohrh(args, 2, xsink);
    ReferenceHolder<AbstractQoreNode> rv(client->post(path, ph, ptr, size, *ohrh, xsink), xsink);
