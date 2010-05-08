@@ -55,9 +55,11 @@ struct qore_tm {
     pointer to an AbstractQoreZoneInfo object, which gives the time zone information (UTC
     offset, daylights savings time transitions, if any, etc).
 
-    Therefore, for absolute date/time values, it is expensive to functions that get discrete
-    values for the date (such as getYear(), getMonth(), etc), because to return the value, the
-    entire date must be calculated for each call.  Instead DateTime::getInfo() should be used.
+    Therefore, for absolute date/time values, it is expensive to call functions that get discrete
+    values for the date (DateTime::getYear(), DateTime::getMonth(), and DateTime::getDay()),
+    because for each call, all broken-down components are calculated for each call.
+    In the case that more than one component of an absolute date/time value is required, it's
+    recommended to call DateTime::getInfo() instead.
 
     Relative date/time values are stored with discrete values for years, months, days, hours,
     minutes, seconds, and microseconds.
@@ -285,52 +287,50 @@ public:
    */
    DLLEXPORT bool isAbsolute() const;
 
-   //! returns the year portion of the date-time value
-   /** @note if more than one of DateTime::getYear(), DateTime::getMonth(), etc is called, then DateTime::getInfo() should be used instead to avoid the broken-down components of the date being calculated for each call that retrieves a discrete value from the date.  This restriction does not apply to relative date/time values.
+   //! returns the year portion of the date-time value (in local time according to the time zone for absolute date/time values)
+   /** @note if more than one of DateTime::getYear(), DateTime::getMonth(), or DateTime::getDay() is called, then DateTime::getInfo() should be used instead to avoid the broken-down components of the date being calculated for each call that retrieves a discrete value from the date.  This restriction does not apply to relative date/time values.
        @return the year portion of the date-time value
    */
    DLLEXPORT short getYear() const;
 
-   //! returns the month portion of the date-time value
-   /** @note if more than one of DateTime::getYear(), DateTime::getMonth(), etc is called for an absolute date/time value, then DateTime::getInfo() should be used instead to avoid the broken-down components of the date being calculated for each call that retrieves a discrete value from the date.  This restriction does not apply to relative date/time values.
+   //! returns the month portion of the date-time value (in local time according to the time zone for absolute date/time values)
+   /** @note if more than one of DateTime::getYear(), DateTime::getMonth(), or DateTime::getDay() is called for an absolute date/time value, then DateTime::getInfo() should be used instead to avoid the broken-down components of the date being calculated for each call that retrieves a discrete value from the date.  This restriction does not apply to relative date/time values.
        @return the month portion of the date-time value
    */
    DLLEXPORT int getMonth() const;
 
-   //! returns the day portion of the date-time value
-   /** @note if more than one of DateTime::getYear(), DateTime::getMonth(), DateTime::getDay(), etc is called for an absolute date/time value, then DateTime::getInfo() should be used instead to avoid the broken-down components of the date being calculated for each call that retrieves a discrete value from the date.  This restriction does not apply to relative date/time values.
+   //! returns the day portion of the date-time value (in local time according to the time zone for absolute date/time values)
+   /** @note if more than one of DateTime::getYear(), DateTime::getMonth(), or DateTime::getDay() is called for an absolute date/time value, then DateTime::getInfo() should be used instead to avoid the broken-down components of the date being calculated for each call that retrieves a discrete value from the date.  This restriction does not apply to relative date/time values.
        @return the day portion of the date-time value
    */
    DLLEXPORT int getDay() const;
 
-   //! returns the hour portion of the date-time value
-   /** @note if more than one of DateTime::getYear(), DateTime::getMonth(), DateTime::getHour(), etc is called for an absolute date/time value, then DateTime::getInfo() should be used instead to avoid the broken-down components of the date being calculated for each call that retrieves a discrete value from the date
+   //! returns the hour portion of the date-time value (in local time according to the time zone for absolute date/time values)
+   /** @note DateTime::getHour() is calculated mathematically from the epoch offset for absolute date/time values, therefore it's much faster than DateTime::getYear(), DateTime::getMonth(), and DateTime::getDay(), however DateTime::getInfo() should be used if all date components are needed instead to avoid the broken-down components of the date being calculated for each call that retrieves a discrete value from the date
        @return the hour portion of the date-time value
    */
    DLLEXPORT int getHour() const;
 
-   //! returns the minute portion of the date-time value
-   /** @note if more than one of DateTime::getYear(), DateTime::getMonth(), DateTime::getMinute(), etc is called for an absolute date/time value, then DateTime::getInfo() should be used instead to avoid the broken-down components of the date being calculated for each call that retrieves a discrete value from the date
+   //! returns the minute portion of the date-time value (in local time according to the time zone for absolute date/time values)
+   /** @note DateTime::getMinute() is calculated mathematically from the epoch offset for absolute date/time values, therefore it's much faster than DateTime::getYear(), DateTime::getMonth(), and DateTime::getDay(), however DateTime::getInfo() should be used if all date components are needed instead to avoid the broken-down components of the date being calculated for each call that retrieves a discrete value from the date
        @return the minute portion of the date-time value
    */
    DLLEXPORT int getMinute() const;
 
-   //! returns the second portion of the date-time value
-   /** @note if more than one of DateTime::getYear(), DateTime::getMonth(), DateTime::getSecond(), etc is called for an absolute date/time value, then DateTime::getInfo() should be used instead to avoid the broken-down components of the date being calculated for each call that retrieves a discrete value from the date
+   //! returns the second portion of the date-time value (in local time according to the time zone for absolute date/time values)
+   /** @note DateTime::getSecond() is calculated mathematically from the epoch offset for absolute date/time values, therefore it's much faster than DateTime::getYear(), DateTime::getMonth(), and DateTime::getDay(), however DateTime::getInfo() should be used if all date components are needed instead to avoid the broken-down components of the date being calculated for each call that retrieves a discrete value from the date
        @return the second portion of the date-time value
    */
    DLLEXPORT int getSecond() const;
 
    //! returns the microsecond portion of the date-time value divided by 1000
-   /** @note if more than one of DateTime::getYear(), DateTime::getMonth(), DateTime::getMillisecond() etc is called for an absolute date/time value, then DateTime::getInfo() should be used instead to avoid the broken-down components of the date being calculated for each call that retrieves a discrete value from the date.  This restriction does not apply to relative date/time values.
-       @return the microsecond portion of the date-time value divided by 1000
+   /** @return the microsecond portion of the date-time value divided by 1000
        @see DateTime::getMicrosecond(), DateTime::getInfo()
    */
    DLLEXPORT int getMillisecond() const;
 
    //! returns the microsecond portion of the date-time value
-   /** @note if more than one of DateTime::getYear(), DateTime::getMonth(), DateTime::getMicrosecond() etc is called for an absolute date/time value, then DateTime::getInfo() should be used instead to avoid the broken-down components of the date being calculated for each call that retrieves a discrete value from the date.  This restriction does not apply to relative date/time values.
-       @return the microsecond portion of the date-time value
+   /** @return the microsecond portion of the date-time value
    */
    DLLEXPORT int getMicrosecond() const;
 

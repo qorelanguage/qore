@@ -584,7 +584,6 @@ public:
 
    DLLLOCAL void getDate(qore_simple_tm &tm) const {
       int off = zone->getUTCOffset(epoch);
-
       tm.set(epoch + off, us);
    }
 
@@ -604,28 +603,23 @@ public:
    }
 
    DLLLOCAL int getHour() const {
-      qore_simple_tm2 tm(epoch + zone->getUTCOffset(epoch), us);
-      return tm.hour;
+      return ((epoch + zone->getUTCOffset(epoch)) % SECS_PER_DAY) / SECS_PER_HOUR;
    }
 
    DLLLOCAL int getMinute() const {
-      qore_simple_tm2 tm(epoch + zone->getUTCOffset(epoch), us);
-      return tm.minute;
+      return ((epoch + zone->getUTCOffset(epoch)) % SECS_PER_HOUR) / SECS_PER_MINUTE;
    }
 
    DLLLOCAL int getSecond() const {
-      qore_simple_tm2 tm(epoch + zone->getUTCOffset(epoch), us);
-      return tm.second;
+      return (epoch + zone->getUTCOffset(epoch)) % SECS_PER_MINUTE;
    }
 
    DLLLOCAL int getMillisecond() const {
-      qore_simple_tm2 tm(epoch + zone->getUTCOffset(epoch), us);
-      return tm.us / 1000;
+      return us / 1000;
    }
 
    DLLLOCAL int getMicrosecond() const {
-      qore_simple_tm2 tm(epoch + zone->getUTCOffset(epoch), us);
-      return tm.us;
+      return us;
    }
 
    DLLLOCAL int64 getRelativeSeconds() const {
