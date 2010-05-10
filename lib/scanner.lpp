@@ -441,6 +441,9 @@ US              [0-9]{1,6}
 D2              [0-9]{2}
 BINARY          <({HEX_DIGIT}{HEX_DIGIT})+>
 TZ              (Z|([+-][01][0-9](:{MSEC}(:{MSEC})?)?))
+RDATE           P(-?[0-9]+[YMDHSu])+
+RDATETIME       P(-?[0-9]+[YMD])+T(-?[0-9]+[HMSu])+
+RTIME           PT(-?[0-9]+[HMSu])+
 
 %%
 ^%no-global-vars{WS}*$                  getProgram()->parseSetParseOptions(PO_NO_GLOBAL_VARS);
@@ -992,6 +995,9 @@ public{WS}*\(                           yylval->string = strdup("public"); retur
 P{YEAR}-{D2}-{D2}(T{D2}:{D2}(:{D2}(\.{US})?)?)?   yylval->datetime = makeRelativeDateTime(yytext+1); return DATETIME;
 PT{D2}:{D2}(:{D2}(\.{US})?)?            yylval->datetime = makeRelativeTime(yytext+2); return DATETIME;
 P{D2}:{D2}(:{D2}(\.{US})?)?             yylval->datetime = makeRelativeTime(yytext+1); return DATETIME;
+{RDATETIME}                            yylval->datetime = new DateTimeNode(yytext); return DATETIME;
+{RDATE}                                yylval->datetime = new DateTimeNode(yytext); return DATETIME;
+{RTIME}                                yylval->datetime = new DateTimeNode(yytext); return DATETIME;
 ({WORD}::)+{WORD}                       yylval->string = strdup(yytext); return SCOPED_REF;
 cast\<{WS}*({WORD}::)+{WORD}{WS}*\>     yylval->string = make_cast(yytext); return QORE_CAST;
 cast\<{WS}*{WORD}{WS}*\>                yylval->string = make_cast(yytext); return QORE_CAST;

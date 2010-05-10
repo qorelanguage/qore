@@ -706,7 +706,7 @@ public:
    }
 };
    
-class qore_relative_time : protected qore_simple_tm {
+class qore_relative_time : public qore_simple_tm {
    friend class qore_absolute_time;
 protected:
    DLLLOCAL void normalize() {
@@ -920,7 +920,6 @@ public:
       tms.tm_hour = hour;
       tms.tm_min = minute;
       tms.tm_sec = second;
-      tms.tm_isdst = 0;
       tms.tm_wday = 0;
       tms.tm_yday = 0;
       tms.tm_isdst = -1;
@@ -1016,57 +1015,11 @@ public:
       d.abs.set(currentTZ(), 1900 + tms.tm_year, tms.tm_mon + 1, tms.tm_mday, tms.tm_hour, tms.tm_min, tms.tm_sec, us);
    }
 
-   DLLLOCAL void setDate(const char *str) {
-#ifdef HAVE_STRTOLL
-      int64 date = strtoll(str, 0, 10);
-#else
-      int64 date = atoll(str);
-#endif
-      const char *p = strchr(str, '.');
+   DLLLOCAL void setAbsoluteDate(const char *str, const AbstractQoreZoneInfo *zone = currentTZ());
+   DLLLOCAL void setRelativeDate(const char *str);
+   DLLLOCAL void setISO8601RelativeDate(const char *str);
 
-      int l = p ? p - str : strlen(str);
-      // for date-only strings, move the date up to the right position
-      if (l == 8)
-         date *= 1000000;
-      else if (l == 6 || l == 10) // for time-only strings
-         date += 19700101000000LL;
-
-      relative = false;
-
-      int us = p ? atoi(p + 1) : 0;
-      if (us) {
-         l = strlen(p + 1);
-         assert(l < 7);
-         us *= (int)pow(10, 6 - l);
-      }         
-
-      d.abs.setLiteral(date, us);
-   }
-
-   DLLLOCAL void setRelativeDate(const char *str) {
-#ifdef HAVE_STRTOLL
-      int64 date = strtoll(str, 0, 10);
-#else
-      int64 date = atoll(str);
-#endif
-      const char *p = strchr(str, '.');
-
-      int l = p ? p - str : strlen(str);
-      // for date-only strings, move the date up to the right position
-      if (l == 8)
-         date *= 1000000;
-
-      relative = true;
-      
-      int us = p ? atoi(p + 1) : 0;
-      if (us) {
-         l = strlen(p + 1);
-         assert(l < 7);
-         us *= (int)pow(10, 6 - l);
-      }         
-
-      d.rel.setLiteral(date, us);
-   }
+   DLLLOCAL void setDate(const char *str);
 
    DLLLOCAL bool isRelative() const {
       return relative;

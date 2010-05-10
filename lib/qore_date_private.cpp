@@ -1,3 +1,4 @@
+/* -*- indent-tabs-mode: nil -*- */
 /*
   qore_date_private.cpp
 
@@ -375,6 +376,10 @@ void qore_date_private::format(QoreString &str, const char *fmt) const {
             else
                str.sprintf("%d", i.us);
             break;
+         case 'y':
+            str.sprintf("%06d", i.us);
+            str.trim_trailing('0');
+            break;
          case 'z':
 	    str.sprintf("%s", i.zname);
             break;
@@ -390,6 +395,346 @@ void qore_date_private::format(QoreString &str, const char *fmt) const {
    }
 
    printd(5, "qore_date_private::format() returning \"%s\"\n", str.getBuffer());
+}
+
+static int get_uint(const char *&p, int digits) {
+   int rc = 0;
+   for (int i = 0; i < digits; ++i) {
+      if (*p < '0' || *p > '9')
+         return -1;
+      rc = (10 * rc) + ((*p) - '0');
+      ++p;
+   }
+   return rc;
+}
+
+static int get_int(const char *&p, bool &err) {
+   int rc = 0;
+
+   int sign = 1;
+   if (*p == '-') {
+      sign = -1;
+      ++p;
+   }
+
+   if (!isdigit(*p)) {
+      err = true;
+      return 0;
+   }
+
+   do {
+      rc = (10 * rc) + ((*p) - '0');
+      ++p;
+   } while (isdigit(*p));
+
+   return rc * sign;
+}
+
+
+void qore_date_private::setISO8601RelativeDate(const char *str) {
+   const char *p = str;
+   if (*p == 'P' || *p == 'p')
+      ++p;
+
+   bool time = false;
+   d.rel.zero();
+
+   bool err = false;
+   while (true) {
+      if (*p == 'T' || *p == 't') {
+         time = true;
+         ++p;
+      }
+      int val = get_int(p, err);
+      if (err)
+         break;
+
+      switch (*p) {
+         case 'Y':
+         case 'y':
+            d.rel.year += val;
+            break;
+
+         case 'M':
+         case 'm':
+            if (time)
+               d.rel.minute += val;
+            else
+               d.rel.month += val;
+            break;
+
+         case 'D':
+         case 'd':
+            d.rel.day += val;
+            break;
+
+         case 'H':
+         case 'h':
+            if (!time)
+               return;
+
+            d.rel.hour += val;
+            break;
+
+         case 'S':
+         case 's':
+            if (!time)
+               return;
+
+            d.rel.second += val;
+            break;
+
+            // non-ISO-8601 extension: <int>u for microseconds
+         case 'u':
+            if (!time)
+               return;
+
+            d.rel.us += val;
+            break;
+         default:
+            break;
+      }
+      ++p;
+   }
+}
+
+void qore_date_private::setRelativeDate(const char *str) {
+   relative = true;
+
+   if (*str == 'P' || *str == 'p') {
+      setISO8601RelativeDate(str);
+      return;
+   }
+
+#ifdef HAVE_STRTOLL
+   int64 date = strtoll(str, 0, 10);
+#else
+   int64 date = atoll(str);
+#endif
+   const char *p = strchr(str, '.');
+
+   int l = p ? p - str : strlen(str);
+   // for date-only strings, move the date up to the right position
+   if (l == 8)
+      date *= 1000000;
+
+   int us = p ? atoi(p + 1) : 0;
+   if (us) {
+      l = strlen(p + 1);
+      assert(l < 7);
+      us *= (int)pow(10, 6 - l);
+   }         
+
+   d.rel.setLiteral(date, us);
+}
+
+void qore_date_private::setAbsoluteDate(const char *str, const AbstractQoreZoneInfo *zone) {
+   relative = false;
+
+   size_t len = strlen(str);
+
+   // we need at last YYYYMMDD
+   if (len < 8) {
+      d.abs.set(zone, 0, 0);
+      return;
+   }
+      
+   const char *p = str;
+
+   int year = get_uint(p, 4);
+   if (year < 0) {
+      d.abs.set(zone, 0, 0);
+      return;
+   }
+
+   bool needs_sep = false;
+   if (*p == '-') {
+      needs_sep = true;
+      ++p;
+   }
+   
+   int month = get_uint(p, 2);
+   if (month < 0) {
+      d.abs.set(zone, year, 1, 1, 0, 0, 0, 0);
+      return;
+   }
+
+   if (needs_sep) {
+      if (*p == '-')
+         ++p;
+      else {
+         d.abs.set(zone, year, month, 1, 0, 0, 0, 0);
+         return;
+      }
+   }
+
+   int day = get_uint(p, 2);
+   if (day < 0) {
+      d.abs.set(zone, year, month, 1, 0, 0, 0, 0);
+      return;
+   }
+
+   //printd(5, "date: %04d-%02d-%02d\n", year, month, day);
+
+   if (*p == 'Z' || (*p == ' ' && *(p + 1) == 'Z')) {
+      d.abs.set(0, year, month, day, 0, 0, 0, 0);
+      return;
+   }
+
+   if (*p == ' ' || *p == 't' || *p == 'T' || *p == '-')
+      ++p;
+
+   int hour = get_uint(p, 2);
+   if (hour < 0) {
+      d.abs.set(zone, year, month, day, 0, 0, 0, 0);
+      return;
+   }
+
+   needs_sep = false;
+   if (*p == ':') {
+      needs_sep = true;
+      ++p;
+   }
+
+   int minute = get_uint(p, 2);
+   if (minute < 0) {
+      d.abs.set(zone, year, month, day, hour, 0, 0, 0);
+      return;
+   }
+
+   if (needs_sep) {
+      if (*p == ':')
+         ++p;
+      else {
+         d.abs.set(zone, year, month, day, hour, minute, 0, 0);
+         return;
+      }
+   }
+
+   int second = get_uint(p, 2);
+   if (second < 0) {
+      d.abs.set(zone, year, month, day, hour, minute, 0, 0);
+      return;
+   }
+
+   if (!*p) {
+      d.abs.set(zone, year, month, day, hour, minute, second, 0);
+      return;
+   }
+	 
+   int us = 0;
+   if (*p == '.') {
+      ++p;
+      if (!isdigit(*p)) {
+         d.abs.set(zone, year, month, day, hour, minute, second, 0);
+         return;
+      }
+	 
+      // read all digits
+      int len = 0;
+      while (isdigit(*p)) {
+         // ignore excess digits beyond microsecond resolution
+         if (len < 6) {
+            us *= 10;
+            us += *p - '0';
+         }
+	 ++len;
+	 ++p;
+      }
+	 
+      // adjust to microseconds
+      while (len < 6) {
+	 us *= 10;
+	 ++len;
+      }
+
+      if (!*p) {
+         d.abs.set(zone, year, month, day, hour, minute, second, us);
+         return;
+      }
+   }
+
+   // get time zone offset
+
+   // read 
+   if (*p == ' ')
+      ++p;
+
+   if (*p == 'Z') {
+      zone = 0;
+      ++p;
+   }
+   else if (*p == '+' || *p == '-') {
+      int mult = *p == '-' ? -1 : 1;
+	 
+      ++p;
+      if (!isdigit(*p)) {
+         d.abs.set(zone, year, month, day, hour, minute, second, us);
+         return;
+
+      }
+	 
+      int utc_h = *p - '0';
+      ++p;
+      if (isdigit(*p)) {
+	 utc_h = utc_h * 10 + (*p - '0');
+	 ++p;
+      }
+	 
+      int offset = utc_h * 3600;
+	 
+      if (*p) {
+	 if (*p == ':')
+            ++p;
+	    
+	 if (!isdigit(*p)) {
+            zone = findCreateOffsetZone(offset * mult);
+            d.abs.set(zone, year, month, day, hour, minute, second, us);
+            return;
+         }
+	    
+	 int utc_m = *p - '0';
+	 ++p;
+	 if (isdigit(*p)) {
+	    utc_m = utc_m * 10 + (*p - '0');
+	    ++p;
+	 }
+	    
+	 offset += utc_m * 60;
+	    
+	 if (*p) {
+	    if (*p == ':')
+               ++p;
+	       
+	    if (!isdigit(*p)) {
+               zone = findCreateOffsetZone(offset * mult);
+               d.abs.set(zone, year, month, day, hour, minute, second, us);
+               return;
+            }
+	       
+	    int utc_s = *p - '0';
+	    ++p;
+	    if (isdigit(*p)) {
+	       utc_s = utc_s * 10 + (*p - '0');
+	       ++p;
+	    }
+	       
+	    offset += utc_s;		    
+	 }
+      }
+	 
+      zone = findCreateOffsetZone(offset * mult);
+   }
+
+   d.abs.set(zone, year, month, day, hour, minute, second, us); 
+}
+
+void qore_date_private::setDate(const char *str) {
+   assert(str);
+   if (*str == 'P' || *str == 'p')
+      setRelativeDate(str);
+   else
+      setAbsoluteDate(str);
 }
 
 void qore_simple_tm2::getISOWeek(int &yr, int &week, int &wday) const {

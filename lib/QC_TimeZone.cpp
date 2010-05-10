@@ -62,9 +62,9 @@ static AbstractQoreNode *TZ_region(QoreObject *self, TimeZoneData *z, const Qore
    return new QoreStringNode((*z)->getRegionName());
 }
 
-// TimeZone::date(softint) returns date
+// TimeZone::date(softint, softint = 0) returns date
 static AbstractQoreNode *TZ_date_int(QoreObject *self, TimeZoneData *z, const QoreListNode *params, ExceptionSink *xsink) {
-   return DateTimeNode::makeAbsolute(z->get(), HARD_QORE_INT(params, 0), 0);
+   return DateTimeNode::makeAbsolute(z->get(), HARD_QORE_INT(params, 0), HARD_QORE_INT(params, 1));
 }
 
 // TimeZone::date(date) returns date
@@ -139,7 +139,7 @@ QoreClass *initTimeZoneClass() {
    QC_TIMEZONE->addMethodExtended("region", (q_method_t)TZ_region, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringTypeInfo);
 
    // TimeZone::date(softint) returns date
-   QC_TIMEZONE->addMethodExtended("date", (q_method_t)TZ_date_int, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, dateTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
+   QC_TIMEZONE->addMethodExtended("date", (q_method_t)TZ_date_int, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, dateTypeInfo, 2, softBigIntTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, zero());
    // TimeZone::date(date) returns date
    QC_TIMEZONE->addMethodExtended("date", (q_method_t)TZ_date_date, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, dateTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
 

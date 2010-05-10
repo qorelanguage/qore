@@ -258,13 +258,15 @@ public:
        - hh: hour number (01 - 12), zero padded
        - m: minute number (0 - 59)
        - mm: minute number (00 - 59), zero padded
+       - ms: milliseconds (000 - 999), zero padded (same as 'uu')
        - S: second number (0 - 59)
        - SS: second number (00 - 59), zero padded
        - u: milliseconds (0 - 999)
-       - uu or ms: milliseconds (000 - 999), zero padded
+       - uu: milliseconds (000 - 999), zero padded (same as 'ms')
        - x: microseconds (0 - 999999)
        - xx: microseconds (000000 - 999999), zero padded
-       - z: local time zone name (i.e. 'EST') if available, otherwise the UTC offset (see 'Z')
+       - y: microseconds, with trailing zeros removed
+       - z: local time zone name (ex: 'EST') if available, otherwise the UTC offset (see 'Z')
        - Z: UTC offset like +HH:mm[:SS], seconds are included if non-zero
        - P: AM or PM
        - p: am or pm

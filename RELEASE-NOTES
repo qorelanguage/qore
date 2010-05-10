@@ -59,13 +59,62 @@ previously was to the millisecond; applies to both relative and absolute date/ti
 
 parser accepts a new relative time format: <x>us, ex: 45us = 45 microseconds
 
+* conversion to a date from a string is much more flexible
+formats such as the following are now accepted:
+2001-01-01T15:35:23         # 2001-01-01 15:35:23 Mon +01:00 (CET)
+20010101 15:35:23Z          # 2001-01-01 15:35:23 Mon Z (UTC)
+20010101 153523Z            # 2001-01-01 15:35:23 Mon Z (UTC)
+20010101 153523-02          # 2001-01-01 15:35:23 Mon -02:00 (-02:00)
+20010101 153523-02:00:00    # 2001-01-01 15:35:23 Mon -02:00 (-02:00)
+2001-01-01-153523-020000    # 2001-01-01 15:35:23 Mon -02:00 (-02:00)
+20010101-153523             # 2001-01-01 15:35:23 Mon +01:00 (CET)
+etc
+
+furthermore, it's now possible to directly specify relative date/time values when converting from a string using a subset of ISO-8601 duration formats with an extension for microseconds (<n>u - the 'u' is lower-case as it is not part of the ISO9601 standard) and also an extension where the numeric portion may be negative:
+P<n>Y<n>M<n>DT<n>H<n>M<n>S<n>u
+
+for example:
+P1Y2MT4H                    # <time: 1 year 2 months 4 hours>
+P4DT-2M15u                  # <time: 4 days -2 minutes 15 microseconds>
+PT4H30M                     # <time: 4 hours 30 minutes>
+
+note that there must be at least one time component, and the <n>M value is minutes when following the 'T' and months when preceding or in the absense of a 'T'.
+unlike ISO-8601 durations, all numbers must be integers (ISO-8601 allows the smallest time unit given to have a fractional component)
+
+The other duration format: PYYYY-MM-DDTHH:MM:SS is also still accepted as well as in previous versions of qore
+
 * class constuctor methods can now be declared private
 
 * new TimeZone class
-TimeZone::date(softint)
+# creates a TimeZone object based on a zoneinfo region file
+TimeZone::constructor(string)
+
+# creates a TimeZone object based on a UTC offset in seconds east of UTC
+TimeZone::constructor(softint)
+
+# returns a date marked with this TimeZone from the UTC offset in seconds
+TimeZone::date(softint $epoch_seconds, softint $us = 0)
+
+# returns a date marked with this TimeZone
 TimeZone::date(date)
+
+# returns a date marked with this TimeZone from the given argument as an epoch offset in milliseconds
 TimeZone::dateMs(softint)
+
+# returns a date marked with this TimeZone from the given argument as an epoch offset in microseconds
 TimeZone::dateUs(softint)
+
+# returns the time zone for the current execution context
+static TimeZone::get() returns TimeZone
+
+# allows the time zone to be set for the current execution context
+static TimeZone::set(TimeZone) returns nothing
+
+# sets the time zone according to a UTC offset in seconds east of UTC for the current execution context
+static TimeZone::setUTCOffset(softint) returns nothing 
+
+# sets the time zone according to a zoneinfo region file for the current execution context
+static TimeZone::setRegion(string) returns nothing
 
 * new Program methods
 Program::setTimeZoneRegion(string)
@@ -132,6 +181,13 @@ The extract operator is identical to the "splice" operator, except the extract o
 
 * constants may be assigned with any expression that does not have side effects
 this includes builtin functions that have been tagged as safe to use in constant expressions
+
+* fixed the ',' operator's precedence in the parser
+previously the comma operator's precedence was set far too high which caused problems in certain expressions, for example:
+func(1, $a = 2, 3)
+would previously be interpreted like this:
+func(1, ($a = 2, 3))
+contrary to what any reasonable programmer would expect.  From this version on, the comma operator's precedence has been adjusted to be like other programming languages.
 
 * new warning: non-existent-method-call
 raised when a given method name cannot be found in the current class or base classes.  such calls may be valid if the method itself is called from a derived class where the method exists
