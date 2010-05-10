@@ -87,6 +87,10 @@ static AbstractQoreNode *f_hash_list(const QoreListNode *params, ExceptionSink *
    return h.release();
 }
 
+static AbstractQoreNode *f_hash_hash(const QoreListNode *params, ExceptionSink *xsink) {
+   return HARD_QORE_HASH(params, 0)->refSelf();
+}
+
 static AbstractQoreNode *f_hash(const QoreListNode *params, ExceptionSink *xsink) {
    return new QoreHashNode;
 }
@@ -154,6 +158,7 @@ void init_type_functions() {
 
    builtinFunctions.add2("hash", f_hash, QC_CONSTANT, QDOM_DEFAULT, hashTypeInfo);
    builtinFunctions.add2("hash", f_hash_list, QC_NO_FLAGS, QDOM_DEFAULT, hashTypeInfo, 1, listTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("hash", f_hash_hash, QC_NO_FLAGS, QDOM_DEFAULT, hashTypeInfo, 1, hashTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("hash", f_hash_obj, QC_NO_FLAGS, QDOM_DEFAULT, hashTypeInfo, 1, objectTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add2("type", f_type, QC_CONSTANT, QDOM_DEFAULT, stringTypeInfo, 1, anyTypeInfo, QORE_PARAM_NO_ARG);
