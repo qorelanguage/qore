@@ -86,6 +86,9 @@ static AbstractQoreNode *f_list(const QoreListNode *params, ExceptionSink *xsink
 static AbstractQoreNode *f_hash(const QoreListNode *params, ExceptionSink *xsink) {
    const AbstractQoreNode *p = get_param(params, 0);
    qore_type_t t = p ? p->getType() : NT_NOTHING;
+   if (t == NT_HASH)
+      return p->refSelf();
+
    if (t == NT_OBJECT) {
       const QoreObject *o = reinterpret_cast<const QoreObject *>(p);
       return o->getRuntimeMemberHash(xsink);

@@ -1,3 +1,6 @@
+2010.05.10: David Nichols
+	 * updated hash(hash) to return the hash argument
+
 2010.04.20: David Nichols
 	 * updated bitop code from trunk	 
 
