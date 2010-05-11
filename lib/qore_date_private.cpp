@@ -522,7 +522,7 @@ void qore_date_private::setRelativeDate(const char *str) {
    if (us) {
       l = strlen(p + 1);
       assert(l < 7);
-      us *= (int)pow(10, 6 - l);
+      us *= (int)pow((double)10, 6 - l);
    }         
 
    d.rel.setLiteral(date, us);
