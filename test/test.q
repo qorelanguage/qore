@@ -794,9 +794,9 @@ sub date_time_tests() {
     # testing ISO-8601 alternate period syntax (which is not very readable... :-( )
     # date periods
     test_value($date - P0001-00-00T00:00:00, 2003-02-01T12:30:00, "third date year subtraction");
-    test_value($date - P0000-01-00,          2004-01-01T12:30:00, "third date month subtraction");
+    test_value($date - P1M,          2004-01-01T12:30:00, "third date month subtraction");
     test_value($date - P0000-00-01,          2004-01-31T12:30:00, "third date day subtraction");
-    test_value($date + P0001-00-00,          2005-02-01T12:30:00, "third date year addition");
+    test_value($date + P1Y,          2005-02-01T12:30:00, "third date year addition");
     test_value($date + P0000-01-00,          2004-03-01T12:30:00, "third date month addition");
     test_value($date + P0000-00-01,          2004-02-02T12:30:00, "third date day addition");
 
@@ -813,6 +813,7 @@ sub date_time_tests() {
     test_value(2006-01-01T23:59:59.800, 2006-01-02T00:00:00.112 - 312ms, "third millisecond subtraction");
 
     test_value($date,        localtime(mktime($date)), "localtime() and mktime()");
+    test_value($date - PT1H, 2004-02-01T11:30:00, "fourth date hour subtraction");
     test_value($date + 30D,  $ndate,                   "fourth date day addition");
     test_value($ndate - 30D, $date,                    "fourth date day subtraction");
     test_value($date + 23M,  2006-01-01T12:30:00,      "fourth date month addition");

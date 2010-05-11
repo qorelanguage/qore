@@ -6,7 +6,7 @@
   <sect1 id="Qore_Introduction">
     <title>Introduction to the Qore Programming Language</title>
 
-    <para>The Qore programming language is a powerful, thread-capable, embeddable weakly-typed language with procedural and object-oriented features designed for anything from quick scripting to complex multithreaded, network-aware application development to embedded application scripting.  Qore was initially designed to facilitate the rapid implementation of sophisticated interfaces in embedded code in an enterprise environment, and has since grown into a general-purpose language as well.</para>
+    <para>The Qore programming language is a powerful, thread-capable, embeddable weakly-typed language with optional strong typing and procedural and object-oriented features designed for anything from quick scripting to complex multithreaded, network-aware application development to embedded application scripting.  Qore was initially designed to facilitate the rapid implementation of sophisticated interfaces in embedded code in an enterprise environment, and has since grown into a general-purpose language as well.</para>
 
     <para>Qore exports a C++ API to allow programs or libraries to embed Qore code; this manual documents Qore's user-level features, for more information about Qore's C++ API, see the <ulink url="http://qore.org">Qore's home page</ulink>.</para>
 
@@ -40,7 +40,7 @@
       <listitem>
 	<para>XML and JSON Integration</para>
 	
-	<para>Qore uses the libxml2 library to provide fast and efficient XML functionality. Qore's XML integration enables serialization from Qore data structures to XML strings and deserialization from XML strings to Qore data structures, making it trivial to work with data in XML format (see <link linkend="XML_Integration">XML Integration</link>).  Qore provides <link linkend="JSON_Functions">JSON</link> and <link linkend="JsonRpcClient_Class">JSON-RPC</link> integration as well.</para>
+	<para>Qore uses the libxml2 library to provide fast and efficient XML functionality. Qore's XML integration enables serialization from Qore data structures to XML strings and deserialization from XML strings to Qore data structures, making it trivial to work with data in XML format (see <link linkend="XML_Integration">XML Integration</link>).  Qore provides <link linkend="JSON_Functions">JSON</link> and <link linkend="JsonRpcClient_Class">JSON-RPC</link> integration as well.  There is also a module providing <ulink url="http://www.yaml.org">YAML</ulink> serialization and deserialization support.</para>
       </listitem>
 
       <listitem>

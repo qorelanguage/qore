@@ -12,7 +12,7 @@
     
     <para>Qore programs/scripts are free form. Formatting does not affect the execution of the program; formatting is at the discretion of the programmer and should be used to enhance readability and clarity of the source code.</para>
 
-    <para>Qore is a weakly typed language. That means that variables can hold values of any type and subroutines can return any value type (or none at all, see <link linkend='Variables'>Variables</link>). Furthermore list elements can be of any type (they do not have to be uniform), and multidimensional lists can have a different number of elements in each list. The same type flexibility holds true of hashes, objects, and all combinations of container types.</para>
+    <para>Qore was creaetd as a weakly typed language. That means that variables without type restructions can hold values of any type and subroutines with out type restrictions can return any value type (or none at all, see <link linkend='Variables'>Variables</link>) and take arguments of any type. Furthermore list elements can be of any type (they do not have to be uniform), and multidimensional lists can have a different number of elements in each list. The same type flexibility holds true of hashes, objects, and all combinations of container types.</para>
 
     <para>Qore can be used a a traditional subroutine-based scripting language or as a pure object-oriented language, where the application is defined as a class. Aside from traditional local and global variables, constants, and subroutines, Qore also supports nested namespaces, classes, multiple inheritance, overriding base class constructor arguments, private members and methods, and static class methods.</para>
     
@@ -174,6 +174,10 @@
 	<row>
 	  <entry><para><code>ncurses</code></para></entry>
 	  <entry><para>Provides curses APIs to Qore.</para></entry>
+	</row>
+	<row>
+	  <entry><para><code>yaml</code></para></entry>
+	  <entry><para>Provides <ulink url="http://www.yaml.org">YAML</ulink> functionality to Qore.</para></entry>
 	</row>
       </tbody>
     </tgroup>
@@ -432,9 +436,9 @@ print("global a = %d\n", $a); </programlisting>
   </row>
   <row>
     <entry><para><link linkend="Date">Date</link></para></entry>
-    <entry><para>A date with an optional time component, with resolution to the millisecond.</para></entry>
-    <entry><code>2005-07-20</code></entry>
-    <entry><para>1970-01-01 00:00:00</para></entry>
+    <entry><para>A date with an optional time component, with resolution to the microsecond; absolute date/time values also have a time zone associated with them.</para></entry>
+    <entry><code>2010-05-10T18:35:21.001456-07:00</code></entry>
+    <entry><para>1970-01-01Z</para></entry>
   </row>
   <row>
     <entry><para><link linkend="Binary">Binary</link></para></entry>
@@ -477,6 +481,8 @@ print("global a = %d\n", $a); </programlisting>
   <programlisting>$str = "this string
 is a multiline string";</programlisting>
 
+  <para>Internally, strings are stored as a pointer to the string data, an unsigned integer giving the length of the string, and a pointer to an encoding object, giving the string's character encoding.</para>
+
 </sect2>
 
 <sect2 id="Integer">
@@ -486,56 +492,69 @@ is a multiline string";</programlisting>
 
 <sect2 id="Float">
   <title>Float</title>
-  <para>Qore floats are double precision floating-point numbers.</para>
+  <para>Qore floats are double precision floating-point numbers (C/C++ type <command>double</command>), normally a 64-bit value.</para>
 </sect2>
 
 <sect2 id="Date">
   <title>Date</title>
-  <para>Qore dates have a time component supporting a resolution to the millisecond and can be either absolute or relative.</para>
+  <para>Qore dates have a time component supporting a resolution to the microsecond and can be either absolute or relative.</para>
 
   <sect3 id="Absolute_Dates">
     <title>Absolute Date/Time Values</title>
 
-    <para>Absolute date/time values specify a specific point in time, such as January 1, 2005 10:35:00 and can be specified with a special syntax as follows:</para>
+    <para>Absolute date/time values specify a specific point in time in a certain time zone, such as January 1, 2005 10:35:00 +01:00.  They are stored interally as a 64-bit signed offset from the Qore epoch (1970-01-01Z), a positive 4-byte integer for microseconds, and a pointer to a time zone description object that provides the UTC offset and daylight savings time information (see <link linkend="Time_Zones">Time Zones</link> for more information).  Note that all absolute date/time values in Qore are stored internally in UTC and are converted for display purposes to the representation of wall time in their tagged time zone.</para>
 
-    <programlisting>&lt;4d-year&gt;-&lt;2d-month&gt;-&lt;2d-day&gt;[-&lt;2d-hour&gt;:&lt;2d-minute&gt;:&lt;2d-second&gt;[.&lt;3d-millisecond&gt;]]</programlisting>
+  <para>Absolute date/time values can be specified with a special syntax as follows:</para>
 
-    <para>or, an almost-ISO-8601-compliant format (without the ISO-8601 time zone component but including an optional millisecond component)</para>
+    <programlisting>&lt;4d-year&gt;-&lt;2d-month&gt;-&lt;2d-day&gt;[-&lt;2d-hour&gt;:&lt;2d-minute&gt;:&lt;2d-second&gt;[.&lt;fractional-second&gt;][Z|[+-]&lt;2d-hours-east&gt;[:&lt;2d-minutes-east&gt;[:&lt;2d-seconds-east&gt;]]]</programlisting>
+
+    <para>Note that if no time zone information is given, the local time zone will be assumed.  If a time zone UTC offset is given, it is given in units of time east of UTC (i.e. +05:00 means five hours east of UTC).</para>
+
+    <para>Or, an almost-ISO-8601-compliant format (including an optional microsecond component)</para>
     
-    <programlisting>&lt;4d-year&gt;-&lt;2d-month&gt;-&lt;2d-day&gt;[T&lt;2d-hour&gt;:&lt;2d-minute&gt;:&lt;2d-second&gt;[.&lt;3d-millisecond&gt;]]</programlisting>
+    <programlisting>&lt;4d-year&gt;-&lt;2d-month&gt;-&lt;2d-day&gt;[T&lt;2d-hour&gt;:&lt;2d-minute&gt;:&lt;2d-second&gt;[.&lt;fractional-second&gt;][Z|[+-]&lt;2d-hours-east&gt;[:&lt;2d-minutes-east&gt;[:&lt;2d-seconds-east&gt;]]]]</programlisting>
     
-    <para>for example, for just the date, without a time component:</para>
+    <para>for example, for just the date in UTC, without a time component:</para>
     
     <programlisting>&lt;4d-year&gt;-&lt;2d-month&gt;-&lt;2d-day&gt;</programlisting>
     
-    <para>or, for just the time, without a date component (note that in this case the date component will be set to Jan 1, 1970, in order for time arithmetic to function properly):</para>
+    <para>or, for just the time, without a date component (note that in this case the date component will be set to Jan 1, 1970, in order for time arithmetic to function properly and will also be tagged with the local time zone):</para>
     
-    <programlisting>&lt;2d-hour&gt;:&lt;2d-minute&gt;:&lt;2d-second&gt;[.&lt;3d-millisecond&gt;]]</programlisting>
+    <programlisting>&lt;2d-hour&gt;:&lt;2d-minute&gt;:&lt;2d-second&gt;[.&lt;fractional-second&gt;]]</programlisting>
     
     <para>Some examples should make it clearer:</para>
     
-    <programlisting>2005-03-29-18:12:25      # represents: March 29, 2005 6:12:25 pm
-0512-01-01T01:49:59.213  # represents: January 1, 512 1:49:59 am and 213 milliseconds      
-2005-03-29               # represents: March 29, 2005 00:00:00
-18:35:26                 # represents: January 1, 1970 6:35:26 pm (start of the Qore epoch)</programlisting>
+    <programlisting>2005-03-29-18:12:25          # represents: March 29, 2005 6:12:25 pm in the local time zone
+0512-01-01T01:49:59.002213Z  # represents: January 1, 512 1:49:59 am and 2213 microseconds UTC      
+2005-03-29                   # represents: March 29, 2005 00:00:00 in the local time zone
+18:35:26+08:00               # represents: January 1, 1970 6:35:26 pm +08 (1970-01-01 is the start of the Qore epoch)</programlisting>
     
-    <para>The year must be a four-digit number, and all other values except milliseconds must be two-digit numbers.  If milliseconds are present, 3 digits are required after the decimal point.  Pad the numbers with leading zeros if the numbers are smaller than the required number of spaces.  The hour component must be in 24-hour time format. Except for the month and day values, all other values start with 0 (hour = 00 - 23, minute and second: 00 - 59).  Any deviation from this format will cause a parse exception.</para>
+    <para>The year must be a four-digit number, and all other values except microseconds must be two-digit numbers.  If microseconds are present, at least one and up to 6 digits may be given after the decimal point.  Pad the numbers with leading zeros if the numbers are smaller than the required number of digits.  The hour component must be in 24-hour time format. Except for the month and day values, all other values start with 0 (hour = 00 - 23, minute and second: 00 - 59).  Any deviation from this format will cause a parse exception.</para>
+
+    <para>When a date/time value is converted to an integer or vice-versa, a 64-bit offset in seconds from the start of the &quot;epoch&quot; is used for the conversion.  Qore's &quot;zero date&quot; (the start of Qore's &quot;epoch&quot;) is January 1, 1970 UTC.  When calculating second offsets from this date, a 64-bit integer is used.</para>
 
     <note>
-      <para>Currently there is no time-zone component in Qore dates.  Timezone support may be added in future versions of the Qore 
-	language, either by an addition to this data type, or by adding another date type including a time zone component.  Specifically, ISO-8601 time zone components are not accepted by the qore parser and will cause a parse exception to be thrown.</para>
+      <para>The default local time zone for qore is set when the qore library is initialized; see <link linkend="Time_Zones">Time Zones</link> for more information.</para>
     </note>
-    
+
   </sect3>
 
   <sect3 id="Relative_Dates">
-    <title>Relative Date/Time Values</title>
+    <title>Relative Date/Time Values (Durations)</title>
 
-    <para>Relative date/time values are specified as follows:</para>
+    <para>Relative dates (durations) are normally used for date addition and subtraction.  See <link linkend='Date_Time_Arithmetic'>Date/Time Arithmetic</link> for more information.</para>
+
+  <para>Internally, durations are stored as a set of seven discrete signed integer values, one each for years, months, days, hours, minutes, seconds, and microseconds.</para>
+    
+      <para>There are 3 different formats understood by the Qore parser for describing literal durations in Qore.</para>
+
+      <sect4 id="Single_Relative_Time_Format">
+      <title>Single Relative Time Format</title>
+        <para>A single relative date/time value (or a duration) may be specified as follows (note that this format is specific to Qore and not based on <ulink url="http://en.wikipedia.org/wiki/Iso8601">ISO-8601</ulink>):</para>
     
     <programlisting>&lt;integer&gt;&lt;date component specifier&gt;</programlisting>
 
-    <table><title>Date Specifiers For Relative Dates</title>
+    <table><title>Date Specifiers For Single Values For Relative Dates (non-<ulink url="http://en.wikipedia.org/wiki/Iso8601">ISO-8601</ulink> syntax)</title>
       <tgroup cols='4' align='left' colsep='1' rowsep='1'>
 	
 	<thead>
@@ -589,21 +608,64 @@ is a multiline string";</programlisting>
 	    <entry><code>250ms</code></entry>
 	    <entry><para>250 milliseconds</para></entry>
 	  </row>
+	  <row>
+	    <entry><para>us</para></entry>
+	    <entry><para>Microseconds</para></entry>
+	    <entry><code>21194us</code></entry>
+	    <entry><para>21194 microseconds</para></entry>
+	  </row>
 	</tbody>
       </tgroup>
     </table>
+</sect4>
 
-    <para>Relative dates are normally used for date addition and subtraction.  See <link linkend='Date_Time_Arithmetic'>Date/Time Arithmetic</link> for more information.</para>
+      <sect4 id="Short_Relative_Time_Format">
+      <title>Short Relative Time Format</title>
+
+	<para>This and the next duration format for composite relative date/time values are both based on <ulink url="http://en.wikipedia.org/wiki/Iso8601">ISO-8601</ulink>.</para>
+
+	<para>This first format has the following syntax:</para>
+
+	<programlisting>P<replaceable>n</replaceable>Y<replaceable>n</replaceable>M<replaceable>n</replaceable>DT<replaceable>n</replaceable>H<replaceable>n</replaceable>M<replaceable>n</replaceable>S<replaceable>n</replaceable>u</programlisting>
+
+	<para>Each element above is optional, but at least one element must be present.  Note that &quot;M&quot; means months when before the &quot;T&quot; and minutes when found after the &quot;T&quot;.  The other elements are years, days, hours, seconds, and, as an extension to ISO-8601, &quot;u&quot; for microseconds.  Additionally, the values may be negative.</para>
+
+    	<para>Here are some examples (using qore's -X command-line option to evaluate and expression and print out the result):</para>
     
-    <para>When a date/time value is converted to an integer or vice-versa, a 64-bit offset in seconds from the start of the &quot;epoch&quot; is used for the conversion.  Qore's &quot;zero date&quot; (the start of Qore's &quot;epoch&quot;) is January 1, 1970.  When calculating second offsets from this date, a 64-bit integer is used.</para>
+    <programlisting>qore -X 'P1Y3MT4S'
+&lt;time: 1 year 3 months 4 seconds&gt;
+qore -X 'PT4M551u'
+&lt;time: 4 minutes 551 microseconds&gt;
+qore -X 'P3DT21H'
+&lt;time: 3 days 21 hours&gt;
+</programlisting>
+</sect4>
+
+      <sect4 id="Long_Relative_Time_Format">
+      <title>Long Relative Time Format</title>
+
+	<para>The second <ulink url="http://en.wikipedia.org/wiki/Iso8601">ISO-8601</ulink>-based format for specifing complex durations with multiple time units has the following syntax:</para>
+
+	<programlisting>P<replaceable>YYYY-MM-DDTHH:mm:SS</replaceable></programlisting>
+
+	<para>This format is more limited than the first format, in that all values must be positive, and furthermore, all values must be present (although they may be zero).</para>
+
+    	<para>Here are some examples of the second format (equivalent to the first examples):</para>
     
+    <programlisting>qore -X 'P0001-03-00T00:00:04'
+&lt;time: 1 year 3 months 4 seconds&gt;
+qore -X 'P0000-00-00T00:04:00.000551'
+&lt;time: 4 minutes 551 microseconds&gt;
+qore -X 'P0000-00-03T21:00:00'
+&lt;time: 3 days 21 hours&gt;</programlisting>
+  </sect4>
   </sect3>
 
 </sect2>
 <sect2 id="Binary">
   <title>Binary</title>
 
-  <para>The binary data type is used to hold binary arbitrary binary data. Internally it is represented by a memory pointer and a size indicator. </para>
+  <para>The binary data type is used to hold binary arbitrary binary data. Internally it is represented by a pointer to a memory location for the data and a size indicator.</para>
 
   <para>Binary data can be concatenated with the <link linkend="Plus_Operator">+</link> and <link linkend="Plus_Equals_Operator">+=</link> operators.</para>
 
@@ -636,7 +698,7 @@ is a multiline string";</programlisting>
 
   <para>The special types <command>NULL</command> and <command>NOTHING</command> are not equivalent and cannot be converted to or from any other type.</para>
 
-  <para>When date types are converted to/from strings, the following format must be used: "YYYYMMDDHHmmSS".</para>
+  <para>When date types are converted from strings, any of the following formats can be used: "YYYYMMDDHHmmSS[.us][Z|+-HH[:MM[:SS]]]", "YYYY-MM-DD HH:mm:SS.us", "YYYY-MM-DDTHH:mm:SS", "YYYY-MM-DDTHH:mm:SS[.us][Z|+-HH[:MM[:SS]]]", and most reasonable combinations thereof.  If the time zone component is missing, then the local time zone will be assumed (see <link linkend="Time_Zones">Time Zones</link>).</para>
 
   <para>When dates are converted to and from integer values, the a 64-bit second offset from January 1, 1970 is used for the conversion.  For example <code>int(2006-01-01)</code> gives <code>1136073600</code>.</para>
 
@@ -648,7 +710,7 @@ is a multiline string";</programlisting>
 <sect1 id="Container_Data_Types">
   <title>Container Data Types</title>
 
-  <para>Qore supports three types of container types: lists, hashes (associative arrays), and objects (see <link linkend="Objects">Objects</link> and <link linkend="Classes">Classes</link> for more information on objects and classes).  These container types can be combined to make arbitrarily complex data structures.</para>
+  <para>Qore supports three types of container types: lists, hashes (associative arrays), and objects (see <link linkend="Objects">Objects</link> and <link linkend="Classes">Classes</link> for more information).  These container types can be combined to make arbitrarily complex data structures.</para>
 
   <para>The data type of any element can be any basic type or another aggregate type.  The types do not have to be uniform in one container structure.</para>
 
@@ -663,7 +725,7 @@ is a multiline string";</programlisting>
 
     <para>Here is a concrete example:</para>
 
-    <programlisting>$list = (1, 2, "three", 4.0, 5, 6);</programlisting>
+    <programlisting>$list = (1, 2, "three", 4.0, 5, 6, 2001-01-15Z);</programlisting>
 
     <note>
       <para>Note that trailing commas can be left on the end of a list (or a hash, for that matter).  This makes it easier to comment-out the last element of a multi-line list without having to worry about removing the trailing comma.</para>
@@ -725,7 +787,17 @@ is a multiline string";</programlisting>
   <sect2 id="Objects">
     <title>Objects</title>
 
-    <para>Qore objects are instantiations of a <link linkend="Classes">class</link>.  They have members (like a hash - values associated to string keys), and methods.  The class definition specifies the methods that run on objects of that class, private members, and <link linkend="Static_Methods">static methods</link> associated with the class (however note that static methods do not run in the scope of an object).  Qore classes are declared with a special syntax, and objects are instantiated using the <link linkend='New_Object_Operator'><command>new</command></link> operator as follows.</para>
+    <para>Qore objects are instantiations of a <link linkend="Classes">class</link>.  They have members (like a hash - values associated to string keys), and methods.  The class definition specifies the methods that run on objects of that class, private members, and <link linkend="Static_Methods">static methods</link> associated with the class (however note that static methods do not run in the scope of an object).  Qore classes are declared with a special syntax.</para>
+
+  <para>The recommend way to instantiate an object is to declare its type and give constructor arguments after the variable name in parentheses as follows:</para>
+
+    <programlisting><command>my</command> <replaceable>class_name_or_path $var_name</replaceable>([<replaceable>argument list</replaceable>])</programlisting>
+
+    <para>For example (for a constructor taking no arguments or having only default values for the aguments, the list is empty):</para>
+
+    <programlisting><command>my</command> Mutex $m();</programlisting>
+
+  <para>Objects can also be instantiated using the <link linkend='New_Object_Operator'><command>new</command></link> operator as follows.</para>
 
     <programlisting><command>new</command> <replaceable>class_identifier</replaceable>([<replaceable>argument list</replaceable>])</programlisting>
 
@@ -758,6 +830,32 @@ is a multiline string";</programlisting>
     <para>Objects exist until they go out of scope, are explicitly deleted, or their last thread exits.  For detailed information, see the section <link linkend='Classes'>Classes</link> on Qore classes.</para>
 
   </sect2>
+</sect1>
+
+<sect1 id="Time_Zones">
+  <title>Time Zone Handling in Qore</title>
+
+  <para>Qore assumes a default time zone for all programs when it starts up.  The rules for determining the default time zone are similar to those for the C library in most UNIX or UNIX-like operating systems.</para>
+
+  <para>If the <command>TZ</command> environment variable is defined, then the contents of that variable are used to find a <ulink url="http://en.wikipedia.org/wiki/Tz_database">zoneinfo</ulink> file that contains the time zone definition.  If this file cannot be found, then the default time zone will default to <ulink url="http://en.wikipedia.org/wiki/UTC">UTC</ulink>.</para>
+
+  <para>If the <command>TZ</command> environment variable is not defined or is empty, then the Qore library tries to find the default zoneinfo definition file (normally /etc/localtime).  If found, this file is read in and provides the information about the local time zone.  If not found, the default time zone will default to <ulink url="http://en.wikipedia.org/wiki/UTC">UTC</ulink>.</para>
+
+  <para>When a zoneinfo file is found, information about local time zone names and daylight savings time is available for times tagged with that time zone.</para>
+
+  <para>Here are some examples using Qore's '-X' option for evaluating an expression and displaying the result immediately:</para>
+
+  <programlisting>TZ=America/Chicago qore -X 'now_us()'
+2010-05-11 06:14:28.845857 Tue -05:00 (CDT)
+TZ=Europe/Rome qore -X 'now_us()'
+2010-05-11 13:14:35.070568 Tue +02:00 (CEST)
+TZ=Australia/Sydney qore -X 'now_us()'
+2010-05-11 21:14:45.422222 Tue +10:00 (EST)
+TZ=Asia/Tokyo qore -X 'now_us()'
+2010-05-11 20:14:59.609249 Tue +09:00 (CJT)</programlisting>
+
+  <para>Note that posix-style time zone rules are not understood if assigned to the TZ environment variable, only file names to a zoneinfo file can be processed at the moment.  Furthermore if the zoneinfo file contains leap second information, it is currently ignored.</para>
+
 </sect1>
 
 <sect1 id="Qore_Strings_and_Character_Encoding">

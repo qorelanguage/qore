@@ -19,28 +19,56 @@
       </thead>
       <tbody>
 	<row>
-	  <entry><para><code>duplicate-local-vars</code></para></entry>
+	  <entry id="duplicate-local-vars"><para><code>duplicate-local-vars</code></para></entry>
 	  <entry><para>This warning is raised when the same local variable is declared more than once within the same lexical scope.</para></entry>
 	</row>
 	<row>
-	  <entry><para><code>warning-mask-unchanged</code></para></entry>
+	  <entry id="warning-mask-unchanged"><para><code>warning-mask-unchanged</code></para></entry>
 	  <entry><para>This warning is raised when a program tries to change the warning mask with parse options, but the warnings are locked.</para></entry>
 	</row>
 	<row>
-	  <entry><para><code>unknown-warning</code></para></entry>
+	  <entry id="unknown-warning"><para><code>unknown-warning</code></para></entry>
 	  <entry><para>This warning is raised when a program tries to enable or disable an unknown warning.</para></entry>
 	</row>
 	<row>
-	  <entry><para><code>undeclared-var</code></para></entry>
+	  <entry id="undeclared-var"><para><code>undeclared-var</code></para></entry>
 	  <entry><para>This warning is raised when a program uses a variable that has not been declared with <command>my</command> or <command>our</command>.</para></entry>
 	</row>
 	<row>
-	  <entry><para><code>duplicate-global-vars</code></para></entry>
+	  <entry id="duplicate-global-vars"><para><code>duplicate-global-vars</code></para></entry>
 	  <entry><para>Raised when a program declares a global variable more than once.</para></entry>
 	</row>
 	<row>
-	  <entry><para><code>unreachable-code</code></para></entry>
+	  <entry id="unreachable-code"><para><code>unreachable-code</code></para></entry>
 	  <entry><para>Raised when code is defined that can never be executed (for example, code following a <command>return</command> or <command>thread_exit</command> statement).</para></entry>
+	</row>
+	<row>
+	  <entry id="non-existent-method-call"><para><code>non-existent-method-call</code></para></entry>
+	  <entry><para>Warning is raised when the given method cannot be found in the class at parse time; this is a warning because the object could be a subclass that has the given method implemented, in which case the call will succeed at run time.  Use the <link linkend="Cast_Operator"><command>cast</command>&lt;&gt;() operator</link> to avoid this warning.</para><para>This warning was added in version 0.8.0.</para></entry>
+	</row>
+	<row>
+	  <entry id="invalid-operation"><para><code>invalid-operation</code></para></entry>
+	  <entry><para>Raised when the parser determins that the types of an operation are such that the operation is guaranteed to produce no value; this warning can only be raised when type information is available at parse time.</para><para>This warning was added in version 0.8.0.</para></entry>
+	</row>
+	<row>
+	  <entry id="call-with-type-errors"><para><code>call-with-type-errors</code></para></entry>
+	  <entry><para>Raised when the parser determines that the argument types of a function or method call are such that the operation is guaranteed to produce a constant value.</para><para>This warning was added in version 0.8.0.</para></entry>
+	</row>
+	<row>
+	  <entry id="return-value-ignored"><para><code>return-value-ignored</code></para></entry>
+	  <entry><para>Raised when a function or method call is made with no side effects and the return value is ignored.</para><para>This warning was added in version 0.8.0.</para></entry>
+	</row>
+	<row>
+	  <entry id="deprecated"><para><code>deprecated</code></para></entry>
+	  <entry><para>Raised when deprecated functionality is accessed.</para><para>This warning was added in version 0.8.0.</para></entry>
+	</row>
+	<row>
+	  <entry id="excess-args"><para><code>excess-args</code></para></entry>
+	  <entry><para>Raised when a function or method call is made with more arguments than are used by the function or method.</para><para>This warning was added in version 0.8.0.</para></entry>
+	</row>
+	<row>
+	  <entry id="duplicate-hash-key"><para><code>duplicate-hash-key</code></para></entry>
+	  <entry><para>Raised when an immediate <link linkend="Hashes">hash</link> is declared and at least one of the keys is repeated.</para><para>This warning was added in version 0.8.0.</para></entry>
 	</row>
       </tbody>
     </tgroup>
