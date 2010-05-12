@@ -198,6 +198,12 @@ if test "$enable_64bit" = "auto"; then
 		         enable_64bit=yes
 		     fi
 		     ;;
+	  solaris*)  if test "${host_cpu}" = "i386"; then
+			 # if we are running on a 64-bit machine, then enable a 64-bit build
+			 if test -n "`isainfo -v 2>/dev/null| grep 64-bit`"; then
+			     enable_64bit=yes
+			 fi
+		     fi
       esac
       if test "$enable_64bit" = "auto"; then
 	  enable_64bit=no
@@ -237,7 +243,13 @@ if test "$enable_64bit" = "yes"; then
 		        CXXFLAGS="$CXXFLAGS -m64"
 		    fi
 		else
-		    CXXFLAGS="$CXXFLAGS -xarch=generic64"
+		    CC_MAJOR=`$CXX -V 2>&1 | head -1| cut -f1 -d.|cut -d\  -f4`
+		    CC_MINOR=`$CXX -V 2>&1 | head -1| cut -f2 -d.|cut -d\  -f1`
+		    if test "$CC_MAJOR" -gt 5 -o \( "$CC_MAJOR" -eq 5 -a "$CC_MINOR" -ge 10 \); then
+		        CXXFLAGS="$CXXFLAGS -m64"
+		    else
+			CXXFLAGS="$CXXFLAGS -xarch=generic64"
+		    fi
 		fi
 		;;
      *darwin*)	if test "$GXX" = "yes"; then
@@ -1198,14 +1210,15 @@ if test "$enable_debug" = "no" -a "$enable_profile" = "no"; then
     fi	
 fi
 
-# turn on warnings if we know how
+# check compiler settings
+# 1: turn on all warnings if we know how
+# 2: make sure compiler settings are correct for assembly if we need it
 if test "$GXX" = "yes"; then
    CXXFLAGS="$CXXFLAGS -Wall"  # gcc
-fi
-
-# make sure compiler settings are correct for assembly if we need it
-if test "$GXX" != yes; then
+else
    if test "$solaris" = yes; then
+      # turn on all warnings for the oracle sun studio compiler
+      CXXFLAGS="$CXXFLAGS +w2"
       if test "$enable_64bit" = yes; then
          if test "$build_cpu" = sparc; then
 	    solaris_cc_sparc64=yes
