@@ -565,7 +565,7 @@ static AbstractQoreNode *f_rc5_decrypt_cbc_to_string(const QoreListNode *params,
 
 #define MD2_ERR "MD2-DIGEST-ERROR"
 static AbstractQoreNode *f_MD2(const QoreListNode *params, ExceptionSink *xsink) {
-#ifndef OPENSSL_NO_MD2
+#if !defined(OPENSSL_NO_MD2) && !defined(NO_MD2)
    DigestHelper dh(params);
    if (dh.doDigest(MD2_ERR, EVP_md2(), xsink))
       return 0;
@@ -711,11 +711,16 @@ static AbstractQoreNode *f_RIPEMD160(const QoreListNode *params, ExceptionSink *
 }
 
 static AbstractQoreNode *f_MD2_bin(const QoreListNode *params, ExceptionSink *xsink) {
+#if !defined(OPENSSL_NO_MD2) && !defined(NO_MD2)
    DigestHelper dh(params);
    if (dh.doDigest(MD2_ERR, EVP_md2(), xsink))
       return 0;
    
    return dh.getBinary();
+#else
+   missing_openssl_feature("MD2", xsink);
+   return 0;
+#endif
 }
 
 static AbstractQoreNode *f_MD4_bin(const QoreListNode *params, ExceptionSink *xsink) {

@@ -95,6 +95,7 @@ protected:
    char *c_str;
 
    // eval(): return value requires a deref(xsink)
+      using AbstractFunctionCallNode::evalImpl;
    DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *) const;
 
 public:
@@ -181,6 +182,7 @@ public:
    DLLLOCAL virtual const char *getName() const {
       return name ? name : (ns ? ns->ostr : method->getName());
    }
+   using AbstractFunctionCallNode::evalImpl;
    DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *xsink) const;
 
    DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const;
@@ -287,6 +289,7 @@ protected:
    NamedScope *scope;
    const QoreMethod *method;
 
+   using AbstractFunctionCallNode::evalImpl;
    DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *xsink) const {
       return method->eval(0, args, xsink);
    }

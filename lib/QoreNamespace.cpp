@@ -1404,7 +1404,7 @@ void StaticSystemNamespace::init() {
 
    qoreNS->addInitialNamespace(get_thread_ns());
 
-   QoreClass *TermIOS, *File, *SSLCert, *SSLPrivKey;
+   QoreClass *TermIOS, *SSLCert, *File, *SSLPrivKey;
 
    // add system object types
    qoreNS->addSystemClass(initTimeZoneClass());
@@ -1414,7 +1414,7 @@ void StaticSystemNamespace::init() {
    qoreNS->addSystemClass(initProgramClass());
    qoreNS->addSystemClass(TermIOS = initTermIOSClass());
    qoreNS->addSystemClass(File = initFileClass(TermIOS));
-   qoreNS->addSystemClass(initDirClass(File));
+   qoreNS->addSystemClass(initDirClass());
    qoreNS->addSystemClass(initGetOptClass());
    qoreNS->addSystemClass(initFtpClientClass());
 

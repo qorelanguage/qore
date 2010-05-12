@@ -154,6 +154,7 @@ public:
    DLLLOCAL UnresolvedStaticMethodCallReferenceNode(NamedScope *n_scope);
    DLLLOCAL virtual ~UnresolvedStaticMethodCallReferenceNode();
    DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
+   using AbstractQoreNode::deref;
    DLLLOCAL void deref() {
       if (ROdereference())
 	 delete this;

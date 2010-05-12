@@ -290,8 +290,10 @@ static AbstractQoreNode *DIR_removeFile(QoreObject *self, Dir *d, const QoreList
 }
 
 // init the class
-QoreClass *initDirClass(QoreClass *QC_FILE) {
+QoreClass *initDirClass() {
    QORE_TRACE("initDirClass()");
+
+   assert(QC_FILE);
 
    QC_DIR = new QoreClass("Dir", QDOM_FILESYSTEM);
    CID_DIR = QC_DIR->getID();

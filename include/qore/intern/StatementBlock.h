@@ -80,7 +80,11 @@ class StatementBlock : public AbstractStatement {
       DLLLOCAL int parseInitTopLevel(RootQoreNamespace *rns, UserFunctionList *ufl, bool first);
 
       DLLLOCAL void addStatement(AbstractStatement *s);
+
+      using AbstractStatement::exec;
       DLLLOCAL AbstractQoreNode *exec(ExceptionSink *xsink);
+
+      using AbstractStatement::parseInit;
       DLLLOCAL void parseInit(UserVariantBase *uvb);
 
       // initialize methods

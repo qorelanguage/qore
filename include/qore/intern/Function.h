@@ -104,7 +104,7 @@ public:
       return str.c_str();
    }
    DLLLOCAL unsigned numParams() const {
-      return typeList.size();
+      return (unsigned)typeList.size();
    }
    // number of params with type information
    DLLLOCAL unsigned getParamTypes() const {
@@ -318,6 +318,7 @@ public:
 #define COMMON_USER_VARIANT_FUNCTIONS DLLLOCAL virtual qore_call_t getCallType() const { return CT_USER; } \
    DLLLOCAL virtual int64 getFlags() const { return flags; } \
    DLLLOCAL virtual int64 getFunctionality() const { return QDOM_DEFAULT; } \
+   using AbstractQoreFunctionVariant::getUserVariantBase; \
    DLLLOCAL virtual UserVariantBase *getUserVariantBase() { return static_cast<UserVariantBase *>(this); } \
    DLLLOCAL virtual AbstractFunctionSignature *getSignature() const { return const_cast<UserSignature *>(&signature); } \
    DLLLOCAL virtual const QoreTypeInfo *parseGetReturnTypeInfo() const { return signature.parseGetReturnTypeInfo(); } \

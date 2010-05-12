@@ -827,6 +827,9 @@ find_openssl() {
     	if test -f "$lib/libssl.a" -a -f "$lib/libcrypto.a"; then
 	    OPENSSL_LDFLAGS="$lib/libssl.a $lib/libcrypto.a"
        	    AC_MSG_RESULT([$lib (forced static)])
+    	elif test "$bits" = 64 -a -f "$lib/64/libssl.a" -a -f "$lib/64/libcrypto.a"; then
+	    OPENSSL_LDFLAGS="$lib/64/libssl.a $lib/64/libcrypto.a"
+       	    AC_MSG_RESULT([$lib/64 (forced static)])
     	fi
     else
         if test -f "$lib/libssl.${SHLIB_SUFFIX}" -a -f "$lib/libcrypto.${SHLIB_SUFFIX}"; then
@@ -840,6 +843,12 @@ find_openssl() {
        	        OPENSSL_LDFLAGS="-L$lib"
     	    fi
 	    OPENSSL_LDFLAGS="$OPENSSL_LDFLAGS -lssl -lcrypto"
+       	    AC_MSG_RESULT([$lib (static)])
+        elif test "$bits" = 64 -a -f "$lib/64/libssl.${SHLIB_SUFFIX}" -a -f "$lib/64/libcrypto.${SHLIB_SUFFIX}"; then
+	    OPENSSL_LDFLAGS="-L$lib/64 -lssl -lcrypto"
+       	    AC_MSG_RESULT([$lib/64 (shared)])
+    	elif test "$bits" = 64 -a -f "$lib/64/libssl.a" -a -f "$lib/64/libcrypto.a"; then
+	    OPENSSL_LDFLAGS="-L$lib -lssl -lcrypto"
        	    AC_MSG_RESULT([$lib (static)])
     	fi
     fi
@@ -1219,7 +1228,7 @@ if test "$GXX" = "yes"; then
 else
    if test "$solaris" = yes; then
       # turn on all warnings for the oracle sun studio compiler
-      CXXFLAGS="$CXXFLAGS +w2"
+      CXXFLAGS="$CXXFLAGS +w"
       if test "$enable_64bit" = yes; then
          if test "$build_cpu" = sparc; then
 	    solaris_cc_sparc64=yes

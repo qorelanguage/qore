@@ -70,7 +70,7 @@ static char *trim(const char *str) {
    // duplicate string
    char *n = strdup(str);
    // find end of string
-   int l = strlen(n);
+   unsigned l = (unsigned)strlen(n);
    if (l) {
       char *e = n + l - 1;
       while ((*e) == ' ' || (*e) == '\t')
@@ -151,11 +151,11 @@ void setIncludePath(const char *path) {
 			*ep = save;
 			if (val) {
 			    // replace with value
-			    int pos = i - sp;			    
+			    int pos = (int)(i - sp);			    
 			    //printd(5, "got $%s = '%s' (replacing %d char(s))\n", i, val->getBuffer(), ep - i + 1);
 			    tpath.replace(pos - 1, ep - i + 1, *val);			    
 			    // re-assign sp in case it's changed
-			    int diff = pos + val->strlen();
+			    int diff = (int)(pos + val->strlen());
 			    sp = tpath.getBuffer();
 			    spt = sp + diff;
 			    //printd(5, "new string = '%s' ('%s')\n", sp, spt);
