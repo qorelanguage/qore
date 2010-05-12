@@ -42,7 +42,7 @@
 #include <set>
 
 //! used to identify unique Qore data and parse types (descendents of AbstractQoreNode)
-typedef short qore_type_t;
+typedef signed short qore_type_t;
 
 //! used for sizes (same range as a pointer)
 typedef unsigned long qore_size_t;
