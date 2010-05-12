@@ -45,7 +45,8 @@ class QoreNothingNode : public UniqueValueQoreNode {
       //! this function is never called for this type
       /** @see AbstractQoreNode::evalImpl()
        */
-      DLLLOCAL AbstractQoreNode *evalImpl(class ExceptionSink *xsink) const;
+      using SimpleValueQoreNode::evalImpl;
+      DLLLOCAL AbstractQoreNode *evalImpl(ExceptionSink *xsink) const;
 
    public:
       DLLEXPORT QoreNothingNode();

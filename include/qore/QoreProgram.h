@@ -324,6 +324,7 @@ public:
        @param xsink if an error occurs, the Qore-language exception information will be added here
        @see QoreProgram::waitForTerminationAndDeref()
    */
+   using AbstractPrivateData::deref;
    DLLEXPORT virtual void deref(ExceptionSink *xsink);
 
    //! locks parse options so they may not be changed
