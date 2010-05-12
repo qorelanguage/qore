@@ -127,8 +127,8 @@ static QoreRWLock extern_type_info_map_lock;
 
 static void do_maps(qore_type_t t, const char *name, const QoreTypeInfo *typeInfo) {
    str_typeinfo_map[name] = typeInfo;
-   type_typeinfo_map[t] = typeInfo;
-   type_str_map[t] = name;
+   type_typeinfo_map[t]   = typeInfo;
+   type_str_map[t]        = name;
 }
 
 // at least the NullString must be created after the default character encoding is set
@@ -141,41 +141,40 @@ void init_qore_types() {
    emptyList     = new QoreListNode;
    emptyHash     = new QoreHashNode;
 
-   def_val_map[NT_INT] = Zero->refSelf();
-   def_val_map[NT_STRING] = NullString->refSelf();
+   def_val_map[NT_INT]     = Zero->refSelf();
+   def_val_map[NT_STRING]  = NullString->refSelf();
    def_val_map[NT_BOOLEAN] = &False;
-   def_val_map[NT_DATE] = ZeroDate->refSelf();
-   def_val_map[NT_FLOAT] = new QoreFloatNode;
-   def_val_map[NT_LIST] = emptyList->refSelf();
-   def_val_map[NT_HASH] = emptyHash->refSelf();
-   def_val_map[NT_BINARY] = new BinaryNode;
-   def_val_map[NT_NULL] = &Null;
+   def_val_map[NT_DATE]    = ZeroDate->refSelf();
+   def_val_map[NT_FLOAT]   = new QoreFloatNode;
+   def_val_map[NT_LIST]    = emptyList->refSelf();
+   def_val_map[NT_HASH]    = emptyHash->refSelf();
+   def_val_map[NT_BINARY]  = new BinaryNode;
+   def_val_map[NT_NULL]    = &Null;
    def_val_map[NT_NOTHING] = &Nothing;
 
-   do_maps(NT_INT, "int", bigIntTypeInfo);
-   do_maps(NT_STRING, "string", stringTypeInfo);
-   do_maps(NT_BOOLEAN, "bool", boolTypeInfo);
-   do_maps(NT_FLOAT, "float", floatTypeInfo);
-   do_maps(NT_BINARY, "binary", binaryTypeInfo);
-   do_maps(NT_LIST, "list", listTypeInfo);
-   do_maps(NT_HASH, "hash", hashTypeInfo);
-   do_maps(NT_OBJECT, "object", objectTypeInfo);
-   do_maps(NT_ALL, "any", anyTypeInfo);
-   do_maps(NT_DATE, "date", dateTypeInfo);
-   do_maps(NT_CODE, "code", codeTypeInfo);
-   do_maps(NT_REFERENCE, "reference", referenceTypeInfo);
-   do_maps(NT_NULL, "null", nullTypeInfo);
-   do_maps(NT_NOTHING, "nothing", nothingTypeInfo);
-   do_maps(NT_SOFTINT, "softint", softBigIntTypeInfo);
-   do_maps(NT_SOFTFLOAT, "softfloat", softFloatTypeInfo);
+   do_maps(NT_INT,         "int", bigIntTypeInfo);
+   do_maps(NT_STRING,      "string", stringTypeInfo);
+   do_maps(NT_BOOLEAN,     "bool", boolTypeInfo);
+   do_maps(NT_FLOAT,       "float", floatTypeInfo);
+   do_maps(NT_BINARY,      "binary", binaryTypeInfo);
+   do_maps(NT_LIST,        "list", listTypeInfo);
+   do_maps(NT_HASH,        "hash", hashTypeInfo);
+   do_maps(NT_OBJECT,      "object", objectTypeInfo);
+   do_maps(NT_ALL,         "any", anyTypeInfo);
+   do_maps(NT_DATE,        "date", dateTypeInfo);
+   do_maps(NT_CODE,        "code", codeTypeInfo);
+   do_maps(NT_REFERENCE,   "reference", referenceTypeInfo);
+   do_maps(NT_NULL,        "null", nullTypeInfo);
+   do_maps(NT_NOTHING,     "nothing", nothingTypeInfo);
+   do_maps(NT_SOFTINT,     "softint", softBigIntTypeInfo);
+   do_maps(NT_SOFTFLOAT,   "softfloat", softFloatTypeInfo);
    do_maps(NT_SOFTBOOLEAN, "softbool", softBoolTypeInfo);
-   do_maps(NT_SOFTSTRING, "softstring", softStringTypeInfo);
+   do_maps(NT_SOFTSTRING,  "softstring", softStringTypeInfo);
 
    // map the closure and callref strings to codeTypeInfo to ensure that these
    // types are always interchangable
    do_maps(NT_RUNTIME_CLOSURE, "closure", codeTypeInfo);
    do_maps(NT_FUNCREF, "callref", codeTypeInfo);
-
 }
 
 void delete_qore_types() {
@@ -183,7 +182,7 @@ void delete_qore_types() {
    for (def_val_map_t::iterator i = def_val_map.begin(), e = def_val_map.end(); i != e; ++i)
       i->second->deref(0);
 
-   // dereference global default values                                                                                                                                   
+   // dereference global default values
    NullString->deref();
    Zero->deref();
    ZeroDate->deref();
@@ -248,6 +247,14 @@ const char *getBuiltinTypeName(qore_type_t type) {
       case NT_DATA:
 	 return "string|binary";
    }
+
+   /*
+   printf("type: %d unknown\n", type);
+   for (type_str_map_t::iterator i = type_str_map.begin(), e = type_str_map.end(); i != e; ++i)
+      printf("map[%d] = %s\n", i->first, i->second);
+      
+   assert(false);
+   */
 
    return "<unknown type>";
 }
