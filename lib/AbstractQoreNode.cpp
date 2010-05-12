@@ -459,6 +459,10 @@ void AbstractQoreNode::getDateTimeRepresentation(DateTime &dt) const {
    dt.setDate(0LL);
 }
 
+AbstractQoreNode *AbstractQoreNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+   return this;
+}
+
 void SimpleQoreNode::deref() {
    if (there_can_be_only_one) {
       assert(is_unique());

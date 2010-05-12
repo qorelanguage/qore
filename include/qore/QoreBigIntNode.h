@@ -27,6 +27,8 @@
 
 #include <qore/AbstractQoreNode.h>
 
+class LocalVar;
+
 //! this class implements Qore's 64-bit integer data type, reference-counted, dynamically-allocated only
 class QoreBigIntNode : public SimpleValueQoreNode {
 private:
@@ -126,7 +128,7 @@ public:
    DLLEXPORT virtual const char *getTypeName() const;
 
    //! returns the type information
-   DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
+   DLLEXPORT virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
 
    DLLLOCAL static const char *getStaticTypeName() {
       return "integer";

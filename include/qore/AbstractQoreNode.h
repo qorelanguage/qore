@@ -292,17 +292,6 @@ public:
    */
    DLLEXPORT virtual const char *getTypeName() const = 0;
 
-   //! for use by parse types to initialize them for execution during stage 1 parsing
-   /** This function should only be overridden by types that can appear in
-       the parse tree (i.e. are recognized by the parser)
-       @param oflag non-zero if initialized within class code
-       @param pflag bitfield parse flag
-       @param lvids the number of new local variables declared in this node
-       @param typeInfo any available type constraints on the initialized value or expression
-       @return new object
-   */
-   DLLEXPORT virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) { return this; }
-
    //! evaluates the object and returns a value (or 0)
    /** return value requires a deref(xsink) (if not 0).  If needs_eval() returns false,
        then this function just returns refSelf().  Otherwise evalImpl() is returned.
@@ -384,6 +373,17 @@ public:
 
    //! returns true if the object is reference-counted
    DLLEXPORT bool isReferenceCounted() const { return there_can_be_only_one; }
+
+   //! for use by parse types to initialize them for execution during stage 1 parsing
+   /** This function should only be overridden by types that can appear in
+       the parse tree (i.e. are recognized by the parser)
+       @param oflag non-zero if initialized within class code
+       @param pflag bitfield parse flag
+       @param lvids the number of new local variables declared in this node
+       @param typeInfo any available type constraints on the initialized value or expression
+       @return new object
+   */
+   DLLEXPORT virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
 };
 
 //! The base class for all types in Qore expression trees that cannot throw an exception when deleted
