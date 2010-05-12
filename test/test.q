@@ -1821,7 +1821,8 @@ sub json_tests() {
 sub digest_tests() {
     my string $str = "Hello There This is a Test - 1234567890";
 
-    test_value(MD2($str), "349ea9f6c9681278cf86955dabd72d31", "MD2 digest");
+    if (HAVE_MD2)
+        test_value(MD2($str), "349ea9f6c9681278cf86955dabd72d31", "MD2 digest");
     test_value(MD4($str), "675d84fbf5d63e0d68c04577c3298fdc", "MD4 digest");
     test_value(MD5($str), "bcbece19c1fe41d8c9e2e6134665ba5b", "MD5 digest");
     test_value(DSS($str), "f4bc2c85698aae8961d626e2c590852b2d081199", "DSS digest");
