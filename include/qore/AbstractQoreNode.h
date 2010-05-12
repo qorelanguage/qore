@@ -406,6 +406,7 @@ public:
    /**
       This function is not virtual and should be used when possible for SimpleQoreNode objects
    */
+   using AbstractQoreNode::deref;
    DLLEXPORT void deref();
 };
 

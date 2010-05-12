@@ -204,6 +204,7 @@ if test "$enable_64bit" = "auto"; then
 			     enable_64bit=yes
 			 fi
 		     fi
+		     ;;
       esac
       if test "$enable_64bit" = "auto"; then
 	  enable_64bit=no
