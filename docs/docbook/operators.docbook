@@ -3,7 +3,7 @@
   <sect1 id="Operators">
     <title>Operators</title>
 
-    <para>The following table lists all Qore operators in order of precedence, starting with the highest precedence. The lower the precedence number, the higher the precedence, therefore the operators with precedence level 1 ("{}", "[]", ".") have the highest precedence of all Qore operators.  The precedence levels in Qore are roughly equal to the precedence levels of C language operators (however note the important difference with the , operator as noted below). To explicitly specify the precedence for expression evaluation, use parentheses ().</para>
+    <para>The following table lists all Qore operators in order of precedence, starting with the highest precedence. The lower the precedence number, the higher the precedence, therefore the operators with precedence level 1 ("{}", "[]", ".") have the highest precedence of all Qore operators.  The precedence levels in Qore are roughly equal to the precedence levels of C language operators. To explicitly specify the precedence for expression evaluation, use parentheses ().</para>
 
 <table><title>Operators</title>
 <tgroup cols='4' align='left' colsep='1' rowsep='1'>
@@ -85,9 +85,9 @@
   </row>
 
   <row>
-    <entry><para><command>cast&lt;&gt;</command></para></entry>
+    <entry><para><command>cast&lt;&gt;()</command></para></entry>
     <entry><para>3</para></entry>
-    <entry><para><link linkend='Cast_Operator'>cast&lt;&gt; operator</link></para></entry>
+    <entry><para><link linkend='Cast_Operator'>cast&lt;&gt;() operator</link></para></entry>
     <entry><code><command>cast</command>&lt;SubClass&gt;($var)</code></entry>
   </row>
 
@@ -470,10 +470,6 @@
   <link linkend="float">float()</link>, etc functions.</para>
 </note>
 
-<note>
-  <para>The Qore comma ',' operator has a higher precendece than the '=' operator, meaning that a statement like <code>$a = 1, 2, 3;</code> is possible without parentheses.  However, it means that a statment like <code>$a = func(1, 2, $b = 3, 4);</code> will probably not do what you want (it uses <code>$b</code> as the third argument which is assigned to the list <code>(3, 4)</code>); you must write <code>$a = func(1, 2, ($b = 3), 4);</code> to pass 4 arguments to the function <code>func</code>.</para>
-</note>
-
 <sect2 id="Backquote_Operator">
   <title>Backquote Operator (``)</title>
 
@@ -491,6 +487,10 @@
       </listitem>
     </varlistentry>
     <varlistentry>
+      <term>Return Type</term>
+      <listitem><para><link linkend="string_type">string</link></para></listitem>
+    </varlistentry>
+    <varlistentry>
       <term>Example</term>
       <listitem>
 	<programlisting>$dirlisting = `ls -l`</programlisting>
@@ -504,12 +504,14 @@
       <thead>
 	<row>
 	  <entry><para>Argument</para></entry>
+	  <entry><para>Returns</para></entry>
 	  <entry><para>Processing</para></entry>
 	</row>
       </thead>
       <tbody>
 	<row>
-	  <entry><para><replaceable>shell_command</replaceable></para></entry>
+	  <entry><para><link linkend="string_type">string</link> <replaceable>shell_command</replaceable></para></entry>
+          <entry><para><link linkend="string_type">string</link></para></entry>
 	  <entry><para>The shell command will be executed and the stdout is returned as a string.</para></entry>
 	</row>
       </tbody>
@@ -551,6 +553,10 @@
 	<programlisting><replaceable>container_expression{expression}</replaceable></programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Return Type</term>
+      <listitem><para><link linkend="any_type">any</link></para></listitem>
+    </varlistentry>
 
     <varlistentry>
       <term>Example</term>
@@ -571,15 +577,15 @@
     </thead>
     <tbody>
       <row>
-	<entry><para><replaceable>container_expression</replaceable></para></entry>
+	<entry><para><link linkend="hash_type">hash</link> | <link linkend="object_type">object</link><replaceable>container_expression</replaceable></para></entry>
 	<entry><para>This expression must evaluate to a hash or an object. If not, then the operator returns no value.</para></entry>
       </row>
       <row>
-	<entry><para><replaceable>expression = list</replaceable></para></entry>
+	<entry><para><link linkend="list_type">list</link> <replaceable>expression</replaceable></para></entry>
 	<entry><para>If the expression evaluates to a list, then a slice of the hash or object is returned as a hash containing keys given in the list that are present in the hash or object.  If the key as given in the list (converted to a string if necessary) is not present in the hash or object, then it is also not present in the hash returned.</para></entry>
       </row>
       <row>
-	<entry><para><replaceable>expression != list</replaceable></para></entry>
+	<entry><para><replaceable>expression</replaceable> is any type other than <link linkend="list_type">list</link></para></entry>
 	<entry><para>This expression is evaluated and converted to a string if necessary. The value of the hash key corresponding to this string will be returned. If the key or member does not exist, then no value is returned.</para></entry>
       </row>
     </tbody>
@@ -621,6 +627,10 @@
 <replaceable>container_expression.method_identifier([arguments...])</replaceable>
 <replaceable>container_expression.expression</replaceable></programlisting>
       </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Return Type</term>
+      <listitem><para><link linkend="any_type">any</link></para></listitem>
     </varlistentry>
 
     <varlistentry>
@@ -723,6 +733,10 @@
       </listitem>
     </varlistentry>
     <varlistentry>
+      <term>Return Type</term>
+      <listitem><para><link linkend="any_type">any</link></para></listitem>
+    </varlistentry>
+    <varlistentry>
       <term>Example</term>
       <listitem>
 	<programlisting>printf("%s\n", $list[2]);
@@ -784,6 +798,10 @@ printf("0x%x\n", $binary[2]);
       </listitem>
     </varlistentry>
     <varlistentry>
+      <term>Return Type</term>
+      <listitem><para><link linkend="int_type">int</link></para></listitem>
+    </varlistentry>
+    <varlistentry>
       <term>Example</term>
       <listitem>
 	<programlisting>++$i;</programlisting>
@@ -828,6 +846,10 @@ printf("0x%x\n", $binary[2]);
       <listitem>
 	<programlisting><replaceable>lvalue++</replaceable></programlisting>
       </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Return Type</term>
+      <listitem><para><link linkend="any_type">any</link></para></listitem>
     </varlistentry>
 
     <varlistentry>
@@ -877,6 +899,10 @@ printf("0x%x\n", $binary[2]);
       </listitem>
     </varlistentry>
     <varlistentry>
+      <term>Return Type</term>
+      <listitem><para><link linkend="int_type">int</link></para></listitem>
+    </varlistentry>
+    <varlistentry>
       <term>Example</term>
       <listitem>
 	<programlisting>--$i;</programlisting>
@@ -922,6 +948,10 @@ printf("0x%x\n", $binary[2]);
 	<programlisting><replaceable>lvalue--</replaceable></programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Return Type</term>
+      <listitem><para><link linkend="any_type">any</link></para></listitem>
+    </varlistentry>
 
     <varlistentry>
       <term>Example</term>
@@ -960,6 +990,9 @@ printf("0x%x\n", $binary[2]);
       <term>Synopsis</term>
       <listitem>
 	<para>Creates an instance of a class by running the class' constructor on the new <link linkend="Qore_Class_List">class</link> (if any exists) and returns the new object.</para>
+  <para>Note that it is normally better to declare an object with its type and use the abbreviated form to construct the object as follows:</para>
+  <programlisting><command>my</command> Mutex $m();</programlisting>
+  <para>This provides type information to the parser which allows more errors to be caught at parse time (instead of at run time), and furthermore allows Qore improve performance by performing more work once at parse time rather than for every time the object is accessed at run time (for example, method and variant resolution).</para>
      </listitem>
     </varlistentry>
     <varlistentry>
@@ -967,6 +1000,10 @@ printf("0x%x\n", $binary[2]);
       <listitem>
 	<programlisting><command>new</command> <replaceable>class_identifier(constructor_arguments ...)</replaceable></programlisting>
       </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Return Type</term>
+      <listitem><para><link linkend="class_type">specific class</link>, an object of the class given</para></listitem>
     </varlistentry>
     <varlistentry>
       <term>Example</term>
@@ -987,7 +1024,7 @@ printf("0x%x\n", $binary[2]);
       <tbody>
 	<row>
 	  <entry><para><replaceable>class_identifier</replaceable></para></entry>
-	  <entry><para>The class_identifier must be an existing class name; if so, the operator instantiates an object of this class, executes the constructor for the class (if any exists, along with any base class constructors, if applicable) on the new object, and returns the object (for constructor execution order in an inherited class, see <link linkend='Class_Inheritance'>Class Inheritance</link>).  If an exception is thrown in the constructor, the object is deleted and NOTHING is returned.</para></entry>
+	  <entry><para>The class_identifier must be an existing class name; if so, the operator instantiates an object of this class, executes the constructor for the class (if any exists, along with any base class constructors, if applicable) on the new object, and returns the object (for constructor execution order in an inherited class, see <link linkend='Class_Inheritance'>Class Inheritance</link>).  If an exception is thrown in the constructor, the object is deleted immediately.</para></entry>
 	</row>
       </tbody>
     </tgroup>
@@ -1028,6 +1065,10 @@ printf("0x%x\n", $binary[2]);
       </listitem>
     </varlistentry>
     <varlistentry>
+      <term>Return Type</term>
+      <listitem><para><link linkend="int_type">int</link></para></listitem>
+    </varlistentry>
+    <varlistentry>
       <term>Example</term>
       <listitem>
 	<programlisting><command>background</command> startThread();</programlisting>
@@ -1046,7 +1087,7 @@ printf("0x%x\n", $binary[2]);
       </thead>
       <tbody>
 	<row>
-	  <entry><para><replaceable>expression</replaceable></para></entry>
+	  <entry><para><link linkend="string_type">string</link> <replaceable>expression</replaceable></para></entry>
 	  <entry>
 	    <para>The expression given as an argument will be executed in a new thread. The TID of the new thread will be returned as the return value of the operator. </para>      
 	  </entry>
@@ -1114,6 +1155,10 @@ printf("0x%x\n", $binary[2]);
       </listitem>
     </varlistentry>
     <varlistentry>
+      <term>Return Type</term>
+      <listitem><para>Does not return any value</para></listitem>
+    </varlistentry>
+    <varlistentry>
       <term>Example</term>
       <listitem>
 	<programlisting><command>delete</command> $value;</programlisting>
@@ -1147,9 +1192,13 @@ printf("0x%x\n", $binary[2]);
       </listitem>
     </varlistentry>
     <varlistentry>
+      <term>Return Type</term>
+      <listitem><para><link linkend="any_type">any</link></para></listitem>
+    </varlistentry>
+    <varlistentry>
       <term>Example</term>
       <listitem>
-	<programlisting><command>my</command> $var = <command>remoev</command> $hash.value;</programlisting>
+	<programlisting><command>my</command> $var = <command>remove</command> $hash.value;</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -1173,6 +1222,10 @@ printf("0x%x\n", $binary[2]);
       <listitem>
 	<programlisting><command>cast</command>&lt;<replaceable>class_name_or_path</replaceable>&gt;(<replaceable>expression</replaceable>)</programlisting>
       </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Return Type</term>
+      <listitem><para><link linkend="class_type">specific class</link>, the class given</para></listitem>
     </varlistentry>
 
     <varlistentry>
@@ -1237,6 +1290,10 @@ printf("0x%x\n", $binary[2]);
 	<programlisting>!<replaceable>expression</replaceable></programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Return Type</term>
+      <listitem><para><link linkend="bool_type">bool</link></para></listitem>
+    </varlistentry>
 
     <varlistentry>
       <term>Example</term>
@@ -1286,6 +1343,10 @@ printf("0x%x\n", $binary[2]);
       </listitem>
     </varlistentry>
     <varlistentry>
+      <term>Return Type</term>
+      <listitem><para><link linkend="int_type">int</link></para></listitem>
+    </varlistentry>
+    <varlistentry>
       <term>Example</term>
       <listitem>
 	<programlisting>$a = ~$b;</programlisting>
@@ -1304,8 +1365,8 @@ printf("0x%x\n", $binary[2]);
       </thead>
       <tbody>
 	<row>
-	  <entry><para><replaceable>expression</replaceable>: Integer</para></entry>
-	  <entry><para>Performs bitwise negation on its argument (ex: 666 &amp; ~27 = 640)</para></entry>
+	  <entry><para><replaceable>expression</replaceable></para></entry>
+	  <entry><para>The argument is converted to an integer (if necessary), and bitwise negation is performed on the argument (ex: 666 &amp; ~27 = 640)</para></entry>
 	</row>
       </tbody>
     </tgroup>
@@ -1332,6 +1393,10 @@ printf("0x%x\n", $binary[2]);
       </listitem>
     </varlistentry>
     <varlistentry>
+      <term>Return Type</term>
+      <listitem><para><link linkend="int_type">int</link> or <link linkend="float_type">float</link></para></listitem>
+    </varlistentry>
+    <varlistentry>
       <term>Example</term>
       <listitem>
 	<programlisting>$a = -$b;</programlisting>
@@ -1350,11 +1415,11 @@ printf("0x%x\n", $binary[2]);
       </thead>
       <tbody>
 	<row>
-	  <entry><para><replaceable>expression</replaceable>: Float</para></entry>
+	  <entry><para><link linkend="float_type">float</link> <replaceable>expression</replaceable></para></entry>
 	  <entry><para>Gives the negative of its argument (ex: -(-1.1) = 1.1, -(1.1) = -1.1 </para></entry>
 	</row>
 	<row>
-	  <entry><para><replaceable>expression</replaceable>: Integer</para></entry>
+	  <entry><para><link linkend="int_type">int</link> <replaceable>expression</replaceable></para></entry>
 	  <entry><para>Gives the negative of its argument (ex: -(-1) = 1, -(1) = -1</para></entry>
 	</row>
       </tbody>
@@ -1382,6 +1447,10 @@ printf("0x%x\n", $binary[2]);
       </listitem>
     </varlistentry>
     <varlistentry>
+      <term>Return Type</term>
+      <listitem><para><link linkend="any_type">any</link></para></listitem>
+    </varlistentry>
+    <varlistentry>
       <term>Example</term>
       <listitem>
 	<programlisting>$a = <command>shift</command> $ARGV;</programlisting>
@@ -1400,7 +1469,7 @@ printf("0x%x\n", $binary[2]);
       </thead>
       <tbody>
 	<row>
-	  <entry><para><replaceable>lvalue</replaceable>: List</para></entry>
+	  <entry><para><link linkend="list_type">list</link> <replaceable>lvalue</replaceable></para></entry>
 	  <entry><para>Returns the first element of the list, and the list is modified by having the first element removed from the list.</para></entry>
 	</row>
       </tbody>
@@ -1427,6 +1496,10 @@ printf("0x%x\n", $binary[2]);
 	<programlisting><command>pop</command> <replaceable>lvalue</replaceable></programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Return Type</term>
+      <listitem><para><link linkend="any_type">any</link></para></listitem>
+    </varlistentry>
 
     <varlistentry>
       <term>Example</term>
@@ -1447,7 +1520,7 @@ printf("0x%x\n", $binary[2]);
       </thead>
       <tbody>
 	<row>
-	  <entry><para><replaceable>lvalue</replaceable>: List</para></entry>
+	  <entry><para><link linkend="list_type">list</link> <replaceable>lvalue</replaceable></para></entry>
 	  <entry><para>Returns the last element of the list, and the list is modified, having the last element removed from the list.</para></entry>
 	</row>
       </tbody>
@@ -1474,6 +1547,10 @@ printf("0x%x\n", $binary[2]);
 	<programlisting><command>chomp</command> <replaceable>lvalue</replaceable></programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Return Type</term>
+      <listitem><para><link linkend="int_type">int</link></para></listitem>
+    </varlistentry>
 
     <varlistentry>
       <term>Example</term>
@@ -1494,15 +1571,15 @@ printf("0x%x\n", $binary[2]);
       </thead>
       <tbody>
 	<row>
-	  <entry><para><replaceable>lvalue</replaceable>: String</para></entry>
+	  <entry><para><link linkend="string_type">string</link> <replaceable>lvalue</replaceable></para></entry>
 	  <entry><para>Removes any EOL characters from a string and returns the number of characters removed.</para></entry>
 	</row>
 	<row>
-	  <entry><para><replaceable>lvalue</replaceable>: List</para></entry>
+	  <entry><para><link linkend="list_type">list</link> <replaceable>lvalue</replaceable></para></entry>
 	  <entry><para>Removes any EOL characters from each string element of the list passed and returns the number of characters removed.</para></entry>
 	</row>
 	<row>
-	  <entry><para><replaceable>lvalue</replaceable>: Hash</para></entry>
+	  <entry><para><link linkend="hash_type">hash</link> <replaceable>lvalue</replaceable></para></entry>
 	  <entry><para>Removes any EOL characters from each hash key's value (where the value is a string) and returns the number of characters removed.</para></entry>
 	</row>
       </tbody>
@@ -1533,6 +1610,11 @@ printf("0x%x\n", $binary[2]);
     </varlistentry>
 
     <varlistentry>
+      <term>Return Type</term>
+      <listitem><para><link linkend="string_type">string</link>, <link linkend="list_type">list</link>, or <link linkend="hash_type">hash</link></para></listitem>
+    </varlistentry>
+
+    <varlistentry>
       <term>Example</term>
       <listitem>
 	<programlisting><command>trim</command> $str;</programlisting>
@@ -1551,15 +1633,15 @@ printf("0x%x\n", $binary[2]);
       </thead>
       <tbody>
 	<row>
-	  <entry><para><replaceable>lvalue</replaceable>: String</para></entry>
+	  <entry><para><link linkend="string_type">string</link> <replaceable>lvalue</replaceable></para></entry>
 	  <entry><para>Removes whitespace characters from the beginning and end of a string and returns the value processed.</para></entry>
 	</row>
 	<row>
-	  <entry><para><replaceable>lvalue</replaceable>: List</para></entry>
+	  <entry><para><link linkend="list_type">list</link> <replaceable>lvalue</replaceable></para></entry>
 	  <entry><para>Removes whitespace characters from the beginning and end of each string element of the list passed and returns the list.</para></entry>
 	</row>
 	<row>
-	  <entry><para><replaceable>lvalue</replaceable>: Hash</para></entry>
+	  <entry><para><link linkend="hash_type">hash</link> <replaceable>lvalue</replaceable></para></entry>
 	  <entry><para>Removes whitespace characters from the beginning and end of each string value of the hash passed and returns the hash.</para></entry>
 	</row>
       </tbody>
@@ -1580,6 +1662,10 @@ printf("0x%x\n", $binary[2]);
 	<para>Executes (or maps) an expression on a list and returns the result.  An optional select expression can be given to filter elements out from the result list.</para>
 	<para>If the second argument is not a list, then <replaceable>map_expression</replaceable> is executed on the single value and the result is returned, and any select expression is ignored.</para>  
      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Return Type</term>
+      <listitem><para><link linkend="any_type">any</link></para></listitem>
     </varlistentry>
     <varlistentry>
       <term>Syntax</term>
@@ -1612,7 +1698,7 @@ printf("0x%x\n", $binary[2]);
 	  <entry><para>The expression to map on the list; the <link linkend="Implicit_Arguments">implicit argument</link> $1 represents the current element being processed.</para></entry>
 	</row>
 	<row>
-	  <entry><para><replaceable>list</replaceable>: List</para></entry>
+	  <entry><para><link linkend="list_type">list</link> <replaceable>list</replaceable></para></entry>
 	  <entry><para>The list to process.</para></entry>
 	</row>
 	<row>
@@ -1644,7 +1730,10 @@ printf("0x%x\n", $binary[2]);
 	<programlisting><command>foldl</command> <replaceable>expression, list</replaceable></programlisting>
       </listitem>
     </varlistentry>
-
+    <varlistentry>
+      <term>Return Type</term>
+      <listitem><para><link linkend="any_type">any</link></para></listitem>
+    </varlistentry>
     <varlistentry>
       <term>Example</term>
       <listitem>
@@ -1669,7 +1758,7 @@ printf("0x%x\n", $binary[2]);
 	  <entry><para>The expression to fold on the list; the <link linkend="Implicit_Arguments">implicit argument</link> $1 represents the result of the last operation (or the first element in the list when beginning the fold), and $2 represents the next element of the list.</para></entry>
 	</row>
 	<row>
-	  <entry><para><replaceable>list</replaceable>: List</para></entry>
+	  <entry><para><link linkend="list_type">list</link> <replaceable>list</replaceable></para></entry>
 	  <entry><para>The list to process.</para></entry>
 	</row>
       </tbody>
@@ -1697,6 +1786,10 @@ printf("0x%x\n", $binary[2]);
 	<programlisting><command>foldr</command> <replaceable>expression, list</replaceable></programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Return Type</term>
+      <listitem><para><link linkend="any_type">any</link></para></listitem>
+    </varlistentry>
 
     <varlistentry>
       <term>Example</term>
@@ -1722,7 +1815,7 @@ printf("0x%x\n", $binary[2]);
 	  <entry><para>The expression to fold on the list; the <link linkend="Implicit_Arguments">implicit argument</link> $1 represents the result of the last operation (or the last element in the list when beginning the fold), and $2 represents the next element of the list in reverse order.</para></entry>
 	</row>
 	<row>
-	  <entry><para><replaceable>list</replaceable>: List</para></entry>
+	  <entry><para><link linkend="list_type">list</link> <replaceable>list</replaceable></para></entry>
 	  <entry><para>The list to process.</para></entry>
 	</row>
       </tbody>
@@ -1750,6 +1843,10 @@ printf("0x%x\n", $binary[2]);
 	<programlisting><command>select</command> <replaceable>list, expression</replaceable></programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Return Type</term>
+      <listitem><para><link linkend="any_type">any</link></para></listitem>
+    </varlistentry>
 
     <varlistentry>
       <term>Example</term>
@@ -1771,7 +1868,7 @@ printf("0x%x\n", $binary[2]);
       </thead>
       <tbody>
 	<row>
-	  <entry><para><replaceable>list</replaceable>: List</para></entry>
+	  <entry><para><link linkend="list_type">list</link> <replaceable>list</replaceable></para></entry>
 	  <entry><para>The list to process.</para></entry>
 	</row>
 	<row>
@@ -1802,6 +1899,10 @@ printf("0x%x\n", $binary[2]);
 	<programlisting><command>elements</command> <replaceable>expression</replaceable></programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Return Type</term>
+      <listitem><para><link linkend="int_type">int</link></para></listitem>
+    </varlistentry>
 
     <varlistentry>
       <term>Example</term>
@@ -1822,19 +1923,19 @@ printf("0x%x\n", $binary[2]);
       </thead>
       <tbody>
 	<row>
-	  <entry><para>List</para></entry>
+	  <entry><para><link linkend="list_type">list</link></para></entry>
 	  <entry><para>Returns the number of elements in the list.</para></entry>
 	</row>
 	<row>
-	  <entry><para>Hash</para></entry>
+	  <entry><para><link linkend="hash_type">hash</link></para></entry>
 	  <entry><para>Returns the number of keys in the hash.</para></entry>
 	</row>
 	<row>
-	  <entry><para>String</para></entry>
+	  <entry><para><link linkend="string_type">string</link></para></entry>
 	  <entry><para>Returns the number of characters in the string.</para></entry>
 	</row>
 	<row>
-	  <entry><para>Binary</para></entry>
+	  <entry><para><link linkend="binary_type">binary</link></para></entry>
 	  <entry><para>Returns the number of bytes in the binary object.</para></entry>
 	</row>
       </tbody>
@@ -1859,6 +1960,10 @@ printf("0x%x\n", $binary[2]);
 	<programlisting><command>keys</command> <replaceable>hash_expression</replaceable></programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Return Type</term>
+      <listitem><para><link linkend="list_type">list</link> or <link linkend="NOTHING">NOTHING</link></para></listitem>
+    </varlistentry>
 
     <varlistentry>
       <term>Example</term>
@@ -1881,7 +1986,7 @@ printf("0x%x\n", $binary[2]);
       <tbody>
 	<row>
 	  <entry><para><replaceable>hash_expression</replaceable></para></entry>
-	  <entry><para>Returns a list of strings giving the keys in <replaceable>hash_expression</replaceable>, which must evaluate to a hash.  If not, then no value is returned.</para></entry>
+	  <entry><para>Returns a <link linkend="list_type">list</link> of strings giving the keys in <replaceable>hash_expression</replaceable>, which must evaluate to a hash.  If not, then no value is returned.</para></entry>
 	</row>
       </tbody>
     </tgroup>
@@ -1905,6 +2010,10 @@ printf("0x%x\n", $binary[2]);
 	<programlisting><replaceable>expression1</replaceable> * <replaceable>expression2</replaceable></programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Return Type</term>
+      <listitem><para><link linkend="int_type">int</link> or <link linkend="float_type">float</link></para></listitem>
+    </varlistentry>
 
     <varlistentry>
       <term>Example</term>
@@ -1925,12 +2034,16 @@ printf("0x%x\n", $binary[2]);
       </thead>
       <tbody>
 	<row>
-	  <entry><para>Float</para></entry>
+	  <entry><para><link linkend="float_type">float</link></para></entry>
+	  <entry><para>Gives the result of multiplying its arguments; if either of the arguments is a <link linkend="float_type">float</link> then the result is also a float.</para></entry>
+	</row>
+	<row>
+	  <entry><para><link linkend="int_type">int</link></para></entry>
 	  <entry><para>Gives the result of multiplying its arguments.</para></entry>
 	</row>
 	<row>
-	  <entry><para>Integer</para></entry>
-	  <entry><para>Gives the result of multiplying its arguments.</para></entry>
+	  <entry><para>any other type</para></entry>
+	  <entry><para>Converts argument to a float and performs the multiplication.</para></entry>
 	</row>
       </tbody>
     </tgroup>
@@ -1952,11 +2065,15 @@ printf("0x%x\n", $binary[2]);
     </varlistentry>
     <varlistentry>
       <term>Syntax</term>
-      <listitem>
+       <listitem>
 	<programlisting><replaceable>expression1</replaceable> / <replaceable>expression2</replaceable></programlisting>
       </listitem>
     </varlistentry>
-    <varlistentry>
+     <varlistentry>
+      <term>Return Type</term>
+      <listitem><para><link linkend="int_type">int</link> or <link linkend="float_type">float</link></para></listitem>
+    </varlistentry>
+   <varlistentry>
       <term>Example</term>
       <listitem>
 	<programlisting>$value = $x / $y;</programlisting>
@@ -1975,12 +2092,16 @@ printf("0x%x\n", $binary[2]);
       </thead>
       <tbody>
 	<row>
-	  <entry><para>Float</para></entry>
+	  <entry><para><link linkend="float_type">float</link></para></entry>
+	  <entry><para>Gives the result of dividing its arguments; if either of the arguments is a <link linkend="float_type">float</link> then the result is also a float.</para></entry>
+	</row>
+	<row>
+	  <entry><para><link linkend="int_type">int</link></para></entry>
 	  <entry><para>Gives the result of dividing its arguments.</para></entry>
 	</row>
 	<row>
-	  <entry><para>Integer</para></entry>
-	  <entry><para>Gives the result of dividing its arguments.</para></entry>
+	  <entry><para>any other type</para></entry>
+	  <entry><para>Converts argument to a float and performs the division.</para></entry>
 	</row>
       </tbody>
     </tgroup>
@@ -2006,6 +2127,10 @@ printf("0x%x\n", $binary[2]);
 	<programlisting><replaceable>expression1</replaceable> % <replaceable>expression2</replaceable></programlisting>
       </listitem>
     </varlistentry>
+     <varlistentry>
+      <term>Return Type</term>
+      <listitem><para><link linkend="int_type">int</link></para></listitem>
+    </varlistentry>
     <varlistentry>
       <term>Example</term>
       <listitem>
@@ -2025,7 +2150,7 @@ printf("0x%x\n", $binary[2]);
       </thead>
       <tbody>
 	<row>
-	  <entry><para>Integer</para></entry>
+	  <entry><para><link linkend="int_type">int</link></para></entry>
 	  <entry><para>Gives <replaceable>expression1</replaceable> modula <replaceable>expression2</replaceable> (ex: 12 % 10 = 2).  Arguments are converted to integers if necessary.</para></entry>
 	</row>
       </tbody>
@@ -2052,6 +2177,10 @@ printf("0x%x\n", $binary[2]);
 	<programlisting><replaceable>expression1</replaceable> + <replaceable>expression2</replaceable></programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Return Type</term>
+      <listitem><para><link linkend="int_type">int</link>, <link linkend="float_type">float</link>, <link linkend="date_type">date</link>, <link linkend="list_type">list</link>, <link linkend="string_type">string</link>, <link linkend="binary_type">binary</link>, or <link linkend="hash_type">hash</link></para></listitem>
+    </varlistentry>
 
     <varlistentry>
       <term>Example</term>
@@ -2076,27 +2205,27 @@ printf("0x%x\n", $binary[2]);
       </thead>
       <tbody>
 	<row>
-	  <entry><para>List</para></entry>
+	  <entry><para><link linkend="list_type">list</link></para></entry>
 	  <entry><para>Gives the result of concatenating its arguments, i.e. (1, 2) + (3, 4) = (1, 2, 3, 4)</para></entry>
 	</row>
 	<row>
-	  <entry><para>String</para></entry>
+	  <entry><para><link linkend="string_type">string</link></para></entry>
 	  <entry><para>Gives the result of concatenating its arguments.</para></entry>
 	</row>
 	<row>
-	  <entry><para>Date</para></entry>
+	  <entry><para>Dat<link linkend="date_type">date</link>e</para></entry>
 	  <entry><para>Gives the result of adding date/time values (see <link linkend='Date_Time_Arithmetic'>Date/Time Arithmetic</link>)</para></entry>
 	</row>
 	<row>
-	  <entry><para>Float</para></entry>
+	  <entry><para><link linkend="float_type">float</link></para></entry>
 	  <entry><para>Gives the result of adding its arguments.</para></entry>
 	</row>
 	<row>
-	  <entry><para>Integer</para></entry>
+	  <entry><para><link linkend="int_type">int</link></para></entry>
 	  <entry><para>Gives the result of adding its arguments.</para></entry>
 	</row>
 	<row>
-	  <entry><para>Hash</para></entry>
+	  <entry><para><link linkend="hash_type">hash</link></para></entry>
 	  <entry><para>Gives the result of concatenating/merging its arguments. Any common keys will be overwritten by the values in the second hash (<replaceable>expression2</replaceable>)</para></entry>
 	</row>
       </tbody>
@@ -2114,7 +2243,9 @@ printf("0x%x\n", $binary[2]);
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>With float or integer arguments, subtracts one number from another, however if the left-hand side is a hash, and the right-hand side is a string, then the hash key represented by the string will be removed from the hash.</para>
+	<para>With float or integer arguments, subtracts one number from another.</para>
+        <para>With date arguments, subtracts one date from another; if both date arguments are absolute dates, the result is a relative date (duration) giving the time between them; if the first date argument is an absolute date and the second is a relative date (duration), then the result is an absolute date.  If both date arguments are relative dates, then the result is a relative date.  If the first argument is a relative date and the second date is an absolute date, the result is an absolute date as if the operands were reversed.</para>
+        <para>However, if the left-hand side is a hash, and the right-hand side is a string, then the hash key represented by the string will be removed from the hash.  If the left-hand side is a hash and the right-hand side is a list, then each element in the list will be converted to a string and any hash key with that name will be deleted from the hash.</para>
      </listitem>
     </varlistentry>
     <varlistentry>
@@ -2123,12 +2254,18 @@ printf("0x%x\n", $binary[2]);
 	<programlisting><replaceable>expression1</replaceable> - <replaceable>expression2</replaceable></programlisting>
       </listitem>
     </varlistentry>
+     <varlistentry>
+      <term>Return Type</term>
+      <listitem><para><link linkend="int_type">int</link>, <link linkend="float_type">float</link>, <link linkend="date_type">date</link>, or <link linkend="hash_type">hash</link></para></listitem>
+    </varlistentry>
 
     <varlistentry>
       <term>Example</term>
       <listitem>
 	<programlisting>$num = $x - $y;</programlisting>
+	<programlisting>$date = 2010-05-13 - P3MT14H10M;</programlisting>
 	<programlisting>$hash = $hash - "key";</programlisting>
+	<programlisting>$hash = $hash - ("key1", "key2", "key3");</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -2144,16 +2281,24 @@ printf("0x%x\n", $binary[2]);
       </thead>
       <tbody>
 	<row>
-	  <entry><para>Float</para></entry>
+	  <entry><para><link linkend="date_type">date</link></para></entry>
+	  <entry><para>date subtraction: <replaceable>expression1</replaceable> - <replaceable>expression2</replaceable></para></entry>
+	</row>
+	<row>
+	  <entry><para><link linkend="float_type">float</link></para></entry>
 	  <entry><para>arithmetic subtraction: <replaceable>expression1</replaceable> - <replaceable>expression2</replaceable></para></entry>
 	</row>
 	<row>
-	  <entry><para>Integer</para></entry>
+	  <entry><para><link linkend="int_type">int</link></para></entry>
 	  <entry><para>arithmetic subtraction: <replaceable>expression1</replaceable> - <replaceable>expression2</replaceable></para></entry>
 	</row>
 	<row>
-	  <entry><para>Hash - String</para></entry>
+	  <entry><para><link linkend="hash_type">hash</link> - <link linkend="string_type">string</link></para></entry>
 	  <entry><para>hash key deletion: <replaceable>expression1</replaceable> - <replaceable>expression2</replaceable></para></entry>
+	</row>
+	<row>
+	  <entry><para><link linkend="hash_type">hash</link> - <link linkend="list_type">list</link></para></entry>
+	  <entry><para>hash key deletion: <replaceable>expression1</replaceable> - <replaceable>expression2</replaceable>; all elements of the list are converted to strings (if necessary) and any keys with those names are deleted from the hash.</para></entry>
 	</row>
       </tbody>
     </tgroup>
@@ -2179,6 +2324,10 @@ printf("0x%x\n", $binary[2]);
 	<programlisting><replaceable>expression1</replaceable> &gt;&gt; <replaceable>expression2</replaceable></programlisting>
       </listitem>
     </varlistentry>
+     <varlistentry>
+      <term>Return Type</term>
+      <listitem><para><link linkend="int_type">int</link></para></listitem>
+    </varlistentry>
     <varlistentry>
       <term>Example</term>
       <listitem>
@@ -2197,7 +2346,7 @@ printf("0x%x\n", $binary[2]);
     </thead>
     <tbody>
       <row>
-	<entry><para>Integer</para></entry>
+	<entry><para><link linkend="int_type">int</link></para></entry>
 	<entry><para>Gives the result of shifting <replaceable>expression1</replaceable> right by <replaceable>expression2</replaceable> bits.  Arguments are converted to integers if necesssary.</para></entry>
       </row>
     </tbody>
@@ -2224,6 +2373,10 @@ printf("0x%x\n", $binary[2]);
 	<programlisting><replaceable>expression1</replaceable> &lt;&lt; <replaceable>expression2</replaceable></programlisting>
       </listitem>
     </varlistentry>
+     <varlistentry>
+      <term>Return Type</term>
+      <listitem><para><link linkend="int_type">int</link></para></listitem>
+    </varlistentry>
 
     <varlistentry>
       <term>Example</term>
@@ -2244,7 +2397,7 @@ printf("0x%x\n", $binary[2]);
 
 <tbody>
   <row>
-    <entry><para>Integer</para></entry>
+    <entry><para><link linkend="int_type">int</link></para></entry>
     <entry><para>Gives the result of shifting <replaceable>expression1</replaceable> left by <replaceable>expression2</replaceable> bits.  Arguments are converted to integers if necessary.</para></entry>
   </row>
 
@@ -2271,6 +2424,10 @@ printf("0x%x\n", $binary[2]);
 	    <programlisting><replaceable>expression</replaceable> <command>instanceof</command> <replaceable>class_specification</replaceable></programlisting>
 	  </listitem>
 	</varlistentry>
+     <varlistentry>
+      <term>Return Type</term>
+      <listitem><para><link linkend="bool_type">bool</link></para></listitem>
+    </varlistentry>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
@@ -2317,6 +2474,10 @@ printf("0x%x\n", $binary[2]);
       <listitem>
 	<programlisting><command>exists</command> <replaceable>expression</replaceable></programlisting>
       </listitem>
+    </varlistentry>
+     <varlistentry>
+      <term>Return Type</term>
+      <listitem><para><link linkend="bool_type">bool</link></para></listitem>
     </varlistentry>
 
     <varlistentry>
@@ -2368,6 +2529,10 @@ printf("0x%x\n", $binary[2]);
 	<programlisting><replaceable>expression1</replaceable> &lt; <replaceable>expression2</replaceable></programlisting>
       </listitem>
     </varlistentry>
+     <varlistentry>
+      <term>Return Type</term>
+      <listitem><para><link linkend="bool_type">bool</link></para></listitem>
+    </varlistentry>
 
     <varlistentry>
       <term>Example</term>
@@ -2389,20 +2554,20 @@ printf("0x%x\n", $binary[2]);
 
 <tbody>
   <row>
-    <entry><para>Float</para></entry>
+    <entry><para><link linkend="float_type">float</link></para></entry>
     <entry><para>If <replaceable>expression1</replaceable> is numerically less than <replaceable>expression2</replaceable>, returns True, otherwise returns False</para></entry>
   </row>
   <row>
-    <entry><para>Integer</para></entry>
+    <entry><para><link linkend="int_type">int</link></para></entry>
     <entry><para>If <replaceable>expression1</replaceable> is numerically less than <replaceable>expression2</replaceable>, returns True, otherwise returns False</para></entry>
   </row>
   <row>
-    <entry><para>String</para></entry>
+    <entry><para><link linkend="string_type">string</link></para></entry>
     <entry><para>If <replaceable>expression1</replaceable> comes before <replaceable>expression2</replaceable> in string sort order, returns True, otherwise returns False</para></entry>
   </row>
   <row>
-    <entry><para>Date</para></entry>
-    <entry><para>If <replaceable>expression1</replaceable> is before <replaceable>expression2</replaceable>, returns True, otherwise returns False</para></entry>
+    <entry><para><link linkend="date_type">date</link></para></entry>
+    <entry><para>If <replaceable>expression1</replaceable> is before (or a shorter amount of time than) <replaceable>expression2</replaceable>, returns True, otherwise returns False</para></entry>
   </row>
 
 </tbody>
@@ -2428,6 +2593,10 @@ printf("0x%x\n", $binary[2]);
 	<programlisting><replaceable>expression1</replaceable> &gt; <replaceable>expression2</replaceable></programlisting>
       </listitem>
     </varlistentry>
+     <varlistentry>
+      <term>Return Type</term>
+      <listitem><para><link linkend="bool_type">bool</link></para></listitem>
+    </varlistentry>
 
     <varlistentry>
       <term>Example</term>
@@ -2451,19 +2620,19 @@ printf("0x%x\n", $binary[2]);
 
 <tbody>
   <row>
-    <entry><para>Float</para></entry>
+    <entry><para><link linkend="float_type">float</link></para></entry>
     <entry><para>If <replaceable>expression1</replaceable> is numerically greater than <replaceable>expression2</replaceable>, returns True, otherwise returns False</para></entry>
   </row>
   <row>
-    <entry><para>Integer</para></entry>
+    <entry><para><link linkend="int_type">int</link></para></entry>
     <entry><para>If <replaceable>expression1</replaceable> is numerically greater than <replaceable>expression2</replaceable>, returns True, otherwise returns False</para></entry>
   </row>
   <row>
-    <entry><para>String</para></entry>
+    <entry><para><link linkend="string_type">string</link></para></entry>
     <entry><para>If <replaceable>expression1</replaceable> comes after <replaceable>expression2</replaceable> in string sort order, returns True, otherwise returns False</para></entry>
   </row>
   <row>
-    <entry><para>Date</para></entry>
+    <entry><para><link linkend="date_type">date</link></para></entry>
     <entry><para>If <replaceable>expression1</replaceable> is after <replaceable>expression2</replaceable>, returns True, otherwise returns False</para></entry>
   </row>
 
@@ -2490,6 +2659,10 @@ printf("0x%x\n", $binary[2]);
 	<programlisting><replaceable>expression1</replaceable> == <replaceable>expression2</replaceable></programlisting>
       </listitem>
     </varlistentry>
+     <varlistentry>
+      <term>Return Type</term>
+      <listitem><para><link linkend="bool_type">bool</link></para></listitem>
+    </varlistentry>
 
     <varlistentry>
       <term>Example</term>
@@ -2511,43 +2684,43 @@ printf("0x%x\n", $binary[2]);
 
 <tbody>
   <row>
-    <entry><para>String</para></entry>
+    <entry><para><link linkend="string_type">string</link></para></entry>
     <entry><para>If <replaceable>expression1</replaceable> is equal to <replaceable>expression2</replaceable>, returns True, otherwise False</para></entry>
   </row>
   <row>
-    <entry><para>Float</para></entry>
+    <entry><para><link linkend="float_type">float</link></para></entry>
     <entry><para>If <replaceable>expression1</replaceable> is equal to <replaceable>expression2</replaceable>, returns True, otherwise False</para></entry>
   </row>
   <row>
-    <entry><para>Integer</para></entry>
+    <entry><para><link linkend="int_type">int</link></para></entry>
     <entry><para>If <replaceable>expression1</replaceable> is equal to <replaceable>expression2</replaceable>, returns True, otherwise False</para></entry>
   </row>
   <row>
-    <entry><para>Date</para></entry>
+    <entry><para><link linkend="date_type">date</link></para></entry>
     <entry><para>If <replaceable>expression1</replaceable> is equal to <replaceable>expression2</replaceable>, returns True, otherwise False</para></entry>
   </row>
   <row>
-    <entry><para>List</para></entry>
+    <entry><para><link linkend="list_type">list</link></para></entry>
     <entry><para>If each element in the each list where order is relevant satisfies this operator, the operator returns True, otherwise it returns False</para></entry>
   </row>
   <row>
-    <entry><para>Hash</para></entry>
+    <entry><para><link linkend="hash_type">hash</link></para></entry>
     <entry><para>If each hash has the same keys and the value of each equal key in each hash satisfies this operator, the operator returns True, otherwise it returns False</para></entry>
   </row>
   <row>
-    <entry><para>Binary</para></entry>
+    <entry><para><link linkend="binary_type">binary</link></para></entry>
     <entry><para>If <replaceable>expression1</replaceable>'s memory contents and size are equal to <replaceable>expression2</replaceable>'s, then returns True, otherwise False</para></entry>
   </row>
   <row>
-    <entry><para>Object</para></entry>
+    <entry><para><link linkend="object_type">object</link></para></entry>
     <entry><para>If <replaceable>expression1</replaceable> is a reference to the same object as <replaceable>expression2</replaceable>, then returns True, otherwise False</para></entry>
   </row>
   <row>
-    <entry><para><command>NULL</command></para></entry>
-    <entry><para>If both expressions are <command>NULL</command>, returns True, otherwise returns False</para></entry>
+    <entry><para><command><link linkend="null_type">null</link></command></para></entry>
+    <entry><para>If both expressions are <link linkend="NULL"><command>NULL</command></link>, returns True, otherwise returns False</para></entry>
   </row>
   <row>
-    <entry><para><command>NOTHING</command></para></entry>
+    <entry><para><command><link linkend="nothing_type">nothing</link></command></para></entry>
     <entry><para>If neither expression has a value, returns True, otherwise returns False</para></entry>
   </row>
 
@@ -2574,6 +2747,10 @@ printf("0x%x\n", $binary[2]);
 	<programlisting><replaceable>expression1</replaceable> != <replaceable>expression2</replaceable></programlisting>
       </listitem>
     </varlistentry>
+     <varlistentry>
+      <term>Return Type</term>
+      <listitem><para><link linkend="bool_type">bool</link></para></listitem>
+    </varlistentry>
 
     <varlistentry>
       <term>Example</term>
@@ -2595,43 +2772,43 @@ printf("0x%x\n", $binary[2]);
 
 <tbody>
   <row>
-    <entry><para>String</para></entry>
+    <entry><para><link linkend="string_type">string</link></para></entry>
     <entry><para>If <replaceable>expression1</replaceable> is not equal to <replaceable>expression2</replaceable>, returns True, otherwise returns False</para></entry>
   </row>
   <row>
-    <entry><para>Float</para></entry>
+    <entry><para><link linkend="float_type">float</link></para></entry>
     <entry><para>If <replaceable>expression1</replaceable> is not equal to <replaceable>expression2</replaceable>, returns True, otherwise returns False</para></entry>
   </row>
   <row>
-    <entry><para>Integer</para></entry>
+    <entry><para><link linkend="int_type">int</link></para></entry>
     <entry><para>If <replaceable>expression1</replaceable> is not equal to <replaceable>expression2</replaceable>, returns True, otherwise returns False</para></entry>
   </row>
   <row>
-    <entry><para>Date</para></entry>
+    <entry><para><link linkend="date_type">date</link></para></entry>
     <entry><para>If <replaceable>expression1</replaceable> is not equal to <replaceable>expression2</replaceable>, returns True, otherwise returns False</para></entry>
   </row>
   <row>
-    <entry><para>List</para></entry>
+    <entry><para><link linkend="list_type">list</link></para></entry>
     <entry><para>If any element in the each list compared where order is relevant satisfies this operator, the operator returns True, otherwise it returns False</para></entry>
   </row>
   <row>
-    <entry><para>Hash</para></entry>
+    <entry><para><link linkend="hash_type">hash</link></para></entry>
     <entry><para>If the hashes have different key sets, or the values of any equal key in each hash satisfies this operator, the operator returns True, otherwise it returns False</para></entry>
   </row>
   <row>
-    <entry><para>Binary</para></entry>
+    <entry><para><link linkend="binary_type">binary</link></para></entry>
     <entry><para>If either <replaceable>expression1</replaceable>'s memory contents and size are not equal to <replaceable>expression2</replaceable>'s, returns True, otherwise False.</para></entry>
   </row>
   <row>
-    <entry><para>Object</para></entry>
+    <entry><para><link linkend="object_type">object</link></para></entry>
     <entry><para>If <replaceable>expression1</replaceable> is not a reference to the same object as <replaceable>expression2</replaceable>, then returns True, otherwise False.</para></entry>
   </row>
   <row>
-    <entry><para><command>NULL</command></para></entry>
-    <entry><para>If one expression is <command>NULL</command> and the other not, returns True, otherwise False.</para></entry>
+    <entry><para><link linkend="null_type">null</link></para></entry>
+    <entry><para>If one expression is <link linkend="NULL"><command>NULL</command></link> and the other not, returns True, otherwise False.</para></entry>
   </row>
   <row>
-    <entry><para><command>NOTHING</command></para></entry>
+    <entry><para><link linkend="nothing_type">nothing</link></para></entry>
     <entry><para>If one of the expressions has a value, returns True, otherwise False.</para></entry>
   </row>
 
@@ -2658,6 +2835,10 @@ printf("0x%x\n", $binary[2]);
 	<programlisting><replaceable>expression1</replaceable> &lt;= <replaceable>expression2</replaceable></programlisting>
       </listitem>
     </varlistentry>
+     <varlistentry>
+      <term>Return Type</term>
+      <listitem><para><link linkend="bool_type">bool</link></para></listitem>
+    </varlistentry>
     <varlistentry>
       <term>Example</term>
       <listitem>
@@ -2677,19 +2858,19 @@ printf("0x%x\n", $binary[2]);
     </thead>
     <tbody>
       <row>
-	<entry><para>Float</para></entry>
+	<entry><para><link linkend="float_type">float</link></para></entry>
 	<entry><para>If <replaceable>expression1</replaceable> is numerically less than or equal to <replaceable>expression2</replaceable>, returns True, otherwise returns False</para></entry>
       </row>
       <row>
-	<entry><para>Integer</para></entry>
+	<entry><para><link linkend="int_type">int</link></para></entry>
 	<entry><para>If <replaceable>expression1</replaceable> is numerically less than or equal to <replaceable>expression2</replaceable>, returns True, otherwise returns False</para></entry>
       </row>
       <row>
-	<entry><para>String</para></entry>
+	<entry><para><link linkend="string_type">string</link></para></entry>
 	<entry><para>If <replaceable>expression1</replaceable> comes before in string sort order or is the same as <replaceable>expression2</replaceable>, returns True, otherwise returns False</para></entry>
       </row>
       <row>
-	<entry><para>Date</para></entry>
+	<entry><para><link linkend="date_type">date</link></para></entry>
 	<entry><para>If <replaceable>expression1</replaceable> is before or is the same exact date and time as <replaceable>expression2</replaceable>, returns True, otherwise returns False</para></entry>
       </row>
     </tbody>
@@ -2716,6 +2897,10 @@ printf("0x%x\n", $binary[2]);
 	<programlisting><replaceable>expression1</replaceable> &gt;= <replaceable>expression2</replaceable></programlisting>
       </listitem>
     </varlistentry>
+     <varlistentry>
+      <term>Return Type</term>
+      <listitem><para><link linkend="bool_type">bool</link></para></listitem>
+    </varlistentry>
 
     <varlistentry>
       <term>Example</term>
@@ -2737,19 +2922,19 @@ printf("0x%x\n", $binary[2]);
 
 <tbody>
   <row>
-    <entry><para>Float</para></entry>
+    <entry><para><link linkend="float_type">float</link></para></entry>
     <entry><para>If <replaceable>expression1</replaceable> is numerically greater than or equal to <replaceable>expression2</replaceable>, returns True, otherwise returns False</para></entry>
   </row>
   <row>
-    <entry><para>Integer</para></entry>
+    <entry><para><link linkend="int_type">int</link></para></entry>
     <entry><para>If <replaceable>expression1</replaceable> is numerically greater than or equal to <replaceable>expression2</replaceable>, returns True, otherwise returns False</para></entry>
   </row>
   <row>
-    <entry><para>String</para></entry>
+    <entry><para><link linkend="string_type">string</link></para></entry>
     <entry><para>If <replaceable>expression1</replaceable> comes after in string sort order or is the same as <replaceable>expression2</replaceable>, returns True, otherwise returns False</para></entry>
   </row>
   <row>
-    <entry><para>Date</para></entry>
+    <entry><para><link linkend="date_type">date</link></para></entry>
     <entry><para>If <replaceable>expression1</replaceable> is after or is the same exact date and time as <replaceable>expression2</replaceable>, returns True, otherwise returns False</para></entry>
   </row>
 
@@ -2775,6 +2960,10 @@ printf("0x%x\n", $binary[2]);
       <listitem>
 	<programlisting><replaceable>expression1</replaceable> &lt;=&gt; <replaceable>expression2</replaceable></programlisting>
       </listitem>
+    </varlistentry>
+     <varlistentry>
+      <term>Return Type</term>
+      <listitem><para><link linkend="int_type">int</link></para></listitem>
     </varlistentry>
     <varlistentry>
       <term>Example</term>
@@ -2810,19 +2999,19 @@ printf("0x%x\n", $binary[2]);
 
 <tbody>
   <row>
-    <entry><para>String</para></entry>
+    <entry><para><link linkend="string_type">string</link></para></entry>
     <entry><para>If <replaceable>expression1</replaceable> comes after in string sort order as <replaceable>expression2</replaceable>, returns 1, otherwise if they are equal, returns 0, otherwise if <replaceable>expression1</replaceable> comes before <replaceable>expression2</replaceable>, returns -1</para></entry>
   </row>
   <row>
-    <entry><para>Float</para></entry>
+    <entry><para><link linkend="float_type">float</link></para></entry>
     <entry><para>If <replaceable>expression1</replaceable> is numerically greater than <replaceable>expression2</replaceable>, returns 1, otherwise if they are equal returns 0, otherwise returns -1</para></entry>
   </row>
   <row>
-    <entry><para>Integer</para></entry>
+    <entry><para><link linkend="int_type">int</link></para></entry>
     <entry><para>If <replaceable>expression1</replaceable> is numerically greater than <replaceable>expression2</replaceable>, returns 1, otherwise if they are equal returns 0, otherwise returns -1</para></entry>
   </row>
   <row>
-    <entry><para>Date</para></entry>
+    <entry><para><link linkend="date_type">date</link></para></entry>
     <entry><para>If <replaceable>expression1</replaceable> is after <replaceable>expression2</replaceable>, returns 1, otherwise if they are equal returns 0, otherwise returns -1</para></entry>
   </row>
 
@@ -2848,6 +3037,10 @@ printf("0x%x\n", $binary[2]);
       <listitem>
 	<programlisting><replaceable>expression1</replaceable> === <replaceable>expression2</replaceable></programlisting>
       </listitem>
+    </varlistentry>
+     <varlistentry>
+      <term>Return Type</term>
+      <listitem><para><link linkend="bool_type">bool</link></para></listitem>
     </varlistentry>
     <varlistentry>
       <term>Example</term>
@@ -2894,6 +3087,10 @@ printf("0x%x\n", $binary[2]);
       <listitem>
 	<para><replaceable>expression1</replaceable> !== <replaceable>expression2</replaceable></para>
       </listitem>
+    </varlistentry>
+     <varlistentry>
+      <term>Return Type</term>
+      <listitem><para><link linkend="bool_type">bool</link></para></listitem>
     </varlistentry>
     <varlistentry>
       <term>Example</term>
@@ -2942,6 +3139,10 @@ printf("0x%x\n", $binary[2]);
 	<programlisting><replaceable>expression</replaceable> =~ [m]/<replaceable>regex</replaceable>/[isxm]</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Return Type</term>
+      <listitem><para><link linkend="bool_type">bool</link></para></listitem>
+    </varlistentry>
 
     <varlistentry>
       <term>Example</term>
@@ -2963,7 +3164,7 @@ printf("0x%x\n", $binary[2]);
 
 <tbody>
   <row>
-    <entry><para>String</para></entry>
+    <entry><para><link linkend="string_type">string</link></para></entry>
     <entry><para>This operator returns True if the regular expression in <replaceable>regex</replaceable> matches the string in <replaceable>expression</replaceable>.</para></entry>
   </row>
 
@@ -2990,6 +3191,10 @@ printf("0x%x\n", $binary[2]);
 	<programlisting><replaceable>expression</replaceable> !~ [m]/<replaceable>regex</replaceable>/[isxm]</programlisting>
       </listitem>
     </varlistentry>
+     <varlistentry>
+      <term>Return Type</term>
+      <listitem><para><link linkend="bool_type">bool</link></para></listitem>
+    </varlistentry>
 
     <varlistentry>
       <term>Example</term>
@@ -3011,7 +3216,7 @@ printf("0x%x\n", $binary[2]);
       </thead>
       <tbody>
 	<row>
-	  <entry><para>String</para></entry>
+	  <entry><para><link linkend="string_type">string</link></para></entry>
 	  <entry><para>This operator returns True if the regular expression in <replaceable>regex</replaceable> does not match the string in <replaceable>expression</replaceable>.</para></entry>
 	</row>
       </tbody>
@@ -3037,6 +3242,10 @@ printf("0x%x\n", $binary[2]);
 	<programlisting><replaceable>lvalue</replaceable> =~ s/<replaceable>regex_pattern</replaceable>/<replaceable>target_string</replaceable>/[isxmg]</programlisting>
       </listitem>
     </varlistentry>
+     <varlistentry>
+      <term>Return Type</term>
+      <listitem><para><link linkend="string_type">string</link> or <link linkend="NOTHING">NOTHING</link> if the lvalue does not hold a string.</para></listitem>
+    </varlistentry>
     <varlistentry>
       <term>Example</term>
       <listitem>
@@ -3057,7 +3266,7 @@ printf("0x%x\n", $binary[2]);
 
 <tbody>
   <row>
-    <entry><para>String</para></entry>
+    <entry><para><link linkend="string_type">string</link></para></entry>
     <entry><para>This operator substitutes text in the <replaceable>lvalue</replaceable> string if the regular expression matches.  Subpattern backreferences are supported in the target string, $1=first subpattern, $2=second subpattern, etc..</para></entry>
   </row>
 
@@ -3084,6 +3293,10 @@ printf("0x%x\n", $binary[2]);
 	<programlisting><replaceable>string</replaceable> =~ x/<replaceable>regex_with_patterns</replaceable>/[isxm]</programlisting>
       </listitem>
     </varlistentry>
+     <varlistentry>
+      <term>Return Type</term>
+      <listitem><para><link linkend="list_type">list</link> or <link linkend="NOTHING">NOTHING</link></para></listitem>
+    </varlistentry>
     <varlistentry>
       <term>Example</term>
       <listitem>
@@ -3104,7 +3317,7 @@ printf("0x%x\n", $binary[2]);
 
 <tbody>
   <row>
-    <entry><para>String</para></entry>
+    <entry><para><link linkend="string_type">string</link></para></entry>
     <entry><para>This operator extracts strings from the <replaceable>string</replaceable> based on patterns enclosed in parentheses in the regular expression.</para></entry>
   </row>
 
@@ -3131,6 +3344,10 @@ printf("0x%x\n", $binary[2]);
 	<programlisting><replaceable>lvalue</replaceable> =~ tr/<replaceable>source_chars</replaceable>/<replaceable>target_chars</replaceable>/</programlisting>
       </listitem>
     </varlistentry>
+     <varlistentry>
+      <term>Return Type</term>
+      <listitem><para><link linkend="string_type">string</link> or <link linkend="NOTHING">NOTHING</link> if the lvalue does not hold a string.</para></listitem>
+    </varlistentry>
     <varlistentry>
       <term>Example</term>
       <listitem>
@@ -3150,7 +3367,7 @@ printf("0x%x\n", $binary[2]);
 
 <tbody>
   <row>
-    <entry><para>String</para></entry>
+    <entry><para><link linkend="string_type">string</link></para></entry>
     <entry><para>This operator substitutes characters in the <replaceable>lvalue</replaceable> string.  Note that if there are more characters in the source string than in the target string, then the last character in the target string will be used for any source matches where the source character position is greater than the target string.</para></entry>
   </row>
 
@@ -3177,6 +3394,10 @@ printf("0x%x\n", $binary[2]);
 	<programlisting><replaceable>expression1</replaceable> &amp; <replaceable>expression2</replaceable></programlisting>
       </listitem>
     </varlistentry>
+     <varlistentry>
+      <term>Return Type</term>
+      <listitem><para><link linkend="int_type">int</link></para></listitem>
+    </varlistentry>
 
     <varlistentry>
       <term>Example</term>
@@ -3197,8 +3418,8 @@ printf("0x%x\n", $binary[2]);
 
 <tbody>
   <row>
-    <entry><para>Integer</para></entry>
-    <entry><para>Gives the result of the binary (bitwise) AND operation between <replaceable>expression1</replaceable> and <replaceable>expression2</replaceable> (ex: 0xffb2 &amp; 0xa1 = 0xa1)</para></entry>
+    <entry><para><link linkend="int_type">int</link></para></entry>
+    <entry><para>Gives the result of the binary (bitwise) AND operation between <replaceable>expression1</replaceable> and <replaceable>expression2</replaceable> (ex: 0xffb2 &amp; 0xa1 = 0xa1); operands are convert to integers if necessary.</para></entry>
   </row>
 
 </tbody>
@@ -3225,6 +3446,10 @@ printf("0x%x\n", $binary[2]);
       </listitem>
     </varlistentry>
     <varlistentry>
+      <term>Return Type</term>
+      <listitem><para><link linkend="int_type">int</link></para></listitem>
+    </varlistentry>
+    <varlistentry>
       <term>Example</term>
       <listitem>
 	<programlisting>$a = $x | $y;</programlisting>
@@ -3243,8 +3468,8 @@ printf("0x%x\n", $binary[2]);
       </thead>
       <tbody>
 	<row>
-	  <entry><para>Integer</para></entry>
-	  <entry><para>Gives the result of the binary (bitwise) OR operation between <replaceable>expression1</replaceable> and <replaceable>expression2</replaceable> (ex: 0xb001 | 0xfea = 0xbfeb)</para></entry>
+	  <entry><para><link linkend="int_type">int</link></para></entry>
+	  <entry><para>Gives the result of the binary (bitwise) OR operation between <replaceable>expression1</replaceable> and <replaceable>expression2</replaceable> (ex: 0xb001 | 0xfea = 0xbfeb); operands are convert to integers if necessary.</para></entry>
 	</row>
       </tbody>
     </tgroup>
@@ -3270,6 +3495,10 @@ printf("0x%x\n", $binary[2]);
       </listitem>
     </varlistentry>
     <varlistentry>
+      <term>Return Type</term>
+      <listitem><para><link linkend="int_type">int</link></para></listitem>
+    </varlistentry>
+    <varlistentry>
       <term>Example</term>
       <listitem>
 	<programlisting>$a = $x ^ $y;</programlisting>
@@ -3288,9 +3517,9 @@ printf("0x%x\n", $binary[2]);
 
 <tbody>
   <row>
-    <entry><para>Integer</para></entry>
+    <entry><para><link linkend="int_type">int</link></para></entry>
     <entry><para>Gives the result of the binary (bitwise) EXCLUSIVE OR operation between <replaceable>expression1</replaceable> and <replaceable>expression2</replaceable> (ex: 0xaef1 &amp; 0xfb32 = 
-      0x55c3)</para></entry>
+      0x55c3); operands are convert to integers if necessary.</para></entry>
   </row>
 
 </tbody>
@@ -3307,7 +3536,7 @@ printf("0x%x\n", $binary[2]);
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Checks to see if two expressions are True.</para>
+	<para>Checks to see if two expressions are True with <ulink url="http://en.wikipedia.org/wiki/Short-circuit_evaluation">logical short-circuiting</ulink>.</para>
      </listitem>
     </varlistentry>
     <varlistentry>
@@ -3315,6 +3544,10 @@ printf("0x%x\n", $binary[2]);
       <listitem>
 	<programlisting><replaceable>expression1</replaceable> &amp;&amp; <replaceable>expression2</replaceable></programlisting>
       </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Return Type</term>
+      <listitem><para><link linkend="bool_type">bool</link></para></listitem>
     </varlistentry>
     <varlistentry>
       <term>Example</term>
@@ -3336,7 +3569,7 @@ printf("0x%x\n", $binary[2]);
 
 <tbody>
   <row>
-    <entry><para>Integer</para></entry>
+    <entry><para><link linkend="bool_type">bool</link></para></entry>
     <entry><para>Returns True if both expressions are True, False if otherwise.  Logical short-circuiting is implemented; if <replaceable>expression1</replaceable> is False, then <replaceable>expression2</replaceable> is not evaluated, and the operator returns False.</para></entry>
   </row>
 
@@ -3353,7 +3586,7 @@ printf("0x%x\n", $binary[2]);
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Returns True if either of the arguments are True.</para>
+	<para>Returns True if either of the arguments are True with <ulink url="http://en.wikipedia.org/wiki/Short-circuit_evaluation">logical short-circuiting</ulink>.</para>
      </listitem>
     </varlistentry>
     <varlistentry>
@@ -3361,6 +3594,10 @@ printf("0x%x\n", $binary[2]);
       <listitem>
 	<programlisting><replaceable>expression1</replaceable> || <replaceable>expression2</replaceable></programlisting>
       </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Return Type</term>
+      <listitem><para><link linkend="bool_type">bool</link></para></listitem>
     </varlistentry>
     <varlistentry>
       <term>Example</term>
@@ -3382,7 +3619,7 @@ printf("0x%x\n", $binary[2]);
 
 <tbody>
   <row>
-    <entry><para>Integer</para></entry>
+    <entry><para><link linkend="bool_type">bool</link></para></entry>
     <entry><para>Returns True if either or both expressions evaluate to True, False if otherwise.  Logical short-circuiting is implemented; if <replaceable>expression1</replaceable> is True, then <replaceable>expression2</replaceable> is not evaluated, and the operator returns True.</para></entry>
   </row>
 
@@ -3408,6 +3645,10 @@ printf("0x%x\n", $binary[2]);
       <listitem>
 	<programlisting><replaceable>expression ? if_true_expression : if_false_expression</replaceable></programlisting>
       </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Return Type</term>
+      <listitem><para><link linkend="any_type">any</link></para></listitem>
     </varlistentry>
 
     <varlistentry>
@@ -3457,6 +3698,10 @@ printf("0x%x\n", $binary[2]);
       </listitem>
     </varlistentry>
     <varlistentry>
+      <term>Return Type</term>
+      <listitem><para><link linkend="list_type">list</link></para></listitem>
+    </varlistentry>
+    <varlistentry>
       <term>Example</term>
       <listitem>
 	<programlisting>$a = 1, 2, "three";</programlisting>
@@ -3503,6 +3748,10 @@ printf("0x%x\n", $binary[2]);
 	<programlisting><command>unshift</command> <replaceable>lvalue, expression</replaceable></programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Return Type</term>
+      <listitem><para><link linkend="any_type">any</link></para></listitem>
+    </varlistentry>
 
     <varlistentry>
       <term>Example</term>
@@ -3540,7 +3789,7 @@ printf("0x%x\n", $binary[2]);
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Adds one element to the end of a list.</para>
+	<para>Adds one element to the end of a list and returns the list processed (or <link linkend="NOTHING">NOTHING</link> if the lvalue is not a list).</para>
      </listitem>
     </varlistentry>
     <varlistentry>
@@ -3548,6 +3797,10 @@ printf("0x%x\n", $binary[2]);
       <listitem>
 	<programlisting><command>push</command> <replaceable>lvalue, expression</replaceable></programlisting>
       </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Return Type</term>
+      <listitem><para><link linkend="list_type">list</link> or <link linkend="NOTHING">NOTHING</link> if the value is not a list</para></listitem>
     </varlistentry>
     <varlistentry>
       <term>Example</term>
@@ -3585,7 +3838,7 @@ printf("0x%x\n", $binary[2]);
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Removes and optionally inserts elements in lists and strings.</para>
+	<para>Removes and optionally inserts elements in lists and strings.  For a similar operator that returns the values removed, see the <link linkend="Extract_Operator">extract</link> operator.</para>
      </listitem>
     </varlistentry>
     <varlistentry>
@@ -3593,6 +3846,10 @@ printf("0x%x\n", $binary[2]);
       <listitem>
 	<programlisting><command>splice</command> <replaceable>lvalue, offset_expression, [length_expression, [substitution_expression]]</replaceable></programlisting>
       </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Return Type</term>
+      <listitem><para><link linkend="list_type">list</link> or <link linkend="string_type">string</link></para></listitem>
     </varlistentry>
 
     <varlistentry>
@@ -3619,7 +3876,7 @@ printf("0x%x\n", $binary[2]);
       </thead>
       <tbody>
 	<row>
-	  <entry><para><replaceable>lvalue</replaceable></para></entry>
+	  <entry><para><link linkend="list_type">list</link> or <link linkend="string_type">string</link> <replaceable>lvalue</replaceable></para></entry>
 	  <entry><para>If the lvalue is a list, list elements are processed, otherwise, if it is a string, characters in the string are processed.  For any other data type, no action is taken.</para></entry>
 	</row>
 	<row>
@@ -3639,6 +3896,73 @@ printf("0x%x\n", $binary[2]);
   </table>
 </sect2>
 
+<sect2 id="Extract_Operator">
+  <title>Extract Operator (extract)</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Removes and optionally inserts elements in lists and strings.  For a similar operator that only removes value and does not return any value, see the <link linkend="Splice_Operator">splice</link> operator.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Syntax</term>
+      <listitem>
+	<programlisting><command>extract</command> <replaceable>lvalue, offset_expression, [length_expression, [substitution_expression]]</replaceable></programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Return Type</term>
+      <listitem><para><link linkend="list_type">list</link> or <link linkend="string_type">string</link></para></listitem>
+    </varlistentry>
+
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting><command>my</command> list $sublist = <command>extract</command> $list, 2, 2;</programlisting>
+	<programlisting><command>my</command> string $substring = <command>extract</command> $string, 2, 2, "-text-";</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+
+  <para>Works on either strings or lists in a similar way; removes elements from a list or characters from a string and optionally inserts new ones.  If no <replaceable>length_expression</replaceable> is given, <command>extract</command> removes all elements/characters from the list or string starting at <replaceable>offset_expression</replaceable>) (list and string offsets begin at 0).  Otherwise, a number of elements/characters equal to <replaceable>length_expression</replaceable> is removed (or up to the end of the list/string if applicable).  If <replaceable>substitution_expression</replaceable> is present, then the removed elements/characters are substituted with the elements/string given by this expression.</para>
+
+  <para>When operating on lists, a list is returned of any elements extracted (if no elements are extracted, then an empty list is returned); when operating on strings, a string is extracted of all characters extracted from the string (if no characters are extracted, then an empty string is returned).</para>
+
+  <para>Note that string <command>extract</command> takes character offsets, which may not be the same as byte offsets for multi-byte character encodings, such as UTF-8</para>
+  <table>
+    <title>Arguments Processed By extract</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>Argument</para></entry>
+	  <entry><para>Processing</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><link linkend="list_type">list</link> or <link linkend="string_type">string</link> <replaceable>lvalue</replaceable></para></entry>
+	  <entry><para>If the lvalue is a list, list elements are processed, otherwise, if it is a string, characters in the string are processed.  For any other data type, no action is taken.</para></entry>
+	</row>
+	<row>
+	  <entry><para><replaceable>offset_expression</replaceable></para></entry>
+	  <entry><para>The start element/character position for removing elements/characters from the list or string.</para></entry>
+	</row>
+	<row>
+	  <entry><para><replaceable>length_expression</replaceable></para></entry>
+	  <entry><para>The number of elements/characters to remove.  If this expression is not present, then all elements/characters from the offset to the end of the list/string are removed.  If this expression is present and evaluates to 0, no characters/elements are removed.</para></entry>
+	</row>
+	<row>
+	  <entry><para><replaceable>substitution_expression</replaceable></para></entry>
+	  <entry><para>For list extract, an optional element or list to substitute for the removed elements (to insert a list in a single element's position, make sure that the list to be inserted is the first and only element of another list used as the argument in this position; in other words, pass a list within a single-element list).  For string extract, an optional string to substitute for the removed characters.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+</sect2>
+
 <sect2 id="Assignment_Operator">
   <title>Assignment Operator (=)</title>
 
@@ -3646,7 +3970,7 @@ printf("0x%x\n", $binary[2]);
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Assigns a value to an lvalue.</para>
+	<para>Assigns a value to an lvalue and returns the value assigned.</para>
      </listitem>
     </varlistentry>
     <varlistentry>
@@ -3654,6 +3978,10 @@ printf("0x%x\n", $binary[2]);
       <listitem>
 	<programlisting><replaceable>lvalue</replaceable> = <replaceable>expression</replaceable></programlisting>
       </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Return Type</term>
+      <listitem><para><link linkend="any_type">any</link></para></listitem>
     </varlistentry>
     <varlistentry>
       <term>Example</term>
@@ -3698,9 +4026,19 @@ printf("0x%x\n", $binary[2]);
       </listitem>
     </varlistentry>
     <varlistentry>
+      <term>Return Type</term>
+      <listitem><para><link linkend="int_type">int</link>, <link linkend="float_type">float</link>, <link linkend="date_type">date</link>, <link linkend="list_type">list</link>, <link linkend="string_type">string</link>, <link linkend="binary_type">binary</link>, <link linkend="hash_type">hash</link>, or <link linkend="object_type">object</link></para></listitem>
+    </varlistentry>
+    <varlistentry>
       <term>Example</term>
       <listitem>
 	<programlisting>$a += 10;</programlisting>
+	<programlisting>$date += P1M2DT45M;</programlisting>
+	<programlisting>$list += $new_element;</programlisting>
+	<programlisting>$string += ".foo";</programlisting>
+	<programlisting>$binary += &lt;0c67a374&gt;</programlisting>
+	<programlisting>$hash += ("new-key" : 1, "other" : "two");</programlisting>
+	<programlisting>$object += $hash;</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -3715,27 +4053,31 @@ printf("0x%x\n", $binary[2]);
     </thead>
     <tbody>
       <row>
-	<entry><para><replaceable>lvalue</replaceable>: List</para></entry>
+	<entry><para><link linkend="list_type">list</link> <replaceable>lvalue</replaceable></para></entry>
 	<entry><para>the expression will be evaluated and concatenated to the lvalue.  If expression is a list, the lists will be concatenated, to ensure adding a single element to a list, use the push operator (see <link linkend='Push_Operator'>Push Operator</link>).</para></entry>
       </row>
       <row>
-	<entry><para><replaceable>lvalue</replaceable>: Hash</para></entry>
+	<entry><para><link linkend="hash_type">hash</link> or <link linkend="object_type">object</link> <replaceable>lvalue</replaceable></para></entry>
 	<entry><para>the expression will be evaluated, and, if it is a hash or object, then it's members will be added to the lvalue, any duplicate elements in the lvalue will be overridden by elements in the expression.</para></entry>
       </row>
       <row>
-	<entry><para><replaceable>lvalue</replaceable>: String</para></entry>
+	<entry><para><link linkend="string_type">string</link> <replaceable>lvalue</replaceable></para></entry>
 	<entry><para>the expression will be evaluated and converted to a string if necessary and concatenated to the lvalue.</para></entry>
       </row>
       <row>
-	<entry><para><replaceable>lvalue</replaceable>: Float</para></entry>
+	<entry><para><link linkend="float_type">float</link> <replaceable>lvalue</replaceable></para></entry>
 	<entry><para>the expression will be evaluated and converted to a float if necessary and added to the lvalue.</para></entry>
       </row>
       <row>
-	<entry><para><replaceable>lvalue</replaceable>: Binary</para></entry>
-	<entry><para>the expression will be evaluated and converted to a string if necessary and added to the lvalue.</para></entry>
+	<entry><para><link linkend="binary_type">binary</link> <replaceable>lvalue</replaceable></para></entry>
+	<entry><para>the expression will be evaluated and converted to a binary if necessary and added to the lvalue.</para></entry>
       </row>
       <row>
-	<entry><para><replaceable>lvalue</replaceable>: NOTHING</para></entry>
+	<entry><para><link linkend="date_type">date</link> <replaceable>lvalue</replaceable></para></entry>
+	<entry><para>the expression will be evaluated and converted to a date if necessary and added to the lvalue.</para></entry>
+      </row>
+      <row>
+	<entry><para><link linkend="nothing_type">nothing</link> <replaceable>lvalue</replaceable></para></entry>
 	<entry><para>the lvalue will be assigned to the value of <replaceable>expression</replaceable>.</para></entry>
       </row>
       <row>
@@ -3763,11 +4105,20 @@ printf("0x%x\n", $binary[2]);
 	<programlisting><replaceable>lvalue</replaceable> -= <replaceable>expression</replaceable></programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Return Type</term>
+      <listitem><para><link linkend="int_type">int</link>, <link linkend="float_type">float</link>, <link linkend="date_type">date</link>, <link linkend="hash_type">hash</link>, or <link linkend="object_type">object</link></para></listitem>
+    </varlistentry>
 
     <varlistentry>
       <term>Example</term>
       <listitem>
 	<programlisting>$a -= 10;</programlisting>
+	<programlisting>$date -= PT45H213S;</programlisting>
+	<programlisting>$hash -= "key";</programlisting>
+	<programlisting>$hash -= ("key1", "key2");</programlisting>
+	<programlisting>$object -= "key";</programlisting>
+	<programlisting>$object -= $list_of_keys;</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -3781,20 +4132,28 @@ printf("0x%x\n", $binary[2]);
     </thead>
     <tbody>
       <row>
-	<entry><para><replaceable>lvalue</replaceable>: Float</para></entry>
+	<entry><para><link linkend="float_type">float</link> <replaceable>lvalue</replaceable></para></entry>
 	<entry><para>the expression will be evaluated and converted to a float if necessary and subtracted from the lvalue</para></entry>
       </row>
       <row>
-	<entry><para><replaceable>lvalue</replaceable>: Hash, <replaceable>expression</replaceable>: String</para></entry>
+	<entry><para><link linkend="date_type">date</link> <replaceable>lvalue</replaceable></para></entry>
+	<entry><para>the expression will be evaluated and converted to a date if necessary and subtracted from the lvalue</para></entry>
+      </row>
+      <row>
+	<entry><para><link linkend="hash_type">hash</link> or <link linkend="object_type">object</link> <replaceable>lvalue</replaceable>, <link linkend="string_type">string</link> <replaceable>expression</replaceable></para></entry>
 	<entry><para>the hash key represented by <replaceable>expression</replaceable> will be removed from the lvalue</para></entry>
       </row>
       <row>
-	<entry><para><replaceable>lvalue</replaceable>: NOTHING, <replaceable>expression</replaceable>: Float</para></entry>
-	<entry><para>the lvalue will be assigned to -<replaceable>expression</replaceable></para></entry>
+	<entry><para><link linkend="hash_type">hash</link> or <link linkend="object_type">object</link> <replaceable>lvalue</replaceable>, <link linkend="list_type">list</link> <replaceable>expression</replaceable></para></entry>
+	<entry><para>each element in the list will be converted to a string (if necessary) and the key represented by each string will be removed from the hash</para></entry>
       </row>
       <row>
-	<entry><para><replaceable>lvalue</replaceable>: all others</para></entry>
-	<entry><para>the lvalue's type will be converted to an integer, and the expression will be evaluated and converted to an integer if necessary, and then the result will be subtracted from the lvalue</para></entry>
+	<entry><para><link linkend="nothing_type">nothing</link> <replaceable>lvalue</replaceable>, <link linkend="any_type">any</link> <replaceable>expression</replaceable></para></entry>
+	<entry><para>the lvalue will be assigned to <replaceable>expression</replaceable></para></entry>
+      </row>
+      <row>
+	<entry><para><replaceable>lvalue</replaceable>: all other types</para></entry>
+	<entry><para>the lvalue's type will be converted to an integer (if necessary), and the expression will be evaluated and converted to an integer (if necessary), and then the result will be subtracted from the lvalue</para></entry>
       </row>
     </tbody>
   </tgroup>
@@ -3808,7 +4167,7 @@ printf("0x%x\n", $binary[2]);
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Performs a bitwise (binary) AND operation on an lvalue using the value of an expression.</para>
+	<para>Performs a bitwise (binary) AND operation on an lvalue using the value of an expression and returns the new value.</para>
      </listitem>
     </varlistentry>
     <varlistentry>
@@ -3816,6 +4175,10 @@ printf("0x%x\n", $binary[2]);
       <listitem>
 	<programlisting><replaceable>lvalue</replaceable> &amp;= <replaceable>expression</replaceable></programlisting>
       </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Return Type</term>
+      <listitem><para><link linkend="int_type">int</link></para></listitem>
     </varlistentry>
     <varlistentry>
       <term>Example</term>
@@ -3850,7 +4213,7 @@ printf("0x%x\n", $binary[2]);
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Performs a bitwise (binary) OR operation on an lvalue using the value of an expression.</para>
+	<para>Performs a bitwise (binary) OR operation on an lvalue using the value of an expression and returns the new value.</para>
      </listitem>
     </varlistentry>
     <varlistentry>
@@ -3858,6 +4221,10 @@ printf("0x%x\n", $binary[2]);
       <listitem>
 	<programlisting><replaceable>lvalue</replaceable> |= <replaceable>expression</replaceable></programlisting>
       </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Return Type</term>
+      <listitem><para><link linkend="int_type">int</link></para></listitem>
     </varlistentry>
     <varlistentry>
       <term>Example</term>
@@ -3891,7 +4258,7 @@ printf("0x%x\n", $binary[2]);
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Performs a modula calculation on an lvalue using the value of an expression.</para>
+	<para>Performs a modula calculation on an lvalue using the value of an expression and returns the new value.</para>
      </listitem>
     </varlistentry>
     <varlistentry>
@@ -3899,6 +4266,10 @@ printf("0x%x\n", $binary[2]);
       <listitem>
 	<programlisting><replaceable>lvalue</replaceable> %= <replaceable>expression</replaceable></programlisting>
       </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Return Type</term>
+      <listitem><para><link linkend="int_type">int</link></para></listitem>
     </varlistentry>
     <varlistentry>
       <term>Example</term>
@@ -3932,7 +4303,7 @@ printf("0x%x\n", $binary[2]);
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Performs a multiplication operation on an lvalue using the value of an expression.</para>
+	<para>Performs a multiplication operation on an lvalue using the value of an expression and returns the value assigned.</para>
      </listitem>
     </varlistentry>
     <varlistentry>
@@ -3940,6 +4311,10 @@ printf("0x%x\n", $binary[2]);
       <listitem>
 	<programlisting><replaceable>lvalue</replaceable> *= <replaceable>expression</replaceable></programlisting>
       </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Return Type</term>
+      <listitem><para><link linkend="int_type">int</link> or <link linkend="float_type">float</link></para></listitem>
     </varlistentry>
     <varlistentry>
       <term>Example</term>
@@ -3973,7 +4348,7 @@ printf("0x%x\n", $binary[2]);
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Performs a division operation on an lvalue using the value of an expression.</para>
+	<para>Performs a division operation on an lvalue using the value of an expression and returns the value assigned.</para>
      </listitem>
     </varlistentry>
     <varlistentry>
@@ -3981,6 +4356,10 @@ printf("0x%x\n", $binary[2]);
       <listitem>
 	<programlisting><replaceable>lvalue</replaceable> /= <replaceable>expression</replaceable></programlisting>
       </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Return Type</term>
+      <listitem><para><link linkend="int_type">int</link> or <link linkend="float_type">float</link></para></listitem>
     </varlistentry>
     <varlistentry>
       <term>Example</term>
@@ -4042,6 +4421,10 @@ printf("0x%x\n", $binary[2]);
       </listitem>
     </varlistentry>
     <varlistentry>
+      <term>Return Type</term>
+      <listitem><para><link linkend="int_type">int</link></para></listitem>
+    </varlistentry>
+    <varlistentry>
       <term>Example</term>
       <listitem>
 	<programlisting>$a ^= 0xf9034ba7;</programlisting>
@@ -4073,7 +4456,7 @@ printf("0x%x\n", $binary[2]);
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Performs a shift-left operation on an lvalue using the value of an expression.</para>
+	<para>Performs a shift-left operation on an lvalue using the value of an expression and returns the value assigned.</para>
      </listitem>
     </varlistentry>
     <varlistentry>
@@ -4081,6 +4464,10 @@ printf("0x%x\n", $binary[2]);
       <listitem>
 	<programlisting><replaceable>lvalue</replaceable> &lt;&lt;= <replaceable>expression</replaceable></programlisting>
       </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Return Type</term>
+      <listitem><para><link linkend="int_type">int</link></para></listitem>
     </varlistentry>
     <varlistentry>
       <term>Example</term>
@@ -4114,7 +4501,7 @@ printf("0x%x\n", $binary[2]);
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Performs a shift-right operation on an lvalue using the value of an expression.</para>
+	<para>Performs a shift-right operation on an lvalue using the value of an expression and returns the value assigned.</para>
      </listitem>
     </varlistentry>
     <varlistentry>
@@ -4122,6 +4509,10 @@ printf("0x%x\n", $binary[2]);
       <listitem>
 	<programlisting><replaceable>lvalue</replaceable> &gt;&gt;= <replaceable>expression</replaceable></programlisting>
       </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Return Type</term>
+      <listitem><para><link linkend="int_type">int</link></para></listitem>
     </varlistentry>
     <varlistentry>
       <term>Example</term>

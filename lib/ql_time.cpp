@@ -128,7 +128,7 @@ static AbstractQoreNode *f_timegm(const QoreListNode *params, ExceptionSink *xsi
 
 static AbstractQoreNode *f_get_epoch_seconds(const QoreListNode *params, ExceptionSink *xsink) {
    const DateTimeNode *p0 = HARD_QORE_DATE(params, 0);
-   return new QoreBigIntNode(p0->getEpochSeconds());
+   return new QoreBigIntNode(p0->getEpochSecondsUTC());
 }
 
 static AbstractQoreNode *f_years(const QoreListNode *params, ExceptionSink *xsink) {

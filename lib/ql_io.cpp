@@ -108,5 +108,5 @@ void init_io_functions() {
    builtinFunctions.add2("vsprintf", f_string_noop, QC_NOOP, QDOM_TERMINAL_IO, stringTypeInfo);
    builtinFunctions.add2("vsprintf", f_vsprintf, QC_NO_FLAGS, QDOM_TERMINAL_IO, stringTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, anyTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("flush", f_flush, QC_NO_FLAGS, QDOM_TERMINAL_IO);
+   builtinFunctions.add2("flush", f_flush, QC_NO_FLAGS, QDOM_TERMINAL_IO, nothingTypeInfo);
 }

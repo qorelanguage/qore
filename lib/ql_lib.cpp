@@ -677,7 +677,7 @@ void init_lib_functions() {
 
    builtinFunctions.add2("mkfifo",      f_mkfifo, QC_NO_FLAGS, QDOM_FILESYSTEM, bigIntTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, new QoreBigIntNode(0600));
 
-   builtinFunctions.add2("exec",        f_noop, QC_NOOP, QDOM_EXTERNAL_PROCESS | QDOM_PROCESS);
+   builtinFunctions.add2("exec",        f_noop, QC_NOOP, QDOM_EXTERNAL_PROCESS | QDOM_PROCESS, nothingTypeInfo);
    builtinFunctions.add2("exec",        f_exec, QC_NO_FLAGS, QDOM_EXTERNAL_PROCESS | QDOM_PROCESS, nothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add2("setuid",      f_setuid, QC_NO_FLAGS, QDOM_PROCESS, bigIntTypeInfo, 1, softBigIntTypeInfo);
@@ -706,8 +706,8 @@ void init_lib_functions() {
    // getcwd2 throws an exception if an error occurs
    builtinFunctions.add2("getcwd2",     f_getcwd2, QC_NO_FLAGS, QDOM_FILESYSTEM | QDOM_EXTERNAL_INFO, stringTypeInfo);
 
-   builtinFunctions.add2("chown",       f_chown, QC_NO_FLAGS, QDOM_FILESYSTEM, bigIntTypeInfo, 3, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, zero(), softBigIntTypeInfo, zero());
-   builtinFunctions.add2("lchown",      f_lchown, QC_NO_FLAGS, QDOM_FILESYSTEM, bigIntTypeInfo, 3, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, zero(), softBigIntTypeInfo, zero());
+   builtinFunctions.add2("chown",       f_chown, QC_NO_FLAGS, QDOM_FILESYSTEM, bigIntTypeInfo, 3, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, new QoreBigIntNode(-1), softBigIntTypeInfo, new QoreBigIntNode(-1));
+   builtinFunctions.add2("lchown",      f_lchown, QC_NO_FLAGS, QDOM_FILESYSTEM, bigIntTypeInfo, 3, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, new QoreBigIntNode(-1), softBigIntTypeInfo, new QoreBigIntNode(-1));
 
    builtinFunctions.add2("readlink",    f_readlink, QC_NO_FLAGS, QDOM_FILESYSTEM, stringTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 

@@ -328,7 +328,7 @@
 	    <entry><para><code>$argv</code></para></entry>
 	    <entry><para>Local</para></entry>
 	    <entry><para>List</para></entry>
-	    <entry><para>automatically assigned local variable containing the list of subroutine or method arguments that were not assigned to parameter variables (see <link linkend='Subroutines'>Subroutines</link> for more information)</para></entry>
+	    <entry><para>automatically assigned local variable containing the list of subroutine or method arguments that were not assigned to parameter variables (see <link linkend='Subroutines'>Subroutines</link> and <link linkend="Implicit_Arguments">Implicit Arguments</link> for supporting related information)</para></entry>
 	  </row>
 	  <row id="ARGV">
 	    <entry><para><code>$ARGV</code></para></entry>
@@ -352,12 +352,16 @@
       </tgroup>
     </table>
 
-    <note><para><code>$STDERR</code> and <code>$STDOUT</code> have been removed from Qore.  Use the <link linkend="Qore_IO_Constants">I/O constants</link> <command>stderr</command>, <command>stdout</command>, and <command>stdin</command> constants of the <link linkend='File_Class'>File Class</link> instead.</para></note>
+    <note><para>As of version 0.5.0, <code>$STDERR</code> and <code>$STDOUT</code> have been removed from Qore.  Use the <link linkend="Qore_IO_Constants">I/O constants</link> <command>stderr</command>, <command>stdout</command>, and <command>stdin</command> constants of the <link linkend='File_Class'>File Class</link> instead.</para></note>
 
-<sect2 id="Lexical_Scope">
-<title>Lexical Scope</title>
+<sect2 id="Variable_Declarations_And_Lexical_Scope">
+<title>Variable Declarations and Lexical Scope</title>
 
 <para>Variables not in a parameter list automatically have global scope unless the first reference is prefixed with <command>my</command>.  Variable names in a parameter list are always local to their associated subroutine, method, or catch block. Global variables can be explicitly declared with <command>our</command>.  The <command>our</command> keyword is required if the parse option <link linkend="require-our"><code>PO_REQUIRE_OUR</code></link> (<code>-O</code> or <code>--require-our</code> command-line option) is set for the parent program.  See the section on <link linkend="Parse_Options">Parse Options</link> for more information.</para>
+
+<para>Variables may be assigned any value unless restricted with a <link linkend="Data_Type_Declarations">type declaration</link>.  If no type declaration is given, then the variable is assumed to be type <link linkend="any_type">any</link>.  Note that type declarations are required for all variables (and for function and method parameters and class members) when the <link linkend="require-types"><code>PO_REQUIRE_TYPES</code></link> parse option is set.</para>
+
+<para>Note that variable types can only be declared when the <command>my</command> or <command>our</command> keywords are used; it is a syntax error to declare a variable's type without declaring its scope at the same time with one of these keywords.</para>
 
 <para>Local variables are not shared between threads (local variables have a distinct value in each thread), however global variables are.  See <link linkend='Threading'>Threading</link> (and in particular <link linkend="Threading_And_Variables">Threading and Variables</link>) for more information.</para>
 
@@ -367,12 +371,12 @@
 #
 # variable scoping example
 
-<command>our</command> $a = 1;        # this is a global variable
-<command>our</command> ($b, $c, $d);  # list of global variables
+<command>our</command> int $a = 1;                    # this is a global variable
+<command>our</command> (string $b, any $c, hash $d);  # list of global variables
 
 <command>if</command> ($a == 1) {
-    <command>my</command> $a = 2; 
-    <command>my</command> ($b, $c);
+    <command>my</command> int $a = 2; 
+    <command>my</command> (string $b, any $c);
     # $a, $b, and $c are local variables, 
     # the use of which will not affect the 
     # global variables of the same name
@@ -436,7 +440,7 @@ print("global a = %d\n", $a); </programlisting>
   </row>
   <row>
     <entry><para><link linkend="Date">Date</link></para></entry>
-    <entry><para>A date with an optional time component, with resolution to the microsecond; absolute date/time values also have a time zone associated with them.</para></entry>
+    <entry><para>A date/time value with an optional time zone component, with resolution to the microsecond.</para></entry>
     <entry><code>2010-05-10T18:35:21.001456-07:00</code></entry>
     <entry><para>1970-01-01Z</para></entry>
   </row>
@@ -689,7 +693,8 @@ qore -X 'P0000-00-03T21:00:00'
 <sect2 id="NOTHING">
   <title>NOTHING</title>
   <para>This special data type represents no value.</para>
-  <note><para>The <link linkend="Exists_Operator"><command>exists</command></link> operator will return False when given <command>NOTHING</command> as an argument.</para></note>
+  <note><para>The <link linkend="Exists_Operator"><command>exists</command></link> operator will return False when given <command>NOTHING</command> as an argument; for example:</para><programlisting>qore -X 'exists NOTHING'
+False</programlisting></note>
 </sect2>
 
 <sect2 id="Conversions">
@@ -698,9 +703,9 @@ qore -X 'P0000-00-03T21:00:00'
 
   <para>The special types <command>NULL</command> and <command>NOTHING</command> are not equivalent and cannot be converted to or from any other type.</para>
 
-  <para>When date types are converted from strings, any of the following formats can be used: "YYYYMMDDHHmmSS[.us][Z|+-HH[:MM[:SS]]]", "YYYY-MM-DD HH:mm:SS.us", "YYYY-MM-DDTHH:mm:SS", "YYYY-MM-DDTHH:mm:SS[.us][Z|+-HH[:MM[:SS]]]", and most reasonable combinations thereof.  If the time zone component is missing, then the local time zone will be assumed (see <link linkend="Time_Zones">Time Zones</link>).</para>
+  <para>When date types are converted from strings, any of the following formats can be used: <code>"YYYYMMDDHHmmSS[.us][Z|+-HH[:MM[:SS]]]", "YYYY-MM-DD HH:mm:SS.us", "YYYY-MM-DDTHH:mm:SS", "YYYY-MM-DDTHH:mm:SS[.us][Z|+-HH[:MM[:SS]]]"</code>, and most reasonable combinations thereof.  If the time zone component is missing, then the local time zone will be assumed (see <link linkend="Time_Zones">Time Zones</link>).</para>
 
-  <para>When dates are converted to and from integer values, the a 64-bit second offset from January 1, 1970 is used for the conversion.  For example <code>int(2006-01-01)</code> gives <code>1136073600</code>.</para>
+  <para>When dates are converted to and from integer values, the a 64-bit second offset from January 1, 1970 in the local time zone is used for the conversion.  For example <code>int(2006-01-01)</code> gives <code>1136073600</code> (regardless of the local time zone the date is in).  To get the second offset of a date from 1970-01-01Z (i.e. the true epoch offset), call <link linkend="get_epoch_offset">get_epoch_offset()</link> instead.</para>
 
   <para>When an expression requires a certain data type and the source data type cannot be converted to the desired data type, the default value for the desired data type will be used.  The default values are given <link linkend="Basic_Data_Types">here</link>.</para>
 </sect2>
@@ -725,7 +730,7 @@ qore -X 'P0000-00-03T21:00:00'
 
     <para>Here is a concrete example:</para>
 
-    <programlisting>$list = (1, 2, "three", 4.0, 5, 6, 2001-01-15Z);</programlisting>
+    <programlisting><command>my</command> list $list = (1, 2, "three", 4.0, 5, 6, 2001-01-15Z);</programlisting>
 
     <note>
       <para>Note that trailing commas can be left on the end of a list (or a hash, for that matter).  This makes it easier to comment-out the last element of a multi-line list without having to worry about removing the trailing comma.</para>
@@ -753,8 +758,8 @@ qore -X 'P0000-00-03T21:00:00'
 
     <para>Here is a concrete example:</para>
 
-    <programlisting>$hash = ( "apple" : 1 + 1,
-          "pear"  : "good" );</programlisting>
+    <programlisting><command>my</command> hash $hash = ( "apple" : 1 + 1,
+                  "pear"  : "good" );</programlisting>
 
     <para>Hashes are dereferenced in one of two ways, either using curly brackets: "{" and "}", where any valid Qore expression can be used, or using the dot "." hash member dereferencing operator, where literal strings can be used.</para>
 
@@ -832,6 +837,182 @@ qore -X 'P0000-00-03T21:00:00'
   </sect2>
 </sect1>
 
+<sect1 id="Data_Type_Declarations">
+  <title>Data Type Declarations</title>
+  
+  <para>Starting in Qore 0.8.0, it is possible to restrict variables, class members, and function and method parameters to certain data types.  This allows programmers to write safer code, as many more errors can be caught at parse time that would otherwise be caught at run time.  Furthermore, providing type information to the parser allows Qore to implement performance optimizations by performing lookups and resolutions once at parse time rather than every time a variable or class member is accessed at run time.</para>
+
+  <para>When types are declared in a parameter list, functions and methods can be <link linkend="Overloading">overloaded</link> as well.</para>
+
+  <para>The types in the following table can be used:</para>
+
+    <table id="Data_Type_Declaration_Names">
+      <title>Data Type Declaration Names</title>
+      <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<thead>
+	  <row>
+	    <entry><para>Name</para></entry>
+	    <entry><para>Accepts Qore Type(s)</para></entry>
+	    <entry><para>Returns Qore Type(s)</para></entry>
+	    <entry><para>Description</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+          <row id="int_type">
+            <entry><para><code>int</code></para></entry>
+            <entry><para><link linkend="Integer">Integer</link></para></entry>
+            <entry><para><link linkend="Integer">Integer</link></para></entry>
+            <entry><para>Restricts values to Qore's <link linkend="Integer">Integer</link> type.</para></entry>
+          </row>
+          <row id="float_type">
+            <entry><para><code>float</code></para></entry>
+            <entry><para><link linkend="Float">Float</link></para></entry>
+            <entry><para><link linkend="Float">Float</link></para></entry>
+            <entry><para>Restricts values to Qore's <link linkend="Float">Float</link> type.</para></entry>
+          </row>
+          <row id="bool_type">
+            <entry><para><code>bool</code></para></entry>
+            <entry><para><link linkend="Boolean">Boolean</link></para></entry>
+            <entry><para><link linkend="Boolean">Boolean</link></para></entry>
+            <entry><para>Restricts values to Qore's <link linkend="Boolean">Boolean</link> type.</para></entry>
+          </row>
+          <row id="string_type">
+            <entry><para><code>string</code></para></entry>
+            <entry><para><link linkend="String">String</link></para></entry>
+            <entry><para><link linkend="String">String</link></para></entry>
+            <entry><para>Restricts values to Qore's <link linkend="String">String</link> type.</para></entry>
+          </row>
+          <row id="date_type">
+            <entry><para><code>date</code></para></entry>
+            <entry><para><link linkend="Date">Date</link></para></entry>
+            <entry><para><link linkend="Date">Date</link></para></entry>
+            <entry><para>Restricts values to Qore's <link linkend="Date">Date</link> type; values may be either absolute or relative date/time values.</para></entry>
+          </row>
+          <row id="binary_type">
+            <entry><para><code>binary</code></para></entry>
+            <entry><para><link linkend="Binary">Binary</link></para></entry>
+            <entry><para><link linkend="Binary">Binary</link></para></entry>
+            <entry><para>Restricts values to Qore's <link linkend="Binary">Binary</link> type.</para></entry>
+          </row>
+          <row id="hash_type">
+            <entry><para><code>hash</code></para></entry>
+            <entry><para><link linkend="Hashes">Hash</link></para></entry>
+            <entry><para><link linkend="Hashes">Hash</link></para></entry>
+            <entry><para>Restricts values to Qore's <link linkend="Hashes">Hash</link> type.</para></entry>
+          </row>
+          <row id="list_type">
+            <entry><para><code>list</code></para></entry>
+            <entry><para><link linkend="Lists">List</link></para></entry>
+            <entry><para><link linkend="Lists">List</link></para></entry>
+            <entry><para>Restricts values to Qore's <link linkend="Lists">List</link> type.</para></entry>
+          </row>
+          <row id="object_type">
+            <entry><para><code>object</code></para></entry>
+            <entry><para><link linkend="Objects">Object</link></para></entry>
+            <entry><para><link linkend="Objects">Object</link></para></entry>
+            <entry><para>Restricts values to Qore's <link linkend="Objects">Object</link> type.</para></entry>
+          </row>
+          <row id="class_type">
+            <entry><para><replaceable>&lt;classname&gt;</replaceable></para></entry>
+            <entry><para><link linkend="Objects">Object</link></para></entry>
+            <entry><para><link linkend="Objects">Object</link></para></entry>
+            <entry><para>Restricts values to objects of the specific class given; either the class name can be given (ex: <code>Mutex</code> or a qualified path to the class: <code>Qore::Mutex</code>).</para></entry>
+          </row>
+          <row id="null_type">
+            <entry><para><code>null</code></para></entry>
+            <entry><para><link linkend="NULL">NULL</link></para></entry>
+            <entry><para><link linkend="NULL">NULL</link></para></entry>
+            <entry><para>Restricts values to Qore's <link linkend="NULL">NULL</link> type; this type has few (if any) practical applications and has been included for completeness' sake.</para></entry>
+          </row>
+          <row id="nothing_type">
+            <entry><para><code>nothing</code></para></entry>
+            <entry><para><link linkend="NOTHING">NOTHING</link></para></entry>
+            <entry><para><link linkend="NOTHING">NOTHING</link></para></entry>
+            <entry><para>Restricts values to Qore's <link linkend="NOTHING">NOTHING</link> type; this type is mostly useful for declaring that a function or method returns no value.</para></entry>
+          </row>
+          <row id="softint_type">
+            <entry><para><code>softint</code></para></entry>
+            <entry><para><link linkend="Integer">Integer</link>, <link linkend="Float">Float</link>, <link linkend="Boolean">Boolean</link>, <link linkend="String">String</link></para></entry>
+            <entry><para><link linkend="Integer">Integer</link></para></entry>
+            <entry><para>Accepts <link linkend="Integer">Integer</link>, <link linkend="Float">Float</link>, <link linkend="Boolean">Boolean</link>, <link linkend="String">String</link> and converts non-integer values to an integer and returns the integer.</para></entry>
+          </row>
+          <row id="softfloat_type">
+            <entry><para><code>softfloat</code></para></entry>
+            <entry><para><link linkend="Integer">Integer</link>, <link linkend="Float">Float</link>, <link linkend="Boolean">Boolean</link>, <link linkend="String">String</link></para></entry>
+            <entry><para><link linkend="Float">Float</link></para></entry>
+            <entry><para>Accepts <link linkend="Integer">Integer</link>, <link linkend="Float">Float</link>, <link linkend="Boolean">Boolean</link>, <link linkend="String">String</link> and converts non-float values to a float and returns the new value.</para></entry>
+          </row>
+          <row id="softbool_type">
+            <entry><para><code>softbool</code></para></entry>
+            <entry><para><link linkend="Integer">Integer</link>, <link linkend="Float">Float</link>, <link linkend="Boolean">Boolean</link>, <link linkend="String">String</link></para></entry>
+            <entry><para><link linkend="Boolean">Boolean</link></para></entry>
+            <entry><para>Accepts <link linkend="Integer">Integer</link>, <link linkend="Float">Float</link>, <link linkend="Boolean">Boolean</link>, <link linkend="String">String</link> and converts non-boolean values to a boolean and returns the new value.</para></entry>
+          </row>
+          <row id="softstring_type">
+            <entry><para><code>softstring</code></para></entry>
+            <entry><para><link linkend="Integer">Integer</link>, <link linkend="Float">Float</link>, <link linkend="Boolean">Boolean</link>, <link linkend="String">String</link></para></entry>
+            <entry><para><link linkend="String">String</link></para></entry>
+            <entry><para>Accepts <link linkend="Integer">Integer</link>, <link linkend="Float">Float</link>, <link linkend="Boolean">Boolean</link>, <link linkend="String">String</link> and converts non-string values to a string and returns the new value.</para></entry>
+          </row>
+          <row id="any_type">
+            <entry><para><code>any</code></para></entry>
+            <entry><para>any</para></entry>
+            <entry><para>same as received</para></entry>
+            <entry><para>Provides no restrictions on the type of value it receives and returns the same value.</para></entry>
+          </row>
+          <row id="code_type">
+            <entry><para><code>code</code></para></entry>
+            <entry><para><link linkend="closures">Closure</link>, <link linkend="call_references">Call Reference</link></para></entry>
+            <entry><para>same as received</para></entry>
+            <entry><para>Restricts values to <link linkend="closures">closures</link> and <link linkend="call_references">call references</link>.</para></entry>
+          </row>
+          <row id="reference_type">
+            <entry><para><code>reference</code></para></entry>
+            <entry><para>reference to an lvalue</para></entry>
+            <entry><para>same as received</para></entry>
+            <entry><para>Restricts values to references to lvalues; currently only usable in function or method parameters.</para></entry>
+          </row>
+          <row id="closure_type">
+            <entry><para><code>closure</code></para></entry>
+            <entry><para><link linkend="closures">Closure</link>, <link linkend="call_references">Call Reference</link></para></entry>
+            <entry><para>same as received</para></entry>
+            <entry><para>Does not restrict value to just <link linkend="closures">closures</link>, but rather also allows <link linkend="call_references">call references</link>.  Synonym for <link linkend="code_type"><code>code</code></link>.</para></entry>
+          </row>
+          <row id="callref_type">
+            <entry><para><code>callref</code></para></entry>
+            <entry><para><link linkend="closures">Closure</link>, <link linkend="call_references">Call Reference</link></para></entry>
+            <entry><para>same as received</para></entry>
+            <entry><para>Does not restrict value to just <link linkend="call_references">call references</link>, but rather also allows <link linkend="closures">closures</link>.  Synonym for <link linkend="code_type"><code>code</code></link>.</para></entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+
+  <para>Complex types (hash of lists, reference to string, etc) are currently not possible to declare.</para>
+
+  <sect2 id="Overloading">
+    <title>Overloading</title>
+
+    <para>Functions and methods can be overloaded if parameter types are declared as in the following example:</para>
+
+  <programlisting><command>sub</command> example(int $i) <command>returns</command> int {
+    printf("i=%d\n", $i);
+    <command>return</command> $i + 1;
+}
+
+<command>sub</command> example(string $str) <command>returns</command> string {
+    printf("str=%s\n", $str);
+    <command>return</command> $str + "foo";
+}</programlisting>
+
+  <para>In this case, the first version (<code>example(int)</code>) will be executed if called with an integer argument, and the second (<code>example(string)</code>) if called with a string argument.</para>
+
+  <para>Class methods may also be overloaded, but note that <code>destructor</code>, <code>copy</code>, <code>methodGate</code>, <code>memberGate</code>, and <code>memberNotification</code> methods may not be overloaded (see <link linkend='Classes'>Classes</link> for more information).</para>
+
+  </sect2>
+
+</sect1>
+
 <sect1 id="Time_Zones">
   <title>Time Zone Handling in Qore</title>
 
@@ -888,102 +1069,102 @@ TZ=Asia/Tokyo qore -X 'now_us()'
 	</thead>
 	<tbody>
           <row>
-            <entry><para><code>ISO-8859-1</code></para></entry>
+            <entry><para><ulink url="http://en.wikipedia.org/wiki/ISO/IEC_8859-1"><code>ISO-8859-1</code></ulink></para></entry>
             <entry><para><code>ISO88591</code>, <code>ISO8859-1</code>, <code>ISO-88591</code>, <code>ISO8859P1</code>, <code>ISO81</code>, <code>LATIN1</code>, <code>LATIN-1</code></para></entry>
             <entry><para>latin-1, Western European character set</para></entry>
           </row>
           <row>
-            <entry><para><code>ISO-8859-2</code></para></entry>
+            <entry><para><ulink url="http://en.wikipedia.org/wiki/ISO/IEC_8859-2"><code>ISO-8859-2</code></ulink></para></entry>
             <entry><para><code>ISO88592</code>, <code>ISO8859-2</code>, <code>ISO-88592</code>, <code>ISO8859P2</code>, <code>ISO82</code>, <code>LATIN2</code>, <code>LATIN-2</code></para></entry>
             <entry><para>latin-2, Central European character set</para></entry>
           </row>
           <row>
-            <entry><para><code>ISO-8859-3</code></para></entry>
+            <entry><para><ulink url="http://en.wikipedia.org/wiki/ISO/IEC_8859-3"><code>ISO-8859-3</code></ulink></para></entry>
             <entry><para><code>ISO88593</code>, <code>ISO8859-3</code>, <code>ISO-88593</code>, <code>ISO8859P3</code>, <code>ISO83</code>, <code>LATIN3</code>, <code>LATIN-3</code></para></entry>
             <entry><para>latin-3, Southern European character set</para></entry>
           </row>
           <row>
-            <entry><para><code>ISO-8859-4</code></para></entry>
+            <entry><para><ulink url="http://en.wikipedia.org/wiki/ISO/IEC_8859-4"><code>ISO-8859-4</code></ulink></para></entry>
             <entry><para><code>ISO88594</code>, <code>ISO8859-4</code>, <code>ISO-88594</code>, <code>ISO8859P4</code>, <code>ISO84</code>, <code>LATIN4</code>, <code>LATIN-4</code></para></entry>
             <entry><para>latin-4, Northern European character set</para></entry>
           </row>
           <row>
-            <entry><para><code>ISO-8859-5</code></para></entry>
+            <entry><para><ulink url="http://en.wikipedia.org/wiki/ISO/IEC_8859-5"><code>ISO-8859-5</code></ulink></para></entry>
             <entry><para><code>ISO88595</code>, <code>ISO8859-5</code>, <code>ISO-88595</code>, <code>ISO8859P5</code>, <code>ISO85</code></para></entry>
             <entry><para>Cyrillic character set</para></entry>
           </row>
           <row>
-            <entry><para><code>ISO-8859-6</code></para></entry>
+            <entry><para><ulink url="http://en.wikipedia.org/wiki/ISO/IEC_8859-6"><code>ISO-8859-6</code></ulink></para></entry>
             <entry><para><code>ISO88596</code>, <code>ISO8859-6</code>, <code>ISO-88596</code>, <code>ISO8859P6</code>, <code>ISO86</code></para></entry>
             <entry><para>Arabic character set</para></entry>
           </row>
           <row>
-            <entry><para><code>ISO-8859-7</code></para></entry>
+            <entry><para><ulink url="http://en.wikipedia.org/wiki/ISO/IEC_8859-7"><code>ISO-8859-7</code></ulink></para></entry>
             <entry><para><code>ISO88597</code>, <code>ISO8859-7</code>, <code>ISO-88597</code>, <code>ISO8859P7</code>, <code>ISO87</code></para></entry>
             <entry><para>Greek character set</para></entry>
           </row>
           <row>
-            <entry><para><code>ISO-8859-8</code></para></entry>
+            <entry><para><ulink url="http://en.wikipedia.org/wiki/ISO/IEC_8859-8"><code>ISO-8859-8</code></ulink></para></entry>
             <entry><para><code>ISO88598</code>, <code>ISO8859-8</code>, <code>ISO-88598</code>, <code>ISO8859P8</code>, <code>ISO88</code></para></entry>
             <entry><para>Hebrew character set</para></entry>
           </row>
           <row>
-            <entry><para><code>ISO-8859-9</code></para></entry>
+            <entry><para><ulink url="http://en.wikipedia.org/wiki/ISO/IEC_8859-9"><code>ISO-8859-9</code></ulink></para></entry>
             <entry><para><code>ISO88599</code>, <code>ISO8859-9</code>, <code>ISO-88599</code>, <code>ISO8859P9</code>, <code>ISO89</code>, <code>LATIN5</code>, <code>LATIN-5</code></para></entry>
             <entry><para>latin-5, Turkish character set</para></entry>
           </row>
           <row>
-            <entry><para><code>ISO-8859-10</code></para></entry>
+            <entry><para><ulink url="http://en.wikipedia.org/wiki/ISO/IEC_8859-10"><code>ISO-8859-10</code></ulink></para></entry>
             <entry><para><code>ISO885910</code>, <code>ISO8859-10</code>, <code>ISO-885910</code>, <code>ISO8859P10</code>, <code>ISO810</code>, <code>LATIN6</code>, <code>LATIN-6</code></para></entry>
             <entry><para>latin-6, Nordic character set</para></entry>
           </row>
           <row>
-            <entry><para><code>ISO-8859-11</code></para></entry>
+            <entry><para><ulink url="http://en.wikipedia.org/wiki/ISO/IEC_8859-11"><code>ISO-8859-11</code></ulink></para></entry>
             <entry><para><code>ISO885911</code>, <code>ISO8859-11</code>, <code>ISO-885911</code>, <code>ISO8859P11</code>, <code>ISO811</code></para></entry>
             <entry><para>Thai character set</para></entry>
           </row>
           <row>
-            <entry><para><code>ISO-8859-13</code></para></entry>
+            <entry><para><ulink url="http://en.wikipedia.org/wiki/ISO/IEC_8859-13"><code>ISO-8859-13</code></ulink></para></entry>
             <entry><para><code>ISO885913</code>, <code>ISO8859-13</code>, <code>ISO-885913</code>, <code>ISO8859P13</code>, <code>ISO813</code>, <code>LATIN7</code>, <code>LATIN-7</code></para></entry>
             <entry><para>latin-7, Baltic rim character set</para></entry>
           </row>
           <row>
-            <entry><para><code>ISO-8859-14</code></para></entry>
+            <entry><para><ulink url="http://en.wikipedia.org/wiki/ISO/IEC_8859-14"><code>ISO-8859-14</code></ulink></para></entry>
             <entry><para><code>ISO885914</code>, <code>ISO8859-14</code>, <code>ISO-885914</code>, <code>ISO8859P14</code>, <code>ISO814</code>, <code>LATIN8</code>, <code>LATIN-8</code></para></entry>
             <entry><para>latin-8, Celtic character set</para></entry>
           </row>
           <row>
-            <entry><para><code>ISO-8859-15</code></para></entry>
+            <entry><para><ulink url="http://en.wikipedia.org/wiki/ISO/IEC_8859-15"><code>ISO-8859-15</code></ulink></para></entry>
             <entry><para><code>ISO885915</code>, <code>ISO8859-15</code>, <code>ISO-885915</code>, <code>ISO8859P15</code>, <code>ISO815</code>, <code>LATIN9</code>, <code>LATIN-9</code></para></entry>
             <entry><para>latin-9, Western European with euro symbol</para></entry>
           </row>
           <row>
-            <entry><para><code>ISO-8859-16</code></para></entry>
+            <entry><para><ulink url="http://en.wikipedia.org/wiki/ISO/IEC_8859-16"><code>ISO-8859-16</code></ulink></para></entry>
             <entry><para><code>ISO885916</code>, <code>ISO8859-16</code>, <code>ISO-885916</code>, <code>ISO8859P16</code>, <code>ISO816</code>, <code>LATIN10</code>, <code>LATIN-10</code></para></entry>
             <entry><para>latin-10, Southeast European character set</para></entry>
           </row>
           <row>
-            <entry><para><code>KOI7</code></para></entry>
+            <entry><para><ulink url="http://en.wikipedia.org/wiki/KOI7"><code>KOI7</code></ulink></para></entry>
             <entry><para>n/a</para></entry>
             <entry><para>Russian: Kod Obmena Informatsiey, 7 bit characters</para></entry>
           </row>
           <row>
-            <entry><para><code>KOI8-R</code></para></entry>
+            <entry><para><ulink url="http://en.wikipedia.org/wiki/KOI8R"><code>KOI8-R</code></ulink></para></entry>
             <entry><para><code>KOI8R</code></para></entry>
             <entry><para>Russian: Kod Obmena Informatsiey, 8 bit</para></entry>
           </row>
           <row>
-            <entry><para><code>KOI8-U</code></para></entry>
+            <entry><para><ulink url="http://en.wikipedia.org/wiki/KOI8-U"><code>KOI8-U</code></ulink></para></entry>
             <entry><para><code>KOI8U</code></para></entry>
             <entry><para>Ukrainian: Kod Obmena Informatsiey, 8 bit</para></entry>
           </row>
           <row>
-            <entry><para><code>US-ASCII</code></para></entry>
+            <entry><para><ulink url="http://en.wikipedia.org/wiki/US-ASCII"><code>US-ASCII</code></ulink></para></entry>
             <entry><para><code>ASCII</code>, <code>USASCII</code></para></entry>
             <entry><para>7-bit ASCII character set</para></entry>
           </row>
           <row>
-            <entry><para><code>UTF-8</code></para></entry>
+            <entry><para><ulink url="http://en.wikipedia.org/wiki/UTF8"><code>UTF-8</code></ulink></para></entry>
             <entry><para><code>UTF8</code></para></entry>
             <entry><para>variable-width universal character set</para></entry>
           </row>
@@ -1056,6 +1237,11 @@ TZ=Asia/Tokyo qore -X 'now_us()'
 	    <entry><para>A variable reference</para></entry>
 	    <entry><para>Qore variables (see <link linkend="Variables">Variables</link> for more information)</para></entry>
 	    <entry><programlisting>$var</programlisting></entry>
+	  </row>
+	  <row>
+	    <entry><para>A variable declaration</para></entry>
+	    <entry><para>Qore variable declarations (see <link linkend="Variables">Variables</link> for more information)</para></entry>
+	    <entry><programlisting><command>my</command> int $var</programlisting></entry>
 	  </row>
 	  <row>
 	    <entry><para>An in-class object member reference</para></entry>
@@ -1479,43 +1665,57 @@ $$         # for the entire implicit argument list</programlisting>
   <sect1 id="Date_Time_Arithmetic">
     <title>Date/Time Arithmetic</title>
 
-    <para>Date/time arithmetic is relatively straightforward and should normally produce the expected results.  However with leap years and months with different lengths, the situation can be confusing; this section will clarify how Qore does date arithmetic considering these special cases.</para>
+    <para>Date/time arithmetic is relatively straightforward and should normally produce the expected results.  However with leap years, months with different lengths, and daylights savings time the situation can be confusing; this section will clarify how Qore does date arithmetic considering these special cases.</para>
 
     <sect2 id="Addding_And_Subtracting_Years_And_Monts">
       <title>Adding and Subtracting Years and Months</title>
 
       <para>Adding or subtracting years and months (ex: $date += 2Y + 3M) will give you the same day on the desired month in the desired year. If the target month has fewer days than the source month, then you will get the last day of the month in that year. For example:</para>
 
-      <programlisting>2004-02-29 - 1Y = 2003-02-28</programlisting>
+      <programlisting>qore -X '2004-02-29Z - 1Y'
+2003-02-28 00:00:00 Fri Z (UTC)</programlisting>
     </sect2>
 
     <sect2 id="Adding_And_Subtracting_Days">
       <title>Adding and Subtracting Days</title>
       <para>Adding or subtracting days means adding or subtracting 24h periods; i.e. you will get the same time in the result of subtracting days, for example:</para>
 
-      <programlisting>2004-02-29T10:15:00 - 10D = 2004-02-19T10:15:00</programlisting>
+      <programlisting>qore -X '2004-02-29T10:15:00Z - 10D'
+2004-02-19 10:15:00 Thu Z (UTC)</programlisting>
+
     </sect2>
     
     <sect2 id="Date_Differences">
       <title>Finding the Difference Between Two Dates</title>
-      <para>Subtracting one absolulte date from another will result in a <link linkend="Relative_Dates">relative date</link>, normalized to the day value (that is, milliseconds over 999 are converted to seconds, seconds over 59 to minutes, minutes over 59 to hours, hours over 23 to days; months and years will not appear in the result as they do not indicate a fixed period of time but rather can vary in length depending on the absolute date/time starting point.  For example:</para>
-	<programlisting>$diff = 2007-02-29T10:15:03.255 - 2004-02-29T10:14:02.100;
-printf("%n\n", $diff)</programlisting>
-      <para>Results in:</para>
-	<programlisting>&lt;time: 1096 days 1 minute 1 second 155 milliseconds&gt;</programlisting>
+      <para>Subtracting one absolute date from another will result in a <link linkend="Relative_Dates">relative date</link>, normalized to the hour (that is, microseconds over 999,999 are converted to seconds, seconds over 59 to minutes, and minutes over 59 to hours; days, months, and years will not appear in the result as they do not indicate a fixed period of time but rather can vary in length depending on the absolute date/time starting point.  For example:</para>
+	<programlisting>qore -X '2007-02-29T10:15:03.255Z - 2004-02-29T10:14:02.100Z'
+&lt;time: 26304 hours 1 minute 1 second 155 milliseconds&gt;</programlisting>
 
       <para>To find the difference in seconds between two dates, convert each date value to an integer and subtract as follows:</para>
-	<programlisting>int(2004-02-29) - int(2004-02-28) = 86400</programlisting>
+	<programlisting>qore -X 'int(2004-02-29Z) - int(2004-02-28Z)'
+86400</programlisting>
+  <para>Or use the <link linkend="get_duration_seconds">get_duration_seconds()</link> function as follows:</para>
+	<programlisting>qore -X 'get_duration_seconds(2004-02-29Z - 2004-02-28Z)'
+86400</programlisting>
+
     </sect2>
     
     <sect2 id="Timezones_And_Daylight_Savings_Time">
-      <title>Timezones and Daylight Savings Time </title>
-      <para>Qore has no time zone support and therefore all date/time values are timezone agnostic.  In particular, Daylight Savings Time is not taken into effect with date arithmetic.  For this reason a day in Qore is always exactly 24 hours long.</para>
+      <title>Timezones and Daylight Savings Time</title>
+      <para>Time zones and daylight savings time information is supplied by the system's zoneinfo database (if any exists; see <link linkend="Time_Zones">Time Zones</link> for more information).</para>
+
+  <para>To find out if the current time zone has daylight savings time, execute the following:</para>
+
+  <programlisting>qore -X 'TimeZone::get().hasDST()'
+True</programlisting>
+
+  <para>See the <link linkend="Time_Zone_Class">TimeZone class</link> for more information on time zone information.</para>
+
     </sect2>
 
     <sect2 id="Leap_Years_and_the_Gregorian_Calendar">
       <title>Leap Years and the Gregorian Calendar</title>
-      <para>Qore is capable of representing and performing calculations on dates before the adoption of the Gregorian calendar (proposed in 1582 and adopted at various times in Europe after this point).  However all calculations are made as if the Gregorian calendar were always in effect (Qore implements a proleptic Gregorian calendar).</para>
+      <para>Qore is capable of representing and performing calculations on dates before the adoption of the Gregorian calendar (proposed in 1582 and adopted at various times in Europe after this point).  However all calculations are made as if the Gregorian calendar were always in effect (Qore implements a <ulink url="http://en.wikipedia.org/wiki/Proleptic_Gregorian_calendar">proleptic Gregorian calendar</ulink>).</para>
     </sect2>
   </sect1>
   
@@ -1655,11 +1855,6 @@ $var[1].count++;
     <entry><para>A statement block</para></entry>
     <entry><programlisting>{ <replaceable>statement</replaceable> }</programlisting></entry>
     <entry><para>one or more statements enclosed in curly brackets.</para></entry>
-  </row>
-  <row>
-    <entry><para>A <command>delete</command> statement</para></entry>
-    <entry><programlisting><command>delete</command> <replaceable>$lvalue</replaceable>;</programlisting></entry>
-    <entry><para><link linkend='delete_Statements'>delete</link> statements</para></entry>
   </row>
   <row>
     <entry><para>A <command>throw</command> statement</para></entry>
