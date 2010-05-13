@@ -29,6 +29,10 @@
 
 #define NO_TYPE_INFO "<no type info>"
 
+// internal "QTI" codes
+#define QTI_IGNORE     -2
+#define QTI_UNASSIGNED -1
+
 // adds external types to global type map
 DLLLOCAL void add_to_type_map(qore_type_t t, const QoreTypeInfo *typeInfo);
 DLLLOCAL bool builtinTypeHasDefaultValue(qore_type_t t);

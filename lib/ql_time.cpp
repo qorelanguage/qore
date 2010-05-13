@@ -352,12 +352,12 @@ void init_time_functions() {
    builtinFunctions.add2("format_date", f_format_date, QC_CONSTANT, QDOM_DEFAULT, stringTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, dateTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add2("localtime", f_localtime, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo);
-   builtinFunctions.add2("localtime", f_localtime_int_int, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo, 2, softBigIntTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, zero());
    builtinFunctions.add2("localtime", f_localtime_date, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("localtime", f_localtime_int_int, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo, 2, softBigIntTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, zero());
 
    builtinFunctions.add2("gmtime", f_gmtime, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo);
-   builtinFunctions.add2("gmtime", f_gmtime_int_int, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo, 2, softBigIntTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, zero());
    builtinFunctions.add2("gmtime", f_gmtime_date, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("gmtime", f_gmtime_int_int, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo, 2, softBigIntTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, zero());
 
    builtinFunctions.add2("mktime", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("mktime", f_mktime, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);

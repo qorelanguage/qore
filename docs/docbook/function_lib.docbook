@@ -3858,9 +3858,9 @@
         </row>
         <row>
           <entry>
-            <para>
-              <link linkend="usleep">usleep()</link>
-            </para>
+            <para><link linkend="usleep">usleep(date) returns int</link></para>
+            <para><link linkend="usleep">usleep(softint) returns int </link></para>
+            <para><link linkend="usleep"><replaceable>usleep() returns nothing</replaceable> (&lt;NOOP&gt;)</link></para>
           </entry>
           <entry><para>Int</para></entry>
           <entry><para>N</para></entry>
