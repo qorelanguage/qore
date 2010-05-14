@@ -115,17 +115,22 @@ void DateTime::format(QoreString &str, const char *fmt) const {
    return priv->format(str, fmt);
 }
 
-// set the date from the number of seconds since January 1, 1970 (UNIX epoch) plus milliseconds
+// set the date from the number of seconds since January 1, 1970Z (UNIX epoch) plus milliseconds
 void DateTime::setDate(int64 seconds, int ms) {
    priv->setLocalDate(seconds, ms * 1000);
 }
 
-// set the date from the number of seconds since January 1, 1970 (UNIX epoch) plus microseconds
+// set the date from the number of seconds since January 1, 1970Z (UNIX epoch) plus microseconds
 void DateTime::setDate(const AbstractQoreZoneInfo *n_zone, int64 seconds, int us) {
    priv->setDate(n_zone, seconds, us);
 }
 
-// set the date from the number of seconds since January 1, 1970 (UNIX epoch)
+// set the date from the number of seconds since January 1, 1970 in the local time zone (UNIX epoch) plus microseconds
+void DateTime::setLocalDate(const AbstractQoreZoneInfo *n_zone, int64 seconds, int us) {
+   priv->setLocalDate(n_zone, seconds, us);
+}
+
+// set the date from the number of seconds since January 1, 1970Z (UNIX epoch)
 void DateTime::setDate(int64 seconds) {
    priv->setLocalDate(seconds, 0);
 }

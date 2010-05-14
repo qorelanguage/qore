@@ -50,6 +50,10 @@ static AbstractQoreNode *f_binary_bin(const QoreListNode *params, ExceptionSink 
    return HARD_QORE_BINARY(params, 0)->refSelf();
 }
 
+static AbstractQoreNode *f_date_date(const QoreListNode *params, ExceptionSink *xsink) {
+  return HARD_QORE_DATE(params, 0)->refSelf();
+}
+
 static AbstractQoreNode *f_date(const QoreListNode *params, ExceptionSink *xsink) {
    DateTimeNodeValueHelper date(get_param(params, 0));
    return date.getReferencedValue();
@@ -152,7 +156,9 @@ void init_type_functions() {
    // do not flag with QC_NOOP, as it is used as an initializer
    builtinFunctions.add2("date", f_date_noop, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo);
    builtinFunctions.add2("date", f_date, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("date", f_date, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo, 1, floatTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("date", f_date, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("date", f_date_date, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add2("list", f_list, QC_CONSTANT | QC_USES_EXTRA_ARGS, QDOM_DEFAULT, listTypeInfo);
 

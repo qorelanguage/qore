@@ -445,6 +445,8 @@
         <row>
           <entry>
             <para><link linkend="date">date</link>(string) returns date (CONST)</para>
+            <para><link linkend="date">date</link>(float) returns date (CONST)</para>
+            <para><link linkend="date">date</link>(date) returns date (CONST)</para>
             <para><link linkend="date">date</link>(softint) returns date (CONST)</para>
             <para><link linkend="date">date</link>() returns date (NOOP)</para>
           </entry>

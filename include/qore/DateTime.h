@@ -158,6 +158,13 @@ public:
    */
    DLLEXPORT void setDate(const AbstractQoreZoneInfo *zone, int64 seconds, int us);
 
+   //! sets the absolute date value based on the number of seconds from January 1, 1970 in the given time zone (plus microseconds)
+   /** @param zone the time zone for the time
+       @param seconds the number of seconds from January 1, 1970 in the given time zone
+       @param us the microseconds portion of the time	 
+   */
+   DLLEXPORT void setLocalDate(const AbstractQoreZoneInfo *zone, int64 seconds, int us);
+
    //! sets the date to an absolute date/time as given
    DLLEXPORT void setDate(const AbstractQoreZoneInfo *n_zone, int n_year, int n_month, int n_day, int n_hour = 0, int n_minute = 0, int n_second = 0, int n_us = 0);
 
