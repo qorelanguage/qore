@@ -445,8 +445,6 @@
         <row>
           <entry>
             <para><link linkend="date">date</link>(string) returns date (CONST)</para>
-            <para><link linkend="date">date</link>(float) returns date (CONST)</para>
-            <para><link linkend="date">date</link>(date) returns date (CONST)</para>
             <para><link linkend="date">date</link>(softint) returns date (CONST)</para>
             <para><link linkend="date">date</link>() returns date (NOOP)</para>
           </entry>
@@ -802,8 +800,10 @@
           <entry><para>Flushes output to the console output with <link linkend="print">print()</link>, <link linkend="printf">printf()</link>, etc</para></entry>
         </row>
         <row>
-          <entry><para><link linkend="force_encoding">force_encoding</link>(string, string) returns string (CONST)</para></entry>
-          <entry><para><link linkend="force_encoding">force_encoding</link>() returns nothing (NOOP)</para></entry>
+          <entry>
+            <para><link linkend="force_encoding">force_encoding</link>(string, string) returns string (CONST)</para>
+            <para><link linkend="force_encoding">force_encoding</link>() returns nothing (NOOP)</para>
+          </entry>
           <entry><para>N</para></entry>
           <entry><para>Returns a string tagged with the given character encoding; does not actually change the string data; use only in the case that a string is tagged with the wrong encoding.</para></entry>
         </row>
@@ -850,12 +850,7 @@
         </row>
         <row>
           <entry>
-            <para>
-              <link linkend="get_all_thread_data">get_all_thread_data()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>Hash</para>
+            <para><link linkend="get_all_thread_data">get_all_thread_data</link>() returns hash (CONST)</para>
           </entry>
           <entry>
             <para>N</para>
@@ -867,30 +862,26 @@
 
       <row>
         <entry>
-          <para>
-            <link linkend="get_days">get_days()</link>
-          </para>
+          <para><link linkend="get_byte">get_byte</link>(string, int = 0) returns any (CONST)</para>
+          <para><link linkend="get_byte">get_byte</link>(binary, int = 0) returns any (CONST)</para>
         </entry>
+        <entry><para>N</para></entry>
+        <entry><para>Returns the byte value at the given byte offset or <link linkend="NOTHING">NOTHING</link> if the offset is not legal for the given data.</para></entry>
+      </row>
+
+      <row>
         <entry>
-          <para>Integer</para>
+          <para><link linkend="get_days">get_days</link>(date) returns int (CONST)</para>
+          <para><link linkend="get_days">get_days</link>() returns nothing (NOOP)</para>
         </entry>
-        <entry>
-          <para>N</para>
-        </entry>
-        <entry>
-          <para>Returns an integer value representing the days value of the date passed (can be either a <link linkend="Relative_Dates">relative</link> or <link linkend="Absolute_Dates">absolute</link> date).</para>
-        </entry>
+        <entry><para>N</para></entry>
+        <entry><para>Returns an integer value representing the days value of the date passed (can be either a <link linkend="Relative_Dates">relative</link> or <link linkend="Absolute_Dates">absolute</link> date).</para></entry>
       </row>
 
 
         <row>
           <entry>
-            <para>
-              <link linkend="get_default_encoding">get_default_encoding()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>String</para>
+            <para><link linkend="get_default_encoding">get_default_encoding</link>() returns string (CONST)</para>
           </entry>
           <entry>
             <para>N</para>
@@ -901,12 +892,8 @@
         </row>
         <row>
           <entry>
-            <para>
-              <link linkend="get_encoding">get_encoding()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>String</para>
+            <para><link linkend="get_encoding">get_encoding</link>(string) returns string (CONST)</para>
+            <para><link linkend="get_encoding">get_encoding</link>() returns nothing (NOOP)</para>
           </entry>
           <entry>
             <para>N</para>
@@ -918,12 +905,8 @@
 
       <row>
         <entry>
-          <para>
-            <link linkend="get_hours">get_hours()</link>
-          </para>
-        </entry>
-        <entry>
-          <para>Integer</para>
+          <para><link linkend="get_hours">get_hours</link>(date) returns int (CONST)</para>
+          <para><link linkend="get_hours">get_hours</link>() returns nothing (NOOP)</para>
         </entry>
         <entry>
           <para>N</para>
@@ -934,12 +917,20 @@
       </row>
       <row>
         <entry>
-          <para>
-            <link linkend="get_midnight">get_midnight()</link>
-          </para>
+          <para><link linkend="get_microseconds">get_microseconds</link>(date) returns int (CONST)</para>
+          <para><link linkend="get_microseconds">get_microseconds</link>() returns nothing (NOOP)</para>
         </entry>
         <entry>
-          <para>Date</para>
+          <para>N</para>
+        </entry>
+        <entry>
+          <para>Returns an integer value representing the microseconds value of the date passed (can be either a <link linkend="Relative_Dates">relative</link> or <link linkend="Absolute_Dates">absolute</link> date).</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
+          <para><link linkend="get_midnight">get_midnight</link>(date) returns date (CONST)</para>
+          <para><link linkend="get_midnight">get_midnight</link>() returns nothing (NOOP)</para>
         </entry>
         <entry>
           <para>N</para>
@@ -950,12 +941,8 @@
       </row>
       <row>
         <entry>
-          <para>
-            <link linkend="get_milliseconds">get_milliseconds()</link>
-          </para>
-        </entry>
-        <entry>
-          <para>Integer</para>
+          <para><link linkend="get_milliseconds">get_milliseconds</link>(date) returns int (CONST)</para>
+          <para><link linkend="get_milliseconds">get_milliseconds</link>() returns nothing (NOOP)</para>
         </entry>
         <entry>
           <para>N</para>
@@ -966,12 +953,8 @@
       </row>
       <row>
         <entry>
-          <para>
-            <link linkend="get_minutes">get_minutes()</link>
-          </para>
-        </entry>
-        <entry>
-          <para>Integer</para>
+          <para><link linkend="get_minutes">get_minutes</link>(date) returns int (CONST)</para>
+          <para><link linkend="get_minutes">get_minutes</link>() returns nothing (NOOP)</para>
         </entry>
         <entry>
           <para>N</para>
@@ -982,12 +965,8 @@
       </row>
       <row>
         <entry>
-          <para>
-            <link linkend="get_months">get_months()</link>
-          </para>
-        </entry>
-        <entry>
-          <para>Integer</para>
+          <para><link linkend="get_months">get_months</link>(date) returns int (CONST)</para>
+          <para><link linkend="get_months">get_months</link>() returns nothing (NOOP)</para>
         </entry>
         <entry>
           <para>N</para>
@@ -997,53 +976,46 @@
         </entry>
       </row>
       <row>
-        <entry><para><link linkend="get_qore_library_info">get_qore_library_info()</link></para></entry>
-        <entry><para>Hash</para></entry>
+        <entry><para><link linkend="get_qore_library_info">get_qore_library_info</link> returns hash (CONST)</para></entry>
         <entry><para>N</para></entry>
         <entry><para>Returns a hash of build and version information for the qore library.</para></entry>
       </row>
       <row>
-        <entry><para><link linkend="get_qore_option_list">get_qore_option_list()</link></para></entry>
-        <entry><para>List</para></entry>
+        <entry><para><link linkend="get_qore_option_list">get_qore_option_list</link>returns list (CONST)</para></entry>
         <entry><para>N</para></entry>
         <entry><para>Returns a list of hashes giving information about qore library options.</para></entry>
       </row>
       <row>
-        <entry><para><link linkend="get_seconds">get_seconds()</link></para></entry>
-        <entry><para>Integer</para></entry>
+        <entry>
+          <para><link linkend="get_seconds">get_seconds</link>(date) returns int (CONST)</para>
+          <para><link linkend="get_seconds">get_seconds</link>() returns nothing (NOOP)</para>
+        </entry>
         <entry><para>N</para></entry>
         <entry><para>Returns an integer value representing the seconds value of the date passed (can be either a <link linkend="Relative_Dates">relative</link> or <link linkend="Absolute_Dates">absolute</link> date).</para></entry>
       </row>
 
       <row>
-        <entry><para><link linkend="get_script_dir">get_script_path()</link></para></entry>
-        <entry><para>String</para></entry>
+        <entry><para><link linkend="get_script_path">get_script_path</link>() returns string (CONST)</para></entry>
         <entry><para>N</para></entry>
         <entry><para>Returns a string giving the path (directory and filename) from which the current script was executed (if known).</para></entry>
       </row>
 
       <row>
-        <entry><para><link linkend="get_script_dir">get_script_dir()</link></para></entry>
-        <entry><para>String</para></entry>
+        <entry><para><link linkend="get_script_dir">get_script_dir</link>() returns string (CONST)</para></entry>
         <entry><para>N</para></entry>
         <entry><para>Returns a string giving the directory from which the current script was executed (if known).</para></entry>
       </row>
 
       <row>
-        <entry><para><link linkend="get_script_name">get_script_name()</link></para></entry>
-        <entry><para>String</para></entry>
+        <entry><para><link linkend="get_script_name">get_script_name</link> returns string (CONST)</para></entry>
         <entry><para>N</para></entry>
         <entry><para>Returns a string giving the filename of the current script (if known).</para></entry>
       </row>
 
         <row>
           <entry>
-            <para>
-              <link linkend="get_thread_data">get_thread_data()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>Any</para>
+            <para><link linkend="get_thread_data">get_thread_data</link>(string) returns any (CONST)</para>
+            <para><link linkend="get_thread_data">get_thread_data</link>() returns nothing (NOOP)</para>
           </entry>
           <entry>
             <para>N</para>
@@ -1055,12 +1027,35 @@
 
       <row>
         <entry>
-          <para>
-            <link linkend="get_years">get_years()</link>
-          </para>
+          <para><link linkend="get_word_16">get_word_16</link>(string, int = 0) returns any (CONST)</para>
+          <para><link linkend="get_word_16">get_word_16</link>(binary, int = 0) returns any (CONST)</para>
         </entry>
+        <entry><para>N</para></entry>
+        <entry><para>Returns the 16-bit value at the given 2-byte offset or <link linkend="NOTHING">NOTHING</link> if the offset is not legal for the given data.</para></entry>
+      </row>
+
+      <row>
         <entry>
-          <para>Integer</para>
+          <para><link linkend="get_word_32">get_word_32</link>(string, int = 0) returns any (CONST)</para>
+          <para><link linkend="get_word_32">get_word_32</link>(binary, int = 0) returns any (CONST)</para>
+        </entry>
+        <entry><para>N</para></entry>
+        <entry><para>Returns the 32-bit value at the given 4-byte offset or <link linkend="NOTHING">NOTHING</link> if the offset is not legal for the given data.</para></entry>
+      </row>
+
+      <row>
+        <entry>
+          <para><link linkend="get_word_64">get_word_64</link>(string, int = 0) returns any (CONST)</para>
+          <para><link linkend="get_word_64">get_word_64</link>(binary, int = 0) returns any (CONST)</para>
+        </entry>
+        <entry><para>N</para></entry>
+        <entry><para>Returns the 64-bit value at the given 8-byte offset or <link linkend="NOTHING">NOTHING</link> if the offset is not legal for the given data.</para></entry>
+      </row>
+
+      <row>
+        <entry>
+          <para><link linkend="get_years">get_years</link>(date) returns int (CONST)</para>
+          <para><link linkend="get_years">get_years</link>() returns nothing (NOOP)</para>
         </entry>
         <entry>
           <para>N</para>
@@ -1073,12 +1068,7 @@
 
         <row>
           <entry>
-            <para>
-              <link linkend="getAllThreadCallStacks">getAllThreadCallStacks()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>Hash</para>
+            <para><link linkend="getAllThreadCallStacks">getAllThreadCallStacks</link>() returns hash</para>
           </entry>
           <entry>
             <para>N</para>
@@ -1086,48 +1076,48 @@
           <entry><para>Returns a hash of call stacks keyed by each TID (thread ID).</para></entry>
         </row>
         <row>
-          <entry><para><link linkend="getByte">getByte()</link></para></entry>
-          <entry><para>Integer</para></entry>
+          <entry>
+            <para><link linkend="getByte">getByte</link>(string, int = 0) returns any (CONST)</para>
+            <para><link linkend="getByte">getByte</link>(binary, int = 0) returns any (CONST)</para>
+            <para><link linkend="getByte">getByte</link>() returns nothing (NOOP)</para>
+          </entry>
           <entry><para>N</para></entry>
-          <entry><para>Returns the byte value withing the string or binary object passed.</para></entry>
+          <entry><para>Returns the byte value withing the string or binary object passed, or if the offset is out of range, returns <link linkend="NOTHING">NOTHING</link>.</para></entry>
         </row>
         <row>
-          <entry><para><link linkend="getClassName">getClassName()</link></para></entry>
-          <entry><para>String</para></entry>
+          <entry>
+            <para><link linkend="getClassName">getClassName</link>(object) returns string (CONST)</para>
+            <para><link linkend="getClassName">getClassName</link>() returns nothing (NOOP)</para>
+          </entry>
           <entry><para>N</para></entry>
           <entry><para>Returns the class name of the object passed.</para></entry>
         </row>
         <row>
-          <entry><para><link linkend="getcwd">getcwd()</link></para></entry>
-          <entry><para>String</para></entry>
+          <entry><para><link linkend="getcwd">getcwd</link>() returns any</para></entry>
           <entry><para>N</para></entry>
-          <entry><para>Returns the name of the current working directory.</para></entry>
+          <entry><para>Returns the name of the current working directory or NOTHING if an error occurs.</para></entry>
+        </row>
+        <row>
+          <entry><para><link linkend="getcwd2">getcwd2</link>() returns string</para></entry>
+          <entry><para>Y</para></entry>
+          <entry><para>Returns the name of the current working directory and throws an exception if an error occurs.</para></entry>
         </row>
 
       <row>
         <entry>
-          <para>
-            <link linkend="getDateFromISOWeek">getDateFromISOWeek()</link>
-          </para>
+          <para><link linkend="getDateFromISOWeek">getDateFromISOWeek</link>(softint, softint, softint) returns date</para>
         </entry>
         <entry>
-          <para>Date</para>
+          <para>Y</para>
         </entry>
         <entry>
-          <para>N</para>
-        </entry>
-        <entry>
-          <para>Retuns an <link linkend="Absolute_Dates">absolute date value</link> for the ISO-8601 calendar week information passed (year, week number, optional: day)</para>
+          <para>Retuns an <link linkend="Absolute_Dates">absolute date value</link> for the ISO-8601 calendar week information passed (year, week number, optional: day); throws an exception if the arguments are invalid.</para>
         </entry>
       </row>
       <row>
         <entry>
-          <para>
-            <link linkend="getDayOfWeek">getDayOfWeek()</link>
-          </para>
-        </entry>
-        <entry>
-          <para>Integer</para>
+          <para><link linkend="getDayOfWeek">getDayOfWeek</link>(date) returns int (CONST)</para>
+          <para><link linkend="getDayOfWeek">getDayOfWeek</link>() returns nothing (NOOP)</para>
         </entry>
         <entry>
           <para>N</para>
@@ -1138,12 +1128,8 @@
       </row>
       <row>
         <entry>
-          <para>
-            <link linkend="getDayNumber">getDayNumber()</link>
-          </para>
-        </entry>
-        <entry>
-          <para>Integer</para>
+          <para><link linkend="getDayNumber">getDayNumber</link>(date) returns int (CONST)</para>
+          <para><link linkend="getDayNumber">getDayNumber</link>() returns nothing (NOOP)</para>
         </entry>
         <entry>
           <para>N</para>
@@ -1155,31 +1141,29 @@
 
 
         <row>
-          <entry><para><link linkend="getDBIDriverCapabilities">getDBIDriverCapabilities()</link></para></entry>
-          <entry><para>Integer</para></entry>
-          <entry><para>N</para></entry>
-          <entry><para>Returns an integer representing the capabilities of a DBI driver.</para></entry>
-        </row>
-        <row>
-          <entry><para><link linkend="getDBIDriverCapabilityList">getDBIDriverCapabilityList()</link></para></entry>
-          <entry><para>List</para></entry>
-          <entry><para>N</para></entry>
-          <entry><para>Returns a list of codes representing the capabilities of a DBI driver.</para></entry>
-        </row>
-        <row>
-          <entry><para><link linkend="getDBIDriverList">getDBIDriverList()</link></para></entry>
-          <entry><para>List</para></entry>
-          <entry><para>N</para></entry>
-          <entry><para>Returns a list of strings of DBI drivers currently available.</para></entry>
-        </row>
-        <row>
           <entry>
-            <para>
-              <link linkend="getegid">getegid()</link>
-            </para>
+            <para><link linkend="getDBIDriverCapabilities">getDBIDriverCapabilities</link>(string) returns any</para>
+            <para><link linkend="getDBIDriverCapabilities">getDBIDriverCapabilities</link>() returns nothing (NOOP)</para>
           </entry>
+          <entry><para>N</para></entry>
+          <entry><para>Returns an integer representing the capabilities of a DBI driver or NOTHING if the driver cannot be loaded.</para></entry>
+        </row>
+        <row>
           <entry>
-            <para>Int</para>
+            <para><link linkend="getDBIDriverCapabilityList">getDBIDriverCapabilityList</link>(string) returns any</para>
+            <para><link linkend="getDBIDriverCapabilityList">getDBIDriverCapabilityList</link>() returns nothing (NOOP)</para>
+          </entry>
+          <entry><para>N</para></entry>
+          <entry><para>Returns a list of codes representing the capabilities of a DBI driver of NOTHING if the driver cannot be loaded.</para></entry>
+        </row>
+        <row>
+          <entry><para><link linkend="getDBIDriverList">getDBIDriverList</link>() returns any</para></entry>
+          <entry><para>N</para></entry>
+          <entry><para>Returns a list of strings of DBI drivers currently loaded or NOTHING if no drivers have been loaded.</para></entry>
+        </row>
+        <row>
+          <entry>
+            <para><link linkend="getegid">getegid</link> returns int (CONST)</para>
           </entry>
           <entry>
             <para>N</para>
@@ -1190,12 +1174,7 @@
         </row>
         <row>
           <entry>
-            <para>
-              <link linkend="geteuid">geteuid()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>Int</para>
+            <para><link linkend="geteuid">geteuid</link>() returns int (CONST)</para>
           </entry>
           <entry>
             <para>N</para>
@@ -1206,12 +1185,7 @@
         </row>
         <row>
           <entry>
-            <para>
-              <link linkend="getFeatureList">getFeatureList()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>List</para>
+            <para><link linkend="getFeatureList">getFeatureList</link>() returns list (CONST)</para>
           </entry>
           <entry>
             <para>N</para>
@@ -1222,29 +1196,19 @@
         </row>
         <row>
           <entry>
-            <para>
-              <link linkend="getenv">getenv()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>String</para>
+            <para><link linkend="getenv">getenv</link>(string) returns any (CONST)</para>
+            <para><link linkend="getenv">getenv</link>() returns nothing (NOOP)</para>
           </entry>
           <entry>
             <para>N</para>
           </entry>
           <entry>
-            <para>Retrieves the value of an environment 
-    variable</para>
+            <para>Retrieves the value of an environment variable or NOTHING if the variable is not set</para>
           </entry>
         </row>
         <row>
           <entry>
-            <para>
-              <link linkend="getgid">getgid()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>Int</para>
+            <para><link linkend="getgid">getgid</link> returns int (CONST)</para>
           </entry>
           <entry>
             <para>N</para>
@@ -1254,44 +1218,44 @@
           </entry>
         </row>
         <row>
-          <entry><para><link linkend="gethostbyaddr">gethostbyaddr()</link></para></entry>
-          <entry><para>String</para></entry>
+          <entry>
+            <para><link linkend="gethostbyaddr">gethostbyaddr</link>(string, softint = AF_INET) returns any (CONST)</para>
+            <para><link linkend="gethostbyaddr">gethostbyaddr</link>() returns nothing (NOOP)</para>
+          </entry>
           <entry><para>N</para></entry>
-          <entry><para>Returns the official hostname corresponding to the network addressed passed</para></entry>
+          <entry><para>Returns the official hostname corresponding to the network addressed passed or NOTHING if the address cannot be resolved.</para></entry>
         </row>
         <row>
-          <entry><para><link linkend="gethostbyaddr_long">gethostbyaddr_long()</link></para></entry>
-          <entry><para>Hash</para></entry>
+          <entry>
+            <para><link linkend="gethostbyaddr_long">gethostbyaddr_long</link>(string, softint = AF_INET) returns any (CONST)</para>
+            <para><link linkend="gethostbyaddr_long">gethostbyaddr_long</link>() returns nothing (NOOP)</para>
+          </entry>
           <entry><para>N</para></entry>
-          <entry><para>Returns all host information corresponding to the network address</para></entry>
+          <entry><para>Returns all host information corresponding to the network address as a hash or NOTHING if the address cannot be resolved.</para></entry>
         </row>
         <row>
-          <entry><para><link linkend="gethostbyname">gethostbyname()</link></para></entry>
-          <entry><para>String</para></entry>
+          <entry>
+            <para><link linkend="gethostbyname">gethostbyname</link>(string) returns any (CONST)</para>
+            <para><link linkend="gethostbyname">gethostbyname</link>() returns nothing (NOOP)</para>
+          </entry>
           <entry><para>N</para></entry>
-          <entry><para>Returns the first network address corresponding to the hostname</para></entry>
+          <entry><para>Returns the first network address corresponding to the hostname as a string or NOTHING if the name cannot be resolved.</para></entry>
         </row>
         <row>
-          <entry><para><link linkend="gethostbyname_long">gethostbyname_long()</link></para></entry>
-          <entry><para>Hash</para></entry>
+          <entry><para><link linkend="gethostbyname_long">gethostbyname_long</link>(string) returns any (CONST)</para></entry>
           <entry><para>N</para></entry>
-          <entry><para>Returns all host information corresponding to the hostname</para></entry>
+          <entry><para>Returns all host information corresponding to the hostname as a hash or NOTHING if the name cannot be resolved.</para></entry>
         </row>
         <row>
-          <entry><para><link linkend="gethostname">gethostname()</link></para></entry>
-          <entry><para>String</para></entry>
-          <entry><para>N</para></entry>
-          <entry><para>Returns the hostname of the system</para></entry>
+          <entry><para><link linkend="gethostname">gethostname</link>() returns string</para></entry>
+          <entry><para>Y</para></entry>
+          <entry><para>Returns the hostname of the system; throws an exception if an error occurs.</para></entry>
         </row>
 
       <row>
         <entry>
-          <para>
-            <link linkend="getISODayOfWeek">getISODayOfWeek()</link>
-          </para>
-        </entry>
-        <entry>
-          <para>Integer</para>
+          <para><link linkend="getISODayOfWeek">getISODayOfWeek</link>(date) returns int (CONST)</para>
+          <para><link linkend="getISODayOfWeek">getISODayOfWeek</link>() returns nothing (NOOP)</para>
         </entry>
         <entry>
           <para>N</para>
@@ -1302,12 +1266,8 @@
       </row>
       <row>
         <entry>
-          <para>
-            <link linkend="getISOWeekHash">getISOWeekHash()</link>
-          </para>
-        </entry>
-        <entry>
-          <para>Hash</para>
+          <para><link linkend="getISOWeekHash">getISOWeekHash</link>(date) returns hash (CONST)</para>
+          <para><link linkend="getISOWeekHash">getISOWeekHash</link>() returns nothing (NOOP)</para>
         </entry>
         <entry>
           <para>N</para>
@@ -1318,12 +1278,8 @@
       </row>
       <row>
         <entry>
-          <para>
-            <link linkend="getISOWeekString">getISOWeekString()</link>
-          </para>
-        </entry>
-        <entry>
-          <para>String</para>
+          <para><link linkend="getISOWeekString">getISOWeekString</link>(date) returns string (CONST)</para>
+          <para><link linkend="getISOWeekString">getISOWeekString</link>() returns nothing (NOOP)</para>
         </entry>
         <entry>
           <para>N</para>
@@ -1335,28 +1291,19 @@
 
         <row>
           <entry>
-            <para>
-              <link linkend="getMethodList">getMethodList()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>List</para>
+            <para><link linkend="getMethodList">getMethodList</link>(object) returns list (CONST)</para>
+            <para><link linkend="getMethodList">getMethodList</link>() returns nothing (NOOP)</para>
           </entry>
           <entry>
             <para>N</para>
           </entry>
           <entry>
-            <para>Returns a list of strings of the names of the methods of the class of the object passed as a parameter.</para>
+            <para>Returns a list of strings of the names of the public and private methods of the class of the object passed as a parameter (does not return base class method names).</para>
           </entry>
         </row>
         <row>
           <entry>
-            <para>
-              <link linkend="getModuleList">getModuleList()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>List</para>
+            <para><link linkend="getModuleList">getModuleList</link>() returns list (CONST)</para>
           </entry>
           <entry>
             <para>N</para>
@@ -1367,12 +1314,7 @@
         </row>
         <row>
           <entry>
-            <para>
-              <link linkend="getpid">getpid()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>Int</para>
+            <para><link linkend="getpid">getpid</link>() returns int (CONST)</para>
           </entry>
           <entry>
             <para>N</para>
@@ -1382,35 +1324,26 @@
           </entry>
         </row>
         <row>
-          <entry><para><link linkend="getppid">getppid()</link></para></entry>
-          <entry><para>Int</para></entry>
+          <entry>
+            <para><link linkend="getppid">getppid</link>() returns int (CONST)</para>
+          </entry>
           <entry><para>N</para></entry>
           <entry><para>Returns the parent PID of the current process.</para></entry>
         </row>
         <row>
           <entry>
-            <para>
-              <link linkend="getpwuid">getpwuid()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>Hash</para>
+            <para><link linkend="getpwuid">getpwuid</link>(softint) returns any (CONST)</para>
           </entry>
           <entry>
             <para>N</para>
           </entry>
           <entry>
-            <para>Returns a hash representing the user information of the user ID passed.</para>
+            <para>Returns a hash representing the user information of the user ID passed or NOTHING if the user ID is not found.</para>
           </entry>
         </row>
         <row>
           <entry>
-            <para>
-              <link linkend="gettid">gettid()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>Int</para>
+            <para><link linkend="gettid">gettid</link>() returns int (CONST)</para>
           </entry>
           <entry>
             <para>N</para>
@@ -1421,12 +1354,7 @@
         </row>
         <row>
           <entry>
-            <para>
-              <link linkend="getuid">getuid()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>Int</para>
+            <para><link linkend="getuid">getuid</link>() returns int (CONST)</para>
           </entry>
           <entry>
             <para>N</para>
@@ -1435,62 +1363,72 @@
             <para>Returns the real user ID of the current process.</para>
           </entry>
         </row>
+
+      <row>
+        <entry>
+          <para><link linkend="getWord32">getWord32</link>(string, int = 0) returns any (CONST)</para>
+          <para><link linkend="getWord32">getWord32</link>(binary, int = 0) returns any (CONST)</para>
+          <para><link linkend="getWord32">getWord32</link>() returns nothing (NOOP)</para>
+        </entry>
+        <entry><para>N</para></entry>
+        <entry><para>Returns the 32-bit value at the given 4-byte offset or <link linkend="NOTHING">NOTHING</link> if the offset is not legal for the given data.</para></entry>
+      </row>
+
         <row>
           <entry>
-            <para>
-              <link linkend="glob">glob()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>List</para>
+            <para><link linkend="glob">glob</link>(string) returns any</para>
+            <para><link linkend="glob">glob</link>() returns nothing (NOOP)</para>
           </entry>
           <entry>
             <para>N</para>
           </entry>
           <entry>
-            <para>Returns a list of files matching the string argument</para>
+            <para>Returns a list of files matching the string argument or NOTHING if the call to <code>glob()</code> fails.</para>
           </entry>
         </row>
         <row>
           <entry>
-            <para>
-              <link linkend="gmtime">gmtime()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>Date</para>
+            <para><link linkend="gmtime">gmtime</link>(date) returns date (CONST)</para>
+            <para><link linkend="gmtime">gmtime</link>(softint, softint = 0) returns date (CONST)</para>
+            <para><link linkend="gmtime">gmtime</link>() returns date (CONST)</para>
           </entry>
           <entry><para>N</para></entry>
           <entry>
-            <para>Returns a date/time value in GMT</para>
+            <para>Returns a date/time value in UTC (GMT).</para>
           </entry>
         </row>
         <row>
-          <entry><para><link linkend="gunzip_to_binary">gunzip_to_binary()</link></para></entry>
-          <entry><para>Binary</para></entry>
+          <entry>
+            <para><link linkend="gunzip_to_binary">gunzip_to_binary</link>(binary) returns binary</para>
+            <para><link linkend="gunzip_to_binary">gunzip_to_binary</link>() returns nothing (NOOP)</para>
+          </entry>
           <entry><para>N</para></entry>
           <entry><para>Uncompresses data compressed with the &quot;gzip&quot; algorithm (<ulink url="http://www.ietf.org/rfc/rfc1952.txt?number=1952">RFC 1952</ulink>) using zlib functions and returns a binary object.</para></entry>
         </row>
         <row>
-          <entry><para><link linkend="gunzip_to_string">gunzip_to_string()</link></para></entry>
-          <entry><para>String</para></entry>
+          <entry>
+            <para><link linkend="gunzip_to_string">gunzip_to_string</link>(binary) returns string</para>
+            <para><link linkend="gunzip_to_string">gunzip_to_string</link>(binary, string) returns string</para>
+            <para><link linkend="gunzip_to_string">gunzip_to_string</link>() returns nothing (NOOP)</para>
+          </entry>
           <entry><para>N</para></entry>
           <entry><para>Uncompresses data compressed with the &quot;gzip&quot; algorithm (<ulink url="http://www.ietf.org/rfc/rfc1952.txt?number=1952">RFC 1952</ulink>) using zlib functions and returns a string.</para></entry>
         </row>
         <row>
-          <entry><para><link linkend="gzip">gzip()</link></para></entry>
-          <entry><para>Binary</para></entry>
+          <entry>
+            <para><link linkend="gzip">gzip</link>(string, softint = -1) returns binary</para>
+            <para><link linkend="gzip">gzip</link>(binary, softint = -1) returns binary</para>
+            <para><link linkend="gzip">gzip</link>() returns nothing (NOOP)</para>
+          </entry>
           <entry><para>Y</para></entry>
           <entry><para>Performs zlib-based &quot;gzip&quot; data compression (<ulink url="http://www.ietf.org/rfc/rfc1952.txt?number=1952">RFC 1952</ulink>) and returns a binary object of the compressed data.</para></entry>
         </row>
         <row>
           <entry>
-            <para>
-              <link linkend="hash">hash()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>Hash</para>
+            <para><link linkend="hash">hash</link>(list) returns hash</para>
+            <para><link linkend="hash">hash</link>(hash) returns hash (CONST)</para>
+            <para><link linkend="hash">hash</link>(object) returns hash</para>
+            <para><link linkend="hash">hash</link>() returns hash (CONST)</para>
           </entry>
           <entry>
             <para>N</para>
@@ -1501,12 +1439,8 @@
         </row>
         <row>
           <entry>
-            <para>
-              <link linkend="hash_values">hash_values()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>List</para>
+            <para><link linkend="hash_values">hash_values</link>(hash) returns list (CONST)</para>
+            <para><link linkend="hash_values">hash_values</link>() returns nothing (NOOP)</para>
           </entry>
           <entry>
             <para>N</para>
@@ -1516,25 +1450,22 @@
           </entry>
         </row>
         <row>
-          <entry><para><link linkend="hextoint">hextoint()</link></para></entry>
-          <entry><para>Integer</para></entry>
-          <entry><para>N</para></entry>
-          <entry><para>Returns an integer for a hexadecimal string value.</para></entry>
-        </row>
-        <row>
-          <entry><para><link linkend="hlstat">hlstat()</link></para></entry>
-          <entry><para>Hash</para></entry>
-          <entry><para>N</para></entry>
-          <entry><para>Returns a hash of information about the file corresponding to the pathname argument; does not follow symbolic links (returns information about symbolic links).</para></entry>
+          <entry><para><link linkend="hextoint">hextoint</link>(string) returns bigint</para></entry>
+          <entry><para>Y</para></entry>
+          <entry><para>Returns an integer for a hexadecimal string value; throws an exception if non-hex digits are found.</para></entry>
         </row>
         <row>
           <entry>
-            <para>
-              <link linkend="hours">hours()</link>
-            </para>
+            <para><link linkend="hlstat">hlstat</link>(string) returns any</para>
+            <para><link linkend="hlstat">hlstat</link>() returns nothing (NOOP)</para>
           </entry>
+          <entry><para>N</para></entry>
+          <entry><para>Returns a hash of information about the file corresponding to the pathname argument; does not follow symbolic links (returns information about symbolic links).  Returns NOTHING if the <code>stat()</code> call fails.</para></entry>
+        </row>
+        <row>
           <entry>
-            <para>Date</para>
+            <para><link linkend="hours">hours</link>(softint) returns date (CONST)</para>
+            <para><link linkend="hours">hours</link>() returns date (NOOP)</para>
           </entry>
           <entry>
             <para>N</para>
@@ -1544,22 +1475,17 @@
           </entry>
         </row>
         <row>
-          <entry><para><link linkend="hstat">hstat()</link></para></entry>
-          <entry><para>Hash</para></entry>
+          <entry><para><link linkend="hstat">hstat</link>(string) returns any</para></entry>
           <entry><para>N</para></entry>
-          <entry><para>Returns a hash of information about the file corresponding to the pathname argument; follows symbolic links.</para></entry>
+          <entry><para>Returns a hash of information about the file corresponding to the pathname argument; follows symbolic links.  Returns NOTHING if the <code>stat()</code> call fails.</para></entry>
         </row>
         <row>
           <entry>
-            <para>
-              <link linkend="html_decode">html_decode()</link>
-            </para>
+            <para><link linkend="html_decode">html_decode</link>(string) returns string (CONST)</para>
+            <para><link linkend="html_decode">html_decode</link>() returns nothing (NOOP)</para>
           </entry>
           <entry>
-            <para>String</para>
-          </entry>
-          <entry>
-            <para>Y</para>
+            <para>N</para>
           </entry>
           <entry>
             <para>Returns a string with any HTML escape codes translated to the original characters</para>
@@ -1567,28 +1493,19 @@
         </row>
         <row>
           <entry>
-            <para>
-              <link linkend="html_encode">html_encode()</link>
-            </para>
+            <para><link linkend="html_encode">html_encode</link>(string) returns string (CONST)</para>
+            <para><link linkend="html_encode">html_encode</link>() returns nothing (NOOP)</para>
           </entry>
-          <entry>
-            <para>String</para>
-          </entry>
-          <entry>
-            <para>Y</para>
-          </entry>
+          <entry><para>N</para></entry>
           <entry>
             <para>Returns a string with any characters that can be escaped translated to HTML escape codes.</para>
           </entry>
         </row>
         <row>
           <entry>
-            <para>
-              <link linkend="hypot">hypot()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>Float</para>
+            <para><link linkend="hypot">hypot</link>(any, softfloat) returns float (CONST)</para>
+            <para><link linkend="hypot">hypot</link>(softfloat, any) returns float (CONST)</para>
+            <para><link linkend="hypot">hypot</link>() returns float (NOOP)</para>
           </entry>
           <entry>
             <para>N</para>
@@ -1598,31 +1515,34 @@
           </entry>
         </row>
         <row>
-          <entry><para><link linkend="index">index()</link></para></entry>
-          <entry><para>Int</para></entry>
+          <entry>
+            <para><link linkend="index">index</link>(softstring, softstring, softint = 0) returns int (CONST)</para>
+            <para><link linkend="index">index</link>() returns int (NOOP)</para>
+          </entry>
           <entry><para>N</para></entry>
           <entry><para>Returns the character position of a substring within a string and takes an optional starting offset</para></entry>
         </row>
         <row>
-          <entry><para><link linkend="inlist">inlist()</link></para></entry>
-          <entry><para>Boolean</para></entry>
+          <entry>
+            <para><link linkend="inlist">inlist</link>(any, list) returns bool</para>
+            <para><link linkend="inlist">inlist</link>(any, any) returns bool</para>
+            <para><link linkend="inlist">inlist</link>() returns bool (NOOP)</para>
+          </entry>
           <entry><para>N</para></entry>
           <entry><para>Returns True if the first argument is a member of the second argument list using comparisons with type conversions.</para></entry>
         </row>
         <row>
-          <entry><para><link linkend="inlist_hard">inlist_hard()</link></para></entry>
-          <entry><para>Boolean</para></entry>
+          <entry>
+            <para><link linkend="inlist_hard">inlist_hard</link>(any, list) returns bool</para>
+            <para><link linkend="inlist_hard">inlist_hard</link>(any, any) returns bool</para>
+          </entry>
           <entry><para>N</para></entry>
           <entry><para>Returns True if the first argument is a member of the second argument list using comparisons without type conversions.</para></entry>
         </row>
         <row>
           <entry>
-            <para>
-              <link linkend="int">int()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>Int</para>
+            <para><link linkend="int">int</link>(softint) returns int (CONST)</para>
+            <para><link linkend="int">int</link>() returns int (CONST)</para>
           </entry>
           <entry>
             <para>N</para>
@@ -1649,12 +1569,7 @@
       </row>
       <row>
         <entry>
-          <para>
-            <link linkend="is_cdev">is_cdev()</link>
-          </para>
-        </entry>
-        <entry>
-          <para>Boolean</para>
+          <para><link linkend="is_cdev">is_cdev</link>(string) returns bool (CONST)</para>
         </entry>
         <entry>
           <para>N</para>
@@ -1665,12 +1580,7 @@
       </row>
       <row>
         <entry>
-          <para>
-            <link linkend="is_dev">is_dev()</link>
-          </para>
-        </entry>
-        <entry>
-          <para>Boolean</para>
+          <para><link linkend="is_dev">is_dev</link>(string) returns bool (CONST)</para>
         </entry>
         <entry>
           <para>N</para>
@@ -1681,12 +1591,7 @@
       </row>
       <row>
         <entry>
-          <para>
-            <link linkend="is_dir">is_dir()</link>
-          </para>
-        </entry>
-        <entry>
-          <para>Boolean</para>
+          <para><link linkend="is_dir">is_dir</link>(string) returns bool (CONST)</para>
         </entry>
         <entry>
           <para>N</para>
@@ -1697,12 +1602,7 @@
       </row>
       <row>
         <entry>
-          <para>
-            <link linkend="is_executable">is_executable()</link>
-          </para>
-        </entry>
-        <entry>
-          <para>Boolean</para>
+          <para><link linkend="is_executable">is_executable</link>(string) returns bool (CONST)</para>
         </entry>
         <entry>
           <para>N</para>
@@ -1713,12 +1613,7 @@
       </row>
       <row>
         <entry>
-          <para>
-            <link linkend="is_file">is_file()</link>
-          </para>
-        </entry>
-        <entry>
-          <para>Boolean</para>
+          <para><link linkend="is_file">is_file</link>(string) returns bool (CONST)</para>
         </entry>
         <entry>
           <para>N</para>
@@ -1729,12 +1624,7 @@
       </row>
       <row>
         <entry>
-          <para>
-            <link linkend="is_link">is_link()</link>
-          </para>
-        </entry>
-        <entry>
-          <para>Boolean</para>
+          <para><link linkend="is_link">is_link</link>(string) returns bool (CONST)</para>
         </entry>
         <entry>
           <para>N</para>
@@ -1745,12 +1635,7 @@
       </row>
       <row>
         <entry>
-          <para>
-            <link linkend="is_pipe">is_pipe()</link>
-          </para>
-        </entry>
-        <entry>
-          <para>Boolean</para>
+          <para><link linkend="is_pipe">is_pipe</link>(string) returns bool (CONST)</para>
         </entry>
         <entry>
           <para>N</para>
@@ -1761,12 +1646,7 @@
       </row>
       <row>
         <entry>
-          <para>
-            <link linkend="is_readable">is_readable()</link>
-          </para>
-        </entry>
-        <entry>
-          <para>Boolean</para>
+          <para><link linkend="is_readable">is_readable</link>(string) returns bool (CONST)</para>
         </entry>
         <entry>
           <para>N</para>
@@ -1777,12 +1657,7 @@
       </row>
       <row>
         <entry>
-          <para>
-            <link linkend="is_socket">is_socket()</link>
-          </para>
-        </entry>
-        <entry>
-          <para>Boolean</para>
+          <para><link linkend="is_socket">is_socket</link>(string) returns bool (CONST)</para>
         </entry>
         <entry>
           <para>N</para>
@@ -1793,12 +1668,7 @@
       </row>
       <row>
         <entry>
-          <para>
-            <link linkend="is_writeable">is_writeable()</link>
-          </para>
-        </entry>
-        <entry>
-          <para>Boolean</para>
+          <para><link linkend="is_writeable">is_writeable</link>(string) returns bool (CONST)</para>
         </entry>
         <entry>
           <para>N</para>
@@ -1809,12 +1679,9 @@
       </row>
         <row>
           <entry>
-            <para>
-              <link linkend="join">join()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>String</para>
+            <para><link linkend="join">join</link>(string, list) returns string (CONST)</para>
+            <para><link linkend="join">join</link>(string, ...) returns string (CONST)</para>
+            <para><link linkend="join">join</link>() returns nothing (NOOP)</para>
           </entry>
           <entry>
             <para>N</para>
@@ -1825,12 +1692,8 @@
         </row>
         <row>
           <entry>
-            <para>
-              <link linkend="kill">kill()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>Int</para>
+            <para><link linkend="kill">kill</link>(softint, softint = SIGHUP) returns int</para>
+            <para><link linkend="kill">kill</link>() returns nothing (NOOP)</para>
           </entry>
           <entry>
             <para>N</para>
@@ -1841,20 +1704,17 @@
         </row>
 
         <row>
-          <entry><para><link linkend="lchown">lchown()</link></para></entry>
-          <entry><para>String</para></entry>
+          <entry><para><link linkend="lchown">lchown</link>(string, softint = -1, softint = -1) returns int</para></entry>
           <entry><para>N</para></entry>
           <entry><para>Changes the user and group owners of a file (if the current user has permission to do so), does not follow symbolic links.</para></entry>
         </row>
 
         <row>
           <entry>
-            <para>
-              <link linkend="length">length()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>Int</para>
+            <para><link linkend="length">length</link>(softstring) returns int (CONST)</para>
+            <para><link linkend="length">length</link>(binary) returns int (CONST)</para>
+            <para><link linkend="length">length</link>(any) returns int (NOOP)</para>
+            <para><link linkend="length">length</link>() returns nothing (NOOP)</para>
           </entry>
           <entry>
             <para>N</para>
@@ -1865,12 +1725,7 @@
         </row>
         <row>
           <entry>
-            <para>
-              <link linkend="list">list()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>List</para>
+            <para><link linkend="list">list</link>(...) returns list (CONST)</para>
           </entry>
           <entry>
             <para>N</para>
@@ -1881,38 +1736,31 @@
         </row>
 
         <row>
-          <entry><para><link linkend="load_module">load_module()</link></para></entry>
-          <entry><para>n/a</para></entry>
+          <entry>
+            <para><link linkend="load_module">load_module</link>(string) returns nothing</para>
+            <para><link linkend="load_module">load_module</link>() returns nothing (NOOP)</para>
+          </entry>
           <entry><para>Y</para></entry>
           <entry><para>Loads a Qore module at run-time if the feature name is not already present in the current Program object.</para></entry>
         </row>
 
         <row>
           <entry>
-            <para>
-              <link linkend="localtime">localtime()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>Date</para>
+            <para><link linkend="localtime">localtime</link>(date) returns date (CONST)</para>
+            <para><link linkend="localtime">localtime</link>(softint, softint = 0) returns date (CONST)</para>
+            <para><link linkend="localtime">localtime</link>() returns date (CONST)</para>
           </entry>
           <entry>
             <para>N</para>
           </entry>
           <entry>
-            <para>Returns a date value in localtime based on the value of 
-      the argument passed, which must be the number of seconds after Jan 1, 
-      1970, 00:00:00</para>
+            <para>Returns a date value in localtime; if an argument is passed, then the date is created based on the value of the argument passed, for an integer, it is the number of seconds after Jan 1, 1970, 00:00:00Z (UTC).</para>
           </entry>
         </row>
         <row>
           <entry>
-            <para>
-              <link linkend="log10">log10()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>Float</para>
+            <para><link linkend="log10">log10</link>(softfloat) returns float (CONST)</para>
+            <para><link linkend="log10">log10</link>() returns float (NOOP)</para>
           </entry>
           <entry>
             <para>N</para>
@@ -1923,12 +1771,8 @@
         </row>
         <row>
           <entry>
-            <para>
-              <link linkend="log1p">log1p()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>Float</para>
+            <para><link linkend="log1p">log1p</link>(softfloat) returns float (CONST)</para>
+            <para><link linkend="log1p">log1p</link>() returns float (NOOP)</para>
           </entry>
           <entry>
             <para>N</para>
@@ -1939,12 +1783,8 @@
         </row>
         <row>
           <entry>
-            <para>
-              <link linkend="logb">logb()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>Float</para>
+            <para><link linkend="logb">logb</link>(softfloat) returns float (CONST)</para>
+            <para><link linkend="logb">logb</link>() returns float (NOOP)</para>
           </entry>
           <entry>
             <para>N</para>
@@ -1955,34 +1795,27 @@
         </row>
         <row>
           <entry>
-            <para>
-              <link linkend="lstat">lstat()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>List</para>
+            <para><link linkend="lstat">lstat</link>(string) returns any</para>
+            <para><link linkend="lstat">lstat</link>() returns nothing (NOOP)</para>
           </entry>
           <entry>
             <para>N</para>
           </entry>
           <entry>
-            <para>Returns a list of filesystem values for the file or symbolic link passed.</para>
-          </entry>
+            <para>Returns a list of filesystem values for the file or symbolic link passed or NOTHING if the call to <code>stat()</code> fails.</para>
         </row>
         <row>
-          <entry><para><link linkend="makeBase64String">makeBase64String()</link></para></entry>
-          <entry><para>String</para></entry>
+          <entry>
+            <para><link linkend="makeBase64String">makeBase64String</link>(string) returns string (CONST)</para>
+            <para><link linkend="makeBase64String">makeBase64String</link>(binary) returns string (CONST)</para>
+            <para><link linkend="makeBase64String">makeBase64String</link>() returns nothing (NOOP)</para>
+          </entry>
           <entry><para>N</para></entry>
           <entry><para>Returns a base64-encoded representation of a binary object or a string.</para></entry>
         </row>
       <row>
         <entry>
-          <para>
-            <link linkend="makeFormattedJSONRPC11ErrorString">makeFormattedJSONRPC11ErrorString()</link>
-          </para>
-        </entry>
-        <entry>
-          <para>String</para>
+          <para><link linkend="makeFormattedJSONRPC11ErrorString">makeFormattedJSONRPC11ErrorString</link>(softint, string, any, any) returns string</para>
         </entry>
         <entry>
           <para>Y</para>
@@ -1993,12 +1826,7 @@
       </row>
       <row>
         <entry>
-          <para>
-            <link linkend="makeFormattedJSONRPCErrorString">makeFormattedJSONRPCErrorString()</link>
-          </para>
-        </entry>
-        <entry>
-          <para>String</para>
+          <para><link linkend="makeFormattedJSONRPCErrorString">makeFormattedJSONRPCErrorString</link>(any, any, any) returns string</para>
         </entry>
         <entry>
           <para>Y</para>
@@ -2009,12 +1837,7 @@
       </row>
       <row>
         <entry>
-          <para>
-            <link linkend="makeFormattedJSONRPCRequestString">makeFormattedJSONRPCRequestString()</link>
-          </para>
-        </entry>
-        <entry>
-          <para>String</para>
+          <para><link linkend="makeFormattedJSONRPCRequestString">makeFormattedJSONRPCRequestString</link>(string, any, any, any) returns string</para>
         </entry>
         <entry>
           <para>Y</para>
@@ -2025,12 +1848,7 @@
       </row>
       <row>
         <entry>
-          <para>
-            <link linkend="makeFormattedJSONRPCResponseString">makeFormattedJSONRPCResponseString()</link>
-          </para>
-        </entry>
-        <entry>
-          <para>String</para>
+          <para><link linkend="makeFormattedJSONRPCResponseString">makeFormattedJSONRPCResponseString</link>(any, any, any) return string</para>
         </entry>
         <entry>
           <para>Y</para>
@@ -2041,12 +1859,8 @@
       </row>
       <row>
         <entry>
-          <para>
-            <link linkend="makeFormattedJSONString">makeFormattedJSONString()</link>
-          </para>
-        </entry>
-        <entry>
-          <para>String</para>
+          <para><link linkend="makeFormattedJSONString">makeFormattedJSONString</link>(any, string) returns string</para>
+          <para><link linkend="makeFormattedJSONString">makeFormattedJSONString</link>(any) returns string</para>
         </entry>
         <entry>
           <para>Y</para>
@@ -2058,12 +1872,9 @@
 
         <row>
           <entry>
-            <para>
-              <link linkend="makeFormattedXMLFragment">makeFormattedXMLFragment()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>String</para>
+            <para><link linkend="makeFormattedXMLFragment">makeFormattedXMLFragment</link>(hash, string) returns string</para>
+            <para><link linkend="makeFormattedXMLFragment">makeFormattedXMLFragment</link>(hash) returns string</para>
+            <para><link linkend="makeFormattedXMLFragment">makeFormattedXMLFragment</link>() returns nothing (NOOP)</para>
           </entry>
           <entry>
             <para>Y</para>
@@ -2073,61 +1884,49 @@
           </entry>
         </row>
         <row>
-          <entry><para><link linkend="makeFormattedXMLRPCCallString">makeFormattedXMLRPCCallString()</link></para></entry>
-          <entry><para>String</para></entry>
+          <entry><para><link linkend="makeFormattedXMLRPCCallString">makeFormattedXMLRPCCallString</link>(string, ...) returns string</para></entry>
           <entry><para>Y</para></entry>
           <entry><para>Serializes the arguments into an XML string for an XML-RPC call with formatting.</para></entry>
         </row>
         <row>
-          <entry><para><link linkend="makeFormattedXMLRPCCallStringWithEncoding">makeFormattedXMLRPCCallStringWithEncoding()</link></para></entry>
-          <entry><para>String</para></entry>
+          <entry><para><link linkend="makeFormattedXMLRPCCallStringWithEncoding">makeFormattedXMLRPCCallStringWithEncoding</link>(string, string, ...) returns string</para></entry>
           <entry><para>Y</para></entry>
           <entry><para>Serializes the arguments into an XML string for an XML-RPC call with formatting, taking an initial string argument to give the encoding for the created XML.</para></entry>
         </row>
         <row>
-          <entry><para><link linkend="makeFormattedXMLRPCCallStringArgs">makeFormattedXMLRPCCallStringArgs()</link></para></entry>
-          <entry><para>String</para></entry>
+          <entry><para><link linkend="makeFormattedXMLRPCCallStringArgs">makeFormattedXMLRPCCallStringArgs</link>(string, any) returns string</para></entry>
           <entry><para>Y</para></entry>
           <entry><para>Serializes the arguments into an XML string formatted for an XML-RPC call with formatting, taking a single list argument for the argument list.</para></entry>
         </row>
         <row>
-          <entry><para><link linkend="makeFormattedXMLRPCCallStringArgsWithEncoding">makeFormattedXMLRPCCallStringArgsWithEncoding()</link></para></entry>
-          <entry><para>String</para></entry>
+          <entry><para><link linkend="makeFormattedXMLRPCCallStringArgsWithEncoding">makeFormattedXMLRPCCallStringArgsWithEncoding</link>(string, string, any) returns string</para></entry>
           <entry><para>Y</para></entry>
           <entry><para>Serializes the arguments into an XML string formatted for an XML-RPC call with formatting, taking an initial string argument to give the encoding for the created XML, followed by the method name and a single list argument for the argument list.</para></entry>
         </row>
         <row>
-          <entry><para><link linkend="makeFormattedXMLRPCFaultResponseString">makeFormattedXMLRPCFaultResponseString()</link></para></entry>
-          <entry><para>String</para></entry>
+          <entry><para><link linkend="makeFormattedXMLRPCFaultResponseString">makeFormattedXMLRPCFaultResponseString</link>(any, string) returns string</para></entry>
           <entry><para>Y</para></entry>
           <entry><para>Serializes the arguments into an XML string formatted for an XML-RPC fault response with whitespace formatting.</para></entry>
         </row>
         <row>
-          <entry><para><link linkend="makeFormattedXMLRPCFaultResponseStringWithEncoding">makeFormattedXMLRPCFaultResponseStringWithEncoding()</link></para></entry>
-          <entry><para>String</para></entry>
+          <entry><para><link linkend="makeFormattedXMLRPCFaultResponseStringWithEncoding">makeFormattedXMLRPCFaultResponseStringWithEncoding</link>(string, any, string) returns string</para></entry>
           <entry><para>Y</para></entry>
           <entry><para>Serializes the arguments into an XML string formatted for an XML-RPC fault response with whitespace formatting, taking an initial string argument to give the encoding for the created XML.</para></entry>
         </row>
         <row>
-          <entry><para><link linkend="makeFormattedXMLRPCResponseString">makeFormattedXMLRPCResponseString()</link></para></entry>
-          <entry><para>String</para></entry>
+          <entry><para><link linkend="makeFormattedXMLRPCResponseString">makeFormattedXMLRPCResponseString</link>(...) returns any</para></entry>
           <entry><para>Y</para></entry>
-          <entry><para>Serializes the arguments into an XML string formatted for an XML-RPC response with whitespace formatting.</para></entry>
+          <entry><para>Serializes the arguments into an XML string formatted for an XML-RPC response with whitespace formatting; if no arguments are passed, then NOTHING is returned.</para></entry>
         </row>
         <row>
-          <entry><para><link linkend="makeFormattedXMLRPCResponseStringWithEncoding">makeFormattedXMLRPCResponseStringWithEncoding()</link></para></entry>
-          <entry><para>String</para></entry>
+          <entry><para><link linkend="makeFormattedXMLRPCResponseStringWithEncoding">makeFormattedXMLRPCResponseStringWithEncoding</link>(string, ...) returns any</para></entry>
           <entry><para>Y</para></entry>
-          <entry><para>Serializes the arguments into an XML string formatted for an XML-RPC response with whitespace formatting, taking an initial string argument to give the encoding for the created XML.</para></entry>
+          <entry><para>Serializes the arguments into an XML string formatted for an XML-RPC response with whitespace formatting, taking an initial string argument to give the encoding for the created XML.  If no arguments after the encoding string are passed, then NOTHING is returned.</para></entry>
         </row>
         <row>
           <entry>
-            <para>
-              <link linkend="makeFormattedXMLRPCValueString">makeFormattedXMLRPCValueString()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>String</para>
+            <para><link linkend="makeFormattedXMLRPCValueString">makeFormattedXMLRPCValueString</link>(any, string) returns string</para>
+            <para><link linkend="makeFormattedXMLRPCValueString">makeFormattedXMLRPCValueString</link>(any) returns string</para>
           </entry>
           <entry>
             <para>Y</para>
@@ -2138,12 +1937,10 @@
         </row>
         <row>
           <entry>
-            <para>
-              <link linkend="makeFormattedXMLString">makeFormattedXMLString()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>String</para>
+            <para><link linkend="makeFormattedXMLString">makeFormattedXMLString(hash) returns string</link></para>
+            <para><link linkend="makeFormattedXMLString">makeFormattedXMLString(hash, string) returns string</link></para>
+            <para><link linkend="makeFormattedXMLString">makeFormattedXMLString(string, hash) returns string</link></para>
+            <para><link linkend="makeFormattedXMLString">makeFormattedXMLString(string, hash, string) returns string</link></para>
           </entry>
           <entry>
             <para>Y</para>
@@ -2153,19 +1950,17 @@
           </entry>
         </row>
         <row>
-          <entry><para><link linkend="makeHexString">makeHexString()</link></para></entry>
-          <entry><para>String</para></entry>
+          <entry>
+            <para><link linkend="makeHexString">makeHexString</link>(string) returns string (CONST)</para>
+            <para><link linkend="makeHexString">makeHexString</link>(binary) returns string (CONST)</para>
+            <para><link linkend="makeHexString">makeHexString</link>() returns nothing (NOOP)</para>
+          </entry>
           <entry><para>N</para></entry>
           <entry><para>Returns a hex-encoded representation of a binary object or a string.</para></entry>
         </row>
       <row>
         <entry>
-          <para>
-            <link linkend="makeJSONRPC11ErrorString">makeJSONRPC11ErrorString()</link>
-          </para>
-        </entry>
-        <entry>
-          <para>String</para>
+          <para><link linkend="makeJSONRPC11ErrorString">makeJSONRPC11ErrorString</link>(softint, string, any, any) returns string</para>
         </entry>
         <entry>
           <para>Y</para>
@@ -2176,12 +1971,7 @@
       </row>
       <row>
         <entry>
-          <para>
-            <link linkend="makeJSONRPCErrorString">makeJSONRPCErrorString()</link>
-          </para>
-        </entry>
-        <entry>
-          <para>String</para>
+          <para><link linkend="makeJSONRPCErrorString">makeJSONRPCErrorString</link>(any, any, any) returns string</para>
         </entry>
         <entry>
           <para>Y</para>
@@ -2192,12 +1982,7 @@
       </row>
       <row>
         <entry>
-          <para>
-            <link linkend="makeJSONRPCRequestString">makeJSONRPCRequestString()</link>
-          </para>
-        </entry>
-        <entry>
-          <para>String</para>
+          <para><link linkend="makeJSONRPCRequestString">makeJSONRPCRequestString</link>(string, any, any, any) returns string</para>
         </entry>
         <entry>
           <para>Y</para>
@@ -2208,12 +1993,7 @@
       </row>
       <row>
         <entry>
-          <para>
-            <link linkend="makeJSONRPCResponseString">makeJSONRPCResponseString()</link>
-          </para>
-        </entry>
-        <entry>
-          <para>String</para>
+          <para><link linkend="makeJSONRPCResponseString">makeJSONRPCResponseString</link>(any, any, any) return string</para>
         </entry>
         <entry>
           <para>Y</para>
@@ -2224,12 +2004,8 @@
       </row>
       <row>
         <entry>
-          <para>
-            <link linkend="makeJSONString">makeJSONString()</link>
-          </para>
-        </entry>
-        <entry>
-          <para>String</para>
+          <para><link linkend="makeJSONString">makeJSONString</link>(any, string) returns string</para>
+          <para><link linkend="makeJSONString">makeJSONString</link>(any) returns string</para>
         </entry>
         <entry>
           <para>Y</para>
@@ -2240,12 +2016,11 @@
       </row>
         <row>
           <entry>
-            <para>
-              <link linkend="makeXMLFragment">makeXMLFragment()</link>
-            </para>
-          </entry>
           <entry>
-            <para>String</para>
+            <para><link linkend="makeXMLFragment">makeXMLFragment</link>(hash, string) returns string</para>
+            <para><link linkend="makeXMLFragment">makeXMLFragment</link>(hash) returns string</para>
+            <para><link linkend="makeXMLFragment">makeXMLFragment</link>() returns nothing (NOOP)</para>
+          </entry>
           </entry>
           <entry>
             <para>Y</para>
@@ -2255,62 +2030,50 @@
           </entry>
         </row>
         <row>
-          <entry><para><link linkend="makeXMLRPCCallString">makeXMLRPCCallString()</link></para></entry>
-          <entry><para>String</para></entry>
+          <entry><para><link linkend="makeXMLRPCCallString">makeXMLRPCCallString</link>(string, ...) returns string</para></entry>
           <entry><para>Y</para></entry>
           <entry><para>Serializes the arguments into an XML string formatted for an XML-RPC call without formatting.</para></entry>
         </row>
         <row>
-          <entry><para><link linkend="makeXMLRPCCallStringWithEncoding">makeXMLRPCCallStringwithEncoding()</link></para></entry>
-          <entry><para>String</para></entry>
+          <entry><para><link linkend="makeXMLRPCCallStringWithEncoding">makeXMLRPCCallStringWithEncoding</link>(string, string, ...) returns string</para></entry>
           <entry><para>Y</para></entry>
           <entry><para>Serializes the arguments into an XML string formatted for an XML-RPC call without formatting, taking an initial string argument to give the target character encoding for the XML string.</para></entry>
         </row>
         <row>
-          <entry><para><link linkend="makeXMLRPCCallStringArgs">makeXMLRPCCallStringArgs()</link></para></entry>
-	  <entry><para>String</para></entry>
+          <entry><para><link linkend="makeXMLRPCCallStringArgs">makeXMLRPCCallStringArgs</link>(string, any) returns string</para></entry>
           <entry><para>Y</para></entry>
           <entry><para>Serializes the arguments into an XML string formatted for an XML-RPC call without formatting, taking a single list argument for the argument list.</para></entry>
         </row>
         <row>
-          <entry><para><link linkend="makeXMLRPCCallStringArgsWithEncoding">makeXMLRPCCallStringArgsWithEncoding()</link></para></entry>
-	  <entry><para>String</para></entry>
+          <entry><para><link linkend="makeXMLRPCCallStringArgsWithEncoding">makeXMLRPCCallStringArgsWithEncoding</link>(string, string, any) returns string</para></entry>
           <entry><para>Y</para></entry>
           <entry><para>Serializes the arguments into an XML string formatted for an XML-RPC call without formatting, taking an initial string argument to give the target character encoding for the XML string followed by a list argument for the argument list.</para></entry>
         </row>
         <row>
-          <entry><para><link linkend="makeXMLRPCFaultResponseString">makeXMLRPCFaultResponseString()</link></para></entry>
-          <entry><para>String</para></entry>
+          <entry><para><link linkend="makeXMLRPCFaultResponseString">makeXMLRPCFaultResponseString</link>(any, string) returns string</para></entry>
           <entry><para>Y</para></entry>
           <entry><para>Serializes the arguments into an XML string formatted for an XML-RPC fault response without formatting.</para></entry>
         </row>
         <row>
-          <entry><para><link linkend="makeXMLRPCFaultResponseStringWithEncoding">makeXMLRPCFaultResponseStringWithEncoding()</link></para></entry>
-          <entry><para>String</para></entry>
+          <entry><para><link linkend="makeXMLRPCFaultResponseStringWithEncoding">makeXMLRPCFaultResponseStringWithEncoding</link>(string, any, string) returns string</para></entry>
           <entry><para>Y</para></entry>
           <entry><para>Serializes the arguments into an XML string formatted for an XML-RPC fault response without formatting, taking an initial string argument to give the target character encoding for the XML string.</para></entry>
         </row>
         <row>
-          <entry><para><link linkend="makeXMLRPCResponseString">makeXMLRPCResponseString()</link></para></entry>
-          <entry><para>String</para></entry>
+          <entry><para><link linkend="makeXMLRPCResponseString">makeXMLRPCResponseString</link>(...) returns any</para></entry>
           <entry><para>Y</para></entry>
-          <entry><para>Serializes the arguments into an XML string formatted for an XML-RPC response without formatting.</para></entry>
+          <entry><para>Serializes the arguments into an XML string formatted for an XML-RPC response without formatting; if no arguments are passed then NOTHING is returned.</para></entry>
         </row>
         <row>
-          <entry><para><link linkend="makeXMLRPCResponseStringWithEncoding">makeXMLRPCResponseStringWithEncoding()</link></para></entry>
-          <entry><para>String</para></entry>
+          <entry><para><link linkend="makeXMLRPCResponseStringWithEncoding">makeXMLRPCResponseStringWithEncoding</link>(string, ...) returns any</para></entry>
           <entry><para>Y</para></entry>
-          <entry><para>Serializes the arguments into an XML string formatted for an XML-RPC response without formatting, taking an initial string argument to give the target character encoding for the XML string.</para></entry>
+          <entry><para>Serializes the arguments into an XML string formatted for an XML-RPC response without formatting, taking an initial string argument to give the target character encoding for the XML string.  If no arguments after the encoding string are passed, then NOTHING is returned.</para></entry>
         </row>
 
         <row>
           <entry>
-            <para>
-              <link linkend="makeXMLRPCValueString">makeXMLRPCValueString()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>String</para>
+            <para><link linkend="makeXMLRPCValueString">makeXMLRPCValueString</link>(any, string) returns string</para>
+            <para><link linkend="makeXMLRPCValueString">makeXMLRPCValueString</link>(any) returns string</para>
           </entry>
           <entry>
             <para>Y</para>
@@ -2320,34 +2083,36 @@
           </entry>
         </row>
         <row>
-          <entry><para><link linkend="makeXMLString">makeXMLString()</link></para></entry>
-          <entry><para>String</para></entry>
+          <entry>
+            <para><link linkend="makeXMLString">makeXMLString(hash) returns string</link></para>
+            <para><link linkend="makeXMLString">makeXMLString(hash, string) returns string</link></para>
+            <para><link linkend="makeXMLString">makeXMLString(string, hash) returns string</link></para>
+            <para><link linkend="makeXMLString">makeXMLString(string, hash, string) returns string</link></para>
+          </entry>
           <entry><para>Y</para></entry>
           <entry><para>Serializes a hash into a complete XML string with an XML header and without formatting.</para></entry>
         </row>
         <row>
-          <entry><para><link linkend="max">max()</link></para></entry>
-          <entry><para>Any</para></entry>
+          <entry>
+            <para><link linkend="max">max</link>(...) returns any (CONST)</para>
+            <para><link linkend="max">max</link>(list) returns any (CONST)</para>
+            <para><link linkend="max">max</link>(list, string) returns any</para>
+            <para><link linkend="max">max</link>(list, code) returns any</para>
+          </entry>
           <entry><para>N</para></entry>
           <entry><para>Returns the maximum value in a list (see also <link linkend="min">min()</link>); one variant takes an optional callback reference to process lists of complex data types.</para></entry>
         </row>
       <row>
-        <entry><para><link linkend="MD2">MD2()</link></para></entry>
-        <entry>
-          <para>String</para>
-        </entry>
+        <entry><para><link linkend="MD2">MD2</link>(data) returns string</para></entry>
         <entry>
           <para>Y</para>
         </entry>
         <entry>
-          <para>Returns the MD2 message digest of the supplied argument as a hex string (for strings, the trailing null character is not included in the digest)</para>
+          <para>Returns the MD2 message digest of the supplied argument as a hex string (for string arguments, the trailing null character is not included in the digest)</para>
         </entry>
       </row>
       <row>
-        <entry><para><link linkend="MD2_bin">MD2_bin()</link></para></entry>
-        <entry>
-          <para>Binary</para>
-        </entry>
+        <entry><para><link linkend="MD2_bin">MD2_bin</link>(data) returns binary</para></entry>
         <entry>
           <para>Y</para>
         </entry>
@@ -2357,12 +2122,7 @@
       </row>
       <row>
         <entry>
-          <para>
-            <link linkend="MD4">MD4()</link>
-          </para>
-        </entry>
-        <entry>
-          <para>String</para>
+          <para><link linkend="MD4">MD4</link>(data) returns string</para>
         </entry>
         <entry>
           <para>Y</para>
@@ -2373,12 +2133,7 @@
       </row>
       <row>
         <entry>
-          <para>
-            <link linkend="MD4_bin">MD4_bin()</link>
-          </para>
-        </entry>
-        <entry>
-          <para>Binary</para>
+          <para><link linkend="MD4_bin">MD4_bin</link>(data) returns binary</para>
         </entry>
         <entry>
           <para>Y</para>
@@ -2389,12 +2144,7 @@
       </row>
       <row>
         <entry>
-          <para>
-            <link linkend="MD5">MD5()</link>
-          </para>
-        </entry>
-        <entry>
-          <para>String</para>
+          <para><link linkend="MD5">MD5</link>(data) returns string</para>
         </entry>
         <entry>
           <para>Y</para>
@@ -2405,12 +2155,7 @@
       </row>
       <row>
         <entry>
-          <para>
-            <link linkend="MD5_bin">MD5_bin()</link>
-          </para>
-        </entry>
-        <entry>
-          <para>Binary</para>
+          <para><link linkend="MD5_bin">MD5_bin</link>(data) returns binary</para>
         </entry>
         <entry>
           <para>Y</para>
@@ -2422,12 +2167,7 @@
 
       <row>
         <entry>
-          <para>
-            <link linkend="MDC2">MDC2()</link>
-          </para>
-        </entry>
-        <entry>
-          <para>String</para>
+          <para><link linkend="MDC2">MDC2</link>(data) returns string</para>
         </entry>
         <entry>
           <para>Y</para>
@@ -2438,12 +2178,7 @@
       </row>
       <row>
         <entry>
-          <para>
-            <link linkend="MDC2_bin">MDC2_bin()</link>
-          </para>
-        </entry>
-        <entry>
-          <para>Binary</para>
+          <para><link linkend="MDC2_bin">MDC2_bin</link>(data) returns binary</para>
         </entry>
         <entry>
           <para>Y</para>
@@ -2453,25 +2188,35 @@
         </entry>
       </row>
         <row>
-          <entry><para><link linkend="milliseconds">milliseconds()</link></para></entry>
-	  <entry><para>Date</para></entry>
+          <entry>
+            <para><link linkend="microseconds">microseconds</link>(softint) returns date (CONST)</para>
+            <para><link linkend="microseconds">microseconds</link>() returns date (NOOP)</para>
+          </entry>
+          <entry><para>N</para></entry>
+          <entry><para>Returns a <link linkend="Relative_Dates">relative date</link> in microseconds to be used in date arithmetic.</para></entry>
+        </row>
+        <row>
+          <entry>
+            <para><link linkend="milliseconds">milliseconds</link>(softint) returns date (CONST)</para>
+            <para><link linkend="milliseconds">milliseconds</link>() returns date (NOOP)</para>
+          </entry>
           <entry><para>N</para></entry>
           <entry><para>Returns a <link linkend="Relative_Dates">relative date</link> in milliseconds to be used in date arithmetic.</para></entry>
         </row>
         <row>
-          <entry><para><link linkend="min">min()</link></para></entry>
-          <entry><para>Any</para></entry>
+          <entry>
+            <para><link linkend="min">min</link>(...) returns any (CONST)</para>
+            <para><link linkend="min">min</link>(list) returns any (CONST)</para>
+            <para><link linkend="min">min</link>(list, string) returns any</para>
+            <para><link linkend="min">min</link>(list, code) returns any</para>
+          </entry>
           <entry><para>N</para></entry>
           <entry><para>Returns the minumum value in a list (see also <link linkend="max">max()</link>); one variant takes an optional <link linkend="closures">closure</link> or <link linkend="call_references">call reference</link> to process lists of complex data types.</para></entry>
         </row>
         <row>
           <entry>
-            <para>
-              <link linkend="minutes">minutes()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>Date</para>
+            <para><link linkend="minutes">minutes</link>(softint) returns date (CONST)</para>
+            <para><link linkend="minutes">minutes</link>() returns date (NOOP)</para>
           </entry>
           <entry>
             <para>N</para>
@@ -2482,84 +2227,71 @@
         </row>
         <row>
           <entry>
-            <para>
-              <link linkend="mkdir">mkdir()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>Int</para>
+            <para><link linkend="mkdir">mkdir</link>(string, softint = 0777) returns int</para>
           </entry>
           <entry>
             <para>Y</para>
           </entry>
           <entry>
-            <para>Creates a directory.</para>
+            <para>Creates a directory with the given mode/permissions.</para>
           </entry>
         </row>
         <row>
           <entry>
-            <para>
-              <link linkend="mkfifo">mkfifo()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>Int</para>
+            <para><link linkend="mkfifo">mkfifo</link>(string, softint = 0600) returns int</para>
           </entry>
           <entry>
             <para>N</para>
           </entry>
           <entry>
-            <para>Creates a named pipe</para>
+            <para>Creates a named pipe with the given mode/permissions.</para>
           </entry>
         </row>
         <row>
           <entry>
-            <para>
-              <link linkend="mktime">mktime()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>Int</para>
+            <para><link linkend="mktime">mktime</link>(date) returns int (CONST)</para>
+            <para><link linkend="mktime">mktime</link>() returns nothing (NOOP)</para>
           </entry>
           <entry><para>N</para></entry>
           <entry>
-            <para>Returns the number of seconds after Jan 1, 1970, 00:00:00, assuming that the date passed is in local time</para>
+            <para>Returns the number of seconds after Jan 1, 1970, 00:00:00Z for the date/time value passed.</para>
           </entry>
         </row>
         <row>
-          <entry><para><link linkend="months">months()</link></para></entry>
-	  <entry><para>Date</para></entry>
+          <entry>
+            <para><link linkend="months">months</link>(softint) returns date (CONST)</para>
+            <para><link linkend="months">months</link>() returns date (NOOP)</para>
+          </entry>
           <entry><para>N</para></entry>
           <entry><para>Returns a <link linkend="Relative_Dates">relative date</link> in months to be used in date arithmetic.</para></entry>
         </row>
 
-
         <row>
-          <entry><para><link linkend="nlog">nlog()</link></para></entry>
-          <entry><para>Float</para></entry>
+          <entry>
+            <para><link linkend="nlog">nlog</link>(softfloat) returns float (CONSTANT)</para>
+            <para><link linkend="nlog">nlog</link>() returns float (NOOP)</para>
+          </entry>
           <entry><para>N</para></entry>
           <entry><para>Returns the natural logarithm of the value passed</para></entry>
         </row>
         <row>
-          <entry><para><link linkend="now">now()</link></para></entry>
-          <entry><para>Date</para></entry>
+          <entry><para><link linkend="now">now</link>() returns date (CONST)</para></entry>
           <entry><para>N</para></entry>
           <entry><para>Returns current date and time with resolution to the second</para></entry>
         </row>
         <row>
-          <entry><para><link linkend="now_ms">now_ms()</link></para></entry>
-          <entry><para>Date</para></entry>
+          <entry><para><link linkend="now_ms">now_ms</link>() returns date (CONST)</para></entry>
           <entry><para>N</para></entry>
           <entry><para>Returns current date and time with resolution to the millisecond</para></entry>
         </row>
         <row>
+          <entry><para><link linkend="now_us">now_us</link>() returns date (CONST)</para></entry>
+          <entry><para>N</para></entry>
+          <entry><para>Returns current date and time with resolution to the microsecond</para></entry>
+        </row>
+        <row>
           <entry>
-            <para>
-              <link linkend="num_threads">num_threads()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>Int</para>
+            <para><link linkend="num_threads">num_threads</link>() returns int (CONST)<para>
           </entry>
           <entry>
             <para>N</para>
@@ -2570,12 +2302,9 @@
         </row>
         <row>
           <entry>
-            <para>
-              <link linkend="ord">ord()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>Int</para>
+            <para><link linkend="ord">ord</link>(softstring, softint) returns int (CONST)</para>
+            <para><link linkend="ord">ord</link>(softstring) returns int (CONST)</para>
+            <para><link linkend="ord">ord</link>() returns nothing (NOOP)</para>
           </entry>
           <entry>
             <para>N</para>
@@ -2586,11 +2315,8 @@
         </row>
         <row>
           <entry>
-            <para>
-              <link linkend="parse">parse()</link>
-            </para>
-          </entry>
-          <entry><para>n/a</para>
+            <para><link linkend="parse">parse</link>(string, string) returns nothing</para>
+            <para><link linkend="parse">parse</link>() returns nothing (NOOP)</para>
           </entry>
           <entry>
             <para>Y</para>
@@ -2600,38 +2326,45 @@
           </entry>
         </row>
         <row>
-          <entry><para><link linkend="parseBase64String">parseBase64String()</link></para></entry>
-          <entry><para>Binary</para></entry>
+          <entry>
+            <para><link linkend="parse_url">parse_url</link>(string) returns hash</para>
+          </entry>
+          <entry><para>Y</para></entry>
+          <entry><para>Parses a URL string and returns a hash of the components; throws an exception if the string cannot be parsed as URL.</para></entry>
+        </row>
+        <row>
+          <entry>
+            <para><link linkend="parseBase64String">parseBase64String</link>(string) returns binary</para>
+            <para><link linkend="parseBase64String">parseBase64String</link>() returns nothing (NOOP)</para>
+          </entry>
           <entry><para>Y</para></entry>
           <entry><para>Parses a base64 encoded string and returns the binary object</para></entry>
         </row>
 
         <row>
-          <entry><para><link linkend="parseDatasource">parseDatasource()</link></para></entry>
-          <entry><para>Hash</para></entry>
+          <entry>
+            <para><link linkend="parseDatasource">parseDatasource</link>(string) returns hash</para>
+            <para><link linkend="parseDatasource">parseDatasource</link>() returns nothing (NOOP)</para>
+          </entry>
           <entry><para>N</para></entry>
-          <entry><para>Returns a hash of the components of a datasource string.</para></entry>
+          <entry><para>Returns a hash of the components of a datasource string (ex: &quot;user/pass@db(encoding)%host:port{min=2,max=4}&quot;).</para></entry>
         </row>
 
         <row>
-          <entry><para><link linkend="parseHexString">parseHexString()</link></para></entry>
-          <entry><para>Binary</para></entry>
+          <entry>
+            <para><link linkend="parseHexString">parseHexString</link>(string) returns binary</para>
+            <para><link linkend="parseHexString">parseHexString</link>() returns nothing (NOOP)</para>
+          </entry>
           <entry><para>Y</para></entry>
-          <entry><para>Parses a hex-encoded string and returns the binary object</para></entry>
+          <entry><para>Parses a hex-encoded string and returns the binary object; if invalid hex digits are found an exception is thrown.</para></entry>
         </row>
 
       <row>
         <entry>
-          <para>
-            <link linkend="parseJSON">parseJSON()</link>
-          </para>
+            <para><link linkend="parseJSON">parseJSON</link>(string) returns any</para>
+            <para><link linkend="parseJSON">parseJSON</link>() returns nothing (NOOP)</para>
         </entry>
-        <entry>
-          <para>Qore Data</para>
-        </entry>
-        <entry>
-          <para>N</para>
-        </entry>
+        <entry><para>Y</para></entry>
         <entry>
           <para>Parses a JSON string and returns the corresponding qore data structure.</para>
         </entry>
@@ -2639,62 +2372,67 @@
 
         <row>
           <entry>
-            <para>
-              <link linkend="parseURL">parseURL()</link>
-            </para>
+            <para><link linkend="parseURL">parseURL</link>(string) returns any</para>
+            <para><link linkend="parseURL">parseURL</link>() returns nothing (NOOP)</para>
           </entry>
-          <entry>
-            <para>Hash</para>
-          </entry>
-          <entry>
-            <para>Y</para>
-          </entry>
-          <entry><para>Parses a URL string and returns a hash of the components.</para></entry>
+          <entry><para>N</para></entry>
+          <entry><para>Parses a URL string and returns a hash of the components, unless the string cannot be parsed as URL in which case NOTHING is returned.</para></entry>
         </row>
         <row>
-          <entry><para><link linkend="parseXML">parseXML()</link></para></entry>
-          <entry><para>Hash</para></entry>
+          <entry>
+            <para><link linkend="parseXML">parseXML</link>(string) returns hash</para>
+            <para><link linkend="parseXML">parseXML</link>(string, string) returns hash</para>
+            <para><link linkend="parseXML">parseXML</link>() returns nothing (NOOP)</para>
+          </entry>
           <entry><para>Y</para></entry>
           <entry><para>parses an XML string and returns a Qore hash structure.</para></entry>
         </row>
         <row>
-          <entry><para><link linkend="parseXMLWithRelaxNG">parseXMLWithRelaxNG()</link></para></entry>
-          <entry><para>Hash</para></entry>
+          <entry>
+            <para><link linkend="parseXMLWithRelaxNG">parseXMLWithRelaxNG</link>(string, string) returns hash</para>
+            <para><link linkend="parseXMLWithRelaxNG">parseXMLWithRelaxNG</link>(string, string, string) returns hash</para>
+          </entry>
           <entry><para>Y</para></entry>
           <entry><para>parses an XML string, validates the generated XML against a RelaxNG schema string, and returns a Qore hash structure.</para></entry>
         </row>
         <row>
-          <entry><para><link linkend="parseXMLWithSchema">parseXMLWithSchema()</link></para></entry>
-          <entry><para>Hash</para></entry>
+          <entry>
+            <para><link linkend="parseXMLWithSchema">parseXMLWithSchema</link>(string, string) returns hash</para>
+            <para><link linkend="parseXMLWithSchema">parseXMLWithSchema</link>(string, string, string) returns hash</para>
+          </entry>
           <entry><para>Y</para></entry>
           <entry><para>parses an XML string, validates the generated XML against an XSD schema string, and returns a Qore hash structure.</para></entry>
         </row>
         <row>
-          <entry><para><link linkend="parseXMLAsData">parseXMLAsData()</link></para></entry>
-          <entry><para>Hash</para></entry>
+          <entry>
+            <para><link linkend="parseXMLAsData">parseXMLAsData</link>(string) returns hash</para>
+            <para><link linkend="parseXMLAsData">parseXMLAsData</link>(string, string) returns hash</para>
+            <para><link linkend="parseXMLAsData">parseXMLAsData</link>() returns nothing (NOOP)</para>
+          </entry>
           <entry><para>Y</para></entry>
           <entry><para>parses an XML string as data (does not preserve hash order with out-of-order duplicate keys: collapses all to the same list) and returns a Qore hash structure.</para></entry>
         </row>
         <row>
-          <entry><para><link linkend="parseXMLAsDataWithRelaxNG">parseXMLAsDataWithRelaxNG()</link></para></entry>
-          <entry><para>Hash</para></entry>
+          <entry>
+            <para><link linkend="parseXMLAsDataWithRelaxNG">parseXMLAsDataWithRelaxNG</link>(string, string) returns hash</para>
+            <para><link linkend="parseXMLAsDataWithRelaxNG">parseXMLAsDataWithRelaxNG</link>(string, string, string) returns hash</para>
+          </entry>
           <entry><para>Y</para></entry>
           <entry><para>parses an XML string as data (does not preserve hash order with out-of-order duplicate keys: collapses all to the same list), validates the generated XML against a RelaxNG schema string, and returns a Qore hash structure.</para></entry>
         </row>
         <row>
-          <entry><para><link linkend="parseXMLAsDataWithSchema">parseXMLAsDataWithSchema()</link></para></entry>
-          <entry><para>Hash</para></entry>
+          <entry>
+            <para><link linkend="parseXMLAsDataWithSchema">parseXMLAsDataWithSchema</link>(string, string) returns hash</para>
+            <para><link linkend="parseXMLAsDataWithSchema">parseXMLAsDataWithSchema</link>(string, string, string) returns hash</para>
+          </entry>
           <entry><para>Y</para></entry>
           <entry><para>parses an XML string as data (does not preserve hash order with out-of-order duplicate keys: collapses all to the same list), validates the generated XML against an XSD schema string, and returns a Qore hash structure.</para></entry>
         </row>
         <row>
           <entry>
-            <para>
-              <link linkend="parseXMLRPCCall">parseXMLRPCCall()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>Hash</para>
+            <para><link linkend="parseXMLRPCCall">parseXMLAsData</link>(string) returns hash</para>
+            <para><link linkend="parseXMLRPCCall">parseXMLAsData</link>(string, string) returns hash</para>
+            <para><link linkend="parseXMLRPCCall">parseXMLAsData</link>() returns nothing (NOOP)</para>
           </entry>
           <entry>
             <para>Y</para>
@@ -2703,12 +2441,9 @@
         </row>
         <row>
           <entry>
-            <para>
-              <link linkend="parseXMLRPCResponse">parseXMLRPCResponse()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>Hash</para>
+            <para><link linkend="parseXMLRPCResponse">parseXMLRPCResponse</link>(string) returns hash</para>
+            <para><link linkend="parseXMLRPCResponse">parseXMLRPCResponse</link>(string, string) returns hash</para>
+            <para><link linkend="parseXMLRPCResponse">parseXMLRPCResponse</link>() returns nothing (NOOP)</para>
           </entry>
           <entry>
             <para>Y</para>
@@ -2717,12 +2452,9 @@
         </row>
         <row>
           <entry>
-            <para>
-              <link linkend="parseXMLRPCValue">parseXMLRPCValue()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>Hash</para>
+            <para><link linkend="parseXMLRPCValue">parseXMLRPCValue</link>(string) returns hash</para>
+            <para><link linkend="parseXMLRPCValue">parseXMLRPCValue</link>(string, string) returns hash</para>
+            <para><link linkend="parseXMLRPCValue">parseXMLRPCValue</link>() returns nothing (NOOP)</para>
           </entry>
           <entry>
             <para>Y</para>
@@ -2731,12 +2463,7 @@
         </row>
         <row>
           <entry>
-            <para>
-              <link linkend="pow">pow()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>Float</para>
+            <para><link linkend="pow">pow</link>(softfloat = 0.0, softfloat = 0.0) returns float/para>
           </entry>
           <entry>
             <para>Y</para>
@@ -2747,12 +2474,7 @@
         </row>
         <row>
           <entry>
-            <para>
-              <link linkend="print">print()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>-</para>
+            <para><link linkend="print">print</link>(...) returns nothing</para>
           </entry>
           <entry>
             <para>Y</para>
@@ -3553,18 +3275,14 @@
         </row>
         <row>
           <entry>
-            <para>
-              <link linkend="timegm">timegm()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>Date</para>
+            <para><link linkend="timegm">timegm</link>(date) returns int (CONST)</para>
+            <para><link linkend="timegm">timegm</link>() returns nothing (NOOP)</para>
           </entry>
           <entry>
             <para>N</para>
           </entry>
           <entry>
-            <para>Returns the number of seconds since January 1, 1970 00:00 for a given date in GMT.</para>
+            <para>Returns the number of seconds since January 1, 1970 00:00 in the local time zone for a given date.</para>
           </entry>
         </row>
         <row>
@@ -7320,7 +7038,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Returns the number of seconds since January 1, 1970 00:00 for a given date in GMT.  The availabilty of this function depends on the system's underlying C-library; the Qore function is only available if the constant <code>HAVE_TIMEGM</code> is True.  See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
+	<para>Returns the number of seconds since January 1, 1970 00:00:00 in the local time zone of the date argument passed.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -7369,22 +7087,6 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         </tgroup>
       </table>
 
-      <table><title>Exceptions Thrown by timegm()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>err</para></entry>
-	      <entry><para>desc</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
-	      <entry><para>This exception is thrown when the function is not available; for maximum portability, check the constant <code>HAVE_TIMEGM</code> before calling this function.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>      
 </sect2>
 
     <sect2 id="years">

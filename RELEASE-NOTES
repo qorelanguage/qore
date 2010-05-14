@@ -141,6 +141,7 @@ now_gmt_us() returns date
 date_us(softint) returns date
 microseconds(softint) returns date
 get_microseconds(date) returns int
+get_epoch_seconds(date) returns int
 
 * new overloaded variants of existing functions
 gmtime(date) returns date
@@ -260,6 +261,9 @@ now returns more information - the exception argument "arg" is a hash with the f
 code: the HTTP code received
 body: the message body received
 
+* HAVE_TIMEGM is always true
+we no longer use the system function timegm(), so this option (and constant) is always true now
+timegm() is now an alias for get_epoch_seconds()
 
 ***********************
 *** LANGUAGE ISSUES ***

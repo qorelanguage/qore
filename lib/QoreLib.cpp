@@ -212,14 +212,11 @@ const qore_option_s qore_option_list_l[] = {
      false
 #endif
    },
+   // HAVE_TIMEGM is always true now, we don't use the system function anymore anyway
    { QORE_OPT_FUNC_TIMEGM,
      "HAVE_TIMEGM",
      QO_FUNCTION,
-#ifdef HAVE_TIMEGM
      true
-#else
-     false
-#endif
    },
    { QORE_OPT_FUNC_SETEUID,
      "HAVE_SETEUID",

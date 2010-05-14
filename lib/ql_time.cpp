@@ -97,33 +97,9 @@ static AbstractQoreNode *f_gmtime_date(const QoreListNode *params, ExceptionSink
    return DateTimeNode::makeAbsolute(NULL, d->getEpochSecondsUTC(), d->getMicrosecond());
 }
 
-static AbstractQoreNode *f_mktime(const QoreListNode *params, ExceptionSink *xsink) {
-   const DateTimeNode *p0 = HARD_QORE_DATE(params, 0);
-
-   struct tm nt;
-   time_t t;
-
-   p0->getTM(&nt);
-   t = mktime(&nt);
-
-   return new QoreBigIntNode(t);
-}
-
 static AbstractQoreNode *f_timegm(const QoreListNode *params, ExceptionSink *xsink) {
-#ifdef HAVE_TIMEGM
    const DateTimeNode *p0 = HARD_QORE_DATE(params, 0);
-
-   struct tm nt;
-   time_t t;
-
-   p0->getTM(&nt);
-   t = timegm(&nt);
-
-   return new QoreBigIntNode(t);
-#else
-   xsink->raiseException("TIMEGM-ERROR", "this system does not implement timegm(); use the constant Qore::HAVE_TIMEGM to check if this function is implemented before calling");
-   return 0;
-#endif
+   return new QoreBigIntNode(p0->getEpochSeconds());
 }
 
 static AbstractQoreNode *f_get_epoch_seconds(const QoreListNode *params, ExceptionSink *xsink) {
@@ -360,7 +336,7 @@ void init_time_functions() {
    builtinFunctions.add2("gmtime", f_gmtime_int_int, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo, 2, softBigIntTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, zero());
 
    builtinFunctions.add2("mktime", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
-   builtinFunctions.add2("mktime", f_mktime, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("mktime", f_get_epoch_seconds, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add2("timegm", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("timegm", f_timegm, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);

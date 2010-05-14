@@ -1775,11 +1775,8 @@ void StaticSystemNamespace::init() {
    option->addConstant("HAVE_ROUND",    &False);
 #endif
 
-#ifdef HAVE_TIMEGM
+   // HAVE_TIMEGM is always true now; we don't use the system function anyway anymore
    option->addConstant("HAVE_TIMEGM",   &True);
-#else
-   option->addConstant("HAVE_TIMEGM",   &False);
-#endif
 
 #ifdef HAVE_SETEUID
    option->addConstant("HAVE_SETEUID",  &True);

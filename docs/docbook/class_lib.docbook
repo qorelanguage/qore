@@ -233,7 +233,7 @@
 	  <row>
 	    <entry><para><code>HAVE_TIMEGM</code></para></entry>
 	    <entry><para>Boolean</para></entry>
-	    <entry><para>Indicates if the <link linkend="timegm">timegm()</link> function is available.</para></entry>
+	    <entry><para>Always True (as of qore 0.8.0+): indicates that the <link linkend="timegm">timegm()</link> function is available.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><code>HAVE_SETEUID</code></para></entry>

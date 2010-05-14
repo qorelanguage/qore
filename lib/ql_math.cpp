@@ -265,7 +265,7 @@ void init_math_functions() {
    builtinFunctions.add2("floor",         f_float_noop, QC_NOOP, QDOM_DEFAULT, floatTypeInfo);
    builtinFunctions.add2("floor",         f_floor, QC_CONSTANT, QDOM_DEFAULT, floatTypeInfo, 1, softFloatTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("pow",           f_pow, QC_CONSTANT, QDOM_DEFAULT, floatTypeInfo, 2, softFloatTypeInfo, zero_float(), softFloatTypeInfo, zero_float());
+   builtinFunctions.add2("pow",           f_pow, QC_RET_VALUE_ONLY, QDOM_DEFAULT, floatTypeInfo, 2, softFloatTypeInfo, zero_float(), softFloatTypeInfo, zero_float());
 
    // overloaded abs()
    builtinFunctions.add2("abs",           f_float_noop, QC_NOOP, QDOM_DEFAULT, floatTypeInfo);
