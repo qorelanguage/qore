@@ -35,7 +35,7 @@
 
   <table>
     <title>System Function Library</title>
-    <tgroup cols="4" align="left" colsep="1" rowsep="1">
+    <tgroup cols="3" align="left" colsep="1" rowsep="1">
       <thead>
         <row>
           <entry>
@@ -1558,9 +1558,6 @@
           </para>
         </entry>
         <entry>
-          <para>Boolean</para>
-        </entry>
-        <entry>
           <para>N</para>
         </entry>
         <entry>
@@ -1803,6 +1800,7 @@
           </entry>
           <entry>
             <para>Returns a list of filesystem values for the file or symbolic link passed or NOTHING if the call to <code>stat()</code> fails.</para>
+          </entry>
         </row>
         <row>
           <entry>
@@ -2016,11 +2014,9 @@
       </row>
         <row>
           <entry>
-          <entry>
             <para><link linkend="makeXMLFragment">makeXMLFragment</link>(hash, string) returns string</para>
             <para><link linkend="makeXMLFragment">makeXMLFragment</link>(hash) returns string</para>
             <para><link linkend="makeXMLFragment">makeXMLFragment</link>() returns nothing (NOOP)</para>
-          </entry>
           </entry>
           <entry>
             <para>Y</para>
@@ -2291,7 +2287,7 @@
         </row>
         <row>
           <entry>
-            <para><link linkend="num_threads">num_threads</link>() returns int (CONST)<para>
+            <para><link linkend="num_threads">num_threads</link>() returns int (CONST)</para>
           </entry>
           <entry>
             <para>N</para>
@@ -2463,7 +2459,7 @@
         </row>
         <row>
           <entry>
-            <para><link linkend="pow">pow</link>(softfloat = 0.0, softfloat = 0.0) returns float/para>
+            <para><link linkend="pow">pow</link>(softfloat = 0.0, softfloat = 0.0) returns float</para>
           </entry>
           <entry>
             <para>Y</para>
@@ -2476,21 +2472,15 @@
           <entry>
             <para><link linkend="print">print</link>(...) returns nothing</para>
           </entry>
-          <entry>
-            <para>Y</para>
-          </entry>
+          <entry><para>N</para></entry>
           <entry>
             <para>Prints the string passed without any formatting.</para>
           </entry>
         </row>
         <row>
           <entry>
-            <para>
-              <link linkend="printf">printf()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>String</para>
+            <para><link linkend="printf">printf</link>(string, ...) returns string</para>
+            <para><link linkend="printf">printf</link>() returns string (NOOP)</para>
           </entry>
           <entry>
             <para>Y</para>
@@ -2501,20 +2491,14 @@
         </row>
 
         <row>
-          <entry><para><link linkend="rand">rand()</link></para></entry>
-          <entry><para>Float</para></entry>
+          <entry><para><link linkend="rand">rand</link>() returns int</para></entry>
           <entry><para>N</para></entry>
           <entry><para>Returns a random integer number.</para></entry>
         </row>
 
       <row>
         <entry>
-          <para>
-            <link linkend="rc2_encrypt_cbc">rc2_encrypt_cbc</link>(data, data, data = defaultIV) returns binary
-          </para>
-        </entry>
-        <entry>
-          <para>Binary</para>
+          <para><link linkend="rc2_encrypt_cbc">rc2_encrypt_cbc</link>(data, data, data = defaultIV) returns binary</para>
         </entry>
         <entry>
           <para>Y</para>
@@ -2530,9 +2514,6 @@
           </para>
         </entry>
         <entry>
-          <para>Binary</para>
-        </entry>
-        <entry>
           <para>Y</para>
         </entry>
         <entry>
@@ -2546,9 +2527,6 @@
           </para>
         </entry>
         <entry>
-          <para>String</para>
-        </entry>
-        <entry>
           <para>Y</para>
         </entry>
         <entry>
@@ -2557,12 +2535,7 @@
       </row>
       <row>
         <entry>
-          <para>
-            <link linkend="rc4_encrypt">rc4_encrypt()</link>
-          </para>
-        </entry>
-        <entry>
-          <para>Binary</para>
+          <para><link linkend="rc4_encrypt">rc4_encrypt</link>(data, data, data = defaultIV) returns binary</para>
         </entry>
         <entry>
           <para>Y</para>
@@ -2578,9 +2551,6 @@
           </para>
         </entry>
         <entry>
-          <para>Binary</para>
-        </entry>
-        <entry>
           <para>Y</para>
         </entry>
         <entry>
@@ -2592,9 +2562,6 @@
           <para>
             <link linkend="rc4_decrypt_to_string">rc4_decrypt_to_string</link>(data, data, data = defaultIV) <command>returns</command> string
           </para>
-        </entry>
-        <entry>
-          <para>String</para>
         </entry>
         <entry>
           <para>Y</para>
@@ -2610,9 +2577,6 @@
           </para>
         </entry>
         <entry>
-          <para>Binary</para>
-        </entry>
-        <entry>
           <para>Y</para>
         </entry>
         <entry>
@@ -2624,9 +2588,6 @@
           <para>
             <link linkend="rc5_decrypt_cbc">rc5_decrypt_cbc</link>(data, data, data = defaultIV) <command>returns</command> binary
           </para>
-        </entry>
-        <entry>
-          <para>Binary</para>
         </entry>
         <entry>
           <para>Y</para>
@@ -2642,9 +2603,6 @@
           </para>
         </entry>
         <entry>
-          <para>String</para>
-        </entry>
-        <entry>
           <para>Y</para>
         </entry>
         <entry>
@@ -2653,53 +2611,55 @@
       </row>
 
         <row>
-          <entry><para><link linkend="regex">regex()</link></para></entry>
-	  <entry><para>Boolean</para></entry>
+          <entry>
+            <para><link linkend="regex">regex</link>(string, string, int = 0) returns bool</para>
+            <para><link linkend="regex">regex</link>() returns nothing (NOOP)</para>
+          </entry>
           <entry><para>Y</para></entry>
           <entry><para>Returns true if the regular expression matches the string passed</para></entry>
         </row>
         <row>
-          <entry><para><link linkend="regex_extract">regex_extract()</link></para></entry>
-	  <entry><para>String</para></entry>
+          <entry>
+            <para><link linkend="regex_extract">regex_extract</link>(string, string, int = 0) returns list</para>
+            <para><link linkend="regex_extract">regex_extract</link>() returns nothing (NOOP)</para>
+          </entry>
           <entry><para>Y</para></entry>
           <entry><para>Returns a list of substrings in a string based on matching patterns defined by a regular expression.</para></entry>
         </row>
         <row>
-          <entry><para><link linkend="regex_subst">regex_subst()</link></para></entry>
-	  <entry><para>String</para></entry>
+          <entry>
+            <para><link linkend="regex_subst">regex_subst</link>(string, string, string, int = 0) returns string</para>
+            <para><link linkend="regex_subst">regex_subst</link>() returns nothing (NOOP)</para>
+          </entry>
           <entry><para>Y</para></entry>
           <entry><para>Returns a string with patterns substituted according to the arguments passed.</para></entry>
         </row>
 
         <row>
-          <entry><para><link linkend="remove_signal_handler">remove_signal_handler()()</link></para></entry>
-	  <entry><para>n/a</para></entry>
+          <entry><para><link linkend="remove_signal_handler">remove_signal_handler</link>(softint) returns nothing</para></entry>
           <entry><para>N</para></entry>
           <entry><para>Removes an installed signal handler and returns the signal handling state to the default.</para></entry>
         </row>
 
         <row>
-          <entry><para><link linkend="remove_thread_data">remove_thread_data()</link></para></entry>
-          <entry><para>n/a</para></entry>
+          <entry>
+            <para><link linkend="remove_thread_data">remove_thread_data</link>(list) returns nothing</para>
+            <para><link linkend="remove_thread_data">remove_thread_data</link>(...) returns nothing</para>
+          </entry>
           <entry><para>N</para></entry>
           <entry><para>Removes the listed keys from the thread-local data hash.</para></entry>
         </row>
 
         <row>
-          <entry><para><link linkend="rename">rename()</link></para></entry>
-          <entry><para>n/a</para></entry>
+          <entry><para><link linkend="rename">rename</link>(string, string) returns bool</para></entry>
           <entry><para>Y</para></entry>
           <entry><para>Renames (or moves) a file or directory.</para></entry>
         </row>
 
         <row>
           <entry>
-            <para>
-              <link linkend="replace">replace()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>String</para>
+            <para><link linkend="replace">replace</link>(string, string, string) returns string</para>
+            <para><link linkend="replace">replace</link>() returns nothing (NOOP)</para>
           </entry>
           <entry>
             <para>N</para>
@@ -2710,8 +2670,11 @@
         </row>
 
         <row>
-          <entry><para><link linkend="reverse">reverse()</link></para></entry>
-          <entry><para>String or List</para></entry>
+          <entry>
+            <para><link linkend="reverse">reverse</link>(string) returns string (CONST)</para>
+            <para><link linkend="reverse">reverse</link>(list) returns list (CONST)</para>
+            <para><link linkend="reverse">reverse</link>() returns nothing (NOOP)</para>
+          </entry>
           <entry><para>N</para></entry>
           <entry><para>Reverses the order of a string or a list and returns the new string or list.</para></entry>
         </row>
@@ -2719,12 +2682,7 @@
 
       <row>
         <entry>
-          <para>
-            <link linkend="RIPEMD160">RIPEMD160()</link>
-          </para>
-        </entry>
-        <entry>
-          <para>String</para>
+          <para><link linkend="RIPEMD160">RIPEMD160</link>(data) returns string</para>
         </entry>
         <entry>
           <para>Y</para>
@@ -2735,12 +2693,7 @@
       </row>
       <row>
         <entry>
-          <para>
-            <link linkend="RIPEMD160_bin">RIPEMD160_bin()</link>
-          </para>
-        </entry>
-        <entry>
-          <para>Binary</para>
+          <para><link linkend="RIPEMD160_bin">RIPEMD160_bin</link>(data) returns binary</para>
         </entry>
         <entry>
           <para>Y</para>
@@ -2752,12 +2705,8 @@
 
         <row>
           <entry>
-            <para>
-              <link linkend="rindex">rindex()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>Int</para>
+            <para><link linkend="rindex">rindex</link>(softstring, softstring, softint = -1) returns int (CONST)</para>
+            <para><link linkend="rindex">rindex</link>() returns int (NOOP)</para>
           </entry>
           <entry>
             <para>N</para>
@@ -2768,34 +2717,26 @@
         </row>
         <row>
           <entry>
-            <para>
-              <link linkend="rmdir">rmdir()</link>
-            </para>
+            <para><link linkend="rmdir">rmdir</link>(string) returns int</para>
           </entry>
-          <entry>
-            <para>Int</para>
-          </entry>
-          <entry>
-            <para>Y</para>
-          </entry>
+          <entry><para>N</para></entry>
           <entry>
             <para>Removes a directory.</para>
           </entry>
         </row>
         <row>
-          <entry><para><link linkend="round">round()</link></para></entry>
-          <entry><para>Float</para></entry>
+          <entry>
+            <para><link linkend="round">round</link>(softfloat) returns float (CONST)</para>
+            <para><link linkend="round">round</link>() returns float (NOOP)</para>
+          </entry>
           <entry><para>N</para></entry>
-          <entry><para>Returns a value rounded up to the nearest integer integer.</para></entry>
+          <entry><para>Returns a value rounded up to the nearest integer.</para></entry>
         </row>
         <row>
           <entry>
-            <para>
-              <link linkend="save_thread_data">save_thread_data()</link>
-            </para>
-          </entry>
-          <entry>
-            <para>-</para>
+            <para><link linkend="save_thread_data">save_thread_data</link>(hash) returns nothing</para>
+            <para><link linkend="save_thread_data">save_thread_data</link>(string, any) returns nothing</para>
+            <para><link linkend="save_thread_data">save_thread_data</link>() returns nothing (NOOP)</para>
           </entry>
           <entry>
             <para>Y</para>
@@ -2805,63 +2746,44 @@
           </entry>
         </row>
         <row>
-          <entry><para><link linkend="seconds">seconds()</link></para></entry>
-	  <entry><para>Date</para></entry>
+          <entry>
+            <para><link linkend="seconds">seconds</link>(softint) returns date (CONST)</para>
+            <para><link linkend="seconds">seconds</link>() returns date (NOOP)</para>
+          </entry>
           <entry><para>N</para></entry>
           <entry><para>Returns a <link linkend="Relative_Dates">relative date/time value</link> in seconds to be used in date arithmetic.</para></entry>
         </row>
 
         <row>
-          <entry><para><link linkend="set_signal_handler">set_signal_handler()</link></para></entry>
-	  <entry><para>n/a</para></entry>
+          <entry><para><link linkend="set_signal_handler">set_signal_handler</link>(softint, code) returns nothing</para></entry>
           <entry><para>N</para></entry>
           <entry><para>Installs or replaces a signal handler.</para></entry>
         </row>
 
       <row>
         <entry>
-          <para>
-            <link linkend="setegid">setegid()</link>
-          </para>
+          <para><link linkend="setegid">setegid</link>(softint) returns int</para>
         </entry>
-        <entry>
-          <para>Integer</para>
-        </entry>
-        <entry>
-          <para>Y</para>
-        </entry>
+        <entry><para>N</para></entry>
         <entry>
           <para>Changes the process effective group ID according to the argument passed.  Returns 0 for success, non-zero for errors (the error code can be retrieved with <link linkend="errno">errno()</link>)</para>
         </entry>
       </row>
       <row>
         <entry>
-          <para>
-            <link linkend="seteuid">seteuid()</link>
-          </para>
+          <para><link linkend="seteuid">seteuid</link>(softint) returns int</para>
         </entry>
-        <entry>
-          <para>Integer</para>
-        </entry>
-        <entry>
-          <para>Y</para>
-        </entry>
+        <entry><para>N</para></entry>
         <entry>
           <para>Changes the process effective user ID according to the argument passed.  Returns 0 for success, non-zero for errors (the error code can be retrieved with <link linkend="errno">errno()</link>)</para>
         </entry>
       </row>
         <row>
           <entry>
-            <para>
-              <link linkend="setenv">setenv()</link>
-            </para>
+            <para><link linkend="setenv">setenv</link>(string, softstring) returns int</para>
+            <para><link linkend="setenv">setenv</link>() returns nothing (NOOP)</para>
           </entry>
-          <entry>
-            <para>String</para>
-          </entry>
-          <entry>
-            <para>N</para>
-          </entry>
+        <entry><para>N</para></entry>
           <entry>
             <para>Sets the value of an environment variable</para>
           </entry>
@@ -2869,32 +2791,18 @@
 
       <row>
         <entry>
-          <para>
-            <link linkend="setgid">setgid()</link>
-          </para>
+          <para><link linkend="setgid">setgid</link>(softint) returns int</para>
         </entry>
-        <entry>
-          <para>Integer</para>
-        </entry>
-        <entry>
-          <para>Y</para>
-        </entry>
+        <entry><para>N</para></entry>
         <entry>
           <para>Changes the process group ID according to the argument passed.  Returns 0 for success, non-zero for errors (the error code can be retrieved with <link linkend="errno">errno()</link>)</para>
         </entry>
       </row>
       <row>
         <entry>
-          <para>
-            <link linkend="setuid">setuid()</link>
-          </para>
+          <para><link linkend="setuid">setuid</link>(softint) returns int</para>
         </entry>
-        <entry>
-          <para>Integer</para>
-        </entry>
-        <entry>
-          <para>Y</para>
-        </entry>
+        <entry><para>N</para></entry>
         <entry>
           <para>Changes the process user ID according to the argument passed.  Returns 0 for success, non-zero for errors (the error code can be retrieved with <link linkend="errno">errno()</link>)</para>
         </entry>
@@ -2902,12 +2810,7 @@
 
       <row>
         <entry>
-          <para>
-            <link linkend="SHA">SHA()</link>
-          </para>
-        </entry>
-        <entry>
-          <para>String</para>
+          <para><link linkend="SHA">SHA</link>(data) returns string</para>
         </entry>
         <entry>
           <para>Y</para>
@@ -2923,9 +2826,6 @@
           </para>
         </entry>
         <entry>
-          <para>Binary</para>
-        </entry>
-        <entry>
           <para>Y</para>
         </entry>
         <entry>
@@ -2933,62 +2833,52 @@
         </entry>
       </row>
       <row>
-        <entry><para><link linkend="SHA1">SHA1()</link></para></entry>
-        <entry><para>String</para></entry>
+        <entry><para><link linkend="SHA1">SHA1</link>(data) returns string</para></entry>
         <entry><para>Y</para></entry>
         <entry><para>Returns the SHA1 message digest of the supplied argument as a hex string (for strings, the trailing null character is not included in the digest)</para></entry>
       </row>
       <row>
-        <entry><para><link linkend="SHA1_bin">SHA1_bin()</link></para></entry>
-        <entry><para>Binary</para></entry>
+        <entry><para><link linkend="SHA1_bin">SHA1_bin</link>(data) returns binary</para></entry>
         <entry><para>Y</para></entry>
         <entry><para>Returns the SHA1 message digest of the supplied argument as a binary object (for strings, the trailing null character is not included in the digest)</para></entry>
       </row>
       <row>
-        <entry><para><link linkend="SHA224">SHA224()</link></para></entry>
-        <entry><para>String</para></entry>
+        <entry><para><link linkend="SHA224">SHA224</link>(data) returns string</para></entry>
         <entry><para>Y</para></entry>
         <entry><para>Returns the SHA224 message digest of the supplied argument as a hex string (for strings, the trailing null character is not included in the digest)</para></entry>
       </row>
       <row>
-        <entry><para><link linkend="SHA224_bin">SHA224_bin()</link></para></entry>
-        <entry><para>Binary</para></entry>
+        <entry><para><link linkend="SHA224_bin">SHA224_bin</link>(data) returns binary</para></entry>
         <entry><para>Y</para></entry>
         <entry><para>Returns the SHA224 message digest of the supplied argument as a binary object (for strings, the trailing null character is not included in the digest)</para></entry>
       </row>
       <row>
-        <entry><para><link linkend="SHA256">SHA256()</link></para></entry>
-        <entry><para>String</para></entry>
+        <entry><para><link linkend="SHA256">SHA256</link>(data) returns string</para></entry>
         <entry><para>Y</para></entry>
         <entry><para>Returns the SHA256 message digest of the supplied argument as a hex string (for strings, the trailing null character is not included in the digest)</para></entry>
       </row>
       <row>
-        <entry><para><link linkend="SHA256_bin">SHA256_bin()</link></para></entry>
-        <entry><para>Binary</para></entry>
+        <entry><para><link linkend="SHA256_bin">SHA256_bin</link>(data) returns binary</para></entry>
         <entry><para>Y</para></entry>
         <entry><para>Returns the SHA256 message digest of the supplied argument as a binary object (for strings, the trailing null character is not included in the digest)</para></entry>
       </row>
       <row>
-        <entry><para><link linkend="SHA384">SHA384()</link></para></entry>
-        <entry><para>String</para></entry>
+        <entry><para><link linkend="SHA384">SHA384</link>(data) returns string</para></entry>
         <entry><para>Y</para></entry>
         <entry><para>Returns the SHA384 message digest of the supplied argument as a hex string (for strings, the trailing null character is not included in the digest)</para></entry>
       </row>
       <row>
-        <entry><para><link linkend="SHA384_bin">SHA384_bin()</link></para></entry>
-        <entry><para>Binary</para></entry>
+        <entry><para><link linkend="SHA384_bin">SHA384_bin</link>(data) returns binary</para></entry>
         <entry><para>Y</para></entry>
         <entry><para>Returns the SHA384 message digest of the supplied argument as a binary object (for strings, the trailing null character is not included in the digest)</para></entry>
       </row>
       <row>
-        <entry><para><link linkend="SHA512">SHA512()</link></para></entry>
-        <entry><para>String</para></entry>
+        <entry><para><link linkend="SHA512">SHA512</link>(data) returns string</para></entry>
         <entry><para>Y</para></entry>
         <entry><para>Returns the SHA512 message digest of the supplied argument as a hex string (for strings, the trailing null character is not included in the digest)</para></entry>
       </row>
       <row>
-        <entry><para><link linkend="SHA512_bin">SHA512_bin()</link></para></entry>
-        <entry><para>Binary</para></entry>
+        <entry><para><link linkend="SHA512_bin">SHA512_bin</link>(data) returns binary</para></entry>
         <entry><para>Y</para></entry>
         <entry><para>Returns the SHA512 message digest of the supplied argument as a binary object (for strings, the trailing null character is not included in the digest)</para></entry>
       </row>
@@ -3000,9 +2890,6 @@
             </para>
           </entry>
           <entry>
-            <para>Int</para>
-          </entry>
-          <entry>
             <para>N</para>
           </entry>
           <entry>
@@ -3011,25 +2898,21 @@
         </row>
         <row>
           <entry><para><link linkend="sort">sort()</link></para></entry>
-          <entry><para>List</para></entry>
           <entry><para>Y</para></entry>
           <entry><para>Sorts a list in ascending order (unstable); optionally takes a <link linkend="closures">closure</link> or a <link linkend="call_references">call reference</link> (function or object method reference) to sort non-trivial data types.</para></entry>
         </row>
         <row>
           <entry><para><link linkend="sortDescending">sortDescending()</link></para></entry>
-          <entry><para>List</para></entry>
           <entry><para>Y</para></entry>
           <entry><para>Sorts a list in descending order (unstable); optionally takes a <link linkend="closures">closure</link> or <link linkend="call_references">call reference</link> (function or object method reference) to sort non-trivial data types.</para></entry>
         </row>
         <row>
           <entry><para><link linkend="sortDescendingStable">sortDescendingStable()</link></para></entry>
-          <entry><para>List</para></entry>
           <entry><para>Y</para></entry>
           <entry><para>Performs a descending stable sort on a list and returns the new list; optionally takes a <link linkend="closures">closure</link> or <link linkend="call_references">call reference</link> (function or object method reference) to sort non-trivial data types.</para></entry>
         </row>
         <row>
           <entry><para><link linkend="sortStable">sortStable()</link></para></entry>
-          <entry><para>List</para></entry>
           <entry><para>Y</para></entry>
           <entry><para>Performs an ascending stable sort on a list and returns the new list; optionally takes a <link linkend="closures">closure</link> or <link linkend="call_references">call reference</link> (function or object method reference) to sort non-trivial data types.</para></entry>
         </row>
@@ -3038,9 +2921,6 @@
             <para>
               <link linkend="split">split()</link>
             </para>
-          </entry>
-          <entry>
-            <para>List</para>
           </entry>
           <entry>
             <para>N</para>
@@ -3056,9 +2936,6 @@
             </para>
           </entry>
           <entry>
-            <para>String</para>
-          </entry>
-          <entry>
             <para>Y</para>
           </entry>
           <entry>
@@ -3071,7 +2948,6 @@
               <link linkend="sin">sin()</link>
             </para>
           </entry>
-          <entry><para>Float</para></entry>
           <entry>
             <para>N</para>
           </entry>
@@ -3084,9 +2960,6 @@
             <para>
               <link linkend="sinh">sinh()</link>
             </para>
-          </entry>
-          <entry>
-            <para>Float</para>
           </entry>
           <entry>
             <para>N</para>
@@ -3102,9 +2975,6 @@
             </para>
           </entry>
           <entry>
-            <para>Float</para>
-          </entry>
-          <entry>
             <para>N</para>
           </entry>
           <entry>
@@ -3116,9 +2986,6 @@
             <para>
               <link linkend="srand">srand()</link>
             </para>
-          </entry>
-          <entry>
-            <para>n/a</para>
           </entry>
           <entry>
             <para>N</para>
@@ -3134,9 +3001,6 @@
             </para>
           </entry>
           <entry>
-            <para>List</para>
-          </entry>
-          <entry>
             <para>N</para>
           </entry>
           <entry>
@@ -3148,9 +3012,6 @@
             <para>
               <link linkend="strerror">strerror()</link>
             </para>
-          </entry>
-          <entry>
-            <para>String</para>
           </entry>
           <entry>
             <para>N</para>
@@ -3166,9 +3027,6 @@
             </para>
           </entry>
           <entry>
-            <para>String</para>
-          </entry>
-          <entry>
             <para>N</para>
           </entry>
           <entry>
@@ -3182,9 +3040,6 @@
             </para>
           </entry>
           <entry>
-            <para>Int</para>
-          </entry>
-          <entry>
             <para>N</para>
           </entry>
           <entry>
@@ -3193,7 +3048,6 @@
         </row>
         <row>
           <entry><para><link linkend="strtoint">strtoint()</link></para></entry>
-          <entry><para>Integer</para></entry>
           <entry><para>N</para></entry>
           <entry><para>Returns an integer corresponding to the string passed with the possibility to specify the base (default base 10).</para></entry>
         </row>
@@ -3202,9 +3056,6 @@
             <para>
               <link linkend="substr">substr()</link>
             </para>
-          </entry>
-          <entry>
-            <para>String</para>
           </entry>
           <entry>
             <para>N</para>
@@ -3220,9 +3071,6 @@
             </para>
           </entry>
           <entry>
-            <para>Int</para>
-          </entry>
-          <entry>
             <para>Y</para>
           </entry>
           <entry>
@@ -3234,9 +3082,6 @@
             <para>
               <link linkend="tan">tan()</link>
             </para>
-          </entry>
-          <entry>
-            <para>Float</para>
           </entry>
           <entry>
             <para>N</para>
@@ -3252,9 +3097,6 @@
             </para>
           </entry>
           <entry>
-            <para>Float</para>
-          </entry>
-          <entry>
             <para>N</para>
           </entry>
           <entry>
@@ -3263,13 +3105,11 @@
         </row>
         <row>
           <entry><para><link linkend="thread_list">thread_list()</link></para></entry>
-          <entry><para>List</para></entry>
           <entry><para>N</para></entry>
           <entry><para>Returns a list of all current thread IDs</para></entry>
         </row>
         <row>
           <entry><para><link linkend="throwThreadResourceExceptions">throwThreadResourceExceptions()</link></para></entry>
-          <entry><para>n/a</para></entry>
           <entry><para>Y</para></entry>
           <entry><para>Immediately runs all thread resource cleanup routines for the current thread and throws all associated exceptions.</para></entry>
         </row>
@@ -3292,9 +3132,6 @@
             </para>
           </entry>
           <entry>
-            <para>String</para>
-          </entry>
-          <entry>
             <para>N</para>
           </entry>
           <entry>
@@ -3308,9 +3145,6 @@
             </para>
           </entry>
           <entry>
-            <para>String</para>
-          </entry>
-          <entry>
             <para>N</para>
           </entry>
           <entry>
@@ -3319,7 +3153,6 @@
         </row>
         <row>
           <entry><para><link linkend="trim">trim()</link></para></entry>
-          <entry><para>String</para></entry>
           <entry><para>N</para></entry>
           <entry><para>Removes the characters from a string (whiltespace by default, can be overridden) and returns the new string (also see the <link linkend="Trim_Operator">trim</link> operator); also accepts variable references to do modifications in-place.</para></entry>
         </row>
@@ -3328,9 +3161,6 @@
             <para>
               <link linkend="type">type()</link>
             </para>
-          </entry>
-          <entry>
-            <para>Int</para>
           </entry>
           <entry>
             <para>N</para>
@@ -3346,9 +3176,6 @@
             </para>
           </entry>
           <entry>
-            <para>String</para>
-          </entry>
-          <entry>
             <para>N</para>
           </entry>
           <entry>
@@ -3362,9 +3189,6 @@
             </para>
           </entry>
           <entry>
-            <para>Int</para>
-          </entry>
-          <entry>
             <para>N</para>
           </entry>
           <entry>
@@ -3373,13 +3197,11 @@
         </row>
         <row>
           <entry><para><link linkend="uncompress_to_binary">uncompress_to_binary()</link></para></entry>
-          <entry><para>Binary</para></entry>
           <entry><para>N</para></entry>
           <entry><para>Uncompresses (inflates) data compressed with the &quot;deflate&quot; algorithm (<ulink url="http://www.ietf.org/rfc/rfc1951.txt?number=1951">RFC 1951</ulink>) using zlib functions and returns a binary object.</para></entry>
         </row>
         <row>
           <entry><para><link linkend="uncompress_to_string">uncompress_to_string()</link></para></entry>
-          <entry><para>String</para></entry>
           <entry><para>N</para></entry>
           <entry><para>Uncompresses (inflates) data compressed with the &quot;deflate&quot; algorithm (<ulink url="http://www.ietf.org/rfc/rfc1951.txt?number=1951">RFC 1951</ulink>) using zlib functions and returns a string.</para></entry>
         </row>
@@ -3390,9 +3212,6 @@
             </para>
           </entry>
           <entry>
-            <para>Int</para>
-          </entry>
-          <entry>
             <para>N</para>
           </entry>
           <entry>
@@ -3401,7 +3220,6 @@
         </row>
         <row>
           <entry><para><link linkend="unsetenv">unsetenv()</link></para></entry>
-          <entry><para>n/a</para></entry>
           <entry><para>N</para></entry>
           <entry><para>Unsets an environment variable</para></entry>
         </row>
@@ -3411,7 +3229,6 @@
             <para><link linkend="usleep">usleep(softint) returns int </link></para>
             <para><link linkend="usleep"><replaceable>usleep() returns nothing</replaceable> (&lt;NOOP&gt;)</link></para>
           </entry>
-          <entry><para>Int</para></entry>
           <entry><para>N</para></entry>
           <entry><para>Causes the current thread to sleep for a certain number of microseconds</para></entry>
         </row>
@@ -3420,9 +3237,6 @@
             <para>
               <link linkend="vprintf">vprintf()</link>
             </para>
-          </entry>
-          <entry>
-            <para>String</para>
           </entry>
           <entry>
             <para>Y</para>
@@ -3438,9 +3252,6 @@
             </para>
           </entry>
           <entry>
-            <para>String</para>
-          </entry>
-          <entry>
             <para>Y</para>
           </entry>
           <entry>
@@ -3452,9 +3263,6 @@
             <para>
               <link linkend="years">years()</link>
             </para>
-          </entry>
-          <entry>
-            <para>Date</para>
           </entry>
           <entry>
             <para>N</para>
