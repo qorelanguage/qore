@@ -2213,7 +2213,7 @@ printf("0x%x\n", $binary[2]);
 	  <entry><para>Gives the result of concatenating its arguments.</para></entry>
 	</row>
 	<row>
-	  <entry><para>Dat<link linkend="date_type">date</link>e</para></entry>
+	  <entry><para><link linkend="date_type">date</link></para></entry>
 	  <entry><para>Gives the result of adding date/time values (see <link linkend='Date_Time_Arithmetic'>Date/Time Arithmetic</link>)</para></entry>
 	</row>
 	<row>
@@ -3419,7 +3419,7 @@ printf("0x%x\n", $binary[2]);
 <tbody>
   <row>
     <entry><para><link linkend="int_type">int</link></para></entry>
-    <entry><para>Gives the result of the binary (bitwise) AND operation between <replaceable>expression1</replaceable> and <replaceable>expression2</replaceable> (ex: 0xffb2 &amp; 0xa1 = 0xa1); operands are convert to integers if necessary.</para></entry>
+    <entry><para>Gives the result of the binary (bitwise) AND operation between <replaceable>expression1</replaceable> and <replaceable>expression2</replaceable> (ex: 0xffb2 &amp; 0xa1 = 0xa1); operands are converted to integers if necessary.</para></entry>
   </row>
 
 </tbody>
@@ -3469,7 +3469,7 @@ printf("0x%x\n", $binary[2]);
       <tbody>
 	<row>
 	  <entry><para><link linkend="int_type">int</link></para></entry>
-	  <entry><para>Gives the result of the binary (bitwise) OR operation between <replaceable>expression1</replaceable> and <replaceable>expression2</replaceable> (ex: 0xb001 | 0xfea = 0xbfeb); operands are convert to integers if necessary.</para></entry>
+	  <entry><para>Gives the result of the binary (bitwise) OR operation between <replaceable>expression1</replaceable> and <replaceable>expression2</replaceable> (ex: 0xb001 | 0xfea = 0xbfeb); operands are converted to integers if necessary.</para></entry>
 	</row>
       </tbody>
     </tgroup>
@@ -3519,7 +3519,7 @@ printf("0x%x\n", $binary[2]);
   <row>
     <entry><para><link linkend="int_type">int</link></para></entry>
     <entry><para>Gives the result of the binary (bitwise) EXCLUSIVE OR operation between <replaceable>expression1</replaceable> and <replaceable>expression2</replaceable> (ex: 0xaef1 &amp; 0xfb32 = 
-      0x55c3); operands are convert to integers if necessary.</para></entry>
+      0x55c3); operands are converted to integers if necessary.</para></entry>
   </row>
 
 </tbody>

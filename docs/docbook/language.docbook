@@ -636,11 +636,11 @@ is a multiline string";</programlisting>
 
     	<para>Here are some examples (using qore's -X command-line option to evaluate and expression and print out the result):</para>
     
-    <programlisting>qore -X 'P1Y3MT4S'
+    <programlisting><replaceable>prompt% </replaceable>qore -X 'P1Y3MT4S'
 &lt;time: 1 year 3 months 4 seconds&gt;
-qore -X 'PT4M551u'
+<replaceable>prompt% </replaceable>qore -X 'PT4M551u'
 &lt;time: 4 minutes 551 microseconds&gt;
-qore -X 'P3DT21H'
+<replaceable>prompt% </replaceable>qore -X 'P3DT21H'
 &lt;time: 3 days 21 hours&gt;
 </programlisting>
 </sect4>
@@ -656,11 +656,11 @@ qore -X 'P3DT21H'
 
     	<para>Here are some examples of the second format (equivalent to the first examples):</para>
     
-    <programlisting>qore -X 'P0001-03-00T00:00:04'
+    <programlisting><replaceable>prompt% </replaceable>qore -X 'P0001-03-00T00:00:04'
 &lt;time: 1 year 3 months 4 seconds&gt;
-qore -X 'P0000-00-00T00:04:00.000551'
+<replaceable>prompt% </replaceable>qore -X 'P0000-00-00T00:04:00.000551'
 &lt;time: 4 minutes 551 microseconds&gt;
-qore -X 'P0000-00-03T21:00:00'
+<replaceable>prompt% </replaceable>qore -X 'P0000-00-03T21:00:00'
 &lt;time: 3 days 21 hours&gt;</programlisting>
   </sect4>
   </sect3>
@@ -693,7 +693,7 @@ qore -X 'P0000-00-03T21:00:00'
 <sect2 id="NOTHING">
   <title>NOTHING</title>
   <para>This special data type represents no value.</para>
-  <note><para>The <link linkend="Exists_Operator"><command>exists</command></link> operator will return False when given <command>NOTHING</command> as an argument; for example:</para><programlisting>qore -X 'exists NOTHING'
+  <note><para>The <link linkend="Exists_Operator"><command>exists</command></link> operator will return False when given <command>NOTHING</command> as an argument; for example:</para><programlisting><replaceable>prompt% </replaceable>qore -X 'exists NOTHING'
 False</programlisting></note>
 </sect2>
 
@@ -960,6 +960,12 @@ False</programlisting></note>
             <entry><para>same as received</para></entry>
             <entry><para>Provides no restrictions on the type of value it receives and returns the same value.</para></entry>
           </row>
+          <row id="data_type">
+            <entry><para><code>data</code></para></entry>
+            <entry><para><link linkend="String">String</link> or <link linkend="Binary">Binary</link></para></entry>
+            <entry><para>same as received</para></entry>
+            <entry><para>Restricts input to <link linkend="String">String</link> and <link linkend="Binary">Binary</link> and returns the same type.</para></entry>
+          </row>
           <row id="code_type">
             <entry><para><code>code</code></para></entry>
             <entry><para><link linkend="closures">Closure</link>, <link linkend="call_references">Call Reference</link></para></entry>
@@ -1026,13 +1032,13 @@ False</programlisting></note>
 
   <para>Here are some examples using Qore's '-X' option for evaluating an expression and displaying the result immediately:</para>
 
-  <programlisting>TZ=America/Chicago qore -X 'now_us()'
+  <programlisting><replaceable>prompt% </replaceable>TZ=America/Chicago qore -X 'now_us()'
 2010-05-11 06:14:28.845857 Tue -05:00 (CDT)
-TZ=Europe/Rome qore -X 'now_us()'
+<replaceable>prompt% </replaceable>TZ=Europe/Rome qore -X 'now_us()'
 2010-05-11 13:14:35.070568 Tue +02:00 (CEST)
-TZ=Australia/Sydney qore -X 'now_us()'
+<replaceable>prompt% </replaceable>TZ=Australia/Sydney qore -X 'now_us()'
 2010-05-11 21:14:45.422222 Tue +10:00 (EST)
-TZ=Asia/Tokyo qore -X 'now_us()'
+<replaceable>prompt% </replaceable>TZ=Asia/Tokyo qore -X 'now_us()'
 2010-05-11 20:14:59.609249 Tue +09:00 (CJT)</programlisting>
 
   <para>Note that posix-style time zone rules are not understood if assigned to the TZ environment variable, only file names to a zoneinfo file can be processed at the moment.  Furthermore if the zoneinfo file contains leap second information, it is currently ignored.</para>
@@ -1672,7 +1678,7 @@ $$         # for the entire implicit argument list</programlisting>
 
       <para>Adding or subtracting years and months (ex: $date += 2Y + 3M) will give you the same day on the desired month in the desired year. If the target month has fewer days than the source month, then you will get the last day of the month in that year. For example:</para>
 
-      <programlisting>qore -X '2004-02-29Z - 1Y'
+      <programlisting><replaceable>prompt% </replaceable>qore -X '2004-02-29Z - 1Y'
 2003-02-28 00:00:00 Fri Z (UTC)</programlisting>
     </sect2>
 
@@ -1680,7 +1686,7 @@ $$         # for the entire implicit argument list</programlisting>
       <title>Adding and Subtracting Days</title>
       <para>Adding or subtracting days means adding or subtracting 24h periods; i.e. you will get the same time in the result of subtracting days, for example:</para>
 
-      <programlisting>qore -X '2004-02-29T10:15:00Z - 10D'
+      <programlisting><replaceable>prompt% </replaceable>qore -X '2004-02-29T10:15:00Z - 10D'
 2004-02-19 10:15:00 Thu Z (UTC)</programlisting>
 
     </sect2>
@@ -1688,14 +1694,14 @@ $$         # for the entire implicit argument list</programlisting>
     <sect2 id="Date_Differences">
       <title>Finding the Difference Between Two Dates</title>
       <para>Subtracting one absolute date from another will result in a <link linkend="Relative_Dates">relative date</link>, normalized to the hour (that is, microseconds over 999,999 are converted to seconds, seconds over 59 to minutes, and minutes over 59 to hours; days, months, and years will not appear in the result as they do not indicate a fixed period of time but rather can vary in length depending on the absolute date/time starting point.  For example:</para>
-	<programlisting>qore -X '2007-02-29T10:15:03.255Z - 2004-02-29T10:14:02.100Z'
+	<programlisting><replaceable>prompt% </replaceable>qore -X '2007-02-29T10:15:03.255Z - 2004-02-29T10:14:02.100Z'
 &lt;time: 26304 hours 1 minute 1 second 155 milliseconds&gt;</programlisting>
 
       <para>To find the difference in seconds between two dates, convert each date value to an integer and subtract as follows:</para>
-	<programlisting>qore -X 'int(2004-02-29Z) - int(2004-02-28Z)'
+	<programlisting><replaceable>prompt% </replaceable>qore -X 'int(2004-02-29Z) - int(2004-02-28Z)'
 86400</programlisting>
   <para>Or use the <link linkend="get_duration_seconds">get_duration_seconds()</link> function as follows:</para>
-	<programlisting>qore -X 'get_duration_seconds(2004-02-29Z - 2004-02-28Z)'
+	<programlisting><replaceable>prompt% </replaceable>qore -X 'get_duration_seconds(2004-02-29Z - 2004-02-28Z)'
 86400</programlisting>
 
     </sect2>
@@ -1706,7 +1712,7 @@ $$         # for the entire implicit argument list</programlisting>
 
   <para>To find out if the current time zone has daylight savings time, execute the following:</para>
 
-  <programlisting>qore -X 'TimeZone::get().hasDST()'
+  <programlisting><replaceable>prompt% </replaceable>qore -X 'TimeZone::get().hasDST()'
 True</programlisting>
 
   <para>See the <link linkend="Time_Zone_Class">TimeZone class</link> for more information on time zone information.</para>
