@@ -1229,7 +1229,7 @@ void init_misc_functions() {
    builtinFunctions.add2("hextoint", f_hextoint, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add2("strtoint", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
-   builtinFunctions.add2("strtoint", f_strtoint, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, new QoreBigIntNode(10));
+   builtinFunctions.add2("strtoint", f_strtoint, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, new QoreBigIntNode(10));
 
    builtinFunctions.add2("load_module", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("load_module", f_load_module, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);

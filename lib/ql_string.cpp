@@ -605,7 +605,7 @@ void init_string_functions() {
    builtinFunctions.add2("chr", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
 
    // an empty list was returned by split() if the types were not correct
-   builtinFunctions.add2("split", f_list_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   builtinFunctions.add2("split", f_list_noop, QC_NOOP, QDOM_DEFAULT, listTypeInfo);
    builtinFunctions.add2("split", f_split_str, QC_CONSTANT, QDOM_DEFAULT, listTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("split", f_split_bin, QC_CONSTANT, QDOM_DEFAULT, listTypeInfo, 2, binaryTypeInfo, QORE_PARAM_NO_ARG, binaryTypeInfo, QORE_PARAM_NO_ARG);
 

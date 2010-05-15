@@ -19,14 +19,14 @@ all: docbook/*docbook
 	         --stringparam generate.toc "book toc,title" \
 	         --stringparam toc.max.depth 2 \
 	         --output qore.html \
-	         /usr/share/xml/docbook/stylesheet/nwalsh5/current/xhtml/docbook.xsl \
+		 /opt/local/share/xsl/docbook-xsl/xhtml/docbook.xsl \
 	         docbook/qore.docbook 
 	xsltproc --stringparam html.stylesheet qore-style.css \
 	         --stringparam use.id.as.filename 1 \
 	         --stringparam generate.toc "book toc,title" \
 	         --stringparam toc.max.depth 2 \
 	         --stringparam base.dir "qore-html/" \
-	         /usr/share/xml/docbook/stylesheet/nwalsh5/current/xhtml/chunk.xsl \
+		 /opt/local/share/xsl/docbook-xsl/xhtml/chunk.xsl \
 	         docbook/qore.docbook
 
 clean:
