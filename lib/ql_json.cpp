@@ -294,7 +294,7 @@ static AbstractQoreNode *getJSONValue(const char *&buf, int &line_number, const 
 	 buf++;
       }
       if (has_dot)
-	 return new QoreFloatNode(atof(str.getBuffer()));
+	 return new QoreFloatNode(strtod(str.getBuffer(), 0));
       return new QoreBigIntNode(strtoll(str.getBuffer(), 0, 10));
    }
    

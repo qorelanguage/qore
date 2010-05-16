@@ -1164,7 +1164,7 @@ sub misc_tests() {
     test_value(existsFunction("simple_shift"), True, "existsFunction()");
     test_value(functionType("simple_shift"), "user", "functionType() user");
     test_value(functionType("printf"), "builtin", "functionType() builtin");
-    test_value(typename(1), "integer", "type()");
+    test_value(type(1), "integer", "type()");
     my string $str1 = "&<>\"";
     my string $str2 = "&amp;&lt;&gt;&quot;";
     test_value(html_encode($str1), $str2, "html_encode()");

@@ -2785,8 +2785,8 @@ raised from the <link linkend="FtpClient_Class">FtpClient</link> class.</para></
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting><command>my</command> $termios = <command>new</command> TermIOS();
-$f.getTerminalAttributes($termios);</programlisting>
+	    <programlisting><command>my</command> TermIOS $termios();
+stdin.getTerminalAttributes($termios);</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -4897,8 +4897,9 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting><command>my</command> $termios = <command>new</command> TermIOS();
-<command>my</command> $orig = $termios.copy();
+	    <programlisting><command>my</command> TermIOS $termios();
+stdin.getTerminalAttributes($termios);
+<command>my</command> TermIOS $orig = $termios.copy();
 <command>on_exit</command>
     stdin.setTerminalAttributes(TCSADRAIN, $orig);
 

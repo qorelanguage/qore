@@ -71,7 +71,7 @@ int64 QoreStringNode::getAsBigIntImpl() const {
 }
 
 double QoreStringNode::getAsFloatImpl() const {
-   return atof(getBuffer());
+   return strtod(getBuffer(), 0);
 }
 
 QoreString *QoreStringNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const {

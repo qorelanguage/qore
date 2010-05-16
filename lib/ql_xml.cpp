@@ -1527,7 +1527,7 @@ int QoreXmlRpcReader::getDouble(XmlRpcValue *v, ExceptionSink *xsink) {
       const char *str = constValue();
       if (str) {
 	 //printd(5, "** got float '%s'\n", str);
-	 v->set(new QoreFloatNode(atof(str)));
+	 v->set(new QoreFloatNode(strtod(str, 0)));
       }
 
       // advance to next position
