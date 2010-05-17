@@ -856,40 +856,40 @@ void init_crypto_functions() {
    defaultIV->append(def_iv, 8);
    
    builtinFunctions.add2("blowfish_encrypt_cbc", f_blowfish_encrypt_cbc, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo, 3, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, defaultIV->refSelf());
-   builtinFunctions.add2("blowfish_decrypt_cbc", f_blowfish_decrypt_cbc, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo, 3, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, defaultIV->refSelf());
-   builtinFunctions.add2("blowfish_decrypt_cbc_to_string", f_blowfish_decrypt_cbc_to_string, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 3, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, defaultIV->refSelf());
+   builtinFunctions.add2("blowfish_decrypt_cbc", f_blowfish_decrypt_cbc, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo, 3, binaryTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, defaultIV->refSelf());
+   builtinFunctions.add2("blowfish_decrypt_cbc_to_string", f_blowfish_decrypt_cbc_to_string, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 3, binaryTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, defaultIV->refSelf());
 
    builtinFunctions.add2("des_encrypt_cbc", f_des_encrypt_cbc, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo, 3, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, defaultIV->refSelf());
-   builtinFunctions.add2("des_decrypt_cbc", f_des_decrypt_cbc, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo, 3, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, defaultIV->refSelf());
-   builtinFunctions.add2("des_decrypt_cbc_to_string", f_des_decrypt_cbc_to_string, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 3, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, defaultIV->refSelf());
+   builtinFunctions.add2("des_decrypt_cbc", f_des_decrypt_cbc, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo, 3, binaryTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, defaultIV->refSelf());
+   builtinFunctions.add2("des_decrypt_cbc_to_string", f_des_decrypt_cbc_to_string, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 3, binaryTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, defaultIV->refSelf());
 
    builtinFunctions.add2("des_ede_encrypt_cbc", f_des_ede_encrypt_cbc, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo, 3, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, defaultIV->refSelf());
-   builtinFunctions.add2("des_ede_decrypt_cbc", f_des_ede_decrypt_cbc, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo, 3, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, defaultIV->refSelf());
-   builtinFunctions.add2("des_ede_decrypt_cbc_to_string", f_des_ede_decrypt_cbc_to_string, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 3, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, defaultIV->refSelf());
+   builtinFunctions.add2("des_ede_decrypt_cbc", f_des_ede_decrypt_cbc, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo, 3, binaryTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, defaultIV->refSelf());
+   builtinFunctions.add2("des_ede_decrypt_cbc_to_string", f_des_ede_decrypt_cbc_to_string, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 3, binaryTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, defaultIV->refSelf());
 
    builtinFunctions.add2("des_ede3_encrypt_cbc", f_des_ede3_encrypt_cbc, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo, 3, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, defaultIV->refSelf());
-   builtinFunctions.add2("des_ede3_decrypt_cbc", f_des_ede3_decrypt_cbc, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo, 3, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, defaultIV->refSelf());
-   builtinFunctions.add2("des_ede3_decrypt_cbc_to_string", f_des_ede3_decrypt_cbc_to_string, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 3, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, defaultIV->refSelf());
+   builtinFunctions.add2("des_ede3_decrypt_cbc", f_des_ede3_decrypt_cbc, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo, 3, binaryTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, defaultIV->refSelf());
+   builtinFunctions.add2("des_ede3_decrypt_cbc_to_string", f_des_ede3_decrypt_cbc_to_string, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 3, binaryTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, defaultIV->refSelf());
 
    builtinFunctions.add2("desx_encrypt_cbc", f_desx_encrypt_cbc, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo, 3, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, defaultIV->refSelf());
-   builtinFunctions.add2("desx_decrypt_cbc", f_desx_decrypt_cbc, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo, 3, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, defaultIV->refSelf());
-   builtinFunctions.add2("desx_decrypt_cbc_to_string", f_desx_decrypt_cbc_to_string, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 3, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, defaultIV->refSelf());
+   builtinFunctions.add2("desx_decrypt_cbc", f_desx_decrypt_cbc, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo, 3, binaryTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, defaultIV->refSelf());
+   builtinFunctions.add2("desx_decrypt_cbc_to_string", f_desx_decrypt_cbc_to_string, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 3, binaryTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, defaultIV->refSelf());
 
    builtinFunctions.add2("rc4_encrypt", f_rc4_encrypt, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo, 3, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, defaultIV->refSelf());
-   builtinFunctions.add2("rc4_decrypt", f_rc4_decrypt, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo, 3, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, defaultIV->refSelf());
-   builtinFunctions.add2("rc4_decrypt_to_string", f_rc4_decrypt_to_string, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 3, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, defaultIV->refSelf());
+   builtinFunctions.add2("rc4_decrypt", f_rc4_decrypt, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo, 3, binaryTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, defaultIV->refSelf());
+   builtinFunctions.add2("rc4_decrypt_to_string", f_rc4_decrypt_to_string, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 3, binaryTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, defaultIV->refSelf());
 
    builtinFunctions.add2("rc2_encrypt_cbc", f_rc2_encrypt_cbc, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo, 3, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, defaultIV->refSelf());
-   builtinFunctions.add2("rc2_decrypt_cbc", f_rc2_decrypt_cbc, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo, 3, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, defaultIV->refSelf());
-   builtinFunctions.add2("rc2_decrypt_cbc_to_string", f_rc2_decrypt_cbc_to_string, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 3, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, defaultIV->refSelf());
+   builtinFunctions.add2("rc2_decrypt_cbc", f_rc2_decrypt_cbc, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo, 3, binaryTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, defaultIV->refSelf());
+   builtinFunctions.add2("rc2_decrypt_cbc_to_string", f_rc2_decrypt_cbc_to_string, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 3, binaryTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, defaultIV->refSelf());
 
    builtinFunctions.add2("cast5_encrypt_cbc", f_cast5_encrypt_cbc, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo, 3, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, defaultIV->refSelf());
-   builtinFunctions.add2("cast5_decrypt_cbc", f_cast5_decrypt_cbc, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo, 3, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, defaultIV->refSelf());
-   builtinFunctions.add2("cast5_decrypt_cbc_to_string", f_cast5_decrypt_cbc_to_string, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 3, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, defaultIV->refSelf());
+   builtinFunctions.add2("cast5_decrypt_cbc", f_cast5_decrypt_cbc, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo, 3, binaryTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, defaultIV->refSelf());
+   builtinFunctions.add2("cast5_decrypt_cbc_to_string", f_cast5_decrypt_cbc_to_string, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 3, binaryTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, defaultIV->refSelf());
 
    builtinFunctions.add2("rc5_encrypt_cbc", f_rc5_encrypt_cbc, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo, 3, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, defaultIV->refSelf());
-   builtinFunctions.add2("rc5_decrypt_cbc", f_rc5_decrypt_cbc, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo, 3, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, defaultIV->refSelf());
-   builtinFunctions.add2("rc5_decrypt_cbc_to_string", f_rc5_decrypt_cbc_to_string, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 3, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, defaultIV->refSelf());
+   builtinFunctions.add2("rc5_decrypt_cbc", f_rc5_decrypt_cbc, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo, 3, binaryTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, defaultIV->refSelf());
+   builtinFunctions.add2("rc5_decrypt_cbc_to_string", f_rc5_decrypt_cbc_to_string, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 3, binaryTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, defaultIV->refSelf());
 
    // digest functions
    builtinFunctions.add2("MD2",           f_MD2, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 1, dataTypeInfo, QORE_PARAM_NO_ARG);

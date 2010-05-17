@@ -1188,25 +1188,25 @@ void init_misc_functions() {
    builtinFunctions.add2("gunzip_to_binary", f_gunzip_to_binary, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo, 1, binaryTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add2("getByte", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
-   builtinFunctions.add2("getByte", f_get_byte_str, QC_CONSTANT, QDOM_DEFAULT, 0, 2, stringTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, zero());
-   builtinFunctions.add2("getByte", f_get_byte_bin, QC_CONSTANT, QDOM_DEFAULT, 0, 2, binaryTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, zero());
+   builtinFunctions.add2("getByte", f_get_byte_str, QC_CONSTANT, QDOM_DEFAULT, 0, 2, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, zero());
+   builtinFunctions.add2("getByte", f_get_byte_bin, QC_CONSTANT, QDOM_DEFAULT, 0, 2, binaryTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, zero());
 
    builtinFunctions.add2("getWord32", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
-   builtinFunctions.add2("getWord32", f_get_word_32_str, QC_CONSTANT, QDOM_DEFAULT, 0, 2, stringTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, zero());
-   builtinFunctions.add2("getWord32", f_get_word_32_bin, QC_CONSTANT, QDOM_DEFAULT, 0, 2, binaryTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, zero());
+   builtinFunctions.add2("getWord32", f_get_word_32_str, QC_CONSTANT, QDOM_DEFAULT, 0, 2, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, zero());
+   builtinFunctions.add2("getWord32", f_get_word_32_bin, QC_CONSTANT, QDOM_DEFAULT, 0, 2, binaryTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, zero());
 
    // with only hard typing
-   builtinFunctions.add2("get_byte", f_get_byte_str, QC_CONSTANT, QDOM_DEFAULT, 0, 2, stringTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, zero());
-   builtinFunctions.add2("get_byte", f_get_byte_bin, QC_CONSTANT, QDOM_DEFAULT, 0, 2, binaryTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, zero());
+   builtinFunctions.add2("get_byte", f_get_byte_str, QC_CONSTANT, QDOM_DEFAULT, 0, 2, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, zero());
+   builtinFunctions.add2("get_byte", f_get_byte_bin, QC_CONSTANT, QDOM_DEFAULT, 0, 2, binaryTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, zero());
 
-   builtinFunctions.add2("get_word_16", f_get_word_16_str, QC_CONSTANT, QDOM_DEFAULT, 0, 2, stringTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, zero());
-   builtinFunctions.add2("get_word_16", f_get_word_16_bin, QC_CONSTANT, QDOM_DEFAULT, 0, 2, binaryTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, zero());
+   builtinFunctions.add2("get_word_16", f_get_word_16_str, QC_CONSTANT, QDOM_DEFAULT, 0, 2, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, zero());
+   builtinFunctions.add2("get_word_16", f_get_word_16_bin, QC_CONSTANT, QDOM_DEFAULT, 0, 2, binaryTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, zero());
 
-   builtinFunctions.add2("get_word_32", f_get_word_32_str, QC_CONSTANT, QDOM_DEFAULT, 0, 2, stringTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, zero());
-   builtinFunctions.add2("get_word_32", f_get_word_32_bin, QC_CONSTANT, QDOM_DEFAULT, 0, 2, binaryTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, zero());
+   builtinFunctions.add2("get_word_32", f_get_word_32_str, QC_CONSTANT, QDOM_DEFAULT, 0, 2, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, zero());
+   builtinFunctions.add2("get_word_32", f_get_word_32_bin, QC_CONSTANT, QDOM_DEFAULT, 0, 2, binaryTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, zero());
 
-   builtinFunctions.add2("get_word_64", f_get_word_64_str, QC_CONSTANT, QDOM_DEFAULT, 0, 2, stringTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, zero());
-   builtinFunctions.add2("get_word_64", f_get_word_64_bin, QC_CONSTANT, QDOM_DEFAULT, 0, 2, binaryTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, zero());
+   builtinFunctions.add2("get_word_64", f_get_word_64_str, QC_CONSTANT, QDOM_DEFAULT, 0, 2, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, zero());
+   builtinFunctions.add2("get_word_64", f_get_word_64_bin, QC_CONSTANT, QDOM_DEFAULT, 0, 2, binaryTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, zero());
    
    builtinFunctions.add2("splice", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("splice", f_string_noop, QC_NOOP, QDOM_DEFAULT, stringTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
@@ -1241,9 +1241,9 @@ void init_misc_functions() {
    builtinFunctions.add2("decode_url", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("decode_url", f_decode_url, QC_CONSTANT, QDOM_DEFAULT, stringTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("get_script_name", f_get_script_name, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo);
-   builtinFunctions.add2("get_script_dir", f_get_script_dir, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo);
-   builtinFunctions.add2("get_script_path", f_get_script_path, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo);
+   builtinFunctions.add2("get_script_name", f_get_script_name, QC_NO_FLAGS, QDOM_DEFAULT);
+   builtinFunctions.add2("get_script_dir", f_get_script_dir, QC_NO_FLAGS, QDOM_DEFAULT);
+   builtinFunctions.add2("get_script_path", f_get_script_path, QC_NO_FLAGS, QDOM_DEFAULT);
 
    builtinFunctions.add2("get_qore_option_list", f_get_qore_option_list, QC_CONSTANT, QDOM_DEFAULT, listTypeInfo);
    builtinFunctions.add2("get_qore_library_info", f_get_qore_library_info, QC_CONSTANT, QDOM_DEFAULT, hashTypeInfo);

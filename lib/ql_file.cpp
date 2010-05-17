@@ -186,5 +186,5 @@ void init_file_functions() {
    builtinFunctions.add2("is_writeable", f_is_writable, QC_CONSTANT, QDOM_FILESYSTEM, boolTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("is_executable", f_is_executable, QC_CONSTANT, QDOM_FILESYSTEM, boolTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("rename", f_rename, QC_NO_FLAGS, QDOM_FILESYSTEM, boolTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("rename", f_rename, QC_NO_FLAGS, QDOM_FILESYSTEM, nothingTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
 }

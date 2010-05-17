@@ -292,7 +292,7 @@ int getMicroSecZeroInt(const AbstractQoreNode *a) {
       return 0;
 
    if (a->getType() == NT_DATE)
-      return reinterpret_cast<const DateTimeNode *>(a)->getRelativeMilliseconds() * 1000;
+      return reinterpret_cast<const DateTimeNode *>(a)->getRelativeMicroseconds();
 
    return a->getAsInt();
 }
