@@ -43,19 +43,10 @@ static AbstractQoreNode *f_now_us(const QoreListNode *params, ExceptionSink *xsi
    return DateTimeNode::makeAbsolute(currentTZ(), seconds, us);
 }
 
-// returns the current UTC date and time with a resolution to the millisecond
-static AbstractQoreNode *f_now_utc_ms(const QoreListNode *params, ExceptionSink *xsink) {
+// returns the current UTC date and time with a resolution to the microsecond
+static AbstractQoreNode *f_now_utc(const QoreListNode *params, ExceptionSink *xsink) {
    int us;
    int64 seconds = q_epoch_us(us);
-
-   return DateTimeNode::makeAbsolute(NULL, seconds, (us / 1000) * 1000);
-}
-
-// returns the current date and time with a resolution to the microsecond
-static AbstractQoreNode *f_now_utc_us(const QoreListNode *params, ExceptionSink *xsink) {
-   int us;
-   int64 seconds = q_epoch_us(us);
-
    return DateTimeNode::makeAbsolute(NULL, seconds, us);
 }
 
@@ -321,8 +312,7 @@ void init_time_functions() {
    builtinFunctions.add2("now", f_localtime, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo);
    builtinFunctions.add2("now_ms", f_now_ms, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo);
    builtinFunctions.add2("now_us", f_now_us, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo);
-   builtinFunctions.add2("now_utc_ms", f_now_utc_ms, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo);
-   builtinFunctions.add2("now_utc_us", f_now_utc_us, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo);
+   builtinFunctions.add2("now_utc", f_now_utc, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo);
 
    builtinFunctions.add2("format_date", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("format_date", f_format_date, QC_CONSTANT, QDOM_DEFAULT, stringTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, dateTypeInfo, QORE_PARAM_NO_ARG);
