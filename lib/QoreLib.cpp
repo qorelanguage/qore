@@ -290,6 +290,7 @@ FeatureList::FeatureList() {
    push_back("sql");
    push_back("threads");
    push_back("xml");
+   push_back("json");
 #ifdef DEBUG
    push_back("debug");
 #endif
