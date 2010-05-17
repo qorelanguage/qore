@@ -137,7 +137,7 @@ get_duration_seconds(date) returns int
 get_duration_milliseconds(date) returns int
 get_duration_microseconds(date) returns int
 now_us() returns date
-now_gmt_us() returns date
+now_utc() returns date
 date_us(softint) returns date
 microseconds(softint) returns date
 get_microseconds(date) returns int

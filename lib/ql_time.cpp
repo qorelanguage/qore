@@ -398,7 +398,7 @@ void init_time_functions() {
    builtinFunctions.add2("getISOWeekString", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("getISOWeekString", f_getISOWeekString, QC_CONSTANT, QDOM_DEFAULT, stringTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("getDateFromISOWeek", f_getDateFromISOWeek, QC_NO_FLAGS, QDOM_DEFAULT, dateTypeInfo, 3, softBigIntTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("getDateFromISOWeek", f_getDateFromISOWeek, QC_NO_FLAGS, QDOM_DEFAULT, dateTypeInfo, 3, softBigIntTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, new QoreBigIntNode(1));
 
    builtinFunctions.add2("clock_getmillis",     f_clock_getmillis, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo);
    builtinFunctions.add2("clock_getnanos",      f_clock_getnanos, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo);

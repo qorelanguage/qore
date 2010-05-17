@@ -162,9 +162,9 @@
 
         <row>
           <entry>
-            <para><code><link linkend="binary">binary</link>(<link linkend="string_type">string</link>) <command>returns</command> <link linkend="binary_type">binary</link></code></para>
+            <para><code><link linkend="binary">binary</link>(<link linkend="string_type">softstring</link>) <command>returns</command> <link linkend="binary_type">binary</link></code></para>
             <para><code><link linkend="binary">binary</link>(<link linkend="binary_type">binary</link>) <command>returns</command> <link linkend="binary_type">binary</link></code></para>
-            <para><code><link linkend="binary">binary</link>() <command>returns</command> <link linkend="binary_type">binary</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
+            <para><code><link linkend="binary">binary</link>() <command>returns</command> <link linkend="binary_type">binary</link></code></para>
           </entry>
           <entry><para>N</para></entry>
           <entry><para>Returns a binary data type of the data passed.</para></entry>
@@ -1150,13 +1150,13 @@
 
       <row>
         <entry>
-          <para><code><link linkend="getDateFromISOWeek">getDateFromISOWeek</link>(<link linkend="softint_type">softint</link>, <link linkend="softint_type">softint</link>, <link linkend="softint_type">softint</link>) <command>returns</command> <link linkend="date_type">date</link></code></para>
+          <para><code><link linkend="getDateFromISOWeek">getDateFromISOWeek</link>(<link linkend="softint_type">softint</link>, <link linkend="softint_type">softint</link>, <link linkend="softint_type">softint</link> = 1) <command>returns</command> <link linkend="date_type">date</link></code></para>
         </entry>
         <entry>
           <para>Y</para>
         </entry>
         <entry>
-          <para>Retuns an <link linkend="Absolute_Dates">absolute date value</link> for the ISO-8601 calendar week information passed (year, week number, optional: day); throws an exception if the arguments are invalid.</para>
+          <para>Retuns an <link linkend="Absolute_Dates">absolute date value</link> in the local time zone for the ISO-8601 calendar week information passed (year, week number, optional: day); throws an exception if the arguments are invalid.</para>
         </entry>
       </row>
       <row>
@@ -2433,6 +2433,11 @@
           <entry><para>Returns current date and time with resolution to the microsecond</para></entry>
         </row>
         <row>
+          <entry><para><code><link linkend="now_utc">now_utc</link>() <command>returns</command> <link linkend="date_type">date</link> (<link linkend="CONST_flag">CONST</link>)</code></para></entry>
+          <entry><para>N</para></entry>
+          <entry><para>Returns current UTC date and time with resolution to the microsecond.</para></entry>
+        </row>
+        <row>
           <entry>
             <para><code><link linkend="num_threads">num_threads</link>() <command>returns</command> <link linkend="int_type">int</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
           </entry>
@@ -3303,7 +3308,7 @@
         <row>
           <entry>
             <para><code><link linkend="trim">trim</link>(<link linkend="string_type">string</link>, <link linkend="string_type">string</link> = "") <command>returns</command> <link linkend="string_type">string</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
-            <para><code><link linkend="trim">trim</link>(<link linkend="reference_type">reference</link>, <link linkend="string_type">string</link> = "") <command>returns</command> <link linkend="string_type">string</link></code></para>
+            <para><code><link linkend="trim">trim</link>(<link linkend="reference_type">reference</link>, <link linkend="string_type">string</link> = "") <command>returns</command> <link linkend="any_type">any</link></code></para>
             <para><code><link linkend="trim">trim</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
           </entry>
           <entry><para>N</para></entry>
@@ -5222,7 +5227,7 @@
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>clock_getmicros()</programlisting>
+           <para><code><link linkend="clock_getmicros">clock_getmicros</link>() <command>returns</command> <link linkend="int_type">int</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -5282,7 +5287,7 @@
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>clock_getmillis()</programlisting>
+            <para><code><link linkend="clock_getmillis">clock_getmillis</link>() <command>returns</command> <link linkend="int_type">int</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -5342,7 +5347,7 @@
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>clock_getnanos()</programlisting>
+            <para><code><link linkend="clock_getnanos">clock_getnanos</link>() <command>returns</command> <link linkend="int_type">int</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -5396,20 +5401,22 @@
       <varlistentry>
 	<term>Synopsis</term>
 	<listitem>
-	  <para>Converts an integer argument representing the offset in milliseconds from January 1, 1970 to a date.</para>
+	  <para>Converts an integer argument representing the offset in milliseconds from January 1, 1970 in the local time zone to a date in the local time zone.</para>
+	  <para>See also <link linkend="date">date()</link> and <link linkend="date_us">date_us()</link>.</para>
 	</listitem>
       </varlistentry>
       <varlistentry>
 	<term>Usage</term>
 	<listitem>
-	  <programlisting>date_ms(<replaceable>integer</replaceable>)</programlisting>
-      </listitem>
-    </varlistentry>
-    <varlistentry>
-      <term>Example</term>
-      <listitem>
-	<programlisting>$date = date_ms(1); # return 1970-01-01T00:00:00.001</programlisting>
-      </listitem>
+            <para><code><link linkend="date_ms">date_ms</link>(<link linkend="softint_type">softint</link>) <command>returns</command> <link linkend="date_type">date</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="date_ms">date_ms</link>() <command>returns</command> <link linkend="date_type">date</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Example</term>
+	<listitem>
+	  <programlisting><command>my</command> date $date = date_ms(1); # returns 1970-01-01T00:00:00.001</programlisting>
+	</listitem>
     </varlistentry>
   </variablelist>
 
@@ -5426,8 +5433,58 @@
           <tbody>
             <row>
 	      <entry><para><code><link linkend="int_type">int</link></code></para></entry>
-              <entry><para>Date</para></entry>
-              <entry><para>Returns the date corresponding to the offset in ms given from January 1, 1970.</para></entry>
+              <entry><para><code><link linkend="date_type">date</link></code></para></entry>
+              <entry><para>Returns the date corresponding to the offset in ms given from January 1, 1970 in the local time zone.</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+
+  <para>This function does not throw any exceptions.</para>
+
+</sect2>
+
+  <sect2 id="date_us">
+    <title>date_us()</title>
+
+    <variablelist>
+      <varlistentry>
+	<term>Synopsis</term>
+	<listitem>
+	  <para>Converts an integer argument representing the offset in microseconds from January 1, 1970 in the local time zone to a date in the local time zone.</para>
+	  <para>See also <link linkend="date">date()</link> and <link linkend="date_ms">date_ms()</link>.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Usage</term>
+	<listitem>
+            <para><code><link linkend="date_ms">date_us</link>(<link linkend="softint_type">softint</link>) <command>returns</command> <link linkend="date_type">date</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="date_ms">date_us</link>() <command>returns</command> <link linkend="date_type">date</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Example</term>
+	<listitem>
+	  <programlisting><command>my</command> date $date = date_us(1); # returns 1970-01-01T00:00:00.000001</programlisting>
+	</listitem>
+    </varlistentry>
+  </variablelist>
+
+      <table>
+        <title>Arguments and Return Values for date_us()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry><para>Argument Type</para></entry>
+              <entry><para>Return Type</para></entry>
+              <entry><para>Description</para></entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+	      <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+              <entry><para><code><link linkend="date_type">date</link></code></para></entry>
+              <entry><para>Returns the date corresponding to the offset in microseconds given from January 1, 1970 in the local time zone.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -5449,7 +5506,8 @@
         <varlistentry>
           <term>Usage</term>
           <listitem>
-            <programlisting>days(<replaceable>expression</replaceable>)</programlisting>
+            <para><code><link linkend="days">days</link>(<link linkend="softint_type">softint</link>) <command>returns</command> <link linkend="date_type">date</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="days">days</link>() <command>returns</command> <link linkend="date_type">date</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -5482,7 +5540,7 @@
                 <para><code><link linkend="int_type">int</link></code></para>
               </entry>
               <entry>
-                <para>Date</para>
+                <para><code><link linkend="date_type">date</link></code></para>
               </entry>
               <entry>
                 <para>Returns a <link linkend="Relative_Dates">relative date/time value</link> corresponding to the number of days passed as an argument, to be used in date arithmetic.</para>
@@ -5508,13 +5566,14 @@
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>format_date(<replaceable>format_string, date_value</replaceable>)</programlisting>
+            <para><code><link linkend="format_date">format_date</link>(<link linkend="string_type">string</link>, <link linkend="date_type">date</link>) <command>returns</command> <link linkend="string_type">string</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="format_date">format_date</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Example</term>
       <listitem>
-	<programlisting>$str = format_date("Day, Mon D, YYYY-MM-DD HH:mm:SS", 2004-02-01T12:30:00);
+	<programlisting><command>my</command> string $str = format_date("Day, Mon D, YYYY-MM-DD HH:mm:SS", 2004-02-01T12:30:00);
 # returns "Sunday, Feb 1, 2004-02-01 12:30:00"</programlisting>
       </listitem>
     </varlistentry>
@@ -5645,6 +5704,14 @@
 	  <entry><para>zero-padded second number (00 - 59)</para></entry>
 	</row>
 	<row>
+	  <entry><para><code>P</code></para></entry>
+	  <entry><para>AM or PM (upper-case)</para></entry>
+	</row>
+	<row>
+	  <entry><para><code>p</code></para></entry>
+	  <entry><para>am or pm (lower-case)</para></entry>
+	</row>	
+	<row>
 	  <entry><para><code>u</code></para></entry>
 	  <entry><para>non zero-padded millisecond number (0 - 999)</para></entry>
 	</row>
@@ -5653,13 +5720,25 @@
 	  <entry><para>zero-padded millisecond number (000 - 999)</para></entry>
 	</row>
 	<row>
-	  <entry><para><code>P</code></para></entry>
-	  <entry><para>AM or PM (upper-case)</para></entry>
+	  <entry><para><code>x</code></para></entry>
+	  <entry><para>non zero-padded microsecond number (0 - 999999)</para></entry>
 	</row>
 	<row>
-	  <entry><para><code>p</code></para></entry>
-	  <entry><para>am or pm (lower-case)</para></entry>
-	</row>	
+	  <entry><para><code>xx</code> or <code>ms</code></para></entry>
+	  <entry><para>zero-padded microsecond number (000000 - 999999)</para></entry>
+	</row>
+	<row>
+	  <entry><para><code>y</code></para></entry>
+	  <entry><para>microseconds, with trailing zeros removed (suitable for use after the '.')</para></entry>
+	</row>
+	<row>
+	  <entry><para><code>z</code></para></entry>
+	  <entry><para>local time zone name (ex: 'EST') if available, otherwise the UTC offset (see 'Z')</para></entry>
+	</row>
+	<row>
+	  <entry><para><code>Z</code></para></entry>
+	  <entry><para>time zone UTC offset like +HH:mm[:SS], seconds are included if non-zero</para></entry>
+	</row>
       </tbody>
     </tgroup>
   </table>
@@ -5668,114 +5747,6 @@
 
 </sect2>
 
-  <sect2 id="get_years">
-    <title>get_years()</title>
-    <variablelist>
-      <varlistentry>
-        <term>Synopsis</term>
-        <listitem>
-          <para>Returns an integer value representing the years value of the date passed (can be either a <link linkend="Relative_Dates">relative</link> or <link linkend="Absolute_Dates">absolute</link> date).</para>
-        </listitem>
-      </varlistentry>
-      <varlistentry>
-        <term>Usage</term>
-        <listitem>
-          <programlisting>get_years(<replaceable>date</replaceable>)</programlisting>
-        </listitem>
-      </varlistentry>
-      <varlistentry>
-        <term>Example</term>
-        <listitem>
-          <programlisting>$years = get_years(2007-01-23); # returns 2007</programlisting>
-        </listitem>
-      </varlistentry>
-    </variablelist>
-    <table>
-      <title>Arguments and Return Values for get_years()</title>
-      <tgroup cols="3" align="left" colsep="1" rowsep="1">
-        <thead>
-          <row>
-            <entry>
-              <para>Argument Type</para>
-            </entry>
-            <entry>
-              <para>Return Type</para>
-            </entry>
-            <entry>
-              <para>Description</para>
-            </entry>
-          </row>
-        </thead>
-        <tbody>
-          <row>
-            <entry>
-              <para>Date</para>
-            </entry>
-            <entry>
-              <para><code><link linkend="int_type">int</link></code></para>
-            </entry>
-            <entry>
-              <para>Returns an integer value representing the years value of the date passed (can be either a <link linkend="Relative_Dates">relative</link> or <link linkend="Absolute_Dates">absolute</link> date).</para>
-            </entry>
-          </row>
-        </tbody>
-      </tgroup>
-    </table>
-  </sect2>
-  <sect2 id="get_months">
-    <title>get_months()</title>
-    <variablelist>
-      <varlistentry>
-        <term>Synopsis</term>
-        <listitem>
-          <para>Returns an integer value representing the months value of the date passed (can be either a <link linkend="Relative_Dates">relative</link> or <link linkend="Absolute_Dates">absolute</link> date).</para>
-        </listitem>
-      </varlistentry>
-      <varlistentry>
-        <term>Usage</term>
-        <listitem>
-          <programlisting>get_months(<replaceable>date</replaceable>)</programlisting>
-        </listitem>
-      </varlistentry>
-      <varlistentry>
-        <term>Example</term>
-        <listitem>
-          <programlisting>$months = get_months(2007-01-23); # returns 1</programlisting>
-        </listitem>
-      </varlistentry>
-    </variablelist>
-    <table>
-      <title>Arguments and Return Values for get_months()</title>
-      <tgroup cols="3" align="left" colsep="1" rowsep="1">
-        <thead>
-          <row>
-            <entry>
-              <para>Argument Type</para>
-            </entry>
-            <entry>
-              <para>Return Type</para>
-            </entry>
-            <entry>
-              <para>Description</para>
-            </entry>
-          </row>
-        </thead>
-        <tbody>
-          <row>
-            <entry>
-              <para>Date</para>
-            </entry>
-            <entry>
-              <para><code><link linkend="int_type">int</link></code></para>
-            </entry>
-            <entry>
-              <para>Returns an integer value representing the months value of the date passed (can be either a <link linkend="Relative_Dates">relative</link> or <link linkend="Absolute_Dates">absolute</link> date).</para>
-            </entry>
-          </row>
-        </tbody>
-      </tgroup>
-    </table>
-  </sect2>
   <sect2 id="get_days">
     <title>get_days()</title>
     <variablelist>
@@ -5788,7 +5759,8 @@
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <programlisting>get_days(<replaceable>date</replaceable>)</programlisting>
+          <para><code><link linkend="get_days">get_days</link>(<link linkend="date_type">date</link>) <command>returns</command> <link linkend="int_type">int</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+          <para><code><link linkend="get_days">get_days</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -5817,7 +5789,7 @@
         <tbody>
           <row>
             <entry>
-              <para>Date</para>
+              <para><code><link linkend="date_type">date</link></code></para>
             </entry>
             <entry>
               <para><code><link linkend="int_type">int</link></code></para>
@@ -5830,6 +5802,69 @@
       </tgroup>
     </table>
   </sect2>
+
+    <sect2 id="get_epoch_seconds">
+      <title>get_epoch_seconds()</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Returns the number of seconds of the date and time in local time passed since Jan 1, 1970, 00:00:00 Z (UTC).</para>
+	<para>This function is equivalent to <link linkend="mktime">mktime()</link>.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+            <para><code><link linkend="get_epoch_seconds">get_epoch_seconds</link>(<link linkend="date_type">date</link>) <command>returns</command> <link linkend="int_type">int</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="get_epoch_seconds">get_epoch_seconds</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$secs = get_epoch_seconds(2007-09-23T00:00:01);</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+      <table>
+        <title>Arguments and Return Values for get_epoch_seconds()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument Type</para>
+              </entry>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para><code><link linkend="date_type">date</link></code></para>
+              </entry>
+              <entry>
+                <para><code><link linkend="int_type">int</link></code></para>
+              </entry>
+              <entry>
+                <para>The date argument should be in local time; the function returns the number of seconds passed since Jan 1, 1970 00:00:00 corresponding to this date.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+
+  <para>This function does not throw any exceptions.</para>
+
+</sect2>
+
   <sect2 id="get_hours">
     <title>get_hours()</title>
     <variablelist>
@@ -5842,7 +5877,8 @@
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <programlisting>get_hours(<replaceable>date</replaceable>)</programlisting>
+          <para><code><link linkend="get_hours">get_hours</link>(<link linkend="date_type">date</link>) <command>returns</command> <link linkend="int_type">int</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+          <para><code><link linkend="get_hours">get_hours</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -5871,7 +5907,7 @@
         <tbody>
           <row>
             <entry>
-              <para>Date</para>
+              <para><code><link linkend="date_type">date</link></code></para>
             </entry>
             <entry>
               <para><code><link linkend="int_type">int</link></code></para>
@@ -5884,84 +5920,32 @@
       </tgroup>
     </table>
   </sect2>
-  <sect2 id="get_minutes">
-    <title>get_minutes()</title>
+
+  <sect2 id="get_microseconds">
+    <title>get_microseconds()</title>
     <variablelist>
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Returns an integer value representing the minutes value of the date passed (can be either a <link linkend="Relative_Dates">relative</link> or <link linkend="Absolute_Dates">absolute</link> date).</para>
+          <para>Returns an integer value representing the microseconds value of the date passed (can be either a <link linkend="Relative_Dates">relative</link> or <link linkend="Absolute_Dates">absolute</link> date).</para>
         </listitem>
       </varlistentry>
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <programlisting>get_minutes(<replaceable>date</replaceable>)</programlisting>
-        </listitem>
-      </varlistentry>
-      <varlistentry>
-        <term>Examples</term>
-        <listitem>
-          <programlisting>$minutes = get_minutes(2007-01-23T11:24:03); # returns 24</programlisting>
-        </listitem>
-      </varlistentry>
-    </variablelist>
-    <table>
-      <title>Arguments and Return Values for get_minutes()</title>
-      <tgroup cols="3" align="left" colsep="1" rowsep="1">
-        <thead>
-          <row>
-            <entry>
-              <para>Argument Type</para>
-            </entry>
-            <entry>
-              <para>Return Type</para>
-            </entry>
-            <entry>
-              <para>Description</para>
-            </entry>
-          </row>
-        </thead>
-        <tbody>
-          <row>
-            <entry>
-              <para>Date</para>
-            </entry>
-            <entry>
-              <para><code><link linkend="int_type">int</link></code></para>
-            </entry>
-            <entry>
-              <para>Returns an integer value representing the minutes value of the date passed (can be either a <link linkend="Relative_Dates">relative</link> or <link linkend="Absolute_Dates">absolute</link> date).</para>
-            </entry>
-          </row>
-        </tbody>
-      </tgroup>
-    </table>
-  </sect2>
-  <sect2 id="get_seconds">
-    <title>get_seconds()</title>
-    <variablelist>
-      <varlistentry>
-        <term>Synopsis</term>
-        <listitem>
-          <para>Returns an integer value representing the seconds value of the date passed (can be either a <link linkend="Relative_Dates">relative</link> or <link linkend="Absolute_Dates">absolute</link> date).</para>
-        </listitem>
-      </varlistentry>
-      <varlistentry>
-        <term>Usage</term>
-        <listitem>
-          <programlisting>get_seconds(<replaceable>date</replaceable>)</programlisting>
+          <para><code><link linkend="get_microseconds">get_microseconds</link>(<link linkend="date_type">date</link>) <command>returns</command> <link linkend="int_type">int</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+          <para><code><link linkend="get_microseconds">get_microseconds</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
         </listitem>
       </varlistentry>
       <varlistentry>
         <term>Example</term>
         <listitem>
-          <programlisting>$secs = get_seconds(2007-01-23T11:24:03); # returns 3</programlisting>
+          <programlisting>$ms = get_microseconds(2007-01-23T11:24:03.250); # returns 250</programlisting>
         </listitem>
       </varlistentry>
     </variablelist>
     <table>
-      <title>Arguments and Return Values for get_seconds()</title>
+      <title>Arguments and Return Values for get_microseconds()</title>
       <tgroup cols="3" align="left" colsep="1" rowsep="1">
         <thead>
           <row>
@@ -5979,73 +5963,20 @@
         <tbody>
           <row>
             <entry>
-              <para>Date</para>
+              <para><code><link linkend="date_type">date</link></code></para>
             </entry>
             <entry>
               <para><code><link linkend="int_type">int</link></code></para>
             </entry>
             <entry>
-              <para>Returns an integer value representing the seconds value of the date passed (can be either a <link linkend="Relative_Dates">relative</link> or <link linkend="Absolute_Dates">absolute</link> date).</para>
+              <para>Returns an integer value representing the microseconds value of the date passed (can be either a <link linkend="Relative_Dates">relative</link> or <link linkend="Absolute_Dates">absolute</link> date).</para>
             </entry>
           </row>
         </tbody>
       </tgroup>
     </table>
   </sect2>
-  <sect2 id="get_milliseconds">
-    <title>get_milliseconds()</title>
-    <variablelist>
-      <varlistentry>
-        <term>Synopsis</term>
-        <listitem>
-          <para>Returns an integer value representing the milliseconds value of the date passed (can be either a <link linkend="Relative_Dates">relative</link> or <link linkend="Absolute_Dates">absolute</link> date).</para>
-        </listitem>
-      </varlistentry>
-      <varlistentry>
-        <term>Usage</term>
-        <listitem>
-          <programlisting>get_milliseconds(<replaceable>date</replaceable>)</programlisting>
-        </listitem>
-      </varlistentry>
-      <varlistentry>
-        <term>Example</term>
-        <listitem>
-          <programlisting>$ms = get_milliseconds(2007-01-23T11:24:03.250); # returns 250</programlisting>
-        </listitem>
-      </varlistentry>
-    </variablelist>
-    <table>
-      <title>Arguments and Return Values for get_milliseconds()</title>
-      <tgroup cols="3" align="left" colsep="1" rowsep="1">
-        <thead>
-          <row>
-            <entry>
-              <para>Argument Type</para>
-            </entry>
-            <entry>
-              <para>Return Type</para>
-            </entry>
-            <entry>
-              <para>Description</para>
-            </entry>
-          </row>
-        </thead>
-        <tbody>
-          <row>
-            <entry>
-              <para>Date</para>
-            </entry>
-            <entry>
-              <para><code><link linkend="int_type">int</link></code></para>
-            </entry>
-            <entry>
-              <para>Returns an integer value representing the milliseconds value of the date passed (can be either a <link linkend="Relative_Dates">relative</link> or <link linkend="Absolute_Dates">absolute</link> date).</para>
-            </entry>
-          </row>
-        </tbody>
-      </tgroup>
-    </table>
-  </sect2>
+
   <sect2 id="get_midnight">
     <title>get_midnight()</title>
     <variablelist>
@@ -6058,7 +5989,8 @@
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <programlisting>get_midnight(<replaceable>date</replaceable>)</programlisting>
+          <para><code><link linkend="get_midnight">get_midnight</link>(<link linkend="date_type">date</link>) <command>returns</command> <link linkend="date_type">date</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+          <para><code><link linkend="get_midnight">get_midnight</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -6087,13 +6019,291 @@
         <tbody>
           <row>
             <entry>
-              <para>Date</para>
+              <para><code><link linkend="date_type">date</link></code></para>
             </entry>
             <entry>
-              <para>Date</para>
+              <para><code><link linkend="date_type">date</link></code></para>
             </entry>
             <entry>
               <para>Returns a date/time value representing midnight on the date passed (strips the time from the date passed and returns the new value)</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+
+  <sect2 id="get_milliseconds">
+    <title>get_milliseconds()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Returns an integer value representing the milliseconds value of the date passed (can be either a <link linkend="Relative_Dates">relative</link> or <link linkend="Absolute_Dates">absolute</link> date).</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <para><code><link linkend="get_milliseconds">get_milliseconds</link>(<link linkend="date_type">date</link>) <command>returns</command> <link linkend="int_type">int</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+          <para><code><link linkend="get_milliseconds">get_milliseconds</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$ms = get_milliseconds(2007-01-23T11:24:03.250); # returns 250</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for get_milliseconds()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para><code><link linkend="date_type">date</link></code></para>
+            </entry>
+            <entry>
+              <para><code><link linkend="int_type">int</link></code></para>
+            </entry>
+            <entry>
+              <para>Returns an integer value representing the milliseconds value of the date passed (can be either a <link linkend="Relative_Dates">relative</link> or <link linkend="Absolute_Dates">absolute</link> date).</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+
+  <sect2 id="get_minutes">
+    <title>get_minutes()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Returns an integer value representing the minutes value of the date passed (can be either a <link linkend="Relative_Dates">relative</link> or <link linkend="Absolute_Dates">absolute</link> date).</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <para><code><link linkend="get_minutes">get_minutes</link>(<link linkend="date_type">date</link>) <command>returns</command> <link linkend="int_type">int</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+          <para><code><link linkend="get_minutes">get_minutes</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Examples</term>
+        <listitem>
+          <programlisting>$minutes = get_minutes(2007-01-23T11:24:03); # returns 24</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for get_minutes()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para><code><link linkend="date_type">date</link></code></para>
+            </entry>
+            <entry>
+              <para><code><link linkend="int_type">int</link></code></para>
+            </entry>
+            <entry>
+              <para>Returns an integer value representing the minutes value of the date passed (can be either a <link linkend="Relative_Dates">relative</link> or <link linkend="Absolute_Dates">absolute</link> date).</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+
+  <sect2 id="get_months">
+    <title>get_months()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Returns an integer value representing the months value of the date passed (can be either a <link linkend="Relative_Dates">relative</link> or <link linkend="Absolute_Dates">absolute</link> date).</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <para><code><link linkend="get_months">get_months</link>(<link linkend="date_type">date</link>) <command>returns</command> <link linkend="int_type">int</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+          <para><code><link linkend="get_months">get_months</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$months = get_months(2007-01-23); # returns 1</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for get_months()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para><code><link linkend="date_type">date</link></code></para>
+            </entry>
+            <entry>
+              <para><code><link linkend="int_type">int</link></code></para>
+            </entry>
+            <entry>
+              <para>Returns an integer value representing the months value of the date passed (can be either a <link linkend="Relative_Dates">relative</link> or <link linkend="Absolute_Dates">absolute</link> date).</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="get_seconds">
+    <title>get_seconds()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Returns an integer value representing the seconds value of the date passed (can be either a <link linkend="Relative_Dates">relative</link> or <link linkend="Absolute_Dates">absolute</link> date).</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <para><code><link linkend="get_seconds">get_seconds</link>(<link linkend="date_type">date</link>) <command>returns</command> <link linkend="int_type">int</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+          <para><code><link linkend="get_seconds">get_seconds</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$secs = get_seconds(2007-01-23T11:24:03); # returns 3</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for get_seconds()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para><code><link linkend="date_type">date</link></code></para>
+            </entry>
+            <entry>
+              <para><code><link linkend="int_type">int</link></code></para>
+            </entry>
+            <entry>
+              <para>Returns an integer value representing the seconds value of the date passed (can be either a <link linkend="Relative_Dates">relative</link> or <link linkend="Absolute_Dates">absolute</link> date).</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+  <sect2 id="get_years">
+    <title>get_years()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Returns an integer value representing the years value of the date passed (can be either a <link linkend="Relative_Dates">relative</link> or <link linkend="Absolute_Dates">absolute</link> date).</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <para><code><link linkend="get_years">get_years</link>(<link linkend="date_type">date</link>) <command>returns</command> <link linkend="int_type">int</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+          <para><code><link linkend="get_years">get_years</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$years = get_years(2007-01-23); # returns 2007</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for get_years()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para><code><link linkend="date_type">date</link></code></para>
+            </entry>
+            <entry>
+              <para><code><link linkend="int_type">int</link></code></para>
+            </entry>
+            <entry>
+              <para>Returns an integer value representing the years value of the date passed (can be either a <link linkend="Relative_Dates">relative</link> or <link linkend="Absolute_Dates">absolute</link> date).</para>
             </entry>
           </row>
         </tbody>
@@ -6106,13 +6316,13 @@
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Retuns an <link linkend="Absolute_Dates">absolute date value</link> for the ISO-8601 calendar week information passed (year, week number, optional: weekday, where 1=Monday, 7=Sunday).  If the weekday is omitted, Monday (1) is assumed.</para>
+          <para>Retuns an <link linkend="Absolute_Dates">absolute date value</link> for the ISO-8601 calendar week information passed (year, week number, optional: weekday, where 1=Monday, 7=Sunday) in the current time zone.  If the weekday is omitted, Monday (1) is assumed; throws an exception if the arguments are invalid.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <programlisting>getDateFromISOWeek(<replaceable>integer, integer, optional:integer</replaceable>)</programlisting>
+          <para><code><link linkend="getDateFromISOWeek">getDateFromISOWeek</link>(<link linkend="softint_type">softint</link>, <link linkend="softint_type">softint</link>, <link linkend="softint_type">softint</link> = 1) <command>returns</command> <link linkend="date_type">date</link></code></para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -6144,15 +6354,38 @@
               <para>Integer, Integer, Optional:integer</para>
             </entry>
             <entry>
-              <para>Date</para>
+              <para><code><link linkend="date_type">date</link></code></para>
             </entry>
             <entry>
-              <para>Retuns an <link linkend="Absolute_Dates">absolute date value</link> for the ISO-8601 calendar week information passed (year, week number, optional: day)</para>
+              <para>Retuns an <link linkend="Absolute_Dates">absolute date value</link> in the local time zone for the ISO-8601 calendar week information passed (year, week number, optional: day)</para>
             </entry>
           </row>
         </tbody>
       </tgroup>
     </table>
+
+  <table><title>Exceptions Thrown by getDateFromISOWeek()</title>
+  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+    <thead>
+      <row>
+	<entry><para>err</para></entry>
+	<entry><para>desc</para></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+	<entry><para><code>ISO-8601-INVALID-WEEK</code></para></entry>
+	<entry><para>The week number is not valid for the given year.</para></entry>
+      </row>
+      <row>
+	<entry><para><code>ISO-8601-INVALID-DAY</code></para></entry>
+	<entry><para>The day number is not between 1 (Monday) and 7 (Sunday) inclusive.</para></entry>
+      </row>
+    </tbody>
+  </tgroup>
+  </table>
+
+
   </sect2>
   <sect2 id="getDayOfWeek">
     <title>getDayOfWeek()</title>
@@ -6166,7 +6399,8 @@
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <programlisting>getDayOfWeek(<replaceable>date</replaceable>)</programlisting>
+          <para><code><link linkend="getDayOfWeek">getDayOfWeek</link>(<link linkend="date_type">date</link>) <command>returns</command> <link linkend="int_type">int</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+          <para><code><link linkend="getDayOfWeek">getDayOfWeek</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -6195,7 +6429,7 @@
         <tbody>
           <row>
             <entry>
-              <para>Date</para>
+              <para><code><link linkend="date_type">date</link></code></para>
             </entry>
             <entry>
               <para><code><link linkend="int_type">int</link></code></para>
@@ -6220,7 +6454,8 @@
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <programlisting>getDayNumber(<replaceable>date</replaceable>)</programlisting>
+          <para><code><link linkend="getDayNumber">getDayNumber</link>(<link linkend="date_type">date</link>) <command>returns</command> <link linkend="int_type">int</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+          <para><code><link linkend="getDayNumber">getDayNumber</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -6249,7 +6484,7 @@
         <tbody>
           <row>
             <entry>
-              <para>Date</para>
+              <para><code><link linkend="date_type">date</link></code></para>
             </entry>
             <entry>
               <para><code><link linkend="int_type">int</link></code></para>
@@ -6274,7 +6509,8 @@
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <programlisting>getISODayOfWeek(<replaceable>date</replaceable>)</programlisting>
+          <para><code><link linkend="getISODayOfWeek">getISODayOfWeek</link>(<link linkend="date_type">date</link>) <command>returns</command> <link linkend="int_type">int</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+          <para><code><link linkend="getISODayOfWeek">getISODayOfWeek</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -6303,7 +6539,7 @@
         <tbody>
           <row>
             <entry>
-              <para>Date</para>
+              <para><code><link linkend="date_type">date</link></code></para>
             </entry>
             <entry>
               <para><code><link linkend="int_type">int</link></code></para>
@@ -6329,7 +6565,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <programlisting>getISOWeekHash(<replaceable>date</replaceable>)</programlisting>
+          <para><code><link linkend="getISOWeekHash">getISOWeekHash</link>(<link linkend="date_type">date</link>) <command>returns</command> <link linkend="hash_type">hash</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+          <para><code><link linkend="getISOWeekHash">getISOWeekHash</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -6358,7 +6595,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <tbody>
           <row>
             <entry>
-              <para>Date</para>
+              <para><code><link linkend="date_type">date</link></code></para>
             </entry>
             <entry>
               <para>Hash</para>
@@ -6383,7 +6620,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <programlisting>getISOWeekString(<replaceable>date</replaceable>)</programlisting>
+          <para><code><link linkend="getISOWeekString">getISOWeekString</link>(<link linkend="date_type">date</link>) <command>returns</command> <link linkend="string_type">string</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+          <para><code><link linkend="getISOWeekString">getISOWeekString</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -6412,7 +6650,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <tbody>
           <row>
             <entry>
-              <para>Date</para>
+              <para><code><link linkend="date_type">date</link></code></para>
             </entry>
             <entry>
               <para><code><link linkend="string_type">string</link></code></para>
@@ -6434,20 +6672,23 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Returns the date and time in GMT; if no argument is passed, then the current GMT time is returned.  Otherwise the single argument must be an integer giving the number of seconds since Jan 1, 1970, 00:00:00.</para>
+	<para>Returns the date and time in GMT; if no argument is passed, then the current UTC time with a resolution of a second is returned.  Otherwise the single argument must be an integer giving the number of seconds since Jan 1, 1970, 00:00:00, or an absolute date/time value that will be returned as the sme time in UTC (GMT).</para>
+	<para>See also <link linkend="now_utc">now_utc()</link>.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>gmtime(<replaceable>[int_value]</replaceable>)</programlisting>
+            <para><code><link linkend="gmtime">gmtime</link>(<link linkend="date_type">date</link>) <command>returns</command> <link linkend="date_type">date</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="gmtime">gmtime</link>(<link linkend="softint_type">softint</link>, <link linkend="softint_type">softint</link> = 0) <command>returns</command> <link linkend="date_type">date</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="gmtime">gmtime</link>() <command>returns</command> <link linkend="date_type">date</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Example</term>
       <listitem>
-	<programlisting>$date = gmtime(mktime(now())); # returns current GMT</programlisting>
-	<programlisting>$date = gmtime();              # also returns current GMT</programlisting>
+	<programlisting>$date = gmtime(now_us());  # equivalent to <link linkend="now_utc">now_utc()</link></programlisting>
+	<programlisting>$date = gmtime();          # also returns current UTC (GMT)</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -6471,19 +6712,18 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           <tbody>
             <row>
               <entry>
-                <para><code><link linkend="int_type">int</link></code></para>
+                <para><code><link linkend="softint_type">softint</link>, <link linkend="date_type">date</link></code></para>
               </entry>
               <entry>
-                <para>Date</para>
+                <para><code><link linkend="date_type">date</link></code></para>
               </entry>
               <entry>
-                <para>The optional integer argument must be the number of seconds passed since Jan 1, 1970, 00:00:00 (see <link linkend="mktime">mktime()</link> for a function that returns such a value).  Qore uses the C library function gmtime() to calculate the return value, which is returned as a Qore Date type.  If no argument is passed, then the current date and time in GMT are returned.  If an argument is passed that is not a date/time value, then NOTHING is returned.</para>
+                <para>The optional integer argument must be the number of seconds passed since Jan 1, 1970, 00:00:00 UTC (see <link linkend="mktime">mktime()</link> for a function that returns such a value).  Qore uses the C library function gmtime() to calculate the return value, which is returned as a Qore Date type.  If no argument is passed, then the current date and time with resolution to the second in GMT are returned.  If a date is passed, then the date is converted to UTC and returned.</para>
               </entry>
             </row>
           </tbody>
         </tgroup>
       </table>
-
 
   <para>This function does not throw any exceptions.</para>
 
@@ -6501,7 +6741,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <varlistentry>
           <term>Usage</term>
           <listitem>
-            <programlisting>hours(<replaceable>expression</replaceable>)</programlisting>
+            <para><code><link linkend="hours">hours</link>(<link linkend="softint_type">softint</link>) <command>returns</command> <link linkend="date_type">date</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="hours">hours</link>() <command>returns</command> <link linkend="date_type">date</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -6534,7 +6775,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
                 <para><code><link linkend="int_type">int</link></code></para>
               </entry>
               <entry>
-                <para>Date</para>
+                <para><code><link linkend="date_type">date</link></code></para>
               </entry>
               <entry>
                 <para>Returns a <link linkend="Relative_Dates">relative date/time value</link> corresponding to the number of hours passed as an argument, to be used in date arithmetic.</para>
@@ -6559,7 +6800,9 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>localtime(<replaceable>[int_value]</replaceable>)</programlisting>
+	<para><code><link linkend="localtime">localtime</link>(<link linkend="date_type">date</link>) <command>returns</command> <link linkend="date_type">date</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+	<para><code><link linkend="localtime">localtime</link>(<link linkend="softint_type">softint</link>, <link linkend="softint_type">softint</link> = 0) <command>returns</command> <link linkend="date_type">date</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+	<para><code><link linkend="localtime">localtime</link>() <command>returns</command> <link linkend="date_type">date</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -6589,23 +6832,79 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           <tbody>
             <row>
               <entry>
-                <para><code><link linkend="int_type">int</link></code></para>
+                <para><code><link linkend="softint_type">softint</link> or <link linkend="date_type">date</link></code></para>
               </entry>
               <entry>
-                <para>Date</para>
+                <para><code><link linkend="date_type">date</link></code></para>
               </entry>
               <entry>
-                <para>The optional integer argument must be the number of seconds passed since Jan 1, 1970, 00:00:00 (see <link linkend="mktime">mktime()</link> for a function that returns such a value).  Qore uses the C library function localtime() to calculate the return value, which is returned as a Qore Date type.  If no argument is passed, then the current date and time in the current time zone are returned.  If an argument is passed that is not a date/time value, then NOTHING is returned.</para>
+                <para>The optional integer argument must be the number of seconds passed since Jan 1, 1970, 00:00:00 (see <link linkend="mktime">mktime()</link> for a function that returns such a value).  If no argument is passed, then the current date and time in the current time zone are returned (with no argument, this function is equivalent to <link linkend="now">now()</link>.  If a date argument is passed, then the given date is converted to the local time zone and returned.</para>
               </entry>
             </row>
           </tbody>
         </tgroup>
       </table>
-
-
   <para>This function does not throw any exceptions.</para>
 
 </sect2>
+
+    <sect2 id="microseconds">
+      <title>microseconds()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Returns a <link linkend="Relative_Dates">relative date/time value</link> in microseconds to be used in date arithmetic.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <para><code><link linkend="microseconds">microseconds</link>(<link linkend="softint_type">softint</link>) <command>returns</command> <link linkend="date_type">date</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="microseconds">microseconds</link>() <command>returns</command> <link linkend="date_type">date</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$ms = millseconds(5 * 5); # returns 25ms</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      
+      <table>
+        <title>Arguments and Return Values for microseconds()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument Type</para>
+              </entry>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para><code><link linkend="softint_type">softint</link></code></para>
+              </entry>
+              <entry>
+                <para><code><link linkend="date_type">date</link></code></para>
+              </entry>
+              <entry>
+                <para>Returns a <link linkend="Relative_Dates">relative date/time value</link> corresponding to the number of microseconds passed as an argument, to be used in date arithmetic.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <para>This function does not throw any exceptions.</para>
+    </sect2>
 
     <sect2 id="milliseconds">
       <title>milliseconds()</title>
@@ -6619,7 +6918,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <varlistentry>
           <term>Usage</term>
           <listitem>
-            <programlisting>millseconds(<replaceable>expression</replaceable>)</programlisting>
+            <para><code><link linkend="milliseconds">milliseconds</link>(<link linkend="softint_type">softint</link>) <command>returns</command> <link linkend="date_type">date</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="milliseconds">milliseconds</link>() <command>returns</command> <link linkend="date_type">date</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -6649,10 +6949,10 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           <tbody>
             <row>
               <entry>
-                <para><code><link linkend="int_type">int</link></code></para>
+                <para><code><link linkend="softint_type">softint</link></code></para>
               </entry>
               <entry>
-                <para>Date</para>
+                <para><code><link linkend="date_type">date</link></code></para>
               </entry>
               <entry>
                 <para>Returns a <link linkend="Relative_Dates">relative date/time value</link> corresponding to the number of milliseconds passed as an argument, to be used in date arithmetic.</para>
@@ -6676,7 +6976,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <varlistentry>
           <term>Usage</term>
           <listitem>
-            <programlisting>minutes(<replaceable>expression</replaceable>)</programlisting>
+            <para><code><link linkend="minutes">minutes</link>(<link linkend="softint_type">softint</link>) <command>returns</command> <link linkend="date_type">date</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="minutes">minutes</link>() <command>returns</command> <link linkend="date_type">date</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -6706,10 +7007,10 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           <tbody>
             <row>
               <entry>
-                <para><code><link linkend="int_type">int</link></code></para>
+                <para><code><link linkend="softint_type">softint</link></code></para>
               </entry>
               <entry>
-                <para>Date</para>
+                <para><code><link linkend="date_type">date</link></code></para>
               </entry>
               <entry>
                 <para>Returns a <link linkend="Relative_Dates">relative date/time value</link> corresponding to the number of minutes passed as an argument, to be used in date arithmetic.</para>
@@ -6728,13 +7029,15 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Returns the number of seconds of the date and time in local time passed since Jan 1, 1970, 00:00:00 GMT.</para>
+	<para>Returns the number of seconds of the date and time in local time passed since Jan 1, 1970, 00:00:00 Z (UTC).</para>
+	<para>This function is equivalent to <link linkend="get_epoch_seconds">get_epoch_seconds()</link>.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>mktime(<replaceable>date_value</replaceable>)</programlisting>
+            <para><code><link linkend="mktime">mktime</link>(<link linkend="date_type">date</link>) <command>returns</command> <link linkend="int_type">int</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="mktime">mktime</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -6744,12 +7047,6 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       </listitem>
     </varlistentry>
   </variablelist>
-
-<para>Synopsis</para>
-<para></para>
-
-<para>Usage</para>
-<para></para>
 
       <table>
         <title>Arguments and Return Values for mktime()</title>
@@ -6770,19 +7067,18 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           <tbody>
             <row>
               <entry>
-                <para>Date</para>
+                <para><code><link linkend="date_type">date</link></code></para>
               </entry>
               <entry>
                 <para><code><link linkend="int_type">int</link></code></para>
               </entry>
               <entry>
-                <para>The date argument should be in local time; the function returns the number of seconds passed since Jan 1, 1970 00:00:00 corresponding to this date.  Qore uses the C library function mktime() to return the value.</para>
+                <para>The date argument should be in local time; the function returns the number of seconds passed since Jan 1, 1970 00:00:00 corresponding to this date.</para>
               </entry>
             </row>
           </tbody>
         </tgroup>
       </table>
-
 
   <para>This function does not throw any exceptions.</para>
 
@@ -6800,7 +7096,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <varlistentry>
           <term>Usage</term>
           <listitem>
-            <programlisting>months(<replaceable>expression</replaceable>)</programlisting>
+            <para><code><link linkend="months">months</link>(<link linkend="softint_type">softint</link>) <command>returns</command> <link linkend="date_type">date</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="months">months</link>() <command>returns</command> <link linkend="date_type">date</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -6833,7 +7130,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
                 <para><code><link linkend="int_type">int</link></code></para>
               </entry>
               <entry>
-                <para>Date</para>
+                <para><code><link linkend="date_type">date</link></code></para>
               </entry>
               <entry>
                 <para>Returns a <link linkend="Relative_Dates">relative date/time value</link> corresponding to the number of months passed as an argument, to be used in date arithmetic.</para>
@@ -6853,13 +7150,15 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Returns the current date and time with resolution to the second.  For a similar function returning the current date and time with millisecond resolution, see <link linkend="now_ms">now_ms()</link>.</para>
+	<para>Returns the current date and time in the local time zone with resolution to the second.</para>
+	<para>For similar functions returning the current date and time in the local time zone with millisecond and microsecond resolution, see <link linkend="now_ms">now_ms()</link> and <link linkend="now_us">now_us()</link>.  Note that there is no performance penalty for using <link linkend="now_ms">now_ms()</link> and <link linkend="now_us">now_us()</link> versus this function, this function and <link linkend="now_ms">now_ms()</link> are kept for backwards-compatibility.</para>
+	<para>See also <link linkend="now_utc">now_utc()</link>.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>now()</programlisting>
+	<para><code><link linkend="now">now</link>() <command>returns</command> <link linkend="date_type">date</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -6892,10 +7191,10 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
                 <para>n/a</para>
               </entry>
               <entry>
-                <para>Date</para>
+                <para><code><link linkend="date_type">date</link></code></para>
               </entry>
               <entry>
-                <para>Returns the current date and time with resolution to the second.</para>
+                <para>Returns the current date and time in the local time zone with resolution to the second.</para>
               </entry>
             </row>
           </tbody>
@@ -6913,7 +7212,9 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Returns the current date and time with resolution to the millisecond.  For a similar function returning the current date and time with coarser granularity, when resolution only to the second is needed, see <link linkend="now">now()</link>.</para>
+	<para>Returns the current date and time in the local time zone with resolution to the millisecond.</para>
+	<para>For a similar function returning the current date and time in the local time zone with coarser granularity, when resolution only to the second is needed, see <link linkend="now">now()</link>; for a similar function returning the current date and time with a resolution to the microsecond, see <link linkend="now_us">now_us()</link>. Note that there is no performance penalty for using <link linkend="now_ms">now_ms()</link> and <link linkend="now_us">now_us()</link> versus <link linkend="now">now()</link>, <link linkend="now">now()</link> and <link linkend="now_ms">now_ms()</link> are kept for backwards-compatibility.</para>
+	<para>See also <link linkend="now_utc">now_utc()</link>.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -6952,10 +7253,133 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
                 <para>n/a</para>
               </entry>
               <entry>
-                <para>Date</para>
+                <para><code><link linkend="date_type">date</link></code></para>
               </entry>
               <entry>
-                <para>Returns the current date and time with resolution to the millisecond.</para>
+                <para>Returns the current date and time in the local time zone with resolution to the millisecond.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+
+  <para>This function does not throw any exceptions.</para>
+
+</sect2>
+
+<sect2 id="now_us">
+<title>now_us()</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Returns the current date and time in the local time zone with resolution to the microsecond.</para>
+	<para>For similar functions returning the current date and time with coarser granularity, see <link linkend="now">now()</link> and <link linkend="now_ms">now_ms()</link>.  Note that there is no performance impact for using <link linkend="now_us">now_us()</link> versus <link linkend="now">now()</link> and <link linkend="now_ms">now_ms()</link>; <link linkend="now">now()</link> and <link linkend="now_ms">now_ms()</link> are kept for backwards-compatibility.</para>
+	<para>See also <link linkend="now_utc">now_utc()</link>.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+	<programlisting>now_us()</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$now_us = now_us();</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+      <table>
+        <title>Arguments and Return Values for now_us()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument Type</para>
+              </entry>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para><code><link linkend="date_type">date</link></code></para>
+              </entry>
+              <entry>
+                <para>Returns the current date and time with resolution to the microsecond.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+
+  <para>This function does not throw any exceptions.</para>
+
+</sect2>
+
+<sect2 id="now_utc">
+<title>now_utc()</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Returns the current UTC date and time with resolution to the microsecond.</para>
+	<para>See also <link linkend="now_us">now_us()</link> for a similar function that returns the current date and time in the local time zone.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+	<programlisting>now_utc()</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$now_utc = now_utc();</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+      <table>
+        <title>Arguments and Return Values for now_utc()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument Type</para>
+              </entry>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para>n/a</para>
+              </entry>
+              <entry>
+                <para><code><link linkend="date_type">date</link></code></para>
+              </entry>
+              <entry>
+                <para>Returns the current UTC date and time with resolution to the microsecond.</para>
               </entry>
             </row>
           </tbody>
@@ -6978,7 +7402,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <varlistentry>
           <term>Usage</term>
           <listitem>
-            <programlisting>seconds(<replaceable>expression</replaceable>)</programlisting>
+            <para><code><link linkend="seconds">seconds</link>(<link linkend="softint_type">softint</link>) <command>returns</command> <link linkend="date_type">date</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="seconds">seconds</link>() <command>returns</command> <link linkend="date_type">date</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -7008,10 +7433,10 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           <tbody>
             <row>
               <entry>
-                <para><code><link linkend="int_type">int</link></code></para>
+                <para><code><link linkend="softint_type">softint</link></code></para>
               </entry>
               <entry>
-                <para>Date</para>
+                <para><code><link linkend="date_type">date</link></code></para>
               </entry>
               <entry>
                 <para>Returns a <link linkend="Relative_Dates">relative date/time value</link> corresponding to the number of seconds passed as an argument, to be used in date arithmetic.</para>
@@ -7031,13 +7456,14 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Returns the number of seconds since January 1, 1970 00:00:00 in the local time zone of the date argument passed.</para>
+	<para>Returns the number of seconds since January 1, 1970 00:00:00 in the local time zone for a given date, ignoring the time zone of the date passed.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>timegm(<replaceable>date</replaceable>)</programlisting>
+            <para><code><link linkend="timegm">timegm</link>(<link linkend="date_type">date</link>) <command>returns</command> <link linkend="int_type">int</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="timegm">timegm</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -7067,13 +7493,13 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           <tbody>
             <row>
               <entry>
-                <para>Date</para>
+                <para><code><link linkend="date_type">date</link></code></para>
               </entry>
               <entry>
                 <para><code><link linkend="int_type">int</link></code></para>
               </entry>
               <entry>
-                <para>Returns the number of seconds since January 1, 1970 00:00 for a given date in GMT.</para>
+                <para>Returns the number of seconds since January 1, 1970 00:00:00 in the local time zone for a given date, ignoring the time zone of the date passed.</para>
               </entry>
             </row>
           </tbody>
@@ -7094,7 +7520,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <varlistentry>
           <term>Usage</term>
           <listitem>
-            <programlisting>years(<replaceable>expression</replaceable>)</programlisting>
+            <para><code><link linkend="years">years</link>(<link linkend="softint_type">softint</link>) <command>returns</command> <link linkend="date_type">date</link></code></para>
+            <para><code><link linkend="years">years</link>() <command>returns</command> <link linkend="date_type">date</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -7127,7 +7554,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
                 <para><code><link linkend="int_type">int</link></code></para>
               </entry>
               <entry>
-                <para>Date</para>
+                <para><code><link linkend="date_type">date</link></code></para>
               </entry>
               <entry>
                 <para>Returns a <link linkend="Relative_Dates">relative date/time value</link> corresponding to the number of years passed as an argument, to be used in date arithmetic.</para>
@@ -7158,7 +7585,9 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>binary(<replaceable>string</replaceable>)</programlisting>
+            <para><code><link linkend="binary">binary</link>(<link linkend="softstring_type">string</link>) <command>returns</command> <link linkend="binary_type">binary</link></code></para>
+            <para><code><link linkend="binary">binary</link>(<link linkend="binary_type">binary</link>) <command>returns</command> <link linkend="binary_type">binary</link></code></para>
+            <para><code><link linkend="binary">binary</link>() <command>returns</command> <link linkend="binary_type">binary</link></code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -7188,10 +7617,10 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           <tbody>
             <row>
               <entry>
-                <para><code><link linkend="string_type">string</link></code></para>
+                <para><code><link linkend="softstring_type">softstring</link></code></para>
               </entry>
               <entry>
-                <para>Binary</para>
+                <code><link linkend="binary_type">binary</link></code>
               </entry>
               <entry>
                 <para>A binary data type holding the string data passed.</para>
@@ -7200,7 +7629,6 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           </tbody>
         </tgroup>
       </table>
-
 
   <para>This function does not throw any exceptions.</para>
 
@@ -7220,7 +7648,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>binary_to_string(<replaceable>binary, [encoding]</replaceable>)</programlisting>
+            <para><code><link linkend="binary_to_string">binary_to_string</link>(<link linkend="binary_type">binary</link>) <command>returns</command> <link linkend="string_type">string</link></code></para>
+            <para><code><link linkend="binary_to_string">binary_to_string</link>(<link linkend="binary_type">binary</link>, <link linkend="string_type">string</link>) <command>returns</command> <link linkend="string_type">string</link></code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -7243,30 +7672,13 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           </thead>
           <tbody>
             <row>
-              <entry><para>Binary, [String]</para></entry>
+              <entry><para><code><link linkend="binary_type">binary</link>, [<link linkend="string_type">string</link>]</code></para></entry>
               <entry><para><code><link linkend="string_type">string</link></code></para></entry>
               <entry><para>Returns a string corresponding to the binary data passed, taking an optional second argument giving the string encoding.  If no second argument is passed then the default encoding is assumed.</para></entry>
             </row>
           </tbody>
         </tgroup>
       </table>
-
-  <table><title>Exceptions Thrown by binary_to_string()</title>
-  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
-    <thead>
-      <row>
-	<entry><para>err</para></entry>
-	<entry><para>desc</para></entry>
-      </row>
-    </thead>
-    <tbody>
-      <row>
-	<entry><para><code>BINARY-TO-STRING-ERROR</code></para></entry>
-	<entry><para>No binary value was passed as the first argument.</para></entry>
-      </row>
-    </tbody>
-  </tgroup>
-  </table>
 
 </sect2>
 
@@ -7283,7 +7695,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>boolean(<replaceable>expression</replaceable>)</programlisting>
+            <para><code><link linkend="boolean">boolean</link>(<link linkend="softbool_type">softbool</link>) <command>returns</command> <link linkend="bool_type">bool</link></code></para>
+            <para><code><link linkend="boolean">boolean</link>() <command>returns</command> <link linkend="bool_type">bool</link></code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -7313,19 +7726,18 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           <tbody>
             <row>
               <entry>
-                <para>Any</para>
+                <para><code><link linkend="softbool_type">softbool</link></code></para>
               </entry>
               <entry>
-                <para>Boolean</para>
+                <para><code><link linkend="bool_type">bool</link></code></para>
               </entry>
               <entry>
-                <para>Converts the argument to an integer if necessary, where any non-zero value is True, zero is False.</para>
+                <para>Converts the argument to an boolean, where any non-zero value is True, zero is False.</para>
               </entry>
             </row>
           </tbody>
         </tgroup>
       </table>
-
 
   <para>This function does not throw any exceptions.</para>
 </sect2>
@@ -7338,12 +7750,58 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <term>Synopsis</term>
       <listitem>
 	<para>Converts the argument to a date and returns the date.</para>
+	<para>As of Qore 0.8.0, converting a date from a string is much more flexible; formats such as the following are now accepted (note that in the following examples, if the time zone/UTC offset is not explicitly specified, the local time zone is assumed):</para>
+
+      <table>
+        <title>Examples Converting Date From String</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry><para>String</para></entry>
+              <entry><para>Date</para></entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+	      <entry><para><code>&quot;2001-01-01T15:35:23&quot;</code></para></entry>
+              <entry><para><code>2001-01-01 15:35:23 Mon +01:00 (CET)</code></para></entry>
+            </row>
+            <row>
+	      <entry><para><code>&quot;>20010101 15:35:23Z&quot;</code></para></entry>
+              <entry><para><code>2001-01-01 15:35:23 Mon Z (UTC)</code></para></entry>
+            </row>
+            <row>
+	      <entry><para><code>&quot;20010101 153523Z&quot;</code></para></entry>
+              <entry><para><code>2001-01-01 15:35:23 Mon Z (UTC)</code></para></entry>
+            </row>
+            <row>
+	      <entry><para><code>&quot;20010101 153523-02&quot;</code></para></entry>
+              <entry><para><code>2001-01-01 15:35:23 Mon -02:00 (-02:00)</code></para></entry>
+            </row>
+            <row>
+	      <entry><para><code>&quot;20010101 153523-02:00:00&quot;</code></para></entry>
+              <entry><para><code>2001-01-01 15:35:23 Mon -02:00 (-02:00)</code></para></entry>
+            </row>
+            <row>
+	      <entry><para><code>&quot;2001-01-01-153523-020000&quot;</code></para></entry>
+              <entry><para><code>2001-01-01 15:35:23 Mon -02:00 (-02:00)</code></para></entry>
+            </row>
+            <row>
+	      <entry><para><code>&quot;20010101-153523&quot;</code></para></entry>
+              <entry><para><code>2001-01-01 15:35:23 Mon +01:00 (CET)</code></para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>date(<replaceable>expression</replaceable>)</programlisting>
+            <para><code><link linkend="date">date</link>(<link linkend="string_type">string</link>) <command>returns</command> <link linkend="date_type">date</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="date">date</link>(<link linkend="softint_type">softint</link>) <command>returns</command> <link linkend="date_type">date</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="date">date</link>() <command>returns</command> <link linkend="date_type">date</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -7366,8 +7824,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           </thead>
           <tbody>
             <row>
-	      <entry><para>Any</para></entry>
-              <entry><para>Date</para></entry>
+	      <entry><para><code><link linkend="string_type">string</link> or <link linkend="softint_type">softint</link></code></para></entry>
+              <entry><para><code><link linkend="date_type">date</link></code></para></entry>
               <entry><para>Converts the argument to a date and returns the date.</para></entry>
             </row>
           </tbody>
@@ -7391,7 +7849,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>float(<replaceable>expression</replaceable>)</programlisting>
+            <para><code><link linkend="float">float</link>(<link linkend="softfloat_type">softfloat</link>) <command>returns</command> <link linkend="float_type">float</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="float">float</link>() <command>returns</command> <link linkend="float_type">float</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -7414,7 +7873,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           </thead>
           <tbody>
             <row>
-	      <entry><para>Any</para></entry>
+	      <entry><para><code><link linkend="softfloat_type">softfloat</link></code></para></entry>
               <entry><para><code><link linkend="float_type">float</link></code></para></entry>
               <entry><para>Converts argument passed to a floating-point value.</para></entry>
             </row>
@@ -7440,7 +7899,10 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>hash(<replaceable>list</replaceable> | <replaceable>object</replaceable>)</programlisting>
+            <para><code><link linkend="hash">hash</link>(<link linkend="list_type">list</link>) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
+            <para><code><link linkend="hash">hash</link>(<link linkend="hash_type">hash</link>) <command>returns</command> <link linkend="hash_type">hash</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="hash">hash</link>(<link linkend="object_type">object</link>) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
+            <para><code><link linkend="hash">hash</link>() <command>returns</command> <link linkend="hash_type">hash</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -7464,18 +7926,23 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           </thead>
           <tbody>
             <row>
-	      <entry><para>Object</para></entry>
-              <entry><para>Hash</para></entry>
+	      <entry><para><code><link linkend="object_type">object</link></code></para></entry>
+              <entry><para><code><link linkend="hash_type">hash</link></code></para></entry>
               <entry><para>Returns a hash of the object's members (public members only if called outside the class).</para></entry>
             </row>
             <row>
-	      <entry><para>List</para></entry>
-              <entry><para>Hash</para></entry>
+	      <entry><para><code><link linkend="list_type">list</link></code></para></entry>
+              <entry><para><code><link linkend="hash_type">hash</link></code></para></entry>
               <entry><para>Returns a hash by taking even numbered list elements (starting with 0) and converting them to strings for the hash keys, and the odd numbered elements following the keys as the key value.</para></entry>
             </row>
             <row>
-	      <entry><para>anything other than Object or List</para></entry>
-              <entry><para>Hash</para></entry>
+	      <entry><para><code><link linkend="hash_type">hash</link></code></para></entry>
+              <entry><para><code><link linkend="hash_type">hash</link></code></para></entry>
+              <entry><para>Returns the hash argument unmodified.</para></entry>
+            </row>
+            <row>
+	      <entry><para><code><link linkend="any_type">any</link></code></para></entry>
+              <entry><para><code><link linkend="hash_type">hash</link></code></para></entry>
               <entry><para>Returns an empty hash.</para></entry>
             </row>
           </tbody>
@@ -7499,7 +7966,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>int(<replaceable>expression</replaceable>)</programlisting>
+            <para><code><link linkend="int">int</link>(<link linkend="softint_type">softint</link>) <command>returns</command> <link linkend="int_type">int</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="int">int</link>() <command>returns</command> <link linkend="int_type">int</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -7522,7 +7990,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           </thead>
           <tbody>
             <row>
-	      <entry><para>Any</para></entry>
+	      <entry><para><code><link linkend="softint_type">softint</link></code></para></entry>
               <entry><para><code><link linkend="int_type">int</link></code></para></entry>
               <entry><para>Converts argument passed to an integer value.</para></entry>
             </row>
@@ -7548,7 +8016,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>list([<replaceable>expression</replaceable>])</programlisting>
+            <para><code><link linkend="list">list</link>(...) <command>returns</command> <link linkend="list_type">list</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -7571,9 +8039,9 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           </thead>
           <tbody>
             <row>
-	      <entry><para>[Any ...]</para></entry>
-              <entry><para>List</para></entry>
-              <entry><para>Returns a list.  If any arguments are passed, they are inserted as the first element in the list returned.</para></entry>
+	      <entry><para><code><link linkend="any_type">any</link></code></para></entry>
+              <entry><para><code><link linkend="list_type">list</link></code></para></entry>
+              <entry><para>Returns a list.  If any arguments are passed, they are inserted as the first element in the list returned; if no argument is passed, and empty list is returned.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -7597,7 +8065,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>string(<replaceable>expression</replaceable>)</programlisting>
+            <para><code><link linkend="string">string</link>(<link linkend="softstring_type">softstring</link>) <command>returns</command> <link linkend="string_type">string</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="string">string</link>() <command>returns</command> <link linkend="string_type">string</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -7620,7 +8089,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           </thead>
           <tbody>
             <row>
-	      <entry><para>Any</para></entry>
+	      <entry><para><code><link linkend="softstring_type">softstring</link></code></para></entry>
               <entry><para><code><link linkend="string_type">string</link></code></para></entry>
               <entry><para>Converts the argument passed to a string value.</para></entry>
             </row>
@@ -7643,7 +8112,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>type(<replaceable>expression</replaceable>)</programlisting>
+            <para><code><link linkend="type">type</link>(<link linkend="any_type">any</link>) <command>returns</command> <link linkend="string_type">string</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -7666,7 +8135,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           </thead>
           <tbody>
             <row>
-	      <entry><para>Any</para></entry>
+	      <entry><para><code><link linkend="any_type">any</link></code></para></entry>
               <entry><para><code><link linkend="string_type">string</link></code></para></entry>
               <entry><para>Returns the data type of the argument passed.  See <link linkend="Qore_Type_Constants">Type_Constants</link> for the values that can be returned by this function.</para></entry>
             </row>
@@ -7740,7 +8209,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>getenv(<replaceable>variable_name</replaceable>)</programlisting>
+            <para><code><link linkend="getenv">getenv</link>(<link linkend="string_type">string</link>) <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="getenv">getenv</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -7764,8 +8234,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           <tbody>
             <row>
 	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-              <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-              <entry><para>The contents of the environment variable, if the environment variable exists, otherwise returns no value.</para></entry>
+              <entry><para><code><link linkend="any_type">any</link></code></para></entry>
+              <entry><para>The contents of the environment variable are returned as a <link linkend="string_type">string</link>, if the environment variable exists, otherwise <link linkend="NOTHING">no value</link> is returned.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -7788,7 +8258,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>setenv(<replaceable>key_string, value_string</replaceable>)</programlisting>
+            <para><code><link linkend="setenv">setenv</link>(<link linkend="string_type">string</link>, <link linkend="softstring_type">softstring</link>) <command>returns</command> <link linkend="int_type">int</link></code></para>
+            <para><code><link linkend="setenv">setenv</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -7811,8 +8282,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           </thead>
           <tbody>
             <row>
-	      <entry><para><code><link linkend="string_type">string</link></code>, String</para></entry>
-              <entry><para>n/a</para></entry>
+	      <entry><para><code><link linkend="string_type">string</link>, <link linkend="softstring_type">softstring</link></code></para></entry>
+              <entry><para><code><link linkend="int_type">int</link></code></para></entry>
               <entry><para>Sets the environment variable to a string value (the value is converted to a string if necessary).</para></entry>
             </row>
           </tbody>
@@ -7836,7 +8307,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>unsetenv(<replaceable>key_string</replaceable>)</programlisting>
+            <para><code><link linkend="unsetenv">unsetenv</link>(<link linkend="string_type">string</link>) <command>returns</command> <link linkend="int_type">int</link></code></para>
+            <para><code><link linkend="unsetenv">unsetenv</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -7860,7 +8332,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           <tbody>
             <row>
 	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-              <entry><para>n/a</para></entry>
+              <entry><para><code><link linkend="int_type">int</link></code></para></entry>
               <entry><para>Unsets the environment variable given by the string passed.</para></entry>
             </row>
           </tbody>
@@ -7890,7 +8362,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>bindex(<replaceable>string, substring [, start_position]</replaceable>)</programlisting>
+            <para><code><link linkend="bindex">bindex</link>(<link linkend="softstring_type">softstring</link>, <link linkend="softstring_type">softstring</link>, <link linkend="softint_type">softint</link> = 0) <command>returns</command> <link linkend="int_type">int</link></code></para>
+            <para><code><link linkend="bindex">bindex</link>() <command>returns</command> <link linkend="int_type">int</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -7913,7 +8386,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           </thead>
           <tbody>
             <row>
-	      <entry><para><code><link linkend="string_type">string</link></code>, String, [Integer]</para></entry>
+	      <entry><para><code><link linkend="softstring_type">softstring</link>, <link linkend="softstring_type">softstring</link>, <link linkend="softint_type">softint</link></code></para></entry>
               <entry><para><code><link linkend="int_type">int</link></code></para></entry>
               <entry><para>If the substring is found, returns the byte position of the substring within the string (starting at 0). If not found, returns -1.  If an offset position is given, the search starts at the offset position.  All values are byte positions, not character positions, which may differ for multi-byte character encodings.</para></entry>
             </row>
@@ -7935,7 +8408,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
-	    <programlisting>brindex(<replaceable>string, substring, [position]</replaceable>)</programlisting>
+            <para><code><link linkend="brindex">brindex</link>(<link linkend="softstring_type">softstring</link>, <link linkend="softstring_type">softstring</link>, <link linkend="softint_type">softint</link> = -1) <command>returns</command> <link linkend="int_type">int</link></code></para>
+            <para><code><link linkend="brindex">brindex</link>() <command>returns</command> <link linkend="int_type">int</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -7957,7 +8431,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           </thead>
           <tbody>
             <row>
-	      <entry><para><code><link linkend="string_type">string</link></code>, String, [Integer]</para></entry>
+	      <entry><para><code><link linkend="softstring_type">softstring</link>, <link linkend="softstring_type">softstring</link>, <link linkend="softint_type">softint</link></code></para></entry>
               <entry><para><code><link linkend="int_type">int</link></code></para></entry>
               <entry><para>Returns the starting byte position of a string in another, starting from the end of the string, or from <replaceable>position</replaceable> if given.  If <replaceable>position</replaceable> is given, then the reverse search starts at that character position (searches always go from the end of the string toward the beginning).  Returns -1 if the substring cannot be found.  All values are byte positions, not character positions, which may differ for multi-byte character encodings.</para></entry>
             </row>
@@ -7980,7 +8454,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>chomp(<replaceable>string</replaceable>)</programlisting>
+            <para><code><link linkend="chomp">chomp</link>(<link linkend="string_type">string</link>) <command>returns</command> <link linkend="string_type">string</link></code></para>
+            <para><code><link linkend="chomp">chomp</link>(<link linkend="reference_type">reference</link>) <command>returns</command> <link linkend="any_type">any</link></code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -8005,7 +8480,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
             <row>
 	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
               <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-              <entry><para>Returns the new string with any end-of-line character(s) removed; if the first argument is a variable reference, then the string is modified in place and the new string is also returned.</para></entry>
+              <entry><para>Returns the new string with any end-of-line character(s) removed.</para></entry>
+            </row>
+            <row>
+	      <entry><para><code><link linkend="reference_type">reference</link></code></para></entry>
+              <entry><para><code><link linkend="any_type">any</link></code></para></entry>
+              <entry><para>If the first argument is a variable reference and points to a string, then the string is modified in place and the new string is also returned.  Otherwise if the reference is any other type, no action is taken and <link linkend="NOTHING">no value</link> is returned.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -8028,7 +8508,9 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>chr(<replaceable>integer</replaceable>)</programlisting>
+            <para><code><link linkend="chr">chr</link>(<link linkend="softint_type">softint</link>) <command>returns</command> <link linkend="string_type">string</link></code></para>
+            <para><code><link linkend="chr">chr</link>(<link linkend="any_type">any</link>) <command>returns</command> <link linkend="string_type">string</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
+            <para><code><link linkend="chr">chr</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -8051,7 +8533,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           </thead>
           <tbody>
             <row>
-	      <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+	      <entry><para><code><link linkend="softint_type">softint</link></code></para></entry>
               <entry><para><code><link linkend="string_type">string</link></code></para></entry>
               <entry><para>Returns a string containing a single ASCII character represented by the numeric value passed.</para></entry>
             </row>
@@ -8076,7 +8558,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>convert_encoding(<replaceable>string, new_encoding</replaceable>)</programlisting>
+            <para><code><link linkend="convert_encoding">convert_encoding</link>(<link linkend="string_type">string</link>, <link linkend="string_type">string</link>) <command>returns</command> <link linkend="string_type">string</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="convert_encoding">convert_encoding</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -8099,7 +8582,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           </thead>
           <tbody>
             <row>
-	      <entry><para><code><link linkend="string_type">string</link></code>, String</para></entry>
+	      <entry><para><code><link linkend="string_type">string</link>, <link linkend="string_type">string</link></code></para></entry>
               <entry><para><code><link linkend="string_type">string</link></code></para></entry>
               <entry><para>Converts the string arguement to the encoding given and returns the new string.</para></entry>
             </row>
@@ -8139,7 +8622,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>decode_url(<replaceable>url_string</replaceable>)</programlisting>
+            <para><code><link linkend="decode_url">decode_url</link>(<link linkend="string_type">string</link>) <command>returns</command> <link linkend="string_type">string</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="decode_url">decode_url</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -8162,7 +8646,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           </thead>
           <tbody>
             <row>
-	      <entry><para><replaceable>url_string</replaceable></para></entry>
+	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
               <entry><para><code><link linkend="string_type">string</link></code></para></entry>
               <entry><para>Returns a string with numeric percent codes decoded to characters.</para></entry>
             </row>
@@ -8187,7 +8671,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>force_encoding(<replaceable>string, new_encoding</replaceable>)</programlisting>
+            <para><code><link linkend="force_encoding">force_encoding</link>(<link linkend="string_type">string</link>, <link linkend="string_type">string</link>) <command>returns</command> <link linkend="string_type">string</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="force_encoding">force_encoding</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -8210,7 +8695,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           </thead>
           <tbody>
             <row>
-	      <entry><para><code><link linkend="string_type">string</link></code>, String</para></entry>
+	      <entry><para><code><link linkend="string_type">string</link>, <link linkend="string_type">string</link></code></para></entry>
               <entry><para><code><link linkend="string_type">string</link></code></para></entry>
               <entry><para>Returns a string with identical byte data as the input string, but tagged with the new encoding.</para></entry>
             </row>
@@ -8235,7 +8720,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>get_encoding(<replaceable>string</replaceable>)</programlisting>
+            <para><code><link linkend="get_encoding">get_encoding</link>(<link linkend="string_type">string</link>) <command>returns</command> <link linkend="string_type">string</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="get_encoding">get_encoding</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -8282,7 +8768,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>index(<replaceable>string, substring [, start_position]</replaceable>)</programlisting>
+            <para><code><link linkend="index">index</link>(<link linkend="softstring_type">softstring</link>, <link linkend="softstring_type">softstring</link>, <link linkend="softint_type">softint</link> = 0) <command>returns</command> <link linkend="int_type">int</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="index">index</link>() <command>returns</command> <link linkend="int_type">int</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -8305,7 +8792,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           </thead>
           <tbody>
             <row>
-	      <entry><para><code><link linkend="string_type">string</link></code>, String, [Integer]</para></entry>
+	      <entry><para><code><link linkend="softstring_type">softstring</link>, <link linkend="softstring_type">softstring</link>, <link linkend="softint_type">softint</link></code></para></entry>
               <entry><para><code><link linkend="int_type">int</link></code></para></entry>
               <entry><para>If the substring is found, returns the position of the substring within the string (starting at 0). If not found, returns -1.  If an offset position is given, the search starts at the offset position.  All values are character positions, not byte positions, which may differ for multi-byte character encodings.</para></entry>
             </row>
@@ -8327,7 +8814,9 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>join(<replaceable>separator_string, list</replaceable>)</programlisting>
+            <para><code><link linkend="join">join</link>(<link linkend="string_type">string</link>, <link linkend="list_type">list</link>) <command>returns</command> <link linkend="string_type">string</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="join">join</link>(<link linkend="string_type">string</link>, ...) <command>returns</command> <link linkend="string_type">string</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="join">join</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -8350,8 +8839,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       </thead>
       <tbody>
 	<row>
-	  <entry><para><code><link linkend="string_type">string</link></code>, List</para></entry>
-	  <entry><para>Srring</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link>, <link linkend="list_type">list</link> or ...</code></para></entry>
+	  <entry><para><code><link linkend="string_type">string</link></code></para></entry>
 	  <entry><para>Returns a string with each element of the list separated by the separator string.</para></entry>
 	</row>
       </tbody>
@@ -8373,7 +8862,10 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>length(<replaceable>string</replaceable>)</programlisting>
+            <para><code><link linkend="length">length</link>(<link linkend="softstring_type">softstring</link>) <command>returns</command> <link linkend="int_type">int</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="length">length</link>(<link linkend="binary_type">binary</link>) <command>returns</command> <link linkend="int_type">int</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="length">length</link>(<link linkend="any_type">any</link>) <command>returns</command> <link linkend="int_type">int</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
+            <para><code><link linkend="length">length</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -8396,9 +8888,14 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           </thead>
           <tbody>
             <row>
-	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
+	      <entry><para><code><link linkend="softstring_type">softstring</link></code></para></entry>
               <entry><para><code><link linkend="int_type">int</link></code></para></entry>
               <entry><para>Returns the length in characters for the string passed.</para></entry>
+            </row>
+            <row>
+	      <entry><para><code><link linkend="binary_type">binary</link></code></para></entry>
+              <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+              <entry><para>Returns the number of bytes in the binary data passed.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -8419,7 +8916,9 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>ord(<replaceable>string str, int offset = 0</replaceable>)</programlisting>
+            <para><code><link linkend="ord">ord</link>(<link linkend="softstring_type">softstring</link>, <link linkend="softint_type">softint</link>) <command>returns</command> <link linkend="int_type">int</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="ord">ord</link>(<link linkend="softstring_type">softstring</link>) <command>returns</command> <link linkend="int_type">int</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="ord">ord</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -8442,7 +8941,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           </thead>
           <tbody>
             <row>
-	      <entry><para>tring str, [integer offset = 0]</para></entry>
+	      <entry><para><code><link linkend="softstring_type">softstring</link>, <link linkend="softint_type">softint</link> = 0</code></para></entry>
               <entry><para><code><link linkend="int_type">int</link></code></para></entry>
               <entry><para>Gives the numeric value of the given byte in the string passed (the first byte if no offset is passed); if no string is passed or the offset is after the end of the string, -1 is returned.</para></entry>
             </row>
@@ -8467,7 +8966,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>regex(<replaceable>string, pattern_string, [options]</replaceable>)</programlisting>
+            <para><code><link linkend="regex">regex</link>(<link linkend="string_type">string</link>, <link linkend="string_type">string</link>, <link linkend="int_type">int</link> = 0) <command>returns</command> <link linkend="bool_type">bool</link></code></para>
+            <para><code><link linkend="regex">regex</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -8490,9 +8990,9 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           </thead>
           <tbody>
             <row>
-	      <entry><para><code><link linkend="string_type">string</link></code>, String</para></entry>
-              <entry><para>Boolean</para></entry>
-              <entry><para>Returns True if <replaceable>string</replaceable> matches <replaceable>pattern</replaceable>, False if not.  For valid options, see <link linkend="Qore_Regex_Constants">Regex Constants</link>.</para></entry>
+	      <entry><para><code><link linkend="string_type">string</link>, <link linkend="string_type">string</link>, <link linkend="int_type">int</link> = 0</code></para></entry>
+              <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
+              <entry><para>Returns True if the first argument matches pattern as the second argument, False if not.  The third argument can be passed to give regex options; for valid options, see <link linkend="Qore_Regex_Constants">Regex Constants</link>.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -8532,7 +9032,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>regex_extract(<replaceable>string, pattern_string, [options]</replaceable>)</programlisting>
+            <para><code><link linkend="regex_extract">regex_extract</link>(<link linkend="string_type">string</link>, <link linkend="string_type">string</link>, <link linkend="int_type">int</link> = 0) <command>returns</command> <link linkend="list_type">list</link></code></para>
+            <para><code><link linkend="regex_extract">regex_extract</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -8555,9 +9056,9 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           </thead>
           <tbody>
             <row>
-	      <entry><para><code><link linkend="string_type">string</link></code>, String, [Integer]</para></entry>
-              <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-              <entry><para>Returns the result of <replaceable>string =~ s/pattern_string/[options]</replaceable>.  For valid options, see <link linkend="Qore_Regex_Constants">Regex Constants</link></para></entry>
+	      <entry><para><code><link linkend="string_type">string</link>, <link linkend="string_type">string</link>, <link linkend="int_type">int</link> = 0</code></para></entry>
+              <entry><para><code><link linkend="list_type">list</link></code></para></entry>
+              <entry><para>Returns the result of applying the 2nd argument as a pattern to the first argument.  The third argument can be used to set regex options; for valid options, see <link linkend="Qore_Regex_Constants">Regex Constants</link></para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -8601,7 +9102,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>regex_subst(<replaceable>string, pattern_string, target_string, [options]</replaceable>)</programlisting>
+            <para><code><link linkend="regex_subst">regex_subst</link>(<link linkend="string_type">string</link>, <link linkend="string_type">string</link>, <link linkend="string_type">string</link>, <link linkend="int_type">int</link> = 0) <command>returns</command> <link linkend="string_type">string</link></code></para>
+            <para><code><link linkend="regex_subst">regex_subst</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -8624,9 +9126,9 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           </thead>
           <tbody>
             <row>
-	      <entry><para><code><link linkend="string_type">string</link></code>, String, String, [Integer]</para></entry>
+	      <entry><para><code><link linkend="string_type">string</link>, <link linkend="string_type">string</link>, <link linkend="string_type">string</link>, <link linkend="int_type">int</link> = 0</code></para></entry>
               <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-              <entry><para>Returns the result of <replaceable>string =~ s/pattern_string/target_string/[options]</replaceable>.  For valid options, see <link linkend="Qore_Regex_Constants">Regex Constants</link></para></entry>
+              <entry><para>Returns the result of applying the second argument as a pattern to the first argument, with the 3rd argument as the replacement string.  The fourth argument can be used to set regex options; for valid options, see <link linkend="Qore_Regex_Constants">Regex Constants</link></para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -8670,7 +9172,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>replace(<replaceable>string, substring, new_substring</replaceable>)</programlisting>
+            <para><code><link linkend="replace">replace</link>(<link linkend="string_type">string</link>, <link linkend="string_type">string</link>, <link linkend="string_type">string</link>) <command>returns</command> <link linkend="string_type">string</link></code></para>
+            <para><code><link linkend="replace">replace</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -8693,9 +9196,9 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           </thead>
           <tbody>
             <row>
-	      <entry><para><code><link linkend="string_type">string</link></code>, String, String</para></entry>
+	      <entry><para><code><link linkend="string_type">string</link>, <link linkend="string_type">string</link>, <link linkend="string_type">string</link></code></para></entry>
               <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-              <entry><para>Replaces all occurrances of a substring in a string with another string and returns the new string.</para></entry>
+              <entry><para>Replaces all occurrances of a the second string found in the first string with the third string and returns the new string.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -8717,7 +9220,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<varlistentry>
 	  <term>Usage</term>
 	  <listitem>
-	    <programlisting>rindex(<replaceable>string, substring, [position]</replaceable>)</programlisting>
+            <para><code><link linkend="rindex">rindex</link>(<link linkend="softstring_type">softstring</link>, <link linkend="softstring_type">softstring</link>, <link linkend="softint_type">softint</link> = -1) <command>returns</command> <link linkend="int_type">int</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="rindex">rindex</link>() <command>returns</command> <link linkend="int_type">int</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -8739,9 +9243,9 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           </thead>
           <tbody>
             <row>
-	      <entry><para><code><link linkend="string_type">string</link></code>, String, [Integer]</para></entry>
+	      <entry><para><code><link linkend="softstring_type">softstring</link>, <link linkend="softstring_type">softstring</link>, <link linkend="softint_type">softint</link> = -1</code></para></entry>
               <entry><para><code><link linkend="int_type">int</link></code></para></entry>
-              <entry><para>Returns the starting character position of a string in another, starting from the end of the string, or from <replaceable>position</replaceable> if given.  If <replaceable>position</replaceable> is given, then the reverse search starts at that character position (searches always go from the end of the string toward the beginning).  Returns -1 if the substring cannot be found.  All values are character positions, not byte positions, which may differ for multi-byte character encodings.</para></entry>
+              <entry><para>Returns the starting character position of a string in another, starting from the end of the string, or from the third argument giving the character (not byte) position if given (negative values are offsets from the end of the string, -1 gives the last character of the string).  If the thirs argument is given, then the reverse search starts at that character position (searches always go from the end of the string toward the beginning).  Returns -1 if the substring cannot be found.  All values are character positions, not byte positions, which may differ for multi-byte character encodings.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -8762,7 +9266,9 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>split(<replaceable>pattern, string</replaceable>)</programlisting>
+            <para><code><link linkend="split">split</link>(<link linkend="string_type">string</link>, <link linkend="string_type">string</link>) <command>returns</command> <link linkend="list_type">list</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="split">split</link>(<link linkend="binary_type">binary</link>, <link linkend="binary_type">binary</link>) <command>returns</command> <link linkend="list_type">list</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="split">split</link>() <command>returns</command> <link linkend="list_type">list</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -8785,8 +9291,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           </thead>
           <tbody>
             <row>
-	      <entry><para><code><link linkend="string_type">string</link></code>, String</para></entry>
-              <entry><para>List</para></entry>
+	      <entry><para><code><link linkend="string_type">string</link>, <link linkend="string_type">string</link></code></para></entry>
+              <entry><para><code><link linkend="list_type">list</link></code></para></entry>
               <entry><para>Returns a list of each component of a string separated by a separator string, with the separator removed.</para></entry>
             </row>
           </tbody>
@@ -8810,7 +9316,9 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>strlen(<replaceable>string</replaceable>)</programlisting>
+            <para><code><link linkend="strlen">strlen</link>(<link linkend="softstring_type">softstring</link>) <command>returns</command> <link linkend="int_type">int</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="strlen">strlen</link>(<link linkend="any_type">any</link>) <command>returns</command> <link linkend="int_type">int</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
+            <para><code><link linkend="strlen">strlen</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -8833,7 +9341,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           </thead>
           <tbody>
             <row>
-	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
+	      <entry><para><code><link linkend="softstring_type">softstring</link></code></para></entry>
               <entry><para><code><link linkend="int_type">int</link></code></para></entry>
               <entry><para>Returns the length of the string passed. If the argument is not a string, then it is converted to a string.</para></entry>
             </row>
@@ -8857,7 +9365,9 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>substr(<replaceable>string, offset, [length]</replaceable>)</programlisting>
+            <para><code><link linkend="substr">substr</link>(<link linkend="softstring_type">softstring</link>, <link linkend="softint_type">softint</link>, <link linkend="softint_type">softint</link>) <command>returns</command> <link linkend="string_type">string</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="substr">substr</link>(<link linkend="softstring_type">softstring</link>, <link linkend="softint_type">softint</link>) <command>returns</command> <link linkend="string_type">string</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="substr">substr</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -8880,9 +9390,9 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           </thead>
           <tbody>
             <row>
-	      <entry><para><code><link linkend="string_type">string</link></code>, Integer, [Integer]</para></entry>
+	      <entry><para><code><link linkend="softstring_type">softstring</link>, <link linkend="softint_type">softint</link>, [<link linkend="softint_type">softint</link>]</code></para></entry>
               <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-              <entry><para>Returns the substring according to the arguments.  If <replaceable>integer_offset</replaceable> is negative, it designates an offset from the end of the string.  If <replaceable>integer_length</replaceable> is not present, all characters from the offset will be copied to the substring.  If it is negative, the rest of the string without the trailing number characters given by the negative argument will be copied to the substring.</para></entry>
+              <entry><para>Returns the substring according to the arguments.  If the second argument giving the <replaceable>integer_offset</replaceable> is negative, it designates an offset from the end of the string.  If the third argument giving the <replaceable>integer_length</replaceable> is not present, all characters from the offset will be copied to the substring.  If it is negative, the rest of the string without the trailing number characters given by the negative argument will be copied to the substring.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -8904,7 +9414,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>tolower(<replaceable>string</replaceable>)</programlisting>
+            <para><code><link linkend="tolower">tolower</link>(<link linkend="string_type">string</link>) <command>returns</command> <link linkend="string_type">string</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="tolower">tolower</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -8952,7 +9463,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>toupper(<replaceable>string</replaceable>)</programlisting>
+            <para><code><link linkend="toupper">toupper</link>(<link linkend="string_type">string</link>) <command>returns</command> <link linkend="string_type">string</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="toupper">toupper</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -8976,7 +9488,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 
 <tbody>
   <row>
-    <entry><para>Any</para></entry>
+    <entry><para><code><link linkend="string_type">string</link></code></para></entry>
     <entry><para><code><link linkend="string_type">string</link></code></para></entry>
     <entry><para>Converts argument passed to a string value, all in upper case.</para></entry>
   </row>
@@ -9001,7 +9513,9 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>trim(<replaceable>string, [chars_to_trim]</replaceable>)</programlisting>
+            <para><code><link linkend="trim">trim</link>(<link linkend="string_type">string</link>, <link linkend="string_type">string</link> = "") <command>returns</command> <link linkend="string_type">string</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="trim">trim</link>(<link linkend="reference_type">reference</link>, <link linkend="string_type">string</link> = "") <command>returns</command> <link linkend="any_type">any</link></code></para>
+            <para><code><link linkend="trim">trim</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -9024,9 +9538,14 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           </thead>
           <tbody>
             <row>
-	      <entry><para><code><link linkend="string_type">string</link></code>, [String]</para></entry>
+	      <entry><para><code><link linkend="string_type">string</link>, <link linkend="string_type">string</link> = ""</code></para></entry>
               <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-              <entry><para>Returns the new string with characters removed from the beginning and end of the string; if the first argument is a variable reference, then the string is modified in place and the new string is also returned.</para></entry>
+              <entry><para>Returns the new string with characters removed from the beginning and end of the string; if the second argument is given then it defines the characters to be removed, otherwise whitespace is removed.</para></entry>
+            </row>
+	    <row>
+	      <entry><para><code><link linkend="reference_type">reference</link>, <link linkend="string_type">string</link> = ""</code></para></entry>
+              <entry><para><code><link linkend="any_type">any</link></code></para></entry>
+              <entry><para>If the reference points to a string, the string is trimmed in place and the result is also returned; if the second argument is given then it defines the characters to be removed, otherwise whitespace is removed.  If the reference is not a string then <link linkend="NOTHING">no value</link> is returned.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -9606,7 +10125,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <tbody>
       <row>
 	<entry><para><replaceable>address, [type]</replaceable></para></entry>
-	<entry><para>Hash</para></entry>
+	<entry><para><code><link linkend="hash_type">hash</link></code></para></entry>
 	<entry><para>Returns a hash representing all host and address information corresponding to the network address passed or NOTHING if the address is unknown.</para></entry>
       </row>
 
@@ -9769,7 +10288,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <tbody>
       <row>
 	<entry><para><replaceable>hostname</replaceable></para></entry>
-	<entry><para>Hash</para></entry>
+	<entry><para><code><link linkend="hash_type">hash</link></code></para></entry>
 	<entry><para>Returns a <link linkend="host_information_hash">hash</link> representing all host and address information corresponding to the hostname passed or NOTHING if the host is unknown.</para></entry>
       </row>
 
@@ -10017,7 +10536,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 <tbody>
   <row>
     <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-    <entry><para>List</para></entry>
+    <entry><para><code><link linkend="list_type">list</link></code></para></entry>
     <entry><para>Returns a list of files matching the string argument.</para></entry>
   </row>
 
@@ -10527,7 +11046,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <tbody>
 	<row>
 	  <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-	  <entry><para>List</para></entry>
+	  <entry><para><code><link linkend="list_type">list</link></code></para></entry>
 	  <entry><para>Returns a list of filesystem values for the file passed, following symbolic links.  See <link linkend="Stat_List">Stat List</link> below for a description of the list returned by this function.</para></entry>
 	</row>
       </tbody>
@@ -10833,7 +11352,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <tbody>
           <row>
             <entry><para>String | Binary, String  Binary, [String | Binary]</para></entry>
-            <entry><para>Binary</para></entry>
+            <entry><code><link linkend="binary_type">binary</link></code></entry>
             <entry><para>Encrypts data using the Cipher Block Chaining function for the <ulink url="http://www.counterpane.com/blowfish.html">blowfish</ulink> algorithm; accepts a variable-length key (recommended 16-bytes or more).  The initialization vector must be at least 8 bytes long if present.</para></entry>
           </row>
         </tbody>
@@ -10921,7 +11440,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>Binary, String | Binary, [String | Binary]</para>
             </entry>
             <entry>
-              <para>Binary</para>
+              <code><link linkend="binary_type">binary</link></code>
             </entry>
             <entry>
               <para>Decrypts data using the Cipher Block Chaining function for the <ulink url="http://www.counterpane.com/blowfish.html">blowfish</ulink> algorithm using a variable-length key.</para>
@@ -11104,7 +11623,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>String | Binary, String | Binary, [String | Binary]</para>
             </entry>
             <entry>
-              <para>Binary</para>
+              <code><link linkend="binary_type">binary</link></code>
             </entry>
             <entry>
               <para>Encrypts data using the Cipher Block Chaining function for the <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm.  The key must be at least 8-bytes long (only the first 8 bytes will be used).  If the init_vector is present it must also be at least 8 bytes long.</para>
@@ -11189,7 +11708,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>Binary, String | Binary, [String | Binary]</para>
             </entry>
             <entry>
-              <para>Binary</para>
+              <code><link linkend="binary_type">binary</link></code>
             </entry>
             <entry>
               <para>Decrypts data using the Cipher Block Chaining function for the <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm using an 8-byte key.  If the init_vector is present it must also be at least 8 bytes long.</para>
@@ -11359,7 +11878,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>String | Binary</para>
             </entry>
             <entry>
-              <para>Binary</para>
+              <code><link linkend="binary_type">binary</link></code>
             </entry>
             <entry>
               <para>Encrypts data using the Cipher Block Chaining function for the two-key triple <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm.  The key argument must be at least 16 bytes long; only the first 16 bytes of the key argument will be used for the two 8-byte keys.  If the init_vector argument is present, it must be at least 8 bytes long.</para>
@@ -11450,7 +11969,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>Binary, String | Binary, [String | Binary]</para>
             </entry>
             <entry>
-              <para>Binary</para>
+              <code><link linkend="binary_type">binary</link></code>
             </entry>
             <entry>
               <para>Decrypts data using the Cipher Block Chaining function for the two-key triple <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm.  The key argument must be at least 16 bytes long; only the first 16 bytes of the key argument will be used for the two 8-byte keys.  If the init_vector argument is present, it must be at least 8 bytes long.</para>
@@ -11632,7 +12151,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>String | Binary, String | Binary, [String | Binary]</para>
             </entry>
             <entry>
-              <para>Binary</para>
+              <code><link linkend="binary_type">binary</link></code>
             </entry>
             <entry>
               <para>Encrypts data using the Cipher Block Chaining function for the three-key triple <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm using three 8-byte keys (set by a single 24-byte key argument) and an optional 8-byte initialization vector.  Returns a binary object of the encrypted data.</para>
@@ -11723,7 +12242,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>Binary, Key, [init_vector]</para>
             </entry>
             <entry>
-              <para>Binary</para>
+              <code><link linkend="binary_type">binary</link></code>
             </entry>
             <entry>
               <para>Decrypts data using the Cipher Block Chaining function for the three-key triple <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm.</para>
@@ -11905,7 +12424,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>String | Binary, String | Binary, [String | Binary]</para>
             </entry>
             <entry>
-              <para>Binary</para>
+              <code><link linkend="binary_type">binary</link></code>
             </entry>
             <entry>
               <para>Encrypts data using the Cipher Block Chaining function for RSA's <ulink url="http://www.rsasecurity.com/">DESX</ulink> algorithm using a 24-byte key and an optional 8-byte initialization vector.</para>
@@ -11996,7 +12515,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>Binary, Key, [init_vector]</para>
             </entry>
             <entry>
-              <para>Binary</para>
+              <code><link linkend="binary_type">binary</link></code>
             </entry>
             <entry>
               <para>Decrypts data using the Cipher Block Chaining function for RSA's <ulink url="http://www.rsasecurity.com/">DESX</ulink> algorithm using a 24-byte key and an optional 8-byte initialization vector.</para>
@@ -12178,7 +12697,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>String | Binary, String | Binary, [String | Binary]</para>
             </entry>
             <entry>
-              <para>Binary</para>
+              <code><link linkend="binary_type">binary</link></code>
             </entry>
             <entry>
               <para>Encrypts data using the Cipher Block Chaining function for <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC2(tm) algorithm using a variable-length key and an optional 8-byte initialization vector.</para>
@@ -12269,7 +12788,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>Binary, String | Binary, [String | Binary]</para>
             </entry>
             <entry>
-              <para>Binary</para>
+              <code><link linkend="binary_type">binary</link></code>
             </entry>
             <entry>
               <para>Decrypts data using the Cipher Block Chaining function for <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC2(tm) algorithm using a variable-length key and an optional 8-byte initialization vector.</para>
@@ -12451,7 +12970,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>String | Binary, String | Binary, [String | Binary]</para>
             </entry>
             <entry>
-              <para>Binary</para>
+              <code><link linkend="binary_type">binary</link></code>
             </entry>
             <entry>
               <para>Encrypts data using the Cipher Block Chaining function for the <ulink url="http://en.wikipedia.org/wiki/CAST5">CAST5</ulink> algorithm using a variable-length key and an optional 8-byte initialization vector.</para>
@@ -12542,7 +13061,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>Binary, Key, [init_vector]</para>
             </entry>
             <entry>
-              <para>Binary</para>
+              <code><link linkend="binary_type">binary</link></code>
             </entry>
             <entry>
               <para>Decrypts data using the Cipher Block Chaining function for the <ulink url="http://en.wikipedia.org/wiki/CAST5">CAST5</ulink> algorithm using a variable-length key and an optional 8-byte initialization vector.</para>
@@ -12724,7 +13243,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>String | Binary, String | Binary, [String | Binary, ]</para>
             </entry>
             <entry>
-              <para>Binary</para>
+              <code><link linkend="binary_type">binary</link></code>
             </entry>
             <entry>
               <para>Encrypts data using the Alleged RC4 cipher algorithm, which should be compatible with <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC4(tm) algorithm using a variable-length key and an optional 8-byte initialization vector.</para>
@@ -12815,7 +13334,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>Binary, Key, [init_vector]</para>
             </entry>
             <entry>
-              <para>Binary</para>
+              <code><link linkend="binary_type">binary</link></code>
             </entry>
             <entry>
               <para>Decrypts data using the Alleged RC4 cipher algorithm, which should be compatible with <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC4(tm) algorithm using a variable-length key and an optional 8-byte initialization vector.</para>
@@ -12997,7 +13516,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>String | Binary, String | Binary, [String | Binary]</para>
             </entry>
             <entry>
-              <para>Binary</para>
+              <code><link linkend="binary_type">binary</link></code>
             </entry>
             <entry>
               <para>Encrypts data using the Cipher Block Chaining function for <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC5(tm) algorithm using a variable-length key and an optional 8-byte initialization vector.</para>
@@ -13092,7 +13611,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>Binary, Key, [init_vector]</para>
             </entry>
             <entry>
-              <para>Binary</para>
+              <code><link linkend="binary_type">binary</link></code>
             </entry>
             <entry>
               <para>Decrypts data using the Cipher Block Chaining function for <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC5(tm) algorithm using a variable-length key and an optional 8-byte initialization vector.</para>
@@ -13369,7 +13888,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>String | Binary</para>
             </entry>
             <entry>
-              <para>Binary</para>
+              <code><link linkend="binary_type">binary</link></code>
             </entry>
             <entry>
               <para>Returns the DSS message digest of the supplied argument (for strings, the trailing null character is not included in the digest).</para>
@@ -13531,7 +14050,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>String | Binary</para>
             </entry>
             <entry>
-              <para>Binary</para>
+              <code><link linkend="binary_type">binary</link></code>
             </entry>
             <entry>
               <para>The DSS1 message digest of the supplied argument (for strings, the trailing null character is not included in the digest).</para>
@@ -13693,7 +14212,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>String | Binary</para>
             </entry>
             <entry>
-              <para>Binary</para>
+              <code><link linkend="binary_type">binary</link></code>
             </entry>
             <entry>
               <para>The MD2 message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
@@ -13855,7 +14374,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>String | Binary</para>
             </entry>
             <entry>
-              <para>Binary</para>
+              <code><link linkend="binary_type">binary</link></code>
             </entry>
             <entry>
               <para>The MD4 message digest of the supplied argument (for strings, the trailing null character is not included in the digest) as a binary object</para>
@@ -14017,7 +14536,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>String | Binary</para>
             </entry>
             <entry>
-              <para>Binary</para>
+              <code><link linkend="binary_type">binary</link></code>
             </entry>
             <entry>
               <para>The MD5 message digest of the supplied argument (for strings, the trailing null character is not included in the digest) as a binary object.</para>
@@ -14183,7 +14702,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>String | Binary</para>
             </entry>
             <entry>
-              <para>Binary</para>
+              <code><link linkend="binary_type">binary</link></code>
             </entry>
             <entry>
               <para>Returns the MDC2 message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
@@ -14349,7 +14868,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>String | Binary</para>
             </entry>
             <entry>
-              <para>Binary</para>
+              <code><link linkend="binary_type">binary</link></code>
             </entry>
             <entry>
               <para>Returns the <ulink url="http://en.wikipedia.org/wiki/RIPEMD">RIPEMD160</ulink> message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
@@ -14511,7 +15030,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>String | Binary</para>
             </entry>
             <entry>
-              <para>Binary</para>
+              <code><link linkend="binary_type">binary</link></code>
             </entry>
             <entry>
               <para>Returns the <ulink url="http://en.wikipedia.org/wiki/Secure_Hash_Algorithm">SHA</ulink> message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
@@ -15712,7 +16231,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <tbody>
 	<row>
 	  <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-	  <entry><para>Hash</para></entry>
+	  <entry><para><code><link linkend="hash_type">hash</link></code></para></entry>
 	  <entry><para>Returns a hash of filesystem values for the file passed; symbolic links are not followed (information is returned about symbolic links).  See also <link linkend="hstat">hstat()</link>.  See <link linkend="Stat_Hash">Stat Hash</link> below for a description of the hash returned by this function.</para></entry>
 	</row>
       </tbody>
@@ -15836,7 +16355,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <tbody>
 	<row>
 	  <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-	  <entry><para>Hash</para></entry>
+	  <entry><para><code><link linkend="hash_type">hash</link></code></para></entry>
 	  <entry><para>Returns a hash of filesystem values for the file passed; symbolic links are followed.  See also <link linkend="hlstat">hlstat()</link>.  See <link linkend="Stat_Hash">Stat Hash</link> for a description of the hash returned by this function.</para></entry>
 	</row>
       </tbody>
@@ -15896,7 +16415,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>Path</para>
             </entry>
             <entry>
-              <para>Boolean</para>
+              <para><code><link linkend="bool_type">bool</link></code></para>
             </entry>
             <entry>
               <para>Returns True if the string passed identifies a block device file on the filesystem.</para>
@@ -15956,7 +16475,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>Path</para>
             </entry>
             <entry>
-              <para>Boolean</para>
+              <para><code><link linkend="bool_type">bool</link></code></para>
             </entry>
             <entry>
               <para>Returns True if the string passed identifies a character device file on the filesystem.</para>
@@ -16016,7 +16535,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>Path</para>
             </entry>
             <entry>
-              <para>Boolean</para>
+              <para><code><link linkend="bool_type">bool</link></code></para>
             </entry>
             <entry>
               <para>Returns True if the string passed identifies a device file (either block or character) on the filesystem.</para>
@@ -16076,7 +16595,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>Path</para>
             </entry>
             <entry>
-              <para>Boolean</para>
+              <para><code><link linkend="bool_type">bool</link></code></para>
             </entry>
             <entry>
               <para>Returns True if the string passed identifies a directory on the filesystem.</para>
@@ -16136,7 +16655,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>Path</para>
             </entry>
             <entry>
-              <para>Boolean</para>
+              <para><code><link linkend="bool_type">bool</link></code></para>
             </entry>
             <entry>
               <para>Returns True if the string passed identifies an executable file.</para>
@@ -16196,7 +16715,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>Path</para>
             </entry>
             <entry>
-              <para>Boolean</para>
+              <para><code><link linkend="bool_type">bool</link></code></para>
             </entry>
             <entry>
               <para>Returns True if the string passed identifies a regular file on the filesystem.</para>
@@ -16256,7 +16775,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>Path</para>
             </entry>
             <entry>
-              <para>Boolean</para>
+              <para><code><link linkend="bool_type">bool</link></code></para>
             </entry>
             <entry>
               <para>Returns True if the string passed identifies a symbolic link on the filesystem.</para>
@@ -16316,7 +16835,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>Path</para>
             </entry>
             <entry>
-              <para>Boolean</para>
+              <para><code><link linkend="bool_type">bool</link></code></para>
             </entry>
             <entry>
               <para>Returns True if the string passed identifies a pipe (FIFO) on the filesystem.</para>
@@ -16376,7 +16895,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>Path</para>
             </entry>
             <entry>
-              <para>Boolean</para>
+              <para><code><link linkend="bool_type">bool</link></code></para>
             </entry>
             <entry>
               <para>Returns True if the string passed identifies a file readable by the current user.</para>
@@ -16436,7 +16955,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>Path</para>
             </entry>
             <entry>
-              <para>Boolean</para>
+              <para><code><link linkend="bool_type">bool</link></code></para>
             </entry>
             <entry>
               <para>Returns True if the string passed identifies a socket on the filesystem.</para>
@@ -16496,7 +17015,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>Path</para>
             </entry>
             <entry>
-              <para>Boolean</para>
+              <para><code><link linkend="bool_type">bool</link></code></para>
             </entry>
             <entry>
               <para>Returns True if the string passed identifies a file writable by the current user.</para>
@@ -16622,7 +17141,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <tbody>
 	<row>
 	  <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-	  <entry><para>List</para></entry>
+	  <entry><para><code><link linkend="list_type">list</link></code></para></entry>
 	  <entry><para>Returns a list of filesystem values for the file passed.  See <link linkend="Stat_List">Stat List</link> for a description of the list returned by this function.</para></entry>
 	</row>
       </tbody>
@@ -16811,7 +17330,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 
       <tbody>
 	<row>
-	  <entry><para><code><link linkend="string_type">string</link></code>, String</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link>, <link linkend="string_type">string</link></code></para></entry>
 	  <entry><para>n/a</para></entry>
 	  <entry><para>Renames (or moves) the file ior directory indentified by <replaceable>old_path</replaceable> to the new name and/or location given by <replaceable>new_path</replaceable></para></entry>
 	</row>
@@ -17067,7 +17586,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <tbody>
 	<row>
 	  <entry><para><replaceable>string | binary, [level]</replaceable></para></entry>
-	  <entry><para>Binary</para></entry>
+	  <entry><code><link linkend="binary_type">binary</link></code></entry>
 	  <entry><para>Compresses the input data and returns a binary object.  The optional <replaceable>level</replaceable> argument should be an integer between 1 and 9, 9 meaning the highest compression level.  If this argument is not present then a default value of 6 is assumed.</para></entry>
 	</row>
       </tbody>
@@ -17134,7 +17653,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	  <tbody>
 	    <row>
 	      <entry><para><replaceable>binary</replaceable></para></entry>
-	      <entry><para>Binary</para></entry>
+	      <entry><code><link linkend="binary_type">binary</link></code></entry>
 	      <entry><para>Uncompresses the input data and returns a binary object.</para></entry>
 	    </row>
 	  </tbody>
@@ -17197,7 +17716,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	  <tbody>
 	    <row>
 	      <entry><para><replaceable>binary, [encoding]</replaceable></para></entry>
-	      <entry><para>Binary</para></entry>
+	      <entry><code><link linkend="binary_type">binary</link></code></entry>
 	      <entry><para>Uncompresses the input data and returns a string.  The optional <replaceable>encoding</replaceable> argument may be passed to specify the encoding of the string.</para></entry>
 	    </row>
 	  </tbody>
@@ -17260,7 +17779,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	  <tbody>
 	    <row>
 	      <entry><para><replaceable>string | binary, [level]</replaceable></para></entry>
-	      <entry><para>Binary</para></entry>
+	      <entry><code><link linkend="binary_type">binary</link></code></entry>
 	      <entry><para>Compresses the input data and returns a binary object of the gzipped data.  The optional <replaceable>level</replaceable> argument should be an integer between 1 and 9, 9 meaning the highest compression level.  If this argument is not present then a default value of 6 is assumed.</para></entry>
 	    </row>
 	  </tbody>
@@ -17327,7 +17846,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	  <tbody>
 	    <row>
 	      <entry><para><replaceable>binary</replaceable></para></entry>
-	      <entry><para>Binary</para></entry>
+	      <entry><code><link linkend="binary_type">binary</link></code></entry>
 	      <entry><para>Uncompresses the input data and returns a binary object.</para></entry>
 	    </row>
 	  </tbody>
@@ -17390,7 +17909,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	  <tbody>
 	    <row>
 	      <entry><para><replaceable>binary, [encoding]</replaceable></para></entry>
-	      <entry><para>Binary</para></entry>
+	      <entry><code><link linkend="binary_type">binary</link></code></entry>
 	      <entry><para>Uncompresses the input data and returns a string.  The optional <replaceable>encoding</replaceable> argument may be passed to specify the encoding of the string.</para></entry>
 	    </row>
 	  </tbody>
@@ -17453,7 +17972,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	  <tbody>
 	    <row>
 	      <entry><para><replaceable>string | binary, [level]</replaceable></para></entry>
-	      <entry><para>Binary</para></entry>
+	      <entry><code><link linkend="binary_type">binary</link></code></entry>
 	      <entry><para>Compresses the input data and returns a binary object of the bzip2 data.  The optional <replaceable>level</replaceable> argument should be an integer between 1 and 9, 9 meaning the largest compression buffer size.  If this argument is not present then a default value of 9 is assumed.</para></entry>
 	    </row>
 	  </tbody>
@@ -17520,7 +18039,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <tbody>
 	<row>
 	  <entry><para><replaceable>binary</replaceable></para></entry>
-	  <entry><para>Binary</para></entry>
+	  <entry><code><link linkend="binary_type">binary</link></code></entry>
 	  <entry><para>Uncompresses the input data and returns a binary object.</para></entry>
 	</row>
       </tbody>
@@ -17583,7 +18102,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <tbody>
 	<row>
 	  <entry><para><replaceable>binary, [encoding]</replaceable></para></entry>
-	  <entry><para>Binary</para></entry>
+	  <entry><code><link linkend="binary_type">binary</link></code></entry>
 	  <entry><para>Uncompresses the input data and returns a string.  The optional <replaceable>encoding</replaceable> argument may be passed to specify the encoding of the string.</para></entry>
 	</row>
       </tbody>
@@ -18177,7 +18696,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 <tbody>
   <row>
     <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-    <entry><para>Boolean</para></entry>
+    <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
     <entry><para>Returns True if the function exists in the current program's function name space, otherwise returns False.</para></entry>
   </row>
 
@@ -18227,7 +18746,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 <tbody>
   <row>
     <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-    <entry><para>Boolean</para></entry>
+    <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
     <entry><para>Returns &quot;builtin&quot; (for a builtin function), &quot;user&quot; (for a user function), or NOTHING (if the function cannot be found) according to the function name passed.</para></entry>
   </row>
 
@@ -18276,7 +18795,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 <tbody>
   <row>
     <entry><para>n/a</para></entry>
-    <entry><para>Hash</para></entry>
+    <entry><para><code><link linkend="hash_type">hash</link></code></para></entry>
     <entry><para>A hash of library build and version info with the keys in the table <link linkend="Library_Info_Hash">Library Info Hash</link>.  For constants giving the same information, see <link linkend="Build_and_Version_Constants">Build and Version Constants</link>.</para></entry>
   </row>
 
@@ -18391,7 +18910,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 <tbody>
   <row>
     <entry><para>n/a</para></entry>
-    <entry><para>List</para></entry>
+    <entry><para><code><link linkend="list_type">list</link></code></para></entry>
     <entry><para>A list of hashes giving information about Qore library options for the current build.  See <link linkend="Library_Option_Hash">Library Option Hash</link> for information about the elements in the list returned.</para></entry>
   </row>
 
@@ -18527,7 +19046,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           <tbody>
             <row>
               <entry>
-                <para>Object</para>
+                <para><code><link linkend="object_type">object</link></code></para>
               </entry>
               <entry>
                 <para><code><link linkend="string_type">string</link></code></para>
@@ -18625,7 +19144,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           <tbody>
             <row>
 	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-              <entry><para>List</para></entry>
+              <entry><para><code><link linkend="list_type">list</link></code></para></entry>
               <entry><para>Returns a list of each capability supported by the given DBI driver (see <link linkend="DBI_Capability_Constants">DBI Capability Constants</link>).  Returns NOTHING if the driver cannot be found.</para></entry>
             </row>
           </tbody>
@@ -18670,7 +19189,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           <tbody>
             <row>
 	      <entry><para>n/a</para></entry>
-              <entry><para>List</para></entry>
+              <entry><para><code><link linkend="list_type">list</link></code></para></entry>
               <entry><para>Returns a list of strings of DBI drivers currently loaded.</para></entry>
             </row>
           </tbody>
@@ -18718,7 +19237,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 <tbody>
   <row>
     <entry><para>n/a</para></entry>
-    <entry><para>List</para></entry>
+    <entry><para><code><link linkend="list_type">list</link></code></para></entry>
     <entry><para>Returns a list of strings of the builtin and module-supplied features of Qore.</para></entry>
   </row>
 
@@ -18764,8 +19283,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           </thead>
           <tbody>
             <row>
-	      <entry><para>Object</para></entry>
-              <entry><para>List</para></entry>
+	      <entry><para><code><link linkend="object_type">object</link></code></para></entry>
+              <entry><para><code><link linkend="list_type">list</link></code></para></entry>
               <entry><para>Returns all methods in the class, both private and public.  Does not return inherited methods.  If no object is passed to the function, NOTHING is returned.</para></entry>
             </row>
           </tbody>
@@ -18813,7 +19332,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 <tbody>
   <row>
     <entry><para>n/a</para></entry>
-    <entry><para>List</para></entry>
+    <entry><para><code><link linkend="list_type">list</link></code></para></entry>
     <entry><para>Each element in the list is a hash describing currently-loaded qore modules.</para></entry>
   </row>
 
@@ -18918,7 +19437,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
                 <para><code><link linkend="int_type">int</link></code></para>
               </entry>
               <entry>
-                <para>Hash</para>
+                <para><code><link linkend="hash_type">hash</link></code></para>
               </entry>
               <entry>
                 <para>Returns a hash representing the user information for the user ID passed.  If the uid does not exist, NOTHING is returned.  Otherwise the hash has the following keys: pw_name, pw_passwd, pw_gecos, pw_dir, pw_shell, pw_uid, pw_gid.</para>
@@ -19110,10 +19629,10 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           <tbody>
             <row>
               <entry>
-                <para>Hash</para>
+                <para><code><link linkend="hash_type">hash</link></code></para>
               </entry>
               <entry>
-                <para>List</para>
+                ><para><code><link linkend="list_type">list</link></code></para>
               </entry>
               <entry>
                 <para>Returns a list of all the values in the hash argument passed.  If no hash is passed, returns NOTHING.</para>
@@ -19311,17 +19830,17 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           <tbody>
             <row>
 	      <entry><para><replaceable>value, list</replaceable></para></entry>
-              <entry><para>Boolean</para></entry>
+              <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
               <entry><para>Returns True if <replaceable>value</replaceable> is a member of <replaceable>list</replaceable>; types are converted if necessary.</para></entry>
             </row>
             <row>
 	      <entry><para><replaceable>value, NOTHING</replaceable></para></entry>
-              <entry><para>Boolean</para></entry>
+              <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
               <entry><para>Always returns False.</para></entry>
             </row>
             <row>
 	      <entry><para><replaceable>value1, value2</replaceable></para></entry>
-              <entry><para>Boolean</para></entry>
+              <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
               <entry><para>Returns the value of the comparison of <replaceable>value1</replaceable> with <replaceable>value2</replaceable>; types are converted if necessary.</para></entry>
             </row>
           </tbody>
@@ -19366,17 +19885,17 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           <tbody>
             <row>
 	      <entry><para><replaceable>value, list</replaceable></para></entry>
-              <entry><para>Boolean</para></entry>
+              <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
               <entry><para>Returns True if <replaceable>value</replaceable> is a member of <replaceable>list</replaceable>; no type conversions are performed (the comparison fails if types are not equal).</para></entry>
             </row>
             <row>
 	      <entry><para><replaceable>value, NOTHING</replaceable></para></entry>
-              <entry><para>Boolean</para></entry>
+              <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
               <entry><para>Always returns False.</para></entry>
             </row>
             <row>
 	      <entry><para><replaceable>value1, value2</replaceable></para></entry>
-              <entry><para>Boolean</para></entry>
+              <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
               <entry><para>Returns the value of the comparison of <replaceable>value1</replaceable> with <replaceable>value2</replaceable>; no type conversions are performed (the comparison fails if the types are not equal).</para></entry>
             </row>
           </tbody>
@@ -19745,7 +20264,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 <tbody>
   <row>
     <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-    <entry><para>Binary</para></entry>
+    <entry><code><link linkend="binary_type">binary</link></code></entry>
     <entry><para>Parses a base64 encoded string and returns the binary object.  If anything is passed other than a string as an argument, no action is taken and the function returns NOTHING.</para></entry>
   </row>
 
@@ -19808,7 +20327,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           <tbody>
             <row>
 	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-              <entry><para>Hash</para></entry>
+              <entry><para><code><link linkend="hash_type">hash</link></code></para></entry>
               <entry><para>Returns a hash of the components of a datasource string.  A datasource string has the following structure: <code>driver:user/pass@db(charset)%host:port</code>, where driver, charset, host, and port are optional.  See <link linkend="parseDatasource_hash">parseDatasource() hash</link> for a description of the output hash of this function.</para></entry>
             </row>
           </tbody>
@@ -19914,7 +20433,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 <tbody>
   <row>
     <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-    <entry><para>Binary</para></entry>
+    <entry><code><link linkend="binary_type">binary</link></code></entry>
     <entry><para>Parses a hex-encoded string and returns the binary object.  If anything is passed other than a string as an argument, no action is taken and the function returns NOTHING.</para></entry>
   </row>
 
@@ -19976,7 +20495,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <tbody>
 	<row>
 	  <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-	  <entry><para>Hash</para></entry>
+	  <entry><para><code><link linkend="hash_type">hash</link></code></para></entry>
 	  <entry><para>Parses a URL string and returns a hash of the components.  URLs have the format: <code>protocol://username:password@host:port/path</code>, where only <code>host</code> is mandatory.</para></entry>
 	</row>
       </tbody>
@@ -20126,8 +20645,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 
 <tbody>
   <row>
-    <entry><para>List</para></entry>
-    <entry><para>List</para></entry>
+    <entry><para><code><link linkend="list_type">list</link></code></para></entry>
+    <entry><para><code><link linkend="list_type">list</link></code></para></entry>
     <entry><para>The list with its elements reversed.</para></entry>
   </row>
 
@@ -20235,7 +20754,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <tbody>
 	<row>
 	  <entry><para>List, [<link linkend="closures">closure</link> | <link linkend="call_references">Call Reference</link>]</para></entry>
-	  <entry><para>List</para></entry>
+	  <entry><para><code><link linkend="list_type">list</link></code></para></entry>
 	  <entry><para>Sorts the list passed in ascending order and returns the sorted list.  The list must be made up of basic data types unless a <link linkend="closures">closure</link> or <link linkend="call_references">call reference</link> is used.</para></entry>
 	</row>
       </tbody>
@@ -20279,7 +20798,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<tbody>
 	  <row>
 	    <entry><para>List, [<link linkend="closures">closure</link> | <link linkend="call_references">Call Reference</link>]</para></entry>
-	    <entry><para>List</para></entry>
+	    <entry><para><code><link linkend="list_type">list</link></code></para></entry>
 	    <entry><para>Sorts the list passed in descending order and returns the sorted list.  The list must be made up of basic data types unless a <link linkend="closures">closure</link> or <link linkend="call_references">call reference</link> is used.</para></entry>
 	  </row>
 	</tbody>
@@ -20323,7 +20842,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<tbody>
 	  <row>
 	    <entry><para>List, [<link linkend="closures">closure</link> | <link linkend="call_references">Call Reference</link>]</para></entry>
-	    <entry><para>List</para></entry>
+	    <entry><para><code><link linkend="list_type">list</link></code></para></entry>
 	    <entry><para>Sorts the list passed in descending order and returns the sorted list.  The list must be made up of basic data types unless a <link linkend="closures">closure</link> or <link linkend="call_references">call reference</link> is used.</para></entry>
 	  </row>
 	</tbody>
@@ -20367,7 +20886,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <tbody>
 	<row>
 	  <entry><para>List, [<link linkend="closures">closure</link> | <link linkend="call_references">Call Reference</link>]</para></entry>
-	  <entry><para>List</para></entry>
+	  <entry><para><code><link linkend="list_type">list</link></code></para></entry>
 	  <entry><para>Sorts the list passed in ascending order and returns the sorted list.  The list must be made up of basic data types unless a <link linkend="closures">closure</link> or <link linkend="call_references">call reference</link> is used.</para></entry>
 	</row>
       </tbody>
@@ -20631,7 +21150,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<tbody>
 	  <row>
 	    <entry><para>n/a</para></entry>
-	    <entry><para>Hash</para></entry>
+	    <entry><para><code><link linkend="hash_type">hash</link></code></para></entry>
 	    <entry><para>Returns the entire thread-local data hash.</para></entry>
 	  </row>
 	</tbody>
@@ -20681,7 +21200,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<tbody>
 	  <row>
 	    <entry><para>n/a</para></entry>
-	    <entry><para>Hash</para></entry>
+	    <entry><para><code><link linkend="hash_type">hash</link></code></para></entry>
 	    <entry><para>Returns a hash of call stacks keyed by each TID (thread ID).  See <link linkend="Call_Stack_Description">Call Stack Description</link> for a description of the call stack format.</para></entry>
 	  </row>
 	</tbody>
@@ -20997,7 +21516,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	  <tbody>
 	    <row>
 	      <entry><para>n/a</para></entry>
-	      <entry><para>List</para></entry>
+	      <entry><para><code><link linkend="list_type">list</link></code></para></entry>
 	      <entry><para>Returns a list of all current thread IDs</para></entry>
 	    </row>
 	  </tbody>
@@ -22526,7 +23045,7 @@ the resulting string will correspond to the encoding given as the first argument
       <tbody>
 	<row>
 	  <entry><para><code><link linkend="string_type">string</link></code>, [String]</para></entry>
-	  <entry><para>Hash</para></entry>
+	  <entry><para><code><link linkend="hash_type">hash</link></code></para></entry>
 	  <entry><para>Parses an XML string and returns a Qore hash structure.</para></entry>
 	</row>
       </tbody>
@@ -22592,7 +23111,7 @@ the resulting string will correspond to the encoding given as the first argument
       <tbody>
 	<row>
 	  <entry><para><code><link linkend="string_type">string</link></code>, String, [String]</para></entry>
-	  <entry><para>Hash</para></entry>
+	  <entry><para><code><link linkend="hash_type">hash</link></code></para></entry>
 	  <entry><para>Parses an XML string (1st argument), validates against the RelaxNG string (2nd argument), and returns a Qore hash structure.</para></entry>
 	</row>
       </tbody>
@@ -22665,7 +23184,7 @@ the resulting string will correspond to the encoding given as the first argument
       <tbody>
 	<row>
 	  <entry><para><code><link linkend="string_type">string</link></code>, String, [String]</para></entry>
-	  <entry><para>Hash</para></entry>
+	  <entry><para><code><link linkend="hash_type">hash</link></code></para></entry>
 	  <entry><para>Parses an XML string (1st argument), validates against the XSD string (2nd argument), and returns a Qore hash structure.</para></entry>
 	</row>
       </tbody>
@@ -22736,7 +23255,7 @@ the resulting string will correspond to the encoding given as the first argument
       <tbody>
 	<row>
 	  <entry><para><code><link linkend="string_type">string</link></code>, [String]</para></entry>
-	  <entry><para>Hash</para></entry>
+	  <entry><para><code><link linkend="hash_type">hash</link></code></para></entry>
 	  <entry><para>Parses an XML string and returns a Qore hash structure.</para></entry>
 	</row>
       </tbody>
@@ -22802,7 +23321,7 @@ the resulting string will correspond to the encoding given as the first argument
       <tbody>
 	<row>
 	  <entry><para><code><link linkend="string_type">string</link></code>, String, [String]</para></entry>
-	  <entry><para>Hash</para></entry>
+	  <entry><para><code><link linkend="hash_type">hash</link></code></para></entry>
 	  <entry><para>Parses an XML string (1st argument), validates against the RelaxNG schema string (2nd argument), and returns a Qore hash structure.</para></entry>
 	</row>
       </tbody>
@@ -22875,7 +23394,7 @@ the resulting string will correspond to the encoding given as the first argument
       <tbody>
 	<row>
 	  <entry><para><code><link linkend="string_type">string</link></code>, String, [String]</para></entry>
-	  <entry><para>Hash</para></entry>
+	  <entry><para><code><link linkend="hash_type">hash</link></code></para></entry>
 	  <entry><para>Parses an XML string (1st argument), validates against the XSD string (2nd argument), and returns a Qore hash structure.</para></entry>
 	</row>
       </tbody>
@@ -22946,7 +23465,7 @@ the resulting string will correspond to the encoding given as the first argument
       <tbody>
 	<row>
 	  <entry><para><code><link linkend="string_type">string</link></code>, [String]</para></entry>
-	  <entry><para>Hash</para></entry>
+	  <entry><para><code><link linkend="hash_type">hash</link></code></para></entry>
 	  <entry><para>Deserializies an XML-RPC call string, returning a Qore data structure representing the call information.  The hash will have the following keys: methodName, params</para></entry>
 	</row>
       </tbody>
@@ -23012,7 +23531,7 @@ the resulting string will correspond to the encoding given as the first argument
       <tbody>
 	<row>
 	  <entry><para><code><link linkend="string_type">string</link></code>, [String]</para></entry>
-	  <entry><para>Hash</para></entry>
+	  <entry><para><code><link linkend="hash_type">hash</link></code></para></entry>
 	  <entry><para>Deserializies an XML-RPC response string, returning a Qore data structure representing the response information.  The hash will have either a &quot;fault&quot; or a &quot;params&quot; key, depending on if it's a fault response or a non-fault response.</para></entry>
 	</row>
       </tbody>
