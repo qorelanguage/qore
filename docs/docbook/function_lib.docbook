@@ -402,7 +402,7 @@
             <para>N</para>
           </entry>
           <entry>
-            <para>Returns the system time in microseconds (1/1000000 second intervals since Jan 1, 1970 00:00).</para>
+            <para>Returns the system time in microseconds (1/1000000 second intervals) since Jan 1, 1970 00:00:00Z.</para>
           </entry>
         </row>
         <row>
@@ -413,7 +413,7 @@
             <para>N</para>
           </entry>
           <entry>
-            <para>Returns the system time in milliseconds (1/1000 second intervals since Jan 1, 1970 00:00).</para>
+            <para>Returns the system time in milliseconds (1/1000 second intervals) since Jan 1, 1970 00:00:00Z.</para>
           </entry>
         </row>
         <row>
@@ -424,7 +424,7 @@
             <para>N</para>
           </entry>
           <entry>
-            <para>Returns the system time in nanoseconds (1/1000000000 second intervals since Jan 1, 1970 00:00).</para>
+            <para>Returns the system time in nanoseconds (1/1000000000 second intervals) since Jan 1, 1970 00:00:00.</para>
           </entry>
         </row>
         <row>
@@ -3273,7 +3273,7 @@
             <para>N</para>
           </entry>
           <entry>
-            <para>Returns the number of seconds since January 1, 1970 00:00 in the local time zone for a given date.</para>
+            <para>Returns the number of seconds since January 1, 1970 00:00:00 in the local time zone for a given date.</para>
           </entry>
         </row>
         <row>
@@ -5216,7 +5216,7 @@
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Returns an integer representing the system time in microseconds (1/1000000 second intervals since Jan 1, 1970 00:00).  Please note that many operating system/hardware combinbations are not capable of reporting time at this resolution; the last 3 or more digits may be zero in this case.</para>
+	<para>Returns an integer representing the system time in microseconds (1/1000000 second intervals) since Jan 1, 1970 00:00:00Z.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -5336,7 +5336,7 @@
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Returns the system time in nanoseconds (1/1000000000 second intervals since Jan 1, 1970 00:00).</para>
+	<para>Returns the system time in nanoseconds (1/1000000000 second intervals) since Jan 1, 1970 00:00:00Z.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -5378,7 +5378,7 @@
                 <para><code><link linkend="int_type">int</link></code></para>
               </entry>
               <entry>
-                <para>Returns the number of nanoseconds (1/1000000000 second) since Jan 1, 1970 00:00.</para>
+                <para>Returns the number of nanoseconds (1/1000000000 second) since Jan 1, 1970 00:00:00Z.</para>
               </entry>
             </row>
           </tbody>
