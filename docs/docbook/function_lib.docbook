@@ -33,6 +33,34 @@
     </tgroup>
   </table>
 
+  <para>Each builtin function or method has flags that describe its properties.  The following table provides the key to the flags as given in the function and method lists.</para>
+
+  <table id="code_flags">
+    <title>Code Flags</title>
+    <tgroup cols="2" align="left" colsep="1" rowsep="1">
+      <thead>
+        <row>
+	  <entry><para>Abbr</para></entry>
+	  <entry><para>Description</para></entry>
+	</row>
+      </thead>
+      <tbody>
+        <row id="NOOP_flag">
+	  <entry><para><code>NOOP</code></para></entry>
+	  <entry><para>Code with this flag makes no calculations, but rather returns a constant value.  This flag is given to function and method variants that return a default value depending on the type of argument(s).  When variants with this flag are resolved at parse time, a <link linkend="call-with-type-errors"><code>call-with-type-errors</code> warning</link> is raised (assuming this warning is enabled).</para></entry>
+	</row>
+        <row id="CONST_flag">
+	  <entry><para><code>CONST</code></para></entry>
+	  <entry><para>Code with this flag is safe to be used when assigning a <link linkend="Constants">constant</link>, because it has no side effects and normally does not throw an exception (at least in the context of assigning a constant).</para></entry>
+	</row>
+        <row id="DEPRECATED_flag">
+	  <entry><para><code>DEPRECATED</code></para></entry>
+	  <entry><para>Code with this flag is deprecated and will be removed in a future version of Qore; if a variant with this flag is resolved at parse time, a <link linkend="deprecated"><code>deprecated</code> warning</link> is raised (assuming this warning is enabled).</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+
   <table>
     <title>System Function Library</title>
     <tgroup cols="3" align="left" colsep="1" rowsep="1">
@@ -868,13 +896,34 @@
           <entry>
             <para><code><link linkend="get_default_encoding">get_default_encoding</link>() <command>returns</command> <link linkend="string_type">string</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
           </entry>
-          <entry>
-            <para>N</para>
-          </entry>
-          <entry>
-            <para>Returns the name of the <link linkend="Default_Character_Encoding">default character encoding</link> for the Qore library.</para>
-          </entry>
+          <entry><para>N</para></entry>
+          <entry><para>Returns the name of the <link linkend="Default_Character_Encoding">default character encoding</link> for the Qore library.</para></entry>
         </row>
+
+        <row>
+          <entry>
+            <para><code><link linkend="get_duration_microseconds">get_duration_microseconds</link>(<link linkend="date_type">date</link>) <command>returns</command> <link linkend="int_type">int</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+          </entry>
+          <entry><para>N</para></entry>
+          <entry><para>Returns an integer giving the duration in microseconds as described by the argument; if the argument is a relative date, then it is converted to microseconds, if it is absolute, then a number of microseconds between the current time and the time given is returned.</para></entry>
+        </row>
+
+        <row>
+          <entry>
+            <para><code><link linkend="get_duration_milliseconds">get_duration_milliseconds</link>(<link linkend="date_type">date</link>) <command>returns</command> <link linkend="int_type">int</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+          </entry>
+          <entry><para>N</para></entry>
+          <entry><para>Returns an integer giving the duration in milliseconds as described by the argument; if the argument is a relative date, then it is converted to milliseconds, if it is absolute, then a number of milliseconds between the current time and the time given is returned.</para></entry>
+        </row>
+
+        <row>
+          <entry>
+            <para><code><link linkend="get_duration_seconds">get_duration_seconds</link>(<link linkend="date_type">date</link>) <command>returns</command> <link linkend="int_type">int</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+          </entry>
+          <entry><para>N</para></entry>
+          <entry><para>Returns an integer giving the duration in seconds as described by the argument; if the argument is a relative date, then it is converted to seconds, if it is absolute, then a number of seconds between the current time and the time given is returned.</para></entry>
+        </row>
+
         <row>
           <entry>
             <para><code><link linkend="get_encoding">get_encoding</link>(<link linkend="string_type">string</link>) <command>returns</command> <link linkend="string_type">string</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
@@ -885,6 +934,17 @@
           </entry>
           <entry>
             <para>Returns a string describing the character encoding of the string passed.</para>
+          </entry>
+        </row>
+
+        <row>
+          <entry>
+            <para><code><link linkend="get_epoch_seconds">get_epoch_seconds</link>(<link linkend="date_type">date</link>) <command>returns</command> <link linkend="int_type">int</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="get_epoch_seconds">get_epoch_seconds</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
+          </entry>
+          <entry><para>N</para></entry>
+          <entry>
+            <para>Returns the number of seconds after Jan 1, 1970, 00:00:00Z for the date/time value passed.</para>
           </entry>
         </row>
 
@@ -2028,8 +2088,8 @@
             <para><code><link linkend="makeFormattedXMLString">makeFormattedXMLString</link>(<link linkend="string_type">string</link>, <link linkend="hash_type">hash</link>, <link linkend="string_type">string</link>) <command>returns</command> <link linkend="string_type">string</link></code></para>
           </entry>
           <entry>
-            <para>Y</para>
-          </entry>
+            <para>Y</para> 
+         </entry>
           <entry>
             <para>Serializes a hash into an XML string with formatting and an XML header.</para>
           </entry>
@@ -3262,7 +3322,7 @@
         </row>
         <row>
           <entry>
-            <para><code><link linkend="typename">typename</link>(<link linkend="any_type">any</link>) <command>returns</command> <link linkend="string_type">string</link> (CONST, DEPRECATED)</code></para>
+            <para><code><link linkend="typename">typename</link>(<link linkend="any_type">any</link>) <command>returns</command> <link linkend="string_type">string</link> (<link linkend="CONST_flag">CONST</link>, <link linkend="DEPRECATED_flag">DEPRECATED</link>)</code></para>
           </entry>
           <entry>
             <para>N</para>
@@ -3343,8 +3403,8 @@
         </row>
         <row>
           <entry>
-            <para><code><link linkend="vsprintf">vprintf</link>(<link linkend="string_type">string</link>, <link linkend="any_type">any</link>) <command>returns</command> <link linkend="string_type">string</link></code></para>
-            <para><code><link linkend="vsprintf">vprintf</link>() <command>returns</command> <link linkend="string_type">string</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
+            <para><code><link linkend="vsprintf">vsprintf</link>(<link linkend="string_type">string</link>, <link linkend="any_type">any</link>) <command>returns</command> <link linkend="string_type">string</link></code></para>
+            <para><code><link linkend="vsprintf">vsprintf</link>() <command>returns</command> <link linkend="string_type">string</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
           </entry>
           <entry>
             <para>Y</para>
@@ -3385,7 +3445,9 @@
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>abs(<replaceable>numeric_expression</replaceable>)</programlisting>
+	<para><code><link linkend="abs">abs</link>(<link linkend="softfloat_type">softfloat</link>) <command>returns</command> <link linkend="float_type">float</link></code></para>
+	<para><code><link linkend="abs">abs</link>(<link linkend="int_type">int</link>) <command>returns</command> <link linkend="int_type">int</link></code></para>
+	<para><code><link linkend="abs">abs</link>() <command>returns</command> <link linkend="float_type">float</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -3408,13 +3470,13 @@
       </thead>
       <tbody>
 	<row>
-	  <entry><para>Integer</para></entry>
-	  <entry><para>Integer</para></entry>
+	  <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+	  <entry><para><code><link linkend="int_type">int</link></code></para></entry>
 	  <entry><para>Absolute value of the integer passed.</para></entry>
 	</row>
 	<row>
-	  <entry><para>Float</para></entry>
-	  <entry><para>Float</para></entry>
+	  <entry><para><code><link linkend="softfloat_type">softfloat</link></code></para></entry>
+	  <entry><para><code><link linkend="float_type">float</link></code></para></entry>
 	  <entry><para>Absolute value of the floating-point value passed.</para></entry>
 	</row>
       </tbody>
@@ -3438,7 +3500,7 @@
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>acos(<replaceable>float</replaceable>)</programlisting>
+	<para><code><link linkend="acos">acos</link>(<link linkend="any_type">any</link>) <command>returns</command> <link linkend="float_type">float</link></code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -3463,9 +3525,9 @@
 
 <tbody>
   <row>
-    <entry><para>Float</para></entry>
-    <entry><para>Float</para></entry>
-    <entry><para>Returns the arc cosine of the number passed in radians.</para></entry>
+    <entry><para><link linkend="any_type"><code>any</code></link></para></entry>
+    <entry><para><code><link linkend="float_type">float</link></code></para></entry>
+    <entry><para>Returns the arc cosine of the value passed convert to a float in radians.</para></entry>
   </row>
   
 </tbody>
@@ -3489,7 +3551,8 @@
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>asin(<replaceable>float</replaceable>)</programlisting>
+	<para><code><link linkend="asin">asin</link>(<link linkend="softfloat_type">softfloat</link>) <command>returns</command> <link linkend="float_type">float</link></code></para>
+	<para><code><link linkend="asin">asin</link>() <command>returns</command> <link linkend="float_type">float</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -3514,8 +3577,8 @@
 
 <tbody>
   <row>
-    <entry><para>Float</para></entry>
-    <entry><para>Float</para></entry>
+    <entry><para><code><link linkend="softfloat_type">softfloat</link></code></para></entry>
+    <entry><para><code><link linkend="float_type">float</link></code></para></entry>
     <entry><para>Returns the arc sine of the number passed in radians.</para></entry>
   </row>
   
@@ -3540,7 +3603,8 @@
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>atan(<replaceable>float</replaceable>)</programlisting>
+	<para><code><link linkend="atan">atan</link>(<link linkend="softfloat_type">softfloat</link>) <command>returns</command> <link linkend="float_type">float</link></code></para>
+	<para><code><link linkend="atan">atan</link>() <command>returns</command> <link linkend="float_type">float</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -3565,8 +3629,8 @@
 
 <tbody>
   <row>
-    <entry><para>Float</para></entry>
-    <entry><para>Float</para></entry>
+    <entry><para><code><link linkend="softfloat_type">softfloat</link></code></para></entry>
+    <entry><para><code><link linkend="float_type">float</link></code></para></entry>
     <entry><para>Returns the arc tangent of the number passed in radians.</para></entry>
   </row>
   
@@ -3591,7 +3655,8 @@
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>cbrt(<replaceable>float</replaceable>)</programlisting>
+            <para><code><link linkend="cbrt">cbrt</link>(<link linkend="softfloat_type">softfloat</link>) <command>returns</command> <link linkend="float_type">float</link></code></para>
+            <para><code><link linkend="cbrt">cbrt</link>() <command>returns</command> <link linkend="float_type">float</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -3615,8 +3680,8 @@
       </thead>
       <tbody>
 	<row>
-	  <entry><para>Float</para></entry>
-	  <entry><para>Float</para></entry>
+	  <entry><para><code><link linkend="softfloat_type">softfloat</link></code></para></entry>
+	  <entry><para><code><link linkend="float_type">float</link></code></para></entry>
 	  <entry><para>Returns the cube root of the number passed.</para></entry>
 	</row>
       </tbody>
@@ -3640,7 +3705,8 @@
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>ceil(<replaceable>float</replaceable>)</programlisting>
+            <para><code><link linkend="ceil">ceil</link>(<link linkend="softfloat_type">softfloat</link>) <command>returns</command> <link linkend="float_type">float</link></code></para>
+            <para><code><link linkend="ceil">ceil</link>() <command>returns</command> <link linkend="float_type">float</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -3666,8 +3732,8 @@
 
 <tbody>
   <row>
-    <entry><para>Float</para></entry>
-    <entry><para>Float</para></entry>
+    <entry><para><code><link linkend="softfloat_type">softfloat</link></code></para></entry>
+    <entry><para><code><link linkend="float_type">float</link></code></para></entry>
     <entry><para>Returns a value rounded up to the nearest integral floating-point value.</para></entry>
   </row>
 </tbody>
@@ -3691,7 +3757,8 @@
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>cos(<replaceable>float</replaceable>)</programlisting>
+            <para><code><link linkend="cos">cos</link>(<link linkend="softfloat_type">softfloat</link>) <command>returns</command> <link linkend="float_type">float</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="cos">cos</link>() <command>returns</command> <link linkend="float_type">float</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -3715,8 +3782,8 @@
 
 <tbody>
   <row>
-    <entry><para>Float</para></entry>
-    <entry><para>Float</para></entry>
+    <entry><para><code><link linkend="softfloat_type">softfloat</link></code></para></entry>
+    <entry><para><code><link linkend="float_type">float</link></code></para></entry>
     <entry><para>Returns the cosine of the number in radians passed.</para></entry>
   </row>
   
@@ -3741,7 +3808,8 @@
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>cosh(<replaceable>float</replaceable>)</programlisting>
+            <para><code><link linkend="cosh">cosh</link>(<link linkend="softfloat_type">softfloat</link>) <command>returns</command> <link linkend="float_type">float</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="cosh">cosh</link>() <command>returns</command> <link linkend="float_type">float</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -3766,8 +3834,8 @@
 
 <tbody>
   <row>
-    <entry><para>Float</para></entry>
-    <entry><para>Float</para></entry>
+    <entry><para><code><link linkend="softfloat_type">softfloat</link></code></para></entry>
+    <entry><para><code><link linkend="float_type">float</link></code></para></entry>
     <entry><para>Returns the hyperbolic cosine of the number in radians passed.</para></entry>
   </row>
   
@@ -3792,8 +3860,9 @@
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>exp(<replaceable>float</replaceable>)</programlisting>
-      </listitem>
+            <para><code><link linkend="exp">exp</link>(<link linkend="softfloat_type">softfloat</link>) <command>returns</command> <link linkend="float_type">float</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="exp">exp</link>() <command>returns</command> <link linkend="float_type">float</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
+       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Example</term>
@@ -3817,8 +3886,8 @@
 
 <tbody>
   <row>
-    <entry><para>Float</para></entry>
-    <entry><para>Float</para></entry>
+    <entry><para><code><link linkend="softfloat_type">softfloat</link></code></para></entry>
+    <entry><para><code><link linkend="float_type">float</link></code></para></entry>
     <entry><para>Returns the value of e raised to the power of the argument passed.</para></entry>
   </row>
   
@@ -3843,7 +3912,8 @@
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>exp2(<replaceable>float</replaceable>)</programlisting>
+            <para><code><link linkend="exp2">exp2</link>(<link linkend="softfloat_type">softfloat</link>) <command>returns</command> <link linkend="float_type">float</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="exp2">exp2</link>() <command>returns</command> <link linkend="float_type">float</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -3868,8 +3938,8 @@
 
 <tbody>
   <row>
-    <entry><para>Float</para></entry>
-    <entry><para>Float</para></entry>
+    <entry><para><code><link linkend="softfloat_type">softfloat</link></code></para></entry>
+    <entry><para><code><link linkend="float_type">float</link></code></para></entry>
     <entry><para>Returns the value of 2 raised to the power of the argument passed.</para></entry>
   </row>
   
@@ -3894,7 +3964,8 @@
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>expm1(<replaceable>float</replaceable>)</programlisting>
+            <para><code><link linkend="expm1">expm1</link>(<link linkend="softfloat_type">softfloat</link>) <command>returns</command> <link linkend="float_type">float</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="expm1">expm1</link>() <command>returns</command> <link linkend="float_type">float</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -3919,8 +3990,8 @@
 
 <tbody>
   <row>
-    <entry><para>Float</para></entry>
-    <entry><para>Float</para></entry>
+    <entry><para><code><link linkend="softfloat_type">softfloat</link></code></para></entry>
+    <entry><para><code><link linkend="float_type">float</link></code></para></entry>
     <entry><para>Returns an equivalent of exp(x) - 1.</para></entry>
   </row>
   
@@ -3944,7 +4015,8 @@
         <varlistentry>
           <term>Usage</term>
           <listitem>
-            <programlisting>floor(<replaceable>float</replaceable>)</programlisting>
+            <para><code><link linkend="floor">floor</link>(<link linkend="softfloat_type">softfloat</link>) <command>returns</command> <link linkend="float_type">float</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="floor">floor</link>() <command>returns</command> <link linkend="float_type">float</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -3967,8 +4039,8 @@
           </thead>
           <tbody>
             <row>
-	      <entry><para>Float</para></entry>
-              <entry><para>Float</para></entry>
+	      <entry><para><code><link linkend="softfloat_type">softfloat</link></code></para></entry>
+              <entry><para><code><link linkend="float_type">float</link></code></para></entry>
               <entry><para>Returns a float-point value rounded down to the integral value.</para></entry>
             </row>
           </tbody>
@@ -3990,7 +4062,8 @@
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>format_number(<replaceable>format_string, number</replaceable>)</programlisting>
+            <para><code><link linkend="format_number">format_number</link>(<link linkend="string_type">string</link>, <link linkend="any_type">any</link>) <command>returns</command> <link linkend="string_type">string</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="format_number">format_number</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -4021,8 +4094,8 @@
 
 <tbody>
   <row>
-    <entry><para>String, Float</para></entry>
-    <entry><para>String</para></entry>
+    <entry><para><code><link linkend="string_type">string</link>, <link linkend="any_type">any</link></code></para></entry>
+    <entry><para><code><link linkend="string_type">string</link></code></para></entry>
     <entry><para>Returns a string corresponding to a number according to the formatting string passed.</para></entry>
   </row>
   
@@ -4047,7 +4120,9 @@
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>hypot(<replaceable>float_x, float_y</replaceable>)</programlisting>
+            <para><code><link linkend="hypot">hypot</link>(<link linkend="any_type">any</link>, <link linkend="softfloat_type">softfloat</link>) <command>returns</command> <link linkend="float_type">float</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="hypot">hypot</link>(<link linkend="softfloat_type">softfloat</link>, <link linkend="any_type">any</link>) <command>returns</command> <link linkend="float_type">float</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="hypot">hypot</link>() <command>returns</command> <link linkend="float_type">float</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -4072,8 +4147,8 @@
 
 <tbody>
   <row>
-    <entry><para>Float</para></entry>
-    <entry><para>Float</para></entry>
+    <entry><para><code><link linkend="softfloat_type">softfloat</link></code></para></entry>
+    <entry><para><code><link linkend="float_type">float</link></code></para></entry>
     <entry><para>Returns the length of the hypotenuse of a right-angle triangle with sides given as the two arguments.</para></entry>
   </row>
   
@@ -4098,7 +4173,8 @@
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>log10(<replaceable>float</replaceable>)</programlisting>
+            <para><code><link linkend="log10">log10</link>(<link linkend="softfloat_type">softfloat</link>) <command>returns</command> <link linkend="float_type">float</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="log10">log10</link>() <command>returns</command> <link linkend="float_type">float</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -4122,8 +4198,8 @@
       </thead>
       <tbody>
 	<row>
-	  <entry><para>Float</para></entry>
-	  <entry><para>Float</para></entry>
+	  <entry><para><code><link linkend="softfloat_type">softfloat</link></code></para></entry>
+	  <entry><para><code><link linkend="float_type">float</link></code></para></entry>
 	  <entry><para>Returns the base 10 logarithm of the value passed.</para></entry>
 	</row>
       </tbody>
@@ -4147,7 +4223,8 @@
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>log1p(<replaceable>float</replaceable>)</programlisting>
+            <para><code><link linkend="log1p">log1p</link>(<link linkend="softfloat_type">softfloat</link>) <command>returns</command> <link linkend="float_type">float</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="log1p">log1p</link>() <command>returns</command> <link linkend="float_type">float</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -4170,8 +4247,8 @@
       </thead>
       <tbody>
 	<row>
-	  <entry><para>Float</para></entry>
-	  <entry><para>Float</para></entry>
+	  <entry><para><code><link linkend="softfloat_type">softfloat</link></code></para></entry>
+	  <entry><para><code><link linkend="float_type">float</link></code></para></entry>
 	  <entry><para>Returns the natural logarithm of the value passed plus 1.</para></entry>
 	</row>
       </tbody>
@@ -4195,7 +4272,8 @@
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>logb(<replaceable>float</replaceable>)</programlisting>
+            <para><code><link linkend="logb">logb</link>(<link linkend="softfloat_type">softfloat</link>) <command>returns</command> <link linkend="float_type">float</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="logb">logb</link>() <command>returns</command> <link linkend="float_type">float</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -4220,8 +4298,8 @@
 
 <tbody>
   <row>
-    <entry><para>Float</para></entry>
-    <entry><para>Float</para></entry>
+    <entry><para><code><link linkend="softfloat_type">softfloat</link></code></para></entry>
+    <entry><para><code><link linkend="float_type">float</link></code></para></entry>
     <entry><para>Returns the exponent of a number.</para></entry>
   </row>
   
@@ -4246,7 +4324,8 @@
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>nlog(<replaceable>float</replaceable>)</programlisting>
+            <para><code><link linkend="nlog">nlog</link>(<link linkend="softfloat_type">softfloat</link>) <command>returns</command> <link linkend="float_type">float</link> (CONSTANT)</code></para>
+            <para><code><link linkend="nlog">nlog</link>() <command>returns</command> <link linkend="float_type">float</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -4271,8 +4350,8 @@
 
 <tbody>
   <row>
-    <entry><para>Float</para></entry>
-    <entry><para>Float</para></entry>
+    <entry><para><code><link linkend="softfloat_type">softfloat</link></code></para></entry>
+    <entry><para><code><link linkend="float_type">float</link></code></para></entry>
     <entry><para>Returns the natural logarithm of the value passed.</para></entry>
   </row>  
 </tbody>
@@ -4296,7 +4375,7 @@
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>pow(<replaceable>x, y</replaceable>)</programlisting>
+            <para><code><link linkend="pow">pow</link>(<link linkend="softfloat_type">softfloat</link> = 0.0, <link linkend="softfloat_type">softfloat</link> = 0.0) <command>returns</command> <link linkend="float_type">float</link></code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -4321,8 +4400,8 @@
 
 <tbody>
   <row>
-    <entry><para>Float</para></entry>
-    <entry><para>Float</para></entry>
+    <entry><para><code><link linkend="softfloat_type">softfloat</link></code></para></entry>
+    <entry><para><code><link linkend="float_type">float</link></code></para></entry>
     <entry><para>Returns x raised to the power of y.</para></entry>
   </row>
   
@@ -4365,7 +4444,8 @@
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>round(<replaceable>float</replaceable>)</programlisting>
+            <para><code><link linkend="round">round</link>(<link linkend="softfloat_type">softfloat</link>) <command>returns</command> <link linkend="float_type">float</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="round">round</link>() <command>returns</command> <link linkend="float_type">float</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -4391,8 +4471,8 @@
 
 <tbody>
   <row>
-    <entry><para>Float</para></entry>
-    <entry><para>Float</para></entry>
+    <entry><para><code><link linkend="softfloat_type">softfloat</link></code></para></entry>
+    <entry><para><code><link linkend="float_type">float</link></code></para></entry>
     <entry><para>Returns a value rounded to the nearest integral floating-point value, half-way cases are rounded away from zero.</para></entry>
   </row>
 </tbody>
@@ -4431,7 +4511,8 @@
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>sin(<replaceable>float</replaceable>)</programlisting>
+            <para><code><link linkend="sin">sin</link>(<link linkend="softfloat_type">softfloat</link>) <command>returns</command> <link linkend="float_type">float</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="sin">sin</link>() <command>returns</command> <link linkend="float_type">float</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -4456,8 +4537,8 @@
 
 <tbody>
   <row>
-    <entry><para>Float</para></entry>
-    <entry><para>Float</para></entry>
+    <entry><para><code><link linkend="softfloat_type">softfloat</link></code></para></entry>
+    <entry><para><code><link linkend="float_type">float</link></code></para></entry>
     <entry><para>Returns the sine of the number in radians passed.</para></entry>
   </row>
   
@@ -4480,7 +4561,8 @@
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>sinh(<replaceable>float</replaceable>)</programlisting>
+            <para><code><link linkend="sinh">sinh</link>(<link linkend="softfloat_type">softfloat</link>) <command>returns</command> <link linkend="float_type">float</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="sinh">sinh</link>() <command>returns</command> <link linkend="float_type">float</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -4505,8 +4587,8 @@
 
 <tbody>
   <row>
-    <entry><para>Float</para></entry>
-    <entry><para>Float</para></entry>
+    <entry><para><code><link linkend="softfloat_type">softfloat</link></code></para></entry>
+    <entry><para><code><link linkend="float_type">float</link></code></para></entry>
     <entry><para>Returns the hyperbolic sine of the number in radians passed.</para></entry>
   </row>
   
@@ -4530,7 +4612,8 @@
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>sqrt(<replaceable>float</replaceable>)</programlisting>
+            <para><code><link linkend="sqrt">sqrt</link>(<link linkend="softfloat_type">softfloat</link>) <command>returns</command> <link linkend="float_type">float</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="sqrt">sqrt</link>() <command>returns</command> <link linkend="float_type">float</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -4555,8 +4638,8 @@
 
 <tbody>
   <row>
-    <entry><para>Float</para></entry>
-    <entry><para>Float</para></entry>
+    <entry><para><code><link linkend="softfloat_type">softfloat</link></code></para></entry>
+    <entry><para><code><link linkend="float_type">float</link></code></para></entry>
     <entry><para>Returns the square root of the number passed.</para></entry>
   </row>
   
@@ -4580,7 +4663,8 @@
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>tan(<replaceable>float</replaceable>)</programlisting>
+            <para><code><link linkend="tan">tan</link>(<link linkend="softfloat_type">softfloat</link>) <command>returns</command> <link linkend="float_type">float</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="tan">tan</link>() <command>returns</command> <link linkend="float_type">float</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -4605,8 +4689,8 @@
 
 <tbody>
   <row>
-    <entry><para>Float</para></entry>
-    <entry><para>Float</para></entry>
+    <entry><para><code><link linkend="softfloat_type">softfloat</link></code></para></entry>
+    <entry><para><code><link linkend="float_type">float</link></code></para></entry>
     <entry><para>Returns the tangent of the number in radians passed.</para></entry>
   </row>
   
@@ -4629,7 +4713,8 @@
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>tanh(<replaceable>float</replaceable>)</programlisting>
+            <para><code><link linkend="tanh">tanh</link>(<link linkend="softfloat_type">softfloat</link>) <command>returns</command> <link linkend="float_type">float</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="tanh">tanh</link>() <command>returns</command> <link linkend="float_type">float</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -4654,8 +4739,8 @@
 
 <tbody>
   <row>
-    <entry><para>Float</para></entry>
-    <entry><para>Float</para></entry>
+    <entry><para><code><link linkend="softfloat_type">softfloat</link></code></para></entry>
+    <entry><para><code><link linkend="float_type">float</link></code></para></entry>
     <entry><para>Returns the hyperbolic tangent of the number in radians passed.</para></entry>
   </row>
   
@@ -4684,7 +4769,8 @@
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>f_printf(<replaceable>format_string, arguments...</replaceable>)</programlisting>
+            <para><code><link linkend="f_printf">f_printf</link>(<link linkend="string_type">string</link>, ...) <command>returns</command> <link linkend="string_type">string</link></code></para>
+            <para><code><link linkend="f_printf">f_printf</link>() <command>returns</command> <link linkend="string_type">string</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -4712,8 +4798,8 @@
     </thead>
     <tbody>
       <row>
-	<entry><para>String, [...]</para></entry>
-	<entry><para>String</para></entry>
+	<entry><para><code><link linkend="string_type">string</link></code>, [...]</para></entry>
+	<entry><para><code><link linkend="string_type">string</link></code></para></entry>
 	<entry><para>Returns the string output (see <link linkend="String_Formatting">String Formatting</link> for information on the format string)</para></entry>
       </row>
     </tbody>
@@ -4735,7 +4821,8 @@
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>f_sprintf(<replaceable>format_string, arguments...</replaceable>)</programlisting>
+            <para><code><link linkend="f_sprintf">f_sprintf</link>(<link linkend="string_type">string</link>, ...) <command>returns</command> <link linkend="string_type">string</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="f_sprintf">f_sprintf</link>() <command>returns</command> <link linkend="string_type">string</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -4758,8 +4845,8 @@
           </thead>
           <tbody>
             <row>
-	      <entry><para>String, [args...]</para></entry>
-              <entry><para>String</para></entry>
+	      <entry><para><code><link linkend="string_type">string</link></code>, [...]</para></entry>
+              <entry><para><code><link linkend="string_type">string</link></code></para></entry>
               <entry><para>Returns a formatted string without doing any output, enforcing any field widths.  See <link linkend="String_Formatting">String Formatting</link> for information on the format string.</para></entry>
             </row>
           </tbody>
@@ -4783,7 +4870,7 @@
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>flush()</programlisting>
+	<para><code><link linkend="flush">flush</link>() <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -4835,7 +4922,7 @@
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>print(<replaceable>string</replaceable>)</programlisting>
+	<para><code><link linkend="print">print</link>(...) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -4871,7 +4958,7 @@
           <tbody>
             <row>
               <entry>
-                <para>String</para>
+                <para><code><link linkend="string_type">string</link></code></para>
               </entry>
               <entry>
                 <para>n/a</para>
@@ -4900,7 +4987,8 @@
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>printf(<replaceable>format_string, arguments...</replaceable>)</programlisting>
+            <para><code><link linkend="printf">printf</link>(<link linkend="string_type">string</link>, ...) <command>returns</command> <link linkend="string_type">string</link></code></para>
+            <para><code><link linkend="printf">printf</link>() <command>returns</command> <link linkend="string_type">string</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -4929,8 +5017,8 @@
           </thead>
           <tbody>
             <row>
-              <entry><para>String, [...]</para></entry>
-              <entry><para>String</para></entry>
+              <entry><para><code><link linkend="string_type">string</link></code>, [...]</para></entry>
+              <entry><para><code><link linkend="string_type">string</link></code></para></entry>
               <entry>
                 <para>See <link linkend="String_Formatting">String Formatting</link> for information on the format string.  This is the "normal" (non-field) printf() version, so any field widths are considered as soft limits, and arguments are allowed to exceed their field widths. Only when an argument is less than the field width will it be padded to the field width specified.  Returns the string output.</para>
               </entry>
@@ -4956,7 +5044,8 @@
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>sprintf(<replaceable>format_string, arguments...</replaceable>)</programlisting>
+            <para><code><link linkend="sprintf">sprintf</link>(<link linkend="string_type">string</link>, ...) <command>returns</command> <link linkend="string_type">string</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="sprintf">sprintf</link>() <command>returns</command> <link linkend="string_type">string</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -4979,8 +5068,8 @@
           </thead>
           <tbody>
             <row>
-	      <entry><para>String, [args...]</para></entry>
-              <entry><para>String</para></entry>
+	      <entry><para><code><link linkend="string_type">string</link></code>, [...]</para></entry>
+              <entry><para><code><link linkend="string_type">string</link></code></para></entry>
               <entry><para>See <link linkend="String_Formatting">String Formatting</link> for information on the format string.  Field widths are considered soft limits (arguments are allowed to exceed their field widths).  Only when an argument is less than the field width will it be padded to the field width specified.</para></entry>
             </row>
           </tbody>
@@ -5004,8 +5093,9 @@
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>vprintf(<replaceable>format_string, arg_list</replaceable>)</programlisting>
-      </listitem>
+            <para><code><link linkend="vprintf">vprintf</link>(<link linkend="string_type">string</link>, <link linkend="any_type">any</link>) <command>returns</command> <link linkend="string_type">string</link></code></para>
+            <para><code><link linkend="vprintf">vprintf</link>() <command>returns</command> <link linkend="string_type">string</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
+       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Example</term>
@@ -5039,8 +5129,8 @@
           </thead>
           <tbody>
             <row>
-              <entry><para>String, [List]</para></entry>
-              <entry><para>String</para></entry>
+              <entry><para><code><link linkend="string_type">string</link>, <link linkend="any_type">any</link></code></para></entry>
+              <entry><para><code><link linkend="string_type">string</link></code></para></entry>
               <entry>
                 <para>See <link linkend="String_Formatting">String Formatting</link> for information on the format string.  Arguments to the formatting string are supplied in the optional second argument as a list.  Field widths are considered as soft limits; arguments are allowed to exceed their field widths.  Only when an argument is less than the field width will it be padded to the field width specified.  Returns the string output.</para>
               </entry>
@@ -5066,7 +5156,8 @@
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>vsprintf(<replaceable>format_string, arg_list</replaceable>)</programlisting>
+            <para><code><link linkend="vsprintf">vsprintf</link>(<link linkend="string_type">string</link>, <link linkend="any_type">any</link>) <command>returns</command> <link linkend="string_type">string</link></code></para>
+            <para><code><link linkend="vsprintf">vsprintf</link>() <command>returns</command> <link linkend="string_type">string</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -5096,10 +5187,10 @@
           <tbody>
             <row>
               <entry>
-                <para>String, [List]</para>
+                <para><code><link linkend="string_type">string</link>, <link linkend="any_type">any</link></code></para>
               </entry>
               <entry>
-                <para>String</para>
+                <para><code><link linkend="string_type">string</link></code></para>
               </entry>
               <entry>
                 <para>See <link linkend="String_Formatting">String Formatting</link> for information on the format string.  Arguments to the formatting string are supplied in the optional second argument as a list.  Field widths are considered soft limits (arguments are allowed to exceed their field widths).  Only when an argument is less than the field width will it be padded to the field width specified.  Returns the formatted string.</para>
@@ -5164,7 +5255,7 @@
                 <para>n/a</para>
               </entry>
               <entry>
-                <para>Integer</para>
+                <para><code><link linkend="int_type">int</link></code></para>
               </entry>
               <entry>
                 <para>Returns the number of microseconds (1/1000000 second) since Jan 1, 1970 00:00.</para>
@@ -5224,7 +5315,7 @@
                 <para>n/a</para>
               </entry>
               <entry>
-                <para>Integer</para>
+                <para><code><link linkend="int_type">int</link></code></para>
               </entry>
               <entry>
                 <para>Returns the number of milliseconds (1/1000 second) since Jan 1, 1970 00:00.</para>
@@ -5284,7 +5375,7 @@
                 <para>n/a</para>
               </entry>
               <entry>
-                <para>Integer</para>
+                <para><code><link linkend="int_type">int</link></code></para>
               </entry>
               <entry>
                 <para>Returns the number of nanoseconds (1/1000000000 second) since Jan 1, 1970 00:00.</para>
@@ -5334,7 +5425,7 @@
           </thead>
           <tbody>
             <row>
-	      <entry><para>Integer</para></entry>
+	      <entry><para><code><link linkend="int_type">int</link></code></para></entry>
               <entry><para>Date</para></entry>
               <entry><para>Returns the date corresponding to the offset in ms given from January 1, 1970.</para></entry>
             </row>
@@ -5388,7 +5479,7 @@
           <tbody>
             <row>
               <entry>
-                <para>Integer</para>
+                <para><code><link linkend="int_type">int</link></code></para>
               </entry>
               <entry>
                 <para>Date</para>
@@ -5441,8 +5532,8 @@
           </thead>
           <tbody>
             <row>
-              <entry><para>String, Date</para></entry>
-              <entry><para>String</para></entry>
+              <entry><para><code><link linkend="string_type">string</link></code>, Date</para></entry>
+              <entry><para><code><link linkend="string_type">string</link></code></para></entry>
               <entry><para>Formats the date value using the string as a <link linkend="Date_Formatting">formatting specification</link>.</para></entry>
             </row>
           </tbody>
@@ -5456,7 +5547,7 @@
     <tgroup cols='2' align='left' colsep='1' rowsep='1'>
       <thead>
 	<row>
-	  <entry><para>String</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link></code></para></entry>
 	  <entry><para>Description</para></entry>
 	</row>
       </thead>
@@ -5621,7 +5712,7 @@
               <para>Date</para>
             </entry>
             <entry>
-              <para>Integer</para>
+              <para><code><link linkend="int_type">int</link></code></para>
             </entry>
             <entry>
               <para>Returns an integer value representing the years value of the date passed (can be either a <link linkend="Relative_Dates">relative</link> or <link linkend="Absolute_Dates">absolute</link> date).</para>
@@ -5675,7 +5766,7 @@
               <para>Date</para>
             </entry>
             <entry>
-              <para>Integer</para>
+              <para><code><link linkend="int_type">int</link></code></para>
             </entry>
             <entry>
               <para>Returns an integer value representing the months value of the date passed (can be either a <link linkend="Relative_Dates">relative</link> or <link linkend="Absolute_Dates">absolute</link> date).</para>
@@ -5729,7 +5820,7 @@
               <para>Date</para>
             </entry>
             <entry>
-              <para>Integer</para>
+              <para><code><link linkend="int_type">int</link></code></para>
             </entry>
             <entry>
               <para>Returns an integer value representing the days value of the date passed (can be either a <link linkend="Relative_Dates">relative</link> or <link linkend="Absolute_Dates">absolute</link> date).</para>
@@ -5783,7 +5874,7 @@
               <para>Date</para>
             </entry>
             <entry>
-              <para>Integer</para>
+              <para><code><link linkend="int_type">int</link></code></para>
             </entry>
             <entry>
               <para>Returns an integer value representing the hours value of the date passed (can be either a <link linkend="Relative_Dates">relative</link> or <link linkend="Absolute_Dates">absolute</link> date).</para>
@@ -5837,7 +5928,7 @@
               <para>Date</para>
             </entry>
             <entry>
-              <para>Integer</para>
+              <para><code><link linkend="int_type">int</link></code></para>
             </entry>
             <entry>
               <para>Returns an integer value representing the minutes value of the date passed (can be either a <link linkend="Relative_Dates">relative</link> or <link linkend="Absolute_Dates">absolute</link> date).</para>
@@ -5891,7 +5982,7 @@
               <para>Date</para>
             </entry>
             <entry>
-              <para>Integer</para>
+              <para><code><link linkend="int_type">int</link></code></para>
             </entry>
             <entry>
               <para>Returns an integer value representing the seconds value of the date passed (can be either a <link linkend="Relative_Dates">relative</link> or <link linkend="Absolute_Dates">absolute</link> date).</para>
@@ -5945,7 +6036,7 @@
               <para>Date</para>
             </entry>
             <entry>
-              <para>Integer</para>
+              <para><code><link linkend="int_type">int</link></code></para>
             </entry>
             <entry>
               <para>Returns an integer value representing the milliseconds value of the date passed (can be either a <link linkend="Relative_Dates">relative</link> or <link linkend="Absolute_Dates">absolute</link> date).</para>
@@ -6107,7 +6198,7 @@
               <para>Date</para>
             </entry>
             <entry>
-              <para>Integer</para>
+              <para><code><link linkend="int_type">int</link></code></para>
             </entry>
             <entry>
               <para>Returns an integer representing the day of the week for the <link linkend="Absolute_Dates">absolute date</link> passed (0=Sunday, 6=Saturday)</para>
@@ -6161,7 +6252,7 @@
               <para>Date</para>
             </entry>
             <entry>
-              <para>Integer</para>
+              <para><code><link linkend="int_type">int</link></code></para>
             </entry>
             <entry>
               <para>Returns an integer representing the ordinal day number in the year for the <link linkend="Absolute_Dates">absolute date</link> passed</para>
@@ -6215,7 +6306,7 @@
               <para>Date</para>
             </entry>
             <entry>
-              <para>Integer</para>
+              <para><code><link linkend="int_type">int</link></code></para>
             </entry>
             <entry>
               <para>Returns an integer representing the ISO-8601 day of the week for the <link linkend="Absolute_Dates">absolute date</link> passed (1=Monday, 7=Sunday)</para>
@@ -6324,7 +6415,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>Date</para>
             </entry>
             <entry>
-              <para>String</para>
+              <para><code><link linkend="string_type">string</link></code></para>
             </entry>
             <entry>
               <para>Returns a string representing the ISO-8601 calendar week information for the <link linkend="Absolute_Dates">absolute date</link> passed (ex: 2006-01-01 = &quot;2005-W52-7&quot;)</para>
@@ -6380,7 +6471,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           <tbody>
             <row>
               <entry>
-                <para>Integer</para>
+                <para><code><link linkend="int_type">int</link></code></para>
               </entry>
               <entry>
                 <para>Date</para>
@@ -6440,7 +6531,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           <tbody>
             <row>
               <entry>
-                <para>Integer</para>
+                <para><code><link linkend="int_type">int</link></code></para>
               </entry>
               <entry>
                 <para>Date</para>
@@ -6498,7 +6589,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           <tbody>
             <row>
               <entry>
-                <para>Integer</para>
+                <para><code><link linkend="int_type">int</link></code></para>
               </entry>
               <entry>
                 <para>Date</para>
@@ -6558,7 +6649,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           <tbody>
             <row>
               <entry>
-                <para>Integer</para>
+                <para><code><link linkend="int_type">int</link></code></para>
               </entry>
               <entry>
                 <para>Date</para>
@@ -6615,7 +6706,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           <tbody>
             <row>
               <entry>
-                <para>Integer</para>
+                <para><code><link linkend="int_type">int</link></code></para>
               </entry>
               <entry>
                 <para>Date</para>
@@ -6682,7 +6773,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
                 <para>Date</para>
               </entry>
               <entry>
-                <para>Integer</para>
+                <para><code><link linkend="int_type">int</link></code></para>
               </entry>
               <entry>
                 <para>The date argument should be in local time; the function returns the number of seconds passed since Jan 1, 1970 00:00:00 corresponding to this date.  Qore uses the C library function mktime() to return the value.</para>
@@ -6739,7 +6830,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           <tbody>
             <row>
               <entry>
-                <para>Integer</para>
+                <para><code><link linkend="int_type">int</link></code></para>
               </entry>
               <entry>
                 <para>Date</para>
@@ -6917,7 +7008,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           <tbody>
             <row>
               <entry>
-                <para>Integer</para>
+                <para><code><link linkend="int_type">int</link></code></para>
               </entry>
               <entry>
                 <para>Date</para>
@@ -6979,7 +7070,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
                 <para>Date</para>
               </entry>
               <entry>
-                <para>Integer</para>
+                <para><code><link linkend="int_type">int</link></code></para>
               </entry>
               <entry>
                 <para>Returns the number of seconds since January 1, 1970 00:00 for a given date in GMT.</para>
@@ -7033,7 +7124,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           <tbody>
             <row>
               <entry>
-                <para>Integer</para>
+                <para><code><link linkend="int_type">int</link></code></para>
               </entry>
               <entry>
                 <para>Date</para>
@@ -7097,7 +7188,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           <tbody>
             <row>
               <entry>
-                <para>String</para>
+                <para><code><link linkend="string_type">string</link></code></para>
               </entry>
               <entry>
                 <para>Binary</para>
@@ -7153,7 +7244,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           <tbody>
             <row>
               <entry><para>Binary, [String]</para></entry>
-              <entry><para>String</para></entry>
+              <entry><para><code><link linkend="string_type">string</link></code></para></entry>
               <entry><para>Returns a string corresponding to the binary data passed, taking an optional second argument giving the string encoding.  If no second argument is passed then the default encoding is assumed.</para></entry>
             </row>
           </tbody>
@@ -7324,7 +7415,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           <tbody>
             <row>
 	      <entry><para>Any</para></entry>
-              <entry><para>Float</para></entry>
+              <entry><para><code><link linkend="float_type">float</link></code></para></entry>
               <entry><para>Converts argument passed to a floating-point value.</para></entry>
             </row>
           </tbody>
@@ -7432,7 +7523,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           <tbody>
             <row>
 	      <entry><para>Any</para></entry>
-              <entry><para>Integer</para></entry>
+              <entry><para><code><link linkend="int_type">int</link></code></para></entry>
               <entry><para>Converts argument passed to an integer value.</para></entry>
             </row>
           </tbody>
@@ -7530,7 +7621,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           <tbody>
             <row>
 	      <entry><para>Any</para></entry>
-              <entry><para>String</para></entry>
+              <entry><para><code><link linkend="string_type">string</link></code></para></entry>
               <entry><para>Converts the argument passed to a string value.</para></entry>
             </row>
           </tbody>
@@ -7576,7 +7667,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           <tbody>
             <row>
 	      <entry><para>Any</para></entry>
-              <entry><para>String</para></entry>
+              <entry><para><code><link linkend="string_type">string</link></code></para></entry>
               <entry><para>Returns the data type of the argument passed.  See <link linkend="Qore_Type_Constants">Type_Constants</link> for the values that can be returned by this function.</para></entry>
             </row>
           </tbody>
@@ -7618,7 +7709,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           <tbody>
             <row>
 	      <entry><para>Any</para></entry>
-              <entry><para>String</para></entry>
+              <entry><para><code><link linkend="string_type">string</link></code></para></entry>
               <entry><para>deprecated: use <link linkend="type">type()</link> instead.</para></entry>
             </row>
           </tbody>
@@ -7672,8 +7763,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           </thead>
           <tbody>
             <row>
-	      <entry><para>String</para></entry>
-              <entry><para>String</para></entry>
+	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
+              <entry><para><code><link linkend="string_type">string</link></code></para></entry>
               <entry><para>The contents of the environment variable, if the environment variable exists, otherwise returns no value.</para></entry>
             </row>
           </tbody>
@@ -7720,7 +7811,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           </thead>
           <tbody>
             <row>
-	      <entry><para>String, String</para></entry>
+	      <entry><para><code><link linkend="string_type">string</link></code>, String</para></entry>
               <entry><para>n/a</para></entry>
               <entry><para>Sets the environment variable to a string value (the value is converted to a string if necessary).</para></entry>
             </row>
@@ -7768,7 +7859,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           </thead>
           <tbody>
             <row>
-	      <entry><para>String</para></entry>
+	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
               <entry><para>n/a</para></entry>
               <entry><para>Unsets the environment variable given by the string passed.</para></entry>
             </row>
@@ -7822,8 +7913,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           </thead>
           <tbody>
             <row>
-	      <entry><para>String, String, [Integer]</para></entry>
-              <entry><para>Integer</para></entry>
+	      <entry><para><code><link linkend="string_type">string</link></code>, String, [Integer]</para></entry>
+              <entry><para><code><link linkend="int_type">int</link></code></para></entry>
               <entry><para>If the substring is found, returns the byte position of the substring within the string (starting at 0). If not found, returns -1.  If an offset position is given, the search starts at the offset position.  All values are byte positions, not character positions, which may differ for multi-byte character encodings.</para></entry>
             </row>
           </tbody>
@@ -7866,8 +7957,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           </thead>
           <tbody>
             <row>
-	      <entry><para>String, String, [Integer]</para></entry>
-              <entry><para>Integer</para></entry>
+	      <entry><para><code><link linkend="string_type">string</link></code>, String, [Integer]</para></entry>
+              <entry><para><code><link linkend="int_type">int</link></code></para></entry>
               <entry><para>Returns the starting byte position of a string in another, starting from the end of the string, or from <replaceable>position</replaceable> if given.  If <replaceable>position</replaceable> is given, then the reverse search starts at that character position (searches always go from the end of the string toward the beginning).  Returns -1 if the substring cannot be found.  All values are byte positions, not character positions, which may differ for multi-byte character encodings.</para></entry>
             </row>
           </tbody>
@@ -7912,8 +8003,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           </thead>
           <tbody>
             <row>
-	      <entry><para>String</para></entry>
-              <entry><para>String</para></entry>
+	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
+              <entry><para><code><link linkend="string_type">string</link></code></para></entry>
               <entry><para>Returns the new string with any end-of-line character(s) removed; if the first argument is a variable reference, then the string is modified in place and the new string is also returned.</para></entry>
             </row>
           </tbody>
@@ -7960,8 +8051,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           </thead>
           <tbody>
             <row>
-	      <entry><para>Integer</para></entry>
-              <entry><para>String</para></entry>
+	      <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+              <entry><para><code><link linkend="string_type">string</link></code></para></entry>
               <entry><para>Returns a string containing a single ASCII character represented by the numeric value passed.</para></entry>
             </row>
           </tbody>
@@ -8008,8 +8099,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           </thead>
           <tbody>
             <row>
-	      <entry><para>String, String</para></entry>
-              <entry><para>String</para></entry>
+	      <entry><para><code><link linkend="string_type">string</link></code>, String</para></entry>
+              <entry><para><code><link linkend="string_type">string</link></code></para></entry>
               <entry><para>Converts the string arguement to the encoding given and returns the new string.</para></entry>
             </row>
           </tbody>
@@ -8072,7 +8163,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           <tbody>
             <row>
 	      <entry><para><replaceable>url_string</replaceable></para></entry>
-              <entry><para>String</para></entry>
+              <entry><para><code><link linkend="string_type">string</link></code></para></entry>
               <entry><para>Returns a string with numeric percent codes decoded to characters.</para></entry>
             </row>
           </tbody>
@@ -8119,8 +8210,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           </thead>
           <tbody>
             <row>
-	      <entry><para>String, String</para></entry>
-              <entry><para>String</para></entry>
+	      <entry><para><code><link linkend="string_type">string</link></code>, String</para></entry>
+              <entry><para><code><link linkend="string_type">string</link></code></para></entry>
               <entry><para>Returns a string with identical byte data as the input string, but tagged with the new encoding.</para></entry>
             </row>
           </tbody>
@@ -8167,8 +8258,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           </thead>
           <tbody>
             <row>
-	      <entry><para>String</para></entry>
-              <entry><para>String</para></entry>
+	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
+              <entry><para><code><link linkend="string_type">string</link></code></para></entry>
               <entry><para>Returns a string describing the character encoding of the string passed (ex: &quot;UTF-8&quot;, &quot;ISO-8850-1&quot;, &quot;KOI8-R&quot;).</para></entry>
             </row>
           </tbody>
@@ -8214,8 +8305,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           </thead>
           <tbody>
             <row>
-	      <entry><para>String, String, [Integer]</para></entry>
-              <entry><para>Integer</para></entry>
+	      <entry><para><code><link linkend="string_type">string</link></code>, String, [Integer]</para></entry>
+              <entry><para><code><link linkend="int_type">int</link></code></para></entry>
               <entry><para>If the substring is found, returns the position of the substring within the string (starting at 0). If not found, returns -1.  If an offset position is given, the search starts at the offset position.  All values are character positions, not byte positions, which may differ for multi-byte character encodings.</para></entry>
             </row>
           </tbody>
@@ -8259,7 +8350,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       </thead>
       <tbody>
 	<row>
-	  <entry><para>String, List</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link></code>, List</para></entry>
 	  <entry><para>Srring</para></entry>
 	  <entry><para>Returns a string with each element of the list separated by the separator string.</para></entry>
 	</row>
@@ -8305,8 +8396,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           </thead>
           <tbody>
             <row>
-	      <entry><para>String</para></entry>
-              <entry><para>Integer</para></entry>
+	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
+              <entry><para><code><link linkend="int_type">int</link></code></para></entry>
               <entry><para>Returns the length in characters for the string passed.</para></entry>
             </row>
           </tbody>
@@ -8352,7 +8443,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           <tbody>
             <row>
 	      <entry><para>tring str, [integer offset = 0]</para></entry>
-              <entry><para>Integer</para></entry>
+              <entry><para><code><link linkend="int_type">int</link></code></para></entry>
               <entry><para>Gives the numeric value of the given byte in the string passed (the first byte if no offset is passed); if no string is passed or the offset is after the end of the string, -1 is returned.</para></entry>
             </row>
           </tbody>
@@ -8399,7 +8490,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           </thead>
           <tbody>
             <row>
-	      <entry><para>String, String</para></entry>
+	      <entry><para><code><link linkend="string_type">string</link></code>, String</para></entry>
               <entry><para>Boolean</para></entry>
               <entry><para>Returns True if <replaceable>string</replaceable> matches <replaceable>pattern</replaceable>, False if not.  For valid options, see <link linkend="Qore_Regex_Constants">Regex Constants</link>.</para></entry>
             </row>
@@ -8464,8 +8555,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           </thead>
           <tbody>
             <row>
-	      <entry><para>String, String, [Integer]</para></entry>
-              <entry><para>String</para></entry>
+	      <entry><para><code><link linkend="string_type">string</link></code>, String, [Integer]</para></entry>
+              <entry><para><code><link linkend="string_type">string</link></code></para></entry>
               <entry><para>Returns the result of <replaceable>string =~ s/pattern_string/[options]</replaceable>.  For valid options, see <link linkend="Qore_Regex_Constants">Regex Constants</link></para></entry>
             </row>
           </tbody>
@@ -8533,8 +8624,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           </thead>
           <tbody>
             <row>
-	      <entry><para>String, String, String, [Integer]</para></entry>
-              <entry><para>String</para></entry>
+	      <entry><para><code><link linkend="string_type">string</link></code>, String, String, [Integer]</para></entry>
+              <entry><para><code><link linkend="string_type">string</link></code></para></entry>
               <entry><para>Returns the result of <replaceable>string =~ s/pattern_string/target_string/[options]</replaceable>.  For valid options, see <link linkend="Qore_Regex_Constants">Regex Constants</link></para></entry>
             </row>
           </tbody>
@@ -8602,8 +8693,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           </thead>
           <tbody>
             <row>
-	      <entry><para>String, String, String</para></entry>
-              <entry><para>String</para></entry>
+	      <entry><para><code><link linkend="string_type">string</link></code>, String, String</para></entry>
+              <entry><para><code><link linkend="string_type">string</link></code></para></entry>
               <entry><para>Replaces all occurrances of a substring in a string with another string and returns the new string.</para></entry>
             </row>
           </tbody>
@@ -8648,8 +8739,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           </thead>
           <tbody>
             <row>
-	      <entry><para>String, String, [Integer]</para></entry>
-              <entry><para>Integer</para></entry>
+	      <entry><para><code><link linkend="string_type">string</link></code>, String, [Integer]</para></entry>
+              <entry><para><code><link linkend="int_type">int</link></code></para></entry>
               <entry><para>Returns the starting character position of a string in another, starting from the end of the string, or from <replaceable>position</replaceable> if given.  If <replaceable>position</replaceable> is given, then the reverse search starts at that character position (searches always go from the end of the string toward the beginning).  Returns -1 if the substring cannot be found.  All values are character positions, not byte positions, which may differ for multi-byte character encodings.</para></entry>
             </row>
           </tbody>
@@ -8694,7 +8785,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           </thead>
           <tbody>
             <row>
-	      <entry><para>String, String</para></entry>
+	      <entry><para><code><link linkend="string_type">string</link></code>, String</para></entry>
               <entry><para>List</para></entry>
               <entry><para>Returns a list of each component of a string separated by a separator string, with the separator removed.</para></entry>
             </row>
@@ -8742,8 +8833,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           </thead>
           <tbody>
             <row>
-	      <entry><para>String</para></entry>
-              <entry><para>Integer</para></entry>
+	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
+              <entry><para><code><link linkend="int_type">int</link></code></para></entry>
               <entry><para>Returns the length of the string passed. If the argument is not a string, then it is converted to a string.</para></entry>
             </row>
           </tbody>
@@ -8789,8 +8880,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           </thead>
           <tbody>
             <row>
-	      <entry><para>String, Integer, [Integer]</para></entry>
-              <entry><para>String</para></entry>
+	      <entry><para><code><link linkend="string_type">string</link></code>, Integer, [Integer]</para></entry>
+              <entry><para><code><link linkend="string_type">string</link></code></para></entry>
               <entry><para>Returns the substring according to the arguments.  If <replaceable>integer_offset</replaceable> is negative, it designates an offset from the end of the string.  If <replaceable>integer_length</replaceable> is not present, all characters from the offset will be copied to the substring.  If it is negative, the rest of the string without the trailing number characters given by the negative argument will be copied to the substring.</para></entry>
             </row>
           </tbody>
@@ -8836,8 +8927,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           </thead>
           <tbody>
             <row>
-	      <entry><para>String</para></entry>
-              <entry><para>String</para></entry>
+	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
+              <entry><para><code><link linkend="string_type">string</link></code></para></entry>
               <entry><para>Converts argument passed to a string value, all in lower case.</para></entry>
             </row>
           </tbody>
@@ -8886,7 +8977,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 <tbody>
   <row>
     <entry><para>Any</para></entry>
-    <entry><para>String</para></entry>
+    <entry><para><code><link linkend="string_type">string</link></code></para></entry>
     <entry><para>Converts argument passed to a string value, all in upper case.</para></entry>
   </row>
 
@@ -8933,8 +9024,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           </thead>
           <tbody>
             <row>
-	      <entry><para>String, [String]</para></entry>
-              <entry><para>String</para></entry>
+	      <entry><para><code><link linkend="string_type">string</link></code>, [String]</para></entry>
+              <entry><para><code><link linkend="string_type">string</link></code></para></entry>
               <entry><para>Returns the new string with characters removed from the beginning and end of the string; if the first argument is a variable reference, then the string is modified in place and the new string is also returned.</para></entry>
             </row>
           </tbody>
@@ -9022,8 +9113,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 
 <tbody>
   <row>
-    <entry><para>String</para></entry>
-    <entry><para>String</para></entry>
+    <entry><para><code><link linkend="string_type">string</link></code></para></entry>
+    <entry><para><code><link linkend="string_type">string</link></code></para></entry>
     <entry><para>Returns the last element in a file path (meant to be the filename).</para></entry>
   </row>
 
@@ -9073,7 +9164,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <tbody>
 	<row>
 	  <entry><para>n/a</para></entry>
-	  <entry><para>Integer</para></entry>
+	  <entry><para><code><link linkend="int_type">int</link></code></para></entry>
 	  <entry><para>The error code of the most recent error in the current thread is returned.</para></entry>
 	</row>
 	
@@ -9127,7 +9218,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>String</para></entry>
+	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
 	      <entry><para>N/A</para></entry>
 	      <entry><para>The process and any arguments to the process to execute.  This function does not return.</para></entry>
 	    </row>
@@ -9181,7 +9272,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>Integer</para></entry>
+	      <entry><para><code><link linkend="int_type">int</link></code></para></entry>
 	      <entry><para>N/A</para></entry>
 	      <entry><para>Exits the program with the return code set to the value of the argument passed converted to an integer if necessary.</para></entry>
 	    </row>
@@ -9238,7 +9329,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 <tbody>
   <row>
     <entry><para>n/a</para></entry>
-    <entry><para>Integer</para></entry>
+    <entry><para><code><link linkend="int_type">int</link></code></para></entry>
     <entry><para>The child's PID is returned in the parent process, 0 is returned in the child's process.  If -1 is returned, then no child was started and the error number can be retrieved with the errno() function.</para></entry>
   </row>
 
@@ -9304,7 +9395,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 <tbody>
   <row>
     <entry><para>n/a</para></entry>
-    <entry><para>Integer</para></entry>
+    <entry><para><code><link linkend="int_type">int</link></code></para></entry>
     <entry><para>Returns the effective group ID of the current process.</para></entry>
   </row>
 
@@ -9348,7 +9439,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 <tbody>
   <row>
     <entry><para>n/a</para></entry>
-    <entry><para>Integer</para></entry>
+    <entry><para><code><link linkend="int_type">int</link></code></para></entry>
     <entry><para>Returns the effective user ID of the current process.</para></entry>
   </row>
 
@@ -9397,7 +9488,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 <tbody>
   <row>
     <entry><para>n/a</para></entry>
-    <entry><para>Integer</para></entry>
+    <entry><para><code><link linkend="int_type">int</link></code></para></entry>
     <entry><para>Returns the real group ID of the current process.</para></entry>
   </row>
 
@@ -9447,7 +9538,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 <tbody>
   <row>
     <entry><para><replaceable>address, [type]</replaceable></para></entry>
-    <entry><para>String</para></entry>
+    <entry><para><code><link linkend="string_type">string</link></code></para></entry>
     <entry><para>Returns the hostname of the system or NOTHING if the address is unknown.</para></entry>
   </row>
 
@@ -9536,7 +9627,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <tbody>
 	<row>
 	  <entry><para><code>name</code></para></entry>
-	  <entry><para>String</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link></code></para></entry>
 	  <entry><para>The official fully-qualified name of the host</para></entry>
 	</row>
 	<row>
@@ -9546,17 +9637,17 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	</row>
 	<row>
 	  <entry><para><code>typename</code></para></entry>
-	  <entry><para>String</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link></code></para></entry>
 	  <entry><para>The type of network address (either &quot;ipv4&quot; or &quot;ipv6&quot;)</para></entry>
 	</row>
 	<row>
 	  <entry><para><code>type</code></para></entry>
-	  <entry><para>Integer</para></entry>
+	  <entry><para><code><link linkend="int_type">int</link></code></para></entry>
 	  <entry><para>One of the <link linkend="network_address_constants">Network Address Type Constants</link> (either <code>AF_INET</code> or <code>AF_INET6</code>) corresponding to the type of network addresses given.</para></entry>
 	</row>
 	<row>
 	  <entry><para><code>len</code></para></entry>
-	  <entry><para>Integer</para></entry>
+	  <entry><para><code><link linkend="int_type">int</link></code></para></entry>
 	  <entry><para>The length of the addresses in bytes when represented in binary form.</para></entry>
 	</row>
 	<row>
@@ -9627,7 +9718,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 <tbody>
   <row>
     <entry><para><replaceable>hostname</replaceable></para></entry>
-    <entry><para>String</para></entry>
+    <entry><para><code><link linkend="string_type">string</link></code></para></entry>
     <entry><para>Returns the first address corresponding to the hostname passed or NOTHING if the host is unknown.</para></entry>
   </row>
 
@@ -9728,7 +9819,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 <tbody>
   <row>
     <entry><para>n/a</para></entry>
-    <entry><para>String</para></entry>
+    <entry><para><code><link linkend="string_type">string</link></code></para></entry>
     <entry><para>Returns the hostname of the system.</para></entry>
   </row>
 
@@ -9777,7 +9868,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 <tbody>
   <row>
     <entry><para>n/a</para></entry>
-    <entry><para>Integer</para></entry>
+    <entry><para><code><link linkend="int_type">int</link></code></para></entry>
     <entry><para>Returns the PID (process ID) of the current process.</para></entry>
   </row>
 
@@ -9826,7 +9917,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 <tbody>
   <row>
     <entry><para>n/a</para></entry>
-    <entry><para>Integer</para></entry>
+    <entry><para><code><link linkend="int_type">int</link></code></para></entry>
     <entry><para>Returns the PID (process ID) of the parent of the current process.</para></entry>
   </row>
 
@@ -9876,7 +9967,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 <tbody>
   <row>
     <entry><para>n/a</para></entry>
-    <entry><para>Integer</para></entry>
+    <entry><para><code><link linkend="int_type">int</link></code></para></entry>
     <entry><para>Returns the real user ID of the current process.</para></entry>
   </row>
 
@@ -9925,7 +10016,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 
 <tbody>
   <row>
-    <entry><para>String</para></entry>
+    <entry><para><code><link linkend="string_type">string</link></code></para></entry>
     <entry><para>List</para></entry>
     <entry><para>Returns a list of files matching the string argument.</para></entry>
   </row>
@@ -9979,7 +10070,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <tbody>
 	<row>
 	  <entry><para>Integer, [Integer]</para></entry>
-	  <entry><para>Integer</para></entry>
+	  <entry><para><code><link linkend="int_type">int</link></code></para></entry>
 	  <entry><para>Sends a signal to a process, if the optional signal number is not given, then SIGHUP is sent.  A 0 return value means that the signal was succesfully sent.</para></entry>
 	</row>
       </tbody>
@@ -10038,7 +10129,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>EGID</para>
             </entry>
             <entry>
-              <para>Integer</para>
+              <para><code><link linkend="int_type">int</link></code></para>
             </entry>
             <entry>
               <para>Changes the process effective group ID according to the argument passed.  Returns 0 for success, non-zero for errors (the error code can be retrieved with <link linkend="errno">errno()</link>)</para>
@@ -10120,7 +10211,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>EUID</para>
             </entry>
             <entry>
-              <para>Integer</para>
+              <para><code><link linkend="int_type">int</link></code></para>
             </entry>
             <entry>
               <para>Changes the process effective user ID according to the argument passed.  Returns 0 for success, non-zero for errors (the error code can be retrieved with <link linkend="errno">errno()</link>)</para>
@@ -10211,7 +10302,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>GID</para>
             </entry>
             <entry>
-              <para>Integer</para>
+              <para><code><link linkend="int_type">int</link></code></para>
             </entry>
             <entry>
               <para>Changes the process group ID according to the argument passed.  Returns 0 for success, non-zero for errors (the error code can be retrieved with <link linkend="errno">errno()</link>)</para>
@@ -10298,7 +10389,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>UID</para>
             </entry>
             <entry>
-              <para>Integer</para>
+              <para><code><link linkend="int_type">int</link></code></para>
             </entry>
             <entry>
               <para>Changes the process user ID according to the argument passed.  Returns 0 for success, non-zero for errors (the error code can be retrieved with <link linkend="errno">errno()</link>)</para>
@@ -10381,7 +10472,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 <tbody>
   <row>
     <entry><para>Integer or <link linkend="Relative_Dates">Relative Date/Time</link></para></entry>
-    <entry><para>Integer</para></entry>
+    <entry><para><code><link linkend="int_type">int</link></code></para></entry>
     <entry><para>Causes the current thread to sleep for a number of seconds equal to the argument passed.  Returns 0 for success.  An integer argument is interpreted as a number of seconds to sleep, <link linkend="Relative_Dates">relative date/time values</link> are interpreted literally.</para></entry>
   </row>
 
@@ -10435,7 +10526,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       </thead>
       <tbody>
 	<row>
-	  <entry><para>String</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link></code></para></entry>
 	  <entry><para>List</para></entry>
 	  <entry><para>Returns a list of filesystem values for the file passed, following symbolic links.  See <link linkend="Stat_List">Stat List</link> below for a description of the list returned by this function.</para></entry>
 	</row>
@@ -10457,42 +10548,42 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <tbody>
 	<row>
 	  <entry><para>0</para></entry>
-	  <entry><para>Integer</para></entry>
+	  <entry><para><code><link linkend="int_type">int</link></code></para></entry>
 	  <entry><para>device inode number the file is on</para></entry>
 	</row>
 	<row>
 	  <entry><para>1</para></entry>
-	  <entry><para>Integer</para></entry>
+	  <entry><para><code><link linkend="int_type">int</link></code></para></entry>
 	  <entry><para>inode of the file</para></entry>
 	</row>
 	<row>
 	  <entry><para>2</para></entry>
-	  <entry><para>Integer</para></entry>
+	  <entry><para><code><link linkend="int_type">int</link></code></para></entry>
 	  <entry><para>inode protection mode</para></entry>
 	</row>
 	<row>
 	  <entry><para>3</para></entry>
-	  <entry><para>Integer</para></entry>
+	  <entry><para><code><link linkend="int_type">int</link></code></para></entry>
 	  <entry><para>number of hard links to this file</para></entry>
 	</row>
 	<row>
 	  <entry><para>4</para></entry>
-	  <entry><para>Integer</para></entry>
+	  <entry><para><code><link linkend="int_type">int</link></code></para></entry>
 	  <entry><para>user ID of the owner</para></entry>
 	</row>
 	<row>
 	  <entry><para>5</para></entry>
-	  <entry><para>Integer</para></entry>
+	  <entry><para><code><link linkend="int_type">int</link></code></para></entry>
 	  <entry><para>group ID of the owner</para></entry>
 	</row>
 	<row>
 	  <entry><para>6</para></entry>
-	  <entry><para>Integer</para></entry>
+	  <entry><para><code><link linkend="int_type">int</link></code></para></entry>
 	  <entry><para>device type number</para></entry>
 	</row>
 	<row>
 	  <entry><para>7</para></entry>
-	  <entry><para>Integer</para></entry>
+	  <entry><para><code><link linkend="int_type">int</link></code></para></entry>
 	  <entry><para>file size in bytes</para></entry>
 	</row>
 	<row>
@@ -10512,12 +10603,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	</row>
 	<row>
 	  <entry><para>11</para></entry>
-	  <entry><para>Integer</para></entry>
+	  <entry><para><code><link linkend="int_type">int</link></code></para></entry>
 	  <entry><para>block size</para></entry>
 	</row>
 	<row>
 	  <entry><para>12</para></entry>
-	  <entry><para>Integer</para></entry>
+	  <entry><para><code><link linkend="int_type">int</link></code></para></entry>
 	  <entry><para>blocks allocated for the file</para></entry>
 	</row>
       </tbody>
@@ -10563,8 +10654,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 
 <tbody>
   <row>
-    <entry><para>Integer</para></entry>
-    <entry><para>String</para></entry>
+    <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+    <entry><para><code><link linkend="string_type">string</link></code></para></entry>
     <entry><para>Returns a string corresponding to the error code passed (normally retrieved with <link linkend="errno">errno()</link>)</para></entry>
   </row>
 </tbody>
@@ -10616,8 +10707,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       </thead>
       <tbody>
 	<row>
-	  <entry><para>String</para></entry>
-	  <entry><para>Integer</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link></code></para></entry>
+	  <entry><para><code><link linkend="int_type">int</link></code></para></entry>
 	  <entry><para>If shell meta-characters are present in the string to be executed, Qore uses the C library system() call to execute the external program, otherwise a fork() and exec() is used.  The exit code of the process is returned as an integer.</para></entry>
 	</row>
       </tbody>
@@ -10673,7 +10764,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 <tbody>
   <row>
     <entry><para>Integer or <link linkend="Relative_Dates">Relative Date/Time</link></para></entry>
-    <entry><para>Integer</para></entry>
+    <entry><para><code><link linkend="int_type">int</link></code></para></entry>
     <entry><para>Causes the current thread to sleep for a certain number of microseconds (1/1000000 second).  Returns 0 for success.  Integers are interpreted as microseconds, <link linkend="Relative_Dates">relative date/time values</link> are interpreted literally.</para></entry>
   </row>
 
@@ -10921,7 +11012,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>Binary, Key, [init_vector]</para>
             </entry>
             <entry>
-              <para>String</para>
+              <para><code><link linkend="string_type">string</link></code></para>
             </entry>
             <entry>
               <para>Decrypts data to a string using the Cipher Block Chaining function for the <ulink url="http://www.counterpane.com/blowfish.html">blowfish</ulink> algorithm using a variable-length key.</para>
@@ -11183,7 +11274,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>Binary, Key, [init_vector]</para>
             </entry>
             <entry>
-              <para>String</para>
+              <para><code><link linkend="string_type">string</link></code></para>
             </entry>
             <entry>
               <para>Decrypts data using the Cipher Block Chaining function for the <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm using an 8-byte key.  If the init_vector is present it must also be at least 8 bytes long.</para>
@@ -11450,7 +11541,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>Binary, String | Binary, [String | Binary]</para>
             </entry>
             <entry>
-              <para>String</para>
+              <para><code><link linkend="string_type">string</link></code></para>
             </entry>
             <entry>
               <para>Decrypts data to a string using the Cipher Block Chaining function for the two-key triple <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm.  The key argument must be at least 16 bytes long; only the first 16 bytes of the key argument will be used for the two 8-byte keys.  If the init_vector argument is present, it must be at least 8 bytes long.</para>
@@ -11723,7 +11814,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>Binary, String | Binary, [String | Binary]</para>
             </entry>
             <entry>
-              <para>String</para>
+              <para><code><link linkend="string_type">string</link></code></para>
             </entry>
             <entry>
               <para>Decrypts data to a string using the Cipher Block Chaining function for the three-key triple <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm using three 8-byte keys (set by a single 24-byte key argument) and an optional 8-byte initialization vector.</para>
@@ -11996,7 +12087,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>Binary, String 7 Binary, [String | Binary]</para>
             </entry>
             <entry>
-              <para>String</para>
+              <para><code><link linkend="string_type">string</link></code></para>
             </entry>
             <entry>
               <para>Decrypts data to a string using the Cipher Block Chaining function for RSA's <ulink url="http://www.rsasecurity.com/">DESX</ulink> algorithm using a 24-byte key and an optional 8-byte initialization vector.</para>
@@ -12269,7 +12360,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>Binary, String | Binary, [String | Binary]</para>
             </entry>
             <entry>
-              <para>String</para>
+              <para><code><link linkend="string_type">string</link></code></para>
             </entry>
             <entry>
               <para>Decrypts data to a string using the Cipher Block Chaining function for <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC2(tm) algorithm using a variable-length key and an optional 8-byte initialization vector.</para>
@@ -12542,7 +12633,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>Binary, Key, [init_vector]</para>
             </entry>
             <entry>
-              <para>String</para>
+              <para><code><link linkend="string_type">string</link></code></para>
             </entry>
             <entry>
               <para>Decrypts data to a string using the Cipher Block Chaining function for the <ulink url="http://en.wikipedia.org/wiki/CAST5">CAST5</ulink> algorithm using a variable-length key and an optional 8-byte initialization vector.</para>
@@ -12815,7 +12906,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>Binary, Key, [init_vector]</para>
             </entry>
             <entry>
-              <para>String</para>
+              <para><code><link linkend="string_type">string</link></code></para>
             </entry>
             <entry>
               <para>Decrypts data to a string using the Alleged RC4 cipher algorithm, which should be compatible with <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC4(tm) algorithm using a variable-length key and an optional 8-byte initialization vector.</para>
@@ -13096,7 +13187,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>Binary, Key, [init_vector]</para>
             </entry>
             <entry>
-              <para>String</para>
+              <para><code><link linkend="string_type">string</link></code></para>
             </entry>
             <entry>
               <para>Decrypts data to a string using the Cipher Block Chaining function for <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC5(tm) algorithm using a variable-length key and an optional 8-byte initialization vector.</para>
@@ -13197,7 +13288,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>String | Binary</para>
             </entry>
             <entry>
-              <para>String</para>
+              <para><code><link linkend="string_type">string</link></code></para>
             </entry>
             <entry>
               <para>Returns the DSS message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
@@ -13359,7 +13450,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>String | Binary</para>
             </entry>
             <entry>
-              <para>String</para>
+              <para><code><link linkend="string_type">string</link></code></para>
             </entry>
             <entry>
               <para>The DSS1 message digest of the supplied argument as a hex string (for strings, the trailing null character is not included in the digest)</para>
@@ -13521,7 +13612,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>String | Binary</para>
             </entry>
             <entry>
-              <para>String</para>
+              <para><code><link linkend="string_type">string</link></code></para>
             </entry>
             <entry>
               <para>The MD2 message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
@@ -13683,7 +13774,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>String | Binary</para>
             </entry>
             <entry>
-              <para>String</para>
+              <para><code><link linkend="string_type">string</link></code></para>
             </entry>
             <entry>
               <para>The MD4 message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
@@ -13845,7 +13936,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>String | Binary</para>
             </entry>
             <entry>
-              <para>String</para>
+              <para><code><link linkend="string_type">string</link></code></para>
             </entry>
             <entry>
               <para>The MD5 message digest of the supplied argument (for strings, the trailing null character is not included in the digest) as a string of hext characters.</para>
@@ -14007,7 +14098,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>String | Binary</para>
             </entry>
             <entry>
-              <para>String</para>
+              <para><code><link linkend="string_type">string</link></code></para>
             </entry>
             <entry>
               <para>Returns the MDC2 message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
@@ -14177,7 +14268,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>String | Binary</para>
             </entry>
             <entry>
-              <para>String</para>
+              <para><code><link linkend="string_type">string</link></code></para>
             </entry>
             <entry>
               <para>Returns the <ulink url="http://en.wikipedia.org/wiki/RIPEMD">RIPEMD160</ulink> message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
@@ -14339,7 +14430,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>String | Binary</para>
             </entry>
             <entry>
-              <para>String</para>
+              <para><code><link linkend="string_type">string</link></code></para>
             </entry>
             <entry>
               <para>Returns the <ulink url="http://en.wikipedia.org/wiki/Secure_Hash_Algorithm">SHA</ulink> message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
@@ -14501,7 +14592,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>String | Binary</para>
             </entry>
             <entry>
-              <para>String</para>
+              <para><code><link linkend="string_type">string</link></code></para>
             </entry>
             <entry>
               <para>Returns the <ulink url="http://en.wikipedia.org/wiki/Secure_Hash_Algorithm">SHA1</ulink> message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
@@ -14582,7 +14673,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>String | Binary</para>
             </entry>
             <entry>
-              <para>String</para>
+              <para><code><link linkend="string_type">string</link></code></para>
             </entry>
             <entry>
               <para>Returns the <ulink url="http://en.wikipedia.org/wiki/Secure_Hash_Algorithm">SHA1</ulink> message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
@@ -14664,7 +14755,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>String | Binary</para>
             </entry>
             <entry>
-              <para>String</para>
+              <para><code><link linkend="string_type">string</link></code></para>
             </entry>
             <entry>
               <para>Returns the <ulink url="http://en.wikipedia.org/wiki/Secure_Hash_Algorithm">SHA224</ulink> message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
@@ -14749,7 +14840,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>String | Binary</para>
             </entry>
             <entry>
-              <para>String</para>
+              <para><code><link linkend="string_type">string</link></code></para>
             </entry>
             <entry>
               <para>Returns the <ulink url="http://en.wikipedia.org/wiki/Secure_Hash_Algorithm">SHA224</ulink> message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
@@ -14834,7 +14925,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>String | Binary</para>
             </entry>
             <entry>
-              <para>String</para>
+              <para><code><link linkend="string_type">string</link></code></para>
             </entry>
             <entry>
               <para>Returns the <ulink url="http://en.wikipedia.org/wiki/Secure_Hash_Algorithm">SHA256</ulink> message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
@@ -14919,7 +15010,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>String | Binary</para>
             </entry>
             <entry>
-              <para>String</para>
+              <para><code><link linkend="string_type">string</link></code></para>
             </entry>
             <entry>
               <para>Returns the <ulink url="http://en.wikipedia.org/wiki/Secure_Hash_Algorithm">SHA256</ulink> message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
@@ -15004,7 +15095,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>String | Binary</para>
             </entry>
             <entry>
-              <para>String</para>
+              <para><code><link linkend="string_type">string</link></code></para>
             </entry>
             <entry>
               <para>Returns the <ulink url="http://en.wikipedia.org/wiki/Secure_Hash_Algorithm">SHA384</ulink> message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
@@ -15089,7 +15180,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>String | Binary</para>
             </entry>
             <entry>
-              <para>String</para>
+              <para><code><link linkend="string_type">string</link></code></para>
             </entry>
             <entry>
               <para>Returns the <ulink url="http://en.wikipedia.org/wiki/Secure_Hash_Algorithm">SHA384</ulink> message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
@@ -15174,7 +15265,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>String | Binary</para>
             </entry>
             <entry>
-              <para>String</para>
+              <para><code><link linkend="string_type">string</link></code></para>
             </entry>
             <entry>
               <para>Returns the <ulink url="http://en.wikipedia.org/wiki/Secure_Hash_Algorithm">SHA512</ulink> message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
@@ -15259,7 +15350,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <para>String | Binary</para>
             </entry>
             <entry>
-              <para>String</para>
+              <para><code><link linkend="string_type">string</link></code></para>
             </entry>
             <entry>
               <para>Returns the <ulink url="http://en.wikipedia.org/wiki/Secure_Hash_Algorithm">SHA512</ulink> message digest of the supplied argument (for strings, the trailing null character is not included in the digest)</para>
@@ -15351,8 +15442,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 
 <tbody>
   <row>
-    <entry><para>String</para></entry>
-    <entry><para>Integer</para></entry>
+    <entry><para><code><link linkend="string_type">string</link></code></para></entry>
+    <entry><para><code><link linkend="int_type">int</link></code></para></entry>
     <entry><para>Changes the current working directory.  Returns 0 if successful.</para></entry>
   </row>
 
@@ -15423,8 +15514,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 
 <tbody>
   <row>
-    <entry><para>String, Integer</para></entry>
-    <entry><para>Integer</para></entry>
+    <entry><para><code><link linkend="string_type">string</link></code>, Integer</para></entry>
+    <entry><para><code><link linkend="int_type">int</link></code></para></entry>
     <entry><para>Sets the mode of the given file to the integer passed.  Returns 0 if successful.</para></entry>
   </row>
 
@@ -15495,8 +15586,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 
 <tbody>
   <row>
-    <entry><para>String, Integer, Integer</para></entry>
-    <entry><para>Integer</para></entry>
+    <entry><para><code><link linkend="string_type">string</link></code>, Integer, Integer</para></entry>
+    <entry><para><code><link linkend="int_type">int</link></code></para></entry>
     <entry><para>Changes the owner and group of the file passed.  Returns 0 if successful.</para></entry>
   </row>
 
@@ -15568,7 +15659,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 <tbody>
   <row>
     <entry><para>n/a</para></entry>
-    <entry><para>String</para></entry>
+    <entry><para><code><link linkend="string_type">string</link></code></para></entry>
     <entry><para>Returns the complete path of the current working directory as a string.</para></entry>
   </row>
 
@@ -15620,7 +15711,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       </thead>
       <tbody>
 	<row>
-	  <entry><para>String</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link></code></para></entry>
 	  <entry><para>Hash</para></entry>
 	  <entry><para>Returns a hash of filesystem values for the file passed; symbolic links are not followed (information is returned about symbolic links).  See also <link linkend="hstat">hstat()</link>.  See <link linkend="Stat_Hash">Stat Hash</link> below for a description of the hash returned by this function.</para></entry>
 	</row>
@@ -15744,7 +15835,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       </thead>
       <tbody>
 	<row>
-	  <entry><para>String</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link></code></para></entry>
 	  <entry><para>Hash</para></entry>
 	  <entry><para>Returns a hash of filesystem values for the file passed; symbolic links are followed.  See also <link linkend="hlstat">hlstat()</link>.  See <link linkend="Stat_Hash">Stat Hash</link> for a description of the hash returned by this function.</para></entry>
 	</row>
@@ -16460,8 +16551,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 
 <tbody>
   <row>
-    <entry><para>String, Integer, Integer</para></entry>
-    <entry><para>Integer</para></entry>
+    <entry><para><code><link linkend="string_type">string</link></code>, Integer, Integer</para></entry>
+    <entry><para><code><link linkend="int_type">int</link></code></para></entry>
     <entry><para>Changes the owner and group of the file passed.  Returns 0 if successful.</para></entry>
   </row>
 
@@ -16530,7 +16621,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       </thead>
       <tbody>
 	<row>
-	  <entry><para>String</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link></code></para></entry>
 	  <entry><para>List</para></entry>
 	  <entry><para>Returns a list of filesystem values for the file passed.  See <link linkend="Stat_List">Stat List</link> for a description of the list returned by this function.</para></entry>
 	</row>
@@ -16582,8 +16673,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       </thead>
       <tbody>
 	<row>
-	  <entry><para>String, [Integer]</para></entry>
-	  <entry><para>Integer</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link></code>, [Integer]</para></entry>
+	  <entry><para><code><link linkend="int_type">int</link></code></para></entry>
 	  <entry><para>Creates a directory with the specified name.  If the mode parameter is not sent, then 0777 is used by default (which is AND'ed with the umask).  Returns 0 if no error occurred.</para></entry>
 	</row>
       </tbody>
@@ -16658,10 +16749,10 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           <tbody>
             <row>
               <entry>
-                <para>String, [Integer]</para>
+                <para><code><link linkend="string_type">string</link></code>, [Integer]</para>
               </entry>
               <entry>
-                <para>Integer</para>
+                <para><code><link linkend="int_type">int</link></code></para>
               </entry>
               <entry>
                 <para>Creates a named pipe with the supplied path and optional mode.  If <replaceable>mode</replaceable> is not supplied, then 0660 is used by default.</para>
@@ -16720,7 +16811,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 
       <tbody>
 	<row>
-	  <entry><para>String, String</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link></code>, String</para></entry>
 	  <entry><para>n/a</para></entry>
 	  <entry><para>Renames (or moves) the file ior directory indentified by <replaceable>old_path</replaceable> to the new name and/or location given by <replaceable>new_path</replaceable></para></entry>
 	</row>
@@ -16792,8 +16883,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 
 <tbody>
   <row>
-    <entry><para>String</para></entry>
-    <entry><para>Integer</para></entry>
+    <entry><para><code><link linkend="string_type">string</link></code></para></entry>
+    <entry><para><code><link linkend="int_type">int</link></code></para></entry>
     <entry><para>Removes an empty directory.  Returns 0 if no error occurred.</para></entry>
   </row>
 
@@ -16865,8 +16956,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 
 <tbody>
   <row>
-    <entry><para>Integer</para></entry>
-    <entry><para>Integer</para></entry>
+    <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+    <entry><para><code><link linkend="int_type">int</link></code></para></entry>
     <entry><para>Sets the file creation mask for the process, returns 0 for success.  If no argument is passed, no action is taken, and the function returns NOTHING.</para></entry>
   </row>
 
@@ -16921,8 +17012,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 
 <tbody>
   <row>
-    <entry><para>String</para></entry>
-    <entry><para>Integer</para></entry>
+    <entry><para><code><link linkend="string_type">string</link></code></para></entry>
+    <entry><para><code><link linkend="int_type">int</link></code></para></entry>
     <entry><para>Deletes a file and returns 0 for success.</para></entry>
   </row>
 
@@ -17568,8 +17659,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 
 <tbody>
   <row>
-    <entry><para>String</para></entry>
-    <entry><para>String</para></entry>
+    <entry><para><code><link linkend="string_type">string</link></code></para></entry>
+    <entry><para><code><link linkend="string_type">string</link></code></para></entry>
     <entry><para>Executes the string passed as a shell command in a subprocess and returns the stdout of the process as a string.</para></entry>
   </row>
 
@@ -17634,7 +17725,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 
 <tbody>
   <row>
-    <entry><para>String, Any</para></entry>
+    <entry><para><code><link linkend="string_type">string</link></code>, Any</para></entry>
     <entry><para>Any (depends on function)</para></entry>
     <entry><para>Executes the given builtin function with the remainder of the arguments as the arguments to the function.</para></entry>
   </row>
@@ -17708,7 +17799,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 
       <tbody>
 	<row>
-	  <entry><para>String, [List]</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link></code>, [List]</para></entry>
 	  <entry><para>Any (depends on function)</para></entry>
 	  <entry><para>Executes the given builtin function using any second argument as the list of arguments.</para></entry>  
 	</row>
@@ -18085,7 +18176,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 
 <tbody>
   <row>
-    <entry><para>String</para></entry>
+    <entry><para><code><link linkend="string_type">string</link></code></para></entry>
     <entry><para>Boolean</para></entry>
     <entry><para>Returns True if the function exists in the current program's function name space, otherwise returns False.</para></entry>
   </row>
@@ -18135,7 +18226,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 
 <tbody>
   <row>
-    <entry><para>String</para></entry>
+    <entry><para><code><link linkend="string_type">string</link></code></para></entry>
     <entry><para>Boolean</para></entry>
     <entry><para>Returns &quot;builtin&quot; (for a builtin function), &quot;user&quot; (for a user function), or NOTHING (if the function cannot be found) according to the function name passed.</para></entry>
   </row>
@@ -18383,7 +18474,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 <tbody>
   <row>
     <entry><para><replaceable>expr, [offset]</replaceable></para></entry>
-    <entry><para>Integer</para></entry>
+    <entry><para><code><link linkend="int_type">int</link></code></para></entry>
     <entry><para>The value of the byte at the offset in the string or binary object.  If no offset is passed, then the first byte is returned.  If the object is empty or the offset is larger than the object's size, then no value is returned.</para></entry>
   </row>
 
@@ -18439,7 +18530,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
                 <para>Object</para>
               </entry>
               <entry>
-                <para>String</para>
+                <para><code><link linkend="string_type">string</link></code></para>
               </entry>
               <entry>
                 <para>Returns the class name of the object passed.</para>
@@ -18488,8 +18579,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           </thead>
           <tbody>
             <row>
-	      <entry><para>String</para></entry>
-              <entry><para>Integer</para></entry>
+	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
+              <entry><para><code><link linkend="int_type">int</link></code></para></entry>
               <entry><para>Returns an integer representing the capabilities of a DBI driver binary-OR'ed together (see <link linkend="DBI_Capability_Constants">DBI Capability Constants</link>).  Returns NOTHING if the driver cannot be found.</para></entry>
             </row>
           </tbody>
@@ -18533,7 +18624,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           </thead>
           <tbody>
             <row>
-	      <entry><para>String</para></entry>
+	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
               <entry><para>List</para></entry>
               <entry><para>Returns a list of each capability supported by the given DBI driver (see <link linkend="DBI_Capability_Constants">DBI Capability Constants</link>).  Returns NOTHING if the driver cannot be found.</para></entry>
             </row>
@@ -18771,7 +18862,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 <tbody>
   <row>
     <entry><para>n/a</para></entry>
-    <entry><para>String</para></entry>
+    <entry><para><code><link linkend="string_type">string</link></code></para></entry>
     <entry><para>Returns the name of the <link linkend="Default_Character_Encoding">default character encoding</link>.</para></entry>
   </row>
 
@@ -18824,7 +18915,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           <tbody>
             <row>
               <entry>
-                <para>Integer</para>
+                <para><code><link linkend="int_type">int</link></code></para>
               </entry>
               <entry>
                 <para>Hash</para>
@@ -19076,10 +19167,10 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           <tbody>
             <row>
               <entry>
-                <para>String</para>
+                <para><code><link linkend="string_type">string</link></code></para>
               </entry>
               <entry>
-                <para>Integer</para>
+                <para><code><link linkend="int_type">int</link></code></para>
               </entry>
               <entry>
                 <para>Returns an integer for a hexadecimal string value.</para>
@@ -19127,8 +19218,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       </thead>
       <tbody>
 	<row>
-	  <entry><para>String</para></entry>
-	  <entry><para>String</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link></code></para></entry>
+	  <entry><para><code><link linkend="string_type">string</link></code></para></entry>
 	  <entry><para>Returns a string with any HTML escape codes (ie &amp;amp; -&gt; &amp;, etc) translated to the original characters.</para></entry>
 	</row>
       </tbody>
@@ -19174,8 +19265,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       </thead>
       <tbody>
 	<row>
-	  <entry><para>String</para></entry>
-	  <entry><para>String</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link></code></para></entry>
+	  <entry><para><code><link linkend="string_type">string</link></code></para></entry>
 	  <entry><para>Returns a string with characters needed HTML escape code transation (ie &amp; -&gt; &amp;amp; etc) translated to the escape codes.</para></entry>
 	</row>
       </tbody>
@@ -19331,8 +19422,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       </thead>
       <tbody>
 	<row>
-	  <entry><para>String</para></entry>
-	  <entry><para>String</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link></code></para></entry>
+	  <entry><para><code><link linkend="string_type">string</link></code></para></entry>
 	  <entry><para>Loads the module with the given name if possible, otherwise throws an exception.  This function returns no value.</para></entry>
 	</row>
       </tbody>
@@ -19394,7 +19485,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <tbody>
 	<row>
 	  <entry><para>Binary or String</para></entry>
-	  <entry><para>String</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link></code></para></entry>
 	  <entry><para>Returns a base64-encoded representation of a binary object or a string.</para></entry>
 	</row>
       </tbody>
@@ -19439,7 +19530,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <tbody>
 	<row>
 	  <entry><para>Binary or String</para></entry>
-	  <entry><para>String</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link></code></para></entry>
 	  <entry><para>Returns a hex-encoded representation of a binary object or a string.</para></entry>
 	</row>
       </tbody>
@@ -19587,7 +19678,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 
 <tbody>
   <row>
-    <entry><para>String</para></entry>
+    <entry><para><code><link linkend="string_type">string</link></code></para></entry>
     <entry><para>n/a</para></entry>
     <entry><para>Parses the string passed and adds the code to the current program.</para></entry>
   </row>
@@ -19653,7 +19744,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 
 <tbody>
   <row>
-    <entry><para>String</para></entry>
+    <entry><para><code><link linkend="string_type">string</link></code></para></entry>
     <entry><para>Binary</para></entry>
     <entry><para>Parses a base64 encoded string and returns the binary object.  If anything is passed other than a string as an argument, no action is taken and the function returns NOTHING.</para></entry>
   </row>
@@ -19716,7 +19807,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           </thead>
           <tbody>
             <row>
-	      <entry><para>String</para></entry>
+	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
               <entry><para>Hash</para></entry>
               <entry><para>Returns a hash of the components of a datasource string.  A datasource string has the following structure: <code>driver:user/pass@db(charset)%host:port</code>, where driver, charset, host, and port are optional.  See <link linkend="parseDatasource_hash">parseDatasource() hash</link> for a description of the output hash of this function.</para></entry>
             </row>
@@ -19822,7 +19913,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 
 <tbody>
   <row>
-    <entry><para>String</para></entry>
+    <entry><para><code><link linkend="string_type">string</link></code></para></entry>
     <entry><para>Binary</para></entry>
     <entry><para>Parses a hex-encoded string and returns the binary object.  If anything is passed other than a string as an argument, no action is taken and the function returns NOTHING.</para></entry>
   </row>
@@ -19884,7 +19975,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       </thead>
       <tbody>
 	<row>
-	  <entry><para>String</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link></code></para></entry>
 	  <entry><para>Hash</para></entry>
 	  <entry><para>Parses a URL string and returns a hash of the components.  URLs have the format: <code>protocol://username:password@host:port/path</code>, where only <code>host</code> is mandatory.</para></entry>
 	</row>
@@ -19932,7 +20023,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 <tbody>
   <row>
     <entry><para>n/a</para></entry>
-    <entry><para>Integer</para></entry>
+    <entry><para><code><link linkend="int_type">int</link></code></para></entry>
     <entry><para>A random integer number is returned.  See <link linkend="srand">srand()</link> for a function to seed the random number generator.</para></entry>
   </row>
 
@@ -19986,7 +20077,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 
 <tbody>
   <row>
-    <entry><para>Integer</para></entry>
+    <entry><para><code><link linkend="int_type">int</link></code></para></entry>
     <entry><para>n/a</para></entry>
     <entry><para>The signal number to process.</para></entry>
   </row>
@@ -20041,8 +20132,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
   </row>
 
   <row>
-    <entry><para>String</para></entry>
-    <entry><para>String</para></entry>
+    <entry><para><code><link linkend="string_type">string</link></code></para></entry>
+    <entry><para><code><link linkend="string_type">string</link></code></para></entry>
     <entry><para>The string with its characters reversed.</para></entry>
   </row>
 
@@ -20323,7 +20414,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     
       <tbody>
 	<row>
-	  <entry><para>Integer</para></entry>
+	  <entry><para><code><link linkend="int_type">int</link></code></para></entry>
 	  <entry><para>n/a</para></entry>
 	  <entry><para>Seeds the random number generator with the integer passed.  See <link linkend="rand">rand()</link> for a function to get a random number.</para></entry>
 	</row>
@@ -20376,10 +20467,10 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           <tbody>
             <row>
               <entry>
-                <para>String</para>
+                <para><code><link linkend="string_type">string</link></code></para>
               </entry>
               <entry>
-                <para>Integer</para>
+                <para><code><link linkend="int_type">int</link></code></para>
               </entry>
               <entry>
                 <para>Returns an integer corresponding to the string value in the base specified.  If no base is passed, then base 10 is assumed.</para>
@@ -20489,7 +20580,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	</thead>
 	<tbody>
 	  <row>
-	    <entry><para>String, [String ...]</para></entry>
+	    <entry><para><code><link linkend="string_type">string</link></code>, [String ...]</para></entry>
 	    <entry><para>n/a</para></entry>
 	    <entry><para>Deletes the data associated to one or more keys in the thread-local data hash.</para></entry>
 	  </row>
@@ -20657,7 +20748,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	</thead>
 	<tbody>
 	  <row>
-	    <entry><para>String</para></entry>
+	    <entry><para><code><link linkend="string_type">string</link></code></para></entry>
 	    <entry><para>depends on key</para></entry>
 	    <entry><para>Returns the value of the thread-local data attached to the key passed.</para></entry>
 	  </row>
@@ -20704,7 +20795,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<tbody>
 	  <row>
 	    <entry><para>n/a</para></entry>
-	    <entry><para>Integer</para></entry>
+	    <entry><para><code><link linkend="int_type">int</link></code></para></entry>
 	    <entry><para>Returns the Qore thread ID (TID) of the current thread.</para></entry>
 	  </row>
 	</tbody>
@@ -20752,7 +20843,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 <tbody>
   <row>
     <entry><para>n/a</para></entry>
-    <entry><para>Integer</para></entry>
+    <entry><para><code><link linkend="int_type">int</link></code></para></entry>
     <entry><para>Returns the current number of threads in the process.</para></entry>
   </row>
 
@@ -20804,7 +20895,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	</thead>
 	<tbody>
 	  <row>
-	    <entry><para>String, [String ...]</para></entry>
+	    <entry><para><code><link linkend="string_type">string</link></code>, [String ...]</para></entry>
 	    <entry><para>n/a</para></entry>
 	    <entry><para>Removes the data associated to one or more keys in the thread-local data hash.</para></entry>
 	  </row>
@@ -20858,7 +20949,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 
 <tbody>
   <row>
-    <entry><para>String, Any</para></entry>
+    <entry><para><code><link linkend="string_type">string</link></code>, Any</para></entry>
     <entry><para>n/a</para></entry>
     <entry><para>Saves the data passed against the key passed in thread-local storage.</para></entry>
   </row>
@@ -21018,7 +21109,7 @@ catch ($ex)
 	<tbody>
 	  <row>
 	    <entry><para>Hash, [String]</para></entry>
-	    <entry><para>String</para></entry>
+	    <entry><para><code><link linkend="string_type">string</link></code></para></entry>
 	    <entry><para>Serializes the Qore hash to an XML string (see <link linkend="XML_Integration">XML Integration</link> for more information) without an XML header but with formatting.  The hash must have only one top-level key or an exception will be thrown.</para></entry>
 	  </row>
 	</tbody>
@@ -21080,8 +21171,8 @@ catch ($ex)
       </thead>
       <tbody>
 	<row>
-	  <entry><para>String, [Any ...]</para></entry>
-	  <entry><para>String</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link></code>, [Any ...]</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link></code></para></entry>
 	  <entry><para>Serializes the arguments into an XML string in XML-RPC call format with whitespace formatting.  The encoding of the resulting string will always be the <link linkend="Default_Character_Encoding">default encoding</link>.</para></entry>
 	</row>
       </tbody>
@@ -21142,8 +21233,8 @@ catch ($ex)
       </thead>
       <tbody>
 	<row>
-	  <entry><para>String, String, [Any ...]</para></entry>
-	  <entry><para>String</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link></code>, String, [Any ...]</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link></code></para></entry>
 	  <entry><para>Serializes the arguments into an XML string in XML-RPC call format with whitespace formatting.  The encoding of the resulting string will be the encoding given by the first argument.</para></entry>
 	</row>
       </tbody>
@@ -21204,8 +21295,8 @@ catch ($ex)
       </thead>
       <tbody>
 	<row>
-	  <entry><para>String, [List]</para></entry>
-	  <entry><para>String</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link></code>, [List]</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link></code></para></entry>
 	  <entry><para>Serializes the arguments into an XML string in XML-RPC call format with whitespace formatting, using a single argument following the XML-RPC method name as the argument list for the method.  The encoding of the resulting string will always be the <link linkend="Default_Character_Encoding">default encoding</link>.</para></entry>
 	</row>
       </tbody>
@@ -21266,8 +21357,8 @@ catch ($ex)
       </thead>
       <tbody>
 	<row>
-	  <entry><para>String, String, [List]</para></entry>
-	  <entry><para>String</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link></code>, String, [List]</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link></code></para></entry>
 	  <entry><para>Serializes the arguments into an XML string in XML-RPC call format with whitespace formatting, using a single argument following the XML-RPC method name as the argument list for the method.  The encoding of the resulting string will be the encoding given by the first argument.</para></entry>
 	</row>
       </tbody>
@@ -21329,7 +21420,7 @@ catch ($ex)
       <tbody>
 	<row>
 	  <entry><para>Integer, String</para></entry>
-	  <entry><para>String</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link></code></para></entry>
 	  <entry><para>Serializes the arguments into an XML string formatted for an XML-RPC fault response with whitespace formatting.  The encoding of the resulting string will always be the <link linkend="Default_Character_Encoding">default encoding</link>.</para></entry>
 	</row>
       </tbody>
@@ -21394,8 +21485,8 @@ catch ($ex)
       </thead>
       <tbody>
 	<row>
-	  <entry><para>String, Integer, String</para></entry>
-	  <entry><para>String</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link></code>, Integer, String</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link></code></para></entry>
 	  <entry><para>Serializes the arguments into an XML string formatted for an XML-RPC fault response with whitespace formatting.  The encoding of the resulting string will be the encoding given by the first argument.</para></entry>
 	</row>
       </tbody>
@@ -21461,7 +21552,7 @@ catch ($ex)
       <tbody>
 	<row>
 	  <entry><para>Any</para></entry>
-	  <entry><para>String</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link></code></para></entry>
 	  <entry><para>Serializes the arguments into an XML string formatted for an XML-RPC response with whitespace formatting>.  The encoding of the resulting string will always be the <link linkend="Default_Character_Encoding">default encoding</link>.</para></entry>
 	</row>
       </tbody>
@@ -21523,7 +21614,7 @@ catch ($ex)
       <tbody>
 	<row>
 	  <entry><para>Any</para></entry>
-	  <entry><para>String</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link></code></para></entry>
 	  <entry><para>Serializes the arguments into an XML string formatted for an XML-RPC response with whitespace formatting>.  The encoding of the resulting string is given by the first argument.</para></entry>
 	</row>
       </tbody>
@@ -21585,7 +21676,7 @@ catch ($ex)
       <tbody>
 	<row>
 	  <entry><para>Any</para></entry>
-	  <entry><para>String</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link></code></para></entry>
 	  <entry><para>Serializes the arguments into an XML string in XML-RPC value format with whitespace formatting.   The encoding of the resulting string will always be the <link linkend="Default_Character_Encoding">default encoding</link>.</para></entry>
 	</row>
       </tbody>
@@ -21650,12 +21741,12 @@ catch ($ex)
       <tbody>
 	  <row>
 	    <entry><para>Hash, [String]</para></entry>
-	    <entry><para>String</para></entry>
+	    <entry><para><code><link linkend="string_type">string</link></code></para></entry>
 	    <entry><para>Serializes the Qore hash to an XML string (see <link linkend="XML_Integration">XML Integration</link> for more information) with an XML header and formatting.  The hash must have only one top-level key or an exception will be thrown.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para>String, Hash, [String]</para></entry>
-	    <entry><para>String</para></entry>
+	    <entry><para><code><link linkend="string_type">string</link></code>, Hash, [String]</para></entry>
+	    <entry><para><code><link linkend="string_type">string</link></code></para></entry>
 	    <entry><para>Serializes the Qore hash to an XML string (see <link linkend="XML_Integration">XML Integration</link> for more information) with an XML header and formatting.  The first parameter will be the top-level XML element.</para></entry>
 	  </row>
       </tbody>
@@ -21722,7 +21813,7 @@ catch ($ex)
 	<tbody>
 	  <row>
 	    <entry><para>Hash, [String]</para></entry>
-	    <entry><para>String</para></entry>
+	    <entry><para><code><link linkend="string_type">string</link></code></para></entry>
 	    <entry><para>Serializes the Qore hash to an XML string (see <link linkend="XML_Integration">XML Integration</link> for more information) without an XML header and without whitespace formatting.  The hash must have only one top-level key or an exception will be thrown.</para></entry>
 	  </row>
 	</tbody>
@@ -21784,8 +21875,8 @@ catch ($ex)
       </thead>
       <tbody>
 	<row>
-	  <entry><para>String, [Any ...]</para></entry>
-	  <entry><para>String</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link></code>, [Any ...]</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link></code></para></entry>
 	  <entry><para>Serializes the arguments into an XML string in XML-RPC call format without whitespace formatting.  The encoding of the resulting string will always be the <link linkend="Default_Character_Encoding">default encoding</link>.</para></entry>
 	</row>
       </tbody>
@@ -21847,8 +21938,8 @@ catch ($ex)
       </thead>
       <tbody>
 	<row>
-	  <entry><para>String, String, [Any ...]</para></entry>
-	  <entry><para>String</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link></code>, String, [Any ...]</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link></code></para></entry>
 	  <entry><para>Serializes the arguments into an XML string in XML-RPC call format without whitespace formatting.  The encoding of the resulting string will correspond to the encoding given as the first argument.</para></entry>
 	</row>
       </tbody>
@@ -21909,8 +22000,8 @@ catch ($ex)
       </thead>
       <tbody>
 	<row>
-	  <entry><para>String, [List]</para></entry>
-	  <entry><para>String</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link></code>, [List]</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link></code></para></entry>
 	  <entry><para>Serializes the arguments into an XML string in XML-RPC call format without whitespace formatting, using a single argument following the XML-RPC method name as the argument list for the method.  The encoding of the resulting string will always be the <link linkend="Default_Character_Encoding">default encoding</link>.</para></entry>
 	</row>
       </tbody>
@@ -21972,8 +22063,8 @@ catch ($ex)
       </thead>
       <tbody>
 	<row>
-	  <entry><para>String, String, [List]</para></entry>
-	  <entry><para>String</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link></code>, String, [List]</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link></code></para></entry>
 	  <entry><para>Serializes the arguments into an XML string in XML-RPC call format without whitespace formatting, using a single argument following the XML-RPC method name as the argument list for the method.  The encoding of the resulting string will correspond to the encoding given as the first argument to the function.</para></entry>
 	</row>
       </tbody>
@@ -22036,7 +22127,7 @@ catch ($ex)
       <tbody>
 	<row>
 	  <entry><para>Integer, String</para></entry>
-	  <entry><para>String</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link></code></para></entry>
 	  <entry><para>Serializes the arguments into an XML string formatted
 for an XML-RPC fault response without whitespace formatting.  The encoding of
 the resulting string will always be the encoding of the fault string (2nd argument).</para></entry>
@@ -22103,8 +22194,8 @@ the resulting string will always be the encoding of the fault string (2nd argume
       </thead>
       <tbody>
 	<row>
-	  <entry><para>String, Integer, String</para></entry>
-	  <entry><para>String</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link></code>, Integer, String</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link></code></para></entry>
 	  <entry><para>Serializes the arguments into an XML string formatted
 for an XML-RPC fault response without whitespace formatting.  The encoding of
 the resulting string will correspond to the encoding given as the first argument.</para></entry>
@@ -22172,7 +22263,7 @@ the resulting string will correspond to the encoding given as the first argument
       <tbody>
 	<row>
 	  <entry><para>Any</para></entry>
-	  <entry><para>String</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link></code></para></entry>
 	  <entry><para>Serializes the arguments into an XML string formatted for an XML-RPC response without whitespace formatting>.  The encoding of the resulting string will always be the <link linkend="Default_Character_Encoding">default encoding</link>.</para></entry>
 	</row>
       </tbody>
@@ -22233,8 +22324,8 @@ the resulting string will correspond to the encoding given as the first argument
       </thead>
       <tbody>
 	<row>
-	  <entry><para>String, Any</para></entry>
-	  <entry><para>String</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link></code>, Any</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link></code></para></entry>
 	  <entry><para>Serializes the arguments into an XML string formatted for an XML-RPC response without whitespace formatting>.  The encoding of the resulting string will correspond to the first argument.</para></entry>
 	</row>
       </tbody>
@@ -22296,7 +22387,7 @@ the resulting string will correspond to the encoding given as the first argument
       <tbody>
 	<row>
 	  <entry><para>Any</para></entry>
-	  <entry><para>String</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link></code></para></entry>
 	  <entry><para>Serializes the arguments into an XML string in XML-RPC value format without whitespace formatting.   The encoding of the resulting string will always be the <link linkend="Default_Character_Encoding">default encoding</link>.</para></entry>
 	</row>
       </tbody>
@@ -22361,12 +22452,12 @@ the resulting string will correspond to the encoding given as the first argument
       <tbody>
 	  <row>
 	    <entry><para>Hash, [String]</para></entry>
-	    <entry><para>String</para></entry>
+	    <entry><para><code><link linkend="string_type">string</link></code></para></entry>
 	    <entry><para>Serializes the Qore hash to an XML string (see <link linkend="XML_Integration">XML Integration</link> for more information) with an XML header but without whitespace formatting.  The hash must have only one top-level key or an exception will be thrown.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para>String, Hash, [String]</para></entry>
-	    <entry><para>String</para></entry>
+	    <entry><para><code><link linkend="string_type">string</link></code>, Hash, [String]</para></entry>
+	    <entry><para><code><link linkend="string_type">string</link></code></para></entry>
 	    <entry><para>Serializes the Qore hash to an XML string (see <link linkend="XML_Integration">XML Integration</link> for more information) with an XML header but without whitespace formatting.  The first parameter will be the top-level XML element.</para></entry>
 	  </row>
       </tbody>
@@ -22434,7 +22525,7 @@ the resulting string will correspond to the encoding given as the first argument
       </thead>
       <tbody>
 	<row>
-	  <entry><para>String, [String]</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link></code>, [String]</para></entry>
 	  <entry><para>Hash</para></entry>
 	  <entry><para>Parses an XML string and returns a Qore hash structure.</para></entry>
 	</row>
@@ -22500,7 +22591,7 @@ the resulting string will correspond to the encoding given as the first argument
       </thead>
       <tbody>
 	<row>
-	  <entry><para>String, String, [String]</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link></code>, String, [String]</para></entry>
 	  <entry><para>Hash</para></entry>
 	  <entry><para>Parses an XML string (1st argument), validates against the RelaxNG string (2nd argument), and returns a Qore hash structure.</para></entry>
 	</row>
@@ -22573,7 +22664,7 @@ the resulting string will correspond to the encoding given as the first argument
       </thead>
       <tbody>
 	<row>
-	  <entry><para>String, String, [String]</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link></code>, String, [String]</para></entry>
 	  <entry><para>Hash</para></entry>
 	  <entry><para>Parses an XML string (1st argument), validates against the XSD string (2nd argument), and returns a Qore hash structure.</para></entry>
 	</row>
@@ -22644,7 +22735,7 @@ the resulting string will correspond to the encoding given as the first argument
       </thead>
       <tbody>
 	<row>
-	  <entry><para>String, [String]</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link></code>, [String]</para></entry>
 	  <entry><para>Hash</para></entry>
 	  <entry><para>Parses an XML string and returns a Qore hash structure.</para></entry>
 	</row>
@@ -22710,7 +22801,7 @@ the resulting string will correspond to the encoding given as the first argument
       </thead>
       <tbody>
 	<row>
-	  <entry><para>String, String, [String]</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link></code>, String, [String]</para></entry>
 	  <entry><para>Hash</para></entry>
 	  <entry><para>Parses an XML string (1st argument), validates against the RelaxNG schema string (2nd argument), and returns a Qore hash structure.</para></entry>
 	</row>
@@ -22783,7 +22874,7 @@ the resulting string will correspond to the encoding given as the first argument
       </thead>
       <tbody>
 	<row>
-	  <entry><para>String, String, [String]</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link></code>, String, [String]</para></entry>
 	  <entry><para>Hash</para></entry>
 	  <entry><para>Parses an XML string (1st argument), validates against the XSD string (2nd argument), and returns a Qore hash structure.</para></entry>
 	</row>
@@ -22854,7 +22945,7 @@ the resulting string will correspond to the encoding given as the first argument
       </thead>
       <tbody>
 	<row>
-	  <entry><para>String, [String]</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link></code>, [String]</para></entry>
 	  <entry><para>Hash</para></entry>
 	  <entry><para>Deserializies an XML-RPC call string, returning a Qore data structure representing the call information.  The hash will have the following keys: methodName, params</para></entry>
 	</row>
@@ -22920,7 +23011,7 @@ the resulting string will correspond to the encoding given as the first argument
       </thead>
       <tbody>
 	<row>
-	  <entry><para>String, [String]</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link></code>, [String]</para></entry>
 	  <entry><para>Hash</para></entry>
 	  <entry><para>Deserializies an XML-RPC response string, returning a Qore data structure representing the response information.  The hash will have either a &quot;fault&quot; or a &quot;params&quot; key, depending on if it's a fault response or a non-fault response.</para></entry>
 	</row>
@@ -22987,7 +23078,7 @@ the resulting string will correspond to the encoding given as the first argument
       </thead>
       <tbody>
 	<row>
-	  <entry><para>String, [String]</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link></code>, [String]</para></entry>
 	  <entry><para>Any</para></entry>
 	  <entry><para>Deserializies an XML-RPC value string, returning Qore data representing the value data.</para></entry>
 	</row>
@@ -23066,7 +23157,7 @@ the resulting string will correspond to the encoding given as the first argument
               <para>Any Type, [Encoding]</para>
             </entry>
             <entry>
-              <para>String</para>
+              <para><code><link linkend="string_type">string</link></code></para>
             </entry>
             <entry>
               <para>Serializes qore data into a JSON string, without any line breaks.</para>
@@ -23138,7 +23229,7 @@ the resulting string will correspond to the encoding given as the first argument
               <para>Any Type, [Encoding]</para>
             </entry>
             <entry>
-              <para>String</para>
+              <para><code><link linkend="string_type">string</link></code></para>
             </entry>
             <entry>
               <para>Serializes qore data into a JSON string, formatted with line breaks for easier readability.</para>
@@ -23211,7 +23302,7 @@ the resulting string will correspond to the encoding given as the first argument
               <para>Method_name, [json_version], [id], [arguments]</para>
             </entry>
             <entry>
-              <para>String</para>
+              <para><code><link linkend="string_type">string</link></code></para>
             </entry>
             <entry>
               <para>Creates a JSON-RPC request string from the parameters passed, without any line breaks.</para>
@@ -23287,7 +23378,7 @@ the resulting string will correspond to the encoding given as the first argument
               <para>Method_name, [json_version], [id], [arguments]</para>
             </entry>
             <entry>
-              <para>String</para>
+              <para><code><link linkend="string_type">string</link></code></para>
             </entry>
             <entry>
               <para>Creates a JSON-RPC request string from the parameters passed, formatted with line breaks for easier readability.</para>
@@ -23364,7 +23455,7 @@ the resulting string will correspond to the encoding given as the first argument
               <para>[json_version], [id], [response]</para>
             </entry>
             <entry>
-              <para>String</para>
+              <para><code><link linkend="string_type">string</link></code></para>
             </entry>
             <entry>
               <para>Creates a JSON-RPC response string from the parameters passed, without any line breaks.</para>
@@ -23436,7 +23527,7 @@ the resulting string will correspond to the encoding given as the first argument
               <para>[json_version], [id], [response]</para>
             </entry>
             <entry>
-              <para>String</para>
+              <para><code><link linkend="string_type">string</link></code></para>
             </entry>
             <entry>
               <para>Creates a JSON-RPC response string from the parameters passed, formatted with line breaks for easier readability.</para>
@@ -23508,7 +23599,7 @@ the resulting string will correspond to the encoding given as the first argument
               <para>[json_version], [id], [response]</para>
             </entry>
             <entry>
-              <para>String</para>
+              <para><code><link linkend="string_type">string</link></code></para>
             </entry>
             <entry>
               <para>Creates a generic JSON-RPC error response string from the parameters passed, without any line breaks.</para>
@@ -23579,7 +23670,7 @@ the resulting string will correspond to the encoding given as the first argument
               <para>[json_version], [id], [response]</para>
             </entry>
             <entry>
-              <para>String</para>
+              <para><code><link linkend="string_type">string</link></code></para>
             </entry>
             <entry>
               <para>Creates a generic JSON-RPC error response string from the parameters passed, formatted with line breaks for easier readability.</para>
@@ -23650,7 +23741,7 @@ the resulting string will correspond to the encoding given as the first argument
               <para>Code, Error_message, [id], [error_response]</para>
             </entry>
             <entry>
-              <para>String</para>
+              <para><code><link linkend="string_type">string</link></code></para>
             </entry>
             <entry>
               <para>Creates a JSON-RPC 1.1 error response string from the parameters passed, formatted with line breaks for easier readability.</para>
@@ -23725,7 +23816,7 @@ the resulting string will correspond to the encoding given as the first argument
               <para>Code, Error_message, [id], [error_response]</para>
             </entry>
             <entry>
-              <para>String</para>
+              <para><code><link linkend="string_type">string</link></code></para>
             </entry>
             <entry>
               <para>Creates a JSON-RPC 1.1 error response string from the parameters passed, formatted with line breaks for easier readability.</para>

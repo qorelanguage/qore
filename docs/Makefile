@@ -9,6 +9,8 @@
 #distclean:	clean
 	
 
+DOCBOOK_ROOT := $(shell ./get-docbook-root.sh)
+
 # "modern" way how to handle docbook files
 # PATHS /usr/share/xml/docbook/stylesheet/nwalsh5/current/xhtml # opensuse                               
 #       /opt/local/share/xsl/docbook-xsl/xhtml                  # macpors                                
@@ -19,14 +21,14 @@ all: docbook/*docbook
 	         --stringparam generate.toc "book toc,title" \
 	         --stringparam toc.max.depth 2 \
 	         --output qore.html \
-		 /opt/local/share/xsl/docbook-xsl/xhtml/docbook.xsl \
+		 ${DOCBOOK_ROOT}/docbook.xsl \
 	         docbook/qore.docbook 
 	xsltproc --stringparam html.stylesheet qore-style.css \
 	         --stringparam use.id.as.filename 1 \
 	         --stringparam generate.toc "book toc,title" \
 	         --stringparam toc.max.depth 2 \
 	         --stringparam base.dir "qore-html/" \
-		 /opt/local/share/xsl/docbook-xsl/xhtml/chunk.xsl \
+		 ${DOCBOOK_ROOT}/chunk.xsl \
 	         docbook/qore.docbook
 
 clean:
