@@ -454,7 +454,15 @@
             <para><code><link linkend="date_ms">date_ms</link>() <command>returns</command> <link linkend="date_type">date</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
           </entry>
           <entry><para>N</para></entry>
-          <entry><para>Converts an integer argument as a millisecond offset from January 1, 1970 to a date.</para></entry>
+          <entry><para>Converts an integer argument as a millisecond offset from January 1, 1970Z to a date.</para></entry>
+        </row>
+        <row>
+          <entry>
+            <para><code><link linkend="date_us">date_us</link>(<link linkend="softint_type">softint</link>) <command>returns</command> <link linkend="date_type">date</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="date_us">date_us</link>() <command>returns</command> <link linkend="date_type">date</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
+          </entry>
+          <entry><para>N</para></entry>
+          <entry><para>Converts an integer argument as a microsecond offset from January 1, 1970Z to a date.</para></entry>
         </row>
         <row>
           <entry>
@@ -1192,6 +1200,52 @@
             <para>Returns the real group ID of the current process.</para>
           </entry>
         </row>
+
+        <row>
+          <entry>
+            <para><code><link linkend="getgrnam">getgrnam</link>(<link linkend="string_type">string</link>) <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+          </entry>
+          <entry>
+            <para>N</para>
+          </entry>
+          <entry>
+            <para>Returns a hash representing the group information of the group name passed or NOTHING if the group name is not found.</para>
+          </entry>
+        </row>
+        <row>
+          <entry>
+            <para><code><link linkend="getgrnam2">getgrnam2</link>(<link linkend="string_type">string</link>) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
+          </entry>
+          <entry>
+            <para>N</para>
+          </entry>
+          <entry>
+            <para>Returns a hash representing the group information of the group name passed; throws an exception if the group name is not found.</para>
+          </entry>
+        </row>
+        <row>
+          <entry>
+            <para><code><link linkend="getgrgid">getgrgid</link>(<link linkend="softint_type">softint</link>) <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+          </entry>
+          <entry>
+            <para>N</para>
+          </entry>
+          <entry>
+            <para>Returns a hash representing the group information of the group ID passed or NOTHING if the group ID is not found.</para>
+          </entry>
+        </row>
+        <row>
+          <entry>
+            <para><code><link linkend="getgrgid2">getgrgid2</link>(<link linkend="softint_type">softint</link>) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
+          </entry>
+          <entry>
+            <para>N</para>
+          </entry>
+          <entry>
+            <para>Returns a hash representing the group information of the group ID passed; throws an exception if the group ID is not found.</para>
+          </entry>
+        </row>
+
         <row>
           <entry>
             <para><code><link linkend="gethostbyaddr">gethostbyaddr</link>(<link linkend="string_type">string</link>, <link linkend="softint_type">softint</link> = AF_INET) <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
@@ -1307,6 +1361,28 @@
         </row>
         <row>
           <entry>
+            <para><code><link linkend="getpwnam">getpwnam</link>(<link linkend="string_type">string</link>) <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+          </entry>
+          <entry>
+            <para>N</para>
+          </entry>
+          <entry>
+            <para>Returns a hash representing the user information of the username passed or NOTHING if the username is not found.</para>
+          </entry>
+        </row>
+        <row>
+          <entry>
+            <para><code><link linkend="getpwnam2">getpwnam2</link>(<link linkend="string_type">string</link>) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
+          </entry>
+          <entry>
+            <para>N</para>
+          </entry>
+          <entry>
+            <para>Returns a hash representing the user information of the username passed; throws an exception if the username is not found.</para>
+          </entry>
+        </row>
+        <row>
+          <entry>
             <para><code><link linkend="getpwuid">getpwuid</link>(<link linkend="softint_type">softint</link>) <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
           </entry>
           <entry>
@@ -1314,6 +1390,17 @@
           </entry>
           <entry>
             <para>Returns a hash representing the user information of the user ID passed or NOTHING if the user ID is not found.</para>
+          </entry>
+        </row>
+        <row>
+          <entry>
+            <para><code><link linkend="getpwuid2">getpwuid2</link>(<link linkend="softint_type">softint</link>) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
+          </entry>
+          <entry>
+            <para>N</para>
+          </entry>
+          <entry>
+            <para>Returns a hash representing the user information of the user ID passed; throws an exception if the user ID is not found.</para>
           </entry>
         </row>
         <row>
@@ -1548,6 +1635,33 @@
           <para>Returns True if the string passed identifies a character device file on the filesystem.</para>
         </entry>
       </row>
+
+      <row>
+        <entry>
+          <para><code><link linkend="is_date_absolute">is_date_absolute</link>(<link linkend="date_type">date</link>) <command>returns</command> <link linkend="bool_type">bool</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+          <para><code><link linkend="is_date_absolute">is_date_absolute</link>(<link linkend="any_type">any</link>) <command>returns</command> <link linkend="bool_type">bool</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
+        </entry>
+        <entry>
+          <para>N</para>
+        </entry>
+        <entry>
+          <para>Returns True if an absolute date is passed as an argument, False if not.</para>
+        </entry>
+      </row>
+
+      <row>
+        <entry>
+          <para><code><link linkend="is_date_relative">is_date_relative</link>(<link linkend="date_type">date</link>) <command>returns</command> <link linkend="bool_type">bool</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+          <para><code><link linkend="is_date_relative">is_date_relative</link>(<link linkend="any_type">any</link>) <command>returns</command> <link linkend="bool_type">bool</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
+        </entry>
+        <entry>
+          <para>N</para>
+        </entry>
+        <entry>
+          <para>Returns True if a relative date is passed as an argument, False if not.</para>
+        </entry>
+      </row>
+
       <row>
         <entry>
           <para><code><link linkend="is_dev">is_dev</link>(<link linkend="string_type">string</link>) <command>returns</command> <link linkend="bool_type">bool</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
@@ -2568,6 +2682,14 @@
           <para>Decrypts data to a string using the Cipher Block Chaining function for <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC5(tm) algorithm.</para>
         </entry>
       </row>
+
+        <row>
+          <entry>
+            <para><code><link linkend="readlink">readlink</link>(<link linkend="string_type">string</link>) <command>returns</command> <link linkend="string_type">string</link></code></para>
+          </entry>
+          <entry><para>N</para></entry>
+          <entry><para>Returns the target of a symbolic link; throws an exception if an error occurs.</para></entry>
+        </row>
 
         <row>
           <entry>
