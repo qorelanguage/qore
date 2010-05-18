@@ -663,7 +663,7 @@ struct qore_socket_private {
 	    ::close(sock);
 	    sock = 0;
 	    if (xsink)
-	       xsink->raiseException("SOCKET-CONNECT-ERROR", "connect returned error %d: ", strerror(errno));
+	       xsink->raiseException("SOCKET-CONNECT-ERROR", "connect returned error %d: %s", errno, strerror(errno));
 	    
 	    return -1;	    
 	 }

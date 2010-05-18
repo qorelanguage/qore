@@ -1,3 +1,7 @@
+2010.05.18: David Nichols
+	 * fixed a memory bug in an exception string in the socket class
+	   (backported from trunk)
+
 2010.05.10: David Nichols
 	 * updated hash(hash) to return the hash argument
 
