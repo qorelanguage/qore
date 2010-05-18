@@ -174,10 +174,39 @@ AbstractQoreNode* ExceptionSink::raiseException(const char *err, const char *fmt
    return 0;
 }
 
+AbstractQoreNode* ExceptionSink::raiseErrnoException(const char *err, int en, const char *fmt, ...) {
+   QoreStringNode *desc = new QoreStringNode;
+   
+   va_list args;
+   
+   while (true) {
+      va_start(args, fmt);
+      int rc = desc->vsprintf(fmt, args);
+      va_end(args);
+      if (!rc)
+	 break;
+   }
+
+   // append strerror(en) to description
+   q_strerror(*desc, en);
+
+   printd(5, "ExceptionSink::raiseException(%s, %s)\n", err, desc->getBuffer());
+   insert(new QoreException(err, desc));
+   return 0;
+}
+
 // returns 0, takes ownership of the "desc" argument
 AbstractQoreNode *ExceptionSink::raiseException(const char *err, QoreStringNode *desc) {
    printd(5, "ExceptionSink::raiseException(%s, %s)\n", err, desc->getBuffer());
    insert(new QoreException(err, desc));
+   return 0;
+}
+
+AbstractQoreNode* ExceptionSink::raiseExceptionArg(const char* err, AbstractQoreNode* arg, QoreStringNode *desc) {
+   printd(5, "ExceptionSink::raiseExceptionArg(%s, %s)\n", err, desc->getBuffer());
+   QoreException* exc = new QoreException(err, desc);
+   exc->arg = arg;
+   insert(exc);
    return 0;
 }
 

@@ -619,7 +619,7 @@ struct qore_socket_private {
 	 if (str)
 	    h->setKeyValue("address", str, 0);
 	 else
-	    h->setKeyValue("error", new QoreStringNode(strerror(errno)), 0);
+	    h->setKeyValue("error", q_strerror(errno), 0);
 	 cb_queue->push_and_take_ref(h);
       }
    }
@@ -645,7 +645,7 @@ struct qore_socket_private {
       if ((sock = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
 	 sock = 0;
 	 if (xsink)
-	    xsink->raiseException("SOCKET-CONNECT-ERROR", strerror(errno));
+	    xsink->raiseException("SOCKET-CONNECT-ERROR", q_strerror(errno));
 	    
 	 return -1;
       }
@@ -663,7 +663,7 @@ struct qore_socket_private {
 	 ::close(sock);
 	 sock = 0;
 	 if (xsink)
-	    xsink->raiseException("SOCKET-CONNECT-ERROR", "connect returned error %d: ", strerror(errno));
+	    xsink->raiseErrnoException("SOCKET-CONNECT-ERROR", errno, "connect returned error %d", errno);
 	    
 	 return -1;	    
       }
@@ -765,7 +765,7 @@ struct qore_socket_private {
 	    //printd(0, "selectWrite(%d) returned %d\n", timeout_ms, rc);
 	    if (rc < 0 && errno != EINTR) { 
 	       if (xsink)
-		  xsink->raiseException("SOCKET-CONNECT-ERROR", strerror(errno));
+		  xsink->raiseException("SOCKET-CONNECT-ERROR", q_strerror(errno));
 	       return close_and_exit();
 	    } 
 	    else if (rc > 0) { 
@@ -775,13 +775,13 @@ struct qore_socket_private {
 
 	       if (getsockopt(sock, SOL_SOCKET, SO_ERROR, (void *)(&val), &lon) < 0) { 
 		  if (xsink)
-		     xsink->raiseException("SOCKET-CONNECT-ERROR", "error in getsockopt(): ", strerror(errno));
+		     xsink->raiseErrnoException("SOCKET-CONNECT-ERROR", errno, "error in getsockopt()");
 		  return close_and_exit();
 	       } 
 	       
 	       if (val) { 
 		  if (xsink)
-		     xsink->raiseException("SOCKET-CONNECT-ERROR", strerror(val));
+		     xsink->raiseException("SOCKET-CONNECT-ERROR", q_strerror(val));
 		  return close_and_exit();
 	       }
 
@@ -824,7 +824,7 @@ struct qore_socket_private {
       if ((sock = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
 	 sock = 0;
 	 if (xsink)
-	    xsink->raiseException("SOCKET-CONNECT-ERROR", strerror(errno));
+	    xsink->raiseException("SOCKET-CONNECT-ERROR", q_strerror(errno));
 
 	 return -1;
       }
@@ -842,14 +842,14 @@ struct qore_socket_private {
 	 if ((arg = fcntl(sock, F_GETFL, 0)) < 0) { 
 	    sock = 0;
 	    if (xsink)
-	       xsink->raiseException("SOCKET-CONNECT-ERROR", "error in fcntl() getting socket descriptor status flag: ", strerror(errno));
+	       xsink->raiseErrnoException("SOCKET-CONNECT-ERROR", errno, "error in fcntl() getting socket descriptor status flag");
 	    return -1;
 	 } 
 	 arg |= O_NONBLOCK; 
 	 if (fcntl(sock, F_SETFL, arg) < 0) { 
 	    sock = 0;
 	    if (xsink)
-	       xsink->raiseException("SOCKET-CONNECT-ERROR", "error in fcntl() setting socket descriptor status flags: ", strerror(errno));
+	       xsink->raiseErrnoException("SOCKET-CONNECT-ERROR", errno, "error in fcntl() setting socket descriptor status flags");
 	    return -1;
 	 } 
 
@@ -861,7 +861,7 @@ struct qore_socket_private {
 	 if ((arg = fcntl(sock, F_GETFL, 0)) < 0) { 
 	    sock = 0;
 	    if (xsink)
-	       xsink->raiseException("SOCKET-CONNECT-ERROR", "error in fcntl() getting socket descriptor status flag: ", strerror(errno));
+	       xsink->raiseErrnoException("SOCKET-CONNECT-ERROR", errno, "error in fcntl() getting socket descriptor status flag");
 	    return -1;
 	 } 
 	 // set blocking
@@ -869,7 +869,7 @@ struct qore_socket_private {
 	 if (fcntl(sock, F_SETFL, arg) < 0) { 
 	    sock = 0;
 	    if (xsink)
-	       xsink->raiseException("SOCKET-CONNECT-ERROR", "error in fcntl() setting socket descriptor status flags: ", strerror(errno));
+	       xsink->raiseErrnoException("SOCKET-CONNECT-ERROR", errno, "error in fcntl() setting socket descriptor status flags");
 	    return -1;
 	 }	 
       }
@@ -886,7 +886,7 @@ struct qore_socket_private {
 
       if (rc < 0) {
 	 if (xsink)
-	    xsink->raiseException("SOCKET-CONNECT-ERROR", strerror(errno));
+	    xsink->raiseException("SOCKET-CONNECT-ERROR", q_strerror(errno));
 	 
 	 return close_and_exit();
       }
@@ -1947,7 +1947,7 @@ void QoreSocket::doException(int rc, const char *meth, ExceptionSink *xsink) {
    if (!rc)
       xsink->raiseException("SOCKET-CLOSED", "remote end has closed the connection");
    else if (rc == QSE_RECV_ERR)   // recv() error
-      xsink->raiseException("SOCKET-RECV-ERROR", strerror(errno));
+      xsink->raiseException("SOCKET-RECV-ERROR", q_strerror(errno));
    else if (rc == QSE_NOT_OPEN)   
       xsink->raiseException("SOCKET-NOT-OPEN", "socket must be opened before Socket::%s() call", meth);   
    // rc == -3: TIMEOUT returns NOTHING
@@ -2429,7 +2429,7 @@ QoreSocket *QoreSocket::accept(class SocketSource *source, ExceptionSink *xsink)
    }
    int rc = priv->accept_internal(source);
    if (rc < 0) {
-      xsink->raiseException("SOCKET-ACCEPT-ERROR", "error in accept: ", strerror(errno));
+      xsink->raiseErrnoException("SOCKET-ACCEPT-ERROR", errno, "error in accept");
       return 0;
    }
 

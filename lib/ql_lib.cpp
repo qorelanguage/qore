@@ -79,7 +79,7 @@ static AbstractQoreNode *f_system(const QoreListNode *params, ExceptionSink *xsi
       if (!(pid = fork())) {
 	 ExecArgList args(p0->getBuffer());
 	 execvp(args.getFile(), args.getArgs());
-	 printf("execvp() failed with error code %d: %s\n", errno, strerror(errno));
+	 fprintf(stderr, "execvp() failed with error code %d: %s\n", errno, strerror(errno));
 	 qore_exit_process(-1);
       }
       if (pid == -1)
@@ -348,7 +348,7 @@ static AbstractQoreNode *f_gethostname(const QoreListNode *params, ExceptionSink
    char buf[HOSTNAMEBUFSIZE + 1];
 
    if (gethostname(buf, HOSTNAMEBUFSIZE)) {
-      xsink->raiseException("GETHOSTNAME-ERROR", strerror(errno));
+      xsink->raiseException("GETHOSTNAME-ERROR", q_strerror(errno));
       return 0;
    }
    return new QoreStringNode(buf);
@@ -360,19 +360,8 @@ static AbstractQoreNode *f_errno(const QoreListNode *params, ExceptionSink *xsin
 
 static AbstractQoreNode *f_strerror(const QoreListNode *params, ExceptionSink *xsink) {
    int err = HARD_QORE_INT(params, 0);
-#ifdef NEED_STRERROR_R
-#define STRERR_BUFSIZE 512
-   char buf[STRERR_BUFSIZE];
-   // ignore strerror() error message
-   int rc = strerror_r(err, buf, STRERR_BUFSIZE);
-   if (rc != EINVAL && rc != ERANGE) {
-      xsink->raiseException("STRERROR-ERROR", "strerror() returned unexpected error code %d when requesting string for error code %d", rc, err);
-      return 0;
-   }
-   return new QoreStringNode(buf);
-#else
-   return new QoreStringNode(strerror(err));
-#endif
+
+   return q_strerror(err);
 }
 
 static AbstractQoreNode *f_basename(const QoreListNode *params, ExceptionSink *xsink) {
@@ -428,7 +417,7 @@ static AbstractQoreNode *f_getcwd_intern(ExceptionSink *xsink = 0) {
 	      continue;
 	  }
 	  if (xsink)
-	     xsink->raiseExceptionArg("GETCWD2-ERROR", new QoreBigIntNode(errno), strerror(errno));
+	     xsink->raiseExceptionArg("GETCWD2-ERROR", new QoreBigIntNode(errno), q_strerror(errno));
 	  return 0;
       }
       break;
@@ -555,7 +544,10 @@ static AbstractQoreNode *f_readlink(const QoreListNode *params, ExceptionSink *x
    char buf[QORE_PATH_MAX + 1];
    qore_offset_t len = readlink(p0->getBuffer(), buf, QORE_PATH_MAX);
    if (len < 0) {
-      xsink->raiseException("READLINK-ERROR", "%s: %s", p0->getBuffer(), strerror(errno));
+      QoreStringNode *desc = new QoreStringNode(p0);
+      desc->concat(": ");
+      q_strerror(*desc, errno);
+      xsink->raiseException("READLINK-ERROR", desc);
       return 0;
    }
    assert(len <= QORE_PATH_MAX);

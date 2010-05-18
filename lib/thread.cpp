@@ -1372,7 +1372,7 @@ static AbstractQoreNode *op_background(const AbstractQoreNode *left, const Abstr
       delete tp;
 
       deregister_thread(tid);
-      xsink->raiseException("THREAD-CREATION-FAILURE", "could not create thread: %s", strerror(rc));
+      xsink->raiseErrnoException("THREAD-CREATION-FAILURE", rc, "could not create thread");
       return 0;
    }
    //printd(5, "pthread_create() new thread TID %d, pthread_create() returned %d\n", tid, rc);

@@ -280,7 +280,7 @@ static AbstractQoreNode *DIR_removeFile(QoreObject *self, Dir *d, const QoreList
    std::string path = d->getPath(fname);
    errno = 0; // clear errno flag
    if (unlink(path.c_str()) && errno != ENOENT) {
-      xsink->raiseException("DIR-REMOVEFILE-ERROR", "error on removing file '%s': %s", p0->getBuffer(), strerror(errno));
+      xsink->raiseErrnoException("DIR-REMOVEFILE-ERROR", errno, "error removing file '%s'", p0->getBuffer());
       return 0;
    }
 

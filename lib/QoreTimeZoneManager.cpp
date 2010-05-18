@@ -63,7 +63,7 @@ QoreZoneInfo::QoreZoneInfo(QoreString &root, std::string &n_name, ExceptionSink 
 
    // skip 16 reserved bytes
    if (f.setPos(20) != 20) {
-      xsink->raiseException("TZINFO-ERROR", "failed to position file at tzinfo header: %s", strerror(errno));
+      xsink->raiseErrnoException("TZINFO-ERROR", errno, "failed to position file at tzinfo header");
       return;
    }
 

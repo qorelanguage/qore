@@ -84,6 +84,14 @@ class ExceptionSink {
        */
       DLLEXPORT AbstractQoreNode *raiseException(const char *err, const char *fmt, ...);
 
+      //! appends a Qore-language exception to the list and appends the result of strerror(errno) to the description
+      /** The AbstractQoreNode pointer returned is always 0; used to simplify error handling code.
+	  @param err the exception code string
+	  @param fmt the format string for the description for the exception
+	  @return always returns 0
+       */
+      DLLEXPORT AbstractQoreNode *raiseErrnoException(const char *err, int err, const char *fmt, ...);
+
       //! appends a Qore-language exception to the list, and sets the 'arg' member (this object takes over the reference count of 'arg')
       /** The AbstractQoreNode pointer returned is always 0; used to simplify error handling code.
 	  @param err the exception code string
@@ -92,6 +100,15 @@ class ExceptionSink {
 	  @return always returns 0
        */
       DLLEXPORT AbstractQoreNode* raiseExceptionArg(const char* err, AbstractQoreNode* arg, const char* fmt, ...);
+
+      //! appends a Qore-language exception to the list, and sets the 'arg' member (this object takes over the reference count of 'arg')
+      /** The AbstractQoreNode pointer returned is always 0; used to simplify error handling code.
+	  @param err the exception code string
+	  @param arg the 'arg' member of the Qore-language exception object; will be dereferenced when the QoreException object is destroyed
+	  @param fmt the format string for the description for the exception
+	  @return always returns 0
+       */
+      DLLEXPORT AbstractQoreNode* raiseExceptionArg(const char* err, AbstractQoreNode* arg, QoreStringNode *desc);
 
       //! appends a Qore-language exception to the list; takes owenership of the "desc" argument reference
       /** The AbstractQoreNode pointer returned is always 0; used to simplify error handling code.

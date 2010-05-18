@@ -34,12 +34,13 @@ static AbstractQoreNode *f_getpwuid(const QoreListNode *params, ExceptionSink *x
 
 static AbstractQoreNode *f_getpwuid2(const QoreListNode *params, ExceptionSink *xsink) {
    int uid = HARD_QORE_INT(params, 0);
+   errno = 0;
    QoreHashNode *h = q_getpwuid(uid);
    if (!h) {
       if (!errno)
          xsink->raiseException("GETPPWUID2-ERROR", "uid %d not found", uid);
       else
-         xsink->raiseException("GETPPWUID2-ERROR", strerror(errno));
+         xsink->raiseException("GETPPWUID2-ERROR", q_strerror(errno));
    }
    return h;
 }
@@ -51,12 +52,13 @@ static AbstractQoreNode *f_getpwnam(const QoreListNode *params, ExceptionSink *x
 
 static AbstractQoreNode *f_getpwnam2(const QoreListNode *params, ExceptionSink *xsink) {
    const QoreStringNode *name = HARD_QORE_STRING(params, 0);
+   errno = 0;
    QoreHashNode *h = q_getpwnam(name->getBuffer());
    if (!h) {
       if (!errno)
          xsink->raiseException("GETPPWNAM2-ERROR", "user '%s' not found", name->getBuffer());
       else
-         xsink->raiseException("GETPPWNAM2-ERROR", strerror(errno));
+         xsink->raiseException("GETPPWNAM2-ERROR", q_strerror(errno));
    }
    return h;
 }
@@ -68,12 +70,13 @@ static AbstractQoreNode *f_getgrgid(const QoreListNode *params, ExceptionSink *x
 
 static AbstractQoreNode *f_getgrgid2(const QoreListNode *params, ExceptionSink *xsink) {
    int gid = HARD_QORE_INT(params, 0);
+   errno = 0;
    QoreHashNode *h = q_getgrgid(gid);
    if (!h) {
       if (!errno)
          xsink->raiseException("GETPGRGID2-ERROR", "gid %d not found", gid);
       else
-         xsink->raiseException("GETPGRGID2-ERROR", strerror(errno));
+         xsink->raiseException("GETPGRGID2-ERROR", q_strerror(errno));
    }
    return h;
 }
@@ -85,12 +88,13 @@ static AbstractQoreNode *f_getgrnam(const QoreListNode *params, ExceptionSink *x
 
 static AbstractQoreNode *f_getgrnam2(const QoreListNode *params, ExceptionSink *xsink) {
    const QoreStringNode *name = HARD_QORE_STRING(params, 0);
+   errno = 0;
    QoreHashNode *h = q_getgrnam(name->getBuffer());
    if (!h) {
       if (!errno)
          xsink->raiseException("GETPGRNAM2-ERROR", "group '%s' not found", name->getBuffer());
       else
-         xsink->raiseException("GETPGRNAM2-ERROR", strerror(errno));
+         xsink->raiseException("GETPGRNAM2-ERROR", q_strerror(errno));
    }
    return h;
 }

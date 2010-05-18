@@ -524,7 +524,7 @@ public:
 	 if (errno == EINVAL)
 	    xsink->raiseException("ENCODING-CONVERSION-ERROR", "cannot convert from \"%s\" to \"%s\"", from->getCode(), to->getCode());
 	 else
-	    xsink->raiseException("ENCODING-CONVERSION-ERROR", "unknown error converting from \"%s\" to \"%s\": %s", from->getCode(), to->getCode(), strerror(errno));
+	    xsink->raiseErrnoException("ENCODING-CONVERSION-ERROR", errno, "unknown error converting from \"%s\" to \"%s\"", from->getCode(), to->getCode());
       }
    }
    DLLLOCAL ~IconvHelper() {
@@ -567,8 +567,8 @@ int QoreString::convert_encoding_intern(const char *src, qore_size_t src_len, co
 	       targ.allocate(al + 1);
 	       break;
 	    default: {
-	       xsink->raiseException("ENCODING-CONVERSION-ERROR", "error converting from \"%s\" to \"%s\": %s", 
-				     from->getCode(), nccs->getCode(), strerror(errno));
+	       xsink->raiseErrnoException("ENCODING-CONVERSION-ERROR", errno, "error converting from \"%s\" to \"%s\"", 
+				     from->getCode(), nccs->getCode());
 	       targ.clear();
 	       return -1;
 	    }

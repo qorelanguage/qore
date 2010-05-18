@@ -585,7 +585,7 @@ struct qore_program_private {
       FILE *fp;
       if (!(fp = fopen(filename, "r"))) {
 	 if ((only_first_except && !exceptions_raised) || !only_first_except)
-	    xsink->raiseException("PARSE-EXCEPTION", "cannot open qore script '%s': %s", filename, strerror(errno));
+	    xsink->raiseErrnoException("PARSE-EXCEPTION", errno, "cannot open qore script '%s'", filename);
 	 exceptions_raised++;
 	 return;
       }

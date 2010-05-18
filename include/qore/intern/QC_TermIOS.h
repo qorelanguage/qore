@@ -66,7 +66,7 @@ public:
     DLLLOCAL int get(int fd, ExceptionSink *xsink) {
 	int rc = tcgetattr(fd, &ios);
 	if (rc) {
-	    xsink->raiseException("TERMIOS-GET-ERROR", strerror(errno));
+	    xsink->raiseException("TERMIOS-GET-ERROR", q_strerror(errno));
 	    return rc;
 	}
 	return 0;
@@ -77,7 +77,7 @@ public:
 	//           changes were made
 	int rc = tcsetattr(fd, action, &ios);
 	if (rc) {
-	    xsink->raiseException("TERMIOS-SET-ERROR", strerror(errno));
+	    xsink->raiseException("TERMIOS-SET-ERROR", q_strerror(errno));
 	    return rc;
 	}
 	return 0;
@@ -135,12 +135,12 @@ public:
        
        int fd = open("/dev/tty", O_RDONLY);
        if (fd == -1) {
-	  xsink->raiseException("TERMIOS-GET-WINDOW-SIZE-ERROR", "cannot open controlling terminal: %s", strerror(errno));
+	  xsink->raiseErrnoException("TERMIOS-GET-WINDOW-SIZE-ERROR", errno, "cannot open controlling terminal");
 	  return -1;
        }
 
        if (ioctl(fd, TIOCGWINSZ, &ws)) {
-	  xsink->raiseException("TERMIOS-GET-WINDOW-SIZE-ERROR", "error reading window size: %s", strerror(errno));
+	  xsink->raiseErrnoException("TERMIOS-GET-WINDOW-SIZE-ERROR", errno, "error reading window size");
 	  return -1;
        }
 

@@ -246,7 +246,7 @@ QoreStringNode *QoreFtpClient::sendMsg(int &code, const char *cmd, const char *a
    c.concat("\r\n");
    printd(FTPDEBUG, "QoreFtpClient::sendMsg() %s", c.getBuffer());
    if (priv->control.send(c.getBuffer(), c.strlen()) < 0) {
-      xsink->raiseException("FTP-SEND-ERROR", strerror(errno));
+      xsink->raiseException("FTP-SEND-ERROR", q_strerror(errno));
       return 0;
    }
    
@@ -273,8 +273,7 @@ int QoreFtpClient::setBinaryMode(bool t, ExceptionSink *xsink) {
 int QoreFtpClient::acceptDataConnection(ExceptionSink *xsink) {
    if (priv->data.acceptAndReplace(0)) {
       priv->data.close();
-      xsink->raiseException("FTP-CONNECT-ERROR", "error accepting data connection: %s", 
-			    strerror(errno));
+      xsink->raiseErrnoException("FTP-CONNECT-ERROR", errno, "error accepting data connection");
       return -1;
    }
 #ifdef DEBUG
@@ -435,10 +434,8 @@ int QoreFtpClient::connectDataExtendedPassive(ExceptionSink *xsink)
    *end = '\0';
 
    int data_port = atoi(s);
-   if (priv->data.connectINET(priv->host, data_port))
-   {
-      xsink->raiseException("FTP-CONNECT-ERROR", "could not connect to passive data port (%s:%d): %s", priv->host, data_port,
-			    strerror(errno));
+   if (priv->data.connectINET(priv->host, data_port)) {
+      xsink->raiseErrnoException("FTP-CONNECT-ERROR", errno, "could not connect to passive data port (%s:%d)", priv->host, data_port);
       return -1;
    }
    printd(FTPDEBUG, "EPSV connected to %s:%d\n", priv->host, data_port);
@@ -479,10 +476,8 @@ int QoreFtpClient::connectDataPassive(ExceptionSink *xsink) {
    ip.sprintf("%d.%d.%d.%d", num[0], num[1], num[2], num[3]);
    printd(FTPDEBUG,"QoreFtpClient::connectPassive() address: %s:%d\n", ip.getBuffer(), dataport);
 
-   if (priv->data.connectINET(ip.getBuffer(), dataport))
-   {
-      xsink->raiseException("FTP-CONNECT-ERROR", "could not connect to passive data port (%s:%d): %s", 
-			    ip.getBuffer(), dataport, strerror(errno));
+   if (priv->data.connectINET(ip.getBuffer(), dataport)) {
+      xsink->raiseErrnoException("FTP-CONNECT-ERROR", errno, "could not connect to passive data port (%s:%d)", ip.getBuffer(), dataport);
       return -1;
    }
 
@@ -500,15 +495,13 @@ int QoreFtpClient::connectDataPort(ExceptionSink *xsink) {
    socklen_t socksize = sizeof(struct sockaddr_in);
    
    if (getsockname(priv->control.getSocket(), (struct sockaddr *)&add, &socksize) < 0) {
-      xsink->raiseException("FTP-CONNECT-ERROR", "cannot determine local interface address for data port connection: %s",
-		     strerror(errno));
+      xsink->raiseErrnoException("FTP-CONNECT-ERROR", errno, "cannot determine local interface address for data port connection");
       return -1;
    }
    // bind to any port on local interface
    add.sin_port = 0;
    if (priv->data.bind((struct sockaddr *)&add, sizeof (struct sockaddr_in))) {
-      xsink->raiseException("FTP-CONNECT-ERROR", "could not bind to any port on local interface: %s", 
-		     strerror(errno));
+      xsink->raiseErrnoException("FTP-CONNECT-ERROR", errno, "could not bind to any port on local interface");
       return -1;
    }
    // get port number
@@ -516,11 +509,9 @@ int QoreFtpClient::connectDataPort(ExceptionSink *xsink) {
 
    // get ip address
    char ifname[80];
-   if (!inet_ntop(AF_INET, &((struct sockaddr_in *)&add)->sin_addr, ifname, sizeof(ifname)))
-   {
+   if (!inet_ntop(AF_INET, &((struct sockaddr_in *)&add)->sin_addr, ifname, sizeof(ifname))) {
       priv->data.close();
-      xsink->raiseException("FTP-CONNECT-ERROR", "cannot determine local interface address for data port connection: %s",
-		     strerror(errno));
+      xsink->raiseErrnoException("FTP-CONNECT-ERROR", errno, "cannot determine local interface address for data port connection");
       return -1;
    }
    printd(FTPDEBUG, "QoreFtpClient::connectDataPort() requesting connection to %s:%d\n", ifname, dataport);
@@ -544,11 +535,10 @@ int QoreFtpClient::connectDataPort(ExceptionSink *xsink) {
       return -1;
    }
    
-   if (priv->data.listen())
-   {
+   if (priv->data.listen()) {
+      int en = errno;
       priv->data.close();
-      xsink->raiseException("FTP-CONNECT-ERROR", "error listening on data connection: %s", 
-			    strerror(errno));
+      xsink->raiseErrnoException("FTP-CONNECT-ERROR", en, "error listening on data connection");
       return -1;
    }
    printd(FTPDEBUG, "QoreFtpClient::connectDataPort() listening on port %d\n", dataport);
@@ -773,7 +763,7 @@ int QoreFtpClient::put(const char *localpath, const char *remotename, ExceptionS
 
    int fd = open(localpath, O_RDONLY, 0);
    if (fd < 0) {
-      xsink->raiseException("FTP-FILE-OPEN-ERROR", "%s: %s", localpath, strerror(errno));
+      xsink->raiseErrnoException("FTP-FILE-OPEN-ERROR", errno, "%s", localpath);
       return -1;
    }
 
@@ -786,8 +776,9 @@ int QoreFtpClient::put(const char *localpath, const char *remotename, ExceptionS
    // get file size
    struct stat file_info;
    if (fstat(fd, &file_info) == -1) {
+      int en = errno;
       close(fd);
-      xsink->raiseException("FTP-FILE-PUT-ERROR", "could not get file size: %s", strerror(errno));
+      xsink->raiseErrnoException("FTP-FILE-PUT-ERROR", en, "could not get file size");
       return -1;
    }
 
@@ -900,7 +891,7 @@ int QoreFtpClient::get(const char *remotepath, const char *localname, ExceptionS
    // open local file
    int fd = open(ln, O_WRONLY|O_CREAT, 0644);
    if (fd < 0) {
-      xsink->raiseException("FTP-FILE-OPEN-ERROR", "%s: %s", ln, strerror(errno));
+      xsink->raiseErrnoException("FTP-FILE-OPEN-ERROR", errno, "%s", ln);
       if (ln != localname)
 	 free(ln);
       return -1;
@@ -945,7 +936,7 @@ static void doFtpSocketException(int rc, ExceptionSink *xsink) {
    if (!rc)
       xsink->raiseException("DATA-SOCKET-CLOSED", "remote end closed the data connection");
    else if (rc == -1)   // recv() error
-      xsink->raiseException("DATA-SOCKET-RECV-ERROR", strerror(errno));
+      xsink->raiseException("DATA-SOCKET-RECV-ERROR", q_strerror(errno));
    else if (rc == -3)
       xsink->raiseException("TIMEOUT", "the transfer exceeded the timeout period");
 }

@@ -219,7 +219,7 @@ class qore_qd_private {
 
 	 std::string path = getPathIntern(subdir);
 	 if (::mkdir(path.c_str(), mode)) {
-	    xsink->raiseException("DIR-MKDIR-ERROR", "error on creating subdirectory '%s' in '%s': %s", subdir, dirname, strerror(errno));
+	    xsink->raiseErrnoException("DIR-MKDIR-ERROR", errno, "error on creating subdirectory '%s' in '%s'", subdir, dirname);
 	    return -1;
 	 }
 	 return 0;
@@ -232,15 +232,14 @@ class qore_qd_private {
 
 	 std::string path = getPathIntern(subdir);
 	 if (::rmdir(path.c_str())) {
-	    xsink->raiseException("DIR-RMDIR-ERROR", "error on removing subdirectory '%s' in '%s': %s", subdir, dirname, strerror(errno));
+	    xsink->raiseErrnoException("DIR-RMDIR-ERROR", errno, "error on removing subdirectory '%s' in '%s'", subdir, dirname);
 	    return -1;
 	 }
 	 
 	 return 0;
       }
 
-      DLLLOCAL QoreListNode *list(ExceptionSink *xsink, int stat_filter, const QoreString *regex, int regex_options) const
-      {
+      DLLLOCAL QoreListNode *list(ExceptionSink *xsink, int stat_filter, const QoreString *regex, int regex_options) const {
 	 AutoLocker al(m);
 
 	 if (!dirname) {
@@ -255,13 +254,12 @@ class qore_qd_private {
 	    if (*xsink)
 	       return 0;
 	 }
-	 //QoreListNode *lst = new QoreListNode();
 	 // avoid memory leaks...
-	 ReferenceHolder<QoreListNode> lst(new QoreListNode(), xsink);
+	 ReferenceHolder<QoreListNode> lst(new QoreListNode, xsink);
 	 
 	 DIR *dptr = opendir(dirname);
 	 if (!dptr) {
-	    xsink->raiseException("DIR-READ-ERROR", "error opening directory for reading: %s", strerror(errno));
+	    xsink->raiseErrnoException("DIR-READ-ERROR", errno, "error opening directory for reading");
 	    return 0;
 	 }
 	 ON_BLOCK_EXIT(closedir, dptr);
@@ -278,7 +276,7 @@ class qore_qd_private {
 		  struct stat buf;
 		  int rc = stat(fname.getBuffer(), &buf);
 		  if (rc) {
-		     xsink->raiseException("DIR-READ-ERROR", "stat() failed on '%s': %s", fname.getBuffer(), strerror(errno));
+		     xsink->raiseErrnoException("DIR-READ-ERROR", errno, "stat() failed on '%s'", fname.getBuffer());
 		     return 0;
 		  }
 		  ok = (bool)(buf.st_mode & stat_filter);
@@ -301,7 +299,7 @@ class qore_qd_private {
 #if 0
 	 // check for error of readdir - not necessary???
 	 if (errno) {
-	    xsink->raiseException("DIR-READ-ERROR", "error while reading directory: %s", strerror(errno));
+	    xsink->raiseErrnoException("DIR-READ-ERROR", errno, "error while reading directory");
 	    // but anyhow: close the dir pointer and ignore the message
 	    return 0;
 	 }
@@ -333,7 +331,7 @@ class qore_qd_private {
 	    path_str = path.c_str();
 	    if (verifyDirectory(path_str)) { // not existing
 	       if (::mkdir(path_str, mode)) { // failed
-		  xsink->raiseException("DIR-CREATE-ERROR", "cannot mkdir '%s': %s", path_str, strerror(errno));
+		  xsink->raiseErrnoException("DIR-CREATE-ERROR", errno, "cannot mkdir '%s'", path_str);
 		  return -1;
 	       }
 	       cnt++;
@@ -353,7 +351,7 @@ class qore_qd_private {
 	 }
 
 	 if (::chmod(dirname, mode)) {
-	    xsink->raiseException("DIR-CHMOD-ERROR", "error in Dir::chmod(): %s", strerror(errno));
+	    xsink->raiseErrnoException("DIR-CHMOD-ERROR", errno, "error in Dir::chmod()");
 	    return -1;
 	 }
 
@@ -370,7 +368,7 @@ class qore_qd_private {
 	 }
 
 	 if (::chown(dirname, uid, gid)) {
-	    xsink->raiseException("DIR-CHOWN-ERROR", "error in Dir::chown(): %s", strerror(errno));
+	    xsink->raiseErrnoException("DIR-CHOWN-ERROR", errno, "error in Dir::chown()");
 	    return 0;
 	 }
 

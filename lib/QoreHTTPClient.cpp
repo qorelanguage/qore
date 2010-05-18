@@ -667,7 +667,7 @@ QoreHashNode *QoreHTTPClient::getResponseHeader(const char *meth, const char *mp
 	 xsink->raiseException("HTTP-CLIENT-SEND-ERROR", "socket was closed at the remote end before the message could be sent");
       }
       else
-	 xsink->raiseException("HTTP-CLIENT-SEND-ERROR", "send failed with error code %d: %s", rc, strerror(errno));
+	 xsink->raiseException("HTTP-CLIENT-SEND-ERROR", q_strerror(errno));
       return 0;
    }
 
@@ -691,7 +691,7 @@ QoreHashNode *QoreHTTPClient::getResponseHeader(const char *meth, const char *mp
 	    xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", "remote end has closed the connection");
 	 }
 	 else if (rc == -1)   // recv() error
-	    xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", strerror(errno));
+	    xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", q_strerror(errno));
 	 else if (rc == -2) {
 	    priv->disconnect_unlocked();
 	    xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", "socket was closed at the remote end");
@@ -1109,7 +1109,7 @@ QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath,
 	    xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", "remote end closed the connection while receiving response message body");
 	 }
 	 else if (rc == -1)   // recv() error
-	    xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", strerror(errno));
+	    xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", q_strerror(errno));
 	 else if (rc == -2) {
 	    priv->disconnect_unlocked();
 	    xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", "socket was closed at the remote end while receiving response message body");

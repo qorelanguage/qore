@@ -340,6 +340,11 @@ struct qore_option_s {
 
 //const char *qore_get_option_list();
 
+//! returns the error string as a QoreStringNode
+DLLEXPORT QoreStringNode *q_strerror(int errnum);
+//! concatenates the error string to the given string
+DLLEXPORT void q_strerror(QoreString &str, int errnum);
+
 //! list of qore options
 DLLEXPORT extern const qore_option_s *qore_option_list;
 //! number of elements in the option list

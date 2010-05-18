@@ -321,7 +321,7 @@ void do_zlib_exception(int rc, const char *func, ExceptionSink *xsink) {
    desc->sprintf("%s(): ", func);
    switch (rc) {
       case Z_ERRNO:
-         desc->concat(strerror(errno));
+	 q_strerror(*desc, errno);
          break;
 
       case Z_STREAM_ERROR:

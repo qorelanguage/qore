@@ -61,7 +61,7 @@ QoreSSLCertificate::QoreSSLCertificate(const BinaryNode *bin, ExceptionSink *xsi
 QoreSSLCertificate::QoreSSLCertificate(const char *fn, ExceptionSink *xsink) : priv(new qore_sslcert_private(0)) {
    FILE *fp = fopen(fn, "r");
    if (!fp) {
-      xsink->raiseException("SSLCERTIFICATE-CONSTRUCTOR-ERROR", "'%s': %s", fn, strerror(errno));
+      xsink->raiseErrnoException("SSLCERTIFICATE-CONSTRUCTOR-ERROR", errno, "'%s'", fn);
       return;
    }
    

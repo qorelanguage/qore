@@ -359,7 +359,7 @@ int QoreSignalManager::start_signal_thread(ExceptionSink *xsink) {
       tcount.dec();
       deregister_signal_thread();
       tid = -1;
-      xsink->raiseException("THREAD-CREATION-FAILURE", "could not create thread: %s", strerror(rc));
+      xsink->raiseErrnoException("THREAD-CREATION-FAILURE", rc, "could not create thread");
       thread_running = false;
    }
 

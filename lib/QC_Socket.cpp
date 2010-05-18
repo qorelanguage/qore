@@ -42,7 +42,7 @@ static AbstractQoreNode *doSendResult(int rc, const char *method_name, Exception
    if (rc == -2)
       xsink->raiseException("SOCKET-NOT-OPEN", "socket must be opened before Socket::%s() call", method_name);
    else if (rc)
-      xsink->raiseException("SOCKET-SEND-ERROR", "Socket::%s() failed with error code %d: %s", method_name, rc, strerror(errno));
+      xsink->raiseErrnoException("SOCKET-SEND-ERROR", rc, "Socket::%s() failed with error code %d", method_name, rc);
    return 0;
 }
 

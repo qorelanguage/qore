@@ -50,7 +50,7 @@ QoreSSLPrivateKey::QoreSSLPrivateKey(const char *fn, const char *pp, ExceptionSi
    priv->pk = 0;
    FILE *fp = fopen(fn, "r");
    if (!fp) {
-      xsink->raiseException("SSLPRIVATEKEY-CONSTRUCTOR-ERROR", "'%s': %s", fn, strerror(errno));
+      xsink->raiseErrnoException("SSLPRIVATEKEY-CONSTRUCTOR-ERROR", errno, "'%s'", fn);
       return;
    }
    PEM_read_PrivateKey(fp, &priv->pk, 0, pp ? (void *)pp : (void *)"_none_");

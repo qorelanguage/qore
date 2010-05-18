@@ -554,7 +554,9 @@ RTIME           PT(-?[0-9]+[HMSu])+
 					      struct stat sbuf;
 					      int rc = stat(fn, &sbuf);
 					      if (rc) {
-						 parse_error("stat() failed on include file: \"%s\": %s", fn, strerror(errno));
+					         ExceptionSink *xsink = getProgram()->getParseExceptionSink();
+						 if (xsink)
+						    xsink->raiseErrnoException("PARSE-ERROR", errno, "stat() failed on include file: \"%s\"", fn);
 						 BEGIN(INITIAL);
 					      }
 					      else {

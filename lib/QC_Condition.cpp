@@ -39,14 +39,14 @@ static void CONDITION_copy(QoreObject *self, QoreObject *old, Condition *c, Exce
 
 AbstractQoreNode *CONDITION_signal(QoreObject *self, Condition *c, const QoreListNode *params, ExceptionSink *xsink) {
    if (c->signal())
-      xsink->raiseException("CONDITION-SIGNAL-ERROR", strerror(errno)); 
+      xsink->raiseException("CONDITION-SIGNAL-ERROR", q_strerror(errno)); 
 
    return 0;
 }
 
 static AbstractQoreNode *CONDITION_broadcast(QoreObject *self, Condition *c, const QoreListNode *params, ExceptionSink *xsink) {
    if (c->broadcast())
-      xsink->raiseException("CONDITION-BROADCAST-ERROR", strerror(errno));
+      xsink->raiseException("CONDITION-BROADCAST-ERROR", q_strerror(errno));
 
    return 0;
 }
@@ -65,7 +65,7 @@ static AbstractQoreNode *CONDITION_wait(QoreObject *self, Condition *c, const Qo
    //printd(5, "CONDITION_wait() m=%s (%p) timeout=%d rc=%d\n", m->getName(), m, timeout, rc);
       
    if (rc && rc != ETIMEDOUT && !*xsink) {
-      xsink->raiseException("CONDITION-WAIT-ERROR", "unknown system error code returned from Condition::wait(lock=%s, timeout=%d): rc=%d: %s", m->getName(), timeout, rc, strerror(rc));
+      xsink->raiseErrnoException("CONDITION-WAIT-ERROR", rc, "unknown system error code returned from Condition::wait(lock=%s, timeout=%d): rc=%d", m->getName(), timeout, rc);
       return 0;
    }
    return new QoreBigIntNode(rc);   

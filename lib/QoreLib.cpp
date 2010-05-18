@@ -1154,3 +1154,32 @@ const char *check_hash_key(const QoreHashNode *h, const char *key, const char *e
    }
    return reinterpret_cast<const QoreStringNode *>(p)->getBuffer();
 }
+
+void q_strerror(QoreString &str, int err) {
+#ifdef HAVE_STRERROR_R
+
+#ifndef STRERR_BUFSIZE
+#define STRERR_BUFSIZE 512
+#endif
+
+   str.allocate(str.strlen() + STRERR_BUFSIZE);
+   // ignore strerror() error message
+   int rc = strerror_r(err, (char *)(str.getBuffer() + str.strlen()), STRERR_BUFSIZE);
+   if (rc && rc != EINVAL && rc != ERANGE)
+      str.sprintf("unable to retrieve error code %d: strerror() returned unexpected error code %d", err, rc);
+   else
+      str.terminate(str.strlen() + strlen(str.getBuffer() + str.strlen()));
+#else
+   // global static lock for strerror() access
+   static QoreThreadLock strerror_m;
+
+   AutoLocker al(strerror_m);
+   str.concat(strerror(err));
+#endif
+}
+
+QoreStringNode *q_strerror(int err) {
+   QoreStringNode *rv = new QoreStringNode;
+   q_strerror(*rv, err);
+   return rv;
+}

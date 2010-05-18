@@ -94,7 +94,7 @@ AbstractQoreNode *backquoteEval(const char *cmd, ExceptionSink *xsink) {
    FILE *p = popen(cmd, "r");
    if (!p) {
       // could not fork or create pipe
-      xsink->raiseException("BACKQUOTE-ERROR", strerror(errno));
+      xsink->raiseException("BACKQUOTE-ERROR", q_strerror(errno));
       return 0;
    }
 

@@ -164,7 +164,7 @@ static AbstractQoreNode *f_rename(const QoreListNode *args, ExceptionSink *xsink
 
    int rc = rename(p0->getBuffer(), p1->getBuffer());
    if (rc)
-      xsink->raiseException("RENAME-ERROR", strerror(errno));
+      xsink->raiseException("RENAME-ERROR", q_strerror(errno));
 
    return 0;
 }
