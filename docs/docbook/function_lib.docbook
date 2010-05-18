@@ -547,7 +547,10 @@
           </entry>
         </row>
         <row>
-          <entry><para><code><link linkend="delete_thread_data">delete_thread_data</link>() <command>returns</command> <link linkend="nothing_type">nothing</link></code></para></entry>
+          <entry>
+	    <para><code><link linkend="delete_thread_data">delete_thread_data</link>(<link linkend="list_type">list</link>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+	    <para><code><link linkend="delete_thread_data">delete_thread_data</link>(...) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+	  </entry>
           <entry><para>N</para></entry>
           <entry><para>Deletes the data associated to one or more keys in the thread-local data hash (destroys any objects as well).</para></entry>
         </row>
@@ -2557,22 +2560,6 @@
         </row>
         <row>
           <entry>
-            <para><code><link linkend="parseXMLWithRelaxNG">parseXMLWithRelaxNG</link>(<link linkend="string_type">string</link>, <link linkend="string_type">string</link>) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
-            <para><code><link linkend="parseXMLWithRelaxNG">parseXMLWithRelaxNG</link>(<link linkend="string_type">string</link>, <link linkend="string_type">string</link>, <link linkend="string_type">string</link>) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
-          </entry>
-          <entry><para>Y</para></entry>
-          <entry><para>parses an XML string, validates the generated XML against a RelaxNG schema string, and returns a Qore hash structure.</para></entry>
-        </row>
-        <row>
-          <entry>
-            <para><code><link linkend="parseXMLWithSchema">parseXMLWithSchema</link>(<link linkend="string_type">string</link>, <link linkend="string_type">string</link>) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
-            <para><code><link linkend="parseXMLWithSchema">parseXMLWithSchema</link>(<link linkend="string_type">string</link>, <link linkend="string_type">string</link>, <link linkend="string_type">string</link>) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
-          </entry>
-          <entry><para>Y</para></entry>
-          <entry><para>parses an XML string, validates the generated XML against an XSD schema string, and returns a Qore hash structure.</para></entry>
-        </row>
-        <row>
-          <entry>
             <para><code><link linkend="parseXMLAsData">parseXMLAsData</link>(<link linkend="string_type">string</link>) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
             <para><code><link linkend="parseXMLAsData">parseXMLAsData</link>(<link linkend="string_type">string</link>, <link linkend="string_type">string</link>) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
             <para><code><link linkend="parseXMLAsData">parseXMLAsData</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
@@ -2628,6 +2615,22 @@
             <para>Y</para>
           </entry>
           <entry><para>deserializies an XML-RPC value tree, returning Qore data representing the information.</para></entry>
+        </row>
+        <row>
+          <entry>
+            <para><code><link linkend="parseXMLWithRelaxNG">parseXMLWithRelaxNG</link>(<link linkend="string_type">string</link>, <link linkend="string_type">string</link>) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
+            <para><code><link linkend="parseXMLWithRelaxNG">parseXMLWithRelaxNG</link>(<link linkend="string_type">string</link>, <link linkend="string_type">string</link>, <link linkend="string_type">string</link>) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
+          </entry>
+          <entry><para>Y</para></entry>
+          <entry><para>parses an XML string, validates the generated XML against a RelaxNG schema string, and returns a Qore hash structure.</para></entry>
+        </row>
+        <row>
+          <entry>
+            <para><code><link linkend="parseXMLWithSchema">parseXMLWithSchema</link>(<link linkend="string_type">string</link>, <link linkend="string_type">string</link>) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
+            <para><code><link linkend="parseXMLWithSchema">parseXMLWithSchema</link>(<link linkend="string_type">string</link>, <link linkend="string_type">string</link>, <link linkend="string_type">string</link>) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
+          </entry>
+          <entry><para>Y</para></entry>
+          <entry><para>parses an XML string, validates the generated XML against an XSD schema string, and returns a Qore hash structure.</para></entry>
         </row>
         <row>
           <entry>
@@ -21017,7 +21020,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>delete_all_thread_data()</programlisting>
+            <para><code><link linkend="delete_all_thread_data">delete_all_thread_data</link>()</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -21068,13 +21071,15 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>delete_thread_data(<replaceable>key_string, [key_string, ...]</replaceable>)</programlisting>
+	<para><code><link linkend="delete_thread_data">delete_thread_data</link>(<link linkend="list_type">list</link>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+	<para><code><link linkend="delete_thread_data">delete_thread_data</link>(...) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Example</term>
       <listitem>
-	<programlisting>delete_thread_data("key1", "key2");</programlisting>
+	<programlisting>delete_thread_data("key1", "key2");
+delete_thread_data($list_of_strings);</programlisting>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -21097,9 +21102,14 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	</thead>
 	<tbody>
 	  <row>
-	    <entry><para><code><link linkend="string_type">string</link></code>, [String ...]</para></entry>
+	    <entry><para><code><link linkend="list_type">list</link></code></para></entry>
 	    <entry><para>n/a</para></entry>
-	    <entry><para>Deletes the data associated to one or more keys in the thread-local data hash.</para></entry>
+	    <entry><para>Deletes the data associated to one or more keys in the thread-local data hash corresponding to the elements of the list converted to a string (if necessary).</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>...</code></para></entry>
+	    <entry><para>n/a</para></entry>
+	    <entry><para>Deletes the data associated to one or more keys in the thread-local data hash corresonding to each string argument in the top-level argument list; arguments are converted to strings if necessary.</para></entry>
 	  </row>
 	</tbody>
       </tgroup>
@@ -21119,7 +21129,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>get_all_thread_data()</programlisting>
+            <para><code><link linkend="get_all_thread_data">get_all_thread_data</link>() <command>returns</command> <link linkend="hash_type">hash</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -21175,7 +21185,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Example</term>
       <listitem>
-	<programlisting>$hash = getAllThreadCallStacks();</programlisting>
+            <para><code><link linkend="getAllThreadCallStacks">getAllThreadCallStacks</link>() <command>returns</command> <link linkend="hash_type">hash</link></code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -21236,7 +21246,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>get_thread_data(<replaceable>key_string</replaceable>)</programlisting>
+            <para><code><link linkend="get_thread_data">get_thread_data</link>(<link linkend="string_type">string</link>) <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="get_thread_data">get_thread_data</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -21266,7 +21277,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<tbody>
 	  <row>
 	    <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-	    <entry><para>depends on key</para></entry>
+	    <entry><para><code><link linkend="any_type">any</link></code></para></entry>
 	    <entry><para>Returns the value of the thread-local data attached to the key passed.</para></entry>
 	  </row>
 	</tbody>
@@ -21287,7 +21298,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>gettid()</programlisting>
+            <para><code><link linkend="gettid">gettid</link>() <command>returns</command> <link linkend="int_type">int</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -21334,7 +21345,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>num_threads()</programlisting>
+            <para><code><link linkend="num_threads">num_threads</link>() <command>returns</command> <link linkend="int_type">int</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -21383,13 +21394,15 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>remove_thread_data(<replaceable>key_string, [key_string, ...]</replaceable>)</programlisting>
+            <para><code><link linkend="remove_thread_data">remove_thread_data</link>(<link linkend="list_type">list</link>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+            <para><code><link linkend="remove_thread_data">remove_thread_data</link>(...) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Example</term>
       <listitem>
-	<programlisting>remove_thread_data("key1", "key2");</programlisting>
+	<programlisting>remove_thread_data("key1", "key2");
+remove_thread_data($list_of_strings);</programlisting>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -21412,9 +21425,14 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	</thead>
 	<tbody>
 	  <row>
-	    <entry><para><code><link linkend="string_type">string</link></code>, [String ...]</para></entry>
+	    <entry><para><code><link linkend="list_type">list</link></code></para></entry>
 	    <entry><para>n/a</para></entry>
-	    <entry><para>Removes the data associated to one or more keys in the thread-local data hash.</para></entry>
+	    <entry><para>Removes the data associated to one or more keys in the thread-local data hash corresponding to the elements of the list converted to a string (if necessary).</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>...</code></para></entry>
+	    <entry><para>n/a</para></entry>
+	    <entry><para>Removes the data associated to one or more keys in the thread-local data hash corresonding to each string argument in the top-level argument list; arguments are converted to strings if necessary.</para></entry>
 	  </row>
 	</tbody>
       </tgroup>
@@ -21435,7 +21453,9 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>save_thread_data(<replaceable>key_string, value_expression</replaceable>)</programlisting>
+            <para><code><link linkend="save_thread_data">save_thread_data</link>(<link linkend="hash_type">hash</link>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+            <para><code><link linkend="save_thread_data">save_thread_data</link>(<link linkend="string_type">string</link>, <link linkend="any_type">any</link>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+            <para><code><link linkend="save_thread_data">save_thread_data</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -21466,15 +21486,20 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 
 <tbody>
   <row>
-    <entry><para><code><link linkend="string_type">string</link></code>, Any</para></entry>
+    <entry><para><code><link linkend="string_type">string</link>, <link linkend="any_type">any</link></code></para></entry>
     <entry><para>n/a</para></entry>
     <entry><para>Saves the data passed against the key passed in thread-local storage.</para></entry>
+  </row>
+  <row>
+    <entry><para><code><link linkend="hash_type">string</link></code></para></entry>
+    <entry><para>n/a</para></entry>
+    <entry><para>Saves the data passed in the hash giving key-value pairs in thread-local storage.</para></entry>
   </row>
 
 </tbody>
 </tgroup>
 </table>
-  <para>This function does not throw any exceptions.</para>
+  <para>This function does not throw any exceptions, however if a value is removed from the thread-local data hash by being overwritten with a new value, and the value is an object that goes out of scope, then such an object could throw an exception in its destructor.</para>
 
 </sect2>
 
@@ -21491,7 +21516,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	  <varlistentry>
 	    <term>Usage</term>
 	    <listitem>
-	      <programlisting>thread_list()</programlisting>
+	      <para><code><link linkend="thread_list">thread_list</link>() <command>returns</command> <link linkend="list_type">list</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
 	    </listitem>
 	  </varlistentry>
 	  <varlistentry>
@@ -21537,7 +21562,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	  <varlistentry>
 	    <term>Usage</term>
 	    <listitem>
-	      <programlisting>throwThreadResourceExceptions()</programlisting>
+	      <para><code><link linkend="throwThreadResourceExceptions">throwThreadResourceExceptions</link>() <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
 	    </listitem>
 	  </varlistentry>
 	  <varlistentry>
@@ -21546,8 +21571,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	      <programlisting>try {
     throwThreadResourceExceptions();
 }
-catch ($ex)
-{
+catch ($ex) {
     # ... log or handle exceptions
 }</programlisting>
 	    </listitem>
@@ -21602,7 +21626,9 @@ catch ($ex)
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>makeFormattedXMLFragment(<replaceable>hash, [encoding]</replaceable>)</programlisting>
+            <para><code><link linkend="makeFormattedXMLFragment">makeFormattedXMLFragment</link>(<link linkend="hash_type">hash</link>, <link linkend="string_type">string</link>) <command>returns</command> <link linkend="string_type">string</link></code></para>
+            <para><code><link linkend="makeFormattedXMLFragment">makeFormattedXMLFragment</link>(<link linkend="hash_type">hash</link>) <command>returns</command> <link linkend="string_type">string</link></code></para>
+            <para><code><link linkend="makeFormattedXMLFragment">makeFormattedXMLFragment</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -21625,9 +21651,9 @@ catch ($ex)
 	</thead>
 	<tbody>
 	  <row>
-	    <entry><para>Hash, [String]</para></entry>
+	    <entry><para><code><link linkend="string_type">string</link>, [<link linkend="string_type">string</link>]</code></para></entry>
 	    <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-	    <entry><para>Serializes the Qore hash to an XML string (see <link linkend="XML_Integration">XML Integration</link> for more information) without an XML header but with formatting.  The hash must have only one top-level key or an exception will be thrown.</para></entry>
+	    <entry><para>Serializes the Qore hash to an XML string (see <link linkend="XML_Integration">XML Integration</link> for more information) without an XML header but with formatting.  The hash must have only one top-level key or an exception will be thrown.  The optional second argument can give the output string encoding, otherwise UTF-8 is used (not the default string encoding for the process).</para></entry>
 	  </row>
 	</tbody>
       </tgroup>
@@ -21665,7 +21691,7 @@ catch ($ex)
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>makeFormattedXMLRPCCallString(<replaceable>method_name, [arguments ...]</replaceable>)</programlisting>
+	<para><code><link linkend="makeFormattedXMLRPCCallString">makeFormattedXMLRPCCallString</link>(<link linkend="string_type">string</link>, ...) <command>returns</command> <link linkend="string_type">string</link></code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -21688,7 +21714,7 @@ catch ($ex)
       </thead>
       <tbody>
 	<row>
-	  <entry><para><code><link linkend="string_type">string</link></code>, [Any ...]</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link>, ...</code></para></entry>
 	  <entry><para><code><link linkend="string_type">string</link></code></para></entry>
 	  <entry><para>Serializes the arguments into an XML string in XML-RPC call format with whitespace formatting.  The encoding of the resulting string will always be the <link linkend="Default_Character_Encoding">default encoding</link>.</para></entry>
 	</row>
@@ -21727,7 +21753,7 @@ catch ($ex)
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>makeFormattedXMLRPCCallStringWithEncoding(<replaceable>encoding_name, method_name, [arguments ...]</replaceable>)</programlisting>
+	<para><code><link linkend="makeFormattedXMLRPCCallStringWithEncoding">makeFormattedXMLRPCCallStringWithEncoding</link>(<link linkend="string_type">string</link>, <link linkend="string_type">string</link>, ...) <command>returns</command> <link linkend="string_type">string</link></code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -21750,9 +21776,9 @@ catch ($ex)
       </thead>
       <tbody>
 	<row>
-	  <entry><para><code><link linkend="string_type">string</link></code>, String, [Any ...]</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link>, <link linkend="string_type">string</link>, ...</code></para></entry>
 	  <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-	  <entry><para>Serializes the arguments into an XML string in XML-RPC call format with whitespace formatting.  The encoding of the resulting string will be the encoding given by the first argument.</para></entry>
+	  <entry><para>Serializes the arguments into an XML string in XML-RPC call format with whitespace formatting.  The encoding of the resulting string is given by the first argument.</para></entry>
 	</row>
       </tbody>
     </tgroup>
@@ -21789,7 +21815,7 @@ catch ($ex)
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>makeFormattedXMLRPCCallStringArgs(<replaceable>method_name, [arg_list]</replaceable>)</programlisting>
+	<para><code><link linkend="makeFormattedXMLRPCCallStringArgs">makeFormattedXMLRPCCallStringArgs</link>(<link linkend="string_type">string</link>, <link linkend="any_type">any</link>) <command>returns</command> <link linkend="string_type">string</link></code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -21812,7 +21838,7 @@ catch ($ex)
       </thead>
       <tbody>
 	<row>
-	  <entry><para><code><link linkend="string_type">string</link></code>, [List]</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link>, <link linkend="list_type">list</link> or <link linkend="any_type">any</link></code></para></entry>
 	  <entry><para><code><link linkend="string_type">string</link></code></para></entry>
 	  <entry><para>Serializes the arguments into an XML string in XML-RPC call format with whitespace formatting, using a single argument following the XML-RPC method name as the argument list for the method.  The encoding of the resulting string will always be the <link linkend="Default_Character_Encoding">default encoding</link>.</para></entry>
 	</row>
@@ -21851,7 +21877,7 @@ catch ($ex)
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>makeFormattedXMLRPCCallStringArgsWithEncoding(<replaceable>encoding_name, method_name, [arg_list]</replaceable>)</programlisting>
+	<para><code><link linkend="makeFormattedXMLRPCCallStringArgsWithEncoding">makeFormattedXMLRPCCallStringArgsWithEncoding</link>(<link linkend="string_type">string</link>, <link linkend="string_type">string</link>, <link linkend="any_type">any</link>) <command>returns</command> <link linkend="string_type">string</link></code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -21874,7 +21900,7 @@ catch ($ex)
       </thead>
       <tbody>
 	<row>
-	  <entry><para><code><link linkend="string_type">string</link></code>, String, [List]</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link>, <link linkend="string_type">string</link>, <link linkend="list_type">list</link> or <link linkend="any_type">any</link></code></para></entry>
 	  <entry><para><code><link linkend="string_type">string</link></code></para></entry>
 	  <entry><para>Serializes the arguments into an XML string in XML-RPC call format with whitespace formatting, using a single argument following the XML-RPC method name as the argument list for the method.  The encoding of the resulting string will be the encoding given by the first argument.</para></entry>
 	</row>
@@ -21913,7 +21939,7 @@ catch ($ex)
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>makeFormattedXMLRPCFaultResponseString(<replaceable>error_code, error_string</replaceable>)</programlisting>
+	<para><code><link linkend="makeFormattedXMLRPCFaultResponseString">makeFormattedXMLRPCFaultResponseString</link>(<link linkend="any_type">any</link>, <link linkend="string_type">string</link>) <command>returns</command> <link linkend="string_type">string</link></code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -21936,9 +21962,9 @@ catch ($ex)
       </thead>
       <tbody>
 	<row>
-	  <entry><para>Integer, String</para></entry>
+	  <entry><para><code><link linkend="any_type">any</link>, <link linkend="string_type">string</link></code></para></entry>
 	  <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-	  <entry><para>Serializes the arguments into an XML string formatted for an XML-RPC fault response with whitespace formatting.  The encoding of the resulting string will always be the <link linkend="Default_Character_Encoding">default encoding</link>.</para></entry>
+	  <entry><para>Serializes the arguments into an XML string formatted for an XML-RPC fault response with whitespace formatting.  The first argument is converted to an integer to give the XML-RPC error code.  The encoding of the resulting string will always be the <link linkend="Default_Character_Encoding">default encoding</link>.</para></entry>
 	</row>
       </tbody>
     </tgroup>
@@ -21979,7 +22005,7 @@ catch ($ex)
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>makeFormattedXMLRPCFaultResponseStringWithEncoding(<replaceable>encoding_name, error_code, error_string</replaceable>)</programlisting>
+	<para><code><link linkend="makeFormattedXMLRPCFaultResponseStringWithEncoding">makeFormattedXMLRPCFaultResponseStringWithEncoding</link>(<link linkend="string_type">string</link>, <link linkend="any_type">any</link>, <link linkend="string_type">string</link>) <command>returns</command> <link linkend="string_type">string</link></code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -22002,9 +22028,9 @@ catch ($ex)
       </thead>
       <tbody>
 	<row>
-	  <entry><para><code><link linkend="string_type">string</link></code>, Integer, String</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link>, <link linkend="any_type">any</link>, <link linkend="string_type">string</link></code></para></entry>
 	  <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-	  <entry><para>Serializes the arguments into an XML string formatted for an XML-RPC fault response with whitespace formatting.  The encoding of the resulting string will be the encoding given by the first argument.</para></entry>
+	  <entry><para>Serializes the arguments into an XML string formatted for an XML-RPC fault response with whitespace formatting.  The first argument give the XML-RPC fault code.  The encoding of the resulting string will be the encoding given by the first argument.</para></entry>
 	</row>
       </tbody>
     </tgroup>
@@ -22045,7 +22071,7 @@ catch ($ex)
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>makeFormattedXMLRPCResponseString(<replaceable>any</replaceable>)</programlisting>
+	<para><code><link linkend="makeFormattedXMLRPCResponseString">makeFormattedXMLRPCResponseString</link>(...) <command>returns</command> <link linkend="any_type">any</link></code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -22068,7 +22094,7 @@ catch ($ex)
       </thead>
       <tbody>
 	<row>
-	  <entry><para><code><link linkend="any_type">any</link></code></para></entry>
+	  <entry><para><code>...</code></para></entry>
 	  <entry><para><code><link linkend="string_type">string</link></code></para></entry>
 	  <entry><para>Serializes the arguments into an XML string formatted for an XML-RPC response with whitespace formatting>.  The encoding of the resulting string will always be the <link linkend="Default_Character_Encoding">default encoding</link>.</para></entry>
 	</row>
@@ -22107,7 +22133,7 @@ catch ($ex)
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>makeFormattedXMLRPCResponseStringWithEncoding(<replaceable>encoding_name, any</replaceable>)</programlisting>
+	<para><code><link linkend="makeFormattedXMLRPCResponseStringWithEncoding">makeFormattedXMLRPCResponseStringWithEncoding</link>(<link linkend="string_type">string</link>, ...) <command>returns</command> <link linkend="any_type">any</link></code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -22130,7 +22156,7 @@ catch ($ex)
       </thead>
       <tbody>
 	<row>
-	  <entry><para><code><link linkend="any_type">any</link></code></para></entry>
+	  <entry><para><code><link linkend="string_type">string</link>, ...</code></para></entry>
 	  <entry><para><code><link linkend="string_type">string</link></code></para></entry>
 	  <entry><para>Serializes the arguments into an XML string formatted for an XML-RPC response with whitespace formatting>.  The encoding of the resulting string is given by the first argument.</para></entry>
 	</row>
@@ -22169,7 +22195,8 @@ catch ($ex)
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>makeFormattedXMLRPCValueString(<replaceable>any</replaceable>)</programlisting>
+	<para><code><link linkend="makeFormattedXMLRPCValueString">makeFormattedXMLRPCValueString</link>(<link linkend="any_type">any</link>, <link linkend="string_type">string</link>) <command>returns</command> <link linkend="string_type">string</link></code></para>
+	<para><code><link linkend="makeFormattedXMLRPCValueString">makeFormattedXMLRPCValueString</link>(<link linkend="any_type">any</link>) <command>returns</command> <link linkend="string_type">string</link></code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -22192,9 +22219,9 @@ catch ($ex)
       </thead>
       <tbody>
 	<row>
-	  <entry><para><code><link linkend="any_type">any</link></code></para></entry>
+	  <entry><para><code><link linkend="any_type">any</link>, [<link linkend="string_type">string</link>]</code></para></entry>
 	  <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-	  <entry><para>Serializes the arguments into an XML string in XML-RPC value format with whitespace formatting.   The encoding of the resulting string will always be the <link linkend="Default_Character_Encoding">default encoding</link>.</para></entry>
+	  <entry><para>Serializes the arguments into an XML string in XML-RPC value format with whitespace formatting.  The optional second argument may be given to set the output string encoding, othereise the encoding of the resulting string will be the <link linkend="Default_Character_Encoding">default encoding</link>.</para></entry>
 	</row>
       </tbody>
     </tgroup>
@@ -22232,8 +22259,10 @@ catch ($ex)
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>makeFormattedXMLString(<replaceable>hash, [encoding]</replaceable>)</programlisting>
-	<programlisting>makeFormattedXMLString(<replaceable>string, hash, [encoding]</replaceable>)</programlisting>
+            <para><code><link linkend="makeFormattedXMLString">makeFormattedXMLString</link>(<link linkend="hash_type">hash</link>) <command>returns</command> <link linkend="string_type">string</link></code></para>
+            <para><code><link linkend="makeFormattedXMLString">makeFormattedXMLString</link>(<link linkend="hash_type">hash</link>, <link linkend="string_type">string</link>) <command>returns</command> <link linkend="string_type">string</link></code></para>
+            <para><code><link linkend="makeFormattedXMLString">makeFormattedXMLString</link>(<link linkend="string_type">string</link>, <link linkend="hash_type">hash</link>) <command>returns</command> <link linkend="string_type">string</link></code></para>
+            <para><code><link linkend="makeFormattedXMLString">makeFormattedXMLString</link>(<link linkend="string_type">string</link>, <link linkend="hash_type">hash</link>, <link linkend="string_type">string</link>) <command>returns</command> <link linkend="string_type">string</link></code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -22257,21 +22286,21 @@ catch ($ex)
       </thead>
       <tbody>
 	  <row>
-	    <entry><para>Hash, [String]</para></entry>
+	    <entry><para><code><link linkend="hash_type">hash</link>, [<link linkend="string_type">string</link>]</code></para></entry>
 	    <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-	    <entry><para>Serializes the Qore hash to an XML string (see <link linkend="XML_Integration">XML Integration</link> for more information) with an XML header and formatting.  The hash must have only one top-level key or an exception will be thrown.</para></entry>
+	    <entry><para>Serializes the Qore hash to an XML string (see <link linkend="XML_Integration">XML Integration</link> for more information) with an XML header and formatting.  The hash must have only one top-level key or an exception will be thrown.  The optional second argument may be given to specify the output string encoding, otherwise UTF-8 will be used.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><code><link linkend="string_type">string</link></code>, Hash, [String]</para></entry>
+	    <entry><para><code><link linkend="string_type">string</link>, <link linkend="hash_type">hash</link>, [<link linkend="string_type">string</link>]</code></para></entry>
 	    <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-	    <entry><para>Serializes the Qore hash to an XML string (see <link linkend="XML_Integration">XML Integration</link> for more information) with an XML header and formatting.  The first parameter will be the top-level XML element.</para></entry>
+	    <entry><para>Serializes the Qore hash to an XML string (see <link linkend="XML_Integration">XML Integration</link> for more information) with an XML header and formatting.  The first parameter will be the top-level XML element.  The optional third argument may be given to specify the output string encoding, otherwise UTF-8 will be used.</para></entry>
 	  </row>
       </tbody>
     </tgroup>
   </table>
 
       <table>
-	<title>Exceptions Thrown by makeFormattedXMLRPCValueString()</title>
+	<title>Exceptions Thrown by makeFormattedXMLString()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
@@ -22329,7 +22358,7 @@ catch ($ex)
 	</thead>
 	<tbody>
 	  <row>
-	    <entry><para>Hash, [String]</para></entry>
+	    <entry><para><code><link linkend="string_type">string</link>, [<link linkend="string_type">string</link>]</code></para></entry>
 	    <entry><para><code><link linkend="string_type">string</link></code></para></entry>
 	    <entry><para>Serializes the Qore hash to an XML string (see <link linkend="XML_Integration">XML Integration</link> for more information) without an XML header and without whitespace formatting.  The hash must have only one top-level key or an exception will be thrown.</para></entry>
 	  </row>
@@ -22392,7 +22421,7 @@ catch ($ex)
       </thead>
       <tbody>
 	<row>
-	  <entry><para><code><link linkend="string_type">string</link></code>, [Any ...]</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link>, ...</code></para></entry>
 	  <entry><para><code><link linkend="string_type">string</link></code></para></entry>
 	  <entry><para>Serializes the arguments into an XML string in XML-RPC call format without whitespace formatting.  The encoding of the resulting string will always be the <link linkend="Default_Character_Encoding">default encoding</link>.</para></entry>
 	</row>
@@ -22455,7 +22484,7 @@ catch ($ex)
       </thead>
       <tbody>
 	<row>
-	  <entry><para><code><link linkend="string_type">string</link></code>, String, [Any ...]</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link>, <link linkend="string_type">string</link>, ...</code></para></entry>
 	  <entry><para><code><link linkend="string_type">string</link></code></para></entry>
 	  <entry><para>Serializes the arguments into an XML string in XML-RPC call format without whitespace formatting.  The encoding of the resulting string will correspond to the encoding given as the first argument.</para></entry>
 	</row>
@@ -22517,7 +22546,7 @@ catch ($ex)
       </thead>
       <tbody>
 	<row>
-	  <entry><para><code><link linkend="string_type">string</link></code>, [List]</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link>, <link linkend="list_type">list</link> or <link linkend="any_type">any</link></code></para></entry>
 	  <entry><para><code><link linkend="string_type">string</link></code></para></entry>
 	  <entry><para>Serializes the arguments into an XML string in XML-RPC call format without whitespace formatting, using a single argument following the XML-RPC method name as the argument list for the method.  The encoding of the resulting string will always be the <link linkend="Default_Character_Encoding">default encoding</link>.</para></entry>
 	</row>
@@ -22580,7 +22609,7 @@ catch ($ex)
       </thead>
       <tbody>
 	<row>
-	  <entry><para><code><link linkend="string_type">string</link></code>, String, [List]</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link>, <link linkend="string_type">string</link>, <link linkend="list_type">list</link> or <link linkend="any_type">any</link></code></para></entry>
 	  <entry><para><code><link linkend="string_type">string</link></code></para></entry>
 	  <entry><para>Serializes the arguments into an XML string in XML-RPC call format without whitespace formatting, using a single argument following the XML-RPC method name as the argument list for the method.  The encoding of the resulting string will correspond to the encoding given as the first argument to the function.</para></entry>
 	</row>
@@ -22643,7 +22672,7 @@ catch ($ex)
       </thead>
       <tbody>
 	<row>
-	  <entry><para>Integer, String</para></entry>
+	  <entry><para><code><link linkend="any_type">any</link>, <link linkend="string_type">string</link></code></para></entry>
 	  <entry><para><code><link linkend="string_type">string</link></code></para></entry>
 	  <entry><para>Serializes the arguments into an XML string formatted
 for an XML-RPC fault response without whitespace formatting.  The encoding of
@@ -22711,7 +22740,7 @@ the resulting string will always be the encoding of the fault string (2nd argume
       </thead>
       <tbody>
 	<row>
-	  <entry><para><code><link linkend="string_type">string</link></code>, Integer, String</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link>, <link linkend="any_type">any</link>, <link linkend="string_type">string</link></code></para></entry>
 	  <entry><para><code><link linkend="string_type">string</link></code></para></entry>
 	  <entry><para>Serializes the arguments into an XML string formatted
 for an XML-RPC fault response without whitespace formatting.  The encoding of
@@ -22779,7 +22808,7 @@ the resulting string will correspond to the encoding given as the first argument
       </thead>
       <tbody>
 	<row>
-	  <entry><para><code><link linkend="any_type">any</link></code></para></entry>
+	  <entry><para><code>...</code></para></entry>
 	  <entry><para><code><link linkend="string_type">string</link></code></para></entry>
 	  <entry><para>Serializes the arguments into an XML string formatted for an XML-RPC response without whitespace formatting>.  The encoding of the resulting string will always be the <link linkend="Default_Character_Encoding">default encoding</link>.</para></entry>
 	</row>
@@ -22841,7 +22870,7 @@ the resulting string will correspond to the encoding given as the first argument
       </thead>
       <tbody>
 	<row>
-	  <entry><para><code><link linkend="string_type">string</link></code>, Any</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link>, ...</code></para></entry>
 	  <entry><para><code><link linkend="string_type">string</link></code></para></entry>
 	  <entry><para>Serializes the arguments into an XML string formatted for an XML-RPC response without whitespace formatting>.  The encoding of the resulting string will correspond to the first argument.</para></entry>
 	</row>
@@ -22903,7 +22932,7 @@ the resulting string will correspond to the encoding given as the first argument
       </thead>
       <tbody>
 	<row>
-	  <entry><para><code><link linkend="any_type">any</link></code></para></entry>
+	  <entry><para><code><link linkend="any_type">any</link>, [<link linkend="string_type">string</link>]</code></para></entry>
 	  <entry><para><code><link linkend="string_type">string</link></code></para></entry>
 	  <entry><para>Serializes the arguments into an XML string in XML-RPC value format without whitespace formatting.   The encoding of the resulting string will always be the <link linkend="Default_Character_Encoding">default encoding</link>.</para></entry>
 	</row>
@@ -22968,14 +22997,14 @@ the resulting string will correspond to the encoding given as the first argument
       </thead>
       <tbody>
 	  <row>
-	    <entry><para>Hash, [String]</para></entry>
+	    <entry><para><code><link linkend="hash_type">hash</link>, [<link linkend="string_type">string</link>]</code></para></entry>
 	    <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-	    <entry><para>Serializes the Qore hash to an XML string (see <link linkend="XML_Integration">XML Integration</link> for more information) with an XML header but without whitespace formatting.  The hash must have only one top-level key or an exception will be thrown.</para></entry>
+	    <entry><para>Serializes the Qore hash to an XML string (see <link linkend="XML_Integration">XML Integration</link> for more information) with an XML header but without whitespace formatting.  The hash must have only one top-level key or an exception will be thrown.  The optional second argument may be given to specify the output string encoding, otherwise UTF-8 will be used.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><code><link linkend="string_type">string</link></code>, Hash, [String]</para></entry>
+	    <entry><para><code><link linkend="string_type">string</link>, <link linkend="hash_type">hash</link>, [<link linkend="string_type">string</link>]</code></para></entry>
 	    <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-	    <entry><para>Serializes the Qore hash to an XML string (see <link linkend="XML_Integration">XML Integration</link> for more information) with an XML header but without whitespace formatting.  The first parameter will be the top-level XML element.</para></entry>
+	    <entry><para>Serializes the Qore hash to an XML string (see <link linkend="XML_Integration">XML Integration</link> for more information) with an XML header but without whitespace formatting.  The first parameter will be the top-level XML element.  The optional third argument may be given to specify the output string encoding, otherwise UTF-8 will be used.</para></entry>
 	  </row>
       </tbody>
     </tgroup>
@@ -23005,6 +23034,72 @@ the resulting string will correspond to the encoding given as the first argument
 
 </sect2>
 
+<sect2 id="parseXML">
+  <title>parseXML()</title>
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Parses an XML string and returns a Qore hash structure.  If duplicate, out-of-order XML elements are found in the input string, they are deserialized to Qore hash elements with the same name as the XML element but including a caret &quot;^&quot; and a numeric prefix to maintain the same key order in the Qore hash as in the input XML string.</para>
+	<para>For a similar function collapsing all duplicate XML elements into a list in the Qore hash, see <link linkend="parseXMLAsData">parseXMLAsData()</link>.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+            <para><code><link linkend="parseXML">parseXML</link>(<link linkend="string_type">string</link>) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
+            <para><code><link linkend="parseXML">parseXML</link>(<link linkend="string_type">string</link>, <link linkend="string_type">string</link>) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
+            <para><code><link linkend="parseXML">parseXML</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$hash = parseXML($xml);</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+  
+  <table>
+    <title>Arguments and Return Values for parseXML()</title>
+    <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>Argument Type</para></entry>
+	  <entry><para>Return Type</para></entry>
+	  <entry><para>Description</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><code><link linkend="string_type">string</link>, [<link linkend="string_type">string</link>]</code></para></entry>
+	  <entry><para><code><link linkend="hash_type">hash</link></code></para></entry>
+	  <entry><para>Parses an XML string and returns a Qore hash structure.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+
+      <table>
+	<title>Exceptions Thrown by parseXML()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>PARSE-XML-EXCEPTION</code></para></entry>
+	      <entry><para>Error parsing the XML string.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+</sect2>
+
 <sect2 id="parseXMLAsData">
   <title>parseXMLAsData()</title>
   <variablelist>
@@ -23019,7 +23114,9 @@ the resulting string will correspond to the encoding given as the first argument
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>parseXMLAsData(<replaceable>xml_string, [output_encoding]</replaceable>)</programlisting>
+            <para><code><link linkend="parseXMLAsData">parseXMLAsData</link>(<link linkend="string_type">string</link>) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
+            <para><code><link linkend="parseXMLAsData">parseXMLAsData</link>(<link linkend="string_type">string</link>, <link linkend="string_type">string</link>) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
+            <para><code><link linkend="parseXMLAsData">parseXMLAsData</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -23042,7 +23139,7 @@ the resulting string will correspond to the encoding given as the first argument
       </thead>
       <tbody>
 	<row>
-	  <entry><para><code><link linkend="string_type">string</link></code>, [String]</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link>, [<link linkend="string_type">string</link>]</code></para></entry>
 	  <entry><para><code><link linkend="hash_type">hash</link></code></para></entry>
 	  <entry><para>Parses an XML string and returns a Qore hash structure.</para></entry>
 	</row>
@@ -23085,7 +23182,8 @@ the resulting string will correspond to the encoding given as the first argument
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>parseXMLAsDataWithRelaxNG(<replaceable>xml_string, relaxng_string, [output_encoding]</replaceable>)</programlisting>
+            <para><code><link linkend="parseXMLAsDataWithRelaxNG">parseXMLAsDataWithRelaxNG</link>(<link linkend="string_type">string</link>, <link linkend="string_type">string</link>) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
+            <para><code><link linkend="parseXMLAsDataWithRelaxNG">parseXMLAsDataWithRelaxNG</link>(<link linkend="string_type">string</link>, <link linkend="string_type">string</link>, <link linkend="string_type">string</link>) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -23108,7 +23206,7 @@ the resulting string will correspond to the encoding given as the first argument
       </thead>
       <tbody>
 	<row>
-	  <entry><para><code><link linkend="string_type">string</link></code>, String, [String]</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link>, <link linkend="string_type">string</link>, [<link linkend="string_type">string</link>]</code></para></entry>
 	  <entry><para><code><link linkend="hash_type">hash</link></code></para></entry>
 	  <entry><para>Parses an XML string (1st argument), validates against the RelaxNG string (2nd argument), and returns a Qore hash structure.</para></entry>
 	</row>
@@ -23158,7 +23256,8 @@ the resulting string will correspond to the encoding given as the first argument
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>parseXMLAsDataWithSchema(<replaceable>xml_string, xsd_string, [output_encoding]</replaceable>)</programlisting>
+            <para><code><link linkend="parseXMLAsDataWithSchema">parseXMLAsDataWithSchema</link>(<link linkend="string_type">string</link>, <link linkend="string_type">string</link>) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
+            <para><code><link linkend="parseXMLAsDataWithSchema">parseXMLAsDataWithSchema</link>(<link linkend="string_type">string</link>, <link linkend="string_type">string</link>, <link linkend="string_type">string</link>) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -23181,7 +23280,7 @@ the resulting string will correspond to the encoding given as the first argument
       </thead>
       <tbody>
 	<row>
-	  <entry><para><code><link linkend="string_type">string</link></code>, String, [String]</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link>, <link linkend="string_type">string</link>, [<link linkend="string_type">string</link>]</code></para></entry>
 	  <entry><para><code><link linkend="hash_type">hash</link></code></para></entry>
 	  <entry><para>Parses an XML string (1st argument), validates against the XSD string (2nd argument), and returns a Qore hash structure.</para></entry>
 	</row>
@@ -23216,32 +23315,33 @@ the resulting string will correspond to the encoding given as the first argument
       </table>
 </sect2>
 
-<sect2 id="parseXML">
-  <title>parseXML()</title>
+<sect2 id="parseXMLRPCCall">
+  <title>parseXMLRPCCall()</title>
   <variablelist>
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Parses an XML string and returns a Qore hash structure.  If duplicate, out-of-order XML elements are found in the input string, they are deserialized to Qore hash elements with the same name as the XML element but including a caret &quot;^&quot; and a numeric prefix to maintain the same key order in the Qore hash as in the input XML string.</para>
-	<para>For a similar function collapsing all duplicate XML elements into a list in the Qore hash, see <link linkend="parseXMLAsData">parseXMLAsData()</link>.</para>
+	<para>Deserializies an XML-RPC call string, returning a Qore data structure representing the call information.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>parseXML(<replaceable>xml_string, [output_encoding]</replaceable>)</programlisting>
+            <para><code><link linkend="parseXMLRPCCall">parseXMLAsData</link>(<link linkend="string_type">string</link>) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
+            <para><code><link linkend="parseXMLRPCCall">parseXMLAsData</link>(<link linkend="string_type">string</link>, <link linkend="string_type">string</link>) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
+            <para><code><link linkend="parseXMLRPCCall">parseXMLAsData</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Example</term>
       <listitem>
-	<programlisting>$hash = parseXML($xml);</programlisting>
+	<programlisting>$hash = parseXMLRPCCall($xml);</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
   
   <table>
-    <title>Arguments and Return Values for parseXML()</title>
+    <title>Arguments and Return Values for parseXMLRPCCall()</title>
     <tgroup cols='3' align='left' colsep='1' rowsep='1'>
       <thead>
 	<row>
@@ -23252,16 +23352,16 @@ the resulting string will correspond to the encoding given as the first argument
       </thead>
       <tbody>
 	<row>
-	  <entry><para><code><link linkend="string_type">string</link></code>, [String]</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link>, [<link linkend="string_type">string</link>]</code></para></entry>
 	  <entry><para><code><link linkend="hash_type">hash</link></code></para></entry>
-	  <entry><para>Parses an XML string and returns a Qore hash structure.</para></entry>
+	  <entry><para>Deserializies an XML-RPC call string, returning a Qore data structure representing the call information.  The hash will have the following keys: methodName, params</para></entry>
 	</row>
       </tbody>
     </tgroup>
   </table>
 
       <table>
-	<title>Exceptions Thrown by parseXML()</title>
+	<title>Exceptions Thrown by parseXMLRPCCall()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
@@ -23271,8 +23371,145 @@ the resulting string will correspond to the encoding given as the first argument
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code>PARSE-XML-EXCEPTION</code></para></entry>
-	      <entry><para>Error parsing the XML string.</para></entry>
+	      <entry><para><code>PARSE-XMLRPC-CALL-ERROR</code></para></entry>
+	      <entry><para>Error parsing the XML-RPC call string.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>PARSE-XMLRPC-VALUE-ERROR</code></para></entry>
+	      <entry><para>Error parsing an XML-RPC value node.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+</sect2>
+
+<sect2 id="parseXMLRPCResponse">
+  <title>parseXMLRPCResponse()</title>
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Deserializies an XML-RPC response string, returning a Qore data structure representing the response information.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+            <para><code><link linkend="parseXMLRPCResponse">parseXMLRPCResponse</link>(<link linkend="string_type">string</link>) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
+            <para><code><link linkend="parseXMLRPCResponse">parseXMLRPCResponse</link>(<link linkend="string_type">string</link>, <link linkend="string_type">string</link>) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
+            <para><code><link linkend="parseXMLRPCResponse">parseXMLRPCResponse</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$hash = parseXMLRPCResponse($xml);</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+  
+  <table>
+    <title>Arguments and Return Values for parseXMLRPCResponse()</title>
+    <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>Argument Type</para></entry>
+	  <entry><para>Return Type</para></entry>
+	  <entry><para>Description</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><code><link linkend="string_type">string</link>, [<link linkend="string_type">string</link>]</code></para></entry>
+	  <entry><para><code><link linkend="hash_type">hash</link></code></para></entry>
+	  <entry><para>Deserializies an XML-RPC response string, returning a Qore data structure representing the response information.  The hash will have either a &quot;fault&quot; or a &quot;params&quot; key, depending on if it's a fault response or a non-fault response.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+
+      <table>
+	<title>Exceptions Thrown by parseXMLRPCResponse()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>PARSE-XMLRPC-RESPONSE-ERROR</code></para></entry>
+	      <entry><para>Error parsing the XML-RPC response string.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>PARSE-XMLRPC-VALUE-ERROR</code></para></entry>
+	      <entry><para>Error parsing an XML-RPC value node.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+</sect2>
+
+<sect2 id="parseXMLRPCValue">
+  <title>parseXMLRPCValue()</title>
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Deserializies an XML-RPC value tree, returning a Qore data structure representing the information.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+            <para><code><link linkend="parseXMLRPCValue">parseXMLRPCValue</link>(<link linkend="string_type">string</link>) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
+            <para><code><link linkend="parseXMLRPCValue">parseXMLRPCValue</link>(<link linkend="string_type">string</link>, <link linkend="string_type">string</link>) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
+            <para><code><link linkend="parseXMLRPCValue">parseXMLRPCValue</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>my any $data = parseXMLRPCValue($xml);</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+  
+  <table>
+    <title>Arguments and Return Values for parseXMLRPCValue()</title>
+    <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>Argument Type</para></entry>
+	  <entry><para>Return Type</para></entry>
+	  <entry><para>Description</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><code><link linkend="string_type">string</link>, [<link linkend="string_type">string</link>]</code></para></entry>
+	  <entry><para><code><link linkend="any_type">any</link></code></para></entry>
+	  <entry><para>Deserializies an XML-RPC value string, returning Qore data representing the value data.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+
+      <table>
+	<title>Exceptions Thrown by parseXMLRPCValue()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>PARSE-XMLRPC-VALUE-ERROR</code></para></entry>
+	      <entry><para>Error parsing an XML-RPC value node.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -23295,7 +23532,8 @@ the resulting string will correspond to the encoding given as the first argument
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>parseXMLWithRelaxNG(<replaceable>xml_string, relaxng_string, [output_encoding]</replaceable>)</programlisting>
+            <para><code><link linkend="parseXMLWithRelaxNG">parseXMLWithRelaxNG</link>(<link linkend="string_type">string</link>, <link linkend="string_type">string</link>) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
+            <para><code><link linkend="parseXMLWithRelaxNG">parseXMLWithRelaxNG</link>(<link linkend="string_type">string</link>, <link linkend="string_type">string</link>, <link linkend="string_type">string</link>) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -23318,7 +23556,7 @@ the resulting string will correspond to the encoding given as the first argument
       </thead>
       <tbody>
 	<row>
-	  <entry><para><code><link linkend="string_type">string</link></code>, String, [String]</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link>, <link linkend="string_type">string</link>, [<link linkend="string_type">string</link>]</code></para></entry>
 	  <entry><para><code><link linkend="hash_type">hash</link></code></para></entry>
 	  <entry><para>Parses an XML string (1st argument), validates against the RelaxNG schema string (2nd argument), and returns a Qore hash structure.</para></entry>
 	</row>
@@ -23368,7 +23606,8 @@ the resulting string will correspond to the encoding given as the first argument
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<programlisting>parseXMLWithSchema(<replaceable>xml_string, xsd_string, [output_encoding]</replaceable>)</programlisting>
+            <para><code><link linkend="parseXMLWithSchema">parseXMLWithSchema</link>(<link linkend="string_type">string</link>, <link linkend="string_type">string</link>) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
+            <para><code><link linkend="parseXMLWithSchema">parseXMLWithSchema</link>(<link linkend="string_type">string</link>, <link linkend="string_type">string</link>, <link linkend="string_type">string</link>) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -23391,7 +23630,7 @@ the resulting string will correspond to the encoding given as the first argument
       </thead>
       <tbody>
 	<row>
-	  <entry><para><code><link linkend="string_type">string</link></code>, String, [String]</para></entry>
+	  <entry><para><code><link linkend="string_type">string</link>, <link linkend="string_type">string</link>, [<link linkend="string_type">string</link>]</code></para></entry>
 	  <entry><para><code><link linkend="hash_type">hash</link></code></para></entry>
 	  <entry><para>Parses an XML string (1st argument), validates against the XSD string (2nd argument), and returns a Qore hash structure.</para></entry>
 	</row>
@@ -23420,202 +23659,6 @@ the resulting string will correspond to the encoding given as the first argument
 	    <row>
 	      <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
 	      <entry><para>This exception is thrown when the function is not available; for maximum portability, check the constant <code>HAVE_PARSEXMLWITHSCHEMA</code> before calling this function.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-</sect2>
-
-<sect2 id="parseXMLRPCCall">
-  <title>parseXMLRPCCall()</title>
-  <variablelist>
-    <varlistentry>
-      <term>Synopsis</term>
-      <listitem>
-	<para>Deserializies an XML-RPC call string, returning a Qore data structure representing the call information.</para>
-      </listitem>
-    </varlistentry>
-    <varlistentry>
-      <term>Usage</term>
-      <listitem>
-	<programlisting>parseXMLRPCCall(<replaceable>xmlrpc_call_string, [output_encoding]</replaceable>)</programlisting>
-      </listitem>
-    </varlistentry>
-    <varlistentry>
-      <term>Example</term>
-      <listitem>
-	<programlisting>$hash = parseXMLRPCCall($xml);</programlisting>
-      </listitem>
-    </varlistentry>
-  </variablelist>
-  
-  <table>
-    <title>Arguments and Return Values for parseXMLRPCCall()</title>
-    <tgroup cols='3' align='left' colsep='1' rowsep='1'>
-      <thead>
-	<row>
-	  <entry><para>Argument Type</para></entry>
-	  <entry><para>Return Type</para></entry>
-	  <entry><para>Description</para></entry>
-	</row>
-      </thead>
-      <tbody>
-	<row>
-	  <entry><para><code><link linkend="string_type">string</link></code>, [String]</para></entry>
-	  <entry><para><code><link linkend="hash_type">hash</link></code></para></entry>
-	  <entry><para>Deserializies an XML-RPC call string, returning a Qore data structure representing the call information.  The hash will have the following keys: methodName, params</para></entry>
-	</row>
-      </tbody>
-    </tgroup>
-  </table>
-
-      <table>
-	<title>Exceptions Thrown by parseXMLRPCCall()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>err</para></entry>
-	      <entry><para>desc</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para><code>PARSE-XMLRPC-CALL-ERROR</code></para></entry>
-	      <entry><para>Error parsing the XML-RPC call string.</para></entry>
-	    </row>
-	    <row>
-	      <entry><para><code>PARSE-XMLRPC-VALUE-ERROR</code></para></entry>
-	      <entry><para>Error parsing an XML-RPC value node.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-</sect2>
-
-<sect2 id="parseXMLRPCResponse">
-  <title>parseXMLRPCResponse()</title>
-  <variablelist>
-    <varlistentry>
-      <term>Synopsis</term>
-      <listitem>
-	<para>Deserializies an XML-RPC response string, returning a Qore data structure representing the response information.</para>
-      </listitem>
-    </varlistentry>
-    <varlistentry>
-      <term>Usage</term>
-      <listitem>
-	<programlisting>parseXMLRPCResponse(<replaceable>xmlrpc_response_string, [output_encoding]</replaceable>)</programlisting>
-      </listitem>
-    </varlistentry>
-    <varlistentry>
-      <term>Example</term>
-      <listitem>
-	<programlisting>$hash = parseXMLRPCResponse($xml);</programlisting>
-      </listitem>
-    </varlistentry>
-  </variablelist>
-  
-  <table>
-    <title>Arguments and Return Values for parseXMLRPCResponse()</title>
-    <tgroup cols='3' align='left' colsep='1' rowsep='1'>
-      <thead>
-	<row>
-	  <entry><para>Argument Type</para></entry>
-	  <entry><para>Return Type</para></entry>
-	  <entry><para>Description</para></entry>
-	</row>
-      </thead>
-      <tbody>
-	<row>
-	  <entry><para><code><link linkend="string_type">string</link></code>, [String]</para></entry>
-	  <entry><para><code><link linkend="hash_type">hash</link></code></para></entry>
-	  <entry><para>Deserializies an XML-RPC response string, returning a Qore data structure representing the response information.  The hash will have either a &quot;fault&quot; or a &quot;params&quot; key, depending on if it's a fault response or a non-fault response.</para></entry>
-	</row>
-      </tbody>
-    </tgroup>
-  </table>
-
-      <table>
-	<title>Exceptions Thrown by parseXMLRPCResponse()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>err</para></entry>
-	      <entry><para>desc</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para><code>PARSE-XMLRPC-RESPONSE-ERROR</code></para></entry>
-	      <entry><para>Error parsing the XML-RPC response string.</para></entry>
-	    </row>
-	    <row>
-	      <entry><para><code>PARSE-XMLRPC-VALUE-ERROR</code></para></entry>
-	      <entry><para>Error parsing an XML-RPC value node.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-</sect2>
-
-<sect2 id="parseXMLRPCValue">
-  <title>parseXMLRPCValue()</title>
-  <variablelist>
-    <varlistentry>
-      <term>Synopsis</term>
-      <listitem>
-	<para>Deserializies an XML-RPC value tree, returning a Qore data structure representing the information.</para>
-      </listitem>
-    </varlistentry>
-    <varlistentry>
-      <term>Usage</term>
-      <listitem>
-	<programlisting>parseXMLRPCValue(string <replaceable>xmlrpc_value_string, [string output_encoding]</replaceable>) returns any</programlisting>
-      </listitem>
-    </varlistentry>
-    <varlistentry>
-      <term>Example</term>
-      <listitem>
-	<programlisting>my any $data = parseXMLRPCValue($xml);</programlisting>
-      </listitem>
-    </varlistentry>
-  </variablelist>
-  
-  <table>
-    <title>Arguments and Return Values for parseXMLRPCValue()</title>
-    <tgroup cols='3' align='left' colsep='1' rowsep='1'>
-      <thead>
-	<row>
-	  <entry><para>Argument Type</para></entry>
-	  <entry><para>Return Type</para></entry>
-	  <entry><para>Description</para></entry>
-	</row>
-      </thead>
-      <tbody>
-	<row>
-	  <entry><para><code><link linkend="string_type">string</link></code>, [String]</para></entry>
-	  <entry><para><code><link linkend="any_type">any</link></code></para></entry>
-	  <entry><para>Deserializies an XML-RPC value string, returning Qore data representing the value data.</para></entry>
-	</row>
-      </tbody>
-    </tgroup>
-  </table>
-
-      <table>
-	<title>Exceptions Thrown by parseXMLRPCValue()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>err</para></entry>
-	      <entry><para>desc</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para><code>PARSE-XMLRPC-VALUE-ERROR</code></para></entry>
-	      <entry><para>Error parsing an XML-RPC value node.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
