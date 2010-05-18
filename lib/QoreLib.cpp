@@ -1159,16 +1159,24 @@ void q_strerror(QoreString &str, int err) {
 #ifdef HAVE_STRERROR_R
 
 #ifndef STRERR_BUFSIZE
-#define STRERR_BUFSIZE 512
+#define STRERR_BUFSIZE 256
 #endif
 
    str.allocate(str.strlen() + STRERR_BUFSIZE);
    // ignore strerror() error message
+#if defined(_GNU_SOURCE) && defined(LINUX)
+   // we can't help but get this version because some of the Linux
+   // header files define _GNU_SOURCE for us :-(
+   str.concat(strerror_r(err, (char *)(str.getBuffer() + str.strlen()), STRERR_BUFSIZE));
+#else
+   // use portable XSI version of strerror_r()
    int rc = strerror_r(err, (char *)(str.getBuffer() + str.strlen()), STRERR_BUFSIZE);
    if (rc && rc != EINVAL && rc != ERANGE)
       str.sprintf("unable to retrieve error code %d: strerror() returned unexpected error code %d", err, rc);
    else
       str.terminate(str.strlen() + strlen(str.getBuffer() + str.strlen()));
+#endif
+
 #else
    // global static lock for strerror() access
    static QoreThreadLock strerror_m;

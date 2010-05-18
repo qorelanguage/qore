@@ -90,7 +90,7 @@ class ExceptionSink {
 	  @param fmt the format string for the description for the exception
 	  @return always returns 0
        */
-      DLLEXPORT AbstractQoreNode *raiseErrnoException(const char *err, int err, const char *fmt, ...);
+      DLLEXPORT AbstractQoreNode *raiseErrnoException(const char *err, int en, const char *fmt, ...);
 
       //! appends a Qore-language exception to the list, and sets the 'arg' member (this object takes over the reference count of 'arg')
       /** The AbstractQoreNode pointer returned is always 0; used to simplify error handling code.

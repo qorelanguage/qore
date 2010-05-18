@@ -99,7 +99,7 @@ SHLIB_SUFFIX=so
 case "${host_os}" in
      *linux*)   AC_DEFINE(NEED_ICONV_TRANSLIT, 1, Define to 1 if //TRANSLIT should be added to the destination character set code) 
 		# set compile flags for Linux
-		CPPFLAGS="${CPPFLAGS} -D_GNU_SOURCE"
+		CPPFLAGS="${CPPFLAGS} -D_POSIX_C_SOURCE=200112L -D_XOPEN_SOURCE=600"
 		SHLIB_SUFFIX=so
 		AC_DEFINE(LINUX, 1, if compiling on Linux)
 		;;
