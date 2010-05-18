@@ -237,7 +237,7 @@ static AbstractQoreNode *f_bunzip2_to_string(const QoreListNode *args, Exception
 }
 
 void init_bzip_functions() {
-   builtinFunctions.add2("bzip2",              f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   builtinFunctions.add2("bzip2",              f_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    // 2 string variants so the variant without the level can be used in constant expressions
    builtinFunctions.add2("bzip2",              f_bzip2_str, QC_CONSTANT, QDOM_DEFAULT, binaryTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("bzip2",              f_bzip2_str, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
@@ -245,10 +245,10 @@ void init_bzip_functions() {
    builtinFunctions.add2("bzip2",              f_bzip2_bin, QC_CONSTANT, QDOM_DEFAULT, binaryTypeInfo, 1, binaryTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("bzip2",              f_bzip2_bin, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo, 2, binaryTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("bunzip2_to_binary",  f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   builtinFunctions.add2("bunzip2_to_binary",  f_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("bunzip2_to_binary",  f_bunzip2_to_binary, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo, 1, binaryTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("bunzip2_to_string",  f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   builtinFunctions.add2("bunzip2_to_string",  f_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("bunzip2_to_string",  f_bunzip2_to_string, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 2, binaryTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, new QoreStringNode(QCS_DEFAULT->getCode()));
 }
 

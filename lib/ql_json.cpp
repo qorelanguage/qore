@@ -841,7 +841,7 @@ void init_json_functions() {
    builtinFunctions.add2("makeFormattedJSONString",             f_makeFormattedJSONString, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 1, anyTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("makeFormattedJSONString",             f_makeFormattedJSONString, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 2, anyTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("parseJSON",                           f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   builtinFunctions.add2("parseJSON",                           f_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("parseJSON",                           f_parseJSON, QC_NO_FLAGS, QDOM_DEFAULT, 0, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add2("makeJSONRPCRequestString",            f_makeJSONRPCRequestString, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 4, stringTypeInfo, QORE_PARAM_NO_ARG, anyTypeInfo, QORE_PARAM_NO_ARG, anyTypeInfo, QORE_PARAM_NO_ARG, anyTypeInfo, QORE_PARAM_NO_ARG);

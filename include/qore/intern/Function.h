@@ -449,6 +449,46 @@ protected:
    int64 unique_functionality;
    int64 unique_flags;
 
+   // same as above but for variants without QC_RUNTIME_NOOP
+   bool nn_same_return_type;
+   int64 nn_unique_functionality;
+   int64 nn_unique_flags;
+   int nn_count;
+   bool parse_rt_done;
+
+   const QoreTypeInfo *nn_uniqueReturnType;
+
+   DLLLOCAL void parseCheckReturnType() {
+      if (parse_rt_done)
+         return;
+
+      parse_rt_done = true;
+
+      if (!same_return_type || pending_vlist.empty())
+         return;         
+
+      for (vlist_t::iterator i = pending_vlist.begin(), e = pending_vlist.end(); i != e; ++i) {
+         reinterpret_cast<UserSignature *>((*i)->getUserVariantBase()->getUserSignature())->resolve();
+         const QoreTypeInfo *rti = (*i)->getReturnTypeInfo();
+
+         if (i == pending_vlist.begin()) {
+            if (!vlist.empty()) {
+               if (!rti->checkIdentical(first()->getReturnTypeInfo())) {
+                  parse_same_return_type = false;
+                  break;
+               }
+            }
+            continue;
+         }
+         else {
+            if (!rti->checkIdentical(pending_first()->getReturnTypeInfo())) {
+               parse_same_return_type = false;
+               break;
+            }
+         }
+      }
+   }
+
    // convenience function for returning the first variant in the list
    DLLLOCAL const AbstractQoreFunctionVariant *first() const {
       assert(!vlist.empty());
@@ -475,11 +515,15 @@ protected:
 
    // FIXME: does not check unparsed types properly
    DLLLOCAL void addVariant(AbstractQoreFunctionVariant *variant) {
-      if (same_return_type && !vlist.empty() && !variant->getReturnTypeInfo()->checkIdentical(first()->getReturnTypeInfo()))
+      const QoreTypeInfo *rti = variant->getReturnTypeInfo();
+      if (same_return_type && !vlist.empty() && !rti->checkIdentical(first()->getReturnTypeInfo()))
 	 same_return_type = false;
 
       int64 vf = variant->getFunctionality();
       int64 vflags = variant->getFlags();
+
+      bool rtn = vflags & QC_RUNTIME_NOOP;
+
       if (vlist.empty()) {
 	 unique_functionality = vf;
          unique_flags = vflags;
@@ -489,19 +533,42 @@ protected:
          unique_flags &= vflags;
       }
 
+      if (!rtn) {
+         if (!nn_count) {
+            nn_unique_functionality = vf;
+            nn_unique_flags = vflags;
+            nn_uniqueReturnType = rti;
+            ++nn_count;
+         }
+         else {
+            nn_unique_functionality &= vf;
+            nn_unique_flags &= vflags;
+            if (nn_uniqueReturnType && !rti->checkIdentical(nn_uniqueReturnType))
+               nn_uniqueReturnType = 0;
+            ++nn_count;
+         }
+      }
+
       vlist.push_back(variant);
    }
 
 public:
-   DLLLOCAL AbstractQoreFunction() : same_return_type(true), parse_same_return_type(true), unique_functionality(QDOM_DEFAULT), unique_flags(QC_NO_FLAGS) {
+   DLLLOCAL AbstractQoreFunction() : same_return_type(true), parse_same_return_type(true), unique_functionality(QDOM_DEFAULT), unique_flags(QC_NO_FLAGS),
+                                     nn_same_return_type(true), nn_unique_functionality(QDOM_DEFAULT), nn_unique_flags(QC_NO_FLAGS), nn_count(0), parse_rt_done(true), nn_uniqueReturnType(0) {
       ilist.push_back(this);
    }
 
    // copy constructor (used by method functions when copied)
    DLLLOCAL AbstractQoreFunction(const AbstractQoreFunction &old) : same_return_type(old.same_return_type), 
-                                                                    parse_same_return_type(old.parse_same_return_type), 
+                                                                    parse_same_return_type(true), 
                                                                     unique_functionality(old.unique_functionality),
-                                                                    unique_flags(old.unique_flags) {
+                                                                    unique_flags(old.unique_flags),
+                                                                    nn_same_return_type(old.nn_same_return_type), 
+                                                                    nn_unique_functionality(old.nn_unique_functionality),
+                                                                    nn_unique_flags(old.nn_unique_flags),
+                                                                    nn_count(old.nn_count),
+                                                                    parse_rt_done(true),
+                                                                    nn_uniqueReturnType(old.nn_uniqueReturnType) {
       // copy variants by reference
       for (vlist_t::const_iterator i = old.vlist.begin(), e = old.vlist.end(); i != e; ++i)
          vlist.push_back((*i)->ref());
@@ -546,10 +613,14 @@ public:
    DLLLOCAL AbstractFunctionSignature *parseGetUniqueSignature() const;
 
    DLLLOCAL int64 getUniqueFunctionality() const {
+      if (getProgram()->getParseOptions64() & PO_REQUIRE_TYPES)
+         return nn_unique_functionality;
       return unique_functionality;
    }
 
    DLLLOCAL int64 getUniqueFlags() const {
+      if (getProgram()->getParseOptions64() & PO_REQUIRE_TYPES)
+         return nn_unique_flags;
       return unique_flags;
    }
 
@@ -560,10 +631,22 @@ public:
    DLLLOCAL void parseRollback();
 
    DLLLOCAL const QoreTypeInfo *getUniqueReturnTypeInfo() const {
+      if (getProgram()->getParseOptions64() & PO_REQUIRE_TYPES)
+         return nn_uniqueReturnType;
+
       return same_return_type && !vlist.empty() ? first()->getReturnTypeInfo() : 0;
    }
 
-   DLLLOCAL const QoreTypeInfo *parseGetUniqueReturnTypeInfo() const {
+   DLLLOCAL const QoreTypeInfo *parseGetUniqueReturnTypeInfo() {
+      parseCheckReturnType();
+
+      if (getProgram()->getParseOptions64() & PO_REQUIRE_TYPES) {
+         if (!nn_same_return_type || !parse_same_return_type)
+            return 0;
+
+         return nn_count ? nn_uniqueReturnType : (!pending_vlist.empty() ? pending_first()->getReturnTypeInfo() : 0);
+      }
+
       if (!same_return_type || !parse_same_return_type)
          return 0;
 

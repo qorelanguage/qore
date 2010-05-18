@@ -62,11 +62,12 @@
 
 // qore code flags
 #define QC_NO_FLAGS                 0   //! no flag
-#define QC_NOOP               (1 << 0)  //! this function is a noop, meaning it is only there for backwards compatibility and does nothing
+#define QC_NOOP               (1 << 0)  //! this variant is a noop, meaning it returns a constant value with the given argument types
 #define QC_USES_EXTRA_ARGS    (1 << 1)  //! code accesses arguments beyond the declared parameter list
 #define QC_CONSTANT_INTERN    (1 << 2)  //! internal constant flag, use QC_CONSTANT instead
 #define QC_DEPRECATED         (1 << 3)  //! function or method is deprecated and will be removed in a later release
 #define QC_RET_VALUE_ONLY     (1 << 4)  //! code only returns a value and has no other side effects
+#define QC_RUNTIME_NOOP       (1 << 5)  //! this variant is a noop like QC_NOOP, but additionally is not available to programs executing with %require-types (PO_REQUIRE_TYPES)
 
 // composite flags
 #define QC_CONSTANT (QC_CONSTANT_INTERN | QC_RET_VALUE_ONLY) //! code is safe to use in a constant expression (i.e. has no side effects, does not change internal state, cannot throw an exception under any circumstances, just returns a calculation based on its arguments)

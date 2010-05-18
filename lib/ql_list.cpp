@@ -216,7 +216,6 @@ static AbstractQoreNode *f_inlist_hard_any_list(const QoreListNode *args, Except
 void init_list_functions() {
    // sort() will return the first argument passed if it's not a list
    builtinFunctions.add2("sort", f_sort_noop, QC_NOOP, QDOM_DEFAULT);
-
    builtinFunctions.add2("sort", f_sort, QC_CONSTANT, QDOM_DEFAULT, listTypeInfo, 1, listTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("sort", f_sort_str, QC_NO_FLAGS, QDOM_DEFAULT, listTypeInfo, 2, listTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("sort", f_sort_code, QC_NO_FLAGS, QDOM_DEFAULT, listTypeInfo, 2, listTypeInfo, QORE_PARAM_NO_ARG, codeTypeInfo, QORE_PARAM_NO_ARG);

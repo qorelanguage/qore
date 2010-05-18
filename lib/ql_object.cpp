@@ -80,13 +80,13 @@ static AbstractQoreNode *f_callObjectMethodArgs_list(const QoreListNode *args, E
 void init_object_functions() {
    QORE_TRACE("init_object_functions()");
    
-   builtinFunctions.add2("getMethodList", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   builtinFunctions.add2("getMethodList", f_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("getMethodList", f_getMethodList, QC_CONSTANT, QDOM_DEFAULT, listTypeInfo, 1, objectTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("callObjectMethod", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   builtinFunctions.add2("callObjectMethod", f_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("callObjectMethod", f_callObjectMethod, QC_USES_EXTRA_ARGS, QDOM_DEFAULT, 0, 2, objectTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("callObjectMethodArgs", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   builtinFunctions.add2("callObjectMethodArgs", f_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("callObjectMethodArgs", f_callObjectMethodArgs, QC_NO_FLAGS, QDOM_DEFAULT, 0, 2, objectTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("callObjectMethodArgs", f_callObjectMethodArgs_something, QC_NO_FLAGS, QDOM_DEFAULT, 0, 3, objectTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG, somethingTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("callObjectMethodArgs", f_callObjectMethodArgs_list, QC_NO_FLAGS, QDOM_DEFAULT, 0, 3, objectTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG, listTypeInfo, QORE_PARAM_NO_ARG);

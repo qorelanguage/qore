@@ -100,7 +100,7 @@ static AbstractQoreNode *f_getgrnam2(const QoreListNode *params, ExceptionSink *
 }
 
 void init_pwd_functions() {
-   builtinFunctions.add2("getpwuid", f_noop, QC_NOOP, QDOM_EXTERNAL_INFO, nothingTypeInfo);
+   builtinFunctions.add2("getpwuid", f_noop, QC_RUNTIME_NOOP, QDOM_EXTERNAL_INFO, nothingTypeInfo);
    builtinFunctions.add2("getpwuid", f_getpwuid, QC_CONSTANT, QDOM_EXTERNAL_INFO, anyTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("getpwuid2", f_getpwuid2, QC_NO_FLAGS, QDOM_EXTERNAL_INFO, hashTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
    

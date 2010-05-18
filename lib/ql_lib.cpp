@@ -588,7 +588,7 @@ void init_lib_functions() {
    builtinFunctions.add2("exit",        f_exit, QC_NO_FLAGS, QDOM_PROCESS, nothingTypeInfo, 1, anyTypeInfo, zero());
    builtinFunctions.add2("abort",       f_abort, QC_NO_FLAGS, QDOM_PROCESS, nothingTypeInfo);
 
-   builtinFunctions.add2("system",      f_noop, QC_NOOP, QDOM_EXTERNAL_PROCESS, nothingTypeInfo);
+   builtinFunctions.add2("system",      f_noop, QC_RUNTIME_NOOP, QDOM_EXTERNAL_PROCESS, nothingTypeInfo);
    builtinFunctions.add2("system",      f_system, QC_NO_FLAGS, QDOM_EXTERNAL_PROCESS, bigIntTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add2("getuid",      f_getuid, QC_CONSTANT, QDOM_EXTERNAL_INFO, bigIntTypeInfo);
@@ -596,11 +596,11 @@ void init_lib_functions() {
    builtinFunctions.add2("getgid",      f_getgid, QC_CONSTANT, QDOM_EXTERNAL_INFO, bigIntTypeInfo);
    builtinFunctions.add2("getegid",     f_getegid, QC_CONSTANT, QDOM_EXTERNAL_INFO, bigIntTypeInfo);
 
-   builtinFunctions.add2("sleep",       f_noop, QC_NOOP, QDOM_PROCESS, nothingTypeInfo);
+   builtinFunctions.add2("sleep",       f_noop, QC_RUNTIME_NOOP, QDOM_PROCESS, nothingTypeInfo);
    builtinFunctions.add2("sleep",       f_sleep, QC_NO_FLAGS, QDOM_PROCESS, bigIntTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("sleep",       f_sleep, QC_NO_FLAGS, QDOM_PROCESS, bigIntTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("usleep",      f_noop, QC_NOOP, QDOM_PROCESS, nothingTypeInfo);
+   builtinFunctions.add2("usleep",      f_noop, QC_RUNTIME_NOOP, QDOM_PROCESS, nothingTypeInfo);
    builtinFunctions.add2("usleep",      f_usleep, QC_NO_FLAGS, QDOM_PROCESS, bigIntTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("usleep",      f_usleep, QC_NO_FLAGS, QDOM_PROCESS, bigIntTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
 
@@ -609,49 +609,49 @@ void init_lib_functions() {
 
    builtinFunctions.add2("fork",        f_fork, QC_NO_FLAGS, QDOM_PROCESS, bigIntTypeInfo);
 
-   builtinFunctions.add2("kill",        f_noop, QC_NOOP, QDOM_EXTERNAL_PROCESS, nothingTypeInfo);
+   builtinFunctions.add2("kill",        f_noop, QC_RUNTIME_NOOP, QDOM_EXTERNAL_PROCESS, nothingTypeInfo);
    builtinFunctions.add2("kill",        f_kill, QC_NO_FLAGS, QDOM_EXTERNAL_PROCESS, bigIntTypeInfo, 2, softBigIntTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, new QoreBigIntNode(SIGHUP));
 
    // builtinFunctions.add("wait",        f_wait);
    // builtinFunctions.add("waitpid",     f_waitpid);
 
-   builtinFunctions.add2("stat",        f_noop, QC_NOOP, QDOM_FILESYSTEM, nothingTypeInfo);
+   builtinFunctions.add2("stat",        f_noop, QC_RUNTIME_NOOP, QDOM_FILESYSTEM, nothingTypeInfo);
    builtinFunctions.add2("stat",        f_stat, QC_NO_FLAGS, QDOM_FILESYSTEM, 0, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("lstat",       f_noop, QC_NOOP, QDOM_FILESYSTEM, nothingTypeInfo);
+   builtinFunctions.add2("lstat",       f_noop, QC_RUNTIME_NOOP, QDOM_FILESYSTEM, nothingTypeInfo);
    builtinFunctions.add2("lstat",       f_lstat, QC_NO_FLAGS, QDOM_FILESYSTEM, 0, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("hstat",       f_noop, QC_NOOP, QDOM_FILESYSTEM, nothingTypeInfo);
+   builtinFunctions.add2("hstat",       f_noop, QC_RUNTIME_NOOP, QDOM_FILESYSTEM, nothingTypeInfo);
    builtinFunctions.add2("hstat",       f_hstat, QC_NO_FLAGS, QDOM_FILESYSTEM, 0, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("hlstat",      f_noop, QC_NOOP, QDOM_FILESYSTEM, nothingTypeInfo);
+   builtinFunctions.add2("hlstat",      f_noop, QC_RUNTIME_NOOP, QDOM_FILESYSTEM, nothingTypeInfo);
    builtinFunctions.add2("hlstat",      f_hlstat, QC_NO_FLAGS, QDOM_FILESYSTEM, 0, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("glob",        f_noop, QC_NOOP, QDOM_FILESYSTEM, nothingTypeInfo);
+   builtinFunctions.add2("glob",        f_noop, QC_RUNTIME_NOOP, QDOM_FILESYSTEM, nothingTypeInfo);
    builtinFunctions.add2("glob",        f_glob, QC_NO_FLAGS, QDOM_FILESYSTEM, 0, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("unlink",      f_noop, QC_NOOP, QDOM_FILESYSTEM, nothingTypeInfo);
+   builtinFunctions.add2("unlink",      f_noop, QC_RUNTIME_NOOP, QDOM_FILESYSTEM, nothingTypeInfo);
    builtinFunctions.add2("unlink",      f_unlink, QC_NO_FLAGS, QDOM_FILESYSTEM, bigIntTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("umask",       f_noop, QC_NOOP, QDOM_FILESYSTEM, nothingTypeInfo);
+   builtinFunctions.add2("umask",       f_noop, QC_RUNTIME_NOOP, QDOM_FILESYSTEM, nothingTypeInfo);
    builtinFunctions.add2("umask",       f_umask, QC_NO_FLAGS, QDOM_FILESYSTEM, bigIntTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add2("rand",        f_rand, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
 
-   builtinFunctions.add2("srand",       f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   builtinFunctions.add2("srand",       f_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("srand",       f_srand, QC_NO_FLAGS, QDOM_FILESYSTEM, nothingTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add2("gethostname", f_gethostname, QC_NO_FLAGS, QDOM_EXTERNAL_INFO, stringTypeInfo);
 
    builtinFunctions.add2("errno",       f_errno, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
 
-   builtinFunctions.add2("strerror",    f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   builtinFunctions.add2("strerror",    f_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("strerror",    f_strerror, QC_CONSTANT, QDOM_DEFAULT, stringTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("basename",    f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   builtinFunctions.add2("basename",    f_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("basename",    f_basename, QC_CONSTANT, QDOM_DEFAULT, stringTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("dirname",     f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   builtinFunctions.add2("dirname",     f_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("dirname",     f_dirname, QC_CONSTANT, QDOM_DEFAULT, stringTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add2("mkdir",       f_mkdir, QC_NO_FLAGS, QDOM_FILESYSTEM, bigIntTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, new QoreBigIntNode(0777));
@@ -666,7 +666,7 @@ void init_lib_functions() {
 
    builtinFunctions.add2("mkfifo",      f_mkfifo, QC_NO_FLAGS, QDOM_FILESYSTEM, bigIntTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, new QoreBigIntNode(0600));
 
-   builtinFunctions.add2("exec",        f_noop, QC_NOOP, QDOM_EXTERNAL_PROCESS | QDOM_PROCESS, nothingTypeInfo);
+   builtinFunctions.add2("exec",        f_noop, QC_RUNTIME_NOOP, QDOM_EXTERNAL_PROCESS | QDOM_PROCESS, nothingTypeInfo);
    builtinFunctions.add2("exec",        f_exec, QC_NO_FLAGS, QDOM_EXTERNAL_PROCESS | QDOM_PROCESS, nothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add2("setuid",      f_setuid, QC_NO_FLAGS, QDOM_PROCESS, bigIntTypeInfo, 1, softBigIntTypeInfo);
@@ -677,16 +677,16 @@ void init_lib_functions() {
 
    builtinFunctions.add2("setsid",      f_setsid, QC_NO_FLAGS, QDOM_PROCESS, bigIntTypeInfo);
 
-   builtinFunctions.add2("gethostbyname",       f_noop, QC_NOOP, QDOM_EXTERNAL_INFO, nothingTypeInfo);
+   builtinFunctions.add2("gethostbyname",       f_noop, QC_RUNTIME_NOOP, QDOM_EXTERNAL_INFO, nothingTypeInfo);
    builtinFunctions.add2("gethostbyname",       f_gethostbyname, QC_CONSTANT, QDOM_EXTERNAL_INFO, 0, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("gethostbyaddr",       f_noop, QC_NOOP, QDOM_EXTERNAL_INFO, nothingTypeInfo);
+   builtinFunctions.add2("gethostbyaddr",       f_noop, QC_RUNTIME_NOOP, QDOM_EXTERNAL_INFO, nothingTypeInfo);
    builtinFunctions.add2("gethostbyaddr",       f_gethostbyaddr, QC_CONSTANT, QDOM_EXTERNAL_INFO, 0, 2, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, new QoreBigIntNode(AF_INET));
 
-   builtinFunctions.add2("gethostbyname_long",  f_noop, QC_NOOP, QDOM_EXTERNAL_INFO, nothingTypeInfo);
+   builtinFunctions.add2("gethostbyname_long",  f_noop, QC_RUNTIME_NOOP, QDOM_EXTERNAL_INFO, nothingTypeInfo);
    builtinFunctions.add2("gethostbyname_long",  f_gethostbyname_long, QC_CONSTANT, QDOM_EXTERNAL_INFO, 0, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("gethostbyaddr_long",  f_noop, QC_NOOP, QDOM_EXTERNAL_INFO, nothingTypeInfo);
+   builtinFunctions.add2("gethostbyaddr_long",  f_noop, QC_RUNTIME_NOOP, QDOM_EXTERNAL_INFO, nothingTypeInfo);
    builtinFunctions.add2("gethostbyaddr_long",  f_gethostbyaddr_long, QC_CONSTANT, QDOM_EXTERNAL_INFO, 0, 2, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, new QoreBigIntNode(AF_INET));
 
    // getcwd can return NOTHING if an error occurs

@@ -314,7 +314,7 @@ void init_time_functions() {
    builtinFunctions.add2("now_us", f_now_us, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo);
    builtinFunctions.add2("now_utc", f_now_utc, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo);
 
-   builtinFunctions.add2("format_date", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   builtinFunctions.add2("format_date", f_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("format_date", f_format_date, QC_CONSTANT, QDOM_DEFAULT, stringTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, dateTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add2("localtime", f_localtime, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo);
@@ -325,77 +325,77 @@ void init_time_functions() {
    builtinFunctions.add2("gmtime", f_gmtime_date, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("gmtime", f_gmtime_int_int, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo, 2, softBigIntTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, zero());
 
-   builtinFunctions.add2("mktime", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   builtinFunctions.add2("mktime", f_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("mktime", f_get_epoch_seconds, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("timegm", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   builtinFunctions.add2("timegm", f_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("timegm", f_timegm, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("get_epoch_seconds", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   builtinFunctions.add2("get_epoch_seconds", f_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("get_epoch_seconds", f_get_epoch_seconds, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("years", f_reldate_noop, QC_NOOP, QDOM_DEFAULT, dateTypeInfo);
+   builtinFunctions.add2("years", f_reldate_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, dateTypeInfo);
    builtinFunctions.add2("years", f_years, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("months", f_reldate_noop, QC_NOOP, QDOM_DEFAULT, dateTypeInfo);
+   builtinFunctions.add2("months", f_reldate_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, dateTypeInfo);
    builtinFunctions.add2("months", f_months, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("days", f_reldate_noop, QC_NOOP, QDOM_DEFAULT, dateTypeInfo);
+   builtinFunctions.add2("days", f_reldate_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, dateTypeInfo);
    builtinFunctions.add2("days", f_days, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("hours", f_reldate_noop, QC_NOOP, QDOM_DEFAULT, dateTypeInfo);
+   builtinFunctions.add2("hours", f_reldate_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, dateTypeInfo);
    builtinFunctions.add2("hours", f_hours, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("minutes", f_reldate_noop, QC_NOOP, QDOM_DEFAULT, dateTypeInfo);
+   builtinFunctions.add2("minutes", f_reldate_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, dateTypeInfo);
    builtinFunctions.add2("minutes", f_minutes, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("seconds", f_reldate_noop, QC_NOOP, QDOM_DEFAULT, dateTypeInfo);
+   builtinFunctions.add2("seconds", f_reldate_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, dateTypeInfo);
    builtinFunctions.add2("seconds", f_seconds, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("milliseconds", f_reldate_noop, QC_NOOP, QDOM_DEFAULT, dateTypeInfo);
+   builtinFunctions.add2("milliseconds", f_reldate_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, dateTypeInfo);
    builtinFunctions.add2("milliseconds", f_milliseconds, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add2("microseconds", f_microseconds, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("get_years", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   builtinFunctions.add2("get_years", f_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("get_years", f_get_years, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("get_months", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   builtinFunctions.add2("get_months", f_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("get_months", f_get_months, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("get_days", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   builtinFunctions.add2("get_days", f_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("get_days", f_get_days, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("get_hours", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   builtinFunctions.add2("get_hours", f_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("get_hours", f_get_hours, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("get_minutes", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   builtinFunctions.add2("get_minutes", f_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("get_minutes", f_get_minutes, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("get_seconds", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   builtinFunctions.add2("get_seconds", f_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("get_seconds", f_get_seconds, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("get_milliseconds", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   builtinFunctions.add2("get_milliseconds", f_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("get_milliseconds", f_get_milliseconds, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add2("get_microseconds", f_get_microseconds, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("get_midnight", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   builtinFunctions.add2("get_midnight", f_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("get_midnight", f_get_midnight, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("getDayNumber", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   builtinFunctions.add2("getDayNumber", f_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("getDayNumber", f_getDayNumber, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("getDayOfWeek", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   builtinFunctions.add2("getDayOfWeek", f_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("getDayOfWeek", f_getDayOfWeek, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("getISODayOfWeek", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   builtinFunctions.add2("getISODayOfWeek", f_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("getISODayOfWeek", f_getISODayOfWeek, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("getISOWeekHash", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   builtinFunctions.add2("getISOWeekHash", f_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("getISOWeekHash", f_getISOWeekHash, QC_CONSTANT, QDOM_DEFAULT, hashTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("getISOWeekString", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   builtinFunctions.add2("getISOWeekString", f_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("getISOWeekString", f_getISOWeekString, QC_CONSTANT, QDOM_DEFAULT, stringTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add2("getDateFromISOWeek", f_getDateFromISOWeek, QC_NO_FLAGS, QDOM_DEFAULT, dateTypeInfo, 3, softBigIntTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, new QoreBigIntNode(1));
@@ -404,7 +404,7 @@ void init_time_functions() {
    builtinFunctions.add2("clock_getnanos",      f_clock_getnanos, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo);
    builtinFunctions.add2("clock_getmicros",     f_clock_getmicros, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo);
 
-   builtinFunctions.add2("date_ms", f_date_noop, QC_NOOP, QDOM_DEFAULT, dateTypeInfo);
+   builtinFunctions.add2("date_ms", f_date_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, dateTypeInfo);
    builtinFunctions.add2("date_ms", f_date_ms, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add2("date_us", f_date_us, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);

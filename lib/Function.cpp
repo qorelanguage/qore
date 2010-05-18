@@ -369,7 +369,7 @@ static QoreStringNode *getNoopError(const AbstractQoreFunction *func, const Abst
    QoreStringNode *desc = new QoreStringNode;
    if (aqf->className())
       desc->sprintf("%s::", aqf->className());
-   desc->sprintf("%s(%s) is a backwards-compatible variant that returns a constant value when incorrect data types are passed to the function", func->getName(), variant->getSignature()->getSignatureText());
+   desc->sprintf("%s(%s) is a variant that returns a constant value when incorrect data types are passed to the function", func->getName(), variant->getSignature()->getSignatureText());
    const QoreTypeInfo *rti = variant->getReturnTypeInfo();
    if (rti->hasType() && !variant->numParams()) {
       desc->concat(" and always returns ");
@@ -489,6 +489,12 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::findVariant(const QoreL
 	    xsink->raiseException("INVALID-FUNCTION-ACCESS", "parse options do not allow access to builtin %s '%s%s%s(%s)'", class_name ? "method" : "function", class_name ? class_name : "", class_name ? "::" : "", getName(), variant->getSignature()->getSignatureText());
 	 }
 	 return 0;
+      }
+
+      if (po & PO_REQUIRE_TYPES && (variant->getFlags() & QC_RUNTIME_NOOP)) {
+	 QoreStringNode *desc = getNoopError(this, aqf, variant);
+	 desc->concat("; this variant is not accessible when PO_REQUIRE_TYPES is set");
+	 xsink->raiseException("CALL-WITH-TYPE-ERRORS", desc);
       }
    }
 
@@ -828,10 +834,19 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
       }
       getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
    }
-   else if (variant && variant->getFlags() & QC_NOOP) {
-      QoreStringNode *desc = getNoopError(this, aqf, variant);
-      desc->concat("; to disable this warning, use '%disable-warning invalid-operation' in your code");
-      getProgram()->makeParseWarning(QP_WARN_CALL_WITH_TYPE_ERRORS, "CALL-WITH-TYPE-ERRORS", desc);
+   else if (variant) {
+      int64 flags = variant->getFlags();
+      if (flags & (QC_NOOP | QC_RUNTIME_NOOP)) {
+	 QoreStringNode *desc = getNoopError(this, aqf, variant);
+	 if ((flags & QC_RUNTIME_NOOP) && (getProgram()->getParseOptions64() & PO_REQUIRE_TYPES)) {
+	    desc->concat("; this variant is not accessible when PO_REQUIRE_TYPES is set");
+	    getProgram()->makeParseException("CALL-WITH-TYPE-ERRORS", desc);
+	 }
+	 else {
+	    desc->concat("; to disable this warning, use '%disable-warning invalid-operation' in your code");
+	    getProgram()->makeParseWarning(QP_WARN_CALL_WITH_TYPE_ERRORS, "CALL-WITH-TYPE-ERRORS", desc);
+	 }
+      }
    }
    //printd(5, "AbstractQoreFunction::parseFindVariant() this=%p %s%s%s() returning %p %s(%s) flags=%lld\n", this, className() ? className() : "", className() ? "::" : "", getName(), variant, getName(), variant ? variant->getSignature()->getSignatureText() : "n/a", variant ? variant->getFlags() : 0ll);
    return variant;
@@ -1316,12 +1331,16 @@ void AbstractQoreFunction::resolvePendingSignatures() {
 }
 
 int AbstractQoreFunction::parseAddVariant(AbstractQoreFunctionVariant *variant) {
+   parse_rt_done = false;
+
    // check for duplicate signature with existing variants
    if (parseCheckDuplicateSignature(variant->getUserVariantBase())) {
       variant->deref();
       return -1;
    }
+
    pending_vlist.push_back(variant);
+
    return 0;
 }
 
@@ -1333,6 +1352,8 @@ void AbstractQoreFunction::parseCommit() {
 
    if (!parse_same_return_type && same_return_type)
       same_return_type = false;
+
+   parse_rt_done = true;
 }
 
 void AbstractQoreFunction::parseRollback() {
@@ -1340,9 +1361,13 @@ void AbstractQoreFunction::parseRollback() {
 
    if (!parse_same_return_type && same_return_type)
       parse_same_return_type = true;
+
+   parse_rt_done = true;
 }
 
 void UserFunction::parseInit() {
+   parse_same_return_type = same_return_type;
+
    for (vlist_t::iterator i = pending_vlist.begin(), e = pending_vlist.end(); i != e; ++i) {
       assert((*i)->getUserVariantBase());
       UFV(*i)->parseInit(name);

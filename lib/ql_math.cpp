@@ -256,85 +256,85 @@ static AbstractQoreNode *f_format_number(const QoreListNode *params, ExceptionSi
 }
 
 void init_math_functions() {
-   builtinFunctions.add2("round",         f_float_noop, QC_NOOP, QDOM_DEFAULT, floatTypeInfo);
+   builtinFunctions.add2("round",         f_float_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, floatTypeInfo);
    builtinFunctions.add2("round",         f_round, QC_CONSTANT, QDOM_DEFAULT, floatTypeInfo, 1, softFloatTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("ceil",          f_float_noop, QC_NOOP, QDOM_DEFAULT, floatTypeInfo);
+   builtinFunctions.add2("ceil",          f_float_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, floatTypeInfo);
    builtinFunctions.add2("ceil",          f_ceil, QC_CONSTANT, QDOM_DEFAULT, floatTypeInfo, 1, softFloatTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("floor",         f_float_noop, QC_NOOP, QDOM_DEFAULT, floatTypeInfo);
+   builtinFunctions.add2("floor",         f_float_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, floatTypeInfo);
    builtinFunctions.add2("floor",         f_floor, QC_CONSTANT, QDOM_DEFAULT, floatTypeInfo, 1, softFloatTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add2("pow",           f_pow, QC_RET_VALUE_ONLY, QDOM_DEFAULT, floatTypeInfo, 2, softFloatTypeInfo, zero_float(), softFloatTypeInfo, zero_float());
 
    // overloaded abs()
-   builtinFunctions.add2("abs",           f_float_noop, QC_NOOP, QDOM_DEFAULT, floatTypeInfo);
+   builtinFunctions.add2("abs",           f_float_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, floatTypeInfo);
    builtinFunctions.add2("abs",           f_abs_float, QC_CONSTANT, QDOM_DEFAULT, floatTypeInfo, 1, softFloatTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("abs",           f_abs_int, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo, 1, bigIntTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("hypot",         f_float_noop, QC_NOOP, QDOM_DEFAULT, floatTypeInfo);
+   builtinFunctions.add2("hypot",         f_float_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, floatTypeInfo);
    builtinFunctions.add2("hypot",         f_hypot, QC_CONSTANT, QDOM_DEFAULT, floatTypeInfo, 2, anyTypeInfo, QORE_PARAM_NO_ARG, softFloatTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("hypot",         f_hypot, QC_CONSTANT, QDOM_DEFAULT, floatTypeInfo, 2, softFloatTypeInfo, QORE_PARAM_NO_ARG, anyTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("sqrt",          f_float_noop, QC_NOOP, QDOM_DEFAULT, floatTypeInfo);
+   builtinFunctions.add2("sqrt",          f_float_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, floatTypeInfo);
    builtinFunctions.add2("sqrt",          f_sqrt, QC_CONSTANT, QDOM_DEFAULT, floatTypeInfo, 1, softFloatTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("cbrt",          f_float_noop, QC_NOOP, QDOM_DEFAULT, floatTypeInfo);
+   builtinFunctions.add2("cbrt",          f_float_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, floatTypeInfo);
    builtinFunctions.add2("cbrt",          f_cbrt, QC_CONSTANT, QDOM_DEFAULT, floatTypeInfo, 1, softFloatTypeInfo, QORE_PARAM_NO_ARG);
  
-   builtinFunctions.add2("sin",           f_float_noop, QC_NOOP, QDOM_DEFAULT, floatTypeInfo);
+   builtinFunctions.add2("sin",           f_float_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, floatTypeInfo);
    builtinFunctions.add2("sin",           f_sin, QC_CONSTANT, QDOM_DEFAULT, floatTypeInfo, 1, softFloatTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("cos",           f_float_one_noop, QC_NOOP, QDOM_DEFAULT, floatTypeInfo);
+   builtinFunctions.add2("cos",           f_float_one_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, floatTypeInfo);
    builtinFunctions.add2("cos",           f_cos, QC_CONSTANT, QDOM_DEFAULT, floatTypeInfo, 1, softFloatTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("tan",           f_float_noop, QC_NOOP, QDOM_DEFAULT, floatTypeInfo);
+   builtinFunctions.add2("tan",           f_float_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, floatTypeInfo);
    builtinFunctions.add2("tan",           f_tan, QC_CONSTANT, QDOM_DEFAULT, floatTypeInfo, 1, softFloatTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("asin",          f_float_noop, QC_NOOP, QDOM_DEFAULT, floatTypeInfo);
+   builtinFunctions.add2("asin",          f_float_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, floatTypeInfo);
    builtinFunctions.add2("asin",          f_asin, QC_CONSTANT, QDOM_DEFAULT, floatTypeInfo, 1, softFloatTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add2("acos",          f_acos, QC_CONSTANT, QDOM_DEFAULT, floatTypeInfo, 1, anyTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("atan",          f_float_noop, QC_NOOP, QDOM_DEFAULT, floatTypeInfo);
+   builtinFunctions.add2("atan",          f_float_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, floatTypeInfo);
    builtinFunctions.add2("atan",          f_atan, QC_CONSTANT, QDOM_DEFAULT, floatTypeInfo, 1, softFloatTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("atan2",         f_float_noop, QC_NOOP, QDOM_DEFAULT, floatTypeInfo);
+   builtinFunctions.add2("atan2",         f_float_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, floatTypeInfo);
    builtinFunctions.add2("atan2",         f_atan2, QC_CONSTANT, QDOM_DEFAULT, floatTypeInfo, 2, softFloatTypeInfo, QORE_PARAM_NO_ARG, anyTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("sinh",          f_float_noop, QC_NOOP, QDOM_DEFAULT, floatTypeInfo);
+   builtinFunctions.add2("sinh",          f_float_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, floatTypeInfo);
    builtinFunctions.add2("sinh",          f_sinh, QC_CONSTANT, QDOM_DEFAULT, floatTypeInfo, 1, softFloatTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("cosh",          f_float_one_noop, QC_NOOP, QDOM_DEFAULT, floatTypeInfo);
+   builtinFunctions.add2("cosh",          f_float_one_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, floatTypeInfo);
    builtinFunctions.add2("cosh",          f_cosh, QC_CONSTANT, QDOM_DEFAULT, floatTypeInfo, 1, softFloatTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("tanh",          f_float_noop, QC_NOOP, QDOM_DEFAULT, floatTypeInfo);
+   builtinFunctions.add2("tanh",          f_float_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, floatTypeInfo);
    builtinFunctions.add2("tanh",          f_tanh, QC_CONSTANT, QDOM_DEFAULT, floatTypeInfo, 1, softFloatTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("nlog",          f_float_minus_infinity_noop, QC_NOOP, QDOM_DEFAULT, floatTypeInfo);
+   builtinFunctions.add2("nlog",          f_float_minus_infinity_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, floatTypeInfo);
    builtinFunctions.add2("nlog",          f_nlog, QC_CONSTANT, QDOM_DEFAULT, floatTypeInfo, 1, softFloatTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("log10",         f_float_minus_infinity_noop, QC_NOOP, QDOM_DEFAULT, floatTypeInfo);
+   builtinFunctions.add2("log10",         f_float_minus_infinity_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, floatTypeInfo);
    builtinFunctions.add2("log10",         f_log10, QC_CONSTANT, QDOM_DEFAULT, floatTypeInfo, 1, softFloatTypeInfo, QORE_PARAM_NO_ARG);
 
-   //builtinFunctions.add2("log2",          f_float_minus_infinity_noop, QC_NOOP, QDOM_DEFAULT, floatTypeInfo);
+   //builtinFunctions.add2("log2",          f_float_minus_infinity_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, floatTypeInfo);
    //builtinFunctions.add2("log2",          f_log2, QC_CONSTANT, QDOM_DEFAULT, floatTypeInfo, 1, softFloatTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("log1p",         f_float_noop, QC_NOOP, QDOM_DEFAULT, floatTypeInfo);
+   builtinFunctions.add2("log1p",         f_float_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, floatTypeInfo);
    builtinFunctions.add2("log1p",         f_log1p, QC_CONSTANT, QDOM_DEFAULT, floatTypeInfo, 1, softFloatTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("logb",          f_float_minus_infinity_noop, QC_NOOP, QDOM_DEFAULT, floatTypeInfo);
+   builtinFunctions.add2("logb",          f_float_minus_infinity_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, floatTypeInfo);
    builtinFunctions.add2("logb",          f_logb, QC_CONSTANT, QDOM_DEFAULT, floatTypeInfo, 1, softFloatTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("exp",           f_float_one_noop, QC_NOOP, QDOM_DEFAULT, floatTypeInfo);
+   builtinFunctions.add2("exp",           f_float_one_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, floatTypeInfo);
    builtinFunctions.add2("exp",           f_exp, QC_CONSTANT, QDOM_DEFAULT, floatTypeInfo, 1, softFloatTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("exp2",          f_float_one_noop, QC_NOOP, QDOM_DEFAULT, floatTypeInfo);
+   builtinFunctions.add2("exp2",          f_float_one_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, floatTypeInfo);
    builtinFunctions.add2("exp2",          f_exp2, QC_CONSTANT, QDOM_DEFAULT, floatTypeInfo, 1, softFloatTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("expm1",         f_float_noop, QC_NOOP, QDOM_DEFAULT, floatTypeInfo);
+   builtinFunctions.add2("expm1",         f_float_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, floatTypeInfo);
    builtinFunctions.add2("expm1",         f_expm1, QC_CONSTANT, QDOM_DEFAULT, floatTypeInfo, 1, softFloatTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("format_number", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   builtinFunctions.add2("format_number", f_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("format_number", f_format_number, QC_CONSTANT, QDOM_DEFAULT, stringTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, anyTypeInfo, QORE_PARAM_NO_ARG);
 }
