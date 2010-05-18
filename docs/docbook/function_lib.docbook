@@ -23673,30 +23673,30 @@ the resulting string will correspond to the encoding given as the first argument
 
   <para>JSON (JavaScript Object Notation) functions allow serializing and deserializing between JSON strings and qore data structures.  There are also functions for JSONRPC support for easier integration with JavaScript clients; see below for details.</para>
 
-  <sect2 id="makeJSONString">
-    <title>makeJSONString()</title>
+  <sect2 id="makeFormattedJSONRPC11ErrorString">
+    <title>makeFormattedJSONRPC11ErrorString()</title>
     <variablelist>
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Serializes qore data into a JSON string, without any line breaks.  By default the string produced will be in UTF-8 encoding, but this can be overridden by the second argument.</para>
+          <para>Creates a JSON-RPC 1.1 error response string from the parameters passed, formatted with line breaks for easier readability.  To follow JSON-RPC specifications, the generated string will always be in UTF-8 encoding.  The first code argument must be an integer between 100 and 999 (inclusive).  The last argument can be of any Qore type (or complex data structure).</para>
         </listitem>
       </varlistentry>
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <programlisting>makeJSONString(<replaceable>Any Type, [Encoding]</replaceable>)</programlisting>
+          <para><code><link linkend="makeFormattedJSONRPC11ErrorString">makeFormattedJSONRPC11ErrorString</link>(<link linkend="softint_type">softint</link> <replaceable>$code</replaceable>, <link linkend="string_type">string</link> <replaceable>$error</replaceable>, <link linkend="any_type">any</link> <replaceable>$id</replaceable>, <link linkend="any_type">any</link> <replaceable>$error_response</replaceable>) <command>returns</command> <link linkend="string_type">string</link></code></para>
         </listitem>
       </varlistentry>
       <varlistentry>
         <term>Example</term>
         <listitem>
-          <programlisting>$json = makeJSONString($value);</programlisting>
+          <programlisting>$json = makeFormattedJSONRPC11ErrorString(200, $msg, $id, $error);</programlisting>
         </listitem>
       </varlistentry>
     </variablelist>
     <table>
-      <title>Arguments and Return Values for makeJSONString()</title>
+      <title>Arguments and Return Values for makeFormattedJSONRPC11ErrorString()</title>
       <tgroup cols="3" align="left" colsep="1" rowsep="1">
         <thead>
           <row>
@@ -23714,20 +23714,19 @@ the resulting string will correspond to the encoding given as the first argument
         <tbody>
           <row>
             <entry>
-              <para>Any Type, [Encoding]</para>
+              <para><code><link linkend="softint_type">softint</link> <replaceable>$code</replaceable>, <link linkend="string_type">string</link> <replaceable>$error</replaceable>, [<link linkend="any_type">any</link> <replaceable>$id</replaceable>, <link linkend="any_type">any</link> <replaceable>$error_response</replaceable>]</code></para>
             </entry>
             <entry>
               <para><code><link linkend="string_type">string</link></code></para>
             </entry>
             <entry>
-              <para>Serializes qore data into a JSON string, without any line breaks.</para>
+              <para>Creates a JSON-RPC 1.1 error response string from the parameters passed, formatted with line breaks for easier readability.</para>
             </entry>
           </row>
         </tbody>
       </tgroup>
     </table>
-
-    <table><title>Exceptions Thrown by makeJSONString()</title>
+    <table><title>Exceptions Thrown by makeFormattedJSONRPC11ErrorString()</title>
     <tgroup cols='2' align='left' colsep='1' rowsep='1'>
       <thead>
 	<row>
@@ -23740,35 +23739,40 @@ the resulting string will correspond to the encoding given as the first argument
 	  <entry><para><code>JSON-SERIALIZATION-ERROR</code></para></entry>
 	  <entry><para>Error serializing to JSON string.</para></entry>
 	</row>
+	<row>
+	  <entry><para><code>MAKE-JSONRPC11-ERROR-STRING-ERROR</code></para></entry>
+	  <entry><para>Invalid argument to method.</para></entry>
+	</row>
       </tbody>
     </tgroup>
     </table>
 
   </sect2>
-  <sect2 id="makeFormattedJSONString">
-    <title>makeFormattedJSONString()</title>
+
+  <sect2 id="makeFormattedJSONRPCErrorString">
+    <title>makeFormattedJSONRPCErrorString()</title>
     <variablelist>
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Serializes qore data into a JSON string, formatted with line breaks for easier readability.  By default the string produced will be in UTF-8 encoding, but this can be overridden by the second argument.</para>
+          <para>Creates a generic JSON-RPC error response string from the parameters passed, formatted with line breaks for easier readability.  To follow JSON-RPC specifications, the generated string will always be in UTF-8 encoding.  The last argument can be of any qore type (or complex data structure).</para>
         </listitem>
       </varlistentry>
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <programlisting>makeFormattedJSONString(<replaceable>Any Type, [Encoding]</replaceable>)</programlisting>
+          <para><code><link linkend="makeFormattedJSONRPCErrorString">makeFormattedJSONRPCErrorString</link>(<link linkend="any_type">any</link> <replaceable>$json_version</replaceable>, <link linkend="any_type">any</link> <replaceable>$id</replaceable>, <link linkend="any_type">any</link> <replaceable>$response_msg</replaceable>) <command>returns</command> <link linkend="string_type">string</link></code></para>
         </listitem>
       </varlistentry>
       <varlistentry>
         <term>Example</term>
         <listitem>
-          <programlisting>$json = makeFormattedJSONString($value);</programlisting>
+          <programlisting>$json = makeFormattedJSONRPCErrorString("1.1", $id, $response);</programlisting>
         </listitem>
       </varlistentry>
     </variablelist>
     <table>
-      <title>Arguments and Return Values for makeFormattedJSONString()</title>
+      <title>Arguments and Return Values for makeFormattedJSONRPCErrorString()</title>
       <tgroup cols="3" align="left" colsep="1" rowsep="1">
         <thead>
           <row>
@@ -23785,21 +23789,18 @@ the resulting string will correspond to the encoding given as the first argument
         </thead>
         <tbody>
           <row>
-            <entry>
-              <para>Any Type, [Encoding]</para>
-            </entry>
+            <entry><para><code><link linkend="any_type">any</link> <replaceable>$json_version</replaceable>, <link linkend="any_type">any</link> <replaceable>$id</replaceable>, <link linkend="any_type">any</link> <replaceable>$response_msg</replaceable></code></para></entry>
             <entry>
               <para><code><link linkend="string_type">string</link></code></para>
             </entry>
             <entry>
-              <para>Serializes qore data into a JSON string, formatted with line breaks for easier readability.</para>
+              <para>Creates a generic JSON-RPC error response string from the parameters passed, formatted with line breaks for easier readability.</para>
             </entry>
           </row>
         </tbody>
       </tgroup>
     </table>
-
-    <table><title>Exceptions Thrown by makeFormattedJSONString()</title>
+    <table><title>Exceptions Thrown by makeFormattedJSONRPCErrorString()</title>
     <tgroup cols='2' align='left' colsep='1' rowsep='1'>
       <thead>
 	<row>
@@ -23816,84 +23817,8 @@ the resulting string will correspond to the encoding given as the first argument
     </tgroup>
     </table>
 
-
   </sect2>
-  <sect2 id="makeJSONRPCRequestString">
-    <title>makeJSONRPCRequestString()</title>
-    <variablelist>
-      <varlistentry>
-        <term>Synopsis</term>
-        <listitem>
-          <para>Creates a JSON-RPC request string from the parameters passed, without any line breaks.  To follow JSON-RPC specifications, the generated string will always be in UTF-8 encoding.  The last argument can be of any qore type (or complex data structure).</para>
-        </listitem>
-      </varlistentry>
-      <varlistentry>
-        <term>Usage</term>
-        <listitem>
-          <programlisting>makeJSONRPCRequestString(<replaceable>method_name, [json_version], [id], [arguments]</replaceable>)</programlisting>
-        </listitem>
-      </varlistentry>
-      <varlistentry>
-        <term>Example</term>
-        <listitem>
-          <programlisting>$json = makeJSONRPCRequestString("method_name", "1.1", $id, $request_data);</programlisting>
-        </listitem>
-      </varlistentry>
-    </variablelist>
-    <table>
-      <title>Arguments and Return Values for makeJSONRPCRequestString()</title>
-      <tgroup cols="3" align="left" colsep="1" rowsep="1">
-        <thead>
-          <row>
-            <entry>
-              <para>Argument Type</para>
-            </entry>
-            <entry>
-              <para>Return Type</para>
-            </entry>
-            <entry>
-              <para>Description</para>
-            </entry>
-          </row>
-        </thead>
-        <tbody>
-          <row>
-            <entry>
-              <para>Method_name, [json_version], [id], [arguments]</para>
-            </entry>
-            <entry>
-              <para><code><link linkend="string_type">string</link></code></para>
-            </entry>
-            <entry>
-              <para>Creates a JSON-RPC request string from the parameters passed, without any line breaks.</para>
-            </entry>
-          </row>
-        </tbody>
-      </tgroup>
-    </table>
 
-    <table><title>Exceptions Thrown by makeJSONRPCRequestString()</title>
-    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
-      <thead>
-	<row>
-	  <entry><para>err</para></entry>
-	  <entry><para>desc</para></entry>
-	</row>
-      </thead>
-      <tbody>
-	<row>
-	  <entry><para><code>JSON-SERIALIZATION-ERROR</code></para></entry>
-	  <entry><para>Error serializing to JSON string.</para></entry>
-	</row>
-	<row>
-	  <entry><para><code>MAKE-JSONRPC-REQUEST-STRING-ERROR</code></para></entry>
-	  <entry><para>missing method name as first parameter.</para></entry>
-	</row>
-      </tbody>
-    </tgroup>
-    </table>
-
-  </sect2>
   <sect2 id="makeFormattedJSONRPCRequestString">
     <title>makeFormattedJSONRPCRequestString()</title>
     <variablelist>
@@ -23906,7 +23831,7 @@ the resulting string will correspond to the encoding given as the first argument
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <programlisting>makeFormattedJSONRPCRequestString(<replaceable>method_name, [json_version], [id], [arguments]</replaceable>)</programlisting>
+          <para><code><link linkend="makeFormattedJSONRPCRequestString">makeFormattedJSONRPCRequestString</link>(<link linkend="string_type">string</link> <replaceable>$method_name</replaceable>, <link linkend="any_type">any</link> <replaceable>$json_version</replaceable>, <link linkend="any_type">any</link> <replaceable>$id</replaceable>, <link linkend="any_type">any</link> <replaceable>$request_msg</replaceable>) <command>returns</command> <link linkend="string_type">string</link></code></para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -23935,7 +23860,7 @@ the resulting string will correspond to the encoding given as the first argument
         <tbody>
           <row>
             <entry>
-              <para>Method_name, [json_version], [id], [arguments]</para>
+              <para><code><link linkend="string_type">string</link> <replaceable>$method_name</replaceable>, <link linkend="any_type">any</link> <replaceable>$json_version</replaceable>, <link linkend="any_type">any</link> <replaceable>$id</replaceable>, <link linkend="any_type">any</link> <replaceable>$request_msg</replaceable></code></para>
             </entry>
             <entry>
               <para><code><link linkend="string_type">string</link></code></para>
@@ -23971,78 +23896,7 @@ the resulting string will correspond to the encoding given as the first argument
 
 
   </sect2>
-  <sect2 id="makeJSONRPCResponseString">
-    <title>makeJSONRPCResponseString()</title>
-    <variablelist>
-      <varlistentry>
-        <term>Synopsis</term>
-        <listitem>
-          <para>Creates a JSON-RPC response string from the parameters passed, without any line breaks.  To follow JSON-RPC specifications, the generated string will always be in UTF-8 encoding.  The last argument can be of any qore type (or complex data structure).</para>
-        </listitem>
-      </varlistentry>
-      <varlistentry>
-        <term>Usage</term>
-        <listitem>
-          <programlisting>makeJSONRPCResponseString(<replaceable>[json_version], [id], [response]</replaceable>)</programlisting>
-        </listitem>
-      </varlistentry>
-      <varlistentry>
-        <term>Example</term>
-        <listitem>
-          <programlisting>$json = makeJSONRPCResponseString("1.1", $id, $response);</programlisting>
-        </listitem>
-      </varlistentry>
-    </variablelist>
-    <table>
-      <title>Arguments and Return Values for makeJSONRPCResponseString()</title>
-      <tgroup cols="3" align="left" colsep="1" rowsep="1">
-        <thead>
-          <row>
-            <entry>
-              <para>Argument Type</para>
-            </entry>
-            <entry>
-              <para>Return Type</para>
-            </entry>
-            <entry>
-              <para>Description</para>
-            </entry>
-          </row>
-        </thead>
-        <tbody>
-          <row>
-            <entry>
-              <para>[json_version], [id], [response]</para>
-            </entry>
-            <entry>
-              <para><code><link linkend="string_type">string</link></code></para>
-            </entry>
-            <entry>
-              <para>Creates a JSON-RPC response string from the parameters passed, without any line breaks.</para>
-            </entry>
-          </row>
-        </tbody>
-      </tgroup>
-    </table>
-    <table><title>Exceptions Thrown by makeJSONRPCResponseString()</title>
-    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
-      <thead>
-	<row>
-	  <entry><para>err</para></entry>
-	  <entry><para>desc</para></entry>
-	</row>
-      </thead>
-      <tbody>
-	<row>
-	  <entry><para><code>JSON-SERIALIZATION-ERROR</code></para></entry>
-	  <entry><para>Error serializing to JSON string.</para></entry>
-	</row>
-      </tbody>
-    </tgroup>
-    </table>
 
-
-  </sect2>
   <sect2 id="makeFormattedJSONRPCResponseString">
     <title>makeFormattedJSONRPCResponseString()</title>
     <variablelist>
@@ -24055,7 +23909,7 @@ the resulting string will correspond to the encoding given as the first argument
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <programlisting>makeFormattedJSONRPCResponseString(<replaceable>[json_version], [id], [response]</replaceable>)</programlisting>
+          <para><code><link linkend="makeFormattedJSONRPCResponseString">makeFormattedJSONRPCResponseString</link>(<link linkend="any_type">any</link> <replaceable>$json_version</replaceable>, <link linkend="any_type">any</link> <replaceable>$id</replaceable>, <link linkend="any_type">any</link> <replaceable>$response_msg</replaceable>) return <link linkend="string_type">string</link></code></para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -24084,7 +23938,7 @@ the resulting string will correspond to the encoding given as the first argument
         <tbody>
           <row>
             <entry>
-              <para>[json_version], [id], [response]</para>
+              <para><code><link linkend="any_type">any</link> <replaceable>$json_version</replaceable>, <link linkend="any_type">any</link> <replaceable>$id</replaceable>, <link linkend="any_type">any</link> <replaceable>$response_msg</replaceable></code></para>
             </entry>
             <entry>
               <para><code><link linkend="string_type">string</link></code></para>
@@ -24115,30 +23969,32 @@ the resulting string will correspond to the encoding given as the first argument
     </table>
 
   </sect2>
-  <sect2 id="makeJSONRPCErrorString">
-    <title>makeJSONRPCErrorString()</title>
+
+  <sect2 id="makeFormattedJSONString">
+    <title>makeFormattedJSONString()</title>
     <variablelist>
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Creates a generic JSON-RPC error response string from the parameters passed, without any line breaks.  To follow JSON-RPC specifications, the generated string will always be in UTF-8 encoding.  The last argument can be of any qore type (or complex data structure).</para>
+          <para>Serializes qore data into a JSON string, formatted with line breaks for easier readability.  By default the string produced will be in UTF-8 encoding, but this can be overridden by the second argument.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <programlisting>makeJSONRPCErrorString(<replaceable>[json_version], [id], [response]</replaceable>)</programlisting>
+          <para><code><link linkend="makeFormattedJSONString">makeFormattedJSONString</link>(<link linkend="any_type">any</link> <replaceable>$data</replaceable>, <link linkend="string_type">string</link> <replaceable>$encoding</replaceable>) <command>returns</command> <link linkend="string_type">string</link></code></para>
+          <para><code><link linkend="makeFormattedJSONString">makeFormattedJSONString</link>(<link linkend="any_type">any</link> <replaceable>$data</replaceable>) <command>returns</command> <link linkend="string_type">string</link></code></para>
         </listitem>
       </varlistentry>
       <varlistentry>
         <term>Example</term>
         <listitem>
-          <programlisting>$json = makeJSONRPCErrorString("1.1", $id, $response);</programlisting>
+          <programlisting>$json = makeFormattedJSONString($value);</programlisting>
         </listitem>
       </varlistentry>
     </variablelist>
     <table>
-      <title>Arguments and Return Values for makeJSONRPCErrorString()</title>
+      <title>Arguments and Return Values for makeFormattedJSONString()</title>
       <tgroup cols="3" align="left" colsep="1" rowsep="1">
         <thead>
           <row>
@@ -24156,19 +24012,20 @@ the resulting string will correspond to the encoding given as the first argument
         <tbody>
           <row>
             <entry>
-              <para>[json_version], [id], [response]</para>
+              <para><code><link linkend="any_type">any</link> <replaceable>$data</replaceable>, [<link linkend="string_type">string</link> <replaceable>$encoding</replaceable>]</code></para>
             </entry>
             <entry>
               <para><code><link linkend="string_type">string</link></code></para>
             </entry>
             <entry>
-              <para>Creates a generic JSON-RPC error response string from the parameters passed, without any line breaks.</para>
+              <para>Serializes qore data into a JSON string, formatted with line breaks for easier readability.</para>
             </entry>
           </row>
         </tbody>
       </tgroup>
     </table>
-    <table><title>Exceptions Thrown by makeJSONRPCErrorString()</title>
+
+    <table><title>Exceptions Thrown by makeFormattedJSONString()</title>
     <tgroup cols='2' align='left' colsep='1' rowsep='1'>
       <thead>
 	<row>
@@ -24184,79 +24041,8 @@ the resulting string will correspond to the encoding given as the first argument
       </tbody>
     </tgroup>
     </table>
-
   </sect2>
-  <sect2 id="makeFormattedJSONRPCErrorString">
-    <title>makeFormattedJSONRPCErrorString()</title>
-    <variablelist>
-      <varlistentry>
-        <term>Synopsis</term>
-        <listitem>
-          <para>Creates a generic JSON-RPC error response string from the parameters passed, formatted with line breaks for easier readability.  To follow JSON-RPC specifications, the generated string will always be in UTF-8 encoding.  The last argument can be of any qore type (or complex data structure).</para>
-        </listitem>
-      </varlistentry>
-      <varlistentry>
-        <term>Usage</term>
-        <listitem>
-          <programlisting>makeFormattedJSONRPCErrorString(<replaceable>[json_version], [id], [response]</replaceable>)</programlisting>
-        </listitem>
-      </varlistentry>
-      <varlistentry>
-        <term>Example</term>
-        <listitem>
-          <programlisting>$json = makeFormattedJSONRPCErrorString("1.1", $id, $response);</programlisting>
-        </listitem>
-      </varlistentry>
-    </variablelist>
-    <table>
-      <title>Arguments and Return Values for makeFormattedJSONRPCErrorString()</title>
-      <tgroup cols="3" align="left" colsep="1" rowsep="1">
-        <thead>
-          <row>
-            <entry>
-              <para>Argument Type</para>
-            </entry>
-            <entry>
-              <para>Return Type</para>
-            </entry>
-            <entry>
-              <para>Description</para>
-            </entry>
-          </row>
-        </thead>
-        <tbody>
-          <row>
-            <entry>
-              <para>[json_version], [id], [response]</para>
-            </entry>
-            <entry>
-              <para><code><link linkend="string_type">string</link></code></para>
-            </entry>
-            <entry>
-              <para>Creates a generic JSON-RPC error response string from the parameters passed, formatted with line breaks for easier readability.</para>
-            </entry>
-          </row>
-        </tbody>
-      </tgroup>
-    </table>
-    <table><title>Exceptions Thrown by makeFormattedJSONRPCErrorString()</title>
-    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
-      <thead>
-	<row>
-	  <entry><para>err</para></entry>
-	  <entry><para>desc</para></entry>
-	</row>
-      </thead>
-      <tbody>
-	<row>
-	  <entry><para><code>JSON-SERIALIZATION-ERROR</code></para></entry>
-	  <entry><para>Error serializing to JSON string.</para></entry>
-	</row>
-      </tbody>
-    </tgroup>
-    </table>
 
-  </sect2>
   <sect2 id="makeJSONRPC11ErrorString">
     <title>makeJSONRPC11ErrorString()</title>
     <variablelist>
@@ -24269,7 +24055,7 @@ the resulting string will correspond to the encoding given as the first argument
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <programlisting>makeJSONRPC11ErrorString(<replaceable>code, message, [[id], [error]</replaceable>)</programlisting>
+          <para><code><link linkend="makeJSONRPC11ErrorString">makeJSONRPC11ErrorString</link>(<link linkend="softint_type">softint</link> <replaceable>$code</replaceable>, <link linkend="string_type">string</link> <replaceable>$error</replaceable>, <link linkend="any_type">any</link> <replaceable>$id</replaceable>, <link linkend="any_type">any</link> <replaceable>$error_response</replaceable>) <command>returns</command> <link linkend="string_type">string</link></code></para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -24298,7 +24084,7 @@ the resulting string will correspond to the encoding given as the first argument
         <tbody>
           <row>
             <entry>
-              <para>Code, Error_message, [id], [error_response]</para>
+              <para><code><link linkend="softint_type">softint</link> <replaceable>$code</replaceable>, <link linkend="string_type">string</link> <replaceable>$error</replaceable>, <link linkend="any_type">any</link> <replaceable>$id</replaceable>, <link linkend="any_type">any</link> <replaceable>$error_response</replaceable></code></para>
             </entry>
             <entry>
               <para><code><link linkend="string_type">string</link></code></para>
@@ -24332,30 +24118,31 @@ the resulting string will correspond to the encoding given as the first argument
     </table>
 
   </sect2>
-  <sect2 id="makeFormattedJSONRPC11ErrorString">
-    <title>makeFormattedJSONRPC11ErrorString()</title>
+
+  <sect2 id="makeJSONRPCErrorString">
+    <title>makeJSONRPCErrorString()</title>
     <variablelist>
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Creates a JSON-RPC 1.1 error response string from the parameters passed, formatted with line breaks for easier readability.  To follow JSON-RPC specifications, the generated string will always be in UTF-8 encoding.  The first code argument must be an integer between 100 and 999 (inclusive).  The last argument can be of any Qore type (or complex data structure).</para>
+          <para>Creates a generic JSON-RPC error response string from the parameters passed, without any line breaks.  To follow JSON-RPC specifications, the generated string will always be in UTF-8 encoding.  The last argument can be of any qore type (or complex data structure).</para>
         </listitem>
       </varlistentry>
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <programlisting>makeFormattedJSONRPC11ErrorString(<replaceable>code, error_message, [id], [error_response]</replaceable>)</programlisting>
-        </listitem>
+          <para><code><link linkend="makeJSONRPCErrorString">makeJSONRPCErrorString</link>(<link linkend="any_type">any</link> <replaceable>$json_version</replaceable>, <link linkend="any_type">any</link> <replaceable>$id</replaceable>, <link linkend="any_type">any</link> <replaceable>$response_msg</replaceable>) <command>returns</command> <link linkend="string_type">string</link></code></para>
+\        </listitem>
       </varlistentry>
       <varlistentry>
         <term>Example</term>
         <listitem>
-          <programlisting>$json = makeFormattedJSONRPC11ErrorString(200, $msg, $id, $error);</programlisting>
+          <programlisting>$json = makeJSONRPCErrorString("1.1", $id, $response);</programlisting>
         </listitem>
       </varlistentry>
     </variablelist>
     <table>
-      <title>Arguments and Return Values for makeFormattedJSONRPC11ErrorString()</title>
+      <title>Arguments and Return Values for makeJSONRPCErrorString()</title>
       <tgroup cols="3" align="left" colsep="1" rowsep="1">
         <thead>
           <row>
@@ -24373,19 +24160,92 @@ the resulting string will correspond to the encoding given as the first argument
         <tbody>
           <row>
             <entry>
-              <para>Code, Error_message, [id], [error_response]</para>
+              <para><code><link linkend="any_type">any</link> <replaceable>$json_version</replaceable>, <link linkend="any_type">any</link> <replaceable>$id</replaceable>, <link linkend="any_type">any</link> <replaceable>$response_msg</replaceable></code></para>
             </entry>
             <entry>
               <para><code><link linkend="string_type">string</link></code></para>
             </entry>
             <entry>
-              <para>Creates a JSON-RPC 1.1 error response string from the parameters passed, formatted with line breaks for easier readability.</para>
+              <para>Creates a generic JSON-RPC error response string from the parameters passed, without any line breaks.</para>
             </entry>
           </row>
         </tbody>
       </tgroup>
     </table>
-    <table><title>Exceptions Thrown by makeFormattedJSONRPC11ErrorString()</title>
+    <table><title>Exceptions Thrown by makeJSONRPCErrorString()</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>err</para></entry>
+	  <entry><para>desc</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><code>JSON-SERIALIZATION-ERROR</code></para></entry>
+	  <entry><para>Error serializing to JSON string.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+    </table>
+
+  </sect2>
+
+  <sect2 id="makeJSONRPCRequestString">
+    <title>makeJSONRPCRequestString()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Creates a JSON-RPC request string from the parameters passed, without any line breaks.  To follow JSON-RPC specifications, the generated string will always be in UTF-8 encoding.  The last argument can be of any qore type (or complex data structure).</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <para><code><link linkend="makeJSONRPCRequestString">makeJSONRPCRequestString</link>(<link linkend="string_type">string</link> <replaceable>$method_name</replaceable>, <link linkend="any_type">any</link> <replaceable>$json_version</replaceable>, <link linkend="any_type">any</link> <replaceable>$id</replaceable>, <link linkend="any_type">any</link> <replaceable>$request_msg</replaceable>) <command>returns</command> <link linkend="string_type">string</link></code></para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$json = makeJSONRPCRequestString("method_name", "1.1", $id, $request_data);</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for makeJSONRPCRequestString()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para><code><link linkend="string_type">string</link> <replaceable>$method_name</replaceable>, <link linkend="any_type">any</link> <replaceable>$json_version</replaceable>, <link linkend="any_type">any</link> <replaceable>$id</replaceable>, <link linkend="any_type">any</link> <replaceable>$request_msg</replaceable></code></para>
+            </entry>
+            <entry>
+              <para><code><link linkend="string_type">string</link></code></para>
+            </entry>
+            <entry>
+              <para>Creates a JSON-RPC request string from the parameters passed, without any line breaks.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+
+    <table><title>Exceptions Thrown by makeJSONRPCRequestString()</title>
     <tgroup cols='2' align='left' colsep='1' rowsep='1'>
       <thead>
 	<row>
@@ -24399,14 +24259,162 @@ the resulting string will correspond to the encoding given as the first argument
 	  <entry><para>Error serializing to JSON string.</para></entry>
 	</row>
 	<row>
-	  <entry><para><code>MAKE-JSONRPC11-ERROR-STRING-ERROR</code></para></entry>
-	  <entry><para>Invalid argument to method.</para></entry>
+	  <entry><para><code>MAKE-JSONRPC-REQUEST-STRING-ERROR</code></para></entry>
+	  <entry><para>missing method name as first parameter.</para></entry>
 	</row>
       </tbody>
     </tgroup>
     </table>
 
   </sect2>
+
+  <sect2 id="makeJSONRPCResponseString">
+    <title>makeJSONRPCResponseString()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Creates a JSON-RPC response string from the parameters passed, without any line breaks.  To follow JSON-RPC specifications, the generated string will always be in UTF-8 encoding.  The last argument can be of any qore type (or complex data structure).</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <para><code><link linkend="makeJSONRPCResponseString">makeJSONRPCResponseString</link>(<link linkend="any_type">any</link> <replaceable>$json_version</replaceable>, <link linkend="any_type">any</link> <replaceable>$id</replaceable>, <link linkend="any_type">any</link> <replaceable>$response_msg</replaceable>) return <link linkend="string_type">string</link></code></para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$json = makeJSONRPCResponseString("1.1", $id, $response);</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for makeJSONRPCResponseString()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para><code><link linkend="any_type">any</link> <replaceable>$json_version</replaceable>, <link linkend="any_type">any</link> <replaceable>$id</replaceable>, <link linkend="any_type">any</link> <replaceable>$response_msg</replaceable></code></para>
+            </entry>
+            <entry>
+              <para><code><link linkend="string_type">string</link></code></para>
+            </entry>
+            <entry>
+              <para>Creates a JSON-RPC response string from the parameters passed, without any line breaks.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table><title>Exceptions Thrown by makeJSONRPCResponseString()</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>err</para></entry>
+	  <entry><para>desc</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><code>JSON-SERIALIZATION-ERROR</code></para></entry>
+	  <entry><para>Error serializing to JSON string.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+    </table>
+
+
+  </sect2>
+
+  <sect2 id="makeJSONString">
+    <title>makeJSONString()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Serializes qore data into a JSON string, without any line breaks.  By default the string produced will be in UTF-8 encoding, but this can be overridden by the second argument.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+          <para><code><link linkend="makeJSONString">makeJSONString</link>(<link linkend="any_type">any</link> <replaceable>$data</replaceable>, <link linkend="string_type">string</link> <replaceable>$encoding</replaceable>) <command>returns</command> <link linkend="string_type">string</link></code></para>
+          <para><code><link linkend="makeJSONString">makeJSONString</link>(<link linkend="any_type">any</link> <replaceable>$data</replaceable>) <command>returns</command> <link linkend="string_type">string</link></code></para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$json = makeJSONString($value);</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for makeJSONString()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para><code><link linkend="any_type">any</link> <replaceable>$data</replaceable>, [<link linkend="string_type">string</link> <replaceable>$encoding</replaceable>]</code></para>
+            </entry>
+            <entry>
+              <para><code><link linkend="string_type">string</link></code></para>
+            </entry>
+            <entry>
+              <para>Serializes qore data into a JSON string, without any line breaks.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+
+    <table><title>Exceptions Thrown by makeJSONString()</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>err</para></entry>
+	  <entry><para>desc</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><code>JSON-SERIALIZATION-ERROR</code></para></entry>
+	  <entry><para>Error serializing to JSON string.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+    </table>
+
+  </sect2>
+
   <sect2 id="parseJSON">
     <title>parseJSON()</title>
     <variablelist>
@@ -24419,7 +24427,8 @@ the resulting string will correspond to the encoding given as the first argument
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <programlisting>parseJSON(<replaceable>json_string</replaceable>)</programlisting>
+            <para><code><link linkend="parseJSON">parseJSON</link>(<link linkend="string_type">string</link> <replaceable>$json_string</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
+            <para><code><link linkend="parseJSON">parseJSON</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -24448,11 +24457,9 @@ the resulting string will correspond to the encoding given as the first argument
         <tbody>
           <row>
             <entry>
-              <para>Json_string</para>
+              <para><code><link linkend="string_type">string</link> <replaceable>$json_string</replaceable></code></para>
             </entry>
-            <entry>
-              <para>Qore Data</para>
-            </entry>
+            <entry><para><code><link linkend="any_type">any</link></code></para></entry>
             <entry>
               <para>Parses a JSON string and returns the corresponding qore data structure.</para>
             </entry>
