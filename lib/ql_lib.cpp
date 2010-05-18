@@ -544,10 +544,7 @@ static AbstractQoreNode *f_readlink(const QoreListNode *params, ExceptionSink *x
    char buf[QORE_PATH_MAX + 1];
    qore_offset_t len = readlink(p0->getBuffer(), buf, QORE_PATH_MAX);
    if (len < 0) {
-      QoreStringNode *desc = new QoreStringNode(p0);
-      desc->concat(": ");
-      q_strerror(*desc, errno);
-      xsink->raiseException("READLINK-ERROR", desc);
+      xsink->raiseErrnoException("READLINK-ERROR", errno, p0->getBuffer());
       return 0;
    }
    assert(len <= QORE_PATH_MAX);

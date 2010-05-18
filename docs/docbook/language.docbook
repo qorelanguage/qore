@@ -705,7 +705,7 @@ False</programlisting></note>
 
   <para>When date types are converted from strings, any of the following formats can be used: <code>"YYYYMMDDHHmmSS[.us][Z|+-HH[:MM[:SS]]]", "YYYY-MM-DD HH:mm:SS.us", "YYYY-MM-DDTHH:mm:SS", "YYYY-MM-DDTHH:mm:SS[.us][Z|+-HH[:MM[:SS]]]"</code>, and most reasonable combinations thereof.  If the time zone component is missing, then the local time zone will be assumed (see <link linkend="Time_Zones">Time Zones</link>).</para>
 
-  <para>When dates are converted to and from integer values, the a 64-bit second offset from January 1, 1970 in the local time zone is used for the conversion.  For example <code>int(2006-01-01)</code> gives <code>1136073600</code> (regardless of the local time zone the date is in).  To get the second offset of a date from 1970-01-01Z (i.e. the true epoch offset), call <link linkend="get_epoch_offset">get_epoch_offset()</link> instead.</para>
+  <para>When dates are converted to and from integer values, the a 64-bit second offset from January 1, 1970 in the local time zone is used for the conversion.  For example <code>int(2006-01-01)</code> gives <code>1136073600</code> (regardless of the local time zone the date is in).  To get the second offset of a date from 1970-01-01Z (i.e. the true epoch offset), call <link linkend="get_epoch_seconds">get_epoch_seconds()</link> instead.</para>
 
   <para>When an expression requires a certain data type and the source data type cannot be converted to the desired data type, the default value for the desired data type will be used.  The default values are given <link linkend="Basic_Data_Types">here</link>.</para>
 </sect2>

@@ -813,7 +813,7 @@ static AbstractQoreNode *f_get_word_16_str(const QoreListNode *params, Exception
    if (offset >= (size - 1) || offset < 0)
       return 0;
 
-   short val = *((unsigned short *)&ptr[offset]);
+   short val = ntohs(*((unsigned short *)&ptr[offset]));
    return new QoreBigIntNode(val);
 }
 
@@ -828,7 +828,7 @@ static AbstractQoreNode *f_get_word_16_bin(const QoreListNode *params, Exception
    if (offset >= (size - 1) || offset < 0)
       return 0;
 
-   short val = *((unsigned short *)&ptr[offset]);
+   short val = ntohs(*((unsigned short *)&ptr[offset]));
 
    return new QoreBigIntNode(val);
 }
@@ -844,7 +844,7 @@ static AbstractQoreNode *f_get_word_32_str(const QoreListNode *params, Exception
    if (offset >= (size - 3) || offset < 0)
       return 0;
 
-   int64 val = *((unsigned int *)&ptr[offset]);
+   int64 val = ntohl(*((unsigned int *)&ptr[offset]));
    return new QoreBigIntNode(val);
 }
 
@@ -859,7 +859,7 @@ static AbstractQoreNode *f_get_word_32_bin(const QoreListNode *params, Exception
    if (offset >= (size - 3) || offset < 0)
       return 0;
 
-   int64 val = *((unsigned int *)&ptr[offset]);
+   int64 val = ntohl(*((unsigned int *)&ptr[offset]));
 
    return new QoreBigIntNode(val);
 }
@@ -875,11 +875,11 @@ static AbstractQoreNode *f_get_word_64_str(const QoreListNode *params, Exception
    if (offset >= (size - 7) || offset < 0)
       return 0;
 
-   int64 val = *((int64 *)&ptr[offset]);
+   int64 val = MSBi8(*((int64 *)&ptr[offset]));
    return new QoreBigIntNode(val);
 }
 
-static AbstractQoreNode *f_get_word_64_bin(const QoreListNode *params, ExceptionSink *xsink) {
+static AbstractQoreNode *f_get_word_64_bin(const QoreListNode *params, ExceptionSink *xsink) {   
    HARD_QORE_PARAM(b, const BinaryNode, params, 0);
    unsigned char *ptr = (unsigned char *)b->getPtr();
    int size = b->size();
@@ -890,7 +890,100 @@ static AbstractQoreNode *f_get_word_64_bin(const QoreListNode *params, Exception
    if (offset >= (size - 7) || offset < 0)
       return 0;
 
-   int64 val = *((int64 *)&ptr[offset]);
+   int64 val = MSBi8(*((int64 *)&ptr[offset]));
+
+   return new QoreBigIntNode(val);
+}
+
+static AbstractQoreNode *f_get_word_16_lsb_str(const QoreListNode *params, ExceptionSink *xsink) {
+   HARD_QORE_PARAM(str, const QoreStringNode, params, 0);
+   unsigned char *ptr = (unsigned char *)str->getBuffer();
+   int size = str->strlen();
+
+   HARD_QORE_PARAM(p1, const QoreBigIntNode, params, 1);
+   int offset = p1->getAsInt() * 2;
+
+   if (offset >= (size - 1) || offset < 0)
+      return 0;
+
+   short val = LSBi2(*((unsigned short *)&ptr[offset]));
+   return new QoreBigIntNode(val);
+}
+
+static AbstractQoreNode *f_get_word_16_lsb_bin(const QoreListNode *params, ExceptionSink *xsink) {
+   HARD_QORE_PARAM(b, const BinaryNode, params, 0);
+   unsigned char *ptr = (unsigned char *)b->getPtr();
+   int size = b->size();
+
+   HARD_QORE_PARAM(p1, const QoreBigIntNode, params, 1);
+   int offset = p1->getAsInt() * 2;
+
+   if (offset >= (size - 1) || offset < 0)
+      return 0;
+
+   short val = LSBi2(*((unsigned short *)&ptr[offset]));
+
+   return new QoreBigIntNode(val);
+}
+
+static AbstractQoreNode *f_get_word_32_lsb_str(const QoreListNode *params, ExceptionSink *xsink) {
+   HARD_QORE_PARAM(str, const QoreStringNode, params, 0);
+   unsigned char *ptr = (unsigned char *)str->getBuffer();
+   int size = str->strlen();
+
+   HARD_QORE_PARAM(p1, const QoreBigIntNode, params, 1);
+   int offset = p1->getAsInt() * 4;
+
+   if (offset >= (size - 3) || offset < 0)
+      return 0;
+
+   int64 val = LSBi4(*((unsigned int *)&ptr[offset]));
+   return new QoreBigIntNode(val);
+}
+
+static AbstractQoreNode *f_get_word_32_lsb_bin(const QoreListNode *params, ExceptionSink *xsink) {
+   HARD_QORE_PARAM(b, const BinaryNode, params, 0);
+   unsigned char *ptr = (unsigned char *)b->getPtr();
+   int size = b->size();
+
+   HARD_QORE_PARAM(p1, const QoreBigIntNode, params, 1);
+   int offset = p1->getAsInt() * 4;
+
+   if (offset >= (size - 3) || offset < 0)
+      return 0;
+
+   int64 val = LSBi4(*((unsigned int *)&ptr[offset]));
+
+   return new QoreBigIntNode(val);
+}
+
+static AbstractQoreNode *f_get_word_64_lsb_str(const QoreListNode *params, ExceptionSink *xsink) {
+   HARD_QORE_PARAM(str, const QoreStringNode, params, 0);
+   unsigned char *ptr = (unsigned char *)str->getBuffer();
+   int size = str->strlen();
+
+   HARD_QORE_PARAM(p1, const QoreBigIntNode, params, 1);
+   int offset = p1->getAsInt() * 8;
+
+   if (offset >= (size - 7) || offset < 0)
+      return 0;
+
+   int64 val = LSBi8(*((int64 *)&ptr[offset]));
+   return new QoreBigIntNode(val);
+}
+
+static AbstractQoreNode *f_get_word_64_lsb_bin(const QoreListNode *params, ExceptionSink *xsink) {   
+   HARD_QORE_PARAM(b, const BinaryNode, params, 0);
+   unsigned char *ptr = (unsigned char *)b->getPtr();
+   int size = b->size();
+
+   HARD_QORE_PARAM(p1, const QoreBigIntNode, params, 1);
+   int offset = p1->getAsInt() * 8;
+
+   if (offset >= (size - 7) || offset < 0)
+      return 0;
+
+   int64 val = LSBi8(*((int64 *)&ptr[offset]));
 
    return new QoreBigIntNode(val);
 }
@@ -1207,6 +1300,15 @@ void init_misc_functions() {
 
    builtinFunctions.add2("get_word_64", f_get_word_64_str, QC_CONSTANT, QDOM_DEFAULT, 0, 2, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, zero());
    builtinFunctions.add2("get_word_64", f_get_word_64_bin, QC_CONSTANT, QDOM_DEFAULT, 0, 2, binaryTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, zero());
+   
+   builtinFunctions.add2("get_word_16_lsb", f_get_word_16_lsb_str, QC_CONSTANT, QDOM_DEFAULT, 0, 2, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, zero());
+   builtinFunctions.add2("get_word_16_lsb", f_get_word_16_lsb_bin, QC_CONSTANT, QDOM_DEFAULT, 0, 2, binaryTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, zero());
+
+   builtinFunctions.add2("get_word_32_lsb", f_get_word_32_lsb_str, QC_CONSTANT, QDOM_DEFAULT, 0, 2, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, zero());
+   builtinFunctions.add2("get_word_32_lsb", f_get_word_32_lsb_bin, QC_CONSTANT, QDOM_DEFAULT, 0, 2, binaryTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, zero());
+
+   builtinFunctions.add2("get_word_64_lsb", f_get_word_64_lsb_str, QC_CONSTANT, QDOM_DEFAULT, 0, 2, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, zero());
+   builtinFunctions.add2("get_word_64_lsb", f_get_word_64_lsb_bin, QC_CONSTANT, QDOM_DEFAULT, 0, 2, binaryTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, zero());
    
    builtinFunctions.add2("splice", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("splice", f_string_noop, QC_NOOP, QDOM_DEFAULT, stringTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);

@@ -1101,23 +1101,31 @@
           <para><code><link linkend="get_word_16">get_word_16</link>(<link linkend="data_type">data</link>, <link linkend="softint_type">softint</link> = 0) <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
         </entry>
         <entry><para>N</para></entry>
-        <entry><para>Returns the 16-bit value at the given 2-byte offset or <link linkend="NOTHING">NOTHING</link> if the offset is not legal for the given data.</para></entry>
+        <entry><para>Returns the 16-bit value at the given 2-byte offset or <link linkend="NOTHING">NOTHING</link> if the offset is not legal for the given data; assumes <ulink url="http://en.wikipedia.org/wiki/Most_significant_bit">MSB byte order</ulink>.</para></entry>
       </row>
 
       <row>
         <entry>
-          <para><code><link linkend="get_word_32">get_word_32</link>(<link linkend="data_type">data</link>, <link linkend="softint_type">softint</link> = 0) <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+          <para><code><link linkend="get_word_16_lsb">get_word_16_lsb</link>(<link linkend="data_type">data</link>, <link linkend="softint_type">softint</link> = 0) <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
         </entry>
         <entry><para>N</para></entry>
-        <entry><para>Returns the 32-bit value at the given 4-byte offset or <link linkend="NOTHING">NOTHING</link> if the offset is not legal for the given data.</para></entry>
+        <entry><para>Returns the 16-bit value at the given 2-byte offset or <link linkend="NOTHING">NOTHING</link> if the offset is not legal for the given data; assumes <ulink url="http://en.wikipedia.org/wiki/Least_significant_bit">LSB byte order</ulink>.</para></entry>
       </row>
 
       <row>
         <entry>
-          <para><code><link linkend="get_word_64">get_word_64</link>(<link linkend="data_type">data</link>, <link linkend="softint_type">softint</link> = 0) <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+          <para><code><link linkend="get_word_32_lsb">get_word_32_lsb</link>(<link linkend="data_type">data</link>, <link linkend="softint_type">softint</link> = 0) <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
         </entry>
         <entry><para>N</para></entry>
-        <entry><para>Returns the 64-bit value at the given 8-byte offset or <link linkend="NOTHING">NOTHING</link> if the offset is not legal for the given data.</para></entry>
+        <entry><para>Returns the 32-bit value at the given 4-byte offset or <link linkend="NOTHING">NOTHING</link> if the offset is not legal for the given data; assumes <ulink url="http://en.wikipedia.org/wiki/Least_significant_bit">LSB byte order</ulink>..</para></entry>
+      </row>
+
+      <row>
+        <entry>
+          <para><code><link linkend="get_word_64_lsb">get_word_64_lsb</link>(<link linkend="data_type">data</link>, <link linkend="softint_type">softint</link> = 0) <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+        </entry>
+        <entry><para>N</para></entry>
+        <entry><para>Returns the 64-bit value at the given 8-byte offset or <link linkend="NOTHING">NOTHING</link> if the offset is not legal for the given data; assumes <ulink url="http://en.wikipedia.org/wiki/Least_significant_bit">LSB byte order</ulink>..</para></entry>
       </row>
 
       <row>
@@ -1132,7 +1140,6 @@
           <para>Returns an integer value representing the years value of the date passed (can be either a <link linkend="Relative_Dates">relative</link> or <link linkend="Absolute_Dates">absolute</link> date).</para>
         </entry>
       </row>
-
 
         <row>
           <entry>
@@ -5826,6 +5833,174 @@
     </table>
   </sect2>
 
+  <sect2 id="get_duration_microseconds">
+    <title>get_duration_microseconds()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Returns an integer value representing the the number of microseconds in the value of the date passed (can be either a <link linkend="Relative_Dates">relative</link> or <link linkend="Absolute_Dates">absolute</link> date).</para>
+	  <para>If the argument is an <link linkend="Absolute_Dates">absolute date/time value</link>, then the resulting number is calculated from the present time.  Fixed-time arguments in the past will result in a return value of 0; this function can only return a negative value if passed a <link linkend="Relative_Dates">relative date/time value</link>.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+            <para><code><link linkend="get_duration_microseconds">get_duration_microseconds</link>(<link linkend="date_type">date</link>) <command>returns</command> <link linkend="int_type">int</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting><command>my</command> int $us = get_duration_microseconds(PT2M15S3u); # returns 135000003</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for get_duration_microseconds()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para><code><link linkend="date_type">date</link></code></para>
+            </entry>
+            <entry>
+              <para><code><link linkend="int_type">int</link></code></para>
+            </entry>
+            <entry>
+              <para>Returns an integer value representing the the number of microseconds in the value of the date passed; note that the return value will be calculated from the present time if an <link linkend="Absolute_Dates">absolute date/time value</link> argument is passed, but in this case will never be negative; fixed-time arguments in the past will result in a value of 0 being returned.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+
+  <sect2 id="get_duration_milliseconds">
+    <title>get_duration_milliseconds()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Returns an integer value representing the the number of milliseconds in the value of the date passed (can be either a <link linkend="Relative_Dates">relative</link> or <link linkend="Absolute_Dates">absolute</link> date).</para>
+	  <para>If the argument is an <link linkend="Absolute_Dates">absolute date/time value</link>, then the resulting number is calculated from the present time.  Fixed-time arguments in the past will result in a return value of 0; this function can only return a negative value if passed a <link linkend="Relative_Dates">relative date/time value</link>.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+            <para><code><link linkend="get_duration_milliseconds">get_duration_milliseconds</link>(<link linkend="date_type">date</link>) <command>returns</command> <link linkend="int_type">int</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting><command>my</command> int $us = get_duration_milliseconds(PT2M15S3u); # returns 135000</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for get_duration_milliseconds()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para><code><link linkend="date_type">date</link></code></para>
+            </entry>
+            <entry>
+              <para><code><link linkend="int_type">int</link></code></para>
+            </entry>
+            <entry>
+              <para>Returns an integer value representing the the number of milliseconds in the value of the date passed; note that the return value will be calculated from the present time if an <link linkend="Absolute_Dates">absolute date/time value</link> argument is passed, but in this case will never be negative; fixed-time arguments in the past will result in a value of 0 being returned.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+
+  <sect2 id="get_duration_seconds">
+    <title>get_duration_seconds()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Returns an integer value representing the the number of seconds in the value of the date passed (can be either a <link linkend="Relative_Dates">relative</link> or <link linkend="Absolute_Dates">absolute</link> date).</para>
+	  <para>If the argument is an <link linkend="Absolute_Dates">absolute date/time value</link>, then the resulting number is calculated from the present time.  Fixed-time arguments in the past will result in a return value of 0; this function can only return a negative value if passed a <link linkend="Relative_Dates">relative date/time value</link>.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Usage</term>
+        <listitem>
+            <para><code><link linkend="get_duration_seconds">get_duration_seconds</link>(<link linkend="date_type">date</link>) <command>returns</command> <link linkend="int_type">int</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting><command>my</command> int $us = get_duration_seconds(PT2M15S3u); # returns 135</programlisting>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for get_duration_seconds()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para><code><link linkend="date_type">date</link></code></para>
+            </entry>
+            <entry>
+              <para><code><link linkend="int_type">int</link></code></para>
+            </entry>
+            <entry>
+              <para>Returns an integer value representing the the number of seconds in the value of the date passed; note that the return value will be calculated from the present time if an <link linkend="Absolute_Dates">absolute date/time value</link> argument is passed, but in this case will never be negative; fixed-time arguments in the past will result in a value of 0 being returned.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+
     <sect2 id="get_epoch_seconds">
       <title>get_epoch_seconds()</title>
 
@@ -6802,6 +6977,122 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               </entry>
               <entry>
                 <para>Returns a <link linkend="Relative_Dates">relative date/time value</link> corresponding to the number of hours passed as an argument, to be used in date arithmetic.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <para>This function does not throw any exceptions.</para>
+    </sect2>
+
+    <sect2 id="is_date_absolute">
+      <title>is_date_absolute()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Returns True if the argument is an <link linkend="Absolute_Dates">absolute date/time value</link>, False if not.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+          <para><code><link linkend="is_date_absolute">is_date_absolute</link>(<link linkend="date_type">date</link>) <command>returns</command> <link linkend="bool_type">bool</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+          <para><code><link linkend="is_date_absolute">is_date_absolute</link>(<link linkend="any_type">any</link>) <command>returns</command> <link linkend="bool_type">bool</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting><command>my</command> bool $b = is_date_absolute($date);</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      
+      <table>
+        <title>Arguments and Return Values for is_date_absolute()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument Type</para>
+              </entry>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para><code><link linkend="date_type">date</link></code></para>
+              </entry>
+              <entry>
+                <para><code><link linkend="bool_type">bool</link></code></para>
+              </entry>
+              <entry>
+                <para>Returns True if the argument is an <link linkend="Absolute_Dates">absolute date/time value</link>, False if not.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <para>This function does not throw any exceptions.</para>
+    </sect2>
+
+    <sect2 id="is_date_relative">
+      <title>is_date_relative()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Returns True if the argument is an <link linkend="Relative_Dates">relative date/time value</link>, False if not.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+          <para><code><link linkend="is_date_relative">is_date_relative</link>(<link linkend="date_type">date</link>) <command>returns</command> <link linkend="bool_type">bool</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+          <para><code><link linkend="is_date_relative">is_date_relative</link>(<link linkend="any_type">any</link>) <command>returns</command> <link linkend="bool_type">bool</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting><command>my</command> bool $b = is_date_relative($date);</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      
+      <table>
+        <title>Arguments and Return Values for is_date_relative()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument Type</para>
+              </entry>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para><code><link linkend="date_type">date</link></code></para>
+              </entry>
+              <entry>
+                <para><code><link linkend="bool_type">bool</link></code></para>
+              </entry>
+              <entry>
+                <para>Returns True if the argument is an <link linkend="Relative_Dates">relative date/time value</link>, False if not.</para>
               </entry>
             </row>
           </tbody>
@@ -9921,6 +10212,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<programlisting>$egid = getegid();</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Restrictions</term>
+      <listitem>
+	<para>Not available with <code><link linkend="no-external-info">PO_NO_EXTERNAL_INFO</link></code></para>
+      </listitem>
+    </varlistentry>
   </variablelist>
 
 <table><title>Arguments and Return Values for getegid()</title>
@@ -9963,6 +10260,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <term>Usage</term>
       <listitem>
             <para><code><link linkend="geteuid">geteuid</link>() <command>returns</command> <link linkend="int_type">int</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Restrictions</term>
+      <listitem>
+	<para>Not available with <code><link linkend="no-external-info">PO_NO_EXTERNAL_INFO</link></code></para>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -10014,6 +10317,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<programlisting>$gid = getgid();</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Restrictions</term>
+      <listitem>
+	<para>Not available with <code><link linkend="no-external-info">PO_NO_EXTERNAL_INFO</link></code></para>
+      </listitem>
+    </varlistentry>
   </variablelist>
 
 <table><title>Arguments and Return Values for getgid()</title>
@@ -10063,6 +10372,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <term>Example</term>
       <listitem>
 	<programlisting>$hostname = gethostbyaddr("192.168.0.33");</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Restrictions</term>
+      <listitem>
+	<para>Not available with <code><link linkend="no-external-info">PO_NO_EXTERNAL_INFO</link></code></para>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -10132,6 +10447,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <term>Example</term>
       <listitem>
 	<programlisting>$hash = gethostbyaddr_long("192.168.0.33");</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Restrictions</term>
+      <listitem>
+	<para>Not available with <code><link linkend="no-external-info">PO_NO_EXTERNAL_INFO</link></code></para>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -10247,6 +10568,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<programlisting>$addr = gethostbyname("host1");</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Restrictions</term>
+      <listitem>
+	<para>Not available with <code><link linkend="no-external-info">PO_NO_EXTERNAL_INFO</link></code></para>
+      </listitem>
+    </varlistentry>
   </variablelist>
 
 <table><title>Arguments and Return Values for gethostbyname()</title>
@@ -10296,6 +10623,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <term>Example</term>
       <listitem>
 	<programlisting>$hash = gethostbyname_long("host1");</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Restrictions</term>
+      <listitem>
+	<para>Not available with <code><link linkend="no-external-info">PO_NO_EXTERNAL_INFO</link></code></para>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -10348,6 +10681,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<programlisting>$host = gethostname();</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Restrictions</term>
+      <listitem>
+	<para>Not available with <code><link linkend="no-external-info">PO_NO_EXTERNAL_INFO</link></code></para>
+      </listitem>
+    </varlistentry>
   </variablelist>
 
 <table><title>Arguments and Return Values for gethostname()</title>
@@ -10395,6 +10734,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <term>Example</term>
       <listitem>
 	<programlisting>$pid = getpid();</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Restrictions</term>
+      <listitem>
+	<para>Not available with <code><link linkend="no-external-info">PO_NO_EXTERNAL_INFO</link></code></para>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -10446,6 +10791,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<programlisting>$ppid = getppid();</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Restrictions</term>
+      <listitem>
+	<para>Not available with <code><link linkend="no-external-info">PO_NO_EXTERNAL_INFO</link></code></para>
+      </listitem>
+    </varlistentry>
   </variablelist>
 
 <table><title>Arguments and Return Values for getppid()</title>
@@ -10493,6 +10844,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <term>Example</term>
       <listitem>
 	<programlisting>$uid = getuid();</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Restrictions</term>
+      <listitem>
+	<para>Not available with <code><link linkend="no-external-info">PO_NO_EXTERNAL_INFO</link></code></para>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -11348,7 +11705,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <para><code><link linkend="blowfish_encrypt_cbc">blowfish_encrypt_cbc</link>(<link linkend="data_type">data</link>, <link linkend="data_type">data</link>, <link linkend="data_type">data</link> = defaultIV) <command>returns</command> <link linkend="binary_type">binary</link></code></para>
+          <para><code><link linkend="blowfish_encrypt_cbc">blowfish_encrypt_cbc</link>(<link linkend="data_type">data</link> <replaceable>$data</replaceable>, <link linkend="data_type">data</link> <replaceable>$key</replaceable>, <link linkend="data_type">data</link> <replaceable>$iv</replaceable> = defaultIV) <command>returns</command> <link linkend="binary_type">binary</link></code></para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -11370,7 +11727,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         </thead>
         <tbody>
           <row>
-            <entry><para><code><link linkend="data_type">data</link>, <link linkend="data_type">data</link>, <link linkend="data_type">data</link> = defaultIV</code></para></entry>
+            <entry><para><code><link linkend="data_type">data</link> <replaceable>$data</replaceable>, <link linkend="data_type">data</link> <replaceable>$key</replaceable>, <link linkend="data_type">data</link> <replaceable>$iv</replaceable> = defaultIV</code></para></entry>
             <entry><para><code><link linkend="binary_type">binary</link></code></para></entry>
             <entry><para>Encrypts data using the Cipher Block Chaining function for the <ulink url="http://www.counterpane.com/blowfish.html">blowfish</ulink> algorithm; accepts a variable-length key (recommended 16-bytes or more).  The initialization vector must be at least 8 bytes long if present.</para></entry>
           </row>
@@ -11427,7 +11784,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <para><code><link linkend="blowfish_decrypt_cbc">blowfish_decrypt_cbc</link>(<link linkend="binary_type">binary</link>, <link linkend="data_type">data</link>, <link linkend="data_type">data</link> = defaultIV) <command>returns</command> <link linkend="binary_type">binary</link></code></para>
+          <para><code><link linkend="blowfish_decrypt_cbc">blowfish_decrypt_cbc</link>(<link linkend="binary_type">binary</link> <replaceable>$encrypted_data</replaceable>, <link linkend="data_type">data</link> <replaceable>$key</replaceable>, <link linkend="data_type">data</link> <replaceable>$iv</replaceable> = defaultIV) <command>returns</command> <link linkend="binary_type">binary</link></code></para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -11455,7 +11812,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         </thead>
         <tbody>
           <row>
-            <entry><para><code><link linkend="binary_type">binary</link>, <link linkend="data_type">data</link>, <link linkend="data_type">data</link> = defaultIV</code></para></entry>
+            <entry><para><code><link linkend="binary_type">binary</link> <replaceable>$encrypted_data</replaceable>, <link linkend="data_type">data</link> <replaceable>$key</replaceable>, <link linkend="data_type">data</link> <replaceable>$iv</replaceable> = defaultIV</code></para></entry>
             <entry><para><code><link linkend="binary_type">binary</link></code></para></entry>
             <entry>
               <para>Decrypts data using the Cipher Block Chaining function for the <ulink url="http://www.counterpane.com/blowfish.html">blowfish</ulink> algorithm using a variable-length key.</para>
@@ -11514,7 +11871,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <para><code><link linkend="blowfish_decrypt_cbc_to_string">blowfish_decrypt_cbc_to_string</link>(<link linkend="binary_type">binary</link>, <link linkend="data_type">data</link>, <link linkend="data_type">data</link> = defaultIV) <command>returns</command> <link linkend="string_type">string</link></code></para>
+          <para><code><link linkend="blowfish_decrypt_cbc_to_string">blowfish_decrypt_cbc_to_string</link>(<link linkend="binary_type">binary</link> <replaceable>$encrypted_data</replaceable>, <link linkend="data_type">data</link> <replaceable>$key</replaceable>, <link linkend="data_type">data</link> <replaceable>$iv</replaceable> = defaultIV) <command>returns</command> <link linkend="string_type">string</link></code></para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -11542,7 +11899,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         </thead>
         <tbody>
           <row>
-            <entry><para><code><link linkend="binary_type">binary</link>, <link linkend="data_type">data</link>, <link linkend="data_type">data</link> = defaultIV</code></para></entry>
+            <entry><para><code><link linkend="binary_type">binary</link> <replaceable>$encrypted_data</replaceable>, <link linkend="data_type">data</link> <replaceable>$key</replaceable>, <link linkend="data_type">data</link> <replaceable>$iv</replaceable> = defaultIV</code></para></entry>
             <entry>
               <para><code><link linkend="string_type">string</link></code></para>
             </entry>
@@ -11604,7 +11961,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <para><code><link linkend="des_encrypt_cbc">des_encrypt_cbc</link>(<link linkend="data_type">data</link>, <link linkend="data_type">data</link>, <link linkend="data_type">data</link> = defaultIV) <command>returns</command> <link linkend="binary_type">binary</link></code></para>
+          <para><code><link linkend="des_encrypt_cbc">des_encrypt_cbc</link>(<link linkend="data_type">data</link> <replaceable>$data</replaceable>, <link linkend="data_type">data</link> <replaceable>$key</replaceable>, <link linkend="data_type">data</link> <replaceable>$iv</replaceable> = defaultIV) <command>returns</command> <link linkend="binary_type">binary</link></code></para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -11632,7 +11989,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         </thead>
         <tbody>
           <row>
-            <entry><para><code><link linkend="data_type">data</link>, <link linkend="data_type">data</link>, <link linkend="data_type">data</link> = defaultIV</code></para></entry>
+            <entry><para><code><link linkend="data_type">data</link> <replaceable>$data</replaceable>, <link linkend="data_type">data</link> <replaceable>$key</replaceable>, <link linkend="data_type">data</link> <replaceable>$iv</replaceable> = defaultIV</code></para></entry>
             <entry><para><code><link linkend="binary_type">binary</link></code></para></entry>
             <entry>
               <para>Encrypts data using the Cipher Block Chaining function for the <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm.  The key must be at least 8-bytes long (only the first 8 bytes will be used).  If the init_vector is present it must also be at least 8 bytes long.</para>
@@ -11691,7 +12048,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <para><code><link linkend="des_decrypt_cbc">des_decrypt_cbc</link>(<link linkend="binary_type">binary</link>, <link linkend="data_type">data</link>, <link linkend="data_type">data</link> = defaultIV) <command>returns</command> <link linkend="binary_type">binary</link></code></para>
+          <para><code><link linkend="des_decrypt_cbc">des_decrypt_cbc</link>(<link linkend="binary_type">binary</link> <replaceable>$encrypted_data</replaceable>, <link linkend="data_type">data</link> <replaceable>$key</replaceable>, <link linkend="data_type">data</link> <replaceable>$iv</replaceable> = defaultIV) <command>returns</command> <link linkend="binary_type">binary</link></code></para>
         </listitem>
       </varlistentry>
     </variablelist>
@@ -11713,7 +12070,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         </thead>
         <tbody>
           <row>
-            <entry><para><code><link linkend="binary_type">binary</link>, <link linkend="data_type">data</link>, <link linkend="data_type">data</link> = defaultIV</code></para></entry>
+            <entry><para><code><link linkend="binary_type">binary</link> <replaceable>$encrypted_data</replaceable>, <link linkend="data_type">data</link> <replaceable>$key</replaceable>, <link linkend="data_type">data</link> <replaceable>$iv</replaceable> = defaultIV</code></para></entry>
             <entry><para><code><link linkend="binary_type">binary</link></code></para></entry>
             <entry>
               <para>Decrypts data using the Cipher Block Chaining function for the <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm using an 8-byte key.  If the init_vector is present it must also be at least 8 bytes long.</para>
@@ -11772,7 +12129,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <para><code><link linkend="des_decrypt_cbc_to_string">des_decrypt_cbc_to_string</link>(<link linkend="binary_type">binary</link>, <link linkend="data_type">data</link>, <link linkend="data_type">data</link> = defaultIV) <command>returns</command> <link linkend="string_type">string</link></code></para>
+          <para><code><link linkend="des_decrypt_cbc_to_string">des_decrypt_cbc_to_string</link>(<link linkend="binary_type">binary</link> <replaceable>$encrypted_data</replaceable>, <link linkend="data_type">data</link> <replaceable>$key</replaceable>, <link linkend="data_type">data</link> <replaceable>$iv</replaceable> = defaultIV) <command>returns</command> <link linkend="string_type">string</link></code></para>
         </listitem>
       </varlistentry>
     </variablelist>
@@ -11794,7 +12151,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         </thead>
         <tbody>
           <row>
-            <entry><para><code><link linkend="binary_type">binary</link>, <link linkend="data_type">data</link>, <link linkend="data_type">data</link> = defaultIV</code></para></entry>
+            <entry><para><code><link linkend="binary_type">binary</link> <replaceable>$encrypted_data</replaceable>, <link linkend="data_type">data</link> <replaceable>$key</replaceable>, <link linkend="data_type">data</link> <replaceable>$iv</replaceable> = defaultIV</code></para></entry>
             <entry>
               <para><code><link linkend="string_type">string</link></code></para>
             </entry>
@@ -11855,7 +12212,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <para><code><link linkend="des_ede_encrypt_cbc">des_ede_encrypt_cbc</link>(<link linkend="data_type">data</link>, <link linkend="data_type">data</link>, <link linkend="data_type">data</link> = defaultIV) returns <link linkend="binary_type">binary</link></code></para>
+          <para><code><link linkend="des_ede_encrypt_cbc">des_ede_encrypt_cbc</link>(<link linkend="data_type">data</link> <replaceable>$data</replaceable>, <link linkend="data_type">data</link> <replaceable>$key</replaceable>, <link linkend="data_type">data</link> <replaceable>$iv</replaceable> = defaultIV) returns <link linkend="binary_type">binary</link></code></para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -11878,7 +12235,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <tbody>
           <row>
             <entry>
-              <para><code><link linkend="data_type">data</link></code></para>
+              <para><code><link linkend="data_type">data</link> <replaceable>$data</replaceable>, <link linkend="data_type">data</link> <replaceable>$key</replaceable>, <link linkend="data_type">data</link> <replaceable>$iv</replaceable> = defaultIV</code></para>
             </entry>
             <entry><para><code><link linkend="binary_type">binary</link></code></para></entry>
             <entry>
@@ -11938,7 +12295,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <para><code><link linkend="des_ede_decrypt_cbc">des_ede_decrypt_cbc</link>(<link linkend="binary_type">binary</link>, <link linkend="data_type">data</link>, <link linkend="data_type">data</link> = defaultIV) <command>returns</command> <link linkend="binary_type">binary</link></code></para>
+          <para><code><link linkend="des_ede_decrypt_cbc">des_ede_decrypt_cbc</link>(<link linkend="binary_type">binary</link> <replaceable>$encrypted_data</replaceable>, <link linkend="data_type">data</link> <replaceable>$key</replaceable>, <link linkend="data_type">data</link> <replaceable>$iv</replaceable> = defaultIV) <command>returns</command> <link linkend="binary_type">binary</link></code></para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -11966,7 +12323,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         </thead>
         <tbody>
           <row>
-            <entry><para><code><link linkend="binary_type">binary</link>, <link linkend="data_type">data</link>, <link linkend="data_type">data</link> = defaultIV</code></para></entry>
+            <entry><para><code><link linkend="binary_type">binary</link> <replaceable>$encrypted_data</replaceable>, <link linkend="data_type">data</link> <replaceable>$key</replaceable>, <link linkend="data_type">data</link> <replaceable>$iv</replaceable> = defaultIV</code></para></entry>
             <entry><para><code><link linkend="binary_type">binary</link></code></para></entry>
             <entry>
               <para>Decrypts data using the Cipher Block Chaining function for the two-key triple <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm.  The key argument must be at least 16 bytes long; only the first 16 bytes of the key argument will be used for the two 8-byte keys.  If the init_vector argument is present, it must be at least 8 bytes long.</para>
@@ -12025,7 +12382,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <para><code><link linkend="des_ede_decrypt_cbc_to_string">des_ede_decrypt_cbc_to_string</link>(<link linkend="binary_type">binary</link>, <link linkend="data_type">data</link>, <link linkend="data_type">data</link> = defaultIV) <command>returns</command> <link linkend="string_type">string</link></code></para>
+          <para><code><link linkend="des_ede_decrypt_cbc_to_string">des_ede_decrypt_cbc_to_string</link>(<link linkend="binary_type">binary</link> <replaceable>$encrypted_data</replaceable>, <link linkend="data_type">data</link> <replaceable>$key</replaceable>, <link linkend="data_type">data</link> <replaceable>$iv</replaceable> = defaultIV) <command>returns</command> <link linkend="string_type">string</link></code></para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -12053,7 +12410,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         </thead>
         <tbody>
           <row>
-            <entry><para><code><link linkend="binary_type">binary</link>, <link linkend="data_type">data</link>, <link linkend="data_type">data</link> = defaultIV</code></para></entry>
+            <entry><para><code><link linkend="binary_type">binary</link> <replaceable>$encrypted_data</replaceable>, <link linkend="data_type">data</link> <replaceable>$key</replaceable>, <link linkend="data_type">data</link> <replaceable>$iv</replaceable> = defaultIV</code></para></entry>
             <entry>
               <para><code><link linkend="string_type">string</link></code></para>
             </entry>
@@ -12114,7 +12471,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <para><code><link linkend="des_ede3_encrypt_cbc">des_ede3_encrypt_cbc</link>(<link linkend="data_type">data</link>, <link linkend="data_type">data</link>, <link linkend="data_type">data</link> = defaultIV) returns <link linkend="binary_type">binary</link></code></para>
+          <para><code><link linkend="des_ede3_encrypt_cbc">des_ede3_encrypt_cbc</link>(<link linkend="data_type">data</link> <replaceable>$data</replaceable>, <link linkend="data_type">data</link> <replaceable>$key</replaceable>, <link linkend="data_type">data</link> <replaceable>$iv</replaceable> = defaultIV) returns <link linkend="binary_type">binary</link></code></para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -12142,7 +12499,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         </thead>
         <tbody>
           <row>
-            <entry><para><code><link linkend="data_type">data</link>, <link linkend="data_type">data</link>, <link linkend="data_type">data</link> = defaultIV</code></para></entry>
+            <entry><para><code><link linkend="data_type">data</link> <replaceable>$data</replaceable>, <link linkend="data_type">data</link> <replaceable>$key</replaceable>, <link linkend="data_type">data</link> <replaceable>$iv</replaceable> = defaultIV</code></para></entry>
             <entry><para><code><link linkend="binary_type">binary</link></code></para></entry>
             <entry>
               <para>Encrypts data using the Cipher Block Chaining function for the three-key triple <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm using three 8-byte keys (set by a single 24-byte key argument) and an optional 8-byte initialization vector.  Returns a binary object of the encrypted data.</para>
@@ -12201,7 +12558,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <para><code><link linkend="des_ede3_decrypt_cbc">des_ede3_decrypt_cbc</link>(<link linkend="binary_type">binary</link>, <link linkend="data_type">data</link>, <link linkend="data_type">data</link> = defaultIV) <command>returns</command> <link linkend="binary_type">binary</link></code></para>
+          <para><code><link linkend="des_ede3_decrypt_cbc">des_ede3_decrypt_cbc</link>(<link linkend="binary_type">binary</link> <replaceable>$encrypted_data</replaceable>, <link linkend="data_type">data</link> <replaceable>$key</replaceable>, <link linkend="data_type">data</link> <replaceable>$iv</replaceable> = defaultIV) <command>returns</command> <link linkend="binary_type">binary</link></code></para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -12229,7 +12586,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         </thead>
         <tbody>
           <row>
-            <entry><para><code><link linkend="binary_type">binary</link>, <link linkend="data_type">data</link>, <link linkend="data_type">data</link> = defaultIV</code></para></entry>
+            <entry><para><code><link linkend="binary_type">binary</link> <replaceable>$encrypted_data</replaceable>, <link linkend="data_type">data</link> <replaceable>$key</replaceable>, <link linkend="data_type">data</link> <replaceable>$iv</replaceable> = defaultIV</code></para></entry>
             <entry><para><code><link linkend="binary_type">binary</link></code></para></entry>
             <entry>
               <para>Decrypts data using the Cipher Block Chaining function for the three-key triple <ulink url="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES</ulink> algorithm.</para>
@@ -12288,7 +12645,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <para><code><link linkend="des_ede3_decrypt_cbc_to_string">des_ede3_decrypt_cbc_to_string</link>(<link linkend="binary_type">binary</link>, <link linkend="data_type">data</link>, <link linkend="data_type">data</link> = defaultIV) <command>returns</command> <link linkend="string_type">string</link></code></para>
+          <para><code><link linkend="des_ede3_decrypt_cbc_to_string">des_ede3_decrypt_cbc_to_string</link>(<link linkend="binary_type">binary</link> <replaceable>$encrypted_data</replaceable>, <link linkend="data_type">data</link> <replaceable>$key</replaceable>, <link linkend="data_type">data</link> <replaceable>$iv</replaceable> = defaultIV) <command>returns</command> <link linkend="string_type">string</link></code></para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -12316,7 +12673,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         </thead>
         <tbody>
           <row>
-            <entry><para><code><link linkend="binary_type">binary</link>, <link linkend="data_type">data</link>, <link linkend="data_type">data</link> = defaultIV</code></para></entry>
+            <entry><para><code><link linkend="binary_type">binary</link> <replaceable>$encrypted_data</replaceable>, <link linkend="data_type">data</link> <replaceable>$key</replaceable>, <link linkend="data_type">data</link> <replaceable>$iv</replaceable> = defaultIV</code></para></entry>
             <entry>
               <para><code><link linkend="string_type">string</link></code></para>
             </entry>
@@ -12377,7 +12734,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <para><code><link linkend="desx_encrypt_cbc">desx_encrypt_cbc</link>(<link linkend="data_type">data</link>, <link linkend="data_type">data</link>, <link linkend="data_type">data</link> = defaultIV) returns <link linkend="binary_type">binary</link></code></para>
+          <para><code><link linkend="desx_encrypt_cbc">desx_encrypt_cbc</link>(<link linkend="data_type">data</link> <replaceable>$data</replaceable>, <link linkend="data_type">data</link> <replaceable>$key</replaceable>, <link linkend="data_type">data</link> <replaceable>$iv</replaceable> = defaultIV) returns <link linkend="binary_type">binary</link></code></para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -12405,7 +12762,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         </thead>
         <tbody>
           <row>
-            <entry><para><code><link linkend="data_type">data</link>, <link linkend="data_type">data</link>, <link linkend="data_type">data</link> = defaultIV</code></para></entry>
+            <entry><para><code><link linkend="data_type">data</link> <replaceable>$data</replaceable>, <link linkend="data_type">data</link> <replaceable>$key</replaceable>, <link linkend="data_type">data</link> <replaceable>$iv</replaceable> = defaultIV</code></para></entry>
             <entry><para><code><link linkend="binary_type">binary</link></code></para></entry>
             <entry>
               <para>Encrypts data using the Cipher Block Chaining function for RSA's <ulink url="http://www.rsasecurity.com/">DESX</ulink> algorithm using a 24-byte key and an optional 8-byte initialization vector.</para>
@@ -12464,13 +12821,13 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <programlisting>desx_decrypt_cbc(<replaceable>encrypted_data, key, [init_vector]</replaceable>)</programlisting>
+	  <para><code><link linkend="desx_decrypt_cbc">desx_decrypt_cbc</link>(<link linkend="binary_type">binary</link> <replaceable>$encrypted_data</replaceable>, <link linkend="data_type">data</link> <replaceable>$key</replaceable>, <link linkend="data_type">data</link> <replaceable>$iv</replaceable> = defaultIV) returns <link linkend="binary_type">binary</link></code></para>
         </listitem>
       </varlistentry>
       <varlistentry>
         <term>Example</term>
         <listitem>
-          <para><code><link linkend="desx_decrypt_cbc">desx_decrypt_cbc</link>(<link linkend="binary_type">binary</link>, <link linkend="data_type">data</link>, <link linkend="data_type">data</link> = defaultIV) <command>returns</command> <link linkend="binary_type">binary</link></code></para>
+          <programlisting><command>my</command> binary $bin = desx_decrypt_cbc($data, $key);</programlisting>
         </listitem>
       </varlistentry>
     </variablelist>
@@ -12492,7 +12849,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         </thead>
         <tbody>
           <row>
-            <entry><para><code><link linkend="binary_type">binary</link>, <link linkend="data_type">data</link>, <link linkend="data_type">data</link> = defaultIV</code></para></entry>
+            <entry><para><code><link linkend="binary_type">binary</link> <replaceable>$encrypted_data</replaceable>, <link linkend="data_type">data</link> <replaceable>$key</replaceable>, <link linkend="data_type">data</link> <replaceable>$iv</replaceable> = defaultIV</code></para></entry>
             <entry><para><code><link linkend="binary_type">binary</link></code></para></entry>
             <entry>
               <para>Decrypts data using the Cipher Block Chaining function for RSA's <ulink url="http://www.rsasecurity.com/">DESX</ulink> algorithm using a 24-byte key and an optional 8-byte initialization vector.</para>
@@ -12551,7 +12908,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <para><code><link linkend="desx_decrypt_cbc_to_string">desx_decrypt_cbc_to_string</link>(<link linkend="binary_type">binary</link>, <link linkend="data_type">data</link>, <link linkend="data_type">data</link> = defaultIV) <command>returns</command> <link linkend="string_type">string</link></code></para>
+          <para><code><link linkend="desx_decrypt_cbc_to_string">desx_decrypt_cbc_to_string</link>(<link linkend="binary_type">binary</link> <replaceable>$encrypted_data</replaceable>, <link linkend="data_type">data</link> <replaceable>$key</replaceable>, <link linkend="data_type">data</link> <replaceable>$iv</replaceable> = defaultIV) <command>returns</command> <link linkend="string_type">string</link></code></para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -12579,7 +12936,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         </thead>
         <tbody>
           <row>
-            <entry><para><code><link linkend="binary_type">binary</link>, <link linkend="data_type">data</link>, <link linkend="data_type">data</link> = defaultIV</code></para></entry>
+            <entry><para><code><link linkend="binary_type">binary</link> <replaceable>$encrypted_data</replaceable>, <link linkend="data_type">data</link> <replaceable>$key</replaceable>, <link linkend="data_type">data</link> <replaceable>$iv</replaceable> = defaultIV</code></para></entry>
             <entry>
               <para><code><link linkend="string_type">string</link></code></para>
             </entry>
@@ -12640,7 +12997,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <para><code><link linkend="rc2_encrypt_cbc">rc2_encrypt_cbc</link>(<link linkend="data_type">data</link>, <link linkend="data_type">data</link>, <link linkend="data_type">data</link> = defaultIV) <command>returns</command> <link linkend="binary_type">binary</link></code></para>
+          <para><code><link linkend="rc2_encrypt_cbc">rc2_encrypt_cbc</link>(<link linkend="data_type">data</link> <replaceable>$data</replaceable>, <link linkend="data_type">data</link> <replaceable>$key</replaceable>, <link linkend="data_type">data</link> <replaceable>$iv</replaceable> = defaultIV) <command>returns</command> <link linkend="binary_type">binary</link></code></para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -12727,7 +13084,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <para><code><link linkend="rc2_decrypt_cbc">rc2_decrypt_cbc</link>(<link linkend="binary_type">binary</link>, <link linkend="data_type">data</link>, <link linkend="data_type">data</link> = defaultIV) <command>returns</command> <link linkend="binary_type">binary</link></code></para>
+          <para><code><link linkend="rc2_decrypt_cbc">rc2_decrypt_cbc</link>(<link linkend="binary_type">binary</link> <replaceable>$encrypted_data</replaceable>, <link linkend="data_type">data</link> <replaceable>$key</replaceable>, <link linkend="data_type">data</link> <replaceable>$iv</replaceable> = defaultIV) <command>returns</command> <link linkend="binary_type">binary</link></code></para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -12755,7 +13112,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         </thead>
         <tbody>
           <row>
-            <entry><para><code><link linkend="binary_type">binary</link>, <link linkend="data_type">data</link>, <link linkend="data_type">data</link> = defaultIV</code></para></entry>
+            <entry><para><code><link linkend="binary_type">binary</link> <replaceable>$encrypted_data</replaceable>, <link linkend="data_type">data</link> <replaceable>$key</replaceable>, <link linkend="data_type">data</link> <replaceable>$iv</replaceable> = defaultIV</code></para></entry>
             <entry><para><code><link linkend="binary_type">binary</link></code></para></entry>
             <entry>
               <para>Decrypts data using the Cipher Block Chaining function for <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC2(tm) algorithm using a variable-length key and an optional 8-byte initialization vector.</para>
@@ -12814,7 +13171,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <para><code><link linkend="rc2_decrypt_cbc_to_string">rc2_decrypt_cbc_to_string</link>(<link linkend="binary_type">binary</link>, <link linkend="data_type">data</link>, <link linkend="data_type">data</link> = defaultIV) <command>returns</command> <link linkend="string_type">string</link></code></para>
+          <para><code><link linkend="rc2_decrypt_cbc_to_string">rc2_decrypt_cbc_to_string</link>(<link linkend="binary_type">binary</link> <replaceable>$encrypted_data</replaceable>, <link linkend="data_type">data</link> <replaceable>$key</replaceable>, <link linkend="data_type">data</link> <replaceable>$iv</replaceable> = defaultIV) <command>returns</command> <link linkend="string_type">string</link></code></para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -12842,7 +13199,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         </thead>
         <tbody>
           <row>
-            <entry><para><code><link linkend="binary_type">binary</link>, <link linkend="data_type">data</link>, <link linkend="data_type">data</link> = defaultIV</code></para></entry>
+            <entry><para><code><link linkend="binary_type">binary</link> <replaceable>$encrypted_data</replaceable>, <link linkend="data_type">data</link> <replaceable>$key</replaceable>, <link linkend="data_type">data</link> <replaceable>$iv</replaceable> = defaultIV</code></para></entry>
             <entry>
               <para><code><link linkend="string_type">string</link></code></para>
             </entry>
@@ -12903,7 +13260,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <para><code><link linkend="cast5_encrypt_cbc">cast5_encrypt_cbc</link>(<link linkend="data_type">data</link>, <link linkend="data_type">data</link>, <link linkend="data_type">data</link> = defaultIV) <command>returns</command> <link linkend="binary_type">binary</link></code></para>
+          <para><code><link linkend="cast5_encrypt_cbc">cast5_encrypt_cbc</link>(<link linkend="data_type">data</link> <replaceable>$data</replaceable>, <link linkend="data_type">data</link> <replaceable>$key</replaceable>, <link linkend="data_type">data</link> <replaceable>$iv</replaceable> = defaultIV) <command>returns</command> <link linkend="binary_type">binary</link></code></para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -12990,7 +13347,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <para><code><link linkend="cast5_decrypt_cbc">cast5_decrypt_cbc</link>(<link linkend="binary_type">binary</link>, <link linkend="data_type">data</link>, <link linkend="data_type">data</link> = defaultIV) <command>returns</command> <link linkend="binary_type">binary</link></code></para>
+          <para><code><link linkend="cast5_decrypt_cbc">cast5_decrypt_cbc</link>(<link linkend="binary_type">binary</link> <replaceable>$encrypted_data</replaceable>, <link linkend="data_type">data</link> <replaceable>$key</replaceable>, <link linkend="data_type">data</link> <replaceable>$iv</replaceable> = defaultIV) <command>returns</command> <link linkend="binary_type">binary</link></code></para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -13018,7 +13375,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         </thead>
         <tbody>
           <row>
-            <entry><para><code><link linkend="binary_type">binary</link>, <link linkend="data_type">data</link>, <link linkend="data_type">data</link> = defaultIV</code></para></entry>
+            <entry><para><code><link linkend="binary_type">binary</link> <replaceable>$encrypted_data</replaceable>, <link linkend="data_type">data</link> <replaceable>$key</replaceable>, <link linkend="data_type">data</link> <replaceable>$iv</replaceable> = defaultIV</code></para></entry>
             <entry><para><code><link linkend="binary_type">binary</link></code></para></entry>
             <entry>
               <para>Decrypts data using the Cipher Block Chaining function for the <ulink url="http://en.wikipedia.org/wiki/CAST5">CAST5</ulink> algorithm using a variable-length key and an optional 8-byte initialization vector.</para>
@@ -13077,7 +13434,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <para><code><link linkend="cast5_decrypt_cbc_to_string">cast5_decrypt_cbc_to_string</link>(<link linkend="binary_type">binary</link>, <link linkend="data_type">data</link>, <link linkend="data_type">data</link> = defaultIV) <command>returns</command> <link linkend="string_type">string</link></code></para>
+          <para><code><link linkend="cast5_decrypt_cbc_to_string">cast5_decrypt_cbc_to_string</link>(<link linkend="binary_type">binary</link> <replaceable>$encrypted_data</replaceable>, <link linkend="data_type">data</link> <replaceable>$key</replaceable>, <link linkend="data_type">data</link> <replaceable>$iv</replaceable> = defaultIV) <command>returns</command> <link linkend="string_type">string</link></code></para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -13105,7 +13462,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         </thead>
         <tbody>
           <row>
-            <entry><para><code><link linkend="binary_type">binary</link>, <link linkend="data_type">data</link>, <link linkend="data_type">data</link> = defaultIV</code></para></entry>
+            <entry><para><code><link linkend="binary_type">binary</link> <replaceable>$encrypted_data</replaceable>, <link linkend="data_type">data</link> <replaceable>$key</replaceable>, <link linkend="data_type">data</link> <replaceable>$iv</replaceable> = defaultIV</code></para></entry>
             <entry>
               <para><code><link linkend="string_type">string</link></code></para>
             </entry>
@@ -13166,7 +13523,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <para><code><link linkend="rc4_encrypt">rc4_encrypt</link>(<link linkend="data_type">data</link>, <link linkend="data_type">data</link>, <link linkend="data_type">data</link> = defaultIV) <command>returns</command> <link linkend="binary_type">binary</link></code></para>
+          <para><code><link linkend="rc4_encrypt">rc4_encrypt</link>(<link linkend="data_type">data</link> <replaceable>$data</replaceable>, <link linkend="data_type">data</link> <replaceable>$key</replaceable>, <link linkend="data_type">data</link> <replaceable>$iv</replaceable> = defaultIV) <command>returns</command> <link linkend="binary_type">binary</link></code></para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -13253,7 +13610,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <para><code><link linkend="rc4_decrypt">rc4_decrypt</link>(<link linkend="binary_type">binary</link>, <link linkend="data_type">data</link>, <link linkend="data_type">data</link> = defaultIV) <command>returns</command> <link linkend="binary_type">binary</link></code></para>
+          <para><code><link linkend="rc4_decrypt">rc4_decrypt</link>(<link linkend="binary_type">binary</link> <replaceable>$encrypted_data</replaceable>, <link linkend="data_type">data</link> <replaceable>$key</replaceable>, <link linkend="data_type">data</link> <replaceable>$iv</replaceable> = defaultIV) <command>returns</command> <link linkend="binary_type">binary</link></code></para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -13281,7 +13638,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         </thead>
         <tbody>
           <row>
-            <entry><para><code><link linkend="binary_type">binary</link>, <link linkend="data_type">data</link>, <link linkend="data_type">data</link> = defaultIV</code></para></entry>
+            <entry><para><code><link linkend="binary_type">binary</link> <replaceable>$encrypted_data</replaceable>, <link linkend="data_type">data</link> <replaceable>$key</replaceable>, <link linkend="data_type">data</link> <replaceable>$iv</replaceable> = defaultIV</code></para></entry>
             <entry><para><code><link linkend="binary_type">binary</link></code></para></entry>
             <entry>
               <para>Decrypts data using the Alleged RC4 cipher algorithm, which should be compatible with <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC4(tm) algorithm using a variable-length key and an optional 8-byte initialization vector.</para>
@@ -13340,7 +13697,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <para><code><link linkend="rc4_decrypt_to_string">rc4_decrypt_to_string</link>(<link linkend="binary_type">binary</link>, <link linkend="data_type">data</link>, <link linkend="data_type">data</link> = defaultIV) <command>returns</command> <link linkend="string_type">string</link></code></para>
+          <para><code><link linkend="rc4_decrypt_to_string">rc4_decrypt_to_string</link>(<link linkend="binary_type">binary</link> <replaceable>$encrypted_data</replaceable>, <link linkend="data_type">data</link> <replaceable>$key</replaceable>, <link linkend="data_type">data</link> <replaceable>$iv</replaceable> = defaultIV) <command>returns</command> <link linkend="string_type">string</link></code></para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -13368,7 +13725,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         </thead>
         <tbody>
           <row>
-            <entry><para><code><link linkend="binary_type">binary</link>, <link linkend="data_type">data</link>, <link linkend="data_type">data</link> = defaultIV</code></para></entry>
+            <entry><para><code><link linkend="binary_type">binary</link> <replaceable>$encrypted_data</replaceable>, <link linkend="data_type">data</link> <replaceable>$key</replaceable>, <link linkend="data_type">data</link> <replaceable>$iv</replaceable> = defaultIV</code></para></entry>
             <entry>
               <para><code><link linkend="string_type">string</link></code></para>
             </entry>
@@ -13429,7 +13786,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <para><code><link linkend="rc5_encrypt_cbc">rc5_encrypt_cbc</link>(<link linkend="data_type">data</link>, <link linkend="data_type">data</link>, <link linkend="data_type">data</link> = defaultIV) returns <link linkend="binary_type">binary</link></code></para>
+          <para><code><link linkend="rc5_encrypt_cbc">rc5_encrypt_cbc</link>(<link linkend="data_type">data</link> <replaceable>$data</replaceable>, <link linkend="data_type">data</link> <replaceable>$key</replaceable>, <link linkend="data_type">data</link> <replaceable>$iv</replaceable> = defaultIV) returns <link linkend="binary_type">binary</link></code></para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -13520,7 +13877,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <para><code><link linkend="rc5_decrypt_cbc">rc5_decrypt_cbc</link>(<link linkend="binary_type">binary</link>, <link linkend="data_type">data</link>, <link linkend="data_type">data</link> = defaultIV) <command>returns</command> <link linkend="binary_type">binary</link></code></para>
+          <para><code><link linkend="rc5_decrypt_cbc">rc5_decrypt_cbc</link>(<link linkend="binary_type">binary</link> <replaceable>$encrypted_data</replaceable>, <link linkend="data_type">data</link> <replaceable>$key</replaceable>, <link linkend="data_type">data</link> <replaceable>$iv</replaceable> = defaultIV) <command>returns</command> <link linkend="binary_type">binary</link></code></para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -13548,7 +13905,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         </thead>
         <tbody>
           <row>
-            <entry><para><code><link linkend="binary_type">binary</link>, <link linkend="data_type">data</link>, <link linkend="data_type">data</link> = defaultIV</code></para></entry>
+            <entry><para><code><link linkend="binary_type">binary</link> <replaceable>$encrypted_data</replaceable>, <link linkend="data_type">data</link> <replaceable>$key</replaceable>, <link linkend="data_type">data</link> <replaceable>$iv</replaceable> = defaultIV</code></para></entry>
             <entry><para><code><link linkend="binary_type">binary</link></code></para></entry>
             <entry>
               <para>Decrypts data using the Cipher Block Chaining function for <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC5(tm) algorithm using a variable-length key and an optional 8-byte initialization vector.</para>
@@ -13611,7 +13968,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Usage</term>
         <listitem>
-          <para><code><link linkend="rc5_decrypt_cbc_to_string">rc5_decrypt_cbc_to_string</link>(<link linkend="binary_type">binary</link>, <link linkend="data_type">data</link>, <link linkend="data_type">data</link> = defaultIV) <command>returns</command> <link linkend="string_type">string</link></code></para>
+          <para><code><link linkend="rc5_decrypt_cbc_to_string">rc5_decrypt_cbc_to_string</link>(<link linkend="binary_type">binary</link> <replaceable>$encrypted_data</replaceable>, <link linkend="data_type">data</link> <replaceable>$key</replaceable>, <link linkend="data_type">data</link> <replaceable>$iv</replaceable> = defaultIV) <command>returns</command> <link linkend="string_type">string</link></code></para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -13639,7 +13996,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         </thead>
         <tbody>
           <row>
-            <entry><para><code><link linkend="binary_type">binary</link>, <link linkend="data_type">data</link>, <link linkend="data_type">data</link> = defaultIV</code></para></entry>
+            <entry><para><code><link linkend="binary_type">binary</link> <replaceable>$encrypted_data</replaceable>, <link linkend="data_type">data</link> <replaceable>$key</replaceable>, <link linkend="data_type">data</link> <replaceable>$iv</replaceable> = defaultIV</code></para></entry>
             <entry>
               <para><code><link linkend="string_type">string</link></code></para>
             </entry>
@@ -16061,7 +16418,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
 	<term>Restrictions</term>
 	<listitem>
-	  <para>Not available with <link linkend="no-filesystem"><code>PO_NO_FILESYSTEM</code></link></para>
+	  <para>Not available with <code><link linkend="no-filesystem">PO_NO_FILESYSTEM</link></code> or <code><link linkend="no-external-info">PO_NO_EXTERNAL_INFO</link></code></para>
 	</listitem>
       </varlistentry>
   </variablelist>
@@ -16117,7 +16474,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
 	<term>Restrictions</term>
 	<listitem>
-	  <para>Not available with <link linkend="no-filesystem"><code>PO_NO_FILESYSTEM</code></link></para>
+	  <para>Not available with <code><link linkend="no-filesystem">PO_NO_FILESYSTEM</link></code> or <code><link linkend="no-external-info">PO_NO_EXTERNAL_INFO</link></code></para>
 	</listitem>
       </varlistentry>
   </variablelist>
@@ -17186,6 +17543,77 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 
 </sect2>
 
+<sect2 id="readlink">
+  <title>readlink()</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Returns the target of a symbolic link; throws an exception if an error occurs (ex: file does not exist or is not a symbolic link).</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+            <para><code><link linkend="readlink">readlink</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>) <command>returns</command> <link linkend="string_type">string</link></code></para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting><command>my</command> string $str = readlink("/tmp/symbolic_link");</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Restrictions</term>
+      <listitem>
+	<para>Not available with <link linkend="no-filesystem"><code>PO_NO_FILESYSTEM</code></link></para>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+  <table><title>Arguments and Return Values for readlink()</title>
+    <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+
+      <thead>
+	<row>
+	  <entry><para>Argument Type</para></entry>
+	  <entry><para>Return Type</para></entry>
+	  <entry><para>Description</para></entry>
+	</row>
+      </thead>
+
+      <tbody>
+	<row>
+	  <entry><para><code><link linkend="string_type">string</link> <replaceable>$path</replaceable>) <command>returns</command> <link linkend="string_type">string</link></code></para></entry>
+	  <entry><para><code><link linkend="string_type">string</link></code></para></entry>
+	  <entry><para>Returns the target of a symbolic link as string; throws an exception if an error occurs (ex: file does not exist or is not a symbolic link).</para></entry>
+	</row>
+
+      </tbody>
+    </tgroup>
+  </table>
+
+  <table><title>Exceptions Thrown by readlink()</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>err</para></entry>
+	  <entry><para>desc</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><code>READLINK-ERROR</code></para></entry>
+	  <entry><para>Invalid arguments or a system error occured (ex: file does not exist or is not a symbolic link).</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+
+</sect2>
+
 <sect2 id="rename">
   <title>rename()</title>
 
@@ -17200,7 +17628,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Usage</term>
       <listitem>
-	<para><code><link linkend="rename">rename</link>(<link linkend="string_type">string</link>, <link linkend="string_type">string</link>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+	<para><code><link linkend="rename">rename</link>(<link linkend="string_type">string</link> <replaceable>$old_path</replaceable>, <link linkend="string_type">string</link> <replaceable>$new_path</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -17231,7 +17659,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 
       <tbody>
 	<row>
-	  <entry><para><code><link linkend="string_type">string</link>, <link linkend="string_type">string</link></code></para></entry>
+	  <entry><para><code><link linkend="string_type">string</link> <replaceable>$old_path</replaceable>, <link linkend="string_type">string</link> <replaceable>$new_path</replaceable></code></para></entry>
 	  <entry><para>n/a</para></entry>
 	  <entry><para>Renames (or moves) the file ior directory indentified by <replaceable>old_path</replaceable> to the new name and/or location given by <replaceable>new_path</replaceable></para></entry>
 	</row>
@@ -18650,6 +19078,366 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 
 </sect2>
 
+<sect2 id="get_byte">
+<title>get_byte()</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Returns the byte value of the offset (starting with 0) in the object passed.  Of no offset is passed, then the value of the first byte (offset 0) is returned.  Note that the <link linkend="List_Dereference_Operator">[] operator</link> provides a more efficient way to retrieve a byte from a binary object.</para>
+
+	<para>Note that this function is identical to <link linkend="getByte">getByte()</link> except that this version has no <code><link linkend="NOOP_flag">NOOP</link></code> variant.</para>
+
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+            <para><code><link linkend="get_byte">get_byte</link>(<link linkend="data_type">data</link>, <link linkend="softint_type">softint</link> = 0) <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$byte = get_byte($bin, 2); # returns the third byte of the binary object</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+<table><title>Arguments and Return Values for get_byte()</title>
+<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+
+  <thead>
+  <row>
+    <entry><para>Arguments</para></entry>
+    <entry><para>Return Type</para></entry>
+    <entry><para>Description</para></entry>
+  </row>
+  </thead>
+
+<tbody>
+  <row>
+    <entry><para><code><link linkend="data_type">data</link>, <link linkend="softint_type">softint</link> = 0)</code></para></entry>
+    <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+    <entry><para>The value of the byte at the offset in the string or binary object.  If no offset is passed, then the first byte is returned.  If the object is empty or the offset is larger than the object's size, then no value is returned.</para></entry>
+  </row>
+
+</tbody>
+</tgroup>
+</table>
+
+</sect2>
+
+<sect2 id="get_word_16">
+<title>get_word_16()</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Returns the 16-bit integer value at the 2-byte offset (starting with 0) in the data passed.  Of no offset is passed, then the value of the first 16-bit position at offset 0 is returned.  Note that the <link linkend="List_Dereference_Operator">[] operator</link> provides a more efficient way to retrieve a byte from a binary object.</para>
+	<para>This function assumes <ulink url="http://en.wikipedia.org/wiki/Most_significant_bit">MSB byte order</ulink> when retrieving the value from the data.</para>
+	<para>See also <link linkend="get_word_16_lsb">get_word_16_lsb()</link>.</para>
+
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+            <para><code><link linkend="get_word_16">get_word_16</link>(<link linkend="data_type">data</link>, <link linkend="softint_type">softint</link> = 0) <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$val = get_word_16($bin, 2); # returns the third 16-bit value in <ulink url="http://en.wikipedia.org/wiki/Most_significant_bit">MSB</ulink> format of the binary object</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+<table><title>Arguments and Return Values for get_word_16()</title>
+<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+
+  <thead>
+  <row>
+    <entry><para>Arguments</para></entry>
+    <entry><para>Return Type</para></entry>
+    <entry><para>Description</para></entry>
+  </row>
+  </thead>
+
+<tbody>
+  <row>
+    <entry><para><code><link linkend="data_type">data</link>, <link linkend="softint_type">softint</link> = 0)</code></para></entry>
+    <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+    <entry><para>The <ulink url="http://en.wikipedia.org/wiki/Most_significant_bit">MSB</ulink> integer value of the data at the 2-byte offset given in the string or binary object.  If no offset is passed, then the first 16-bit value is returned.  If the object is empty or the offset is larger than the object's size, then no value is returned.</para></entry>
+  </row>
+
+</tbody>
+</tgroup>
+</table>
+
+</sect2>
+
+<sect2 id="get_word_16_lsb">
+<title>get_word_16_lsb()</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Returns the 16-bit integer value at the 2-byte offset (starting with 0) in the data passed.  Of no offset is passed, then the value of the first 16-bit position at offset 0 is returned.  Note that the <link linkend="List_Dereference_Operator">[] operator</link> provides a more efficient way to retrieve a byte from a binary object.</para>
+	<para>This function assumes <ulink url="http://en.wikipedia.org/wiki/Least_significant_bit">LSB byte order</ulink> when retrieving the value from the data.</para>
+	<para>See also <link linkend="get_word_16">get_word_16()</link>.</para>
+
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+            <para><code><link linkend="get_word_16_lsb">get_word_16_lsb</link>(<link linkend="data_type">data</link>, <link linkend="softint_type">softint</link> = 0) <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$val = get_word_16_lsb($bin, 2); # returns the third 16-bit value in <ulink url="http://en.wikipedia.org/wiki/Least_significant_bit">LSB</ulink> format of the binary object</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+<table><title>Arguments and Return Values for get_word_16_lsb()</title>
+<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+
+  <thead>
+  <row>
+    <entry><para>Arguments</para></entry>
+    <entry><para>Return Type</para></entry>
+    <entry><para>Description</para></entry>
+  </row>
+  </thead>
+
+<tbody>
+  <row>
+    <entry><para><code><link linkend="data_type">data</link>, <link linkend="softint_type">softint</link> = 0)</code></para></entry>
+    <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+    <entry><para>The <ulink url="http://en.wikipedia.org/wiki/Least_significant_bit">LSB</ulink> integer value of the data at the 2-byte offset given in the string or binary object.  If no offset is passed, then the first 16-bit value is returned.  If the object is empty or the offset is larger than the object's size, then no value is returned.</para></entry>
+  </row>
+
+</tbody>
+</tgroup>
+</table>
+
+</sect2>
+
+<sect2 id="get_word_32">
+<title>get_word_32()</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Returns the 32-bit integer value at the 4-byte offset (starting with 0) in the data passed.  Of no offset is passed, then the value of the first 32-bit position at offset 0 is returned.  Note that the <link linkend="List_Dereference_Operator">[] operator</link> provides a more efficient way to retrieve a byte from a binary object.</para>
+	<para>This function assumes <ulink url="http://en.wikipedia.org/wiki/Most_significant_bit">MSB byte order</ulink> when retrieving the value from the data.</para>
+
+	<para>Note that this function is identical to <link linkend="getWord32">getWord32()</link> except that this version has no <code><link linkend="NOOP_flag">NOOP</link></code> variant.</para>
+
+	<para>See also <link linkend="get_word_32_lsb">get_word_32_lsb()</link>.</para>
+
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+            <para><code><link linkend="get_word_32">get_word_32</link>(<link linkend="data_type">data</link>, <link linkend="softint_type">softint</link> = 0) <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$val = get_word_32($bin, 2); # returns the third 32-bit value in <ulink url="http://en.wikipedia.org/wiki/Most_significant_bit">MSB</ulink> format of the binary object</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+<table><title>Arguments and Return Values for get_word_32()</title>
+<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+
+  <thead>
+  <row>
+    <entry><para>Arguments</para></entry>
+    <entry><para>Return Type</para></entry>
+    <entry><para>Description</para></entry>
+  </row>
+  </thead>
+
+<tbody>
+  <row>
+    <entry><para><code><link linkend="data_type">data</link>, <link linkend="softint_type">softint</link> = 0)</code></para></entry>
+    <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+    <entry><para>The <ulink url="http://en.wikipedia.org/wiki/Most_significant_bit">MSB</ulink> integer value of the data at the 4-byte offset given in the string or binary object.  If no offset is passed, then the first 32-bit value is returned.  If the object is empty or the offset is larger than the object's size, then no value is returned.</para></entry>
+  </row>
+
+</tbody>
+</tgroup>
+</table>
+
+</sect2>
+
+<sect2 id="get_word_32_lsb">
+<title>get_word_32_lsb()</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Returns the 32-bit integer value at the 4-byte offset (starting with 0) in the data passed.  Of no offset is passed, then the value of the first 32-bit position at offset 0 is returned.  Note that the <link linkend="List_Dereference_Operator">[] operator</link> provides a more efficient way to retrieve a byte from a binary object.</para>
+	<para>This function assumes <ulink url="http://en.wikipedia.org/wiki/Least_significant_bit">LSB byte order</ulink> when retrieving the value from the data.</para>
+	<para>See also <link linkend="get_word_32">get_word_32()</link>.</para>
+
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+            <para><code><link linkend="get_word_32_lsb">get_word_32_lsb</link>(<link linkend="data_type">data</link>, <link linkend="softint_type">softint</link> = 0) <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$val = get_word_32_lsb($bin, 2); # returns the third 32-bit value in <ulink url="http://en.wikipedia.org/wiki/Least_significant_bit">LSB</ulink> format of the binary object</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+<table><title>Arguments and Return Values for get_word_32_lsb()</title>
+<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+
+  <thead>
+  <row>
+    <entry><para>Arguments</para></entry>
+    <entry><para>Return Type</para></entry>
+    <entry><para>Description</para></entry>
+  </row>
+  </thead>
+
+<tbody>
+  <row>
+    <entry><para><code><link linkend="data_type">data</link>, <link linkend="softint_type">softint</link> = 0)</code></para></entry>
+    <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+    <entry><para>The <ulink url="http://en.wikipedia.org/wiki/Least_significant_bit">LSB</ulink> integer value of the data at the 4-byte offset given in the string or binary object.  If no offset is passed, then the first 32-bit value is returned.  If the object is empty or the offset is larger than the object's size, then no value is returned.</para></entry>
+  </row>
+
+</tbody>
+</tgroup>
+</table>
+
+</sect2>
+
+<sect2 id="get_word_64">
+<title>get_word_64()</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Returns the 64-bit integer value at the 8-byte offset (starting with 0) in the data passed.  Of no offset is passed, then the value of the first 64-bit position at offset 0 is returned.  Note that the <link linkend="List_Dereference_Operator">[] operator</link> provides a more efficient way to retrieve a byte from a binary object.</para>
+	<para>This function assumes <ulink url="http://en.wikipedia.org/wiki/Most_significant_bit">MSB byte order</ulink> when retrieving the value from the data.</para>
+	<para>See also <link linkend="get_word_16_lsb">get_word_64_lsb()</link>.</para>
+
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+            <para><code><link linkend="get_word_64">get_word_64</link>(<link linkend="data_type">data</link>, <link linkend="softint_type">softint</link> = 0) <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$val = get_word_64($bin, 2); # returns the third 64-bit value in <ulink url="http://en.wikipedia.org/wiki/Most_significant_bit">MSB</ulink> format of the binary object</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+<table><title>Arguments and Return Values for get_word_64()</title>
+<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+
+  <thead>
+  <row>
+    <entry><para>Arguments</para></entry>
+    <entry><para>Return Type</para></entry>
+    <entry><para>Description</para></entry>
+  </row>
+  </thead>
+
+<tbody>
+  <row>
+    <entry><para><code><link linkend="data_type">data</link>, <link linkend="softint_type">softint</link> = 0)</code></para></entry>
+    <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+    <entry><para>The <ulink url="http://en.wikipedia.org/wiki/Most_significant_bit">MSB</ulink> integer value of the data at the 8-byte offset given in the string or binary object.  If no offset is passed, then the first 64-bit value is returned.  If the object is empty or the offset is larger than the object's size, then no value is returned.</para></entry>
+  </row>
+
+</tbody>
+</tgroup>
+</table>
+
+</sect2>
+
+<sect2 id="get_word_64_lsb">
+<title>get_word_64_lsb()</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Returns the 64-bit integer value at the 8-byte offset (starting with 0) in the data passed.  Of no offset is passed, then the value of the first 64-bit position at offset 0 is returned.  Note that the <link linkend="List_Dereference_Operator">[] operator</link> provides a more efficient way to retrieve a byte from a binary object.</para>
+	<para>This function assumes <ulink url="http://en.wikipedia.org/wiki/Least_significant_bit">LSB byte order</ulink> when retrieving the value from the data.</para>
+	<para>See also <link linkend="get_word_16">get_word_64()</link>.</para>
+
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+            <para><code><link linkend="get_word_64_lsb">get_word_64_lsb</link>(<link linkend="data_type">data</link>, <link linkend="softint_type">softint</link> = 0) <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$val = get_word_64_lsb($bin, 2); # returns the third 64-bit value in <ulink url="http://en.wikipedia.org/wiki/Least_significant_bit">LSB</ulink> format of the binary object</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+<table><title>Arguments and Return Values for get_word_64_lsb()</title>
+<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+
+  <thead>
+  <row>
+    <entry><para>Arguments</para></entry>
+    <entry><para>Return Type</para></entry>
+    <entry><para>Description</para></entry>
+  </row>
+  </thead>
+
+<tbody>
+  <row>
+    <entry><para><code><link linkend="data_type">data</link>, <link linkend="softint_type">softint</link> = 0)</code></para></entry>
+    <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+    <entry><para>The <ulink url="http://en.wikipedia.org/wiki/Least_significant_bit">LSB</ulink> integer value of the data at the 8-byte offset given in the string or binary object.  If no offset is passed, then the first 64-bit value is returned.  If the object is empty or the offset is larger than the object's size, then no value is returned.</para></entry>
+  </row>
+
+</tbody>
+</tgroup>
+</table>
+
+</sect2>
+
 <sect2 id="get_qore_library_info">
 <title>get_qore_library_info()</title>
 
@@ -18868,7 +19656,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Example</term>
       <listitem>
-	<programlisting>$byte = getByte($bin, 2); # returns the thrid byte of the binary object</programlisting>
+	<programlisting>$byte = getByte($bin, 2); # returns the third byte of the binary object</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -19290,27 +20078,555 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 
 </sect2>
 
+    <sect2 id="getgrgid">
+      <title>getgrgid()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Returns a <link linkend="grinfo">group information hash</link> representing the group information for the group ID passed; or, if the group ID does not exist <link linkend="NOTHING">NOTHING</link> is returned.</para>
+	    <para>For a similar function that throws an exception if the group ID is invalid, see <link linkend="getgrgid2">getgrgid2()</link>.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <para><code><link linkend="getgrgid">getgrgid</link>(<link linkend="softint_type">softint</link> <replaceable>$gid</replaceable>) <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting><command>my</command> hash $hash = getgrgid(0); # returns the login information for root</programlisting>
+          </listitem>
+        </varlistentry>
+    <varlistentry>
+      <term>Restrictions</term>
+      <listitem>
+	<para>Not available with <code><link linkend="no-external-info">PO_NO_EXTERNAL_INFO</link></code></para>
+      </listitem>
+    </varlistentry>
+      </variablelist>
+      
+      <table>
+        <title>Arguments and Return Values for getgrgid()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument Type</para>
+              </entry>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para><code><link linkend="int_type">int</link> <replaceable>$gid</replaceable></code></para>
+              </entry>
+              <entry>
+                <para><code><link linkend="hash_type">hash</link> or <link linkend="nothing_type">nothing</link></code></para>
+              </entry>
+              <entry>
+                <para>Returns a hash representing the group information for the group ID passed.  If the gid does not exist, NOTHING is returned.  See the <link linkend="grinfo">Group Information Hash</link> for information about the return value.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <para>This function does not throw any exceptions.</para>
+
+  <table id="grinfo"><title>Group Information Hash</title>
+  <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+    <thead>
+      <row>
+	<entry><para>Key</para></entry>
+	<entry><para>Type</para></entry>
+	<entry><para>Description</para></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+	<entry><para><code>gr_name</code></para></entry>
+	<entry><para><code><link linkend="string_type">string</link></code></para></entry>
+	<entry><para>The name of the group.</para></entry>
+      </row>
+      <row>
+	<entry><para><code>gr_passwd</code></para></entry>
+	<entry><para><code><link linkend="string_type">string</link></code></para></entry>
+	<entry><para>The encrypted password for the group.</para></entry>
+      </row>
+      <row>
+	<entry><para><code>gr_gid</code></para></entry>
+	<entry><para><code><link linkend="int_type">int</link></code></para></entry>
+	<entry><para>The group id.</para></entry>
+      </row>
+      <row>
+	<entry><para><code>gr_mem</code></para></entry>
+	<entry><para><code><link linkend="list_type">list</link></code></para></entry>
+	<entry><para>List of strings giving the usernames of members of the group.</para></entry>
+      </row>
+    </tbody>
+  </tgroup>
+  </table>
+      
+    </sect2>
+
+    <sect2 id="getgrgid2">
+      <title>getgrgid2()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Returns a <link linkend="grinfo">group information hash</link> representing the group information for the group ID passed.  If the group ID does not exist, an exception is raised.</para>
+	    <para>For a similar function that does not throw an exception if the group ID is invalid, see <link linkend="getgrgid">getgrgid()</link>.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <para><code><link linkend="getgrgid2">getgrgid2</link>(<link linkend="softint_type">softint</link> <replaceable>$gid</replaceable>) <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting><command>my</command> hash $hash = getgrgid2(0); # returns the login information for root</programlisting>
+          </listitem>
+        </varlistentry>
+    <varlistentry>
+      <term>Restrictions</term>
+      <listitem>
+	<para>Not available with <code><link linkend="no-external-info">PO_NO_EXTERNAL_INFO</link></code></para>
+      </listitem>
+    </varlistentry>
+      </variablelist>
+      
+      <table>
+        <title>Arguments and Return Values for getgrgid2()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument Type</para>
+              </entry>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para><code><link linkend="int_type">int</link> <replaceable>$gid</replaceable></code></para>
+              </entry>
+              <entry>
+                <para><code><link linkend="hash_type">hash</link></code></para>
+              </entry>
+              <entry>
+                <para>Returns a hash representing the group information for the group ID passed.  If the gid does not exist, an exception is thrown.  See the <link linkend="grinfo">Group Information Hash</link> for information about the return value.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+
+  <table><title>Exceptions Thrown by getgrgid2()</title>
+  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+    <thead>
+      <row>
+	<entry><para>err</para></entry>
+	<entry><para>desc</para></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+	<entry><para><code>GETGRGID2-ERROR</code></para></entry>
+	<entry><para>The group information could not be retrieved (group does not exist or other error in call)</para></entry>
+      </row>
+    </tbody>
+  </tgroup>
+  </table>
+
+    </sect2>
+
+    <sect2 id="getgrnam">
+      <title>getgrnam()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Returns a <link linkend="grinfo">group information hash</link> representing the group information for the group name passed; or, if the group name does not exist <link linkend="NOTHING">NOTHING</link> is returned.</para>
+	    <para>For a similar function that throws an exception if the group ID is invalid, see <link linkend="getgrnam2">getgrnam2()</link>.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <para><code><link linkend="getgrnam">getgrnam</link>(<link linkend="string_type">string</link> <replaceable>$group_name</replaceable>) <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting><command>my</command> hash $hash = getgrnam("root"); # returns the login information for root</programlisting>
+          </listitem>
+        </varlistentry>
+    <varlistentry>
+      <term>Restrictions</term>
+      <listitem>
+	<para>Not available with <code><link linkend="no-external-info">PO_NO_EXTERNAL_INFO</link></code></para>
+      </listitem>
+    </varlistentry>
+      </variablelist>
+      
+      <table>
+        <title>Arguments and Return Values for getgrnam()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument Type</para>
+              </entry>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para><code><link linkend="int_type">int</link> <replaceable>$group_name</replaceable></code></para>
+              </entry>
+              <entry>
+                <para><code><link linkend="hash_type">hash</link> or <link linkend="nothing_type">nothing</link></code></para>
+              </entry>
+              <entry>
+                <para>Returns a hash representing the group information for the group name passed.  If the group name does not exist, NOTHING is returned.  See the <link linkend="grinfo">Group Information Hash</link> for information about the return value.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <para>This function does not throw any exceptions.</para>
+
+    </sect2>
+
+    <sect2 id="getgrnam2">
+      <title>getgrnam2()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Returns a <link linkend="grinfo">group information hash</link> representing the group information for the group name passed.  If the group name does not exist, an exception is rasied.</para>
+	    <para>For a similar function that does not throw an exception if the group ID is invalid, see <link linkend="getgrnam">getgrnam()</link>.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <para><code><link linkend="getgrnam2">getgrnam2</link>(<link linkend="string_type">string</link> <replaceable>$group_name</replaceable>) <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting><command>my</command> hash $hash = getgrnam2("root"); # returns the login information for root</programlisting>
+          </listitem>
+        </varlistentry>
+    <varlistentry>
+      <term>Restrictions</term>
+      <listitem>
+	<para>Not available with <code><link linkend="no-external-info">PO_NO_EXTERNAL_INFO</link></code></para>
+      </listitem>
+    </varlistentry>
+      </variablelist>
+      
+      <table>
+        <title>Arguments and Return Values for getgrnam2()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument Type</para>
+              </entry>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para><code><link linkend="string_type">string</link> <replaceable>$group_name</replaceable></code></para>
+              </entry>
+              <entry>
+                <para><code><link linkend="hash_type">hash</link></code></para>
+              </entry>
+              <entry>
+                <para>Returns a hash representing the group information for the group name passed.  If the group name does not exist, an exception is thrown.  See the <link linkend="grinfo">Group Information Hash</link> for information about the return value.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+
+  <table><title>Exceptions Thrown by getgrnam2()</title>
+  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+    <thead>
+      <row>
+	<entry><para>err</para></entry>
+	<entry><para>desc</para></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+	<entry><para><code>GETGRNAM2-ERROR</code></para></entry>
+	<entry><para>The group information could not be retrieved (group does not exist or other error in call)</para></entry>
+      </row>
+    </tbody>
+  </tgroup>
+  </table>
+
+    </sect2>
+
+    <sect2 id="getpwnam">
+      <title>getpwnam()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Returns a <link linkend="pwinfo">password information hash</link> representing the user information for the user name passed; or, if the user name does not exist <link linkend="NOTHING">NOTHING</link> is returned.</para>
+	    <para>For a similar function that throws an exception if the user ID is invalid, see <link linkend="getpwnam2">getpwnam2()</link>.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <para><code><link linkend="getpwnam">getpwnam</link>(<link linkend="string_type">string</link> <replaceable>$user_name</replaceable>) <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting><command>my</command> hash $hash = getpwnam("root"); # returns the login information for root</programlisting>
+          </listitem>
+        </varlistentry>
+    <varlistentry>
+      <term>Restrictions</term>
+      <listitem>
+	<para>Not available with <code><link linkend="no-external-info">PO_NO_EXTERNAL_INFO</link></code></para>
+      </listitem>
+    </varlistentry>
+      </variablelist>
+      
+      <table>
+        <title>Arguments and Return Values for getpwnam()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument Type</para>
+              </entry>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para><code><link linkend="int_type">int</link> <replaceable>$user_name</replaceable></code></para>
+              </entry>
+              <entry>
+                <para><code><link linkend="hash_type">hash</link> or <link linkend="nothing_type">nothing</link></code></para>
+              </entry>
+              <entry>
+                <para>Returns a hash representing the user information for the user name passed.  If the user name does not exist, NOTHING is returned.  See the <link linkend="pwinfo">Password Information Hash</link> for information about the return value.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <para>This function does not throw any exceptions.</para>
+
+  <table id="pwinfo"><title>Password Information Hash</title>
+  <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+    <thead>
+      <row>
+	<entry><para>Key</para></entry>
+	<entry><para>Type</para></entry>
+	<entry><para>Description</para></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+	<entry><para><code>pw_name</code></para></entry>
+	<entry><para><code><link linkend="string_type">string</link></code></para></entry>
+	<entry><para>The username of the user.</para></entry>
+      </row>
+      <row>
+	<entry><para><code>pw_passwd</code></para></entry>
+	<entry><para><code><link linkend="string_type">string</link></code></para></entry>
+	<entry><para>The encrypted password for the user.</para></entry>
+      </row>
+      <row>
+	<entry><para><code>pw_gecos</code></para></entry>
+	<entry><para><code><link linkend="string_type">string</link></code></para></entry>
+	<entry><para>The real name or description of the user.</para></entry>
+      </row>
+      <row>
+	<entry><para><code>pw_dir</code></para></entry>
+	<entry><para><code><link linkend="string_type">string</link></code></para></entry>
+	<entry><para>The user's home directory.</para></entry>
+      </row>
+      <row>
+	<entry><para><code>pw_shell</code></para></entry>
+	<entry><para><code><link linkend="string_type">string</link></code></para></entry>
+	<entry><para>The user's login shell.</para></entry>
+      </row>
+      <row>
+	<entry><para><code>pw_uid</code></para></entry>
+	<entry><para><code><link linkend="int_type">int</link></code></para></entry>
+	<entry><para>The user's userid.</para></entry>
+      </row>
+      <row>
+	<entry><para><code>pw_gid</code></para></entry>
+	<entry><para><code><link linkend="int_type">int</link></code></para></entry>
+	<entry><para>The group id of the user's primary group.</para></entry>
+      </row>
+    </tbody>
+  </tgroup>
+  </table>
+
+    </sect2>
+
+    <sect2 id="getpwnam2">
+      <title>getpwnam2()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Returns a <link linkend="pwinfo">password information hash</link> representing the user information for the user name passed.  If the user name does not exist, an exception is rasied.</para>
+	    <para>For a similar function that does not throw an exception if the user ID is invalid, see <link linkend="getpwnam">getpwnam()</link>.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <para><code><link linkend="getpwnam2">getpwnam2</link>(<link linkend="string_type">string</link> <replaceable>$user_name</replaceable>) <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting><command>my</command> hash $hash = getpwnam2("root"); # returns the login information for root</programlisting>
+          </listitem>
+        </varlistentry>
+    <varlistentry>
+      <term>Restrictions</term>
+      <listitem>
+	<para>Not available with <code><link linkend="no-external-info">PO_NO_EXTERNAL_INFO</link></code></para>
+      </listitem>
+    </varlistentry>
+      </variablelist>
+      
+      <table>
+        <title>Arguments and Return Values for getpwnam2()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument Type</para>
+              </entry>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para><code><link linkend="string_type">string</link> <replaceable>$user_name</replaceable></code></para>
+              </entry>
+              <entry>
+                <para><code><link linkend="hash_type">hash</link></code></para>
+              </entry>
+              <entry>
+                <para>Returns a hash representing the user information for the user name passed.  If the user name does not exist, an exception is thrown.  See the <link linkend="pwinfo">Password Information Hash</link> for information about the return value.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+
+  <table><title>Exceptions Thrown by getpwnam2()</title>
+  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+    <thead>
+      <row>
+	<entry><para>err</para></entry>
+	<entry><para>desc</para></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+	<entry><para><code>GETPWNAM2-ERROR</code></para></entry>
+	<entry><para>The user information could not be retrieved (user does not exist or other error in call)</para></entry>
+      </row>
+    </tbody>
+  </tgroup>
+  </table>
+
+    </sect2>
+
     <sect2 id="getpwuid">
       <title>getpwuid()</title>
       <variablelist>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Returns a hash representing the user information for the user ID passed.</para>
+            <para>Returns a <link linkend="pwinfo">password information hash</link> representing the user information for the user ID passed; or, if the user ID does not exist <link linkend="NOTHING">NOTHING</link> is returned.</para>
+	    <para>For a similar function that throws an exception if the user ID is invalid, see <link linkend="getpwuid2">getpwuid2()</link>.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Usage</term>
           <listitem>
-            <para><code><link linkend="getpwuid">getpwuid</link>(<link linkend="softint_type">softint</link>) <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="getpwuid">getpwuid</link>(<link linkend="softint_type">softint</link> <replaceable>$uid</replaceable>) <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Example</term>
           <listitem>
-            <programlisting>$hash = getpwuid(0); # returns the login information for root</programlisting>
+            <programlisting><command>my</command> hash $hash = getpwuid(0); # returns the login information for root</programlisting>
           </listitem>
         </varlistentry>
+    <varlistentry>
+      <term>Restrictions</term>
+      <listitem>
+	<para>Not available with <code><link linkend="no-external-info">PO_NO_EXTERNAL_INFO</link></code></para>
+      </listitem>
+    </varlistentry>
       </variablelist>
       
       <table>
@@ -19332,19 +20648,101 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           <tbody>
             <row>
               <entry>
-                <para><code><link linkend="int_type">int</link></code></para>
+                <para><code><link linkend="int_type">int</link> <replaceable>$uid</replaceable></code></para>
               </entry>
               <entry>
                 <para><code><link linkend="hash_type">hash</link> or <link linkend="nothing_type">nothing</link></code></para>
               </entry>
               <entry>
-                <para>Returns a hash representing the user information for the user ID passed.  If the uid does not exist, NOTHING is returned.  Otherwise the hash has the following keys: <code>pw_name, pw_passwd, pw_gecos, pw_dir, pw_shell, pw_uid, pw_gid</code>.</para>
+                <para>Returns a hash representing the user information for the user ID passed.  If the uid does not exist, NOTHING is returned.  See the <link linkend="pwinfo">Password Information Hash</link> for information about the return value.</para>
               </entry>
             </row>
           </tbody>
         </tgroup>
       </table>
       <para>This function does not throw any exceptions.</para>
+      
+    </sect2>
+
+    <sect2 id="getpwuid2">
+      <title>getpwuid2()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Returns a <link linkend="pwinfo">password information hash</link> representing the user information for the user ID passed.  If the user ID does not exist, an exception is raised.</para>
+	    <para>For a similar function that does not throw an exception if the user ID is invalid, see <link linkend="getpwuid">getpwuid()</link>.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Usage</term>
+          <listitem>
+            <para><code><link linkend="getpwuid2">getpwuid2</link>(<link linkend="softint_type">softint</link> <replaceable>$uid</replaceable>) <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting><command>my</command> hash $hash = getpwuid2(0); # returns the login information for root</programlisting>
+          </listitem>
+        </varlistentry>
+    <varlistentry>
+      <term>Restrictions</term>
+      <listitem>
+	<para>Not available with <code><link linkend="no-external-info">PO_NO_EXTERNAL_INFO</link></code></para>
+      </listitem>
+    </varlistentry>
+      </variablelist>
+      
+      <table>
+        <title>Arguments and Return Values for getpwuid2()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument Type</para>
+              </entry>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para><code><link linkend="int_type">int</link> <replaceable>$uid</replaceable></code></para>
+              </entry>
+              <entry>
+                <para><code><link linkend="hash_type">hash</link></code></para>
+              </entry>
+              <entry>
+                <para>Returns a hash representing the user information for the user ID passed.  If the uid does not exist, an exception is thrown.  See the <link linkend="pwinfo">Password Information Hash</link> for information about the return value.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+
+  <table><title>Exceptions Thrown by getpwuid2()</title>
+  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+    <thead>
+      <row>
+	<entry><para>err</para></entry>
+	<entry><para>desc</para></entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+	<entry><para><code>GETPWUID2-ERROR</code></para></entry>
+	<entry><para>The user information could not be retrieved (user does not exist or other error in call)</para></entry>
+      </row>
+    </tbody>
+  </tgroup>
+  </table>
+
     </sect2>
 
     <sect2 id="get_script_path">
@@ -19484,6 +20882,61 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <para>This function does not throw any exceptions.</para>
       
     </sect2>
+
+<sect2 id="getWord32">
+<title>getWord32()</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Returns the 32-bit integer value at the 4-byte offset (starting with 0) in the data passed.  Of no offset is passed, then the value of the first 32-bit position at offset 0 is returned.  Note that the <link linkend="List_Dereference_Operator">[] operator</link> provides a more efficient way to retrieve a byte from a binary object.</para>
+	<para>This function assumes <ulink url="http://en.wikipedia.org/wiki/Most_significant_bit">MSB byte order</ulink> when retrieving the value from the data.</para>
+
+	<para>Note that this function is identical to <link linkend="get_word_32">get_word_32()</link> except that this version has a <code><link linkend="NOOP_flag">NOOP</link></code> variant.</para>
+
+	<para>See also <link linkend="get_word_32_lsb">get_word_32_lsb()</link>.</para>
+
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Usage</term>
+      <listitem>
+	<para><code><link linkend="getWord32">getWord32</link>(<link linkend="data_type">data</link>, <link linkend="softint_type">softint</link> = 0) <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+	<para><code><link linkend="getWord32">getWord32</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="NOOP_flag">NOOP</link>)</code></para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$val = getWord32($bin, 2); # returns the third 32-bit value in <ulink url="http://en.wikipedia.org/wiki/Most_significant_bit">MSB</ulink> format of the binary object</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+<table><title>Arguments and Return Values for getWord32()</title>
+<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+
+  <thead>
+  <row>
+    <entry><para>Arguments</para></entry>
+    <entry><para>Return Type</para></entry>
+    <entry><para>Description</para></entry>
+  </row>
+  </thead>
+
+<tbody>
+  <row>
+    <entry><para><code><link linkend="data_type">data</link>, <link linkend="softint_type">softint</link> = 0)</code></para></entry>
+    <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+    <entry><para>The <ulink url="http://en.wikipedia.org/wiki/Most_significant_bit">MSB</ulink> integer value of the data at the 4-byte offset given in the string or binary object.  If no offset is passed, then the first 32-bit value is returned.  If the object is empty or the offset is larger than the object's size, then no value is returned.</para></entry>
+  </row>
+
+</tbody>
+</tgroup>
+</table>
+
+</sect2>
 
     <sect2 id="hash_values">
       <title>hash_values()</title>
@@ -21141,9 +22594,10 @@ delete_thread_data($list_of_strings);</programlisting>
     <varlistentry>
       <term>Restrictions</term>
       <listitem>
-	<para>Not available with <link linkend="no-thread-control"><code>PO_NO_THREAD_CONTROL</code></link></para>
+	<para>Not available with <link linkend="no-thread-control"><code>PO_NO_THREAD_CONTROL</code></link> or <code><link linkend="no-thread-info">PO_NO_THREAD_INFO</link></code></para>
       </listitem>
     </varlistentry>
+
   </variablelist>
     <table>
       <title>Arguments and Return Values for get_all_thread_data()</title>
@@ -21191,9 +22645,10 @@ delete_thread_data($list_of_strings);</programlisting>
     <varlistentry>
       <term>Restrictions</term>
       <listitem>
-	<para>Not available with <link linkend="no-thread-control"><code>PO_NO_THREAD_CONTROL</code></link></para>
+	<para>Not available with <link linkend="no-thread-control"><code>PO_NO_THREAD_CONTROL</code></link> or <code><link linkend="no-thread-info">PO_NO_THREAD_INFO</link></code></para>
       </listitem>
     </varlistentry>
+
   </variablelist>
     <table>
       <title>Arguments and Return Values for getAllThreadCallStacks()</title>
@@ -21259,7 +22714,7 @@ delete_thread_data($list_of_strings);</programlisting>
     <varlistentry>
       <term>Restrictions</term>
       <listitem>
-	<para>Not available with <link linkend="no-thread-control"><code>PO_NO_THREAD_CONTROL</code></link></para>
+	<para>Not available with <code><link linkend="no-thread-control">PO_NO_THREAD_CONTROL</link></code> or <code><link linkend="no-thread-info">PO_NO_THREAD_INFO</link></code></para>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -21307,6 +22762,12 @@ delete_thread_data($list_of_strings);</programlisting>
 	<programlisting>$tid = gettid();</programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Restrictions</term>
+      <listitem>
+	<para>Not available with <code><link linkend="no-thread-info">PO_NO_THREAD_INFO</link></code></para>
+      </listitem>
+    </varlistentry>
   </variablelist>
     
     <table>
@@ -21352,6 +22813,12 @@ delete_thread_data($list_of_strings);</programlisting>
       <term>Example</term>
       <listitem>
 	<programlisting>$num = num_threads();</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Restrictions</term>
+      <listitem>
+	<para>Not available with <code><link linkend="no-thread-info">PO_NO_THREAD_INFO</link></code></para>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -21525,6 +22992,12 @@ remove_thread_data($list_of_strings);</programlisting>
 	      <programlisting>$list = thread_list();</programlisting>
 	    </listitem>
 	  </varlistentry>
+    <varlistentry>
+      <term>Restrictions</term>
+      <listitem>
+	<para>Not available with <code><link linkend="no-thread-info">PO_NO_THREAD_INFO</link></code></para>
+      </listitem>
+    </varlistentry>
 	</variablelist>
 
 	<table><title>Arguments and Return Values for thread_list()</title>
