@@ -68,7 +68,8 @@ static AbstractQoreNode *DIR_exists(QoreObject *self, Dir *d, const QoreListNode
 static AbstractQoreNode *DIR_create(QoreObject *self, Dir *d, const QoreListNode *params, ExceptionSink *xsink) {
    int mode = HARD_QORE_INT(params, 0);
    // create all directories from / on
-   return new QoreBigIntNode(d->create(mode, xsink)); // throws exception
+   int rc = d->create(mode, xsink); // throws exception
+   return *xsink ? 0 : new QoreBigIntNode(rc); // throws exception
 }
 
 // chmod(mode)
@@ -305,7 +306,7 @@ QoreClass *initDirClass() {
 
    QC_DIR->addMethodExtended("chdir",		(q_method_t)DIR_chdir, false, QC_NO_FLAGS, QDOM_DEFAULT, boolTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   QC_DIR->addMethodExtended("path",		(q_method_t)DIR_path, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringTypeInfo);
+   QC_DIR->addMethodExtended("path",		(q_method_t)DIR_path, false, QC_RET_VALUE_ONLY);
 
    QC_DIR->addMethodExtended("exists",		(q_method_t)DIR_exists, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, boolTypeInfo);
 
