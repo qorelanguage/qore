@@ -8,7 +8,7 @@
       <tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	<thead>
 	  <row>
-	    <entry><para>Name</para></entry>2
+	    <entry><para>Name</para></entry>
 	    <entry><para>Description</para></entry>
 	  </row>
 	</thead>
@@ -2189,7 +2189,7 @@ raised from the <link linkend="FtpClient_Class">FtpClient</link> class.</para></
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$f = <command>new</command> File("ISO-8859-1"); # specify ISO-8859-1 encoding for the file</programlisting>
+	    <programlisting><command>my</command> File $f("ISO-8859-1"); # specify ISO-8859-1 encoding for the file</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -4846,8 +4846,7 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>while (exists (my $line = $f.readLine()))
-{
+	    <programlisting>while (exists (my $line = $f.readLine())) {
     # remove EOL marker
     chomp $line;
     # print out the line just read
@@ -6011,9 +6010,10 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 	  <row>
 	    <entry>
               <para><code><link linkend="Dir_constructor">Dir::constructor</link>()</code></para>
+              <para><code><link linkend="Dir_constructor">Dir::constructor</link>(string $encoding)</code></para>
             </entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Create a Directory object with the optional character encoding. It points to the directory the script is started.</para></entry>
+	    <entry><para>Create a Directory object with optional character encoding. It points to the directory the script is started.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
@@ -6031,98 +6031,108 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Dir_chdir">Dir::chdir</link>()</code></para>
+              <para><code><link linkend="Dir_chdir">Dir::chdir</link>(string $path) returns bool</code></para>
             </entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Change the path of the directory. The path specification can be relative or absolute (with leading '/'). This path not necessarily needs to exist.</para></entry>
+	    <entry><para>Change the path of the directory. The path specification can be relative or absolute (with leading '/'). This path does not necessarily need to exist.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Dir_path">Dir::path</link>()</code></para>
+              <para><code><link linkend="Dir_path">Dir::path</link>() returns any</code></para>
             </entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Return the current path of the object. The path is stripped of all '.' and '..' entries.</para></entry>
+	    <entry><para>Returns a string giving the current path of the object, stripped of all '.' and '..' entries or <link linkend="NOTHING">NOTHING</link> if no path is set.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Dir_exists">Dir::exists</link>()</code></para>
+              <para><code><link linkend="Dir_exists">Dir::exists</link>() returns bool</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Checks if the path in the object is an openable directory.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Dir_create">Dir::create</link>()</code></para>
+              <para><code><link linkend="Dir_create">Dir::create</link>(softint $mode = 0777) returns int</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Try to create all directories of the object if they do not exist yet.</para></entry>
+	    <entry><para>Try to create all directories of the object if they do not exist yet; if any errors occur an exception is thrown.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Dir_chown">Dir::chown</link>()</code></para>
+              <para><code><link linkend="Dir_chown">Dir::chown</link>(softint $uid) returns nothing</code></para>
+              <para><code><link linkend="Dir_chown">Dir::chown</link>(string $username) returns nothing</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Change the ownership of the directory to the given user.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Dir_chgrp">Dir::chgrp</link>()</code></para>
+              <para><code><link linkend="Dir_chgrp">Dir::chgrp</link>(softint $gid) returns nothing</code></para>
+              <para><code><link linkend="Dir_chgrp">Dir::chgrp</link>(string $groupname) returns nothing</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Change the group membership of the directory to the given group.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Dir_chmod">Dir::chmod</link>()</code></para>
+              <para><code><link linkend="Dir_chmod">Dir::chmod</link>(softint $mode) returns nothing</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Change the permissions of the directory to the given mode.</para></entry>
+	    <entry><para>Change the permissions of the directory to the given mode; if any errors occur an exception is thrown.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Dir_mkdir">Dir::mkdir</link>()</code></para>
+              <para><code><link linkend="Dir_mkdir">Dir::mkdir</link>(string $name, softint $mode = 0777) returns nothing</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Create a subdirectory with the name in the directory.</para></entry>
+	    <entry><para>Create a subdirectory with the name in the directory; if any errors occur an exception is thrown.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Dir_rmdir">Dir::rmdir</link>()</code></para>
+              <para><code><link linkend="Dir_rmdir">Dir::rmdir</link>(string) returns nothing</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Delete an empty subdirectory with the name in the directory.</para></entry>
+	    <entry><para>Delete an empty subdirectory with the name in the directory; if any errors occur an exception is thrown.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Dir_list">Dir::list</link>()</code></para>
+              <para><code><link linkend="Dir_list">Dir::list</link>() returns list</code></para>
+              <para><code><link linkend="Dir_list">Dir::list</link>(string $regex) returns list</code></para>
+              <para><code><link linkend="Dir_list">Dir::list</link>(string $regex, int $options) returns list</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Get all entries in this directory, except '.' and '..' directories (takes an optional regular expression filter).</para></entry>
+	    <entry><para>Get all entries in this directory, except '.' and '..' directories (takes an optional regular expression filter); if any errors occur an exception is thrown.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Dir_listFiles">Dir::listFiles</link>()</code></para>
+              <para><code><link linkend="Dir_listFiles">Dir::listFiles</link>() returns list</code></para>
+              <para><code><link linkend="Dir_listFiles">Dir::listFiles</link>(string $regex) returns list</code></para>
+              <para><code><link linkend="Dir_listFiles">Dir::listFiles</link>(string $regex, int $options) returns list</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Get all entries in the directory which are not subdirectories (takes an optional regular expression filter).</para></entry>
+	    <entry><para>Get all entries in the directory which are not subdirectories (takes an optional regular expression filter); if any errors occur an exception is thrown.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Dir_listDirs">Dir::listDirs</link>()</code></para>
+              <para><code><link linkend="Dir_listDirs">Dir::listDirs</link>() returns list</code></para>
+              <para><code><link linkend="Dir_listDirs">Dir::listDirs</link>(string $regex) returns list</code></para>
+              <para><code><link linkend="Dir_listDirs">Dir::listDirs</link>(string $regex, int $options) returns list</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Get all entries in the directory which are subdirectories, except '.' and '..' directories (takes an optional regular expression filter).</para></entry>
+	    <entry><para>Get all entries in the directory which are subdirectories, except '.' and '..' directories (takes an optional regular expression filter); if any errors occur an exception is thrown.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Dir_openDir">Dir::openDir</link>()</code></para>
+              <para><code><link linkend="Dir_openDir">Dir::openDir</link>(string $subdir) returns <link linkend="Dir_Class">Dir</link></code></para>
+              <para><code><link linkend="Dir_openDir">Dir::openDir</link>(string $subdir, string $encoding) returns <link linkend="Dir_Class">Dir</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Get a Dir object as an subdir entry of the current directory.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Dir_openFile">Dir::openFile</link>()</code></para>
+              <para><code><link linkend="Dir_openFile">Dir::openFile</link>(string $name, softint $flags = O_RDONLY, softint $mode = 0666) returns <link linkend="File_Class">File</link></code></para>
+              <para><code><link linkend="Dir_openFile">Dir::openFile</link>(string $name, softint $flags = O_RDONLY, softint $mode = 0666, string $encoding) returns <link linkend="File_Class">File</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Get a File object which represents a file in the directory.</para></entry>
@@ -6130,7 +6140,7 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 
 	  <row>
 	    <entry>
-              <para><code><link linkend="Dir_removeFile">Dir::removeFile</link>()</code></para>
+              <para><code><link linkend="Dir_removeFile">Dir::removeFile</link>(string $name) returns bool</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Remove (unlink) a file in this directory.</para></entry>
@@ -6158,7 +6168,7 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$d = <command>new</command> Dir("UTF-8");</programlisting>
+	    <programlisting><command>my</command> Dir $d("UTF-8");</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -7609,9 +7619,9 @@ $d.removeFile("myTestFile.dat");
 
     <para>For example, here is some code to set terminal attributes, read in a character from stanrdard input with a timeout, and reset the terminal attributes:</para>
 
-    <programlisting><command>my</command> $t = <command>new</command> TermIOS();
+    <programlisting><command>my</command> TermIOS $t();
 stdin.getTerminalAttributes($t);
-<command>my</command> $orig = $t.copy();
+<command>my</command> TermIOS $orig = $t.copy();
 <command>on_exit</command>
     stdin.setTerminalAttributes(TCSADRAIN, $orig);
 
@@ -7669,77 +7679,77 @@ stdout.printf(" GOT ASCII 0x%02x (%d) '%s'\n", ord($c), ord($c), $c);</programli
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="TermIOS::getLFlag">TermIOS::getLFlag</link>()</code></para>
+              <para><code><link linkend="TermIOS::getLFlag">TermIOS::getLFlag</link>() returns int</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Gets the <link linkend="Local_Mode_Constants">local mode</link> value of the object.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="TermIOS::getCFlag">TermIOS::getCFlag</link>()</code></para>
+              <para><code><link linkend="TermIOS::getCFlag">TermIOS::getCFlag</link>() returns int</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Gets the <link linkend="Control_Mode_Constants">control mode</link> value of the object.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="TermIOS::getOFlag">TermIOS::getOFlag</link>()</code></para>
+              <para><code><link linkend="TermIOS::getOFlag">TermIOS::getOFlag</link>() returns int</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Gets the <link linkend="Output_Mode_Constants">output mode</link> value of the object.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="TermIOS::getIFlag">TermIOS::getIFlag</link>()</code></para>
+              <para><code><link linkend="TermIOS::getIFlag">TermIOS::getIFlag</link>() returns int</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Gets the <link linkend="Input_Mode_Constants">input mode</link> value of the object.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="TermIOS::setLFlag">TermIOS::setLFlag</link>()</code></para>
+              <para><code><link linkend="TermIOS::setLFlag">TermIOS::setLFlag</link>(softint $val = 0) returns nothing</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Sets the <link linkend="Local_Mode_Constants">local mode</link> of the object.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="TermIOS::setCFlag">TermIOS::setCFlag</link>()</code></para>
+              <para><code><link linkend="TermIOS::setCFlag">TermIOS::setCFlag</link>(softint $val = 0) returns nothing</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Sets the <link linkend="Control_Mode_Constants">control mode</link> of the object.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="TermIOS::setOFlag">TermIOS::setOFlag</link>()</code></para>
+              <para><code><link linkend="TermIOS::setOFlag">TermIOS::setOFlag</link>(softint $val = 0) returns nothing</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Sets the <link linkend="Output_Mode_Constants">output mode</link> of the object.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="TermIOS::setIFlag">TermIOS::setIFlag</link>()</code></para>
+              <para><code><link linkend="TermIOS::setIFlag">TermIOS::setIFlag</link>(softint $val = 0) returns nothing</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Sets the <link linkend="Input_Mode_Constants">input mode</link> of the object.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="TermIOS::getCC">TermIOS::getCC</link>()</code></para>
+              <para><code><link linkend="TermIOS::getCC">TermIOS::getCC</link>(softint $offset = 0) returns int</code></para>
             </entry>
-	    <entry><para>N</para></entry>
+	    <entry><para>Y</para></entry>
 	    <entry><para>Gets the value of a <link linkend="Control_Character_Constants">control character</link> for the object.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="TermIOS::setCC">TermIOS::setCC</link>()</code></para>
+              <para><code><link linkend="TermIOS::setCC">TermIOS::setCC</link>(softint $offset = 0, softint $value = 0) returns nothing</code></para>
             </entry>
-	    <entry><para>N</para></entry>
+	    <entry><para>Y</para></entry>
 	    <entry><para>Sets the value of a <link linkend="Control_Character_Constants">control character</link> for the object.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="TermIOS::isEqual">TermIOS::isEqual</link>()</code></para>
+              <para><code><link linkend="TermIOS::isEqual">TermIOS::isEqual</link>(<link linkend="TermIOS_Class">TermIOS</link>) returns bool</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Returns true if the object passed is equal to the current object, false if not.</para></entry>
@@ -7789,7 +7799,7 @@ stdout.printf(" GOT ASCII 0x%02x (%d) '%s'\n", ord($c), ord($c), $c);</programli
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting><command>my</command> $termios = <command>new</command> TermIOS();
+	    <programlisting><command>my</command> TermIOS $termios();
 stdin.getTerminalAttributes($termios);</programlisting>
 	  </listitem>
 	</varlistentry>
@@ -8792,7 +8802,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	<tbody>
 	  <row>
 	    <entry>
-              <para><code><link linkend="GetOpt_constructor">GetOpt::constructor</link>()</code></para>
+              <para><code><link linkend="GetOpt_constructor">GetOpt::constructor</link>(hash)</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Creates the GetOpt object with the option hash passed.</para></entry>
@@ -8813,10 +8823,19 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="GetOpt::parse">GetOpt::parse</link>()</code></para>
+              <para><code><link linkend="GetOpt::parse">GetOpt::parse</link>(reference $list_ref) returns hash</code></para>
+              <para><code><link linkend="GetOpt::parse">GetOpt::parse</link>(list $list) returns hash</code></para>
             </entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Parses the argument list passed and retuns a hash of the results.</para></entry>
+	    <entry><para>Parses the argument list passed and retuns a hash of the results; if there are any errors, they are returned in the <code>&quot;_ERRORS_&quot;</code> key of the hash returned.</para></entry>
+	  </row>
+	  <row>
+	    <entry>
+              <para><code><link linkend="GetOpt::parse2">GetOpt::parse2</link>(reference $list_ref) returns hash</code></para>
+              <para><code><link linkend="GetOpt::parse2">GetOpt::parse2</link>(list $list) returns hash</code></para>
+            </entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Parses the argument list passed and retuns a hash of the results; if there are any errors, an exception is thrown.</para></entry>
 	  </row>
 
 	</tbody>
@@ -8849,7 +8868,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
       "verb" : "verbose,v",
       "help" : "help,h" );
 
-$getopt = <command>new</command> GetOpt(program_options);</programlisting>
+<command>my</command> GetOpt $getopt(program_options);</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -9192,6 +9211,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	  <row>
 	    <entry>
               <para><code><link linkend="FtpClient_constructor">FtpClient::constructor</link>()</code></para>
+              <para><code><link linkend="FtpClient_constructor">FtpClient::constructor</link>(string $url)</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Creates object and optionally initializes URL</para></entry>
@@ -9212,36 +9232,33 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="FtpClient_connect">FtpClient::connect</link>()</code></para>
+              <para><code><link linkend="FtpClient_connect">FtpClient::connect</link>() returns int</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Connects and logs in to FTP server</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="FtpClient_disconnect">FtpClient::disconnect</link>()</code></para>
+              <para><code><link linkend="FtpClient_disconnect">FtpClient::disconnect</link>() returns int</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Disconnects from the FTP server.</para></entry>
 	  </row>
           <row>
             <entry>
-              <para>
-                <link linkend="FtpClient_setSecure">FtpClient::setSecure()</link>
+              <para><code><link linkend="FtpClient_setSecure">FtpClient::setSecure</link></code>(softbool = True) returns nothing
               </para>
             </entry>
             <entry>
               <para>Y</para>
             </entry>
             <entry>
-              <para>Make an FTPS connection to the server on the next connect.</para>
+              <para>Make an FTPS connection to the server on the next connect if the argument is True.</para>
             </entry>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="FtpClient_setInsecure">FtpClient::setInsecure()</link>
-              </para>
+              <para><code><link linkend="FtpClient_setInsecure">FtpClient::setInsecure</link>() returns nothing</code></para>
             </entry>
             <entry>
               <para>Y</para>
@@ -9252,9 +9269,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="FtpClient_setInsecureData">FtpClient::setInsecureData()</link>
-              </para>
+              <para><code><link linkend="FtpClient_setInsecureData">FtpClient::setInsecureData()</link> returns nothing</code></para>
             </entry>
             <entry>
               <para>Y</para>
@@ -9265,9 +9280,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="FtpClient_isSecure">FtpClient::isSecure()</link>
-              </para>
+              <para><code><link linkend="FtpClient_isSecure">FtpClient::isSecure</link>() returns bool</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -9278,9 +9291,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="FtpClient_isDataSecure">FtpClient::isDataSecure()</link>
-              </para>
+              <para><code><link linkend="FtpClient_isDataSecure">FtpClient::isDataSecure</link>() returns bool</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -9291,48 +9302,40 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="FtpClient_getSSLCipherName">FtpClient::getSSLCipherName()</link>
-              </para>
+              <para><code><link linkend="FtpClient_getSSLCipherName">FtpClient::getSSLCipherName</link>() returns any</code></para>
             </entry>
             <entry>
               <para>N</para>
             </entry>
             <entry>
-              <para>Returns the name of the cipher for an encrypted connection.</para>
+              <para>Returns the name of the cipher for an encrypted connection or <link linkend="NOTHING">NOTHING</link> if no encrypted connection has been established.</para>
             </entry>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="FtpClient_getSSLCipherVersion">FtpClient::getSSLCipherVersion()</link>
-              </para>
+              <para><code><link linkend="FtpClient_getSSLCipherVersion">FtpClient::getSSLCipherVersion</link>() returns any</code></para>
             </entry>
             <entry>
               <para>N</para>
             </entry>
             <entry>
-              <para>Returns the version string of the cipher for encrypted connections.</para>
+              <para>Returns the version string of the cipher for encrypted connections or <link linkend="NOTHING">NOTHING</link> if no encrypted connection has been established.</para>
             </entry>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="FtpClient_verifyPeerCertificate">FtpClient::verifyPeerCertificate()</link>
-              </para>
+              <para><code><link linkend="FtpClient_verifyPeerCertificate">FtpClient::verifyPeerCertificate</link>() returns any</code></para>
             </entry>
             <entry>
               <para>N</para>
             </entry>
             <entry>
-              <para>Returns a string code giving the result of verifying the remote certificate.</para>
+              <para>Returns a string code giving the result of verifying the remote certificate or <link linkend="NOTHING">NOTHING</link> if no encrypted connection has been established.</para>
             </entry>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="FtpClient_setModeAuto">FtpClient::setModeAuto()</link>
-              </para>
+              <para><code><link linkend="FtpClient_setModeAuto">FtpClient::setModeAuto</link>() returns nothing</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -9343,9 +9346,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="FtpClient_setModeEPSV">FtpClient::setModeEPSV()</link>
-              </para>
+              <para><code><link linkend="FtpClient_setModeEPSV">FtpClient::setModeEPSV</link>() returns nothing</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -9356,9 +9357,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="FtpClient_setModePASV">FtpClient::setModePASV()</link>
-              </para>
+              <para><code><link linkend="FtpClient_setModePASV">FtpClient::setModePASV</link>() returns nothing</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -9369,9 +9368,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="FtpClient_setModePORT">FtpClient::setModePORT()</link>
-              </para>
+              <para><code><link linkend="FtpClient_setModePORT">FtpClient::setModePORT</link>() returns nothing</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -9382,157 +9379,164 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
           </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="FtpClient_list">FtpClient::list</link>()</code></para>
+              <para><code><link linkend="FtpClient_list">FtpClient::list</link>() returns any</code></para>
+              <para><code><link linkend="FtpClient_list">FtpClient::list</link>(string $path) returns any</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Gets a list of files from the FTP server in the server's long format.</para></entry>
+	    <entry><para>Gets a list of files from the FTP server in the server's long format; returns <link linkend="NOTHING">NOTHING</link> if the path cannot be found.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="FtpClient_nlst">FtpClient::nlst</link>()</code></para>
+              <para><code><link linkend="FtpClient_nlst">FtpClient::nlst</link>() returns any</code></para>
+              <para><code><link linkend="FtpClient_nlst">FtpClient::nlst</link>(string $path) returns any</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Gets a list of file names from the FTP server.</para></entry>
+	    <entry><para>Gets a list of file names from the FTP server; returns <link linkend="NOTHING">NOTHING</link> if the path cannot be found.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="FtpClient_pwd">FtpClient::pwd</link>()</code></para>
+              <para><code><link linkend="FtpClient_pwd">FtpClient::pwd</link>() returns string</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Returns the server-side current working directory.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="FtpClient_cwd">FtpClient::cwd</link>()</code></para>
+              <para><code><link linkend="FtpClient_cwd">FtpClient::cwd</link>(string $dir) returns int</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Changes the current working directory on the server.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="FtpClient_get">FtpClient::get</link>()</code></para>
+              <para><code><link linkend="FtpClient_get">FtpClient::get</link>(string $remote_file) returns int</code></para>
+              <para><code><link linkend="FtpClient_get">FtpClient::get</link>(string $remote_file, string $local_file) returns int</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Gets a file from the FTP server and stores it on the local filesystem.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="FtpClient_getAsBinary">FtpClient::getAsBinary</link>()</code></para>
+              <para><code><link linkend="FtpClient_getAsBinary">FtpClient::getAsBinary</link>(string $remote_file) returns binary</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Gets a file from the FTP server and returns it as a binary value.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="FtpClient_getAsString">FtpClient::getAsString</link>()</code></para>
+              <para><code><link linkend="FtpClient_getAsString">FtpClient::getAsString</link>(string $remote_file) returns string</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Gets a file from the FTP server and returns it as a string.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="FtpClient_put">FtpClient::put</link>()</code></para>
+              <para><code><link linkend="FtpClient_put">FtpClient::put</link>(string $local_file) returns int</code></para>
+              <para><code><link linkend="FtpClient_put">FtpClient::put</link>(string $local_file, string $remote_file) returns int</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Transfers a file to the FTP server.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="FtpClient_del">FtpClient::del</link>()</code></para>
+              <para><code><link linkend="FtpClient_del">FtpClient::del</link>(string $remote_file) returns int</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Deletes a file from the FTP server</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="FtpClient_setUserName">FtpClient::setUserName</link>()</code></para>
+              <para><code><link linkend="FtpClient_setUserName">FtpClient::setUserName</link>(string $user) returns nothing</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Sets the user name to use</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="FtpClient_setPassword">FtpClient::setPassword</link>()</code></para>
+              <para><code><link linkend="FtpClient_setPassword">FtpClient::setPassword</link>(string $pass) returns nothing</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Sets the password to use</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="FtpClient_setHostName">FtpClient::setHostName</link>()</code></para>
+              <para><code><link linkend="FtpClient_setHostName">FtpClient::setHostName</link>(string $host) returns nothing</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Sets the hostname to connect to</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="FtpClient_setPort">FtpClient::setPort</link>()</code></para>
+              <para><code><link linkend="FtpClient_setPort">FtpClient::setPort</link>(softint $port) returns nothing</code></para>
             </entry>
-	    <entry><para>N</para></entry>
-	    <entry><para>Sets the port to connect to</para></entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Sets the port to connect to; throws an exception if the port is &lt;= 0.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="FtpClient_setURL">FtpClient::setURL</link>()</code></para>
+              <para><code><link linkend="FtpClient_setURL">FtpClient::setURL</link>(string $url) returns nothing</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Sets the URL</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="FtpClient_getUserName">FtpClient::getUserName</link>()</code></para>
+              <para><code><link linkend="FtpClient_getUserName">FtpClient::getUserName</link>() returns any</code></para>
             </entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Gets the current user name</para></entry>
+	    <entry><para>Gets the current user name or <link linkend="NOTHING">NOTHING</link> if not yet set.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="FtpClient_getPassword">FtpClient::getPassword</link>()</code></para>
+              <para><code><link linkend="FtpClient_getPassword">FtpClient::getPassword</link>() returns any</code></para>
             </entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Gets the current password</para></entry>
+	    <entry><para>Gets the current password or <link linkend="NOTHING">NOTHING</link> if not yet set.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="FtpClient_getHostName">FtpClient::getHostName</link>()</code></para>
+              <para><code><link linkend="FtpClient_getHostName">FtpClient::getHostName</link>() returns any</code></para>
             </entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Gets the current hostname</para></entry>
+	    <entry><para>Gets the current hostname or <link linkend="NOTHING">NOTHING</link> if not yet set.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="FtpClient_getPort">FtpClient::getPort</link>()</code></para>
+              <para><code><link linkend="FtpClient_getPort">FtpClient::getPort</link>() returns int</code></para>
             </entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Gets the current port</para></entry>
+	    <entry><para>Gets the current port number.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="FtpClient_getURL">FtpClient::getURL</link>()</code></para>
+              <para><code><link linkend="FtpClient_getURL">FtpClient::getURL</link>() returns string</code></para>
             </entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Gets the current FTP URL</para></entry>
+	    <entry><para>Gets the current FTP URL.</para></entry>
 	  </row>
           <row>
             <entry>
-              <para><code><link linkend="FtpClient_setEventQueue">FtpClient::setEventQueue</link>()</code></para>
+              <para><code><link linkend="FtpClient_setEventQueue">FtpClient::setEventQueue</link>() returns nothing</code></para>
+              <para><code><link linkend="FtpClient_setEventQueue">FtpClient::setEventQueue</link>(<link linkend="Queue_Class">Queue</link>) returns nothing</code></para>
             </entry>
             <entry><para>N</para></entry>
-            <entry><para>Sets a <link linkend="Queue_Class">Queue</link> object to receive <link linkend="socket_events">socket</link> and <link linkend="ftpclient_events">FtpClient</link> events on both the data and control connections.</para></entry>
+            <entry><para>Sets a <link linkend="Queue_Class">Queue</link> object to receive <link linkend="socket_events">socket</link> and <link linkend="ftpclient_events">FtpClient</link> events on both the data and control connections.  Calling with no argument clears the queue.</para></entry>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="FtpClient_setDataEventQueue">FtpClient::setDataEventQueue</link>()</code></para>
+              <para><code><link linkend="FtpClient_setDataEventQueue">FtpClient::setDataEventQueue</link>() returns nothing</code></para>
+              <para><code><link linkend="FtpClient_setDataEventQueue">FtpClient::setDataEventQueue</link>(<link linkend="Queue_Class">Queue</link>) returns nothing</code></para>
             </entry>
             <entry><para>N</para></entry>
-            <entry><para>Sets a <link linkend="Queue_Class">Queue</link> object to receive <link linkend="socket_events">socket</link> and <link linkend="ftpclient_events">FtpClient</link> events on the data connection.</para></entry>
+            <entry><para>Sets a <link linkend="Queue_Class">Queue</link> object to receive <link linkend="socket_events">socket</link> and <link linkend="ftpclient_events">FtpClient</link> events on the data connection.  Calling with no argument clears the queue.</para></entry>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="FtpClient_setControlEventQueue">FtpClient::setControlEventQueue</link>()</code></para>
+              <para><code><link linkend="FtpClient_setControlEventQueue">FtpClient::setControlEventQueue</link>() returns nothing</code></para>
+              <para><code><link linkend="FtpClient_setControlEventQueue">FtpClient::setControlEventQueue</link>(<link linkend="Queue_Class">Queue</link>) returns nothing</code></para>
             </entry>
             <entry><para>N</para></entry>
-            <entry><para>Sets a <link linkend="Queue_Class">Queue</link> object to receive <link linkend="socket_events">socket</link> and <link linkend="ftpclient_events">FtpClient</link> events on the control connection.</para></entry>
+            <entry><para>Sets a <link linkend="Queue_Class">Queue</link> object to receive <link linkend="socket_events">socket</link> and <link linkend="ftpclient_events">FtpClient</link> events on the control connection.  Calling with no argument clears the queue.</para></entry>
           </row>
 
 	</tbody>
@@ -9560,7 +9564,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$ftp = <command>new</command> FtpClient("ftp://user:pass@hostname");</programlisting>
+	    <programlisting><command>my</command> FtpClient $ftp("ftp://user:pass@hostname");</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -13068,7 +13072,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$pgm = <command>new</command> Program();</programlisting>
+	    <programlisting><command>my</command> Program $pgm();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -15239,7 +15243,7 @@ $pgm.setParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$sock = <command>new</command> Socket();</programlisting>
+	    <programlisting><command>my</command> Socket $sock();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -19872,9 +19876,7 @@ $sock.bind("/tmp/socket");</programlisting>
         <tbody>
           <row>
             <entry>
-              <para>
-                <link linkend="HTTPClient_constructor">HTTPClient::constructor()</link>
-              </para>
+              <para><code><link linkend="HTTPClient_constructor">HTTPClient::constructor</link>()</code></para>
             </entry>
             <entry>
               <para>Y</para>
@@ -19885,9 +19887,7 @@ $sock.bind("/tmp/socket");</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="HTTPClient_destructor">HTTPClient::destructor()</link>
-              </para>
+              <para><code><link linkend="HTTPClient_destructor">HTTPClient::destructor</link>()</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -19899,7 +19899,7 @@ $sock.bind("/tmp/socket");</programlisting>
           <row>
             <entry>
               <para><code><link linkend="HTTPClient_copy">HTTPClient::copy</link>()</code></para>
-            </entry>
+	    </entry>
             <entry><para>Y</para></entry>
             <entry><para>Copying objects of this class is not supported, an exception will be thrown.</para></entry>
           </row>
@@ -19968,9 +19968,7 @@ $sock.bind("/tmp/socket");</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="HTTPClient_connect">HTTPClient::connect()</link>
-              </para>
+              <para><code><link linkend="HTTPClient_connect">HTTPClient::connect</link>()</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -19981,9 +19979,7 @@ $sock.bind("/tmp/socket");</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="HTTPClient_disconnect">HTTPClient::disconnect()</link>
-              </para>
+              <para><code><link linkend="HTTPClient_disconnect">HTTPClient::disconnect</link>()</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -19994,9 +19990,7 @@ $sock.bind("/tmp/socket");</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="HTTPClient_get">HTTPClient::get()</link>
-              </para>
+              <para><code><link linkend="HTTPClient_get">HTTPClient::get</link>()</code></para>
             </entry>
             <entry>
               <para>Y</para>
@@ -20007,9 +20001,7 @@ $sock.bind("/tmp/socket");</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="HTTPClient_head">HTTPClient::head()</link>
-              </para>
+              <para><code><link linkend="HTTPClient_head">HTTPClient::head</link>()</code></para>
             </entry>
             <entry>
               <para>Y</para>
@@ -20020,9 +20012,7 @@ $sock.bind("/tmp/socket");</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="HTTPClient_post">HTTPClient::post()</link>
-              </para>
+              <para><code><link linkend="HTTPClient_post">HTTPClient::post</link>()</code></para>
             </entry>
             <entry>
               <para>Y</para>
@@ -20033,9 +20023,7 @@ $sock.bind("/tmp/socket");</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="HTTPClient_send">HTTPClient::send()</link>
-              </para>
+              <para><code><link linkend="HTTPClient_send">HTTPClient::send</link>()</code></para>
             </entry>
             <entry>
               <para>Y</para>
@@ -20074,9 +20062,7 @@ $sock.bind("/tmp/socket");</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="HTTPClient_setHTTPVersion">HTTPClient::setHTTPVersion()</link>
-              </para>
+              <para><code><link linkend="HTTPClient_setHTTPVersion">HTTPClient::setHTTPVersion</link>()</code></para>
             </entry>
             <entry>
               <para>Y</para>
@@ -20087,9 +20073,7 @@ $sock.bind("/tmp/socket");</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="HTTPClient_getHTTPVersion">HTTPClient::getHTTPVersion()</link>
-              </para>
+              <para><code><link linkend="HTTPClient_getHTTPVersion">HTTPClient::getHTTPVersion</link>()</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -20100,9 +20084,7 @@ $sock.bind("/tmp/socket");</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="HTTPClient_setSecure">HTTPClient::setSecure()</link>
-              </para>
+              <para><code><link linkend="HTTPClient_setSecure">HTTPClient::setSecure</link>()</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -20113,9 +20095,7 @@ $sock.bind("/tmp/socket");</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="HTTPClient_isSecure">HTTPClient::isSecure()</link>
-              </para>
+              <para><code><link linkend="HTTPClient_isSecure">HTTPClient::isSecure</link>()</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -20126,9 +20106,7 @@ $sock.bind("/tmp/socket");</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="HTTPClient_verifyPeerCertificate">HTTPClient::verifyPeerCertificate()</link>
-              </para>
+              <para><code><link linkend="HTTPClient_verifyPeerCertificate">HTTPClient::verifyPeerCertificate</link>()</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -20139,9 +20117,7 @@ $sock.bind("/tmp/socket");</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="HTTPClient_getSSLCipherName">HTTPClient::getSSLCipherName()</link>
-              </para>
+              <para><code><link linkend="HTTPClient_getSSLCipherName">HTTPClient::getSSLCipherName</link>()</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -20152,9 +20128,7 @@ $sock.bind("/tmp/socket");</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="HTTPClient_getSSLCipherVersion">HTTPClient::getSSLCipherVersion()</link>
-              </para>
+              <para><code><link linkend="HTTPClient_getSSLCipherVersion">HTTPClient::getSSLCipherVersion</link>()</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -20165,9 +20139,7 @@ $sock.bind("/tmp/socket");</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="HTTPClient_setEncoding">HTTPClient::setEncoding()</link>
-              </para>
+              <para><code><link linkend="HTTPClient_setEncoding">HTTPClient::setEncoding</link>()</code></para>
             </entry>
             <entry>
               <para>Y</para>
@@ -20234,7 +20206,7 @@ $sock.bind("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Example</term>
           <listitem>
-            <programlisting>$httpclient = <command>new</command> HTTPClient(("url":"http://hostname:8080/path"));</programlisting>
+            <programlisting><command>my</command> HTTPClient $httpclient(("url":"http://hostname:8080/path"));</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -23466,7 +23438,7 @@ $sock.bind("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Example</term>
           <listitem>
-            <programlisting>$xrc = <command>new</command> XmlRpcClient(("url":"http://hostname/RPC2"));</programlisting>
+            <programlisting><command>my</command> XmlRpcClient $xrc(("url":"http://hostname/RPC2"));</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -24284,7 +24256,7 @@ $sock.bind("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Example</term>
           <listitem>
-            <programlisting>$jrc = <command>new</command> JsonRpcClient(("url":"http://hostname/json"));</programlisting>
+            <programlisting><command>my</command> JsonRpcClient $jrc(("url":"http://hostname/json"));</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -25023,7 +24995,7 @@ $sock.bind("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Example</term>
           <listitem>
-            <programlisting>$pkey = <command>new</command> SSLPrivateKey("/etc/keys/key.pem");</programlisting>
+            <programlisting><command>my</command> SSLPrivateKey $pkey($data);</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -25811,7 +25783,7 @@ $sock.bind("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Example</term>
           <listitem>
-            <programlisting>$cert = <command>new</command> SSLCertificate($pem_cert_string);</programlisting>
+            <programlisting><command>my</command> SSLCertificate $cert($pem_cert_string);</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -27490,7 +27462,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$db = <command>new</command> Datasource(DSPGSQL, "user", "pass", "database", "utf8", "localhost", 5432);</programlisting>
+	    <programlisting><command>my</command> Datasource $db(DSPGSQL, "user", "pass", "database", "utf8", "localhost", 5432);</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -30321,7 +30293,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	    <programlisting># open a Datasource pool to a PostgreSQL database, username="user", password="pass", dbname="database"
 # use "utf8" for the character encoding for the connection, hostname="localhost", port=5432
 # minimum 5 connections (opened immediately), with a maximum of 20
-$pool = <command>new</command> DatasourcePool(DSPGSQL, "user", "pass", "database", "utf8", "localhost", 5, 20, 5432);</programlisting>
+<command>my</command> DatasourcePool $pool(DSPGSQL, "user", "pass", "database", "utf8", "localhost", 5, 20, 5432);</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -32134,14 +32106,13 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
 
     <para>For example:</para>
 
-    <programlisting><command>our</command> $gate = <command>new</command> Gate();
+    <programlisting><command>our</command> Gate $gate();
 
-<command>sub</command> check_error($error)
-{
+<command>sub</command> check_error($error) {
     # note that the Gate is entered in the AutoGate constructor, and
     # the Gate will be exited as soon as the block is exited below.
     # (with either the throw statement or the return statement)
-    <command>my</command> $ag = <command>new</command> AutoGate($gate);
+    <command>my</command> AutoGate $ag($gate);
     <command>if</command> ($error)
         <command>throw</command> "ERROR", "sorry, an error happened";
 
@@ -32205,7 +32176,7 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>my $gate = <command>new</command> AutoGate($gate);</programlisting>
+	    <programlisting><command>my</command> AutoGate $gate($gate);</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -32356,14 +32327,13 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
 
     <para>For example:</para>
 
-    <programlisting><command>our</command> $mutex = new Mutex();
+    <programlisting><command>our</command> Mutex $mutex();
 
-<command>sub</command> check_error($error)
-{
+<command>sub</command> check_error($error) {
     # note that the Mutex is acquired in the AutoLock constructor, and
     # the Mutex will be released as soon as the block is exited below.
     # (with either the throw statement or the return statement)
-    <command>my</command> $am = <command>new</command> AutoLock($mutex);
+    <command>my</command> AutoLock $al($mutex);
     <command>if</command> ($error)
         <command>throw</command> "ERROR", "sorry, an error happened";
 
@@ -32426,7 +32396,7 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>my $al = <command>new</command> AutoLock($mutex);</programlisting>
+	    <programlisting><command>my</command> AutoLock $al($mutex);</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -32577,14 +32547,13 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
 
     <para>For example:</para>
 
-    <programlisting><command>our</command> $rwl = new RWLock();
+    <programlisting><command>our</command> RWLock $rwl();
 
-<command>sub</command> check_error($error)
-{
+<command>sub</command> check_error($error) {
     # note that the read lock is acquired in the AutoReadLock constructor, and
     # the read lock will be released as soon as the block is exited below.
     # (with either the throw statement or the return statement)
-    <command>my</command> $arl = <command>new</command> AutoReadLock($rwl);
+    <command>my</command> AutoReadLock $arl($rwl);
     <command>if</command> ($error)
         <command>throw</command> "ERROR", "sorry, an error happened";
 
@@ -32647,7 +32616,7 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>my $arl = <command>new</command> AutoReadLock($rwlock);</programlisting>
+	    <programlisting><command>my</command> AutoReadLock $arl($rwlock);</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -32798,14 +32767,13 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
 
     <para>For example:</para>
 
-    <programlisting><command>our</command> $rwl = new RWLock();
+    <programlisting><command>our</command> RWLock $rwl();
 
-<command>sub</command> check_error($error)
-{
+<command>sub</command> check_error($error) {
     # note that the write lock is acquired in the AutoWriteLock constructor, and
     # the write lock will be released as soon as the block is exited below.
     # (with either the throw statement or the return statement)
-    <command>my</command> $arl = <command>new</command> AutoWriteLock($rwl);
+    <command>my</command> AutoWriteLock $arl($rwl);
     <command>if</command> ($error)
         <command>throw</command> "ERROR", "sorry, an error happened";
 
@@ -32868,7 +32836,7 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>my $awl = <command>new</command> AutoWriteLock($rwlock);</programlisting>
+	    <programlisting><command>my</command> AutoWriteLock $awl($rwlock);</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -33100,7 +33068,7 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$cond = <command>new</command> Condition();</programlisting>
+	    <programlisting><command>my</command> Condition $cond();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -33649,7 +33617,7 @@ $mutex.unlock();</programlisting>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$counter = <command>new</command> Counter();</programlisting>
+	    <programlisting><command>my</command> Counter $counter();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -34251,7 +34219,7 @@ $mutex.unlock();</programlisting>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$queue = <command>new</command> Queue();</programlisting>
+	    <programlisting><command>my</command> Queue $queue();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -34907,7 +34875,7 @@ $mutex.unlock();</programlisting>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$rwl = <command>new</command> RWLock();</programlisting>
+	    <programlisting><command>my</command> RWLock $rwl();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -35804,7 +35772,7 @@ $mutex.unlock();</programlisting>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$mutex = <command>new</command> Mutex();</programlisting>
+	    <programlisting><command>my</command> Mutex $mutex();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -36270,7 +36238,7 @@ $mutex.unlock();</programlisting>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$seq = <command>new</command> Sequence();</programlisting>
+	    <programlisting><command>my</command> Sequence $seq();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -36640,7 +36608,7 @@ $mutex.unlock();</programlisting>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$gate = <command>new</command> Gate();</programlisting>
+	    <programlisting><command>my</command> Gate $gate();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -37707,7 +37675,7 @@ $mutex.unlock();</programlisting>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$xd = <command>new</command> XmlDoc($xml);</programlisting>
+	    <programlisting><command>my</command> XmlDoc $xd($xml);</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -38776,7 +38744,7 @@ $mutex.unlock();</programlisting>
         <varlistentry>
           <term>Example</term>
           <listitem>
-            <programlisting>$xmlnode = <command>new</command> XmlNode();</programlisting>
+            <programlisting><command>my</command> XmlNode $xmlnode();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -41005,7 +40973,7 @@ $mutex.unlock();</programlisting>
         <varlistentry>
           <term>Example</term>
           <listitem>
-            <programlisting>$xmlreader = <command>new</command> XmlReader($xml);</programlisting>
+            <programlisting><command>my</command> XmlReader $xmlreader($xml);</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>

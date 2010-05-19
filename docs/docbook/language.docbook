@@ -1811,8 +1811,7 @@ $var[1].count++;
   </row>
   <row>
     <entry><para>A <command>switch</command> statement</para></entry>
-    <entry><programlisting><command>switch</command> (<replaceable>expression</replaceable>) 
-{
+    <entry><programlisting><command>switch</command> (<replaceable>expression</replaceable>) {
     <command>case</command> <replaceable>case_expression</replaceable>: 
         <replaceable>statement(s)</replaceable> 
     [ <command>default</command> : 

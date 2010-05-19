@@ -2445,7 +2445,7 @@
 
         <row>
           <entry>
-            <para><code><link linkend="nlog">nlog</link>(<link linkend="softfloat_type">softfloat</link>) <command>returns</command> <link linkend="float_type">float</link> (CONSTANT)</code></para>
+            <para><code><link linkend="nlog">nlog</link>(<link linkend="softfloat_type">softfloat</link>) <command>returns</command> <link linkend="float_type">float</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
             <para><code><link linkend="nlog">nlog</link>() <command>returns</command> <link linkend="float_type">float</link> (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
           </entry>
           <entry><para>N</para></entry>
@@ -4362,7 +4362,7 @@
     <varlistentry>
       <term>Prototype</term>
       <listitem>
-            <para><code><link linkend="nlog">nlog</link>(<link linkend="softfloat_type">softfloat</link>) <command>returns</command> <link linkend="float_type">float</link> (CONSTANT)</code></para>
+            <para><code><link linkend="nlog">nlog</link>(<link linkend="softfloat_type">softfloat</link>) <command>returns</command> <link linkend="float_type">float</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
             <para><code><link linkend="nlog">nlog</link>() <command>returns</command> <link linkend="float_type">float</link> (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
