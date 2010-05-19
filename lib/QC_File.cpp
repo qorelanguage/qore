@@ -483,8 +483,8 @@ QoreClass *initFileClass(QoreClass *QC_TERMIOS) {
    QC_FILE->addMethodExtended("open",              (q_method_t)FILE_open, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 3, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, new QoreBigIntNode(O_RDONLY), softBigIntTypeInfo, new QoreBigIntNode(0666));
    QC_FILE->addMethodExtended("open",              (q_method_t)FILE_open, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 4, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, new QoreBigIntNode(O_RDONLY), softBigIntTypeInfo, new QoreBigIntNode(0666), stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   QC_FILE->addMethodExtended("open2",             (q_method_t)FILE_open2, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 3, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, new QoreBigIntNode(O_RDONLY), softBigIntTypeInfo, new QoreBigIntNode(0666));
-   QC_FILE->addMethodExtended("open2",             (q_method_t)FILE_open2, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 4, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, new QoreBigIntNode(O_RDONLY), softBigIntTypeInfo, new QoreBigIntNode(0666), stringTypeInfo, QORE_PARAM_NO_ARG);
+   QC_FILE->addMethodExtended("open2",             (q_method_t)FILE_open2, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 3, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, new QoreBigIntNode(O_RDONLY), softBigIntTypeInfo, new QoreBigIntNode(0666));
+   QC_FILE->addMethodExtended("open2",             (q_method_t)FILE_open2, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 4, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, new QoreBigIntNode(O_RDONLY), softBigIntTypeInfo, new QoreBigIntNode(0666), stringTypeInfo, QORE_PARAM_NO_ARG);
 
    QC_FILE->addMethodExtended("close",             (q_method_t)FILE_close, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
    QC_FILE->addMethodExtended("sync",              (q_method_t)FILE_sync, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
@@ -494,18 +494,19 @@ QoreClass *initFileClass(QoreClass *QC_TERMIOS) {
    QC_FILE->addMethodExtended("read",              (q_method_t)FILE_read, false, QC_NO_FLAGS, QDOM_DEFAULT, 0, 2, softBigIntTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
    QC_FILE->addMethodExtended("read",              (q_method_t)FILE_read, false, QC_NO_FLAGS, QDOM_DEFAULT, 0, 2, softBigIntTypeInfo, QORE_PARAM_NO_ARG, dateTypeInfo, QORE_PARAM_NO_ARG);
 
-   QC_FILE->addMethodExtended("readu1",            (q_method_t)FILE_readu1, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
-   QC_FILE->addMethodExtended("readu2",            (q_method_t)FILE_readu2, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
-   QC_FILE->addMethodExtended("readu4",            (q_method_t)FILE_readu4, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
-   QC_FILE->addMethodExtended("readu2LSB",         (q_method_t)FILE_readu2LSB, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
-   QC_FILE->addMethodExtended("readu4LSB",         (q_method_t)FILE_readu4LSB, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
-   QC_FILE->addMethodExtended("readi1",            (q_method_t)FILE_readi1, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
-   QC_FILE->addMethodExtended("readi2",            (q_method_t)FILE_readi2, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
-   QC_FILE->addMethodExtended("readi4",            (q_method_t)FILE_readi4, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
-   QC_FILE->addMethodExtended("readi8",            (q_method_t)FILE_readi8, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
-   QC_FILE->addMethodExtended("readi2LSB",         (q_method_t)FILE_readi2LSB, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
-   QC_FILE->addMethodExtended("readi4LSB",         (q_method_t)FILE_readi4LSB, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
-   QC_FILE->addMethodExtended("readi8LSB",         (q_method_t)FILE_readi8LSB, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
+   // File::readu1() returns int|nothing
+   QC_FILE->addMethodExtended("readu1",            (q_method_t)FILE_readu1);
+   QC_FILE->addMethodExtended("readu2",            (q_method_t)FILE_readu2);
+   QC_FILE->addMethodExtended("readu4",            (q_method_t)FILE_readu4);
+   QC_FILE->addMethodExtended("readu2LSB",         (q_method_t)FILE_readu2LSB);
+   QC_FILE->addMethodExtended("readu4LSB",         (q_method_t)FILE_readu4LSB);
+   QC_FILE->addMethodExtended("readi1",            (q_method_t)FILE_readi1);
+   QC_FILE->addMethodExtended("readi2",            (q_method_t)FILE_readi2);
+   QC_FILE->addMethodExtended("readi4",            (q_method_t)FILE_readi4);
+   QC_FILE->addMethodExtended("readi8",            (q_method_t)FILE_readi8);
+   QC_FILE->addMethodExtended("readi2LSB",         (q_method_t)FILE_readi2LSB);
+   QC_FILE->addMethodExtended("readi4LSB",         (q_method_t)FILE_readi4LSB);
+   QC_FILE->addMethodExtended("readi8LSB",         (q_method_t)FILE_readi8LSB);
 
    // readBinary() can return 0
    QC_FILE->addMethodExtended("readBinary",        (q_method_t)FILE_readBinary, false, QC_NO_FLAGS, QDOM_DEFAULT, 0, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
@@ -545,16 +546,16 @@ QoreClass *initFileClass(QoreClass *QC_TERMIOS) {
    // add an alias for write(string)
    QC_FILE->addMethodExtended("print",             (q_method_t)FILE_write_str, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   QC_FILE->addMethodExtended("printf",            (q_method_t)class_int_noop, false, QC_NOOP, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_FILE->addMethodExtended("printf",            (q_method_t)class_int_noop, false, QC_RUNTIME_NOOP, QDOM_DEFAULT, bigIntTypeInfo);
    QC_FILE->addMethodExtended("printf",            (q_method_t)FILE_printf, false, QC_USES_EXTRA_ARGS, QDOM_DEFAULT, bigIntTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   QC_FILE->addMethodExtended("vprintf",           (q_method_t)class_int_noop, false, QC_NOOP, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_FILE->addMethodExtended("vprintf",           (q_method_t)class_int_noop, false, QC_RUNTIME_NOOP, QDOM_DEFAULT, bigIntTypeInfo);
    QC_FILE->addMethodExtended("vprintf",           (q_method_t)FILE_vprintf, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, anyTypeInfo, QORE_PARAM_NO_ARG);
 
-   QC_FILE->addMethodExtended("f_printf",          (q_method_t)class_int_noop, false, QC_NOOP, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_FILE->addMethodExtended("f_printf",          (q_method_t)class_int_noop, false, QC_RUNTIME_NOOP, QDOM_DEFAULT, bigIntTypeInfo);
    QC_FILE->addMethodExtended("f_printf",          (q_method_t)FILE_f_printf, false, QC_USES_EXTRA_ARGS, QDOM_DEFAULT, bigIntTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   QC_FILE->addMethodExtended("f_vprintf",         (q_method_t)class_int_noop, false, QC_NOOP, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_FILE->addMethodExtended("f_vprintf",         (q_method_t)class_int_noop, false, QC_RUNTIME_NOOP, QDOM_DEFAULT, bigIntTypeInfo);
    QC_FILE->addMethodExtended("f_vprintf",         (q_method_t)FILE_f_vprintf, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, anyTypeInfo, QORE_PARAM_NO_ARG);
 
    QC_FILE->addMethodExtended("lock",              (q_method_t)FILE_lock, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 4, softBigIntTypeInfo, zero(), softBigIntTypeInfo, zero(), softBigIntTypeInfo, zero(), softBigIntTypeInfo, new QoreBigIntNode(SEEK_SET));
