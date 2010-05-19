@@ -2600,17 +2600,9 @@ void init_xml_functions() {
    builtinFunctions.add2("parseXML",                                           f_parseXML, QC_RET_VALUE_ONLY, QDOM_DEFAULT, hashTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("parseXML",                                           f_parseXML, QC_RET_VALUE_ONLY, QDOM_DEFAULT, hashTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   // parse_xml variants with hard typing
-   builtinFunctions.add2("parse_xml",                                          f_parseXML, QC_RET_VALUE_ONLY, QDOM_DEFAULT, hashTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
-   builtinFunctions.add2("parse_xml",                                          f_parseXML, QC_RET_VALUE_ONLY, QDOM_DEFAULT, hashTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
-
    builtinFunctions.add2("parseXMLAsData",                                     f_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("parseXMLAsData",                                     f_parseXMLAsData, QC_RET_VALUE_ONLY, QDOM_DEFAULT, hashTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("parseXMLAsData",                                     f_parseXMLAsData, QC_RET_VALUE_ONLY, QDOM_DEFAULT, hashTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
-
-   // parse_xml_as_data variants with hard typing
-   builtinFunctions.add2("parse_xml_as_data",                                  f_parseXMLAsData, QC_RET_VALUE_ONLY, QDOM_DEFAULT, hashTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
-   builtinFunctions.add2("parse_xml_as_data",                                  f_parseXMLAsData, QC_RET_VALUE_ONLY, QDOM_DEFAULT, hashTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add2("parseXMLWithSchema",                                 f_parseXMLWithSchema, QC_RET_VALUE_ONLY, QDOM_DEFAULT, hashTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("parseXMLWithSchema",                                 f_parseXMLWithSchema, QC_RET_VALUE_ONLY, QDOM_DEFAULT, hashTypeInfo, 3, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
@@ -2628,25 +2620,14 @@ void init_xml_functions() {
    builtinFunctions.add2("parseXMLRPCValue",                                   f_parseXMLRPCValue, QC_RET_VALUE_ONLY, QDOM_DEFAULT, anyTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("parseXMLRPCValue",                                   f_parseXMLRPCValue, QC_RET_VALUE_ONLY, QDOM_DEFAULT, anyTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   // parse_xmlrpc_value variants with hard typing
-   builtinFunctions.add2("parse_xmlrpc_value",                                 f_parseXMLRPCValue, QC_RET_VALUE_ONLY, QDOM_DEFAULT, anyTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
-   builtinFunctions.add2("parse_xmlrpc_value",                                 f_parseXMLRPCValue, QC_RET_VALUE_ONLY, QDOM_DEFAULT, anyTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add2("parseXMLRPCCall",                                    f_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("parseXMLRPCCall",                                    f_parseXMLRPCCall, QC_RET_VALUE_ONLY, QDOM_DEFAULT, hashTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("parseXMLRPCCall",                                    f_parseXMLRPCCall, QC_RET_VALUE_ONLY, QDOM_DEFAULT, hashTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   // parse_xmlrpc_call variants with hard typing
-   builtinFunctions.add2("parse_xmlrpc_call",                                  f_parseXMLRPCCall, QC_RET_VALUE_ONLY, QDOM_DEFAULT, hashTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
-   builtinFunctions.add2("parse_xmlrpc_call",                                  f_parseXMLRPCCall, QC_RET_VALUE_ONLY, QDOM_DEFAULT, hashTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
-
    builtinFunctions.add2("parseXMLRPCResponse",                                f_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("parseXMLRPCResponse",                                f_parseXMLRPCResponse, QC_RET_VALUE_ONLY, QDOM_DEFAULT, hashTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("parseXMLRPCResponse",                                f_parseXMLRPCResponse, QC_RET_VALUE_ONLY, QDOM_DEFAULT, hashTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
-
-   // parse_xmlrpc_response variants with hard typing
-   builtinFunctions.add2("parse_xmlrpc_response",                              f_parseXMLRPCResponse, QC_RET_VALUE_ONLY, QDOM_DEFAULT, hashTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
-   builtinFunctions.add2("parse_xmlrpc_response",                              f_parseXMLRPCResponse, QC_RET_VALUE_ONLY, QDOM_DEFAULT, hashTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add2("makeFormattedXMLString",                             f_makeFormattedXMLString, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringTypeInfo, 1, hashTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("makeFormattedXMLString",                             f_makeFormattedXMLString, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringTypeInfo, 2, hashTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
@@ -2657,10 +2638,6 @@ void init_xml_functions() {
    builtinFunctions.add2("makeFormattedXMLFragment",                           f_makeFormattedXMLFragment, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringTypeInfo, 1, hashTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("makeFormattedXMLFragment",                           f_makeFormattedXMLFragment, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringTypeInfo, 2, hashTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   // make_formatted_xml_fragment variants with hard typing
-   builtinFunctions.add2("make_formatted_xml_fragment",                        f_makeFormattedXMLFragment, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringTypeInfo, 1, hashTypeInfo, QORE_PARAM_NO_ARG);
-   builtinFunctions.add2("make_formatted_xml_fragment",                        f_makeFormattedXMLFragment, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringTypeInfo, 2, hashTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
-
    builtinFunctions.add2("makeXMLString",                                      f_makeXMLString, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringTypeInfo, 1, hashTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("makeXMLString",                                      f_makeXMLString, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringTypeInfo, 2, hashTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("makeXMLString",                                      f_makeXMLString_str, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, hashTypeInfo, QORE_PARAM_NO_ARG);
@@ -2669,10 +2646,6 @@ void init_xml_functions() {
    builtinFunctions.add2("makeXMLFragment",                                    f_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("makeXMLFragment",                                    f_makeXMLFragment, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringTypeInfo, 1, hashTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("makeXMLFragment",                                    f_makeXMLFragment, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringTypeInfo, 2, hashTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
-
-   // make__xml_fragment variants with hard typing
-   builtinFunctions.add2("make_xml_fragment",                                  f_makeXMLFragment, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringTypeInfo, 1, hashTypeInfo, QORE_PARAM_NO_ARG);
-   builtinFunctions.add2("make_xml_fragment",                                  f_makeXMLFragment, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringTypeInfo, 2, hashTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add2("makeXMLRPCCallString",                               f_makeXMLRPCCallString, QC_USES_EXTRA_ARGS | QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("makeXMLRPCCallStringWithEncoding",                   f_makeXMLRPCCallStringWithEncoding, QC_USES_EXTRA_ARGS | QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);

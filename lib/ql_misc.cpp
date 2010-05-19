@@ -692,8 +692,8 @@ static AbstractQoreNode *f_compress_str(const QoreListNode *params, ExceptionSin
    HARD_QORE_PARAM(str, const QoreStringNode, params, 0);
    int level = HARD_QORE_INT(params, 1);
 
-   if (!level || level > 9) {
-      xsink->raiseException("ZLIB-LEVEL-ERROR", "level must be between 0 - 9 (value passed: %d)", level);
+   if ((level < 1 && level != -1) || level > 9) {
+      xsink->raiseException("ZLIB-LEVEL-ERROR", "level must be between 1 - 9 or -1 (value passed: %d)", level);
       return 0;
    }
    
@@ -707,8 +707,8 @@ static AbstractQoreNode *f_compress_bin(const QoreListNode *params, ExceptionSin
    HARD_QORE_PARAM(b, const BinaryNode, params, 0);
    int level = HARD_QORE_INT(params, 1);
 
-   if (!level || level > 9) {
-      xsink->raiseException("ZLIB-LEVEL-ERROR", "level must be between 0 - 9 (value passed: %d)", level);
+   if ((level < 1 && level != -1) || level > 9) {
+      xsink->raiseException("ZLIB-LEVEL-ERROR", "level must be between 1 - 9 or -1 (value passed: %d)", level);
       return 0;
    }
    

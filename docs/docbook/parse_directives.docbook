@@ -15,118 +15,118 @@
       </thead>
       <tbody>
 	<row>
-	  <entry><para><link linkend="disable-all-warnings"><code>%disable-all-warnings</code></link></para></entry>
+	  <entry><para><code><link linkend="disable-all-warnings">%disable-all-warnings</link></code></para></entry>
 	  <entry><para>Turns off all warnings</para></entry>
 	</row>
 	<row>
-	  <entry><para><link linkend="disable-warning"><code>%disable-warning</code></link> <replaceable>warning-code</replaceable></para></entry>
+	  <entry><para><code><link linkend="disable-warning">%disable-warning</link></code> <replaceable>warning-code</replaceable></para></entry>
 	  <entry><para>Disables the named warning until <code>%enable-warning</code> is encountered with the same code or <code>%enable-all-warnings</code> is encountered</para></entry>
 	</row>
 	<row>
-	  <entry><para><link linkend="enable-all-warnings"><code>%enable-all-warnings</code></link></para></entry>
+	  <entry><para><code><link linkend="enable-all-warnings">%enable-all-warnings</link></code></para></entry>
 	  <entry><para>Turns on all warnings</para></entry>
 	</row>
 	<row>
-	  <entry><para><link linkend="enable-warning"><code>%enable-warning</code></link> <replaceable>warning-code</replaceable></para></entry>
+	  <entry><para><code><link linkend="enable-warning">%enable-warning</link></code> <replaceable>warning-code</replaceable></para></entry>
 	  <entry><para>Enables the named warning.</para></entry>
 	</row>
  	<row>
-	  <entry><para><link linkend="exec-class"><code>%exec-class</code></link> <replaceable>class name</replaceable></para></entry>
+	  <entry><para><code><link linkend="exec-class">%exec-class</link></code> <replaceable>class name</replaceable></para></entry>
 	  <entry><para>Instantiates the named class as the application class.  Also turns on <code>%no-top-level</code>.  If the program is read from stdin or from the command-line, an argument must be given specifying the class name.</para></entry>
 	</row>
 
 	<row>
-	  <entry><para><link linkend="include"><code>%include</code></link> <replaceable>file_name</replaceable></para></entry>
+	  <entry><para><code><link linkend="include">%include</link></code> <replaceable>file_name</replaceable></para></entry>
 	  <entry><para>Starts parsing <replaceable>file_name</replaceable> immediately.  Parsing resumes with the current input after <replaceable>file_name</replaceable> has been completely parsed.</para></entry>
 	</row>
 	<row>
-	  <entry><para><link linkend="lock-options"><code>%lock-options</code></link></para></entry>
+	  <entry><para><code><link linkend="lock-options">%lock-options</link></code></para></entry>
 	  <entry><para>Prohibits further changes to parse options (equivalent to the <code>--lock-options</code> command-line option).</para></entry>
 	</row>
 	<row>
-	  <entry><para><link linkend="lock-warnings"><code>%lock-warnings</code></link></para></entry>
+	  <entry><para><code><link linkend="lock-warnings">%lock-warnings</link></code></para></entry>
 	  <entry><para>Prohibits further changes to the warning mask (equivalent to the <code>--lock-warnings</code> command-line option).</para></entry>
 	</row>
 	<row>
-	  <entry><para><link linkend="no-class-defs"><code>%no-class-defs</code></link></para></entry>
+	  <entry><para><code><link linkend="no-class-defs">%no-class-defs</link></code></para></entry>
 	  <entry><para>Disallows class definitions.  Equivalent to <code>PO_NO_CLASS_DEFS</code> and the <code>--no-class-defs</code> command-line option.</para></entry>
 	</row>
 	<row>
-	  <entry><para><link linkend="no-child-restrictions"><code>%no-child-restrictions</code></link></para></entry>
+	  <entry><para><code><link linkend="no-child-restrictions">%no-child-restrictions</link></code></para></entry>
 	  <entry><para>Allows child program objects to have parse option restrictions that are not a strict subset of the parents'.  Equivalent to parse option <code>PO_NO_CHILD_RESTRICTIONS</code> and the <code>--no-child-restrictions</code> command-line option.</para></entry>
 	</row>
 	<row>
-	  <entry><para><link linkend="no-constant-defs"><code>%no-constant-defs</code></link></para></entry>
+	  <entry><para><code><link linkend="no-constant-defs">%no-constant-defs</link></code></para></entry>
 	  <entry><para>Disallows constant definitions.  Equivalent to parse option <code>PO_NO_CONSTANT_DEFS</code> and the <code>--no-constant-defs</code> command-line option.</para></entry>
 	</row>
 	<row>
-	  <entry><para><link linkend="no-database"><code>%no-database</code></link></para></entry>
+	  <entry><para><code><link linkend="no-database">%no-database</link></code></para></entry>
 	  <entry><para>Disallows access to database functionality (for example the <link linkend="Datasource_Class">Datasource class</link>.  Equivalent to parse option <code>PO_NO_DATABASE</code> and the <code>--no-database</code> command-line option.</para></entry>
 	</row>
 	<row>
-	  <entry><para><link linkend="no-external-process"><code>%no-external-process</code></link></para></entry>
-	  <entry><para>Disallows any access to external processes (see <link linkend="no-external-process"><code>%no-external-process</code></link> for a list of features not available with this parse option).  Equivalent to parse option <code>PO_NO_EXTERNAL_PROCESS</code> and the <code>--no-external-process</code> command-line option.</para></entry>
+	  <entry><para><code><link linkend="no-external-process">%no-external-process</link></code></para></entry>
+	  <entry><para>Disallows any access to external processes (see <code><link linkend="no-external-process">%no-external-process</link></code> for a list of features not available with this parse option).  Equivalent to parse option <code>PO_NO_EXTERNAL_PROCESS</code> and the <code>--no-external-process</code> command-line option.</para></entry>
 	</row>
 	<row>
-	  <entry><para><link linkend="no-filesystem"><code>%no-filesystem</code></link></para></entry>
+	  <entry><para><code><link linkend="no-filesystem">%no-filesystem</link></code></para></entry>
 	  <entry><para>Disallows access to the local filesystem.  Equivalent to parse option <code>PO_NO_FILESYSTEM</code> and the <code>--no-filesystem</code> command-line option.</para></entry>
 	</row>
 	<row>
-	  <entry><para><link linkend="no-global-vars"><code>%no-global-vars</code></link></para></entry>
+	  <entry><para><code><link linkend="no-global-vars">%no-global-vars</link></code></para></entry>
 	  <entry><para>Disallows the use of global variables.  Equivalent to parse option <code>PO_NO_GLOBAL_VARS</code> and the <code>--no-global-vars</code> command-line option.</para></entry>
 	</row>
 	<row>
-	  <entry><para><link linkend="no-gui"><code>%no-gui</code></link></para></entry>
+	  <entry><para><code><link linkend="no-gui">%no-gui</link></code></para></entry>
 	  <entry><para>Disallows functionality that draws graphics to the display.  Equivalent to parse option <code>PO_NO_GUI</code> and the <code>-pno-gui</code> command-line option.</para></entry>
 	</row>
 	<row>
-	  <entry><para><link linkend="no-namespace-defs"><code>%no-namespace-defs</code></link></para></entry>
+	  <entry><para><code><link linkend="no-namespace-defs">%no-namespace-defs</link></code></para></entry>
 	  <entry><para>Disallows new namespace definitions.  Equivalent to <code>PO_NO_NAMESPACE_DEFS</code> and the <code>--no-namespace-defs</code> command-line option.</para></entry>
 	</row>
 	<row>
-	  <entry><para><link linkend="no-network"><code>%no-network</code></link></para></entry>
+	  <entry><para><code><link linkend="no-network">%no-network</link></code></para></entry>
 	  <entry><para>Disallows access to the network.  Equivalent to parse option <code>PO_NO_NETWORK</code> and the <code>--no-network</code> command-line option.</para></entry>
 	</row>
 	<row>
-	  <entry><para><link linkend="no-new"><code>%no-new</code></link></para></entry>
+	  <entry><para><code><link linkend="no-new">%no-new</link></code></para></entry>
 	  <entry><para>Disallows use of the <command>new</command> operator.  Equivalent to parse option <code>PO_NO_NEW</code> and the <code>--no-new</code> command-line option.</para></entry>
 	</row>
 	<row>
-	  <entry><para><link linkend="no-process-control"><code>%no-process-control</code></link></para></entry>
-	  <entry><para>Disallows access to functions that would affect the current process (see <link linkend="no-process-control"><code>%no-process-control</code></link> for a list of features not available with this parse option).  Equivalent to parse option <code>PO_NO_PROCESS_CONTROL</code> and the <code>--no-process-control</code> command-line option.</para></entry>
+	  <entry><para><code><link linkend="no-process-control">%no-process-control</link></code></para></entry>
+	  <entry><para>Disallows access to functions that would affect the current process (see <code><link linkend="no-process-control">%no-process-control</link></code> for a list of features not available with this parse option).  Equivalent to parse option <code>PO_NO_PROCESS_CONTROL</code> and the <code>--no-process-control</code> command-line option.</para></entry>
 	</row>
 	<row>
-	  <entry><para><link linkend="no-subroutine-defs"><code>%no-subroutine-defs</code></link></para></entry>
+	  <entry><para><code><link linkend="no-subroutine-defs">%no-subroutine-defs</link></code></para></entry>
 	  <entry><para>Disallows subroutine (function) definitions.  Equivalent to parse option <code>PO_NO_SUBROUTINE_DEFS</code> and the <code>--no-subroutine-defs</code> command-line option.</para></entry>
 	</row>
 
 	<row>
-	  <entry><para><link linkend="no-terminal-io"><code>%no-terminal-io</code></link></para></entry>
-	  <entry><para>Disallows access to terminal I/O (see <link linkend="no-terminal-io"><code>%no-terminal-io</code></link> for a list of features not available with this parse option).  Equivalent to parse option <code>PO_NO_TERMINAL_IO</code> and the <code>-pno-terminal-io</code> command-line option.</para></entry>
+	  <entry><para><code><link linkend="no-terminal-io">%no-terminal-io</link></code></para></entry>
+	  <entry><para>Disallows access to terminal I/O (see <code><link linkend="no-terminal-io">%no-terminal-io</link></code> for a list of features not available with this parse option).  Equivalent to parse option <code>PO_NO_TERMINAL_IO</code> and the <code>-pno-terminal-io</code> command-line option.</para></entry>
 	</row>
 
 	<row>
-	  <entry><para><link linkend="no-thread-classes"><code>%no-thread-classes</code></link></para></entry>
-	  <entry><para>Disallows access to thread classes (see <link linkend="no-thread-classes"><code>%no-thread-classes</code></link> for a list of features not available with this parse option).  Equivalent to parse option <code>PO_NO_THREAD_CLASSES</code> and the <code>--no-thread-classes</code> command-line option.</para></entry>
+	  <entry><para><code><link linkend="no-thread-classes">%no-thread-classes</link></code></para></entry>
+	  <entry><para>Disallows access to thread classes (see <code><link linkend="no-thread-classes">%no-thread-classes</link></code> for a list of features not available with this parse option).  Equivalent to parse option <code>PO_NO_THREAD_CLASSES</code> and the <code>--no-thread-classes</code> command-line option.</para></entry>
 	</row>
 	<row>
-	  <entry><para><link linkend="no-thread-control"><code>%no-thread-control</code></link></para></entry>
-	  <entry><para>Disallows access to thread control operations (see <link linkend="no-thread-control"><code>%no-thread-control</code></link> for a list of features not available with this parse option).  Equivalent to parse option <code>PO_NO_THREAD_CONTROL</code> and the <code>--no-thread-control</code> command-line option.</para></entry>
+	  <entry><para><code><link linkend="no-thread-control">%no-thread-control</link></code></para></entry>
+	  <entry><para>Disallows access to thread control operations (see <code><link linkend="no-thread-control">%no-thread-control</link></code> for a list of features not available with this parse option).  Equivalent to parse option <code>PO_NO_THREAD_CONTROL</code> and the <code>--no-thread-control</code> command-line option.</para></entry>
 	</row>
 	<row>
-	  <entry><para><link linkend="no-threads"><code>%no-threads</code></link></para></entry>
+	  <entry><para><code><link linkend="no-threads">%no-threads</link></code></para></entry>
 	  <entry><para>Disallows access to all thread control operations and thread classes (equivalent to <code>--no-thread-control</code> and <code>--no-thread-classes</code> together).  Equivalent to parse option <code>PO_NO_THREADS</code> and the <code>--no-threads</code> command-line option.</para></entry>
 	</row>
 	<row>
-	  <entry><para><link linkend="no-top-level"><code>%no-top-level</code></link></para></entry>
+	  <entry><para><code><link linkend="no-top-level">%no-top-level</link></code></para></entry>
 	  <entry><para>Disallows top level code.  Equivalent to parse option <code>PO_NO_TOP_LEVEL_STATEMENTS</code> and the <code>--no-top-level</code> command-line option.</para></entry>
 	</row>
 	<row>
-	  <entry><para><link linkend="require-our"><code>%require-our</code></link></para></entry>
+	  <entry><para><code><link linkend="require-our">%require-our</link></code></para></entry>
 	  <entry><para>Requires global variables to be declared with <command>our</command> prior to use (like perl's <code>use strict vars</code> pragma).  Equivalent to parse option <code>PO_REQUIRE_OUR</code> and the <code>--require-our</code> command-line option.</para></entry>
 	</row>
 	<row>
-	  <entry><para><link linkend="requires"><code>%requires</code></link> <replaceable>feature [&lt;|&lt;=|=|&gt;=|&gt; &lt;version&gt;]</replaceable></para></entry>
+	  <entry><para><code><link linkend="requires">%requires</link></code> <replaceable>feature [&lt;|&lt;=|=|&gt;=|&gt; &lt;version&gt;]</replaceable></para></entry>
 	  <entry><para>If the named feature is not already present in Qore, then the <code>QORE_MODULE_DIR</code> environment variable is used to provide a list of directories to seach for a module with the same name (<replaceable>feature</replaceable><code>.qmod</code>).  If the module is not found, then the qore default module directory is checked.  This directive must be used to load modules providing parse support (i.e. modules providing classes, constants, functions, etc that are resolved at parse time).  If version information is provided, then it is compared with the module's version information, and if it does not match a parse exception is raised.  See also <link linkend="load_module">load_module()</link> for a run-time module loading.</para>
 </entry>
 	</row>
@@ -279,7 +279,7 @@
       <varlistentry>
 	<term>Description</term>
 	<listitem>
-	  <para>Executes the named class as the application class and turns on <link linkend="no-top-level"><code>no-top-level</code></link> as well.</para>
+	  <para>Executes the named class as the application class and turns on <code><link linkend="no-top-level">no-top-level</link></code> as well.</para>
 	</listitem>
       </varlistentry>
     </variablelist>
@@ -1269,7 +1269,7 @@
       <varlistentry>
 	<term>Description</term>
 	<listitem>
-	  <para>Disallows access to all thread control operations and thread classes (equivalent to <link linkend="no-thread-control"><code>no-thread-control</code></link> and <link linkend="no-thread-classes"><code>no-thread-classes</code></link> together).</para>
+	  <para>Disallows access to all thread control operations and thread classes (equivalent to <code><link linkend="no-thread-control">no-thread-control</link></code> and <code><link linkend="no-thread-classes">no-thread-classes</link></code> together).</para>
 	</listitem>
       </varlistentry>
     </variablelist>

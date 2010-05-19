@@ -1248,7 +1248,7 @@ printf("0x%x\n", $binary[2]);
       <tbody>
 	<row>
 	  <entry><para><replaceable>object</replaceable></para></entry>
-	  <entry><para>The object is treated as if it were the class given between the angle brackets; this is mostly useful at parse time to avoid <link linkend="non-existent-method-call"><code>non-existent-method-call</code></link> warnings.</para></entry>
+	  <entry><para>The object is treated as if it were the class given between the angle brackets; this is mostly useful at parse time to avoid <code><link linkend="non-existent-method-call">non-existent-method-call</link></code> warnings.</para></entry>
 	</row>
       </tbody>
     </tgroup>

@@ -61,6 +61,9 @@
 #include <assert.h>
 #include <sys/socket.h> // for AF_INET and AF_INET6
 
+// for Z_DEFAULT_COMPRESSION
+#include <zlib.h>
+
 #ifdef DEBUG_TESTS
 // the #include "test/Namespace_tests.cpp" is on the bottom
 #  include "tests/builtin_inheritance_tests.cpp"
@@ -1508,8 +1511,18 @@ void StaticSystemNamespace::init() {
    qoreNS->addConstant("AF_LOCAL",      new QoreBigIntNode(AF_UNIX));
 #endif
 
+   // zlib constants
+   qoreNS->addConstant("Z_DEFAULT_COMPRESSION", new QoreBigIntNode(Z_DEFAULT_COMPRESSION));
+
    // math constants
    qoreNS->addConstant("M_PI",          new QoreFloatNode(3.14159265358979323846));
+
+   // system constants
+#ifdef WORDS_BIGENDIAN
+   qoreNS->addConstant("MACHINE_MSB",   &True);
+#else
+   qoreNS->addConstant("MACHINE_MSB",   &False);
+#endif
 
    // warning constants
    qoreNS->addConstant("WARN_NONE",                      new QoreBigIntNode(QP_WARN_NONE));

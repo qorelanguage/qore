@@ -77,7 +77,7 @@
   <row>
     <entry><para><code>--no-filesystem</code></para></entry>
     <entry><para><code>-F</code></para></entry>
-    <entry><para>Disallows access to the local filesystem; puts the <link linkend="no-filesystem"><code>no-filesystem</code></link> parse option in effect.  Equivalent to parse option code <code>PO_NO_FILESYSTEM</code> and the <code>%no-filesystem</code> parse directive.</para></entry>
+    <entry><para>Disallows access to the local filesystem; puts the <code><link linkend="no-filesystem">no-filesystem</link></code> parse option in effect.  Equivalent to parse option code <code>PO_NO_FILESYSTEM</code> and the <code>%no-filesystem</code> parse directive.</para></entry>
   </row>
   <row>
     <entry><para><code>--no-constant-defs</code></para></entry>
@@ -87,7 +87,7 @@
   <row>
     <entry><para><code>--no-network</code></para></entry>
     <entry><para><code>-Y</code></para></entry>
-    <entry><para>Disallows access to the network; puts the <link linkend="no-network"><code>no-network</code></link> parse option in effect.  Equivalent to parse option code <code>PO_NO_NETWORK</code> and the <code>%no-network</code> parse directive.</para></entry>
+    <entry><para>Disallows access to the network; puts the <code><link linkend="no-network">no-network</link></code> parse option in effect.  Equivalent to parse option code <code>PO_NO_NETWORK</code> and the <code>%no-network</code> parse directive.</para></entry>
   </row>
   <row>
     <entry><para><code>--no-new</code></para></entry>

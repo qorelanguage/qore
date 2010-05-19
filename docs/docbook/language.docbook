@@ -82,9 +82,9 @@
 
   <para>Please note that as of version 0.7.0, modules are no longer delivered with the Qore library.  Modules must be downloaded separately; see <ulink url="http://qore.org">Qore's home page</ulink> for more information.</para>
 
-    <para>To load a module at parse time (normally required for most modules), use the <link linkend="requires"><code>%requires</code></link> parse directive. If the named feature is not already present in Qore, Qore looks for a module with this name in the directories listed in the <code>QORE_MODULE_DIR</code> environment variable.</para>
+    <para>To load a module at parse time (normally required for most modules), use the <code><link linkend="requires">%requires</link></code> parse directive. If the named feature is not already present in Qore, Qore looks for a module with this name in the directories listed in the <code>QORE_MODULE_DIR</code> environment variable.</para>
 
-    <para>Use the <link linkend="load_module">load_module()</link> function to load Qore modules at run-time; however, note that any module providing parse support (classes, constants, functions, etc) must be loaded at parse time using the <link linkend="requires"><code>%requires</code></link> directive.</para>
+    <para>Use the <link linkend="load_module">load_module()</link> function to load Qore modules at run-time; however, note that any module providing parse support (classes, constants, functions, etc) must be loaded at parse time using the <code><link linkend="requires">%requires</link></code> directive.</para>
 
     <para>From Qore 0.7.1, you can specify a comparison operator (one of &lt; &lt;=, =, &gt;=, or &gt;) and version information after the module name as well.  Version numbers are compared via integer comparisons of each element, where elements are separated by a '.'.  If one of the versions does not have as many elements as another, the missing elements are assumed to be '0' (i.e. version &quot;1.0&quot; compared with version &quot;1.0.1&quot; will be exteneded to &quot;1.0.0&quot;).</para>
 
@@ -357,9 +357,9 @@
 <sect2 id="Variable_Declarations_And_Lexical_Scope">
 <title>Variable Declarations and Lexical Scope</title>
 
-<para>Variables not in a parameter list automatically have global scope unless the first reference is prefixed with <command>my</command>.  Variable names in a parameter list are always local to their associated subroutine, method, or catch block. Global variables can be explicitly declared with <command>our</command>.  The <command>our</command> keyword is required if the parse option <link linkend="require-our"><code>PO_REQUIRE_OUR</code></link> (<code>-O</code> or <code>--require-our</code> command-line option) is set for the parent program.  See the section on <link linkend="Parse_Options">Parse Options</link> for more information.</para>
+<para>Variables not in a parameter list automatically have global scope unless the first reference is prefixed with <command>my</command>.  Variable names in a parameter list are always local to their associated subroutine, method, or catch block. Global variables can be explicitly declared with <command>our</command>.  The <command>our</command> keyword is required if the parse option <code><link linkend="require-our">PO_REQUIRE_OUR</link></code> (<code>-O</code> or <code>--require-our</code> command-line option) is set for the parent program.  See the section on <link linkend="Parse_Options">Parse Options</link> for more information.</para>
 
-<para>Variables may be assigned any value unless restricted with a <link linkend="Data_Type_Declarations">type declaration</link>.  If no type declaration is given, then the variable is assumed to be type <link linkend="any_type">any</link>.  Note that type declarations are required for all variables (and for function and method parameters and class members) when the <link linkend="require-types"><code>PO_REQUIRE_TYPES</code></link> parse option is set.</para>
+<para>Variables may be assigned any value unless restricted with a <link linkend="Data_Type_Declarations">type declaration</link>.  If no type declaration is given, then the variable is assumed to be type <link linkend="any_type">any</link>.  Note that type declarations are required for all variables (and for function and method parameters and class members) when the <code><link linkend="require-types">PO_REQUIRE_TYPES</link></code> parse option is set.</para>
 
 <para>Note that variable types can only be declared when the <command>my</command> or <command>our</command> keywords are used; it is a syntax error to declare a variable's type without declaring its scope at the same time with one of these keywords.</para>
 
@@ -982,13 +982,13 @@ False</programlisting></note>
             <entry><para><code>closure</code></para></entry>
             <entry><para><link linkend="closures">Closure</link>, <link linkend="call_references">Call Reference</link></para></entry>
             <entry><para>same as received</para></entry>
-            <entry><para>Does not restrict value to just <link linkend="closures">closures</link>, but rather also allows <link linkend="call_references">call references</link>.  Synonym for <link linkend="code_type"><code>code</code></link>.</para></entry>
+            <entry><para>Does not restrict value to just <link linkend="closures">closures</link>, but rather also allows <link linkend="call_references">call references</link>.  Synonym for <code><link linkend="code_type">code</link></code>.</para></entry>
           </row>
           <row id="callref_type">
             <entry><para><code>callref</code></para></entry>
             <entry><para><link linkend="closures">Closure</link>, <link linkend="call_references">Call Reference</link></para></entry>
             <entry><para>same as received</para></entry>
-            <entry><para>Does not restrict value to just <link linkend="call_references">call references</link>, but rather also allows <link linkend="closures">closures</link>.  Synonym for <link linkend="code_type"><code>code</code></link>.</para></entry>
+            <entry><para>Does not restrict value to just <link linkend="call_references">call references</link>, but rather also allows <link linkend="closures">closures</link>.  Synonym for <code><link linkend="code_type">code</link></code>.</para></entry>
           </row>
         </tbody>
       </tgroup>
@@ -1541,7 +1541,7 @@ $$         # for the entire implicit argument list</programlisting>
 	  <listitem>
 	    <para>Implicit arguments can be directly referenced using the dollar sign ($) and either a number from 1 onwards (giving the position in the argument list, where 1 is the first element) or a double dollar sign ($$) giving the entire implicit argument list.</para>
 
-	    <para>For unassigned arguments to functions or methods, this syntax supplements the automatic <link linkend="argv"><code>$argv</code></link> variable holding all function arguments not assigned to parameter variables.</para>
+	    <para>For unassigned arguments to functions or methods, this syntax supplements the automatic <code><link linkend="argv">$argv</link></code> variable holding all function arguments not assigned to parameter variables.</para>
 
 	    <para>This syntax is particularly useful when writing expressions for the <link linkend="Map_Operator"><command>map</command></link>, <link linkend="Foldl_Operator"><command>map</command></link>, <link linkend="Foldr_Operator"><command>foldr</command></link>, and <link linkend="Select_Operator"><command>select</command></link> operators, where implicit argument references are the only way the operator expressions can reference the current list values that are populated as implicit arguments as the operators traverse the list.</para>
 

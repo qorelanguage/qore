@@ -265,6 +265,11 @@ body: the message body received
 we no longer use the system function timegm(), so this option (and constant) is always true now
 timegm() is now an alias for get_epoch_seconds()
 
+* new constants
+MACHINE_MSB: boolean, True if the machine is a big-endian machine, False if not
+Z_DEFAULT_COMPRESSION: integer; the default compression level for zlib
+
+
 ***********************
 *** LANGUAGE ISSUES ***
 ***********************

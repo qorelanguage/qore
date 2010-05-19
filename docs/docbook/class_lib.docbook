@@ -1639,7 +1639,7 @@ raised from the <link linkend="FtpClient_Class">FtpClient</link> class.</para></
   <sect1 id="File_Class">
     <title>File Class</title>
 
-    <para>Note: This class is not available with the <link linkend="no-filesystem"><code>PO_NO_FILESYSTEM</code></link> parse option.</para>
+    <para>Note: This class is not available with the <code><link linkend="no-filesystem">PO_NO_FILESYSTEM</link></code> parse option.</para>
 
     <para>The File class allows Qore programs to read, write, and create files.</para>
 
@@ -5821,7 +5821,7 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
   <sect1 id="Dir_Class">
     <title>Dir Class</title>
 
-    <para>Note: This class is not available with the <link linkend="no-filesystem"><code>PO_NO_FILESYSTEM</code></link> parse option.</para>
+    <para>Note: This class is not available with the <code><link linkend="no-filesystem">PO_NO_FILESYSTEM</link></code> parse option.</para>
 
     <para>The Dir class allows Qore programs to list and manipulate directories.</para>
 
@@ -7396,7 +7396,7 @@ $d.removeFile("myTestFile.dat");
   <sect1 id="TermIOS_Class">
     <title>TermIOS Class</title>
 
-    <para>Note: This class is not available with the <link linkend="no-terminal-io"><code>PO_NO_TERMINAL_IO</code></link> parse option.</para>
+    <para>Note: This class is not available with the <code><link linkend="no-terminal-io">PO_NO_TERMINAL_IO</link></code> parse option.</para>
 
     <para>This class contains the data structure used to read and set terminal attributes on <link linkend="Qore_IO_Constants">terminal I/O constants</link>.</para>
 
@@ -8858,7 +8858,7 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
   <sect1 id="FtpClient_Class">
     <title>FtpClient Class</title>
 
-    <para>Note: This class is not available with the <link linkend="no-network"><code>PO_NO_NETWORK</code></link> parse option.</para>
+    <para>Note: This class is not available with the <code><link linkend="no-network">PO_NO_NETWORK</link></code> parse option.</para>
 
     <para>The FtpClient class allows Qore programs to communicate with FTP servers.  The constructor takes an optional URL with the following format:</para>
 
@@ -12446,52 +12446,52 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	<tbody>
 	  <row id="PO_NO_GLOBAL_VARS">
 	    <entry><para>PO_NO_GLOBAL_VARS</para></entry>
-	    <entry><para><link linkend="no-global-vars"><code>%no-global-vars</code></link></para></entry>
+	    <entry><para><code><link linkend="no-global-vars">%no-global-vars</link></code></para></entry>
 	    <entry><para>Disallows the use of global variables.</para></entry>
 	  </row>
 	  <row id="PO_NO_SUBROUTINE_DEFS">
 	    <entry><para>PO_NO_SUBROUTINE_DEFS</para></entry>
-	    <entry><para><link linkend="no-subroutine-defs"><code>%no-subroutine-defs</code></link></para></entry>
+	    <entry><para><code><link linkend="no-subroutine-defs">%no-subroutine-defs</link></code></para></entry>
 	    <entry><para>Disallows subroutine (function) definitions.</para></entry>
 	  </row>
 	  <row id="PO_NO_THREADS">
 	    <entry><para>PO_NO_THREADS</para></entry>
-	    <entry><para><link linkend="no-threads"><code>%no-threads</code></link></para></entry>
+	    <entry><para><code><link linkend="no-threads">%no-threads</link></code></para></entry>
 	    <entry><para>Disallows any thread operations (the <link linkend="Background_Operator"><command>background</command> operator</link> and the <link linkend="thread_exit_Statements"><command>thread_exit</command> statement</link>, for example) and the use of thread-relevant classes and functions (equivalent to PO_NO_THREAD_CLASSES | PO_NO_THREAD_CONTROL).</para></entry>
 	  </row>
 	  <row id="PO_NO_THREAD_CLASSES">
 	    <entry><para>PO_NO_THREAD_CLASSES</para></entry>
-	    <entry><para><link linkend="no-thread-classes"><code>%no-thread-classes</code></link></para></entry>
+	    <entry><para><code><link linkend="no-thread-classes">%no-thread-classes</link></code></para></entry>
 	    <entry><para>Disallows access to any thread classes.</para></entry>
 	  </row>
 	  <row id="PO_NO_THREAD_CONTROL">
 	    <entry><para>PO_NO_THREAD_CONTROL</para></entry>
-	    <entry><para><link linkend="no-thread-control"><code>%no-thread-control</code></link></para></entry>
+	    <entry><para><code><link linkend="no-thread-control">%no-thread-control</link></code></para></entry>
 	    <entry><para>Disallows access to any thread-control functions and thread-relevant statements and operators (for example the <link linkend="Background_Operator"><command>background</command> operator</link> and the <link linkend="thread_exit_Statements"><command>thread_exit</command> statement</link>).</para></entry>
 	  </row>
 	  <row id="PO_NO_TOP_LEVEL_STATEMENTS">
 	    <entry><para>PO_NO_TOP_LEVEL_STATEMENTS</para></entry>
-	    <entry><para><link linkend="no-top-level"><code>%no-top-level</code></link></para></entry>
+	    <entry><para><code><link linkend="no-top-level">%no-top-level</link></code></para></entry>
 	    <entry><para>Disallows top level code.</para></entry>
 	  </row>
 	  <row id="PO_NO_CLASS_DEFS">
 	    <entry><para>PO_NO_CLASS_DEFS</para></entry>
-	    <entry><para><link linkend="no-class-defs"><code>%no-class-defs</code></link></para></entry>
+	    <entry><para><code><link linkend="no-class-defs">%no-class-defs</link></code></para></entry>
 	    <entry><para>Disallows class definitions.</para></entry>
 	  </row>
 	  <row id="PO_NO_NAMESPACE_DEFS">
 	    <entry><para>PO_NO_NAMESPACE_DEFS</para></entry>
-	    <entry><para><link linkend="no-namespace-defs"><code>%no-namespace-defs</code></link></para></entry>
+	    <entry><para><code><link linkend="no-namespace-defs">%no-namespace-defs</link></code></para></entry>
 	    <entry><para>Disallows new namespace definitions.</para></entry>
 	  </row>
 	  <row id="PO_NO_CONSTANT_DEFS">
 	    <entry><para>PO_NO_CONSTANT_DEFS</para></entry>
-	    <entry><para><link linkend="no-constant-defs"><code>%no-constant-defs</code></link></para></entry>
+	    <entry><para><code><link linkend="no-constant-defs">%no-constant-defs</link></code></para></entry>
 	    <entry><para>Disallows constant definitions.</para></entry>
 	  </row>
 	  <row id="PO_NO_NEW">
 	    <entry><para>PO_NO_NEW</para></entry>
-	    <entry><para><link linkend="no-new"><code>%no-new</code></link></para></entry>
+	    <entry><para><code><link linkend="no-new">%no-new</link></code></para></entry>
 	    <entry><para>Disallows use of the <link linkend="New_Object_Operator"><command>new</command></link> operator.</para></entry>
 	  </row>
 	  <row id="PO_NO_SYSTEM_CLASSES">
@@ -12506,52 +12506,52 @@ $getopt = <command>new</command> GetOpt(program_options);</programlisting>
 	  </row>
 	  <row id="PO_NO_CHILD_PO_RESTRICTIONS">
 	    <entry><para>PO_NO_CHILD_PO_RESTRICTIONS</para></entry>
-	    <entry><para><link linkend="no-child-restrictions"><code>%no-child-restrictions</code></link></para></entry>
+	    <entry><para><code><link linkend="no-child-restrictions">%no-child-restrictions</link></code></para></entry>
 	    <entry><para>Allows child program objects to have fewer parse restrictions than the parent object.</para></entry>
 	  </row>
 	  <row id="PO_NO_EXTERNAL_PROCESS">
 	    <entry><para>PO_NO_EXTERNAL_PROCESS</para></entry>
-	    <entry><para><link linkend="no-external-process"><code>%no-external-process</code></link></para></entry>
+	    <entry><para><code><link linkend="no-external-process">%no-external-process</link></code></para></entry>
 	    <entry><para>Disallows any access to external processes (with <link linkend="system">system()</link>, <link linkend="backquote">backquote()</link>, <link linkend="exec">exec()</link>, etc).</para></entry>
 	  </row>
 	  <row id="PO_REQUIRE_OUR">
 	    <entry><para>PO_REQUIRE_OUR</para></entry>
-	    <entry><para><link linkend="require-our"><code>%require-our</code></link></para></entry>
+	    <entry><para><code><link linkend="require-our">%require-our</link></code></para></entry>
 	    <entry><para>Requires global variables to be declared with <command>our</command> before use.</para></entry>
 	  </row>
 	  <row id="PO_NO_PROCESS_CONTROL">
 	    <entry><para>PO_NO_PROCESS_CONTROL</para></entry>
-	    <entry><para><link linkend="no-process-control"><code>%no-process-control</code></link></para></entry>
+	    <entry><para><code><link linkend="no-process-control">%no-process-control</link></code></para></entry>
 	    <entry><para>Disallows access to functions that would affect the current process (<link linkend="exit">exit()</link>, <link linkend="exit">exec()</link>, <link linkend="fork">fork()</link>, etc).</para></entry>
 	  </row>
 	  <row id="PO_NO_NETWORK">
 	    <entry><para>PO_NO_NETWORK</para></entry>
-	    <entry><para><link linkend="no-network"><code>%no-network</code></link></para></entry>
+	    <entry><para><code><link linkend="no-network">%no-network</link></code></para></entry>
 	    <entry><para>Disallows access to network functions.</para></entry>
 	  </row>
 	  <row id="PO_NO_FILESYSTEM">
 	    <entry><para>PO_NO_FILESYSTEM</para></entry>
-	    <entry><para><link linkend="no-filesystem"><code>%no-filesystem</code></link></para></entry>
+	    <entry><para><code><link linkend="no-filesystem">%no-filesystem</link></code></para></entry>
 	    <entry><para>Disallows access to the filesystem.</para></entry>
 	  </row>
 	  <row id="PO_NO_WARNINGS">
 	    <entry><para>PO_LOCK_WARNINGS</para></entry>
-	    <entry><para><link linkend="lock-warnings"><code>%lock-warnings</code></link></para></entry>
+	    <entry><para><code><link linkend="lock-warnings">%lock-warnings</link></code></para></entry>
 	    <entry><para>Disallows changes to the warning mask.</para></entry>
 	  </row>
 	  <row id="PO_NO_DATABASE">
 	    <entry><para>PO_NO_DATABASE</para></entry>
-	    <entry><para><link linkend="no-database"><code>%no-database</code></link></para></entry>
+	    <entry><para><code><link linkend="no-database">%no-database</link></code></para></entry>
 	    <entry><para>Disallows access to database functionality.</para></entry>
 	  </row>
 	  <row id="PO_NO_GUI">
 	    <entry><para>PO_NO_GUI</para></entry>
-	    <entry><para><link linkend="no-gui"><code>%no-gui</code></link></para></entry>
+	    <entry><para><code><link linkend="no-gui">%no-gui</link></code></para></entry>
 	    <entry><para>Disallows access to functionality that draws graphics to the display.</para></entry>
 	  </row>
 	  <row id="PO_NO_TERMINAL_IO">
 	    <entry><para>PO_NO_TERMINAL_IO</para></entry>
-	    <entry><para><link linkend="no-terminal-io"><code>%no-terminal-io</code></link></para></entry>
+	    <entry><para><code><link linkend="no-terminal-io">%no-terminal-io</link></code></para></entry>
 	    <entry><para>Disallows access to reading from and/or writing to the terminal.</para></entry>
 	  </row>
 
@@ -14356,7 +14356,7 @@ $pgm.setParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
   <sect1 id="Socket_Class">
     <title>Socket Class</title>
 
-    <para>Note: This class is not available with the <link linkend="no-network"><code>PO_NO_NETWORK</code></link> parse option.</para>
+    <para>Note: This class is not available with the <code><link linkend="no-network">PO_NO_NETWORK</link></code> parse option.</para>
 
     <para>Socket objects allow Qore programs safe access to network sockets.  Non-blocking socket I/O can be performed by appending a timeout value in milliseconds to all Socket::recv*() methods, or by using the <link linkend="Socket_isDataAvailable">Socket::isDataAvailable()</link> method with a timeout value in milliseconds (1000 ms = 1 second).  Note that as with all Qore functions and methods accepting a timeout value, <link linkend="Relative_Dates">relative date/time values</link> can be given instead of integers to make the source more readable, for example:</para>
 
@@ -19262,7 +19262,7 @@ $sock.bind("/tmp/socket");</programlisting>
   <sect1 id="HTTPClient_Class">
     <title>HTTPClient Class</title>
 
-    <para>Note: This class is not available with the <link linkend="no-network"><code>PO_NO_NETWORK</code></link> parse option.</para>
+    <para>Note: This class is not available with the <code><link linkend="no-network">PO_NO_NETWORK</link></code> parse option.</para>
 
     <para>The HTTPClient class can be used to communicate with HTTP servers using the HTTP or HTTPS (HTTP using an SSL/TLS encrypted connection) protocol.</para>
 
@@ -22826,7 +22826,7 @@ $sock.bind("/tmp/socket");</programlisting>
   <sect1 id="XmlRpcClient_Class">
     <title>XmlRpcClient Class</title>
 
-    <para>Note: This class is not available with the <link linkend="no-network"><code>PO_NO_NETWORK</code></link> parse option.</para>
+    <para>Note: This class is not available with the <code><link linkend="no-network">PO_NO_NETWORK</link></code> parse option.</para>
 
     <para>The XmlRpcClient class provides easy access to XML-RPC web services.  This class inherits all public methods of the <link linkend="HTTPClient_Class">HTTPClient class</link>.  The inherited <link linkend="HTTPClient_Class">HTTPClient</link> methods are not listed in this section, see the section on the <link linkend="HTTPClient_Class">HTTPClient class</link> for more information on methods provided by the parent class.  For low-level XML-RPC functions, see the XML-RPC functions in <link linkend="XML_Functions">XML Functions</link>.</para>
 
@@ -23623,7 +23623,7 @@ $sock.bind("/tmp/socket");</programlisting>
   <sect1 id="JsonRpcClient_Class">
     <title>JsonRpcClient Class</title>
 
-    <para>Note: This class is not available with the <link linkend="no-network"><code>PO_NO_NETWORK</code></link> parse option.</para>
+    <para>Note: This class is not available with the <code><link linkend="no-network">PO_NO_NETWORK</link></code> parse option.</para>
 
     <para>The JsonRpcClient class provides easy access to JSON-RPC web services.  This class inherits all public methods of the <link linkend="HTTPClient_Class">HTTPClient class</link>.  The inherited HTTPClient methods are not listed in this section, see the section on the HTTPClient class for more information on methods provided by the parent class.  For low-level JSON-RPC functions, see the JSON-RPC functions in <link linkend="JSON_Functions">JSON Functions</link>.</para>
 
@@ -26680,7 +26680,7 @@ $sock.bind("/tmp/socket");</programlisting>
   <sect1 id="Datasource_Class">
     <title>SQL::Datasource Class</title>
 
-    <para>Note: This class is not available with the <link linkend="no-database"><code>PO_NO_DATABASE</code></link> parse option.</para>
+    <para>Note: This class is not available with the <code><link linkend="no-database">PO_NO_DATABASE</link></code> parse option.</para>
 
     <para>The Datasource class is the high-level Qore interface to Qore's DBI layer, and as such, Datasource objects allow Qore programs to access databases that have a Qore DBI driver.  The Datasource class will attempt to load any DBI driver that is not currently loaded in the <link linkend="SQL::Datasource::constructor">constructor</link>.  For connection pooling support, see the <link linkend="DatasourcePool_Class">DatasourcePool</link> class.</para>
 
@@ -29534,7 +29534,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
   <sect1 id="DatasourcePool_Class">
     <title>SQL::DatasourcePool Class</title>
 
-    <para>Note: This class is not available with the <link linkend="no-database"><code>PO_NO_DATABASE</code></link> parse option.</para>
+    <para>Note: This class is not available with the <code><link linkend="no-database">PO_NO_DATABASE</link></code> parse option.</para>
 
     <para>The DatasourcePool class provides transparent per-thread, per-transaction <link linkend="Datasource_Class">Datasource</link> connection pooling.</para>
 
@@ -31525,7 +31525,7 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
   <sect1 id="AutoGate_Class">
     <title>Thread::AutoGate Class</title>
 
-    <para>Note: This class is not available with the <link linkend="no-thread-classes"><code>PO_NO_THREAD_CLASSES</code></link> parse option.</para>
+    <para>Note: This class is not available with the <code><link linkend="no-thread-classes">PO_NO_THREAD_CLASSES</link></code> parse option.</para>
 
     <para>AutoGate objects, when used along with a <link linkend="Gate_Class">Gate</link> object, allow Qore programmers to safely enter and exit a gate lock, even if exceptions are thrown or <command>return</command> statements are executed in the block where the AutoGate object is created.  AutoGate objects enter the gate lock for the lifetime of the AutoGate object.  For this reason, it is only appropriate to assign an AutoGate object to a local variable, so when the local variable goes out of scope, the AutoGate object will be deleted and the gate automatically exited.</para>
 
@@ -31741,7 +31741,7 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
   <sect1 id="AutoLock_Class">
     <title>Thread::AutoLock Class</title>
 
-    <para>Note: This class is not available with the <link linkend="no-thread-classes"><code>PO_NO_THREAD_CLASSES</code></link> parse option.</para>
+    <para>Note: This class is not available with the <code><link linkend="no-thread-classes">PO_NO_THREAD_CLASSES</link></code> parse option.</para>
 
     <para>AutoLock objects, when used along with a <link linkend="Mutex_Class">Mutex</link> object, allow Qore programmers to safely acquire and release a Mutex lock, even if exceptions are thrown or <command>return</command> statements are executed in the block where the AutoLock object is created.  AutoLock objects are helper objects that acquire a Mutex for the lifetime of the object.  For this reason, it is only appropriate to assign an AutoLock object to a local variable, so when the local variable goes out of scope, the AutoLock object will be deleted and the Mutex will be automatically released.</para>
 
@@ -31956,7 +31956,7 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
   <sect1 id="AutoReadLock_Class">
     <title>Thread::AutoReadLock Class</title>
 
-    <para>Note: This class is not available with the <link linkend="no-thread-classes"><code>PO_NO_THREAD_CLASSES</code></link> parse option.</para>
+    <para>Note: This class is not available with the <code><link linkend="no-thread-classes">PO_NO_THREAD_CLASSES</link></code> parse option.</para>
 
     <para>AutoReadLock objects, when used along with a <link linkend="RWLock_Class">RWLock</link> object, allow Qore programmers to safely acquire and release a read lock, even if exceptions are thrown or <command>return</command> statements are executed in the block where the AutoReadLock object is created.  AutoReadLock objects are helper objects that acquire a read lock for the lifetime of the AutoReadLock object.  For this reason, it is only appropriate to assign an AutoReadLock object to a local variable, so when the local variable goes out of scope, the AutoReadLock object will be deleted and the read lock will be automatically released.</para>
 
@@ -32171,7 +32171,7 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
   <sect1 id="AutoWriteLock_Class">
     <title>Thread::AutoWriteLock Class</title>
 
-    <para>Note: This class is not available with the <link linkend="no-thread-classes"><code>PO_NO_THREAD_CLASSES</code></link> parse option.</para>
+    <para>Note: This class is not available with the <code><link linkend="no-thread-classes">PO_NO_THREAD_CLASSES</link></code> parse option.</para>
 
     <para>AutoWriteLock objects, when used along with a <link linkend="RWLock_Class">RWLock</link> object, allow Qore programmers to safely acquire and release a write lock, even if exceptions are thrown or <command>return</command> statements are executed in the block where the AutoWriteLock object is created.  AutoWriteLock objects are helper objects that acquire a write lock for the lifetime of the AutoWriteLock object.  For this reason, it is only appropriate to assign an AutoWriteLock object to a local variable, so when the local variable goes out of scope, the AutoWriteLock object will be deleted and the write lock will be automatically released.</para>
 
@@ -32386,7 +32386,7 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
   <sect1 id="Condition_Class">
     <title>Thread::Condition Class</title>
 
-    <para>Note: This class is not available with the <link linkend="no-thread-classes"><code>PO_NO_THREAD_CLASSES</code></link> parse option.</para>
+    <para>Note: This class is not available with the <code><link linkend="no-thread-classes">PO_NO_THREAD_CLASSES</link></code> parse option.</para>
 
     <para>Condition objects, when used along with a <link linkend="Mutex_Class">Mutex</link> object, allow Qore threads to sleep until a certain condition becomes true.</para>
 
@@ -32914,7 +32914,7 @@ $mutex.unlock();</programlisting>
   <sect1 id="Counter_Class">
     <title>Thread::Counter Class</title>
 
-    <para>Note: This class is not available with the <link linkend="no-thread-classes"><code>PO_NO_THREAD_CLASSES</code></link> parse option.</para>
+    <para>Note: This class is not available with the <code><link linkend="no-thread-classes">PO_NO_THREAD_CLASSES</link></code> parse option.</para>
 
     <para>Counter objects allow Qore threads to sleep until a counter reaches zero.</para>
 
@@ -33500,7 +33500,7 @@ $mutex.unlock();</programlisting>
   <sect1 id="Queue_Class">
     <title>Thread::Queue Class</title>
 
-    <para>Note: This class is not available with the <link linkend="no-thread-classes"><code>PO_NO_THREAD_CLASSES</code></link> parse option.</para>
+    <para>Note: This class is not available with the <code><link linkend="no-thread-classes">PO_NO_THREAD_CLASSES</link></code> parse option.</para>
 
     <para>Queue objects provide a blocking, thread-safe message-passing object to Qore programs.</para>
 
@@ -34094,7 +34094,7 @@ $mutex.unlock();</programlisting>
   <sect1 id="RWLock_Class">
     <title>Thread::RWLock Class</title>
 
-    <para>Note: This class is not available with the <link linkend="no-thread-classes"><code>PO_NO_THREAD_CLASSES</code></link> parse option.</para>
+    <para>Note: This class is not available with the <code><link linkend="no-thread-classes">PO_NO_THREAD_CLASSES</link></code> parse option.</para>
 
     <para>The RWLock class implements a read-write lock for efficient thread locking when write actions must be atomic and reads can be made in parallel if no write is in progress. When a thread holds the write lock, no other thread can grab the read or write lock. Multiple threads can hold the read lock at one time.</para>
 
@@ -35014,7 +35014,7 @@ $mutex.unlock();</programlisting>
   <sect1 id="Mutex_Class">
     <title>Thread::Mutex Class</title>
 
-    <para>Note: This class is not available with the <link linkend="no-thread-classes"><code>PO_NO_THREAD_CLASSES</code></link> parse option.</para>
+    <para>Note: This class is not available with the <code><link linkend="no-thread-classes">PO_NO_THREAD_CLASSES</link></code> parse option.</para>
 
     <para>The Mutex class implements a mutual-exclusion lock for thread locking.  Like all Qore thread primitives, objects of this class participate in deadlock detection and throw exceptions when threading errors occur (ex: unlocking a Mutex object locked by another thread, etc).  See individual methods for more information on exceptions thrown.</para>
 
@@ -35483,7 +35483,7 @@ $mutex.unlock();</programlisting>
     <title>Thread::RMutex Class</title>
     <para>DEPRECATED: use the <link linkend="Gate_Class">Gate</link> class instead.</para>
 
-    <para>Note: This class is not available with the <link linkend="no-thread-classes"><code>PO_NO_THREAD_CLASSES</code></link> parse option.</para>
+    <para>Note: This class is not available with the <code><link linkend="no-thread-classes">PO_NO_THREAD_CLASSES</link></code> parse option.</para>
 
   </sect1>
 
@@ -35814,7 +35814,7 @@ $mutex.unlock();</programlisting>
   <sect1 id="Gate_Class">
     <title>Thread::Gate Class</title>
 
-    <para>Note: This class is not available with the <link linkend="no-thread-classes"><code>PO_NO_THREAD_CLASSES</code></link> parse option.</para>
+    <para>Note: This class is not available with the <code><link linkend="no-thread-classes">PO_NO_THREAD_CLASSES</link></code> parse option.</para>
 
     <para>The Gate class implements a reentrant thread lock.  Once a thread grabs the lock, it can call the <link linkend="Gate::enter">Gate::enter()</link> method again without blocking.  Other threads that try to enter the lock will block until the thread holding the lock calls <link linkend="Gate::exit">Gate::exit()</link> an equal number of times to <link linkend="Gate::enter">Gate::enter()</link> calls.</para>
 
