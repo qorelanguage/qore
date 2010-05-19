@@ -22682,7 +22682,7 @@ delete_thread_data($list_of_strings);</programlisting>
     <varlistentry>
       <term>Prototype</term>
       <listitem>
-	<programlisting>getAllThreadCallStacks()</programlisting>
+	<para><code><link linkend="getAllThreadCallStacks">getAllThreadCallStacks</link>() <command>returns</command> <link linkend="hash_type">hash</link></code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -23090,10 +23090,10 @@ remove_thread_data($list_of_strings);</programlisting>
 	  <varlistentry>
 	    <term>Example</term>
 	    <listitem>
-	      <programlisting>try {
+	      <programlisting><command>try</command> {
     throwThreadResourceExceptions();
 }
-catch ($ex) {
+<command>catch</command> ($ex) {
     # ... log or handle exceptions
 }</programlisting>
 	    </listitem>
