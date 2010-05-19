@@ -155,8 +155,8 @@ static AbstractQoreNode *FC_setHostName(QoreObject *self, QoreFtpClientClass *f,
 
 static AbstractQoreNode *FC_setPort(QoreObject *self, QoreFtpClientClass *f, const QoreListNode *args, ExceptionSink *xsink) {
    int port = HARD_QORE_INT(args, 0);
-   if (!port) {
-      xsink->raiseException("FTPCLIENT-SETPORT-PARAMETER-ERROR", "expecting non-zero port number as first parameter of FtpClient::setPort(int)");
+   if (port <= 0) {
+      xsink->raiseException("FTPCLIENT-SETPORT-PARAMETER-ERROR", "expecting positive port number as first parameter of FtpClient::setPort(softint $port); got %d", port);
       return 0;
    }
    f->setPort(port);
