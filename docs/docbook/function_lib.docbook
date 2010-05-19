@@ -20190,7 +20190,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <varlistentry>
           <term>Usage</term>
           <listitem>
-            <para><code><link linkend="getgrgid2">getgrgid2</link>(<link linkend="softint_type">softint</link> <replaceable>$gid</replaceable>) <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="getgrgid2">getgrgid2</link>(<link linkend="softint_type">softint</link> <replaceable>$gid</replaceable>) <command>returns</command> <link linkend="hash_type">hash</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -20336,7 +20336,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <varlistentry>
           <term>Usage</term>
           <listitem>
-            <para><code><link linkend="getgrnam2">getgrnam2</link>(<link linkend="string_type">string</link> <replaceable>$group_name</replaceable>) <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="getgrnam2">getgrnam2</link>(<link linkend="string_type">string</link> <replaceable>$group_name</replaceable>) <command>returns</command> <link linkend="hash_type">hash</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -20531,7 +20531,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <varlistentry>
           <term>Usage</term>
           <listitem>
-            <para><code><link linkend="getpwnam2">getpwnam2</link>(<link linkend="string_type">string</link> <replaceable>$user_name</replaceable>) <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="getpwnam2">getpwnam2</link>(<link linkend="string_type">string</link> <replaceable>$user_name</replaceable>) <command>returns</command> <link linkend="hash_type">hash</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -20677,7 +20677,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <varlistentry>
           <term>Usage</term>
           <listitem>
-            <para><code><link linkend="getpwuid2">getpwuid2</link>(<link linkend="softint_type">softint</link> <replaceable>$uid</replaceable>) <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="getpwuid2">getpwuid2</link>(<link linkend="softint_type">softint</link> <replaceable>$uid</replaceable>) <command>returns</command> <link linkend="hash_type">hash</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
