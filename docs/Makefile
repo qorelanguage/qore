@@ -15,7 +15,9 @@ DOCBOOK_ROOT := $(shell ./get-docbook-root.sh)
 # PATHS /usr/share/xml/docbook/stylesheet/nwalsh5/current/xhtml # opensuse                               
 #       /opt/local/share/xsl/docbook-xsl/xhtml                  # macpors                                
 #       /usr/share/sgml/docbook/xsl-stylesheets/xhtml           # fedora  
-all: docbook/*docbook
+all: monolithic chunked
+
+monolithic: docbook/*docbook
 	xsltproc --stringparam html.stylesheet qore-style.css \
 	         --stringparam use.id.as.filename 1 \
 	         --stringparam generate.toc "book toc,title" \
@@ -23,6 +25,8 @@ all: docbook/*docbook
 	         --output qore.html \
 		 ${DOCBOOK_ROOT}/docbook.xsl \
 	         docbook/qore.docbook 
+
+chunked: docbook/*docbook
 	xsltproc --stringparam html.stylesheet qore-style.css \
 	         --stringparam use.id.as.filename 1 \
 	         --stringparam generate.toc "book toc,title" \

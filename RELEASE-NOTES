@@ -1,6 +1,6 @@
 RELEASE NOTES for qore v0.8.0
 
-release summary: major Qore release with significant new functionality
+release summary: major Qore release with significant new functionality; see below for compatibility warnings
 
 * hard typing, function and method overloading, and default argument values
 declaring a variable with type info:
@@ -268,6 +268,22 @@ timegm() is now an alias for get_epoch_seconds()
 * new constants
 MACHINE_MSB: boolean, True if the machine is a big-endian machine, False if not
 Z_DEFAULT_COMPRESSION: integer; the default compression level for zlib
+
+* COMPATIBILITY WARNING: HTTPClient::setSecure(bool $b = True)
+before calling this method without an argument would turn off secure connections, which was counter-intuitive
+
+* COMPATIBILITY WARNING: HTTPClient::setProxySecure(bool $b = True)
+before calling this method without an argument would turn off secure connections, which was counter-intuitive
+
+* COMPATIBILITY WARNING: HTTPClient::setNoDelay(bool $b = True)
+before calling this method without an argument would turn off TCP_NODELAY, which was counter-intuitive
+
+* COMPATIBILITY WARNING: Socket::setNoDelay(bool $b = True)
+before calling this method without an argument would turn off TCP_NODELAY, which was counter-intuitive
+
+* COMPATIBILITY WARNING: Datasource methods updated
+Datasource::open(), Datasource::close(), Datasource::commit(), Datasource::rollback()
+no longer return any value.  In previous versions they would return integer 0.  However, they always throw an exception if there is an error, so any return value is meaningless.
 
 
 ***********************

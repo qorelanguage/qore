@@ -1762,6 +1762,7 @@ raised from the <link linkend="FtpClient_Class">FtpClient</link> class.</para></
     <table>
       <title>File Method Overview</title>
       <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<colspec colnum="2" align="center"/>
 	<thead>
 	  <row>
 	    <entry><para>Method</para></entry>
@@ -2843,7 +2844,7 @@ raised from the <link linkend="FtpClient_Class">FtpClient</link> class.</para></
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>Hash</para></entry>
+	      <entry><para><code><link linkend="hash_type">hash</link></code></para></entry>
 	      <entry><para>The hash contains the following keys: start, len, pid, type, whence.  If no lock is set on the file, the key type has the value F_UNLCK.</para></entry>
 	    </row>
 	  </tbody>
@@ -5999,6 +6000,7 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
     <table>
       <title>Dir Method Overview</title>
       <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<colspec colnum="2" align="center"/>
 	<thead>
 	  <row>
 	    <entry><para>Method</para></entry>
@@ -7648,6 +7650,7 @@ stdout.printf(" GOT ASCII 0x%02x (%d) '%s'\n", ord($c), ord($c), $c);</programli
     <table>
       <title>TermIOS Method Overview</title>
       <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<colspec colnum="2" align="center"/>
 	<thead>
 	  <row>
 	    <entry><para>Method</para></entry>
@@ -7761,6 +7764,7 @@ stdout.printf(" GOT ASCII 0x%02x (%d) '%s'\n", ord($c), ord($c), $c);</programli
     <table>
       <title>TermIOS Static Method Overview</title>
       <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<colspec colnum="2" align="center"/>
 	<thead>
 	  <row>
 	    <entry><para>Method</para></entry>
@@ -7771,7 +7775,7 @@ stdout.printf(" GOT ASCII 0x%02x (%d) '%s'\n", ord($c), ord($c), $c);</programli
 	<tbody>
 	  <row>
 	    <entry>
-              <para><code><link linkend="TermIOS::getWindowSize">TermIOS::getWindowSize</link>()</code></para>
+              <para><code><command>static</command> <link linkend="TermIOS::getWindowSize">TermIOS::getWindowSize</link>()</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Returns a hash giving the current terminal window size in hash keys <code>rows</code> and <code>columns</code>.</para></entry>
@@ -8721,7 +8725,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
     </sect2>
 
     <sect2 id="TermIOS::getWindowSize">
-      <title>static method: TermIOS::getWindowSize()</title>
+      <title>static TermIOS::getWindowSize()</title>
       <variablelist>
         <varlistentry>
           <term>Synopsis</term>
@@ -8772,7 +8776,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
           </thead>
           <tbody>
             <row>
-              <entry><para>Hash</para></entry>
+              <entry><para><code><link linkend="hash_type">hash</link></code></para></entry>
               <entry><para>Returns a hash giving the current terminal window size in hash keys <code>rows</code> and <code>columns</code>.</para></entry>
             </row>
           </tbody>
@@ -8790,6 +8794,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
     <table>
       <title>GetOpt Method Overview</title>
       <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<colspec colnum="2" align="center"/>
 
 	<thead>
 	  <row>
@@ -8886,7 +8891,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	  <tbody>
 	    <row>
 	      <entry><para><replaceable>option_hash</replaceable></para></entry>
-	      <entry><para>Hash</para></entry>
+	      <entry><para><code><link linkend="hash_type">hash</link></code></para></entry>
 	      <entry><para>Each key defines the key value for the return hash if any arguments are given corresponding to the string value of the key.</para></entry>
 	    </row>
 	  </tbody>
@@ -9108,7 +9113,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>Hash</para></entry>
+	      <entry><para><code><link linkend="hash_type">hash</link></code></para></entry>
 	      <entry><para>A hash keyed by option names (as given in the hash to the GetOpt constructor), where each key's value is the value of the arguments passed in the list argument.  The hash key "_ERRORS_" will contain any errors.</para></entry>
 	    </row>
 	  </tbody>
@@ -9200,6 +9205,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
     <table>
       <title>FtpClient Method Overview</title>
       <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<colspec colnum="2" align="center"/>
 	<thead>
 	  <row>
 	    <entry><para>Method</para></entry>
@@ -9517,7 +9523,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
           <row>
             <entry>
               <para><code><link linkend="FtpClient_setEventQueue">FtpClient::setEventQueue</link>() returns nothing</code></para>
-              <para><code><link linkend="FtpClient_setEventQueue">FtpClient::setEventQueue</link>(<link linkend="Queue_Class">Queue</link>) returns nothing</code></para>
+              <para><code><link linkend="FtpClient_setEventQueue">FtpClient::setEventQueue</link>(<link linkend="Queue_Class">Queue</link> $queue) returns nothing</code></para>
             </entry>
             <entry><para>N</para></entry>
             <entry><para>Sets a <link linkend="Queue_Class">Queue</link> object to receive <link linkend="socket_events">socket</link> and <link linkend="ftpclient_events">FtpClient</link> events on both the data and control connections.  Calling with no argument clears the queue.</para></entry>
@@ -9525,7 +9531,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
           <row>
             <entry>
               <para><code><link linkend="FtpClient_setDataEventQueue">FtpClient::setDataEventQueue</link>() returns nothing</code></para>
-              <para><code><link linkend="FtpClient_setDataEventQueue">FtpClient::setDataEventQueue</link>(<link linkend="Queue_Class">Queue</link>) returns nothing</code></para>
+              <para><code><link linkend="FtpClient_setDataEventQueue">FtpClient::setDataEventQueue</link>(<link linkend="Queue_Class">Queue</link> $queue) returns nothing</code></para>
             </entry>
             <entry><para>N</para></entry>
             <entry><para>Sets a <link linkend="Queue_Class">Queue</link> object to receive <link linkend="socket_events">socket</link> and <link linkend="ftpclient_events">FtpClient</link> events on the data connection.  Calling with no argument clears the queue.</para></entry>
@@ -9533,7 +9539,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
           <row>
             <entry>
               <para><code><link linkend="FtpClient_setControlEventQueue">FtpClient::setControlEventQueue</link>() returns nothing</code></para>
-              <para><code><link linkend="FtpClient_setControlEventQueue">FtpClient::setControlEventQueue</link>(<link linkend="Queue_Class">Queue</link>) returns nothing</code></para>
+              <para><code><link linkend="FtpClient_setControlEventQueue">FtpClient::setControlEventQueue</link>(<link linkend="Queue_Class">Queue</link> $queue) returns nothing</code></para>
             </entry>
             <entry><para>N</para></entry>
             <entry><para>Sets a <link linkend="Queue_Class">Queue</link> object to receive <link linkend="socket_events">socket</link> and <link linkend="ftpclient_events">FtpClient</link> events on the control connection.  Calling with no argument clears the queue.</para></entry>
@@ -12746,114 +12752,138 @@ stdin.getTerminalAttributes($termios);</programlisting>
 
 	<tbody>
 	  <row id="PO_NO_GLOBAL_VARS">
-	    <entry><para>PO_NO_GLOBAL_VARS</para></entry>
+	    <entry><para><code>PO_NO_GLOBAL_VARS</code></para></entry>
 	    <entry><para><code><link linkend="no-global-vars">%no-global-vars</link></code></para></entry>
 	    <entry><para>Disallows the use of global variables.</para></entry>
 	  </row>
 	  <row id="PO_NO_SUBROUTINE_DEFS">
-	    <entry><para>PO_NO_SUBROUTINE_DEFS</para></entry>
+	    <entry><para><code>PO_NO_SUBROUTINE_DEFS</code></para></entry>
 	    <entry><para><code><link linkend="no-subroutine-defs">%no-subroutine-defs</link></code></para></entry>
 	    <entry><para>Disallows subroutine (function) definitions.</para></entry>
 	  </row>
 	  <row id="PO_NO_THREADS">
-	    <entry><para>PO_NO_THREADS</para></entry>
+	    <entry><para><code>PO_NO_THREADS</code></para></entry>
 	    <entry><para><code><link linkend="no-threads">%no-threads</link></code></para></entry>
 	    <entry><para>Disallows any thread operations (the <link linkend="Background_Operator"><command>background</command> operator</link> and the <link linkend="thread_exit_Statements"><command>thread_exit</command> statement</link>, for example) and the use of thread-relevant classes and functions (equivalent to PO_NO_THREAD_CLASSES | PO_NO_THREAD_CONTROL).</para></entry>
 	  </row>
 	  <row id="PO_NO_THREAD_CLASSES">
-	    <entry><para>PO_NO_THREAD_CLASSES</para></entry>
+	    <entry><para><code>PO_NO_THREAD_CLASSES</code></para></entry>
 	    <entry><para><code><link linkend="no-thread-classes">%no-thread-classes</link></code></para></entry>
 	    <entry><para>Disallows access to any thread classes.</para></entry>
 	  </row>
 	  <row id="PO_NO_THREAD_CONTROL">
-	    <entry><para>PO_NO_THREAD_CONTROL</para></entry>
+	    <entry><para><code>PO_NO_THREAD_CONTROL</code></para></entry>
 	    <entry><para><code><link linkend="no-thread-control">%no-thread-control</link></code></para></entry>
 	    <entry><para>Disallows access to any thread-control functions and thread-relevant statements and operators (for example the <link linkend="Background_Operator"><command>background</command> operator</link> and the <link linkend="thread_exit_Statements"><command>thread_exit</command> statement</link>).</para></entry>
 	  </row>
 	  <row id="PO_NO_TOP_LEVEL_STATEMENTS">
-	    <entry><para>PO_NO_TOP_LEVEL_STATEMENTS</para></entry>
+	    <entry><para><code>PO_NO_TOP_LEVEL_STATEMENTS</code></para></entry>
 	    <entry><para><code><link linkend="no-top-level">%no-top-level</link></code></para></entry>
 	    <entry><para>Disallows top level code.</para></entry>
 	  </row>
 	  <row id="PO_NO_CLASS_DEFS">
-	    <entry><para>PO_NO_CLASS_DEFS</para></entry>
+	    <entry><para><code>PO_NO_CLASS_DEFS</code></para></entry>
 	    <entry><para><code><link linkend="no-class-defs">%no-class-defs</link></code></para></entry>
 	    <entry><para>Disallows class definitions.</para></entry>
 	  </row>
 	  <row id="PO_NO_NAMESPACE_DEFS">
-	    <entry><para>PO_NO_NAMESPACE_DEFS</para></entry>
+	    <entry><para><code>PO_NO_NAMESPACE_DEFS</code></para></entry>
 	    <entry><para><code><link linkend="no-namespace-defs">%no-namespace-defs</link></code></para></entry>
 	    <entry><para>Disallows new namespace definitions.</para></entry>
 	  </row>
 	  <row id="PO_NO_CONSTANT_DEFS">
-	    <entry><para>PO_NO_CONSTANT_DEFS</para></entry>
+	    <entry><para><code>PO_NO_CONSTANT_DEFS</code></para></entry>
 	    <entry><para><code><link linkend="no-constant-defs">%no-constant-defs</link></code></para></entry>
 	    <entry><para>Disallows constant definitions.</para></entry>
 	  </row>
 	  <row id="PO_NO_NEW">
-	    <entry><para>PO_NO_NEW</para></entry>
+	    <entry><para><code>PO_NO_NEW</code></para></entry>
 	    <entry><para><code><link linkend="no-new">%no-new</link></code></para></entry>
 	    <entry><para>Disallows use of the <link linkend="New_Object_Operator"><command>new</command></link> operator.</para></entry>
 	  </row>
 	  <row id="PO_NO_SYSTEM_CLASSES">
-	    <entry><para>PO_NO_SYSTEM_CLASSES</para></entry>
+	    <entry><para><code>PO_NO_SYSTEM_CLASSES</code></para></entry>
 	    <entry><para>n/a</para></entry>
 	    <entry><para>Prohibits system classes from being imported into the new Program object.</para></entry>
 	  </row>
 	  <row id="PO_NO_USER_CLASSES">
-	    <entry><para>PO_NO_USER_CLASSES</para></entry>
+	    <entry><para><code>PO_NO_USER_CLASSES</code></para></entry>
 	    <entry><para>n/a</para></entry>
 	    <entry><para>Prohibits user classes from being imported into the new Program object.</para></entry>
 	  </row>
 	  <row id="PO_NO_CHILD_PO_RESTRICTIONS">
-	    <entry><para>PO_NO_CHILD_PO_RESTRICTIONS</para></entry>
+	    <entry><para><code>PO_NO_CHILD_PO_RESTRICTIONS</code></para></entry>
 	    <entry><para><code><link linkend="no-child-restrictions">%no-child-restrictions</link></code></para></entry>
 	    <entry><para>Allows child program objects to have fewer parse restrictions than the parent object.</para></entry>
 	  </row>
 	  <row id="PO_NO_EXTERNAL_PROCESS">
-	    <entry><para>PO_NO_EXTERNAL_PROCESS</para></entry>
+	    <entry><para><code>PO_NO_EXTERNAL_PROCESS</code></para></entry>
 	    <entry><para><code><link linkend="no-external-process">%no-external-process</link></code></para></entry>
 	    <entry><para>Disallows any access to external processes (with <link linkend="system">system()</link>, <link linkend="backquote">backquote()</link>, <link linkend="exec">exec()</link>, etc).</para></entry>
 	  </row>
 	  <row id="PO_REQUIRE_OUR">
-	    <entry><para>PO_REQUIRE_OUR</para></entry>
+	    <entry><para><code>PO_REQUIRE_OUR</code></para></entry>
 	    <entry><para><code><link linkend="require-our">%require-our</link></code></para></entry>
 	    <entry><para>Requires global variables to be declared with <command>our</command> before use.</para></entry>
 	  </row>
 	  <row id="PO_NO_PROCESS_CONTROL">
-	    <entry><para>PO_NO_PROCESS_CONTROL</para></entry>
+	    <entry><para><code>PO_NO_PROCESS_CONTROL</code></para></entry>
 	    <entry><para><code><link linkend="no-process-control">%no-process-control</link></code></para></entry>
 	    <entry><para>Disallows access to functions that would affect the current process (<link linkend="exit">exit()</link>, <link linkend="exit">exec()</link>, <link linkend="fork">fork()</link>, etc).</para></entry>
 	  </row>
 	  <row id="PO_NO_NETWORK">
-	    <entry><para>PO_NO_NETWORK</para></entry>
+	    <entry><para><code>PO_NO_NETWORK</code></para></entry>
 	    <entry><para><code><link linkend="no-network">%no-network</link></code></para></entry>
 	    <entry><para>Disallows access to network functions.</para></entry>
 	  </row>
 	  <row id="PO_NO_FILESYSTEM">
-	    <entry><para>PO_NO_FILESYSTEM</para></entry>
+	    <entry><para><code>PO_NO_FILESYSTEM</code></para></entry>
 	    <entry><para><code><link linkend="no-filesystem">%no-filesystem</link></code></para></entry>
 	    <entry><para>Disallows access to the filesystem.</para></entry>
 	  </row>
 	  <row id="PO_NO_WARNINGS">
-	    <entry><para>PO_LOCK_WARNINGS</para></entry>
+	    <entry><para><code>PO_LOCK_WARNINGS</code></para></entry>
 	    <entry><para><code><link linkend="lock-warnings">%lock-warnings</link></code></para></entry>
 	    <entry><para>Disallows changes to the warning mask.</para></entry>
 	  </row>
 	  <row id="PO_NO_DATABASE">
-	    <entry><para>PO_NO_DATABASE</para></entry>
+	    <entry><para><code>PO_NO_DATABASE</code></para></entry>
 	    <entry><para><code><link linkend="no-database">%no-database</link></code></para></entry>
 	    <entry><para>Disallows access to database functionality.</para></entry>
 	  </row>
 	  <row id="PO_NO_GUI">
-	    <entry><para>PO_NO_GUI</para></entry>
+	    <entry><para><code>PO_NO_GUI</code></para></entry>
 	    <entry><para><code><link linkend="no-gui">%no-gui</link></code></para></entry>
 	    <entry><para>Disallows access to functionality that draws graphics to the display.</para></entry>
 	  </row>
 	  <row id="PO_NO_TERMINAL_IO">
-	    <entry><para>PO_NO_TERMINAL_IO</para></entry>
+	    <entry><para><code>PO_NO_TERMINAL_IO</code></para></entry>
 	    <entry><para><code><link linkend="no-terminal-io">%no-terminal-io</link></code></para></entry>
 	    <entry><para>Disallows access to reading from and/or writing to the terminal.</para></entry>
+	  </row>
+
+	  <row id="PO_REQUIRE_TYPES">
+	    <entry><para><code>PO_REQUIRE_TYPES</code></para></entry>
+	    <entry><para><code><link linkend="require-types">%require-types</link></code></para></entry>
+	    <entry><para>Requires all function and method parameters, return types, variables, and object members to have <link linkend="Data_Type_Declarations">type declarations</link>.</para></entry>
+	  </row>
+
+	  <row id="PO_NO_EXTERNAL_INFO">
+	    <entry><para><code>PO_NO_EXTERNAL_INFO</code></para></entry>
+	    <entry><para><code><link linkend="no-external-info">%no-external-info</link></code></para></entry>
+	    <entry><para>Disallows access to functionality that provides information about the computing environment.</para></entry>
+	  </row>
+
+	  <row id="PO_NO_THREAD_INFO">
+	    <entry><para><code>PO_NO_THREAD_INFO</code></para></entry>
+	    <entry><para><code><link linkend="no-thread-info">%no-thread-info</link></code></para></entry>
+	    <entry><para>Disallows access to functionality that provides information about threading.</para></entry>
+	  </row>
+
+	  <row id="PO_NO_LOCALE_CONTROL">
+	    <entry><para><code>PO_NO_LOCALE_CONTROL</code></para></entry>
+	    <entry><para><code><link linkend="no-locale-control">%no-locale-control</link></code></para></entry>
+	    <entry><para>Disallows access to functionality that can change locale parameters.</para></entry>
 	  </row>
 
 	</tbody>
@@ -12862,6 +12892,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
     <table>
       <title>Program Method Overview</title>
       <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<colspec colnum="2" align="center"/>
 
 	<thead>
 	  <row>
@@ -12874,7 +12905,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	<tbody>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Qore_Program_constructor">Program::constructor</link>()</code></para>
+              <para><code><link linkend="Qore_Program_constructor">Program::constructor</link>(softint $options = PO_DEFAULT)</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Creates the program object and optionally sets program capabilities (parse options)</para></entry>
@@ -12895,14 +12926,15 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Qore_Program_callFunction">Program::callFunction</link>()</code></para>
+              <para><code><link linkend="Qore_Program_callFunction">Program::callFunction</link>(string $func, ...) returns any</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Calls a function in the program object and returns the return value.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Qore_Program_callFunctionArgs">Program::callFunctionArgs</link>()</code></para>
+              <para><code><link linkend="Qore_Program_callFunctionArgs">Program::callFunctionArgs</link>(string $func, list $args) returns any</code></para>
+              <para><code><link linkend="Qore_Program_callFunctionArgs">Program::callFunctionArgs</link>(string $func, any $args) returns any</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Calls a function in the program object with the arguments given as a list</para></entry>
@@ -12910,7 +12942,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
 
 	  <row>
 	    <entry>
-              <para><code><link linkend="Qore_Program_disableParseOptions">Program::disableParseOptions</link>()</code></para>
+              <para><code><link linkend="Qore_Program_disableParseOptions">Program::disableParseOptions</link>(int $options = PO_DEFAULT) returns nothing</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Removes the given parse options to the current parse option mask.</para></entry>
@@ -12918,7 +12950,8 @@ stdin.getTerminalAttributes($termios);</programlisting>
 
 	  <row>
 	    <entry>
-              <para><code><link linkend="Qore_Program_existsFunction">Program::existsFunction</link>()</code></para>
+              <para><code><link linkend="Qore_Program_existsFunction">Program::existsFunction</link>(string $func) returns bool</code></para>
+              <para><code><link linkend="Qore_Program_existsFunction">Program::existsFunction</link>() returns nothing (RT_NOOP)</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Checks if a user function exists in the program object</para></entry>
@@ -12926,7 +12959,8 @@ stdin.getTerminalAttributes($termios);</programlisting>
 
 	  <row>
 	    <entry>
-              <para><code><link linkend="Qore_Program_getGlobalVariable">Program::getGlobalVariable</link>()</code></para>
+              <para><code><link linkend="Qore_Program_getGlobalVariable">Program::getGlobalVariable</link>(string $name) returns any</code></para>
+              <para><code><link linkend="Qore_Program_getGlobalVariable">Program::getGlobalVariable</link>(string $name, reference $found) returns any</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns a the value of the global variable identified by the first string argument.</para></entry>
@@ -12934,7 +12968,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
 
 	  <row>
 	    <entry>
-              <para><code><link linkend="Qore_Program_getParseOptions">Program::getParseOptions</link>()</code></para>
+              <para><code><link linkend="Qore_Program_getParseOptions">Program::getParseOptions</link>() returns int</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns a code of parse options set in the object.</para></entry>
@@ -12942,46 +12976,46 @@ stdin.getTerminalAttributes($termios);</programlisting>
 
 	  <row>
 	    <entry>
-              <para><code><link linkend="Qore_Program_getScriptDir">Program::getScriptDir</link>()</code></para>
+              <para><code><link linkend="Qore_Program_getScriptDir">Program::getScriptDir</link>() returns any</code></para>
             </entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Returns the current script directory (if any).</para></entry>
+	    <entry><para>Returns the current script directory as a string or NOTHING if not set.</para></entry>
 	  </row>
 
 	  <row>
 	    <entry>
-              <para><code><link linkend="Qore_Program_getScriptName">Program::getScriptName</link>()</code></para>
+              <para><code><link linkend="Qore_Program_getScriptName">Program::getScriptName</link>() returns any</code></para>
             </entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Returns the current script name (if any).</para></entry>
+	    <entry><para>Returns the current script name as a string or NOTHING if not set.</para></entry>
 	  </row>
 
 	  <row>
 	    <entry>
-              <para><code><link linkend="Qore_Program_getScriptPath">Program::getScriptPath</link>()</code></para>
+              <para><code><link linkend="Qore_Program_getScriptPath">Program::getScriptPath</link>() returns any</code></para>
             </entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Returns the current script directory and filename (if any).</para></entry>
+	    <entry><para>Returns the current script directory and filename as a string or NOTHING if not set.</para></entry>
 	  </row>
 
 	  <row>
 	    <entry>
-              <para><code><link linkend="Qore_Program_getUserFunctionList">Program::getUserFunctionList</link>()</code></para>
+              <para><code><link linkend="Qore_Program_getUserFunctionList">Program::getUserFunctionList</link>() returns list</code></para>
             </entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Returns a list of all user functions defined in the program object.</para></entry>
+	    <entry><para>Returns a list of strings of all user functions defined in the program object.</para></entry>
 	  </row>
 
 	  <row>
 	    <entry>
-              <para><code><link linkend="Qore_Program_importFunction">Program::importFunction</link>()</code></para>
+              <para><code><link linkend="Qore_Program_importFunction">Program::importFunction</link>(string $name) returns nothing</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Imports a user function into the program object's space; any calls to the function will run in the parent's space.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Qore_Program_importGlobalVariable">Program::importGlobalVariable</link>()</code></para>
+              <para><code><link linkend="Qore_Program_importGlobalVariable">Program::importGlobalVariable</link>(string $name, bool $readonly = False) returns nothing</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Imports a global variable into the Program object's space.  If the variable is an object, then any methods
@@ -12990,7 +13024,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
 
 	  <row>
 	    <entry>
-              <para><code><link linkend="Qore_Program_lockOptions">Program::lockOptions</link>()</code></para>
+              <para><code><link linkend="Qore_Program_lockOptions">Program::lockOptions</link>() returns nothing</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Locks parse options so that they cannot be changed.</para></entry>
@@ -12998,36 +13032,39 @@ stdin.getTerminalAttributes($termios);</programlisting>
 
 	  <row>
 	    <entry>
-              <para><code><link linkend="Qore_Program_parse">Program::parse</link>()</code></para>
+              <para><code><link linkend="Qore_Program_parse">Program::parse</link>(string $code, string $label) returns nothing</code></para>
+              <para><code><link linkend="Qore_Program_parse">Program::parse</link>(string $code, string $label, softint $warn_mask) returns any</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Performs a complete parse and commit of the string passed</para></entry>
+	    <entry><para>Performs a complete parse and commit of the string passed; if a warning mask is given and warnings are raised, then the method returns an <link linkend="Exception_Hash">exception hash</link>.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Qore_Program_parseCommit">Program::parseCommit</link>()</code></para>
+              <para><code><link linkend="Qore_Program_parseCommit">Program::parseCommit</link>() returns nothing</code></para>
+              <para><code><link linkend="Qore_Program_parseCommit">Program::parseCommit</link>(softint $warn_mask) returns any</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Commits all pending changes to the program object.</para></entry>
+	    <entry><para>Commits all pending changes to the program object; if a warning mask is given and warnings are raised, then the method returns an <link linkend="Exception_Hash">exception hash</link>.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Qore_Program_parsePending">Program::parsePending</link>()</code></para>
+              <para><code><link linkend="Qore_Program_parsePending">Program::parsePending</link>(string $code, string $label) returns nothing</code></para>
+              <para><code><link linkend="Qore_Program_parsePending">Program::parsePending</link>(string $code, string $label, softint $warn_mask) returns any</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Performs a 1st stage parse of the string passed</para></entry>
+	    <entry><para>Performs a 1st stage parse of the string passed; if a warning mask is given and warnings are raised, then the method returns an <link linkend="Exception_Hash">exception hash</link>.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Qore_Program_parseRollback">Program::parseRollback</link>()</code></para>
+              <para><code><link linkend="Qore_Program_parseRollback">Program::parseRollback</link>() returns nothing</code></para>
             </entry>
-	    <entry><para>Y</para></entry>
+	    <entry><para>N</para></entry>
 	    <entry><para>Rolls back all pending changes to the program object</para></entry>
 	  </row>
 
 	  <row>
 	    <entry>
-              <para><code><link linkend="Qore_Program_run">Program::run</link>()</code></para>
+              <para><code><link linkend="Qore_Program_run">Program::run</link>() returns any</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Runs the top-level code of the program object</para></entry>
@@ -13035,7 +13072,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
 
 	  <row>
 	    <entry>
-              <para><code><link linkend="Qore_Program_setParseOptions">Program::setParseOptions</link>()</code></para>
+              <para><code><link linkend="Qore_Program_setParseOptions">Program::setParseOptions</link>(int $options = PO_DEFAULT) returns nothing</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Adds the given parse options to the current parse option mask.</para></entry>
@@ -13043,10 +13080,11 @@ stdin.getTerminalAttributes($termios);</programlisting>
 
 	  <row>
 	    <entry>
-              <para><code><link linkend="Qore_Program_setScriptPath">Program::setScriptPath</link>()</code></para>
+              <para><code><link linkend="Qore_Program_setScriptPath">Program::setScriptPath</link>(string $path) returns nothing</code></para>
+              <para><code><link linkend="Qore_Program_setScriptPath">Program::setScriptPath</link>() returns nothing</code></para>
             </entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Sets the script path (directory and filename) for the object.</para></entry>
+	    <entry><para>Sets (or clears) the script path (directory and filename) for the object.</para></entry>
 	  </row>
 
 	</tbody>
@@ -14786,7 +14824,7 @@ $pgm.setParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
     <table>
       <title>Socket Method Overview</title>
       <tgroup cols='3' align='left' colsep='1' rowsep='1'>
-
+	<colspec colnum="2" align="center"/>
 	<thead>
 	  <row>
 	    <entry><para>Method</para></entry>
@@ -14819,43 +14857,79 @@ $pgm.setParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Socket_connect">Socket::connect</link>()</code></para>
+              <para><code><link linkend="Socket_connect">Socket::connect</link>(string $dest, softint $timeout_ms = -1) returns nothing</code></para>
+              <para><code><link linkend="Socket_connect">Socket::connect</link>(string $dest, date $timeout) returns nothing</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Connects to a remote port or UNIX domain socket file.</para></entry>
+	    <entry><para>Connects to a remote port (if the string has a format &quot;host:port&quot;) or UNIX domain socket file with an optional timeout value with a millisecond resolution.</para></entry>
 	  </row>
+
+	  <row>
+	    <entry>
+              <para><code><link linkend="Socket_connectINET">Socket::connectINET</link>(string $host, softint $port, softint $timeout_ms = -1) returns nothing</code></para>
+              <para><code><link linkend="Socket_connectINET">Socket::connectINET</link>(string $host, softint $port, date $timeout) returns nothing</code></para>
+            </entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Connects to the given host and port with an optional timeout value with a millisecond resolution.</para></entry>
+	  </row>
+
+	  <row>
+	    <entry>
+              <para><code><link linkend="Socket_connectUNIX">Socket::connectUNIX</link>(string $file) returns nothing</code></para>
+            </entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Connects to the UNIX domain socket file.</para></entry>
+	  </row>
+
           <row>
             <entry>
-              <para>
-                <link linkend="Socket_connectSSL">Socket::connectSSL()</link>
-              </para>
+              <para><code><link linkend="Socket_connectSSL">Socket::connectSSL</link>(string $dest, softint $timeout_ms = -1) returns nothing</code></para>
+              <para><code><link linkend="Socket_connectSSL">Socket::connectSSL</link>(string $dest, date $timeout) returns nothing</code></para>
             </entry>
             <entry>
               <para>Y</para>
             </entry>
             <entry>
-              <para>Connects to a remote socket and attempts to establish a TLS/SSL connection.</para>
+              <para>Connects to a remote socket and attempts to establish a TLS/SSL connection; accepts an optional timeout value with a millisecond resolution.</para>
             </entry>
           </row>
+
 	  <row>
 	    <entry>
-              <para><code><link linkend="Socket_bind">Socket::bind</link>()</code></para>
+              <para><code><link linkend="Socket_connectINETSSL">Socket::connectINETSSL</link>(string $host, softint $port, softint $timeout_ms = -1) returns nothing</code></para>
+              <para><code><link linkend="Socket_connectINETSSL">Socket::connectINETSSL</link>(string $host, softint $port, date $timeout) returns nothing</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Binds the socket to a port or UNIX domain socket file.  If the second parameter is True, then the socket will set the SO_REUSEADDR option, which will allow the socket to be bound to a port that is not yet closed (for example, in a TIME_WAIT state).</para></entry>
+	    <entry><para>Connects to the given host and port and attempts to establish a TLS/SSL connection; accepts an optional timeout value with a millisecond resolution.</para></entry>
+	  </row>
+
+	  <row>
+	    <entry>
+              <para><code><link linkend="Socket_connectUNIXSSL">Socket::connectUNIXSSL</link>(string $file) returns nothing</code></para>
+            </entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Connects to the UNIX domain socket file and attempts to establish a TLS/SSL connection.</para></entry>
+	  </row>
+
+
+	  <row>
+	    <entry>
+              <para><code><link linkend="Socket_bind">Socket::bind</link>(string $bind_to, bool $reuseaddr = False) returns int</code></para>
+              <para><code><link linkend="Socket_bind">Socket::bind</link>(int $port, bool $reuseaddr = False) returns int</code></para>
+            </entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Binds the socket to a port, interface and port (if the <replaceable>$bind_to</replaceable> string has a format &quot;host:port&quot;), or UNIX domain socket file.  If the second parameter is True, then the socket will set the <code>SO_REUSEADDR</code> option, which will allow the socket to be bound to a port that is not yet closed (for example, in a <code>TIME_WAIT</code> state).</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Socket_accept">Socket::accept</link>()</code></para>
+              <para><code><link linkend="Socket_accept">Socket::accept</link>() returns <link linkend="Socket_Class">Socket</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Accepts connections on a listening socket.</para></entry>
 	  </row>
           <row>
             <entry>
-              <para>
-                <link linkend="Socket_acceptSSL">Socket::acceptSSL()</link>
-              </para>
+              <para><code><link linkend="Socket_acceptSSL">Socket::acceptSSL</link>() returns <link linkend="Socket_Class">Socket</link></code></para>
             </entry>
             <entry>
               <para>Y</para>
@@ -14866,9 +14940,7 @@ $pgm.setParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="Socket_shutdownSSL">Socket::shutdownSSL()</link>
-              </para>
+              <para><code><link linkend="Socket_shutdownSSL">Socket::shutdownSSL</link>() returns int</code></para>
             </entry>
             <entry>
               <para>Y</para>
@@ -14879,287 +14951,306 @@ $pgm.setParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
           </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Socket_listen">Socket::listen</link>()</code></para>
+              <para><code><link linkend="Socket_listen">Socket::listen</link>() returns int</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Listens for connections on the socket</para></entry>
+	    <entry><para>Listens for connections on the socket; sets the socket in a listening state.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Socket_isDataAvailable">Socket::isDataAvailable</link>()</code></para>
+              <para><code><link linkend="Socket_isDataAvailable">Socket::isDataAvailable</link>(softint $timeout_ms = 0) returns bool</code></para>
+              <para><code><link linkend="Socket_isDataAvailable">Socket::isDataAvailable</link>(date $timeout) returns bool</code></para>
             </entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Returns True or False depending on whether there is data to be read on the socket</para></entry>
+	    <entry><para>Returns True or False depending on whether there is data to be read on the socket.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Socket_isWriteFinished">Socket::isWriteFinished</link>()</code></para>
+              <para><code><link linkend="Socket_isWriteFinished">Socket::isWriteFinished</link>(softint $timeout_ms = 0) returns bool</code></para>
+              <para><code><link linkend="Socket_isWriteFinished">Socket::isWriteFinished</link>(date $timeout) returns bool</code></para>
             </entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Returns True or False depending on whether all data has been written to the socket</para></entry>
+	    <entry><para>Returns True or False depending on whether all data has been written to the socket.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Socket_send">Socket::send</link>()</code></para>
+              <para><code><link linkend="Socket_send">Socket::send</link>(data $data) returns int</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Sends string or binary data over the socket</para></entry>
+	    <entry><para>Sends string or binary data over the socket; string data is converted to the socket's encoding if necessary.</para></entry>
 	  </row>
+
 	  <row>
 	    <entry>
-              <para><code><link linkend="Socket_sendi1">Socket::sendi1</link>()</code></para>
+              <para><code><link linkend="Socket_sendBinary">Socket::sendBinary</link>(data $data) returns int</code></para>
+            </entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Sends string or binary data over the socket; string data is not converted to the socket's encoding, but sent exactly as-is.</para></entry>
+	  </row>
+
+	  <row>
+	    <entry>
+              <para><code><link linkend="Socket_sendi1">Socket::sendi1</link>(softint $i = 0) returns int</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Sends a 1-byte integer over the socket.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Socket_sendi2">Socket::sendi2</link>()</code></para>
+              <para><code><link linkend="Socket_sendi2">Socket::sendi2</link>(softint $i = 0) returns int</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Sends a 2-byte (16-bit) integer in big-endian format (network byte order) over the socket.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Socket_sendi4">Socket::sendi4</link>()</code></para>
+              <para><code><link linkend="Socket_sendi4">Socket::sendi4</link>(softint $i = 0) returns int</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Sends a 4-byte (32-bit) integer in big-endian format (network byte order) over the socket.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Socket_sendi8">Socket::sendi8</link>()</code></para>
+              <para><code><link linkend="Socket_sendi8">Socket::sendi8</link>(softint $i = 0) returns int</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Sends an 8-byte (64-bit) integer in big-endian format (network byte order) over the socket.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Socket_sendi2LSB">Socket::sendi2LSB</link>()</code></para>
+              <para><code><link linkend="Socket_sendi2LSB">Socket::sendi2LSB</link>(softint $i = 0) returns int</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Sends a 2-byte (16-bit) integer in little-endian format over the socket.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Socket_sendi4LSB">Socket::sendi4LSB</link>()</code></para>
+              <para><code><link linkend="Socket_sendi4LSB">Socket::sendi4LSB</link>(softint $i = 0) returns int</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Sends a 4-byte (32-bit) integer in little-endian format over the socket.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Socket_sendi8LSB">Socket::sendi8LSB</link>()</code></para>
+              <para><code><link linkend="Socket_sendi8LSB">Socket::sendi8LSB</link>(softint $i = 0) returns int</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Sends an 8-byte (64-bit) integer in little-endian format over the socket.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Socket_sendHTTPMessage">Socket::sendHTTPMessage</link>()</code></para>
+              <para><code><link linkend="Socket_sendHTTPMessage">Socket::sendHTTPMessage</link>(string $method, string $path, string $http_version, hash $headers, data $body = binary()) returns nothing</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Sends an HTTP message with a method and user-defined headers given as a hash</para></entry>
+	    <entry><para>Sends an HTTP message with a method and user-defined headers given as a hash and an optional message body.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Socket_sendHTTPResponse">Socket::sendHTTPResponse</link>()</code></para>
+              <para><code><link linkend="Socket_sendHTTPResponse">Socket::sendHTTPResponse</link>(softint $status_code, string $desc, string $http_version, hash $headers, data $body = binary())</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Sends an HTTP response with user-defined headers given as a hash</para></entry>
+	    <entry><para>Sends an HTTP response with user-defined headers given as a hash and an optional message body.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Socket_recv">Socket::recv</link>()</code></para>
+              <para><code><link linkend="Socket_recv">Socket::recv</link>(softint $size = 0, softint $timeout_ms = -1) returns string</code></para>
+              <para><code><link linkend="Socket_recv">Socket::recv</link>(softint $size = 0, date $timeout) returns string</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Receives data from the socket and returns a string</para></entry>
+	    <entry><para>Receives data from the socket and returns a string.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Socket_recvi1">Socket::recvi1</link>()</code></para>
+              <para><code><link linkend="Socket_recvi1">Socket::recvi1</link>(softint $timeout_ms = -1) returns int</code></para>
+              <para><code><link linkend="Socket_recvi1">Socket::recvi1</link>(date $timeout) returns int</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Receives a 1-byte signed integer from the socket.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Socket_recvi2">Socket::recvi2</link>()</code></para>
+              <para><code><link linkend="Socket_recvi2">Socket::recvi2</link>(softint $timeout_ms = -1) returns int</code></para>
+              <para><code><link linkend="Socket_recvi2">Socket::recvi2</link>(date $timeout) returns int</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Receives a 2-byte (16-bit) signed integer in big-endian format (network byte order) from the socket.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Socket_recvi4">Socket::recvi4</link>()</code></para>
+              <para><code><link linkend="Socket_recvi4">Socket::recvi4</link>(softint $timeout_ms = -1) returns int</code></para>
+              <para><code><link linkend="Socket_recvi4">Socket::recvi4</link>(date $timeout) returns int</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Receives a 4-byte (32-bit) signed integer in big-endian format (network byte order) from the socket.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Socket_recvi8">Socket::recvi8</link>()</code></para>
+              <para><code><link linkend="Socket_recvi8">Socket::recvi8</link>(softint $timeout_ms = -1) returns int</code></para>
+              <para><code><link linkend="Socket_recvi8">Socket::recvi8</link>(date $timeout) returns int</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Receives an 8-byte (64-bit) signed integer in big-endian format (network byte order) from the socket.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Socket_recvi2LSB">Socket::recvi2LSB</link>()</code></para>
+              <para><code><link linkend="Socket_recvi2LSB">Socket::recvi2LSB</link>(softint $timeout_ms = -1) returns int</code></para>
+              <para><code><link linkend="Socket_recvi2LSB">Socket::recvi2LSB</link>(date $timeout) returns int</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Receives a 2-byte (16-bit) signed integer in little-endian format from the socket.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Socket_recvi4LSB">Socket::recvi4LSB</link>()</code></para>
+              <para><code><link linkend="Socket_recvi4LSB">Socket::recvi4LSB</link>(softint $timeout_ms = -1) returns int</code></para>
+              <para><code><link linkend="Socket_recvi4LSB">Socket::recvi4LSB</link>(date $timeout) returns int</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Receives a 4-byte (32-bit) signed integer in little-endian format from the socket.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Socket_recvi8LSB">Socket::recvi8LSB</link>()</code></para>
+              <para><code><link linkend="Socket_recvi8LSB">Socket::recvi8LSB</link>(softint $timeout_ms = -1) returns int</code></para>
+              <para><code><link linkend="Socket_recvi8LSB">Socket::recvi8LSB</link>(date $timeout) returns int</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Receives an 8-byte (64-bit) signed integer in little-endian format from the socket.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Socket_recvu1">Socket::recvu1</link>()</code></para>
+              <para><code><link linkend="Socket_recvu1">Socket::recvu1</link>(softint $timeout_ms = -1) returns int</code></para>
+              <para><code><link linkend="Socket_recvu1">Socket::recvu1</link>(date $timeout) returns int</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Receives a 1-byte unsigned integer from the socket.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Socket_recvu2">Socket::recvu2</link>()</code></para>
+              <para><code><link linkend="Socket_recvu2">Socket::recvu2</link>(softint $timeout_ms = -1) returns int</code></para>
+              <para><code><link linkend="Socket_recvu2">Socket::recvu2</link>(date $timeout) returns int</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Receives a 2-byte (16-bit) unsigned integer in big-endian format (network byte order) from the socket.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Socket_recvu4">Socket::recvu4</link>()</code></para>
+              <para><code><link linkend="Socket_recvu4">Socket::recvu4</link>(softint $timeout_ms = -1) returns int</code></para>
+              <para><code><link linkend="Socket_recvu4">Socket::recvu4</link>(date $timeout) returns int</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Receives a 4-byte (32-bit) unsigned integer in big-endian format (network byte order) from the socket.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Socket_recvu2LSB">Socket::recvu2LSB</link>()</code></para>
+              <para><code><link linkend="Socket_recvu2LSB">Socket::recvu2LSB</link>(softint $timeout_ms = -1) returns int</code></para>
+              <para><code><link linkend="Socket_recvu2LSB">Socket::recvu2LSB</link>(date $timeout) returns int</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Receives a 2-byte (16-bit) unsigned integer in little-endian format from the socket.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Socket_recvu4LSB">Socket::recvu4LSB</link>()</code></para>
+              <para><code><link linkend="Socket_recvu4LSB">Socket::recvu4LSB</link>(softint $timeout_ms = -1) returns int</code></para>
+              <para><code><link linkend="Socket_recvu4LSB">Socket::recvu4LSB</link>(date $timeout) returns int</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Receives a 4-byte (32-bit) unsigned integer in little-endian format from the socket.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Socket_recvBinary">Socket::recvBinary</link>()</code></para>
+              <para><code><link linkend="Socket_recvBinary">Socket::recvBinary</link>(softint $size = 0, softint $timeout_ms = -1) returns binary</code></para>
+              <para><code><link linkend="Socket_recvBinary">Socket::recvBinary</link>(softint $size = 0, date $timeout) returns binary</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Receives data on a socket and returns a binary object</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Socket_readHTTPHeader">Socket::readHTTPHeader</link>()</code></para>
+              <para><code><link linkend="Socket_readHTTPHeader">Socket::readHTTPHeader</link>(softint $timeout_ms = -1) returns any</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Retuns a hash representing the data in the HTTP header read</para></entry>
+	    <entry><para>Retuns a hash representing the data in the HTTP header read, or, if the data cannot be parsed as an HTTP header, the data read is returned as a string.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Socket_getPort">Socket::getPort</link>()</code></para>
+              <para><code><link linkend="Socket_getPort">Socket::getPort</link>() returns int</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns the port number of the socket for INET sockets.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Socket_shutdown">Socket::shutdown</link>()</code></para>
+              <para><code><link linkend="Socket_shutdown">Socket::shutdown</link>() returns int</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Ensures that a socket will be closed even if shared with other processes.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Socket_close">Socket::close</link>()</code></para>
+              <para><code><link linkend="Socket_close">Socket::close</link>() returns int</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Closes the socket.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Socket_getCharset">Socket::getCharset</link>()</code></para>
+              <para><code><link linkend="Socket_getCharset">Socket::getCharset</link>() returns string</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns the character encoding for the socket.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Socket_setCharset">Socket::setCharset</link>()</code></para>
+              <para><code><link linkend="Socket_setCharset">Socket::setCharset</link>(string $encoding) returns nothing</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Sets the character encoding for the socket.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Socket_getNoDelay">Socket::getNoDelay</link>()</code></para>
+              <para><code><link linkend="Socket_getNoDelay">Socket::getNoDelay</link>() returns bool</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns the <code>TCP_NODELAY</code> setting for the socket.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Socket_setNoDelay">Socket::setNoDelay</link>()</code></para>
+              <para><code><link linkend="Socket_setNoDelay">Socket::setNoDelay</link>(bool $nodelay = True) returns int</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Sets the <code>TCP_NODELAY</code> setting for the socket.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Socket_getSocket">Socket::getSocket</link>()</code></para>
+              <para><code><link linkend="Socket_getSocket">Socket::getSocket</link>() returns int</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns the socket file descriptor number.</para></entry>
 	  </row>
           <row>
             <entry>
-              <para>
-                <link linkend="Socket_getSSLCipherName">Socket::getSSLCipherName()</link>
-              </para>
+              <para><code><link linkend="Socket_getSSLCipherName">Socket::getSSLCipherName</link>() returns any</code></para>
             </entry>
             <entry>
               <para>N</para>
             </entry>
             <entry>
-              <para>Returns the name of the cipher for an encrypted connection.</para>
+              <para>Returns the name of the cipher for an encrypted connection or NOTHING is a secure connection has not been established.</para>
             </entry>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="Socket_getSSLCipherVersion">Socket::getSSLCipherVersion()</link>
-              </para>
+              <para><code><link linkend="Socket_getSSLCipherVersion">Socket::getSSLCipherVersion</link>() returns any</code></para>
             </entry>
             <entry>
               <para>N</para>
             </entry>
             <entry>
-              <para>Returns the version string of the cipher for encrypted connections.</para>
+              <para>Returns the version string of the cipher for encrypted connections or NOTHING is a secure connection has not been established.</para>
             </entry>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="Socket_isSecure">Socket::isSecure()</link>
-              </para>
+              <para><code><link linkend="Socket_isSecure">Socket::isSecure</link>() returns bool</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -15170,9 +15261,7 @@ $pgm.setParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="Socket_isOpen">Socket::isOpen()</link>
-              </para>
+              <para><code><link linkend="Socket_isOpen">Socket::isOpen</link>() returns bool</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -15183,9 +15272,9 @@ $pgm.setParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="Socket_setCertificate">Socket::setCertificate()</link>
-              </para>
+              <para><code><link linkend="Socket_setCertificate">Socket::setCertificate</link>(<link linkend="SSLCertificate_Class">SSLCertificate</link> $cert) returns nothing</code></para>
+              <para><code><link linkend="Socket_setCertificate">Socket::setCertificate</link>(string $cert_pem) returns nothing</code></para>
+              <para><code><link linkend="Socket_setCertificate">Socket::setCertificate</link>(binary $cert_der) returns nothing</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -15196,9 +15285,10 @@ $pgm.setParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="Socket_setPrivateKey">Socket::setPrivateKey()</link>
-              </para>
+              <para><code><link linkend="Socket_setPrivateKey">Socket::setPrivateKey</link>(<link linkend="SSLPrivateKey_Class">SSLPrivateKey</link> $key) returns nothing</code></para>
+              <para><code><link linkend="Socket_setPrivateKey">Socket::setPrivateKey</link>(string $key_pem, string $pass) returns nothing</code></para>
+              <para><code><link linkend="Socket_setPrivateKey">Socket::setPrivateKey</link>(string $key_pem) returns nothing</code></para>
+              <para><code><link linkend="Socket_setPrivateKey">Socket::setPrivateKey</link>(binary $key_der) returns nothing</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -15209,17 +15299,18 @@ $pgm.setParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="Socket_verifyPeerCertificate">Socket::verifyPeerCertificate</link>()</code></para>
+              <para><code><link linkend="Socket_verifyPeerCertificate">Socket::verifyPeerCertificate</link>() returns any</code></para>
             </entry>
             <entry><para>N</para></entry>
-            <entry><para>Returns a string code giving the result of verifying the remote certificate.</para></entry>
+            <entry><para>Returns a string code giving the result of verifying the remote certificate or NOTHING if an encrypted connection is not currently established.</para></entry>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="Socket_setEventQueue">Socket::setEventQueue</link>()</code></para>
+              <para><code><link linkend="Socket_setEventQueue">Socket::setEventQueue</link>() returns nothing</code></para>
+              <para><code><link linkend="Socket_setEventQueue">Socket::setEventQueue</link>(<link linkend="Queue_Class">Queue</link> $queue) returns nothing</code></para>
             </entry>
             <entry><para>N</para></entry>
-            <entry><para>Sets a <link linkend="Queue_Class">Queue</link> object to receive <link linkend="socket_events">socket events</link>.</para></entry>
+            <entry><para>Sets a <link linkend="Queue_Class">Queue</link> object to receive <link linkend="socket_events">socket events, or clears the queue when called with no argument.</link>.</para></entry>
           </row>
 	</tbody>
       </tgroup>
@@ -15385,7 +15476,7 @@ $pgm.setParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Binds the socket to a port or UNIX domain socket file.  If the second parameter is True, then the socket will set the SO_REUSEADDR option, which will allow the socket to be bound to a port that is not yet closed (for example, in a TIME_WAIT state).</para>
+	    <para>Binds the socket to a port, interface and port (if the <replaceable>$bind_to</replaceable> string has a format &quot;host:port&quot;), or UNIX domain socket file.  If the second parameter is True, then the socket will set the <code>SO_REUSEADDR</code> option, which will allow the socket to be bound to a port that is not yet closed (for example, in a <code>TIME_WAIT</code> state).</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -15487,7 +15578,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Accepts connections on a listening socket (see <link linkend="Socket_listen">Socket::listen()</link>).</para>
+	    <para>Accepts connections on a listening socket (see <link linkend="Socket_listen">Socket::listen()</link>).  As this method does not accept a timeout, use <link linkend="Socket_isDataAvailable">Socket::isDataAvailable()</link> to check if data is available on the socket before calling if necessary.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -15567,7 +15658,7 @@ $sock.bind("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Accepts a remote connection and attempts to negotiate a TLS/SSL connection.</para>
+            <para>Accepts a remote connection and attempts to negotiate a TLS/SSL connection.  As this method does not accept a timeout, use <link linkend="Socket_isDataAvailable">Socket::isDataAvailable()</link> to check if data is available on the socket before calling if necessary.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -17572,7 +17663,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	    </row>
 	    <row>
 	      <entry><para><replaceable>headers</replaceable></para></entry>
-	      <entry><para>Hash</para></entry>
+	      <entry><para><code><link linkend="hash_type">hash</link></code></para></entry>
 	      <entry><para>A hash of additional headers to send (key-value pairs).</para></entry>
 	    </row>
 	    <row>
@@ -17689,7 +17780,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	    </row>
 	    <row>
 	      <entry><para><replaceable>headers</replaceable></para></entry>
-	      <entry><para>Hash</para></entry>
+	      <entry><para><code><link linkend="hash_type">hash</link></code></para></entry>
 	      <entry><para>A hash of additional headers to send (key-value pairs).</para></entry>
 	    </row>
 	    <row>
@@ -19143,7 +19234,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>Hash</para></entry>
+	      <entry><para><code><link linkend="hash_type">hash</link></code></para></entry>
 	      <entry><para>The return hash will contain keys for each header, plus an http_version key, giving the HTTP protocol version.  For HTTP responses, the following keys will be returned: status_code, status_message.  For outgoing HTTP messages, the following keys will be populated: method, path.</para></entry>
 	    </row>
 	  </tbody>
@@ -19860,6 +19951,7 @@ $sock.bind("/tmp/socket");</programlisting>
     <table>
       <title>HTTPClient Class Method Overview</title>
       <tgroup cols="3" align="left" colsep="1" rowsep="1">
+	<colspec colnum="2" align="center"/>
         <thead>
           <row>
             <entry>
@@ -19877,6 +19969,7 @@ $sock.bind("/tmp/socket");</programlisting>
           <row>
             <entry>
               <para><code><link linkend="HTTPClient_constructor">HTTPClient::constructor</link>()</code></para>
+              <para><code><link linkend="HTTPClient_constructor">HTTPClient::constructor</link>(hash $opts)</code></para>
             </entry>
             <entry>
               <para>Y</para>
@@ -19905,70 +19998,71 @@ $sock.bind("/tmp/socket");</programlisting>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="HTTPClient_getURL">HTTPClient::getURL</link>()</code></para>
+              <para><code><link linkend="HTTPClient_getURL">HTTPClient::getURL</link>() returns string</code></para>
             </entry>
             <entry><para>N</para></entry>
             <entry><para>Returns the current URL.</para></entry>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="HTTPClient_setURL">HTTPClient::setURL</link>()</code></para>
+              <para><code><link linkend="HTTPClient_setURL">HTTPClient::setURL</link>(string $url) returns nothing</code></para>
             </entry>
             <entry><para>Y</para></entry>
             <entry><para>Sets a new URL value for the next connection.</para></entry>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="HTTPClient_getProxyURL">HTTPClient::getProxyURL</link>()</code></para>
+              <para><code><link linkend="HTTPClient_getProxyURL">HTTPClient::getProxyURL</link>() returns any</code></para>
             </entry>
             <entry><para>N</para></entry>
-            <entry><para>Returns the current proxy URL.</para></entry>
+            <entry><para>Returns the current proxy URL as a string or NOTHING if no proxy URL is set.</para></entry>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="HTTPClient_setProxyURL">HTTPClient::setProxyURL</link>()</code></para>
+              <para><code><link linkend="HTTPClient_setProxyURL">HTTPClient::setProxyURL</link>() returns nothing</code></para>
+              <para><code><link linkend="HTTPClient_setProxyURL">HTTPClient::setProxyURL</link>(string $url) returns nothing</code></para>
             </entry>
             <entry><para>Y</para></entry>
-            <entry><para>Sets a new proxy URL value for the next connection.</para></entry>
+            <entry><para>Sets or clears (in case called with no argument) a new proxy URL value for the next connection.</para></entry>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="HTTPClient_clearProxyURL">HTTPClient::clearProxyURL</link>()</code></para>
+              <para><code><link linkend="HTTPClient_clearProxyURL">HTTPClient::clearProxyURL</link>() returns nothing</code></para>
             </entry>
             <entry><para>N</para></entry>
             <entry><para>Clears the proxy URL value.</para></entry>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="HTTPClient_setProxySecure">HTTPClient::setProxySecure</link>()</code></para>
+              <para><code><link linkend="HTTPClient_setProxySecure">HTTPClient::setProxySecure</link>(softbool $secure = True) returns nothing</code></para>
             </entry>
             <entry><para>N</para></entry>
             <entry><para>Sets the SSL/TLS flag for the next connection to the proxy.</para></entry>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="HTTPClient_isProxySecure">HTTPClient::isProxySecure</link>()</code></para>
+              <para><code><link linkend="HTTPClient_isProxySecure">HTTPClient::isProxySecure</link>() returns bool</code></para>
             </entry>
             <entry><para>N</para></entry>
             <entry><para>Returns the SSL/TLS flag.</para></entry>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="HTTPClient_getMaxRedirects">HTTPClient::getMaxRedirects</link>()</code></para>
+              <para><code><link linkend="HTTPClient_getMaxRedirects">HTTPClient::getMaxRedirects</link>() returns int</code></para>
             </entry>
             <entry><para>N</para></entry>
             <entry><para>Returns the current <code>max_redirects</code> value.</para></entry>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="HTTPClient_setMaxRedirects">HTTPClient::setMaxRedirects</link>()</code></para>
+              <para><code><link linkend="HTTPClient_setMaxRedirects">HTTPClient::setMaxRedirects</link>(softint $max = 0) returns nothing</code></para>
             </entry>
             <entry><para>N</para></entry>
             <entry><para>Updates the <code>max_redirects</code> value.</para></entry>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="HTTPClient_connect">HTTPClient::connect</link>()</code></para>
+              <para><code><link linkend="HTTPClient_connect">HTTPClient::connect</link>() returns nothing</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -19979,7 +20073,7 @@ $sock.bind("/tmp/socket");</programlisting>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="HTTPClient_disconnect">HTTPClient::disconnect</link>()</code></para>
+              <para><code><link linkend="HTTPClient_disconnect">HTTPClient::disconnect</link>() returns nothing</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -19990,79 +20084,85 @@ $sock.bind("/tmp/socket");</programlisting>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="HTTPClient_get">HTTPClient::get</link>()</code></para>
+              <para><code><link linkend="HTTPClient_get">HTTPClient::get</link>(string $path, hash headers = hash(), reference $info) returns any</code></para>
+              <para><code><link linkend="HTTPClient_get">HTTPClient::get</link>(string $path, hash headers = hash()) returns any</code></para>
             </entry>
             <entry>
               <para>Y</para>
             </entry>
             <entry>
-              <para>Sends an HTTP GET request and returns the message body received.  In order to get the headers and the body, use the <link linkend="HTTPClient_send">HTTPClient::send()</link> method instead.  If no connection is established, an internal call to <link linkend="HTTPClient_connect">HTTPClient::connect()</link> will be made before sending the message.</para>
+              <para>Sends an HTTP GET request and returns the message body received as a string or NOTHING if no message body is received.  In order to get the headers and the body, use the <link linkend="HTTPClient_send">HTTPClient::send()</link> method instead.  If no connection is established, an internal call to <link linkend="HTTPClient_connect">HTTPClient::connect()</link> will be made before sending the message.</para>
             </entry>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="HTTPClient_head">HTTPClient::head</link>()</code></para>
+              <para><code><link linkend="HTTPClient_head">HTTPClient::head</link>(string $path, hash $headers = hash(), reference $info) returns hash</code></para>
+              <para><code><link linkend="HTTPClient_head">HTTPClient::head</link>(string $path, hash $headers = hash()) returns hash</code></para>
             </entry>
             <entry>
               <para>Y</para>
             </entry>
             <entry>
-              <para>Sends an HTTP HEAD request and returns the headers received.  If no connection is established, an internal call to <link linkend="HTTPClient_connect">HTTPClient::connect()</link> will be made before sending the message.</para>
+              <para>Sends an HTTP HEAD request and returns as hash of the headers received.  If no connection is established, an internal call to <link linkend="HTTPClient_connect">HTTPClient::connect()</link> will be made before sending the message.</para>
             </entry>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="HTTPClient_post">HTTPClient::post</link>()</code></para>
+              <para><code><link linkend="HTTPClient_post">HTTPClient::post</link>(string $path, data $data, hash $headers = hash(), reference $info) returns any</code></para>
+              <para><code><link linkend="HTTPClient_post">HTTPClient::post</link>(string $path, data $data, hash $headers = hash()) returns any</code></para>
             </entry>
             <entry>
               <para>Y</para>
             </entry>
             <entry>
-              <para>Sends an HTTP POST request with a message body and returns the message body received as a response.  In order to get the headers and the body in the response, use the <link linkend="HTTPClient_send">HTTPClient::send()</link> method instead.  If no connection is established, an internal call to <link linkend="HTTPClient_connect">HTTPClient::connect()</link> will be made before sending the message.</para>
+              <para>Sends an HTTP POST request with a message body and returns the message body received as a string or NOTHING if no message body is received.  In order to get the headers and the body in the response, use the <link linkend="HTTPClient_send">HTTPClient::send()</link> method instead.  If no connection is established, an internal call to <link linkend="HTTPClient_connect">HTTPClient::connect()</link> will be made before sending the message.</para>
             </entry>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="HTTPClient_send">HTTPClient::send</link>()</code></para>
+              <para><code><link linkend="HTTPClient_send">HTTPClient::send</link>(data $body = binary(), string $method, string $path = "", hash headers = hash(), bool $getbody = False, reference $info) returns hash</code></para>
+              <para><code><link linkend="HTTPClient_send">HTTPClient::send</link>(data $body = binary(), string $method, string $path = "", hash headers = hash(), bool $getbody = False) returns hash</code></para>
             </entry>
             <entry>
               <para>Y</para>
             </entry>
             <entry>
-              <para>Sends an HTTP request with the specified method and optional message body and returns headers and optionally the body received as a response in a hash format.  If no connection is established, an internal call to <link linkend="HTTPClient_connect">HTTPClient::connect()</link> will be made before sending the message.</para>
+              <para>Sends an HTTP request with the specified method and optional message body and returns headers and any body received as a response in a hash format.  If no connection is established, an internal call to <link linkend="HTTPClient_connect">HTTPClient::connect()</link> will be made before sending the message.</para>
             </entry>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="HTTPClient_setConnectTimeout">HTTPClient::setConnectTimeout</link>()</code></para>
+              <para><code><link linkend="HTTPClient_setConnectTimeout">HTTPClient::setConnectTimeout</link>(softint $timeout_ms = -1) returns nothing</code></para>
+              <para><code><link linkend="HTTPClient_setConnectTimeout">HTTPClient::setConnectTimeout</link>(date $timeout) returns nothing</code></para>
             </entry>
             <entry><para>N</para></entry>
             <entry><para>Sets the connect timeout in milliseconds.  Negative numbers mean use the default system connect timeout.  Note that like all Qore functions and methods taking timeout values, a <link linkend="Relative_Dates">relative date/time value</link> can be used to make the units clear (i.e. <code>30s</code> = 30 seconds, etc.).</para></entry>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="HTTPClient_setTimeout">HTTPClient::setTimeout</link>()</code></para>
+              <para><code><link linkend="HTTPClient_setTimeout">HTTPClient::setTimeout</link>(softint $timeout_ms = -1) returns nothing</code></para>
+              <para><code><link linkend="HTTPClient_setTimeout">HTTPClient::setTimeout</link>(date $timeout) returns nothing</code></para>
             </entry>
             <entry><para>N</para></entry>
             <entry><para>Sets the default read timeout in milliseconds.  Zero means immediate timeout (will return data only if it is already available), and negative numbers mean never timeout (wait forever for data).  Note that like all Qore functions and methods taking timeout values, a <link linkend="Relative_Dates">relative date/time value</link> can be used to make the units clear (i.e. <code>2m</code> = two minutes, etc.).</para></entry>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="HTTPClient_getConnectTimeout">HTTPClient::getConnectTimeout</link>()</code></para>
+              <para><code><link linkend="HTTPClient_getConnectTimeout">HTTPClient::getConnectTimeout</link>() returns int</code></para>
             </entry>
             <entry><para>N</para></entry>
             <entry><para>Returns the connect timeout as an integer in milliseconds.  Negative numbers mean the system default timeout is used.</para></entry>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="HTTPClient_getTimeout">HTTPClient::getTimeout</link>()</code></para>
+              <para><code><link linkend="HTTPClient_getTimeout">HTTPClient::getTimeout</link>() returns int</code></para>
             </entry>
             <entry><para>N</para></entry>
             <entry><para>Returns the default read timeout as an integer in milliseconds.  Zero means immediate timeout (only returns data if it is already available), and negative numbers mean never timeout (wait forever for data).</para></entry>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="HTTPClient_setHTTPVersion">HTTPClient::setHTTPVersion</link>()</code></para>
+              <para><code><link linkend="HTTPClient_setHTTPVersion">HTTPClient::setHTTPVersion</link>(string $ver) returns nothing</code></para>
             </entry>
             <entry>
               <para>Y</para>
@@ -20073,7 +20173,7 @@ $sock.bind("/tmp/socket");</programlisting>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="HTTPClient_getHTTPVersion">HTTPClient::getHTTPVersion</link>()</code></para>
+              <para><code><link linkend="HTTPClient_getHTTPVersion">HTTPClient::getHTTPVersion</link>() returns string</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -20084,7 +20184,7 @@ $sock.bind("/tmp/socket");</programlisting>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="HTTPClient_setSecure">HTTPClient::setSecure</link>()</code></para>
+              <para><code><link linkend="HTTPClient_setSecure">HTTPClient::setSecure</link>(softbool $secure = True) returns nothing</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -20095,7 +20195,7 @@ $sock.bind("/tmp/socket");</programlisting>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="HTTPClient_isSecure">HTTPClient::isSecure</link>()</code></para>
+              <para><code><link linkend="HTTPClient_isSecure">HTTPClient::isSecure</link>() returns bool</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -20106,40 +20206,40 @@ $sock.bind("/tmp/socket");</programlisting>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="HTTPClient_verifyPeerCertificate">HTTPClient::verifyPeerCertificate</link>()</code></para>
+              <para><code><link linkend="HTTPClient_verifyPeerCertificate">HTTPClient::verifyPeerCertificate</link>() returns any</code></para>
             </entry>
             <entry>
               <para>N</para>
             </entry>
             <entry>
-              <para>Returns a string code giving the result of verifying the remote certificate.  Return value are the keys described in the <link linkend="X509_VerificationReasons_Hash">X509_VerificationReasons hash constant</link>.  This hash can also be used to generate a textual description of the verification result.</para>
+              <para>Returns a string code giving the result of verifying the remote certificate or NOTHING if a secure connection is not established.  Return value are the keys described in the <link linkend="X509_VerificationReasons_Hash">X509_VerificationReasons hash constant</link>.  This hash can also be used to generate a textual description of the verification result.</para>
             </entry>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="HTTPClient_getSSLCipherName">HTTPClient::getSSLCipherName</link>()</code></para>
+              <para><code><link linkend="HTTPClient_getSSLCipherName">HTTPClient::getSSLCipherName</link>() returns any</code></para>
             </entry>
             <entry>
               <para>N</para>
             </entry>
             <entry>
-              <para>Returns the name of the cipher for an encrypted connection.</para>
+              <para>Returns the name of the cipher as a string for an encrypted connection or NOTHING if a secure connection is not established.</para>
             </entry>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="HTTPClient_getSSLCipherVersion">HTTPClient::getSSLCipherVersion</link>()</code></para>
+              <para><code><link linkend="HTTPClient_getSSLCipherVersion">HTTPClient::getSSLCipherVersion</link>() returns any</code></para>
             </entry>
             <entry>
               <para>N</para>
             </entry>
             <entry>
-              <para>Returns the version of the cipher for an encrypted connection.</para>
+              <para>Returns the version of the cipher as a string for an encrypted connection or NOTHING if a secure connection is not established.</para>
             </entry>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="HTTPClient_setEncoding">HTTPClient::setEncoding</link>()</code></para>
+              <para><code><link linkend="HTTPClient_setEncoding">HTTPClient::setEncoding</link>(string $encoding) returns nothing</code></para>
             </entry>
             <entry>
               <para>Y</para>
@@ -20150,7 +20250,7 @@ $sock.bind("/tmp/socket");</programlisting>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="HTTPClient_getEncoding">HTTPClient::getEncoding</link>()</code></para>
+              <para><code><link linkend="HTTPClient_getEncoding">HTTPClient::getEncoding</link>() returns string</code></para>
             
             </entry>
             <entry><para>N</para></entry>
@@ -20158,28 +20258,29 @@ $sock.bind("/tmp/socket");</programlisting>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="HTTPClient_setEventQueue">HTTPClient::setEventQueue</link>()</code></para>
+              <para><code><link linkend="HTTPClient_setEventQueue">HTTPClient::setEventQueue</link>() returns nothing</code></para>
+              <para><code><link linkend="HTTPClient_setEventQueue">HTTPClient::setEventQueue</link>(<link linkend="Queue_Class">Queue</link> $queue) returns nothing</code></para>
             </entry>
             <entry><para>N</para></entry>
-            <entry><para>Sets a <link linkend="Queue_Class">Queue</link> object to receive <link linkend="httpclient_events">HTTPClient</link> and <link linkend="socket_events">Socket</link> events.</para></entry>
+            <entry><para>Sets a <link linkend="Queue_Class">Queue</link> object to receive <link linkend="httpclient_events">HTTPClient</link> and <link linkend="socket_events">Socket</link> events or clears the queue if no argument is passed.</para></entry>
           </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="HTTPClient_getNoDelay">HTTPClient::getNoDelay</link>()</code></para>
+              <para><code><link linkend="HTTPClient_getNoDelay">HTTPClient::getNoDelay</link>() returns bool</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns the <code>TCP_NODELAY</code> setting for the object.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="HTTPClient_setNoDelay">HTTPClient::setNoDelay</link>()</code></para>
+              <para><code><link linkend="HTTPClient_setNoDelay">HTTPClient::setNoDelay</link>(softbool $nodelay = True) returns int</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Sets the <code>TCP_NODELAY</code> setting for the object.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="HTTPClient_isConnected">HTTPClient::isConnected</link>()</code></para>
+              <para><code><link linkend="HTTPClient_isConnected">HTTPClient::isConnected</link>() returns bool</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns True or False giving the current connection state.</para></entry>
@@ -20234,7 +20335,7 @@ $sock.bind("/tmp/socket");</programlisting>
                 </para>
               </entry>
               <entry>
-                <para>Hash</para>
+                <para><code><link linkend="hash_type">hash</link></code></para>
               </entry>
               <entry>
                 <para>sets options and changes default behaviour for the object, etc.  See the table below for information on valid keys and their mening.  Note that the key names are case-sensitive and therefore must all be in lower-case.</para>
@@ -21359,7 +21460,7 @@ $sock.bind("/tmp/socket");</programlisting>
             </row>
             <row>
 	      <entry><para><replaceable>[headers]</replaceable></para></entry>
-              <entry><para>Hash</para></entry>
+              <entry><para><code><link linkend="hash_type">hash</link></code></para></entry>
 	      <entry><para>An optional hash of headers to include in the message.</para></entry>
             </row>
             <row>
@@ -21496,7 +21597,7 @@ $sock.bind("/tmp/socket");</programlisting>
                 </para>
               </entry>
               <entry>
-                <para>Hash</para>
+                <para><code><link linkend="hash_type">hash</link></code></para>
               </entry>
               <entry>
                 <para>An optional hash of headers to include in the message.</para>
@@ -21521,7 +21622,7 @@ $sock.bind("/tmp/socket");</programlisting>
           <tbody>
             <row>
               <entry>
-                <para>Hash</para>
+                <para><code><link linkend="hash_type">hash</link></code></para>
               </entry>
               <entry>
                 <para>The headers received from the HTTP server with all key names converted to lower-case.</para>
@@ -21634,7 +21735,7 @@ $sock.bind("/tmp/socket");</programlisting>
                 </para>
               </entry>
               <entry>
-                <para>Hash</para>
+                <para><code><link linkend="hash_type">hash</link></code></para>
               </entry>
               <entry>
                 <para>An optional hash of headers to include in the message.</para>
@@ -21800,7 +21901,7 @@ $sock.bind("/tmp/socket");</programlisting>
                 </para>
               </entry>
               <entry>
-                <para>Hash</para>
+                <para><code><link linkend="hash_type">hash</link></code></para>
               </entry>
               <entry>
                 <para>An optional hash of headers to include in the message.</para>
@@ -21843,7 +21944,7 @@ $sock.bind("/tmp/socket");</programlisting>
           <tbody>
             <row>
               <entry>
-                <para>Hash</para>
+                <para><code><link linkend="hash_type">hash</link></code></para>
               </entry>
               <entry>
                 <para>The headers received from the HTTP server with all key names converted to lower-case.  The message body, if any, will be assigned to the value of the 'body' key.</para>
@@ -23336,6 +23437,7 @@ $sock.bind("/tmp/socket");</programlisting>
     <table>
       <title>XmlRpcClient Class Method Overview</title>
       <tgroup cols="3" align="left" colsep="1" rowsep="1">
+	<colspec colnum="2" align="center"/>
         <thead>
           <row>
             <entry>
@@ -23352,9 +23454,8 @@ $sock.bind("/tmp/socket");</programlisting>
         <tbody>
           <row>
             <entry>
-              <para>
-                <link linkend="XmlRpcClient_constructor">XmlRpcClient::constructor()</link>
-              </para>
+              <para><code><link linkend="XmlRpcClient_constructor">XmlRpcClient::constructor</link>(softbool $no_connect = False)</code></para>
+              <para><code><link linkend="XmlRpcClient_constructor">XmlRpcClient::constructor</link>(hash $opts, softbool $no_connect = False)</code></para>
             </entry>
             <entry>
               <para>Y</para>
@@ -23365,9 +23466,7 @@ $sock.bind("/tmp/socket");</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="XmlRpcClient_destructor">XmlRpcClient::destructor()</link>
-              </para>
+              <para><code><link linkend="XmlRpcClient_destructor">XmlRpcClient::destructor</link></code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -23378,9 +23477,7 @@ $sock.bind("/tmp/socket");</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="XmlRpcClient_copy">XmlRpcClient::copy()</link>
-              </para>
+              <para><code><link linkend="XmlRpcClient_copy">XmlRpcClient::copy</link>()</code></para>
             </entry>
             <entry>
               <para>Y</para>
@@ -23391,31 +23488,39 @@ $sock.bind("/tmp/socket");</programlisting>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="XmlRpcClient_call">XmlRpcClient::call</link>()</code></para>
+              <para><code><link linkend="XmlRpcClient_call">XmlRpcClient::call</link>(string $method, ...) returns any</code></para>
             </entry>
             <entry><para>Y</para></entry>
             <entry><para>Calls a remote method using a variable number of arguments for the method arguments and returns the response as qore data structure.</para></entry>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="XmlRpcClient_callArgs">XmlRpcClient::callArgs</link>()</code></para>
+              <para><code><link linkend="XmlRpcClient_callArgs">XmlRpcClient::callArgs</link>(string $method, any $args) returns any</code></para>
             </entry>
             <entry><para>Y</para></entry>
             <entry><para>Calls a remote method using a single value after the method name for the method arguments and returns the response as qore data structure.</para></entry>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="XmlRpcClient_callWithInfo">XmlRpcClient::callWithInfo</link>()</code></para>
+              <para><code><link linkend="XmlRpcClient_callWithInfo">XmlRpcClient::callWithInfo</link>(reference $info, string $method, ...) returns any</code></para>
             </entry>
             <entry><para>Y</para></entry>
             <entry><para>Same as the <link linkend="XmlRpcClient_call">XmlRpcClient::call()</link> except the first argument must be an lvalue reference, which is used as an output variable, where information about the HTTP request and response is written.</para></entry>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="XmlRpcClient_callArgsWithInfo">XmlRpcClient::callArgsWithInfo</link>()</code></para>
+              <para><code><link linkend="XmlRpcClient_callArgsWithInfo">XmlRpcClient::callArgsWithInfo</link>(reference $info, string $method, any $args) returns any</code></para>
             </entry>
             <entry><para>Y</para></entry>
             <entry><para>Same as the <link linkend="XmlRpcClient_callArgs">XmlRpcClient::callArgs()</link> except the first argument must be an lvalue reference, which is used as an output variable, where information about the HTTP request and response is written.</para></entry>
+          </row>
+          <row>
+            <entry>
+              <para><code><link linkend="XmlRpcClient_setEventQueue">XmlRpcClient::setEventQueue</link>() returns nothing</code></para>
+              <para><code><link linkend="XmlRpcClient_setEventQueue">XmlRpcClient::setEventQueue</link>(<link linkend="Queue_Class">Queue</link> $queue) returns nothing</code></para>
+            </entry>
+            <entry><para>N</para></entry>
+            <entry><para>Sets a <link linkend="Queue_Class">Queue</link> object to receive <link linkend="httpclient_events">HTTPClient</link> and <link linkend="socket_events">Socket</link> events or clears the queue if no argument is passed.</para></entry>
           </row>
         </tbody>
       </tgroup>
@@ -23466,7 +23571,7 @@ $sock.bind("/tmp/socket");</programlisting>
                 </para>
               </entry>
               <entry>
-                <para>Hash</para>
+                <para><code><link linkend="hash_type">hash</link></code></para>
               </entry>
               <entry>
                 <para>an option hash, see <link linkend="HTTPClient_constructor_option_hash_keys">HTTPClient::constructor() Option Hash Keys</link> for valid keys in this hash.</para>
@@ -23763,7 +23868,7 @@ $sock.bind("/tmp/socket");</programlisting>
           <tbody>
             <row>
               <entry>
-                <para>Hash</para>
+                <para><code><link linkend="hash_type">hash</link></code></para>
               </entry>
               <entry>
                 <para>If the call was successful, the response information will be found in the key 'params'.  If an error occurred then the error information can be found under the 'fault' key.</para>
@@ -23857,7 +23962,7 @@ $sock.bind("/tmp/socket");</programlisting>
           <tbody>
             <row>
               <entry>
-                <para>Hash</para>
+                <para><code><link linkend="hash_type">hash</link></code></para>
               </entry>
               <entry>
                 <para>If the call was successful, the response information will be found in the key 'params'.  If an error occurred then the error information can be found under the 'fault' key.</para>
@@ -23957,7 +24062,7 @@ $sock.bind("/tmp/socket");</programlisting>
           <tbody>
             <row>
               <entry>
-                <para>Hash</para>
+                <para><code><link linkend="hash_type">hash</link></code></para>
               </entry>
               <entry>
                 <para>If the call was successful, the response information will be found in the key 'params'.  If an error occurred then the error information can be found under the 'fault' key.</para>
@@ -24056,7 +24161,7 @@ $sock.bind("/tmp/socket");</programlisting>
           <tbody>
             <row>
               <entry>
-                <para>Hash</para>
+                <para><code><link linkend="hash_type">hash</link></code></para>
               </entry>
               <entry>
                 <para>If the call was successful, the response information will be found in the key 'params'.  If an error occurred then the error information can be found under the 'fault' key.</para>
@@ -24141,6 +24246,7 @@ $sock.bind("/tmp/socket");</programlisting>
     <table>
       <title>JsonRpcClient Class Method Overview</title>
       <tgroup cols="3" align="left" colsep="1" rowsep="1">
+	<colspec colnum="2" align="center"/>
         <thead>
           <row>
             <entry>
@@ -24157,9 +24263,8 @@ $sock.bind("/tmp/socket");</programlisting>
         <tbody>
           <row>
             <entry>
-              <para>
-                <link linkend="JsonRpcClient_constructor">JsonRpcClient::constructor()</link>
-              </para>
+              <para><code><link linkend="JsonRpcClient_constructor">JsonRpcClient::constructor</link>(softbool $no_connect = False)</code></para>
+              <para><code><link linkend="JsonRpcClient_constructor">JsonRpcClient::constructor</link>(hash $opts, softbool $no_connect = False)</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -24170,9 +24275,7 @@ $sock.bind("/tmp/socket");</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="JsonRpcClient_destructor">JsonRpcClient::destructor()</link>
-              </para>
+              <para><code><link linkend="JsonRpcClient_destructor">JsonRpcClient::destructor</link>()</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -24183,9 +24286,7 @@ $sock.bind("/tmp/socket");</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="JsonRpcClient_copy">JsonRpcClient::copy()</link>
-              </para>
+              <para><code><link linkend="JsonRpcClient_copy">JsonRpcClient::copy</link>()</code></para>
             </entry>
             <entry>
               <para>Y</para>
@@ -24196,12 +24297,10 @@ $sock.bind("/tmp/socket");</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="JsonRpcClient_call">JsonRpcClient::call()</link>
-              </para>
+              <para><code><link linkend="JsonRpcClient_call">JsonRpcClient::call</link>(string $method, ...) returns any</code></para>
             </entry>
             <entry>
-              <para>N</para>
+              <para>Y</para>
             </entry>
             <entry>
               <para>Calls a remote method using a variable number of arguments for the method arguments and returns the response as qore data structure.</para>
@@ -24209,12 +24308,10 @@ $sock.bind("/tmp/socket");</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="JsonRpcClient_callArgs">JsonRpcClient::callArgs()</link>
-              </para>
+              <para><code><link linkend="JsonRpcClient_callArgs">JsonRpcClient::callArgs</link>(string $method, any $args) returns any</code></para>
             </entry>
             <entry>
-              <para>N</para>
+              <para>Y</para>
             </entry>
             <entry>
               <para>Calls a remote method using a single value after the method name for the method arguments and returns the response as qore data structure.</para>
@@ -24222,18 +24319,28 @@ $sock.bind("/tmp/socket");</programlisting>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="JsonRpcClient_callWithInfo">JsonRpcClient::callWithInfo</link>()</code></para>
+              <para><code><link linkend="JsonRpcClient_callWithInfo">JsonRpcClient::callWithInfo</link>(reference $info, string $method, ...) returns any</code></para>
             </entry>
             <entry><para>Y</para></entry>
             <entry><para>Same as the <link linkend="JsonRpcClient_call">JsonRpcClient::call()</link> except the first argument must be an lvalue reference, which is used as an output variable, where information about the HTTP request and response is written.</para></entry>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="JsonRpcClient_callArgsWithInfo">JsonRpcClient::callArgsWithInfo</link>()</code></para>
+              <para><code><link linkend="JsonRpcClient_callArgsWithInfo">JsonRpcClient::callArgsWithInfo</link>(reference $info, string $method, any $args) returns any</code></para>
             </entry>
             <entry><para>Y</para></entry>
             <entry><para>Same as the <link linkend="JsonRpcClient_callArgs">JsonRpcClient::callArgs()</link> except the first argument must be an lvalue reference, which is used as an output variable, where information about the HTTP request and response is written.</para></entry>
           </row>
+
+          <row>
+            <entry>
+              <para><code><link linkend="JsonRpcClient_setEventQueue">JsonRpcClient::setEventQueue</link>() returns nothing</code></para>
+              <para><code><link linkend="JsonRpcClient_setEventQueue">JsonRpcClient::setEventQueue</link>(<link linkend="Queue_Class">Queue</link> $queue) returns nothing</code></para>
+            </entry>
+            <entry><para>N</para></entry>
+            <entry><para>Sets a <link linkend="Queue_Class">Queue</link> object to receive <link linkend="httpclient_events">HTTPClient</link> and <link linkend="socket_events">Socket</link> events or clears the queue if no argument is passed.</para></entry>
+	  </row>
+
         </tbody>
       </tgroup>
     </table>
@@ -24273,7 +24380,7 @@ $sock.bind("/tmp/socket");</programlisting>
           <tbody>
             <row>
               <entry><para><replaceable>[opts]</replaceable></para></entry>
-              <entry><para>Hash</para></entry>
+              <entry><para><code><link linkend="hash_type">hash</link></code></para></entry>
               <entry><para>an option hash, see <link linkend="HTTPClient_constructor_option_hash_keys">HTTPClient::constructor() Option Hash Keys</link> for valid keys in this hash.</para></entry>
             </row>
             <row>
@@ -24567,7 +24674,7 @@ $sock.bind("/tmp/socket");</programlisting>
           <tbody>
             <row>
               <entry>
-                <para>Hash</para>
+                <para><code><link linkend="hash_type">hash</link></code></para>
               </entry>
               <entry>
                 <para>The information returned by the JSON-RPC method.</para>
@@ -24752,7 +24859,7 @@ $sock.bind("/tmp/socket");</programlisting>
           <tbody>
             <row>
               <entry>
-                <para>Hash</para>
+                <para><code><link linkend="hash_type">hash</link></code></para>
               </entry>
               <entry>
                 <para>The information returned by the JSON-RPC method.</para>
@@ -24869,6 +24976,7 @@ $sock.bind("/tmp/socket");</programlisting>
     <table>
       <title>SSLPrivateKey Class Method Overview</title>
       <tgroup cols="3" align="left" colsep="1" rowsep="1">
+	<colspec colnum="2" align="center"/>
         <thead>
           <row>
             <entry>
@@ -24885,22 +24993,19 @@ $sock.bind("/tmp/socket");</programlisting>
         <tbody>
           <row>
             <entry>
-              <para>
-                <link linkend="SSLPrivateKey_constructor">SSLPrivateKey::constructor()</link>
-              </para>
+              <para><code><link linkend="SSLPrivateKey_constructor">SSLPrivateKey::constructor</link>(string $key_pem)</code></para>
+              <para><code><link linkend="SSLPrivateKey_constructor">SSLPrivateKey::constructor</link>(binary $key_der)</code></para>
             </entry>
             <entry>
               <para>Y</para>
             </entry>
             <entry>
-              <para>Creates the SSLPrivateKey object from the filename argument passed.</para>
+              <para>Creates the SSLPrivateKey object from the data argument passed; as a deprecated, backwards-compatibilty extension, if the string variant is used and a string less then 120 bytes long is passed, it is taken as a filename to use to load the private key data from in PEM format.  In this case <code><link linkend="no-filesystem">PO_NO_FILESYSTEM</link></code> is checked at run-time; if set, and exception is thrown.</para>
             </entry>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="SSLPrivateKey_destructor">SSLPrivateKey::destructor()</link>
-              </para>
+              <para><code><link linkend="SSLPrivateKey_destructor">SSLPrivateKey::destructor</link>()</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -24911,9 +25016,7 @@ $sock.bind("/tmp/socket");</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="SSLPrivateKey_copy">SSLPrivateKey::copy()</link>
-              </para>
+              <para><code><link linkend="SSLPrivateKey_copy">SSLPrivateKey::copy</link>()</code></para>
             </entry>
             <entry>
               <para>Y</para>
@@ -24924,9 +25027,7 @@ $sock.bind("/tmp/socket");</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="SSLPrivateKey_getType">SSLPrivateKey::getType()</link>
-              </para>
+              <para><code><link linkend="SSLPrivateKey_getType">SSLPrivateKey::getType</link>() returns string</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -24937,9 +25038,7 @@ $sock.bind("/tmp/socket");</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="SSLPrivateKey_getVersion">SSLPrivateKey::getVersion()</link>
-              </para>
+              <para><code><link linkend="SSLPrivateKey_getVersion">SSLPrivateKey::getVersion</link>() returns int</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -24950,9 +25049,7 @@ $sock.bind("/tmp/socket");</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="SSLPrivateKey_getBitLength">SSLPrivateKey::getBitLength()</link>
-              </para>
+              <para><code><link linkend="SSLPrivateKey_getBitLength">SSLPrivateKey::getBitLength</link>() returns int</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -24963,9 +25060,7 @@ $sock.bind("/tmp/socket");</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="SSLPrivateKey_getInfo">SSLPrivateKey::getInfo()</link>
-              </para>
+              <para><code><link linkend="SSLPrivateKey_getInfo">SSLPrivateKey::getInfo</link>() returns hash</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -24983,7 +25078,8 @@ $sock.bind("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Creates the SSLPrivateKey object from the filename argument passed.</para>
+            <para>Creates the SSLPrivateKey object from the data argument passed.</para>
+	    <para>As a deprecated, backwards-compatibilty extension, if the string variant is used and a string less then 120 bytes long is passed, it is taken as a filename to use to load the private key data from in PEM format.  In this case <code><link linkend="no-filesystem">PO_NO_FILESYSTEM</link></code> is checked at run-time; if set, and exception is thrown.  Do not use this feature; load the file first and pass the data to the constructor instead.  This functionality will be removed in a future release of Qore.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -25521,7 +25617,7 @@ $sock.bind("/tmp/socket");</programlisting>
           <tbody>
             <row>
               <entry>
-                <para>Hash</para>
+                <para><code><link linkend="hash_type">hash</link></code></para>
               </entry>
               <entry>
                 <para>Keys are 'type', 'version', and 'bitLength' corresponding to the algorithm type, the version, and the bit length of the key respectively.</para>
@@ -25539,6 +25635,7 @@ $sock.bind("/tmp/socket");</programlisting>
     <table>
       <title>SSLCertificate Class Method Overview</title>
       <tgroup cols="3" align="left" colsep="1" rowsep="1">
+	<colspec colnum="2" align="center"/>
         <thead>
           <row>
             <entry>
@@ -25555,22 +25652,19 @@ $sock.bind("/tmp/socket");</programlisting>
         <tbody>
           <row>
             <entry>
-              <para>
-                <link linkend="SSLCertificate_constructor">SSLCertificate::constructor()</link>
-              </para>
+              <para><code><link linkend="SSLCertificate_constructor">SSLCertificate::constructor</link>(string $cert_pem)</code></para>
+              <para><code><link linkend="SSLCertificate_constructor">SSLCertificate::constructor</link>(binary $cert_der)</code></para>
             </entry>
             <entry>
               <para>Y</para>
             </entry>
             <entry>
-              <para>Creates the SSLCertificate object from the filename argument passed.</para>
+              <para>Creates the SSLCertificate object from the filename argument passed; as a deprecated, backwards-compatibilty extension, if the string variant is used and a string less then 200 bytes long is passed, it is taken as a filename to use to load the private key data from in PEM format.  In this case <code><link linkend="no-filesystem">PO_NO_FILESYSTEM</link></code> is checked at run-time; if set, and exception is thrown.</para>
             </entry>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="SSLCertificate_destructor">SSLCertificate::destructor()</link>
-              </para>
+              <para><code><link linkend="SSLCertificate_destructor">SSLCertificate::destructor</link>()</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -25581,9 +25675,7 @@ $sock.bind("/tmp/socket");</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="SSLCertificate_copy">SSLCertificate::copy()</link>
-              </para>
+              <para><code><link linkend="SSLCertificate_copy">SSLCertificate::copy</link>()</code></para>
             </entry>
             <entry>
               <para>Y</para>
@@ -25594,9 +25686,7 @@ $sock.bind("/tmp/socket");</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="SSLCertificate_getPEM">SSLCertificate::getPEM()</link>
-              </para>
+              <para><code><link linkend="SSLCertificate_getPEM">SSLCertificate::getPEM</link>() returns string</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -25607,9 +25697,7 @@ $sock.bind("/tmp/socket");</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="SSLCertificate_getVersion">SSLCertificate::getVersion()</link>
-              </para>
+              <para><code><link linkend="SSLCertificate_getVersion">SSLCertificate::getVersion</link>() returns int</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -25620,9 +25708,7 @@ $sock.bind("/tmp/socket");</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="SSLCertificate_getSignatureType">SSLCertificate::getSignatureType()</link>
-              </para>
+              <para><code><link linkend="SSLCertificate_getSignatureType">SSLCertificate::getSignatureType</link>() returns string</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -25633,9 +25719,7 @@ $sock.bind("/tmp/socket");</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="SSLCertificate_getSignature">SSLCertificate::getSignature()</link>
-              </para>
+              <para><code><link linkend="SSLCertificate_getSignature">SSLCertificate::getSignature</link>() returns binary</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -25646,9 +25730,7 @@ $sock.bind("/tmp/socket");</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="SSLCertificate_getPublicKeyAlgorithm">SSLCertificate::getPublicKeyAlgorithm()</link>
-              </para>
+              <para><code><link linkend="SSLCertificate_getPublicKeyAlgorithm">SSLCertificate::getPublicKeyAlgorithm</link>() returns string</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -25659,22 +25741,18 @@ $sock.bind("/tmp/socket");</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="SSLCertificate_getPublicKey">SSLCertificate::getPublicKey()</link>
-              </para>
+              <para><code><link linkend="SSLCertificate_getPublicKey">SSLCertificate::getPublicKey</link>() returns any</code></para>
             </entry>
             <entry>
               <para>N</para>
             </entry>
             <entry>
-              <para>Returns a binary object representing the public key of the certificate in DER (Distinguished Encoding Rules) format.</para>
+              <para>Returns a binary object representing the public key of the certificate in DER (Distinguished Encoding Rules) format or NOTHING if the public key cannot be retrieved.</para>
             </entry>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="SSLCertificate_getSubjectHash">SSLCertificate::getSubjectHash()</link>
-              </para>
+              <para><code><link linkend="SSLCertificate_getSubjectHash">SSLCertificate::getSubjectHash</link>() returns hash</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -25685,9 +25763,7 @@ $sock.bind("/tmp/socket");</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="SSLCertificate_getIssuerHash">SSLCertificate::getIssuerHash()</link>
-              </para>
+              <para><code><link linkend="SSLCertificate_getIssuerHash">SSLCertificate::getIssuerHash</link>() returns hash</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -25698,9 +25774,7 @@ $sock.bind("/tmp/socket");</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="SSLCertificate_getSerialNumber">SSLCertificate::getSerialNumber()</link>
-              </para>
+              <para><code><link linkend="SSLCertificate_getSerialNumber">SSLCertificate::getSerialNumber</link>() returns int</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -25711,9 +25785,7 @@ $sock.bind("/tmp/socket");</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="SSLCertificate_getPurposeHash">SSLCertificate::getPurposeHash()</link>
-              </para>
+              <para><code><link linkend="SSLCertificate_getPurposeHash">SSLCertificate::getPurposeHash</link>() returns hash</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -25724,9 +25796,7 @@ $sock.bind("/tmp/socket");</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="SSLCertificate_getNotBeforeDate">SSLCertificate::getNotBeforeDate()</link>
-              </para>
+              <para><code><link linkend="SSLCertificate_getNotBeforeDate">SSLCertificate::getNotBeforeDate</link>() returns date</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -25737,9 +25807,7 @@ $sock.bind("/tmp/socket");</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="SSLCertificate_getNotAfterDate">SSLCertificate::getNotAfterDate()</link>
-              </para>
+              <para><code><link linkend="SSLCertificate_getNotAfterDate">SSLCertificate::getNotAfterDate</link>() returns date</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -25750,9 +25818,7 @@ $sock.bind("/tmp/socket");</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="SSLCertificate_getInfo">SSLCertificate::getInfo()</link>
-              </para>
+              <para><code><link linkend="SSLCertificate_getInfo">SSLCertificate::getInfo</link>() returns hash</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -25771,7 +25837,7 @@ $sock.bind("/tmp/socket");</programlisting>
           <term>Synopsis</term>
           <listitem>
             <para>Creates the SSLCertificate object from the argument passed.  If a string is passed, the value is assumed to be the PEM representation of the certificate; if a binary is passed, the value is assumed to be the DER-encoded form of the certificate.</para>
-	    <para>DEPRECATED: If a string is passed that is less than 200 bytes long, the string is assumed to be a file name; in which case the PO_NO_FILESYSTEM parse option is checked at run-time; if this restriction is not set, then the certificate is loaded from the filename (in this case, the certificate must be in PEM format).  Do not use this feature; load the file first and pass the data to the constructor instead.  This functionality will be removed in a future release of Qore.</para>
+	    <para>DEPRECATED: If a string is passed that is less than 200 bytes long, the string is assumed to be a file name; in which case the <code><link linkend="no-filesystem">PO_NO_FILESYSTEM</link></code> parse option is checked at run-time; if this restriction is not set, then the certificate is loaded from the filename (in this case, the certificate must be in PEM format).  Do not use this feature; load the file first and pass the data to the constructor instead.  This functionality will be removed in a future release of Qore.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -26533,7 +26599,7 @@ $sock.bind("/tmp/socket");</programlisting>
           <tbody>
             <row>
               <entry>
-                <para>Hash</para>
+                <para><code><link linkend="hash_type">hash</link></code></para>
               </entry>
               <entry>
                 <para>Key-value pairs representing the subject information of the certificate.</para>
@@ -26612,7 +26678,7 @@ $sock.bind("/tmp/socket");</programlisting>
           <tbody>
             <row>
               <entry>
-                <para>Hash</para>
+                <para><code><link linkend="hash_type">hash</link></code></para>
               </entry>
               <entry>
                 <para>Key-value pairs representing the issuer information of the certificate.</para>
@@ -26770,7 +26836,7 @@ $sock.bind("/tmp/socket");</programlisting>
           <tbody>
             <row>
               <entry>
-                <para>Hash</para>
+                <para><code><link linkend="hash_type">hash</link></code></para>
               </entry>
               <entry>
                 <para>Key-value pairs representing the allowed purposes of the certificate.</para>
@@ -27007,7 +27073,7 @@ $sock.bind("/tmp/socket");</programlisting>
           <tbody>
             <row>
               <entry>
-                <para>Hash</para>
+                <para><code><link linkend="hash_type">hash</link></code></para>
               </entry>
               <entry>
                 <para>Keys are 'version', 'serialNumber', 'subject', 'issuer', 'purposes', 'notBefore', 'notAfter', 'signatureType', 'signature', and 'publicKey' corresponding to the respective attributes of the certificate.</para>
@@ -27028,6 +27094,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	<thead>
 	  <row>
 	    <entry><para>Constant</para></entry>
+	    <entry><para>Value</para></entry>
 	    <entry><para>Description</para></entry>
 	  </row>
 	</thead>
@@ -27035,23 +27102,38 @@ $sock.bind("/tmp/socket");</programlisting>
 	<tbody>
 	  <row>
 	    <entry><para><code>SQL::DSOracle</code></para></entry>
-	    <entry><para>Indicates an Oracle database to <link linkend="SQL::Datasource::constructor">Datasource::constructor()</link> and <link linkend="DatasourcePool::constructor">DatasourcePool::constructor()</link></para></entry>
+	    <entry><para><code>&quot;oracle&quot;</code></para></entry>
+	    <entry><para>Indicates that the <code>oracle</code> driver should be used by  <link linkend="SQL::Datasource::constructor">Datasource::constructor()</link> and <link linkend="DatasourcePool::constructor">DatasourcePool::constructor()</link></para></entry>
 	  </row>
 	  <row>
 	    <entry><para><code>SQL::DSMySQL</code></para></entry>
-	    <entry><para>Indicates a MySQL database to <link linkend="SQL::Datasource::constructor">Datasource::constructor()</link> and <link linkend="DatasourcePool::constructor">DatasourcePool::constructor()</link></para></entry>
+	    <entry><para><code>&quot;mysql&quot;</code></para></entry>
+	    <entry><para>Indicates that the <code>mysql</code> driver should be used by <link linkend="SQL::Datasource::constructor">Datasource::constructor()</link> and <link linkend="DatasourcePool::constructor">DatasourcePool::constructor()</link></para></entry>
 	  </row>
 	  <row>
 	    <entry><para><code>SQL::DSPGSQL</code></para></entry>
-	    <entry><para>Indicates a PostgreSQL database to <link linkend="SQL::Datasource::constructor">Datasource::constructor()</link> and <link linkend="DatasourcePool::constructor">DatasourcePool::constructor()</link></para></entry>
+	    <entry><para><code>&quot;pgsql&quot;</code></para></entry>
+	    <entry><para>Indicates that the <code>pgsql</code> driver should be used by  <link linkend="SQL::Datasource::constructor">Datasource::constructor()</link> and <link linkend="DatasourcePool::constructor">DatasourcePool::constructor()</link></para></entry>
 	  </row>
 	  <row>
 	    <entry><para><code>SQL::DSSybase</code></para></entry>
-	    <entry><para>Indicates a Sybase database to <link linkend="SQL::Datasource::constructor">Datasource::constructor()</link> and <link linkend="DatasourcePool::constructor">DatasourcePool::constructor()</link></para></entry>
+	    <entry><para><code>&quot;sybase&quot;</code></para></entry>
+	    <entry><para>Indicates that the <code>sybase</code> driver should be used by <link linkend="SQL::Datasource::constructor">Datasource::constructor()</link> and <link linkend="DatasourcePool::constructor">DatasourcePool::constructor()</link></para></entry>
 	  </row>
 	  <row>
-	    <entry><para><code>SQL::DSMSSQL</code></para></entry>
-	    <entry><para>Indicates a Microsoft SQL Server database to <link linkend="SQL::Datasource::constructor">Datasource::constructor()</link> and <link linkend="DatasourcePool::constructor">DatasourcePool::constructor()</link></para></entry>
+	    <entry><para><code>SQL::DSFreeTDS, SQL::MSSQL</code></para></entry>
+	    <entry><para><code>&quot;freetds&quot;</code></para></entry>
+	    <entry><para>Indicates that the <code>freetds</code> driver should be used by <link linkend="SQL::Datasource::constructor">Datasource::constructor()</link> and <link linkend="DatasourcePool::constructor">DatasourcePool::constructor()</link></para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>SQL::DB2</code></para></entry>
+	    <entry><para><code>&quot;db2&quot;</code></para></entry>
+	    <entry><para>Indicates that the <code>db2</code> driver should be used by <link linkend="SQL::Datasource::constructor">Datasource::constructor()</link> and <link linkend="DatasourcePool::constructor">DatasourcePool::constructor()</link></para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>SQL::DSSQLite3</code></para></entry>
+	    <entry><para><code>&quot;sqlite3&quot;</code></para></entry>
+	    <entry><para>Indicates that the <code>sqlite3</code> driver should be used by <link linkend="SQL::Datasource::constructor">Datasource::constructor()</link> and <link linkend="DatasourcePool::constructor">DatasourcePool::constructor()</link></para></entry>
 	  </row>
 
 	</tbody>
@@ -27178,6 +27260,7 @@ $sock.bind("/tmp/socket");</programlisting>
     <table>
       <title>SQL::Datasource Method Overview</title>
       <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<colspec colnum="2" align="center"/>
 	<thead>
 	  <row>
 	    <entry><para>Method</para></entry>
@@ -27188,7 +27271,8 @@ $sock.bind("/tmp/socket");</programlisting>
 	<tbody>
 	  <row>
 	    <entry>
-              <para><code><link linkend="SQL::Datasource::constructor">Datasource::constructor</link>()</code></para>
+              <para><code><link linkend="SQL::Datasource::constructor">Datasource::constructor</link>(string $driver, string $user = "", string $pass = "", string $dbname = "", string $encoding = "", string $host = "", softint $port = 0)</code></para>
+              <para><code><link linkend="SQL::Datasource::constructor">Datasource::constructor</link>(hash $params)</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Creates the Datasource object; attempts to load a DBI driver if the driver is not already present in Qore.</para></entry>
@@ -27209,234 +27293,260 @@ $sock.bind("/tmp/socket");</programlisting>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="SQL::Datasource::open">Datasource::open</link>()</code></para>
+              <para><code><link linkend="SQL::Datasource::open">Datasource::open</link>() returns nothing</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Opens a connection to a database.</para></entry>
+	    <entry><para>Opens a connection to a database; an exception is thrown if any errors occur.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="SQL::Datasource::close">Datasource::close</link>()</code></para>
+              <para><code><link linkend="SQL::Datasource::close">Datasource::close</link>() returns nothing</code></para>
             </entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Closes the connection to the database.</para></entry>
+	    <entry><para>Closes the connection to the database; an exception is thrown if any errors occur.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="SQL::Datasource::commit">Datasource::commit</link>()</code></para>
+              <para><code><link linkend="SQL::Datasource::commit">Datasource::commit</link>() returns nothing</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Commits the transaction and releases the <link linkend="datasource_transaction_lock">transaction lock</link>.</para></entry>
+	    <entry><para>Commits the transaction and releases the <link linkend="datasource_transaction_lock">transaction lock</link>; an exception is thrown if any errors occur.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="SQL::Datasource::rollback">Datasource::rollback</link>()</code></para>
+              <para><code><link linkend="SQL::Datasource::rollback">Datasource::rollback</link>() returns nothing</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Rolls back the transaction and releases the <link linkend="datasource_transaction_lock">transaction lock</link>.</para></entry>
+	    <entry><para>Rolls back the transaction and releases the <link linkend="datasource_transaction_lock">transaction lock</link>; an exception is thrown if any errors occur.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="SQL::Datasource::setAutoCommit">Datasource::setAutoCommit</link>()</code></para>
+              <para><code><link linkend="SQL::Datasource::setAutoCommit">Datasource::setAutoCommit</link>(softbool $b = True) returns nothing</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Turns autocommit on or off for this object.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="SQL::Datasource::exec">Datasource::exec</link>()</code></para>
+              <para><code><link linkend="SQL::Datasource::exec">Datasource::exec</link>(string $sql, ...) returns any</code></para>
+              <para><code><link linkend="SQL::Datasource::exec">Datasource::exec</link>() returns nothing (RT_NOOP)</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Executes SQL code on the DB connection.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="SQL::Datasource::vexec">Datasource::vexec</link>()</code></para>
+              <para><code><link linkend="SQL::Datasource::execRaw">Datasource::execRaw</link>(string $sql, ...) returns any</code></para>
+            </entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Executes SQL code (like <link linkend="SQL::Datasource::exec">Datasource::exec()</link>) on the DB connection without any variable binding.</para></entry>
+	  </row>
+	  <row>
+	    <entry>
+              <para><code><link linkend="SQL::Datasource::vexec">Datasource::vexec</link>(string $sql, list $args) returns any</code></para>
+              <para><code><link linkend="SQL::Datasource::vexec">Datasource::vexec</link>(string $sql) returns any</code></para>
+              <para><code><link linkend="SQL::Datasource::vexec">Datasource::vexec</link>() returns nothing (RT_NOOP)</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Executes SQL code on the DB connection, taking a list for all bind arguments.</para></entry>
 	  </row>
-    <row>
-      <entry>
-              <para><code><link linkend="SQL::Datasource::execRaw">Datasource::execRaw</link>()</code></para>
-            </entry>
-      <entry><para>Y</para></entry>
-      <entry><para>Executes SQL code (like <link linkend="SQL::Datasource::exec">Datasource::exec()</link>) on the DB connection without any variable binding.</para></entry>
-    </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="SQL::Datasource::select">Datasource::select</link>()</code></para>
+              <para><code><link linkend="SQL::Datasource::select">Datasource::select</link>(string $sql, ...) returns any</code></para>
+              <para><code><link linkend="SQL::Datasource::select">Datasource::select</link>() returns nothing (RT_NOOP)</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Executes a select statement on the server and returns the results in a hash (column names) of lists (rows).</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="SQL::Datasource::vselect">Datasource::vselect</link>()</code></para>
+              <para><code><link linkend="SQL::Datasource::vselect">Datasource::vselect</link>(string $sql, list $args) returns any</code></para>
+              <para><code><link linkend="SQL::Datasource::vselect">Datasource::vselect</link>(string $sql) returns any</code></para>
+              <para><code><link linkend="SQL::Datasource::vselect">Datasource::vselect</link>() returns nothing (RT_NOOP)</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Executes a select statement on the server and returns the results in a hash (column names) of lists (rows), taking a list for all bind arguments.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="SQL::Datasource::selectRow">Datasource::selectRow</link>()</code></para>
+              <para><code><link linkend="SQL::Datasource::selectRow">Datasource::selectRow</link>(string $sql, ...) returns any</code></para>
+              <para><code><link linkend="SQL::Datasource::selectRow">Datasource::selectRow</link>() returns nothing (RT_NOOP)</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Executes a select statement on the server and returns the first row as a hash (column names and values).</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="SQL::Datasource::vselectRow">Datasource::vselectRow</link>()</code></para>
+              <para><code><link linkend="SQL::Datasource::vselectRow">Datasource::vselectRow</link>(string $sql, list $args) returns any</code></para>
+              <para><code><link linkend="SQL::Datasource::vselectRow">Datasource::vselectRow</link>(string $sql) returns any</code></para>
+              <para><code><link linkend="SQL::Datasource::vselectRow">Datasource::vselectRow</link>() returns nothing (RT_NOOP)</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Executes a select statement on the server and returns the first row as a hash (column names and values), taking a list for all bind arguments.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="SQL::Datasource::selectRows">Datasource::selectRows</link>()</code></para>
+              <para><code><link linkend="SQL::Datasource::selectRows">Datasource::selectRows</link>(string $sql, ...) returns any</code></para>
+              <para><code><link linkend="SQL::Datasource::selectRows">Datasource::selectRows</link>() returns nothing (RT_NOOP)</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Executes a select statement on the server and returns the results in a list (rows) of hashes (column names and values).</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="SQL::Datasource::vselectRows">Datasource::vselectRows</link>()</code></para>
+              <para><code><link linkend="SQL::Datasource::vselectRows">Datasource::vselectRows</link>(string $sql, list $args) returns any</code></para>
+              <para><code><link linkend="SQL::Datasource::vselectRows">Datasource::vselectRows</link>(string $sql) returns any</code></para>
+              <para><code><link linkend="SQL::Datasource::vselectRows">Datasource::vselectRows</link>() returns nothing (RT_NOOP)</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Executes a select statement on the server and returns the results in a list (rows) of hashes (column names and values), taking a list for all bind arguments.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="SQL::Datasource::beginTransaction">Datasource::beginTransaction</link>()</code></para>
+              <para><code><link linkend="SQL::Datasource::beginTransaction">Datasource::beginTransaction</link>() returns nothing</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Manually grabs the <link linkend="datasource_transaction_lock">transaction lock</link></para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="SQL::Datasource::setUserName">Datasource::setUserName</link>()</code></para>
+              <para><code><link linkend="SQL::Datasource::setUserName">Datasource::setUserName</link>(string $user) returns nothing</code></para>
+              <para><code><link linkend="SQL::Datasource::setUserName">Datasource::setUserName</link>() returns nothing (RT_NOOP)</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Sets the username parameter for the next open.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="SQL::Datasource::getUserName">Datasource::getUserName</link>()</code></para>
+              <para><code><link linkend="SQL::Datasource::getUserName">Datasource::getUserName</link>() returns any</code></para>
             </entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Returns the username parameter.</para></entry>
+	    <entry><para>Returns the username parameter as a string or NOTHING if none is set.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="SQL::Datasource::setPassword">Datasource::setPassword</link>()</code></para>
+              <para><code><link linkend="SQL::Datasource::setPassword">Datasource::setPassword</link>(string $pass) returns nothing</code></para>
+              <para><code><link linkend="SQL::Datasource::setPassword">Datasource::setPassword</link>() returns nothing (RT_NOOP)</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Sets the password parameter for the next open.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="SQL::Datasource::getPassword">Datasource::getPassword</link>()</code></para>
+              <para><code><link linkend="SQL::Datasource::getPassword">Datasource::getPassword</link>() returns any</code></para>
             </entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Returns the password parameter.</para></entry>
+	    <entry><para>Returns the password parameter as a string or NOTHING if none is set.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="SQL::Datasource::setDBName">Datasource::setDBName</link>()</code></para>
+              <para><code><link linkend="SQL::Datasource::setDBName">Datasource::setDBName</link>(string $db) returns nothing</code></para>
+              <para><code><link linkend="SQL::Datasource::setDBName">Datasource::setDBName</link>() returns nothing (RT_NOOP)</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Sets the DB name parameter for the next open.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="SQL::Datasource::getDBName">Datasource::getDBName</link>()</code></para>
+              <para><code><link linkend="SQL::Datasource::getDBName">Datasource::getDBName</link>() returns any</code></para>
             </entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Returns the dbname parameter.</para></entry>
+	    <entry><para>Returns the dbname parameter as a string or NOTHING if none is set.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="SQL::Datasource::setDBCharset">Datasource::setDBCharset</link>()</code></para>
+              <para><code><link linkend="SQL::Datasource::setDBCharset">Datasource::setDBCharset</link>(string $encoding) returns nothing</code></para>
+              <para><code><link linkend="SQL::Datasource::setDBCharset">Datasource::setDBCharset</link>() returns nothing (RT_NOOP)</code></para>
             </entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Sets the charset parameter for the next open.</para></entry>
+	    <entry><para>Sets the charset (encoding) parameter for the next open.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="SQL::Datasource::getDBCharset">Datasource::getDBCharset</link>()</code></para>
+              <para><code><link linkend="SQL::Datasource::getDBCharset">Datasource::getDBCharset</link>() returns any</code></para>
             </entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Returns the DBI driver specific charset name for the current connection.</para></entry>
+	    <entry><para>Returns the DBI driver specific charset name for the current connection as a string or NOTHING if none is set.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="SQL::Datasource::getOSCharset">Datasource::getOSCharset</link>()</code></para>
+              <para><code><link linkend="SQL::Datasource::getOSCharset">Datasource::getOSCharset</link>() returns string</code></para>
             </entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Returns the Qore charset name for the current connection.</para></entry>
+	    <entry><para>Returns the Qore charset name for the current connection as a string or <code>&quot;(unknown)&quot;</code> if none is set.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="SQL::Datasource::setHostName">Datasource::setHostName</link>()</code></para>
+              <para><code><link linkend="SQL::Datasource::setHostName">Datasource::setHostName</link>(string $host) returns nothing</code></para>
+              <para><code><link linkend="SQL::Datasource::setHostName">Datasource::setHostName</link>() returns nothing (RT_NOOP)</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Sets the hostname parameter for the next open.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="SQL::Datasource::getHostName">Datasource::getHostName</link>()</code></para>
+              <para><code><link linkend="SQL::Datasource::getHostName">Datasource::getHostName</link>() returns any</code></para>
             </entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Returns the hostname parameter.</para></entry>
+	    <entry><para>Returns the hostname parameter as a string or NOTHING if none is set.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="SQL::Datasource::setPort">Datasource::setPort</link>()</code></para>
+              <para><code><link linkend="SQL::Datasource::setPort">Datasource::setPort</link>(softint $port = 0) returns nothing</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Sets the port parameter for the next open.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="SQL::Datasource::getPort">Datasource::getPort</link>()</code></para>
+              <para><code><link linkend="SQL::Datasource::getPort">Datasource::getPort</link>() returns any</code></para>
             </entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Returns the port parameter.</para></entry>
+	    <entry><para>Returns the port parameter as an int or NOTHING if none is set.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="SQL::Datasource::getDriverName">Datasource::getDriverName</link>()</code></para>
+              <para><code><link linkend="SQL::Datasource::getDriverName">Datasource::getDriverName</link>() returns string</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns the name of the driver used for the object.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="SQL::Datasource::setTransactionLockTimeout">Datasource::setTransactionLockTimeout</link>()</code></para>
+              <para><code><link linkend="SQL::Datasource::setTransactionLockTimeout">Datasource::setTransactionLockTimeout</link>(softint $timeout_ms = 0) returns nothing</code></para>
+              <para><code><link linkend="SQL::Datasource::setTransactionLockTimeout">Datasource::setTransactionLockTimeout</link>(date $timeout) returns nothing</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Sets the <link linkend="datasource_transaction_lock">transaction lock</link> timeout value in milliseconds.  Set to 0 for no timeout.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="SQL::Datasource::getTransactionLockTimeout">Datasource::getTransactionLockTimeout</link>()</code></para>
+              <para><code><link linkend="SQL::Datasource::getTransactionLockTimeout">Datasource::getTransactionLockTimeout</link>() returns int</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Retrieves the <link linkend="datasource_transaction_lock">transaction lock</link> timeout value as an integer in milliseconds.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="SQL::Datasource::getServerVersion">Datasource::getServerVersion</link>()</code></para>
+              <para><code><link linkend="SQL::Datasource::getServerVersion">Datasource::getServerVersion</link>() returns any</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Returns the driver-specific server version data for the current connection.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="SQL::Datasource::getClientVersion">Datasource::getClientVersion</link>()</code></para>
+              <para><code><link linkend="SQL::Datasource::getClientVersion">Datasource::getClientVersion</link>() returns any</code></para>
+            </entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Returns the driver-specific client library version data.  Not implemented by all drivers.</para></entry>
+	  </row>
+
+	  <row>
+	    <entry>
+              <para><code><link linkend="SQL::Datasource::inTransaction">Datasource::inTransaction</link>() returns bool</code></para>
             </entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Returns the driver-specific client library version data.  Not implemented by all drivers.</para></entry>
+	    <entry><para>Returns True if a transaction is in progress, False if not.</para></entry>
 	  </row>
 
 	</tbody>
@@ -28458,7 +28568,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>Hash</para></entry>
+	      <entry><para><code><link linkend="hash_type">hash</link></code></para></entry>
 	      <entry><para>Returns a hash (the keys are the column names) of lists (each hash key's value is a list giving the row data).</para></entry>
 	    </row>
 	  </tbody>
@@ -28544,7 +28654,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>Hash</para></entry>
+	      <entry><para><code><link linkend="hash_type">hash</link></code></para></entry>
 	      <entry><para>Returns a hash (the keys are the column names) of lists (each hash key's value is a list giving the row data).</para></entry>
 	    </row>
 	  </tbody>
@@ -30083,6 +30193,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
     <table>
       <title>DatasourcePool Method Overview</title>
       <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<colspec colnum="2" align="center"/>
 	<thead>
 	  <row>
 	    <entry><para>Method</para></entry>
@@ -30093,6 +30204,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	<tbody>
 	  <row>
 	    <entry>
+              <para><code><link linkend="DatasourcePool::constructor">DatasourcePool::constructor</link>(string $driver, string $user = "", string $pass = "", string $dbname = "", string $encoding = "", string $host = "", softint $min = DP_MIN, softint $max = DP_MAX, softint $port = 0)</code></para>
               <para><code><link linkend="DatasourcePool::constructor">DatasourcePool::constructor</link>()</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
@@ -30265,6 +30377,13 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns the driver-specific client library version data.  Not implemented by all drivers.</para></entry>
+	  </row>
+	  <row>
+	    <entry>
+              <para><code><link linkend="SQL::DatasourcePool::inTransaction">DatasourcePool::inTransaction</link>() returns bool</code></para>
+            </entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Returns True if a transaction is in progress (and therefore a <link linkend="Datasource_Class">Datasource</link> form the pool is dedicated to the calling thread), False if not.</para></entry>
 	  </row>
 
 	</tbody>
@@ -31006,7 +31125,7 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>Hash</para></entry>
+	      <entry><para><code><link linkend="hash_type">hash</link></code></para></entry>
 	      <entry><para>Returns a hash (the keys are the column names) of lists (each hash key's value is a list giving the row data).</para></entry>
 	    </row>
 	  </tbody>
@@ -31095,7 +31214,7 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>Hash</para></entry>
+	      <entry><para><code><link linkend="hash_type">hash</link></code></para></entry>
 	      <entry><para>Returns a hash (the keys are the column names) of lists (each hash key's value is a list giving the row data).</para></entry>
 	    </row>
 	  </tbody>
@@ -32123,6 +32242,7 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
     <table>
       <title>AutoGate Method Overview</title>
       <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<colspec colnum="2" align="center"/>
 	<thead>
 	  <row>
 	    <entry><para>Method</para></entry>
@@ -32343,6 +32463,7 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
     <table>
       <title>AutoLock Method Overview</title>
       <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<colspec colnum="2" align="center"/>
 	<thead>
 	  <row>
 	    <entry><para>Method</para></entry>
@@ -32563,6 +32684,7 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
     <table>
       <title>AutoReadLock Method Overview</title>
       <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<colspec colnum="2" align="center"/>
 	<thead>
 	  <row>
 	    <entry><para>Method</para></entry>
@@ -32783,6 +32905,7 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
     <table>
       <title>AutoWriteLock Method Overview</title>
       <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<colspec colnum="2" align="center"/>
 	<thead>
 	  <row>
 	    <entry><para>Method</para></entry>
@@ -32988,6 +33111,7 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
     <table>
       <title>Condition Method Overview</title>
       <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<colspec colnum="2" align="center"/>
 	<thead>
 	  <row>
 	    <entry><para>Method</para></entry>
@@ -33530,6 +33654,7 @@ $mutex.unlock();</programlisting>
     <table>
       <title>Counter Method Overview</title>
       <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	<colspec colnum="2" align="center"/>
 	<thead>
 	  <row>
 	    <entry><para>Method</para></entry>
@@ -34132,6 +34257,7 @@ $mutex.unlock();</programlisting>
     <table>
       <title>Queue Method Overview</title>
       <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<colspec colnum="2" align="center"/>
 	<thead>
 	  <row>
 	    <entry><para>Method</para></entry>
@@ -34759,6 +34885,7 @@ $mutex.unlock();</programlisting>
     <table>
       <title>RWLock Method Overview</title>
       <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<colspec colnum="2" align="center"/>
 
 	<thead>
 	  <row>
@@ -35699,6 +35826,7 @@ $mutex.unlock();</programlisting>
     <table>
       <title>Mutex Method Overview</title>
       <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<colspec colnum="2" align="center"/>
 	<thead>
 	  <row>
 	    <entry><para>Method</para></entry>
@@ -36172,6 +36300,7 @@ $mutex.unlock();</programlisting>
     <table>
       <title>Sequence Method Overview</title>
       <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<colspec colnum="2" align="center"/>
 	<thead>
 	  <row>
 	    <entry><para>Method</para></entry>
@@ -36521,6 +36650,7 @@ $mutex.unlock();</programlisting>
     <table>
       <title>Gate Method Overview</title>
       <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<colspec colnum="2" align="center"/>
 	<thead>
 	  <row>
 	    <entry><para>Method</para></entry>
@@ -37567,6 +37697,7 @@ $mutex.unlock();</programlisting>
     <table>
       <title>XmlDoc Method Overview</title>
       <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<colspec colnum="2" align="center"/>
 	<thead>
 	  <row>
 	    <entry><para>Method</para></entry>
@@ -37698,7 +37829,7 @@ $mutex.unlock();</programlisting>
 	    </row>
 	    <row>
 	      <entry><para><replaceable>hash</replaceable></para></entry>
-	      <entry><para>Hash</para></entry>
+	      <entry><para><code><link linkend="hash_type">hash</link></code></para></entry>
 	      <entry><para>The Qore hash will be used to generate the XML string to use to create the XmlDoc object; the Qore hash must have only one top-level key.  The XML will be generated according to the rules documented in <link linkend="XML_Integration">XML Integration</link>.</para></entry>
 	    </row>
 	  </tbody>
@@ -38436,6 +38567,7 @@ $mutex.unlock();</programlisting>
     <table>
       <title>XmlNode Class Method Overview</title>
       <tgroup cols="3" align="left" colsep="1" rowsep="1">
+	<colspec colnum="2" align="center"/>
         <thead>
           <row>
             <entry>
@@ -40405,6 +40537,7 @@ $mutex.unlock();</programlisting>
     <table>
       <title>XmlReader Class Method Overview</title>
       <tgroup cols="3" align="left" colsep="1" rowsep="1">
+	<colspec colnum="2" align="center"/>
         <thead>
           <row>
             <entry>
@@ -42301,7 +42434,7 @@ $mutex.unlock();</programlisting>
           <tbody>
             <row>
               <entry>
-                <para>Hash</para>
+                <para><code><link linkend="hash_type">hash</link></code></para>
               </entry>
               <entry>
                 <para>a hash corresponding to the XML string from the current node position, including all its children; maintains XML element order by appending a suffix to key names</para>
@@ -42409,7 +42542,7 @@ $mutex.unlock();</programlisting>
           <tbody>
             <row>
               <entry>
-                <para>Hash</para>
+                <para><code><link linkend="hash_type">hash</link></code></para>
               </entry>
               <entry>
                 <para>a hash corresponding to the XML string from the current node position, including all its children; does not guarantee to maintain XML element order in the hash as elements at the same level with the same name are collapsed to a Qore list</para>

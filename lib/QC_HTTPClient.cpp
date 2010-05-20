@@ -124,7 +124,7 @@ public:
    }
 };
 
-// send(data = "", method, path = "", headers = hash(), getbody = False, [info_reference])
+// send(data = "", method, path = "", headers = hash(), getbody = False, [info_reference]) returns hash
 static AbstractQoreNode *HC_send(QoreObject *self, QoreHTTPClient *client, const QoreListNode *args, ExceptionSink *xsink) {
    const void *ptr = 0;
    qore_size_t size = 0;
@@ -184,8 +184,8 @@ static AbstractQoreNode *HC_head(QoreObject *self, QoreHTTPClient *client, const
    return *xsink ? 0 : rv.release();
 }
 
-// post(string $path, data $data, hash $headers = hash()) returns string|binary|nothing
-// post(string $path, data $data, hash $headers = hash(), reference $info) returns string|binary|nothing
+// post(string $path, data $data, hash $headers = hash()) returns string|nothing
+// post(string $path, data $data, hash $headers = hash(), reference $info) returns string|nothing
 static AbstractQoreNode *HC_post(QoreObject *self, QoreHTTPClient *client, const QoreListNode *args, ExceptionSink *xsink) {
    const QoreStringNode *pstr = HARD_QORE_STRING(args, 0);
    const char *path = pstr->getBuffer();
@@ -354,8 +354,8 @@ QoreClass *initHTTPClientClass() {
 
    client->addMethodExtended("disconnect",             (q_method_t)HC_disconnect, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
 
-   // HTTPClient::send([data], string $method, string $path = "", hash headers = hash(), bool $getbody = False)
-   // HTTPClient::send([data], string $method, string $path = "", hash headers = hash(), bool $getbody = False, reference $info)
+   // HTTPClient::send([data], string $method, string $path = "", hash headers = hash(), bool $getbody = False) returns hash
+   // HTTPClient::send([data], string $method, string $path = "", hash headers = hash(), bool $getbody = False, reference $info) returns hash
    client->addMethodExtended("send",                   (q_method_t)HC_send, false, QC_NO_FLAGS, QDOM_DEFAULT, hashTypeInfo, 5, dataTypeInfo, new BinaryNode, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, null_string(), hashTypeInfo, empty_hash(), softBoolTypeInfo, &False);
    client->addMethodExtended("send",                   (q_method_t)HC_send, false, QC_NO_FLAGS, QDOM_DEFAULT, hashTypeInfo, 6, dataTypeInfo, new BinaryNode, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, null_string(), hashTypeInfo, empty_hash(), softBoolTypeInfo, &False, referenceTypeInfo, QORE_PARAM_NO_ARG);
 
@@ -365,13 +365,13 @@ QoreClass *initHTTPClientClass() {
    client->addMethodExtended("get",                    (q_method_t)HC_get, false, QC_NO_FLAGS, QDOM_DEFAULT, 0, 2, stringTypeInfo, QORE_PARAM_NO_ARG, hashTypeInfo, empty_hash());
    client->addMethodExtended("get",                    (q_method_t)HC_get, false, QC_NO_FLAGS, QDOM_DEFAULT, 0, 3, stringTypeInfo, QORE_PARAM_NO_ARG, hashTypeInfo, empty_hash(), referenceTypeInfo, QORE_PARAM_NO_ARG);
 
-   // HTTPClient::head(string $path, hash $headers = hash())
-   // HTTPClient::head(string $path, hash $headers = hash(), reference $info)
+   // HTTPClient::head(string $path, hash $headers = hash()) returns hash
+   // HTTPClient::head(string $path, hash $headers = hash(), reference $info) returns hash
    client->addMethodExtended("head",                   (q_method_t)HC_head, false, QC_NO_FLAGS, QDOM_DEFAULT, hashTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, hashTypeInfo, empty_hash());
    client->addMethodExtended("head",                   (q_method_t)HC_head, false, QC_NO_FLAGS, QDOM_DEFAULT, hashTypeInfo, 3, stringTypeInfo, QORE_PARAM_NO_ARG, hashTypeInfo, empty_hash(), referenceTypeInfo, QORE_PARAM_NO_ARG);
 
-   // post(string $path, data $data, hash $headers = hash()) returns string|binary|nothing
-   // post(string $path, data $data, hash $headers = hash(), reference $info) returns string|binary|nothing
+   // post(string $path, data $data, hash $headers = hash()) returns string|nothing
+   // post(string $path, data $data, hash $headers = hash(), reference $info) returns string|nothing
    client->addMethodExtended("post",                   (q_method_t)HC_post, false, QC_NO_FLAGS, QDOM_DEFAULT, 0, 3, stringTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, hashTypeInfo, empty_hash());
    client->addMethodExtended("post",                   (q_method_t)HC_post, false, QC_NO_FLAGS, QDOM_DEFAULT, 0, 4, stringTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, hashTypeInfo, empty_hash(), referenceTypeInfo, QORE_PARAM_NO_ARG);
 
@@ -395,7 +395,7 @@ QoreClass *initHTTPClientClass() {
    client->addMethodExtended("setProxyURL",            (q_method_t)HC_setProxyURL_str, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    // HTTPClient::getProxyURL() returns string
-   client->addMethodExtended("getProxyURL",            (q_method_t)HC_getProxyURL, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringTypeInfo);
+   client->addMethodExtended("getProxyURL",            (q_method_t)HC_getProxyURL, false, QC_RET_VALUE_ONLY);
 
    // HTTPClient::clearProxyURL() returns nothing
    client->addMethodExtended("clearProxyURL",          (q_method_t)HC_clearProxyURL, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);

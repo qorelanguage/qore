@@ -135,23 +135,22 @@ static void DS_copy(QoreObject *self, QoreObject *old, ManagedDatasource *ods, E
 }
 
 static AbstractQoreNode *DS_open(QoreObject *self, ManagedDatasource *ds, const QoreListNode *params, ExceptionSink *xsink) {
-   return new QoreBigIntNode(ds->open(xsink));
+   ds->open(xsink);
+   return 0;
 }
 
 static AbstractQoreNode *DS_close(QoreObject *self, ManagedDatasource *ds, const QoreListNode *params, ExceptionSink *xsink) {
-   return new QoreBigIntNode(ds->close(xsink));
+   ds->close(xsink);
+   return 0;
 }
 
 static AbstractQoreNode *DS_commit(QoreObject *self, ManagedDatasource *ds, const QoreListNode *params, ExceptionSink *xsink) {
-   return new QoreBigIntNode(ds->commit(xsink));
+   ds->commit(xsink);
+   return 0;
 }
 
 static AbstractQoreNode *DS_rollback(QoreObject *self, ManagedDatasource *ds, const QoreListNode *params, ExceptionSink *xsink) {
-   return new QoreBigIntNode(ds->rollback(xsink));
-}
-
-static AbstractQoreNode *DS_setAutoCommit(QoreObject *self, ManagedDatasource *ds, const QoreListNode *params, ExceptionSink *xsink) {
-   ds->setAutoCommit(true);
+   ds->rollback(xsink);
    return 0;
 }
 
@@ -337,68 +336,69 @@ QoreClass *initDatasourceClass() {
 
    QC_DATASOURCE->setDestructor((q_destructor_t)DS_destructor);
    QC_DATASOURCE->setCopy((q_copy_t)DS_copy);
-   QC_DATASOURCE->addMethodExtended("open",              (q_method_t)DS_open, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
-   QC_DATASOURCE->addMethodExtended("close",             (q_method_t)DS_close, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
-   QC_DATASOURCE->addMethodExtended("commit",            (q_method_t)DS_commit, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
-   QC_DATASOURCE->addMethodExtended("rollback",          (q_method_t)DS_rollback, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
-   QC_DATASOURCE->addMethodExtended("setAutoCommit",     (q_method_t)DS_setAutoCommit, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
-   QC_DATASOURCE->addMethodExtended("setAutoCommit",     (q_method_t)DS_setAutoCommit_bool, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, softBoolTypeInfo, QORE_PARAM_NO_ARG);
+   QC_DATASOURCE->addMethodExtended("open",              (q_method_t)DS_open, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
+   QC_DATASOURCE->addMethodExtended("close",             (q_method_t)DS_close, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
+   QC_DATASOURCE->addMethodExtended("commit",            (q_method_t)DS_commit, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
+   QC_DATASOURCE->addMethodExtended("rollback",          (q_method_t)DS_rollback, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
+
+   QC_DATASOURCE->addMethodExtended("setAutoCommit",     (q_method_t)DS_setAutoCommit_bool, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, softBoolTypeInfo, &True);
+
    QC_DATASOURCE->addMethodExtended("getAutoCommit",     (q_method_t)DS_getAutoCommit, false, QC_NO_FLAGS, QDOM_DEFAULT, boolTypeInfo);
 
-   QC_DATASOURCE->addMethodExtended("exec",              (q_method_t)class_noop, false, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   QC_DATASOURCE->addMethodExtended("exec",              (q_method_t)class_noop, false, QC_RUNTIME_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    QC_DATASOURCE->addMethodExtended("exec",              (q_method_t)DS_exec, false, QC_USES_EXTRA_ARGS, QDOM_DEFAULT, anyTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   QC_DATASOURCE->addMethodExtended("vexec",             (q_method_t)class_noop, false, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   QC_DATASOURCE->addMethodExtended("vexec",             (q_method_t)class_noop, false, QC_RUNTIME_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    QC_DATASOURCE->addMethodExtended("vexec",             (q_method_t)DS_vexec, false, QC_NO_FLAGS, QDOM_DEFAULT, anyTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
    QC_DATASOURCE->addMethodExtended("vexec",             (q_method_t)DS_vexec, false, QC_NO_FLAGS, QDOM_DEFAULT, anyTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, listTypeInfo, QORE_PARAM_NO_ARG);
 
    QC_DATASOURCE->addMethodExtended("execRaw",           (q_method_t)DS_execRaw, false, QC_NO_FLAGS, QDOM_DEFAULT, anyTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    // should normally return a hash, but unfortunately the internal API does not enforce this
-   QC_DATASOURCE->addMethodExtended("select",            (q_method_t)class_noop, false, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   QC_DATASOURCE->addMethodExtended("select",            (q_method_t)class_noop, false, QC_RUNTIME_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    QC_DATASOURCE->addMethodExtended("select",            (q_method_t)DS_select, false, QC_USES_EXTRA_ARGS, QDOM_DEFAULT, anyTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    // should normally return a hash, but unfortunately the internal API does not enforce this
-   QC_DATASOURCE->addMethodExtended("selectRow",         (q_method_t)class_noop, false, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   QC_DATASOURCE->addMethodExtended("selectRow",         (q_method_t)class_noop, false, QC_RUNTIME_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    QC_DATASOURCE->addMethodExtended("selectRow",         (q_method_t)DS_selectRow, false, QC_USES_EXTRA_ARGS, QDOM_DEFAULT, anyTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    // should normally return a list, but unfortunately the internal API does not enforce this
-   QC_DATASOURCE->addMethodExtended("selectRows",        (q_method_t)class_noop, false, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   QC_DATASOURCE->addMethodExtended("selectRows",        (q_method_t)class_noop, false, QC_RUNTIME_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    QC_DATASOURCE->addMethodExtended("selectRows",        (q_method_t)DS_selectRows, false, QC_USES_EXTRA_ARGS, QDOM_DEFAULT, anyTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
    
    // should normally return a hash, but unfortunately the internal API does not enforce this
-   QC_DATASOURCE->addMethodExtended("vselect",           (q_method_t)class_noop, false, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   QC_DATASOURCE->addMethodExtended("vselect",           (q_method_t)class_noop, false, QC_RUNTIME_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    QC_DATASOURCE->addMethodExtended("vselect",           (q_method_t)DS_vselect, false, QC_NO_FLAGS, QDOM_DEFAULT, anyTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
    QC_DATASOURCE->addMethodExtended("vselect",           (q_method_t)DS_vselect, false, QC_NO_FLAGS, QDOM_DEFAULT, anyTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, listTypeInfo, QORE_PARAM_NO_ARG);
 
    // should normally return a hash, but unfortunately the internal API does not enforce this
-   QC_DATASOURCE->addMethodExtended("vselectRow",        (q_method_t)class_noop, false, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   QC_DATASOURCE->addMethodExtended("vselectRow",        (q_method_t)class_noop, false, QC_RUNTIME_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    QC_DATASOURCE->addMethodExtended("vselectRow",        (q_method_t)DS_vselectRow, false, QC_NO_FLAGS, QDOM_DEFAULT, anyTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
    QC_DATASOURCE->addMethodExtended("vselectRow",        (q_method_t)DS_vselectRow, false, QC_NO_FLAGS, QDOM_DEFAULT, anyTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, listTypeInfo, QORE_PARAM_NO_ARG);
 
    // should normally return a list, but unfortunately the internal API does not enforce this
-   QC_DATASOURCE->addMethodExtended("vselectRows",       (q_method_t)class_noop, false, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   QC_DATASOURCE->addMethodExtended("vselectRows",       (q_method_t)class_noop, false, QC_RUNTIME_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    QC_DATASOURCE->addMethodExtended("vselectRows",       (q_method_t)DS_vselectRows, false, QC_NO_FLAGS, QDOM_DEFAULT, anyTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
    QC_DATASOURCE->addMethodExtended("vselectRows",       (q_method_t)DS_vselectRows, false, QC_NO_FLAGS, QDOM_DEFAULT, anyTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, listTypeInfo, QORE_PARAM_NO_ARG);
 
    QC_DATASOURCE->addMethodExtended("beginTransaction",  (q_method_t)DS_beginTransaction, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
-   QC_DATASOURCE->addMethodExtended("reset",             (q_method_t)DS_reset, false, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   QC_DATASOURCE->addMethodExtended("reset",             (q_method_t)DS_reset, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
    QC_DATASOURCE->addMethodExtended("getCapabilities",   (q_method_t)DS_getCapabilities, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
    QC_DATASOURCE->addMethodExtended("getCapabilityList", (q_method_t)DS_getCapabilityList, false, QC_NO_FLAGS, QDOM_DEFAULT, listTypeInfo);
 
-   QC_DATASOURCE->addMethodExtended("setUserName",       (q_method_t)class_noop, false, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   QC_DATASOURCE->addMethodExtended("setUserName",       (q_method_t)class_noop, false, QC_RUNTIME_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    QC_DATASOURCE->addMethodExtended("setUserName",       (q_method_t)DS_setUserName, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
    
-   QC_DATASOURCE->addMethodExtended("setPassword",       (q_method_t)class_noop, false, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   QC_DATASOURCE->addMethodExtended("setPassword",       (q_method_t)class_noop, false, QC_RUNTIME_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    QC_DATASOURCE->addMethodExtended("setPassword",       (q_method_t)DS_setPassword, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
    
-   QC_DATASOURCE->addMethodExtended("setDBName",         (q_method_t)class_noop, false, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   QC_DATASOURCE->addMethodExtended("setDBName",         (q_method_t)class_noop, false, QC_RUNTIME_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    QC_DATASOURCE->addMethodExtended("setDBName",         (q_method_t)DS_setDBName, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
    
-   QC_DATASOURCE->addMethodExtended("setDBCharset",      (q_method_t)class_noop, false, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   QC_DATASOURCE->addMethodExtended("setDBCharset",      (q_method_t)class_noop, false, QC_RUNTIME_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    QC_DATASOURCE->addMethodExtended("setDBCharset",      (q_method_t)DS_setDBCharset, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
    
-   QC_DATASOURCE->addMethodExtended("setHostName",       (q_method_t)class_noop, false, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   QC_DATASOURCE->addMethodExtended("setHostName",       (q_method_t)class_noop, false, QC_RUNTIME_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    QC_DATASOURCE->addMethodExtended("setHostName",       (q_method_t)DS_setHostName, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
    
    QC_DATASOURCE->addMethodExtended("setPort",           (q_method_t)DS_setPort, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, softBigIntTypeInfo, zero());

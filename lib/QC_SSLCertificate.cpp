@@ -79,6 +79,7 @@ static QoreStringNode *SSLCERT_getSignatureType(QoreObject *self, QoreSSLCertifi
    return s->getSignatureType();
 }
 
+// SSLCertificate::getPublicKey() returns binary|nothing
 static BinaryNode *SSLCERT_getPublicKey(QoreObject *self, QoreSSLCertificate *s, const QoreListNode *args, ExceptionSink *xsink) {
    return s->getPublicKey();
 }
@@ -131,13 +132,22 @@ QoreClass *initSSLCertificateClass() {
    QC_SSLCERTIFICATE->addMethodExtended("getSignatureType",      (q_method_t)SSLCERT_getSignatureType, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringTypeInfo);
    QC_SSLCERTIFICATE->addMethodExtended("getSignature",          (q_method_t)SSLCERT_getSignature, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, binaryTypeInfo);
    QC_SSLCERTIFICATE->addMethodExtended("getPublicKeyAlgorithm", (q_method_t)SSLCERT_getPublicKeyAlgorithm, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringTypeInfo);
-   QC_SSLCERTIFICATE->addMethodExtended("getPublicKey",          (q_method_t)SSLCERT_getPublicKey, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, binaryTypeInfo);
+
+   // SSLCertificate::getPublicKey() returns binary|nothing
+   QC_SSLCERTIFICATE->addMethodExtended("getPublicKey",          (q_method_t)SSLCERT_getPublicKey, false, QC_RET_VALUE_ONLY);
+
    QC_SSLCERTIFICATE->addMethodExtended("getSubjectHash",        (q_method_t)SSLCERT_getSubjectHash, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, hashTypeInfo);
+
    QC_SSLCERTIFICATE->addMethodExtended("getIssuerHash",         (q_method_t)SSLCERT_getIssuerHash, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, hashTypeInfo);
+
    QC_SSLCERTIFICATE->addMethodExtended("getSerialNumber",       (q_method_t)SSLCERT_getSerialNumber, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo);
+
    QC_SSLCERTIFICATE->addMethodExtended("getVersion",            (q_method_t)SSLCERT_getVersion, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo);
+
    QC_SSLCERTIFICATE->addMethodExtended("getPurposeHash",        (q_method_t)SSLCERT_getPurposeHash, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, hashTypeInfo);
+
    QC_SSLCERTIFICATE->addMethodExtended("getNotBeforeDate",      (q_method_t)SSLCERT_getNotBeforeDate, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, dateTypeInfo);
+
    QC_SSLCERTIFICATE->addMethodExtended("getNotAfterDate",       (q_method_t)SSLCERT_getNotAfterDate, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, dateTypeInfo);
 
    return QC_SSLCERTIFICATE;

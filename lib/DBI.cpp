@@ -644,9 +644,9 @@ QoreNamespace *getSQLNamespace() {
    SQLNS->addConstant("DSPGSQL",    new QoreStringNode("pgsql"));
    SQLNS->addConstant("DSMSSQL",    new QoreStringNode("freetds"));
    SQLNS->addConstant("DSFreeTDS",  new QoreStringNode("freetds"));
-   SQLNS->addConstant("DSSQLite3",   new QoreStringNode("sqlite3"));
-   // the following have no drivers yet
+   SQLNS->addConstant("DSSQLite3",  new QoreStringNode("sqlite3"));
    SQLNS->addConstant("DSDB2",      new QoreStringNode("db2"));
+   // the following have no drivers yet
    SQLNS->addConstant("DSInformix", new QoreStringNode("informix"));
    SQLNS->addConstant("DSTimesTen", new QoreStringNode("timesten"));
 

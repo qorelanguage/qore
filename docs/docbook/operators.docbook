@@ -2968,8 +2968,7 @@ printf("0x%x\n", $binary[2]);
     <varlistentry>
       <term>Example</term>
       <listitem>
-	<programlisting><command>switch</command> ($x &lt;=&gt; $y)
-{
+	<programlisting><command>switch</command> ($x &lt;=&gt; $y) {
     <command>case</command> -1: 
         print("$x is less than $y\n");
         <command>break</command>;

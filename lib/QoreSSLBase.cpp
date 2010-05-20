@@ -26,11 +26,9 @@
 #define OBJ_BUF_LEN 80
 
 // static method
-QoreHashNode *QoreSSLBase::X509_NAME_to_hash(X509_NAME *n)
-{
+QoreHashNode *QoreSSLBase::X509_NAME_to_hash(X509_NAME *n) {
    QoreHashNode *h = new QoreHashNode();
-   for (int i = 0; i < X509_NAME_entry_count(n); i++)
-   {
+   for (int i = 0; i < X509_NAME_entry_count(n); i++) {
       X509_NAME_ENTRY *e = X509_NAME_get_entry(n, i);
       
       ASN1_OBJECT *ko = X509_NAME_ENTRY_get_object(e);
@@ -45,8 +43,7 @@ QoreHashNode *QoreSSLBase::X509_NAME_to_hash(X509_NAME *n)
 }
 
 // static method
-class DateTimeNode *QoreSSLBase::ASN1_TIME_to_DateTime(ASN1_STRING *t)
-{
+DateTimeNode *QoreSSLBase::ASN1_TIME_to_DateTime(ASN1_STRING *t) {
    // FIXME: check ASN1_TIME format if this algorithm is always correct
    QoreString str("20");
    str.concat((char *)ASN1_STRING_data(t));
@@ -55,8 +52,7 @@ class DateTimeNode *QoreSSLBase::ASN1_TIME_to_DateTime(ASN1_STRING *t)
 }
 
 // static method
-QoreStringNode *QoreSSLBase::ASN1_OBJECT_to_QoreStringNode(ASN1_OBJECT *o)
-{
+QoreStringNode *QoreSSLBase::ASN1_OBJECT_to_QoreStringNode(ASN1_OBJECT *o) {
    BIO *bp = BIO_new(BIO_s_mem());
    i2a_ASN1_OBJECT(bp, o);
    char *buf;

@@ -190,7 +190,7 @@ QoreClass *initXmlRpcClientClass(QoreClass *http_client) {
    client->addMethodExtended("callArgs",         (q_method_t)XRC_callArgs, false, QC_NO_FLAGS, QDOM_DEFAULT, 0, 2, stringTypeInfo, QORE_PARAM_NO_ARG, anyTypeInfo, QORE_PARAM_NO_ARG);
    client->addMethodExtended("call",             (q_method_t)XRC_call, false, QC_USES_EXTRA_ARGS, QDOM_DEFAULT, 0, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
    client->addMethodExtended("callArgsWithInfo", (q_method_t)XRC_callArgsWithInfo, false, QC_NO_FLAGS, QDOM_DEFAULT, 0, 3, referenceTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG, anyTypeInfo, QORE_PARAM_NO_ARG);
-   client->addMethodExtended("callWithInfo",     (q_method_t)XRC_callWithInfo, false, QC_USES_EXTRA_ARGS, QDOM_DEFAULT, 0, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   client->addMethodExtended("callWithInfo",     (q_method_t)XRC_callWithInfo, false, QC_USES_EXTRA_ARGS, QDOM_DEFAULT, 0, 2, referenceTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    // XmlRpcClient::setEventQueue() returns nothing
    client->addMethodExtended("setEventQueue",    (q_method_t)XRC_setEventQueue_nothing, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);

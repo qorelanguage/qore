@@ -197,7 +197,7 @@ static AbstractQoreNode *SOCKET_send_str(QoreObject *self, mySocket *s, const Qo
    return checkOpenResult(s->send(HARD_QORE_STRING(params, 0), xsink), "send", xsink);
 }
 
-// Socket::send(string $str) returns int
+// Socket::sendBinary(string $str) returns int
 static AbstractQoreNode *SOCKET_sendBinary_str(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
    const QoreStringNode *str = HARD_QORE_STRING(params, 0);
    // send without any conversions
@@ -372,7 +372,7 @@ static AbstractQoreNode *SOCKET_recvu4LSB(QoreObject *self, mySocket *s, const Q
    return doReadResult(rc, (int64)b, "recvu4LSB", xsink);
 }
 
-// Socket::sendHTTPMessage(string $method, string $path, string $http_version, hash $headers, data $data = binary())
+// Socket::sendHTTPMessage(string $method, string $path, string $http_version, hash $headers, data $data = binary()) returns int
 static AbstractQoreNode *SOCKET_sendHTTPMessage(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
    const char *method = HARD_QORE_STRING(params, 0)->getBuffer();
    const char *path = HARD_QORE_STRING(params, 1)->getBuffer();
@@ -690,9 +690,9 @@ QoreClass *initSocketClass(QoreClass *SSLCert, QoreClass *SSLPrivKey) {
    // Socket::connect(string $sock, date $timeout_ms)
    QC_SOCKET->addMethodExtended("connect",                   (q_method_t)SOCKET_connect_str_timeout, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, dateTypeInfo, QORE_PARAM_NO_ARG);
 
-   // Socket::connect(string $host, int $port, int $timeout_ms = -1) returns nothing
+   // Socket::connectINET(string $host, int $port, int $timeout_ms = -1) returns nothing
    QC_SOCKET->addMethodExtended("connectINET",               (q_method_t)SOCKET_connectINET_str_int_timeout, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 3, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, new QoreBigIntNode(-1));
-   // Socket::connect(string $host, int $port, date $timeout_ms) returns nothing
+   // Socket::connectINET(string $host, int $port, date $timeout_ms) returns nothing
    QC_SOCKET->addMethodExtended("connectINET",               (q_method_t)SOCKET_connectINET_str_int_timeout, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 3, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, QORE_PARAM_NO_ARG, dateTypeInfo, QORE_PARAM_NO_ARG);
 
    // Socket::connectUNIX(string $path) returns nothing
@@ -742,14 +742,14 @@ QoreClass *initSocketClass(QoreClass *SSLCert, QoreClass *SSLPrivKey) {
    QC_SOCKET->addMethodExtended("sendi4LSB",                 (q_method_t)SOCKET_sendi4LSB, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, softBigIntTypeInfo, zero());
    QC_SOCKET->addMethodExtended("sendi8LSB",                 (q_method_t)SOCKET_sendi8LSB, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, softBigIntTypeInfo, zero());
 
-   // Socket::recv(int $size = 0, softint $timeout = -1) returns string
+   // Socket::recv(softint $size = 0, softint $timeout = -1) returns string
    QC_SOCKET->addMethodExtended("recv",                      (q_method_t)SOCKET_recv, false, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 2, softBigIntTypeInfo, zero(), softBigIntTypeInfo, new QoreBigIntNode(-1));
-   // Socket::recv(int $size = 0, date $timeout) returns string
+   // Socket::recv(softint $size = 0, date $timeout) returns string
    QC_SOCKET->addMethodExtended("recv",                      (q_method_t)SOCKET_recv, false, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 2, softBigIntTypeInfo, zero(), dateTypeInfo, QORE_PARAM_NO_ARG);
 
-   // Socket::recvBinary(int $size = 0, softint $timeout = -1) returns binary
+   // Socket::recvBinary(softint $size = 0, softint $timeout = -1) returns binary
    QC_SOCKET->addMethodExtended("recvBinary",                (q_method_t)SOCKET_recvBinary, false, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo, 2, softBigIntTypeInfo, zero(), softBigIntTypeInfo, new QoreBigIntNode(-1));
-   // Socket::recvBinary(int $size = 0, date $timeout) returns binary
+   // Socket::recvBinary(softint $size = 0, date $timeout) returns binary
    QC_SOCKET->addMethodExtended("recvBinary",                (q_method_t)SOCKET_recvBinary, false, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 2, softBigIntTypeInfo, zero(), dateTypeInfo, QORE_PARAM_NO_ARG);
 
    // Socket::recvi1(softint $timeout = -1) returns int
@@ -906,7 +906,7 @@ QoreClass *initSocketClass(QoreClass *SSLCert, QoreClass *SSLPrivKey) {
    // Socket::setEventQueue(Queue $queue) returns nothing
    QC_SOCKET->addMethodExtended("setEventQueue",             (q_method_t)SOCKET_setEventQueue_queue, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, QC_QUEUE->getTypeInfo(), QORE_PARAM_NO_ARG);
 
-   QC_SOCKET->addMethodExtended("setNoDelay",                (q_method_t)SOCKET_setNoDelay, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, boolTypeInfo, &False);
+   QC_SOCKET->addMethodExtended("setNoDelay",                (q_method_t)SOCKET_setNoDelay, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, boolTypeInfo, &True);
 
    QC_SOCKET->addMethodExtended("getNoDelay",                (q_method_t)SOCKET_getNoDelay, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, boolTypeInfo);
 

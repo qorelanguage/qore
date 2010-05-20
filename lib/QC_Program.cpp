@@ -99,8 +99,7 @@ static AbstractQoreNode *PROGRAM_parseCommit(QoreObject *self, QoreProgram *p, c
       return 0;
 
    QoreException *e = wsink.catchException();
-   AbstractQoreNode *rv = e->makeExceptionObjectAndDelete(xsink);
-   return rv;
+   return e->makeExceptionObjectAndDelete(xsink);
 }
 
 static AbstractQoreNode *PROGRAM_parseRollback(QoreObject *self, QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink) {
@@ -307,7 +306,7 @@ QoreClass *initProgramClass() {
    // Program::parseCommit() returns nothing
    QC_PROGRAM->addMethodExtended("parseCommit",          (q_method_t)PROGRAM_parseCommit, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
    // Program::parseCommit(int $arning_mask) returns nothing|hash
-   QC_PROGRAM->addMethodExtended("parseCommit",          (q_method_t)PROGRAM_parseCommit, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
+   QC_PROGRAM->addMethodExtended("parseCommit",          (q_method_t)PROGRAM_parseCommit, false, QC_NO_FLAGS, QDOM_DEFAULT, 0, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
 
    // Programm::parseRollback() returns nothing
    QC_PROGRAM->addMethodExtended("parseRollback",        (q_method_t)PROGRAM_parseRollback, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
@@ -320,7 +319,7 @@ QoreClass *initProgramClass() {
    QC_PROGRAM->addMethodExtended("callFunctionArgs",     (q_method_t)PROGRAM_callFunctionArgs_str_something, false, QC_NO_FLAGS, QDOM_DEFAULT, 0, 2, stringTypeInfo, QORE_PARAM_NO_ARG, somethingTypeInfo, QORE_PARAM_NO_ARG);
 
    // Program::existsFunction() returns nothing
-   QC_PROGRAM->addMethodExtended("existsFunction",       (q_method_t)class_noop, false, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   QC_PROGRAM->addMethodExtended("existsFunction",       (q_method_t)class_noop, false, QC_RUNTIME_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    // Program::existsFunction(string $str) returns bool
    QC_PROGRAM->addMethodExtended("existsFunction",       (q_method_t)PROGRAM_existsFunction, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, boolTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 

@@ -141,8 +141,10 @@ QoreStringNode *QoreSSLCertificate::getSignatureType() const {
 BinaryNode *QoreSSLCertificate::getSignature() const {
    int len = priv->cert->signature->length;
    char *buf = (char *)malloc(len);
+   // FIXME: should throw an out of memory exception here
    if (!buf)
-      return 0;
+      return new BinaryNode;
+
    memcpy(buf, priv->cert->signature->data, len);
    return new BinaryNode(buf, len);
 }
