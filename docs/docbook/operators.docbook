@@ -22,13 +22,13 @@
     <entry><para>``</para></entry>
     <entry><para>1</para></entry>
     <entry><para><link linkend='Backquote_Operator'>backquote/backtick operator</link></para></entry>
-    <entry><code>`ls -l`</code></entry>
+    <entry><para><code>`ls -l`</code></para></entry>
   </row>
   <row>
     <entry><para>{}</para></entry>
     <entry><para>1</para></entry>
     <entry><para><link linkend='Hash_Element_Expression_Dereference_Operator'>hash element or object member expression dereference operator</link></para></entry>
-    <entry><code>$hash{"na" + "me"}</code></entry>
+    <entry><para><code>$hash{"na" + "me"}</code></para></entry>
   </row>
   <row>
     <entry><para>.</para></entry>
@@ -43,125 +43,125 @@
     <entry><para>[]</para></entry>
     <entry><para>1</para></entry>
     <entry><para><link linkend='List_Dereference_Operator'>list element, string, and binary dereference operator</link></para></entry>
-    <entry><code>$list[1]</code></entry>
+    <entry><para><code>$list[1]</code></para></entry>
   </row>
   <row>
     <entry><para>++</para></entry>
     <entry><para>2</para></entry>
     <entry><para><link linkend='Pre_Increment_Operator'>pre-increment operator</link>, <link linkend='Post_Increment_Operator'>post-increment operator</link></para></entry>
-    <entry><code>++$a, $a++</code></entry>
+    <entry><para><code>++$a, $a++</code></para></entry>
   </row>
   <row>
     <entry><para>--</para></entry>
     <entry><para>2</para></entry>
     <entry><para><link linkend='Pre_Decrement_Operator'>pre-decrement operator</link>, <link linkend='Post_Decrement_Operator'>post-decrement operator</link></para></entry>
-    <entry><code>--$a, $a--</code></entry>
+    <entry><para><code>--$a, $a--</code></para></entry>
   </row>
   <row>
     <entry><para><command>new</command></para></entry>
     <entry><para>3</para></entry>
     <entry><para><link linkend='New_Object_Operator'>class instantiation/new object operator</link></para></entry>
-    <entry><code><command>new</command> Socket()</code></entry>
+    <entry><para><code><command>new</command> Socket()</code></para></entry>
   </row>
   <row>
     <entry><para><command>background</command></para></entry>
     <entry><para>3</para></entry>
     <entry><para><link linkend='Background_Operator'>background/thread creation operator</link></para></entry>
-    <entry><code><command>background</command> mainThread()</code></entry>
+    <entry><para><code><command>background</command> mainThread()</code></para></entry>
   </row>
 
   <row>
     <entry><para><command>delete</command></para></entry>
     <entry><para>3</para></entry>
     <entry><para><link linkend='Delete_Operator'>delete operator</link></para></entry>
-    <entry><code><command>delete</command> $var</code></entry>
+    <entry><para><code><command>delete</command> $var</code></para></entry>
   </row>
 
   <row>
     <entry><para><command>remove</command></para></entry>
     <entry><para>3</para></entry>
     <entry><para><link linkend='Remove_Operator'>remove operator</link></para></entry>
-    <entry><code><command>remove</command> $var</code></entry>
+    <entry><para><code><command>remove</command> $var</code></para></entry>
   </row>
 
   <row>
     <entry><para><command>cast&lt;&gt;()</command></para></entry>
     <entry><para>3</para></entry>
     <entry><para><link linkend='Cast_Operator'>cast&lt;&gt;() operator</link></para></entry>
-    <entry><code><command>cast</command>&lt;SubClass&gt;($var)</code></entry>
+    <entry><para><code><command>cast</command>&lt;SubClass&gt;($var)</code></para></entry>
   </row>
 
   <row>
     <entry><para>!</para></entry>
     <entry><para>4</para></entry>
     <entry><para><link linkend='Logical_Not_Operator'>logical negation operator</link></para></entry>
-    <entry><code><command>if</command> (!($a &gt; 10)) ...</code></entry>
+    <entry><para><code><command>if</command> (!($a &gt; 10)) ...</code></para></entry>
   </row>
   <row>
     <entry><para>~</para></entry>
     <entry><para>5</para></entry>
     <entry><para><link linkend='Binary_Not_Operator'>binary not/bit inversion operator</link></para></entry>
-    <entry><code>$var = ~$var</code></entry>
+    <entry><para><code>$var = ~$var</code></para></entry>
   </row>
   <row>
     <entry><para>- (unary minus)</para></entry>
     <entry><para>6</para></entry>
     <entry><para><link linkend='Unary_Minus_Operator'>unary minus operator</link></para></entry>
-    <entry><code>$var = -$var</code></entry>
+    <entry><para><code>$var = -$var</code></para></entry>
   </row>
   <row>
     <entry><para><command>shift</command></para></entry>
     <entry><para>7</para></entry>
     <entry><para><link linkend='Shift_Operator'>shift list element operator</link></para></entry>
-    <entry><code><command>shift</command> $list</code></entry>
+    <entry><para><code><command>shift</command> $list</code></para></entry>
   </row>
   <row>
     <entry><para><command>pop</command></para></entry>
     <entry><para>7</para></entry>
     <entry><para><link linkend='Pop_Operator'>pop list element operator</link></para></entry>
-    <entry><code><command>pop</command> $list</code></entry>
+    <entry><para><code><command>pop</command> $list</code></para></entry>
   </row>
   <row>
     <entry><para><command>chomp</command></para></entry>
     <entry><para>7</para></entry>
     <entry><para><link linkend='Chomp_Operator'>chomp end-of-line character operator</link></para></entry>
-    <entry><code><command>chomp</command> $string</code></entry>
+    <entry><para><code><command>chomp</command> $string</code></para></entry>
   </row>
   <row>
     <entry><para><command>trim</command></para></entry>
     <entry><para>7</para></entry>
     <entry><para><link linkend='Trim_Operator'>trim characters operator</link></para></entry>
-    <entry><code><command>trim</command> $string</code></entry>
+    <entry><para><code><command>trim</command> $string</code></para></entry>
   </row>
   <row>
     <entry><para><command>elements</command></para></entry>
     <entry><para>8</para></entry>
     <entry><para><link linkend='Elements_Operator'>number of elements operator (list, hash, string, binary)</link></para></entry>
-    <entry><code><command>elements</command> $list</code></entry>
+    <entry><para><code><command>elements</command> $list</code></para></entry>
   </row>
   <row>
     <entry><para><command>keys</command></para></entry>
     <entry><para>8</para></entry>
     <entry><para><link linkend='Keys_Operator'>hash key list operator</link></para></entry>
-    <entry><code><command>keys</command> $hash</code></entry>
+    <entry><para><code><command>keys</command> $hash</code></para></entry>
   </row>
   <row>
     <entry><para>*</para></entry>
     <entry><para>9</para></entry>
     <entry><para><link linkend='Multiply_Operator'>arithmetic multiplication operator</link></para></entry>
-    <entry><code>$var = $a * 10</code></entry>
+    <entry><para><code>$var = $a * 10</code></para></entry>
   </row>
   <row>
     <entry><para>/</para></entry>
     <entry><para>9</para></entry>
     <entry><para><link linkend='Divide_Operator'>arithmetic division operator</link></para></entry>
-    <entry><code>$var = $a / 10</code></entry>
+    <entry><para><code>$var = $a / 10</code></para></entry>
   </row>
   <row>
     <entry><para>%</para></entry>
     <entry><para>10</para></entry>
     <entry><para><link linkend='Modula_Operator'>arithmetic modula operator</link></para></entry>
-    <entry><code>$var = $a % 10</code></entry>
+    <entry><para><code>$var = $a % 10</code></para></entry>
   </row>
   <row>
     <entry><para>+</para></entry>
@@ -178,271 +178,271 @@
     <entry><para>-</para></entry>
     <entry><para>11</para></entry>
     <entry><para><link linkend='Minus_Operator'>minus operator (arithmetic subtraction, hash key removal)</link></para></entry>
-    <entry><code>$a - 10</code></entry>
+    <entry><para><code>$a - 10</code></para></entry>
   </row>
   <row>
     <entry><para>&gt;&gt;</para></entry>
     <entry><para>12</para></entry>
     <entry><para><link linkend='Shift_Right_Operator'>bitwise shift right operator</link></para></entry>
-    <entry><code>0xff00 &gt;&gt; 8</code></entry>
+    <entry><para><code>0xff00 &gt;&gt; 8</code></para></entry>
   </row>
   <row>
     <entry><para>&lt;&lt;</para></entry>
     <entry><para>12</para></entry>
     <entry><para><link linkend='Shift_Left_Operator'>bitwise shift left operator</link></para></entry>
-    <entry><code>0xff00 &lt;&lt; 8</code></entry>
+    <entry><para><code>0xff00 &lt;&lt; 8</code></para></entry>
   </row>
   <row>
     <entry><para><command>exists</command></para></entry>
     <entry><para>13</para></entry>
     <entry><para><link linkend='Exists_Operator'>exists value operator</link></para></entry>
-    <entry><code><command>exists</command> $var</code></entry>
+    <entry><para><code><command>exists</command> $var</code></para></entry>
   </row>
   <row>
     <entry><para><command>instanceof</command></para></entry>
     <entry><para>13</para></entry>
     <entry><para><link linkend='Instanceof_Operator'>instanceof class operator</link></para></entry>
-    <entry><code><command>instanceof</command> Qore::Mutex</code></entry>
+    <entry><para><code><command>instanceof</command> Qore::Mutex</code></para></entry>
   </row>
   <row>
     <entry><para>&lt;</para></entry>
     <entry><para>14</para></entry>
     <entry><para><link linkend='Less_Than_Operator'>Logical less than operator</link></para></entry>
-    <entry><code>$a &lt; 10</code></entry>
+    <entry><para><code>$a &lt; 10</code></para></entry>
   </row>
   <row>
     <entry><para>&gt;</para></entry>
     <entry><para>14</para></entry>
     <entry><para><link linkend='Greater_Than_Operator'>Logical greater than operator</link></para></entry>
-    <entry><code>$a &gt; 10</code></entry>
+    <entry><para><code>$a &gt; 10</code></para></entry>
   </row>
   <row>
     <entry><para>==</para></entry>
     <entry><para>14</para></entry>
     <entry><para><link linkend='Equals_Operator'>Logical equality operator</link></para></entry>
-    <entry><code>$a == 10</code></entry>
+    <entry><para><code>$a == 10</code></para></entry>
   </row>
   <row>
     <entry><para>!=</para></entry>
     <entry><para>14</para></entry>
     <entry><para><link linkend='Not_Equals_Operator'>logical inequality operator</link></para></entry>
-    <entry><code>$a != 10</code></entry>
+    <entry><para><code>$a != 10</code></para></entry>
   </row>
   <row>
     <entry><para>&lt;=</para></entry>
     <entry><para>14</para></entry>
     <entry><para><link linkend='Less_Than_Or_Equals_Operator'>Logical less then or equals operator</link></para></entry>
-    <entry><code>$a &lt;= 10</code></entry>
+    <entry><para><code>$a &lt;= 10</code></para></entry>
   </row>
   <row>
     <entry><para>&gt;=</para></entry>
     <entry><para>14</para></entry>
     <entry><para><link linkend='Greater_Than_Or_Equals_Operator'>logical greater than or equals operator</link></para></entry>
-    <entry><code>$a &gt;= 10</code></entry>
+    <entry><para><code>$a &gt;= 10</code></para></entry>
   </row>
   <row>
     <entry><para>&lt;=&gt;</para></entry>
     <entry><para>14</para></entry>
     <entry><para><link linkend='Comparison_Operator'>logical comparison operator</link></para></entry>
-    <entry><code>$a &lt;=&gt; $b</code></entry>
+    <entry><para><code>$a &lt;=&gt; $b</code></para></entry>
   </row>
   <row>
     <entry><para>===</para></entry>
     <entry><para>14</para></entry>
     <entry><para><link linkend='Absolute_Equals_Operator'>absolute logical equality operator</link></para></entry>
-    <entry><code>$a === 10</code></entry>
+    <entry><para><code>$a === 10</code></para></entry>
   </row>
   <row>
     <entry><para>!==</para></entry>
     <entry><para>14</para></entry>
     <entry><para><link linkend='Absolute_Not_Equals_Operator'>absolute logical inequality operator</link></para></entry>
-    <entry><code>$a !== 10</code></entry>
+    <entry><para><code>$a !== 10</code></para></entry>
   </row>
   <row>
     <entry><para>=~ //</para></entry>
     <entry><para>14</para></entry>
     <entry><para><link linkend='Regular_Expression_Match_Operator'>regular expression match operator</link></para></entry>
-    <entry><code>$a =~ /text/</code></entry>
+    <entry><para><code>$a =~ /text/</code></para></entry>
   </row>
   <row>
     <entry><para>!~ //</para></entry>
     <entry><para>14</para></entry>
     <entry><para><link linkend='Regular_Expression_No_Match_Operator'>regular expression no match operator</link></para></entry>
-    <entry><code>$a !~ /text/</code></entry>
+    <entry><para><code>$a !~ /text/</code></para></entry>
   </row>
  <row>
     <entry><para>=~ s///</para></entry>
     <entry><para>14</para></entry>
     <entry><para><link linkend='Regular_Expression_Substitution_Operator'>regular expression substitution operator</link></para></entry>
-    <entry><code>$a =~ s/text/text/</code></entry>
+    <entry><para><code>$a =~ s/text/text/</code></para></entry>
   </row>
  <row>
     <entry><para>=~ x//</para></entry>
     <entry><para>14</para></entry>
     <entry><para><link linkend='Regular_Expression_Pattern_Extraction_Operator'>regular expression pattern extraction operator</link></para></entry>
-    <entry><code>$a =~ x/(\w+):(\w+)/</code></entry>
+    <entry><para><code>$a =~ x/(\w+):(\w+)/</code></para></entry>
   </row>
  <row>
     <entry><para>=~ tr</para></entry>
     <entry><para>14</para></entry>
     <entry><para><link linkend='Transliteration_Operator'>transliteration operator</link></para></entry>
-    <entry><code>$a =~ tr/src_chars/targ_chars/</code></entry>
+    <entry><para><code>$a =~ tr/src_chars/targ_chars/</code></para></entry>
   </row>
   <row>
     <entry><para>&amp;</para></entry>
     <entry><para>15</para></entry>
     <entry><para><link linkend='Binary_And_Operator'>bitwise AND operator</link></para></entry>
-    <entry><code>$a &amp; 0xff</code></entry>
+    <entry><para><code>$a &amp; 0xff</code></para></entry>
   </row>
   <row>
     <entry><para>|</para></entry>
     <entry><para>15</para></entry>
     <entry><para><link linkend='Binary_Or_Operator'>bitwise OR operator</link></para></entry>
-    <entry><code>$a | 0xff</code></entry>
+    <entry><para><code>$a | 0xff</code></para></entry>
   </row>
   <row>
     <entry><para>^</para></entry>
     <entry><para>15</para></entry>
     <entry><para><link linkend='Binary_Xor_Operator'>bitwise XOR operator</link></para></entry>
-    <entry><code>$a ^ 0xff</code></entry>
+    <entry><para><code>$a ^ 0xff</code></para></entry>
   </row>
   <row>
     <entry><para>&amp;&amp;</para></entry>
     <entry><para>16</para></entry>
     <entry><para><link linkend='Logical_And_Operator'>logical AND operator</link></para></entry>
-    <entry><code>($a = 1) &amp;&amp; ($b &lt; 10)</code></entry>
+    <entry><para><code>($a = 1) &amp;&amp; ($b &lt; 10)</code></para></entry>
   </row>
   <row>
     <entry><para>||</para></entry>
     <entry><para>16</para></entry>
     <entry><para><link linkend='Logical_Or_Operator'>logical OR operator</link></para></entry>
-    <entry><code>($a = 1) || ($b &lt; 10)</code></entry>
+    <entry><para><code>($a = 1) || ($b &lt; 10)</code></para></entry>
   </row>
   <row>
     <entry><para>? :</para></entry>
     <entry><para>17</para></entry>
     <entry><para><link linkend='Conditional_Operator'>conditional operator</link></para></entry>
-    <entry><code>$a == 2 ? "yes" : "no"</code></entry>
+    <entry><para><code>$a == 2 ? "yes" : "no"</code></para></entry>
   </row>
   <row>
     <entry><para>,</para></entry>
     <entry><para>18</para></entry>
     <entry><para><link linkend='Comma_Operator'>comma operator</link></para></entry>
-    <entry><code>1, 2, 3, 4, 5</code></entry>
+    <entry><para><code>1, 2, 3, 4, 5</code></para></entry>
   </row>
   <row>
     <entry><para><command>unshift</command></para></entry>
     <entry><para>19</para></entry>
     <entry><para><link linkend='Unshift_Operator'>unshift list element operator</link></para></entry>
-    <entry><code><command>unshift</command> $list, $val</code></entry>
+    <entry><para><code><command>unshift</command> $list, $val</code></para></entry>
   </row>
   <row>
     <entry><para><command>push</command></para></entry>
     <entry><para>19</para></entry>
     <entry><para><link linkend='Push_Operator'>push list element operator</link></para></entry>
-    <entry><code><command>push</command> $list, $val</code></entry>
+    <entry><para><code><command>push</command> $list, $val</code></para></entry>
   </row>
   <row>
     <entry><para><command>splice</command></para></entry>
     <entry><para>19</para></entry>
     <entry><para><link linkend='Splice_Operator'>splice list or string operator</link></para></entry>
-    <entry><code><command>splice</command> $list, 2, 2, (1, 2, 3)</code></entry>
+    <entry><para><code><command>splice</command> $list, 2, 2, (1, 2, 3)</code></para></entry>
   </row>
   <row>
     <entry><para><command>extract</command></para></entry>
     <entry><para>19</para></entry>
     <entry><para><link linkend='Extract_Operator'>extract list or string operator</link></para></entry>
-    <entry><code><command>my</command> $sublist = <command>extract</command> $list, 2, 2, (1, 2, 3)</code></entry>
+    <entry><para><code><command>my</command> $sublist = <command>extract</command> $list, 2, 2, (1, 2, 3)</code></para></entry>
   </row>
   <row>
     <entry><para><command>map</command></para></entry>
     <entry><para>19</para></entry>
     <entry><para><link linkend='Map_Operator'>map operator</link></para></entry>
-    <entry><code><command>map</command> $closure($1), $list</code></entry>
+    <entry><para><code><command>map</command> $closure($1), $list</code></para></entry>
   </row>
   <row>
     <entry><para><command>foldl</command></para></entry>
     <entry><para>19</para></entry>
     <entry><para><link linkend='Foldl_Operator'>fold left to right operator</link></para></entry>
-    <entry><code><command>foldl</command> $closure($1 - $2), $list</code></entry>
+    <entry><para><code><command>foldl</command> $closure($1 - $2), $list</code></para></entry>
   </row>
   <row>
     <entry><para><command>foldr</command></para></entry>
     <entry><para>19</para></entry>
     <entry><para><link linkend='Foldr_Operator'>fold right to left operator</link></para></entry>
-    <entry><code><command>foldr</command> $closure($1 - $2), $list</code></entry>
+    <entry><para><code><command>foldr</command> $closure($1 - $2), $list</code></para></entry>
   </row>
   <row>
     <entry><para><command>select</command></para></entry>
     <entry><para>19</para></entry>
     <entry><para><link linkend='Select_Operator'>select elements from list operator</link></para></entry>
-    <entry><code><command>select</command> $list, $1 > 1</code></entry>
+    <entry><para><code><command>select</command> $list, $1 > 1</code></para></entry>
   </row>
   <row>
     <entry><para>=</para></entry>
     <entry><para>20</para></entry>
     <entry><para><link linkend='Assignment_Operator'>assignment operator</link></para></entry>
-    <entry><code>$var = 1</code></entry>
+    <entry><para><code>$var = 1</code></para></entry>
   </row>
   <row>
     <entry><para>+=</para></entry>
     <entry><para>21</para></entry>
     <entry><para><link linkend='Plus_Equals_Operator'>plus-equals (add-to) operator</link></para></entry>
-    <entry><code>$var += 5</code></entry>
+    <entry><para><code>$var += 5</code></para></entry>
   </row>
   <row>
     <entry><para>-=</para></entry>
     <entry><para>21</para></entry>
     <entry><para><link linkend='Minus_Equals_Operator'>minus-equals (subtract-from) operator</link></para></entry>
-    <entry><code>$var -= 5</code></entry>
+    <entry><para><code>$var -= 5</code></para></entry>
   </row>
   <row>
     <entry><para>&amp;=</para></entry>
     <entry><para>21</para></entry>
     <entry><para><link linkend='And_Equals_Operator'>and-equals operator</link></para></entry>
-    <entry><code>$var &amp;= 0x2000</code></entry>
+    <entry><para><code>$var &amp;= 0x2000</code></para></entry>
   </row>
   <row>
     <entry><para>|=</para></entry>
     <entry><para>21</para></entry>
     <entry><para><link linkend='Or_Equals_Operator'>or-equals operator</link></para></entry>
-    <entry><code>$var |= 0x2000</code></entry>
+    <entry><para><code>$var |= 0x2000</code></para></entry>
   </row>
   <row>
     <entry><para>%=</para></entry>
     <entry><para>21</para></entry>
     <entry><para><link linkend='Modula_Equals_Operator'>modula-equals operator</link></para></entry>
-    <entry><code>$var %= 100</code></entry>
+    <entry><para><code>$var %= 100</code></para></entry>
   </row>
   <row>
     <entry><para>*=</para></entry>
     <entry><para>21</para></entry>
     <entry><para><link linkend='Multiply_Equals_Operator'>multiply-equals operator</link></para></entry>
-    <entry><code>$var *= 10</code></entry>
+    <entry><para><code>$var *= 10</code></para></entry>
   </row>
   <row>
     <entry><para>/=</para></entry>
     <entry><para>21</para></entry>
     <entry><para><link linkend='Divide_Equals_Operator'>divide-equals operator</link></para></entry>
-    <entry><code>$var /= 10</code></entry>
+    <entry><para><code>$var /= 10</code></para></entry>
   </row>
   <row>
     <entry><para>^=</para></entry>
     <entry><para>21</para></entry>
     <entry><para><link linkend='Xor_Equals_Operator'>xor-equals operator</link></para></entry>
-    <entry><code>$var ^= 0x2000</code></entry>
+    <entry><para><code>$var ^= 0x2000</code></para></entry>
   </row>
   <row>
     <entry><para>&lt;&lt;=</para></entry>
     <entry><para>21</para></entry>
     <entry><para><link linkend='Shift_Left_Equals_Operator'>shift-left-equals operator</link></para></entry>
-    <entry><code>$var &lt;&lt;= 0x2000</code></entry>
+    <entry><para><code>$var &lt;&lt;= 0x2000</code></para></entry>
   </row>
   <row>
     <entry><para>&gt;&gt;=</para></entry>
     <entry><para>21</para></entry>
     <entry><para><link linkend='Shift_Right_Equals_Operator'>shift-right-equals operator</link></para></entry>
-    <entry><code>$var &gt;&gt;= 0x2000</code></entry>
+    <entry><para><code>$var &gt;&gt;= 0x2000</code></para></entry>
   </row>
 
 </tbody>
