@@ -273,7 +273,9 @@ QoreClass *initXmlReaderClass(QoreClass *XmlDoc) {
    QC_XMLREADER->setCopy((q_copy_t)XMLREADER_copy);
 
    QC_XMLREADER->addMethodExtended("read",                      (q_method_t)XMLREADER_read, false, QC_NO_FLAGS, QDOM_DEFAULT, boolTypeInfo);
+
    QC_XMLREADER->addMethodExtended("readSkipWhitespace",        (q_method_t)XMLREADER_readSkipWhitespace, false, QC_NO_FLAGS, QDOM_DEFAULT, boolTypeInfo);
+
    QC_XMLREADER->addMethodExtended("nodeType",                  (q_method_t)XMLREADER_nodeType, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo);
 
    // XmlReader::nodeTypeName() returns string|nothing
@@ -288,13 +290,23 @@ QoreClass *initXmlReaderClass(QoreClass *XmlDoc) {
    QC_XMLREADER->addMethodExtended("value",                     (q_method_t)XMLREADER_value, false, QC_RET_VALUE_ONLY);
 
    QC_XMLREADER->addMethodExtended("hasAttributes",             (q_method_t)XMLREADER_hasAttributes, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, boolTypeInfo);
+
    QC_XMLREADER->addMethodExtended("hasValue",                  (q_method_t)XMLREADER_hasValue, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, boolTypeInfo);
+
    QC_XMLREADER->addMethodExtended("isDefault",                 (q_method_t)XMLREADER_isDefault, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, boolTypeInfo);
+
    QC_XMLREADER->addMethodExtended("isEmptyElement",            (q_method_t)XMLREADER_isEmptyElement, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, boolTypeInfo);
+
    QC_XMLREADER->addMethodExtended("isNamespaceDecl",           (q_method_t)XMLREADER_isNamespaceDecl, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, boolTypeInfo);
+
    QC_XMLREADER->addMethodExtended("isValid",                   (q_method_t)XMLREADER_isValid, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, boolTypeInfo);
+
+   // XmlReader::toQore() returns hash|string|nothing
    QC_XMLREADER->addMethodExtended("toQore",                    (q_method_t)XMLREADER_toQore, false, QC_RET_VALUE_ONLY);
+
+   // XmlReader::toQoreData() returns hash|string|nothing
    QC_XMLREADER->addMethodExtended("toQoreData",                (q_method_t)XMLREADER_toQoreData, false, QC_RET_VALUE_ONLY);
+
    QC_XMLREADER->addMethodExtended("attributeCount",            (q_method_t)XMLREADER_attributeCount, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo);
 
    // XmlReader::baseUri() returns string|nothing

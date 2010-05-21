@@ -9252,8 +9252,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	  </row>
           <row>
             <entry>
-              <para><code><link linkend="FtpClient_setSecure">FtpClient::setSecure</link></code>(softbool = True) returns nothing
-              </para>
+              <para><code><link linkend="FtpClient_setSecure">FtpClient::setSecure</link>(softbool = True) returns nothing</code></para>
             </entry>
             <entry>
               <para>Y</para>
@@ -27103,37 +27102,37 @@ $sock.bind("/tmp/socket");</programlisting>
 	  <row>
 	    <entry><para><code>SQL::DSOracle</code></para></entry>
 	    <entry><para><code>&quot;oracle&quot;</code></para></entry>
-	    <entry><para>Indicates that the <code>oracle</code> driver should be used by  <link linkend="SQL::Datasource::constructor">Datasource::constructor()</link> and <link linkend="DatasourcePool::constructor">DatasourcePool::constructor()</link></para></entry>
+	    <entry><para>Indicates that the <code>oracle</code> driver should be used by  <link linkend="Datasource::constructor">Datasource::constructor()</link> and <link linkend="DatasourcePool::constructor">DatasourcePool::constructor()</link></para></entry>
 	  </row>
 	  <row>
 	    <entry><para><code>SQL::DSMySQL</code></para></entry>
 	    <entry><para><code>&quot;mysql&quot;</code></para></entry>
-	    <entry><para>Indicates that the <code>mysql</code> driver should be used by <link linkend="SQL::Datasource::constructor">Datasource::constructor()</link> and <link linkend="DatasourcePool::constructor">DatasourcePool::constructor()</link></para></entry>
+	    <entry><para>Indicates that the <code>mysql</code> driver should be used by <link linkend="Datasource::constructor">Datasource::constructor()</link> and <link linkend="DatasourcePool::constructor">DatasourcePool::constructor()</link></para></entry>
 	  </row>
 	  <row>
 	    <entry><para><code>SQL::DSPGSQL</code></para></entry>
 	    <entry><para><code>&quot;pgsql&quot;</code></para></entry>
-	    <entry><para>Indicates that the <code>pgsql</code> driver should be used by  <link linkend="SQL::Datasource::constructor">Datasource::constructor()</link> and <link linkend="DatasourcePool::constructor">DatasourcePool::constructor()</link></para></entry>
+	    <entry><para>Indicates that the <code>pgsql</code> driver should be used by  <link linkend="Datasource::constructor">Datasource::constructor()</link> and <link linkend="DatasourcePool::constructor">DatasourcePool::constructor()</link></para></entry>
 	  </row>
 	  <row>
 	    <entry><para><code>SQL::DSSybase</code></para></entry>
 	    <entry><para><code>&quot;sybase&quot;</code></para></entry>
-	    <entry><para>Indicates that the <code>sybase</code> driver should be used by <link linkend="SQL::Datasource::constructor">Datasource::constructor()</link> and <link linkend="DatasourcePool::constructor">DatasourcePool::constructor()</link></para></entry>
+	    <entry><para>Indicates that the <code>sybase</code> driver should be used by <link linkend="Datasource::constructor">Datasource::constructor()</link> and <link linkend="DatasourcePool::constructor">DatasourcePool::constructor()</link></para></entry>
 	  </row>
 	  <row>
 	    <entry><para><code>SQL::DSFreeTDS, SQL::MSSQL</code></para></entry>
 	    <entry><para><code>&quot;freetds&quot;</code></para></entry>
-	    <entry><para>Indicates that the <code>freetds</code> driver should be used by <link linkend="SQL::Datasource::constructor">Datasource::constructor()</link> and <link linkend="DatasourcePool::constructor">DatasourcePool::constructor()</link></para></entry>
+	    <entry><para>Indicates that the <code>freetds</code> driver should be used by <link linkend="Datasource::constructor">Datasource::constructor()</link> and <link linkend="DatasourcePool::constructor">DatasourcePool::constructor()</link></para></entry>
 	  </row>
 	  <row>
 	    <entry><para><code>SQL::DB2</code></para></entry>
 	    <entry><para><code>&quot;db2&quot;</code></para></entry>
-	    <entry><para>Indicates that the <code>db2</code> driver should be used by <link linkend="SQL::Datasource::constructor">Datasource::constructor()</link> and <link linkend="DatasourcePool::constructor">DatasourcePool::constructor()</link></para></entry>
+	    <entry><para>Indicates that the <code>db2</code> driver should be used by <link linkend="Datasource::constructor">Datasource::constructor()</link> and <link linkend="DatasourcePool::constructor">DatasourcePool::constructor()</link></para></entry>
 	  </row>
 	  <row>
 	    <entry><para><code>SQL::DSSQLite3</code></para></entry>
 	    <entry><para><code>&quot;sqlite3&quot;</code></para></entry>
-	    <entry><para>Indicates that the <code>sqlite3</code> driver should be used by <link linkend="SQL::Datasource::constructor">Datasource::constructor()</link> and <link linkend="DatasourcePool::constructor">DatasourcePool::constructor()</link></para></entry>
+	    <entry><para>Indicates that the <code>sqlite3</code> driver should be used by <link linkend="Datasource::constructor">Datasource::constructor()</link> and <link linkend="DatasourcePool::constructor">DatasourcePool::constructor()</link></para></entry>
 	  </row>
 
 	</tbody>
@@ -27217,11 +27216,11 @@ $sock.bind("/tmp/socket");</programlisting>
 
     <para>Note: This class is not available with the <code><link linkend="no-database">PO_NO_DATABASE</link></code> parse option.</para>
 
-    <para>The Datasource class is the high-level Qore interface to Qore's DBI layer, and as such, Datasource objects allow Qore programs to access databases that have a Qore DBI driver.  The Datasource class will attempt to load any DBI driver that is not currently loaded in the <link linkend="SQL::Datasource::constructor">constructor</link>.  For connection pooling support, see the <link linkend="DatasourcePool_Class">DatasourcePool</link> class.</para>
+    <para>The Datasource class is the high-level Qore interface to Qore's DBI layer, and as such, Datasource objects allow Qore programs to access databases that have a Qore DBI driver.  The Datasource class will attempt to load any DBI driver that is not currently loaded in the <link linkend="Datasource::constructor">constructor</link>.  For connection pooling support, see the <link linkend="DatasourcePool_Class">DatasourcePool</link> class.</para>
 
-    <para>Datasource objects will implicitly call <link linkend="SQL::Datasource::open">Datasource::open()</link> if no connection has yet been established and a method is called requiring a connection to the database server.  Therefore any method that requires communication with the database server can also throw any exception that the open method can throw.</para>
+    <para>Datasource objects will implicitly call <link linkend="Datasource::open">Datasource::open()</link> if no connection has yet been established and a method is called requiring a connection to the database server.  Therefore any method that requires communication with the database server can also throw any exception that the open method can throw.</para>
 
-    <para>Some Qore DBI drivers allow &quot;select&quot; queries to be executed through the <link linkend="SQL::Datasource::exec">Datasource::exec()</link> method, and allow SQL commands (procedure calls, etc) to be executed through the <link linkend="SQL::Datasource::select">Datasource::select()</link> method, and some DBI drivers do not (depends on the underlying DB API).  At any rate, the transaction lock is set when auto-commit is disabled and when the <link linkend="SQL::Datasource::exec">Datasource::exec()</link> or  <link linkend="SQL::Datasource::beginTransaction">Datasource::beginTransaction()</link> methods are executed as documented above.  Therefore executing a transaction relevant command through the  <link linkend="SQL::Datasource::select">Datasource::select()</link> method while auto-commit mode is disabled and a transaction has not yet started will not result in the transaction lock being allocated to the current thread and therefore could cause transaction errors when sharing the Datasource object between multiple threads.</para>
+    <para>Some Qore DBI drivers allow &quot;select&quot; queries to be executed through the <link linkend="Datasource::exec">Datasource::exec()</link> method, and allow SQL commands (procedure calls, etc) to be executed through the <link linkend="Datasource::select">Datasource::select()</link> method, and some DBI drivers do not (depends on the underlying DB API).  At any rate, the transaction lock is set when auto-commit is disabled and when the <link linkend="Datasource::exec">Datasource::exec()</link> or  <link linkend="Datasource::beginTransaction">Datasource::beginTransaction()</link> methods are executed as documented above.  Therefore executing a transaction relevant command through the  <link linkend="Datasource::select">Datasource::select()</link> method while auto-commit mode is disabled and a transaction has not yet started will not result in the transaction lock being allocated to the current thread and therefore could cause transaction errors when sharing the Datasource object between multiple threads.</para>
 
     <para>Only databases with an existing Qore DBI driver can be accessed through the Qore Datasource class.</para>
 
@@ -27249,11 +27248,11 @@ $sock.bind("/tmp/socket");</programlisting>
     <sect2 id="datasource_transaction_lock">
       <title>Datasource Transaction Locks</title>
 
-      <para>Datasource objects have an internal transaction lock which will be grabbed when the <link linkend="SQL::Datasource::exec">Datasource::exec()</link>, <link linkend="SQL::Datasource::vexec">Datasource::vexec()</link> <link linkend="SQL::Datasource::execRaw">Datasource::execRaw()</link>, or <link linkend="SQL::Datasource::beginTransaction">Datasource::beginTransaction()</link> methods are executed and autocommit is not enabled.  This enables a single datasource to be safely used for transaction management by several threads simultaneously. Note that an exception in a Datasource method that would acquire the lock (such as the Datasource::exec() method) when it's not already held, will have the effect that the transaction lock is not acquired.</para>
+      <para>Datasource objects have an internal transaction lock which will be grabbed when the <link linkend="Datasource::exec">Datasource::exec()</link>, <link linkend="Datasource::vexec">Datasource::vexec()</link> <link linkend="Datasource::execRaw">Datasource::execRaw()</link>, or <link linkend="Datasource::beginTransaction">Datasource::beginTransaction()</link> methods are executed and autocommit is not enabled.  This enables a single datasource to be safely used for transaction management by several threads simultaneously. Note that an exception in a Datasource method that would acquire the lock (such as the Datasource::exec() method) when it's not already held, will have the effect that the transaction lock is not acquired.</para>
 
-      <para>Any thread attempting to do transaction-relevant actions on a Datasource with auto-commit disabled while a transaction is in progress by another thread will block until the thread currently executing a transaction executes the <link linkend="SQL::Datasource::commit">Datasource::commit()</link> or <link linkend="SQL::Datasource::rollback">Datasource::rollback()</link> methods (or the Datasource is deleted, reset, or closed, in which case the lock is released and an exception is raised as well).</para>
+      <para>Any thread attempting to do transaction-relevant actions on a Datasource with auto-commit disabled while a transaction is in progress by another thread will block until the thread currently executing a transaction executes the <link linkend="Datasource::commit">Datasource::commit()</link> or <link linkend="Datasource::rollback">Datasource::rollback()</link> methods (or the Datasource is deleted, reset, or closed, in which case the lock is released and an exception is raised as well).</para>
 
-      <para>There is a timeout associated with the transaction lock; if a thread waits for the transaction lock for more than the timeout period, then an exception will be raised in the waiting thread. The timeout value can be read and changed with the <link linkend="SQL::Datasource::getTransactionLockTimeout">Datasource::getTransactionLockTimeout()</link> and <link linkend="SQL::Datasource::setTransactionLockTimeout">Datasource::setTransactionLockTimeout()</link> methods, respectively. The default transaction lock timeout value is 120 seconds.</para>
+      <para>There is a timeout associated with the transaction lock; if a thread waits for the transaction lock for more than the timeout period, then an exception will be raised in the waiting thread. The timeout value can be read and changed with the <link linkend="Datasource::getTransactionLockTimeout">Datasource::getTransactionLockTimeout()</link> and <link linkend="Datasource::setTransactionLockTimeout">Datasource::setTransactionLockTimeout()</link> methods, respectively. The default transaction lock timeout value is 120 seconds.</para>
     </sect2>
 
 
@@ -27271,271 +27270,271 @@ $sock.bind("/tmp/socket");</programlisting>
 	<tbody>
 	  <row>
 	    <entry>
-              <para><code><link linkend="SQL::Datasource::constructor">Datasource::constructor</link>(string $driver, string $user = "", string $pass = "", string $dbname = "", string $encoding = "", string $host = "", softint $port = 0)</code></para>
-              <para><code><link linkend="SQL::Datasource::constructor">Datasource::constructor</link>(hash $params)</code></para>
+              <para><code><link linkend="Datasource::constructor">Datasource::constructor</link>(string $driver, string $user = "", string $pass = "", string $dbname = "", string $encoding = "", string $host = "", softint $port = 0)</code></para>
+              <para><code><link linkend="Datasource::constructor">Datasource::constructor</link>(hash $params)</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Creates the Datasource object; attempts to load a DBI driver if the driver is not already present in Qore.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="SQL::Datasource::destructor">Datasource::destructor</link>()</code></para>
+              <para><code><link linkend="Datasource::destructor">Datasource::destructor</link>()</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Destroys the object.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="SQL::Datasource::copy">Datasource::copy</link>()</code></para>
+              <para><code><link linkend="Datasource::copy">Datasource::copy</link>()</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Creates a new Datasource object with the same driver as the original and copies of all the connection parameters.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="SQL::Datasource::open">Datasource::open</link>() returns nothing</code></para>
+              <para><code><link linkend="Datasource::open">Datasource::open</link>() returns nothing</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Opens a connection to a database; an exception is thrown if any errors occur.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="SQL::Datasource::close">Datasource::close</link>() returns nothing</code></para>
+              <para><code><link linkend="Datasource::close">Datasource::close</link>() returns nothing</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Closes the connection to the database; an exception is thrown if any errors occur.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="SQL::Datasource::commit">Datasource::commit</link>() returns nothing</code></para>
+              <para><code><link linkend="Datasource::commit">Datasource::commit</link>() returns nothing</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Commits the transaction and releases the <link linkend="datasource_transaction_lock">transaction lock</link>; an exception is thrown if any errors occur.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="SQL::Datasource::rollback">Datasource::rollback</link>() returns nothing</code></para>
+              <para><code><link linkend="Datasource::rollback">Datasource::rollback</link>() returns nothing</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Rolls back the transaction and releases the <link linkend="datasource_transaction_lock">transaction lock</link>; an exception is thrown if any errors occur.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="SQL::Datasource::setAutoCommit">Datasource::setAutoCommit</link>(softbool $b = True) returns nothing</code></para>
+              <para><code><link linkend="Datasource::setAutoCommit">Datasource::setAutoCommit</link>(softbool $b = True) returns nothing</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Turns autocommit on or off for this object.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="SQL::Datasource::exec">Datasource::exec</link>(string $sql, ...) returns any</code></para>
-              <para><code><link linkend="SQL::Datasource::exec">Datasource::exec</link>() returns nothing (RT_NOOP)</code></para>
+              <para><code><link linkend="Datasource::exec">Datasource::exec</link>(string $sql, ...) returns any</code></para>
+              <para><code><link linkend="Datasource::exec">Datasource::exec</link>() returns nothing (RT_NOOP)</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Executes SQL code on the DB connection.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="SQL::Datasource::execRaw">Datasource::execRaw</link>(string $sql, ...) returns any</code></para>
+              <para><code><link linkend="Datasource::execRaw">Datasource::execRaw</link>(string $sql, ...) returns any</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Executes SQL code (like <link linkend="SQL::Datasource::exec">Datasource::exec()</link>) on the DB connection without any variable binding.</para></entry>
+	    <entry><para>Executes SQL code (like <link linkend="Datasource::exec">Datasource::exec()</link>) on the DB connection without any variable binding.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="SQL::Datasource::vexec">Datasource::vexec</link>(string $sql, list $args) returns any</code></para>
-              <para><code><link linkend="SQL::Datasource::vexec">Datasource::vexec</link>(string $sql) returns any</code></para>
-              <para><code><link linkend="SQL::Datasource::vexec">Datasource::vexec</link>() returns nothing (RT_NOOP)</code></para>
+              <para><code><link linkend="Datasource::vexec">Datasource::vexec</link>(string $sql, list $args) returns any</code></para>
+              <para><code><link linkend="Datasource::vexec">Datasource::vexec</link>(string $sql) returns any</code></para>
+              <para><code><link linkend="Datasource::vexec">Datasource::vexec</link>() returns nothing (RT_NOOP)</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Executes SQL code on the DB connection, taking a list for all bind arguments.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="SQL::Datasource::select">Datasource::select</link>(string $sql, ...) returns any</code></para>
-              <para><code><link linkend="SQL::Datasource::select">Datasource::select</link>() returns nothing (RT_NOOP)</code></para>
+              <para><code><link linkend="Datasource::select">Datasource::select</link>(string $sql, ...) returns any</code></para>
+              <para><code><link linkend="Datasource::select">Datasource::select</link>() returns nothing (RT_NOOP)</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Executes a select statement on the server and returns the results in a hash (column names) of lists (rows).</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="SQL::Datasource::vselect">Datasource::vselect</link>(string $sql, list $args) returns any</code></para>
-              <para><code><link linkend="SQL::Datasource::vselect">Datasource::vselect</link>(string $sql) returns any</code></para>
-              <para><code><link linkend="SQL::Datasource::vselect">Datasource::vselect</link>() returns nothing (RT_NOOP)</code></para>
+              <para><code><link linkend="Datasource::vselect">Datasource::vselect</link>(string $sql, list $args) returns any</code></para>
+              <para><code><link linkend="Datasource::vselect">Datasource::vselect</link>(string $sql) returns any</code></para>
+              <para><code><link linkend="Datasource::vselect">Datasource::vselect</link>() returns nothing (RT_NOOP)</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Executes a select statement on the server and returns the results in a hash (column names) of lists (rows), taking a list for all bind arguments.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="SQL::Datasource::selectRow">Datasource::selectRow</link>(string $sql, ...) returns any</code></para>
-              <para><code><link linkend="SQL::Datasource::selectRow">Datasource::selectRow</link>() returns nothing (RT_NOOP)</code></para>
+              <para><code><link linkend="Datasource::selectRow">Datasource::selectRow</link>(string $sql, ...) returns any</code></para>
+              <para><code><link linkend="Datasource::selectRow">Datasource::selectRow</link>() returns nothing (RT_NOOP)</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Executes a select statement on the server and returns the first row as a hash (column names and values).</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="SQL::Datasource::vselectRow">Datasource::vselectRow</link>(string $sql, list $args) returns any</code></para>
-              <para><code><link linkend="SQL::Datasource::vselectRow">Datasource::vselectRow</link>(string $sql) returns any</code></para>
-              <para><code><link linkend="SQL::Datasource::vselectRow">Datasource::vselectRow</link>() returns nothing (RT_NOOP)</code></para>
+              <para><code><link linkend="Datasource::vselectRow">Datasource::vselectRow</link>(string $sql, list $args) returns any</code></para>
+              <para><code><link linkend="Datasource::vselectRow">Datasource::vselectRow</link>(string $sql) returns any</code></para>
+              <para><code><link linkend="Datasource::vselectRow">Datasource::vselectRow</link>() returns nothing (RT_NOOP)</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Executes a select statement on the server and returns the first row as a hash (column names and values), taking a list for all bind arguments.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="SQL::Datasource::selectRows">Datasource::selectRows</link>(string $sql, ...) returns any</code></para>
-              <para><code><link linkend="SQL::Datasource::selectRows">Datasource::selectRows</link>() returns nothing (RT_NOOP)</code></para>
+              <para><code><link linkend="Datasource::selectRows">Datasource::selectRows</link>(string $sql, ...) returns any</code></para>
+              <para><code><link linkend="Datasource::selectRows">Datasource::selectRows</link>() returns nothing (RT_NOOP)</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Executes a select statement on the server and returns the results in a list (rows) of hashes (column names and values).</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="SQL::Datasource::vselectRows">Datasource::vselectRows</link>(string $sql, list $args) returns any</code></para>
-              <para><code><link linkend="SQL::Datasource::vselectRows">Datasource::vselectRows</link>(string $sql) returns any</code></para>
-              <para><code><link linkend="SQL::Datasource::vselectRows">Datasource::vselectRows</link>() returns nothing (RT_NOOP)</code></para>
+              <para><code><link linkend="Datasource::vselectRows">Datasource::vselectRows</link>(string $sql, list $args) returns any</code></para>
+              <para><code><link linkend="Datasource::vselectRows">Datasource::vselectRows</link>(string $sql) returns any</code></para>
+              <para><code><link linkend="Datasource::vselectRows">Datasource::vselectRows</link>() returns nothing (RT_NOOP)</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Executes a select statement on the server and returns the results in a list (rows) of hashes (column names and values), taking a list for all bind arguments.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="SQL::Datasource::beginTransaction">Datasource::beginTransaction</link>() returns nothing</code></para>
+              <para><code><link linkend="Datasource::beginTransaction">Datasource::beginTransaction</link>() returns nothing</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Manually grabs the <link linkend="datasource_transaction_lock">transaction lock</link></para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="SQL::Datasource::setUserName">Datasource::setUserName</link>(string $user) returns nothing</code></para>
-              <para><code><link linkend="SQL::Datasource::setUserName">Datasource::setUserName</link>() returns nothing (RT_NOOP)</code></para>
+              <para><code><link linkend="Datasource::setUserName">Datasource::setUserName</link>(string $user) returns nothing</code></para>
+              <para><code><link linkend="Datasource::setUserName">Datasource::setUserName</link>() returns nothing (RT_NOOP)</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Sets the username parameter for the next open.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="SQL::Datasource::getUserName">Datasource::getUserName</link>() returns any</code></para>
+              <para><code><link linkend="Datasource::getUserName">Datasource::getUserName</link>() returns any</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns the username parameter as a string or NOTHING if none is set.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="SQL::Datasource::setPassword">Datasource::setPassword</link>(string $pass) returns nothing</code></para>
-              <para><code><link linkend="SQL::Datasource::setPassword">Datasource::setPassword</link>() returns nothing (RT_NOOP)</code></para>
+              <para><code><link linkend="Datasource::setPassword">Datasource::setPassword</link>(string $pass) returns nothing</code></para>
+              <para><code><link linkend="Datasource::setPassword">Datasource::setPassword</link>() returns nothing (RT_NOOP)</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Sets the password parameter for the next open.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="SQL::Datasource::getPassword">Datasource::getPassword</link>() returns any</code></para>
+              <para><code><link linkend="Datasource::getPassword">Datasource::getPassword</link>() returns any</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns the password parameter as a string or NOTHING if none is set.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="SQL::Datasource::setDBName">Datasource::setDBName</link>(string $db) returns nothing</code></para>
-              <para><code><link linkend="SQL::Datasource::setDBName">Datasource::setDBName</link>() returns nothing (RT_NOOP)</code></para>
+              <para><code><link linkend="Datasource::setDBName">Datasource::setDBName</link>(string $db) returns nothing</code></para>
+              <para><code><link linkend="Datasource::setDBName">Datasource::setDBName</link>() returns nothing (RT_NOOP)</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Sets the DB name parameter for the next open.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="SQL::Datasource::getDBName">Datasource::getDBName</link>() returns any</code></para>
+              <para><code><link linkend="Datasource::getDBName">Datasource::getDBName</link>() returns any</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns the dbname parameter as a string or NOTHING if none is set.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="SQL::Datasource::setDBCharset">Datasource::setDBCharset</link>(string $encoding) returns nothing</code></para>
-              <para><code><link linkend="SQL::Datasource::setDBCharset">Datasource::setDBCharset</link>() returns nothing (RT_NOOP)</code></para>
+              <para><code><link linkend="Datasource::setDBCharset">Datasource::setDBCharset</link>(string $encoding) returns nothing</code></para>
+              <para><code><link linkend="Datasource::setDBCharset">Datasource::setDBCharset</link>() returns nothing (RT_NOOP)</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Sets the charset (encoding) parameter for the next open.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="SQL::Datasource::getDBCharset">Datasource::getDBCharset</link>() returns any</code></para>
+              <para><code><link linkend="Datasource::getDBCharset">Datasource::getDBCharset</link>() returns any</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns the DBI driver specific charset name for the current connection as a string or NOTHING if none is set.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="SQL::Datasource::getOSCharset">Datasource::getOSCharset</link>() returns string</code></para>
+              <para><code><link linkend="Datasource::getOSCharset">Datasource::getOSCharset</link>() returns string</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns the Qore charset name for the current connection as a string or <code>&quot;(unknown)&quot;</code> if none is set.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="SQL::Datasource::setHostName">Datasource::setHostName</link>(string $host) returns nothing</code></para>
-              <para><code><link linkend="SQL::Datasource::setHostName">Datasource::setHostName</link>() returns nothing (RT_NOOP)</code></para>
+              <para><code><link linkend="Datasource::setHostName">Datasource::setHostName</link>(string $host) returns nothing</code></para>
+              <para><code><link linkend="Datasource::setHostName">Datasource::setHostName</link>() returns nothing (RT_NOOP)</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Sets the hostname parameter for the next open.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="SQL::Datasource::getHostName">Datasource::getHostName</link>() returns any</code></para>
+              <para><code><link linkend="Datasource::getHostName">Datasource::getHostName</link>() returns any</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns the hostname parameter as a string or NOTHING if none is set.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="SQL::Datasource::setPort">Datasource::setPort</link>(softint $port = 0) returns nothing</code></para>
+              <para><code><link linkend="Datasource::setPort">Datasource::setPort</link>(softint $port = 0) returns nothing</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Sets the port parameter for the next open.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="SQL::Datasource::getPort">Datasource::getPort</link>() returns any</code></para>
+              <para><code><link linkend="Datasource::getPort">Datasource::getPort</link>() returns any</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns the port parameter as an int or NOTHING if none is set.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="SQL::Datasource::getDriverName">Datasource::getDriverName</link>() returns string</code></para>
+              <para><code><link linkend="Datasource::getDriverName">Datasource::getDriverName</link>() returns string</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns the name of the driver used for the object.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="SQL::Datasource::setTransactionLockTimeout">Datasource::setTransactionLockTimeout</link>(softint $timeout_ms = 0) returns nothing</code></para>
-              <para><code><link linkend="SQL::Datasource::setTransactionLockTimeout">Datasource::setTransactionLockTimeout</link>(date $timeout) returns nothing</code></para>
+              <para><code><link linkend="Datasource::setTransactionLockTimeout">Datasource::setTransactionLockTimeout</link>(softint $timeout_ms = 0) returns nothing</code></para>
+              <para><code><link linkend="Datasource::setTransactionLockTimeout">Datasource::setTransactionLockTimeout</link>(date $timeout) returns nothing</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Sets the <link linkend="datasource_transaction_lock">transaction lock</link> timeout value in milliseconds.  Set to 0 for no timeout.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="SQL::Datasource::getTransactionLockTimeout">Datasource::getTransactionLockTimeout</link>() returns int</code></para>
+              <para><code><link linkend="Datasource::getTransactionLockTimeout">Datasource::getTransactionLockTimeout</link>() returns int</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Retrieves the <link linkend="datasource_transaction_lock">transaction lock</link> timeout value as an integer in milliseconds.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="SQL::Datasource::getServerVersion">Datasource::getServerVersion</link>() returns any</code></para>
+              <para><code><link linkend="Datasource::getServerVersion">Datasource::getServerVersion</link>() returns any</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Returns the driver-specific server version data for the current connection.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="SQL::Datasource::getClientVersion">Datasource::getClientVersion</link>() returns any</code></para>
+              <para><code><link linkend="Datasource::getClientVersion">Datasource::getClientVersion</link>() returns any</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Returns the driver-specific client library version data.  Not implemented by all drivers.</para></entry>
@@ -27543,7 +27542,7 @@ $sock.bind("/tmp/socket");</programlisting>
 
 	  <row>
 	    <entry>
-              <para><code><link linkend="SQL::Datasource::inTransaction">Datasource::inTransaction</link>() returns bool</code></para>
+              <para><code><link linkend="Datasource::inTransaction">Datasource::inTransaction</link>() returns bool</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns True if a transaction is in progress, False if not.</para></entry>
@@ -27553,7 +27552,7 @@ $sock.bind("/tmp/socket");</programlisting>
       </tgroup>
     </table>
 
-    <sect2 id="SQL::Datasource::constructor">
+    <sect2 id="Datasource::constructor">
       <title>Datasource::constructor()</title>
 
       <variablelist>
@@ -27596,32 +27595,32 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <row>
 	      <entry><para><replaceable>[username]</replaceable></para></entry>
 	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-	      <entry><para>The user name for the new connection.  Also see <link linkend="SQL::Datasource::setUserName">Datasource::setUserName()</link> for a method that allows this parameter to be set after the constructor.</para></entry>
+	      <entry><para>The user name for the new connection.  Also see <link linkend="Datasource::setUserName">Datasource::setUserName()</link> for a method that allows this parameter to be set after the constructor.</para></entry>
 	    </row>
 	    <row>
 	      <entry><para><replaceable>[password]</replaceable></para></entry>
 	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-	      <entry><para>The password for the new connection.  Also see <link linkend="SQL::Datasource::setPassword">Datasource::setPassword()</link> for a method that allows this parameter to be set after the constructor.</para></entry>
+	      <entry><para>The password for the new connection.  Also see <link linkend="Datasource::setPassword">Datasource::setPassword()</link> for a method that allows this parameter to be set after the constructor.</para></entry>
 	    </row>
 	    <row>
 	      <entry><para><replaceable>[dbname]</replaceable></para></entry>
 	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-	      <entry><para>The database name for the new connection.  Also see <link linkend="SQL::Datasource::setDBName">Datasource::setDBName()</link> for a method that allows this parameter to be set after the constructor.</para></entry>
+	      <entry><para>The database name for the new connection.  Also see <link linkend="Datasource::setDBName">Datasource::setDBName()</link> for a method that allows this parameter to be set after the constructor.</para></entry>
 	    </row>
 	    <row>
 	      <entry><para><replaceable>[charset_name]</replaceable></para></entry>
 	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-	      <entry><para>The database-specific name of the character encoding to use for the new connection.  Also see <link linkend="SQL::Datasource::setDBCharset">Datasource::setDBCharset()</link> for a method that allows this parameter to be set after the constructor.  If no value is passed for this parameter, then the database character encoding corresponding to the <link linkend="Default_Character_Encoding">default character encoding</link> for the Qore process will be used instead.</para></entry>
+	      <entry><para>The database-specific name of the character encoding to use for the new connection.  Also see <link linkend="Datasource::setDBCharset">Datasource::setDBCharset()</link> for a method that allows this parameter to be set after the constructor.  If no value is passed for this parameter, then the database character encoding corresponding to the <link linkend="Default_Character_Encoding">default character encoding</link> for the Qore process will be used instead.</para></entry>
 	    </row>
 	    <row>
 	      <entry><para><replaceable>[hostname]</replaceable></para></entry>
 	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-	      <entry><para>The host name for the new connection (not used by some DBI drivers).  Also see <link linkend="SQL::Datasource::setHostName">Datasource::setHostName()</link> for a method that allows this parameter to be set after the constructor.</para></entry>
+	      <entry><para>The host name for the new connection (not used by some DBI drivers).  Also see <link linkend="Datasource::setHostName">Datasource::setHostName()</link> for a method that allows this parameter to be set after the constructor.</para></entry>
 	    </row>
 	    <row>
 	      <entry><para><replaceable>[port]</replaceable></para></entry>
 	      <entry><para><code><link linkend="int_type">int</link></code></para></entry>
-	      <entry><para>The port number for the new connection (not used by some DBI drivers).  Also see <link linkend="SQL::Datasource::setPort">Datasource::setPort()</link> for a method that allows this parameter to be set after the constructor.</para></entry>
+	      <entry><para>The port number for the new connection (not used by some DBI drivers).  Also see <link linkend="Datasource::setPort">Datasource::setPort()</link> for a method that allows this parameter to be set after the constructor.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -27668,7 +27667,7 @@ $sock.bind("/tmp/socket");</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="SQL::Datasource::destructor">
+    <sect2 id="Datasource::destructor">
       <title>Datasource::destructor()</title>
 
       <variablelist>
@@ -27712,7 +27711,7 @@ $sock.bind("/tmp/socket");</programlisting>
 
     </sect2>
 
-    <sect2 id="SQL::Datasource::copy">
+    <sect2 id="Datasource::copy">
       <title>Datasource::copy()</title>
 
       <variablelist>
@@ -27775,14 +27774,14 @@ $sock.bind("/tmp/socket");</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="SQL::Datasource::beginTransaction">
+    <sect2 id="Datasource::beginTransaction">
       <title>Datasource::beginTransaction()</title>
 
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Manually grabs the <link linkend="datasource_transaction_lock">transaction lock</link>.  This method should be called when the Datasource object will be shared between more than 1 thread, and a transaction will be started with a <link linkend="SQL::Datasource::select">Datasource::select()</link> method.</para>
+	    <para>Manually grabs the <link linkend="datasource_transaction_lock">transaction lock</link>.  This method should be called when the Datasource object will be shared between more than 1 thread, and a transaction will be started with a <link linkend="Datasource::select">Datasource::select()</link> method.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -27860,7 +27859,7 @@ $sock.bind("/tmp/socket");</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="SQL::Datasource::open">
+    <sect2 id="Datasource::open">
       <title>Datasource::open()</title>
 
       <variablelist>
@@ -27941,7 +27940,7 @@ $sock.bind("/tmp/socket");</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="SQL::Datasource::close">
+    <sect2 id="Datasource::close">
       <title>Datasource::close()</title>
 
       <variablelist>
@@ -28005,7 +28004,7 @@ $sock.bind("/tmp/socket");</programlisting>
 
     </sect2>
 
-    <sect2 id="SQL::Datasource::commit">
+    <sect2 id="Datasource::commit">
       <title>Datasource::commit()</title>
 
       <variablelist>
@@ -28090,7 +28089,7 @@ $sock.bind("/tmp/socket");</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="SQL::Datasource::rollback">
+    <sect2 id="Datasource::rollback">
       <title>Datasource::rollback()</title>
 
       <variablelist>
@@ -28175,7 +28174,7 @@ $sock.bind("/tmp/socket");</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="SQL::Datasource::setAutoCommit">
+    <sect2 id="Datasource::setAutoCommit">
       <title>Datasource::setAutoCommit()</title>
       <variablelist>
 	<varlistentry>
@@ -28212,7 +28211,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	    <row>
 	      <entry><para><replaceable>status</replaceable></para></entry>
 	      <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
-	      <entry><para>True to turn on autocommit (a commit will be executed after every <link linkend="SQL::Datasource::exec">Datasource::exec()</link>), False to turn off autocommit (commits must be manually triggered).</para></entry>
+	      <entry><para>True to turn on autocommit (a commit will be executed after every <link linkend="Datasource::exec">Datasource::exec()</link>), False to turn off autocommit (commits must be manually triggered).</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -28237,7 +28236,7 @@ $sock.bind("/tmp/socket");</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="SQL::Datasource::exec">
+    <sect2 id="Datasource::exec">
       <title>Datasource::exec()</title>
 
       <variablelist>
@@ -28328,14 +28327,14 @@ $sock.bind("/tmp/socket");</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="SQL::Datasource::vexec">
+    <sect2 id="Datasource::vexec">
       <title>Datasource::vexec()</title>
 
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Same as the <link linkend="SQL::Datasource::exec">Datasource::exec()</link> method, except this method takes a single argument after the SQL command giving the list of bind parameters.</para>
+	    <para>Same as the <link linkend="Datasource::exec">Datasource::exec()</link> method, except this method takes a single argument after the SQL command giving the list of bind parameters.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -28419,7 +28418,7 @@ $sock.bind("/tmp/socket");</programlisting>
     </sect2>
 
 
-    <sect2 id="SQL::Datasource::execRaw">
+    <sect2 id="Datasource::execRaw">
       <title>Datasource::execRaw()</title>
 
       <variablelist>
@@ -28506,14 +28505,14 @@ $sock.bind("/tmp/socket");</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="SQL::Datasource::select">
+    <sect2 id="Datasource::select">
       <title>Datasource::select()</title>
 
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Executes an SQL select statement on the server and returns the result as a hash (column names) of lists (rows).  This format is suitable for use with <link linkend="context_Statements"><command>context</command> Statements</link>, for easy iteration and processing of query results.  Additionally, this format is more efficient format than that returned by the <link linkend="SQL::Datasource::selectRows">Datasource::selectRows()</link> method, because the column names are not repeated for each row returned.  Therefore, for retrieving anything greater than small amounts of data, it is recommended to use this method instead of <link linkend="SQL::Datasource::selectRows">Datasource::selectRows()</link>.</para>
+	    <para>Executes an SQL select statement on the server and returns the result as a hash (column names) of lists (rows).  This format is suitable for use with <link linkend="context_Statements"><command>context</command> Statements</link>, for easy iteration and processing of query results.  Additionally, this format is more efficient format than that returned by the <link linkend="Datasource::selectRows">Datasource::selectRows()</link> method, because the column names are not repeated for each row returned.  Therefore, for retrieving anything greater than small amounts of data, it is recommended to use this method instead of <link linkend="Datasource::selectRows">Datasource::selectRows()</link>.</para>
 
 	  </listitem>
 	</varlistentry>
@@ -28594,14 +28593,14 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
       </table>
     </sect2>
 
-    <sect2 id="SQL::Datasource::vselect">
+    <sect2 id="Datasource::vselect">
       <title>Datasource::vselect()</title>
 
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Same as the <link linkend="SQL::Datasource::select">Datasource::select()</link> method, except this method takes a single argument after the SQL command giving the list of bind value parameters.</para>
+	    <para>Same as the <link linkend="Datasource::select">Datasource::select()</link> method, except this method takes a single argument after the SQL command giving the list of bind value parameters.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -28680,14 +28679,14 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
       </table>
     </sect2>
 
-    <sect2 id="SQL::Datasource::selectRow">
+    <sect2 id="Datasource::selectRow">
       <title>Datasource::selectRow()</title>
 
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Executes an SQL select statement on the server and returns the first row as a hash (the column values).  If more than one row is returned, then all but the first row are discarded.  For a similar method taking a list for all bind arguments, see <link linkend="SQL::Datasource::vselectRow">Datasource::vselectRow()</link>.</para>
+	    <para>Executes an SQL select statement on the server and returns the first row as a hash (the column values).  If more than one row is returned, then all but the first row are discarded.  For a similar method taking a list for all bind arguments, see <link linkend="Datasource::vselectRow">Datasource::vselectRow()</link>.</para>
 	    <para>This method also accepts all bind parameters (%d, %v, etc) as documented in  <link linkend="datasource_binding">Datasource Binding</link>.</para>
 	  </listitem>
 	</varlistentry>
@@ -28767,14 +28766,14 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
       </table>
     </sect2>
 
-    <sect2 id="SQL::Datasource::vselectRow">
+    <sect2 id="Datasource::vselectRow">
       <title>Datasource::vselectRow()</title>
 
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Same as the <link linkend="SQL::Datasource::selectRow">Datasource::selectRow()</link> method, except this method takes a single argument after the SQL command giving the list of bind value parameters.</para>
+	    <para>Same as the <link linkend="Datasource::selectRow">Datasource::selectRow()</link> method, except this method takes a single argument after the SQL command giving the list of bind value parameters.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -28853,14 +28852,14 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
       </table>
     </sect2>
 
-    <sect2 id="SQL::Datasource::selectRows">
+    <sect2 id="Datasource::selectRows">
       <title>Datasource::selectRows()</title>
 
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Executes an SQL select statement on the server and returns the result as a list (rows) of hashes (the column values).  This format is not as efficient as that returned by the <link linkend="SQL::Datasource::select">Datasource::select()</link> method, therefore for larger amounts of data, it is recommended to use <link linkend="SQL::Datasource::select">Datasource::select()</link>.</para>
+	    <para>Executes an SQL select statement on the server and returns the result as a list (rows) of hashes (the column values).  This format is not as efficient as that returned by the <link linkend="Datasource::select">Datasource::select()</link> method, therefore for larger amounts of data, it is recommended to use <link linkend="Datasource::select">Datasource::select()</link>.</para>
 	    <para>This method also accepts all bind parameters (%d, %v, etc) as documented in  <link linkend="datasource_binding">Datasource Binding</link>.</para>
 	  </listitem>
 	</varlistentry>
@@ -28940,14 +28939,14 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
       </table>
     </sect2>
 
-    <sect2 id="SQL::Datasource::vselectRows">
+    <sect2 id="Datasource::vselectRows">
       <title>Datasource::vselectRows()</title>
 
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Same as the <link linkend="SQL::Datasource::selectRows">Datasource::selectRows()</link> method, except this method takes a single argument after the SQL command giving the list of bind value parameters.</para>
+	    <para>Same as the <link linkend="Datasource::selectRows">Datasource::selectRows()</link> method, except this method takes a single argument after the SQL command giving the list of bind value parameters.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -29026,7 +29025,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
       </table>
     </sect2>
 
-    <sect2 id="SQL::Datasource::setTransactionLockTimeout">
+    <sect2 id="Datasource::setTransactionLockTimeout">
       <title>Datasource::setTransactionLockTimeout()</title>
 
       <variablelist>
@@ -29089,7 +29088,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
       </table>
 
     </sect2>
-    <sect2 id="SQL::Datasource::getTransactionLockTimeout">
+    <sect2 id="Datasource::getTransactionLockTimeout">
       <title>Datasource::getTransactionLockTimeout()</title>
 
       <variablelist>
@@ -29153,7 +29152,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 
     </sect2>
 
-    <sect2 id="SQL::Datasource::setUserName">
+    <sect2 id="Datasource::setUserName">
       <title>Datasource::setUserName()</title>
 
       <variablelist>
@@ -29216,7 +29215,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
       </table>
     </sect2>
 
-    <sect2 id="SQL::Datasource::getUserName">
+    <sect2 id="Datasource::getUserName">
       <title>Datasource::getUserName()</title>
 
       <variablelist>
@@ -29280,7 +29279,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 
     </sect2>
 
-    <sect2 id="SQL::Datasource::setPassword">
+    <sect2 id="Datasource::setPassword">
       <title>Datasource::setPassword()</title>
 
       <variablelist>
@@ -29343,7 +29342,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
       </table>
     </sect2>
 
-    <sect2 id="SQL::Datasource::getPassword">
+    <sect2 id="Datasource::getPassword">
       <title>Datasource::getPassword()</title>
 
       <variablelist>
@@ -29407,7 +29406,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 
     </sect2>
 
-    <sect2 id="SQL::Datasource::setDBName">
+    <sect2 id="Datasource::setDBName">
       <title>Datasource::setDBName()</title>
 
       <variablelist>
@@ -29470,7 +29469,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
       </table>
     </sect2>
 
-    <sect2 id="SQL::Datasource::getDBName">
+    <sect2 id="Datasource::getDBName">
       <title>Datasource::getDBName()</title>
 
       <variablelist>
@@ -29534,7 +29533,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 
     </sect2>
 
-    <sect2 id="SQL::Datasource::setDBCharset">
+    <sect2 id="Datasource::setDBCharset">
       <title>Datasource::setDBCharset()</title>
 
       <variablelist>
@@ -29597,7 +29596,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
       </table>
     </sect2>
 
-    <sect2 id="SQL::Datasource::setHostName">
+    <sect2 id="Datasource::setHostName">
       <title>Datasource::setHostName()</title>
 
       <variablelist>
@@ -29660,7 +29659,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
       </table>
     </sect2>
 
-    <sect2 id="SQL::Datasource::setPort">
+    <sect2 id="Datasource::setPort">
       <title>Datasource::setPort()</title>
 
       <variablelist>
@@ -29723,7 +29722,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
       </table>
     </sect2>
 
-    <sect2 id="SQL::Datasource::getDBCharset">
+    <sect2 id="Datasource::getDBCharset">
       <title>Datasource::getDBCharset()</title>
 
       <variablelist>
@@ -29786,7 +29785,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
       </table>
 
     </sect2>
-    <sect2 id="SQL::Datasource::getOSCharset">
+    <sect2 id="Datasource::getOSCharset">
       <title>Datasource::getOSCharset()</title>
 
       <variablelist>
@@ -29849,7 +29848,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
       </table>
     </sect2>
 
-    <sect2 id="SQL::Datasource::getHostName">
+    <sect2 id="Datasource::getHostName">
       <title>Datasource::getHostName()</title>
 
       <variablelist>
@@ -29912,7 +29911,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
       </table>
     </sect2>
 
-    <sect2 id="SQL::Datasource::getPort">
+    <sect2 id="Datasource::getPort">
       <title>Datasource::getPort()</title>
 
       <variablelist>
@@ -29975,7 +29974,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
       </table>
     </sect2>
 
-    <sect2 id="SQL::Datasource::getDriverName">
+    <sect2 id="Datasource::getDriverName">
       <title>Datasource::getDriverName()</title>
 
       <variablelist>
@@ -30038,7 +30037,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
       </table>
     </sect2>
 
-    <sect2 id="SQL::Datasource::getServerVersion">
+    <sect2 id="Datasource::getServerVersion">
       <title>Datasource::getServerVersion()</title>
 
       <variablelist>
@@ -30101,7 +30100,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
       </table>
 
     </sect2>
-    <sect2 id="SQL::Datasource::getClientVersion">
+    <sect2 id="Datasource::getClientVersion">
       <title>Datasource::getClientVersion()</title>
 
       <variablelist>
@@ -30226,161 +30225,174 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="DatasourcePool::commit">DatasourcePool::commit</link>()</code></para>
+              <para><code><link linkend="DatasourcePool::commit">DatasourcePool::commit</link>() returns nothing</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Commits the transaction and releases the connection to the pool.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="DatasourcePool::rollback">DatasourcePool::rollback</link>()</code></para>
+              <para><code><link linkend="DatasourcePool::rollback">DatasourcePool::rollback</link>() returns nothing</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Rolls back the transaction and releases the connection to the pool.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="DatasourcePool::exec">DatasourcePool::exec</link>()</code></para>
+              <para><code><link linkend="DatasourcePool::exec">DatasourcePool::exec</link>(string $sql, ...) returns any</code></para>
+              <para><code><link linkend="DatasourcePool::exec">DatasourcePool::exec</link>() returns nothing (RT_NOOP)</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Executes SQL code on the DB connection and dedicates a connection to the calling thread.</para></entry>
 	  </row>
+          <row>
+            <entry>
+	      <para><code><link linkend="DatasourcePool::execRaw">DatasourcePool::execRaw</link>(string $sql, ...) returns any</code></para>
+            </entry>
+            <entry><para>Y</para></entry>
+            <entry><para>Executes SQL code (like <link linkend="DatasourcePool::exec">DatasourcePool::exec()</link>) on the DB connection without any variable binding and dedicates a connection to the calling thread.</para></entry>
+          </row>
+
 	  <row>
 	    <entry>
-              <para><code><link linkend="DatasourcePool::vexec">DatasourcePool::vexec</link>()</code></para>
+              <para><code><link linkend="DatasourcePool::vexec">DatasourcePool::vexec</link>(string $sql, list $args) returns any</code></para>
+              <para><code><link linkend="DatasourcePool::vexec">DatasourcePool::vexec</link>(string $sql) returns any</code></para>
+              <para><code><link linkend="DatasourcePool::vexec">DatasourcePool::vexec</link>() returns nothing (RT_NOOP)</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Executes SQL code on the DB connection, taking a list for all bind arguments.  Dedicates a connection to the calling thread.</para></entry>
 	  </row>
-    <row>
-      <entry>
-              <para><code><link linkend="DatasourcePool::execRaw">DatasourcePool::execRaw</link>()</code></para>
-            </entry>
-      <entry><para>Y</para></entry>
-      <entry><para>Executes SQL code (like <link linkend="DatasourcePool::exec">DatasourcePool::exec()</link>) on the DB connection without any variable binding.</para></entry>
-    </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="DatasourcePool::select">DatasourcePool::select</link>()</code></para>
+              <para><code><link linkend="DatasourcePool::select">DatasourcePool::select</link>(string $sql, ...) returns any</code></para>
+              <para><code><link linkend="DatasourcePool::select">DatasourcePool::select</link>() returns nothing (RT_NOOP)</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Executes a select statement on the server and returns the results in a hash (column names) of lists (rows).</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="DatasourcePool::vselect">DatasourcePool::vselect</link>()</code></para>
+              <para><code><link linkend="DatasourcePool::vselect">DatasourcePool::vselect</link>(string $sql, list $args) returns any</code></para>
+              <para><code><link linkend="DatasourcePool::vselect">DatasourcePool::vselect</link>(string $sql) returns any</code></para>
+              <para><code><link linkend="DatasourcePool::vselect">DatasourcePool::vselect</link>() returns nothing (RT_NOOP)</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Executes a select statement on the server and returns the results in a hash (column names) of lists (rows), taking a list for all bind arguments.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="DatasourcePool::selectRow">DatasourcePool::selectRow</link>()</code></para>
+              <para><code><link linkend="DatasourcePool::selectRow">DatasourcePool::selectRow</link>(string $sql, ...) returns any</code></para>
+              <para><code><link linkend="DatasourcePool::selectRow">DatasourcePool::selectRow</link>() returns nothing (RT_NOOP)</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Executes a select statement on the server and returns the first row as a hash (column names and values).</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="DatasourcePool::vselectRow">DatasourcePool::vselectRow</link>()</code></para>
+              <para><code><link linkend="DatasourcePool::vselectRow">DatasourcePool::vselectRow</link>(string $sql, list $args) returns any</code></para>
+              <para><code><link linkend="DatasourcePool::vselectRow">DatasourcePool::vselectRow</link>(string $sql) returns any</code></para>
+              <para><code><link linkend="DatasourcePool::vselectRow">DatasourcePool::vselectRow</link>() returns nothing (RT_NOOP)</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Executes a select statement on the server and returns the first row as a hash (column names and values), taking a list for all bind arguments.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="DatasourcePool::selectRows">DatasourcePool::selectRows</link>()</code></para>
+              <para><code><link linkend="DatasourcePool::selectRows">DatasourcePool::selectRows</link>(string $sql, ...) returns any</code></para>
+              <para><code><link linkend="DatasourcePool::selectRows">DatasourcePool::selectRows</link>() returns nothing (RT_NOOP)</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Executes a select statement on the server and returns the results in a list (rows) of hashes (column names and values).</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="DatasourcePool::vselectRows">DatasourcePool::vselectRows</link>()</code></para>
+              <para><code><link linkend="DatasourcePool::vselectRows">DatasourcePool::vselectRows</link>(string $sql, list $args) returns any</code></para>
+              <para><code><link linkend="DatasourcePool::vselectRows">DatasourcePool::vselectRows</link>(string $sql) returns any</code></para>
+              <para><code><link linkend="DatasourcePool::vselectRows">DatasourcePool::vselectRows</link>() returns nothing (RT_NOOP)</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Executes a select statement on the server and returns the results in a list (rows) of hashes (column names and values), taking a list for all bind arguments.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="DatasourcePool::beginTransaction">DatasourcePool::beginTransaction</link>()</code></para>
+              <para><code><link linkend="DatasourcePool::beginTransaction">DatasourcePool::beginTransaction</link>() returns nothing</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Manually allocates a persistent connection to the calling thread.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="DatasourcePool::getUserName">DatasourcePool::getUserName</link>()</code></para>
+              <para><code><link linkend="DatasourcePool::getUserName">DatasourcePool::getUserName</link>() returns any</code></para>
             </entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Returns the username parameter.</para></entry>
+	    <entry><para>Returns the username parameter as a string or NOTHING if none is set.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="DatasourcePool::getPassword">DatasourcePool::getPassword</link>()</code></para>
+              <para><code><link linkend="DatasourcePool::getPassword">DatasourcePool::getPassword</link>() returns any</code></para>
             </entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Returns the password parameter.</para></entry>
+	    <entry><para>Returns the password parameter as a string or NOTHING if none is set.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="DatasourcePool::getDBName">DatasourcePool::getDBName</link>()</code></para>
+              <para><code><link linkend="DatasourcePool::getDBName">DatasourcePool::getDBName</link>() returns any</code></para>
             </entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Returns the dbname parameter.</para></entry>
+	    <entry><para>Returns the dbname parameter as a string or NOTHING if none is set.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="DatasourcePool::getDBCharset">DatasourcePool::getDBCharset</link>()</code></para>
+              <para><code><link linkend="DatasourcePool::getDBCharset">DatasourcePool::getDBCharset</link>() returns any</code></para>
             </entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Returns the DBI driver specific charset name for the current connection.</para></entry>
+	    <entry><para>Returns the DBI driver specific charset name for the current connection as a string or NOTHING if none is set.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="DatasourcePool::getOSCharset">DatasourcePool::getOSCharset</link>()</code></para>
+              <para><code><link linkend="DatasourcePool::getOSCharset">DatasourcePool::getOSCharset</link>() returns any</code></para>
             </entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Returns the Qore charset name for the current connection.</para></entry>
+	    <entry><para>Returns the Qore charset name for the current connection as a string or NOTHING if none is set.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="DatasourcePool::getHostName">DatasourcePool::getHostName</link>()</code></para>
+              <para><code><link linkend="DatasourcePool::getHostName">DatasourcePool::getHostName</link>() returns any</code></para>
             </entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Returns the hostname parameter.</para></entry>
+	    <entry><para>Returns the hostname parameter as a string or NOTHING if none is set.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="DatasourcePool::getPort">DatasourcePool::getPort</link>()</code></para>
+              <para><code><link linkend="DatasourcePool::getPort">DatasourcePool::getPort</link>() returns any</code></para>
             </entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Returns the port parameter.</para></entry>
+	    <entry><para>Returns the port parameter as an integer or NOTHING if none is set.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="DatasourcePool::getDriverName">DatasourcePool::getDriverName</link>()</code></para>
+              <para><code><link linkend="DatasourcePool::getDriverName">DatasourcePool::getDriverName</link>() returns string</code></para>
             </entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Returns the name of the database driver used for this object.</para></entry>
+	    <entry><para>Returns the name of the database driver used for this object as a string.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="DatasourcePool::getServerVersion">DatasourcePool::getServerVersion</link>()</code></para>
+              <para><code><link linkend="DatasourcePool::getServerVersion">DatasourcePool::getServerVersion</link>() returns any</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Returns the driver-specific server version data for the current connection.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="DatasourcePool::getClientVersion">DatasourcePool::getClientVersion</link>()</code></para>
+              <para><code><link linkend="DatasourcePool::getClientVersion">DatasourcePool::getClientVersion</link>() returns any</code></para>
             </entry>
-	    <entry><para>N</para></entry>
+	    <entry><para>Y</para></entry>
 	    <entry><para>Returns the driver-specific client library version data.  Not implemented by all drivers.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="SQL::DatasourcePool::inTransaction">DatasourcePool::inTransaction</link>() returns bool</code></para>
+              <para><code><link linkend="DatasourcePool::inTransaction">DatasourcePool::inTransaction</link>() returns bool</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns True if a transaction is in progress (and therefore a <link linkend="Datasource_Class">Datasource</link> form the pool is dedicated to the calling thread), False if not.</para></entry>
@@ -30809,7 +30821,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Allocates a persistent connection to the calling thread, executes an SQL command on the server and returns either the row count (for example, for updates and inserts) or the data retrieved (for example, if a stored procedure is executed that returns values).  This method takes a special syntax for binding values and placeholders; see the <link linkend="SQL::Datasource::exec">Datasource::exec()</link> method for more information.</para>
+	    <para>Allocates a persistent connection to the calling thread, executes an SQL command on the server and returns either the row count (for example, for updates and inserts) or the data retrieved (for example, if a stored procedure is executed that returns values).  This method takes a special syntax for binding values and placeholders; see the <link linkend="Datasource::exec">Datasource::exec()</link> method for more information.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -31069,7 +31081,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Executes an SQL select statement on the server and returns the result as a hash (column names) of lists (rows).  See <link linkend="SQL::Datasource::select">Datasource::select()</link> for more information.</para>
+	    <para>Executes an SQL select statement on the server and returns the result as a hash (column names) of lists (rows).  See <link linkend="Datasource::select">Datasource::select()</link> for more information.</para>
 
 	    <para>Note that this method does not allocate a persistent connection to the calling thread; if the calling thread does not already have a connection allocated to it, a temporary connection will be allocated for executing the select query and returning the results; the temporary connection will be immediately returned to the pool when this method returns.  It is an error to execute transaction relevant commands with this method without first allocating a persistent connection with  <link linkend="DatasourcePool::exec">DatasourcePool::exec()</link>, <link linkend="DatasourcePool::vexec">DatasourcePool::vexec()</link>, <link linkend="DatasourcePool::execRaw">DatasourcePool::execRaw()</link>, or <link linkend="DatasourcePool::beginTransaction">DatasourcePool::beginTransaction()</link>.</para>
 	  </listitem>
@@ -32253,7 +32265,7 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
 	<tbody>
 	  <row>
 	    <entry>
-              <para><code><link linkend="AutoGate::constructor">AutoGate::constructor</link>()</code></para>
+              <para><code><link linkend="AutoGate::constructor">AutoGate::constructor</link>(<link linkend="Gate_Class">Gate</link> $gate)</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Creates the AutoGate object based on the Gate argument passed and immediately calls <link linkend="Gate::enter">Gate::enter()</link>.</para></entry>
@@ -32474,7 +32486,7 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
 	<tbody>
 	  <row>
 	    <entry>
-              <para><code><link linkend="AutoLock::constructor">AutoLock::constructor</link>()</code></para>
+              <para><code><link linkend="AutoLock::constructor">AutoLock::constructor</link>(<link linkend="Mutex_Class">Mutex</link> $mutex)</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Creates the AutoLock object based on the Mutex argument passed and immediately calls <link linkend="Mutex::lock">Mutex::lock()</link>.</para></entry>
@@ -32695,7 +32707,7 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
 	<tbody>
 	  <row>
 	    <entry>
-              <para><code><link linkend="AutoReadLock::constructor">AutoReadLock::constructor</link>()</code></para>
+              <para><code><link linkend="AutoReadLock::constructor">AutoReadLock::constructor</link>(<link linkend="RWLock_Class">RWLock</link> $rwlock)</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Creates the AutoReadLock object based on the RWLock argument passed and immediately calls <link linkend="RWLock::readLock">RWLock::readLock()</link>.</para></entry>
@@ -32916,7 +32928,7 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
 	<tbody>
 	  <row>
 	    <entry>
-              <para><code><link linkend="AutoWriteLock::constructor">AutoWriteLock::constructor</link>()</code></para>
+              <para><code><link linkend="AutoWriteLock::constructor">AutoWriteLock::constructor</link>(<link linkend="RWLock_Class">RWLock</link> $rwlock)</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Creates the AutoWriteLock object based on the RWLock argument passed and immediately calls <link linkend="RWLock::writeLock">RWLock::writeLock()</link>.</para></entry>
@@ -33157,14 +33169,16 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Condition::wait">Condition::wait</link>()</code></para>
+              <para><code><link linkend="Condition::wait">Condition::wait</link>(<link linkend="AbstractSmartLock_Class">AbstractSmartLock</link> $lock) returns int</code></para>
+              <para><code><link linkend="Condition::wait">Condition::wait</link>(<link linkend="AbstractSmartLock_Class">AbstractSmartLock</link> $lock, softint $timeout_ms) returns int</code></para>
+              <para><code><link linkend="Condition::wait">Condition::wait</link>(<link linkend="AbstractSmartLock_Class">AbstractSmartLock</link> $lock, date $timeout) returns int</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Blocks a thread until signaled.</para></entry>
+	    <entry><para>Blocks a thread until signaled; accepts an optional timeout value.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Condition::wait_count">Condition::wait_count</link>()</code></para>
+              <para><code><link linkend="Condition::wait_count">Condition::wait_count</link>(<link linkend="AbstractSmartLock_Class">AbstractSmartLock</link> $lock) returns int</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns the number of threads currently blocked on this object.</para></entry>
@@ -33665,7 +33679,7 @@ $mutex.unlock();</programlisting>
 	<tbody>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Counter::constructor">Counter::constructor</link>()</code></para>
+              <para><code><link linkend="Counter::constructor">Counter::constructor</link>(softint $count = 0)</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Creates the Counter object.</para></entry>
@@ -33686,35 +33700,37 @@ $mutex.unlock();</programlisting>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Counter::inc">Counter::inc</link>()</code></para>
+              <para><code><link linkend="Counter::inc">Counter::inc</link>() returns nothing</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Atomically increments the counter value.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Counter::dec">Counter::dec</link>()</code></para>
+              <para><code><link linkend="Counter::dec">Counter::dec</link>() returns nothing</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Atomically decrements the counter value.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Counter::waitForZero">Counter::waitForZero</link>()</code></para>
+              <para><code><link linkend="Counter::waitForZero">Counter::waitForZero</link>() returns nothing</code></para>
+              <para><code><link linkend="Counter::waitForZero">Counter::waitForZero</link>(softint $timeout_ms) returns int</code></para>
+              <para><code><link linkend="Counter::waitForZero">Counter::waitForZero</link>(date $timeout) returns int</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Blocks a thread until the counter reaches zero.</para></entry>
+	    <entry><para>Blocks a thread until the counter reaches zero; returns zero on sucess, or non-zero if a timeout occurred.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Counter::getCount">Counter::getCount</link>()</code></para>
+              <para><code><link linkend="Counter::getCount">Counter::getCount</link>() returns int</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns the current counter value.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Counter::getWaiting">Counter::getWaiting</link>()</code></para>
+              <para><code><link linkend="Counter::getWaiting">Counter::getWaiting</link>() returns int</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns the number of threads currently blocked on this object.</para></entry>
@@ -34289,35 +34305,39 @@ $mutex.unlock();</programlisting>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Queue::get">Queue::get</link>()</code></para>
+              <para><code><link linkend="Queue::get">Queue::get</link>() returns any</code></para>
+              <para><code><link linkend="Queue::get">Queue::get</link>(softint $timeout_ms) returns any</code></para>
+              <para><code><link linkend="Queue::get">Queue::get</link>(date $timeout) returns any</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Blocks until at least one entry is available on the queue, then returns the first entry in the queue.</para></entry>
+	    <entry><para>Blocks until at least one entry is available on the queue, then returns the first entry in the queue.  If a timeout occurs, an exception is thrown.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Queue::pop">Queue::pop</link>()</code></para>
+              <para><code><link linkend="Queue::pop">Queue::pop</link>() returns any</code></para>
+              <para><code><link linkend="Queue::pop">Queue::pop</link>(softint $timeout_ms) returns any</code></para>
+              <para><code><link linkend="Queue::pop">Queue::pop</link>(date $timeout) returns any</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Blocks until at least one entry is available on the queue, then returns the last entry in the queue.</para></entry>
+	    <entry><para>Blocks until at least one entry is available on the queue, then returns the last entry in the queue.  If a timeout occurs, an exception is thrown.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Queue::push">Queue::push</link>()</code></para>
+              <para><code><link linkend="Queue::push">Queue::push</link>(any $val) returns nothing</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Puts a value on the end of the queue.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Queue::size">Queue::size</link>()</code></para>
+              <para><code><link linkend="Queue::size">Queue::size</link>() returns int</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns the number of elements in the queue.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Queue::getWaiting">Queue::getWaiting</link>()</code></para>
+              <para><code><link linkend="Queue::getWaiting">Queue::getWaiting</link>() returns int</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns the number of threads currently blocked on this queue.</para></entry>
@@ -34918,63 +34938,67 @@ $mutex.unlock();</programlisting>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="RWLock::readLock">RWLock::readLock</link>()</code></para>
+              <para><code><link linkend="RWLock::readLock">RWLock::readLock</link>() returns nothing</code></para>
+              <para><code><link linkend="RWLock::readLock">RWLock::readLock</link>(softint $timeout_ms) returns int</code></para>
+              <para><code><link linkend="RWLock::readLock">RWLock::readLock</link>(date $timeout) returns int</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Acquires the read lock with an optional timeout value; blocks if the write lock is already acquired.</para></entry>
+	    <entry><para>Acquires the read lock with an optional timeout value; blocks if the write lock is already acquired.  Returns 0 for success, non-zero for timeout; exceptions are thrown for other errors.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="RWLock::readUnlock">RWLock::readUnlock</link>()</code></para>
+              <para><code><link linkend="RWLock::readUnlock">RWLock::readUnlock</link>() returns nothing</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Decrements the read lock counter and releases the read lock if the counter is zero.  If at least one thread is blocked trying to acquire the write lock and the read counter reaches zero, then one thread waiting on the write lock is woken up.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="RWLock::writeLock">RWLock::writeLock</link>()</code></para>
+              <para><code><link linkend="RWLock::writeLock">RWLock::writeLock</link>() returns nothing</code></para>
+              <para><code><link linkend="RWLock::writeLock">RWLock::writeLock</link>(softint $timeout_ms) returns int</code></para>
+              <para><code><link linkend="RWLock::writeLock">RWLock::writeLock</link>(date $timeout) returns int</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Acquires the write lock with an optional timeout; blocks if either the read lock or write lock is already acquired.</para></entry>
+	    <entry><para>Acquires the write lock with an optional timeout; blocks if either the read lock or write lock is already acquired.  Returns 0 for success, non-zero for timeout; exceptions are thrown for other errors.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="RWLock::writeUnlock">RWLock::writeUnlock</link>()</code></para>
+              <para><code><link linkend="RWLock::writeUnlock">RWLock::writeUnlock</link>() returns nothing</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Releases the write lock, if any writers are waiting, then wakes one up, otherwise if any readers are waiting, wakes up all readers.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="RWLock::tryReadLock">RWLock::tryReadLock</link>()</code></para>
+              <para><code><link linkend="RWLock::tryReadLock">RWLock::tryReadLock</link>() returns int</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Acquires the read lock only if it can be acquired immediately.  Returns 0 for success (read lock acquired, read lock count incremented) or -1 if the call would block.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="RWLock::tryWriteLock">RWLock::tryWriteLock</link>()</code></para>
+              <para><code><link linkend="RWLock::tryWriteLock">RWLock::tryWriteLock</link>() returns int</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Acquires the write lock only if it can be acquired immediately.  Returns 0 for success (write lock acquired) or -1 if the call would block.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="RWLock::numReaders">RWLock::numReaders</link>()</code></para>
+              <para><code><link linkend="RWLock::numReaders">RWLock::numReaders</link>() returns int</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns the read lock count.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="RWLock::getReadWaiting">RWLock::getReadWaiting</link>()</code></para>
+              <para><code><link linkend="RWLock::getReadWaiting">RWLock::getReadWaiting</link>() returns int</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns the number of threads waiting on the read lock.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="RWLock::getWriteWaiting">RWLock::getWriteWaiting</link>()</code></para>
+              <para><code><link linkend="RWLock::getWriteWaiting">RWLock::getWriteWaiting</link>() returns int</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns the number of threads waiting on the write lock.</para></entry>
@@ -35858,23 +35882,25 @@ $mutex.unlock();</programlisting>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Mutex::lock">Mutex::lock</link>()</code></para>
+              <para><code><link linkend="Mutex::lock">Mutex::lock</link>() returns nothing</code></para>
+              <para><code><link linkend="Mutex::lock">Mutex::lock</link>(softint $timeout_ms) returns int</code></para>
+              <para><code><link linkend="Mutex::lock">Mutex::lock</link>(date $timeout) returns int</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Locks the Mutex object.  Blocks if the lock is already held.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Mutex::unlock">Mutex::unlock</link>()</code></para>
+              <para><code><link linkend="Mutex::unlock">Mutex::unlock</link>() returns nothing</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Unlocks the Mutex object.  Wakes up one thread if any threads are blocked on this lock.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Mutex::trylock">Mutex::trylock</link>()</code></para>
+              <para><code><link linkend="Mutex::trylock">Mutex::trylock</link>() returns int</code></para>
             </entry>
-	    <entry><para>N</para></entry>
+	    <entry><para>Y</para></entry>
 	    <entry><para>Acquires the lock only if it is not already held.  Returns 0 for success (lock acquired) or -1 if the call would block.</para></entry>
 	  </row>
 	</tbody>
@@ -36312,6 +36338,7 @@ $mutex.unlock();</programlisting>
 	  <row>
 	    <entry>
               <para><code><link linkend="Sequence::constructor">Sequence::constructor</link>()</code></para>
+              <para><code><link linkend="Sequence::constructor">Sequence::constructor</link>(softint $start)</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Creates a new Sequence object.</para></entry>
@@ -36332,14 +36359,14 @@ $mutex.unlock();</programlisting>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Sequence::next">Sequence::next</link>()</code></para>
+              <para><code><link linkend="Sequence::next">Sequence::next</link>() returns int</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Atomically increments the counter and returns the last value.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Sequence::getCurrent">Sequence::getCurrent</link>()</code></para>
+              <para><code><link linkend="Sequence::getCurrent">Sequence::getCurrent</link>() returns int</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns the current value of the counter.</para></entry>
@@ -36682,35 +36709,37 @@ $mutex.unlock();</programlisting>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Gate::enter">Gate::enter</link>()</code></para>
+              <para><code><link linkend="Gate::enter">Gate::enter</link>() returns nothing</code></para>
+              <para><code><link linkend="Gate::enter">Gate::enter</link>(softint $timeout_ms) returns int</code></para>
+              <para><code><link linkend="Gate::enter">Gate::enter</link>(date $timeout) returns int</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Acquires the lock if it is unlocked or locked by the same thread, otherwise blocks until the lock counter reaches zero.</para></entry>
+	    <entry><para>Acquires the lock if it is unlocked or locked by the same thread, otherwise blocks until the lock counter reaches zero.  For variants taking a timeout; returns 0 if no timeout occurred, non-zero if a timeout occurred.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Gate::tryEnter">Gate::tryEnter</link>()</code></para>
+              <para><code><link linkend="Gate::tryEnter">Gate::tryEnter</link>() return int</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Acquires the lock if it is unlocked or locked by the same thread, otherwise returns immediately with -1.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Gate::exit">Gate::exit</link>()</code></para>
+              <para><code><link linkend="Gate::exit">Gate::exit</link>() returns int</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Decrements the lock counter; if it reaches zero then the lock is unlocked and any blocked threads are awoken.</para></entry>
+	    <entry><para>Decrements the lock counter; if it reaches zero then the lock is unlocked and any blocked threads are awoken; in this case 0 is returns; in all other cases, non-zero is returned.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Gate::numInside">Gate::numInside</link>()</code></para>
+              <para><code><link linkend="Gate::numInside">Gate::numInside</link>() returns int</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns the current lock count.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Gate::numWaiting">Gate::numWaiting</link>()</code></para>
+              <para><code><link linkend="Gate::numWaiting">Gate::numWaiting</link>() returns int</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns the number of threads blocked on the Gate.</para></entry>
@@ -37708,7 +37737,8 @@ $mutex.unlock();</programlisting>
 	<tbody>
 	  <row>
 	    <entry>
-              <para><code><link linkend="XmlDoc::constructor">XmlDoc::constructor</link>()</code></para>
+              <para><code><link linkend="XmlDoc::constructor">XmlDoc::constructor</link>(string $xml)</code></para>
+              <para><code><link linkend="XmlDoc::constructor">XmlDoc::constructor</link>(hash $data)</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Creates a new XmlDoc object from an XML string or a Qore hash.</para></entry>
@@ -37729,56 +37759,56 @@ $mutex.unlock();</programlisting>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="XmlDoc::evalXPath">XmlDoc::evalXPath</link>()</code></para>
+              <para><code><link linkend="XmlDoc::evalXPath">XmlDoc::evalXPath</link>(string $xpath) returns list</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Evaluates an <ulink url="http://www.w3.org/TR/xpath">XPath</ulink> expression and returns a list of matching <link linkend="XmlNode_Class">XmlNode</link> objects.</para></entry>
+	    <entry><para>Evaluates an <ulink url="http://www.w3.org/TR/xpath">XPath</ulink> expression and returns a list of matching <link linkend="XmlNode_Class">XmlNode</link> objects; an empty list is returned if there are no matches.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="XmlDoc::getRootElement">XmlDoc::getRootElement</link>()</code></para>
+              <para><code><link linkend="XmlDoc::getRootElement">XmlDoc::getRootElement</link>() returns any</code></para>
             </entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Returns an <link linkend="XmlNode_Class">XmlNode</link> object representing the root element of the document, if any exists.</para></entry>
+	    <entry><para>Returns an <link linkend="XmlNode_Class">XmlNode</link> object representing the root element of the document, if any exists, otherwise returns NOTHING.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="XmlDoc::getVersion">XmlDoc::getVersion</link>()</code></para>
+              <para><code><link linkend="XmlDoc::getVersion">XmlDoc::getVersion</link>() returns string</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns the XML version of the document (normally 1.0).</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="XmlDoc::toQore">XmlDoc::toQore</link>()</code></para>
+              <para><code><link linkend="XmlDoc::toQore">XmlDoc::toQore</link>() returns hash</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns a Qore hash corresponding to the XML data; multiple out-of-order keys are created in order in the returned hash by appending a suffix to the key names.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="XmlDoc::toQoreData">XmlDoc::toQoreData</link>()</code></para>
+              <para><code><link linkend="XmlDoc::toQoreData">XmlDoc::toQoreData</link>() returns hash</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns a Qore hash corresponding to the XML data; key order is not guaranteed to be maintained as multiple out-or-order keys are merged into the same Qore list.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="XmlDoc::toString">XmlDoc::toString</link>()</code></para>
+              <para><code><link linkend="XmlDoc::toString">XmlDoc::toString</link>() returns string</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns the XML string for the XML document.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="XmlDoc::validateRelaxNG">XmlDoc::validateRelaxNG</link>()</code></para>
+              <para><code><link linkend="XmlDoc::validateRelaxNG">XmlDoc::validateRelaxNG</link>(string $relaxng) returns nothing</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Validates the XML document against a <ulink url="http://www.relaxng.org/">RelaxNG</ulink> schema; if any errors occur, exceptions are thrown.  Not available if <code>HAVE_PARSEXMLWITHRELAXNG</code> is False.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="XmlDoc::validateSchema">XmlDoc::validateSchema</link>()</code></para>
+              <para><code><link linkend="XmlDoc::validateSchema">XmlDoc::validateSchema</link>(string $xsd) returns nothing</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Validates the XML document against an <ulink url="http://www.w3.org/XML/Schema">XSD</ulink> schema; if any errors occur, exceptions are thrown.  Not available if <code>HAVE_PARSEXMLWITHSCHEMA</code> is False.</para></entry>
@@ -38584,9 +38614,7 @@ $mutex.unlock();</programlisting>
         <tbody>
           <row>
             <entry>
-              <para>
-                <link linkend="XmlNode_constructor">XmlNode::constructor()</link>
-              </para>
+              <para><code><link linkend="XmlNode_constructor">XmlNode::constructor</link>()</code></para>
             </entry>
             <entry>
               <para>Y</para>
@@ -38597,9 +38625,7 @@ $mutex.unlock();</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="XmlNode_destructor">XmlNode::destructor()</link>
-              </para>
+              <para><code><link linkend="XmlNode_destructor">XmlNode::destructor</link>()</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -38610,9 +38636,7 @@ $mutex.unlock();</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="XmlNode_copy">XmlNode::copy()</link>
-              </para>
+              <para><code><link linkend="XmlNode_copy">XmlNode::copy</link>()</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -38623,9 +38647,7 @@ $mutex.unlock();</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="XmlNode_childElementCount">XmlNode::childElementCount()</link>
-              </para>
+              <para><code><link linkend="XmlNode_childElementCount">XmlNode::childElementCount</link>() returns int</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -38636,9 +38658,7 @@ $mutex.unlock();</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="XmlNode_getSpacePreserve">XmlNode::getSpacePreserve()</link>
-              </para>
+              <para><code><link linkend="XmlNode_getSpacePreserve">XmlNode::getSpacePreserve</link>() returns int</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -38649,48 +38669,35 @@ $mutex.unlock();</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="XmlNode_getElementType">XmlNode::getElementType()</link>
-              </para>
+              <para><code><link linkend="XmlNode_getElementType">XmlNode::getElementType</link>() returns int</code></para>
             </entry>
             <entry>
               <para>N</para>
             </entry>
-            <entry>
-              <para>Returns the type of the XmlNode object; for possible values see <link linkend="XML_Element_Type_Constants">XML Element Type Constants</link>.</para>
+            <entry><para>Returns the type of the XmlNode object; for possible values see <link linkend="XML_Element_Type_Constants">XML Element Type Constants</link>.</para>
             </entry>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="XmlNode_getElementTypeName">XmlNode::getElementTypeName()</link>
-              </para>
+              <para><code><link linkend="XmlNode_getElementTypeName">XmlNode::getElementTypeName</link>() returns any</code></para>
             </entry>
             <entry>
               <para>N</para>
             </entry>
-            <entry>
-              <para>Returns the name of the type of the XmlNode object; for possible values see the <link linkend="ElementTypeMap">ElementTypeMap</link> constant.</para>
-            </entry>
+            <entry><para>Returns the name of the type of the XmlNode object if possible, NOTHING if not; for possible values see the <link linkend="ElementTypeMap">ElementTypeMap</link> constant.</para></entry>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="XmlNode_firstElementChild">XmlNode::firstElementChild()</link>
-              </para>
+              <para><code><link linkend="XmlNode_firstElementChild">XmlNode::firstElementChild</link>() returns any</code></para>
             </entry>
             <entry>
               <para>N</para>
             </entry>
-            <entry>
-              <para>Returns an <link linkend="XmlNode_Class">XmlNode</link> object for the first child of the current XmlNode object that is an XML element, or NOTHING if there is none.</para>
-            </entry>
+            <entry><para>Returns an <link linkend="XmlNode_Class">XmlNode</link> object for the first child of the current XmlNode object that is an XML element, or NOTHING if there is none.</para></entry>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="XmlNode_getLastChild">XmlNode::getLastChild()</link>
-              </para>
+              <para><code><link linkend="XmlNode_getLastChild">XmlNode::getLastChild</link>() returns any</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -38701,9 +38708,7 @@ $mutex.unlock();</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="XmlNode_lastElementChild">XmlNode::lastElementChild()</link>
-              </para>
+              <para><code><link linkend="XmlNode_lastElementChild">XmlNode::lastElementChild</link>() returns any</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -38714,9 +38719,7 @@ $mutex.unlock();</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="XmlNode_nextElementSibling">XmlNode::nextElementSibling()</link>
-              </para>
+              <para><code><link linkend="XmlNode_nextElementSibling">XmlNode::nextElementSibling</link>() returns any</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -38727,9 +38730,7 @@ $mutex.unlock();</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="XmlNode_previousElementSibling">XmlNode::previousElementSibling()</link>
-              </para>
+              <para><code><link linkend="XmlNode_previousElementSibling">XmlNode::previousElementSibling</link>() returns any</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -38740,12 +38741,10 @@ $mutex.unlock();</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="XmlNode_getPath">XmlNode::getPath()</link>
-              </para>
+              <para><code><link linkend="XmlNode_getPath">XmlNode::getPath</link>() returns string</code></para>
             </entry>
             <entry>
-              <para>N</para>
+              <para>Y</para>
             </entry>
             <entry>
               <para>Returns a string representing a structured path for the current node.</para>
@@ -38753,61 +38752,51 @@ $mutex.unlock();</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="XmlNode_getNsProp">XmlNode::getNsProp()</link>
-              </para>
+              <para><code><link linkend="XmlNode_getNsProp">XmlNode::getNsProp</link>(string $prop, string $ns) returns any</code></para>
             </entry>
             <entry>
               <para>Y</para>
             </entry>
             <entry>
-              <para>Returns the value of the given property anchored in the given namespace, or NOTHING if no such property exists in the current XmlNode.</para>
+              <para>Returns the value of the given property anchored in the given namespace as a string, or NOTHING if no such property exists in the current XmlNode.</para>
             </entry>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="XmlNode_getProp">XmlNode::getProp()</link>
-              </para>
+              <para><code><link linkend="XmlNode_getProp">XmlNode::getProp</link>(string $prop) returns any</code></para>
             </entry>
             <entry>
               <para>Y</para>
             </entry>
             <entry>
-              <para>Returns the value of the given property, or NOTHING if no such property exists in the current XmlNode.</para>
+              <para>Returns the value of the given property as a string, or NOTHING if no such property exists in the current XmlNode.</para>
             </entry>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="XmlNode_getContent">XmlNode::getContent()</link>
-              </para>
+              <para><code><link linkend="XmlNode_getContent">XmlNode::getContent</link>() returns any</code></para>
             </entry>
             <entry>
               <para>N</para>
             </entry>
             <entry>
-              <para>Returns a string of the content of the current node.</para>
+              <para>Returns a string of the content of the current node or NOTHING if no content is available.</para>
             </entry>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="XmlNode_getName">XmlNode::getName()</link>
-              </para>
+              <para><code><link linkend="XmlNode_getName">XmlNode::getName</link>() returns any</code></para>
             </entry>
             <entry>
               <para>N</para>
             </entry>
             <entry>
-              <para>Returns the name of the current node.</para>
+              <para>Returns the name of the current node or NOTHING if no name is available.</para>
             </entry>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="XmlNode_getLang">XmlNode::getLang()</link>
-              </para>
+              <para><code><link linkend="XmlNode_getLang">XmlNode::getLang</link>() returns any</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -38818,9 +38807,7 @@ $mutex.unlock();</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="XmlNode_isText">XmlNode::isText()</link>
-              </para>
+              <para><code><link linkend="XmlNode_isText">XmlNode::isText</link>() returns bool</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -38831,9 +38818,7 @@ $mutex.unlock();</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="XmlNode_isBlank">XmlNode::isBlank()</link>
-              </para>
+              <para><code><link linkend="XmlNode_isBlank">XmlNode::isBlank</link>() returns bool</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -38844,15 +38829,13 @@ $mutex.unlock();</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="XmlNode_getXML">XmlNode::getXML()</link>
-              </para>
+              <para><code><link linkend="XmlNode_getXML">XmlNode::getXML</link>() returns any</code></para>
             </entry>
             <entry>
               <para>N</para>
             </entry>
             <entry>
-              <para>Returns XML corresponding to the current node and all its children.</para>
+              <para>Returns XML corresponding to the current node and all its children or NOTHING if no data is available.</para>
             </entry>
           </row>
         </tbody>
@@ -40554,9 +40537,8 @@ $mutex.unlock();</programlisting>
         <tbody>
           <row>
             <entry>
-              <para>
-                <link linkend="XmlReader_constructor">XmlReader::constructor()</link>
-              </para>
+              <para><code><link linkend="XmlReader_constructor">XmlReader::constructor</link>(<link linkend="XmlDoc_Class">XmlDoc</link> $doc)</code></para>
+              <para><code><link linkend="XmlReader_constructor">XmlReader::constructor</link>(string $xml)</code></para>
             </entry>
             <entry>
               <para>Y</para>
@@ -40567,9 +40549,7 @@ $mutex.unlock();</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="XmlReader_destructor">XmlReader::destructor()</link>
-              </para>
+              <para><code><link linkend="XmlReader_destructor">XmlReader::destructor</link>()</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -40580,9 +40560,7 @@ $mutex.unlock();</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="XmlReader_copy">XmlReader::copy()</link>
-              </para>
+              <para><code><link linkend="XmlReader_copy">XmlReader::copy</link>()</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -40593,9 +40571,7 @@ $mutex.unlock();</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="XmlReader_read">XmlReader::read()</link>
-              </para>
+              <para><code><link linkend="XmlReader_read">XmlReader::read</link>() returns bool</code></para>
             </entry>
             <entry>
               <para>Y</para>
@@ -40606,9 +40582,7 @@ $mutex.unlock();</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="XmlReader_readSkipWhitespace">XmlReader::readSkipWhitespace()</link>
-              </para>
+              <para><code><link linkend="XmlReader_readSkipWhitespace">XmlReader::readSkipWhitespace</link>() returns bool</code></para>
             </entry>
             <entry>
               <para>Y</para>
@@ -40619,9 +40593,7 @@ $mutex.unlock();</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="XmlReader_nodeType">XmlReader::nodeType()</link>
-              </para>
+              <para><code><link linkend="XmlReader_nodeType">XmlReader::nodeType</link>() returns int</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -40632,22 +40604,18 @@ $mutex.unlock();</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="XmlReader_nodeTypeName">XmlReader::nodeTypeName()</link>
-              </para>
+              <para><code><link linkend="XmlReader_nodeTypeName">XmlReader::nodeTypeName</link>() returns any</code></para>
             </entry>
             <entry>
               <para>N</para>
             </entry>
             <entry>
-              <para>Returns a string giving the node type of the current node; for possible return values, see the values of the <link linkend="NodeTypeMap">NodeTypeMap</link> constant.</para>
+              <para>Returns a string giving the node type of the current node or NOTHING if the node type name cannot be determined; for possible return values, see the values of the <link linkend="NodeTypeMap">NodeTypeMap</link> constant.</para>
             </entry>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="XmlReader_depth">XmlReader::depth()</link>
-              </para>
+              <para><code><link linkend="XmlReader_depth">XmlReader::depth</link>() returns int</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -40658,9 +40626,7 @@ $mutex.unlock();</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="XmlReader_name">XmlReader::name()</link>
-              </para>
+              <para><code><link linkend="XmlReader_name">XmlReader::name</link>() returns any</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -40671,9 +40637,7 @@ $mutex.unlock();</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="XmlReader_value">XmlReader::value()</link>
-              </para>
+              <para><code><link linkend="XmlReader_value">XmlReader::value</link>() returns any</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -40684,9 +40648,7 @@ $mutex.unlock();</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="XmlReader_hasAttributes">XmlReader::hasAttributes()</link>
-              </para>
+              <para><code><link linkend="XmlReader_hasAttributes">XmlReader::hasAttributes</link>() returns bool</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -40697,9 +40659,7 @@ $mutex.unlock();</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="XmlReader_hasValue">XmlReader::hasValue()</link>
-              </para>
+              <para><code><link linkend="XmlReader_hasValue">XmlReader::hasValue</link>() returns bool</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -40710,9 +40670,7 @@ $mutex.unlock();</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="XmlReader_isDefault">XmlReader::isDefault()</link>
-              </para>
+              <para><code><link linkend="XmlReader_isDefault">XmlReader::isDefault</link>() returns bool</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -40723,9 +40681,7 @@ $mutex.unlock();</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="XmlReader_isEmptyElement">XmlReader::isEmptyElement()</link>
-              </para>
+              <para><code><link linkend="XmlReader_isEmptyElement">XmlReader::isEmptyElement</link>() returns bool</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -40736,9 +40692,7 @@ $mutex.unlock();</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="XmlReader_isNamespaceDecl">XmlReader::isNamespaceDecl()</link>
-              </para>
+              <para><code><link linkend="XmlReader_isNamespaceDecl">XmlReader::isNamespaceDecl</link>() returns bool</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -40749,9 +40703,7 @@ $mutex.unlock();</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="XmlReader_isValid">XmlReader::isValid()</link>
-              </para>
+              <para><code><link linkend="XmlReader_isValid">XmlReader::isValid</link>() returns bool</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -40762,35 +40714,29 @@ $mutex.unlock();</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="XmlReader_toQore">XmlReader::toQore()</link>
-              </para>
+              <para><code><link linkend="XmlReader_toQore">XmlReader::toQore</link>() returns any</code></para>
             </entry>
             <entry>
               <para>Y</para>
             </entry>
             <entry>
-              <para>Returns a hash corresponding to the XML string from the current node position, including all its children.</para>
+              <para>Returns a hash corresponding to the XML string from the current node position, including all its children, or a string if the reader is on an element with no children, or NOTHING if there is no more data to read.</para>
             </entry>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="XmlReader_toQoreData">XmlReader::toQoreData()</link>
-              </para>
+              <para><code><link linkend="XmlReader_toQoreData">XmlReader::toQoreData</link>() returns any</code></para>
             </entry>
             <entry>
               <para>Y</para>
             </entry>
             <entry>
-              <para>Returns a hash corresponding to the XML string from the current node position, including all its children.</para>
+              <para>Returns a hash corresponding to the XML string from the current node position, including all its children, or a string if the reader is on an element with no children, or NOTHING if there is no more data to read.</para>
             </entry>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="XmlReader_attributeCount">XmlReader::attributeCount()</link>
-              </para>
+              <para><code><link linkend="XmlReader_attributeCount">XmlReader::attributeCount</link>() returns int</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -40801,9 +40747,7 @@ $mutex.unlock();</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="XmlReader_baseUri">XmlReader::baseUri()</link>
-              </para>
+              <para><code><link linkend="XmlReader_baseUri">XmlReader::baseUri</link>() returns any</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -40814,22 +40758,18 @@ $mutex.unlock();</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="XmlReader_encoding">XmlReader::encoding()</link>
-              </para>
+              <para><code><link linkend="XmlReader_encoding">XmlReader::encoding</link>() returns any</code></para>
             </entry>
             <entry>
               <para>N</para>
             </entry>
             <entry>
-              <para>Returns the encoding of the XML string</para>
+              <para>Returns the encoding string given in the XML string or NOTHING if none is given.</para>
             </entry>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="XmlReader_localName">XmlReader::localName()</link>
-              </para>
+              <para><code><link linkend="XmlReader_localName">XmlReader::localName</link>() returns any</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -40840,9 +40780,7 @@ $mutex.unlock();</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="XmlReader_namespaceUri">XmlReader::namespaceUri()</link>
-              </para>
+              <para><code><link linkend="XmlReader_namespaceUri">XmlReader::namespaceUri</link>() returns any</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -40853,9 +40791,7 @@ $mutex.unlock();</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="XmlReader_prefix">XmlReader::prefix()</link>
-              </para>
+              <para><code><link linkend="XmlReader_prefix">XmlReader::prefix</link>() returns any</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -40866,9 +40802,7 @@ $mutex.unlock();</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="XmlReader_xmlLang">XmlReader::xmlLang()</link>
-              </para>
+              <para><code><link linkend="XmlReader_xmlLang">XmlReader::xmlLang</link>() returns any</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -40879,9 +40813,7 @@ $mutex.unlock();</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="XmlReader_xmlVersion">XmlReader::xmlVersion()</link>
-              </para>
+              <para><code><link linkend="XmlReader_xmlVersion">XmlReader::xmlVersion</link>() returns any</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -40892,9 +40824,7 @@ $mutex.unlock();</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="XmlReader_getAttribute">XmlReader::getAttribute()</link>
-              </para>
+              <para><code><link linkend="XmlReader_getAttribute">XmlReader::getAttribute</link>(string $attr) returns any</code></para>
             </entry>
             <entry>
               <para>Y</para>
@@ -40905,9 +40835,7 @@ $mutex.unlock();</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="XmlReader_getAttributeNs">XmlReader::getAttributeNs()</link>
-              </para>
+              <para><code><link linkend="XmlReader_getAttributeNs">XmlReader::getAttributeNs</link>(string $attr, string $ns) returns any</code></para>
             </entry>
             <entry>
               <para>Y</para>
@@ -40918,35 +40846,30 @@ $mutex.unlock();</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="XmlReader_getAttributeOffset">XmlReader::getAttributeOffset()</link>
-              </para>
+              <para><code><link linkend="XmlReader_getAttributeOffset">XmlReader::getAttributeOffset</link>(softint $offset = 0) returns any</code></para>
             </entry>
             <entry>
               <para>N</para>
             </entry>
             <entry>
-              <para>Returns the value of the attribute with the specified index relative to the containing element, or NOTHING if no such attribute exists in the current XmlReader.</para>
+              <para>Returns the string value of the attribute with the specified index relative to the containing element, or NOTHING if no such attribute exists in the current XmlReader.</para>
             </entry>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="XmlReader_lookupNamespace">XmlReader::lookupNamespace()</link>
-              </para>
+              <para><code><link linkend="XmlReader_lookupNamespace">XmlReader::lookupNamespace</link>() returns any</code></para>
+              <para><code><link linkend="XmlReader_lookupNamespace">XmlReader::lookupNamespace</link>(string $ns) returns any</code></para>
             </entry>
             <entry>
               <para>N</para>
             </entry>
             <entry>
-              <para>returns the namespace corresponding to the given prefix in the scope of the current element.</para>
+              <para>Returns the namespace corresponding to the given prefix in the scope of the current element as a string or NOTHING if none is found.  Called with no argument this function returns the default namespace.</para>
             </entry>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="XmlReader_moveToAttribute">XmlReader::moveToAttribute()</link>
-              </para>
+              <para><code><link linkend="XmlReader_moveToAttribute">XmlReader::moveToAttribute</link>(string $attr) returns bool</code></para>
             </entry>
             <entry>
               <para>Y</para>
@@ -40957,9 +40880,7 @@ $mutex.unlock();</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="XmlReader_moveToAttributeNs">XmlReader::moveToAttributeNs()</link>
-              </para>
+              <para><code><link linkend="XmlReader_moveToAttributeNs">XmlReader::moveToAttributeNs</link>(string $attr, string $ns) returns bool</code></para>
             </entry>
             <entry>
               <para>Y</para>
@@ -40970,9 +40891,7 @@ $mutex.unlock();</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="XmlReader_moveToAttributeOffset">XmlReader::moveToAttributeOffset()</link>
-              </para>
+              <para><code><link linkend="XmlReader_moveToAttributeOffset">XmlReader::moveToAttributeOffset</link>(int $offset) returns bool</code></para>
             </entry>
             <entry>
               <para>Y</para>
@@ -40983,9 +40902,7 @@ $mutex.unlock();</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="XmlReader_moveToElement">XmlReader::moveToElement()</link>
-              </para>
+              <para><code><link linkend="XmlReader_moveToElement">XmlReader::moveToElement</link>() returns bool</code></para>
             </entry>
             <entry>
               <para>Y</para>
@@ -40996,9 +40913,7 @@ $mutex.unlock();</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="XmlReader_moveToFirstAttribute">XmlReader::moveToFirstAttribute()</link>
-              </para>
+              <para><code><link linkend="XmlReader_moveToFirstAttribute">XmlReader::moveToFirstAttribute</link>() returns bool</code></para>
             </entry>
             <entry>
               <para>Y</para>
@@ -41009,9 +40924,7 @@ $mutex.unlock();</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="XmlReader_moveToNextAttribute">XmlReader::moveToNextAttribute()</link>
-              </para>
+              <para><code><link linkend="XmlReader_moveToNextAttribute">XmlReader::moveToNextAttribute</link>() returns bool</code></para>
             </entry>
             <entry>
               <para>Y</para>
@@ -41022,9 +40935,7 @@ $mutex.unlock();</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="XmlReader_next">XmlReader::next()</link>
-              </para>
+              <para><code><link linkend="XmlReader_next">XmlReader::next</link>() returns bool</code></para>
             </entry>
             <entry>
               <para>Y</para>
@@ -41035,9 +40946,7 @@ $mutex.unlock();</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="XmlReader_getInnerXml">XmlReader::getInnerXml()</link>
-              </para>
+              <para><code><link linkend="XmlReader_getInnerXml">XmlReader::getInnerXml</link>() returns any</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -41048,9 +40957,7 @@ $mutex.unlock();</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="XmlReader_getOuterXml">XmlReader::getOuterXml()</link>
-              </para>
+              <para><code><link linkend="XmlReader_getOuterXml">XmlReader::getOuterXml</link>() returns any</code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -41061,9 +40968,7 @@ $mutex.unlock();</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="XmlReader_relaxNGValidate">XmlReader::relaxNGValidate()</link>
-              </para>
+              <para><code><link linkend="XmlReader_relaxNGValidate">XmlReader::relaxNGValidate</link>(string $relaxng) returns nothing</code></para>
             </entry>
             <entry>
               <para>Y</para>
@@ -41074,9 +40979,7 @@ $mutex.unlock();</programlisting>
           </row>
           <row>
             <entry>
-              <para>
-                <link linkend="XmlReader_schemaValidate">XmlReader::schemaValidate()</link>
-              </para>
+              <para><code><link linkend="XmlReader_schemaValidate">XmlReader::schemaValidate</link>(string $xsd) returns nothing</code></para>
             </entry>
             <entry>
               <para>Y</para>

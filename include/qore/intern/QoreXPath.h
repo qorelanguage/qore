@@ -45,13 +45,12 @@ public:
       return ptr;
    }
    DLLLOCAL QoreListNode *getNodeList(QoreXmlDocData *doc) {
-      if (!ptr->nodesetval || !ptr->nodesetval->nodeNr)
-	 return 0;
+      QoreListNode *l = new QoreListNode;
 
-      QoreListNode *l = new QoreListNode();
-      for (int i = 0, e = ptr->nodesetval->nodeNr; i < e; ++i) {
-	 l->push(new QoreObject(QC_XMLNODE, getProgram(), new QoreXmlNodeData(ptr->nodesetval->nodeTab[i], doc)));
-      }
+      if (ptr->nodesetval && ptr->nodesetval->nodeNr)
+         for (int i = 0, e = ptr->nodesetval->nodeNr; i < e; ++i)
+            l->push(new QoreObject(QC_XMLNODE, getProgram(), new QoreXmlNodeData(ptr->nodesetval->nodeTab[i], doc)));
+
       return l;
    }
 };

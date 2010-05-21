@@ -207,11 +207,17 @@ QoreClass *initXmlDocClass() {
    QC_XMLDOC->setCopy((q_copy_t)XMLDOC_copy);
 
    QC_XMLDOC->addMethodExtended("getVersion",      (q_method_t)XMLDOC_getVersion, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringTypeInfo);
-   QC_XMLDOC->addMethodExtended("toQore",          (q_method_t)XMLDOC_toQore, false, QC_RET_VALUE_ONLY);
-   QC_XMLDOC->addMethodExtended("toQoreData",      (q_method_t)XMLDOC_toQoreData, false, QC_RET_VALUE_ONLY);
+
+   QC_XMLDOC->addMethodExtended("toQore",          (q_method_t)XMLDOC_toQore, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, hashTypeInfo);
+
+   QC_XMLDOC->addMethodExtended("toQoreData",      (q_method_t)XMLDOC_toQoreData, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, hashTypeInfo);
+
    QC_XMLDOC->addMethodExtended("toString",        (q_method_t)XMLDOC_toString, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringTypeInfo);
    QC_XMLDOC->addMethodExtended("evalXPath",       (q_method_t)XMLDOC_evalXPath, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, listTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
-   QC_XMLDOC->addMethodExtended("getRootElement",  (q_method_t)XMLDOC_getRootElement, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, QC_XMLNODE->getTypeInfo());
+
+   // XmlDoc::getRootElement() returns XmlNode|nothing
+   QC_XMLDOC->addMethodExtended("getRootElement",  (q_method_t)XMLDOC_getRootElement, false, QC_RET_VALUE_ONLY);
+
    QC_XMLDOC->addMethodExtended("validateRelaxNG", (q_method_t)XMLDOC_validateRelaxNG, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
    QC_XMLDOC->addMethodExtended("validateSchema",  (q_method_t)XMLDOC_validateSchema, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 

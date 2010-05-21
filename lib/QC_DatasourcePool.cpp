@@ -176,11 +176,13 @@ static void DSP_copy(QoreObject *self, QoreObject *old, DatasourcePool *ods, Exc
 }
 
 static AbstractQoreNode *DSP_commit(QoreObject *self, DatasourcePool *ds, const QoreListNode *params, ExceptionSink *xsink) {
-   return new QoreBigIntNode(ds->commit(xsink));
+   ds->commit(xsink);
+   return 0;
 }
 
 static AbstractQoreNode *DSP_rollback(QoreObject *self, DatasourcePool *ds, const QoreListNode *params, ExceptionSink *xsink) {
-   return new QoreBigIntNode(ds->rollback(xsink));
+   ds->rollback(xsink);
+   return 0;
 }
 
 static AbstractQoreNode *DSP_exec(QoreObject *self, DatasourcePool *ds, const QoreListNode *params, ExceptionSink *xsink) {
@@ -313,42 +315,42 @@ class QoreClass *initDatasourcePoolClass()
    QC_DATASOURCEPOOL->setDestructor((q_destructor_t)DSP_destructor);
    QC_DATASOURCEPOOL->setCopy((q_copy_t)DSP_copy);
 
-   QC_DATASOURCEPOOL->addMethodExtended("commit",            (q_method_t)DSP_commit, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
-   QC_DATASOURCEPOOL->addMethodExtended("rollback",          (q_method_t)DSP_rollback, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_DATASOURCEPOOL->addMethodExtended("commit",            (q_method_t)DSP_commit, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
+   QC_DATASOURCEPOOL->addMethodExtended("rollback",          (q_method_t)DSP_rollback, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
 
-   QC_DATASOURCEPOOL->addMethodExtended("exec",              (q_method_t)class_noop, false, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   QC_DATASOURCEPOOL->addMethodExtended("exec",              (q_method_t)class_noop, false, QC_RUNTIME_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    QC_DATASOURCEPOOL->addMethodExtended("exec",              (q_method_t)DSP_exec, false, QC_USES_EXTRA_ARGS, QDOM_DEFAULT, anyTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   QC_DATASOURCEPOOL->addMethodExtended("vexec",             (q_method_t)class_noop, false, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   QC_DATASOURCEPOOL->addMethodExtended("vexec",             (q_method_t)class_noop, false, QC_RUNTIME_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    QC_DATASOURCEPOOL->addMethodExtended("vexec",             (q_method_t)DSP_vexec, false, QC_NO_FLAGS, QDOM_DEFAULT, anyTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
    QC_DATASOURCEPOOL->addMethodExtended("vexec",             (q_method_t)DSP_vexec, false, QC_NO_FLAGS, QDOM_DEFAULT, anyTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, listTypeInfo, QORE_PARAM_NO_ARG);
 
    QC_DATASOURCEPOOL->addMethodExtended("execRaw",           (q_method_t)DSP_execRaw, false, QC_NO_FLAGS, QDOM_DEFAULT, anyTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    // should normally return a hash, but unfortunately the internal API does not enforce this
-   QC_DATASOURCEPOOL->addMethodExtended("select",            (q_method_t)class_noop, false, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   QC_DATASOURCEPOOL->addMethodExtended("select",            (q_method_t)class_noop, false, QC_RUNTIME_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    QC_DATASOURCEPOOL->addMethodExtended("select",            (q_method_t)DSP_select, false, QC_USES_EXTRA_ARGS, QDOM_DEFAULT, anyTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    // should normally return a hash, but unfortunately the internal API does not enforce this
-   QC_DATASOURCEPOOL->addMethodExtended("selectRow",         (q_method_t)class_noop, false, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   QC_DATASOURCEPOOL->addMethodExtended("selectRow",         (q_method_t)class_noop, false, QC_RUNTIME_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    QC_DATASOURCEPOOL->addMethodExtended("selectRow",         (q_method_t)DSP_selectRow, false, QC_USES_EXTRA_ARGS, QDOM_DEFAULT, anyTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    // should normally return a list, but unfortunately the internal API does not enforce this
-   QC_DATASOURCEPOOL->addMethodExtended("selectRows",        (q_method_t)class_noop, false, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   QC_DATASOURCEPOOL->addMethodExtended("selectRows",        (q_method_t)class_noop, false, QC_RUNTIME_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    QC_DATASOURCEPOOL->addMethodExtended("selectRows",        (q_method_t)DSP_selectRows, false, QC_USES_EXTRA_ARGS, QDOM_DEFAULT, anyTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    // should normally return a hash, but unfortunately the internal API does not enforce this
-   QC_DATASOURCEPOOL->addMethodExtended("vselect",           (q_method_t)class_noop, false, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   QC_DATASOURCEPOOL->addMethodExtended("vselect",           (q_method_t)class_noop, false, QC_RUNTIME_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    QC_DATASOURCEPOOL->addMethodExtended("vselect",           (q_method_t)DSP_vselect, false, QC_NO_FLAGS, QDOM_DEFAULT, anyTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
    QC_DATASOURCEPOOL->addMethodExtended("vselect",           (q_method_t)DSP_vselect, false, QC_NO_FLAGS, QDOM_DEFAULT, anyTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, listTypeInfo, QORE_PARAM_NO_ARG);
 
    // should normally return a hash, but unfortunately the internal API does not enforce this
-   QC_DATASOURCEPOOL->addMethodExtended("vselectRow",        (q_method_t)class_noop, false, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   QC_DATASOURCEPOOL->addMethodExtended("vselectRow",        (q_method_t)class_noop, false, QC_RUNTIME_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    QC_DATASOURCEPOOL->addMethodExtended("vselectRow",        (q_method_t)DSP_vselectRow, false, QC_NO_FLAGS, QDOM_DEFAULT, anyTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
    QC_DATASOURCEPOOL->addMethodExtended("vselectRow",        (q_method_t)DSP_vselectRow, false, QC_NO_FLAGS, QDOM_DEFAULT, anyTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, listTypeInfo, QORE_PARAM_NO_ARG);
 
    // should normally return a list, but unfortunately the internal API does not enforce this
-   QC_DATASOURCEPOOL->addMethodExtended("vselectRows",       (q_method_t)class_noop, false, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   QC_DATASOURCEPOOL->addMethodExtended("vselectRows",       (q_method_t)class_noop, false, QC_RUNTIME_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    QC_DATASOURCEPOOL->addMethodExtended("vselectRows",       (q_method_t)DSP_vselectRows, false, QC_NO_FLAGS, QDOM_DEFAULT, anyTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
    QC_DATASOURCEPOOL->addMethodExtended("vselectRows",       (q_method_t)DSP_vselectRows, false, QC_NO_FLAGS, QDOM_DEFAULT, anyTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, listTypeInfo, QORE_PARAM_NO_ARG);
 

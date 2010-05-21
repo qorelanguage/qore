@@ -40,19 +40,23 @@ static void GATE_copy(QoreObject *self, QoreObject *old, QoreGate *g, ExceptionS
 }
 
 static AbstractQoreNode *GATE_enter_to(QoreObject *self, QoreGate *g, const QoreListNode *params, ExceptionSink *xsink) {
-   return new QoreBigIntNode(g->grab(xsink, getMsZeroInt(get_param(params, 0))));
+   int rc = g->grab(xsink, getMsZeroInt(get_param(params, 0)));
+   return *xsink ? 0 : new QoreBigIntNode(rc);
 }
 
 static AbstractQoreNode *GATE_enter(QoreObject *self, QoreGate *g, const QoreListNode *params, ExceptionSink *xsink) {
-   return new QoreBigIntNode(g->grab(xsink));
+   g->grab(xsink);
+   return 0;
 }
 
 static AbstractQoreNode *GATE_exit(QoreObject *self, QoreGate *g, const QoreListNode *params, ExceptionSink *xsink) {
-   return new QoreBigIntNode(g->release(xsink));
+   int rc = g->release(xsink);
+   return *xsink ? 0 : new QoreBigIntNode(rc);
 }
 
 static AbstractQoreNode *GATE_tryEnter(QoreObject *self, QoreGate *g, const QoreListNode *params, ExceptionSink *xsink) {
-   return new QoreBigIntNode(g->tryGrab());
+   int rc = g->tryGrab();
+   return *xsink ? 0 : new QoreBigIntNode(rc);
 }
 
 static AbstractQoreNode *GATE_numInside(QoreObject *self, QoreGate *g, const QoreListNode *params, ExceptionSink *xsink) {
@@ -73,7 +77,7 @@ QoreClass *initGateClass() {
    QC_GATE->setDestructor((q_destructor_t)GATE_destructor);
    QC_GATE->setCopy((q_copy_t)GATE_copy);
 
-   QC_GATE->addMethodExtended("enter",         (q_method_t)GATE_enter, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_GATE->addMethodExtended("enter",         (q_method_t)GATE_enter, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
    QC_GATE->addMethodExtended("enter",         (q_method_t)GATE_enter_to, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
    QC_GATE->addMethodExtended("enter",         (q_method_t)GATE_enter_to, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
 
@@ -92,7 +96,7 @@ QoreClass *initRMutexClass() {
    QC_RMUTEX->setDestructor((q_destructor_t)GATE_destructor);
    QC_RMUTEX->setCopy((q_copy_t)GATE_copy);
 
-   QC_RMUTEX->addMethodExtended("enter",         (q_method_t)GATE_enter, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_RMUTEX->addMethodExtended("enter",         (q_method_t)GATE_enter, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
    QC_RMUTEX->addMethodExtended("enter",         (q_method_t)GATE_enter_to, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
    QC_RMUTEX->addMethodExtended("enter",         (q_method_t)GATE_enter_to, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
 

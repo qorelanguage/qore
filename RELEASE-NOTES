@@ -246,12 +246,12 @@ hash: (8 members)
 
 Only "min" and "max" options are now currently used - when the DatasourcePool(hash) constructor is used are these options respected if they are present in the hash.
 
-* new Datasource method:
+* new Datasource constructor variant:
 Datasource::constructor(hash)
 
 expects a hash as produced by parseDatasource()
 
-* new DatasourcePool method:
+* new DatasourcePool constructor variant:
 DatasourcePool::constructor(hash)
 
 expects a hash as produced by parseDatasource()
@@ -281,9 +281,9 @@ before calling this method without an argument would turn off TCP_NODELAY, which
 * COMPATIBILITY WARNING: Socket::setNoDelay(bool $b = True)
 before calling this method without an argument would turn off TCP_NODELAY, which was counter-intuitive
 
-* COMPATIBILITY WARNING: Datasource methods updated
-Datasource::open(), Datasource::close(), Datasource::commit(), Datasource::rollback()
-no longer return any value.  In previous versions they would return integer 0.  However, they always throw an exception if there is an error, so any return value is meaningless.
+* COMPATIBILITY WARNING: method return values updated
+Datasource::open(), Datasource::close(), Datasource::commit(), Datasource::rollback(), DatasourcePool::commit(), DatasourcePool::rollback()
+no longer return any value.  In previous versions they would return integer 0.  However, they always throw an exception if there is an error, so any return value was meaningless.
 
 
 ***********************

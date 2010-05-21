@@ -371,7 +371,7 @@ public:
    }
 #endif
 
-   DLLLOCAL AbstractQoreNode *parseXMLData(const QoreEncoding *data_ccsid, bool as_data, ExceptionSink *xsink);
+   DLLLOCAL QoreHashNode *parseXMLData(const QoreEncoding *data_ccsid, bool as_data, ExceptionSink *xsink);
 };
 
 #endif

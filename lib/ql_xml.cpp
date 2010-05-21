@@ -1652,7 +1652,7 @@ static int doEmptyValue(XmlRpcValue *v, const char *name, int depth, ExceptionSi
    return 0;
 }
 
-AbstractQoreNode *QoreXmlReader::parseXMLData(const QoreEncoding *data_ccsid, bool as_data, ExceptionSink *xsink) {
+QoreHashNode *QoreXmlReader::parseXMLData(const QoreEncoding *data_ccsid, bool as_data, ExceptionSink *xsink) {
    if (read(xsink) != 1)
       return 0;
 
@@ -1663,8 +1663,9 @@ AbstractQoreNode *QoreXmlReader::parseXMLData(const QoreEncoding *data_ccsid, bo
 	 xsink->raiseExceptionArg("PARSE-XML-EXCEPTION", xml ? new QoreStringNode(*xml) : 0, "parse error parsing XML string");
       return 0;
    }
+   assert(rv->getType() == NT_HASH);
 
-   return rv;
+   return reinterpret_cast<QoreHashNode *>(rv);
 }
 
 int QoreXmlRpcReader::getArray(XmlRpcValue *v, const QoreEncoding *data_ccsid, ExceptionSink *xsink) {

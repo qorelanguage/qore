@@ -58,11 +58,9 @@ struct qore_counter_private {
 	    cnt++;
       }
 
-      DLLLOCAL void dec(ExceptionSink *xsink)
-      {
+      DLLLOCAL void dec(ExceptionSink *xsink) {
 	 AutoLocker al(&l);
-	 if (cnt == Cond_Deleted)
-	 {
+	 if (cnt == Cond_Deleted) {
 	    xsink->raiseException("COUNTER-ERROR", "Counter has been deleted in another thread");
 	    return;
 	 }
@@ -70,28 +68,26 @@ struct qore_counter_private {
 	    cond.broadcast();
       }
 
-      DLLLOCAL int waitForZero(ExceptionSink *xsink, int timeout_ms)
-      {
+      DLLLOCAL int waitForZero(ExceptionSink *xsink, int timeout_ms) {
 	 // NOTE that we do not do a while(true) { cond.wait(); } because any broadcast means that the
 	 // counter hit zero, so even it it's bigger than zero by the time we are allowed to execute, it's ok
 	 // --- synchronization must be done externally
+	 int rc = 0;
 	 SafeLocker sl(&l);
 	 ++waiting;
-	 while (cnt && cnt != Cond_Deleted)
-	 {
+	 while (cnt && cnt != Cond_Deleted) {
 	    if (!timeout_ms)
 	       cond.wait(&l);
 	    else
-	       if (cond.wait(&l, timeout_ms))
+	       if ((rc = cond.wait(&l, timeout_ms)))
 		  break;
 	 }
 	 --waiting;
-	 if (cnt == Cond_Deleted)
-	 {
+	 if (cnt == Cond_Deleted) {
 	    xsink->raiseException("COUNTER-ERROR", "Counter was deleted in another thread while waiting");
 	    return -1;
 	 }
-	 return 0;
+	 return rc;
       }
 
       DLLLOCAL void waitForZero()
