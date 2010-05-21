@@ -17,6 +17,8 @@ DOCBOOK_ROOT := $(shell ./get-docbook-root.sh)
 #       /usr/share/sgml/docbook/xsl-stylesheets/xhtml           # fedora  
 all: monolithic chunked
 
+mono: monolithic
+
 monolithic: docbook/*docbook
 	xsltproc --stringparam html.stylesheet qore-style.css \
 	         --stringparam use.id.as.filename 1 \

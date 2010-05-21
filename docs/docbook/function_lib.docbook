@@ -597,7 +597,7 @@
       </row>
       <row>
         <entry>
-          <para><code><link linkend="des_ede_encrypt_cbc">des_ede_encrypt_cbc</link>(<link linkend="data_type">data</link>, <link linkend="data_type">data</link>, <link linkend="data_type">data</link> = defaultIV) returns <link linkend="binary_type">binary</link></code></para>
+          <para><code><link linkend="des_ede_encrypt_cbc">des_ede_encrypt_cbc</link>(<link linkend="data_type">data</link>, <link linkend="data_type">data</link>, <link linkend="data_type">data</link> = defaultIV) <command>returns</command> <link linkend="binary_type">binary</link></code></para>
         </entry>
         <entry>
           <para>Y</para>
@@ -630,7 +630,7 @@
       </row>
       <row>
         <entry>
-          <para><code><link linkend="des_ede3_encrypt_cbc">des_ede3_encrypt_cbc</link>(<link linkend="data_type">data</link>, <link linkend="data_type">data</link>, <link linkend="data_type">data</link> = defaultIV) returns <link linkend="binary_type">binary</link></code></para>
+          <para><code><link linkend="des_ede3_encrypt_cbc">des_ede3_encrypt_cbc</link>(<link linkend="data_type">data</link>, <link linkend="data_type">data</link>, <link linkend="data_type">data</link> = defaultIV) <command>returns</command> <link linkend="binary_type">binary</link></code></para>
         </entry>
         <entry>
           <para>Y</para>
@@ -663,7 +663,7 @@
       </row>
       <row>
         <entry>
-          <para><code><link linkend="desx_encrypt_cbc">desx_encrypt_cbc</link>(<link linkend="data_type">data</link>, <link linkend="data_type">data</link>, <link linkend="data_type">data</link> = defaultIV) returns <link linkend="binary_type">binary</link></code></para>
+          <para><code><link linkend="desx_encrypt_cbc">desx_encrypt_cbc</link>(<link linkend="data_type">data</link>, <link linkend="data_type">data</link>, <link linkend="data_type">data</link> = defaultIV) <command>returns</command> <link linkend="binary_type">binary</link></code></para>
         </entry>
         <entry>
           <para>Y</para>
@@ -1711,7 +1711,7 @@
         </row>
       <row>
         <entry>
-          <para><code><link linkend="is_bdev">is_bdev</link>(<link linkend="string_type">string</link>) returns <link linkend="bool_type">bool</link></code> (<link linkend="CONST_flag">CONST</link>)</para>
+          <para><code><link linkend="is_bdev">is_bdev</link>(<link linkend="string_type">string</link>) <command>returns</command> <link linkend="bool_type">bool</link></code> (<link linkend="CONST_flag">CONST</link>)</para>
         </entry>
         <entry>
           <para>N</para>
@@ -2749,7 +2749,7 @@
       </row>
       <row>
         <entry>
-          <para><code><link linkend="rc5_encrypt_cbc">rc5_encrypt_cbc</link>(<link linkend="data_type">data</link>, <link linkend="data_type">data</link>, <link linkend="data_type">data</link> = defaultIV) returns <link linkend="binary_type">binary</link></code></para>
+          <para><code><link linkend="rc5_encrypt_cbc">rc5_encrypt_cbc</link>(<link linkend="data_type">data</link>, <link linkend="data_type">data</link>, <link linkend="data_type">data</link> = defaultIV) <command>returns</command> <link linkend="binary_type">binary</link></code></para>
         </entry>
         <entry>
           <para>Y</para>
@@ -12255,7 +12255,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Prototype</term>
         <listitem>
-          <para><code><link linkend="des_ede_encrypt_cbc">des_ede_encrypt_cbc</link>(<link linkend="data_type">data</link> <replaceable>$data</replaceable>, <link linkend="data_type">data</link> <replaceable>$key</replaceable>, <link linkend="data_type">data</link> <replaceable>$iv</replaceable> = defaultIV) returns <link linkend="binary_type">binary</link></code></para>
+          <para><code><link linkend="des_ede_encrypt_cbc">des_ede_encrypt_cbc</link>(<link linkend="data_type">data</link> <replaceable>$data</replaceable>, <link linkend="data_type">data</link> <replaceable>$key</replaceable>, <link linkend="data_type">data</link> <replaceable>$iv</replaceable> = defaultIV) <command>returns</command> <link linkend="binary_type">binary</link></code></para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -12514,7 +12514,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Prototype</term>
         <listitem>
-          <para><code><link linkend="des_ede3_encrypt_cbc">des_ede3_encrypt_cbc</link>(<link linkend="data_type">data</link> <replaceable>$data</replaceable>, <link linkend="data_type">data</link> <replaceable>$key</replaceable>, <link linkend="data_type">data</link> <replaceable>$iv</replaceable> = defaultIV) returns <link linkend="binary_type">binary</link></code></para>
+          <para><code><link linkend="des_ede3_encrypt_cbc">des_ede3_encrypt_cbc</link>(<link linkend="data_type">data</link> <replaceable>$data</replaceable>, <link linkend="data_type">data</link> <replaceable>$key</replaceable>, <link linkend="data_type">data</link> <replaceable>$iv</replaceable> = defaultIV) <command>returns</command> <link linkend="binary_type">binary</link></code></para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -12777,7 +12777,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Prototype</term>
         <listitem>
-          <para><code><link linkend="desx_encrypt_cbc">desx_encrypt_cbc</link>(<link linkend="data_type">data</link> <replaceable>$data</replaceable>, <link linkend="data_type">data</link> <replaceable>$key</replaceable>, <link linkend="data_type">data</link> <replaceable>$iv</replaceable> = defaultIV) returns <link linkend="binary_type">binary</link></code></para>
+          <para><code><link linkend="desx_encrypt_cbc">desx_encrypt_cbc</link>(<link linkend="data_type">data</link> <replaceable>$data</replaceable>, <link linkend="data_type">data</link> <replaceable>$key</replaceable>, <link linkend="data_type">data</link> <replaceable>$iv</replaceable> = defaultIV) <command>returns</command> <link linkend="binary_type">binary</link></code></para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -12864,7 +12864,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Prototype</term>
         <listitem>
-	  <para><code><link linkend="desx_decrypt_cbc">desx_decrypt_cbc</link>(<link linkend="binary_type">binary</link> <replaceable>$encrypted_data</replaceable>, <link linkend="data_type">data</link> <replaceable>$key</replaceable>, <link linkend="data_type">data</link> <replaceable>$iv</replaceable> = defaultIV) returns <link linkend="binary_type">binary</link></code></para>
+	  <para><code><link linkend="desx_decrypt_cbc">desx_decrypt_cbc</link>(<link linkend="binary_type">binary</link> <replaceable>$encrypted_data</replaceable>, <link linkend="data_type">data</link> <replaceable>$key</replaceable>, <link linkend="data_type">data</link> <replaceable>$iv</replaceable> = defaultIV) <command>returns</command> <link linkend="binary_type">binary</link></code></para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -13829,7 +13829,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Prototype</term>
         <listitem>
-          <para><code><link linkend="rc5_encrypt_cbc">rc5_encrypt_cbc</link>(<link linkend="data_type">data</link> <replaceable>$data</replaceable>, <link linkend="data_type">data</link> <replaceable>$key</replaceable>, <link linkend="data_type">data</link> <replaceable>$iv</replaceable> = defaultIV) returns <link linkend="binary_type">binary</link></code></para>
+          <para><code><link linkend="rc5_encrypt_cbc">rc5_encrypt_cbc</link>(<link linkend="data_type">data</link> <replaceable>$data</replaceable>, <link linkend="data_type">data</link> <replaceable>$key</replaceable>, <link linkend="data_type">data</link> <replaceable>$iv</replaceable> = defaultIV) <command>returns</command> <link linkend="binary_type">binary</link></code></para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -16755,7 +16755,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Prototype</term>
         <listitem>
-          <para><code><link linkend="is_bdev">is_bdev</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>) returns <link linkend="bool_type">bool</link></code> (<link linkend="CONST_flag">CONST</link>)</para>
+          <para><code><link linkend="is_bdev">is_bdev</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>) <command>returns</command> <link linkend="bool_type">bool</link></code> (<link linkend="CONST_flag">CONST</link>)</para>
         </listitem>
       </varlistentry>
       <varlistentry>
