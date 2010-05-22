@@ -765,7 +765,7 @@ raised from the <link linkend="FtpClient_Class">FtpClient</link> class.</para></
 	  </row>
 	  <row id="AF_UNIX">
 	    <entry><para><code>AF_UNIX</code></para></entry>
-	    <entry><para>Designates a local socket file name (interchangeable with <code>AF_LOCAL</code>.</para></entry>
+	    <entry><para>Designates a local socket file name (interchangeable with <code>AF_LOCAL</code>).</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><code>AF_LOCAL</code></para></entry>
@@ -1360,7 +1360,7 @@ raised from the <link linkend="FtpClient_Class">FtpClient</link> class.</para></
           </row>
           <row>
             <entry><para><code>SIGSYS</code></para></entry>
-            <entry><para>Bad arugment to a system call.</para></entry>
+            <entry><para>Bad argument to a system call.</para></entry>
           </row>
           <row>
             <entry><para><code>SIGPIPE</code></para></entry>
@@ -2420,26 +2420,6 @@ raised from the <link linkend="FtpClient_Class">FtpClient</link> class.</para></
       </variablelist>
 
       <table>
-	<title>Arguments for File::close()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
 	<title>Return Value for File::close()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
@@ -2586,7 +2566,7 @@ raised from the <link linkend="FtpClient_Class">FtpClient</link> class.</para></
 	    </row>
 	    <row>
 	      <entry><para><code><link linkend="any_type">any</link> <replaceable>$args</replaceable></code></para></entry>
-	      <entry><para>This single argument or list of arguments will be used as the argument list or the format string.  If a single arugment is passed instead of a list, it will be used as the first argument as if a list were passed.</para></entry>
+	      <entry><para>This single argument or list of arguments will be used as the argument list or the format string.  If a single argument is passed instead of a list, it will be used as the first argument as if a list were passed.</para></entry>
 	    </row>
 
 	  </tbody>
@@ -2654,26 +2634,6 @@ raised from the <link linkend="FtpClient_Class">FtpClient</link> class.</para></
       </variablelist>
 
       <table>
-	<title>Arguments for File::getchar()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-
-	  <tbody>
-	    <row>
-	      <entry><para>n/a<replaceable></replaceable></para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
 	<title>Return Value for File::getchar()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
@@ -2717,26 +2677,6 @@ raised from the <link linkend="FtpClient_Class">FtpClient</link> class.</para></
       </variablelist>
 
       <table>
-	<title>Arguments for File::getCharset()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
 	<title>Return Value for File::getCharset()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
@@ -2762,7 +2702,7 @@ raised from the <link linkend="FtpClient_Class">FtpClient</link> class.</para></
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Returns a hash of lock information for the file.  The hash contains the following keys: <code>start, len, pid, type, whence</code>.  If no lock is set on the file, the key type has the value <code>F_UNLCK</code>.</para>
+	    <para>Returns a hash of lock information for the file.  The hash contains the following keys: <code>start, len, pid, type, whence</code>.  If no lock is set on the file, the key type has the value <code><link linkend="F_UNLCK">F_UNLCK</link></code>.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -2780,24 +2720,6 @@ raised from the <link linkend="FtpClient_Class">FtpClient</link> class.</para></
       </variablelist>
 
       <table>
-	<title>Arguments for File::getLockInfo()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
 	<title>Return Value for File::getLockInfo()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
@@ -2809,7 +2731,7 @@ raised from the <link linkend="FtpClient_Class">FtpClient</link> class.</para></
 	  <tbody>
 	    <row>
 	      <entry><para><code><link linkend="hash_type">hash</link></code></para></entry>
-	      <entry><para>The hash contains the following keys: <code>start, len, pid, type, whence</code>.  If no lock is set on the file, the key type has the value <code>F_UNLCK</code>.</para></entry>
+	      <entry><para>The hash contains the following keys: <code>start, len, pid, type, whence</code>.  If no lock is set on the file, the key type has the value <code><link linkend="F_UNLCK">F_UNLCK</link></code>.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -2858,26 +2780,6 @@ raised from the <link linkend="FtpClient_Class">FtpClient</link> class.</para></
 	  </listitem>
 	</varlistentry>
       </variablelist>
-
-      <table>
-	<title>Arguments for File::getPos()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-
-	  </tbody>
-	</tgroup>
-      </table>
 
       <table>
 	<title>Return Value for File::getPos()</title>
@@ -3030,7 +2932,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	    </row>
 	    <row>
 	      <entry><para>n/a</para></entry>
-	      <entry><para>If no timeout is given, the method assumes a timeout of zero and returns immediately..</para></entry>
+	      <entry><para>If no timeout is given, the method assumes a timeout of zero and returns immediately.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -4568,28 +4470,6 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
       </variablelist>
 
       <table>
-	<title>Arguments for File::readLine()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
 	<title>Return Value for File::readLine()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
@@ -4941,7 +4821,7 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 	    </row>
 	    <row>
 	      <entry><para><code><link linkend="any_type">any</link> <replaceable>$args</replaceable></code></para></entry>
-	      <entry><para>This single argument or list of arguments will be used as the argument list or the format string.  If a single arugment is passed instead of a list, it will be used as the first argument as if a list were passed.</para></entry>
+	      <entry><para>This single argument or list of arguments will be used as the argument list or the format string.  If a single argument is passed instead of a list, it will be used as the first argument as if a list were passed.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -6031,26 +5911,6 @@ if($d.chdir("../doc")) {
       </variablelist>
 
       <table>
-	<title>Arguments for Dir::path()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
 	<title>Return Value for Dir::path()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
@@ -6098,26 +5958,6 @@ if(!$d.exists()) {
 	  </listitem>
 	</varlistentry>
       </variablelist>
-
-      <table>
-	<title>Arguments for Dir::exists()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
 
       <table>
 	<title>Return Value for Dir::exists()</title>
@@ -7542,25 +7382,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for TermIOS::getLFlag()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry><para>Argument</para></entry>
-              <entry><para>Type</para></entry>
-              <entry><para>Description</para></entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry><para>n/a</para></entry>
-              <entry><para>n/a</para></entry>
-              <entry><para>This method takes no arguments.</para></entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
+
       <table>
         <title>Return Values for TermIOS::getLFlag()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -7596,37 +7418,6 @@ stdin.getTerminalAttributes($termios);</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for TermIOS::getCFlag()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
       <table>
         <title>Return Values for TermIOS::getCFlag()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -7670,37 +7461,6 @@ stdin.getTerminalAttributes($termios);</programlisting>
         </varlistentry>
       </variablelist>
       <table>
-        <title>Arguments for TermIOS::getIFlag()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
-      <table>
         <title>Return Values for TermIOS::getIFlag()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
           <thead>
@@ -7742,37 +7502,6 @@ stdin.getTerminalAttributes($termios);</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for TermIOS::getOFlag()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
       <table>
         <title>Return Values for TermIOS::getOFlag()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -8379,25 +8108,6 @@ stdin.getTerminalAttributes($termios);</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for TermIOS::getWindowSize()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry><para>Argument</para></entry>
-              <entry><para>Type</para></entry>
-              <entry><para>Description</para></entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry><para>n/a</para></entry>
-              <entry><para>n/a</para></entry>
-              <entry><para>This method takes no arguments.</para></entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
       <table>
         <title>Return Values for TermIOS::getWindowSize()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -9575,37 +9285,6 @@ stdin.getTerminalAttributes($termios);</programlisting>
         </varlistentry>
       </variablelist>
       <table>
-        <title>Arguments for FtpClient::setInsecure()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
-      <table>
         <title>Return Values for FtpClient::setInsecure()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
           <thead>
@@ -9680,37 +9359,6 @@ stdin.getTerminalAttributes($termios);</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for FtpClient::setInsecureData()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
       <table>
         <title>Return Values for FtpClient::setInsecureData()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -9787,37 +9435,6 @@ stdin.getTerminalAttributes($termios);</programlisting>
         </varlistentry>
       </variablelist>
       <table>
-        <title>Arguments for FtpClient::isSecure()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
-      <table>
         <title>Return Values for FtpClient::isSecure()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
           <thead>
@@ -9865,37 +9482,6 @@ stdin.getTerminalAttributes($termios);</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for FtpClient::isDataSecure()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
       <table>
         <title>Return Values for FtpClient::isDataSecure()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -9945,37 +9531,6 @@ stdin.getTerminalAttributes($termios);</programlisting>
         </varlistentry>
       </variablelist>
       <table>
-        <title>Arguments for FtpClient::getSSLCipherName()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
-      <table>
         <title>Return Values for FtpClient::getSSLCipherName()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
           <thead>
@@ -10023,37 +9578,6 @@ stdin.getTerminalAttributes($termios);</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for FtpClient::getSSLCipherVersion()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
       <table>
         <title>Return Values for FtpClient::getSSLCipherVersion()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -10103,37 +9627,6 @@ stdin.getTerminalAttributes($termios);</programlisting>
         </varlistentry>
       </variablelist>
       <table>
-        <title>Arguments for FtpClient::verifyPeerCertificate()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
-      <table>
         <title>Return Values for FtpClient::verifyPeerCertificate()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
           <thead>
@@ -10181,37 +9674,6 @@ stdin.getTerminalAttributes($termios);</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for FtpClient::setModeAuto()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
       <table>
         <title>Return Values for FtpClient::setModeAuto()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -10261,37 +9723,6 @@ stdin.getTerminalAttributes($termios);</programlisting>
         </varlistentry>
       </variablelist>
       <table>
-        <title>Arguments for FtpClient::setModeEPSV()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
-      <table>
         <title>Return Values for FtpClient::setModeEPSV()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
           <thead>
@@ -10340,37 +9771,6 @@ stdin.getTerminalAttributes($termios);</programlisting>
         </varlistentry>
       </variablelist>
       <table>
-        <title>Arguments for FtpClient::setModePASV()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
-      <table>
         <title>Return Values for FtpClient::setModePASV()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
           <thead>
@@ -10418,37 +9818,6 @@ stdin.getTerminalAttributes($termios);</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for FtpClient::setModePORT()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
       <table>
         <title>Return Values for FtpClient::setModePORT()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -11770,26 +11139,6 @@ stdin.getTerminalAttributes($termios);</programlisting>
       </variablelist>
 
       <table>
-	<title>Arguments for FtpClient::getUserName()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
 	<title>Return Values for FtpClient::getUserName()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
@@ -11830,26 +11179,6 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
-
-      <table>
-	<title>Arguments for FtpClient::getPassword()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
 
       <table>
 	<title>Return Values for FtpClient::getPassword()</title>
@@ -11894,26 +11223,6 @@ stdin.getTerminalAttributes($termios);</programlisting>
       </variablelist>
 
       <table>
-	<title>Arguments for FtpClient::getHostName()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
 	<title>Return Values for FtpClient::getHostName()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
@@ -11956,26 +11265,6 @@ stdin.getTerminalAttributes($termios);</programlisting>
       </variablelist>
 
       <table>
-	<title>Arguments for FtpClient::getPort()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
 	<title>Return Values for FtpClient::getPort()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
@@ -12016,26 +11305,6 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
-
-      <table>
-	<title>Arguments for FtpClient::getURL()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
 
       <table>
 	<title>Return Values for FtpClient::getURL()</title>
@@ -13141,26 +12410,6 @@ $pgm.disableParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
       </variablelist>
 
       <table>
-	<title>Arguments for Program::getParseOptions()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
 	<title>Return Values for Program::getParseOptions()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
@@ -13201,26 +12450,6 @@ $pgm.disableParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
-
-      <table>
-	<title>Arguments for Program::getScriptDir()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
 
       <table>
 	<title>Return Values for Program::getScriptDir()</title>
@@ -13268,26 +12497,6 @@ $pgm.disableParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
       </variablelist>
 
       <table>
-	<title>Arguments for Program::getScriptName()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
 	<title>Return Values for Program::getScriptName()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
@@ -13333,26 +12542,6 @@ $pgm.disableParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
       </variablelist>
 
       <table>
-	<title>Arguments for Program::getScriptPath()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
 	<title>Return Values for Program::getScriptPath()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
@@ -13396,26 +12585,6 @@ $pgm.disableParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
-
-      <table>
-	<title>Arguments for Program::getUserFunctionList()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
 
       <table>
 	<title>Return Values for Program::getUserFunctionList()</title>
@@ -13638,26 +12807,6 @@ $pgm.disableParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
       </variablelist>
 
       <table>
-	<title>Arguments for Program::lockParseOptions()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
 	<title>Return Values for Program::lockOptions()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
@@ -13808,7 +12957,7 @@ $pgm.disableParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
 	    <row>
 	      <entry><para><code><replaceable>[warning_mask]</replaceable></code></para></entry>
 	      <entry><para><code><link linkend="int_type">int</link></code></para></entry>
-	      <entry><para>An optional warning mask of bitwise-ORed <link linkend="Warning_Constants">warning values</link>; if this option is non-zero and any warnings are raised during parsing, then a hash is returned of warning information..</para></entry>
+	      <entry><para>An optional warning mask of bitwise-ORed <link linkend="Warning_Constants">warning values</link>; if this option is non-zero and any warnings are raised during parsing, then a hash is returned of warning information.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -13966,26 +13115,6 @@ $pgm.disableParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
       </variablelist>
 
       <table>
-	<title>Arguments for Program::parseRollback()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
 	<title>Return Values for Program::parseRollback()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
@@ -14026,26 +13155,6 @@ $pgm.disableParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
-
-      <table>
-	<title>Arguments for Program::run()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
 
       <table>
 	<title>Return Values for Program::run()</title>
@@ -14817,26 +13926,6 @@ $pgm.setParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
       </variablelist>
 
       <table>
-	<title>Arguments for Socket::constructor()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
 	<title>Return Values for Socket::constructor()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
@@ -15024,26 +14113,6 @@ $sock.bind("/tmp/socket");</programlisting>
       </variablelist>
 
       <table>
-	<title>Arguments for Socket::accept()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
 	<title>Return Values for Socket::accept()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
@@ -15106,37 +14175,7 @@ $sock.bind("/tmp/socket");</programlisting>
           <listitem><para><code><link linkend="event_start_ssl">EVENT_START_SSL</link>, <link linkend="event_ssl_established">EVENT_SSL_ESTABLISHED</link></code></para></listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for Socket::acceptSSL()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
+
       <table>
         <title>Return Values for Socket::acceptSSL()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -15435,26 +14474,6 @@ $sock.bind("/tmp/socket");</programlisting>
       </variablelist>
 
       <table>
-	<title>Arguments for Socket::listen()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
 	<title>Return Values for Socket::listen()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
@@ -15513,37 +14532,6 @@ $sock.bind("/tmp/socket");</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for Socket::shutdownSSL()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
       <table>
         <title>Return Values for Socket::shutdownSSL()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -15619,37 +14607,7 @@ $sock.bind("/tmp/socket");</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for Socket::getSSLCipherName()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
+
       <table>
         <title>Return Values for Socket::getSSLCipherName()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -15698,37 +14656,7 @@ $sock.bind("/tmp/socket");</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for Socket::getSSLCipherVersion()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
+
       <table>
         <title>Return Values for Socket::getSSLCipherVersion()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -15777,37 +14705,7 @@ $sock.bind("/tmp/socket");</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for Socket::isSecure()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
+
       <table>
         <title>Return Values for Socket::isSecure()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -15856,37 +14754,7 @@ $sock.bind("/tmp/socket");</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for Socket::isOpen()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
+
       <table>
         <title>Return Values for Socket::isOpen()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -16097,37 +14965,7 @@ $sock.bind("/tmp/socket");</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for Socket::verifyPeerCertificate()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
+
       <table>
         <title>Return Values for Socket::verifyPeerCertificate()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -18720,26 +17558,6 @@ $sock.bind("/tmp/socket");</programlisting>
       </variablelist>
 
       <table>
-	<title>Arguments for Socket::getPort()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
 	<title>Return Values for Socket::getPort()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
@@ -18780,26 +17598,6 @@ $sock.bind("/tmp/socket");</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
-
-      <table>
-	<title>Arguments for Socket::shutdown()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
 
       <table>
 	<title>Return Values for Socket::shutdown()</title>
@@ -18848,26 +17646,6 @@ $sock.bind("/tmp/socket");</programlisting>
       </variablelist>
 
       <table>
-	<title>Arguments for Socket::close()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
 	<title>Return Values for Socket::close()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
@@ -18909,28 +17687,6 @@ $sock.bind("/tmp/socket");</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
-
-      <table>
-	<title>Arguments for Socket::getCharset()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-
-	  </tbody>
-	</tgroup>
-      </table>
 
       <table>
 	<title>Return Value for Socket::getCharset()</title>
@@ -19041,28 +17797,6 @@ $sock.bind("/tmp/socket");</programlisting>
       </variablelist>
 
       <table>
-	<title>Arguments for Socket::getNoDelay()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
 	<title>Return Value for Socket::getNoDelay()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
@@ -19171,26 +17905,6 @@ $sock.bind("/tmp/socket");</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
-
-      <table>
-	<title>Arguments for Socket::getSocket()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
 
       <table>
 	<title>Return Values for Socket::getSocket()</title>
@@ -19956,27 +18670,9 @@ $sock.bind("/tmp/socket");</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
+
       <table>
-        <title>Arguments for HTTPClient::getURL()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry><para>Argument</para></entry>
-              <entry><para>Type</para></entry>
-              <entry><para>Description</para></entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry><para>n/a</para></entry>
-              <entry><para>n/a</para></entry>
-              <entry><para>This method takes no arguments.</para></entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
-      <table>
-        <title>Return Values for HTTPClient::get()</title>
+        <title>Return Values for HTTPClient::getURL()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
           <thead>
             <row>
@@ -20097,25 +18793,7 @@ $sock.bind("/tmp/socket");</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for HTTPClient::getProxyURL()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry><para>Argument</para></entry>
-              <entry><para>Type</para></entry>
-              <entry><para>Description</para></entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry><para>n/a</para></entry>
-              <entry><para>n/a</para></entry>
-              <entry><para>This method takes no arguments.</para></entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
+
       <table>
         <title>Return Values for HTTPClient::getProxyURL()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -20242,25 +18920,7 @@ $sock.bind("/tmp/socket");</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for HTTPClient::clearProxyURL()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry><para>Argument</para></entry>
-              <entry><para>Type</para></entry>
-              <entry><para>Description</para></entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry><para>n/a</para></entry>
-              <entry><para>n/a</para></entry>
-              <entry><para>This method takes no arguments.</para></entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
+
       <table>
         <title>Return Values for HTTPClient::clearProxyURL()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -20362,25 +19022,7 @@ $sock.bind("/tmp/socket");</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for HTTPClient::isProxySecure()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry><para>Argument</para></entry>
-              <entry><para>Type</para></entry>
-              <entry><para>Description</para></entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry><para>n/a</para></entry>
-              <entry><para>n/a</para></entry>
-              <entry><para>This method takes no arguments.</para></entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
+
       <table>
         <title>Return Values for HTTPClient::isProxySecure()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -20422,25 +19064,7 @@ $sock.bind("/tmp/socket");</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for HTTPClient::getMaxRedirects()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry><para>Argument</para></entry>
-              <entry><para>Type</para></entry>
-              <entry><para>Description</para></entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry><para>n/a</para></entry>
-              <entry><para>n/a</para></entry>
-              <entry><para>This method takes no arguments.</para></entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
+
       <table>
         <title>Return Values for HTTPClient::getMaxRedirects()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -20547,37 +19171,7 @@ $sock.bind("/tmp/socket");</programlisting>
           <listitem><para><code><link linkend="event_connecting">EVENT_CONNECTING</link>, <link linkend="event_connected">EVENT_CONNECTED</link>,<link linkend="event_hostname_lookup">EVENT_HOSTNAME_LOOKUP</link>, <link linkend="event_hostname_resolved">EVENT_HOSTNAME_RESOLVED</link>, <link linkend="event_start_ssl">EVENT_START_SSL</link>, <link linkend="event_ssl_established">EVENT_SSL_ESTABLISHED</link></code></para></listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for HTTPClient::connect()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
+
       <table>
         <title>Return Values for HTTPClient::connect()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -20655,37 +19249,6 @@ $sock.bind("/tmp/socket");</programlisting>
           <listitem><para><code><link linkend="event_channel_closed">EVENT_CHANNEL_CLOSED</link></code></para></listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for HTTPClient::disconnect()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
       <table>
         <title>Return Values for HTTPClient::disconnect()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -21499,37 +20062,6 @@ $sock.bind("/tmp/socket");</programlisting>
         </varlistentry>
       </variablelist>
       <table>
-        <title>Arguments for HTTPClient::getConnectTimeout()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
-      <table>
         <title>Return Values for HTTPClient::getConnectTimeout()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
           <thead>
@@ -21578,37 +20110,6 @@ $sock.bind("/tmp/socket");</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for HTTPClient::getTimeout()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
       <table>
         <title>Return Values for HTTPClient::getTimeout()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -21766,37 +20267,6 @@ $sock.bind("/tmp/socket");</programlisting>
         </varlistentry>
       </variablelist>
       <table>
-        <title>Arguments for HTTPClient::getHTTPVersion()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
-      <table>
         <title>Return Values for HTTPClient::getHTTPVersion()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
           <thead>
@@ -21933,37 +20403,6 @@ $sock.bind("/tmp/socket");</programlisting>
         </varlistentry>
       </variablelist>
       <table>
-        <title>Arguments for HTTPClient::isSecure()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
-      <table>
         <title>Return Values for HTTPClient::isSecure()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
           <thead>
@@ -22011,37 +20450,6 @@ $sock.bind("/tmp/socket");</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for HTTPClient::verifyPeerCertificate()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
       <table>
         <title>Return Values for HTTPClient::verifyPeerCertificate()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -22091,37 +20499,6 @@ $sock.bind("/tmp/socket");</programlisting>
         </varlistentry>
       </variablelist>
       <table>
-        <title>Arguments for HTTPClient::getSSLCipherName()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
-      <table>
         <title>Return Values for HTTPClient::getSSLCipherName()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
           <thead>
@@ -22169,37 +20546,6 @@ $sock.bind("/tmp/socket");</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for HTTPClient::getSSLCipherVersion()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
       <table>
         <title>Return Values for HTTPClient::getSSLCipherVersion()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -22357,37 +20703,6 @@ $sock.bind("/tmp/socket");</programlisting>
         </varlistentry>
       </variablelist>
       <table>
-        <title>Arguments for HTTPClient::getEncoding()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
-      <table>
         <title>Return Values for HTTPClient::getEncoding()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
           <thead>
@@ -22497,28 +20812,6 @@ $sock.bind("/tmp/socket");</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
-
-      <table>
-	<title>Arguments for HTTPClient::getNoDelay()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-
-	  </tbody>
-	</tgroup>
-      </table>
 
       <table>
 	<title>Return Value for HTTPClient::getNoDelay()</title>
@@ -22631,28 +20924,6 @@ $sock.bind("/tmp/socket");</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
-
-      <table>
-	<title>Arguments for HTTPClient::isConnected()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-
-	  </tbody>
-	</tgroup>
-      </table>
 
       <table>
 	<title>Return Value for HTTPClient::isConnected()</title>
@@ -24345,37 +22616,7 @@ $sock.bind("/tmp/socket");</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for SSLPrivateKey::getType()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
+
       <table>
         <title>Return Values for SSLPrivateKey::getType()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -24425,37 +22666,6 @@ $sock.bind("/tmp/socket");</programlisting>
         </varlistentry>
       </variablelist>
       <table>
-        <title>Arguments for SSLPrivateKey::getVersion()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
-      <table>
         <title>Return Values for SSLPrivateKey::getVersion()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
           <thead>
@@ -24503,37 +22713,7 @@ $sock.bind("/tmp/socket");</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for SSLPrivateKey::getBitLength()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
+
       <table>
         <title>Return Values for SSLPrivateKey::getBitLength()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -24582,37 +22762,7 @@ $sock.bind("/tmp/socket");</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for SSLPrivateKey::getInfo()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
+
       <table>
         <title>Return Values for SSLPrivateKey::getInfo()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -25028,37 +23178,7 @@ $sock.bind("/tmp/socket");</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for SSLCertificate::getPEM()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
+
       <table>
         <title>Return Values for SSLCertificate::getPEM()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -25107,37 +23227,7 @@ $sock.bind("/tmp/socket");</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for SSLCertificate::getVersion()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
+
       <table>
         <title>Return Values for SSLCertificate::getVersion()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -25186,37 +23276,7 @@ $sock.bind("/tmp/socket");</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for SSLCertificate::getSignatureType()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
+
       <table>
         <title>Return Values for SSLCertificate::getSignatureType()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -25265,37 +23325,7 @@ $sock.bind("/tmp/socket");</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for SSLCertificate::getSignature()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
+
       <table>
         <title>Return Values for SSLCertificate::getSignature()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -25344,37 +23374,7 @@ $sock.bind("/tmp/socket");</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for SSLCertificate::getPublicKeyAlgorithm()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
+
       <table>
         <title>Return Values for SSLCertificate::getPublicKeyAlgorithm()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -25423,37 +23423,7 @@ $sock.bind("/tmp/socket");</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for SSLCertificate::getPublicKey()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
+
       <table>
         <title>Return Values for SSLCertificate::getPublicKey()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -25502,37 +23472,7 @@ $sock.bind("/tmp/socket");</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for SSLCertificate::getSubjectHash()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
+
       <table>
         <title>Return Values for SSLCertificate::getSubjectHash()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -25582,37 +23522,6 @@ $sock.bind("/tmp/socket");</programlisting>
         </varlistentry>
       </variablelist>
       <table>
-        <title>Arguments for SSLCertificate::getIssuerHash()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
-      <table>
         <title>Return Values for SSLCertificate::getIssuerHash()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
           <thead>
@@ -25660,37 +23569,7 @@ $sock.bind("/tmp/socket");</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for SSLCertificate::getSerialNumber()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
+
       <table>
         <title>Return Values for SSLCertificate::getSerialNumber()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -25740,37 +23619,6 @@ $sock.bind("/tmp/socket");</programlisting>
         </varlistentry>
       </variablelist>
       <table>
-        <title>Arguments for SSLCertificate::getPurposeHash()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
-      <table>
         <title>Return Values for SSLCertificate::getPurposeHash()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
           <thead>
@@ -25818,37 +23666,6 @@ $sock.bind("/tmp/socket");</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for SSLCertificate::getNotBeforeDate()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
       <table>
         <title>Return Values for SSLCertificate::getNotBeforeDate()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -25898,37 +23715,6 @@ $sock.bind("/tmp/socket");</programlisting>
         </varlistentry>
       </variablelist>
       <table>
-        <title>Arguments for SSLCertificate::getNotAfterDate()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
-      <table>
         <title>Return Values for SSLCertificate::getNotAfterDate()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
           <thead>
@@ -25976,37 +23762,6 @@ $sock.bind("/tmp/socket");</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for SSLCertificate::getInfo()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
       <table>
         <title>Return Values for SSLCertificate::getInfo()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -26700,26 +24455,6 @@ $sock.bind("/tmp/socket");</programlisting>
       </variablelist>
 
       <table>
-	<title>Arguments for Datasource::beginTransaction()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
 	<title>Return Values for Datasource::beginTransaction()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
@@ -26785,26 +24520,6 @@ $sock.bind("/tmp/socket");</programlisting>
       </variablelist>
 
       <table>
-	<title>Arguments for Datasource::open()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
 	<title>Return Values for Datasource::open()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
@@ -26866,26 +24581,6 @@ $sock.bind("/tmp/socket");</programlisting>
       </variablelist>
 
       <table>
-	<title>Arguments for Datasource::close()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
 	<title>Return Values for Datasource::close()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
@@ -26928,26 +24623,6 @@ $sock.bind("/tmp/socket");</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
-
-      <table>
-	<title>Arguments for Datasource::commit()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
 
       <table>
 	<title>Return Values for Datasource::commit()</title>
@@ -27013,26 +24688,6 @@ $sock.bind("/tmp/socket");</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
-
-      <table>
-	<title>Arguments for Datasource::rollback()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
 
       <table>
 	<title>Return Values for Datasource::rollback()</title>
@@ -28014,26 +25669,6 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
       </variablelist>
 
       <table>
-	<title>Arguments for Datasource::getTransactionLockTimeout()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
 	<title>Return Values for Datasource::getTransactionLockTimeout()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
@@ -28139,26 +25774,6 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	  </listitem>
 	</varlistentry>
       </variablelist>
-
-      <table>
-	<title>Arguments for Datasource::getUserName()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
 
       <table>
 	<title>Return Values for Datasource::getUserName()</title>
@@ -28268,26 +25883,6 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
       </variablelist>
 
       <table>
-	<title>Arguments for Datasource::getPassword()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
 	<title>Return Values for Datasource::getPassword()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
@@ -28393,26 +25988,6 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	  </listitem>
 	</varlistentry>
       </variablelist>
-
-      <table>
-	<title>Arguments for Datasource::getDBName()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
 
       <table>
 	<title>Return Values for Datasource::getDBName()</title>
@@ -28648,26 +26223,6 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
       </variablelist>
 
       <table>
-	<title>Arguments for Datasource::getDBCharset()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
 	<title>Return Values for Datasource::getDBCharset()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
@@ -28709,26 +26264,6 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	  </listitem>
 	</varlistentry>
       </variablelist>
-
-      <table>
-	<title>Arguments for Datasource::getOSCharset()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
 
       <table>
 	<title>Return Values for Datasource::getOSCharset()</title>
@@ -28774,26 +26309,6 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
       </variablelist>
 
       <table>
-	<title>Arguments for Datasource::getHostName()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
 	<title>Return Values for Datasource::getHostName()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
@@ -28835,26 +26350,6 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	  </listitem>
 	</varlistentry>
       </variablelist>
-
-      <table>
-	<title>Arguments for Datasource::getPort()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
 
       <table>
 	<title>Return Values for Datasource::getPort()</title>
@@ -28900,26 +26395,6 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
       </variablelist>
 
       <table>
-	<title>Arguments for Datasource::getDriverName()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
 	<title>Return Values for Datasource::getDriverName()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
@@ -28963,26 +26438,6 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
       </variablelist>
 
       <table>
-	<title>Arguments for Datasource::getServerVersion()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
 	<title>Return Values for Datasource::getServerVersion()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
@@ -29024,26 +26479,6 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	  </listitem>
 	</varlistentry>
       </variablelist>
-
-      <table>
-	<title>Arguments for Datasource::getClientVersion()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
 
       <table>
 	<title>Return Values for Datasource::getClientVersion()</title>
@@ -29508,26 +26943,6 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
       </variablelist>
 
       <table>
-	<title>Arguments for DatasourcePool::beginTransaction()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
 	<title>Return Values for DatasourcePool::beginTransaction()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
@@ -29569,26 +26984,6 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	  </listitem>
 	</varlistentry>
       </variablelist>
-
-      <table>
-	<title>Arguments for DatasourcePool::commit()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
 
       <table>
 	<title>Return Values for DatasourcePool::commit()</title>
@@ -29650,26 +27045,6 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	  </listitem>
 	</varlistentry>
       </variablelist>
-
-      <table>
-	<title>Arguments for DatasourcePool::rollback()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
 
       <table>
 	<title>Return Values for DatasourcePool::rollback()</title>
@@ -30512,26 +27887,6 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
       </variablelist>
 
       <table>
-	<title>Arguments for DatasourcePool::getUserName()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
 	<title>Return Values for DatasourcePool::getUserName()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
@@ -30575,26 +27930,6 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
 	  </listitem>
 	</varlistentry>
       </variablelist>
-
-      <table>
-	<title>Arguments for DatasourcePool::getPassword()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
 
       <table>
 	<title>Return Values for DatasourcePool::getPassword()</title>
@@ -30642,26 +27977,6 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
       </variablelist>
 
       <table>
-	<title>Arguments for DatasourcePool::getDBName()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
 	<title>Return Values for DatasourcePool::getDBName()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
@@ -30703,26 +28018,6 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
 	  </listitem>
 	</varlistentry>
       </variablelist>
-
-      <table>
-	<title>Arguments for DatasourcePool::getDBCharset()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
 
       <table>
 	<title>Return Values for DatasourcePool::getDBCharset()</title>
@@ -30768,26 +28063,6 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
       </variablelist>
 
       <table>
-	<title>Arguments for DatasourcePool::getOSCharset()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
 	<title>Return Values for DatasourcePool::getOSCharset()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
@@ -30829,26 +28104,6 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
 	  </listitem>
 	</varlistentry>
       </variablelist>
-
-      <table>
-	<title>Arguments for DatasourcePool::getHostName()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
 
       <table>
 	<title>Return Values for DatasourcePool::getHostName()</title>
@@ -30894,26 +28149,6 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
       </variablelist>
 
       <table>
-	<title>Arguments for DatasourcePool::getPort()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
 	<title>Return Values for DatasourcePool::getPort()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
@@ -30955,26 +28190,6 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
 	  </listitem>
 	</varlistentry>
       </variablelist>
-
-      <table>
-	<title>Arguments for DatasourcePool::getDriverName()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
 
       <table>
 	<title>Return Values for DatasourcePool::getDriverName()</title>
@@ -31020,26 +28235,6 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
       </variablelist>
 
       <table>
-	<title>Arguments for DatasourcePool::getServerVersion()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
 	<title>Return Values for DatasourcePool::getServerVersion()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
@@ -31081,26 +28276,6 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
 	  </listitem>
 	</varlistentry>
       </variablelist>
-
-      <table>
-	<title>Arguments for DatasourcePool::getClientVersion()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
 
       <table>
 	<title>Return Values for DatasourcePool::getClientVersion()</title>
@@ -31932,26 +29107,6 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
       </variablelist>
 
       <table>
-	<title>Arguments for Condition::constructor()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
 	<title>Return Values for Condition::constructor()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
@@ -32035,26 +29190,6 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
       </variablelist>
 
       <table>
-	<title>Arguments for Condition::signal()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
 	<title>Return Values for Condition::signal()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
@@ -32114,26 +29249,6 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
 	  </listitem>
 	</varlistentry>
       </variablelist>
-
-      <table>
-	<title>Arguments for Condition::broadcast()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
 
       <table>
 	<title>Return Values for Condition::broadcast()</title>
@@ -32286,26 +29401,6 @@ $mutex.unlock();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
-
-      <table>
-	<title>Arguments for Condition::wait_count()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
 
       <table>
 	<title>Return Values for Condition::wait_count()</title>
@@ -32555,26 +29650,6 @@ $mutex.unlock();</programlisting>
       </variablelist>
 
       <table>
-	<title>Arguments for Counter::inc()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
 	<title>Return Values for Counter::inc()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
@@ -32616,26 +29691,6 @@ $mutex.unlock();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
-
-      <table>
-	<title>Arguments for Counter::dec()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
 
       <table>
 	<title>Return Values for Counter::dec()</title>
@@ -32781,26 +29836,6 @@ $mutex.unlock();</programlisting>
       </variablelist>
 
       <table>
-	<title>Arguments for Counter::getCount()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
 	<title>Return Values for Counter::getCount()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
@@ -32842,26 +29877,6 @@ $mutex.unlock();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
-
-      <table>
-	<title>Arguments for Counter::getWaiting()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
 
       <table>
 	<title>Return Values for Counter::getWaiting()</title>
@@ -32989,26 +30004,6 @@ $mutex.unlock();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
-
-      <table>
-	<title>Arguments for Queue::constructor()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
 
       <table>
 	<title>Return Values for Queue::constructor()</title>
@@ -33346,26 +30341,6 @@ $mutex.unlock();</programlisting>
       </variablelist>
 
       <table>
-	<title>Arguments for Queue::size()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
 	<title>Return Values for Queue::size()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
@@ -33407,26 +30382,6 @@ $mutex.unlock();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
-
-      <table>
-	<title>Arguments for Queue::getWaiting()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
 
       <table>
 	<title>Return Values for Queue::getWaiting()</title>
@@ -33601,26 +30556,6 @@ $mutex.unlock();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
-
-      <table>
-	<title>Arguments for RWLock::constructor()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
 
       <table>
 	<title>Return Values for RWLock::constructor()</title>
@@ -33810,26 +30745,6 @@ $mutex.unlock();</programlisting>
       </variablelist>
 
       <table>
-	<title>Arguments for RWLock::readUnlock()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
 	<title>Return Values for RWLock::readUnlock()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
@@ -33977,26 +30892,6 @@ $mutex.unlock();</programlisting>
       </variablelist>
 
       <table>
-	<title>Arguments for RWLock::writeUnlock()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
 	<title>Return Values for RWLock::writeUnlock()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
@@ -34058,26 +30953,6 @@ $mutex.unlock();</programlisting>
       </variablelist>
 
       <table>
-	<title>Arguments for RWLock::writeUnlock()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
 	<title>Return Values for RWLock::writeUnlock()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
@@ -34119,26 +30994,6 @@ $mutex.unlock();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
-
-      <table>
-	<title>Arguments for RWLock::tryWriteLock()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
 
       <table>
 	<title>Return Values for RWLock::tryWriteLock()</title>
@@ -34184,26 +31039,6 @@ $mutex.unlock();</programlisting>
       </variablelist>
 
       <table>
-	<title>Arguments for RWLock::numReaders()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
 	<title>Return Values for RWLock::numReaders()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
@@ -34247,26 +31082,6 @@ $mutex.unlock();</programlisting>
       </variablelist>
 
       <table>
-	<title>Arguments for RWLock::getReadWaiting()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
 	<title>Return Values for RWLock::getReadWaiting()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
@@ -34308,26 +31123,6 @@ $mutex.unlock();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
-
-      <table>
-	<title>Arguments for RWLock::getWriteWaiting()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
 
       <table>
 	<title>Return Values for RWLock::getWriteWaiting()</title>
@@ -34452,26 +31247,6 @@ $mutex.unlock();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
-
-      <table>
-	<title>Arguments for Mutex::constructor()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
 
       <table>
 	<title>Return Values for Mutex::constructor()</title>
@@ -34662,26 +31437,6 @@ $mutex.unlock();</programlisting>
       </variablelist>
 
       <table>
-	<title>Arguments for Mutex::unlock()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
 	<title>Return Values for Mutex::unlock()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
@@ -34741,26 +31496,6 @@ $mutex.unlock();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
-
-      <table>
-	<title>Arguments for Mutex::trylock()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
 
       <table>
 	<title>Return Values for Mutex::trylock()</title>
@@ -34975,26 +31710,6 @@ $mutex.unlock();</programlisting>
       </variablelist>
 
       <table>
-	<title>Arguments for Sequence::next()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
 	<title>Return Values for Sequence::next()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
@@ -35036,26 +31751,6 @@ $mutex.unlock();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
-
-      <table>
-	<title>Arguments for Sequence::getCurrent()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
 
       <table>
 	<title>Return Values for Sequence::getCurrent()</title>
@@ -35195,26 +31890,6 @@ $mutex.unlock();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
-
-      <table>
-	<title>Arguments for Gate::constructor()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
 
       <table>
 	<title>Return Values for Gate::constructor()</title>
@@ -35464,26 +32139,6 @@ $mutex.unlock();</programlisting>
       </variablelist>
 
       <table>
-	<title>Arguments for Gate::exit()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
 	<title>Return Values for Gate::exit()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
@@ -35545,26 +32200,6 @@ $mutex.unlock();</programlisting>
       </variablelist>
 
       <table>
-	<title>Arguments for Gate::numInside()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
 	<title>Return Values for Gate::numInside()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
@@ -35605,26 +32240,6 @@ $mutex.unlock();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
-
-      <table>
-	<title>Arguments for Gate::numWaiting()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
 
       <table>
 	<title>Return Values for Gate::numWaiting()</title>
@@ -36435,26 +33050,6 @@ $mutex.unlock();</programlisting>
       </variablelist>
 
       <table>
-	<title>Arguments for XmlDoc::getRootElement()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
 	<title>Return Values for XmlDoc::getRootElement()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
@@ -36496,26 +33091,6 @@ $mutex.unlock();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
-
-      <table>
-	<title>Arguments for XmlDoc::getVersion()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
 
       <table>
 	<title>Return Values for XmlDoc::getVersion()</title>
@@ -36563,26 +33138,6 @@ $mutex.unlock();</programlisting>
       </variablelist>
 
       <table>
-	<title>Arguments for XmlDoc::toQore()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
 	<title>Return Values for XmlDoc::toQore()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
@@ -36628,26 +33183,6 @@ $mutex.unlock();</programlisting>
       </variablelist>
 
       <table>
-	<title>Arguments for XmlDoc::toQoreData()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
 	<title>Return Values for XmlDoc::toQoreData()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
@@ -36689,26 +33224,6 @@ $mutex.unlock();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
-
-      <table>
-	<title>Arguments for XmlDoc::toString()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
 
       <table>
 	<title>Return Values for XmlDoc::toString()</title>
@@ -37189,37 +33704,7 @@ $mutex.unlock();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for XmlNode::constructor()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
+
       <table>
         <title>Return Values for XmlNode::constructor()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -37330,37 +33815,7 @@ $mutex.unlock();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for XmlNode::childElementCount()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
+
       <table>
         <title>Return Values for XmlNode::childElementCount()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -37409,37 +33864,7 @@ $mutex.unlock();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for XmlNode::getSpacePreserve()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
+
       <table>
         <title>Return Values for XmlNode::getSpacePreserve()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -37488,37 +33913,7 @@ $mutex.unlock();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for XmlNode::getElementType()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
+
       <table>
         <title>Return Values for XmlNode::getElementType()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -37567,37 +33962,7 @@ $mutex.unlock();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for XmlNode::getElementTypeName()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
+
       <table>
         <title>Return Values for XmlNode::getElementTypeName()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -37646,37 +34011,7 @@ $mutex.unlock();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for XmlNode::firstElementChild()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
+
       <table>
         <title>Return Values for XmlNode::firstElementChild()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -37725,37 +34060,7 @@ $mutex.unlock();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for XmlNode::getLastChild()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
+
       <table>
         <title>Return Values for XmlNode::getLastChild()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -37804,37 +34109,7 @@ $mutex.unlock();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for XmlNode::lastElementChild()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
+
       <table>
         <title>Return Values for XmlNode::lastElementChild()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -37883,37 +34158,7 @@ $mutex.unlock();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for XmlNode::nextElementSibling()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
+
       <table>
         <title>Return Values for XmlNode::nextElementSibling()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -37962,37 +34207,7 @@ $mutex.unlock();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for XmlNode::previousElementSibling()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
+
       <table>
         <title>Return Values for XmlNode::previousElementSibling()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -38041,37 +34256,7 @@ $mutex.unlock();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for XmlNode::getPath()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
+
       <table>
         <title>Return Values for XmlNode::getPath()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -38349,37 +34534,7 @@ $mutex.unlock();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for XmlNode::getContent()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
+
       <table>
         <title>Return Values for XmlNode::getContent()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -38428,37 +34583,7 @@ $mutex.unlock();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for XmlNode::getName()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
+
       <table>
         <title>Return Values for XmlNode::getName()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -38507,37 +34632,7 @@ $mutex.unlock();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for XmlNode::getLang()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
+
       <table>
         <title>Return Values for XmlNode::getLang()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -38586,37 +34681,7 @@ $mutex.unlock();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for XmlNode::isText()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
+
       <table>
         <title>Return Values for XmlNode::isText()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -38665,37 +34730,7 @@ $mutex.unlock();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for XmlNode::isBlank()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
+
       <table>
         <title>Return Values for XmlNode::isBlank()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -38744,37 +34779,7 @@ $mutex.unlock();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for XmlNode::getXML()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
+
       <table>
         <title>Return Values for XmlNode::getXML()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -39455,37 +35460,7 @@ $mutex.unlock();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for XmlReader::read()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
+
       <table>
         <title>Return Values for XmlReader::read()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -39562,37 +35537,7 @@ $mutex.unlock();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for XmlReader::readSkipWhitespace()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
+
       <table>
         <title>Return Values for XmlReader::readSkipWhitespace()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -39670,37 +35615,7 @@ $mutex.unlock();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for XmlReader::nodeType()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
+
       <table>
         <title>Return Values for XmlReader::nodeType()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -39750,37 +35665,7 @@ $mutex.unlock();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for XmlReader::nodeTypeName()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
+
       <table>
         <title>Return Values for XmlReader::nodeTypeName()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -39829,37 +35714,7 @@ $mutex.unlock();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for XmlReader::depth()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
+
       <table>
         <title>Return Values for XmlReader::depth()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -39909,37 +35764,7 @@ $mutex.unlock();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for XmlReader::name()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
+
       <table>
         <title>Return Values for XmlReader::name()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -39988,37 +35813,7 @@ $mutex.unlock();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for XmlReader::value()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
+
       <table>
         <title>Return Values for XmlReader::value()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -40067,37 +35862,7 @@ $mutex.unlock();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for XmlReader::hasAttributes()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
+
       <table>
         <title>Return Values for XmlReader::hasAttributes()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -40146,37 +35911,7 @@ $mutex.unlock();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for XmlReader::hasValue()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
+
       <table>
         <title>Return Values for XmlReader::hasValue()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -40225,37 +35960,7 @@ $mutex.unlock();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for XmlReader::isDefault()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
+
       <table>
         <title>Return Values for XmlReader::isDefault()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -40304,37 +36009,7 @@ $mutex.unlock();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for XmlReader::isEmptyElement()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
+
       <table>
         <title>Return Values for XmlReader::isEmptyElement()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -40383,37 +36058,7 @@ $mutex.unlock();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for XmlReader::isNamespaceDecl()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
+
       <table>
         <title>Return Values for XmlReader::isNamespaceDecl()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -40462,37 +36107,7 @@ $mutex.unlock();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for XmlReader::isValid()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
+
       <table>
         <title>Return Values for XmlReader::isValid()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -40543,37 +36158,7 @@ $mutex.unlock();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for XmlReader::toQore()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
+
       <table>
         <title>Return Values for XmlReader::toQore()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -40651,37 +36236,7 @@ $mutex.unlock();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for XmlReader::toQoreData()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
+
       <table>
         <title>Return Values for XmlReader::toQoreData()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -40757,37 +36312,7 @@ $mutex.unlock();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for XmlReader::attributeCount()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
+
       <table>
         <title>Return Values for XmlReader::attributeCount()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -40836,37 +36361,7 @@ $mutex.unlock();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for XmlReader::baseUri()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
+
       <table>
         <title>Return Values for XmlReader::baseUri()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -40915,37 +36410,7 @@ $mutex.unlock();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for XmlReader::encoding()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
+
       <table>
         <title>Return Values for XmlReader::encoding()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -40994,37 +36459,7 @@ $mutex.unlock();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for XmlReader::localName()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
+
       <table>
         <title>Return Values for XmlReader::localName()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -41073,37 +36508,7 @@ $mutex.unlock();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for XmlReader::namespaceUri()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
+
       <table>
         <title>Return Values for XmlReader::namespaceUri()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -41152,37 +36557,7 @@ $mutex.unlock();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for XmlReader::prefix()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
+
       <table>
         <title>Return Values for XmlReader::prefix()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -41231,37 +36606,7 @@ $mutex.unlock();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for XmlReader::xmlLang()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
+
       <table>
         <title>Return Values for XmlReader::xmlLang()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -41310,37 +36655,7 @@ $mutex.unlock();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for XmlReader::xmlVersion()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
+
       <table>
         <title>Return Values for XmlReader::xmlVersion()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -42111,37 +37426,7 @@ $mutex.unlock();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for XmlReader::moveToElement()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
+
       <table>
         <title>Return Values for XmlReader::moveToElement()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -42207,37 +37492,7 @@ $mutex.unlock();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for XmlReader::moveToFirstAttribute()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
+
       <table>
         <title>Return Values for XmlReader::moveToFirstAttribute()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -42303,37 +37558,7 @@ $mutex.unlock();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for XmlReader::moveToNextAttribute()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
+
       <table>
         <title>Return Values for XmlReader::moveToNextAttribute()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -42399,37 +37624,8 @@ $mutex.unlock();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for XmlReader::next()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
+
+
       <table>
         <title>Return Values for XmlReader::next()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -42500,37 +37696,8 @@ $mutex.unlock();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for XmlReader::getInnerXml()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
+
+
       <table>
         <title>Return Values for XmlReader::getInnerXml()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -42580,37 +37747,7 @@ $mutex.unlock();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Arguments for XmlReader::getOuterXml()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method takes no arguments.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
+
       <table>
         <title>Return Values for XmlReader::getOuterXml()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
