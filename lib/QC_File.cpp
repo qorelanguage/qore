@@ -558,8 +558,8 @@ QoreClass *initFileClass(QoreClass *QC_TERMIOS) {
    QC_FILE->addMethodExtended("f_vprintf",         (q_method_t)class_int_noop, false, QC_RUNTIME_NOOP, QDOM_DEFAULT, bigIntTypeInfo);
    QC_FILE->addMethodExtended("f_vprintf",         (q_method_t)FILE_f_vprintf, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, anyTypeInfo, QORE_PARAM_NO_ARG);
 
-   QC_FILE->addMethodExtended("lock",              (q_method_t)FILE_lock, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 4, softBigIntTypeInfo, zero(), softBigIntTypeInfo, zero(), softBigIntTypeInfo, zero(), softBigIntTypeInfo, new QoreBigIntNode(SEEK_SET));
-   QC_FILE->addMethodExtended("lockBlocking",      (q_method_t)FILE_lockBlocking, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 4, softBigIntTypeInfo, zero(), softBigIntTypeInfo, zero(), softBigIntTypeInfo, zero(), softBigIntTypeInfo, new QoreBigIntNode(SEEK_SET));
+   QC_FILE->addMethodExtended("lock",              (q_method_t)FILE_lock, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 4, softBigIntTypeInfo, new QoreBigIntNode(F_RDLCK), softBigIntTypeInfo, zero(), softBigIntTypeInfo, zero(), softBigIntTypeInfo, new QoreBigIntNode(SEEK_SET));
+   QC_FILE->addMethodExtended("lockBlocking",      (q_method_t)FILE_lockBlocking, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 4, softBigIntTypeInfo, new QoreBigIntNode(F_RDLCK), softBigIntTypeInfo, zero(), softBigIntTypeInfo, zero(), softBigIntTypeInfo, new QoreBigIntNode(SEEK_SET));
 
    QC_FILE->addMethodExtended("getLockInfo",       (q_method_t)FILE_getLockInfo, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, hashTypeInfo);
 

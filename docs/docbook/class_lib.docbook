@@ -755,15 +755,15 @@ raised from the <link linkend="FtpClient_Class">FtpClient</link> class.</para></
 	  </row>
 	</thead>
 	<tbody>
-	  <row>
+	  <row id="AF_INET">
 	    <entry><para><code>AF_INET</code></para></entry>
 	    <entry><para>Designates an IPv4 network addresses.</para></entry>
 	  </row>
-	  <row>
+	  <row id="AF_INET6">
 	    <entry><para><code>AF_INET6</code></para></entry>
 	    <entry><para>Designates an IPv6 network addresses.</para></entry>
 	  </row>
-	  <row>
+	  <row id="AF_UNIX">
 	    <entry><para><code>AF_UNIX</code></para></entry>
 	    <entry><para>Designates a local socket file name (interchangeable with <code>AF_LOCAL</code>.</para></entry>
 	  </row>
@@ -1058,12 +1058,12 @@ raised from the <link linkend="FtpClient_Class">FtpClient</link> class.</para></
 	  <row>
 	    <entry><para><code>VEOL</code></para></entry>
 	    <entry><para><code>EOL</code></para></entry>
-	    <entry><para>_POSIX_VDISABLE</para></entry>
+	    <entry><para><code>_POSIX_VDISABLE</code></para></entry>
 	  </row>
 	  <row>
 	    <entry><para><code>VEOL2</code></para></entry>
 	    <entry><para><code>EOL2</code></para></entry>
-	    <entry><para>_POSIX_VDISABLE</para></entry>
+	    <entry><para><code>_POSIX_VDISABLE</code></para></entry>
 	  </row>
 	  <row>
 	    <entry><para><code>VERASE</code></para></entry>
@@ -1869,30 +1869,30 @@ raised from the <link linkend="FtpClient_Class">FtpClient</link> class.</para></
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="File_lock">File::lock</link>(<link linkend="softint_type">softint</link> <replaceable>$type</replaceable> = 0, <link linkend="softint_type">softint</link> <replaceable>$start</replaceable> = 0, <link linkend="softint_type">softint</link> <replaceable>$len</replaceable> = 0, <link linkend="softint_type">softint</link> <replaceable>$whence</replaceable> = SEEK_SET) <command>returns</command> <link linkend="int_type">int</link></code></para>
+              <para><code><link linkend="File_lock">File::lock</link>(<link linkend="softint_type">softint</link> <replaceable>$type</replaceable> = <link linkend="F_RDLCK">F_RDLCK</link>, <link linkend="softint_type">softint</link> <replaceable>$start</replaceable> = 0, <link linkend="softint_type">softint</link> <replaceable>$len</replaceable> = 0, <link linkend="softint_type">softint</link> <replaceable>$whence</replaceable> = <link linkend="SEEK_SET">SEEK_SET</link>) <command>returns</command> <link linkend="int_type">int</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Attempts to lock the file according to the arguments passed, does not block.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="File_lockBlocking">File::lockBlocking</link>(<link linkend="softint_type">softint</link> <replaceable>$type</replaceable> = 0, <link linkend="softint_type">softint</link> <replaceable>$start</replaceable> = 0, <link linkend="softint_type">softint</link> <replaceable>$len</replaceable> = 0, <link linkend="softint_type">softint</link> <replaceable>$whence</replaceable> = SEEK_SET) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="File_lockBlocking">File::lockBlocking</link>(<link linkend="softint_type">softint</link> <replaceable>$type</replaceable> = <link linkend="F_RDLCK">F_RDLCK</link>, <link linkend="softint_type">softint</link> <replaceable>$start</replaceable> = 0, <link linkend="softint_type">softint</link> <replaceable>$len</replaceable> = 0, <link linkend="softint_type">softint</link> <replaceable>$whence</replaceable> = <link linkend="SEEK_SET">SEEK_SET</link>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Attempts to lock the file according to the arguments passed, blocking.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="File_open">File::open</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$flags</replaceable> = O_RDONLY, <link linkend="softint_type">softint</link> <replaceable>$mode</replaceable> = 0666) <command>returns</command> <link linkend="int_type">int</link></code></para>
-              <para><code><link linkend="File_open">File::open</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$flags</replaceable> = O_RDONLY, <link linkend="softint_type">softint</link> <replaceable>$mode</replaceable> = 0666, <link linkend="string_type">string</link> <replaceable>$encoding</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
+              <para><code><link linkend="File_open">File::open</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$flags</replaceable> = <link linkend="O_RDONLY">O_RDONLY</link>, <link linkend="softint_type">softint</link> <replaceable>$mode</replaceable> = 0666) <command>returns</command> <link linkend="int_type">int</link></code></para>
+              <para><code><link linkend="File_open">File::open</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$flags</replaceable> = <link linkend="O_RDONLY">O_RDONLY</link>, <link linkend="softint_type">softint</link> <replaceable>$mode</replaceable> = 0666, <link linkend="string_type">string</link> <replaceable>$encoding</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Opens a file in a particular mode, returns an error code on failure.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="File_open2">File::open2</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$flags</replaceable> = O_RDONLY, <link linkend="softint_type">softint</link> <replaceable>$mode</replaceable> = 0666) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
-              <para><code><link linkend="File_open2">File::open2</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$flags</replaceable> = O_RDONLY, <link linkend="softint_type">softint</link> <replaceable>$mode</replaceable> = 0666, <link linkend="string_type">string</link> <replaceable>$encoding</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="File_open2">File::open2</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$flags</replaceable> = <link linkend="O_RDONLY">O_RDONLY</link>, <link linkend="softint_type">softint</link> <replaceable>$mode</replaceable> = 0666) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="File_open2">File::open2</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$flags</replaceable> = <link linkend="O_RDONLY">O_RDONLY</link>, <link linkend="softint_type">softint</link> <replaceable>$mode</replaceable> = 0666, <link linkend="string_type">string</link> <replaceable>$encoding</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Opens a file in a particular mode; throws an exception on failure.</para></entry>
@@ -2121,27 +2121,27 @@ raised from the <link linkend="FtpClient_Class">FtpClient</link> class.</para></
 	  </row>
 	</thead>
 	<tbody>
-	  <row>
+	  <row id="O_RDONLY">
 	    <entry><para><code>O_RDONLY</code></para></entry>
 	    <entry><para>Open the file read-only.</para></entry>
 	  </row>
-	  <row>
+	  <row id="O_WRONLY">
 	    <entry><para><code>O_WRONLY</code></para></entry>
 	    <entry><para>Open the file write-only.</para></entry>
 	  </row>
-	  <row>
+	  <row id="O_CREAT">
 	    <entry><para><code>O_CREAT</code></para></entry>
 	    <entry><para>Create the file if it doesn't exist.</para></entry>
 	  </row>
-	  <row>
+	  <row id="O_APPEND">
 	    <entry><para><code>O_APPEND</code></para></entry>
 	    <entry><para>Open the file in append mode.</para></entry>
 	  </row>
-	  <row>
+	  <row id="O_RDWR">
 	    <entry><para><code>O_RDWR</code></para></entry>
 	    <entry><para>Open for reading and writing.</para></entry>
 	  </row>
-	  <row>
+	  <row id="O_TRUNC">
 	    <entry><para><code>O_TRUNC</code></para></entry>
 	    <entry><para>Truncate the size to zero.</para></entry>
 	  </row>
@@ -2159,13 +2159,43 @@ raised from the <link linkend="FtpClient_Class">FtpClient</link> class.</para></
 	  </row>
 	</thead>
 	<tbody>
-	  <row>
+	  <row id="F_RDLCK">
 	    <entry><para><code>F_RDLCK</code></para></entry>
 	    <entry><para>Use for read-only locking.</para></entry>
 	  </row>
-	  <row>
+	  <row id="F_WRLCK">
 	    <entry><para><code>F_WRLCK</code></para></entry>
 	    <entry><para>Use for exclusive write locking.</para></entry>
+	  </row>
+	  <row id="F_UNLCK">
+	    <entry><para><code>F_UNLCK</code></para></entry>
+	    <entry><para>Use for unlocking a lock.</para></entry>
+	  </row>
+	</tbody>
+      </tgroup>
+    </table>
+
+    <table id="File_Seek_Constants">
+      <title>File Seek Constants in the Qore Namespace</title>
+      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	<thead>
+	  <row>
+	    <entry><para>Name</para></entry>
+	    <entry><para>Description</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+	  <row id="SEEK_SET">
+	    <entry><para><code>SEEK_SET</code></para></entry>
+	    <entry><para>Indicates that the offset is from the start of the file.</para></entry>
+	  </row>
+	  <row id="SEEK_CUR">
+	    <entry><para><code>SEEK_CUR</code></para></entry>
+	    <entry><para>Indicates that the offset is from the current position in the file.</para></entry>
+	  </row>
+	  <row id="SEEK_END">
+	    <entry><para><code>SEEK_END</code></para></entry>
+	    <entry><para>Indicates that the offset is from the end of the file.</para></entry>
 	  </row>
 	</tbody>
       </tgroup>
@@ -3057,7 +3087,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="File_lock">File::lock</link>(<link linkend="softint_type">softint</link> <replaceable>$type</replaceable> = 0, <link linkend="softint_type">softint</link> <replaceable>$start</replaceable> = 0, <link linkend="softint_type">softint</link> <replaceable>$len</replaceable> = 0, <link linkend="softint_type">softint</link> <replaceable>$whence</replaceable> = SEEK_SET) <command>returns</command> <link linkend="int_type">int</link></code></para>
+              <para><code><link linkend="File_lock">File::lock</link>(<link linkend="softint_type">softint</link> <replaceable>$type</replaceable> = <link linkend="F_RDLCK">F_RDLCK</link>, <link linkend="softint_type">softint</link> <replaceable>$start</replaceable> = 0, <link linkend="softint_type">softint</link> <replaceable>$len</replaceable> = 0, <link linkend="softint_type">softint</link> <replaceable>$whence</replaceable> = <link linkend="SEEK_SET">SEEK_SET</link>) <command>returns</command> <link linkend="int_type">int</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -3087,8 +3117,8 @@ $f.lock(F_UNLCK);
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$type</replaceable> = 0</code></para></entry>
-	      <entry><para>Type of lock (or unlock), see <link linkend="File_Locking_Constants">File locking constants</link>.</para></entry>
+	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$type</replaceable> = <link linkend="F_RDLCK">F_RDLCK</link></code></para></entry>
+	      <entry><para>Type of lock (or unlock); see <link linkend="File_Locking_Constants">File locking constants</link>.</para></entry>
 	    </row>
 	    <row>
 	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$start</replaceable> = 0</code></para></entry>
@@ -3099,8 +3129,8 @@ $f.lock(F_UNLCK);
 	      <entry><para>Length in bytes for range to lock, 0 is the default (rest of file).</para></entry>
 	    </row>
 	    <row>
-	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$whence</replaceable> = SEEK_SET</code></para></entry>
-	      <entry><para>Indicates how the relative offset of the file should be calculated for the lock.</para></entry>
+	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$whence</replaceable> = <link linkend="SEEK_SET">SEEK_SET</link></code></para></entry>
+	      <entry><para>Indicates how the relative offset of the file should be calculated for the lock; see <link linkend="File_Seek_Constants">File seek constants</link>.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -3157,7 +3187,7 @@ $f.lock(F_UNLCK);
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="File_lockBlocking">File::lockBlocking</link>(<link linkend="softint_type">softint</link> <replaceable>$type</replaceable> = 0, <link linkend="softint_type">softint</link> <replaceable>$start</replaceable> = 0, <link linkend="softint_type">softint</link> <replaceable>$len</replaceable> = 0, <link linkend="softint_type">softint</link> <replaceable>$whence</replaceable> = SEEK_SET) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="File_lockBlocking">File::lockBlocking</link>(<link linkend="softint_type">softint</link> <replaceable>$type</replaceable> = <link linkend="F_RDLCK">F_RDLCK</link>, <link linkend="softint_type">softint</link> <replaceable>$start</replaceable> = 0, <link linkend="softint_type">softint</link> <replaceable>$len</replaceable> = 0, <link linkend="softint_type">softint</link> <replaceable>$whence</replaceable> = <link linkend="SEEK_SET">SEEK_SET</link>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -3187,7 +3217,7 @@ $f.lockBlocking(F_UNLCK);
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$type</replaceable> = 0</code></para></entry>
+	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$type</replaceable> = <link linkend="F_RDLCK">F_RDLCK</link></code></para></entry>
 	      <entry><para>Type of lock (or unlock), see <link linkend="File_Locking_Constants">File locking constants</link>.</para></entry>
 	    </row>
 	    <row>
@@ -3199,8 +3229,8 @@ $f.lockBlocking(F_UNLCK);
 	      <entry><para>Length in bytes for range to lock, 0 is the default (rest of file).</para></entry>
 	    </row>
 	    <row>
-	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$whence</replaceable> = SEEK_SET</code></para></entry>
-	      <entry><para>Indicates how the relative offset of the file should be calculated for the lock.</para></entry>
+	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$whence</replaceable> = <link linkend="SEEK_SET">SEEK_SET</link></code></para></entry>
+	      <entry><para>Indicates how the relative offset of the file should be calculated for the lock; see <link linkend="File_Seek_Constants">File seek constants</link>.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -3349,8 +3379,8 @@ $f.lockBlocking(F_UNLCK);
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="File_open">File::open</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$flags</replaceable> = O_RDONLY, <link linkend="softint_type">softint</link> <replaceable>$mode</replaceable> = 0666) <command>returns</command> <link linkend="int_type">int</link></code></para>
-              <para><code><link linkend="File_open">File::open</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$flags</replaceable> = O_RDONLY, <link linkend="softint_type">softint</link> <replaceable>$mode</replaceable> = 0666, <link linkend="string_type">string</link> <replaceable>$encoding</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
+              <para><code><link linkend="File_open">File::open</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$flags</replaceable> = <link linkend="O_RDONLY">O_RDONLY</link>, <link linkend="softint_type">softint</link> <replaceable>$mode</replaceable> = 0666) <command>returns</command> <link linkend="int_type">int</link></code></para>
+              <para><code><link linkend="File_open">File::open</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$flags</replaceable> = <link linkend="O_RDONLY">O_RDONLY</link>, <link linkend="softint_type">softint</link> <replaceable>$mode</replaceable> = 0666, <link linkend="string_type">string</link> <replaceable>$encoding</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -3383,8 +3413,8 @@ $f.open("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</prog
 	      <entry><para>The path to the file.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$flags</replaceable> = O_RDONLY</code></para></entry>
-	      <entry><para>Flags that determine the way the file is accessed, see <link linkend="File_Constants">File Constants</link> for more information.  If this argument is not given, <code>O_RDONLY</code> will be used as the default value.</para></entry>
+	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$flags</replaceable> = <link linkend="O_RDONLY">O_RDONLY</link></code></para></entry>
+	      <entry><para>Flags that determine the way the file is accessed, see <link linkend="File_Constants">File Constants</link> for more information.  If this argument is not given, <code><link linkend="O_RDONLY">O_RDONLY</link></code> will be used as the default value.</para></entry>
 	    </row>
 	    <row>
 	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$mode</replaceable> = 0666</code></para></entry>
@@ -3450,8 +3480,8 @@ $f.open("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</prog
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="File_open2">File::open2</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$flags</replaceable> = O_RDONLY, <link linkend="softint_type">softint</link> <replaceable>$mode</replaceable> = 0666) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
-              <para><code><link linkend="File_open2">File::open2</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$flags</replaceable> = O_RDONLY, <link linkend="softint_type">softint</link> <replaceable>$mode</replaceable> = 0666, <link linkend="string_type">string</link> <replaceable>$encoding</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="File_open2">File::open2</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$flags</replaceable> = <link linkend="O_RDONLY">O_RDONLY</link>, <link linkend="softint_type">softint</link> <replaceable>$mode</replaceable> = 0666) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="File_open2">File::open2</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$flags</replaceable> = <link linkend="O_RDONLY">O_RDONLY</link>, <link linkend="softint_type">softint</link> <replaceable>$mode</replaceable> = 0666, <link linkend="string_type">string</link> <replaceable>$encoding</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -3483,8 +3513,8 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 	      <entry><para>The path to the file.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$flags</replaceable> = O_RDONLY</code></para></entry>
-	      <entry><para>Flags that determine the way the file is accessed, see <link linkend="File_Constants">File Constants</link> for more information.  If this argument is not given, <code>O_RDONLY</code> will be used as the default value.</para></entry>
+	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$flags</replaceable> = <link linkend="O_RDONLY">O_RDONLY</link></code></para></entry>
+	      <entry><para>Flags that determine the way the file is accessed, see <link linkend="File_Constants">File Constants</link> for more information.  If this argument is not given, <code><link linkend="O_RDONLY">O_RDONLY</link></code> will be used as the default value.</para></entry>
 	    </row>
 	    <row>
 	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$mode</replaceable> = 0666</code></para></entry>
@@ -5785,8 +5815,8 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Dir_openFile">Dir::openFile</link>(<link linkend="string_type">string</link> <replaceable>$name</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$flags</replaceable> = O_RDONLY, <link linkend="softint_type">softint</link> <replaceable>$mode</replaceable> = 0666) <command>returns</command> <link linkend="File_Class">File</link></code></para>
-              <para><code><link linkend="Dir_openFile">Dir::openFile</link>(<link linkend="string_type">string</link> <replaceable>$name</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$flags</replaceable> = O_RDONLY, <link linkend="softint_type">softint</link> <replaceable>$mode</replaceable> = 0666, <link linkend="string_type">string</link> <replaceable>$encoding</replaceable>) <command>returns</command> <link linkend="File_Class">File</link></code></para>
+              <para><code><link linkend="Dir_openFile">Dir::openFile</link>(<link linkend="string_type">string</link> <replaceable>$name</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$flags</replaceable> = <link linkend="O_RDONLY">O_RDONLY</link>, <link linkend="softint_type">softint</link> <replaceable>$mode</replaceable> = 0666) <command>returns</command> <link linkend="File_Class">File</link></code></para>
+              <para><code><link linkend="Dir_openFile">Dir::openFile</link>(<link linkend="string_type">string</link> <replaceable>$name</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$flags</replaceable> = <link linkend="O_RDONLY">O_RDONLY</link>, <link linkend="softint_type">softint</link> <replaceable>$mode</replaceable> = 0666, <link linkend="string_type">string</link> <replaceable>$encoding</replaceable>) <command>returns</command> <link linkend="File_Class">File</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Get a File object which represents a file in the directory.</para></entry>
@@ -7067,7 +7097,7 @@ $sd_list = $sd.list();
 	    <row>
 	      <entry><para><code><replaceable>flags</replaceable></code></para></entry>
 	      <entry><para><code><link linkend="int_type">int</link></code></para></entry>
-	      <entry><para>Flags that determine the way the file is accessed, see <link linkend="File_Constants">File Constants</link> for more information. If this argument is not given, O_RDONLY will be used as the default value.</para></entry>
+	      <entry><para>Flags that determine the way the file is accessed, see <link linkend="File_Constants">File Constants</link> for more information. If this argument is not given, <code><link linkend="O_RDONLY">O_RDONLY</link></code> will be used as the default value.</para></entry>
 	    </row>
 	    <row>
 	      <entry><para><code><replaceable>mode</replaceable></code></para></entry>
