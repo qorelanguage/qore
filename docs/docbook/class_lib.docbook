@@ -767,7 +767,7 @@ raised from the <link linkend="FtpClient_Class">FtpClient</link> class.</para></
 	    <entry><para><code>AF_UNIX</code></para></entry>
 	    <entry><para>Designates a local socket file name (interchangeable with <code>AF_LOCAL</code>).</para></entry>
 	  </row>
-	  <row>
+	  <row id="AF_LOCAL">
 	    <entry><para><code>AF_LOCAL</code></para></entry>
 	    <entry><para>POSIX synonym for <code>AF_UNIX</code>; designates a local socket file name.</para></entry>
 	  </row>
@@ -2246,23 +2246,6 @@ raised from the <link linkend="FtpClient_Class">FtpClient</link> class.</para></
 	</tgroup>
       </table>
 
-      <table>
-	<title>Return Value for File::constructor()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Return Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>Object</para></entry>
-	      <entry><para>The File object created.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
     </sect2>
 
     <sect2 id="File_destructor">
@@ -5653,7 +5636,7 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Dir_rmdir">Dir::rmdir</link>(<link linkend="string_type">string</link>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="Dir_rmdir">Dir::rmdir</link>(<link linkend="string_type">string</link> <replaceable>$subdir</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Delete an empty subdirectory with the name in the directory; if any errors occur an exception is thrown.</para></entry>
@@ -5726,7 +5709,8 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting><command>new</command> Dir(<replaceable>[string:encoding]</replaceable>)</programlisting>
+              <para><code><link linkend="Dir_constructor">Dir::constructor</link>()</code></para>
+              <para><code><link linkend="Dir_constructor">Dir::constructor</link>(<link linkend="string_type">string</link> <replaceable>$encoding</replaceable>)</code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -5738,45 +5722,24 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
       </variablelist>
       <table>
 	<title>Arguments for Dir::constructor()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-
-	  <tbody>
-	    <row>
-	      <entry><para><code><replaceable>encoding</replaceable></code></para></entry>
-	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-	      <entry><para>The character encoding for the directory.  Any entry of the directory will be converted to this character encoding if necessary.</para></entry>
-	    </row>
-
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
-	<title>Return Value for Dir::constructor()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
-	      <entry><para>Return Type</para></entry>
+	      <entry><para>Argument</para></entry>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
+
 	  <tbody>
 	    <row>
-	      <entry><para>Object</para></entry>
-	      <entry><para>The Dir object created.</para></entry>
+	      <entry><para><code>[<link linkend="string_type">string</link> <replaceable>$encoding</replaceable></code></para></entry>
+	      <entry><para>The character encoding for the directory.  Any entry of the directory will be converted to this character encoding if necessary, and entries read will be tagged with this encoding.  If no encoding is given, the <link linkend="Default_Character_Encoding">default encoding</link> is used.</para></entry>
 	    </row>
+
 	  </tbody>
 	</tgroup>
       </table>
     </sect2>
-
 
     <sect2 id="Dir_destructor">
       <title>Dir::destructor()</title>
@@ -5825,13 +5788,13 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Change the directory of the Dir object to the path. you can use either an absolute path (leading with '/') or a directory realtive to the actual path.</para>
+	    <para>Change the directory of the Dir object to the path; you can use either an absolute path (leading with '/') or a directory realtive to the actual path.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>Dir::chdir(newdir)</programlisting>
+              <para><code><link linkend="Dir_chdir">Dir::chdir</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>) <command>returns</command> <link linkend="bool_type">bool</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -5848,18 +5811,16 @@ if($d.chdir("../doc")) {
 
       <table>
 	<title>Arguments for Dir::chdir()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
 	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>newdir</para></entry>
-	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
+	      <entry><para><code><link linkend="string_type">string</link> <replaceable>$path</replaceable></code></para></entry>
 	      <entry><para>The new directory name.</para></entry>
 	    </row>
 	  </tbody>
@@ -5899,7 +5860,7 @@ if($d.chdir("../doc")) {
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>Dir::path()</programlisting>
+              <para><code><link linkend="Dir_path">Dir::path</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -5943,18 +5904,16 @@ if($d.chdir("../doc")) {
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>Dir::exists()</programlisting>
+              <para><code><link linkend="Dir_exists">Dir::exists</link>() <command>returns</command> <link linkend="bool_type">bool</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>
-if(!$d.exists()) {
-  printf("the directory %s does not exist\n", $d.path());
-  exit(-1);
-}
-            </programlisting>
+	    <programlisting><command>if</command> (!$d.exists()) {
+   printf("the directory %s does not exist\n", $d.path());
+   exit(-1);
+}</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -5978,7 +5937,6 @@ if(!$d.exists()) {
       </table>
     </sect2>
 
-
     <sect2 id="Dir_create">
       <title>Dir::create()</title>
 
@@ -5992,36 +5950,32 @@ if(!$d.exists()) {
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>Dir::create([mode])</programlisting>
+              <para><code><link linkend="Dir_create">Dir::create</link>(<link linkend="softint_type">softint</link> <replaceable>$mode</replaceable> = 0777) <command>returns</command> <link linkend="int_type">int</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>
-if (!$d.exists()) {
-  printf("directory '%s' does not exist, so i create it\n", $d.path());
-  $cnt = $d.create();
-}
-            </programlisting>
+	    <programlisting><command>if</command> (!$d.exists()) {
+   printf("directory '%s' does not exist; creating...\n", $d.path());
+   $cnt = $d.create();
+}</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
 
       <table>
 	<title>Arguments for Dir::create()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
 	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>[mode]</para></entry>
-	      <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$mode</replaceable> = 0777</code></para></entry>
 	      <entry><para>The mode of the directory.</para></entry>
 	    </row>
 	  </tbody>
@@ -6065,7 +6019,6 @@ if (!$d.exists()) {
       </table>
     </sect2>
 
-
     <sect2 id="Dir_chown">
       <title>Dir::chown()</title>
 
@@ -6079,7 +6032,8 @@ if (!$d.exists()) {
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>Dir::chown(uid|username)</programlisting>
+              <para><code><link linkend="Dir_chown">Dir::chown</link>(<link linkend="softint_type">softint</link> <replaceable>$uid</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="Dir_chown">Dir::chown</link>(<link linkend="string_type">string</link> <replaceable>$username</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -6094,23 +6048,20 @@ $d.chown("nobody");
 
       <table>
 	<title>Arguments for Dir::chown()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
 	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>uid</para></entry>
-	      <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$uid</replaceable></code></para></entry>
 	      <entry><para>The userid to be used.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para>username</para></entry>
-	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
+	      <entry><para><code><link linkend="string_type">string</link> <replaceable>$username</replaceable></code></para></entry>
 	      <entry><para>A username which is known by the system.</para></entry>
 	    </row>
 	  </tbody>
@@ -6172,7 +6123,8 @@ $d.chown("nobody");
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>Dir::chgrp(gid|groupname)</programlisting>
+              <para><code><link linkend="Dir_chgrp">Dir::chgrp</link>(<link linkend="softint_type">softint</link> <replaceable>$gid</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="Dir_chgrp">Dir::chgrp</link>(<link linkend="string_type">string</link> <replaceable>$groupname</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -6187,23 +6139,20 @@ $d.chgrp("nogroup");
 
       <table>
 	<title>Arguments for Dir::chgrp()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
 	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>gid</para></entry>
-	      <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$gid</replaceable></code></para></entry>
 	      <entry><para>The groupid to be set for the directory.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para>groupname</para></entry>
-	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
+	      <entry><para><code><link linkend="string_type">string</link> <replaceable>$groupname</replaceable></code></para></entry>
 	      <entry><para>The name of the group to be set. Must be known in the system.</para></entry>
 	    </row>
 	  </tbody>
@@ -6265,7 +6214,7 @@ $d.chgrp("nogroup");
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>Dir::chmod([mode])</programlisting>
+              <para><code><link linkend="Dir_chmod">Dir::chmod</link>(<link linkend="softint_type">softint</link> <replaceable>$mode</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -6280,18 +6229,16 @@ $d.chmod(0711); # set mode to u(rwx) and go(x)
 
       <table>
 	<title>Arguments for Dir::chmod()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
 	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>mode</para></entry>
-	      <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$mode</replaceable></code></para></entry>
 	      <entry><para>The mode of the directory.</para></entry>
 	    </row>
 	  </tbody>
@@ -6353,7 +6300,7 @@ $d.chmod(0711); # set mode to u(rwx) and go(x)
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>Dir::mkdir(subdir, [mode])</programlisting>
+              <para><code><link linkend="Dir_mkdir">Dir::mkdir</link>(<link linkend="string_type">string</link> <replaceable>$name</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$mode</replaceable> = 0777) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -6368,24 +6315,17 @@ $d.mkdir("newSubDir", 0755);
 
       <table>
 	<title>Arguments for Dir::mkdir()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
 	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>subdir</para></entry>
-	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-	      <entry><para>The name of the subdirectory.</para></entry>
-	    </row>
-	    <row>
-	      <entry><para>mode</para></entry>
-	      <entry><para><code><link linkend="int_type">int</link></code></para></entry>
-	      <entry><para>The mode of the new directory.</para></entry>
+	      <entry><para><code><link linkend="string_type">string</link> <replaceable>$name</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$mode</replaceable> = 0777</code></para></entry>
+	      <entry><para>The name and mode of the subdirectory.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -6446,7 +6386,7 @@ $d.mkdir("newSubDir", 0755);
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>Dir::rmdir(dirname)</programlisting>
+              <para><code><link linkend="Dir_rmdir">Dir::rmdir</link>(<link linkend="string_type">string</link> <replaceable>$subdir</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -6461,18 +6401,16 @@ $d.rmdir("emptySubdir");
 
       <table>
 	<title>Arguments for Dir::rmdir()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
 	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>dirname</para></entry>
-	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
+	      <entry><para><code><link linkend="string_type">string</link> <replaceable>$subdir</replaceable></code></para></entry>
 	      <entry><para>The name of the directory to be removed.</para></entry>
 	    </row>
 	  </tbody>
@@ -6534,41 +6472,34 @@ $d.rmdir("emptySubdir");
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>Dir::list([regex, [regex_option]])</programlisting>
+              <para><code><link linkend="Dir_list">Dir::list</link>() <command>returns</command> <link linkend="list_type">list</link></code></para>
+              <para><code><link linkend="Dir_list">Dir::list</link>(<link linkend="string_type">string</link> <replaceable>$regex</replaceable>) <command>returns</command> <link linkend="list_type">list</link></code></para>
+              <para><code><link linkend="Dir_list">Dir::list</link>(<link linkend="string_type">string</link> <replaceable>$regex</replaceable>, <link linkend="int_type">int</link> <replaceable>$options</replaceable>) <command>returns</command> <link linkend="list_type">list</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>
-foreach my $e in ( $d.list() ) {
-  printf("entry: %s\n");
-}
-            </programlisting>
+	    <programlisting><command>foreach</command> <command>my</command> string $e <command>in</command> ($d.list()) {
+   printf("entry: %s\n");
+}</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
 
       <table>
 	<title>Arguments for Dir::list()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
 	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>[regex]</para></entry>
-	      <entry><para>string</para></entry>
-	      <entry><para>A regular expression string used to filter the arguments.</para></entry>
-	    </row>
-	    <row>
-	      <entry><para>[regex_option]</para></entry>
-	      <entry><para><code><link linkend="int_type">int</link></code></para></entry>
-	      <entry><para>For valid options, see <link linkend="Qore_Regex_Constants">Regex Constants</link></para></entry>
+	      <entry><para><code>[<link linkend="string_type">string</link> <replaceable>$regex</replaceable>, [<link linkend="int_type">int</link> <replaceable>$options</replaceable>]]</code></para></entry>
+	      <entry><para>An optional regular expression string used to filter the arguments followed by bitwise-or'ed <link linkend="Qore_Regex_Constants">regex option constants</link>.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -6585,7 +6516,7 @@ foreach my $e in ( $d.list() ) {
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>List</para></entry>
+	      <entry><para><link linkend="list_type">list</link></para></entry>
 	      <entry><para>A list of Strings with the directories content.</para></entry>
 	    </row>
 	  </tbody>
@@ -6625,41 +6556,34 @@ foreach my $e in ( $d.list() ) {
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>Dir::listFiles()</programlisting>
+              <para><code><link linkend="Dir_listFiles">Dir::listFiles</link>() <command>returns</command> <link linkend="list_type">list</link></code></para>
+              <para><code><link linkend="Dir_listFiles">Dir::listFiles</link>(<link linkend="string_type">string</link> <replaceable>$regex</replaceable>) <command>returns</command> <link linkend="list_type">list</link></code></para>
+              <para><code><link linkend="Dir_listFiles">Dir::listFiles</link>(<link linkend="string_type">string</link> <replaceable>$regex</replaceable>, <link linkend="int_type">int</link> <replaceable>$options</replaceable>) <command>returns</command> <link linkend="list_type">list</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>
-foreach my $e in ( $d.listFiles() ) {
-  printf("file: %s\n");
-}
-            </programlisting>
+	    <programlisting><command>foreach</command> <command>my</command> string $e <command>in</command> ($d.listFiles()) {
+   printf("entry: %s\n");
+}</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
 
       <table>
 	<title>Arguments for Dir::listFiles()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
 	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>[regex]</para></entry>
-	      <entry><para>string</para></entry>
-	      <entry><para>A regular expression string used to filter the arguments.</para></entry>
-	    </row>
-	    <row>
-	      <entry><para>[regex_option]</para></entry>
-	      <entry><para><code><link linkend="int_type">int</link></code></para></entry>
-	      <entry><para>For valid options, see <link linkend="Qore_Regex_Constants">Regex Constants</link></para></entry>
+	      <entry><para><code>[<link linkend="string_type">string</link> <replaceable>$regex</replaceable>, [<link linkend="int_type">int</link> <replaceable>$options</replaceable>]]</code></para></entry>
+	      <entry><para>An optional regular expression string used to filter the arguments followed by bitwise-or'ed <link linkend="Qore_Regex_Constants">regex option constants</link>.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -6676,8 +6600,8 @@ foreach my $e in ( $d.listFiles() ) {
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>List</para></entry>
-	      <entry><para>A list of Strings with the directories content.</para></entry>
+	      <entry><para><link linkend="list_type">list</link></para></entry>
+	      <entry><para>A list of strings with the file names as elements.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -6702,7 +6626,6 @@ foreach my $e in ( $d.listFiles() ) {
       </table>
     </sect2>
 
-
     <sect2 id="Dir_listDirs">
       <title>Dir::listDirs()</title>
 
@@ -6710,47 +6633,40 @@ foreach my $e in ( $d.listFiles() ) {
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>List all entries in the directory of the Dir object, which are subdirectories. It supresses the '.' and '..' directories.  An optional regular expression string can be passed to filter the values returned; if this argument is given then only entries that match the regular expression will be returned.</para>
+	    <para>List all entries in the directory of the Dir object that are subdirectories, not including the '.' and '..' directories.  An optional regular expression string can be passed to filter the values returned; if this argument is given then only entries that match the regular expression will be returned.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>Dir::listDirs()</programlisting>
+              <para><code><link linkend="Dir_listDirs">Dir::listDirs</link>() <command>returns</command> <link linkend="list_type">list</link></code></para>
+              <para><code><link linkend="Dir_listDirs">Dir::listDirs</link>(<link linkend="string_type">string</link> <replaceable>$regex</replaceable>) <command>returns</command> <link linkend="list_type">list</link></code></para>
+              <para><code><link linkend="Dir_listDirs">Dir::listDirs</link>(<link linkend="string_type">string</link> <replaceable>$regex</replaceable>, <link linkend="int_type">int</link> <replaceable>$options</replaceable>) <command>returns</command> <link linkend="list_type">list</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>
-foreach my $e in ( $d.listDirs() ) {
-  printf("entry: %s\n");
-}
-            </programlisting>
+	    <programlisting><command>foreach</command> <command>my</command> string $e <command>in</command> ($d.listDirs()) {
+   printf("entry: %s\n");
+}</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
 
       <table>
 	<title>Arguments for Dir::listDirs()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
 	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>[regex]</para></entry>
-	      <entry><para>string</para></entry>
-	      <entry><para>A regular expression string used to filter the arguments.</para></entry>
-	    </row>
-	    <row>
-	      <entry><para>[regex_option]</para></entry>
-	      <entry><para><code><link linkend="int_type">int</link></code></para></entry>
-	      <entry><para>For valid options, see <link linkend="Qore_Regex_Constants">Regex Constants</link></para></entry>
+	      <entry><para><code>[<link linkend="string_type">string</link> <replaceable>$regex</replaceable>, [<link linkend="int_type">int</link> <replaceable>$options</replaceable>]]</code></para></entry>
+	      <entry><para>An optional regular expression string used to filter the arguments followed by bitwise-or'ed <link linkend="Qore_Regex_Constants">regex option constants</link>.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -6767,8 +6683,8 @@ foreach my $e in ( $d.listDirs() ) {
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>List</para></entry>
-	      <entry><para>A list of Strings with the directories content.</para></entry>
+	      <entry><para><link linkend="list_type">list</link></para></entry>
+	      <entry><para>A list of strings with the directory names found.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -6809,41 +6725,33 @@ foreach my $e in ( $d.listDirs() ) {
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>Dir::openDir(<replaceable>string:dirname, [string:charset]</replaceable>)</programlisting>
+              <para><code><link linkend="Dir_openDir">Dir::openDir</link>(<link linkend="string_type">string</link> <replaceable>$subdir</replaceable>) <command>returns</command> <link linkend="Dir_Class">Dir</link></code></para>
+              <para><code><link linkend="Dir_openDir">Dir::openDir</link>(<link linkend="string_type">string</link> <replaceable>$subdir</replaceable>, <link linkend="string_type">string</link> <replaceable>$encoding</replaceable>) <command>returns</command> <link linkend="Dir_Class">Dir</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>
-# open a subdir for working with.
-$sd = $d.openDir("mysubdir", "ISO-8859-1");
-$sd_list = $sd.list();
-            </programlisting>
+	    <programlisting># open a subdir for working with
+<command>my</command> Dir $sd = $d.openDir("mysubdir", "ISO-8859-1");
+<command>my</command> list $sd_list = $sd.list();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
 
       <table>
 	<title>Arguments for Dir::openDir()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
 	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code><replaceable>dirname</replaceable></code></para></entry>
-	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-	      <entry><para>The name of the subdirectory. The directory must not exist and can be created with create() afterwards.</para></entry>
-	    </row>
-	    <row>
-	      <entry><para><code><replaceable>charset</replaceable></code></para></entry>
-	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-	      <entry><para>The name of the default character encoding for this directory.</para></entry>
+	      <entry><para><code><link linkend="string_type">string</link> <replaceable>$subdir</replaceable>, [<link linkend="string_type">string</link> <replaceable>$encoding</replaceable>]</code></para></entry>
+	      <entry><para>The name of the subdirectory. The directory must not exist and can be created with create() afterwards.  If no encoding is given, the <link linkend="Default_Character_Encoding">default encoding</link> is used.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -6860,7 +6768,7 @@ $sd_list = $sd.list();
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>Object</para></entry>
+	      <entry><para><code><link linkend="Dir_Class">Dir</link></code></para></entry>
 	      <entry><para>The Dir object created for the directory.</para></entry>
 	    </row>
 	  </tbody>
@@ -6886,7 +6794,6 @@ $sd_list = $sd.list();
       </table>
     </sect2>
 
-
     <sect2 id="Dir_openFile">
       <title>Dir::openFile()</title>
 
@@ -6903,7 +6810,8 @@ $sd_list = $sd.list();
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>Dir::openFile(<replaceable>string:filename, [integer:flags, [integer:mode, [string:charset]]]</replaceable>)</programlisting>
+              <para><code><link linkend="Dir_openFile">Dir::openFile</link>(<link linkend="string_type">string</link> <replaceable>$name</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$flags</replaceable> = <link linkend="O_RDONLY">O_RDONLY</link>, <link linkend="softint_type">softint</link> <replaceable>$mode</replaceable> = 0666) <command>returns</command> <link linkend="File_Class">File</link></code></para>
+              <para><code><link linkend="Dir_openFile">Dir::openFile</link>(<link linkend="string_type">string</link> <replaceable>$name</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$flags</replaceable> = <link linkend="O_RDONLY">O_RDONLY</link>, <link linkend="softint_type">softint</link> <replaceable>$mode</replaceable> = 0666, <link linkend="string_type">string</link> <replaceable>$encoding</replaceable>) <command>returns</command> <link linkend="File_Class">File</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -6920,34 +6828,29 @@ $sd_list = $sd.list();
 
       <table>
 	<title>Arguments for Dir::openFile()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
 	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code><replaceable>filename</replaceable></code></para></entry>
-	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-	      <entry><para>The Filename of the file.</para></entry>
+	      <entry><para><code><link linkend="string_type">string</link> <replaceable>name</replaceable></code></para></entry>
+	      <entry><para>The name of the file in the current directory.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para><code><replaceable>flags</replaceable></code></para></entry>
-	      <entry><para><code><link linkend="int_type">int</link></code></para></entry>
-	      <entry><para>Flags that determine the way the file is accessed, see <link linkend="File_Constants">File Constants</link> for more information. If this argument is not given, <code><link linkend="O_RDONLY">O_RDONLY</link></code> will be used as the default value.</para></entry>
+	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$flags</replaceable> = <link linkend="O_RDONLY">O_RDONLY</link></code></para></entry>
+	      <entry><para>Flags that determine the way the file is accessed, see <link linkend="File_Constants">File Constants</link> for more information.  If this argument is not given, <code><link linkend="O_RDONLY">O_RDONLY</link></code> will be used as the default value.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para><code><replaceable>mode</replaceable></code></para></entry>
-	      <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$mode</replaceable> = 0666</code></para></entry>
 	      <entry><para>Permission bits for when the file is to be created (default: 0666)</para></entry>
 	    </row>
 	    <row>
-	      <entry><para><code><replaceable>charset</replaceable></code></para></entry>
-	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-	      <entry><para>The name of the default character encoding for this file.</para></entry>
+	      <entry><para><code>[<link linkend="string_type">string</link> <replaceable>$encoding</replaceable>]</code></para></entry>
+	      <entry><para>The name of the default character encoding for this file; if this argument is not given, the file will be tagged with the <link linkend="Default_Character_Encoding">default character encoding</link> for the process.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -7008,7 +6911,7 @@ $sd_list = $sd.list();
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>Dir::removeFile(filename)</programlisting>
+              <para><code><link linkend="Dir_removeFile">Dir::removeFile</link>(<link linkend="string_type">string</link> <replaceable>$name</replaceable>) <command>returns</command> <link linkend="bool_type">bool</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -7023,18 +6926,16 @@ $d.removeFile("myTestFile.dat");
 
       <table>
 	<title>Arguments for Dir::removeFile()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
 	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>filename</para></entry>
-	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
+	      <entry><para><code>(<link linkend="string_type">string</link> <replaceable>$name</replaceable></code></para></entry>
 	      <entry><para>The name of the file in the directory.</para></entry>
 	    </row>
 	  </tbody>
@@ -7053,7 +6954,7 @@ $d.removeFile("myTestFile.dat");
 	  <tbody>
 	    <row>
 	      <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
-	      <entry><para>True if the file was present and could be removed. False if the file did not exist.</para></entry>
+	      <entry><para>True if the file was present and could be removed. False if the file did not exist.  If any errors occur unlinking an existing file, then an exception occurs.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -8271,24 +8172,6 @@ stdin.getTerminalAttributes($termios);</programlisting>
       </table>
 
       <table>
-	<title>Return Values for GetOpt::constructor()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Return Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>Object</para></entry>
-	      <entry><para>The GetOpt object created.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
 	<title>Exceptions Thrown by GetOpt::constructor()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
@@ -8888,24 +8771,6 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	      <entry><para><code><replaceable>string_value</replaceable></code></para></entry>
 	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
 	      <entry><para>The entire command line to process.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
-	<title>Return Values for FtpClient::constructor()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Return Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>Object</para></entry>
-	      <entry><para>The FtpClient object created</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -11926,22 +11791,6 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	</tgroup>
       </table>
 
-      <table><title>Return Values for Program::constructor()</title>
-      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	<thead>
-	  <row>
-	    <entry><para>Return Type</para></entry>
-	    <entry><para>Description</para></entry>
-	  </row>
-	</thead>
-	<tbody>
-	  <row>
-	    <entry><para>Object</para></entry>
-	    <entry><para>The Program object created.</para></entry>
-	  </row>
-	</tbody>
-      </tgroup>
-      </table>
     </sect2>
 
     <sect2 id="Qore_Program_destructor">
@@ -12124,7 +11973,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	    </row>
 	    <row>
 	      <entry><para><code><replaceable>[arg_list]</replaceable></code></para></entry>
-	      <entry><para>List</para></entry>
+	      <entry><para><link linkend="list_type">list</link></para></entry>
 	      <entry><para>Argument list to be passed to the function.</para></entry>
 	    </row>
 	  </tbody>
@@ -12597,7 +12446,7 @@ $pgm.disableParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>List</para></entry>
+	      <entry><para><link linkend="list_type">list</link></para></entry>
 	      <entry><para>A list of strings giving the names of all functions implemented in the program object.</para></entry>
 	    </row>
 	  </tbody>
@@ -13925,23 +13774,6 @@ $pgm.setParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
 	</varlistentry>
       </variablelist>
 
-      <table>
-	<title>Return Values for Socket::constructor()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Return Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>Object</para></entry>
-	      <entry><para>The new Socket object created.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
     </sect2>
 
     <sect2 id="Socket_destructor">
@@ -24333,24 +24165,6 @@ $sock.bind("/tmp/socket");</programlisting>
       </table>
 
       <table>
-	<title>Return Values for Datasource::constructor()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Return Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>Object</para></entry>
-	      <entry><para>The Datasource object created</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
 	<title>Exceptions Thrown by Datasource::constructor()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
@@ -24925,7 +24739,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	    </row>
 	    <row>
 	      <entry><para><code><replaceable>[list]</replaceable></code></para></entry>
-	      <entry><para>List</para></entry>
+	      <entry><para><link linkend="list_type">list</link></para></entry>
 	      <entry><para>Include any values to be bound (using <code>%v</code> in the command string) or placeholder specifications (using :&lt;key_name&gt; in the command string) in a single list in order after the command string.</para></entry>
 	    </row>
 	  </tbody>
@@ -25191,7 +25005,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	    </row>
 	    <row>
 	      <entry><para><code><replaceable>[arg1, ...]</replaceable></code></para></entry>
-	      <entry><para>List</para></entry>
+	      <entry><para><link linkend="list_type">list</link></para></entry>
 	      <entry><para>A list of arguments to bind by value in %v positions in the SQL string.</para></entry>
 	    </row>
 	  </tbody>
@@ -25364,7 +25178,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	    </row>
 	    <row>
 	      <entry><para><code><replaceable>[list]</replaceable></code></para></entry>
-	      <entry><para>List</para></entry>
+	      <entry><para><link linkend="list_type">list</link></para></entry>
 	      <entry><para>A list of arguments to bind by value in %v positions in the SQL string.</para></entry>
 	    </row>
 	  </tbody>
@@ -25469,7 +25283,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>List</para></entry>
+	      <entry><para><link linkend="list_type">list</link></para></entry>
 	      <entry><para>Returns a list (the rows returned) of hashes (column values).</para></entry>
 	    </row>
 	  </tbody>
@@ -25537,7 +25351,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	    </row>
 	    <row>
 	      <entry><para><code><replaceable>[list]</replaceable></code></para></entry>
-	      <entry><para>List</para></entry>
+	      <entry><para><link linkend="list_type">list</link></para></entry>
 	      <entry><para>A list of arguments to bind by value in %v positions in the SQL string.</para></entry>
 	    </row>
 	  </tbody>
@@ -25555,7 +25369,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>List</para></entry>
+	      <entry><para><link linkend="list_type">list</link></para></entry>
 	      <entry><para>Returns a list (the rows returned) of hashes (column values).</para></entry>
 	    </row>
 	  </tbody>
@@ -26824,24 +26638,6 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	  </tbody>
 	</tgroup>
       </table>
-
-      <table>
-	<title>Return Values for DatasourcePool::constructor()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Return Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>Object</para></entry>
-	      <entry><para>The DatasourcePool object created</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
     </sect2>
 
       <table>
@@ -27213,7 +27009,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	    </row>
 	    <row>
 	      <entry><para><code><replaceable>[list]</replaceable></code></para></entry>
-	      <entry><para>List</para></entry>
+	      <entry><para><link linkend="list_type">list</link></para></entry>
 	      <entry><para>Include any values to be bound (using <code>%v</code> in the command string) or placeholder specifications (using :&lt;key_name&gt; in the command string) in a single list in order after the command string.</para></entry>
 	    </row>
 	  </tbody>
@@ -27478,7 +27274,7 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
 	    </row>
 	    <row>
 	      <entry><para><code><replaceable>[arg1, ...]</replaceable></code></para></entry>
-	      <entry><para>List</para></entry>
+	      <entry><para><link linkend="list_type">list</link></para></entry>
 	      <entry><para>A list of arguments to bind by value in %v positions in the SQL string.</para></entry>
 	    </row>
 	  </tbody>
@@ -27656,7 +27452,7 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
 	    </row>
 	    <row>
 	      <entry><para><code><replaceable>[list]</replaceable></code></para></entry>
-	      <entry><para>List</para></entry>
+	      <entry><para><link linkend="list_type">list</link></para></entry>
 	      <entry><para>A list of arguments to bind by value in %v positions in the SQL string.</para></entry>
 	    </row>
 	  </tbody>
@@ -27746,7 +27542,7 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>List</para></entry>
+	      <entry><para><link linkend="list_type">list</link></para></entry>
 	      <entry><para>Returns a list (the rows returned) of hashes (column values).</para></entry>
 	    </row>
 	  </tbody>
@@ -27817,7 +27613,7 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
 	    </row>
 	    <row>
 	      <entry><para><code><replaceable>[list]</replaceable></code></para></entry>
-	      <entry><para>List</para></entry>
+	      <entry><para><link linkend="list_type">list</link></para></entry>
 	      <entry><para>A list of arguments to bind by value in %v positions in the SQL string.</para></entry>
 	    </row>
 	  </tbody>
@@ -27835,7 +27631,7 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>List</para></entry>
+	      <entry><para><link linkend="list_type">list</link></para></entry>
 	      <entry><para>Returns a list (the rows returned) of hashes (column values).</para></entry>
 	    </row>
 	  </tbody>
@@ -29546,25 +29342,6 @@ $mutex.unlock();</programlisting>
 	  </tbody>
 	</tgroup>
       </table>
-
-      <table>
-	<title>Return Values for Counter::constructor()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Return Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry>Counter Object</entry>
-	      <entry><para>The new object created.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
     </sect2>
 
     <sect2 id="Counter::destructor">
@@ -30004,24 +29781,6 @@ $mutex.unlock();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
-
-      <table>
-	<title>Return Values for Queue::constructor()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Return Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>Queue Object</para></entry>
-	      <entry><para>The new object created.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
 
     </sect2>
 
@@ -30556,24 +30315,6 @@ $mutex.unlock();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
-
-      <table>
-	<title>Return Values for RWLock::constructor()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Return Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>RWLock Object</para></entry>
-	      <entry><para>The object created.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
 
     </sect2>
 
@@ -31248,24 +30989,6 @@ $mutex.unlock();</programlisting>
 	</varlistentry>
       </variablelist>
 
-      <table>
-	<title>Return Values for Mutex::constructor()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Return Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>Mutex Object</para></entry>
-	      <entry><para>The new object created.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
     </sect2>
 
     <sect2 id="Mutex::destructor">
@@ -31627,23 +31350,6 @@ $mutex.unlock();</programlisting>
 	</tgroup>
       </table>
 
-      <table>
-	<title>Return Values for Sequence::constructor()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Return Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>Sequence Object</para></entry>
-	      <entry><para>The new object created.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
     </sect2>
 
     <sect2 id="Sequence::destructor">
@@ -31890,24 +31596,6 @@ $mutex.unlock();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
-
-      <table>
-	<title>Return Values for Gate::constructor()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Return Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>Gate Object</para></entry>
-	      <entry><para>The new object created.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
 
     </sect2>
 
@@ -32857,24 +32545,6 @@ $mutex.unlock();</programlisting>
       </table>
 
       <table>
-	<title>Return Values for XmlDoc::constructor()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Return Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>XmlDoc Object</para></entry>
-	      <entry><para>The new object created.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
 	<title>Exceptions Thrown by XmlDoc::constructor()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
@@ -32992,7 +32662,7 @@ $mutex.unlock();</programlisting>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>List</para></entry>
+	      <entry><para><link linkend="list_type">list</link></para></entry>
 	      <entry><para>Returns a list of <link linkend="XmlNode_Class">XmlNode</link> objects that match the XPath expression.</para></entry>
 	    </row>
 	  </tbody>
