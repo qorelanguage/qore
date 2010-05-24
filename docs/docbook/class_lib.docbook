@@ -2053,7 +2053,7 @@ raised from the <link linkend="FtpClient_Class">FtpClient</link> class.</para></
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="File_write">File::write</link>(data <replaceable>$data</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
+              <para><code><link linkend="File_write">File::write</link>(<link linkend="data_type">data</link> <replaceable>$data</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Writes string or binary data to a file</para></entry>
@@ -3885,13 +3885,13 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>File::readi4LSB()</programlisting>
+              <para><code><link linkend="File_readi4LSB">File::readi4LSB</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-              <para><code><link linkend="File_readi4LSB">File::readi4LSB</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+	    <programlisting><command>my</command> any $i = $f.readi4LSB();</programlisting>
 	  </listitem>
 	</varlistentry>
         <varlistentry>
@@ -4432,7 +4432,7 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>File::readLine()</programlisting>
+              <para><code><link linkend="File_readLine">File::readLine</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -4501,7 +4501,8 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>File::setCharset(<replaceable>string:encoding</replaceable>)</programlisting>
+              <para><code><link linkend="File_setCharset">File::setCharset</link>() <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="File_setCharset">File::setCharset</link>(<link linkend="string_type">string</link> <replaceable>$encoding</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -4514,19 +4515,17 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 
       <table>
 	<title>Arguments for File::setCharset()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
 	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
 
 	  <tbody>
 	    <row>
-	      <entry><para><code><replaceable>encoding</replaceable></code></para></entry>
-	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
+	      <entry><para><code>[<link linkend="string_type">string</link> <replaceable>$encoding</replaceable>]</code></para></entry>
 	      <entry><para>The character encoding for the file.</para></entry>
 	    </row>
 
@@ -4566,7 +4565,7 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>File::setPos(<replaceable>integer:position</replaceable>)</programlisting>
+              <para><code><link linkend="File_setPos">File::setPos</link>(<link linkend="softint_type">softint</link> <replaceable>$pos</replaceable> = 0) <command>returns</command> <link linkend="int_type">int</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -4579,18 +4578,16 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 
       <table>
 	<title>Arguments for File::setPos()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
 	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code><replaceable>position</replaceable></code></para></entry>
-	      <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$pos</replaceable> = 0</code></para></entry>
 	      <entry><para>The position in the file as offset from position 0.</para></entry>
 	    </row>
 	  </tbody>
@@ -4629,7 +4626,7 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>File::setTerminalAttributes(<replaceable>termios</replaceable>)</programlisting>
+              <para><code><link linkend="File_setTerminalAttributes">File::setTerminalAttributes</link>(<link linkend="softint_type">softint</link> <replaceable>$action</replaceable> = TCSANOW, <link linkend="TermIOS_Class">TermIOS</link> <replaceable>$termios</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -4655,19 +4652,17 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 
       <table>
 	<title>Arguments for File::setTerminalAttributes()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
 	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
 
 	  <tbody>
 	    <row>
-	      <entry><para><code><replaceable>termios</replaceable></code></para></entry>
-	      <entry><para><link linkend="TermIOS_Class">TermIOS</link></para></entry>
+	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$action</replaceable> = TCSANOW, <link linkend="TermIOS_Class">TermIOS</link> <replaceable>$termios</replaceable></code></para></entry>
 	      <entry><para>Sets the current terminal attributes for the file from the <link linkend="TermIOS_Class">TermIOS</link> object passed.</para></entry>
 	    </row>
 
@@ -4730,7 +4725,7 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>File::sync()</programlisting>
+              <para><code><link linkend="File_sync">File::sync</link>() <command>returns</command> <link linkend="int_type">int</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -4773,7 +4768,8 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>File::vprintf(<replaceable>string:format, [arg_list]</replaceable>)</programlisting>
+              <para><code><link linkend="File_vprintf">File::vprintf</link>(<link linkend="string_type">string</link> <replaceable>$fmt</replaceable>, <link linkend="any_type">any</link> <replaceable>$args</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
+              <para><code><link linkend="File_vprintf">File::vprintf</link>() <command>returns</command> <link linkend="int_type">int</link> (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -4859,7 +4855,7 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>File::write(<replaceable>arg</replaceable>)</programlisting>
+              <para><code><link linkend="File_write">File::write</link>(<link linkend="data_type">data</link> <replaceable>$data</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -4876,19 +4872,17 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 
       <table>
 	<title>Arguments for File::write()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
 	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
 
 	  <tbody>
 	    <row>
-	      <entry><para><code><replaceable>arg</replaceable></code></para></entry>
-	      <entry><para>String or Binary</para></entry>
+	      <entry><para><code><link linkend="data_type">data</link> <replaceable>$data</replaceable></code></para></entry>
 	      <entry><para>Writes the data to the file.</para></entry>
 	    </row>
 
@@ -4949,7 +4943,7 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>File::writei1(<replaceable>integer</replaceable>)</programlisting>
+              <para><code><link linkend="File_writei1">File::writei1</link>(<link linkend="softint_type">softint</link> <replaceable>$i</replaceable> = 0) <command>returns</command> <link linkend="int_type">int</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -4966,18 +4960,16 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 
       <table>
 	<title>Arguments for File::writei1()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
 	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code><replaceable>integer</replaceable></code></para></entry>
-	      <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$i</replaceable> = 0</code></para></entry>
 	      <entry><para>The integer to write; only the least-significant 8 bits will be written to the file.</para></entry>
 	    </row>
 	  </tbody>
@@ -5033,7 +5025,7 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>File::writei2(<replaceable>integer</replaceable>)</programlisting>
+              <para><code><link linkend="File_writei2">File::writei2</link>(<link linkend="softint_type">softint</link> <replaceable>$i</replaceable> = 0) <command>returns</command> <link linkend="int_type">int</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -5050,19 +5042,16 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 
       <table>
 	<title>Arguments for File::writei2()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
 	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
-
 	  <tbody>
 	    <row>
-	      <entry><para><code><replaceable>integer</replaceable></code></para></entry>
-	      <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$i</replaceable> = 0</code></para></entry>
 	      <entry><para>The integer to write; writes a 2-byte integer in big-endian format.</para></entry>
 	    </row>
 	  </tbody>
@@ -5118,7 +5107,7 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>File::writei4(<replaceable>integer</replaceable>)</programlisting>
+              <para><code><link linkend="File_writei4">File::writei4</link>(<link linkend="softint_type">softint</link> <replaceable>$i</replaceable> = 0) <command>returns</command> <link linkend="int_type">int</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -5135,19 +5124,16 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 
       <table>
 	<title>Arguments for File::writei4()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
 	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
-
 	  <tbody>
 	    <row>
-	      <entry><para><code><replaceable>integer</replaceable></code></para></entry>
-	      <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$i</replaceable> = 0</code></para></entry>
 	      <entry><para>The integer to write; writes a 4-byte integer in big-endian format.</para></entry>
 	    </row>
 	  </tbody>
@@ -5203,7 +5189,7 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>File::writei8(<replaceable>integer</replaceable>)</programlisting>
+              <para><code><link linkend="File_writei4">File::writei8</link>(<link linkend="softint_type">softint</link> <replaceable>$i</replaceable> = 0) <command>returns</command> <link linkend="int_type">int</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -5220,19 +5206,16 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 
       <table>
 	<title>Arguments for File::writei8()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
 	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
-
 	  <tbody>
 	    <row>
-	      <entry><para><code><replaceable>integer</replaceable></code></para></entry>
-	      <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$i</replaceable> = 0</code></para></entry>
 	      <entry><para>The integer to write; writes an 8-byte integer in big-endian format.</para></entry>
 	    </row>
 	  </tbody>
@@ -5288,7 +5271,7 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>File::writei2LSB(<replaceable>integer</replaceable>)</programlisting>
+              <para><code><link linkend="File_writei2LSB">File::writei2LSB</link>(<link linkend="softint_type">softint</link> <replaceable>$i</replaceable> = 0) <command>returns</command> <link linkend="int_type">int</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -5305,18 +5288,16 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 
       <table>
 	<title>Arguments for File::writei2LSB()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
 	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code><replaceable>integer</replaceable></code></para></entry>
-	      <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$i</replaceable> = 0</code></para></entry>
 	      <entry><para>The integer to write; writes a 2-byte integer in little-endian format.</para></entry>
 	    </row>
 	  </tbody>
@@ -5372,7 +5353,7 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>File::writei4LSB(<replaceable>integer</replaceable>)</programlisting>
+              <para><code><link linkend="File_writei4LSB">File::writei4LSB</link>(<link linkend="softint_type">softint</link> <replaceable>$i</replaceable> = 0) <command>returns</command> <link linkend="int_type">int</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -5389,19 +5370,16 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 
       <table>
 	<title>Arguments for File::writei4LSB()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
 	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
-
 	  <tbody>
 	    <row>
-	      <entry><para><code><replaceable>integer</replaceable></code></para></entry>
-	      <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$i</replaceable> = 0</code></para></entry>
 	      <entry><para>The integer to write; writes a 4-byte integer in little-endian format.</para></entry>
 	    </row>
 	  </tbody>
@@ -5457,7 +5435,7 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>File::writei8LSB(<replaceable>integer</replaceable>)</programlisting>
+              <para><code><link linkend="File_writei8LSB">File::writei8LSB</link>(<link linkend="softint_type">softint</link> <replaceable>$i</replaceable> = 0) <command>returns</command> <link linkend="int_type">int</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -5474,19 +5452,16 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 
       <table>
 	<title>Arguments for File::writei8LSB()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
 	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
-
 	  <tbody>
 	    <row>
-	      <entry><para><code><replaceable>integer</replaceable></code></para></entry>
-	      <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$i</replaceable> = 0</code></para></entry>
 	      <entry><para>The integer to write; writes an 8-byte integer in little-endian format.</para></entry>
 	    </row>
 	  </tbody>
@@ -13409,7 +13384,7 @@ $pgm.setParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Socket_send">Socket::send</link>(data <replaceable>$data</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
+              <para><code><link linkend="Socket_send">Socket::send</link>(<link linkend="data_type">data</link> <replaceable>$data</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Sends string or binary data over the socket; string data is converted to the socket's encoding if necessary.</para></entry>
@@ -13417,7 +13392,7 @@ $pgm.setParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
 
 	  <row>
 	    <entry>
-              <para><code><link linkend="Socket_sendBinary">Socket::sendBinary</link>(data <replaceable>$data</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
+              <para><code><link linkend="Socket_sendBinary">Socket::sendBinary</link>(<link linkend="data_type">data</link> <replaceable>$data</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Sends string or binary data over the socket; string data is not converted to the socket's encoding, but sent exactly as-is.</para></entry>
@@ -18094,8 +18069,8 @@ $sock.bind("/tmp/socket");</programlisting>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="HTTPClient_send">HTTPClient::send</link>(data <replaceable>$body</replaceable> = binary(), <link linkend="string_type">string</link> <replaceable>$method</replaceable>, <link linkend="string_type">string</link> <replaceable>$path</replaceable> = "", <link linkend="hash_type">hash</link> headers = <link linkend="hash_type">hash</link>(), <link linkend="bool_type">bool</link> <replaceable>$getbody</replaceable> = False, <link linkend="reference_type">reference</link> <replaceable>$info</replaceable>) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
-              <para><code><link linkend="HTTPClient_send">HTTPClient::send</link>(data <replaceable>$body</replaceable> = binary(), <link linkend="string_type">string</link> <replaceable>$method</replaceable>, <link linkend="string_type">string</link> <replaceable>$path</replaceable> = "", <link linkend="hash_type">hash</link> headers = <link linkend="hash_type">hash</link>(), <link linkend="bool_type">bool</link> <replaceable>$getbody</replaceable> = False) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
+              <para><code><link linkend="HTTPClient_send">HTTPClient::send</link>(<link linkend="data_type">data</link> <replaceable>$body</replaceable> = binary(), <link linkend="string_type">string</link> <replaceable>$method</replaceable>, <link linkend="string_type">string</link> <replaceable>$path</replaceable> = "", <link linkend="hash_type">hash</link> headers = <link linkend="hash_type">hash</link>(), <link linkend="bool_type">bool</link> <replaceable>$getbody</replaceable> = False, <link linkend="reference_type">reference</link> <replaceable>$info</replaceable>) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
+              <para><code><link linkend="HTTPClient_send">HTTPClient::send</link>(<link linkend="data_type">data</link> <replaceable>$body</replaceable> = binary(), <link linkend="string_type">string</link> <replaceable>$method</replaceable>, <link linkend="string_type">string</link> <replaceable>$path</replaceable> = "", <link linkend="hash_type">hash</link> headers = <link linkend="hash_type">hash</link>(), <link linkend="bool_type">bool</link> <replaceable>$getbody</replaceable> = False) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
             </entry>
             <entry>
               <para>Y</para>
