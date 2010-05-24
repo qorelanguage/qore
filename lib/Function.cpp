@@ -632,6 +632,7 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
 	 //printd(0, "AbstractQoreFunction::parseFindVariant() this=%p checking %s(%s) variant=%p sig->pt=%d sig->mpt=%d match=%d, args=%d\n", this, getName(), sig->getSignatureText(), variant, sig->getParamTypes(), sig->getMinParamTypes(), match, num_args);
 	 
 	 if (!variant && !sig->getParamTypes() && pmatch == -1) {
+	    match = pmatch = nperfect = 0;
 	    variant = *i;
 	    continue;
 	 }
@@ -727,6 +728,7 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
 	 sig->resolve();
 
 	 if (!variant && !sig->getParamTypes() && pmatch == -1) {
+	    match = pmatch = nperfect = 0;
 	    variant = *i;
 	    continue;
 	 }
