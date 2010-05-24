@@ -2829,24 +2829,6 @@ stdin.getTerminalAttributes($termios);</programlisting>
       </table>
 
       <table>
-	<title>Return Value for File::getTerminalAttributes()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Return Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para><code><link linkend="nothing_type">nothing</link></code></para></entry>
-	      <entry><para>Does not return any value; if an error is encountered, an exception is raised.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
 	<title>Exceptions Thrown by File::getTerminalAttributes()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
@@ -2985,8 +2967,7 @@ $f.lock(F_WRLCK);
 $f.lock(F_RDLCK, 512, 2048);
 
 # release all locks
-$f.lock(F_UNLCK);
-</programlisting>
+$f.lock(F_UNLCK);</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -3085,8 +3066,7 @@ $f.lockBlocking(F_WRLCK);
 $f.lockBlocking(F_RDLCK, 512, 2048);
 
 # release all locks
-$f.lockBlocking(F_UNLCK);
-</programlisting>
+$f.lockBlocking(F_UNLCK);</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -3408,24 +3388,6 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 	    <row>
 	      <entry><para><code>[<link linkend="string_type">string</link> <replaceable>$encoding</replaceable>]</code></para></entry>
 	      <entry><para>The name of the default character encoding for this file; if this argument is not given, the file will be tagged with the <link linkend="Default_Character_Encoding">default character encoding</link> for the process.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
-	<title>Return Values for File::open2()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Return Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method does not return any value; if an error occurs, an exception is thrown.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -4389,7 +4351,7 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>Binary</para></entry>
+	      <entry><para><code><link linkend="binary_type">binary</link></code></para></entry>
 	      <entry><para>A binary object containing the data read from the file.  NOTHING is returned if end-of-file is encountered, however, if data has been read before EOF, the data read will be returned and NOTHING (signifying EOF) will be returned on the next call to this method.</para></entry>
 	    </row>
 	  </tbody>
@@ -4532,26 +4494,7 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 	  </tbody>
 	</tgroup>
       </table>
-
-      <table>
-	<title>Return Value for File::setCharset()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Return Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method does not return any value.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
     </sect2>
-
     <sect2 id="File_setPos">
       <title>File::setPos()</title>
 
@@ -5503,7 +5446,6 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 	</tgroup>
       </table>
     </sect2>
-
   </sect1>
 
 
@@ -6011,9 +5953,7 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>
-$d.chown("nobody");
-            </programlisting>
+	    <programlisting>$d.chown("nobody");</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -6035,24 +5975,6 @@ $d.chown("nobody");
 	    <row>
 	      <entry><para><code><link linkend="string_type">string</link> <replaceable>$username</replaceable></code></para></entry>
 	      <entry><para>A username which is known by the system.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
-	<title>Return Value for Dir::chown()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Return Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method does not return any value.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -6102,9 +6024,7 @@ $d.chown("nobody");
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>
-$d.chgrp("nogroup");
-            </programlisting>
+	    <programlisting>$d.chgrp("nogroup");</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -6126,24 +6046,6 @@ $d.chgrp("nogroup");
 	    <row>
 	      <entry><para><code><link linkend="string_type">string</link> <replaceable>$groupname</replaceable></code></para></entry>
 	      <entry><para>The name of the group to be set. Must be known in the system.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
-	<title>Return Value for Dir::chgrp()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Return Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method does not return any value.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -6192,9 +6094,7 @@ $d.chgrp("nogroup");
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>
-$d.chmod(0711); # set mode to u(rwx) and go(x)
-            </programlisting>
+	    <programlisting>$d.chmod(0711); # set mode to u(rwx) and go(x)</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -6212,24 +6112,6 @@ $d.chmod(0711); # set mode to u(rwx) and go(x)
 	    <row>
 	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$mode</replaceable></code></para></entry>
 	      <entry><para>The mode of the directory.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
-	<title>Return Value for Dir::chmod()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Return Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method does not return any value.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -6278,9 +6160,7 @@ $d.chmod(0711); # set mode to u(rwx) and go(x)
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>
-$d.mkdir("newSubDir", 0755);
-            </programlisting>
+	    <programlisting>$d.mkdir("newSubDir", 0755);</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -6298,24 +6178,6 @@ $d.mkdir("newSubDir", 0755);
 	    <row>
 	      <entry><para><code><link linkend="string_type">string</link> <replaceable>$name</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$mode</replaceable> = 0777</code></para></entry>
 	      <entry><para>The name and mode of the subdirectory.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
-	<title>Return Value for Dir::mkdir()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Return Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method does not return any value.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -6364,9 +6226,7 @@ $d.mkdir("newSubDir", 0755);
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>
-$d.rmdir("emptySubdir");
-            </programlisting>
+	    <programlisting>$d.rmdir("emptySubdir");</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -6384,24 +6244,6 @@ $d.rmdir("emptySubdir");
 	    <row>
 	      <entry><para><code><link linkend="string_type">string</link> <replaceable>$subdir</replaceable></code></para></entry>
 	      <entry><para>The name of the directory to be removed.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
-	<title>Return Value for Dir::rmdir()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Return Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method does not return any value.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -6887,9 +6729,7 @@ $d.rmdir("emptySubdir");
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>
-$d.removeFile("myTestFile.dat");
-            </programlisting>
+	    <programlisting>$d.removeFile("myTestFile.dat");</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -6905,7 +6745,7 @@ $d.removeFile("myTestFile.dat");
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code>(<link linkend="string_type">string</link> <replaceable>$name</replaceable></code></para></entry>
+	      <entry><para><code><link linkend="string_type">string</link> <replaceable>$name</replaceable></code></para></entry>
 	      <entry><para>The name of the file in the directory.</para></entry>
 	    </row>
 	  </tbody>
@@ -7096,7 +6936,7 @@ stdout.printf(" GOT ASCII 0x%02x (%d) '%s'\n", ord($c), ord($c), $c);</programli
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="TermIOS::isEqual">TermIOS::isEqual</link>(<link linkend="TermIOS_Class">TermIOS</link>) <command>returns</command> <link linkend="bool_type">bool</link></code></para>
+              <para><code><link linkend="TermIOS::isEqual">TermIOS::isEqual</link>(<link linkend="TermIOS_Class">TermIOS</link> <replaceable>$other</replaceable>) <command>returns</command> <link linkend="bool_type">bool</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Returns true if the object passed is equal to the current object, false if not.</para></entry>
@@ -7141,7 +6981,7 @@ stdout.printf(" GOT ASCII 0x%02x (%d) '%s'\n", ord($c), ord($c), $c);</programli
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting><command>new</command> TermIOS()</programlisting>
+              <para><code><link linkend="TermIOS::constructor">TermIOS::constructor</link>()</code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -7152,26 +6992,6 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
-
-      <table>
-	<title>Arguments for TermIOS::constructor()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>The constructor takes no arguments.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
 
       <table>
 	<title>Return Values for TermIOS::constructor()</title>
@@ -7249,7 +7069,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>TermIOS::getLFlag()</programlisting>
+              <para><code><link linkend="TermIOS::getLFlag">TermIOS::getLFlag</link>() <command>returns</command> <link linkend="int_type">int</link></code></para>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -7285,7 +7105,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>TermIOS::getCFlag()</programlisting>
+              <para><code><link linkend="TermIOS::getCFlag">TermIOS::getCFlag</link>() <command>returns</command> <link linkend="int_type">int</link></code></para>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -7327,7 +7147,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>TermIOS::getIFlag()</programlisting>
+              <para><code><link linkend="TermIOS::getIFlag">TermIOS::getIFlag</link>() <command>returns</command> <link linkend="int_type">int</link></code></para>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -7369,7 +7189,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>TermIOS::getOFlag()</programlisting>
+              <para><code><link linkend="TermIOS::getOFlag">TermIOS::getOFlag</link>() <command>returns</command> <link linkend="int_type">int</link></code></para>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -7411,64 +7231,23 @@ stdin.getTerminalAttributes($termios);</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>TermIOS::setLFlag(<replaceable>lflag</replaceable>)</programlisting>
+              <para><code><link linkend="TermIOS::setLFlag">TermIOS::setLFlag</link>(<link linkend="softint_type">softint</link> <replaceable>$val</replaceable> = 0) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
           </listitem>
         </varlistentry>
       </variablelist>
       <table>
         <title>Arguments for TermIOS::setLFlag()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>
-                  <replaceable>lflag</replaceable>
-                </para>
-              </entry>
-              <entry>
-                <para><code><link linkend="int_type">int</link></code></para>
-              </entry>
-              <entry>
-                <para>The <link linkend="Local_Mode_Constants">local mode</link> to set for the object.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
-      <table>
-        <title>Return Values for TermIOS::setLFlag()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
           <thead>
             <row>
-              <entry>
-                <para>Return Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
+              <entry><para>Argument</para></entry>
+              <entry><para>Description</para></entry>
             </row>
           </thead>
           <tbody>
             <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method returns no value</para>
-              </entry>
+              <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$val</replaceable> = 0</code></para></entry>
+              <entry><para>The <link linkend="Local_Mode_Constants">local mode</link> to set for the object.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -7486,63 +7265,24 @@ stdin.getTerminalAttributes($termios);</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>TermIOS::setCFlag(<replaceable>cflag</replaceable>)</programlisting>
+              <para><code><link linkend="TermIOS::setCFlag">TermIOS::setCFlag</link>(<link linkend="softint_type">softint</link> <replaceable>$val</replaceable> = 0) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
           </listitem>
         </varlistentry>
       </variablelist>
       <table>
         <title>Arguments for TermIOS::setCFlag()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>
-                  <replaceable>cflag</replaceable>
-                </para>
-              </entry>
-              <entry>
-                <para><code><link linkend="int_type">int</link></code></para>
-              </entry>
-              <entry>
-                <para>The <link linkend="Control_Mode_Constants">control mode</link> to set for the object.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
-      <table>
-        <title>Return Values for TermIOS::setCFlag()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
           <thead>
             <row>
-              <entry>
-                <para>Return Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
+              <entry><para>Argument</para></entry>
+              <entry><para>Description</para></entry>
             </row>
           </thead>
           <tbody>
             <row>
+              <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$val</replaceable> = 0</code></para></entry>
               <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method returns no value</para>
+                <para>The <link linkend="Control_Mode_Constants">control mode</link> to set for the object.</para>
               </entry>
             </row>
           </tbody>
@@ -7561,63 +7301,24 @@ stdin.getTerminalAttributes($termios);</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>TermIOS::setIFlag(<replaceable>iflag</replaceable>)</programlisting>
+              <para><code><link linkend="TermIOS::setIFlag">TermIOS::setIFlag</link>(<link linkend="softint_type">softint</link> <replaceable>$val</replaceable> = 0) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
           </listitem>
         </varlistentry>
       </variablelist>
       <table>
         <title>Arguments for TermIOS::setIFlag()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>
-                  <replaceable>iflag</replaceable>
-                </para>
-              </entry>
-              <entry>
-                <para><code><link linkend="int_type">int</link></code></para>
-              </entry>
-              <entry>
-                <para>The <link linkend="Input_Mode_Constants">input mode</link> to set for the object.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
-      <table>
-        <title>Return Values for TermIOS::setIFlag()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
           <thead>
             <row>
-              <entry>
-                <para>Return Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
+              <entry><para>Argument</para></entry>
+              <entry><para>Description</para></entry>
             </row>
           </thead>
           <tbody>
             <row>
+              <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$val</replaceable> = 0</code></para></entry>
               <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method returns no value</para>
+                <para>The <link linkend="Input_Mode_Constants">input mode</link> to set for the object.</para>
               </entry>
             </row>
           </tbody>
@@ -7636,63 +7337,24 @@ stdin.getTerminalAttributes($termios);</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>TermIOS::setOFlag(<replaceable>oflag</replaceable>)</programlisting>
+              <para><code><link linkend="TermIOS::setOFlag">TermIOS::setOFlag</link>(<link linkend="softint_type">softint</link> <replaceable>$val</replaceable> = 0) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
           </listitem>
         </varlistentry>
       </variablelist>
       <table>
         <title>Arguments for TermIOS::setOFlag()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>
-                  <replaceable>oflag</replaceable>
-                </para>
-              </entry>
-              <entry>
-                <para><code><link linkend="int_type">int</link></code></para>
-              </entry>
-              <entry>
-                <para>The <link linkend="Output_Mode_Constants">output mode</link> to set for the object.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
-      <table>
-        <title>Return Values for TermIOS::setOFlag()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
           <thead>
             <row>
-              <entry>
-                <para>Return Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
+              <entry><para>Argument</para></entry>
+              <entry><para>Description</para></entry>
             </row>
           </thead>
           <tbody>
             <row>
+              <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$val</replaceable> = 0</code></para></entry>
               <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method returns no value</para>
+                <para>The <link linkend="Output_Mode_Constants">output mode</link> to set for the object.</para>
               </entry>
             </row>
           </tbody>
@@ -7711,20 +7373,17 @@ stdin.getTerminalAttributes($termios);</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>TermIOS::getCC(<replaceable>cc</replaceable>)</programlisting>
+              <para><code><link linkend="TermIOS::getCC">TermIOS::getCC</link>(<link linkend="softint_type">softint</link> <replaceable>$offset</replaceable> = 0) <command>returns</command> <link linkend="int_type">int</link></code></para>
           </listitem>
         </varlistentry>
       </variablelist>
       <table>
         <title>Arguments for TermIOS::getCC()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
           <thead>
             <row>
               <entry>
                 <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
               </entry>
               <entry>
                 <para>Description</para>
@@ -7733,8 +7392,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
           </thead>
           <tbody>
             <row>
-              <entry><para><code><replaceable>cc</replaceable></code></para></entry>
-              <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+              <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$offset</replaceable> = 0</code></para></entry>
               <entry><para>The <link linkend="Control_Character_Constants">control character</link> to get from th object.</para></entry>
             </row>
           </tbody>
@@ -7778,76 +7436,34 @@ stdin.getTerminalAttributes($termios);</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>TermIOS::setCC(<replaceable>cc, val</replaceable>)</programlisting>
+              <para><code><link linkend="TermIOS::setCC">TermIOS::setCC</link>(<link linkend="softint_type">softint</link> <replaceable>$offset</replaceable> = 0, <link linkend="softint_type">softint</link> <replaceable>$value</replaceable> = 0) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
           </listitem>
         </varlistentry>
       </variablelist>
       <table>
         <title>Arguments for TermIOS::setCC()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
           <thead>
             <row>
               <entry>
                 <para>Argument</para>
               </entry>
               <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
                 <para>Description</para>
               </entry>
             </row>
           </thead>
           <tbody>
             <row>
-              <entry>
-                <para>
-                  <replaceable>cc</replaceable>
-                </para>
-              </entry>
-              <entry>
-                <para><code><link linkend="int_type">int</link></code></para>
-              </entry>
+              <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$offset</replaceable> = 0</code></para></entry>
               <entry>
                 <para>The <link linkend="Control_Character_Constants">control character</link> to set.</para>
               </entry>
             </row>
             <row>
-              <entry>
-                <para>
-                  <replaceable>val</replaceable>
-                </para>
-              </entry>
-              <entry>
-                <para><code><link linkend="int_type">int</link></code></para>
-              </entry>
+              <entry><para><code><link linkend="softint_type">softint</link> <replaceable>value</replaceable> = 0</code></para></entry>
               <entry>
                 <para>The value to set</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
-      <table>
-        <title>Return Values for TermIOS::setCC()</title>
-        <tgroup cols="2" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Return Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method returns no value</para>
               </entry>
             </row>
           </tbody>
@@ -7866,20 +7482,17 @@ stdin.getTerminalAttributes($termios);</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>TermIOS::isEqual(<replaceable>termios</replaceable>)</programlisting>
+              <para><code><link linkend="TermIOS::isEqual">TermIOS::isEqual</link>(<link linkend="TermIOS_Class">TermIOS</link> <replaceable>$other</replaceable>) <command>returns</command> <link linkend="bool_type">bool</link></code></para>
           </listitem>
         </varlistentry>
       </variablelist>
       <table>
         <title>Arguments for TermIOS::isEqual()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
           <thead>
             <row>
               <entry>
                 <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
               </entry>
               <entry>
                 <para>Description</para>
@@ -7888,14 +7501,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
           </thead>
           <tbody>
             <row>
-              <entry>
-                <para>
-                  <replaceable>termios</replaceable>
-                </para>
-              </entry>
-              <entry>
-                <para>TermIOS</para>
-              </entry>
+              <entry><para><code><link linkend="TermIOS_Class">TermIOS</link> <replaceable>$other</replaceable></code></para></entry>
               <entry>
                 <para>The object to compare to the current object.</para>
               </entry>
@@ -7969,7 +7575,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>TermIOS::getWindowSize()</programlisting>
+              <para><code><command>static</command> <link linkend="TermIOS::getWindowSize">TermIOS::getWindowSize</link>() <command>returns</command> <link linkend="hash_type">hash</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -8021,7 +7627,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	<tbody>
 	  <row>
 	    <entry>
-              <para><code><link linkend="GetOpt_constructor">GetOpt::constructor</link>(<link linkend="hash_type">hash</link>)</code></para>
+              <para><code><link linkend="GetOpt_constructor">GetOpt::constructor</link>(<link linkend="hash_type">hash</link> <replaceable>$options</replaceable>)</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Creates the GetOpt object with the option hash passed.</para></entry>
@@ -8042,16 +7648,16 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="GetOpt::parse">GetOpt::parse</link>(<link linkend="reference_type">reference</link> <replaceable>$</replaceable><link linkend="list_type">list</link>_ref) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
-              <para><code><link linkend="GetOpt::parse">GetOpt::parse</link>(<link linkend="list_type">list</link> <replaceable>$</replaceable><link linkend="list_type">list</link>) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
+              <para><code><link linkend="GetOpt::parse">GetOpt::parse</link>(<link linkend="reference_type">reference</link> <replaceable>$list_ref</replaceable>) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
+              <para><code><link linkend="GetOpt::parse">GetOpt::parse</link>(<link linkend="list_type">list</link> <replaceable>$list</replaceable>) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Parses the argument list passed and retuns a hash of the results; if there are any errors, they are returned in the <code>&quot;_ERRORS_&quot;</code> key of the hash returned.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="GetOpt::parse2">GetOpt::parse2</link>(<link linkend="reference_type">reference</link> <replaceable>$</replaceable><link linkend="list_type">list</link>_ref) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
-              <para><code><link linkend="GetOpt::parse2">GetOpt::parse2</link>(<link linkend="list_type">list</link> <replaceable>$</replaceable><link linkend="list_type">list</link>) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
+              <para><code><link linkend="GetOpt::parse2">GetOpt::parse2</link>(<link linkend="reference_type">reference</link> <replaceable>$list_ref</replaceable>) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
+              <para><code><link linkend="GetOpt::parse2">GetOpt::parse2</link>(<link linkend="list_type">list</link> <replaceable>$list</replaceable>) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Parses the argument list passed and retuns a hash of the results; if there are any errors, an exception is thrown.</para></entry>
@@ -8074,13 +7680,13 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting><command>new</command> GetOpt(<replaceable>option_hash</replaceable>)</programlisting>
+              <para><code><link linkend="GetOpt_constructor">GetOpt::constructor</link>(<link linkend="hash_type">hash</link> <replaceable>$options</replaceable>)</code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>const program_options =
+	    <programlisting><command>const</command> program_options =
     ( "url"  : "url,u=s",
       "xml"  : "xml,x",
       "lxml" : "literal-xml,X",
@@ -8094,18 +7700,16 @@ stdin.getTerminalAttributes($termios);</programlisting>
 
       <table>
 	<title>Arguments for GetOpt::constructor()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
 	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code><replaceable>option_hash</replaceable></code></para></entry>
-	      <entry><para><code><link linkend="hash_type">hash</link></code></para></entry>
+	      <entry><para><code><link linkend="hash_type">hash</link> <replaceable>$options</replaceable></code></para></entry>
 	      <entry><para>Each key defines the key value for the return hash if any arguments are given corresponding to the string value of the key.</para></entry>
 	    </row>
 	  </tbody>
@@ -8218,37 +7822,46 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	  <term>Synopsis</term>
 	  <listitem>
 	    <para>Parses the list of parameters according to the option hash passed to the constructor.  If a reference to a list is passed to this function, then all arguments parsed will be removed from the list, leaving only unparsed arguments (for example, file names).</para>
+	    <para>If any errors are encountered, the return value hash will have a key <code>&quot;_ERRORS_&quot;</code> giving a list of error messages pertaining to the options parsed.</para>
+	    <para>See <link linkend="GetOpt::parse2">GetOpt::parse2()</link> for a similar method that throws an exception instead of putting error information in the <code>_ERRORS_</code> key of the hash value returned.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>GetOpt::parse(<replaceable>list_reference</replaceable>)</programlisting>
+              <para><code><link linkend="GetOpt::parse">GetOpt::parse</link>(<link linkend="reference_type">reference</link> <replaceable>$list_ref</replaceable>) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
+              <para><code><link linkend="GetOpt::parse">GetOpt::parse</link>(<link linkend="list_type">list</link> <replaceable>$list</replaceable>) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$o = $getopt.parse(\$ARGV);</programlisting>
+	    <programlisting><command>my</command> hash $o = $getopt.parse(\$ARGV);
+<command>if</command> (<command>exists</command> $o."_ERRORS_") {
+   stderr.printf("%s\n", $o."_ERRORS_"[0]);
+   exit(1);
+}</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
 
       <table>
 	<title>Arguments for GetOpt::parse()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
 	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code><replaceable>list_reference</replaceable></code></para></entry>
-	      <entry><para>List Reference</para></entry>
+	      <entry><para><code><link linkend="list_type">list</link> <replaceable>$list</replaceable></code></para></entry>
 	      <entry><para>The entire command line to process (ex: <link linkend="Special_Qore_Variables">$ARGV</link>).</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code><link linkend="reference_type">reference</link> <replaceable>$list_ref</replaceable></code></para></entry>
+	      <entry><para>The reference should point to a list of arguments to process; any argument accepted by the object will be removed from the list.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -8266,7 +7879,98 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	  <tbody>
 	    <row>
 	      <entry><para><code><link linkend="hash_type">hash</link></code></para></entry>
-	      <entry><para>A hash keyed by option names (as given in the hash to the GetOpt constructor), where each key's value is the value of the arguments passed in the list argument.  The hash key "_ERRORS_" will contain any errors.</para></entry>
+	      <entry><para>A hash keyed by option names (as given in the hash to the GetOpt constructor), where each key's value is the value of the arguments passed in the list argument.  The hash key <code>&quot;_ERRORS_&quot;</code> will contain any errors.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="GetOpt::parse2">
+      <title>GetOpt::parse2()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Parses the list of parameters according to the option hash passed to the constructor.  If a reference to a list is passed to this function, then all arguments parsed will be removed from the list, leaving only unparsed arguments (for example, file names).</para>
+	    <para>If any errors are encountered, an appropriate exception will be thrown.</para>
+	    <para>See <link linkend="GetOpt::parse">GetOpt::parse()</link> for a similar method that puts error information in the <code>&quot;_ERRORS_&quot;</code> key of the hash value returned instead of throwing an exception.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Prototype</term>
+	  <listitem>
+              <para><code><link linkend="GetOpt::parse">GetOpt::parse2</link>(<link linkend="reference_type">reference</link> <replaceable>$list_ref</replaceable>) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
+              <para><code><link linkend="GetOpt::parse">GetOpt::parse2</link>(<link linkend="list_type">list</link> <replaceable>$list</replaceable>) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting><command>try</command> {
+   <command>my</command> hash $o = $getopt.parse2(\$ARGV);
+}
+<command>catch</command> ($ex) {
+   stderr.printf("%s\n", $ex.desc);
+   exit(1);
+}</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for GetOpt::parse2()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code><link linkend="list_type">list</link> <replaceable>$list</replaceable></code></para></entry>
+	      <entry><para>The entire command line to process (ex: <link linkend="Special_Qore_Variables">$ARGV</link>).</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code><link linkend="reference_type">reference</link> <replaceable>$list_ref</replaceable></code></para></entry>
+	      <entry><para>The reference should point to a list of arguments to process; any argument accepted by the object will be removed from the list.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for GetOpt::parse2()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code><link linkend="hash_type">hash</link></code></para></entry>
+	      <entry><para>A hash keyed by option names (as given in the hash to the GetOpt constructor), where each key's value is the value of the arguments passed in the list argument.  If any errors are encountered processing the arguments, an appropriate exception will be thrown.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+      <table>
+	<title>Exceptions Thrown by GetOpt::parse2()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>GETOPT-ERROR</code></para></entry>
+	      <entry><para>The description varies according to the error encountered.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -8297,19 +8001,19 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	<tbody>
 	  <row>
 	    <entry><para><code><replaceable>protocol</replaceable></code></para></entry>
-	    <entry><code>FTP (unencrypted)</code></entry>
+	    <entry><para><code>ftp</code> (unencrypted)</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><code><replaceable>username</replaceable></code></para></entry>
-	    <entry><code>anonymous</code></entry>
+	    <entry><para><code>anonymous</code></para></entry>
 	  </row>
 	  <row>
 	    <entry><para><code><replaceable>password</replaceable></code></para></entry>
-	    <entry><code>qore@nohost.com</code></entry>
+	    <entry><para><code>qore@nohost.com</code></para></entry>
 	  </row>
 	  <row>
 	    <entry><para><code><replaceable>port</replaceable></code></para></entry>
-	    <entry><code>21</code></entry>
+	    <entry><para><code>21</code></para></entry>
 	  </row>
 	</tbody>
       </tgroup>
@@ -8319,7 +8023,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
 
     <para>Objects of this class are capable of making encrypted FTPS connections according to <ulink url="http://www.ietf.org/rfc/rfc4217.txt">RFC-4217</ulink>.  TLS/SSL encrypted control and data connection will be attempted if the protocol is set to 'ftps' or the <link linkend="FtpClient_setSecure">FtpClient::setSecure() method</link> is called before connecting.</para>
 
-    <para>Note that 'sftp', or FTP over ssh, is not supported with this class; FTPS is an extension of the FTP protocol to allow for secure connections; while 'sftp' is FTP over an encrypted ssh connection.</para>
+    <para>Note that 'sftp', or FTP over ssh, is not supported with this class; FTPS is an extension of the FTP protocol to allow for secure connections; while 'sftp' is FTP over an encrypted ssh connection.  For sftp and ssh support, use the <code>ssh2</code> module.</para>
 
     <para>When a data connection is required, by default the following modes are tried in series: EPSV (Extended Passive Mode), PASV (Passive Mode), and PORT (Port mode). If the FTP server does not support one of these methods, or network conditions do not allow a data connection of any of these types to be established, then an exception is thrown.</para>
 
@@ -8390,14 +8094,14 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="FtpClient_connect">FtpClient::connect</link>() <command>returns</command> <link linkend="int_type">int</link></code></para>
+              <para><code><link linkend="FtpClient_connect">FtpClient::connect</link>() <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Connects and logs in to FTP server</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="FtpClient_disconnect">FtpClient::disconnect</link>() <command>returns</command> <link linkend="int_type">int</link></code></para>
+              <para><code><link linkend="FtpClient_disconnect">FtpClient::disconnect</link>() <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Disconnects from the FTP server.</para></entry>
@@ -8559,18 +8263,18 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="FtpClient_cwd">FtpClient::cwd</link>(<link linkend="string_type">string</link> <replaceable>$dir</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
+              <para><code><link linkend="FtpClient_cwd">FtpClient::cwd</link>(<link linkend="string_type">string</link> <replaceable>$dir</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Changes the current working directory on the server.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="FtpClient_get">FtpClient::get</link>(<link linkend="string_type">string</link> <replaceable>$remote_file</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
-              <para><code><link linkend="FtpClient_get">FtpClient::get</link>(<link linkend="string_type">string</link> <replaceable>$remote_file</replaceable>, <link linkend="string_type">string</link> <replaceable>$local_file</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
+              <para><code><link linkend="FtpClient_get">FtpClient::get</link>(<link linkend="string_type">string</link> <replaceable>$remote_file</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="FtpClient_get">FtpClient::get</link>(<link linkend="string_type">string</link> <replaceable>$remote_file</replaceable>, <link linkend="string_type">string</link> <replaceable>$local_file</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Gets a file from the FTP server and stores it on the local filesystem.</para></entry>
+	    <entry><para>Gets a file from the FTP server and stores it on the local filesystem; if any errors occur, an exception is thrown..</para></entry>
 	  </row>
 	  <row>
 	    <entry>
@@ -8588,15 +8292,15 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="FtpClient_put">FtpClient::put</link>(<link linkend="string_type">string</link> <replaceable>$local_file</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
-              <para><code><link linkend="FtpClient_put">FtpClient::put</link>(<link linkend="string_type">string</link> <replaceable>$local_file</replaceable>, <link linkend="string_type">string</link> <replaceable>$remote_file</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
+              <para><code><link linkend="FtpClient_put">FtpClient::put</link>(<link linkend="string_type">string</link> <replaceable>$local_file</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="FtpClient_put">FtpClient::put</link>(<link linkend="string_type">string</link> <replaceable>$local_file</replaceable>, <link linkend="string_type">string</link> <replaceable>$remote_file</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Transfers a file to the FTP server.</para></entry>
+	    <entry><para>Transfers a file to the FTP server; if any errors occur, an exception is thrown.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="FtpClient_del">FtpClient::del</link>(<link linkend="string_type">string</link> <replaceable>$remote_file</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
+              <para><code><link linkend="FtpClient_del">FtpClient::del</link>(<link linkend="string_type">string</link> <replaceable>$remote_file</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Deletes a file from the FTP server</para></entry>
@@ -8715,7 +8419,8 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting><command>new</command> FtpClient([<replaceable>string_value</replaceable>])</programlisting>
+              <para><code><link linkend="FtpClient_constructor">FtpClient::constructor</link>()</code></para>
+              <para><code><link linkend="FtpClient_constructor">FtpClient::constructor</link>(<link linkend="string_type">string</link> <replaceable>$url</replaceable>)</code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -8728,19 +8433,17 @@ stdin.getTerminalAttributes($termios);</programlisting>
 
       <table>
 	<title>Arguments for FtpClient::constructor()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
 	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code><replaceable>string_value</replaceable></code></para></entry>
-	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-	      <entry><para>The entire command line to process.</para></entry>
+	      <entry><para><code><link linkend="string_type">string</link> <replaceable>$url</replaceable></code></para></entry>
+	      <entry><para>The URL of the server to connect to; must have at least the hostname to connect to.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -8805,7 +8508,6 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	</varlistentry>
       </variablelist>
 
-
       <table>
 	<title>Exceptions Thrown by FtpClient::copy()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -8832,13 +8534,13 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Connects to the FTP server and attempts a login.</para>
+	    <para>Connects to the FTP server and attempts a login; if any errors occur, an exception is thrown.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>FtpClient::connect(optional:<replaceable>string_value</replaceable>)</programlisting>
+              <para><code><link linkend="FtpClient_connect">FtpClient::connect</link>() <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -8852,44 +8554,6 @@ stdin.getTerminalAttributes($termios);</programlisting>
           <listitem><para><code><link linkend="event_connecting">EVENT_CONNECTING</link>, <link linkend="event_connected">EVENT_CONNECTED</link>,<link linkend="event_hostname_lookup">EVENT_HOSTNAME_LOOKUP</link>, <link linkend="event_hostname_resolved">EVENT_HOSTNAME_RESOLVED</link>, <link linkend="event_start_ssl">EVENT_START_SSL</link>, <link linkend="event_ssl_established">EVENT_SSL_ESTABLISHED</link>, <link linkend="event_ftp_send_message">EVENT_FTP_SEND_MESSAGE</link>, <link linkend="event_ftp_message_received">EVENT_FTP_MESSAGE_RECEIVED</link>, <link linkend="event_packet_read">EVENT_PACKET_READ</link>, <link linkend="event_packet_sent">EVENT_PACKET_SENT</link></code></para></listitem>
         </varlistentry>
       </variablelist>
-
-      <table>
-	<title>Arguments for FtpClient::connect()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para><code><replaceable>string_value</replaceable></code></para></entry>
-	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-	      <entry><para>The URL of the FTP connection.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
-	<title>Return Values for FtpClient::connect()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Return Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para><code><link linkend="int_type">int</link></code></para></entry>
-	      <entry><para>Returns 0 for success, -1 for error.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
 
       <table>
 	<title>Exceptions Thrown by FtpClient::connect()</title>
@@ -8931,7 +8595,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>FtpClient::disconnect()</programlisting>
+              <para><code><link linkend="FtpClient_disconnect">FtpClient::disconnect</link>() <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -8946,43 +8610,6 @@ stdin.getTerminalAttributes($termios);</programlisting>
         </varlistentry>
       </variablelist>
 
-      <table>
-	<title>Arguments for FtpClient::disconnect()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>No arguments are accepted by this method</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
-	<title>Return Values for FtpClient::disconnect()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Return Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para><code><link linkend="int_type">int</link></code></para></entry>
-	      <entry><para>Always returns 0 for success, on errors an exception is thrown.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
     </sect2>
 
     <sect2 id="FtpClient_setSecure">
@@ -8997,7 +8624,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>FtpClient::setSecure(softbool $secure = True) returns nothing</programlisting>
+              <para><code><link linkend="FtpClient_setSecure">FtpClient::setSecure</link>(<link linkend="softbool_type">softbool</link> = True) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -9009,61 +8636,22 @@ stdin.getTerminalAttributes($termios);</programlisting>
       </variablelist>
       <table>
         <title>Arguments for FtpClient::setSecure()</title>
-        <tgroup cols="4" align="left" colsep="1" rowsep="1">
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
           <thead>
             <row>
               <entry>
                 <para>Argument</para>
               </entry>
               <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Default</para>
-              </entry>
-              <entry>
                 <para>Description</para>
               </entry>
             </row>
           </thead>
           <tbody>
             <row>
-              <entry>
-                <para>$secure</para>
-              </entry>
-              <entry>
-                <para>softbool</para>
-              </entry>
-              <entry>
-                <para>True</para>
-              </entry>
+              <entry><para><code><link linkend="softbool_type">softbool</link> = True</code></para></entry>
               <entry>
                 <para>if True, will try to make an FTPS connection on the next connect, if False, will try to make a cleartext FTP connection on the next connect.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
-      <table>
-        <title>Return Values for FtpClient::setSecure()</title>
-        <tgroup cols="2" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Return Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method returns no value</para>
               </entry>
             </row>
           </tbody>
@@ -9109,7 +8697,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>FtpClient::setInsecure()</programlisting>
+              <para><code><link linkend="FtpClient_setInsecure">FtpClient::setInsecure</link>() <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -9119,31 +8707,6 @@ stdin.getTerminalAttributes($termios);</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Return Values for FtpClient::setInsecure()</title>
-        <tgroup cols="2" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Return Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method returns no value</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
       <table>
         <title>Exceptions thrown by FtpClient::setInsecure()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -9184,7 +8747,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>FtpClient::setInsecureData()</programlisting>
+              <para><code><link linkend="FtpClient_setInsecureData">FtpClient::setInsecureData()</link> <command>returns</command> nothing</code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -9194,31 +8757,6 @@ stdin.getTerminalAttributes($termios);</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Return Values for FtpClient::setInsecureData()</title>
-        <tgroup cols="2" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Return Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method returns no value</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
       <table>
         <title>Exceptions thrown by FtpClient::setInsecureData()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -9259,13 +8797,13 @@ stdin.getTerminalAttributes($termios);</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>FtpClient::isSecure()</programlisting>
+              <para><code><link linkend="FtpClient_isSecure">FtpClient::isSecure</link>() <command>returns</command> <link linkend="bool_type">bool</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Example</term>
           <listitem>
-            <programlisting>$bool = $ftp.isSecure();</programlisting>
+            <programlisting><command>my</command> bool $b = $ftp.isSecure();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -9288,7 +8826,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
                 <para><code><link linkend="bool_type">bool</link></code></para>
               </entry>
               <entry>
-                <para>True if the control connection is encrypted.</para>
+                <para>True if the control connection is encrypted, False if not.</para>
               </entry>
             </row>
           </tbody>
@@ -9307,13 +8845,13 @@ stdin.getTerminalAttributes($termios);</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>FtpClient::isDataSecure()</programlisting>
+              <para><code><link linkend="FtpClient_isDataSecure">FtpClient::isDataSecure</link>() <command>returns</command> <link linkend="bool_type">bool</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Example</term>
           <listitem>
-            <programlisting>$bool = $ftp.isDataSecure();</programlisting>
+            <programlisting><command>my</command> bool $b = $ftp.isDataSecure();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -9336,7 +8874,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
                 <para><code><link linkend="bool_type">bool</link></code></para>
               </entry>
               <entry>
-                <para>True if data connections are encrypted.</para>
+                <para>True if data connections are encrypted, False if not.</para>
               </entry>
             </row>
           </tbody>
@@ -9355,13 +8893,13 @@ stdin.getTerminalAttributes($termios);</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>FtpClient::getSSLCipherName()</programlisting>
+              <para><code><link linkend="FtpClient_getSSLCipherName">FtpClient::getSSLCipherName</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Example</term>
           <listitem>
-            <programlisting>$str = $ftp.getSSLCipherName();</programlisting>
+            <programlisting><command>my</command> any $str = $ftp.getSSLCipherName();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -9381,10 +8919,10 @@ stdin.getTerminalAttributes($termios);</programlisting>
           <tbody>
             <row>
               <entry>
-                <para><code><link linkend="string_type">string</link></code></para>
+                <para><code><link linkend="string_type">string</link> or <link linkend="nothing_type">nothing</link></code></para>
               </entry>
               <entry>
-                <para>The name of the cipher for an encrypted connection.</para>
+                <para>The name of the cipher for an encrypted connection or NOTHING if an excrypted connection has not been established.</para>
               </entry>
             </row>
           </tbody>
@@ -9403,13 +8941,13 @@ stdin.getTerminalAttributes($termios);</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>FtpClient::getSSLCipherVersion()</programlisting>
+              <para><code><link linkend="FtpClient_getSSLCipherVersion">FtpClient::getSSLCipherVersion</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Example</term>
           <listitem>
-            <programlisting>$str = $ftp.getSSLCipherVersion();</programlisting>
+            <programlisting><command>my</command> any $str = $ftp.getSSLCipherVersion();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -9429,10 +8967,10 @@ stdin.getTerminalAttributes($termios);</programlisting>
           <tbody>
             <row>
               <entry>
-                <para><code><link linkend="string_type">string</link></code></para>
+                <para><code><link linkend="string_type">string</link> or <link linkend="nothing_type">nothing</link></code></para>
               </entry>
               <entry>
-                <para>The version string of the cipher for encrypted connections.</para>
+                <para>The version string of the cipher for encrypted connections or NOTHING if an excrypted connection has not been established.</para>
               </entry>
             </row>
           </tbody>
@@ -9451,13 +8989,13 @@ stdin.getTerminalAttributes($termios);</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>FtpClient::verifyPeerCertificate()</programlisting>
+              <para><code><link linkend="FtpClient_verifyPeerCertificate">FtpClient::verifyPeerCertificate</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Example</term>
           <listitem>
-            <programlisting>$str = $ftp.verifyPeerCertificate();</programlisting>
+            <programlisting><command>my</command> any $str = $ftp.verifyPeerCertificate();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -9477,10 +9015,10 @@ stdin.getTerminalAttributes($termios);</programlisting>
           <tbody>
             <row>
               <entry>
-                <para><code><link linkend="string_type">string</link></code></para>
+                <para><code><link linkend="string_type">string</link> or <link linkend="nothing_type">nothing</link></code></para>
               </entry>
               <entry>
-                <para>A string code giving the result of verifying the peer's certificate.  No value is returned if no secure connection has been established.</para>
+                <para>A string code giving the result of verifying the peer's certificate.  No value is returned if a secure connection has not been established.</para>
               </entry>
             </row>
           </tbody>
@@ -9499,7 +9037,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>FtpClient::setModeAuto()</programlisting>
+              <para><code><link linkend="FtpClient_setModeAuto">FtpClient::setModeAuto</link>() <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -9509,31 +9047,6 @@ stdin.getTerminalAttributes($termios);</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Return Values for FtpClient::setModeAuto()</title>
-        <tgroup cols="2" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Return Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method returns no value</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
     </sect2>
     <sect2 id="FtpClient_setModeEPSV">
       <title>FtpClient::setModeEPSV()</title>
@@ -9547,7 +9060,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>FtpClient::setModeEPSV()</programlisting>
+              <para><code><link linkend="FtpClient_setModeEPSV">FtpClient::setModeEPSV</link>() <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -9557,31 +9070,6 @@ stdin.getTerminalAttributes($termios);</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Return Values for FtpClient::setModeEPSV()</title>
-        <tgroup cols="2" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Return Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method returns no value</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
     </sect2>
     <sect2 id="FtpClient_setModePASV">
       <title>FtpClient::setModePASV()</title>
@@ -9595,7 +9083,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>FtpClient::setModePASV()</programlisting>
+              <para><code><link linkend="FtpClient_setModePASV">FtpClient::setModePASV</link>() <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -9605,31 +9093,6 @@ stdin.getTerminalAttributes($termios);</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Return Values for FtpClient::setModePASV()</title>
-        <tgroup cols="2" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Return Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method returns no value</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
     </sect2>
     <sect2 id="FtpClient_setModePORT">
       <title>FtpClient::setModePORT()</title>
@@ -9643,7 +9106,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>FtpClient::setModePORT()</programlisting>
+              <para><code><link linkend="FtpClient_setModePORT">FtpClient::setModePORT</link>() <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -9653,31 +9116,6 @@ stdin.getTerminalAttributes($termios);</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Return Values for FtpClient::setModePORT()</title>
-        <tgroup cols="2" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Return Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method returns no value</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
     </sect2>
 
     <sect2 id="FtpClient_list">
@@ -9687,19 +9125,20 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Gets a list of files from the FTP server in the server's long format in the current working directory.</para>
+	    <para>Gets a string giving the list of files from the FTP server in the server's long format in the current working directory; returns <link linkend="NOTHING">NOTHING</link> if the path cannot be found.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>FtpClient::list()</programlisting>
+              <para><code><link linkend="FtpClient_list">FtpClient::list</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="FtpClient_list">FtpClient::list</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$list = $ftp.list();</programlisting>
+	    <programlisting><command>my</command> any $str = $ftp.list();</programlisting>
 	  </listitem>
 	</varlistentry>
         <varlistentry>
@@ -9719,12 +9158,13 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para></para></entry>
+	      <entry><para><code>[<link linkend="string_type">string</link> <replaceable>$path</replaceable>]</code></para></entry>
+	      <entry><para>The optional path or argument (filter) to list.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
       </table>
+
 
       <table>
 	<title>Return Values for FtpClient::list()</title>
@@ -9737,8 +9177,8 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-	      <entry><para>The string returned by the server without any translations or processing.</para></entry>
+	      <entry><para><code><link linkend="string_type">string</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
+	      <entry><para>The string returned by the server without any translations or processing or <link linkend="NOTHING">NOTHING</link> if the path cannot be found.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -9784,13 +9224,14 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>FtpClient::nlst()</programlisting>
+              <para><code><link linkend="FtpClient_nlst">FtpClient::nlst</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="FtpClient_nlst">FtpClient::nlst</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$str = $ftp.nlst();</programlisting>
+	    <programlisting><command>my</command> any $str = $ftp.nlst();</programlisting>
 	  </listitem>
 	</varlistentry>
         <varlistentry>
@@ -9810,8 +9251,8 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para></para></entry>
+	      <entry><para><code>[<link linkend="string_type">string</link> <replaceable>$path</replaceable>]</code></para></entry>
+	      <entry><para>The optional path or argument (filter) to list.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -9828,8 +9269,8 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-	      <entry><para>The string returned by the server without any translations or processing.</para></entry>
+	      <entry><para><code><link linkend="string_type">string</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
+	      <entry><para>The string returned by the server without any translations or processing or <link linkend="NOTHING">NOTHING</link> if the path cannot be found.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -9875,13 +9316,13 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>FtpClient::pwd()</programlisting>
+              <para><code><link linkend="FtpClient_pwd">FtpClient::pwd</link>() <command>returns</command> <link linkend="string_type">string</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$str = $ftp.pwd();</programlisting>
+	    <programlisting><command>my</command> string $str = $ftp.pwd();</programlisting>
 	  </listitem>
 	</varlistentry>
         <varlistentry>
@@ -9948,7 +9389,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>FtpClient::cwd(<replaceable>path</replaceable>)</programlisting>
+              <para><code><link linkend="FtpClient_cwd">FtpClient::cwd</link>(<link linkend="string_type">string</link> <replaceable>$dir</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -9965,37 +9406,17 @@ stdin.getTerminalAttributes($termios);</programlisting>
 
       <table>
 	<title>Arguments for FtpClient::cwd()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para><code><replaceable>path</replaceable></code></para></entry>
-	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-	      <entry><para>The directory to change to.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
-	<title>Return Values for FtpClient::cwd()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
-	      <entry><para>Return Type</para></entry>
+	      <entry><para>Argument</para></entry>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code><link linkend="int_type">int</link></code></para></entry>
-	      <entry><para>Always returns 0, on errors exceptions are raised.</para></entry>
+	      <entry><para><code><link linkend="string_type">string</link> <replaceable>$dir</replaceable></code></para></entry>
+	      <entry><para>The directory to change to.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -10038,19 +9459,26 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Gets a file from the FTP server and stores it on the local system.</para>
-	  </listitem>
+	    <para>Gets a file from the FTP server and stores it on the local system.  If any errors occur, an exception is thrown.</para>
+	    <para>This method accesses the filesystem, so it is not available if <code><link linkend="no-filesystem">PO_NO_FILESYSTEM</link></code> is set.</para></listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>FtpClient::get(<replaceable>server_path</replaceable>, [<replaceable>local_path</replaceable>])</programlisting>
+              <para><code><link linkend="FtpClient_get">FtpClient::get</link>(<link linkend="string_type">string</link> <replaceable>$remote_file</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="FtpClient_get">FtpClient::get</link>(<link linkend="string_type">string</link> <replaceable>$remote_file</replaceable>, <link linkend="string_type">string</link> <replaceable>$local_file</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
 	    <programlisting>$ftp.get("file.txt", "/tmp/file-1.txt");</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Restrictions</term>
+	  <listitem>
+	    <para>Not available with <code><link linkend="no-filesystem">PO_NO_FILESYSTEM</link></code></para>
 	  </listitem>
 	</varlistentry>
         <varlistentry>
@@ -10061,42 +9489,21 @@ stdin.getTerminalAttributes($termios);</programlisting>
 
       <table>
 	<title>Arguments for FtpClient::get()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para><code><replaceable>server_path</replaceable></code></para></entry>
-	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-	      <entry><para>The path on the server to the file to get.</para></entry>
-	    </row>
-	    <row>
-	      <entry><para>[<replaceable>local_path</replaceable>]</para></entry>
-	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-	      <entry><para>If given, where to save the local file.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
-	<title>Return Values for FtpClient::get()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
-	      <entry><para>Return Type</para></entry>
+	      <entry><para>Argument</para></entry>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code><link linkend="int_type">int</link></code></para></entry>
-	      <entry><para>Always returns 0, on errors exceptions are raised.</para></entry>
+	      <entry><para><code><link linkend="string_type">string</link> <replaceable>$remote_file</replaceable></code></para></entry>
+	      <entry><para>The path on the server to the file to get.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>[<link linkend="string_type">string</link> <replaceable>$local_file</replaceable>]</code></para></entry>
+	      <entry><para>If given, where to save the local file.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -10149,13 +9556,13 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>FtpClient::getAsBinary(<replaceable>server_path</replaceable>)</programlisting>
+              <para><code><link linkend="FtpClient_getAsBinary">FtpClient::getAsBinary</link>(<link linkend="string_type">string</link> <replaceable>$remote_file</replaceable>) <command>returns</command> binary</code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>my $b = $ftp.getAsBinary("file.bin");</programlisting>
+	    <programlisting><command>my</command> binary $b = $ftp.getAsBinary("file.bin");</programlisting>
 	  </listitem>
 	</varlistentry>
         <varlistentry>
@@ -10166,18 +9573,16 @@ stdin.getTerminalAttributes($termios);</programlisting>
 
       <table>
 	<title>Arguments for FtpClient::getAsBinary()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
 	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code><replaceable>server_path</replaceable></code></para></entry>
-	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
+	      <entry><para><code><link linkend="string_type">string</link> <replaceable>$remote_file</replaceable></code></para></entry>
 	      <entry><para>The path on the server to the file to get.</para></entry>
 	    </row>
 	  </tbody>
@@ -10195,7 +9600,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>Binary</para></entry>
+	      <entry><para><code><link linkend="binary_type">binary</link></code></para></entry>
 	      <entry><para>The file retrieved; if any errors occur an exception is raised.</para></entry>
 	    </row>
 	  </tbody>
@@ -10249,13 +9654,13 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>FtpClient::getAsString(<replaceable>server_path</replaceable>)</programlisting>
+	    <para><code><link linkend="FtpClient_getAsString">FtpClient::getAsString</link>(<link linkend="string_type">string</link> <replaceable>$remote_file</replaceable>) <command>returns</command> <link linkend="string_type">string</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>my $str = $ftp.getAsString("file.txt");</programlisting>
+	    <programlisting><command>my</command> string $str = $ftp.getAsString("file.txt");</programlisting>
 	  </listitem>
 	</varlistentry>
         <varlistentry>
@@ -10266,18 +9671,16 @@ stdin.getTerminalAttributes($termios);</programlisting>
 
       <table>
 	<title>Arguments for FtpClient::getAsString()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
 	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code><replaceable>server_path</replaceable></code></para></entry>
-	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
+	      <entry><para><code><link linkend="string_type">string</link> <replaceable>$remote_file</replaceable></code></para></entry>
 	      <entry><para>The path on the server to the file to get.</para></entry>
 	    </row>
 	  </tbody>
@@ -10343,19 +9746,27 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Transfers a file to the FTP server.</para>
+	    <para>Transfers a file to the FTP server.  If any errors occur, an exception is thrown.</para>
+	    <para>This method accesses the filesystem, so it is not available if <code><link linkend="no-filesystem">PO_NO_FILESYSTEM</link></code> is set.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>FtpClient::put(<replaceable>local_path</replaceable>, [<replaceable>server_path</replaceable>])</programlisting>
+              <para><code><link linkend="FtpClient_put">FtpClient::put</link>(<link linkend="string_type">string</link> <replaceable>$local_file</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
+              <para><code><link linkend="FtpClient_put">FtpClient::put</link>(<link linkend="string_type">string</link> <replaceable>$local_file</replaceable>, <link linkend="string_type">string</link> <replaceable>$remote_file</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
 	    <programlisting>$ftp.put("/tmp/file-1.txt", "file.txt");</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Restrictions</term>
+	  <listitem>
+	    <para>Not available with <code><link linkend="no-filesystem">PO_NO_FILESYSTEM</link></code></para>
 	  </listitem>
 	</varlistentry>
         <varlistentry>
@@ -10366,42 +9777,21 @@ stdin.getTerminalAttributes($termios);</programlisting>
 
       <table>
 	<title>Arguments for FtpClient::put()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para><code><replaceable>local_path</replaceable></code></para></entry>
-	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-	      <entry><para>The path on the local system of the file to send.</para></entry>
-	    </row>
-	    <row>
-	      <entry><para>[<replaceable>server_path</replaceable>]</para></entry>
-	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-	      <entry><para>If given, where to save the file on the server.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
-	<title>Return Values for FtpClient::put()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
-	      <entry><para>Return Type</para></entry>
+	      <entry><para>Argument</para></entry>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code><link linkend="int_type">int</link></code></para></entry>
-	      <entry><para>Always returns 0, on errors exceptions are raised.</para></entry>
+	      <entry><para><code><link linkend="string_type">string</link> <replaceable>local_file</replaceable></code></para></entry>
+	      <entry><para>The path on the local system of the file to send.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>[<link linkend="string_type">string</link> <replaceable>$remote_file</replaceable>]</code></para></entry>
+	      <entry><para>If given, where to save the file on the server.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -10452,13 +9842,13 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Deletes a file on the FTP server.</para>
+	    <para>Deletes a file on the FTP server; if any errors occur, an exception is thrown.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>FtpClient::del(<replaceable>server_path</replaceable>)</programlisting>
+              <para><code><link linkend="FtpClient_del">FtpClient::del</link>(<link linkend="string_type">string</link> <replaceable>$remote_file</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -10554,7 +9944,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>FtpClient::setUserName(<replaceable>string</replaceable>)</programlisting>
+              <para><code><link linkend="FtpClient_setUserName">FtpClient::setUserName</link>(<link linkend="string_type">string</link> <replaceable>$user</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -10567,37 +9957,17 @@ stdin.getTerminalAttributes($termios);</programlisting>
 
       <table>
 	<title>Arguments for FtpClient::setUserName()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para><code><replaceable>string</replaceable></code></para></entry>
-	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-	      <entry><para>The username to use when logging in to the FTP server.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
-	<title>Return Values for FtpClient::setUserName()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
-	      <entry><para>Return Type</para></entry>
+	      <entry><para>Argument</para></entry>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method does not return any value.</para></entry>
+	      <entry><para><code><link linkend="string_type">string</link> <replaceable>$user</replaceable></code></para></entry>
+	      <entry><para>The username to use when logging in to the FTP server.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -10634,7 +10004,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>FtpClient::setPassword(<replaceable>string</replaceable>)</programlisting>
+              <para><code><link linkend="FtpClient_setPassword">FtpClient::setPassword</link>(<link linkend="string_type">string</link> <replaceable>$pass</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -10647,37 +10017,17 @@ stdin.getTerminalAttributes($termios);</programlisting>
 
       <table>
 	<title>Arguments for FtpClient::setPassword()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para><code><replaceable>string</replaceable></code></para></entry>
-	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-	      <entry><para>The password to use when logging in to the FTP server.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
-	<title>Return Values for FtpClient::setPassword()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
-	      <entry><para>Return Type</para></entry>
+	      <entry><para>Argument</para></entry>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method does not return any value.</para></entry>
+	      <entry><para><code><link linkend="string_type">string</link> <replaceable>$pass</replaceable></code></para></entry>
+	      <entry><para>The password to use when logging in to the FTP server.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -10714,7 +10064,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>FtpClient::setHostName(<replaceable>string</replaceable>)</programlisting>
+              <para><code><link linkend="FtpClient_setHostName">FtpClient::setHostName</link>(<link linkend="string_type">string</link> <replaceable>$host</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -10727,37 +10077,17 @@ stdin.getTerminalAttributes($termios);</programlisting>
 
       <table>
 	<title>Arguments for FtpClient::setHostName()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para><code><replaceable>string</replaceable></code></para></entry>
-	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-	      <entry><para>The hostname to use when connecting to the FTP server.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
-	<title>Return Values for FtpClient::setHostName()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
-	      <entry><para>Return Type</para></entry>
+	      <entry><para>Argument</para></entry>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method does not return any value.</para></entry>
+	      <entry><para><code><link linkend="string_type">string</link> <replaceable>$host</replaceable>)</code></para></entry>
+	      <entry><para>The hostname to use when connecting to the FTP server.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -10794,7 +10124,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>FtpClient::setPort(<replaceable>integer</replaceable>)</programlisting>
+              <para><code><link linkend="FtpClient_setPort">FtpClient::setPort</link>(<link linkend="softint_type">softint</link> <replaceable>$port</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -10807,37 +10137,17 @@ stdin.getTerminalAttributes($termios);</programlisting>
 
       <table>
 	<title>Arguments for FtpClient::setPort()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para><code><replaceable>integer</replaceable></code></para></entry>
-	      <entry><para><code><link linkend="int_type">int</link></code></para></entry>
-	      <entry><para>The port to use when connecting to the FTP server.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
-	<title>Return Values for FtpClient::setPort()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
-	      <entry><para>Return Type</para></entry>
+	      <entry><para>Argument</para></entry>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method does not return any value.</para></entry>
+	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$port</replaceable></code></para></entry>
+	      <entry><para>The port to use when connecting to the FTP server.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -10874,7 +10184,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>FtpClient::setURL(<replaceable>string</replaceable>)</programlisting>
+              <para><code><link linkend="FtpClient_setURL">FtpClient::setURL</link>(<link linkend="string_type">string</link> <replaceable>$url</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -10887,37 +10197,17 @@ stdin.getTerminalAttributes($termios);</programlisting>
 
       <table>
 	<title>Arguments for FtpClient::setURL()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para><code><replaceable>string</replaceable></code></para></entry>
-	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-	      <entry><para>The URL to use to set connection and login parameters for the FTP server.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
-	<title>Return Values for FtpClient::setURL()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
-	      <entry><para>Return Type</para></entry>
+	      <entry><para>Argument</para></entry>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method does not return any value.</para></entry>
+	      <entry><para><code><link linkend="string_type">string</link> <replaceable>$url</replaceable></code></para></entry>
+	      <entry><para>The URL to use to set connection and login parameters for the FTP server.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -10962,13 +10252,13 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>FtpClient::getUserName()</programlisting>
+              <para><code><link linkend="FtpClient_getUserName">FtpClient::getUserName</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$user = $ftp.getUserName();</programlisting>
+	    <programlisting><command>my</command> any $user = $ftp.getUserName();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -10984,7 +10274,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
+	      <entry><para><code><link linkend="string_type">string</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
 	      <entry><para>The current username value.</para></entry>
 	    </row>
 	  </tbody>
@@ -11004,13 +10294,13 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>FtpClient::getPassword()</programlisting>
+              <para><code><link linkend="FtpClient_getPassword">FtpClient::getPassword</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$pass = $ftp.getPassword();</programlisting>
+	    <programlisting><command>my</command> any $pass = $ftp.getPassword();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -11026,7 +10316,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
+	      <entry><para><code><link linkend="string_type">string</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
 	      <entry><para>The current password value.</para></entry>
 	    </row>
 	  </tbody>
@@ -11046,13 +10336,13 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>FtpClient::getHostName()</programlisting>
+              <para><code><link linkend="FtpClient_getHostName">FtpClient::getHostName</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$host = $ftp.getHostName();</programlisting>
+	    <programlisting><command>my</command> any $host = $ftp.getHostName();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -11068,7 +10358,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
+	      <entry><para><code><link linkend="string_type">string</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
 	      <entry><para>The current hostname value.</para></entry>
 	    </row>
 	  </tbody>
@@ -11088,13 +10378,13 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>FtpClient::getPort()</programlisting>
+              <para><code><link linkend="FtpClient_getPort">FtpClient::getPort</link>() <command>returns</command> <link linkend="int_type">int</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$port = $ftp.getPort();</programlisting>
+	    <programlisting><command>my</command> int $port = $ftp.getPort();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -11130,13 +10420,13 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>FtpClient::getURL()</programlisting>
+              <para><code><link linkend="FtpClient_getURL">FtpClient::getURL</link>() <command>returns</command> <link linkend="string_type">string</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$url = $ftp.getURL();</programlisting>
+	    <programlisting><command>my</command> string $url = $ftp.getURL();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -11175,7 +10465,8 @@ stdin.getTerminalAttributes($termios);</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>FtpClient::setEventQueue(<replaceable>[queue]</replaceable>)</programlisting>
+              <para><code><link linkend="FtpClient_setEventQueue">FtpClient::setEventQueue</link>() <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="FtpClient_setEventQueue">FtpClient::setEventQueue</link>(<link linkend="Queue_Class">Queue</link> <replaceable>$queue</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -11187,36 +10478,17 @@ stdin.getTerminalAttributes($termios);</programlisting>
       </variablelist>
       <table>
         <title>Arguments for FtpClient::setEventQueue()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry><para>Argument</para></entry>
-              <entry><para>Type</para></entry>
-              <entry><para>Description</para></entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry><para><code><replaceable>[queue]</replaceable></code></para></entry>
-              <entry><para><link linkend="Queue_Class">Queue</link></para></entry>
-              <entry><para>To set the event queue, pass a <link linkend="Queue_Class">Queue</link> object; to clear the event queue, pass no argument to the function.</para></entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
-      <table>
-        <title>Return Values for FtpClient::setEventQueue()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
           <thead>
             <row>
-              <entry><para>Return Type</para></entry>
+              <entry><para>Argument</para></entry>
               <entry><para>Description</para></entry>
             </row>
           </thead>
           <tbody>
             <row>
-              <entry><para>n/a</para></entry>
-              <entry><para>This method does not return any value.</para></entry>
+              <entry><para><code>[<link linkend="Queue_Class">Queue</link> <replaceable>$queue</replaceable></code>]</para></entry>
+              <entry><para>To set the event queue, pass a <link linkend="Queue_Class">Queue</link> object; to clear the event queue, pass no argument to the function.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -11238,7 +10510,8 @@ stdin.getTerminalAttributes($termios);</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>FtpClient::setDataEventQueue(<replaceable>[queue]</replaceable>)</programlisting>
+              <para><code><link linkend="FtpClient_setDataEventQueue">FtpClient::setDataEventQueue</link>() <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="FtpClient_setDataEventQueue">FtpClient::setDataEventQueue</link>(<link linkend="Queue_Class">Queue</link> <replaceable>$queue</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -11250,36 +10523,17 @@ stdin.getTerminalAttributes($termios);</programlisting>
       </variablelist>
       <table>
         <title>Arguments for FtpClient::setDataEventQueue()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry><para>Argument</para></entry>
-              <entry><para>Type</para></entry>
-              <entry><para>Description</para></entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry><para><code><replaceable>[queue]</replaceable></code></para></entry>
-              <entry><para><link linkend="Queue_Class">Queue</link></para></entry>
-              <entry><para>To set the event queue, pass a <link linkend="Queue_Class">Queue</link> object; to clear the event queue, pass no argument to the function.</para></entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
-      <table>
-        <title>Return Values for FtpClient::setDataEventQueue()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
           <thead>
             <row>
-              <entry><para>Return Type</para></entry>
+              <entry><para>Argument</para></entry>
               <entry><para>Description</para></entry>
             </row>
           </thead>
           <tbody>
             <row>
-              <entry><para>n/a</para></entry>
-              <entry><para>This method does not return any value.</para></entry>
+              <entry><para><code>[<link linkend="Queue_Class">Queue</link> <replaceable>$queue</replaceable></code>]</para></entry>
+              <entry><para>To set the event queue, pass a <link linkend="Queue_Class">Queue</link> object; to clear the event queue, pass no argument to the function.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -11301,7 +10555,8 @@ stdin.getTerminalAttributes($termios);</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>FtpClient::setControlEventQueue(<replaceable>[queue]</replaceable>)</programlisting>
+              <para><code><link linkend="FtpClient_setControlEventQueue">FtpClient::setControlEventQueue</link>() <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="FtpClient_setControlEventQueue">FtpClient::setControlEventQueue</link>(<link linkend="Queue_Class">Queue</link> <replaceable>$queue</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -11313,36 +10568,17 @@ stdin.getTerminalAttributes($termios);</programlisting>
       </variablelist>
       <table>
         <title>Arguments for FtpClient::setControlEventQueue()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry><para>Argument</para></entry>
-              <entry><para>Type</para></entry>
-              <entry><para>Description</para></entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry><para><code><replaceable>[queue]</replaceable></code></para></entry>
-              <entry><para><link linkend="Queue_Class">Queue</link></para></entry>
-              <entry><para>To set the event queue, pass a <link linkend="Queue_Class">Queue</link> object; to clear the event queue, pass no argument to the function.</para></entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
-      <table>
-        <title>Return Values for FtpClient::setControlEventQueue()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
           <thead>
             <row>
-              <entry><para>Return Type</para></entry>
+              <entry><para>Argument</para></entry>
               <entry><para>Description</para></entry>
             </row>
           </thead>
           <tbody>
             <row>
-              <entry><para>n/a</para></entry>
-              <entry><para>This method does not return any value.</para></entry>
+              <entry><para><code>[<link linkend="Queue_Class">Queue</link> <replaceable>$queue</replaceable></code>]</para></entry>
+              <entry><para>To set the event queue, pass a <link linkend="Queue_Class">Queue</link> object; to clear the event queue, pass no argument to the function.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -12036,24 +11272,6 @@ $pgm.disableParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
       </table>
 
       <table>
-	<title>Return Values for Program::disableParseOptions()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Return Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method returns no value; if an error occurs an exception is raised.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
 	<title>Exceptions Thrown by Program::disableParseOptions()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
@@ -12468,24 +11686,6 @@ $pgm.disableParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
       </table>
 
       <table>
-	<title>Return Values for Program::importFunction()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Return Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method does not return any value.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
 	<title>Exceptions Thrown by Program::importFunction()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
@@ -12561,24 +11761,6 @@ $pgm.disableParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
       </table>
 
       <table>
-	<title>Return Values for Program::importGlobalVariable()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Return Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method does not return any value.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
 	<title>Exceptions Thrown by Program::importGlobalVariable()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
@@ -12624,24 +11806,6 @@ $pgm.disableParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
-
-      <table>
-	<title>Return Values for Program::lockOptions()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Return Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method does not return any value; it always succeeds.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
 
       <para>This method does not throw any exceptions.</para>
 
@@ -12933,23 +12097,6 @@ $pgm.disableParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
 	</varlistentry>
       </variablelist>
 
-      <table>
-	<title>Return Values for Program::parseRollback()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Return Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method does not return any value.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
     </sect2>
 
     <sect2 id="Qore_Program_run">
@@ -13039,24 +12186,6 @@ $pgm.setParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
       </table>
 
       <table>
-	<title>Return Values for Program::setParseOptions()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Return Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method returns no value; if an error occurs an exception is raised.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
 	<title>Exceptions Thrown by Program::setParseOptions()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
@@ -13114,24 +12243,6 @@ $pgm.setParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
 	      <entry><para><code><replaceable>path_string</replaceable></code></para></entry>
 	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
 	      <entry><para>The path (directory and filename) for the current script.  If the directory component is missing, then &quot;./&quot; is assumed.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
-	<title>Return Values for Program::setScriptPath()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Return Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method does not return any value.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -14087,24 +13198,6 @@ $sock.bind("/tmp/socket");</programlisting>
       </table>
 
       <table>
-	<title>Return Values for Socket::connect()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Return Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method does not return any value; if an error occurs, an exception is thrown.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
 	<title>Exceptions Thrown by Socket::connect()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
@@ -14180,31 +13273,6 @@ $sock.bind("/tmp/socket");</programlisting>
               <entry><para><code><replaceable>[timeout_ms]</replaceable></code></para></entry>
               <entry><para>Integer or Date/Time</para></entry>
               <entry><para>An optional timeout value for the connection; if the connection cannot be established in the timeout period, an exception is thrown.</para></entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
-      <table>
-        <title>Return Values for Socket::connectSSL()</title>
-        <tgroup cols="2" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Return Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method returns no value; if an error occurs, an exception is thrown.</para>
-              </entry>
             </row>
           </tbody>
         </tgroup>
@@ -14638,31 +13706,6 @@ $sock.bind("/tmp/socket");</programlisting>
           </tbody>
         </tgroup>
       </table>
-      <table>
-        <title>Return Values for Socket::setCertificate()</title>
-        <tgroup cols="2" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Return Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method returns no value</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
     </sect2>
     <sect2 id="Socket_setPrivateKey">
       <title>Socket::setPrivateKey()</title>
@@ -14714,31 +13757,6 @@ $sock.bind("/tmp/socket");</programlisting>
               </entry>
               <entry>
                 <para>The private key for the certificate.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
-      <table>
-        <title>Return Values for Socket::setPrivateKey()</title>
-        <tgroup cols="2" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Return Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method returns no value</para>
               </entry>
             </row>
           </tbody>
@@ -14844,27 +13862,6 @@ $sock.bind("/tmp/socket");</programlisting>
               <entry>
                 <para>To set the event queue, pass a <link linkend="Queue_Class">Queue</link> object; to clear the event queue, pass no argument to the function.</para>
               </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
-      <table>
-        <title>Return Values for Socket::setEventQueue()</title>
-        <tgroup cols="2" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Return Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry><para>n/a</para></entry>
-              <entry><para>This method does not return any value.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -15040,7 +14037,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	    </row>
 	    <row>
 	      <entry><para><code><replaceable>data</replaceable></code></para></entry>
-	      <entry><para>Binary</para></entry>
+	      <entry><para><code><link linkend="binary_type">binary</link></code></para></entry>
 	      <entry><para>Sends the binary data over the socket.</para></entry>
 	    </row>
 	  </tbody>
@@ -15741,26 +14738,8 @@ $sock.bind("/tmp/socket");</programlisting>
 	    </row>
 	    <row>
 	      <entry><para><code><replaceable>[body]</replaceable></code></para></entry>
-	      <entry><para>Binary</para></entry>
+	      <entry><para><code><link linkend="binary_type">binary</link></code></para></entry>
 	      <entry><para>If present, the body to be sent with the message (if present, the Content-Length header will be automatically set).</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
-	<title>Return Values for Socket::sendHTTPMessage()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Return Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method returns no value.  If any errors occur, exceptions are raised.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -15858,26 +14837,8 @@ $sock.bind("/tmp/socket");</programlisting>
 	    </row>
 	    <row>
 	      <entry><para><code><replaceable>[body]</replaceable></code></para></entry>
-	      <entry><para>Binary</para></entry>
+	      <entry><para><code><link linkend="binary_type">binary</link></code></para></entry>
 	      <entry><para>If present, the body to be sent with the message (if present, the Content-Length header will be automatically set).</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
-	<title>Return Values for Socket::sendHTTPResponse()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Return Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method returns no value.  If any errors occur, exceptions are raised.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -16070,7 +15031,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>Binary</para></entry>
+	      <entry><para><code><link linkend="binary_type">binary</link></code></para></entry>
 	      <entry><para>The data read, returned as a binary object.</para></entry>
 	    </row>
 	  </tbody>
@@ -17555,23 +16516,6 @@ $sock.bind("/tmp/socket");</programlisting>
 	</tgroup>
       </table>
 
-      <table>
-	<title>Return Value for Socket::setCharset()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Return Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method does not return any value.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
     </sect2>
 
     <sect2 id="Socket_getNoDelay">
@@ -18534,23 +17478,6 @@ $sock.bind("/tmp/socket");</programlisting>
         </tgroup>
       </table>
       <table>
-        <title>Return Values for HTTPClient::set()</title>
-        <tgroup cols="2" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-	      <entry><para>Return Type</para></entry>
-              <entry><para>Description</para></entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry><para>n/a</para></entry>
-              <entry><para>This method does not return any value.</para></entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
-      <table>
         <title>Exceptions thrown by HTTPClient::setURL()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
           <thead>
@@ -18656,23 +17583,7 @@ $sock.bind("/tmp/socket");</programlisting>
           </tbody>
         </tgroup>
       </table>
-      <table>
-        <title>Return Values for HTTPClient::setProxyURL()</title>
-        <tgroup cols="2" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-	      <entry><para>Return Type</para></entry>
-              <entry><para>Description</para></entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry><para>n/a</para></entry>
-              <entry><para>This method does not return any value.</para></entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
+
       <table>
         <title>Exceptions thrown by HTTPClient::setProxyURL()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -18723,23 +17634,6 @@ $sock.bind("/tmp/socket");</programlisting>
         </varlistentry>
       </variablelist>
 
-      <table>
-        <title>Return Values for HTTPClient::clearProxyURL()</title>
-        <tgroup cols="2" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-	      <entry><para>Return Type</para></entry>
-              <entry><para>Description</para></entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry><para>n/a</para></entry>
-              <entry><para>This method does not return any value.</para></entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
     </sect2>
 
     <sect2 id="HTTPClient_setProxySecure">
@@ -18779,23 +17673,6 @@ $sock.bind("/tmp/socket");</programlisting>
               <entry><para><code><replaceable>boolean</replaceable></code></para></entry>
               <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
               <entry><para>sets the SSL/TLS flag for the next proxy connection</para></entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
-      <table>
-        <title>Return Values for HTTPClient::setProxySecure()</title>
-        <tgroup cols="2" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-	      <entry><para>Return Type</para></entry>
-              <entry><para>Description</para></entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry><para>n/a</para></entry>
-              <entry><para>This method does not return any value.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -18927,23 +17804,6 @@ $sock.bind("/tmp/socket");</programlisting>
           </tbody>
         </tgroup>
       </table>
-      <table>
-        <title>Return Values for HTTPClient::setMaxRedirects()</title>
-        <tgroup cols="2" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-	      <entry><para>Return Type</para></entry>
-              <entry><para>Description</para></entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry><para>n/a</para></entry>
-              <entry><para>This method does not return any value.</para></entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
     </sect2>
 
     <sect2 id="HTTPClient_connect">
@@ -18974,31 +17834,6 @@ $sock.bind("/tmp/socket");</programlisting>
         </varlistentry>
       </variablelist>
 
-      <table>
-        <title>Return Values for HTTPClient::connect()</title>
-        <tgroup cols="2" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Return Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method returns no value</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
       <table>
         <title>Exceptions thrown by HTTPClient::connect()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -19051,31 +17886,6 @@ $sock.bind("/tmp/socket");</programlisting>
           <listitem><para><code><link linkend="event_channel_closed">EVENT_CHANNEL_CLOSED</link></code></para></listitem>
         </varlistentry>
       </variablelist>
-      <table>
-        <title>Return Values for HTTPClient::disconnect()</title>
-        <tgroup cols="2" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Return Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method returns no value</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
     </sect2>
     <sect2 id="HTTPClient_get">
       <title>HTTPClient::get()</title>
@@ -19732,31 +18542,6 @@ $sock.bind("/tmp/socket");</programlisting>
           </tbody>
         </tgroup>
       </table>
-      <table>
-        <title>Return Values for HTTPClient::setConnectTimeout()</title>
-        <tgroup cols="2" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Return Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method returns no value</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
     </sect2>
 
     <sect2 id="HTTPClient_setTimeout">
@@ -19809,31 +18594,6 @@ $sock.bind("/tmp/socket");</programlisting>
               </entry>
               <entry>
                 <para>Read timeout in milliseconds, 0 = immediate timeout, negative numbers = never timeout.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
-      <table>
-        <title>Return Values for HTTPClient::setTimeout()</title>
-        <tgroup cols="2" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Return Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method returns no value</para>
               </entry>
             </row>
           </tbody>
@@ -19994,31 +18754,6 @@ $sock.bind("/tmp/socket");</programlisting>
         </tgroup>
       </table>
       <table>
-        <title>Return Values for HTTPClient::setHTTPVersion()</title>
-        <tgroup cols="2" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Return Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method returns no value</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
-      <table>
         <title>Exceptions thrown by HTTPClient::setHTTPVersion()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
           <thead>
@@ -20151,31 +18886,6 @@ $sock.bind("/tmp/socket");</programlisting>
               </entry>
               <entry>
                 <para>If True, a SSL/TLS connection will be attempted on the next connection.  If False, an unencrypted cleartext connection will be established.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
-      <table>
-        <title>Return Values for HTTPClient::setSecure()</title>
-        <tgroup cols="2" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Return Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method returns no value</para>
               </entry>
             </row>
           </tbody>
@@ -20430,31 +19140,6 @@ $sock.bind("/tmp/socket");</programlisting>
         </tgroup>
       </table>
       <table>
-        <title>Return Values for HTTPClient::setEncoding()</title>
-        <tgroup cols="2" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Return Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method returns no value</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
-      <table>
         <title>Exceptions thrown by HTTPClient::setEncoding()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
           <thead>
@@ -20568,23 +19253,6 @@ $sock.bind("/tmp/socket");</programlisting>
               <entry><para><code><replaceable>[queue]</replaceable></code></para></entry>
               <entry><para><link linkend="Queue_Class">Queue</link></para></entry>
               <entry><para>To set the event queue, pass a <link linkend="Queue_Class">Queue</link> object; to clear the event queue, pass no argument to the function.</para></entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
-      <table>
-        <title>Return Values for HTTPClient::setEventQueue()</title>
-        <tgroup cols="2" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry><para>Return Type</para></entry>
-              <entry><para>Description</para></entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry><para>n/a</para></entry>
-              <entry><para>This method does not return any value.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -23144,7 +21812,7 @@ $sock.bind("/tmp/socket");</programlisting>
           <tbody>
             <row>
               <entry>
-                <para>Binary</para>
+                <para><code><link linkend="binary_type">binary</link></code></para>
               </entry>
               <entry>
                 <para>The signature data for the certificate.</para>
@@ -23242,7 +21910,7 @@ $sock.bind("/tmp/socket");</programlisting>
           <tbody>
             <row>
               <entry>
-                <para>Binary</para>
+                <para><code><link linkend="binary_type">binary</link></code></para>
               </entry>
               <entry>
                 <para>The public key of the certificate in DER format.</para>
@@ -24557,23 +23225,6 @@ $sock.bind("/tmp/socket");</programlisting>
 	</tgroup>
       </table>
 
-      <table>
-	<title>Return Values for Datasource::setAutoCommit()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Return Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method does not return any value.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
     </sect2>
 
     <sect2 id="Datasource::exec">
@@ -25409,24 +24060,6 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	</tgroup>
       </table>
 
-      <table>
-	<title>Return Values for Datasource::setTransactionLockTimeout()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Return Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method does not return any value.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
     </sect2>
     <sect2 id="Datasource::getTransactionLockTimeout">
       <title>Datasource::getTransactionLockTimeout()</title>
@@ -25516,23 +24149,6 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	</tgroup>
       </table>
 
-      <table>
-	<title>Return Values for Datasource::setUserName()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Return Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method does not return any value.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
     </sect2>
 
     <sect2 id="Datasource::getUserName">
@@ -25623,23 +24239,6 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	</tgroup>
       </table>
 
-      <table>
-	<title>Return Values for Datasource::setPassword()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Return Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method does not return any value.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
     </sect2>
 
     <sect2 id="Datasource::getPassword">
@@ -25730,23 +24329,6 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	</tgroup>
       </table>
 
-      <table>
-	<title>Return Values for Datasource::setDBName()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Return Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method does not return any value.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
     </sect2>
 
     <sect2 id="Datasource::getDBName">
@@ -25837,23 +24419,6 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	</tgroup>
       </table>
 
-      <table>
-	<title>Return Values for Datasource::setDBCharset()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Return Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method does not return any value.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
     </sect2>
 
     <sect2 id="Datasource::setHostName">
@@ -25900,23 +24465,6 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	</tgroup>
       </table>
 
-      <table>
-	<title>Return Values for Datasource::setHostName()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Return Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method does not return any value.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
     </sect2>
 
     <sect2 id="Datasource::setPort">
@@ -25963,23 +24511,6 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	</tgroup>
       </table>
 
-      <table>
-	<title>Return Values for Datasource::setPort()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Return Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method does not return any value.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
     </sect2>
 
     <sect2 id="Datasource::getDBCharset">
@@ -28956,24 +27487,6 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
       </variablelist>
 
       <table>
-	<title>Return Values for Condition::signal()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Return Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method returns no values.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
 	<title>Exceptions Thrown by Condition::signal()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
@@ -29015,24 +27528,6 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
 	  </listitem>
 	</varlistentry>
       </variablelist>
-
-      <table>
-	<title>Return Values for Condition::broadcast()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Return Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method returns no value.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
 
       <table>
 	<title>Exceptions Thrown by Condition::broadcast()</title>
@@ -31797,24 +30292,6 @@ $mutex.unlock();</programlisting>
       </variablelist>
 
       <table>
-	<title>Return Values for Gate::exit()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Return Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method returns no value.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
 	<title>Exceptions Thrown by Gate::exit()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
@@ -32930,24 +31407,6 @@ $mutex.unlock();</programlisting>
       </table>
 
       <table>
-	<title>Return Values for XmlDoc::validateRelaxNG()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Return Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method does not return any value; if there are any errors, an appropriate exception is thrown.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
 	<title>Exceptions Thrown by XmlDoc::validateRelaxNG()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
@@ -33017,24 +31476,6 @@ $mutex.unlock();</programlisting>
 	      <entry><para><code><replaceable>xsd</replaceable></code></para></entry>
 	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
 	      <entry><para>The XSD schema to use to validate the XmlDoc object.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
-	<title>Return Values for XmlDoc::validateSchema()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Return Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method does not return any value; if there are any errors, an appropriate exception is thrown.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -37472,31 +35913,6 @@ $mutex.unlock();</programlisting>
         </tgroup>
       </table>
       <table>
-        <title>Return Values for XmlReader::relaxNGValidate()</title>
-        <tgroup cols="2" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Return Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method returns no value</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
-      <table>
         <title>Exceptions thrown by XmlReader::relaxNGValidate()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
           <thead>
@@ -37590,31 +36006,6 @@ $mutex.unlock();</programlisting>
               </entry>
               <entry>
                 <para>The XSD schema string to use for validation</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
-      <table>
-        <title>Return Values for XmlReader::schemaValidate()</title>
-        <tgroup cols="2" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Return Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>n/a</para>
-              </entry>
-              <entry>
-                <para>This method returns no value</para>
               </entry>
             </row>
           </tbody>

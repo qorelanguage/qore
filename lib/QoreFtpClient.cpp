@@ -667,6 +667,7 @@ int QoreFtpClient::connect(ExceptionSink *xsink)
       // if there is an error, then exit
       if (code != 331) {
 	 xsink->raiseException("FTP-LOGIN-ERROR", "response from FTP server: %s", resp.getBuffer());
+	 return -1;
       }
 
       // send password
@@ -1022,8 +1023,7 @@ BinaryNode *QoreFtpClient::getAsBinary(const char *remotepath, ExceptionSink *xs
 }
 
 // public locked
-int QoreFtpClient::cwd(const char *dir, ExceptionSink *xsink)
-{
+int QoreFtpClient::cwd(const char *dir, ExceptionSink *xsink) {
    SafeLocker sl(priv->m);
    if (!priv->loggedin) {
       xsink->raiseException("FTP-NOT-CONNECTED", "QoreFtpClient::connect() must be called before the QoreFtpClient::cwd()");

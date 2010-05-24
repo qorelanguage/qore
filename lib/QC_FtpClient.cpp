@@ -53,13 +53,13 @@ static void FC_destructor(QoreObject *self, QoreFtpClientClass *f, ExceptionSink
 }
 
 static AbstractQoreNode *FC_connect(QoreObject *self, QoreFtpClientClass *f, const QoreListNode *args, ExceptionSink *xsink) {
-   int rc = f->connect(xsink);
-   return *xsink ? 0 : new QoreBigIntNode(rc);
+   f->connect(xsink);
+   return 0;
 }
 
 static AbstractQoreNode *FC_disconnect(QoreObject *self, QoreFtpClientClass *f, const QoreListNode *args, ExceptionSink *xsink) {
-   int rc = f->disconnect();
-   return *xsink ? 0 : new QoreBigIntNode(rc);
+   f->disconnect();
+   return 0;
 }
 
 static AbstractQoreNode *FC_list(QoreObject *self, QoreFtpClientClass *f, const QoreListNode *args, ExceptionSink *xsink) {
@@ -86,37 +86,37 @@ static AbstractQoreNode *FC_pwd(QoreObject *self, QoreFtpClientClass *f, const Q
 
 static AbstractQoreNode *FC_cwd(QoreObject *self, QoreFtpClientClass *f, const QoreListNode *args, ExceptionSink *xsink) {
    const QoreStringNode *p0 = HARD_QORE_STRING(args, 0);
-   int rc = f->cwd(p0->getBuffer(), xsink);
-   return *xsink ? 0 : new QoreBigIntNode(rc);
+   f->cwd(p0->getBuffer(), xsink);
+   return 0;
 }
 
 static AbstractQoreNode *FC_put_str_str(QoreObject *self, QoreFtpClientClass *f, const QoreListNode *args, ExceptionSink *xsink) {
    const QoreStringNode *p0 = HARD_QORE_STRING(args, 0);
-   HARD_QORE_PARAM(p1, const QoreStringNode, args, 1);
+   const QoreStringNode *p1 = HARD_QORE_STRING(args, 1);
 
-   int rc = f->put(p0->getBuffer(), p1->getBuffer(), xsink);
-   return *xsink ? 0 : new QoreBigIntNode(rc);
+   f->put(p0->getBuffer(), p1->getBuffer(), xsink);
+   return 0;
 }
 
 static AbstractQoreNode *FC_put_str(QoreObject *self, QoreFtpClientClass *f, const QoreListNode *args, ExceptionSink *xsink) {
    const QoreStringNode *p0 = HARD_QORE_STRING(args, 0);
 
-   int rc = f->put(p0->getBuffer(), 0, xsink);
-   return *xsink ? 0 : new QoreBigIntNode(rc);
+   f->put(p0->getBuffer(), 0, xsink);
+   return 0;
 }
 
 static AbstractQoreNode *FC_get_str(QoreObject *self, QoreFtpClientClass *f, const QoreListNode *args, ExceptionSink *xsink) {
    const QoreStringNode *p0 = HARD_QORE_STRING(args, 0);
-   int rc = f->get(p0->getBuffer(), 0, xsink);
-   return *xsink ? 0 : new QoreBigIntNode(rc);
+   f->get(p0->getBuffer(), 0, xsink);
+   return 0;
 }
 
 static AbstractQoreNode *FC_get_str_str(QoreObject *self, QoreFtpClientClass *f, const QoreListNode *args, ExceptionSink *xsink) {
    const QoreStringNode *p0 = HARD_QORE_STRING(args, 0);
-   HARD_QORE_PARAM(p1, const QoreStringNode, args, 1);
+   const QoreStringNode *p1 = HARD_QORE_STRING(args, 1);
 
-   int rc = f->get(p0->getBuffer(), p1->getBuffer(), xsink);
-   return *xsink ? 0 : new QoreBigIntNode(rc);
+   f->get(p0->getBuffer(), p1->getBuffer(), xsink);
+   return 0;
 }
 
 static AbstractQoreNode *FC_getAsString(QoreObject *self, QoreFtpClientClass *f, const QoreListNode *args, ExceptionSink *xsink) {
@@ -131,8 +131,8 @@ static AbstractQoreNode *FC_getAsBinary(QoreObject *self, QoreFtpClientClass *f,
 
 static AbstractQoreNode *FC_del(QoreObject *self, QoreFtpClientClass *f, const QoreListNode *args, ExceptionSink *xsink) {
    const QoreStringNode *p0 = HARD_QORE_STRING(args, 0);
-   int rc = f->del(p0->getBuffer(), xsink);
-   return *xsink ? 0 : new QoreBigIntNode(rc);
+   f->del(p0->getBuffer(), xsink);
+   return 0;
 }
 
 static AbstractQoreNode *FC_setUserName(QoreObject *self, QoreFtpClientClass *f, const QoreListNode *args, ExceptionSink *xsink) {
@@ -318,8 +318,8 @@ QoreClass *initFtpClientClass() {
    QC_FTPCLIENT->setDestructor((q_destructor_t)FC_destructor);
 
    QC_FTPCLIENT->setCopy((q_copy_t)FC_copy);
-   QC_FTPCLIENT->addMethodExtended("connect",               (q_method_t)FC_connect, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
-   QC_FTPCLIENT->addMethodExtended("disconnect",            (q_method_t)FC_disconnect, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_FTPCLIENT->addMethodExtended("connect",               (q_method_t)FC_connect, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
+   QC_FTPCLIENT->addMethodExtended("disconnect",            (q_method_t)FC_disconnect, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
 
    // returns string or nothing
    QC_FTPCLIENT->addMethodExtended("list",                  (q_method_t)FC_list, false, QC_NO_FLAGS, QDOM_DEFAULT);
@@ -331,20 +331,20 @@ QoreClass *initFtpClientClass() {
 
    QC_FTPCLIENT->addMethodExtended("pwd",                   (q_method_t)FC_pwd, false, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo);
 
-   QC_FTPCLIENT->addMethodExtended("cwd",                   (q_method_t)FC_cwd, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   QC_FTPCLIENT->addMethodExtended("cwd",                   (q_method_t)FC_cwd, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    // accesses filesystem so tagged with QDOM_FILESYSTEM
-   QC_FTPCLIENT->addMethodExtended("get",                   (q_method_t)FC_get_str, false, QC_NO_FLAGS, QDOM_FILESYSTEM, bigIntTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
-   QC_FTPCLIENT->addMethodExtended("get",                   (q_method_t)FC_get_str_str, false, QC_NO_FLAGS, QDOM_FILESYSTEM, bigIntTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
+   QC_FTPCLIENT->addMethodExtended("get",                   (q_method_t)FC_get_str, false, QC_NO_FLAGS, QDOM_FILESYSTEM, nothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   QC_FTPCLIENT->addMethodExtended("get",                   (q_method_t)FC_get_str_str, false, QC_NO_FLAGS, QDOM_FILESYSTEM, nothingTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    QC_FTPCLIENT->addMethodExtended("getAsString",           (q_method_t)FC_getAsString, false, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
    QC_FTPCLIENT->addMethodExtended("getAsBinary",           (q_method_t)FC_getAsBinary, false, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    // accesses filesystem so tagged with QDOM_FILESYSTEM
-   QC_FTPCLIENT->addMethodExtended("put",                   (q_method_t)FC_put_str, false, QC_NO_FLAGS, QDOM_FILESYSTEM, bigIntTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
-   QC_FTPCLIENT->addMethodExtended("put",                   (q_method_t)FC_put_str_str, false, QC_NO_FLAGS, QDOM_FILESYSTEM, bigIntTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
+   QC_FTPCLIENT->addMethodExtended("put",                   (q_method_t)FC_put_str, false, QC_NO_FLAGS, QDOM_FILESYSTEM, nothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   QC_FTPCLIENT->addMethodExtended("put",                   (q_method_t)FC_put_str_str, false, QC_NO_FLAGS, QDOM_FILESYSTEM, nothingTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   QC_FTPCLIENT->addMethodExtended("del",                   (q_method_t)FC_del, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   QC_FTPCLIENT->addMethodExtended("del",                   (q_method_t)FC_del, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    QC_FTPCLIENT->addMethodExtended("setUserName",           (q_method_t)FC_setUserName, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
