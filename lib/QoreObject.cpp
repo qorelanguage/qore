@@ -30,12 +30,12 @@
 
 #include <map>
 
-#define OS_OK             0
-#define OS_DELETED       -1
+#define OS_OK            0
+#define OS_DELETED      -1
 
-#define QOA_OK          0
-#define QOA_PRIV_ERROR  1
-#define QOA_PUB_ERROR   2
+#define QOA_OK           0
+#define QOA_PRIV_ERROR   1
+#define QOA_PUB_ERROR    2
 
 #define QORE_DEBUG_OBJ_REFS 1
 
@@ -64,52 +64,52 @@ typedef std::map<qore_classid_t, private_pair_t> keymap_t;
 
 // for objects with multiple classes, private data has to be keyed
 class KeyList {
-   private:
-      keymap_t keymap;
+private:
+   keymap_t keymap;
 
-   public:
-      DLLLOCAL AbstractPrivateData *getReferencedPrivateData(qore_classid_t key) const {
-	 keymap_t::const_iterator i = keymap.find(key);
-	 if (i == keymap.end())
-	    return 0;
+public:
+   DLLLOCAL AbstractPrivateData *getReferencedPrivateData(qore_classid_t key) const {
+      keymap_t::const_iterator i = keymap.find(key);
+      if (i == keymap.end())
+	 return 0;
 
-	 AbstractPrivateData *apd = i->second.first;
-	 apd->ref();
-	 return apd;
-      }
+      AbstractPrivateData *apd = i->second.first;
+      apd->ref();
+      return apd;
+   }
 
-      DLLLOCAL void addToString(QoreString *str) const {
-	 for (keymap_t::const_iterator i = keymap.begin(), e = keymap.end(); i != e; ++i)
-	    str->sprintf("%d=<0x%p>, ", i->first, i->second.first);
-      }
+   DLLLOCAL void addToString(QoreString *str) const {
+      for (keymap_t::const_iterator i = keymap.begin(), e = keymap.end(); i != e; ++i)
+	 str->sprintf("%d=<0x%p>, ", i->first, i->second.first);
+   }
 
-      DLLLOCAL void derefAll(ExceptionSink *xsink) const {
-	 for (keymap_t::const_iterator i = keymap.begin(), e = keymap.end(); i != e; ++i)
-	    if (!i->second.second)
-	       i->second.first->deref(xsink);
-      }
+   DLLLOCAL void derefAll(ExceptionSink *xsink) const {
+      for (keymap_t::const_iterator i = keymap.begin(), e = keymap.end(); i != e; ++i)
+	 if (!i->second.second)
+	    i->second.first->deref(xsink);
+   }
 
-      DLLLOCAL AbstractPrivateData *getAndClearPtr(qore_classid_t key) {
-	 keymap_t::iterator i = keymap.find(key);
-	 if (i == keymap.end())
-	    return 0;
+   DLLLOCAL AbstractPrivateData *getAndClearPtr(qore_classid_t key) {
+      keymap_t::iterator i = keymap.find(key);
+      if (i == keymap.end())
+	 return 0;
 
-	 assert(!i->second.second);
-	 AbstractPrivateData *rv = i->second.first;
-	 keymap.erase(i);
-	 return rv;
-      }
+      assert(!i->second.second);
+      AbstractPrivateData *rv = i->second.first;
+      keymap.erase(i);
+      return rv;
+   }
 
-      DLLLOCAL void insert(qore_classid_t key, AbstractPrivateData *pd) {
-	 assert(pd);
-	 keymap.insert(std::make_pair(key, std::make_pair(pd, false)));
-      }
+   DLLLOCAL void insert(qore_classid_t key, AbstractPrivateData *pd) {
+      assert(pd);
+      keymap.insert(std::make_pair(key, std::make_pair(pd, false)));
+   }
 
-      DLLLOCAL void insertVirtual(qore_classid_t key, AbstractPrivateData *pd) {
-	 assert(pd);
-	 if (keymap.find(key) == keymap.end())
-	    keymap.insert(std::make_pair(key, std::make_pair(pd, true)));
-      }
+   DLLLOCAL void insertVirtual(qore_classid_t key, AbstractPrivateData *pd) {
+      assert(pd);
+      if (keymap.find(key) == keymap.end())
+	 keymap.insert(std::make_pair(key, std::make_pair(pd, true)));
+   }
 };
 
 class qore_object_private {
@@ -129,8 +129,7 @@ public:
    DLLLOCAL qore_object_private(QoreObject *n_obj, const QoreClass *oc, QoreProgram *p, QoreHashNode *n_data) : 
       theclass(oc), status(OS_OK), 
       privateData(0), data(n_data), pgm(p), system_object(!p), delete_blocker_run(false), in_destructor(false),
-      obj(n_obj)
-   {
+      obj(n_obj) {
 #ifdef QORE_DEBUG_OBJ_REFS
       printd(QORE_DEBUG_OBJ_REFS, "qore_object_private::qore_object_private() obj=%p, pgm=%p, class=%s, references 0->1\n", obj, p, oc->getName());
 #endif

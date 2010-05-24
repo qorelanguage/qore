@@ -2153,6 +2153,8 @@ AbstractQoreNode *QoreClass::evalMethod(QoreObject *self, const char *nme, const
       return 0;
    }
 
+   //printd(5, "QoreClass::evalMethod() %s::%s() found method %p class %s\n", priv->name, nme, w, w->getClassName());
+
    // check for illegal explicit call
    if (w == priv->constructor || w == priv->destructor || w == priv->deleteBlocker) {
       xsink->raiseException("ILLEGAL-EXPLICIT-METHOD-CALL", "explicit calls to ::%s() methods are not allowed", nme);
@@ -2170,7 +2172,7 @@ AbstractQoreNode *QoreClass::evalMethod(QoreObject *self, const char *nme, const
       }
    }
 
-   return self->evalMethod(*w, args, xsink);
+   return w->eval(self, args, xsink);
 }
 
 AbstractQoreNode *QoreClass::evalMethodGate(QoreObject *self, const char *nme, const QoreListNode *args, ExceptionSink *xsink) const {

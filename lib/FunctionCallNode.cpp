@@ -248,11 +248,13 @@ AbstractQoreNode *MethodCallNode::exec(QoreObject *o, ExceptionSink *xsink) cons
       implemented below on average
    */
    if (qc && (o->getClass() == qc || o->getClass() == method->getClass())) {
+      //printd(5, "MethodCallNode::exec() using parse info for %s::%s() qc=%s\n", method->getClassName(), method->getName(), qc->getName());
       assert(method);
       return variant 
 	 ? method->evalNormalVariant(o, reinterpret_cast<const QoreExternalMethodVariant*>(variant), args, xsink)
 	 : method->eval(o, args, xsink);
    }
+   //printd(5, "MethodCallNode::exec() calling QoreObject::evalMethod() for %s::%s()\n", o->getClassName(), c_str);
    return o->evalMethod(c_str, args, xsink);
 }
 

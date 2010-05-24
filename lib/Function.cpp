@@ -399,6 +399,9 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::findVariant(const QoreL
 
    //printd(0, "AbstractQoreFunction::findVariant() this=%p %s%s%s() vlist=%d (pend=%d) ilist=%d args=%p (%d)\n", this, className() ? className() : "", className() ? "::" : "", getName(), vlist.size(), pending_vlist.size(), ilist.size(), args, args ? args->size() : 0);
 
+   // perfect match score
+   int perfect = (args ? args->size() : 0) * 2;
+
    const AbstractQoreFunction *aqf = 0;
 
    // iterate through inheritance list
@@ -413,10 +416,14 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::findVariant(const QoreL
 	 AbstractFunctionSignature *sig = (*i)->getSignature();
 	 assert(sig);
 
-	 //printd(0, "AbstractQoreFunction::findVariant() this=%p %s(%s) args=%p (%d) class=%s\n", this, getName(), sig->getSignatureText(), args, args ? args->size() : 0, aqf->className() ? aqf->className() : "n/a");
+	 //printd(5, "AbstractQoreFunction::findVariant() this=%p %s(%s) args=%p (%d) class=%s\n", this, getName(), sig->getSignatureText(), args, args ? args->size() : 0, aqf->className() ? aqf->className() : "n/a");
 
 	 if (!variant && !sig->getParamTypes()) {
+	    match = 0;
 	    variant = *i;
+
+	    if (!perfect)
+	       break;
 	    continue;
 	 }
 
@@ -451,9 +458,14 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::findVariant(const QoreL
 	    if (count > match) {
 	       match = count;
 	       variant = *i;
+
+	       if (match == perfect)
+		  break;
 	    }
 	 }
       }
+      if (match == perfect)
+	 break;
    }
    if (!variant && !only_user) {
       QoreStringNode *desc = new QoreStringNode("no variant matching '");
@@ -542,6 +554,7 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::runtimeFindVariant(cons
 	 //printd(5, "AbstractQoreFunction::runtimeFindVariant() this=%p checking %s(%s) variant=%p sig->pt=%d sig->mpt=%d match=%d, args=%d\n", this, getName(), sig->getSignatureText(), variant, sig->getParamTypes(), sig->getMinParamTypes(), match, num_args);
 	 
 	 if (!variant && !sig->getParamTypes()) {
+	    match = 0;
 	    variant = *i;
 	    continue;
 	 }

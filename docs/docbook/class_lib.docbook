@@ -5775,11 +5775,9 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>
-if($d.chdir("../doc")) {
-  printf("the directory does not exist or is not readable\n");
-}
-            </programlisting>
+	    <programlisting><command>if</command> ($d.chdir("../doc")) {
+   printf("the directory does not exist or is not readable\n");
+}</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -5829,7 +5827,7 @@ if($d.chdir("../doc")) {
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Return the path of the Dir object. This path needs not necessarily to exist. The path is stripped from all '.' and '..' directories.</para>
+	    <para>Return the path of the Dir object or <link linkend="NOTHING">NOTHING</link> if no path is set.  This path does not necessarily need to exist.  '.' and '..' str stripped from the path if present.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -5841,7 +5839,7 @@ if($d.chdir("../doc")) {
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$mypath = $d.path();</programlisting>
+	    <programlisting><command>my</command> any $mypath = $d.path();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -5857,14 +5855,13 @@ if($d.chdir("../doc")) {
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-	      <entry><para>The path of the Dir object.</para></entry>
+	      <entry><para><code><link linkend="any_type">any</link></code></para></entry>
+	      <entry><para>The path of the Dir object or <link linkend="NOTHING">NOTHING</link> if no path is set.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
       </table>
     </sect2>
-
 
     <sect2 id="Dir_exists">
       <title>Dir::exists()</title>
@@ -5873,7 +5870,7 @@ if($d.chdir("../doc")) {
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Return if the path in the Dir object points to a directory which is openable by the Program.</para>
+	    <para>Returns True if the path in the Dir object points to a directory that already exists and is openable by the current user.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -5886,7 +5883,7 @@ if($d.chdir("../doc")) {
 	  <term>Example</term>
 	  <listitem>
 	    <programlisting><command>if</command> (!$d.exists()) {
-   printf("the directory %s does not exist\n", $d.path());
+   printf("the directory %s does not exist or cannot be opened\n", $d.path());
    exit(-1);
 }</programlisting>
 	  </listitem>
@@ -5905,7 +5902,7 @@ if($d.chdir("../doc")) {
 	  <tbody>
 	    <row>
 	      <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
-	      <entry><para>True if the directory is openable.</para></entry>
+	      <entry><para>True if the directory exists and is openable.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -6792,11 +6789,9 @@ $d.rmdir("emptySubdir");
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>
-# open a file for writing in the directory and set the mode to
+	    <programlisting># open a file for writing in the directory and set the mode to
 # 0644 and the encoding to UTF-8
-<command>my</command> $f = $d.openFile("myfile.txt", O_CREAT|O_WRONLY, 0644, "UTF-8");
-            </programlisting>
+<command>my</command> $f = $d.openFile("myfile.txt", O_CREAT|O_WRONLY, 0644, "UTF-8");</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
