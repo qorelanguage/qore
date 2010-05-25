@@ -8104,7 +8104,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	  </row>
           <row>
             <entry>
-              <para><code><link linkend="FtpClient_setSecure">FtpClient::setSecure</link>(<link linkend="softbool_type">softbool</link> = True) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="FtpClient_setSecure">FtpClient::setSecure</link>(<link linkend="softbool_type">softbool</link> <replaceable>$secure</replaceable> = True) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
             </entry>
             <entry>
               <para>Y</para>
@@ -8620,7 +8620,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-              <para><code><link linkend="FtpClient_setSecure">FtpClient::setSecure</link>(<link linkend="softbool_type">softbool</link> = True) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="FtpClient_setSecure">FtpClient::setSecure</link>(<link linkend="softbool_type">softbool</link> <replaceable>$secure</replaceable> = True) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -8645,7 +8645,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
           </thead>
           <tbody>
             <row>
-              <entry><para><code><link linkend="softbool_type">softbool</link> = True</code></para></entry>
+              <entry><para><code><link linkend="softbool_type">softbool</link> <replaceable>$secure</replaceable> = True</code></para></entry>
               <entry>
                 <para>if True, will try to make an FTPS connection on the next connect, if False, will try to make a cleartext FTP connection on the next connect.</para>
               </entry>
@@ -17087,8 +17087,8 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="HTTPClient_get">HTTPClient::get</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="hash_type">hash</link> headers = <link linkend="hash_type">hash</link>(), <link linkend="reference_type">reference</link> <replaceable>$info</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
-              <para><code><link linkend="HTTPClient_get">HTTPClient::get</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="hash_type">hash</link> headers = <link linkend="hash_type">hash</link>()) <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="HTTPClient_get">HTTPClient::get</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="hash_type">hash</link> headers = <link linkend="hash">hash()</link>, <link linkend="reference_type">reference</link> <replaceable>$info</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="HTTPClient_get">HTTPClient::get</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="hash_type">hash</link> headers = <link linkend="hash">hash()</link>) <command>returns</command> <link linkend="any_type">any</link></code></para>
             </entry>
             <entry>
               <para>Y</para>
@@ -17099,8 +17099,8 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="HTTPClient_head">HTTPClient::head</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="hash_type">hash</link> <replaceable>$headers</replaceable> = <link linkend="hash_type">hash</link>(), <link linkend="reference_type">reference</link> <replaceable>$info</replaceable>) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
-              <para><code><link linkend="HTTPClient_head">HTTPClient::head</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="hash_type">hash</link> <replaceable>$headers</replaceable> = <link linkend="hash_type">hash</link>()) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
+              <para><code><link linkend="HTTPClient_head">HTTPClient::head</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="hash_type">hash</link> <replaceable>$headers</replaceable> = <link linkend="hash">hash()</link>, <link linkend="reference_type">reference</link> <replaceable>$info</replaceable>) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
+              <para><code><link linkend="HTTPClient_head">HTTPClient::head</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="hash_type">hash</link> <replaceable>$headers</replaceable> = <link linkend="hash">hash()</link>) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
             </entry>
             <entry>
               <para>Y</para>
@@ -17111,8 +17111,8 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="HTTPClient_post">HTTPClient::post</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="data_type">data</link> <replaceable>$data</replaceable>, <link linkend="hash_type">hash</link> <replaceable>$headers</replaceable> = <link linkend="hash_type">hash</link>(), <link linkend="reference_type">reference</link> <replaceable>$info</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
-              <para><code><link linkend="HTTPClient_post">HTTPClient::post</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="data_type">data</link> <replaceable>$data</replaceable>, <link linkend="hash_type">hash</link> <replaceable>$headers</replaceable> = <link linkend="hash_type">hash</link>()) <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="HTTPClient_post">HTTPClient::post</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="data_type">data</link> <replaceable>$body</replaceable>, <link linkend="hash_type">hash</link> <replaceable>$headers</replaceable> = <link linkend="hash">hash()</link>, <link linkend="reference_type">reference</link> <replaceable>$info</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="HTTPClient_post">HTTPClient::post</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="data_type">data</link> <replaceable>$body</replaceable>, <link linkend="hash_type">hash</link> <replaceable>$headers</replaceable> = <link linkend="hash">hash()</link>) <command>returns</command> <link linkend="any_type">any</link></code></para>
             </entry>
             <entry>
               <para>Y</para>
@@ -17123,8 +17123,8 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="HTTPClient_send">HTTPClient::send</link>(<link linkend="data_type">data</link> <replaceable>$body</replaceable> = binary(), <link linkend="string_type">string</link> <replaceable>$method</replaceable>, <link linkend="string_type">string</link> <replaceable>$path</replaceable> = "", <link linkend="hash_type">hash</link> headers = <link linkend="hash_type">hash</link>(), <link linkend="bool_type">bool</link> <replaceable>$getbody</replaceable> = False, <link linkend="reference_type">reference</link> <replaceable>$info</replaceable>) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
-              <para><code><link linkend="HTTPClient_send">HTTPClient::send</link>(<link linkend="data_type">data</link> <replaceable>$body</replaceable> = binary(), <link linkend="string_type">string</link> <replaceable>$method</replaceable>, <link linkend="string_type">string</link> <replaceable>$path</replaceable> = "", <link linkend="hash_type">hash</link> headers = <link linkend="hash_type">hash</link>(), <link linkend="bool_type">bool</link> <replaceable>$getbody</replaceable> = False) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
+              <para><code><link linkend="HTTPClient_send">HTTPClient::send</link>(<link linkend="data_type">data</link> <replaceable>$body</replaceable> = binary(), <link linkend="string_type">string</link> <replaceable>$method</replaceable>, <link linkend="string_type">string</link> <replaceable>$path</replaceable> = "", <link linkend="hash_type">hash</link> headers = <link linkend="hash">hash()</link>, <link linkend="bool_type">bool</link> <replaceable>$getbody</replaceable> = False, <link linkend="reference_type">reference</link> <replaceable>$info</replaceable>) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
+              <para><code><link linkend="HTTPClient_send">HTTPClient::send</link>(<link linkend="data_type">data</link> <replaceable>$body</replaceable> = binary(), <link linkend="string_type">string</link> <replaceable>$method</replaceable>, <link linkend="string_type">string</link> <replaceable>$path</replaceable> = "", <link linkend="hash_type">hash</link> headers = <link linkend="hash">hash()</link>, <link linkend="bool_type">bool</link> <replaceable>$getbody</replaceable> = False) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
             </entry>
             <entry>
               <para>Y</para>
@@ -17304,8 +17304,9 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting><command>new</command> HTTPClient(<replaceable>[opts]</replaceable>)</programlisting>
-          </listitem>
+              <para><code><link linkend="HTTPClient_constructor">HTTPClient::constructor</link>()</code></para>
+              <para><code><link linkend="HTTPClient_constructor">HTTPClient::constructor</link>(<link linkend="hash_type">hash</link> <replaceable>$opts</replaceable>)</code></para>
+           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Example</term>
@@ -17316,14 +17317,11 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
       </variablelist>
       <table>
         <title>Arguments for HTTPClient::constructor()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
           <thead>
             <row>
               <entry>
                 <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
               </entry>
               <entry>
                 <para>Description</para>
@@ -17333,12 +17331,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
           <tbody>
             <row>
               <entry>
-                <para>
-                  <replaceable>[opts]</replaceable>
-                </para>
-              </entry>
-              <entry>
-                <para><code><link linkend="hash_type">hash</link></code></para>
+                <para><replaceable><code>[<link linkend="hash_type">hash</link> <replaceable>$opts</replaceable>]</code></replaceable></para>
               </entry>
               <entry>
                 <para>sets options and changes default behaviour for the object, etc.  See the table below for information on valid keys and their mening.  Note that the key names are case-sensitive and therefore must all be in lower-case.</para>
@@ -17398,31 +17391,6 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         </tgroup>
       </table>
 
-      <table>
-        <title>Return Values for HTTPClient::constructor()</title>
-        <tgroup cols="2" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Return Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>Object</para>
-              </entry>
-              <entry>
-                <para>The HTTPClient object is returned</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
       <table>
         <title>Exceptions thrown by HTTPClient::constructor()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -17521,7 +17489,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>HTTPClient::getURL()</programlisting>
+              <para><code><link linkend="HTTPClient_getURL">HTTPClient::getURL</link>() <command>returns</command> <link linkend="string_type">string</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -17563,7 +17531,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>HTTPClient::setURL(<replaceable>url</replaceable>)</programlisting>
+              <para><code><link linkend="HTTPClient_setURL">HTTPClient::setURL</link>(<link linkend="string_type">string</link> <replaceable>$url</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -17575,18 +17543,16 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
       </variablelist>
       <table>
         <title>Arguments for HTTPClient::setURL()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
           <thead>
             <row>
               <entry><para>Argument</para></entry>
-              <entry><para>Type</para></entry>
               <entry><para>Description</para></entry>
             </row>
           </thead>
           <tbody>
             <row>
-              <entry><para><code><replaceable>url</replaceable></code></para></entry>
-              <entry><para><code><link linkend="string_type">string</link></code></para></entry>
+              <entry><para><code><link linkend="string_type">string</link> <replaceable>$url</replaceable></code></para></entry>
               <entry><para>The new URL for the object.</para></entry>
             </row>
           </tbody>
@@ -17627,7 +17593,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>HTTPClient::getProxyURL()</programlisting>
+              <para><code><link linkend="HTTPClient_getProxyURL">HTTPClient::getProxyURL</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -17663,13 +17629,14 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Sets the proxy URL value for the object.  To retrieve the current URL value, use the <link linkend="HTTPClient_getProxyURL">HTTPClient::getProxyURL()</link> method.</para>
+            <para>Sets the proxy URL value for the object; call with no argument or NOTHING to clear.  To retrieve the current URL value, use the <link linkend="HTTPClient_getProxyURL">HTTPClient::getProxyURL()</link> method.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>HTTPClient::setProxyURL(<replaceable>url</replaceable>)</programlisting>
+              <para><code><link linkend="HTTPClient_setProxyURL">HTTPClient::setProxyURL</link>() <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="HTTPClient_setProxyURL">HTTPClient::setProxyURL</link>(<link linkend="string_type">string</link> <replaceable>$url</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -17681,19 +17648,17 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
       </variablelist>
       <table>
         <title>Arguments for HTTPClient::setProxyURL()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
           <thead>
             <row>
               <entry><para>Argument</para></entry>
-              <entry><para>Type</para></entry>
               <entry><para>Description</para></entry>
             </row>
           </thead>
           <tbody>
             <row>
-              <entry><para><code><replaceable>url</replaceable></code></para></entry>
-              <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-              <entry><para>The new proxy URL for the object.</para></entry>
+              <entry><para><code>[<link linkend="string_type">string</link> <replaceable>$url</replaceable>]</code></para></entry>
+              <entry><para>The new proxy URL for the object; call with no argument or NOTHING to clear.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -17738,7 +17703,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>HTTPClient::clearProxyURL()</programlisting>
+              <para><code><link linkend="HTTPClient_clearProxyURL">HTTPClient::clearProxyURL</link>() <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -17763,7 +17728,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>HTTPClient::setProxySecure(<replaceable>boolean</replaceable>)</programlisting>
+              <para><code><link linkend="HTTPClient_setProxySecure">HTTPClient::setProxySecure</link>(<link linkend="softbool_type">softbool</link> <replaceable>$secure</replaceable> = True) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -17775,18 +17740,16 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
       </variablelist>
       <table>
         <title>Arguments for HTTPClient::setProxySecure()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
           <thead>
             <row>
               <entry><para>Argument</para></entry>
-              <entry><para>Type</para></entry>
               <entry><para>Description</para></entry>
             </row>
           </thead>
           <tbody>
             <row>
-              <entry><para><code><replaceable>boolean</replaceable></code></para></entry>
-              <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
+              <entry><para><code><link linkend="softbool_type">softbool</link> <replaceable>$secure</replaceable> = True</code></para></entry>
               <entry><para>sets the SSL/TLS flag for the next proxy connection</para></entry>
             </row>
           </tbody>
@@ -17806,7 +17769,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>HTTPClient::isProxySecure()</programlisting>
+              <para><code><link linkend="HTTPClient_isProxySecure">HTTPClient::isProxySecure</link>() <command>returns</command> <link linkend="bool_type">bool</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -17848,7 +17811,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>HTTPClient::getMaxRedirects()</programlisting>
+              <para><code><link linkend="HTTPClient_getMaxRedirects">HTTPClient::getMaxRedirects</link>() <command>returns</command> <link linkend="int_type">int</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -17890,7 +17853,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>HTTPClient::setMaxRedirects(<replaceable>max_redirects</replaceable>)</programlisting>
+              <para><code><link linkend="HTTPClient_setMaxRedirects">HTTPClient::setMaxRedirects</link>(<link linkend="softint_type">softint</link> <replaceable>$max</replaceable> = 0) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -17902,18 +17865,16 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
       </variablelist>
       <table>
         <title>Arguments for HTTPClient::setMaxRedirects()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
           <thead>
             <row>
               <entry><para>Argument</para></entry>
-              <entry><para>Type</para></entry>
               <entry><para>Description</para></entry>
             </row>
           </thead>
           <tbody>
             <row>
-              <entry><para><code><replaceable>max_redirects</replaceable></code></para></entry>
-              <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+              <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$max</replaceable> = 0</code></para></entry>
               <entry><para>The maximum number of HTTP redirects allowed for the object before an exception is thrown.</para></entry>
             </row>
           </tbody>
@@ -17934,7 +17895,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>HTTPClient::connect()</programlisting>
+              <para><code><link linkend="HTTPClient_connect">HTTPClient::connect</link>() <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -17987,7 +17948,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>HTTPClient::disconnect()</programlisting>
+              <para><code><link linkend="HTTPClient_disconnect">HTTPClient::disconnect</link>() <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -18014,7 +17975,8 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>HTTPClient::get(<replaceable>path, [headers], [info_reference]</replaceable>)</programlisting>
+              <para><code><link linkend="HTTPClient_get">HTTPClient::get</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="hash_type">hash</link> headers = <link linkend="hash">hash()</link>, <link linkend="reference_type">reference</link> <replaceable>$info</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="HTTPClient_get">HTTPClient::get</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="hash_type">hash</link> headers = <link linkend="hash">hash()</link>) <command>returns</command> <link linkend="any_type">any</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -18030,14 +17992,11 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
       </variablelist>
       <table>
         <title>Arguments for HTTPClient::get()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
           <thead>
             <row>
               <entry>
                 <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
               </entry>
               <entry>
                 <para>Description</para>
@@ -18046,26 +18005,15 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
           </thead>
           <tbody>
             <row>
-              <entry>
-                <para>
-                  <replaceable>path</replaceable>
-                </para>
-              </entry>
-              <entry>
-                <para><code><link linkend="string_type">string</link></code></para>
-              </entry>
-              <entry>
-                <para>The path for the message (i.e. '/path/resource?method&amp;param=value')</para>
-              </entry>
+              <entry><para><code><link linkend="string_type">string</link> <replaceable>$path</replaceable></code></para></entry>
+              <entry><para>The path for the message (i.e. '/path/resource?method&amp;param=value')</para></entry>
             </row>
             <row>
-	      <entry><para><code><replaceable>[headers]</replaceable></code></para></entry>
-              <entry><para><code><link linkend="hash_type">hash</link></code></para></entry>
+	      <entry><para><code><link linkend="hash_type">hash</link> headers = <link linkend="hash">hash()</link></code></para></entry>
 	      <entry><para>An optional hash of headers to include in the message.</para></entry>
             </row>
             <row>
-	      <entry><para><code><replaceable>[info_reference]</replaceable></code></para></entry>
-              <entry><para>LValue Reference</para></entry>
+	      <entry><para><code>[<link linkend="reference_type">reference</link> <replaceable>$info</replaceable>]</code></para></entry>
 	      <entry><para>An optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request.</para></entry>
             </row>
           </tbody>
@@ -18086,12 +18034,8 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
           </thead>
           <tbody>
             <row>
-              <entry>
-                <para><code><link linkend="string_type">string</link></code></para>
-              </entry>
-              <entry>
-                <para>The message body returned.</para>
-              </entry>
+              <entry><para><code><link linkend="string_type">string</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
+              <entry><para>The message body returned; NOTHING in case of an erroneous reply by the server with no body.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -18146,7 +18090,8 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>HTTPClient::head(<replaceable>path, [headers]</replaceable>)</programlisting>
+              <para><code><link linkend="HTTPClient_head">HTTPClient::head</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="hash_type">hash</link> <replaceable>$headers</replaceable> = <link linkend="hash_type">hash</link>(), <link linkend="reference_type">reference</link> <replaceable>$info</replaceable>) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
+              <para><code><link linkend="HTTPClient_head">HTTPClient::head</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="hash_type">hash</link> <replaceable>$headers</replaceable> = <link linkend="hash_type">hash</link>()) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -18162,46 +18107,25 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
       </variablelist>
       <table>
         <title>Arguments for HTTPClient::head()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
           <thead>
             <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
+              <entry><para>Argument</para></entry>
+              <entry><para>Description</para></entry>
             </row>
           </thead>
           <tbody>
             <row>
-              <entry>
-                <para>
-                  <replaceable>path</replaceable>
-                </para>
-              </entry>
-              <entry>
-                <para><code><link linkend="string_type">string</link></code></para>
-              </entry>
-              <entry>
-                <para>The path for the message (i.e. '/path/resource?method&amp;param=value')</para>
-              </entry>
+              <entry><para><code><link linkend="string_type">string</link> <replaceable>$path</replaceable></code></para></entry>
+              <entry><para>The path for the message (i.e. '/path/resource?method&amp;param=value')</para></entry>
             </row>
             <row>
-              <entry>
-                <para>
-                  <replaceable>[headers]</replaceable>
-                </para>
-              </entry>
-              <entry>
-                <para><code><link linkend="hash_type">hash</link></code></para>
-              </entry>
-              <entry>
-                <para>An optional hash of headers to include in the message.</para>
-              </entry>
+	      <entry><para><code><link linkend="hash_type">hash</link> headers = <link linkend="hash">hash()</link></code></para></entry>
+	      <entry><para>An optional hash of headers to include in the message.</para></entry>
+            </row>
+            <row>
+	      <entry><para><code>[<link linkend="reference_type">reference</link> <replaceable>$info</replaceable>]</code></para></entry>
+	      <entry><para>An optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -18275,75 +18199,41 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Sends an HTTP POST request with a message body and returns the message body received as a response.  In order to get the headers and the body, use the <link linkend="HTTPClient_send">HTTPClient::send() method</link> instead.  If necessary, a connection will be established via an implicit call to <link linkend="HTTPClient_connect">HTTPClient::connect()</link> before sending the message.</para>
+            <para>Sends an HTTP POST request with a message body and returns the message body received as a response.  In order to get the headers and the body, use <link linkend="HTTPClient_send">HTTPClient::send()</link> instead.  If necessary, a connection will be established via an implicit call to <link linkend="HTTPClient_connect">HTTPClient::connect()</link> before sending the message.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>HTTPClient::post(<replaceable>path, message, [headers], [info_reference]</replaceable>)</programlisting>
+              <para><code><link linkend="HTTPClient_post">HTTPClient::post</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="data_type">data</link> <replaceable>$body</replaceable>, <link linkend="hash_type">hash</link> <replaceable>$headers</replaceable> = <link linkend="hash_type">hash</link>(), <link linkend="reference_type">reference</link> <replaceable>$info</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="HTTPClient_post">HTTPClient::post</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="data_type">data</link> <replaceable>$body</replaceable>, <link linkend="hash_type">hash</link> <replaceable>$headers</replaceable> = <link linkend="hash_type">hash</link>()) <command>returns</command> <link linkend="any_type">any</link></code></para>
           </listitem>
         </varlistentry>
       </variablelist>
       <table>
         <title>Arguments for HTTPClient::post()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
           <thead>
             <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
+              <entry><para>Argument</para></entry>
+              <entry><para>Description</para></entry>
             </row>
           </thead>
           <tbody>
             <row>
-              <entry>
-                <para>
-                  <replaceable>path</replaceable>
-                </para>
-              </entry>
-              <entry>
-                <para><code><link linkend="string_type">string</link></code></para>
-              </entry>
-              <entry>
-                <para>The path for the message (i.e. '/path/resource?method&amp;param=value')</para>
-              </entry>
+              <entry><para><code><link linkend="string_type">string</link> <replaceable>$path</replaceable></code></para></entry>
+              <entry><para>The path for the message (i.e. '/path/resource?method&amp;param=value')</para></entry>
             </row>
             <row>
-              <entry>
-                <para>
-                  <replaceable>message</replaceable>
-                </para>
-              </entry>
-              <entry>
-                <para>String or Binary</para>
-              </entry>
-              <entry>
-                <para>The message body to send.</para>
-              </entry>
+              <entry><para><code><link linkend="data_type">data</link> <replaceable>$body</replaceable></code></para></entry>
+              <entry><para>The message body to send.</para></entry>
             </row>
             <row>
-              <entry>
-                <para>
-                  <replaceable>[headers]</replaceable>
-                </para>
-              </entry>
-              <entry>
-                <para><code><link linkend="hash_type">hash</link></code></para>
-              </entry>
-              <entry>
-                <para>An optional hash of headers to include in the message.</para>
-              </entry>
+	      <entry><para><code><link linkend="hash_type">hash</link> headers = <link linkend="hash">hash()</link></code></para></entry>
+	      <entry><para>An optional hash of headers to include in the message.</para></entry>
             </row>
             <row>
-	      <entry><para><code><replaceable>[info_reference]</replaceable></code></para></entry>
-              <entry><para>LValue Reference</para></entry>
+	      <entry><para><code>[<link linkend="reference_type">reference</link> <replaceable>$info</replaceable>]</code></para></entry>
 	      <entry><para>An optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request.</para></entry>
             </row>
           </tbody>
@@ -18364,12 +18254,8 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
           </thead>
           <tbody>
             <row>
-              <entry>
-                <para><code><link linkend="string_type">string</link></code></para>
-              </entry>
-              <entry>
-                <para>The message body returned.</para>
-              </entry>
+              <entry><para><code><link linkend="string_type">string</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
+              <entry><para>The message body returned; NOTHING in case of an erroneous reply by the server with no body.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -18424,7 +18310,8 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>HTTPClient::send(<replaceable>message, method, path, [headers], [get_body], [info_reference]</replaceable>)</programlisting>
+              <para><code><link linkend="HTTPClient_send">HTTPClient::send</link>(<link linkend="data_type">data</link> <replaceable>$body</replaceable> = binary(), <link linkend="string_type">string</link> <replaceable>$method</replaceable>, <link linkend="string_type">string</link> <replaceable>$path</replaceable> = "", <link linkend="hash_type">hash</link> headers = <link linkend="hash_type">hash</link>(), <link linkend="bool_type">bool</link> <replaceable>$getbody</replaceable> = False, <link linkend="reference_type">reference</link> <replaceable>$info</replaceable>) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
+              <para><code><link linkend="HTTPClient_send">HTTPClient::send</link>(<link linkend="data_type">data</link> <replaceable>$body</replaceable> = binary(), <link linkend="string_type">string</link> <replaceable>$method</replaceable>, <link linkend="string_type">string</link> <replaceable>$path</replaceable> = "", <link linkend="hash_type">hash</link> headers = <link linkend="hash_type">hash</link>(), <link linkend="bool_type">bool</link> <replaceable>$getbody</replaceable> = False) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -18440,89 +18327,36 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
       </variablelist>
       <table>
         <title>Arguments for HTTPClient::send()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
           <thead>
             <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
+              <entry><para>Argument</para></entry>
+              <entry><para>Description</para></entry>
             </row>
           </thead>
           <tbody>
             <row>
-              <entry>
-                <para>
-                  <replaceable>message</replaceable>
-                </para>
-              </entry>
-              <entry>
-                <para>String or Binary</para>
-              </entry>
-              <entry>
-                <para>The message body to send.</para>
-              </entry>
+              <entry><para><code><link linkend="data_type">data</link> <replaceable>$body</replaceable></code></para></entry>
+              <entry><para>The message body to send; use NOTHING to send to body.</para></entry>
+            </row>
+	    <row>
+	      <entry><para><code><link linkend="string_type">string</link> <replaceable>$method</replaceable></code></para></entry>
+	      <entry><para>The name of the HTTP method (<code>'GET', 'POST', 'HEAD', 'OPTIONS', 'PUT', 'DELETE', 'TRACE', or 'CONNECT'</code>).</para></entry>
+	    </row>
+            <row>
+              <entry><para><code><link linkend="string_type">string</link> <replaceable>$path</replaceable></code></para></entry>
+              <entry><para>The path for the message (i.e. '/path/resource?method&amp;param=value')</para></entry>
             </row>
             <row>
-              <entry>
-                <para>
-                  <replaceable>method</replaceable>
-                </para>
-              </entry>
-              <entry>
-                <para><code><link linkend="string_type">string</link></code></para>
-              </entry>
-              <entry>
-                <para>The name of the HTTP method (<code>'GET', 'POST', 'HEAD', 'OPTIONS', 'PUT', 'DELETE', 'TRACE', or 'CONNECT'</code>).</para>
-              </entry>
+	      <entry><para><code><link linkend="hash_type">hash</link> headers = <link linkend="hash">hash()</link></code></para></entry>
+	      <entry><para>An optional hash of headers to include in the message.</para></entry>
             </row>
             <row>
-              <entry>
-                <para>
-                  <replaceable>path</replaceable>
-                </para>
-              </entry>
-              <entry>
-                <para><code><link linkend="string_type">string</link></code></para>
-              </entry>
-              <entry>
-                <para>The path for the message (i.e. '/path/resource?method&amp;param=value')</para>
-              </entry>
+	      <entry><para><code><link linkend="bool_type">bool</link> <replaceable>$getbody</replaceable> = False</code></para></entry>
+	      <entry><para>If this argument is true, then the object will try to receive a message body even if no <code>Content-Length</code> header is present in the response.  Use this only with broken servers that send messages bodies without a 'Content-Length' header.</para></entry>
             </row>
             <row>
-              <entry>
-                <para>
-                  <replaceable>[headers]</replaceable>
-                </para>
-              </entry>
-              <entry>
-                <para><code><link linkend="hash_type">hash</link></code></para>
-              </entry>
-              <entry>
-                <para>An optional hash of headers to include in the message.</para>
-              </entry>
-            </row>
-            <row>
-              <entry>
-                <para>
-                  <replaceable>[get_body]</replaceable>
-                </para>
-              </entry>
-              <entry>
-                <para><code><link linkend="bool_type">bool</link></code></para>
-              </entry>
-              <entry>
-                <para>if set to True (default is False), then even if the server did not return a 'Content-Length' header in the response, the object will try to read a message body from the socket anyway.  Use this only with broken servers that send messages bodies without a 'Content-Length' header.</para>
-              </entry>
-            </row>
-            <row>
-	      <entry><para><code><replaceable>[info_reference]</replaceable></code></para></entry>
-              <entry><para>LValue Reference</para></entry>
+	      <entry><para><code>[<link linkend="reference_type">reference</link> <replaceable>$info</replaceable>]</code></para></entry>
 	      <entry><para>An optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request.</para></entry>
             </row>
           </tbody>
@@ -18614,7 +18448,8 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>HTTPClient::setConnectTimeout(<replaceable>timeout</replaceable>)</programlisting>
+              <para><code><link linkend="HTTPClient_setConnectTimeout">HTTPClient::setConnectTimeout</link>(<link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="HTTPClient_setConnectTimeout">HTTPClient::setConnectTimeout</link>(<link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -18626,30 +18461,16 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
       </variablelist>
       <table>
         <title>Arguments for HTTPClient::setConnectTimeout()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>
-                  <replaceable>timeout</replaceable>
-                </para>
-              </entry>
-              <entry>
-                <para>Integer or <link linkend="Relative_Dates">Relative Date/Time</link></para>
-              </entry>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1 or <link linkend="date_type">date</link> <replaceable>$timeout</replaceable></code></para></entry>
               <entry>
                 <para>Connect timeout in milliseconds, 0 = immediate timeout (do not use), negative numbers = use system default connect timeout.</para>
               </entry>
@@ -18671,7 +18492,8 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>HTTPClient::setTimeout(<replaceable>timeout</replaceable>)</programlisting>
+              <para><code><link linkend="HTTPClient_setTimeout">HTTPClient::setTimeout</link>(<link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="HTTPClient_setTimeout">HTTPClient::setTimeout</link>(<link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -18683,30 +18505,16 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
       </variablelist>
       <table>
         <title>Arguments for HTTPClient::setTimeout()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>
-                  <replaceable>timeout</replaceable>
-                </para>
-              </entry>
-              <entry>
-                <para>Integer or <link linkend="Relative_Dates">Relative Date/Time</link></para>
-              </entry>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1 or <link linkend="date_type">date</link> <replaceable>$timeout</replaceable></code></para></entry>
               <entry>
                 <para>Read timeout in milliseconds, 0 = immediate timeout, negative numbers = never timeout.</para>
               </entry>
@@ -18728,7 +18536,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>HTTPClient::getConnectTimeout()</programlisting>
+              <para><code><link linkend="HTTPClient_getConnectTimeout">HTTPClient::getConnectTimeout</link>() <command>returns</command> <link linkend="int_type">int</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -18777,7 +18585,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>HTTPClient::getTimeout()</programlisting>
+              <para><code><link linkend="HTTPClient_getTimeout">HTTPClient::getTimeout</link>() <command>returns</command> <link linkend="int_type">int</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -18825,7 +18633,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>HTTPClient::setHTTPVersion(<replaceable>version</replaceable>)</programlisting>
+              <para><code><link linkend="HTTPClient_setHTTPVersion">HTTPClient::setHTTPVersion</link>(<link linkend="string_type">string</link> <replaceable>$ver</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -18837,14 +18645,11 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
       </variablelist>
       <table>
         <title>Arguments for HTTPClient::setHTTPVersion()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
           <thead>
             <row>
               <entry>
                 <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
               </entry>
               <entry>
                 <para>Description</para>
@@ -18853,14 +18658,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
           </thead>
           <tbody>
             <row>
-              <entry>
-                <para>
-                  <replaceable>version</replaceable>
-                </para>
-              </entry>
-              <entry>
-                <para><code><link linkend="string_type">string</link></code></para>
-              </entry>
+              <entry><para><code><link linkend="string_type">string</link> <replaceable>$ver</replaceable></code></para></entry>
               <entry>
                 <para>either '1.0' or '1.1' for the HTTP protocol compliance version.</para>
               </entry>
@@ -18908,7 +18706,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>HTTPClient::getHTTPVersion()</programlisting>
+              <para><code><link linkend="HTTPClient_getHTTPVersion">HTTPClient::getHTTPVersion</link>() <command>returns</command> <link linkend="string_type">string</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -18957,7 +18755,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>HTTPClient::setSecure(<replaceable>softbool $secure = True</replaceable>) returns nothing</programlisting>
+               <para><code><link linkend="HTTPClient_setSecure">HTTPClient::setSecure</link>(<link linkend="softbool_type">softbool</link> <replaceable>$secure</replaceable> = True) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -18969,17 +18767,11 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
       </variablelist>
       <table>
         <title>Arguments for HTTPClient::setSecure()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
           <thead>
             <row>
               <entry>
                 <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Default</para>
               </entry>
               <entry>
                 <para>Description</para>
@@ -18988,17 +18780,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
           </thead>
           <tbody>
             <row>
-              <entry>
-                <para>
-                  <replaceable>/$secure</replaceable>
-                </para>
-              </entry>
-              <entry>
-                <para>softbool</para>
-              </entry>
-              <entry>
-                <para>True</para>
-              </entry>
+              <entry><para><code><link linkend="softbool_type">softbool</link> <replaceable>$secure</replaceable> = True</code></para></entry>
               <entry>
                 <para>If True, a SSL/TLS connection will be attempted on the next connection.  If False, an unencrypted cleartext connection will be established.</para>
               </entry>
@@ -19019,7 +18801,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>HTTPClient::isSecure()</programlisting>
+              <para><code><link linkend="HTTPClient_isSecure">HTTPClient::isSecure</link>() <command>returns</command> <link linkend="bool_type">bool</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -19061,19 +18843,19 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Returns a string code giving the result of verifying the remote certificate.  Return value are the keys described in the <link linkend="X509_VerificationReasons_Hash">X509_VerificationReasons hash constant</link>.  This hash can also be used to generate a textual description of the verification result.</para>
+            <para>Returns a string code giving the result of verifying the remote certificate or NOTHING if an encrypted connection is not established.  Return value are the keys described in the <link linkend="X509_VerificationReasons_Hash">X509_VerificationReasons hash constant</link>.  This hash can also be used to generate a textual description of the verification result.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>HTTPClient::verifyPeerCertificate()</programlisting>
+              <para><code><link linkend="HTTPClient_verifyPeerCertificate">HTTPClient::verifyPeerCertificate</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Example</term>
           <listitem>
-            <programlisting>$str = $httpclient.verifyPeerCertificate();</programlisting>
+            <programlisting><command>my</command> any $str = $httpclient.verifyPeerCertificate();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -19092,11 +18874,9 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
           </thead>
           <tbody>
             <row>
+              <entry><para><code><link linkend="string_type">string</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
               <entry>
-                <para><code><link linkend="string_type">string</link></code></para>
-              </entry>
-              <entry>
-                <para>A string code giving the result of verifying the peer's certificate.  No value is returned if no secure connection has been established.</para>
+                <para>A string code giving the result of verifying the peer's certificate.  No value is returned if a secure connection has not been established.</para>
               </entry>
             </row>
           </tbody>
@@ -19115,13 +18895,13 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>HTTPClient::getSSLCipherName()</programlisting>
+              <para><code><link linkend="HTTPClient_getSSLCipherName">HTTPClient::getSSLCipherName</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Example</term>
           <listitem>
-            <programlisting>$str = $httpclient.getSSLCipherName();</programlisting>
+            <programlisting><command>my</command> any $str = $httpclient.getSSLCipherName();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -19140,9 +18920,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
           </thead>
           <tbody>
             <row>
-              <entry>
-                <para><code><link linkend="string_type">string</link></code></para>
-              </entry>
+              <entry><para><code><link linkend="string_type">string</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
               <entry>
                 <para>The name of the cipher for a secure connection.  No value is returned if no secure connection has been established.</para>
               </entry>
@@ -19163,13 +18941,13 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>HTTPClient::getSSLCipherVersion()</programlisting>
+              <para><code><link linkend="HTTPClient_getSSLCipherVersion">HTTPClient::getSSLCipherVersion</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Example</term>
           <listitem>
-            <programlisting>$str = $httpclient.getSSLCipherVersion();</programlisting>
+            <programlisting><command>my</command> any $str = $httpclient.getSSLCipherVersion();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -19188,9 +18966,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
           </thead>
           <tbody>
             <row>
-              <entry>
-                <para><code><link linkend="string_type">string</link></code></para>
-              </entry>
+              <entry><para><code><link linkend="string_type">string</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
               <entry>
                 <para>The version of the cipher for a secure connection.  No value is returned if no secure connection has been established.</para>
               </entry>
@@ -19211,7 +18987,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>HTTPClient::setEncoding(<replaceable>encoding</replaceable>)</programlisting>
+              <para><code><link linkend="HTTPClient_setEncoding">HTTPClient::setEncoding</link>(<link linkend="string_type">string</link> <replaceable>$encoding</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -19223,14 +18999,11 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
       </variablelist>
       <table>
         <title>Arguments for HTTPClient::setEncoding()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
           <thead>
             <row>
               <entry>
                 <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
               </entry>
               <entry>
                 <para>Description</para>
@@ -19239,14 +19012,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
           </thead>
           <tbody>
             <row>
-              <entry>
-                <para>
-                  <replaceable>encoding</replaceable>
-                </para>
-              </entry>
-              <entry>
-                <para><code><link linkend="string_type">string</link></code></para>
-              </entry>
+              <entry><para><code><link linkend="string_type">string</link> <replaceable>$encoding</replaceable></code></para></entry>
               <entry>
                 <para>The string encoding to use for this object.</para>
               </entry>
@@ -19294,7 +19060,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>HTTPClient::getEncoding()</programlisting>
+              <para><code><link linkend="HTTPClient_getEncoding">HTTPClient::getEncoding</link>() <command>returns</command> <link linkend="string_type">string</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -19343,7 +19109,8 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>HTTPClient::setEventQueue(<replaceable>[queue]</replaceable>)</programlisting>
+              <para><code><link linkend="HTTPClient_setEventQueue">HTTPClient::setEventQueue</link>() <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="HTTPClient_setEventQueue">HTTPClient::setEventQueue</link>(<link linkend="Queue_Class">Queue</link> <replaceable>$queue</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -19355,18 +19122,16 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
       </variablelist>
       <table>
         <title>Arguments for HTTPClient::setEventQueue()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
           <thead>
             <row>
               <entry><para>Argument</para></entry>
-              <entry><para>Type</para></entry>
               <entry><para>Description</para></entry>
             </row>
           </thead>
           <tbody>
             <row>
-              <entry><para><code><replaceable>[queue]</replaceable></code></para></entry>
-              <entry><para><link linkend="Queue_Class">Queue</link></para></entry>
+              <entry><para><code>[<link linkend="Queue_Class">Queue</link> <replaceable>$queue</replaceable></code>]</para></entry>
               <entry><para>To set the event queue, pass a <link linkend="Queue_Class">Queue</link> object; to clear the event queue, pass no argument to the function.</para></entry>
             </row>
           </tbody>
@@ -19387,7 +19152,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>HTTPClient::getNoDelay()</programlisting>
+              <para><code><link linkend="HTTPClient_getNoDelay">HTTPClient::getNoDelay</link>() <command>returns</command> <link linkend="bool_type">bool</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -19434,7 +19199,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>HTTPClient::setNoDelay(<replaceable>boolean</replaceable>)</programlisting>
+              <para><code><link linkend="HTTPClient_setNoDelay">HTTPClient::setNoDelay</link>(<link linkend="softbool_type">softbool</link> <replaceable>$nodelay</replaceable> = True) <command>returns</command> <link linkend="int_type">int</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -19447,19 +19212,17 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 
       <table>
 	<title>Arguments for HTTPClient::setNoDelay()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
 	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
 
 	  <tbody>
 	    <row>
-	      <entry><para><code><replaceable>boolean</replaceable></code></para></entry>
-	      <entry><para>boolean</para></entry>
+	      <entry><para><code><link linkend="softbool_type">softbool</link> <replaceable>$nodelay</replaceable> = True</code></para></entry>
 	      <entry><para>The <code>TCP_NODELAY</code> setting for the HTTPClient.</para></entry>
 	    </row>
 
@@ -19499,13 +19262,13 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>HTTPClient::isConnected()</programlisting>
+              <para><code><link linkend="HTTPClient_isConnected">HTTPClient::isConnected</link>() <command>returns</command> <link linkend="bool_type">bool</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$connected = $httpclient.isConnected();</programlisting>
+	    <programlisting><command>my</command> bool $connected = $httpclient.isConnected();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -19703,8 +19466,9 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting><command>new</command> XmlRpcClient(<replaceable>[opts, noconnect]</replaceable>)</programlisting>
-          </listitem>
+              <para><code><link linkend="XmlRpcClient_constructor">XmlRpcClient::constructor</link>(<link linkend="softbool_type">softbool</link> <replaceable>$no_connect</replaceable> = False)</code></para>
+              <para><code><link linkend="XmlRpcClient_constructor">XmlRpcClient::constructor</link>(<link linkend="hash_type">hash</link> <replaceable>$opts</replaceable>, <link linkend="softbool_type">softbool</link> <replaceable>$no_connect</replaceable> = False)</code></para>
+           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Example</term>
@@ -19715,63 +19479,21 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
       </variablelist>
       <table>
         <title>Arguments for XmlRpcClient::constructor()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>
-                  <replaceable>[opts]</replaceable>
-                </para>
-              </entry>
-              <entry>
-                <para><code><link linkend="hash_type">hash</link></code></para>
-              </entry>
-              <entry>
-                <para>an option hash, see <link linkend="HTTPClient_constructor_option_hash_keys">HTTPClient::constructor() Option Hash Keys</link> for valid keys in this hash.</para>
-              </entry>
-            </row>
-            <row>
-              <entry><para><code><replaceable>[noconnect]</replaceable></code></para></entry>
-              <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
-              <entry><para>If this optional argument is passed with a value of True, then the object will not attempt to make a connection immediately to the remote socket, but instead will wait until a connection is required or manually established with the parent class' <link linkend="HTTPClient_connect">HTTPClient::connect()</link> method.</para></entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
-      <table>
-        <title>Return Values for XmlRpcClient::constructor()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
           <thead>
             <row>
-              <entry>
-                <para>Return Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
+              <entry><para>Argument</para></entry>
+              <entry><para>Description</para></entry>
             </row>
           </thead>
           <tbody>
             <row>
-              <entry>
-                <para>Object</para>
-              </entry>
-              <entry>
-                <para>The XmlRpcClient object is returned</para>
-              </entry>
+              <entry><para><code><link linkend="hash_type">hash</link> <replaceable>$opts</replaceable></code></para></entry>
+              <entry><para>an option hash, see <link linkend="HTTPClient_constructor_option_hash_keys">HTTPClient::constructor() Option Hash Keys</link> for valid keys in this hash.</para></entry>
+            </row>
+            <row>
+              <entry><para><code><replaceable><link linkend="softbool_type">softbool</link> <replaceable>$no_connect</replaceable> = False</replaceable></code></para></entry>
+              <entry><para>If this optional argument is passed with a value of True, then the object will not attempt to make a connection immediately to the remote socket, but instead will wait until a connection is required and made implicitly or manually established with the parent class' <link linkend="HTTPClient_connect">HTTPClient::connect()</link> method.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -19844,7 +19566,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>XmlRpcClient::call(<replaceable>method_name, [args...]</replaceable>)</programlisting>
+              <para><code><link linkend="XmlRpcClient_call">XmlRpcClient::call</link>(<link linkend="string_type">string</link> <replaceable>$method</replaceable>, ...) <command>returns</command> <link linkend="any_type">any</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -19856,46 +19578,21 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
       </variablelist>
       <table>
         <title>Arguments for XmlRpcClient::call()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
           <thead>
             <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
+              <entry><para>Argument</para></entry>
+              <entry><para>Description</para></entry>
             </row>
           </thead>
           <tbody>
             <row>
-              <entry>
-                <para>
-                  <replaceable>method_name</replaceable>
-                </para>
-              </entry>
-              <entry>
-                <para><code><link linkend="string_type">string</link></code></para>
-              </entry>
-              <entry>
-                <para>The XML-RPC method name to call</para>
-              </entry>
+              <entry><para><code><link linkend="string_type">string</link> <replaceable>$method</replaceable></code></para></entry>
+              <entry><para>The XML-RPC method name to call</para></entry>
             </row>
             <row>
-              <entry>
-                <para>
-                  <replaceable>[args...]</replaceable>
-                </para>
-              </entry>
-              <entry>
-                <para><code><link linkend="any_type">any</link></code></para>
-              </entry>
-              <entry>
-                <para>Optional arguments for the method.</para>
-              </entry>
+              <entry><para><code>...</code></para></entry>
+              <entry><para>Optional arguments for the method.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -19938,7 +19635,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>XmlRpcClient::callArgs(<replaceable>method_name, [arg_list]</replaceable>)</programlisting>
+              <para><code><link linkend="XmlRpcClient_callArgs">XmlRpcClient::callArgs</link>(<link linkend="string_type">string</link> <replaceable>$method</replaceable>, <link linkend="any_type">any</link> <replaceable>$args</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -19950,46 +19647,21 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
       </variablelist>
       <table>
         <title>Arguments for XmlRpcClient::callArgs()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
           <thead>
             <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
+	      <entry><para>Argument</para></entry>
+              <entry><para>Description</para></entry>
             </row>
           </thead>
           <tbody>
             <row>
-              <entry>
-                <para>
-                  <replaceable>method_name</replaceable>
-                </para>
-              </entry>
-              <entry>
-                <para><code><link linkend="string_type">string</link></code></para>
-              </entry>
-              <entry>
-                <para>The XML-RPC method name to call</para>
-              </entry>
+              <entry><para><code><link linkend="string_type">string</link> <replaceable>$method</replaceable></code></para></entry>
+              <entry><para>The XML-RPC method name to call</para></entry>
             </row>
             <row>
-              <entry>
-                <para>
-                  <replaceable>[arg_list]</replaceable>
-                </para>
-              </entry>
-              <entry>
-                <para>List or Any</para>
-              </entry>
-              <entry>
-                <para>An optional list (or single value) of arguments for the method.</para>
-              </entry>
+              <entry><para><code><link linkend="any_type">any</link> <replaceable>$args</replaceable></code></para></entry>
+              <entry><para>An optional list of arguments (or single argument) for the method.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -20033,7 +19705,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>XmlRpcClient::callWithInfo(<replaceable>lvalue_ref, method_name, [args...]</replaceable>)</programlisting>
+              <para><code><link linkend="XmlRpcClient_callWithInfo">XmlRpcClient::callWithInfo</link>(<link linkend="reference_type">reference</link> <replaceable>$info</replaceable>, <link linkend="string_type">string</link> <replaceable>$method</replaceable>, ...) <command>returns</command> <link linkend="any_type">any</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -20045,51 +19717,25 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
       </variablelist>
       <table>
         <title>Arguments for XmlRpcClient::callWithInfo()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
           <thead>
             <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
+              <entry><para>Argument</para></entry>
+              <entry><para>Description</para></entry>
             </row>
           </thead>
           <tbody>
             <row>
-	      <entry><para><code><replaceable>lvalue_ref</replaceable></code></para></entry>
-              <entry><para>LValue Reference</para></entry>
-              <entry><para>A reference to an lvalue that will be used as an output variable providing information about the HTTP request and response made to effect the JSON-RPC call.</para></entry>
+	      <entry><para><code><link linkend="reference_type">reference</link> <replaceable>$info</replaceable></code></para></entry>
+              <entry><para>A reference to an lvalue that will be used as an output variable providing information about the HTTP request and response made to effect the XML-RPC call.</para></entry>
             </row>
             <row>
-              <entry>
-                <para>
-                  <replaceable>method_name</replaceable>
-                </para>
-              </entry>
-              <entry>
-                <para><code><link linkend="string_type">string</link></code></para>
-              </entry>
-              <entry>
-                <para>The XML-RPC method name to call</para>
-              </entry>
+              <entry><para><code><link linkend="string_type">string</link> <replaceable>$method</replaceable></code></para></entry>
+              <entry><para>The XML-RPC method name to call</para></entry>
             </row>
             <row>
-              <entry>
-                <para>
-                  <replaceable>[args...]</replaceable>
-                </para>
-              </entry>
-              <entry>
-                <para><code><link linkend="any_type">any</link></code></para>
-              </entry>
-              <entry>
-                <para>Optional arguments for the method.</para>
-              </entry>
+              <entry><para><code>...</code></para></entry>
+              <entry><para>Optional arguments for the method.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -20132,7 +19778,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>XmlRpcClient::callArgsWithInfo(<replaceable>lvalue_ref, method_name, [arg_list]</replaceable>)</programlisting>
+              <para><code><link linkend="XmlRpcClient_callArgsWithInfo">XmlRpcClient::callArgsWithInfo</link>(<link linkend="reference_type">reference</link> <replaceable>$info</replaceable>, <link linkend="string_type">string</link> <replaceable>$method</replaceable>, <link linkend="any_type">any</link> <replaceable>$args</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -20144,51 +19790,25 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
       </variablelist>
       <table>
         <title>Arguments for XmlRpcClient::callArgsWithInfo()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
           <thead>
             <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
+	      <entry><para>Argument</para></entry>
+              <entry><para>Description</para></entry>
             </row>
           </thead>
           <tbody>
             <row>
-	      <entry><para><code><replaceable>lvalue_ref</replaceable></code></para></entry>
-              <entry><para>LValue Reference</para></entry>
-              <entry><para>A reference to an lvalue that will be used as an output variable providing information about the HTTP request and response made to effect the JSON-RPC call.</para></entry>
+	      <entry><para><code><link linkend="reference_type">reference</link> <replaceable>$info</replaceable></code></para></entry>
+              <entry><para>A reference to an lvalue that will be used as an output variable providing information about the HTTP request and response made to effect the XML-RPC call.</para></entry>
             </row>
             <row>
-              <entry>
-                <para>
-                  <replaceable>method_name</replaceable>
-                </para>
-              </entry>
-              <entry>
-                <para><code><link linkend="string_type">string</link></code></para>
-              </entry>
-              <entry>
-                <para>The XML-RPC method name to call</para>
-              </entry>
+              <entry><para><code><link linkend="string_type">string</link> <replaceable>$method</replaceable></code></para></entry>
+              <entry><para>The XML-RPC method name to call</para></entry>
             </row>
             <row>
-              <entry>
-                <para>
-                  <replaceable>[arg_list]</replaceable>
-                </para>
-              </entry>
-              <entry>
-                <para>List or Any</para>
-              </entry>
-              <entry>
-                <para>An optional list (or single value) of arguments for the method.</para>
-              </entry>
+              <entry><para><code><link linkend="any_type">any</link> <replaceable>$args</replaceable></code></para></entry>
+              <entry><para>An optional list of arguments (or single argument) for the method.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -20214,6 +19834,48 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
               <entry>
                 <para>If the call was successful, the response information will be found in the key 'params'.  If an error occurred then the error information can be found under the 'fault' key.</para>
               </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="XmlRpcClient_setEventQueue">
+      <title>XmlRpcClient::setEventQueue()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Sets a <link linkend="Queue_Class">Queue</link> object to receive <link linkend="httpclient_events">HTTPClient</link> and <link linkend="socket_events">Socket</link> events.  To remove the event queue and stop monitoring events, pass <code>NOTHING</code> to the method.  See <link linkend="event_handling">Event Handling</link> for more information.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Prototype</term>
+          <listitem>
+              <para><code><link linkend="XmlRpcClient_setEventQueue">XmlRpcClient::setEventQueue</link>() <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="XmlRpcClient_setEventQueue">XmlRpcClient::setEventQueue</link>(<link linkend="Queue_Class">Queue</link> <replaceable>$queue</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$xrc.setEventQueue($queue);</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for XmlRpcClient::setEventQueue()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry><para>Argument</para></entry>
+              <entry><para>Description</para></entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry><para><code>[<link linkend="Queue_Class">Queue</link> <replaceable>$queue</replaceable></code>]</para></entry>
+              <entry><para>To set the event queue, pass a <link linkend="Queue_Class">Queue</link> object; to clear the event queue, pass no argument to the function.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -20405,7 +20067,8 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting><command>new</command> JsonRpcClient(<replaceable>[opts, noconnect]</replaceable>)</programlisting>
+              <para><code><link linkend="JsonRpcClient_constructor">JsonRpcClient::constructor</link>(<link linkend="softbool_type">softbool</link> <replaceable>$no_connect</replaceable> = False)</code></para>
+              <para><code><link linkend="JsonRpcClient_constructor">JsonRpcClient::constructor</link>(<link linkend="hash_type">hash</link> <replaceable>$opts</replaceable>, <link linkend="softbool_type">bool</link> <replaceable>$no_connect</replaceable> = False)</code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -20417,49 +20080,21 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
       </variablelist>
       <table>
         <title>Arguments for JsonRpcClient::constructor()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
           <thead>
             <row>
               <entry><para>Argument</para></entry>
-              <entry><para>Type</para></entry>
               <entry><para>Description</para></entry>
             </row>
           </thead>
           <tbody>
             <row>
-              <entry><para><code><replaceable>[opts]</replaceable></code></para></entry>
-              <entry><para><code><link linkend="hash_type">hash</link></code></para></entry>
+              <entry><para><code><link linkend="hash_type">hash</link> <replaceable>$opts</replaceable></code></para></entry>
               <entry><para>an option hash, see <link linkend="HTTPClient_constructor_option_hash_keys">HTTPClient::constructor() Option Hash Keys</link> for valid keys in this hash.</para></entry>
             </row>
             <row>
-              <entry><para><code><replaceable>[noconnect]</replaceable></code></para></entry>
-              <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
-              <entry><para>If this optional argument is passed with a value of True, then the object will not attempt to make a connection immediately to the remote socket, but instead will wait until a connection is required or manually established with the parent class' <link linkend="HTTPClient_connect">HTTPClient::connect()</link> method.</para></entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
-      <table>
-        <title>Return Values for JsonRpcClient::constructor()</title>
-        <tgroup cols="2" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Return Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>Object</para>
-              </entry>
-              <entry>
-                <para>The JsonRpcClient object is returned</para>
-              </entry>
+              <entry><para><code><replaceable><link linkend="softbool_type">softbool</link> <replaceable>$no_connect</replaceable> = False</replaceable></code></para></entry>
+              <entry><para>If this optional argument is passed with a value of True, then the object will not attempt to make a connection immediately to the remote socket, but instead will wait until a connection is required and made implicitly or manually established with the parent class' <link linkend="HTTPClient_connect">HTTPClient::connect()</link> method.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -20532,7 +20167,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>JsonRpcClient::call(<replaceable>method_name, [arg1, arg2...</replaceable>)</programlisting>
+              <para><code><link linkend="JsonRpcClient_call">JsonRpcClient::call</link>(<link linkend="string_type">string</link> <replaceable>$method</replaceable>, ...) <command>returns</command> <link linkend="any_type">any</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -20544,46 +20179,21 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
       </variablelist>
       <table>
         <title>Arguments for JsonRpcClient::call()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
           <thead>
             <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
+              <entry><para>Argument</para></entry>
+              <entry><para>Description</para></entry>
             </row>
           </thead>
           <tbody>
             <row>
-              <entry>
-                <para>
-                  <replaceable>method_name</replaceable>
-                </para>
-              </entry>
-              <entry>
-                <para><code><link linkend="string_type">string</link></code></para>
-              </entry>
-              <entry>
-                <para>The JSON-RPC method name to call</para>
-              </entry>
+              <entry><para><code><link linkend="string_type">string</link> <replaceable>$method</replaceable></code></para></entry>
+              <entry><para>The JSON-RPC method name to call</para></entry>
             </row>
             <row>
-              <entry>
-                <para>
-                  <replaceable>[arg_list]</replaceable>
-                </para>
-              </entry>
-              <entry>
-                <para>List or Any</para>
-              </entry>
-              <entry>
-                <para>An optional list (or single value) of arguments for the method.</para>
-              </entry>
+              <entry><para><code>...</code></para></entry>
+              <entry><para>Optional arguments for the method.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -20626,7 +20236,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>JsonRpcClient::callArgs(<replaceable>method_name, [arg_list]</replaceable>)</programlisting>
+              <para><code><link linkend="JsonRpcClient_callArgs">JsonRpcClient::callArgs</link>(<link linkend="string_type">string</link> <replaceable>$method</replaceable>, <link linkend="any_type">any</link> <replaceable>$args</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -20638,46 +20248,21 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
       </variablelist>
       <table>
         <title>Arguments for JsonRpcClient::callArgs()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
           <thead>
             <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
+	      <entry><para>Argument</para></entry>
+              <entry><para>Description</para></entry>
             </row>
           </thead>
           <tbody>
             <row>
-              <entry>
-                <para>
-                  <replaceable>method_name</replaceable>
-                </para>
-              </entry>
-              <entry>
-                <para><code><link linkend="string_type">string</link></code></para>
-              </entry>
-              <entry>
-                <para>The JSON-RPC method name to call</para>
-              </entry>
+              <entry><para><code><link linkend="string_type">string</link> <replaceable>$method</replaceable></code></para></entry>
+              <entry><para>The JSON-RPC method name to call</para></entry>
             </row>
             <row>
-              <entry>
-                <para>
-                  <replaceable>[arg_list]</replaceable>
-                </para>
-              </entry>
-              <entry>
-                <para>List or Any</para>
-              </entry>
-              <entry>
-                <para>An optional list (or single value) of arguments for the method.</para>
-              </entry>
+              <entry><para><code><link linkend="any_type">any</link> <replaceable>$args</replaceable></code></para></entry>
+              <entry><para>An optional list of arguments (or single argument) for the method.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -20720,7 +20305,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>JsonRpcClient::callWithInfo(<replaceable>lvalue_reference, method_name, [arg1, arg2...</replaceable>)</programlisting>
+              <para><code><link linkend="JsonRpcClient_callWithInfo">JsonRpcClient::callWithInfo</link>(<link linkend="reference_type">reference</link> <replaceable>$info</replaceable>, <link linkend="string_type">string</link> <replaceable>$method</replaceable>, ...) <command>returns</command> <link linkend="any_type">any</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -20732,47 +20317,30 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
       </variablelist>
       <table>
         <title>Arguments for JsonRpcClient::callWithInfo()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
           <thead>
             <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
+              <entry><para>Argument</para></entry>
+              <entry><para>Description</para></entry>
             </row>
           </thead>
           <tbody>
             <row>
-	      <entry><para><code><replaceable>lvalue_reference</replaceable></code></para></entry>
-              <entry><para>LValue Reference</para></entry>
+	      <entry><para><code><link linkend="reference_type">reference</link> <replaceable>$info</replaceable></code></para></entry>
               <entry><para>A reference to an lvalue that will be used as an output variable providing information about the HTTP request and response made to effect the JSON-RPC call.</para></entry>
             </row>
             <row>
-	      <entry><para><code><replaceable>method_name</replaceable></code></para></entry>
-              <entry><para><code><link linkend="string_type">string</link></code></para></entry>
+              <entry><para><code><link linkend="string_type">string</link> <replaceable>$method</replaceable></code></para></entry>
               <entry><para>The JSON-RPC method name to call</para></entry>
             </row>
             <row>
-              <entry>
-                <para>
-                  <replaceable>[arg_list]</replaceable>
-                </para>
-              </entry>
-              <entry>
-                <para>List or Any</para>
-              </entry>
-              <entry>
-                <para>An optional list (or single value) of arguments for the method.</para>
-              </entry>
+              <entry><para><code>...</code></para></entry>
+              <entry><para>Optional arguments for the method.</para></entry>
             </row>
           </tbody>
         </tgroup>
       </table>
+
       <table>
         <title>Return Values for JsonRpcClient::callWithInfo()</title>
         <tgroup cols="2" align="left" colsep="1" rowsep="1">
@@ -20811,7 +20379,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>JsonRpcClient::callArgsWithInfo(<replaceable>lvalue_reference, method_name, [arg_list]</replaceable>)</programlisting>
+              <para><code><link linkend="JsonRpcClient_callArgsWithInfo">JsonRpcClient::callArgsWithInfo</link>(<link linkend="reference_type">reference</link> <replaceable>$info</replaceable>, <link linkend="string_type">string</link> <replaceable>$method</replaceable>, <link linkend="any_type">any</link> <replaceable>$args</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -20823,51 +20391,25 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
       </variablelist>
       <table>
         <title>Arguments for JsonRpcClient::callArgsWithInfo()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
           <thead>
             <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
+	      <entry><para>Argument</para></entry>
+              <entry><para>Description</para></entry>
             </row>
           </thead>
           <tbody>
             <row>
-	      <entry><para><code><replaceable>lvalue_reference</replaceable></code></para></entry>
-              <entry><para>LValue Reference</para></entry>
+	      <entry><para><code><link linkend="reference_type">reference</link> <replaceable>$info</replaceable></code></para></entry>
               <entry><para>A reference to an lvalue that will be used as an output variable providing information about the HTTP request and response made to effect the JSON-RPC call.</para></entry>
             </row>
             <row>
-              <entry>
-                <para>
-                  <replaceable>method_name</replaceable>
-                </para>
-              </entry>
-              <entry>
-                <para><code><link linkend="string_type">string</link></code></para>
-              </entry>
-              <entry>
-                <para>The JSON-RPC method name to call</para>
-              </entry>
+              <entry><para><code><link linkend="string_type">string</link> <replaceable>$method</replaceable></code></para></entry>
+              <entry><para>The JSON-RPC method name to call</para></entry>
             </row>
             <row>
-              <entry>
-                <para>
-                  <replaceable>[arg_list]</replaceable>
-                </para>
-              </entry>
-              <entry>
-                <para>List or Any</para>
-              </entry>
-              <entry>
-                <para>An optional list (or single value) of arguments for the method.</para>
-              </entry>
+              <entry><para><code><link linkend="any_type">any</link> <replaceable>$args</replaceable></code></para></entry>
+              <entry><para>An optional list of arguments (or single argument) for the method.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -20898,6 +20440,49 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         </tgroup>
       </table>
     </sect2>
+
+    <sect2 id="JsonRpcClient_setEventQueue">
+      <title>JsonRpcClient::setEventQueue()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Sets a <link linkend="Queue_Class">Queue</link> object to receive <link linkend="httpclient_events">HTTPClient</link> and <link linkend="socket_events">Socket</link> events.  To remove the event queue and stop monitoring events, pass <code>NOTHING</code> to the method.  See <link linkend="event_handling">Event Handling</link> for more information.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Prototype</term>
+          <listitem>
+              <para><code><link linkend="JsonRpcClient_setEventQueue">JsonRpcClient::setEventQueue</link>() <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="JsonRpcClient_setEventQueue">JsonRpcClient::setEventQueue</link>(<link linkend="Queue_Class">Queue</link> <replaceable>$queue</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$jrc.setEventQueue($queue);</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for JsonRpcClient::setEventQueue()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry><para>Argument</para></entry>
+              <entry><para>Description</para></entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry><para><code>[<link linkend="Queue_Class">Queue</link> <replaceable>$queue</replaceable></code>]</para></entry>
+              <entry><para>To set the event queue, pass a <link linkend="Queue_Class">Queue</link> object; to clear the event queue, pass no argument to the function.</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+
   </sect1>
 
   <sect1 id="SSLPrivateKey_Class">
@@ -21066,31 +20651,6 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
               </entry>
               <entry>
                 <para>The passphrase required to decrypt the private key</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
-      <table>
-        <title>Return Values for SSLPrivateKey::constructor()</title>
-        <tgroup cols="2" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Return Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>Object</para>
-              </entry>
-              <entry>
-                <para>The SSLPrivateKey object is returned</para>
               </entry>
             </row>
           </tbody>
@@ -21628,31 +21188,6 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
               </entry>
               <entry>
                 <para>The certificate data in either PEM (string argument) or DER (binary argument) format.  See above for the deprecated option of passing a filename argument.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
-      <table>
-        <title>Return Values for SSLCertificate::constructor()</title>
-        <tgroup cols="2" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Return Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>Object</para>
-              </entry>
-              <entry>
-                <para>The SSLCertificate object is returned</para>
               </entry>
             </row>
           </tbody>
@@ -33543,31 +33078,6 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
               </entry>
               <entry>
                 <para>The XML string to parse.</para>
-              </entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
-      <table>
-        <title>Return Values for XmlReader::constructor()</title>
-        <tgroup cols="2" align="left" colsep="1" rowsep="1">
-          <thead>
-            <row>
-              <entry>
-                <para>Return Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>
-                <para>Object</para>
-              </entry>
-              <entry>
-                <para>The XmlReader object is returned</para>
               </entry>
             </row>
           </tbody>
