@@ -359,9 +359,8 @@ QoreClass *initHTTPClientClass() {
    client->addMethodExtended("send",                   (q_method_t)HC_send, false, QC_NO_FLAGS, QDOM_DEFAULT, hashTypeInfo, 5, dataTypeInfo, new BinaryNode, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, null_string(), hashTypeInfo, empty_hash(), softBoolTypeInfo, &False);
    client->addMethodExtended("send",                   (q_method_t)HC_send, false, QC_NO_FLAGS, QDOM_DEFAULT, hashTypeInfo, 6, dataTypeInfo, new BinaryNode, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, null_string(), hashTypeInfo, empty_hash(), softBoolTypeInfo, &False, referenceTypeInfo, QORE_PARAM_NO_ARG);
 
-   // HTTPClient::get(string $path, hash headers = hash())
-   // HTTPClient::get(string $path, hash headers = hash(), reference $info)
-   // returns string or binary
+   // HTTPClient::get(string $path, hash headers = hash()) returns string or binary
+   // HTTPClient::get(string $path, hash headers = hash(), reference $info) returns string or binary
    client->addMethodExtended("get",                    (q_method_t)HC_get, false, QC_NO_FLAGS, QDOM_DEFAULT, 0, 2, stringTypeInfo, QORE_PARAM_NO_ARG, hashTypeInfo, empty_hash());
    client->addMethodExtended("get",                    (q_method_t)HC_get, false, QC_NO_FLAGS, QDOM_DEFAULT, 0, 3, stringTypeInfo, QORE_PARAM_NO_ARG, hashTypeInfo, empty_hash(), referenceTypeInfo, QORE_PARAM_NO_ARG);
 
