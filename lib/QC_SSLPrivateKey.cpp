@@ -28,7 +28,7 @@
 
 qore_classid_t CID_SSLPRIVATEKEY;
 
-// syntax: SSLPrivateKey(PEM_string, passphrase)
+// SSLPrivateKey::constructor(PEM_string, passphrase)
 static void SSLPKEY_constructor_str(QoreObject *self, const QoreListNode *args, ExceptionSink *xsink) {
    HARD_QORE_PARAM(p0, const QoreStringNode, args, 0);
    HARD_QORE_PARAM(p1, const QoreStringNode, args, 1);
@@ -51,7 +51,7 @@ static void SSLPKEY_constructor_str(QoreObject *self, const QoreListNode *args, 
       self->setPrivate(CID_SSLPRIVATEKEY, qpk.release());
 }
 
-// syntax: SSLPrivateKey(binary, passphrase)
+// SSLPrivateKey::constructor(binary)
 static void SSLPKEY_constructor_bin(QoreObject *self, const QoreListNode *args, ExceptionSink *xsink) {
    HARD_QORE_PARAM(bin, const BinaryNode, args, 0);
 
@@ -87,7 +87,7 @@ QoreClass *initSSLPrivateKeyClass() {
    CID_SSLPRIVATEKEY = QC_SSLPRIVATEKEY->getID();
 
    QC_SSLPRIVATEKEY->setConstructorExtended(SSLPKEY_constructor_str, false, QC_NO_FLAGS, QDOM_DEFAULT, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, null_string());
-   QC_SSLPRIVATEKEY->setConstructorExtended(SSLPKEY_constructor_bin, false, QC_NO_FLAGS, QDOM_DEFAULT, 2, binaryTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, null_string());
+   QC_SSLPRIVATEKEY->setConstructorExtended(SSLPKEY_constructor_bin, false, QC_NO_FLAGS, QDOM_DEFAULT, 1, binaryTypeInfo, QORE_PARAM_NO_ARG);
 
    QC_SSLPRIVATEKEY->setCopy((q_copy_t)SSLPKEY_copy);
 
