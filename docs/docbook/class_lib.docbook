@@ -12757,7 +12757,7 @@ $pgm.setParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
             <entry>
               <para><code><link linkend="Socket_setCertificate">Socket::setCertificate</link>(<link linkend="SSLCertificate_Class">SSLCertificate</link> <replaceable>$cert</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
               <para><code><link linkend="Socket_setCertificate">Socket::setCertificate</link>(<link linkend="string_type">string</link> <replaceable>$cert_pem</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
-              <para><code><link linkend="Socket_setCertificate">Socket::setCertificate</link>(binary <replaceable>$cert_der</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="Socket_setCertificate">Socket::setCertificate</link>(<link linkend="binary_type">binary</link> <replaceable>$cert_der</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -12771,7 +12771,7 @@ $pgm.setParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
               <para><code><link linkend="Socket_setPrivateKey">Socket::setPrivateKey</link>(<link linkend="SSLPrivateKey_Class">SSLPrivateKey</link> <replaceable>$key</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
               <para><code><link linkend="Socket_setPrivateKey">Socket::setPrivateKey</link>(<link linkend="string_type">string</link> <replaceable>$key_pem</replaceable>, <link linkend="string_type">string</link> <replaceable>$pass</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
               <para><code><link linkend="Socket_setPrivateKey">Socket::setPrivateKey</link>(<link linkend="string_type">string</link> <replaceable>$key_pem</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
-              <para><code><link linkend="Socket_setPrivateKey">Socket::setPrivateKey</link>(binary <replaceable>$key_der</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="Socket_setPrivateKey">Socket::setPrivateKey</link>(<link linkend="binary_type">binary</link> <replaceable>$key_der</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -13851,7 +13851,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
           <listitem>
               <para><code><link linkend="Socket_setCertificate">Socket::setCertificate</link>(<link linkend="SSLCertificate_Class">SSLCertificate</link> <replaceable>$cert</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
               <para><code><link linkend="Socket_setCertificate">Socket::setCertificate</link>(<link linkend="string_type">string</link> <replaceable>$cert_pem</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
-              <para><code><link linkend="Socket_setCertificate">Socket::setCertificate</link>(binary <replaceable>$cert_der</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="Socket_setCertificate">Socket::setCertificate</link>(<link linkend="binary_type">binary</link> <replaceable>$cert_der</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -13906,7 +13906,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
               <para><code><link linkend="Socket_setPrivateKey">Socket::setPrivateKey</link>(<link linkend="SSLPrivateKey_Class">SSLPrivateKey</link> <replaceable>$key</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
               <para><code><link linkend="Socket_setPrivateKey">Socket::setPrivateKey</link>(<link linkend="string_type">string</link> <replaceable>$key_pem</replaceable>, <link linkend="string_type">string</link> <replaceable>$pass</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
               <para><code><link linkend="Socket_setPrivateKey">Socket::setPrivateKey</link>(<link linkend="string_type">string</link> <replaceable>$key_pem</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
-              <para><code><link linkend="Socket_setPrivateKey">Socket::setPrivateKey</link>(binary <replaceable>$key_der</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="Socket_setPrivateKey">Socket::setPrivateKey</link>(<link linkend="binary_type">binary</link> <replaceable>$key_der</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -14229,6 +14229,98 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 
       <table>
 	<title>Exceptions Thrown by Socket::send()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>SOCKET-SEND-PARAMETER-ERROR</code></para></entry>
+	      <entry><para>No argument was passed to the method.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>SOCKET-NOT-OPEN</code></para></entry>
+	      <entry><para>The socket is not connected.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="Socket_sendBinary">
+      <title>Socket::sendBinary()</title>
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Sends string or binary data over a connected socket.  String data will not be converted to the encoding set for the socket, but rather will be sent as-is, even if the string's encoding is different from the socket's encoding.  If an error occurs, -1 will be returned; in this case check <link linkend="errno">errno()</link> for the error number.</para>
+	    <para>See also <link linkend="Socket_sendBinary">Socket::send()</link>.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Prototype</term>
+	  <listitem>
+              <para><code><link linkend="Socket_sendBinary">Socket::sendBinary</link>(<link linkend="data_type">data</link> <replaceable>$data</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting><command>if</command> ($sock.sendBinary($data) == -1)
+    printf("error sending data: %s\n", strerror(errno()));</programlisting>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Events</term>
+	  <listitem><para><code><link linkend="event_packet_sent">EVENT_PACKET_SENT</link></code></para></listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for Socket::sendBinary()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code><link linkend="string_type">string</link> <replaceable>$data</replaceable></code></para></entry>
+	      <entry><para>Sends the string data over the socket without the trailing null ('\0') character; the string's encoding is not converted to the socket's encoding, even if it is different.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code><link linkend="binary_type">binary</link> <replaceable>$data</replaceable></code></para></entry>
+	      <entry><para>Sends the binary data over the socket.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for Socket::sendBinary()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+	      <entry><para>0 for success, -1 for error; in this case check <link linkend="errno">errno()</link> for the error number.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by Socket::sendBinary()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
@@ -17087,8 +17179,8 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="HTTPClient_get">HTTPClient::get</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="hash_type">hash</link> headers = <link linkend="hash">hash()</link>, <link linkend="reference_type">reference</link> <replaceable>$info</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
-              <para><code><link linkend="HTTPClient_get">HTTPClient::get</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="hash_type">hash</link> headers = <link linkend="hash">hash()</link>) <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="HTTPClient_get">HTTPClient::get</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="hash_type">hash</link> $headers = <link linkend="hash">hash()</link>, <link linkend="reference_type">reference</link> <replaceable>$info</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="HTTPClient_get">HTTPClient::get</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="hash_type">hash</link> $headers = <link linkend="hash">hash()</link>) <command>returns</command> <link linkend="any_type">any</link></code></para>
             </entry>
             <entry>
               <para>Y</para>
@@ -17123,8 +17215,8 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="HTTPClient_send">HTTPClient::send</link>(<link linkend="data_type">data</link> <replaceable>$body</replaceable> = binary(), <link linkend="string_type">string</link> <replaceable>$method</replaceable>, <link linkend="string_type">string</link> <replaceable>$path</replaceable> = "", <link linkend="hash_type">hash</link> headers = <link linkend="hash">hash()</link>, <link linkend="bool_type">bool</link> <replaceable>$getbody</replaceable> = False, <link linkend="reference_type">reference</link> <replaceable>$info</replaceable>) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
-              <para><code><link linkend="HTTPClient_send">HTTPClient::send</link>(<link linkend="data_type">data</link> <replaceable>$body</replaceable> = binary(), <link linkend="string_type">string</link> <replaceable>$method</replaceable>, <link linkend="string_type">string</link> <replaceable>$path</replaceable> = "", <link linkend="hash_type">hash</link> headers = <link linkend="hash">hash()</link>, <link linkend="bool_type">bool</link> <replaceable>$getbody</replaceable> = False) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
+              <para><code><link linkend="HTTPClient_send">HTTPClient::send</link>(<link linkend="data_type">data</link> <replaceable>$body</replaceable> = binary(), <link linkend="string_type">string</link> <replaceable>$method</replaceable>, <link linkend="string_type">string</link> <replaceable>$path</replaceable> = "", <link linkend="hash_type">hash</link> $headers = <link linkend="hash">hash()</link>, <link linkend="bool_type">bool</link> <replaceable>$getbody</replaceable> = False, <link linkend="reference_type">reference</link> <replaceable>$info</replaceable>) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
+              <para><code><link linkend="HTTPClient_send">HTTPClient::send</link>(<link linkend="data_type">data</link> <replaceable>$body</replaceable> = binary(), <link linkend="string_type">string</link> <replaceable>$method</replaceable>, <link linkend="string_type">string</link> <replaceable>$path</replaceable> = "", <link linkend="hash_type">hash</link> $headers = <link linkend="hash">hash()</link>, <link linkend="bool_type">bool</link> <replaceable>$getbody</replaceable> = False) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
             </entry>
             <entry>
               <para>Y</para>
@@ -17615,8 +17707,8 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
           </thead>
           <tbody>
             <row>
-              <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-              <entry><para>The current proxy URL value.</para></entry>
+              <entry><para><code><link linkend="string_type">string</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
+              <entry><para>The current proxy URL value or NOTHING if it is not set.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -17975,8 +18067,8 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-              <para><code><link linkend="HTTPClient_get">HTTPClient::get</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="hash_type">hash</link> headers = <link linkend="hash">hash()</link>, <link linkend="reference_type">reference</link> <replaceable>$info</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
-              <para><code><link linkend="HTTPClient_get">HTTPClient::get</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="hash_type">hash</link> headers = <link linkend="hash">hash()</link>) <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="HTTPClient_get">HTTPClient::get</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="hash_type">hash</link> $headers = <link linkend="hash">hash()</link>, <link linkend="reference_type">reference</link> <replaceable>$info</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="HTTPClient_get">HTTPClient::get</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="hash_type">hash</link> $headers = <link linkend="hash">hash()</link>) <command>returns</command> <link linkend="any_type">any</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -18009,7 +18101,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
               <entry><para>The path for the message (i.e. '/path/resource?method&amp;param=value')</para></entry>
             </row>
             <row>
-	      <entry><para><code><link linkend="hash_type">hash</link> headers = <link linkend="hash">hash()</link></code></para></entry>
+	      <entry><para><code><link linkend="hash_type">hash</link> $headers = <link linkend="hash">hash()</link></code></para></entry>
 	      <entry><para>An optional hash of headers to include in the message.</para></entry>
             </row>
             <row>
@@ -18120,7 +18212,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
               <entry><para>The path for the message (i.e. '/path/resource?method&amp;param=value')</para></entry>
             </row>
             <row>
-	      <entry><para><code><link linkend="hash_type">hash</link> headers = <link linkend="hash">hash()</link></code></para></entry>
+	      <entry><para><code><link linkend="hash_type">hash</link> $headers = <link linkend="hash">hash()</link></code></para></entry>
 	      <entry><para>An optional hash of headers to include in the message.</para></entry>
             </row>
             <row>
@@ -18229,7 +18321,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
               <entry><para>The message body to send.</para></entry>
             </row>
             <row>
-	      <entry><para><code><link linkend="hash_type">hash</link> headers = <link linkend="hash">hash()</link></code></para></entry>
+	      <entry><para><code><link linkend="hash_type">hash</link> $headers = <link linkend="hash">hash()</link></code></para></entry>
 	      <entry><para>An optional hash of headers to include in the message.</para></entry>
             </row>
             <row>
@@ -18310,8 +18402,8 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-              <para><code><link linkend="HTTPClient_send">HTTPClient::send</link>(<link linkend="data_type">data</link> <replaceable>$body</replaceable> = binary(), <link linkend="string_type">string</link> <replaceable>$method</replaceable>, <link linkend="string_type">string</link> <replaceable>$path</replaceable> = "", <link linkend="hash_type">hash</link> headers = <link linkend="hash_type">hash</link>(), <link linkend="bool_type">bool</link> <replaceable>$getbody</replaceable> = False, <link linkend="reference_type">reference</link> <replaceable>$info</replaceable>) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
-              <para><code><link linkend="HTTPClient_send">HTTPClient::send</link>(<link linkend="data_type">data</link> <replaceable>$body</replaceable> = binary(), <link linkend="string_type">string</link> <replaceable>$method</replaceable>, <link linkend="string_type">string</link> <replaceable>$path</replaceable> = "", <link linkend="hash_type">hash</link> headers = <link linkend="hash_type">hash</link>(), <link linkend="bool_type">bool</link> <replaceable>$getbody</replaceable> = False) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
+              <para><code><link linkend="HTTPClient_send">HTTPClient::send</link>(<link linkend="data_type">data</link> <replaceable>$body</replaceable> = binary(), <link linkend="string_type">string</link> <replaceable>$method</replaceable>, <link linkend="string_type">string</link> <replaceable>$path</replaceable> = "", <link linkend="hash_type">hash</link> $headers = <link linkend="hash_type">hash</link>(), <link linkend="bool_type">bool</link> <replaceable>$getbody</replaceable> = False, <link linkend="reference_type">reference</link> <replaceable>$info</replaceable>) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
+              <para><code><link linkend="HTTPClient_send">HTTPClient::send</link>(<link linkend="data_type">data</link> <replaceable>$body</replaceable> = binary(), <link linkend="string_type">string</link> <replaceable>$method</replaceable>, <link linkend="string_type">string</link> <replaceable>$path</replaceable> = "", <link linkend="hash_type">hash</link> $headers = <link linkend="hash_type">hash</link>(), <link linkend="bool_type">bool</link> <replaceable>$getbody</replaceable> = False) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -18348,7 +18440,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
               <entry><para>The path for the message (i.e. '/path/resource?method&amp;param=value')</para></entry>
             </row>
             <row>
-	      <entry><para><code><link linkend="hash_type">hash</link> headers = <link linkend="hash">hash()</link></code></para></entry>
+	      <entry><para><code><link linkend="hash_type">hash</link> $headers = <link linkend="hash">hash()</link></code></para></entry>
 	      <entry><para>An optional hash of headers to include in the message.</para></entry>
             </row>
             <row>
@@ -20508,8 +20600,8 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <tbody>
           <row>
             <entry>
-              <para><code><link linkend="SSLPrivateKey_constructor">SSLPrivateKey::constructor</link>(<link linkend="string_type">string</link> <replaceable>$key_pem</replaceable>)</code></para>
-              <para><code><link linkend="SSLPrivateKey_constructor">SSLPrivateKey::constructor</link>(binary <replaceable>$key_der</replaceable>)</code></para>
+              <para><code><link linkend="SSLPrivateKey_constructor">SSLPrivateKey::constructor</link>(<link linkend="string_type">string</link> <replaceable>$key_pem</replaceable>, <link linkend="string_type">string</link> <replaceable>$pass</replaceable> = "")</code></para>
+              <para><code><link linkend="SSLPrivateKey_constructor">SSLPrivateKey::constructor</link>(<link linkend="binary_type">binary</link> <replaceable>$key_der</replaceable>)</code></para>
             </entry>
             <entry>
               <para>Y</para>
@@ -20600,7 +20692,8 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting><command>new</command> SSLPrivateKey(<replaceable>filename, [passphrase]</replaceable>)</programlisting>
+              <para><code><link linkend="SSLPrivateKey_constructor">SSLPrivateKey::constructor</link>(<link linkend="string_type">string</link> <replaceable>$key_pem</replaceable>, <link linkend="string_type">string</link> <replaceable>$pass</replaceable> = "")</code></para>
+              <para><code><link linkend="SSLPrivateKey_constructor">SSLPrivateKey::constructor</link>(<link linkend="binary_type">binary</link> <replaceable>$key_der</replaceable>)</code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -20612,46 +20705,21 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
       </variablelist>
       <table>
         <title>Arguments for SSLPrivateKey::constructor()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
           <thead>
             <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
+              <entry><para>Argument</para></entry>
+              <entry><para>Description</para></entry>
             </row>
           </thead>
           <tbody>
             <row>
-              <entry>
-                <para>
-                  <replaceable>filename</replaceable>
-                </para>
-              </entry>
-              <entry>
-                <para><code><link linkend="string_type">string</link></code></para>
-              </entry>
-              <entry>
-                <para>The filename of the PEM-encoded private key file</para>
-              </entry>
+              <entry><para><code><link linkend="string_type">string</link> <replaceable>$key_pem</replaceable>, <link linkend="string_type">string</link> <replaceable>$pass</replaceable> = ""</code></para></entry>
+              <entry><para>The PEM-encoded text representation of the private key and optionally its passphrase.</para></entry>
             </row>
             <row>
-              <entry>
-                <para>
-                  <replaceable>[passphrase]</replaceable>
-                </para>
-              </entry>
-              <entry>
-                <para><code><link linkend="string_type">string</link></code></para>
-              </entry>
-              <entry>
-                <para>The passphrase required to decrypt the private key</para>
-              </entry>
+              <entry><para><code><link linkend="binary_type">binary</link> <replaceable>$key_der</replaceable></code></para></entry>
+              <entry><para>The DER-encoded binary representation of the private key.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -20677,7 +20745,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
                 </para>
               </entry>
               <entry>
-                <para>missing filename argument, can't open file, unable to parse file, etc</para>
+                <para>invalid format, invalid or missing password, etc</para>
               </entry>
             </row>
           </tbody>
@@ -20751,7 +20819,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>SSLPrivateKey::getType()</programlisting>
+              <para><code><link linkend="SSLPrivateKey_getType">SSLPrivateKey::getType</link>() <command>returns</command> <link linkend="string_type">string</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -20800,7 +20868,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>SSLPrivateKey::getVersion()</programlisting>
+              <para><code><link linkend="SSLPrivateKey_getVersion">SSLPrivateKey::getVersion</link>() <command>returns</command> <link linkend="int_type">int</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -20848,7 +20916,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>SSLPrivateKey::getBitLength()</programlisting>
+              <para><code><link linkend="SSLPrivateKey_getBitLength">SSLPrivateKey::getBitLength</link>() <command>returns</command> <link linkend="int_type">int</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -20891,7 +20959,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Returns a hash of all information for the private key.</para>
+              <para><code><link linkend="SSLPrivateKey_getInfo">SSLPrivateKey::getInfo</link>() <command>returns</command> <link linkend="hash_type">hash</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -20960,7 +21028,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
           <row>
             <entry>
               <para><code><link linkend="SSLCertificate_constructor">SSLCertificate::constructor</link>(<link linkend="string_type">string</link> <replaceable>$cert_pem</replaceable>)</code></para>
-              <para><code><link linkend="SSLCertificate_constructor">SSLCertificate::constructor</link>(binary <replaceable>$cert_der</replaceable>)</code></para>
+              <para><code><link linkend="SSLCertificate_constructor">SSLCertificate::constructor</link>(<link linkend="binary_type">binary</link> <replaceable>$cert_der</replaceable>)</code></para>
             </entry>
             <entry>
               <para>Y</para>
@@ -21150,7 +21218,8 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting><command>new</command> SSLCertificate(<replaceable>string|binary</replaceable>)</programlisting>
+              <para><code><link linkend="SSLCertificate_constructor">SSLCertificate::constructor</link>(<link linkend="string_type">string</link> <replaceable>$cert_pem</replaceable>)</code></para>
+              <para><code><link linkend="SSLCertificate_constructor">SSLCertificate::constructor</link>(<link linkend="binary_type">binary</link> <replaceable>$cert_der</replaceable>)</code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -21162,33 +21231,21 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
       </variablelist>
       <table>
         <title>Arguments for SSLCertificate::constructor()</title>
-        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
           <thead>
             <row>
-              <entry>
-                <para>Argument</para>
-              </entry>
-              <entry>
-                <para>Type</para>
-              </entry>
-              <entry>
-                <para>Description</para>
-              </entry>
+              <entry><para>Argument</para></entry>
+              <entry><para>Description</para></entry>
             </row>
           </thead>
           <tbody>
             <row>
-              <entry>
-                <para>
-                  <replaceable>certificate_data</replaceable>
-                </para>
-              </entry>
-              <entry>
-                <para>String|Binary</para>
-              </entry>
-              <entry>
-                <para>The certificate data in either PEM (string argument) or DER (binary argument) format.  See above for the deprecated option of passing a filename argument.</para>
-              </entry>
+              <entry><para><code><link linkend="string_type">string</link> <replaceable>$cert_pem</replaceable>, <link linkend="string_type">string</link> <replaceable>$pass</replaceable> = ""</code></para></entry>
+              <entry><para>The PEM-encoded text representation of the X509 certificate.</para></entry>
+            </row>
+            <row>
+              <entry><para><code><link linkend="binary_type">binary</link> <replaceable>$cert_der</replaceable></code></para></entry>
+              <entry><para>The DER-encoded binary representation of the X509 certificate.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -21288,7 +21345,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>SSLCertificate::getPEM()</programlisting>
+              <para><code><link linkend="SSLCertificate_getPEM">SSLCertificate::getPEM</link>() <command>returns</command> <link linkend="string_type">string</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -21337,7 +21394,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>SSLCertificate::getVersion()</programlisting>
+              <para><code><link linkend="SSLCertificate_getVersion">SSLCertificate::getVersion</link>() <command>returns</command> <link linkend="int_type">int</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -21386,7 +21443,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>SSLCertificate::getSignatureType()</programlisting>
+              <para><code><link linkend="SSLCertificate_getSignatureType">SSLCertificate::getSignatureType</link>() <command>returns</command> <link linkend="string_type">string</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -21435,7 +21492,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>SSLCertificate::getSignature()</programlisting>
+              <para><code><link linkend="SSLCertificate_getSignature">SSLCertificate::getSignature</link>() <command>returns</command> binary</code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -21484,7 +21541,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>SSLCertificate::getPublicKeyAlgorithm()</programlisting>
+              <para><code><link linkend="SSLCertificate_getPublicKeyAlgorithm">SSLCertificate::getPublicKeyAlgorithm</link>() <command>returns</command> <link linkend="string_type">string</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -21533,7 +21590,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>SSLCertificate::getPublicKey()</programlisting>
+              <para><code><link linkend="SSLCertificate_getPublicKey">SSLCertificate::getPublicKey</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -21582,7 +21639,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>SSLCertificate::getSubjectHash()</programlisting>
+              <para><code><link linkend="SSLCertificate_getSubjectHash">SSLCertificate::getSubjectHash</link>() <command>returns</command> <link linkend="hash_type">hash</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -21631,7 +21688,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>SSLCertificate::getIssuerHash()</programlisting>
+              <para><code><link linkend="SSLCertificate_getIssuerHash">SSLCertificate::getIssuerHash</link>() <command>returns</command> <link linkend="hash_type">hash</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -21679,7 +21736,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>SSLCertificate::getIssuerHash()</programlisting>
+              <para><code><link linkend="SSLCertificate_getSerialNumber">SSLCertificate::getSerialNumber</link>() <command>returns</command> <link linkend="int_type">int</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -21728,7 +21785,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>SSLCertificate::getPurposeHash()</programlisting>
+              <para><code><link linkend="SSLCertificate_getPurposeHash">SSLCertificate::getPurposeHash</link>() <command>returns</command> <link linkend="hash_type">hash</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -21776,7 +21833,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>SSLCertificate::getNotBeforeDate()</programlisting>
+              <para><code><link linkend="SSLCertificate_getNotBeforeDate">SSLCertificate::getNotBeforeDate</link>() <command>returns</command> <link linkend="date_type">date</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -21802,7 +21859,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
           <tbody>
             <row>
               <entry>
-                <para>Date</para>
+                <para><code><link linkend="date_type">date</link></code></para>
               </entry>
               <entry>
                 <para>The start date of the certificate.</para>
@@ -21824,7 +21881,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>SSLCertificate::getNotAfterDate()</programlisting>
+              <para><code><link linkend="SSLCertificate_getNotAfterDate">SSLCertificate::getNotAfterDate</link>() <command>returns</command> <link linkend="date_type">date</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -21850,7 +21907,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
           <tbody>
             <row>
               <entry>
-                <para>Date</para>
+                <para><code><link linkend="date_type">date</link></code></para>
               </entry>
               <entry>
                 <para>The end date of the certificate.</para>
@@ -21872,7 +21929,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <programlisting>SSLCertificate::getInfo()</programlisting>
+              <para><code><link linkend="SSLCertificate_getInfo">SSLCertificate::getInfo</link>() <command>returns</command> <link linkend="hash_type">hash</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -22161,7 +22218,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Datasource::execRaw">Datasource::execRaw</link>(<link linkend="string_type">string</link> <replaceable>$sql</replaceable>, ...) <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="Datasource::execRaw">Datasource::execRaw</link>(<link linkend="string_type">string</link> <replaceable>$sql</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Executes SQL code (like <link linkend="Datasource::exec">Datasource::exec()</link>) on the DB connection without any variable binding.</para></entry>
@@ -22385,13 +22442,14 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Creates a Datasource object. The constructor requires the datasource type as the first argument</para>
+	    <para>Creates a Datasource object. The constructor variant taking separate arguments requires the datasource type as the first argument, while most other parameters are optional.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting><command>new</command> Datasource(<replaceable>driver_name, [username], [password], [dbname], [charset_name], [hostname], [port]</replaceable>)</programlisting>
+              <para><code><link linkend="Datasource::constructor">Datasource::constructor</link>(<link linkend="string_type">string</link> <replaceable>$driver</replaceable>, <link linkend="string_type">string</link> <replaceable>$user</replaceable> = "", <link linkend="string_type">string</link> <replaceable>$pass</replaceable> = "", <link linkend="string_type">string</link> <replaceable>$dbname</replaceable> = "", <link linkend="string_type">string</link> <replaceable>$encoding</replaceable> = "", <link linkend="string_type">string</link> <replaceable>$host</replaceable> = "", <link linkend="softint_type">softint</link> <replaceable>$port</replaceable> = 0)</code></para>
+              <para><code><link linkend="Datasource::constructor">Datasource::constructor</link>(<link linkend="hash_type">hash</link> <replaceable>$params</replaceable>)</code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -22403,50 +22461,110 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
       </variablelist>
 
       <table>
-	<title>Arguments for Datasource::constructor()</title>
+	<title>Arguments for Datasource::constructor(<link linkend="string_type">string</link> <replaceable>$driver</replaceable>, <link linkend="string_type">string</link> <replaceable>$user</replaceable> = "", <link linkend="string_type">string</link> <replaceable>$pass</replaceable> = "", <link linkend="string_type">string</link> <replaceable>$dbname</replaceable> = "", <link linkend="string_type">string</link> <replaceable>$encoding</replaceable> = "", <link linkend="string_type">string</link> <replaceable>$host</replaceable> = "", <link linkend="softint_type">softint</link> <replaceable>$port</replaceable> = 0) Variant</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code><link linkend="string_type">string</link> <replaceable>$driver</replaceable></code></para></entry>
+	      <entry><para>The name of the DBI driver for the Datasource.  See <link linkend="Qore_SQL_Constants">SQL Constants</link> for builtin constants for DBI drivers shipped with Qore, or see the DBI driver documentation to use an add-on driver.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code><link linkend="string_type">string</link> <replaceable>$user</replaceable> = ""</code></para></entry>
+	      <entry><para>The user name for the new connection.  Also see <link linkend="Datasource::setUserName">Datasource::setUserName()</link> for a method that allows this parameter to be set after the constructor.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code><link linkend="string_type">string</link> <replaceable>$pass</replaceable> = ""</code></para></entry>
+	      <entry><para>The password for the new connection.  Also see <link linkend="Datasource::setPassword">Datasource::setPassword()</link> for a method that allows this parameter to be set after the constructor.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code><link linkend="string_type">string</link> <replaceable>$dbname</replaceable> = ""</code></para></entry>
+	      <entry><para>The database name for the new connection.  Also see <link linkend="Datasource::setDBName">Datasource::setDBName()</link> for a method that allows this parameter to be set after the constructor.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code><link linkend="string_type">string</link> <replaceable>$encoding</replaceable> = ""</code></para></entry>
+	      <entry><para>The database-specific name of the character encoding to use for the new connection.  Also see <link linkend="Datasource::setDBCharset">Datasource::setDBCharset()</link> for a method that allows this parameter to be set after the constructor.  If no value is passed for this parameter, then the database character encoding corresponding to the <link linkend="Default_Character_Encoding">default character encoding</link> for the Qore process will be used instead.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code><link linkend="string_type">string</link> <replaceable>$host</replaceable> = ""</code></para></entry>
+	      <entry><para>The host name for the new connection.  Also see <link linkend="Datasource::setHostName">Datasource::setHostName()</link> for a method that allows this parameter to be set after the constructor.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$port</replaceable> = 0</code></para></entry>
+	      <entry><para>The port number for the new connection.  Also see <link linkend="Datasource::setPort">Datasource::setPort()</link> for a method that allows this parameter to be set after the constructor.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Arguments for Datasource::constructor(<link linkend="hash_type">hash</link> <replaceable>$params</replaceable>) Variant</title>
 	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
 	      <entry><para>Argument</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code><link linkend="hash_type">hash</link> <replaceable>params</replaceable></code></para></entry>
+	      <entry><para>A hash of parameters for the Datasource; see <link linkend="Datasource_Constructor_Hash">Datasource Constructor Hash</link> for more information.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table id="Datasource_Constructor_Hash">
+	<title>Datasource Constructor Hash</title>
+	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Key</para></entry>
 	      <entry><para>Type</para></entry>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code><replaceable>driver_name</replaceable></code></para></entry>
+	      <entry><para><code>type</code></para></entry>
 	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-	      <entry><para>The name of the DBI driver for the Datasource.  See <link linkend="Qore_SQL_Constants">SQL Constants</link> for builtin constants for DBI drivers shipped with Qore, or see the DBI driver documentation to use an add-on driver.</para></entry>
+	      <entry><para>The name of the database driver to use; this key is mandatory; if not present, an exception will be raised.  See <link linkend="Qore_SQL_Constants">SQL Constants</link> for builtin constants for DBI drivers shipped with Qore, or see the DBI driver documentation to use an add-on driver.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para><code><replaceable>[username]</replaceable></code></para></entry>
+	      <entry><para><code>user</code></para></entry>
 	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
 	      <entry><para>The user name for the new connection.  Also see <link linkend="Datasource::setUserName">Datasource::setUserName()</link> for a method that allows this parameter to be set after the constructor.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para><code><replaceable>[password]</replaceable></code></para></entry>
+	      <entry><para><code>pass</code></para></entry>
 	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
 	      <entry><para>The password for the new connection.  Also see <link linkend="Datasource::setPassword">Datasource::setPassword()</link> for a method that allows this parameter to be set after the constructor.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para><code><replaceable>[dbname]</replaceable></code></para></entry>
+	      <entry><para><code>db</code></para></entry>
 	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
 	      <entry><para>The database name for the new connection.  Also see <link linkend="Datasource::setDBName">Datasource::setDBName()</link> for a method that allows this parameter to be set after the constructor.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para><code><replaceable>[charset_name]</replaceable></code></para></entry>
+	      <entry><para><code>charset</code></para></entry>
 	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
 	      <entry><para>The database-specific name of the character encoding to use for the new connection.  Also see <link linkend="Datasource::setDBCharset">Datasource::setDBCharset()</link> for a method that allows this parameter to be set after the constructor.  If no value is passed for this parameter, then the database character encoding corresponding to the <link linkend="Default_Character_Encoding">default character encoding</link> for the Qore process will be used instead.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para><code><replaceable>[hostname]</replaceable></code></para></entry>
+	      <entry><para><code>host</code></para></entry>
 	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-	      <entry><para>The host name for the new connection (not used by some DBI drivers).  Also see <link linkend="Datasource::setHostName">Datasource::setHostName()</link> for a method that allows this parameter to be set after the constructor.</para></entry>
+	      <entry><para>The host name for the new connection.  Also see <link linkend="Datasource::setHostName">Datasource::setHostName()</link> for a method that allows this parameter to be set after the constructor.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para><code><replaceable>[port]</replaceable></code></para></entry>
-	      <entry><para><code><link linkend="int_type">int</link></code></para></entry>
-	      <entry><para>The port number for the new connection (not used by some DBI drivers).  Also see <link linkend="Datasource::setPort">Datasource::setPort()</link> for a method that allows this parameter to be set after the constructor.</para></entry>
+	      <entry><para><code>port</code></para></entry>
+	      <entry><para><code><link linkend="softint_type">softint</link></code></para></entry>
+	      <entry><para>If this key is present and is 0 then an exception will be raised.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -22545,7 +22663,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>Datasource::beginTransaction()</programlisting>
+              <para><code><link linkend="Datasource::beginTransaction">Datasource::beginTransaction</link>() <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -22555,24 +22673,6 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
-
-      <table>
-	<title>Return Values for Datasource::beginTransaction()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Return Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method return no value.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
 
       <table>
 	<title>Exceptions Thrown by Datasource::beginTransaction()</title>
@@ -22604,13 +22704,13 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Opens a connection to the datasouce, using the connection parameters already set.</para>
+	    <para>Opens a connection to the datasouce, using the connection parameters already set.  If any errors are encountered, an exception is raised.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>Datasource::open()</programlisting>
+              <para><code><link linkend="Datasource::open">Datasource::open</link>() <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -22620,24 +22720,6 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
-
-      <table>
-	<title>Return Values for Datasource::open()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Return Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para><code><link linkend="int_type">int</link></code></para></entry>
-	      <entry><para>Returns 0 for success, -1 for error.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
 
       <table>
 	<title>Exceptions Thrown by Datasource::open()</title>
@@ -22665,13 +22747,13 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Closes the connection to the database.  If any actions are in progress on the database, the close call will block until the actions complete.</para>
+	    <para>Closes the connection to the database.  If any actions are in progress on the database, the close call will block until the actions complete.  If any errors are encountered, an exception is raised.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>Datasource::close()</programlisting>
+              <para><code><link linkend="Datasource::close">Datasource::close</link>() <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -22681,24 +22763,6 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
-
-      <table>
-	<title>Return Values for Datasource::close()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Return Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para><code><link linkend="int_type">int</link></code></para></entry>
-	      <entry><para>0 for success, -1 for not open.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
 
     </sect2>
 
@@ -22715,7 +22779,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>Datasource::commit()</programlisting>
+              <para><code><link linkend="Datasource::commit">Datasource::commit</link>() <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -22725,24 +22789,6 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
-
-      <table>
-	<title>Return Values for Datasource::commit()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Return Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para><code><link linkend="int_type">int</link></code></para></entry>
-	      <entry><para>0 for success, -1 for not open.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
 
       <table>
 	<title>Exceptions Thrown by Datasource::commit()</title>
@@ -22780,7 +22826,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>Datasource::rollback()</programlisting>
+              <para><code><link linkend="Datasource::rollback">Datasource::rollback</link>() <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -22790,24 +22836,6 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
-
-      <table>
-	<title>Return Values for Datasource::rollback()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Return Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para><code><link linkend="int_type">int</link></code></para></entry>
-	      <entry><para>0 for success, -1 for not open.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
 
       <table>
 	<title>Exceptions Thrown by Datasource::rollback()</title>
@@ -22844,7 +22872,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>Datasource::setAutoCommit(<replaceable>status</replaceable>)</programlisting>
+              <para><code><link linkend="Datasource::setAutoCommit">Datasource::setAutoCommit</link>(<link linkend="softbool_type">softbool</link> <replaceable>$b</replaceable> = True) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -22857,18 +22885,16 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 
       <table>
 	<title>Arguments for Datasource::setAutoCommit()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
 	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code><replaceable>status</replaceable></code></para></entry>
-	      <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
+	      <entry><para><code><link linkend="softbool_type">softbool</link> <replaceable>$b</replaceable> = True</code></para></entry>
 	      <entry><para>True to turn on autocommit (a commit will be executed after every <link linkend="Datasource::exec">Datasource::exec()</link>), False to turn off autocommit (commits must be manually triggered).</para></entry>
 	    </row>
 	  </tbody>
@@ -22891,7 +22917,8 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>Datasource::exec(<replaceable>sql_command, [arg1, ...]</replaceable>)</programlisting>
+              <para><code><link linkend="Datasource::exec">Datasource::exec</link>(<link linkend="string_type">string</link> <replaceable>$sql</replaceable>, ...) <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="Datasource::exec">Datasource::exec</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -22904,23 +22931,20 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 
       <table>
 	<title>Arguments for Datasource::exec()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
 	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code><replaceable>sql_command</replaceable></code></para></entry>
-	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
+	      <entry><para><code><link linkend="string_type">string</link> <replaceable>$sql</replaceable></code></para></entry>
 	      <entry><para>The SQL command to execute on the server.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para><code><replaceable>[arg1, ...]</replaceable></code></para></entry>
-	      <entry><para><code><link linkend="any_type">any</link></code></para></entry>
+	      <entry><para><code>...</code></para></entry>
 	      <entry><para>Include any values to be bound (using <code>%v</code> in the command string) or placeholder specifications (using :&lt;key_name&gt; in the command string) in order after the command string.</para></entry>
 	    </row>
 	  </tbody>
@@ -22938,8 +22962,8 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>Integer or Hash</para></entry>
-	      <entry><para>For commands with placeholders, a hash is returned holding the values acquired from executing the SQL statement.  For all other commands, a row count is returned.</para></entry>
+	      <entry><para><link linkend="any_type">any</link></para></entry>
+	      <entry><para>The return value depends on the DBI driver; normally, for commands with placeholders, a <link linkend="hash_type">hash</link> is returned holding the values acquired from executing the SQL statement.  For all other commands, normally an <link linkend="int_type">int</link> row count is returned.  However, some DBI drivers also allow select statements to be executed through this interface, which would also return a <link linkend="hash_type">hash</link> of <link linkend="list_type">list</link>.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -22947,6 +22971,91 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 
       <table>
 	<title>Exceptions Thrown by Datasource::exec()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>TRANSACTION-LOCK-TIMEOUT</code></para></entry>
+	      <entry><para>Timeout trying to acquire the <link linkend="datasource_transaction_lock">transaction lock</link>.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para>depends on DBI driver</para></entry>
+	      <entry><para>See documentation for the DBI driver for driver-specific exceptions.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="Datasource::execRaw">
+      <title>Datasource::execRaw()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Grabs the <link linkend="datasource_transaction_lock">transaction lock</link> (if autocommit is disabled) and executes an SQL command on the server and returns either the row count (for example, for updates and inserts) or the data retrieved (for example, if a stored procedure is executed that returns values).</para>
+	    <para>This method does not do any variable binding, so it's useful for example for DDL statements etc.</para>
+	    <warning><para>Using this method for OLTP statements can affect the application performance. See used DB server documentation for variable binding.</para></warning>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Prototype</term>
+	  <listitem>
+              <para><code><link linkend="Datasource::exec">Datasource::execRaw</link>(<link linkend="string_type">string</link> <replaceable>$sql</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$rows = $db.exec("create table my_tab (id number, some_text varchar2(30))");</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for Datasource::execRaw()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code><link linkend="string_type">string</link> <replaceable>$sql</replaceable></code></para></entry>
+	      <entry><para>The SQL command to execute on the server.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for Datasource::execRaw()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><link linkend="any_type">any</link></para></entry>
+	      <entry><para>The return value depends on the DBI driver; normally an <link linkend="int_type">int</link> row count is returned.  However, some DBI drivers also allow select statements to be executed through this interface, which would also return a <link linkend="hash_type">hash</link> of <link linkend="list_type">list</link>.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by Datasource::execRaw()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
@@ -22981,7 +23090,9 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>Datasource::vexec(<replaceable>sql_command, [list]</replaceable>)</programlisting>
+              <para><code><link linkend="Datasource::vexec">Datasource::vexec</link>(<link linkend="string_type">string</link> <replaceable>$sql</replaceable>, <link linkend="list_type">list</link> <replaceable>$args</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="Datasource::vexec">Datasource::vexec</link>(<link linkend="string_type">string</link> <replaceable>$sql</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="Datasource::vexec">Datasource::vexec</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -22994,24 +23105,21 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 
       <table>
 	<title>Arguments for Datasource::vexec()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
 	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code><replaceable>sql_command</replaceable></code></para></entry>
-	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
+	      <entry><para><code><link linkend="string_type">string</link> <replaceable>$sql</replaceable></code></para></entry>
 	      <entry><para>The SQL command to execute on the server.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para><code><replaceable>[list]</replaceable></code></para></entry>
-	      <entry><para><link linkend="list_type">list</link></para></entry>
-	      <entry><para>Include any values to be bound (using <code>%v</code> in the command string) or placeholder specifications (using :&lt;key_name&gt; in the command string) in a single list in order after the command string.</para></entry>
+	      <entry><para><code>[<link linkend="list_type">list</link> <replaceable>$args</replaceable>]</code></para></entry>
+	      <entry><para>Include any values to be bound (using <code>%v</code> in the command string) or placeholder specifications (using :&lt;key_name&gt; in the command string) in a single optional list in order after the command string.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -23028,8 +23136,8 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>Integer or Hash</para></entry>
-	      <entry><para>For commands with placeholders, a hash is returned holding the values acquired from executing the SQL statement.  For all other commands, a row count is returned.</para></entry>
+	      <entry><para><link linkend="any_type">any</link></para></entry>
+	      <entry><para>The return value depends on the DBI driver; normally, for commands with placeholders, a <link linkend="hash_type">hash</link> is returned holding the values acquired from executing the SQL statement.  For all other commands, normally an <link linkend="int_type">int</link> row count is returned.  However, some DBI drivers also allow select statements to be executed through this interface, which would also return a <link linkend="hash_type">hash</link> of <link linkend="list_type">list</link>.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -23058,94 +23166,6 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
       </table>
     </sect2>
 
-
-    <sect2 id="Datasource::execRaw">
-      <title>Datasource::execRaw()</title>
-
-      <variablelist>
-  <varlistentry>
-    <term>Synopsis</term>
-    <listitem>
-      <para>Grabs the <link linkend="datasource_transaction_lock">transaction lock</link> (if autocommit is disabled) and executes an SQL command on the server and returns either the row count (for example, for updates and inserts) or the data retrieved (for example, if a stored procedure is executed that returns values).</para>
-      <para>This method does not do any variable binding, so it's useful for example for DDL statements etc.</para>
-      <warning><para>Using this method for OLTP statements can affect the application performance. See used DB server documentation for variable binding.</para></warning>
-    </listitem>
-  </varlistentry>
-  <varlistentry>
-    <term>Prototype</term>
-    <listitem>
-      <programlisting>Datasource::execRaw(<replaceable>sql_command, [arg1, ...]</replaceable>)</programlisting>
-    </listitem>
-  </varlistentry>
-  <varlistentry>
-    <term>Example</term>
-    <listitem>
-      <programlisting>$rows = $db.exec("create table my_tab (id number, some_text varchar2(30))");</programlisting>
-    </listitem>
-  </varlistentry>
-      </variablelist>
-
-      <table>
-  <title>Arguments for Datasource::execRaw()</title>
-  <tgroup cols='3' align='left' colsep='1' rowsep='1'>
-    <thead>
-      <row>
-        <entry><para>Argument</para></entry>
-        <entry><para>Type</para></entry>
-        <entry><para>Description</para></entry>
-      </row>
-    </thead>
-    <tbody>
-      <row>
-        <entry><para><code><replaceable>sql_command</replaceable></code></para></entry>
-        <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-        <entry><para>The SQL command to execute on the server.</para></entry>
-      </row>
-    </tbody>
-  </tgroup>
-      </table>
-
-      <table>
-  <title>Return Values for Datasource::execRaw()</title>
-  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
-    <thead>
-      <row>
-        <entry><para>Return Type</para></entry>
-        <entry><para>Description</para></entry>
-      </row>
-    </thead>
-    <tbody>
-      <row>
-        <entry><para><code><link linkend="int_type">int</link></code></para></entry>
-        <entry><para>For all commands, a row count is returned.</para></entry>
-      </row>
-    </tbody>
-  </tgroup>
-      </table>
-
-      <table>
-  <title>Exceptions Thrown by Datasource::execRaw()</title>
-  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
-    <thead>
-      <row>
-        <entry><para>err</para></entry>
-        <entry><para>desc</para></entry>
-      </row>
-    </thead>
-    <tbody>
-      <row>
-        <entry><para><code>TRANSACTION-LOCK-TIMEOUT</code></para></entry>
-        <entry><para>Timeout trying to acquire the <link linkend="datasource_transaction_lock">transaction lock</link>.</para></entry>
-      </row>
-      <row>
-        <entry><para>depends on DBI driver</para></entry>
-        <entry><para>See documentation for the DBI driver for driver-specific exceptions.</para></entry>
-      </row>
-    </tbody>
-  </tgroup>
-      </table>
-    </sect2>
-
     <sect2 id="Datasource::select">
       <title>Datasource::select()</title>
 
@@ -23160,7 +23180,8 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>Datasource::select(<replaceable>select_statement, [arg1, ...]</replaceable>)</programlisting>
+              <para><code><link linkend="Datasource::select">Datasource::select</link>(<link linkend="string_type">string</link> <replaceable>$sql</replaceable>, ...) <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="Datasource::select">Datasource::select</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -23174,24 +23195,21 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 
       <table>
 	<title>Arguments for Datasource::select()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
 	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code><replaceable>select_statement</replaceable></code></para></entry>
-	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-	      <entry><para>SQL select statement to execute on the server.</para></entry>
+	      <entry><para><code><link linkend="string_type">string</link> <replaceable>$sql</replaceable></code></para></entry>
+	      <entry><para>The SQL select command to execute on the server.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para><code><replaceable>[arg1, ...]</replaceable></code></para></entry>
-	      <entry><para><code><link linkend="any_type">any</link></code></para></entry>
-	      <entry><para>Arguments to bind by value in %v positions in the SQL string.</para></entry>
+	      <entry><para><code>...</code></para></entry>
+	      <entry><para>Include any values to be bound (using <code>%v</code> in the command string) or placeholder specifications (using :&lt;key_name&gt; in the command string) in order after the command string.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -23208,8 +23226,8 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code><link linkend="hash_type">hash</link></code></para></entry>
-	      <entry><para>Returns a hash (the keys are the column names) of lists (each hash key's value is a list giving the row data).</para></entry>
+	      <entry><para><code><link linkend="any_type">any</link></code></para></entry>
+	      <entry><para>Normally returns a <link linkend="hash_type">hash</link> (the keys are the column names) of <link linkend="list_type">list</link> (each hash key's value is a list giving the row data), however some DBI drivers allow any SQL to be executed through this method, in which case also <link linkend="int_type">int</link>.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -23247,7 +23265,9 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>Datasource::vselect(<replaceable>select_statement, [list]</replaceable>)</programlisting>
+              <para><code><link linkend="Datasource::vselect">Datasource::vselect</link>(<link linkend="string_type">string</link> <replaceable>$sql</replaceable>, <link linkend="list_type">list</link> <replaceable>$args</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="Datasource::vselect">Datasource::vselect</link>(<link linkend="string_type">string</link> <replaceable>$sql</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="Datasource::vselect">Datasource::vselect</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -23260,24 +23280,21 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 
       <table>
 	<title>Arguments for Datasource::vselect()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
 	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code><replaceable>select_statement</replaceable></code></para></entry>
-	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-	      <entry><para>SQL select statement to execute on the server.</para></entry>
+	      <entry><para><code><link linkend="string_type">string</link> <replaceable>$sql</replaceable></code></para></entry>
+	      <entry><para>The SQL select statement to execute on the server.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para><code><replaceable>[arg1, ...]</replaceable></code></para></entry>
-	      <entry><para><link linkend="list_type">list</link></para></entry>
-	      <entry><para>A list of arguments to bind by value in %v positions in the SQL string.</para></entry>
+	      <entry><para><code>[<link linkend="list_type">list</link> <replaceable>$args</replaceable>]</code></para></entry>
+	      <entry><para>Include any values to be bound (using <code>%v</code> in the command string) or placeholder specifications (using :&lt;key_name&gt; in the command string) in a single optional list in order after the command string.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -23294,8 +23311,8 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code><link linkend="hash_type">hash</link></code></para></entry>
-	      <entry><para>Returns a hash (the keys are the column names) of lists (each hash key's value is a list giving the row data).</para></entry>
+	      <entry><para><code><link linkend="any_type">any</link></code></para></entry>
+	      <entry><para>Normally returns a <link linkend="hash_type">hash</link> (the keys are the column names) of <link linkend="list_type">list</link> (each hash key's value is a list giving the row data), however some DBI drivers allow any SQL to be executed through this method, in which case also <link linkend="int_type">int</link>.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -23334,7 +23351,8 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>Datasource::selectRow(<replaceable>select_statement, [arg1, ...]</replaceable>)</programlisting>
+              <para><code><link linkend="Datasource::selectRow">Datasource::selectRow</link>(<link linkend="string_type">string</link> <replaceable>$sql</replaceable>, ...) <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="Datasource::selectRow">Datasource::selectRow</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -23347,24 +23365,21 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 
       <table>
 	<title>Arguments for Datasource::selectRow()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
 	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code><replaceable>select_statement</replaceable></code></para></entry>
-	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-	      <entry><para>SQL select statement to execute on the server.</para></entry>
+	      <entry><para><code><link linkend="string_type">string</link> <replaceable>$sql</replaceable></code></para></entry>
+	      <entry><para>The SQL select command to execute on the server.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para><code><replaceable>[arg1, ...]</replaceable></code></para></entry>
-	      <entry><para><code><link linkend="any_type">any</link></code></para></entry>
-	      <entry><para>Arguments to bind by value in %v positions in the SQL string.</para></entry>
+	      <entry><para><code>...</code></para></entry>
+	      <entry><para>Include any values to be bound (using <code>%v</code> in the command string) or placeholder specifications (using :&lt;key_name&gt; in the command string) in order after the command string.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -23381,8 +23396,8 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>Hash or NOTHING</para></entry>
-	      <entry><para>Returns a hash (column values) of the first row, NOTHING if no rows are returned.</para></entry>
+	      <entry><para><code><link linkend="any_type">any</link></code></para></entry>
+	      <entry><para>Normally returns a <link linkend="hash_type">hash</link> (the keys are the column names) of row data or <link linkend="nothing_type">nothing</link> if no row is found for the query.  However, DBI could return other types (all known drivers at the time of writing this documentation only return <link linkend="hash_type">hash</link> or <link linkend="nothing_type">nothing</link>).</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -23420,7 +23435,9 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>Datasource::vselectRow(<replaceable>select_statement, [list]</replaceable>)</programlisting>
+              <para><code><link linkend="Datasource::vselectRow">Datasource::vselectRow</link>(<link linkend="string_type">string</link> <replaceable>$sql</replaceable>, <link linkend="list_type">list</link> <replaceable>$args</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="Datasource::vselectRow">Datasource::vselectRow</link>(<link linkend="string_type">string</link> <replaceable>$sql</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="Datasource::vselectRow">Datasource::vselectRow</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -23433,24 +23450,21 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 
       <table>
 	<title>Arguments for Datasource::vselectRow()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
 	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code><replaceable>select_statement</replaceable></code></para></entry>
-	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-	      <entry><para>SQL select statement to execute on the server.</para></entry>
+	      <entry><para><code><link linkend="string_type">string</link> <replaceable>$sql</replaceable></code></para></entry>
+	      <entry><para>The SQL select statement to execute on the server.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para><code><replaceable>[list]</replaceable></code></para></entry>
-	      <entry><para><link linkend="list_type">list</link></para></entry>
-	      <entry><para>A list of arguments to bind by value in %v positions in the SQL string.</para></entry>
+	      <entry><para><code>[<link linkend="list_type">list</link> <replaceable>$args</replaceable>]</code></para></entry>
+	      <entry><para>Include any values to be bound (using <code>%v</code> in the command string) or placeholder specifications (using :&lt;key_name&gt; in the command string) in a single optional list in order after the command string.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -23467,8 +23481,8 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>Hash or NOTHING</para></entry>
-	      <entry><para>Returns a hash of the first row (column values).  If no rows are returned by the query, then NOTHING is returned.</para></entry>
+	      <entry><para><code><link linkend="any_type">any</link></code></para></entry>
+	      <entry><para>Normally returns a <link linkend="hash_type">hash</link> (the keys are the column names) of row data or <link linkend="nothing_type">nothing</link> if no row is found for the query.  However, DBI could return other types (all known drivers at the time of writing this documentation only return <link linkend="hash_type">hash</link> or <link linkend="nothing_type">nothing</link>).</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -23507,7 +23521,8 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>Datasource::selectRows(<replaceable>select_statement, [arg1, ...]</replaceable>)</programlisting>
+              <para><code><link linkend="Datasource::selectRows">Datasource::selectRows</link>(<link linkend="string_type">string</link> <replaceable>$sql</replaceable>, ...) <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="Datasource::selectRows">Datasource::selectRows</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -23520,24 +23535,21 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 
       <table>
 	<title>Arguments for Datasource::selectRows()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
 	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code><replaceable>select_statement</replaceable></code></para></entry>
-	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-	      <entry><para>SQL select statement to execute on the server.</para></entry>
+	      <entry><para><code><link linkend="string_type">string</link> <replaceable>$sql</replaceable></code></para></entry>
+	      <entry><para>The SQL select command to execute on the server.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para><code><replaceable>[arg1, ...]</replaceable></code></para></entry>
-	      <entry><para><code><link linkend="any_type">any</link></code></para></entry>
-	      <entry><para>Arguments to bind by value in %v positions in the SQL string.</para></entry>
+	      <entry><para><code>...</code></para></entry>
+	      <entry><para>Include any values to be bound (using <code>%v</code> in the command string) or placeholder specifications (using :&lt;key_name&gt; in the command string) in order after the command string.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -23554,8 +23566,8 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><link linkend="list_type">list</link></para></entry>
-	      <entry><para>Returns a list (the rows returned) of hashes (column values).</para></entry>
+	      <entry><para><code><link linkend="any_type">any</link></code></para></entry>
+	      <entry><para>Normally returns a <link linkend="list_type">list</link> (rows) of <link linkend="hash_type">hash</link> (where the keys are the column names of each row) or <link linkend="nothing_type">nothing</link> if no rows are found for the query.  However, DBI could return other types; for DBI drivers that allow executing generic SQL through this method, any result sets returns should also be in the format <link linkend="list_type">list</link> (rows) of <link linkend="hash_type">hash</link>.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -23593,7 +23605,9 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>Datasource::vselectRows(<replaceable>select_statement, [list]</replaceable>)</programlisting>
+              <para><code><link linkend="Datasource::vselectRows">Datasource::vselectRows</link>(<link linkend="string_type">string</link> <replaceable>$sql</replaceable>, <link linkend="list_type">list</link> <replaceable>$args</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="Datasource::vselectRows">Datasource::vselectRows</link>(<link linkend="string_type">string</link> <replaceable>$sql</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="Datasource::vselectRows">Datasource::vselectRows</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -23606,24 +23620,21 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 
       <table>
 	<title>Arguments for Datasource::vselectRows()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
 	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code><replaceable>select_statement</replaceable></code></para></entry>
-	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-	      <entry><para>SQL select statement to execute on the server.</para></entry>
+	      <entry><para><code><link linkend="string_type">string</link> <replaceable>$sql</replaceable></code></para></entry>
+	      <entry><para>The SQL select statement to execute on the server.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para><code><replaceable>[list]</replaceable></code></para></entry>
-	      <entry><para><link linkend="list_type">list</link></para></entry>
-	      <entry><para>A list of arguments to bind by value in %v positions in the SQL string.</para></entry>
+	      <entry><para><code>[<link linkend="list_type">list</link> <replaceable>$args</replaceable>]</code></para></entry>
+	      <entry><para>Include any values to be bound (using <code>%v</code> in the command string) or placeholder specifications (using :&lt;key_name&gt; in the command string) in a single optional list in order after the command string.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -23640,8 +23651,8 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><link linkend="list_type">list</link></para></entry>
-	      <entry><para>Returns a list (the rows returned) of hashes (column values).</para></entry>
+	      <entry><para><code><link linkend="any_type">any</link></code></para></entry>
+	      <entry><para>Normally returns a <link linkend="list_type">list</link> (rows) of <link linkend="hash_type">hash</link> (where the keys are the column names of each row) or <link linkend="nothing_type">nothing</link> if no rows are found for the query.  However, DBI could return other types; for DBI drivers that allow executing generic SQL through this method, any result sets returns should also be in the format <link linkend="list_type">list</link> (rows) of <link linkend="hash_type">hash</link>.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -23679,7 +23690,8 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>Datasource::setTransactionLockTimeout(<replaceable>timeout_ms</replaceable>)</programlisting>
+              <para><code><link linkend="Datasource::setTransactionLockTimeout">Datasource::setTransactionLockTimeout</link>(<link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = 0) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="Datasource::setTransactionLockTimeout">Datasource::setTransactionLockTimeout</link>(<link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -23692,18 +23704,16 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 
       <table>
 	<title>Arguments for Datasource::setTransactionLockTimeout()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
 	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code><replaceable>timeout_ms</replaceable></code></para></entry>
-	      <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = 0 or <link linkend="date_type">date</link> <replaceable>$timeout</replaceable></code></para></entry>
 	      <entry><para>The timeout value to set in seconds.  For no timeout, set to 0.  Like all Qore functions and methods taking timeout values, a <link linkend="Relative_Dates">relative time value</link> may be passed instead of an integer to make the timeout units clear (ex: <code>2500ms</code> for 2.5 seconds).</para></entry>
 	    </row>
 	  </tbody>
@@ -23724,7 +23734,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>Datasource::getTransactionLockTimeout()</programlisting>
+              <para><code><link linkend="Datasource::getTransactionLockTimeout">Datasource::getTransactionLockTimeout</link>() <command>returns</command> <link linkend="int_type">int</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -23768,7 +23778,8 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>Datasource::setUserName(<replaceable>username</replaceable>)</programlisting>
+              <para><code><link linkend="Datasource::setUserName">Datasource::setUserName</link>(<link linkend="string_type">string</link> <replaceable>$user</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="Datasource::setUserName">Datasource::setUserName</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -23781,18 +23792,16 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 
       <table>
 	<title>Arguments for Datasource::setUserName()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
 	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code><replaceable>username</replaceable></code></para></entry>
-	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
+	      <entry><para><code><link linkend="string_type">string</link> <replaceable>$user</replaceable></code></para></entry>
 	      <entry><para>The username to be used for the connection.</para></entry>
 	    </row>
 	  </tbody>
@@ -23814,7 +23823,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>Datasource::getUserName()</programlisting>
+              <para><code><link linkend="Datasource::getUserName">Datasource::getUserName</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -23836,8 +23845,8 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-	      <entry><para>The username connection parameter.</para></entry>
+              <entry><para><code><link linkend="string_type">string</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
+	      <entry><para>The username connection parameter or NOTHING if no value is set.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -23858,7 +23867,8 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>Datasource::setPassword()</programlisting>
+              <para><code><link linkend="Datasource::setPassword">Datasource::setPassword</link>(<link linkend="string_type">string</link> <replaceable>$pass</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="Datasource::setPassword">Datasource::setPassword</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -23871,18 +23881,16 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 
       <table>
 	<title>Arguments for Datasource::setPassword()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
 	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code><replaceable>password</replaceable></code></para></entry>
-	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
+	      <entry><para><code><link linkend="string_type">string</link> <replaceable>$pass</replaceable></code></para></entry>
 	      <entry><para>The password name to be used for the connection.</para></entry>
 	    </row>
 	  </tbody>
@@ -23904,7 +23912,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>Datasource::getPassword()</programlisting>
+              <para><code><link linkend="Datasource::getPassword">Datasource::getPassword</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -23926,8 +23934,8 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-	      <entry><para>Retrieves the password connection parameter.</para></entry>
+              <entry><para><code><link linkend="string_type">string</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
+	      <entry><para>Retrieves the password connection parameter or NOTHING if none is set.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -23948,7 +23956,8 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>Datasource::setDBName(<replaceable>dbname</replaceable>)</programlisting>
+              <para><code><link linkend="Datasource::setDBName">Datasource::setDBName</link>(<link linkend="string_type">string</link> <replaceable>$db</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="Datasource::setDBName">Datasource::setDBName</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -23961,18 +23970,16 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 
       <table>
 	<title>Arguments for Datasource::setDBName()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
 	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code><replaceable>dbname</replaceable></code></para></entry>
-	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
+	      <entry><para><code><link linkend="string_type">string</link> <replaceable>$db</replaceable></code></para></entry>
 	      <entry><para>The database name to be used for the connection.</para></entry>
 	    </row>
 	  </tbody>
@@ -23994,7 +24001,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>Datasource::getDBName()</programlisting>
+              <para><code><link linkend="Datasource::getDBName">Datasource::getDBName</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -24016,8 +24023,8 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-	      <entry><para>Retrieves the password connection parameter.</para></entry>
+              <entry><para><code><link linkend="string_type">string</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
+	      <entry><para>Retrieves the password connection parameter or NOTHING if none is set.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -24038,7 +24045,8 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>Datasource::setDBCharset(<replaceable>encoding</replaceable>)</programlisting>
+              <para><code><link linkend="Datasource::setDBCharset">Datasource::setDBCharset</link>(<link linkend="string_type">string</link> <replaceable>$encoding</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="Datasource::setDBCharset">Datasource::setDBCharset</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -24055,14 +24063,12 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	  <thead>
 	    <row>
 	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code><replaceable>db_encoding_name</replaceable></code></para></entry>
-	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
+	      <entry><para><code><link linkend="string_type">string</link> <replaceable>$encoding</replaceable></code></para></entry>
 	      <entry><para>The database-specific name for the encoding to be used for the connection.</para></entry>
 	    </row>
 	  </tbody>
@@ -24084,7 +24090,8 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>Datasource::setHostName(<replaceable>hostname</replaceable>)</programlisting>
+              <para><code><link linkend="Datasource::setHostName">Datasource::setHostName</link>(<link linkend="string_type">string</link> <replaceable>$host</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="Datasource::setHostName">Datasource::setHostName</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -24097,18 +24104,16 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 
       <table>
 	<title>Arguments for Datasource::setHostName()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
 	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code><replaceable>hostname</replaceable></code></para></entry>
-	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
+	      <entry><para><code><link linkend="string_type">string</link> <replaceable>$host</replaceable></code></para></entry>
 	      <entry><para>The hostname to be used for the connection.</para></entry>
 	    </row>
 	  </tbody>
@@ -24130,7 +24135,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>Datasource::setPort(<replaceable>port</replaceable>)</programlisting>
+              <para><code><link linkend="Datasource::setPort">Datasource::setPort</link>(<link linkend="softint_type">softint</link> <replaceable>$port</replaceable> = 0) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -24143,18 +24148,16 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 
       <table>
 	<title>Arguments for Datasource::setPort()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
 	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code><replaceable>port</replaceable></code></para></entry>
-	      <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$port</replaceable> = 0</code></para></entry>
 	      <entry><para>The port number to be used for the connection.</para></entry>
 	    </row>
 	  </tbody>
@@ -24176,7 +24179,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>Datasource::getDBCharset()</programlisting>
+              <para><code><link linkend="Datasource::getDBCharset">Datasource::getDBCharset</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -24198,8 +24201,8 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-	      <entry><para>Retrieves the database-specific charset set encoding for the current connection.</para></entry>
+              <entry><para><code><link linkend="string_type">string</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
+	      <entry><para>Retrieves the database-specific charset set encoding for the current connection or NOTHING if none is set.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -24219,7 +24222,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>Datasource::getOSCharset()</programlisting>
+              <para><code><link linkend="Datasource::getOSCharset">Datasource::getOSCharset</link>() <command>returns</command> <link linkend="string_type">string</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -24242,7 +24245,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	  <tbody>
 	    <row>
 	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-	      <entry><para>Retrieves the Qore charset set encoding for the current connection.</para></entry>
+	      <entry><para>Retrieves the Qore charset set encoding for the current connection or <code>&quot;unknown&quot;</code> if unknown.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -24262,7 +24265,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>Datasource::getHostName()</programlisting>
+              <para><code><link linkend="Datasource::getHostName">Datasource::getHostName</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -24284,8 +24287,8 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-	      <entry><para>Retrieves the hostname connection parameter.</para></entry>
+              <entry><para><code><link linkend="string_type">string</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
+	      <entry><para>Retrieves the hostname connection parameter or NOTHING if none is set.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -24299,13 +24302,13 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Retrieves the port connection parameter.</para>
+	    <para>Retrieves the port connection parameter or NOTHING if none is set.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>Datasource::getPort()</programlisting>
+              <para><code><link linkend="Datasource::getPort">Datasource::getPort</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -24327,7 +24330,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>Integer or NOTHING</para></entry>
+              <entry><para><code><link linkend="int_type">int</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
 	      <entry><para>Retrieves the port connection parameter or no value if no port is set.</para></entry>
 	    </row>
 	  </tbody>
@@ -24348,7 +24351,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>Datasource::getDriverName()</programlisting>
+              <para><code><link linkend="Datasource::getDriverName">Datasource::getDriverName</link>() <command>returns</command> <link linkend="string_type">string</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -24391,7 +24394,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>Datasource::getServerVersion()</programlisting>
+              <para><code><link linkend="Datasource::getServerVersion">Datasource::getServerVersion</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -24413,8 +24416,8 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>Driver-Specific</para></entry>
-	      <entry><para>See the documentation for the DBI driver used for the connection.</para></entry>
+	      <entry><para><code><link linkend="any_type">any</link></code></para></entry>
+	      <entry><para>The return type and value depends on the driver; see the documentation for the DBI driver used for the connection.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -24434,7 +24437,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>Datasource::getClientVersion()</programlisting>
+              <para><code><link linkend="Datasource::getClientVersion">Datasource::getClientVersion</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -24456,8 +24459,8 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para>Driver-Specific</para></entry>
-	      <entry><para>See the documentation for the DBI driver used for the connection.</para></entry>
+	      <entry><para><code><link linkend="any_type">any</link></code></para></entry>
+	      <entry><para>The return type and value depends on the driver; see the documentation for the DBI driver used for the connection.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -24888,26 +24891,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	  </listitem>
 	</varlistentry>
       </variablelist>
-
-      <table>
-	<title>Return Values for DatasourcePool::beginTransaction()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Return Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method return no value.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
     </sect2>
-
     <sect2 id="DatasourcePool::commit">
       <title>DatasourcePool::commit()</title>
 
@@ -27543,24 +27527,6 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
 	</varlistentry>
       </variablelist>
 
-      <table>
-	<title>Return Values for Counter::inc()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Return Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method return no value.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
     </sect2>
     <sect2 id="Counter::dec">
       <title>Counter::dec()</title>
@@ -27585,24 +27551,6 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
 	  </listitem>
 	</varlistentry>
       </variablelist>
-
-      <table>
-	<title>Return Values for Counter::dec()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Return Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method return no value.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
 
       <table>
 	<title>Exceptions Thrown by Counter::dec()</title>
@@ -28172,24 +28120,6 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
 	  </tbody>
 	</tgroup>
       </table>
-
-      <table>
-	<title>Return Values for Queue::push()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Return Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method return no value.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
     </sect2>
 
     <sect2 id="Queue::size">
@@ -28603,24 +28533,6 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
       </variablelist>
 
       <table>
-	<title>Return Values for RWLock::readUnlock()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Return Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method return no value.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
 	<title>Exceptions Thrown by RWLock::readUnlock()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
@@ -28748,24 +28660,6 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
 	  </listitem>
 	</varlistentry>
       </variablelist>
-
-      <table>
-	<title>Return Values for RWLock::writeUnlock()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Return Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method return no value.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
 
       <table>
 	<title>Exceptions Thrown by RWLock::writeUnlock()</title>
@@ -29275,24 +29169,6 @@ $query = $pool.select("select * from table where varchar_column = %v and timesta
 	  </listitem>
 	</varlistentry>
       </variablelist>
-
-      <table>
-	<title>Return Values for Mutex::unlock()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Return Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>This method return no value.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
 
       <table>
 	<title>Exceptions Thrown by Mutex::unlock()</title>
