@@ -1083,7 +1083,7 @@ int QoreSocket::sendi1(char i) {
 
    int rc = send(&i, 1);
 
-   if (!rc || rc < 0)
+   if (rc < 0)
       return -1;
 
    //printd(5, "QoreSocket::sendi1() sent %d byte(s)\n", bs);

@@ -282,7 +282,7 @@ before calling this method without an argument would turn off TCP_NODELAY, which
 before calling this method without an argument would turn off TCP_NODELAY, which was counter-intuitive
 
 * COMPATIBILITY WARNING: method return values updated
-Datasource::open(), Datasource::close(), Datasource::commit(), Datasource::rollback(), DatasourcePool::commit(), DatasourcePool::rollback(), FtpClient::connect(), FtpClient::disconnect(), FtpClient::cwd(), FtpClient::get(), FtpClient::put(), FtpClient::del()
+Datasource::open(), Datasource::close(), Datasource::commit(), Datasource::rollback(), DatasourcePool::commit(), DatasourcePool::rollback(), FtpClient::connect(), FtpClient::disconnect(), FtpClient::cwd(), FtpClient::get(), FtpClient::put(), FtpClient::del(), Socket::shutdownSSL()
 no longer return any value.  In previous versions they would return integer 0.  However, they always throw an exception if there is an error, so any return value was meaningless.
 
 

@@ -196,29 +196,34 @@ class socket_test {
     }
     
     private send_messages($s) {
-	$s.send($.string);
+	socket_test::check_send($s.send($.string), "string");
 	$.get_response($s);
 
-	$s.send($.binary);
+	socket_test::check_send($s.send($.binary), "binary");
 	$.get_response($s);
 
-	$s.sendi1(i1);
+	socket_test::check_send($s.sendi1(i1), "i1");
 	$.get_response($s);
-	$s.sendi2(i2);
+	socket_test::check_send($s.sendi2(i2), "i2");
 	$.get_response($s);
-	$s.sendi4(i4);
+	socket_test::check_send($s.sendi4(i4), "i4");
 	$.get_response($s);
-	$s.sendi8(i8);
+	socket_test::check_send($s.sendi8(i8), "i8");
 	$.get_response($s);
 	
-	$s.sendi2LSB(i2);
+	socket_test::check_send($s.sendi2LSB(i2), "i2LSB");
 	$.get_response($s);
-	$s.sendi4LSB(i4);
+	socket_test::check_send($s.sendi4LSB(i4), "i4LSB");
 	$.get_response($s);
-	$s.sendi8LSB(i8);
+	socket_test::check_send($s.sendi8LSB(i8), "i8LSB");
 	$.get_response($s);
 	$s.sendHTTPMessage("POST", "none", "1.1", http_headers, $.string);
 	$.get_http_response($s);
+    }
+
+    static check_send(int $rc, string $data) {
+	if ($rc == -1)
+	    printf("%s send error: %s\n", $data, strerror(errno()));
     }
 
     private get_response($s) {
