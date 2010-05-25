@@ -248,7 +248,7 @@ static AbstractQoreNode *SOCKET_recv(QoreObject *self, mySocket *s, const QoreLi
    int timeout = getMsMinusOneInt(get_param(params, 1));
    int rc;
    QoreStringNodeHolder msg(bs > 0 ? s->recv(bs, timeout, &rc) : s->recv(timeout, &rc));
-	
+
    if (rc > 0)
       return msg.release();
 
@@ -476,7 +476,8 @@ static AbstractQoreNode *SOCKET_shutdown(QoreObject *self, mySocket *s, const Qo
 }
 
 static AbstractQoreNode *SOCKET_shutdownSSL(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
-   return new QoreBigIntNode(s->shutdownSSL(xsink));
+   s->shutdownSSL(xsink);
+   return 0;
 }
 
 static AbstractQoreNode *SOCKET_getPort(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
@@ -837,7 +838,7 @@ QoreClass *initSocketClass(QoreClass *SSLCert, QoreClass *SSLPrivKey) {
 
    QC_SOCKET->addMethodExtended("shutdown",                  (q_method_t)SOCKET_shutdown, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
 
-   QC_SOCKET->addMethodExtended("shutdownSSL",               (q_method_t)SOCKET_shutdownSSL, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_SOCKET->addMethodExtended("shutdownSSL",               (q_method_t)SOCKET_shutdownSSL, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
 
    QC_SOCKET->addMethodExtended("getPort",                   (q_method_t)SOCKET_getPort, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo);
 
