@@ -1495,10 +1495,6 @@
 		  <entry><para>The thread_list() function is not available.</para></entry>
 		</row>
 		<row>
-		  <entry><para><link linkend="thread_list">thread_list()</link> function</para></entry>
-		  <entry><para>The thread_list() function is not available.</para></entry>
-		</row>
-		<row>
 		  <entry><para><link linkend="get_thread_data">get_thread_data()</link> function</para></entry>
 		  <entry><para>The get_thread_data() function is not available.</para></entry>
 		</row>

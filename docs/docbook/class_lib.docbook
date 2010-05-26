@@ -19486,28 +19486,28 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="XmlRpcClient_call">XmlRpcClient::call</link>(<link linkend="string_type">string</link> <replaceable>$method</replaceable>, ...) <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="XmlRpcClient_call">XmlRpcClient::call</link>(<link linkend="string_type">string</link> <replaceable>$method</replaceable>, ...) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
             </entry>
             <entry><para>Y</para></entry>
             <entry><para>Calls a remote method using a variable number of arguments for the method arguments and returns the response as qore data structure.</para></entry>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="XmlRpcClient_callArgs">XmlRpcClient::callArgs</link>(<link linkend="string_type">string</link> <replaceable>$method</replaceable>, <link linkend="any_type">any</link> <replaceable>$args</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="XmlRpcClient_callArgs">XmlRpcClient::callArgs</link>(<link linkend="string_type">string</link> <replaceable>$method</replaceable>, <link linkend="any_type">any</link> <replaceable>$args</replaceable>) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
             </entry>
             <entry><para>Y</para></entry>
             <entry><para>Calls a remote method using a single value after the method name for the method arguments and returns the response as qore data structure.</para></entry>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="XmlRpcClient_callWithInfo">XmlRpcClient::callWithInfo</link>(<link linkend="reference_type">reference</link> <replaceable>$info</replaceable>, <link linkend="string_type">string</link> <replaceable>$method</replaceable>, ...) <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="XmlRpcClient_callWithInfo">XmlRpcClient::callWithInfo</link>(<link linkend="reference_type">reference</link> <replaceable>$info</replaceable>, <link linkend="string_type">string</link> <replaceable>$method</replaceable>, ...) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
             </entry>
             <entry><para>Y</para></entry>
             <entry><para>Same as the <link linkend="XmlRpcClient_call">XmlRpcClient::call()</link> except the first argument must be an lvalue reference, which is used as an output variable, where information about the HTTP request and response is written.</para></entry>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="XmlRpcClient_callArgsWithInfo">XmlRpcClient::callArgsWithInfo</link>(<link linkend="reference_type">reference</link> <replaceable>$info</replaceable>, <link linkend="string_type">string</link> <replaceable>$method</replaceable>, <link linkend="any_type">any</link> <replaceable>$args</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="XmlRpcClient_callArgsWithInfo">XmlRpcClient::callArgsWithInfo</link>(<link linkend="reference_type">reference</link> <replaceable>$info</replaceable>, <link linkend="string_type">string</link> <replaceable>$method</replaceable>, <link linkend="hash_type">hash</link> <replaceable>$args</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
             </entry>
             <entry><para>Y</para></entry>
             <entry><para>Same as the <link linkend="XmlRpcClient_callArgs">XmlRpcClient::callArgs()</link> except the first argument must be an lvalue reference, which is used as an output variable, where information about the HTTP request and response is written.</para></entry>
@@ -19635,7 +19635,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-              <para><code><link linkend="XmlRpcClient_call">XmlRpcClient::call</link>(<link linkend="string_type">string</link> <replaceable>$method</replaceable>, ...) <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="XmlRpcClient_call">XmlRpcClient::call</link>(<link linkend="string_type">string</link> <replaceable>$method</replaceable>, ...) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -19704,7 +19704,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-              <para><code><link linkend="XmlRpcClient_callArgs">XmlRpcClient::callArgs</link>(<link linkend="string_type">string</link> <replaceable>$method</replaceable>, <link linkend="any_type">any</link> <replaceable>$args</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="XmlRpcClient_callArgs">XmlRpcClient::callArgs</link>(<link linkend="string_type">string</link> <replaceable>$method</replaceable>, <link linkend="any_type">any</link> <replaceable>$args</replaceable>) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -19774,7 +19774,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-              <para><code><link linkend="XmlRpcClient_callWithInfo">XmlRpcClient::callWithInfo</link>(<link linkend="reference_type">reference</link> <replaceable>$info</replaceable>, <link linkend="string_type">string</link> <replaceable>$method</replaceable>, ...) <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="XmlRpcClient_callWithInfo">XmlRpcClient::callWithInfo</link>(<link linkend="reference_type">reference</link> <replaceable>$info</replaceable>, <link linkend="string_type">string</link> <replaceable>$method</replaceable>, ...) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -19847,7 +19847,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-              <para><code><link linkend="XmlRpcClient_callArgsWithInfo">XmlRpcClient::callArgsWithInfo</link>(<link linkend="reference_type">reference</link> <replaceable>$info</replaceable>, <link linkend="string_type">string</link> <replaceable>$method</replaceable>, <link linkend="any_type">any</link> <replaceable>$args</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="XmlRpcClient_callArgsWithInfo">XmlRpcClient::callArgsWithInfo</link>(<link linkend="reference_type">reference</link> <replaceable>$info</replaceable>, <link linkend="string_type">string</link> <replaceable>$method</replaceable>, <link linkend="any_type">any</link> <replaceable>$args</replaceable>) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -28814,7 +28814,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Blocks until at least one entry is available on the queue, then returns the first entry in the queue.  Accepts an optional timeout value in milliseconds (1/1000 second). Like all Qore functions and methods taking timeout values, a <link linkend="Relative_Dates">relative date/time value</link> may be passed instead of an integer to make the timeout units clear (ex: <code>2500ms</code> for 2.5 seconds).  If no value or a value that converts to integer 0 is passed as the argument, then the call does not timeout until data is available on the queue.</para><para>Note that this function will throw an exception on timeout, in order to enable the case where <command><link linkend="NOTHING">NOTHING</link></command> was pushed on the queue from a timeout.</para>
+	    <para>Blocks until at least one entry is available on the queue, then returns the first entry in the queue.  Accepts an optional timeout value in milliseconds (1/1000 second). Like all Qore functions and methods taking timeout values, a <link linkend="Relative_Dates">relative date/time value</link> may be passed instead of an integer to make the timeout units clear (ex: <code>2500ms</code> for 2.5 seconds).  If no value or a value that converts to integer 0 is passed as the argument, then the call does not timeout until data is available on the queue.</para><para>Note that this function will throw an exception on timeout, in order to enable the case where <command><link linkend="NOTHING">NOTHING</link></command> was pushed on the queue to be differentiated from a timeout.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -28899,7 +28899,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Blocks until at least one entry is available on the queue, then returns the last entry in the queue.  Accepts an optional timeout value in ms (1/1000 second).  Like all Qore functions and methods taking timeout values, a <link linkend="Relative_Dates">relative date/time value</link> may be passed instead of an integer to make the timeout units clear (ex: <code>2500ms</code> for 2.5 seconds).  If no value or a value that converts to integer 0 is passed as the argument, then the call does not timeout until data is available on the queue.</para><para>Note that this function will throw an exception on timeout, in order to enable the case where <command><link linkend="NOTHING">NOTHING</link></command> was pushed on the queue from a timeout.</para>
+	    <para>Blocks until at least one entry is available on the queue, then returns the last entry in the queue.  Accepts an optional timeout value in ms (1/1000 second).  Like all Qore functions and methods taking timeout values, a <link linkend="Relative_Dates">relative date/time value</link> may be passed instead of an integer to make the timeout units clear (ex: <code>2500ms</code> for 2.5 seconds).  If no value or a value that converts to integer 0 is passed as the argument, then the call does not timeout until data is available on the queue.</para><para>Note that this function will throw an exception on timeout, in order to enable the case where <command><link linkend="NOTHING">NOTHING</link></command> was pushed on the queue to be differentiated from a timeout.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>

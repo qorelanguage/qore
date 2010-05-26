@@ -136,9 +136,7 @@ static AbstractQoreNode *XRC_callArgsWithInfo(QoreObject *self, QoreHTTPClient *
    HTTPInfoRefHelper irh(ref, msg, xsink);
 
    // send the message to the server and get the response as an XML string
-   ReferenceHolder<AbstractQoreNode> rv(make_xmlrpc_call(client, msg, *irh, xsink), xsink);
-
-   return *xsink ? 0 : rv.release();
+   return make_xmlrpc_call(client, msg, *irh, xsink);
 }
 
 static AbstractQoreNode *XRC_callWithInfo(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink) {
@@ -156,9 +154,7 @@ static AbstractQoreNode *XRC_callWithInfo(QoreObject *self, QoreHTTPClient *clie
    HTTPInfoRefHelper irh(ref, msg, xsink);
 
    // send the message to the server and get the response as an XML string
-   ReferenceHolder<AbstractQoreNode> rv(make_xmlrpc_call(client, msg, *irh, xsink), xsink);
-
-   return *xsink ? 0 : rv.release();
+   return make_xmlrpc_call(client, msg, *irh, xsink);
 }
 
 static AbstractQoreNode *XRC_setEventQueue_nothing(QoreObject *self, QoreHTTPClient *client, const QoreListNode *params, ExceptionSink *xsink) {
@@ -187,10 +183,10 @@ QoreClass *initXmlRpcClientClass(QoreClass *http_client) {
    client->setConstructorExtended(XRC_constructor_hash_bool, false, QC_NO_FLAGS, QDOM_DEFAULT, 2, hashTypeInfo, QORE_PARAM_NO_ARG, softBoolTypeInfo, &False);
 
    client->setCopy((q_copy_t)XRC_copy);
-   client->addMethodExtended("callArgs",         (q_method_t)XRC_callArgs, false, QC_NO_FLAGS, QDOM_DEFAULT, 0, 2, stringTypeInfo, QORE_PARAM_NO_ARG, anyTypeInfo, QORE_PARAM_NO_ARG);
-   client->addMethodExtended("call",             (q_method_t)XRC_call, false, QC_USES_EXTRA_ARGS, QDOM_DEFAULT, 0, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
-   client->addMethodExtended("callArgsWithInfo", (q_method_t)XRC_callArgsWithInfo, false, QC_NO_FLAGS, QDOM_DEFAULT, 0, 3, referenceTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG, anyTypeInfo, QORE_PARAM_NO_ARG);
-   client->addMethodExtended("callWithInfo",     (q_method_t)XRC_callWithInfo, false, QC_USES_EXTRA_ARGS, QDOM_DEFAULT, 0, 2, referenceTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
+   client->addMethodExtended("callArgs",         (q_method_t)XRC_callArgs, false, QC_NO_FLAGS, QDOM_DEFAULT, hashTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, anyTypeInfo, QORE_PARAM_NO_ARG);
+   client->addMethodExtended("call",             (q_method_t)XRC_call, false, QC_USES_EXTRA_ARGS, QDOM_DEFAULT, hashTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   client->addMethodExtended("callArgsWithInfo", (q_method_t)XRC_callArgsWithInfo, false, QC_NO_FLAGS, QDOM_DEFAULT, hashTypeInfo, 3, referenceTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG, anyTypeInfo, QORE_PARAM_NO_ARG);
+   client->addMethodExtended("callWithInfo",     (q_method_t)XRC_callWithInfo, false, QC_USES_EXTRA_ARGS, QDOM_DEFAULT, hashTypeInfo, 2, referenceTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    // XmlRpcClient::setEventQueue() returns nothing
    client->addMethodExtended("setEventQueue",    (q_method_t)XRC_setEventQueue_nothing, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
