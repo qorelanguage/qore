@@ -151,13 +151,14 @@ h3 {
         border-collapse: collapse;
 }
 .table th, .table td {
-        padding: 0 1em 0 1em;
         vertical-align: top;
 }
 .table th {
         font-weight: bold;
         background-color: #a0d0a0;
 }
+.table th p { margin: 0.4em; }
+.table td p { margin: 0.4em; }  
 
 /*
  * See http://diveintoaccessibility.org/day_26_using_relative_font_sizes.html
