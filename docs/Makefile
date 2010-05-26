@@ -37,6 +37,18 @@ chunked: docbook/*docbook
 		 ${DOCBOOK_ROOT}/chunk.xsl \
 	         docbook/qore.docbook
 
+qthelp: qore-html/*html
+	./docbook2qthelp > ./qore-html/qore_language_reference.qhp
+	qhelpgenerator qore-html/qore_language_reference.qhp -o library/qore_language_reference.qch
+
+qtregister:
+	assistant -register library/qore_language_reference.qch
+	assistant -register library/qore_c_library_reference.qch
+
+qtunregister:
+	assistant -unregister library/qore_c_library_reference.qch
+	assistant -unregister library/qore_language_reference.qch
+
 clean:
 	rm -fv qore.html
 	rm -rfv qore-html
