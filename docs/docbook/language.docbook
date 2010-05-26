@@ -417,31 +417,31 @@ print("global a = %d\n", $a); </programlisting>
   <row>
     <entry><para><link linkend="Boolean">Boolean</link></para></entry>
     <entry><para>True or False value</para></entry>
-    <entry><code>True</code></entry>
+    <entry><para><code>True</code></para></entry>
     <entry><para>False</para></entry>
   </row>
   <row>
     <entry><para><link linkend="String">String</link></para></entry>
     <entry><para>A sequence of characters</para></entry>
-    <entry><code>"string"</code></entry>
+    <entry><para><code>"string"</code></para></entry>
     <entry><para>Empty string</para></entry>
   </row>
   <row>
     <entry><para><link linkend="Integer">Integer</link></para></entry>
     <entry><para>A 64-bit signed integer</para></entry>
-    <entry><code>1</code></entry>
+    <entry><para><code>1</code></para></entry>
     <entry><para>0</para></entry>
   </row>
   <row>
     <entry><para><link linkend="Float">Float</link></para></entry>
     <entry><para>A double-precision floating-point number</para></entry>
-    <entry><code>1.00023</code></entry>
+    <entry><para><code>1.00023</code></para></entry>
     <entry><para>0.0</para></entry>
   </row>
   <row>
     <entry><para><link linkend="Date">Date</link></para></entry>
     <entry><para>A date/time value with an optional time zone component, with resolution to the microsecond.</para></entry>
-    <entry><code>2010-05-10T18:35:21.001456-07:00</code></entry>
+    <entry><para><code>2010-05-10T18:35:21.001456-07:00</code></para></entry>
     <entry><para>1970-01-01Z</para></entry>
   </row>
   <row>
@@ -453,14 +453,14 @@ print("global a = %d\n", $a); </programlisting>
   <row>
     <entry><para><link linkend="NULL">NULL</link></para></entry>
     <entry><para>Corresponds to a NULL value in a database query (not equivalent to NOTHING)</para></entry>
-    <entry><code><command>NULL</command></code></entry>
-    <entry><code><command>NULL</command></code></entry>
+    <entry><para><code><command>NULL</command></code></para></entry>
+    <entry><para><code><command>NULL</command></code></para></entry>
   </row>
   <row>
     <entry><para><link linkend="NOTHING">NOTHING</link></para></entry>
     <entry><para>Represents the state of a variable having no value or function returning no value (not equivalent to NULL)</para></entry>
-    <entry><code><command>NOTHING</command></code></entry>
-    <entry><code><command>NOTHING</command></code></entry>
+    <entry><para><code><command>NOTHING</command></code></para></entry>
+    <entry><para><code><command>NOTHING</command></code></para></entry>
   </row>
 
 </tbody>
@@ -508,30 +508,34 @@ is a multiline string";</programlisting>
 
     <para>Absolute date/time values specify a specific point in time in a certain time zone, such as January 1, 2005 10:35:00 +01:00.  They are stored interally as a 64-bit signed offset from the Qore epoch (1970-01-01Z), a positive 4-byte integer for microseconds, and a pointer to a time zone description object that provides the UTC offset and daylight savings time information (see <link linkend="Time_Zones">Time Zones</link> for more information).  Note that all absolute date/time values in Qore are stored internally in UTC and are converted for display purposes to the representation of wall time in their tagged time zone.</para>
 
-  <para>Absolute date/time values can be specified with a special syntax as follows:</para>
+  <para>Absolute date/time values can be specified with a syntax based on ISO-8601 date formats as follows:</para>
 
-    <programlisting>&lt;4d-year&gt;-&lt;2d-month&gt;-&lt;2d-day&gt;[-&lt;2d-hour&gt;:&lt;2d-minute&gt;:&lt;2d-second&gt;[.&lt;fractional-second&gt;][Z|[+-]&lt;2d-hours-east&gt;[:&lt;2d-minutes-east&gt;[:&lt;2d-seconds-east&gt;]]]</programlisting>
+  <code>YYYY-MM-DD[THH:mm:SS[.n*]][Z|[+-]HH[:mm[:SS]]]</code>
 
     <para>Note that if no time zone information is given, the local time zone will be assumed.  If a time zone UTC offset is given, it is given in units of time east of UTC (i.e. +05:00 means five hours east of UTC).</para>
 
-    <para>Or, an almost-ISO-8601-compliant format (including an optional microsecond component)</para>
-    
-    <programlisting>&lt;4d-year&gt;-&lt;2d-month&gt;-&lt;2d-day&gt;[T&lt;2d-hour&gt;:&lt;2d-minute&gt;:&lt;2d-second&gt;[.&lt;fractional-second&gt;][Z|[+-]&lt;2d-hours-east&gt;[:&lt;2d-minutes-east&gt;[:&lt;2d-seconds-east&gt;]]]]</programlisting>
+    <para>Or an alternative format (with a '-' instead ofa 'T' to separate the time component):</para>
+
+  <code>YYYY-MM-DD[-HH:mm:SS[.n*]][Z|[+-]HH[:mm[:SS]]]</code>
     
     <para>for example, for just the date in UTC, without a time component:</para>
-    
-    <programlisting>&lt;4d-year&gt;-&lt;2d-month&gt;-&lt;2d-day&gt;</programlisting>
+
+    <code>2010-05-26</code>
     
     <para>or, for just the time, without a date component (note that in this case the date component will be set to Jan 1, 1970, in order for time arithmetic to function properly and will also be tagged with the local time zone):</para>
+
+    <code>20:05:10.458342</code>
     
-    <programlisting>&lt;2d-hour&gt;:&lt;2d-minute&gt;:&lt;2d-second&gt;[.&lt;fractional-second&gt;]]</programlisting>
+    <para>Some further examples (note that the date/time values without a time zone specification here are tagged with the local time zone):</para>
     
-    <para>Some examples should make it clearer:</para>
-    
-    <programlisting>2005-03-29-18:12:25          # represents: March 29, 2005 6:12:25 pm in the local time zone
-0512-01-01T01:49:59.002213Z  # represents: January 1, 512 1:49:59 am and 2213 microseconds UTC      
-2005-03-29                   # represents: March 29, 2005 00:00:00 in the local time zone
-18:35:26+08:00               # represents: January 1, 1970 6:35:26 pm +08 (1970-01-01 is the start of the Qore epoch)</programlisting>
+    <programlisting><command><replaceable>prompt%</replaceable> qore -X '2005-03-29-18:12:25'</command>
+2005-03-29 18:12:25 Tue +02:00 (CEST)
+<command><replaceable>prompt%</replaceable> qore -X '0512-01-01T01:49:59.002213Z'</command>
+0512-01-01 01:49:59.002213 Fri Z (UTC)
+<command><replaceable>prompt%</replaceable> qore -X '2005-03-29'</command>
+2005-03-29 00:00:00 Tue +02:00 (CEST)
+<command><replaceable>prompt%</replaceable> qore -X '18:35:26+08:00'</command>
+1970-01-01 18:35:26 Thu +08:00 (+08)</programlisting>
     
     <para>The year must be a four-digit number, and all other values except microseconds must be two-digit numbers.  If microseconds are present, at least one and up to 6 digits may be given after the decimal point.  Pad the numbers with leading zeros if the numbers are smaller than the required number of digits.  The hour component must be in 24-hour time format. Except for the month and day values, all other values start with 0 (hour = 00 - 23, minute and second: 00 - 59).  Any deviation from this format will cause a parse exception.</para>
 
@@ -556,9 +560,9 @@ is a multiline string";</programlisting>
       <title>Single Relative Time Format</title>
         <para>A single relative date/time value (or a duration) may be specified as follows (note that this format is specific to Qore and not based on <ulink url="http://en.wikipedia.org/wiki/Iso8601">ISO-8601</ulink>):</para>
     
-    <programlisting>&lt;integer&gt;&lt;date component specifier&gt;</programlisting>
+	<code>&lt;integer&gt;&lt;date component specifier&gt;</code>
 
-    <table><title>Date Specifiers For Single Values For Relative Dates (non-<ulink url="http://en.wikipedia.org/wiki/Iso8601">ISO-8601</ulink> syntax)</title>
+    <table><title>Date Specifiers For Single Values For Relative Dates (non-ISO-8601 syntax)</title>
       <tgroup cols='4' align='left' colsep='1' rowsep='1'>
 	
 	<thead>
@@ -573,49 +577,49 @@ is a multiline string";</programlisting>
 	  <row>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Years</para></entry>
-	    <entry><code>2Y</code></entry>
+	    <entry><para><code>2Y</code></para></entry>
 	    <entry><para>2 Years</para></entry>
 	  </row>
 	  <row>
 	    <entry><para>M</para></entry>
 	    <entry><para>Months</para></entry>
-	    <entry><code>3M</code></entry>
+	    <entry><para><code>3M</code></para></entry>
 	    <entry><para>3 Months</para></entry>
 	  </row>
 	  <row>
 	    <entry><para>D</para></entry>
 	    <entry><para>Days</para></entry>
-	    <entry><code>10D</code></entry>
+	    <entry><para><code>10D</code></para></entry>
 	    <entry><para>10 Days</para></entry>
 	  </row>
 	  <row>
 	    <entry><para>h</para></entry>
 	    <entry><para>Hours</para></entry>
-	    <entry><code>15h</code></entry>
+	    <entry><para><code>15h</code></para></entry>
 	    <entry><para>15 hours</para></entry>
 	  </row>
 	  <row>
 	    <entry><para>m</para></entry>
 	    <entry><para>Minutes</para></entry>
-	    <entry><code>25m</code></entry>
+	    <entry><para><code>25m</code></para></entry>
 	    <entry><para>25 minutes</para></entry>
 	  </row>
 	  <row>
 	    <entry><para>s</para></entry>
 	    <entry><para>Seconds</para></entry>
-	    <entry><code>19s</code></entry>
+	    <entry><para><code>19s</code></para></entry>
 	    <entry><para>19 seconds</para></entry>
 	  </row>
 	  <row>
 	    <entry><para>ms</para></entry>
 	    <entry><para>Milliseconds</para></entry>
-	    <entry><code>250ms</code></entry>
+	    <entry><para><code>250ms</code></para></entry>
 	    <entry><para>250 milliseconds</para></entry>
 	  </row>
 	  <row>
 	    <entry><para>us</para></entry>
 	    <entry><para>Microseconds</para></entry>
-	    <entry><code>21194us</code></entry>
+	    <entry><para><code>21194us</code></para></entry>
 	    <entry><para>21194 microseconds</para></entry>
 	  </row>
 	</tbody>
@@ -630,17 +634,17 @@ is a multiline string";</programlisting>
 
 	<para>This first format has the following syntax:</para>
 
-	<programlisting>P<replaceable>n</replaceable>Y<replaceable>n</replaceable>M<replaceable>n</replaceable>DT<replaceable>n</replaceable>H<replaceable>n</replaceable>M<replaceable>n</replaceable>S<replaceable>n</replaceable>u</programlisting>
+	<code>P<replaceable>n</replaceable>Y<replaceable>n</replaceable>M<replaceable>n</replaceable>DT<replaceable>n</replaceable>H<replaceable>n</replaceable>M<replaceable>n</replaceable>S<replaceable>n</replaceable>u</code>
 
 	<para>Each element above is optional, but at least one element must be present.  Note that &quot;M&quot; means months when before the &quot;T&quot; and minutes when found after the &quot;T&quot;.  The other elements are years, days, hours, seconds, and, as an extension to ISO-8601, &quot;u&quot; for microseconds.  Additionally, the values may be negative.</para>
 
     	<para>Here are some examples (using qore's -X command-line option to evaluate and expression and print out the result):</para>
     
-    <programlisting><replaceable>prompt% </replaceable>qore -X 'P1Y3MT4S'
+    <programlisting><command><replaceable>prompt% </replaceable>qore -X 'P1Y3MT4S'</command>
 &lt;time: 1 year 3 months 4 seconds&gt;
-<replaceable>prompt% </replaceable>qore -X 'PT4M551u'
+<command><replaceable>prompt% </replaceable>qore -X 'PT4M551u'</command>
 &lt;time: 4 minutes 551 microseconds&gt;
-<replaceable>prompt% </replaceable>qore -X 'P3DT21H'
+<command><replaceable>prompt% </replaceable>qore -X 'P3DT21H'</command>
 &lt;time: 3 days 21 hours&gt;
 </programlisting>
 </sect4>
@@ -656,11 +660,11 @@ is a multiline string";</programlisting>
 
     	<para>Here are some examples of the second format (equivalent to the first examples):</para>
     
-    <programlisting><replaceable>prompt% </replaceable>qore -X 'P0001-03-00T00:00:04'
+    <programlisting><command><replaceable>prompt% </replaceable>qore -X 'P0001-03-00T00:00:04'</command>
 &lt;time: 1 year 3 months 4 seconds&gt;
-<replaceable>prompt% </replaceable>qore -X 'P0000-00-00T00:04:00.000551'
+<command><replaceable>prompt% </replaceable>qore -X 'P0000-00-00T00:04:00.000551'</command>
 &lt;time: 4 minutes 551 microseconds&gt;
-<replaceable>prompt% </replaceable>qore -X 'P0000-00-03T21:00:00'
+<command><replaceable>prompt% </replaceable>qore -X 'P0000-00-03T21:00:00'</command>
 &lt;time: 3 days 21 hours&gt;</programlisting>
   </sect4>
   </sect3>
@@ -693,7 +697,7 @@ is a multiline string";</programlisting>
 <sect2 id="NOTHING">
   <title>NOTHING</title>
   <para>This special data type represents no value.</para>
-  <note><para>The <link linkend="Exists_Operator"><command>exists</command></link> operator will return False when given <command>NOTHING</command> as an argument; for example:</para><programlisting><replaceable>prompt% </replaceable>qore -X 'exists NOTHING'
+  <note><para>The <link linkend="Exists_Operator"><command>exists</command></link> operator will return False when given <command>NOTHING</command> as an argument; for example:</para><programlisting><command><replaceable>prompt%</replaceable> qore -X 'exists NOTHING'</command>
 False</programlisting></note>
 </sect2>
 
@@ -1032,13 +1036,13 @@ False</programlisting></note>
 
   <para>Here are some examples using Qore's '-X' option for evaluating an expression and displaying the result immediately:</para>
 
-  <programlisting><replaceable>prompt% </replaceable>TZ=America/Chicago qore -X 'now_us()'
+  <programlisting><command><replaceable>prompt% </replaceable>TZ=America/Chicago qore -X 'now_us()'</command>
 2010-05-11 06:14:28.845857 Tue -05:00 (CDT)
-<replaceable>prompt% </replaceable>TZ=Europe/Rome qore -X 'now_us()'
+<command><replaceable>prompt% </replaceable>TZ=Europe/Rome qore -X 'now_us()'</command>
 2010-05-11 13:14:35.070568 Tue +02:00 (CEST)
-<replaceable>prompt% </replaceable>TZ=Australia/Sydney qore -X 'now_us()'
+<command><replaceable>prompt% </replaceable>TZ=Australia/Sydney qore -X 'now_us()'</command>
 2010-05-11 21:14:45.422222 Tue +10:00 (EST)
-<replaceable>prompt% </replaceable>TZ=Asia/Tokyo qore -X 'now_us()'
+<command><replaceable>prompt% </replaceable>TZ=Asia/Tokyo qore -X 'now_us()'</command>
 2010-05-11 20:14:59.609249 Tue +09:00 (CJT)</programlisting>
 
   <para>Note that posix-style time zone rules are not understood if assigned to the TZ environment variable, only file names to a zoneinfo file can be processed at the moment.  Furthermore if the zoneinfo file contains leap second information, it is currently ignored.</para>
@@ -1678,7 +1682,7 @@ $$         # for the entire implicit argument list</programlisting>
 
       <para>Adding or subtracting years and months (ex: $date += 2Y + 3M) will give you the same day on the desired month in the desired year. If the target month has fewer days than the source month, then you will get the last day of the month in that year. For example:</para>
 
-      <programlisting><replaceable>prompt% </replaceable>qore -X '2004-02-29Z - 1Y'
+      <programlisting><command><replaceable>prompt% </replaceable>qore -X '2004-02-29Z - 1Y'</command>
 2003-02-28 00:00:00 Fri Z (UTC)</programlisting>
     </sect2>
 
@@ -1686,7 +1690,7 @@ $$         # for the entire implicit argument list</programlisting>
       <title>Adding and Subtracting Days</title>
       <para>Adding or subtracting days means adding or subtracting 24h periods; i.e. you will get the same time in the result of subtracting days, for example:</para>
 
-      <programlisting><replaceable>prompt% </replaceable>qore -X '2004-02-29T10:15:00Z - 10D'
+      <programlisting><command><replaceable>prompt% </replaceable>qore -X '2004-02-29T10:15:00Z - 10D'</command>
 2004-02-19 10:15:00 Thu Z (UTC)</programlisting>
 
     </sect2>
@@ -1694,14 +1698,14 @@ $$         # for the entire implicit argument list</programlisting>
     <sect2 id="Date_Differences">
       <title>Finding the Difference Between Two Dates</title>
       <para>Subtracting one absolute date from another will result in a <link linkend="Relative_Dates">relative date</link>, normalized to the hour (that is, microseconds over 999,999 are converted to seconds, seconds over 59 to minutes, and minutes over 59 to hours; days, months, and years will not appear in the result as they do not indicate a fixed period of time but rather can vary in length depending on the absolute date/time starting point.  For example:</para>
-	<programlisting><replaceable>prompt% </replaceable>qore -X '2007-02-29T10:15:03.255Z - 2004-02-29T10:14:02.100Z'
+	<programlisting><command><replaceable>prompt% </replaceable>qore -X '2007-02-29T10:15:03.255Z - 2004-02-29T10:14:02.100Z'</command>
 &lt;time: 26304 hours 1 minute 1 second 155 milliseconds&gt;</programlisting>
 
       <para>To find the difference in seconds between two dates, convert each date value to an integer and subtract as follows:</para>
-	<programlisting><replaceable>prompt% </replaceable>qore -X 'int(2004-02-29Z) - int(2004-02-28Z)'
+	<programlisting><command><replaceable>prompt% </replaceable>qore -X 'int(2004-02-29Z) - int(2004-02-28Z)'</command>
 86400</programlisting>
   <para>Or use the <link linkend="get_duration_seconds">get_duration_seconds()</link> function as follows:</para>
-	<programlisting><replaceable>prompt% </replaceable>qore -X 'get_duration_seconds(2004-02-29Z - 2004-02-28Z)'
+	<programlisting><command><replaceable>prompt% </replaceable>qore -X 'get_duration_seconds(2004-02-29Z - 2004-02-28Z)'</command>
 86400</programlisting>
 
     </sect2>
@@ -1712,10 +1716,10 @@ $$         # for the entire implicit argument list</programlisting>
 
   <para>To find out if the current time zone has daylight savings time, execute the following:</para>
 
-  <programlisting><replaceable>prompt% </replaceable>qore -X 'TimeZone::get().hasDST()'
+  <programlisting><command><replaceable>prompt% </replaceable>qore -X 'TimeZone::get().hasDST()'</command>
 True</programlisting>
 
-  <para>See the <link linkend="Time_Zone_Class">TimeZone class</link> for more information on time zone information.</para>
+  <para>See the <link linkend="TimeZone_Class">TimeZone class</link> for more information on time zone information.</para>
 
     </sect2>
 

@@ -2799,7 +2799,7 @@
         </row>
         <row>
           <entry>
-            <para><code><link linkend="regex_extract">regex_extract</link>(<link linkend="string_type">string</link>, <link linkend="string_type">string</link>, <link linkend="int_type">int</link> = 0) <command>returns</command> <link linkend="list_type">list</link></code></para>
+            <para><code><link linkend="regex_extract">regex_extract</link>(<link linkend="string_type">string</link>, <link linkend="string_type">string</link>, <link linkend="int_type">int</link> = 0) <command>returns</command> <link linkend="any_type">any</link></code></para>
             <para><code><link linkend="regex_extract">regex_extract</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
           </entry>
           <entry><para>Y</para></entry>
@@ -9377,14 +9377,14 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Prototype</term>
       <listitem>
-            <para><code><link linkend="regex_extract">regex_extract</link>(<link linkend="string_type">string</link> <replaceable>$string</replaceable>, <link linkend="string_type">string</link> <replaceable>$pattern</replaceable>, <link linkend="int_type">int</link> <replaceable>$options</replaceable> = 0) <command>returns</command> <link linkend="list_type">list</link></code></para>
+            <para><code><link linkend="regex_extract">regex_extract</link>(<link linkend="string_type">string</link> <replaceable>$string</replaceable>, <link linkend="string_type">string</link> <replaceable>$pattern</replaceable>, <link linkend="int_type">int</link> <replaceable>$options</replaceable> = 0) <command>returns</command> <link linkend="any_type">any</link></code></para>
             <para><code><link linkend="regex_extract">regex_extract</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Example</term>
       <listitem>
-	<programlisting>$list = regex_extract("hello:there", "(\\w+):(\\w+)");</programlisting>
+	<programlisting><command>my</command> any $rv = regex_extract("hello:there", "(\\w+):(\\w+)");</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -9403,7 +9403,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
             <row>
 	      <entry><para><code><link linkend="string_type">string</link> <replaceable>$string</replaceable>, <link linkend="string_type">string</link> <replaceable>$pattern</replaceable>, <link linkend="int_type">int</link> <replaceable>$options</replaceable> = 0</code></para></entry>
               <entry><para><code><link linkend="list_type">list</link></code></para></entry>
-              <entry><para>Returns the result of applying the 2nd argument as a pattern to the first argument.  The third argument can be used to set regex options; for valid options, see <link linkend="Qore_Regex_Constants">Regex Constants</link></para></entry>
+              <entry><para>Returns any patterns in parentheses in the second argument when applied tot he first argument as a <code><link linkend="list_type">list</link></code>.  If no matches are found, then NOTHING is returned.  The third argument can be used to set regex options; for valid options, see <link linkend="Qore_Regex_Constants">Regex Constants</link></para></entry>
             </row>
           </tbody>
         </tgroup>

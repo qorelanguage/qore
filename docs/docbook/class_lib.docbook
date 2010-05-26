@@ -70,6 +70,10 @@
 	    <entry><para>Provides transparent per-thread, per-transaction Datasource connection pooling.</para></entry>
 	  </row>
 	  <row>
+	    <entry><para><code><link linkend="AbstractSmartLock_Class">Thread::AbstractSmartLock</link></code></para></entry>
+	    <entry><para>The abstract base class for locks that support the internal API for use with the <link linkend="Condition_Class">Condition</link> class.</para></entry>
+	  </row>
+	  <row>
 	    <entry><para><code><link linkend="AutoGate_Class">Thread::AutoGate</link></code></para></entry>
 	    <entry><para>A helper class for the <link linkend="Gate_Class">Gate</link> class for exception-safe Gate handling.</para></entry>
 	  </row>
@@ -6937,22 +6941,7 @@ stdout.printf(" GOT ASCII 0x%02x (%d) '%s'\n", ord($c), ord($c), $c);</programli
 	    <entry><para>Y</para></entry>
 	    <entry><para>Returns true if the object passed is equal to the current object, false if not.</para></entry>
 	  </row>
-	</tbody>
-      </tgroup>
-    </table>
 
-    <table>
-      <title>TermIOS Static Method Overview</title>
-      <tgroup cols='3' align='left' colsep='1' rowsep='1'>
-	<colspec colnum="2" align="center"/>
-	<thead>
-	  <row>
-	    <entry><para>Method</para></entry>
-	    <entry><para>Except?</para></entry>
-	    <entry><para>Description</para></entry>
-	  </row>
-	</thead>
-	<tbody>
 	  <row>
 	    <entry>
               <para><code><command>static</command> <link linkend="TermIOS::getWindowSize">TermIOS::getWindowSize</link>()</code></para>
@@ -6960,6 +6949,7 @@ stdout.printf(" GOT ASCII 0x%02x (%d) '%s'\n", ord($c), ord($c), $c);</programli
 	    <entry><para>Y</para></entry>
 	    <entry><para>Returns a hash giving the current terminal window size in hash keys <code>rows</code> and <code>columns</code>.</para></entry>
 	  </row>
+
 	</tbody>
       </tgroup>
     </table>
@@ -21949,6 +21939,753 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
     </sect2>
   </sect1>
 
+  <sect1 id="TimeZone_Class">
+    <title>TimeZone Class</title>
+
+    <para>The TimeZone class provides access to time zone functionality.</para>
+    <para>TimeZone objects based on zoneinfo region files can have daylight savings time information; those based on UTC offsets have none.</para>
+
+    <table>
+      <title>TimeZone Method Overview</title>
+      <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<colspec colnum="2" align="center"/>
+	<thead>
+	  <row>
+	    <entry><para>Method</para></entry>
+	    <entry><para>Except?</para></entry>
+	    <entry><para>Description</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+	  <row>
+	    <entry>
+              <para><code><link linkend="TimeZone::constructor">TimeZone::constructor</link>(<link linkend="string_type">string</link> <replaceable>$region</replaceable>)</code></para>
+              <para><code><link linkend="TimeZone::constructor">TimeZone::constructor</link>(<link linkend="softint_type">softint</link> <replaceable>$secs_east</replaceable>)</code></para>
+            </entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Creates the TimeZone object based on the region name (ex: &quot;America/Chicago&quot;) or the number of seconds east of UTC (3600 = UTC +01).</para></entry>
+	  </row>
+	  <row>
+	    <entry>
+              <para><code><link linkend="TimeZone::destructor">TimeZone::destructor</link>()</code></para>
+            </entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Destroys the TimeZone object.</para></entry>
+	  </row>
+	  <row>
+	    <entry>
+              <para><code><link linkend="TimeZone::copy">TimeZone::copy</link>()</code></para>
+            </entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Creates a copy of the TimeZone object.</para></entry>
+	  </row>
+	  <row>
+	    <entry>
+              <para><code><link linkend="TimeZone::UTCOffset">TimeZone::UTCOffset</link>() <command>returns</command> <link linkend="int_type">int</link></code></para>
+	    </entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Returns the number of seconds east of UTC for the zone; negative numbers indicate a zone west of UTC.</para></entry>
+	  </row>
+
+	  <row>
+	    <entry>
+              <para><code><link linkend="TimeZone::hasDST">TimeZone::hasDST</link>() <command>returns</command> <link linkend="bool_type">bool</link></code></para>
+	    </entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Returns True if the current zone has daylight saving's time rules, False if not.  TimeZone objects based on zoneinfo region files can have (but do not necessarily have) daylight savings time information; those based on UTC offsets have none.</para></entry>
+	  </row>
+
+	  <row>
+	    <entry>
+              <para><code><link linkend="TimeZone::region">TimeZone::region</link>() <command>returns</command> <link linkend="string_type">string</link></code></para>
+	    </entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Returns the region name as a string; if the current zone is based on a UTC offset, then the UTC offset is returned as a string like &quot;+01:00&quot;.</para></entry>
+	  </row>
+
+	  <row>
+	    <entry>
+              <para><code><link linkend="TimeZone::date">TimeZone::date</link>(<link linkend="softint_type">softint</link> <replaceable>$secs</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$us</replaceable> = 0) <command>returns</command> <link linkend="date_type">date</link></code></para>
+              <para><code><link linkend="TimeZone::date">TimeZone::date</link>(<link linkend="date_type">date</link> <replaceable>$date</replaceable>) <command>returns</command> <link linkend="date_type">date</link></code></para>
+	    </entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Returns the equivalent date in the current time zone; when using integer arguments, offsets are in seconds and microseconds from 1970-01-01Z.</para></entry>
+	  </row>
+
+	  <row>
+	    <entry>
+              <para><code><link linkend="TimeZone::dateMs">TimeZone::dateMs</link>(<link linkend="softint_type">softint</link> <replaceable>$ms</replaceable>) <command>returns</command> <link linkend="date_type">date</link></code></para>
+	    </entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Returns a date in the object's zone based on an offset in milliseconds from 1970-01-01Z.</para></entry>
+	  </row>
+
+	  <row>
+	    <entry>
+              <para><code><link linkend="TimeZone::dateUs">TimeZone::dateUs</link>(<link linkend="softint_type">softint</link> <replaceable>$us</replaceable>) <command>returns</command> <link linkend="date_type">date</link></code></para>
+	    </entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Returns a date in the object's zone based on an offset in microseconds from 1970-01-01Z.</para></entry>
+	  </row>
+
+	  <row>
+	    <entry>
+              <para><code><command>static</command> <link linkend="TimeZone::get">TimeZone::get</link>() <command>returns</command> <link linkend="TimeZone_Class">TimeZone</link></code></para>
+	    </entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Returns the default time zone for the current execution context.</para></entry>
+	  </row>
+
+	  <row>
+	    <entry>
+              <para><code><command>static</command> <link linkend="TimeZone::set">TimeZone::set</link>(<link linkend="TimeZone_Class">TimeZone</link> <replaceable>$zone</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+	    </entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Sets the default time zone for the current execution context.</para></entry>
+	  </row>
+	  <row>
+	    <entry>
+              <para><code><command>static</command> <link linkend="TimeZone::setUTCOffset">TimeZone::setUTCOffset</link>(<link linkend="softint_type">softint</link> <replaceable>$secs_east</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+	    </entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Sets the default time zone for the current execution context based on the number of seconds east of UTC; for zones west of UTC, use negative numbers.</para></entry>
+	  </row>
+
+	  <row>
+	    <entry>
+              <para><code><command>static</command> <link linkend="TimeZone::setRegion">TimeZone::setRegion</link>(<link linkend="string_type">string</link> <replaceable>$region</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+	    </entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Sets the default time zone for the current execution context from a zoneinfo region file; if there are errors reading or parsing the file, an exception is thrown.</para></entry>
+	  </row>
+
+	</tbody>
+      </tgroup>
+    </table>
+
+    <sect2 id="TimeZone::constructor">
+      <title>TimeZone::constructor()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Creates the TimeZone object based on the region name (ex: &quot;America/Chicago&quot;) or the UTC offset passed as the number of seconds east of UTC for the zone.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Prototype</term>
+	  <listitem>
+              <para><code><link linkend="TimeZone::constructor">TimeZone::constructor</link>(<link linkend="string_type">string</link> <replaceable>$region</replaceable>)</code></para>
+              <para><code><link linkend="TimeZone::constructor">TimeZone::constructor</link>(<link linkend="softint_type">softint</link> <replaceable>$secs_east</replaceable>)</code></para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting><command>my</command> TimeZone $tz("Europe/Prague");</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for TimeZone::constructor()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code><link linkend="string_type">string</link> <replaceable>$region</replaceable></code></para></entry>
+	      <entry><para>The region name for the time zone (ex: &quot;America/Chicago&quot;); if the zoneinfo file for the region cannot be found or parsed, then an exception is thrown.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$secs_east</replaceable></code></para></entry>
+	      <entry><para>The number of seconds east of UTC for the time zone; for zones west of UTC, use negative numbers.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by TimeZone::constructor()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>TZINFO-ERROR</code></para></entry>
+	      <entry><para>Unable to read zoneinfo file; invalid file magic; error parsing zoneinfo file, etc</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+    </sect2>
+
+    <sect2 id="TimeZone::destructor">
+      <title>TimeZone::destructor()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Destroys the TimeZone object.</para>
+	  </listitem>
+	</varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+	    <programlisting><command>delete</command> $tz;</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </sect2>
+
+    <sect2 id="TimeZone::copy">
+      <title>TimeZone::copy()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Creates a copy of the TimeZone object.</para>
+	  </listitem>
+	</varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+	    <programlisting><command>my</command> TimeZone $newzone = $tz.copy();</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+
+    </sect2>
+
+    <sect2 id="TimeZone::UTCOffset">
+      <title>TimeZone::UTCOffset()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Returns the number of seconds east of UTC for the zone; negative numbers indicate a zone west of UTC.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Prototype</term>
+          <listitem>
+              <para><code><link linkend="TimeZone::UTCOffset">TimeZone::UTCOffset</link>() <command>returns</command> <link linkend="int_type">int</link></code></para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting><command>my</command> int $offset = $tz.UTCOffset();</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+
+      <table>
+        <title>Return Values for TimeZone::UTCOffset()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para><code><link linkend="int_type">int</link></code></para>
+              </entry>
+              <entry>
+                <para>Returns the number of seconds east of UTC for the zone; negative numbers indicate a zone west of UTC.</para>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="TimeZone::hasDST">
+      <title>TimeZone::hasDST()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Returns True if the current zone has daylight saving's time rules, False if not.  TimeZone objects based on zoneinfo region files can have (but do not necessarily have) daylight savings time information; those based on UTC offsets have none.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Prototype</term>
+          <listitem>
+              <para><code><link linkend="TimeZone::hasDST">TimeZone::hasDST</link>() <command>returns</command> <link linkend="bool_type">bool</link></code></para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting><command>my</command> bool $hasdst = $tz.hasDST();</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+
+      <table>
+        <title>Return Values for TimeZone::hasDST()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para><code><link linkend="bool_type">bool</link></code></para>
+              </entry>
+              <entry><para>Returns True if the current zone has daylight saving's time rules, False if not.  TimeZone objects based on zoneinfo region files can have (but do not necessarily have) daylight savings time information; those based on UTC offsets have none.</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="TimeZone::region">
+      <title>TimeZone::region()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Returns the region name as a string; if the current zone is based on a UTC offset, then the UTC offset is returned as a string like &quot;+01:00&quot;.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Prototype</term>
+          <listitem>
+              <para><code><link linkend="TimeZone::region">TimeZone::region</link>() <command>returns</command> <link linkend="string_type">string</link></code></para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting><command>my</command> string $region = $tz.region();</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+
+      <table>
+        <title>Return Values for TimeZone::region()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para><code><link linkend="string_type">string</link></code></para>
+              </entry>
+              <entry><para>Returns the region name as a string; if the current zone is based on a UTC offset, then the UTC offset is returned as a string like &quot;+01:00&quot;.</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="TimeZone::date">
+      <title>TimeZone::date()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Returns the equivalent date in the current time zone; when using integer arguments, offsets are in seconds and microseconds from 1970-01-01Z.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Prototype</term>
+          <listitem>
+              <para><code><link linkend="TimeZone::date">TimeZone::date</link>(<link linkend="softint_type">softint</link> <replaceable>$secs</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$us</replaceable> = 0) <command>returns</command> <link linkend="date_type">date</link></code></para>
+              <para><code><link linkend="TimeZone::date">TimeZone::date</link>(<link linkend="date_type">date</link> <replaceable>$date</replaceable>) <command>returns</command> <link linkend="date_type">date</link></code></para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting><command>my</command> date $dt = $tz.date($other);</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for TimeZone::set()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$secs</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$us</replaceable> = 0</code></para></entry>
+	      <entry><para>Offset in seconds and microseconds from 1970-01-01Z.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code><link linkend="date_type">date</link> <replaceable>$date</replaceable></code></para></entry>
+	      <entry><para>A date that will be used to create the date in the time zone of the objects; the same point in time will be returned but in the time zone of the object.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+        <title>Return Values for TimeZone::date()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry><para><code><link linkend="date_type">date</link></code></para></entry>
+              <entry><para>Returns the equivalent date in the current time zone; when using integer arguments, offsets are in seconds and microseconds from 1970-01-01Z.</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="TimeZone::dateMs">
+      <title>TimeZone::dateMs()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Returns a date in the object's zone based on an offsets in milliseconds from 1970-01-01Z.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Prototype</term>
+          <listitem>
+              <para><code><link linkend="TimeZone::dateMs">TimeZone::dateMs</link>(<link linkend="softint_type">softint</link> <replaceable>$ms</replaceable>) <command>returns</command> <link linkend="date_type">date</link></code></para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting><command>my</command> date $dt = $tz.dateMs($ms);</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+
+      <table>
+        <title>Return Values for TimeZone::dateMs()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para><code><link linkend="date_type">date</link></code></para>
+              </entry>
+              <entry><para>Returns a date in the object's zone based on an offsets in milliseconds from 1970-01-01Z.</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="TimeZone::dateUs">
+      <title>TimeZone::dateUs()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Returns a date in the object's zone based on an offset in microseconds from 1970-01-01Z.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Prototype</term>
+          <listitem>
+              <para><code><link linkend="TimeZone::dateUs">TimeZone::dateUs</link>(<link linkend="softint_type">softint</link> <replaceable>$us</replaceable>) <command>returns</command> <link linkend="date_type">date</link></code></para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting><command>my</command> date $dt = $tz.dateUs($us);</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+
+      <table>
+        <title>Return Values for TimeZone::dateUs()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para><code><link linkend="date_type">date</link></code></para>
+              </entry>
+              <entry><para>Returns a date in the object's zone based on an offset in microseconds from 1970-01-01Z.</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="TimeZone::get">
+      <title>TimeZone::get()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Returns the default time zone for the current execution context.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Prototype</term>
+          <listitem>
+              <para><code><command>static</command> <link linkend="TimeZone::get">TimeZone::get</link>() <command>returns</command> <link linkend="TimeZone_Class">TimeZone</link></code></para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting><command>my</command> TimeZone $tz = TimeZone::get();</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+
+      <table>
+        <title>Return Values for TimeZone::get()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <para><code><link linkend="TimeZone_Class">TimeZone</link></code></para>
+              </entry>
+              <entry><para>Returns the default time zone for the current execution context.</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="TimeZone::set">
+      <title>TimeZone::set()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Sets the default time zone for the current execution context.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Prototype</term>
+          <listitem>
+              <para><code><command>static</command> <link linkend="TimeZone::set">TimeZone::set</link>(<link linkend="TimeZone_Class">TimeZone</link> <replaceable>$zone</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>TimeZone::set($zone);</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for TimeZone::set()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code><link linkend="TimeZone_Class">TimeZone</link> <replaceable>$zone</replaceable></code></para></entry>
+	      <entry><para>The default time zone to set for the current execution context.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+    </sect2>
+
+    <sect2 id="TimeZone::setUTCOffset">
+      <title>TimeZone::setUTCOffset()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Sets the default time zone for the current execution context based on the number of seconds east of UTC; for zones west of UTC, use negative numbers.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Prototype</term>
+          <listitem>
+              <para><code><command>static</command> <link linkend="TimeZone::setUTCOffset">TimeZone::setUTCOffset</link>(<link linkend="softint_type">softint</link> <replaceable>$secs_east</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+	    <para>The following examples are all equivalent, setting the time zone to +02 UTC:</para>
+            <programlisting>TimeZone::setUTCOffset(7200);</programlisting>
+            <programlisting>TimeZone::setUTCOffset(2h);</programlisting>
+            <programlisting>TimeZone::setUTCOffset(PT2H);</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for TimeZone::setUTCOffset()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$secs_east</replaceable></code></para></entry>
+	      <entry><para>The number of seconds east of UTC; for zones west of UTC, use negative numbers</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+    </sect2>
+
+    <sect2 id="TimeZone::setRegion">
+      <title>static TimeZone::setRegion()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Sets the default time zone for the current execution context from a zoneinfo region file; if there are errors reading or parsing the file, an exception is thrown.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Prototype</term>
+          <listitem>
+              <para><code><command>static</command> <link linkend="TimeZone::setRegion">TimeZone::setRegion</link>(<link linkend="string_type">string</link> <replaceable>$region</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>TimeZone::setRegion("Europe/Prague");</programlisting>
+          </listitem>
+        </varlistentry>
+	<varlistentry>
+	  <term>Restrictions</term>
+	  <listitem>
+	    <para>Not available with <code><link linkend="no-locale-control">PO_NO_LOCALE_CONTROL</link></code></para>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for TimeZone::setRegion()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code><link linkend="string_type">string</link> <replaceable>$region</replaceable></code></para></entry>
+	      <entry><para>The region name for the time zone (ex: &quot;America/Chicago&quot;); if the zoneinfo file for the region cannot be found or parsed, then an exception is thrown.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by TimeZone::setRegion()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>TZINFO-ERROR</code></para></entry>
+	      <entry><para>Unable to read zoneinfo file; invalid file magic; error parsing zoneinfo file, etc</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+    </sect2>
+
+  </sect1>
+
   <sect1 id="Qore_SQL_Constants">
     <title>SQL Constants</title>
 
@@ -22790,6 +23527,49 @@ values (%v, %v, %v, %d)", $string, now(), $binary, 100);</programlisting>
 	    <row>
 	      <entry><para>depends on DBI driver</para></entry>
 	      <entry><para>See documentation for the DBI driver for driver-specific exceptions.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="Datasource::inTransaction">
+      <title>Datasource::inTransaction()</title>
+
+     <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Returns True if the Datasource is currently in a transaction (has the transaction lock allocated to the calling thread), False if not.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Prototype</term>
+	  <listitem>
+              <para><code><link linkend="Datasource::inTransaction">Datasource::inTransaction</link>() <command>returns</command> <link linkend="bool_type">bool</link></code></para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting><command>my</command> bool $is_trans = $db.inTransaction();</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Return Value for Datasource::inTransaction()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
+	      <entry><para>Returns True if the Datasource is currently in a transaction (has the transaction lock allocated to the calling thread), False if not.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -24984,6 +25764,49 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
       </table>
     </sect2>
 
+    <sect2 id="DatasourcePool::inTransaction">
+      <title>DatasourcePool::inTransaction()</title>
+
+     <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Returns True if there is a Datasource from the pool currently allocated to the calling thread, False if not.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Prototype</term>
+	  <listitem>
+              <para><code><link linkend="DatasourcePool::inTransaction">DatasourcePool::inTransaction</link>() <command>returns</command> <link linkend="bool_type">bool</link></code></para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting><command>my</command> bool $in_trans = $pool.inTransaction();</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Return Value for DatasourcePool::inTransaction()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
+	      <entry><para>Returns True if there is a Datasource from the pool currently allocated to the calling thread, False if not.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
     <sect2 id="DatasourcePool::rollback">
       <title>DatasourcePool::rollback()</title>
 
@@ -26229,6 +27052,161 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
     </sect2>
   </sect1>
 
+  <sect1 id="AbstractSmartLock_Class">
+    <title>Thread::AbstractSmartLock Class</title>
+
+    <para>Note: This class is not available with the <code><link linkend="no-thread-classes">PO_NO_THREAD_CLASSES</link></code> parse option.</para>
+
+    <para>This is an abstract class to be inherited by builtin classes that implement the internal Qore API that allows them to be used by the <link linkend="Condition_Class">Condition</link> class.  Currently the <link linkend="RWLock_Class">RWLock</link> and <link linkend="Mutex_Class">Mutex</link> classes inherit this class.</para>
+    <para>This class cannot be instantiated directly and also cannot be directly inherited by user-defined classes.</para>
+
+    <table>
+      <title>AbstractSmartLock Method Overview</title>
+      <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<colspec colnum="2" align="center"/>
+	<thead>
+	  <row>
+	    <entry><para>Method</para></entry>
+	    <entry><para>Except?</para></entry>
+	    <entry><para>Description</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+	  <row>
+	    <entry>
+              <para><code><link linkend="AbstractSmartLock::constructor">AbstractSmartLock::constructor</link>()</code></para>
+            </entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Throws an exception if called directly; this class can only be instantiated by builtin subclasses.</para></entry>
+	  </row>
+	  <row>
+	    <entry>
+              <para><code><link linkend="AbstractSmartLock::destructor">::AbstractSmartLock::destructor</link>()</code></para>
+            </entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Performs no action.</para></entry>
+	  </row>
+	  <row>
+	    <entry>
+              <para><code><link linkend="AbstractSmartLock::copy">AbstractSmartLock::copy</link>()</code></para>
+            </entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Performs no action.</para></entry>
+	  </row>
+	  <row>
+	    <entry>
+              <para><code><link linkend="AbstractSmartLock::getName">AbstractSmartLock::getName</link>() <command>returns</command> <link linkend="string_type">string</link></code></para>
+            </entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Returns the name of the threading class directly inheriting this class.</para></entry>
+	  </row>
+	</tbody>
+      </tgroup>
+    </table>
+
+    <sect2 id="AbstractSmartLock::constructor">
+      <title>AbstractSmartLock::constructor()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Throws an exception if called directly or if inherited by a user-defined class; this class can only be instantiated by builtin subclasses.</para>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Exceptions Thrown by AbstractSmartLock::constructor()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>ABSTRACTSMARTLOCK-CONSTRUCTOR-ERROR</code></para></entry>
+	      <entry><para>This class cannot be instantiated directly or inherited by user code.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+    </sect2>
+
+    <sect2 id="AbstractSmartLock::destructor">
+      <title>AbstractSmartLock::destructor()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Performs no action.</para>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+    </sect2>
+
+    <sect2 id="AbstractSmartLock::copy">
+      <title>AbstractSmartLock::copy()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Performs no action.</para>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+    </sect2>
+
+    <sect2 id="AbstractSmartLock::getName">
+      <title>AbstractSmartLock::getName()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Returns the name of the threading class directly inheriting this class.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Prototype</term>
+	  <listitem>
+              <para><code><link linkend="AbstractSmartLock::getName">AbstractSmartLock::getName</link>() <command>returns</command> <link linkend="string_type">string</link></code></para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting><command>my</command> $name = $lock.getName();</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Return Values for AbstractSmartLock::getName()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
+	      <entry><para>Returns the name of the threading class directly inheriting this class.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+  </sect1>
+
   <sect1 id="AutoGate_Class">
     <title>Thread::AutoGate Class</title>
 
@@ -26863,7 +27841,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
 
     <para>Note: This class is not available with the <code><link linkend="no-thread-classes">PO_NO_THREAD_CLASSES</link></code> parse option.</para>
 
-    <para>Condition objects, when used along with a <link linkend="Mutex_Class">Mutex</link> object, allow Qore threads to sleep until a certain condition becomes true.</para>
+    <para>Condition objects, when used along with an <link linkend="AbstractSmartLock_Class">AbstractSmartLock</link> object (such as <link linkend="RWLock_Class">RWLock</link> and <link linkend="Mutex_Class">Mutex</link> objects), allow Qore threads to sleep until a certain condition becomes true.</para>
 
     <table>
       <title>Condition Method Overview</title>
@@ -27004,7 +27982,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Signals a single blocked thread to wake up.  Normally this method call will be made while the same Mutex object used for <link linkend="Condition::wait">Condition::wait()</link> calls is locked.  Then, when the thread calling this method unlocks the Mutex object, the thread(s) woken up by this call can continue executing.</para>
+	    <para>Signals a single blocked thread to wake up.  Normally this method call will be made while the same <link linkend="AbstractSmartLock_Class">AbstractSmartLock</link> object used for <link linkend="Condition::wait">Condition::wait()</link> calls is locked.  Then, when the thread calling this method unlocks the <link linkend="AbstractSmartLock_Class">AbstractSmartLock</link> object, the thread(s) woken up by this call can continue executing.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -27047,7 +28025,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Wakes up all threads waiting on the Condition object.  Normally this method call will be made while the same Mutex object used for <link linkend="Condition::wait">Condition::wait()</link> calls is locked.  Then, when the thread calling this method unlocks the Mutex object, the thread(s) woken up by this call can continue executing.</para>
+	    <para>Wakes up all threads waiting on the Condition object.  Normally this method call will be made while the same <link linkend="AbstractSmartLock_Class">AbstractSmartLock</link> object used for <link linkend="Condition::wait">Condition::wait()</link> calls is locked.  Then, when the thread calling this method unlocks the <link linkend="AbstractSmartLock_Class">AbstractSmartLock</link> object, the thread(s) woken up by this call can continue executing.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -28130,6 +29108,8 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
 
     <para>Note: This class is not available with the <code><link linkend="no-thread-classes">PO_NO_THREAD_CLASSES</link></code> parse option.</para>
 
+    <para>This class inherits <link linkend="AbstractSmartLock_Class">AbstractSmartLock</link>, so it can be used by <link linkend="Condition_Class">Condition</link> objects, while using either the read lock or the write lock.</para>
+
     <para>The RWLock class implements a read-write lock for efficient thread locking when write actions must be atomic and reads can be made in parallel if no write is in progress. When a thread holds the write lock, no other thread can grab the read or write lock. Multiple threads can hold the read lock at one time.</para>
 
     <para>As with all Qore threading primitives, this class supports deadlock detection and throws exceptions when threading errors are encountered (for example, trying to free the read lock while holding the write lock, etc).</para>
@@ -28815,6 +29795,8 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
     <title>Thread::Mutex Class</title>
 
     <para>Note: This class is not available with the <code><link linkend="no-thread-classes">PO_NO_THREAD_CLASSES</link></code> parse option.</para>
+
+    <para>This class inherits <link linkend="AbstractSmartLock_Class">AbstractSmartLock</link>, so it can be used by <link linkend="Condition_Class">Condition</link> objects.</para>
 
     <para>The Mutex class implements a mutual-exclusion lock for thread locking.  Like all Qore thread primitives, objects of this class participate in deadlock detection and throw exceptions when threading errors occur (ex: unlocking a Mutex object locked by another thread, etc).  See individual methods for more information on exceptions thrown.</para>
 
@@ -32501,7 +33483,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
               <para>N</para>
             </entry>
             <entry>
-              <para>Returns a string giving the XML version of the source document (normally &amp;quot;1.</para>
+              <para>Returns a string giving the XML version of the source document (normally &quot;1.0&quot;)</para>
             </entry>
           </row>
           <row>
@@ -33967,7 +34949,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Returns a string giving the XML version of the source document (normally &amp;quot;1.0&amp;quot;) or NOTHING if none is present.</para>
+            <para>Returns a string giving the XML version of the source document (normally &quot;1.0&quot;) or NOTHING if none is present.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -34001,7 +34983,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
             <row>
               <entry><para><code><link linkend="string_type">string</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
               <entry>
-                <para>a string giving the XML version of the source document (normally &amp;quot;1.0&amp;quot;) or NOTHING if none is present</para>
+                <para>a string giving the XML version of the source document (normally &quot;1.0&quot;) or NOTHING if none is present</para>
               </entry>
             </row>
           </tbody>

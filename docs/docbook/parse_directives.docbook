@@ -49,81 +49,97 @@
 	</row>
 	<row>
 	  <entry><para><code><link linkend="no-class-defs">%no-class-defs</link></code></para></entry>
-	  <entry><para>Disallows class definitions.  Equivalent to <code>PO_NO_CLASS_DEFS</code> and the <code>--no-class-defs</code> command-line option.</para></entry>
+	  <entry><para>Disallows class definitions.  Equivalent to <code><link linkend="PO_NO_CLASS_DEFS">PO_NO_CLASS_DEFS</link></code> and the <code>--no-class-defs</code> command-line option.</para></entry>
 	</row>
 	<row>
 	  <entry><para><code><link linkend="no-child-restrictions">%no-child-restrictions</link></code></para></entry>
-	  <entry><para>Allows child program objects to have parse option restrictions that are not a strict subset of the parents'.  Equivalent to parse option <code>PO_NO_CHILD_RESTRICTIONS</code> and the <code>--no-child-restrictions</code> command-line option.</para></entry>
+	  <entry><para>Allows child program objects to have parse option restrictions that are not a strict subset of the parents'.  Equivalent to parse option <code><link linkend="PO_NO_CHILD_RESTRICTIONS">PO_NO_CHILD_RESTRICTIONS</link></code> and the <code>--no-child-restrictions</code> command-line option.</para></entry>
 	</row>
 	<row>
 	  <entry><para><code><link linkend="no-constant-defs">%no-constant-defs</link></code></para></entry>
-	  <entry><para>Disallows constant definitions.  Equivalent to parse option <code>PO_NO_CONSTANT_DEFS</code> and the <code>--no-constant-defs</code> command-line option.</para></entry>
+	  <entry><para>Disallows constant definitions.  Equivalent to parse option <code><link linkend="PO_NO_CONSTANT_DEFS">PO_NO_CONSTANT_DEFS</link></code> and the <code>--no-constant-defs</code> command-line option.</para></entry>
 	</row>
 	<row>
 	  <entry><para><code><link linkend="no-database">%no-database</link></code></para></entry>
-	  <entry><para>Disallows access to database functionality (for example the <link linkend="Datasource_Class">Datasource class</link>.  Equivalent to parse option <code>PO_NO_DATABASE</code> and the <code>--no-database</code> command-line option.</para></entry>
+	  <entry><para>Disallows access to database functionality (for example the <link linkend="Datasource_Class">Datasource class</link>.  Equivalent to parse option <code><link linkend="PO_NO_DATABASE">PO_NO_DATABASE</link></code> and the <code>--no-database</code> command-line option.</para></entry>
+	</row>
+	<row>
+	  <entry><para><code><link linkend="no-external-info">%no-external-info</link></code></para></entry>
+	  <entry><para>Disallows any access to functionality that provides external information (see <code><link linkend="no-external-info">%no-external-info</link></code> for a list of features not available with this parse option).  Equivalent to parse option <code><link linkend="PO_NO_EXTERNAL_INFO">PO_NO_EXTERNAL_INFO</link></code> and the <code>--no-external-info</code> command-line option.</para></entry>
 	</row>
 	<row>
 	  <entry><para><code><link linkend="no-external-process">%no-external-process</link></code></para></entry>
-	  <entry><para>Disallows any access to external processes (see <code><link linkend="no-external-process">%no-external-process</link></code> for a list of features not available with this parse option).  Equivalent to parse option <code>PO_NO_EXTERNAL_PROCESS</code> and the <code>--no-external-process</code> command-line option.</para></entry>
+	  <entry><para>Disallows any access to external processes (see <code><link linkend="no-external-process">%no-external-process</link></code> for a list of features not available with this parse option).  Equivalent to parse option <code><link linkend="PO_NO_EXTERNAL_PROCESS">PO_NO_EXTERNAL_PROCESS</link></code> and the <code>--no-external-process</code> command-line option.</para></entry>
 	</row>
 	<row>
 	  <entry><para><code><link linkend="no-filesystem">%no-filesystem</link></code></para></entry>
-	  <entry><para>Disallows access to the local filesystem.  Equivalent to parse option <code>PO_NO_FILESYSTEM</code> and the <code>--no-filesystem</code> command-line option.</para></entry>
+	  <entry><para>Disallows access to the local filesystem.  Equivalent to parse option <code><link linkend="PO_NO_FILESYSTEM">PO_NO_FILESYSTEM</link></code> and the <code>--no-filesystem</code> command-line option.</para></entry>
 	</row>
 	<row>
 	  <entry><para><code><link linkend="no-global-vars">%no-global-vars</link></code></para></entry>
-	  <entry><para>Disallows the use of global variables.  Equivalent to parse option <code>PO_NO_GLOBAL_VARS</code> and the <code>--no-global-vars</code> command-line option.</para></entry>
+	  <entry><para>Disallows the use of global variables.  Equivalent to parse option <code><link linkend="PO_NO_GLOBAL_VARS">PO_NO_GLOBAL_VARS</link></code> and the <code>--no-global-vars</code> command-line option.</para></entry>
 	</row>
 	<row>
 	  <entry><para><code><link linkend="no-gui">%no-gui</link></code></para></entry>
-	  <entry><para>Disallows functionality that draws graphics to the display.  Equivalent to parse option <code>PO_NO_GUI</code> and the <code>-pno-gui</code> command-line option.</para></entry>
+	  <entry><para>Disallows functionality that draws graphics to the display.  Equivalent to parse option <code><link linkend="PO_NO_GUI">PO_NO_GUI</link></code> and the <code>-pno-gui</code> command-line option.</para></entry>
+	</row>
+	<row>
+	  <entry><para><code><link linkend="no-locale-control">%no-locale-control</link></code></para></entry>
+	  <entry><para>Disallows access to functionality that changes locale information (see <code><link linkend="no-locale-control">%no-locale-control</link></code> for a list of features not available with this parse option).  Equivalent to parse option <code><link linkend="PO_NO_LOCALE_CONTROL">PO_NO_LOCALE_CONTROL</link></code> and the <code>--no-locale-control</code> command-line option.</para></entry>
 	</row>
 	<row>
 	  <entry><para><code><link linkend="no-namespace-defs">%no-namespace-defs</link></code></para></entry>
-	  <entry><para>Disallows new namespace definitions.  Equivalent to <code>PO_NO_NAMESPACE_DEFS</code> and the <code>--no-namespace-defs</code> command-line option.</para></entry>
+	  <entry><para>Disallows new namespace definitions.  Equivalent to <code><link linkend="PO_NO_NAMESPACE_DEFS">PO_NO_NAMESPACE_DEFS</link></code> and the <code>--no-namespace-defs</code> command-line option.</para></entry>
 	</row>
 	<row>
 	  <entry><para><code><link linkend="no-network">%no-network</link></code></para></entry>
-	  <entry><para>Disallows access to the network.  Equivalent to parse option <code>PO_NO_NETWORK</code> and the <code>--no-network</code> command-line option.</para></entry>
+	  <entry><para>Disallows access to the network.  Equivalent to parse option <code><link linkend="PO_NO_NETWORK">PO_NO_NETWORK</link></code> and the <code>--no-network</code> command-line option.</para></entry>
 	</row>
 	<row>
 	  <entry><para><code><link linkend="no-new">%no-new</link></code></para></entry>
-	  <entry><para>Disallows use of the <command>new</command> operator.  Equivalent to parse option <code>PO_NO_NEW</code> and the <code>--no-new</code> command-line option.</para></entry>
+	  <entry><para>Disallows use of the <command>new</command> operator.  Equivalent to parse option <code><link linkend="PO_NO_NEW">PO_NO_NEW</link></code> and the <code>--no-new</code> command-line option.</para></entry>
 	</row>
 	<row>
 	  <entry><para><code><link linkend="no-process-control">%no-process-control</link></code></para></entry>
-	  <entry><para>Disallows access to functions that would affect the current process (see <code><link linkend="no-process-control">%no-process-control</link></code> for a list of features not available with this parse option).  Equivalent to parse option <code>PO_NO_PROCESS_CONTROL</code> and the <code>--no-process-control</code> command-line option.</para></entry>
+	  <entry><para>Disallows access to functions that would affect the current process (see <code><link linkend="no-process-control">%no-process-control</link></code> for a list of features not available with this parse option).  Equivalent to parse option <code><link linkend="PO_NO_PROCESS_CONTROL">PO_NO_PROCESS_CONTROL</link></code> and the <code>--no-process-control</code> command-line option.</para></entry>
 	</row>
 	<row>
 	  <entry><para><code><link linkend="no-subroutine-defs">%no-subroutine-defs</link></code></para></entry>
-	  <entry><para>Disallows subroutine (function) definitions.  Equivalent to parse option <code>PO_NO_SUBROUTINE_DEFS</code> and the <code>--no-subroutine-defs</code> command-line option.</para></entry>
+	  <entry><para>Disallows subroutine (function) definitions.  Equivalent to parse option <code><link linkend="PO_NO_SUBROUTINE_DEFS">PO_NO_SUBROUTINE_DEFS</link></code> and the <code>--no-subroutine-defs</code> command-line option.</para></entry>
 	</row>
 
 	<row>
 	  <entry><para><code><link linkend="no-terminal-io">%no-terminal-io</link></code></para></entry>
-	  <entry><para>Disallows access to terminal I/O (see <code><link linkend="no-terminal-io">%no-terminal-io</link></code> for a list of features not available with this parse option).  Equivalent to parse option <code>PO_NO_TERMINAL_IO</code> and the <code>-pno-terminal-io</code> command-line option.</para></entry>
+	  <entry><para>Disallows access to terminal I/O (see <code><link linkend="no-terminal-io">%no-terminal-io</link></code> for a list of features not available with this parse option).  Equivalent to parse option <code><link linkend="PO_NO_TERMINAL_IO">PO_NO_TERMINAL_IO</link></code> and the <code>-pno-terminal-io</code> command-line option.</para></entry>
 	</row>
 
 	<row>
 	  <entry><para><code><link linkend="no-thread-classes">%no-thread-classes</link></code></para></entry>
-	  <entry><para>Disallows access to thread classes (see <code><link linkend="no-thread-classes">%no-thread-classes</link></code> for a list of features not available with this parse option).  Equivalent to parse option <code>PO_NO_THREAD_CLASSES</code> and the <code>--no-thread-classes</code> command-line option.</para></entry>
+	  <entry><para>Disallows access to thread classes (see <code><link linkend="no-thread-classes">%no-thread-classes</link></code> for a list of features not available with this parse option).  Equivalent to parse option <code><link linkend="PO_NO_THREAD_CLASSES">PO_NO_THREAD_CLASSES</link></code> and the <code>--no-thread-classes</code> command-line option.</para></entry>
 	</row>
 	<row>
 	  <entry><para><code><link linkend="no-thread-control">%no-thread-control</link></code></para></entry>
-	  <entry><para>Disallows access to thread control operations (see <code><link linkend="no-thread-control">%no-thread-control</link></code> for a list of features not available with this parse option).  Equivalent to parse option <code>PO_NO_THREAD_CONTROL</code> and the <code>--no-thread-control</code> command-line option.</para></entry>
+	  <entry><para>Disallows access to thread control operations (see <code><link linkend="no-thread-control">%no-thread-control</link></code> for a list of features not available with this parse option).  Equivalent to parse option <code><link linkend="PO_NO_THREAD_CONTROL">PO_NO_THREAD_CONTROL</link></code> and the <code>--no-thread-control</code> command-line option.</para></entry>
+	</row>
+	<row>
+	  <entry><para><code><link linkend="no-thread-info">%no-thread-info</link></code></para></entry>
+	  <entry><para>Disallows any access to functionality that provides threading information (see <code><link linkend="no-thread-info">%no-thread-info</link></code> for a list of features not available with this parse option).  Equivalent to parse option <code><link linkend="PO_NO_THREAD_INFO">PO_NO_THREAD_INFO</link></code> and the <code>--no-thread-info</code> command-line option.</para></entry>
 	</row>
 	<row>
 	  <entry><para><code><link linkend="no-threads">%no-threads</link></code></para></entry>
-	  <entry><para>Disallows access to all thread control operations and thread classes (equivalent to <code>--no-thread-control</code> and <code>--no-thread-classes</code> together).  Equivalent to parse option <code>PO_NO_THREADS</code> and the <code>--no-threads</code> command-line option.</para></entry>
+	  <entry><para>Disallows access to all thread control operations and thread classes (equivalent to <code>--no-thread-control</code> and <code>--no-thread-classes</code> together).  Equivalent to parse option <code><link linkend="PO_NO_THREADS">PO_NO_THREADS</link></code> and the <code>--no-threads</code> command-line option.</para></entry>
 	</row>
 	<row>
 	  <entry><para><code><link linkend="no-top-level">%no-top-level</link></code></para></entry>
-	  <entry><para>Disallows top level code.  Equivalent to parse option <code>PO_NO_TOP_LEVEL_STATEMENTS</code> and the <code>--no-top-level</code> command-line option.</para></entry>
+	  <entry><para>Disallows top level code.  Equivalent to parse option <code><link linkend="PO_NO_TOP_LEVEL_STATEMENTS">PO_NO_TOP_LEVEL_STATEMENTS</link></code> and the <code>--no-top-level</code> command-line option.</para></entry>
 	</row>
 	<row>
 	  <entry><para><code><link linkend="require-our">%require-our</link></code></para></entry>
-	  <entry><para>Requires global variables to be declared with <command>our</command> prior to use (like perl's <code>use strict vars</code> pragma).  Equivalent to parse option <code>PO_REQUIRE_OUR</code> and the <code>--require-our</code> command-line option.</para></entry>
+	  <entry><para>Requires global variables to be declared with <command>our</command> prior to use (like perl's <code>use strict vars</code> pragma).  Equivalent to parse option <code><link linkend="PO_REQUIRE_OUR">PO_REQUIRE_OUR</link></code> and the <code>--require-our</code> command-line option.</para></entry>
+	</row>
+	<row>
+	  <entry><para><code><link linkend="require-types">%require-types</link></code></para></entry>
+	  <entry><para>Requires <link linkend="Data_Type_Declarations">type declarations</link> for all function and method parameters, return types, variables, and object members.  Equivalent to parse option <code><link linkend="PO_REQUIRE_TYPES">PO_REQUIRE_TYPES</link></code> and the <code>--require-types</code> command-line option.</para></entry>
 	</row>
 	<row>
 	  <entry><para><code><link linkend="requires">%requires</link></code> <replaceable>feature [&lt;|&lt;=|=|&gt;=|&gt; &lt;version&gt;]</replaceable></para></entry>
@@ -360,7 +376,7 @@
       <varlistentry>
 	<term>Parse Option Constant</term>
 	<listitem>
-	  <para><code>PO_LOCK_WARNINGS</code></para>
+	  <para><code><link linkend="PO_LOCK_WARNINGS">PO_LOCK_WARNINGS</link></code></para>
 	</listitem>
       </varlistentry>
       <varlistentry>
@@ -389,7 +405,7 @@
       <varlistentry>
 	<term>Parse Option Constant</term>
 	<listitem>
-	  <para><code>PO_NO_CHILD_PO_RESTRICTIONS</code></para>
+	  <para><code><link linkend="PO_NO_CHILD_PO_RESTRICTIONS">PO_NO_CHILD_PO_RESTRICTIONS</link></code></para>
 	</listitem>
       </varlistentry>
       <varlistentry>
@@ -418,7 +434,7 @@
       <varlistentry>
 	<term>Parse Option Constant</term>
 	<listitem>
-	  <para><code>PO_NO_CLASS_DEFS</code></para>
+	  <para><code><link linkend="PO_NO_CLASS_DEFS">PO_NO_CLASS_DEFS</link></code></para>
 	</listitem>
       </varlistentry>
       <varlistentry>
@@ -447,7 +463,7 @@
       <varlistentry>
 	<term>Parse Option Constant</term>
 	<listitem>
-	  <para><code>PO_NO_CONSTANT_DEFS</code></para>
+	  <para><code><link linkend="PO_NO_CONSTANT_DEFS">PO_NO_CONSTANT_DEFS</link></code></para>
 	</listitem>
       </varlistentry>
       <varlistentry>
@@ -476,7 +492,7 @@
       <varlistentry>
 	<term>Parse Option Constant</term>
 	<listitem>
-	  <para><code>PO_NO_DATABASE</code></para>
+	  <para><code><link linkend="PO_NO_DATABASE">PO_NO_DATABASE</link></code></para>
 	</listitem>
       </varlistentry>
       <varlistentry>
@@ -487,6 +503,136 @@
       </varlistentry>
     </variablelist>
   </sect1>
+
+  <sect1 id="no-external-info">
+    <title>no-external-info</title>
+    <variablelist>
+      <varlistentry>
+	<term>Parse Directive</term>
+	<listitem>
+	  <para><code>%no-external-info</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Command-Line</term>
+	<listitem>
+	  <para><code>--no-external-info</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Parse Option Constant</term>
+	<listitem>
+	  <para><code><link linkend="PO_NO_EXTERNAL_INFO">PO_NO_EXTERNAL_INFO</link></code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Description</term>
+	<listitem>
+	  <para>Disallows any access to functionality that provides external information.</para>
+
+	  <table>
+	    <title>Unavailable Features with no-external-info</title>
+	    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	      <thead>
+		<row>
+		  <entry><para>Feature/Function</para></entry>
+		  <entry><para>Description</para></entry>
+		</row>
+	      </thead>
+	      <tbody>
+		<row>
+		  <entry><para><link linkend="getid">getuid()</link></para></entry>
+		  <entry><para>The getuid() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="getid">geteuid()</link></para></entry>
+		  <entry><para>The geteuid() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="getid">getgid()</link></para></entry>
+		  <entry><para>The getgid() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="getid">getegid()</link></para></entry>
+		  <entry><para>The getegid() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="getid">getpid()</link></para></entry>
+		  <entry><para>The getpid() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="getid">getppid()</link></para></entry>
+		  <entry><para>The getppid() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="gethostname">gethostname()</link></para></entry>
+		  <entry><para>The gethostname() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="gethostbyname">gethostbyname()</link></para></entry>
+		  <entry><para>The gethostbyname() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="gethostbyaddr">gethostbyaddr()</link></para></entry>
+		  <entry><para>The gethostbyaddr() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="gethostbyaddr_long">gehostbyaddr_longt()</link></para></entry>
+		  <entry><para>The get() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="gethostbyaddr_long">gethostbyaddr_long()</link></para></entry>
+		  <entry><para>The gethostbyaddr_long() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="getcwd">getcwd()</link></para></entry>
+		  <entry><para>The getcwd() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="getcwd2">getcwd2()</link></para></entry>
+		  <entry><para>The getcwd2() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="getpwuid">getpwuid()</link></para></entry>
+		  <entry><para>The getpwuid() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="getpwuid2">getpwuid2()</link></para></entry>
+		  <entry><para>The getpwuid2() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="getpwnam">getpwnam()</link></para></entry>
+		  <entry><para>The getpwnam() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="getpwnam2">getpwnam2()</link></para></entry>
+		  <entry><para>The getpwnam2() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="getgrgid">getgrgid()</link></para></entry>
+		  <entry><para>The getgrgid() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="getgrgid2">getgrgid2()</link></para></entry>
+		  <entry><para>The getgrgid2() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="getgrnam">getgrnam()</link></para></entry>
+		  <entry><para>The getgrnam() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="getgrnam2">getgrnam2()</link></para></entry>
+		  <entry><para>The getgrnam2() function is not available.</para></entry>
+		</row>
+	      </tbody>
+	    </tgroup>
+	  </table>
+
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </sect1>
+
   <sect1 id="no-external-process">
     <title>no-external-process</title>
     <variablelist>
@@ -505,7 +651,7 @@
       <varlistentry>
 	<term>Parse Option Constant</term>
 	<listitem>
-	  <para><code>PO_NO_EXTERNAL_PROCESS</code></para>
+	  <para><code><link linkend="PO_NO_EXTERNAL_PROCESS">PO_NO_EXTERNAL_PROCESS</link></code></para>
 	</listitem>
       </varlistentry>
       <varlistentry>
@@ -570,7 +716,7 @@
       <varlistentry>
 	<term>Parse Option Constant</term>
 	<listitem>
-	  <para><code>PO_NO_FILESYSTEM</code></para>
+	  <para><code><link linkend="PO_NO_FILESYSTEM">PO_NO_FILESYSTEM</link></code></para>
 	</listitem>
       </varlistentry>
       <varlistentry>
@@ -725,7 +871,7 @@
       <varlistentry>
 	<term>Parse Option Constant</term>
 	<listitem>
-	  <para><code>PO_NO_GLOBAL_VARS</code></para>
+	  <para><code><link linkend="PO_NO_GLOBAL_VARS">PO_NO_GLOBAL_VARS</link></code></para>
 	</listitem>
       </varlistentry>
       <varlistentry>
@@ -755,13 +901,69 @@
       <varlistentry>
 	<term>Parse Option Constant</term>
 	<listitem>
-	  <para><code>PO_NO_GUI</code></para>
+	  <para><code><link linkend="PO_NO_GUI">PO_NO_GUI</link></code></para>
 	</listitem>
       </varlistentry>
       <varlistentry>
 	<term>Description</term>
 	<listitem>
 	  <para>Disallows the use of functionality that draws graphics to the display (this functionality is not implemented in the qore library; only implemented in modules).</para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </sect1>
+
+  <sect1 id="no-locale-control">
+    <title>no-locale-control</title>
+    <variablelist>
+      <varlistentry>
+	<term>Parse Directive</term>
+	<listitem>
+	  <para><code>%no-locale-control</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Command-Line</term>
+	<listitem>
+	  <para><code>--no-locale-control, -P</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Parse Option Constant</term>
+	<listitem>
+	  <para><code><link linkend="PO_NO_LOCALE_CONTROL">PO_NO_LOCALE_CONTROL</link></code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Description</term>
+	<listitem>
+	  <para>Disallows access to functions that would affect the current process.</para>
+	  <table>
+	    <title>Unavailable Features with no-locale-control</title>
+	    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	      <thead>
+		<row>
+		  <entry><para>Feature/Function</para></entry>
+		  <entry><para>Description</para></entry>
+		</row>
+	      </thead>
+	      <tbody>
+		<row>
+		  <entry><para><link linkend="TimeZone::set">TimeZone::set()</link> static method</para></entry>
+		  <entry><para>The TimeZone::set() static method is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="TimeZone::setUTCOffset">TimeZone::setUTCOffset()</link> static method</para></entry>
+		  <entry><para>The TimeZone::setUTCOffset() static method is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="TimeZone::setRegion">TimeZone::setRegion()</link> static method</para></entry>
+		  <entry><para>The TimeZone::setRegion() static method is not available.</para></entry>
+		</row>
+	      </tbody>
+	    </tgroup>
+	  </table>
+
 	</listitem>
       </varlistentry>
     </variablelist>
@@ -785,7 +987,7 @@
       <varlistentry>
 	<term>Parse Option Constant</term>
 	<listitem>
-	  <para><code>PO_NO_NAMESPACE_DEFS</code></para>
+	  <para><code><link linkend="PO_NO_NAMESPACE_DEFS">PO_NO_NAMESPACE_DEFS</link></code></para>
 	</listitem>
       </varlistentry>
       <varlistentry>
@@ -815,7 +1017,7 @@
       <varlistentry>
 	<term>Parse Option Constant</term>
 	<listitem>
-	  <para><code>PO_NO_NETWORK</code></para>
+	  <para><code><link linkend="PO_NO_NETWORK">PO_NO_NETWORK</link></code></para>
 	</listitem>
       </varlistentry>
       <varlistentry>
@@ -880,7 +1082,7 @@
       <varlistentry>
 	<term>Parse Option Constant</term>
 	<listitem>
-	  <para><code>PO_NO_NEW</code></para>
+	  <para><code><link linkend="PO_NO_NEW">PO_NO_NEW</link></code></para>
 	</listitem>
       </varlistentry>
       <varlistentry>
@@ -909,7 +1111,7 @@
       <varlistentry>
 	<term>Parse Option Constant</term>
 	<listitem>
-	  <para><code>PO_NO_PROCESS_CONTROL</code></para>
+	  <para><code><link linkend="PO_NO_PROCESS_CONTROL">PO_NO_PROCESS_CONTROL</link></code></para>
 	</listitem>
       </varlistentry>
       <varlistentry>
@@ -1000,7 +1202,7 @@
       <varlistentry>
 	<term>Parse Option Constant</term>
 	<listitem>
-	  <para><code>PO_NO_SUBROUTINE_DEFS</code></para>
+	  <para><code><link linkend="PO_NO_SUBROUTINE_DEFS">PO_NO_SUBROUTINE_DEFS</link></code></para>
 	</listitem>
       </varlistentry>
       <varlistentry>
@@ -1030,7 +1232,7 @@
       <varlistentry>
 	<term>Parse Option Constant</term>
 	<listitem>
-	  <para><code>PO_NO_TERMINAL_IO</code></para>
+	  <para><code><link linkend="PO_NO_TERMINAL_IO">PO_NO_TERMINAL_IO</link></code></para>
 	</listitem>
       </varlistentry>
       <varlistentry>
@@ -1105,7 +1307,7 @@
       <varlistentry>
 	<term>Parse Option Constant</term>
 	<listitem>
-	  <para><code>PO_NO_THREAD_CLASSES</code></para>
+	  <para><code><link linkend="PO_NO_THREAD_CLASSES">PO_NO_THREAD_CLASSES</link></code></para>
 	</listitem>
       </varlistentry>
       <varlistentry>
@@ -1184,7 +1386,7 @@
       <varlistentry>
 	<term>Parse Option Constant</term>
 	<listitem>
-	  <para><code>PO_NO_THREAD_CONTROL</code></para>
+	  <para><code><link linkend="PO_NO_THREAD_CONTROL">PO_NO_THREAD_CONTROL</link></code></para>
 	</listitem>
       </varlistentry>
       <varlistentry>
@@ -1245,6 +1447,77 @@
       </varlistentry>
     </variablelist>
   </sect1>
+  <sect1 id="no-thread-info">
+    <title>no-thread-info</title>
+    <variablelist>
+      <varlistentry>
+	<term>Parse Directive</term>
+	<listitem>
+	  <para><code>%no-thread-info</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Command-Line</term>
+	<listitem>
+	  <para><code>--no-thread-info</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Parse Option Constant</term>
+	<listitem>
+	  <para><code><link linkend="PO_NO_THREAD_INFO">PO_NO_THREAD_INFO</link></code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Description</term>
+	<listitem>
+	  <para>Disallows access to functionality that provides information about threading.</para>
+	  <table>
+	    <title>Unavailable Features with no-thread-info</title>
+	    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	      <thead>
+		<row>
+		  <entry><para>Feature/Function</para></entry>
+		  <entry><para>Description</para></entry>
+		</row>
+	      </thead>
+	      <tbody>
+		<row>
+		  <entry><para><link linkend="gettid">gettid()</link> function</para></entry>
+		  <entry><para>The gettid() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="num_threads">num_threads()</link> function</para></entry>
+		  <entry><para>The num_threads() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="thread_list">thread_list()</link> function</para></entry>
+		  <entry><para>The thread_list() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="thread_list">thread_list()</link> function</para></entry>
+		  <entry><para>The thread_list() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="get_thread_data">get_thread_data()</link> function</para></entry>
+		  <entry><para>The get_thread_data() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="get_all_thread_data">get_all_thread_data()</link> function</para></entry>
+		  <entry><para>The get_all_thread_data() function is not available.</para></entry>
+		</row>
+		<row>
+		  <entry><para><link linkend="getAllThreadCallStacks">getAllThreadCallStacks()</link> function</para></entry>
+		  <entry><para>The getAllThreadCallStacks() function is not available.</para></entry>
+		</row>
+	      </tbody>
+	    </tgroup>
+	  </table>
+
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </sect1>
   <sect1 id="no-threads">
     <title>no-threads</title>
     <variablelist>
@@ -1263,7 +1536,7 @@
       <varlistentry>
 	<term>Parse Option Constant</term>
 	<listitem>
-	  <para><code>PO_NO_THREADS</code></para>
+	  <para><code><link linkend="PO_NO_THREADS">PO_NO_THREADS</link></code></para>
 	</listitem>
       </varlistentry>
       <varlistentry>
@@ -1292,7 +1565,7 @@
       <varlistentry>
 	<term>Parse Option Constant</term>
 	<listitem>
-	  <para><code>PO_NO_TOP_LEVEL_STATEMENTS</code></para>
+	  <para><code><link linkend="PO_NO_TOP_LEVEL_STATEMENTS">PO_NO_TOP_LEVEL_STATEMENTS</link></code></para>
 	</listitem>
       </varlistentry>
       <varlistentry>
@@ -1321,7 +1594,7 @@
       <varlistentry>
 	<term>Parse Option Constant</term>
 	<listitem>
-	  <para><code>PO_REQUIRE_OUR</code></para>
+	  <para><code><link linkend="PO_REQUIRE_OUR">PO_REQUIRE_OUR</link></code></para>
 	</listitem>
       </varlistentry>
       <varlistentry>
@@ -1332,6 +1605,36 @@
       </varlistentry>
     </variablelist>
   </sect1>
+  <sect1 id="require-types">
+    <title>require-types</title>
+    <variablelist>
+      <varlistentry>
+	<term>Parse Directive</term>
+	<listitem>
+	  <para><code>%require-types</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Command-Line</term>
+	<listitem>
+	  <para><code>--require-types</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Parse Option Constant</term>
+	<listitem>
+	  <para><code><link linkend="PO_REQUIRE_TYPES">PO_REQUIRE_TYPES</link></code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Description</term>
+	<listitem>
+	  <para>Requires <link linkend="Data_Type_Declarations">type declarations</link> for all function and method parameters, return types, variables, and object members.</para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </sect1>
+
   <sect1 id="requires">
     <title>requires</title>
     <variablelist>
