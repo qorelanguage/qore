@@ -23229,7 +23229,7 @@ values (%v, %v, %v, %d)", $string, now(), $binary, 100);</programlisting>
 
       <table>
 	<title>Arguments for Datasource::constructor(hash $params) Variant</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
 	      <entry><para>Argument</para></entry>
@@ -24828,7 +24828,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 
       <table>
 	<title>Arguments for Datasource::setDBCharset()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
 	      <entry><para>Argument</para></entry>
@@ -25556,7 +25556,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 
       <table>
 	<title>Arguments for DatasourcePool::constructor(hash $params) Variant</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
 	      <entry><para>Argument</para></entry>
