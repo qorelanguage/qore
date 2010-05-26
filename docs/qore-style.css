@@ -34,11 +34,20 @@ div.revhistory { display: none; }
         padding: 0 0.4em 0 0.4em;
 }
 
+/* allow wrapping of the code in tables/para. Programlisting is left untouched. */
+p code.code {
+        white-space: pre-wrap;
+}
+
 .command {
         font-family: monospace;
         font-size: 10pt;
         font-weight: bold;
         color: navy;
+}
+
+span.term {
+        font-weight: bold;
 }
 
 a {
