@@ -13,7 +13,6 @@
   <!ENTITY warnings         SYSTEM "warnings.docbook">
   <!ENTITY keywords         SYSTEM "keywords.docbook">
   <!ENTITY bugs             SYSTEM "bugs.docbook">
-  <!ENTITY comparison       SYSTEM "comparison.docbook">
   <!ENTITY future           SYSTEM "future.docbook">
 ]>
 
@@ -33,7 +32,6 @@
 &warnings;
 &keywords;
 &bugs;
-&comparison;
 &future;
 
 <colophon>

@@ -47,7 +47,7 @@ static void TIMEZONE_copy(QoreObject *self, QoreObject *old, TimeZoneData *z, Ex
    self->setPrivate(CID_TIMEZONE, new TimeZoneData(*z));
 }
 
-// TimeZone::getUTCOffset() returns int
+// TimeZone::UTCOffset() returns int
 static AbstractQoreNode *TZ_UTCOffset(QoreObject *self, TimeZoneData *z, const QoreListNode *params, ExceptionSink *xsink) {
    return new QoreBigIntNode((*z)->getUTCOffset());
 }
@@ -129,7 +129,7 @@ QoreClass *initTimeZoneClass() {
 
    QC_TIMEZONE->setCopy((q_copy_t)TIMEZONE_copy);
 
-   // TimeZone::getUTCOffset() returns int
+   // TimeZone::UTCOffset() returns int
    QC_TIMEZONE->addMethodExtended("UTCOffset", (q_method_t)TZ_UTCOffset, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo);
 
    // TimeZone::hasDST() returns bool
@@ -138,7 +138,7 @@ QoreClass *initTimeZoneClass() {
    // TimeZone::region() returns string
    QC_TIMEZONE->addMethodExtended("region", (q_method_t)TZ_region, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringTypeInfo);
 
-   // TimeZone::date(softint) returns date
+   // TimeZone::date(softint $secs, softint $us = 0) returns date
    QC_TIMEZONE->addMethodExtended("date", (q_method_t)TZ_date_int, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, dateTypeInfo, 2, softBigIntTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, zero());
 
    // TimeZone::date(date) returns date

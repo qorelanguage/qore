@@ -54,7 +54,7 @@
       <link linkend="switch_Statements">case</link>,
       <link linkend="Chomp_Operator">chomp</link>
       <link linkend="Classes">class</link>, 
-      <link linkend="delete_Statements">delete</link>, 
+      <link linkend="Delete_Operator">delete</link>, 
       <link linkend="Exists_Operator">exists</link>, 
       <link linkend="Foldl_Operator">foldl</link>, 
       <link linkend="Foldr_Operator">foldr</link>, 

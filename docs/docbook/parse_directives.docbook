@@ -53,7 +53,7 @@
 	</row>
 	<row>
 	  <entry><para><code><link linkend="no-child-restrictions">%no-child-restrictions</link></code></para></entry>
-	  <entry><para>Allows child program objects to have parse option restrictions that are not a strict subset of the parents'.  Equivalent to parse option <code><link linkend="PO_NO_CHILD_RESTRICTIONS">PO_NO_CHILD_RESTRICTIONS</link></code> and the <code>--no-child-restrictions</code> command-line option.</para></entry>
+	  <entry><para>Allows child program objects to have parse option restrictions that are not a strict subset of the parents'.  Equivalent to parse option <code><link linkend="PO_NO_CHILD_PO_RESTRICTIONS">PO_NO_CHILD_PO_RESTRICTIONS</link></code> and the <code>--no-child-restrictions</code> command-line option.</para></entry>
 	</row>
 	<row>
 	  <entry><para><code><link linkend="no-constant-defs">%no-constant-defs</link></code></para></entry>
@@ -541,27 +541,27 @@
 	      </thead>
 	      <tbody>
 		<row>
-		  <entry><para><link linkend="getid">getuid()</link></para></entry>
+		  <entry><para><link linkend="getuid">getuid()</link></para></entry>
 		  <entry><para>The getuid() function is not available.</para></entry>
 		</row>
 		<row>
-		  <entry><para><link linkend="getid">geteuid()</link></para></entry>
+		  <entry><para><link linkend="geteuid">geteuid()</link></para></entry>
 		  <entry><para>The geteuid() function is not available.</para></entry>
 		</row>
 		<row>
-		  <entry><para><link linkend="getid">getgid()</link></para></entry>
+		  <entry><para><link linkend="getgid">getgid()</link></para></entry>
 		  <entry><para>The getgid() function is not available.</para></entry>
 		</row>
 		<row>
-		  <entry><para><link linkend="getid">getegid()</link></para></entry>
+		  <entry><para><link linkend="getegid">getegid()</link></para></entry>
 		  <entry><para>The getegid() function is not available.</para></entry>
 		</row>
 		<row>
-		  <entry><para><link linkend="getid">getpid()</link></para></entry>
+		  <entry><para><link linkend="getpid">getpid()</link></para></entry>
 		  <entry><para>The getpid() function is not available.</para></entry>
 		</row>
 		<row>
-		  <entry><para><link linkend="getid">getppid()</link></para></entry>
+		  <entry><para><link linkend="getppid">getppid()</link></para></entry>
 		  <entry><para>The getppid() function is not available.</para></entry>
 		</row>
 		<row>

@@ -108,6 +108,7 @@ static const char parseopts[] =    "qore options controlling parse options:\n"
    "  -A, --lock-warnings          do not allow changes in warning levels\n"
    "      --no-class-defs          make class definitions illegal\n"
    "  -D, --no-database            disallow access to database functionality\n"
+   "      --no-external-info       disallow access to external info\n"
    "  -E, --no-external-process    make access to external processes illegal\n"
    "  -F, --no-filesystem          disallow access to the local filesystem\n"
    "  -G, --no-global-vars         make global variable definitions illegal\n"
@@ -119,9 +120,12 @@ static const char parseopts[] =    "qore options controlling parse options:\n"
    "  -M, --no-namespace-defs      make namespace declarations illegal\n"
    "  -N, --no-new                 make using the 'new' operator illegal\n"
    "  -O, --require-our            require 'our' with global variables (recommended)\n"
+   "      --require-types          require type declarations\n"
+   "      --no-locale-control      make locale control illegal (time zone, etc)\n"
    "  -P, --no-process-control     make process control illegal (fork(), exit(), etc)\n"
    "      --no-terminal-io         do not allow access to the text terminal\n"
    "  -R, --no-thread-control      make thread control operations illegal\n"
+   "      --no-thread-info         disallow access to thread info\n"
    "  -S, --no-subroutine-defs     make subroutine definitions illegal\n"
    "  -T, --no-threads             disallow thread access and control\n"
    "      --no-thread-classes      disallow access to thread classes\n" 
@@ -303,16 +307,32 @@ static void do_no_child_po_restrictions(const char *arg) {
    parse_options |= PO_NO_CHILD_PO_RESTRICTIONS;
 }
 
+static void do_no_external_info(const char *arg) {
+   parse_options |= PO_NO_EXTERNAL_INFO;
+}
+
 static void do_no_external_process(const char *arg) {
    parse_options |= PO_NO_EXTERNAL_PROCESS;
+}
+
+static void do_no_locale_control(const char *arg) {
+   parse_options |= PO_NO_LOCALE_CONTROL;
 }
 
 static void do_no_process_control(const char *arg) {
    parse_options |= PO_NO_PROCESS_CONTROL;
 }
 
+static void do_no_thread_info(const char *arg) {
+   parse_options |= PO_NO_THREAD_INFO;
+}
+
 static void do_require_our(const char *arg) {
    parse_options |= PO_REQUIRE_OUR;
+}
+
+static void do_require_types(const char *arg) {
+   parse_options |= PO_REQUIRE_TYPES;
 }
 
 static void do_lock_options(const char *arg) {
@@ -440,26 +460,30 @@ static struct opt_struct_s {
    { 'w', "enable-warning",        ARG_MAND, enable_warning },
    { 'x', "exec-class",            ARG_OPT,  do_exec_class },
    { 'A', "lock-warnings",         ARG_NONE, do_lock_warnings },
-   { '\0', "no-class-defs",         ARG_NONE, do_no_class_defs },
+   { '\0', "no-class-defs",        ARG_NONE, do_no_class_defs },
    { 'D', "no-database",           ARG_NONE, do_no_database },
    { 'E', "no-external-process",   ARG_NONE, do_no_external_process },
+   { '\0', "no-external-info",     ARG_NONE, do_no_external_info },
    { 'F', "no-filesystem",         ARG_NONE, do_no_filesystem },
    { 'G', "no-global-vars",        ARG_NONE, do_no_global_vars },
    { 'H', "parse-option-help",     ARG_NONE, show_parse_option_help },
    { 'I', "no-child-restrictions", ARG_NONE, do_no_child_po_restrictions },
-   { '\0', "no-constant-defs",      ARG_NONE, do_no_constant_defs },
+   { '\0', "no-constant-defs",     ARG_NONE, do_no_constant_defs },
    { 'K', "lock-options",          ARG_NONE, do_lock_options },
    { 'L', "no-top-level",          ARG_NONE, do_no_top_level },
    { 'M', "no-namespace-defs",     ARG_NONE, do_no_namespace_defs },
    { 'N', "no-new",                ARG_NONE, do_no_new },
-   { 'O', "require-our",           ARG_NONE, do_require_our  },
+   { 'O', "require-our",           ARG_NONE, do_require_our },
+   { '\0', "require-types",        ARG_NONE, do_require_types },
+   { '\0', "no-locale-controle",   ARG_NONE, do_no_locale_control },
    { 'P', "no-process-control",    ARG_NONE, do_no_process_control },
    { 'R', "no-thread-control",     ARG_NONE, do_no_thread_control },
    { 'S', "no-subroutine-defs",    ARG_NONE, do_no_subroutine_defs },
    { 'T', "no-threads",            ARG_NONE, do_no_threads },
    { 'V', "version",               ARG_NONE, do_version },
    { 'W', "enable-all-warnings",   ARG_NONE, enable_warnings },
-   { '\0', "no-thread-classes",     ARG_NONE, do_no_thread_classes },
+   { '\0', "no-thread-classes",    ARG_NONE, do_no_thread_classes },
+   { '\0', "no-thread-info",       ARG_NONE, do_no_thread_info },
    { 'Y', "no-network",            ARG_NONE, do_no_network },
    { '\0', "no-terminal-io",       ARG_NONE, do_no_terminal_io },
    { '\0', "no-gui",               ARG_NONE, do_no_gui },
@@ -478,32 +502,27 @@ static struct opt_struct_s {
 
 #define NUM_OPTS (sizeof(options) / sizeof(struct opt_struct_s))
 
-static inline void missing_char_option(int i)
-{
+static inline void missing_char_option(int i) {
    printe("option '%c' requires an argument.\n", options[i].short_opt);
    opt_errors++;
 }
 
-static inline void missing_str_option(int i)
-{
+static inline void missing_str_option(int i) {
    printe("option '%s' requires an argument.\n", options[i].long_opt);
    opt_errors++;
 }
 
-static inline void excess_option(int i)
-{
+static inline void excess_option(int i) {
    printe("option '%s' does not take an argument.\n", options[i].long_opt);
    opt_errors++;
 }
 
-static inline void invalid_option(char *opt)
-{
+static inline void invalid_option(char *opt) {
    printe("error: '--%s' is not a valid long option.\n", opt);
    opt_errors++;
 }
 
-static inline void invalid_option(char opt)
-{
+static inline void invalid_option(char opt) {
    printe("error: '-%c' is not a valid short option.\n", opt);
    opt_errors++;
 }

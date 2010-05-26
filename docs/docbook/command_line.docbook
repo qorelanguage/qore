@@ -102,7 +102,7 @@
   <row>
     <entry><para><code>--no-child-restrictions</code></para></entry>
     <entry><para><code>-I</code></para></entry>
-    <entry><para>Allows child program objects to have parse option restrictions that are not a strict subset of the parents.  Equivalent to parse option <code>PO_NO_CHILD_RESTRICTIONS</code> and the <code>%no-child-restrictions</code> directive.</para></entry>
+    <entry><para>Allows child program objects to have parse option restrictions that are not a strict subset of the parents.  Equivalent to parse option <code>PO_NO_CHILD_PO_RESTRICTIONS</code> and the <code>%no-child-restrictions</code> directive.</para></entry>
   </row>
   <row>
     <entry><para><code>--require-our</code></para></entry>

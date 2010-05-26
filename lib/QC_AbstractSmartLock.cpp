@@ -26,7 +26,7 @@
 qore_classid_t CID_ABSTRACTSMARTLOCK;
 
 static void ASL_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink) {
-   xsink->raiseException("ABSTRACTSMARTLOCK-CONSTRUCTOR-ERROR", "this class is an abstract class and cannot be constructed directly");
+   xsink->raiseException("ABSTRACTSMARTLOCK-CONSTRUCTOR-ERROR", "this class is an abstract class and cannot be constructed directly or inherited directly by a user-defined class");
 }
 
 static AbstractQoreNode *ASL_getName(QoreObject *self, AbstractSmartLock *asl, const QoreListNode *params, ExceptionSink *xsink) {

@@ -721,7 +721,7 @@
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Retrieves the value of a list element, the given character of a string, or the integer value of a byte for a binary object.  If the index value is not valid for the argument, NOTHING is returned.  Note that this operator only works as a list dereferencing operator in lvalue expressions; you cannot assign a character or a byte value to strings or binaries using this operator.</para>
+	<para>Retrieves the value of a list element, the given character of a string, or the integer value of a byte for a binary object.  If the index value is not valid for the argument, <command><link linkend="NOTHING">NOTHING</link></command> is returned.  Note that this operator only works as a list dereferencing operator in lvalue expressions; you cannot assign a character or a byte value to strings or binaries using this operator.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -1141,7 +1141,7 @@ printf("0x%x\n", $binary[2]);
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>The <command>delete</command> operator deletes the contents of an lvalue.  If the <command>delete</command> operator is called on an object, the object will be destroyed unconditionally.  The <command>delete</command> operator does not return any value.  When called on a hash key, the key is removed from the hash entirely; when called on a list, the element is assigned NOTHING.</para>
+	<para>The <command>delete</command> operator deletes the contents of an lvalue.  If the <command>delete</command> operator is called on an object, the object will be destroyed unconditionally.  The <command>delete</command> operator does not return any value.  When called on a hash key, the key is removed from the hash entirely; when called on a list, the element is assigned <command><link linkend="NOTHING">NOTHING</link></command>.</para>
 
         <para>In the case the <command>delete</command> operator operates on an object, any exception can be thrown that is thrown by the class' destructor.</para>
 
@@ -1177,7 +1177,7 @@ printf("0x%x\n", $binary[2]);
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>The <command>remove</command> operator removes a value from a data structure, or, in the case the operand of the <command>remove</command> operator is a simple value, the value itself is removed from the variable and returned.  The <command>remove</command> operator returns the value removed from the lvalue.  When called on a hash key, the key is removed from the hash entirely; when called on a list, the element is assigned NOTHING.</para>
+	<para>The <command>remove</command> operator removes a value from a data structure, or, in the case the operand of the <command>remove</command> operator is a simple value, the value itself is removed from the variable and returned.  The <command>remove</command> operator returns the value removed from the lvalue.  When called on a hash key, the key is removed from the hash entirely; when called on a list, the element is assigned <command><link linkend="NOTHING">NOTHING</link></command>.</para>
 
   <para>The <command>remove</command> operator does not call destructors when operating on objects, but if removing an object from an lvalue or from a data structure within the lvalue causes the object to go out of scope, it will be destroyed, and then its destructor could throw an exception.</para>
 

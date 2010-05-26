@@ -1912,7 +1912,7 @@ raised from the <link linkend="FtpClient_Class">FtpClient</link> class.</para></
               <para><code><link linkend="File_read">File::read</link>(<link linkend="softint_type">softint</link> <replaceable>$size</replaceable>, <link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Reads a certain number of bytes from the file within an optional timeout period and returns a string of the data read or <link linkend="nothing_type">NOTHING</link> if no data can be read.</para></entry>
+	    <entry><para>Reads a certain number of bytes from the file within an optional timeout period and returns a string of the data read or <command><link linkend="NOTHING">NOTHING</link></command> if no data can be read.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
@@ -1921,98 +1921,98 @@ raised from the <link linkend="FtpClient_Class">FtpClient</link> class.</para></
               <para><code><link linkend="File_readBinary">File::readBinary</link>(<link linkend="softint_type">softint</link> <replaceable>$size</replaceable>, <link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Reads a certain number of bytes from the file within an optional timeout period and returns binary data or <link linkend="nothing_type">NOTHING</link> if no data can be read.</para></entry>
+	    <entry><para>Reads a certain number of bytes from the file within an optional timeout period and returns binary data or <command><link linkend="NOTHING">NOTHING</link></command> if no data can be read.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
               <para><code><link linkend="File_readi1">File::readi1</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Reads a 1-byte signed integer from the file or <link linkend="nothing_type">NOTHING</link> if no data can be read.</para></entry>
+	    <entry><para>Reads a 1-byte signed integer from the file or <command><link linkend="NOTHING">NOTHING</link></command> if no data can be read.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
               <para><code><link linkend="File_readi2">File::readi2</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Reads a 2-byte signed integer from the file in big-endian format or <link linkend="nothing_type">NOTHING</link> if no data can be read.</para></entry>
+	    <entry><para>Reads a 2-byte signed integer from the file in big-endian format or <command><link linkend="NOTHING">NOTHING</link></command> if no data can be read.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
               <para><code><link linkend="File_readi4">File::readi4</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Reads a 4-byte signed integer from the file in big-endian format or <link linkend="nothing_type">NOTHING</link> if no data can be read.</para></entry>
+	    <entry><para>Reads a 4-byte signed integer from the file in big-endian format or <command><link linkend="NOTHING">NOTHING</link></command> if no data can be read.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
               <para><code><link linkend="File_readi8">File::readi8</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Reads an 8-byte signed integer from the file in big-endian format or <link linkend="nothing_type">NOTHING</link> if no data can be read.</para></entry>
+	    <entry><para>Reads an 8-byte signed integer from the file in big-endian format or <command><link linkend="NOTHING">NOTHING</link></command> if no data can be read.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
               <para><code><link linkend="File_readi2LSB">File::readi2LSB</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Reads a 2-byte signed integer from the file in little-endian format or <link linkend="nothing_type">NOTHING</link> if no data can be read.</para></entry>
+	    <entry><para>Reads a 2-byte signed integer from the file in little-endian format or <command><link linkend="NOTHING">NOTHING</link></command> if no data can be read.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
               <para><code><link linkend="File_readi4LSB">File::readi4LSB</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Reads a 4-byte signed integer from the file in little-endian format or <link linkend="nothing_type">NOTHING</link> if no data can be read.</para></entry>
+	    <entry><para>Reads a 4-byte signed integer from the file in little-endian format or <command><link linkend="NOTHING">NOTHING</link></command> if no data can be read.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
               <para><code><link linkend="File_readi8LSB">File::readi8LSB</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Reads an 8-byte signed integer from the file in little-endian format or <link linkend="nothing_type">NOTHING</link> if no data can be read.</para></entry>
+	    <entry><para>Reads an 8-byte signed integer from the file in little-endian format or <command><link linkend="NOTHING">NOTHING</link></command> if no data can be read.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
               <para><code><link linkend="File_readu1">File::readu1</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Reads a 1-byte unsigned integer from the file or <link linkend="nothing_type">NOTHING</link> if no data can be read.</para></entry>
+	    <entry><para>Reads a 1-byte unsigned integer from the file or <command><link linkend="NOTHING">NOTHING</link></command> if no data can be read.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
               <para><code><link linkend="File_readu2">File::readu2</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Reads a 2-byte unsigned integer from the file in big-endian format or <link linkend="nothing_type">NOTHING</link> if no data can be read.</para></entry>
+	    <entry><para>Reads a 2-byte unsigned integer from the file in big-endian format or <command><link linkend="NOTHING">NOTHING</link></command> if no data can be read.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
               <para><code><link linkend="File_readu4">File::readu4</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Reads a 4-byte unsigned integer from the file in big-endian format or <link linkend="nothing_type">NOTHING</link> if no data can be read.</para></entry>
+	    <entry><para>Reads a 4-byte unsigned integer from the file in big-endian format or <command><link linkend="NOTHING">NOTHING</link></command> if no data can be read.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
               <para><code><link linkend="File_readu2LSB">File::readu2LSB</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Reads a 2-byte unsigned integer from the file in little-endian format or <link linkend="nothing_type">NOTHING</link> if no data can be read.</para></entry>
+	    <entry><para>Reads a 2-byte unsigned integer from the file in little-endian format or <command><link linkend="NOTHING">NOTHING</link></command> if no data can be read.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
               <para><code><link linkend="File_readu4LSB">File::readu4LSB</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Reads a 4-byte unsigned integer from the file in little-endian format or <link linkend="nothing_type">NOTHING</link> if no data can be read.</para></entry>
+	    <entry><para>Reads a 4-byte unsigned integer from the file in little-endian format or <command><link linkend="NOTHING">NOTHING</link></command> if no data can be read.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
               <para><code><link linkend="File_readLine">File::readLine</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Reads until an EOL marker is found and returns the string read or <link linkend="nothing_type">NOTHING</link> if no data can be read.</para></entry>
+	    <entry><para>Reads until an EOL marker is found and returns the string read or <command><link linkend="NOTHING">NOTHING</link></command> if no data can be read.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
@@ -2599,7 +2599,7 @@ raised from the <link linkend="FtpClient_Class">FtpClient</link> class.</para></
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Reads one character from the file and returns it as a one-character string.  Returns <link linkend="nothing_type">NOTHING</link> if no data can be read from the file.</para>
+	    <para>Reads one character from the file and returns it as a one-character string.  Returns <command><link linkend="NOTHING">NOTHING</link></command> if no data can be read from the file.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -2628,7 +2628,7 @@ raised from the <link linkend="FtpClient_Class">FtpClient</link> class.</para></
 	  <tbody>
 	    <row>
 	      <entry><para><code><link linkend="string_type">string</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
-	      <entry><para>The single character read from the file or <link linkend="nothing_type">NOTHING</link> if no data can be read from the file.</para></entry>
+	      <entry><para>The single character read from the file or <command><link linkend="NOTHING">NOTHING</link></command> if no data can be read from the file.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -3484,7 +3484,7 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 	  <tbody>
 	    <row>
 	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-	      <entry><para>The data read from the file, returned as a string.  NOTHING is returned if end-of-file is encountered, however, if data has been read before EOF, the data read will be returned and NOTHING (signifying EOF) will be returned on the next call to this method.</para></entry>
+	      <entry><para>The data read from the file, returned as a string.  <command><link linkend="NOTHING">NOTHING</link></command> is returned if end-of-file is encountered, however, if data has been read before EOF, the data read will be returned and <command><link linkend="NOTHING">NOTHING</link></command> (signifying EOF) will be returned on the next call to this method.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -3554,7 +3554,7 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 	  <tbody>
 	    <row>
 	      <entry><para><code><link linkend="int_type">int</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
-	      <entry><para>Returns a 1-byte signed integer as read from the file in binary format or <link linkend="nothing_type">NOTHING</link> if no data can be read.</para></entry>
+	      <entry><para>Returns a 1-byte signed integer as read from the file in binary format or <command><link linkend="NOTHING">NOTHING</link></command> if no data can be read.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -3618,7 +3618,7 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 	  <tbody>
 	    <row>
 	      <entry><para><code><link linkend="int_type">int</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
-	      <entry><para>Returns a 2-byte signed integer as read from the file in big-endian format or <link linkend="nothing_type">NOTHING</link> if no data can be read.</para></entry>
+	      <entry><para>Returns a 2-byte signed integer as read from the file in big-endian format or <command><link linkend="NOTHING">NOTHING</link></command> if no data can be read.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -3682,7 +3682,7 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 	  <tbody>
 	    <row>
 	      <entry><para><code><link linkend="int_type">int</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
-	      <entry><para>Returns a 4-byte signed integer as read from the file in big-endian format or <link linkend="nothing_type">NOTHING</link> if no data can be read.</para></entry>
+	      <entry><para>Returns a 4-byte signed integer as read from the file in big-endian format or <command><link linkend="NOTHING">NOTHING</link></command> if no data can be read.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -3746,7 +3746,7 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 	  <tbody>
 	    <row>
 	      <entry><para><code><link linkend="int_type">int</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
-	      <entry><para>Returns a 4-byte signed integer as read from the file in big-endian format or <link linkend="nothing_type">NOTHING</link> if no data can be read.</para></entry>
+	      <entry><para>Returns a 4-byte signed integer as read from the file in big-endian format or <command><link linkend="NOTHING">NOTHING</link></command> if no data can be read.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -3810,7 +3810,7 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 	  <tbody>
 	    <row>
 	      <entry><para><code><link linkend="int_type">int</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
-	      <entry><para>Reads a 2-byte signed integer from the file in little-endian format or <link linkend="nothing_type">NOTHING</link> if no data can be read.</para></entry>
+	      <entry><para>Reads a 2-byte signed integer from the file in little-endian format or <command><link linkend="NOTHING">NOTHING</link></command> if no data can be read.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -3874,7 +3874,7 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 	  <tbody>
 	    <row>
 	      <entry><para><code><link linkend="int_type">int</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
-	      <entry><para>Reads a 4-byte signed integer from the file in little-endian format or <link linkend="nothing_type">NOTHING</link> if no data can be read.</para></entry>
+	      <entry><para>Reads a 4-byte signed integer from the file in little-endian format or <command><link linkend="NOTHING">NOTHING</link></command> if no data can be read.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -3938,7 +3938,7 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 	  <tbody>
 	    <row>
 	      <entry><para><code><link linkend="int_type">int</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
-	      <entry><para>Reads a 4-byte signed integer from the file in little-endian format or <link linkend="nothing_type">NOTHING</link> if no data can be read.</para></entry>
+	      <entry><para>Reads a 4-byte signed integer from the file in little-endian format or <command><link linkend="NOTHING">NOTHING</link></command> if no data can be read.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -4001,7 +4001,7 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 	  <tbody>
 	    <row>
 	      <entry><para><code><link linkend="int_type">int</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
-	      <entry><para>Returns a 1-byte unsigned integer as read from the file in binary format or <link linkend="nothing_type">NOTHING</link> if no data can be read.</para></entry>
+	      <entry><para>Returns a 1-byte unsigned integer as read from the file in binary format or <command><link linkend="NOTHING">NOTHING</link></command> if no data can be read.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -4065,7 +4065,7 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 	  <tbody>
 	    <row>
 	      <entry><para><code><link linkend="int_type">int</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
-	      <entry><para>Returns a 2-byte signed integer as read from the file in big-endian format or <link linkend="nothing_type">NOTHING</link> if no data can be read.</para></entry>
+	      <entry><para>Returns a 2-byte signed integer as read from the file in big-endian format or <command><link linkend="NOTHING">NOTHING</link></command> if no data can be read.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -4129,7 +4129,7 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 	  <tbody>
 	    <row>
 	      <entry><para><code><link linkend="int_type">int</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
-	      <entry><para>Returns a 4-byte signed integer as read from the file in big-endian format or <link linkend="nothing_type">NOTHING</link> if no data can be read.</para></entry>
+	      <entry><para>Returns a 4-byte signed integer as read from the file in big-endian format or <command><link linkend="NOTHING">NOTHING</link></command> if no data can be read.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -4194,7 +4194,7 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 	  <tbody>
 	    <row>
 	      <entry><para><code><link linkend="int_type">int</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
-	      <entry><para>Reads a 2-byte signed integer from the file in little-endian format or <link linkend="nothing_type">NOTHING</link> if no data can be read.</para></entry>
+	      <entry><para>Reads a 2-byte signed integer from the file in little-endian format or <command><link linkend="NOTHING">NOTHING</link></command> if no data can be read.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -4225,7 +4225,7 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Reads a 4-byte unsigned integer from the file in little-endian format.  See <link linkend="File_readu4">File::readu4()</link> for an equivalent method reading a 4-byte signed integer in big-endian (MSB, network byte order) format or <link linkend="nothing_type">NOTHING</link> if no data can be read.</para>
+	    <para>Reads a 4-byte unsigned integer from the file in little-endian format.  See <link linkend="File_readu4">File::readu4()</link> for an equivalent method reading a 4-byte signed integer in big-endian (MSB, network byte order) format or <command><link linkend="NOTHING">NOTHING</link></command> if no data can be read.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -4258,7 +4258,7 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 	  <tbody>
 	    <row>
 	      <entry><para><code><link linkend="int_type">int</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
-	      <entry><para>Reads a 4-byte unsigned integer from the file in little-endian format or <link linkend="nothing_type">NOTHING</link> if no data can be read.</para></entry>
+	      <entry><para>Reads a 4-byte unsigned integer from the file in little-endian format or <command><link linkend="NOTHING">NOTHING</link></command> if no data can be read.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -4352,7 +4352,7 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 	  <tbody>
 	    <row>
 	      <entry><para><code><link linkend="binary_type">binary</link></code></para></entry>
-	      <entry><para>A binary object containing the data read from the file.  NOTHING is returned if end-of-file is encountered, however, if data has been read before EOF, the data read will be returned and NOTHING (signifying EOF) will be returned on the next call to this method.</para></entry>
+	      <entry><para>A binary object containing the data read from the file.  <command><link linkend="NOTHING">NOTHING</link></command> is returned if end-of-file is encountered, however, if data has been read before EOF, the data read will be returned and <command><link linkend="NOTHING">NOTHING</link></command> (signifying EOF) will be returned on the next call to this method.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -4388,7 +4388,7 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Reads until an EOL marker is found and returns a string containing the EOL marker.  Returns NOTHING on end of file.</para>
+	    <para>Reads until an EOL marker is found and returns a string containing the EOL marker.  Returns <command><link linkend="NOTHING">NOTHING</link></command> on end of file.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -4426,7 +4426,7 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 	  <tbody>
 	    <row>
 	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-	      <entry><para>The line read from the file.  NOTHING is returned if end-of-file is encountered, however, if data has been read before EOF, the data read will be returned and NOTHING (signifying EOF) will be returned on the next call to this method.</para></entry>
+	      <entry><para>The line read from the file.  <command><link linkend="NOTHING">NOTHING</link></command> is returned if end-of-file is encountered, however, if data has been read before EOF, the data read will be returned and <command><link linkend="NOTHING">NOTHING</link></command> (signifying EOF) will be returned on the next call to this method.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -5505,7 +5505,7 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
               <para><code><link linkend="Dir_path">Dir::path</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
             </entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Returns a string giving the current path of the object, stripped of all '.' and '..' entries or <link linkend="nothing_type">NOTHING</link> if no path is set.</para></entry>
+	    <entry><para>Returns a string giving the current path of the object, stripped of all '.' and '..' entries or <command><link linkend="NOTHING">NOTHING</link></command> if no path is set.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
@@ -5769,7 +5769,7 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Return the path of the Dir object or <link linkend="nothing_type">NOTHING</link> if no path is set.  This path does not necessarily need to exist.  '.' and '..' str stripped from the path if present.</para>
+	    <para>Return the path of the Dir object or <command><link linkend="NOTHING">NOTHING</link></command> if no path is set.  This path does not necessarily need to exist.  '.' and '..' str stripped from the path if present.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -5798,7 +5798,7 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 	  <tbody>
 	    <row>
 	      <entry><para><code><link linkend="any_type">any</link></code></para></entry>
-	      <entry><para>The path of the Dir object or <link linkend="nothing_type">NOTHING</link> if no path is set.</para></entry>
+	      <entry><para>The path of the Dir object or <command><link linkend="NOTHING">NOTHING</link></command> if no path is set.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -8137,7 +8137,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
               <para>N</para>
             </entry>
             <entry>
-              <para>Returns the name of the cipher for an encrypted connection or <link linkend="nothing_type">NOTHING</link> if no encrypted connection has been established.</para>
+              <para>Returns the name of the cipher for an encrypted connection or <command><link linkend="NOTHING">NOTHING</link></command> if no encrypted connection has been established.</para>
             </entry>
           </row>
           <row>
@@ -8148,7 +8148,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
               <para>N</para>
             </entry>
             <entry>
-              <para>Returns the version string of the cipher for encrypted connections or <link linkend="nothing_type">NOTHING</link> if no encrypted connection has been established.</para>
+              <para>Returns the version string of the cipher for encrypted connections or <command><link linkend="NOTHING">NOTHING</link></command> if no encrypted connection has been established.</para>
             </entry>
           </row>
           <row>
@@ -8159,7 +8159,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
               <para>N</para>
             </entry>
             <entry>
-              <para>Returns a string code giving the result of verifying the remote certificate or <link linkend="nothing_type">NOTHING</link> if no encrypted connection has been established.</para>
+              <para>Returns a string code giving the result of verifying the remote certificate or <command><link linkend="NOTHING">NOTHING</link></command> if no encrypted connection has been established.</para>
             </entry>
           </row>
           <row>
@@ -8212,7 +8212,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
               <para><code><link linkend="FtpClient_list">FtpClient::list</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Gets a list of files from the FTP server in the server's long format; returns <link linkend="nothing_type">NOTHING</link> if the path cannot be found.</para></entry>
+	    <entry><para>Gets a list of files from the FTP server in the server's long format; returns <command><link linkend="NOTHING">NOTHING</link></command> if the path cannot be found.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
@@ -8220,7 +8220,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
               <para><code><link linkend="FtpClient_nlst">FtpClient::nlst</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Gets a list of file names from the FTP server; returns <link linkend="nothing_type">NOTHING</link> if the path cannot be found.</para></entry>
+	    <entry><para>Gets a list of file names from the FTP server; returns <command><link linkend="NOTHING">NOTHING</link></command> if the path cannot be found.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
@@ -8313,21 +8313,21 @@ stdin.getTerminalAttributes($termios);</programlisting>
               <para><code><link linkend="FtpClient_getUserName">FtpClient::getUserName</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
             </entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Gets the current user name or <link linkend="nothing_type">NOTHING</link> if not yet set.</para></entry>
+	    <entry><para>Gets the current user name or <command><link linkend="NOTHING">NOTHING</link></command> if not yet set.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
               <para><code><link linkend="FtpClient_getPassword">FtpClient::getPassword</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
             </entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Gets the current password or <link linkend="nothing_type">NOTHING</link> if not yet set.</para></entry>
+	    <entry><para>Gets the current password or <command><link linkend="NOTHING">NOTHING</link></command> if not yet set.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
               <para><code><link linkend="FtpClient_getHostName">FtpClient::getHostName</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
             </entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Gets the current hostname or <link linkend="nothing_type">NOTHING</link> if not yet set.</para></entry>
+	    <entry><para>Gets the current hostname or <command><link linkend="NOTHING">NOTHING</link></command> if not yet set.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
@@ -8890,7 +8890,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
                 <para><code><link linkend="string_type">string</link> or <link linkend="nothing_type">nothing</link></code></para>
               </entry>
               <entry>
-                <para>The name of the cipher for an encrypted connection or NOTHING if an excrypted connection has not been established.</para>
+                <para>The name of the cipher for an encrypted connection or <command><link linkend="NOTHING">NOTHING</link></command> if an excrypted connection has not been established.</para>
               </entry>
             </row>
           </tbody>
@@ -8938,7 +8938,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
                 <para><code><link linkend="string_type">string</link> or <link linkend="nothing_type">nothing</link></code></para>
               </entry>
               <entry>
-                <para>The version string of the cipher for encrypted connections or NOTHING if an excrypted connection has not been established.</para>
+                <para>The version string of the cipher for encrypted connections or <command><link linkend="NOTHING">NOTHING</link></command> if an excrypted connection has not been established.</para>
               </entry>
             </row>
           </tbody>
@@ -9093,7 +9093,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Gets a string giving the list of files from the FTP server in the server's long format in the current working directory; returns <link linkend="nothing_type">NOTHING</link> if the path cannot be found.</para>
+	    <para>Gets a string giving the list of files from the FTP server in the server's long format in the current working directory; returns <command><link linkend="NOTHING">NOTHING</link></command> if the path cannot be found.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -9146,7 +9146,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	  <tbody>
 	    <row>
 	      <entry><para><code><link linkend="string_type">string</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
-	      <entry><para>The string returned by the server without any translations or processing or <link linkend="nothing_type">NOTHING</link> if the path cannot be found.</para></entry>
+	      <entry><para>The string returned by the server without any translations or processing or <command><link linkend="NOTHING">NOTHING</link></command> if the path cannot be found.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -9238,7 +9238,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	  <tbody>
 	    <row>
 	      <entry><para><code><link linkend="string_type">string</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
-	      <entry><para>The string returned by the server without any translations or processing or <link linkend="nothing_type">NOTHING</link> if the path cannot be found.</para></entry>
+	      <entry><para>The string returned by the server without any translations or processing or <command><link linkend="NOTHING">NOTHING</link></command> if the path cannot be found.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -10658,6 +10658,11 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	    <entry><para><code><link linkend="no-process-control">%no-process-control</link></code></para></entry>
 	    <entry><para>Disallows access to functions that would affect the current process (<link linkend="exit">exit()</link>, <link linkend="exit">exec()</link>, <link linkend="fork">fork()</link>, etc).</para></entry>
 	  </row>
+	  <row id="PO_LOCK_WARNINGS">
+	    <entry><para><code>PO_LOCK_WARNINGS</code></para></entry>
+	    <entry><para><code><link linkend="lock-warnings">%lock-warnings</link></code></para></entry>
+	    <entry><para>Prohibits the warning mask from being changed.</para></entry>
+	  </row>
 	  <row id="PO_NO_NETWORK">
 	    <entry><para><code>PO_NO_NETWORK</code></para></entry>
 	    <entry><para><code><link linkend="no-network">%no-network</link></code></para></entry>
@@ -10806,7 +10811,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
               <para><code><link linkend="Qore_Program_getScriptDir">Program::getScriptDir</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
             </entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Returns the current script directory as a string or NOTHING if not set.</para></entry>
+	    <entry><para>Returns the current script directory as a string or <command><link linkend="NOTHING">NOTHING</link></command> if not set.</para></entry>
 	  </row>
 
 	  <row>
@@ -10814,7 +10819,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
               <para><code><link linkend="Qore_Program_getScriptName">Program::getScriptName</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
             </entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Returns the current script name as a string or NOTHING if not set.</para></entry>
+	    <entry><para>Returns the current script name as a string or <command><link linkend="NOTHING">NOTHING</link></command> if not set.</para></entry>
 	  </row>
 
 	  <row>
@@ -10822,7 +10827,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
               <para><code><link linkend="Qore_Program_getScriptPath">Program::getScriptPath</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
             </entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Returns the current script directory and filename as a string or NOTHING if not set.</para></entry>
+	    <entry><para>Returns the current script directory and filename as a string or <command><link linkend="NOTHING">NOTHING</link></command> if not set.</para></entry>
 	  </row>
 
 	  <row>
@@ -11367,7 +11372,7 @@ $pgm.disableParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
 	  <tbody>
 	    <row>
 	      <entry><para><code><link linkend="any_type">any</link></code></para></entry>
-	      <entry><para>The value of the global variable (or NOTHING if it does not exist; note that also the variable could exist and return NOTHING as well; use a reference as the second argument to the method to determine if the variable exists or not).</para></entry>
+	      <entry><para>The value of the global variable (or <command><link linkend="NOTHING">NOTHING</link></command> if it does not exist; note that also the variable could exist and return <command><link linkend="NOTHING">NOTHING</link></command> as well; use a reference as the second argument to the method to determine if the variable exists or not).</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -11454,7 +11459,7 @@ $pgm.disableParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
 	  <tbody>
 	    <row>
 	      <entry><para><code><link linkend="string_type">string</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
-	      <entry><para>The current script directory or NOTHING if not set.</para></entry>
+	      <entry><para>The current script directory or <command><link linkend="NOTHING">NOTHING</link></command> if not set.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -11499,7 +11504,7 @@ $pgm.disableParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
 	  <tbody>
 	    <row>
 	      <entry><para><code><link linkend="string_type">string</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
-	      <entry><para>The current script name if known, otherwise returns NOTHING.</para></entry>
+	      <entry><para>The current script name if known, otherwise returns <command><link linkend="NOTHING">NOTHING</link></command>.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -11544,7 +11549,7 @@ $pgm.disableParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
 	  <tbody>
 	    <row>
 	      <entry><para><code><link linkend="string_type">string</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
-	      <entry><para>The current script directory and filename if known, otherwise returns NOTHING.</para></entry>
+	      <entry><para>The current script directory and filename if known, otherwise returns <command><link linkend="NOTHING">NOTHING</link></command>.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -12689,7 +12694,7 @@ $pgm.setParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
               <para>N</para>
             </entry>
             <entry>
-              <para>Returns the name of the cipher for an encrypted connection or NOTHING is a secure connection has not been established.</para>
+              <para>Returns the name of the cipher for an encrypted connection or <command><link linkend="NOTHING">NOTHING</link></command> is a secure connection has not been established.</para>
             </entry>
           </row>
           <row>
@@ -12700,7 +12705,7 @@ $pgm.setParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
               <para>N</para>
             </entry>
             <entry>
-              <para>Returns the version string of the cipher for encrypted connections or NOTHING is a secure connection has not been established.</para>
+              <para>Returns the version string of the cipher for encrypted connections or <command><link linkend="NOTHING">NOTHING</link></command> is a secure connection has not been established.</para>
             </entry>
           </row>
           <row>
@@ -12757,7 +12762,7 @@ $pgm.setParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
               <para><code><link linkend="Socket_verifyPeerCertificate">Socket::verifyPeerCertificate</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
             </entry>
             <entry><para>N</para></entry>
-            <entry><para>Returns a string code giving the result of verifying the remote certificate or NOTHING if an encrypted connection is not currently established.</para></entry>
+            <entry><para>Returns a string code giving the result of verifying the remote certificate or <command><link linkend="NOTHING">NOTHING</link></command> if an encrypted connection is not currently established.</para></entry>
           </row>
           <row>
             <entry>
@@ -13623,7 +13628,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Returns the name of the cipher for an encrypted connection or NOTHING if an encrypted connection has not been established.</para>
+            <para>Returns the name of the cipher for an encrypted connection or <command><link linkend="NOTHING">NOTHING</link></command> if an encrypted connection has not been established.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -13657,7 +13662,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
             <row>
               <entry><para><code><link linkend="string_type">string</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
               <entry>
-                <para>The name of the cipher for an encrypted connection or NOTHING if an encrypted connection has not been established.</para>
+                <para>The name of the cipher for an encrypted connection or <command><link linkend="NOTHING">NOTHING</link></command> if an encrypted connection has not been established.</para>
               </entry>
             </row>
           </tbody>
@@ -13670,7 +13675,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Returns the version string of the cipher for encrypted connections or NOTHING if an encrypted connection has not been established.</para>
+            <para>Returns the version string of the cipher for encrypted connections or <command><link linkend="NOTHING">NOTHING</link></command> if an encrypted connection has not been established.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -13704,7 +13709,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
             <row>
               <entry><para><code><link linkend="string_type">string</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
               <entry>
-                <para>The version string of the cipher for encrypted connections or NOTHING if an encrypted connection has not been established.</para>
+                <para>The version string of the cipher for encrypted connections or <command><link linkend="NOTHING">NOTHING</link></command> if an encrypted connection has not been established.</para>
               </entry>
             </row>
           </tbody>
@@ -17082,7 +17087,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
               <para><code><link linkend="HTTPClient_getProxyURL">HTTPClient::getProxyURL</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
             </entry>
             <entry><para>N</para></entry>
-            <entry><para>Returns the current proxy URL as a string or NOTHING if no proxy URL is set.</para></entry>
+            <entry><para>Returns the current proxy URL as a string or <command><link linkend="NOTHING">NOTHING</link></command> if no proxy URL is set.</para></entry>
           </row>
           <row>
             <entry>
@@ -17158,7 +17163,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
               <para>Y</para>
             </entry>
             <entry>
-              <para>Sends an HTTP GET request and returns the message body received as a string or NOTHING if no message body is received.  In order to get the headers and the body, use the <link linkend="HTTPClient_send">HTTPClient::send()</link> method instead.  If no connection is established, an internal call to <link linkend="HTTPClient_connect">HTTPClient::connect()</link> will be made before sending the message.</para>
+              <para>Sends an HTTP GET request and returns the message body received as a string or <command><link linkend="NOTHING">NOTHING</link></command> if no message body is received.  In order to get the headers and the body, use the <link linkend="HTTPClient_send">HTTPClient::send()</link> method instead.  If no connection is established, an internal call to <link linkend="HTTPClient_connect">HTTPClient::connect()</link> will be made before sending the message.</para>
             </entry>
           </row>
           <row>
@@ -17182,7 +17187,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
               <para>Y</para>
             </entry>
             <entry>
-              <para>Sends an HTTP POST request with a message body and returns the message body received as a string or NOTHING if no message body is received.  In order to get the headers and the body in the response, use the <link linkend="HTTPClient_send">HTTPClient::send()</link> method instead.  If no connection is established, an internal call to <link linkend="HTTPClient_connect">HTTPClient::connect()</link> will be made before sending the message.</para>
+              <para>Sends an HTTP POST request with a message body and returns the message body received as a string or <command><link linkend="NOTHING">NOTHING</link></command> if no message body is received.  In order to get the headers and the body in the response, use the <link linkend="HTTPClient_send">HTTPClient::send()</link> method instead.  If no connection is established, an internal call to <link linkend="HTTPClient_connect">HTTPClient::connect()</link> will be made before sending the message.</para>
             </entry>
           </row>
           <row>
@@ -17279,7 +17284,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
               <para>N</para>
             </entry>
             <entry>
-              <para>Returns a string code giving the result of verifying the remote certificate or NOTHING if a secure connection is not established.  Return value are the keys described in the <link linkend="X509_VerificationReasons_Hash">X509_VerificationReasons hash constant</link>.  This hash can also be used to generate a textual description of the verification result.</para>
+              <para>Returns a string code giving the result of verifying the remote certificate or <command><link linkend="NOTHING">NOTHING</link></command> if a secure connection is not established.  Return value are the keys described in the <link linkend="X509_VerificationReasons_Hash">X509_VerificationReasons hash constant</link>.  This hash can also be used to generate a textual description of the verification result.</para>
             </entry>
           </row>
           <row>
@@ -17290,7 +17295,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
               <para>N</para>
             </entry>
             <entry>
-              <para>Returns the name of the cipher as a string for an encrypted connection or NOTHING if a secure connection is not established.</para>
+              <para>Returns the name of the cipher as a string for an encrypted connection or <command><link linkend="NOTHING">NOTHING</link></command> if a secure connection is not established.</para>
             </entry>
           </row>
           <row>
@@ -17301,7 +17306,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
               <para>N</para>
             </entry>
             <entry>
-              <para>Returns the version of the cipher as a string for an encrypted connection or NOTHING if a secure connection is not established.</para>
+              <para>Returns the version of the cipher as a string for an encrypted connection or <command><link linkend="NOTHING">NOTHING</link></command> if a secure connection is not established.</para>
             </entry>
           </row>
           <row>
@@ -17680,7 +17685,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
           <tbody>
             <row>
               <entry><para><code><link linkend="string_type">string</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
-              <entry><para>The current proxy URL value or NOTHING if it is not set.</para></entry>
+              <entry><para>The current proxy URL value or <command><link linkend="NOTHING">NOTHING</link></command> if it is not set.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -17693,7 +17698,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Sets the proxy URL value for the object; call with no argument or NOTHING to clear.  To retrieve the current URL value, use the <link linkend="HTTPClient_getProxyURL">HTTPClient::getProxyURL()</link> method.</para>
+            <para>Sets the proxy URL value for the object; call with no argument or <command><link linkend="NOTHING">NOTHING</link></command> to clear.  To retrieve the current URL value, use the <link linkend="HTTPClient_getProxyURL">HTTPClient::getProxyURL()</link> method.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -17722,7 +17727,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
           <tbody>
             <row>
               <entry><para><code>[<link linkend="string_type">string</link> <replaceable>$url</replaceable>]</code></para></entry>
-              <entry><para>The new proxy URL for the object; call with no argument or NOTHING to clear.</para></entry>
+              <entry><para>The new proxy URL for the object; call with no argument or <command><link linkend="NOTHING">NOTHING</link></command> to clear.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -18099,7 +18104,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
           <tbody>
             <row>
               <entry><para><code><link linkend="string_type">string</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
-              <entry><para>The message body returned; NOTHING in case of an erroneous reply by the server with no body.</para></entry>
+              <entry><para>The message body returned; <command><link linkend="NOTHING">NOTHING</link></command> in case of an erroneous reply by the server with no body.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -18319,7 +18324,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
           <tbody>
             <row>
               <entry><para><code><link linkend="string_type">string</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
-              <entry><para>The message body returned; NOTHING in case of an erroneous reply by the server with no body.</para></entry>
+              <entry><para>The message body returned; <command><link linkend="NOTHING">NOTHING</link></command> in case of an erroneous reply by the server with no body.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -18401,7 +18406,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
           <tbody>
             <row>
               <entry><para><code><link linkend="data_type">data</link> <replaceable>$body</replaceable></code></para></entry>
-              <entry><para>The message body to send; use NOTHING to send to body.</para></entry>
+              <entry><para>The message body to send; use <command><link linkend="NOTHING">NOTHING</link></command> to send to body.</para></entry>
             </row>
 	    <row>
 	      <entry><para><code><link linkend="string_type">string</link> <replaceable>$method</replaceable></code></para></entry>
@@ -18907,7 +18912,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Returns a string code giving the result of verifying the remote certificate or NOTHING if an encrypted connection is not established.  Return value are the keys described in the <link linkend="X509_VerificationReasons_Hash">X509_VerificationReasons hash constant</link>.  This hash can also be used to generate a textual description of the verification result.</para>
+            <para>Returns a string code giving the result of verifying the remote certificate or <command><link linkend="NOTHING">NOTHING</link></command> if an encrypted connection is not established.  Return value are the keys described in the <link linkend="X509_VerificationReasons_Hash">X509_VerificationReasons hash constant</link>.  This hash can also be used to generate a textual description of the verification result.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -21094,7 +21099,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
               <para>N</para>
             </entry>
             <entry>
-              <para>Returns a binary object representing the public key of the certificate in DER (Distinguished Encoding Rules) format or NOTHING if the public key cannot be retrieved.</para>
+              <para>Returns a binary object representing the public key of the certificate in DER (Distinguished Encoding Rules) format or <command><link linkend="NOTHING">NOTHING</link></command> if the public key cannot be retrieved.</para>
             </entry>
           </row>
           <row>
@@ -22842,7 +22847,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
      <programlisting>$rows = $pool.exec("insert into table (varchar_col, timestamp_col, blob_col, numeric_col)
 values (%v, %v, %v, %d)", $string, now(), $binary, 100);</programlisting>
 
-     <para>To insert a numeric value or a literal 'null' in a query, use <code>%d</code> in the command string, and include the value as an argument after the string.  If the value is NOTHING or NULL, a literal 'null' will be written to the string; otherwise the argument is converted to a floating-point value or integer if necessary and written to the string.  This is useful for working with DECIMAL (NUMERIC, NUMBER) types in a database-independent way; for example PostgreSQL servers do not do type conversions to DECIMAL types when a string, integer, or float is bound by value, therefore to ensure that integral decimal values can be used in a database-independent way (with 'null' substitution when no value is bound), it's best to use the <code>%d</code> code in the command string instead of <code>%v</code>.</para>
+     <para>To insert a numeric value or a literal 'null' in a query, use <code>%d</code> in the command string, and include the value as an argument after the string.  If the value is <command><link linkend="NOTHING">NOTHING</link></command> or NULL, a literal 'null' will be written to the string; otherwise the argument is converted to a floating-point value or integer if necessary and written to the string.  This is useful for working with DECIMAL (NUMERIC, NUMBER) types in a database-independent way; for example PostgreSQL servers do not do type conversions to DECIMAL types when a string, integer, or float is bound by value, therefore to ensure that integral decimal values can be used in a database-independent way (with 'null' substitution when no value is bound), it's best to use the <code>%d</code> code in the command string instead of <code>%v</code>.</para>
 
      <para>For binding placeholders for output variables, write a unique name in the string and prefix it with a colon (ex: <code>:code</code>).  In this case the method will return a hash of the output variables using the placeholder names as keys, but without the colon prefix.  By default, a string type will be bound to the position.  To bind other variable types to placeholder positions, include the type constant (see <link linkend="Qore_Type_Constants">Type Constants</link>) as an argument after the command string.  For BLOBs, use Binary, for CLOBs, use the string "clob" (constants will be provided in a future release).  Not all DBI drivers require placeholder buffer specifications; see the documentation for the DBI driver in question for more information and examples regarding placeholder buffer specifications.</para>
 
@@ -23023,7 +23028,7 @@ values (%v, %v, %v, %d)", $string, now(), $binary, 100);</programlisting>
               <para><code><link linkend="Datasource::getUserName">Datasource::getUserName</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
             </entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Returns the username parameter as a string or NOTHING if none is set.</para></entry>
+	    <entry><para>Returns the username parameter as a string or <command><link linkend="NOTHING">NOTHING</link></command> if none is set.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
@@ -23038,7 +23043,7 @@ values (%v, %v, %v, %d)", $string, now(), $binary, 100);</programlisting>
               <para><code><link linkend="Datasource::getPassword">Datasource::getPassword</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
             </entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Returns the password parameter as a string or NOTHING if none is set.</para></entry>
+	    <entry><para>Returns the password parameter as a string or <command><link linkend="NOTHING">NOTHING</link></command> if none is set.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
@@ -23053,7 +23058,7 @@ values (%v, %v, %v, %d)", $string, now(), $binary, 100);</programlisting>
               <para><code><link linkend="Datasource::getDBName">Datasource::getDBName</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
             </entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Returns the dbname parameter as a string or NOTHING if none is set.</para></entry>
+	    <entry><para>Returns the dbname parameter as a string or <command><link linkend="NOTHING">NOTHING</link></command> if none is set.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
@@ -23068,7 +23073,7 @@ values (%v, %v, %v, %d)", $string, now(), $binary, 100);</programlisting>
               <para><code><link linkend="Datasource::getDBCharset">Datasource::getDBCharset</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
             </entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Returns the DBI driver specific charset name for the current connection as a string or NOTHING if none is set.</para></entry>
+	    <entry><para>Returns the DBI driver specific charset name for the current connection as a string or <command><link linkend="NOTHING">NOTHING</link></command> if none is set.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
@@ -23090,7 +23095,7 @@ values (%v, %v, %v, %d)", $string, now(), $binary, 100);</programlisting>
               <para><code><link linkend="Datasource::getHostName">Datasource::getHostName</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
             </entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Returns the hostname parameter as a string or NOTHING if none is set.</para></entry>
+	    <entry><para>Returns the hostname parameter as a string or <command><link linkend="NOTHING">NOTHING</link></command> if none is set.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
@@ -23104,7 +23109,7 @@ values (%v, %v, %v, %d)", $string, now(), $binary, 100);</programlisting>
               <para><code><link linkend="Datasource::getPort">Datasource::getPort</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
             </entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Returns the port parameter as an int or NOTHING if none is set.</para></entry>
+	    <entry><para>Returns the port parameter as an int or <command><link linkend="NOTHING">NOTHING</link></command> if none is set.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
@@ -24610,7 +24615,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	  <tbody>
 	    <row>
               <entry><para><code><link linkend="string_type">string</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
-	      <entry><para>The username connection parameter or NOTHING if no value is set.</para></entry>
+	      <entry><para>The username connection parameter or <command><link linkend="NOTHING">NOTHING</link></command> if no value is set.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -24699,7 +24704,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	  <tbody>
 	    <row>
               <entry><para><code><link linkend="string_type">string</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
-	      <entry><para>Retrieves the password connection parameter or NOTHING if none is set.</para></entry>
+	      <entry><para>Retrieves the password connection parameter or <command><link linkend="NOTHING">NOTHING</link></command> if none is set.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -24788,7 +24793,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	  <tbody>
 	    <row>
               <entry><para><code><link linkend="string_type">string</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
-	      <entry><para>Retrieves the password connection parameter or NOTHING if none is set.</para></entry>
+	      <entry><para>Retrieves the password connection parameter or <command><link linkend="NOTHING">NOTHING</link></command> if none is set.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -24966,7 +24971,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	  <tbody>
 	    <row>
               <entry><para><code><link linkend="string_type">string</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
-	      <entry><para>Retrieves the database-specific charset set encoding for the current connection or NOTHING if none is set.</para></entry>
+	      <entry><para>Retrieves the database-specific charset set encoding for the current connection or <command><link linkend="NOTHING">NOTHING</link></command> if none is set.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -25052,7 +25057,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	  <tbody>
 	    <row>
               <entry><para><code><link linkend="string_type">string</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
-	      <entry><para>Retrieves the hostname connection parameter or NOTHING if none is set.</para></entry>
+	      <entry><para>Retrieves the hostname connection parameter or <command><link linkend="NOTHING">NOTHING</link></command> if none is set.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -25066,7 +25071,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Retrieves the port connection parameter or NOTHING if none is set.</para>
+	    <para>Retrieves the port connection parameter or <command><link linkend="NOTHING">NOTHING</link></command> if none is set.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -25393,49 +25398,49 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
               <para><code><link linkend="DatasourcePool::getUserName">DatasourcePool::getUserName</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
             </entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Returns the username parameter as a string or NOTHING if none is set.</para></entry>
+	    <entry><para>Returns the username parameter as a string or <command><link linkend="NOTHING">NOTHING</link></command> if none is set.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
               <para><code><link linkend="DatasourcePool::getPassword">DatasourcePool::getPassword</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
             </entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Returns the password parameter as a string or NOTHING if none is set.</para></entry>
+	    <entry><para>Returns the password parameter as a string or <command><link linkend="NOTHING">NOTHING</link></command> if none is set.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
               <para><code><link linkend="DatasourcePool::getDBName">DatasourcePool::getDBName</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
             </entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Returns the dbname parameter as a string or NOTHING if none is set.</para></entry>
+	    <entry><para>Returns the dbname parameter as a string or <command><link linkend="NOTHING">NOTHING</link></command> if none is set.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
               <para><code><link linkend="DatasourcePool::getDBCharset">DatasourcePool::getDBCharset</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
             </entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Returns the DBI driver specific charset name for the current connection as a string or NOTHING if none is set.</para></entry>
+	    <entry><para>Returns the DBI driver specific charset name for the current connection as a string or <command><link linkend="NOTHING">NOTHING</link></command> if none is set.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
               <para><code><link linkend="DatasourcePool::getOSCharset">DatasourcePool::getOSCharset</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
             </entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Returns the Qore charset name for the current connection as a string or NOTHING if none is set.</para></entry>
+	    <entry><para>Returns the Qore charset name for the current connection as a string or <command><link linkend="NOTHING">NOTHING</link></command> if none is set.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
               <para><code><link linkend="DatasourcePool::getHostName">DatasourcePool::getHostName</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
             </entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Returns the hostname parameter as a string or NOTHING if none is set.</para></entry>
+	    <entry><para>Returns the hostname parameter as a string or <command><link linkend="NOTHING">NOTHING</link></command> if none is set.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
               <para><code><link linkend="DatasourcePool::getPort">DatasourcePool::getPort</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
             </entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Returns the port parameter as an integer or NOTHING if none is set.</para></entry>
+	    <entry><para>Returns the port parameter as an integer or <command><link linkend="NOTHING">NOTHING</link></command> if none is set.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
@@ -26653,7 +26658,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
 	  <tbody>
 	    <row>
               <entry><para><code><link linkend="string_type">string</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
-	      <entry><para>The username connection parameter or NOTHING if no value is set.</para></entry>
+	      <entry><para>The username connection parameter or <command><link linkend="NOTHING">NOTHING</link></command> if no value is set.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -26698,7 +26703,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
 	  <tbody>
 	    <row>
               <entry><para><code><link linkend="string_type">string</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
-	      <entry><para>Retrieves the password connection parameter or NOTHING if none is set.</para></entry>
+	      <entry><para>Retrieves the password connection parameter or <command><link linkend="NOTHING">NOTHING</link></command> if none is set.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -26742,7 +26747,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
 	  <tbody>
 	    <row>
               <entry><para><code><link linkend="string_type">string</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
-	      <entry><para>Retrieves the password connection parameter or NOTHING if none is set.</para></entry>
+	      <entry><para>Retrieves the password connection parameter or <command><link linkend="NOTHING">NOTHING</link></command> if none is set.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -26785,7 +26790,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
 	  <tbody>
 	    <row>
               <entry><para><code><link linkend="string_type">string</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
-	      <entry><para>Retrieves the database-specific charset set encoding for the current connection or NOTHING if none is set.</para></entry>
+	      <entry><para>Retrieves the database-specific charset set encoding for the current connection or <command><link linkend="NOTHING">NOTHING</link></command> if none is set.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -26871,7 +26876,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
 	  <tbody>
 	    <row>
               <entry><para><code><link linkend="string_type">string</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
-	      <entry><para>Retrieves the hostname connection parameter or NOTHING if none is set.</para></entry>
+	      <entry><para>Retrieves the hostname connection parameter or <command><link linkend="NOTHING">NOTHING</link></command> if none is set.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -28809,7 +28814,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Blocks until at least one entry is available on the queue, then returns the first entry in the queue.  Accepts an optional timeout value in milliseconds (1/1000 second). Like all Qore functions and methods taking timeout values, a <link linkend="Relative_Dates">relative date/time value</link> may be passed instead of an integer to make the timeout units clear (ex: <code>2500ms</code> for 2.5 seconds).  If no value or a value that converts to integer 0 is passed as the argument, then the call does not timeout until data is available on the queue.</para><para>Note that this function will throw an exception on timeout, in order to enable the case where NOTHING was pushed on the queue from a timeout.</para>
+	    <para>Blocks until at least one entry is available on the queue, then returns the first entry in the queue.  Accepts an optional timeout value in milliseconds (1/1000 second). Like all Qore functions and methods taking timeout values, a <link linkend="Relative_Dates">relative date/time value</link> may be passed instead of an integer to make the timeout units clear (ex: <code>2500ms</code> for 2.5 seconds).  If no value or a value that converts to integer 0 is passed as the argument, then the call does not timeout until data is available on the queue.</para><para>Note that this function will throw an exception on timeout, in order to enable the case where <command><link linkend="NOTHING">NOTHING</link></command> was pushed on the queue from a timeout.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -28858,7 +28863,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
 	  <tbody>
 	    <row>
 	      <entry><para><code><link linkend="any_type">any</link></code></para></entry>
-	      <entry><para>Depends on the value put on the queue; could also be NOTHING, because NOTHING can be pushed as a value on the queue.</para></entry>
+	      <entry><para>Depends on the value put on the queue; could also be NOTHING, because <command><link linkend="NOTHING">NOTHING</link></command> can be pushed as a value on the queue.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -28894,7 +28899,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Blocks until at least one entry is available on the queue, then returns the last entry in the queue.  Accepts an optional timeout value in ms (1/1000 second).  Like all Qore functions and methods taking timeout values, a <link linkend="Relative_Dates">relative date/time value</link> may be passed instead of an integer to make the timeout units clear (ex: <code>2500ms</code> for 2.5 seconds).  If no value or a value that converts to integer 0 is passed as the argument, then the call does not timeout until data is available on the queue.</para><para>Note that this function will throw an exception on timeout, in order to enable the case where NOTHING was pushed on the queue from a timeout.</para>
+	    <para>Blocks until at least one entry is available on the queue, then returns the last entry in the queue.  Accepts an optional timeout value in ms (1/1000 second).  Like all Qore functions and methods taking timeout values, a <link linkend="Relative_Dates">relative date/time value</link> may be passed instead of an integer to make the timeout units clear (ex: <code>2500ms</code> for 2.5 seconds).  If no value or a value that converts to integer 0 is passed as the argument, then the call does not timeout until data is available on the queue.</para><para>Note that this function will throw an exception on timeout, in order to enable the case where <command><link linkend="NOTHING">NOTHING</link></command> was pushed on the queue from a timeout.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -31298,7 +31303,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
               <para><code><link linkend="XmlDoc::getRootElement">XmlDoc::getRootElement</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
             </entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Returns an <link linkend="XmlNode_Class">XmlNode</link> object representing the root element of the document, if any exists, otherwise returns NOTHING.</para></entry>
+	    <entry><para>Returns an <link linkend="XmlNode_Class">XmlNode</link> object representing the root element of the document, if any exists, otherwise returns <command><link linkend="NOTHING">NOTHING</link></command>.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
@@ -31549,7 +31554,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Returns an <link linkend="XmlNode_Class">XmlNode</link> object representing the root element of the document, if any exists, otherwise returns NOTHING.</para>
+	    <para>Returns an <link linkend="XmlNode_Class">XmlNode</link> object representing the root element of the document, if any exists, otherwise returns <command><link linkend="NOTHING">NOTHING</link></command>.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -31578,7 +31583,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
 	  <tbody>
 	    <row>
 	      <entry><para><code><link linkend="XmlNode_Class">XmlNode</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
-	      <entry><para>The <link linkend="XmlNode_Class">XmlNode</link> object for the root element of the XML document, or NOTHING if there is none.</para></entry>
+	      <entry><para>The <link linkend="XmlNode_Class">XmlNode</link> object for the root element of the XML document, or <command><link linkend="NOTHING">NOTHING</link></command> if there is none.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -32002,7 +32007,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
             <entry>
               <para>N</para>
             </entry>
-            <entry><para>Returns the name of the type of the XmlNode object if possible, NOTHING if not; for possible values see the <link linkend="ElementTypeMap">ElementTypeMap</link> constant.</para></entry>
+            <entry><para>Returns the name of the type of the XmlNode object if possible, <command><link linkend="NOTHING">NOTHING</link></command> if not; for possible values see the <link linkend="ElementTypeMap">ElementTypeMap</link> constant.</para></entry>
           </row>
           <row>
             <entry>
@@ -32011,7 +32016,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
             <entry>
               <para>N</para>
             </entry>
-            <entry><para>Returns an <link linkend="XmlNode_Class">XmlNode</link> object for the first child of the current XmlNode object that is an XML element, or NOTHING if there is none.</para></entry>
+            <entry><para>Returns an <link linkend="XmlNode_Class">XmlNode</link> object for the first child of the current XmlNode object that is an XML element, or <command><link linkend="NOTHING">NOTHING</link></command> if there is none.</para></entry>
           </row>
           <row>
             <entry>
@@ -32021,7 +32026,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
               <para>N</para>
             </entry>
             <entry>
-              <para>Returns an <link linkend="XmlNode_Class">XmlNode</link> object for the last child of the current XmlNode object, or NOTHING if there is none.</para>
+              <para>Returns an <link linkend="XmlNode_Class">XmlNode</link> object for the last child of the current XmlNode object, or <command><link linkend="NOTHING">NOTHING</link></command> if there is none.</para>
             </entry>
           </row>
           <row>
@@ -32032,7 +32037,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
               <para>N</para>
             </entry>
             <entry>
-              <para>Returns an <link linkend="XmlNode_Class">XmlNode</link> object for the last child of the current XmlNode object that is an XML element, or NOTHING if there is none.</para>
+              <para>Returns an <link linkend="XmlNode_Class">XmlNode</link> object for the last child of the current XmlNode object that is an XML element, or <command><link linkend="NOTHING">NOTHING</link></command> if there is none.</para>
             </entry>
           </row>
           <row>
@@ -32043,7 +32048,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
               <para>N</para>
             </entry>
             <entry>
-              <para>Returns an <link linkend="XmlNode_Class">XmlNode</link> object for the next element at the same level of the current XmlNode object, or NOTHING if there is none.</para>
+              <para>Returns an <link linkend="XmlNode_Class">XmlNode</link> object for the next element at the same level of the current XmlNode object, or <command><link linkend="NOTHING">NOTHING</link></command> if there is none.</para>
             </entry>
           </row>
           <row>
@@ -32054,7 +32059,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
               <para>N</para>
             </entry>
             <entry>
-              <para>Returns an <link linkend="XmlNode_Class">XmlNode</link> object for the previous element at the same level of the current XmlNode object, or NOTHING if there is none.</para>
+              <para>Returns an <link linkend="XmlNode_Class">XmlNode</link> object for the previous element at the same level of the current XmlNode object, or <command><link linkend="NOTHING">NOTHING</link></command> if there is none.</para>
             </entry>
           </row>
           <row>
@@ -32076,7 +32081,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
               <para>Y</para>
             </entry>
             <entry>
-              <para>Returns the value of the given property anchored in the given namespace as a string, or NOTHING if no such property exists in the current XmlNode.</para>
+              <para>Returns the value of the given property anchored in the given namespace as a string, or <command><link linkend="NOTHING">NOTHING</link></command> if no such property exists in the current XmlNode.</para>
             </entry>
           </row>
           <row>
@@ -32087,7 +32092,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
               <para>Y</para>
             </entry>
             <entry>
-              <para>Returns the value of the given property as a string, or NOTHING if no such property exists in the current XmlNode.</para>
+              <para>Returns the value of the given property as a string, or <command><link linkend="NOTHING">NOTHING</link></command> if no such property exists in the current XmlNode.</para>
             </entry>
           </row>
           <row>
@@ -32098,7 +32103,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
               <para>N</para>
             </entry>
             <entry>
-              <para>Returns a string of the content of the current node or NOTHING if no content is available.</para>
+              <para>Returns a string of the content of the current node or <command><link linkend="NOTHING">NOTHING</link></command> if no content is available.</para>
             </entry>
           </row>
           <row>
@@ -32109,7 +32114,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
               <para>N</para>
             </entry>
             <entry>
-              <para>Returns the name of the current node or NOTHING if no name is available.</para>
+              <para>Returns the name of the current node or <command><link linkend="NOTHING">NOTHING</link></command> if no name is available.</para>
             </entry>
           </row>
           <row>
@@ -32120,7 +32125,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
               <para>N</para>
             </entry>
             <entry>
-              <para>Returns the language of the current node, determined by the value of the <code>xml:lang</code> attribute of this node or of the nearest ancestor.  If no such property is available, then NOTHING is returned.</para>
+              <para>Returns the language of the current node, determined by the value of the <code>xml:lang</code> attribute of this node or of the nearest ancestor.  If no such property is available, then <command><link linkend="NOTHING">NOTHING</link></command> is returned.</para>
             </entry>
           </row>
           <row>
@@ -32153,7 +32158,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
               <para>N</para>
             </entry>
             <entry>
-              <para>Returns XML corresponding to the current node and all its children or NOTHING if no data is available.</para>
+              <para>Returns XML corresponding to the current node and all its children or <command><link linkend="NOTHING">NOTHING</link></command> if no data is available.</para>
             </entry>
           </row>
         </tbody>
@@ -32435,7 +32440,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Returns an <link linkend="XmlNode_Class">XmlNode</link> object for the first child of the current XmlNode object that is an XML element, or NOTHING if there is none.</para>
+            <para>Returns an <link linkend="XmlNode_Class">XmlNode</link> object for the first child of the current XmlNode object that is an XML element, or <command><link linkend="NOTHING">NOTHING</link></command> if there is none.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -32468,7 +32473,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
           <tbody>
             <row>
               <entry><para><code><link linkend="XmlNode_Class">XmlNode</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
-              <entry><para>returns an <link linkend="XmlNode_Class">XmlNode</link> object for the first element child of the current XmlNode object, or NOTHING if there is none</para></entry>
+              <entry><para>returns an <link linkend="XmlNode_Class">XmlNode</link> object for the first element child of the current XmlNode object, or <command><link linkend="NOTHING">NOTHING</link></command> if there is none</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -32480,7 +32485,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Returns an <link linkend="XmlNode_Class">XmlNode</link> object for the last child of the current XmlNode object, or NOTHING if there is none.</para>
+            <para>Returns an <link linkend="XmlNode_Class">XmlNode</link> object for the last child of the current XmlNode object, or <command><link linkend="NOTHING">NOTHING</link></command> if there is none.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -32513,7 +32518,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
           <tbody>
             <row>
               <entry><para><code><link linkend="XmlNode_Class">XmlNode</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
-              <entry><para>returns an <link linkend="XmlNode_Class">XmlNode</link> object for the last child of the current XmlNode object, or NOTHING if there is none</para></entry>
+              <entry><para>returns an <link linkend="XmlNode_Class">XmlNode</link> object for the last child of the current XmlNode object, or <command><link linkend="NOTHING">NOTHING</link></command> if there is none</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -32525,7 +32530,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Returns an <link linkend="XmlNode_Class">XmlNode</link> object for the last child of the current XmlNode object that is an XML element, or NOTHING if there is none.</para>
+            <para>Returns an <link linkend="XmlNode_Class">XmlNode</link> object for the last child of the current XmlNode object that is an XML element, or <command><link linkend="NOTHING">NOTHING</link></command> if there is none.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -32558,7 +32563,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
           <tbody>
             <row>
               <entry><para><code><link linkend="XmlNode_Class">XmlNode</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
-              <entry><para>returns an <link linkend="XmlNode_Class">XmlNode</link> object for the last element child of the current XmlNode object, or NOTHING if there is none</para></entry>
+              <entry><para>returns an <link linkend="XmlNode_Class">XmlNode</link> object for the last element child of the current XmlNode object, or <command><link linkend="NOTHING">NOTHING</link></command> if there is none</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -32570,7 +32575,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Returns an <link linkend="XmlNode_Class">XmlNode</link> object for the next element at the same level of the current XmlNode object, or NOTHING if there is none.</para>
+            <para>Returns an <link linkend="XmlNode_Class">XmlNode</link> object for the next element at the same level of the current XmlNode object, or <command><link linkend="NOTHING">NOTHING</link></command> if there is none.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -32603,7 +32608,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
           <tbody>
             <row>
               <entry><para><code><link linkend="XmlNode_Class">XmlNode</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
-              <entry><para>returns an <link linkend="XmlNode_Class">XmlNode</link> object for the next element sibling of the current XmlNode object, or NOTHING if there is none</para></entry>
+              <entry><para>returns an <link linkend="XmlNode_Class">XmlNode</link> object for the next element sibling of the current XmlNode object, or <command><link linkend="NOTHING">NOTHING</link></command> if there is none</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -32615,7 +32620,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Returns an <link linkend="XmlNode_Class">XmlNode</link> object for the previous element at the same level of the current XmlNode object, or NOTHING if there is none.</para>
+            <para>Returns an <link linkend="XmlNode_Class">XmlNode</link> object for the previous element at the same level of the current XmlNode object, or <command><link linkend="NOTHING">NOTHING</link></command> if there is none.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -32648,7 +32653,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
           <tbody>
             <row>
               <entry><para><code><link linkend="XmlNode_Class">XmlNode</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
-              <entry><para>returns an <link linkend="XmlNode_Class">XmlNode</link> object for the previous element sibling of the current XmlNode object, or NOTHING if there is none</para></entry>
+              <entry><para>returns an <link linkend="XmlNode_Class">XmlNode</link> object for the previous element sibling of the current XmlNode object, or <command><link linkend="NOTHING">NOTHING</link></command> if there is none</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -32709,7 +32714,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Returns the value of the given property anchored in the given namespace, or NOTHING if no such property exists in the current XmlNode.</para>
+            <para>Returns the value of the given property anchored in the given namespace, or <command><link linkend="NOTHING">NOTHING</link></command> if no such property exists in the current XmlNode.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -32765,7 +32770,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
             <row>
               <entry><para><code><link linkend="string_type">string</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
               <entry>
-                <para>the value of the property or NOTHING if it does not exist</para>
+                <para>the value of the property or <command><link linkend="NOTHING">NOTHING</link></command> if it does not exist</para>
               </entry>
             </row>
           </tbody>
@@ -32805,7 +32810,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Returns the value of the given property, or NOTHING if no such property exists in the current XmlNode.</para>
+            <para>Returns the value of the given property, or <command><link linkend="NOTHING">NOTHING</link></command> if no such property exists in the current XmlNode.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -32855,7 +32860,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
             <row>
               <entry><para><code><link linkend="string_type">string</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
               <entry>
-                <para>the value of the property or NOTHING if it does not exist</para>
+                <para>the value of the property or <command><link linkend="NOTHING">NOTHING</link></command> if it does not exist</para>
               </entry>
             </row>
           </tbody>
@@ -32895,7 +32900,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Returns a string of the content of the current node or NOTHING if there is none.</para>
+            <para>Returns a string of the content of the current node or <command><link linkend="NOTHING">NOTHING</link></command> if there is none.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -32929,7 +32934,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
             <row>
               <entry><para><code><link linkend="string_type">string</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
               <entry>
-                <para>a string of the content of the current node or NOTHING if there is no content</para>
+                <para>a string of the content of the current node or <command><link linkend="NOTHING">NOTHING</link></command> if there is no content</para>
               </entry>
             </row>
           </tbody>
@@ -32942,7 +32947,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Returns the name of the current node or NOTHING if no name is available.</para>
+            <para>Returns the name of the current node or <command><link linkend="NOTHING">NOTHING</link></command> if no name is available.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -32976,7 +32981,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
             <row>
               <entry><para><code><link linkend="string_type">string</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
               <entry>
-                <para>the name of the current node or NOTHING if no name is available</para>
+                <para>the name of the current node or <command><link linkend="NOTHING">NOTHING</link></command> if no name is available</para>
               </entry>
             </row>
           </tbody>
@@ -32989,7 +32994,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Returns the language of the current node, determined by the value of the <code>xml:lang</code> attribute of this node or of the nearest ancestor.  If no such property is available, then NOTHING is returned.</para>
+            <para>Returns the language of the current node, determined by the value of the <code>xml:lang</code> attribute of this node or of the nearest ancestor.  If no such property is available, then <command><link linkend="NOTHING">NOTHING</link></command> is returned.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -33023,7 +33028,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
             <row>
               <entry><para><code><link linkend="string_type">string</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
               <entry>
-                <para>the language of the current node, determined by the value of the <code>xml:lang</code> attribute of this node or of the nearest ancestor.  If no such property is available, then NOTHING is returned.</para>
+                <para>the language of the current node, determined by the value of the <code>xml:lang</code> attribute of this node or of the nearest ancestor.  If no such property is available, then <command><link linkend="NOTHING">NOTHING</link></command> is returned.</para>
               </entry>
             </row>
           </tbody>
@@ -33134,7 +33139,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Returns a string containing XML corresponding to the current node and all its children or NOTHING if no information is available.</para>
+            <para>Returns a string containing XML corresponding to the current node and all its children or <command><link linkend="NOTHING">NOTHING</link></command> if no information is available.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -33168,7 +33173,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
             <row>
               <entry><para><code><link linkend="string_type">string</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
               <entry>
-                <para>XML corresponding to the current node and all its children or NOTHING if no information is available</para>
+                <para>XML corresponding to the current node and all its children or <command><link linkend="NOTHING">NOTHING</link></command> if no information is available</para>
               </entry>
             </row>
           </tbody>
@@ -33274,7 +33279,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
               <para>N</para>
             </entry>
             <entry>
-              <para>Returns a string giving the node type of the current node or NOTHING if the node type name cannot be determined; for possible return values, see the values of the <link linkend="NodeTypeMap">NodeTypeMap</link> constant.</para>
+              <para>Returns a string giving the node type of the current node or <command><link linkend="NOTHING">NOTHING</link></command> if the node type name cannot be determined; for possible return values, see the values of the <link linkend="NodeTypeMap">NodeTypeMap</link> constant.</para>
             </entry>
           </row>
           <row>
@@ -33296,7 +33301,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
               <para>N</para>
             </entry>
             <entry>
-              <para>Returns the qualified name of the node (prefix:LocalName) or NOTHING if no name is available.</para>
+              <para>Returns the qualified name of the node (prefix:LocalName) or <command><link linkend="NOTHING">NOTHING</link></command> if no name is available.</para>
             </entry>
           </row>
           <row>
@@ -33307,7 +33312,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
               <para>N</para>
             </entry>
             <entry>
-              <para>Returns the text value of the node or NOTHING if not available.</para>
+              <para>Returns the text value of the node or <command><link linkend="NOTHING">NOTHING</link></command> if not available.</para>
             </entry>
           </row>
           <row>
@@ -33384,7 +33389,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
               <para>Y</para>
             </entry>
             <entry>
-              <para>Returns a hash corresponding to the XML string from the current node position, including all its children, or a string if the reader is on an element with no children, or NOTHING if there is no more data to read.</para>
+              <para>Returns a hash corresponding to the XML string from the current node position, including all its children, or a string if the reader is on an element with no children, or <command><link linkend="NOTHING">NOTHING</link></command> if there is no more data to read.</para>
             </entry>
           </row>
           <row>
@@ -33395,7 +33400,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
               <para>Y</para>
             </entry>
             <entry>
-              <para>Returns a hash corresponding to the XML string from the current node position, including all its children, or a string if the reader is on an element with no children, or NOTHING if there is no more data to read.</para>
+              <para>Returns a hash corresponding to the XML string from the current node position, including all its children, or a string if the reader is on an element with no children, or <command><link linkend="NOTHING">NOTHING</link></command> if there is no more data to read.</para>
             </entry>
           </row>
           <row>
@@ -33417,7 +33422,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
               <para>N</para>
             </entry>
             <entry>
-              <para>Returns the base URI of the node if known, NOTHING if not.</para>
+              <para>Returns the base URI of the node if known, <command><link linkend="NOTHING">NOTHING</link></command> if not.</para>
             </entry>
           </row>
           <row>
@@ -33428,7 +33433,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
               <para>N</para>
             </entry>
             <entry>
-              <para>Returns the encoding string given in the XML string or NOTHING if none is given.</para>
+              <para>Returns the encoding string given in the XML string or <command><link linkend="NOTHING">NOTHING</link></command> if none is given.</para>
             </entry>
           </row>
           <row>
@@ -33439,7 +33444,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
               <para>N</para>
             </entry>
             <entry>
-              <para>Returns the local name of the node or NOTHING if no name is available.</para>
+              <para>Returns the local name of the node or <command><link linkend="NOTHING">NOTHING</link></command> if no name is available.</para>
             </entry>
           </row>
           <row>
@@ -33450,7 +33455,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
               <para>N</para>
             </entry>
             <entry>
-              <para>Returns the URI defining the namespace associated with the node, or NOTHING if not available.</para>
+              <para>Returns the URI defining the namespace associated with the node, or <command><link linkend="NOTHING">NOTHING</link></command> if not available.</para>
             </entry>
           </row>
           <row>
@@ -33461,7 +33466,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
               <para>N</para>
             </entry>
             <entry>
-              <para>Returns the shorthand reference to the namespace associated with the node, or NOTHING if not available.</para>
+              <para>Returns the shorthand reference to the namespace associated with the node, or <command><link linkend="NOTHING">NOTHING</link></command> if not available.</para>
             </entry>
           </row>
           <row>
@@ -33472,7 +33477,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
               <para>N</para>
             </entry>
             <entry>
-              <para>Returns the xml:lang scope within which the node resides or NOTHING if there is none.</para>
+              <para>Returns the xml:lang scope within which the node resides or <command><link linkend="NOTHING">NOTHING</link></command> if there is none.</para>
             </entry>
           </row>
           <row>
@@ -33494,7 +33499,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
               <para>Y</para>
             </entry>
             <entry>
-              <para>Returns the value of the attribute matching the qualified name passed, or NOTHING if no such attribute exists in the current XmlReader.</para>
+              <para>Returns the value of the attribute matching the qualified name passed, or <command><link linkend="NOTHING">NOTHING</link></command> if no such attribute exists in the current XmlReader.</para>
             </entry>
           </row>
           <row>
@@ -33505,7 +33510,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
               <para>Y</para>
             </entry>
             <entry>
-              <para>Returns the value of the given attribute anchored in the given namespace, or NOTHING if no such attribute exists in the current XmlReader.</para>
+              <para>Returns the value of the given attribute anchored in the given namespace, or <command><link linkend="NOTHING">NOTHING</link></command> if no such attribute exists in the current XmlReader.</para>
             </entry>
           </row>
           <row>
@@ -33516,7 +33521,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
               <para>N</para>
             </entry>
             <entry>
-              <para>Returns the string value of the attribute with the specified index relative to the containing element, or NOTHING if no such attribute exists in the current XmlReader.</para>
+              <para>Returns the string value of the attribute with the specified index relative to the containing element, or <command><link linkend="NOTHING">NOTHING</link></command> if no such attribute exists in the current XmlReader.</para>
             </entry>
           </row>
           <row>
@@ -33528,7 +33533,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
               <para>N</para>
             </entry>
             <entry>
-              <para>Returns the namespace corresponding to the given prefix in the scope of the current element as a string or NOTHING if none is found.  Called with no argument this function returns the default namespace.</para>
+              <para>Returns the namespace corresponding to the given prefix in the scope of the current element as a string or <command><link linkend="NOTHING">NOTHING</link></command> if none is found.  Called with no argument this function returns the default namespace.</para>
             </entry>
           </row>
           <row>
@@ -33616,7 +33621,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
               <para>N</para>
             </entry>
             <entry>
-              <para>Returns an XML string of the contents of the all current node's child nodes and markup, or NOTHING if the current node is neither an element nor an attribute or has no child nodes.</para>
+              <para>Returns an XML string of the contents of the all current node's child nodes and markup, or <command><link linkend="NOTHING">NOTHING</link></command> if the current node is neither an element nor an attribute or has no child nodes.</para>
             </entry>
           </row>
           <row>
@@ -33627,7 +33632,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
               <para>N</para>
             </entry>
             <entry>
-              <para>Returns an XML string of the contents of the current node and all child nodes and markup, or NOTHING if the current node is neither an element nor an attribute or has no child nodes.</para>
+              <para>Returns an XML string of the contents of the current node and all child nodes and markup, or <command><link linkend="NOTHING">NOTHING</link></command> if the current node is neither an element nor an attribute or has no child nodes.</para>
             </entry>
           </row>
           <row>
@@ -33982,7 +33987,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Returns a string giving the node type of the current node or NOTHING if no current node is available; for possible return values, see the values of the <link linkend="NodeTypeMap">NodeTypeMap</link> constant.</para>
+            <para>Returns a string giving the node type of the current node or <command><link linkend="NOTHING">NOTHING</link></command> if no current node is available; for possible return values, see the values of the <link linkend="NodeTypeMap">NodeTypeMap</link> constant.</para>
             <para>See also <link linkend="XmlReader_nodeType">XmlReader::nodeType()</link></para>
           </listitem>
         </varlistentry>
@@ -34017,7 +34022,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
             <row>
               <entry><para><code><link linkend="string_type">string</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
               <entry>
-                <para>a string giving the node type of the current node or NOTHING if no current node is available; for possible return values, see the values of the <link linkend="NodeTypeMap">NodeTypeMap</link> constant</para>
+                <para>a string giving the node type of the current node or <command><link linkend="NOTHING">NOTHING</link></command> if no current node is available; for possible return values, see the values of the <link linkend="NodeTypeMap">NodeTypeMap</link> constant</para>
               </entry>
             </row>
           </tbody>
@@ -34079,7 +34084,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Returns the qualified name of the node (prefix:LocalName) or NOTHING if no name is available.</para>
+            <para>Returns the qualified name of the node (prefix:LocalName) or <command><link linkend="NOTHING">NOTHING</link></command> if no name is available.</para>
             <para>See also <link linkend="XmlReader_localName">XmlReader::localName()</link>.</para>
           </listitem>
         </varlistentry>
@@ -34114,7 +34119,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
             <row>
               <entry><para><code><link linkend="string_type">string</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
               <entry>
-                <para>the qualified name of the node (prefix:LocalName) or NOTHING if no name is available</para>
+                <para>the qualified name of the node (prefix:LocalName) or <command><link linkend="NOTHING">NOTHING</link></command> if no name is available</para>
               </entry>
             </row>
           </tbody>
@@ -34127,7 +34132,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Returns the text value of the node or NOTHING if not available.</para>
+            <para>Returns the text value of the node or <command><link linkend="NOTHING">NOTHING</link></command> if not available.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -34161,7 +34166,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
             <row>
               <entry><para><code><link linkend="string_type">string</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
               <entry>
-                <para>the text value of the node or NOTHING if not available</para>
+                <para>the text value of the node or <command><link linkend="NOTHING">NOTHING</link></command> if not available</para>
               </entry>
             </row>
           </tbody>
@@ -34469,7 +34474,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
           <term>Synopsis</term>
           <listitem>
             <para>Returns Qore data corresponding to the XML starting at the current node position.  If there are sub elements, a hash of the XML is returned, the sub elements representing the current node's children.  If duplicate, out-of-order XML elements are found in the input string, they are deserialized to Qore hash elements with the same name as the XML element but including a caret &quot;^&quot; and a numeric prefix to maintain the same key order in the Qore hash as in the input XML string.</para>
-	    <para>If only text is present at the current element, a string is returned.  If no information is available, then NOTHING is returned.</para>
+	    <para>If only text is present at the current element, a string is returned.  If no information is available, then <command><link linkend="NOTHING">NOTHING</link></command> is returned.</para>
 	    <para>See also <link linkend="XmlReader_toQoreData">XmlReader::toQoreData()</link>.</para>
             <para>Functionally similar to <link linkend="parseXML">parseXML()</link></para>
           </listitem>
@@ -34504,7 +34509,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
           <tbody>
             <row>
               <entry><para><code><link linkend="hash_type">hash</link>, <link linkend="string_type">string</link>, or <link linkend="nothing_type">nothing</link></code></para></entry>
-              <entry><para>Returns Qore data corresponding to the XML starting at the current node position.  If there are sub elements, a hash of the XML is returned, the sub elements representing the current node's children; XML element order is maintained by appending a suffix to key names.  If only text is present at the current element, a string is returned.  If no information is available, then NOTHING is returned.</para></entry>
+              <entry><para>Returns Qore data corresponding to the XML starting at the current node position.  If there are sub elements, a hash of the XML is returned, the sub elements representing the current node's children; XML element order is maintained by appending a suffix to key names.  If only text is present at the current element, a string is returned.  If no information is available, then <command><link linkend="NOTHING">NOTHING</link></command> is returned.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -34544,7 +34549,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
           <term>Synopsis</term>
           <listitem>
 	    <para>Returns Qore data corresponding to the XML starting at the current node position.  If there are sub elements, a hash of the XML is returned, the sub elements representing the current node's children.  Note that data deserialized with this method may not be reserialized to an identical XML string due to the fact that XML elements with the same name are collapsed into Qore lists in the resulting Qore hash irrespective of the order in the original XML string.</para>
-	    <para>If only text is present at the current element, a string is returned.  If no information is available, then NOTHING is returned.</para>
+	    <para>If only text is present at the current element, a string is returned.  If no information is available, then <command><link linkend="NOTHING">NOTHING</link></command> is returned.</para>
 	    <para>See also <link linkend="XmlReader_toQore">XmlReader::toQore()</link>.</para>
             <para>Functionally similar to <link linkend="parseXMLAsData">parseXMLAsData()</link></para>
           </listitem>
@@ -34579,7 +34584,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
           <tbody>
             <row>
               <entry><para><code><link linkend="hash_type">hash</link>, <link linkend="string_type">string</link>, or <link linkend="nothing_type">nothing</link></code></para></entry>
-              <entry><para>Returns Qore data corresponding to the XML starting at the current node position.  If there are sub elements, a hash of the XML is returned, the sub elements representing the current node's children; does not guarantee to maintain XML element order in the hash as elements at the same level with the same name are collapsed to a Qore list.  If only text is present at the current element, a string is returned.  If no information is available, then NOTHING is returned.</para></entry>
+              <entry><para>Returns Qore data corresponding to the XML starting at the current node position.  If there are sub elements, a hash of the XML is returned, the sub elements representing the current node's children; does not guarantee to maintain XML element order in the hash as elements at the same level with the same name are collapsed to a Qore list.  If only text is present at the current element, a string is returned.  If no information is available, then <command><link linkend="NOTHING">NOTHING</link></command> is returned.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -34667,7 +34672,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Returns the base URI of the node if known, NOTHING if not.</para>
+            <para>Returns the base URI of the node if known, <command><link linkend="NOTHING">NOTHING</link></command> if not.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -34701,7 +34706,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
             <row>
               <entry><para><code><link linkend="string_type">string</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
               <entry>
-                <para>the base URI of the node if known, NOTHING if not</para>
+                <para>the base URI of the node if known, <command><link linkend="NOTHING">NOTHING</link></command> if not</para>
               </entry>
             </row>
           </tbody>
@@ -34714,7 +34719,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Returns the encoding string given in the XML string or NOTHING if none is given.</para>
+            <para>Returns the encoding string given in the XML string or <command><link linkend="NOTHING">NOTHING</link></command> if none is given.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -34748,7 +34753,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
             <row>
               <entry><para><code><link linkend="string_type">string</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
               <entry>
-                <para>Returns the encoding string given in the XML string or NOTHING if none is given.</para>
+                <para>Returns the encoding string given in the XML string or <command><link linkend="NOTHING">NOTHING</link></command> if none is given.</para>
               </entry>
             </row>
           </tbody>
@@ -34761,7 +34766,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Returns the local name of the node or NOTHING if no name is available.</para>
+            <para>Returns the local name of the node or <command><link linkend="NOTHING">NOTHING</link></command> if no name is available.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -34795,7 +34800,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
             <row>
               <entry><para><code><link linkend="string_type">string</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
               <entry>
-                <para>the local name of the node or NOTHING if no name is available</para>
+                <para>the local name of the node or <command><link linkend="NOTHING">NOTHING</link></command> if no name is available</para>
               </entry>
             </row>
           </tbody>
@@ -34808,7 +34813,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Returns the URI defining the namespace associated with the node, or NOTHING if not available.</para>
+            <para>Returns the URI defining the namespace associated with the node, or <command><link linkend="NOTHING">NOTHING</link></command> if not available.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -34842,7 +34847,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
             <row>
               <entry><para><code><link linkend="string_type">string</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
               <entry>
-                <para>the URI defining the namespace associated with the node or NOTHING if not available</para>
+                <para>the URI defining the namespace associated with the node or <command><link linkend="NOTHING">NOTHING</link></command> if not available</para>
               </entry>
             </row>
           </tbody>
@@ -34855,7 +34860,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Returns the shorthand reference to the namespace associated with the node, or NOTHING if not available.</para>
+            <para>Returns the shorthand reference to the namespace associated with the node, or <command><link linkend="NOTHING">NOTHING</link></command> if not available.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -34889,7 +34894,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
             <row>
               <entry><para><code><link linkend="string_type">string</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
               <entry>
-                <para>the shorthand reference to the namespace associated with the node or NOTHING if not available</para>
+                <para>the shorthand reference to the namespace associated with the node or <command><link linkend="NOTHING">NOTHING</link></command> if not available</para>
               </entry>
             </row>
           </tbody>
@@ -34902,7 +34907,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Returns the xml:lang scope within which the node resides or NOTHING if there is none.</para>
+            <para>Returns the xml:lang scope within which the node resides or <command><link linkend="NOTHING">NOTHING</link></command> if there is none.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -34936,7 +34941,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
             <row>
               <entry><para><code><link linkend="string_type">string</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
               <entry>
-                <para>the xml:lang scope within which the node resides or NOTHING if there is none</para>
+                <para>the xml:lang scope within which the node resides or <command><link linkend="NOTHING">NOTHING</link></command> if there is none</para>
               </entry>
             </row>
           </tbody>
@@ -34949,7 +34954,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Returns a string giving the XML version of the source document (normally &quot;1.0&quot;) or NOTHING if none is present.</para>
+            <para>Returns a string giving the XML version of the source document (normally &quot;1.0&quot;) or <command><link linkend="NOTHING">NOTHING</link></command> if none is present.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -34983,7 +34988,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
             <row>
               <entry><para><code><link linkend="string_type">string</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
               <entry>
-                <para>a string giving the XML version of the source document (normally &quot;1.0&quot;) or NOTHING if none is present</para>
+                <para>a string giving the XML version of the source document (normally &quot;1.0&quot;) or <command><link linkend="NOTHING">NOTHING</link></command> if none is present</para>
               </entry>
             </row>
           </tbody>
@@ -34996,7 +35001,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Returns the value of the attribute matching the qualified name passed, or NOTHING if no such attribute exists in the current XmlReader.</para>
+            <para>Returns the value of the attribute matching the qualified name passed, or <command><link linkend="NOTHING">NOTHING</link></command> if no such attribute exists in the current XmlReader.</para>
             <para>See also <link linkend="XmlReader_getAttributeNs">XmlReader::getAttributeNs()</link></para>
           </listitem>
         </varlistentry>
@@ -35047,7 +35052,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
             <row>
               <entry><para><code><link linkend="string_type">string</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
               <entry>
-                <para>the value of the attribute or NOTHING if it does not exist</para>
+                <para>the value of the attribute or <command><link linkend="NOTHING">NOTHING</link></command> if it does not exist</para>
               </entry>
             </row>
           </tbody>
@@ -35087,7 +35092,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Returns the value of the given attribute anchored in the given namespace, or NOTHING if no such attribute exists in the current XmlReader.</para>
+            <para>Returns the value of the given attribute anchored in the given namespace, or <command><link linkend="NOTHING">NOTHING</link></command> if no such attribute exists in the current XmlReader.</para>
             <para>See also <link linkend="XmlReader_getAttribute">XmlReader::getAttribute()</link></para>
           </listitem>
         </varlistentry>
@@ -35144,7 +35149,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
             <row>
               <entry><para><code><link linkend="string_type">string</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
               <entry>
-                <para>the value of the attribute or NOTHING if it does not exist</para>
+                <para>the value of the attribute or <command><link linkend="NOTHING">NOTHING</link></command> if it does not exist</para>
               </entry>
             </row>
           </tbody>
@@ -35184,7 +35189,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Returns the value of the attribute with the specified index relative to the containing element, or NOTHING if no such attribute exists in the current XmlReader.</para>
+            <para>Returns the value of the attribute with the specified index relative to the containing element, or <command><link linkend="NOTHING">NOTHING</link></command> if no such attribute exists in the current XmlReader.</para>
             <para>See also <link linkend="XmlReader_getAttribute">XmlReader::getAttribute()</link></para>
           </listitem>
         </varlistentry>
@@ -35237,7 +35242,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
             <row>
               <entry><para><code><link linkend="string_type">string</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
               <entry>
-                <para>the value of the attribute or NOTHING if it does not exist</para>
+                <para>the value of the attribute or <command><link linkend="NOTHING">NOTHING</link></command> if it does not exist</para>
               </entry>
             </row>
           </tbody>
@@ -35307,7 +35312,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
             <row>
               <entry><para><code><link linkend="string_type">string</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
               <entry>
-                <para>The namespace corresponding to the given prefix in the scope of the current element or NOTHING if the prefix could not be resolved.</para>
+                <para>The namespace corresponding to the given prefix in the scope of the current element or <command><link linkend="NOTHING">NOTHING</link></command> if the prefix could not be resolved.</para>
               </entry>
             </row>
           </tbody>
@@ -35874,7 +35879,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Returns an XML string of the contents of the all current node's child nodes and markup, or NOTHING if the current node is neither an element nor an attribute or has no child nodes.</para>
+            <para>Returns an XML string of the contents of the all current node's child nodes and markup, or <command><link linkend="NOTHING">NOTHING</link></command> if the current node is neither an element nor an attribute or has no child nodes.</para>
             <para>See also <link linkend="XmlReader_getOuterXml">XmlReader::getOuterXml()</link>.</para>
           </listitem>
         </varlistentry>
@@ -35910,7 +35915,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
             <row>
               <entry><para><code><link linkend="string_type">string</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
               <entry>
-                <para>an XML string of the contents of all the current node's child nodes and markup, or NOTHING if the current node is neither an element nor an attribute or has no child nodes</para>
+                <para>an XML string of the contents of all the current node's child nodes and markup, or <command><link linkend="NOTHING">NOTHING</link></command> if the current node is neither an element nor an attribute or has no child nodes</para>
               </entry>
             </row>
           </tbody>
@@ -35923,7 +35928,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Returns an XML string of the contents of the current node and all child nodes and markup, or NOTHING if the current node is neither an element nor an attribute or has no child nodes.</para>
+            <para>Returns an XML string of the contents of the current node and all child nodes and markup, or <command><link linkend="NOTHING">NOTHING</link></command> if the current node is neither an element nor an attribute or has no child nodes.</para>
             <para>See also <link linkend="XmlReader_getInnerXml">XmlReader::getInnerXml()</link>.</para>
           </listitem>
         </varlistentry>
@@ -35958,7 +35963,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
             <row>
               <entry><para><code><link linkend="string_type">string</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
               <entry>
-                <para>an XML string of the contents of the current node and all child nodes and markup, or NOTHING if the current node is neither an element nor an attribute or has no child nodes</para>
+                <para>an XML string of the contents of the current node and all child nodes and markup, or <command><link linkend="NOTHING">NOTHING</link></command> if the current node is neither an element nor an attribute or has no child nodes</para>
               </entry>
             </row>
           </tbody>

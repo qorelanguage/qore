@@ -165,7 +165,7 @@
 	</row>
 	<row>
 	  <entry><para><code>qt-core, qt-gui, qt-svn, qt-opengl</code></para></entry>
-	  <entry><para>DEPRECATED: old QT4 modules: please use the much more complete qt4 module.</para></entry>
+	  <entry><para>BLACKLISTED: old QT4 modules: please use the much more complete qt4 module.  These old modules (never officially released) use a namespace management trick that does not work with qore 0.8.0+, so they will not load with newer versions of qore.</para></entry>
 	</row>
 	<row>
 	  <entry><para><code>qt4</code></para></entry>
@@ -814,7 +814,7 @@ False</programlisting></note>
 
     <programlisting><command>my</command> $m = <command>new</command> Mutex();</programlisting>
 
-    <para>Objects have named data members that are referenced like hash elements, although this behavior can be modified for objects using the memberGate() method.  Object members are accessed by appending a dot '.' and the member name to the object reference as follows:</para>
+    <para>Objects have named data members that are referenced like hash elements, although this behavior can be modified for objects using the <code><link linkend="memberGate">memberGate()</link></code> method.  Object members are accessed by appending a dot '.' and the member name to the object reference as follows:</para>
 
     <programlisting><replaceable>object_reference.member_name</replaceable></programlisting>
 
@@ -1017,7 +1017,7 @@ False</programlisting></note>
 
   <para>In this case, the first version (<code>example(int)</code>) will be executed if called with an integer argument, and the second (<code>example(string)</code>) if called with a string argument.</para>
 
-  <para>Class methods may also be overloaded, but note that <code>destructor</code>, <code>copy</code>, <code>methodGate</code>, <code>memberGate</code>, and <code>memberNotification</code> methods may not be overloaded (see <link linkend='Classes'>Classes</link> for more information).</para>
+  <para>Class methods may also be overloaded, but note that <code><link linkend="destructor_methods">destructor()</link></code>, <code><link linkend="copy_methods">copy()</link></code>, <code><link linkend="methodGate">methodGate()</link></code>, <code><link linkend="memberGate">memberGate()</link></code>, and <code><link linkend="memberNotification">memberNotification()</link></code> methods may not be overloaded (see <link linkend='Classes'>Classes</link> for more information).</para>
 
   </sect2>
 
@@ -1391,7 +1391,7 @@ $$</programlisting></entry>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>QDir::setCurrent("/tmp");</programlisting>
+	    <programlisting>TimeZone::setRegion("Europe/Prague");</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -2259,24 +2259,6 @@ $var[1].count++;
   </variablelist>
 </sect2>
 
-<sect2 id="delete_Statements">
-  <title>delete Statements</title>
-  <variablelist>
-    <varlistentry>
-      <term>Synopsis</term>
-      <listitem>
-	<para>In order to delete the contents of an lvalue, the <command>delete</command> statement can be used.  For objects, this will also run the destructor method (if defined for the class).</para>
-      </listitem>
-    </varlistentry>
-    <varlistentry>
-      <term>Syntax</term>
-      <listitem>
-	<programlisting><command>delete</command> <replaceable>$lvalue;</replaceable></programlisting>
-      </listitem>
-    </varlistentry>
-  </variablelist>
-</sect2>
-
 <sect2 id="throw_Statements">
   <title>throw Statements</title>
 
@@ -2788,7 +2770,7 @@ $name = getName();</programlisting>
 <sect2 id="Namespace_Resolution">
 <title>Namespace Resolution</title>
 
-<para>Namespaces can either be resolved by giving a path to the constant, class, or namespace desired, or by leaving out the namespace path and allowing the system to search for the constant, class, or namespace. In either case, a breadth-first search of the namespace tree is made for a match. If a namespace path is included, then the tree is searched for the first namespace match. and, if the rest of the declaration cannot be matched, the search continues in the entire namespace tree until a complete match is found.</para>
+<para>Namespaces can either be resolved by giving a path to the constant, class, or namespace desired, or by leaving out the namespace path and allowing the system to search for the constant, class, or namespace. In either case, a depth-first search of the namespace tree is made for a match. If a namespace path is included, then the tree is searched for the first namespace match. and, if the rest of the declaration cannot be matched, the search continues in the entire namespace tree until a complete match is found.</para>
 
 <para>Namespace paths look like the following:</para>
 
@@ -2807,22 +2789,32 @@ $name = getName();</programlisting>
 <sect1 id="Constants">
 <title>Constants</title>
 
-<para>Constant definitions allow programmers to refer to values with Qore identifiers rather than using the value.  Constants are defined with the following syntax:</para>
+<para>Constant definitions allow programmers to refer to values with Qore identifiers rather than using the value or the expression that generates the value.  Constants are defined with the following syntax:</para>
 
-<programlisting><command>const</command> [<replaceable>namespace_path</replaceable>::]<replaceable>constant_identifier</replaceable> = <replaceable>value</replaceable>;</programlisting>
+<programlisting><command>const</command> [<replaceable>namespace_path</replaceable>::]<replaceable>constant_identifier</replaceable> = <replaceable>expr</replaceable>;</programlisting>
 
-<note><para>The value cannot require run-time evaluation (executes a function, has a variable reference, uses an operator that changes values, etc) or a parse exception will be raised.</para></note>
+<note><para>The expression cannot be an expression that has side effects or a parse exception will be raised.  Only functions tagged with the <code><link linkend="CONST_flag">CONST</link></code> can be used to initialize a constant.</para></note>
 
 </sect1>
 <sect1 id="Classes">
 <title>Classes</title>
 
-<para>Objects are instantiations of a Qore class.  Classes define private members and methods, which are functions that operate only on the objects of that class.</para>
+<para>Objects are instantiations of a Qore class.  Classes can define private members and methods, which are functions that operate only on the objects of that class.</para>
 
 <para>Classes are declared with the following syntax:</para>
 
-<programlisting><command>class</command> [<replaceable>namespace_path::</replaceable>...]<replaceable>class_identifier</replaceable> [<command>inherits</command> [<command>private</command>] [<replaceable>namespace_path::</replaceable>...]<replaceable>class_identifier</replaceable>[, ...]] {
-    [<command>private </command> <replaceable>$.var1[, ...]</replaceable>;]
+<programlisting><command>class</command> [<replaceable>namespace_path::</replaceable>...]<replaceable>class_identifier</replaceable> [<command>inherits</command> [<command>private|public</command>] [<replaceable>namespace_path::</replaceable>...]<replaceable>class_identifier</replaceable>[, ...]] {
+    [<command>private</command> <replaceable>$.var1[, ...]</replaceable>;]
+
+    [<command>private</command> {
+        [<replaceable><link linkend="Data_Type_Declarations">type</link></replaceable>] <replaceable>$.member_name</replaceable> [ = <replaceable>expr</replaceable>];
+	...
+    }]
+
+    [<command>public</command> {
+        [<replaceable><link linkend="Data_Type_Declarations">type</link></replaceable>] <replaceable>$.member_name</replaceable> [ = <replaceable>expr</replaceable>];
+	...
+    }]
 
     [<command>static</command>] [<command>synchronized</command>] [<command>private</command>] [<replaceable>namespace_path</replaceable>::]<replaceable>method_name_identifier</replaceable>([$var1, $var2, ...]) {
          <replaceable>statements</replaceable>;
@@ -2833,18 +2825,18 @@ $name = getName();</programlisting>
 
 <para>Alternatively objects can be defined out of line as follows:</para>
 
-<programlisting><command>class</command> [<replaceable>namespace_path::</replaceable>]<replaceable>class_identifier</replaceable> [<command>inherits</command> [<command>private</command>] [<replaceable>namespace_path::</replaceable>...]<replaceable>class_identifier</replaceable>[, ...]];
+<programlisting><command>class</command> [<replaceable>namespace_path::</replaceable>]<replaceable>class_identifier</replaceable> [<command>inherits</command> [<command>private|public</command>] [<replaceable>namespace_path::</replaceable>...]<replaceable>class_identifier</replaceable>[, ...]];
 
 [<command>static</command>] [<command>synchronized</command>] [<command>private</command>] [<replaceable>namespace_path::</replaceable>]<replaceable>class_identifier</replaceable>::<replaceable>method_identifier</replaceable>([$var1, $var2, ...]) {
     <replaceable>statements</replaceable>;
 }
 </programlisting>
 
-<note><para>Private members can only be declared in an in-line class definition (the first example above).</para></note>
+<para>Public and private members can only be declared in an in-line class definition (the first example above).  If a class has at least one public member declared (or inherits a class with at least one public member declared), then only those members declared as public can be accessed from outside the class, and from within the class only members explicitly declared can be accessed as well (unless the class also defines a <code><link linkend="memberGate">memberGate()</link></code> method).  In this way typographical errors in member names can be caught (at parse time if types are declared).</para>
 
-<note><para>In a class hierarchy, base class constructor methods can be explicitly specified using a special syntax unique to subclass constructor methods.  Please see <link linkend='Class_Inheritance'>Class Inheritance</link> for more information.</para></note>
+<para>In a class hierarchy, base class constructor methods can be explicitly specified using a special syntax unique to subclass constructor methods.  Please see <link linkend='Class_Inheritance'>Class Inheritance</link> for more information.</para>
 
-<note><para>It's possible to write purely object-oriented scripts/programs in Qore by defining an application class and using the -x or --exec-class command-line arguments to tell Qore to instantiate the class instead of doing normal top-level execution (in fact, the --exec-class arguments disallow the use of top-level statements entirely).  For more information, please see <link linkend="Command-Line_Parsing">Command-Line Parsing</link> and <link linkend="Parse_Directives">Parse Directives</link>.</para></note>
+<note><para>It's possible to write purely object-oriented scripts/programs in Qore by defining an application class and using the <code>-x</code> or <code>--exec-class</code> command-line arguments to tell Qore to instantiate the class instead of doing normal top-level execution (in fact, the <code>--exec-class</code> arguments disallow the use of top-level statements entirely).  For more information, please see <link linkend="Command-Line_Parsing">Command-Line Parsing</link> and <link linkend="Parse_Directives">Parse Directives</link>.</para></note>
 
 <sect2 id="Private_and_Synchronized_Methods">
 <title>Private and Synchronized Methods</title>
@@ -2878,29 +2870,47 @@ $name = getName();</programlisting>
   </thead>
 
 <tbody>
-  <row>
+  <row id="constructor_methods">
     <entry><para><code>constructor()</code></para></entry>
-    <entry><para>Called when objects are created with the <link linkend='New_Object_Operator'><command>new</command></link> operator. User code may not explicitly call <code>constructor()</code> methods.  In a class tree, <code>constructor()</code> methods are called for base classes first in left-to-right, depth-first declaration order.</para></entry>
+    <entry>
+      <para>Called when objects are created when instantiated by a variable declaration with a class type and constructor arguments or explicitly with the <link linkend='New_Object_Operator'><command>new</command></link> operator. User code may not explicitly call <code>constructor()</code> methods directly.  In a class tree, <code>constructor()</code> methods are called for base classes first in left-to-right, depth-first declaration order.</para>
+      <para><code>constructor()</code> methods may be overloaded and also private constructors may be defined.  Private constructor can only be called from within the class.</para>
+    </entry>
   </row>
   <row id="copy_methods">
     <entry><para><code>copy()</code></para></entry>
-    <entry><para>When a user explicitly calls a copy method, Qore will generate a new object with references to the same members as the source object.  Then, if there are any base classes, base class <code>copy()</code> methods are called in the same order as the <code>constructor()</code> methods.  If a <code>copy()</code> method is defined, it will be run in the new object with a reference to the old object passed as the first argument.  Any other arguments passed to the <code>copy()</code> method are ignored.</para></entry>
+    <entry>
+      <para>When a user explicitly calls a copy method, Qore will generate a new object with references to the same members as the source object.  Then, if there are any base classes, base class <code>copy()</code> methods are called in the same order as the <code>constructor()</code> methods.  If a <code>copy()</code> method is defined, it will be run in the new object with a reference to the old object passed as the first argument.  Any other arguments passed to the <code>copy()</code> method are ignored.</para>
+      <para><code>copy()</code> methods cannot be overloaded and cannot be private.</para>
+    </entry>
   </row>
   <row id="destructor_methods">
     <entry><para><code>destructor()</code></para></entry>
-    <entry><para>Called when objects go out of scope or are explicitly deleted. User code may not explicitly call <code>destructor()</code> methods.  In a class tree, <code>destructor()</code> methods are called for base classes in the opposite order in which the constructors are called</para></entry>
+    <entry>
+      <para>Called when objects go out of scope or are explicitly deleted. User code may not explicitly call <code>destructor()</code> methods.  In a class tree, <code>destructor()</code> methods are called for base classes in the opposite order in which the constructors are called.</para>
+      <para><code>destructor()</code> methods cannot be overloaded and cannot be private.</para>
+    </entry>
   </row>
-  <row>
-    <entry><para><code>memberGate()</code></para></entry>
-    <entry><para>If this method is implemented in the class, it is called when read access is attempted to private member or members that do not exist in the current object.  In a class tree, <code>memberGate()</code> methods are not inherited.</para></entry>
+  <row id="memberGate">
+    <entry><para><code>memberGate(<link linkend="string_type">string</link> <replaceable>$name</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para></entry>
+    <entry>
+      <para>If this method is implemented in the class, it is called when read access is attempted to private member or members that do not exist in the current object; the return value of this method is returned as the value of the member.</para>
+      <para><code>memberGate()</code> methods cannot be overloaded and are not inherited by subclasses.</para>
+    </entry>
   </row>
-  <row>
-    <entry><para><code>methodGate()</code></para></entry>
-    <entry><para>If this method is implemented in the class, it is called when methods are called on the object that do not exist in the current object.  In a class tree, <code>methodGate()</code> methods are not inherited.</para></entry>
+  <row id="methodGate">
+    <entry><para><code>methodGate(<link linkend="string_type">string</link> <replaceable>$name</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para></entry>
+    <entry>
+      <para>If this method is implemented in the class, it is called when methods are called on the object that do not exist in the current object and the return value of this method is returned as the value of the method call.</para>
+      <para><code>methodGate()</code> methods cannot be overloaded and are not inherited by subclasses.</para>
+    </entry>
   </row>
-  <row>
-    <entry><para><code>memberNotification()</code></para></entry>
-    <entry><para>If this method is implemented in the class, it is called when an object member is updated outside the class with the member name as the argument.  In a class tree, <code>memberNotification()</code> methods are not inherited.</para></entry>
+  <row id="memberNotification">
+    <entry><para><code>memberNotification(<link linkend="string_type">string</link> <replaceable>$name</replaceable>)</code></para></entry>
+    <entry>
+      <para>If this method is implemented in the class, it is called when an object member is updated outside the class with the member name as the argument.  Note that this method is called after the member has been updated and without locking; the call is not atomic respective to other threads that also may update the same member simultaneously.</para>
+      <para><code>memberNotification()</code> methods cannot be overloaded and are not inherited by subclasses.</para>
+    </entry>
   </row>
 
 </tbody>
@@ -2921,9 +2931,11 @@ $name = getName();</programlisting>
 
 <para>The automatic <code>$argv</code> local variable is instantiated as usual in all class methods where there are more arguments than variables declared in the method declaration.</para>
 
-<para>If the class implements a <code>memberGate()</code> method, then whenever a non-existant member of the class is accessed (read), this method will be called with the name of the member as the sole argument, so that the class can create the member (or react in some other way) on demand.  This method is also called when methods of the same class try to access (read) non-existant methods, but is not called from within the <code>memberGate()</code> method itself.</para>
+<para>If the class implements a <code><link linkend="memberGate">memberGate()</link></code> method, then whenever a non-existant member of the class is accessed (read), this method will be called with the name of the member as the sole argument, so that the class can create the member (or react in some other way) on demand.  This method is also called when methods of the same class try to access (read) non-existant methods, but is not called from within the <code><link linkend="memberGate">memberGate()</link></code> method itself.</para>
 
-<para>To monitor writes to the object, the class can implement a <code>memberNotification()</code> method, which is called whenever an object member is modified from outside class member code.  In this case, the <code>memberNotification()</code> method is called with the name of the member that was updated so that an object can automatically react to changes to its members (writes to members) from outside the class.  This method is not called when members are updated from within class member code.</para>
+<para>To monitor writes to the object, the class can implement a <code><link linkend="memberNotification">memberNotification()</link></code> method, which is called whenever an object member is modified from outside class member code.  In this case, the <code><link linkend="memberNotification">memberNotification()</link></code> method is called with the name of the member that was updated so that an object can automatically react to changes to its members (writes to members) from outside the class.  This method is not called when members are updated from within class member code.</para>
+
+<para>If a class has at least one public member declared (or inherits a class with at least one public member declared), then only those members declared as public can be accessed from outside the class, and from within the class only members explicitly declared can be accessed as well (unless the class also defines a <code><link linkend="memberGate">memberGate()</link></code> method).  In this way typographical errors in member names can be caught (at parse time if types are declared).</para>
 
 </sect2>
 
@@ -2956,6 +2968,8 @@ $self.member();</programlisting>
 <para>Class inheritance is a powerful concept for easily extending and resuing object-oriented code, but is also subject to some limitations.  This section will explain how class inheritance works in Qore.</para>
 
 <para>Classes inherit the methods of a parent class by using the <command>inherits</command> as specified above.  Multiple inheritance is supported; a single Qore class can inherit one or more classes.  When a class is inherited by another class, it is called a base class.  Private inheritance is speficied by including the keyword <command>private</command> before the inherited class name.  When a class is privately inherited, it means that the inherited class' public members are treated as private members in the context of accesses outside the class.</para>
+
+<para>Inheritance is public by default, to inherit a class privately, use the <command>private</command> keyword before the class name or class path to inherit.</para>
 
 <para>It is not legal to directly inherit the same class more than once; that is; it is not legal to list the same class more than once after the <command>inherits</command> keyword.  However, it is possible that a base class could appear more than once in the inheritance tree if that class is inherited separately by two or more classes in the tree.  In this case, the base class will actually only be inherited once in the subclass, even though it appears in the inheritance tree more than once.  This must be taken into consideration when designing class hierarchies, particularly if base class constructor parameters for that class are explicitly provided in a different way by the inheriting classes.</para>
 
@@ -2992,7 +3006,7 @@ $self.member();</programlisting>
 
     <para>An example:</para>
 
-    <programlisting>sub test2($x) {
+    <programlisting><command>sub</command> test2($x) {
    # we can modify the original object like so:
    $x.member = "tree";
 
@@ -3002,15 +3016,15 @@ $self.member();</programlisting>
    $x = 1;
 }
 
-sub test() {
-   my $o = new TestObject();
+<command>sub</command> test() {
+   <command>my</command> TestObject $o();
 
    # here we pass a copy of a reference to the object in $o
    test2($o);
 
    # this will print out "ok\n", because the object is still
    # valid and the member has been set by test2()
-   if ($o.member == "tree")
+   <command>if</command> ($o.member == "tree")
       print("ok\n");
 }
 # when test() exits, the object in $o will go out of scope
@@ -3020,7 +3034,7 @@ sub test() {
 
     <para>An example:</para>
 
-    <programlisting>sub test2($x) {
+    <programlisting><command>sub</command> test2($x) {
    # we can modify the original object like so:
    $x.member = "tree";
 
@@ -3030,15 +3044,15 @@ sub test() {
    $x = 1;
 }
 
-sub test() {
-   my $o = new TestObject();
+<command>sub</command> test() {
+   <command>my</command> TestObject $o();
 
    # here we pass a reference to the object in $o
    test2(\$o);
 
    # the object has already been deleted in test2() and
    # therefore nothing will be printed out
-   if ($o.member == "tree")
+   <command>if</command> ($o.member == "tree")
       print("ok\n");
 }</programlisting>
 
@@ -3048,7 +3062,7 @@ sub test() {
 
     <title>Object Scope</title>
 
-    <para>Objects are automatically deleted when their scope-relevant reference count reaches zero (note that objects can be deleted manually at any time by using the <link linkend="delete_Statements"><command>delete</command></link> statement).  Whenever an object is deleted, the object's class' <link linkend="destructor_methods">destructor</link> method is run on the object.</para>
+    <para>Objects are automatically deleted when their scope-relevant reference count reaches zero (note that objects can be deleted manually at any time by using the <link linkend="Delete_Operator"><command>delete</command></link> operator).  Whenever an object is deleted, the object's class' <link linkend="destructor_methods">destructor</link> method is run on the object.</para>
 
     <para>The following affect objects' scope:</para>
 
@@ -3122,12 +3136,12 @@ sub test() {
     <para>The following code gives an example of declaring a global thread-local variable by using <command>my</command> at the top-level:</para>
 
     <programlisting>%require-our
-sub t() {
+<command>sub</command> t() {
     printf("x=%n\n", $x);
 }
 my $x = 2;
 t();
-background t();</programlisting>
+<command>background</command> t();</programlisting>
 
     <para>This will print out:</para>
 
@@ -3515,6 +3529,32 @@ printf("%s\n", makeFormattedXMLString($h));</programlisting>
 	  <row>
 	    <entry><para><link linkend="parseXMLWithSchema">parseXMLWithSchema()</link></para></entry>
 	    <entry><para>parses an XML string (XML element order is preserved by appending numeric suffixes to Qore hash key names when necessary) and validates against an XSD schema string and returns a Qore hash structure.</para></entry>
+	  </row>
+	</tbody>
+      </tgroup>
+    </table>
+
+    <table>
+      <title>Classes Providing XML Functionality</title>
+      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	<thead>
+	  <row>
+	    <entry><para>Class</para></entry>
+	    <entry><para>Description</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+	  <row>
+	    <entry><para><code><link linkend="XmlDoc_Class">XmlDoc</link></code></para></entry>
+	    <entry><para>For analyzing and manipulating XML documents.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code><link linkend="XmlNode_Class">XmlNode</link></code></para></entry>
+	    <entry><para>Gives information about XML data in an XML document.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code><link linkend="XmlReader_Class">XmlReader</link></code></para></entry>
+	    <entry><para>For parsing or iterating through the elements of an XML document.</para></entry>
 	  </row>
 	</tbody>
       </tgroup>

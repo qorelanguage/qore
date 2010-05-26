@@ -889,7 +889,7 @@
             <para>N</para>
           </entry>
           <entry>
-            <para>Returns &quot;builtin&quot;, &quot;user&quot;, or NOTHING according to the function name passed</para>
+            <para>Returns &quot;builtin&quot;, &quot;user&quot;, or <command><link linkend="NOTHING">NOTHING</link></command> according to the function name passed</para>
           </entry>
         </row>
         <row>
@@ -1173,7 +1173,7 @@
         <row>
           <entry><para><code><link linkend="getcwd">getcwd</link>() <command>returns</command> <link linkend="any_type">any</link></code></para></entry>
           <entry><para>N</para></entry>
-          <entry><para>Returns the name of the current working directory or NOTHING if an error occurs.</para></entry>
+          <entry><para>Returns the name of the current working directory or <command><link linkend="NOTHING">NOTHING</link></command> if an error occurs.</para></entry>
         </row>
         <row>
           <entry><para><code><link linkend="getcwd2">getcwd2</link>() <command>returns</command> <link linkend="string_type">string</link></code></para></entry>
@@ -1224,7 +1224,7 @@
             <para><code><link linkend="getDBIDriverCapabilities">getDBIDriverCapabilities</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
           </entry>
           <entry><para>N</para></entry>
-          <entry><para>Returns an integer representing the capabilities of a DBI driver or NOTHING if the driver cannot be loaded.</para></entry>
+          <entry><para>Returns an integer representing the capabilities of a DBI driver or <command><link linkend="NOTHING">NOTHING</link></command> if the driver cannot be loaded.</para></entry>
         </row>
         <row>
           <entry>
@@ -1232,12 +1232,12 @@
             <para><code><link linkend="getDBIDriverCapabilityList">getDBIDriverCapabilityList</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
           </entry>
           <entry><para>N</para></entry>
-          <entry><para>Returns a list of codes representing the capabilities of a DBI driver of NOTHING if the driver cannot be loaded.</para></entry>
+          <entry><para>Returns a list of codes representing the capabilities of a DBI driver of <command><link linkend="NOTHING">NOTHING</link></command> if the driver cannot be loaded.</para></entry>
         </row>
         <row>
           <entry><para><code><link linkend="getDBIDriverList">getDBIDriverList</link>() <command>returns</command> <link linkend="any_type">any</link></code></para></entry>
           <entry><para>N</para></entry>
-          <entry><para>Returns a list of strings of DBI drivers currently loaded or NOTHING if no drivers have been loaded.</para></entry>
+          <entry><para>Returns a list of strings of DBI drivers currently loaded or <command><link linkend="NOTHING">NOTHING</link></command> if no drivers have been loaded.</para></entry>
         </row>
         <row>
           <entry>
@@ -1281,7 +1281,7 @@
             <para>N</para>
           </entry>
           <entry>
-            <para>Retrieves the value of an environment variable or NOTHING if the variable is not set</para>
+            <para>Retrieves the value of an environment variable or <command><link linkend="NOTHING">NOTHING</link></command> if the variable is not set</para>
           </entry>
         </row>
         <row>
@@ -1302,7 +1302,7 @@
             <para>N</para>
           </entry>
           <entry>
-            <para>Returns a hash representing the group information of the group name passed or NOTHING if the group name is not found.</para>
+            <para>Returns a hash representing the group information of the group name passed or <command><link linkend="NOTHING">NOTHING</link></command> if the group name is not found.</para>
           </entry>
         </row>
         <row>
@@ -1324,7 +1324,7 @@
             <para>N</para>
           </entry>
           <entry>
-            <para>Returns a hash representing the group information of the group ID passed or NOTHING if the group ID is not found.</para>
+            <para>Returns a hash representing the group information of the group ID passed or <command><link linkend="NOTHING">NOTHING</link></command> if the group ID is not found.</para>
           </entry>
         </row>
         <row>
@@ -1345,7 +1345,7 @@
             <para><code><link linkend="gethostbyaddr">gethostbyaddr</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
           </entry>
           <entry><para>N</para></entry>
-          <entry><para>Returns the official hostname corresponding to the network addressed passed or NOTHING if the address cannot be resolved.</para></entry>
+          <entry><para>Returns the official hostname corresponding to the network addressed passed or <command><link linkend="NOTHING">NOTHING</link></command> if the address cannot be resolved.</para></entry>
         </row>
         <row>
           <entry>
@@ -1353,7 +1353,7 @@
             <para><code><link linkend="gethostbyaddr_long">gethostbyaddr_long</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
           </entry>
           <entry><para>N</para></entry>
-          <entry><para>Returns all host information corresponding to the network address as a hash or NOTHING if the address cannot be resolved.</para></entry>
+          <entry><para>Returns all host information corresponding to the network address as a hash or <command><link linkend="NOTHING">NOTHING</link></command> if the address cannot be resolved.</para></entry>
         </row>
         <row>
           <entry>
@@ -1361,12 +1361,12 @@
             <para><code><link linkend="gethostbyname">gethostbyname</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
           </entry>
           <entry><para>N</para></entry>
-          <entry><para>Returns the first network address corresponding to the hostname as a string or NOTHING if the name cannot be resolved.</para></entry>
+          <entry><para>Returns the first network address corresponding to the hostname as a string or <command><link linkend="NOTHING">NOTHING</link></command> if the name cannot be resolved.</para></entry>
         </row>
         <row>
           <entry><para><code><link linkend="gethostbyname_long">gethostbyname_long</link>(<link linkend="string_type">string</link>) <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para></entry>
           <entry><para>N</para></entry>
-          <entry><para>Returns all host information corresponding to the hostname as a hash or NOTHING if the name cannot be resolved.</para></entry>
+          <entry><para>Returns all host information corresponding to the hostname as a hash or <command><link linkend="NOTHING">NOTHING</link></command> if the name cannot be resolved.</para></entry>
         </row>
         <row>
           <entry><para><code><link linkend="gethostname">gethostname</link>() <command>returns</command> <link linkend="string_type">string</link></code></para></entry>
@@ -1460,7 +1460,7 @@
             <para>N</para>
           </entry>
           <entry>
-            <para>Returns a hash representing the user information of the username passed or NOTHING if the username is not found.</para>
+            <para>Returns a hash representing the user information of the username passed or <command><link linkend="NOTHING">NOTHING</link></command> if the username is not found.</para>
           </entry>
         </row>
         <row>
@@ -1482,7 +1482,7 @@
             <para>N</para>
           </entry>
           <entry>
-            <para>Returns a hash representing the user information of the user ID passed or NOTHING if the user ID is not found.</para>
+            <para>Returns a hash representing the user information of the user ID passed or <command><link linkend="NOTHING">NOTHING</link></command> if the user ID is not found.</para>
           </entry>
         </row>
         <row>
@@ -1538,7 +1538,7 @@
             <para>N</para>
           </entry>
           <entry>
-            <para>Returns a list of files matching the string argument or NOTHING if the call to <code>glob()</code> fails.</para>
+            <para>Returns a list of files matching the string argument or <command><link linkend="NOTHING">NOTHING</link></command> if the call to <code>glob()</code> fails.</para>
           </entry>
         </row>
         <row>
@@ -1615,7 +1615,7 @@
             <para><code><link linkend="hlstat">hlstat</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
           </entry>
           <entry><para>N</para></entry>
-          <entry><para>Returns a hash of information about the file corresponding to the pathname argument; does not follow symbolic links (returns information about symbolic links).  Returns NOTHING if the <code>stat()</code> call fails.</para></entry>
+          <entry><para>Returns a hash of information about the file corresponding to the pathname argument; does not follow symbolic links (returns information about symbolic links).  Returns <command><link linkend="NOTHING">NOTHING</link></command> if the <code>stat()</code> call fails.</para></entry>
         </row>
         <row>
           <entry>
@@ -1635,7 +1635,7 @@
             <para><code><link linkend="hstat">hstat</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
 	  </entry>
           <entry><para>N</para></entry>
-          <entry><para>Returns a hash of information about the file corresponding to the pathname argument; follows symbolic links.  Returns NOTHING if the <code>stat()</code> call fails.</para></entry>
+          <entry><para>Returns a hash of information about the file corresponding to the pathname argument; follows symbolic links.  Returns <command><link linkend="NOTHING">NOTHING</link></command> if the <code>stat()</code> call fails.</para></entry>
         </row>
         <row>
           <entry>
@@ -1982,7 +1982,7 @@
             <para>N</para>
           </entry>
           <entry>
-            <para>Returns a list of filesystem values for the file or symbolic link passed or NOTHING if the call to <code>stat()</code> fails.</para>
+            <para>Returns a list of filesystem values for the file or symbolic link passed or <command><link linkend="NOTHING">NOTHING</link></command> if the call to <code>stat()</code> fails.</para>
           </entry>
         </row>
         <row>
@@ -2096,12 +2096,12 @@
         <row>
           <entry><para><code><link linkend="makeFormattedXMLRPCResponseString">makeFormattedXMLRPCResponseString</link>(...) <command>returns</command> <link linkend="any_type">any</link></code></para></entry>
           <entry><para>Y</para></entry>
-          <entry><para>Serializes the arguments into an XML string formatted for an XML-RPC response with whitespace formatting; if no arguments are passed, then NOTHING is returned.</para></entry>
+          <entry><para>Serializes the arguments into an XML string formatted for an XML-RPC response with whitespace formatting; if no arguments are passed, then <command><link linkend="NOTHING">NOTHING</link></command> is returned.</para></entry>
         </row>
         <row>
           <entry><para><code><link linkend="makeFormattedXMLRPCResponseStringWithEncoding">makeFormattedXMLRPCResponseStringWithEncoding</link>(<link linkend="string_type">string</link>, ...) <command>returns</command> <link linkend="any_type">any</link></code></para></entry>
           <entry><para>Y</para></entry>
-          <entry><para>Serializes the arguments into an XML string formatted for an XML-RPC response with whitespace formatting, taking an initial string argument to give the encoding for the created XML.  If no arguments after the encoding string are passed, then NOTHING is returned.</para></entry>
+          <entry><para>Serializes the arguments into an XML string formatted for an XML-RPC response with whitespace formatting, taking an initial string argument to give the encoding for the created XML.  If no arguments after the encoding string are passed, then <command><link linkend="NOTHING">NOTHING</link></command> is returned.</para></entry>
         </row>
         <row>
           <entry>
@@ -2239,12 +2239,12 @@
         <row>
           <entry><para><code><link linkend="makeXMLRPCResponseString">makeXMLRPCResponseString</link>(...) <command>returns</command> <link linkend="any_type">any</link></code></para></entry>
           <entry><para>Y</para></entry>
-          <entry><para>Serializes the arguments into an XML string formatted for an XML-RPC response without formatting; if no arguments are passed then NOTHING is returned.</para></entry>
+          <entry><para>Serializes the arguments into an XML string formatted for an XML-RPC response without formatting; if no arguments are passed then <command><link linkend="NOTHING">NOTHING</link></command> is returned.</para></entry>
         </row>
         <row>
           <entry><para><code><link linkend="makeXMLRPCResponseStringWithEncoding">makeXMLRPCResponseStringWithEncoding</link>(<link linkend="string_type">string</link>, ...) <command>returns</command> <link linkend="any_type">any</link></code></para></entry>
           <entry><para>Y</para></entry>
-          <entry><para>Serializes the arguments into an XML string formatted for an XML-RPC response without formatting, taking an initial string argument to give the target character encoding for the XML string.  If no arguments after the encoding string are passed, then NOTHING is returned.</para></entry>
+          <entry><para>Serializes the arguments into an XML string formatted for an XML-RPC response without formatting, taking an initial string argument to give the target character encoding for the XML string.  If no arguments after the encoding string are passed, then <command><link linkend="NOTHING">NOTHING</link></command> is returned.</para></entry>
         </row>
 
         <row>
@@ -2557,7 +2557,7 @@
             <para><code><link linkend="parseURL">parseURL</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
           </entry>
           <entry><para>N</para></entry>
-          <entry><para>Parses a URL string and returns a hash of the components, unless the string cannot be parsed as URL in which case NOTHING is returned.</para></entry>
+          <entry><para>Parses a URL string and returns a hash of the components, unless the string cannot be parsed as URL in which case <command><link linkend="NOTHING">NOTHING</link></command> is returned.</para></entry>
         </row>
         <row>
           <entry>
@@ -3195,7 +3195,7 @@
             <para>N</para>
           </entry>
           <entry>
-            <para>Returns a list of filesystem information for the filename passed or NOTHING if the <code>stat</code> call fails.</para>
+            <para>Returns a list of filesystem information for the filename passed or <command><link linkend="NOTHING">NOTHING</link></command> if the <code>stat</code> call fails.</para>
           </entry>
         </row>
         <row>
@@ -9403,7 +9403,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
             <row>
 	      <entry><para><code><link linkend="string_type">string</link> <replaceable>$string</replaceable>, <link linkend="string_type">string</link> <replaceable>$pattern</replaceable>, <link linkend="int_type">int</link> <replaceable>$options</replaceable> = 0</code></para></entry>
               <entry><para><code><link linkend="list_type">list</link></code></para></entry>
-              <entry><para>Returns any patterns in parentheses in the second argument when applied tot he first argument as a <code><link linkend="list_type">list</link></code>.  If no matches are found, then NOTHING is returned.  The third argument can be used to set regex options; for valid options, see <link linkend="Qore_Regex_Constants">Regex Constants</link></para></entry>
+              <entry><para>Returns any patterns in parentheses in the second argument when applied tot he first argument as a <code><link linkend="list_type">list</link></code>.  If no matches are found, then <command><link linkend="NOTHING">NOTHING</link></command> is returned.  The third argument can be used to set regex options; for valid options, see <link linkend="Qore_Regex_Constants">Regex Constants</link></para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -10629,7 +10629,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
   <row>
     <entry><para><code><link linkend="string_type">string</link> <replaceable>$name</replaceable></code></para></entry>
     <entry><para><code><link linkend="any_type">any</link></code></para></entry>
-    <entry><para>Returns the first address corresponding to the hostname passed as a string or NOTHING if the host is unknown.</para></entry>
+    <entry><para>Returns the first address corresponding to the hostname passed as a string or <command><link linkend="NOTHING">NOTHING</link></command> if the host is unknown.</para></entry>
   </row>
 
 </tbody>
@@ -10686,7 +10686,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <row>
 	<entry><para><code><link linkend="string_type">string</link> <replaceable>$name</replaceable></code></para></entry>
 	<entry><para><code><link linkend="any_type">any</link></code></para></entry>
-	<entry><para>Returns a <link linkend="host_information_hash">hash</link> representing all host and address information corresponding to the hostname passed or NOTHING if the host is unknown.</para></entry>
+	<entry><para>Returns a <link linkend="host_information_hash">hash</link> representing all host and address information corresponding to the hostname passed or <command><link linkend="NOTHING">NOTHING</link></command> if the host is unknown.</para></entry>
       </row>
 
     </tbody>
@@ -10925,7 +10925,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Returns a list of files matching the string argument or NOTHING if the call to <code>glob()</code> fails.</para>
+	<para>Returns a list of files matching the string argument or <command><link linkend="NOTHING">NOTHING</link></command> if the call to <code>glob()</code> fails.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -10959,7 +10959,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
   <row>
     <entry><para><code><link linkend="string_type">string</link></code></para></entry>
     <entry><para><code><link linkend="any_type">any</link></code></para></entry>
-    <entry><para>Returns a list of files matching the string argument or NOTHING if the call to <code>glob()</code> fails.</para></entry>
+    <entry><para>Returns a list of files matching the string argument or <command><link linkend="NOTHING">NOTHING</link></command> if the call to <code>glob()</code> fails.</para></entry>
   </row>
 
 </tbody>
@@ -11457,7 +11457,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<row>
 	  <entry><para><code><link linkend="string_type">string</link> <replaceable>$path</replaceable></code></para></entry>
 	  <entry><para><code><link linkend="any_type">any</link></code></para></entry>
-	  <entry><para>Returns a list of filesystem values for the file passed, following symbolic links or NOTHING if the call fails.  See <link linkend="Stat_List">Stat List</link> below for a description of the list returned by this function.</para></entry>
+	  <entry><para>Returns a list of filesystem values for the file passed, following symbolic links or <command><link linkend="NOTHING">NOTHING</link></command> if the call fails.  See <link linkend="Stat_List">Stat List</link> below for a description of the list returned by this function.</para></entry>
 	</row>
       </tbody>
     </tgroup>
@@ -17840,7 +17840,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
   <row>
     <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$mask</replaceable></code></para></entry>
     <entry><para><code><link linkend="int_type">int</link></code></para></entry>
-    <entry><para>Sets the file creation mask for the process, returns 0 for success.  If no argument is passed, no action is taken, and the function returns NOTHING.</para></entry>
+    <entry><para>Sets the file creation mask for the process, returns 0 for success.  If no argument is passed, no action is taken, and the function returns <command><link linkend="NOTHING">NOTHING</link></command>.</para></entry>
   </row>
 
 </tbody>
@@ -19090,7 +19090,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Returns &quot;builtin&quot;, &quot;user&quot;, or NOTHING according to the function name passed.</para>
+	<para>Returns &quot;builtin&quot;, &quot;user&quot;, or <command><link linkend="NOTHING">NOTHING</link></command> according to the function name passed.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -19124,7 +19124,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
   <row>
     <entry><para><code><link linkend="string_type">string</link></code></para></entry>
     <entry><para><code><link linkend="any_type">any</link></code></para></entry>
-    <entry><para>Returns &quot;builtin&quot; (for a builtin function), &quot;user&quot; (for a user function), or NOTHING (if the function cannot be found) according to the function name passed.</para></entry>
+    <entry><para>Returns &quot;builtin&quot; (for a builtin function), &quot;user&quot; (for a user function), or <command><link linkend="NOTHING">NOTHING</link></command> (if the function cannot be found) according to the function name passed.</para></entry>
   </row>
 
 </tbody>
@@ -19840,7 +19840,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
             <row>
 	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
               <entry><para><code><link linkend="int_type">int</link></code></para></entry>
-              <entry><para>Returns an integer representing the capabilities of a DBI driver binary-OR'ed together (see <link linkend="DBI_Capability_Constants">DBI Capability Constants</link>).  Returns NOTHING if the driver cannot be found.</para></entry>
+              <entry><para>Returns an integer representing the capabilities of a DBI driver binary-OR'ed together (see <link linkend="DBI_Capability_Constants">DBI Capability Constants</link>).  Returns <command><link linkend="NOTHING">NOTHING</link></command> if the driver cannot be found.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -19886,7 +19886,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
             <row>
 	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
               <entry><para><code><link linkend="list_type">list</link></code></para></entry>
-              <entry><para>Returns a list of each capability supported by the given DBI driver (see <link linkend="DBI_Capability_Constants">DBI Capability Constants</link>).  Returns NOTHING if the driver cannot be found.</para></entry>
+              <entry><para>Returns a list of each capability supported by the given DBI driver (see <link linkend="DBI_Capability_Constants">DBI Capability Constants</link>).  Returns <command><link linkend="NOTHING">NOTHING</link></command> if the driver cannot be found.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -20027,7 +20027,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
             <row>
 	      <entry><para><code><link linkend="object_type">object</link></code></para></entry>
               <entry><para><code><link linkend="list_type">list</link></code></para></entry>
-              <entry><para>Returns all methods in the class, both private and public.  Does not return inherited methods.  If no object is passed to the function, NOTHING is returned.</para></entry>
+              <entry><para>Returns all methods in the class, both private and public.  Does not return inherited methods.  If no object is passed to the function, <command><link linkend="NOTHING">NOTHING</link></command> is returned.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -20189,7 +20189,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
                 <para><code><link linkend="hash_type">hash</link> or <link linkend="nothing_type">nothing</link></code></para>
               </entry>
               <entry>
-                <para>Returns a hash representing the group information for the group ID passed.  If the gid does not exist, NOTHING is returned.  See the <link linkend="grinfo">Group Information Hash</link> for information about the return value.</para>
+                <para>Returns a hash representing the group information for the group ID passed.  If the gid does not exist, <command><link linkend="NOTHING">NOTHING</link></command> is returned.  See the <link linkend="grinfo">Group Information Hash</link> for information about the return value.</para>
               </entry>
             </row>
           </tbody>
@@ -20369,7 +20369,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
                 <para><code><link linkend="hash_type">hash</link> or <link linkend="nothing_type">nothing</link></code></para>
               </entry>
               <entry>
-                <para>Returns a hash representing the group information for the group name passed.  If the group name does not exist, NOTHING is returned.  See the <link linkend="grinfo">Group Information Hash</link> for information about the return value.</para>
+                <para>Returns a hash representing the group information for the group name passed.  If the group name does not exist, <command><link linkend="NOTHING">NOTHING</link></command> is returned.  See the <link linkend="grinfo">Group Information Hash</link> for information about the return value.</para>
               </entry>
             </row>
           </tbody>
@@ -20515,7 +20515,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
                 <para><code><link linkend="hash_type">hash</link> or <link linkend="nothing_type">nothing</link></code></para>
               </entry>
               <entry>
-                <para>Returns a hash representing the user information for the user name passed.  If the user name does not exist, NOTHING is returned.  See the <link linkend="pwinfo">Password Information Hash</link> for information about the return value.</para>
+                <para>Returns a hash representing the user information for the user name passed.  If the user name does not exist, <command><link linkend="NOTHING">NOTHING</link></command> is returned.  See the <link linkend="pwinfo">Password Information Hash</link> for information about the return value.</para>
               </entry>
             </row>
           </tbody>
@@ -20710,7 +20710,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
                 <para><code><link linkend="hash_type">hash</link> or <link linkend="nothing_type">nothing</link></code></para>
               </entry>
               <entry>
-                <para>Returns a hash representing the user information for the user ID passed.  If the uid does not exist, NOTHING is returned.  See the <link linkend="pwinfo">Password Information Hash</link> for information about the return value.</para>
+                <para>Returns a hash representing the user information for the user ID passed.  If the uid does not exist, <command><link linkend="NOTHING">NOTHING</link></command> is returned.  See the <link linkend="pwinfo">Password Information Hash</link> for information about the return value.</para>
               </entry>
             </row>
           </tbody>
@@ -20808,7 +20808,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Returns the path (directory and filename) of the current script.  Returns NOTHING if unknown (i.e. no parent script, script read from stdin, etc).</para>
+	    <para>Returns the path (directory and filename) of the current script.  Returns <command><link linkend="NOTHING">NOTHING</link></command> if unknown (i.e. no parent script, script read from stdin, etc).</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -20838,7 +20838,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	  <row>
 	    <entry><para>n/a</para></entry>
 	    <entry><code><link linkend="string_type">string</link> or <link linkend="nothing_type">nothing</link></code></entry>
-	    <entry><para>Returns the path name of the current script, or NOTHING if unknown.</para></entry>
+	    <entry><para>Returns the path name of the current script, or <command><link linkend="NOTHING">NOTHING</link></command> if unknown.</para></entry>
 	  </row>
 	</tbody>
       </tgroup>
@@ -20854,7 +20854,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Returns the name of the directory from which the current script was executed.  Returns NOTHING if the parent script is unknown (i.e. no parent script, script read from stdin, etc).</para>
+	    <para>Returns the name of the directory from which the current script was executed.  Returns <command><link linkend="NOTHING">NOTHING</link></command> if the parent script is unknown (i.e. no parent script, script read from stdin, etc).</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -20884,7 +20884,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	  <row>
 	    <entry><para>n/a</para></entry>
 	    <entry><code><link linkend="string_type">string</link> or <link linkend="nothing_type">nothing</link></code></entry>
-	    <entry><para>Returns the name of the directory for the current script, or NOTHING if unknown.</para></entry>
+	    <entry><para>Returns the name of the directory for the current script, or <command><link linkend="NOTHING">NOTHING</link></command> if unknown.</para></entry>
 	  </row>
 	</tbody>
       </tgroup>
@@ -20900,7 +20900,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Returns the filename of the current script if known; returns NOTHING if not (i.e. no parent script, script read from stdin, etc).</para>
+	    <para>Returns the filename of the current script if known; returns <command><link linkend="NOTHING">NOTHING</link></command> if not (i.e. no parent script, script read from stdin, etc).</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -20930,7 +20930,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	  <row>
 	    <entry><para>n/a</para></entry>
 	    <entry><code><link linkend="string_type">string</link> or <link linkend="nothing_type">nothing</link></code></entry>
-	    <entry><para>Returns the filename of the current script, or NOTHING if unknown.</para></entry>
+	    <entry><para>Returns the filename of the current script, or <command><link linkend="NOTHING">NOTHING</link></command> if unknown.</para></entry>
 	  </row>
 	</tbody>
       </tgroup>
@@ -21210,7 +21210,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Tests if the first argument is a member of the second argument list; types are converted if necessary.  If the second argument is NOTHING, then False is returned unconditionally (i.e. even if the first argument is NOTHING as well), however if the second argument is not a list then the return value of the function is the comparison of the two arguments.  For a version of this function that requires types to be equal for the comparison to succeed, see <link linkend="inlist_hard">inlist_hard()</link>.</para>
+	<para>Tests if the first argument is a member of the second argument list; types are converted if necessary.  If the second argument is NOTHING, then False is returned unconditionally (i.e. even if the first argument is <command><link linkend="NOTHING">NOTHING</link></command> as well), however if the second argument is not a list then the return value of the function is the comparison of the two arguments.  For a version of this function that requires types to be equal for the comparison to succeed, see <link linkend="inlist_hard">inlist_hard()</link>.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -21267,7 +21267,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Tests if the first argument is a member of the second argument list; no type conversions are performed (i.e. the comparison fails if types are not equal).  If the second argument is NOTHING, then False is returned unconditionally (i.e. even if the first argument is NOTHING as well), however if the second argument is not a list then the return value of the function is the comparison of the two arguments (types must be equal).  For a &quot;soft&quot; version of this function that performs type conversions when doing the comparison, see <link linkend="inlist">inlist()</link>.</para>
+	<para>Tests if the first argument is a member of the second argument list; no type conversions are performed (i.e. the comparison fails if types are not equal).  If the second argument is NOTHING, then False is returned unconditionally (i.e. even if the first argument is <command><link linkend="NOTHING">NOTHING</link></command> as well), however if the second argument is not a list then the return value of the function is the comparison of the two arguments (types must be equal).  For a &quot;soft&quot; version of this function that performs type conversions when doing the comparison, see <link linkend="inlist">inlist()</link>.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
