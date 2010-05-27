@@ -2592,7 +2592,7 @@ $name = getName();</programlisting>
     if ($error)
         <command>throw</command> "ERROR", "Scary error happened";
     print("everything's OK!\n");
-    return "OK";
+    <command>return</command> "OK";
 }
 # when the block exits for any reason, the mutex will be unlocked
 </programlisting>
@@ -2637,7 +2637,7 @@ $name = getName();</programlisting>
     $db.select("select * from table where id = %v for update", $id);
     # .. more code
 
-    return "OK";
+    <command>return</command> "OK";
 }
 # when the block exits. the transaction will be either committed or rolled back, 
 # depending on if an exception was raised or not
@@ -2683,7 +2683,7 @@ $name = getName();</programlisting>
     $db.select("select * from table where id = %v for update", $id);
     # .. more code
 
-    return "OK";
+    <command>return</command> "OK";
 }
 # when the block exits. the transaction will be either committed or rolled back, 
 # depending on if an exception was raised or not
@@ -3141,7 +3141,7 @@ $self.member();</programlisting>
 <command>sub</command> t() {
     printf("x=%n\n", $x);
 }
-my $x = 2;
+<command>my</command> $x = 2;
 t();
 <command>background</command> t();</programlisting>
 
