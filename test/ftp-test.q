@@ -36,12 +36,11 @@ class FtpTest inherits FtpClient {
 	$.cwd($path);
 	printf("PWD: %s\n", $.pwd());
 	printf("list(%s): %n\n", $file, $.list($file));
-	if (!$.put($file))
-	    printf("successfully sent %s\n", $file);
+	if (!$.get($file))
+	    printf("successfully got %s\n", $file);
 	else
 	    printf("ERROR: %s\n", strerror(errno()));
 	
-	printf("list(%s): %n\n", $file, $.list($file));
 	$.disconnect();
     }
 }
