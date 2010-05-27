@@ -155,7 +155,7 @@ class xml_stack {
 
 	 while (tail)
 	 {
-	    //printd(5, "xml_stack::~xml_stack(): deleting=%08p (%d), next=%08p\n", tail, tail->depth, tail->next);
+	    //printd(5, "xml_stack::~xml_stack(): deleting=%p (%d), next=%p\n", tail, tail->depth, tail->next);
 	    xml_node *n = tail->next;
 	    delete tail;
 	    tail = n;
@@ -164,7 +164,7 @@ class xml_stack {
       
       DLLLOCAL inline void checkDepth(int depth) {
 	 while (tail && depth && tail->depth >= depth) {
-	    //printd(5, "xml_stack::checkDepth(%d): deleting=%08p (%d), new tail=%08p\n", depth, tail, tail->depth, tail->next);
+	    //printd(5, "xml_stack::checkDepth(%d): deleting=%p (%d), new tail=%p\n", depth, tail, tail->depth, tail->next);
 	    xml_node *n = tail->next;
 	    delete tail;
 	    tail = n;
@@ -367,7 +367,7 @@ QoreXmlRelaxNGContext::QoreXmlRelaxNGContext(const char *rng, int size, Exceptio
 #endif
 
 static int concatSimpleValue(QoreString &str, const AbstractQoreNode *n, ExceptionSink *xsink) {
-   //printd(5, "concatSimpleValue() n=%08p (%s) %s\n", n, n->getTypeName(), n->getType() == NT_STRING ? ((QoreStringNode *)n)->getBuffer() : "unknown");
+   //printd(5, "concatSimpleValue() n=%p (%s) %s\n", n, n->getTypeName(), n->getType() == NT_STRING ? ((QoreStringNode *)n)->getBuffer() : "unknown");
    switch (n ? n->getType() : 0) {
       case NT_INT: {
 	 const QoreBigIntNode *b = reinterpret_cast<const QoreBigIntNode *>(n);
@@ -398,7 +398,7 @@ static int concatSimpleValue(QoreString &str, const AbstractQoreNode *n, Excepti
 }
 
 static int concatSimpleCDataValue(QoreString &str, const AbstractQoreNode *n, ExceptionSink *xsink) {
-   //printd(5, "concatSimpleValue() n=%08p (%s) %s\n", n, n->getTypeName(), n->getType() == NT_STRING ? ((QoreStringNode *)n)->getBuffer() : "unknown");
+   //printd(5, "concatSimpleValue() n=%p (%s) %s\n", n, n->getTypeName(), n->getType() == NT_STRING ? ((QoreStringNode *)n)->getBuffer() : "unknown");
    if (n && n->getType() == NT_STRING) {
       const QoreStringNode *qsn = reinterpret_cast<const QoreStringNode *>(n);
       if (strstr(qsn->getBuffer(), "]]>")) {
@@ -810,7 +810,7 @@ static void addXMLRPCValueIntern(QoreString *str, const AbstractQoreNode *n, int
    }
 
    else if (ntype == NT_FLOAT)
-      str->sprintf("<double>%f</double>", reinterpret_cast<const QoreFloatNode *>(n)->f);
+      str->sprintf("<double>%.20g</double>", reinterpret_cast<const QoreFloatNode *>(n)->f);
 	
    else if (ntype == NT_DATE) {
       str->concat("<dateTime.iso8601>");

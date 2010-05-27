@@ -399,7 +399,7 @@ static int doJSONValue(class QoreString *str, const AbstractQoreNode *v, int for
    }
 
    if (vtype == NT_FLOAT) {
-      str->sprintf("%.9g", reinterpret_cast<const QoreFloatNode *>(v)->f);
+      str->sprintf("%.20g", reinterpret_cast<const QoreFloatNode *>(v)->f);
       return 0;
    }
 

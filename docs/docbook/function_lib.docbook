@@ -23215,6 +23215,7 @@ remove_thread_data($list_of_strings);</programlisting>
       <term>Synopsis</term>
       <listitem>
 	<para>Serializes the arguments into an XML string in XML-RPC call format with whitespace formatting.</para>
+	<para>For information about XML-RPC serialization, see <link linkend="XMLRPC_Serialization">XML-RPC Serialization</link>.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -23277,6 +23278,7 @@ remove_thread_data($list_of_strings);</programlisting>
       <term>Synopsis</term>
       <listitem>
 	<para>Serializes the arguments into an XML string for an XML-RPC call with whitespace formatting, taking an initial string argument to give the encoding for the created XML.</para>
+	<para>For information about XML-RPC serialization, see <link linkend="XMLRPC_Serialization">XML-RPC Serialization</link>.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -23339,6 +23341,7 @@ remove_thread_data($list_of_strings);</programlisting>
       <term>Synopsis</term>
       <listitem>
 	<para>Serializes the arguments into an XML string in XML-RPC call format with whitespace formatting, taking a single argument following the XML-RPC method name for the argument list to the method.</para>
+	<para>For information about XML-RPC serialization, see <link linkend="XMLRPC_Serialization">XML-RPC Serialization</link>.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -23401,6 +23404,7 @@ remove_thread_data($list_of_strings);</programlisting>
       <term>Synopsis</term>
       <listitem>
 	<para>Serializes the arguments into an XML string formatted for an XML-RPC call with whitespace formatting, taking an initial string argument to give the encoding for the created XML, followed by the method name, followed by a single list argument for the argument list.</para>
+	<para>For information about XML-RPC serialization, see <link linkend="XMLRPC_Serialization">XML-RPC Serialization</link>.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -23463,6 +23467,7 @@ remove_thread_data($list_of_strings);</programlisting>
       <term>Synopsis</term>
       <listitem>
 	<para>Serializes the arguments into an XML string formatted for an XML-RPC fault response with whitespace formatting.</para>
+	<para>For information about XML-RPC serialization, see <link linkend="XMLRPC_Serialization">XML-RPC Serialization</link>.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -23529,6 +23534,7 @@ remove_thread_data($list_of_strings);</programlisting>
       <term>Synopsis</term>
       <listitem>
 	<para>Serializes the arguments into an XML string formatted for an XML-RPC fault response with whitespace formatting, taking an initial string argument to give the encoding for the created XML.</para>
+	<para>For information about XML-RPC serialization, see <link linkend="XMLRPC_Serialization">XML-RPC Serialization</link>.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -23595,6 +23601,7 @@ remove_thread_data($list_of_strings);</programlisting>
       <term>Synopsis</term>
       <listitem>
 	<para>Serializes the arguments into an XML string formatted for an XML-RPC response with whitespace formatting.</para>
+	<para>For information about XML-RPC serialization, see <link linkend="XMLRPC_Serialization">XML-RPC Serialization</link>.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -23657,6 +23664,7 @@ remove_thread_data($list_of_strings);</programlisting>
       <term>Synopsis</term>
       <listitem>
 	<para>Serializes the arguments into an XML string formatted for an XML-RPC response with whitespace formatting, taking an initial string argument to give the encoding for the created XML.</para>
+	<para>For information about XML-RPC serialization, see <link linkend="XMLRPC_Serialization">XML-RPC Serialization</link>.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -23719,6 +23727,7 @@ remove_thread_data($list_of_strings);</programlisting>
       <term>Synopsis</term>
       <listitem>
 	<para>Serializes the arguments into an XML string in XML-RPC value format with whitespace formatting.</para>
+	<para>For information about XML-RPC serialization, see <link linkend="XMLRPC_Serialization">XML-RPC Serialization</link>.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -23924,6 +23933,7 @@ remove_thread_data($list_of_strings);</programlisting>
       <term>Synopsis</term>
       <listitem>
 	<para>Serializes the arguments into an XML string in XML-RPC call format without whitespace formatting.</para>
+	<para>For information about XML-RPC serialization, see <link linkend="XMLRPC_Serialization">XML-RPC Serialization</link>.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -23987,6 +23997,7 @@ remove_thread_data($list_of_strings);</programlisting>
       <term>Synopsis</term>
       <listitem>
 	<para>Serializes the arguments into an XML string in XML-RPC call format without whitespace formatting, taking an initial string argument to give the target character encoding for the XML string.</para>
+	<para>For information about XML-RPC serialization, see <link linkend="XMLRPC_Serialization">XML-RPC Serialization</link>.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -24049,6 +24060,7 @@ remove_thread_data($list_of_strings);</programlisting>
       <term>Synopsis</term>
       <listitem>
 	<para>Serializes the arguments into an XML string in XML-RPC call format without whitespace formatting, taking a single argument following the XML-RPC method name for the argument list to the method.</para>
+	<para>For information about XML-RPC serialization, see <link linkend="XMLRPC_Serialization">XML-RPC Serialization</link>.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -24112,6 +24124,7 @@ remove_thread_data($list_of_strings);</programlisting>
       <term>Synopsis</term>
       <listitem>
 	<para>Serializes the arguments into an XML string formatted for an XML-RPC call without whitespace formatting, taking an initial string argument to give the target character encoding for the XML string followed by a list argument for the argument list.</para>
+	<para>For information about XML-RPC serialization, see <link linkend="XMLRPC_Serialization">XML-RPC Serialization</link>.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -24175,6 +24188,7 @@ remove_thread_data($list_of_strings);</programlisting>
       <term>Synopsis</term>
       <listitem>
 	<para>Serializes the arguments into an XML string formatted for an XML-RPC fault response without whitespace formatting.</para>
+	<para>For information about XML-RPC serialization, see <link linkend="XMLRPC_Serialization">XML-RPC Serialization</link>.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -24243,6 +24257,7 @@ the resulting string will always be the encoding of the fault string (2nd argume
       <term>Synopsis</term>
       <listitem>
 	<para>Serializes the arguments into an XML string formatted for an XML-RPC fault response without whitespace formatting, taking an initial string argument to give the target character encoding for the XML string.</para>
+	<para>For information about XML-RPC serialization, see <link linkend="XMLRPC_Serialization">XML-RPC Serialization</link>.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -24309,6 +24324,7 @@ the resulting string will always be the encoding of the fault string (2nd argume
       <term>Synopsis</term>
       <listitem>
 	<para>Serializes the arguments into an XML string formatted for an XML-RPC response without whitespace formatting.</para>
+	<para>For information about XML-RPC serialization, see <link linkend="XMLRPC_Serialization">XML-RPC Serialization</link>.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -24371,6 +24387,7 @@ the resulting string will always be the encoding of the fault string (2nd argume
       <term>Synopsis</term>
       <listitem>
 	<para>Serializes the arguments into an XML string formatted for an XML-RPC response without whitespace formatting.</para>
+	<para>For information about XML-RPC serialization, see <link linkend="XMLRPC_Serialization">XML-RPC Serialization</link>.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -24433,6 +24450,7 @@ the resulting string will always be the encoding of the fault string (2nd argume
       <term>Synopsis</term>
       <listitem>
 	<para>Serializes the arguments into an XML string in XML-RPC value format without whitespace formatting.</para>
+	<para>For information about XML-RPC serialization, see <link linkend="XMLRPC_Serialization">XML-RPC Serialization</link>.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -24543,7 +24561,7 @@ the resulting string will always be the encoding of the fault string (2nd argume
   </table>
 
       <table>
-	<title>Exceptions Thrown by makeXMLRPCValueString()</title>
+	<title>Exceptions Thrown by makeXMLString()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>

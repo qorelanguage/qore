@@ -3564,7 +3564,7 @@ printf("%s\n", makeFormattedXMLString($h));</programlisting>
 
     <para>Information about Qore's XML-RPC serialization can be found below.</para>
 
-    <table>
+    <table id="XMLRPC_Serialization">
       <title>XML-RPC Serialization in Qore</title>
       <tgroup cols='4' align='left' colsep='1' rowsep='1'>
 	<thead>
