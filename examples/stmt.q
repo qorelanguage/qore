@@ -68,8 +68,7 @@ while ($i);
 # syntax: switch (<expr.>) { case <const. expr.>: <statement(s)>... }
 
 $i = (1, 2, "three");
-switch ($i)
-{
+switch ($i) {
     case 0:
     case "string":
     case 3.5:
@@ -132,8 +131,7 @@ context ($q)
 # "break" exits a loop (such as do, do while, for, foreach, context)
 # and also exits execution of a switch statement
 
-while (True)
-{
+while (True) {
     printf("about to execute break\n");
     break;
 }
@@ -144,8 +142,7 @@ while (True)
 # "continue" jumps to the next iteration of a loop
 
 $i = 0;
-while ($i < 2)
-{
+while ($i < 2) {
     ++$i;
     if ($i == 1)
 	continue;
@@ -157,8 +154,7 @@ while ($i < 2)
 ########################
 # "return" returns from a function/subroutine
 
-sub test()
-{
+sub test() {
     return "string";
 }
 
@@ -174,8 +170,7 @@ printf("return: test() = %n\n", test());
 try {
     throw "TEST", "this is a string";
 }
-catch ($ex)
-{
+catch ($ex) {
     printf("throw, try/catch: %s:%d: %n, %n\n", $ex.file, $ex.line, $ex.err, $ex.desc);
 }
 
@@ -196,15 +191,13 @@ printf("delete: $i = %n\n", $i);
 # instead at every possible exit point in a block
 # "on_error" and "on_success" statements work the same way except are conditionally
 # executed if there is an active exception or not when the block is exited
-try
-{
+try {
     $i = 10;
     on_exit $i = 20;
     $i = 30;
     throw False;
 }
-catch ()
-{
+catch () {
     # ignore the exception
 }
 printf("i must be 20: i=%d\n", $i);
@@ -214,11 +207,11 @@ printf("i must be 20: i=%d\n", $i);
 #############################
 # "thread_exit" allows a thread to exit immediately without terminating the entire process
 
-sub thread_exit_test()
-{
+sub thread_exit_test() {
     printf("before thread_exit: TID %d\n", gettid());
     thread_exit;
-    printf("ERROR: after thread_exit: TID %d\n", gettid());
+    # if the following line is uncommented, an "unreachable-code" warning will be issued
+    #printf("ERROR: after thread_exit: TID %d\n", gettid());
 }
 
 background thread_exit_test();
