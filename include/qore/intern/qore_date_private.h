@@ -578,7 +578,7 @@ public:
    DLLLOCAL void get(const AbstractQoreZoneInfo *z, qore_time_info &info) const {
       const char *zname;
       bool isdst;
-      int offset = zone->getUTCOffset(epoch, isdst, zname);
+      int offset = z->getUTCOffset(epoch, isdst, zname);
       info.set(epoch, us, offset, isdst, zname, zone);
    }
 

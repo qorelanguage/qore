@@ -864,6 +864,10 @@ static void addXMLRPCValueIntern(QoreString *str, const AbstractQoreNode *n, int
       str->concat("</array>");
       //if (format) str->concat('\n');
    }
+   else {
+      xsink->raiseException("XML-RPC-SERIALIZATION-ERROR", "don't know how to serialize type '%s' to XML-RPC", get_type_name(n));
+      return;
+   }
 
    if (format) {
       str->concat('\n');

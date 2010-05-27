@@ -3561,6 +3561,68 @@ printf("%s\n", makeFormattedXMLString($h));</programlisting>
     </table>
 
     <para>XML-RPC is a lightweight but powerful XML over HTTP web service protocol.  Qore includes builtin support for this protocol.  You can find more information about XML-RPC, including specifications and examples at <ulink url="http://xmlrpc.org">http://xmlrpc.org</ulink>.</para>
+
+    <para>Information about Qore's XML-RPC serialization can be found below.</para>
+
+    <table>
+      <title>XML-RPC Serialization in Qore</title>
+      <tgroup cols='4' align='left' colsep='1' rowsep='1'>
+	<thead>
+	  <row>
+	    <entry><para>Qore Type</para></entry>
+	    <entry><para>XML-RPC Type</para></entry>
+	    <entry><para>Description</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+	  <row>
+	    <entry><para><code><link linkend="String">String</link></code></para></entry>
+	    <entry><para><code></code></para></entry>
+	    <entry><para>direct conversion to UTF-8 string</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code><link linkend="Integer">Integer</link></code></para></entry>
+	    <entry><para><code>i4</code> or <code>string</code></para></entry>
+	    <entry><para>If the integer requires more than 32 bits to represent, then it is sent as a string</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code><link linkend="Float">Float</link></code></para></entry>
+	    <entry><para><code>double</code></para></entry>
+	    <entry><para>direct conversion</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code><link linkend="Boolean">Boolean</link></code></para></entry>
+	    <entry><para><code>boolean</code></para></entry>
+	    <entry><para>direct conversion</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code><link linkend="Date">Date</link></code></para></entry>
+	    <entry><para><code>iso8601</code></para></entry>
+	    <entry><para>Absolute date/time values will convert to the default time zone for the calling context for the output string if necessary.  Note that relative date/time values (durations) will be serialized with the same format as absolute date/time values.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code><link linkend="Binary">Binary</link></code></para></entry>
+	    <entry><para><code>base64</code></para></entry>
+	    <entry><para>direct conversion</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code><link linkend="Lists">List</link></code></para></entry>
+	    <entry><para><code>array</code></para></entry>
+	    <entry><para>direct conversion</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code><link linkend="Hashes">Hash</link></code></para></entry>
+	    <entry><para><code>struct</code></para></entry>
+	    <entry><para>direct conversion</para></entry>
+	  </row>
+	  <row>
+	    <entry><para>all others</para></entry>
+	    <entry><para>n/a</para></entry>
+	    <entry><para>All other types will cause an <code>XML-RPC-SERIALIZATION-ERROR</code> to be raised.</para></entry>
+	  </row>
+	</tbody>
+      </tgroup>
+    </table>
     
     <table>
       <title>Functions Providing XML-RPC Functionality</title>

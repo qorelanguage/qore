@@ -1401,7 +1401,7 @@ void QoreString::concat(const DateTime *d) {
 
 void QoreString::concatISO8601DateTime(const DateTime *d) {
    qore_tm info;
-   d->getInfo(info);
+   d->getInfo(currentTZ(), info);
    sprintf("%04d%02d%02dT%02d:%02d:%02d", info.year, info.month, info.day, info.hour, info.minute, info.second);
 }
 
