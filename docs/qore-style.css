@@ -15,10 +15,10 @@ div.revhistory { display: none; }
     background-color: #ffffcc;
     color: #000000;
     border-color: #009999;
-    border-left: solid #009999 2px;
-    border-right: solid #009999 2px;
-    border-top: solid #009999 2px;
-    border-bottom: solid #009999 2px;
+    border-left: solid #009999 1px;
+    border-right: solid #009999 1px;
+    border-top: solid #009999 1px;
+    border-bottom: solid #009999 1px;
     
     padding-left: 15pt;
     padding-top: 5pt;

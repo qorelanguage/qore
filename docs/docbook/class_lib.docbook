@@ -30,7 +30,7 @@
 	    <entry><para>For processing command-line options.</para></entry>
 	  </row>
 	  <row>
-	    <entry><para><code><link linkend="Qore_Program_Class">Program</link></code></para></entry>
+	    <entry><para><code><link linkend="Program_Class">Program</link></code></para></entry>
 	    <entry><para>For parsing and executing application-embedded or user-supplied logic.</para></entry>
 	  </row>
 	  <row>
@@ -10553,16 +10553,16 @@ stdin.getTerminalAttributes($termios);</programlisting>
 
   </sect1>
 
-  <sect1 id="Qore_Program_Class">
+  <sect1 id="Program_Class">
     <title>Program Class</title>
 
     <para>Program objects allow Qore programs to support subprograms with restricted capabilities, for example, to support user-defined logic for application actions.</para>
 
-    <para>Parsing in Qore happens in two steps; first all code is parsed to pending data structures, and then in the second stage, all references are resolved, and, if there are no errors, then all changes are committed to the Program object.  Note that all parse actions (<link linkend="Qore_Program_parse">Program::parse()</link>, <link linkend="Qore_Program_parsePending">Program::parsePending()</link>, <link linkend="Qore_Program_parseCommit">Program::parseCommit()</link>, and <link linkend="Qore_Program_parseRollback">Program::parseRollback()</link>) are atomic; there is a thread lock on each Program object to ensure atomicity, and if any parse errors occur in any stage of parsing, any pending changes to the Program object are automatically rolled back.  However parse actions that affect only one stage of the two stages of parsing (<link linkend="Qore_Program_parsePending">Program::parsePending()</link>, <link linkend="Qore_Program_parseCommit">Program::parseCommit()</link> and  <link linkend="Qore_Program_parseRollback">Program::parseRollback()</link>) are atomic within themselves, but not between calls, so one thread may inadvertently commit changes to a Program object if two or more threads are trying to perform transaction-safe two-stage parsing on a Program object without explicit user locking.</para>
+    <para>Parsing in Qore happens in two steps; first all code is parsed to pending data structures, and then in the second stage, all references are resolved, and, if there are no errors, then all changes are committed to the Program object.  Note that all parse actions (<link linkend="Program_parse">Program::parse()</link>, <link linkend="Program_parsePending">Program::parsePending()</link>, <link linkend="Program_parseCommit">Program::parseCommit()</link>, and <link linkend="Program_parseRollback">Program::parseRollback()</link>) are atomic; there is a thread lock on each Program object to ensure atomicity, and if any parse errors occur in any stage of parsing, any pending changes to the Program object are automatically rolled back.  However parse actions that affect only one stage of the two stages of parsing (<link linkend="Program_parsePending">Program::parsePending()</link>, <link linkend="Program_parseCommit">Program::parseCommit()</link> and  <link linkend="Program_parseRollback">Program::parseRollback()</link>) are atomic within themselves, but not between calls, so one thread may inadvertently commit changes to a Program object if two or more threads are trying to perform transaction-safe two-stage parsing on a Program object without explicit user locking.</para>
 
     <para>The constants in the following table can be used to limit the capabilities of a Program object.  These options should be binary-OR'ed together and passed to the Program object's constructor.  Also see <link linkend="Command-Line_Parsing">Command-Line Parsing</link> for equivalent command-line options, and <link linkend="Parse_Directives">Parse Directives</link> for equivalent parse directives.</para>
 
-    <para>Note that a program can provide controlled access to functionality otherwise restricted by parse options by exporting a custom API into the child program object using either the <link linkend="Qore_Program_importFunction">Program::importFunction()</link> or <link linkend="Qore_Program_importGlobalVariable">Program::importGlobalVariable()</link> method.  This is possible because code (functions or object methods) imported into and called from a subprogram will run in the parent's space and therefore with the parent's capabilities.</para>
+    <para>Note that a program can provide controlled access to functionality otherwise restricted by parse options by exporting a custom API into the child program object using either the <link linkend="Program_importFunction">Program::importFunction()</link> or <link linkend="Program_importGlobalVariable">Program::importGlobalVariable()</link> method.  This is possible because code (functions or object methods) imported into and called from a subprogram will run in the parent's space and therefore with the parent's capabilities.</para>
 
     <para>The following constants are all in the <code>Qore</code> namespace.</para>
 
@@ -10737,36 +10737,36 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	<tbody>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Qore_Program_constructor">Program::constructor</link>(<link linkend="softint_type">softint</link> <replaceable>$options</replaceable> = PO_DEFAULT)</code></para>
+              <para><code><link linkend="Program_constructor">Program::constructor</link>(<link linkend="softint_type">softint</link> <replaceable>$options</replaceable> = PO_DEFAULT)</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Creates the program object and optionally sets program capabilities (parse options)</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Qore_Program_destructor">Program::destructor</link>()</code></para>
+              <para><code><link linkend="Program_destructor">Program::destructor</link>()</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Destroys the object.  Blocks until all threads have terminated.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Qore_Program_copy">Program::copy</link>()</code></para>
+              <para><code><link linkend="Program_copy">Program::copy</link>()</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Throws an exception to prevent objects of this class from being copied.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Qore_Program_callFunction">Program::callFunction</link>(<link linkend="string_type">string</link> <replaceable>$func</replaceable>, ...) <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="Program_callFunction">Program::callFunction</link>(<link linkend="string_type">string</link> <replaceable>$func</replaceable>, ...) <command>returns</command> <link linkend="any_type">any</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Calls a function in the program object and returns the return value.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Qore_Program_callFunctionArgs">Program::callFunctionArgs</link>(<link linkend="string_type">string</link> <replaceable>$func</replaceable>, <link linkend="list_type">list</link> <replaceable>$args</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
-              <para><code><link linkend="Qore_Program_callFunctionArgs">Program::callFunctionArgs</link>(<link linkend="string_type">string</link> <replaceable>$func</replaceable>, <link linkend="any_type">any</link> <replaceable>$args</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="Program_callFunctionArgs">Program::callFunctionArgs</link>(<link linkend="string_type">string</link> <replaceable>$func</replaceable>, <link linkend="list_type">list</link> <replaceable>$args</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="Program_callFunctionArgs">Program::callFunctionArgs</link>(<link linkend="string_type">string</link> <replaceable>$func</replaceable>, <link linkend="any_type">any</link> <replaceable>$args</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Calls a function in the program object with the arguments given as a list</para></entry>
@@ -10774,7 +10774,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
 
 	  <row>
 	    <entry>
-              <para><code><link linkend="Qore_Program_disableParseOptions">Program::disableParseOptions</link>(<link linkend="int_type">int</link> <replaceable>$options</replaceable> = PO_DEFAULT) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="Program_disableParseOptions">Program::disableParseOptions</link>(<link linkend="int_type">int</link> <replaceable>$options</replaceable> = PO_DEFAULT) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Removes the given parse options to the current parse option mask.</para></entry>
@@ -10782,8 +10782,8 @@ stdin.getTerminalAttributes($termios);</programlisting>
 
 	  <row>
 	    <entry>
-              <para><code><link linkend="Qore_Program_existsFunction">Program::existsFunction</link>(<link linkend="string_type">string</link> <replaceable>$func</replaceable>) <command>returns</command> <link linkend="bool_type">bool</link></code></para>
-              <para><code><link linkend="Qore_Program_existsFunction">Program::existsFunction</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
+              <para><code><link linkend="Program_existsFunction">Program::existsFunction</link>(<link linkend="string_type">string</link> <replaceable>$func</replaceable>) <command>returns</command> <link linkend="bool_type">bool</link></code></para>
+              <para><code><link linkend="Program_existsFunction">Program::existsFunction</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Checks if a user function exists in the program object</para></entry>
@@ -10791,8 +10791,8 @@ stdin.getTerminalAttributes($termios);</programlisting>
 
 	  <row>
 	    <entry>
-              <para><code><link linkend="Qore_Program_getGlobalVariable">Program::getGlobalVariable</link>(<link linkend="string_type">string</link> <replaceable>$name</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
-              <para><code><link linkend="Qore_Program_getGlobalVariable">Program::getGlobalVariable</link>(<link linkend="string_type">string</link> <replaceable>$name</replaceable>, <link linkend="reference_type">reference</link> <replaceable>$found</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="Program_getGlobalVariable">Program::getGlobalVariable</link>(<link linkend="string_type">string</link> <replaceable>$name</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="Program_getGlobalVariable">Program::getGlobalVariable</link>(<link linkend="string_type">string</link> <replaceable>$name</replaceable>, <link linkend="reference_type">reference</link> <replaceable>$found</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns a the value of the global variable identified by the first string argument.</para></entry>
@@ -10800,7 +10800,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
 
 	  <row>
 	    <entry>
-              <para><code><link linkend="Qore_Program_getParseOptions">Program::getParseOptions</link>() <command>returns</command> <link linkend="int_type">int</link></code></para>
+              <para><code><link linkend="Program_getParseOptions">Program::getParseOptions</link>() <command>returns</command> <link linkend="int_type">int</link></code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns a code of parse options set in the object.</para></entry>
@@ -10808,7 +10808,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
 
 	  <row>
 	    <entry>
-              <para><code><link linkend="Qore_Program_getScriptDir">Program::getScriptDir</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="Program_getScriptDir">Program::getScriptDir</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns the current script directory as a string or <command><link linkend="NOTHING">NOTHING</link></command> if not set.</para></entry>
@@ -10816,7 +10816,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
 
 	  <row>
 	    <entry>
-              <para><code><link linkend="Qore_Program_getScriptName">Program::getScriptName</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="Program_getScriptName">Program::getScriptName</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns the current script name as a string or <command><link linkend="NOTHING">NOTHING</link></command> if not set.</para></entry>
@@ -10824,7 +10824,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
 
 	  <row>
 	    <entry>
-              <para><code><link linkend="Qore_Program_getScriptPath">Program::getScriptPath</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="Program_getScriptPath">Program::getScriptPath</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns the current script directory and filename as a string or <command><link linkend="NOTHING">NOTHING</link></command> if not set.</para></entry>
@@ -10832,7 +10832,15 @@ stdin.getTerminalAttributes($termios);</programlisting>
 
 	  <row>
 	    <entry>
-              <para><code><link linkend="Qore_Program_getUserFunctionList">Program::getUserFunctionList</link>() <command>returns</command> <link linkend="list_type">list</link></code></para>
+              <para><code><link linkend="Program_getTimeZone">Program::getTimeZone</link>() <command>returns</command> <link linkend="TimeZone_Class">TimeZone</link></code></para>
+            </entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Returns the default local time zone for the object.</para></entry>
+	  </row>
+
+	  <row>
+	    <entry>
+              <para><code><link linkend="Program_getUserFunctionList">Program::getUserFunctionList</link>() <command>returns</command> <link linkend="list_type">list</link></code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns a list of strings of all user functions defined in the program object.</para></entry>
@@ -10840,14 +10848,14 @@ stdin.getTerminalAttributes($termios);</programlisting>
 
 	  <row>
 	    <entry>
-              <para><code><link linkend="Qore_Program_importFunction">Program::importFunction</link>(<link linkend="string_type">string</link> <replaceable>$name</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="Program_importFunction">Program::importFunction</link>(<link linkend="string_type">string</link> <replaceable>$name</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Imports a user function into the program object's space; any calls to the function will run in the parent's space.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Qore_Program_importGlobalVariable">Program::importGlobalVariable</link>(<link linkend="string_type">string</link> <replaceable>$name</replaceable>, <link linkend="bool_type">bool</link> <replaceable>$readonly</replaceable> = False) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="Program_importGlobalVariable">Program::importGlobalVariable</link>(<link linkend="string_type">string</link> <replaceable>$name</replaceable>, <link linkend="bool_type">bool</link> <replaceable>$readonly</replaceable> = False) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Imports a global variable into the Program object's space.  If the variable is an object, then any methods
@@ -10856,7 +10864,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
 
 	  <row>
 	    <entry>
-              <para><code><link linkend="Qore_Program_lockOptions">Program::lockOptions</link>() <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="Program_lockOptions">Program::lockOptions</link>() <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Locks parse options so that they cannot be changed.</para></entry>
@@ -10864,31 +10872,31 @@ stdin.getTerminalAttributes($termios);</programlisting>
 
 	  <row>
 	    <entry>
-              <para><code><link linkend="Qore_Program_parse">Program::parse</link>(<link linkend="string_type">string</link> <replaceable>$code</replaceable>, <link linkend="string_type">string</link> <replaceable>$label</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
-              <para><code><link linkend="Qore_Program_parse">Program::parse</link>(<link linkend="string_type">string</link> <replaceable>$code</replaceable>, <link linkend="string_type">string</link> <replaceable>$label</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$warn_mask</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="Program_parse">Program::parse</link>(<link linkend="string_type">string</link> <replaceable>$code</replaceable>, <link linkend="string_type">string</link> <replaceable>$label</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="Program_parse">Program::parse</link>(<link linkend="string_type">string</link> <replaceable>$code</replaceable>, <link linkend="string_type">string</link> <replaceable>$label</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$warn_mask</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Performs a complete parse and commit of the string passed; if a warning mask is given and warnings are raised, then the method returns an <link linkend="Exception_Hash">exception hash</link>.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Qore_Program_parseCommit">Program::parseCommit</link>() <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
-              <para><code><link linkend="Qore_Program_parseCommit">Program::parseCommit</link>(<link linkend="softint_type">softint</link> <replaceable>$warn_mask</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="Program_parseCommit">Program::parseCommit</link>() <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="Program_parseCommit">Program::parseCommit</link>(<link linkend="softint_type">softint</link> <replaceable>$warn_mask</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Commits all pending changes to the program object; if a warning mask is given and warnings are raised, then the method returns an <link linkend="Exception_Hash">exception hash</link>.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Qore_Program_parsePending">Program::parsePending</link>(<link linkend="string_type">string</link> <replaceable>$code</replaceable>, <link linkend="string_type">string</link> <replaceable>$label</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
-              <para><code><link linkend="Qore_Program_parsePending">Program::parsePending</link>(<link linkend="string_type">string</link> <replaceable>$code</replaceable>, <link linkend="string_type">string</link> <replaceable>$label</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$warn_mask</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="Program_parsePending">Program::parsePending</link>(<link linkend="string_type">string</link> <replaceable>$code</replaceable>, <link linkend="string_type">string</link> <replaceable>$label</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="Program_parsePending">Program::parsePending</link>(<link linkend="string_type">string</link> <replaceable>$code</replaceable>, <link linkend="string_type">string</link> <replaceable>$label</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$warn_mask</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Performs a 1st stage parse of the string passed; if a warning mask is given and warnings are raised, then the method returns an <link linkend="Exception_Hash">exception hash</link>.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Qore_Program_parseRollback">Program::parseRollback</link>() <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="Program_parseRollback">Program::parseRollback</link>() <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Rolls back all pending changes to the program object</para></entry>
@@ -10896,7 +10904,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
 
 	  <row>
 	    <entry>
-              <para><code><link linkend="Qore_Program_run">Program::run</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="Program_run">Program::run</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Runs the top-level code of the program object</para></entry>
@@ -10904,7 +10912,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
 
 	  <row>
 	    <entry>
-              <para><code><link linkend="Qore_Program_setParseOptions">Program::setParseOptions</link>(<link linkend="int_type">int</link> <replaceable>$options</replaceable> = PO_DEFAULT) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="Program_setParseOptions">Program::setParseOptions</link>(<link linkend="int_type">int</link> <replaceable>$options</replaceable> = PO_DEFAULT) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Adds the given parse options to the current parse option mask.</para></entry>
@@ -10912,18 +10920,42 @@ stdin.getTerminalAttributes($termios);</programlisting>
 
 	  <row>
 	    <entry>
-              <para><code><link linkend="Qore_Program_setScriptPath">Program::setScriptPath</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
-              <para><code><link linkend="Qore_Program_setScriptPath">Program::setScriptPath</link>() <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="Program_setScriptPath">Program::setScriptPath</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="Program_setScriptPath">Program::setScriptPath</link>() <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Sets (or clears) the script path (directory and filename) for the object.</para></entry>
+	  </row>
+
+	  <row>
+	    <entry>
+              <para><code><link linkend="Program_setTimeZone">Program::setTimeZone</link>(<link linkend="TimeZone_Class">TimeZone</link> <replaceable>$zone</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+            </entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Sets the default local time zone for the object.</para></entry>
+	  </row>
+
+	  <row>
+	    <entry>
+              <para><code><link linkend="Program_setTimeZoneRegion">Program::setTimeZoneRegion</link>(<link linkend="string_type">string</link> <replaceable>$region</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+            </entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Sets the default local time zone for the object from a path to a zoneinfo time zone region file.</para></entry>
+	  </row>
+
+	  <row>
+	    <entry>
+              <para><code><link linkend="Program_setTimeZoneUTCOffset">Program::setTimeZoneUTCOffset</link>(<link linkend="softint_type">softint</link> <replaceable>$secs_east</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+            </entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Sets the default local time zone for the object from a UTC offset in seconds east of UTC; for zones west of UTC, use negative numbers.</para></entry>
 	  </row>
 
 	</tbody>
       </tgroup>
     </table>
 
-    <sect2 id="Qore_Program_constructor">
+    <sect2 id="Program_constructor">
       <title>Program::constructor()</title>
 
       <variablelist>
@@ -10936,7 +10968,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="Qore_Program_constructor">Program::constructor</link>(<link linkend="softint_type">softint</link> <replaceable>$options</replaceable> = PO_DEFAULT)</code></para>
+              <para><code><link linkend="Program_constructor">Program::constructor</link>(<link linkend="softint_type">softint</link> <replaceable>$options</replaceable> = PO_DEFAULT)</code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -10968,7 +11000,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
 
     </sect2>
 
-    <sect2 id="Qore_Program_destructor">
+    <sect2 id="Program_destructor">
       <title>Program::destructor()</title>
 
       <variablelist>
@@ -10987,7 +11019,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
       </variablelist>
     </sect2>
 
-    <sect2 id="Qore_Program_copy">
+    <sect2 id="Program_copy">
       <title>Program::copy()</title>
 
       <variablelist>
@@ -11018,7 +11050,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="Qore_Program_callFunction">
+    <sect2 id="Program_callFunction">
       <title>Program::callFunction()</title>
       <variablelist>
 	<varlistentry>
@@ -11030,7 +11062,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="Qore_Program_callFunction">Program::callFunction</link>(<link linkend="string_type">string</link> <replaceable>$func</replaceable>, ...) <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="Program_callFunction">Program::callFunction</link>(<link linkend="string_type">string</link> <replaceable>$func</replaceable>, ...) <command>returns</command> <link linkend="any_type">any</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -11104,7 +11136,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="Qore_Program_callFunctionArgs">
+    <sect2 id="Program_callFunctionArgs">
       <title>Program::callFunctionArgs()</title>
       <variablelist>
 	<varlistentry>
@@ -11116,8 +11148,8 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="Qore_Program_callFunctionArgs">Program::callFunctionArgs</link>(<link linkend="string_type">string</link> <replaceable>$func</replaceable>, <link linkend="list_type">list</link> <replaceable>$args</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
-              <para><code><link linkend="Qore_Program_callFunctionArgs">Program::callFunctionArgs</link>(<link linkend="string_type">string</link> <replaceable>$func</replaceable>, <link linkend="any_type">any</link> <replaceable>$args</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="Program_callFunctionArgs">Program::callFunctionArgs</link>(<link linkend="string_type">string</link> <replaceable>$func</replaceable>, <link linkend="list_type">list</link> <replaceable>$args</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="Program_callFunctionArgs">Program::callFunctionArgs</link>(<link linkend="string_type">string</link> <replaceable>$func</replaceable>, <link linkend="any_type">any</link> <replaceable>$args</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -11191,19 +11223,19 @@ stdin.getTerminalAttributes($termios);</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="Qore_Program_disableParseOptions">
+    <sect2 id="Program_disableParseOptions">
       <title>Program::disableParseOptions()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Disables <link linkend="Parse_Options">parse options</link> in the parse option mask for the Program object.  An exception is thrown if parse options have been locked (for example with <link linkend="Qore_Program_lockOptions">Program::lockOptions()</link>).   For a reciprocal method that sets parse options, see <link linkend="Qore_Program_setParseOptions">Program::setParseOptions()</link>.</para>
+	    <para>Disables <link linkend="Parse_Options">parse options</link> in the parse option mask for the Program object.  An exception is thrown if parse options have been locked (for example with <link linkend="Program_lockOptions">Program::lockOptions()</link>).   For a reciprocal method that sets parse options, see <link linkend="Program_setParseOptions">Program::setParseOptions()</link>.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <para><code><link linkend="Qore_Program_disableParseOptions">Program::disableParseOptions</link>(<link linkend="int_type">int</link> <replaceable>$options</replaceable> = PO_DEFAULT) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+	    <para><code><link linkend="Program_disableParseOptions">Program::disableParseOptions</link>(<link linkend="int_type">int</link> <replaceable>$options</replaceable> = PO_DEFAULT) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -11253,7 +11285,7 @@ $pgm.disableParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
 
     </sect2>
 
-    <sect2 id="Qore_Program_existsFunction">
+    <sect2 id="Program_existsFunction">
       <title>Program::existsFunction()</title>
       <variablelist>
 	<varlistentry>
@@ -11271,8 +11303,8 @@ $pgm.disableParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-              <para><code><link linkend="Qore_Program_existsFunction">Program::existsFunction</link>(<link linkend="string_type">string</link> <replaceable>$func</replaceable>) <command>returns</command> <link linkend="bool_type">bool</link></code></para>
-              <para><code><link linkend="Qore_Program_existsFunction">Program::existsFunction</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
+              <para><code><link linkend="Program_existsFunction">Program::existsFunction</link>(<link linkend="string_type">string</link> <replaceable>$func</replaceable>) <command>returns</command> <link linkend="bool_type">bool</link></code></para>
+              <para><code><link linkend="Program_existsFunction">Program::existsFunction</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -11314,7 +11346,7 @@ $pgm.disableParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="Qore_Program_getGlobalVariable">
+    <sect2 id="Program_getGlobalVariable">
       <title>Program::getGlobalVariable()</title>
       <variablelist>
 	<varlistentry>
@@ -11326,8 +11358,8 @@ $pgm.disableParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="Qore_Program_getGlobalVariable">Program::getGlobalVariable</link>(<link linkend="string_type">string</link> <replaceable>$name</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
-              <para><code><link linkend="Qore_Program_getGlobalVariable">Program::getGlobalVariable</link>(<link linkend="string_type">string</link> <replaceable>$name</replaceable>, <link linkend="reference_type">reference</link> <replaceable>$found</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="Program_getGlobalVariable">Program::getGlobalVariable</link>(<link linkend="string_type">string</link> <replaceable>$name</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="Program_getGlobalVariable">Program::getGlobalVariable</link>(<link linkend="string_type">string</link> <replaceable>$name</replaceable>, <link linkend="reference_type">reference</link> <replaceable>$found</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -11382,7 +11414,7 @@ $pgm.disableParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
 
     </sect2>
 
-    <sect2 id="Qore_Program_getParseOptions">
+    <sect2 id="Program_getParseOptions">
       <title>Program::getParseOptions()</title>
       <variablelist>
 	<varlistentry>
@@ -11394,7 +11426,7 @@ $pgm.disableParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="Qore_Program_getParseOptions">Program::getParseOptions</link>() <command>returns</command> <link linkend="int_type">int</link></code></para>
+              <para><code><link linkend="Program_getParseOptions">Program::getParseOptions</link>() <command>returns</command> <link linkend="int_type">int</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -11424,19 +11456,19 @@ $pgm.disableParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="Qore_Program_getScriptDir">
+    <sect2 id="Program_getScriptDir">
       <title>Program::getScriptDir()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Gets the script directory set with <link linkend="Qore_Program_setScriptPath">Program::setScriptPath()</link>.  This is the same value that will be returned in the Qore program code with the <link linkend="get_script_dir">get_script_dir()</link> function if called from within the Program.  The value returned should normally include the trailing '/' character.</para>
+	    <para>Gets the script directory set with <link linkend="Program_setScriptPath">Program::setScriptPath()</link>.  This is the same value that will be returned in the Qore program code with the <link linkend="get_script_dir">get_script_dir()</link> function if called from within the Program.  The value returned should normally include the trailing '/' character.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="Qore_Program_getScriptDir">Program::getScriptDir</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="Program_getScriptDir">Program::getScriptDir</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -11469,19 +11501,19 @@ $pgm.disableParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
 
     </sect2>
 
-    <sect2 id="Qore_Program_getScriptName">
+    <sect2 id="Program_getScriptName">
       <title>Program::getScriptName()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Gets the script filename set with <link linkend="Qore_Program_setScriptPath">Program::setScriptPath()</link>.  This is the same value that will be returned in the Qore program code with the <link linkend="get_script_path">get_script_path()</link> function if called from within the Program.</para>
+	    <para>Gets the script filename set with <link linkend="Program_setScriptPath">Program::setScriptPath()</link>.  This is the same value that will be returned in the Qore program code with the <link linkend="get_script_path">get_script_path()</link> function if called from within the Program.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="Qore_Program_getScriptName">Program::getScriptName</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="Program_getScriptName">Program::getScriptName</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -11514,19 +11546,19 @@ $pgm.disableParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
 
     </sect2>
 
-    <sect2 id="Qore_Program_getScriptPath">
+    <sect2 id="Program_getScriptPath">
       <title>Program::getScriptPath()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Gets the script directory and filename set with <link linkend="Qore_Program_setScriptPath">Program::setScriptPath()</link>.  This is the same value that will be returned in the Qore program code with the <link linkend="get_script_path">get_script_path()</link> function if called from within the Program.</para>
+	    <para>Gets the script directory and filename set with <link linkend="Program_setScriptPath">Program::setScriptPath()</link>.  This is the same value that will be returned in the Qore program code with the <link linkend="get_script_path">get_script_path()</link> function if called from within the Program.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <para><code><link linkend="Qore_Program_getScriptPath">Program::getScriptPath</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+	    <para><code><link linkend="Program_getScriptPath">Program::getScriptPath</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -11559,7 +11591,53 @@ $pgm.disableParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
 
     </sect2>
 
-    <sect2 id="Qore_Program_getUserFunctionList">
+    <sect2 id="Program_getTimeZone">
+      <title>Program::getTimeZone()</title>
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Returns the default local time zone for the object.</para>
+	    <para>See also <link linkend="TimeZone::get">TimeZone::get()</link></para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Prototype</term>
+	  <listitem>
+              <para><code><link linkend="Program_getTimeZone">Program::getTimeZone</link>() <command>returns</command> <link linkend="TimeZone_Class">TimeZone</link></code></para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting><command>my</command> TimeZone $zone = $pgm.getTimeZone();</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Return Values for Program::getTimeZone()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code><link linkend="TimeZone_Class">TimeZone</link></code></para></entry>
+	      <entry><para>Returns the default local time zone for the object.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <para>This method does not throw any exceptions.</para>
+
+    </sect2>
+
+    <sect2 id="Program_getUserFunctionList">
       <title>Program::getUserFunctionList()</title>
       <variablelist>
 	<varlistentry>
@@ -11571,7 +11649,7 @@ $pgm.disableParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="Qore_Program_getUserFunctionList">Program::getUserFunctionList</link>() <command>returns</command> <link linkend="list_type">list</link></code></para>
+              <para><code><link linkend="Program_getUserFunctionList">Program::getUserFunctionList</link>() <command>returns</command> <link linkend="list_type">list</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -11601,7 +11679,7 @@ $pgm.disableParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="Qore_Program_importFunction">
+    <sect2 id="Program_importFunction">
       <title>Program::importFunction()</title>
       <variablelist>
 	<varlistentry>
@@ -11613,7 +11691,7 @@ $pgm.disableParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <para><code><link linkend="Qore_Program_importFunction">Program::importFunction</link>(<link linkend="string_type">string</link> <replaceable>$name</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+	    <para><code><link linkend="Program_importFunction">Program::importFunction</link>(<link linkend="string_type">string</link> <replaceable>$name</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -11669,7 +11747,7 @@ $pgm.disableParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="Qore_Program_importGlobalVariable">
+    <sect2 id="Program_importGlobalVariable">
       <title>Program::importGlobalVariable()</title>
       <variablelist>
 	<varlistentry>
@@ -11681,7 +11759,7 @@ $pgm.disableParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="Qore_Program_importGlobalVariable">Program::importGlobalVariable</link>(<link linkend="string_type">string</link> <replaceable>$name</replaceable>, <link linkend="bool_type">bool</link> <replaceable>$readonly</replaceable> = False) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="Program_importGlobalVariable">Program::importGlobalVariable</link>(<link linkend="string_type">string</link> <replaceable>$name</replaceable>, <link linkend="bool_type">bool</link> <replaceable>$readonly</replaceable> = False) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -11738,7 +11816,7 @@ $pgm.disableParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
 
     </sect2>
 
-    <sect2 id="Qore_Program_lockOptions">
+    <sect2 id="Program_lockOptions">
       <title>Program::lockOptions()</title>
       <variablelist>
 	<varlistentry>
@@ -11750,7 +11828,7 @@ $pgm.disableParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="Qore_Program_lockOptions">Program::lockOptions</link>() <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="Program_lockOptions">Program::lockOptions</link>() <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -11765,7 +11843,7 @@ $pgm.disableParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
 
     </sect2>
 
-    <sect2 id="Qore_Program_parse">
+    <sect2 id="Program_parse">
       <title>Program::parse()</title>
       <variablelist>
 	<varlistentry>
@@ -11778,8 +11856,8 @@ $pgm.disableParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="Qore_Program_parse">Program::parse</link>(<link linkend="string_type">string</link> <replaceable>$code</replaceable>, <link linkend="string_type">string</link> <replaceable>$label</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
-              <para><code><link linkend="Qore_Program_parse">Program::parse</link>(<link linkend="string_type">string</link> <replaceable>$code</replaceable>, <link linkend="string_type">string</link> <replaceable>$label</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$warn_mask</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="Program_parse">Program::parse</link>(<link linkend="string_type">string</link> <replaceable>$code</replaceable>, <link linkend="string_type">string</link> <replaceable>$label</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="Program_parse">Program::parse</link>(<link linkend="string_type">string</link> <replaceable>$code</replaceable>, <link linkend="string_type">string</link> <replaceable>$label</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$warn_mask</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -11853,21 +11931,21 @@ $pgm.disableParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="Qore_Program_parseCommit">
+    <sect2 id="Program_parseCommit">
       <title>Program::parseCommit()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Commits and pending code processed with <link linkend="Qore_Program_parsePending">Program::parsePending()</link> to the Program object and resolves all outstanding references in the pending code.  An exception in this method causes all pending code to be rolled back immediately.</para>
+	    <para>Commits and pending code processed with <link linkend="Program_parsePending">Program::parsePending()</link> to the Program object and resolves all outstanding references in the pending code.  An exception in this method causes all pending code to be rolled back immediately.</para>
 	    <para>If a warning mask is given and masked warnings are raised during parsing, this method will return a hash with warning information.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="Qore_Program_parseCommit">Program::parseCommit</link>() <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
-              <para><code><link linkend="Qore_Program_parseCommit">Program::parseCommit</link>(<link linkend="softint_type">softint</link> <replaceable>$warn_mask</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="Program_parseCommit">Program::parseCommit</link>() <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="Program_parseCommit">Program::parseCommit</link>(<link linkend="softint_type">softint</link> <replaceable>$warn_mask</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -11933,21 +12011,21 @@ $pgm.disableParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="Qore_Program_parsePending">
+    <sect2 id="Program_parsePending">
       <title>Program::parsePending()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Parses the text passed to pending lists in the Program object; does not resolve all references or commit the code to the Program object.  References are resolved in the <link linkend="Qore_Program_parseCommit">Program::parseCommit()</link> method.  If an exception occurs in this method, all pending code is backed out, not just code parsed by this method.</para>
+	    <para>Parses the text passed to pending lists in the Program object; does not resolve all references or commit the code to the Program object.  References are resolved in the <link linkend="Program_parseCommit">Program::parseCommit()</link> method.  If an exception occurs in this method, all pending code is backed out, not just code parsed by this method.</para>
 	    <para>If a warning mask is given and masked warnings are raised during parsing, this method will return a hash with warning information.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="Qore_Program_parsePending">Program::parsePending</link>(<link linkend="string_type">string</link> <replaceable>$code</replaceable>, <link linkend="string_type">string</link> <replaceable>$label</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
-              <para><code><link linkend="Qore_Program_parsePending">Program::parsePending</link>(<link linkend="string_type">string</link> <replaceable>$code</replaceable>, <link linkend="string_type">string</link> <replaceable>$label</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$warn_mask</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="Program_parsePending">Program::parsePending</link>(<link linkend="string_type">string</link> <replaceable>$code</replaceable>, <link linkend="string_type">string</link> <replaceable>$label</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="Program_parsePending">Program::parsePending</link>(<link linkend="string_type">string</link> <replaceable>$code</replaceable>, <link linkend="string_type">string</link> <replaceable>$label</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$warn_mask</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -12021,19 +12099,19 @@ $pgm.disableParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="Qore_Program_parseRollback">
+    <sect2 id="Program_parseRollback">
       <title>Program::parseRollback()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Rolls back any pending code processed with <link linkend="Qore_Program_parsePending">Program::parsePending()</link> that has not yet been committed to the Program object with <link linkend="Qore_Program_parseCommit">Program::parseCommit()</link></para>
+	    <para>Rolls back any pending code processed with <link linkend="Program_parsePending">Program::parsePending()</link> that has not yet been committed to the Program object with <link linkend="Program_parseCommit">Program::parseCommit()</link></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="Qore_Program_parseRollback">Program::parseRollback</link>() <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="Program_parseRollback">Program::parseRollback</link>() <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -12046,7 +12124,7 @@ $pgm.disableParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
 
     </sect2>
 
-    <sect2 id="Qore_Program_run">
+    <sect2 id="Program_run">
       <title>Program::run()</title>
       <variablelist>
 	<varlistentry>
@@ -12058,7 +12136,7 @@ $pgm.disableParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="Qore_Program_run">Program::run</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="Program_run">Program::run</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -12088,19 +12166,19 @@ $pgm.disableParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
       </table>
     </sect2>
 
-    <sect2 id="Qore_Program_setParseOptions">
+    <sect2 id="Program_setParseOptions">
       <title>Program::setParseOptions()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Sets <link linkend="Parse_Options">parse options</link> in the parse option mask for the Program object.  An exception is thrown if parse options have been locked (for example with <link linkend="Qore_Program_lockOptions">Program::lockOptions()</link>).  For a reciprocal method that disables parse options, see <link linkend="Qore_Program_disableParseOptions">Program::disableParseOptions()</link>.</para>
+	    <para>Sets <link linkend="Parse_Options">parse options</link> in the parse option mask for the Program object.  An exception is thrown if parse options have been locked (for example with <link linkend="Program_lockOptions">Program::lockOptions()</link>).  For a reciprocal method that disables parse options, see <link linkend="Program_disableParseOptions">Program::disableParseOptions()</link>.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="Qore_Program_setParseOptions">Program::setParseOptions</link>(<link linkend="int_type">int</link> <replaceable>$options</replaceable> = PO_DEFAULT) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="Program_setParseOptions">Program::setParseOptions</link>(<link linkend="int_type">int</link> <replaceable>$options</replaceable> = PO_DEFAULT) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -12150,20 +12228,20 @@ $pgm.setParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
 
     </sect2>
 
-    <sect2 id="Qore_Program_setScriptPath">
+    <sect2 id="Program_setScriptPath">
       <title>Program::setScriptPath()</title>
       <variablelist>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Sets the script path (directory and filename) for later retrieval with <link linkend="Qore_Program_getScriptPath">Program::getScriptPath()</link>, <link linkend="Qore_Program_getScriptDir">Program::getScriptDir()</link>, or <link linkend="Qore_Program_getScriptName">Program::getScriptName()</link> calls, or from code within the Program object with the <link linkend="get_script_path">get_script_path()</link>, <link linkend="get_script_dir">get_script_dir()</link>, or <link linkend="get_script_name">get_script_name()</link> functions.</para>
+	    <para>Sets the script path (directory and filename) for later retrieval with <link linkend="Program_getScriptPath">Program::getScriptPath()</link>, <link linkend="Program_getScriptDir">Program::getScriptDir()</link>, or <link linkend="Program_getScriptName">Program::getScriptName()</link> calls, or from code within the Program object with the <link linkend="get_script_path">get_script_path()</link>, <link linkend="get_script_dir">get_script_dir()</link>, or <link linkend="get_script_name">get_script_name()</link> functions.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="Qore_Program_setScriptPath">Program::setScriptPath</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
-              <para><code><link linkend="Qore_Program_setScriptPath">Program::setScriptPath</link>() <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="Program_setScriptPath">Program::setScriptPath</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="Program_setScriptPath">Program::setScriptPath</link>() <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -12187,6 +12265,164 @@ $pgm.setParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
 	    <row>
 	      <entry><para><code><link linkend="string_type">string</link> <replaceable>$path</replaceable></code></para></entry>
 	      <entry><para>The path (directory and filename) for the current script.  If the directory component is missing, then &quot;./&quot; is assumed.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <para>This method does not throw any exceptions.</para>
+
+    </sect2>
+
+    <sect2 id="Program_setTimeZone">
+      <title>Program::setTimeZone()</title>
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Sets the default local time zone for the object.</para>
+	    <para>See also <link linkend="TimeZone::set">TimeZone::set()</link>.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Prototype</term>
+	  <listitem>
+              <para><code><link linkend="Program_setTimeZone">Program::setTimeZone</link>(<link linkend="TimeZone_Class">TimeZone</link> <replaceable>$zone</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$pgm.setTimeZone($zone);</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for Program::setTimeZone()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code><link linkend="TimeZone_Class">TimeZone</link> <replaceable>$zone</replaceable></code></para></entry>
+	      <entry><para>The time zone to set as the local time zone for the Program object.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <para>This method does not throw any exceptions.</para>
+
+    </sect2>
+
+    <sect2 id="Program_setTimeZoneRegion">
+      <title>Program::setTimeZoneRegion()</title>
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Sets the default local time zone for the object from a path to a zoneinfo time zone region file; if there are errors reading or parsing the file, an exception is thrown.</para>
+	    <para>See also <link linkend="TimeZone::setRegion">TimeZone::setRegion()</link>.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Prototype</term>
+	  <listitem>
+              <para><code><link linkend="Program_setTimeZoneRegion">Program::setTimeZoneRegion</link>(<link linkend="string_type">string</link> <replaceable>$region</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$pgm.setTimeZoneRegion("Europe/Prague");</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for Program::setTimeZoneRegion()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code></code></para></entry>
+	      <entry><para>The path to the zoneinfo file for the time zone region to set as the local time zone for the Program object.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+     <table>
+	<title>Exceptions Thrown by Program::setTimeZoneRegion()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>TZINFO-ERROR</code></para></entry>
+	      <entry><para>Unable to read zoneinfo file; invalid file magic; error parsing zoneinfo file, etc</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+    </sect2>
+
+    <sect2 id="Program_setTimeZoneUTCOffset">
+      <title>Program::setTimeZoneUTCOffset()</title>
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Sets the default time zone for the Program object based on the number of seconds east of UTC; for zones west of UTC, use negative numbers.</para>
+	    <para>Time zones set with this method cannot have any daylight savings time information; to set a zone with daylight savings time information, use <link linkend="Program_setTimeZoneRegion">Program::setTimeZoneRegion()</link> instead.</para>
+	    <para>See also <link linkend="TimeZone::setUTCOffset">TimeZone::setUTCOffset()</link>.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Prototype</term>
+	  <listitem>
+              <para><code><link linkend="Program_setTimeZoneUTCOffset">Program::setTimeZoneUTCOffset</link>(<link linkend="softint_type">softint</link> <replaceable>$secs_east</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <para>The following examples are all equivalent, setting the time zone to +02 UTC:</para>
+            <programlisting>$pgm.setTimeZoneUTCOffset(7200);</programlisting>
+            <programlisting>$pgm.setTimeZoneUTCOffset(2h);</programlisting>
+            <programlisting>$pgm.setTimeZoneUTCOffset(PT2H);</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for Program::setTimeZone()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$secs_east</replaceable></code></para></entry>
+	      <entry><para>The number of seconds east of UTC; for zones west of UTC, use negative numbers</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -22540,6 +22776,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
           <term>Synopsis</term>
           <listitem>
             <para>Sets the default time zone for the current execution context.</para>
+	    <para>See also <link linkend="Program_setTimeZone">Program::setTimeZone()</link>.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -22583,6 +22820,8 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
           <term>Synopsis</term>
           <listitem>
             <para>Sets the default time zone for the current execution context based on the number of seconds east of UTC; for zones west of UTC, use negative numbers.</para>
+	    <para>Time zones set with this method cannot have any daylight savings time information; to set a zone with daylight savings time information, use <link linkend="TimeZone::setRegion">TimeZone::setRegion()</link> instead.</para>
+	    <para>See also <link linkend="Program_setTimeZoneUTCOffset">Program::setTimeZoneUTCOffset()</link>.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -22629,6 +22868,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
           <term>Synopsis</term>
           <listitem>
             <para>Sets the default time zone for the current execution context from a zoneinfo region file; if there are errors reading or parsing the file, an exception is thrown.</para>
+	    <para>See also <link linkend="Program_setTimeZoneRegion">Program::setTimeZoneRegion()</link>.</para>
           </listitem>
         </varlistentry>
         <varlistentry>

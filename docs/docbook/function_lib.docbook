@@ -68,7 +68,7 @@
   <table>
     <title>System Function Library</title>
     <tgroup cols="3" align="left" colsep="1" rowsep="1">
-      <colspec colnum="2" align="center" />
+      <colspec colnum="2" align="center"/>
       <thead>
         <row>
           <entry>
@@ -5435,7 +5435,7 @@
 	<term>Synopsis</term>
 	<listitem>
 	  <para>Converts an integer argument representing the offset in milliseconds from January 1, 1970 in the local time zone to a date in the local time zone.</para>
-	  <para>See also <link linkend="date">date()</link> and <link linkend="date_us">date_us()</link>.</para>
+	  <para>See also <link linkend="date">date()</link>, <link linkend="date_us">date_us()</link>, and <link linkend="localtime">localtime()</link>.</para>
 	</listitem>
       </varlistentry>
       <varlistentry>
@@ -5485,7 +5485,7 @@
 	<term>Synopsis</term>
 	<listitem>
 	  <para>Converts an integer argument representing the offset in microseconds from January 1, 1970 in the local time zone to a date in the local time zone.</para>
-	  <para>See also <link linkend="date">date()</link> and <link linkend="date_ms">date_ms()</link>.</para>
+	  <para>See also <link linkend="date">date()</link>, <link linkend="date_ms">date_ms()</link>, and <link linkend="localtime">localtime()</link>.</para>
 	</listitem>
       </varlistentry>
       <varlistentry>
@@ -8087,7 +8087,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <listitem>
 	<para>Converts the argument to a date and returns the date.  When converting from an integer, the integer value represents the offset in seconds from 1970-01-01 in the local time zone.</para>
 
-	<para>See also <link linkend="date_ms">date_ms()</link> and <link linkend="date_us">date_us()</link>.</para>
+	<para>See also <link linkend="date_ms">date_ms()</link>, <link linkend="date_us">date_us()</link>, and <link linkend="localtime">localtime()</link>.</para>
 
 	<para>As of Qore 0.8.0, converting a date from a string is much more flexible; formats such as the following are now accepted (note that in the following examples, if the time zone/UTC offset is not explicitly specified, the local time zone is assumed):</para>
 
@@ -21324,7 +21324,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Loads in a Qore module at run-time.  If a feature with the same name already exists, then this feature's code is imported into the current Program object if necessary and no further action is taken.  Note that modules providing objects resolved at parse time (classes, constants, functions, etc) must be loaded with the <code><link linkend="requires">%requires</link></code> directive instead, unless all references to the objects provided by the module will be made in code embedded in <link linkend="Qore_Program_Class">Program</link> objects.</para>
+	<para>Loads in a Qore module at run-time.  If a feature with the same name already exists, then this feature's code is imported into the current Program object if necessary and no further action is taken.  Note that modules providing objects resolved at parse time (classes, constants, functions, etc) must be loaded with the <code><link linkend="requires">%requires</link></code> directive instead, unless all references to the objects provided by the module will be made in code embedded in <link linkend="Program_Class">Program</link> objects.</para>
 	<para>See also <link linkend="getFeatureList">getFeatureList()</link> for a function providing a list of available features.</para>
       </listitem>
     </varlistentry>
