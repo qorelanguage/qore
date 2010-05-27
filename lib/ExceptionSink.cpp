@@ -188,6 +188,7 @@ AbstractQoreNode* ExceptionSink::raiseErrnoException(const char *err, int en, co
    }
 
    // append strerror(en) to description
+   desc->concat(": ");
    q_strerror(*desc, en);
 
    printd(5, "ExceptionSink::raiseException(%s, %s)\n", err, desc->getBuffer());

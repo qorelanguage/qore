@@ -14,12 +14,17 @@ class FtpTest inherits FtpClient {
 	}
 
 	my hash $h = parse_url($url);
-	my any $path = dirname($h.path);
-	my any $file = basename($h.path);
-	if (!exists $path || !exists $file) {
+	if (!exists $h.path) {
 	    printf("url %n is missing a path to retrieve\n", $url);
 	    exit(1);
 	}
+	if (!exists $h.host) {
+	    printf("url %n is missing the hostname\n", $url);
+	    exit(1);
+	}
+
+	my any $path = dirname($h.path);
+	my any $file = basename($h.path);
 
 	$.setURL($url);
 
