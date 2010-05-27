@@ -287,7 +287,7 @@ static AbstractQoreNode *f_date_ms(const QoreListNode *params, ExceptionSink *xs
 
 static AbstractQoreNode *f_date_us(const QoreListNode *params, ExceptionSink *xsink) {
    int64 us = HARD_QORE_INT(params, 0);
-   return DateTimeNode::makeAbsolute(currentTZ(), us / 1000000, (int)(us % 1000000));
+   return DateTimeNode::makeAbsoluteLocal(currentTZ(), us / 1000000, (int)(us % 1000000));
 }
 
 // get_duration_seconds(date) returns int
