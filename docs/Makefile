@@ -39,6 +39,7 @@ chunked: docbook/*docbook
 
 qthelp: qore-html/*html
 	./docbook2qthelp > ./qore-html/qore_language_reference.qhp
+	cp qore-style.css qore-html/qore-style.css
 	qhelpgenerator qore-html/qore_language_reference.qhp -o library/qore_language_reference.qch
 
 qtregister:
