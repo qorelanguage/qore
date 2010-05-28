@@ -47,12 +47,12 @@ void QoreFloatNode::getStringRepresentation(QoreString &str) const {
 // if del is true, then the returned DateTime * should be deleted, if false, then it should not
 DateTime *QoreFloatNode::getDateTimeRepresentation(bool &del) const {
    del = true;
-   return DateTime::makeAbsoluteLocal(currentTZ(), (int64)f, (int)((f - round(f)) * 1000000));
+   return DateTime::makeAbsoluteLocal(currentTZ(), (int64)f, (int)((f - (float)((int)f)) * 1000000));
 }
 
 // assign date representation to a DateTime (no action for complex types = default implementation)
 void QoreFloatNode::getDateTimeRepresentation(DateTime &dt) const {
-  dt.setLocalDate(currentTZ(), (int64)f, (int)((f - round(f)) * 1000000));
+   dt.setLocalDate(currentTZ(), (int64)f, (int)((f - (float)((int)f)) * 1000000));
 }
 
 bool QoreFloatNode::getAsBoolImpl() const {
