@@ -993,7 +993,6 @@
       <row>
         <entry>
           <para><code><link linkend="get_microseconds">get_microseconds</link>(<link linkend="date_type">date</link>) <command>returns</command> <link linkend="int_type">int</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
-          <para><code><link linkend="get_microseconds">get_microseconds</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
         </entry>
         <entry>
           <para>N</para>
@@ -4413,7 +4412,7 @@
     <varlistentry>
       <term>Prototype</term>
       <listitem>
-            <para><code><link linkend="pow">pow</link>(<link linkend="softfloat_type">softfloat</link> = 0.0, <link linkend="softfloat_type">softfloat</link> = 0.0) <command>returns</command> <link linkend="float_type">float</link></code></para>
+            <para><code><link linkend="pow">pow</link>(<link linkend="softfloat_type">softfloat</link> <replaceable>$x</replaceable> = 0.0, <link linkend="softfloat_type">softfloat</link> <replaceable>$y</replaceable> = 0.0) <command>returns</command> <link linkend="float_type">float</link></code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -4438,8 +4437,8 @@
 
 <tbody>
   <row>
-    <entry><para><code><link linkend="softfloat_type">softfloat</link></code></para></entry>
-    <entry><para><code><link linkend="float_type">float</link></code></para></entry>
+    <entry><para><code><link linkend="softfloat_type">softfloat</link> <replaceable>$x</replaceable></code></para></entry>
+    <entry><para><code><link linkend="softfloat_type">softfloat</link> <replaceable>$y</replaceable></code></para></entry>
     <entry><para>Returns x raised to the power of y.</para></entry>
   </row>
   
@@ -5639,7 +5638,7 @@
     <tgroup cols='2' align='left' colsep='1' rowsep='1'>
       <thead>
 	<row>
-	  <entry><para><code><link linkend="string_type">string</link></code></para></entry>
+	  <entry><para>Format Code</para></entry>
 	  <entry><para>Description</para></entry>
 	</row>
       </thead>
@@ -8779,7 +8778,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
             <row>
 	      <entry><para><code><link linkend="softstring_type">softstring</link> <replaceable>$string</replaceable>, <link linkend="softstring_type">softstring</link> <replaceable>$substring</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$offset</replaceable> = -1</code></para></entry>
               <entry><para><code><link linkend="int_type">int</link></code></para></entry>
-              <entry><para>Returns the starting byte position of a string in another, starting from the end of the string, or from <replaceable>position</replaceable> if given.  If <replaceable>position</replaceable> is given, then the reverse search starts at that character position (searches always go from the end of the string toward the beginning).  Returns -1 if the substring cannot be found.  All values are byte positions, not character positions, which may differ for multi-byte character encodings.</para></entry>
+              <entry><para>Returns the starting byte position of a string in another, starting from the end of the string, or from <replaceable>position</replaceable> if given.  If <replaceable>$offset</replaceable> is given, then the reverse search starts at that character position (searches always go from the end of the string toward the beginning).  Returns -1 if the substring cannot be found.  All values are byte positions, not character positions, which may differ for multi-byte character encodings.</para></entry>
             </row>
           </tbody>
         </tgroup>

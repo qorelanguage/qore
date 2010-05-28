@@ -10583,6 +10583,11 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	    <entry><para><code><link linkend="no-global-vars">%no-global-vars</link></code></para></entry>
 	    <entry><para>Disallows the use of global variables.</para></entry>
 	  </row>
+	  <row id="PO_DEFAULT">
+	    <entry><para><code>PO_DEFAULT</code></para></entry>
+	    <entry><para>no parse options</para></entry>
+	    <entry><para>This option is the empty option, meaning no options are set.</para></entry>
+	  </row>
 	  <row id="PO_NO_SUBROUTINE_DEFS">
 	    <entry><para><code>PO_NO_SUBROUTINE_DEFS</code></para></entry>
 	    <entry><para><code><link linkend="no-subroutine-defs">%no-subroutine-defs</link></code></para></entry>
@@ -10591,7 +10596,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	  <row id="PO_NO_THREADS">
 	    <entry><para><code>PO_NO_THREADS</code></para></entry>
 	    <entry><para><code><link linkend="no-threads">%no-threads</link></code></para></entry>
-	    <entry><para>Disallows any thread operations (the <link linkend="Background_Operator"><command>background</command> operator</link> and the <link linkend="thread_exit_Statements"><command>thread_exit</command> statement</link>, for example) and the use of thread-relevant classes and functions (equivalent to PO_NO_THREAD_CLASSES | PO_NO_THREAD_CONTROL).</para></entry>
+	    <entry><para>Disallows any thread operations (the <link linkend="Background_Operator"><command>background</command> operator</link> and the <link linkend="thread_exit_Statements"><command>thread_exit</command> statement</link>, for example) and the use of thread-relevant classes and functions (equivalent to <link linkend="PO_NO_THREAD_CLASSES">PO_NO_THREAD_CLASSES</link> | <link linkend="PO_NO_THREAD_CONTROL">PO_NO_THREAD_CONTROL</link>).</para></entry>
 	  </row>
 	  <row id="PO_NO_THREAD_CLASSES">
 	    <entry><para><code>PO_NO_THREAD_CLASSES</code></para></entry>
@@ -10737,7 +10742,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	<tbody>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Program_constructor">Program::constructor</link>(<link linkend="softint_type">softint</link> <replaceable>$options</replaceable> = PO_DEFAULT)</code></para>
+              <para><code><link linkend="Program_constructor">Program::constructor</link>(<link linkend="softint_type">softint</link> <replaceable>$options</replaceable> = <link linkend="PO_DEFAULT">PO_DEFAULT</link>)</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Creates the program object and optionally sets program capabilities (parse options)</para></entry>
@@ -10774,7 +10779,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
 
 	  <row>
 	    <entry>
-              <para><code><link linkend="Program_disableParseOptions">Program::disableParseOptions</link>(<link linkend="int_type">int</link> <replaceable>$options</replaceable> = PO_DEFAULT) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="Program_disableParseOptions">Program::disableParseOptions</link>(<link linkend="int_type">int</link> <replaceable>$options</replaceable> = <link linkend="PO_DEFAULT">PO_DEFAULT</link>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Removes the given parse options to the current parse option mask.</para></entry>
@@ -10912,7 +10917,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
 
 	  <row>
 	    <entry>
-              <para><code><link linkend="Program_setParseOptions">Program::setParseOptions</link>(<link linkend="int_type">int</link> <replaceable>$options</replaceable> = PO_DEFAULT) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="Program_setParseOptions">Program::setParseOptions</link>(<link linkend="int_type">int</link> <replaceable>$options</replaceable> = <link linkend="PO_DEFAULT">PO_DEFAULT</link>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Adds the given parse options to the current parse option mask.</para></entry>
@@ -10968,7 +10973,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="Program_constructor">Program::constructor</link>(<link linkend="softint_type">softint</link> <replaceable>$options</replaceable> = PO_DEFAULT)</code></para>
+              <para><code><link linkend="Program_constructor">Program::constructor</link>(<link linkend="softint_type">softint</link> <replaceable>$options</replaceable> = <link linkend="PO_DEFAULT">PO_DEFAULT</link>)</code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -10991,7 +10996,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
 
 	  <tbody>
 	    <row>
-	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$options</replaceable> = PO_DEFAULT</code></para></entry>
+	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$options</replaceable> = <link linkend="PO_DEFAULT">PO_DEFAULT</link></code></para></entry>
 	      <entry><para>A binary OR'ed product of <link linkend="Parse_Options">parse options</link>.</para></entry>
 	    </row>
 	  </tbody>
@@ -11235,14 +11240,14 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <para><code><link linkend="Program_disableParseOptions">Program::disableParseOptions</link>(<link linkend="int_type">int</link> <replaceable>$options</replaceable> = PO_DEFAULT) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+	    <para><code><link linkend="Program_disableParseOptions">Program::disableParseOptions</link>(<link linkend="int_type">int</link> <replaceable>$options</replaceable> = <link linkend="PO_DEFAULT">PO_DEFAULT</link>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
 	    <programlisting># allow threading and GUI operations
-$pgm.disableParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
+$pgm.disableParseOptions(<link linkend="PO_NO_THREADS">PO_NO_THREADS</link> | <link linkend="PO_NO_GUI">PO_NO_GUI</link>);</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -11258,7 +11263,7 @@ $pgm.disableParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code><link linkend="int_type">int</link> <replaceable>$options</replaceable> = PO_DEFAULT</code></para></entry>
+	      <entry><para><code><link linkend="int_type">int</link> <replaceable>$options</replaceable> = <link linkend="PO_DEFAULT">PO_DEFAULT</link></code></para></entry>
 	      <entry><para> A single <link linkend="Parse_Options">parse option</link> or binary-or combination of <link linkend="Parse_Options">parse options</link> to disable in the parse option mask for the current object.</para></entry>
 	    </row>
 	  </tbody>
@@ -12178,14 +12183,14 @@ $pgm.disableParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="Program_setParseOptions">Program::setParseOptions</link>(<link linkend="int_type">int</link> <replaceable>$options</replaceable> = PO_DEFAULT) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="Program_setParseOptions">Program::setParseOptions</link>(<link linkend="int_type">int</link> <replaceable>$options</replaceable> = <link linkend="PO_DEFAULT">PO_DEFAULT</link>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
 	    <programlisting># disallow threading and GUI operations
-$pgm.setParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
+$pgm.setParseOptions(<link linkend="PO_NO_THREADS">PO_NO_THREADS</link> | <link linkend="PO_NO_GUI">PO_NO_GUI</link>);</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -12201,7 +12206,7 @@ $pgm.setParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code><link linkend="int_type">int</link> <replaceable>$options</replaceable> = PO_DEFAULT</code></para></entry>
+	      <entry><para><code><link linkend="int_type">int</link> <replaceable>$options</replaceable> = <link linkend="PO_DEFAULT">PO_DEFAULT</link></code></para></entry>
 	      <entry><para> A single <link linkend="Parse_Options">parse option</link> or binary-or combination of <link linkend="Parse_Options">parse options</link> to set in the parse option mask for the current object.</para></entry>
 	    </row>
 	  </tbody>
@@ -12355,7 +12360,7 @@ $pgm.setParseOptions(PO_NO_THREADS | PO_NO_GUI);</programlisting>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code></code></para></entry>
+	      <entry><para><code><link linkend="string_type">string</link> <replaceable>$region</replaceable></code></para></entry>
 	      <entry><para>The path to the zoneinfo file for the time zone region to set as the local time zone for the Program object.</para></entry>
 	    </row>
 	  </tbody>
