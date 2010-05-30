@@ -42,9 +42,9 @@
 #define PO_NO_SYSTEM_CLASSES         (1 <<  9)    //!< do not inherit system classes into this program space
 #define PO_NO_USER_CLASSES           (1 << 10)    //!< do not inherit user classes into this program space
 #define PO_NO_CHILD_PO_RESTRICTIONS  (1 << 11)    //!< turn off parse option inheritance restrictions
-#define PO_NO_EXTERNAL_PROCESS       (1 << 12)    //!< do not allow backquote op) system()) exec()
+#define PO_NO_EXTERNAL_PROCESS       (1 << 12)    //!< do not allow backquote op, system(), exec()
 #define PO_REQUIRE_OUR               (1 << 13)    //!< require "our" for global var declaration
-#define PO_NO_PROCESS_CONTROL        (1 << 14)    //!< do not allow fork()) exec()) abort(). etc
+#define PO_NO_PROCESS_CONTROL        (1 << 14)    //!< do not allow fork(), exec(), abort(), etc
 #define PO_NO_NETWORK                (1 << 15)    //!< do not allow any network access (objs & subroutines)
 #define PO_NO_FILESYSTEM             (1 << 16)    //!< do not allow any file access (objects & subroutines)
 #define PO_LOCK_WARNINGS             (1 << 17)    //!< do not allow programs to change the warning mask
@@ -55,16 +55,21 @@
 #define PO_NO_EXTERNAL_INFO          (1 << 22)    //!< do not allow any access to host, process, etc information
 #define PO_NO_THREAD_INFO            (1 << 23)    //!< do not allow any access to thread information
 #define PO_NO_LOCALE_CONTROL         (1 << 24)    //!< do not allow changes to program locale
+#define PO_REQUIRE_PROTOTYPES        (1 << 25)    //!< require types in method and function declarations
+#define PO_STRICT_ARGS               (1 << 26)    //!< do not allow access to RT_NOOP code or excess args
 
 // combination options
 //! cannot access any thread functionality
-#define PO_NO_THREADS                (PO_NO_THREAD_CONTROL|PO_NO_THREAD_CLASSES)  
+#define PO_NO_THREADS                (PO_NO_THREAD_CONTROL|PO_NO_THREAD_CLASSES|PO_NO_THREAD_INFO)
 
 //! prohibits any external access
-#define PO_NO_EXTERNAL_ACCESS        (PO_NO_PROCESS_CONTROL|PO_NO_NETWORK|PO_NO_FILESYSTEM|PO_NO_DATABASE) 
+#define PO_NO_EXTERNAL_ACCESS        (PO_NO_PROCESS_CONTROL|PO_NO_NETWORK|PO_NO_FILESYSTEM|PO_NO_DATABASE|PO_NO_EXTERNAL_INFO|PO_NO_EXTERNAL_PROCESS)
 
 //! prohibits all terminal and file I/O and GUI operations
 #define PO_NO_IO                     (PO_NO_GUI|PO_NO_TERMINAL_IO|PO_NO_FILESYSTEM) 
+
+//! most restrictive access - can just execute logic, no I/O, no threading, no external access
+#define PO_LOCKDOWN                  (PO_NO_EXTERNAL_ACCESS|PO_NO_THREADS|PO_NO_IO)
 
 //! mask of all options allowing for more freedom (instead of less)
 #define PO_POSITIVE_OPTIONS          (PO_NO_CHILD_PO_RESTRICTIONS)
