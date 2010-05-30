@@ -41,11 +41,6 @@ static void warn_deprecated(AbstractQoreFunction *func) {
    getProgram()->makeParseWarning(QP_WARN_DEPRECATED, "DEPRECATED", "call to deprecated %s %s%s%s(); to disable this warning, use '%%disable-warning deprecated' in your code", class_name ? "method" : "function", class_name ? class_name : "", class_name ? "::" : "", func->getName());
 }
 
-static void warn_excess_args(AbstractQoreFunction *func, unsigned nargs, AbstractFunctionSignature *sig) {
-   const char *class_name = func->className();
-   getProgram()->makeParseWarning(QP_WARN_EXCESS_ARGS, "EXCESS-ARGS", "call to %s %s%s%s(%s) has %d argument%s; excess arguments will be ignored; to disable this warning, use '%%disable-warning excess-args' in your code", class_name ? "method" : "function", class_name ? class_name : "", class_name ? "::" : "", func->getName(), sig->getSignatureText(), nargs, nargs == 1 ? "" : "s");
-}
-
 static void check_flags(AbstractQoreFunction *func, int64 flags, int64 pflag) {
    if ((pflag & PF_RETURN_VALUE_IGNORED) && (flags & QC_RET_VALUE_ONLY))
       warn_retval_ignored(func);
@@ -110,9 +105,6 @@ int FunctionCallBase::parseArgsVariant(LocalVar *oflag, int pflag, AbstractQoreF
 	 invalid_access(func);
       int64 flags = variant->getFlags();
       check_flags(func, flags, pflag);
-      AbstractFunctionSignature *sig = variant->getSignature();
-      if (!(flags & QC_USES_EXTRA_ARGS) && num_args > sig->numParams())
-	 warn_excess_args(func, num_args, sig);
    }
    else if (func) {
       //printd(5, "FunctionCallBase::parseArgsVariant() this=%p func=%p f=%lld (%lld) c=%lld (%lld)\n", this, func, func->getUniqueFunctionality(), func->getUniqueFunctionality() & po, func->getUniqueFlags(), func->getUniqueFlags() & QC_RET_VALUE_ONLY);

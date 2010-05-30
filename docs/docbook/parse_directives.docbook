@@ -138,13 +138,21 @@
 	  <entry><para>Requires global variables to be declared with <command>our</command> prior to use (like perl's <code>use strict vars</code> pragma).  Equivalent to parse option <code><link linkend="PO_REQUIRE_OUR">PO_REQUIRE_OUR</link></code> and the <code>--require-our</code> command-line option.</para></entry>
 	</row>
 	<row>
+	  <entry><para><code><link linkend="require-prototypes">%require-prototypes</link></code></para></entry>
+	  <entry><para>Requires <link linkend="Data_Type_Declarations">type declarations</link> for all function and method parameters and return types.  Variables and object members do not need to have type declarations.  Equivalent to parse option <code><link linkend="PO_REQUIRE_PROTOTYPES">PO_REQUIRE_PROTOTYPES</link></code> and the <code>--require-prototypes</code> command-line option.</para></entry>
+	</row>
+	<row>
 	  <entry><para><code><link linkend="require-types">%require-types</link></code></para></entry>
-	  <entry><para>Requires <link linkend="Data_Type_Declarations">type declarations</link> for all function and method parameters, return types, variables, and object members.  Equivalent to parse option <code><link linkend="PO_REQUIRE_TYPES">PO_REQUIRE_TYPES</link></code> and the <code>--require-types</code> command-line option.</para></entry>
+	  <entry><para>Requires <link linkend="Data_Type_Declarations">type declarations</link> for all function and method parameters, return types, variables, and object members.  Equivalent to parse option <code><link linkend="PO_REQUIRE_TYPES">PO_REQUIRE_TYPES</link></code> and the <code>--require-types</code> command-line option.  Implies also <link linkend="strict-args">%strict-args</link>.</para></entry>
 	</row>
 	<row>
 	  <entry><para><code><link linkend="requires">%requires</link></code> <replaceable>feature [&lt;|&lt;=|=|&gt;=|&gt; &lt;version&gt;]</replaceable></para></entry>
 	  <entry><para>If the named feature is not already present in Qore, then the <code>QORE_MODULE_DIR</code> environment variable is used to provide a list of directories to seach for a module with the same name (<replaceable>feature</replaceable><code>.qmod</code>).  If the module is not found, then the qore default module directory is checked.  This directive must be used to load modules providing parse support (i.e. modules providing classes, constants, functions, etc that are resolved at parse time).  If version information is provided, then it is compared with the module's version information, and if it does not match a parse exception is raised.  See also <link linkend="load_module">load_module()</link> for a run-time module loading.</para>
 </entry>
+	</row>
+	<row>
+	  <entry><para><code><link linkend="strict-args">%strict-args</link></code></para></entry>
+	  <entry><para>Prohibits access to builtin functions and methods flagged with <code><link linkend="RT_NOOP_flag">RT_NOOP</link></code> and also causes errors to be raised if excess arguments are given to functions that do not access excess arguments.</para></entry>
 	</row>
       </tbody>
     </tgroup>
@@ -1601,6 +1609,38 @@
       </varlistentry>
     </variablelist>
   </sect1>
+
+  <sect1 id="require-prototypes">
+    <title>require-prototypes</title>
+    <variablelist>
+      <varlistentry>
+	<term>Parse Directive</term>
+	<listitem>
+	  <para><code>%require-prototypes</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Command-Line</term>
+	<listitem>
+	  <para><code>--require-prototypes</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Parse Option Constant</term>
+	<listitem>
+	  <para><code><link linkend="PO_REQUIRE_PROTOTYPES">PO_REQUIRE_PROTOTYPES</link></code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Description</term>
+	<listitem>
+	  <para>Requires <link linkend="Data_Type_Declarations">type declarations</link> for all function and method parameters and return types.  Variables and object members do not need to have type declarations with this option.</para>
+	  <para>See also <link linkend="require-types">require-types</link>, which is a superset of this option.</para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </sect1>
+
   <sect1 id="require-types">
     <title>require-types</title>
     <variablelist>
@@ -1626,6 +1666,7 @@
 	<term>Description</term>
 	<listitem>
 	  <para>Requires <link linkend="Data_Type_Declarations">type declarations</link> for all function and method parameters, return types, variables, and object members.</para>
+	  <para>See also <link linkend="require-prototypes">require-prototypes</link>, which is a subset of this option.</para>
 	</listitem>
       </varlistentry>
     </variablelist>
@@ -1661,6 +1702,36 @@
 	  <programlisting>%requires oracle >= 1.0.1</programlisting>
 	  <para>This will load the oracle module if it is at least version 1.0.1.</para>
 	  <para>Note that there is one special feature name: &quot;qore&quot;.  This pseudo-feature can be used to check the minimum qore version; if this feature is requested with version information, then the Qore library's version information is used for the version number comparison.</para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </sect1>
+
+  <sect1 id="strict-args">
+    <title>strict-args</title>
+    <variablelist>
+      <varlistentry>
+	<term>Parse Directive</term>
+	<listitem>
+	  <para><code>%strict-args</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Command-Line</term>
+	<listitem>
+	  <para><code>--strict-args</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Parse Option Constant</term>
+	<listitem>
+	  <para><code><link linkend="PO_STRICT_ARGS">PO_STRICT_ARGS</link></code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Description</term>
+	<listitem>
+	  <para>Prohibits access to builtin functions and methods flagged with <code><link linkend="RT_NOOP_flag">RT_NOOP</link></code> and also causes errors to be raised if excess arguments are given to functions that do not access excess arguments.</para>
 	</listitem>
       </varlistentry>
     </variablelist>

@@ -1594,4 +1594,6 @@ DLLLOCAL void addProgramConstants(class QoreNamespace *ns) {
    ns->addConstant("PO_NO_GUI",                   new QoreBigIntNode(PO_NO_GUI));
    ns->addConstant("PO_REQUIRE_TYPES",            new QoreBigIntNode(PO_REQUIRE_TYPES));
    ns->addConstant("PO_NO_EXTERNAL_INFO",         new QoreBigIntNode(PO_NO_EXTERNAL_INFO));
+   ns->addConstant("PO_REQUIRE_PROTOTYPES",       new QoreBigIntNode(PO_REQUIRE_PROTOTYPES));
+   ns->addConstant("PO_STRICT_ARGS",              new QoreBigIntNode(PO_STRICT_ARGS));
 }

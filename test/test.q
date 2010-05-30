@@ -130,7 +130,7 @@ sub array_tests() {
     $c[10]{"testing"} = "well then";
     test_value($a[0][1], "hello", "second multi-dimentional list dereference");
     test_value($a[1][500], NOTHING, "non-existant element deference");
-    test_value(int($c[10]), 0, "hash list element dereference");
+    test_value(int($c[10].testing), 0, "hash list element dereference");
     test_value($c[10]{"testing"}, "well then", "hash element in list dereference");
     $d = test1(), test2();
     test_value($d[1], 2, "list element dereference with evaluation");
@@ -292,7 +292,7 @@ sub hash_tests() {
     test_value($b.test, "there", "hash dereference after assignment");
     test_value($b.test, "there", "object dereference after assignment");
     test_value($b{"geez"}, NOTHING, "non-existant object dereference");
-    test_value(int($d.gee), 0, "hash dereference of entire list member");
+    test_value(int($d.gee[25]), 0, "hash dereference of list element");
     test_value($d{"gee"}[25], "I hope it works", "dereference of list member of hash");
     my hash $c = ( "hi" : "there", "gee" : "whillakers" );
     $d = $c;
@@ -1470,9 +1470,9 @@ sub class_library_tests() {
 
     # test callObjectMethod*()
     test_value(callObjectMethod($t1, "argTest", 1, 2), (1, 2), "callObjectMethod()");
-    test_value(callObjectMethodArgs($t1, "argTest"), NOTHING, "callObjectMethod()");
-    test_value(callObjectMethodArgs($t1, "argTest", 1, 2), list(1), "callObjectMethod()");
-    test_value(callObjectMethodArgs($t1, "argTest", (1, 2)), (1, 2), "callObjectMethod()");
+    test_value(callObjectMethodArgs($t1, "argTest"), NOTHING, "first callObjectMethodArgs()");
+    test_value(callObjectMethodArgs($t1, "argTest", 1), list(1), "second callObjectMethodArgs()");
+    test_value(callObjectMethodArgs($t1, "argTest", (1, 2)), (1, 2), "third callObjectMethodArgs()");
 
     class_test_File();
     class_test_Program();

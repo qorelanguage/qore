@@ -40,7 +40,35 @@ static inline void ambiguousDuplicateSignatureException(const char *name, Abstra
    parseException("DUPLICATE-SIGNATURE", "%s(%s) matches already declared variant %s(%s)", name, uvb2->getUserSignature()->getSignatureText(), name, uvb1->getSignature()->getSignatureText());
 }
 
-int CodeEvaluationHelper::processDefaultArgs(const AbstractQoreFunctionVariant *variant, ExceptionSink *xsink) {
+static void do_call_name(QoreString &desc, const AbstractQoreFunction *func) {
+   const char *class_name = func->className();
+   if (class_name)
+      desc.sprintf("%s::", class_name);
+   desc.sprintf("%s(", func->getName());
+}
+
+static void addArgs(QoreStringNode &desc, const QoreListNode *args) {
+   if (!args || !args->size()) {
+      desc.concat(NO_TYPE_INFO);
+      return;
+   }   
+   for (unsigned i = 0; i < args->size(); ++i) {
+      const AbstractQoreNode *n = args->retrieve_entry(i);
+      if (is_nothing(n))
+	 desc.concat("NOTHING");
+      else {
+	 qore_type_t t = n ? n->getType() : NT_NOTHING;
+	 if (t == NT_OBJECT)
+	    desc.concat(reinterpret_cast<const QoreObject *>(n)->getClassName());
+	 else
+	    desc.concat(n->getTypeName());
+      }
+      if (i != (args->size() - 1))
+	 desc.concat(", ");
+   }
+}
+
+int CodeEvaluationHelper::processDefaultArgs(const AbstractQoreFunction *func, const AbstractQoreFunctionVariant *variant, ExceptionSink *xsink) {
    bool edit_done = false;
 
    // get default argument list of variant
@@ -80,6 +108,37 @@ int CodeEvaluationHelper::processDefaultArgs(const AbstractQoreFunctionVariant *
 	 }
       }
    }
+
+   // check for excess args exception
+   unsigned nargs = tmp ? tmp->size() : 0;
+   if (!nargs)
+      return 0;
+   unsigned nparams = sig->numParams();
+
+   //printd(5, "processDefaultArgs() %s nargs=%d nparams=%d flags=%lld po=%d\n", func->getName(), nargs, nparams, variant->getFlags(), (bool)(getProgram()->getParseOptions64() & (PO_REQUIRE_TYPES | PO_STRICT_ARGS)));
+   if (nargs > nparams && (getProgram()->getParseOptions64() & (PO_REQUIRE_TYPES | PO_STRICT_ARGS))) {
+      int64 flags = variant->getFlags();
+
+      if (!(flags & QC_USES_EXTRA_ARGS)) {
+	 for (unsigned i = nparams; i < nargs; ++i) {
+	    //printd(5, "processDefaultArgs() %s arg %d nothing=%d\n", func->getName(), i, is_nothing(tmp->retrieve_entry(i)));
+	    if (!is_nothing(tmp->retrieve_entry(i))) {
+	       QoreStringNode *desc = new QoreStringNode("call to ");
+	       do_call_name(*desc, func);
+	       if (nparams)
+		  desc->concat(sig->getSignatureText());
+	       desc->concat(") made as "); 
+	       do_call_name(*desc, func);
+	       addArgs(*desc, *tmp);
+	       unsigned diff = nargs - nparams;
+	       desc->sprintf(") with %d excess argument%s, which is an error when PO_REQUIRE_TYPES or PO_STRICT_ARGS is set", diff, diff == 1 ? "" : "s");
+	       xsink->raiseException("CALL-WITH-TYPE-ERRORS", desc);
+	       return -1;
+	    }
+	 }
+      }
+   }
+
    return 0;
 }
 
@@ -108,8 +167,8 @@ UserSignature::UserSignature(int n_first_line, int n_last_line, AbstractQoreNode
    parseReturnTypeInfo(retTypeInfo ? retTypeInfo->takeParseTypeInfo() : 0), 
    first_line(n_first_line), last_line(n_last_line), parse_file(get_parse_file()),
    lv(0), argvid(0), selfid(0), resolved(false) {
-   // assign no return type if return type declaration is missing and PO_REQUIRE_TYPES is set
-   if (!retTypeInfo && (getProgram()->getParseOptions() & PO_REQUIRE_TYPES))
+   // assign no return type if return type declaration is missing and PO_REQUIRE_TYPES or PO_REQUIRE_PROTOTYPES is set
+   if (!retTypeInfo && (getProgram()->getParseOptions() & (PO_REQUIRE_TYPES | PO_REQUIRE_PROTOTYPES)))
       returnTypeInfo = nothingTypeInfo;
    delete retTypeInfo;
 
@@ -118,7 +177,7 @@ UserSignature::UserSignature(int n_first_line, int n_last_line, AbstractQoreNode
       return;
    }
 
-   int needs_types = getProgram()->getParseOptions() & PO_REQUIRE_TYPES;
+   int needs_types = getProgram()->getParseOptions() & (PO_REQUIRE_TYPES | PO_REQUIRE_PROTOTYPES);
 
    ReferenceHolder<AbstractQoreNode> param_holder(params, 0);
 
@@ -344,32 +403,10 @@ bool AbstractQoreFunction::existsVariant(const type_vec_t &paramTypeInfo) const 
    return false;
 }
 
-void addArgs(QoreStringNode &desc, const QoreListNode *args) {
-   if (!args || !args->size()) {
-      desc.concat(NO_TYPE_INFO);
-      return;
-   }   
-   for (unsigned i = 0; i < args->size(); ++i) {
-      const AbstractQoreNode *n = args->retrieve_entry(i);
-      if (is_nothing(n))
-	 desc.concat("NOTHING");
-      else {
-	 qore_type_t t = n ? n->getType() : NT_NOTHING;
-	 if (t == NT_OBJECT)
-	    desc.concat(reinterpret_cast<const QoreObject *>(n)->getClassName());
-	 else
-	    desc.concat(n->getTypeName());
-      }
-      if (i != (args->size() - 1))
-	 desc.concat(", ");
-   }
-}
-
 static QoreStringNode *getNoopError(const AbstractQoreFunction *func, const AbstractQoreFunction *aqf, const AbstractQoreFunctionVariant *variant) {
    QoreStringNode *desc = new QoreStringNode;
-   if (aqf->className())
-      desc->sprintf("%s::", aqf->className());
-   desc->sprintf("%s(%s) is a variant that returns a constant value when incorrect data types are passed to the function", func->getName(), variant->getSignature()->getSignatureText());
+   do_call_name(*desc, aqf);
+   desc->sprintf("%s) is a variant that returns a constant value when incorrect data types are passed to the function", variant->getSignature()->getSignatureText());
    const QoreTypeInfo *rti = variant->getReturnTypeInfo();
    if (rti->hasType() && !variant->numParams()) {
       desc->concat(" and always returns ");
@@ -400,9 +437,11 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::findVariant(const QoreL
    //printd(0, "AbstractQoreFunction::findVariant() this=%p %s%s%s() vlist=%d (pend=%d) ilist=%d args=%p (%d)\n", this, className() ? className() : "", className() ? "::" : "", getName(), vlist.size(), pending_vlist.size(), ilist.size(), args, args ? args->size() : 0);
 
    // perfect match score
-   int perfect = (args ? args->size() : 0) * 2;
+   unsigned nargs = args ? args->size() : 0;
+   int perfect = nargs * 2;
 
    const AbstractQoreFunction *aqf = 0;
+   AbstractFunctionSignature *sig = 0;
 
    // iterate through inheritance list
    for (ilist_t::const_iterator aqfi = ilist.begin(), aqfe = ilist.end(); aqfi != aqfe; ++aqfi) {
@@ -413,7 +452,7 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::findVariant(const QoreL
 	 if (only_user && !(*i)->isUser())
 	    continue;
 
-	 AbstractFunctionSignature *sig = (*i)->getSignature();
+	 sig = (*i)->getSignature();
 	 assert(sig);
 
 	 //printd(5, "AbstractQoreFunction::findVariant() this=%p %s(%s) args=%p (%d) class=%s\n", this, getName(), sig->getSignatureText(), args, args ? args->size() : 0, aqf->className() ? aqf->className() : "n/a");
@@ -504,9 +543,9 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::findVariant(const QoreL
 	 return 0;
       }
 
-      if (po & PO_REQUIRE_TYPES && (variant->getFlags() & QC_RUNTIME_NOOP)) {
+      if (po & (PO_REQUIRE_TYPES | PO_STRICT_ARGS) && variant->getFlags() & QC_RUNTIME_NOOP) {
 	 QoreStringNode *desc = getNoopError(this, aqf, variant);
-	 desc->concat("; this variant is not accessible when PO_REQUIRE_TYPES is set");
+	 desc->concat("; this variant is not accessible when PO_REQUIRE_TYPES or PO_STRICT_ARGS is set");
 	 xsink->raiseException("CALL-WITH-TYPE-ERRORS", desc);
       }
    }
@@ -601,6 +640,43 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::runtimeFindVariant(cons
 
    //printd(5, "AbstractQoreFunction::runtimeFindVariant() this=%p %s%s%s() returning %p %s(%s)\n", this, className() ? className() : "", className() ? "::" : "", getName(), variant, getName(), variant ? variant->getSignature()->getSignatureText() : "n/a");
    return variant;
+}
+
+static void do_call_str(QoreString &desc, const AbstractQoreFunction *func, const type_vec_t &argTypeInfo) {
+   unsigned num_args = argTypeInfo.size();
+   do_call_name(desc, func);
+   if (num_args)
+      for (unsigned i = 0; i < num_args; ++i) {
+	 desc.concat(argTypeInfo[i]->getName());
+	 if (i != (num_args - 1))
+	    desc.concat(", ");
+      }
+   desc.concat(')');
+}
+
+static void warn_excess_args(AbstractQoreFunction *func, const type_vec_t &argTypeInfo, AbstractFunctionSignature *sig) {
+   unsigned nargs = argTypeInfo.size();
+   unsigned nparams = sig->numParams();
+
+   QoreStringNode *desc = new QoreStringNode("call to ");
+   desc->concat(func->className() ? "method " : "function ");
+   do_call_name(*desc, func);
+   if (nparams)
+      desc->concat(sig->getSignatureText());
+   desc->concat(") made as ");
+   do_call_str(*desc, func, argTypeInfo);
+   unsigned diff = nargs - nparams;
+   desc->sprintf(" (with %d excess argument%s)", diff, diff == 1 ? "" : "s");
+   // raise warning if require-types is not set
+   if (getProgram()->getParseOptions64() & (PO_REQUIRE_TYPES | PO_STRICT_ARGS)) {
+      desc->concat("; this is an error when PO_REQUIRE_TYPES or PO_STRICT_ARGS is set");
+      getProgram()->makeParseException("CALL-WITH-TYPE-ERRORS", desc);
+   }
+   else {
+      // raise warning
+      desc->concat("; excess arguments will be ignored; to disable this warning, use '%%disable-warning excess-args' in your code");
+      getProgram()->makeParseWarning(QP_WARN_EXCESS_ARGS, "EXCESS-ARGS", desc);
+   }
 }
 
 // finds a variant at parse time
@@ -815,25 +891,14 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
 
    if (!variant && pmatch == -1 && getProgram()->getParseExceptionSink()) {
       QoreStringNode *desc = new QoreStringNode("no variant matching '");
-      const char *class_name = className();
-      if (class_name)
-	 desc->sprintf("%s::", class_name);
-      desc->sprintf("%s(", getName());
-      if (!num_args)
-	 desc->concat(NO_TYPE_INFO);
-      else
-	 for (unsigned i = 0; i < num_args; ++i) {
-	    desc->concat(argTypeInfo[i]->getName());
-	    if (i != (num_args - 1))
-	       desc->concat(", ");
-	 }
-      desc->concat(") can be found; the following variants were tested:");
+      do_call_str(*desc, this, argTypeInfo);
+      desc->concat(" can be found; the following variants were tested:");
 
       // add variants tested
       // iterate through inheritance list
       for (ilist_t::iterator aqfi = ilist.begin(), aqfe = ilist.end(); aqfi != aqfe; ++aqfi) {
 	 aqf = *aqfi;	 
-	 class_name = aqf->className();
+	 const char *class_name = aqf->className();
 	 
 	 for (vlist_t::const_iterator i = aqf->vlist.begin(), e = aqf->vlist.end(); i != e; ++i) {
 	    desc->concat("\n   ");
@@ -854,8 +919,8 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
       int64 flags = variant->getFlags();
       if (flags & (QC_NOOP | QC_RUNTIME_NOOP)) {
 	 QoreStringNode *desc = getNoopError(this, aqf, variant);
-	 if ((flags & QC_RUNTIME_NOOP) && (getProgram()->getParseOptions64() & PO_REQUIRE_TYPES)) {
-	    desc->concat("; this variant is not accessible when PO_REQUIRE_TYPES is set");
+	 if ((flags & QC_RUNTIME_NOOP) && (getProgram()->getParseOptions64() & (PO_REQUIRE_TYPES|PO_STRICT_ARGS))) {
+	    desc->concat("; this variant is not accessible when PO_REQUIRE_TYPES or PO_STRICT_ARGS is set");
 	    getProgram()->makeParseException("CALL-WITH-TYPE-ERRORS", desc);
 	 }
 	 else {
@@ -863,6 +928,10 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
 	    getProgram()->makeParseWarning(QP_WARN_CALL_WITH_TYPE_ERRORS, "CALL-WITH-TYPE-ERRORS", desc);
 	 }
       }
+
+      AbstractFunctionSignature *sig = variant->getSignature();
+      if (!(flags & QC_USES_EXTRA_ARGS) && num_args > sig->numParams())
+	 warn_excess_args(this, argTypeInfo, sig);
    }
    //printd(0, "AbstractQoreFunction::parseFindVariant() this=%p %s%s%s() returning %p %s(%s) flags=%lld\n", this, className() ? className() : "", className() ? "::" : "", getName(), variant, getName(), variant ? variant->getSignature()->getSignatureText() : "n/a", variant ? variant->getFlags() : 0ll);
    return variant;
@@ -881,7 +950,7 @@ AbstractQoreNode *AbstractQoreFunction::evalFunction(const AbstractQoreFunctionV
 	 return 0;
       }
    }
-   if (ceh.processDefaultArgs(variant, xsink))
+   if (ceh.processDefaultArgs(this, variant, xsink))
       return 0;
 
    ceh.setCallType(variant->getCallType());
@@ -902,7 +971,7 @@ AbstractQoreNode *AbstractQoreFunction::evalDynamic(const QoreListNode *args, Ex
       assert(*xsink);
       return 0;
    }
-   if (ceh.processDefaultArgs(variant, xsink))
+   if (ceh.processDefaultArgs(this, variant, xsink))
       return 0;
 
    ceh.setCallType(variant->getCallType());
@@ -1402,7 +1471,7 @@ AbstractQoreNode *UserClosureFunction::evalClosure(const QoreListNode *args, Qor
 
    // setup call, save runtime position
    CodeEvaluationHelper ceh(xsink, "<anonymous closure>", args, 0, CT_USER);
-   if (ceh.processDefaultArgs(variant, xsink))
+   if (ceh.processDefaultArgs(this, variant, xsink))
       return 0;
 
    ceh.setReturnTypeInfo(variant->getReturnTypeInfo());

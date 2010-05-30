@@ -471,6 +471,8 @@ RTIME           PT(-?[0-9]+[HMSu])+
 ^%no-terminal-io{WS}*$                  getProgram()->parseSetParseOptions(PO_NO_TERMINAL_IO);
 ^%require-our{WS}*$                     getProgram()->parseSetParseOptions(PO_REQUIRE_OUR);
 ^%require-types{WS}*$                   getProgram()->parseSetParseOptions(PO_REQUIRE_TYPES);
+^%require-prototypes{WS}*$              getProgram()->parseSetParseOptions(PO_REQUIRE_PROTOTYPES);
+^%strict-args{WS}*$                     getProgram()->parseSetParseOptions(PO_STRICT_ARGS);
 ^%append-include-path{WS}+              BEGIN(append_path_state);
 <append_path_state>[^\t\n\r]+           {
 					   setIncludePath(yytext);

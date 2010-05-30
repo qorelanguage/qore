@@ -10648,6 +10648,13 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	    <entry><para><code><link linkend="no-child-restrictions">%no-child-restrictions</link></code></para></entry>
 	    <entry><para>Allows child program objects to have fewer parse restrictions than the parent object.</para></entry>
 	  </row>
+
+	  <row id="PO_NO_EXTERNAL_INFO">
+	    <entry><para><code>PO_NO_EXTERNAL_INFO</code></para></entry>
+	    <entry><para><code><link linkend="no-external-info">%no-external-info</link></code></para></entry>
+	    <entry><para>Disallows access to functionality that provides information about the computing environment.</para></entry>
+	  </row>
+
 	  <row id="PO_NO_EXTERNAL_PROCESS">
 	    <entry><para><code>PO_NO_EXTERNAL_PROCESS</code></para></entry>
 	    <entry><para><code><link linkend="no-external-process">%no-external-process</link></code></para></entry>
@@ -10688,27 +10695,17 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	    <entry><para><code><link linkend="no-database">%no-database</link></code></para></entry>
 	    <entry><para>Disallows access to database functionality.</para></entry>
 	  </row>
+
 	  <row id="PO_NO_GUI">
 	    <entry><para><code>PO_NO_GUI</code></para></entry>
 	    <entry><para><code><link linkend="no-gui">%no-gui</link></code></para></entry>
 	    <entry><para>Disallows access to functionality that draws graphics to the display.</para></entry>
 	  </row>
+
 	  <row id="PO_NO_TERMINAL_IO">
 	    <entry><para><code>PO_NO_TERMINAL_IO</code></para></entry>
 	    <entry><para><code><link linkend="no-terminal-io">%no-terminal-io</link></code></para></entry>
 	    <entry><para>Disallows access to reading from and/or writing to the terminal.</para></entry>
-	  </row>
-
-	  <row id="PO_REQUIRE_TYPES">
-	    <entry><para><code>PO_REQUIRE_TYPES</code></para></entry>
-	    <entry><para><code><link linkend="require-types">%require-types</link></code></para></entry>
-	    <entry><para>Requires all function and method parameters, return types, variables, and object members to have <link linkend="Data_Type_Declarations">type declarations</link>.</para></entry>
-	  </row>
-
-	  <row id="PO_NO_EXTERNAL_INFO">
-	    <entry><para><code>PO_NO_EXTERNAL_INFO</code></para></entry>
-	    <entry><para><code><link linkend="no-external-info">%no-external-info</link></code></para></entry>
-	    <entry><para>Disallows access to functionality that provides information about the computing environment.</para></entry>
 	  </row>
 
 	  <row id="PO_NO_THREAD_INFO">
@@ -10721,6 +10718,24 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	    <entry><para><code>PO_NO_LOCALE_CONTROL</code></para></entry>
 	    <entry><para><code><link linkend="no-locale-control">%no-locale-control</link></code></para></entry>
 	    <entry><para>Disallows access to functionality that can change locale parameters.</para></entry>
+	  </row>
+
+	  <row id="PO_REQUIRE_PROTOTYPES">
+	    <entry><para><code>PO_REQUIRE_PROTOTYPES</code></para></entry>
+	    <entry><para><code><link linkend="require-prototypes">%require-prototypes</link></code></para></entry>
+	    <entry><para>Requires all function and method parameters and return types to have <link linkend="Data_Type_Declarations">type declarations</link>.  Variables and object members are not required to have type declarations.</para></entry>
+	  </row>
+
+	  <row id="PO_REQUIRE_TYPES">
+	    <entry><para><code>PO_REQUIRE_TYPES</code></para></entry>
+	    <entry><para><code><link linkend="require-types">%require-types</link></code></para></entry>
+	    <entry><para>Requires all function and method parameters, return types, variables, and object members to have <link linkend="Data_Type_Declarations">type declarations</link>.  Additionally, this option implies <code><link linkend="PO_STRICT_ARGS">PO_STRICT_ARGS</link></code>.</para></entry>
+	  </row>
+
+	  <row id="PO_STRICT_ARGS">
+	    <entry><para><code>PO_STRICT_ARGS</code></para></entry>
+	    <entry><para><code><link linkend="strict-args">%strict-args</link></code></para></entry>
+	    <entry><para>Prohibits access to builtin functions and methods flagged with <code><link linkend="RT_NOOP_flag">RT_NOOP</link></code> and also causes errors to be raised if excess arguments are given to functions that do not access excess arguments.</para></entry>
 	  </row>
 
 	</tbody>

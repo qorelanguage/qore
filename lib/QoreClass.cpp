@@ -2086,7 +2086,7 @@ AbstractQoreNode *QoreMethod::evalNormalVariant(QoreObject *self, const QoreExte
    CodeEvaluationHelper ceh(xsink, getName(), args, variant->className());
    if (*xsink) return 0;
 
-   if (ceh.processDefaultArgs(variant, xsink))
+   if (ceh.processDefaultArgs(priv->func, variant, xsink))
       return 0;
 
    ceh.setCallType(variant->getCallType());
@@ -3171,7 +3171,7 @@ void ConstructorMethodFunction::evalConstructor(const AbstractQoreFunctionVarian
       xsink->raiseException("CONSTRUCTOR-IS-PRIVATE", "%s::constructor(%s) is private and therefore this class cannot be directly instantiated with the new operator by external code", thisclass.getName(), variant->getSignature()->getSignatureText());
       return;
    }
-   if (ceh.processDefaultArgs(variant, xsink))
+   if (ceh.processDefaultArgs(this, variant, xsink))
       return;
 
    qore_call_t ct = variant->getCallType();
@@ -3220,7 +3220,7 @@ AbstractQoreNode *MethodFunction::evalNormalMethod(const AbstractQoreFunctionVar
    }
    ceh.setClassName(METHVB_const(variant)->className());
 
-   if (ceh.processDefaultArgs(variant, xsink))
+   if (ceh.processDefaultArgs(this, variant, xsink))
       return 0;
 
    ceh.setCallType(variant->getCallType());
@@ -3244,7 +3244,7 @@ AbstractQoreNode *MethodFunction::evalStaticMethod(const AbstractQoreFunctionVar
    }
    ceh.setClassName(METHVB_const(variant)->className());
 
-   if (ceh.processDefaultArgs(variant, xsink))
+   if (ceh.processDefaultArgs(this, variant, xsink))
       return 0;
 
    ceh.setCallType(variant->getCallType());

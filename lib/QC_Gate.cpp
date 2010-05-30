@@ -92,18 +92,18 @@ QoreClass *initGateClass() {
 QoreClass *initRMutexClass() {
    QoreClass *QC_RMUTEX = new QoreClass("RMutex", QDOM_THREAD_CLASS); 
    CID_RMUTEX = QC_RMUTEX->getID();
-   QC_RMUTEX->setConstructorExtended(GATE_constructor);
+   QC_RMUTEX->setConstructorExtended(GATE_constructor, false, QC_DEPRECATED);
    QC_RMUTEX->setDestructor((q_destructor_t)GATE_destructor);
    QC_RMUTEX->setCopy((q_copy_t)GATE_copy);
 
-   QC_RMUTEX->addMethodExtended("enter",         (q_method_t)GATE_enter, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
-   QC_RMUTEX->addMethodExtended("enter",         (q_method_t)GATE_enter_to, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
-   QC_RMUTEX->addMethodExtended("enter",         (q_method_t)GATE_enter_to, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
+   QC_RMUTEX->addMethodExtended("enter",         (q_method_t)GATE_enter, false, QC_DEPRECATED, QDOM_DEFAULT, nothingTypeInfo);
+   QC_RMUTEX->addMethodExtended("enter",         (q_method_t)GATE_enter_to, false, QC_DEPRECATED, QDOM_DEFAULT, bigIntTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
+   QC_RMUTEX->addMethodExtended("enter",         (q_method_t)GATE_enter_to, false, QC_DEPRECATED, QDOM_DEFAULT, bigIntTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
 
-   QC_RMUTEX->addMethodExtended("exit",          (q_method_t)GATE_exit, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
-   QC_RMUTEX->addMethodExtended("tryEnter",      (q_method_t)GATE_tryEnter, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
-   QC_RMUTEX->addMethodExtended("numInside",     (q_method_t)GATE_numInside, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo);
-   QC_RMUTEX->addMethodExtended("numWaiting",    (q_method_t)GATE_numWaiting, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_RMUTEX->addMethodExtended("exit",          (q_method_t)GATE_exit, false, QC_DEPRECATED, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_RMUTEX->addMethodExtended("tryEnter",      (q_method_t)GATE_tryEnter, false, QC_DEPRECATED, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_RMUTEX->addMethodExtended("numInside",     (q_method_t)GATE_numInside, false, QC_RET_VALUE_ONLY | QC_DEPRECATED, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_RMUTEX->addMethodExtended("numWaiting",    (q_method_t)GATE_numWaiting, false, QC_RET_VALUE_ONLY | QC_DEPRECATED, QDOM_DEFAULT, bigIntTypeInfo);
 
    return QC_RMUTEX;
 }
