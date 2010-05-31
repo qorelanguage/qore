@@ -885,22 +885,21 @@ done
 if test -z "$OPENSSL_LDFLAGS"; then
     AC_MSG_ERROR([no openssl library found])
 else
-    AC_MSG_CHECKING([for SHA224, SHA256, SHA384, SHA512 in openssl])
-    # check for SHA512
-    sha=`grep EVP_sha512 $inc/openssl/evp.h 2>/dev/null`
-    if test -n "$sha"; then
-       AC_DEFINE([HAVE_OPENSSL_SHA512], 1, [define if the sha512 algorithm is available in openssl])
-       AC_MSG_RESULT([found])
-    else
-       AC_MSG_RESULT([not found])
-    fi
-
-    # check for openssl const correctness (later versions have it)
     SAVE_CPPFLAGS="$CPPFLAGS"
     SAVE_LDFLAGS="$LDFLAGS"
     CPPFLAGS="$CPPFLAGS $QORE_LIB_CPPFLAGS $OPENSSL_CPPFLAGS"
     LDFLAGS="$LDFLAGS $QORE_LIB_LDFLAGS $OPENSSL_LDFLAGS"
 
+    # check for SHA512 algorithm
+    AC_MSG_CHECKING([for SHA224, SHA256, SHA384, SHA512 in openssl])
+    AC_LINK_IFELSE([AC_LANG_PROGRAM(
+    [[#include <openssl/evp.h>]],
+    [[const EVP_MD *evp = EVP_sha512();]])],
+       [AC_MSG_RESULT([found])
+        AC_DEFINE([HAVE_OPENSSL_SHA512], 1, [define if the sha512 algorithm is available in openssl])],
+       [AC_MSG_RESULT([not found])])
+
+    # check for openssl const correctness (later versions have it)
     AC_MSG_CHECKING([const correctness in openssl headers])
     AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
     [[#include <openssl/x509.h>]],

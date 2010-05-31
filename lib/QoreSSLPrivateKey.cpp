@@ -60,7 +60,7 @@ QoreSSLPrivateKey::QoreSSLPrivateKey(const char *fn, const char *pp, ExceptionSi
 }
 
 QoreSSLPrivateKey::QoreSSLPrivateKey(const BinaryNode *bin, ExceptionSink *xsink) : priv(new qore_sslpk_private(0)) {
-   const unsigned char *p = (const unsigned char *)bin->getPtr();
+   unsigned char *p = (unsigned char *)bin->getPtr();
    priv->pk = d2i_AutoPrivateKey(0, &p, (int)bin->size());
    if (!priv->pk) {
       long e = ERR_get_error();
