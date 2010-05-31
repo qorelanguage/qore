@@ -502,6 +502,7 @@ is a multiline string";</programlisting>
 <sect2 id="Date">
   <title>Date</title>
   <para>Qore dates have a time component supporting a resolution to the microsecond and can be either absolute or relative.</para>
+  <para>See <link linkend="Date_and_Time_Functions">Date and Time Functions</link> for a list of functions related to date/time processing.</para>
 
   <sect3 id="Absolute_Dates">
     <title>Absolute Date/Time Values</title>
@@ -1342,7 +1343,7 @@ $a || $b
 	  <row>
 	    <entry><para>A <link linkend="closures">closure</link></para></entry>
 	    <entry><para>An anonymous function used a value; technically in computer science a closure must have at least one bound variable, but in qore a closure is any function used as a value, whether or not it encloses local variables from the scope in which it was created or not.</para></entry>
-	    <entry><programlisting><command>sub</command> ($a) { return $a + $b; }</programlisting></entry>
+	    <entry><programlisting><command>sub</command> (string $a) returns string { return $a + $b; }</programlisting></entry>
 	  </row>
 	  <row>
 	    <entry><para>A call reference call</para></entry>
@@ -1501,7 +1502,7 @@ $call_ref = \$object.method_name();</programlisting>
 	  <term>Syntax</term>
 	  <listitem>
 	    <para>
-	      <programlisting><command>sub</command> (<replaceable></replaceable>) { <replaceable>code...</replaceable> }</programlisting>
+	      <programlisting><command>sub</command> ([<replaceable>[<link linkend="Data_Type_Declarations">type</link>] variable1, ...</replaceable>]) [<command>returns</command> <replaceable><link linkend="Data_Type_Declarations">type</link></replaceable>] { <replaceable>code...</replaceable> }</programlisting>
 	    </para>
 	  </listitem>
 	</varlistentry>
@@ -1510,6 +1511,7 @@ $call_ref = \$object.method_name();</programlisting>
 	  <listitem>
 	    <para>Closures encapsulate the state and value of local variables of the outer code block referenced from within the closure when the closure is created.  Whenever local variables are bound within a closure, these variables are subject to concurrent thread access protection (locking) just as with global variables, in order to allow closures to be used in any context without restriction and to preseve thread-safety regarding bound local variables.</para>
 	    <para>Note that returning a closure from within an object method encapsulates the state of the object as well (it's legal to refer to $self and $.&lt;variable&gt; from within closures created from objects) and additionally prolongs the scope of the object for the lifetime of the closure.</para>	    
+	    <para>Note that parameter and return types are required when the <code><link linkend="require-types">PO_REQUIRE_TYPES</link></code> or <code><link linkend="require-prototypes">PO_REQUIRE_PROTOTYPES</link></code> parse options are set.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -1517,7 +1519,7 @@ $call_ref = \$object.method_name();</programlisting>
 	  <listitem>
 	    <programlisting># if $b is a local variable in the function where the closure is created
 # then $b will be bound to the closure when the closure is created
-<command>my</command> $closure = <command>sub</command> ($a) { <command>return</command> $a + $b; };</programlisting>
+<command>my</command> code $closure = <command>sub</command> (int $a) <command>returns</command> int { <command>return</command> $a + $b; };</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -1876,7 +1878,7 @@ $var[1].count++;
     <entry><para><command>try</command> and <command>catch</command> statements</para></entry>
     <entry><programlisting><command>try</command>
     <replaceable>statement</replaceable>
-<command>catch</command> (<replaceable>$vars ...</replaceable>)
+<command>catch</command> (<replaceable>$var</replaceable>)
     <replaceable>statement</replaceable></programlisting>
       </entry>
     <entry><para><link linkend='try_and_catch_Statements'>try and catch</link> statements</para></entry>
@@ -2547,11 +2549,11 @@ $var[1].count++;
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting><command>sub</command> getName() {
+	    <programlisting><command>sub</command> getName() <command>returns</command> string {
    <command>return</command> "Barney";
 }
 
-$name = getName();</programlisting>
+<command>my</command> string $name = getName();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -2700,14 +2702,18 @@ $name = getName();</programlisting>
 
 <para>A subroutine is declared in Qore by using the key word <command>sub</command> as follows:</para>
 
-<programlisting><command>sub</command> <replaceable>subroutine_name</replaceable>([<replaceable>variable1, variable2, ...</replaceable>]) {
+<programlisting><command>sub</command> <replaceable>subroutine_name</replaceable>([<replaceable>[<link linkend="Data_Type_Declarations">type</link>] variable1, ...</replaceable>]) [<command>returns</command> <replaceable><link linkend="Data_Type_Declarations">type</link></replaceable>] {
     <replaceable>statements;</replaceable>
 }
 </programlisting>
 
-<para>Variables listed in parentheses by the subroutine name automatically get local lexical scoping. In order to process a variable number of arguments to a function, the <code>$argv</code> variable (local variable) is instantiated as a list with the remaining arguments passed to the subroutine.</para>
+<para>Variables listed in parentheses after the subroutine name are the parameters to the subrouting and automatically get local lexical scoping.  In order to process a variable number of arguments to a function, the <code>$argv</code> variable (local variable) is instantiated as a list with the remaining arguments passed to the subroutine.  <link linkend="Data_Type_Declarations">Type declarations</link> optionally precede the parameter variable and will restrict any arguments passed to the type declared.   The same subrouting can be declared multiple times if each declaration has different parameter types; this is called <link linkend="Overloading">overloading</link> the subroutine.</para>
 
 <para>Subroutines can use the <command>return</command> statement to provide a return value. Subroutine names must be valid Qore identifiers.</para>
+
+<para>The return type of the subroutine can be given by listing a <link linkend="Data_Type_Declarations">type declaration</link> after the <command>returns</command> keyword after the parentheses after the subroutine name.</para>
+
+<para>Note that parameter and return types are required when the <code><link linkend="require-types">PO_REQUIRE_TYPES</link></code> or <code><link linkend="require-prototypes">PO_REQUIRE_PROTOTYPES</link></code> parse options are set.</para>
 
 <note><para>Variables passed as function arguments are passed by value by default, unless the caller places a "\" character before an lvalue in the argument list. In this case the subroutine must have a parameter defined to accept the variable passed by reference. Any changes to the local variable will be reflected in the original variable for variables passed by reference. Also note that it is illegal to pass an argument by reference in a background expression.</para></note>
 
@@ -2721,7 +2727,7 @@ $name = getName();</programlisting>
 #
 # subroutine declaration example
 
-<command>sub</command> print_string($string) {
+<command>sub</command> print_string(string $string) <command>returns</command> int {
     print("%s\n", $string);
     <command>return</command> 1;
 }
@@ -2733,7 +2739,7 @@ $name = getName();</programlisting>
 #
 # recursive subroutine example
 
-<command>sub</command> fibonacci($num) {
+<command>sub</command> fibonacci(int $num) <command>returns</command> int {
     <command>if</command> ($num == 1)
         <command>return</command> 1;
     <command>return</command> $num * fibonacci($num - 1);
@@ -2818,7 +2824,7 @@ $name = getName();</programlisting>
 	...
     }]
 
-    [<command>static</command>] [<command>synchronized</command>] [<command>private</command>] [<replaceable>namespace_path</replaceable>::]<replaceable>method_name_identifier</replaceable>([$var1, $var2, ...]) {
+    [<command>static</command>] [<command>synchronized</command>] [<command>private</command>] [<replaceable>namespace_path</replaceable>::]<replaceable>method_name_identifier</replaceable>([[<link linkend="Data_Type_Declarations">type</link>] $var1, ...]) {
          <replaceable>statements</replaceable>;
     }
     ...
@@ -2829,7 +2835,7 @@ $name = getName();</programlisting>
 
 <programlisting><command>class</command> [<replaceable>namespace_path::</replaceable>]<replaceable>class_identifier</replaceable> [<command>inherits</command> [<command>private|public</command>] [<replaceable>namespace_path::</replaceable>...]<replaceable>class_identifier</replaceable>[, ...]];
 
-[<command>static</command>] [<command>synchronized</command>] [<command>private</command>] [<replaceable>namespace_path::</replaceable>]<replaceable>class_identifier</replaceable>::<replaceable>method_identifier</replaceable>([$var1, $var2, ...]) {
+[<command>static</command>] [<command>synchronized</command>] [<command>private</command>] [<replaceable>namespace_path::</replaceable>]<replaceable>class_identifier</replaceable>::<replaceable>method_identifier</replaceable>([[<link linkend="Data_Type_Declarations">type</link>] $var1, ...]) {
     <replaceable>statements</replaceable>;
 }
 </programlisting>
@@ -2979,7 +2985,7 @@ $self.member();</programlisting>
 
 <para>Subclasses can give explicit arguments to their base class constructors using a special syntax (only available to subclass constructors) similar to the C++ syntax for the same purpose as follows:</para>
 
-<programlisting><replaceable>class_name</replaceable>::constructor([$var1[, ...]) : <replaceable>base_class_identifier</replaceable>(<replaceable>expression(s)</replaceable>)[, ...] {
+<programlisting><replaceable>class_name</replaceable>::constructor([[<link linkend="Data_Type_Declarations">type</link>] $var1, ...) : <replaceable>base_class_identifier</replaceable>(<replaceable>expression(s)</replaceable>)[, ...] {
     <replaceable>statements</replaceable>;
 }
 </programlisting>
@@ -2987,7 +2993,7 @@ $self.member();</programlisting>
 <para>Here is a concrete example of giving arguments to an inherited base class:</para>
 <programlisting><command>class</command> XmlRpcClient <command>inherits</command> Qore::HTTPClient {
     # calls the base class HTTPClient constructor, overrides the "protocols" key to "xmlrpc"
-    constructor($opts) : Qore::HTTPClient($opts + ( "protocols" : "xmlrpc" ))
+    constructor(hash $opts = hash()) : Qore::HTTPClient($opts + ( "protocols" : "xmlrpc" ))
     ...
 }
 </programlisting>
@@ -3008,7 +3014,7 @@ $self.member();</programlisting>
 
     <para>An example:</para>
 
-    <programlisting><command>sub</command> test2($x) {
+    <programlisting><command>sub</command> test2(any $x) {
    # we can modify the original object like so:
    $x.member = "tree";
 
@@ -3036,7 +3042,7 @@ $self.member();</programlisting>
 
     <para>An example:</para>
 
-    <programlisting><command>sub</command> test2($x) {
+    <programlisting><command>sub</command> test2(any $x) {
    # we can modify the original object like so:
    $x.member = "tree";
 
