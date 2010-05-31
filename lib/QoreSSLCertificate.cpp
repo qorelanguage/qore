@@ -46,8 +46,7 @@ QoreSSLCertificate::QoreSSLCertificate(X509 *c) : priv(new qore_sslcert_private(
 }
 
 QoreSSLCertificate::QoreSSLCertificate(const BinaryNode *bin, ExceptionSink *xsink) : priv(new qore_sslcert_private(0)) {
-   //OPENSSL_CONST unsigned char *p = (OPENSSL_CONST unsigned char *)bin->getPtr();
-   unsigned char *p = (unsigned char *)bin->getPtr();
+   OPENSSL_CONST unsigned char *p = (OPENSSL_CONST unsigned char *)bin->getPtr();
    priv->cert = d2i_X509(0, &p, (int)bin->size());
    if (!priv->cert) {
       long e = ERR_get_error();
