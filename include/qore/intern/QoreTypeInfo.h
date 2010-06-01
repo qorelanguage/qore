@@ -65,7 +65,6 @@ protected:
    // true if type has a subtype
    bool has_subtype : 1;
 
-   // must be reimplemented in subclasses
    DLLLOCAL qore_type_result_e parseReturnsTypeMult(qore_type_t t) const {
       const type_vec2_t &rt = getReturnTypeList();
 
@@ -77,7 +76,6 @@ protected:
       return QTI2_NO_MATCH;
    }
 
-   // must be reimplemented in subclasses
    DLLLOCAL qore_type_result_e parseReturnsClassMult(const QoreClass *n_qc) const {
       const type_vec2_t &rt = getReturnTypeList();
 
