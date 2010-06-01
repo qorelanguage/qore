@@ -1101,7 +1101,7 @@ bool parseCheckPrivateClassAccess(const QoreClass *testClass) {
 bool parseCheckCompatibleClass(const QoreClass *shouldBeClass, const QoreClass *testClass) {
    assert(shouldBeClass);
 
-   if (testClass == shouldBeClass)
+   if (testClass->getID() == shouldBeClass->getID())
       return true;
 
    if (!testClass)
