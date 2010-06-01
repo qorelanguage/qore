@@ -119,10 +119,15 @@ static const char parseopts[] =    "qore options controlling parse options:\n"
    "  -L, --no-top-level           make top-level statements illegal\n"
    "  -M, --no-namespace-defs      make namespace declarations illegal\n"
    "  -N, --no-new                 make using the 'new' operator illegal\n"
-   "  -O, --require-our            require 'our' with global variables (recommended)\n"
+   "  -O, --require-our            require 'our' with global vars (recommended)\n"
    "      --require-types          require type declarations\n"
+   "      --require-prototypes     require type declarations in method and function\n"
+   "                               signatures\n"
    "      --no-locale-control      make locale control illegal (time zone, etc)\n"
-   "  -P, --no-process-control     make process control illegal (fork(), exit(), etc)\n"
+   "  -P, --no-process-control     make process control illegal (fork(), exit(),\n"
+   "                               etc)\n"
+   "      --strict-args            do not ignore type errors or excess args in\n"
+   "                               function and method calls\n"
    "      --no-terminal-io         do not allow access to the text terminal\n"
    "  -R, --no-thread-control      make thread control operations illegal\n"
    "      --no-thread-info         disallow access to thread info\n"
@@ -130,7 +135,7 @@ static const char parseopts[] =    "qore options controlling parse options:\n"
    "  -T, --no-threads             disallow thread access and control\n"
    "      --no-thread-classes      disallow access to thread classes\n" 
    "  -Y, --no-network             disallow access to the network\n";
-
+////12345678901234567890123456789012345678901234567890123456789012345678901234567890
 static const char debugstr[] = "\n DEBUGGING OPTIONS:\n"
    "  -d, --debug=arg              sets debugging level (higher number = more output)\n"
    "  -t, --trace                  turns on function tracing\n" 
@@ -335,6 +340,14 @@ static void do_require_types(const char *arg) {
    parse_options |= PO_REQUIRE_TYPES;
 }
 
+static void do_require_prototypes(const char *arg) {
+   parse_options |= PO_REQUIRE_PROTOTYPES;
+}
+
+static void do_strict_args(const char *arg) {
+   parse_options |= PO_STRICT_ARGS;
+}
+
 static void do_lock_options(const char *arg) {
    lock_options = true;
 }
@@ -476,6 +489,8 @@ static struct opt_struct_s {
    { 'O', "require-our",           ARG_NONE, do_require_our },
    { '\0', "require-types",        ARG_NONE, do_require_types },
    { '\0', "no-locale-controle",   ARG_NONE, do_no_locale_control },
+   { '\0', "require-prototypes",   ARG_NONE, do_require_prototypes },
+   { '\0', "strict-args",          ARG_NONE, do_strict_args },
    { 'P', "no-process-control",    ARG_NONE, do_no_process_control },
    { 'R', "no-thread-control",     ARG_NONE, do_no_thread_control },
    { 'S', "no-subroutine-defs",    ARG_NONE, do_no_subroutine_defs },
