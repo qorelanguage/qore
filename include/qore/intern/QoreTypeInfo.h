@@ -26,6 +26,7 @@
 #define _QORE_QORETYPEINFO_H
 
 #include <map>
+#include <vector>
 
 #define NO_TYPE_INFO "<no type info>"
 
@@ -38,6 +39,192 @@ DLLLOCAL void add_to_type_map(qore_type_t t, const QoreTypeInfo *typeInfo);
 DLLLOCAL bool builtinTypeHasDefaultValue(qore_type_t t);
 // returns the default value for any type >= 0 and < NT_OBJECT
 DLLLOCAL AbstractQoreNode *getDefaultValueForBuiltinValueType(qore_type_t t);
+
+enum qore_type_result_e {
+   QTI2_NO_MATCH  = 0,
+   QTI2_AMBIGUOUS = 1,
+   QTI2_IDENT     = 2
+};
+
+class QoreTypeInfo2;
+
+typedef std::vector<QoreTypeInfo2 *> type_vec2_t;
+
+class QoreTypeInfo2 {
+protected:
+   // class pointer
+   const QoreClass *qc;
+   // basic type
+   qore_type_t qt : 11;
+   // true if type indicates more than one return type can be returned
+   bool returns_mult : 1;
+   // true if type accepts multiple types
+   bool accepts_mult : 1;
+   // true if multiple types accepted on input that produce an output type
+   bool input_filter : 1;
+   // true if type has a subtype
+   bool has_subtype : 1;
+
+   // must be reimplemented in subclasses
+   DLLLOCAL qore_type_result_e parseReturnsTypeMult(qore_type_t t) const {
+      const type_vec2_t &rt = getReturnTypeList();
+
+      for (type_vec2_t::const_iterator i = rt.begin(), e = rt.end(); i != e; ++i) {
+	 assert((*i)->returnsSingle());
+	 if ((*i)->parseReturnsType(t))
+	    return QTI2_AMBIGUOUS;
+      }
+      return QTI2_NO_MATCH;
+   }
+
+   // must be reimplemented in subclasses
+   DLLLOCAL qore_type_result_e parseReturnsClassMult(const QoreClass *n_qc) const {
+      const type_vec2_t &rt = getReturnTypeList();
+
+      for (type_vec2_t::const_iterator i = rt.begin(), e = rt.end(); i != e; ++i) {
+	 assert((*i)->returnsSingle());
+	 if ((*i)->parseReturnsClass(n_qc))
+	    return QTI2_AMBIGUOUS;
+      }
+      return QTI2_NO_MATCH;
+   }
+
+   DLLLOCAL qore_type_result_e parseAcceptsTypeMult(qore_type_t t) const {
+      const type_vec2_t &at = getAcceptTypeList();
+
+      for (type_vec2_t::const_iterator i = at.begin(), e = at.end(); i != e; ++i) {
+	 assert((*i)->acceptsSingle());
+	 if ((*i)->matchTypeIntern(t))
+	    return QTI2_AMBIGUOUS;
+      }
+      return QTI2_NO_MATCH;
+   }
+
+   DLLLOCAL qore_type_result_e parseAcceptsClassMult(const QoreClass *n_qc) const {
+      const type_vec2_t &at = getAcceptTypeList();
+
+      for (type_vec2_t::const_iterator i = at.begin(), e = at.end(); i != e; ++i) {
+	 assert((*i)->acceptsSingle());
+	 if ((*i)->matchClassIntern(n_qc))
+	    return QTI2_AMBIGUOUS;
+      }
+      return QTI2_NO_MATCH;
+   }
+
+   // see if any of of the types we accept match any of the types that can be returned by typeInfo
+   DLLLOCAL qore_type_result_e parseAcceptsMult(const QoreTypeInfo2 *typeInfo) {
+      assert(accepts_mult);
+      assert(typeInfo->returns_mult);
+
+      const type_vec2_t &at = getAcceptTypeList();
+      const type_vec2_t &rt = getReturnTypeList();
+
+      for (type_vec2_t::const_iterator i = at.begin(), e = at.end(); i != e; ++i) {
+	 assert((*i)->acceptsSingle());
+
+	 for (type_vec2_t::const_iterator j = rt.begin(), e = rt.end(); j != e; ++j) {
+	    assert((*j)->returnsSingle());
+
+	    if ((*j)->qc ? (*i)->parseAcceptsClass((*j)->qc) : (*i)->parseAcceptsType((*j)->qt))
+	       return QTI2_AMBIGUOUS;
+	 }
+      }
+      return QTI2_NO_MATCH;
+   }
+
+   // must be reimplemented in subclasses
+   DLLLOCAL virtual const type_vec2_t &getReturnTypeList() const {
+      assert(false);
+      return *((type_vec2_t*)0);
+   }
+
+   // must be reimplemented in subclasses
+   DLLLOCAL virtual const type_vec2_t &getAcceptTypeList() const {
+      assert(false);
+      return *((type_vec2_t*)0);
+      //return type_vec2_t();
+   }
+
+   DLLLOCAL qore_type_result_e matchTypeIntern(qore_type_t t) const {
+      if (qt == NT_ALL || t == NT_ALL)
+	 return QTI2_AMBIGUOUS;
+
+      return qt == t ? QTI2_IDENT : QTI2_NO_MATCH;
+   }
+
+   DLLLOCAL qore_type_result_e matchClassIntern(const QoreClass *n_qc) const {
+      if (qt == NT_ALL)
+	 return QTI2_AMBIGUOUS;
+
+      if (qt != NT_OBJECT)
+	 return QTI2_NO_MATCH;
+
+      if (!qc)
+	 return QTI2_AMBIGUOUS;
+
+      if (qc->getID() == n_qc->getID())
+	 return QTI2_IDENT;
+
+      return parseCheckCompatibleClass(n_qc, qc) ? QTI2_AMBIGUOUS : QTI2_NO_MATCH;
+   }
+
+public:
+
+   DLLLOCAL qore_type_result_e parseReturnsType(qore_type_t t) const {
+      if (returns_mult)
+	 return parseReturnsTypeMult(t);
+
+      return matchTypeIntern(t);
+   }
+
+   DLLLOCAL qore_type_result_e parseReturnsClass(const QoreClass *n_qc) const {
+      if (returns_mult)
+	 return parseReturnsClassMult(n_qc);
+
+      return matchClassIntern(n_qc);
+   }
+   
+   DLLLOCAL qore_type_result_e parseAcceptsType(qore_type_t t) const { 
+      if (accepts_mult)
+	 return parseAcceptsTypeMult(t);
+
+      return matchTypeIntern(t);
+   }
+
+   DLLLOCAL qore_type_result_e parseAcceptsClass(const QoreClass *n_qc) const {
+      if (accepts_mult)
+	 return parseAcceptsClassMult(n_qc);
+
+      return matchClassIntern(n_qc);
+   }
+
+   DLLLOCAL qore_type_result_e parseAccepts(const QoreTypeInfo2 *typeInfo) {
+      if (!typeInfo->returnsSingle()) {
+	 if (!accepts_mult)
+	    return qc ? typeInfo->parseReturnsClass(qc) : typeInfo->parseReturnsType(qt);
+	 return parseAcceptsMult(typeInfo);
+      }
+
+      return typeInfo->qc ? parseAcceptsClass(typeInfo->qc) : parseAcceptsType(typeInfo->qt);
+   }
+
+   DLLLOCAL const QoreClass *getUniqueReturnClass() const {
+      return returns_mult ? 0 : qc;
+   }
+
+   DLLLOCAL bool returnsSingle() const {
+      return !returns_mult;
+   }
+
+   DLLLOCAL bool acceptsSingle() const {
+      return !accepts_mult;
+   }
+
+   DLLLOCAL bool hasType() const {
+      return accepts_mult || returns_mult || qt != NT_ALL;
+   }
+};
+
 
 class AbstractQoreTypeInfo {
 protected:
