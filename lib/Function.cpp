@@ -265,7 +265,7 @@ void UserSignature::pushParam(VarRefNode *v, AbstractQoreNode *defArg, bool need
 
       assert(!(pti && ti));
 
-      if (pti->hasType() || ti->hasType()) {
+      if (pti || ti->hasType()) {
 	 ++num_param_types;
 	 // only increment min_param_types if there is no default argument
 	 if (!defArg)
@@ -281,7 +281,7 @@ void UserSignature::pushParam(VarRefNode *v, AbstractQoreNode *defArg, bool need
    else {
       parseTypeList.push_back(0);
       typeList.push_back(0);
-      reinterpret_cast<QoreParseTypeInfo *>(0)->concatName(str);
+      str.append(NO_TYPE_INFO);
    }
    defaultArgList.push_back(defArg);
    if (defArg)
@@ -1257,7 +1257,7 @@ int AbstractQoreFunction::parseCheckDuplicateSignature(UserVariantBase *variant)
 
 	 // check for ambiguous matches
 	 if (typeInfo || parseTypeInfo) {
-	    if (!variantTypeInfo->hasType() && !variantParseTypeInfo->hasType() && thisHasDefaultArg)
+	    if (!variantTypeInfo->hasType() && !variantParseTypeInfo && thisHasDefaultArg)
 	       ambiguous = true;
 	    else {
 	       // check for real matches
@@ -1275,7 +1275,7 @@ int AbstractQoreFunction::parseCheckDuplicateSignature(UserVariantBase *variant)
 	       }
 	       else {
 		  if (variantTypeInfo) {
-		     if (!parseTypeInfo->checkIdentical(variantTypeInfo)) {
+		     if (!parseTypeInfo->parseStageOneIdenticalWithParsed(variantTypeInfo, recheck)) {
 			dup = false;
 			break;
 		     }
@@ -1288,7 +1288,7 @@ int AbstractQoreFunction::parseCheckDuplicateSignature(UserVariantBase *variant)
 	    }	       
 	 }
 	 else {
-	    if ((variantTypeInfo->hasType() || variantParseTypeInfo->hasType()) && variantHasDefaultArg)
+	    if ((variantTypeInfo->hasType() || variantParseTypeInfo) && variantHasDefaultArg)
 	       ambiguous = true;
 	    else if (variantTypeInfo) {
 	       if (!typeInfo->checkIdentical(variantTypeInfo)) {

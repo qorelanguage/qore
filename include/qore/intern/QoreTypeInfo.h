@@ -40,6 +40,12 @@ DLLLOCAL bool builtinTypeHasDefaultValue(qore_type_t t);
 // returns the default value for any type >= 0 and < NT_OBJECT
 DLLLOCAL AbstractQoreNode *getDefaultValueForBuiltinValueType(qore_type_t t);
 
+static inline void concatClass(std::string &str, const char *cn) {
+   str.append("<class: ");
+   str.append(cn);
+   str.push_back('>');
+}
+
 enum qore_type_result_e {
    QTI2_NO_MATCH  = 0,
    QTI2_AMBIGUOUS = 1,
@@ -77,6 +83,8 @@ protected:
    bool has_subtype : 1;
    // true if has a custom name
    bool has_name : 1;
+   // true if the type has a default value implementation function
+   bool has_defval : 1;
 
    DLLLOCAL qore_type_result_e parseReturnsTypeMult(qore_type_t t) const {
       const type_vec2_t &rt = getReturnTypeList();
@@ -260,6 +268,12 @@ protected:
       return n;
    }
 
+   // must be reimplemented in subclasses if has_defval is true
+   DLLLOCAL virtual AbstractQoreNode *getDefaultValueImpl() const {
+      assert(false);
+      return 0;
+   }
+
    DLLLOCAL bool isInputIdenticalIntern(const QoreTypeInfo2 *typeInfo) const {
       if (qt != typeInfo->qt)
 	 return false;
@@ -326,17 +340,25 @@ protected:
          str.sprintf("'$%s' ", param_name);
    }
 
+   DLLLOCAL QoreTypeInfo2(const QoreClass *n_qc, qore_type_t n_qt, bool n_returns_mult,
+                          bool n_accepts_mult, bool n_input_filter, bool n_has_subtype,
+                          bool n_has_name, bool n_has_defval) : qc(n_qc), qt(n_qt), returns_mult(n_returns_mult),
+                                                                accepts_mult(n_accepts_mult), input_filter(n_input_filter), 
+                                                                has_subtype(n_has_subtype), has_name(n_has_name), 
+                                                                has_defval(n_has_defval) {
+   }
+
 public:
    DLLLOCAL QoreTypeInfo2() : qc(0), qt(NT_ALL), returns_mult(false), accepts_mult(false), 
-                              input_filter(false), has_subtype(false), has_name(false) {
+                              input_filter(false), has_subtype(false), has_name(false), has_defval(false) {
    }
 
    DLLLOCAL QoreTypeInfo2(qore_type_t n_qt) : qc(0), qt(n_qt), returns_mult(false), accepts_mult(false), 
-                                              input_filter(false), has_subtype(false), has_name(false) {
+                                              input_filter(false), has_subtype(false), has_name(false), has_defval(false) {
    }
 
    DLLLOCAL QoreTypeInfo2(const QoreClass *n_qc) : qc(n_qc), qt(NT_OBJECT), returns_mult(false), accepts_mult(false), 
-                                                   input_filter(false), has_subtype(false), has_name(false) {
+                                                   input_filter(false), has_subtype(false), has_name(false), has_defval(false) {
    }
 
    DLLLOCAL ~QoreTypeInfo2() {
@@ -449,6 +471,23 @@ public:
       return acceptInputIntern(true, -1, member_name, n, xsink);
    }
 
+   DLLLOCAL bool hasDefaultValue() const {
+      if (!hasType())
+         return false;
+
+      return (qt >= 0 && qt < NT_OBJECT) || has_defval;
+   }
+
+   DLLLOCAL AbstractQoreNode *getDefaultValue() const {
+      if (!hasType())
+         return 0;
+
+      if (qt >= 0 && qt < NT_OBJECT)
+         return getDefaultValueForBuiltinValueType(qt);
+
+      return has_defval ? getDefaultValueImpl() : 0;
+   }
+
    // quick function to tell if the argument may be subject to an input filter for this type
    DLLLOCAL bool mayRequireFilter(const AbstractQoreNode *n) const {
       if (!hasType() || !input_filter)
@@ -489,12 +528,6 @@ protected:
 
    DLLLOCAL virtual const char *getNameImpl() const = 0;
    DLLLOCAL virtual void concatNameImpl(std::string &str) const = 0;
-
-   DLLLOCAL void concatClass(std::string &str, const char *cn) const {
-      str.append("<class: ");
-      str.append(cn);
-      str.push_back('>');
-   }
 
 public:
    DLLLOCAL AbstractQoreTypeInfo(qore_type_t n_qt) : qt(n_qt), compat_qt(n_qt), has_type(n_qt != NT_ALL ? true : false) {
@@ -805,73 +838,33 @@ public:
 #endif
 };
 
-class QoreParseTypeInfo : public QoreTypeInfo {
+// this is basically just a wrapper around NamedScope
+class QoreParseTypeInfo {
 protected:
-   DLLLOCAL virtual const char *getNameImpl() const {
-      if (cscope)
-	 return cscope->getIdentifier();
-      return qc ? qc->getName() : getBuiltinTypeName(qt);
-   }
-
-   DLLLOCAL virtual void concatNameImpl(std::string &str) const {
-      if (cscope)
-	 concatClass(str, cscope->getIdentifier());
-      else
-         QoreTypeInfo::concatNameImpl(str);
-   }
-
-   DLLLOCAL QoreParseTypeInfo(const NamedScope *n_cscope) : QoreTypeInfo(NT_OBJECT), cscope(n_cscope->copy()) {
+   DLLLOCAL QoreParseTypeInfo(const NamedScope *n_cscope) : cscope(n_cscope->copy()) {
    }
 
 public:
    NamedScope *cscope; // namespace scope for class
 
-   DLLLOCAL QoreParseTypeInfo() : QoreTypeInfo(), cscope(0) {}
-   DLLLOCAL QoreParseTypeInfo(qore_type_t qt) : QoreTypeInfo(qt), cscope(0) {}
-   DLLLOCAL QoreParseTypeInfo(char *n_cscope) : QoreTypeInfo(NT_OBJECT), cscope(new NamedScope(n_cscope)) {
+   DLLLOCAL QoreParseTypeInfo(char *n_cscope) : cscope(new NamedScope(n_cscope)) {
       assert(strcmp(n_cscope, "any"));
    }
-   DLLLOCAL QoreParseTypeInfo(const QoreClass *qc) : QoreTypeInfo(qc), cscope(0) {}
-   DLLLOCAL QoreParseTypeInfo(const QoreTypeInfo *typeInfo) : QoreTypeInfo(), cscope(0) {
-      if (typeInfo) {
-	 qc = typeInfo->qc;
-	 qt = typeInfo->getType();
-	 has_type = typeInfo->hasType();
-      }
-   }
-/*
-   DLLLOCAL QoreParseTypeInfo(qore_type_t qt, char *n_cscope) : QoreTypeInfo(qt), cscope(n_cscope ? new NamedScope(n_cscope) : 0) {
-      assert(!cscope || qt == NT_OBJECT);
-   }
-*/
-   DLLLOCAL virtual ~QoreParseTypeInfo() {
+
+   DLLLOCAL ~QoreParseTypeInfo() {
       delete cscope;
    }
    // prototype (expecting type) should be "this"
    // returns true if the prototype does not expect any type or the types are compatible, 
    // false if otherwise
    DLLLOCAL bool parseStageOneEqual(const QoreParseTypeInfo *typeInfo) const {
-      if (!this || !has_type || !typeInfo || !typeInfo->has_type)
-	 return true;
-
-      if (!cscope && !typeInfo->cscope)
-	 return parseEqual(typeInfo);
-
-      assert(cscope && typeInfo->cscope);
-      // check for equal types or equal class paths
-      if (qt != typeInfo->qt)
-	 return false;
-      if (!cscope && !typeInfo->cscope)
-	 return true;
-      if (!cscope || !typeInfo->cscope)
-	 return false;
       return !strcmp(cscope->getIdentifier(), typeInfo->cscope->getIdentifier());
    }
 
    // used when parsing user code to find duplicate signatures
    DLLLOCAL bool parseStageOneIdenticalWithParsed(const QoreTypeInfo *typeInfo, bool &recheck) const {
-      bool thisnt = (!this || !has_type);
-      bool typent = (!typeInfo || !typeInfo->hasType());
+      bool thisnt = !this;
+      bool typent = !typeInfo->hasType();
 
       if (thisnt && typent)
 	 return true;
@@ -879,30 +872,20 @@ public:
       if (thisnt || typent)
 	 return false;
 
-      // from this point on, we know that both have types
-      if (qt != typeInfo->getType())
-	 return false;
+      if (!typeInfo->qc)
+         return false;
 
-      // both types are identical
-      if (qt != NT_OBJECT)
-	 return true;
-
-      if (cscope) {
-	 if (!typeInfo->qc)
-	    return false;
-	 // both have class info
-	 if (!strcmp(cscope->getIdentifier(), qc->getName()))
-	    return recheck = true;
-	 else
-	    return false;
-      }
-      return !typeInfo->qc;
+      // both have class info
+      if (!strcmp(cscope->getIdentifier(), typeInfo->qc->getName()))
+         return recheck = true;
+      else
+         return false;
    }
 
    // used when parsing user code to find duplicate signatures
    DLLLOCAL bool parseStageOneIdentical(const QoreParseTypeInfo *typeInfo) const {
-      bool thisnt = (!this || !has_type);
-      bool typent = (!typeInfo || !typeInfo->has_type);
+      bool thisnt = !this;
+      bool typent = !typeInfo;
 
       if (thisnt && typent)
 	 return true;
@@ -910,50 +893,37 @@ public:
       if (thisnt || typent)
 	 return false;
 
-      // from this point on, we know that both have types
-      if (qt != typeInfo->qt)
-	 return false;
-
-      // both types are identical
-      if (qt != NT_OBJECT)
-	 return true;
-
-      if (cscope) {
-	 if (!typeInfo->cscope)
-	    return false;
-	 return !strcmp(cscope->ostr, typeInfo->cscope->ostr);
-      }
-      return !typeInfo->cscope;
+      return !strcmp(cscope->ostr, typeInfo->cscope->ostr);
    }
 
    // resolves the current type to a QoreTypeInfo pointer and deletes itself
    DLLLOCAL const QoreTypeInfo *resolveAndDelete();
-   DLLLOCAL bool needsResolving() const { 
-      return cscope;
-   }
+
 #ifdef DEBUG
    DLLLOCAL const char *getCID() const { return this && cscope ? cscope->getIdentifier() : "n/a"; }
 #endif
+
    DLLLOCAL QoreParseTypeInfo *copy() const {
       if (!this)
 	 return 0;
 
-      assert(!qc);
-
-      if (cscope)
-         return new QoreParseTypeInfo(cscope);
-
-      if (qc)
-	 return new QoreParseTypeInfo(qc);
-      if (!has_type)
-	 return new QoreParseTypeInfo;
-      return new QoreParseTypeInfo(qt);
+      return new QoreParseTypeInfo(cscope);
    }
 
-   DLLLOCAL NamedScope *takeName() {
-      NamedScope *rv = cscope;
-      cscope = 0;
-      return rv;
+   DLLLOCAL const char *getName() const {
+      if (!this)
+	 return NO_TYPE_INFO;
+
+      return cscope->getIdentifier();
+   }
+
+   DLLLOCAL void concatName(std::string &str) const {
+      if (!this) {
+	 str.append(NO_TYPE_INFO);
+	 return;
+      }
+
+      concatClass(str, cscope->getIdentifier());
    }
 };
 

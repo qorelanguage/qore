@@ -136,7 +136,7 @@ public:
 
       //printd(5, "Var::parseCheckAssignType() this=%p %s: type=%s %s new type=%s %s\n", this, name.c_str(), typeInfo->getTypeName(), typeInfo->getCID(), n_typeInfo->getTypeName(), n_typeInfo->getCID());
       // it is safe to call QoreTypeInfo::hasType() when this is 0
-      if (!n_parseTypeInfo->hasType())
+      if (!n_parseTypeInfo)
 	 return;
 
       // here we know that n_typeInfo is not null

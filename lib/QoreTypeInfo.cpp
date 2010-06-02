@@ -356,16 +356,12 @@ const QoreTypeInfo *QoreParseTypeInfo::resolveAndDelete() {
    if (!this)
       return 0;
 
-   if (cscope) {
-      // resolve class
-      qc = getRootNS()->parseFindScopedClass(cscope);
-      delete cscope;
-      cscope = 0;
-   }
-
-   const QoreTypeInfo *rv = qc ? qc->getTypeInfo() : getTypeInfoForType(qt);
+   // resolve class
+   const QoreClass *qc = getRootNS()->parseFindScopedClass(cscope);
    delete this;
-   return rv;
+
+   // qc maybe NULL when the class is not found
+   return qc ? qc->getTypeInfo() : objectTypeInfo;
 }
 
 int QoreTypeInfo::checkTypeInstantiationDefault(AbstractQoreNode *n, bool &priv_error) const {
