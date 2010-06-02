@@ -259,6 +259,99 @@ const char *getBuiltinTypeName(qore_type_t type) {
    return "<unknown type>";
 }
 
+int QoreTypeInfo2::runtimeAcceptInputIntern(bool &priv_error, AbstractQoreNode *n) const {
+   assert(!accepts_mult);
+
+   qore_type_t nt = n && n->getType();
+
+   if (qt != nt)
+      return -1;
+
+   if (qt != NT_OBJECT || !qc)
+      return 0;
+
+   bool priv;
+   if (reinterpret_cast<const QoreObject *>(n)->getClass(qc->getID(), priv)) {
+      if (!priv)
+	 return 0;
+
+      // check private access if required class is privately
+      // inherited in the input argument's class
+      if (runtimeCheckPrivateClassAccess(qc))
+	 return 0;
+      
+      priv_error = true;
+   }
+
+   return -1;
+}
+
+int QoreTypeInfo2::acceptInputDefault(bool &priv_error, AbstractQoreNode *n) const {
+   //printd(0, "QoreTypeInfo2::acceptInputDefault() this=%p hasType=%d (%s) n=%p (%s)\n", this, hasType(), getName(), n, get_type_name(n));
+   if (!hasType())
+      return 0;
+
+   if (!accepts_mult)
+      return runtimeAcceptInputIntern(priv_error, n);
+
+   const type_vec2_t &at = getAcceptTypeList();
+
+   // check all types until one accepts the input
+   // priv_error can be set to false more than once; this is OK for error reporting
+   for (type_vec2_t::const_iterator i = at.begin(), e = at.end(); i != e; ++i) {
+      assert((*i)->acceptsSingle());
+      if (!(*i)->runtimeAcceptInputIntern(priv_error, n))
+	 return 0;
+   }
+
+   return -1;
+}
+
+bool QoreTypeInfo2::isInputIdentical(const QoreTypeInfo2 *typeInfo) const {
+   bool thisnt = (!hasType());
+   bool typent = (!typeInfo->hasType());
+
+   if (thisnt && typent)
+      return true;
+
+   if (thisnt || typent)
+      return false;
+
+   // from this point on, we know that both have types and are not NULL
+   if ((accepts_mult && !typeInfo->accepts_mult)
+       || (!accepts_mult && typeInfo->accepts_mult))
+      return false;
+
+   // from here on, we know either both accept single types or both accept multiple types
+   if (!accepts_mult)
+      return isInputIdenticalIntern(typeInfo);
+
+   const type_vec2_t &my_at = getAcceptTypeList();
+   const type_vec2_t &their_at = typeInfo->getAcceptTypeList();
+
+   if (my_at.size() != their_at.size())
+      return false;
+
+   // check all types to see if there is an identical type
+   for (type_vec2_t::const_iterator i = my_at.begin(), e = my_at.end(); i != e; ++i) {
+      assert((*i)->acceptsSingle());
+
+      bool ident = false;
+      for (type_vec2_t::const_iterator j = their_at.begin(), e = their_at.end(); i != e; ++i) {
+	 assert((*j)->acceptsSingle());
+
+	 if ((*i)->isInputIdenticalIntern(*j)) {
+	    ident = true;
+	    break;
+	 }
+      }
+      if (!ident)
+	 return false;
+   }
+
+   return true;
+}
+
 const QoreTypeInfo *QoreParseTypeInfo::resolveAndDelete() {
    if (!this)
       return 0;
