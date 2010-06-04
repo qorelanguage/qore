@@ -796,7 +796,7 @@ public:
 	       pop_local_var();
 	 }
 	 // throw a type exception only if parse exceptions are enabled
-	 if (!typeInfo->parseEqual(argTypeInfo) && getProgram()->getParseExceptionSink()) {
+	 if (!typeInfo->parseAccepts(argTypeInfo) && getProgram()->getParseExceptionSink()) {
             QoreStringNode *desc = new QoreStringNode("initialization expression for ");
 	    desc->sprintf("%s member '$.%s' returns ", priv ? "private" : "public", name);
             argTypeInfo->getThisType(*desc);

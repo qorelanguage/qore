@@ -50,8 +50,8 @@ AbstractQoreNode *QoreExtractOperatorNode::parseInit(LocalVar *oflag, int pflag,
    // check lvalue expression
    lvalue_exp = lvalue_exp->parseInit(oflag, pflag | PF_FOR_ASSIGNMENT, lvids, expTypeInfo);
    if (expTypeInfo->hasType()) {
-      if (!listTypeInfo->parseEqual(expTypeInfo)
-	  && !stringTypeInfo->parseEqual(expTypeInfo)) {
+      if (!expTypeInfo->parseAcceptsReturns(NT_LIST)
+	  && !expTypeInfo->parseAcceptsReturns(NT_STRING)) {
 	 QoreStringNode *desc = new QoreStringNode("the lvalue expression (1st position) with the 'extract' operator is ");
 	 expTypeInfo->getThisType(*desc);
 	 desc->sprintf(", therefore this operation is invalid and would throw an exception at run-time; the 'extract' operator only operates on lists and strings");

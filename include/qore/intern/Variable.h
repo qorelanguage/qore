@@ -193,11 +193,11 @@ public:
       return parseTypeInfo || typeInfo;
    }
 
-   // only called with a new object decarlation expression (ie our <class> $x())
+   // only called with a new object declaration expression (ie our <class> $x())
    DLLLOCAL const char *getClassName() const {
       if (typeInfo) {
-         assert(typeInfo->qc);
-         return typeInfo->qc->getName();
+         assert(typeInfo->getUniqueReturnClass());
+         return typeInfo->getUniqueReturnClass()->getName();
       }
       assert(parseTypeInfo);
       assert(parseTypeInfo->cscope);
@@ -249,7 +249,7 @@ public:
 
    DLLLOCAL int assign(AbstractQoreNode *val) {
       //printd(0, "LValueHelper::assign() this=%p val=%p (%s) typeInfo=%s calling checkType()\n", this, val, val ? val->getTypeName() : "NOTHING", typeInfo->getName());
-      val = typeInfo->checkType("<lvalue>", val, xsink);
+      val = typeInfo->acceptAssignment("<lvalue>", val, xsink);
       if (*xsink) {
 	 discard(val, xsink);
 	 return -1;

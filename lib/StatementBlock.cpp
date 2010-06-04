@@ -329,7 +329,8 @@ void StatementBlock::parseInitConstructor(const QoreTypeInfo *typeInfo, UserVari
    // ensure that all classes referenced are base classes of this class
    if (bcal) {
       for (bcalist_t::iterator i = bcal->begin(), e = bcal->end(); i != e; ++i) {
-	 (*i)->parseInit(bcl, typeInfo->qc->getName());
+	 assert(typeInfo->getUniqueReturnClass());
+	 (*i)->parseInit(bcl, typeInfo->getUniqueReturnClass()->getName());
       }
    }
 

@@ -101,12 +101,18 @@ AbstractQoreNode *QoreUnaryMinusOperatorNode::parseInit(LocalVar *oflag, int pfl
       }
 
       if (typeInfo->hasType()) {
-	 if (typeInfo->parseExactMatch(NT_FLOAT))
+	 if (typeInfo->isType(NT_FLOAT))
 	    typeInfo = floatTypeInfo;
-	 else if (typeInfo->parseExactMatch(NT_DATE))
+	 else if (typeInfo->isType(NT_DATE))
 	    typeInfo = dateTypeInfo;
-	 else
+	 else if (typeInfo->isType(NT_INT))
 	    typeInfo = bigIntTypeInfo;
+	 else {
+	    if (typeInfo->returnsSingle())
+	       typeInfo = bigIntTypeInfo;
+	    else
+	       typeInfo = 0;
+	 }
 	 // FIXME: add invalid operation warning for types that can't convert to int
       }
    }

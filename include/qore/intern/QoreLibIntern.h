@@ -276,9 +276,10 @@ public:
       // and save the return type
       if (!l) {
          *n = (*n)->parseInit(oflag, pflag, lvids, singleTypeInfo);
-         // set type info to 0 if the expression returns a list
+         // set type info to 0 if the expression can return a list
          // FIXME: set list element type here when list elements can have types
-         if (listTypeInfo->parseEqual(singleTypeInfo))
+         //printd(0, "singleTypeInfo=%s la=%d\n", singleTypeInfo->getName(), listTypeInfo->parseAccepts(singleTypeInfo));
+         if (listTypeInfo->parseAccepts(singleTypeInfo))
             singleTypeInfo = 0;
       }
    }
@@ -313,13 +314,24 @@ public:
       typeInfo = 0;
       if (!l) {
          // FIXME: return list type info when list elements can be typed
-         if (!pos && singleTypeInfo)
-            typeInfo = singleTypeInfo;
+         if (!pos) {
+            if (singleTypeInfo)
+               typeInfo = singleTypeInfo;
+         }
+         else {
+            // no argument available
+            if (singleTypeInfo)
+               typeInfo = nothingTypeInfo;
+         }
          return;
       }
 
       AbstractQoreNode **p = getValuePtr();
-      if (p && *p) {
+      if (!p || !(*p)) {
+         // no argument available
+         typeInfo = nothingTypeInfo;
+      }
+      else {
 	 (*p) = (*p)->parseInit(oflag, pflag, lvids, typeInfo);
 
 	 //printd(0, "QorePossibleListNodeParseInitHelper::parseInit() this=%p %d/%d (l=%p) type: %s (%s) *p=%p (%s)\n", this, pos, l ? l->size() : 1, l, typeInfo && typeInfo->qt ? getBuiltinTypeName(typeInfo->qt) : "n/a", typeInfo && typeInfo->qc ? typeInfo->qc->getName() : "n/a", p && *p ? *p : 0, p && *p ? (*p)->getTypeName() : "n/a");

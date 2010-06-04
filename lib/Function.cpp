@@ -94,15 +94,15 @@ int CodeEvaluationHelper::processDefaultArgs(const AbstractQoreFunction *func, c
 	 const AbstractQoreNode *n = tmp ? tmp->retrieve_entry(i) : 0;
 	 const QoreTypeInfo *paramTypeInfo = sig->getParamTypeInfo(i);
 	 // test for change or incompatibility
-	 if (paramTypeInfo->testTypeCompatibility(n) != QTI_IDENT) {
-	    // edit the current argument list
-	    if (!edit_done) {
+	 if (paramTypeInfo->hasInputFilter()) {
+	    if (!edit_done && paramTypeInfo->mayRequireFilter(n)) {
+	       // edit the current argument list
 	       tmp.edit();
 	       edit_done = true;
 	    }
 
 	    AbstractQoreNode **p = const_cast<QoreListNode *>(*tmp)->get_entry_ptr(i);
-	    *p = paramTypeInfo->checkTypeInstantiation(i, sig->getName(i), *p, xsink);
+	    *p = paramTypeInfo->acceptInputParam(i, sig->getName(i), *p, xsink);
 	    if (*xsink)
 	       return -1;
 	 }
@@ -367,7 +367,7 @@ void UserSignature::resolve() {
 	       pop_local_var();
 	 }
 	 // check type compatibility
-	 if (typeList[i]->parseEqual(argTypeInfo) == QTI_NOT_EQUAL) {
+	 if (!typeList[i]->parseAccepts(argTypeInfo)) {
 	    QoreStringNode *desc = new QoreStringNode;
 	    desc->sprintf("parameter '$%s' expects ", names[i].c_str());
 	    typeList[i]->getThisType(*desc);
@@ -392,7 +392,7 @@ bool AbstractQoreFunction::existsVariant(const type_vec_t &paramTypeInfo) const 
 	 return true;
       bool ok = true;
       for (unsigned pi = 0; pi < np; ++pi) {
-	 if (!paramTypeInfo[pi]->checkIdentical(sig->getParamTypeInfo(pi))) {
+	 if (!paramTypeInfo[pi]->isInputIdentical(sig->getParamTypeInfo(pi))) {
 	    ok = false;
 	    break;
 	 }
@@ -410,7 +410,7 @@ static QoreStringNode *getNoopError(const AbstractQoreFunction *func, const Abst
    const QoreTypeInfo *rti = variant->getReturnTypeInfo();
    if (rti->hasType() && !variant->numParams()) {
       desc->concat(" and always returns ");
-      if (rti->qc || func->className()) {
+      if (rti->getUniqueReturnClass() || func->className()) {
 	 rti->getThisType(*desc);
       }
       else {
@@ -480,7 +480,7 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::findVariant(const QoreL
 	       if (is_nothing(n) && sig->hasDefaultArg(pi))
 		  rc = QTI_IGNORE;
 	       else {
-		  rc = t->testTypeCompatibility(n);
+		  rc = t->runtimeAcceptsValue(n);
 		  if (rc == QTI_NOT_EQUAL) {
 		     ok = false;
 		     break;
@@ -616,7 +616,7 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::runtimeFindVariant(cons
 	    if (t->hasType() && !a->hasType() && sig->hasDefaultArg(pi))
 	       rc = QTI_IGNORE;
 	    else {
-	       rc = t->parseEqual(a);
+	       rc = t->parseAccepts(a);
 	       if (rc == QTI_NOT_EQUAL) {
 		  ok = false;
 		  break;
@@ -691,7 +691,7 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
    const AbstractQoreFunctionVariant *variant = 0;
    unsigned num_args = argTypeInfo.size();
 
-   //printd(5, "AbstractQoreFunction::parseFindVariant() this=%p %s() vlist=%d pend=%d ilist=%d num_args=%d\n", this, getName(), vlist.size(), pending_vlist.size(), ilist.size(), num_args);
+   printd(5, "AbstractQoreFunction::parseFindVariant() this=%p %s() vlist=%d pend=%d ilist=%d num_args=%d\n", this, getName(), vlist.size(), pending_vlist.size(), ilist.size(), num_args);
 
    AbstractQoreFunction *aqf = 0;
    
@@ -705,7 +705,7 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
       for (vlist_t::const_iterator i = aqf->vlist.begin(), e = aqf->vlist.end(); i != e; ++i) {
 	 AbstractFunctionSignature *sig = (*i)->getSignature();
 
-	 //printd(0, "AbstractQoreFunction::parseFindVariant() this=%p checking %s(%s) variant=%p sig->pt=%d sig->mpt=%d match=%d, args=%d\n", this, getName(), sig->getSignatureText(), variant, sig->getParamTypes(), sig->getMinParamTypes(), match, num_args);
+	 printd(5, "AbstractQoreFunction::parseFindVariant() this=%p checking %s(%s) variant=%p sig->pt=%d sig->mpt=%d match=%d, args=%d\n", this, getName(), sig->getSignatureText(), variant, sig->getParamTypes(), sig->getMinParamTypes(), match, num_args);
 	 
 	 if (!variant && !sig->getParamTypes() && pmatch == -1) {
 	    match = pmatch = nperfect = 0;
@@ -725,7 +725,7 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
 	       const QoreTypeInfo *t = sig->getParamTypeInfo(pi);
 	       const QoreTypeInfo *a = (num_args && num_args > pi) ? argTypeInfo[pi] : 0;
 	       
-	       //printd(0, "AbstractQoreFunction::parseFindVariant() %s(%s) pi=%d t=%s (has type: %d) a=%s (%p) t->parseEqual(a)=%d\n", getName(), sig->getSignatureText(), pi, t->getName(), t->hasType(), a->getName(), a, t->parseEqual(a));
+	       printd(5, "AbstractQoreFunction::parseFindVariant() %s(%s) pi=%d t=%s (has type: %d) a=%s (%p) t->parseAccepts(a)=%d\n", getName(), sig->getSignatureText(), pi, t->getName(), t->hasType(), a->getName(), a, t->parseAccepts(a));
 	       
 	       int rc = QTI_UNASSIGNED;
 	       if (t->hasType()) {
@@ -740,12 +740,12 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
 		     else
 			a = nothingTypeInfo;
 		  }
-		  else if (nothingTypeInfo->parseEqual(a) && sig->hasDefaultArg(pi))
+		  else if (a->isType(NT_NOTHING) && sig->hasDefaultArg(pi))
 		     rc = QTI_IDENT;
 	       }
 
 	       if (rc == QTI_UNASSIGNED) {
-		  rc = t->parseEqual(a);
+		  rc = t->parseAccepts(a);
 		  if (rc == QTI_IDENT)
 		     ++variant_nperfect;
 	       }
@@ -764,7 +764,7 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
 		     count += rc;
 	       }
 	    }
-	    //printd(0, "AbstractQoreFunction::parseFindVariant() this=%p tested %s(%s) ok=%d count=%d match=%d variant_missing_types=%d variant_pmatch=%d\n", this, getName(), sig->getSignatureText(), ok, count, match, variant_missing_types, variant_pmatch);
+	    printd(5, "AbstractQoreFunction::parseFindVariant() this=%p tested %s(%s) ok=%d count=%d match=%d variant_missing_types=%d variant_pmatch=%d\n", this, getName(), sig->getSignatureText(), ok, count, match, variant_missing_types, variant_pmatch);
 	    if (!ok)
 	       continue;
 
@@ -780,7 +780,7 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
 		  match = count;
 		  nperfect = variant_nperfect;
 		  if (!variant_missing_types) {
-		     //printd(0, "AbstractQoreFunction::parseFindVariant() assigning variant %p %s(%s)\n", *i, getName(), sig->getSignatureText());
+		     printd(5, "AbstractQoreFunction::parseFindVariant() assigning variant %p %s(%s)\n", *i, getName(), sig->getSignatureText());
 		     variant = *i;
 		  }
 		  else
@@ -834,12 +834,12 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
 		     else
 			a = nothingTypeInfo;
 		  }
-		  else if (nothingTypeInfo->parseEqual(a) && sig->hasDefaultArg(pi))
+		  else if (a->isType(NT_NOTHING) && sig->hasDefaultArg(pi))
 		     rc = QTI_IDENT;
 	       }
 
 	       if (rc == QTI_UNASSIGNED) {
-		  rc = t->parseEqual(a);
+		  rc = t->parseAccepts(a);
 		  if (rc == QTI_IDENT)
 		     ++variant_nperfect;
 	       }
@@ -933,7 +933,7 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
       if (!(flags & QC_USES_EXTRA_ARGS) && num_args > sig->numParams())
 	 warn_excess_args(this, argTypeInfo, sig);
    }
-   //printd(0, "AbstractQoreFunction::parseFindVariant() this=%p %s%s%s() returning %p %s(%s) flags=%lld\n", this, className() ? className() : "", className() ? "::" : "", getName(), variant, getName(), variant ? variant->getSignature()->getSignatureText() : "n/a", variant ? variant->getFlags() : 0ll);
+   printd(5, "AbstractQoreFunction::parseFindVariant() this=%p %s%s%s() returning %p %s(%s) flags=%lld\n", this, className() ? className() : "", className() ? "::" : "", getName(), variant, getName(), variant ? variant->getSignature()->getSignatureText() : "n/a", variant ? variant->getFlags() : 0ll);
    return variant;
 }
 
@@ -1183,7 +1183,7 @@ int AbstractQoreFunction::parseCheckDuplicateSignatureCommitted(UserVariantBase 
 	 if (typeInfo) {
 	    if (!variantTypeInfo->hasType() && thisHasDefaultArg)
 	       ambiguous = true;
-	    else if (!typeInfo->checkIdentical(variantTypeInfo)) {
+	    else if (!typeInfo->isInputIdentical(variantTypeInfo)) {
 	       dup = false;
 	       break;
 	    }
@@ -1191,7 +1191,7 @@ int AbstractQoreFunction::parseCheckDuplicateSignatureCommitted(UserVariantBase 
 	 else {
 	    if (variantTypeInfo->hasType() && variantHasDefaultArg)
 	       ambiguous = true;
-	    else if (!typeInfo->checkIdentical(variantTypeInfo)) {
+	    else if (!typeInfo->isInputIdentical(variantTypeInfo)) {
 	       dup = false;
 	       break;
 	    }
@@ -1263,7 +1263,7 @@ int AbstractQoreFunction::parseCheckDuplicateSignature(UserVariantBase *variant)
 	       // check for real matches
 	       if (typeInfo) {
 		  if (variantTypeInfo) {
-		     if (!typeInfo->checkIdentical(variantTypeInfo)) {
+		     if (!typeInfo->isInputIdentical(variantTypeInfo)) {
 			dup = false;
 			break;
 		     }
@@ -1291,7 +1291,7 @@ int AbstractQoreFunction::parseCheckDuplicateSignature(UserVariantBase *variant)
 	    if ((variantTypeInfo->hasType() || variantParseTypeInfo) && variantHasDefaultArg)
 	       ambiguous = true;
 	    else if (variantTypeInfo) {
-	       if (!typeInfo->checkIdentical(variantTypeInfo)) {
+	       if (!typeInfo->isInputIdentical(variantTypeInfo)) {
 		  dup = false;
 		  break;
 	       }
@@ -1364,7 +1364,7 @@ int AbstractQoreFunction::parseCheckDuplicateSignature(UserVariantBase *variant)
 	    else if (typeInfo && !variantTypeInfo && thisHasDefaultArg) {
 	       ambiguous = true;
 	    }
-	    else if (!typeInfo->checkIdentical(variantTypeInfo)) {
+	    else if (!typeInfo->isInputIdentical(variantTypeInfo)) {
 	       dup = false;
 	       break;
 	    }	       
@@ -1408,7 +1408,7 @@ void AbstractQoreFunction::resolvePendingSignatures() {
       
       if (same_return_type && parse_same_return_type) {
 	 const QoreTypeInfo *st = sig->getReturnTypeInfo();
-	 if (i != pending_vlist.begin() && !st->checkIdentical(ti))
+	 if (i != pending_vlist.begin() && !st->isInputIdentical(ti))
 	    parse_same_return_type = false;
 	 ti = st;
       }

@@ -660,7 +660,7 @@ struct qore_class_private {
 	       if (*xsink)
 		  return -1;
 	       // check types
-	       AbstractQoreNode *nv = i->second->getTypeInfo()->checkMemberTypeInstantiation(i->first, *val, xsink);
+	       AbstractQoreNode *nv = i->second->getTypeInfo()->acceptInputMember(i->first, *val, xsink);
 	       if (*xsink)
 		  return -1;
 	       *v = nv;
@@ -879,7 +879,7 @@ struct qore_method_private {
 	    // has a type, it must be a string
 	    UserSignature *sig = UMV(func->pending_first())->getUserSignature();
 	    const QoreTypeInfo *t = sig->getParamTypeInfo(0);
-	    if (stringTypeInfo->parseEqual(t) == QTI_NOT_EQUAL) {
+	    if (!stringTypeInfo->parseAccepts(t)) {
 	       QoreStringNode *desc = new QoreStringNode;
 	       desc->sprintf("%s::%s(%s) has an invalid signature; the first argument declared as ", parent_class->getName(), func->getName(), sig->getSignatureText());
 	       t->getThisType(*desc);
@@ -3121,7 +3121,7 @@ void UserCopyVariant::parseInitCopy(const QoreClass &parent_class) {
    if (signature.numParams()) {
       const QoreTypeInfo *typeInfo = signature.getParamTypeInfo(0);
       if (typeInfo) {
-	 if (!parent_class.getTypeInfo()->parseEqual(typeInfo)) {
+	 if (!typeInfo->isClass(&parent_class)) {
 	    // raise parse exception if parse exceptions have not been suppressed
 	    if (getProgram()->getParseExceptionSink()) {
 	       QoreStringNode *desc = new QoreStringNode("copy constructor will be passed ");

@@ -38,7 +38,7 @@ int ReturnStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xs
       (*return_value) = exp->eval(xsink);
 
    const QoreTypeInfo *returnTypeInfo = getReturnTypeInfo();
-   *return_value = returnTypeInfo->checkType("<return statement>", *return_value, xsink);
+   *return_value = returnTypeInfo->acceptAssignment("<return statement>", *return_value, xsink);
    if (*xsink) {
       discard(*return_value, xsink);
       (*return_value) = 0;
@@ -61,7 +61,7 @@ int ReturnStatement::parseInitImpl(LocalVar *oflag, int pflag) {
    //printd(5, "ReturnStatement::parseInitImpl() arg=%s rt=%s\n", argTypeInfo->getTypeName(), returnTypeInfo->getTypeName());
 
    // check return type and throw a parse exception or warning
-   if (!returnTypeInfo->parseEqual(argTypeInfo)) {
+   if (!returnTypeInfo->parseAccepts(argTypeInfo)) {
       // check if a warning should be generated, if require-types is not set and it is a class-special method
       const QoreClass *qc = getParseClass();
       const char *fname = get_parse_code();
@@ -81,7 +81,7 @@ int ReturnStatement::parseInitImpl(LocalVar *oflag, int pflag) {
 	 getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
       }
    }
-   else if (nothingTypeInfo->checkIdentical(returnTypeInfo) && exp && (!argTypeInfo->hasType() || !argTypeInfo->parseEqual(nothingTypeInfo))) {
+   else if (returnTypeInfo->isType(NT_NOTHING) && exp && (!argTypeInfo->hasType() || !argTypeInfo->isType(NT_NOTHING))) {
       const QoreClass *qc = getParseClass();
       const char *fname = get_parse_code();
       QoreStringNode *desc = new QoreStringNode;

@@ -57,8 +57,9 @@ VarValue::VarValue(Var *n_refptr, bool n_readonly) {
 }
 
 ScopedObjectCallNode *Var::makeNewCall(AbstractQoreNode *args) const {
-   if (typeInfo && typeInfo->qc)
-      return new ScopedObjectCallNode(typeInfo->qc, makeArgs(args));
+   const QoreClass *qc = typeInfo->getUniqueReturnClass();
+   if (qc)
+      return new ScopedObjectCallNode(qc, makeArgs(args));
    if (parseTypeInfo && parseTypeInfo->cscope)
       return new ScopedObjectCallNode(parseTypeInfo->cscope->copy(), makeArgs(args));
    return 0;
@@ -325,7 +326,7 @@ static AbstractQoreNode **do_object_val_ptr(const QoreTreeNode *tree, AutoVLock 
 	 if (*val)
 	    (*val)->deref(xsink);
 	 // check assignment here against leftTypeInfo
-	 if (leftTypeInfo->parseEqual(hashTypeInfo) == QTI_NOT_EQUAL) {
+	 if (!leftTypeInfo->parseAcceptsReturns(NT_HASH)) {
 	    (*val) = 0;
 	    xsink->raiseException("RUNTIME-TYPE-ERROR", "cannot convert lvalue declared as %s to a hash", leftTypeInfo->getName());
 	    return 0;
@@ -355,7 +356,7 @@ static AbstractQoreNode **do_object_val_ptr(const QoreTreeNode *tree, AutoVLock 
 
    (*val)->deref(xsink);
    // check assignment here against leftTypeInfo
-   if (leftTypeInfo->parseEqual(hashTypeInfo) == QTI_NOT_EQUAL) {
+   if (!leftTypeInfo->parseAcceptsReturns(NT_HASH)) {
       (*val) = 0;
       xsink->raiseException("RUNTIME-TYPE-ERROR", "cannot convert lvalue declared as %s to a hash", leftTypeInfo->getName());
       return 0;

@@ -77,6 +77,7 @@ bool compareSoft(const AbstractQoreNode *l, const AbstractQoreNode *r, Exception
    return !OP_LOG_EQ->bool_eval(l, r, xsink);
 }
 
+/*
 QoreTypeInfoHelper::QoreTypeInfoHelper(const char *n_tname) : typeInfo(new ExternalTypeInfo(n_tname, *this)) {
 }
 
@@ -135,6 +136,7 @@ QoreClass *AbstractQoreClassTypeInfoHelper::getClass() {
 bool AbstractQoreClassTypeInfoHelper::hasClass() const {
    return qc;
 }
+*/
 
 int testObjectClassAccess(const QoreObject *obj, const QoreClass *shouldbeclass) {
    const QoreClass *objectclass = obj->getClass();
@@ -152,11 +154,15 @@ int testObjectClassAccess(const QoreObject *obj, const QoreClass *shouldbeclass)
 }
 
 const QoreClass *typeInfoGetClass(const QoreTypeInfo *typeInfo) {
-   return typeInfo->qc;
+   return typeInfo->getUniqueReturnClass();
 }
 
-qore_type_t typeInfoGetType(const QoreTypeInfo *typeInfo) {
-   return typeInfo->getType();
+qore_type_t typeInfoAcceptsType(const QoreTypeInfo *typeInfo, const QoreTypeInfo *otherTypeInfo) {
+   return typeInfo->parseAccepts(otherTypeInfo);
+}
+
+qore_type_t typeInfoReturnsType(const QoreTypeInfo *typeInfo, const QoreTypeInfo *otherTypeInfo) {
+   return otherTypeInfo->parseAccepts(typeInfo);
 }
 
 bool typeInfoHasType(const QoreTypeInfo *typeInfo) {
@@ -167,6 +173,3 @@ const char *typeInfoGetName(const QoreTypeInfo *typeInfo) {
    return typeInfo->getName();
 }
 
-bool typeInfoParseTestCompatibleClass(const QoreTypeInfo *typeInfo, const QoreClass *otherclass) {
-   return typeInfo->parseTestCompatibleClass(otherclass);
-}

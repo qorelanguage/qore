@@ -473,7 +473,7 @@ protected:
 
          if (i == pending_vlist.begin()) {
             if (!vlist.empty()) {
-               if (!rti->checkIdentical(first()->getReturnTypeInfo())) {
+               if (!rti->isOutputIdentical(first()->getReturnTypeInfo())) {
                   parse_same_return_type = false;
                   break;
                }
@@ -481,7 +481,7 @@ protected:
             continue;
          }
          else {
-            if (!rti->checkIdentical(pending_first()->getReturnTypeInfo())) {
+            if (!rti->isOutputIdentical(pending_first()->getReturnTypeInfo())) {
                parse_same_return_type = false;
                break;
             }
@@ -516,7 +516,7 @@ protected:
    // FIXME: does not check unparsed types properly
    DLLLOCAL void addVariant(AbstractQoreFunctionVariant *variant) {
       const QoreTypeInfo *rti = variant->getReturnTypeInfo();
-      if (same_return_type && !vlist.empty() && !rti->checkIdentical(first()->getReturnTypeInfo()))
+      if (same_return_type && !vlist.empty() && !rti->isOutputIdentical(first()->getReturnTypeInfo()))
 	 same_return_type = false;
 
       int64 vf = variant->getFunctionality();
@@ -543,7 +543,7 @@ protected:
          else {
             nn_unique_functionality &= vf;
             nn_unique_flags &= vflags;
-            if (nn_uniqueReturnType && !rti->checkIdentical(nn_uniqueReturnType))
+            if (nn_uniqueReturnType && !rti->isOutputIdentical(nn_uniqueReturnType))
                nn_uniqueReturnType = 0;
             ++nn_count;
          }

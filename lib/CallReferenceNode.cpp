@@ -107,7 +107,7 @@ AbstractQoreNode *CallReferenceCallNode::parseInit(LocalVar *oflag, int pflag, i
    if (exp) {
       exp = exp->parseInit(oflag, pflag, lvids, expTypeInfo);
 
-      if (expTypeInfo->hasType() && !codeTypeInfo->parseEqual(expTypeInfo)) {
+      if (expTypeInfo->hasType() && !codeTypeInfo->parseAccepts(expTypeInfo)) {
 	 // raise parse exception
 	 QoreStringNode *desc = new QoreStringNode("invalid call; expression gives ");
 	 expTypeInfo->getThisType(*desc);
@@ -281,19 +281,22 @@ AbstractQoreNode *ParseObjectMethodReferenceNode::parseInit(LocalVar *oflag, int
       exp = exp->parseInit(oflag, pflag & ~PF_REFERENCE_OK, lvids, argTypeInfo);
 
       if (argTypeInfo->hasType()) {
-	 if (!objectTypeInfo->parseEqual(argTypeInfo)) {
+	 if (!objectTypeInfo->parseAccepts(argTypeInfo)) {
 	    // raise parse exception
 	    QoreStringNode *desc = new QoreStringNode("invalid call; object expression gives ");
 	    argTypeInfo->getThisType(*desc);
 	    desc->concat(", but should resolve to an object to make a call with this syntax");
 	    getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
 	 }
-	 else if (argTypeInfo->qc) {
-	    m = const_cast<QoreClass *>(argTypeInfo->qc)->parseFindMethodTree(method);
-	    if (!m)
-	       parseException("PARSE-ERROR", "method %s::%s() cannot be found", argTypeInfo->qc->getName(), method);
-	    else
-	       qc = argTypeInfo->qc;
+	 else {
+	    const QoreClass *n_qc = argTypeInfo->getUniqueReturnClass();
+	    if (n_qc) {
+	       m = const_cast<QoreClass *>(n_qc)->parseFindMethodTree(method);
+	       if (!m)
+		  parseException("PARSE-ERROR", "method %s::%s() cannot be found", n_qc->getName(), method);
+	       else
+		  qc = n_qc;
+	    }
 	 }
       }
    }

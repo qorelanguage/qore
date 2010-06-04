@@ -3463,7 +3463,7 @@ static AbstractQoreNode *check_op_list_assignment(QoreTreeNode *tree, LocalVar *
       ri.parseInit(argInfo);
 
       if (prototypeInfo->hasType()) {
-	 if (!prototypeInfo->parseEqual(argInfo)) {
+	 if (!prototypeInfo->parseAccepts(argInfo)) {
 	    // raise an exception only if parse exceptions are not disabled
 	    if (getProgram()->getParseExceptionSink()) {
 	       QoreStringNode *desc = new QoreStringNode("lvalue for assignment operator in position ");
@@ -3473,14 +3473,6 @@ static AbstractQoreNode *check_op_list_assignment(QoreTreeNode *tree, LocalVar *
 	       argInfo->getThisType(*desc);
 	       getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
 	    }
-	 }
-	 /// xxx has default value instead
-	 else if (prototypeInfo->getType() == NT_OBJECT && ri.noArgument() && getProgram()->getParseExceptionSink()) {
-	    QoreStringNode *desc = new QoreStringNode("lvalue for assignment operator in position ");
-	    desc->sprintf("%d of list assignment expects ", li.index() + 1);
-	    prototypeInfo->getThisType(*desc);
-	    desc->concat(", but no value is given on the right-hand side");
-	    getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
 	 }
       }
    }
@@ -3508,7 +3500,7 @@ static AbstractQoreNode *check_op_assignment(QoreTreeNode *tree, LocalVar *oflag
    if (!l->hasType() || !r->hasType())
       return tree;
 
-   if (l->parseEqual(r))
+   if (l->parseAccepts(r))
       return tree;
 
    if (getProgram()->getParseExceptionSink()) {
@@ -3525,12 +3517,14 @@ static AbstractQoreNode *check_op_object_func_ref(QoreTreeNode *tree, LocalVar *
    const QoreTypeInfo *typeInfo = 0;
    tree->leftParseInit(oflag, pflag, lvids, typeInfo);
 
-   if (!typeInfo || !typeInfo->qc) {
+   QoreClass *qc = const_cast<QoreClass *>(typeInfo->getUniqueReturnClass());
+
+   if (!qc) {
       // if the left side has a type and it's not hash or object, then
       // no call can be made
-      if (typeInfo
-	  && !objectTypeInfo->parseEqual(typeInfo)
-	  && !hashTypeInfo->parseEqual(typeInfo)
+      if (typeInfo->hasType()
+	  && !objectTypeInfo->parseAccepts(typeInfo)
+	  && !hashTypeInfo->parseAccepts(typeInfo)
 	  && getProgram()->getParseExceptionSink()) {
 	 QoreStringNode *desc = new QoreStringNode("the object method or hash call reference call operator expects an object or a hash on the left side of the '.', but ");
 	 typeInfo->getThisType(*desc);
@@ -3543,53 +3537,53 @@ static AbstractQoreNode *check_op_object_func_ref(QoreTreeNode *tree, LocalVar *
    }
 
    // make sure method arguments and return types are resolved
-   const_cast<QoreClass *>(typeInfo->qc)->parseInitPartial();
+   qc->parseInitPartial();
 
    assert(tree->right && tree->right->getType() == NT_METHOD_CALL);
    MethodCallNode *mc = reinterpret_cast<MethodCallNode *>(tree->right);
 
    const char *meth = mc->getName();
 
-   const QoreMethod *m = const_cast<QoreClass *>(typeInfo->qc)->parseFindMethodTree(meth);
+   const QoreMethod *m = qc->parseFindMethodTree(meth);
 
-   //printd(5, "check_op_object_func_ref() %s::%s() method=%p (%s) (private=%s)\n", typeInfo->qc->getName(), meth, m, m ? m->getClassName() : "n/a", m && m->parseIsPrivate() ? "true" : "false" );
+   //printd(5, "check_op_object_func_ref() %s::%s() method=%p (%s) (private=%s)\n", qc->getName(), meth, m, m ? m->getClassName() : "n/a", m && m->parseIsPrivate() ? "true" : "false" );
 
    const QoreListNode *args = mc->getArgs();
    if (!strcmp(meth, "copy")) {
       if (args && args->size())
-	 parse_error("no arguments may be passed to copy methods (%d argument%s given in call to %s::copy())", args->size(), args->size() == 1 ? "" : "s", typeInfo->qc->getName());
+	 parse_error("no arguments may be passed to copy methods (%d argument%s given in call to %s::copy())", args->size(), args->size() == 1 ? "" : "s", qc->getName());
 
-      if (m && m->parseIsPrivate() && (!oflag || !parseCheckCompatibleClass(typeInfo->qc, getParseClass())))
-	 parse_error("illegal call to private %s::copy() method", typeInfo->qc->getName());
+      if (m && m->parseIsPrivate() && (!oflag || !parseCheckCompatibleClass(qc, getParseClass())))
+	 parse_error("illegal call to private %s::copy() method", qc->getName());
 
       // do not save method pointer for copy methods
-      returnTypeInfo = typeInfo->qc->getTypeInfo();
+      returnTypeInfo = qc->getTypeInfo();
       tree->rightParseInit(oflag, pflag, lvids, typeInfo);
       return tree;
    }
 
    // if a normal method is not found, then look for a static method
    if (!m)
-      m = const_cast<QoreClass *>(typeInfo->qc)->parseFindStaticMethodTree(meth);
+      m = qc->parseFindStaticMethodTree(meth);
 
    if (!m) {
-      if (!typeInfo->qc->parseHasMethodGate())
-	 getProgram()->makeParseWarning(QP_WARN_NONEXISTENT_METHOD_CALL, "NON-EXISTENT-METHOD-CALL", "call to non-existant method '%s::%s()'; this call will be evaluated at run-time, so if the method is called on an object of a subclass that implements this method, then it could be a valid call, however in any other case it will result in a run-time exception.  To avoid seeing this warning, use the cast<> operator (note that if the cast is invalid at run-time, a run-time exception will be raised) or turn off the warning by using '%%disable-warning non-existent-method-call' in your code", typeInfo->qc->getName(), meth);
+      if (!qc->parseHasMethodGate())
+	 getProgram()->makeParseWarning(QP_WARN_NONEXISTENT_METHOD_CALL, "NON-EXISTENT-METHOD-CALL", "call to non-existant method '%s::%s()'; this call will be evaluated at run-time, so if the method is called on an object of a subclass that implements this method, then it could be a valid call, however in any other case it will result in a run-time exception.  To avoid seeing this warning, use the cast<> operator (note that if the cast is invalid at run-time, a run-time exception will be raised) or turn off the warning by using '%%disable-warning non-existent-method-call' in your code", qc->getName(), meth);
 
       tree->rightParseInit(oflag, pflag, lvids, typeInfo);
       return tree;
    }
 
-   if (m->parseIsPrivate() && !parseCheckCompatibleClass(typeInfo->qc, getParseClass()))
-      parse_error("illegal call to private method %s::%s()", typeInfo->qc->getName(), meth);
+   if (m->parseIsPrivate() && !parseCheckCompatibleClass(qc, getParseClass()))
+      parse_error("illegal call to private method %s::%s()", qc->getName(), meth);
 
    // save method for optimizing calls later
-   mc->parseSetClassAndMethod(typeInfo->qc, m);
+   mc->parseSetClassAndMethod(qc, m);
 
    // check parameters, if any
    lvids += mc->parseArgs(oflag, pflag, m->getFunction(), returnTypeInfo);
 
-   printd(5, "check_op_object_func_ref() %s::%s() method=%p (%s::%s()) (private=%s, static=%s) rv=%s\n", typeInfo->qc->getName(), meth, m, m ? m->getClassName() : "n/a", meth, m && m->parseIsPrivate() ? "true" : "false", m->isStatic() ? "true" : "false", returnTypeInfo->getName());
+   printd(5, "check_op_object_func_ref() %s::%s() method=%p (%s::%s()) (private=%s, static=%s) rv=%s\n", qc->getName(), meth, m, m ? m->getClassName() : "n/a", meth, m && m->parseIsPrivate() ? "true" : "false", m->isStatic() ? "true" : "false", returnTypeInfo->getName());
 
    return tree;
 }
@@ -3607,10 +3601,9 @@ static AbstractQoreNode *check_op_returns_integer(QoreTreeNode *tree, LocalVar *
 }
 
 static void check_lvalue_int(const QoreTypeInfo *&typeInfo, const char *name) {
-   // make sure the lvalue can take an integer value
-   // note that QoreTypeInfo::parseEqual() can be called with this=0
+   // make sure the lvalue can be assigned an integer value
    // raise a parse exception only if parse exceptions are not suppressed
-   if (!bigIntTypeInfo->parseEqual(typeInfo) && getProgram()->getParseExceptionSink()) {
+   if (!typeInfo->parseAcceptsReturns(NT_INT) && getProgram()->getParseExceptionSink()) {
       QoreStringNode *desc = new QoreStringNode("lvalue has type ");
       typeInfo->getThisType(*desc);
       desc->sprintf(", but the %s operator will assign it an integer value", name);
@@ -3619,10 +3612,9 @@ static void check_lvalue_int(const QoreTypeInfo *&typeInfo, const char *name) {
 }
 
 static void check_lvalue_float(const QoreTypeInfo *&typeInfo, const char *name) {
-   // make sure the lvalue can take a floating-point value
-   // note that QoreTypeInfo::parseEqual() can be called with this=0
+   // make sure the lvalue can be assigned a floating-point value
    // raise a parse exception only if parse exceptions are not suppressed
-   if (!floatTypeInfo->parseEqual(typeInfo) && getProgram()->getParseExceptionSink()) {
+   if (!typeInfo->parseAcceptsReturns(NT_FLOAT) && getProgram()->getParseExceptionSink()) {
       QoreStringNode *desc = new QoreStringNode("lvalue has type ");
       typeInfo->getThisType(*desc);
       desc->sprintf(", but the %s operator will assign it a float value", name);
@@ -3640,6 +3632,7 @@ static AbstractQoreNode *check_op_post_incdec(QoreTreeNode *tree, LocalVar *ofla
    // make sure left side can take an integer value
    check_lvalue_int(typeInfo, name);
 
+   // FIXME: check for invalid operation - type cannot be converted to integer
    tree->rightParseInit(oflag, pflag, lvids, typeInfo);
    return tree;
 }
@@ -3654,6 +3647,7 @@ static AbstractQoreNode *check_op_lvalue_int(QoreTreeNode *tree, LocalVar *oflag
    // make sure left side can take an integer value
    check_lvalue_int(typeInfo, name);
 
+   // FIXME: check for invalid operation - type cannot be converted to integer
    tree->rightParseInit(oflag, pflag, lvids, typeInfo);
 
    return tree;
@@ -3671,21 +3665,21 @@ static AbstractQoreNode *check_op_minus(QoreTreeNode *tree, LocalVar *oflag, int
       return tree->evalSubst(returnTypeInfo);
 
    if (leftTypeInfo->hasType() || rightTypeInfo->hasType()) {
-      if (leftTypeInfo->parseExactMatch(NT_DATE) 
-	  || rightTypeInfo->parseExactMatch(NT_DATE))
+      if (leftTypeInfo->isType(NT_DATE) 
+	  || rightTypeInfo->isType(NT_DATE))
 	 returnTypeInfo = dateTypeInfo;
-      else if (leftTypeInfo->parseExactMatch(NT_FLOAT) 
-	       || rightTypeInfo->parseExactMatch(NT_FLOAT))
+      else if (leftTypeInfo->isType(NT_FLOAT) 
+	       || rightTypeInfo->isType(NT_FLOAT))
 	 returnTypeInfo = floatTypeInfo;
-      else if (leftTypeInfo->parseExactMatch(NT_INT) 
-	       || rightTypeInfo->parseExactMatch(NT_INT))
+      else if (leftTypeInfo->isType(NT_INT) 
+	       || rightTypeInfo->isType(NT_INT))
 	 returnTypeInfo = bigIntTypeInfo;
-      else if ((leftTypeInfo->parseExactMatch(NT_HASH) 
-		|| leftTypeInfo->parseExactMatch(NT_OBJECT))
-	       && (rightTypeInfo->parseExactMatch(NT_STRING)
-		   || rightTypeInfo->parseExactMatch(NT_LIST)))
+      else if ((leftTypeInfo->isType(NT_HASH) 
+		|| leftTypeInfo->isType(NT_OBJECT))
+	       && (rightTypeInfo->isType(NT_STRING)
+		   || rightTypeInfo->isType(NT_LIST)))
 	 returnTypeInfo = hashTypeInfo;
-      else if (leftTypeInfo->hasType() && rightTypeInfo->hasType()) 
+      else if (leftTypeInfo->hasType() && rightTypeInfo->hasType())
 	 // only return type nothing if both types are available
 	 returnTypeInfo = nothingTypeInfo;
    }
@@ -3705,35 +3699,35 @@ static AbstractQoreNode *check_op_plus(QoreTreeNode *tree, LocalVar *oflag, int 
       return tree->evalSubst(returnTypeInfo);
 
    if (leftTypeInfo->hasType() || rightTypeInfo->hasType()) {
-      if (leftTypeInfo->parseExactMatch(NT_LIST) 
-	  || rightTypeInfo->parseExactMatch(NT_LIST))
+      if (leftTypeInfo->isType(NT_LIST) 
+	  || rightTypeInfo->isType(NT_LIST))
 	 returnTypeInfo = listTypeInfo;
 
-      else if (leftTypeInfo->parseExactMatch(NT_STRING) 
-	       || rightTypeInfo->parseExactMatch(NT_STRING))
+      else if (leftTypeInfo->isType(NT_STRING) 
+	       || rightTypeInfo->isType(NT_STRING))
 	 returnTypeInfo = stringTypeInfo;
 
-      else if (leftTypeInfo->parseExactMatch(NT_DATE) 
-	       || rightTypeInfo->parseExactMatch(NT_DATE))
+      else if (leftTypeInfo->isType(NT_DATE) 
+	       || rightTypeInfo->isType(NT_DATE))
 	 returnTypeInfo = dateTypeInfo;
 
-      else if (leftTypeInfo->parseExactMatch(NT_FLOAT) 
-	       || rightTypeInfo->parseExactMatch(NT_FLOAT))
+      else if (leftTypeInfo->isType(NT_FLOAT) 
+	       || rightTypeInfo->isType(NT_FLOAT))
 	 returnTypeInfo = floatTypeInfo;
 
-      else if (leftTypeInfo->parseExactMatch(NT_INT) 
-	       || rightTypeInfo->parseExactMatch(NT_INT))
+      else if (leftTypeInfo->isType(NT_INT) 
+	       || rightTypeInfo->isType(NT_INT))
 	 returnTypeInfo = bigIntTypeInfo;
 
-      else if (leftTypeInfo->parseExactMatch(NT_HASH)
-	       || leftTypeInfo->parseExactMatch(NT_OBJECT))
+      else if (leftTypeInfo->isType(NT_HASH)
+	       || leftTypeInfo->isType(NT_OBJECT))
 	 returnTypeInfo = hashTypeInfo;
       
-      else if (rightTypeInfo->parseExactMatch(NT_OBJECT))
+      else if (rightTypeInfo->isType(NT_OBJECT))
 	 returnTypeInfo = objectTypeInfo;
 
-      else if (leftTypeInfo->parseExactMatch(NT_BINARY) 
-	       || rightTypeInfo->parseExactMatch(NT_BINARY))
+      else if (leftTypeInfo->isType(NT_BINARY) 
+	       || rightTypeInfo->isType(NT_BINARY))
 	 returnTypeInfo = binaryTypeInfo;
 
       else if (leftTypeInfo->hasType() && rightTypeInfo->hasType()) 
@@ -3755,9 +3749,9 @@ static AbstractQoreNode *check_op_multiply(QoreTreeNode *tree, LocalVar *oflag, 
    if (tree->constArgs())
       return tree->evalSubst(returnTypeInfo);
 
-   if (leftTypeInfo->parseExactMatch(NT_FLOAT) || rightTypeInfo->parseExactMatch(NT_FLOAT))
+   if (leftTypeInfo->isType(NT_FLOAT) || rightTypeInfo->isType(NT_FLOAT))
       returnTypeInfo = floatTypeInfo;
-   else if (leftTypeInfo->parseExactMatch(NT_INT) && rightTypeInfo->parseExactMatch(NT_INT))
+   else if (leftTypeInfo->isType(NT_INT) && rightTypeInfo->isType(NT_INT))
       returnTypeInfo = bigIntTypeInfo;
    else
       returnTypeInfo = 0;
@@ -3775,13 +3769,13 @@ static AbstractQoreNode *check_op_plus_equals(QoreTreeNode *tree, LocalVar *ofla
    const QoreTypeInfo *rightTypeInfo = 0;
    tree->rightParseInit(oflag, pflag, lvids, rightTypeInfo);
 
-   if (leftTypeInfo->parseExactMatch(NT_LIST)
-       || leftTypeInfo->parseExactMatch(NT_HASH)
-       || leftTypeInfo->parseExactMatch(NT_OBJECT)
-       || leftTypeInfo->parseExactMatch(NT_STRING)
-       || leftTypeInfo->parseExactMatch(NT_FLOAT)
-       || leftTypeInfo->parseExactMatch(NT_DATE)
-       || leftTypeInfo->parseExactMatch(NT_BINARY))
+   if (leftTypeInfo->isType(NT_LIST)
+       || leftTypeInfo->isType(NT_HASH)
+       || leftTypeInfo->isType(NT_OBJECT)
+       || leftTypeInfo->isType(NT_STRING)
+       || leftTypeInfo->isType(NT_FLOAT)
+       || leftTypeInfo->isType(NT_DATE)
+       || leftTypeInfo->isType(NT_BINARY))
       returnTypeInfo = leftTypeInfo;
    // otherwise there are 2 possibilities: the lvalue has no value, in which
    // case it takes the value of the right side, or if it's anything else it's
@@ -3803,10 +3797,10 @@ static AbstractQoreNode *check_op_minus_equals(QoreTreeNode *tree, LocalVar *ofl
    const QoreTypeInfo *rightTypeInfo = 0;
    tree->rightParseInit(oflag, pflag, lvids, rightTypeInfo);
 
-   if (leftTypeInfo->parseExactMatch(NT_FLOAT)
-       || leftTypeInfo->parseExactMatch(NT_DATE)
-       || leftTypeInfo->parseExactMatch(NT_HASH)
-       || leftTypeInfo->parseExactMatch(NT_OBJECT))
+   if (leftTypeInfo->isType(NT_FLOAT)
+       || leftTypeInfo->isType(NT_DATE)
+       || leftTypeInfo->isType(NT_HASH)
+       || leftTypeInfo->isType(NT_OBJECT))
       returnTypeInfo = leftTypeInfo;
    // otherwise there are 2 possibilities: the lvalue has no value, in which
    // case it takes the negative value of the right side if the right side
@@ -3829,9 +3823,9 @@ static AbstractQoreNode *check_op_multdiv_equals(QoreTreeNode *tree, LocalVar *o
    const QoreTypeInfo *rightTypeInfo = 0;
    tree->rightParseInit(oflag, pflag, lvids, rightTypeInfo);
 
-   if (leftTypeInfo->parseExactMatch(NT_FLOAT))      
+   if (leftTypeInfo->isType(NT_FLOAT))      
       returnTypeInfo = floatTypeInfo;
-   else if (rightTypeInfo->parseExactMatch(NT_FLOAT)) {
+   else if (rightTypeInfo->isType(NT_FLOAT)) {
       returnTypeInfo = floatTypeInfo;
       check_lvalue_float(leftTypeInfo, name);
    }
@@ -3857,16 +3851,16 @@ static AbstractQoreNode *check_op_list_ref(QoreTreeNode *tree, LocalVar *oflag, 
       // if we are trying to convert to a list
       if (pflag & PF_FOR_ASSIGNMENT) {
 	 // only throw a parse exception if parse exceptions are enabled
-	 if (!listTypeInfo->parseEqual(leftTypeInfo) && getProgram()->getParseExceptionSink()) {
+	 if (!leftTypeInfo->parseAcceptsReturns(NT_LIST) && getProgram()->getParseExceptionSink()) {
 	    QoreStringNode *desc = new QoreStringNode("cannot convert lvalue defined as ");
 	    leftTypeInfo->getThisType(*desc);
 	    desc->sprintf(" to a list using the '[]' operator in an assignment expression");
 	    getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
 	 }
       }
-      else if (!listTypeInfo->parseEqual(leftTypeInfo)
-	  && !stringTypeInfo->parseEqual(leftTypeInfo)
-	  && !binaryTypeInfo->parseEqual(leftTypeInfo)) {
+      else if (!listTypeInfo->parseAccepts(leftTypeInfo)
+	  && !stringTypeInfo->parseAccepts(leftTypeInfo)
+	  && !binaryTypeInfo->parseAccepts(leftTypeInfo)) {
 	 QoreStringNode *desc = new QoreStringNode("left-hand side of the expression with the '[]' operator is ");
 	 leftTypeInfo->getThisType(*desc);
 	 desc->concat(" and so this expression will always return NOTHING; the '[]' operator only returns a value within the legal bounds of lists, strings, and binary objects");
@@ -3885,40 +3879,43 @@ static AbstractQoreNode *check_op_object_ref(QoreTreeNode *tree, LocalVar *oflag
    const QoreTypeInfo *rightTypeInfo = 0;
    tree->rightParseInit(oflag, pflag, lvids, rightTypeInfo);
 
-   printd(5, "check_op_object_object_ref() l=%p %s (%s) r=%p %s\n", leftTypeInfo, leftTypeInfo->getTypeName(), leftTypeInfo && leftTypeInfo->qc ? leftTypeInfo->qc->getName() : "n/a", rightTypeInfo, rightTypeInfo->getTypeName());
+   printd(5, "check_op_object_object_ref() l=%p %s (%s) r=%p %s\n", leftTypeInfo, leftTypeInfo->getName(), leftTypeInfo->getUniqueReturnClass() ? leftTypeInfo->getUniqueReturnClass()->getName() : "n/a", rightTypeInfo, rightTypeInfo->getName());
 
    if (leftTypeInfo->hasType()) {
-      bool is_obj = objectTypeInfo->parseEqual(leftTypeInfo);
-      bool is_hash = hashTypeInfo->parseEqual(leftTypeInfo);
-      if (is_obj) {
-	 // see if we can check for legal access
-	 if (tree->right && leftTypeInfo->qc) {
-	    qore_type_t rt = tree->right->getType();
-	    if (rt == NT_STRING) {
-	       const char *member = reinterpret_cast<const QoreStringNode *>(tree->right)->getBuffer();
-	       leftTypeInfo->qc->parseCheckMemberAccess(member, returnTypeInfo, pflag);
-	    }
-	    else if (rt == NT_LIST) { // check object slices as well if strings are available
-	       ConstListIterator li(reinterpret_cast<const QoreListNode *>(tree->right));
-	       while (li.next()) {
-		  if (li.getValue() && li.getValue()->getType() == NT_STRING) {
-		     const char *member = reinterpret_cast<const QoreStringNode *>(li.getValue())->getBuffer();
-		     leftTypeInfo->qc->parseCheckMemberAccess(member, returnTypeInfo, pflag);
-		  }
+      bool can_be_obj = objectTypeInfo->parseAccepts(leftTypeInfo);
+      bool can_be_hash = hashTypeInfo->parseAccepts(leftTypeInfo);
+
+      bool is_obj = can_be_obj ? leftTypeInfo->isType(NT_OBJECT) : false;
+      bool is_hash = can_be_hash ? leftTypeInfo->isType(NT_HASH) : false;
+
+      const QoreClass *qc = leftTypeInfo->getUniqueReturnClass();
+      // see if we can check for legal access
+      if (qc && tree->right) {
+	 qore_type_t rt = tree->right->getType();
+	 if (rt == NT_STRING) {
+	    const char *member = reinterpret_cast<const QoreStringNode *>(tree->right)->getBuffer();
+	    qc->parseCheckMemberAccess(member, returnTypeInfo, pflag);
+	 }
+	 else if (rt == NT_LIST) { // check object slices as well if strings are available
+	    ConstListIterator li(reinterpret_cast<const QoreListNode *>(tree->right));
+	    while (li.next()) {
+	       if (li.getValue() && li.getValue()->getType() == NT_STRING) {
+		  const char *member = reinterpret_cast<const QoreStringNode *>(li.getValue())->getBuffer();
+		  qc->parseCheckMemberAccess(member, returnTypeInfo, pflag);
 	       }
 	    }
 	 }
       }
 
       // if we are taking a slice of an object or a hash, then the return type is a hash
-      if (rightTypeInfo->hasType() && listTypeInfo->parseEqual(rightTypeInfo) && (is_obj || is_hash))
+      if (rightTypeInfo->hasType() && rightTypeInfo->isType(NT_LIST) && (is_obj || is_hash))
 	 returnTypeInfo = hashTypeInfo;
 
       // if we are trying to convert to a hash
       if (pflag & PF_FOR_ASSIGNMENT) {
 	 // only throw a parse exception if parse exceptions are enabled
-	 if (!is_hash
-	     && !is_obj
+	 if (!can_be_hash
+	     && !can_be_obj
 	     && getProgram()->getParseExceptionSink()) {
 	    QoreStringNode *desc = new QoreStringNode("cannot convert lvalue defined as ");
 	    leftTypeInfo->getThisType(*desc);
@@ -3926,7 +3923,7 @@ static AbstractQoreNode *check_op_object_ref(QoreTreeNode *tree, LocalVar *oflag
 	    getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
 	 }
       }
-      else if (!is_hash && !is_obj) {
+      else if (!can_be_hash && !can_be_obj) {
 	 QoreStringNode *desc = new QoreStringNode("left-hand side of the expression with the '.' or '{}' operator is ");
 	 leftTypeInfo->getThisType(*desc);
 	 desc->concat(" and so this expression will always return NOTHING; the '.' or '{}' operator only returns a value with hashes and objects");
@@ -3949,8 +3946,8 @@ static AbstractQoreNode *check_op_keys(QoreTreeNode *tree, LocalVar *oflag, int 
       return tree->evalSubst(returnTypeInfo);
 
    if (leftTypeInfo->hasType()
-       && !hashTypeInfo->parseEqual(leftTypeInfo)
-       && !objectTypeInfo->parseEqual(leftTypeInfo)) {
+       && !hashTypeInfo->parseAccepts(leftTypeInfo)
+       && !objectTypeInfo->parseAccepts(leftTypeInfo)) {
       QoreStringNode *desc = new QoreStringNode("left-hand side of the expression with the 'keys' operator is ");
       leftTypeInfo->getThisType(*desc);
       desc->concat(" and so this expression will always return NOTHING; the 'keys' operator can only return a value with hashes and objects");
@@ -3970,20 +3967,10 @@ static AbstractQoreNode *check_op_question_mark(QoreTreeNode *tree, LocalVar *of
    if (tree->constArgs())
       return tree->evalSubst(returnTypeInfo);
 
-   if (leftTypeInfo->hasType() && 
-       (hashTypeInfo->parseEqual(leftTypeInfo)
-	|| objectTypeInfo->parseEqual(leftTypeInfo)
-	|| binaryTypeInfo->parseEqual(leftTypeInfo)
-	|| listTypeInfo->parseEqual(leftTypeInfo)
-	|| nothingTypeInfo->parseEqual(leftTypeInfo)
-	|| nullTypeInfo->parseEqual(leftTypeInfo))) {
-      QoreStringNode *desc = new QoreStringNode("the initial expression with the '?:' operator is ");
-      leftTypeInfo->getThisType(*desc);
-      desc->concat(" and will always evaluate to False in a boolean context");
-      getProgram()->makeParseWarning(QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
-   }
+   if (leftTypeInfo->nonNumericValue())
+      leftTypeInfo->doNonBooleanWarning("the initial expression with the '?:' operator is ");
 
-   returnTypeInfo = leftTypeInfo->checkIdentical(rightTypeInfo) ? leftTypeInfo : 0;
+   returnTypeInfo = leftTypeInfo->isOutputIdentical(rightTypeInfo) ? leftTypeInfo : 0;
 
    return tree;
 }
@@ -3996,36 +3983,14 @@ static AbstractQoreNode *check_op_list_op(QoreTreeNode *tree, LocalVar *oflag, i
    const QoreTypeInfo *rightTypeInfo = 0;
    tree->rightParseInit(oflag, pflag, lvids, rightTypeInfo);
 
-   if (!listTypeInfo->parseEqual(leftTypeInfo)) {
+   if (!leftTypeInfo->parseAcceptsReturns(NT_LIST)) {
       QoreStringNode *desc = new QoreStringNode("the lvalue expression with the ");
       desc->sprintf("'%s' operator is ", name);
       leftTypeInfo->getThisType(*desc);
-      desc->sprintf(" therefore this operation will have no effect on the lvalue and will always return NOTHING; the '%s' operator can only have an effect and return a value when used with lists", name);
+      desc->sprintf(" therefore this operation will have no effect on the lvalue and will always return NOTHING; the '%s' operator can only operate on lists", name);
       getProgram()->makeParseWarning(QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
       returnTypeInfo = nothingTypeInfo;
    }
-
-   return tree;
-}
-
-// issues a warning
-static AbstractQoreNode *check_op_push(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo, const char *name, const char *desc) {
-   const QoreTypeInfo *leftTypeInfo = 0;
-   tree->leftParseInit(oflag, pflag, lvids, leftTypeInfo);
-
-   const QoreTypeInfo *rightTypeInfo = 0;
-   tree->rightParseInit(oflag, pflag, lvids, rightTypeInfo);
-
-   if (!listTypeInfo->parseEqual(leftTypeInfo)) {
-      QoreStringNode *desc = new QoreStringNode("the lvalue expression with the ");
-      desc->sprintf("'%s' operator is ", name);
-      leftTypeInfo->getThisType(*desc);
-      desc->sprintf(" therefore this operation will have no effect on the lvalue and will always return NOTHING; the '%s' operator can only have an effect and return a value when used with lists", name);
-      getProgram()->makeParseWarning(QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
-      returnTypeInfo = nothingTypeInfo;
-   }
-   else
-      returnTypeInfo = listTypeInfo;
 
    return tree;
 }
@@ -4038,7 +4003,7 @@ static AbstractQoreNode *check_op_list_op_err(QoreTreeNode *tree, LocalVar *ofla
    const QoreTypeInfo *rightTypeInfo = 0;
    tree->rightParseInit(oflag, pflag, lvids, rightTypeInfo);
 
-   if (!listTypeInfo->parseEqual(leftTypeInfo)) {
+   if (!leftTypeInfo->parseAcceptsReturns(NT_LIST)) {
       // only raise a parse exception if parse exceptions are enabled
       if (getProgram()->getParseExceptionSink()) {
 	 QoreStringNode *desc = new QoreStringNode("the lvalue expression with the ");
@@ -4061,7 +4026,7 @@ static AbstractQoreNode *check_op_lvalue_string(QoreTreeNode *tree, LocalVar *of
    const QoreTypeInfo *rightTypeInfo = 0;
    tree->rightParseInit(oflag, pflag, lvids, rightTypeInfo);
 
-   if (!stringTypeInfo->parseEqual(leftTypeInfo)) {
+   if (!leftTypeInfo->parseAcceptsReturns(NT_STRING)) {
       QoreStringNode *desc = new QoreStringNode("the lvalue expression with the ");
       desc->sprintf("%s operator is ", descr);
       leftTypeInfo->getThisType(*desc);
@@ -4082,9 +4047,9 @@ static AbstractQoreNode *check_op_chomp_trim(QoreTreeNode *tree, LocalVar *oflag
    assert(!tree->right);
 
    if (leftTypeInfo->hasType()
-       && !stringTypeInfo->parseEqual(leftTypeInfo)
-       && !listTypeInfo->parseEqual(leftTypeInfo)
-       && !hashTypeInfo->parseEqual(leftTypeInfo)) {
+       && !leftTypeInfo->parseAcceptsReturns(NT_STRING)
+       && !leftTypeInfo->parseAcceptsReturns(NT_LIST)
+       && !leftTypeInfo->parseAcceptsReturns(NT_HASH)) {
       QoreStringNode *desc = new QoreStringNode("the lvalue expression with the ");
       desc->sprintf("%s operator is ", name);
       leftTypeInfo->getThisType(*desc);
@@ -4302,7 +4267,7 @@ void OperatorList::init() {
    OP_POP = add(new Operator(1, "pop", "pop from list", 0, true, true, check_op_list_op));
    OP_POP->addFunction(op_pop);
 
-   OP_PUSH = add(new Operator(2, "push", "push on list", 0, true, true, check_op_push));
+   OP_PUSH = add(new Operator(2, "push", "push on list", 0, true, true, check_op_list_op));
    OP_PUSH->addFunction(op_push);
 
    OP_UNSHIFT = add(new Operator(2, "unshift", "unshift/insert to begnning of list", 0, true, true, check_op_list_op_err));

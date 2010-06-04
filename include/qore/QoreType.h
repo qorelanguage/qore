@@ -107,11 +107,15 @@ static inline QoreHashNode *empty_hash() {
    return emptyHash;
 }
 
-//! used for return values when checking types with functions that return numeric codes; only the first 2 should be returned from types implemented by external modules
-#define QTI_NOT_EQUAL   0  //!< not equal
-#define QTI_AMBIGUOUS   1  //!< the types can be converted to the target type
-#define QTI_IDENT       2  //!< the types are identical
-#define QTI_RECHECK     3  //!< possibly not equal; must be rechecked after types are resolved
+//! return type for type matching functions
+enum qore_type_result_e {
+   QTI_IGNORE      = -2,  //!< for internal use only
+   QTI_UNASSIGNED  = -1,  //!< for internal use only
+
+   QTI_NOT_EQUAL   =  0,  //!< types do not match
+   QTI_AMBIGUOUS   =  1,  //!< types match, but are not identical
+   QTI_IDENT       =  2   //!< types match perfectly
+};
 
 //! this class is private; not exported
 class ExternalTypeInfo;
@@ -119,6 +123,7 @@ class ExternalTypeInfo;
 //! helper type to allocate and manage QoreTypeInfo objects (not exported by the library)
 /** should be used to allocate and deallocate QoreTypeInfo objects for new types created in modules
  */
+/*
 class QoreTypeInfoHelper {
 protected:
    ExternalTypeInfo *typeInfo;
@@ -168,6 +173,7 @@ public:
    //! must be reimplemented in derived class
    DLLEXPORT virtual int parseEqualImpl(const QoreTypeInfo *typeInfo) const = 0;
 };
+*/
 
 DLLEXPORT int testObjectClassAccess(const QoreObject *obj, const QoreClass *classtoaccess);
 DLLEXPORT const QoreClass *typeInfoGetClass(const QoreTypeInfo *typeInfo);

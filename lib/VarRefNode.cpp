@@ -291,13 +291,14 @@ void VarRefFunctionCallBase::parseInitConstructorCall(LocalVar *oflag, int pflag
 AbstractQoreNode *LocalVarRefNewObjectNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&outTypeInfo) {
    parseInitCommon(oflag, pflag, lvids, outTypeInfo, true);
 
-   const QoreClass *qc = typeInfo ? typeInfo->qc : 0;
+   const QoreClass *qc = typeInfo->getUniqueReturnClass();
+   assert(qc);
    parseInitConstructorCall(oflag, pflag, lvids, qc);
    return this;
 }
 
 AbstractQoreNode *LocalVarRefNewObjectNode::evalImpl(ExceptionSink *xsink) const {
-   ReferenceHolder<QoreObject> obj(typeInfo->qc->execConstructor(variant, args, xsink), xsink);
+   ReferenceHolder<QoreObject> obj(typeInfo->getUniqueReturnClass()->execConstructor(variant, args, xsink), xsink);
    if (*xsink)
       return 0;
    QoreObject *rv = *obj;
@@ -315,13 +316,14 @@ AbstractQoreNode *LocalVarRefNewObjectNode::evalImpl(bool &needs_deref, Exceptio
 AbstractQoreNode *GlobalVarRefNewObjectNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&outTypeInfo) {
    outTypeInfo = ref.var->parseGetTypeInfo();
 
-   const QoreClass *qc = outTypeInfo ? outTypeInfo->qc : 0;
+   const QoreClass *qc = outTypeInfo->getUniqueReturnClass();
+   assert(qc);
    parseInitConstructorCall(oflag, pflag, lvids, qc);
    return this;
 }
 
 AbstractQoreNode *GlobalVarRefNewObjectNode::evalImpl(ExceptionSink *xsink) const {
-   ReferenceHolder<QoreObject> obj(ref.var->getTypeInfo()->qc->execConstructor(variant, args, xsink), xsink);
+   ReferenceHolder<QoreObject> obj(ref.var->getTypeInfo()->getUniqueReturnClass()->execConstructor(variant, args, xsink), xsink);
    if (*xsink)
       return 0;
    QoreObject *rv = *obj;
