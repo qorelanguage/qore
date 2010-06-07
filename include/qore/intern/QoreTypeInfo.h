@@ -114,6 +114,16 @@ protected:
       return matchTypeIntern(t, n_is_int);
    }
 
+   DLLLOCAL qore_type_result_e runtimeAcceptsClass(const QoreClass *n_qc) const {
+      if (!hasType())
+         return QTI_AMBIGUOUS;
+
+      if (accepts_mult)
+	 return runtimeAcceptsClassMult(n_qc);
+
+      return runtimeMatchClassIntern(n_qc);
+   }
+
    DLLLOCAL qore_type_result_e parseAcceptsClass(const QoreClass *n_qc) const {
       if (!hasType())
          return QTI_AMBIGUOUS;
@@ -173,6 +183,19 @@ protected:
       return QTI_NOT_EQUAL;
    }
 
+   DLLLOCAL qore_type_result_e runtimeAcceptsClassMult(const QoreClass *n_qc) const {
+      if (!returns_mult && qc && qc->getID() == n_qc->getID())
+         return exact_return ? QTI_IDENT : QTI_AMBIGUOUS;
+
+      const type_vec_t &at = getAcceptTypeList();
+
+      for (type_vec_t::const_iterator i = at.begin(), e = at.end(); i != e; ++i) {
+	 if ((*i)->runtimeAcceptsClass(n_qc))
+	    return QTI_AMBIGUOUS;
+      }
+      return QTI_NOT_EQUAL;
+   }
+
    // see if any of of the types we accept match any of the types that can be returned by typeInfo
    DLLLOCAL qore_type_result_e parseAcceptsMult(const QoreTypeInfo *typeInfo) const {
       assert(accepts_mult);
@@ -221,6 +244,29 @@ protected:
 	 return exact_return ? QTI_IDENT : QTI_AMBIGUOUS;
 
       return parseCheckCompatibleClass(qc, n_qc) ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
+   }
+
+   DLLLOCAL qore_type_result_e runtimeMatchClassIntern(const QoreClass *n_qc) const {
+      if (qt == NT_ALL)
+	 return QTI_AMBIGUOUS;
+
+      if (qt != NT_OBJECT)
+	 return QTI_NOT_EQUAL;
+
+      if (!qc)
+	 return QTI_AMBIGUOUS;
+
+      if (qc->getID() == n_qc->getID())
+	 return exact_return ? QTI_IDENT : QTI_AMBIGUOUS;
+
+      bool priv;
+      if (!n_qc->getClass(qc->getID(), priv))
+         return QTI_NOT_EQUAL;
+
+      if (!priv)
+         return QTI_AMBIGUOUS;
+
+      return runtimeCheckPrivateClassAccess(qc) ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
    }
 
    DLLLOCAL int doTypeException(int param_num, const char *param_name, const AbstractQoreNode *n, ExceptionSink *xsink) const {
@@ -456,7 +502,7 @@ public:
       qore_type_t t = get_node_type(n);
 
       if (t == NT_OBJECT)
-         return parseAcceptsClass(reinterpret_cast<const QoreObject *>(n)->getClass());
+         return runtimeAcceptsClass(reinterpret_cast<const QoreObject *>(n)->getClass());
 
       return parseAcceptsType(t, t == NT_INT || (t >= QORE_NUM_TYPES && dynamic_cast<const QoreBigIntNode *>(n)));
    }

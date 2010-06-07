@@ -1087,10 +1087,13 @@ bool parseCheckPrivateClassAccess(const QoreClass *testClass) {
 
    // see if shouldBeClass is a parent class of the class currently being parsed
    QoreClass *pc = getParseClass();
+
+   //printd(5, "parseCheckPrivateClassAccess(%p %s) pc=%p %s\n", testClass, testClass->getName(), pc, pc->getName());
+
    if (!pc)
       return false;
 
-   if (pc == testClass)
+   if (pc->getID() == testClass->getID())
       return true;
 
    return pc->getClass(testClass->getID()) || testClass->getClass(pc->getID());
