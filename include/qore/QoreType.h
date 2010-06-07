@@ -123,7 +123,6 @@ class ExternalTypeInfo;
 //! helper type to allocate and manage QoreTypeInfo objects (not exported by the library)
 /** should be used to allocate and deallocate QoreTypeInfo objects for new types created in modules
  */
-/*
 class QoreTypeInfoHelper {
 protected:
    ExternalTypeInfo *typeInfo;
@@ -131,25 +130,28 @@ protected:
    DLLLOCAL QoreTypeInfoHelper(ExternalTypeInfo *n_typeInfo) : typeInfo(n_typeInfo) {
    }
 
+   //! this function must be reimplemented if setInputFilter() is called
+   DLLLOCAL virtual AbstractQoreNode *acceptInputImpl(bool obj, int param_num, const char *param_name, AbstractQoreNode *n, ExceptionSink *xsink) const;
+
 public:
    //! allocates a QoreTypeInfo object with no type information
    DLLEXPORT QoreTypeInfoHelper(const char *n_tname);
    //! allocates a QoreTypeInfo object of the requested type
    DLLEXPORT QoreTypeInfoHelper(qore_type_t id, const char *n_tname);
-   //! allocates a QoreTypeInfo object of the requested type that provides binary compatibility with the builtin type given
-   DLLEXPORT QoreTypeInfoHelper(qore_type_t id, qore_type_t builtin_id, const char *n_tname);
    //! deallocates the managed QoreTypeInfo object
    DLLEXPORT virtual ~QoreTypeInfoHelper();
    //! returns a pointer to the object
    DLLEXPORT const QoreTypeInfo *getTypeInfo() const;
    //! assigns the typeid to the object
    DLLEXPORT void assign(qore_type_t id);
-   //! assigns the compatible typeid to the object
-   DLLEXPORT void assignCompat(qore_type_t builtin_id);
-
-   DLLEXPORT virtual bool checkTypeInstantiationImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const;
-   DLLEXPORT virtual int testTypeCompatibilityImpl(const AbstractQoreNode *n) const;
-   DLLEXPORT virtual int parseEqualImpl(const QoreTypeInfo *typeInfo) const;
+   //! add another type that the type accepts
+   DLLEXPORT void addAcceptsType(const QoreTypeInfo *n_typeInfo);
+   //! set a flag that means the type is equivalent to an integer
+   DLLEXPORT void setInt();
+   //! set a flag that means that if the return type is matched on input, it matches with QTI_IDENT
+   DLLEXPORT void setExactReturn();
+   //! set a flag that means that acceptInputImpl() has been reimplemented and should be used
+   DLLEXPORT void setInputFilter();
 };
 
 class AbstractQoreClassTypeInfoHelper : public QoreTypeInfoHelper {
@@ -165,21 +167,15 @@ public:
    DLLEXPORT QoreClass *getClass();
    //! returns true if the object still holds the class, false if not
    DLLEXPORT bool hasClass() const;
-
-   //! must be reimplemented in derived class
-   DLLEXPORT virtual bool checkTypeInstantiationImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const = 0;
-   //! must be reimplemented in derived class
-   DLLEXPORT virtual int testTypeCompatibilityImpl(const AbstractQoreNode *n) const = 0;
-   //! must be reimplemented in derived class
-   DLLEXPORT virtual int parseEqualImpl(const QoreTypeInfo *typeInfo) const = 0;
 };
-*/
 
 DLLEXPORT int testObjectClassAccess(const QoreObject *obj, const QoreClass *classtoaccess);
-DLLEXPORT const QoreClass *typeInfoGetClass(const QoreTypeInfo *typeInfo);
-DLLEXPORT qore_type_t typeInfoGetType(const QoreTypeInfo *typeInfo);
+
+DLLEXPORT const QoreClass *typeInfoGetUniqueReturnClass(const QoreTypeInfo *typeInfo);
 DLLEXPORT bool typeInfoHasType(const QoreTypeInfo *typeInfo);
 DLLEXPORT const char *typeInfoGetName(const QoreTypeInfo *typeInfo);
-DLLEXPORT bool typeInfoParseTestCompatibleClass(const QoreTypeInfo *typeInfo, const QoreClass *otherclass);
+DLLEXPORT qore_type_result_e typeInfoAcceptsType(const QoreTypeInfo *typeInfo, const QoreTypeInfo *otherTypeInfo);
+DLLEXPORT qore_type_result_e typeInfoReturnsType(const QoreTypeInfo *typeInfo, const QoreTypeInfo *otherTypeInfo);
+
 
 #endif // _QORE_QORETYPE_H

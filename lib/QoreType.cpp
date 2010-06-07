@@ -77,15 +77,10 @@ bool compareSoft(const AbstractQoreNode *l, const AbstractQoreNode *r, Exception
    return !OP_LOG_EQ->bool_eval(l, r, xsink);
 }
 
-/*
 QoreTypeInfoHelper::QoreTypeInfoHelper(const char *n_tname) : typeInfo(new ExternalTypeInfo(n_tname, *this)) {
 }
 
 QoreTypeInfoHelper::QoreTypeInfoHelper(qore_type_t id, const char *n_tname) : typeInfo(new ExternalTypeInfo(id, n_tname, *this)) {
-   add_to_type_map(id, typeInfo);
-}
-
-QoreTypeInfoHelper::QoreTypeInfoHelper(qore_type_t id, qore_type_t base_id, const char *n_tname) : typeInfo(new ExternalTypeInfo(id, base_id, n_tname, *this)) {
    add_to_type_map(id, typeInfo);
 }
 
@@ -98,24 +93,29 @@ void QoreTypeInfoHelper::assign(qore_type_t id) {
    add_to_type_map(id, typeInfo);
 }
 
-void QoreTypeInfoHelper::assignCompat(qore_type_t base_id) {
-   typeInfo->assignCompat(base_id);
-}
-
 const QoreTypeInfo *QoreTypeInfoHelper::getTypeInfo() const {
    return typeInfo;
 }
 
-bool QoreTypeInfoHelper::checkTypeInstantiationImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const {
-   return false;
+void QoreTypeInfoHelper::addAcceptsType(const QoreTypeInfo *n_typeInfo) {
+   typeInfo->addAcceptsType(n_typeInfo);
 }
 
-int QoreTypeInfoHelper::testTypeCompatibilityImpl(const AbstractQoreNode *n) const {
-   return QTI_NOT_EQUAL;
+void QoreTypeInfoHelper::setInt() {
+   typeInfo->setInt();
 }
 
-int QoreTypeInfoHelper::parseEqualImpl(const QoreTypeInfo *otherTypeInfo) const {
-   return QTI_NOT_EQUAL;
+void QoreTypeInfoHelper::setExactReturn() {
+   typeInfo->setExactReturn(true);
+}
+
+void QoreTypeInfoHelper::setInputFilter() {
+   typeInfo->setInputFilter(true);
+}
+
+AbstractQoreNode *QoreTypeInfoHelper::acceptInputImpl(bool obj, int param_num, const char *param_name, AbstractQoreNode *n, ExceptionSink *xsink) const {
+   assert(false);
+   return n;
 }
 
 AbstractQoreClassTypeInfoHelper::AbstractQoreClassTypeInfoHelper(const char *name, int n_domain) : QoreTypeInfoHelper(new ExternalTypeInfo(*this)), qc(new QoreClass(name, n_domain, typeInfo)) {
@@ -136,7 +136,6 @@ QoreClass *AbstractQoreClassTypeInfoHelper::getClass() {
 bool AbstractQoreClassTypeInfoHelper::hasClass() const {
    return qc;
 }
-*/
 
 int testObjectClassAccess(const QoreObject *obj, const QoreClass *shouldbeclass) {
    const QoreClass *objectclass = obj->getClass();
@@ -153,15 +152,15 @@ int testObjectClassAccess(const QoreObject *obj, const QoreClass *shouldbeclass)
    return runtimeCheckPrivateClassAccess(shouldbeclass) ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
 }
 
-const QoreClass *typeInfoGetClass(const QoreTypeInfo *typeInfo) {
+const QoreClass *typeInfoGetUniqueReturnClass(const QoreTypeInfo *typeInfo) {
    return typeInfo->getUniqueReturnClass();
 }
 
-qore_type_t typeInfoAcceptsType(const QoreTypeInfo *typeInfo, const QoreTypeInfo *otherTypeInfo) {
+qore_type_result_e typeInfoAcceptsType(const QoreTypeInfo *typeInfo, const QoreTypeInfo *otherTypeInfo) {
    return typeInfo->parseAccepts(otherTypeInfo);
 }
 
-qore_type_t typeInfoReturnsType(const QoreTypeInfo *typeInfo, const QoreTypeInfo *otherTypeInfo) {
+qore_type_result_e typeInfoReturnsType(const QoreTypeInfo *typeInfo, const QoreTypeInfo *otherTypeInfo) {
    return otherTypeInfo->parseAccepts(typeInfo);
 }
 
