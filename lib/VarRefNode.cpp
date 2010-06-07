@@ -292,7 +292,6 @@ AbstractQoreNode *LocalVarRefNewObjectNode::parseInit(LocalVar *oflag, int pflag
    parseInitCommon(oflag, pflag, lvids, outTypeInfo, true);
 
    const QoreClass *qc = typeInfo->getUniqueReturnClass();
-   assert(qc);
    parseInitConstructorCall(oflag, pflag, lvids, qc);
    return this;
 }
@@ -317,7 +316,6 @@ AbstractQoreNode *GlobalVarRefNewObjectNode::parseInit(LocalVar *oflag, int pfla
    outTypeInfo = ref.var->parseGetTypeInfo();
 
    const QoreClass *qc = outTypeInfo->getUniqueReturnClass();
-   assert(qc);
    parseInitConstructorCall(oflag, pflag, lvids, qc);
    return this;
 }

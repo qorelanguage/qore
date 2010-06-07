@@ -83,6 +83,8 @@ protected:
    bool is_int : 1;
    // true if the single return type makes an exact match or ambiguous on input
    bool exact_return : 1;
+   // if true then any type with is_int sets matches NT_INT ambigously
+   bool ambiguous_int_match : 1;
 
    DLLLOCAL qore_type_result_e parseReturnsType(qore_type_t t, bool n_is_int) const {
       if (!hasType())
@@ -141,7 +143,9 @@ protected:
 	 if ((*i)->parseReturnsType(t, n_is_int))
 	    return QTI_AMBIGUOUS;
       }
-      return QTI_NOT_EQUAL;
+
+      // now check fundamental type
+      return matchTypeIntern(t, n_is_int);
    }
 
    DLLLOCAL qore_type_result_e parseReturnsClassMult(const QoreClass *n_qc) const {
@@ -151,7 +155,9 @@ protected:
 	 if ((*i)->parseReturnsClass(n_qc))
 	    return QTI_AMBIGUOUS;
       }
-      return QTI_NOT_EQUAL;
+
+      // now check fundamental type
+      return matchClassIntern(n_qc);
    }
 
    DLLLOCAL qore_type_result_e parseAcceptsTypeMult(qore_type_t t, bool n_is_int) const {
@@ -167,7 +173,9 @@ protected:
 	 if ((*i)->parseAcceptsType(t, n_is_int))
 	    return QTI_AMBIGUOUS;
       }
-      return QTI_NOT_EQUAL;
+
+      // now check fundamental type
+      return matchTypeIntern(t, n_is_int);
    }
 
    DLLLOCAL qore_type_result_e parseAcceptsClassMult(const QoreClass *n_qc) const {
@@ -180,7 +188,9 @@ protected:
 	 if ((*i)->parseAcceptsClass(n_qc))
 	    return QTI_AMBIGUOUS;
       }
-      return QTI_NOT_EQUAL;
+
+      // now check fundamental type
+      return matchClassIntern(n_qc);
    }
 
    DLLLOCAL qore_type_result_e runtimeAcceptsClassMult(const QoreClass *n_qc) const {
@@ -193,7 +203,16 @@ protected:
 	 if ((*i)->runtimeAcceptsClass(n_qc))
 	    return QTI_AMBIGUOUS;
       }
-      return QTI_NOT_EQUAL;
+
+      // now check fundamental type
+      return runtimeMatchClassIntern(n_qc);
+   }
+
+   DLLLOCAL qore_type_result_e parseAcceptsBasic(const QoreTypeInfo *typeInfo) const {
+      if (typeInfo->reverse_logic)
+         return parseAcceptsType(typeInfo->qt, typeInfo->is_int) ? QTI_NOT_EQUAL : QTI_AMBIGUOUS;
+
+      return typeInfo->qc ? parseAcceptsClass(typeInfo->qc) : parseAcceptsType(typeInfo->qt, typeInfo->is_int);
    }
 
    // see if any of of the types we accept match any of the types that can be returned by typeInfo
@@ -210,7 +229,9 @@ protected:
 	       return QTI_AMBIGUOUS;
 	 }
       }
-      return QTI_NOT_EQUAL;
+
+      // now check fundamental type
+      return parseAcceptsBasic(typeInfo);
    }
 
    DLLLOCAL qore_type_result_e matchTypeIntern(qore_type_t t, bool n_is_int) const {
@@ -223,9 +244,14 @@ protected:
       if (qt == t)
          return exact_return ? QTI_IDENT : QTI_AMBIGUOUS;
 
-      // if both are equivalent to int
-      if (n_is_int && is_int)
-         return QTI_AMBIGUOUS;
+      // if the type to compare is equivalent to int
+      if (n_is_int) {
+         if (is_int)
+            return QTI_AMBIGUOUS;
+
+         if (qt == NT_INT)
+            return ambiguous_int_match ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
+      }
 
       return QTI_NOT_EQUAL;
    }
@@ -338,6 +364,11 @@ protected:
          return n;
       }
 
+      // first check if input matches default type
+      bool priv_error = false;
+      if (!runtimeAcceptInputIntern(priv_error, n))
+         return n;
+
       return acceptInputImpl(obj, param_num, param_name, n, xsink);
    }
 
@@ -425,7 +456,7 @@ protected:
                          bool n_is_int, bool n_exact_return) : 
       qc(n_qc), qt(n_qt), returns_mult(n_returns_mult), accepts_mult(n_accepts_mult), input_filter(n_input_filter), 
       has_subtype(n_has_subtype), has_name(n_has_name), has_defval(n_has_defval), reverse_logic(n_reverse_logic),
-      is_int(n_is_int), exact_return(n_exact_return) {
+      is_int(n_is_int), exact_return(n_exact_return), ambiguous_int_match(false) {
       assert(!reverse_logic || (!returns_mult && !accepts_mult && !input_filter && !has_defval && !qc));
       assert(!is_int || !qc);
       assert(!(exact_return && returns_mult));
@@ -434,19 +465,20 @@ protected:
 public:
    DLLLOCAL QoreTypeInfo() : qc(0), qt(NT_ALL), returns_mult(false), accepts_mult(false), 
                              input_filter(false), has_subtype(false), has_name(false), has_defval(false),
-                             reverse_logic(false), is_int(false), exact_return(false) {
+                             reverse_logic(false), is_int(false), exact_return(false), 
+                             ambiguous_int_match(false) {
    }
 
    DLLLOCAL QoreTypeInfo(qore_type_t n_qt) : qc(0), qt(n_qt), returns_mult(false), accepts_mult(false), 
                                              input_filter(false), has_subtype(false), has_name(false), has_defval(false),
                                              reverse_logic(false), is_int(n_qt == NT_INT),
-                                             exact_return(true) {
+                                             exact_return(true), ambiguous_int_match(false) {
    }
 
    DLLLOCAL QoreTypeInfo(const QoreClass *n_qc) : qc(n_qc), qt(NT_OBJECT), returns_mult(false), accepts_mult(false), 
                                                   input_filter(false), has_subtype(false), has_name(false), has_defval(false),
                                                   reverse_logic(false), is_int(false),
-                                                  exact_return(true) {
+                                                  exact_return(true), ambiguous_int_match(false) {
    }
 
    DLLLOCAL ~QoreTypeInfo() {
@@ -501,10 +533,7 @@ public:
 	 return parseAcceptsMult(typeInfo);
       }
 
-      if (typeInfo->reverse_logic)
-         return parseAcceptsType(typeInfo->qt, typeInfo->is_int) ? QTI_NOT_EQUAL : QTI_AMBIGUOUS;
-
-      return typeInfo->qc ? parseAcceptsClass(typeInfo->qc) : parseAcceptsType(typeInfo->qt, typeInfo->is_int);
+      return parseAcceptsBasic(typeInfo);
    }
 
    DLLLOCAL const QoreClass *getUniqueReturnClass() const {
@@ -943,7 +972,6 @@ protected:
 
 public:
    DLLLOCAL SoftBigIntTypeInfo() : AcceptsMultiFilterTypeInfo(0, NT_INT, false, true, true, true, true) {
-      at.push_back(bigIntTypeInfo);
       at.push_back(floatTypeInfo);
       at.push_back(stringTypeInfo);
       at.push_back(boolTypeInfo);
@@ -985,7 +1013,6 @@ protected:
 public:
    DLLLOCAL SoftFloatTypeInfo() : AcceptsMultiFilterTypeInfo(0, NT_FLOAT, false, true, true, false, true) {
       at.push_back(bigIntTypeInfo);
-      at.push_back(floatTypeInfo);
       at.push_back(stringTypeInfo);
       at.push_back(boolTypeInfo);
       at.push_back(dateTypeInfo);
@@ -1028,7 +1055,6 @@ public:
       at.push_back(bigIntTypeInfo);
       at.push_back(floatTypeInfo);
       at.push_back(stringTypeInfo);
-      at.push_back(boolTypeInfo);
       at.push_back(dateTypeInfo);
    }
 };
@@ -1069,7 +1095,6 @@ public:
    DLLLOCAL SoftStringTypeInfo() : AcceptsMultiFilterTypeInfo(0, NT_STRING, false, true, true, false, true) {
       at.push_back(bigIntTypeInfo);
       at.push_back(floatTypeInfo);
-      at.push_back(stringTypeInfo);
       at.push_back(boolTypeInfo);
       at.push_back(dateTypeInfo);
    }
@@ -1104,16 +1129,24 @@ protected:
    }
 
    DLLLOCAL virtual AbstractQoreNode *acceptInputImpl(bool obj, int param_num, const char *param_name, AbstractQoreNode *n, ExceptionSink *xsink) const {
-      return n;
+      return helper.acceptInputImpl(obj, param_num, param_name, n, xsink);
    }
 
 public:
    // used for base types
-   DLLLOCAL ExternalTypeInfo(qore_type_t n_qt, const char *n_tname, const QoreTypeInfoHelper &n_helper, bool n_is_int = false, bool n_exact_return = false) : 
-      QoreTypeInfo(0, n_qt, false, false, false, false, true, false, false, n_is_int, n_exact_return), tname(n_tname), helper(n_helper) {
+   DLLLOCAL ExternalTypeInfo(qore_type_t n_qt, const char *n_tname, const QoreTypeInfoHelper &n_helper, bool n_is_int = false, bool n_exact_return = true) : 
+      QoreTypeInfo(0, n_qt, 
+                   false, // returns_mult 
+                   false, // accepts_mult
+                   false, // input_filter
+                   false, // has_subtype
+                   true,  // has_name
+                   false, // has_defval
+                   false, // reverse_logic
+                   n_is_int, n_exact_return), tname(n_tname), helper(n_helper) {
       assert(tname);
-      // ensure this class is only used for external classes
-      assert(qt >= QORE_NUM_TYPES); 
+      
+      assert(has_name);
 
       //printd(0, "ExternalTypeInfo::ExternalTypeInfo() this=%p qt=%n qc=%p name=%s\n", this, qt, qc, tname);
    }
@@ -1124,7 +1157,18 @@ public:
    }
 
    // used when assigning a base type after the fact
-   DLLLOCAL ExternalTypeInfo(const char *n_tname, const QoreTypeInfoHelper &n_helper) : tname(n_tname), helper(n_helper) {
+   DLLLOCAL ExternalTypeInfo(const char *n_tname, const QoreTypeInfoHelper &n_helper) : 
+      QoreTypeInfo(NT_NOTHING, 0,
+                   false,  // returns_mult 
+                   false,  // accepts_mult
+                   false,  // input_filter
+                   false,  // has_subtype
+                   true,   // has_name
+                   false,  // has_defval
+                   false,  // reverse_logic
+                   false,  // is_int
+                   true), // exact_return
+      tname(n_tname), helper(n_helper) {
    }
    // used for assigning a class after the fact
    DLLLOCAL ExternalTypeInfo(const QoreTypeInfoHelper &n_helper) : tname(0), helper(n_helper) {
@@ -1137,29 +1181,33 @@ public:
       }
    }
    DLLLOCAL void assign(const QoreClass *n_qc) {
+      assert(n_qc);
       qt = NT_OBJECT;
       qc = n_qc;
       assert(!tname);
-      tname = qc->getName();
+      //tname = qc->getName();
    }
    DLLLOCAL void addAcceptsType(const QoreTypeInfo *typeInfo) {
+      assert(typeInfo);
+      assert(typeInfo != this);
+
       if (!accepts_mult)
          accepts_mult = true;
 
       at.push_back(typeInfo);
    }
    DLLLOCAL void setInt() {
-      assert(!is_int);
       assert(!qc);
       is_int = true;
    }
-   DLLLOCAL void setExactReturn(bool ret = true) {
-      assert(ret != exact_return);
-      exact_return = ret;
+   DLLLOCAL void setInexactReturn() {
+      exact_return = false;
    }
-   DLLLOCAL void setInputFilter(bool n_input_filter = true) {
-      assert(input_filter != n_input_filter);
-      input_filter = n_input_filter;
+   DLLLOCAL void setInputFilter() {
+      input_filter = true;
+   }
+   DLLLOCAL void setIntMatch() {
+      ambiguous_int_match = true;
    }
 };
 

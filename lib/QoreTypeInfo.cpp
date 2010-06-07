@@ -258,8 +258,6 @@ const char *getBuiltinTypeName(qore_type_t type) {
 }
 
 int QoreTypeInfo::runtimeAcceptInputIntern(bool &priv_error, AbstractQoreNode *n) const {
-   assert(!accepts_mult);
-
    qore_type_t nt = get_node_type(n);
 
    if (reverse_logic)
@@ -335,11 +333,15 @@ bool QoreTypeInfo::isInputIdentical(const QoreTypeInfo *typeInfo) const {
 
    // check all types to see if there is an identical type
    for (type_vec_t::const_iterator i = my_at.begin(), e = my_at.end(); i != e; ++i) {
-
       bool ident = false;
-      for (type_vec_t::const_iterator j = their_at.begin(), e = their_at.end(); i != e; ++i) {
+      for (type_vec_t::const_iterator j = their_at.begin(), je = their_at.end(); j != je; ++j) {
+	 //printd(5, "QoreTypeInfo::isInputIdentical() this=%p i=%p %s j=%p %s\n", this, *i, (*i)->getName(), *j, (*j)->getName());
 
-	 if ((*i)->isInputIdentical(*j)) {
+	 // if the second type is the original type, skip it
+	 if (*j == this)
+	    continue;
+
+	 if ((*i) == (*j) || (*i)->isInputIdentical(*j)) {
 	    ident = true;
 	    break;
 	 }

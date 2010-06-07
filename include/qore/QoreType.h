@@ -124,16 +124,16 @@ class ExternalTypeInfo;
 /** should be used to allocate and deallocate QoreTypeInfo objects for new types created in modules
  */
 class QoreTypeInfoHelper {
+   friend class ExternalTypeInfo;
+
 protected:
    ExternalTypeInfo *typeInfo;
 
    DLLLOCAL QoreTypeInfoHelper(ExternalTypeInfo *n_typeInfo) : typeInfo(n_typeInfo) {
    }
 
-   DLLLOCAL int doAcceptError(bool priv_error, bool obj, int param_num, const char *param_name, AbstractQoreNode *n, ExceptionSink *xsink) const;
-
    //! this function must be reimplemented if setInputFilter() is called
-   DLLLOCAL virtual AbstractQoreNode *acceptInputImpl(bool obj, int param_num, const char *param_name, AbstractQoreNode *n, ExceptionSink *xsink) const;
+   DLLEXPORT virtual AbstractQoreNode *acceptInputImpl(bool obj, int param_num, const char *param_name, AbstractQoreNode *n, ExceptionSink *xsink) const;
 
 public:
    //! allocates a QoreTypeInfo object with no type information
@@ -150,12 +150,17 @@ public:
    DLLEXPORT void addAcceptsType(const QoreTypeInfo *n_typeInfo);
    //! set a flag that means the type is equivalent to an integer
    DLLEXPORT void setInt();
-   //! set a flag that means that if the return type is matched on input, it matches with QTI_IDENT
-   DLLEXPORT void setExactReturn();
+   //! set a flag that means that if the return type is matched on input, it matches with QTI_AMBIGUOUS instead of QTI_IDENT
+   DLLEXPORT void setInexactReturn();
    //! set a flag that means that acceptInputImpl() has been reimplemented and should be used
    DLLEXPORT void setInputFilter();
+   //! set a flag so that any NT_INT in an accept list will match any type with is_int set with QTI_AMBIGUOUS
+   DLLEXPORT void setIntMatch();
+
+   DLLEXPORT int doAcceptError(bool priv_error, bool obj, int param_num, const char *param_name, AbstractQoreNode *n, ExceptionSink *xsink) const;
 };
 
+//! note that the QoreClass object created by this class must be deleted externally
 class AbstractQoreClassTypeInfoHelper : public QoreTypeInfoHelper {
 protected:
    QoreClass *qc;
@@ -165,9 +170,9 @@ public:
    DLLEXPORT AbstractQoreClassTypeInfoHelper(const char *name, int n_domain = QDOM_DEFAULT);
    //! delets the QoreClass object managed if it has not been retrieved
    DLLEXPORT ~AbstractQoreClassTypeInfoHelper();
-   //! returns the QoreClass object created and zeros out the internal pointer (can only be called once)
+   //! returns the QoreClass object created and zeros out the class ptr; can only be called once
    DLLEXPORT QoreClass *getClass();
-   //! returns true if the object still holds the class, false if not
+   //! returns true if this object is holding a class pointer, false if not
    DLLEXPORT bool hasClass() const;
 };
 

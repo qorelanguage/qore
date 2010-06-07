@@ -105,12 +105,16 @@ void QoreTypeInfoHelper::setInt() {
    typeInfo->setInt();
 }
 
-void QoreTypeInfoHelper::setExactReturn() {
-   typeInfo->setExactReturn(true);
+void QoreTypeInfoHelper::setInexactReturn() {
+   typeInfo->setInexactReturn();
 }
 
 void QoreTypeInfoHelper::setInputFilter() {
-   typeInfo->setInputFilter(true);
+   typeInfo->setInputFilter();
+}
+
+void QoreTypeInfoHelper::setIntMatch() {
+   typeInfo->setIntMatch();
 }
 
 AbstractQoreNode *QoreTypeInfoHelper::acceptInputImpl(bool obj, int param_num, const char *param_name, AbstractQoreNode *n, ExceptionSink *xsink) const {
