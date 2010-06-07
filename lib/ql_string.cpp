@@ -459,6 +459,9 @@ static AbstractQoreNode *f_replace(const QoreListNode *args, ExceptionSink *xsin
    if (*xsink)
       return 0;
 
+   if (!t1->strlen())
+      return p0->refSelf();
+
    QoreStringNode *nstr = new QoreStringNode(ccs);   
 
    const char *str, *pattern;

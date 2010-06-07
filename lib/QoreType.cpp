@@ -118,6 +118,10 @@ AbstractQoreNode *QoreTypeInfoHelper::acceptInputImpl(bool obj, int param_num, c
    return n;
 }
 
+int QoreTypeInfoHelper::doAcceptError(bool priv_error, bool obj, int param_num, const char *param_name, AbstractQoreNode *n, ExceptionSink *xsink) const {
+   return typeInfo->doAcceptError(priv_error, obj, param_num, param_name, n, xsink);
+}
+
 AbstractQoreClassTypeInfoHelper::AbstractQoreClassTypeInfoHelper(const char *name, int n_domain) : QoreTypeInfoHelper(new ExternalTypeInfo(*this)), qc(new QoreClass(name, n_domain, typeInfo)) {
    typeInfo->assign(qc);
    //printd(5, "AbstractQoreClassTypeInfoHelper::AbstractQoreClassTypeInfoHelper() this=%p typeInfo=%p\n", this, typeInfo);

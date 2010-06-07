@@ -330,22 +330,6 @@ protected:
    // returns -1 for error encountered, 0 for OK
    DLLLOCAL int acceptInputDefault(bool &priv_error, AbstractQoreNode *n) const;
 
-   DLLLOCAL int doAcceptError(bool priv_error, bool obj, int param_num, const char *param_name, AbstractQoreNode *n, ExceptionSink *xsink) const {
-      if (priv_error) {
-         if (obj)
-            doObjectPrivateClassException(param_name, n, xsink);
-         else
-            doPrivateClassException(param_num + 1, param_name, n, xsink);
-      }
-      else {
-         if (obj)
-            doObjectTypeException(param_name, n, xsink);
-         else
-            doTypeException(param_num + 1, param_name, n, xsink);
-      }
-      return -1;
-   }
-
    DLLLOCAL AbstractQoreNode *acceptInputIntern(bool obj, int param_num, const char *param_name, AbstractQoreNode *n, ExceptionSink *xsink) const {
       if (!input_filter) {
          bool priv_error = false;
@@ -668,6 +652,22 @@ public:
          str.append(getName());
       else
          concatClass(str, qc->getName());
+   }
+
+   DLLLOCAL int doAcceptError(bool priv_error, bool obj, int param_num, const char *param_name, AbstractQoreNode *n, ExceptionSink *xsink) const {
+      if (priv_error) {
+         if (obj)
+            doObjectPrivateClassException(param_name, n, xsink);
+         else
+            doPrivateClassException(param_num + 1, param_name, n, xsink);
+      }
+      else {
+         if (obj)
+            doObjectTypeException(param_name, n, xsink);
+         else
+            doTypeException(param_num + 1, param_name, n, xsink);
+      }
+      return -1;
    }
 };
 
