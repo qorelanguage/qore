@@ -303,7 +303,7 @@ int QoreTypeInfo::acceptInputDefault(bool &priv_error, AbstractQoreNode *n) cons
 	 return 0;
    }
 
-   return -1;
+   return runtimeAcceptInputIntern(priv_error, n);
 }
 
 bool QoreTypeInfo::isInputIdentical(const QoreTypeInfo *typeInfo) const {

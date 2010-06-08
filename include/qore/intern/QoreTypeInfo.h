@@ -369,7 +369,11 @@ protected:
       if (!runtimeAcceptInputIntern(priv_error, n))
          return n;
 
-      return acceptInputImpl(obj, param_num, param_name, n, xsink);
+      if (!acceptInputImpl(n, xsink))
+         if (!*xsink)
+            doAcceptError(false, obj, param_num, param_name, n, xsink);
+
+      return n;
    }
 
    DLLLOCAL bool isTypeIdenticalIntern(const QoreTypeInfo *typeInfo) const {
@@ -389,9 +393,9 @@ protected:
    }
 
    // must be reimplemented in subclasses if input_filter is true
-   DLLLOCAL virtual AbstractQoreNode *acceptInputImpl(bool obj, int param_num, const char *param_name, AbstractQoreNode *n, ExceptionSink *xsink) const {
+   DLLLOCAL virtual bool acceptInputImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const {
       assert(false);
-      return n;
+      return false;
    }
 
    // must be reimplemented in subclasses if has_defval is true
@@ -833,7 +837,7 @@ public:
 class AcceptsMultiFilterTypeInfo : public AcceptsMultiTypeInfo {
 protected:
    // must be reimplemented in subclasses if input_filter is true
-   DLLLOCAL virtual AbstractQoreNode *acceptInputImpl(bool obj, int param_num, const char *param_name, AbstractQoreNode *n, ExceptionSink *xsink) const = 0;
+   DLLLOCAL virtual bool acceptInputImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const = 0;
 
 public:
    DLLLOCAL AcceptsMultiFilterTypeInfo(const QoreClass *n_qc, qore_type_t n_qt, bool n_has_subtype = false, 
@@ -845,21 +849,20 @@ public:
 
 class FloatTypeInfo : public AcceptsMultiFilterTypeInfo {
 protected:
-   DLLLOCAL virtual AbstractQoreNode *acceptInputImpl(bool obj, int param_num, const char *param_name, AbstractQoreNode *n, ExceptionSink *xsink) const {
+   DLLLOCAL bool acceptInputImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const {
       qore_type_t t = get_node_type(n);
 
       if (t == NT_FLOAT)
-         return n;
+         return true;
 
       // only perform dynamic cast if type is external
-      if (t != NT_INT && (t < QORE_NUM_TYPES || !dynamic_cast<const QoreBigIntNode *>(n))) {
-         doAcceptError(false, obj, param_num, param_name, n, xsink);
-         return n;
-      }
+      if (t != NT_INT && (t < QORE_NUM_TYPES || !dynamic_cast<const QoreBigIntNode *>(n)))
+         return false;
 
       QoreFloatNode *f = new QoreFloatNode(reinterpret_cast<const QoreBigIntNode *>(n)->val);
       n->deref(xsink);
-      return f;
+      n = f;
+      return true;
    }
 
 public:
@@ -946,23 +949,22 @@ protected:
       return "softint";
    }
 
-   DLLLOCAL virtual AbstractQoreNode *acceptInputImpl(bool obj, int param_num, const char *param_name, AbstractQoreNode *n, ExceptionSink *xsink) const {
+   DLLLOCAL virtual bool acceptInputImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const {
       qore_type_t t = get_node_type(n);
 
       if (t == NT_INT || (t >= QORE_NUM_TYPES && dynamic_cast<const QoreBigIntNode *>(n)))
-         return n;
+         return true;
 
       if (t != NT_FLOAT
           && t != NT_STRING
           && t != NT_BOOLEAN
-          && t != NT_DATE) {
-         doAcceptError(false, obj, param_num, param_name, n, xsink);
-         return n;
-      }
+          && t != NT_DATE)
+         return false;
 
       int64 rv = n->getAsBigInt();
       n->deref(xsink);
-      return new QoreBigIntNode(rv);
+      n = new QoreBigIntNode(rv);
+      return true;
    }
 
    // must be reimplemented in subclasses if has_defval is true
@@ -986,23 +988,22 @@ protected:
       return "softfloat";
    }
 
-   DLLLOCAL virtual AbstractQoreNode *acceptInputImpl(bool obj, int param_num, const char *param_name, AbstractQoreNode *n, ExceptionSink *xsink) const {
+   DLLLOCAL virtual bool acceptInputImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const {
       qore_type_t t = get_node_type(n);
 
       if (t == NT_FLOAT)
-         return n;
+         return true;
 
       if (t != NT_INT && (t < QORE_NUM_TYPES || !dynamic_cast<const QoreBigIntNode *>(n))
           && t != NT_STRING
           && t != NT_BOOLEAN
-          && t != NT_DATE) {
-         doAcceptError(false, obj, param_num, param_name, n, xsink);
-         return n;
-      }
+          && t != NT_DATE)
+         return false;
 
       double rv = n->getAsFloat();
       n->deref(xsink);
-      return new QoreFloatNode(rv);
+      n = new QoreFloatNode(rv);
+      return true;
    }
 
    // must be reimplemented in subclasses if has_defval is true
@@ -1026,23 +1027,22 @@ protected:
       return "softbool";
    }
 
-   DLLLOCAL virtual AbstractQoreNode *acceptInputImpl(bool obj, int param_num, const char *param_name, AbstractQoreNode *n, ExceptionSink *xsink) const {
+   DLLLOCAL virtual bool acceptInputImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const {
       qore_type_t t = get_node_type(n);
 
       if (t == NT_BOOLEAN)
-         return n;
+         return true;
 
       if (t != NT_INT && (t < QORE_NUM_TYPES || !dynamic_cast<const QoreBigIntNode *>(n))
           && t != NT_FLOAT
           && t != NT_STRING
-          && t != NT_DATE) {
-         doAcceptError(false, obj, param_num, param_name, n, xsink);
-         return n;
-      }
+          && t != NT_DATE)
+         return false;
 
       bool rv = n->getAsBool();
       n->deref(xsink);
-      return get_bool_node(rv);
+      n = get_bool_node(rv);
+      return true;
    }
 
    // must be reimplemented in subclasses if has_defval is true
@@ -1066,24 +1066,23 @@ protected:
       return "softstring";
    }
 
-   DLLLOCAL AbstractQoreNode *acceptInputImpl(bool obj, int param_num, const char *param_name, AbstractQoreNode *n, ExceptionSink *xsink) const {
+   DLLLOCAL virtual bool acceptInputImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const {
       qore_type_t t = get_node_type(n);
 
       if (t == NT_STRING)
-         return n;
+         return true;
 
       if (t != NT_INT && (t < QORE_NUM_TYPES || !dynamic_cast<const QoreBigIntNode *>(n))
           && t != NT_FLOAT
           && t != NT_BOOLEAN
-          && t != NT_DATE) {
-         doAcceptError(false, obj, param_num, param_name, n, xsink);
-         return n;
-      }
+          && t != NT_DATE)
+         return false;
 
       QoreStringNodeValueHelper str(n);
       QoreStringNode *rv = str.getReferencedValue();
       n->deref(xsink);
-      return rv;
+      n = rv;
+      return true;
    }
 
    // must be reimplemented in subclasses if has_defval is true
@@ -1128,8 +1127,8 @@ protected:
       return at;
    }
 
-   DLLLOCAL virtual AbstractQoreNode *acceptInputImpl(bool obj, int param_num, const char *param_name, AbstractQoreNode *n, ExceptionSink *xsink) const {
-      return helper.acceptInputImpl(obj, param_num, param_name, n, xsink);
+   DLLLOCAL virtual bool acceptInputImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const {
+      return helper.acceptInputImpl(n, xsink);
    }
 
 public:

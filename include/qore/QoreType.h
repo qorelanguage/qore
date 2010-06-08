@@ -133,7 +133,7 @@ protected:
    }
 
    //! this function must be reimplemented if setInputFilter() is called
-   DLLEXPORT virtual AbstractQoreNode *acceptInputImpl(bool obj, int param_num, const char *param_name, AbstractQoreNode *n, ExceptionSink *xsink) const;
+   DLLEXPORT virtual bool acceptInputImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const;
 
 public:
    //! allocates a QoreTypeInfo object with no type information

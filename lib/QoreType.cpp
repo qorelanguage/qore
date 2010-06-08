@@ -117,9 +117,9 @@ void QoreTypeInfoHelper::setIntMatch() {
    typeInfo->setIntMatch();
 }
 
-AbstractQoreNode *QoreTypeInfoHelper::acceptInputImpl(bool obj, int param_num, const char *param_name, AbstractQoreNode *n, ExceptionSink *xsink) const {
+bool QoreTypeInfoHelper::acceptInputImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const {
    assert(false);
-   return n;
+   return false;
 }
 
 int QoreTypeInfoHelper::doAcceptError(bool priv_error, bool obj, int param_num, const char *param_name, AbstractQoreNode *n, ExceptionSink *xsink) const {
