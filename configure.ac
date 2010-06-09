@@ -338,6 +338,15 @@ AC_ARG_ENABLE([static-zlib],
       esac],
      [enable_static_zlib=no])
 
+AC_ARG_ENABLE([static-bz2],
+     [AS_HELP_STRING([--enable-static-bz2],
+		     [force static linkage of bz2 libraries (default=auto)])],
+     [case "${enable_static_bz2}" in
+       yes|no) ;;
+       *)      AC_MSG_ERROR(bad value ${enable_static_bz2} for --enable-static-bz2) ;;
+      esac],
+     [enable_static_bz2=no])
+
 AC_ARG_ENABLE([static-pcre],
      [AS_HELP_STRING([--enable-static-pcre],
 		     [force static linkage of pcre libraries (default=auto)])],
@@ -364,12 +373,22 @@ if test "$enable_static_libxml2" = "yes"; then
    libxml2_static=yes
 fi
 
+if test "$enable_static_zlib" = "yes"; then
+   zlib_static=yes
+fi
+
+if test "$enable_static_bz2" = "yes"; then
+   bz2lib_static=yes
+elif test "$enable_static_bz2" != "no" -a "$BZ2_STATIC" = "yes"; then
+   bz2lib_static=yes
+fi
+
 if test "$enable_static_pcre" = "yes"; then
    pcre_static=yes
 fi
 
 if test "$enable_static_common" = "yes"; then
-   zlib_statis=yes
+   zlib_static=yes
    openssl_static=yes
    libxml2_static=yes
    pcre_static=yes
@@ -765,10 +784,7 @@ find_bz2lib() {
 	    BZ2_LDFLAGS="$BZ2_LDFLAGS -lbz2"
        	    AC_MSG_RESULT([$lib (shared)])
     	elif test -f "$lib/libbz2.a"; then
-	    if test "$lib" != "/lib" -a "$lib" != "/usr/lib"; then
-       	        BZ2_LDFLAGS="-L$lib"
-    	    fi
-	    BZ2_LDFLAGS="$BZ2_LDFLAGS -lbz2"
+	    BZ2_LDFLAGS="$BZ2_LDFLAGS $lib/libbz2.a"
        	    AC_MSG_RESULT([$lib (static)])
     	fi
     fi

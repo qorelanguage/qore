@@ -1157,7 +1157,7 @@ public:
 
    // used when assigning a base type after the fact
    DLLLOCAL ExternalTypeInfo(const char *n_tname, const QoreTypeInfoHelper &n_helper) : 
-      QoreTypeInfo(NT_NOTHING, 0,
+      QoreTypeInfo(0, NT_NOTHING,
                    false,  // returns_mult 
                    false,  // accepts_mult
                    false,  // input_filter
