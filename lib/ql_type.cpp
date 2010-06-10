@@ -91,6 +91,29 @@ static AbstractQoreNode *f_hash_list(const QoreListNode *params, ExceptionSink *
    return h.release();
 }
 
+static AbstractQoreNode *f_hash_list_list(const QoreListNode *params, ExceptionSink *xsink) {
+   const QoreListNode *keys = HARD_QORE_LIST(params, 0);
+   const QoreListNode *values = HARD_QORE_LIST(params, 1);
+
+   ReferenceHolder<QoreHashNode> h(new QoreHashNode, xsink);
+
+   ConstListIterator ki(keys);
+   ConstListIterator vi(values);
+
+   bool valid = true;
+   while (ki.next()) {
+      if (valid)
+	 valid = vi.next();
+
+      QoreStringValueHelper str(ki.getValue());
+      h->setKeyValue(str->getBuffer(), valid ? vi.getReferencedValue() : 0, xsink);      
+      if (*xsink)
+	 return 0;
+   }
+
+   return h.release();
+}
+
 static AbstractQoreNode *f_hash_hash(const QoreListNode *params, ExceptionSink *xsink) {
    return HARD_QORE_HASH(params, 0)->refSelf();
 }
@@ -164,6 +187,7 @@ void init_type_functions() {
 
    builtinFunctions.add2("hash", f_hash, QC_CONSTANT, QDOM_DEFAULT, hashTypeInfo);
    builtinFunctions.add2("hash", f_hash_list, QC_NO_FLAGS, QDOM_DEFAULT, hashTypeInfo, 1, listTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("hash", f_hash_list_list, QC_NO_FLAGS, QDOM_DEFAULT, hashTypeInfo, 2, listTypeInfo, QORE_PARAM_NO_ARG, listTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("hash", f_hash_hash, QC_CONSTANT, QDOM_DEFAULT, hashTypeInfo, 1, hashTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("hash", f_hash_obj, QC_NO_FLAGS, QDOM_DEFAULT, hashTypeInfo, 1, objectTypeInfo, QORE_PARAM_NO_ARG);
 
