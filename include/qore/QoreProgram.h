@@ -500,6 +500,7 @@ public:
    DLLLOCAL void addParseWarning(int code, ExceptionSink *xsink);
    DLLLOCAL void cannotProvideFeature(QoreStringNode *desc);
    DLLLOCAL void exportUserFunction(const char *name, QoreProgram *p, ExceptionSink *xsink);
+   DLLLOCAL void exportUserFunction(const char *name, const char *new_name, QoreProgram *p, ExceptionSink *xsink);
    DLLLOCAL void endThread(ExceptionSink *xsink);
    DLLLOCAL void startThread();
    DLLLOCAL QoreHashNode *getThreadData();

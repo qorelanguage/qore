@@ -10869,6 +10869,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	  <row>
 	    <entry>
               <para><code><link linkend="Program_importFunction">Program::importFunction</link>(<link linkend="string_type">string</link> <replaceable>$name</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="Program_importFunction">Program::importFunction</link>(<link linkend="string_type">string</link> <replaceable>$name</replaceable>, <link linkend="string_type">string</link> <replaceable>$new_name</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Imports a user function into the program object's space; any calls to the function will run in the parent's space.</para></entry>
@@ -11712,6 +11713,7 @@ $pgm.disableParseOptions(<link linkend="PO_NO_THREADS">PO_NO_THREADS</link> | <l
 	  <term>Prototype</term>
 	  <listitem>
 	    <para><code><link linkend="Program_importFunction">Program::importFunction</link>(<link linkend="string_type">string</link> <replaceable>$name</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+	    <para><code><link linkend="Program_importFunction">Program::importFunction</link>(<link linkend="string_type">string</link> <replaceable>$name</replaceable>, <link linkend="string_type">string</link> <replaceable>$new_name</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -11733,8 +11735,8 @@ $pgm.disableParseOptions(<link linkend="PO_NO_THREADS">PO_NO_THREADS</link> | <l
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code><link linkend="string_type">string</link> <replaceable>$name</replaceable></code></para></entry>
-	      <entry><para>The name of the function to import.</para></entry>
+	      <entry><para><code><link linkend="string_type">string</link> <replaceable>$name</replaceable>, [<link linkend="string_type">string</link> <replaceable>$new_name</replaceable>]</code></para></entry>
+	      <entry><para>The name of the function to import and an optional new name for it to be registered under in the target Program.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>

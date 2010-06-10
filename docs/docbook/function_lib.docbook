@@ -1579,10 +1579,10 @@
         </row>
         <row>
           <entry>
-            <para><code><link linkend="hash">hash</link>(<link linkend="list_type">list</link> $list) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
-            <para><code><link linkend="hash">hash</link>(<link linkend="list_type">list</link> $keys, <link linkend="list_type">list</link> $values) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
-            <para><code><link linkend="hash">hash</link>(<link linkend="hash_type">hash</link> $hash) <command>returns</command> <link linkend="hash_type">hash</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
-            <para><code><link linkend="hash">hash</link>(<link linkend="object_type">object</link> $obj) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
+            <para><code><link linkend="hash">hash</link>(<link linkend="list_type">list</link> <replaceable>$list</replaceable>) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
+            <para><code><link linkend="hash">hash</link>(<link linkend="list_type">list</link> <replaceable>$keys</replaceable>, <link linkend="list_type">list</link> <replaceable>$values</replaceable>) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
+            <para><code><link linkend="hash">hash</link>(<link linkend="hash_type">hash</link> <replaceable>$hash</replaceable>) <command>returns</command> <link linkend="hash_type">hash</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="hash">hash</link>(<link linkend="object_type">object</link> <replaceable>$obj</replaceable>) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
             <para><code><link linkend="hash">hash</link>() <command>returns</command> <link linkend="hash_type">hash</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
           </entry>
           <entry>
@@ -8252,10 +8252,10 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Prototype</term>
       <listitem>
-            <para><code><link linkend="hash">hash</link>(<link linkend="list_type">list</link> $list) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
-            <para><code><link linkend="hash">hash</link>(<link linkend="list_type">list</link> $keys, <link linkend="list_type">list</link> $values) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
-            <para><code><link linkend="hash">hash</link>(<link linkend="hash_type">hash</link> $hash) <command>returns</command> <link linkend="hash_type">hash</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
-            <para><code><link linkend="hash">hash</link>(<link linkend="object_type">object</link> $obj) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
+            <para><code><link linkend="hash">hash</link>(<link linkend="list_type">list</link> <replaceable>$list</replaceable>) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
+            <para><code><link linkend="hash">hash</link>(<link linkend="list_type">list</link> <replaceable>$keys</replaceable>, <link linkend="list_type">list</link> <replaceable>$values</replaceable>) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
+            <para><code><link linkend="hash">hash</link>(<link linkend="hash_type">hash</link> <replaceable>$hash</replaceable>) <command>returns</command> <link linkend="hash_type">hash</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="hash">hash</link>(<link linkend="object_type">object</link> <replaceable>$obj</replaceable>) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
             <para><code><link linkend="hash">hash</link>() <command>returns</command> <link linkend="hash_type">hash</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
       </listitem>
     </varlistentry>
@@ -8266,7 +8266,6 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       </listitem>
     </varlistentry>
   </variablelist>
-
 
       <table>
         <title>Arguments and Return Values for hash()</title>

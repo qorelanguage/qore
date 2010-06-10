@@ -1,13 +1,3 @@
-#all:	qore.html
-#
-#qore.html:	docbook/*docbook
-#	docbook2html -u docbook/qore.docbook
-#
-#clean:
-#	rm -fv qore.html
-#
-#distclean:	clean
-	
 
 DOCBOOK_ROOT := $(shell ./get-docbook-root.sh)
 
@@ -24,6 +14,9 @@ monolithic: docbook/*docbook
 	         --stringparam use.id.as.filename 1 \
 	         --stringparam generate.toc "book toc,title" \
 	         --stringparam toc.max.depth 2 \
+		 --stringparam section.autolabel 1 \
+		 --stringparam section.autolabel.max.depth 3 \
+		 --stringparam section.label.includes.component.label 1 \
 	         --output qore.html \
 		 ${DOCBOOK_ROOT}/docbook.xsl \
 	         docbook/qore.docbook 
@@ -33,6 +26,9 @@ chunked: docbook/*docbook
 	         --stringparam use.id.as.filename 1 \
 	         --stringparam generate.toc "book toc,title" \
 	         --stringparam toc.max.depth 2 \
+		 --stringparam section.autolabel 1 \
+		 --stringparam section.autolabel.max.depth 3 \
+		 --stringparam section.label.includes.component.label 1 \
 	         --stringparam base.dir "qore-html/" \
 		 ${DOCBOOK_ROOT}/chunk.xsl \
 	         docbook/qore.docbook

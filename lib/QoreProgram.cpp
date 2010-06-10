@@ -627,6 +627,18 @@ struct qore_program_private {
 	 imported_func_list.add(p, u);
    }
 
+   // called during run time (not during parsing)
+   DLLLOCAL void importUserFunction(QoreProgram *p, UserFunction *u, const char *new_name, ExceptionSink *xsink) {
+      AutoLocker al(&plock);
+      // check if a user function already exists with this name
+      if (user_func_list.find(new_name))
+	 xsink->raiseException("FUNCTION-IMPORT-ERROR", "user function '%s' already exists in this program object", u->getName());
+      else if (imported_func_list.findNode(new_name))
+	 xsink->raiseException("FUNCTION-IMPORT-ERROR", "function '%s' has already been imported into this program object", u->getName());
+      else
+	 imported_func_list.add(p, new_name, u);
+   }
+
    DLLLOCAL void del(ExceptionSink *xsink) {
       printd(5, "QoreProgram::del() pgm=%08p (base_object=%d)\n", pgm, base_object);
       // wait for all threads to terminate
@@ -675,12 +687,60 @@ struct qore_program_private {
       thread_local_storage->set(new QoreHashNode);
    }
 
-   const AbstractQoreZoneInfo *currentTZ() const {
+   DLLLOCAL const AbstractQoreZoneInfo *currentTZ() const {
       return TZ;
    }
 
-   void setTZ(const AbstractQoreZoneInfo *n_TZ) {
+   DLLLOCAL void setTZ(const AbstractQoreZoneInfo *n_TZ) {
       TZ = n_TZ;
+   }
+
+   DLLLOCAL UserFunction *findUserImportedFunctionUnlocked(const char *name, QoreProgram *&ipgm) {
+      UserFunction *u = user_func_list.find(name);
+      if (!u)
+	 u = imported_func_list.find(name, ipgm);
+
+      return u;
+   }
+
+   DLLLOCAL void exportUserFunction(const char *name, qore_program_private *p, ExceptionSink *xsink) {
+      if (this == p) {
+	 xsink->raiseException("PROGRAM-IMPORTFUNCTION-PARAMETER-ERROR", "cannot import a function from the same Program object");
+	 return;
+      }
+
+      UserFunction *u;
+      QoreProgram *ipgm = pgm;
+
+      {
+	 AutoLocker al(plock);
+	 u = findUserImportedFunctionUnlocked(name, ipgm);
+      }
+
+      if (!u)
+	 xsink->raiseException("PROGRAM-IMPORTFUNCTION-NO-FUNCTION", "function \"%s\" does not exist in the current program scope", name);
+      else
+	 p->importUserFunction(ipgm, u, xsink);
+   }
+
+   DLLLOCAL void exportUserFunction(const char *name, const char *new_name, qore_program_private *p, ExceptionSink *xsink) {
+      if (this == p) {
+	 xsink->raiseException("PROGRAM-IMPORTFUNCTION-PARAMETER-ERROR", "cannot import a function from the same Program object");
+	 return;
+      }
+
+      UserFunction *u;
+      QoreProgram *ipgm = pgm;
+
+      {
+	 AutoLocker al(plock);
+	 u = findUserImportedFunctionUnlocked(name, ipgm);
+      }
+
+      if (!u)
+	 xsink->raiseException("PROGRAM-IMPORTFUNCTION-NO-FUNCTION", "function \"%s\" does not exist in the current program scope", name);
+      else
+	 p->importUserFunction(ipgm, u, new_name, xsink);
    }
 };
 
@@ -960,26 +1020,11 @@ UserFunction *QoreProgram::findUserFunction(const char *name) {
 }
 
 void QoreProgram::exportUserFunction(const char *name, QoreProgram *p, ExceptionSink *xsink) {
-   if (this == p)
-      xsink->raiseException("PROGRAM-IMPORTFUNCTION-PARAMETER-ERROR", "cannot import a function from the same Program object");
-   else {
-      UserFunction *u;
-      priv->plock.lock();
-      u = priv->user_func_list.find(name);
-      if (u) {
-	 priv->plock.unlock();
-	 p->priv->importUserFunction(this, u, xsink);
-      }
-      else {
-	 QoreProgram *ipgm = 0;
-	 u = priv->imported_func_list.find(name, ipgm);
-	 priv->plock.unlock();
-	 if (!u)
-	    xsink->raiseException("PROGRAM-IMPORTFUNCTION-NO-FUNCTION", "function \"%s\" does not exist in the current program scope", name);
-	 else
-	    p->priv->importUserFunction(ipgm, u, xsink);
-      }
-   }
+   priv->exportUserFunction(name, p->priv, xsink);
+}
+
+void QoreProgram::exportUserFunction(const char *name, const char *new_name, QoreProgram *p, ExceptionSink *xsink) {
+   priv->exportUserFunction(name, new_name, p->priv, xsink);
 }
 
 // called during parsing (priv->plock already grabbed)

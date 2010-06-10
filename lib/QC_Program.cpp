@@ -147,9 +147,18 @@ static AbstractQoreNode *PROGRAM_run(QoreObject *self, QoreProgram *p, const Qor
    return p->run(xsink);
 }
 
-static AbstractQoreNode *PROGRAM_importFunction(QoreObject *self, QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink) {
+// Program::importFunction(string $func) returns nothing
+static AbstractQoreNode *PROGRAM_importFunction_str(QoreObject *self, QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink) {
    const QoreStringNode *p0 = HARD_QORE_STRING(params, 0);
    getProgram()->exportUserFunction(p0->getBuffer(), p, xsink);
+   return 0;
+}
+
+// Program::importFunction(string $func, string $new_name) returns nothing
+static AbstractQoreNode *PROGRAM_importFunction_str_str(QoreObject *self, QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink) {
+   const QoreStringNode *p0 = HARD_QORE_STRING(params, 0);
+   const QoreStringNode *p1 = HARD_QORE_STRING(params, 1);
+   getProgram()->exportUserFunction(p0->getBuffer(), p1->getBuffer(), p, xsink);
    return 0;
 }
 
@@ -327,7 +336,9 @@ QoreClass *initProgramClass() {
    QC_PROGRAM->addMethodExtended("run",                  (q_method_t)PROGRAM_run);
 
    // Program::importFunction() returns nothing
-   QC_PROGRAM->addMethodExtended("importFunction",       (q_method_t)PROGRAM_importFunction, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   QC_PROGRAM->addMethodExtended("importFunction",       (q_method_t)PROGRAM_importFunction_str, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   // Program::importFunction(string $func, string $new_name) returns nothing
+   QC_PROGRAM->addMethodExtended("importFunction",       (q_method_t)PROGRAM_importFunction_str_str, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    // Program::importGlobalVariable(string $var, bool $readonly = False) returns nothing
    QC_PROGRAM->addMethodExtended("importGlobalVariable", (q_method_t)PROGRAM_importGlobalVariable, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, boolTypeInfo, &False);
