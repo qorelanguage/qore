@@ -40,6 +40,11 @@
 #include <string>
 #include <map>
 #include <vector>
+#include <set>
+
+typedef std::map<const char *, const char *, ltstr> bl_map_t;
+
+static bl_map_t mod_blacklist;
 
 #define AUTO_MODULE_DIR MODULE_DIR "/auto"
 
@@ -299,6 +304,15 @@ void ModuleManager::globDir(const char *dir) {
 }
 
 void ModuleManager::init(bool se) {
+   static const char *qt_blacklist_string = "because it was implemented with faulty namespace handling that does not work with newer versions of Qore; use the 'qt4' module based in libsmoke instead; it is much more complete";
+
+   // initialize blacklist
+   // add old QT modules to blacklist
+   mod_blacklist.insert(std::make_pair("qt-core", qt_blacklist_string));
+   mod_blacklist.insert(std::make_pair("qt-gui", qt_blacklist_string));
+   mod_blacklist.insert(std::make_pair("qt-svn", qt_blacklist_string));
+   mod_blacklist.insert(std::make_pair("qt-opengl", qt_blacklist_string));
+
    show_errors = se;
 
    // set up auto-load list from QORE_AUTO_MODULE_DIR (if it hasn't already been manually set up)
@@ -624,6 +638,16 @@ QoreStringNode *ModuleManager::loadModuleFromPath(const char *path, const char *
    if ((mi = find(name))) {
       str = new QoreStringNode;
       str->sprintf("module '%s': feature '%s' already registered by '%s'", path, name, mi->getFileName());
+      dlclose(ptr);
+      printd(5, "ModuleManager::loadModuleFromPath() error: %s\n", str->getBuffer());
+      return str;
+   }
+
+   // check if it's been blacklisted
+   bl_map_t::const_iterator i = mod_blacklist.find(name);
+   if (i != mod_blacklist.end()) {
+      str = new QoreStringNode;
+      str->sprintf("module '%s': '%s' is blacklisted %s", path, name, i->second);
       dlclose(ptr);
       printd(5, "ModuleManager::loadModuleFromPath() error: %s\n", str->getBuffer());
       return str;

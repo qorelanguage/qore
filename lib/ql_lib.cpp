@@ -633,13 +633,13 @@ void init_lib_functions() {
    builtinFunctions.add2("unlink",      f_noop, QC_RUNTIME_NOOP, QDOM_FILESYSTEM, nothingTypeInfo);
    builtinFunctions.add2("unlink",      f_unlink, QC_NO_FLAGS, QDOM_FILESYSTEM, bigIntTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("umask",       f_noop, QC_RUNTIME_NOOP, QDOM_FILESYSTEM, nothingTypeInfo);
-   builtinFunctions.add2("umask",       f_umask, QC_NO_FLAGS, QDOM_FILESYSTEM, bigIntTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("umask",       f_noop, QC_RUNTIME_NOOP, QDOM_PROCESS, nothingTypeInfo);
+   builtinFunctions.add2("umask",       f_umask, QC_NO_FLAGS, QDOM_PROCESS, bigIntTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add2("rand",        f_rand, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
 
-   builtinFunctions.add2("srand",       f_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, nothingTypeInfo);
-   builtinFunctions.add2("srand",       f_srand, QC_NO_FLAGS, QDOM_FILESYSTEM, nothingTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("srand",       f_noop, QC_RUNTIME_NOOP, QDOM_PROCESS, nothingTypeInfo);
+   builtinFunctions.add2("srand",       f_srand, QC_NO_FLAGS, QDOM_PROCESS, nothingTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add2("gethostname", f_gethostname, QC_NO_FLAGS, QDOM_EXTERNAL_INFO, stringTypeInfo);
 

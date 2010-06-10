@@ -23100,6 +23100,32 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 
      <para>All Datasource methods accepting SQL strings to execute understand a special syntax used in the query string to bind Qore data by value and to specify placeholders for output variables (for example, when executing a stored procedure or database function).  Placeholder binding is DBI driver specific, but binding by value is supported with the same syntax in all drivers.  Additionally, the <code>%d</code> numeric specifier is supported equally in all Qore DBI drivers.</para>
 
+    <table>
+      <title>Datasource Format Specifiers</title>
+      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	<thead>
+	  <row>
+	    <entry><para>Format Specification</para></entry>
+	    <entry><para>Description</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+	  <row>
+	    <entry><para><code>%d</code></para></entry>
+	    <entry><para>If any value other than <command><link linkend="NOTHING">NOTHING</link></command> or <command><link linkend="NULL">NULL</link></command> is given, then the value is converted to an integer and this value is substituted in the string at this position; if the value is <command><link linkend="NOTHING">NOTHING</link></command> or <command><link linkend="NULL">NULL</link></command>, then a literal 'null' is substituted instead.</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>%s</code></para></entry>
+	    <entry><para>The argument is converted to a string and the string is inserted literally without any conversion or escape sequences in the string; this is useful for table or schema prefixes, etc</para></entry>
+	  </row>
+	  <row>
+	    <entry><para><code>%v</code></para></entry>
+	    <entry><para>The argument is bound by value according to the DBI driver's implementation.</para></entry>
+	  </row>
+	</tbody>
+      </tgroup>
+    </table>
+
      <para>To bind qore data values directly in a binary format in an SQL command, use <code>%v</code> in the command string, and include the value as an argument after the string.  Binding by value means that Qore's DBI driver will take care of formatting the data properly for use in the query with the database server.  That means that strings do not need to be quoted, date/time values do not need special formatting, binary object (with BLOB columns, for example) can be used directly in queries, etc.</para>
 
      <para>Here is an example:</para>

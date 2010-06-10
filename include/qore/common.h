@@ -161,8 +161,6 @@ typedef std::vector<const QoreTypeInfo *> type_vec_t;
 //! vector of value information for default argument lists
 typedef std::vector<AbstractQoreNode *> arg_vec_t;
 
-typedef std::set<char *, ltstr> strset_t;
-
 typedef long long int64;
 
 //! the type used for builtin function signatures

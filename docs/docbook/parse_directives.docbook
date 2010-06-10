@@ -734,123 +734,91 @@
 
 	  <table>
 	    <title>Unavailable Features with no-filesystem</title>
-	    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	    <tgroup cols='1' align='left' colsep='1' rowsep='1'>
 	      <thead>
 		<row>
 		  <entry><para>Feature/Function</para></entry>
-		  <entry><para>Description</para></entry>
 		</row>
 	      </thead>
 	      <tbody>
-		<row>
-		  <entry><para><link linkend="Dir_Class">Dir</link> class</para></entry>
-		  <entry><para>The Dir class is not available.</para></entry>
-		</row>
-		<row>
-		  <entry><para><link linkend="File_Class">File</link> class</para></entry>
-		  <entry><para>The File class is not available.</para></entry>
-		</row>
+		<row><entry><para><link linkend="Dir_Class">Dir</link> class</para></entry></row>
+		<row><entry><para><link linkend="File_Class">File</link> class</para></entry></row>
+		<row><entry><para><link linkend="FtpClient_get">FtpClient::get()</link> method</para></entry></row>
+		<row><entry><para><link linkend="FtpClient_put">FtpClient::put()</link> method</para></entry></row>
 		<row>
 		  <entry><para><link linkend="chdir">chdir()</link></para></entry>
-		  <entry><para>The chdir() function is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="chmod">chmod()</link></para></entry>
-		  <entry><para>The chmod() function is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="chown">chown()</link></para></entry>
-		  <entry><para>The chown() function is not available.</para></entry>
 		</row>
-		<row>
-		  <entry><para><link linkend="glob">glob()</link></para></entry>
-		  <entry><para>The glob() function is not available.</para></entry>
-		</row>
+		<row><entry><para><link linkend="getcwd">getcwd()</link></para></entry></row>
+		<row><entry><para><link linkend="getcwd2">getcwd2()</link></para></entry></row>
+		<row><entry><para><link linkend="glob">glob()</link></para></entry></row>
 		<row>
 		  <entry><para><link linkend="hlstat">hlstat()</link></para></entry>
-		  <entry><para>The hlstat() function is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="hstat">hstat()</link></para></entry>
-		  <entry><para>The hstat() function is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="is_bdev">is_cdev()</link></para></entry>
-		  <entry><para>The is_cdev() function is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="is_cdev">is_bdev()</link></para></entry>
-		  <entry><para>The is_bdev() function is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="is_dev">is_dev()</link></para></entry>
-		  <entry><para>The is_dev() function is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="is_executable">is_executable()</link></para></entry>
-		  <entry><para>The is_executable() function is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="is_dir">is_dir()</link></para></entry>
-		  <entry><para>The is_dir() function is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="is_file">is_file()</link></para></entry>
-		  <entry><para>The is_file() function is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="is_pipe">is_pipe()</link></para></entry>
-		  <entry><para>The is_pipe() function is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="is_link">is_link()</link></para></entry>
-		  <entry><para>The is_link() function is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="is_readable">is_readable()</link></para></entry>
-		  <entry><para>The is_readable() function is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="is_socket">is_socket()</link></para></entry>
-		  <entry><para>The is_socket() function is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="is_writeable">is_writeable()</link></para></entry>
-		  <entry><para>The is_writeable() function is not available.</para></entry>
 		</row>
-		<row>
-		  <entry><para><link linkend="lstat">lstat()</link></para></entry>
-		  <entry><para>The lstat() function is not available.</para></entry>
-		</row>
+		<row><entry><para><link linkend="lchown">lchown()</link></para></entry></row>
+		<row><entry><para><link linkend="lstat">lstat()</link></para></entry></row>
 		<row>
 		  <entry><para><link linkend="mkdir">mkdir()</link></para></entry>
-		  <entry><para>The mkdir() function is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="mkfifo">mkfifo()</link></para></entry>
-		  <entry><para>The mkfifo() function is not available.</para></entry>
 		</row>
 <!--
 		<row>
 		  <entry><para><link linkend="mknod">mknod()</link></para></entry>
-		  <entry><para>The mknod() function is not available.</para></entry>
 		</row>
 -->
+		<row><entry><para><link linkend="readlink">readlink()</link></para></entry></row>
+		<row><entry><para><link linkend="rename">rename()</link></para></entry></row>
 		<row>
 		  <entry><para><link linkend="rmdir">rmdir()</link></para></entry>
-		  <entry><para>The rmdir() function is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="stat">stat()</link></para></entry>
-		  <entry><para>The stat() function is not available.</para></entry>
-		</row>
-		<row>
-		  <entry><para><link linkend="umask">umask()</link></para></entry>
-		  <entry><para>The umask() function is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="unlink">unlink()</link></para></entry>
-		  <entry><para>The unlink() function is not available.</para></entry>
 		</row>
 	      </tbody>
 	    </tgroup>
@@ -1128,61 +1096,47 @@
 	  <para>Disallows access to functions that would affect the current process.</para>
 	  <table>
 	    <title>Unavailable Features with no-process-control</title>
-	    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	    <tgroup cols='1' align='left' colsep='1' rowsep='1'>
 	      <thead>
 		<row>
 		  <entry><para>Feature/Function</para></entry>
-		  <entry><para>Description</para></entry>
 		</row>
 	      </thead>
 	      <tbody>
 		<row>
 		  <entry><para><link linkend="abort">abort()</link></para></entry>
-		  <entry><para>The abort() function is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="fork">fork()</link></para></entry>
-		  <entry><para>The fork() function is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="exec">exec()</link></para></entry>
-		  <entry><para>The exec() function is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="exit">exit()</link></para></entry>
-		  <entry><para>The exit() function is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="remove_signal_handler">remove_signal_handler()</link></para></entry>
-		  <entry><para>The remove_signal_handler() function is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="set_signal_handler">set_signal_handler()</link></para></entry>
-		  <entry><para>The set_signal_handler() function is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="setegid">setegid()</link></para></entry>
-		  <entry><para>The setegid() function is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="seteuid">seteuid()</link></para></entry>
-		  <entry><para>The seteuid() function is not available.</para></entry>
 		</row>
-		<row>
-		  <entry><para><link linkend="setgid">setgid()</link></para></entry>
-		  <entry><para>The setgid() function is not available.</para></entry>
-		</row>
+		<row><entry><para><link linkend="setgid">setgid()</link></para></entry></row>
+		<row><entry><para><link linkend="setsid">setsid()</link></para></entry></row>
 		<row>
 		  <entry><para><link linkend="setuid">setuid()</link></para></entry>
-		  <entry><para>The setuid() function is not available.</para></entry>
 		</row>
-		<row>
-		  <entry><para><link linkend="sleep">sleep()</link></para></entry>
-		  <entry><para>The sleep() function is not available.</para></entry>
-		</row>
+		<row><entry><para><link linkend="sleep">sleep()</link></para></entry></row>
+		<row><entry><para><link linkend="srand">srand()</link></para></entry></row>
+		<row><entry><para><link linkend="umask">umask()</link></para></entry></row>
 		<row>
 		  <entry><para><link linkend="usleep">usleep()</link></para></entry>
-		  <entry><para>The usleep() function is not available.</para></entry>
 		</row>
 	      </tbody>
 	    </tgroup>

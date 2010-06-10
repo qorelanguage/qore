@@ -2978,6 +2978,15 @@
       </row>
       <row>
         <entry>
+          <para><code><link linkend="setsid">setsid</link>() <command>returns</command> <link linkend="int_type">int</link></code></para>
+        </entry>
+        <entry><para>N</para></entry>
+        <entry>
+          <para>Creates a new session lead by the current process.</para>
+        </entry>
+      </row>
+      <row>
+        <entry>
           <para><code><link linkend="setuid">setuid</link>(<link linkend="softint_type">softint</link>) <command>returns</command> <link linkend="int_type">int</link></code></para>
         </entry>
         <entry><para>N</para></entry>
@@ -11268,6 +11277,60 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       </tgroup>
     </table>
   </sect2>
+
+  <sect2 id="setsid">
+    <title>setsid()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Creates a new session lead by the calling process.</para>
+	  <para>The calling process is the session leader of the new session, is the process group leader of a new process group and has no controlling terminal.  The calling process is the only process in either the session or the process group.</para>
+	  <para>Upon successful completion, the <code>setsid()</code> function returns the value of the process group ID of the new process group, which is the same as the process ID of the calling process.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Prototype</term>
+        <listitem>
+          <para><code><link linkend="setsid">setsid</link>() <command>returns</command> <link linkend="int_type">int</link></code></para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting><command>my</command> int $rc = setsid();</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Restrictions</term>
+	<listitem>
+	  <para>Not available with <code><link linkend="no-process-control">PO_NO_PROCESS_CONTROL</link></code></para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for setsid()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry><para>Argument Type</para></entry>
+            <entry><para>Return Type</para></entry>
+            <entry><para>Description</para></entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry><para>n/a</para></entry>
+            <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+            <entry>
+              <para>Returns the current pid on success or -1 for errors (in which case the error code can be retrieved with <link linkend="errno">errno()</link>)</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
+
   <sect2 id="setuid">
     <title>setuid()</title>
     <variablelist>
@@ -17817,7 +17880,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Restrictions</term>
       <listitem>
-	<para>Not available with <code><link linkend="no-filesystem">PO_NO_FILESYSTEM</link></code></para>
+	<para>Not available with <code><link linkend="no-process-control">PO_NO_PROCESS_CONTROL</link></code></para>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -22410,6 +22473,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <term>Synopsis</term>
       <listitem>
 	<para>Seeds the random number generator with the integer passed (uses the C library function <code>srandom()</code>).</para>
+	<para>This function is tagged with <code><link linkend="no-process-control">PO_NO_PROCESS_CONTROL</link></code> because it affects the process as a whole.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -22423,6 +22487,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <term>Example</term>
       <listitem>
 	<programlisting>srand(now()); # seeds with current time</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Restrictions</term>
+      <listitem>
+	<para>Not available with <code><link linkend="no-process-control">PO_NO_PROCESS_CONTROL</link></code></para>
       </listitem>
     </varlistentry>
   </variablelist>

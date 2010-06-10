@@ -142,6 +142,7 @@ date_us(softint) returns date
 microseconds(softint) returns date
 get_microseconds(date) returns int
 get_epoch_seconds(date) returns int
+setsid() returns int
 
 * new overloaded variants of existing functions
 gmtime(date) returns date
@@ -194,33 +195,46 @@ contrary to what any reasonable programmer would expect.  From this version on, 
 raised when a given method name cannot be found in the current class or base classes.  such calls may be valid if the method itself is called from a derived class where the method exists
 
 * new warning: invalid-operation
+warns when an expression will produce a constant output due to type errors
 
 * new warning: call-with-type-errors
+warns when a variant tagged with RT_NOOP is resolved at parse time
 
 * new warning: return-value-ignored
+warns when a function or method that only returns a value and has no side effects has its return value ignored
 
 * new warning: deprecated
+warns when deprecated features are accessed
 
 * new warning: excess-args
+warns when excess arguments are passed to a variant that does not access the excess arguments
 
 * new warning: duplicate-hash-key
+warns when a duplicate hash key is given in an immediate literal hash
 
 * default warning mask updated
 the default warning mask includes: unknown-warning, unreachable-code, nonexistent-method-call, invalid-operation, call-with-type-errors, return-value-ignored, duplicate-hash-key
 
-* new parse option PO_REQUIRE_TYPES (%require-types)
+* new parse option PO_REQUIRE_TYPES (%require-types), command-line --require-types
+if this option is given, then all parameters, return types, and object members must have a declared type
+if no return type for functions and methods is explicitly declared when this option is set, then the return type is assumed to be NOTHING
+this option also implies PO_STRICT_ARGS
 
-* new parse option PO_NO_THREAD_INFO, domain QDOM_THREAD_INFO
+* new parse option PO_STRICT_ARGS (%strict-args), command-line --strict-args
+when this option is set, no variant tagged with RT_NOOP is accessible; any access to variants with this tag at parse-time or at runtime will result in an exception
+Additionally, if excess arguments are sent to a function or method that does not access excess arguments, an exception is raised
+
+* new parse option PO_NO_THREAD_INFO (%no-thread-info), command-line --no-thread-info, domain QDOM_THREAD_INFO
 the following functions were tagged with QDOM_THREAD_INFO:
 gettid(), num_threads(), thread_list(), get_thread_data(), get_all_thread_data(), getAllThreadCallStacks()
 
-* new parse option PO_NO_EXTERNAL_INFO, domain QDOM_EXTERNAL_INFO
+* new parse option PO_NO_EXTERNAL_INFO (%no-external-info), command-line --no-external-info, domain QDOM_EXTERNAL_INFO
 the following functions were tagged with QDOM_EXTERNAL_INFO:
 getuid(), geteuid(), getgid(), getegid(), getpid(), getppid(), gethostname(),
 gethostbyname(), gethostbyaddr(), gethostbyname_long(), gethostbyaddr_long(),
 getcwd(), getcwd2(), getpwuid(), getpwuid2(), getpwnam(), getpwnam2()
 
-* new parse option PO_NO_LOCALE_CONTROL, domain QDOM_LOCALE_CONTROL
+* new parse option PO_NO_LOCALE_CONTROL (%no-locale-control), command-line --no-locale-control, domain QDOM_LOCALE_CONTROL
 the following functions were tagged with QDOM_LOCALE_CONTROL:
 TimeZone::set()
 
@@ -268,6 +282,9 @@ timegm() is now an alias for get_epoch_seconds()
 * new constants
 MACHINE_MSB: boolean, True if the machine is a big-endian machine, False if not
 Z_DEFAULT_COMPRESSION: integer; the default compression level for zlib
+
+* module blacklist
+qt-core, qt-gui, qt-svn, and qt-opengl are all blacklisted because they were implemented with faulty namespace handling that does not work with qore 0.8.0+; use the 'qt4' module based on libsmoke instead; it's much more complete and supports types, etc
 
 * COMPATIBILITY WARNING: HTTPClient::setSecure(bool $b = True)
 before calling this method without an argument would turn off secure connections, which was counter-intuitive
