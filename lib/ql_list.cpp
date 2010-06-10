@@ -256,9 +256,9 @@ void init_list_functions() {
    builtinFunctions.add2("reverse", f_reverse_list, QC_CONSTANT, QDOM_DEFAULT, listTypeInfo, 1, listTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add2("inlist", f_bool_noop, QC_NOOP, QDOM_DEFAULT, boolTypeInfo);
+   builtinFunctions.add2("inlist", f_bool_noop, QC_NOOP, QDOM_DEFAULT, boolTypeInfo, 2, anyTypeInfo, QORE_PARAM_NO_ARG, nothingTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("inlist", f_inlist_any_list, QC_NO_FLAGS, QDOM_DEFAULT, boolTypeInfo, 2, anyTypeInfo, QORE_PARAM_NO_ARG, listTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("inlist", f_inlist_any_any, QC_NO_FLAGS, QDOM_DEFAULT, boolTypeInfo, 2, anyTypeInfo, QORE_PARAM_NO_ARG, somethingTypeInfo, QORE_PARAM_NO_ARG);
-
 
    builtinFunctions.add2("inlist_hard", f_bool_noop, QC_NOOP, QDOM_DEFAULT, boolTypeInfo, 2, anyTypeInfo, QORE_PARAM_NO_ARG, nothingTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("inlist_hard", f_inlist_hard_any_something, QC_NO_FLAGS, QDOM_DEFAULT, boolTypeInfo, 2, anyTypeInfo, QORE_PARAM_NO_ARG, somethingTypeInfo, QORE_PARAM_NO_ARG);
