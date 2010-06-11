@@ -135,10 +135,10 @@ public:
    DLLEXPORT void concatAndHTMLDecode(const QoreString *str);
 
    //! concatenates a string and escapes character c with esc_char (converts encodings if necessary)
-   DLLEXPORT void concatEscape(const QoreString *, char c, char esc_char, ExceptionSink *xsink);
+   DLLEXPORT void concatEscape(const QoreString *str, char c, char esc_char, ExceptionSink *xsink);
 
    //! concatenates a string and escapes character c with esc_char
-   DLLEXPORT void concatEscape(const char *, char c, char esc_char = '\\');
+   DLLEXPORT void concatEscape(const char *str, char c, char esc_char = '\\');
 
    //! concatenation with character set conversion
    DLLEXPORT void concatAndHTMLEncode(const QoreString *, ExceptionSink *xsink);
@@ -522,6 +522,14 @@ private:
    void *operator new(size_t);
 
 public:
+   //! populates the object with a new QoreString that this object will manage
+   DLLLOCAL TempString() : str(new QoreString) {
+   }
+
+   //! populates the object with a new QoreString in a specific encoding that this object will manage
+   DLLLOCAL TempString(const QoreEncoding *enc) : str(new QoreString(enc)) {
+   }
+
    //! populates the object with the QoreString pointer to be managed
    DLLLOCAL TempString(QoreString *s) {
       str = s;

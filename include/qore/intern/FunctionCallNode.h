@@ -214,7 +214,7 @@ public:
       //printd(0, "MethodCallNode::MethodCallNode() this=%08p name='%s' args=%08p (len=%d)\n", this, c_str, args, args ? args->size() : -1);
    }
 
-   DLLLOCAL MethodCallNode(const MethodCallNode &old, QoreListNode *n_args) : AbstractFunctionCallNode(NT_METHOD_CALL, n_args), c_str(0), qc(old.qc), method(old.method) {
+   DLLLOCAL MethodCallNode(const MethodCallNode &old, QoreListNode *n_args) : AbstractFunctionCallNode(NT_METHOD_CALL, n_args), c_str(old.c_str ? strdup(old.c_str) : 0), qc(old.qc), method(old.method) {
    }
 
    DLLLOCAL virtual ~MethodCallNode() {

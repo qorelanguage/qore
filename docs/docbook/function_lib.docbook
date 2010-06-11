@@ -166,9 +166,10 @@
 
         <row>
           <entry>
-            <para><code><link linkend="binary">binary</link>(<link linkend="string_type">softstring</link>) <command>returns</command> <link linkend="binary_type">binary</link></code></para>
-            <para><code><link linkend="binary">binary</link>(<link linkend="binary_type">binary</link>) <command>returns</command> <link linkend="binary_type">binary</link></code></para>
-            <para><code><link linkend="binary">binary</link>() <command>returns</command> <link linkend="binary_type">binary</link></code></para>
+            <para><code><link linkend="binary">binary</link>(<link linkend="string_type">softstring</link>) <command>returns</command> <link linkend="binary_type">binary</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="binary">binary</link>(<link linkend="binary_type">binary</link>) <command>returns</command> <link linkend="binary_type">binary</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="binary">binary</link>(<link linkend="null_type">null</link>) <command>returns</command> <link linkend="binary_type">binary</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="binary">binary</link>() <command>returns</command> <link linkend="binary_type">binary</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
           </entry>
           <entry><para>N</para></entry>
           <entry><para>Returns a binary data type of the data passed.</para></entry>
@@ -230,8 +231,9 @@
 
         <row>
           <entry>
-            <para><code><link linkend="boolean">boolean</link>(<link linkend="softbool_type">softbool</link>) <command>returns</command> <link linkend="bool_type">bool</link></code></para>
-            <para><code><link linkend="boolean">boolean</link>() <command>returns</command> <link linkend="bool_type">bool</link></code></para>
+            <para><code><link linkend="boolean">boolean</link>(<link linkend="softbool_type">softbool</link>) <command>returns</command> <link linkend="bool_type">bool</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="boolean">boolean</link>(<link linkend="null_type">null</link>) <command>returns</command> <link linkend="bool_type">bool</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="boolean">boolean</link>() <command>returns</command> <link linkend="bool_type">bool</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
           </entry>
           <entry>
             <para>N</para>
@@ -499,7 +501,8 @@
           <entry>
             <para><code><link linkend="date">date</link>(<link linkend="string_type">string</link>) <command>returns</command> <link linkend="date_type">date</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
             <para><code><link linkend="date">date</link>(<link linkend="softint_type">softint</link>) <command>returns</command> <link linkend="date_type">date</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
-            <para><code><link linkend="date">date</link>() <command>returns</command> <link linkend="date_type">date</link> (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
+            <para><code><link linkend="date">date</link>(<link linkend="null_type">null</link>) <command>returns</command> <link linkend="date_type">date</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="date">date</link>() <command>returns</command> <link linkend="date_type">date</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
           </entry>
           <entry><para>N</para></entry>
           <entry><para>Converts the argument passed to a date.</para></entry>
@@ -738,7 +741,7 @@
             <para>N</para>
           </entry>
           <entry>
-            <para>Returns True if the function exists in the current program's function name space.</para>
+            <para>Returns <code>True</code> if the function exists in the current program's function name space.</para>
           </entry>
         </row>
         <row>
@@ -817,6 +820,7 @@
         <row>
           <entry>
             <para><code><link linkend="float">float</link>(<link linkend="softfloat_type">softfloat</link>) <command>returns</command> <link linkend="float_type">float</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="float">float</link>(<link linkend="null_type">null</link>) <command>returns</command> <link linkend="float_type">float</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
             <para><code><link linkend="float">float</link>() <command>returns</command> <link linkend="float_type">float</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
           </entry>
           <entry>
@@ -1687,7 +1691,7 @@
             <para><code><link linkend="inlist">inlist</link>() <command>returns</command> <link linkend="bool_type">bool</link> (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
           </entry>
           <entry><para>N</para></entry>
-          <entry><para>Returns True if the first argument is a member of the second argument list using comparisons with type conversions.</para></entry>
+          <entry><para>Returns <code>True</code> if the first argument is a member of the second argument list using comparisons with type conversions.</para></entry>
         </row>
         <row>
           <entry>
@@ -1695,11 +1699,12 @@
             <para><code><link linkend="inlist_hard">inlist_hard</link>(<link linkend="any_type">any</link>, <link linkend="any_type">any</link>) <command>returns</command> <link linkend="bool_type">bool</link></code></para>
           </entry>
           <entry><para>N</para></entry>
-          <entry><para>Returns True if the first argument is a member of the second argument list using comparisons without type conversions.</para></entry>
+          <entry><para>Returns <code>True</code> if the first argument is a member of the second argument list using comparisons without type conversions.</para></entry>
         </row>
         <row>
           <entry>
             <para><code><link linkend="int">int</link>(<link linkend="softint_type">softint</link>) <command>returns</command> <link linkend="int_type">int</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="int">int</link>(<link linkend="null_type">null</link>) <command>returns</command> <link linkend="int_type">int</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
             <para><code><link linkend="int">int</link>() <command>returns</command> <link linkend="int_type">int</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
           </entry>
           <entry>
@@ -1717,7 +1722,7 @@
           <para>N</para>
         </entry>
         <entry>
-          <para>Returns True if the string passed identifies a block device file on the filesystem.</para>
+          <para>Returns <code>True</code> if the string passed identifies a block device file on the filesystem.</para>
         </entry>
       </row>
       <row>
@@ -1728,7 +1733,7 @@
           <para>N</para>
         </entry>
         <entry>
-          <para>Returns True if the string passed identifies a character device file on the filesystem.</para>
+          <para>Returns <code>True</code> if the string passed identifies a character device file on the filesystem.</para>
         </entry>
       </row>
 
@@ -1741,7 +1746,7 @@
           <para>N</para>
         </entry>
         <entry>
-          <para>Returns True if an absolute date is passed as an argument, False if not.</para>
+          <para>Returns <code>True</code> if an absolute date is passed as an argument, <code>False</code> if not.</para>
         </entry>
       </row>
 
@@ -1754,7 +1759,7 @@
           <para>N</para>
         </entry>
         <entry>
-          <para>Returns True if a relative date is passed as an argument, False if not.</para>
+          <para>Returns <code>True</code> if a relative date is passed as an argument, <code>False</code> if not.</para>
         </entry>
       </row>
 
@@ -1766,7 +1771,7 @@
           <para>N</para>
         </entry>
         <entry>
-          <para>Returns True if the string passed identifies a device file (either block or character) on the filesystem.</para>
+          <para>Returns <code>True</code> if the string passed identifies a device file (either block or character) on the filesystem.</para>
         </entry>
       </row>
       <row>
@@ -1777,7 +1782,7 @@
           <para>N</para>
         </entry>
         <entry>
-          <para>Returns True if the string passed identifies a directory on the filesystem.</para>
+          <para>Returns <code>True</code> if the string passed identifies a directory on the filesystem.</para>
         </entry>
       </row>
       <row>
@@ -1788,7 +1793,7 @@
           <para>N</para>
         </entry>
         <entry>
-          <para>Returns True if the string passed identifies an executable file.</para>
+          <para>Returns <code>True</code> if the string passed identifies an executable file.</para>
         </entry>
       </row>
       <row>
@@ -1799,7 +1804,7 @@
           <para>N</para>
         </entry>
         <entry>
-          <para>Returns True if the string passed identifies a regular file on the filesystem.</para>
+          <para>Returns <code>True</code> if the string passed identifies a regular file on the filesystem.</para>
         </entry>
       </row>
       <row>
@@ -1810,7 +1815,7 @@
           <para>N</para>
         </entry>
         <entry>
-          <para>Returns True if the string passed identifies a symbolic link on the filesystem.</para>
+          <para>Returns <code>True</code> if the string passed identifies a symbolic link on the filesystem.</para>
         </entry>
       </row>
       <row>
@@ -1821,7 +1826,7 @@
           <para>N</para>
         </entry>
         <entry>
-          <para>Returns True if the string passed identifies a pipe (FIFO) on the filesystem.</para>
+          <para>Returns <code>True</code> if the string passed identifies a pipe (FIFO) on the filesystem.</para>
         </entry>
       </row>
       <row>
@@ -1832,7 +1837,7 @@
           <para>N</para>
         </entry>
         <entry>
-          <para>Returns True if the string passed identifies a file readable by the current user.</para>
+          <para>Returns <code>True</code> if the string passed identifies a file readable by the current user.</para>
         </entry>
       </row>
       <row>
@@ -1843,7 +1848,7 @@
           <para>N</para>
         </entry>
         <entry>
-          <para>Returns True if the string passed identifies a socket on the filesystem.</para>
+          <para>Returns <code>True</code> if the string passed identifies a socket on the filesystem.</para>
         </entry>
       </row>
       <row>
@@ -1854,7 +1859,7 @@
           <para>N</para>
         </entry>
         <entry>
-          <para>Returns True if the string passed identifies a file writable by the current user.</para>
+          <para>Returns <code>True</code> if the string passed identifies a file writable by the current user.</para>
         </entry>
       </row>
         <row>
@@ -2028,7 +2033,7 @@
       </row>
       <row>
         <entry>
-          <para><code><link linkend="makeFormattedJSONRPCResponseString">makeFormattedJSONRPCResponseString</link>(<link linkend="any_type">any</link>, <link linkend="any_type">any</link>, <link linkend="any_type">any</link>) return <link linkend="string_type">string</link></code></para>
+          <para><code><link linkend="makeFormattedJSONRPCResponseString">makeFormattedJSONRPCResponseString</link>(<link linkend="any_type">any</link>, <link linkend="any_type">any</link>, <link linkend="any_type">any</link>) <command>returns</command> <link linkend="string_type">string</link></code></para>
         </entry>
         <entry>
           <para>Y</para>
@@ -2172,7 +2177,7 @@
       </row>
       <row>
         <entry>
-          <para><code><link linkend="makeJSONRPCResponseString">makeJSONRPCResponseString</link>(<link linkend="any_type">any</link>, <link linkend="any_type">any</link>, <link linkend="any_type">any</link>) return <link linkend="string_type">string</link></code></para>
+          <para><code><link linkend="makeJSONRPCResponseString">makeJSONRPCResponseString</link>(<link linkend="any_type">any</link>, <link linkend="any_type">any</link>, <link linkend="any_type">any</link>) <command>returns</command> <link linkend="string_type">string</link></code></para>
         </entry>
         <entry>
           <para>Y</para>
@@ -3222,6 +3227,7 @@
         <row>
           <entry>
             <para><code><link linkend="string">string</link>(<link linkend="softstring_type">softstring</link>) <command>returns</command> <link linkend="string_type">string</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="string">string</link>(<link linkend="null_type">null</link>) <command>returns</command> <link linkend="string_type">string</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
             <para><code><link linkend="string">string</link>() <command>returns</command> <link linkend="string_type">string</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
           </entry>
           <entry>
@@ -4485,7 +4491,7 @@
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Returns a floating-point number equal to the closest integer to the argument passed.  Numers halfway between two integers are arounded away from zero.  The availability of this function depends on the presence of the C-library's round() function; for maximum portability check the constant <code>HAVE_ROUND</code> before running this function.  See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
+	<para>Returns a floating-point number equal to the closest integer to the argument passed.  Numers halfway between two integers are arounded away from zero.  The availability of this function depends on the presence of the C-library's round() function; for maximum portability check the constant <code><link linkend="HAVE_ROUND">HAVE_ROUND</link></code> before running this function.  See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -4537,7 +4543,7 @@
     <tbody>
       <row>
 	<entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
-	<entry><para>This exception is thrown when the function is not available; for maximum portability, check the constant <code>HAVE_ROUND</code> before calling this function.</para></entry>
+	<entry><para>This exception is thrown when the function is not available; for maximum portability, check the constant <code><link linkend="HAVE_ROUND">HAVE_ROUND</link></code> before calling this function.</para></entry>
       </row>
     </tbody>
   </tgroup>
@@ -7013,7 +7019,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Returns True if the argument is an <link linkend="Absolute_Dates">absolute date/time value</link>, False if not.</para>
+            <para>Returns <code>True</code> if the argument is an <link linkend="Absolute_Dates">absolute date/time value</link>, <code>False</code> if not.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -7056,7 +7062,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
                 <para><code><link linkend="bool_type">bool</link></code></para>
               </entry>
               <entry>
-                <para>Returns True if the argument is an <link linkend="Absolute_Dates">absolute date/time value</link>, False if not.</para>
+                <para>Returns <code>True</code> if the argument is an <link linkend="Absolute_Dates">absolute date/time value</link>, <code>False</code> if not.</para>
               </entry>
             </row>
           </tbody>
@@ -7071,7 +7077,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Returns True if the argument is an <link linkend="Relative_Dates">relative date/time value</link>, False if not.</para>
+            <para>Returns <code>True</code> if the argument is an <link linkend="Relative_Dates">relative date/time value</link>, <code>False</code> if not.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -7114,7 +7120,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
                 <para><code><link linkend="bool_type">bool</link></code></para>
               </entry>
               <entry>
-                <para>Returns True if the argument is an <link linkend="Relative_Dates">relative date/time value</link>, False if not.</para>
+                <para>Returns <code>True</code> if the argument is an <link linkend="Relative_Dates">relative date/time value</link>, <code>False</code> if not.</para>
               </entry>
             </row>
           </tbody>
@@ -7932,9 +7938,10 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Prototype</term>
       <listitem>
-            <para><code><link linkend="binary">binary</link>(<link linkend="softstring_type">string</link>) <command>returns</command> <link linkend="binary_type">binary</link></code></para>
-            <para><code><link linkend="binary">binary</link>(<link linkend="binary_type">binary</link>) <command>returns</command> <link linkend="binary_type">binary</link></code></para>
-            <para><code><link linkend="binary">binary</link>() <command>returns</command> <link linkend="binary_type">binary</link></code></para>
+            <para><code><link linkend="binary">binary</link>(<link linkend="softstring_type">string</link>) <command>returns</command> <link linkend="binary_type">binary</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="binary">binary</link>(<link linkend="binary_type">binary</link>) <command>returns</command> <link linkend="binary_type">binary</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="binary">binary</link>(<link linkend="null_type">null</link>) <command>returns</command> <link linkend="binary_type">binary</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="binary">binary</link>() <command>returns</command> <link linkend="binary_type">binary</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -8040,8 +8047,9 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Prototype</term>
       <listitem>
-            <para><code><link linkend="boolean">boolean</link>(<link linkend="softbool_type">softbool</link>) <command>returns</command> <link linkend="bool_type">bool</link></code></para>
-            <para><code><link linkend="boolean">boolean</link>() <command>returns</command> <link linkend="bool_type">bool</link></code></para>
+            <para><code><link linkend="boolean">boolean</link>(<link linkend="softbool_type">softbool</link>) <command>returns</command> <link linkend="bool_type">bool</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="boolean">boolean</link>(<link linkend="null_type">null</link>) <command>returns</command> <link linkend="bool_type">bool</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="boolean">boolean</link>() <command>returns</command> <link linkend="bool_type">bool</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -8077,7 +8085,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
                 <para><code><link linkend="bool_type">bool</link></code></para>
               </entry>
               <entry>
-                <para>Converts the argument to an boolean, where any non-zero value is True, zero is False.</para>
+                <para>Converts the argument to an boolean, where any non-zero value is <code>True</code>, zero is <code>False</code>.</para>
               </entry>
             </row>
           </tbody>
@@ -8149,7 +8157,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <listitem>
             <para><code><link linkend="date">date</link>(<link linkend="string_type">string</link>) <command>returns</command> <link linkend="date_type">date</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
             <para><code><link linkend="date">date</link>(<link linkend="softint_type">softint</link>) <command>returns</command> <link linkend="date_type">date</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
-            <para><code><link linkend="date">date</link>() <command>returns</command> <link linkend="date_type">date</link> (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
+            <para><code><link linkend="date">date</link>(<link linkend="null_type">null</link>) <command>returns</command> <link linkend="date_type">date</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="date">date</link>() <command>returns</command> <link linkend="date_type">date</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -8203,6 +8212,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <term>Prototype</term>
       <listitem>
             <para><code><link linkend="float">float</link>(<link linkend="softfloat_type">softfloat</link>) <command>returns</command> <link linkend="float_type">float</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="float">float</link>(<link linkend="null_type">null</link>) <command>returns</command> <link linkend="float_type">float</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
             <para><code><link linkend="float">float</link>() <command>returns</command> <link linkend="float_type">float</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
       </listitem>
     </varlistentry>
@@ -8325,6 +8335,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <term>Prototype</term>
       <listitem>
             <para><code><link linkend="int">int</link>(<link linkend="softint_type">softint</link>) <command>returns</command> <link linkend="int_type">int</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="int">int</link>(<link linkend="null_type">null</link>) <command>returns</command> <link linkend="int_type">int</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
             <para><code><link linkend="int">int</link>() <command>returns</command> <link linkend="int_type">int</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
       </listitem>
     </varlistentry>
@@ -9319,7 +9330,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Returns True if the regular expression matches the string passed, otherwise returns False.</para>
+	<para>Returns <code>True</code> if the regular expression matches the string passed, otherwise returns <code>False</code>.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -9351,7 +9362,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
             <row>
 	      <entry><para><code><link linkend="string_type">string</link> <replaceable>$string</replaceable>, <link linkend="string_type">string</link> <replaceable>$pattern</replaceable>, <link linkend="int_type">int</link> <replaceable>$options</replaceable> = 0</code></para></entry>
               <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
-              <entry><para>Returns True if the first argument matches pattern as the second argument, False if not.  The third argument can be passed to give regex options; for valid options, see <link linkend="Qore_Regex_Constants">Regex Constants</link>.</para></entry>
+              <entry><para>Returns <code>True</code> if the first argument matches pattern as the second argument, <code>False</code> if not.  The third argument can be passed to give regex options; for valid options, see <link linkend="Qore_Regex_Constants">Regex Constants</link>.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -11041,7 +11052,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Changes the process effective group ID according to the argument passed.  Returns 0 for success, non-zero for errors (the error code can be retrieved with <link linkend="errno">errno()</link>).  The availabilty of this function depends on the system's underlying C-library; the Qore function is only available if the constant <code>HAVE_SETEGID</code> is True.  See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
+          <para>Changes the process effective group ID according to the argument passed.  Returns 0 for success, non-zero for errors (the error code can be retrieved with <link linkend="errno">errno()</link>).  The availabilty of this function depends on the system's underlying C-library; the Qore function is only available if the constant <code><link linkend="HAVE_SETEGID">HAVE_SETEGID</link></code> is <code>True</code>.  See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -11106,7 +11117,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           </row>
 	  <row>
 	    <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
-	    <entry><para>This exception is thrown when the function is not available; for maximum portability, check the constant <code>HAVE_SETEGID</code> before calling this function.</para></entry>
+	    <entry><para>This exception is thrown when the function is not available; for maximum portability, check the constant <code><link linkend="HAVE_SETEGID">HAVE_SETEGID</link></code> before calling this function.</para></entry>
 	  </row>
         </tbody>
       </tgroup>
@@ -11119,7 +11130,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Changes the process effective user ID according to the argument passed.  Returns 0 for success, non-zero for errors (the error code can be retrieved with <link linkend="errno">errno()</link>).  The availabilty of this function depends on the system's underlying C-library; the Qore function is only available if the constant <code>HAVE_SETEUID</code> is True.  See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
+          <para>Changes the process effective user ID according to the argument passed.  Returns 0 for success, non-zero for errors (the error code can be retrieved with <link linkend="errno">errno()</link>).  The availabilty of this function depends on the system's underlying C-library; the Qore function is only available if the constant <code><link linkend="HAVE_SETEUID">HAVE_SETEUID</link></code> is <code>True</code>.  See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -11194,7 +11205,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           </row>
 	  <row>
 	    <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
-	    <entry><para>This exception is thrown when the function is not available; for maximum portability, check the constant <code>HAVE_SETUGID</code> before calling this function.</para></entry>
+	    <entry><para>This exception is thrown when the function is not available; for maximum portability, check the constant <code><link linkend="HAVE_SETEUID">HAVE_SETEUID</link></code> before calling this function.</para></entry>
 	  </row>
         </tbody>
       </tgroup>
@@ -16824,7 +16835,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Returns True if the string passed identifies a block device file on the filesystem.</para>
+          <para>Returns <code>True</code> if the string passed identifies a block device file on the filesystem.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -16867,7 +16878,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
             <entry><para><code><link linkend="string_type">string</link> <replaceable>$path</replaceable></code></para></entry>
             <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
             <entry>
-              <para>Returns True if the string passed identifies a block device file on the filesystem.</para>
+              <para>Returns <code>True</code> if the string passed identifies a block device file on the filesystem.</para>
             </entry>
           </row>
         </tbody>
@@ -16880,7 +16891,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Returns True if the string passed identifies a character device file on the filesystem.</para>
+          <para>Returns <code>True</code> if the string passed identifies a character device file on the filesystem.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -16923,7 +16934,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
             <entry><para><code><link linkend="string_type">string</link> <replaceable>$path</replaceable></code></para></entry>
             <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
             <entry>
-              <para>Returns True if the string passed identifies a character device file on the filesystem.</para>
+              <para>Returns <code>True</code> if the string passed identifies a character device file on the filesystem.</para>
             </entry>
           </row>
         </tbody>
@@ -16936,7 +16947,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Returns True if the string passed identifies a device file (either block or character) on the filesystem.</para>
+          <para>Returns <code>True</code> if the string passed identifies a device file (either block or character) on the filesystem.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -16979,7 +16990,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
             <entry><para><code><link linkend="string_type">string</link> <replaceable>$path</replaceable></code></para></entry>
             <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
             <entry>
-              <para>Returns True if the string passed identifies a device file (either block or character) on the filesystem.</para>
+              <para>Returns <code>True</code> if the string passed identifies a device file (either block or character) on the filesystem.</para>
             </entry>
           </row>
         </tbody>
@@ -16992,7 +17003,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Returns True if the string passed identifies a directory on the filesystem.</para>
+          <para>Returns <code>True</code> if the string passed identifies a directory on the filesystem.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -17035,7 +17046,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
             <entry><para><code><link linkend="string_type">string</link> <replaceable>$path</replaceable></code></para></entry>
             <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
             <entry>
-              <para>Returns True if the string passed identifies a directory on the filesystem.</para>
+              <para>Returns <code>True</code> if the string passed identifies a directory on the filesystem.</para>
             </entry>
           </row>
         </tbody>
@@ -17048,7 +17059,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Returns True if the string passed identifies an executable file.</para>
+          <para>Returns <code>True</code> if the string passed identifies an executable file.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -17091,7 +17102,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
             <entry><para><code><link linkend="string_type">string</link> <replaceable>$path</replaceable></code></para></entry>
             <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
             <entry>
-              <para>Returns True if the string passed identifies an executable file.</para>
+              <para>Returns <code>True</code> if the string passed identifies an executable file.</para>
             </entry>
           </row>
         </tbody>
@@ -17104,7 +17115,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Returns True if the string passed identifies a regular file on the filesystem.</para>
+          <para>Returns <code>True</code> if the string passed identifies a regular file on the filesystem.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -17147,7 +17158,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
             <entry><para><code><link linkend="string_type">string</link></code></para></entry>
             <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
             <entry>
-              <para>Returns True if the string passed identifies a regular file on the filesystem.</para>
+              <para>Returns <code>True</code> if the string passed identifies a regular file on the filesystem.</para>
             </entry>
           </row>
         </tbody>
@@ -17160,7 +17171,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Returns True if the string passed identifies a symbolic link on the filesystem.</para>
+          <para>Returns <code>True</code> if the string passed identifies a symbolic link on the filesystem.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -17203,7 +17214,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
             <entry><para><code><link linkend="string_type">string</link> <replaceable>$path</replaceable></code></para></entry>
             <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
             <entry>
-              <para>Returns True if the string passed identifies a symbolic link on the filesystem.</para>
+              <para>Returns <code>True</code> if the string passed identifies a symbolic link on the filesystem.</para>
             </entry>
           </row>
         </tbody>
@@ -17216,7 +17227,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Returns True if the string passed identifies a pipe (FIFO) on the filesystem.</para>
+          <para>Returns <code>True</code> if the string passed identifies a pipe (FIFO) on the filesystem.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -17259,7 +17270,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
             <entry><para><code><link linkend="string_type">string</link></code></para></entry>
             <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
             <entry>
-              <para>Returns True if the string passed identifies a pipe (FIFO) on the filesystem.</para>
+              <para>Returns <code>True</code> if the string passed identifies a pipe (FIFO) on the filesystem.</para>
             </entry>
           </row>
         </tbody>
@@ -17272,7 +17283,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Returns True if the string passed identifies a file readable by the current user.</para>
+          <para>Returns <code>True</code> if the string passed identifies a file readable by the current user.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -17315,7 +17326,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
             <entry><para><code><link linkend="string_type">string</link> <replaceable>$path</replaceable></code></para></entry>
             <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
             <entry>
-              <para>Returns True if the string passed identifies a file readable by the current user.</para>
+              <para>Returns <code>True</code> if the string passed identifies a file readable by the current user.</para>
             </entry>
           </row>
         </tbody>
@@ -17328,7 +17339,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Returns True if the string passed identifies a socket on the filesystem.</para>
+          <para>Returns <code>True</code> if the string passed identifies a socket on the filesystem.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -17371,7 +17382,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
             <entry><para><code><link linkend="string_type">string</link> <replaceable>$path</replaceable></code></para></entry>
             <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
             <entry>
-              <para>Returns True if the string passed identifies a socket on the filesystem.</para>
+              <para>Returns <code>True</code> if the string passed identifies a socket on the filesystem.</para>
             </entry>
           </row>
         </tbody>
@@ -17384,7 +17395,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Returns True if the string passed identifies a file writable by the current user.</para>
+          <para>Returns <code>True</code> if the string passed identifies a file writable by the current user.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -17427,7 +17438,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
             <entry><para><code><link linkend="string_type">string</link> <replaceable>$path</replaceable></code></para></entry>
             <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
             <entry>
-              <para>Returns True if the string passed identifies a file writable by the current user.</para>
+              <para>Returns <code>True</code> if the string passed identifies a file writable by the current user.</para>
             </entry>
           </row>
         </tbody>
@@ -19101,7 +19112,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Returns True if the function exists in the current program's function name space.</para>
+	<para>Returns <code>True</code> if the function exists in the current program's function name space.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -19135,13 +19146,13 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
   <row>
     <entry><para><code><link linkend="string_type">string</link> <replaceable>$name</replaceable></code></para></entry>
     <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
-    <entry><para>Returns True if the function exists in the current program's function name space, otherwise returns False.</para></entry>
+    <entry><para>Returns <code>True</code> if the function exists in the current program's function name space, otherwise returns <code>False</code>.</para></entry>
   </row>
 
   <row>
     <entry><para><code><link linkend="code_type">code</link> <replaceable>$code</replaceable></code></para></entry>
     <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
-    <entry><para>This version always returns True.</para></entry>
+    <entry><para>This version always returns <code>True</code>.</para></entry>
   </row>
 
 </tbody>
@@ -21278,7 +21289,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Tests if the first argument is a member of the second argument list; types are converted if necessary.  If the second argument is NOTHING, then False is returned unconditionally (i.e. even if the first argument is <command><link linkend="NOTHING">NOTHING</link></command> as well), however if the second argument is not a list then the return value of the function is the comparison of the two arguments.  For a version of this function that requires types to be equal for the comparison to succeed, see <link linkend="inlist_hard">inlist_hard()</link>.</para>
+	<para>Tests if the first argument is a member of the second argument list; types are converted if necessary.  If the second argument is NOTHING, then <code>False</code> is returned unconditionally (i.e. even if the first argument is <command><link linkend="NOTHING">NOTHING</link></command> as well), however if the second argument is not a list then the return value of the function is the comparison of the two arguments.  For a version of this function that requires types to be equal for the comparison to succeed, see <link linkend="inlist_hard">inlist_hard()</link>.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -21292,7 +21303,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Example</term>
       <listitem>
-	<programlisting>my $bool = inlist(123, (True, "123", False); # this will return True</programlisting>
+	<programlisting>my $bool = inlist(123, (<code>True</code>, "123", <code>False</code>); # this will return True</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -21311,12 +21322,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
             <row>
 	      <entry><para><code><link linkend="any_type">any</link> <replaceable>$value</replaceable>, <link linkend="list_type">list</link> <replaceable>$list</replaceable></code></para></entry>
               <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
-              <entry><para>Returns True if <replaceable>value</replaceable> is a member of <replaceable>list</replaceable>; types are converted if necessary.</para></entry>
+              <entry><para>Returns <code>True</code> if <replaceable>value</replaceable> is a member of <replaceable>list</replaceable>; types are converted if necessary.</para></entry>
             </row>
             <row>
 	      <entry><para><code><link linkend="any_type">any</link> <replaceable>$value</replaceable>, <link linkend="nothing_type">nothing</link></code></para></entry>
               <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
-              <entry><para>Always returns False, even if the first argument is <link linkend="NOTHING">NOTHING</link>.</para></entry>
+              <entry><para>Always returns <code>False</code>, even if the first argument is <link linkend="NOTHING">NOTHING</link>.</para></entry>
             </row>
             <row>
 	      <entry><para><code><link linkend="any_type">any</link> <replaceable>$value</replaceable>, <link linkend="any_type">any</link> <replaceable>$other_value</replaceable></code></para></entry>
@@ -21335,7 +21346,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Tests if the first argument is a member of the second argument list; no type conversions are performed (i.e. the comparison fails if types are not equal).  If the second argument is NOTHING, then False is returned unconditionally (i.e. even if the first argument is <command><link linkend="NOTHING">NOTHING</link></command> as well), however if the second argument is not a list then the return value of the function is the comparison of the two arguments (types must be equal).  For a &quot;soft&quot; version of this function that performs type conversions when doing the comparison, see <link linkend="inlist">inlist()</link>.</para>
+	<para>Tests if the first argument is a member of the second argument list; no type conversions are performed (i.e. the comparison fails if types are not equal).  If the second argument is NOTHING, then <code>False</code> is returned unconditionally (i.e. even if the first argument is <command><link linkend="NOTHING">NOTHING</link></command> as well), however if the second argument is not a list then the return value of the function is the comparison of the two arguments (types must be equal).  For a &quot;soft&quot; version of this function that performs type conversions when doing the comparison, see <link linkend="inlist">inlist()</link>.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -21348,7 +21359,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Example</term>
       <listitem>
-	<programlisting>my $bool = inlist_hard(123, (True, "123", False); # this will return False</programlisting>
+	<programlisting>my $bool = inlist_hard(123, (<code>True</code>, "123", <code>False</code>); # this will return False</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -21367,12 +21378,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
             <row>
 	      <entry><para><code><link linkend="any_type">any</link> <replaceable>$value</replaceable>, <link linkend="list_type">list</link> <replaceable>$list</replaceable></code></para></entry>
               <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
-              <entry><para>Returns True if <replaceable>value</replaceable> is a member of <replaceable>list</replaceable>; no type conversions are performed (the comparison fails if types are not equal).</para></entry>
+              <entry><para>Returns <code>True</code> if <replaceable>value</replaceable> is a member of <replaceable>list</replaceable>; no type conversions are performed (the comparison fails if types are not equal).</para></entry>
             </row>
             <row>
 	      <entry><para><code><link linkend="any_type">any</link> <replaceable>$value</replaceable>, <link linkend="nothing_type">nothing</link></code></para></entry>
               <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
-              <entry><para>Always returns False.</para></entry>
+              <entry><para>Always returns <code>False</code>.</para></entry>
             </row>
             <row>
 	      <entry><para><code><link linkend="any_type">any</link> <replaceable>$value</replaceable>, <link linkend="any_type">any</link> <replaceable>$other_value</replaceable></code></para></entry>
@@ -22758,7 +22769,7 @@ delete_thread_data($list_of_strings);</programlisting>
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Returns a hash of call stacks keyed by each TID (thread ID).  The availability of this function depends on an optional debugging feature in the Qore library (maintaining run-time thread call stacks incurrs a performance penalty, therefore this option is normally only available in debugging builds of Qore); the function is only available if the constant <code>HAVE_RUNTIME_THREAD_STACK_TRACE</code> is True.  See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
+	<para>Returns a hash of call stacks keyed by each TID (thread ID).  The availability of this function depends on an optional debugging feature in the Qore library (maintaining run-time thread call stacks incurrs a performance penalty, therefore this option is normally only available in debugging builds of Qore); the function is only available if the constant <code><link linkend="HAVE_RUNTIME_THREAD_STACK_TRACE">HAVE_RUNTIME_THREAD_STACK_TRACE</link></code> is <code>True</code>.  See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -22812,7 +22823,7 @@ delete_thread_data($list_of_strings);</programlisting>
     <tbody>
       <row>
 	<entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
-	<entry><para>This exception is thrown when the function is not available; for maximum portability, check the constant <code>HAVE_RUNTIME_THREAD_STACK_TRACE</code> before calling this function.</para></entry>
+	<entry><para>This exception is thrown when the function is not available; for maximum portability, check the constant <code><link linkend="HAVE_RUNTIME_THREAD_STACK_TRACE">HAVE_RUNTIME_THREAD_STACK_TRACE</link></code> before calling this function.</para></entry>
       </row>
     </tbody>
   </tgroup>
@@ -24801,7 +24812,7 @@ the resulting string will always be the encoding of the fault string (2nd argume
 	<para>Parses an XML string as data (does not preserve hash order with out-of-order duplicate keys: collapses all to the same list), validates the XML string against a RelaxNG schema string, and returns a Qore hash structure.  If any errors occur parsing the RelaxNG schema string, parsing the XML string, or validating the XML against the XSD, exceptions are thrown.  If no encoding string argument is passed, then all strings in the resulting hash will be in UTF-8 encoding regardless of the input encoding of the XML string.</para>
 	<para>Please note that data deserialized with this function may not be reserialized to an identical XML string to the input due to the fact that duplicate, out-of-order XML elements are collapsed into lists in the resulting Qore hash, thereby losing the order in the original XML string.</para>
 	<para>For a similar function preserving the order of keys in the XML in the resulting Qore hash by generating Qore hash element names with numeric suffixes, see <link linkend="parseXMLWithRelaxNG">parseXMLWithRelaxNG()</link>.  See also <link linkend="parseXMLAsDataWithSchema">parseXMLAsDataWithSchema()</link> and <link linkend="parseXMLWithSchema">parseXMLWithSchema()</link>.</para>
-	<para>The availability of this function depends on the presence of libxml2's xmlTextReaderRelaxNGSetSchema() function when Qore was compiled; for maximum portability check the constant <code>HAVE_PARSEXMLWITHRELAXNG</code> before running this function.  See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
+	<para>The availability of this function depends on the presence of libxml2's xmlTextReaderRelaxNGSetSchema() function when Qore was compiled; for maximum portability check the constant <code><link linkend="HAVE_PARSEXMLWITHRELAXNG">HAVE_PARSEXMLWITHRELAXNG</link></code> before running this function.  See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -24859,7 +24870,7 @@ the resulting string will always be the encoding of the fault string (2nd argume
 	    </row>
 	    <row>
 	      <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
-	      <entry><para>This exception is thrown when the function is not available; for maximum portability, check the constant <code>HAVE_PARSEXMLWITHRELAXNG</code> before calling this function.</para></entry>
+	      <entry><para>This exception is thrown when the function is not available; for maximum portability, check the constant <code><link linkend="HAVE_PARSEXMLWITHRELAXNG">HAVE_PARSEXMLWITHRELAXNG</link></code> before calling this function.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -24875,7 +24886,7 @@ the resulting string will always be the encoding of the fault string (2nd argume
 	<para>Parses an XML string as data (does not preserve hash order with out-of-order duplicate keys: collapses all to the same list), validates the XML string against an XSD schema string, and returns a Qore hash structure.  If any errors occur parsing the XSD string, parsing the XML string, or validating the XML against the XSD, exceptions are thrown.  If no encoding string argument is passed, then all strings in the resulting hash will be in UTF-8 encoding regardless of the input encoding of the XML string.</para>
 	<para>Please note that data deserialized with this function may not be reserialized to an identical XML string to the input due to the fact that duplicate, out-of-order XML elements are collapsed into lists in the resulting Qore hash, thereby losing the order in the original XML string.</para>
 	<para>For a similar function preserving the order of keys in the XML in the resulting Qore hash by generating Qore hash element names with numeric suffixes, see <link linkend="parseXMLWithSchema">parseXMLWithSchema()</link>.  See also <link linkend="parseXMLAsDataWithRelaxNG">parseXMLAsDataWithRelaxNG()</link> and <link linkend="parseXMLWithRelaxNG">parseXMLWithRelaxNG()</link>.</para>
-	<para>The availability of this function depends on the presence of libxml2's xmlTextReaderSetSchema() function when Qore was compiled; for maximum portability check the constant <code>HAVE_PARSEXMLWITHSCHEMA</code> before running this function.  See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
+	<para>The availability of this function depends on the presence of libxml2's xmlTextReaderSetSchema() function when Qore was compiled; for maximum portability check the constant <code><link linkend="HAVE_PARSEXMLWITHSCHEMA">HAVE_PARSEXMLWITHSCHEMA</link></code> before running this function.  See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -24933,7 +24944,7 @@ the resulting string will always be the encoding of the fault string (2nd argume
 	    </row>
 	    <row>
 	      <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
-	      <entry><para>This exception is thrown when the function is not available; for maximum portability, check the constant <code>HAVE_PARSEXMLWITHSCHEMA</code> before calling this function.</para></entry>
+	      <entry><para>This exception is thrown when the function is not available; for maximum portability, check the constant <code><link linkend="HAVE_PARSEXMLWITHSCHEMA">HAVE_PARSEXMLWITHSCHEMA</link></code> before calling this function.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -25152,7 +25163,7 @@ the resulting string will always be the encoding of the fault string (2nd argume
 	<para>If duplicate, out-of-order XML elements are found in the input string, they are deserialized to Qore hash elements with the same name as the XML element but including a caret &quot;^&quot; and a numeric prefix to maintain the same key order in the Qore hash as in the input XML string.</para>
 	<para>This function should only be used when it is important to maintain the XML element order in the resulting Qore data structure (for example, when the data must be re-serialized to an XML string and the element order within a subelement must be maintained), for example, when parsing and reserializing an OSX property list in XML format.  Otherwise <link linkend="parseXMLAsDataWithRelaxNG">parseXMLAsDataWithRelaxNG()</link> should be used instead.</para>
 	<para>See also <link linkend="parseXMLWithSchema">parseXMLWithSchema()</link> and <link linkend="parseXMLAsDataWithSchema">parseXMLAsDataWithSchema()</link>.</para>
-	<para>The availability of this function depends on the presence of libxml2's xmlTextReaderRelaxNGSetSchema() function when Qore was compiled; for maximum portability check the constant <code>HAVE_PARSEXMLWITHRELAXNG</code> before running this function.  See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
+	<para>The availability of this function depends on the presence of libxml2's xmlTextReaderRelaxNGSetSchema() function when Qore was compiled; for maximum portability check the constant <code><link linkend="HAVE_PARSEXMLWITHRELAXNG">HAVE_PARSEXMLWITHRELAXNG</link></code> before running this function.  See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -25210,7 +25221,7 @@ the resulting string will always be the encoding of the fault string (2nd argume
 	    </row>
 	    <row>
 	      <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
-	      <entry><para>This exception is thrown when the function is not available; for maximum portability, check the constant <code>HAVE_PARSEXMLWITHRELAXNG</code> before calling this function.</para></entry>
+	      <entry><para>This exception is thrown when the function is not available; for maximum portability, check the constant <code><link linkend="HAVE_PARSEXMLWITHRELAXNG">HAVE_PARSEXMLWITHRELAXNG</link></code> before calling this function.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -25227,7 +25238,7 @@ the resulting string will always be the encoding of the fault string (2nd argume
 	<para>If duplicate, out-of-order XML elements are found in the input string, they are deserialized to Qore hash elements with the same name as the XML element but including a caret &quot;^&quot; and a numeric prefix to maintain the same key order in the Qore hash as in the input XML string.</para>
 	<para>This function should only be used when it is important to maintain the XML element order in the resulting Qore data structure (for example, when the data must be re-serialized to an XML string and the element order within a subelement must be maintained), for example, when parsing and reserializing an OSX property list in XML format.  Otherwise <link linkend="parseXMLAsDataWithSchema">parseXMLAsDataWithSchema()</link> should be used instead.</para>
 	<para>See also <link linkend="parseXMLWithRelaxNG">parseXMLWithRelaxNG()</link> and <link linkend="parseXMLAsDataWithRelaxNG">parseXMLAsDataWithRelaxNG()</link>.</para>
-	<para>The availability of this function depends on the presence of libxml2's xmlTextReaderSetSchema() function when Qore was compiled; for maximum portability check the constant <code>HAVE_PARSEXMLWITHSCHEMA</code> before running this function.  See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
+	<para>The availability of this function depends on the presence of libxml2's xmlTextReaderSetSchema() function when Qore was compiled; for maximum portability check the constant <code><link linkend="HAVE_PARSEXMLWITHSCHEMA">HAVE_PARSEXMLWITHSCHEMA</link></code> before running this function.  See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -25285,7 +25296,7 @@ the resulting string will always be the encoding of the fault string (2nd argume
 	    </row>
 	    <row>
 	      <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
-	      <entry><para>This exception is thrown when the function is not available; for maximum portability, check the constant <code>HAVE_PARSEXMLWITHSCHEMA</code> before calling this function.</para></entry>
+	      <entry><para>This exception is thrown when the function is not available; for maximum portability, check the constant <code><link linkend="HAVE_PARSEXMLWITHSCHEMA">HAVE_PARSEXMLWITHSCHEMA</link></code> before calling this function.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -25536,7 +25547,7 @@ the resulting string will always be the encoding of the fault string (2nd argume
       <varlistentry>
         <term>Prototype</term>
         <listitem>
-          <para><code><link linkend="makeFormattedJSONRPCResponseString">makeFormattedJSONRPCResponseString</link>(<link linkend="any_type">any</link> <replaceable>$json_version</replaceable>, <link linkend="any_type">any</link> <replaceable>$id</replaceable>, <link linkend="any_type">any</link> <replaceable>$response_msg</replaceable>) return <link linkend="string_type">string</link></code></para>
+          <para><code><link linkend="makeFormattedJSONRPCResponseString">makeFormattedJSONRPCResponseString</link>(<link linkend="any_type">any</link> <replaceable>$json_version</replaceable>, <link linkend="any_type">any</link> <replaceable>$id</replaceable>, <link linkend="any_type">any</link> <replaceable>$response_msg</replaceable>) <command>returns</command> <link linkend="string_type">string</link></code></para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -25759,7 +25770,7 @@ the resulting string will always be the encoding of the fault string (2nd argume
         <term>Prototype</term>
         <listitem>
           <para><code><link linkend="makeJSONRPCErrorString">makeJSONRPCErrorString</link>(<link linkend="any_type">any</link> <replaceable>$json_version</replaceable>, <link linkend="any_type">any</link> <replaceable>$id</replaceable>, <link linkend="any_type">any</link> <replaceable>$response_msg</replaceable>) <command>returns</command> <link linkend="string_type">string</link></code></para>
-\        </listitem>
+        </listitem>
       </varlistentry>
       <varlistentry>
         <term>Example</term>
@@ -25907,7 +25918,7 @@ the resulting string will always be the encoding of the fault string (2nd argume
       <varlistentry>
         <term>Prototype</term>
         <listitem>
-          <para><code><link linkend="makeJSONRPCResponseString">makeJSONRPCResponseString</link>(<link linkend="any_type">any</link> <replaceable>$json_version</replaceable>, <link linkend="any_type">any</link> <replaceable>$id</replaceable>, <link linkend="any_type">any</link> <replaceable>$response_msg</replaceable>) return <link linkend="string_type">string</link></code></para>
+          <para><code><link linkend="makeJSONRPCResponseString">makeJSONRPCResponseString</link>(<link linkend="any_type">any</link> <replaceable>$json_version</replaceable>, <link linkend="any_type">any</link> <replaceable>$id</replaceable>, <link linkend="any_type">any</link> <replaceable>$response_msg</replaceable>) <command>returns</command> <link linkend="string_type">string</link></code></para>
         </listitem>
       </varlistentry>
       <varlistentry>

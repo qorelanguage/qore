@@ -416,7 +416,7 @@ print("global a = %d\n", $a); </programlisting>
 <tbody>
   <row>
     <entry><para><link linkend="Boolean">Boolean</link></para></entry>
-    <entry><para>True or False value</para></entry>
+    <entry><para>True or <code>False</code> value</para></entry>
     <entry><para><code>True</code></para></entry>
     <entry><para>False</para></entry>
   </row>
@@ -452,13 +452,13 @@ print("global a = %d\n", $a); </programlisting>
   </row>
   <row>
     <entry><para><link linkend="NULL">NULL</link></para></entry>
-    <entry><para>Corresponds to a NULL value in a database query (not equivalent to NOTHING)</para></entry>
+    <entry><para>Corresponds to a NULL value in a database query (not equivalent to <link linkend="NOTHING">NOTHING</link>)</para></entry>
     <entry><para><code><command>NULL</command></code></para></entry>
     <entry><para><code><command>NULL</command></code></para></entry>
   </row>
   <row>
     <entry><para><link linkend="NOTHING">NOTHING</link></para></entry>
-    <entry><para>Represents the state of a variable having no value or function returning no value (not equivalent to NULL)</para></entry>
+    <entry><para>Represents the state of a variable having no value or function returning no value (not equivalent to <link linkend="NULL">NULL</link>)</para></entry>
     <entry><para><code><command>NOTHING</command></code></para></entry>
     <entry><para><code><command>NOTHING</command></code></para></entry>
   </row>
@@ -469,7 +469,7 @@ print("global a = %d\n", $a); </programlisting>
 
 <sect2 id="Boolean">
   <title>Boolean</title>
-  <para>The Boolean type can have two values, True and False. When converting other types to a Boolean, any value that converts to a non-zero integer will be evaluated as True. Otherwise the result of the conversion will be False.</para>
+  <para>The Boolean type can have two values, <code>True</code> and <code>False</code>. When converting other types to a Boolean, any value that converts to a non-zero integer will be evaluated as <code>True</code>. Otherwise the result of the conversion will be <code>False</code>.</para>
 </sect2>
 
 <sect2 id="String">
@@ -698,7 +698,7 @@ is a multiline string";</programlisting>
 <sect2 id="NOTHING">
   <title>NOTHING</title>
   <para>This special data type represents no value.</para>
-  <note><para>The <link linkend="Exists_Operator"><command>exists</command></link> operator will return False when given <command>NOTHING</command> as an argument; for example:</para><programlisting><command><replaceable>prompt%</replaceable> qore -X 'exists NOTHING'</command>
+  <note><para>The <link linkend="Exists_Operator"><command>exists</command></link> operator will return <code>False</code> when given <command>NOTHING</command> as an argument; for example:</para><programlisting><command><replaceable>prompt%</replaceable> qore -X 'exists NOTHING'</command>
 False</programlisting></note>
 </sect2>
 
@@ -1407,7 +1407,7 @@ $$</programlisting></entry>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>The <command>find</command> expression can be used to quickly find data in a hash of lists (such as a query result set returned by the <link linkend="Datasource::select">Datasource::select()</link> method).  The <command>find</command> expression will loop through a data structure, and for each element in the structure where the <replaceable>where expression</replaceable> is True, it will evaluate and return a result expression.  If the <replaceable>where expression</replaceable> only is true for one element in the list, it will return the result of evaluating the <replaceable>result expression</replaceable> directly, otherwise if the <replaceable>where expression</replaceable> is true more than once, then a list of the results of evaluting the <replaceable>result expression</replaceable> for each element is returned.  In each expression in the <command>find</command> expression, column names can be referred to by preceding the name with a '%" character (as with <link linkend="context_Statements">context</link> statements).</para>
+	    <para>The <command>find</command> expression can be used to quickly find data in a hash of lists (such as a query result set returned by the <link linkend="Datasource::select">Datasource::select()</link> method).  The <command>find</command> expression will loop through a data structure, and for each element in the structure where the <replaceable>where expression</replaceable> is <code>True</code>, it will evaluate and return a result expression.  If the <replaceable>where expression</replaceable> only is true for one element in the list, it will return the result of evaluating the <replaceable>result expression</replaceable> directly, otherwise if the <replaceable>where expression</replaceable> is true more than once, then a list of the results of evaluting the <replaceable>result expression</replaceable> for each element is returned.  In each expression in the <command>find</command> expression, column names can be referred to by preceding the name with a '%" character (as with <link linkend="context_Statements">context</link> statements).</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -1422,13 +1422,13 @@ $$</programlisting></entry>
 	  <term>Description</term>
 	  <listitem>
 	    <para><replaceable>result_expression</replaceable></para>
-	    <para>This expression will be evaluated and returned when the <replaceable>where_expression</replaceable> evaluates to True.</para>
+	    <para>This expression will be evaluated and returned when the <replaceable>where_expression</replaceable> evaluates to <code>True</code>.</para>
 
 	    <para><replaceable>data_expression</replaceable></para>
 	    <para>This expression must evaluate to a hash of lists, so that the internal context can be set up for the <command>find</command> loop.</para>
 	    
 	    <para><replaceable>where_expression</replaceable></para>
-	    <para>This expression will be evaluated for each row in the <replaceable>data_expression</replaceable>.  Each time it evaluates to True, the <replaceable>result_expression</replaceable> will be evaulated and used for the return value for the <command>find</command> expression.</para>
+	    <para>This expression will be evaluated for each row in the <replaceable>data_expression</replaceable>.  Each time it evaluates to <code>True</code>, the <replaceable>result_expression</replaceable> will be evaulated and used for the return value for the <command>find</command> expression.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -1590,11 +1590,11 @@ $$         # for the entire implicit argument list</programlisting>
 	<tbody>
 	  <row>
 	    <entry><para><link linkend='Regular_Expression_Match_Operator'>regular expression match operator</link></para></entry>
-	    <entry><para>Returns True if the regular expression matches a string.</para></entry>
+	    <entry><para>Returns <code>True</code> if the regular expression matches a string.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend='Regular_Expression_No_Match_Operator'>regular expression no match operator</link></para></entry>
-	    <entry><para>Returns True if the regular expression does not match a string.</para></entry>
+	    <entry><para>Returns <code>True</code> if the regular expression does not match a string.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend='Regular_Expression_Substitution_Operator'>regular expression substitution operator</link></para></entry>
@@ -1661,7 +1661,7 @@ $$         # for the entire implicit argument list</programlisting>
 	<tbody>
 	  <row>
 	    <entry><para><link linkend='regex'>regex()</link></para></entry>
-	    <entry><para>Returns True if the regular expression matches a string.</para></entry>
+	    <entry><para>Returns <code>True</code> if the regular expression matches a string.</para></entry>
 	  </row>
 	  <row>
 	    <entry><para><link linkend='regex_subst'>regex_subst()</link></para></entry>
@@ -1960,12 +1960,12 @@ $var[1].count++;
     <varlistentry>
       <term>Description</term>
       <listitem>
-	<para>Qore if statements work like if statements in C or Java.  If the result of evaluating the expression converted to a Boolean value is True, then the first statement (which can also be a block) is executed.  If the result is False, and there is an else keyword after the first statement, the following statement is executed.</para>
+	<para>Qore if statements work like if statements in C or Java.  If the result of evaluating the expression converted to a Boolean value is <code>True</code>, then the first statement (which can also be a block) is executed.  If the result is <code>False</code>, and there is an else keyword after the first statement, the following statement is executed.</para>
      </listitem>
     </varlistentry>
   </variablelist>
   <note>
-    <para>Any expression that evaluates to a non-zero integer value will be converted to a Boolean True.  Any expression that evaluates to zero value is interpreted as False.  This is more like C and Java's behavior and not like Perl's (where any non-null string except "0" is True).</para>
+    <para>Any expression that evaluates to a non-zero integer value will be converted to a Boolean <code>True</code>.  Any expression that evaluates to zero value is interpreted as <code>False</code>.  This is more like C and Java's behavior and not like Perl's (where any non-null string except "0" is <code>True</code>).</para>
   </note>
 
 </sect2>
@@ -1992,7 +1992,7 @@ $var[1].count++;
 	<para><replaceable>[initial_expression]</replaceable></para>
 	<para>The <replaceable>initial_expression</replaceable> is executed only once at the start of each <command>for</command> loop. It is typically used to initialize a loop variable.</para>
 	<para><replaceable>[test_expression]</replaceable></para>
-	<para>The <replaceable>test_expression</replaceable> is executed at the start of each <command>for</command> loop iteration. If this expression evaluates to Boolean False, the loop will terminate.</para>
+	<para>The <replaceable>test_expression</replaceable> is executed at the start of each <command>for</command> loop iteration. If this expression evaluates to Boolean <code>False</code>, the loop will terminate.</para>
 	<para><replaceable>[iterator_expression]</replaceable></para>
 	<para>The <replaceable>iterator_expression</replaceable> is executed at the end of each <command>for</command> loop iteration. It is typically used to increment or decrement a loop variable that will be used in the <replaceable>test_expression</replaceable>.</para>
      </listitem>
@@ -2092,7 +2092,7 @@ $var[1].count++;
     <varlistentry>
       <term>Description</term>
       <listitem>
-	<para>The first expression is evaluated and then compared to the value of each <command>case</command> expression in declaration order until one of the <command>case</command> expressions matches or is evaluated to True.  In this case all code up to a <command>break</command> statement is executed, at which time execution flow exits the <command>switch</command> statement.  Unless relational operators are used, the comparisons are "hard" comparisons; no type conversions are done, so in order for a match to be made, both the value and types of the expressions must match exactly.  When relational operators are used, the operators are executed exactly as they are in the rest of qore, so type conversions may be performed if nesessary.</para>
+	<para>The first expression is evaluated and then compared to the value of each <command>case</command> expression in declaration order until one of the <command>case</command> expressions matches or is evaluated to <code>True</code>.  In this case all code up to a <command>break</command> statement is executed, at which time execution flow exits the <command>switch</command> statement.  Unless relational operators are used, the comparisons are "hard" comparisons; no type conversions are done, so in order for a match to be made, both the value and types of the expressions must match exactly.  When relational operators are used, the operators are executed exactly as they are in the rest of qore, so type conversions may be performed if nesessary.</para>
 	<para>To use soft comparisons, you must explicitly specify the soft equals operator as follows:
 	  <programlisting><command>switch</command> (1) {
     <command>case</command> == "1": print("true\n"); <command>break</command>;
@@ -2153,7 +2153,7 @@ $var[1].count++;
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para><command>while</command> statements in Qore are similar to <command>while</command> statements in Perl, C and Java. They are used to loop while a given condition is True.</para>
+	<para><command>while</command> statements in Qore are similar to <command>while</command> statements in Perl, C and Java. They are used to loop while a given condition is <code>True</code>.</para>
      </listitem>
     </varlistentry>
     <varlistentry>
@@ -2166,7 +2166,7 @@ $var[1].count++;
     <varlistentry>
       <term>Description</term>
       <listitem>
-	<para>First the <replaceable>expression</replaceable> will be evaluated; if it evaluates to True, then <replaceable>statement</replaceable> will be executed. If it evaluates to False, the loop terminates.</para>
+	<para>First the <replaceable>expression</replaceable> will be evaluated; if it evaluates to <code>True</code>, then <replaceable>statement</replaceable> will be executed. If it evaluates to <code>False</code>, the loop terminates.</para>
      </listitem>
     </varlistentry>
     <varlistentry>
@@ -2186,7 +2186,7 @@ $var[1].count++;
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para><command>do</command> <command>while</command> statements in Qore are similar to <command>do</command> <command>while</command> statements in C.  They are used to guarantee at least one iteration and loop until a given expression evaluates to False.</para>
+	<para><command>do</command> <command>while</command> statements in Qore are similar to <command>do</command> <command>while</command> statements in C.  They are used to guarantee at least one iteration and loop until a given expression evaluates to <code>False</code>.</para>
      </listitem>
     </varlistentry>
     <varlistentry>
@@ -2200,7 +2200,7 @@ $var[1].count++;
     <varlistentry>
       <term>Description</term>
       <listitem>
-	<para>First, <replaceable>statement</replaceable> will be executed, then <replaceable>expression</replaceable> will be evaluated; if it evaluates to True, then the loop iterates again. If it evaluates to False, the loop terminates. The difference between <command>do</command> <command>while</command> statements and <command>while</command> statements is that the <command>do</command> <command>while</command> statement evaluates its loop expression at the end of the loop, and therefore guarantees at least one iteration of the loop.</para>
+	<para>First, <replaceable>statement</replaceable> will be executed, then <replaceable>expression</replaceable> will be evaluated; if it evaluates to <code>True</code>, then the loop iterates again. If it evaluates to <code>False</code>, the loop terminates. The difference between <command>do</command> <command>while</command> statements and <command>while</command> statements is that the <command>do</command> <command>while</command> statement evaluates its loop expression at the end of the loop, and therefore guarantees at least one iteration of the loop.</para>
      </listitem>
     </varlistentry>
     <varlistentry>
@@ -2399,9 +2399,9 @@ $var[1].count++;
 
 	<para><code>[ <command>where</command> ( <replaceable>expression</replaceable> ) ]</code></para>
 	<para>An optional <command>where</command> expression may be given, in which case for each row in the hash, 
-	the expression will be executed, and if the <command>where</command> expression evaluates to True, 
+	the expression will be executed, and if the <command>where</command> expression evaluates to <code>True</code>, 
 	the row will be iterated in the <command>context</command> loop. If this expression evaluates 
-	to False, then the row will not be iterated. This option is given so the 
+	to <code>False</code>, then the row will not be iterated. This option is given so the 
 	programmer can create multiple views of a single data structure (such as a query 
 	result set) in memory rather than build different data structures by 
 	hand.</para>

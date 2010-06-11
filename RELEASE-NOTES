@@ -191,6 +191,11 @@ would previously be interpreted like this:
 func(1, ($a = 2, 3))
 contrary to what any reasonable programmer would expect.  From this version on, the comma operator's precedence has been adjusted to be like other programming languages.
 
+* fixed conversion of characters quoted with '\' in JSON strings
+
+* changed output of printf format specifiers %n and %N
+double quotes (") and '\' characters are now quoted with '\'
+
 * new warning: non-existent-method-call
 raised when a given method name cannot be found in the current class or base classes.  such calls may be valid if the method itself is called from a derived class where the method exists
 

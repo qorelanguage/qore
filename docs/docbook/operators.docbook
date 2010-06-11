@@ -1281,7 +1281,7 @@ printf("0x%x\n", $binary[2]);
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Reverses the logical sense of an expression (True becomes False and False becomes True).</para>
+	<para>Reverses the logical sense of an expression (<code>True</code> becomes <code>False</code> and <code>False</code> becomes <code>True</code>).</para>
      </listitem>
     </varlistentry>
     <varlistentry>
@@ -1316,7 +1316,7 @@ printf("0x%x\n", $binary[2]);
       <tbody>
 	<row>
 	  <entry><para><replaceable>expression</replaceable></para></entry>
-	  <entry><para>The expression is evaluated and converted to Boolean, if necessary. Then the value is logically reversed (True becomes False, False becomes True)</para></entry>
+	  <entry><para>The expression is evaluated and converted to Boolean, if necessary. Then the value is logically reversed (<code>True</code> becomes <code>False</code>, <code>False</code> becomes <code>True</code>)</para></entry>
 	</row>
       </tbody>
     </tgroup>
@@ -1703,7 +1703,7 @@ printf("0x%x\n", $binary[2]);
 	</row>
 	<row>
 	  <entry><para><replaceable>[select_expression]</replaceable></para></entry>
-	  <entry><para>An optional expression than can be used to filter out elements of the list before the map expression is applied; if this expression evaluates to False on an element, then the element will be skipped and the map expression will not be applied on that element.</para></entry>
+	  <entry><para>An optional expression than can be used to filter out elements of the list before the map expression is applied; if this expression evaluates to <code>False</code> on an element, then the element will be skipped and the map expression will not be applied on that element.</para></entry>
 	</row>
       </tbody>
     </tgroup>
@@ -1873,7 +1873,7 @@ printf("0x%x\n", $binary[2]);
 	</row>
 	<row>
 	  <entry><para><replaceable>expression</replaceable></para></entry>
-	  <entry><para>The expression will be evaluated on each element of the list, the <link linkend="Implicit_Arguments">implicit argument</link> $1 represents current element of the list; only if the expression evaluates to True will the element appear in the result list.</para></entry>
+	  <entry><para>The expression will be evaluated on each element of the list, the <link linkend="Implicit_Arguments">implicit argument</link> $1 represents current element of the list; only if the expression evaluates to <code>True</code> will the element appear in the result list.</para></entry>
 	</row>
       </tbody>
     </tgroup>
@@ -2449,7 +2449,7 @@ printf("0x%x\n", $binary[2]);
 <tbody>
   <row>
     <entry><para><replaceable>expression</replaceable></para></entry>
-    <entry><para>If <replaceable>expression</replaceable> is an instance of the named class, then the operator returns True, otherwise returns False.  The operator will return True if the class is a base class, also even if it is privately inherited.</para></entry>
+    <entry><para>If <replaceable>expression</replaceable> is an instance of the named class, then the operator returns <code>True</code>, otherwise returns <code>False</code>.  The operator will return <code>True</code> if the class is a base class, also even if it is privately inherited.</para></entry>
   </row>
 
 </tbody>
@@ -2503,7 +2503,7 @@ printf("0x%x\n", $binary[2]);
 <tbody>
   <row>
     <entry><para><replaceable>expression</replaceable></para></entry>
-    <entry><para>If <replaceable>expression</replaceable> evaluates to a value, then the operator returns True, otherwise returns False.</para></entry>
+    <entry><para>If <replaceable>expression</replaceable> evaluates to a value, then the operator returns <code>True</code>, otherwise returns <code>False</code>.</para></entry>
   </row>
 
 </tbody>
@@ -2520,7 +2520,7 @@ printf("0x%x\n", $binary[2]);
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Tests if a value is less than another; types are converted if necessary (ex: ("1" &lt; 2) is True).</para>
+	<para>Tests if a value is less than another; types are converted if necessary (ex: ("1" &lt; 2) is <code>True</code>).</para>
      </listitem>
     </varlistentry>
     <varlistentry>
@@ -2555,19 +2555,19 @@ printf("0x%x\n", $binary[2]);
 <tbody>
   <row>
     <entry><para><link linkend="float_type">float</link></para></entry>
-    <entry><para>If <replaceable>expression1</replaceable> is numerically less than <replaceable>expression2</replaceable>, returns True, otherwise returns False</para></entry>
+    <entry><para>If <replaceable>expression1</replaceable> is numerically less than <replaceable>expression2</replaceable>, returns <code>True</code>, otherwise returns False</para></entry>
   </row>
   <row>
     <entry><para><link linkend="int_type">int</link></para></entry>
-    <entry><para>If <replaceable>expression1</replaceable> is numerically less than <replaceable>expression2</replaceable>, returns True, otherwise returns False</para></entry>
+    <entry><para>If <replaceable>expression1</replaceable> is numerically less than <replaceable>expression2</replaceable>, returns <code>True</code>, otherwise returns False</para></entry>
   </row>
   <row>
     <entry><para><link linkend="string_type">string</link></para></entry>
-    <entry><para>If <replaceable>expression1</replaceable> comes before <replaceable>expression2</replaceable> in string sort order, returns True, otherwise returns False</para></entry>
+    <entry><para>If <replaceable>expression1</replaceable> comes before <replaceable>expression2</replaceable> in string sort order, returns <code>True</code>, otherwise returns False</para></entry>
   </row>
   <row>
     <entry><para><link linkend="date_type">date</link></para></entry>
-    <entry><para>If <replaceable>expression1</replaceable> is before (or a shorter amount of time than) <replaceable>expression2</replaceable>, returns True, otherwise returns False</para></entry>
+    <entry><para>If <replaceable>expression1</replaceable> is before (or a shorter amount of time than) <replaceable>expression2</replaceable>, returns <code>True</code>, otherwise returns False</para></entry>
   </row>
 
 </tbody>
@@ -2584,7 +2584,7 @@ printf("0x%x\n", $binary[2]);
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Tests if a value is greater than another; types are converted if necessary (ex: ("2" &gt; 1) is True).</para>
+	<para>Tests if a value is greater than another; types are converted if necessary (ex: ("2" &gt; 1) is <code>True</code>).</para>
      </listitem>
     </varlistentry>
     <varlistentry>
@@ -2621,19 +2621,19 @@ printf("0x%x\n", $binary[2]);
 <tbody>
   <row>
     <entry><para><link linkend="float_type">float</link></para></entry>
-    <entry><para>If <replaceable>expression1</replaceable> is numerically greater than <replaceable>expression2</replaceable>, returns True, otherwise returns False</para></entry>
+    <entry><para>If <replaceable>expression1</replaceable> is numerically greater than <replaceable>expression2</replaceable>, returns <code>True</code>, otherwise returns False</para></entry>
   </row>
   <row>
     <entry><para><link linkend="int_type">int</link></para></entry>
-    <entry><para>If <replaceable>expression1</replaceable> is numerically greater than <replaceable>expression2</replaceable>, returns True, otherwise returns False</para></entry>
+    <entry><para>If <replaceable>expression1</replaceable> is numerically greater than <replaceable>expression2</replaceable>, returns <code>True</code>, otherwise returns False</para></entry>
   </row>
   <row>
     <entry><para><link linkend="string_type">string</link></para></entry>
-    <entry><para>If <replaceable>expression1</replaceable> comes after <replaceable>expression2</replaceable> in string sort order, returns True, otherwise returns False</para></entry>
+    <entry><para>If <replaceable>expression1</replaceable> comes after <replaceable>expression2</replaceable> in string sort order, returns <code>True</code>, otherwise returns False</para></entry>
   </row>
   <row>
     <entry><para><link linkend="date_type">date</link></para></entry>
-    <entry><para>If <replaceable>expression1</replaceable> is after <replaceable>expression2</replaceable>, returns True, otherwise returns False</para></entry>
+    <entry><para>If <replaceable>expression1</replaceable> is after <replaceable>expression2</replaceable>, returns <code>True</code>, otherwise returns False</para></entry>
   </row>
 
 </tbody>
@@ -2650,7 +2650,7 @@ printf("0x%x\n", $binary[2]);
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Tests if a value is equal to another; types are converted if necessary (ex: ("1" == 1) is True).  For absolute equals, where types must also be equal to return true, see the <link linkend="Absolute_Equals_Operator">Absolute Equals Operator (===)</link>.</para>
+	<para>Tests if a value is equal to another; types are converted if necessary (ex: ("1" == 1) is <code>True</code>).  For absolute equals, where types must also be equal to return true, see the <link linkend="Absolute_Equals_Operator">Absolute Equals Operator (===)</link>.</para>
      </listitem>
     </varlistentry>
     <varlistentry>
@@ -2685,43 +2685,43 @@ printf("0x%x\n", $binary[2]);
 <tbody>
   <row>
     <entry><para><link linkend="string_type">string</link></para></entry>
-    <entry><para>If <replaceable>expression1</replaceable> is equal to <replaceable>expression2</replaceable>, returns True, otherwise False</para></entry>
+    <entry><para>If <replaceable>expression1</replaceable> is equal to <replaceable>expression2</replaceable>, returns <code>True</code>, otherwise False</para></entry>
   </row>
   <row>
     <entry><para><link linkend="float_type">float</link></para></entry>
-    <entry><para>If <replaceable>expression1</replaceable> is equal to <replaceable>expression2</replaceable>, returns True, otherwise False</para></entry>
+    <entry><para>If <replaceable>expression1</replaceable> is equal to <replaceable>expression2</replaceable>, returns <code>True</code>, otherwise False</para></entry>
   </row>
   <row>
     <entry><para><link linkend="int_type">int</link></para></entry>
-    <entry><para>If <replaceable>expression1</replaceable> is equal to <replaceable>expression2</replaceable>, returns True, otherwise False</para></entry>
+    <entry><para>If <replaceable>expression1</replaceable> is equal to <replaceable>expression2</replaceable>, returns <code>True</code>, otherwise False</para></entry>
   </row>
   <row>
     <entry><para><link linkend="date_type">date</link></para></entry>
-    <entry><para>If <replaceable>expression1</replaceable> is equal to <replaceable>expression2</replaceable>, returns True, otherwise False</para></entry>
+    <entry><para>If <replaceable>expression1</replaceable> is equal to <replaceable>expression2</replaceable>, returns <code>True</code>, otherwise False</para></entry>
   </row>
   <row>
     <entry><para><link linkend="list_type">list</link></para></entry>
-    <entry><para>If each element in the each list where order is relevant satisfies this operator, the operator returns True, otherwise it returns False</para></entry>
+    <entry><para>If each element in the each list where order is relevant satisfies this operator, the operator returns <code>True</code>, otherwise it returns False</para></entry>
   </row>
   <row>
     <entry><para><link linkend="hash_type">hash</link></para></entry>
-    <entry><para>If each hash has the same keys and the value of each equal key in each hash satisfies this operator, the operator returns True, otherwise it returns False</para></entry>
+    <entry><para>If each hash has the same keys and the value of each equal key in each hash satisfies this operator, the operator returns <code>True</code>, otherwise it returns False</para></entry>
   </row>
   <row>
     <entry><para><link linkend="binary_type">binary</link></para></entry>
-    <entry><para>If <replaceable>expression1</replaceable>'s memory contents and size are equal to <replaceable>expression2</replaceable>'s, then returns True, otherwise False</para></entry>
+    <entry><para>If <replaceable>expression1</replaceable>'s memory contents and size are equal to <replaceable>expression2</replaceable>'s, then returns <code>True</code>, otherwise False</para></entry>
   </row>
   <row>
     <entry><para><link linkend="object_type">object</link></para></entry>
-    <entry><para>If <replaceable>expression1</replaceable> is a reference to the same object as <replaceable>expression2</replaceable>, then returns True, otherwise False</para></entry>
+    <entry><para>If <replaceable>expression1</replaceable> is a reference to the same object as <replaceable>expression2</replaceable>, then returns <code>True</code>, otherwise False</para></entry>
   </row>
   <row>
     <entry><para><command><link linkend="null_type">null</link></command></para></entry>
-    <entry><para>If both expressions are <link linkend="NULL"><command>NULL</command></link>, returns True, otherwise returns False</para></entry>
+    <entry><para>If both expressions are <link linkend="NULL"><command>NULL</command></link>, returns <code>True</code>, otherwise returns False</para></entry>
   </row>
   <row>
     <entry><para><command><link linkend="nothing_type">nothing</link></command></para></entry>
-    <entry><para>If neither expression has a value, returns True, otherwise returns False</para></entry>
+    <entry><para>If neither expression has a value, returns <code>True</code>, otherwise returns False</para></entry>
   </row>
 
 </tbody>
@@ -2738,7 +2738,7 @@ printf("0x%x\n", $binary[2]);
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Tests if a value is not equal to another; types are converted if necessary (ex: ("1" != 1) is False).</para>
+	<para>Tests if a value is not equal to another; types are converted if necessary (ex: ("1" != 1) is <code>False</code>).</para>
      </listitem>
     </varlistentry>
     <varlistentry>
@@ -2773,43 +2773,43 @@ printf("0x%x\n", $binary[2]);
 <tbody>
   <row>
     <entry><para><link linkend="string_type">string</link></para></entry>
-    <entry><para>If <replaceable>expression1</replaceable> is not equal to <replaceable>expression2</replaceable>, returns True, otherwise returns False</para></entry>
+    <entry><para>If <replaceable>expression1</replaceable> is not equal to <replaceable>expression2</replaceable>, returns <code>True</code>, otherwise returns False</para></entry>
   </row>
   <row>
     <entry><para><link linkend="float_type">float</link></para></entry>
-    <entry><para>If <replaceable>expression1</replaceable> is not equal to <replaceable>expression2</replaceable>, returns True, otherwise returns False</para></entry>
+    <entry><para>If <replaceable>expression1</replaceable> is not equal to <replaceable>expression2</replaceable>, returns <code>True</code>, otherwise returns False</para></entry>
   </row>
   <row>
     <entry><para><link linkend="int_type">int</link></para></entry>
-    <entry><para>If <replaceable>expression1</replaceable> is not equal to <replaceable>expression2</replaceable>, returns True, otherwise returns False</para></entry>
+    <entry><para>If <replaceable>expression1</replaceable> is not equal to <replaceable>expression2</replaceable>, returns <code>True</code>, otherwise returns False</para></entry>
   </row>
   <row>
     <entry><para><link linkend="date_type">date</link></para></entry>
-    <entry><para>If <replaceable>expression1</replaceable> is not equal to <replaceable>expression2</replaceable>, returns True, otherwise returns False</para></entry>
+    <entry><para>If <replaceable>expression1</replaceable> is not equal to <replaceable>expression2</replaceable>, returns <code>True</code>, otherwise returns False</para></entry>
   </row>
   <row>
     <entry><para><link linkend="list_type">list</link></para></entry>
-    <entry><para>If any element in the each list compared where order is relevant satisfies this operator, the operator returns True, otherwise it returns False</para></entry>
+    <entry><para>If any element in the each list compared where order is relevant satisfies this operator, the operator returns <code>True</code>, otherwise it returns False</para></entry>
   </row>
   <row>
     <entry><para><link linkend="hash_type">hash</link></para></entry>
-    <entry><para>If the hashes have different key sets, or the values of any equal key in each hash satisfies this operator, the operator returns True, otherwise it returns False</para></entry>
+    <entry><para>If the hashes have different key sets, or the values of any equal key in each hash satisfies this operator, the operator returns <code>True</code>, otherwise it returns False</para></entry>
   </row>
   <row>
     <entry><para><link linkend="binary_type">binary</link></para></entry>
-    <entry><para>If either <replaceable>expression1</replaceable>'s memory contents and size are not equal to <replaceable>expression2</replaceable>'s, returns True, otherwise False.</para></entry>
+    <entry><para>If either <replaceable>expression1</replaceable>'s memory contents and size are not equal to <replaceable>expression2</replaceable>'s, returns <code>True</code>, otherwise <code>False</code>.</para></entry>
   </row>
   <row>
     <entry><para><link linkend="object_type">object</link></para></entry>
-    <entry><para>If <replaceable>expression1</replaceable> is not a reference to the same object as <replaceable>expression2</replaceable>, then returns True, otherwise False.</para></entry>
+    <entry><para>If <replaceable>expression1</replaceable> is not a reference to the same object as <replaceable>expression2</replaceable>, then returns <code>True</code>, otherwise <code>False</code>.</para></entry>
   </row>
   <row>
     <entry><para><link linkend="null_type">null</link></para></entry>
-    <entry><para>If one expression is <link linkend="NULL"><command>NULL</command></link> and the other not, returns True, otherwise False.</para></entry>
+    <entry><para>If one expression is <link linkend="NULL"><command>NULL</command></link> and the other not, returns <code>True</code>, otherwise <code>False</code>.</para></entry>
   </row>
   <row>
     <entry><para><link linkend="nothing_type">nothing</link></para></entry>
-    <entry><para>If one of the expressions has a value, returns True, otherwise False.</para></entry>
+    <entry><para>If one of the expressions has a value, returns <code>True</code>, otherwise <code>False</code>.</para></entry>
   </row>
 
 </tbody>
@@ -2826,7 +2826,7 @@ printf("0x%x\n", $binary[2]);
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Tests if a value is less than or equals to another value; types are converted if necessary (ex: ("1" &lt;= 2) is True).</para>
+	<para>Tests if a value is less than or equals to another value; types are converted if necessary (ex: ("1" &lt;= 2) is <code>True</code>).</para>
      </listitem>
     </varlistentry>
     <varlistentry>
@@ -2859,19 +2859,19 @@ printf("0x%x\n", $binary[2]);
     <tbody>
       <row>
 	<entry><para><link linkend="float_type">float</link></para></entry>
-	<entry><para>If <replaceable>expression1</replaceable> is numerically less than or equal to <replaceable>expression2</replaceable>, returns True, otherwise returns False</para></entry>
+	<entry><para>If <replaceable>expression1</replaceable> is numerically less than or equal to <replaceable>expression2</replaceable>, returns <code>True</code>, otherwise returns False</para></entry>
       </row>
       <row>
 	<entry><para><link linkend="int_type">int</link></para></entry>
-	<entry><para>If <replaceable>expression1</replaceable> is numerically less than or equal to <replaceable>expression2</replaceable>, returns True, otherwise returns False</para></entry>
+	<entry><para>If <replaceable>expression1</replaceable> is numerically less than or equal to <replaceable>expression2</replaceable>, returns <code>True</code>, otherwise returns False</para></entry>
       </row>
       <row>
 	<entry><para><link linkend="string_type">string</link></para></entry>
-	<entry><para>If <replaceable>expression1</replaceable> comes before in string sort order or is the same as <replaceable>expression2</replaceable>, returns True, otherwise returns False</para></entry>
+	<entry><para>If <replaceable>expression1</replaceable> comes before in string sort order or is the same as <replaceable>expression2</replaceable>, returns <code>True</code>, otherwise returns False</para></entry>
       </row>
       <row>
 	<entry><para><link linkend="date_type">date</link></para></entry>
-	<entry><para>If <replaceable>expression1</replaceable> is before or is the same exact date and time as <replaceable>expression2</replaceable>, returns True, otherwise returns False</para></entry>
+	<entry><para>If <replaceable>expression1</replaceable> is before or is the same exact date and time as <replaceable>expression2</replaceable>, returns <code>True</code>, otherwise returns False</para></entry>
       </row>
     </tbody>
   </tgroup>
@@ -2888,7 +2888,7 @@ printf("0x%x\n", $binary[2]);
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Tests if a value is greater than or equals to another value; types are converted if necessary (ex: ("2" >= 1) is True).</para>
+	<para>Tests if a value is greater than or equals to another value; types are converted if necessary (ex: ("2" >= 1) is <code>True</code>).</para>
      </listitem>
     </varlistentry>
     <varlistentry>
@@ -2923,19 +2923,19 @@ printf("0x%x\n", $binary[2]);
 <tbody>
   <row>
     <entry><para><link linkend="float_type">float</link></para></entry>
-    <entry><para>If <replaceable>expression1</replaceable> is numerically greater than or equal to <replaceable>expression2</replaceable>, returns True, otherwise returns False</para></entry>
+    <entry><para>If <replaceable>expression1</replaceable> is numerically greater than or equal to <replaceable>expression2</replaceable>, returns <code>True</code>, otherwise returns False</para></entry>
   </row>
   <row>
     <entry><para><link linkend="int_type">int</link></para></entry>
-    <entry><para>If <replaceable>expression1</replaceable> is numerically greater than or equal to <replaceable>expression2</replaceable>, returns True, otherwise returns False</para></entry>
+    <entry><para>If <replaceable>expression1</replaceable> is numerically greater than or equal to <replaceable>expression2</replaceable>, returns <code>True</code>, otherwise returns False</para></entry>
   </row>
   <row>
     <entry><para><link linkend="string_type">string</link></para></entry>
-    <entry><para>If <replaceable>expression1</replaceable> comes after in string sort order or is the same as <replaceable>expression2</replaceable>, returns True, otherwise returns False</para></entry>
+    <entry><para>If <replaceable>expression1</replaceable> comes after in string sort order or is the same as <replaceable>expression2</replaceable>, returns <code>True</code>, otherwise returns False</para></entry>
   </row>
   <row>
     <entry><para><link linkend="date_type">date</link></para></entry>
-    <entry><para>If <replaceable>expression1</replaceable> is after or is the same exact date and time as <replaceable>expression2</replaceable>, returns True, otherwise returns False</para></entry>
+    <entry><para>If <replaceable>expression1</replaceable> is after or is the same exact date and time as <replaceable>expression2</replaceable>, returns <code>True</code>, otherwise returns False</para></entry>
   </row>
 
 </tbody>
@@ -3028,7 +3028,7 @@ printf("0x%x\n", $binary[2]);
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Checks two values for equality without doing any data type conversions; if the types do not match, then the result is False.</para>
+	<para>Checks two values for equality without doing any data type conversions; if the types do not match, then the result is <code>False</code>.</para>
      </listitem>
     </varlistentry>
     <varlistentry>
@@ -3062,7 +3062,7 @@ printf("0x%x\n", $binary[2]);
 <tbody>
   <row>
     <entry><para>All</para></entry>
-    <entry><para>This operator returns True only if the types and values of both sides of the operator are exactly equal, otherwise returns False. No type conversions are done.</para></entry>
+    <entry><para>This operator returns <code>True</code> only if the types and values of both sides of the operator are exactly equal, otherwise returns <code>False</code>. No type conversions are done.</para></entry>
   </row>
 </tbody>
 </tgroup>
@@ -3078,7 +3078,7 @@ printf("0x%x\n", $binary[2]);
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Checks two values for inequality without doing any data type conversions.  If the data types do not match, then returns True.</para>
+	<para>Checks two values for inequality without doing any data type conversions.  If the data types do not match, then returns <code>True</code>.</para>
      </listitem>
     </varlistentry>
     <varlistentry>
@@ -3112,7 +3112,7 @@ printf("0x%x\n", $binary[2]);
 <tbody>
   <row>
     <entry><para>All</para></entry>
-    <entry><para>This operator returns True if either the types or the values of the arguments are different, otherwise it retuns False. No type conversions are done.</para></entry>
+    <entry><para>This operator returns <code>True</code> if either the types or the values of the arguments are different, otherwise it retuns <code>False</code>. No type conversions are done.</para></entry>
   </row>
 
 </tbody>
@@ -3129,7 +3129,7 @@ printf("0x%x\n", $binary[2]);
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Checks for a regular expression match; returns True if the expression matches the string, False if not.  See <link linkend="Regular_Expression_Options">Regular Expression Options</link> for the meaning of the i, s, x, and m options after the regular expression.</para>
+	<para>Checks for a regular expression match; returns <code>True</code> if the expression matches the string, <code>False</code> if not.  See <link linkend="Regular_Expression_Options">Regular Expression Options</link> for the meaning of the i, s, x, and m options after the regular expression.</para>
 	<para>See <link linkend="Regular_Expressions">Regular Expressions</link> for more information about regular expression support in Qore.</para>
      </listitem>
     </varlistentry>
@@ -3165,7 +3165,7 @@ printf("0x%x\n", $binary[2]);
 <tbody>
   <row>
     <entry><para><link linkend="string_type">string</link></para></entry>
-    <entry><para>This operator returns True if the regular expression in <replaceable>regex</replaceable> matches the string in <replaceable>expression</replaceable>.</para></entry>
+    <entry><para>This operator returns <code>True</code> if the regular expression in <replaceable>regex</replaceable> matches the string in <replaceable>expression</replaceable>.</para></entry>
   </row>
 
 </tbody>
@@ -3182,7 +3182,7 @@ printf("0x%x\n", $binary[2]);
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Checks for a regular expression non match; returns True if the expression does not match the string, False if it does.  See <link linkend="Regular_Expression_Options">Regular Expression Options</link> for the meaning of the i, s, x, and m options after the regular expression.</para>
+	<para>Checks for a regular expression non match; returns <code>True</code> if the expression does not match the string, <code>False</code> if it does.  See <link linkend="Regular_Expression_Options">Regular Expression Options</link> for the meaning of the i, s, x, and m options after the regular expression.</para>
 	<para>See <link linkend="Regular_Expressions">Regular Expressions</link> for more information about regular expression support in Qore.</para>
      </listitem>
     </varlistentry>
@@ -3218,7 +3218,7 @@ printf("0x%x\n", $binary[2]);
       <tbody>
 	<row>
 	  <entry><para><link linkend="string_type">string</link></para></entry>
-	  <entry><para>This operator returns True if the regular expression in <replaceable>regex</replaceable> does not match the string in <replaceable>expression</replaceable>.</para></entry>
+	  <entry><para>This operator returns <code>True</code> if the regular expression in <replaceable>regex</replaceable> does not match the string in <replaceable>expression</replaceable>.</para></entry>
 	</row>
       </tbody>
     </tgroup>
@@ -3539,7 +3539,7 @@ printf("0x%x\n", $binary[2]);
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Checks to see if two expressions are True with <ulink url="http://en.wikipedia.org/wiki/Short-circuit_evaluation">logical short-circuiting</ulink>.</para>
+	<para>Checks to see if two expressions are <code>True</code> with <ulink url="http://en.wikipedia.org/wiki/Short-circuit_evaluation">logical short-circuiting</ulink>.</para>
      </listitem>
     </varlistentry>
     <varlistentry>
@@ -3556,7 +3556,7 @@ printf("0x%x\n", $binary[2]);
       <term>Example</term>
       <listitem>
 	<programlisting><command>if</command> ($x &amp;&amp; $y)
-    printf("%n and %n are both True\n", $x, $y);</programlisting>
+    printf("%n and %n are both <code>True</code>\n", $x, $y);</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -3573,7 +3573,7 @@ printf("0x%x\n", $binary[2]);
 <tbody>
   <row>
     <entry><para><link linkend="bool_type">bool</link></para></entry>
-    <entry><para>Returns True if both expressions are True, False if otherwise.  Logical short-circuiting is implemented; if <replaceable>expression1</replaceable> is False, then <replaceable>expression2</replaceable> is not evaluated, and the operator returns False.</para></entry>
+    <entry><para>Returns <code>True</code> if both expressions are <code>True</code>, <code>False</code> if otherwise.  Logical short-circuiting is implemented; if <replaceable>expression1</replaceable> is <code>False</code>, then <replaceable>expression2</replaceable> is not evaluated, and the operator returns <code>False</code>.</para></entry>
   </row>
 
 </tbody>
@@ -3589,7 +3589,7 @@ printf("0x%x\n", $binary[2]);
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Returns True if either of the arguments are True with <ulink url="http://en.wikipedia.org/wiki/Short-circuit_evaluation">logical short-circuiting</ulink>.</para>
+	<para>Returns <code>True</code> if either of the arguments are <code>True</code> with <ulink url="http://en.wikipedia.org/wiki/Short-circuit_evaluation">logical short-circuiting</ulink>.</para>
      </listitem>
     </varlistentry>
     <varlistentry>
@@ -3606,7 +3606,7 @@ printf("0x%x\n", $binary[2]);
       <term>Example</term>
       <listitem>
 	<programlisting><command>if</command> ($x || $y)
-    printf("either %n or %n or both are True\n", $x, $y);</programlisting>
+    printf("either %n or %n or both are <code>True</code>\n", $x, $y);</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -3623,7 +3623,7 @@ printf("0x%x\n", $binary[2]);
 <tbody>
   <row>
     <entry><para><link linkend="bool_type">bool</link></para></entry>
-    <entry><para>Returns True if either or both expressions evaluate to True, False if otherwise.  Logical short-circuiting is implemented; if <replaceable>expression1</replaceable> is True, then <replaceable>expression2</replaceable> is not evaluated, and the operator returns True.</para></entry>
+    <entry><para>Returns <code>True</code> if either or both expressions evaluate to <code>True</code>, <code>False</code> if otherwise.  Logical short-circuiting is implemented; if <replaceable>expression1</replaceable> is <code>True</code>, then <replaceable>expression2</replaceable> is not evaluated, and the operator returns <code>True</code>.</para></entry>
   </row>
 
 </tbody>
@@ -3674,7 +3674,7 @@ printf("0x%x\n", $binary[2]);
 <tbody>
   <row>
     <entry><para>All</para></entry>
-    <entry><para>If <replaceable>expression</replaceable> is evaluated to be True, then the <replaceable>if_true_expression</replaceable> is evaluated and returned. Otherwise the <replaceable>if_false_expression</replaceable> is evaluated and returned.</para></entry>
+    <entry><para>If <replaceable>expression</replaceable> is evaluated to be <code>True</code>, then the <replaceable>if_true_expression</replaceable> is evaluated and returned. Otherwise the <replaceable>if_false_expression</replaceable> is evaluated and returned.</para></entry>
   </row>
 
 </tbody>

@@ -540,97 +540,75 @@
 
 	  <table>
 	    <title>Unavailable Features with no-external-info</title>
-	    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	    <tgroup cols='1' align='left' colsep='1' rowsep='1'>
 	      <thead>
 		<row>
 		  <entry><para>Feature/Function</para></entry>
-		  <entry><para>Description</para></entry>
 		</row>
 	      </thead>
 	      <tbody>
 		<row>
 		  <entry><para><link linkend="getuid">getuid()</link></para></entry>
-		  <entry><para>The getuid() function is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="geteuid">geteuid()</link></para></entry>
-		  <entry><para>The geteuid() function is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="getgid">getgid()</link></para></entry>
-		  <entry><para>The getgid() function is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="getegid">getegid()</link></para></entry>
-		  <entry><para>The getegid() function is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="getpid">getpid()</link></para></entry>
-		  <entry><para>The getpid() function is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="getppid">getppid()</link></para></entry>
-		  <entry><para>The getppid() function is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="gethostname">gethostname()</link></para></entry>
-		  <entry><para>The gethostname() function is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="gethostbyname">gethostbyname()</link></para></entry>
-		  <entry><para>The gethostbyname() function is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="gethostbyaddr">gethostbyaddr()</link></para></entry>
-		  <entry><para>The gethostbyaddr() function is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="gethostbyaddr_long">gehostbyaddr_longt()</link></para></entry>
-		  <entry><para>The get() function is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="gethostbyaddr_long">gethostbyaddr_long()</link></para></entry>
-		  <entry><para>The gethostbyaddr_long() function is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="getcwd">getcwd()</link></para></entry>
-		  <entry><para>The getcwd() function is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="getcwd2">getcwd2()</link></para></entry>
-		  <entry><para>The getcwd2() function is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="getpwuid">getpwuid()</link></para></entry>
-		  <entry><para>The getpwuid() function is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="getpwuid2">getpwuid2()</link></para></entry>
-		  <entry><para>The getpwuid2() function is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="getpwnam">getpwnam()</link></para></entry>
-		  <entry><para>The getpwnam() function is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="getpwnam2">getpwnam2()</link></para></entry>
-		  <entry><para>The getpwnam2() function is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="getgrgid">getgrgid()</link></para></entry>
-		  <entry><para>The getgrgid() function is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="getgrgid2">getgrgid2()</link></para></entry>
-		  <entry><para>The getgrgid2() function is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="getgrnam">getgrnam()</link></para></entry>
-		  <entry><para>The getgrnam() function is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="getgrnam2">getgrnam2()</link></para></entry>
-		  <entry><para>The getgrnam2() function is not available.</para></entry>
 		</row>
 	      </tbody>
 	    </tgroup>
@@ -669,33 +647,27 @@
 
 	  <table>
 	    <title>Unavailable Features with no-external-process</title>
-	    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	    <tgroup cols='1' align='left' colsep='1' rowsep='1'>
 	      <thead>
 		<row>
 		  <entry><para>Feature/Function</para></entry>
-		  <entry><para>Description</para></entry>
 		</row>
 	      </thead>
 	      <tbody>
 		<row>
 		  <entry><para><link linkend="Backquote_Operator">backquote operator</link></para></entry>
-		  <entry><para>The backquote operator (``) is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="system">system()</link></para></entry>
-		  <entry><para>The system() function is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="kill">kill()</link></para></entry>
-		  <entry><para>The kill() function is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="exec">exec()</link></para></entry>
-		  <entry><para>The exec() function is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="backquote">backquote()</link></para></entry>
-		  <entry><para>The backquote() function is not available.</para></entry>
 		</row>
 	      </tbody>
 	    </tgroup>
@@ -916,25 +888,21 @@
 	  <para>Disallows access to functions that would affect the current process.</para>
 	  <table>
 	    <title>Unavailable Features with no-locale-control</title>
-	    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	    <tgroup cols='1' align='left' colsep='1' rowsep='1'>
 	      <thead>
 		<row>
 		  <entry><para>Feature/Function</para></entry>
-		  <entry><para>Description</para></entry>
 		</row>
 	      </thead>
 	      <tbody>
 		<row>
 		  <entry><para><link linkend="TimeZone::set">TimeZone::set()</link> static method</para></entry>
-		  <entry><para>The TimeZone::set() static method is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="TimeZone::setUTCOffset">TimeZone::setUTCOffset()</link> static method</para></entry>
-		  <entry><para>The TimeZone::setUTCOffset() static method is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="TimeZone::setRegion">TimeZone::setRegion()</link> static method</para></entry>
-		  <entry><para>The TimeZone::setRegion() static method is not available.</para></entry>
 		</row>
 	      </tbody>
 	    </tgroup>
@@ -1003,33 +971,27 @@
 
 	  <table>
 	    <title>Unavailable Features with no-network</title>
-	    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	    <tgroup cols='1' align='left' colsep='1' rowsep='1'>
 	      <thead>
 		<row>
 		  <entry><para>Feature/Function</para></entry>
-		  <entry><para>Description</para></entry>
 		</row>
 	      </thead>
 	      <tbody>
 		<row>
 		  <entry><para><link linkend="FtpClient_Class">FtpClient</link> class</para></entry>
-		  <entry><para>The FtpClient class is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="HTTPClient_Class">HTTPClient</link> class</para></entry>
-		  <entry><para>The HTTPClient class is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="XmlRpcClient_Class">XmlRpcClient</link> class</para></entry>
-		  <entry><para>The XmlRpcClient class is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="JsonRpcClient_Class">JsonRpcClient</link> class</para></entry>
-		  <entry><para>The JsonRpcClient class is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="Socket_Class">Socket</link> class</para></entry>
-		  <entry><para>The Socket class is not available.</para></entry>
 		</row>
 	      </tbody>
 	    </tgroup>
@@ -1203,45 +1165,36 @@
 	  <para>Disallows access to terminal input and output.</para>
 	  <table>
 	    <title>Unavailable Features with no-terminal-io</title>
-	    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	    <tgroup cols='1' align='left' colsep='1' rowsep='1'>
 	      <thead>
 		<row>
 		  <entry><para>Feature/Function</para></entry>
-		  <entry><para>Description</para></entry>
 		</row>
 	      </thead>
 	      <tbody>
 		<row>
 		  <entry><para><link linkend="flush">flush()</link></para></entry>
-		  <entry><para>The flush() function is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="f_printf">f_printf()</link></para></entry>
-		  <entry><para>The f_printf() function is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="printf">print()</link></para></entry>
-		  <entry><para>The print() function is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="printf">printf()</link></para></entry>
-		  <entry><para>The printf() function is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="vprintf">vprintf()</link></para></entry>
-		  <entry><para>The vprintf() function is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="stdin_constant">stdin</link></para></entry>
-		  <entry><para>The stdin constant is not accessible.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="stdout_constant">stdout</link></para></entry>
-		  <entry><para>The stdout constant is not accessible.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="stderr_constant">stderr</link></para></entry>
-		  <entry><para>The stderr constant is not accessible.</para></entry>
 		</row>
 	      </tbody>
 	    </tgroup>
@@ -1278,49 +1231,39 @@
 	  <para>Disallows access to thread classes.</para>
 	  <table>
 	    <title>Unavailable Features with no-thread-classes</title>
-	    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	    <tgroup cols='1' align='left' colsep='1' rowsep='1'>
 	      <thead>
 		<row>
 		  <entry><para>Feature/Function</para></entry>
-		  <entry><para>Description</para></entry>
 		</row>
 	      </thead>
 	      <tbody>
 		<row>
 		  <entry><para><link linkend="AutoGate_Class">AutoGate</link> class</para></entry>
-		  <entry><para>The AutoGate class is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="AutoLock_Class">AutoLock</link> class</para></entry>
-		  <entry><para>The AutoLock class is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="AutoReadLock_Class">AutoReadLock</link> class</para></entry>
-		  <entry><para>The AutoReadLock class is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="AutoWriteLock_Class">AutoWriteLock</link> class</para></entry>
-		  <entry><para>The AutoWriteLock class is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="Condition_Class">Condition</link> class</para></entry>
-		  <entry><para>The Condition class is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="Counter_Class">Counter</link> class</para></entry>
-		  <entry><para>The Counter class is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="Mutex_Class">Mutex</link> class</para></entry>
-		  <entry><para>The Mutex class is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="Queue_Class">Queue</link> class</para></entry>
-		  <entry><para>The Queue class is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="RWLock_Class">RWLock</link> class</para></entry>
-		  <entry><para>The RWLock class is not available.</para></entry>
 		</row>
 	      </tbody>
 	    </tgroup>
@@ -1357,49 +1300,39 @@
 	  <para>Disallows access to thread control operations.</para>
 	  <table>
 	    <title>Unavailable Features with no-thread-control</title>
-	    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	    <tgroup cols='1' align='left' colsep='1' rowsep='1'>
 	      <thead>
 		<row>
 		  <entry><para>Feature/Function</para></entry>
-		  <entry><para>Description</para></entry>
 		</row>
 	      </thead>
 	      <tbody>
 		<row>
 		  <entry><para><link linkend="Background_Operator"><command>background</command></link> operator</para></entry>
-		  <entry><para>The <command>background</command> operator is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend='thread_exit_Statements'>thread_exit</link> statement</para></entry>
-		  <entry><para>The <command>thread_exit</command> statement is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="get_thread_data">get_thread_data()</link></para></entry>
-		  <entry><para>The get_thread_data() function is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="get_all_thread_data">get_all_thread_data()</link></para></entry>
-		  <entry><para>The get_all_thread_data() function is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="save_thread_data">save_thread_data()</link></para></entry>
-		  <entry><para>The save_thread_data() function is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="delete_thread_data">delete_thread_data()</link></para></entry>
-		  <entry><para>The delete_thread_data() function is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="delete_all_thread_data">delete_all_thread_data()</link></para></entry>
-		  <entry><para>The delete_all_thread_data() function is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="getAllThreadCallStacks">getAllThreadCallStacks()</link></para></entry>
-		  <entry><para>The getAllThreadCallStacks() function is not available (this function is deprecated and will be removed from a future release).</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="throwThreadResourceExceptions">throwThreadResourceExceptions()</link></para></entry>
-		  <entry><para>The throwThreadResourceExceptions() function is not available.</para></entry>
 		</row>
 	      </tbody>
 	    </tgroup>
@@ -1436,37 +1369,30 @@
 	  <para>Disallows access to functionality that provides information about threading.</para>
 	  <table>
 	    <title>Unavailable Features with no-thread-info</title>
-	    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	    <tgroup cols='1' align='left' colsep='1' rowsep='1'>
 	      <thead>
 		<row>
 		  <entry><para>Feature/Function</para></entry>
-		  <entry><para>Description</para></entry>
 		</row>
 	      </thead>
 	      <tbody>
 		<row>
 		  <entry><para><link linkend="gettid">gettid()</link> function</para></entry>
-		  <entry><para>The gettid() function is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="num_threads">num_threads()</link> function</para></entry>
-		  <entry><para>The num_threads() function is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="thread_list">thread_list()</link> function</para></entry>
-		  <entry><para>The thread_list() function is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="get_thread_data">get_thread_data()</link> function</para></entry>
-		  <entry><para>The get_thread_data() function is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="get_all_thread_data">get_all_thread_data()</link> function</para></entry>
-		  <entry><para>The get_all_thread_data() function is not available.</para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="getAllThreadCallStacks">getAllThreadCallStacks()</link> function</para></entry>
-		  <entry><para>The getAllThreadCallStacks() function is not available.</para></entry>
 		</row>
 	      </tbody>
 	    </tgroup>

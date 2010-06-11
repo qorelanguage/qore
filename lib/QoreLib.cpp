@@ -688,7 +688,6 @@ static inline int parse_get_nibble(char c) {
    return -1;
 }
 
-
 // for use while parsing - parses a null-terminated string and raises parse exceptions for errors
 BinaryNode *parseHex(const char *buf, int len) {
    if (!buf || !(*buf))
@@ -1104,11 +1103,11 @@ bool parseCheckPrivateClassAccess(const QoreClass *testClass) {
 bool parseCheckCompatibleClass(const QoreClass *shouldBeClass, const QoreClass *testClass) {
    assert(shouldBeClass);
 
-   if (testClass->getID() == shouldBeClass->getID())
-      return true;
-
    if (!testClass)
       return false;
+
+   if (testClass->getID() == shouldBeClass->getID())
+      return true;
 
    bool priv;
    if (!testClass->parseGetClass(shouldBeClass->getID(), priv))

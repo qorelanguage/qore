@@ -14,11 +14,11 @@ $iters   = int(shift $ARGV);
 $writers = int(shift $ARGV);
 $readers = int(shift $ARGV);
 if (!$iters)
-    $iters = 1;
+    $iters = 1000;
 if (!$writers)
-    $writers = 1;
+    $writers = 10;
 if (!$readers)
-    $readers = 1;
+    $readers = 10;
 
 printf("iters   = %d\n", $iters);
 printf("writers = %d\n", $writers);

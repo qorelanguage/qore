@@ -76,16 +76,18 @@ double QoreStringNode::getAsFloatImpl() const {
 
 QoreString *QoreStringNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const {
    del = true;
-   QoreString *str = new QoreString(getEncoding());
+   TempString str(getEncoding());
    str->concat('"');
-   str->concat(this);
+   str->concatEscape(this, '\"', '\\', xsink);
+   if (*xsink)
+      return 0;
    str->concat('"');
-   return str;
+   return str.release();
 }
 
 int QoreStringNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {
    str.concat('"');
-   str.concat(this, xsink);
+   str.concatEscape(this, '\"', '\\', xsink);
    if (*xsink)
       return -1;
    str.concat('"');

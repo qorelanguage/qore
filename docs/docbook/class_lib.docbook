@@ -231,7 +231,7 @@
 	  <row>
 	    <entry><para><code>MACHINE_MSB</code></para></entry>
 	    <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
-	    <entry><para>If True the machine stores memory with<ulink url="http://en.wikipedia.org/wiki/Most_significant_bit">MSB byte order</ulink>, False if it uses <ulink url="http://en.wikipedia.org/wiki/Least_significant_bit">LSB byte order</ulink>.</para></entry>
+	    <entry><para>If <code>True</code> the machine stores memory with <ulink url="http://en.wikipedia.org/wiki/Most_significant_bit">MSB byte order</ulink>, <code>False</code> if it uses <ulink url="http://en.wikipedia.org/wiki/Least_significant_bit">LSB byte order</ulink>.</para></entry>
 	  </row>
 	</tbody>
       </tgroup>
@@ -248,82 +248,82 @@
 	  </row>
 	</thead>
 	<tbody>
-	  <row>
+	  <row id="HAVE_ATOMIC_OPERATIONS">
 	    <entry><para><code>HAVE_ATOMIC_OPERATIONS</code></para></entry>
 	    <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
-	    <entry><para>Indicates if the Qore library supports fast atomic reference counting</para></entry>
+	    <entry><para>Indicates if the Qore library supports fast atomic reference counting.  Note that if this constant is <code>False</code>, atomic operations are supported by mutexes and are therefore slower than with native atomic reference counting operations.</para></entry>
 	  </row>
-	  <row>
+	  <row id="HAVE_STACK_GUARD">
 	    <entry><para><code>HAVE_STACK_GUARD</code></para></entry>
 	    <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
 	    <entry><para>Indicates if protection against stack overruns is provided</para></entry>
 	  </row>
-	  <row>
+	  <row id="HAVE_RUNTIME_THREAD_STACK_TRACE">
 	    <entry><para><code>HAVE_RUNTIME_THREAD_STACK_TRACE</code></para></entry>
 	    <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
 	    <entry><para>Indicates if active thread stack tracing has been enabled as a debugging option and if the <link linkend="getAllThreadCallStacks">getAllThreadCallStacks()</link> function is available.</para></entry>
 	  </row>
-	  <row>
+	  <row id="HAVE_ROUND">
 	    <entry><para><code>HAVE_ROUND</code></para></entry>
 	    <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
 	    <entry><para>Indicates if the <link linkend="round">round()</link> function is available.</para></entry>
 	  </row>
-	  <row>
+	  <row id="HAVE_TIMEGM">
 	    <entry><para><code>HAVE_TIMEGM</code></para></entry>
 	    <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
-	    <entry><para>Always True (as of qore 0.8.0+): indicates that the <link linkend="timegm">timegm()</link> function is available.</para></entry>
+	    <entry><para>Always <code>True</code> (as of qore 0.8.0+): indicates that the <link linkend="timegm">timegm()</link> function is available.</para></entry>
 	  </row>
-	  <row>
+	  <row id="HAVE_SETEUID">
 	    <entry><para><code>HAVE_SETEUID</code></para></entry>
 	    <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
 	    <entry><para>Indicates if the <link linkend="seteuid">seteuid()</link> function is available.</para></entry>
 	  </row>
-	  <row>
+	  <row id="HAVE_SETEGID">
 	    <entry><para><code>HAVE_SETEGID</code></para></entry>
 	    <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
 	    <entry><para>Indicates if the <link linkend="setegid">setegid()</link> function is available.</para></entry>
 	  </row>
-	  <row>
+	  <row id="HAVE_PARSEXMLWITHRELAXNG">
 	    <entry><para><code>HAVE_PARSEXMLWITHRELAXNG</code></para></entry>
 	    <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
 	    <entry><para>Indicates if <link linkend="parseXMLWithRelaxNG">parseXMLWithRelaxNG()</link> and <link linkend="XmlReader_relaxNGValidate">XmlReader::relaxNGValidate()</link> are available.</para></entry>
 	  </row>
-	  <row>
+	  <row id="HAVE_PARSEXMLWITHSCHEMA">
 	    <entry><para><code>HAVE_PARSEXMLWITHSCHEMA</code></para></entry>
 	    <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
 	    <entry><para>Indicates if <link linkend="parseXMLWithSchema">parseXMLWithSchema()</link> and <link linkend="XmlReader_schemaValidate">XmlReader::schemaValidate()</link> are available.</para></entry>
 	  </row>
-	  <row>
+	  <row id="HAVE_SHA224">
 	    <entry><para><code>HAVE_SHA224</code></para></entry>
 	    <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
 	    <entry><para>Indicates if the openssl library used to build the qore library supported the SHA224 algorithm and therefore if the <link linkend="SHA224">SHA224()</link> and <link linkend="SHA224_bin">SHA224_bin()</link> functions are available.</para></entry>
 	  </row>
-	  <row>
+	  <row id="HAVE_SHA256">
 	    <entry><para><code>HAVE_SHA256</code></para></entry>
 	    <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
 	    <entry><para>Indicates if the openssl library used to build the qore library supported the SHA256 algorithm and therefore if the <link linkend="SHA256">SHA256()</link> and <link linkend="SHA256_bin">SHA256_bin()</link> functions are available.</para></entry>
 	  </row>
-	  <row>
+	  <row id="HAVE_SHA384">
 	    <entry><para><code>HAVE_SHA384</code></para></entry>
 	    <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
 	    <entry><para>Indicates if the openssl library used to build the qore library supported the SHA384 algorithm and therefore if the <link linkend="SHA384">SHA384()</link> and <link linkend="SHA384_bin">SHA384_bin()</link> functions are available.</para></entry>
 	  </row>
-	  <row>
+	  <row id="HAVE_SHA512">
 	    <entry><para><code>HAVE_SHA512</code></para></entry>
 	    <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
 	    <entry><para>Indicates if the openssl library used to build the qore library supported the SHA512 algorithm and therefore if the <link linkend="SHA512">SHA512()</link> and <link linkend="SHA512_bin">SHA512_bin()</link> functions are available.</para></entry>
 	  </row>
-	  <row>
+	  <row id="HAVE_MDC2">
 	    <entry><para><code>HAVE_MDC2</code></para></entry>
 	    <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
 	    <entry><para>Indicates if the openssl library used to build the qore library supported the MDC2 algorithm and therefore if the <link linkend="MDC2">MDC2()</link> and <link linkend="MDC2_bin">MDC2_bin()</link> functions are available.</para></entry>
 	  </row>
-	  <row>
+	  <row id="HAVE_RC5">
 	    <entry><para><code>HAVE_RC5</code></para></entry>
 	    <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
 	    <entry><para>Indicates if the openssl library used to build the qore library supported the RC5 encryption algorithm and therefore if the <link linkend="rc5_encrypt_cbc">rc5_encrypt_cbc()</link>, <link linkend="rc5_decrypt_cbc">rc5_decrypt_cbc()</link> and <link linkend="rc5_decrypt_cbc_to_string">rc5_encrypt_cbc_to_string()</link> functions are available.</para></entry>
 	  </row>
-	  <row>
+	  <row id="HAVE_MD2">
 	    <entry><para><code>HAVE_MD2</code></para></entry>
 	    <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
 	    <entry><para>Indicates if the openssl library used to build the qore library supported the MD2 algorithm and therefore if the <link linkend="MD2">MD2()</link> and <link linkend="MD2_bin">MD2_bin()</link> functions are available.</para></entry>
@@ -2858,7 +2858,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Returns True is data becomes available for reading on the file within a timeout period.  With a timeout of zero (the default if no timeout value is passed), this method can be used for non-blocking polling the file for data.  Like all Qore functions and methods taking timeout values, a <link linkend="Relative_Dates">relative time value</link> may be passed instead of an integer to make the timeout units clear (ex: <code>25ms</code>).</para>
+	    <para>Returns <code>True</code> is data becomes available for reading on the file within a timeout period.  With a timeout of zero (the default if no timeout value is passed), this method can be used for non-blocking polling the file for data.  Like all Qore functions and methods taking timeout values, a <link linkend="Relative_Dates">relative time value</link> may be passed instead of an integer to make the timeout units clear (ex: <code>25ms</code>).</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -2872,7 +2872,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting><command>my</command> bool $b = $file.isDataAvailable(0); # returns True if data is available now</programlisting>
+	    <programlisting><command>my</command> bool $b = $file.isDataAvailable(0); # returns <code>True</code> if data is available now</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -2915,7 +2915,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	  <tbody>
 	    <row>
 	      <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
-	      <entry><para>True if data becomes available for reading from the file within the timeout period, False if not.</para></entry>
+	      <entry><para>True if data becomes available for reading from the file within the timeout period, <code>False</code> if not.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -5812,7 +5812,7 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Returns True if the path in the Dir object points to a directory that already exists and is openable by the current user.</para>
+	    <para>Returns <code>True</code> if the path in the Dir object points to a directory that already exists and is openable by the current user.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -6764,7 +6764,7 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 	  <tbody>
 	    <row>
 	      <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
-	      <entry><para>True if the file was present and could be removed. False if the file did not exist.  If any errors occur unlinking an existing file, then an exception occurs.</para></entry>
+	      <entry><para>True if the file was present and could be removed. <code>False</code> if the file did not exist.  If any errors occur unlinking an existing file, then an exception occurs.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -7444,7 +7444,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Returns True if the TermIOS object passed as an argument is equal to the current object; false if not.  If the argument passed to this method is not a TermIOS object, an exception is raised</para>
+            <para>Returns <code>True</code> if the TermIOS object passed as an argument is equal to the current object; false if not.  If the argument passed to this method is not a TermIOS object, an exception is raised</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -8082,7 +8082,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
               <para>Y</para>
             </entry>
             <entry>
-              <para>Make an FTPS connection to the server on the next connect if the argument is True.</para>
+              <para>Make an FTPS connection to the server on the next connect if the argument is <code>True</code>.</para>
             </entry>
           </row>
           <row>
@@ -8115,7 +8115,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
               <para>N</para>
             </entry>
             <entry>
-              <para>Returns True if the control connection is a secure TLS/SSL connection.</para>
+              <para>Returns <code>True</code> if the control connection is a secure TLS/SSL connection.</para>
             </entry>
           </row>
           <row>
@@ -8126,7 +8126,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
               <para>N</para>
             </entry>
             <entry>
-              <para>Returns True if the data connections are secure TLS/SSL connections.</para>
+              <para>Returns <code>True</code> if the data connections are secure TLS/SSL connections.</para>
             </entry>
           </row>
           <row>
@@ -8246,7 +8246,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="FtpClient_getAsBinary">FtpClient::getAsBinary</link>(<link linkend="string_type">string</link> <replaceable>$remote_file</replaceable>) <command>returns</command> binary</code></para>
+              <para><code><link linkend="FtpClient_getAsBinary">FtpClient::getAsBinary</link>(<link linkend="string_type">string</link> <replaceable>$remote_file</replaceable>) <command>returns</command> <link linkend="binary_type">binary</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Gets a file from the FTP server and returns it as a binary value.</para></entry>
@@ -8619,7 +8619,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
             <row>
               <entry><para><code><link linkend="softbool_type">softbool</link> <replaceable>$secure</replaceable> = True</code></para></entry>
               <entry>
-                <para>if True, will try to make an FTPS connection on the next connect, if False, will try to make a cleartext FTP connection on the next connect.</para>
+                <para>if <code>True</code>, will try to make an FTPS connection on the next connect, if <code>False</code>, will try to make a cleartext FTP connection on the next connect.</para>
               </entry>
             </row>
           </tbody>
@@ -8759,7 +8759,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Returns True if the control connection is a secure TLS/SSL connection.</para>
+            <para>Returns <code>True</code> if the control connection is a secure TLS/SSL connection.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -8794,7 +8794,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
                 <para><code><link linkend="bool_type">bool</link></code></para>
               </entry>
               <entry>
-                <para>True if the control connection is encrypted, False if not.</para>
+                <para>True if the control connection is encrypted, <code>False</code> if not.</para>
               </entry>
             </row>
           </tbody>
@@ -8807,7 +8807,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Returns True if the data connections are secure TLS/SSL connections.</para>
+            <para>Returns <code>True</code> if the data connections are secure TLS/SSL connections.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -8842,7 +8842,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
                 <para><code><link linkend="bool_type">bool</link></code></para>
               </entry>
               <entry>
-                <para>True if data connections are encrypted, False if not.</para>
+                <para>True if data connections are encrypted, <code>False</code> if not.</para>
               </entry>
             </row>
           </tbody>
@@ -9524,7 +9524,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="FtpClient_getAsBinary">FtpClient::getAsBinary</link>(<link linkend="string_type">string</link> <replaceable>$remote_file</replaceable>) <command>returns</command> binary</code></para>
+              <para><code><link linkend="FtpClient_getAsBinary">FtpClient::getAsBinary</link>(<link linkend="string_type">string</link> <replaceable>$remote_file</replaceable>) <command>returns</command> <link linkend="binary_type">binary</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -11360,7 +11360,7 @@ $pgm.disableParseOptions(<link linkend="PO_NO_THREADS">PO_NO_THREADS</link> | <l
 	  <tbody>
 	    <row>
 	      <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
-	      <entry><para>Returns True if the function exists, False if not.</para></entry>
+	      <entry><para>Returns <code>True</code> if the function exists, <code>False</code> if not.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -11407,7 +11407,7 @@ $pgm.disableParseOptions(<link linkend="PO_NO_THREADS">PO_NO_THREADS</link> | <l
 	    </row>
 	    <row>
 	      <entry><para><code><link linkend="reference_type">reference</link> <replaceable>$found</replaceable></code></para></entry>
-	      <entry><para>If a reference is passed in this position, it will contain a boolean value after the method exits: if this value is True, that means that the variable exists in the Program object, False means that the variable does not exist.</para></entry>
+	      <entry><para>If a reference is passed in this position, it will contain a boolean value after the method exits: if this value is <code>True</code>, that means that the variable exists in the Program object, <code>False</code> means that the variable does not exist.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -11808,7 +11808,7 @@ $pgm.disableParseOptions(<link linkend="PO_NO_THREADS">PO_NO_THREADS</link> | <l
 	    </row>
 	    <row>
 	      <entry><para><code><link linkend="bool_type">bool</link> <replaceable>$readonly</replaceable> = False</code></para></entry>
-	      <entry><para>If this argument is present and is True, then the variable will be imported read-only, and cannot be changed by the subprogram.</para></entry>
+	      <entry><para>If this argument is present and is <code>True</code>, then the variable will be imported read-only, and cannot be changed by the subprogram.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -12636,7 +12636,7 @@ $pgm.setParseOptions(<link linkend="PO_NO_THREADS">PO_NO_THREADS</link> | <link 
               <para><code><link linkend="Socket_bind">Socket::bind</link>(<link linkend="int_type">int</link> <replaceable>$port</replaceable>, <link linkend="bool_type">bool</link> <replaceable>$reuseaddr</replaceable> = False) <command>returns</command> <link linkend="int_type">int</link></code></para>
             </entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Binds the socket to a port, interface and port (if the <replaceable>$bind_to</replaceable> string has a format &quot;host:port&quot;), or UNIX domain socket file.  If the second parameter is True, then the socket will set the <code>SO_REUSEADDR</code> option, which will allow the socket to be bound to a port that is not yet closed (for example, in a <code>TIME_WAIT</code> state).</para></entry>
+	    <entry><para>Binds the socket to a port, interface and port (if the <replaceable>$bind_to</replaceable> string has a format &quot;host:port&quot;), or UNIX domain socket file.  If the second parameter is <code>True</code>, then the socket will set the <code>SO_REUSEADDR</code> option, which will allow the socket to be bound to a port that is not yet closed (for example, in a <code>TIME_WAIT</code> state).</para></entry>
 	  </row>
 	  <row>
 	    <entry>
@@ -12680,7 +12680,7 @@ $pgm.setParseOptions(<link linkend="PO_NO_THREADS">PO_NO_THREADS</link> | <link 
               <para><code><link linkend="Socket_isDataAvailable">Socket::isDataAvailable</link>(<link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="bool_type">bool</link></code></para>
             </entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Returns True or False depending on whether there is data to be read on the socket.</para></entry>
+	    <entry><para>Returns <code>True</code> or <code>False</code> depending on whether there is data to be read on the socket.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
@@ -12688,7 +12688,7 @@ $pgm.setParseOptions(<link linkend="PO_NO_THREADS">PO_NO_THREADS</link> | <link 
               <para><code><link linkend="Socket_isWriteFinished">Socket::isWriteFinished</link>(<link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="bool_type">bool</link></code></para>
             </entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Returns True or False depending on whether all data has been written to the socket.</para></entry>
+	    <entry><para>Returns <code>True</code> or <code>False</code> depending on whether all data has been written to the socket.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
@@ -12875,8 +12875,8 @@ $pgm.setParseOptions(<link linkend="PO_NO_THREADS">PO_NO_THREADS</link> | <link 
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Socket_recvBinary">Socket::recvBinary</link>(<link linkend="softint_type">softint</link> <replaceable>$size</replaceable> = 0, <link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> binary</code></para>
-              <para><code><link linkend="Socket_recvBinary">Socket::recvBinary</link>(<link linkend="softint_type">softint</link> <replaceable>$size</replaceable> = 0, <link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> binary</code></para>
+              <para><code><link linkend="Socket_recvBinary">Socket::recvBinary</link>(<link linkend="softint_type">softint</link> <replaceable>$size</replaceable> = 0, <link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="binary_type">binary</link></code></para>
+              <para><code><link linkend="Socket_recvBinary">Socket::recvBinary</link>(<link linkend="softint_type">softint</link> <replaceable>$size</replaceable> = 0, <link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="binary_type">binary</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Receives data on a socket and returns a binary object</para></entry>
@@ -12974,7 +12974,7 @@ $pgm.setParseOptions(<link linkend="PO_NO_THREADS">PO_NO_THREADS</link> | <link 
               <para>N</para>
             </entry>
             <entry>
-              <para>Returns True if the connection is a secure TLS/SSL connection.</para>
+              <para>Returns <code>True</code> if the connection is a secure TLS/SSL connection.</para>
             </entry>
           </row>
           <row>
@@ -12985,7 +12985,7 @@ $pgm.setParseOptions(<link linkend="PO_NO_THREADS">PO_NO_THREADS</link> | <link 
               <para>N</para>
             </entry>
             <entry>
-              <para>Returns True if the socket is open.</para>
+              <para>Returns <code>True</code> if the socket is open.</para>
             </entry>
           </row>
           <row>
@@ -13108,7 +13108,7 @@ $pgm.setParseOptions(<link linkend="PO_NO_THREADS">PO_NO_THREADS</link> | <link 
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Binds the socket to a port, interface and port (if the <replaceable>$bind_to</replaceable> string has a format &quot;host:port&quot;), or UNIX domain socket file.  If the second parameter is True, then the socket will set the <code>SO_REUSEADDR</code> option, which will allow the socket to be bound to a port that is not yet closed (for example, in a <code>TIME_WAIT</code> state).</para>
+	    <para>Binds the socket to a port, interface and port (if the <replaceable>$bind_to</replaceable> string has a format &quot;host:port&quot;), or UNIX domain socket file.  If the second parameter is <code>True</code>, then the socket will set the <code>SO_REUSEADDR</code> option, which will allow the socket to be bound to a port that is not yet closed (for example, in a <code>TIME_WAIT</code> state).</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -13122,7 +13122,7 @@ $pgm.setParseOptions(<link linkend="PO_NO_THREADS">PO_NO_THREADS</link> | <link 
 	  <term>Examples</term>
 	  <listitem>
 	    <programlisting># bind to port 80 on all interfaces on the local system and reuse the address
-$sock.bind(80, True);</programlisting>
+$sock.bind(80, <code>True</code>);</programlisting>
 	    <programlisting># bind to interface 192.168.2.23 port 8080 and do not reuse the address
 $sock.bind("192.168.2.23:8080");</programlisting>
 	    <programlisting># bind to UNIX domain socket file "/tmp/socket"
@@ -13147,7 +13147,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	    </row>
 	    <row>
 	      <entry><para><code><link linkend="bool_type">bool</link> <replaceable>$reuseaddr</replaceable> = False</code></para></entry>
-	      <entry><para>If this optional argument evaluates to True, the <code>SO_REUSEADDR</code> option will be set on the socket, which will allow the socket to be bound to a port that is not yet closed (for example, in a <code>TIME_WAIT</code> state).</para></entry>
+	      <entry><para>If this optional argument evaluates to <code>True</code>, the <code>SO_REUSEADDR</code> option will be set on the socket, which will allow the socket to be bound to a port that is not yet closed (for example, in a <code>TIME_WAIT</code> state).</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -13169,7 +13169,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	    </row>
 	    <row>
 	      <entry><para><code><link linkend="bool_type">bool</link> <replaceable>$reuseaddr</replaceable> = False</code></para></entry>
-	      <entry><para>If this optional argument evaluates to True, the <code>SO_REUSEADDR</code> option will be set on the socket, which will allow the socket to be bound to a port that is not yet closed (for example, in a <code>TIME_WAIT</code> state).</para></entry>
+	      <entry><para>If this optional argument evaluates to <code>True</code>, the <code>SO_REUSEADDR</code> option will be set on the socket, which will allow the socket to be bound to a port that is not yet closed (for example, in a <code>TIME_WAIT</code> state).</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -13980,7 +13980,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Returns True if the connection is a secure TLS/SSL connection.</para>
+            <para>Returns <code>True</code> if the connection is a secure TLS/SSL connection.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -14016,7 +14016,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
                 <para><code><link linkend="bool_type">bool</link></code></para>
               </entry>
               <entry>
-                <para>True if the connection is encrypted, False if not.</para>
+                <para>True if the connection is encrypted, <code>False</code> if not.</para>
               </entry>
             </row>
           </tbody>
@@ -14029,7 +14029,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Returns True if the socket is open.</para>
+            <para>Returns <code>True</code> if the socket is open.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -14065,7 +14065,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
                 <para><code><link linkend="bool_type">bool</link></code></para>
               </entry>
               <entry>
-                <para>True if the socket is open, False if not.</para>
+                <para>True if the socket is open, <code>False</code> if not.</para>
               </entry>
             </row>
           </tbody>
@@ -14277,7 +14277,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Returns True is data is available on the socket, takes an optional timeout.  With a timeout of zero this method can be used for non-blocking polling the socket for data (can also be used to poll for new connections before <link linkend="Socket_accept">Socket::accept()</link>).</para>
+	    <para>Returns <code>True</code> is data is available on the socket, takes an optional timeout.  With a timeout of zero this method can be used for non-blocking polling the socket for data (can also be used to poll for new connections before <link linkend="Socket_accept">Socket::accept()</link>).</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -14290,7 +14290,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting><command>my</command> bool $b = $sock.isDataAvailable(); # returns True if data is available now</programlisting>
+	    <programlisting><command>my</command> bool $b = $sock.isDataAvailable(); # returns <code>True</code> if data is available now</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -14325,7 +14325,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	  <tbody>
 	    <row>
 	      <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
-	      <entry><para>True if data is available on the socket, False if not.</para></entry>
+	      <entry><para>True if data is available on the socket, <code>False</code> if not.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -14338,7 +14338,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Returns True if all data has been written to the socket, takes an optional timeout.  With a timeout of zero this method returns immediately.</para>
+	    <para>Returns <code>True</code> if all data has been written to the socket, takes an optional timeout.  With a timeout of zero this method returns immediately.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -14386,7 +14386,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	  <tbody>
 	    <row>
 	      <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
-	      <entry><para>True if the send action is complete, False if not.</para></entry>
+	      <entry><para>True if the send action is complete, <code>False</code> if not.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -15441,8 +15441,8 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="Socket_recvBinary">Socket::recvBinary</link>(<link linkend="softint_type">softint</link> <replaceable>$size</replaceable> = 0, <link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> binary</code></para>
-              <para><code><link linkend="Socket_recvBinary">Socket::recvBinary</link>(<link linkend="softint_type">softint</link> <replaceable>$size</replaceable> = 0, <link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> binary</code></para>
+              <para><code><link linkend="Socket_recvBinary">Socket::recvBinary</link>(<link linkend="softint_type">softint</link> <replaceable>$size</replaceable> = 0, <link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="binary_type">binary</link></code></para>
+              <para><code><link linkend="Socket_recvBinary">Socket::recvBinary</link>(<link linkend="softint_type">softint</link> <replaceable>$size</replaceable> = 0, <link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="binary_type">binary</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -17012,9 +17012,9 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Sets the <code>TCP_NODELAY</code> setting for the socket; when this setting is True, then data will be immediately sent out over the socket, when it is False, then data transmission may be delayed to be packaged with other data for the same target.</para>
+	    <para>Sets the <code>TCP_NODELAY</code> setting for the socket; when this setting is <code>True</code>, then data will be immediately sent out over the socket, when it is <code>False</code>, then data transmission may be delayed to be packaged with other data for the same target.</para>
 	    <para>Delayed data transmissions may cause problems when the sender immediately closes the socket after sending data; in this case the receiver may not get the data even though the send succeeded.</para>
-	    <para>Note that if no value is given to the method, the argument will be assumed to be False, and output buffering will be turned on for the socket, which may be the opposite of what the programmer intends, therefore it's recommended to always pass an argument to this method.</para>
+	    <para>Note that if no value is given to the method, the argument will be assumed to be <code>False</code>, and output buffering will be turned on for the socket, which may be the opposite of what the programmer intends, therefore it's recommended to always pass an argument to this method.</para>
 	    <para>See also <link linkend="Socket_getNoDelay">Socket::getNoDelay()</link>.</para>
 	  </listitem>
 	</varlistentry>
@@ -17027,7 +17027,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$sock.setNoDelay(True);</programlisting>
+	    <programlisting>$sock.setNoDelay(<code>True</code>);</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -17520,7 +17520,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
               <para>N</para>
             </entry>
             <entry>
-              <para>Sets the object to make a secure SSL/TLS connection on the next connect if the passed argument is True, or an unencrypted cleartext connection if it is False.  This method overrides the default behaviour for the protocol set for the object.</para>
+              <para>Sets the object to make a secure SSL/TLS connection on the next connect if the passed argument is <code>True</code>, or an unencrypted cleartext connection if it is <code>False</code>.  This method overrides the default behaviour for the protocol set for the object.</para>
             </entry>
           </row>
           <row>
@@ -17531,7 +17531,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
               <para>N</para>
             </entry>
             <entry>
-              <para>Returns True if the current connection is encrypted, False if not.</para>
+              <para>Returns <code>True</code> if the current connection is encrypted, <code>False</code> if not.</para>
             </entry>
           </row>
           <row>
@@ -17613,7 +17613,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
               <para><code><link linkend="HTTPClient_isConnected">HTTPClient::isConnected</link>() <command>returns</command> <link linkend="bool_type">bool</link></code></para>
             </entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Returns True or False giving the current connection state.</para></entry>
+	    <entry><para>Returns <code>True</code> or <code>False</code> giving the current connection state.</para></entry>
 	  </row>
         </tbody>
       </tgroup>
@@ -18061,7 +18061,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Example</term>
           <listitem>
-            <programlisting>$httpclient.setProxySecure(True);</programlisting>
+            <programlisting>$httpclient.setProxySecure(<code>True</code>);</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -19075,7 +19075,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Sets the object to make a secure SSL/TLS connection on the next connect if the passed argument is True, or an unencrypted cleartext connection if it is False.  This method overrides the default behaviour for the protocol set for the object.</para>
+            <para>Sets the object to make a secure SSL/TLS connection on the next connect if the passed argument is <code>True</code>, or an unencrypted cleartext connection if it is <code>False</code>.  This method overrides the default behaviour for the protocol set for the object.</para>
 	    <para>Note that the behavior of this method when called with no argument changed in version 0.8.0; prior to version 0.8.0 calling this method with no argument would turn off secure mode; the behavior was changed to the current functionality in order to make the usage of this method consistent with other methods of the same name and to make it more logical.</para>
           </listitem>
         </varlistentry>
@@ -19088,7 +19088,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Example</term>
           <listitem>
-            <programlisting>$httpclient.setSecure(True);</programlisting>
+            <programlisting>$httpclient.setSecure(<code>True</code>);</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -19109,7 +19109,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
             <row>
               <entry><para><code><link linkend="softbool_type">softbool</link> <replaceable>$secure</replaceable> = True</code></para></entry>
               <entry>
-                <para>If True, a SSL/TLS connection will be attempted on the next connection.  If False, an unencrypted cleartext connection will be established.</para>
+                <para>If <code>True</code>, a SSL/TLS connection will be attempted on the next connection.  If <code>False</code>, an unencrypted cleartext connection will be established.</para>
               </entry>
             </row>
           </tbody>
@@ -19122,7 +19122,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Returns True if the current connection is encrypted, False if not.</para>
+            <para>Returns <code>True</code> if the current connection is encrypted, <code>False</code> if not.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -19157,7 +19157,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
                 <para><code><link linkend="bool_type">bool</link></code></para>
               </entry>
               <entry>
-                <para>Returns True if the current connection is encrypted, False if not.</para>
+                <para>Returns <code>True</code> if the current connection is encrypted, <code>False</code> if not.</para>
               </entry>
             </row>
           </tbody>
@@ -19516,9 +19516,9 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Sets the <code>TCP_NODELAY</code> setting for the HTTPClient object; when this setting is True, then data will be immediately sent out over the HTTPClient object's socket, when it is False, then data transmission may be delayed to be packaged with other data for the same target.</para>
+	    <para>Sets the <code>TCP_NODELAY</code> setting for the HTTPClient object; when this setting is <code>True</code>, then data will be immediately sent out over the HTTPClient object's socket, when it is <code>False</code>, then data transmission may be delayed to be packaged with other data for the same target.</para>
 	    <para>Delayed data transmissions may cause problems when the sender immediately closes the socket after sending data; in this case the receiver may not get the data even though the send succeeded.</para>
-	    <para>Note that if no value is given to the method, the argument will be assumed to be False, and output buffering will be turned on for the HTTPClient object, which may be the opposite of what the programmer intends, therefore it's recommended to always pass an argument to this method.</para>
+	    <para>Note that if no value is given to the method, the argument will be assumed to be <code>False</code>, and output buffering will be turned on for the HTTPClient object, which may be the opposite of what the programmer intends, therefore it's recommended to always pass an argument to this method.</para>
 	    <para>If the socket is not connected when this call is made, then an internal flag is set and the <code>TCP_NODELAY</code> option is enabled when the next connection is established.  If the socket is connected, then if an error occurs setting the <code>TCP_NODELAY</code> option on the socket, this method will return a non-zero error code; the actual error can be checked with the <link linkend="errno">errno()</link> function.</para>
 	    <para>See also <link linkend="HTTPClient_getNoDelay">HTTPClient::getNoDelay()</link>.</para>
 	  </listitem>
@@ -19532,7 +19532,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$httpclient.setNoDelay(True);</programlisting>
+	    <programlisting>$httpclient.setNoDelay(<code>True</code>);</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -19787,7 +19787,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Creates the XmlRpcClient object based on the parameters passed and by default immediately attempts to establish a connection to the server (pass a boolean True value as the second argument to establish a connection on demand).  See <link linkend="HTTPClient_constructor">HTTPClient::constructor()</link> and <link linkend="HTTPClient_connect">HTTPClient::connect()</link> for information on possible exceptions.</para>
+            <para>Creates the XmlRpcClient object based on the parameters passed and by default immediately attempts to establish a connection to the server (pass a boolean <code>True</code> value as the second argument to establish a connection on demand).  See <link linkend="HTTPClient_constructor">HTTPClient::constructor()</link> and <link linkend="HTTPClient_connect">HTTPClient::connect()</link> for information on possible exceptions.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -19820,7 +19820,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
             </row>
             <row>
               <entry><para><code><replaceable><link linkend="softbool_type">softbool</link> <replaceable>$no_connect</replaceable> = False</replaceable></code></para></entry>
-              <entry><para>If this optional argument is passed with a value of True, then the object will not attempt to make a connection immediately to the remote socket, but instead will wait until a connection is required and made implicitly or manually established with the parent class' <link linkend="HTTPClient_connect">HTTPClient::connect()</link> method.</para></entry>
+              <entry><para>If this optional argument is passed with a value of <code>True</code>, then the object will not attempt to make a connection immediately to the remote socket, but instead will wait until a connection is required and made implicitly or manually established with the parent class' <link linkend="HTTPClient_connect">HTTPClient::connect()</link> method.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -20388,7 +20388,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Creates the JsonRpcClient object based on the parameters passed and by default immediately attempts to establish a connection to the server (pass a boolean True value as the second argument to establish a connection on demand).  See <link linkend="HTTPClient_constructor">HTTPClient::constructor()</link> and <link linkend="HTTPClient_connect">HTTPClient::connect()</link> for information on possible exceptions.</para>
+            <para>Creates the JsonRpcClient object based on the parameters passed and by default immediately attempts to establish a connection to the server (pass a boolean <code>True</code> value as the second argument to establish a connection on demand).  See <link linkend="HTTPClient_constructor">HTTPClient::constructor()</link> and <link linkend="HTTPClient_connect">HTTPClient::connect()</link> for information on possible exceptions.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -20421,7 +20421,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
             </row>
             <row>
               <entry><para><code><replaceable><link linkend="softbool_type">softbool</link> <replaceable>$no_connect</replaceable> = False</replaceable></code></para></entry>
-              <entry><para>If this optional argument is passed with a value of True, then the object will not attempt to make a connection immediately to the remote socket, but instead will wait until a connection is required and made implicitly or manually established with the parent class' <link linkend="HTTPClient_connect">HTTPClient::connect()</link> method.</para></entry>
+              <entry><para>If this optional argument is passed with a value of <code>True</code>, then the object will not attempt to make a connection immediately to the remote socket, but instead will wait until a connection is required and made implicitly or manually established with the parent class' <link linkend="HTTPClient_connect">HTTPClient::connect()</link> method.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -21329,7 +21329,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="SSLCertificate_getSignature">SSLCertificate::getSignature</link>() <command>returns</command> binary</code></para>
+              <para><code><link linkend="SSLCertificate_getSignature">SSLCertificate::getSignature</link>() <command>returns</command> <link linkend="binary_type">binary</link></code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -21727,7 +21727,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-              <para><code><link linkend="SSLCertificate_getSignature">SSLCertificate::getSignature</link>() <command>returns</command> binary</code></para>
+              <para><code><link linkend="SSLCertificate_getSignature">SSLCertificate::getSignature</link>() <command>returns</command> <link linkend="binary_type">binary</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -22255,7 +22255,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
               <para><code><link linkend="TimeZone::hasDST">TimeZone::hasDST</link>() <command>returns</command> <link linkend="bool_type">bool</link></code></para>
 	    </entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Returns True if the current zone has daylight saving's time rules, False if not.  TimeZone objects based on zoneinfo region files can have (but do not necessarily have) daylight savings time information; those based on UTC offsets have none.</para></entry>
+	    <entry><para>Returns <code>True</code> if the current zone has daylight saving's time rules, <code>False</code> if not.  TimeZone objects based on zoneinfo region files can have (but do not necessarily have) daylight savings time information; those based on UTC offsets have none.</para></entry>
 	  </row>
 
 	  <row>
@@ -22488,7 +22488,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Returns True if the current zone has daylight saving's time rules, False if not.  TimeZone objects based on zoneinfo region files can have (but do not necessarily have) daylight savings time information; those based on UTC offsets have none.</para>
+            <para>Returns <code>True</code> if the current zone has daylight saving's time rules, <code>False</code> if not.  TimeZone objects based on zoneinfo region files can have (but do not necessarily have) daylight savings time information; those based on UTC offsets have none.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -22523,7 +22523,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
               <entry>
                 <para><code><link linkend="bool_type">bool</link></code></para>
               </entry>
-              <entry><para>Returns True if the current zone has daylight saving's time rules, False if not.  TimeZone objects based on zoneinfo region files can have (but do not necessarily have) daylight savings time information; those based on UTC offsets have none.</para></entry>
+              <entry><para>Returns <code>True</code> if the current zone has daylight saving's time rules, <code>False</code> if not.  TimeZone objects based on zoneinfo region files can have (but do not necessarily have) daylight savings time information; those based on UTC offsets have none.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -23441,7 +23441,7 @@ values (%v, %v, %v, %d)", $string, now(), $binary, 100);</programlisting>
               <para><code><link linkend="Datasource::inTransaction">Datasource::inTransaction</link>() <command>returns</command> <link linkend="bool_type">bool</link></code></para>
             </entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Returns True if a transaction is in progress, False if not.</para></entry>
+	    <entry><para>Returns <code>True</code> if a transaction is in progress, <code>False</code> if not.</para></entry>
 	  </row>
 
 	</tbody>
@@ -23833,7 +23833,7 @@ values (%v, %v, %v, %d)", $string, now(), $binary, 100);</programlisting>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Returns True if the Datasource is currently in a transaction (has the transaction lock allocated to the calling thread), False if not.</para>
+	    <para>Returns <code>True</code> if the Datasource is currently in a transaction (has the transaction lock allocated to the calling thread), <code>False</code> if not.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -23862,7 +23862,7 @@ values (%v, %v, %v, %d)", $string, now(), $binary, 100);</programlisting>
 	  <tbody>
 	    <row>
 	      <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
-	      <entry><para>Returns True if the Datasource is currently in a transaction (has the transaction lock allocated to the calling thread), False if not.</para></entry>
+	      <entry><para>Returns <code>True</code> if the Datasource is currently in a transaction (has the transaction lock allocated to the calling thread), <code>False</code> if not.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -23934,7 +23934,7 @@ values (%v, %v, %v, %d)", $string, now(), $binary, 100);</programlisting>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$db.setAutoCommit(False);</programlisting>
+	    <programlisting>$db.setAutoCommit(<code>False</code>);</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -23951,7 +23951,7 @@ values (%v, %v, %v, %d)", $string, now(), $binary, 100);</programlisting>
 	  <tbody>
 	    <row>
 	      <entry><para><code><link linkend="softbool_type">softbool</link> <replaceable>$b</replaceable> = True</code></para></entry>
-	      <entry><para>True to turn on autocommit (a commit will be executed after every <link linkend="Datasource::exec">Datasource::exec()</link>), False to turn off autocommit (commits must be manually triggered).</para></entry>
+	      <entry><para>True to turn on autocommit (a commit will be executed after every <link linkend="Datasource::exec">Datasource::exec()</link>), <code>False</code> to turn off autocommit (commits must be manually triggered).</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -25756,7 +25756,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
               <para><code><link linkend="DatasourcePool::inTransaction">DatasourcePool::inTransaction</link>() <command>returns</command> <link linkend="bool_type">bool</link></code></para>
             </entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Returns True if a transaction is in progress (and therefore a <link linkend="Datasource_Class">Datasource</link> form the pool is dedicated to the calling thread), False if not.</para></entry>
+	    <entry><para>Returns <code>True</code> if a transaction is in progress (and therefore a <link linkend="Datasource_Class">Datasource</link> form the pool is dedicated to the calling thread), <code>False</code> if not.</para></entry>
 	  </row>
 
 	</tbody>
@@ -26064,7 +26064,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Returns True if there is a Datasource from the pool currently allocated to the calling thread, False if not.</para>
+	    <para>Returns <code>True</code> if there is a Datasource from the pool currently allocated to the calling thread, <code>False</code> if not.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -26093,7 +26093,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	  <tbody>
 	    <row>
 	      <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
-	      <entry><para>Returns True if there is a Datasource from the pool currently allocated to the calling thread, False if not.</para></entry>
+	      <entry><para>Returns <code>True</code> if there is a Datasource from the pool currently allocated to the calling thread, <code>False</code> if not.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -31626,14 +31626,14 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
               <para><code><link linkend="XmlDoc::validateRelaxNG">XmlDoc::validateRelaxNG</link>(<link linkend="string_type">string</link> <replaceable>$relaxng</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Validates the XML document against a <ulink url="http://www.relaxng.org/">RelaxNG</ulink> schema; if any errors occur, exceptions are thrown.  Not available if <code>HAVE_PARSEXMLWITHRELAXNG</code> is False.</para></entry>
+	    <entry><para>Validates the XML document against a <ulink url="http://www.relaxng.org/">RelaxNG</ulink> schema; if any errors occur, exceptions are thrown.  Not available if <code><link linkend="HAVE_PARSEXMLWITHRELAXNG">HAVE_PARSEXMLWITHRELAXNG</link></code> is <code>False</code>.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
               <para><code><link linkend="XmlDoc::validateSchema">XmlDoc::validateSchema</link>(<link linkend="string_type">string</link> <replaceable>$xsd</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Validates the XML document against an <ulink url="http://www.w3.org/XML/Schema">XSD</ulink> schema; if any errors occur, exceptions are thrown.  Not available if <code>HAVE_PARSEXMLWITHSCHEMA</code> is False.</para></entry>
+	    <entry><para>Validates the XML document against an <ulink url="http://www.w3.org/XML/Schema">XSD</ulink> schema; if any errors occur, exceptions are thrown.  Not available if <code><link linkend="HAVE_PARSEXMLWITHSCHEMA">HAVE_PARSEXMLWITHSCHEMA</link></code> is <code>False</code>.</para></entry>
 	  </row>
 	</tbody>
       </tgroup>
@@ -32062,7 +32062,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
 	  <term>Synopsis</term>
 	  <listitem>
 	    <para>Validates the XML document against a <ulink url="http://www.relaxng.org/">RelaxNG</ulink> schema; if any errors occur, exceptions are thrown.</para>
-            <para>The availability of this function depends on the presence of libxml2's <code>xmlTextReaderRelaxNGSetSchema()</code> function when Qore was compiled; for maximum portability check the constant <code>HAVE_PARSEXMLWITHRELAXNG</code> before running this method.  See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
+            <para>The availability of this function depends on the presence of libxml2's <code>xmlTextReaderRelaxNGSetSchema()</code> function when Qore was compiled; for maximum portability check the constant <code><link linkend="HAVE_PARSEXMLWITHRELAXNG">HAVE_PARSEXMLWITHRELAXNG</link></code> before running this method.  See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -32121,7 +32121,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
 	    </row>
             <row>
               <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
-              <entry><para>This exception is thrown when the function is not available; for maximum portability, check the constant <code>HAVE_PARSEXMLWITHRELAXNG</code> before calling this function.</para></entry>
+              <entry><para>This exception is thrown when the function is not available; for maximum portability, check the constant <code><link linkend="HAVE_PARSEXMLWITHRELAXNG">HAVE_PARSEXMLWITHRELAXNG</link></code> before calling this function.</para></entry>
             </row>
 	  </tbody>
 	</tgroup>
@@ -32135,7 +32135,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
 	  <term>Synopsis</term>
 	  <listitem>
 	    <para>Validates the XML document against an <ulink url="http://www.w3.org/XML/Schema">XSD</ulink> schema; if any errors occur, exceptions are thrown.</para>
-            <para>The availability of this function depends on the presence of libxml2's <code>xmlTextReaderSetSchema()</code> function when Qore was compiled; for maximum portability check the constant <code>HAVE_PARSEXMLWITHSCHEMA</code> before running this function.  See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
+            <para>The availability of this function depends on the presence of libxml2's <code>xmlTextReaderSetSchema()</code> function when Qore was compiled; for maximum portability check the constant <code><link linkend="HAVE_PARSEXMLWITHSCHEMA">HAVE_PARSEXMLWITHSCHEMA</link></code> before running this function.  See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -32194,7 +32194,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
 	    </row>
             <row>
               <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
-              <entry><para>This exception is thrown when the function is not available; for maximum portability, check the constant <code>HAVE_PARSEXMLWITHSCHEMA</code> before calling this function.</para></entry>
+              <entry><para>This exception is thrown when the function is not available; for maximum portability, check the constant <code><link linkend="HAVE_PARSEXMLWITHSCHEMA">HAVE_PARSEXMLWITHSCHEMA</link></code> before calling this function.</para></entry>
             </row>
 	  </tbody>
 	</tgroup>
@@ -32424,7 +32424,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
               <para>N</para>
             </entry>
             <entry>
-              <para>Returns True if the node is a text node, False if not.</para>
+              <para>Returns <code>True</code> if the node is a text node, <code>False</code> if not.</para>
             </entry>
           </row>
           <row>
@@ -32435,7 +32435,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
               <para>N</para>
             </entry>
             <entry>
-              <para>Returns True if the node is empty or whitespace only, False if not.</para>
+              <para>Returns <code>True</code> if the node is empty or whitespace only, <code>False</code> if not.</para>
             </entry>
           </row>
           <row>
@@ -33329,7 +33329,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Returns True if the node is a text node, False if not.</para>
+            <para>Returns <code>True</code> if the node is a text node, <code>False</code> if not.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -33365,7 +33365,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
                 <para><code><link linkend="bool_type">bool</link></code></para>
               </entry>
               <entry>
-                <para>True if the node is a text node, False if not</para>
+                <para>True if the node is a text node, <code>False</code> if not</para>
               </entry>
             </row>
           </tbody>
@@ -33378,7 +33378,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Returns True if the node is empty or whitespace only, False if not.</para>
+            <para>Returns <code>True</code> if the node is empty or whitespace only, <code>False</code> if not.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -33414,7 +33414,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
                 <para><code><link linkend="bool_type">bool</link></code></para>
               </entry>
               <entry>
-                <para>True if the node is empty or whitespace only, False if not</para>
+                <para>True if the node is empty or whitespace only, <code>False</code> if not</para>
               </entry>
             </row>
           </tbody>
@@ -33611,7 +33611,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
               <para>N</para>
             </entry>
             <entry>
-              <para>Returns True if the node has attributes or False if not.</para>
+              <para>Returns <code>True</code> if the node has attributes or <code>False</code> if not.</para>
             </entry>
           </row>
           <row>
@@ -33622,7 +33622,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
               <para>N</para>
             </entry>
             <entry>
-              <para>Returns True if the node has a text value or False if not.</para>
+              <para>Returns <code>True</code> if the node has a text value or <code>False</code> if not.</para>
             </entry>
           </row>
           <row>
@@ -33633,7 +33633,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
               <para>N</para>
             </entry>
             <entry>
-              <para>Returns True if an attribute node was generated from the default value defined in the DTD or schema, False if not.</para>
+              <para>Returns <code>True</code> if an attribute node was generated from the default value defined in the DTD or schema, <code>False</code> if not.</para>
             </entry>
           </row>
           <row>
@@ -33644,7 +33644,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
               <para>N</para>
             </entry>
             <entry>
-              <para>Returns True if the current node is empty or False if not.</para>
+              <para>Returns <code>True</code> if the current node is empty or <code>False</code> if not.</para>
             </entry>
           </row>
           <row>
@@ -33655,7 +33655,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
               <para>N</para>
             </entry>
             <entry>
-              <para>Returns True if the current node is a namespace declaration rather than a regular attribute or False if not.</para>
+              <para>Returns <code>True</code> if the current node is a namespace declaration rather than a regular attribute or <code>False</code> if not.</para>
             </entry>
           </row>
           <row>
@@ -33666,7 +33666,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
               <para>N</para>
             </entry>
             <entry>
-              <para>Returns True if the current reader parser context is valid, False if not</para>
+              <para>Returns <code>True</code> if the current reader parser context is valid, <code>False</code> if not</para>
             </entry>
           </row>
           <row>
@@ -33931,7 +33931,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
               <para>Y</para>
             </entry>
             <entry>
-              <para>Set a RelaxNG schema for schema validation while parsing the XML document.  This method must be called before the first call to <link linkend="XmlReader_read">XmlReader::read().  Not available if <code>HAVE_PARSEXMLWITHRELAXNG</code> is False.</link></para>
+              <para>Set a RelaxNG schema for schema validation while parsing the XML document.  This method must be called before the first call to <link linkend="XmlReader_read">XmlReader::read()</link>.  Not available if <code><link linkend="HAVE_PARSEXMLWITHRELAXNG">HAVE_PARSEXMLWITHRELAXNG</link></code> is <code>False</code>.</para>
             </entry>
           </row>
           <row>
@@ -33942,7 +33942,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
               <para>Y</para>
             </entry>
             <entry>
-              <para>Set an XSD schema for schema validation while parsing the XML document.  This method must be called before the first call to <link linkend="XmlReader_read">XmlReader::read().  Not available if <code>HAVE_PARSEXMLWITHSCHEMA</code> is False.</link></para>
+              <para>Set an XSD schema for schema validation while parsing the XML document.  This method must be called before the first call to <link linkend="XmlReader_read">XmlReader::read()</link>.  Not available if <code><link linkend="HAVE_PARSEXMLWITHSCHEMA">HAVE_PARSEXMLWITHSCHEMA</link></code> is <code>False</code>.</para>
             </entry>
           </row>
         </tbody>
@@ -34068,7 +34068,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Moves the position of the current instance to the next node in the stream.  Returns True if the read was successful, False if there are no more nodes to read.  If an error occurs parsing the XML string, an exception is raised (see below).</para>
+            <para>Moves the position of the current instance to the next node in the stream.  Returns <code>True</code> if the read was successful, <code>False</code> if there are no more nodes to read.  If an error occurs parsing the XML string, an exception is raised (see below).</para>
             <para>See also <link linkend="XmlReader_readSkipWhitespace">XmlReader::readSkipWhitespace()</link>.</para>
           </listitem>
         </varlistentry>
@@ -34106,7 +34106,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
                 <para><code><link linkend="bool_type">bool</link></code></para>
               </entry>
               <entry>
-                <para>True if the read was successful, False if there are no more nodes to read</para>
+                <para>True if the read was successful, <code>False</code> if there are no more nodes to read</para>
               </entry>
             </row>
           </tbody>
@@ -34146,7 +34146,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Moves the position of the current instance to the next node in the stream, skipping any whitespace nodes.  Returns True if the read was successful, False if there are no more nodes to read.  If an error occurs parsing the XML string, an exception is raised (see below).</para>
+            <para>Moves the position of the current instance to the next node in the stream, skipping any whitespace nodes.  Returns <code>True</code> if the read was successful, <code>False</code> if there are no more nodes to read.  If an error occurs parsing the XML string, an exception is raised (see below).</para>
             <para>See also <link linkend="XmlReader_read">XmlReader::read()</link>.</para>
           </listitem>
         </varlistentry>
@@ -34184,7 +34184,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
                 <para><code><link linkend="bool_type">bool</link></code></para>
               </entry>
               <entry>
-                <para>True if the read was successful, False if there are no more nodes to read</para>
+                <para>True if the read was successful, <code>False</code> if there are no more nodes to read</para>
               </entry>
             </row>
           </tbody>
@@ -34467,7 +34467,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Returns True if the node has attributes or False if not.</para>
+            <para>Returns <code>True</code> if the node has attributes or <code>False</code> if not.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -34503,7 +34503,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
                 <para><code><link linkend="bool_type">bool</link></code></para>
               </entry>
               <entry>
-                <para>True if the node has attributes, False if not</para>
+                <para>True if the node has attributes, <code>False</code> if not</para>
               </entry>
             </row>
           </tbody>
@@ -34516,7 +34516,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Returns True if the node has a text value or False if not.</para>
+            <para>Returns <code>True</code> if the node has a text value or <code>False</code> if not.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -34552,7 +34552,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
                 <para><code><link linkend="bool_type">bool</link></code></para>
               </entry>
               <entry>
-                <para>True if the node has a text value, False if not</para>
+                <para>True if the node has a text value, <code>False</code> if not</para>
               </entry>
             </row>
           </tbody>
@@ -34565,7 +34565,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Returns True if an attribute node was generated from the default value defined in the DTD or schema, False if not.</para>
+            <para>Returns <code>True</code> if an attribute node was generated from the default value defined in the DTD or schema, <code>False</code> if not.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -34601,7 +34601,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
                 <para><code><link linkend="bool_type">bool</link></code></para>
               </entry>
               <entry>
-                <para>True if the node an attribute node was generated from the default value defined in the DTD or schema, False if not</para>
+                <para>True if the node an attribute node was generated from the default value defined in the DTD or schema, <code>False</code> if not</para>
               </entry>
             </row>
           </tbody>
@@ -34614,7 +34614,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Returns True if the current node is empty or False if not.</para>
+            <para>Returns <code>True</code> if the current node is empty or <code>False</code> if not.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -34650,7 +34650,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
                 <para><code><link linkend="bool_type">bool</link></code></para>
               </entry>
               <entry>
-                <para>True if the current node is empty, False if not</para>
+                <para>True if the current node is empty, <code>False</code> if not</para>
               </entry>
             </row>
           </tbody>
@@ -34663,7 +34663,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Returns True if the current node is a namespace declaration rather than a regular attribute or False if not.</para>
+            <para>Returns <code>True</code> if the current node is a namespace declaration rather than a regular attribute or <code>False</code> if not.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -34699,7 +34699,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
                 <para><code><link linkend="bool_type">bool</link></code></para>
               </entry>
               <entry>
-                <para>True if the current node is a namespace declaration rather than a regular attribute, False if not</para>
+                <para>True if the current node is a namespace declaration rather than a regular attribute, <code>False</code> if not</para>
               </entry>
             </row>
           </tbody>
@@ -34712,7 +34712,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Returns True if the current reader parser context is valid, False if not</para>
+            <para>Returns <code>True</code> if the current reader parser context is valid, <code>False</code> if not</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -34748,7 +34748,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
                 <para><code><link linkend="bool_type">bool</link></code></para>
               </entry>
               <entry>
-                <para>True if the current reader parser context is valid, False if not</para>
+                <para>True if the current reader parser context is valid, <code>False</code> if not</para>
               </entry>
             </row>
           </tbody>
@@ -35669,7 +35669,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
           <tbody>
             <row>
               <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
-              <entry><para>True in case of success, False if not found; if an XML parsing error occurs, an exception is thrown.</para></entry>
+              <entry><para>True in case of success, <code>False</code> if not found; if an XML parsing error occurs, an exception is thrown.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -35768,7 +35768,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
           <tbody>
             <row>
               <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
-              <entry><para>True in case of success, False if not found; if an XML parsing error occurs, an exception is thrown.</para></entry>
+              <entry><para>True in case of success, <code>False</code> if not found; if an XML parsing error occurs, an exception is thrown.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -35866,7 +35866,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
                 <para><code><link linkend="bool_type">bool</link></code></para>
               </entry>
               <entry>
-                <para>True in case of success, False if not found; if an XML parsing error occurs, an exception is thrown.</para>
+                <para>True in case of success, <code>False</code> if not found; if an XML parsing error occurs, an exception is thrown.</para>
               </entry>
             </row>
           </tbody>
@@ -35933,7 +35933,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
           <tbody>
             <row>
               <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
-              <entry><para>True in case of success, False if not found; if an XML parsing error occurs, an exception is thrown.</para></entry>
+              <entry><para>True in case of success, <code>False</code> if not found; if an XML parsing error occurs, an exception is thrown.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -35999,7 +35999,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
           <tbody>
             <row>
               <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
-              <entry><para>True in case of success, False if not found; if an XML parsing error occurs, an exception is thrown.</para></entry>
+              <entry><para>True in case of success, <code>False</code> if not found; if an XML parsing error occurs, an exception is thrown.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -36065,7 +36065,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
           <tbody>
             <row>
               <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
-              <entry><para>True in case of success, False if not found; if an XML parsing error occurs, an exception is thrown.</para></entry>
+              <entry><para>True in case of success, <code>False</code> if not found; if an XML parsing error occurs, an exception is thrown.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -36098,7 +36098,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Moves the position of the current instance to the next node in the tree at the same level, skipping any subtree.  Returns True if the operation succeeded, False if there are no more nodes to read.  If an error occurs parsing the XML string, an exception is raised.</para>
+            <para>Moves the position of the current instance to the next node in the tree at the same level, skipping any subtree.  Returns <code>True</code> if the operation succeeded, <code>False</code> if there are no more nodes to read.  If an error occurs parsing the XML string, an exception is raised.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -36134,7 +36134,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
               <entry>
                 <para><code><link linkend="bool_type">bool</link></code></para>
               </entry>
-              <entry><para>True in case of success, False if not found; if an XML parsing error occurs, an exception is thrown.</para></entry>
+              <entry><para>True in case of success, <code>False</code> if not found; if an XML parsing error occurs, an exception is thrown.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -36265,7 +36265,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
           <term>Synopsis</term>
           <listitem>
             <para>Set a RelaxNG schema for schema validation while parsing the XML document.  This method must be called before the first call to <link linkend="XmlReader_read">XmlReader::read()</link></para>
-        <para>The availability of this function depends on the presence of libxml2's <code>xmlTextReaderRelaxNGValidate()</code> function when Qore was compiled; for maximum portability check the constant <code>HAVE_PARSEXMLWITHRELAXNG</code> before calling this method.  See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
+        <para>The availability of this function depends on the presence of libxml2's <code>xmlTextReaderRelaxNGValidate()</code> function when Qore was compiled; for maximum portability check the constant <code><link linkend="HAVE_PARSEXMLWITHRELAXNG">HAVE_PARSEXMLWITHRELAXNG</link></code> before calling this method.  See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
             <para>If any errors occur, an exception is thrown (see below).</para>
           </listitem>
         </varlistentry>
@@ -36335,7 +36335,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
             </row>
             <row>
               <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
-              <entry><para>This exception is thrown when the function is not available; for maximum portability, check the constant <code>HAVE_PARSEXMLWITHRELAXNG</code> before calling this function.</para></entry>
+              <entry><para>This exception is thrown when the function is not available; for maximum portability, check the constant <code><link linkend="HAVE_PARSEXMLWITHRELAXNG">HAVE_PARSEXMLWITHRELAXNG</link></code> before calling this function.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -36348,7 +36348,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
           <term>Synopsis</term>
           <listitem>
             <para>Set an XSD schema for schema validation while parsing the XML document.  This method must be called before the first call to <link linkend="XmlReader_read">XmlReader::read()</link></para>
-        <para>The availability of this function depends on the presence of libxml2's <code>xmlTextReaderSchemaValidate()</code> function when Qore was compiled; for maximum portability check the constant <code>HAVE_PARSEXMLWITHSCHEMA</code> before calling this method.  See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
+        <para>The availability of this function depends on the presence of libxml2's <code>xmlTextReaderSchemaValidate()</code> function when Qore was compiled; for maximum portability check the constant <code><link linkend="HAVE_PARSEXMLWITHSCHEMA">HAVE_PARSEXMLWITHSCHEMA</link></code> before calling this method.  See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
             <para>If any errors occur, an exception is thrown (see below).</para>
           </listitem>
         </varlistentry>
@@ -36419,7 +36419,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
             <row>
               <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
               <entry><para>This exception is thrown when the function is not available; for maximum portability, check the constan
-t <code>HAVE_PARSEXMLWITHSCHEMA</code> before calling this function.</para></entry>
+t <code><link linkend="HAVE_PARSEXMLWITHSCHEMA">HAVE_PARSEXMLWITHSCHEMA</link></code> before calling this function.</para></entry>
             </row>
           </tbody>
         </tgroup>

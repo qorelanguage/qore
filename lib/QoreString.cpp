@@ -1330,7 +1330,7 @@ void QoreString::concatEscape(const char *str, char c, char esc_char) {
       qore_size_t i = 0;
       // iterate through new string
       while (str[i]) {
-	 if (str[i] == c) {
+	 if (str[i] == c || str[i] == esc_char) {
 	    // check for space in priv->buffer
 	    priv->check_char(priv->len + 1);
 	    priv->buf[priv->len++] = esc_char;
