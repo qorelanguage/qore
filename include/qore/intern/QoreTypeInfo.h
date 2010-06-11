@@ -485,7 +485,7 @@ public:
                                                   exact_return(true), ambiguous_int_match(false) {
    }
 
-   DLLLOCAL ~QoreTypeInfo() {
+   DLLLOCAL virtual ~QoreTypeInfo() {
    }
 
    DLLLOCAL bool parseAcceptsReturns(qore_type_t t) const {
