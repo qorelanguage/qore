@@ -8281,12 +8281,12 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
             <row>
 	      <entry><para><code><link linkend="list_type">list</link> $keys, <link linkend="list_type">list</link> $values</code></para></entry>
               <entry><para><code><link linkend="hash_type">hash</link></code></para></entry>
-              <entry><para>Returns a hash by taking even numbered list elements (starting with 0) and converting them to strings for the hash keys, and the odd numbered elements following the keys as the key value.</para></entry>
+              <entry><para>Returns a hash by taking the first list as a list of keys, and the second list as a list of values.  If the two lists are of unequal sizes, then the keys list takes precedence (if the values list is longer, excess values are ignored).</para></entry>
             </row>
             <row>
 	      <entry><para><code><link linkend="list_type">list</link> $list</code></para></entry>
               <entry><para><code><link linkend="hash_type">hash</link></code></para></entry>
-              <entry><para>Returns a hash by taking the first list as a list of keys, and the second list as a list of values.  If the two lists are of unequal sizes, then the keys list takes precedence (if the values list is longer, excess values are ignored).</para></entry>
+              <entry><para>Returns a hash by taking even numbered list elements (starting with 0) and converting them to strings for the hash keys, and the odd numbered elements following the keys as the key value.</para></entry>
             </row>
             <row>
 	      <entry><para><code><link linkend="hash_type">hash</link> $hash</code></para></entry>
