@@ -16541,7 +16541,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Example</term>
       <listitem>
-	<programlisting>my $cwd = getcwd();</programlisting>
+	<programlisting><command>my</command> $cwd = getcwd();</programlisting>
       </listitem>
     </varlistentry>
       <varlistentry>
@@ -21303,7 +21303,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Example</term>
       <listitem>
-	<programlisting>my $bool = inlist(123, (<code>True</code>, "123", <code>False</code>); # this will return True</programlisting>
+	<programlisting><command>my</command> $bool = inlist(123, (<code>True</code>, "123", <code>False</code>); # this will return True</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -21359,7 +21359,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Example</term>
       <listitem>
-	<programlisting>my $bool = inlist_hard(123, (<code>True</code>, "123", <code>False</code>); # this will return False</programlisting>
+	<programlisting><command>my</command> $bool = inlist_hard(123, (<code>True</code>, "123", <code>False</code>); # this will return False</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -25108,7 +25108,7 @@ the resulting string will always be the encoding of the fault string (2nd argume
     <varlistentry>
       <term>Example</term>
       <listitem>
-	<programlisting>my any $data = parseXMLRPCValue($xml);</programlisting>
+	<programlisting><command>my</command> any $data = parseXMLRPCValue($xml);</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>

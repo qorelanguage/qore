@@ -31768,7 +31768,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>my $list = $xd.evalXPath("//list[2]");</programlisting>
+	    <programlisting><command>my</command> $list = $xd.evalXPath("//list[2]");</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -31854,7 +31854,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>my $node = $xd.getRootElement();</programlisting>
+	    <programlisting><command>my</command> any $node = $xd.getRootElement();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
