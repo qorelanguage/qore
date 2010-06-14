@@ -5,14 +5,15 @@ This document provides an overview of the Qore programming language.
 What is Qore?
 -------------
 
-Qore is a modular, multi-threaded, SQL-integrated statically and dynamically typed scripting language with procedural and object-oriented features, powerful and easy-to-use data types, structures, and operators, a clean and easy-to-lean/read syntax.
+Qore is a modular, multi-threaded, SQL-integrated dynamically typed scripting language with optional hard typing and procedural and object-oriented features, powerful and easy-to-use data types, structures, and operators, a clean and easy-to-lean/read syntax.
+
 
 Why use Qore?
 -------------
 
 Qore was designed to provide a flexible vertical platform for business solutions and interface development.  Additionally, Qore was designed to be fun and efficient to program in.
 
-Qore's vertical approach means that the language has been designed to be suitable for writing simple yet powerful scripts, as well as complex, multi-threaded, database integrated, network-aware applications.  Another important feature of Qore at the higher end is the ability for a Qore application to support embedding (and arbitrarily restricting) user-defined logic (also written in the Qore language). The best example for an application taking advantage of this is Qorus Integration Engine (currently a proprietary application, formerly called OM/Qore), which is highly multi-threaded workflow and service engine using web service protocols (such as XML-RPC and JSON-RPC) as the primary application interface.  A large part of Qorus Integration Engine is written in the Qore language, and has served as the vehicle for qore language development up to now.
+Qore's vertical approach means that the language has been designed to be suitable for writing simple yet powerful scripts, as well as complex, multi-threaded, database integrated, network-aware applications.  Another important feature of Qore at the higher end is the ability for a Qore application to support embedding (and arbitrarily restricting) user-defined logic (also written in the Qore language).
 
 Qore is highly threadable and has been designed to favor multi-threaded performance over single-threaded performance, this Qore programs are very scalable on machines with many processors.
 
@@ -43,7 +44,7 @@ Qore uses the PCRE library to provide Perl-compatible regular expression support
 How does Qore compare to other programming languages?
 -----------------------------------------------------
 
-Qore's syntax superficially appears to be a mixture of C and perl with some unique features to Qore (such as context statements, etc).  However Qore is not perl; perl is a robust, mature, feature-full, and powerful language, and Qore is a new, young, and (compared to perl) relatively limited language and differs philosophically in some areas.
+Qore's syntax superficially appears to be a mixture of C and perl with some unique features to Qore (such as context statements, etc).  However Qore is not perl; perl is a robust, mature, feature-full, and powerful language, and Qore is a new, young, and (compared to perl) relatively limited language and differs philosophically in some areas.  Qore's orignal syntax was inspired by perl's.  If you hate perl's syntax, then you will probably not like qore's either.  However, if you like perl, but dislike its threading limitations, then Qore may be the right language for you.
 
 (Some) similarities to perl
 * Qore is a weakly-typed scripting language (although supports strong typing as of v0.8 similar to perl6)

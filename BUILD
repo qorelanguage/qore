@@ -70,39 +70,41 @@ by default the program will be installed in /usr/local/bin and libraries in /usr
 OS-Specific Issues
 ------------------
 *) Linux:
-there are no particular issues on Linux, this is the main development platform.
+there are no particular issues on Linux, this is one of the main development platforms.
 Various distributions have been tested: FC3-8, Gentoo, Ubuntu, ARCH, etc
 
 *) Darwin - OS/X
-there are no particular issues on newer version of OS/X (10.5+), just make sure you have the prerequisite libraries and header files available - this applies to PCRE on newer versions of OS/X.  On older versions (10.4 and earlier), you'll also need to ensure that you have at least libtool 1.5.10 when building from svn, get it from fink or macports as you like.
+One of the main development platforms for Qore.  There are no particular issues on newer version of OS/X (10.5+), just make sure you have the prerequisite libraries and header files available - this applies to PCRE on newer versions of OS/X.  On older versions (10.4 and earlier), you'll also need to ensure that you have at least libtool 1.5.10 when building from svn, get it from fink or macports as you like.
 NOTE that pthread_create() on Darwin 8.7.1 (OS X 10.4.7) returns 0 (no error) on i386 at least, even when it appears that thread resources are exhausted and the new thread is never started.  This happens after 2560 threads are started, so normally this will not be an issue for most programs.  To make sure that this doesn't happen, when qore is compiled on Darwin MAX_QORE_THREADS is automatically set to 2560 (otherwise the default is normally 4096)
 
 *) Solaris:
-The g++ static and shared builds work fine (tested with g++ 4.0.1, 4.1.1, CC).  Note that the sunpro (CC) compiler is required to link with the TIBCO AE SDK.  stlport is no longer supported, so hash_map support is not available on Solaris with CC.  map is used instead.
+One of the main development platforms for Qore.  g++ and CC static and shared builds work fine (tested with many versions of g++ and CC).
 Note that on Solaris x86 when making a 64-bit build I had to use libtool 1.5.22, libtool 1.5.11 did not recognize that -xarch=generic64 should be passed to the linker and the linker for some reason did not recognize that it should produce a 64-bit output file
-Also note that qore requires a relatively new version of the SunPro compiler (CC), Sun Studio 11 works fine, whereas SunPro 5.5 does not.
+Also note that qore requires a relatively new version of the SunPro compiler (CC), Sun Studio 11 and 12 work fine, whereas SunPro 5.5 does not.
 
 *) FreeBSD
-I have heard that qore builds fine, but I have not actually seen it myself, nor do I have access to a FreeBSD platform for testing :-(
+Is working; freebsd port is available here: http://www.freebsd.org/cgi/cvsweb.cgi/ports/lang/qore/
 
 *) HP-UX
-HP-UX builds are finally working with g++ (tested 4.1.1), however the configure script include a hack to libtool to get the modules to link dynamic libraries with static libaries and to prohibit -ldl from being automatically included in the link lines.  I am using HP-UX 11.23 (v2) on PA-RISC.
+HP-UX builds are finally working with g++ (tested 4.1.1 and 4.2.0), however the configure script include a hack to libtool to get the modules to link dynamic libraries with static libaries and to prohibit -ldl from being automatically included in the link lines.  I am using HP-UX 11.23 (v2) on PA-RISC.
 With aCC, PA-RISC 2.0 32-bit binaries are produced in 32-bit mode, with --enable-64-bit, PA-RISC 2.0 64-bit binaries are produced
 With g++, PA-RISC 1.1 32-bit binaries are produced in 32-bit mode, with --enable-64-bit, PA-RISC 2.0 64-bit binaries are produced
 Qore now uses strtoimax() as a replacement for strtoll() on HP-UX.
 Currently there is no fast atomic reference count support on PA-RISC platforms.
-Note that only PA-RISC builds have been tested; itanium builds are untested.
+when compiling on Itanium 64-bit binaries are produced by default
+Note that as of qore 0.8.0, building with aCC A.03.90 (for HP-UX PA-RISC 11.23) failed; unfortunately I don't have access to a newer OS and compiler combination to try
 
 *) Windows
-Windows is generally not supported, although I have built previous versions on Windows using a Cygwin environment, but the executable was so slow that it's not worth supporting.
+As of 0.8.0, qore builds on Windows with cygwin, but only as a monolithic binary.  No modules are working yet.
 Windows may be supported in the future if I get it to work without Cygwin (i.e. using native win32 apis)
-There have been numerous requests for this, so any (clean) patches would be appreciated!
+There have been numerous requests for this, so any patches would be appreciated!
 
 CPU Support
 -----------
-*) gcc with i386, x86_64, ppc, and sparc: fast inline assembly atomic operations are supported for reference counting, as well as a SMP cache invalidation optimization for temporary objects (temporary object do not require a cache invalidation)
-*) all others (including sparc & pa-risc): I use a pthread mutex to ensure atomicity for reference counting.  I would be very happy to have atomic operation support for sparc and pa-risc (or other) CPUs for gcc (and CC on Solaris, aCC on HP-UX), but I haven't been able to do it myself yet...
-The cache invalidation optimization is not safe on platforms without an atomic reference counting implementation :-(
+*) gcc with i386, x86_64, ppc, sparc32, itanium, aCC with itanium, CC (SunPro or Sun Studio CC) with i386, x86_64, sparc32: fast inline assembly atomic operations are supported for reference counting, as well as a SMP cache invalidation optimization for temporary objects (temporary object do not require a cache invalidation);
+*) CPU stack guard is working on all above combinations and with g++ and aCC with PA-RISC as well
+*) all others: I use a pthread mutex to ensure atomicity for reference counting.
+The cache invalidation optimization is not safe on platforms without an atomic reference counting implementation, therefore is not implemented for these platforms
 
 Modules
 -------

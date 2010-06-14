@@ -74,4 +74,3 @@ stability and memory cleanliness.
 However, while qore was originally designed as an embedded application
 scripting library (and still excels at this task), it has evolved to be a
 fully-functional standalone language as well.
-
