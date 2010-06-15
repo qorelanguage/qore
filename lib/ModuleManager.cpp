@@ -308,10 +308,10 @@ void ModuleManager::init(bool se) {
 
    // initialize blacklist
    // add old QT modules to blacklist
-   mod_blacklist.insert(std::make_pair("qt-core", qt_blacklist_string));
-   mod_blacklist.insert(std::make_pair("qt-gui", qt_blacklist_string));
-   mod_blacklist.insert(std::make_pair("qt-svn", qt_blacklist_string));
-   mod_blacklist.insert(std::make_pair("qt-opengl", qt_blacklist_string));
+   mod_blacklist.insert(std::make_pair((const char *)"qt-core", qt_blacklist_string));
+   mod_blacklist.insert(std::make_pair((const char *)"qt-gui", qt_blacklist_string));
+   mod_blacklist.insert(std::make_pair((const char *)"qt-svn", qt_blacklist_string));
+   mod_blacklist.insert(std::make_pair((const char *)"qt-opengl", qt_blacklist_string));
 
    show_errors = se;
 
