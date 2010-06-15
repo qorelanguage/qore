@@ -217,7 +217,7 @@ rm -rf $RPM_BUILD_ROOT
 %endif
 
 %changelog
-* Tue Jun 15 David Nichols <david@qore.org>
+* Tue Jun 15 2010 David Nichols <david@qore.org>
 - updated to 0.8.1
 
 * Wed Nov 18 2009 David Nichols <david_nichols@users.sourceforge.net>
