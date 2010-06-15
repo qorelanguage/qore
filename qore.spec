@@ -7,6 +7,10 @@
 %else
 %if 0%{?suse_version}
 
+%if 0%{?suse_version} == 1130
+%define dist .opensuse11_3
+%endif
+
 %if 0%{?suse_version} == 1120
 %define dist .opensuse11_2
 %endif
@@ -54,7 +58,7 @@
 
 Summary: Qore Programming Language
 Name: qore
-Version: 0.8.0
+Version: 0.8.1
 Release: 1%{dist}
 License: LGPL or GPL
 Group: Development/Languages
@@ -213,6 +217,9 @@ rm -rf $RPM_BUILD_ROOT
 %endif
 
 %changelog
+* Tue Jun 15 David Nichols <david@qore.org>
+- updated to 0.8.1
+
 * Wed Nov 18 2009 David Nichols <david_nichols@users.sourceforge.net>
 - updated to 0.8.0
 
