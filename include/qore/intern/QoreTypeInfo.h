@@ -224,7 +224,7 @@ protected:
       const type_vec_t &rt = getReturnTypeList();
 
       for (type_vec_t::const_iterator i = at.begin(), e = at.end(); i != e; ++i) {
-	 for (type_vec_t::const_iterator j = rt.begin(), e = rt.end(); j != e; ++j) {
+	 for (type_vec_t::const_iterator j = rt.begin(), je = rt.end(); j != je; ++j) {
 	    if ((*i)->parseAccepts(*j))
 	       return QTI_AMBIGUOUS;
 	 }

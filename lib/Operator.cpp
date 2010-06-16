@@ -3466,12 +3466,12 @@ static AbstractQoreNode *check_op_list_assignment(QoreTreeNode *tree, LocalVar *
 	 if (!prototypeInfo->parseAccepts(argInfo)) {
 	    // raise an exception only if parse exceptions are not disabled
 	    if (getProgram()->getParseExceptionSink()) {
-	       QoreStringNode *desc = new QoreStringNode("lvalue for assignment operator in position ");
-	       desc->sprintf("%d of list assignment expects ", li.index() + 1);
-	       prototypeInfo->getThisType(*desc);
-	       desc->concat(", but right-hand side is ");
-	       argInfo->getThisType(*desc);
-	       getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
+	       QoreStringNode *edesc = new QoreStringNode("lvalue for assignment operator in position ");
+	       edesc->sprintf("%d of list assignment expects ", li.index() + 1);
+	       prototypeInfo->getThisType(*edesc);
+	       edesc->concat(", but right-hand side is ");
+	       argInfo->getThisType(*edesc);
+	       getProgram()->makeParseException("PARSE-TYPE-ERROR", edesc);
 	    }
 	 }
       }
@@ -3504,11 +3504,11 @@ static AbstractQoreNode *check_op_assignment(QoreTreeNode *tree, LocalVar *oflag
       return tree;
 
    if (getProgram()->getParseExceptionSink()) {
-      QoreStringNode *desc = new QoreStringNode("lvalue for assignment operator (=) expects ");
-      l->getThisType(*desc);
-      desc->concat(", but right-hand side is ");
-      r->getThisType(*desc);
-      getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
+      QoreStringNode *edesc = new QoreStringNode("lvalue for assignment operator (=) expects ");
+      l->getThisType(*edesc);
+      edesc->concat(", but right-hand side is ");
+      r->getThisType(*edesc);
+      getProgram()->makeParseException("PARSE-TYPE-ERROR", edesc);
    }
    return tree;
 }
@@ -3526,10 +3526,10 @@ static AbstractQoreNode *check_op_object_func_ref(QoreTreeNode *tree, LocalVar *
 	  && !objectTypeInfo->parseAccepts(typeInfo)
 	  && !hashTypeInfo->parseAccepts(typeInfo)
 	  && getProgram()->getParseExceptionSink()) {
-	 QoreStringNode *desc = new QoreStringNode("the object method or hash call reference call operator expects an object or a hash on the left side of the '.', but ");
-	 typeInfo->getThisType(*desc);
-	 desc->concat(" was provided instead");
-	 getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
+	 QoreStringNode *edesc = new QoreStringNode("the object method or hash call reference call operator expects an object or a hash on the left side of the '.', but ");
+	 typeInfo->getThisType(*edesc);
+	 edesc->concat(" was provided instead");
+	 getProgram()->makeParseException("PARSE-TYPE-ERROR", edesc);
       }
 
       tree->rightParseInit(oflag, pflag, lvids, typeInfo);
@@ -3852,19 +3852,19 @@ static AbstractQoreNode *check_op_list_ref(QoreTreeNode *tree, LocalVar *oflag, 
       if (pflag & PF_FOR_ASSIGNMENT) {
 	 // only throw a parse exception if parse exceptions are enabled
 	 if (!leftTypeInfo->parseAcceptsReturns(NT_LIST) && getProgram()->getParseExceptionSink()) {
-	    QoreStringNode *desc = new QoreStringNode("cannot convert lvalue defined as ");
-	    leftTypeInfo->getThisType(*desc);
-	    desc->sprintf(" to a list using the '[]' operator in an assignment expression");
-	    getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
+	    QoreStringNode *edesc = new QoreStringNode("cannot convert lvalue defined as ");
+	    leftTypeInfo->getThisType(*edesc);
+	    edesc->sprintf(" to a list using the '[]' operator in an assignment expression");
+	    getProgram()->makeParseException("PARSE-TYPE-ERROR", edesc);
 	 }
       }
       else if (!listTypeInfo->parseAccepts(leftTypeInfo)
 	  && !stringTypeInfo->parseAccepts(leftTypeInfo)
 	  && !binaryTypeInfo->parseAccepts(leftTypeInfo)) {
-	 QoreStringNode *desc = new QoreStringNode("left-hand side of the expression with the '[]' operator is ");
-	 leftTypeInfo->getThisType(*desc);
-	 desc->concat(" and so this expression will always return NOTHING; the '[]' operator only returns a value within the legal bounds of lists, strings, and binary objects");
-	 getProgram()->makeParseWarning(QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
+	 QoreStringNode *edesc = new QoreStringNode("left-hand side of the expression with the '[]' operator is ");
+	 leftTypeInfo->getThisType(*edesc);
+	 edesc->concat(" and so this expression will always return NOTHING; the '[]' operator only returns a value within the legal bounds of lists, strings, and binary objects");
+	 getProgram()->makeParseWarning(QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
 	 returnTypeInfo = nothingTypeInfo;
       }
    }
@@ -3917,17 +3917,17 @@ static AbstractQoreNode *check_op_object_ref(QoreTreeNode *tree, LocalVar *oflag
 	 if (!can_be_hash
 	     && !can_be_obj
 	     && getProgram()->getParseExceptionSink()) {
-	    QoreStringNode *desc = new QoreStringNode("cannot convert lvalue defined as ");
-	    leftTypeInfo->getThisType(*desc);
-	    desc->sprintf(" to a hash using the '.' or '{}' operator in an assignment expression");
-	    getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
+	    QoreStringNode *edesc = new QoreStringNode("cannot convert lvalue defined as ");
+	    leftTypeInfo->getThisType(*edesc);
+	    edesc->sprintf(" to a hash using the '.' or '{}' operator in an assignment expression");
+	    getProgram()->makeParseException("PARSE-TYPE-ERROR", edesc);
 	 }
       }
       else if (!can_be_hash && !can_be_obj) {
-	 QoreStringNode *desc = new QoreStringNode("left-hand side of the expression with the '.' or '{}' operator is ");
-	 leftTypeInfo->getThisType(*desc);
-	 desc->concat(" and so this expression will always return NOTHING; the '.' or '{}' operator only returns a value with hashes and objects");
-	 getProgram()->makeParseWarning(QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
+	 QoreStringNode *edesc = new QoreStringNode("left-hand side of the expression with the '.' or '{}' operator is ");
+	 leftTypeInfo->getThisType(*edesc);
+	 edesc->concat(" and so this expression will always return NOTHING; the '.' or '{}' operator only returns a value with hashes and objects");
+	 getProgram()->makeParseWarning(QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
 	 returnTypeInfo = nothingTypeInfo;
       }
    }
@@ -3948,10 +3948,10 @@ static AbstractQoreNode *check_op_keys(QoreTreeNode *tree, LocalVar *oflag, int 
    if (leftTypeInfo->hasType()
        && !hashTypeInfo->parseAccepts(leftTypeInfo)
        && !objectTypeInfo->parseAccepts(leftTypeInfo)) {
-      QoreStringNode *desc = new QoreStringNode("left-hand side of the expression with the 'keys' operator is ");
-      leftTypeInfo->getThisType(*desc);
-      desc->concat(" and so this expression will always return NOTHING; the 'keys' operator can only return a value with hashes and objects");
-      getProgram()->makeParseWarning(QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
+      QoreStringNode *edesc = new QoreStringNode("left-hand side of the expression with the 'keys' operator is ");
+      leftTypeInfo->getThisType(*edesc);
+      edesc->concat(" and so this expression will always return NOTHING; the 'keys' operator can only return a value with hashes and objects");
+      getProgram()->makeParseWarning(QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
       returnTypeInfo = nothingTypeInfo;
    }
    return tree;
@@ -3984,11 +3984,11 @@ static AbstractQoreNode *check_op_list_op(QoreTreeNode *tree, LocalVar *oflag, i
    tree->rightParseInit(oflag, pflag, lvids, rightTypeInfo);
 
    if (!leftTypeInfo->parseAcceptsReturns(NT_LIST)) {
-      QoreStringNode *desc = new QoreStringNode("the lvalue expression with the ");
-      desc->sprintf("'%s' operator is ", name);
-      leftTypeInfo->getThisType(*desc);
-      desc->sprintf(" therefore this operation will have no effect on the lvalue and will always return NOTHING; the '%s' operator can only operate on lists", name);
-      getProgram()->makeParseWarning(QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
+      QoreStringNode *edesc = new QoreStringNode("the lvalue expression with the ");
+      edesc->sprintf("'%s' operator is ", name);
+      leftTypeInfo->getThisType(*edesc);
+      edesc->sprintf(" therefore this operation will have no effect on the lvalue and will always return NOTHING; the '%s' operator can only operate on lists", name);
+      getProgram()->makeParseWarning(QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
       returnTypeInfo = nothingTypeInfo;
    }
 
@@ -4006,11 +4006,11 @@ static AbstractQoreNode *check_op_list_op_err(QoreTreeNode *tree, LocalVar *ofla
    if (!leftTypeInfo->parseAcceptsReturns(NT_LIST)) {
       // only raise a parse exception if parse exceptions are enabled
       if (getProgram()->getParseExceptionSink()) {
-	 QoreStringNode *desc = new QoreStringNode("the lvalue expression with the ");
-	 desc->sprintf("'%s' operator is ", name);
-	 leftTypeInfo->getThisType(*desc);
-	 desc->sprintf(" therefore this operation is invalid and would throw an exception at run-time; the '%s' operator can only operate on lists", name);
-	 getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
+	 QoreStringNode *edesc = new QoreStringNode("the lvalue expression with the ");
+	 edesc->sprintf("'%s' operator is ", name);
+	 leftTypeInfo->getThisType(*edesc);
+	 edesc->sprintf(" therefore this operation is invalid and would throw an exception at run-time; the '%s' operator can only operate on lists", name);
+	 getProgram()->makeParseException("PARSE-TYPE-ERROR", edesc);
       }
    }
    else

@@ -73,8 +73,8 @@ template <typename T1, typename T2>
 DLLLOCAL void normalize_units(T1 &bigger, T2 &smaller, int ratio) {
    if (smaller <= -ratio || smaller >= ratio) {
       int64 units = smaller / ratio;
-      bigger += units;
-      smaller -= units * ratio;
+      bigger += (T1)units;
+      smaller -= (T2)(units * ratio);
    }
 
    // perform further sign normalization; ensure signs are the same
@@ -95,8 +95,8 @@ template <typename T1, typename T2>
 DLLLOCAL void normalize_units2(T1 &bigger, T2 &smaller, int ratio) {
    if (smaller <= -ratio || smaller >= ratio) {
       int64 units = smaller / ratio;
-      bigger += units;
-      smaller -= units * ratio;
+      bigger += (T1)units;
+      smaller -= (T2)(units * ratio);
    }
 
    // perform further sign normalization
@@ -112,7 +112,7 @@ DLLLOCAL void normalize_units3(T1 &bigger, unsigned &smaller, unsigned ratio) {
    if (smaller >= ratio) {
       int64 units = smaller / ratio;
       bigger += units;
-      smaller -= units * ratio;
+      smaller -= (int)(units * ratio);
    }
 }
 

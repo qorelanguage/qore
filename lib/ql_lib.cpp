@@ -198,10 +198,9 @@ static QoreListNode *map_sbuf_to_list(struct stat *sbuf) {
    l->push(new QoreBigIntNode((int64)sbuf->st_rdev));
    l->push(new QoreBigIntNode(sbuf->st_size));
    
-   struct tm tms;
-   l->push(new DateTimeNode(q_localtime(&sbuf->st_atime, &tms)));
-   l->push(new DateTimeNode(q_localtime(&sbuf->st_mtime, &tms)));
-   l->push(new DateTimeNode(q_localtime(&sbuf->st_ctime, &tms)));
+   l->push(DateTimeNode::makeAbsolute(currentTZ(), (int64)sbuf->st_atime));
+   l->push(DateTimeNode::makeAbsolute(currentTZ(), (int64)sbuf->st_mtime));
+   l->push(DateTimeNode::makeAbsolute(currentTZ(), (int64)sbuf->st_ctime));
 
    l->push(new QoreBigIntNode(sbuf->st_blksize));
    l->push(new QoreBigIntNode(sbuf->st_blocks));
@@ -223,10 +222,9 @@ static QoreHashNode *map_sbuf_to_hash(struct stat *sbuf) {
    h->setKeyValue("rdev",    new QoreBigIntNode((int64)sbuf->st_rdev), 0);
    h->setKeyValue("size",    new QoreBigIntNode(sbuf->st_size), 0);
    
-   struct tm tms;
-   h->setKeyValue("atime",   new DateTimeNode(q_localtime(&sbuf->st_atime, &tms)), 0);
-   h->setKeyValue("mtime",   new DateTimeNode(q_localtime(&sbuf->st_mtime, &tms)), 0);
-   h->setKeyValue("ctime",   new DateTimeNode(q_localtime(&sbuf->st_ctime, &tms)), 0);
+   h->setKeyValue("atime",   DateTimeNode::makeAbsolute(currentTZ(), (int64)sbuf->st_atime), 0);
+   h->setKeyValue("mtime",   DateTimeNode::makeAbsolute(currentTZ(), (int64)sbuf->st_mtime), 0);
+   h->setKeyValue("ctime",   DateTimeNode::makeAbsolute(currentTZ(), (int64)sbuf->st_ctime), 0);
 
    h->setKeyValue("blksize", new QoreBigIntNode(sbuf->st_blksize), 0);
    h->setKeyValue("blocks",  new QoreBigIntNode(sbuf->st_blocks), 0);
