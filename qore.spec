@@ -59,7 +59,7 @@
 Summary: Qore Programming Language
 Name: qore
 Version: 0.8.0
-Release: 1%{dist}
+Release: 2%{dist}
 License: LGPL or GPL
 Group: Development/Languages
 URL: http://www.qoretechnologies.com/qore
