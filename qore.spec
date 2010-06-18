@@ -42,7 +42,6 @@
 %if 0%{?suse_version} == 930
 %define dist .suse9_3
 %endif
-
 %endif
 %endif
 
@@ -52,6 +51,7 @@
 %if 0%{?rh_dist}
 %define dist .rhel%{rh_dist}
 %else
+
 %define dist .unknown
 %endif
 %endif
@@ -215,6 +215,10 @@ rm -rf $RPM_BUILD_ROOT
 %endif
 %else
 /usr/share/man/man1/qore.1.*
+%else
+%if 0%{?mdkversion}
+/usr/share/man/man1/qore.1.*
+%endif
 %endif
 
 %changelog
