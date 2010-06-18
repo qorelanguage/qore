@@ -7,6 +7,10 @@
 %else
 %if 0%{?suse_version}
 
+%if 0%{?suse_version} == 1130
+%define dist .opensuse11_3
+%endif
+
 %if 0%{?suse_version} == 1120
 %define dist .opensuse11_2
 %endif
@@ -98,6 +102,7 @@ character encoding (including proper UTF-8) support, and much more.
 %package -n libqore5
 Summary: The libraries for qore runtime and qore clients
 Group: Development/Languages
+Provides: qore-module-api-0.9
 Provides: qore-module-api-0.8
 Provides: qore-module-api-0.7
 Provides: qore-module-api-0.6
@@ -206,10 +211,10 @@ rm -rf $RPM_BUILD_ROOT
 /usr/bin/qore
 %if 0%{?rh_dist}
 %if %{?rh_dist} <= 5
-/usr/man/man1/qore.1.gz
+/usr/man/man1/qore.1*
 %endif
 %else
-/usr/share/man/man1/qore.1.gz
+/usr/share/man/man1/qore.1*
 %endif
 
 %changelog
