@@ -215,6 +215,10 @@ rm -rf $RPM_BUILD_ROOT
 %endif
 %else
 /usr/share/man/man1/qore.1*
+%else
+%if 0%{?mdkversion}
+/usr/share/man/man1/qore.1.*
+%endif
 %endif
 
 %changelog
