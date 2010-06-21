@@ -7,41 +7,17 @@
 %else
 %if 0%{?suse_version}
 
-%if 0%{?suse_version} == 1130
-%define dist .opensuse11_3
+# get *suse release major version
+%define os_maj %(echo %suse_version|rev|cut -b3-|rev)
+# get *suse release minor version without trailing zeros
+%define os_min %(echo %suse_version|rev|cut -b-2|rev|sed s/0*$//)
+
+%if %suse_version > 1010
+%define dist .opensuse%{os_maj}_%{os_min}
+%else
+%define dist .suse%{os_maj}_%{os_min}
 %endif
 
-%if 0%{?suse_version} == 1120
-%define dist .opensuse11_2
-%endif
-
-%if 0%{?suse_version} == 1110
-%define dist .opensuse11_1
-%endif
-
-%if 0%{?suse_version} == 1100
-%define dist .opensuse11
-%endif
-
-%if 0%{?suse_version} == 1030
-%define dist .opensuse10_3
-%endif
-
-%if 0%{?suse_version} == 1020
-%define dist .opensuse10_2
-%endif
-
-%if 0%{?suse_version} == 1010
-%define dist .suse10_1
-%endif
-
-%if 0%{?suse_version} == 1000
-%define dist .suse10
-%endif
-
-%if 0%{?suse_version} == 930
-%define dist .suse9_3
-%endif
 %endif
 %endif
 
