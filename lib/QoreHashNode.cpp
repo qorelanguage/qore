@@ -41,11 +41,11 @@ static const char *qore_hash_type_name = "hash";
 // FIXME: use STL list instead
 // to maintain the order of inserts
 class HashMember {
-   public:
-      AbstractQoreNode *node;
-      char *key;
-      class HashMember *next;
-      class HashMember *prev;
+public:
+   AbstractQoreNode *node;
+   char *key;
+   HashMember *next;
+   HashMember *prev;
 };
 
 struct qore_hash_private {
@@ -896,22 +896,21 @@ AbstractQoreNode *HashIterator::getValue() const {
 }
 
 AbstractQoreNode *HashIterator::takeValueAndDelete() {
-   if (ptr) { 
-      AbstractQoreNode *rv = ptr->node;
-      ptr->node = 0;
-      HashMember *w = ptr;
-      ptr = ptr->prev;
+   if (!ptr)
+      return 0;
 
-      // remove key from map before deleting hash member with key pointer
-      hm_hm_t::iterator i = h->priv->hm.find(w->key);
-      assert(i != h->priv->hm.end());
-      h->priv->hm.erase(i);
+   AbstractQoreNode *rv = ptr->node;
+   ptr->node = 0;
+   HashMember *w = ptr;
+   ptr = ptr->prev;
 
-      h->priv->internDeleteKey(w);
-      return rv;
-   }
+   // remove key from map before deleting hash member with key pointer
+   hm_hm_t::iterator i = h->priv->hm.find(w->key);
+   assert(i != h->priv->hm.end());
+   h->priv->hm.erase(i);
 
-   return 0;
+   h->priv->internDeleteKey(w);
+   return rv;
 }
 
 void HashIterator::deleteKey(ExceptionSink *xsink) {

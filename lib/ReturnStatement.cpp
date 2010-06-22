@@ -37,8 +37,11 @@ int ReturnStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xs
    if (exp)
       (*return_value) = exp->eval(xsink);
 
-   const QoreTypeInfo *returnTypeInfo = getReturnTypeInfo();
-   *return_value = returnTypeInfo->acceptAssignment("<return statement>", *return_value, xsink);
+   if (!*xsink) {
+      const QoreTypeInfo *returnTypeInfo = getReturnTypeInfo();
+      *return_value = returnTypeInfo->acceptAssignment("<return statement>", *return_value, xsink);
+   }
+
    if (*xsink) {
       discard(*return_value, xsink);
       (*return_value) = 0;
