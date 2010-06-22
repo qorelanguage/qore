@@ -1,7 +1,8 @@
+* implement support for implicit typing in the parser
 * add invalid operation warnings for keys and elements operators with invalid types
 * implement a mechanism for a thread to sleep until another thread terminates (join)
 * cover case when multiple types could be returned (? : operator, functions, etc)
-* implement methods to run on lists, hashes, and strings as if they were classes (ex: <hash>.lastKey(), etc)
+* implement pseudo-methods to run on lists, hashes, and strings as if they were classes (ex: <hash>.lastKey(), etc)
 * fix memory leaks caused by circular references
 * implement support for specifying base class methods like this: $exp.Base::method()
 * implement support for universal references - removed checking for passing a reference to user code with declared param
