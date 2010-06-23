@@ -27,7 +27,6 @@
 
 #include <qore/AbstractQoreNode.h>
 #include <qore/common.h>
-#include <qore/hash_map.h>
 
 class HashMember;
 class LocalVar;

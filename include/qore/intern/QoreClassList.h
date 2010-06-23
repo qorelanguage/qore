@@ -28,10 +28,13 @@
 #include <qore/common.h>
 
 #include <qore/QoreClass.h>
-#include <qore/hash_map.h>
 
 #include <string.h>
 #include <stdlib.h>
+
+#include <map>
+
+typedef std::map<const char*, QoreClass *, ltstr> hm_qc_t;
 
 class QoreClassList {
 private:

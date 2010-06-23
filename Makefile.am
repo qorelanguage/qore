@@ -72,7 +72,6 @@ include_HEADERS = \
 	include/qore/BinaryNode.h \
 	include/qore/ReferenceNode.h \
 	include/qore/CallReferenceNode.h \
-	include/qore/hash_map.h \
 	include/qore/QoreFtpClient.h \
 	include/qore/safe_dslist \
 	include/qore/qore_bitopts.h \

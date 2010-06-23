@@ -27,9 +27,11 @@
 
 #define _QORE_GLOBALVARIABLELIST_H
 
-#include <qore/hash_map.h>
+#include <map>
 
 class Var;
+
+typedef std::map<const char*,  Var *, ltstr> map_var_t;
 
 // this is a "grow-only" container
 // all reading and writing is done withing the parse lock on the contining program object

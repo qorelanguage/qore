@@ -26,7 +26,6 @@
 #define _QORE_BUILTINFUNCTIONLIST_H
 
 #include <qore/common.h>
-#include <qore/hash_map.h>
 #include <qore/Restrictions.h>
 #include <qore/QoreThreadLock.h>
 

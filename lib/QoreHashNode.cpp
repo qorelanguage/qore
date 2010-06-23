@@ -32,9 +32,14 @@
 #include <assert.h>
 #include <stdio.h>
 
+#include <map>
+
 #ifdef DEBUG_TESTS
 #  include "tests/Hash_tests.cpp"
 #endif
+
+class HashMember;
+typedef std::map<const char*, HashMember *, ltstr> hm_hm_t;
 
 static const char *qore_hash_type_name = "hash";
 

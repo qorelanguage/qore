@@ -25,9 +25,11 @@
 
 #define _QORE_USERFUNCTIONLIST_H
 
-#include <qore/hash_map.h>
+#include <map>
 
 class UserFunction;
+
+typedef std::map<const char*, UserFunction *, ltstr> hm_uf_t;
 
 // all read and write access to this list is done within the program object's parse lock
 class UserFunctionList {
