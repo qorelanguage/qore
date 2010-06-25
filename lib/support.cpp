@@ -37,8 +37,7 @@ extern bool threads_initialized;
 static QoreThreadLock debug_output_lock;
 #endif
 
-int printe(const char *fmt, ...)
-{
+int printe(const char *fmt, ...) {
    va_list args;
    QoreString buf;
 
@@ -53,6 +52,14 @@ int printe(const char *fmt, ...)
    fputs(buf.getBuffer(), stderr);
    fflush(stderr);
    return 0;
+}
+
+static void get_timestamp(QoreString &str) {
+   int us;
+   int64 secs = q_epoch_us(us);
+   DateTime now;
+   now.setDate(currentTZ(), secs, us);
+   now.format(str, "YYYY-MM-DD HH:mm:SS.xx");
 }
 
 int print_debug(int level, const char *fmt, ...) {
@@ -70,35 +77,38 @@ int print_debug(int level, const char *fmt, ...) {
 	 break;
    }
 
+   QoreString ts;
+   get_timestamp(ts);
+
 #ifdef QORE_SERIALIZE_DEBUGGING_OUTPUT
    AutoLocker al(debug_output_lock);
 #endif
    int tid = (threads_initialized && is_valid_qore_thread()) ? gettid() : -1;
-   fprintf(stderr, "TID %d: %s", tid, buf.getBuffer());
+   fprintf(stderr, "%s: TID %d: %s", ts.getBuffer(), tid, buf.getBuffer());
    fflush(stderr);
    return 0;
 }
 
-void trace_function(int code, const char *funcname)
-{
+void trace_function(int code, const char *funcname) {
    if (!qore_trace)
       return;
+
+   QoreString ts;
+   get_timestamp(ts);
    if (code == TRACE_IN)
-      printe("TID %d: %s entered\n", threads_initialized ? gettid() : 0, funcname);
+      printe("%s: TID %d: %s entered\n", ts.getBuffer(), threads_initialized ? gettid() : 0, funcname);
    else
-      printe("TID %d: %s exited\n", threads_initialized ? gettid() : 0, funcname);
+      printe("%s: TID %d: %s exited\n", ts.getBuffer(), threads_initialized ? gettid() : 0, funcname);
 }
 
-char *remove_trailing_newlines(char *str)
-{
+char *remove_trailing_newlines(char *str) {
    int i = strlen(str);
    while (i && (str[i - 1] == '\n'))
       str[--i] = '\0';
    return str;
 }
 
-char *remove_trailing_blanks(char *str)
-{
+char *remove_trailing_blanks(char *str) {
    int i = strlen(str);
    while (i && (str[--i] == ' '))
       str[i] = '\0';
@@ -162,7 +172,7 @@ void parse_error(int sline, int eline, const char *fmt, ...) {
 void parse_error(const char *file, int sline, int eline, const char *fmt, ...) {
    printd(5, "parse_error(file=%s, sline=%d, eline=%d, \"%s\", ...) called\n", file, sline, eline, fmt);
 
-   QoreStringNode *desc = new QoreStringNode();
+   QoreStringNode *desc = new QoreStringNode;
    while (true) {
       va_list args;
       va_start(args, fmt);
@@ -174,11 +184,10 @@ void parse_error(const char *file, int sline, int eline, const char *fmt, ...) {
    getProgram()->makeParseException(sline, eline, file, desc);
 }
 
-void parseException(const char *err, const char *fmt, ...)
-{
+void parseException(const char *err, const char *fmt, ...) {
    printd(5, "parseException(%s. '%s', ...) called\n", err, fmt);
 
-   QoreStringNode *desc = new QoreStringNode();
+   QoreStringNode *desc = new QoreStringNode;
    while (true) {
       va_list args;
       va_start(args, fmt);
@@ -191,8 +200,7 @@ void parseException(const char *err, const char *fmt, ...)
 }
 
 // returns 1 for success
-static inline int tryIncludeDir(class QoreString *dir, const char *file)
-{
+static inline int tryIncludeDir(class QoreString *dir, const char *file) {
    // make fully-justified path
    if (dir->strlen() && dir->getBuffer()[dir->strlen() - 1] != '/')
       dir->concat('/');
