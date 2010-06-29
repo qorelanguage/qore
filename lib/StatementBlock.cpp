@@ -157,7 +157,8 @@ int StatementBlock::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsi
       for (block_list_t::iterator i = popBlock(), e = on_block_exit_list.end(); i != e; ++i) {
 	 enum obe_type_e type = (*i).first;
 	 if (type == OBE_Unconditional || (!error && type == OBE_Success) || (error && type == OBE_Error))
-	    nrc = (*i).second->execImpl(return_value, &obe_xsink);
+	    if ((*i).second)
+	       nrc = (*i).second->execImpl(return_value, &obe_xsink);
       }
       if (obe_xsink)
 	 xsink->assimilate(&obe_xsink);
