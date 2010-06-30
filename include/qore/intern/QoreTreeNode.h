@@ -27,8 +27,6 @@
 
 class QoreTreeNode : public ParseNode {
 protected:
-   bool ref_rv;
-
    Operator *op;
 
    DLLLOCAL virtual ~QoreTreeNode();

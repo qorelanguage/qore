@@ -1,3 +1,4 @@
+* add HTTPClient methods: setUser(), setPassword(), setUserPassword(), setProxyUser(), setProxyPassword(), setProxyUserPassword()
 * implement support for implicit typing in the parser
 * add invalid operation warnings for keys and elements operators with invalid types
 * implement a mechanism for a thread to sleep until another thread terminates (join)
