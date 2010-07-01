@@ -27,19 +27,21 @@
 
 #include "intern/AbstractStatement.h"
 
-class ForStatement : public AbstractStatement
-{
-   class AbstractQoreNode *assignment;
-   class AbstractQoreNode *cond;
-   class AbstractQoreNode *iterator;
-   class StatementBlock *code;
-   class LVList *lvars;
+class StatementBlock;
+class LVList;
 
-   DLLLOCAL virtual int execImpl(class AbstractQoreNode **return_value, class ExceptionSink *xsink);
+class ForStatement : public AbstractStatement {
+   AbstractQoreNode *assignment;
+   AbstractQoreNode *cond;
+   AbstractQoreNode *iterator;
+   StatementBlock *code;
+   LVList *lvars;
+
+   DLLLOCAL virtual int execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink);
    DLLLOCAL virtual int parseInitImpl(LocalVar *oflag, int pflag = 0);
    
 public:
-   DLLLOCAL ForStatement(int start_line, int end_line, class AbstractQoreNode *a, class AbstractQoreNode *c, class AbstractQoreNode *i, class StatementBlock *cd);
+   DLLLOCAL ForStatement(int start_line, int end_line, AbstractQoreNode *a, AbstractQoreNode *c, AbstractQoreNode *i, StatementBlock *cd);
    DLLLOCAL virtual ~ForStatement();
 };
 
