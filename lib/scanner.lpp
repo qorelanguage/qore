@@ -995,6 +995,12 @@ public{WS}*\(                           yylval->string = strdup("public"); retur
 					      unput(yytext[7]);
 					   return DOT_KW_IDENTIFIER;
                                         }
+\.abstract[^A-Za-z_0-9]                 {
+                                           yylval->String = new QoreStringNode("abstract");
+					   if (yytext[9])
+					      unput(yytext[9]);
+					   return DOT_KW_IDENTIFIER;
+                                        }
 {YEAR}-{MONTH}-{DAY}T{HOUR}:{MSEC}(:{MSEC}(\.{US})?)?{TZ}?   yylval->datetime = makeDateTime(yytext, true); return DATETIME;
 {YEAR}-{MONTH}-{DAY}-{HOUR}:{MSEC}:{MSEC}(\.{US})?{TZ}?      yylval->datetime = makeDateTime(yytext, true); return DATETIME;
 {YEAR}-{MONTH}-{DAY}?{TZ}?                                   yylval->datetime = makeDateTime(yytext, false); return DATETIME;

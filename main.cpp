@@ -39,7 +39,7 @@ int main(int argc, char *argv[]) {
       bool mod_errs = false;
       for (cl_mod_list_t::iterator i = cl_mod_list.begin(), e = cl_mod_list.end(); i != e; ++i) {
 	 // display any error messages
-	 SimpleRefHolder<QoreStringNode> err(MM.parseLoadModule((*i).c_str()));
+	 SimpleRefHolder<QoreStringNode> err(MM.parseLoadModule((*i).c_str(), *qpgm));
 	 if (err) {
 	    printf("cannot load '%s': %s\n", (*i).c_str(), err->getBuffer());
 	    mod_errs = true;
