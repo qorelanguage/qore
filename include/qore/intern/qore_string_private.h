@@ -97,14 +97,14 @@ public:
       n_num = num;
    }
 
-   DLLLOCAL static qore_size_t index_simple(const char *haystack, const char *needle, qore_offset_t pos = 0) {
+   DLLLOCAL static qore_offset_t index_simple(const char *haystack, const char *needle, qore_offset_t pos = 0) {
       const char *p;
       if (!(p = strstr(haystack + pos, needle)))
          return -1;
       return (int)(p - haystack);
    }
 
-   DLLLOCAL qore_size_t index(const QoreString &needle, qore_offset_t pos, ExceptionSink *xsink) const {
+   DLLLOCAL qore_offset_t index(const QoreString &needle, qore_offset_t pos, ExceptionSink *xsink) const {
       // do simple index
       if (!charset->isMultiByte()) {
          if (pos < 0) {
@@ -149,17 +149,113 @@ public:
    }
 
    DLLLOCAL qore_offset_t bindex(const QoreString &needle, qore_offset_t pos) const {
+      if (needle.strlen() + pos > len)
+         return -1;
+
+      return bindex(needle.getBuffer(), pos);
+   }
+
+   DLLLOCAL qore_offset_t bindex(const std::string &needle, qore_offset_t pos) const {
+      if (needle.size() + pos > len)
+         return -1;
+
+      return bindex(needle.c_str(), pos);
+   }
+
+   DLLLOCAL qore_offset_t bindex(const char *needle, qore_offset_t pos) const {
       if (pos < 0) {
          pos = len + pos;
          if (pos < 0)
             pos = 0;
-         return index_simple(buf, needle.getBuffer(), pos);
+         return index_simple(buf, needle, pos);
       }
 
       if (pos >= (qore_offset_t)len)
          return -1;
 
-      return index_simple(buf, needle.getBuffer(), pos);
+      return index_simple(buf, needle, pos);
+   }
+
+   // finds the last occurrence of needle in haystack at or before position pos
+   // pos must be a non-negative valid byte offset in haystack
+   static DLLLOCAL qore_offset_t rindex_simple(const char *haystack, qore_size_t hlen, const char *needle, qore_size_t nlen, qore_offset_t pos) {
+      // if the offset does not allow for the needle string to be present, then adjust
+      if ((pos + nlen) > hlen) {
+         pos = hlen - nlen;
+         if (pos < 0)
+            return -1;
+      }
+      
+      while (pos != -1) {
+         if (!strncmp(haystack + pos, needle, nlen))
+            return pos;
+         pos--;
+      }
+      return -1;
+   }
+
+   DLLLOCAL qore_offset_t rindex(const QoreString &needle, qore_offset_t pos, ExceptionSink *xsink) const {
+      qore_offset_t ind;
+      if (!charset->isMultiByte()) {
+         if (pos == -1)
+            pos = len - 1;
+         else if (pos < 0)
+            pos = len + pos;
+
+         if (pos < 0)
+            return -1;
+
+         return rindex_simple(buf, len, needle.getBuffer(), needle.strlen(), pos);      
+      }
+
+      // do multi-byte rindex
+      int l = len;
+      if (pos == -1)
+         pos = l - 1;
+      else if (pos < 0)
+         pos = l + pos;
+
+      if (pos < 0)
+         return -1;
+         
+      // calculate byte position from character position
+      if (pos) {
+         pos = charset->getByteLen(buf, buf + len, pos, xsink);
+         if (*xsink)
+            return 0;
+      }
+      // get byte rindex position
+      ind = rindex_simple(buf, len, needle.getBuffer(), needle.strlen(), pos);
+
+      // calculate character position from byte position
+      if (ind && ind != -1) {
+         ind = charset->getCharPos(buf, buf + ind, xsink);
+         if (*xsink)
+            return 0;
+      }
+      
+      return ind;
+   }
+
+   DLLLOCAL qore_offset_t brindex(const QoreString &needle, qore_offset_t pos) const {
+      return brindex(needle.getBuffer(), needle.strlen(), pos);
+   }
+   
+   DLLLOCAL qore_offset_t brindex(const std::string &needle, qore_offset_t pos) const {
+      return brindex(needle.c_str(), needle.size(), pos);
+   }
+   
+   DLLLOCAL qore_offset_t brindex(const char *needle, qore_size_t needle_len, qore_offset_t pos) const {
+      if (needle_len + pos > len)
+         return -1;
+      
+      if (pos < 0)
+         pos = len + pos;
+      
+      if (pos < 0)
+         return -1;
+      
+      return rindex_simple(buf, len, needle, needle_len, pos);      
    }
 };
 

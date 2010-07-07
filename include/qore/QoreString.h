@@ -490,10 +490,28 @@ public:
    DLLEXPORT QoreString & operator=(const QoreString &other);
 
    //! returns the character position of a substring within the string
-   DLLEXPORT qore_size_t index(const QoreString &needle, qore_offset_t pos, ExceptionSink *xsink) const;
+   DLLEXPORT qore_offset_t index(const QoreString &needle, qore_offset_t pos, ExceptionSink *xsink) const;
 
    //! returns the byte position of a substring within the string
-   DLLEXPORT qore_size_t bindex(const QoreString &needle, qore_offset_t pos) const;
+   DLLEXPORT qore_offset_t bindex(const QoreString &needle, qore_offset_t pos) const;
+
+   //! returns the byte position of a substring within the string
+   DLLEXPORT qore_offset_t bindex(const char *needle, qore_offset_t pos) const;
+
+   //! returns the byte position of a substring within the string
+   DLLEXPORT qore_offset_t bindex(const std::string &needle, qore_offset_t pos) const;
+
+   //! returns the character position of a substring from the end of the string
+   DLLEXPORT qore_offset_t rindex(const QoreString &needle, qore_offset_t pos, ExceptionSink *xsink) const;
+
+   //! returns the byte position of a substring within the string
+   DLLEXPORT qore_offset_t brindex(const QoreString &needle, qore_offset_t pos) const;
+
+   //! returns the byte position of a substring within the string
+   DLLEXPORT qore_offset_t brindex(const char *needle, qore_offset_t pos) const;
+
+   //! returns the byte position of a substring within the string
+   DLLEXPORT qore_offset_t brindex(const std::string &needle, qore_offset_t pos) const;
 
    // concatenates a qorestring without converting encodings - internal only
    DLLLOCAL void concat(const QoreString *str);

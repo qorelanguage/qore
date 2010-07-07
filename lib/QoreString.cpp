@@ -1775,10 +1775,35 @@ void QoreString::prepend(const char *str, qore_size_t size) {
    priv->len += size;
 }
 
-qore_size_t QoreString::index(const QoreString &needle, qore_offset_t pos, ExceptionSink *xsink) const {
+qore_offset_t QoreString::index(const QoreString &needle, qore_offset_t pos, ExceptionSink *xsink) const {
    return priv->index(needle, pos, xsink);
 }
 
-qore_size_t QoreString::bindex(const QoreString &needle, qore_offset_t pos) const {
+qore_offset_t QoreString::bindex(const QoreString &needle, qore_offset_t pos) const {
    return priv->bindex(needle, pos);
+}
+
+qore_offset_t QoreString::bindex(const char *needle, qore_offset_t pos) const {
+   return priv->bindex(needle, pos);
+}
+
+
+qore_offset_t QoreString::bindex(const std::string &needle, qore_offset_t pos) const {
+   return priv->bindex(needle, pos);
+}
+
+qore_offset_t QoreString::rindex(const QoreString &needle, qore_offset_t pos, ExceptionSink *xsink) const {
+   return priv->rindex(needle, pos, xsink);
+}
+
+qore_offset_t QoreString::brindex(const QoreString &needle, qore_offset_t pos) const {
+   return priv->brindex(needle, pos);
+}
+
+qore_offset_t QoreString::brindex(const char *needle, qore_offset_t pos) const {
+   return priv->brindex(needle, ::strlen(needle), pos);
+}
+
+qore_offset_t QoreString::brindex(const std::string &needle, qore_offset_t pos) const {
+   return priv->brindex(needle, pos);
 }
