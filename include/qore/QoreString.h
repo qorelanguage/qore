@@ -489,6 +489,12 @@ public:
    //! assigns the value of one string to another
    DLLEXPORT QoreString & operator=(const QoreString &other);
 
+   //! returns the character position of a substring within the string
+   DLLEXPORT qore_size_t index(const QoreString &needle, qore_offset_t pos, ExceptionSink *xsink) const;
+
+   //! returns the byte position of a substring within the string
+   DLLEXPORT qore_size_t bindex(const QoreString &needle, qore_offset_t pos) const;
+
    // concatenates a qorestring without converting encodings - internal only
    DLLLOCAL void concat(const QoreString *str);
 

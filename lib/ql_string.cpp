@@ -80,62 +80,6 @@ static AbstractQoreNode *f_substr_str_int_int(const QoreListNode *args, Exceptio
    return p0->substr((int)p1->val, (int)p2->val, xsink);
 }
 
-static qore_size_t index_simple_intern(const char *haystack, const char *needle, qore_offset_t pos = 0) {
-   const char *p;
-   if (!(p = strstr(haystack + pos, needle)))
-      return -1;
-   return (int)(p - haystack);
-}
-
-static AbstractQoreNode *index_intern(const QoreString *hs, const QoreString *t1, qore_offset_t pos, ExceptionSink *xsink) {
-   qore_offset_t ind;
-   if (!hs->getEncoding()->isMultiByte()) {
-      if (pos < 0) {
-	 pos = hs->strlen() + pos;
-	 if (pos < 0)
-	    pos = 0;
-	 ind = index_simple_intern(hs->getBuffer(), t1->getBuffer(), pos);
-      }
-      else {
-	 if (pos >= (qore_offset_t)hs->strlen())
-	    ind = -1;
-	 else
-	    ind = index_simple_intern(hs->getBuffer(), t1->getBuffer(), pos);
-      }
-   }
-   else { // do multibyte index()
-      qore_size_t start;
-      if (pos < 0) {
-	 pos = hs->length() + pos;
-	 if (pos < 0)
-	    pos = 0;
-      }
-      if (pos) {
-	 start = hs->getEncoding()->getByteLen(hs->getBuffer(), hs->getBuffer() + hs->strlen(), pos, xsink);
-	 if (*xsink)
-	    return 0;
-	 if (start == hs->strlen())
-	    ind = -1;
-	 else
-	    ind = 0;
-      }
-      else {
-	 ind = 0;
-	 start = 0;
-      }
-      if (ind != -1) {
-	 ind = index_simple_intern(hs->getBuffer() + start, t1->getBuffer());
-	 if (ind != -1) {
-	    ind = hs->getEncoding()->getCharPos(hs->getBuffer(), hs->getBuffer() + start + ind, xsink);
-	    if (*xsink)
-	       return 0;
-	 }
-      }
-   }
-   
-   return new QoreBigIntNode(ind);
-}
-
 /* index(string, substring[, position])
  * returns the index position in characters (starting with 0) of the first occurrence
  * of substring within string, optionally starting at position if available
@@ -144,27 +88,10 @@ static AbstractQoreNode *index_intern(const QoreString *hs, const QoreString *t1
 static AbstractQoreNode *f_index_str_str_int(const QoreListNode *args, ExceptionSink *xsink) {
    HARD_QORE_PARAM(hs, const QoreStringNode, args, 0);
    HARD_QORE_PARAM(t1, const QoreStringNode, args, 1);
-   HARD_QORE_PARAM(p2, const QoreBigIntNode, args, 2);
+   qore_offset_t pos = HARD_QORE_INT(args, 2);
 
-   return index_intern(hs, t1, p2->val, xsink);
-}
-
-static QoreBigIntNode *bindex_intern(const QoreString *hs, const QoreString *t1, qore_offset_t pos) {
-   qore_offset_t ind;
-   if (pos < 0) {
-      pos = hs->strlen() + pos;
-      if (pos < 0)
-	 pos = 0;
-      ind = index_simple_intern(hs->getBuffer(), t1->getBuffer(), pos);
-   }
-   else {
-      if (pos >= (qore_offset_t)hs->strlen())
-	 ind = -1;
-      else
-	 ind = index_simple_intern(hs->getBuffer(), t1->getBuffer(), pos);
-   }
-
-   return new QoreBigIntNode(ind);
+   qore_size_t rc = hs->index(*t1, pos, xsink);
+   return *xsink ? 0 : new QoreBigIntNode(rc);
 }
 
 /* bindex(string, substring [, position])
@@ -176,9 +103,10 @@ static QoreBigIntNode *bindex_intern(const QoreString *hs, const QoreString *t1,
 static AbstractQoreNode *f_bindex_str_str_int(const QoreListNode *args, ExceptionSink *xsink) {
    HARD_QORE_PARAM(hs, const QoreStringNode, args, 0);
    HARD_QORE_PARAM(t1, const QoreStringNode, args, 1);
-   HARD_QORE_PARAM(p2, const QoreBigIntNode, args, 2);
+   qore_offset_t pos = HARD_QORE_INT(args, 2);
 
-   return bindex_intern(hs, t1, p2->val);
+   qore_offset_t rc = hs->bindex(*t1, pos);
+   return *xsink ? 0 : new QoreBigIntNode(rc);
 }
 
 // finds the last occurrence of needle in haystack at or before position pos

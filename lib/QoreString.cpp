@@ -1774,3 +1774,11 @@ void QoreString::prepend(const char *str, qore_size_t size) {
    memcpy((char *)priv->buf, str, size);
    priv->len += size;
 }
+
+qore_size_t QoreString::index(const QoreString &needle, qore_offset_t pos, ExceptionSink *xsink) const {
+   return priv->index(needle, pos, xsink);
+}
+
+qore_size_t QoreString::bindex(const QoreString &needle, qore_offset_t pos) const {
+   return priv->bindex(needle, pos);
+}

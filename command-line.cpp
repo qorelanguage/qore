@@ -381,9 +381,9 @@ static void do_version(const char *arg) {
        printf("\n");
    else {
        printf(" (");
-       for (unsigned i = 1; i < qore_mod_api_list_len; ++i) {
-	   printf("%d.%d", qore_mod_api_list[i].major, qore_mod_api_list[i].minor);
-	   if (i != (qore_mod_api_list_len - 1))
+       for (unsigned j = 1; j < qore_mod_api_list_len; ++j) {
+	   printf("%d.%d", qore_mod_api_list[j].major, qore_mod_api_list[j].minor);
+	   if (j != (qore_mod_api_list_len - 1))
 	       printf(", ");
        }
        printf(")\n");
@@ -396,9 +396,9 @@ static void do_version(const char *arg) {
    // find longest option name
    int len = 0;
    for (size_t j = 0; j < qore_option_list_size; ++j) {
-      int i = strlen(qore_option_list[j].option);
-      if (i > len)
-	 len = i;
+      int ilen = strlen(qore_option_list[j].option);
+      if (ilen > len)
+	 len = ilen;
    }
    // create format string
    QoreString fmt(" %9s %-");
