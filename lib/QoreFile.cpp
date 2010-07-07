@@ -547,6 +547,8 @@ int QoreFile::open2(ExceptionSink *xsink, const char *fn, int flags, int mode, c
 }
 
 int QoreFile::readLine(QoreString &str) {
+   str.clear();
+
    AutoLocker al(priv->m);
 
    if (!priv->is_open)
