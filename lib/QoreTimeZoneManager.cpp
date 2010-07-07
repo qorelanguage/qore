@@ -577,9 +577,32 @@ void QoreTimeZoneManager::init_intern(QoreString &TZ) {
 }
 
 void QoreTimeZoneManager::init() {
-   QoreString TZ;
+   QoreString TZ(QCS_USASCII);
 
    init_intern(TZ);
+
+#ifdef SOLARIS
+   // on solaris try to parse /etc/TIMEZONE if TZ is not set
+   if (!localtz) {
+      QoreFile f;
+
+      if (!f.open("/etc/TIMEZONE")) {
+         while (!f.readLine(TZ)) {
+            if (!strncmp(TZ.getBuffer(), "TZ=", 3)) {
+               // remove "TZ=" from string
+               TZ.splice(0, 3, NULL);
+               // remove trailing whitespace and '\n' from string
+               TZ.trim_trailing();
+               // set local time zone region
+               setLocalTZ(TZ.getBuffer());
+
+               break;
+            }
+         }
+      }
+   }
+#endif
+
    // if no local time zone has been set, then set to UTC
    if (!localtz)
       setLocalTZ("UTC");

@@ -107,6 +107,12 @@ public:
    */
    DLLEXPORT QoreStringNode *readLine(ExceptionSink *xsink);
 
+   //! reads string data from the file up to a terminating '\\n' character, returns 0 for no error, -1 for EOF, -2 for file not opened
+   /** @note strnig data will be appended to the string with the assumption that the string's encoding is the same as the file's
+       @return 0 for no error, -1 for EOF, -2 for file not opened
+   */
+   DLLEXPORT int readLine(QoreString &str);
+
    //! writes string data to the file, character encoding is converted if necessary, and returns the number of bytes written
    /** Qore-language exceptions can be thrown if the file is not opened or if encoding conversion fails
        @param str the string to write to the file

@@ -546,27 +546,35 @@ int QoreFile::open2(ExceptionSink *xsink, const char *fn, int flags, int mode, c
    return 0;
 }
 
-QoreStringNode *QoreFile::readLine(ExceptionSink *xsink) {
+int QoreFile::readLine(QoreString &str) {
    AutoLocker al(priv->m);
 
-   if (!priv->is_open) {
-      xsink->raiseException("FILE-READLINE-ERROR", "file has not been opened");
-      return 0;
-   }
+   if (!priv->is_open)
+      return -2;
    
    int ch;
 
-   QoreStringNodeHolder str(new QoreStringNode(priv->charset));
    while ((ch = priv->readChar()) >= 0) {
       char c = ch;
-      str->concat((char)c);
+      str.concat(c);
       if (c == '\n')
 	 break;
    }
-   if (!str->strlen())
-      return 0;
 
-   return str.release();
+   return !str.strlen() ? -1 : 0;
+}
+
+QoreStringNode *QoreFile::readLine(ExceptionSink *xsink) {
+   QoreStringNodeHolder str(new QoreStringNode(priv->charset));
+
+   int rc = readLine(**str);
+
+   if (!rc == -2) {
+      xsink->raiseException("FILE-READLINE-ERROR", "file has not been opened");
+      return 0;
+   }
+
+   return rc == -1 ? 0 : str.release();
 }
 
 qore_size_t QoreFile::setPos(qore_size_t pos) {
