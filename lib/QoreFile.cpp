@@ -571,7 +571,7 @@ QoreStringNode *QoreFile::readLine(ExceptionSink *xsink) {
 
    int rc = readLine(**str);
 
-   if (!rc == -2) {
+   if (rc == -2) {
       xsink->raiseException("FILE-READLINE-ERROR", "file has not been opened");
       return 0;
    }
