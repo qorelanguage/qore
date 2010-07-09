@@ -132,6 +132,7 @@ libqore_la_SOURCES = \
 	QoreClosureParseNode.cpp \
 	QoreClosureNode.cpp \
 	QoreImplicitArgumentNode.cpp \
+	QoreImplicitElementNode.cpp \
 	ParseOptionMap.cpp \
 	QoreTypeInfo.cpp \
 	QoreDeleteOperatorNode.cpp \

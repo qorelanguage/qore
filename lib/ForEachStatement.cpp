@@ -69,6 +69,9 @@ int ForEachStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *x
 	 if (n.assign(l_tlist ? l_tlist->get_referenced_entry(i) : tlist.release()))
 	    break;
       }
+
+      // set offset in thread-local data for "$#"
+      ImplicitElementHelper eh(l_tlist ? (int)i : 0);
       
       // execute "foreach" body
       if (((rc = code->execImpl(return_value, xsink)) == RC_BREAK) || *xsink) {
@@ -132,7 +135,10 @@ int ForEachStatement::execRef(AbstractQoreNode **return_value, ExceptionSink *xs
 	 if (n.assign(l_tlist ? l_tlist->get_referenced_entry(i) : tlist.release()))
 	    return 0;
       }
-      
+
+      // set offset in thread-local data for "$#"
+      ImplicitElementHelper eh(l_tlist ? (int)i : 0);
+            
       // execute "for" body
       rc = code->execImpl(return_value, xsink);
       if (*xsink)

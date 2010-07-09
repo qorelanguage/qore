@@ -213,6 +213,9 @@ DLLLOCAL ClosureVarValue *thread_get_runtime_closure_var(const LocalVar *id);
 DLLLOCAL ClosureRuntimeEnvironment *thread_get_runtime_closure_env();
 DLLLOCAL void thread_set_runtime_closure_env(ClosureRuntimeEnvironment *cenv);
 
+DLLLOCAL int get_implicit_element();
+DLLLOCAL int save_implicit_element(int n_element);
+
 class QoreContainerHelper {
    const AbstractQoreNode *n;
    bool err;
@@ -323,6 +326,18 @@ public:
    DLLLOCAL SingleArgvContextHelper(const AbstractQoreNode *val, ExceptionSink *n_xsink);
    // calls deref(xsink) on list in destructor
    DLLLOCAL ~SingleArgvContextHelper();
+};
+
+class ImplicitElementHelper {
+private:
+   int element;
+
+public:
+   DLLLOCAL ImplicitElementHelper(int n_element) : element(save_implicit_element(n_element)) {
+   }
+   DLLLOCAL ~ImplicitElementHelper() {
+      save_implicit_element(element);
+   }
 };
 
 #include <qore/intern/CallStack.h>

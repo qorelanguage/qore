@@ -1789,6 +1789,8 @@ static AbstractQoreNode *op_map(const AbstractQoreNode *left, const AbstractQore
    ReferenceHolder<QoreListNode> rv(ref_rv ? new QoreListNode() : 0, xsink);
    ConstListIterator li(reinterpret_cast<const QoreListNode *>(*arg));
    while (li.next()) {
+      // set offset in thread-local data for "$#"
+      ImplicitElementHelper eh(li.index());
       SingleArgvContextHelper argv_helper(li.getValue(), xsink);
       //printd(5, "op_map() left=%p (%d %s)\n", left, left->getType(), left->getTypeName());
       ReferenceHolder<AbstractQoreNode> val(left->eval(xsink), xsink);
@@ -1829,6 +1831,8 @@ static AbstractQoreNode *op_map_select(const AbstractQoreNode *left, const Abstr
    ReferenceHolder<QoreListNode> rv(ref_rv ? new QoreListNode() : 0, xsink);
    ConstListIterator li(reinterpret_cast<const QoreListNode *>(*marg));
    while (li.next()) {
+      // set offset in thread-local data for "$#"
+      ImplicitElementHelper eh(li.index());
       const AbstractQoreNode *elem = li.getValue();
       // check if value can be mapped
       {
@@ -1875,6 +1879,8 @@ static AbstractQoreNode *op_foldl(const AbstractQoreNode *left, const AbstractQo
    // skip the first element
    ConstListIterator li(l, 0);
    while (li.next()) {
+      // set offset in thread-local data for "$#"
+      ImplicitElementHelper eh(li.index());
       // create argument list
       QoreListNode *args = new QoreListNode();
       args->push(result.release());
@@ -1915,6 +1921,8 @@ static AbstractQoreNode *op_foldr(const AbstractQoreNode *left, const AbstractQo
    // skip the first element
    li.prev();
    while (li.prev()) {
+      // set offset in thread-local data for "$#"
+      ImplicitElementHelper eh(li.index());
       // create argument list
       QoreListNode *args = new QoreListNode();
       args->push(result.release());
@@ -1947,6 +1955,8 @@ static AbstractQoreNode *op_select(const AbstractQoreNode *arg_exp, const Abstra
    ReferenceHolder<QoreListNode> rv(new QoreListNode(), xsink);
    ConstListIterator li(reinterpret_cast<const QoreListNode *>(*arg));
    while (li.next()) {
+      // set offset in thread-local data for "$#"
+      ImplicitElementHelper eh(li.index());
       SingleArgvContextHelper argv_helper(li.getValue(), xsink);
       bool b = select->boolEval(xsink);
       if (*xsink)

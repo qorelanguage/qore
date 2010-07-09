@@ -27,6 +27,7 @@
 #include "QoreClosureParseNode.cpp"
 #include "QoreClosureNode.cpp"
 #include "QoreImplicitArgumentNode.cpp"
+#include "QoreImplicitElementNode.cpp"
 #include "Function.cpp"
 #include "BuiltinFunction.cpp"
 #include "BuiltinFunctionList.cpp"

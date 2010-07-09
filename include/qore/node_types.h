@@ -69,9 +69,10 @@ const qore_type_t NT_METHOD_CALL        = 34; //!< type value for MethodCallNode
 const qore_type_t NT_STATIC_METHOD_CALL = 35; //!< type value for StaticMethodCallNode (private class)
 const qore_type_t NT_SELF_CALL          = 36; //!< type value for SelfFunctionCallNode (private class)
 const qore_type_t NT_OPERATOR           = 37; //!< type value for QoreOperatorNode (private class)
+const qore_type_t NT_IMPLICIT_ELEMENT   = 38; //!< type value for QoreImplicitElementNode (private clas)
 
 //! number of types implemented in the Qore library
-#define QORE_NUM_TYPES 38
+#define QORE_NUM_TYPES 39
 
 //! number of simple value types (not containers)
 #define NUM_SIMPLE_TYPES 8

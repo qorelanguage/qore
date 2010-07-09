@@ -165,6 +165,7 @@ enum qore_call_t {
 #include <qore/intern/QoreClosureParseNode.h>
 #include <qore/intern/QoreClosureNode.h>
 #include <qore/intern/QoreImplicitArgumentNode.h>
+#include <qore/intern/QoreImplicitElementNode.h>
 #include <qore/intern/QoreOperatorNode.h>
 #include <qore/intern/QoreTimeZoneManager.h>
 #include <qore/intern/ContextStatement.h>

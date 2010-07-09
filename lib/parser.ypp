@@ -736,6 +736,7 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str) {
 %token TOK_SELECT "select"
 %token TOK_SPLICE "splice"
 %token TOK_EXTRACT "extract"
+%token IMPLICIT_ELEMENT "$#"
 
  // tokens returning data
 %token <integer> INTEGER "integer value"
@@ -2332,6 +2333,9 @@ exp:    scalar
         | IMPLICIT_ARG_REF { 
 	   $$ = $1;
 	   inc_numeric_argv_ref();
+	}
+        | IMPLICIT_ELEMENT {
+	   $$ = new QoreImplicitElementNode;
 	}
         | TOK_DELETE exp {
 	   $$ = new QoreDeleteOperatorNode($2);

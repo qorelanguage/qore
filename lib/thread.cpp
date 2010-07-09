@@ -438,6 +438,9 @@ public:
    // currently-executing/parsing block's return type
    const QoreTypeInfo *returnTypeInfo;
 
+   // current implicit element offset
+   int element;
+
    DLLLOCAL ThreadData(int ptid, QoreProgram *p) : 
       tid(ptid), vlock(ptid), context_stack(0), plStack(0), 
       parse_line_start(0), parse_line_end(0), parse_file(0), 
@@ -446,7 +449,7 @@ public:
       parseClass(0), catchException(0), current_code(0),
       current_obj(0), current_pgm(p), current_implicit_arg(0),
       closure_parse_env(0), closure_rt_env(0), pch_link(0),
-      returnTypeInfo(0) {
+      returnTypeInfo(0), element(0) {
 #ifdef QORE_MANAGE_STACK
 
 #ifdef STACK_DIRECTION_DOWN
@@ -464,6 +467,16 @@ public:
    }
 
    DLLLOCAL ~ThreadData();
+
+   DLLLOCAL int get_element() {
+      return element;
+   }
+
+   DLLLOCAL int save_element(int n_element) {
+      int rc = element;
+      element = n_element;
+      return rc;
+   }
 };
 
 static QoreThreadLocalStorage<ThreadData> thread_data;
@@ -963,6 +976,14 @@ int get_pop_argv_ref() {
 // clears the argv reference stack
 void clear_argv_ref() {
    thread_data.get()->argv_refs.clear();
+}
+
+int get_implicit_element() {
+   return thread_data.get()->get_element();
+}
+
+int save_implicit_element(int n_element) {
+   return thread_data.get()->save_element(n_element);
 }
 
 ObjectSubstitutionHelper::ObjectSubstitutionHelper(QoreObject *obj) {
