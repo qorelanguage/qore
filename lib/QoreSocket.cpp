@@ -937,7 +937,7 @@ int SSLSocketHelper::read(char *buf, int size, int timeout_ms, qore_socket_priva
       if (rc < 0) {
 	 int err = SSL_get_error(ssl, rc);
 
-	 printd(0, "SSLSocketHelper::read(buf=%p, size=%d, to=%d) rc=%d err=%d\n", buf, size, timeout_ms, rc, err);
+	 //printd(5, "SSLSocketHelper::read(buf=%p, size=%d, to=%d) rc=%d err=%d\n", buf, size, timeout_ms, rc, err);
 
 	 if (err == SSL_ERROR_WANT_READ) {
 	    if (!sock.isDataAvailable(timeout_ms)) {
