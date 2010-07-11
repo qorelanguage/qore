@@ -12771,8 +12771,9 @@ $pgm.setParseOptions(<link linkend="PO_NO_THREADS">PO_NO_THREADS</link> | <link 
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Socket_recv">Socket::recv</link>(<link linkend="softint_type">softint</link> <replaceable>$size</replaceable> = 0, <link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="string_type">string</link></code></para>
-              <para><code><link linkend="Socket_recv">Socket::recv</link>(<link linkend="softint_type">softint</link> <replaceable>$size</replaceable> = 0, <link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="string_type">string</link></code></para>
+              <para><code><link linkend="Socket_recv">Socket::recv</link>(<link linkend="softint_type">softint</link> <replaceable>$size</replaceable> = 0) <command>returns</command> <link linkend="string_type">string</link></code></para>
+              <para><code><link linkend="Socket_recv">Socket::recv</link>(<link linkend="softint_type">softint</link> <replaceable>$size</replaceable> = 0, <link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="Socket_recv">Socket::recv</link>(<link linkend="softint_type">softint</link> <replaceable>$size</replaceable> = 0, <link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Receives data from the socket and returns a string.</para></entry>
@@ -13250,6 +13251,10 @@ $sock.bind("/tmp/socket");</programlisting>
 	      <entry><para><code>SOCKET-NOT-OPEN</code></para></entry>
 	      <entry><para>The socket is not bound.</para></entry>
 	    </row>
+	    <row>
+	      <entry><para><code>SOCKET-ACCEPT-ERROR</code></para></entry>
+	      <entry><para>Error in accepting connection.</para></entry>
+	    </row>
 	  </tbody>
 	</tgroup>
       </table>
@@ -13319,6 +13324,14 @@ $sock.bind("/tmp/socket");</programlisting>
             </row>
           </thead>
           <tbody>
+	    <row>
+	      <entry><para><code>SOCKET-NOT-OPEN</code></para></entry>
+	      <entry><para>The socket is not bound.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>SOCKET-ACCEPT-ERROR</code></para></entry>
+	      <entry><para>Error in accepting connection.</para></entry>
+	    </row>
             <row>
               <entry>
                 <para>
@@ -15424,6 +15437,14 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	      <entry><para><code>SOCKET-RECV-ERROR</code></para></entry>
 	      <entry><para>There was an error receiving the data.</para></entry>
 	    </row>
+	    <row>
+	      <entry><para><code>SOCKET-TIMEOUT</code></para></entry>
+	      <entry><para>The data requested was not received in the timeout period.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>SOCKET-SSL-ERROR</code></para></entry>
+	      <entry><para>There was an SSL error while reading data from the socket.</para></entry>
+	    </row>
 	  </tbody>
 	</tgroup>
       </table>
@@ -15519,6 +15540,14 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	      <entry><para><code>SOCKET-RECV-ERROR</code></para></entry>
 	      <entry><para>There was an error receiving the data.</para></entry>
 	    </row>
+	    <row>
+	      <entry><para><code>SOCKET-TIMEOUT</code></para></entry>
+	      <entry><para>The data requested was not received in the timeout period.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>SOCKET-SSL-ERROR</code></para></entry>
+	      <entry><para>There was an SSL error while reading data from the socket.</para></entry>
+	    </row>
 	  </tbody>
 	</tgroup>
       </table>
@@ -15609,6 +15638,14 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	    <row>
 	      <entry><para><code>SOCKET-RECV-ERROR</code></para></entry>
 	      <entry><para>There was an error receiving the data.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>SOCKET-TIMEOUT</code></para></entry>
+	      <entry><para>The data requested was not received in the timeout period.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>SOCKET-SSL-ERROR</code></para></entry>
+	      <entry><para>There was an SSL error while reading data from the socket.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -15701,6 +15738,14 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	      <entry><para><code>SOCKET-RECV-ERROR</code></para></entry>
 	      <entry><para>There was an error receiving the data.</para></entry>
 	    </row>
+	    <row>
+	      <entry><para><code>SOCKET-TIMEOUT</code></para></entry>
+	      <entry><para>The data requested was not received in the timeout period.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>SOCKET-SSL-ERROR</code></para></entry>
+	      <entry><para>There was an SSL error while reading data from the socket.</para></entry>
+	    </row>
 	  </tbody>
 	</tgroup>
       </table>
@@ -15791,6 +15836,14 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	    <row>
 	      <entry><para><code>SOCKET-RECV-ERROR</code></para></entry>
 	      <entry><para>There was an error receiving the data.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>SOCKET-TIMEOUT</code></para></entry>
+	      <entry><para>The data requested was not received in the timeout period.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>SOCKET-SSL-ERROR</code></para></entry>
+	      <entry><para>There was an SSL error while reading data from the socket.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -15883,6 +15936,14 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	      <entry><para><code>SOCKET-RECV-ERROR</code></para></entry>
 	      <entry><para>There was an error receiving the data.</para></entry>
 	    </row>
+	    <row>
+	      <entry><para><code>SOCKET-TIMEOUT</code></para></entry>
+	      <entry><para>The data requested was not received in the timeout period.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>SOCKET-SSL-ERROR</code></para></entry>
+	      <entry><para>There was an SSL error while reading data from the socket.</para></entry>
+	    </row>
 	  </tbody>
 	</tgroup>
       </table>
@@ -15973,6 +16034,14 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	    <row>
 	      <entry><para><code>SOCKET-RECV-ERROR</code></para></entry>
 	      <entry><para>There was an error receiving the data.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>SOCKET-TIMEOUT</code></para></entry>
+	      <entry><para>The data requested was not received in the timeout period.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>SOCKET-SSL-ERROR</code></para></entry>
+	      <entry><para>There was an SSL error while reading data from the socket.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -16065,6 +16134,14 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	      <entry><para><code>SOCKET-RECV-ERROR</code></para></entry>
 	      <entry><para>There was an error receiving the data.</para></entry>
 	    </row>
+	    <row>
+	      <entry><para><code>SOCKET-TIMEOUT</code></para></entry>
+	      <entry><para>The data requested was not received in the timeout period.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>SOCKET-SSL-ERROR</code></para></entry>
+	      <entry><para>There was an SSL error while reading data from the socket.</para></entry>
+	    </row>
 	  </tbody>
 	</tgroup>
       </table>
@@ -16155,6 +16232,14 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	    <row>
 	      <entry><para><code>SOCKET-RECV-ERROR</code></para></entry>
 	      <entry><para>There was an error receiving the data.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>SOCKET-TIMEOUT</code></para></entry>
+	      <entry><para>The data requested was not received in the timeout period.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>SOCKET-SSL-ERROR</code></para></entry>
+	      <entry><para>There was an SSL error while reading data from the socket.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -16247,6 +16332,14 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	      <entry><para><code>SOCKET-RECV-ERROR</code></para></entry>
 	      <entry><para>There was an error receiving the data.</para></entry>
 	    </row>
+	    <row>
+	      <entry><para><code>SOCKET-TIMEOUT</code></para></entry>
+	      <entry><para>The data requested was not received in the timeout period.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>SOCKET-SSL-ERROR</code></para></entry>
+	      <entry><para>There was an SSL error while reading data from the socket.</para></entry>
+	    </row>
 	  </tbody>
 	</tgroup>
       </table>
@@ -16337,6 +16430,14 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	    <row>
 	      <entry><para><code>SOCKET-RECV-ERROR</code></para></entry>
 	      <entry><para>There was an error receiving the data.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>SOCKET-TIMEOUT</code></para></entry>
+	      <entry><para>The data requested was not received in the timeout period.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>SOCKET-SSL-ERROR</code></para></entry>
+	      <entry><para>There was an SSL error while reading data from the socket.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -16429,6 +16530,14 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	      <entry><para><code>SOCKET-RECV-ERROR</code></para></entry>
 	      <entry><para>There was an error receiving the data.</para></entry>
 	    </row>
+	    <row>
+	      <entry><para><code>SOCKET-TIMEOUT</code></para></entry>
+	      <entry><para>The data requested was not received in the timeout period.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>SOCKET-SSL-ERROR</code></para></entry>
+	      <entry><para>There was an SSL error while reading data from the socket.</para></entry>
+	    </row>
 	  </tbody>
 	</tgroup>
       </table>
@@ -16520,6 +16629,14 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	      <entry><para><code>SOCKET-RECV-ERROR</code></para></entry>
 	      <entry><para>There was an error receiving the data.</para></entry>
 	    </row>
+	    <row>
+	      <entry><para><code>SOCKET-TIMEOUT</code></para></entry>
+	      <entry><para>The data requested was not received in the timeout period.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>SOCKET-SSL-ERROR</code></para></entry>
+	      <entry><para>There was an SSL error while reading data from the socket.</para></entry>
+	    </row>
 	  </tbody>
 	</tgroup>
       </table>
@@ -16610,6 +16727,14 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	    <row>
 	      <entry><para><code>SOCKET-RECV-ERROR</code></para></entry>
 	      <entry><para>There was an error receiving the data.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>SOCKET-TIMEOUT</code></para></entry>
+	      <entry><para>The data requested was not received in the timeout period.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>SOCKET-SSL-ERROR</code></para></entry>
+	      <entry><para>There was an SSL error while reading data from the socket.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -16737,6 +16862,14 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	    <row>
 	      <entry><para><code>SOCKET-RECV-ERROR</code></para></entry>
 	      <entry><para>There was an error receiving the data.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>SOCKET-TIMEOUT</code></para></entry>
+	      <entry><para>The data requested was not received in the timeout period.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>SOCKET-SSL-ERROR</code></para></entry>
+	      <entry><para>There was an SSL error while reading data from the socket.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>

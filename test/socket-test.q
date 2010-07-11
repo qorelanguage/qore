@@ -81,15 +81,19 @@ class socket_test {
 	try {
 	    if ($.o.ssl) {
 		if (strlen($.o.cert)) {
-		    $s.setCertificate($.o.cert);
+		    my File $f();
+		    $f.open2($.o.cert);
+		    my SSLCertificate $cert($f.read(-1));
+		    $s.setCertificate($cert);
 		    if (!strlen($.o.key))
-			$s.setPrivateKey($.o.cert);
+			$s.setPrivateKey($cert);
+		    else {
+			$f.open2($.o.key);
+			$s.setPrivateKey(new SSLPrivateKey($f.read(-1)));
+		    }
 		}
-		if (strlen($.o.key))
-		    $s.setPrivateKey($.o.key);
-		
 		$s = $s.acceptSSL();
-		socket_test::printf("returned from Socket::acceptSSL() s=%N\n", $s);
+		#socket_test::printf("returned from Socket::acceptSSL() s=%N\n", $s);
 		socket_test::printf("server: secure connection (%s %s) from %s (%s)\n", $s.getSSLCipherName(), $s.getSSLCipherVersion(), $s.source, $s.source_host);
 		my $str = $s.verifyPeerCertificate();
 		if (!exists $str)

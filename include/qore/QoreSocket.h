@@ -51,6 +51,7 @@
 #define QSE_RECV_ERR -1 //!< error in recv()
 #define QSE_NOT_OPEN -2 //!< socket is not open
 #define QSE_TIMEOUT  -3 //!< timeout occured
+#define QSE_SSL_ERR  -4 //!< SSL error occured
 
 class Queue;
 
@@ -850,7 +851,7 @@ public:
    */
    DLLEXPORT bool isWriteFinished(int timeout = 0) const;
 
-   DLLLOCAL static void doException(int rc, const char *meth, ExceptionSink *xsink);
+   DLLLOCAL static void doException(int rc, const char *meth, int timeout_ms, ExceptionSink *xsink);
 
    //! sets the event queue (not part of the library's pubilc API), must be already referenced before call
    DLLLOCAL void setEventQueue(Queue *cbq, ExceptionSink *xsink);

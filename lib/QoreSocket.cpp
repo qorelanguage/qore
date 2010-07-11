@@ -150,11 +150,6 @@ int SSLSocketHelper::shutdown(ExceptionSink *xsink) {
 }
 
 // returns 0 for success
-int SSLSocketHelper::read(char *buf, int size) {
-   return SSL_read(ssl, buf, size);
-}
-
-// returns 0 for success
 int SSLSocketHelper::write(const void *buf, int size, ExceptionSink *xsink) {
    int rc;
    if ((rc = SSL_write(ssl, buf, size)) <= 0) {
@@ -799,6 +794,31 @@ struct qore_socket_private {
       return -1;
    }
 
+   DLLLOCAL int set_non_blocking(bool non_blocking, ExceptionSink *xsink = 0) {
+      int arg;
+
+      // get socket descriptor status flags
+      if ((arg = fcntl(sock, F_GETFL, 0)) < 0) { 
+	 sock = 0;
+	 if (xsink)
+	    xsink->raiseErrnoException("SOCKET-CONNECT-ERROR", errno, "error in fcntl() getting socket descriptor status flag");
+	 return -1;
+      }
+
+      if (non_blocking) // set non-blocking
+	 arg |= O_NONBLOCK; 
+      else // set blocking
+	 arg &= ~O_NONBLOCK;
+
+      if (fcntl(sock, F_SETFL, arg) < 0) { 
+	 sock = 0;
+	 if (xsink)
+	    xsink->raiseErrnoException("SOCKET-CONNECT-ERROR", errno, "error in fcntl() setting socket descriptor status flags");
+	 return -1;
+      } 
+      return 0;
+   }
+
    DLLLOCAL int connectINET(const char *host, int prt, int timeout_ms, ExceptionSink *xsink = 0) {
       QORE_TRACE("QoreSocket::connectINET()");
 
@@ -836,42 +856,16 @@ struct qore_socket_private {
       // perform connect with timeout if a non-negative timeout was passed
       if (timeout_ms >= 0) {
 	 // set non-blocking
-	 int arg;
-
-	 // get socket descriptor status flags
-	 if ((arg = fcntl(sock, F_GETFL, 0)) < 0) { 
-	    sock = 0;
-	    if (xsink)
-	       xsink->raiseErrnoException("SOCKET-CONNECT-ERROR", errno, "error in fcntl() getting socket descriptor status flag");
+	 if (set_non_blocking(true, xsink))
 	    return -1;
-	 } 
-	 arg |= O_NONBLOCK; 
-	 if (fcntl(sock, F_SETFL, arg) < 0) { 
-	    sock = 0;
-	    if (xsink)
-	       xsink->raiseErrnoException("SOCKET-CONNECT-ERROR", errno, "error in fcntl() setting socket descriptor status flags");
-	    return -1;
-	 } 
 
 	 do_connect_event(AF_INET, host, prt);
 
 	 rc = connectINETTimeout(timeout_ms, addr_p, xsink);
 
-	 // get socket descriptor status flags
-	 if ((arg = fcntl(sock, F_GETFL, 0)) < 0) { 
-	    sock = 0;
-	    if (xsink)
-	       xsink->raiseErrnoException("SOCKET-CONNECT-ERROR", errno, "error in fcntl() getting socket descriptor status flag");
-	    return -1;
-	 } 
 	 // set blocking
-	 arg &= ~O_NONBLOCK;
-	 if (fcntl(sock, F_SETFL, arg) < 0) { 
-	    sock = 0;
-	    if (xsink)
-	       xsink->raiseErrnoException("SOCKET-CONNECT-ERROR", errno, "error in fcntl() setting socket descriptor status flags");
+	 if (set_non_blocking(false, xsink))
 	    return -1;
-	 }	 
       }
       else {
 	 do_connect_event(AF_INET, host, prt);
@@ -924,6 +918,51 @@ struct qore_socket_private {
       return 0;
    }
 };
+
+int SSLSocketHelper::read(char *buf, int size, int timeout_ms, qore_socket_private &sock) {
+   if (timeout_ms < 0)
+      return SSL_read(ssl, buf, size);
+
+   // set non blocking
+   if (sock.set_non_blocking(true))
+      return -1;
+
+   int rc;
+   while (true) {
+      rc = SSL_read(ssl, buf, size);
+
+      if (rc >= 0)
+	 break;
+
+      if (rc < 0) {
+	 int err = SSL_get_error(ssl, rc);
+
+	 printd(0, "SSLSocketHelper::read(buf=%p, size=%d, to=%d) rc=%d err=%d\n", buf, size, timeout_ms, rc, err);
+
+	 if (err == SSL_ERROR_WANT_READ) {
+	    if (!sock.isDataAvailable(timeout_ms)) {
+	       rc = QSE_TIMEOUT;
+	       break;
+	    }
+	 }
+	 else if (err == SSL_ERROR_WANT_WRITE) {
+	    if (!sock.isWriteFinished(timeout_ms)) {
+	       rc = QSE_TIMEOUT;
+	       break;
+	    }
+	 }
+	 else {
+	    rc = QSE_SSL_ERR;
+	    break;
+	 }	    
+      }
+   }
+
+   sock.set_non_blocking(false);
+
+   printd(0, "SSLSocketHelper::read(buf=%p, size=%d, to=%d) rc=%d\n", buf, size, timeout_ms, rc);
+   return rc;
+}
 
 QoreSocket::QoreSocket() : priv(new qore_socket_private) {
 }
@@ -1767,7 +1806,7 @@ QoreStringNode *QoreSocket::readHTTPData(int timeout, int *rc, int state) {
       *rc = recv(&c, 1, 0, timeout, false);
       //printd(5, "read char: %c (%03d) (old state: %d)\n", c > 30 ? c : '?', c, state);
       if ((*rc) <= 0) {
-	 //printd(5, "QoreSocket::readHTTPData(timeout=%d) hdr='%s' (%d), rc=%d, errno=%d (%s)\n", timeout, hdr->getBuffer(), hdr->strlen(), *rc, errno, strerror(errno));
+	 //printd(5, "QoreSocket::readHTTPData(timeout=%d) hdr='%s' (len: %d), rc=%d, errno=%d: '%s'\n", timeout, hdr->getBuffer(), hdr->strlen(), *rc, errno, strerror(errno));
 	 return 0;
       }
       if (++count == QORE_MAX_HEADER_SIZE)
@@ -1943,14 +1982,27 @@ AbstractQoreNode *QoreSocket::readHTTPHeader(QoreHashNode *info, int timeout, in
    return h;
 }
 
-void QoreSocket::doException(int rc, const char *meth, ExceptionSink *xsink) {
-   if (!rc)
-      xsink->raiseException("SOCKET-CLOSED", "remote end has closed the connection");
-   else if (rc == QSE_RECV_ERR)   // recv() error
-      xsink->raiseException("SOCKET-RECV-ERROR", q_strerror(errno));
-   else if (rc == QSE_NOT_OPEN)   
-      xsink->raiseException("SOCKET-NOT-OPEN", "socket must be opened before Socket::%s() call", meth);   
-   // rc == -3: TIMEOUT returns NOTHING
+void QoreSocket::doException(int rc, const char *meth, int timeout_ms, ExceptionSink *xsink) {
+   switch (rc) {
+      case 0:
+	 xsink->raiseException("SOCKET-CLOSED", "remote end has closed the connection");
+	 break;
+      case QSE_RECV_ERR: // recv() error
+	 xsink->raiseException("SOCKET-RECV-ERROR", q_strerror(errno));
+	 break;
+      case QSE_NOT_OPEN:
+	 xsink->raiseException("SOCKET-NOT-OPEN", "socket must be opened before Socket::%s() call", meth);
+	 break;
+      case QSE_TIMEOUT:
+	 xsink->raiseException("SOCKET-TIMEOUT", "timed out after %d millisecond%s in Socket::%s() call", timeout_ms, timeout_ms == 1 ? "" : "s", meth);
+	 break;
+      case QSE_SSL_ERR:
+	 xsink->raiseException("SOCKET-SSL-ERROR", "SSL error in Socket::%s() call", meth);
+	 break;
+      default:
+	 xsink->raiseException("SOCKET-ERROR", "unknown internal error code %d in Socket::%s() call", rc, meth);
+	 break;
+   }
 }
 
 // receive a binary message in HTTP chunked format
@@ -1968,7 +2020,7 @@ QoreHashNode *QoreSocket::readHTTPChunkedBodyBinary(int timeout, ExceptionSink *
 	 char c;
 	 rc = recv(&c, 1, 0, timeout, false);
 	 if (rc <= 0) {
-	    doException(rc, "readHTTPChunkedBodyBinary", xsink);
+	    doException(rc, "readHTTPChunkedBodyBinary", timeout, xsink);
 	    return 0;
 	 }
 	 
@@ -2009,7 +2061,7 @@ QoreHashNode *QoreSocket::readHTTPChunkedBodyBinary(int timeout, ExceptionSink *
       while (true) {
 	 rc = recv((char *)str.getBuffer() + br, bs, 0, timeout, false);
 	 if (rc <= 0) {
-	    doException(rc, "readHTTPChunkedBodyBinary", xsink);
+	    doException(rc, "readHTTPChunkedBodyBinary", timeout, xsink);
 	    return 0;
 	 }
 	 br += rc;
@@ -2031,7 +2083,7 @@ QoreHashNode *QoreSocket::readHTTPChunkedBodyBinary(int timeout, ExceptionSink *
       while (br < 2) {
 	 rc = recv(crlf, 2 - br, 0, timeout, false);
 	 if (rc <= 0) {
-	    doException(rc, "readHTTPChunkedBodyBinary", xsink);
+	    doException(rc, "readHTTPChunkedBodyBinary", timeout, xsink);
 	    return 0;
 	 }
 	 br += rc;
@@ -2045,7 +2097,7 @@ QoreHashNode *QoreSocket::readHTTPChunkedBodyBinary(int timeout, ExceptionSink *
    // read footers or nothing
    QoreStringNodeHolder hdr(readHTTPData(timeout, &rc, 1));
    if (!hdr) {
-      doException(rc, "readHTTPChunkedBodyBinary", xsink);
+      doException(rc, "readHTTPChunkedBodyBinary", timeout, xsink);
       return 0;
    }
    QoreHashNode *h = new QoreHashNode();
@@ -2077,7 +2129,7 @@ QoreHashNode *QoreSocket::readHTTPChunkedBody(int timeout, ExceptionSink *xsink,
 	 char c;
 	 rc = recv(&c, 1, 0, timeout, false);
 	 if (rc <= 0) {
-	    doException(rc, "readHTTPChunkedBody", xsink);
+	    doException(rc, "readHTTPChunkedBody", timeout, xsink);
 	    return 0;
 	 }
       
@@ -2120,7 +2172,7 @@ QoreHashNode *QoreSocket::readHTTPChunkedBody(int timeout, ExceptionSink *xsink,
       while (true) {
 	 rc = recv((char *)buf->getBuffer() + buf->strlen() + br, bs, 0, timeout, false);
 	 if (rc <= 0) {
-	    doException(rc, "readHTTPChunkedBody", xsink);
+	    doException(rc, "readHTTPChunkedBody", timeout, xsink);
 	    return 0;
 	 }
 	 br += rc;
@@ -2142,7 +2194,7 @@ QoreHashNode *QoreSocket::readHTTPChunkedBody(int timeout, ExceptionSink *xsink,
       while (br < 2) {
 	 rc = recv(crlf, 2 - br, 0, timeout, false);
 	 if (rc <= 0) {
-	    doException(rc, "readHTTPChunkedBody", xsink);
+	    doException(rc, "readHTTPChunkedBody", timeout, xsink);
 	    return 0;
 	 }
 	 br += rc;
@@ -2153,7 +2205,7 @@ QoreHashNode *QoreSocket::readHTTPChunkedBody(int timeout, ExceptionSink *xsink,
    // read footers or nothing
    QoreStringNodeHolder hdr(readHTTPData(timeout, &rc, 1));
    if (!hdr) {
-      doException(rc, "readHTTPChunkedBody", xsink);
+      doException(rc, "readHTTPChunkedBody", timeout, xsink);
       return 0;
    }
 
@@ -2180,25 +2232,26 @@ bool QoreSocket::isWriteFinished(int timeout) const {
 }
 
 int QoreSocket::recv(char *buf, qore_size_t bs, int flags, int timeout, bool do_event) {
-   //printd(5, "QoreSocket::recv(buf=%p, bs=%d, flags=%d, timeout=%d, do_event=%d) this=%p\n", buf, (int)bs, flags, timeout, (int)do_event, this);
-   if (timeout != -1 && !isDataAvailable(timeout))
-      return QSE_TIMEOUT;
+   //printd(5, "QoreSocket::recv(buf=%p, bs=%d, flags=%d, timeout=%d, do_event=%d) this=%p ssl=%d\n", buf, (int)bs, flags, timeout, (int)do_event, this, priv->ssl);
 
    qore_size_t rc;
    if (!priv->ssl) {
+      if (timeout != -1 && !isDataAvailable(timeout))
+	 return QSE_TIMEOUT;
+
       while (true) {
 #ifdef DEBUG
 	 errno = 0;
 #endif
 	 rc = ::recv(priv->sock, buf, bs, flags);
-	 //printd(0, "QoreSocket::recv(%d, %p, %ld, %d) rc=%ld errno=%d\n", priv->sock, buf, bs, flags, rc, errno);
+	 //printd(5, "QoreSocket::recv(%d, %p, %ld, %d) rc=%ld errno=%d\n", priv->sock, buf, bs, flags, rc, errno);
 	 // try again if we were interrupted by a signal
 	 if (rc >= 0 || errno != EINTR)
 	    break;
       }
    }
    else
-      rc = priv->ssl->read(buf, bs);
+      rc = priv->ssl->read(buf, bs, timeout, *priv);
 
    if (rc > 0 && do_event) {
       // register event

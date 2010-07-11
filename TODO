@@ -1,3 +1,4 @@
+* detect error when a function does not return a value but has a declared return value type
 * implement warning for the case when an unquoted hash or object key is also a constant
 * add HTTPClient methods: setUser(), setPassword(), setUserPassword(), setProxyUser(), setProxyPassword(), setProxyUserPassword()
 * implement support for implicit typing in the parser
