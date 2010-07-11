@@ -960,7 +960,7 @@ int SSLSocketHelper::read(char *buf, int size, int timeout_ms, qore_socket_priva
 
    sock.set_non_blocking(false);
 
-   printd(0, "SSLSocketHelper::read(buf=%p, size=%d, to=%d) rc=%d\n", buf, size, timeout_ms, rc);
+   //printd(5, "SSLSocketHelper::read(buf=%p, size=%d, to=%d) rc=%d\n", buf, size, timeout_ms, rc);
    return rc;
 }
 
