@@ -691,7 +691,7 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
    const AbstractQoreFunctionVariant *variant = 0;
    unsigned num_args = argTypeInfo.size();
 
-   printd(5, "AbstractQoreFunction::parseFindVariant() this=%p %s() vlist=%d pend=%d ilist=%d num_args=%d\n", this, getName(), vlist.size(), pending_vlist.size(), ilist.size(), num_args);
+   //printd(0, "AbstractQoreFunction::parseFindVariant() this=%p %s() vlist=%d pend=%d ilist=%d num_args=%d\n", this, getName(), vlist.size(), pending_vlist.size(), ilist.size(), num_args);
 
    AbstractQoreFunction *aqf = 0;
    
@@ -732,6 +732,7 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
 		  if (!a->hasType()) {
 		     if (pi < num_args) {
 			variant_missing_types = true;
+			count += QTI_AMBIGUOUS;
 			++variant_pmatch;
 			continue;
 		     }
@@ -758,11 +759,11 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
 		  break;
 	       }
 	       // only increment for actual type matches (t may be NULL)
-	       if (t) {
+	       //if (t) {
 		  ++variant_pmatch;
 		  if (rc != QTI_IGNORE)
 		     count += rc;
-	       }
+		  //}
 	    }
 	    //printd(0, "AbstractQoreFunction::parseFindVariant() this=%p tested %s(%s) ok=%d count=%d match=%d variant_missing_types=%d variant_pmatch=%d\n", this, getName(), sig->getSignatureText(), ok, count, match, variant_missing_types, variant_pmatch);
 	    if (!ok)
@@ -826,6 +827,7 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
 		  if (!a->hasType()) {
 		     if (pi < num_args) {
 			variant_missing_types = true;
+			count += QTI_AMBIGUOUS;
 			++variant_pmatch;
 			continue;
 		     }
@@ -852,12 +854,12 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
 		  break;
 	       }
 	       // only increment for actual type matches (t may be NULL)
-	       if (t) {
+	       //if (t) {
 		  ++variant_pmatch;
 		  //printd(0, "AbstractQoreFunction::parseFindVariant() this=%p %s() variant=%p i=%d match (param %s == %s)\n", this, getName(), variant, pi, t->getName(), a->getName());
 		  if (rc != QTI_IGNORE)
 		     count += rc;
-	       }
+		  //}
 	    }
 	    if (!ok)
 	       continue;
@@ -1118,6 +1120,17 @@ AbstractQoreNode *UserVariantBase::evalIntern(ReferenceHolder<QoreListNode> &arg
    }
    else
       argv = 0; // dereference argv now
+
+   // if return value is NOTHING; make sure it's valid; maybe there wasn't a return statement
+   if (is_nothing(val)) {
+      const QoreTypeInfo *rt = getReturnTypeInfo();
+      if (!rt->parseAccepts(nothingTypeInfo)) {
+	 QoreStringNode *desc = new QoreStringNode("block has declared return type ");
+	 rt->getThisType(*desc);
+	 desc->concat(" but NOTHING was returned");
+	 xsink->raiseException("RETURN-TYPE-ERROR", desc);
+      }
+   }
 
    return val;
 }

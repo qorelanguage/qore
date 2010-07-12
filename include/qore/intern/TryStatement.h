@@ -27,21 +27,26 @@
 
 #include "intern/AbstractStatement.h"
 
-class TryStatement : public AbstractStatement
-{
-   public:
-      class StatementBlock *try_block;
-      class StatementBlock *catch_block;
-      //class StatementBlock *finally;
-      char *param;
-      LocalVar *id;
+class TryStatement : public AbstractStatement {
+public:
+   class StatementBlock *try_block;
+   class StatementBlock *catch_block;
+   //class StatementBlock *finally;
+   char *param;
+   LocalVar *id;
       
-      DLLLOCAL virtual int execImpl(class AbstractQoreNode **return_value, class ExceptionSink *xsink);
-      DLLLOCAL virtual int parseInitImpl(LocalVar *oflag, int pflag = 0);
+   DLLLOCAL virtual int execImpl(class AbstractQoreNode **return_value, class ExceptionSink *xsink);
+   DLLLOCAL virtual int parseInitImpl(LocalVar *oflag, int pflag = 0);
    
-   public:
-      DLLLOCAL TryStatement(int start_line, int end_line, class StatementBlock *t, class StatementBlock *c, char *p);
-      DLLLOCAL virtual ~TryStatement();
+public:
+   DLLLOCAL TryStatement(int start_line, int end_line, class StatementBlock *t, class StatementBlock *c, char *p);
+   DLLLOCAL virtual ~TryStatement();
+
+   DLLLOCAL virtual bool hasFinalReturn() const {
+      // this works because try and rethrow both return true for hasFinalReturn
+      // because throwing an exception trumpts any return statement
+      return try_block && try_block->hasFinalReturn() && catch_block && catch_block->hasFinalReturn();
+   }
 };
 
 #endif

@@ -27,26 +27,27 @@
 
 #include <qore/intern/AbstractStatement.h>
 
-class OnBlockExitStatement : public AbstractStatement
-{
-   private:
-      class StatementBlock *code;
-      enum obe_type_e type;
+class OnBlockExitStatement : public AbstractStatement {
+private:
+   class StatementBlock *code;
+   enum obe_type_e type;
 
-      DLLLOCAL virtual int execImpl(class AbstractQoreNode **return_value, class ExceptionSink *xsink);
-      DLLLOCAL virtual int parseInitImpl(LocalVar *oflag, int pflag = 0);
+   DLLLOCAL virtual int execImpl(class AbstractQoreNode **return_value, class ExceptionSink *xsink);
+   DLLLOCAL virtual int parseInitImpl(LocalVar *oflag, int pflag = 0);
 
-   public:
-      DLLLOCAL OnBlockExitStatement(int start_line, int end_line, class StatementBlock *n_code, enum obe_type_e type = OBE_Unconditional);
-      DLLLOCAL ~OnBlockExitStatement();
-      DLLLOCAL class StatementBlock *getCode() const
-      {
-	 return code;
-      }
-      DLLLOCAL enum obe_type_e getType() const
-      {
-	 return type;
-      }
+public:
+   DLLLOCAL OnBlockExitStatement(int start_line, int end_line, class StatementBlock *n_code, enum obe_type_e type = OBE_Unconditional);
+   DLLLOCAL ~OnBlockExitStatement();
+   DLLLOCAL class StatementBlock *getCode() const {
+      return code;
+   }
+   DLLLOCAL enum obe_type_e getType() const {
+      return type;
+   }
+   // faked here, checked at runtime
+   DLLLOCAL virtual bool hasFinalReturn() const {
+      return true;
+   }
 };
 
 #endif

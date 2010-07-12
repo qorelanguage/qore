@@ -27,22 +27,25 @@
 
 #include "intern/AbstractStatement.h"
 
-class ForEachStatement : public AbstractStatement
-{
-   private:
-      class AbstractQoreNode *var;
-      class AbstractQoreNode *list;
-      class StatementBlock *code;
-      class LVList *lvars;
-      bool is_ref;
+class ForEachStatement : public AbstractStatement {
+private:
+   class AbstractQoreNode *var;
+   class AbstractQoreNode *list;
+   class StatementBlock *code;
+   class LVList *lvars;
+   bool is_ref;
    
-      DLLLOCAL int execRef(AbstractQoreNode **return_value, class ExceptionSink *xsink);
-      DLLLOCAL virtual int execImpl(class AbstractQoreNode **return_value, class ExceptionSink *xsink);
-      DLLLOCAL virtual int parseInitImpl(LocalVar *oflag, int pflag = 0);
+   DLLLOCAL int execRef(AbstractQoreNode **return_value, class ExceptionSink *xsink);
+   DLLLOCAL virtual int execImpl(class AbstractQoreNode **return_value, class ExceptionSink *xsink);
+   DLLLOCAL virtual int parseInitImpl(LocalVar *oflag, int pflag = 0);
    
-   public:
-      DLLLOCAL ForEachStatement(int start_line, int end_line, class AbstractQoreNode *v, class AbstractQoreNode *l, class StatementBlock *cd);
-      DLLLOCAL virtual ~ForEachStatement();
+public:
+   DLLLOCAL ForEachStatement(int start_line, int end_line, class AbstractQoreNode *v, class AbstractQoreNode *l, class StatementBlock *cd);
+   DLLLOCAL virtual ~ForEachStatement();
+   // faked here, checked at runtime
+   DLLLOCAL virtual bool hasFinalReturn() const {
+      return true;
+   }
 };
 
 #endif

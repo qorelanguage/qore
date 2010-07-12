@@ -71,6 +71,7 @@ private:
    LVList *lvars;
 
    DLLLOCAL int parseInitIntern(LocalVar *oflag, int pflag = 0);
+   DLLLOCAL bool hasLastReturn(AbstractStatement *as);
    DLLLOCAL void parseCheckReturn();
 
 public:
@@ -99,6 +100,13 @@ public:
 
    DLLLOCAL const LVList *getLVList() const {
       return lvars;
+   }
+
+   DLLLOCAL virtual bool hasFinalReturn() const {
+      if (statement_list.empty())
+         return false;
+
+      return (*statement_list.last())->hasFinalReturn();
    }
 };
 

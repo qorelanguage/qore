@@ -71,6 +71,10 @@ public:
    DLLLOCAL virtual bool isDeclaration() const {
       return false;
    }
+
+   DLLLOCAL virtual bool hasFinalReturn() const {
+      return false;
+   }
 };
 
 DLLLOCAL void push_cvar(const char *name);

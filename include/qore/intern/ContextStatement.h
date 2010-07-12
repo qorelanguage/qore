@@ -44,28 +44,31 @@ public:
 
 typedef safe_dslist<ContextMod *> cxtmod_list_t;
 
-class ContextModList : public cxtmod_list_t
-{
+class ContextModList : public cxtmod_list_t {
 public:
    DLLLOCAL ContextModList(ContextMod *cm);
    DLLLOCAL ~ContextModList();
    DLLLOCAL void addContextMod(ContextMod *cm);
 };
 
-class ContextStatement :public AbstractStatement
-{
-   protected:
-      DLLLOCAL virtual int execImpl(class AbstractQoreNode **return_value, class ExceptionSink *xsink);
-      DLLLOCAL virtual int parseInitImpl(LocalVar *oflag, int pflag = 0);
+class ContextStatement :public AbstractStatement {
+protected:
+   DLLLOCAL virtual int execImpl(class AbstractQoreNode **return_value, class ExceptionSink *xsink);
+   DLLLOCAL virtual int parseInitImpl(LocalVar *oflag, int pflag = 0);
 
-   public:
-      char *name;
-      class AbstractQoreNode *exp, *where_exp, *sort_ascending, *sort_descending;
-      class StatementBlock *code;
-      class LVList *lvars;
-      
-      DLLLOCAL ContextStatement(int start_line, int end_line, char *n, class AbstractQoreNode *expr, class ContextModList *cm, class StatementBlock *cd);
-      DLLLOCAL virtual ~ContextStatement();
+public:
+   char *name;
+   class AbstractQoreNode *exp, *where_exp, *sort_ascending, *sort_descending;
+   class StatementBlock *code;
+   class LVList *lvars;
+   
+   DLLLOCAL ContextStatement(int start_line, int end_line, char *n, class AbstractQoreNode *expr, class ContextModList *cm, class StatementBlock *cd);
+   DLLLOCAL virtual ~ContextStatement();
+
+   // faked here; checked at runtime
+   DLLLOCAL virtual bool hasFinalReturn() const {
+      return false;
+   }
 };
 
 #endif

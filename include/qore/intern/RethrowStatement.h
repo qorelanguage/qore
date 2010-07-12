@@ -27,32 +27,30 @@
 
 #include "intern/AbstractStatement.h"
 
-class RethrowStatement : public AbstractStatement
-{
-   private:
-      DLLLOCAL virtual int execImpl(class AbstractQoreNode **return_value, ExceptionSink *xsink)
-      {
-	 xsink->rethrow(catchGetException());
-	 return 0;
-      }
-      DLLLOCAL virtual int parseInitImpl(LocalVar *oflag, int pflag = 0)
-      {
-	 if (!(pflag & PF_RETHROW_OK))
-	    parseException("RETHROW-NOT-IN-CATCH-BLOCK", "rethrow statements are only allowed in catch blocks");
-	 return 0;
-      }
+class RethrowStatement : public AbstractStatement {
+private:
+   DLLLOCAL virtual int execImpl(class AbstractQoreNode **return_value, ExceptionSink *xsink) {
+      xsink->rethrow(catchGetException());
+      return 0;
+   }
+   DLLLOCAL virtual int parseInitImpl(LocalVar *oflag, int pflag = 0) {
+      if (!(pflag & PF_RETHROW_OK))
+         parseException("RETHROW-NOT-IN-CATCH-BLOCK", "rethrow statements are only allowed in catch blocks");
+      return 0;
+   }
    
-   public:
-      DLLLOCAL RethrowStatement(int start_line, int end_line) : AbstractStatement(start_line, end_line)
-      {
-      }
-      DLLLOCAL virtual ~RethrowStatement()
-      {
-      }
-      DLLLOCAL virtual bool endsBlock() const
-      {
-	 return true;
-      }
+public:
+   DLLLOCAL RethrowStatement(int start_line, int end_line) : AbstractStatement(start_line, end_line) {
+   }
+   DLLLOCAL virtual ~RethrowStatement() {
+   }
+   DLLLOCAL virtual bool endsBlock() const {
+      return true;
+   }
+   DLLLOCAL virtual bool hasFinalReturn() const {
+      // throwing an exception trumps any return statement
+      return true;
+   }
 };
 
 #endif

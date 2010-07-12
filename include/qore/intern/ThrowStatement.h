@@ -27,21 +27,23 @@
 
 #include "intern/AbstractStatement.h"
 
-class ThrowStatement : public AbstractStatement
-{
-   private:
-      QoreListNode *args;
+class ThrowStatement : public AbstractStatement {
+private:
+   QoreListNode *args;
       
-      DLLLOCAL virtual int execImpl(class AbstractQoreNode **return_value, ExceptionSink *xsink);
-      DLLLOCAL virtual int parseInitImpl(LocalVar *oflag, int pflag = 0);
+   DLLLOCAL virtual int execImpl(class AbstractQoreNode **return_value, ExceptionSink *xsink);
+   DLLLOCAL virtual int parseInitImpl(LocalVar *oflag, int pflag = 0);
    
-   public:
-      DLLLOCAL ThrowStatement(int start_line, int end_line, class AbstractQoreNode *v);
-      DLLLOCAL virtual ~ThrowStatement();
-      DLLLOCAL virtual bool endsBlock() const
-      {
-	 return true;
-      }
+public:
+   DLLLOCAL ThrowStatement(int start_line, int end_line, class AbstractQoreNode *v);
+   DLLLOCAL virtual ~ThrowStatement();
+   DLLLOCAL virtual bool endsBlock() const {
+      return true;
+   }
+   DLLLOCAL virtual bool hasFinalReturn() const {
+      // throwing an exception trumps any return statement
+      return true;
+   }
 };
 
 #endif

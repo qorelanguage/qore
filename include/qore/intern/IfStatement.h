@@ -27,20 +27,23 @@
 
 #include "intern/AbstractStatement.h"
 
-class IfStatement : public AbstractStatement
-{
-   private:
-      class AbstractQoreNode *cond;
-      class StatementBlock *if_code;
-      class StatementBlock *else_code;
-      class LVList *lvars;
+class IfStatement : public AbstractStatement {
+private:
+   class AbstractQoreNode *cond;
+   class StatementBlock *if_code;
+   class StatementBlock *else_code;
+   class LVList *lvars;
 
-      DLLLOCAL virtual int execImpl(class AbstractQoreNode **return_value, class ExceptionSink *xsink);
-      DLLLOCAL virtual int parseInitImpl(LocalVar *oflag, int pflag = 0);
+   DLLLOCAL virtual int execImpl(class AbstractQoreNode **return_value, class ExceptionSink *xsink);
+   DLLLOCAL virtual int parseInitImpl(LocalVar *oflag, int pflag = 0);
    
-   public:
-      DLLLOCAL IfStatement(int start_line, int end_line, class AbstractQoreNode *c, class StatementBlock *i, class StatementBlock *e = NULL);
-      DLLLOCAL virtual ~IfStatement();
+public:
+   DLLLOCAL IfStatement(int start_line, int end_line, class AbstractQoreNode *c, class StatementBlock *i, class StatementBlock *e = NULL);
+   DLLLOCAL virtual ~IfStatement();
+
+   DLLLOCAL virtual bool hasFinalReturn() const {
+      return if_code && if_code->hasFinalReturn() && else_code && else_code->hasFinalReturn();
+   }
 };
 
 #endif

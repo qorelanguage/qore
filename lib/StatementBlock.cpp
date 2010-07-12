@@ -317,7 +317,7 @@ void StatementBlock::parseCheckReturn() {
    const QoreTypeInfo *returnTypeInfo = getReturnTypeInfo();
    if (returnTypeInfo->hasType() && !returnTypeInfo->parseAccepts(nothingTypeInfo)) {
       // make sure the last statement is a return statement if the block has a return type
-      if (!this || statement_list.empty() || !dynamic_cast<ReturnStatement *>(*statement_list.last())) {
+      if (!this || statement_list.empty() || !(*statement_list.last())->hasFinalReturn()) {
 	 QoreStringNode *desc = new QoreStringNode("this code block has declared return type ");
 	 returnTypeInfo->getThisType(*desc);
 	 desc->concat(" but does not have a return statement as the last statement in the block");

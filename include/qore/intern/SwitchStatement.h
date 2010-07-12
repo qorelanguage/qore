@@ -38,32 +38,35 @@ class CaseNode {
 
       DLLLOCAL CaseNode(class AbstractQoreNode *v, class StatementBlock *c);
       DLLLOCAL virtual bool matches(AbstractQoreNode* lhs_value, class ExceptionSink *xsink);
-      DLLLOCAL virtual bool isDefault() const
-      {
+      DLLLOCAL virtual bool isDefault() const {
 	 return !val;
       }
       DLLLOCAL bool isCaseNode() const;
       DLLLOCAL virtual ~CaseNode();
 };
 
-class SwitchStatement : public AbstractStatement
-{
-   private:
-      class CaseNode *head, *tail;
-      class AbstractQoreNode *sexp;
-      class CaseNode *deflt;
+class SwitchStatement : public AbstractStatement {
+private:
+   class CaseNode *head, *tail;
+   class AbstractQoreNode *sexp;
+   class CaseNode *deflt;
 
-      DLLLOCAL virtual int parseInitImpl(LocalVar *oflag, int pflag = 0);
-      DLLLOCAL virtual int execImpl(class AbstractQoreNode **return_value, class ExceptionSink *xsink);
+   DLLLOCAL virtual int parseInitImpl(LocalVar *oflag, int pflag = 0);
+   DLLLOCAL virtual int execImpl(class AbstractQoreNode **return_value, class ExceptionSink *xsink);
 
-   public:
-      class LVList *lvars;
+public:
+   class LVList *lvars;
 
-      // start and end line are set later
-      DLLLOCAL SwitchStatement(class CaseNode *f);
-      DLLLOCAL virtual ~SwitchStatement();
-      DLLLOCAL void setSwitch(class AbstractQoreNode *s);
-      DLLLOCAL void addCase(class CaseNode *c);
+   // start and end line are set later
+   DLLLOCAL SwitchStatement(class CaseNode *f);
+   DLLLOCAL virtual ~SwitchStatement();
+   DLLLOCAL void setSwitch(class AbstractQoreNode *s);
+   DLLLOCAL void addCase(class CaseNode *c);
+
+   // fake it here and let it be checked at runtime
+   DLLLOCAL virtual bool hasFinalReturn() const {
+      return true;
+   }
 };
 
 #endif

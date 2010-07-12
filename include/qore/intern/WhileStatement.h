@@ -27,19 +27,23 @@
 
 #include "intern/AbstractStatement.h"
 
-class WhileStatement : public AbstractStatement
-{
-   protected:
-      class AbstractQoreNode *cond;
-      class StatementBlock *code;
-      class LVList *lvars;
+class WhileStatement : public AbstractStatement {
+protected:
+   class AbstractQoreNode *cond;
+   class StatementBlock *code;
+   class LVList *lvars;
 
-      DLLLOCAL virtual int execImpl(class AbstractQoreNode **return_value, class ExceptionSink *xsink);
-      DLLLOCAL virtual int parseInitImpl(LocalVar *oflag, int pflag = 0);
+   DLLLOCAL virtual int execImpl(class AbstractQoreNode **return_value, class ExceptionSink *xsink);
+   DLLLOCAL virtual int parseInitImpl(LocalVar *oflag, int pflag = 0);
    
-   public:
-      DLLLOCAL WhileStatement(int start_line, int end_line, class AbstractQoreNode *c, class StatementBlock *cd);
-      DLLLOCAL virtual ~WhileStatement();
+public:
+   DLLLOCAL WhileStatement(int start_line, int end_line, class AbstractQoreNode *c, class StatementBlock *cd);
+   DLLLOCAL virtual ~WhileStatement();
+
+   // faked here; checked at runtime
+   DLLLOCAL virtual bool hasFinalReturn() const {
+      return true;
+   }
 };
 
 #endif

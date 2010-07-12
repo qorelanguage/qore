@@ -43,6 +43,10 @@ class ForStatement : public AbstractStatement {
 public:
    DLLLOCAL ForStatement(int start_line, int end_line, AbstractQoreNode *a, AbstractQoreNode *c, AbstractQoreNode *i, StatementBlock *cd);
    DLLLOCAL virtual ~ForStatement();
+   // faked here; checked at runtime
+   DLLLOCAL virtual bool hasFinalReturn() const {
+      return true;
+   }
 };
 
 #endif
