@@ -63,7 +63,7 @@ QoreStringNode::QoreStringNode(const char *str, qore_size_t len, const QoreEncod
 
 // virtual function
 int QoreStringNode::getAsIntImpl() const {
-   return strtoll(getBuffer(), 0, 10);
+   return (int)strtoll(getBuffer(), 0, 10);
 }
 
 int64 QoreStringNode::getAsBigIntImpl() const {

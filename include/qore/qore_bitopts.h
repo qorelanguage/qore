@@ -107,7 +107,7 @@ static inline float swapf4(float f) {
 //! used to swap 2-byte integers
 union qore_i2_u {
    char buf[2];
-   int i;
+   short i;
 
    DLLLOCAL void swap(char *ibuf) {
       buf[1] = ibuf[0];

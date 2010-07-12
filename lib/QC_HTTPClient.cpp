@@ -272,7 +272,7 @@ static AbstractQoreNode *HC_isProxySecure(QoreObject *self, QoreHTTPClient *clie
 }
 
 static AbstractQoreNode *HC_setMaxRedirects(QoreObject *self, QoreHTTPClient *client, const QoreListNode *args, ExceptionSink *xsink) {
-   client->setMaxRedirects(HARD_QORE_INT(args, 0));
+   client->setMaxRedirects((int)HARD_QORE_INT(args, 0));
    return 0;
 }
 

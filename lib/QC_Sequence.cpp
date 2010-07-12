@@ -30,7 +30,7 @@ static void SEQUENCE_constructor(QoreObject *self, const QoreListNode *params, E
 }
 
 static void SEQUENCE_constructor_int(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink) {
-   self->setPrivate(CID_SEQUENCE, new QoreSequence(HARD_QORE_INT(params, 0)));
+   self->setPrivate(CID_SEQUENCE, new QoreSequence((int)HARD_QORE_INT(params, 0)));
 }
 
 static void SEQUENCE_copy(QoreObject *self, QoreObject *old, QoreSequence *s, ExceptionSink *xsink) {

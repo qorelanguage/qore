@@ -143,7 +143,7 @@ struct qore_date_info {
       // if year is an even multiple of 400
       if (!epoch) {
          epoch = LEAPDAY_OFFSET + SECS_PER_DAY;
-         year = mult * 400 + 2000;
+         year = (int)(mult * 400 + 2000);
          ly = true;
          return;
       }
@@ -166,7 +166,7 @@ struct qore_date_info {
          if (d == 4)
             d = 3;
          epoch -= d * SECS_IN_100_YEARS;
-         yo = 100 * d;
+         yo = (int)(100 * d);
       }
 
       //printd(5, "qore_date_info::get_epoch_year() after 100: epoch: %d (%d from %d) year base: %d\n", epoch, d, SECS_IN_100_YEARS, mult * 400 + 2000 + yo);
@@ -195,7 +195,7 @@ struct qore_date_info {
          yo += d;
       }
 
-      year = mult * 400 + 2000 + yo;
+      year = (int)(mult * 400 + 2000 + yo);
 
       //printd(5, "qore_date_info::get_epoch_year() after 1: epoch: %d (%d from %d) year base: %d\n", epoch, d, SECS_PER_YEAR, year);
 
@@ -334,7 +334,7 @@ public:
 
       //printd(5, "qore_simple_tm::set() seconds=%lld year=%d (day=%d, new secs=%lld)\n", seconds, year, seconds / 86400, seconds % 86400);
 
-      day = seconds / SECS_PER_DAY;
+      day = (int)(seconds / SECS_PER_DAY);
       seconds %= SECS_PER_DAY;
 
       for (month = 1; month < 12; ++month) {
@@ -350,7 +350,7 @@ public:
 
       ++day;
 
-      second = seconds;
+      second = (int)seconds;
       hour = second / SECS_PER_HOUR;
       second %= SECS_PER_HOUR;
       minute = second / SECS_PER_MINUTE;
@@ -369,12 +369,12 @@ struct qore_time_info : public qore_simple_tm {
    bool isdst;
    const AbstractQoreZoneInfo *zone;
 
-   DLLLOCAL void set(int64 epoch, unsigned us, int n_utcoffset, bool n_isdst, const char *n_zname, const AbstractQoreZoneInfo *n_zone) {
+   DLLLOCAL void set(int64 epoch, unsigned n_us, int n_utcoffset, bool n_isdst, const char *n_zname, const AbstractQoreZoneInfo *n_zone) {
       zname = n_zname ? n_zname : STATIC_UTC;
       utcoffset = n_utcoffset;
       isdst = n_isdst;
       zone = n_zone;
-      qore_simple_tm::set(epoch + utcoffset, us);
+      qore_simple_tm::set(epoch + utcoffset, n_us);
    }
 
    DLLLOCAL qore_time_info &operator=(const qore_simple_tm &t) {
@@ -421,16 +421,16 @@ struct qore_simple_tm2 : public qore_simple_tm {
    DLLLOCAL void setLiteral(int64 date, int usecs) {
       //printd(5, "qore_simple_tm2::setLiteral(date=%lld, usecs=%d)\n", date, usecs);
 
-      year = date / 10000000000ll;
+      year = (int)(date / 10000000000ll);
       date -= year * 10000000000ll;
-      month = date / 100000000ll;
+      month = (int)(date / 100000000ll);
       date -= month * 100000000ll;
-      day = date / 1000000ll;
+      day = (int)(date / 1000000ll);
       date -= day * 1000000ll;
-      hour = date / 10000ll; 
+      hour = (int)(date / 10000ll); 
       date -= hour * 10000ll;
-      minute = date / 100ll;
-      second = date - minute * 100ll;
+      minute = (int)(date / 100ll);
+      second = (int)(date - minute * 100ll);
       us = usecs;
 
       normalize_units2<int, int>(second, us, 1000000);
@@ -603,15 +603,15 @@ public:
    }
 
    DLLLOCAL int getHour() const {
-      return ((epoch + zone->getUTCOffset(epoch)) % SECS_PER_DAY) / SECS_PER_HOUR;
+      return (int)(((epoch + zone->getUTCOffset(epoch)) % SECS_PER_DAY) / SECS_PER_HOUR);
    }
 
    DLLLOCAL int getMinute() const {
-      return ((epoch + zone->getUTCOffset(epoch)) % SECS_PER_HOUR) / SECS_PER_MINUTE;
+      return (int)(((epoch + zone->getUTCOffset(epoch)) % SECS_PER_HOUR) / SECS_PER_MINUTE);
    }
 
    DLLLOCAL int getSecond() const {
-      return (epoch + zone->getUTCOffset(epoch)) % SECS_PER_MINUTE;
+      return (int)((epoch + zone->getUTCOffset(epoch)) % SECS_PER_MINUTE);
    }
 
    DLLLOCAL int getMillisecond() const {
@@ -761,20 +761,20 @@ public:
       // normalize minutes from seconds
       normalize_units<int, int64>(minute, sec, 60);
 
-      second = sec;
+      second = (int)sec;
    }
 
    DLLLOCAL void setLiteral(int64 date, int usecs = 0) {
-      year = date / 10000000000ll;
+      year = (int)(date / 10000000000ll);
       date -= year * 10000000000ll;
-      month = date / 100000000ll;
+      month = (int)(date / 100000000ll);
       date -= month * 100000000ll;
-      day = date / 1000000ll;
+      day = (int)(date / 1000000ll);
       date -= day * 1000000ll;
-      hour = date / 10000ll; 
+      hour = (int)(date / 10000ll); 
       date -= hour * 10000ll;
-      minute = date / 100ll;
-      second = date - minute * 100ll;
+      minute = (int)(date / 100ll);
+      second = (int)(date - minute * 100ll);
       us = usecs;
 
       normalize();

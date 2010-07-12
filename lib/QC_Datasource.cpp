@@ -59,7 +59,7 @@ static void DS_constructor_str(QoreObject *self, const QoreListNode *params, Exc
    if (p->strlen())
       ds->setPendingHostName(p->getBuffer());
    
-   int port = HARD_QORE_INT(params, 6);
+   int port = (int)HARD_QORE_INT(params, 6);
    if (port) {
       if (port < 0) {
 	 xsink->raiseException(DSC_ERR, "port value must be zero (meaning use the default port) or positive (value given: %d)", port);
@@ -112,7 +112,7 @@ static void DS_constructor_hash(QoreObject *self, const QoreListNode *params, Ex
    if (str) ds->setPendingHostName(str);
 
    bool found;
-   int port = h->getKeyAsBigInt("port", found);
+   int port = (int)h->getKeyAsBigInt("port", found);
    if (port) {
       if (port < 0) {
 	 xsink->raiseException(DSC_ERR, "port value must be zero (meaning use the default port) or positive (value given: %d)", port);
@@ -265,7 +265,7 @@ static AbstractQoreNode *DS_setHostName(QoreObject *self, ManagedDatasource *ds,
 }
 
 static AbstractQoreNode *DS_setPort(QoreObject *self, ManagedDatasource *ds, const QoreListNode *params, ExceptionSink *xsink) {
-   ds->setPendingPort(HARD_QORE_INT(params, 0));
+   ds->setPendingPort((int)HARD_QORE_INT(params, 0));
    return 0;
 }
 

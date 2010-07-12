@@ -204,6 +204,7 @@ protected:
    const QoreClass *qc;
    const QoreMethod *method;
 
+   using AbstractFunctionCallNode::evalImpl;
    DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *) const {
       assert(false);
       return 0;

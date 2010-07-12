@@ -175,7 +175,7 @@ static AbstractQoreNode *XMLREADER_getAttribute(QoreObject *self, QoreXmlReaderD
 }
 
 static AbstractQoreNode *XMLREADER_getAttributeOffset(QoreObject *self, QoreXmlReaderData *xr, const QoreListNode *params, ExceptionSink *xsink) {
-   return xr->getAttributeOffset(HARD_QORE_INT(params, 0));
+   return xr->getAttributeOffset((int)HARD_QORE_INT(params, 0));
 }
 
 static AbstractQoreNode *XMLREADER_getAttributeNs(QoreObject *self, QoreXmlReaderData *xr, const QoreListNode *params, ExceptionSink *xsink) {
@@ -201,7 +201,7 @@ static AbstractQoreNode *XMLREADER_moveToAttribute(QoreObject *self, QoreXmlRead
 }
 
 static AbstractQoreNode *XMLREADER_moveToAttributeOffset(QoreObject *self, QoreXmlReaderData *xr, const QoreListNode *params, ExceptionSink *xsink) {
-   int rc = xr->moveToAttributeOffset(HARD_QORE_INT(params, 0), xsink);
+   int rc = xr->moveToAttributeOffset((int)HARD_QORE_INT(params, 0), xsink);
    return rc == -1 ? 0 : get_bool_node(rc);
 }
 

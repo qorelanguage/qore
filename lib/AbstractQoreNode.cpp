@@ -188,7 +188,7 @@ bool AbstractQoreNode::getAsBool() const {
 
 int AbstractQoreNode::getAsInt() const {
    if (type == NT_INT)
-      return reinterpret_cast<const QoreBigIntNode *>(this)->val;
+      return (int)(reinterpret_cast<const QoreBigIntNode *>(this)->val);
    return getAsIntImpl();
 }
 
@@ -210,7 +210,7 @@ int getSecZeroInt(const AbstractQoreNode *a) {
       return 0;
 
    if (a->getType() == NT_DATE)
-      return reinterpret_cast<const DateTimeNode *>(a)->getRelativeSeconds();
+      return (int)(reinterpret_cast<const DateTimeNode *>(a)->getRelativeSeconds());
 
    return a->getAsInt();
 }
@@ -231,7 +231,7 @@ int getSecMinusOneInt(const AbstractQoreNode *a) {
       return -1;
 
    if (a->getType() == NT_DATE)
-      return reinterpret_cast<const DateTimeNode *>(a)->getRelativeSeconds();
+      return (int)(reinterpret_cast<const DateTimeNode *>(a)->getRelativeSeconds());
 
    return a->getAsInt();
 }
@@ -251,7 +251,7 @@ int getMsZeroInt(const AbstractQoreNode *a) {
       return 0;
 
    if (a->getType() == NT_DATE)
-      return reinterpret_cast<const DateTimeNode *>(a)->getRelativeMilliseconds();
+      return (int)(reinterpret_cast<const DateTimeNode *>(a)->getRelativeMilliseconds());
 
    return a->getAsInt();
 }
@@ -272,7 +272,7 @@ int getMsMinusOneInt(const AbstractQoreNode *a) {
       return -1;
 
    if (a->getType() == NT_DATE)
-      return reinterpret_cast<const DateTimeNode *>(a)->getRelativeMilliseconds();
+      return (int)(reinterpret_cast<const DateTimeNode *>(a)->getRelativeMilliseconds());
 
    return a->getAsInt();
 }
@@ -292,7 +292,7 @@ int getMicroSecZeroInt(const AbstractQoreNode *a) {
       return 0;
 
    if (a->getType() == NT_DATE)
-      return reinterpret_cast<const DateTimeNode *>(a)->getRelativeMicroseconds();
+      return (int)(reinterpret_cast<const DateTimeNode *>(a)->getRelativeMicroseconds());
 
    return a->getAsInt();
 }

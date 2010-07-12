@@ -84,7 +84,7 @@ bool DateTimeNode::getAsBoolImpl() const {
 }
 
 int DateTimeNode::getAsIntImpl() const {
-   return getEpochSeconds();
+   return (int)getEpochSeconds();
 }
 
 int64 DateTimeNode::getAsBigIntImpl() const {

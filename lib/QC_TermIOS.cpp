@@ -50,22 +50,22 @@ static AbstractQoreNode *TERMIOS_getIFlag(QoreObject *self, QoreTermIOS *s, cons
 }
 
 static AbstractQoreNode *TERMIOS_setLFlag(QoreObject *self, QoreTermIOS *s, const QoreListNode *params, ExceptionSink *xsink) {
-   s->set_lflag(HARD_QORE_INT(params, 0));
+   s->set_lflag((int)HARD_QORE_INT(params, 0));
    return 0;
 }
 
 static AbstractQoreNode *TERMIOS_setCFlag(QoreObject *self, QoreTermIOS *s, const QoreListNode *params, ExceptionSink *xsink) {
-   s->set_cflag(HARD_QORE_INT(params, 0));
+   s->set_cflag((int)HARD_QORE_INT(params, 0));
    return 0;
 }
 
 static AbstractQoreNode *TERMIOS_setOFlag(QoreObject *self, QoreTermIOS *s, const QoreListNode *params, ExceptionSink *xsink) {
-   s->set_oflag(HARD_QORE_INT(params, 0));
+   s->set_oflag((int)HARD_QORE_INT(params, 0));
    return 0;
 }
 
 static AbstractQoreNode *TERMIOS_setIFlag(QoreObject *self, QoreTermIOS *s, const QoreListNode *params, ExceptionSink *xsink) {
-   s->set_iflag(HARD_QORE_INT(params, 0));
+   s->set_iflag((int)HARD_QORE_INT(params, 0));
    return 0;
 }
 
@@ -76,7 +76,7 @@ static AbstractQoreNode *TERMIOS_getCC(QoreObject *self, QoreTermIOS *s, const Q
 
 // TermIOS::setCC(softint $offset = 0, softint $value = 0) returns nothing
 static AbstractQoreNode *TERMIOS_setCC(QoreObject *self, QoreTermIOS *s, const QoreListNode *params, ExceptionSink *xsink) {
-   s->set_cc(HARD_QORE_INT(params, 0), HARD_QORE_INT(params, 1), xsink);
+   s->set_cc(HARD_QORE_INT(params, 0), (cc_t)HARD_QORE_INT(params, 1), xsink);
    return 0;
 }
 

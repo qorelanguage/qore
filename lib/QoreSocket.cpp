@@ -1289,8 +1289,7 @@ int QoreSocket::recvi4LSB(int timeout, int *val) {
    char *buf = (char *)val;
 
    int br = 0;
-   while (true)
-   {
+   while (true) {
       int rc = recv(buf + br, 4 - br, 0, timeout);
       if (rc <= 0)
 	 return rc;
@@ -1305,8 +1304,7 @@ int QoreSocket::recvi4LSB(int timeout, int *val) {
    return 4;
 }
 
-int QoreSocket::recvi8LSB(int timeout, int64 *val)
-{
+int QoreSocket::recvi8LSB(int timeout, int64 *val) {
    if (!priv->sock)
       return -1;
 

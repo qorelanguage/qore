@@ -82,7 +82,7 @@ int64 QoreTreeNode::bigIntEvalImpl(ExceptionSink *xsink) const {
 }
 
 int QoreTreeNode::integerEvalImpl(ExceptionSink *xsink) const {
-   return op->bigint_eval(left, right, xsink);
+   return (int)op->bigint_eval(left, right, xsink);
 }
 
 bool QoreTreeNode::boolEvalImpl(ExceptionSink *xsink) const {

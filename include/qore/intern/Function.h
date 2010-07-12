@@ -522,7 +522,7 @@ protected:
       int64 vf = variant->getFunctionality();
       int64 vflags = variant->getFlags();
 
-      bool rtn = vflags & QC_RUNTIME_NOOP;
+      bool rtn = (bool)(vflags & QC_RUNTIME_NOOP);
 
       if (vlist.empty()) {
 	 unique_functionality = vf;

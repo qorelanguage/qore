@@ -54,7 +54,7 @@ static AbstractQoreNode *XMLNODE_getElementType(QoreObject *self, QoreXmlNodeDat
 }
 
 static AbstractQoreNode *XMLNODE_getElementTypeName(QoreObject *self, QoreXmlNodeData *xn, const QoreListNode *params, ExceptionSink *xsink) {
-   const char *nt = get_xml_element_type_name(xn->getElementType());
+   const char *nt = get_xml_element_type_name((int)xn->getElementType());
    return nt ? new QoreStringNode(nt) : 0;
 }
 

@@ -62,19 +62,19 @@ static void DSP_constructor_str(QoreObject *self, const QoreListNode *params, Ex
    if (p->strlen())
       host = p->getBuffer();
 
-   int min = HARD_QORE_INT(params, 6);
+   int min = (int)HARD_QORE_INT(params, 6);
    if (min <= 0) {
       xsink->raiseException(DSPC_ERR, "minimum connections must be > 0 (value given: %d)", min);
       return;
    }
 
-   int max = HARD_QORE_INT(params, 7);
+   int max = (int)HARD_QORE_INT(params, 7);
    if (max < min) {
       xsink->raiseException(DSPC_ERR, "maximum connections must be >= min(%d) (value given: %d)", min, max);
       return;
    }
    
-   int port = HARD_QORE_INT(params, 8);
+   int port = (int)HARD_QORE_INT(params, 8);
    if (port < 0) {
       xsink->raiseException(DSPC_ERR, "port value must be zero (meaning use the default port) or positive (value given: %d)", port);
       return;
@@ -120,7 +120,7 @@ static void DSP_constructor_hash(QoreObject *self, const QoreListNode *params, E
    if (*xsink) return;
 
    bool found;
-   int port = h->getKeyAsBigInt("port", found);
+   int port = (int)h->getKeyAsBigInt("port", found);
    if (port < 0) {
       xsink->raiseException(DSPC_ERR, "port value must be zero (meaning use the default port) or positive (value given: %d)", port);
       return;
@@ -138,7 +138,7 @@ static void DSP_constructor_hash(QoreObject *self, const QoreListNode *params, E
      
       h = reinterpret_cast<const QoreHashNode *>(p);
 
-      min = h->getKeyAsBigInt("min", found);
+      min = (int)h->getKeyAsBigInt("min", found);
       if (found) {
 	 if (min < 0) {
 	    xsink->raiseException(DSPC_ERR, "minimum connections must be > 0 (value given: %d)", min);
@@ -146,7 +146,7 @@ static void DSP_constructor_hash(QoreObject *self, const QoreListNode *params, E
 	 }
       }
 
-      int max = h->getKeyAsBigInt("max", found);
+      max = (int)h->getKeyAsBigInt("max", found);
       if (found ) {
 	 if (max < min) {
 	    xsink->raiseException(DSPC_ERR, "maximum connections must be >= min(%d) (value given: %d)", min, max);
