@@ -1161,7 +1161,7 @@ int QoreSocket::sendi2LSB(short i) {
    if (!priv->sock)
       return -1;
 
-   // convert to network byte order
+   // convert to LSB byte order
    i = i2LSB(i);
    return send((char *)&i, 2);
 }
@@ -1170,7 +1170,7 @@ int QoreSocket::sendi4LSB(int i) {
    if (!priv->sock)
       return -1;
 
-   // convert to network byte order
+   // convert to LSB byte order
    i = i4LSB(i);
    return send((char *)&i, 4);
 }
@@ -1179,7 +1179,7 @@ int QoreSocket::sendi8LSB(int64 i) {
    if (!priv->sock)
       return -1;
 
-   // convert to network byte order
+   // convert to LSB byte order
    i = i8LSB(i);
    return send((char *)&i, 8);
 }
@@ -1260,16 +1260,14 @@ int QoreSocket::recvi8(int timeout, int64 *val)
    return 8;
 }
 
-int QoreSocket::recvi2LSB(int timeout, short *val)
-{
+int QoreSocket::recvi2LSB(int timeout, short *val) {
    if (!priv->sock)
       return -1;
 
    char *buf = (char *)val;
 
    int br = 0;
-   while (true)
-   {
+   while (true) {
       int rc = recv(buf + br, 2 - br, 0, timeout);
       if (rc <= 0)
 	 return rc;
@@ -1284,8 +1282,7 @@ int QoreSocket::recvi2LSB(int timeout, short *val)
    return 2;
 }
 
-int QoreSocket::recvi4LSB(int timeout, int *val)
-{
+int QoreSocket::recvi4LSB(int timeout, int *val) {
    if (!priv->sock)
       return -1;
 

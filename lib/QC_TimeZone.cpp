@@ -38,7 +38,7 @@ static void TIMEZONE_constructor_str(QoreObject *self, const QoreListNode *param
 
 // TimeZone::constructor(softint $seconds_east)
 static void TIMEZONE_constructor_int(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink) {
-   int seconds_east = HARD_QORE_INT(params, 0);
+   int seconds_east = (int)HARD_QORE_INT(params, 0);
    const AbstractQoreZoneInfo *zone = QTZM.findCreateOffsetZone(seconds_east);
    self->setPrivate(CID_TIMEZONE, new TimeZoneData(zone));
 }
@@ -64,7 +64,7 @@ static AbstractQoreNode *TZ_region(QoreObject *self, TimeZoneData *z, const Qore
 
 // TimeZone::date(softint, softint = 0) returns date
 static AbstractQoreNode *TZ_date_int(QoreObject *self, TimeZoneData *z, const QoreListNode *params, ExceptionSink *xsink) {
-   return DateTimeNode::makeAbsolute(z->get(), HARD_QORE_INT(params, 0), HARD_QORE_INT(params, 1));
+   return DateTimeNode::makeAbsolute(z->get(), HARD_QORE_INT(params, 0), (int)HARD_QORE_INT(params, 1));
 }
 
 // TimeZone::date(date) returns date
@@ -76,13 +76,13 @@ static AbstractQoreNode *TZ_date_date(QoreObject *self, TimeZoneData *z, const Q
 // TimeZone::dateMs(softint) returns date
 static AbstractQoreNode *TZ_dateMs(QoreObject *self, TimeZoneData *z, const QoreListNode *params, ExceptionSink *xsink) {
    int64 ms = HARD_QORE_INT(params, 0);
-   return DateTimeNode::makeAbsolute(z->get(), ms / 1000, (ms % 1000) * 1000);
+   return DateTimeNode::makeAbsolute(z->get(), ms / 1000, (int)((ms % 1000) * 1000));
 }
 
 // TimeZone::dateUs(softint) returns date
 static AbstractQoreNode *TZ_dateUs(QoreObject *self, TimeZoneData *z, const QoreListNode *params, ExceptionSink *xsink) {
    int64 us = HARD_QORE_INT(params, 0);
-   return DateTimeNode::makeAbsolute(z->get(), us / 1000000, us % 1000000);
+   return DateTimeNode::makeAbsolute(z->get(), us / 1000000, (int)(us % 1000000));
 }
 
 // static methods
@@ -102,7 +102,7 @@ static AbstractQoreNode *f_TZ_set(const QoreListNode *params, ExceptionSink *xsi
 
 // TimeZone::setUTCOffset(int $seconds_offset) returns nothing
 static AbstractQoreNode *f_TZ_setUTCOffset(const QoreListNode *params, ExceptionSink *xsink) {
-   int seconds_east = HARD_QORE_INT(params, 0);
+   int seconds_east = (int)HARD_QORE_INT(params, 0);
    const AbstractQoreZoneInfo *zone = QTZM.findCreateOffsetZone(seconds_east);
    getProgram()->setTZ(zone);
    return 0;
