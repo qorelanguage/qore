@@ -242,7 +242,7 @@ int QoreHTTPClient::setOptions(const QoreHashNode* opts, ExceptionSink* xsink) {
 	 bool need_ssl = false;
 	 int need_port;
 	 if (vtype == NT_INT)
-	    need_port = (reinterpret_cast<const QoreBigIntNode *>(v))->val;
+	    need_port = (int)((reinterpret_cast<const QoreBigIntNode *>(v))->val);
 	 else {
 	    const QoreHashNode *vh = reinterpret_cast<const QoreHashNode *>(v);
 	    const AbstractQoreNode *p = vh->getKeyValue("port");
@@ -817,8 +817,8 @@ QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath,
 	 }
 
 	 // if one of the mandatory headers is found, then ignore it
-	 strcase_set_t::iterator i = header_ignore.find(hi.getKey());
-	 if (i != header_ignore.end())
+	 strcase_set_t::iterator si = header_ignore.find(hi.getKey());
+	 if (si != header_ignore.end())
 	    continue;
 
 	 // otherwise set the value in the hash
@@ -829,13 +829,13 @@ QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath,
    }
 
    // add default headers if they weren't overridden
-   for (header_map_t::const_iterator i = priv->default_headers.begin(), e = priv->default_headers.end(); i != e; ++i) {
+   for (header_map_t::const_iterator hdri = priv->default_headers.begin(), e = priv->default_headers.end(); hdri != e; ++hdri) {
       // look in original headers to see if the key was already given
       if (headers) {
 	 bool skip = false;
 	 ConstHashIterator hi(headers);
 	 while (hi.next()) {
-	    if (!strcasecmp(hi.getKey(), i->first.c_str())) {
+	    if (!strcasecmp(hi.getKey(), hdri->first.c_str())) {
 	       skip = true;
 	       break;
 	    }
@@ -844,9 +844,9 @@ QoreHashNode *QoreHTTPClient::send_internal(const char *meth, const char *mpath,
 	    continue;
       }
       // if there is no message body then do not send the "content-type" header
-      if (!data && !strcmp(i->first.c_str(), "Content-Type"))
+      if (!data && !strcmp(hdri->first.c_str(), "Content-Type"))
 	 continue;
-      nh->setKeyValue(i->first.c_str(), new QoreStringNode(i->second.c_str()), xsink);
+      nh->setKeyValue(hdri->first.c_str(), new QoreStringNode(hdri->second.c_str()), xsink);
    }
 
    if (!priv->username.empty()) {

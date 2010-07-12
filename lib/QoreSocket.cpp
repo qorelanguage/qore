@@ -95,13 +95,13 @@ SSLSocketHelper::~SSLSocketHelper() {
 void SSLSocketHelper::sslError(ExceptionSink *xsink, const char *func) {
    char buf[121];
    long e = ERR_get_error();
-   if (!e) {
-      xsink->raiseException("SOCKET-SSL-ERROR", "the OpenSSL %s() function indicated an error occurred, but no error information is available", func);
-      return;
-   }
    do {
-      ERR_error_string(e, buf);
-      xsink->raiseException("SOCKET-SSL-ERROR", "%s(): %s", func, buf);
+      if (!e || e == SSL_ERROR_ZERO_RETURN)
+	 xsink->raiseException("SOCKET-CLOSED", "the %s() call could not be completed because the TLS/SSL connection was terminated", func);
+      else {
+	 ERR_error_string(e, buf);
+	 xsink->raiseException("SOCKET-SSL-ERROR", "%s(): %s", func, buf);
+      }
    } while ((e = ERR_get_error()));
 }
 
@@ -126,7 +126,9 @@ int SSLSocketHelper::connect(ExceptionSink *xsink) {
 
 // returns 0 for success
 int SSLSocketHelper::accept(ExceptionSink *xsink) {
-   if (SSL_accept(ssl) <= 0) {
+   int rc = SSL_accept(ssl);
+   if (rc <= 0) {
+      //printd(5, "SSLSocketHelper::accept() rc=%d\n", rc);
       sslError(xsink, "SSL_accept");
       return -1;
    }
@@ -937,8 +939,6 @@ int SSLSocketHelper::read(char *buf, int size, int timeout_ms, qore_socket_priva
       if (rc < 0) {
 	 int err = SSL_get_error(ssl, rc);
 
-	 //printd(5, "SSLSocketHelper::read(buf=%p, size=%d, to=%d) rc=%d err=%d\n", buf, size, timeout_ms, rc, err);
-
 	 if (err == SSL_ERROR_WANT_READ) {
 	    if (!sock.isDataAvailable(timeout_ms)) {
 	       rc = QSE_TIMEOUT;
@@ -951,7 +951,13 @@ int SSLSocketHelper::read(char *buf, int size, int timeout_ms, qore_socket_priva
 	       break;
 	    }
 	 }
+	 else if (err == SSL_ERROR_ZERO_RETURN) {
+	    rc = 0;
+	    break;
+	 }
 	 else {
+	    //printd(0, "SSLSocketHelper::read(buf=%p, size=%d, to=%d) rc=%d err=%d\n", buf, size, timeout_ms, rc, err);
+
 	    rc = QSE_SSL_ERR;
 	    break;
 	 }	    

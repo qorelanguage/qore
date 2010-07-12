@@ -66,7 +66,7 @@ static AbstractQoreNode *DIR_exists(QoreObject *self, Dir *d, const QoreListNode
 
 // create([mode]): create all the directories in the path
 static AbstractQoreNode *DIR_create(QoreObject *self, Dir *d, const QoreListNode *params, ExceptionSink *xsink) {
-   int mode = HARD_QORE_INT(params, 0);
+   int mode = (int)HARD_QORE_INT(params, 0);
    // create all directories from / on
    int rc = d->create(mode, xsink); // throws exception
    return *xsink ? 0 : new QoreBigIntNode(rc); // throws exception
@@ -74,13 +74,13 @@ static AbstractQoreNode *DIR_create(QoreObject *self, Dir *d, const QoreListNode
 
 // chmod(mode)
 static AbstractQoreNode *DIR_chmod(QoreObject *self, Dir *d, const QoreListNode *params, ExceptionSink *xsink) {
-   d->chmod(HARD_QORE_INT(params, 0), xsink);
+   d->chmod((int)HARD_QORE_INT(params, 0), xsink);
    return 0;
 }
 
 // chown(userid)
 static AbstractQoreNode *DIR_chown_int(QoreObject *self, Dir *d, const QoreListNode *params, ExceptionSink *xsink) {
-   uid_t uid = HARD_QORE_INT(params, 0);
+   uid_t uid = (uid_t)HARD_QORE_INT(params, 0);
    d->chown(uid, (gid_t)-1, xsink);
    return 0;
 }
@@ -102,7 +102,7 @@ static AbstractQoreNode *DIR_chown_str(QoreObject *self, Dir *d, const QoreListN
 }
 
 static AbstractQoreNode *DIR_chgrp_int(QoreObject *self, Dir *d, const QoreListNode *params, ExceptionSink *xsink) {
-   gid_t gid = HARD_QORE_INT(params, 0);
+   gid_t gid = (gid_t)HARD_QORE_INT(params, 0);
    d->chown((uid_t)-1, gid, xsink);
    return 0;
 }
@@ -135,7 +135,7 @@ static AbstractQoreNode *DIR_mkdir(QoreObject *self, Dir *d, const QoreListNode 
    }
 
    // get mode parameter (if any, default = 0777)
-   int mode = HARD_QORE_INT(params, 1);
+   int mode = (int)HARD_QORE_INT(params, 1);
 
    std::string path = d->getPath(dname);
    d->mkdir(xsink, path.c_str(), mode);
@@ -170,7 +170,7 @@ static AbstractQoreNode *DIR_list_str(QoreObject *self, Dir *d, const QoreListNo
 
 static AbstractQoreNode *DIR_list_str_int(QoreObject *self, Dir *d, const QoreListNode *params, ExceptionSink *xsink) {
    const QoreStringNode *p0 = HARD_QORE_STRING(params, 0);
-   int regex_options = HARD_QORE_INT(params, 1);   
+   int regex_options = (int)HARD_QORE_INT(params, 1);   
    return d->list(xsink, -1, p0, regex_options);
 }
 
@@ -188,7 +188,7 @@ static AbstractQoreNode *DIR_listFiles_str(QoreObject *self, Dir *d, const QoreL
 // lists all files
 static AbstractQoreNode *DIR_listFiles_str_int(QoreObject *self, Dir *d, const QoreListNode *params, ExceptionSink *xsink) {
    const QoreStringNode *p0 = HARD_QORE_STRING(params, 0);
-   int regex_options = HARD_QORE_INT(params, 1);
+   int regex_options = (int)HARD_QORE_INT(params, 1);
    return d->list(xsink, S_IFMT^S_IFDIR, p0, regex_options);
 }
 
@@ -206,7 +206,7 @@ static AbstractQoreNode *DIR_listDirs_str(QoreObject *self, Dir *d, const QoreLi
 // lists all directoreis but ignore '.' and '..'
 static AbstractQoreNode *DIR_listDirs_str_int(QoreObject *self, Dir *d, const QoreListNode *params, ExceptionSink *xsink) {
    const QoreStringNode *p0 = HARD_QORE_STRING(params, 0);
-   int regex_options = HARD_QORE_INT(params, 1);
+   int regex_options = (int)HARD_QORE_INT(params, 1);
    return d->list(xsink, S_IFDIR, p0, regex_options);
 }
 
@@ -222,8 +222,8 @@ static AbstractQoreNode *DIR_openFile(QoreObject *self, Dir *d, const QoreListNo
       return 0;
    }
   
-   int flags = HARD_QORE_INT(params, 1);
-   int mode = HARD_QORE_INT(params, 2);
+   int flags = (int)HARD_QORE_INT(params, 1);
+   int mode = (int)HARD_QORE_INT(params, 2);
 
    const QoreEncoding *charset = get_encoding_param(params, 3);
 

@@ -124,7 +124,7 @@ AbstractQoreNode *QoreExtractOperatorNode::extract(ExceptionSink *xsink) const {
    // no exception can occur here
    val.ensure_unique();
 
-   qore_size_t offset = eoffset ? eoffset->getAsBigInt() : 0;
+   qore_size_t offset = eoffset ? (qore_size_t)eoffset->getAsBigInt() : 0;
 
 #ifdef DEBUG
    if (vt == NT_LIST) {
@@ -144,7 +144,7 @@ AbstractQoreNode *QoreExtractOperatorNode::extract(ExceptionSink *xsink) const {
       if (!length_exp && !new_exp)
 	 rv = vl->extract(offset, xsink);
       else {
-	 qore_size_t length = elength ? elength->getAsBigInt() : 0;
+	 qore_size_t length = elength ? (qore_size_t)elength->getAsBigInt() : 0;
 	 if (!new_exp)
 	    rv = vl->extract(offset, length, xsink);
 	 else
@@ -156,7 +156,7 @@ AbstractQoreNode *QoreExtractOperatorNode::extract(ExceptionSink *xsink) const {
       if (!length_exp && !new_exp)
 	 rv = vs->extract(offset, xsink);
       else {
-	 qore_size_t length = elength ? elength->getAsBigInt() : 0;
+	 qore_size_t length = elength ? (qore_size_t)elength->getAsBigInt() : 0;
 	 if (!new_exp)
 	    rv = vs->extract(offset, length, xsink);
 	 else

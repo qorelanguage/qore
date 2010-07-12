@@ -67,7 +67,7 @@ static AbstractQoreNode *f_localtime(const QoreListNode *params, ExceptionSink *
 }
 
 static AbstractQoreNode *f_localtime_int_int(const QoreListNode *params, ExceptionSink *xsink) {
-   return DateTimeNode::makeAbsolute(currentTZ(), HARD_QORE_INT(params, 0), HARD_QORE_INT(params, 1));
+   return DateTimeNode::makeAbsolute(currentTZ(), HARD_QORE_INT(params, 0), (int)HARD_QORE_INT(params, 1));
 }
 
 static AbstractQoreNode *f_localtime_date(const QoreListNode *params, ExceptionSink *xsink) {
@@ -80,7 +80,7 @@ static AbstractQoreNode *f_gmtime(const QoreListNode *params, ExceptionSink *xsi
 }
 
 static AbstractQoreNode *f_gmtime_int_int(const QoreListNode *params, ExceptionSink *xsink) {
-   return DateTimeNode::makeAbsolute(NULL, HARD_QORE_INT(params, 0), HARD_QORE_INT(params, 1));
+   return DateTimeNode::makeAbsolute(NULL, HARD_QORE_INT(params, 0), (int)HARD_QORE_INT(params, 1));
 }
 
 static AbstractQoreNode *f_gmtime_date(const QoreListNode *params, ExceptionSink *xsink) {
@@ -99,35 +99,35 @@ static AbstractQoreNode *f_get_epoch_seconds(const QoreListNode *params, Excepti
 }
 
 static AbstractQoreNode *f_years(const QoreListNode *params, ExceptionSink *xsink) {
-   return new DateTimeNode(HARD_QORE_INT(params, 0), 0, 0, 0, 0, 0, 0, true);
+   return new DateTimeNode((int)HARD_QORE_INT(params, 0), 0, 0, 0, 0, 0, 0, true);
 }
 
 static AbstractQoreNode *f_months(const QoreListNode *params, ExceptionSink *xsink) {
-   return new DateTimeNode(0, HARD_QORE_INT(params, 0), 0, 0, 0, 0, 0, true);
+   return new DateTimeNode(0, (int)HARD_QORE_INT(params, 0), 0, 0, 0, 0, 0, true);
 }
 
 static AbstractQoreNode *f_days(const QoreListNode *params, ExceptionSink *xsink) {
-   return new DateTimeNode(0, 0, HARD_QORE_INT(params, 0), 0, 0, 0, 0, true);
+   return new DateTimeNode(0, 0, (int)HARD_QORE_INT(params, 0), 0, 0, 0, 0, true);
 }
 
 static AbstractQoreNode *f_hours(const QoreListNode *params, ExceptionSink *xsink) {
-   return new DateTimeNode(0, 0, 0, HARD_QORE_INT(params, 0), 0, 0, 0, true);
+   return new DateTimeNode(0, 0, 0, (int)HARD_QORE_INT(params, 0), 0, 0, 0, true);
 }
 
 static AbstractQoreNode *f_minutes(const QoreListNode *params, ExceptionSink *xsink) {
-   return new DateTimeNode(0, 0, 0, 0, HARD_QORE_INT(params, 0), 0, 0, true);
+   return new DateTimeNode(0, 0, 0, 0, (int)HARD_QORE_INT(params, 0), 0, 0, true);
 }
 
 static AbstractQoreNode *f_seconds(const QoreListNode *params, ExceptionSink *xsink) {
-   return new DateTimeNode(0, 0, 0, 0, 0, HARD_QORE_INT(params, 0), 0, true);
+   return new DateTimeNode(0, 0, 0, 0, 0, (int)HARD_QORE_INT(params, 0), 0, true);
 }
 
 static AbstractQoreNode *f_milliseconds(const QoreListNode *params, ExceptionSink *xsink) {
-   return new DateTimeNode(0, 0, 0, 0, 0, 0, HARD_QORE_INT(params, 0), true);
+   return new DateTimeNode(0, 0, 0, 0, 0, 0, (int)HARD_QORE_INT(params, 0), true);
 }
 
 static AbstractQoreNode *f_microseconds(const QoreListNode *params, ExceptionSink *xsink) {
-   return DateTimeNode::makeRelative(0, 0, 0, 0, 0, 0, HARD_QORE_INT(params, 0));
+   return DateTimeNode::makeRelative(0, 0, 0, 0, 0, 0, (int)HARD_QORE_INT(params, 0));
 }
 
 // returns an integer corresponding to the year value in the date
@@ -236,10 +236,10 @@ static AbstractQoreNode *f_getISOWeekString(const QoreListNode *params, Exceptio
 // args: year, week #, [day #]
 // note that ISO-8601 week days go from 1 - 7 = Mon - Sun
 static AbstractQoreNode *f_getDateFromISOWeek(const QoreListNode *params, ExceptionSink *xsink) {
-   int year = HARD_QORE_INT(params, 0);
-   int week = HARD_QORE_INT(params, 1);
+   int year = (int)HARD_QORE_INT(params, 0);
+   int week = (int)HARD_QORE_INT(params, 1);
    // day number defaults to 1 = Monday, start of the week (7 = Sun)
-   int day = HARD_QORE_INT(params, 2);
+   int day = (int)HARD_QORE_INT(params, 2);
 
    return DateTimeNode::getDateFromISOWeek(year, week, day, xsink);
 }

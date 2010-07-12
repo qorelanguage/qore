@@ -1203,8 +1203,8 @@ void qore_exit_process(int rc) {
    // cause a core dump
    for (int i = 1; i < MAX_QORE_THREADS; ++i) {
       if (i != tid && thread_list[i].ptid) {
-	 int rc = pthread_cancel(thread_list[i].ptid);
-	 if (!rc) {
+	 int trc = pthread_cancel(thread_list[i].ptid);
+	 if (!trc) {
 	    thread_list[i].joined = true;
 
 	    sl.unlock();

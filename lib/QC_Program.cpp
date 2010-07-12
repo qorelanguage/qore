@@ -187,14 +187,14 @@ static AbstractQoreNode *PROGRAM_getParseOptions(QoreObject *self, QoreProgram *
 
 // Program::setParseOptions(int $opt = PO_DEFAULT) returns nothing
 static AbstractQoreNode *PROGRAM_setParseOptions(QoreObject *self, QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink) {
-   int opt = HARD_QORE_INT(params, 0);
+   int opt = (int)HARD_QORE_INT(params, 0);
    p->setParseOptions(opt, xsink);
    return 0;
 }
 
 // Program::disableParseOptions(int $opt = PO_DEFAULT) returns nothing
 static AbstractQoreNode *PROGRAM_disableParseOptions(QoreObject *self, QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink) {
-   int opt = HARD_QORE_INT(params, 0);
+   int opt = (int)HARD_QORE_INT(params, 0);
    p->disableParseOptions(opt, xsink);
    return 0;
 }
@@ -272,7 +272,7 @@ static AbstractQoreNode *PROGRAM_setTimeZoneRegion(QoreObject *self, QoreProgram
 
 // Program::setTimeZoneUTCOffset(softint $seconds_east) returns nothing
 static AbstractQoreNode *PROGRAM_setTimeZoneUTCOffset(QoreObject *self, QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink) {
-   int seconds_east = HARD_QORE_INT(params, 0);
+   int seconds_east = (int)HARD_QORE_INT(params, 0);
    const AbstractQoreZoneInfo *zone = QTZM.findCreateOffsetZone(seconds_east);
    p->setTZ(zone);
    return 0;

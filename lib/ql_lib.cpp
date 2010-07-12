@@ -169,8 +169,8 @@ static AbstractQoreNode *f_fork(const QoreListNode *params, ExceptionSink *xsink
 }
 
 static AbstractQoreNode *f_kill(const QoreListNode *params, ExceptionSink *xsink) {
-   int pid = HARD_QORE_INT(params, 0);
-   int sig = HARD_QORE_INT(params, 1);
+   int pid = (int)HARD_QORE_INT(params, 0);
+   int sig = (int)HARD_QORE_INT(params, 1);
    return new QoreBigIntNode(kill(pid, sig));
 }
 
@@ -329,7 +329,7 @@ static AbstractQoreNode *f_unlink(const QoreListNode *params, ExceptionSink *xsi
 }
 
 static AbstractQoreNode *f_umask(const QoreListNode *params, ExceptionSink *xsink) {
-   return new QoreBigIntNode(umask(HARD_QORE_INT(params, 0)));
+   return new QoreBigIntNode(umask((int)HARD_QORE_INT(params, 0)));
 }
 
 static AbstractQoreNode *f_rand(const QoreListNode *params, ExceptionSink *xsink) {
@@ -338,7 +338,7 @@ static AbstractQoreNode *f_rand(const QoreListNode *params, ExceptionSink *xsink
 }
 
 static AbstractQoreNode *f_srand(const QoreListNode *params, ExceptionSink *xsink) {
-   srandom(HARD_QORE_INT(params, 0));
+   srandom((int)HARD_QORE_INT(params, 0));
    return 0;
 }
 
@@ -357,7 +357,7 @@ static AbstractQoreNode *f_errno(const QoreListNode *params, ExceptionSink *xsin
 }
 
 static AbstractQoreNode *f_strerror(const QoreListNode *params, ExceptionSink *xsink) {
-   int err = HARD_QORE_INT(params, 0);
+   int err = (int)HARD_QORE_INT(params, 0);
 
    return q_strerror(err);
 }
@@ -378,7 +378,7 @@ static AbstractQoreNode *f_dirname(const QoreListNode *params, ExceptionSink *xs
 
 static AbstractQoreNode *f_mkdir(const QoreListNode *params, ExceptionSink *xsink) {
    HARD_QORE_PARAM(p0, const QoreStringNode, params, 0);
-   int mode = HARD_QORE_INT(params, 1);
+   int mode = (int)HARD_QORE_INT(params, 1);
    return new QoreBigIntNode(mkdir(p0->getBuffer(), mode));
 }
 
@@ -390,7 +390,7 @@ static AbstractQoreNode *f_rmdir(const QoreListNode *params, ExceptionSink *xsin
 // usage: chmod(path, mode)
 static AbstractQoreNode *f_chmod(const QoreListNode *params, ExceptionSink *xsink) {
    HARD_QORE_PARAM(p0, const QoreStringNode, params, 0);
-   return new QoreBigIntNode(chmod(p0->getBuffer(), HARD_QORE_INT(params, 1)));
+   return new QoreBigIntNode(chmod(p0->getBuffer(), (int)HARD_QORE_INT(params, 1)));
 }
 
 static AbstractQoreNode *f_chdir(const QoreListNode *params, ExceptionSink *xsink) {
@@ -462,17 +462,17 @@ static AbstractQoreNode *f_mkfifo(const QoreListNode *params, ExceptionSink *xsi
    HARD_QORE_PARAM(p0, const QoreStringNode, params, 0);
    const char *fn = p0->getBuffer();
 
-   int mode = HARD_QORE_INT(params, 1);
+   int mode = (int)HARD_QORE_INT(params, 1);
    return new QoreBigIntNode(mkfifo(fn, mode));
 }
 
 static AbstractQoreNode *f_setuid(const QoreListNode *params, ExceptionSink *xsink) {
-   return new QoreBigIntNode(setuid(HARD_QORE_INT(params, 0)));
+   return new QoreBigIntNode(setuid((int)HARD_QORE_INT(params, 0)));
 }
 
 static AbstractQoreNode *f_seteuid(const QoreListNode *params, ExceptionSink *xsink) {
 #ifdef HAVE_SETEUID
-   return new QoreBigIntNode(seteuid(HARD_QORE_INT(params, 0)));
+   return new QoreBigIntNode(seteuid((int)HARD_QORE_INT(params, 0)));
 #else
    xsink->raiseException("MISSING-FEATURE-ERROR", "this system does not implement seteuid(); for maximum portability use the constant Option::HAVE_SETEUID to check if this function is implemented before calling");
    return 0;
@@ -480,12 +480,12 @@ static AbstractQoreNode *f_seteuid(const QoreListNode *params, ExceptionSink *xs
 }
 
 static AbstractQoreNode *f_setgid(const QoreListNode *params, ExceptionSink *xsink) {
-   return new QoreBigIntNode(setgid(HARD_QORE_INT(params, 0)));
+   return new QoreBigIntNode(setgid((int)HARD_QORE_INT(params, 0)));
 }
 
 static AbstractQoreNode *f_setegid(const QoreListNode *params, ExceptionSink *xsink) {
 #ifdef HAVE_SETEGID
-   return new QoreBigIntNode(HARD_QORE_INT(params, 0));
+   return new QoreBigIntNode(setegid((int)HARD_QORE_INT(params, 0)));
 #else
    xsink->raiseException("MISSING-FEATURE-ERROR", "this system does not implement setegid(); for maximum portability use the constant Option::HAVE_SETEGID to check if this function is implemented before calling");
    return 0;
@@ -503,7 +503,7 @@ static AbstractQoreNode *f_gethostbyname(const QoreListNode *params, ExceptionSi
 
 static AbstractQoreNode *f_gethostbyaddr(const QoreListNode *params, ExceptionSink *xsink) {
    HARD_QORE_PARAM(p0, const QoreStringNode, params, 0);
-   int type = HARD_QORE_INT(params, 1);
+   int type = (int)HARD_QORE_INT(params, 1);
    return q_gethostbyaddr_to_string(xsink, p0->getBuffer(), type);
 }
 
@@ -514,7 +514,7 @@ static AbstractQoreNode *f_gethostbyname_long(const QoreListNode *params, Except
 
 static AbstractQoreNode *f_gethostbyaddr_long(const QoreListNode *params, ExceptionSink *xsink) {
    HARD_QORE_PARAM(p0, const QoreStringNode, params, 0);
-   int type = HARD_QORE_INT(params, 1);
+   int type = (int)HARD_QORE_INT(params, 1);
    return q_gethostbyaddr_to_hash(xsink, p0->getBuffer(), type);
 }
 

@@ -33,14 +33,14 @@
 #include <qore/intern/DatasourcePool.h>
 
 DatasourcePool::DatasourcePool(DBIDriver *ndsl, const char *user, const char *pass, const char *db, const char *charset, const char *hostname, int mn, int mx, ExceptionSink *xsink) {
-   init(ndsl, user, pass, db, charset, hostname, mn, mx, 0, xsink);
+   init_pool(ndsl, user, pass, db, charset, hostname, mn, mx, 0, xsink);
 }
 
 DatasourcePool::DatasourcePool(DBIDriver *ndsl, const char *user, const char *pass, const char *db, const char *charset, const char *hostname, int mn, int mx, int port, ExceptionSink *xsink) {
-   init(ndsl, user, pass, db, charset, hostname, mn, mx, port, xsink);
+   init_pool(ndsl, user, pass, db, charset, hostname, mn, mx, port, xsink);
 }
 
-void DatasourcePool::init(DBIDriver *ndsl, const char *user, const char *pass, const char *db, const char *charset, const char *hostname, int mn, int mx, int port, ExceptionSink *xsink) {
+void DatasourcePool::init_pool(DBIDriver *ndsl, const char *user, const char *pass, const char *db, const char *charset, const char *hostname, int mn, int mx, int port, ExceptionSink *xsink) {
    //assert(mn > 0);
    //assert(mx > min);   
    //assert(db != 0 && db[0]);
@@ -173,14 +173,14 @@ Datasource *DatasourcePool::getDSIntern(bool &new_ds, ExceptionSink *xsink) {
    // see if there is a datasource free
    while (true) {
       if (!free_list.empty()) {
-	 int i = free_list.front();
+	 int fi = free_list.front();
 	 free_list.pop_front();
 	 // DEBUG
 	 //printf("DSP::getDS() assigning tid %d index %d from free list (%N)\n", $tid, $i, $.p[$i]);
 	 
-	 tmap[tid] = i;
-	 ds = pool[i];
-	 tid_list[i] = tid;
+	 tmap[tid] = fi;
+	 ds = pool[fi];
+	 tid_list[fi] = tid;
       }
       else {
 	 // see if we can open a new connection

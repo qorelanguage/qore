@@ -36,36 +36,36 @@
 struct qore_socket_private;
 
 class SSLSocketHelper {
-   private:
-      SSL_METHOD_CONST SSL_METHOD *meth;
-      SSL_CTX *ctx;
-      SSL *ssl;
+private:
+   SSL_METHOD_CONST SSL_METHOD *meth;
+   SSL_CTX *ctx;
+   SSL *ssl;
 
-      DLLLOCAL int setIntern(int sd, X509* cert, EVP_PKEY *pk, ExceptionSink *xsink);
+   DLLLOCAL int setIntern(int sd, X509* cert, EVP_PKEY *pk, ExceptionSink *xsink);
 
-   public:
-      DLLLOCAL SSLSocketHelper();
-      DLLLOCAL ~SSLSocketHelper();
-      DLLLOCAL void sslError(ExceptionSink *xsink, const char *msg);
-      DLLLOCAL int setClient(int sd, X509* cert, EVP_PKEY *pk, ExceptionSink *xsink);
-      DLLLOCAL int setServer(int sd, X509* cert, EVP_PKEY *pk, ExceptionSink *xsink);
-      // returns 0 for success
-      DLLLOCAL int connect(ExceptionSink *xsink);
-      // returns 0 for success
-      DLLLOCAL int accept(ExceptionSink *xsink);
-      // returns 0 for success
-      DLLLOCAL int shutdown();
-      // returns 0 for success
-      DLLLOCAL int shutdown(ExceptionSink *xsink);
-      // read with optional timeout in milliseconds
-      DLLLOCAL int read(char *buf, int size, int timeout_ms, qore_socket_private &sock);
-      // returns 0 for success
-      DLLLOCAL int write(const void *buf, int size, ExceptionSink *xsink);
-      DLLLOCAL int write(const void *buf, int size);
-      DLLLOCAL const char *getCipherName() const;
-      DLLLOCAL const char *getCipherVersion() const;
-      DLLLOCAL X509 *getPeerCertificate() const;
-      DLLLOCAL long verifyPeerCertificate() const;
+public:
+   DLLLOCAL SSLSocketHelper();
+   DLLLOCAL ~SSLSocketHelper();
+   DLLLOCAL void sslError(ExceptionSink *xsink, const char *msg);
+   DLLLOCAL int setClient(int sd, X509* cert, EVP_PKEY *pk, ExceptionSink *xsink);
+   DLLLOCAL int setServer(int sd, X509* cert, EVP_PKEY *pk, ExceptionSink *xsink);
+   // returns 0 for success
+   DLLLOCAL int connect(ExceptionSink *xsink);
+   // returns 0 for success
+   DLLLOCAL int accept(ExceptionSink *xsink);
+   // returns 0 for success
+   DLLLOCAL int shutdown();
+   // returns 0 for success
+   DLLLOCAL int shutdown(ExceptionSink *xsink);
+   // read with optional timeout in milliseconds
+   DLLLOCAL int read(char *buf, int size, int timeout_ms, qore_socket_private &sock);
+   // returns 0 for success
+   DLLLOCAL int write(const void *buf, int size, ExceptionSink *xsink);
+   DLLLOCAL int write(const void *buf, int size);
+   DLLLOCAL const char *getCipherName() const;
+   DLLLOCAL const char *getCipherVersion() const;
+   DLLLOCAL X509 *getPeerCertificate() const;
+   DLLLOCAL long verifyPeerCertificate() const;
 };
 
 #endif

@@ -91,7 +91,7 @@ static AbstractQoreNode *FILE_read(QoreObject *self, File *f, const QoreListNode
    // get timeout
    int timeout_ms = getMsMinusOneInt(get_param(args, 1));
 
-   return f->read(size, timeout_ms, xsink);
+   return f->read((qore_offset_t)size, timeout_ms, xsink);
 }
 
 static AbstractQoreNode *FILE_readu1(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
@@ -196,7 +196,7 @@ static AbstractQoreNode *FILE_readBinary(QoreObject *self, File *f, const QoreLi
    // get timeout
    int timeout_ms = getMsMinusOneInt(get_param(args, 1));
 
-   return f->readBinary(size, timeout_ms, xsink);
+   return f->readBinary((qore_offset_t)size, timeout_ms, xsink);
 }
 
 static AbstractQoreNode *FILE_write_bin(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
@@ -214,7 +214,7 @@ static AbstractQoreNode *FILE_write_str(QoreObject *self, File *f, const QoreLis
 }
 
 static AbstractQoreNode *FILE_writei1(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
-   char c = HARD_QORE_INT(args, 0);
+   char c = (char)HARD_QORE_INT(args, 0);
    int rc = f->writei1(c, xsink);
    if (xsink->isEvent())
       return 0;
@@ -223,7 +223,7 @@ static AbstractQoreNode *FILE_writei1(QoreObject *self, File *f, const QoreListN
 }
 
 static AbstractQoreNode *FILE_writei2(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
-   short s = HARD_QORE_INT(args, 0);
+   short s = (short)HARD_QORE_INT(args, 0);
    int rc = f->writei2(s, xsink);
    if (xsink->isEvent())
       return 0;
@@ -232,7 +232,7 @@ static AbstractQoreNode *FILE_writei2(QoreObject *self, File *f, const QoreListN
 }
 
 static AbstractQoreNode *FILE_writei4(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
-   int i = HARD_QORE_INT(args, 0);
+   int i = (int)HARD_QORE_INT(args, 0);
    int rc = f->writei4(i, xsink);
    if (xsink->isEvent())
       return 0;
@@ -250,7 +250,7 @@ static AbstractQoreNode *FILE_writei8(QoreObject *self, File *f, const QoreListN
 }
 
 static AbstractQoreNode *FILE_writei2LSB(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
-   short s = HARD_QORE_INT(args, 0);
+   short s = (short)HARD_QORE_INT(args, 0);
    int rc = f->writei2LSB(s, xsink);
    if (xsink->isEvent())
       return 0;
@@ -259,7 +259,7 @@ static AbstractQoreNode *FILE_writei2LSB(QoreObject *self, File *f, const QoreLi
 }
 
 static AbstractQoreNode *FILE_writei4LSB(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
-   int i = HARD_QORE_INT(args, 0);
+   int i = (int)HARD_QORE_INT(args, 0);
    int rc = f->writei4LSB(i, xsink);
    if (xsink->isEvent())
       return 0;
@@ -327,7 +327,7 @@ static AbstractQoreNode *FILE_getCharset(QoreObject *self, File *f, const QoreLi
 }
 
 static AbstractQoreNode *FILE_setPos(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
-   int pos = HARD_QORE_INT(args, 0);
+   int pos = (int)HARD_QORE_INT(args, 0);
    return new QoreBigIntNode(f->setPos(pos));
 }
 
@@ -350,34 +350,14 @@ static AbstractQoreNode *FILE_getchar(QoreObject *self, File *f, const QoreListN
 }
 
 static int lock_intern(struct flock &fl, const QoreListNode *args, ExceptionSink *xsink) {
-   fl.l_type = HARD_QORE_INT(args, 0);
-   fl.l_start = HARD_QORE_INT(args, 1);
-   fl.l_len = HARD_QORE_INT(args, 2);
+   fl.l_type = (short)HARD_QORE_INT(args, 0);
+   fl.l_start = (off_t)HARD_QORE_INT(args, 1);
+   fl.l_len = (off_t)HARD_QORE_INT(args, 2);
    if (fl.l_len < 0) {
       xsink->raiseException("FILE-LOCK-ERROR", "length of locked area cannot be negative (value passed=%d)", fl.l_len);
       return -1;
    }
-   fl.l_whence = HARD_QORE_INT(args, 3);
-/*
-   const AbstractQoreNode *p = get_param(args, 0);
-   fl.l_type = p ? p->getAsInt() : 0;
-
-   p = get_param(args, 1);
-   fl.l_start = !is_nothing(p) ? p->getAsInt() : 0;
-
-   p = get_param(args, 2);
-   if (!is_nothing(p)) {
-      fl.l_len = p->getAsInt();
-      if (fl.l_len < 0) {
-	 xsink->raiseException("FILE-LOCK-ERROR", "length of locked area cannot be negative (value passed=%d)", fl.l_len);
-	 return -1;
-      }
-   }
-   else
-      fl.l_len = 0;
-   p = get_param(args, 3);
-   fl.l_whence = !is_nothing(p) ? p->getAsInt() : SEEK_SET;
-*/ 
+   fl.l_whence = (short)HARD_QORE_INT(args, 3);
    return 0;
 }
 
@@ -442,7 +422,7 @@ static AbstractQoreNode *FILE_getTerminalAttributes(QoreObject *self, File *f, c
 }
 
 static AbstractQoreNode *FILE_setTerminalAttributes(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
-   int action = HARD_QORE_INT(args, 0);
+   int action = (int)HARD_QORE_INT(args, 0);
    HARD_QORE_OBJ_DATA(ios, QoreTermIOS, args, 1, CID_TERMIOS, "TermIOS", "File::setTerminalAttributes", xsink);
    if (*xsink)
       return 0;

@@ -115,7 +115,7 @@ union qore_i2_u {
    }
 };
 
-//! swaps byte order of 8-byte integer values
+//! swaps byte order of 2-byte integer values
 static inline short swapi2(short i) { 
    char *ibuf = (char *)&i;
    qore_i2_u i2;

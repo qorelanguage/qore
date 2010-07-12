@@ -82,8 +82,8 @@ static AbstractQoreNode *SOCKET_connect_str_timeout(QoreObject *self, mySocket *
 // Socket::connectINET(string $host, int $port, date $timeout_ms) returns nothing
 static AbstractQoreNode *SOCKET_connectINET_str_int_timeout(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
    const QoreStringNode *p0 = HARD_QORE_STRING(params, 0);
-   int port = HARD_QORE_INT(params, 1);
-   int timeout_ms = HARD_QORE_INT(params, 2);
+   int port = (int)HARD_QORE_INT(params, 1);
+   int timeout_ms = (int)HARD_QORE_INT(params, 2);
    s->connectINET(p0->getBuffer(), port, timeout_ms, xsink);
    return 0;
 }
@@ -112,8 +112,8 @@ static AbstractQoreNode *SOCKET_connectSSL_str_timeout(QoreObject *self, mySocke
 // Socket::connectINETSSL(string $host, int $port, date $timeout_ms) returns nothing
 static AbstractQoreNode *SOCKET_connectINETSSL_str_int_timeout(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
    const QoreStringNode *p0 = HARD_QORE_STRING(params, 0);
-   int port = HARD_QORE_INT(params, 1);
-   int timeout_ms = HARD_QORE_INT(params, 2);
+   int port = (int)HARD_QORE_INT(params, 1);
+   int timeout_ms = (int)HARD_QORE_INT(params, 2);
    s->connectINETSSL(p0->getBuffer(), port, timeout_ms, xsink);
    return 0;
 }
@@ -143,7 +143,7 @@ static AbstractQoreNode *SOCKET_bind_str_bool(QoreObject *self, mySocket *s, con
 
 // Socket::bind(int $port, bool $reuseaddr = False) returns int
 static AbstractQoreNode *SOCKET_bind_int_bool(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
-   int port = HARD_QORE_INT(params, 0);
+   int port = (int)HARD_QORE_INT(params, 0);
    bool reuseaddr = HARD_QORE_BOOL(params, 1);
    return new QoreBigIntNode(s->bind(port, reuseaddr));
 }
@@ -205,17 +205,17 @@ static AbstractQoreNode *SOCKET_sendBinary_str(QoreObject *self, mySocket *s, co
 }
 
 static AbstractQoreNode *SOCKET_sendi1(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
-   char i = HARD_QORE_INT(params, 0);
+   char i = (char)HARD_QORE_INT(params, 0);
    return checkOpenResult(s->sendi1(i), "sendi1", xsink);
 }
 
 static AbstractQoreNode *SOCKET_sendi2(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
-   short i = HARD_QORE_INT(params, 0);
+   short i = (short)HARD_QORE_INT(params, 0);
    return checkOpenResult(s->sendi2(i), "sendi2", xsink);
 }
 
 static AbstractQoreNode *SOCKET_sendi4(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
-   int i = HARD_QORE_INT(params, 0);
+   int i = (int)HARD_QORE_INT(params, 0);
    return checkOpenResult(s->sendi4(i), "sendi4", xsink);
 }
 
@@ -225,12 +225,12 @@ static AbstractQoreNode *SOCKET_sendi8(QoreObject *self, mySocket *s, const Qore
 }
 
 static AbstractQoreNode *SOCKET_sendi2LSB(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
-   short i = HARD_QORE_INT(params, 0);
+   short i = (short)HARD_QORE_INT(params, 0);
    return checkOpenResult(s->sendi2LSB(i), "sendi2LSB", xsink);
 }
 
 static AbstractQoreNode *SOCKET_sendi4LSB(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
-   int i = HARD_QORE_INT(params, 0);
+   int i = (int)HARD_QORE_INT(params, 0);
    return checkOpenResult(s->sendi4LSB(i), "sendi4LSB", xsink);
 }
 
@@ -242,7 +242,7 @@ static AbstractQoreNode *SOCKET_sendi8LSB(QoreObject *self, mySocket *s, const Q
 // Socket::recv(int $size = 0, softint $timeout_ms -1) returns string
 // Socket::recv(int $size = 0, date $timeout) returns string
 static AbstractQoreNode *SOCKET_recv(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
-   int bs = HARD_QORE_INT(params, 0);
+   int bs = (int)HARD_QORE_INT(params, 0);
    
    // get timeout
    int timeout = getMsMinusOneInt(get_param(params, 1));
@@ -261,7 +261,7 @@ static AbstractQoreNode *SOCKET_recv(QoreObject *self, mySocket *s, const QoreLi
 // Socket::recvBinary(softint $size = 0, softint $timeout = -1) returns binary
 // Socket::recvBinary(softint $size = 0, date $timeout) returns binary
 static AbstractQoreNode *SOCKET_recvBinary(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
-   int bs = HARD_QORE_INT(params, 0);
+   int bs = (int)HARD_QORE_INT(params, 0);
 
    // get timeout
    int timeout = getMsMinusOneInt(get_param(params, 1));
@@ -404,7 +404,7 @@ static AbstractQoreNode *SOCKET_sendHTTPMessage(QoreObject *self, mySocket *s, c
 
 // Socket::sendHTTPResponse(softint $status_code, string $desc, string $http_version, hash $headers, data $data = binary()) returns nothing
 static AbstractQoreNode *SOCKET_sendHTTPResponse(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
-   int status_code = HARD_QORE_INT(params, 0);
+   int status_code = (int)HARD_QORE_INT(params, 0);
 
    if (status_code < 100 || status_code >= 600) {
       xsink->raiseException("SOCKET-SENDHTTPRESPONSE-PARAMETER-ERROR", "expecting valid HTTP status code between 100 and 599 as first parameter of Socket::sendHTTPResponse() call, got value %d instead", status_code);
@@ -492,25 +492,25 @@ static AbstractQoreNode *SOCKET_getSocket(QoreObject *self, mySocket *s, const Q
 
 // Socket::setSendTimeout(softint $timeout_ms) returns int
 static AbstractQoreNode *SOCKET_setSendTimeout_int(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
-   int timeout_ms = HARD_QORE_INT(params, 0);
+   int timeout_ms = (int)HARD_QORE_INT(params, 0);
    return new QoreBigIntNode(s->setSendTimeout(timeout_ms));
 }
 
 // Socket::setSendTimeout(date $timeout_ms) returns int
 static AbstractQoreNode *SOCKET_setSendTimeout_date(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
-   int timeout_ms = HARD_QORE_DATE(params, 0)->getRelativeMilliseconds();
+   int timeout_ms = (int)HARD_QORE_DATE(params, 0)->getRelativeMilliseconds();
    return new QoreBigIntNode(s->setSendTimeout(timeout_ms));
 }
 
 // Socket::setRecvTimeout(softint $timeout_ms) returns int
 static AbstractQoreNode *SOCKET_setRecvTimeout_int(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
-   int timeout_ms = HARD_QORE_INT(params, 0);
+   int timeout_ms = (int)HARD_QORE_INT(params, 0);
    return new QoreBigIntNode(s->setRecvTimeout(timeout_ms));
 }
 
 // Socket::setRecvTimeout(date $timeout_ms) returns int
 static AbstractQoreNode *SOCKET_setRecvTimeout_date(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
-   int timeout_ms = HARD_QORE_DATE(params, 0)->getRelativeMilliseconds();
+   int timeout_ms = (int)HARD_QORE_DATE(params, 0)->getRelativeMilliseconds();
    return new QoreBigIntNode(s->setRecvTimeout(timeout_ms));
 }
 

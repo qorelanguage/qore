@@ -13333,14 +13333,12 @@ $sock.bind("/tmp/socket");</programlisting>
 	      <entry><para>Error in accepting connection.</para></entry>
 	    </row>
             <row>
-              <entry>
-                <para>
-                  <code>SOCKET-SSL-ERROR</code>
-                </para>
-              </entry>
-              <entry>
-                <para>An error occurred establishing the TLS/SSL connection.</para>
-              </entry>
+              <entry><para><code>SOCKET-SSL-ERROR</code></para></entry>
+              <entry><para>An error occurred establishing the TLS/SSL connection.</para></entry>
+            </row>
+            <row>
+              <entry><para><code>SOCKET-CLOSED</code></para></entry>
+              <entry><para>The TLS/SSL connection was shut down by the remote end.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -13777,6 +13775,10 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
               <entry>
                 <para>An error occurred establishing the TLS/SSL connection.</para>
               </entry>
+            </row>
+            <row>
+              <entry><para><code>SOCKET-CLOSED</code></para></entry>
+              <entry><para>The TLS/SSL connection was shut down by the remote end.</para></entry>
             </row>
           </tbody>
         </tgroup>

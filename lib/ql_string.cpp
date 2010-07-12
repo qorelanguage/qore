@@ -69,15 +69,15 @@ static AbstractQoreNode *f_toupper(const QoreListNode *args, ExceptionSink *xsin
 // syntax substr(string, start[, length]) - note 1st character is 0, not 1
 static AbstractQoreNode *f_substr_str_int(const QoreListNode *args, ExceptionSink *xsink) {
    HARD_QORE_PARAM(p0, const QoreStringNode, args, 0);
-   HARD_QORE_PARAM(p1, const QoreBigIntNode, args, 1);
-   return p0->substr(p1->val, xsink);
+   int start = (int)HARD_QORE_INT(args, 1);
+   return p0->substr(start, xsink);
 }
 
 static AbstractQoreNode *f_substr_str_int_int(const QoreListNode *args, ExceptionSink *xsink) {
    HARD_QORE_PARAM(p0, const QoreStringNode, args, 0);
-   HARD_QORE_PARAM(p1, const QoreBigIntNode, args, 1);
-   HARD_QORE_PARAM(p2, const QoreBigIntNode, args, 2);
-   return p0->substr((int)p1->val, (int)p2->val, xsink);
+   int start = (int)HARD_QORE_INT(args, 1);
+   int len = (int)HARD_QORE_INT(args, 2);
+   return p0->substr(start, len, xsink);
 }
 
 /* index(string, substring[, position])
@@ -88,7 +88,7 @@ static AbstractQoreNode *f_substr_str_int_int(const QoreListNode *args, Exceptio
 static AbstractQoreNode *f_index_str_str_int(const QoreListNode *args, ExceptionSink *xsink) {
    HARD_QORE_PARAM(hs, const QoreStringNode, args, 0);
    HARD_QORE_PARAM(t1, const QoreStringNode, args, 1);
-   qore_offset_t pos = HARD_QORE_INT(args, 2);
+   qore_offset_t pos = (qore_offset_t)HARD_QORE_INT(args, 2);
 
    qore_size_t rc = hs->index(*t1, pos, xsink);
    return *xsink ? 0 : new QoreBigIntNode(rc);
@@ -103,7 +103,7 @@ static AbstractQoreNode *f_index_str_str_int(const QoreListNode *args, Exception
 static AbstractQoreNode *f_bindex_str_str_int(const QoreListNode *args, ExceptionSink *xsink) {
    HARD_QORE_PARAM(hs, const QoreStringNode, args, 0);
    HARD_QORE_PARAM(t1, const QoreStringNode, args, 1);
-   qore_offset_t pos = HARD_QORE_INT(args, 2);
+   qore_offset_t pos = (qore_offset_t)HARD_QORE_INT(args, 2);
 
    return new QoreBigIntNode(hs->bindex(*t1, pos));
 }
@@ -130,25 +130,11 @@ static inline int rindex_simple_intern(const char *haystack, int hlen, const cha
 static AbstractQoreNode *f_rindex_str_str_int(const QoreListNode *args, ExceptionSink *xsink) {
    HARD_QORE_PARAM(hs, const QoreStringNode, args, 0);
    HARD_QORE_PARAM(t1, const QoreStringNode, args, 1);
-   qore_offset_t pos = HARD_QORE_INT(args, 2);
+   qore_offset_t pos = (qore_offset_t)HARD_QORE_INT(args, 2);
 
    qore_size_t rc = hs->rindex(*t1, pos, xsink);
    return *xsink ? 0 : new QoreBigIntNode(rc);
 }
-
-/*
-static AbstractQoreNode *brindex_intern(const QoreString *hs, const QoreString *t1, qore_offset_t pos) {
-   qore_offset_t ind;
-   if (pos < 0)
-      pos = hs->strlen() + pos;
-   if (pos < 0)
-      ind = -1;
-   else
-      ind = rindex_simple_intern(hs->getBuffer(), hs->strlen(), t1->getBuffer(), t1->strlen(), pos);      
-   
-   return new QoreBigIntNode(ind);
-}
-*/
 
 /* brindex(string, substring [, position])
  * returns the index position in bytes (starting with 0) of the first occurrence
@@ -157,7 +143,7 @@ static AbstractQoreNode *brindex_intern(const QoreString *hs, const QoreString *
 static AbstractQoreNode *f_brindex_str_str_int(const QoreListNode *args, ExceptionSink *xsink) {
    HARD_QORE_PARAM(hs, const QoreStringNode, args, 0);
    HARD_QORE_PARAM(t1, const QoreStringNode, args, 1);
-   qore_offset_t pos = HARD_QORE_INT(args, 2);
+   qore_offset_t pos = (qore_offset_t)HARD_QORE_INT(args, 2);
 
    return new QoreBigIntNode(hs->brindex(*t1, pos));
 }
@@ -285,9 +271,9 @@ static AbstractQoreNode *f_force_encoding(const QoreListNode *args, ExceptionSin
 static AbstractQoreNode *f_regex(const QoreListNode *args, ExceptionSink *xsink) {
    HARD_QORE_PARAM(p0, const QoreStringNode, args, 0);
    HARD_QORE_PARAM(p1, const QoreStringNode, args, 1);
-   HARD_QORE_PARAM(options, const QoreBigIntNode, args, 2);
+   int options = (int)HARD_QORE_INT(args, 2);
    
-   QoreRegexNode qr(p1, options->val, xsink);
+   QoreRegexNode qr(p1, options, xsink);
    if (*xsink)
       return 0;
 
@@ -299,10 +285,9 @@ static AbstractQoreNode *f_regex_subst(const QoreListNode *args, ExceptionSink *
    HARD_QORE_PARAM(p0, const QoreStringNode, args, 0);
    HARD_QORE_PARAM(p1, const QoreStringNode, args, 1);
    HARD_QORE_PARAM(p2, const QoreStringNode, args, 2);
-   HARD_QORE_PARAM(p3, const QoreBigIntNode, args, 3);
+   // QRE_GLOBAL is just outside the 32-bit space, so we have to get an in64 value to check it
+   int64 options = HARD_QORE_INT(args, 3);
    
-   int64 options = p3->val;
-
    bool global;
    if (options & QRE_GLOBAL) {
       global = true;
@@ -311,7 +296,7 @@ static AbstractQoreNode *f_regex_subst(const QoreListNode *args, ExceptionSink *
    else
       global = false;
 
-   RegexSubstNode qrs(p1, options, xsink);
+   RegexSubstNode qrs(p1, (int)options, xsink);
    if (*xsink)
       return 0;
 
@@ -323,9 +308,9 @@ static AbstractQoreNode *f_regex_subst(const QoreListNode *args, ExceptionSink *
 static AbstractQoreNode *f_regex_extract(const QoreListNode *args, ExceptionSink *xsink) {
    HARD_QORE_PARAM(p0, const QoreStringNode, args, 0);
    HARD_QORE_PARAM(p1, const QoreStringNode, args, 1);
-   HARD_QORE_PARAM(options, const QoreBigIntNode, args, 2);
+   int options = (int)HARD_QORE_INT(args, 2);
    
-   QoreRegexNode qr(p1, options->val, xsink);
+   QoreRegexNode qr(p1, options, xsink);
    if (*xsink)
       return 0;
    

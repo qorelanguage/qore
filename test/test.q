@@ -1078,19 +1078,19 @@ sub string_tests() {
 
     # regex_subst() tests
     $l = ( "hello bar hi bar", "bar hello bar hi bar", "hello bar hi" );
-    test_value(regex_subst($l[0], "bar", "foo"), "hello foo hi bar", "first non-global regular expression substitution");
-    test_value(regex_subst($l[1], "bar", "foo"), "foo hello bar hi bar", "second non-global regular expression substitution");
-    test_value(regex_subst($l[2], "BAR", "foo", RE_Caseless), "hello foo hi", "case-insensitive non-global regular expression substitution");
+    test_value(regex_subst($l[0], "bar", "foo"), "hello foo hi bar", "first non-global regex_subst()");
+    test_value(regex_subst($l[1], "bar", "foo"), "foo hello bar hi bar", "second non-global regex_subst()");
+    test_value(regex_subst($l[2], "BAR", "foo", RE_Caseless), "hello foo hi", "case-insensitive non-global regex_subst()");
     $l = ( "hello bar hi bar", "bar hello bar hi bar", "hello bar hi" );
-    test_value(regex_subst($l[0], "bar", "foo", RE_Global), "hello foo hi foo", "first global regular expression substitution");
-    test_value(regex_subst($l[1], "bar", "foo", RE_Global), "foo hello foo hi foo", "second global regular expression substitution");
-    test_value(regex_subst($l[2], "BAR", "foo", RE_Global|RE_Caseless), "hello foo hi", "case-insensitive global regular expression substitution");
+    test_value(regex_subst($l[0], "bar", "foo", RE_Global), "hello foo hi foo", "first global regex_subst()");
+    test_value(regex_subst($l[1], "bar", "foo", RE_Global), "foo hello foo hi foo", "second global regex_subst()");
+    test_value(regex_subst($l[2], "BAR", "foo", RE_Global|RE_Caseless), "hello foo hi", "case-insensitive global regex_subst()");
 
     $astr = "abc def";
     # note that the escape characters have to be escaped in the following pattern string
-    test_value(regex_subst($astr, "(\\w+) +(\\w+)", "$2, $1"), "def, abc", "first regular expression subpattern substitution");
+    test_value(regex_subst($astr, "(\\w+) +(\\w+)", "$2, $1"), "def, abc", "first subpattern regex_subst()");
     # here we use single-quotes, so the escape characters do not have to be escaped
-    test_value(regex_subst($astr, '(\w+) +(\w+)', "$2, $1"), "def, abc", "second regular expression subpattern substitution");
+    test_value(regex_subst($astr, '(\w+) +(\w+)', "$2, $1"), "def, abc", "second subpattern regex_subst()");
 
     # chomp tests
     $str = "hello\n";

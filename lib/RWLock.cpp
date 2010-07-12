@@ -165,8 +165,7 @@ void RWLock::signalImpl() {
 void RWLock::destructorImpl(ExceptionSink *xsink) {
    cond_map_t::iterator i = cmap.begin(), e = cmap.end();
    if (i != e) {
-      xsink->raiseException("RWLOCK-ERROR", "%s object deleted in TID %d while one or more Condition variables were waiting on it",
-                            getName(), gettid());
+      xsink->raiseException("RWLOCK-ERROR", "%s object deleted in TID %d while one or more Condition variables were waiting on it", getName(), gettid());
       // wake up all condition variables waiting on this mutex
       for (; i != e; i++)
          i->first->broadcast();
@@ -178,8 +177,8 @@ void RWLock::destructorImpl(ExceptionSink *xsink) {
    num_readers = 0;
    
    // release all read locks, but do not remove from the thread resource list
-   for (vlock_map_t::iterator i = vmap.begin(), e = vmap.end(); i != e; ++i)
-      i->second->pop((AbstractSmartLock *)this);
+   for (vlock_map_t::iterator vi = vmap.begin(), ve = vmap.end(); vi != ve; ++vi)
+      vi->second->pop((AbstractSmartLock *)this);
 
    vmap.clear();
    tmap.clear();

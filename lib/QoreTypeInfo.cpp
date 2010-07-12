@@ -382,7 +382,7 @@ bool QoreTypeInfo::isOutputIdentical(const QoreTypeInfo *typeInfo) const {
    for (type_vec_t::const_iterator i = my_rt.begin(), e = my_rt.end(); i != e; ++i) {
 
       bool ident = false;
-      for (type_vec_t::const_iterator j = their_rt.begin(), e = their_rt.end(); i != e; ++i) {
+      for (type_vec_t::const_iterator j = their_rt.begin(), je = their_rt.end(); i != je; ++i) {
 	 if ((*i)->isOutputIdentical(*j)) {
 	    ident = true;
 	    break;
