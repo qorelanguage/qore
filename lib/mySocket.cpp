@@ -331,7 +331,6 @@ long mySocket::verifyPeerCertificate() {
 }
 
 int mySocket::getSocket() {
-   AutoLocker al(this);
    return socket->getSocket();
 }
 

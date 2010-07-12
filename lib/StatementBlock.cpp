@@ -245,7 +245,8 @@ int StatementBlock::parseInitIntern(LocalVar *oflag, int pflag) {
    int lvids = 0;
 
    AbstractStatement *ret = 0;
-   for (statement_list_t::iterator i = statement_list.begin(), e = statement_list.end(), l = statement_list.last(); i != e; ++i) {
+
+   for (statement_list_t::iterator i = statement_list.begin(), l = statement_list.last(), e = statement_list.end(); i != e; ++i) {
       lvids += (*i)->parseInit(oflag, pflag);
       if (!ret && i != l && (*i)->endsBlock()) {
 	 // unreachable code found
@@ -307,6 +308,22 @@ void StatementBlock::parseInit(UserVariantBase *uvb) {
    // initialize code block
    if (this)
       parseInitImpl(0);
+
+   parseCheckReturn();
+}
+
+// can also be called with this = 0
+void StatementBlock::parseCheckReturn() {
+   const QoreTypeInfo *returnTypeInfo = getReturnTypeInfo();
+   if (returnTypeInfo->hasType() && !returnTypeInfo->parseAccepts(nothingTypeInfo)) {
+      // make sure the last statement is a return statement if the block has a return type
+      if (!this || statement_list.empty() || !dynamic_cast<ReturnStatement *>(*statement_list.last())) {
+	 QoreStringNode *desc = new QoreStringNode("this code block has declared return type ");
+	 returnTypeInfo->getThisType(*desc);
+	 desc->concat(" but does not have a return statement as the last statement in the block");
+	 getProgram()->makeParseException("MISSING-RETURN", desc);
+      }
+   }
 }
 
 // can also be called with this=NULL
@@ -318,6 +335,8 @@ void StatementBlock::parseInitMethod(const QoreTypeInfo *typeInfo, UserVariantBa
    // initialize code block
    if (this)
       parseInitImpl(uvb->getUserSignature()->selfid);
+
+   parseCheckReturn();
 }
 
 // can also be called with this=NULL
@@ -351,4 +370,6 @@ void StatementBlock::parseInitClosure(UserVariantBase *uvb, const QoreTypeInfo *
    // initialize code block
    if (this)
       parseInitImpl(uvb->getUserSignature()->selfid);
+
+   parseCheckReturn();
 }

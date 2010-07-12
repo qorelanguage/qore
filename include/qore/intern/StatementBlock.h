@@ -37,68 +37,69 @@ class BCAList;
 class BCList;
 
 class LVList {
-   public:
-      int num_lvars;
-      LocalVar **lv;
+public:
+   int num_lvars;
+   LocalVar **lv;
       
-      DLLLOCAL LVList(int num);
-      DLLLOCAL ~LVList();
+   DLLLOCAL LVList(int num);
+   DLLLOCAL ~LVList();
 };
 
 class LVListInstantiator {
-      const LVList *l;
-      ExceptionSink *xsink;
+   const LVList *l;
+   ExceptionSink *xsink;
 
-   public:
-      DLLLOCAL LVListInstantiator(const LVList *n_l, ExceptionSink *xs) : l(n_l), xsink(xs) {
-	 if (!l) return;
-	 for (int i = 0; i < l->num_lvars; ++i)
-	    l->lv[i]->instantiate();
-      }
+public:
+   DLLLOCAL LVListInstantiator(const LVList *n_l, ExceptionSink *xs) : l(n_l), xsink(xs) {
+      if (!l) return;
+      for (int i = 0; i < l->num_lvars; ++i)
+         l->lv[i]->instantiate();
+   }
 
-      DLLLOCAL ~LVListInstantiator() {
-	 if (!l) return;
-	 for (int i = 0; i < l->num_lvars; ++i)
-	    l->lv[i]->uninstantiate(xsink);
-      }
+   DLLLOCAL ~LVListInstantiator() {
+      if (!l) return;
+      for (int i = 0; i < l->num_lvars; ++i)
+         l->lv[i]->uninstantiate(xsink);
+   }
 };
 
 class StatementBlock : public AbstractStatement {
-   private:
-      typedef safe_dslist<AbstractStatement *> statement_list_t;
-      statement_list_t statement_list;
-      block_list_t on_block_exit_list;
-      LVList *lvars;
+private:
+   typedef safe_dslist<AbstractStatement *> statement_list_t;
+   statement_list_t statement_list;
+   block_list_t on_block_exit_list;
+   LVList *lvars;
 
-      DLLLOCAL int parseInitIntern(LocalVar *oflag, int pflag = 0);
+   DLLLOCAL int parseInitIntern(LocalVar *oflag, int pflag = 0);
+   DLLLOCAL void parseCheckReturn();
 
-   public:
-      DLLLOCAL StatementBlock(AbstractStatement *s);
-      DLLLOCAL virtual ~StatementBlock();
-      DLLLOCAL virtual int execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink);
-      DLLLOCAL virtual int parseInitImpl(LocalVar *oflag, int pflag = 0);
-      DLLLOCAL int parseInitTopLevel(RootQoreNamespace *rns, UserFunctionList *ufl, bool first);
+public:
+   DLLLOCAL StatementBlock(AbstractStatement *s);
+   DLLLOCAL virtual ~StatementBlock();
+   DLLLOCAL virtual int execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink);
+   DLLLOCAL virtual int parseInitImpl(LocalVar *oflag, int pflag = 0);
+   DLLLOCAL int parseInitTopLevel(RootQoreNamespace *rns, UserFunctionList *ufl, bool first);
 
-      DLLLOCAL void addStatement(AbstractStatement *s);
+   DLLLOCAL void addStatement(AbstractStatement *s);
 
-      using AbstractStatement::exec;
-      DLLLOCAL AbstractQoreNode *exec(ExceptionSink *xsink);
+   using AbstractStatement::exec;
+   DLLLOCAL AbstractQoreNode *exec(ExceptionSink *xsink);
 
-      using AbstractStatement::parseInit;
-      DLLLOCAL void parseInit(UserVariantBase *uvb);
+   using AbstractStatement::parseInit;
+   DLLLOCAL void parseInit(UserVariantBase *uvb);
 
-      // initialize methods
-      DLLLOCAL void parseInitMethod(const QoreTypeInfo *typeInfo, UserVariantBase *uvb); 
-      DLLLOCAL void parseInitConstructor(const QoreTypeInfo *typeInfo, UserVariantBase *uvb, BCAList *bcal, BCList *bcl); 
+   // initialize methods
+   DLLLOCAL void parseInitMethod(const QoreTypeInfo *typeInfo, UserVariantBase *uvb); 
+   DLLLOCAL void parseInitConstructor(const QoreTypeInfo *typeInfo, UserVariantBase *uvb, BCAList *bcal, BCList *bcl); 
 
-      // initialize closure blocks
-      DLLLOCAL void parseInitClosure(UserVariantBase *uvb, const QoreTypeInfo *classTypeInfo, lvar_set_t *vlist);
+   // initialize closure blocks
+   DLLLOCAL void parseInitClosure(UserVariantBase *uvb, const QoreTypeInfo *classTypeInfo, lvar_set_t *vlist);
 
-      DLLLOCAL void exec();
+   DLLLOCAL void exec();
 
-      DLLLOCAL const LVList *getLVList() const {
-	 return lvars;
-      }
+   DLLLOCAL const LVList *getLVList() const {
+      return lvars;
+   }
 };
 
 #endif // _QORE_STATEMENT_BLOCK_H
