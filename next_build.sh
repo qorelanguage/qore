@@ -16,7 +16,7 @@ else
 fi
 
 make_file() {
-    crev=`cat "$file"|cut -b15- 2>/dev/null`
+    crev=`cat "$file" 2>/dev/null|cut -b15-`
     if [ "$crev" != "$build" ]; then
 	printf "#define BUILD %s\n" $build > $1
 	echo svn revision changed to $build in $file
