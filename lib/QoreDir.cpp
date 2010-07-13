@@ -212,14 +212,13 @@ class qore_qd_private {
 	 return checkPathIntern();
       }
 
-      DLLLOCAL int mkdir(const char *subdir, int mode, ExceptionSink *xsink) const
-      {
+      DLLLOCAL int mkdir(const char *subdir, int mode, ExceptionSink *xsink) const {
 	 assert(subdir);
 	 AutoLocker al(m);
 
 	 std::string path = getPathIntern(subdir);
 	 if (::mkdir(path.c_str(), mode)) {
-	    xsink->raiseErrnoException("DIR-MKDIR-ERROR", errno, "error on creating subdirectory '%s' in '%s'", subdir, dirname);
+	    xsink->raiseErrnoException("DIR-MKDIR-ERROR", errno, "error creating directory '%s'", path.c_str());
 	    return -1;
 	 }
 	 return 0;
@@ -232,7 +231,7 @@ class qore_qd_private {
 
 	 std::string path = getPathIntern(subdir);
 	 if (::rmdir(path.c_str())) {
-	    xsink->raiseErrnoException("DIR-RMDIR-ERROR", errno, "error on removing subdirectory '%s' in '%s'", subdir, dirname);
+	    xsink->raiseErrnoException("DIR-RMDIR-ERROR", errno, "error removing directory '%s'", path.c_str());
 	    return -1;
 	 }
 	 

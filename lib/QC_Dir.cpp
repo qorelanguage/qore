@@ -137,8 +137,7 @@ static AbstractQoreNode *DIR_mkdir(QoreObject *self, Dir *d, const QoreListNode 
    // get mode parameter (if any, default = 0777)
    int mode = (int)HARD_QORE_INT(params, 1);
 
-   std::string path = d->getPath(dname);
-   d->mkdir(xsink, path.c_str(), mode);
+   d->mkdir(xsink, p0->getBuffer(), mode);
    return 0;
 }
 
