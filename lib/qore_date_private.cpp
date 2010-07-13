@@ -217,8 +217,6 @@ void qore_date_private::format(QoreString &str, const char *fmt) const {
    qore_time_info i;
    get(i);
 
-   QORE_TRACE("qore_date_private::format()");
-
    const char *s = fmt;
    while (*s) {
       switch (*s) {
@@ -393,8 +391,6 @@ void qore_date_private::format(QoreString &str, const char *fmt) const {
       }
       s++;
    }
-
-   printd(5, "qore_date_private::format() returning \"%s\"\n", str.getBuffer());
 }
 
 static int get_uint(const char *&p, int digits) {

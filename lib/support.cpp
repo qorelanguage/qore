@@ -55,6 +55,9 @@ int printe(const char *fmt, ...) {
 }
 
 static void get_timestamp(QoreString &str) {
+   if (!threads_initialized)
+      return;
+
    int us;
    int64 secs = q_epoch_us(us);
    DateTime now;
