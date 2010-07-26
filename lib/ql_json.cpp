@@ -198,7 +198,7 @@ static AbstractQoreNode *getJSONArray(const char *&buf, int &line_number, const 
 
    skip_whitespace(buf, line_number);
    if (*buf == ']') {
-      *buf++;
+      ++buf;
       return l.release();
    }
 
