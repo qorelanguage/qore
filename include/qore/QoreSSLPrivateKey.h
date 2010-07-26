@@ -73,14 +73,17 @@ public:
    DLLEXPORT EVP_PKEY *getData() const;
 
    DLLEXPORT const char *getType() const;
+
+   //! returns a constant '1': do not use; only included for backwards-compatibility
    DLLEXPORT int64 getVersion() const;
 
-   // returns the length in bits
+   //! returns the length in bits
    DLLEXPORT int64 getBitLength() const;
 
-   // caller owns the QoreHashNode reference count returned
+   //! caller owns the QoreHashNode reference count returned
    DLLEXPORT QoreHashNode *getInfo() const;
 
+   //! private constructor; not exported
    DLLLOCAL QoreSSLPrivateKey(EVP_PKEY *p);
 };
 

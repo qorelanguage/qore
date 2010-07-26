@@ -127,42 +127,12 @@ const char *QoreSSLPrivateKey::getType() const {
 }
 
 int64 QoreSSLPrivateKey::getVersion() const {
-   switch (EVP_PKEY_type(priv->pk->type)) {
-#ifndef OPENSSL_NO_RSA
-      case EVP_PKEY_RSA:
-	 return (int64)priv->pk->pkey.rsa->version + 1;
-#endif
-#ifndef OPENSSL_NO_DSA
-      case EVP_PKEY_DSA:
-	 return (int64)priv->pk->pkey.dsa->version + 1;
-#endif
-#ifndef OPENSSL_NO_DH
-      case EVP_PKEY_DH:
-	 return (int64)priv->pk->pkey.dh->version + 1;
-#endif
-      default:
-	 return 0;
-   }
+   return 1;
 }
 
 // returns the length in bits
 int64 QoreSSLPrivateKey::getBitLength() const {
-   switch (EVP_PKEY_type(priv->pk->type)) {
-#ifndef OPENSSL_NO_RSA
-      case EVP_PKEY_RSA:
-	 return (int64)RSA_size(priv->pk->pkey.rsa) * 8;
-#endif
-#ifndef OPENSSL_NO_DSA
-      case EVP_PKEY_DSA:
-	 return (int64)DSA_size(priv->pk->pkey.dsa) * 8;
-#endif
-#ifndef OPENSSL_NO_DH
-      case EVP_PKEY_DH:
-	 return (int64)DH_size(priv->pk->pkey.dh) * 8;
-#endif
-      default:
-	 return 0;
-   }
+   return (int64)EVP_PKEY_bits(priv->pk);
 }
 
 QoreHashNode *QoreSSLPrivateKey::getInfo() const {

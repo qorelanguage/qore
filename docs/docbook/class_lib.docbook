@@ -21021,7 +21021,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
               <para>N</para>
             </entry>
             <entry>
-              <para>Returns the version of the private key.</para>
+              <para>Returns a constant 1; do not use; only included for backwards compatibility.</para>
             </entry>
           </row>
           <row>
@@ -21232,7 +21232,8 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Returns the version of the private key as an integer.</para>
+            <para>Returns a constant value of 1; do not use; only included for backwards-compatibility.</para>
+	    <para>The openssl library never put any usable value into the internal fields that were used to provide this information; newer versions of openssl do not expose this information at all, therefore this method now returns a constant value of 1 for backwards-compatibility.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -21267,7 +21268,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
                 <para><code><link linkend="int_type">int</link></code></para>
               </entry>
               <entry>
-                <para>The version of the private key.</para>
+                <para>Always returns a value of 1.</para>
               </entry>
             </row>
           </tbody>
