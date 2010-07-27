@@ -908,6 +908,9 @@ sub string_tests() {
     test_value(brindex($str, "ß"), 45, "first UTF-8 brindex()");
     test_value(brindex($str, "ß", 25), 20, "second UTF-8 brindex()"); 
     test_value(reverse($str), "neßürgeb ehöH eid hcis tßäl nekloW eid rebÜ", "UTF-8 reverse()");
+    test_value(index($str, "==="), -1, "negative index()");
+    test_value(rindex($str, "==="), -1, "negative rindex()");
+    test_value(bindex($str, "==="), -1, "negative bindex()");
 
     test_value($str[31], "ö", "first UTF-8 string index dereference");
     test_value($str[39], "ü", "second UTF-8 string index dereference");

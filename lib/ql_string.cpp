@@ -90,7 +90,7 @@ static AbstractQoreNode *f_index_str_str_int(const QoreListNode *args, Exception
    HARD_QORE_PARAM(t1, const QoreStringNode, args, 1);
    qore_offset_t pos = (qore_offset_t)HARD_QORE_INT(args, 2);
 
-   qore_size_t rc = hs->index(*t1, pos, xsink);
+   qore_offset_t rc = hs->index(*t1, pos, xsink);
    return *xsink ? 0 : new QoreBigIntNode(rc);
 }
 
@@ -132,7 +132,7 @@ static AbstractQoreNode *f_rindex_str_str_int(const QoreListNode *args, Exceptio
    HARD_QORE_PARAM(t1, const QoreStringNode, args, 1);
    qore_offset_t pos = (qore_offset_t)HARD_QORE_INT(args, 2);
 
-   qore_size_t rc = hs->rindex(*t1, pos, xsink);
+   qore_offset_t rc = hs->rindex(*t1, pos, xsink);
    return *xsink ? 0 : new QoreBigIntNode(rc);
 }
 
