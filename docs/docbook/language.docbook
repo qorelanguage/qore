@@ -1221,13 +1221,12 @@ False</programlisting></note>
     <para>An expression can be any of the following (note that expressions are also recursively defined):</para>
     <table>
       <title>Expressions</title>
-      <tgroup cols='4' align='left' colsep='1' rowsep='1'>
+      <tgroup cols='3' align='left' colsep='1' rowsep='1'>
 	<thead>
 	  <row>
 	    <entry><para>Type</para></entry>
 	    <entry><para>Description</para></entry>
-	    <entry>
-	    <para>Examples</para></entry>
+	    <entry><para>Examples</para></entry>
 	  </row>
 	</thead>
 	<tbody>
@@ -2882,7 +2881,7 @@ $var[1].count++;
     <entry><para><code>constructor()</code></para></entry>
     <entry>
       <para>Called when objects are created when instantiated by a variable declaration with a class type and constructor arguments or explicitly with the <link linkend='New_Object_Operator'><command>new</command></link> operator. User code may not explicitly call <code>constructor()</code> methods directly.  In a class tree, <code>constructor()</code> methods are called for base classes first in left-to-right, depth-first declaration order.</para>
-      <para><code>constructor()</code> methods may be overloaded and also private constructors may be defined.  Private constructor can only be called from within the class.</para>
+      <para><code>constructor()</code> methods may be overloaded and also private constructors may be defined.  Private constructors can only be called from within the class.</para>
     </entry>
   </row>
   <row id="copy_methods">

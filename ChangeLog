@@ -1,3 +1,1993 @@
+2010-07-13 11:23  david_nichols
+
+	* lib/qore_date_private.cpp, lib/support.cpp: fixes for running
+	  qore with trace flag set in debugging mode
+
+2010-07-13 10:55  david_nichols
+
+	* lib/QC_Dir.cpp, lib/QoreDir.cpp: fixed a bug in Dir::mkdir()
+
+2010-07-12 16:27  david_nichols
+
+	* include/qore/intern/AbstractStatement.h,
+	  include/qore/intern/ContextStatement.h,
+	  include/qore/intern/DoWhileStatement.h,
+	  include/qore/intern/ForEachStatement.h,
+	  include/qore/intern/ForStatement.h,
+	  include/qore/intern/IfStatement.h,
+	  include/qore/intern/OnBlockExitStatement.h,
+	  include/qore/intern/RethrowStatement.h,
+	  include/qore/intern/ReturnStatement.h,
+	  include/qore/intern/StatementBlock.h,
+	  include/qore/intern/SwitchStatement.h,
+	  include/qore/intern/ThrowStatement.h,
+	  include/qore/intern/TryStatement.h,
+	  include/qore/intern/WhileStatement.h, lib/Function.cpp,
+	  lib/StatementBlock.cpp: fixed (at last vasly improved) parse time
+	  "missing return statement" checking; implemented run-time
+	  checking when NOTHING is returned
+
+2010-07-12 15:28  david_nichols
+
+	* include/qore/intern/StatementBlock.h, lib/Function.cpp,
+	  lib/StatementBlock.cpp, lib/mySocket.cpp: fixed parse-time
+	  variant matching; fixed a bug where it was possible to declare a
+	  function/method/closure with a return type and then not have a
+	  return statement as the last statement in the block thereby
+	  exiting with return value NOTHING, which could cause a crash
+
+2010-07-12 13:11  david_nichols
+
+	* docs/docbook/class_lib.docbook,
+	  include/qore/intern/DatasourcePool.h,
+	  include/qore/intern/SSLSocketHelper.h,
+	  include/qore/qore_bitopts.h, lib/DatasourcePool.cpp,
+	  lib/QC_Dir.cpp, lib/QC_File.cpp, lib/QC_FtpClient.cpp,
+	  lib/QC_Program.cpp, lib/QC_Socket.cpp,
+	  lib/QoreExtractOperatorNode.cpp, lib/QoreHTTPClient.cpp,
+	  lib/QoreSocket.cpp, lib/QoreSpliceOperatorNode.cpp,
+	  lib/QoreTypeInfo.cpp, lib/RWLock.cpp, lib/ql_lib.cpp,
+	  lib/ql_string.cpp, lib/ql_time.cpp, lib/thread.cpp, test/test.q:
+	  fixed setegid(), was non functional before; fixed more warnings
+	  with Sun Studio compilers
+
+2010-07-12 12:29  david_nichols
+
+	* include/qore/intern/Function.h,
+	  include/qore/intern/FunctionCallNode.h,
+	  include/qore/intern/qore_date_private.h,
+	  include/qore/qore_bitopts.h, lib/AbstractQoreNode.cpp,
+	  lib/DateTimeNode.cpp, lib/QC_Datasource.cpp,
+	  lib/QC_DatasourcePool.cpp, lib/QC_HTTPClient.cpp,
+	  lib/QC_Sequence.cpp, lib/QC_TermIOS.cpp, lib/QC_XmlNode.cpp,
+	  lib/QC_XmlReader.cpp, lib/QoreSocket.cpp, lib/QoreStringNode.cpp,
+	  lib/QoreTreeNode.cpp: fixed 2-byte bitop swap on MSB platforms
+	  (ex sparc); fixed DatasourcePool::constructor(hash), was ignoring
+	  "max" option and setting to default (20); fixed some warnings
+	  with the SunStudio compiler and +w
+
+2010-07-12 12:00  david_nichols
+
+	* lib/QC_TimeZone.cpp, lib/QoreSocket.cpp: corrected some warnings;
+	  first attempt to correct 2-byte bitop swap error
+
+2010-07-12 11:43  david_nichols
+
+	* next_build.sh: cosmetic fix in script
+
+2010-07-11 17:52  david_nichols
+
+	* lib/QoreSocket.cpp: commented-out another debugging message
+
+2010-07-11 14:54  david_nichols
+
+	* lib/QoreSocket.cpp: commented-out debugging output
+
+2010-07-11 14:33  david_nichols
+
+	* TODO, docs/docbook/class_lib.docbook, include/qore/QoreSocket.h,
+	  include/qore/intern/SSLSocketHelper.h, lib/QC_Socket.cpp,
+	  lib/QoreSocket.cpp, test/socket-test.q: made all socket read
+	  methods taking a timeout throw a SOCKET-TIMEOUT exception instead
+	  of returning NOTHING; fixed SSL read timeouts with recv*();
+	  updated documentation
+
+2010-07-09 08:51  david_nichols
+
+	* Makefile.am, include/qore/intern/QoreImplicitElementNode.h,
+	  include/qore/intern/QoreLibIntern.h,
+	  include/qore/intern/qore_thread_intern.h,
+	  include/qore/node_types.h, lib/ForEachStatement.cpp,
+	  lib/Makefile.am, lib/Operator.cpp,
+	  lib/QoreImplicitElementNode.cpp, lib/parser.ypp, lib/scanner.lpp,
+	  lib/single-compilation-unit.cpp, lib/thread.cpp: implemented #$
+	  giving the implicit offset when implicitly iterating a list
+	  (foreach, map, foldl, foldr, select)
+
+2010-07-07 17:05  david_nichols
+
+	* include/qore/QoreString.h,
+	  include/qore/intern/qore_string_private.h, lib/QoreString.cpp,
+	  lib/ql_string.cpp, test/test.q: moved all *index() functions to
+	  QoreString member functions
+
+2010-07-07 15:57  david_nichols
+
+	* command-line.cpp, include/qore/QoreString.h,
+	  include/qore/intern/qore_string_private.h, lib/QoreString.cpp,
+	  lib/ql_string.cpp, test/test.q: added new functions to QoreString
+	  class index() and bindex()
+
+2010-07-07 08:59  david_nichols
+
+	* lib/QoreFile.cpp: fixed a typo in QoreFile::readLine()
+
+2010-07-07 08:42  david_nichols
+
+	* include/qore/QoreFile.h, lib/QoreFile.cpp: fixed
+	  QoreFile::readLine() and also Solaris zoneinfo from /etc/TIMEZONE
+	  initialization
+
+2010-07-07 08:38  david_nichols
+
+	* include/qore/QoreFile.h, lib/QoreFile.cpp,
+	  lib/QoreTimeZoneManager.cpp: updated time zone initialization to
+	  parse /etc/TIMEZONE on solaris if the TZ variable is not set to
+	  set the time zone
+
+2010-07-07 04:47  david_nichols
+
+	* lib/QoreClass.cpp: fixed a bug in QoreClass initialization from
+	  modules that would cause a crash
+
+2010-07-06 20:05  david_nichols
+
+	* TODO: updated todo
+
+2010-07-06 20:02  david_nichols
+
+	* lib/scanner.lpp, main.cpp: fixed command-line to take modules
+	  loaded on the command-line and apply them immediately to the
+	  program class; made "abstract" usable as an unquoted hash key or
+	  object member
+
+2010-07-02 11:12  david_nichols
+
+	* lib/ReturnStatement.cpp: fixed typo
+
+2010-07-01 16:23  david_nichols
+
+	* include/qore/intern/ForStatement.h: cosmetic updates
+
+2010-07-01 06:56  david_nichols
+
+	* lib/ForStatement.cpp: cosmetic updates
+
+2010-06-30 16:14  david_nichols
+
+	* TODO, include/qore/intern/QoreTreeNode.h: removed unused member
+	  of QoreTreeNode, updated TODO
+
+2010-06-29 14:29  david_nichols
+
+	* lib/StatementBlock.cpp: fixed a crashing bug when on_exit,
+	  on_success, or on_error statement bodies are empty ({})
+
+2010-06-25 08:50  david_nichols
+
+	* lib/support.cpp: added timestamp to debugging output messages
+
+2010-06-23 09:59  david_nichols
+
+	* Makefile.am, include/qore/BuiltinFunctionList.h,
+	  include/qore/QoreHashNode.h, include/qore/hash_map.h,
+	  include/qore/intern/GlobalVariableList.h,
+	  include/qore/intern/QoreClassList.h,
+	  include/qore/intern/UserFunctionList.h, lib/QoreHashNode.cpp:
+	  removed hash_map.h file and made declarations local to their
+	  scope
+
+2010-06-22 15:32  david_nichols
+
+	* TODO: updated todo
+
+2010-06-22 15:06  david_nichols
+
+	* lib/Makefile.am, lib/QoreHashNode.cpp, lib/ReturnStatement.cpp:
+	  minor cosmetic changes; updated lib to 5.4.1; fixed a bug in the
+	  return statement to not check return type if an exception is
+	  active
+
+2010-06-21 09:12  david_nichols
+
+	* qore.spec: updated spec files to generically determine *suse
+	  versions for distribution tagging in rpm file names
+
+2010-06-18 13:45  subik
+
+	* docs/img/important.png, docs/img/note.png, docs/img/tip.png,
+	  docs/img/warning.png, docs/qore-style.css: new CSS for qore docs
+
+2010-06-18 09:29  david_nichols
+
+	* qore.spec: fixed spec files
+
+2010-06-18 08:50  david_nichols
+
+	* qore.spec: fixed spec file for module api
+
+2010-06-16 11:26  david_nichols
+
+	* include/qore/intern/QoreTypeInfo.h,
+	  include/qore/intern/qore_date_private.h, lib/Operator.cpp,
+	  lib/ql_lib.cpp: minor fixes for some warnings with SunStudio CC;
+	  use new date/time APIs for atime and mtime in stat data
+	  structures
+
+2010-06-15 14:48  subik
+
+	* qore.spec: fixed date in spec file
+
+2010-06-15 10:38  subik
+
+	* docs/chunks2php: php generator 'production' fixes
+
+2010-06-15 09:29  david_nichols
+
+	* lib/ModuleManager.cpp: solaris CC compile fixes
+
+2010-06-15 08:22  david_nichols
+
+	* RELEASE-NOTES, configure.ac, docs/docbook/bookinfo.docbook,
+	  doxygen/Doxyfile, qore.spec: updated version to 0.8.1 for next
+	  release
+
+2010-06-14 13:51  david_nichols
+
+	* BUILD, README, RELEASE-NOTES, WHATISQORE: minor doc updates
+
+2010-06-14 11:22  david_nichols
+
+	* docs/qore.html, lib/QoreCastOperatorNode.cpp: readded html
+	  documentation to make package building easier, fixed cast
+	  operator no longer to check for class compatibility and do all
+	  checking at run-time; this allows the cast operator to work with
+	  complex class hierarchies in a more flexible way at runtime
+
+2010-06-14 08:10  david_nichols
+
+	* docs/docbook/class_lib.docbook,
+	  docs/docbook/function_lib.docbook: minor formatting updates
+
+2010-06-11 16:14  david_nichols
+
+	* RELEASE-NOTES, docs/docbook/class_lib.docbook,
+	  docs/docbook/command_line.docbook,
+	  docs/docbook/function_lib.docbook, docs/docbook/language.docbook,
+	  docs/docbook/operators.docbook,
+	  docs/docbook/parse_directives.docbook, docs/qore.html,
+	  include/qore/QoreString.h,
+	  include/qore/intern/FunctionCallNode.h, lib/QoreLib.cpp,
+	  lib/QoreString.cpp, lib/QoreStringNode.cpp, lib/ql_type.cpp,
+	  test/rwlock-test.q: doc updated, minor miscellaneous variant
+	  updates, fixed 2 crashing bugs
+
+2010-06-11 13:37  subik
+
+	* include/qore/intern/QoreLibIntern.h,
+	  include/qore/intern/QoreTypeInfo.h: fixed non-single compilation
+	  unit + tons of gcc warnings
+
+2010-06-11 08:44  david_nichols
+
+	* docs/docbook/function_lib.docbook: fixed hash(list, list) docs
+
+2010-06-10 21:17  david_nichols
+
+	* lib/ql_list.cpp: added another dummy inlist_hard() NOOP function
+	  for better error reporting
+
+2010-06-10 21:12  david_nichols
+
+	* lib/ql_list.cpp: added an explicit variant for list(any, nothing)
+	  returns bool
+
+2010-06-10 20:27  david_nichols
+
+	* docs/Makefile, docs/docbook/class_lib.docbook,
+	  docs/docbook/function_lib.docbook, docs/qore.html,
+	  include/qore/QoreProgram.h,
+	  include/qore/intern/ImportedFunctionList.h,
+	  lib/ImportedFunctionList.cpp, lib/QC_Program.cpp,
+	  lib/QoreProgram.cpp: updated docs - added
+	  Program::importFunction(string $func, string $new_name) returns
+	  nothing variant
+
+2010-06-10 19:14  subik
+
+	* docs/chunks2php: PHP online commentable docs generator
+
+2010-06-10 17:02  david_nichols
+
+	* docs/docbook/function_lib.docbook, docs/qore.html: documented
+	  hash(list, list) returns hash variant
+
+2010-06-10 16:40  david_nichols
+
+	* lib/ql_type.cpp: implemented hash(list, list) returns hash
+
+2010-06-10 14:26  david_nichols
+
+	* RELEASE-NOTES, docs/docbook/class_lib.docbook,
+	  docs/docbook/function_lib.docbook,
+	  docs/docbook/parse_directives.docbook, docs/qore.html,
+	  include/qore/common.h, lib/ModuleManager.cpp, lib/ql_lib.cpp:
+	  added docs for setsid(), fixed umask() and srand() domain to be
+	  QDOM_PROCESS (instead of QDOM_FILESYSTEM), implemented a module
+	  blacklist for the qt-core, qt-gui, qt-svn, and qt-opengl modules,
+	  because they use faulty namespace management and do not work with
+	  qore 0.8.0+; updated RELEASE-NOTES
+
+2010-06-09 10:59  david_nichols
+
+	* configure.ac, include/qore/intern/QoreTypeInfo.h: allow static
+	  linking of libbz2, fixed constructor arg order in QoreTypeInfo.h
+
+2010-06-08 08:21  david_nichols
+
+	* include/qore/QoreType.h, include/qore/intern/QoreTypeInfo.h,
+	  lib/QoreCastOperatorNode.cpp, lib/QoreType.cpp,
+	  lib/QoreTypeInfo.cpp: simplified external type info API
+
+2010-06-07 14:16  david_nichols
+
+	* include/qore/QoreType.h, include/qore/intern/QoreTypeInfo.h,
+	  lib/QoreType.cpp, lib/QoreTypeInfo.cpp, lib/VarRefNode.cpp:
+	  external type info API updates
+
+2010-06-07 10:10  david_nichols
+
+	* include/qore/QoreType.h, include/qore/intern/QoreTypeInfo.h,
+	  lib/QoreType.cpp, lib/ql_string.cpp: updated type info API and
+	  fixed a bug in replace()
+
+2010-06-07 09:02  david_nichols
+
+	* include/qore/intern/QoreTypeInfo.h, lib/QoreLib.cpp: fixed
+	  runtime argument matching with privately-inherited classes
+
+2010-06-07 08:12  david_nichols
+
+	* include/qore/QoreType.h, include/qore/intern/QoreTypeInfo.h,
+	  lib/QoreType.cpp: updated external type info API to new internal
+	  API
+
+2010-06-04 16:51  david_nichols
+
+	* include/qore/QoreType.h, include/qore/intern/Function.h,
+	  include/qore/intern/QoreClassIntern.h,
+	  include/qore/intern/QoreLibIntern.h,
+	  include/qore/intern/QoreTypeInfo.h,
+	  include/qore/intern/VarRefNode.h, include/qore/intern/Variable.h,
+	  lib/CallReferenceNode.cpp, lib/Function.cpp,
+	  lib/FunctionCallNode.cpp, lib/Operator.cpp,
+	  lib/QoreCastOperatorNode.cpp, lib/QoreClass.cpp,
+	  lib/QoreExtractOperatorNode.cpp, lib/QoreSpliceOperatorNode.cpp,
+	  lib/QoreType.cpp, lib/QoreTypeInfo.cpp,
+	  lib/QoreUnaryMinusOperatorNode.cpp, lib/ReferenceHelper.cpp,
+	  lib/ReturnStatement.cpp, lib/StatementBlock.cpp,
+	  lib/VarRefNode.cpp, lib/Variable.cpp: updated type info API
+	  (external API not yet reimplemented)
+
+2010-06-02 13:21  david_nichols
+
+	* include/qore/intern/QoreTypeInfo.h,
+	  include/qore/intern/Variable.h, lib/Function.cpp,
+	  lib/QoreTypeInfo.cpp: updates to new type info API, stripped out
+	  unused cruft from QoreParseTypeInfo to make it a very simple
+	  independent class
+
+2010-06-02 11:56  david_nichols
+
+	* include/qore/intern/QoreTypeInfo.h, lib/QoreTypeInfo.cpp: more
+	  new type info implementation updates
+
+2010-06-01 15:14  david_nichols
+
+	* include/qore/intern/QoreTypeInfo.h: removed incorrect comments
+
+2010-06-01 15:08  david_nichols
+
+	* include/qore/intern/QoreTypeInfo.h: first part of new more
+	  flexbile/extensible internal type info api implementation
+
+2010-06-01 15:07  david_nichols
+
+	* lib/QoreLib.cpp: minor class matching fix
+
+2010-06-01 08:28  david_nichols
+
+	* command-line.cpp: added command-line options for new parse
+	  options
+
+2010-05-31 14:35  david_nichols
+
+	* lib/QoreSSLCertificate.cpp, lib/QoreSSLPrivateKey.cpp: fix for
+	  last patch
+
+2010-05-31 14:28  david_nichols
+
+	* configure.ac, lib/QoreSSLCertificate.cpp,
+	  lib/QoreSSLPrivateKey.cpp: fixed compilation with older versions
+	  of openssl; fixed SHA_512 algorithm check with older versions of
+	  openssl
+
+2010-05-31 13:42  david_nichols
+
+	* docs/docbook/language.docbook, docs/qore.html: doc updates, added
+	  "returns" documentation and corrected documentation for
+	  prototypes, etc
+
+2010-05-30 17:10  david_nichols
+
+	* include/qore/Restrictions.h, include/qore/intern/Function.h:
+	  missing changes from last commit
+
+2010-05-30 14:19  david_nichols
+
+	* docs/docbook/class_lib.docbook,
+	  docs/docbook/function_lib.docbook,
+	  docs/docbook/parse_directives.docbook, lib/Function.cpp,
+	  lib/FunctionCallNode.cpp, lib/QC_Gate.cpp, lib/QoreClass.cpp,
+	  lib/QoreProgram.cpp, lib/scanner.lpp, test/test.q: implemented
+	  strict-args (PO_STRICT_ARGS) and require-prototypes
+	  (PO_REQUIRE_PROTOTYPES) parse options; additionally, if excess
+	  args are given to a function or method with either strict-args or
+	  require-types set, then an error will be raised
+
+2010-05-28 18:48  david_nichols
+
+	* docs/docbook/class_lib.docbook,
+	  docs/docbook/function_lib.docbook: minor doc updates
+
+2010-05-28 12:00  subik
+
+	* docs/Makefile, doxygen/Doxyfile: qthelp docs fixes for fresh svn
+	  checkout
+
+2010-05-28 09:21  david_nichols
+
+	* lib/QoreFloatNode.cpp: do not use round() function because it's
+	  not available on Solaris 8
+
+2010-05-27 13:59  david_nichols
+
+	* examples/stmt.q: update to supress unreachable-code warning
+
+2010-05-27 13:47  david_nichols
+
+	* test/ftp-test.q: updated test to retrieve file
+
+2010-05-27 13:45  david_nichols
+
+	* lib/ExceptionSink.cpp, test/ftp-test.q: minor fixes to ftp-test
+	  script, updated exception text output when exceptions raised by
+	  raiseErrnoException()
+
+2010-05-27 13:21  david_nichols
+
+	* docs/docbook/operators.docbook: added links for regular
+	  expression operators
+
+2010-05-27 13:10  david_nichols
+
+	* docs/docbook/language.docbook: minor updates
+
+2010-05-27 13:08  david_nichols
+
+	* docs/docbook/class_lib.docbook,
+	  docs/docbook/function_lib.docbook,
+	  docs/docbook/introduction.docbook, docs/docbook/language.docbook,
+	  docs/qore-style.css, docs/qore.html: added new Program methods
+	  related to time zone information, other doc updates
+
+2010-05-27 12:34  david_nichols
+
+	* lib/ql_time.cpp: corrected date_us() to make a date/time value in
+	  the local time zone from an offset from 1970-01-01 relative to
+	  the local time zone as documented
+
+2010-05-27 12:17  david_nichols
+
+	* docs/docbook/function_lib.docbook, docs/docbook/language.docbook,
+	  docs/qore.html, lib/ql_json.cpp, lib/ql_xml.cpp: added docs about
+	  xml-rpc serialization, fixed xml-rpc and json-rpc float
+	  serialization to use greater precision
+
+2010-05-27 12:11  david_nichols
+
+	* docs/docbook/language.docbook,
+	  include/qore/intern/qore_date_private.h, lib/QoreString.cpp,
+	  lib/ql_xml.cpp: fixed xml-rpc date/time serialization to use the
+	  current time zone; fixed DateTime::getInfo() to respect the time
+	  zone argument passed; fixed XML-RPC serialization to throw an
+	  exception if an unsupported type is passed for serialization
+	  rather than creating invalid XML-RPC output
+
+2010-05-26 15:43  subik
+
+	* docs/docbook/class_lib.docbook: tables with empty columns fix
+
+2010-05-26 15:11  david_nichols
+
+	* docs/docbook/class_lib.docbook,
+	  docs/docbook/parse_directives.docbook, lib/QC_XmlRpcClient.cpp:
+	  fixed XmlRpcClient::call*() method return value type info (should
+	  be hash instead of any)
+
+2010-05-26 14:56  subik
+
+	* docs/Makefile, docs/docbook2qthelp: qthelp generator for docbook
+
+2010-05-26 14:39  david_nichols
+
+	* command-line.cpp, docs/docbook/class_lib.docbook,
+	  docs/docbook/command_line.docbook,
+	  docs/docbook/comparison.docbook,
+	  docs/docbook/function_lib.docbook, docs/docbook/keywords.docbook,
+	  docs/docbook/language.docbook, docs/docbook/operators.docbook,
+	  docs/docbook/parse_directives.docbook, docs/docbook/qore.docbook,
+	  docs/qore.html, lib/QC_AbstractSmartLock.cpp,
+	  lib/QC_TimeZone.cpp, lib/ql_string.cpp, lib/scanner.lpp:
+	  implemented new parse directives and command-line options for new
+	  parse options (no-thread-info, no-locale-control, and
+	  no-external-info), updated docs, fixed regex_extract() return
+	  type info (should be any instead of list)
+
+2010-05-26 13:31  david_nichols
+
+	* docs/docbook/class_lib.docbook,
+	  docs/docbook/function_lib.docbook, docs/docbook/language.docbook,
+	  docs/docbook/parse_directives.docbook: updated docs for new
+	  release
+
+2010-05-26 12:28  subik
+
+	* docs/qore-style.css: tables spacing in the docs
+
+2010-05-26 10:18  subik
+
+	* docs/qore-style.css: code is wrapped in tables, terms are
+	  highlighted
+
+2010-05-26 09:04  david_nichols
+
+	* docs/docbook/class_lib.docbook: updated class docs
+
+2010-05-25 17:03  david_nichols
+
+	* docs/docbook/class_lib.docbook: updated class docs
+
+2010-05-25 17:02  david_nichols
+
+	* lib/QC_SSLPrivateKey.cpp: fixed
+	  SSLPrivateKey::constructor(binary) type info
+
+2010-05-25 12:24  david_nichols
+
+	* lib/QC_HTTPClient.cpp: cosmetic update
+
+2010-05-25 12:24  david_nichols
+
+	* docs/docbook/class_lib.docbook: updated class docs
+
+2010-05-25 11:05  david_nichols
+
+	* docs/docbook/class_lib.docbook, docs/qore.html,
+	  lib/QC_Socket.cpp: class doc updates; typeinfo update:
+	  Socket::shutdownSSL() returns nothing (not int)
+
+2010-05-25 08:47  david_nichols
+
+	* RELEASE-NOTES, lib/QoreSocket.cpp, test/socket-test.q: fixed
+	  Socket::sendi1() return value (was returning -1 when no error
+	  occurred); updated Socket::shutdownSSL() to return NOTHING
+	  (return value was meaningless because it always throws an
+	  exception if there's an error), added send return value checks to
+	  socket-test.q
+
+2010-05-24 16:21  david_nichols
+
+	* RELEASE-NOTES, docs/docbook/class_lib.docbook, docs/qore.html,
+	  include/qore/intern/QC_File.h, lib/QC_FtpClient.cpp,
+	  lib/QoreFtpClient.cpp: updated docs and corrected typinfo
+
+2010-05-24 09:13  david_nichols
+
+	* lib/Function.cpp: fixed parse-time matching like the last runtime
+	  fix
+
+2010-05-24 09:05  david_nichols
+
+	* docs/docbook/class_lib.docbook, lib/Function.cpp,
+	  lib/FunctionCallNode.cpp, lib/QoreClass.cpp, lib/QoreObject.cpp:
+	  doc updates and fixed variant matching from last fix
+
+2010-05-24 08:14  david_nichols
+
+	* docs/docbook/class_lib.docbook, docs/docbook/language.docbook:
+	  doc updates - File class and fixed Datasource links
+
+2010-05-24 07:24  david_nichols
+
+	* docs/docbook/class_lib.docbook: updated Dir class docs
+
+2010-05-22 10:51  david_nichols
+
+	* docs/docbook/class_lib.docbook: removed empty sections for
+	  methods taking no arguments
+
+2010-05-22 09:52  david_nichols
+
+	* docs/docbook/class_lib.docbook, lib/QC_File.cpp: updated default
+	  argument for first parameter of File::lock() and
+	  File::lockBlocking() to be F_RDLCK instead of 0 (which is
+	  invalid)
+
+2010-05-22 06:32  david_nichols
+
+	* docs/docbook/class_lib.docbook, docs/qore.html: updates to File
+	  class docs
+
+2010-05-21 19:37  subik
+
+	* docs/docbook/class_lib.docbook,
+	  docs/docbook/function_lib.docbook,
+	  docs/docbook/operators.docbook, docs/qore-style.css,
+	  docs/qore.html: docs typographics changes
+
+2010-05-21 17:32  david_nichols
+
+	* docs/Makefile, docs/docbook/class_lib.docbook,
+	  docs/docbook/function_lib.docbook,
+	  docs/docbook/introduction.docbook, docs/docbook/language.docbook,
+	  docs/qore.html, lib/Function.cpp, lib/QC_TimeZone.cpp: doc
+	  updates and fixed variant resolution (again) - matches based on
+	  missing arguments and default parameters do not count towards
+	  match count
+
+2010-05-21 14:21  david_nichols
+
+	* RELEASE-NOTES, docs/docbook/class_lib.docbook, docs/qore.html,
+	  include/qore/intern/QoreXPath.h,
+	  include/qore/intern/QoreXmlReader.h, lib/QC_Counter.cpp,
+	  lib/QC_DatasourcePool.cpp, lib/QC_Gate.cpp, lib/QC_RWLock.cpp,
+	  lib/QC_XmlDoc.cpp, lib/QC_XmlReader.cpp, lib/QoreCounter.cpp,
+	  lib/ql_xml.cpp: doc updated and type info fixes
+
+2010-05-21 05:49  david_nichols
+
+	* lib/QC_TimeZone.cpp: fixed variant ordering for
+	  TimeZone::date(date)
+
+2010-05-20 16:28  david_nichols
+
+	* RELEASE-NOTES, docs/Makefile, docs/docbook/class_lib.docbook,
+	  docs/docbook/operators.docbook, docs/qore.html, lib/DBI.cpp,
+	  lib/QC_Datasource.cpp, lib/QC_HTTPClient.cpp,
+	  lib/QC_JsonRpcClient.cpp, lib/QC_Program.cpp,
+	  lib/QC_SSLCertificate.cpp, lib/QC_Socket.cpp,
+	  lib/QC_XmlRpcClient.cpp, lib/QoreSSLBase.cpp,
+	  lib/QoreSSLCertificate.cpp: doc updates and type info fixes
+
+2010-05-19 15:45  david_nichols
+
+	* docs/docbook/function_lib.docbook: minor doc updates
+
+2010-05-19 15:43  david_nichols
+
+	* docs/docbook/class_lib.docbook,
+	  docs/docbook/function_lib.docbook, docs/docbook/language.docbook,
+	  docs/qore.html: doc updates
+
+2010-05-19 15:41  david_nichols
+
+	* lib/QC_FtpClient.cpp, lib/QC_GetOpt.cpp: updated
+	  FtpClient::setPort() to not allow a negative port number to be
+	  set; corrected type info in GetOpt class
+
+2010-05-19 14:32  david_nichols
+
+	* lib/QC_Dir.cpp: fixed type info for Dir::path()
+
+2010-05-19 14:10  david_nichols
+
+	* docs/docbook/class_lib.docbook,
+	  docs/docbook/function_lib.docbook, docs/qore.html,
+	  lib/QC_File.cpp: started updating class library documentation;
+	  fixed type info errors in File class
+
+2010-05-19 12:33  david_nichols
+
+	* RELEASE-NOTES, docs/docbook/class_lib.docbook,
+	  docs/docbook/command_line.docbook,
+	  docs/docbook/function_lib.docbook, docs/docbook/language.docbook,
+	  docs/docbook/operators.docbook,
+	  docs/docbook/parse_directives.docbook, docs/qore.html,
+	  examples/WSDL.qc, include/qore/ExceptionSink.h,
+	  lib/QoreNamespace.cpp, lib/ql_misc.cpp, lib/ql_xml.cpp: updated
+	  documentation; removed some new xml function variants that are
+	  essentially duplicates of older functions, added
+	  Z_DEFAULT_COMPRESSION and MACHINE_MSB constants
+
+2010-05-19 06:40  david_nichols
+
+	* docs/docbook/function_lib.docbook: correct return types for a few
+	  functions
+
+2010-05-18 16:50  david_nichols
+
+	* configure.ac, include/qore/ExceptionSink.h, lib/QoreLib.cpp:
+	  fixes for compiling on linux
+
+2010-05-18 16:16  david_nichols
+
+	* include/qore/QoreLib.h, include/qore/intern/Function.h,
+	  lib/Function.cpp, lib/ql_bzip.cpp, lib/ql_json.cpp,
+	  lib/ql_lib.cpp, lib/ql_list.cpp, lib/ql_math.cpp,
+	  lib/ql_misc.cpp, lib/ql_object.cpp, lib/ql_pwd.cpp,
+	  lib/ql_string.cpp, lib/ql_thread.cpp, lib/ql_time.cpp,
+	  lib/ql_xml.cpp: implemented new code flag: QC_RUNTIME_NOOP;
+	  variants with this tag act like QC_NOOP unless the code accessing
+	  them has PO_REQUIRE_TYPES set, in which case they do not just
+	  generate a warning, they generate a parse error if resolved at
+	  parse time and a run-time CALL-WITH-TYPE-ERRORS exception. This
+	  way backwards-compatible function variants that perform no useful
+	  purpose (except ignoring type errors) can be made inaccessible
+	  from programs where types are required - and as well any
+	  inadvertent access to them is visible with an appropriate
+	  exception - at the same time as maintaining
+	  backwards-compatibility with older typeless code. Additionally
+	  the internal implementation was updated so that the return type
+	  will be reported on a function level when the variant cannot been
+	  resolved correctly as the unique type of only variants without
+	  QC_RUNTIME_NOOP if requested from code with PO_REQUIRE_TYPES set.
+
+2010-05-18 12:51  david_nichols
+
+	* docs/docbook/function_lib.docbook, docs/docbook/language.docbook,
+	  docs/qore.html, lib/ql_lib.cpp, lib/ql_misc.cpp: made
+	  get_word_*() functions always assume MSB, implemented
+	  get_word_*_lsb() functions and documented, cleaned up some
+	  function documentation to explain parameters better, tagged
+	  function documentation with QDOM_EXTERNAL_INFO and
+	  QDOM_THREAD_INFO
+
+2010-05-18 10:36  david_nichols
+
+	* docs/docbook/function_lib.docbook, docs/qore.html: completed
+	  documenting function library (except missing new functions)
+
+2010-05-18 09:35  david_nichols
+
+	* docs/docbook/function_lib.docbook, docs/qore.html: updated XML
+	  function documentation
+
+2010-05-18 08:04  david_nichols
+
+	* include/qore/ExceptionSink.h, include/qore/QoreLib.h,
+	  include/qore/intern/QC_TermIOS.h, lib/BackquoteNode.cpp,
+	  lib/ExceptionSink.cpp, lib/QC_Condition.cpp, lib/QC_Dir.cpp,
+	  lib/QC_Socket.cpp, lib/QoreDir.cpp, lib/QoreFile.cpp,
+	  lib/QoreFtpClient.cpp, lib/QoreHTTPClient.cpp, lib/QoreLib.cpp,
+	  lib/QoreProgram.cpp, lib/QoreSSLCertificate.cpp,
+	  lib/QoreSSLPrivateKey.cpp, lib/QoreSignal.cpp,
+	  lib/QoreSocket.cpp, lib/QoreString.cpp,
+	  lib/QoreTimeZoneManager.cpp, lib/ql_file.cpp, lib/ql_lib.cpp,
+	  lib/ql_misc.cpp, lib/ql_pwd.cpp, lib/scanner.lpp, lib/thread.cpp:
+	  implemented q_strerror() functions and
+	  ExceptionSink::raiseErrnoException() and applied to qore to avoid
+	  using strerror() directly; respect HAVE_STRERROR_R and use it,
+	  otherwise use a lock when calling strerror() in non-debugging
+	  code (call is not thread-safe when called with an error code that
+	  has no description string - however error codes set by
+	  system/library function should always have a code, so leaving
+	  strerror() in debugging code should be safe)
+
+2010-05-17 20:19  david_nichols
+
+	* docs/docbook/function_lib.docbook, docs/qore.html,
+	  lib/AbstractQoreNode.cpp, lib/ql_crypto.cpp, lib/ql_file.cpp,
+	  lib/ql_misc.cpp: doc updates to function library (still not
+	  complete), type info fixes, fixed usleep() argument processing
+	  with microsecond relative date/time arguments
+
+2010-05-17 16:15  david_nichols
+
+	* RELEASE-NOTES, docs/docbook/function_lib.docbook, docs/qore.html,
+	  lib/ql_time.cpp: doc and compatibility updates
+
+2010-05-17 12:10  david_nichols
+
+	* lib/ql_time.cpp: fixed flags
+
+2010-05-17 09:24  david_nichols
+
+	* docs/docbook/function_lib.docbook: minor updates
+
+2010-05-17 09:13  david_nichols
+
+	* docs/Makefile, docs/docbook/function_lib.docbook,
+	  docs/get-docbook-root.sh, docs/qore.html: doc updates -
+	  implemented a script to try and automatically determine the
+	  location of the docbook stylesheets
+
+2010-05-17 09:11  david_nichols
+
+	* lib/QoreLib.cpp: added "json" as a builtin feature as in future
+	  releases it will be separated from the qore library (along with
+	  xml) released as an independent module
+
+2010-05-17 08:19  david_nichols
+
+	* docs/docbook/function_lib.docbook: added missing functions
+
+2010-05-16 14:21  david_nichols
+
+	* docs/docbook/class_lib.docbook, lib/QoreStringNode.cpp,
+	  lib/ql_json.cpp, lib/ql_xml.cpp, test/test.q: removed reference
+	  to deprecated function "typename()" in test.q; replaced atof()
+	  with strtod() because atof() is not thread-safe
+
+2010-05-15 16:51  david_nichols
+
+	* docs/docbook/function_lib.docbook, docs/docbook/language.docbook,
+	  docs/docbook/operators.docbook, docs/qore.html: dox updates,
+	  cleanups, new links, etc
+
+2010-05-15 13:14  david_nichols
+
+	* docs/Makefile, docs/docbook/function_lib.docbook, docs/qore.html,
+	  lib/ql_io.cpp, lib/ql_misc.cpp, lib/ql_string.cpp,
+	  lib/ql_type.cpp: code flag corrections and doc updates
+
+2010-05-14 14:29  david_nichols
+
+	* docs/docbook/function_lib.docbook, docs/qore.html,
+	  lib/ql_lib.cpp, lib/ql_list.cpp, lib/ql_string.cpp: doc and type
+	  info updates
+
+2010-05-14 13:47  david_nichols
+
+	* RELEASE-NOTES, docs/docbook/class_lib.docbook,
+	  docs/docbook/function_lib.docbook, docs/qore.html,
+	  lib/QoreLib.cpp, lib/QoreNamespace.cpp, lib/ql_lib.cpp,
+	  lib/ql_math.cpp, lib/ql_misc.cpp, lib/ql_time.cpp,
+	  lib/ql_type.cpp: doc updates, type info and function variants
+	  fixes (bugs discovered while updating docs)
+
+2010-05-14 05:14  david_nichols
+
+	* docs/docbook/function_lib.docbook, include/qore/DateTime.h,
+	  lib/DateTime.cpp, lib/QoreFloatNode.cpp, lib/ql_type.cpp: fixed
+	  date conversions from float to convert fractions to microseconds;
+	  fixed date(date) not to discard microseconds, added a
+	  DateTime::setLocalDate() function; added date(float) variant so
+	  microseconds would be preserved
+
+2010-05-13 15:47  david_nichols
+
+	* TODO, docs/docbook/function_lib.docbook,
+	  docs/docbook/language.docbook, docs/docbook/operators.docbook,
+	  docs/docbook/warnings.docbook, docs/qore.html, lib/ql_io.cpp,
+	  lib/ql_lib.cpp, lib/ql_math.cpp, lib/ql_time.cpp: initial doc
+	  updates + some function type info corrections
+
+2010-05-13 08:19  david_nichols
+
+	* docs/docbook/function_lib.docbook,
+	  include/qore/intern/QoreTypeInfo.h, lib/Function.cpp,
+	  lib/ql_time.cpp: fixed variant matching (again) to not favor
+	  matches based on default arguments over real exact type matches
+
+2010-05-12 14:25  david_nichols
+
+	* test/test.q: updated for openssl without MD2
+
+2010-05-12 13:08  david_nichols
+
+	* configure.ac, include/qore/intern/BuiltinFunction.h,
+	  include/qore/intern/CallReferenceNode.h,
+	  include/qore/intern/Function.h,
+	  include/qore/intern/FunctionCallNode.h,
+	  include/qore/intern/QC_Dir.h,
+	  include/qore/intern/StatementBlock.h, lib/QC_Dir.cpp,
+	  lib/QoreNamespace.cpp, lib/parser.ypp, lib/ql_crypto.cpp,
+	  lib/scanner.lpp: updates to suppress some warnings with sun
+	  studio CC +w and to compile properly with openssl 1.0.0
+
+2010-05-12 11:49  david_nichols
+
+	* configure.ac, include/qore/AbstractQoreNode.h,
+	  include/qore/params.h: solaris and sun studio compile and warning
+	  fixes/enhancements
+
+2010-05-12 10:56  david_nichols
+
+	* configure.ac: updated not to use deprecated compiler flags with
+	  the oracle sun studio CC compiler, updated to set 64-bit mode
+	  when compiling on a 64-bit machine with solaris, updated to turn
+	  on all warnings with the oracle sun studio CC compiler
+
+2010-05-12 09:01  david_nichols
+
+	* include/qore/QoreNothingNode.h, include/qore/QoreNullNode.h,
+	  include/qore/QoreProgram.h: ensure proper partial overloading of
+	  base class functions by including "using" declarations
+
+2010-05-12 08:44  david_nichols
+
+	* include/qore/AbstractQoreNode.h, include/qore/QoreBigIntNode.h,
+	  lib/AbstractQoreNode.cpp: changed the visibility of parseInit()
+	  functions for the qt4 module
+
+2010-05-12 07:35  david_nichols
+
+	* lib/QoreTypeInfo.cpp: cosmetic updates
+
+2010-05-12 07:33  david_nichols
+
+	* include/qore/common.h: adding "signed" to the qore_type_t typedef
+	  seems to fix the value promotion rules with the Oracle Sun Studio
+	  C++ Compiler when used in a bitfield
+
+2010-05-11 15:55  david_nichols
+
+	* docs/docbook/introduction.docbook, docs/docbook/language.docbook,
+	  docs/docbook/operators.docbook, docs/docbook/warnings.docbook,
+	  docs/qore.html, test/test.q: starting doc updated for 0.8.0
+	  release
+
+2010-05-11 14:10  david_nichols
+
+	* lib/qore_date_private.cpp: compile fix for Solaris SunPro CC
+
+2010-05-10 15:29  david_nichols
+
+	* lib/ql_type.cpp: added a hash(hash) returns hash function for the
+	  sanity's sake
+
+2010-05-10 11:28  david_nichols
+
+	* RELEASE-NOTES, include/qore/DateTime.h,
+	  include/qore/intern/qore_date_private.h, lib/QC_TimeZone.cpp,
+	  lib/qore_date_private.cpp, lib/scanner.lpp: updated string ->
+	  date conversions to allow for much more flexibility in date
+	  parsing, also to allow for parsing relative date/time values
+	  directly from strings, including ISO-8601 duration specifications
+	  like the following: P<n>Y<n>M<n>DT<n>H<n>M<n>S<n>u. Support for
+	  parsing these relative date/time values was also added to the
+	  parser. This code implements a subset of the ISO-8601 duration
+	  specification with an extension for microseconds.
+
+2010-05-08 11:10  david_nichols
+
+	* include/qore/DateTime.h, include/qore/intern/qore_date_private.h:
+	  updated algorithms for DateTime::getMicrosecond(),
+	  DateTime::getSecond(), DateTime::getMillisecond(),
+	  DateTime::getMinute(), DateTime::getHour() with absolute
+	  date/time values to make them much faster and avoid calculating
+	  all broken-down components for each call - also updated the API
+	  documentation
+
+2010-05-07 15:40  david_nichols
+
+	* include/qore/QoreHTTPClient.h, include/qore/QoreSocket.h,
+	  lib/QoreHTTPClient.cpp, lib/QoreSocket.cpp: added request-uri and
+	  response-uri info to info hash in HTTP requests if the info hash
+	  is present
+
+2010-05-07 14:52  david_nichols
+
+	* RELEASE-NOTES: updated release notes
+
+2010-05-07 11:56  david_nichols
+
+	* RELEASE-NOTES, lib/QoreHTTPClient.cpp: updated
+	  HTTP-CLIENT-RECEIVE-ERROR when an error code is received to
+	  return a hash in the exception argument "arg" with the message
+	  body and the http code
+
+2010-05-07 11:17  david_nichols
+
+	* include/qore/intern/QoreTreeNode.h, lib/QC_HTTPClient.cpp: fixed
+	  a bug in HTTPClient::post() and in immediate operator evaluation
+	  during parse time
+
+2010-05-07 09:05  david_nichols
+
+	* include/qore/QoreNamespace.h, include/qore/intern/ConstantList.h,
+	  lib/ConstantList.cpp, lib/QoreClass.cpp, lib/QoreNamespace.cpp,
+	  lib/parser.ypp: fixes to allow constants assigned by builtin code
+	  (not at parse time) to not require any initialization (or type
+	  checking)
+
+2010-05-07 08:42  david_nichols
+
+	* include/qore/intern/ConstantList.h, lib/ConstantList.cpp: fixed
+	  bugs initializing constants defined with expressions using other
+	  constants
+
+2010-05-06 14:08  david_nichols
+
+	* lib/ql_type.cpp: added new noop functions for
+	  is_date_relative(any) and is_date_absolute(any) to allow for
+	  easier run-time type identification
+
+2010-05-06 12:06  david_nichols
+
+	* include/qore/intern/qore_date_private.h,
+	  lib/qore_date_private.cpp: fixed epoch offset calcuation when
+	  year < 1
+
+2010-05-06 11:10  david_nichols
+
+	* docs/docbook/function_lib.docbook, include/qore/ModuleManager.h,
+	  include/qore/Qore.h, lib/BuiltinFunctionList.cpp, lib/ql_xml.cpp,
+	  lib/scanner.lpp, test/test.q: fixed symbol visibility when
+	  building the library; fixed return type info for
+	  parseXMLRPCValue(), made ModuleManager::parseLoadModule() public,
+	  implemented support for parsing any number of digits for
+	  fractional seconds up to 6 (previously only supported 3 or 6; any
+	  other number of digits after the decimal would have caused a
+	  scanner error); implement <x>us relative time specification in
+	  the scanner for microseconds
+
+2010-05-06 08:21  david_nichols
+
+	* lib/ql_string.cpp: fixed variant order for better type matching
+	  with strlen(), length(), and chr()
+
+2010-05-05 17:47  david_nichols
+
+	* include/qore/DateTime.h, include/qore/QoreClass.h,
+	  include/qore/QoreHashNode.h, include/qore/QoreLib.h,
+	  include/qore/QoreListNode.h, include/qore/intern/QoreLibIntern.h,
+	  include/qore/intern/qore_date_private.h,
+	  include/qore/qore_bitopts.h, lib/DateTime.cpp,
+	  lib/QoreListNode.cpp, lib/ql_debug.cpp: minor api updates for
+	  YAML module and API doc updates
+
+2010-05-04 13:49  subik
+
+	* doxygen/Doxyfile: doxyfile updated - it can generate qt assistant
+	  files for offline browsing too.
+
+2010-05-04 11:25  david_nichols
+
+	* include/qore/intern/QoreClassIntern.h, lib/Function.cpp,
+	  lib/QoreClass.cpp: fixed design issues with static method calls
+	  using non-static method call syntax
+
+2010-05-04 11:12  david_nichols
+
+	* lib/scanner.lpp: fixed EOF in line comment; fixed memory leak in
+	  EOF handling in block comments
+
+2010-05-03 13:43  subik
+
+	* docs/Makefile, docs/docbook/Makefile, docs/docbook/driver.xsl,
+	  docs/docbook/operators.docbook, docs/qore-style.css,
+	  docs/qore.html: new docs build system (xsltproc/xsl based).
+	  Single file docs and chunks are created together. Fixes for
+	  docbook's elements.
+
+2010-05-03 08:10  david_nichols
+
+	* lib/QC_DatasourcePool.cpp: updated the DatasourcePool(hash)
+	  constructor to accept the output from parseDatasource() exactly
+	  as it comes (using the "options" key for the "min" and "max"
+	  values)
+
+2010-05-02 15:29  david_nichols
+
+	* include/qore/DateTime.h: doc updates for the DateTime class
+
+2010-04-30 14:59  david_nichols
+
+	* lib/Function.cpp: fixed a bug checking duplicate signatures in
+	  uncommitted user variants
+
+2010-04-30 13:56  david_nichols
+
+	* RELEASE-NOTES: updated release notes a bit
+
+2010-04-30 13:49  david_nichols
+
+	* RELEASE-NOTES, include/qore/DateTime.h, lib/DateTime.cpp,
+	  lib/ql_time.cpp: added the following functions:
+	  get_duration_seconds(date) returns int
+	  get_duration_milliseconds(date) returns int
+	  get_duration_microseconds(date) returns int
+
+2010-04-30 12:15  david_nichols
+
+	* RELEASE-NOTES, lib/ql_type.cpp: added is_date_relative() and
+	  is_date_absolute() functions
+
+2010-04-29 14:41  david_nichols
+
+	* include/qore/QoreLib.h, include/qore/intern/QoreTypeInfo.h,
+	  lib/QoreLib.cpp: added public/exported q_epoch() function,
+	  implemented compatibility between "soft" types
+
+2010-04-29 09:02  david_nichols
+
+	* README, README-MODULES, RELEASE-NOTES, TODO, WHATISQORE,
+	  include/qore/QoreNamespace.h, lib/ConstantList.cpp,
+	  lib/QoreNamespace.cpp, lib/parser.ypp, qore.spec: code cleanups
+	  from the last patch and some minor doc and release updates
+
+2010-04-29 08:13  david_nichols
+
+	* include/qore/AbstractQoreNode.h,
+	  include/qore/intern/BackquoteNode.h,
+	  include/qore/intern/FunctionCallNode.h,
+	  include/qore/intern/Operator.h, include/qore/intern/ParseNode.h,
+	  include/qore/intern/QoreTreeNode.h,
+	  include/qore/intern/VarRefNode.h, lib/AbstractQoreNode.cpp,
+	  lib/ConstantList.cpp, lib/ExpressionStatement.cpp,
+	  lib/Function.cpp, lib/FunctionCallNode.cpp, lib/Operator.cpp,
+	  lib/QoreClass.cpp, lib/QoreHashNode.cpp, lib/QoreListNode.cpp,
+	  lib/QoreNamespace.cpp, lib/QoreTreeNode.cpp,
+	  lib/QoreUnaryMinusOperatorNode.cpp, lib/VarRefNode.cpp,
+	  lib/Variable.cpp, lib/parser.ypp, lib/thread.cpp: added more
+	  information to ParseNode to allow for more optimizations in the
+	  common base class for parse expressions; reimplemented constant
+	  expression parsing to check for expressions with side effects and
+	  disallow them; check in each operator's parseInit call if the
+	  operation can be evaluated at parse time and the result put in
+	  the tree instead of doing this right after scan time, as doing it
+	  later allows for constants to be resolved
+
+2010-04-28 10:14  david_nichols
+
+	* include/qore/QoreThreadLock.h, lib/ConstantList.cpp,
+	  lib/ModuleManager.cpp, lib/QoreClass.cpp, lib/parser.ypp,
+	  test/object-test.q: make sure class comparisons are done on IDs;
+	  remove assert from QoreThreadLock destructor, allow more
+	  flexibility with constant expressions
+
+2010-04-26 16:22  david_nichols
+
+	* TODO, include/qore/intern/AbstractStatement.h,
+	  include/qore/intern/Function.h,
+	  include/qore/intern/QoreClassIntern.h,
+	  include/qore/intern/StatementBlock.h,
+	  include/qore/intern/qore_thread_intern.h, lib/Function.cpp,
+	  lib/QoreClass.cpp, lib/QoreObject.cpp, lib/QoreString.cpp,
+	  lib/StatementBlock.cpp, lib/TryStatement.cpp, lib/VarRefNode.cpp,
+	  lib/parser.ypp, lib/ql_debug.cpp, lib/scanner.lpp,
+	  lib/thread.cpp: implemented the ability to check if calls to user
+	  functions have too many arguments, fixed stack size detection due
+	  to a typo, fixed internal API usage for date/time values
+
+2010-04-23 15:17  david_nichols
+
+	* RELEASE-NOTES, TODO, examples/HTTPServer.qc,
+	  examples/JsonRpcHandler.qc, examples/XmlRpcHandler.qc,
+	  examples/inherit.q, examples/inherit2.q,
+	  include/qore/QoreProgram.h, include/qore/Restrictions.h,
+	  include/qore/intern/AbstractStatement.h,
+	  include/qore/intern/VarRefNode.h, lib/Function.cpp,
+	  lib/QC_TimeZone.cpp, lib/QoreNamespace.cpp, lib/QoreProgram.cpp,
+	  lib/StatementBlock.cpp, lib/TryStatement.cpp, lib/VarRefNode.cpp,
+	  lib/ql_thread.cpp, test/hash-test.q, test/test.q,
+	  test/thread-object-test.q: changes QDOM_LOCALE to
+	  QDOM_LOCALE_CONTROL, fixed type info in save_thread_data(string,
+	  any), implemented "unreferenced-variable" warning to warn when a
+	  declared variable is not referenced, some minor example and test
+	  script updates
+
+2010-04-23 13:24  david_nichols
+
+	* include/qore/DateTime.h,
+	  include/qore/intern/QoreTimeZoneManager.h,
+	  include/qore/intern/qore_date_private.h, lib/DateTime.cpp,
+	  lib/QC_TimeZone.cpp, lib/QoreTimeZoneManager.cpp,
+	  lib/ql_time.cpp, lib/qore_date_private.cpp: added TimeZone
+	  methods: date(softint) date(date) dateMs(softint)
+	  dateUs(softint), updated new APIs to use UTC instead of GMT in
+	  the API names
+
+2010-04-23 13:05  david_nichols
+
+	* Makefile.am, TODO, include/qore/QoreProgram.h,
+	  include/qore/Restrictions.h, include/qore/intern/QC_TimeZone.h,
+	  lib/Makefile.am, lib/ParseOptionMap.cpp, lib/QC_Program.cpp,
+	  lib/QC_TimeZone.cpp, lib/QoreNamespace.cpp, lib/QoreProgram.cpp,
+	  lib/QoreTypeInfo.cpp, lib/ql_time.cpp,
+	  lib/single-compilation-unit.cpp, lib/thread.cpp: implemented Qore
+	  TimeZone class for time zone information, added new functions:
+	  microseconds(), get_microseconds(), date_us(), localtime(date),
+	  gmtime(date), added new Program methods:
+	  Program::setTimeZoneRegion(), Program::setTimeZoneUTCOffset(),
+	  Program::setTimeZone(), Program::getTimeZone()
+
+2010-04-22 15:38  david_nichols
+
+	* lib/DBI.cpp: fixed datasource parsing when hostname is missing,
+	  added datasource option parsing at the end of the definition in
+	  curly-brackets (i.e.
+	  "oracle:user/pass@db(al32utf8)%localhost:1532{min=1,max=2}") -
+	  currently options are free-form
+
+2010-04-22 10:54  david_nichols
+
+	* lib/QoreClass.cpp: improved run-time error message when accessing
+	  a private constructor outside the class context
+
+2010-04-22 10:52  david_nichols
+
+	* TODO, lib/FunctionCallNode.cpp, lib/VarRefNode.cpp: updated TODO,
+	  improved error message when accessing a private constructor
+
+2010-04-22 10:42  david_nichols
+
+	* lib/QC_Dir.cpp: improved type handling for Dir::list*() methods
+
+2010-04-22 09:21  david_nichols
+
+	* include/qore/QoreHashNode.h, include/qore/QoreProgram.h,
+	  lib/QoreHashNode.cpp, lib/QoreNamespace.cpp, lib/QoreProgram.cpp,
+	  lib/parser.ypp: implemented duplicate-hash-key warning
+
+2010-04-21 11:36  subik
+
+	* lib/QC_XmlRpcClient.cpp: compile fix for
+	  non-single-compilation-unit
+
+2010-04-21 10:40  david_nichols
+
+	* include/qore/intern/QoreTimeZoneManager.h,
+	  lib/CallReferenceNode.cpp: supressed debugging output, plugged
+	  memory leak created a few patches ago
+
+2010-04-21 09:12  david_nichols
+
+	* include/qore/DateTime.h, include/qore/DateTimeNode.h,
+	  include/qore/intern/QoreTimeZoneManager.h,
+	  include/qore/intern/qore_date_private.h, lib/DateTime.cpp,
+	  lib/DateTimeNode.cpp, lib/QoreTimeZoneManager.cpp: compatibility
+	  fixes for date/time values, make sure that old APIs return the
+	  equivalent values as offset in the local time zone; added common
+	  UTC offset zones for unlocked lookups in QoreTimeZoneManager
+
+2010-04-20 16:26  david_nichols
+
+	* lib/TryStatement.cpp: do not restrict the variable argument in
+	  the catch declaration to hash type because it breaks
+	  backwards-compatibility
+
+2010-04-20 15:27  david_nichols
+
+	* lib/Function.cpp: fixed parse-time variant matching in cases
+	  where types are not available for arguments that are given in the
+	  call
+
+2010-04-20 14:15  david_nichols
+
+	* TODO, include/qore/QoreCounter.h, include/qore/QoreHTTPClient.h,
+	  include/qore/ReferenceHolder.h,
+	  include/qore/intern/CaseNodeWithOperator.h,
+	  include/qore/intern/FindNode.h, include/qore/intern/QC_Dir.h,
+	  include/qore/intern/QC_HTTPClient.h,
+	  include/qore/intern/QC_JsonRpcClient.h,
+	  include/qore/intern/QC_XmlRpcClient.h,
+	  include/qore/intern/QException.h, include/qore/intern/config.h,
+	  include/qore/intern/inline_printf.h, include/qore/support.h,
+	  lib/QException.cpp, lib/QoreCondition.cpp, lib/QoreCounter.cpp,
+	  lib/QoreDir.cpp, lib/QoreHTTPClient.cpp,
+	  lib/QoreReferenceCounter.cpp, lib/minitest.cpp: updated remaining
+	  copyright notices to reflect 2010
+
+2010-04-20 13:37  david_nichols
+
+	* include/qore/QoreLib.h, lib/QoreLib.cpp, lib/QoreNamespace.cpp,
+	  lib/QoreTypeInfo.cpp, lib/ql_crypto.cpp: implemented the HAVE_MD2
+	  constant and the QORE_OPT_MD2 option for openssl versions without
+	  the MD2 algorithm
+
+2010-04-20 12:53  david_nichols
+
+	* configure.ac, docs/docbook/language.docbook,
+	  include/qore/intern/SSLSocketHelper.h: added check if
+	  SSL_CTX_new() requires a const argument or not
+
+2010-04-20 12:33  david_nichols
+
+	* next_build.sh: minor bugfixes for older versions of bash
+
+2010-04-20 10:59  david_nichols
+
+	* include/qore/QoreProgram.h, include/qore/intern/Function.h,
+	  lib/FunctionCallNode.cpp, lib/QC_Socket.cpp,
+	  lib/QoreNamespace.cpp, lib/QoreProgram.cpp, lib/ql_xml.cpp:
+	  implemented excess-args warning, corrected type information
+
+2010-04-20 09:02  david_nichols
+
+	* include/qore/QoreProgram.h, lib/Function.cpp,
+	  lib/FunctionCallNode.cpp, lib/QoreNamespace.cpp,
+	  lib/QoreProgram.cpp: implemented "deprecated" warning and
+	  improved warning message for return-value-ignored
+
+2010-04-20 08:45  david_nichols
+
+	* include/qore/CallReferenceNode.h, include/qore/QoreProgram.h,
+	  include/qore/intern/AbstractStatement.h,
+	  include/qore/intern/CallReferenceCallNode.h,
+	  include/qore/intern/CallReferenceNode.h,
+	  include/qore/intern/Function.h,
+	  include/qore/intern/ObjectMethodReferenceNode.h,
+	  include/qore/intern/QoreClosureNode.h,
+	  include/qore/intern/QoreClosureParseNode.h,
+	  lib/CallReferenceNode.cpp, lib/ExpressionStatement.cpp,
+	  lib/ForEachStatement.cpp, lib/ForStatement.cpp,
+	  lib/FunctionCallNode.cpp, lib/QC_Socket.cpp,
+	  lib/QoreNamespace.cpp, lib/QoreProgram.cpp, lib/QoreTreeNode.cpp:
+	  implemented return-value-ignored warning, optimized some call
+	  references by saving resolved methods at parse time and using at
+	  runtime to avoid a second run-time search
+
+2010-04-19 14:08  david_nichols
+
+	* lib/ql_lib.cpp, lib/ql_xml.cpp: updated last remaining functions
+	  to new API
+
+2010-04-19 13:47  david_nichols
+
+	* lib/DBI.cpp, lib/QC_AbstractSmartLock.cpp, lib/QC_Condition.cpp,
+	  lib/QC_FtpClient.cpp, lib/QC_Mutex.cpp, lib/QC_Sequence.cpp,
+	  lib/QC_Socket.cpp, lib/QC_TermIOS.cpp: updates to new APIs,
+	  updated code flags for FtpClient methods that do perform some
+	  action but were tagged with QC_RET_VALUE_ONLY
+
+2010-04-19 13:08  david_nichols
+
+	* include/qore/intern/QC_HTTPClient.h, lib/QC_JsonRpcClient.cpp,
+	  lib/QC_XmlRpcClient.cpp: added type info to XmlRpcClient class,
+	  fixed response_headers reporting in info reference in
+	  JsonRpcClient and XmlRpcClient methods taking info reference
+	  arguments
+
+2010-04-19 12:45  david_nichols
+
+	* include/qore/intern/QC_XmlReader.h, lib/QC_XmlNode.cpp,
+	  lib/QC_XmlReader.cpp: added type info to XmlReader class
+
+2010-04-19 11:57  david_nichols
+
+	* lib/QoreTimeZoneManager.cpp: updated for non-debugging builds
+
+2010-04-19 11:56  david_nichols
+
+	* lib/QC_XmlNode.cpp: added type info to XmlNode class
+
+2010-04-19 11:56  david_nichols
+
+	* include/qore/qore_bitopts.h: updated bitops swap algorithms to
+	  remove strict-aliasing violations
+
+2010-04-18 19:13  david_nichols
+
+	* lib/QC_XmlDoc.cpp: add type info to XmlDoc class
+
+2010-04-18 17:12  david_nichols
+
+	* lib/QC_TermIOS.cpp: applied type info to TermIOS class
+
+2010-04-18 16:29  david_nichols
+
+	* include/qore/intern/QC_Socket.h, lib/QC_Socket.cpp,
+	  lib/QoreNamespace.cpp: added type info to Socket
+
+2010-04-17 18:01  david_nichols
+
+	* lib/QC_Queue.cpp, lib/QC_RWLock.cpp, lib/QC_SSLCertificate.cpp,
+	  lib/QC_SSLPrivateKey.cpp, lib/QC_Sequence.cpp, lib/QC_Socket.cpp:
+	  code flag fixes, started applying type info to Socket class
+
+2010-04-17 17:41  david_nichols
+
+	* lib/QC_RWLock.cpp: applied type info to RWLock class
+
+2010-04-17 17:19  david_nichols
+
+	* lib/QC_Queue.cpp: applied type info to Queue class
+
+2010-04-17 15:52  david_nichols
+
+	* lib/QC_Program.cpp: applied type info to Program class
+
+2010-04-16 16:52  david_nichols
+
+	* include/qore/DateTime.h, include/qore/DateTimeNode.h,
+	  lib/DateTime.cpp, lib/DateTimeNode.cpp, lib/ql_time.cpp: removed
+	  new ambiguous DateTime and DateTimeNode constructors
+
+2010-04-16 16:35  subik
+
+	* docs/Makefile, lib/ql_time.cpp: temporary(?) fix for compilation
+	  on osx leopard
+
+2010-04-16 09:32  subik
+
+	* include/qore/DBI.h, lib/DBI.cpp: sql drivers versions bump to
+	  spot execRaw. execRaw feature promoted to all drivers' feature
+	  lists. execRaw constant naming unified.
+
+2010-04-15 16:34  david_nichols
+
+	* lib/QC_Datasource.cpp: fixed code flags
+
+2010-04-15 10:59  david_nichols
+
+	* include/qore/DBI.h, lib/DBI.cpp: added new DBI constants to qore
+
+2010-04-15 10:55  david_nichols
+
+	* include/qore/DBI.h, include/qore/DateTime.h,
+	  include/qore/QoreLib.h, include/qore/intern/qore_date_private.h,
+	  lib/DateTime.cpp, lib/QoreTimeZoneManager.cpp: added new DateTime
+	  functions to get the broken-down time information in one call,
+	  added new DBI capability flags: DBI_CAP_HAS_EXEC_RAW,
+	  DBI_CAP_TIME_ZONE_SUPPORT
+
+2010-04-14 14:59  david_nichols
+
+	* include/qore/intern/QoreTimeZoneManager.h,
+	  lib/QoreTimeZoneManager.cpp: added APIs to load in time zone
+	  regions on demand
+
+2010-04-14 14:04  david_nichols
+
+	* include/qore/intern/qore_date_private.h,
+	  lib/qore_date_private.cpp, lib/scanner.lpp: fixed ambiguous
+	  date/time parsing (i.e. 2010-04-19-06:00:00)
+
+2010-04-14 11:24  david_nichols
+
+	* include/qore/intern/qore_date_private.h: removed debugging output
+
+2010-04-14 11:23  david_nichols
+
+	* include/qore/DateTimeNode.h,
+	  include/qore/intern/qore_date_private.h,
+	  lib/qore_date_private.cpp, lib/scanner.lpp: fixed string->date
+	  conversion
+
+2010-04-14 09:11  david_nichols
+
+	* lib/scanner.lpp: updated date/time parsing to be more flexbile
+
+2010-04-14 08:52  david_nichols
+
+	* include/qore/DateTime.h, include/qore/DateTimeNode.h,
+	  include/qore/QoreLib.h, include/qore/intern/qore_date_private.h,
+	  lib/DateTime.cpp, lib/DateTimeNode.cpp, lib/scanner.lpp: updated
+	  date/time headers, updated relative date parsing
+
+2010-04-14 06:34  david_nichols
+
+	* include/qore/DateTime.h, include/qore/DateTimeNode.h,
+	  include/qore/intern/qore_thread_intern.h,
+	  include/qore/qore_thread.h, lib/DateTime.cpp,
+	  lib/DateTimeNode.cpp, lib/QC_Program.cpp, lib/ql_time.cpp,
+	  lib/scanner.lpp: updated date/time parseing to make seconds
+	  optional, accepts time-zone offset 'Z' for UTC, updated DateTime
+	  and DateTimeNode constructors, made currentTZ() a
+	  globally-exported symbol
+
+2010-04-13 16:16  david_nichols
+
+	* include/qore/QoreLib.h,
+	  include/qore/intern/QoreTimeZoneManager.h,
+	  include/qore/intern/qore_date_private.h, lib/QoreLib.cpp,
+	  lib/QoreTimeZoneManager.cpp, lib/ql_time.cpp,
+	  lib/qore_date_private.cpp, lib/scanner.lpp: added support for
+	  time zone parsing; added new q_epoch_us() and q_epoch_ns()
+	  library functions, fixed gmtime(), etc to return times in UTC
+
+2010-04-13 14:33  david_nichols
+
+	* lib/DateTime.cpp, lib/scanner.lpp: compile fixes and millisecond
+	  parse fixes
+
+2010-04-13 12:18  david_nichols
+
+	* include/qore/DateTime.h,
+	  include/qore/intern/QoreTimeZoneManager.h,
+	  include/qore/intern/qore_date_private.h, lib/DateTime.cpp,
+	  lib/DateTimeNode.cpp, lib/QoreTimeZoneManager.cpp,
+	  lib/scanner.lpp: started implementing support for defining UTC
+	  offsets in date/time values in the parser and internally
+
+2010-04-13 10:36  david_nichols
+
+	* include/qore/intern/qore_date_private.h,
+	  lib/qore_date_private.cpp, test/test.q: updated epoch->date
+	  conversion to use a mathematical algorithm instead of an
+	  iterative algorithm
+
+2010-04-13 10:35  david_nichols
+
+	* lib/BinaryNode.cpp: fixed a bug in BinaryNode::append() when the
+	  same value is appended to itself
+
+2010-04-13 10:34  david_nichols
+
+	* include/qore/intern/Context.h, lib/Context.cpp,
+	  lib/ContextStatement.cpp: cleaned up context code
+
+2010-04-12 08:17  subik
+
+	* include/qore/intern/qore_date_private.h,
+	  lib/qore_date_private.cpp: fix for "multiple definition of
+	  normalize_dm" etc. - non-single-compilation-unit
+
+2010-04-09 17:18  david_nichols
+
+	* lib/qore_date_private.cpp: fixed negative GMT offset display:
+	  TZ=America/Chicago qore -X 'now()' gives: 2010-04-09 12:17:16 Fri
+	  -05:00 (CDT)
+
+2010-04-09 14:53  david_nichols
+
+	* include/qore/intern/qore_date_private.h,
+	  lib/qore_date_private.cpp: fixed epoch -> broken down date ->
+	  epoch calculations, all date/time tests in test/test.q passing
+
+2010-04-09 05:29  david_nichols
+
+	* lib/QoreTimeZoneManager.cpp: fixed time zone transition logic
+
+2010-04-08 18:59  david_nichols
+
+	* lib/qore_date_private.cpp: fixed date arithmetic to first do math
+	  with year, month, and date with the broken down date, and then
+	  add hours, minutes, seconds, and microseconds with the GMT offset
+
+2010-04-08 15:35  david_nichols
+
+	* Makefile.am, include/qore/DateTime.h,
+	  include/qore/DateTimeNode.h,
+	  include/qore/QoreNodeEvalOptionalRefHolder.h,
+	  include/qore/QoreType.h, include/qore/intern/Operator.h,
+	  include/qore/intern/ParserSupport.h,
+	  include/qore/intern/QoreCastOperatorNode.h,
+	  include/qore/intern/QoreLibIntern.h,
+	  include/qore/intern/QoreOperatorNode.h,
+	  include/qore/intern/QoreTimeZoneManager.h,
+	  include/qore/intern/QoreUnaryMinusOperatorNode.h,
+	  include/qore/intern/qore_date_private.h,
+	  include/qore/intern/qore_thread_intern.h, lib/DateTime.cpp,
+	  lib/DateTimeNode.cpp, lib/Makefile.am, lib/Operator.cpp,
+	  lib/QoreTimeZoneManager.cpp, lib/QoreTypeInfo.cpp,
+	  lib/QoreUnaryMinusOperatorNode.cpp, lib/parser.ypp,
+	  lib/qore_date_private.cpp, lib/single-compilation-unit.cpp,
+	  lib/thread.cpp, test/test.q: new date/time implementation,
+	  internal format changed; absolute times have resolution to the
+	  microsecond and time zone support; absolute times are stored as
+	  microsecond offset from the UNIX epoch in GMT, plus a time zone
+	  region pointer based on data read in from the zoneinfo DB.
+	  relative date/time values are now only normalized to the day, as
+	  days now can have different lengths due to daylight savings time;
+	  the unary operator was re-written to also apply to time values;
+	  date math with relative negative units has been fixed. there are
+	  still some minor issues with dates far in the future and in the
+	  past, but it seems to be mostly working. note that currently all
+	  times are assumed to be local time, also the time returned by
+	  gmtime() is given in the local time zone, this will be fixed in a
+	  later patch
+
+2010-04-08 08:16  david_nichols
+
+	* lib/FunctionCallNode.cpp: updated method call optimization
+
+2010-04-07 11:33  subik
+
+	* include/qore/intern/QoreXmlDoc.h: fixed limited XML node size
+
+2010-04-06 20:01  david_nichols
+
+	* include/qore/params.h, lib/QC_HTTPClient.cpp,
+	  lib/QC_JsonRpcClient.cpp, lib/ql_json.cpp: added type info to
+	  JsonRpcClient class
+	  added JsonRpcClient::constructor(bool $b = False)
+	  fixed JsonRpcClient::callArgsWithInfo() and
+	  JsonRpcClient::callArgs() to return the info hash even if a
+	  communication error occurs
+	  fixed parsing negative numbers in json strings
+	  made type info corrections in HTTPClient class
+
+2010-04-06 13:54  david_nichols
+
+	* include/qore/DateTime.h,
+	  include/qore/intern/QoreTimeZoneManager.h,
+	  include/qore/intern/qore_date_private.h, lib/DateTime.cpp,
+	  lib/DateTimeNode.cpp, lib/Makefile.am,
+	  lib/QoreTimeZoneManager.cpp, lib/qore_date_private.cpp,
+	  lib/single-compilation-unit.cpp, test/test.q: added new virtual
+	  TimeZoneInfo API: AbstractQoreTZInfo; moved most DateTime
+	  functionality to qore_date_private to prepare for adding time
+	  zone support
+
+2010-04-05 20:06  david_nichols
+
+	* docs/docbook/class_lib.docbook: fixed minor typo
+
+2010-04-05 16:43  david_nichols
+
+	* docs/docbook/class_lib.docbook, lib/QC_FtpClient.cpp,
+	  lib/QC_HTTPClient.cpp: added type info to HTTPClient class;
+	  changed the functionality of the following methods:
+	  HTTPClient::setSecure(bool $b = True)
+	  HTTPClient::setProxySecure(bool $b = True)
+	  HTTPClient::setNoDelay(bool $b = True)
+	  these methods used to have the opposite functionality when no
+	  argument was given, but this is counter-intuitive and contrary to
+	  qore conventions (i.e. before $httpclient.setSecure() would
+	  actually turn off secure connections
+
+2010-04-04 16:50  david_nichols
+
+	* lib/QC_GetOpt.cpp: corrected type information in the GetOpt class
+
+2010-04-04 16:45  david_nichols
+
+	* lib/QC_Gate.cpp: added hard typing to Gate class
+
+2010-04-04 16:04  david_nichols
+
+	* lib/QoreFtpClient.cpp, lib/QoreSocket.cpp, test/ftp-test.q: fixed
+	  Socket::recv() and Socket::recvBinary() when reading all data
+	  available on the socket when the remote ends closes the
+	  connection in an orderly way; updated the ftp-test.q script
+
+2010-04-04 14:22  david_nichols
+
+	* include/qore/intern/QC_FtpClient.h, lib/QC_FtpClient.cpp,
+	  lib/QoreFtpClient.cpp: finished adding hard typing to FtpClient
+	  class, corrected FtpClient::getURL() to return ftps:// if a
+	  secure connection is set
+
+2010-04-03 07:41  david_nichols
+
+	* lib/QC_File.cpp: updated File::getCharset() code flags
+
+2010-04-03 07:16  david_nichols
+
+	* include/qore/intern/Function.h, lib/QC_File.cpp,
+	  lib/QoreClass.cpp, lib/ql_io.cpp: updated hard typing in File
+	  class to new API usage
+
+2010-04-03 06:22  david_nichols
+
+	* lib/QC_Dir.cpp: use class pointer to create new Dir object from
+	  openDir() instead of searching in program's namespace
+
+2010-04-02 20:48  david_nichols
+
+	* include/qore/intern/QC_Dir.h, lib/Function.cpp, lib/QC_Dir.cpp,
+	  lib/QoreNamespace.cpp: applied hard typing to Dir class
+
+2010-04-02 20:09  david_nichols
+
+	* include/qore/intern/QoreLibIntern.h, lib/Function.cpp,
+	  lib/QC_Datasource.cpp, lib/QC_DatasourcePool.cpp,
+	  lib/QoreLib.cpp: minor fixes and hard typing application to the
+	  DatasourcePool class
+
+2010-04-02 14:30  david_nichols
+
+	* configure.ac, lib/Function.cpp: solaris compile fixes
+
+2010-04-02 13:00  david_nichols
+
+	* lib/QoreLib.cpp: fixed compilation on SunPro (and on compilers
+	  that do not allow arrays to be declared on the stack with
+	  non-constant size)
+
+2010-04-01 14:29  david_nichols
+
+	* lib/QoreTimeZoneManager.cpp: missing file
+
+2010-04-01 12:45  david_nichols
+
+	* Makefile.am, configure.ac, include/qore/DateTime.h,
+	  include/qore/QoreLib.h, include/qore/QoreString.h,
+	  include/qore/intern/QoreLibIntern.h,
+	  include/qore/intern/QoreSignal.h,
+	  include/qore/intern/QoreTimeZoneManager.h, lib/Makefile.am,
+	  lib/QoreDir.cpp, lib/QoreLib.cpp, lib/QoreNamespace.cpp,
+	  lib/QoreString.cpp, lib/ql_lib.cpp,
+	  lib/single-compilation-unit.cpp: compile fixes, initial zoneinfo
+	  infrastruture for time zone support, API enhancements, added
+	  "readlink()" function
+
+2010-03-29 15:17  david_nichols
+
+	* include/qore/BinaryNode.h, include/qore/QoreFile.h,
+	  include/qore/QoreString.h, lib/BinaryNode.cpp, lib/QoreFile.cpp,
+	  lib/QoreString.cpp, lib/qore-main.cpp: added more helper
+	  functions to BiunaryNode, QoreString, and QoreFile; fixed header
+	  formatting; added function to load SSL error messages in qore
+	  library initialization
+
+2010-03-29 11:24  david_nichols
+
+	* lib/DateTime.cpp, lib/QoreLib.cpp, lib/ql_time.cpp,
+	  lib/qore-main.cpp: added now_gmt_ms(), disabled the hack-y
+	  timezone offset calculation in now_ms() - did not work on linux
+	  and was not implemented correctly on other platforms that
+	  actually returned data in the timezone structure in the
+	  gettimeofday() call
+
+2010-03-27 10:42  david_nichols
+
+	* include/qore/intern/FunctionCallNode.h, lib/AbstractQoreNode.cpp,
+	  lib/FunctionCallNode.cpp, lib/parser.ypp: fixed 'new' operator
+	  parsing; expressions like "new MyClass().something" and "new
+	  MyClass().doSomething()" now work properly without requring
+	  quotes
+
+2010-03-27 09:53  david_nichols
+
+	* include/qore/intern/FunctionCallNode.h, lib/FunctionCallNode.cpp,
+	  lib/Operator.cpp: corrected method call optimization to save the
+	  class resolved at parse time and use it compare to the runtime
+	  class; using the method's class would only work if a base class
+	  method was not resolved at parse time
+
+2010-03-27 08:39  david_nichols
+
+	* include/qore/intern/QoreCastOperatorNode.h,
+	  lib/QoreCastOperatorNode.cpp: implemented cast<object>(expr) to
+	  allow force method and member resolution at runtime even with
+	  declared types; useful when you have a complicated class
+	  hierarchy with a certain method implemented in all child classes
+	  and you actually have an instance of the child class, but there
+	  is no common parent class with the method (can happen when
+	  extending third-party classes, for example)
+
+2010-03-26 16:16  david_nichols
+
+	* include/qore/intern/QoreClassIntern.h, lib/QC_AutoReadLock.cpp,
+	  lib/QC_AutoWriteLock.cpp, lib/QC_Condition.cpp,
+	  lib/QC_Datasource.cpp, lib/QC_Mutex.cpp, lib/QoreObject.cpp:
+	  fixed adding virtual private data to classes with multiple
+	  virtual base classes
+	  tag class methods added with old APIs with QC_USES_EXTRA_ARGS
+	  fixed Mutex::lock() typing
+	  applied hard typing to the Datasource class
+	  implemented Datasource::constructor(<hash>)
+
+2010-03-26 13:39  david_nichols
+
+	* include/qore/intern/QC_Gate.h, include/qore/params.h,
+	  lib/QC_AutoGate.cpp, lib/QC_AutoLock.cpp,
+	  lib/QC_AutoReadLock.cpp, lib/QC_AutoWriteLock.cpp,
+	  lib/QC_Condition.cpp, lib/QC_Counter.cpp, lib/QC_File.cpp:
+	  corrected and renamed HARD_QORE_OBJ_PARAM() macro to
+	  HARD_QORE_OBJ_DATA() as it did not cover the race condition when
+	  the object is deleted after call setup and before the call; fixed
+	  incorrect classes in QC_Condition.cpp, applied hard typing to
+	  QC_Counter.cpp
+
+2010-03-26 13:03  david_nichols
+
+	* include/qore/intern/QC_AbstractSmartLock.h: missing file
+
+2010-03-26 13:03  david_nichols
+
+	* Makefile.am, TODO, include/qore/intern/AbstractSmartLock.h,
+	  include/qore/intern/QC_Condition.h,
+	  include/qore/intern/QC_Mutex.h, include/qore/intern/QC_RWLock.h,
+	  include/qore/intern/RWLock.h, include/qore/intern/SmartMutex.h,
+	  lib/Makefile.am, lib/QC_AbstractSmartLock.cpp,
+	  lib/QC_Condition.cpp, lib/QC_Mutex.cpp, lib/QC_RWLock.cpp,
+	  lib/SmartMutex.cpp, lib/single-compilation-unit.cpp,
+	  lib/thread.cpp: implemented new abstract class AbstractSmartLock
+	  for Qore classes that can wait on Condition variables, moved the
+	  cond map to AbstractSmartLock C++ class, applied ahrd typing to
+	  QC_Condition.cpp
+
+2010-03-26 09:58  david_nichols
+
+	* include/qore/intern/FunctionCallNode.h, lib/FunctionCallNode.cpp,
+	  lib/Operator.cpp: implemented performance optimization to save
+	  the method ptr resolved at parse time for method calls (if any),
+	  and use at runtime; if the runtime class is identical, use it and
+	  thereby avoid a class hierarchy search, additionally any variant
+	  identified at parse time will also be used, avoiding the runtime
+	  variant matching
+
+2010-03-26 09:58  david_nichols
+
+	* lib/ql_time.cpp: added missing noop variants for mktime() and
+	  gmtime(), corrected a typo in getEpochSeconds() name
+
+2010-03-26 09:21  david_nichols
+
+	* lib/QC_AutoWriteLock.cpp: applied hard typing
+
+2010-03-26 09:19  david_nichols
+
+	* lib/QC_AutoReadLock.cpp: applied hard typing
+
+2010-03-26 09:16  david_nichols
+
+	* lib/QC_AutoLock.cpp: use HARD_QORE_OBJ_PARAM instead of old-style
+	  argument checking
+
+2010-03-26 09:11  david_nichols
+
+	* TODO, include/qore/intern/BuiltinFunction.h,
+	  include/qore/intern/QC_AutoGate.h,
+	  include/qore/intern/QC_AutoReadLock.h,
+	  include/qore/intern/QC_AutoWriteLock.h,
+	  include/qore/intern/QoreTypeInfo.h,
+	  include/qore/intern/Variable.h, lib/Function.cpp,
+	  lib/QC_AutoGate.cpp, lib/QC_AutoReadLock.cpp,
+	  lib/QC_AutoWriteLock.cpp, lib/ReferenceHelper.cpp,
+	  lib/ReturnStatement.cpp, lib/thread.cpp: fixed runtime type error
+	  reporting for builtin code; fixed runtime type checking when
+	  instantiating arguments to a function or method call; applied
+	  hard typing to the AutoGate class
+
+2010-03-26 08:26  subik
+
+	* lib/QoreLib.cpp, lib/ql_pwd.cpp: compile fix for non-single
+	  compilation unit
+
+2010-03-26 08:12  david_nichols
+
+	* lib/ql_xml.cpp: added missing variants for functions with
+	  optional encoding arguments
+
+2010-03-25 21:27  david_nichols
+
+	* include/qore/intern/FunctionCallNode.h, lib/FunctionCallNode.cpp,
+	  lib/Operator.cpp, lib/QoreClass.cpp, lib/ReturnStatement.cpp,
+	  lib/VarRefNode.cpp, lib/ql_type.cpp, test/test.q: fixed returning
+	  typeinfo for static method calls, fixed checking the return type
+	  with the return statement, added a warning if a return statement
+	  includes an expression whose type cannot be resolved and the
+	  block does not allow any value to be returned; finished adding
+	  hard typing to ql_type.cpp
+
+2010-03-25 20:18  david_nichols
+
+	* lib/ql_type.cpp: do not flag string(), boolean(), etc with
+	  QC_NOOP, because they are often used as initializers
+
+2010-03-25 20:17  david_nichols
+
+	* test/test.q: updated tests to work better on Darwin - catch
+	  exceptions in new methods that throw an exception on error so
+	  that the tests can proceed even if they fail
+
+2010-03-25 16:33  david_nichols
+
+	* include/qore/intern/Function.h,
+	  include/qore/intern/QoreTypeInfo.h, include/qore/params.h,
+	  lib/Function.cpp, lib/QoreTypeInfo.cpp, lib/ql_type.cpp: made
+	  date types compatible with soft* types, partially applied hard
+	  typing to ql_type.cpp
+
+2010-03-25 15:56  david_nichols
+
+	* include/qore/intern/Function.h,
+	  include/qore/intern/QoreLibIntern.h,
+	  include/qore/intern/QoreTypeInfo.h, include/qore/params.h,
+	  lib/Function.cpp, lib/ql_time.cpp, test/test.q: implemented hard
+	  typing for ql_time.cpp
+
+2010-03-25 14:47  david_nichols
+
+	* RELEASE-NOTES, include/qore/Restrictions.h,
+	  include/qore/params.h, lib/ParseOptionMap.cpp, lib/ql_thread.cpp:
+	  implemented PO_NO_THREAD_INFO ('no-thread-info') parse option and
+	  QDOM_THREAD_INFO, added ahrd typing to thread functions in
+	  ql_thread.cpp, added QDOM_THREAD_INFO to gettid(), num_threads(),
+	  thread_list(), get_thread_data(), get_all_thread_data(),
+	  getAllThreadCallStacks()
+
+2010-03-25 14:13  david_nichols
+
+	* include/qore/intern/Function.h: use safe_dslist for variant list
+	  because it's written at parse time and read at runtime, and never
+	  randomly accessed
+
+2010-03-25 13:52  david_nichols
+
+	* RELEASE-NOTES, configure.ac, include/qore/QoreLib.h,
+	  include/qore/intern/QoreLibIntern.h, lib/QC_Dir.cpp,
+	  lib/QoreLib.cpp, lib/ql_pwd.cpp, lib/qore-main.cpp, test/test.q:
+	  fixed non-thread-safe usage of getpwnam() in QC_Dir.cpp, added
+	  new library functions: q_getpwuid(), q_getpwnam(), q_getgrgid(),
+	  q_getgrnam(), q_uname2uid(), and q_gname2gid() for thread-safe
+	  access to passwd and group information, added new Qore functions:
+	  getpwuid2(), getpwnam(), getpwnam2(), getgrgid(), getgrgid2(),
+	  getgrnam(), getgrname2()
+
+2010-03-25 11:59  david_nichols
+
+	* lib/ql_misc.cpp: added compress2() as an alias for compress() for
+	  backwards-compatibility
+
+2010-03-25 10:18  david_nichols
+
+	* TODO, include/qore/intern/Function.h,
+	  include/qore/intern/qore_thread_intern.h, include/qore/params.h,
+	  lib/Function.cpp, lib/QoreClass.cpp, lib/ql_object.cpp,
+	  lib/thread.cpp, test/test.q: fixed bugs checking types in the
+	  return statement; removed list type info from $argv variable for
+	  backwards compatibility; aplied hard typing to ql_object.cpp
+
+2010-03-25 09:17  david_nichols
+
+	* CHANGELOG, ChangeLog, Makefile.am, RELEASE-NOTES, TODO: use
+	  automatically-generated ChangeLog instead of hand-edited
+	  CHANGELOG, updated TODO
+
+2010-03-24 17:10  david_nichols
+
+	* TODO, include/qore/QoreLib.h: added QC_RET_VALUE_ONLY to allow
+	  for later warnings when a function that only returns a value has
+	  its return value ignored; TODO updates
+
+2010-03-24 16:48  david_nichols
+
+	* include/qore/intern/Function.h,
+	  include/qore/intern/QoreClassIntern.h,
+	  include/qore/intern/qore_thread_intern.h, lib/Function.cpp,
+	  lib/QoreClass.cpp, lib/ReturnStatement.cpp, lib/thread.cpp: save
+	  parse code; issue an invalid-operation warning if a constructor,
+	  destructor, or copy method returns a value if require-types is
+	  not set in order to maintain backwards compatibility with older
+	  code
+
+2010-03-24 16:05  david_nichols
+
+	* include/qore/QoreLib.h, lib/BackquoteNode.cpp, lib/Function.cpp,
+	  lib/ModuleManager.cpp, lib/ql_list.cpp, lib/ql_misc.cpp: finished
+	  applying types to lib/ql_misc.cpp, tag noop functions with
+	  QC_NOOP in ql_list.cpp, added new QC_DEPRECATED code flag, other
+	  minor fixes
+
+2010-03-24 13:34  david_nichols
+
+	* lib/ql_lib.cpp: param type fix for exit() for
+	  backwards-compatibility
+
+2010-03-24 13:19  david_nichols
+
+	* lib/Operator.cpp: fixed type reporting at parse time for taking a
+	  slice of a hash or object
+
+2010-03-24 13:09  david_nichols
+
+	* include/qore/QoreClass.h, lib/QoreClass.cpp,
+	  lib/SelfVarrefNode.cpp: fixed a bug resolving types in $.<name>
+	  expressions
+
+2010-03-24 09:54  david_nichols
+
+	* lib/Operator.cpp: updated warning text for
+	  non-existent-method-call warning
+
 2010-03-24 09:40  david_nichols
 
 	* include/qore/QoreProgram.h, lib/QoreNamespace.cpp: added warning

@@ -13203,6 +13203,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	  <term>Synopsis</term>
 	  <listitem>
 	    <para>Accepts connections on a listening socket (see <link linkend="Socket_listen">Socket::listen()</link>).  As this method does not accept a timeout, use <link linkend="Socket_isDataAvailable">Socket::isDataAvailable()</link> to check if data is available on the socket before calling if necessary.</para>
+	    <para>The new Socket object returned will have the same character encoding as the current object.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -13267,6 +13268,7 @@ $sock.bind("/tmp/socket");</programlisting>
           <term>Synopsis</term>
           <listitem>
             <para>Accepts a remote connection and attempts to negotiate a TLS/SSL connection.  As this method does not accept a timeout, use <link linkend="Socket_isDataAvailable">Socket::isDataAvailable()</link> to check if data is available on the socket before calling if necessary.</para>
+	    <para>The new Socket object returned will have the same character encoding as the current object.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
