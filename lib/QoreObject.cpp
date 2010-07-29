@@ -932,15 +932,22 @@ void QoreObject::merge(const QoreHashNode *h, ExceptionSink *xsink) {
 
       ConstHashIterator hi(h);
       while (hi.next()) {
+	 const QoreTypeInfo *ti;
+
 	 // check member status
-	 if (priv->checkMemberAccess(hi.getKey(), xsink))
+	 if (priv->checkMemberAccessGetTypeInfo(hi.getKey(), ti, xsink))
 	    return;
 
-	 AbstractQoreNode *n = priv->data->swapKeyValue(hi.getKey(), hi.getReferencedValue());
+	 // check type compatibility and perform type translations, if any
+	 ReferenceHolder<AbstractQoreNode> val(ti->acceptInputMember(hi.getKey(), hi.getReferencedValue(), xsink), xsink);
+	 if (*xsink)
+	    return;
+
+	 AbstractQoreNode *n = priv->data->swapKeyValue(hi.getKey(), val.release());
 	 // if we are overwriting a value, then save it in the list for dereferencing after the lock is released
 	 if (n && n->isReferenceCounted()) {
 	    if (!holder)
-	       holder = new QoreListNode();
+	       holder = new QoreListNode;
 	    holder->push(n);
 	 }
       }
