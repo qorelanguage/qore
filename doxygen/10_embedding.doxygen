@@ -31,7 +31,7 @@
     ExceptionSink xsink, wsink;
     {
        // creates and manages a QoreProgram object
-       QoreProgramHelper pgm(&xsink);
+       QoreProgramHelper pgm(PO_DEFAULT, xsink);
        // ... rest of code here
     }
     @endcode
@@ -42,8 +42,9 @@
     ExceptionSink xsink, wsink;
     {
        // creates and manages a QoreProgram object
-       QoreProgramHelper pgm(&xsink);
+       QoreProgramHelper pgm(PO_DEFAULT, xsink);
 
+       // parses a file with all warnings enabled
        pgm->parseFile("test.q", &xsink, &wsink, QP_WARN_ALL);
 
        // display any warnings immediately
