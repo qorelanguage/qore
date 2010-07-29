@@ -539,7 +539,7 @@ private:
    ExceptionSink &xsink;
 
 public:
-   //! creates the QoreProgram object: DEPRECATED: use QoreProgram(ExceptionSink&, int64) instead
+   //! creates the QoreProgram object: DEPRECATED: use QoreProgramHelper(int64, ExceptionSink&) instead
    DLLLOCAL QoreProgramHelper(ExceptionSink &xs) : pgm(new QoreProgram), xsink(xs) {
    }
 

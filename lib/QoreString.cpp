@@ -355,6 +355,10 @@ void QoreString::set(const QoreString &str) {
    set(&str);
 }
 
+void QoreString::setEncoding(const QoreEncoding *new_encoding) {
+   priv->charset = new_encoding;
+}
+
 void QoreString::replace(qore_size_t offset, qore_size_t dlen, const char *str) {
    if (str && str[0])
       splice_simple(offset, dlen, str, ::strlen(str));

@@ -128,6 +128,9 @@ public:
    //! sets the value to the copy of the QoreString passed
    DLLEXPORT void set(const QoreString &str);
 
+   //! changes the tagged encoding to the given encoding; does not affect the actual string buffer, only changes the tagged encoding value
+   DLLEXPORT void setEncoding(const QoreEncoding *new_encoding);
+
    //! concatenates HTML-encoded version of the c-string passed
    DLLEXPORT void concatAndHTMLEncode(const char *str);
 
