@@ -555,9 +555,12 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::findVariant(const QoreL
    return variant;
 }
 
-static AbstractQoreFunctionVariant *doSingleVariantTypeException(int pi, const char *name, const char *sig, const QoreTypeInfo *proto, const QoreTypeInfo *arg) {
+static AbstractQoreFunctionVariant *doSingleVariantTypeException(int pi, const char *class_name, const char *name, const char *sig, const QoreTypeInfo *proto, const QoreTypeInfo *arg) {
    QoreStringNode *desc = new QoreStringNode("argument ");
-   desc->sprintf("%d to '%s(%s)' expects ", pi, name, sig);
+   desc->sprintf("%d to '", pi);
+   if (class_name)
+      desc->sprintf("%s::", class_name);
+   desc->sprintf("%s(%s)' expects ", name, sig);
    proto->getThisType(*desc);
    desc->concat(", but call supplies ");
    arg->getThisType(*desc);
@@ -755,7 +758,7 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
 		  ok = false;
 		  // raise a detailed parse exception immediately if there is only one variant
 		  if (ilist.size() == 1 && aqf->pending_vlist.singular() && aqf->vlist.empty() && getProgram()->getParseExceptionSink())
-		     return doSingleVariantTypeException(pi + 1, getName(), sig->getSignatureText(), t, a);
+		     return doSingleVariantTypeException(pi + 1, aqf->className(), getName(), sig->getSignatureText(), t, a);
 		  break;
 	       }
 	       // only increment for actual type matches (t may be NULL)
@@ -850,7 +853,7 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
 		  ok = false;
 		  // raise a detailed parse exception immediately if there is only one variant
 		  if (ilist.size() == 1 && aqf->pending_vlist.singular() && aqf->vlist.empty() && getProgram()->getParseExceptionSink())
-		     return doSingleVariantTypeException(pi + 1, getName(), sig->getSignatureText(), t, a);
+		     return doSingleVariantTypeException(pi + 1, aqf->className(), getName(), sig->getSignatureText(), t, a);
 		  break;
 	       }
 	       // only increment for actual type matches (t may be NULL)
