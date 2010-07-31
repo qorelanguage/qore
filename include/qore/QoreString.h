@@ -633,6 +633,16 @@ private:
 public:
    //! converts the given string to the required encoding if necessary
    /**
+      @param s a reference to the QoreString input value
+      @param qe the QoreEncoding required
+      @param xsink if an error occurs, the Qore-language exception information will be added here
+   */
+   DLLLOCAL TempEncodingHelper(const QoreString &s, const QoreEncoding *qe, ExceptionSink *xsink) {
+      set_intern(&s, qe, xsink);
+   }
+
+   //! converts the given string to the required encoding if necessary
+   /**
       @param s a pointer to the QoreString input value
       @param qe the QoreEncoding required
       @param xsink if an error occurs, the Qore-language exception information will be added here
