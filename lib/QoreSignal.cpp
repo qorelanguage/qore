@@ -97,6 +97,9 @@ void QoreSignalManager::init(bool disable_signal_mask) {
       sigdelset(&mask, SIGPROF);
 #endif
 
+      // do not block SIGSEGV
+      sigdelset(&mask, SIGSEGV);
+
       pthread_sigmask(SIG_SETMASK, &mask, 0);
 
       // set up default handler mask
