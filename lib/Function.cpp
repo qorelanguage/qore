@@ -93,9 +93,10 @@ int CodeEvaluationHelper::processDefaultArgs(const AbstractQoreFunction *func, c
       else if (i < typeList.size()) {
 	 const AbstractQoreNode *n = tmp ? tmp->retrieve_entry(i) : 0;
 	 const QoreTypeInfo *paramTypeInfo = sig->getParamTypeInfo(i);
+
 	 // test for change or incompatibility
-	 if (check_args || paramTypeInfo->hasInputFilter()) {
-	    if (!edit_done && paramTypeInfo->mayRequireFilter(n)) {
+	 if (check_args || paramTypeInfo->mayRequireFilter(n)) {
+	    if (!edit_done) {
 	       // edit the current argument list
 	       tmp.edit();
 	       edit_done = true;
