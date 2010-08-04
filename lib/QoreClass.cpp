@@ -2087,7 +2087,7 @@ AbstractQoreNode *QoreMethod::evalNormalVariant(QoreObject *self, const QoreExte
    CodeEvaluationHelper ceh(xsink, getName(), args, variant->className());
    if (*xsink) return 0;
 
-   if (ceh.processDefaultArgs(priv->func, variant, xsink))
+   if (ceh.processDefaultArgs(priv->func, variant, true, xsink))
       return 0;
 
    ceh.setCallType(variant->getCallType());
@@ -3159,6 +3159,7 @@ void ConstructorMethodFunction::evalConstructor(const AbstractQoreFunctionVarian
    if (*xsink)
       return;
 
+   bool check_args = variant;
    // find variant with evaluated args
    if (!variant) {
       variant = findVariant(ceh.getArgs(), false, xsink);
@@ -3167,12 +3168,12 @@ void ConstructorMethodFunction::evalConstructor(const AbstractQoreFunctionVarian
 	 return;
       }
    }
-   
+
    if (CONMV_const(variant)->isPrivate() && !runtimeCheckPrivateClassAccess(&thisclass)) {
       xsink->raiseException("CONSTRUCTOR-IS-PRIVATE", "%s::constructor(%s) is private and therefore this class cannot be directly instantiated with the new operator by external code", thisclass.getName(), variant->getSignature()->getSignatureText());
       return;
    }
-   if (ceh.processDefaultArgs(this, variant, xsink))
+   if (ceh.processDefaultArgs(this, variant, check_args, xsink))
       return;
 
    qore_call_t ct = variant->getCallType();
@@ -3212,6 +3213,7 @@ AbstractQoreNode *MethodFunction::evalNormalMethod(const AbstractQoreFunctionVar
    CodeEvaluationHelper ceh(xsink, mname, args, class_name);
    if (*xsink) return 0;
 
+   bool check_args = variant;
    if (!variant) {
       variant = findVariant(ceh.getArgs(), false, xsink);
       if (!variant) {
@@ -3221,7 +3223,7 @@ AbstractQoreNode *MethodFunction::evalNormalMethod(const AbstractQoreFunctionVar
    }
    ceh.setClassName(METHVB_const(variant)->className());
 
-   if (ceh.processDefaultArgs(this, variant, xsink))
+   if (ceh.processDefaultArgs(this, variant, check_args, xsink))
       return 0;
 
    ceh.setCallType(variant->getCallType());
@@ -3236,6 +3238,7 @@ AbstractQoreNode *MethodFunction::evalStaticMethod(const AbstractQoreFunctionVar
    CodeEvaluationHelper ceh(xsink, mname, args, class_name);
    if (*xsink) return 0;
 
+   bool check_args = variant;
    if (!variant) {
       variant = findVariant(ceh.getArgs(), false, xsink);
       if (!variant) {
@@ -3245,7 +3248,7 @@ AbstractQoreNode *MethodFunction::evalStaticMethod(const AbstractQoreFunctionVar
    }
    ceh.setClassName(METHVB_const(variant)->className());
 
-   if (ceh.processDefaultArgs(this, variant, xsink))
+   if (ceh.processDefaultArgs(this, variant, check_args, xsink))
       return 0;
 
    ceh.setCallType(variant->getCallType());

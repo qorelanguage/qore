@@ -403,7 +403,7 @@ public:
    DLLLOCAL void setCallType(qore_call_t n_ct) {
       ct = n_ct;
    }
-   DLLLOCAL int processDefaultArgs(const AbstractQoreFunction *func, const AbstractQoreFunctionVariant *variant, ExceptionSink *xsink);
+   DLLLOCAL int processDefaultArgs(const AbstractQoreFunction *func, const AbstractQoreFunctionVariant *variant, bool check_args, ExceptionSink *xsink);
 
    DLLLOCAL const QoreListNode *getArgs() const {
       return *tmp;

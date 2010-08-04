@@ -68,7 +68,7 @@ static void addArgs(QoreStringNode &desc, const QoreListNode *args) {
    }
 }
 
-int CodeEvaluationHelper::processDefaultArgs(const AbstractQoreFunction *func, const AbstractQoreFunctionVariant *variant, ExceptionSink *xsink) {
+int CodeEvaluationHelper::processDefaultArgs(const AbstractQoreFunction *func, const AbstractQoreFunctionVariant *variant, bool check_args, ExceptionSink *xsink) {
    bool edit_done = false;
 
    // get default argument list of variant
@@ -94,7 +94,7 @@ int CodeEvaluationHelper::processDefaultArgs(const AbstractQoreFunction *func, c
 	 const AbstractQoreNode *n = tmp ? tmp->retrieve_entry(i) : 0;
 	 const QoreTypeInfo *paramTypeInfo = sig->getParamTypeInfo(i);
 	 // test for change or incompatibility
-	 if (paramTypeInfo->hasInputFilter()) {
+	 if (check_args || paramTypeInfo->hasInputFilter()) {
 	    if (!edit_done && paramTypeInfo->mayRequireFilter(n)) {
 	       // edit the current argument list
 	       tmp.edit();
@@ -949,6 +949,7 @@ AbstractQoreNode *AbstractQoreFunction::evalFunction(const AbstractQoreFunctionV
    CodeEvaluationHelper ceh(xsink, fname, args);
    if (*xsink) return 0;
 
+   bool check_args = variant;
    if (!variant) {
       variant = findVariant(ceh.getArgs(), false, xsink);
       if (!variant) {
@@ -956,7 +957,7 @@ AbstractQoreNode *AbstractQoreFunction::evalFunction(const AbstractQoreFunctionV
 	 return 0;
       }
    }
-   if (ceh.processDefaultArgs(this, variant, xsink))
+   if (ceh.processDefaultArgs(this, variant, check_args, xsink))
       return 0;
 
    ceh.setCallType(variant->getCallType());
@@ -977,7 +978,7 @@ AbstractQoreNode *AbstractQoreFunction::evalDynamic(const QoreListNode *args, Ex
       assert(*xsink);
       return 0;
    }
-   if (ceh.processDefaultArgs(this, variant, xsink))
+   if (ceh.processDefaultArgs(this, variant, false, xsink))
       return 0;
 
    ceh.setCallType(variant->getCallType());
@@ -1489,7 +1490,7 @@ AbstractQoreNode *UserClosureFunction::evalClosure(const QoreListNode *args, Qor
 
    // setup call, save runtime position
    CodeEvaluationHelper ceh(xsink, "<anonymous closure>", args, 0, CT_USER);
-   if (ceh.processDefaultArgs(this, variant, xsink))
+   if (ceh.processDefaultArgs(this, variant, true, xsink))
       return 0;
 
    ceh.setReturnTypeInfo(variant->getReturnTypeInfo());
