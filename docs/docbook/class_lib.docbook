@@ -17151,7 +17151,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	  <listitem>
 	    <para>Sets the <code>TCP_NODELAY</code> setting for the socket; when this setting is <code>True</code>, then data will be immediately sent out over the socket, when it is <code>False</code>, then data transmission may be delayed to be packaged with other data for the same target.</para>
 	    <para>Delayed data transmissions may cause problems when the sender immediately closes the socket after sending data; in this case the receiver may not get the data even though the send succeeded.</para>
-	    <para>Note that if no value is given to the method, the argument will be assumed to be <code>False</code>, and output buffering will be turned on for the socket, which may be the opposite of what the programmer intends, therefore it's recommended to always pass an argument to this method.</para>
+	    <para>Note that if no value is given to the method, the argument will be assumed to be <code>True</code>, and output buffering will be turned off for the socket.</para>
 	    <para>See also <link linkend="Socket_getNoDelay">Socket::getNoDelay()</link>.</para>
 	  </listitem>
 	</varlistentry>
@@ -19655,7 +19655,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	  <listitem>
 	    <para>Sets the <code>TCP_NODELAY</code> setting for the HTTPClient object; when this setting is <code>True</code>, then data will be immediately sent out over the HTTPClient object's socket, when it is <code>False</code>, then data transmission may be delayed to be packaged with other data for the same target.</para>
 	    <para>Delayed data transmissions may cause problems when the sender immediately closes the socket after sending data; in this case the receiver may not get the data even though the send succeeded.</para>
-	    <para>Note that if no value is given to the method, the argument will be assumed to be <code>False</code>, and output buffering will be turned on for the HTTPClient object, which may be the opposite of what the programmer intends, therefore it's recommended to always pass an argument to this method.</para>
+	    <para>Note that if no value is given to the method, the argument will be assumed to be <code>True</code>, and output buffering will be turned off for the HTTPClient object.</para>
 	    <para>If the socket is not connected when this call is made, then an internal flag is set and the <code>TCP_NODELAY</code> option is enabled when the next connection is established.  If the socket is connected, then if an error occurs setting the <code>TCP_NODELAY</code> option on the socket, this method will return a non-zero error code; the actual error can be checked with the <link linkend="errno">errno()</link> function.</para>
 	    <para>See also <link linkend="HTTPClient_getNoDelay">HTTPClient::getNoDelay()</link>.</para>
 	  </listitem>
