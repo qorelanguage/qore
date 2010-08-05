@@ -27531,6 +27531,20 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns the name of the threading class directly inheriting this class.</para></entry>
 	  </row>
+	  <row>
+	    <entry>
+              <para><code><link linkend="AbstractSmartLock::lockOwner">AbstractSmartLock::lockOwner</link>() <command>returns</command> <link linkend="bool_type">bool</link></code></para>
+            </entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Returns True if the calling thread owns the lock, False if not.</para></entry>
+	  </row>
+	  <row>
+	    <entry>
+              <para><code><link linkend="AbstractSmartLock::lockTID">AbstractSmartLock::lockTID</link>() <command>returns</command> <link linkend="int_type">int</link></code></para>
+            </entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Returns the TID of the thread owning the lock or -1 if the lock is currently not acquired.</para></entry>
+	  </row>
 	</tbody>
       </tgroup>
     </table>
@@ -27630,6 +27644,98 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
 	    <row>
 	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
 	      <entry><para>Returns the name of the threading class directly inheriting this class.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="AbstractSmartLock::lockOwner">
+      <title>AbstractSmartLock::lockOwner()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Returns True if the calling thread owns the lock, False if not.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Prototype</term>
+	  <listitem>
+	    <para><code><link linkend="AbstractSmartLock::lockOwner">AbstractSmartLock::lockOwner</link>() <command>returns</command> <link linkend="bool_type">bool</link></code></para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting># only grab and release lock if we don't already own it
+<command>if</command> (!$lock.lockOwner())
+    $lock.lock();
+<command>on_exit</command>
+    <command>if</command> (!$lock.lockOwner())
+	$lock.unlock();</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Return Values for AbstractSmartLock::lockOwner()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
+	      <entry><para>Returns True if the calling thread owns the lock, False if not.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="AbstractSmartLock::lockTID">
+      <title>AbstractSmartLock::lockTID()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Returns the TID of the thread owning the lock or -1 if the lock is currently not acquired.</para>
+	    <para>This method normally not useful in practice for anything except checking that the current thread owns the lock, in which case <link linkend="AbstractSmartLock::lockOwner">AbstractSmartLock::lockOwner()</link> is better, because if the lock is not owned by the current thread the lock ownership can change at any time.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Prototype</term>
+	  <listitem>
+	    <para><code><link linkend="AbstractSmartLock::lockTID">AbstractSmartLock::lockTID</link>() <command>returns</command> <link linkend="int_type">int</link></code></para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting><command>my</command> int $tid = $lock.lockTID();</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Return Values for AbstractSmartLock::lockTID()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+	      <entry><para>Returns the TID of the thread owning the lock or -1 if the lock is currently not acquired.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>

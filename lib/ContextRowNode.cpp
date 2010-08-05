@@ -82,6 +82,7 @@ double ContextRowNode::floatEvalImpl(ExceptionSink *xsink) const {
 }
 
 AbstractQoreNode *ContextRowNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+   typeInfo = hashTypeInfo;
    if (!getCVarStack())
       parse_error("context row reference \"%%\" encountered out of context");
    return this;

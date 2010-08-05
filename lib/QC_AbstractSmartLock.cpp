@@ -29,8 +29,20 @@ static void ASL_constructor(QoreObject *self, const QoreListNode *params, Except
    xsink->raiseException("ABSTRACTSMARTLOCK-CONSTRUCTOR-ERROR", "this class is an abstract class and cannot be constructed directly or inherited directly by a user-defined class");
 }
 
+// AbstractSmartLock::getName() returns string
 static AbstractQoreNode *ASL_getName(QoreObject *self, AbstractSmartLock *asl, const QoreListNode *params, ExceptionSink *xsink) {
    return new QoreStringNode(asl->getName());
+}
+
+// AbstractSmartLock::lockOwner() returns bool
+static AbstractQoreNode *ASL_lockOwner(QoreObject *self, AbstractSmartLock *asl, const QoreListNode *params, ExceptionSink *xsink) {
+   return get_bool_node(asl->get_tid() == gettid());
+}
+
+// AbstractSmartLock::lockTID() returns int
+static AbstractQoreNode *ASL_lockTID(QoreObject *self, AbstractSmartLock *asl, const QoreListNode *params, ExceptionSink *xsink) {
+   int tid = asl->get_tid();
+   return new QoreBigIntNode(!tid ? -1 : 0);
 }
 
 QoreClass *initAbstractSmartLockClass() {
@@ -40,7 +52,14 @@ QoreClass *initAbstractSmartLockClass() {
    CID_ABSTRACTSMARTLOCK = QC_AbstractSmartLock->getID();
    QC_AbstractSmartLock->setConstructorExtended(ASL_constructor);
 
+   // AbstractSmartLock::getName() returns string
    QC_AbstractSmartLock->addMethodExtended("getName", (q_method_t)ASL_getName, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringTypeInfo);
+
+   // AbstractSmartLock::lockOwner() returns bool
+   QC_AbstractSmartLock->addMethodExtended("lockOwner", (q_method_t)ASL_lockOwner, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, boolTypeInfo);
+
+   // AbstractSmartLock::lockTID() returns int
+   QC_AbstractSmartLock->addMethodExtended("lockTID", (q_method_t)ASL_lockTID, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo);
    
    return QC_AbstractSmartLock;
 }
