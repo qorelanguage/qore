@@ -44,7 +44,7 @@ NamedScope *NamedScope::copy() const {
 void NamedScope::init() {
    const char *str = ostr;
 
-   while (char *p = strstr(str, "::")) {
+   while (char *p = (char *)strstr(str, "::")) {
       char *nstr = (char *)malloc(sizeof(char) * (p - str + 1));
       strncpy(nstr, str, (p - str));
       nstr[p - str] = '\0';
