@@ -33,19 +33,47 @@
 
 #define QORE_NAMEDSCOPE_H
 
+#include <vector>
+
 // for parsing namespace/class scope resolution
 class NamedScope {
 private:
-   int allocated;
+   typedef std::vector<char *> nslist_t;
 
+   bool del;
+
+   DLLLOCAL void init();
+      
 public:
-   int elements;
-   char **strlist;
    char *ostr;
+   nslist_t strlist;
 
-   DLLLOCAL NamedScope(char *str);
-   DLLLOCAL ~NamedScope();
-   DLLLOCAL char *getIdentifier() const;
+   DLLLOCAL NamedScope(char *str) : del(true), ostr(str) {
+      init();
+   }
+
+   DLLLOCAL NamedScope(const char *str) : del(false), ostr((char *)str) {
+      init();
+   }
+
+   DLLLOCAL NamedScope(const NamedScope &old) : del(true), ostr(strdup(old.ostr)), strlist(old.strlist) {
+   }
+
+   DLLLOCAL ~NamedScope() {
+      for (nslist_t::iterator i = strlist.begin(), e = strlist.end(); i != e; ++i)
+         free(*i);
+      if (ostr && del)
+         free(ostr);
+   }
+
+   DLLLOCAL const char *getIdentifier() const {
+      return strlist[strlist.size() - 1];
+   }
+
+   DLLLOCAL int size() const {
+      return strlist.size(); 
+   }
+
    DLLLOCAL NamedScope *copy() const;
    DLLLOCAL void fixBCCall();
 };

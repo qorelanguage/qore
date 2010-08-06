@@ -359,6 +359,24 @@ void QoreString::setEncoding(const QoreEncoding *new_encoding) {
    priv->charset = new_encoding;
 }
 
+void QoreString::replaceAll(const char *old_str, const char *new_str) {
+   assert(old_str);
+   assert(new_str);
+
+   int old_len = ::strlen(old_str);
+   int new_len = ::strlen(new_str);
+
+   qore_offset_t start = 0;
+   while (true) {
+      qore_offset_t i = bindex(old_str, start);
+      if (i < 0)
+	 break;
+
+      replace(i, old_len, "::");
+      start = i + new_len;
+   }
+}
+
 void QoreString::replace(qore_size_t offset, qore_size_t dlen, const char *str) {
    if (str && str[0])
       splice_simple(offset, dlen, str, ::strlen(str));

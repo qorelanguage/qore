@@ -1011,7 +1011,7 @@ statement:
         // this should be covered as an expression, but for some reason it isn't...
         | SCOPED_REF '(' myexp ')' ';' {
 	   NamedScope *ns = new NamedScope($1);
-	   assert(ns->elements > 1);
+	   assert(ns->size() > 1);
 	   printd(5, "statement: parsing static method call: %s()\n", ns->ostr);
 	   $$ = new ExpressionStatement(@1.first_line, @1.last_line, new StaticMethodCallNode(ns, makeArgs($3)));
 	}
@@ -2096,7 +2096,7 @@ exp:    scalar
 	      // take NamedScope from node and delete node
 	      NamedScope *ns = c->takeName();
 	      c->deref();
-	      assert(ns->elements > 1);
+	      assert(ns->size() > 1);
 	      printd(5, "parsing scoped call (static method or new object call) %s()\n", ns->ostr);
 	      $$ = new StaticMethodCallNode(ns, makeArgs($3));
 	   }

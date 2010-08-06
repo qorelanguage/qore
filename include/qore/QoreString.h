@@ -288,6 +288,11 @@ public:
     */
    DLLEXPORT void reset();
 
+   //! replaces all occurences of the first string with the second string
+   /** both of the new strings must be in the same encoding as the QoreString
+    */
+   DLLEXPORT void replaceAll(const char *old_str, const char *new_str);
+
    //! replaces bytes with the string passed
    /** offsets and size are in bytes, not characters
     */

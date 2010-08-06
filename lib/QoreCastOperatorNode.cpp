@@ -79,7 +79,7 @@ AbstractQoreNode *QoreCastOperatorNode::evalImpl(bool &needs_deref, ExceptionSin
 
 AbstractQoreNode *QoreCastOperatorNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    bool err = false;
-   if (path->elements == 1) {
+   if (path->size() == 1) {
       // if the class is "object", then set qc = 0 to use as a catch-all and generic "cast to object"
       const char *id = path->getIdentifier();
       qc = !strcmp(id, "object") ? 0 : getRootNS()->parseFindClass(path->getIdentifier());

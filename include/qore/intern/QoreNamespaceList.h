@@ -53,11 +53,11 @@ public:
    DLLLOCAL void deleteAllConstants();
    DLLLOCAL void reset();
    DLLLOCAL void assimilate(QoreNamespaceList *n);
-   DLLLOCAL QoreNamespace *parseResolveNamespace(NamedScope *name, int *matched);
+   DLLLOCAL QoreNamespace *parseResolveNamespace(const NamedScope *name, int *matched);
    DLLLOCAL AbstractQoreNode *parseFindConstantValue(const char *cname, const QoreTypeInfo *&typeInfo);
-   DLLLOCAL AbstractQoreNode *parseFindScopedConstantValue(NamedScope *name, int *matched, const QoreTypeInfo *&typeInfo);
-   DLLLOCAL QoreClass *parseFindScopedClassWithMethod(NamedScope *name, int *matched) const;
-   DLLLOCAL QoreClass *parseFindScopedClass(NamedScope *name, int *matched);
+   DLLLOCAL AbstractQoreNode *parseFindScopedConstantValue(const NamedScope *name, int *matched, const QoreTypeInfo *&typeInfo);
+   DLLLOCAL QoreClass *parseFindScopedClassWithMethod(const NamedScope *name, int *matched) const;
+   DLLLOCAL QoreClass *parseFindScopedClass(const NamedScope *name, int *matched);
    DLLLOCAL QoreClass *parseFindClass(const char *ocname);
    DLLLOCAL QoreClass *parseFindChangeClass(const char *ocname);
 };

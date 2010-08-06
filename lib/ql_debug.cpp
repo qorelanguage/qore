@@ -87,7 +87,8 @@ static void dni(QoreStringNode *s, const AbstractQoreNode *n, int indent, Except
    
    if (ntype == NT_OBJECT) {
       const QoreObject *o = reinterpret_cast<const QoreObject *>(n);
-      s->sprintf("elements=%d (type=%s, valid=%s)", o->size(xsink),
+      s->sprintf("elements=%d (cls=%p, type=%s, valid=%s)", o->size(xsink),
+		 o->getClass(),
 		 o->getClass() ? o->getClass()->getName() : "<none>",
 		 o->isValid() ? "yes" : "no");
       {
