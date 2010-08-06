@@ -99,6 +99,8 @@ void QoreSignalManager::init(bool disable_signal_mask) {
 
       // do not block SIGSEGV
       sigdelset(&mask, SIGSEGV);
+      sigdelset(&mask, SIGPWR);
+      sigdelset(&mask, SIGXCPU);
 
       pthread_sigmask(SIG_SETMASK, &mask, 0);
 

@@ -26,6 +26,7 @@
 #define _QORE_BUILTINFUNCTION_H
 
 #include <vector>
+#include <string>
 
 class BCList;
 class BCEAList;
@@ -112,7 +113,7 @@ public:
 
 class BuiltinFunctionBase {
 protected:
-   const char *name;
+   std::string name;
 
 public:
    DLLLOCAL BuiltinFunctionBase(const char *n_name) : name(n_name) {
@@ -130,7 +131,7 @@ public:
    DLLLOCAL BuiltinFunction(const BuiltinFunction &old) : BuiltinFunctionBase(old) {
    }
    DLLLOCAL virtual const char *getName() const { 
-      return name;
+      return name.c_str();
    }
    DLLLOCAL virtual void ref() {
       assert(false);

@@ -670,7 +670,7 @@ public:
    }
 
    DLLLOCAL virtual const char *getName() const { 
-      return name;
+      return name.c_str();
    }
 
    DLLLOCAL virtual MethodFunctionBase *copy(const QoreClass *n_qc) const {
