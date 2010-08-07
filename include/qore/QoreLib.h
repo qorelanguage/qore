@@ -351,6 +351,13 @@ DLLEXPORT extern const qore_option_s *qore_option_list;
 //! number of elements in the option list
 DLLEXPORT extern size_t qore_option_list_size;
 
+//! allows a module to take over ownership of a signal
+/** @param sig signal number
+    @param name module name taking ownership of managing the signal
+    @return 0 for OK, non-zero for failed (error message)
+ */
+DLLEXPORT QoreStringNode *qore_reassign_signal(int sig, const char *name);
+
 //! macro to return the maximum of 2 numbers
 #define QORE_MAX(a, b) ((a) > (b) ? (a) : (b))
 

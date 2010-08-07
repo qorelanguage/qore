@@ -31,6 +31,9 @@
 
 #include <signal.h>
 
+#include <map>
+#include <string>
+
 // maximum number of signals
 #ifndef QORE_SIGNAL_MAX
 #ifdef NSIG
@@ -69,6 +72,9 @@ public:
    }
 };
 
+// map of signals to module names
+typedef std::map<int, std::string> sig_map_t;
+
 class QoreSignalManager {
    friend class QoreSignalManagerBusyHelper;
 
@@ -89,7 +95,12 @@ private:
 public:
    enum sig_cmd_e { C_None = 0, C_Reload = 1, C_Exit = 2 };
 
+   // set of signals we are managing
    static sigset_t mask;
+
+   // set of signals we do not manage (empty at start)
+   static sig_map_t fmap;
+
    static int num_handlers;
    static bool thread_running;
    static QoreSignalHandler handlers[QORE_SIGNAL_MAX];
@@ -115,6 +126,11 @@ public:
    DLLLOCAL static void reset_default_signal_mask();
    DLLLOCAL static bool running() { return tid != -1; }
    DLLLOCAL static bool enabled() { return is_enabled; }
+
+   // try to allow the signal to be managed externally (by a module)
+   // sig = signal number, name = name of module to manage signal
+   // returns 0 for OK, or an error string on error
+   DLLLOCAL static QoreStringNode *reassign_signal(int sig, const char *name);
 };
 
 DLLLOCAL extern QoreSignalManager QSM;

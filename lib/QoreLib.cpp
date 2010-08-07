@@ -1193,3 +1193,7 @@ QoreStringNode *q_strerror(int err) {
    q_strerror(*rv, err);
    return rv;
 }
+
+QoreStringNode *qore_reassign_signal(int sig, const char *name) {
+   return QSM.reassign_signal(sig, name);
+}
