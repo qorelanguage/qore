@@ -329,6 +329,11 @@ typedef void (*q_copy3_t)(const QoreClass &thisclass, const void *ptr, QoreObjec
  */
 typedef bool (*q_delete_blocker_t)(QoreObject *self, AbstractPrivateData *private_data);
 
+//! type for thread resource IDs (unique within a single running qore library process)
+/** @see qore_get_trid()
+ */
+typedef unsigned q_trid_t;
+
 DLLEXPORT long long q_atoll(const char *str);
 
 #endif // _QORE_COMMON_H

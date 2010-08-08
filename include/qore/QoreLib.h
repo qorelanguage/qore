@@ -60,6 +60,9 @@
 //! defined because this version of Qore has time zone support
 #define _QORE_HAS_TIME_ZONES 1
 
+//! defined because this version of Qore has thread resource IDs
+#define _QORE_HAS_THREAD_RESOURCE_IDS 1
+
 // qore code flags
 #define QC_NO_FLAGS                 0   //! no flag
 #define QC_NOOP               (1 << 0)  //! this variant is a noop, meaning it returns a constant value with the given argument types

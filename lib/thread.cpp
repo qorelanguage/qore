@@ -773,6 +773,24 @@ int remove_thread_resource(AbstractThreadResource *atr) {
    return td->trlist.remove(atr);
 }
 
+void set_thread_resource_id(q_trid_t trid, AbstractThreadResource *atr) {
+   ThreadData *td = thread_data.get();
+   td->trlist.set(trid, atr);   
+}
+
+int remove_thread_resource_id(q_trid_t trid) {
+   ThreadData *td = thread_data.get();
+   return td->trlist.remove_id(trid);
+}
+
+bool check_thread_resource_id(q_trid_t trid) {
+   return thread_data.get()->trlist.check(trid);
+}
+
+q_trid_t qore_get_trid() {
+   return ThreadResourceList::get_resource_id();
+}
+
 void purge_thread_resources(ExceptionSink *xsink) {
    ThreadData *td = thread_data.get();
    td->trlist.purge(xsink);

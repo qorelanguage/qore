@@ -67,6 +67,33 @@ DLLEXPORT void set_thread_resource(AbstractThreadResource *atr);
  */
 DLLEXPORT int remove_thread_resource(AbstractThreadResource *atr);
 
+//! save a resource against a thread for thread resource handling using the thread resource id
+/** by using the thread resource id, you can quickly check if the resource has already been saved for the thread
+    @param trid thread resource id
+    @param atr a pointer to the thread resource to save
+    @see qore_get_trid()
+    @see remove_thread_resource_id()
+ */
+DLLEXPORT void set_thread_resource_id(q_trid_t trid, AbstractThreadResource *atr);
+
+//! remove the resource from the thread resource list for the current thread using the thread resource ID
+/** @param trid thread resource id of the resource to remove, must have been set with set_thread_resource_id()
+    @return 0 if successful (resource was found and removed), -1 if the resource was not found
+    @see qore_get_trid()
+    @see set_thread_resource_id()
+ */
+DLLEXPORT int remove_thread_resource_id(q_trid_t trid);
+
+//! check if a thread resouce has been saved with the given resource id
+/** @param trid thread resource id to check
+    @return true if saved, false if not saved
+*/
+
+DLLEXPORT bool check_thread_resource_id(q_trid_t trid);
+
+//! get a thread resource ID
+DLLEXPORT q_trid_t qore_get_trid();
+
 //! list of functions to be run when a thread ends; required for some external libraries that require explicit cleanup when a thread terminates
 /** this list is not locked and therefore the ThreadCleanupList::push() and 
     ThreadCleanupList::pop() functions must only be called in module initialization

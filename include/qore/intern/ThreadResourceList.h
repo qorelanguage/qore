@@ -25,24 +25,66 @@
 
 #define _QORE_THREADRESOURCELIST_H
 
-class ThreadResourceList {
-   private:
-      class ThreadResourceNode *head;
-   
-      DLLLOCAL class ThreadResourceNode *find(AbstractThreadResource *atr);
-      DLLLOCAL void removeIntern(class ThreadResourceNode *w);
-      DLLLOCAL void setIntern(class ThreadResourceNode *n);
+#include <qore/intern/Sequence.h>
 
-   public:
-      DLLLOCAL ThreadResourceList();
-      DLLLOCAL ~ThreadResourceList();
-   
-      DLLLOCAL void set(AbstractThreadResource *atr);
-      //returns 0 if not already set, -1 if already set
-      DLLLOCAL int setOnce(AbstractThreadResource *atr);
-      // returns 0 if removed, -1 if not found
-      DLLLOCAL int remove(AbstractThreadResource *atr);
-      DLLLOCAL void purge(class ExceptionSink *xsink);
+#include <set>
+#include <map>
+
+typedef std::set<AbstractThreadResource *> trset_t;
+typedef std::map<q_trid_t, AbstractThreadResource *> trmap_t;
+
+class ThreadResourceList {
+private:
+   static Sequence seq;
+   trset_t trset;
+   trmap_t trmap;
+
+public:
+   DLLLOCAL ThreadResourceList() {
+   }
+
+   DLLLOCAL ~ThreadResourceList() {
+      assert(trset.empty());
+   }
+
+   DLLLOCAL void set(q_trid_t trid, AbstractThreadResource *atr) {
+      assert(trmap.find(trid) == trmap.end());
+
+      atr->ref();
+      trmap[trid] = atr;
+   }
+
+   DLLLOCAL void set(AbstractThreadResource *atr);
+
+   // returns true if already set, false if not
+   DLLLOCAL bool check(q_trid_t trid) {
+      return trmap.find(trid) != trmap.end();
+   }
+
+   //returns 0 if not already set, -1 if already set
+   DLLLOCAL int setOnce(AbstractThreadResource *atr);
+
+   // returns 0 if removed, -1 if not found
+   DLLLOCAL int remove(AbstractThreadResource *atr);
+
+   // returns 0 if removed, -1 if not found
+   DLLLOCAL int remove_id(q_trid_t trid) {
+      trmap_t::iterator i = trmap.find(trid);
+      if (i == trmap.end())
+         return -1;
+
+      //printd(0, "TRL::remove(trid=%d, atr=%p)\n", trid, i->second);
+
+      i->second->deref();
+      trmap.erase(i);
+      return 0;
+   }
+
+   DLLLOCAL void purge(ExceptionSink *xsink);
+
+   DLLLOCAL static q_trid_t get_resource_id() {
+      return (q_trid_t)seq.next();
+   }
 };
 
 
