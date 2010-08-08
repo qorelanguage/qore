@@ -33,16 +33,27 @@
 
 #define _QORE_NAMESPACELIST_H
 
+#include <map>
+
+typedef std::map<std::string, QoreNamespace*> nsmap_t;
+
 class QoreNamespaceList {
 private:
    DLLLOCAL void deleteAll();
-      
+
 public:
-   QoreNamespace *head, *tail;
+   nsmap_t nsmap;
 
    DLLLOCAL QoreNamespaceList();
    DLLLOCAL ~QoreNamespaceList();
-   DLLLOCAL QoreNamespace *find(const char *name);
+   DLLLOCAL QoreNamespace *find(const char *name) {
+      nsmap_t::iterator i = nsmap.find(name);
+      return i == nsmap.end() ? 0 : i->second;
+   }
+   DLLLOCAL QoreNamespace *find(const std::string &name) {
+      nsmap_t::iterator i = nsmap.find(name);
+      return i == nsmap.end() ? 0 : i->second;
+   }
    DLLLOCAL void add(QoreNamespace *ot);
    DLLLOCAL QoreNamespaceList *copy(int64 po);
    DLLLOCAL void resolveCopy();

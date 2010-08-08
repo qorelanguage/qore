@@ -88,12 +88,10 @@ struct qore_ns_private {
    ConstantList       *pendConstant;
    QoreNamespaceList  *pendNSL;
 
-   QoreNamespace      *next;
-
    DLLLOCAL qore_ns_private(const char *n, QoreClassList *ocl, ConstantList *cl, QoreNamespaceList *nnsl) :
       name(n), 
       classList(ocl), constant(cl), nsl(nnsl), 
-      pendClassList(new QoreClassList), pendConstant(new ConstantList), pendNSL(new QoreNamespaceList), next(0)
+      pendClassList(new QoreClassList), pendConstant(new ConstantList), pendNSL(new QoreNamespaceList)
    {
       assert(classList);
       assert(constant);
@@ -102,7 +100,7 @@ struct qore_ns_private {
    DLLLOCAL qore_ns_private(const char *n) :
       name(n),
       classList(new QoreClassList), constant(new ConstantList), nsl(new QoreNamespaceList), 
-      pendClassList(new QoreClassList), pendConstant(new ConstantList), pendNSL(new QoreNamespaceList), next(0)
+      pendClassList(new QoreClassList), pendConstant(new ConstantList), pendNSL(new QoreNamespaceList)
    {
    }
 
@@ -304,15 +302,12 @@ void QoreNamespace::parseRollback() {
 }
 
 QoreNamespaceList::QoreNamespaceList() {
-   head = tail = 0;
 }
 
 void QoreNamespaceList::deleteAll() {
-   while (head) {
-      tail = head->priv->next;
-      delete head;
-      head = tail;
-   }
+   for (nsmap_t::iterator i = nsmap.begin(), e = nsmap.end(); i != e; ++i)
+      delete i->second;
+   nsmap.clear();
 }
 
 QoreNamespaceList::~QoreNamespaceList() {
@@ -320,22 +315,15 @@ QoreNamespaceList::~QoreNamespaceList() {
 }
 
 void QoreNamespaceList::assimilate(QoreNamespaceList *n) {
-   // assimilate target list
-   if (tail)
-      tail->priv->next = n->head;
-   else
-      head = n->head;
-   if (n->tail)
-      tail = n->tail;
-   
-   // "zero" target list
-   n->head = n->tail = 0;
+   for (nsmap_t::iterator i = n->nsmap.begin(), e = n->nsmap.end(); i != e; ++i) {
+      assert(nsmap.find(i->first) == nsmap.end());
+      nsmap[i->first] = i->second;
+   }
+   n->nsmap.clear();
 }
 
-void QoreNamespaceList::reset()
-{
+void QoreNamespaceList::reset() {
    deleteAll();
-   head = tail = 0;
 }
 
 void QoreNamespaceList::add(QoreNamespace *ns) {
@@ -345,29 +333,7 @@ void QoreNamespaceList::add(QoreNamespace *ns) {
       ons->assimilate(ns);
       return;
    }
-   // otherwise append to list
-   if (tail)
-      tail->priv->next = ns;
-   else
-      head = ns;
-   tail = ns;
-}
-
-QoreNamespace *QoreNamespaceList::find(const char *name) {
-   QORE_TRACE("QoreNamespaceList::find()");
-   printd(5, "QoreNamespaceList::find(%s)\n", name);
-
-   QoreNamespace *w = head;
-
-   while (w) {
-      if (name == w->priv->name)
-	 break;
-      w = w->priv->next;
-   }
-
-   printd(5, "QoreNamespaceList::find(%s) returning %08p\n", name, w);
-
-   return w;
+   nsmap[ns->priv->name] = ns;
 }
 
 QoreNamespace *QoreNamespace::copy(int po) const {
@@ -381,73 +347,45 @@ QoreNamespace *QoreNamespace::copy(int64 po) const {
 }
 
 QoreNamespaceList *QoreNamespaceList::copy(int64 po) {
-   //printd(5, "QoreNamespaceList::copy() this=%p po=%lld head=%p tail=%p\n", this, po, head, tail);
+   //printd(5, "QoreNamespaceList::copy() this=%p po=%lld size=%d\n", this, po, nsmap.size());
    QoreNamespaceList *nsl = new QoreNamespaceList();
 
-   QoreNamespace *w = head;
-
-   while (w) {
-      nsl->add(w->copy(po));
-      w = w->priv->next;
-   }
+   for (nsmap_t::iterator i = nsmap.begin(), e = nsmap.end(); i != e; ++i)
+      nsl->nsmap[i->first] = i->second->copy(po);
 
    return nsl;
 }
 
 void QoreNamespaceList::resolveCopy() {
-   QoreNamespace *w = head;
-
-   while (w) {
-      w->priv->classList->resolveCopy();
-      w = w->priv->next;
-   }
+   for (nsmap_t::iterator i = nsmap.begin(), e = nsmap.end(); i != e; ++i)
+      i->second->priv->classList->resolveCopy();
 }
 
 void QoreNamespaceList::parseInitConstants() {
-   QoreNamespace *w = head;
-
-   while (w) {
-      w->parseInitConstants();
-      w = w->priv->next;
-   }
+   for (nsmap_t::iterator i = nsmap.begin(), e = nsmap.end(); i != e; ++i)
+      i->second->parseInitConstants();
 }
 
 void QoreNamespaceList::deleteAllConstants() {
-   QoreNamespace *w = head;
-
-   while (w) {
-      w->priv->constant->deleteAll();
-      w = w->priv->next;
-   }
+   for (nsmap_t::iterator i = nsmap.begin(), e = nsmap.end(); i != e; ++i)
+      i->second->priv->constant->deleteAll();
 }
 
 void QoreNamespaceList::parseInit() {
-   QoreNamespace *w = head;
-
-   while (w) {
-      w->parseInit();
-      w = w->priv->next;
-   }
+   for (nsmap_t::iterator i = nsmap.begin(), e = nsmap.end(); i != e; ++i)
+      i->second->parseInit();
 }
 
 void QoreNamespaceList::parseCommit(QoreNamespaceList *l) {
    assimilate(l);
 
-   QoreNamespace *w = head;
-
-   while (w) {
-      w->parseCommit();
-      w = w->priv->next;
-   }
+   for (nsmap_t::iterator i = nsmap.begin(), e = nsmap.end(); i != e; ++i)
+      i->second->parseCommit();
 }
 
 void QoreNamespaceList::parseRollback() {
-   QoreNamespace *w = head;
-
-   while (w) {
-      w->parseRollback();
-      w = w->priv->next;
-   }
+   for (nsmap_t::iterator i = nsmap.begin(), e = nsmap.end(); i != e; ++i)
+      i->second->parseRollback();
 }
 
 QoreNamespace *QoreNamespace::findNamespace(const char *nname) const {
@@ -497,27 +435,21 @@ QoreNamespace *QoreNamespace::findCreateNamespacePath(const char *nspath) {
 QoreNamespace *QoreNamespaceList::parseResolveNamespace(const NamedScope *name, int *matched) {
    QORE_TRACE("QoreNamespaceList::parseResolveNamespace()");
 
-   QoreNamespace *w = head, *ns = 0;
+   QoreNamespace *ns = 0;
 
    // search first level of all sub namespaces
-   while (w) {
-      if ((ns = w->parseMatchNamespace(name, matched)))
-	 break;
-      w = w->priv->next;
-   }
-      //printd(5, "1:%s matched=%d\n", nslist[i]->name, *matched);
+   for (nsmap_t::iterator i = nsmap.begin(), e = nsmap.end(); i != e; ++i) {
+      if ((ns = i->second->parseMatchNamespace(name, matched)))
+	 return ns;
+   }      
 
-   if (!ns) {
-      // now search in all sub namespace lists
-      w = head;
-      while (w) {
-	 if ((ns = w->priv->nsl->parseResolveNamespace(name, matched)))
-	    break;
-	 if ((ns = w->priv->pendNSL->parseResolveNamespace(name, matched)))
-	    break;
-	 //printd(5, "1:%s matched=%d\n", nslist[i]->name, *matched);
-	 w = w->priv->next;
-      }
+   // now search in all sub namespace lists
+   for (nsmap_t::iterator i = nsmap.begin(), e = nsmap.end(); i != e; ++i) {
+      if ((ns = i->second->priv->nsl->parseResolveNamespace(name, matched)))
+	 break;
+      if ((ns = i->second->priv->pendNSL->parseResolveNamespace(name, matched)))
+	 break;
+      //printd(5, "1:%s matched=%d\n", nslist[i]->name, *matched);
    }
 
    return ns;
@@ -528,23 +460,17 @@ AbstractQoreNode *QoreNamespaceList::parseFindConstantValue(const char *cname, c
    QORE_TRACE("QoreNamespaceList::parseFindConstantValue()");
    
    AbstractQoreNode *rv = 0;
-   QoreNamespace *w = head;
-   // see if a match can be found at the first level
-   while (w) {
-      if ((rv = w->getConstantValue(cname, typeInfo)))
-	 break;
-      w = w->priv->next;
+   for (nsmap_t::iterator i = nsmap.begin(), e = nsmap.end(); i != e; ++i) {
+      if ((rv = i->second->getConstantValue(cname, typeInfo)))
+	 return rv;
    }
 
-   if (!rv) { // check all levels
-      w = head;
-      while (w) {
-	 if ((rv = w->priv->nsl->parseFindConstantValue(cname, typeInfo)))
-	    break;
-	 if ((rv = w->priv->pendNSL->parseFindConstantValue(cname, typeInfo)))
-	    break;
-	 w = w->priv->next;
-      }
+   // check all levels
+   for (nsmap_t::iterator i = nsmap.begin(), e = nsmap.end(); i != e; ++i) {
+      if ((rv = i->second->priv->nsl->parseFindConstantValue(cname, typeInfo)))
+	 break;
+      if ((rv = i->second->priv->pendNSL->parseFindConstantValue(cname, typeInfo)))
+	 break;
    }
 
    return rv;
@@ -569,22 +495,17 @@ AbstractQoreNode *QoreNamespaceList::parseFindScopedConstantValue(const NamedSco
 
    //showNSL(this);
    // see if a complete match can be found at the first level
-   QoreNamespace *w = head;
-   while (w) {
-      if ((rv = w->parseMatchScopedConstantValue(name, matched, typeInfo)))
-	 break;
-      w = w->priv->next;
+   for (nsmap_t::iterator i = nsmap.begin(), e = nsmap.end(); i != e; ++i) {
+      if ((rv = i->second->parseMatchScopedConstantValue(name, matched, typeInfo)))
+	 return rv;
    }
 
-   if (!rv) { // now search all sub namespaces
-      w = head;
-      while (w) {
-	 if ((rv = w->priv->nsl->parseFindScopedConstantValue(name, matched, typeInfo)))
-	    break;
-	 if ((rv = w->priv->pendNSL->parseFindScopedConstantValue(name, matched, typeInfo)))
-	    break;
-	 w = w->priv->next;
-      }
+   // now search all sub namespaces
+   for (nsmap_t::iterator i = nsmap.begin(), e = nsmap.end(); i != e; ++i) {
+      if ((rv = i->second->priv->nsl->parseFindScopedConstantValue(name, matched, typeInfo)))
+	 break;
+      if ((rv = i->second->priv->pendNSL->parseFindScopedConstantValue(name, matched, typeInfo)))
+	 break;
    }
 
    return rv;
@@ -597,22 +518,17 @@ QoreClass *QoreNamespaceList::parseFindScopedClassWithMethod(const NamedScope *n
    QoreClass *oc = 0;
 
    // see if a complete match can be found at the first level
-   QoreNamespace *w = head;
-   while (w) {
-      if ((oc = w->parseMatchScopedClassWithMethod(name, matched)))
-	 break;
-      w = w->priv->next;
+   for (nsmap_t::const_iterator i = nsmap.begin(), e = nsmap.end(); i != e; ++i) {
+      if ((oc = i->second->parseMatchScopedClassWithMethod(name, matched)))
+	 return oc;
    }
 
-   if (!oc) { // now search all sub namespaces
-      w = head;
-      while (w) {
-	 if ((oc = w->priv->pendNSL->parseFindScopedClassWithMethod(name, matched)))
-	    break;
-	 if ((oc = w->priv->nsl->parseFindScopedClassWithMethod(name, matched)))
-	    break;
-	 w = w->priv->next;
-      }
+   // now search all sub namespaces
+   for (nsmap_t::const_iterator i = nsmap.begin(), e = nsmap.end(); i != e; ++i) {
+      if ((oc = i->second->priv->pendNSL->parseFindScopedClassWithMethod(name, matched)))
+	 break;
+      if ((oc = i->second->priv->nsl->parseFindScopedClassWithMethod(name, matched)))
+	 break;
    }
 
    return oc;
@@ -622,26 +538,20 @@ QoreClass *QoreNamespaceList::parseFindClass(const char *ocname) {
    QoreClass *oc = 0;
 
    // see if a match can be found at the first level
-   QoreNamespace *w = head;
-   while (w) {
-      if ((oc = w->priv->classList->find(ocname)))
-	 break;
+   for (nsmap_t::iterator i = nsmap.begin(), e = nsmap.end(); i != e; ++i) {
+      if ((oc = i->second->priv->classList->find(ocname)))
+	 return oc;
       // check pending classes
-      if ((oc = w->priv->pendClassList->find(ocname)))
-	 break;
-
-      w = w->priv->next;
+      if ((oc = i->second->priv->pendClassList->find(ocname)))
+	 return oc;
    }
 
-   if (!oc) { // check all levels
-      w = head;
-      while (w) {
-	 if ((oc = w->priv->nsl->parseFindClass(ocname)))
-	    break;
-	 if ((oc = w->priv->pendNSL->parseFindClass(ocname)))
-	    break;
-	 w = w->priv->next;
-      }
+   // check all levels
+   for (nsmap_t::iterator i = nsmap.begin(), e = nsmap.end(); i != e; ++i) {
+      if ((oc = i->second->priv->nsl->parseFindClass(ocname)))
+	 break;
+      if ((oc = i->second->priv->pendNSL->parseFindClass(ocname)))
+	 break;
    }
 
    return oc;
@@ -654,22 +564,17 @@ QoreClass *QoreNamespaceList::parseFindScopedClass(const NamedScope *name, int *
    QoreClass *oc = 0;
 
    // see if a complete match can be found at the first level
-   QoreNamespace *w = head;
-   while (w) {
-      if ((oc = w->parseMatchScopedClass(name, matched)))
-	 break;
-      w = w->priv->next;
+   for (nsmap_t::iterator i = nsmap.begin(), e = nsmap.end(); i != e; ++i) {
+      if ((oc = i->second->parseMatchScopedClass(name, matched)))
+	 return oc;
    }
 
-   if (!oc) { // now search all sub namespaces
-      w = head;
-      while (w) {
-	 if ((oc = w->priv->nsl->parseFindScopedClass(name, matched)))
-	    break;
-	 if ((oc = w->priv->pendNSL->parseFindScopedClass(name, matched)))
-	    break;
-	 w = w->priv->next;
-      }
+   // now search all sub namespaces
+   for (nsmap_t::iterator i = nsmap.begin(), e = nsmap.end(); i != e; ++i) {
+      if ((oc = i->second->priv->nsl->parseFindScopedClass(name, matched)))
+	 break;
+      if ((oc = i->second->priv->pendNSL->parseFindScopedClass(name, matched)))
+	 break;
    }
 
    return oc;
@@ -915,23 +820,20 @@ void QoreNamespace::assimilate(QoreNamespace *ns) {
    priv->pendClassList->assimilate(ns->priv->pendClassList, priv->classList, priv->nsl, priv->pendNSL, priv->name.c_str());
 
    // assimilate sub namespaces
-   QoreNamespace *nw = ns->priv->pendNSL->head;
-   while (nw) {
+   for (nsmap_t::iterator i = ns->priv->pendNSL->nsmap.begin(), e = ns->priv->pendNSL->nsmap.end(); i != e; ++i) {
       // throw parse exception if name is already defined
-      if (priv->nsl->find(nw->priv->name.c_str()))
+      if (priv->nsl->find(i->second->priv->name.c_str()))
 	 parse_error("subnamespace '%s' has already been defined in namespace '%s'",
-		     nw->priv->name.c_str(), priv->name.c_str());
-      else if (priv->pendNSL->find(nw->priv->name.c_str()))
+		     i->second->priv->name.c_str(), priv->name.c_str());
+      else if (priv->pendNSL->find(i->second->priv->name.c_str()))
 	 parse_error("subnamespace '%s' is already pending in namespace '%s'",
-		     nw->priv->name.c_str(), priv->name.c_str());
-      else if (priv->classList->find(nw->priv->name.c_str()))
+		     i->second->priv->name.c_str(), priv->name.c_str());
+      else if (priv->classList->find(i->second->priv->name.c_str()))
 	 parse_error("cannot add namespace '%s' to existing namespace '%s' because a class has already been defined with this name",
-		     nw->priv->name.c_str(), priv->name.c_str());
-      else if (priv->pendClassList->find(nw->priv->name.c_str()))
+		     i->second->priv->name.c_str(), priv->name.c_str());
+      else if (priv->pendClassList->find(i->second->priv->name.c_str()))
 	 parse_error("cannot add namespace '%s' to existing namespace '%s' because a class is already pending with this name",
-		     nw->priv->name.c_str(), priv->name.c_str());
-
-      nw = nw->priv->next;
+		     i->second->priv->name.c_str(), priv->name.c_str());
    }
    // assimilate target list
    priv->pendNSL->assimilate(ns->priv->pendNSL);
@@ -1066,14 +968,11 @@ QoreHashNode *QoreNamespace::getInfo() const {
    h->setKeyValue("constants", getConstantInfo(), 0);
    h->setKeyValue("classes", getClassInfo(), 0);
 
-   if (priv->nsl->head) {
-      QoreHashNode *nsh = new QoreHashNode();
-      
-      QoreNamespace *w = priv->nsl->head;
-      while (w) {
-	 nsh->setKeyValue(w->priv->name.c_str(), w->getInfo(), 0);
-	 w = w->priv->next;
-      }
+   if (!priv->nsl->nsmap.empty()) {
+      QoreHashNode *nsh = new QoreHashNode;
+
+      for (nsmap_t::iterator i = priv->nsl->nsmap.begin(), e = priv->nsl->nsmap.end(); i != e; ++i)
+	 nsh->setKeyValue(i->second->priv->name.c_str(), i->second->getInfo(), 0);
 
       h->setKeyValue("subnamespaces", nsh, 0);
    }
