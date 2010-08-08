@@ -423,7 +423,7 @@ static char *make_cast(const char *s) {
 %option noyy_push_state
 %option noyy_pop_state
 
-%x str_state regex_state incl case_state regex_googleplex regex_negative_universe regex_subst1 regex_subst2 line_comment exec_class_state requires regex_trans1 regex_trans2 regex_extract_state disable_warning enable_warning append_path_state
+%x str_state regex_state incl case_state regex_googleplex regex_negative_universe regex_subst1 regex_subst2 line_comment exec_class_state requires regex_trans1 regex_trans2 regex_extract_state disable_warning enable_warning append_path_state module_cmd
 
 HEX_DIGIT       [0-9A-Fa-f]
 HEX_CONST       0x{HEX_DIGIT}+
@@ -525,6 +525,38 @@ RTIME           PT(-?[0-9]+[HMSu])+
 					   free(cn);
 					   BEGIN(INITIAL);
                                         }
+^%module-cmd{WS}*$                      { parse_error("missing argument to %%module-cmd"); }
+^%module-cmd                            BEGIN(module_cmd);
+<module_cmd>{WS}*                       // ignore white space
+<module_cmd>[^\t\n\r]+                   {
+                                           QoreString str(yytext);
+					   const char *p = str.getBuffer();
+					   const char *op = strchr(p, '(');
+					   if (!op)
+					      parse_error("%module-cmd not in format %module-cmd(<module-name>) <command>; missing open parenthesis '(' before module name; text given: '%module-cmd %s'", p);
+					   else {
+					      p = op + 1;
+					      const char *cp = strchr(p, ')');
+					      if (!cp)
+						 parse_error("%module-cmd not in format %module-cmd(<module-name>) <command>; missing close parenthesis ')' after module name; text given: '%module-cmd %s'", str.getBuffer());
+					      else {
+						 // get module name
+						 QoreString module(p, cp - p);
+						 module.trim();
+
+						 // remove preface from string leaving only command
+						 str.replace(0, cp - str.getBuffer() + 1, (const char *)0);
+						 str.trim();
+						 if (!str.strlen())
+						    parse_error("%module-cmd not in format %module-cmd(<module-name>) <command>; missing command; text given: '%module-cmd %s'", str.getBuffer());
+						 else {
+						    ModuleManager::issue_parse_cmd(module.getBuffer(), 0, str);
+						 }
+					      }
+					   }
+					   BEGIN(INITIAL);
+                                        }
+
 ^%include{WS}*$                         { parse_error("missing argument to %%include"); }
 ^%include{WS}+				BEGIN(incl);
 <exec_class_state>{

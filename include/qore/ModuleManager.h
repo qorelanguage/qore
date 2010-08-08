@@ -66,6 +66,9 @@ typedef void (*qore_module_ns_init_t)(QoreNamespace *root_ns, QoreNamespace *qor
 //! signature of the module destructor function
 typedef void (*qore_module_delete_t)();
 
+//! signature of the module parse command function
+typedef void (*qore_module_parse_cmd_t)(const QoreString &cmd, ExceptionSink *xsink);
+
 //! list of version numbers in order of importance (i.e. 1.2.3 = 1, 2, 3)
 class version_list_t : public std::vector<int> {
 private:
@@ -90,15 +93,6 @@ enum mod_op_e { MOD_OP_NONE, MOD_OP_EQ, MOD_OP_GT,
 */
 class ModuleManager {
 private:
-   DLLLOCAL static void add(ModuleInfo *m);
-   DLLLOCAL static void addBuiltin(const char *fn, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del);
-   DLLLOCAL static ModuleInfo *add(const char *fn, char *n, int major, int minor, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del, char *d, char *v, char *a, char *u, void *p);
-   DLLLOCAL static QoreStringNode *loadModuleIntern(const char *name, QoreProgram *pgm, mod_op_e op = MOD_OP_NONE, version_list_t *version = 0);
-   DLLLOCAL static QoreStringNode *loadModuleFromPath(const char *path, const char *feature = 0, ModuleInfo **mi = 0, QoreProgram *pgm = 0);
-   DLLLOCAL static ModuleInfo *find(const char *name);
-   DLLLOCAL static void globDir(const char *dir);
-   DLLLOCAL static QoreStringNode *parseLoadModuleIntern(const char *name, QoreProgram *pgm = 0);
-
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
    DLLLOCAL ModuleManager(const ModuleManager&);
 
@@ -133,6 +127,9 @@ public:
    //! retuns a list of module information hashes, caller owns the list reference returned
    DLLEXPORT static QoreListNode *getModuleList();
 
+   //! retuns a hash of module information hashes, caller owns the list reference returned
+   DLLEXPORT static QoreHashNode *getModuleHash();
+
    //! loads the named module at run time, returns -1 if an exception was raised, 0 for OK
    /** If the feature is already loaded, then the function returns immediately without raising an error.
        The feature's namespace changes are added to the QoreProgram object if the feature is loaded.
@@ -164,6 +161,11 @@ public:
    /** private interface; not exported in the library's public API
     */
    DLLLOCAL static void cleanup();
+
+   //! explicit cleanup (private)
+   /** private interface; not exported in the library's public API
+    */
+   DLLLOCAL static void issue_parse_cmd(const char *mname, QoreProgram *pgm, QoreString &cmd);
 };
 
 //! the global ModuleManager object

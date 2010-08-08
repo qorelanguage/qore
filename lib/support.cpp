@@ -187,6 +187,11 @@ void parse_error(const char *file, int sline, int eline, const char *fmt, ...) {
    getProgram()->makeParseException(sline, eline, file, desc);
 }
 
+void parseException(const char *err, QoreStringNode *desc) {
+   printd(5, "parseException(%s. %s) called\n", err, desc->getBuffer());
+   getProgram()->makeParseException(err, desc);
+}
+
 void parseException(const char *err, const char *fmt, ...) {
    printd(5, "parseException(%s. '%s', ...) called\n", err, fmt);
 

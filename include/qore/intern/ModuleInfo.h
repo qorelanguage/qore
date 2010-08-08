@@ -25,38 +25,42 @@
 
 #define _QORE_MODULEINFO_H
 
+#include <string>
+
 class ModuleInfo {
-   private:
-      char *filename;
-      const char *name, *desc, *version, *author, *url;
-      int api_major, api_minor;
-      qore_module_init_t module_init;
-      qore_module_ns_init_t module_ns_init;
-      qore_module_delete_t module_delete;
-      const void *dlptr;
+private:
+   std::string filename;
+   const char *name, *desc, *version, *author, *url;
+   int api_major, api_minor;
+   qore_module_init_t module_init;
+   qore_module_ns_init_t module_ns_init;
+   qore_module_delete_t module_delete;
+   qore_module_parse_cmd_t module_parse_cmd;
+   const void *dlptr;
 
-      // not implemented
-      DLLLOCAL ModuleInfo(const ModuleInfo&);
-      DLLLOCAL ModuleInfo& operator=(const ModuleInfo&);
+   // not implemented
+   DLLLOCAL ModuleInfo(const ModuleInfo&);
+   DLLLOCAL ModuleInfo& operator=(const ModuleInfo&);
 
-   public:
-      version_list_t version_list;
+public:
+   version_list_t version_list;
 
-      DLLLOCAL ModuleInfo(const char *fn, const char *n, int major, int minor, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del, const char *d, const char *v, const char *a, const char *u, const void *p);
-      // for "builtin" modules
-      DLLLOCAL ModuleInfo(const char *feature, qore_module_delete_t del);
-      DLLLOCAL ~ModuleInfo();
-      DLLLOCAL const char *getName() const;
-      DLLLOCAL const char *getFileName() const;
-      DLLLOCAL const char *getDesc() const;
-      DLLLOCAL const char *getVersion() const;
-      DLLLOCAL const char *getURL() const;
-      DLLLOCAL int getAPIMajor() const;
-      DLLLOCAL int getAPIMinor() const;
-      DLLLOCAL void ns_init(QoreNamespace *rns, QoreNamespace *qns) const;
-      DLLLOCAL bool isBuiltin() const;
-      DLLLOCAL QoreHashNode *getHash() const;
-      DLLLOCAL const void *getPtr() const { return dlptr; }
+   DLLLOCAL ModuleInfo(const char *fn, const char *n, int major, int minor, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del, qore_module_parse_cmd_t pcmd, const char *d, const char *v, const char *a, const char *u, const void *p);
+   // for "builtin" modules
+   DLLLOCAL ModuleInfo(const char *feature, qore_module_delete_t del);
+   DLLLOCAL ~ModuleInfo();
+   DLLLOCAL const char *getName() const;
+   DLLLOCAL const char *getFileName() const;
+   DLLLOCAL const char *getDesc() const;
+   DLLLOCAL const char *getVersion() const;
+   DLLLOCAL const char *getURL() const;
+   DLLLOCAL int getAPIMajor() const;
+   DLLLOCAL int getAPIMinor() const;
+   DLLLOCAL void ns_init(QoreNamespace *rns, QoreNamespace *qns) const;
+   DLLLOCAL bool isBuiltin() const;
+   DLLLOCAL QoreHashNode *getHash() const;
+   DLLLOCAL const void *getPtr() const { return dlptr; }
+   DLLLOCAL void issue_parse_cmd(QoreString &cmd);
 };
 
 #endif

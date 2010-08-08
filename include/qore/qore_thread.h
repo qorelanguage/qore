@@ -88,7 +88,6 @@ DLLEXPORT int remove_thread_resource_id(q_trid_t trid);
 /** @param trid thread resource id to check
     @return true if saved, false if not saved
 */
-
 DLLEXPORT bool check_thread_resource_id(q_trid_t trid);
 
 //! get a thread resource ID

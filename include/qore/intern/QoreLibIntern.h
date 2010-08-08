@@ -48,6 +48,7 @@ DLLLOCAL void parse_error(const char *file, int sline, int eline, const char *fm
 
 DLLLOCAL void parse_error(const char *fmt, ...);
 DLLLOCAL void parseException(const char *err, const char *fmt, ...);
+DLLLOCAL void parseException(const char *err, QoreStringNode *desc);
 DLLLOCAL QoreString *findFileInPath(const char *file, const char *path);
 DLLLOCAL QoreString *findFileInEnvPath(const char *file, const char *varname);
 
