@@ -56,14 +56,31 @@ public:
       init();
    }
 
+   // takes all values from and deletes the argument
+   DLLLOCAL NamedScope(NamedScope *ns) : del(ns->del), ostr(ns->ostr) {
+      for (nslist_t::iterator i = ns->strlist.begin(), e = ns->strlist.end(); i != e; ++i)
+         strlist.push_back(*i);
+
+      ns->strlist.clear();
+      ns->ostr = 0;
+      delete ns;
+   }
+
    DLLLOCAL NamedScope(const NamedScope &old) : del(true), ostr(strdup(old.ostr)), strlist(old.strlist) {
    }
 
    DLLLOCAL ~NamedScope() {
+      clear();
+   }
+
+   DLLLOCAL void clear() {
       for (nslist_t::iterator i = strlist.begin(), e = strlist.end(); i != e; ++i)
          free(*i);
       if (ostr && del)
          free(ostr);
+      strlist.clear();
+      ostr = 0;
+      del = false;
    }
 
    DLLLOCAL const char *getIdentifier() const {

@@ -25,6 +25,28 @@
 
 #include <vector>
 
+// eval method against an object where the assumed qoreclass and method were saved at parse time
+AbstractQoreNode *AbstractMethodCallNode::exec(QoreObject *o, const char *c_str, ExceptionSink *xsink) const {
+   /* the class and method saved at parse time are used here for this run-time
+      optimization: the method pointer saved at parse time is used to execute the
+      method directly if the object used at run-time is of the same class as
+      either the method or the parse-time class.  Actually any class between the
+      parse-time class and the method's class could be used, however I'd have to
+      check and make sure that search would be quicker than the quick check
+      implemented below on average
+   */
+   if (qc && (o->getClass() == qc || o->getClass() == method->getClass())) {
+      //printd(5, "AbstractMethodCallNode::exec() using parse info for %s::%s() qc=%s\n", method->getClassName(), method->getName(), qc->getName());
+      assert(method);
+      return variant 
+	 ? method->evalNormalVariant(o, reinterpret_cast<const QoreExternalMethodVariant*>(variant), args, xsink)
+	 : method->eval(o, args, xsink);
+   }
+   //printd(5, "AbstractMethodCallNode::exec() calling QoreObject::evalMethod() for %s::%s()\n", o->getClassName(), c_str);
+   return o->evalMethod(c_str, args, xsink);
+}
+
+
 static void invalid_access(AbstractQoreFunction *func) {
    // func will always be non-zero with builtin functions
    const char *class_name = func->className();
@@ -148,12 +170,15 @@ double AbstractFunctionCallNode::floatEvalImpl(ExceptionSink *xsink) const {
 AbstractQoreNode *SelfFunctionCallNode::evalImpl(ExceptionSink *xsink) const {
    QoreObject *self = getStackObject();
    
-   //printd(0, "SelfFunctionCallNode::evalImpl() this=%p self=%p method=%p (name=%s ns=%s)\n", this, self, method, name ? name : "(null)", ns ? ns->ostr : "(null)");
+   //printd(0, "SelfFunctionCallNode::evalImpl() this=%p self=%p method=%p (%s)\n", this, self, method, ns.ostr);
+   if (is_copy)
+      return self->getClass()->execCopy(self, xsink);
 
-   if (method)
-      return self->evalMethod(*method, args, xsink);
-   // otherwise exec copy method
-   return self->getClass()->execCopy(self, xsink);
+   if (ns.strlist.size() == 1)
+      return exec(self, ns.ostr, xsink);
+
+   assert(method);
+   return self->evalMethod(*method, args, xsink);
 }
 
 // called at parse time
@@ -163,44 +188,27 @@ AbstractQoreNode *SelfFunctionCallNode::parseInit(LocalVar *oflag, int pflag, in
       return this;
    }
 
-   assert(name || ns);
-
-#ifdef DEBUG
-   if (ns)
-      printd(5, "SelfFunctionCallNode::parseInit() this=%p resolving base class call '%s'\n", this, ns->ostr);
-   else 
-      printd(5, "SelfFunctionCallNode::parseInit() this=%p resolving '%s'\n", this, name ? name : "(null)");
+   printd(5, "SelfFunctionCallNode::parseInit() this=%p resolving base class call '%s'\n", this, ns.ostr);
    assert(!method);
-#endif
-   if (name) {
-      // copy method calls will be recognized by name = 0
-      if (!strcmp(name, "copy")) {
-	 free(name);
-	 name = 0;
+
+   // copy method calls will be recognized by name = 0
+   if (ns.strlist.size() == 1) {
+      if (!strcmp(ns.ostr, "copy")) {
 	 printd(5, "SelfFunctionCallNode::parseInit() this=%p resolved to copy constructor\n", this);
+	 is_copy = true;
 	 if (args)
 	    parse_error("no arguments may be passed to copy methods (%d argument%s given in call to %s::copy())", args->size(), args->size() == 1 ? "" : "s", oflag->getTypeInfo()->getUniqueReturnClass()->getName());
       }
       else
-	 method = getParseClass()->parseResolveSelfMethod(name);
+	 method = getParseClass()->parseResolveSelfMethod(ns.ostr);
    }
    else
-      method = getParseClass()->parseResolveSelfMethod(ns);
+      method = getParseClass()->parseResolveSelfMethod(&ns);
 
    lvids += parseArgs(oflag, pflag, method ? method->getFunction() : 0, returnTypeInfo);
 
-   if (method) {
+   if (method)
       printd(5, "SelfFunctionCallNode::parseInit() this=%p resolved '%s' to %p\n", this, method->getName(), method);
-      if (name) {
-	 free(name);
-	 name = 0;
-      }
-      else if (ns) {
-	 delete ns;
-	 ns = 0;
-      }
-
-   }
 
    return this;
 }
@@ -219,35 +227,9 @@ QoreString *SelfFunctionCallNode::getAsString(bool &del, int foff, ExceptionSink
 }
 
 AbstractQoreNode *SelfFunctionCallNode::makeReferenceNodeAndDeref() {
-   AbstractQoreNode *rv;
-   if (name)
-      rv = new ParseSelfMethodReferenceNode(takeName());
-   else {
-      assert(ns);
-      rv = new ParseScopedSelfMethodReferenceNode(takeNScope());
-   }
+   AbstractQoreNode *rv = new ParseScopedSelfMethodReferenceNode(ns.copy());
    deref();
    return rv;
-}
-
-AbstractQoreNode *MethodCallNode::exec(QoreObject *o, ExceptionSink *xsink) const {
-   /* the class and method saved at parse time are used here for this run-time
-      optimization: the method pointer saved at parse time is used to execute the
-      method directly if the object used at run-time is of the same class as
-      either the method or the parse-time class.  Actually any class between the
-      parse-time class and the method's class could be used, however I'd have to
-      check and make sure that search would be quicker than the quick check
-      implemented below on average
-   */
-   if (qc && (o->getClass() == qc || o->getClass() == method->getClass())) {
-      //printd(5, "MethodCallNode::exec() using parse info for %s::%s() qc=%s\n", method->getClassName(), method->getName(), qc->getName());
-      assert(method);
-      return variant 
-	 ? method->evalNormalVariant(o, reinterpret_cast<const QoreExternalMethodVariant*>(variant), args, xsink)
-	 : method->eval(o, args, xsink);
-   }
-   //printd(5, "MethodCallNode::exec() calling QoreObject::evalMethod() for %s::%s()\n", o->getClassName(), c_str);
-   return o->evalMethod(c_str, args, xsink);
 }
 
 /* get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
