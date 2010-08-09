@@ -346,4 +346,6 @@ public:
    }
 };
 
+DLLLOCAL void raiseNonExistentMethodCallWarning(const QoreClass *qc, const char *method);
+
 #endif

@@ -53,6 +53,10 @@ struct SelfInstantiatorHelper {
    }
 };
 
+void raiseNonExistentMethodCallWarning(const QoreClass *qc, const char *method) {
+   getProgram()->makeParseWarning(QP_WARN_NONEXISTENT_METHOD_CALL, "NON-EXISTENT-METHOD-CALL", "call to non-existant method '%s::%s()'; this call will be evaluated at run-time, so if the method is called on an object of a subclass that implements this method, then it could be a valid call, however in any other case it will result in a run-time exception.  To avoid seeing this warning, use the cast<> operator (note that if the cast is invalid at run-time, a run-time exception will be raised) or turn off the warning by using '%%disable-warning non-existent-method-call' in your code", qc->getName(), method);
+}
+
 // private QoreClass implementation
 struct qore_class_private {
    char *name;            // the name of the class
@@ -2395,7 +2399,7 @@ const QoreMethod *QoreClass::parseResolveSelfMethod(const char *nme) {
    const QoreMethod *m = parseResolveSelfMethodIntern(nme);
 
    if (!m) {
-      parse_error("no method %s::%s() has been defined", priv->name ? priv->name : "<pending>", nme);
+      parse_error("no method %s::%s() has been defined; if you want to make a call to a method that will be defined in an inherited class, then use $self.%s() instead", priv->name ? priv->name : "<pending>", nme, nme);
       return 0;
    }
    printd(5, "QoreClass::parseResolveSelfMethod(%s) resolved to %s::%s() %p (static=%d)\n", nme, getName(), nme, m, m->isStatic());
