@@ -1559,27 +1559,8 @@ int QoreXmlRpcReader::getDate(XmlRpcValue *v, ExceptionSink *xsink) {
 
    if (nt == XML_READER_TYPE_TEXT) {
       const char *str = constValue();
-      if (str) {
-	 // printd(5, "** got date '%s'\n", str);
-	 QoreString qstr(str);
-	 // ex: 20060414T12:48:14
-	 // remove T
-	 if (qstr.strlen() > 8) {
-	    qstr.replace(8, 1, (char *)NULL);
-	    // remove first :
-	    if (qstr.strlen() > 10) {
-	       qstr.replace(10, 1, (char *)NULL);
-	       // remove second :
-	       if (qstr.strlen() > 12)
-		  qstr.replace(12, 1, (char *)NULL);
-	    }
-	 }
-	 // pad with zeros in case incomplete date passed
-	 while (qstr.strlen() < 14)
-	    qstr.concat('0');
-
-	 v->set(new DateTimeNode(qstr.getBuffer()));
-      }
+      if (str)
+	 v->set(new DateTimeNode(str));
 
       // advance to next position
       if (readXmlRpc(xsink))
@@ -1635,7 +1616,7 @@ int QoreXmlRpcReader::getBase64(XmlRpcValue *v, ExceptionSink *xsink) {
 static int doEmptyValue(XmlRpcValue *v, const char *name, int depth, ExceptionSink *xsink) {
    if (!strcmp(name, "string"))
       v->set(null_string());
-   else if (!strcmp(name, "i4") || !strcmp(name, "int"))
+   else if (!strcmp(name, "i4") || !strcmp(name, "int") || !strcmp(name, "ex:i1") || !strcmp(name, "ex:i2") || !strcmp(name, "ex:i8"))
       v->set(zero());
    else if (!strcmp(name, "boolean"))
       v->set(get_bool_node(false));
@@ -1643,12 +1624,14 @@ static int doEmptyValue(XmlRpcValue *v, const char *name, int depth, ExceptionSi
       v->set(new QoreHashNode());
    else if (!strcmp(name, "array"))
       v->set(new QoreListNode());
-   else if (!strcmp(name, "double"))
+   else if (!strcmp(name, "double") || !strcmp(name, "ex:float"))
       v->set(zero_float());
-   else if (!strcmp(name, "dateTime.iso8601"))
+   else if (!strcmp(name, "dateTime.iso8601") || !strcmp(name, "ex:dateTime"))
       v->set(zero_date());
    else if (!strcmp(name, "base64"))
       v->set(new BinaryNode());
+   else if (!strcmp(name, "ex:nil"))
+      v->set(0);
    else {
       xsink->raiseException("XML-RPC-PARSE-VALUE-ERROR", "unknown XML-RPC type '%s' at level %d", name, depth);
       return -1;
@@ -1811,7 +1794,7 @@ int QoreXmlRpcReader::getValueData(XmlRpcValue *v, const QoreEncoding *data_ccsi
 	 if (getString(v, data_ccsid, xsink))
 	    return -1;
       }
-      else if (!strcmp(name, "i4") || !strcmp(name, "int")) {
+      else if (!strcmp(name, "i4") || !strcmp(name, "int") || !strcmp(name, "ex:i1") || !strcmp(name, "ex:i2") || !strcmp(name, "ex:i8")) {
 	 if (getInt(v, xsink))
 	    return -1;
       }
@@ -1827,11 +1810,11 @@ int QoreXmlRpcReader::getValueData(XmlRpcValue *v, const QoreEncoding *data_ccsi
 	 if (getArray(v, data_ccsid, xsink))
 	    return -1;
       }
-      else if (!strcmp(name, "double")) {
+      else if (!strcmp(name, "double") || !strcmp(name, "ex:float")) {
 	 if (getDouble(v, xsink))
 	    return -1;
       }
-      else if (!strcmp(name, "dateTime.iso8601")) {
+      else if (!strcmp(name, "dateTime.iso8601") || !strcmp(name, "ex:dateTime")) {
 	 if (getDate(v, xsink))
 	    return -1;
       }
