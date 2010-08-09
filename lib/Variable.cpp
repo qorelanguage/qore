@@ -205,11 +205,18 @@ void Var::setValueIntern(AbstractQoreNode *val, ExceptionSink *xsink) {
       return;
    }
 
-   if (v.val.value)
-      v.val.value->deref(xsink);
+   // save old value (if any) to dereference outside the lock
+   // (because a deadlock could occur if the dereference causes
+   // a destructor to run which references this variable)
+   AbstractQoreNode *old = v.val.value;
    v.val.value = val;
 
    m.unlock();
+
+   // dereference old value once lock has been released
+   if (old)
+      old->deref(xsink);
+
 }
 
 void Var::setValue(AbstractQoreNode *val, ExceptionSink *xsink) {
