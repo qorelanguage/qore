@@ -32,27 +32,20 @@
 
 void NamedScope::fixBCCall() {
    // fix last string pointer
-   char *str = strlist[strlist.size() - 1];
-   memmove(str, str + 2, strlen(str) - 1);
+   std::string &str = strlist[strlist.size() - 1];
+   str.erase(0, 2);
 }
 
 NamedScope *NamedScope::copy() const {
    return new NamedScope(strdup(ostr));
 }
 
-#define NS_BLOCK 5
 void NamedScope::init() {
    const char *str = ostr;
 
    while (char *p = (char *)strstr(str, "::")) {
-      char *nstr = (char *)malloc(sizeof(char) * (p - str + 1));
-      strncpy(nstr, str, (p - str));
-      nstr[p - str] = '\0';
-      strlist.push_back(nstr);
+      strlist.push_back(std::string(str, (p - str)));
       str = p + 2;
    }
-   // add last field
-   char *nstr = (char *)malloc(sizeof(char) * (strlen(str) + 1));
-   strcpy(nstr, str);
-   strlist.push_back(nstr);
+   strlist.push_back(std::string(str));
 }
