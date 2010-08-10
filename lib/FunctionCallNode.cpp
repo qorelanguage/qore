@@ -227,7 +227,11 @@ QoreString *SelfFunctionCallNode::getAsString(bool &del, int foff, ExceptionSink
 }
 
 AbstractQoreNode *SelfFunctionCallNode::makeReferenceNodeAndDeref() {
-   AbstractQoreNode *rv = new ParseScopedSelfMethodReferenceNode(ns.copy());
+   AbstractQoreNode *rv;
+   if (ns.size() == 1)
+      rv = new ParseSelfMethodReferenceNode(ns.takeName());
+   else
+      rv = new ParseScopedSelfMethodReferenceNode(ns.copy());
    deref();
    return rv;
 }

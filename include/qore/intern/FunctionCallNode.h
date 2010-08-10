@@ -39,6 +39,9 @@ public:
    DLLLOCAL FunctionCallBase(const FunctionCallBase &old) : args(old.args ? old.args->listRefSelf() : 0), variant(old.variant) {
    }
 
+   DLLLOCAL FunctionCallBase(const FunctionCallBase &old, QoreListNode *n_args) : args(n_args), variant(old.variant) {
+   }
+
    DLLLOCAL ~FunctionCallBase() {
       if (args)
 	 args->deref(0);
@@ -72,6 +75,9 @@ public:
    DLLLOCAL AbstractFunctionCallNode(qore_type_t t, QoreListNode *n_args, bool needs_eval = true) : ParseNode(t, needs_eval), FunctionCallBase(n_args) {}
 
    DLLLOCAL AbstractFunctionCallNode(const AbstractFunctionCallNode &old) : ParseNode(old), FunctionCallBase(old) {
+   }
+
+   DLLLOCAL AbstractFunctionCallNode(const AbstractFunctionCallNode &old, QoreListNode *n_args) : ParseNode(old), FunctionCallBase(old, n_args) {
    }
 
    DLLLOCAL virtual ~AbstractFunctionCallNode() {
@@ -170,6 +176,9 @@ public:
    }
 
    DLLLOCAL AbstractMethodCallNode(const AbstractMethodCallNode &old) : AbstractFunctionCallNode(old), qc(old.qc), method(old.method) {
+   }
+
+   DLLLOCAL AbstractMethodCallNode(const AbstractMethodCallNode &old, QoreListNode *n_args) : AbstractFunctionCallNode(old, n_args), qc(old.qc), method(old.method) {
    }
 
    DLLLOCAL AbstractQoreNode *exec(QoreObject *o, const char *cstr, ExceptionSink *xsink) const;
@@ -274,7 +283,7 @@ public:
    DLLLOCAL SelfFunctionCallNode(NamedScope *n_ns, QoreListNode *n_args) : AbstractMethodCallNode(NT_SELF_CALL, n_args, getParseClass()), ns(n_ns), is_copy(false) {
    }
 
-   DLLLOCAL SelfFunctionCallNode(const SelfFunctionCallNode &old, QoreListNode *n_args) : AbstractMethodCallNode(old), ns(old.ns), is_copy(old.is_copy) {
+   DLLLOCAL SelfFunctionCallNode(const SelfFunctionCallNode &old, QoreListNode *n_args) : AbstractMethodCallNode(old, n_args), ns(old.ns), is_copy(old.is_copy) {
    }
 
    DLLLOCAL virtual ~SelfFunctionCallNode() {

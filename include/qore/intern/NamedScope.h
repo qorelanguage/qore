@@ -93,6 +93,13 @@ public:
 
    DLLLOCAL NamedScope *copy() const;
    DLLLOCAL void fixBCCall();
+
+   DLLLOCAL char *takeName() {
+      char *rv = ostr;
+      ostr = 0;
+      clear();
+      return rv;
+   }
 };
 
 #endif // QORE_NAMEDSCOPE_H
