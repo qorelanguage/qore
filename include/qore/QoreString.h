@@ -497,6 +497,15 @@ public:
    //! assigns the value of one string to another
    DLLEXPORT QoreString & operator=(const QoreString &other);
 
+   //! returns true if the other string is equal to this string (encodings also must be equal)
+   DLLEXPORT bool operator==(const QoreString &other) const;
+
+   //! returns true if the other string is equal to this string (encodings also must be equal)
+   DLLEXPORT bool operator==(const std::string &other) const;
+
+   //! returns true if the other string is equal to this string (encodings also must be equal)
+   DLLEXPORT bool operator==(const char *other) const;
+
    //! returns the character position of a substring within the string
    DLLEXPORT qore_offset_t index(const QoreString &needle, qore_offset_t pos, ExceptionSink *xsink) const;
 

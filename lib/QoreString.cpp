@@ -1784,6 +1784,22 @@ QoreString &QoreString::operator=(const QoreString &other) {
    return *this;
 }
 
+bool QoreString::operator==(const QoreString &other) const {
+   if (other.priv->charset != priv->charset || other.priv->len != priv->len)
+      return false;
+   return memcmp(other.priv->buf, priv->buf, priv->len);
+}
+
+bool QoreString::operator==(const std::string &other) const {
+   if (other.size() != priv->len)
+      return false;
+   return memcmp(other.c_str(), priv->buf, priv->len);
+}
+
+bool QoreString::operator==(const char *other) const {
+   return !strcmp(other, priv->buf);
+}
+
 void QoreString::prepend(const char *str) {
    prepend(str, ::strlen(str));
 }
