@@ -1,5 +1,4 @@
 * implement a way to tell if signal handling is enabled or not form qore code
-* fix $.method() calls to use the optimization like with $obj.method() call syntax so that calling overridden methods from base classes works
 * implement warning for the case when an unquoted hash or object key is also a constant
 * add HTTPClient methods: setUser(), setPassword(), setUserPassword(), setProxyUser(), setProxyPassword(), setProxyUserPassword()
 * implement support for implicit typing in the parser
@@ -40,6 +39,7 @@
 
 done 0.8.1:
 * detect error when a function does not return a value but has a declared return value type
+* fixed $.method() calls to use the optimization like with $obj.method() call syntax so that calling overridden methods from base classes works
 
 done 0.8.0:
 * allow variants with the "constant" flag be be used in constant expressions
