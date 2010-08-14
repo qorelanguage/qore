@@ -549,9 +549,6 @@ public:
    //! executes the member notification on the object the given member
    DLLLOCAL void execMemberNotification(const char *member, ExceptionSink *xsink);
 
-   //! returns the class-synchronous lock (if any) for the object
-   DLLLOCAL VRMutex *getClassSyncLock();
-
    //! returns a pointer to an object member during initialization (no locking; interal use only)
    DLLLOCAL AbstractQoreNode **getMemberValuePtrForInitialization(const char *member);
 };
