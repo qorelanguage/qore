@@ -299,6 +299,10 @@ static AbstractQoreNode *f_getModuleList(const QoreListNode *params, ExceptionSi
    return MM.getModuleList();
 }
 
+static AbstractQoreNode *f_getModuleHash(const QoreListNode *params, ExceptionSink *xsink) {
+   return MM.getModuleHash();
+}
+
 static AbstractQoreNode *f_getFeatureList(const QoreListNode *params, ExceptionSink *xsink) {
    return getProgram()->getFeatureList();
 }
@@ -1247,6 +1251,8 @@ void init_misc_functions() {
    builtinFunctions.add2("parseBase64StringToString", f_parseBase64StringToString, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
    
    builtinFunctions.add2("getModuleList", f_getModuleList, QC_CONSTANT, QDOM_DEFAULT, listTypeInfo);
+
+   builtinFunctions.add2("getModuleHash", f_getModuleHash, QC_CONSTANT, QDOM_DEFAULT, hashTypeInfo);
 
    builtinFunctions.add2("getFeatureList", f_getFeatureList, QC_CONSTANT, QDOM_DEFAULT, listTypeInfo);
 

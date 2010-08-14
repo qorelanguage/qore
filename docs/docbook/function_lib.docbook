@@ -1427,15 +1427,14 @@
           </entry>
         </row>
         <row>
-          <entry>
-            <para><code><link linkend="getModuleList">getModuleList</link>() <command>returns</command> <link linkend="list_type">list</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
-          </entry>
-          <entry>
-            <para>N</para>
-          </entry>
-          <entry>
-            <para>Returns a list of hashes describing the currently-loaded Qore modules.</para>
-          </entry>
+          <entry><para><code><link linkend="getModuleHash">getModuleHash</link>() <command>returns</command> <link linkend="hash_type">hash</link> (<link linkend="CONST_flag">CONST</link>)</code></para></entry>
+          <entry><para>N</para></entry>
+          <entry><para>Returns a hash of hashes describing the currently-loaded Qore modules; the top-level hash keys are the module names.</para></entry>
+        </row>
+        <row>
+          <entry><para><code><link linkend="getModuleList">getModuleList</link>() <command>returns</command> <link linkend="list_type">list</link> (<link linkend="CONST_flag">CONST</link>)</code></para></entry>
+          <entry><para>N</para></entry>
+          <entry><para>Returns a list of hashes describing the currently-loaded Qore modules.</para></entry>
         </row>
         <row>
           <entry>
@@ -20112,6 +20111,57 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         </tgroup>
       </table>
       <para>This function does not normally throw any exceptions, however an <code>OBJECT-ALREADY-DELETED</code> exception could be raised if there is a race condition and a stale pointer to an object is accessed with this function.</para>
+    </sect2>
+
+    <sect2 id="getModuleHash">
+      <title>getModuleHash()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Returns a hash of hashes describing the currently-loaded Qore modules; the top-level hash keys are the module names.</para>
+	    <para>This function was added in Qore 0.8.1</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Prototype</term>
+	  <listitem>
+            <para><code><link linkend="getModuleHash">getModuleHash</link>() <command>returns</command> <link linkend="hash_type">hash</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting><command>my</command> hash $h = getModuleHash();</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+
+      <table><title>Arguments and Return Values for getModuleHash()</title>
+      <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+
+	<thead>
+	  <row>
+	    <entry><para>Argument Type</para></entry>
+	    <entry><para>Return Type</para></entry>
+	    <entry><para>Description</para></entry>
+	  </row>
+	</thead>
+
+	<tbody>
+	  <row>
+	    <entry><para>n/a</para></entry>
+	    <entry><para><code><link linkend="hash_type">hash</link></code></para></entry>
+	    <entry><para>Top-level keys are module/feature names, values are hashes describing the modules.</para></entry>
+	  </row>
+
+	</tbody>
+      </tgroup>
+      </table>
+      <para>This function does not throw any exceptions.</para>
+
     </sect2>
 
 <sect2 id="getModuleList">

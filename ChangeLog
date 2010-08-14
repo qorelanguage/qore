@@ -1,3 +1,205 @@
+2010-08-12 16:35  david_nichols
+
+	* TODO: updated todo
+
+2010-08-11 12:31  david_nichols
+
+	* include/qore/QoreString.h, lib/QoreString.cpp: added QoreString
+	  == operators for convenience
+
+2010-08-10 10:49  david_nichols
+
+	* include/qore/intern/NamedScope.h: missed file from last checkin
+
+2010-08-10 09:28  david_nichols
+
+	* lib/NamedScope.cpp, lib/QoreNamespace.cpp: fixed memory errors in
+	  NamedScope (internal class) changes by using std::string instead
+	  of manually allocated char* array
+
+2010-08-10 09:11  david_nichols
+
+	* include/qore/intern/FunctionCallNode.h,
+	  include/qore/intern/NamedScope.h, lib/FunctionCallNode.cpp: fixed
+	  bugs related to patches from yesterday for runtime method
+	  resolution of $.method() calls
+
+2010-08-09 14:37  david_nichols
+
+	* include/qore/intern/QoreLibIntern.h, lib/Operator.cpp,
+	  lib/QoreClass.cpp: improved error message when methods cannot be
+	  resolved with in-object calls
+
+2010-08-09 14:26  david_nichols
+
+	* include/qore/intern/FunctionCallNode.h,
+	  include/qore/intern/NamedScope.h, lib/AbstractQoreNode.cpp,
+	  lib/FunctionCallNode.cpp: fixed in-object calls (ex: $.call()) to
+	  dynamically look up the method if the run-time class is not the
+	  same as the parse class
+
+2010-08-09 13:11  david_nichols
+
+	* lib/Variable.cpp: fixed a deadlock where if a global variable
+	  contains an object which is deleted when the global var is
+	  reassigned and the object's destructor references the containing
+	  global variable, a deadlock could result due to incorrectly
+	  running the object's destructor while the global variable's lock
+	  is held
+
+2010-08-09 12:38  david_nichols
+
+	* lib/ql_xml.cpp: added the ability to receive and decode xml-rpc
+	  extension types ex:nil, ex:i1, ex:i2, ex:i8, ex:float, and
+	  ex:dateTime (cannot send yet)
+
+2010-08-08 19:41  david_nichols
+
+	* include/qore/ModuleManager.h, include/qore/intern/ModuleInfo.h,
+	  include/qore/intern/QoreLibIntern.h, include/qore/qore_thread.h,
+	  lib/ModuleManager.cpp, lib/scanner.lpp, lib/support.cpp:
+	  implemented support for module parse commands, for example to
+	  support import statements during parsing for the gnu-java module
+
+2010-08-08 12:02  david_nichols
+
+	* include/qore/QoreLib.h, include/qore/common.h,
+	  include/qore/intern/ThreadResourceList.h,
+	  include/qore/qore_thread.h, lib/ThreadResourceList.cpp,
+	  lib/thread.cpp: implmented thread resource ID types and handling;
+	  updated thread resource tracking to use more efficent STL data
+	  structures
+
+2010-08-08 10:29  david_nichols
+
+	* include/qore/intern/QoreNamespaceList.h, lib/QoreNamespace.cpp:
+	  updated internal namespace list to use a map for quicker lookups
+
+2010-08-07 16:21  david_nichols
+
+	* TODO, include/qore/QoreLib.h, include/qore/intern/QoreSignal.h,
+	  lib/QoreLib.cpp, lib/QoreSignal.cpp: allow modules to take
+	  ownership of signals, for example, to allow signals required by
+	  the boehm garbage collection library to be caught and handled
+	  (ex: gcj for the gnu-java module)
+
+2010-08-06 13:31  david_nichols
+
+	* include/qore/intern/BuiltinFunction.h,
+	  include/qore/intern/QoreClassIntern.h, lib/QoreSignal.cpp: ignore
+	  more signals used by boehm GC, make sure internal method name is
+	  a copy of the name
+
+2010-08-06 11:34  david_nichols
+
+	* lib/QoreClass.cpp: updated internal member strings to use
+	  std::string instead of const char* in case member names are
+	  temporary
+
+2010-08-06 11:03  david_nichols
+
+	* lib/NamedScope.cpp: fixed for const correct compilers
+
+2010-08-06 11:01  david_nichols
+
+	* docs/qore.html, include/qore/QoreNamespace.h,
+	  include/qore/QoreString.h, include/qore/intern/NamedScope.h,
+	  include/qore/intern/QoreNamespaceList.h, lib/NamedScope.cpp,
+	  lib/QoreCastOperatorNode.cpp, lib/QoreNamespace.cpp,
+	  lib/QoreString.cpp, lib/parser.ypp, lib/ql_debug.cpp: updated
+	  docs, added QoreNamespace function, cleaned up internal
+	  NamedScope class somewhat, applied const to functions taking
+	  NamedScope arguments, other minor changes
+
+2010-08-05 17:59  david_nichols
+
+	* docs/docbook/class_lib.docbook: fixed Socket::setNoDelay() and
+	  HTTPClient::setNoDelay() docs
+
+2010-08-05 05:32  david_nichols
+
+	* docs/docbook/class_lib.docbook, lib/ContextRowNode.cpp,
+	  lib/ContextrefNode.cpp, lib/QC_AbstractSmartLock.cpp: added parse
+	  type info to ContextRowNode (returns hash); added
+	  AbstractSmartLock::lockOwner() and AbstractSmartLock::lockTID()
+	  methods and documentation
+
+2010-08-04 17:03  david_nichols
+
+	* lib/Function.cpp: fix for last patch
+
+2010-08-04 16:54  david_nichols
+
+	* include/qore/intern/Function.h, lib/Function.cpp,
+	  lib/QoreClass.cpp: fixed a bug where too-lax type checking when
+	  executing variants resolved at parse time can lead to a crash
+	  when a call is made with a runtime type error
+
+2010-08-03 14:20  david_nichols
+
+	* lib/Function.cpp: do not throw a runtime return type exception if
+	  there is already an active exception
+
+2010-08-02 10:10  david_nichols
+
+	* include/qore/intern/QoreSignal.h, lib/QoreSignal.cpp: do not
+	  ignore SIGSEGV, also allows modules linked with BOEHM GC to work
+
+2010-07-31 13:12  david_nichols
+
+	* include/qore/QoreString.h: added TempEncodingHelper constructor
+
+2010-07-29 13:16  david_nichols
+
+	* lib/Function.cpp: added class name to method description when a
+	  type error is found for a method call at parse time
+
+2010-07-29 11:23  david_nichols
+
+	* lib/QoreObject.cpp: fixed a bug with object += hash; member types
+	  were not checked which could allow for members to be assigned
+	  types in violation of their declared types
+
+2010-07-29 11:22  david_nichols
+
+	* doxygen/10_embedding.doxygen: corrected typos and examples with
+	  QoreProgramHelper
+
+2010-07-29 11:21  david_nichols
+
+	* include/qore/QoreProgram.h, include/qore/QoreString.h,
+	  lib/QoreString.cpp: added QoreString::setEncoding() function
+
+2010-07-28 06:55  david_nichols
+
+	* ChangeLog, docs/docbook/class_lib.docbook,
+	  docs/docbook/language.docbook: doc updates
+
+2010-07-27 13:06  david_nichols
+
+	* lib/ql_string.cpp, test/test.q: fixed signed error with not found
+	  strings with index() and rindex() functions, added tests
+
+2010-07-26 14:20  david_nichols
+
+	* TODO: updated todo
+
+2010-07-26 04:37  david_nichols
+
+	* docs/docbook/class_lib.docbook, docs/qore.html,
+	  include/qore/QoreSSLPrivateKey.h, lib/QoreSSLPrivateKey.cpp: use
+	  openssl API function for retrieving private key bit length
+	  instead of trying to read internal private data (that is no
+	  longer exposed in newer versions of openssl anyway); return 1 for
+	  SSLPrivateKey::getVersion() unconditionally, as older versions of
+	  openssl never put usable information in the internal fields that
+	  were previously read for this method and newer versions of
+	  openssl do not expose this information at all
+
+2010-07-26 04:04  david_nichols
+
+	* lib/ql_json.cpp: fixed warning on g++ 4.5
+
 2010-07-13 11:23  david_nichols
 
 	* lib/qore_date_private.cpp, lib/support.cpp: fixes for running
