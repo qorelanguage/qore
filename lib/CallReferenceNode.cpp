@@ -99,7 +99,8 @@ double CallReferenceCallNode::floatEvalImpl(ExceptionSink *xsink) const {
 }
 
 AbstractQoreNode *CallReferenceCallNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
-   typeInfo = callReferenceTypeInfo;
+   // call references calls can return any value
+   typeInfo = 0;
 
    pflag &= ~(PF_REFERENCE_OK | PF_RETURN_VALUE_IGNORED);
 

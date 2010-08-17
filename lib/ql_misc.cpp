@@ -308,11 +308,10 @@ static AbstractQoreNode *f_getFeatureList(const QoreListNode *params, ExceptionS
 }
 
 static AbstractQoreNode *f_hash_values(const QoreListNode *params, ExceptionSink *xsink) {
-   const QoreHashNode *p0 = test_hash_param(params, 0);
-   if (!p0)
-      return 0;
+   const QoreHashNode *p0 = HARD_QORE_HASH(params, 0);
 
-   QoreListNode *l = new QoreListNode();
+   QoreListNode *l = new QoreListNode;
+
    ConstHashIterator hi(p0);
    while (hi.next())
       l->push(hi.getReferencedValue());
