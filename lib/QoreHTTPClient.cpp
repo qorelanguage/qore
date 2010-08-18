@@ -432,7 +432,7 @@ int QoreHTTPClient::setOptions(const QoreHashNode* opts, ExceptionSink* xsink) {
 	 const AbstractQoreNode *v = hi.getValue();
 	 qore_type_t vtype = v ? v->getType() : 0;
 	 if (!v || (vtype != NT_HASH && vtype != NT_INT)) {
-	    xsink->raiseException("HTTP-CLIENT-CONSTRUCTOR-ERROR", "value of protocol hash key '%s' is not a hash or an int", hi.getKey());
+	    xsink->raiseException("HTTP-CLIENT-OPTION-ERROR", "value of protocol hash key '%s' is not a hash or an int", hi.getKey());
 	    return -1;
 	 }
 	 bool need_ssl = false;
@@ -444,7 +444,7 @@ int QoreHTTPClient::setOptions(const QoreHashNode* opts, ExceptionSink* xsink) {
 	    const AbstractQoreNode *p = vh->getKeyValue("port");
 	    need_port = p ? p->getAsInt() : 0;
 	    if (!need_port) {
-	       xsink->raiseException("HTTP-CLIENT-CONSTRUCTOR-ERROR", "'port' key in protocol hash key '%s' is missing or zero", hi.getKey());
+	       xsink->raiseException("HTTP-CLIENT-OPTION-ERROR", "'port' key in protocol hash key '%s' is missing or zero", hi.getKey());
 	       return -1;
 	    }
 	    p = vh->getKeyValue("ssl");
@@ -492,7 +492,7 @@ int QoreHTTPClient::setOptions(const QoreHashNode* opts, ExceptionSink* xsink) {
 	    return -1;
       }
       else {
-	 xsink->raiseException("HTTP-CLIENT-CONSTRUCTOR-ERROR", "expecting string version ('1.0', '1.1' as value for http_version key in options hash");
+	 xsink->raiseException("HTTP-CLIENT-OPTION-ERROR", "expecting string version ('1.0', '1.1' as value for http_version key in options hash");
 	 return -1;
       }
    }

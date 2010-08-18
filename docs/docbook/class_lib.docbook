@@ -17866,7 +17866,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
           </thead>
           <tbody>
             <row>
-              <entry><para><code>HTTP-CLIENT-CONSTRUCTOR-ERROR</code></para></entry>
+              <entry><para><code>HTTP-CLIENT-OPTION-ERROR</code></para></entry>
               <entry><para>invalid or unknown option passed in option hash</para></entry>
             </row>
             <row>
