@@ -96,21 +96,24 @@ struct qore_qtc_private {
    DLLLOCAL ~qore_qtc_private() {
    }
 
-   DLLLOCAL void setSocketPath() {
-      if (proxy_port) {
-	 socketpath = proxy_host;
+   DLLLOCAL void setSocketPathIntern(std::string &s_host, std::string &s_path, int s_port) {
+      if (s_path.empty() || !s_host.empty()) {
+	 socketpath = s_host;
 	 socketpath += ":";
 	 char buff[20];
-	 sprintf(buff, "%d", proxy_port);
+	 sprintf(buff, "%d", s_port);
 	 socketpath += buff;
+	 return;
       }
-      else {
-	 socketpath = host;
-	 socketpath += ":";
-	 char buff[20];
-	 sprintf(buff, "%d", port);
-	 socketpath += buff;	    
-      }
+
+      socketpath = s_path;	 
+   }
+
+   DLLLOCAL void setSocketPath() {
+      if (proxy_port)
+	 setSocketPathIntern(proxy_host, proxy_path, proxy_port);
+      else
+	 setSocketPathIntern(host, path, port);
       //printd(5, "setSocketPath() '%s'\n", socketpath.c_str());
    }
 
@@ -323,10 +326,12 @@ int QoreHTTPClient::setOptions(const QoreHashNode* opts, ExceptionSink* xsink) {
 
 int QoreHTTPClient::set_url_unlocked(const char *str, ExceptionSink* xsink) {
    QoreURL url(str);
+   /*
    if (!url.getHost() && priv->host.empty()) {
       xsink->raiseException("HTTP-CLIENT-URL-ERROR", "missing host specification in URL '%s'", str);
       return -1;
    }
+   */
 
    if (!url.isValid()) {
       xsink->raiseException("HTTP-CLIENT-URL-ERROR", "url parameter '%s' cannot be parsed", str);
@@ -338,12 +343,11 @@ int QoreHTTPClient::set_url_unlocked(const char *str, ExceptionSink* xsink) {
       priv->port = url.getPort();
       port_set = true;
    }
-
-   if (url.getHost())
-      priv->host = url.getHost()->getBuffer();
+   
+   priv->host = url.getHost() ? url.getHost()->getBuffer() : "";
 
    // check if hostname is really a local port number (for a URL string like: "8080")
-   if (!url.getPort()) {
+   if (!url.getPort() && !priv->host.empty()) {
       char *aux;
       int val = strtol(priv->host.c_str(), &aux, 10);
       if (aux == (priv->host.c_str() + priv->host.size())) {
@@ -456,10 +460,12 @@ bool QoreHTTPClient::isHTTP11() const {
 
 int QoreHTTPClient::set_proxy_url_unlocked(const char *pstr, ExceptionSink *xsink) { 
    QoreURL url(pstr);
+   /*
    if (!url.getHost()) {
       xsink->raiseException("HTTP-CLIENT-URL-ERROR", "missing host specification in proxy URL");
       return -1;
    }
+   */
 
    if (!url.isValid()) {
       xsink->raiseException("HTTP-CLIENT-URL-ERROR", "proxy URL '%s' cannot be parsed", pstr);
@@ -472,11 +478,10 @@ int QoreHTTPClient::set_proxy_url_unlocked(const char *pstr, ExceptionSink *xsin
       port_set = true;
    }
 
-   // host is always set if valid
-   priv->proxy_host = url.getHost()->getBuffer();
+   priv->proxy_host = url.getHost() ? url.getHost()->getBuffer() : "";
 
    // check if hostname is really a local port number (for a URL string like: "8080")
-   if (!url.getPort()) {
+   if (!url.getPort() && !priv->proxy_host.empty()) {
       char* aux;
       int val = strtol(priv->host.c_str(), &aux, 10);
       if (aux != priv->host.c_str()) {

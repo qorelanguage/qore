@@ -400,7 +400,7 @@ struct qore_program_private {
       if (!parseSink->isEvent()) {
 	 // initialize constants first
 	 RootNS->parseInitConstants();
-	    
+
 	 // initialize new statements second (for "our" and "my" declarations)
 	 // note: sb_tail->statements may be 0
 	 sb_tail->statements->parseInitTopLevel(RootNS, &user_func_list, sb_head == sb_tail);
