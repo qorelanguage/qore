@@ -2,6 +2,8 @@ RELEASE NOTES for qore v0.8.1
 
 release summary: in progress; see svn changelog for details
 
+* BUG FIX: fixed a deadlock when calling HTTPClient::setProxyURL() with an empty string argument
+
 
 ***********************
 *** LANGUAGE ISSUES ***
