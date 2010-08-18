@@ -45,16 +45,6 @@ class QoreHTTPClient : public AbstractPrivateData {
 private:
    //! private implementation of the class
    struct qore_qtc_private *priv;
-      
-   // returns -1 if an exception was thrown, 0 for OK
-   DLLLOCAL  int set_url_unlocked(const char *url, ExceptionSink *xsink);
-   // returns -1 if an exception was thrown, 0 for OK
-   DLLLOCAL int set_proxy_url_unlocked(const char *url, ExceptionSink *xsink);
-   DLLLOCAL QoreHashNode *send_internal(const char *meth, const char *mpath, const QoreHashNode *headers, const void *data, unsigned size, bool getbody, QoreHashNode *info, ExceptionSink *xsink, bool suppress_content_length = false);
-   DLLLOCAL void setSocketPath();
-   DLLLOCAL const char *getMsgPath(const char *mpath, QoreString &pstr);
-   DLLLOCAL QoreHashNode *getResponseHeader(const char *meth, const char *mpath, const QoreHashNode &nh, const void *data, unsigned size, int &code,  bool suppress_content_length, QoreHashNode *info, ExceptionSink *xsink);
-   DLLLOCAL AbstractQoreNode *getHostHeaderValue();
 
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
    DLLLOCAL QoreHTTPClient(const QoreHTTPClient&);
