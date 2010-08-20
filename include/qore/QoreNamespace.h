@@ -162,10 +162,18 @@ public:
    DLLEXPORT void addNamespace(QoreNamespace *ns);
 
    //! finds a Namespace based on the argument; creates it (or the whole path) if necessary
-   /** @param nspath must be a complete path ("ns1::ns2[::ns3...]" to a namespace, which will be found or created in this namespace
+   /** can only be called in the parse lock
+       @param nspath must be a complete path ("ns1::ns2[::ns3...]" to a namespace, which will be found or created in this namespace
        @return the namespace found or created according to the path
     */
    DLLEXPORT QoreNamespace *findCreateNamespacePath(const char *nspath);
+
+   //! finds a class in this namespace, does not search child namespaces
+   /** can only be called in the parse lock
+       @param cname the class name to find in this namespace, must be unqualified (without a namespace path)
+       @return the class found or 0 if not present
+    */
+   DLLEXPORT QoreClass *findLocalClass(const char *cname) const;
 
    // parse-only interfaces are not exported
    DLLLOCAL QoreNamespace();

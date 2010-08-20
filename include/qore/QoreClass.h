@@ -242,6 +242,11 @@ public:
    */
    DLLEXPORT QoreClass(const char *n_name, int64 n_domain, const QoreTypeInfo *n_typeInfo);
 
+   //! copy constructor
+   /** should be only called under the appropriate lock (ex: program parse lock while parsing)
+    */
+   DLLEXPORT QoreClass(const QoreClass &old);
+
    //! deletes the object and frees all memory
    DLLEXPORT ~QoreClass();
 
@@ -715,10 +720,8 @@ public:
     */
    DLLEXPORT const QoreExternalMethodVariant *findUserMethodVariant(const char *name, const QoreMethod *&method, const type_vec_t &argTypeList) const;
 
+   //! constructor not exported in library's API
    DLLLOCAL QoreClass();
-
-   // copy constructor
-   DLLLOCAL QoreClass(const QoreClass &old);
 
    DLLLOCAL void addMethod(QoreMethod *f);
    DLLLOCAL const QoreMethod *parseResolveSelfMethod(const char *nme);

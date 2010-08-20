@@ -528,7 +528,7 @@ RTIME           PT(-?[0-9]+[HMSu])+
 ^%module-cmd{WS}*$                      { parse_error("missing argument to %%module-cmd"); }
 ^%module-cmd                            BEGIN(module_cmd);
 <module_cmd>{WS}*                       // ignore white space
-<module_cmd>[^\t\n\r]+                   {
+<module_cmd>[^\t\n\r]+                  {
                                            QoreString str(yytext);
 					   const char *p = str.getBuffer();
 					   const char *op = strchr(p, '(');
