@@ -175,6 +175,13 @@ public:
     */
    DLLEXPORT QoreClass *findLocalClass(const char *cname) const;
 
+   //! finds a subnamespace in this namespace, does not search child namespaces
+   /** can only be called in the parse lock
+       @param nsname the subnamespace name to find in this namespace, must be unqualified (without a namespace path)
+       @return the namespace found or 0 if not present
+    */
+   DLLEXPORT QoreNamespace *findLocalNamespace(const char *nsname) const;
+
    // parse-only interfaces are not exported
    DLLLOCAL QoreNamespace();
    DLLLOCAL void addClass(const NamedScope *n, QoreClass *oc);

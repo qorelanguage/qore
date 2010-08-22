@@ -433,6 +433,10 @@ QoreClass *QoreNamespace::findLocalClass(const char *cname) const {
    return priv->classList->find(cname);
 }
 
+QoreNamespace *QoreNamespace::findLocalNamespace(const char *cname) const {
+   return priv->nsl->find(cname);
+}
+
 // QoreNamespaceList::parseResolveNamespace()
 // does a recursive breadth-first search to resolve a namespace declaration
 QoreNamespace *QoreNamespaceList::parseResolveNamespace(const NamedScope *name, int *matched) {

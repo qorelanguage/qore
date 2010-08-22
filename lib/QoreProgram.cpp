@@ -1528,7 +1528,7 @@ void QoreProgram::parseAndRun(const char *str, const char *name) {
 }
 
 bool QoreProgram::checkFeature(const char *f) const {
-   return priv->featureList.find(f);
+   return priv->featureList.find(f) ? false : true;
 }
 
 void QoreProgram::addFeature(const char *f) {

@@ -465,6 +465,12 @@ public:
    // sets the program's time zone
    DLLEXPORT void setTZ(const AbstractQoreZoneInfo *n_TZ);
 
+   //! manually add the feature to the program
+   /** useful for use with %module-cmd when manually merging in namespace changes to the program
+       @param name the name of the feature to add to the QoreProgram's feature list
+    */
+   DLLEXPORT void addFeature(const char *name);
+
    /// returns a pointed to the given user function if it exists (otherwise returns 0)
    DLLLOCAL UserFunction *findUserFunction(const char *name);
       
@@ -506,7 +512,6 @@ public:
    DLLLOCAL QoreHashNode *getThreadData();
    DLLLOCAL void depRef();
    DLLLOCAL void depDeref(ExceptionSink *xsink);
-   DLLLOCAL void addFeature(const char *f);
    DLLLOCAL void addFile(char *f);
    DLLLOCAL QoreListNode *getVarList();
    DLLLOCAL void parseSetIncludePath(const char *path);
