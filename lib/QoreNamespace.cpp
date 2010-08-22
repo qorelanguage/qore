@@ -252,8 +252,8 @@ void QoreNamespace::addClass(const NamedScope *n, QoreClass *oc) {
 void QoreNamespace::addNamespace(QoreNamespace *ns) {
    assert(!priv->classList->find(ns->priv->name.c_str()));
    assert(!priv->pendClassList->find(ns->priv->name.c_str()));
-   priv->nsl->add(ns);
    ns->priv->parent = this;
+   priv->nsl->add(ns);
 }
 
 void QoreNamespace::parseAddNamespace(QoreNamespace *ns) {
@@ -268,8 +268,8 @@ void QoreNamespace::parseAddNamespace(QoreNamespace *ns) {
       delete ns;
       return;
    }
-   priv->pendNSL->add(ns);
    ns->priv->parent = this;
+   priv->pendNSL->add(ns);
 }
 
 void QoreNamespace::parseInitConstants() {
