@@ -1800,6 +1800,18 @@ bool QoreString::operator==(const char *other) const {
    return !strcmp(other, priv->buf);
 }
 
+char QoreString::operator[](qore_offset_t pos) const {
+   if (pos < 0) {
+      pos = priv->len + pos;
+      if (pos < 0)
+	 return '\0';
+   }
+   else if ((qore_size_t)pos >= priv->len)
+      return '\0';
+   
+   return priv->buf[pos];
+}
+
 void QoreString::prepend(const char *str) {
    prepend(str, ::strlen(str));
 }

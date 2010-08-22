@@ -506,6 +506,12 @@ public:
    //! returns true if the other string is equal to this string (encodings also must be equal)
    DLLEXPORT bool operator==(const char *other) const;
 
+   //! returns the byte (not character) at the given location; if the location is invalid, returns 0
+   /** @param pos offset in string, negative offsets are form the end of the string
+       @return the byte (not character) at the given location; if the location is invalid, returns 0
+    */
+   DLLEXPORT char operator[](qore_offset_t pos) const;
+
    //! returns the character position of a substring within the string
    DLLEXPORT qore_offset_t index(const QoreString &needle, qore_offset_t pos, ExceptionSink *xsink) const;
 

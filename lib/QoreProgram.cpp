@@ -69,17 +69,17 @@ unsigned qore_num_warnings = NUM_WARNINGS;
 
 class CharPtrList : public safe_dslist<const char *> {
 public:
-   // returns 0 for found, -1 for not found
+   // returns true for found, false for not found
    // FIXME: use STL find algorithm
-   DLLLOCAL int find(const char *str) const {
+   DLLLOCAL bool find(const char *str) const {
       const_iterator i = begin();
       while (i != end()) {
 	 if (!strcmp(*i, str))
-	    return 0;
+	    return true;
 	 i++;
       }
    
-      return -1;
+      return false;
    }
 };
 
@@ -1528,7 +1528,7 @@ void QoreProgram::parseAndRun(const char *str, const char *name) {
 }
 
 bool QoreProgram::checkFeature(const char *f) const {
-   return priv->featureList.find(f) ? false : true;
+   return priv->featureList.find(f);
 }
 
 void QoreProgram::addFeature(const char *f) {

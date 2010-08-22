@@ -44,8 +44,13 @@ private:
 public:
    nsmap_t nsmap;
 
-   DLLLOCAL QoreNamespaceList();
-   DLLLOCAL ~QoreNamespaceList();
+   DLLLOCAL QoreNamespaceList() {
+   }
+
+   DLLLOCAL ~QoreNamespaceList() {
+      deleteAll();
+   }
+
    DLLLOCAL QoreNamespace *find(const char *name) {
       nsmap_t::iterator i = nsmap.find(name);
       return i == nsmap.end() ? 0 : i->second;
@@ -55,7 +60,7 @@ public:
       return i == nsmap.end() ? 0 : i->second;
    }
    DLLLOCAL void add(QoreNamespace *ot);
-   DLLLOCAL QoreNamespaceList *copy(int64 po);
+   DLLLOCAL QoreNamespaceList *copy(int64 po, const QoreNamespace *parent);
    DLLLOCAL void resolveCopy();
    DLLLOCAL void parseInitConstants();
    DLLLOCAL void parseInit();
@@ -67,7 +72,7 @@ public:
    DLLLOCAL QoreNamespace *parseResolveNamespace(const NamedScope *name, int *matched);
    DLLLOCAL AbstractQoreNode *parseFindConstantValue(const char *cname, const QoreTypeInfo *&typeInfo);
    DLLLOCAL AbstractQoreNode *parseFindScopedConstantValue(const NamedScope *name, int *matched, const QoreTypeInfo *&typeInfo);
-   DLLLOCAL QoreClass *parseFindScopedClassWithMethod(const NamedScope *name, int *matched) const;
+   DLLLOCAL QoreClass *parseFindScopedClassWithMethod(const NamedScope *name, int *matched);
    DLLLOCAL QoreClass *parseFindScopedClass(const NamedScope *name, int *matched);
    DLLLOCAL QoreClass *parseFindClass(const char *ocname);
    DLLLOCAL QoreClass *parseFindChangeClass(const char *ocname);

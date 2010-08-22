@@ -462,7 +462,7 @@ QoreStringNode *qore_load_module_intern(const char *name, QoreProgram *pgm, mod_
    }
 
    // if the feature already exists in this program, then return
-   if (pgm && !pgm->checkFeature(name)) {
+   if (pgm && pgm->checkFeature(name)) {
       // check version if necessary
       if (version) {
 	 ModuleInfo *mi = qore_find_module_unlocked(name);

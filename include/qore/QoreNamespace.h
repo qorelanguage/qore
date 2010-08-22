@@ -1,6 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  Namespace.h
+  QoreNamespace.h
 
   Qore Programming Language
 
@@ -45,6 +45,14 @@ class QoreClassList;
 class NamedScope;
 class MethodVariantBase;
 
+//! namespace class handler function type
+/** called when a class cannot be found in the namespace
+    @param ns namespace pointer
+    @param cname unqualified class name to load
+    @return 0=class cannot be loaded and mapped, otherwise class pointer from new QoreClass added to ns
+ */
+typedef QoreClass *(*q_ns_class_handler_t)(QoreNamespace *ns, const char *cname);
+
 //! contains constants, classes, and subnamespaces in QoreProgram objects
 class QoreNamespace {
    friend class QoreNamespaceList;
@@ -54,8 +62,8 @@ protected:
    struct qore_ns_private *priv; // private implementation
 
    DLLLOCAL AbstractQoreNode *parseMatchScopedConstantValue(const NamedScope *name, int *matched, const QoreTypeInfo *&typeInfo) const;
-   DLLLOCAL QoreClass *parseMatchScopedClass(const NamedScope *name, int *matched) const;
-   DLLLOCAL QoreClass *parseMatchScopedClassWithMethod(const NamedScope *nscope, int *matched) const;
+   DLLLOCAL QoreClass *parseMatchScopedClass(const NamedScope *name, int *matched);
+   DLLLOCAL QoreClass *parseMatchScopedClassWithMethod(const NamedScope *nscope, int *matched);
    DLLLOCAL QoreNamespace *parseMatchNamespace(const NamedScope *nscope, int *matched) const;
    DLLLOCAL void assimilate(QoreNamespace *ns);
    DLLLOCAL QoreNamespace *findNamespace(const char *name) const;
@@ -68,6 +76,9 @@ protected:
 
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
    DLLLOCAL QoreNamespace& operator=(const QoreNamespace&);
+
+   //! function not exported in the public API
+   DLLLOCAL QoreNamespace(const QoreNamespace &old, int64 po);
 
 public:
    //! creates a namespace with the given name
@@ -123,7 +134,6 @@ public:
     */
    DLLEXPORT QoreNamespace *copy(int64 po = PO_DEFAULT) const;
 
-   // info
    //! gets a hash of all classes in the namespace, the hash keys are the class names and the values are lists of strings giving the method names
    /**
       @see QoreHashNode
@@ -170,6 +180,7 @@ public:
 
    //! finds a class in this namespace, does not search child namespaces
    /** can only be called in the parse lock
+       does not call the class handler
        @param cname the class name to find in this namespace, must be unqualified (without a namespace path)
        @return the class found or 0 if not present
     */
@@ -181,6 +192,17 @@ public:
        @return the namespace found or 0 if not present
     */
    DLLEXPORT QoreNamespace *findLocalNamespace(const char *nsname) const;
+
+   //! sets the namespace class handler
+   /** to be called when a class cannot be found in the namespace
+       @param class_handler pointer to the class handler function
+   */
+   DLLEXPORT void setClassHandler(q_ns_class_handler_t class_handler);
+
+   //! returns a pointer to the parent namespace or 0 if there is no parent
+   /** @return a pointer to the parent namespace or 0 if there is no parent
+    */
+   DLLEXPORT const QoreNamespace *getParent() const;
 
    // parse-only interfaces are not exported
    DLLLOCAL QoreNamespace();
@@ -215,8 +237,8 @@ protected:
    DLLLOCAL RootQoreNamespace(QoreClassList *ocl, ConstantList *cl, QoreNamespaceList *nnsl);
    // private constructor
    DLLLOCAL RootQoreNamespace();
-   DLLLOCAL QoreClass *rootFindScopedClassWithMethod(const NamedScope *nscope, int *matched) const;
-   DLLLOCAL QoreClass *rootFindScopedClass(const NamedScope *name, int *matched) const;
+   DLLLOCAL QoreClass *rootFindScopedClassWithMethod(const NamedScope *nscope, int *matched);
+   DLLLOCAL QoreClass *rootFindScopedClass(const NamedScope *name, int *matched);
    DLLLOCAL QoreClass *rootFindChangeClass(const char *name);
    DLLLOCAL AbstractQoreNode *rootFindConstantValue(const char *name, const QoreTypeInfo *&typeInfo) const;
    DLLLOCAL AbstractQoreNode *rootFindScopedConstantValue(const NamedScope *name, int *matched, const QoreTypeInfo *&typeInfo) const;
@@ -237,8 +259,8 @@ public:
    DLLLOCAL AbstractQoreNode *findConstantValue(const NamedScope *name, int level, const QoreTypeInfo *&typeInfo) const;
    DLLLOCAL AbstractQoreNode *findConstantValue(const char *name, int level, const QoreTypeInfo *&typeInfo) const;
    DLLLOCAL QoreClass *parseFindClass(const char *name) const;
-   DLLLOCAL QoreClass *parseFindScopedClass(const NamedScope *name) const;
-   DLLLOCAL QoreClass *parseFindScopedClassWithMethod(const NamedScope *name) const;
+   DLLLOCAL QoreClass *parseFindScopedClass(const NamedScope *name);
+   DLLLOCAL QoreClass *parseFindScopedClassWithMethod(const NamedScope *name);
    // returns 0 for success, non-zero for error
    DLLLOCAL int resolveSimpleConstant(AbstractQoreNode **, int level, const QoreTypeInfo *&) const;
    // returns 0 for success, non-zero for error
