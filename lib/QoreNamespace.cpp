@@ -348,6 +348,7 @@ void QoreNamespaceList::add(QoreNamespace *ns) {
    // if namespace is already registered, then assimilate
    QoreNamespace *ons;
    if ((ons = find(ns->priv->name.c_str()))) {
+      //printd(5, "QoreNamespaceList::add() this=%p ns=%p (%s) assimilating with ons=%p (%s)\n", this, ns, ns->getName(), ons, ons->getName());
       ons->assimilate(ns);
       return;
    }
