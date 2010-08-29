@@ -50,10 +50,11 @@ static AbstractQoreNode *QUEUE_insert(QoreObject *self, Queue *tq, const QoreLis
 }
 
 // can't use shift because it's a reserved word
+// Queue::get(timeout $timeout_ms = 0) returns any
 static AbstractQoreNode *QUEUE_get(QoreObject *self, Queue *tq, const QoreListNode *params, ExceptionSink *xsink) {
    AbstractQoreNode *rv;
 
-   int timeout = getMsZeroInt(get_param(params, 0));
+   int timeout = HARD_QORE_INT(params, 0);
    if (timeout) {
       bool to;
       rv = tq->shift(xsink, timeout, &to);
@@ -66,10 +67,11 @@ static AbstractQoreNode *QUEUE_get(QoreObject *self, Queue *tq, const QoreListNo
    return rv;
 }
 
+// Queue::pop(timeout $timeout_ms = 0) returns any
 static AbstractQoreNode *QUEUE_pop(QoreObject *self, Queue *tq, const QoreListNode *params, ExceptionSink *xsink) {
    AbstractQoreNode *rv;
 
-   int timeout = getMsZeroInt(get_param(params, 0));
+   int timeout = HARD_QORE_INT(params, 0);
    if (timeout) {
       bool to;
       rv = tq->pop(xsink, timeout, &to);
@@ -105,13 +107,11 @@ QoreClass *initQueueClass() {
    QC_QUEUE->addMethodExtended("push",          (q_method_t)QUEUE_push, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, anyTypeInfo, QORE_PARAM_NO_ARG);
    QC_QUEUE->addMethodExtended("insert",        (q_method_t)QUEUE_insert, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, anyTypeInfo, QORE_PARAM_NO_ARG);
 
-   QC_QUEUE->addMethodExtended("get",           (q_method_t)QUEUE_get, false, QC_NO_FLAGS, QDOM_DEFAULT, 0);
-   QC_QUEUE->addMethodExtended("get",           (q_method_t)QUEUE_get, false, QC_NO_FLAGS, QDOM_DEFAULT, 0, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
-   QC_QUEUE->addMethodExtended("get",           (q_method_t)QUEUE_get, false, QC_NO_FLAGS, QDOM_DEFAULT, 0, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
+   // Queue::get(timeout $timeout_ms = 0) returns any
+   QC_QUEUE->addMethodExtended("get",           (q_method_t)QUEUE_get, false, QC_NO_FLAGS, QDOM_DEFAULT, 0, 1, timeoutTypeInfo, zero());
 
-   QC_QUEUE->addMethodExtended("pop",           (q_method_t)QUEUE_pop, false, QC_NO_FLAGS, QDOM_DEFAULT, 0);
-   QC_QUEUE->addMethodExtended("pop",           (q_method_t)QUEUE_pop, false, QC_NO_FLAGS, QDOM_DEFAULT, 0, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
-   QC_QUEUE->addMethodExtended("pop",           (q_method_t)QUEUE_pop, false, QC_NO_FLAGS, QDOM_DEFAULT, 0, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
+   // Queue::pop(timeout $timeout_ms = 0) returns any
+   QC_QUEUE->addMethodExtended("pop",           (q_method_t)QUEUE_pop, false, QC_NO_FLAGS, QDOM_DEFAULT, 0, 1, timeoutTypeInfo, zero());
 
    QC_QUEUE->addMethodExtended("size",          (q_method_t)QUEUE_size, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo);
    QC_QUEUE->addMethodExtended("getWaiting",    (q_method_t)QUEUE_getWaiting, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo);

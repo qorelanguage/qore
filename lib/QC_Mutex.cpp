@@ -43,9 +43,9 @@ static AbstractQoreNode *MUTEX_lock(QoreObject *self, SmartMutex *m, const QoreL
    return 0;
 }
 
+// Mutex::lock(timeout $timeout) returns int
 static AbstractQoreNode *MUTEX_lock_to(QoreObject *self, SmartMutex *m, const QoreListNode *params, ExceptionSink *xsink) {
-   const AbstractQoreNode *p = get_param(params, 0);
-   int timeout_ms = getMsZeroInt(p);
+   int timeout_ms = HARD_QORE_INT(params, 0);
    int rc = m->grab(xsink, timeout_ms);
    return !*xsink ? new QoreBigIntNode(rc) : 0;
 }
@@ -73,8 +73,9 @@ QoreClass *initMutexClass(QoreClass *AbstractSmartLock) {
    QC_MUTEX->setCopy((q_copy_t)MUTEX_copy);
 
    QC_MUTEX->addMethodExtended("lock",     (q_method_t)MUTEX_lock, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
-   QC_MUTEX->addMethodExtended("lock",     (q_method_t)MUTEX_lock_to, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
-   QC_MUTEX->addMethodExtended("lock",     (q_method_t)MUTEX_lock_to, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
+
+   // Mutex::lock(timeout $timeout) returns int
+   QC_MUTEX->addMethodExtended("lock",     (q_method_t)MUTEX_lock_to, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, timeoutTypeInfo, QORE_PARAM_NO_ARG);
 
    QC_MUTEX->addMethodExtended("trylock",  (q_method_t)MUTEX_trylock, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
    QC_MUTEX->addMethodExtended("unlock",   (q_method_t)MUTEX_unlock, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);

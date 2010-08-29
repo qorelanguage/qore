@@ -43,8 +43,9 @@ static AbstractQoreNode *RWLOCK_readLock(QoreObject *self, RWLock *rwl, const Qo
    return 0;
 }
 
+// RWLock::readLock(timeout $timeout) returns int
 static AbstractQoreNode *RWLOCK_readLock_timeout(QoreObject *self, RWLock *rwl, const QoreListNode *params, ExceptionSink *xsink) {
-   int timeout_ms = getMsZeroInt(get_param(params, 0));
+   int timeout_ms = HARD_QORE_INT(params, 0);
    int rc = rwl->readLock(xsink, timeout_ms);
    return *xsink ? 0 : new QoreBigIntNode(rc);
 }
@@ -59,8 +60,9 @@ static AbstractQoreNode *RWLOCK_writeLock(QoreObject *self, RWLock *rwl, const Q
    return 0;
 }
 
+// RWLock::writeLock(timeout $timeout) returns int
 static AbstractQoreNode *RWLOCK_writeLock_timeout(QoreObject *self, RWLock *rwl, const QoreListNode *params, ExceptionSink *xsink) {
-   int timeout_ms = getMsZeroInt(get_param(params, 0));
+   int timeout_ms = HARD_QORE_INT(params, 0);
    int rc = rwl->grab(xsink, timeout_ms);
    return *xsink ? 0 : new QoreBigIntNode(rc);
 }
@@ -105,14 +107,16 @@ QoreClass *initRWLockClass(QoreClass *AbstractSmartLock) {
    QC_RWLOCK->setCopy((q_copy_t)RWLOCK_copy);
 
    QC_RWLOCK->addMethodExtended("readLock",        (q_method_t)RWLOCK_readLock, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
-   QC_RWLOCK->addMethodExtended("readLock",        (q_method_t)RWLOCK_readLock_timeout, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
-   QC_RWLOCK->addMethodExtended("readLock",        (q_method_t)RWLOCK_readLock_timeout, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
+
+   // RWLock::readLock(timeout $timeout) returns int
+   QC_RWLOCK->addMethodExtended("readLock",        (q_method_t)RWLOCK_readLock_timeout, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, timeoutTypeInfo, QORE_PARAM_NO_ARG);
 
    QC_RWLOCK->addMethodExtended("readUnlock",      (q_method_t)RWLOCK_readUnlock, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
 
    QC_RWLOCK->addMethodExtended("writeLock",       (q_method_t)RWLOCK_writeLock, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
-   QC_RWLOCK->addMethodExtended("writeLock",       (q_method_t)RWLOCK_writeLock_timeout, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
-   QC_RWLOCK->addMethodExtended("writeLock",       (q_method_t)RWLOCK_writeLock_timeout, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
+
+   // RWLock::writeLock(timeout $timeout) returns int
+   QC_RWLOCK->addMethodExtended("writeLock",       (q_method_t)RWLOCK_writeLock_timeout, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, timeoutTypeInfo, QORE_PARAM_NO_ARG);
 
    QC_RWLOCK->addMethodExtended("writeUnlock",     (q_method_t)RWLOCK_writeUnlock, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
 

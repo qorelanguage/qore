@@ -935,6 +935,12 @@ False</programlisting></note>
             <entry><para><link linkend="NOTHING">NOTHING</link></para></entry>
             <entry><para>Restricts values to Qore's <link linkend="NOTHING">NOTHING</link> type; this type is mostly useful for declaring that a function or method returns no value.</para></entry>
           </row>
+          <row id="timeout_type">
+            <entry><para><code>timeout</code></para></entry>
+            <entry><para><link linkend="Integer">Integer</link>, <link linkend="Date">Date</link></para></entry>
+            <entry><para><link linkend="Integer">Integer</link></para></entry>
+            <entry><para>Accepts <link linkend="Integer">Integer</link>, <link linkend="Date">Date</link> and converts dates to an integer value representing milliseconds and returns the integer; incoming integers are assumed to represent milliseconds.</para></entry>
+          </row>
           <row id="softint_type">
             <entry><para><code>softint</code></para></entry>
             <entry><para><link linkend="Integer">Integer</link>, <link linkend="Float">Float</link>, <link linkend="Boolean">Boolean</link>, <link linkend="String">String</link></para></entry>

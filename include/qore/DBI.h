@@ -25,9 +25,7 @@
 
 #define _QORE_DBI_H
 
-/** @file DBI.h
-    described Qore's DBI interface for writing database drivers
- */
+//! @file DBI.h describes Qore's DBI interface for writing database drivers
 
 // DBI Driver capabilities
 #define DBI_CAP_NONE                     0

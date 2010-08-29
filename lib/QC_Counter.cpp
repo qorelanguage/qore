@@ -55,8 +55,9 @@ static AbstractQoreNode *COUNTER_waitForZero(QoreObject *self, Counter *c, const
    return 0;
 }
 
+// Counter::waitForZero(timeout $timeout) returns int
 static AbstractQoreNode *COUNTER_waitForZero_timeout(QoreObject *self, Counter *c, const QoreListNode *params, ExceptionSink *xsink) {
-   int timeout_ms = getMsZeroInt(get_param(params, 0));
+   int timeout_ms = HARD_QORE_INT(params, 0);
    int rc = c->waitForZero(xsink, timeout_ms);
    return *xsink ? 0 : new QoreBigIntNode(rc);
 }
@@ -81,8 +82,10 @@ QoreClass *initCounterClass() {
    QC_COUNTER->addMethodExtended("inc",           (q_method_t)COUNTER_inc, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
    QC_COUNTER->addMethodExtended("dec",           (q_method_t)COUNTER_dec, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
    QC_COUNTER->addMethodExtended("waitForZero",   (q_method_t)COUNTER_waitForZero, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
-   QC_COUNTER->addMethodExtended("waitForZero",   (q_method_t)COUNTER_waitForZero_timeout, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
-   QC_COUNTER->addMethodExtended("waitForZero",   (q_method_t)COUNTER_waitForZero_timeout, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
+
+   // Counter::waitForZero(timeout $timeout) returns int
+   QC_COUNTER->addMethodExtended("waitForZero",   (q_method_t)COUNTER_waitForZero_timeout, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, timeoutTypeInfo, QORE_PARAM_NO_ARG);
+
    QC_COUNTER->addMethodExtended("getCount",      (q_method_t)COUNTER_getCount, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
    QC_COUNTER->addMethodExtended("getWaiting",    (q_method_t)COUNTER_getWaiting, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
 

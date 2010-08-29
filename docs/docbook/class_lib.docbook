@@ -1860,12 +1860,10 @@ raised from the <link linkend="FtpClient_Class">FtpClient</link> class.</para></
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="File_isDataAvailable">File::isDataAvailable</link>(<link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable>) <command>returns</command> <link linkend="bool_type">bool</link></code></para>
-              <para><code><link linkend="File_isDataAvailable">File::isDataAvailable</link>(<link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="bool_type">bool</link></code></para>
-              <para><code><link linkend="File_isDataAvailable">File::isDataAvailable</link>() <command>returns</command> <link linkend="bool_type">bool</link></code></para>
+              <para><code><link linkend="File_isDataAvailable">File::isDataAvailable</link>(<link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = 0) <command>returns</command> <link linkend="bool_type">bool</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Returns true if there is data available for reading from the file within the timeout period.</para></entry>
+	    <entry><para>Returns True if there is data available for reading from the file within the timeout period.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
@@ -1907,18 +1905,14 @@ raised from the <link linkend="FtpClient_Class">FtpClient</link> class.</para></
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="File_read">File::read</link>(<link linkend="softint_type">softint</link> <replaceable>$size</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
-              <para><code><link linkend="File_read">File::read</link>(<link linkend="softint_type">softint</link> <replaceable>$size</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
-              <para><code><link linkend="File_read">File::read</link>(<link linkend="softint_type">softint</link> <replaceable>$size</replaceable>, <link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="File_read">File::read</link>(<link linkend="softint_type">softint</link> <replaceable>$size</replaceable>, <link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="any_type">any</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Reads a certain number of bytes from the file within an optional timeout period and returns a string of the data read or <command><link linkend="NOTHING">NOTHING</link></command> if no data can be read.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="File_readBinary">File::readBinary</link>(<link linkend="softint_type">softint</link> <replaceable>$size</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
-              <para><code><link linkend="File_readBinary">File::readBinary</link>(<link linkend="softint_type">softint</link> <replaceable>$size</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
-              <para><code><link linkend="File_readBinary">File::readBinary</link>(<link linkend="softint_type">softint</link> <replaceable>$size</replaceable>, <link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="File_readBinary">File::readBinary</link>(<link linkend="softint_type">softint</link> <replaceable>$size</replaceable>, <link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = 1) <command>returns</command> <link linkend="any_type">any</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Reads a certain number of bytes from the file within an optional timeout period and returns binary data or <command><link linkend="NOTHING">NOTHING</link></command> if no data can be read.</para></entry>
@@ -2864,9 +2858,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="File_isDataAvailable">File::isDataAvailable</link>(<link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable>) <command>returns</command> <link linkend="bool_type">bool</link></code></para>
-              <para><code><link linkend="File_isDataAvailable">File::isDataAvailable</link>(<link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="bool_type">bool</link></code></para>
-              <para><code><link linkend="File_isDataAvailable">File::isDataAvailable</link>() <command>returns</command> <link linkend="bool_type">bool</link></code></para>
+              <para><code><link linkend="File_isDataAvailable">File::isDataAvailable</link>(<link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = 0) <command>returns</command> <link linkend="bool_type">bool</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -2888,16 +2880,8 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable></code></para></entry>
+	      <entry><para><code><link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable></code></para></entry>
 	      <entry><para>An optional timeout in milliseconds (1/1000 second).</para></entry>
-	    </row>
-	    <row>
-	      <entry><para><code><link linkend="date_type">date</link> <replaceable>$timeout</replaceable></code></para></entry>
-	      <entry><para>An optional timeout respecint resolution to the millisecond (1/1000 second).</para></entry>
-	    </row>
-	    <row>
-	      <entry><para>n/a</para></entry>
-	      <entry><para>If no timeout is given, the method assumes a timeout of zero and returns immediately.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -3431,9 +3415,7 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="File_read">File::read</link>(<link linkend="softint_type">softint</link> <replaceable>$size</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
-              <para><code><link linkend="File_read">File::read</link>(<link linkend="softint_type">softint</link> <replaceable>$size</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
-              <para><code><link linkend="File_read">File::read</link>(<link linkend="softint_type">softint</link> <replaceable>$size</replaceable>, <link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
+	    <para><code><link linkend="File_read">File::read</link>(<link linkend="softint_type">softint</link> <replaceable>$size</replaceable>, <link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="any_type">any</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -3464,7 +3446,7 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 	      <entry><para>The number of bytes to read of the file, -1 will read the entire file.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para><code>[<link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> or <link linkend="date_type">date</link> <replaceable>$timeout</replaceable>]</code></para></entry>
+	      <entry><para><code><link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1</code></para></entry>
 	      <entry><para>A timeout period with a resolution of milliseconds (an integer argument will be assumed to be milliseconds)); if not given or negative the call will never time out and will only return when the data has been read.</para></entry>
 	    </row>
 
@@ -4298,15 +4280,13 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="File_readBinary">File::readBinary</link>(<link linkend="softint_type">softint</link> <replaceable>$size</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
-              <para><code><link linkend="File_readBinary">File::readBinary</link>(<link linkend="softint_type">softint</link> <replaceable>$size</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
-              <para><code><link linkend="File_readBinary">File::readBinary</link>(<link linkend="softint_type">softint</link> <replaceable>$size</replaceable>, <link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
+	    <para><code><link linkend="File_readBinary">File::readBinary</link>(<link linkend="softint_type">softint</link> <replaceable>$size</replaceable>, <link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = 1) <command>returns</command> <link linkend="any_type">any</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$data = $f.readBinary(-1); # reads an entire binary file into a variable</programlisting>
+	    <programlisting>$data = $f.readBinary(); # reads an entire binary file into a variable</programlisting>
 	  </listitem>
 	</varlistentry>
         <varlistentry>
@@ -4317,24 +4297,21 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 
       <table>
 	<title>Arguments for File::readBinary()</title>
-	<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
 	      <entry><para>Argument</para></entry>
-	      <entry><para>Type</para></entry>
 	      <entry><para>Description</para></entry>
 	    </row>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code><replaceable>size</replaceable></code></para></entry>
-	      <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+	      <entry><para><code><link linkend="int_type">int</link> <replaceable>#size</replaceable></code></para></entry>
 	      <entry><para>The number of bytes to read of the file.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para><code><replaceable>[timeout_ms]</replaceable></code></para></entry>
-	      <entry><para>Integer or <link linkend="Relative_Dates">Relative Date/Time</link></para></entry>
-	      <entry><para>A timeout period in milliseconds; if not given or negative the call will never time out and will only return when the data has been read.</para></entry>
+	      <entry><para><code><link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms = -1</replaceable></code></para></entry>
+	      <entry><para>A timeout period in milliseconds; if negative (the default) the call will never time out and will only return when the data has been read.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -12575,8 +12552,7 @@ $pgm.setParseOptions(<link linkend="PO_NO_THREADS">PO_NO_THREADS</link> | <link 
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Socket_connect">Socket::connect</link>(<link linkend="string_type">string</link> <replaceable>$dest</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
-              <para><code><link linkend="Socket_connect">Socket::connect</link>(<link linkend="string_type">string</link> <replaceable>$dest</replaceable>, <link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="Socket_connect">Socket::connect</link>(<link linkend="string_type">string</link> <replaceable>$dest</replaceable>, <link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Connects to a remote port (if the string has a format &quot;host:port&quot;) or UNIX domain socket file with an optional timeout value with a millisecond resolution.</para></entry>
@@ -12584,8 +12560,7 @@ $pgm.setParseOptions(<link linkend="PO_NO_THREADS">PO_NO_THREADS</link> | <link 
 
 	  <row>
 	    <entry>
-              <para><code><link linkend="Socket_connectINET">Socket::connectINET</link>(<link linkend="string_type">string</link> <replaceable>$host</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$port</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
-              <para><code><link linkend="Socket_connectINET">Socket::connectINET</link>(<link linkend="string_type">string</link> <replaceable>$host</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$port</replaceable>, <link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="Socket_connectINET">Socket::connectINET</link>(<link linkend="string_type">string</link> <replaceable>$host</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$port</replaceable>, <link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Connects to the given host and port with an optional timeout value with a millisecond resolution.</para></entry>
@@ -12601,8 +12576,7 @@ $pgm.setParseOptions(<link linkend="PO_NO_THREADS">PO_NO_THREADS</link> | <link 
 
           <row>
             <entry>
-              <para><code><link linkend="Socket_connectSSL">Socket::connectSSL</link>(<link linkend="string_type">string</link> <replaceable>$dest</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
-              <para><code><link linkend="Socket_connectSSL">Socket::connectSSL</link>(<link linkend="string_type">string</link> <replaceable>$dest</replaceable>, <link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="Socket_connectSSL">Socket::connectSSL</link>(<link linkend="string_type">string</link> <replaceable>$dest</replaceable>, <link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
             </entry>
             <entry>
               <para>Y</para>
@@ -12614,8 +12588,7 @@ $pgm.setParseOptions(<link linkend="PO_NO_THREADS">PO_NO_THREADS</link> | <link 
 
 	  <row>
 	    <entry>
-              <para><code><link linkend="Socket_connectINETSSL">Socket::connectINETSSL</link>(<link linkend="string_type">string</link> <replaceable>$host</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$port</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
-              <para><code><link linkend="Socket_connectINETSSL">Socket::connectINETSSL</link>(<link linkend="string_type">string</link> <replaceable>$host</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$port</replaceable>, <link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="Socket_connectINETSSL">Socket::connectINETSSL</link>(<link linkend="string_type">string</link> <replaceable>$host</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$port</replaceable>, <link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Connects to the given host and port and attempts to establish a TLS/SSL connection; accepts an optional timeout value with a millisecond resolution.</para></entry>
@@ -12676,16 +12649,14 @@ $pgm.setParseOptions(<link linkend="PO_NO_THREADS">PO_NO_THREADS</link> | <link 
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Socket_isDataAvailable">Socket::isDataAvailable</link>(<link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = 0) <command>returns</command> <link linkend="bool_type">bool</link></code></para>
-              <para><code><link linkend="Socket_isDataAvailable">Socket::isDataAvailable</link>(<link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="bool_type">bool</link></code></para>
+              <para><code><link linkend="Socket_isDataAvailable">Socket::isDataAvailable</link>(<link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = 0) <command>returns</command> <link linkend="bool_type">bool</link></code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns <code>True</code> or <code>False</code> depending on whether there is data to be read on the socket.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Socket_isWriteFinished">Socket::isWriteFinished</link>(<link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = 0) <command>returns</command> <link linkend="bool_type">bool</link></code></para>
-              <para><code><link linkend="Socket_isWriteFinished">Socket::isWriteFinished</link>(<link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="bool_type">bool</link></code></para>
+              <para><code><link linkend="Socket_isWriteFinished">Socket::isWriteFinished</link>(<link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = 0) <command>returns</command> <link linkend="bool_type">bool</link></code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns <code>True</code> or <code>False</code> depending on whether all data has been written to the socket.</para></entry>
@@ -12771,120 +12742,105 @@ $pgm.setParseOptions(<link linkend="PO_NO_THREADS">PO_NO_THREADS</link> | <link 
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Socket_recv">Socket::recv</link>(<link linkend="softint_type">softint</link> <replaceable>$size</replaceable> = 0) <command>returns</command> <link linkend="string_type">string</link></code></para>
-              <para><code><link linkend="Socket_recv">Socket::recv</link>(<link linkend="softint_type">softint</link> <replaceable>$size</replaceable> = 0, <link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="any_type">any</link></code></para>
-              <para><code><link linkend="Socket_recv">Socket::recv</link>(<link linkend="softint_type">softint</link> <replaceable>$size</replaceable> = 0, <link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="Socket_recv">Socket::recv</link>(<link linkend="softint_type">softint</link> <replaceable>$size</replaceable> = 0, <link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="any_type">any</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Receives data from the socket and returns a string.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Socket_recvi1">Socket::recvi1</link>(<link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="int_type">int</link></code></para>
-              <para><code><link linkend="Socket_recvi1">Socket::recvi1</link>(<link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
+              <para><code><link linkend="Socket_recvi1">Socket::recvi1</link>(<link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="int_type">int</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Receives a 1-byte signed integer from the socket.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Socket_recvi2">Socket::recvi2</link>(<link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="int_type">int</link></code></para>
-              <para><code><link linkend="Socket_recvi2">Socket::recvi2</link>(<link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
+              <para><code><link linkend="Socket_recvi2">Socket::recvi2</link>(<link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="int_type">int</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Receives a 2-byte (16-bit) signed integer in big-endian format (network byte order) from the socket.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Socket_recvi4">Socket::recvi4</link>(<link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="int_type">int</link></code></para>
-              <para><code><link linkend="Socket_recvi4">Socket::recvi4</link>(<link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
+              <para><code><link linkend="Socket_recvi4">Socket::recvi4</link>(<link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="int_type">int</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Receives a 4-byte (32-bit) signed integer in big-endian format (network byte order) from the socket.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Socket_recvi8">Socket::recvi8</link>(<link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="int_type">int</link></code></para>
-              <para><code><link linkend="Socket_recvi8">Socket::recvi8</link>(<link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
+              <para><code><link linkend="Socket_recvi8">Socket::recvi8</link>(<link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="int_type">int</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Receives an 8-byte (64-bit) signed integer in big-endian format (network byte order) from the socket.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Socket_recvi2LSB">Socket::recvi2LSB</link>(<link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="int_type">int</link></code></para>
-              <para><code><link linkend="Socket_recvi2LSB">Socket::recvi2LSB</link>(<link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
+              <para><code><link linkend="Socket_recvi2LSB">Socket::recvi2LSB</link>(<link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="int_type">int</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Receives a 2-byte (16-bit) signed integer in little-endian format from the socket.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Socket_recvi4LSB">Socket::recvi4LSB</link>(<link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="int_type">int</link></code></para>
-              <para><code><link linkend="Socket_recvi4LSB">Socket::recvi4LSB</link>(<link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
+              <para><code><link linkend="Socket_recvi4LSB">Socket::recvi4LSB</link>(<link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="int_type">int</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Receives a 4-byte (32-bit) signed integer in little-endian format from the socket.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Socket_recvi8LSB">Socket::recvi8LSB</link>(<link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="int_type">int</link></code></para>
-              <para><code><link linkend="Socket_recvi8LSB">Socket::recvi8LSB</link>(<link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
+              <para><code><link linkend="Socket_recvi8LSB">Socket::recvi8LSB</link>(<link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="int_type">int</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Receives an 8-byte (64-bit) signed integer in little-endian format from the socket.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Socket_recvu1">Socket::recvu1</link>(<link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="int_type">int</link></code></para>
-              <para><code><link linkend="Socket_recvu1">Socket::recvu1</link>(<link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
+              <para><code><link linkend="Socket_recvu1">Socket::recvu1</link>(<link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="int_type">int</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Receives a 1-byte unsigned integer from the socket.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Socket_recvu2">Socket::recvu2</link>(<link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="int_type">int</link></code></para>
-              <para><code><link linkend="Socket_recvu2">Socket::recvu2</link>(<link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
+              <para><code><link linkend="Socket_recvu2">Socket::recvu2</link>(<link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="int_type">int</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Receives a 2-byte (16-bit) unsigned integer in big-endian format (network byte order) from the socket.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Socket_recvu4">Socket::recvu4</link>(<link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="int_type">int</link></code></para>
-              <para><code><link linkend="Socket_recvu4">Socket::recvu4</link>(<link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
+              <para><code><link linkend="Socket_recvu4">Socket::recvu4</link>(<link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="int_type">int</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Receives a 4-byte (32-bit) unsigned integer in big-endian format (network byte order) from the socket.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Socket_recvu2LSB">Socket::recvu2LSB</link>(<link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="int_type">int</link></code></para>
-              <para><code><link linkend="Socket_recvu2LSB">Socket::recvu2LSB</link>(<link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
+              <para><code><link linkend="Socket_recvu2LSB">Socket::recvu2LSB</link>(<link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="int_type">int</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Receives a 2-byte (16-bit) unsigned integer in little-endian format from the socket.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Socket_recvu4LSB">Socket::recvu4LSB</link>(<link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="int_type">int</link></code></para>
-              <para><code><link linkend="Socket_recvu4LSB">Socket::recvu4LSB</link>(<link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
+              <para><code><link linkend="Socket_recvu4LSB">Socket::recvu4LSB</link>(<link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="int_type">int</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Receives a 4-byte (32-bit) unsigned integer in little-endian format from the socket.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Socket_recvBinary">Socket::recvBinary</link>(<link linkend="softint_type">softint</link> <replaceable>$size</replaceable> = 0, <link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="binary_type">binary</link></code></para>
-              <para><code><link linkend="Socket_recvBinary">Socket::recvBinary</link>(<link linkend="softint_type">softint</link> <replaceable>$size</replaceable> = 0, <link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="binary_type">binary</link></code></para>
+              <para><code><link linkend="Socket_recvBinary">Socket::recvBinary</link>(<link linkend="softint_type">softint</link> <replaceable>$size</replaceable> = 0, <link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="binary_type">binary</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Receives data on a socket and returns a binary object</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Socket_readHTTPHeader">Socket::readHTTPHeader</link>(<link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="Socket_readHTTPHeader">Socket::readHTTPHeader</link>(<link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="any_type">any</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Retuns a hash representing the data in the HTTP header read, or, if the data cannot be parsed as an HTTP header, the data read is returned as a string.</para></entry>
@@ -13360,8 +13316,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="Socket_connect">Socket::connect</link>(<link linkend="string_type">string</link> <replaceable>$dest</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
-              <para><code><link linkend="Socket_connect">Socket::connect</link>(<link linkend="string_type">string</link> <replaceable>$dest</replaceable>, <link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="Socket_connect">Socket::connect</link>(<link linkend="string_type">string</link> <replaceable>$dest</replaceable>, <link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -13392,7 +13347,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	      <entry><para>If a colon appears in the string, the string will be assumed to be a hostname:port specification to connect to.  If the string contains no colon, the socket will try to connect to a UNIX domain socket file on the local filesystem with the given name.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1 or <link linkend="date_type">date</link> <replaceable>$timeout</replaceable></code></para></entry>
+	      <entry><para><code><link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1</code></para></entry>
 	      <entry><para>If a timeout value is passed and the connection takes longer to establish than the timeout, an exception is thrown.</para></entry>
 	    </row>
 	  </tbody>
@@ -13431,8 +13386,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="Socket_connectINET">Socket::connectINET</link>(<link linkend="string_type">string</link> <replaceable>$host</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$port</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
-              <para><code><link linkend="Socket_connectINET">Socket::connectINET</link>(<link linkend="string_type">string</link> <replaceable>$host</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$port</replaceable>, <link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="Socket_connectINET">Socket::connectINET</link>(<link linkend="string_type">string</link> <replaceable>$host</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$port</replaceable>, <link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -13467,7 +13421,7 @@ $sock.connectINET("192.168.1.45", 8080, 30s);</programlisting>
 	      <entry><para>The port number to connect to.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1 or <link linkend="date_type">date</link> <replaceable>$timeout</replaceable></code></para></entry>
+	      <entry><para><code><link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1</code></para></entry>
 	      <entry><para>If a timeout value is passed and the connection takes longer to establish than the timeout, an exception is thrown.</para></entry>
 	    </row>
 	  </tbody>
@@ -13506,8 +13460,7 @@ $sock.connectINET("192.168.1.45", 8080, 30s);</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="Socket_connectINETSSL">Socket::connectINETSSL</link>(<link linkend="string_type">string</link> <replaceable>$host</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$port</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
-              <para><code><link linkend="Socket_connectINETSSL">Socket::connectINETSSL</link>(<link linkend="string_type">string</link> <replaceable>$host</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$port</replaceable>, <link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="Socket_connectINETSSL">Socket::connectINETSSL</link>(<link linkend="string_type">string</link> <replaceable>$host</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$port</replaceable>, <link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -13542,7 +13495,7 @@ $sock.connectINETSSL("192.168.1.45", 8080, 30s);</programlisting>
 	      <entry><para>The port number to connect to.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1 or <link linkend="date_type">date</link> <replaceable>$timeout</replaceable></code></para></entry>
+	      <entry><para><code><link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1</code></para></entry>
 	      <entry><para>If a timeout value is passed and the connection takes longer to establish than the timeout, an exception is thrown.</para></entry>
 	    </row>
 	  </tbody>
@@ -13713,8 +13666,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-              <para><code><link linkend="Socket_connectSSL">Socket::connectSSL</link>(<link linkend="string_type">string</link> <replaceable>$dest</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
-              <para><code><link linkend="Socket_connectSSL">Socket::connectSSL</link>(<link linkend="string_type">string</link> <replaceable>$dest</replaceable>, <link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="Socket_connectSSL">Socket::connectSSL</link>(<link linkend="string_type">string</link> <replaceable>$dest</replaceable>, <link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
           </listitem>
         </varlistentry>
 	<varlistentry>
@@ -13744,7 +13696,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	      <entry><para>If a colon appears in the string, the string will be assumed to be a hostname:port specification to connect to.  If the string contains no colon, the socket will try to connect to a UNIX domain socket file on the local filesystem with the given name.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1 or <link linkend="date_type">date</link> <replaceable>$timeout</replaceable></code></para></entry>
+	      <entry><para><code><link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1</code></para></entry>
 	      <entry><para>If a timeout value is passed and the connection takes longer to establish than the timeout, an exception is thrown.</para></entry>
 	    </row>
 	  </tbody>
@@ -14300,8 +14252,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="Socket_isDataAvailable">Socket::isDataAvailable</link>(<link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = 0) <command>returns</command> <link linkend="bool_type">bool</link></code></para>
-              <para><code><link linkend="Socket_isDataAvailable">Socket::isDataAvailable</link>(<link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="bool_type">bool</link></code></para>
+              <para><code><link linkend="Socket_isDataAvailable">Socket::isDataAvailable</link>(<link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = 0) <command>returns</command> <link linkend="bool_type">bool</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -14323,7 +14274,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = 0 or <link linkend="date_type">date</link> <replaceable>$timeout</replaceable></code></para></entry>
+	      <entry><para><code><link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = 0</code></para></entry>
 	      <entry><para>An optional timeout in milliseconds (1/1000 second).  If no timeout is given, the method returns immediately.</para></entry>
 	    </row>
 	  </tbody>
@@ -14361,8 +14312,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="Socket_isWriteFinished">Socket::isWriteFinished</link>(<link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = 0) <command>returns</command> <link linkend="bool_type">bool</link></code></para>
-              <para><code><link linkend="Socket_isWriteFinished">Socket::isWriteFinished</link>(<link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="bool_type">bool</link></code></para>
+              <para><code><link linkend="Socket_isWriteFinished">Socket::isWriteFinished</link>(<link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = 0) <command>returns</command> <link linkend="bool_type">bool</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -14384,7 +14334,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = 0 or <link linkend="date_type">date</link> <replaceable>$timeout</replaceable></code></para></entry>
+	      <entry><para><code><link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = 0</code></para></entry>
 	      <entry><para>An optional timeout in milliseconds (1/1000 second).  If no timeout is given, the method returns immediately.</para></entry>
 	    </row>
 	  </tbody>
@@ -15363,8 +15313,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="Socket_recv">Socket::recv</link>(<link linkend="softint_type">softint</link> <replaceable>$size</replaceable> = 0, <link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="string_type">string</link></code></para>
-              <para><code><link linkend="Socket_recv">Socket::recv</link>(<link linkend="softint_type">softint</link> <replaceable>$size</replaceable> = 0, <link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="string_type">string</link></code></para>
+              <para><code><link linkend="Socket_recv">Socket::recv</link>(<link linkend="softint_type">softint</link> <replaceable>$size</replaceable> = 0, <link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="string_type">string</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -15394,7 +15343,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	      <entry><para>The amount of data to read in bytes.  To read until the remote closes the connection, use -1.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1 or <link linkend="date_type">date</link> <replaceable>$timeout</replaceable></code></para></entry>
+	      <entry><para><code><link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1</code></para></entry>
 	      <entry><para>The timeout in milliseconds (1/1000 second).  If no timeout is passed, then the call will not time out and will not return until all the data has been read or the remote end closes the connection.</para></entry>
 	    </row>
 	  </tbody>
@@ -15466,8 +15415,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="Socket_recvBinary">Socket::recvBinary</link>(<link linkend="softint_type">softint</link> <replaceable>$size</replaceable> = 0, <link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="binary_type">binary</link></code></para>
-              <para><code><link linkend="Socket_recvBinary">Socket::recvBinary</link>(<link linkend="softint_type">softint</link> <replaceable>$size</replaceable> = 0, <link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="binary_type">binary</link></code></para>
+              <para><code><link linkend="Socket_recvBinary">Socket::recvBinary</link>(<link linkend="softint_type">softint</link> <replaceable>$size</replaceable> = 0, <link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="binary_type">binary</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -15497,7 +15445,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	      <entry><para>The amount of data to read in bytes.  To read until the remote closes the connection, use -1.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1 or <link linkend="date_type">date</link> <replaceable>$timeout</replaceable></code></para></entry>
+	      <entry><para><code><link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1</code></para></entry>
 	      <entry><para>The timeout in milliseconds (1/1000 second).  If no timeout is passed, then the call will not time out and will not return until all the data has been read or the remote end closes the connection.</para></entry>
 	    </row>
 	  </tbody>
@@ -15569,8 +15517,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="Socket_recvi1">Socket::recvi1</link>(<link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="int_type">int</link></code></para>
-              <para><code><link linkend="Socket_recvi1">Socket::recvi1</link>(<link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
+              <para><code><link linkend="Socket_recvi1">Socket::recvi1</link>(<link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="int_type">int</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -15596,7 +15543,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1 or <link linkend="date_type">date</link> <replaceable>$timeout</replaceable></code></para></entry>
+	      <entry><para><code><link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1</code></para></entry>
 	      <entry><para>The timeout in milliseconds (1/1000 second).  If no timeout is passed, then the call will not time out and will not return until all the data has been read or the remote end closes the connection.</para></entry>
 	    </row>
 	  </tbody>
@@ -15668,8 +15615,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="Socket_recvi2">Socket::recvi2</link>(<link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="int_type">int</link></code></para>
-              <para><code><link linkend="Socket_recvi2">Socket::recvi2</link>(<link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
+              <para><code><link linkend="Socket_recvi2">Socket::recvi2</link>(<link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="int_type">int</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -15695,7 +15641,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1 or <link linkend="date_type">date</link> <replaceable>$timeout</replaceable></code></para></entry>
+	      <entry><para><code><link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1</code></para></entry>
 	      <entry><para>The timeout in milliseconds (1/1000 second).  If no timeout is passed, then the call will not time out and will not return until all the data has been read or the remote end closes the connection.</para></entry>
 	    </row>
 	  </tbody>
@@ -15767,8 +15713,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="Socket_recvi4">Socket::recvi4</link>(<link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="int_type">int</link></code></para>
-              <para><code><link linkend="Socket_recvi4">Socket::recvi4</link>(<link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
+              <para><code><link linkend="Socket_recvi4">Socket::recvi4</link>(<link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="int_type">int</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -15794,7 +15739,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1 or <link linkend="date_type">date</link> <replaceable>$timeout</replaceable></code></para></entry>
+	      <entry><para><code><link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1</code></para></entry>
 	      <entry><para>The timeout in milliseconds (1/1000 second).  If no timeout is passed, then the call will not time out and will not return until all the data has been read or the remote end closes the connection.</para></entry>
 	    </row>
 	  </tbody>
@@ -15866,8 +15811,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="Socket_recvi8">Socket::recvi8</link>(<link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="int_type">int</link></code></para>
-              <para><code><link linkend="Socket_recvi8">Socket::recvi8</link>(<link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
+              <para><code><link linkend="Socket_recvi8">Socket::recvi8</link>(<link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="int_type">int</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -15893,7 +15837,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1 or <link linkend="date_type">date</link> <replaceable>$timeout</replaceable></code></para></entry>
+	      <entry><para><code><link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1</code></para></entry>
 	      <entry><para>The timeout in milliseconds (1/1000 second).  If no timeout is passed, then the call will not time out and will not return until all the data has been read or the remote end closes the connection.  A <link linkend="Relative_Dates">relative date/time value</link> can be used as well (i.e. <code>1250ms</code>) for clarity.</para></entry>
 	    </row>
 	  </tbody>
@@ -15965,8 +15909,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="Socket_recvi2LSB">Socket::recvi2LSB</link>(<link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="int_type">int</link></code></para>
-              <para><code><link linkend="Socket_recvi2LSB">Socket::recvi2LSB</link>(<link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
+              <para><code><link linkend="Socket_recvi2LSB">Socket::recvi2LSB</link>(<link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="int_type">int</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -15992,7 +15935,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1 or <link linkend="date_type">date</link> <replaceable>$timeout</replaceable></code></para></entry>
+	      <entry><para><code><link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1</code></para></entry>
 	      <entry><para>The timeout in milliseconds (1/1000 second).  If no timeout is passed, then the call will not time out and will not return until all the data has been read or the remote end closes the connection.</para></entry>
 	    </row>
 	  </tbody>
@@ -16064,8 +16007,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="Socket_recvi4LSB">Socket::recvi4LSB</link>(<link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="int_type">int</link></code></para>
-              <para><code><link linkend="Socket_recvi4LSB">Socket::recvi4LSB</link>(<link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
+              <para><code><link linkend="Socket_recvi4LSB">Socket::recvi4LSB</link>(<link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="int_type">int</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -16091,7 +16033,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1 or <link linkend="date_type">date</link> <replaceable>$timeout</replaceable></code></para></entry>
+	      <entry><para><code><link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1</code></para></entry>
 	      <entry><para>The timeout in milliseconds (1/1000 second).  If no timeout is passed, then the call will not time out and will not return until all the data has been read or the remote end closes the connection.</para></entry>
 	    </row>
 	  </tbody>
@@ -16163,8 +16105,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="Socket_recvi8LSB">Socket::recvi8LSB</link>(<link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="int_type">int</link></code></para>
-              <para><code><link linkend="Socket_recvi8LSB">Socket::recvi8LSB</link>(<link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
+              <para><code><link linkend="Socket_recvi8LSB">Socket::recvi8LSB</link>(<link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="int_type">int</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -16190,7 +16131,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1 or <link linkend="date_type">date</link> <replaceable>$timeout</replaceable></code></para></entry>
+	      <entry><para><code><link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1</code></para></entry>
 	      <entry><para>The timeout in milliseconds (1/1000 second).  If no timeout is passed, then the call will not time out and will not return until all the data has been read or the remote end closes the connection.  A <link linkend="Relative_Dates">relative date/time value</link> can be used as well (i.e. <code>1250ms</code>) for clarity.</para></entry>
 	    </row>
 	  </tbody>
@@ -16262,8 +16203,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="Socket_recvu1">Socket::recvu1</link>(<link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="int_type">int</link></code></para>
-              <para><code><link linkend="Socket_recvu1">Socket::recvu1</link>(<link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
+              <para><code><link linkend="Socket_recvu1">Socket::recvu1</link>(<link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="int_type">int</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -16289,7 +16229,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1 or <link linkend="date_type">date</link> <replaceable>$timeout</replaceable></code></para></entry>
+	      <entry><para><code><link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1</code></para></entry>
 	      <entry><para>The timeout in milliseconds (1/1000 second).  If no timeout is passed, then the call will not time out and will not return until all the data has been read or the remote end closes the connection.</para></entry>
 	    </row>
 	  </tbody>
@@ -16361,14 +16301,14 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>Socket::recvu2(<replaceable>[timeout_ms]</replaceable>)</programlisting>
+	    <para><code><link linkend="Socket_recvu2">Socket::recvu2</link>(<link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="int_type">int</link></code></para>
+	    <para><code><link linkend="Socket_recvu2">Socket::recvu2</link>(<link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-              <para><code><link linkend="Socket_recvu2">Socket::recvu2</link>(<link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="int_type">int</link></code></para>
-              <para><code><link linkend="Socket_recvu2">Socket::recvu2</link>(<link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
+	    <programlisting><command>my</command> int $val = $sock.recvu2();</programlisting>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -16388,7 +16328,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1 or <link linkend="date_type">date</link> <replaceable>$timeout</replaceable></code></para></entry>
+	      <entry><para><code><link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1</code></para></entry>
 	      <entry><para>The timeout in milliseconds (1/1000 second).  If no timeout is passed, then the call will not time out and will not return until all the data has been read or the remote end closes the connection.</para></entry>
 	    </row>
 	  </tbody>
@@ -16460,8 +16400,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="Socket_recvu4">Socket::recvu4</link>(<link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="int_type">int</link></code></para>
-              <para><code><link linkend="Socket_recvu4">Socket::recvu4</link>(<link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
+              <para><code><link linkend="Socket_recvu4">Socket::recvu4</link>(<link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="int_type">int</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -16487,7 +16426,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1 or <link linkend="date_type">date</link> <replaceable>$timeout</replaceable></code></para></entry>
+	      <entry><para><code><link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1</code></para></entry>
 	      <entry><para>The timeout in milliseconds (1/1000 second).  If no timeout is passed, then the call will not time out and will not return until all the data has been read or the remote end closes the connection.</para></entry>
 	    </row>
 	  </tbody>
@@ -16559,8 +16498,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="Socket_recvu2LSB">Socket::recvu2LSB</link>(<link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="int_type">int</link></code></para>
-              <para><code><link linkend="Socket_recvu2LSB">Socket::recvu2LSB</link>(<link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
+              <para><code><link linkend="Socket_recvu2LSB">Socket::recvu2LSB</link>(<link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="int_type">int</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -16586,7 +16524,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1 or <link linkend="date_type">date</link> <replaceable>$timeout</replaceable></code></para></entry>
+	      <entry><para><code><link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1</code></para></entry>
 	      <entry><para>The timeout in milliseconds (1/1000 second).  If no timeout is passed, then the call will not time out and will not return until all the data has been read or the remote end closes the connection.</para></entry>
 	    </row>
 	  </tbody>
@@ -16658,8 +16596,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="Socket_recvu4LSB">Socket::recvu4LSB</link>(<link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="int_type">int</link></code></para>
-              <para><code><link linkend="Socket_recvu4LSB">Socket::recvu4LSB</link>(<link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
+              <para><code><link linkend="Socket_recvu4LSB">Socket::recvu4LSB</link>(<link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="int_type">int</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -16685,7 +16622,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1 or <link linkend="date_type">date</link> <replaceable>$timeout</replaceable></code></para></entry>
+	      <entry><para><code><link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1</code></para></entry>
 	      <entry><para>The timeout in milliseconds (1/1000 second).  If no timeout is passed, then the call will not time out and will not return until all the data has been read or the remote end closes the connection.</para></entry>
 	    </row>
 	  </tbody>
@@ -16793,8 +16730,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="Socket_readHTTPHeader">Socket::readHTTPHeader</link>(<link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="any_type">any</link></code></para>
-               <para><code><link linkend="Socket_readHTTPHeader">Socket::readHTTPHeader</link>(<link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="Socket_readHTTPHeader">Socket::readHTTPHeader</link>(<link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="any_type">any</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -16820,7 +16756,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1 or <link linkend="date_type">date</link> <replaceable>$timeout</replaceable></code></para></entry>
+	      <entry><para><code><link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1</code></para></entry>
 	      <entry><para>The timeout in milliseconds (1/1000 second).  If no timeout is passed, then the call will not time out and will not return until all the data has been read or the remote end closes the connection.</para></entry>
 	    </row>
 	  </tbody>
@@ -17599,16 +17535,14 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="HTTPClient_setConnectTimeout">HTTPClient::setConnectTimeout</link>(<link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
-              <para><code><link linkend="HTTPClient_setConnectTimeout">HTTPClient::setConnectTimeout</link>(<link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="HTTPClient_setConnectTimeout">HTTPClient::setConnectTimeout</link>(<link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
             </entry>
             <entry><para>N</para></entry>
             <entry><para>Sets the connect timeout in milliseconds.  Negative numbers mean use the default system connect timeout.  Note that like all Qore functions and methods taking timeout values, a <link linkend="Relative_Dates">relative date/time value</link> can be used to make the units clear (i.e. <code>30s</code> = 30 seconds, etc.).</para></entry>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="HTTPClient_setTimeout">HTTPClient::setTimeout</link>(<link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
-              <para><code><link linkend="HTTPClient_setTimeout">HTTPClient::setTimeout</link>(<link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="HTTPClient_setTimeout">HTTPClient::setTimeout</link>(<link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
             </entry>
             <entry><para>N</para></entry>
             <entry><para>Sets the default read timeout in milliseconds.  Zero means immediate timeout (will return data only if it is already available), and negative numbers mean never timeout (wait forever for data).  Note that like all Qore functions and methods taking timeout values, a <link linkend="Relative_Dates">relative date/time value</link> can be used to make the units clear (i.e. <code>2m</code> = two minutes, etc.).</para></entry>
@@ -18912,8 +18846,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-              <para><code><link linkend="HTTPClient_setConnectTimeout">HTTPClient::setConnectTimeout</link>(<link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
-              <para><code><link linkend="HTTPClient_setConnectTimeout">HTTPClient::setConnectTimeout</link>(<link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="HTTPClient_setConnectTimeout">HTTPClient::setConnectTimeout</link>(<link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -18934,7 +18867,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1 or <link linkend="date_type">date</link> <replaceable>$timeout</replaceable></code></para></entry>
+	      <entry><para><code><link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1</code></para></entry>
               <entry>
                 <para>Connect timeout in milliseconds, 0 = immediate timeout (do not use), negative numbers = use system default connect timeout.</para>
               </entry>
@@ -18956,8 +18889,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-              <para><code><link linkend="HTTPClient_setTimeout">HTTPClient::setTimeout</link>(<link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
-              <para><code><link linkend="HTTPClient_setTimeout">HTTPClient::setTimeout</link>(<link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="HTTPClient_setTimeout">HTTPClient::setTimeout</link>(<link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -18978,7 +18910,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = -1 or <link linkend="date_type">date</link> <replaceable>$timeout</replaceable></code></para></entry>
+	      <entry><para><code><link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1</code></para></entry>
               <entry>
                 <para>Read timeout in milliseconds, 0 = immediate timeout, negative numbers = never timeout.</para>
               </entry>
@@ -23289,7 +23221,6 @@ values (%v, %v, %v, %d)", $string, now(), $binary, 100);</programlisting>
       <para>There is a timeout associated with the transaction lock; if a thread waits for the transaction lock for more than the timeout period, then an exception will be raised in the waiting thread. The timeout value can be read and changed with the <link linkend="Datasource::getTransactionLockTimeout">Datasource::getTransactionLockTimeout()</link> and <link linkend="Datasource::setTransactionLockTimeout">Datasource::setTransactionLockTimeout()</link> methods, respectively. The default transaction lock timeout value is 120 seconds.</para>
     </sect2>
 
-
     <table>
       <title>SQL::Datasource Method Overview</title>
       <tgroup cols='3' align='left' colsep='1' rowsep='1'>
@@ -23546,8 +23477,7 @@ values (%v, %v, %v, %d)", $string, now(), $binary, 100);</programlisting>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Datasource::setTransactionLockTimeout">Datasource::setTransactionLockTimeout</link>(<link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = 0) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
-              <para><code><link linkend="Datasource::setTransactionLockTimeout">Datasource::setTransactionLockTimeout</link>(<link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="Datasource::setTransactionLockTimeout">Datasource::setTransactionLockTimeout</link>(<link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = 0) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Sets the <link linkend="datasource_transaction_lock">transaction lock</link> timeout value in milliseconds.  Set to 0 for no timeout.</para></entry>
@@ -24885,8 +24815,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="Datasource::setTransactionLockTimeout">Datasource::setTransactionLockTimeout</link>(<link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = 0) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
-              <para><code><link linkend="Datasource::setTransactionLockTimeout">Datasource::setTransactionLockTimeout</link>(<link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="Datasource::setTransactionLockTimeout">Datasource::setTransactionLockTimeout</link>(<link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = 0) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -24908,8 +24837,8 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> = 0 or <link linkend="date_type">date</link> <replaceable>$timeout</replaceable></code></para></entry>
-	      <entry><para>The timeout value to set in seconds.  For no timeout, set to 0.  Like all Qore functions and methods taking timeout values, a <link linkend="Relative_Dates">relative time value</link> may be passed instead of an integer to make the timeout units clear (ex: <code>2500ms</code> for 2.5 seconds).</para></entry>
+	      <entry><para><code><link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = 0</code></para></entry>
+	      <entry><para>The timeout value to set in milliseconds.  For no timeout, set to 0.  Like all Qore functions and methods taking timeout values, a <link linkend="Relative_Dates">relative time value</link> may be passed instead of an integer to make the timeout units clear (ex: <code>2500ms</code> for 2.5 seconds).</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -28429,9 +28358,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Condition::wait">Condition::wait</link>(<link linkend="AbstractSmartLock_Class">AbstractSmartLock</link> <replaceable>$lock</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
-              <para><code><link linkend="Condition::wait">Condition::wait</link>(<link linkend="AbstractSmartLock_Class">AbstractSmartLock</link> <replaceable>$lock</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
-              <para><code><link linkend="Condition::wait">Condition::wait</link>(<link linkend="AbstractSmartLock_Class">AbstractSmartLock</link> <replaceable>$lock</replaceable>, <link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
+              <para><code><link linkend="Condition::wait">Condition::wait</link>(<link linkend="AbstractSmartLock_Class">AbstractSmartLock</link> <replaceable>$lock</replaceable>, <link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = 0) <command>returns</command> <link linkend="int_type">int</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Blocks a thread until signaled; accepts an optional timeout value.</para></entry>
@@ -28612,9 +28539,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="Condition::wait">Condition::wait</link>(<link linkend="AbstractSmartLock_Class">AbstractSmartLock</link> <replaceable>$lock</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
-              <para><code><link linkend="Condition::wait">Condition::wait</link>(<link linkend="AbstractSmartLock_Class">AbstractSmartLock</link> <replaceable>$lock</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
-              <para><code><link linkend="Condition::wait">Condition::wait</link>(<link linkend="AbstractSmartLock_Class">AbstractSmartLock</link> <replaceable>$lock</replaceable>, <link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
+              <para><code><link linkend="Condition::wait">Condition::wait</link>(<link linkend="AbstractSmartLock_Class">AbstractSmartLock</link> <replaceable>$lock</replaceable>, <link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = 0) <command>returns</command> <link linkend="int_type">int</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -28646,7 +28571,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
 	      <entry><para>The <link linkend="AbstractSmartLock_Class">AbstractSmartLock</link> object to use for synchronization on this Condition object.  The <link linkend="AbstractSmartLock_Class">AbstractSmartLock</link> must be locked before calling this method.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para><code>[<link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> or <link linkend="date_type">date</link> <replaceable>$timeout</replaceable>]</code></para></entry>
+	      <entry><para><code><link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = 0</code></para></entry>
 	      <entry><para>An optional timeout value; integers are interpreted as milliseconds; <link linkend="Relative_Dates">relative date/time values</link> are interpreted literally.</para></entry>
 	    </row>
 	  </tbody>
@@ -28809,8 +28734,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
 	  <row>
 	    <entry>
               <para><code><link linkend="Counter::waitForZero">Counter::waitForZero</link>() <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
-              <para><code><link linkend="Counter::waitForZero">Counter::waitForZero</link>(<link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
-              <para><code><link linkend="Counter::waitForZero">Counter::waitForZero</link>(<link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
+              <para><code><link linkend="Counter::waitForZero">Counter::waitForZero</link>(<link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Blocks a thread until the counter reaches zero; returns zero on sucess, or non-zero if a timeout occurred.</para></entry>
@@ -29017,8 +28941,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
 	  <term>Prototype</term>
 	  <listitem>
               <para><code><link linkend="Counter::waitForZero">Counter::waitForZero</link>() <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
-              <para><code><link linkend="Counter::waitForZero">Counter::waitForZero</link>(<link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
-              <para><code><link linkend="Counter::waitForZero">Counter::waitForZero</link>(<link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
+              <para><code><link linkend="Counter::waitForZero">Counter::waitForZero</link>(<link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -29040,7 +28963,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code>[<link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> or <link linkend="date_type">date</link> <replaceable>$timeout</replaceable>]</code></para></entry>
+	      <entry><para><code><link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable></code></para></entry>
 	      <entry><para>An optional timeout value to wait for the Counter to reach zero; integers are interpreted as milliseconds; <link linkend="Relative_Dates">relative date/time values</link> are interpreted literally.</para></entry>
 	    </row>
 	  </tbody>
@@ -29214,21 +29137,17 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Queue::get">Queue::get</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
-              <para><code><link linkend="Queue::get">Queue::get</link>(<link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
-              <para><code><link linkend="Queue::get">Queue::get</link>(<link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="Queue::get">Queue::get</link>(<link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = 0) <command>returns</command> <link linkend="any_type">any</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Blocks until at least one entry is available on the queue, then returns the first entry in the queue.  If a timeout occurs, an exception is thrown.</para></entry>
+	    <entry><para>Blocks until at least one entry is available on the queue, then returns the first entry in the queue.  If a timeout occurs, an exception is thrown.  If the timeout is less than or equal to zero, then the call does not timeout until data is available.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Queue::pop">Queue::pop</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
-              <para><code><link linkend="Queue::pop">Queue::pop</link>(<link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
-              <para><code><link linkend="Queue::pop">Queue::pop</link>(<link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="Queue::pop">Queue::pop</link>(<link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = 0) <command>returns</command> <link linkend="any_type">any</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Blocks until at least one entry is available on the queue, then returns the last entry in the queue.  If a timeout occurs, an exception is thrown.</para></entry>
+	    <entry><para>Blocks until at least one entry is available on the queue, then returns the last entry in the queue.  If a timeout occurs, an exception is thrown.  If the timeout is less than or equal to zero, then the call does not timeout until data is available.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
@@ -29352,9 +29271,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="Queue::get">Queue::get</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
-              <para><code><link linkend="Queue::get">Queue::get</link>(<link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
-              <para><code><link linkend="Queue::get">Queue::get</link>(<link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="Queue::get">Queue::get</link>(<link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = 0) <command>returns</command> <link linkend="any_type">any</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -29376,7 +29293,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code>[<link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> or <link linkend="date_type">date</link> <replaceable>$timeout</replaceable>]</code></para></entry>
+	      <entry><para><code><link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = 0</code></para></entry>
 	      <entry><para>An optional timeout value to wait for data to become available on the queue; integers are interpreted as milliseconds; <link linkend="Relative_Dates">relative date/time values</link> are interpreted literally.  If no value or a value that converts to integer 0 is passed as the argument, then the call does not timeout until data is available on the queue.  If a non-zero timeout argument is passed, and no data is available in the timeout period, a QUEUE-TIMEOUT exception is thrown.</para></entry>
 	    </row>
 	  </tbody>
@@ -29437,9 +29354,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="Queue::pop">Queue::pop</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
-              <para><code><link linkend="Queue::pop">Queue::pop</link>(<link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
-              <para><code><link linkend="Queue::pop">Queue::pop</link>(<link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="Queue::pop">Queue::pop</link>(<link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = 0) <command>returns</command> <link linkend="any_type">any</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -29461,7 +29376,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code>[<link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> or <link linkend="date_type">date</link> <replaceable>$timeout</replaceable>]</code></para></entry>
+	      <entry><para><code><link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = 0</code></para></entry>
 	      <entry><para>An optional timeout value to wait for data to become available on the queue; integers are interpreted as milliseconds; <link linkend="Relative_Dates">relative date/time values</link> are interpreted literally.  If no value or a value that converts to integer 0 is passed as the argument, then the call does not timeout until data is available on the queue.  If a non-zero timeout argument is passed, and no data is available in the timeout period, a QUEUE-TIMEOUT exception is thrown.</para></entry>
 	    </row>
 	  </tbody>
@@ -29703,8 +29618,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
 	  <row>
 	    <entry>
               <para><code><link linkend="RWLock::readLock">RWLock::readLock</link>() <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
-              <para><code><link linkend="RWLock::readLock">RWLock::readLock</link>(<link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
-              <para><code><link linkend="RWLock::readLock">RWLock::readLock</link>(<link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
+              <para><code><link linkend="RWLock::readLock">RWLock::readLock</link>(<link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Acquires the read lock with an optional timeout value; blocks if the write lock is already acquired.  Returns 0 for success, non-zero for timeout; exceptions are thrown for other errors.</para></entry>
@@ -29719,8 +29633,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
 	  <row>
 	    <entry>
               <para><code><link linkend="RWLock::writeLock">RWLock::writeLock</link>() <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
-              <para><code><link linkend="RWLock::writeLock">RWLock::writeLock</link>(<link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
-              <para><code><link linkend="RWLock::writeLock">RWLock::writeLock</link>(<link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
+              <para><code><link linkend="RWLock::writeLock">RWLock::writeLock</link>(<link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Acquires the write lock with an optional timeout; blocks if either the read lock or write lock is already acquired.  Returns 0 for success, non-zero for timeout; exceptions are thrown for other errors.</para></entry>
@@ -29869,8 +29782,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
 	  <term>Prototype</term>
 	  <listitem>
               <para><code><link linkend="RWLock::readLock">RWLock::readLock</link>() <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
-              <para><code><link linkend="RWLock::readLock">RWLock::readLock</link>(<link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
-              <para><code><link linkend="RWLock::readLock">RWLock::readLock</link>(<link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
+              <para><code><link linkend="RWLock::readLock">RWLock::readLock</link>(<link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -29892,7 +29804,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code>[<link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> or <link linkend="date_type">date</link> <replaceable>$timeout</replaceable>]</code></para></entry>
+	      <entry><para><code>[<link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable>]</code></para></entry>
 	      <entry><para>An optional timeout value to wait to acquire the read lock; integers are interpreted as milliseconds; <link linkend="Relative_Dates">relative date/time values</link> are interpreted literally.</para></entry>
 	    </row>
 	  </tbody>
@@ -29998,8 +29910,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
 	  <term>Prototype</term>
 	  <listitem>
               <para><code><link linkend="RWLock::writeLock">RWLock::writeLock</link>() <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
-              <para><code><link linkend="RWLock::writeLock">RWLock::writeLock</link>(<link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
-              <para><code><link linkend="RWLock::writeLock">RWLock::writeLock</link>(<link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
+              <para><code><link linkend="RWLock::writeLock">RWLock::writeLock</link>(<link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -30021,7 +29932,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code>[<link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> or <link linkend="date_type">date</link> <replaceable>$timeout</replaceable>]</code></para></entry>
+	      <entry><para><code>[<link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable>]</code></para></entry>
 	      <entry><para>An optional timeout value to wait to acquire the write lock; integers are interpreted as milliseconds; <link linkend="Relative_Dates">relative date/time values</link> are interpreted literally.</para></entry>
 	    </row>
 	  </tbody>
@@ -30386,8 +30297,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
 	  <row>
 	    <entry>
               <para><code><link linkend="Mutex::lock">Mutex::lock</link>() <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
-              <para><code><link linkend="Mutex::lock">Mutex::lock</link>(<link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
-              <para><code><link linkend="Mutex::lock">Mutex::lock</link>(<link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
+              <para><code><link linkend="Mutex::lock">Mutex::lock</link>(<link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Locks the Mutex object.  Blocks if the lock is already held.</para></entry>
@@ -30509,8 +30419,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
 	  <term>Prototype</term>
 	  <listitem>
               <para><code><link linkend="Mutex::lock">Mutex::lock</link>() <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
-              <para><code><link linkend="Mutex::lock">Mutex::lock</link>(<link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
-              <para><code><link linkend="Mutex::lock">Mutex::lock</link>(<link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
+              <para><code><link linkend="Mutex::lock">Mutex::lock</link>(<link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -30532,7 +30441,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code>[<link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> or <link linkend="date_type">date</link> <replaceable>$timeout</replaceable>]</code></para></entry>
+	      <entry><para><code>[<link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable>]</code></para></entry>
 	      <entry><para>An optional timeout value to wait to acquire the lock; integers are interpreted as milliseconds; <link linkend="Relative_Dates">relative date/time values</link> are interpreted literally.</para></entry>
 	    </row>
 	  </tbody>
@@ -30961,8 +30870,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
 	  <row>
 	    <entry>
               <para><code><link linkend="Gate::enter">Gate::enter</link>() <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
-              <para><code><link linkend="Gate::enter">Gate::enter</link>(<link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
-              <para><code><link linkend="Gate::enter">Gate::enter</link>(<link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
+              <para><code><link linkend="Gate::enter">Gate::enter</link>(<link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Acquires the lock if it is unlocked or locked by the same thread, otherwise blocks until the lock counter reaches zero.  For variants taking a timeout; returns 0 if no timeout occurred, non-zero if a timeout occurred.</para></entry>
@@ -31096,8 +31004,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
 	  <term>Prototype</term>
 	  <listitem>
               <para><code><link linkend="Gate::enter">Gate::enter</link>() <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
-              <para><code><link linkend="Gate::enter">Gate::enter</link>(<link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
-              <para><code><link linkend="Gate::enter">Gate::enter</link>(<link linkend="date_type">date</link> <replaceable>$timeout</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
+              <para><code><link linkend="Gate::enter">Gate::enter</link>(<link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable>) <command>returns</command> <link linkend="int_type">int</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -31119,7 +31026,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code>[<link linkend="softint_type">softint</link> <replaceable>$timeout_ms</replaceable> or <link linkend="date_type">date</link> <replaceable>$timeout</replaceable>]</code></para></entry>
+	      <entry><para><code>[<link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable>]</code></para></entry>
 	      <entry><para>An optional timeout value to wait to acquire the lock; integers are interpreted as milliseconds; <link linkend="Relative_Dates">relative date/time values</link> are interpreted literally.</para></entry>
 	    </row>
 	  </tbody>

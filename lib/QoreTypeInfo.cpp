@@ -95,6 +95,10 @@ const QoreTypeInfo *softStringTypeInfo = &staticSoftStringTypeInfo;
 static SomethingTypeInfo staticSomethingTypeInfo;
 const QoreTypeInfo *somethingTypeInfo = &staticSomethingTypeInfo;
 
+// timeout type info accepts int or date and returns an int giving milliseconds
+static TimeoutTypeInfo staticTimeoutTypeInfo;
+const QoreTypeInfo *timeoutTypeInfo = &staticTimeoutTypeInfo;
+
 QoreListNode *emptyList;
 QoreHashNode *emptyHash;
 QoreStringNode *NullString;
@@ -168,6 +172,7 @@ void init_qore_types() {
    do_maps(NT_SOFTFLOAT,   "softfloat", softFloatTypeInfo);
    do_maps(NT_SOFTBOOLEAN, "softbool", softBoolTypeInfo);
    do_maps(NT_SOFTSTRING,  "softstring", softStringTypeInfo);
+   do_maps(NT_TIMEOUT,     "timeout", timeoutTypeInfo);
 
    // map the closure and callref strings to codeTypeInfo to ensure that these
    // types are always interchangable

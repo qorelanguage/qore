@@ -51,6 +51,7 @@ static AbstractQoreNode *CONDITION_broadcast(QoreObject *self, Condition *c, con
    return 0;
 }
 
+// Condition::wait(AbstractSmartLock $lock, timeout $timeout_ms = 0) returns int
 static AbstractQoreNode *CONDITION_wait(QoreObject *self, Condition *c, const QoreListNode *params, ExceptionSink *xsink) {
    HARD_QORE_OBJ_DATA(m, AbstractSmartLock, params, 0, CID_ABSTRACTSMARTLOCK, "AbstractSmartLock", "Condition::wait", xsink);
    if (*xsink)
@@ -59,7 +60,7 @@ static AbstractQoreNode *CONDITION_wait(QoreObject *self, Condition *c, const Qo
    assert(m);
    ReferenceHolder<AbstractSmartLock> holder(m, xsink);
    
-   int timeout = getMsZeroInt(get_param(params, 1));
+   int timeout = HARD_QORE_INT(params, 1);
    int rc = timeout ? c->wait(m, timeout, xsink) : c->wait(m, xsink);
 
    //printd(5, "CONDITION_wait() m=%s (%p) timeout=%d rc=%d\n", m->getName(), m, timeout, rc);
@@ -71,6 +72,7 @@ static AbstractQoreNode *CONDITION_wait(QoreObject *self, Condition *c, const Qo
    return new QoreBigIntNode(rc);   
 }
 
+// Condition::wait_count(AbstractSmartLock $lock) returns int
 static AbstractQoreNode *CONDITION_wait_count(QoreObject *self, Condition *c, const QoreListNode *params, ExceptionSink *xsink) {
    HARD_QORE_OBJ_DATA(m, AbstractSmartLock, params, 0, CID_ABSTRACTSMARTLOCK, "AbstractSmartLock", "Condition::wait_count", xsink);
    if (*xsink)
@@ -93,9 +95,11 @@ QoreClass *initConditionClass(QoreClass *AbstractSmartLock) {
 
    QC_CONDITION->addMethodExtended("signal",        (q_method_t)CONDITION_signal, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
    QC_CONDITION->addMethodExtended("broadcast",     (q_method_t)CONDITION_broadcast, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
-   QC_CONDITION->addMethodExtended("wait",          (q_method_t)CONDITION_wait, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, AbstractSmartLock->getTypeInfo(), QORE_PARAM_NO_ARG);
-   QC_CONDITION->addMethodExtended("wait",          (q_method_t)CONDITION_wait, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 2, AbstractSmartLock->getTypeInfo(), QORE_PARAM_NO_ARG, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
-   QC_CONDITION->addMethodExtended("wait",          (q_method_t)CONDITION_wait, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 2, AbstractSmartLock->getTypeInfo(), QORE_PARAM_NO_ARG, dateTypeInfo, QORE_PARAM_NO_ARG);
+
+   // Condition::wait(AbstractSmartLock $lock, timeout $timeout_ms = 0) returns int
+   QC_CONDITION->addMethodExtended("wait",          (q_method_t)CONDITION_wait, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 2, AbstractSmartLock->getTypeInfo(), QORE_PARAM_NO_ARG, timeoutTypeInfo, zero());
+
+   // Condition::wait_count(AbstractSmartLock $lock) returns int
    QC_CONDITION->addMethodExtended("wait_count",    (q_method_t)CONDITION_wait_count, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, AbstractSmartLock->getTypeInfo(), QORE_PARAM_NO_ARG);
 
    return QC_CONDITION;

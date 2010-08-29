@@ -214,8 +214,9 @@ static AbstractQoreNode *HC_post(QoreObject *self, QoreHTTPClient *client, const
    return *xsink ? 0 : rv.release();
 }
 
+// HTTPClient::setTimeout(timeout $timeout_ms = 0) returns nothing
 static AbstractQoreNode *HC_setTimeout(QoreObject *self, QoreHTTPClient *client, const QoreListNode *args, ExceptionSink *xsink) {
-   client->setTimeout(getMsZeroInt(get_param(args, 0)));
+   client->setTimeout(HARD_QORE_INT(args, 0));
    return 0;
 }
 
@@ -294,8 +295,9 @@ static AbstractQoreNode *HC_setEventQueue_queue(QoreObject *self, QoreHTTPClient
    return 0;
 }
 
+// HTTPClient::setConnectTimeout(timeout $timeout_ms = -1) returns nothing
 static AbstractQoreNode *HC_setConnectTimeout(QoreObject *self, QoreHTTPClient *client, const QoreListNode *args, ExceptionSink *xsink) {
-   client->setConnectTimeout(getMsMinusOneInt(get_param(args, 0)));
+   client->setConnectTimeout(HARD_QORE_INT(args, 0));
    return 0;
 }
 
@@ -374,8 +376,8 @@ QoreClass *initHTTPClientClass() {
    client->addMethodExtended("post",                   (q_method_t)HC_post, false, QC_NO_FLAGS, QDOM_DEFAULT, 0, 3, stringTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, hashTypeInfo, empty_hash());
    client->addMethodExtended("post",                   (q_method_t)HC_post, false, QC_NO_FLAGS, QDOM_DEFAULT, 0, 4, stringTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, hashTypeInfo, empty_hash(), referenceTypeInfo, QORE_PARAM_NO_ARG);
 
-   client->addMethodExtended("setTimeout",             (q_method_t)HC_setTimeout, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, softBigIntTypeInfo, zero());
-   client->addMethodExtended("setTimeout",             (q_method_t)HC_setTimeout, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
+   // HTTPClient::setTimeout(timeout $timeout_ms = 0) returns nothing
+   client->addMethodExtended("setTimeout",             (q_method_t)HC_setTimeout, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, timeoutTypeInfo, zero());
 
    client->addMethodExtended("getTimeout",             (q_method_t)HC_getTimeout, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo);
 
@@ -416,10 +418,8 @@ QoreClass *initHTTPClientClass() {
    // HTTPClient::setEventQueue(Queue $queue) returns nothing
    client->addMethodExtended("setEventQueue",          (q_method_t)HC_setEventQueue_queue, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, QC_QUEUE->getTypeInfo(), QORE_PARAM_NO_ARG);
 
-   // HTTPClient::setConnectTimeout(softint $mr = -1) returns nothing
-   client->addMethodExtended("setConnectTimeout",      (q_method_t)HC_setConnectTimeout, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, softBigIntTypeInfo, new QoreBigIntNode(-1));
-   // HTTPClient::setConnectTimeout(date $mr) returns nothing
-   client->addMethodExtended("setConnectTimeout",      (q_method_t)HC_setConnectTimeout, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
+   // HTTPClient::setConnectTimeout(timeout $timeout_ms = -1) returns nothing
+   client->addMethodExtended("setConnectTimeout",      (q_method_t)HC_setConnectTimeout, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, timeoutTypeInfo, new QoreBigIntNode(-1));
 
    // HTTPClient::getConnectTimeout() returns int
    client->addMethodExtended("getConnectTimeout",      (q_method_t)HC_getConnectTimeout, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo);

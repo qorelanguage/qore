@@ -299,8 +299,9 @@ static AbstractQoreNode *DS_getPort(QoreObject *self, ManagedDatasource *ds, con
    return port ? new QoreBigIntNode(port) : 0;
 }
 
+// Datasource::setTransactionLockTimeout(timeout $timeout_ms = 0) returns nothing
 static AbstractQoreNode *DS_setTransactionLockTimeout(QoreObject *self, ManagedDatasource *ds, const QoreListNode *params, ExceptionSink *xsink) {
-   ds->setTransactionLockTimeout(getMsZeroInt(get_param(params, 0)));
+   ds->setTransactionLockTimeout(HARD_QORE_INT(params, 0));
    return 0;
 }
 
@@ -418,8 +419,8 @@ QoreClass *initDatasourceClass() {
    // returns NOTHING if not set, otherwise int
    QC_DATASOURCE->addMethodExtended("getPort",           (q_method_t)DS_getPort, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT);
 
-   QC_DATASOURCE->addMethodExtended("setTransactionLockTimeout", (q_method_t)DS_setTransactionLockTimeout, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, softBigIntTypeInfo, zero());
-   QC_DATASOURCE->addMethodExtended("setTransactionLockTimeout", (q_method_t)DS_setTransactionLockTimeout, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
+   // Datasource::setTransactionLockTimeout(timeout $timeout_ms = 0) returns nothing
+   QC_DATASOURCE->addMethodExtended("setTransactionLockTimeout", (q_method_t)DS_setTransactionLockTimeout, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, timeoutTypeInfo, zero());
 
    QC_DATASOURCE->addMethodExtended("getTransactionLockTimeout", (q_method_t)DS_getTransactionLockTimeout, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo);
 

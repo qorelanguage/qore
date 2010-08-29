@@ -71,15 +71,14 @@ static void SOCKET_copy(QoreObject *self, QoreObject *old, AbstractPrivateData *
 // for AF_UNIX sockets:
 // * connect("filename");
 
-// Socket::connect(string $sock, int|date $timeout_ms = -1)
+// Socket::connect(string $sock, timeout $timeout_ms = -1)
 static AbstractQoreNode *SOCKET_connect_str_timeout(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
    const QoreStringNode *p0 = HARD_QORE_STRING(params, 0);
-   s->connect(p0->getBuffer(), getMsMinusOneInt(get_param(params, 1)), xsink);
+   s->connect(p0->getBuffer(), HARD_QORE_INT(params, 1), xsink);
    return 0;
 }
 
-// Socket::connectINET(string $host, int $port, int $timeout_ms = -1) returns nothing
-// Socket::connectINET(string $host, int $port, date $timeout_ms) returns nothing
+// Socket::connectINET(string $host, int $port, timeout $timeout_ms = -1) returns nothing
 static AbstractQoreNode *SOCKET_connectINET_str_int_timeout(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
    const QoreStringNode *p0 = HARD_QORE_STRING(params, 0);
    int port = (int)HARD_QORE_INT(params, 1);
@@ -101,15 +100,14 @@ static AbstractQoreNode *SOCKET_connectUNIX(QoreObject *self, mySocket *s, const
 // * connectSSL("hostname:<port_number>");
 // for AF_UNIX sockets:
 // * connectSSL("filename");
-// Socket::connectSSL(string $sock, int|date $timeout_ms = -1)
+// Socket::connectSSL(string $sock, timeout $timeout_ms = -1)
 static AbstractQoreNode *SOCKET_connectSSL_str_timeout(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
    const QoreStringNode *p0 = HARD_QORE_STRING(params, 0);
-   s->connectSSL(p0->getBuffer(), getMsMinusOneInt(get_param(params, 1)), xsink);
+   s->connectSSL(p0->getBuffer(), HARD_QORE_INT(params, 1), xsink);
    return 0;
 }
 
-// Socket::connectINETSSL(string $host, int $port, int $timeout_ms = -1) returns nothing
-// Socket::connectINETSSL(string $host, int $port, date $timeout_ms) returns nothing
+// Socket::connectINETSSL(string $host, int $port, timeout $timeout_ms = -1) returns nothing
 static AbstractQoreNode *SOCKET_connectINETSSL_str_int_timeout(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
    const QoreStringNode *p0 = HARD_QORE_STRING(params, 0);
    int port = (int)HARD_QORE_INT(params, 1);
@@ -239,13 +237,12 @@ static AbstractQoreNode *SOCKET_sendi8LSB(QoreObject *self, mySocket *s, const Q
    return checkOpenResult(s->sendi8LSB(i), "sendi8LSB", xsink);
 }
 
-// Socket::recv(int $size = 0, softint $timeout_ms -1) returns string
-// Socket::recv(int $size = 0, date $timeout) returns string
+// Socket::recv(int $size = 0, timeout $timeout_ms -1) returns string
 static AbstractQoreNode *SOCKET_recv(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
    int bs = (int)HARD_QORE_INT(params, 0);
    
    // get timeout
-   int timeout = getMsMinusOneInt(get_param(params, 1));
+   int timeout = HARD_QORE_INT(params, 1);
    int rc;
    QoreStringNodeHolder msg(bs > 0 ? s->recv(bs, timeout, &rc) : s->recv(timeout, &rc));
 
@@ -258,13 +255,12 @@ static AbstractQoreNode *SOCKET_recv(QoreObject *self, mySocket *s, const QoreLi
    return 0;
 }
 
-// Socket::recvBinary(softint $size = 0, softint $timeout = -1) returns binary
-// Socket::recvBinary(softint $size = 0, date $timeout) returns binary
+// Socket::recvBinary(softint $size = 0, timeout $timeout = -1) returns binary
 static AbstractQoreNode *SOCKET_recvBinary(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
    int bs = (int)HARD_QORE_INT(params, 0);
 
    // get timeout
-   int timeout = getMsMinusOneInt(get_param(params, 1));
+   int timeout = HARD_QORE_INT(params, 1);
    int rc;
    SimpleRefHolder<BinaryNode> b(bs > 0 ? s->recvBinary(bs, timeout, &rc) : s->recvBinary(timeout, &rc));
 
@@ -275,11 +271,10 @@ static AbstractQoreNode *SOCKET_recvBinary(QoreObject *self, mySocket *s, const 
    return 0;
 }
 
-// Socket::recvi1(softint $timeout = -1)
-// Socket::recvi1(date $timeout)
+// Socket::recvi1(timeout $timeout = -1)
 static AbstractQoreNode *SOCKET_recvi1(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
    // get timeout
-   int timeout = getMsMinusOneInt(get_param(params, 0));
+   int timeout = HARD_QORE_INT(params, 0);
    char b;
    int rc = s->recvi1(timeout, &b);
    return doReadResult(rc, (int64)b, "recvi1", timeout, xsink);
@@ -287,7 +282,7 @@ static AbstractQoreNode *SOCKET_recvi1(QoreObject *self, mySocket *s, const Qore
 
 static AbstractQoreNode *SOCKET_recvi2(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
    // get timeout
-   int timeout = getMsMinusOneInt(get_param(params, 0));
+   int timeout = HARD_QORE_INT(params, 0);
    short b;
    int rc = s->recvi2(timeout, &b);
    return doReadResult(rc, (int64)b, "recvi2", timeout, xsink);
@@ -295,7 +290,7 @@ static AbstractQoreNode *SOCKET_recvi2(QoreObject *self, mySocket *s, const Qore
 
 static AbstractQoreNode *SOCKET_recvi4(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
    // get timeout
-   int timeout = getMsMinusOneInt(get_param(params, 0));
+   int timeout = HARD_QORE_INT(params, 0);
    int b;
    int rc = s->recvi4(timeout, &b);
    return doReadResult(rc, (int64)b, "recvi4", timeout, xsink);
@@ -303,7 +298,7 @@ static AbstractQoreNode *SOCKET_recvi4(QoreObject *self, mySocket *s, const Qore
 
 static AbstractQoreNode *SOCKET_recvi8(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
    // get timeout
-   int timeout = getMsMinusOneInt(get_param(params, 0));
+   int timeout = HARD_QORE_INT(params, 0);
    int64 b;
    int rc = s->recvi8(timeout, &b);
    return doReadResult(rc, b, "recvi8", timeout, xsink);
@@ -311,7 +306,7 @@ static AbstractQoreNode *SOCKET_recvi8(QoreObject *self, mySocket *s, const Qore
 
 static AbstractQoreNode *SOCKET_recvi2LSB(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
    // get timeout
-   int timeout = getMsMinusOneInt(get_param(params, 0));
+   int timeout = HARD_QORE_INT(params, 0);
    short b;
    int rc = s->recvi2LSB(timeout, &b);
    return doReadResult(rc, (int64)b, "recvi2LSB", timeout, xsink);
@@ -319,7 +314,7 @@ static AbstractQoreNode *SOCKET_recvi2LSB(QoreObject *self, mySocket *s, const Q
 
 static AbstractQoreNode *SOCKET_recvi4LSB(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
    // get timeout
-   int timeout = getMsMinusOneInt(get_param(params, 0));
+   int timeout = HARD_QORE_INT(params, 0);
    int b;
    int rc = s->recvi4LSB(timeout, &b);
    return doReadResult(rc, (int64)b, "recvi4LSB", timeout, xsink);
@@ -327,7 +322,7 @@ static AbstractQoreNode *SOCKET_recvi4LSB(QoreObject *self, mySocket *s, const Q
 
 static AbstractQoreNode *SOCKET_recvi8LSB(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
    // get timeout
-   int timeout = getMsMinusOneInt(get_param(params, 0));
+   int timeout = HARD_QORE_INT(params, 0);
    int64 b;
    int rc = s->recvi8LSB(timeout, &b);
    return doReadResult(rc, b, "recvi8LSB", timeout, xsink);
@@ -335,7 +330,7 @@ static AbstractQoreNode *SOCKET_recvi8LSB(QoreObject *self, mySocket *s, const Q
 
 static AbstractQoreNode *SOCKET_recvu1(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
    // get timeout
-   int timeout = getMsMinusOneInt(get_param(params, 0));   
+   int timeout = HARD_QORE_INT(params, 0);   
    unsigned char b;
    int rc = s->recvu1(timeout, &b);
    return doReadResult(rc, (int64)b, "recvu1", timeout, xsink);
@@ -343,7 +338,7 @@ static AbstractQoreNode *SOCKET_recvu1(QoreObject *self, mySocket *s, const Qore
 
 static AbstractQoreNode *SOCKET_recvu2(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
    // get timeout
-   int timeout = getMsMinusOneInt(get_param(params, 0));
+   int timeout = HARD_QORE_INT(params, 0);
    unsigned short b;
    int rc = s->recvu2(timeout, &b);
    return doReadResult(rc, (int64)b, "recvu2", timeout, xsink);
@@ -351,7 +346,7 @@ static AbstractQoreNode *SOCKET_recvu2(QoreObject *self, mySocket *s, const Qore
 
 static AbstractQoreNode *SOCKET_recvu4(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
    // get timeout
-   int timeout = getMsMinusOneInt(get_param(params, 0));   
+   int timeout = HARD_QORE_INT(params, 0);   
    unsigned int b;
    int rc = s->recvu4(timeout, &b);
    return doReadResult(rc, (int64)b, "recvu4", timeout, xsink);
@@ -359,7 +354,7 @@ static AbstractQoreNode *SOCKET_recvu4(QoreObject *self, mySocket *s, const Qore
 
 static AbstractQoreNode *SOCKET_recvu2LSB(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
    // get timeout
-   int timeout = getMsMinusOneInt(get_param(params, 0));
+   int timeout = HARD_QORE_INT(params, 0);
    unsigned short b;
    int rc = s->recvu2LSB(timeout, &b);
    return doReadResult(rc, (int64)b, "recvu2LSB", timeout, xsink);
@@ -367,7 +362,7 @@ static AbstractQoreNode *SOCKET_recvu2LSB(QoreObject *self, mySocket *s, const Q
 
 static AbstractQoreNode *SOCKET_recvu4LSB(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
    // get timeout
-   int timeout = getMsMinusOneInt(get_param(params, 0));
+   int timeout = HARD_QORE_INT(params, 0);
    
    unsigned b;
    int rc = s->recvu4LSB(timeout, &b);
@@ -436,10 +431,9 @@ static AbstractQoreNode *SOCKET_sendHTTPResponse(QoreObject *self, mySocket *s, 
    return doSendResult(rc, "sendHTTPResponse", xsink);
 }
 
-// Socket::readHTTPHeader(softint $timeout_ms = -1) returns string|hash
-// Socket::readHTTPHeader(date $timeout_ms) returns string|hash|nothing
+// Socket::readHTTPHeader(timeout $timeout_ms = -1) returns string|hash
 static AbstractQoreNode *SOCKET_readHTTPHeader(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
-   int timeout = getMsMinusOneInt(get_param(params, 0));
+   int timeout = HARD_QORE_INT(params, 0);
    int rc;
 
    // when rc = -3 it's a timeout, but rv will be NULL anyway, so we do nothing
@@ -451,19 +445,17 @@ static AbstractQoreNode *SOCKET_readHTTPHeader(QoreObject *self, mySocket *s, co
    return rv;
 }
 
-// Socket::readHTTPChunkedBody(softint $timeout_ms = -1) returns hash
-// Socket::readHTTPChunkedBody(date $timeout_ms) returns hash
+// Socket::readHTTPChunkedBody(timeout $timeout_ms = -1) returns hash
 static AbstractQoreNode *SOCKET_readHTTPChunkedBody(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
-   int timeout = getMsMinusOneInt(get_param(params, 0));
+   int timeout = HARD_QORE_INT(params, 0);
 
    // when rc = -3 it's a timeout, but rv will be NULL anyway, so we do nothing
    return s->readHTTPChunkedBody(timeout, xsink);
 }
 
-// Socket::readHTTPChunkedBodyBinary(softint $timeout_ms = -1) returns hash
-// Socket::readHTTPChunkedBodyBinary(date $timeout_ms) returns hash
+// Socket::readHTTPChunkedBodyBinary(timeout $timeout_ms = -1) returns hash
 static AbstractQoreNode *SOCKET_readHTTPChunkedBodyBinary(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
-   int timeout = getMsMinusOneInt(get_param(params, 0));
+   int timeout = HARD_QORE_INT(params, 0);
 
    // when rc = -3 it's a timeout, but rv will be NULL anyway, so we do nothing
    return s->readHTTPChunkedBodyBinary(timeout, xsink);
@@ -490,27 +482,15 @@ static AbstractQoreNode *SOCKET_getSocket(QoreObject *self, mySocket *s, const Q
    return new QoreBigIntNode(s->getSocket());
 }
 
-// Socket::setSendTimeout(softint $timeout_ms) returns int
+// Socket::setSendTimeout(timeout $timeout_ms) returns int
 static AbstractQoreNode *SOCKET_setSendTimeout_int(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
    int timeout_ms = (int)HARD_QORE_INT(params, 0);
    return new QoreBigIntNode(s->setSendTimeout(timeout_ms));
 }
 
-// Socket::setSendTimeout(date $timeout_ms) returns int
-static AbstractQoreNode *SOCKET_setSendTimeout_date(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
-   int timeout_ms = (int)HARD_QORE_DATE(params, 0)->getRelativeMilliseconds();
-   return new QoreBigIntNode(s->setSendTimeout(timeout_ms));
-}
-
-// Socket::setRecvTimeout(softint $timeout_ms) returns int
+// Socket::setRecvTimeout(timeout $timeout_ms) returns int
 static AbstractQoreNode *SOCKET_setRecvTimeout_int(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
    int timeout_ms = (int)HARD_QORE_INT(params, 0);
-   return new QoreBigIntNode(s->setRecvTimeout(timeout_ms));
-}
-
-// Socket::setRecvTimeout(date $timeout_ms) returns int
-static AbstractQoreNode *SOCKET_setRecvTimeout_date(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
-   int timeout_ms = (int)HARD_QORE_DATE(params, 0)->getRelativeMilliseconds();
    return new QoreBigIntNode(s->setRecvTimeout(timeout_ms));
 }
 
@@ -532,12 +512,13 @@ static AbstractQoreNode *SOCKET_setCharset(QoreObject *self, mySocket *s, const 
    return 0; 
 }
 
+// Socket::isDataAvailable(timeout $timeout_ms = 0)
 static AbstractQoreNode *SOCKET_isDataAvailable(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
-   return get_bool_node(s->isDataAvailable(getMsZeroInt(get_param(params, 0))));
+   return get_bool_node(s->isDataAvailable(HARD_QORE_INT(params, 0)));
 }
 
 static AbstractQoreNode *SOCKET_isWriteFinished(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
-   return get_bool_node(s->isWriteFinished(getMsZeroInt(get_param(params, 0))));
+   return get_bool_node(s->isWriteFinished(HARD_QORE_INT(params, 0)));
 }
 
 static AbstractQoreNode *SOCKET_isOpen(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
@@ -688,28 +669,20 @@ QoreClass *initSocketClass(QoreClass *SSLCert, QoreClass *SSLPrivKey) {
 
    QC_SOCKET->setCopy(SOCKET_copy);
 
-   // Socket::connect(string $sock, int $timeout_ms = -1)
-   QC_SOCKET->addMethodExtended("connect",                   (q_method_t)SOCKET_connect_str_timeout, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, new QoreBigIntNode(-1));
-   // Socket::connect(string $sock, date $timeout_ms)
-   QC_SOCKET->addMethodExtended("connect",                   (q_method_t)SOCKET_connect_str_timeout, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, dateTypeInfo, QORE_PARAM_NO_ARG);
+   // Socket::connect(string $sock, timeout $timeout_ms = -1)
+   QC_SOCKET->addMethodExtended("connect",                   (q_method_t)SOCKET_connect_str_timeout, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, timeoutTypeInfo, new QoreBigIntNode(-1));
 
-   // Socket::connectINET(string $host, int $port, int $timeout_ms = -1) returns nothing
-   QC_SOCKET->addMethodExtended("connectINET",               (q_method_t)SOCKET_connectINET_str_int_timeout, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 3, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, new QoreBigIntNode(-1));
-   // Socket::connectINET(string $host, int $port, date $timeout_ms) returns nothing
-   QC_SOCKET->addMethodExtended("connectINET",               (q_method_t)SOCKET_connectINET_str_int_timeout, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 3, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, QORE_PARAM_NO_ARG, dateTypeInfo, QORE_PARAM_NO_ARG);
+   // Socket::connectINET(string $host, int $port, timeout $timeout_ms = -1) returns nothing
+   QC_SOCKET->addMethodExtended("connectINET",               (q_method_t)SOCKET_connectINET_str_int_timeout, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 3, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, QORE_PARAM_NO_ARG, timeoutTypeInfo, new QoreBigIntNode(-1));
 
    // Socket::connectUNIX(string $path) returns nothing
    QC_SOCKET->addMethodExtended("connectUNIX",               (q_method_t)SOCKET_connectUNIX, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   // Socket::connectSSL(string $sock, int $timeout_ms = -1)
-   QC_SOCKET->addMethodExtended("connectSSL",                (q_method_t)SOCKET_connectSSL_str_timeout, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, new QoreBigIntNode(-1));
-   // Socket::connectSSL(string $sock, date $timeout_ms)
-   QC_SOCKET->addMethodExtended("connectSSL",                (q_method_t)SOCKET_connectSSL_str_timeout, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, dateTypeInfo, QORE_PARAM_NO_ARG);
+   // Socket::connectSSL(string $sock, timeout $timeout_ms = -1)
+   QC_SOCKET->addMethodExtended("connectSSL",                (q_method_t)SOCKET_connectSSL_str_timeout, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, timeoutTypeInfo, new QoreBigIntNode(-1));
 
-   // Socket::connectINETSSL(string $host, int $port, int $timeout_ms = -1) returns nothing
-   QC_SOCKET->addMethodExtended("connectINETSSL",            (q_method_t)SOCKET_connectINETSSL_str_int_timeout, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 3, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, new QoreBigIntNode(-1));
-   // Socket::connectINETSSL(string $host, int $port, date $timeout_ms) returns nothing
-   QC_SOCKET->addMethodExtended("connectINETSSL",            (q_method_t)SOCKET_connectINETSSL_str_int_timeout, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 3, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, QORE_PARAM_NO_ARG, dateTypeInfo, QORE_PARAM_NO_ARG);
+   // Socket::connectINETSSL(string $host, int $port, timeout $timeout_ms = -1) returns nothing
+   QC_SOCKET->addMethodExtended("connectINETSSL",            (q_method_t)SOCKET_connectINETSSL_str_int_timeout, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 3, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, QORE_PARAM_NO_ARG, timeoutTypeInfo, new QoreBigIntNode(-1));
 
    // Socket::connectUNIXSSL(string $path) returns nothing
    QC_SOCKET->addMethodExtended("connectUNIXSSL",            (q_method_t)SOCKET_connectUNIXSSL, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
@@ -745,75 +718,47 @@ QoreClass *initSocketClass(QoreClass *SSLCert, QoreClass *SSLPrivKey) {
    QC_SOCKET->addMethodExtended("sendi4LSB",                 (q_method_t)SOCKET_sendi4LSB, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, softBigIntTypeInfo, zero());
    QC_SOCKET->addMethodExtended("sendi8LSB",                 (q_method_t)SOCKET_sendi8LSB, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, softBigIntTypeInfo, zero());
 
-   // Socket::recv(softint $size = 0, softint $timeout = -1) returns string
-   QC_SOCKET->addMethodExtended("recv",                      (q_method_t)SOCKET_recv, false, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 2, softBigIntTypeInfo, zero(), softBigIntTypeInfo, new QoreBigIntNode(-1));
-   // Socket::recv(softint $size = 0, date $timeout) returns string
-   QC_SOCKET->addMethodExtended("recv",                      (q_method_t)SOCKET_recv, false, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 2, softBigIntTypeInfo, zero(), dateTypeInfo, QORE_PARAM_NO_ARG);
+   // Socket::recv(softint $size = 0, timeout $timeout = -1) returns string
+   QC_SOCKET->addMethodExtended("recv",                      (q_method_t)SOCKET_recv, false, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 2, softBigIntTypeInfo, zero(), timeoutTypeInfo, new QoreBigIntNode(-1));
 
-   // Socket::recvBinary(softint $size = 0, softint $timeout = -1) returns binary
-   QC_SOCKET->addMethodExtended("recvBinary",                (q_method_t)SOCKET_recvBinary, false, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo, 2, softBigIntTypeInfo, zero(), softBigIntTypeInfo, new QoreBigIntNode(-1));
-   // Socket::recvBinary(softint $size = 0, date $timeout) returns binary
-   QC_SOCKET->addMethodExtended("recvBinary",                (q_method_t)SOCKET_recvBinary, false, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 2, softBigIntTypeInfo, zero(), dateTypeInfo, QORE_PARAM_NO_ARG);
+   // Socket::recvBinary(softint $size = 0, timeout $timeout = -1) returns binary
+   QC_SOCKET->addMethodExtended("recvBinary",                (q_method_t)SOCKET_recvBinary, false, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo, 2, softBigIntTypeInfo, zero(), timeoutTypeInfo, new QoreBigIntNode(-1));
 
-   // Socket::recvi1(softint $timeout = -1) returns int
-   QC_SOCKET->addMethodExtended("recvi1",                    (q_method_t)SOCKET_recvi1, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, softBigIntTypeInfo, new QoreBigIntNode(-1));
-   // Socket::recvi1(date $timeout) returns int
-   QC_SOCKET->addMethodExtended("recvi1",                    (q_method_t)SOCKET_recvi1, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
+   // Socket::recvi1(timeout $timeout = -1) returns int
+   QC_SOCKET->addMethodExtended("recvi1",                    (q_method_t)SOCKET_recvi1, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, timeoutTypeInfo, new QoreBigIntNode(-1));
 
-   // Socket::recvi2(softint $timeout = -1) returns int
-   QC_SOCKET->addMethodExtended("recvi2",                    (q_method_t)SOCKET_recvi2, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, softBigIntTypeInfo, new QoreBigIntNode(-1));
-   // Socket::recvi2(date $timeout) returns int
-   QC_SOCKET->addMethodExtended("recvi2",                    (q_method_t)SOCKET_recvi2, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
+   // Socket::recvi2(timeout $timeout = -1) returns int
+   QC_SOCKET->addMethodExtended("recvi2",                    (q_method_t)SOCKET_recvi2, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, timeoutTypeInfo, new QoreBigIntNode(-1));
 
-   // Socket::recvi4(softint $timeout = -1) returns int
-   QC_SOCKET->addMethodExtended("recvi4",                    (q_method_t)SOCKET_recvi4, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, softBigIntTypeInfo, new QoreBigIntNode(-1));
-   // Socket::recvi4(date $timeout) returns int
-   QC_SOCKET->addMethodExtended("recvi4",                    (q_method_t)SOCKET_recvi4, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
+   // Socket::recvi4(timeout $timeout = -1) returns int
+   QC_SOCKET->addMethodExtended("recvi4",                    (q_method_t)SOCKET_recvi4, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, timeoutTypeInfo, new QoreBigIntNode(-1));
 
-   // Socket::recvi8(softint $timeout = -1) returns int
-   QC_SOCKET->addMethodExtended("recvi8",                    (q_method_t)SOCKET_recvi8, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, softBigIntTypeInfo, new QoreBigIntNode(-1));
-   // Socket::recvi8(date $timeout) returns int
-   QC_SOCKET->addMethodExtended("recvi8",                    (q_method_t)SOCKET_recvi8, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
+   // Socket::recvi8(timeout $timeout = -1) returns int
+   QC_SOCKET->addMethodExtended("recvi8",                    (q_method_t)SOCKET_recvi8, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, timeoutTypeInfo, new QoreBigIntNode(-1));
 
-   // Socket::recvi2LSB(softint $timeout = -1) returns int
-   QC_SOCKET->addMethodExtended("recvi2LSB",                 (q_method_t)SOCKET_recvi2LSB, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, softBigIntTypeInfo, new QoreBigIntNode(-1));
-   // Socket::recvi2LSB(date $timeout) returns int
-   QC_SOCKET->addMethodExtended("recvi2LSB",                 (q_method_t)SOCKET_recvi2LSB, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
+   // Socket::recvi2LSB(timeout $timeout = -1) returns int
+   QC_SOCKET->addMethodExtended("recvi2LSB",                 (q_method_t)SOCKET_recvi2LSB, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, timeoutTypeInfo, new QoreBigIntNode(-1));
 
-   // Socket::recvi4LSB(softint $timeout = -1) returns int
-   QC_SOCKET->addMethodExtended("recvi4LSB",                 (q_method_t)SOCKET_recvi4LSB, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, softBigIntTypeInfo, new QoreBigIntNode(-1));
-   // Socket::recvi4LSB(date $timeout) returns int
-   QC_SOCKET->addMethodExtended("recvi4LSB",                 (q_method_t)SOCKET_recvi4LSB, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
+   // Socket::recvi4LSB(timeout $timeout = -1) returns int
+   QC_SOCKET->addMethodExtended("recvi4LSB",                 (q_method_t)SOCKET_recvi4LSB, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, timeoutTypeInfo, new QoreBigIntNode(-1));
 
-   // Socket::recvi8LSB(softint $timeout = -1) returns int
-   QC_SOCKET->addMethodExtended("recvi8LSB",                 (q_method_t)SOCKET_recvi8LSB, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, softBigIntTypeInfo, new QoreBigIntNode(-1));
-   // Socket::recvi8LSB(date $timeout) returns int
-   QC_SOCKET->addMethodExtended("recvi8LSB",                 (q_method_t)SOCKET_recvi8LSB, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
+   // Socket::recvi8LSB(timeout $timeout = -1) returns int
+   QC_SOCKET->addMethodExtended("recvi8LSB",                 (q_method_t)SOCKET_recvi8LSB, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, timeoutTypeInfo, new QoreBigIntNode(-1));
 
-   // Socket::recvu1(softint $timeout = -1) returns int
-   QC_SOCKET->addMethodExtended("recvu1",                    (q_method_t)SOCKET_recvu1, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, softBigIntTypeInfo, new QoreBigIntNode(-1));
-   // Socket::recvu1(date $timeout) returns int
-   QC_SOCKET->addMethodExtended("recvu1",                    (q_method_t)SOCKET_recvu1, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
+   // Socket::recvu1(timeout $timeout = -1) returns int
+   QC_SOCKET->addMethodExtended("recvu1",                    (q_method_t)SOCKET_recvu1, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, timeoutTypeInfo, new QoreBigIntNode(-1));
 
-   // Socket::recvu2(softint $timeout = -1) returns int
-   QC_SOCKET->addMethodExtended("recvu2",                    (q_method_t)SOCKET_recvu2, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, softBigIntTypeInfo, new QoreBigIntNode(-1));
-   // Socket::recvu2(date $timeout) returns int
-   QC_SOCKET->addMethodExtended("recvu2",                    (q_method_t)SOCKET_recvu2, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
+   // Socket::recvu2(timeout $timeout = -1) returns int
+   QC_SOCKET->addMethodExtended("recvu2",                    (q_method_t)SOCKET_recvu2, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, timeoutTypeInfo, new QoreBigIntNode(-1));
 
-   // Socket::recvu4(softint $timeout = -1) returns int
-   QC_SOCKET->addMethodExtended("recvu4",                    (q_method_t)SOCKET_recvu4, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, softBigIntTypeInfo, new QoreBigIntNode(-1));
-   // Socket::recvu4(date $timeout) returns int
-   QC_SOCKET->addMethodExtended("recvu4",                    (q_method_t)SOCKET_recvu4, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
+   // Socket::recvu4(timeout $timeout = -1) returns int
+   QC_SOCKET->addMethodExtended("recvu4",                    (q_method_t)SOCKET_recvu4, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, timeoutTypeInfo, new QoreBigIntNode(-1));
 
-   // Socket::recvu2LSB(softint $timeout = -1) returns int
-   QC_SOCKET->addMethodExtended("recvu2LSB",                 (q_method_t)SOCKET_recvu2LSB, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, softBigIntTypeInfo, new QoreBigIntNode(-1));
-   // Socket::recvu2LSB(date $timeout) returns int
-   QC_SOCKET->addMethodExtended("recvu2LSB",                 (q_method_t)SOCKET_recvu2LSB, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
+   // Socket::recvu2LSB(timeout $timeout = -1) returns int
+   QC_SOCKET->addMethodExtended("recvu2LSB",                 (q_method_t)SOCKET_recvu2LSB, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, timeoutTypeInfo, new QoreBigIntNode(-1));
 
-   // Socket::recvu4LSB(softint $timeout = -1) returns int
-   QC_SOCKET->addMethodExtended("recvu4LSB",                 (q_method_t)SOCKET_recvu4LSB, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, softBigIntTypeInfo, new QoreBigIntNode(-1));
-   // Socket::recvu4LSB(date $timeout) returns int
-   QC_SOCKET->addMethodExtended("recvu4LSB",                 (q_method_t)SOCKET_recvu4LSB, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
+   // Socket::recvu4LSB(timeout $timeout = -1) returns int
+   QC_SOCKET->addMethodExtended("recvu4LSB",                 (q_method_t)SOCKET_recvu4LSB, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, timeoutTypeInfo, new QoreBigIntNode(-1));
 
    // Socket::sendHTTPMessage(string $method, string $path, string $http_version, hash $headers, data $data = binary()) returns nothing
    QC_SOCKET->addMethodExtended("sendHTTPMessage",           (q_method_t)SOCKET_sendHTTPMessage, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 5, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG, hashTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, new BinaryNode);
@@ -821,20 +766,14 @@ QoreClass *initSocketClass(QoreClass *SSLCert, QoreClass *SSLPrivKey) {
    // Socket::sendHTTPResponse(softint $status_code, string $desc, string $http_version, hash $headers, data $data = binary()) returns nothing
    QC_SOCKET->addMethodExtended("sendHTTPResponse",          (q_method_t)SOCKET_sendHTTPResponse, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 5, softBigIntTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG, hashTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, new BinaryNode);
 
-   // Socket::readHTTPHeader(softint $timeout_ms = -1) returns string|hash
-   QC_SOCKET->addMethodExtended("readHTTPHeader",            (q_method_t)SOCKET_readHTTPHeader, false, QC_NO_FLAGS, QDOM_DEFAULT, 0, 1, softBigIntTypeInfo, new QoreBigIntNode(-1));
-   // Socket::readHTTPHeader(date $timeout_ms) returns string|hash
-   QC_SOCKET->addMethodExtended("readHTTPHeader",            (q_method_t)SOCKET_readHTTPHeader, false, QC_NO_FLAGS, QDOM_DEFAULT, 0, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
+   // Socket::readHTTPHeader(timeout $timeout_ms = -1) returns string|hash
+   QC_SOCKET->addMethodExtended("readHTTPHeader",            (q_method_t)SOCKET_readHTTPHeader, false, QC_NO_FLAGS, QDOM_DEFAULT, 0, 1, timeoutTypeInfo, new QoreBigIntNode(-1));
 
-   // Socket::readHTTPChunkedBody(softint $timeout_ms = -1) returns hash
-   QC_SOCKET->addMethodExtended("readHTTPChunkedBody",       (q_method_t)SOCKET_readHTTPChunkedBody, false, QC_NO_FLAGS, QDOM_DEFAULT, hashTypeInfo, 1, softBigIntTypeInfo, new QoreBigIntNode(-1));
-   // Socket::readHTTPChunkedBody(date $timeout_ms) returns hash
-   QC_SOCKET->addMethodExtended("readHTTPChunkedBody",       (q_method_t)SOCKET_readHTTPChunkedBody, false, QC_NO_FLAGS, QDOM_DEFAULT, hashTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
+   // Socket::readHTTPChunkedBody(timeout $timeout_ms = -1) returns hash
+   QC_SOCKET->addMethodExtended("readHTTPChunkedBody",       (q_method_t)SOCKET_readHTTPChunkedBody, false, QC_NO_FLAGS, QDOM_DEFAULT, hashTypeInfo, 1, timeoutTypeInfo, new QoreBigIntNode(-1));
 
-   // Socket::readHTTPChunkedBodyBinary(softint $timeout_ms = -1) returns hash
-   QC_SOCKET->addMethodExtended("readHTTPChunkedBodyBinary", (q_method_t)SOCKET_readHTTPChunkedBodyBinary, false, QC_NO_FLAGS, QDOM_DEFAULT, hashTypeInfo, 1, softBigIntTypeInfo, new QoreBigIntNode(-1));
-   // Socket::readHTTPChunkedBodyBinary(date $timeout_ms) returns hash
-   QC_SOCKET->addMethodExtended("readHTTPChunkedBodyBinary", (q_method_t)SOCKET_readHTTPChunkedBodyBinary, false, QC_NO_FLAGS, QDOM_DEFAULT, hashTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
+   // Socket::readHTTPChunkedBodyBinary(timeout $timeout_ms = -1) returns hash
+   QC_SOCKET->addMethodExtended("readHTTPChunkedBodyBinary", (q_method_t)SOCKET_readHTTPChunkedBodyBinary, false, QC_NO_FLAGS, QDOM_DEFAULT, hashTypeInfo, 1, timeoutTypeInfo, new QoreBigIntNode(-1));
 
    QC_SOCKET->addMethodExtended("close",                     (q_method_t)SOCKET_close, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
 
@@ -846,15 +785,11 @@ QoreClass *initSocketClass(QoreClass *SSLCert, QoreClass *SSLPrivKey) {
 
    QC_SOCKET->addMethodExtended("getSocket",                 (q_method_t)SOCKET_getSocket, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo);
 
-   // Socket::setSendTimeout(softint $timeout_ms) returns int
-   QC_SOCKET->addMethodExtended("setSendTimeout",            (q_method_t)SOCKET_setSendTimeout_int, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
-   // Socket::setSendTimeout(date $timeout_ms) returns int
-   QC_SOCKET->addMethodExtended("setSendTimeout",            (q_method_t)SOCKET_setSendTimeout_date, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
+   // Socket::setSendTimeout(timeout $timeout_ms) returns int
+   QC_SOCKET->addMethodExtended("setSendTimeout",            (q_method_t)SOCKET_setSendTimeout_int, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, timeoutTypeInfo, QORE_PARAM_NO_ARG);
 
-   // Socket::setRecvTimeout(softint $timeout_ms) returns int
-   QC_SOCKET->addMethodExtended("setRecvTimeout",            (q_method_t)SOCKET_setRecvTimeout_int, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
-   // Socket::setRecvTimeout(date $timeout_ms) returns int
-   QC_SOCKET->addMethodExtended("setRecvTimeout",            (q_method_t)SOCKET_setRecvTimeout_date, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
+   // Socket::setRecvTimeout(timeout $timeout_ms) returns int
+   QC_SOCKET->addMethodExtended("setRecvTimeout",            (q_method_t)SOCKET_setRecvTimeout_int, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, timeoutTypeInfo, QORE_PARAM_NO_ARG);
 
    QC_SOCKET->addMethodExtended("getSendTimeout",            (q_method_t)SOCKET_getSendTimeout, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo);
 
@@ -864,15 +799,11 @@ QoreClass *initSocketClass(QoreClass *SSLCert, QoreClass *SSLPrivKey) {
 
    QC_SOCKET->addMethodExtended("setCharset",                (q_method_t)SOCKET_setCharset, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   // Socket::isDataAvailable(softint $timeout_ms = 0)
-   QC_SOCKET->addMethodExtended("isDataAvailable",           (q_method_t)SOCKET_isDataAvailable, false, QC_NO_FLAGS, QDOM_DEFAULT, boolTypeInfo, 1, softBigIntTypeInfo, zero());
-   // Socket::isDataAvailable(date $timeout_ms)
-   QC_SOCKET->addMethodExtended("isDataAvailable",           (q_method_t)SOCKET_isDataAvailable, false, QC_NO_FLAGS, QDOM_DEFAULT, boolTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
+   // Socket::isDataAvailable(timeout $timeout_ms = 0)
+   QC_SOCKET->addMethodExtended("isDataAvailable",           (q_method_t)SOCKET_isDataAvailable, false, QC_NO_FLAGS, QDOM_DEFAULT, boolTypeInfo, 1, timeoutTypeInfo, zero());
 
-   // Socket::isWriteFinished(softint $timeout_ms = 0)
-   QC_SOCKET->addMethodExtended("isWriteFinished",           (q_method_t)SOCKET_isWriteFinished, false, QC_NO_FLAGS, QDOM_DEFAULT, boolTypeInfo, 1, softBigIntTypeInfo, zero());
-   // Socket::isWriteFinished(date $timeout_ms)
-   QC_SOCKET->addMethodExtended("isWriteFinished",           (q_method_t)SOCKET_isWriteFinished, false, QC_NO_FLAGS, QDOM_DEFAULT, boolTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
+   // Socket::isWriteFinished(timeout $timeout_ms = 0)
+   QC_SOCKET->addMethodExtended("isWriteFinished",           (q_method_t)SOCKET_isWriteFinished, false, QC_NO_FLAGS, QDOM_DEFAULT, boolTypeInfo, 1, timeoutTypeInfo, zero());
 
    // Socket::getSSLCipherName() returns string|nothing
    QC_SOCKET->addMethodExtended("getSSLCipherName",          (q_method_t)SOCKET_getSSLCipherName, false, QC_RET_VALUE_ONLY);

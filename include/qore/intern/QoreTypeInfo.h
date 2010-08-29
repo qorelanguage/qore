@@ -1099,6 +1099,39 @@ public:
    }
 };
 
+// accepts int or date and returns an int representing time in milliseconds
+class TimeoutTypeInfo : public AcceptsMultiFilterTypeInfo {
+protected:
+   DLLLOCAL virtual const char *getNameImpl() const {
+      return "timeout";
+   }
+
+   DLLLOCAL virtual bool acceptInputImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const {
+      qore_type_t t = get_node_type(n);
+
+      if (t == NT_INT || (t < QORE_NUM_TYPES && dynamic_cast<const QoreBigIntNode *>(n)))
+         return true;
+
+      if (t != NT_DATE)
+         return false;
+
+      int64 ms = reinterpret_cast<const DateTimeNode *>(n)->getRelativeMilliseconds();
+      n->deref(xsink);
+      n = new QoreBigIntNode(ms);
+      return true;
+   }
+
+   // must be reimplemented in subclasses if has_defval is true
+   DLLLOCAL virtual AbstractQoreNode *getDefaultValueImpl() const {
+      return &False;
+   }
+
+public:
+   DLLLOCAL TimeoutTypeInfo() : AcceptsMultiFilterTypeInfo(0, NT_INT, false, true, true, false, true) {
+      at.push_back(dateTypeInfo);
+   }
+};
+
 /*
    DLLLOCAL QoreTypeInfo(const QoreClass *n_qc, qore_type_t n_qt, bool n_returns_mult,
                          bool n_accepts_mult, bool n_input_filter, bool n_has_subtype,
