@@ -23,6 +23,10 @@
 #include <qore/Qore.h>
 #include <qore/QoreRWLock.h>
 
+// provides for 2-way compatibility with classes derived from QoreBigIntNode and softint
+static BigIntTypeInfo staticBigIntTypeInfo;
+const QoreTypeInfo *bigIntTypeInfo = &staticBigIntTypeInfo;
+
 // static reference types
 static QoreTypeInfo staticAnyTypeInfo,
    staticStringTypeInfo(NT_STRING),
@@ -40,7 +44,8 @@ static QoreTypeInfo staticAnyTypeInfo,
    ;
 
 // static "or nothing" reference types
-static OrNothingTypeInfo staticStringOrNothingTypeInfo(staticStringTypeInfo),
+static OrNothingTypeInfo staticBigIntOrNothingTypeInfo(staticBigIntTypeInfo),
+   staticStringOrNothingTypeInfo(staticStringTypeInfo),
    staticBoolOrNothingTypeInfo(staticBoolTypeInfo),
    staticBinaryOrNothingTypeInfo(staticBinaryTypeInfo),
    staticObjectOrNothingTypeInfo(staticObjectTypeInfo),
@@ -65,6 +70,7 @@ const QoreTypeInfo *anyTypeInfo = &staticAnyTypeInfo,
    *callReferenceTypeInfo = &staticCallReferenceTypeInfo,
    *referenceTypeInfo = &staticReferenceTypeInfo,
 
+   *bigIntOrNothingTypeInfo = &staticBigIntOrNothingTypeInfo, 
    *stringOrNothingTypeInfo = &staticStringOrNothingTypeInfo,
    *boolOrNothingTypeInfo = &staticBoolOrNothingTypeInfo,
    *binaryOrNothingTypeInfo = &staticBinaryOrNothingTypeInfo,
@@ -79,17 +85,17 @@ const QoreTypeInfo *anyTypeInfo = &staticAnyTypeInfo,
 static UserReferenceTypeInfo staticUserReferenceTypeInfo;
 const QoreTypeInfo *userReferenceTypeInfo = &staticUserReferenceTypeInfo;
 
-// provides for 2-way compatibility with classes derived from QoreBigIntNode and softint
-static BigIntTypeInfo staticBigIntTypeInfo;
-const QoreTypeInfo *bigIntTypeInfo = &staticBigIntTypeInfo;
-
 // provides limited compatibility with integers
 static FloatTypeInfo staticFloatTypeInfo;
-const QoreTypeInfo *floatTypeInfo = &staticFloatTypeInfo;
+static FloatOrNothingTypeInfo staticFloatOrNothingTypeInfo;
+const QoreTypeInfo *floatTypeInfo = &staticFloatTypeInfo,
+   *floatOrNothingTypeInfo = &staticFloatOrNothingTypeInfo;
 
 // provides equal compatibility with closures and all types of code references
 static CodeTypeInfo staticCodeTypeInfo;
-const QoreTypeInfo *codeTypeInfo = &staticCodeTypeInfo;
+static CodeOrNothingTypeInfo staticCodeOrNothingTypeInfo;
+const QoreTypeInfo *codeTypeInfo = &staticCodeTypeInfo,
+   *codeOrNothingTypeInfo = &staticCodeOrNothingTypeInfo;
 
 // either string or binary
 static DataTypeInfo staticDataTypeInfo;
@@ -178,19 +184,19 @@ void init_qore_types() {
    def_val_map[NT_NULL]    = &Null;
    def_val_map[NT_NOTHING] = &Nothing;
 
-   do_maps(NT_INT,         "int", bigIntTypeInfo);
+   do_maps(NT_INT,         "int", bigIntTypeInfo, bigIntOrNothingTypeInfo);
    do_maps(NT_STRING,      "string", stringTypeInfo, stringOrNothingTypeInfo);
    do_maps(NT_BOOLEAN,     "bool", boolTypeInfo, boolOrNothingTypeInfo);
-   do_maps(NT_FLOAT,       "float", floatTypeInfo);
+   do_maps(NT_FLOAT,       "float", floatTypeInfo, floatOrNothingTypeInfo);
    do_maps(NT_BINARY,      "binary", binaryTypeInfo, binaryOrNothingTypeInfo);
    do_maps(NT_LIST,        "list", listTypeInfo, listOrNothingTypeInfo);
    do_maps(NT_HASH,        "hash", hashTypeInfo, hashOrNothingTypeInfo);
    do_maps(NT_OBJECT,      "object", objectTypeInfo, objectOrNothingTypeInfo);
    do_maps(NT_ALL,         "any", anyTypeInfo);
    do_maps(NT_DATE,        "date", dateTypeInfo, dateOrNothingTypeInfo);
-   do_maps(NT_CODE,        "code", codeTypeInfo);
-   do_maps(NT_REFERENCE,   "reference", referenceTypeInfo);
-   do_maps(NT_NULL,        "null", nullTypeInfo);
+   do_maps(NT_CODE,        "code", codeTypeInfo, codeOrNothingTypeInfo);
+   do_maps(NT_REFERENCE,   "reference", referenceTypeInfo, anyTypeInfo);
+   do_maps(NT_NULL,        "null", nullTypeInfo, nullOrNothingTypeInfo);
    do_maps(NT_NOTHING,     "nothing", nothingTypeInfo);
    do_maps(NT_SOFTINT,     "softint", softBigIntTypeInfo);
    do_maps(NT_SOFTFLOAT,   "softfloat", softFloatTypeInfo);

@@ -66,6 +66,8 @@ DLLEXPORT extern const QoreTypeInfo *anyTypeInfo,
    *dataTypeInfo,              // either string or binary
    *timeoutTypeInfo,           // accepts int or date and returns int giving timeout in milliseconds
 
+   *bigIntOrNothingTypeInfo, 
+   *floatOrNothingTypeInfo, 
    *stringOrNothingTypeInfo,
    *boolOrNothingTypeInfo,
    *binaryOrNothingTypeInfo,
@@ -73,7 +75,8 @@ DLLEXPORT extern const QoreTypeInfo *anyTypeInfo,
    *dateOrNothingTypeInfo,
    *hashOrNothingTypeInfo,
    *listOrNothingTypeInfo,
-   *nullOrNothingTypeInfo;
+   *nullOrNothingTypeInfo,
+   *codeOrNothingTypeInfo;
 
 DLLEXPORT qore_type_t get_next_type_id();
 

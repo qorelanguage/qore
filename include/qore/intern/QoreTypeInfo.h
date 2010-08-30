@@ -44,7 +44,7 @@ static inline void concatClass(std::string &str, const char *cn) {
 
 /*
  * if input_filter is true, then 
-   + returns_mult must be false
+   + returns_mult must be false xxx <- REMOVE THIS RESTRICTION
    + accepts_mult must be true
  * if accepts_mult is false, then qc and qt apply to the type accepted
  * if returns_mult is false, then qc and qt apply to the type returned
@@ -854,10 +854,62 @@ protected:
    DLLLOCAL virtual bool acceptInputImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const = 0;
 
 public:
-   DLLLOCAL AcceptsMultiFilterTypeInfo(const QoreClass *n_qc, qore_type_t n_qt, bool n_has_subtype = false, 
+   DLLLOCAL AcceptsMultiFilterTypeInfo(const QoreClass *n_qc, qore_type_t n_qt, bool n_returns_mult, bool n_has_subtype = false, 
                                        bool n_has_name = false, bool n_has_defval = false, 
                                        bool n_is_int = false, bool n_exact_return = false) : 
-      AcceptsMultiTypeInfo(n_qc, n_qt, false, true, n_has_subtype, n_has_name, n_has_defval, n_is_int, n_exact_return) {
+      AcceptsMultiTypeInfo(n_qc, n_qt, n_returns_mult, true, n_has_subtype, n_has_name, n_has_defval, n_is_int, n_exact_return) {
+   }
+};
+
+class AcceptsReturnsMultiFilterTypeInfo : public AcceptsMultiFilterTypeInfo {
+protected:
+   type_vec_t rt;
+
+   DLLLOCAL virtual const type_vec_t &getReturnTypeList() const {
+      return rt;
+   }
+
+public:
+   DLLLOCAL AcceptsReturnsMultiFilterTypeInfo(const QoreClass *n_qc, qore_type_t n_qt, bool n_has_subtype = false, 
+                                              bool n_has_name = false, bool n_has_defval = false, 
+                                              bool n_is_int = false) : 
+      AcceptsMultiFilterTypeInfo(n_qc, n_qt, true, n_has_subtype, n_has_name, n_has_defval, n_is_int, false) {
+   }
+};
+
+class FloatOrNothingTypeInfo : public AcceptsReturnsMultiFilterTypeInfo {
+protected:
+   DLLLOCAL virtual const char *getNameImpl() const {
+      return "*float";
+   }
+
+   DLLLOCAL bool acceptInputImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const {
+      qore_type_t t = get_node_type(n);
+
+      if (t == NT_FLOAT || t == NT_NOTHING)
+         return true;
+
+      // only perform dynamic cast if type is external
+      if (t != NT_INT && (t < QORE_NUM_TYPES || !dynamic_cast<const QoreBigIntNode *>(n)))
+         return false;
+
+      QoreFloatNode *f = new QoreFloatNode(reinterpret_cast<const QoreBigIntNode *>(n)->val);
+      n->deref(xsink);
+      n = f;
+      return true;
+   }
+
+public:
+   DLLLOCAL FloatOrNothingTypeInfo() : AcceptsReturnsMultiFilterTypeInfo(0, NT_FLOAT, false, true, false, false) {
+      assert(bigIntTypeInfo);
+      at.push_back(bigIntTypeInfo);
+      assert(floatTypeInfo);
+      at.push_back(floatTypeInfo);
+      assert(nothingTypeInfo);
+      at.push_back(nothingTypeInfo);
+
+      rt.push_back(floatTypeInfo);
+      rt.push_back(nothingTypeInfo);
    }
 };
 
@@ -880,7 +932,7 @@ protected:
    }
 
 public:
-   DLLLOCAL FloatTypeInfo() : AcceptsMultiFilterTypeInfo(0, NT_FLOAT, false, false, false, false, true) {
+   DLLLOCAL FloatTypeInfo() : AcceptsMultiFilterTypeInfo(0, NT_FLOAT, false, false, false, false, false, true) {
       assert(bigIntTypeInfo);
       at.push_back(bigIntTypeInfo);
    }
@@ -953,6 +1005,18 @@ public:
    }
 };
 
+class CodeOrNothingTypeInfo : public CodeTypeInfo {
+protected:
+   DLLLOCAL virtual const char *getNameImpl() const {
+      return "*code";
+   }
+
+public:
+   DLLLOCAL CodeOrNothingTypeInfo() {
+      at.push_back(nothingTypeInfo);
+   }
+};
+
 // accepts any type
 class UserReferenceTypeInfo : public ReverseTypeInfo {
 protected:
@@ -1010,7 +1074,7 @@ protected:
    }
 
 public:
-   DLLLOCAL SoftBigIntTypeInfo() : AcceptsMultiFilterTypeInfo(0, NT_INT, false, true, true, true, true) {
+   DLLLOCAL SoftBigIntTypeInfo() : AcceptsMultiFilterTypeInfo(0, NT_INT, false, false, true, true, true, true) {
       at.push_back(floatTypeInfo);
       at.push_back(stringTypeInfo);
       at.push_back(boolTypeInfo);
@@ -1049,7 +1113,7 @@ protected:
    }
 
 public:
-   DLLLOCAL SoftFloatTypeInfo() : AcceptsMultiFilterTypeInfo(0, NT_FLOAT, false, true, true, false, true) {
+   DLLLOCAL SoftFloatTypeInfo() : AcceptsMultiFilterTypeInfo(0, NT_FLOAT, false, false, true, true, false, true) {
       at.push_back(bigIntTypeInfo);
       at.push_back(stringTypeInfo);
       at.push_back(boolTypeInfo);
@@ -1088,7 +1152,7 @@ protected:
    }
 
 public:
-   DLLLOCAL SoftBoolTypeInfo() : AcceptsMultiFilterTypeInfo(0, NT_BOOLEAN, false, true, true, false, true) {
+   DLLLOCAL SoftBoolTypeInfo() : AcceptsMultiFilterTypeInfo(0, NT_BOOLEAN, false, false, true, true, false, true) {
       at.push_back(bigIntTypeInfo);
       at.push_back(floatTypeInfo);
       at.push_back(stringTypeInfo);
@@ -1128,7 +1192,7 @@ protected:
    }
 
 public:
-   DLLLOCAL SoftStringTypeInfo() : AcceptsMultiFilterTypeInfo(0, NT_STRING, false, true, true, false, true) {
+   DLLLOCAL SoftStringTypeInfo() : AcceptsMultiFilterTypeInfo(0, NT_STRING, false, false, true, true, false, true) {
       at.push_back(bigIntTypeInfo);
       at.push_back(floatTypeInfo);
       at.push_back(boolTypeInfo);
@@ -1164,7 +1228,7 @@ protected:
    }
 
 public:
-   DLLLOCAL TimeoutTypeInfo() : AcceptsMultiFilterTypeInfo(0, NT_INT, false, true, true, false, true) {
+   DLLLOCAL TimeoutTypeInfo() : AcceptsMultiFilterTypeInfo(0, NT_INT, false, false, true, true, false, true) {
       at.push_back(dateTypeInfo);
    }
 };
@@ -1178,7 +1242,7 @@ public:
                                  bool n_input_filter = false, bool n_has_subtype = false, 
                                  bool n_has_name = false, bool n_has_defval = false, 
                                  bool n_is_int = false, bool n_exact_return = false) : 
-   DLLLOCAL AcceptsMultiFilterTypeInfo(const QoreClass *n_qc, qore_type_t n_qt, bool n_has_subtype = false, 
+   DLLLOCAL AcceptsMultiFilterTypeInfo(const QoreClass *n_qc, qore_type_t n_qt, bool n_returns_mult, bool n_has_subtype = false, 
                                        bool n_has_name = false, bool n_has_defval = false, 
                                        bool n_is_int = false, bool n_exact_return = false) : 
 */
