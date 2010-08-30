@@ -294,6 +294,7 @@ static AbstractQoreNode *DS_getHostName(QoreObject *self, ManagedDatasource *ds,
    return ds->getPendingHostName();
 }
 
+// Datasource::getPort() returns *int
 static AbstractQoreNode *DS_getPort(QoreObject *self, ManagedDatasource *ds, const QoreListNode *params, ExceptionSink *xsink) {
    int port = ds->getPort();
    return port ? new QoreBigIntNode(port) : 0;
@@ -404,20 +405,21 @@ QoreClass *initDatasourceClass() {
    
    QC_DATASOURCE->addMethodExtended("setPort",           (q_method_t)DS_setPort, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, softBigIntTypeInfo, zero());
 
-   // returns NOTHING if not set, otherwise string
+   // returns string|nothing
    QC_DATASOURCE->addMethodExtended("getUserName",       (q_method_t)DS_getUserName, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT);
-   // returns NOTHING if not set, otherwise string
+   // returns string|nothing
    QC_DATASOURCE->addMethodExtended("getPassword",       (q_method_t)DS_getPassword, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT);
-   // returns NOTHING if not set, otherwise string
+   // returns string|nothing
    QC_DATASOURCE->addMethodExtended("getDBName",         (q_method_t)DS_getDBName, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT);
-   // returns NOTHING if not set, otherwise string
+   // returns string|nothing
    QC_DATASOURCE->addMethodExtended("getDBCharset",      (q_method_t)DS_getDBCharset, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT);
-   // returns NOTHING if not set, otherwise string
+   // returns string|nothing
    QC_DATASOURCE->addMethodExtended("getOSCharset",      (q_method_t)DS_getOSCharset, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT);
-   // returns NOTHING if not set, otherwise string
+   // returns string|nothing
    QC_DATASOURCE->addMethodExtended("getHostName",       (q_method_t)DS_getHostName, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT);
-   // returns NOTHING if not set, otherwise int
-   QC_DATASOURCE->addMethodExtended("getPort",           (q_method_t)DS_getPort, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT);
+
+   // Datasource::getPort() returns *int
+   QC_DATASOURCE->addMethodExtended("getPort",           (q_method_t)DS_getPort, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntOrNothingTypeInfo);
 
    // Datasource::setTransactionLockTimeout(timeout $timeout_ms = 0) returns nothing
    QC_DATASOURCE->addMethodExtended("setTransactionLockTimeout", (q_method_t)DS_setTransactionLockTimeout, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, timeoutTypeInfo, zero());

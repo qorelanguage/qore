@@ -596,10 +596,12 @@ AbstractQoreNode *f_parseDatasource(const QoreListNode *params, ExceptionSink *x
    return parseDatasource(p0->getBuffer(), xsink);
 }
 
+// getDBIDriverList() returns *list
 AbstractQoreNode *f_getDBIDriverList(const QoreListNode *params, ExceptionSink *xsink) {
    return DBI.getDriverList();
 }
 
+// getDBIDriverCapabilityList(string $driver) returns *list
 AbstractQoreNode *f_getDBIDriverCapabilityList(const QoreListNode *params, ExceptionSink *xsink) {
    const QoreStringNode *p0 = HARD_QORE_STRING(params, 0);
 
@@ -607,6 +609,7 @@ AbstractQoreNode *f_getDBIDriverCapabilityList(const QoreListNode *params, Excep
    return !dd ? 0 : dd->getCapList();
 }
 
+// getDBIDriverCapabilities(string $driver) returns *int
 AbstractQoreNode *f_getDBIDriverCapabilities(const QoreListNode *params, ExceptionSink *xsink) {
    const QoreStringNode *p0 = HARD_QORE_STRING(params, 0);
 
@@ -615,16 +618,16 @@ AbstractQoreNode *f_getDBIDriverCapabilities(const QoreListNode *params, Excepti
 }
 
 void init_dbi_functions() {
-   // returns list|nothing
-   builtinFunctions.add2("getDBIDriverList", f_getDBIDriverList, QC_RET_VALUE_ONLY);
+   // getDBIDriverList() returns *list
+   builtinFunctions.add2("getDBIDriverList", f_getDBIDriverList, QC_RET_VALUE_ONLY, QDOM_DEFAULT, listOrNothingTypeInfo);
 
    builtinFunctions.add2("getDBIDriverCapabilityList", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
-   // returns list|nothing
-   builtinFunctions.add2("getDBIDriverCapabilityList", f_getDBIDriverCapabilityList, QC_RET_VALUE_ONLY, QDOM_DEFAULT, 0, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   // getDBIDriverCapabilityList(string $driver) returns *list
+   builtinFunctions.add2("getDBIDriverCapabilityList", f_getDBIDriverCapabilityList, QC_RET_VALUE_ONLY, QDOM_DEFAULT, listOrNothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add2("getDBIDriverCapabilities", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
-   // returns int|nothing
-   builtinFunctions.add2("getDBIDriverCapabilities", f_getDBIDriverCapabilities, QC_RET_VALUE_ONLY, QDOM_DEFAULT, 0, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   // getDBIDriverCapabilities(string $driver) returns *int
+   builtinFunctions.add2("getDBIDriverCapabilities", f_getDBIDriverCapabilities, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntOrNothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add2("parseDatasource", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("parseDatasource", f_parseDatasource, QC_RET_VALUE_ONLY, QDOM_DEFAULT, hashTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);

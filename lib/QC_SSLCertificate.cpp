@@ -79,7 +79,7 @@ static QoreStringNode *SSLCERT_getSignatureType(QoreObject *self, QoreSSLCertifi
    return s->getSignatureType();
 }
 
-// SSLCertificate::getPublicKey() returns binary|nothing
+// SSLCertificate::getPublicKey() returns *binary
 static BinaryNode *SSLCERT_getPublicKey(QoreObject *self, QoreSSLCertificate *s, const QoreListNode *args, ExceptionSink *xsink) {
    return s->getPublicKey();
 }
@@ -133,8 +133,8 @@ QoreClass *initSSLCertificateClass() {
    QC_SSLCERTIFICATE->addMethodExtended("getSignature",          (q_method_t)SSLCERT_getSignature, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, binaryTypeInfo);
    QC_SSLCERTIFICATE->addMethodExtended("getPublicKeyAlgorithm", (q_method_t)SSLCERT_getPublicKeyAlgorithm, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringTypeInfo);
 
-   // SSLCertificate::getPublicKey() returns binary|nothing
-   QC_SSLCERTIFICATE->addMethodExtended("getPublicKey",          (q_method_t)SSLCERT_getPublicKey, false, QC_RET_VALUE_ONLY);
+   // SSLCertificate::getPublicKey() returns *binary
+   QC_SSLCERTIFICATE->addMethodExtended("getPublicKey",          (q_method_t)SSLCERT_getPublicKey, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, binaryOrNothingTypeInfo);
 
    QC_SSLCERTIFICATE->addMethodExtended("getSubjectHash",        (q_method_t)SSLCERT_getSubjectHash, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, hashTypeInfo);
 

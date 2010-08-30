@@ -1223,7 +1223,7 @@
 
         <row>
           <entry>
-            <para><code><link linkend="getDBIDriverCapabilities">getDBIDriverCapabilities</link>(<link linkend="string_type">string</link>) <command>returns</command> <link linkend="any_type">any</link></code></para>
+            <para><code><link linkend="getDBIDriverCapabilities">getDBIDriverCapabilities</link>(<link linkend="string_type">string</link>) <command>returns</command> <link linkend="*list_type">*list</link></code></para>
             <para><code><link linkend="getDBIDriverCapabilities">getDBIDriverCapabilities</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
           </entry>
           <entry><para>N</para></entry>
@@ -1231,14 +1231,14 @@
         </row>
         <row>
           <entry>
-            <para><code><link linkend="getDBIDriverCapabilityList">getDBIDriverCapabilityList</link>(<link linkend="string_type">string</link>) <command>returns</command> <link linkend="any_type">any</link></code></para>
+            <para><code><link linkend="getDBIDriverCapabilityList">getDBIDriverCapabilityList</link>(<link linkend="string_type">string</link>) <command>returns</command> <link linkend="*list_type">*list</link></code></para>
             <para><code><link linkend="getDBIDriverCapabilityList">getDBIDriverCapabilityList</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
           </entry>
           <entry><para>N</para></entry>
           <entry><para>Returns a list of codes representing the capabilities of a DBI driver of <command><link linkend="NOTHING">NOTHING</link></command> if the driver cannot be loaded.</para></entry>
         </row>
         <row>
-          <entry><para><code><link linkend="getDBIDriverList">getDBIDriverList</link>() <command>returns</command> <link linkend="any_type">any</link></code></para></entry>
+          <entry><para><code><link linkend="getDBIDriverList">getDBIDriverList</link>() <command>returns</command> <link linkend="*list_type">*list</link></code></para></entry>
           <entry><para>N</para></entry>
           <entry><para>Returns a list of strings of DBI drivers currently loaded or <command><link linkend="NOTHING">NOTHING</link></command> if no drivers have been loaded.</para></entry>
         </row>
@@ -19892,7 +19892,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <para><code><link linkend="getDBIDriverCapabilities">getDBIDriverCapabilities</link>(<link linkend="string_type">string</link>) <command>returns</command> <link linkend="any_type">any</link></code></para>
+            <para><code><link linkend="getDBIDriverCapabilities">getDBIDriverCapabilities</link>(<link linkend="string_type">string</link>) <command>returns</command> <link linkend="*int_type">*int</link></code></para>
             <para><code><link linkend="getDBIDriverCapabilities">getDBIDriverCapabilities</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
           </listitem>
         </varlistentry>
@@ -19917,7 +19917,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           <tbody>
             <row>
 	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-              <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+              <entry><para><code><link linkend="*int_type">*int</link></code></para></entry>
               <entry><para>Returns an integer representing the capabilities of a DBI driver binary-OR'ed together (see <link linkend="DBI_Capability_Constants">DBI Capability Constants</link>).  Returns <command><link linkend="NOTHING">NOTHING</link></command> if the driver cannot be found.</para></entry>
             </row>
           </tbody>
@@ -19938,7 +19938,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-           <para><code><link linkend="getDBIDriverCapabilityList">getDBIDriverCapabilityList</link>(<link linkend="string_type">string</link>) <command>returns</command> <link linkend="any_type">any</link></code></para>
+           <para><code><link linkend="getDBIDriverCapabilityList">getDBIDriverCapabilityList</link>(<link linkend="string_type">string</link>) <command>returns</command> <link linkend="*list_type">*list</link></code></para>
             <para><code><link linkend="getDBIDriverCapabilityList">getDBIDriverCapabilityList</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
            </listitem>
         </varlistentry>
@@ -19963,7 +19963,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           <tbody>
             <row>
 	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-              <entry><para><code><link linkend="list_type">list</link></code></para></entry>
+              <entry><para><code><link linkend="*list_type">*list</link></code></para></entry>
               <entry><para>Returns a list of each capability supported by the given DBI driver (see <link linkend="DBI_Capability_Constants">DBI Capability Constants</link>).  Returns <command><link linkend="NOTHING">NOTHING</link></command> if the driver cannot be found.</para></entry>
             </row>
           </tbody>
@@ -19984,13 +19984,13 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-	    <para><code><link linkend="getDBIDriverList">getDBIDriverList</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+	    <para><code><link linkend="getDBIDriverList">getDBIDriverList</link>() <command>returns</command> <link linkend="*list_type">*list</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Example</term>
           <listitem>
-            <programlisting>$list = getDBIDriverList();</programlisting>
+            <programlisting><command>my</command> *list $list = getDBIDriverList();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -20008,8 +20008,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           <tbody>
             <row>
 	      <entry><para>n/a</para></entry>
-              <entry><para><code><link linkend="list_type">list</link></code></para></entry>
-              <entry><para>Returns a list of strings of DBI drivers currently loaded.</para></entry>
+              <entry><para><code><link linkend="*list_type">*list</link></code></para></entry>
+              <entry><para>Returns a list of strings of DBI drivers currently loaded or NOTHING if no drivers are loaded.</para></entry>
             </row>
           </tbody>
         </tgroup>

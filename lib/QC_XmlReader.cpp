@@ -184,11 +184,12 @@ static AbstractQoreNode *XMLREADER_getAttributeNs(QoreObject *self, QoreXmlReade
    return xr->getAttributeNs(lname->getBuffer(), ns->getBuffer());
 }
 
-// XmlReader::lookupNamespace() returns string|nothing
+// XmlReader::lookupNamespace() returns *string
 static AbstractQoreNode *XMLREADER_lookupNamespace(QoreObject *self, QoreXmlReaderData *xr, const QoreListNode *params, ExceptionSink *xsink) {
    return xr->lookupNamespace(0);
 }
 
+// XmlReader::lookupNamespace(string $ns) returns *string
 static AbstractQoreNode *XMLREADER_lookupNamespace_str(QoreObject *self, QoreXmlReaderData *xr, const QoreListNode *params, ExceptionSink *xsink) {
    const QoreStringNode *prefix = HARD_QORE_STRING(params, 0);
    return xr->lookupNamespace(prefix->getBuffer());
@@ -339,8 +340,10 @@ QoreClass *initXmlReaderClass(QoreClass *XmlDoc) {
    // XmlReader::getAttributeNs(string $attr, string $ns) returns string|nothing
    QC_XMLREADER->addMethodExtended("getAttributeNs",            (q_method_t)XMLREADER_getAttributeNs, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, 0, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   QC_XMLREADER->addMethodExtended("lookupNamespace",           (q_method_t)XMLREADER_lookupNamespace, false, QC_RET_VALUE_ONLY);
-   QC_XMLREADER->addMethodExtended("lookupNamespace",           (q_method_t)XMLREADER_lookupNamespace_str, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, 0, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   // XmlReader::lookupNamespace() returns *string
+   QC_XMLREADER->addMethodExtended("lookupNamespace",           (q_method_t)XMLREADER_lookupNamespace, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringOrNothingTypeInfo);
+   // XmlReader::lookupNamespace(string $ns) returns *string
+   QC_XMLREADER->addMethodExtended("lookupNamespace",           (q_method_t)XMLREADER_lookupNamespace_str, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringOrNothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    // XmlReader::moveToAttribute(string $attr) returns bool
    QC_XMLREADER->addMethodExtended("moveToAttribute",           (q_method_t)XMLREADER_moveToAttribute, false, QC_NO_FLAGS, QDOM_DEFAULT, boolTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);

@@ -140,49 +140,49 @@ static QoreClass *initXmlNodeClass() {
    QC_XMLNODE->addMethodExtended("getLineNumber",          (q_method_t)XMLNODE_getLineNumber, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo);
    QC_XMLNODE->addMethodExtended("getElementType",         (q_method_t)XMLNODE_getElementType, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo);
 
-   // XmlNode::getElementTypeName() returns string|nothing
-   QC_XMLNODE->addMethodExtended("getElementTypeName",     (q_method_t)XMLNODE_getElementTypeName, false, QC_RET_VALUE_ONLY);
+   // XmlNode::getElementTypeName() returns *string
+   QC_XMLNODE->addMethodExtended("getElementTypeName",     (q_method_t)XMLNODE_getElementTypeName, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringOrNothingTypeInfo);
 
-   // XmlNode::firstElementChild() returns string|nothing
-   QC_XMLNODE->addMethodExtended("firstElementChild",      (q_method_t)XMLNODE_firstElementChild, false, QC_RET_VALUE_ONLY);
+   // XmlNode::firstElementChild() returns *XmlNode
+   QC_XMLNODE->addMethodExtended("firstElementChild",      (q_method_t)XMLNODE_firstElementChild, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, QC_XMLNODE->getOrNothingTypeInfo());
 
-   // XmlNode::getLastChild() returns string|nothing
-   QC_XMLNODE->addMethodExtended("getLastChild",           (q_method_t)XMLNODE_getLastChild, false, QC_RET_VALUE_ONLY);
+   // XmlNode::getLastChild() returns *XmlNode
+   QC_XMLNODE->addMethodExtended("getLastChild",           (q_method_t)XMLNODE_getLastChild, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, QC_XMLNODE->getOrNothingTypeInfo());
 
-   // XmlNode::lastElementChild() returns string|nothing
-   QC_XMLNODE->addMethodExtended("lastElementChild",       (q_method_t)XMLNODE_lastElementChild, false, QC_RET_VALUE_ONLY);
+   // XmlNode::lastElementChild() returns *XmlNode
+   QC_XMLNODE->addMethodExtended("lastElementChild",       (q_method_t)XMLNODE_lastElementChild, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, QC_XMLNODE->getOrNothingTypeInfo());
 
-   // XmlNode::nextElementSibling() returns string|nothing
-   QC_XMLNODE->addMethodExtended("nextElementSibling",     (q_method_t)XMLNODE_nextElementSibling, false, QC_RET_VALUE_ONLY);
+   // XmlNode::nextElementSibling() returns *XmlNode
+   QC_XMLNODE->addMethodExtended("nextElementSibling",     (q_method_t)XMLNODE_nextElementSibling, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, QC_XMLNODE->getOrNothingTypeInfo());
 
-   // XmlNode::previousElementSibling() returns string|nothing
-   QC_XMLNODE->addMethodExtended("previousElementSibling", (q_method_t)XMLNODE_previousElementSibling, false, QC_RET_VALUE_ONLY);
+   // XmlNode::previousElementSibling() returns *XmlNode
+   QC_XMLNODE->addMethodExtended("previousElementSibling", (q_method_t)XMLNODE_previousElementSibling, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, QC_XMLNODE->getOrNothingTypeInfo());
 
    QC_XMLNODE->addMethodExtended("getPath",                (q_method_t)XMLNODE_getPath, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringTypeInfo);
 
-   // XmlNode::getNsProp(string $prop, string $ns) returns string|nothing
-   QC_XMLNODE->addMethodExtended("getNsProp",              (q_method_t)XMLNODE_getNsProp, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, 0, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
+   // XmlNode::getNsProp(string $prop, string $ns) returns *string
+   QC_XMLNODE->addMethodExtended("getNsProp",              (q_method_t)XMLNODE_getNsProp, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringOrNothingTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   // XmlNode::getProp(string $prop) returns string|nothing
-   QC_XMLNODE->addMethodExtended("getProp",                (q_method_t)XMLNODE_getProp, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, 0, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   // XmlNode::getProp(string $prop) returns *string
+   QC_XMLNODE->addMethodExtended("getProp",                (q_method_t)XMLNODE_getProp, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringOrNothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    //QC_XMLNODE->addMethod("getBase",                (q_method_t)XMLNODE_getBase);
 
-   // XmlNode::getContent() returns string|nothing
-   QC_XMLNODE->addMethodExtended("getContent",             (q_method_t)XMLNODE_getContent, false, QC_RET_VALUE_ONLY);
+   // XmlNode::getContent() returns *string
+   QC_XMLNODE->addMethodExtended("getContent",             (q_method_t)XMLNODE_getContent, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringOrNothingTypeInfo);
 
-   // XmlNode::getLang() returns string|nothing
-   QC_XMLNODE->addMethodExtended("getLang",                (q_method_t)XMLNODE_getLang, false, QC_RET_VALUE_ONLY);
+   // XmlNode::getLang() returns *string
+   QC_XMLNODE->addMethodExtended("getLang",                (q_method_t)XMLNODE_getLang, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringOrNothingTypeInfo);
 
-   // XmlNode::getName() returns string|nothing
-   QC_XMLNODE->addMethodExtended("getName",                (q_method_t)XMLNODE_getName, false, QC_RET_VALUE_ONLY);
+   // XmlNode::getName() returns *string
+   QC_XMLNODE->addMethodExtended("getName",                (q_method_t)XMLNODE_getName, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringOrNothingTypeInfo);
 
    QC_XMLNODE->addMethodExtended("isText",                 (q_method_t)XMLNODE_isText, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, boolTypeInfo);
 
    QC_XMLNODE->addMethodExtended("isBlank",                (q_method_t)XMLNODE_isBlank, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, boolTypeInfo);
 
-   // XmlNode::getXML() returns string|nothing
-   QC_XMLNODE->addMethodExtended("getXML",                 (q_method_t)XMLNODE_getXML, false, QC_RET_VALUE_ONLY);
+   // XmlNode::getXML() returns *string
+   QC_XMLNODE->addMethodExtended("getXML",                 (q_method_t)XMLNODE_getXML, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringOrNothingTypeInfo);
 
    return QC_XMLNODE;   
 }
@@ -279,9 +279,9 @@ QoreNamespace *initXmlNs() {
 
    xns->addConstant("NodeTypeMap", xm);
 
-   QoreClass *XmlDoc;
-   xns->addSystemClass(initXmlNodeClass());
-   xns->addSystemClass(XmlDoc = initXmlDocClass());
+   QoreClass *XmlNode, *XmlDoc;
+   xns->addSystemClass(XmlNode = initXmlNodeClass());
+   xns->addSystemClass(XmlDoc = initXmlDocClass(XmlNode));
    xns->addSystemClass(initXmlReaderClass(XmlDoc));
 
    return xns;

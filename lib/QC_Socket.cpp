@@ -525,13 +525,13 @@ static AbstractQoreNode *SOCKET_isOpen(QoreObject *self, mySocket *s, const Qore
    return get_bool_node(s->isOpen());
 }
 
-// Socket::getSSLCipherName() returns string|nothing
+// Socket::getSSLCipherName() returns *string
 static AbstractQoreNode *SOCKET_getSSLCipherName(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
    const char *str = s->getSSLCipherName();
    return str ? new QoreStringNode(str) : 0;
 }
 
-// Socket::getSSLCipherVersion() returns string|nothing
+// Socket::getSSLCipherVersion() returns *string
 static AbstractQoreNode *SOCKET_getSSLCipherVersion(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
    const char *str = s->getSSLCipherVersion();
    return str ? new QoreStringNode(str) : 0;
@@ -541,7 +541,7 @@ static AbstractQoreNode *SOCKET_isSecure(QoreObject *self, mySocket *s, const Qo
    return get_bool_node(s->isSecure());
 }
 
-// Socket::verifyPeerCertificate() returns string|nothing
+// Socket::verifyPeerCertificate() returns *string
 static AbstractQoreNode *SOCKET_verifyPeerCertificate(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
    const char *c = getSSLCVCode(s->verifyPeerCertificate());
    return c ? new QoreStringNode(c) : 0;
@@ -805,16 +805,16 @@ QoreClass *initSocketClass(QoreClass *SSLCert, QoreClass *SSLPrivKey) {
    // Socket::isWriteFinished(timeout $timeout_ms = 0)
    QC_SOCKET->addMethodExtended("isWriteFinished",           (q_method_t)SOCKET_isWriteFinished, false, QC_NO_FLAGS, QDOM_DEFAULT, boolTypeInfo, 1, timeoutTypeInfo, zero());
 
-   // Socket::getSSLCipherName() returns string|nothing
-   QC_SOCKET->addMethodExtended("getSSLCipherName",          (q_method_t)SOCKET_getSSLCipherName, false, QC_RET_VALUE_ONLY);
+   // Socket::getSSLCipherName() returns *string
+   QC_SOCKET->addMethodExtended("getSSLCipherName",          (q_method_t)SOCKET_getSSLCipherName, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringOrNothingTypeInfo);
 
-   // Socket::getSSLCipherVersion() returns string|nothing
-   QC_SOCKET->addMethodExtended("getSSLCipherVersion",       (q_method_t)SOCKET_getSSLCipherVersion, false, QC_RET_VALUE_ONLY);
+   // Socket::getSSLCipherVersion() returns *string
+   QC_SOCKET->addMethodExtended("getSSLCipherVersion",       (q_method_t)SOCKET_getSSLCipherVersion, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringOrNothingTypeInfo);
 
    QC_SOCKET->addMethodExtended("isSecure",                  (q_method_t)SOCKET_isSecure, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, boolTypeInfo);
 
-   // Socket::verifyPeerCertificate() returns string|nothing
-   QC_SOCKET->addMethodExtended("verifyPeerCertificate",     (q_method_t)SOCKET_verifyPeerCertificate, false, QC_RET_VALUE_ONLY);
+   // Socket::verifyPeerCertificate() returns *string
+   QC_SOCKET->addMethodExtended("verifyPeerCertificate",     (q_method_t)SOCKET_verifyPeerCertificate, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringOrNothingTypeInfo);
 
    // Socket::setCertificate(SSLCertificate $cert) returns nothing
    QC_SOCKET->addMethodExtended("setCertificate",            (q_method_t)SOCKET_setCertificate_cert, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, SSLCert->getTypeInfo(), QORE_PARAM_NO_ARG);

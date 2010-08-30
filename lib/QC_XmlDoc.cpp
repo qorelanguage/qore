@@ -195,7 +195,7 @@ static AbstractQoreNode *XMLDOC_validateSchema(QoreObject *self, QoreXmlDocData 
    return 0;
 }
 
-QoreClass *initXmlDocClass() {
+QoreClass *initXmlDocClass(const QoreClass *QC_XMLNODE) {
    QORE_TRACE("initXmlDocClass()");
 
    QoreClass *QC_XMLDOC = new QoreClass("XmlDoc");
@@ -215,8 +215,8 @@ QoreClass *initXmlDocClass() {
    QC_XMLDOC->addMethodExtended("toString",        (q_method_t)XMLDOC_toString, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringTypeInfo);
    QC_XMLDOC->addMethodExtended("evalXPath",       (q_method_t)XMLDOC_evalXPath, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, listTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   // XmlDoc::getRootElement() returns XmlNode|nothing
-   QC_XMLDOC->addMethodExtended("getRootElement",  (q_method_t)XMLDOC_getRootElement, false, QC_RET_VALUE_ONLY);
+   // XmlDoc::getRootElement() returns *XmlNode
+   QC_XMLDOC->addMethodExtended("getRootElement",  (q_method_t)XMLDOC_getRootElement, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, QC_XMLNODE->getOrNothingTypeInfo());
 
    QC_XMLDOC->addMethodExtended("validateRelaxNG", (q_method_t)XMLDOC_validateRelaxNG, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
    QC_XMLDOC->addMethodExtended("validateSchema",  (q_method_t)XMLDOC_validateSchema, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);

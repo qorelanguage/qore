@@ -212,17 +212,17 @@ static AbstractQoreNode *PROGRAM_setScriptPath_str(QoreObject *self, QoreProgram
    return 0;
 }
 
-// Program::getScriptDir() returns nothing|string
+// Program::getScriptDir() returns *string
 static AbstractQoreNode *PROGRAM_getScriptDir(QoreObject *self, QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink) {
    return p->getScriptDir();
 }
 
-// Program::getScriptName() returns nothing|string
+// Program::getScriptName() returns *string
 static AbstractQoreNode *PROGRAM_getScriptName(QoreObject *self, QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink) {
    return p->getScriptName();
 }
 
-// Program::getScriptPath() returns nothing|string
+// Program::getScriptPath() returns *string
 static AbstractQoreNode *PROGRAM_getScriptPath(QoreObject *self, QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink) {
    return p->getScriptPath();
 }
@@ -304,18 +304,18 @@ QoreClass *initProgramClass() {
 
    // Program::parse(string $code, string $label) returns nothing
    QC_PROGRAM->addMethodExtended("parse",                (q_method_t)PROGRAM_parse_str_str, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
-   // Program::parse(string $code, string $label, softint $warning_mask) returns nothing|hash
-   QC_PROGRAM->addMethodExtended("parse",                (q_method_t)PROGRAM_parse_str_str, false, QC_NO_FLAGS, QDOM_DEFAULT, 0, 3, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
+   // Program::parse(string $code, string $label, softint $warning_mask) returns *hash
+   QC_PROGRAM->addMethodExtended("parse",                (q_method_t)PROGRAM_parse_str_str, false, QC_NO_FLAGS, QDOM_DEFAULT, hashOrNothingTypeInfo, 3, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
 
    // Program::parsePending(string $code, string $label) returns nothing
    QC_PROGRAM->addMethodExtended("parsePending",         (q_method_t)PROGRAM_parsePending_str_str, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
-   // Program::parsePending(string $code, string $label, softint $warning_mask) returns nothing|hash
-   QC_PROGRAM->addMethodExtended("parsePending",         (q_method_t)PROGRAM_parsePending_str_str, false, QC_NO_FLAGS, QDOM_DEFAULT, 0, 3, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
+   // Program::parsePending(string $code, string $label, softint $warning_mask) returns *hash
+   QC_PROGRAM->addMethodExtended("parsePending",         (q_method_t)PROGRAM_parsePending_str_str, false, QC_NO_FLAGS, QDOM_DEFAULT, hashOrNothingTypeInfo, 3, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
 
    // Program::parseCommit() returns nothing
    QC_PROGRAM->addMethodExtended("parseCommit",          (q_method_t)PROGRAM_parseCommit, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
-   // Program::parseCommit(int $arning_mask) returns nothing|hash
-   QC_PROGRAM->addMethodExtended("parseCommit",          (q_method_t)PROGRAM_parseCommit, false, QC_NO_FLAGS, QDOM_DEFAULT, 0, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
+   // Program::parseCommit(int $arning_mask) returns *hash
+   QC_PROGRAM->addMethodExtended("parseCommit",          (q_method_t)PROGRAM_parseCommit, false, QC_NO_FLAGS, QDOM_DEFAULT, hashOrNothingTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
 
    // Programm::parseRollback() returns nothing
    QC_PROGRAM->addMethodExtended("parseRollback",        (q_method_t)PROGRAM_parseRollback, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
@@ -360,14 +360,14 @@ QoreClass *initProgramClass() {
    // Program::setScriptPath(string $path) returns nothing
    QC_PROGRAM->addMethodExtended("setScriptPath",        (q_method_t)PROGRAM_setScriptPath_str, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   // Program::getScriptDir() returns nothing|string
-   QC_PROGRAM->addMethodExtended("getScriptDir",         (q_method_t)PROGRAM_getScriptDir, false, QC_RET_VALUE_ONLY);
+   // Program::getScriptDir() returns *string
+   QC_PROGRAM->addMethodExtended("getScriptDir",         (q_method_t)PROGRAM_getScriptDir, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringOrNothingTypeInfo);
 
-   // Program::getScriptName() returns nothing|string
-   QC_PROGRAM->addMethodExtended("getScriptName",        (q_method_t)PROGRAM_getScriptName, false, QC_RET_VALUE_ONLY);
+   // Program::getScriptName() returns *string
+   QC_PROGRAM->addMethodExtended("getScriptName",        (q_method_t)PROGRAM_getScriptName, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringOrNothingTypeInfo);
 
-   // Program::getScriptPath() returns nothing|string
-   QC_PROGRAM->addMethodExtended("getScriptPath",        (q_method_t)PROGRAM_getScriptPath, false, QC_RET_VALUE_ONLY);
+   // Program::getScriptPath() returns *string
+   QC_PROGRAM->addMethodExtended("getScriptPath",        (q_method_t)PROGRAM_getScriptPath, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringOrNothingTypeInfo);
 
    // Program::lockOptions() returns nothing
    QC_PROGRAM->addMethodExtended("lockOptions",          (q_method_t)PROGRAM_lockOptions, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);

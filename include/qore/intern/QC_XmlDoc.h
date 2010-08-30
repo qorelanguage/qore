@@ -28,7 +28,7 @@
 #include <qore/intern/QoreXmlDoc.h>
 
 DLLEXPORT extern qore_classid_t CID_XMLDOC;
-DLLLOCAL QoreClass *initXmlDocClass();
+DLLLOCAL QoreClass *initXmlDocClass(const QoreClass *QC_XMLNODE);
 
 class QoreXmlNodeData;
 
