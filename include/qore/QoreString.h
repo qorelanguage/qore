@@ -205,6 +205,9 @@ public:
    //! concatenates a c-string to the existing string
    DLLEXPORT void concat(const char *str);
 
+   //! concatenates an stl string to the existing string
+   DLLEXPORT void concat(const std::string &str);
+
    //! concatenates a c-string to the existing string, up to byte "size"
    DLLEXPORT void concat(const char *str, qore_size_t size);
 
@@ -511,6 +514,12 @@ public:
        @return the byte (not character) at the given location; if the location is invalid, returns 0
     */
    DLLEXPORT char operator[](qore_offset_t pos) const;
+
+   //! concatenates the characters to the string; assumes the string to be concantenated is already in the character encoding of the "this" string
+   DLLEXPORT QoreString &operator+=(const char *str);
+
+   //! concatenates the characters to the string; assumes the string to be concantenated is already in the character encoding of the "this" string
+   DLLEXPORT QoreString &operator+=(const std::string &str);
 
    //! returns the character position of a substring within the string
    DLLEXPORT qore_offset_t index(const QoreString &needle, qore_offset_t pos, ExceptionSink *xsink) const;

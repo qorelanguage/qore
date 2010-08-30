@@ -700,6 +700,9 @@ public:
    //! returns the type information structure for this class
    DLLEXPORT const QoreTypeInfo *getTypeInfo() const;
 
+   //! returns the "or nothing" type information structure for this class
+   DLLEXPORT const QoreTypeInfo *getOrNothingTypeInfo() const;
+
    //! adds a public member
    DLLEXPORT void addPublicMember(const char *mem, const QoreTypeInfo *n_typeInfo, AbstractQoreNode *initial_value = 0);
 

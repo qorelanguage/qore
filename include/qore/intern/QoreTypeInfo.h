@@ -60,6 +60,8 @@ static inline void concatClass(std::string &str, const char *cn) {
  */
 
 class QoreTypeInfo {
+   friend class OrNothingTypeInfo;
+
 protected:
    // class pointer
    const QoreClass *qc;
@@ -707,19 +709,31 @@ public:
 // this is basically just a wrapper around NamedScope
 class QoreParseTypeInfo {
 protected:
-   DLLLOCAL QoreParseTypeInfo(const NamedScope *n_cscope) : cscope(n_cscope->copy()) {
+   bool or_nothing;
+   std::string tname;
+
+   DLLLOCAL QoreParseTypeInfo(const NamedScope *n_cscope) : or_nothing(false), cscope(n_cscope->copy()) {
+      setName();
+   }
+
+   DLLLOCAL void setName() {
+      if (or_nothing)
+         tname = "*";
+      tname += cscope->getIdentifier();
    }
 
 public:
    NamedScope *cscope; // namespace scope for class
 
-   DLLLOCAL QoreParseTypeInfo(char *n_cscope) : cscope(new NamedScope(n_cscope)) {
+   DLLLOCAL QoreParseTypeInfo(char *n_cscope, bool n_or_nothing = false) : or_nothing(n_or_nothing), cscope(new NamedScope(n_cscope)) {
+      setName();
       assert(strcmp(n_cscope, "any"));
    }
 
    DLLLOCAL ~QoreParseTypeInfo() {
       delete cscope;
    }
+
    // prototype (expecting type) should be "this"
    // returns true if the prototype does not expect any type or the types are compatible, 
    // false if otherwise
@@ -781,7 +795,7 @@ public:
       if (!this)
 	 return NO_TYPE_INFO;
 
-      return cscope->getIdentifier();
+      return tname.c_str();
    }
 
    DLLLOCAL void concatName(std::string &str) const {
@@ -899,6 +913,29 @@ public:
                                             bool n_input_filter = false, bool n_has_subtype = false, 
                                             bool n_is_int = false) :
       AcceptsMultiTypeInfo(n_qc, n_qt, true, n_input_filter, n_has_subtype, true, false, n_is_int) {
+   }
+};
+
+class OrNothingTypeInfo : public AcceptsReturnsSameMultiTypeInfo {
+protected:
+   QoreString tname;
+
+   DLLLOCAL virtual const char *getNameImpl() const {
+      return tname.getBuffer();
+   }
+
+public:
+   DLLLOCAL OrNothingTypeInfo(const QoreTypeInfo &ti) : AcceptsReturnsSameMultiTypeInfo(ti.qc, ti.qt, false, false, ti.qt == NT_INT) {
+      tname = "*";
+      tname += ti.getName();
+
+      assert(!ti.input_filter);
+      
+      if (ti.accepts_mult)
+         at = ti.getAcceptTypeList();
+      else
+         at.push_back(&ti);
+      at.push_back(nothingTypeInfo);
    }
 };
 

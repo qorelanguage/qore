@@ -821,6 +821,7 @@ delete                                  return TOK_DELETE;
 remove                                  return TOK_REMOVE;
 background                              return TOK_BACKGROUND;
 synchronized                            return TOK_SYNCHRONIZED;
+deprecated				return TOK_DEPRECATED;
 thread_exit                             return TOK_THREAD_EXIT;
 exists                                  return TOK_EXISTS;
 context				        return TOK_CONTEXT;
@@ -877,6 +878,7 @@ default{WS}*\(                          yylval->string = strdup("default"); retu
 static{WS}*\(                           yylval->string = strdup("static"); return KW_IDENTIFIER_OPENPAREN;
 returns{WS}*\(                          yylval->string = strdup("returns"); return KW_IDENTIFIER_OPENPAREN;
 public{WS}*\(                           yylval->string = strdup("public"); return KW_IDENTIFIER_OPENPAREN;
+deprecated{WS}*\(                       yylval->string = strdup("deprecated"); return KW_IDENTIFIER_OPENPAREN;
 \.returns[^A-Za-z_0-9]                  {
                                            yylval->String = new QoreStringNode("returns");
 					   if (yytext[4])
@@ -1033,6 +1035,12 @@ public{WS}*\(                           yylval->string = strdup("public"); retur
 					      unput(yytext[9]);
 					   return DOT_KW_IDENTIFIER;
                                         }
+\.deprecated[^A-Za-z_0-9]               {
+                                           yylval->String = new QoreStringNode("deprecated");
+					   if (yytext[9])
+					      unput(yytext[9]);
+					   return DOT_KW_IDENTIFIER;
+                                        }
 {YEAR}-{MONTH}-{DAY}T{HOUR}:{MSEC}(:{MSEC}(\.{US})?)?{TZ}?   yylval->datetime = makeDateTime(yytext, true); return DATETIME;
 {YEAR}-{MONTH}-{DAY}-{HOUR}:{MSEC}:{MSEC}(\.{US})?{TZ}?      yylval->datetime = makeDateTime(yytext, true); return DATETIME;
 {YEAR}-{MONTH}-{DAY}?{TZ}?                                   yylval->datetime = makeDateTime(yytext, false); return DATETIME;
@@ -1040,9 +1048,9 @@ public{WS}*\(                           yylval->string = strdup("public"); retur
 P{YEAR}-{D2}-{D2}(T{D2}:{D2}(:{D2}(\.{US})?)?)?   yylval->datetime = makeRelativeDateTime(yytext+1); return DATETIME;
 PT{D2}:{D2}(:{D2}(\.{US})?)?            yylval->datetime = makeRelativeTime(yytext+2); return DATETIME;
 P{D2}:{D2}(:{D2}(\.{US})?)?             yylval->datetime = makeRelativeTime(yytext+1); return DATETIME;
-{RDATETIME}                            yylval->datetime = new DateTimeNode(yytext); return DATETIME;
-{RDATE}                                yylval->datetime = new DateTimeNode(yytext); return DATETIME;
-{RTIME}                                yylval->datetime = new DateTimeNode(yytext); return DATETIME;
+{RDATETIME}                             yylval->datetime = new DateTimeNode(yytext); return DATETIME;
+{RDATE}                                 yylval->datetime = new DateTimeNode(yytext); return DATETIME;
+{RTIME}                                 yylval->datetime = new DateTimeNode(yytext); return DATETIME;
 ({WORD}::)+{WORD}                       yylval->string = strdup(yytext); return SCOPED_REF;
 cast\<{WS}*({WORD}::)+{WORD}{WS}*\>     yylval->string = make_cast(yytext); return QORE_CAST;
 cast\<{WS}*{WORD}{WS}*\>                yylval->string = make_cast(yytext); return QORE_CAST;

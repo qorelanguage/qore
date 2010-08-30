@@ -39,6 +39,17 @@ static QoreTypeInfo staticAnyTypeInfo,
    staticReferenceTypeInfo(NT_REFERENCE)
    ;
 
+// static "or nothing" reference types
+static OrNothingTypeInfo staticStringOrNothingTypeInfo(staticStringTypeInfo),
+   staticBoolOrNothingTypeInfo(staticBoolTypeInfo),
+   staticBinaryOrNothingTypeInfo(staticBinaryTypeInfo),
+   staticObjectOrNothingTypeInfo(staticObjectTypeInfo),
+   staticDateOrNothingTypeInfo(staticDateTypeInfo),
+   staticHashOrNothingTypeInfo(staticHashTypeInfo),
+   staticListOrNothingTypeInfo(staticListTypeInfo),
+   staticNullOrNothingTypeInfo(staticNullTypeInfo)
+   ;
+
 // const pointers to static reference types
 const QoreTypeInfo *anyTypeInfo = &staticAnyTypeInfo,
    *stringTypeInfo = &staticStringTypeInfo,
@@ -52,7 +63,16 @@ const QoreTypeInfo *anyTypeInfo = &staticAnyTypeInfo,
    *nullTypeInfo = &staticNullTypeInfo,
    *runTimeClosureTypeInfo = &staticRunTimeClosureTypeInfo,
    *callReferenceTypeInfo = &staticCallReferenceTypeInfo,
-   *referenceTypeInfo = &staticReferenceTypeInfo
+   *referenceTypeInfo = &staticReferenceTypeInfo,
+
+   *stringOrNothingTypeInfo = &staticStringOrNothingTypeInfo,
+   *boolOrNothingTypeInfo = &staticBoolOrNothingTypeInfo,
+   *binaryOrNothingTypeInfo = &staticBinaryOrNothingTypeInfo,
+   *objectOrNothingTypeInfo = &staticObjectOrNothingTypeInfo,
+   *dateOrNothingTypeInfo = &staticDateOrNothingTypeInfo,
+   *hashOrNothingTypeInfo = &staticHashOrNothingTypeInfo,
+   *listOrNothingTypeInfo = &staticListOrNothingTypeInfo,
+   *nullOrNothingTypeInfo = &staticNullOrNothingTypeInfo
    ;
 
 // provides for run-time assignment capability from any type
@@ -112,10 +132,12 @@ static def_val_map_t def_val_map;
 // map from names used when parsing to types
 typedef std::map<const char *, const QoreTypeInfo *, ltstr> str_typeinfo_map_t;
 static str_typeinfo_map_t str_typeinfo_map;
+static str_typeinfo_map_t str_ornothingtypeinfo_map;
 
 // map from types to type info
 typedef std::map<qore_type_t, const QoreTypeInfo *> type_typeinfo_map_t;
 static type_typeinfo_map_t type_typeinfo_map;
+static type_typeinfo_map_t type_ornothingtypeinfo_map;
 
 // global external type map
 static type_typeinfo_map_t extern_type_info_map;
@@ -127,10 +149,12 @@ static type_str_map_t type_str_map;
 // rwlock for global type map
 static QoreRWLock extern_type_info_map_lock;
 
-static void do_maps(qore_type_t t, const char *name, const QoreTypeInfo *typeInfo) {
-   str_typeinfo_map[name] = typeInfo;
-   type_typeinfo_map[t]   = typeInfo;
-   type_str_map[t]        = name;
+static void do_maps(qore_type_t t, const char *name, const QoreTypeInfo *typeInfo, const QoreTypeInfo *orNothingTypeInfo = 0) {
+   str_typeinfo_map[name]          = typeInfo;
+   str_ornothingtypeinfo_map[name] = orNothingTypeInfo;
+   type_typeinfo_map[t]            = typeInfo;
+   type_ornothingtypeinfo_map[t]   = orNothingTypeInfo;
+   type_str_map[t]                 = name;
 }
 
 // at least the NullString must be created after the default character encoding is set
@@ -155,15 +179,15 @@ void init_qore_types() {
    def_val_map[NT_NOTHING] = &Nothing;
 
    do_maps(NT_INT,         "int", bigIntTypeInfo);
-   do_maps(NT_STRING,      "string", stringTypeInfo);
-   do_maps(NT_BOOLEAN,     "bool", boolTypeInfo);
+   do_maps(NT_STRING,      "string", stringTypeInfo, stringOrNothingTypeInfo);
+   do_maps(NT_BOOLEAN,     "bool", boolTypeInfo, boolOrNothingTypeInfo);
    do_maps(NT_FLOAT,       "float", floatTypeInfo);
-   do_maps(NT_BINARY,      "binary", binaryTypeInfo);
-   do_maps(NT_LIST,        "list", listTypeInfo);
-   do_maps(NT_HASH,        "hash", hashTypeInfo);
-   do_maps(NT_OBJECT,      "object", objectTypeInfo);
+   do_maps(NT_BINARY,      "binary", binaryTypeInfo, binaryOrNothingTypeInfo);
+   do_maps(NT_LIST,        "list", listTypeInfo, listOrNothingTypeInfo);
+   do_maps(NT_HASH,        "hash", hashTypeInfo, hashOrNothingTypeInfo);
+   do_maps(NT_OBJECT,      "object", objectTypeInfo, objectOrNothingTypeInfo);
    do_maps(NT_ALL,         "any", anyTypeInfo);
-   do_maps(NT_DATE,        "date", dateTypeInfo);
+   do_maps(NT_DATE,        "date", dateTypeInfo, dateOrNothingTypeInfo);
    do_maps(NT_CODE,        "code", codeTypeInfo);
    do_maps(NT_REFERENCE,   "reference", referenceTypeInfo);
    do_maps(NT_NULL,        "null", nullTypeInfo);
@@ -234,6 +258,15 @@ const QoreTypeInfo *getBuiltinUserTypeInfo(const char *str) {
 
    str_typeinfo_map_t::iterator i = str_typeinfo_map.find(str);
    return i != str_typeinfo_map.end() ? i->second : 0;
+}
+
+const QoreTypeInfo *getBuiltinUserOrNothingTypeInfo(const char *str) {
+   // user exceptions here
+   if (!strcmp(str, "reference"))
+      return anyTypeInfo;
+
+   str_typeinfo_map_t::iterator i = str_ornothingtypeinfo_map.find(str);
+   return i != str_ornothingtypeinfo_map.end() ? i->second : 0;
 }
 
 const char *getBuiltinTypeName(qore_type_t type) {
@@ -408,112 +441,15 @@ const QoreTypeInfo *QoreParseTypeInfo::resolveAndDelete() {
    const QoreClass *qc = getRootNS()->parseFindScopedClass(cscope);
    delete this;
 
+   if (qc && or_nothing) {
+      const QoreTypeInfo *rv = qc->getOrNothingTypeInfo();
+      if (!rv) {
+	 parse_error("class %s cannot be typed with '*' as the class' type handler has an input filter and the filter does not accept NOTHING", qc->getName());
+	 return objectOrNothingTypeInfo;
+      }
+      return rv;
+   }
+
    // qc maybe NULL when the class is not found
    return qc ? qc->getTypeInfo() : objectTypeInfo;
 }
-
-/*
-int QoreTypeInfo::checkTypeInstantiationDefault(AbstractQoreNode *n, bool &priv_error) const {
-   //printd(0, "QoreTypeInfo::checkTypeInstantiationIntern() this=%p has_type=%d (%s) n=%p (%s)\n", this, this ? has_type : 0, getName(), n, n ? n->getTypeName() : "NOTHING");
-   if (!this || !has_type) return 0;
-   if (qt == NT_NOTHING && is_nothing(n)) return 0;
-   if (is_nothing(n))
-      return -1;
-
-   qore_type_t t = n->getType();
-
-   if (qt != t)
-      return -1;
-
-   // from here on we know n != 0
-   if (qt == NT_OBJECT) {
-      if (!qc)
-	 return 0;
-
-      bool priv;
-      if (reinterpret_cast<const QoreObject *>(n)->getClass(qc->getID(), priv)) {
-	 if (!priv)
-	    return 0;
-
-	 // check private access
-	 if (runtimeCheckPrivateClassAccess(qc))
-	    return 0;
-
-	 priv_error = true;
-      }
-
-      return -1;
-   }
-
-   return 0;
-}
-
-int QoreTypeInfo::testTypeCompatibilityDefault(const AbstractQoreNode *n) const {
-   if (!this || !has_type) return QTI_AMBIGUOUS;
-   if (qt == NT_NOTHING && is_nothing(n)) return QTI_IDENT;
-   if (is_nothing(n))
-      return QTI_NOT_EQUAL;
-
-   qore_type_t t = n->getType();
-
-   // from here on we know n != 0
-   if (qt == NT_OBJECT) {
-      if (t != qt)
-	 return QTI_NOT_EQUAL;
-      if (!qc)
-	 return QTI_AMBIGUOUS;
-
-      return testObjectClassAccess(reinterpret_cast<const QoreObject *>(n), qc);
-   }
-
-   if (t == qt)
-      return QTI_IDENT;
-
-   return QTI_NOT_EQUAL;
-}
-
-int QoreTypeInfo::parseEqualDefault(const QoreTypeInfo *typeInfo) const {
-   if (!this || !has_type || !typeInfo || !typeInfo->has_type)
-      return QTI_AMBIGUOUS;
-
-   // FIXME: when references can be typed, then check the type here
-   if (typeInfo->qt == NT_REFERENCE)
-      return QTI_AMBIGUOUS;
-
-   if (qt == NT_OBJECT) {
-      if (typeInfo->qt != NT_OBJECT)
-	 return QTI_NOT_EQUAL;
-
-      if (!qc || !typeInfo->qc)
-	 return QTI_AMBIGUOUS;
-
-      if (qc == typeInfo->qc)
-	 return QTI_IDENT;
-
-      return parseCheckCompatibleClass(qc, typeInfo->qc) ? QTI_IDENT : QTI_NOT_EQUAL;
-   }
-
-   if (typeInfo->qt == qt)
-      return QTI_IDENT;
-
-   return typeInfo->compat_qt == qt || typeInfo->qt == compat_qt ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
-}
-
-bool QoreTypeInfo::parseTestCompatibleClass(const QoreClass *otherclass) const {
-   if (qc == otherclass)
-      return true;
-
-   if (!qc)
-      return false;
-
-   bool priv;
-   if (!qc->getClass(otherclass->getID(), priv))
-      return false;
-
-   if (!priv)
-      return true;
-
-   return parseCheckPrivateClassAccess(otherclass);
-}
-*/
-

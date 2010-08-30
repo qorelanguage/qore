@@ -134,10 +134,23 @@ public:
    DLLLOCAL VarRefDeclNode(char *n, qore_var_t t, const QoreTypeInfo *n_typeInfo) : VarRefNode(n, t), parseTypeInfo(0), typeInfo(n_typeInfo) {
       //printd(5, "VarRefDeclNode::VarRefDeclNode() typeInfo=%p %s type=%d (%s)\n", typeInfo, n, n_qt, getBuiltinTypeName(n_qt));
    }
+
    // takes over ownership of class_name
    DLLLOCAL VarRefDeclNode(char *n, qore_var_t t, char *class_name) : VarRefNode(n, t), parseTypeInfo(new QoreParseTypeInfo(class_name)), typeInfo(0) {
       //printd(5, "VarRefDeclNode::VarRefDeclNode() this=%p typeInfo=%p %s type=%d class=%s\n", this, typeInfo, n, type, class_name);
    }
+
+   // takes over ownership of QoreParseTypeInfo ptr
+   DLLLOCAL VarRefDeclNode(char *n, qore_var_t t, QoreParseTypeInfo *n_parseTypeInfo) : VarRefNode(n, t), parseTypeInfo(n_parseTypeInfo), typeInfo(0) {
+      //printd(5, "VarRefDeclNode::VarRefDeclNode() this=%p typeInfo=%p %s type=%d class=%s\n", this, typeInfo, n, type, class_name);
+   }
+
+   // takes over ownership of QoreParseTypeInfo ptr
+   DLLLOCAL VarRefDeclNode(char *n, qore_var_t t, const QoreTypeInfo *n_typeInfo, QoreParseTypeInfo *n_parseTypeInfo) : VarRefNode(n, t), parseTypeInfo(n_parseTypeInfo), typeInfo(n_typeInfo) {
+      //printd(5, "VarRefDeclNode::VarRefDeclNode() typeInfo=%p %s type=%d (%s)\n", typeInfo, n, n_qt, getBuiltinTypeName(n_qt));
+   }
+
+
    DLLLOCAL ~VarRefDeclNode() {
       delete parseTypeInfo;
    }

@@ -75,9 +75,32 @@ public:
    char *key;
    AbstractQoreNode *value;
  
-   DLLLOCAL HashElement(AbstractQoreNode *k, AbstractQoreNode *v);
-   DLLLOCAL HashElement(int tag, char *constant, AbstractQoreNode *v);
-   DLLLOCAL ~HashElement();
+   DLLLOCAL HashElement(AbstractQoreNode *k, AbstractQoreNode *v) {
+      //tracein("HashElement::HashElement()");
+      if (!k || k->getType() != NT_STRING) {
+	 parse_error("hash member name must be a string value!");
+	 key = strdup("");
+      }
+      else
+	 key = strdup(reinterpret_cast<QoreStringNode *>(k)->getBuffer());
+      k->deref(0);
+      value = v;
+      //traceout("HashElement::HashElement()");
+   }
+
+   DLLLOCAL HashElement(int tag, char *constant, AbstractQoreNode *v) {
+      //tracein("HashElement::HashElement()");
+      key = (char *)malloc(sizeof(char) * strlen(constant) + 2);
+      key[0] = tag; // mark as constant
+      strcpy(key + 1, constant);
+      value = v;
+      free(constant);
+      //traceout("HashElement::HashElement()");
+   }
+
+   DLLLOCAL ~HashElement() {
+      free(key);
+   }
 };
 
 static AbstractQoreNode *makeErrorTree(AbstractQoreNode *left, AbstractQoreNode *right) {
@@ -97,37 +120,10 @@ static void addUserFunctionVariant(char *name, UserFunctionVariant *variant) {
       parse_error("function '%s()' defined (conflicts with parse option NO_SUBROUTINE_DEFS)", name);
 }
 
-HashElement::HashElement(AbstractQoreNode *k, AbstractQoreNode *v) {
-   //tracein("HashElement::HashElement()");
-   if (!k || k->getType() != NT_STRING) {
-      parse_error("hash member name must be a string value!");
-      key = strdup("");
-   }
-   else
-      key = strdup(reinterpret_cast<QoreStringNode *>(k)->getBuffer());
-   k->deref(0);
-   value = v;
-   //traceout("HashElement::HashElement()");
-}
-
-HashElement::HashElement(int tag, char *constant, AbstractQoreNode *v) {
-   //tracein("HashElement::HashElement()");
-   key = (char *)malloc(sizeof(char) * strlen(constant) + 2);
-   key[0] = tag; // mark as constant
-   strcpy(key + 1, constant);
-   value = v;
-   free(constant);
-   //traceout("HashElement::HashElement()");
-}
-
-HashElement::~HashElement() {
-   free(key);
-}
-
 // for constant definitions
 class ConstNode {
    public:
-      class NamedScope *name;
+      NamedScope *name;
       AbstractQoreNode *value;
 
       DLLLOCAL inline ConstNode(char *n, AbstractQoreNode *v) { name = new NamedScope(n); value = v; }
@@ -280,6 +276,86 @@ public:
    }
 };
 
+struct ParserTypeStruct {
+protected:
+   DLLLOCAL ParserTypeStruct(QoreParseTypeInfo *n_parseTypeInfo) : typeInfo(0), parseTypeInfo(n_parseTypeInfo) {
+   }
+
+   DLLLOCAL ParserTypeStruct() {
+   }
+
+public:
+   const QoreTypeInfo *typeInfo;
+   QoreParseTypeInfo *parseTypeInfo;
+
+   DLLLOCAL ParserTypeStruct(const QoreTypeInfo *n_typeInfo) : typeInfo(n_typeInfo), parseTypeInfo(0) {
+   }
+
+   DLLLOCAL ParserTypeStruct(char *id) {
+      const QoreTypeInfo *t = getBuiltinUserTypeInfo(id);
+      if (t) {
+	 free(id);
+	 typeInfo = t;
+	 parseTypeInfo = 0;
+	 return;
+      }
+
+      typeInfo = 0;
+      parseTypeInfo = new QoreParseTypeInfo(id);
+   }
+
+   DLLLOCAL ~ParserTypeStruct() {
+      delete parseTypeInfo;
+   }
+
+   DLLLOCAL const QoreTypeInfo *getTypeInfo() const {
+      if (!this)
+	 return 0;
+
+      return typeInfo;
+   }
+
+   DLLLOCAL QoreParseTypeInfo *getParseTypeInfo() {
+      if (!this)
+	 return 0;
+
+      QoreParseTypeInfo *rv = parseTypeInfo;
+      parseTypeInfo = 0;
+      return rv;
+   }
+
+   DLLLOCAL const char *getClassName() {
+      assert(this);
+      assert(parseTypeInfo);
+      return parseTypeInfo->cscope->ostr;
+   }
+};
+
+struct ParserScopedTypeStruct : public ParserTypeStruct {
+   DLLLOCAL ParserScopedTypeStruct(char *sr) : ParserTypeStruct(new QoreParseTypeInfo(sr)) {
+   }
+};
+
+struct ParserOrNothingTypeStruct : public ParserTypeStruct {
+   DLLLOCAL ParserOrNothingTypeStruct(char *id) {
+      const QoreTypeInfo *t = getBuiltinUserOrNothingTypeInfo(id);
+      if (t) {
+	 free(id);
+	 typeInfo = t;
+	 parseTypeInfo = 0;
+	 return;
+      }
+
+      typeInfo = 0;
+      parseTypeInfo = new QoreParseTypeInfo(id, true);
+   }
+};
+
+struct ParserScopedOrNothingTypeStruct : public ParserTypeStruct {
+   DLLLOCAL ParserScopedOrNothingTypeStruct(char *sr) : ParserTypeStruct(new QoreParseTypeInfo(sr, true)) {
+   }
+};
+
 static inline void parseAddConstant(NamedScope *name, AbstractQoreNode *value) {
    getRootNS()->rootAddConstant(name, value);
 }
@@ -418,6 +494,18 @@ static int check_case(const char *op, AbstractQoreNode *exp) {
    return 0;
 }
 
+#define OFM_PRIVATE    (1 << 0)
+#define OFM_SYNCED     (1 << 1)
+#define OFM_STATIC     (1 << 2)
+#define OFM_DEPRECATED (1 << 3)
+
+static void check_funcmod(int mod) {
+   if (mod & OFM_PRIVATE)
+      parse_error("illegal 'private' modifier in function definition");
+   if (mod & OFM_STATIC)
+      parse_error("illegal 'static' modifier in function definition");
+}
+
 static bool hasEffect(AbstractQoreNode *n) {
    if (!n || n->is_value())
       return false;
@@ -449,10 +537,6 @@ static bool hasEffect(AbstractQoreNode *n) {
 }
 */
 
-#define OFM_PRIVATE 1
-#define OFM_SYNCED  2
-#define OFM_STATIC  4
-
 static int checkMethod(const char *name, BCAList *bcal, RetTypeInfo *returnTypeInfo) {
    bool con = !strcmp(name, "constructor");
    bool dst = !strcmp(name, "destructor");
@@ -471,9 +555,10 @@ static int checkMethod(const char *name, BCAList *bcal, RetTypeInfo *returnTypeI
    return 0;
 }
 
-static inline MethodVariantBase *newMethodVariant(const char *name, int mod, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode *params, BCAList *bcal, RetTypeInfo *returnTypeInfo, StatementBlock *b) {
+static inline MethodVariantBase *newMethodVariant(const char *name, int mod, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode *params, BCAList *bcal, RetTypeInfo *returnTypeInfo, StatementBlock *b, int64 flags = QC_NO_FLAGS) {
 
-   int64 flags = get_pop_argv_ref() ? QC_USES_EXTRA_ARGS : QC_NO_FLAGS;
+   if (get_pop_argv_ref())
+      flags |= QC_USES_EXTRA_ARGS;
 
    if (bcal && strcmp(name, "constructor")) {
       parse_error("only constructors may have base class constructor arguments");
@@ -521,7 +606,7 @@ static inline void tryAddMethod(int mod, char *n, int n_sig_first_line, int n_si
       delete returnTypeInfo;
    }
    else {
-      MethodVariantBase *m = newMethodVariant(name->getIdentifier(), mod, n_sig_first_line, n_sig_last_line, params, bcal, returnTypeInfo, b);
+      MethodVariantBase *m = newMethodVariant(name->getIdentifier(), mod, n_sig_first_line, n_sig_last_line, params, bcal, returnTypeInfo, b, mod & OFM_DEPRECATED);
       // if there are any errors, the function below will delete memory
       getRootNS()->addMethodToClass(name.get(), m, mod & OFM_STATIC);
    }
@@ -622,6 +707,7 @@ static AbstractQoreNode *checkRewriteList(QoreListNode *l) {
    QoreRegexNode *Regex;
    QoreImplicitArgumentNode *implicit_arg;
    RetTypeInfo *returnTypeInfo;
+   struct ParserTypeStruct *parsertype;
 }
 
 %{
@@ -665,6 +751,7 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str) {
 %token TOK_PRIVATE "private"
 %token TOK_PUBLIC "public"
 %token TOK_SYNCHRONIZED "synchronized"
+%token TOK_DEPRECATED "deprecated"
 %token TOK_CONTEXT "context"
 %token TOK_SORT_BY "sortBy"
 %token TOK_SORT_DESCENDING_BY "sortDescendingBy"
@@ -830,12 +917,14 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str) {
 %type <bcalist>     base_constructor_list
 %type <bcalist>     base_constructors
 %type <bcanode>     base_constructor
+%type <string>      ident_openparen
+%type <parsertype>  qtypedef
 
  // destructor actions for elements that need deleting when parse errors occur
-%destructor { delete $$; } REGEX REGEX_SUBST REGEX_EXTRACT REGEX_TRANS block statement_or_block statements statement return_statement try_statement hash_element context_mods context_mod method_definition class_def top_namespace_decl namespace_decls namespace_decl scoped_const_decl unscoped_const_decl switch_statement case_block case_code superclass base_constructor private_member_list public_member_list member_list member_list2 base_constructor_list base_constructors class_attributes return_value member member2 superclass_list inheritance_list
+%destructor { delete $$; } REGEX REGEX_SUBST REGEX_EXTRACT REGEX_TRANS block statement_or_block statements statement return_statement try_statement hash_element context_mods context_mod method_definition class_def top_namespace_decl namespace_decls namespace_decl scoped_const_decl unscoped_const_decl switch_statement case_block case_code superclass base_constructor private_member_list public_member_list member_list member_list2 base_constructor_list base_constructors class_attributes return_value member member2 superclass_list inheritance_list qtypedef
 %destructor { if ($$) $$->deref(); } string QUOTED_WORD DATETIME BINARY IMPLICIT_ARG_REF DOT_KW_IDENTIFIER
 %destructor { if ($$) $$->deref(0); } exp myexp scalar hash list
-%destructor { free($$); } IDENTIFIER VAR_REF SELF_REF CONTEXT_REF COMPLEX_CONTEXT_REF BACKQUOTE SCOPED_REF KW_IDENTIFIER_OPENPAREN optname
+%destructor { free($$); } IDENTIFIER VAR_REF SELF_REF CONTEXT_REF COMPLEX_CONTEXT_REF BACKQUOTE SCOPED_REF KW_IDENTIFIER_OPENPAREN optname ident_openparen
 
 %%
 top_level_commands:
@@ -1083,8 +1172,7 @@ statement:
 context_mods:
 	// empty 
         { $$ = 0; }
-        | 
-	context_mods context_mod { 
+        | context_mods context_mod { 
 	   if (!$1) 
 	      $$ = new ContextModList($2); 
 	   else { 
@@ -1249,8 +1337,8 @@ try_statement:
 	}
         ;
 
-myexp:     /* empty */          { $$ = 0; }
-        | exp                   { $$ = $1; }
+myexp:  /* empty */  { $$ = 0; }
+        | exp        { $$ = $1; }
         ;
 
 class_def:
@@ -1359,6 +1447,23 @@ class_attributes:
 	}
         ;
 
+qtypedef:
+        /* empty */
+        { $$ = 0; }
+        | IDENTIFIER {
+	   $$ = new ParserTypeStruct($1);
+	}
+        | SCOPED_REF {
+	   $$ = new ParserScopedTypeStruct($1);
+        }
+        | '*' IDENTIFIER {
+	   $$ = new ParserOrNothingTypeStruct($2);
+        }
+        | '*' SCOPED_REF {
+	   $$ = new ParserScopedOrNothingTypeStruct($2);
+        }
+        ;
+
 private_member_list:
 	TOK_PRIVATE member_list ';' {
 	   $$ = $2;
@@ -1381,60 +1486,31 @@ public_member_list:
         ;
 
 member2: 
-	SELF_REF ';' {
-	   $$ = new MemberInfo($1, 0);
-        }
-	| SELF_REF '=' exp ';' {
-	   $$ = new MemberInfo($1, new QoreMemberInfo(@1.first_line, @2.last_line, $3));
-        }
-        | SCOPED_REF SELF_REF ';' {
-	   $$ = new MemberInfo($2, new QoreMemberInfo(@1.first_line, @2.last_line, $1));
+        qtypedef SELF_REF ';' {
+	   int fl = $1 ? @1.first_line : @2.first_line;
+	   $$ = new MemberInfo($2, new QoreMemberInfo(fl, @2.last_line, $1->getTypeInfo(), $1->getParseTypeInfo()));
+	   delete $1;
 	}
-        | IDENTIFIER SELF_REF ';' {
-	   const QoreTypeInfo *t = getBuiltinUserTypeInfo($1);
-	   QoreMemberInfo *memberInfo;
-	   if (t) {
-	      memberInfo = new QoreMemberInfo(@1.first_line, @2.last_line, t);
-	      free($1);
-	   }
-	   else
-	      memberInfo = new QoreMemberInfo(@1.first_line, @2.last_line, $1);
-	   
-	   $$ = new MemberInfo($2, memberInfo);
-        }
-        | IDENTIFIER SELF_REF '=' exp ';' {
-	   const QoreTypeInfo *t = getBuiltinUserTypeInfo($1);
-	   QoreMemberInfo *memberInfo;
-	   if (t) {
-	      memberInfo = new QoreMemberInfo(@1.first_line, @4.last_line, t, $4);
-	      free($1);
-	   }
-	   else
-	      memberInfo = new QoreMemberInfo(@1.first_line, @4.last_line, $1, $4);
-
-	   $$ = new MemberInfo($2, memberInfo);
-        }
-        | SCOPED_REF SELF_REF '=' exp ';' {
-	   $$ = new MemberInfo($2, new QoreMemberInfo(@1.first_line, @4.last_line, $1, $4));
+        | qtypedef SELF_REF '=' exp ';' {
+	   int fl = $1 ? @1.first_line : @2.first_line;
+	   $$ = new MemberInfo($2, new QoreMemberInfo(fl, @4.last_line, $1->getTypeInfo(), $1->getParseTypeInfo(), $4));
+	   delete $1;
 	}
-        | IDENTIFIER SELF_REF '(' myexp ')' ';' {
-	   const QoreTypeInfo *t = getBuiltinUserTypeInfo($1);
-	   QoreMemberInfo *memberInfo;
-	   if (t) {
-	      parse_error("cannot call constructor for non-class base type '%s'", $1);
-	      memberInfo = new QoreMemberInfo(@1.first_line, @4.last_line, t, $4);
-	      free($1);
-	   }
-	   else {
-	      ScopedObjectCallNode *new_call = new ScopedObjectCallNode(new NamedScope(strdup($1)), makeArgs($4));
-	      memberInfo = new QoreMemberInfo(@1.first_line, @4.last_line, $1, new_call);
-	   }
+        | qtypedef SELF_REF '(' myexp ')' ';' {
+	   int fl = $1 ? @1.first_line : @2.first_line;
+	   const QoreTypeInfo *t = $1->getTypeInfo();
+	   ScopedObjectCallNode *new_call = 0;
 
-	   $$ = new MemberInfo($2, memberInfo);
-        }
-        | SCOPED_REF SELF_REF '(' myexp ')' ';' {
-	   ScopedObjectCallNode *new_call = new ScopedObjectCallNode(new NamedScope(strdup($1)), makeArgs($4));
-	   $$ = new MemberInfo($2, new QoreMemberInfo(@1.first_line, @4.last_line, $1, new_call));
+	   if (!$1)
+	      parse_error("cannot call constructor without declaring the class");
+	   else if (t)
+	      parse_error("cannot call constructor for non-class base type '%s'", t->getName());
+	   else
+	      new_call = new ScopedObjectCallNode(new NamedScope(strdup($1->getClassName())), makeArgs($4));
+
+	   $$ = new MemberInfo($2, new QoreMemberInfo(fl, @4.last_line, $1->getTypeInfo(), $1->getParseTypeInfo(), new_call));
+
+	   delete $1;
 	}
         ;
 
@@ -1467,20 +1543,21 @@ member_list2:
 	}
 	;
 
+ident_openparen:
+        IDENTIFIER '(' {
+	   $$ = $1;
+        }
+        | KW_IDENTIFIER_OPENPAREN {
+	   $$ = $1;
+        }
+        ;
+
 method_definition:
-        method_modifiers IDENTIFIER '(' myexp ')' base_constructor_list return_value block {
-	   checkMethod($2, $6, $7);
-	   $$ = new MethodNode($2, newMethodVariant($2, $1, @4.first_line, @4.last_line, $4, $6, $7, $8), $1 & OFM_STATIC);
-	}
-        | method_modifiers KW_IDENTIFIER_OPENPAREN myexp ')' base_constructor_list return_value block {
+        method_modifiers ident_openparen myexp ')' base_constructor_list return_value block {
 	   checkMethod($2, $5, $6);
-	   $$ = new MethodNode($2, newMethodVariant($2, $1, @3.first_line, @3.last_line, $3, $5, $6, $7), $1 & OFM_STATIC);
+	   $$ = new MethodNode($2, newMethodVariant($2, $1, @3.first_line, @3.last_line, $3, $5, $6, $7, $1 & OFM_DEPRECATED), $1 & OFM_STATIC);
 	}
-	| IDENTIFIER '(' myexp ')' base_constructor_list return_value block {
-	   checkMethod($1, $5, $6);
-	   $$ = new MethodNode($1, newMethodVariant($1, 0, @3.first_line, @3.last_line, $3, $5, $6, $7), false);
-	}
-	| KW_IDENTIFIER_OPENPAREN myexp ')' base_constructor_list return_value block {
+	| ident_openparen myexp ')' base_constructor_list return_value block {
 	   checkMethod($1, $4, $5);
 	   $$ = new MethodNode($1, newMethodVariant($1, 0, @2.first_line, @2.last_line, $2, $4, $5, $6), false);
 	}
@@ -1527,32 +1604,28 @@ method_modifiers:
         method_modifier { $$ = $1; }
         | method_modifiers method_modifier {
 	   if (($1 | $2) == $1)
-	      parse_error("double object method modifier");
+	      parse_error("modifier given twice");
 	   $$ = $1 | $2; 
 	}
         ;
 
 method_modifier:
 	TOK_PRIVATE { $$ = OFM_PRIVATE; }
-        | TOK_SYNCHRONIZED { $$ = OFM_SYNCED; }
         | TOK_STATIC { $$ = OFM_STATIC; }
+        | TOK_SYNCHRONIZED { $$ = OFM_SYNCED; }
+        | TOK_DEPRECATED { $$ = OFM_DEPRECATED; }
         ;
 
 return_value:
-        TOK_RETURNS IDENTIFIER {
-	   const QoreTypeInfo *t = getBuiltinUserTypeInfo($2);
-	   QoreParseTypeInfo *p;
-	   if (!t)
-	      p = new QoreParseTypeInfo($2);
-	   else {
-	      p = 0;
-	      free($2);
+        TOK_RETURNS qtypedef {
+	   if (!$2) {
+	      parse_error("missing type declaration after 'returns'");
+	      $$ = 0;
 	   }
-
-	   $$ = new RetTypeInfo(p, t);
-	}
-        | TOK_RETURNS SCOPED_REF {
-	   $$ = new RetTypeInfo(new QoreParseTypeInfo($2), 0);
+	   else {
+	      $$ = new RetTypeInfo($2->getParseTypeInfo(), $2->getTypeInfo());
+	      delete $2;
+	   }
 	}
         | /* nothing */
         {
@@ -1560,21 +1633,18 @@ return_value:
 	}
 
 sub_def:
-        TOK_SUB IDENTIFIER '(' myexp ')' return_value block { 
+	TOK_SUB ident_openparen myexp ')' return_value block { 
 	   int ar = get_pop_argv_ref();
-	   addUserFunctionVariant($2, new UserFunctionVariant($7, @4.first_line, @4.last_line, $4, $6, false, ar > 0 ? QC_USES_EXTRA_ARGS : QC_NO_FLAGS));
+	   int64 flags = ar > 0 ? QC_USES_EXTRA_ARGS : QC_NO_FLAGS;
+	   addUserFunctionVariant($2, new UserFunctionVariant($6, @3.first_line, @3.last_line, $3, $5, false, flags));
 	}
-        | TOK_SYNCHRONIZED TOK_SUB IDENTIFIER '(' myexp ')' return_value block {
+	| method_modifiers TOK_SUB ident_openparen myexp ')' return_value block {
+	   check_funcmod($1);
 	   int ar = get_pop_argv_ref();
-	   addUserFunctionVariant($3, new UserFunctionVariant($8, @5.first_line, @5.last_line, $5, $7, true, ar > 0 ? QC_USES_EXTRA_ARGS : QC_NO_FLAGS));
-	}
-	| TOK_SUB KW_IDENTIFIER_OPENPAREN myexp ')' return_value block { 
-	   int ar = get_pop_argv_ref();
-	   addUserFunctionVariant($2, new UserFunctionVariant($6, @3.first_line, @3.last_line, $3, $5, false, ar > 0 ? QC_USES_EXTRA_ARGS : QC_NO_FLAGS));
-	}
-	| TOK_SYNCHRONIZED TOK_SUB KW_IDENTIFIER_OPENPAREN myexp ')' return_value block {
-	   int ar = get_pop_argv_ref();
-	   addUserFunctionVariant($3, new UserFunctionVariant($7, @4.first_line, @4.last_line, $4, $6, true, ar > 0 ? QC_USES_EXTRA_ARGS : QC_NO_FLAGS)); 
+	   int64 flags = ar > 0 ? QC_USES_EXTRA_ARGS : QC_NO_FLAGS;
+	   if ($1 & OFM_DEPRECATED)
+	      flags |= QC_DEPRECATED;
+	   addUserFunctionVariant($3, new UserFunctionVariant($7, @4.first_line, @4.last_line, $4, $6, $1 & OFM_SYNCED, flags)); 
 	}
 	;
 
@@ -1632,41 +1702,17 @@ exp:    scalar
 	{ $$ = $2; }
         | SCOPED_REF
         { $$ = new ConstantNode($1); }
-        | VAR_REF { 
-	   if (!strcmp($1, "argv"))
+        | qtypedef VAR_REF {
+	   if (!$1 && !strcmp($2, "argv"))
 	      inc_argv_ref();
-	   $$ = new VarRefNode($1, VT_UNRESOLVED);	   
+
+	   $$ = new VarRefDeclNode($2, VT_UNRESOLVED, $1->getTypeInfo(), $1->getParseTypeInfo());
+
+	   delete $1;
 	}
-        | IDENTIFIER VAR_REF {
-	   const QoreTypeInfo *t = getBuiltinUserTypeInfo($1);
-	   if (t) {
-	      $$ = new VarRefDeclNode($2, VT_UNRESOLVED, t);
-	      free($1);
-	   }
-	   else
-	      $$ = new VarRefDeclNode($2, VT_UNRESOLVED, $1);
-	   //$$ = (t >= 0 ? new VarRefDeclNode($2, VT_UNRESOLVED, t) : new VarRefDeclNode($2, VT_UNRESOLVED, $1));
-	}
-        | SCOPED_REF VAR_REF {
-	   $$ = new VarRefDeclNode($2, VT_UNRESOLVED, $1);
-	}
-        | TOK_MY VAR_REF { 
-	   // see if types are required
-	   if (checkParseOption(PO_REQUIRE_TYPES))
-	      parse_error("local variable '$%s' declared without type information, but parse options require all declarations to have type information", $2);
-	   $$ = new VarRefNode($2, VT_LOCAL); 
-	}
-        | TOK_MY IDENTIFIER VAR_REF {
-	   const QoreTypeInfo *t = getBuiltinUserTypeInfo($2);
-	   if (t) {
-	      $$ = new VarRefDeclNode($3, VT_LOCAL, t);
-	      free($2);
-	   }
-	   else
-	      $$ = new VarRefDeclNode($3, VT_LOCAL, $2);
-	}
-        | TOK_MY SCOPED_REF VAR_REF {
-	   $$ = new VarRefDeclNode($3, VT_LOCAL, $2); 
+        | TOK_MY qtypedef VAR_REF {
+	   $$ = new VarRefDeclNode($3, VT_LOCAL, $2->getTypeInfo(), $2->getParseTypeInfo());
+	   delete $2;
 	}
         | TOK_MY '(' list ')' {
 	   $3->setVariableList();
@@ -1690,29 +1736,13 @@ exp:    scalar
 	   }
 	   $$ = $3;
 	}
-        | TOK_OUR VAR_REF {
-	   // see if types are required
-	   if (checkParseOption(PO_REQUIRE_TYPES))
-	      parse_error("global variable '$%s' declared without type information, but parse options require all declarations to have type information", $2);
-
-	   VarRefNode *v = new VarRefNode($2, getProgram()->addGlobalVarDef($2, 0));
-	   $$ = v;
-	}
-        | TOK_OUR IDENTIFIER VAR_REF {
-	   const QoreTypeInfo *t = getBuiltinUserTypeInfo($2);
-	   VarRefNode *v;
-	   if (t) {
-	      v = new VarRefNode($3, getProgram()->addResolvedGlobalVarDef($3, t));
-	      free($2);
-	   }
-	   else {
-	      v = new VarRefNode($3, getProgram()->addGlobalVarDef($3, new QoreParseTypeInfo($2)));
-	   }
-	   $$ = v;
-	}
-        | TOK_OUR SCOPED_REF VAR_REF {
-	   VarRefNode *v = new VarRefNode($3, getProgram()->addGlobalVarDef($3, new QoreParseTypeInfo($2)));
-	   $$ = v;
+        | TOK_OUR qtypedef VAR_REF {
+	   const QoreTypeInfo *t = $2->getTypeInfo();
+	   if (t)
+	      $$ = new VarRefNode($3, getProgram()->addResolvedGlobalVarDef($3, t));
+	   else
+	      $$ = new VarRefNode($3, getProgram()->addGlobalVarDef($3, $2->getParseTypeInfo()));
+	   delete $2;
 	}
         | TOK_OUR '(' list ')' { 
 	   $3->setVariableList();
@@ -2326,9 +2356,13 @@ exp:    scalar
 	   int ar = get_pop_argv_ref();
 	   $$ = new QoreClosureParseNode(new UserClosureFunction($6, @3.first_line, @3.last_line, $3, $5, false, ar > 0 ? QC_USES_EXTRA_ARGS : QC_NO_FLAGS));
 	}
-	| TOK_SYNCHRONIZED TOK_SUB '(' myexp ')' return_value block {
+	| method_modifiers TOK_SUB '(' myexp ')' return_value block {
+	   check_funcmod($1);
 	   int ar = get_pop_argv_ref();
-	   $$ = new QoreClosureParseNode(new UserClosureFunction($7, @4.first_line, @4.last_line, $4, $6, true, ar > 0 ? QC_USES_EXTRA_ARGS : QC_NO_FLAGS));
+	   int64 flags = ar > 0 ? QC_USES_EXTRA_ARGS : QC_NO_FLAGS;
+	   if ($1 & OFM_DEPRECATED)
+	      flags |= QC_DEPRECATED;
+	   $$ = new QoreClosureParseNode(new UserClosureFunction($7, @4.first_line, @4.last_line, $4, $6, $1 | OFM_SYNCED, flags));
 	}
         | IMPLICIT_ARG_REF { 
 	   $$ = $1;

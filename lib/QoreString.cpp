@@ -875,6 +875,13 @@ void QoreString::concat(const char *str) {
    }
 }
 
+void QoreString::concat(const std::string &str) {
+   priv->check_char(priv->len + str.size());
+   memcpy(priv->buf + priv->len, str.c_str(), str.size());
+   priv->len += str.size();
+   priv->buf[priv->len] = '\0';
+}
+
 void QoreString::concat(const char *str, qore_size_t size) {
    priv->check_char(priv->len + size);
    memcpy(priv->buf + priv->len, str, size);
@@ -1798,6 +1805,16 @@ bool QoreString::operator==(const std::string &other) const {
 
 bool QoreString::operator==(const char *other) const {
    return !strcmp(other, priv->buf);
+}
+
+QoreString &QoreString::operator+=(const char *str) {
+   concat(str);
+   return *this;
+}
+
+QoreString &QoreString::operator+=(const std::string &str) {
+   concat(str);
+   return *this;
 }
 
 char QoreString::operator[](qore_offset_t pos) const {

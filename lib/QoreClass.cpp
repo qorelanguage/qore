@@ -84,7 +84,8 @@ struct qore_class_private {
       pending_has_public_memdecl,   // has a pending public member declaration in this class?
       owns_typeinfo,                // do we own the typeinfo data or not?
       resolve_copy_done,            // has the copy already been resolved
-      has_new_user_changes          // does the class have new user code that needs to be processed?
+      has_new_user_changes,         // does the class have new user code that needs to be processed?
+      owns_ornothingtypeinfo        // do we own the "or nothing" type info
       ;
    int64 domain;                      // capabilities of builtin class to use in the context of parse restrictions
    QoreReferenceCounter nref;       // namespace references
@@ -92,6 +93,7 @@ struct qore_class_private {
    // type information for the class, may not have a pointer to the same QoreClass
    // as the actual owning class in case of a copy
    QoreTypeInfo *typeInfo;
+   QoreTypeInfo *orNothingTypeInfo;
    // common "self" local variable for all constructors
    mutable LocalVar selfid;
    // user-specific data
@@ -123,12 +125,14 @@ struct qore_class_private {
 	owns_typeinfo(n_typeInfo ? false : true),
 	resolve_copy_done(false),
 	has_new_user_changes(false),
+	owns_ornothingtypeinfo(false),
 	domain(dom), 
 	num_methods(0), 
 	num_user_methods(0),
 	num_static_methods(0), 
 	num_static_user_methods(0),
 	typeInfo(n_typeInfo ? n_typeInfo : new QoreTypeInfo(cls)), 
+	orNothingTypeInfo(0),
 	selfid("self", typeInfo), 
 	ptr(0),
 	new_copy(0) {
@@ -160,12 +164,14 @@ struct qore_class_private {
 	owns_typeinfo(false),
 	resolve_copy_done(false),
 	has_new_user_changes(false),
+	owns_ornothingtypeinfo(false),
 	domain(old.domain), 
 	num_methods(old.num_methods), 
 	num_user_methods(old.num_user_methods),
 	num_static_methods(old.num_static_methods), 
 	num_static_user_methods(old.num_static_user_methods),
 	typeInfo(old.typeInfo), 
+	orNothingTypeInfo(old.orNothingTypeInfo),
 	selfid(old.selfid), 
 	ptr(old.ptr),
 	new_copy(0) {
@@ -239,6 +245,9 @@ struct qore_class_private {
 
       if (owns_typeinfo)
 	 delete typeInfo;
+
+      if (owns_ornothingtypeinfo)
+	 delete orNothingTypeInfo;
    }
 
    DLLLOCAL void resolveCopy();
@@ -253,6 +262,10 @@ struct qore_class_private {
 
    DLLLOCAL const QoreTypeInfo *getTypeInfo() const {
       return typeInfo;
+   }
+
+   DLLLOCAL const QoreTypeInfo *getOrNothingTypeInfo() const {
+      return orNothingTypeInfo;
    }
 
    DLLLOCAL bool parseHasMemberGate() const {
@@ -2036,6 +2049,8 @@ void BCSMList::resolveCopy() {
 }
 
 QoreClass::QoreClass(const char *nme, int dom) : priv(new qore_class_private(this, nme, dom)) {
+   priv->orNothingTypeInfo = new OrNothingTypeInfo(*(priv->typeInfo));
+   priv->owns_ornothingtypeinfo = true;
 }
 
 QoreClass::QoreClass(const char *nme, int64 dom, const QoreTypeInfo *typeInfo) {
@@ -2043,6 +2058,16 @@ QoreClass::QoreClass(const char *nme, int64 dom, const QoreTypeInfo *typeInfo) {
    priv = new qore_class_private(this, nme, dom, const_cast<QoreTypeInfo *>(typeInfo));
 
    printd(5, "QoreClass::QoreClass() this=%p creating '%s' with custom typeinfo\n", this, priv->name);
+
+   // see if typeinfo already accepts NOTHING
+   if (typeInfo->parseAcceptsReturns(NT_NOTHING))
+      priv->orNothingTypeInfo = const_cast<QoreTypeInfo *>(typeInfo);
+   else {
+      if (!typeInfo->hasInputFilter()) {
+	 priv->orNothingTypeInfo = new OrNothingTypeInfo(*typeInfo);
+	 priv->owns_ornothingtypeinfo = true;
+      }
+   }
 }
 
 QoreClass::QoreClass() : priv(new qore_class_private(this, 0)) {
@@ -2910,7 +2935,11 @@ const QoreMethod *QoreClass::getMemberNotificationMethod() const {
 }
 
 const QoreTypeInfo *QoreClass::getTypeInfo() const {
-   return priv->typeInfo;
+   return priv->getTypeInfo();
+}
+
+const QoreTypeInfo *QoreClass::getOrNothingTypeInfo() const {
+   return priv->getOrNothingTypeInfo();
 }
 
 int QoreClass::parseCheckMemberAccess(const char *mem, const QoreTypeInfo *&memberTypeInfo, int pflag) const {
