@@ -452,12 +452,14 @@ void QoreString::splice(qore_offset_t offset, qore_offset_t num, const QoreStrin
 }
 
 void QoreString::splice(qore_offset_t offset, qore_offset_t num, const AbstractQoreNode *strn, ExceptionSink *xsink) {
-   if (!strn || strn->getType() != NT_STRING) {
+   QoreStringNodeValueHelper sv(strn);
+
+   if (!sv->strlen()) {
       splice(offset, num, xsink);
       return;
    }
 
-   splice(offset, num, *reinterpret_cast<const QoreStringNode *>(strn), xsink);
+   splice(offset, num, **sv, xsink);
 }
 
 QoreString *QoreString::extract(qore_offset_t offset, ExceptionSink *xsink) {
@@ -486,10 +488,12 @@ QoreString *QoreString::extract(qore_offset_t offset, qore_offset_t num, Excepti
 }
 
 QoreString *QoreString::extract(qore_offset_t offset, qore_offset_t num, const AbstractQoreNode *strn, ExceptionSink *xsink) {
-   if (!strn || strn->getType() != NT_STRING)
+   QoreStringNodeValueHelper sv(strn);
+
+   if (!sv->strlen())
       return extract(offset, num, xsink);
 
-   const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(strn);
+   const QoreStringNode *str = *sv;
    TempEncodingHelper tmp(str, priv->charset, xsink);
    if (!tmp)
        return 0;
