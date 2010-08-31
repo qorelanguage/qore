@@ -3467,7 +3467,7 @@
         </row>
         <row>
           <entry>
-            <para><code><link linkend="years">years</link>(<link linkend="softint_type">softint</link>) <command>returns</command> <link linkend="date_type">date</link></code></para>
+            <para><code><link linkend="years">years</link>(<link linkend="softint_type">softint</link>) <command>returns</command> <link linkend="date_type">date</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
             <para><code><link linkend="years">years</link>() <command>returns</command> <link linkend="date_type">date</link> (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
           </entry>
           <entry>
@@ -7516,7 +7516,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Example</term>
       <listitem>
-	<programlisting>$now = now();</programlisting>
+	<programlisting><command>my</command> date $now = now();</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -7572,13 +7572,13 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Prototype</term>
       <listitem>
-	<programlisting>now_ms()</programlisting>
+	<entry><para><code><link linkend="now_ms">now_ms</link>() <command>returns</command> <link linkend="date_type">date</link> (<link linkend="CONST_flag">CONST</link>)</code></para></entry>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Example</term>
       <listitem>
-	<programlisting>$now_ms = now_ms();</programlisting>
+	<programlisting><command>my</command> date $now_ms = now_ms();</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -7634,13 +7634,13 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Prototype</term>
       <listitem>
-	<programlisting>now_us()</programlisting>
+          <entry><para><code><link linkend="now_us">now_us</link>() <command>returns</command> <link linkend="date_type">date</link> (<link linkend="CONST_flag">CONST</link>)</code></para></entry>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Example</term>
       <listitem>
-	<programlisting>$now_us = now_us();</programlisting>
+	<programlisting><command>my</command> date $now_us = now_us();</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -7695,13 +7695,13 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Prototype</term>
       <listitem>
-	<programlisting>now_utc()</programlisting>
+	<entry><para><code><link linkend="now_utc">now_utc</link>() <command>returns</command> <link linkend="date_type">date</link> (<link linkend="CONST_flag">CONST</link>)</code></para></entry>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Example</term>
       <listitem>
-	<programlisting>$now_utc = now_utc();</programlisting>
+	<programlisting><command>my</command> date $now_utc = now_utc();</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -7872,7 +7872,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <para><code><link linkend="years">years</link>(<link linkend="softint_type">softint</link>) <command>returns</command> <link linkend="date_type">date</link></code></para>
+            <para><code><link linkend="years">years</link>(<link linkend="softint_type">softint</link>) <command>returns</command> <link linkend="date_type">date</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
             <para><code><link linkend="years">years</link>() <command>returns</command> <link linkend="date_type">date</link> (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
           </listitem>
         </varlistentry>
