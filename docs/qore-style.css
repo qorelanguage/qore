@@ -1,5 +1,7 @@
 /*
  * basic html tags are handled at first. Its docbook tuning is done later
+ *
+ * All relevant colors are Hue 80 based (in HSV model)
  */
 
 body{
@@ -14,29 +16,29 @@ body{
 
 /* Links ****************************************************************/
 a:link {
-    color:#0066cc;
+    color: #88cc00; /*#0066cc;*/
     text-decoration: none;
-    border: 1px dotted #0066cc;
+    border: 1px dotted #88cc00; /* #0066cc;*/
     border-top: 0px;
     border-left: 0px;
     border-right: 0px;
 }
 a:visited {
-    color:#6699cc;
-    border: 1px dotted #6699cc;
+    color: #aacc66; /*#6699cc;*/
+    border: 1px dotted #aacc66; /*#6699cc;*/
     border-top: 0px;
     border-left: 0px;
     border-right: 0px;
 }
 a:hover {
-    color: navy;
+    color: #436400; /*navy;*/
     text-decoration: none;
 }
 
 
 /* headings *************************************************************/
 h1, h2, h3, h4, h5, h6 {
-    color:#4a5d75;
+    color: #67754a; /*#4a5d75;*/
     line-height:130%;
     margin-top:0em;
     font-family: sans-serif;
@@ -106,7 +108,7 @@ dd {
 .table th {
     font-weight: bold;
     color: white;
-    background-color: #4A5D75;
+    background-color: #67754a; /*#4A5D75;*/
 }
 .table th p { margin: 0.4em; }
 .table td p { margin: 0.4em; } 
@@ -119,7 +121,7 @@ div.revhistory { display: none; }
 
 /* Notifications - note, warning, etc. *****************/
 div.note, div.tip, div.important, div.caution, div.warning {
-    background: #849092;
+    background: #8d9284; /*#849092;*/
     color:white;
     padding:1em;
     padding-bottom:20px;
@@ -138,7 +140,7 @@ div.note h3, div.tip h3, div.important h3, div.caution h3, div.warning h3 {
 }
 div.note a:visited, div.tip a:visited, div.important a:visited, div.caution a:visited,
 div.warning a, div.note a, div.tip a, div.important a, div.caution a, div.warning a {
-    color:#f7f2d0;
+    color: #eaf7d0; /*#f7f2d0;*/
 }
 div.note {background-image:url(img/note.png);}
 div.tip {background-image:url(img/tip.png);}
