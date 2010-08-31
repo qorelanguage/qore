@@ -22,6 +22,7 @@
 
 #include <qore/Qore.h>
 #include <qore/intern/svn-revision.h>
+#include <qore/intern/QoreSignal.h>
 
 #include <string.h>
 #include <pwd.h>

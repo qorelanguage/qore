@@ -22,6 +22,8 @@
 
 #include <qore/Qore.h>
 #include <qore/intern/ql_type.h>
+#include <qore/intern/qore_date_private.h>
+
 
 static AbstractQoreNode *f_boolean(const QoreListNode *params, ExceptionSink *xsink) {
    return get_bool_node(HARD_QORE_BOOL(params, 0));
@@ -121,8 +123,8 @@ static AbstractQoreNode *f_date_mask(const QoreListNode *params, ExceptionSink *
             // 'M' is not supported because there is no clear way how to get eg. 1 or 11
             if ((s[1] == 'o') && (s[2] == 'n')) {
                char * key = substrs(tmp, 3, xsink);
+               ON_BLOCK_EXIT(free, key);               
                dt.tm_mon = qore_date_info::getMonthIxFromAbbr(key, false);
-               free(key);
                if (dt.tm_mon < 0 || dt.tm_mon > 11) {
                    xsink->raiseException("DATE-CONVERT-ERROR", "Wrong 'Mon' string: '%s'", key);
                    return 0;
@@ -133,8 +135,8 @@ static AbstractQoreNode *f_date_mask(const QoreListNode *params, ExceptionSink *
             }
             if ((s[1] == 'O') && (s[2] == 'N')) {
                char * key = substrs(tmp, 3, xsink);
+               ON_BLOCK_EXIT(free, key);
                dt.tm_mon = qore_date_info::getMonthIxFromAbbr(key, true);
-               free(key);
                if (dt.tm_mon < 0 || dt.tm_mon > 11) {
                    xsink->raiseException("DATE-CONVERT-ERROR", "Wrong 'MON' string: '%s'", key);
                    return 0;
