@@ -59,6 +59,152 @@ static AbstractQoreNode *f_date(const QoreListNode *params, ExceptionSink *xsink
    return date.getReferencedValue();
 }
 
+inline int substri(const QoreString & s, qore_offset_t len, ExceptionSink * xsink) {
+    QoreString * sub = s.substr(0, len, xsink);
+    int ret = atoi(sub->getBuffer());
+    delete sub;
+    return ret;
+}
+inline char * substrs(const QoreString & s, qore_offset_t len, ExceptionSink * xsink) {
+    QoreString * sub = s.substr(0, len, xsink);
+    char * ret = sub->giveBuffer();
+    delete sub;
+    return ret;
+}
+
+static AbstractQoreNode *f_date_mask(const QoreListNode *params, ExceptionSink *xsink) {
+   const QoreStringNode * dtstr = HARD_QORE_STRING(params, 0);
+   const QoreStringNode * mask = HARD_QORE_STRING(params, 1);
+   
+   struct tm dt;
+   zero_tm(dt);
+   // milliseconds
+   int ms = 0;
+
+   const char *d = dtstr->getBuffer();
+   const char *s = mask->getBuffer();
+   QoreString tmp;
+
+   // obtain the century
+   time_t ctime = time(NULL);
+   struct tm * curr = localtime(&ctime); 
+   int century = curr->tm_year / 100 * 100;
+
+   while (*s) {
+      tmp.clear();
+      tmp.concat(d);
+      switch (*s) {
+         case 'Y':
+            if (s[1] != 'Y') {
+               xsink->raiseException("DATE-CONVERT-ERROR", "'Y' has to be used as 'YY' or 'YYYY'");
+               return 0;
+               break;
+            }
+            s++;
+            if ((s[1] == 'Y') && (s[2] == 'Y')) {
+               dt.tm_year = substri(tmp, 4, xsink) - 1900;
+               s += 2;
+               d += 3;
+            }
+            else {
+               dt.tm_year = substri(tmp, 2, xsink) + century;
+               d++;
+            }
+            break;
+         case 'M':
+            if (s[1] == 'M') {
+               dt.tm_mon = substri(tmp, 2, xsink) - 1;               
+               s++;
+               d++;
+               break;
+            }
+            // 'M' is not supported because there is no clear way how to get eg. 1 or 11
+            if ((s[1] == 'o') && (s[2] == 'n')) {
+               char * key = substrs(tmp, 3, xsink);
+               dt.tm_mon = qore_date_info::getMonthIxFromAbbr(key, false);
+               free(key);
+               if (dt.tm_mon < 0 || dt.tm_mon > 11) {
+                   xsink->raiseException("DATE-CONVERT-ERROR", "Wrong 'Mon' string: '%s'", key);
+                   return 0;
+               }
+               s += 2;
+               d += 2;
+               break;
+            }
+            if ((s[1] == 'O') && (s[2] == 'N')) {
+               char * key = substrs(tmp, 3, xsink);
+               dt.tm_mon = qore_date_info::getMonthIxFromAbbr(key, true);
+               free(key);
+               if (dt.tm_mon < 0 || dt.tm_mon > 11) {
+                   xsink->raiseException("DATE-CONVERT-ERROR", "Wrong 'MON' string: '%s'", key);
+                   return 0;
+               }
+               s += 2;
+               d += 2;
+               break;
+            }
+            break;
+         case 'D':
+            if (s[1] == 'D') {
+               dt.tm_mday = substri(tmp, 2, xsink);
+               s++;
+               d++;
+            }
+           break;
+         case 'H':
+            if (s[1] == 'H') {
+               dt.tm_hour = substri(tmp, 2, xsink);
+               s++;
+               d++;
+            }
+            break;
+         case 'm':
+            if (s[1] == 'm') {
+               dt.tm_min = substri(tmp, 2, xsink);
+               s++;
+               d++;
+            }
+            break;
+         case 's':
+            if (s[1] == 's' && s[2] == 's') {
+               ms = substri(tmp, 3, xsink);
+               s += 2;
+               d += 2;
+            }
+            break;
+         case 'S':
+            if (s[1] == 'S') {
+               dt.tm_sec = substri(tmp, 2, xsink);
+               s++;
+               d++;
+            }
+            break;
+#if 0
+            TODO/FIXME: timezones?
+         case 'z':
+	    str.sprintf("%s", i.zname);
+            break;
+	    // add iso8601 UTC offset
+	 case 'Z':
+	    concatOffset(i.utcoffset, str);
+	    break;
+         default:
+	    str.concat(*s);
+            break;
+#endif
+      }
+      s++;
+      d++;
+   }
+
+   if (*xsink)
+      return 0;
+
+   DateTimeNode *n = new DateTimeNode();
+   n->setDate(&dt, ms);
+   return n;
+}
+
 static AbstractQoreNode *f_list(const QoreListNode *params, ExceptionSink *xsink) {
    QoreListNode *l;
    if (num_params(params) > 1)
@@ -185,6 +331,7 @@ void init_type_functions() {
    builtinFunctions.add2("date", f_date_noop, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo);
    builtinFunctions.add2("date", f_date_noop, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo, 1, nullTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("date", f_date, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("date", f_date_mask, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("date", f_date, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo, 1, floatTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("date", f_date, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("date", f_date_date, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);

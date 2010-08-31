@@ -37,33 +37,34 @@ const int qore_date_info::negative_months[] = { 0, -31, -61, -92, -122, -153, -1
 struct date_s {
    const char *long_name;
    const char *abbr;
+   const char *abbr_upper;
 };
 
 // month names (in English)
 static const struct date_s months[] = {
-   { "January", "Jan" },
-   { "February", "Feb" },
-   { "March", "Mar" },
-   { "April", "Apr" },
-   { "May", "May" },
-   { "June", "Jun" },
-   { "July", "Jul" },
-   { "August", "Aug" },
-   { "September", "Sep" },
-   { "October", "Oct" },
-   { "November", "Nov" },
-   { "December", "Dec" }
+   { "January", "Jan", "JAN" },
+   { "February", "Feb", "FEB"  },
+   { "March", "Mar", "MAR" },
+   { "April", "Apr", "APR" },
+   { "May", "May", "MAY" },
+   { "June", "Jun", "JUN" },
+   { "July", "Jul", "JUL" },
+   { "August", "Aug", "AUG" },
+   { "September", "Sep", "SEP" },
+   { "October", "Oct", "OCT" },
+   { "November", "Nov", "NOV" },
+   { "December", "Dec", "DEC" }
 };
 
 // day names (in English!) FIXME: add locale-awareness!
 static const struct date_s days[] = {
-   { "Sunday", "Sun" },
-   { "Monday", "Mon" },
-   { "Tuesday", "Tue" },
-   { "Wednesday", "Wed" },
-   { "Thursday", "Thu" },
-   { "Friday", "Fri" },
-   { "Saturday", "Sat" }
+   { "Sunday", "Sun", "SUN" },
+   { "Monday", "Mon", "MON" },
+   { "Tuesday", "Tue", "TUE" },
+   { "Wednesday", "Wed", "WED" },
+   { "Thursday", "Thu", "THU" },
+   { "Friday", "Fri", "FRI" },
+   { "Saturday", "Sat", "SAT" }
 };
 
 static int ampm(int hour) {
@@ -75,6 +76,17 @@ bool qore_date_info::isLeapYear(int year) {
    if (!(year % 100))
       return !(year % 400) ? true : false;
    return (year % 4) ? false : true;
+}
+
+int qore_date_info::getMonthIxFromAbbr(const char * abbr, bool uppercased) {
+   for (int i = 0; i < 12; ++i) {
+      const char * curr = uppercased ? months[i].abbr_upper : months[i].abbr;
+      if (!strcmp(curr, abbr)) {
+         return i;
+      }
+   }
+   // not found
+   return -1;
 }
 
 int64 qore_absolute_time::getRelativeMicroseconds() const {

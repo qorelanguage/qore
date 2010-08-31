@@ -278,6 +278,10 @@ struct qore_date_info {
    DLLLOCAL static int getDayNumber(int year, int month, int day) {
       return positive_months[(month < 13 ? month : 12) - 1] + day + (month > 2 && qore_date_info::isLeapYear(year) ? 1 : 0);
    }
+
+   // get month number (0 starting) by its 3 char abbrevation
+   // Or return -1 if the month is not found
+   DLLLOCAL static int getMonthIxFromAbbr(const char * abbr, bool uppercased);
 };
 
 // normalize the given date to the last day of the month
