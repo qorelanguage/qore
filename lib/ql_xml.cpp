@@ -2643,9 +2643,9 @@ void init_xml_functions() {
    // makeXMLRPCCallStringArgsWithEncoding(string $encoding, string $method, any $args)
    builtinFunctions.add2("makeXMLRPCCallStringArgsWithEncoding",               f_makeXMLRPCCallStringArgsWithEncoding, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringTypeInfo, 3, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG, QORE_PARAM_NO_ARG, QORE_PARAM_NO_ARG);
 
-   // returns string|nothing (nothing if no args passed)
-   builtinFunctions.add2("makeXMLRPCResponseString",                           f_makeXMLRPCResponseString, QC_USES_EXTRA_ARGS | QC_RET_VALUE_ONLY);
-   builtinFunctions.add2("makeXMLRPCResponseStringWithEncoding",               f_makeXMLRPCResponseStringWithEncoding, QC_USES_EXTRA_ARGS | QC_RET_VALUE_ONLY, QDOM_DEFAULT, 0, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   // returns *string (nothing if no args passed)
+   builtinFunctions.add2("makeXMLRPCResponseString",                           f_makeXMLRPCResponseString, QC_USES_EXTRA_ARGS | QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringOrNothingTypeInfo);
+   builtinFunctions.add2("makeXMLRPCResponseStringWithEncoding",               f_makeXMLRPCResponseStringWithEncoding, QC_USES_EXTRA_ARGS | QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringOrNothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add2("makeXMLRPCFaultResponseString",                      f_makeXMLRPCFaultResponseString, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringTypeInfo, 2, QORE_PARAM_NO_ARG, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("makeXMLRPCFaultResponseStringWithEncoding",          f_makeXMLRPCFaultResponseStringWithEncoding, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringTypeInfo, 3, stringTypeInfo, QORE_PARAM_NO_ARG, QORE_PARAM_NO_ARG, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);

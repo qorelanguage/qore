@@ -101,15 +101,28 @@ static AbstractQoreNode *f_getgrnam2(const QoreListNode *params, ExceptionSink *
 
 void init_pwd_functions() {
    builtinFunctions.add2("getpwuid", f_noop, QC_RUNTIME_NOOP, QDOM_EXTERNAL_INFO, nothingTypeInfo);
-   builtinFunctions.add2("getpwuid", f_getpwuid, QC_CONSTANT, QDOM_EXTERNAL_INFO, anyTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
+
+   // getpwuid(softint $uid) returns *hash
+   builtinFunctions.add2("getpwuid", f_getpwuid, QC_CONSTANT, QDOM_EXTERNAL_INFO, hashOrNothingTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
+
+   // getpwuid2(softint $uid) returns hash
    builtinFunctions.add2("getpwuid2", f_getpwuid2, QC_NO_FLAGS, QDOM_EXTERNAL_INFO, hashTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
    
-   builtinFunctions.add2("getpwnam", f_getpwnam, QC_CONSTANT, QDOM_EXTERNAL_INFO, anyTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   // getpwnam(string $group) returns *hash
+   builtinFunctions.add2("getpwnam", f_getpwnam, QC_CONSTANT, QDOM_EXTERNAL_INFO, hashOrNothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+
+   // getpwnam2(string $group) returns hash
    builtinFunctions.add2("getpwnam2", f_getpwnam2, QC_NO_FLAGS, QDOM_EXTERNAL_INFO, hashTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   builtinFunctions.add2("getgrgid", f_getgrgid, QC_CONSTANT, QDOM_EXTERNAL_INFO, anyTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
+   // getgrgid(softint $gid) returns *hash
+   builtinFunctions.add2("getgrgid", f_getgrgid, QC_CONSTANT, QDOM_EXTERNAL_INFO, hashOrNothingTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
+
+   // getgrgid2(softint $gid) returns hash
    builtinFunctions.add2("getgrgid2", f_getgrgid2, QC_NO_FLAGS, QDOM_EXTERNAL_INFO, hashTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
    
-   builtinFunctions.add2("getgrnam", f_getgrnam, QC_CONSTANT, QDOM_EXTERNAL_INFO, anyTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   // getgrnam(string $group) returns *hash
+   builtinFunctions.add2("getgrnam", f_getgrnam, QC_CONSTANT, QDOM_EXTERNAL_INFO, hashOrNothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+
+   // getgrnam2(string $group) returns hash
    builtinFunctions.add2("getgrnam2", f_getgrnam2, QC_NO_FLAGS, QDOM_EXTERNAL_INFO, hashTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 }

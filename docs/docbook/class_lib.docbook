@@ -5479,7 +5479,7 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Dir_path">Dir::path</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="Dir_path">Dir::path</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns a string giving the current path of the object, stripped of all '.' and '..' entries or <command><link linkend="NOTHING">NOTHING</link></command> if no path is set.</para></entry>
@@ -5752,13 +5752,13 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="Dir_path">Dir::path</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="Dir_path">Dir::path</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting><command>my</command> any $mypath = $d.path();</programlisting>
+	    <programlisting><command>my</command> *string $mypath = $d.path();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -5774,7 +5774,7 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code><link linkend="any_type">any</link></code></para></entry>
+	      <entry><para><code><link linkend="*string_type">*string</link></code></para></entry>
 	      <entry><para>The path of the Dir object or <command><link linkend="NOTHING">NOTHING</link></command> if no path is set.</para></entry>
 	    </row>
 	  </tbody>
@@ -8075,7 +8075,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="FtpClient_setInsecureData">FtpClient::setInsecureData()</link> <command>returns</command> nothing</code></para>
+              <para><code><link linkend="FtpClient_setInsecureData">FtpClient::setInsecureData()</link> <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
             </entry>
             <entry>
               <para>Y</para>
@@ -8108,7 +8108,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="FtpClient_getSSLCipherName">FtpClient::getSSLCipherName</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="FtpClient_getSSLCipherName">FtpClient::getSSLCipherName</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -8119,7 +8119,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="FtpClient_getSSLCipherVersion">FtpClient::getSSLCipherVersion</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="FtpClient_getSSLCipherVersion">FtpClient::getSSLCipherVersion</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -8130,7 +8130,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="FtpClient_verifyPeerCertificate">FtpClient::verifyPeerCertificate</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="FtpClient_verifyPeerCertificate">FtpClient::verifyPeerCertificate</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -8186,15 +8186,15 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	  <row>
 	    <entry>
               <para><code><link linkend="FtpClient_list">FtpClient::list</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
-              <para><code><link linkend="FtpClient_list">FtpClient::list</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="FtpClient_list">FtpClient::list</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>) <command>returns</command> <link linkend="*string_type">*string</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Gets a list of files from the FTP server in the server's long format; returns <command><link linkend="NOTHING">NOTHING</link></command> if the path cannot be found.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="FtpClient_nlst">FtpClient::nlst</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
-              <para><code><link linkend="FtpClient_nlst">FtpClient::nlst</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="FtpClient_nlst">FtpClient::nlst</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para>
+              <para><code><link linkend="FtpClient_nlst">FtpClient::nlst</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>) <command>returns</command> <link linkend="*string_type">*string</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Gets a list of file names from the FTP server; returns <command><link linkend="NOTHING">NOTHING</link></command> if the path cannot be found.</para></entry>
@@ -8287,21 +8287,21 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="FtpClient_getUserName">FtpClient::getUserName</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="FtpClient_getUserName">FtpClient::getUserName</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Gets the current user name or <command><link linkend="NOTHING">NOTHING</link></command> if not yet set.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="FtpClient_getPassword">FtpClient::getPassword</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="FtpClient_getPassword">FtpClient::getPassword</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Gets the current password or <command><link linkend="NOTHING">NOTHING</link></command> if not yet set.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="FtpClient_getHostName">FtpClient::getHostName</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="FtpClient_getHostName">FtpClient::getHostName</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Gets the current hostname or <command><link linkend="NOTHING">NOTHING</link></command> if not yet set.</para></entry>
@@ -8692,7 +8692,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-              <para><code><link linkend="FtpClient_setInsecureData">FtpClient::setInsecureData()</link> <command>returns</command> nothing</code></para>
+              <para><code><link linkend="FtpClient_setInsecureData">FtpClient::setInsecureData()</link> <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -8838,13 +8838,13 @@ stdin.getTerminalAttributes($termios);</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-              <para><code><link linkend="FtpClient_getSSLCipherName">FtpClient::getSSLCipherName</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="FtpClient_getSSLCipherName">FtpClient::getSSLCipherName</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Example</term>
           <listitem>
-            <programlisting><command>my</command> any $str = $ftp.getSSLCipherName();</programlisting>
+            <programlisting><command>my</command> *string $str = $ftp.getSSLCipherName();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -8886,13 +8886,13 @@ stdin.getTerminalAttributes($termios);</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-              <para><code><link linkend="FtpClient_getSSLCipherVersion">FtpClient::getSSLCipherVersion</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="FtpClient_getSSLCipherVersion">FtpClient::getSSLCipherVersion</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Example</term>
           <listitem>
-            <programlisting><command>my</command> any $str = $ftp.getSSLCipherVersion();</programlisting>
+            <programlisting><command>my</command> *string $str = $ftp.getSSLCipherVersion();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -8934,13 +8934,13 @@ stdin.getTerminalAttributes($termios);</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-              <para><code><link linkend="FtpClient_verifyPeerCertificate">FtpClient::verifyPeerCertificate</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="FtpClient_verifyPeerCertificate">FtpClient::verifyPeerCertificate</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Example</term>
           <listitem>
-            <programlisting><command>my</command> any $str = $ftp.verifyPeerCertificate();</programlisting>
+            <programlisting><command>my</command> *string $str = $ftp.verifyPeerCertificate();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -9076,14 +9076,14 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="FtpClient_list">FtpClient::list</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
-              <para><code><link linkend="FtpClient_list">FtpClient::list</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="FtpClient_list">FtpClient::list</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para>
+              <para><code><link linkend="FtpClient_list">FtpClient::list</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>) <command>returns</command> <link linkend="*string_type">*string</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting><command>my</command> any $str = $ftp.list();</programlisting>
+	    <programlisting><command>my</command> *string $str = $ftp.list();</programlisting>
 	  </listitem>
 	</varlistentry>
         <varlistentry>
@@ -9169,14 +9169,14 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="FtpClient_nlst">FtpClient::nlst</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
-              <para><code><link linkend="FtpClient_nlst">FtpClient::nlst</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="FtpClient_nlst">FtpClient::nlst</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para>
+              <para><code><link linkend="FtpClient_nlst">FtpClient::nlst</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>) <command>returns</command> <link linkend="*string_type">*string</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting><command>my</command> any $str = $ftp.nlst();</programlisting>
+	    <programlisting><command>my</command> *string $str = $ftp.nlst();</programlisting>
 	  </listitem>
 	</varlistentry>
         <varlistentry>
@@ -10195,13 +10195,13 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="FtpClient_getUserName">FtpClient::getUserName</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="FtpClient_getUserName">FtpClient::getUserName</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting><command>my</command> any $user = $ftp.getUserName();</programlisting>
+	    <programlisting><command>my</command> *string $user = $ftp.getUserName();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -10237,13 +10237,13 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="FtpClient_getPassword">FtpClient::getPassword</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="FtpClient_getPassword">FtpClient::getPassword</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting><command>my</command> any $pass = $ftp.getPassword();</programlisting>
+	    <programlisting><command>my</command> *string $pass = $ftp.getPassword();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -10279,13 +10279,13 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="FtpClient_getHostName">FtpClient::getHostName</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="FtpClient_getHostName">FtpClient::getHostName</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting><command>my</command> any $host = $ftp.getHostName();</programlisting>
+	    <programlisting><command>my</command> *string $host = $ftp.getHostName();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -12742,7 +12742,7 @@ $pgm.setParseOptions(<link linkend="PO_NO_THREADS">PO_NO_THREADS</link> | <link 
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Socket_recv">Socket::recv</link>(<link linkend="softint_type">softint</link> <replaceable>$size</replaceable> = 0, <link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="Socket_recv">Socket::recv</link>(<link linkend="softint_type">softint</link> <replaceable>$size</replaceable> = 0, <link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1) <command>returns</command> <link linkend="string_type">string</link></code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Receives data from the socket and returns a string.</para></entry>
@@ -15319,7 +15319,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$data = $sock.recv(-1); # read all data available</programlisting>
+	    <programlisting><command>my</command> string $data = $sock.recv(-1); # read all data available</programlisting>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -17415,7 +17415,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="HTTPClient_getProxyURL">HTTPClient::getProxyURL</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="HTTPClient_getProxyURL">HTTPClient::getProxyURL</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para>
             </entry>
             <entry><para>N</para></entry>
             <entry><para>Returns the current proxy URL as a string or <command><link linkend="NOTHING">NOTHING</link></command> if no proxy URL is set.</para></entry>
@@ -17487,8 +17487,8 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="HTTPClient_get">HTTPClient::get</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="hash_type">hash</link> $headers = <link linkend="hash">hash()</link>, <link linkend="reference_type">reference</link> <replaceable>$info</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
-              <para><code><link linkend="HTTPClient_get">HTTPClient::get</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="hash_type">hash</link> $headers = <link linkend="hash">hash()</link>) <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="HTTPClient_get">HTTPClient::get</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="hash_type">hash</link> $headers = <link linkend="hash">hash()</link>, <link linkend="reference_type">reference</link> <replaceable>$info</replaceable>) <command>returns</command> <link linkend="*string_type">*string</link></code></para>
+              <para><code><link linkend="HTTPClient_get">HTTPClient::get</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="hash_type">hash</link> $headers = <link linkend="hash">hash()</link>) <command>returns</command> <link linkend="*string_type">*string</link></code></para>
             </entry>
             <entry>
               <para>Y</para>
@@ -17618,7 +17618,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="HTTPClient_getSSLCipherName">HTTPClient::getSSLCipherName</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="HTTPClient_getSSLCipherName">HTTPClient::getSSLCipherName</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -17629,7 +17629,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="HTTPClient_getSSLCipherVersion">HTTPClient::getSSLCipherVersion</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="HTTPClient_getSSLCipherVersion">HTTPClient::getSSLCipherVersion</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -17991,13 +17991,13 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-              <para><code><link linkend="HTTPClient_getProxyURL">HTTPClient::getProxyURL</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="HTTPClient_getProxyURL">HTTPClient::getProxyURL</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Example</term>
           <listitem>
-            <programlisting>$proxy_url = $httpclient.getProxyURL();</programlisting>
+            <programlisting><command>my</command> *string $proxy_url = $httpclient.getProxyURL();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -18367,20 +18367,21 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Sends an HTTP GET request and returns the message body received.  In order to get the headers and the body, use the <link linkend="HTTPClient_send">HTTPClient::send() method</link> instead.  If necessary, a connection will be established via an implicit call to <link linkend="HTTPClient_connect">HTTPClient::connect()</link> before sending the message.</para>
+            <para>Sends an HTTP GET request and returns the message body received as a string.  In order to get the headers and the body, use the <link linkend="HTTPClient_send">HTTPClient::send() method</link> instead.  If necessary, a connection will be established via an implicit call to <link linkend="HTTPClient_connect">HTTPClient::connect()</link> before sending the message.</para>
+	    <para>If any content encoding is used, then the content is decoded and returned a string; if the content encoding uses an unknown method, then an exception is thrown.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-              <para><code><link linkend="HTTPClient_get">HTTPClient::get</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="hash_type">hash</link> $headers = <link linkend="hash">hash()</link>, <link linkend="reference_type">reference</link> <replaceable>$info</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
-              <para><code><link linkend="HTTPClient_get">HTTPClient::get</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="hash_type">hash</link> $headers = <link linkend="hash">hash()</link>) <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="HTTPClient_get">HTTPClient::get</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="hash_type">hash</link> $headers = <link linkend="hash">hash()</link>, <link linkend="reference_type">reference</link> <replaceable>$info</replaceable>) <command>returns</command> <link linkend="*string_type">*string</link></code></para>
+              <para><code><link linkend="HTTPClient_get">HTTPClient::get</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="hash_type">hash</link> $headers = <link linkend="hash">hash()</link>) <command>returns</command> <link linkend="*string_type">*string</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Example</term>
           <listitem>
-            <programlisting>$html = $httpclient.get("/path/file.html");</programlisting>
+            <programlisting><command>my</command> *string $html = $httpclient.get("/path/file.html");</programlisting>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -19245,13 +19246,13 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-              <para><code><link linkend="HTTPClient_verifyPeerCertificate">HTTPClient::verifyPeerCertificate</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="HTTPClient_verifyPeerCertificate">HTTPClient::verifyPeerCertificate</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Example</term>
           <listitem>
-            <programlisting><command>my</command> any $str = $httpclient.verifyPeerCertificate();</programlisting>
+            <programlisting><command>my</command> *string $str = $httpclient.verifyPeerCertificate();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -19291,13 +19292,13 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-              <para><code><link linkend="HTTPClient_getSSLCipherName">HTTPClient::getSSLCipherName</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="HTTPClient_getSSLCipherName">HTTPClient::getSSLCipherName</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Example</term>
           <listitem>
-            <programlisting><command>my</command> any $str = $httpclient.getSSLCipherName();</programlisting>
+            <programlisting><command>my</command> *string $str = $httpclient.getSSLCipherName();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -19337,13 +19338,13 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-              <para><code><link linkend="HTTPClient_getSSLCipherVersion">HTTPClient::getSSLCipherVersion</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="HTTPClient_getSSLCipherVersion">HTTPClient::getSSLCipherVersion</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Example</term>
           <listitem>
-            <programlisting><command>my</command> any $str = $httpclient.getSSLCipherVersion();</programlisting>
+            <programlisting><command>my</command> *string $str = $httpclient.getSSLCipherVersion();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -23382,7 +23383,7 @@ values (%v, %v, %v, %d)", $string, now(), $binary, 100);</programlisting>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Datasource::getUserName">Datasource::getUserName</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="Datasource::getUserName">Datasource::getUserName</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns the username parameter as a string or <command><link linkend="NOTHING">NOTHING</link></command> if none is set.</para></entry>
@@ -23397,7 +23398,7 @@ values (%v, %v, %v, %d)", $string, now(), $binary, 100);</programlisting>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Datasource::getPassword">Datasource::getPassword</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="Datasource::getPassword">Datasource::getPassword</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns the password parameter as a string or <command><link linkend="NOTHING">NOTHING</link></command> if none is set.</para></entry>
@@ -23412,7 +23413,7 @@ values (%v, %v, %v, %d)", $string, now(), $binary, 100);</programlisting>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Datasource::getDBName">Datasource::getDBName</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="Datasource::getDBName">Datasource::getDBName</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns the dbname parameter as a string or <command><link linkend="NOTHING">NOTHING</link></command> if none is set.</para></entry>
@@ -23427,7 +23428,7 @@ values (%v, %v, %v, %d)", $string, now(), $binary, 100);</programlisting>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Datasource::getDBCharset">Datasource::getDBCharset</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="Datasource::getDBCharset">Datasource::getDBCharset</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns the DBI driver specific charset name for the current connection as a string or <command><link linkend="NOTHING">NOTHING</link></command> if none is set.</para></entry>
@@ -23449,7 +23450,7 @@ values (%v, %v, %v, %d)", $string, now(), $binary, 100);</programlisting>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Datasource::getHostName">Datasource::getHostName</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="Datasource::getHostName">Datasource::getHostName</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns the hostname parameter as a string or <command><link linkend="NOTHING">NOTHING</link></command> if none is set.</para></entry>
@@ -23463,7 +23464,7 @@ values (%v, %v, %v, %d)", $string, now(), $binary, 100);</programlisting>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Datasource::getPort">Datasource::getPort</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="Datasource::getPort">Datasource::getPort</link>() <command>returns</command> <link linkend="*int_type">*int</link></code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns the port parameter as an int or <command><link linkend="NOTHING">NOTHING</link></command> if none is set.</para></entry>
@@ -24947,13 +24948,13 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="Datasource::getUserName">Datasource::getUserName</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="Datasource::getUserName">Datasource::getUserName</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$str = $db.getUserName();</programlisting>
+	    <programlisting><command>my</command> *string $str = $db.getUserName();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -25036,13 +25037,13 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="Datasource::getPassword">Datasource::getPassword</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="Datasource::getPassword">Datasource::getPassword</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$str = $db.getPassword();</programlisting>
+	    <programlisting><command>my</command> *string $str = $db.getPassword();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -25125,13 +25126,13 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="Datasource::getDBName">Datasource::getDBName</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="Datasource::getDBName">Datasource::getDBName</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$str = $db.getDBName();</programlisting>
+	    <programlisting><command>my</command> *string $str = $db.getDBName();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -25303,13 +25304,13 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="Datasource::getDBCharset">Datasource::getDBCharset</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="Datasource::getDBCharset">Datasource::getDBCharset</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$str = $db.getDBCharset();</programlisting>
+	    <programlisting><command>my</command> *string $str = $db.getDBCharset();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -25352,7 +25353,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$str = $db.getOSCharset();</programlisting>
+	    <programlisting><command>my</command> string $str = $db.getOSCharset();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -25389,13 +25390,13 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="Datasource::getHostName">Datasource::getHostName</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="Datasource::getHostName">Datasource::getHostName</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$str = $db.getHostName();</programlisting>
+	    <programlisting><command>my</command> *string $str = $db.getHostName();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -25432,13 +25433,13 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="Datasource::getPort">Datasource::getPort</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="Datasource::getPort">Datasource::getPort</link>() <command>returns</command> <link linkend="*int_type">*int</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$port = $db.getPort();</programlisting>
+	    <programlisting><command>my</command> *int $port = $db.getPort();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -25481,7 +25482,7 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$name = $db.getDriverName();</programlisting>
+	    <programlisting><command>my</command> string $name = $db.getDriverName();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -25750,49 +25751,49 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="DatasourcePool::getUserName">DatasourcePool::getUserName</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="DatasourcePool::getUserName">DatasourcePool::getUserName</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns the username parameter as a string or <command><link linkend="NOTHING">NOTHING</link></command> if none is set.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="DatasourcePool::getPassword">DatasourcePool::getPassword</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="DatasourcePool::getPassword">DatasourcePool::getPassword</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns the password parameter as a string or <command><link linkend="NOTHING">NOTHING</link></command> if none is set.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="DatasourcePool::getDBName">DatasourcePool::getDBName</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="DatasourcePool::getDBName">DatasourcePool::getDBName</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns the dbname parameter as a string or <command><link linkend="NOTHING">NOTHING</link></command> if none is set.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="DatasourcePool::getDBCharset">DatasourcePool::getDBCharset</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="DatasourcePool::getDBCharset">DatasourcePool::getDBCharset</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns the DBI driver specific charset name for the current connection as a string or <command><link linkend="NOTHING">NOTHING</link></command> if none is set.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="DatasourcePool::getOSCharset">DatasourcePool::getOSCharset</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="DatasourcePool::getOSCharset">DatasourcePool::getOSCharset</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns the Qore charset name for the current connection as a string or <command><link linkend="NOTHING">NOTHING</link></command> if none is set.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="DatasourcePool::getHostName">DatasourcePool::getHostName</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="DatasourcePool::getHostName">DatasourcePool::getHostName</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns the hostname parameter as a string or <command><link linkend="NOTHING">NOTHING</link></command> if none is set.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="DatasourcePool::getPort">DatasourcePool::getPort</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="DatasourcePool::getPort">DatasourcePool::getPort</link>() <command>returns</command> <link linkend="*int_type">*int</link></code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns the port parameter as an integer or <command><link linkend="NOTHING">NOTHING</link></command> if none is set.</para></entry>
@@ -26990,13 +26991,13 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="DatasourcePool::getUserName">DatasourcePool::getUserName</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="DatasourcePool::getUserName">DatasourcePool::getUserName</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$str = $pool.getUserName();</programlisting>
+	    <programlisting><command>my</command> *string $str = $pool.getUserName();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -27035,13 +27036,13 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="DatasourcePool::getPassword">DatasourcePool::getPassword</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="DatasourcePool::getPassword">DatasourcePool::getPassword</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$str = $pool.getPassword();</programlisting>
+	    <programlisting><command>my</command> *string $str = $pool.getPassword();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -27073,19 +27074,19 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-              <para><code><link linkend="DatasourcePool::getDBName">DatasourcePool::getDBName</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+	    <para>Retrieves the database name connection parameter if any is set.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <programlisting>DatasourcePool::getDBName()</programlisting>
+	    <para><code><link linkend="DatasourcePool::getDBName">DatasourcePool::getDBName</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$str = $pool.getDBName();</programlisting>
+	    <programlisting><command>my</command> *string $str = $pool.getDBName();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -27122,13 +27123,13 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="DatasourcePool::getDBCharset">DatasourcePool::getDBCharset</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="DatasourcePool::getDBCharset">DatasourcePool::getDBCharset</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$str = $pool.getDBCharset();</programlisting>
+	    <programlisting><command>my</command> *string $str = $pool.getDBCharset();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -27165,13 +27166,13 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="DatasourcePool::getOSCharset">DatasourcePool::getOSCharset</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="DatasourcePool::getOSCharset">DatasourcePool::getOSCharset</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$str = $pool.getOSCharset();</programlisting>
+	    <programlisting><command>my</command> *string $str = $pool.getOSCharset();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -27187,7 +27188,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
+	      <entry><para><code><link linkend="*string_type">*string</link></code></para></entry>
 	      <entry><para>Retrieves the Qore charset set encoding for the current connection or <code>&quot;unknown&quot;</code> if unknown.</para></entry>
 	    </row>
 	  </tbody>
@@ -27208,13 +27209,13 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="DatasourcePool::getHostName">DatasourcePool::getHostName</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="DatasourcePool::getHostName">DatasourcePool::getHostName</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$str = $pool.getHostName();</programlisting>
+	    <programlisting><command>my</command> *string $str = $pool.getHostName();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -27251,13 +27252,13 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="DatasourcePool::getPort">DatasourcePool::getPort</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="DatasourcePool::getPort">DatasourcePool::getPort</link>() <command>returns</command> <link linkend="*int_type">*int</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$port = $pool.getPort();</programlisting>
+	    <programlisting><command>my</command> *int $port = $pool.getPort();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -31999,13 +32000,13 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="XmlDoc::getRootElement">XmlDoc::getRootElement</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="XmlDoc::getRootElement">XmlDoc::getRootElement</link>() <command>returns</command> <link linkend="XmlNode_Class">*XmlNode</link></code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting><command>my</command> any $node = $xd.getRootElement();</programlisting>
+	    <programlisting><command>my</command> *XmlNode $node = $xd.getRootElement();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -33712,7 +33713,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="XmlReader_nodeTypeName">XmlReader::nodeTypeName</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="XmlReader_nodeTypeName">XmlReader::nodeTypeName</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -33734,7 +33735,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="XmlReader_name">XmlReader::name</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="XmlReader_name">XmlReader::name</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -33745,7 +33746,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="XmlReader_value">XmlReader::value</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="XmlReader_value">XmlReader::value</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -33855,7 +33856,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="XmlReader_baseUri">XmlReader::baseUri</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="XmlReader_baseUri">XmlReader::baseUri</link>() <command>returns</command> <link linkend="*string_type">string</link></code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -33866,7 +33867,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="XmlReader_encoding">XmlReader::encoding</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="XmlReader_encoding">XmlReader::encoding</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -33877,7 +33878,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="XmlReader_localName">XmlReader::localName</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="XmlReader_localName">XmlReader::localName</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -33888,7 +33889,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="XmlReader_namespaceUri">XmlReader::namespaceUri</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="XmlReader_namespaceUri">XmlReader::namespaceUri</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -33899,7 +33900,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="XmlReader_prefix">XmlReader::prefix</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="XmlReader_prefix">XmlReader::prefix</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -33910,7 +33911,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="XmlReader_xmlLang">XmlReader::xmlLang</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="XmlReader_xmlLang">XmlReader::xmlLang</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -33921,7 +33922,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="XmlReader_xmlVersion">XmlReader::xmlVersion</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="XmlReader_xmlVersion">XmlReader::xmlVersion</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -33932,7 +33933,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="XmlReader_getAttribute">XmlReader::getAttribute</link>(<link linkend="string_type">string</link> <replaceable>$attr</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="XmlReader_getAttribute">XmlReader::getAttribute</link>(<link linkend="string_type">string</link> <replaceable>$attr</replaceable>) <command>returns</command> <link linkend="*string_type">*string</link></code></para>
             </entry>
             <entry>
               <para>Y</para>
@@ -33943,7 +33944,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="XmlReader_getAttributeNs">XmlReader::getAttributeNs</link>(<link linkend="string_type">string</link> <replaceable>$attr</replaceable>, <link linkend="string_type">string</link> <replaceable>$ns</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="XmlReader_getAttributeNs">XmlReader::getAttributeNs</link>(<link linkend="string_type">string</link> <replaceable>$attr</replaceable>, <link linkend="string_type">string</link> <replaceable>$ns</replaceable>) <command>returns</command> <link linkend="*string_type">*string</link></code></para>
             </entry>
             <entry>
               <para>Y</para>
@@ -33954,7 +33955,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="XmlReader_getAttributeOffset">XmlReader::getAttributeOffset</link>(<link linkend="softint_type">softint</link> <replaceable>$offset</replaceable> = 0) <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="XmlReader_getAttributeOffset">XmlReader::getAttributeOffset</link>(<link linkend="softint_type">softint</link> <replaceable>$offset</replaceable> = 0) <command>returns</command> <link linkend="*string_type">*string</link></code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -34054,7 +34055,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="XmlReader_getInnerXml">XmlReader::getInnerXml</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="XmlReader_getInnerXml">XmlReader::getInnerXml</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -34065,7 +34066,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="XmlReader_getOuterXml">XmlReader::getOuterXml</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="XmlReader_getOuterXml">XmlReader::getOuterXml</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para>
             </entry>
             <entry>
               <para>N</para>
@@ -34433,13 +34434,13 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-              <para><code><link linkend="XmlReader_nodeTypeName">XmlReader::nodeTypeName</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="XmlReader_nodeTypeName">XmlReader::nodeTypeName</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Example</term>
           <listitem>
-            <programlisting>$value = $xmlreader.nodeTypeName();</programlisting>
+            <programlisting><command>my</command> *string $value = $xmlreader.nodeTypeName();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -34530,13 +34531,13 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-              <para><code><link linkend="XmlReader_name">XmlReader::name</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="XmlReader_name">XmlReader::name</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Example</term>
           <listitem>
-            <programlisting>$value = $xmlreader.name();</programlisting>
+            <programlisting><command>my</command> *string $value = $xmlreader.name();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -34577,13 +34578,13 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-              <para><code><link linkend="XmlReader_value">XmlReader::value</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="XmlReader_value">XmlReader::value</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Example</term>
           <listitem>
-            <programlisting>$value = $xmlreader.value();</programlisting>
+            <programlisting><command>my</command> *string $value = $xmlreader.value();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -35117,13 +35118,13 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-              <para><code><link linkend="XmlReader_baseUri">XmlReader::baseUri</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="XmlReader_baseUri">XmlReader::baseUri</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Example</term>
           <listitem>
-            <programlisting>$value = $xmlreader.baseUri();</programlisting>
+            <programlisting><command>my</command> *string $value = $xmlreader.baseUri();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -35164,13 +35165,13 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-              <para><code><link linkend="XmlReader_encoding">XmlReader::encoding</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="XmlReader_encoding">XmlReader::encoding</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Example</term>
           <listitem>
-            <programlisting>$value = $xmlreader.encoding();</programlisting>
+            <programlisting><command>my</command> *string $value = $xmlreader.encoding();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -35211,13 +35212,13 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-              <para><code><link linkend="XmlReader_localName">XmlReader::localName</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="XmlReader_localName">XmlReader::localName</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Example</term>
           <listitem>
-            <programlisting>$value = $xmlreader.localName();</programlisting>
+            <programlisting><command>my</command> *string $value = $xmlreader.localName();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -35258,13 +35259,13 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-              <para><code><link linkend="XmlReader_namespaceUri">XmlReader::namespaceUri</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="XmlReader_namespaceUri">XmlReader::namespaceUri</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Example</term>
           <listitem>
-            <programlisting>$value = $xmlreader.namespaceUri();</programlisting>
+            <programlisting><command>my</command> *string $value = $xmlreader.namespaceUri();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -35305,13 +35306,13 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-              <para><code><link linkend="XmlReader_prefix">XmlReader::prefix</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="XmlReader_prefix">XmlReader::prefix</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Example</term>
           <listitem>
-            <programlisting>$value = $xmlreader.prefix();</programlisting>
+            <programlisting><command>my</command> *string $value = $xmlreader.prefix();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -35352,13 +35353,13 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-              <para><code><link linkend="XmlReader_xmlLang">XmlReader::xmlLang</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="XmlReader_xmlLang">XmlReader::xmlLang</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Example</term>
           <listitem>
-            <programlisting>$value = $xmlreader.xmlLang();</programlisting>
+            <programlisting><command>my</command> *string $value = $xmlreader.xmlLang();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -35399,13 +35400,13 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-              <para><code><link linkend="XmlReader_xmlVersion">XmlReader::xmlVersion</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="XmlReader_xmlVersion">XmlReader::xmlVersion</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Example</term>
           <listitem>
-            <programlisting>$value = $xmlreader.xmlVersion();</programlisting>
+            <programlisting><command>my</command> *string $value = $xmlreader.xmlVersion();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -35447,13 +35448,13 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-              <para><code><link linkend="XmlReader_getAttribute">XmlReader::getAttribute</link>(<link linkend="string_type">string</link> <replaceable>$attr</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="XmlReader_getAttribute">XmlReader::getAttribute</link>(<link linkend="string_type">string</link> <replaceable>$attr</replaceable>) <command>returns</command> <link linkend="*string_type">*string</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Example</term>
           <listitem>
-            <programlisting>$value = $xmlreader.getAttribute($name);</programlisting>
+            <programlisting><command>my</command> *string $value = $xmlreader.getAttribute($name);</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -35538,13 +35539,13 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-              <para><code><link linkend="XmlReader_getAttributeNs">XmlReader::getAttributeNs</link>(<link linkend="string_type">string</link> <replaceable>$attr</replaceable>, <link linkend="string_type">string</link> <replaceable>$ns</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="XmlReader_getAttributeNs">XmlReader::getAttributeNs</link>(<link linkend="string_type">string</link> <replaceable>$attr</replaceable>, <link linkend="string_type">string</link> <replaceable>$ns</replaceable>) <command>returns</command> <link linkend="*string_type">*string</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Example</term>
           <listitem>
-            <programlisting>$value = $xmlreader.getAttributeNs($localname, $namespaceuri);</programlisting>
+            <programlisting><command>my</command> *string $value = $xmlreader.getAttributeNs($localname, $namespaceuri);</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -35635,13 +35636,13 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-              <para><code><link linkend="XmlReader_getAttributeOffset">XmlReader::getAttributeOffset</link>(<link linkend="softint_type">softint</link> <replaceable>$offset</replaceable> = 0) <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="XmlReader_getAttributeOffset">XmlReader::getAttributeOffset</link>(<link linkend="softint_type">softint</link> <replaceable>$offset</replaceable> = 0) <command>returns</command> <link linkend="*string_type">*string</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Example</term>
           <listitem>
-            <programlisting>$value = $xmlreader.getAttributeOffset($offset);</programlisting>
+            <programlisting><command>my</command> *string $value = $xmlreader.getAttributeOffset($offset);</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -36325,13 +36326,13 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-              <para><code><link linkend="XmlReader_getInnerXml">XmlReader::getInnerXml</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="XmlReader_getInnerXml">XmlReader::getInnerXml</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Example</term>
           <listitem>
-            <programlisting>$value = $xmlreader.getInnerXml();</programlisting>
+            <programlisting><command>my</command> *string $value = $xmlreader.getInnerXml();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -36374,13 +36375,13 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-              <para><code><link linkend="XmlReader_getOuterXml">XmlReader::getOuterXml</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+              <para><code><link linkend="XmlReader_getOuterXml">XmlReader::getOuterXml</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Example</term>
           <listitem>
-            <programlisting>$value = $xmlreader.getOuterXml();</programlisting>
+            <programlisting><command>my</command> *string $value = $xmlreader.getOuterXml();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>

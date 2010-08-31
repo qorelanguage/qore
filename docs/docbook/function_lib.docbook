@@ -886,7 +886,7 @@
         </row>
         <row>
           <entry>
-            <para><code><link linkend="functionType">functionType</link>(<link linkend="string_type">string</link>) <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="functionType">functionType</link>(<link linkend="string_type">string</link>) <command>returns</command> <link linkend="*string_type">*string</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
             <para><code><link linkend="functionType">functionType</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
           </entry>
           <entry>
@@ -910,7 +910,7 @@
 
       <row>
         <entry>
-          <para><code><link linkend="get_byte">get_byte</link>(<link linkend="data_type">string</link>, <link linkend="int_type">int</link> = 0) <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+          <para><code><link linkend="get_byte">get_byte</link>(<link linkend="data_type">data</link>, <link linkend="int_type">int</link> = 0) <command>returns</command> <link linkend="*int_type">*int</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
         </entry>
         <entry><para>N</para></entry>
         <entry><para>Returns the byte value at the given byte offset or <link linkend="NOTHING">NOTHING</link> if the offset is not legal for the given data.</para></entry>
@@ -1073,19 +1073,19 @@
       </row>
 
       <row>
-        <entry><para><code><link linkend="get_script_path">get_script_path</link>() <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para></entry>
+        <entry><para><code><link linkend="get_script_path">get_script_path</link>() <command>returns</command> <link linkend="*string_type">*string</link> (<link linkend="CONST_flag">CONST</link>)</code></para></entry>
         <entry><para>N</para></entry>
         <entry><para>Returns a string giving the path (directory and filename) from which the current script was executed (if known).</para></entry>
       </row>
 
       <row>
-        <entry><para><code><link linkend="get_script_dir">get_script_dir</link>() <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para></entry>
+        <entry><para><code><link linkend="get_script_dir">get_script_dir</link>() <command>returns</command> <link linkend="*string_type">*string</link> (<link linkend="CONST_flag">CONST</link>)</code></para></entry>
         <entry><para>N</para></entry>
         <entry><para>Returns a string giving the directory from which the current script was executed (if known).</para></entry>
       </row>
 
       <row>
-        <entry><para><code><link linkend="get_script_name">get_script_name</link>() <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para></entry>
+        <entry><para><code><link linkend="get_script_name">get_script_name</link>() <command>returns</command> <link linkend="*string_type">*string</link> (<link linkend="CONST_flag">CONST</link>)</code></para></entry>
         <entry><para>N</para></entry>
         <entry><para>Returns a string giving the filename of the current script (if known).</para></entry>
       </row>
@@ -1105,7 +1105,7 @@
 
       <row>
         <entry>
-          <para><code><link linkend="get_word_16">get_word_16</link>(<link linkend="data_type">data</link>, <link linkend="softint_type">softint</link> = 0) <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+          <para><code><link linkend="get_word_16">get_word_16</link>(<link linkend="data_type">data</link>, <link linkend="softint_type">softint</link> = 0) <command>returns</command> <link linkend="*int_type">*int</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
         </entry>
         <entry><para>N</para></entry>
         <entry><para>Returns the 16-bit value at the given 2-byte offset or <link linkend="NOTHING">NOTHING</link> if the offset is not legal for the given data; assumes <ulink url="http://en.wikipedia.org/wiki/Most_significant_bit">MSB byte order</ulink>.</para></entry>
@@ -1113,7 +1113,7 @@
 
       <row>
         <entry>
-          <para><code><link linkend="get_word_16_lsb">get_word_16_lsb</link>(<link linkend="data_type">data</link>, <link linkend="softint_type">softint</link> = 0) <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+          <para><code><link linkend="get_word_16_lsb">get_word_16_lsb</link>(<link linkend="data_type">data</link>, <link linkend="softint_type">softint</link> = 0) <command>returns</command> <link linkend="*int_type">*int</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
         </entry>
         <entry><para>N</para></entry>
         <entry><para>Returns the 16-bit value at the given 2-byte offset or <link linkend="NOTHING">NOTHING</link> if the offset is not legal for the given data; assumes <ulink url="http://en.wikipedia.org/wiki/Least_significant_bit">LSB byte order</ulink>.</para></entry>
@@ -1121,7 +1121,7 @@
 
       <row>
         <entry>
-          <para><code><link linkend="get_word_32_lsb">get_word_32_lsb</link>(<link linkend="data_type">data</link>, <link linkend="softint_type">softint</link> = 0) <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+          <para><code><link linkend="get_word_32_lsb">get_word_32_lsb</link>(<link linkend="data_type">data</link>, <link linkend="softint_type">softint</link> = 0) <command>returns</command> <link linkend="*int_type">*int</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
         </entry>
         <entry><para>N</para></entry>
         <entry><para>Returns the 32-bit value at the given 4-byte offset or <link linkend="NOTHING">NOTHING</link> if the offset is not legal for the given data; assumes <ulink url="http://en.wikipedia.org/wiki/Least_significant_bit">LSB byte order</ulink>..</para></entry>
@@ -1129,7 +1129,7 @@
 
       <row>
         <entry>
-          <para><code><link linkend="get_word_64_lsb">get_word_64_lsb</link>(<link linkend="data_type">data</link>, <link linkend="softint_type">softint</link> = 0) <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+          <para><code><link linkend="get_word_64_lsb">get_word_64_lsb</link>(<link linkend="data_type">data</link>, <link linkend="softint_type">softint</link> = 0) <command>returns</command> <link linkend="*int_type">*int</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
         </entry>
         <entry><para>N</para></entry>
         <entry><para>Returns the 64-bit value at the given 8-byte offset or <link linkend="NOTHING">NOTHING</link> if the offset is not legal for the given data; assumes <ulink url="http://en.wikipedia.org/wiki/Least_significant_bit">LSB byte order</ulink>..</para></entry>
@@ -1159,7 +1159,7 @@
         </row>
         <row>
           <entry>
-            <para><code><link linkend="getByte">getByte</link>(<link linkend="data_type">data</link>, <link linkend="softint_type">softint</link> = 0) <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="getByte">getByte</link>(<link linkend="data_type">data</link>, <link linkend="softint_type">softint</link> = 0) <command>returns</command> <link linkend="*int_type">*int</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
             <para><code><link linkend="getByte">getByte</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
           </entry>
           <entry><para>N</para></entry>
@@ -1174,7 +1174,7 @@
           <entry><para>Returns the class name of the object passed.</para></entry>
         </row>
         <row>
-          <entry><para><code><link linkend="getcwd">getcwd</link>() <command>returns</command> <link linkend="any_type">any</link></code></para></entry>
+          <entry><para><code><link linkend="getcwd">getcwd</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para></entry>
           <entry><para>N</para></entry>
           <entry><para>Returns the name of the current working directory or <command><link linkend="NOTHING">NOTHING</link></command> if an error occurs.</para></entry>
         </row>
@@ -1277,7 +1277,7 @@
         </row>
         <row>
           <entry>
-            <para><code><link linkend="getenv">getenv</link>(<link linkend="string_type">string</link>) <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="getenv">getenv</link>(<link linkend="string_type">string</link>) <command>returns</command> <link linkend="*string_type">*string</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
             <para><code><link linkend="getenv">getenv</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
           </entry>
           <entry>
@@ -1299,7 +1299,7 @@
 
         <row>
           <entry>
-            <para><code><link linkend="getgrnam">getgrnam</link>(<link linkend="string_type">string</link>) <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="getgrnam">getgrnam</link>(<link linkend="string_type">string</link>) <command>returns</command> <link linkend="*hash_type">*hash</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
           </entry>
           <entry>
             <para>N</para>
@@ -1321,7 +1321,7 @@
         </row>
         <row>
           <entry>
-            <para><code><link linkend="getgrgid">getgrgid</link>(<link linkend="softint_type">softint</link>) <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="getgrgid">getgrgid</link>(<link linkend="softint_type">softint</link>) <command>returns</command> <link linkend="*hash_type">*hash</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
           </entry>
           <entry>
             <para>N</para>
@@ -1344,7 +1344,7 @@
 
         <row>
           <entry>
-            <para><code><link linkend="gethostbyaddr">gethostbyaddr</link>(<link linkend="string_type">string</link>, <link linkend="softint_type">softint</link> = AF_INET) <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="gethostbyaddr">gethostbyaddr</link>(<link linkend="string_type">string</link>, <link linkend="softint_type">softint</link> = AF_INET) <command>returns</command> <link linkend="*string_type">*string</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
             <para><code><link linkend="gethostbyaddr">gethostbyaddr</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
           </entry>
           <entry><para>N</para></entry>
@@ -1352,7 +1352,7 @@
         </row>
         <row>
           <entry>
-            <para><code><link linkend="gethostbyaddr_long">gethostbyaddr_long</link>(<link linkend="string_type">string</link>, <link linkend="softint_type">softint</link> = AF_INET) <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="gethostbyaddr_long">gethostbyaddr_long</link>(<link linkend="string_type">string</link>, <link linkend="softint_type">softint</link> = AF_INET) <command>returns</command> <link linkend="*hash_type">*hash</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
             <para><code><link linkend="gethostbyaddr_long">gethostbyaddr_long</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
           </entry>
           <entry><para>N</para></entry>
@@ -1360,14 +1360,14 @@
         </row>
         <row>
           <entry>
-            <para><code><link linkend="gethostbyname">gethostbyname</link>(<link linkend="string_type">string</link>) <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="gethostbyname">gethostbyname</link>(<link linkend="string_type">string</link>) <command>returns</command> <link linkend="*string_type">*string</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
             <para><code><link linkend="gethostbyname">gethostbyname</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
           </entry>
           <entry><para>N</para></entry>
           <entry><para>Returns the first network address corresponding to the hostname as a string or <command><link linkend="NOTHING">NOTHING</link></command> if the name cannot be resolved.</para></entry>
         </row>
         <row>
-          <entry><para><code><link linkend="gethostbyname_long">gethostbyname_long</link>(<link linkend="string_type">string</link>) <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para></entry>
+          <entry><para><code><link linkend="gethostbyname_long">gethostbyname_long</link>(<link linkend="string_type">string</link>) <command>returns</command> <link linkend="*hash_type">*hash</link> (<link linkend="CONST_flag">CONST</link>)</code></para></entry>
           <entry><para>N</para></entry>
           <entry><para>Returns all host information corresponding to the hostname as a hash or <command><link linkend="NOTHING">NOTHING</link></command> if the name cannot be resolved.</para></entry>
         </row>
@@ -1456,7 +1456,7 @@
         </row>
         <row>
           <entry>
-            <para><code><link linkend="getpwnam">getpwnam</link>(<link linkend="string_type">string</link>) <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="getpwnam">getpwnam</link>(<link linkend="string_type">string</link>) <command>returns</command> <link linkend="*hash_type">*hash</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
           </entry>
           <entry>
             <para>N</para>
@@ -1478,7 +1478,7 @@
         </row>
         <row>
           <entry>
-            <para><code><link linkend="getpwuid">getpwuid</link>(<link linkend="softint_type">softint</link>) <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="getpwuid">getpwuid</link>(<link linkend="softint_type">softint</link>) <command>returns</command> <link linkend="*hash_type">*hash</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
           </entry>
           <entry>
             <para>N</para>
@@ -1533,7 +1533,7 @@
 
         <row>
           <entry>
-            <para><code><link linkend="glob">glob</link>(<link linkend="string_type">string</link>) <command>returns</command> <link linkend="any_type">any</link></code></para>
+            <para><code><link linkend="glob">glob</link>(<link linkend="string_type">string</link>) <command>returns</command> <link linkend="*list_type">*list</link></code></para>
             <para><code><link linkend="glob">glob</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
           </entry>
           <entry>
@@ -1614,7 +1614,7 @@
         </row>
         <row>
           <entry>
-            <para><code><link linkend="hlstat">hlstat</link>(<link linkend="string_type">string</link>) <command>returns</command> <link linkend="any_type">any</link></code></para>
+            <para><code><link linkend="hlstat">hlstat</link>(<link linkend="string_type">string</link>) <command>returns</command> <link linkend="*hash_type">*hash</link></code></para>
             <para><code><link linkend="hlstat">hlstat</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
           </entry>
           <entry><para>N</para></entry>
@@ -1634,7 +1634,7 @@
         </row>
         <row>
           <entry>
-	    <para><code><link linkend="hstat">hstat</link>(<link linkend="string_type">string</link>) <command>returns</command> <link linkend="any_type">any</link></code></para>
+	    <para><code><link linkend="hstat">hstat</link>(<link linkend="string_type">string</link>) <command>returns</command> <link linkend="*hash_type">*hash</link></code></para>
             <para><code><link linkend="hstat">hstat</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
 	  </entry>
           <entry><para>N</para></entry>
@@ -1979,7 +1979,7 @@
         </row>
         <row>
           <entry>
-            <para><code><link linkend="lstat">lstat</link>(<link linkend="string_type">string</link>) <command>returns</command> <link linkend="any_type">any</link></code></para>
+            <para><code><link linkend="lstat">lstat</link>(<link linkend="string_type">string</link>) <command>returns</command> <link linkend="*list_type">*list</link></code></para>
             <para><code><link linkend="lstat">lstat</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
           </entry>
           <entry>
@@ -2241,12 +2241,12 @@
           <entry><para>Serializes the arguments into an XML string formatted for an XML-RPC fault response without formatting, taking an initial string argument to give the target character encoding for the XML string.</para></entry>
         </row>
         <row>
-          <entry><para><code><link linkend="makeXMLRPCResponseString">makeXMLRPCResponseString</link>(...) <command>returns</command> <link linkend="any_type">any</link></code></para></entry>
+          <entry><para><code><link linkend="makeXMLRPCResponseString">makeXMLRPCResponseString</link>(...) <command>returns</command> <link linkend="*string_type">*string</link></code></para></entry>
           <entry><para>Y</para></entry>
           <entry><para>Serializes the arguments into an XML string formatted for an XML-RPC response without formatting; if no arguments are passed then <command><link linkend="NOTHING">NOTHING</link></command> is returned.</para></entry>
         </row>
         <row>
-          <entry><para><code><link linkend="makeXMLRPCResponseStringWithEncoding">makeXMLRPCResponseStringWithEncoding</link>(<link linkend="string_type">string</link>, ...) <command>returns</command> <link linkend="any_type">any</link></code></para></entry>
+          <entry><para><code><link linkend="makeXMLRPCResponseStringWithEncoding">makeXMLRPCResponseStringWithEncoding</link>(<link linkend="string_type">string</link>, ...) <command>returns</command> <link linkend="*string_type">*string</link></code></para></entry>
           <entry><para>Y</para></entry>
           <entry><para>Serializes the arguments into an XML string formatted for an XML-RPC response without formatting, taking an initial string argument to give the target character encoding for the XML string.  If no arguments after the encoding string are passed, then <command><link linkend="NOTHING">NOTHING</link></command> is returned.</para></entry>
         </row>
@@ -2557,7 +2557,7 @@
 
         <row>
           <entry>
-            <para><code><link linkend="parseURL">parseURL</link>(<link linkend="string_type">string</link>) <command>returns</command> <link linkend="any_type">any</link></code></para>
+            <para><code><link linkend="parseURL">parseURL</link>(<link linkend="string_type">string</link>) <command>returns</command> <link linkend="*hash_type">*hash</link></code></para>
             <para><code><link linkend="parseURL">parseURL</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
           </entry>
           <entry><para>N</para></entry>
@@ -2803,7 +2803,7 @@
         </row>
         <row>
           <entry>
-            <para><code><link linkend="regex_extract">regex_extract</link>(<link linkend="string_type">string</link>, <link linkend="string_type">string</link>, <link linkend="int_type">int</link> = 0) <command>returns</command> <link linkend="any_type">any</link></code></para>
+            <para><code><link linkend="regex_extract">regex_extract</link>(<link linkend="string_type">string</link>, <link linkend="string_type">string</link>, <link linkend="int_type">int</link> = 0) <command>returns</command> <link linkend="*list_type">*list</link></code></para>
             <para><code><link linkend="regex_extract">regex_extract</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
           </entry>
           <entry><para>Y</para></entry>
@@ -3201,7 +3201,7 @@
         </row>
         <row>
           <entry>
-            <para><code><link linkend="stat">stat</link>(<link linkend="string_type">string</link>) <command>returns</command> <link linkend="any_type">any</link></code></para>
+            <para><code><link linkend="stat">stat</link>(<link linkend="string_type">string</link>) <command>returns</command> <link linkend="*list_type">*list</link></code></para>
             <para><code><link linkend="stat">stat</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
           </entry>
           <entry>
@@ -8577,14 +8577,14 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Prototype</term>
       <listitem>
-            <para><code><link linkend="getenv">getenv</link>(<link linkend="string_type">string</link>) <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="getenv">getenv</link>(<link linkend="string_type">string</link>) <command>returns</command> <link linkend="*string_type">*string</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
             <para><code><link linkend="getenv">getenv</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Example</term>
       <listitem>
-	<programlisting>$v = getenv("PATH");</programlisting>
+	<programlisting><command>my</command> *string $v = getenv("PATH");</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -8602,7 +8602,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           <tbody>
             <row>
 	      <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-              <entry><para><code><link linkend="any_type">any</link></code></para></entry>
+              <entry><para><code><link linkend="*string_type">*string</link></code></para></entry>
               <entry><para>The contents of the environment variable are returned as a <link linkend="string_type">string</link>, if the environment variable exists, otherwise <link linkend="NOTHING">no value</link> is returned.</para></entry>
             </row>
           </tbody>
@@ -9401,14 +9401,14 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Prototype</term>
       <listitem>
-            <para><code><link linkend="regex_extract">regex_extract</link>(<link linkend="string_type">string</link> <replaceable>$string</replaceable>, <link linkend="string_type">string</link> <replaceable>$pattern</replaceable>, <link linkend="int_type">int</link> <replaceable>$options</replaceable> = 0) <command>returns</command> <link linkend="any_type">any</link></code></para>
+            <para><code><link linkend="regex_extract">regex_extract</link>(<link linkend="string_type">string</link> <replaceable>$string</replaceable>, <link linkend="string_type">string</link> <replaceable>$pattern</replaceable>, <link linkend="int_type">int</link> <replaceable>$options</replaceable> = 0) <command>returns</command> <link linkend="*list_type">*list</link></code></para>
             <para><code><link linkend="regex_extract">regex_extract</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Example</term>
       <listitem>
-	<programlisting><command>my</command> any $rv = regex_extract("hello:there", "(\\w+):(\\w+)");</programlisting>
+	<programlisting><command>my</command> *list $rv = regex_extract("hello:there", "(\\w+):(\\w+)");</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -9426,7 +9426,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           <tbody>
             <row>
 	      <entry><para><code><link linkend="string_type">string</link> <replaceable>$string</replaceable>, <link linkend="string_type">string</link> <replaceable>$pattern</replaceable>, <link linkend="int_type">int</link> <replaceable>$options</replaceable> = 0</code></para></entry>
-              <entry><para><code><link linkend="list_type">list</link></code></para></entry>
+              <entry><para><code><link linkend="*list_type">*list</link></code></para></entry>
               <entry><para>Returns any patterns in parentheses in the second argument when applied tot he first argument as a <code><link linkend="list_type">list</link></code>.  If no matches are found, then <command><link linkend="NOTHING">NOTHING</link></command> is returned.  The third argument can be used to set regex options; for valid options, see <link linkend="Qore_Regex_Constants">Regex Constants</link></para></entry>
             </row>
           </tbody>
@@ -10426,14 +10426,14 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Prototype</term>
       <listitem>
-            <para><code><link linkend="gethostbyaddr">gethostbyaddr</link>(<link linkend="string_type">string</link> <replaceable>$addr</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$type</replaceable> = AF_INET) <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="gethostbyaddr">gethostbyaddr</link>(<link linkend="string_type">string</link> <replaceable>$addr</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$type</replaceable> = AF_INET) <command>returns</command> <link linkend="*string_type">*string</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
             <para><code><link linkend="gethostbyaddr">gethostbyaddr</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Example</term>
       <listitem>
-	<programlisting>$hostname = gethostbyaddr("192.168.0.33");</programlisting>
+	<programlisting><command>my</command> *string $hostname = gethostbyaddr("192.168.0.33");</programlisting>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -10458,7 +10458,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 <tbody>
   <row>
     <entry><para><code><link linkend="string_type">string</link> <replaceable>$addr</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$type</replaceable> = AF_INET</code></para></entry>
-    <entry><para><code><link linkend="any_type">any</link></code></para></entry>
+    <entry><para><code><link linkend="*string_type">*string</link></code></para></entry>
     <entry><para>Returns the hostname of the system as a <link linkend="string_type">string</link> or <link linkend="NOTHING">NOTHING</link> if the address is unknown.</para></entry>
   </row>
 
@@ -10501,14 +10501,14 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Prototype</term>
       <listitem>
-            <para><code><link linkend="gethostbyaddr_long">gethostbyaddr_long</link>(<link linkend="string_type">string</link> <replaceable>$addr</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$type</replaceable> = AF_INET) <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="gethostbyaddr_long">gethostbyaddr_long</link>(<link linkend="string_type">string</link> <replaceable>$addr</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$type</replaceable> = AF_INET) <command>returns</command> <link linkend="*hash_type">*hash</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
             <para><code><link linkend="gethostbyaddr_long">gethostbyaddr_long</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Example</term>
       <listitem>
-	<programlisting>$hash = gethostbyaddr_long("192.168.0.33");</programlisting>
+	<programlisting><command>my</command> *hash $hash = gethostbyaddr_long("192.168.0.33");</programlisting>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -10533,7 +10533,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <tbody>
       <row>
 	<entry><para><code><link linkend="string_type">string</link> <replaceable>$addr</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$type</replaceable> = AF_INET</code></para></entry>
-	<entry><para><code><link linkend="any_type">any</link></code></para></entry>
+	<entry><para><code><link linkend="*hash_type">*hash</link></code></para></entry>
 	<entry><para>Returns a hash representing all host and address information corresponding to the network address passed or <link linkend="NOTHING">NOTHING</link> if the address is unknown.</para></entry>
       </row>
 
@@ -10620,14 +10620,14 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Prototype</term>
       <listitem>
-            <para><code><link linkend="gethostbyname">gethostbyname</link>(<link linkend="string_type">string</link> <replaceable>$name</replaceable>) <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="gethostbyname">gethostbyname</link>(<link linkend="string_type">string</link> <replaceable>$name</replaceable>) <command>returns</command> <link linkend="*string_type">*string</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
             <para><code><link linkend="gethostbyname">gethostbyname</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Example</term>
       <listitem>
-	<programlisting>$addr = gethostbyname("host1");</programlisting>
+	<programlisting><command>my</command> *string $addr = gethostbyname("host1");</programlisting>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -10652,7 +10652,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 <tbody>
   <row>
     <entry><para><code><link linkend="string_type">string</link> <replaceable>$name</replaceable></code></para></entry>
-    <entry><para><code><link linkend="any_type">any</link></code></para></entry>
+    <entry><para><code><link linkend="*string_type">*string</link></code></para></entry>
     <entry><para>Returns the first address corresponding to the hostname passed as a string or <command><link linkend="NOTHING">NOTHING</link></command> if the host is unknown.</para></entry>
   </row>
 
@@ -10678,13 +10678,13 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Prototype</term>
       <listitem>
-	<para><code><link linkend="gethostbyname_long">gethostbyname_long</link>(<link linkend="string_type">string</link> <replaceable>$name</replaceable>) <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+	<para><code><link linkend="gethostbyname_long">gethostbyname_long</link>(<link linkend="string_type">string</link> <replaceable>$name</replaceable>) <command>returns</command> <link linkend="*hash_type">*hash</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Example</term>
       <listitem>
-	<programlisting>$hash = gethostbyname_long("host1");</programlisting>
+	<programlisting><command>my</command> *hash $hash = gethostbyname_long("host1");</programlisting>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -10709,7 +10709,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <tbody>
       <row>
 	<entry><para><code><link linkend="string_type">string</link> <replaceable>$name</replaceable></code></para></entry>
-	<entry><para><code><link linkend="any_type">any</link></code></para></entry>
+	<entry><para><code><link linkend="*hash_type">*hash</link></code></para></entry>
 	<entry><para>Returns a <link linkend="host_information_hash">hash</link> representing all host and address information corresponding to the hostname passed or <command><link linkend="NOTHING">NOTHING</link></command> if the host is unknown.</para></entry>
       </row>
 
@@ -10955,14 +10955,14 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Prototype</term>
       <listitem>
-	<para><code><link linkend="glob">glob</link>(<link linkend="string_type">string</link>) <command>returns</command> <link linkend="any_type">any</link></code></para>
+	<para><code><link linkend="glob">glob</link>(<link linkend="string_type">string</link>) <command>returns</command> <link linkend="*list_type">*list</link></code></para>
 	<para><code><link linkend="glob">glob</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Example</term>
       <listitem>
-	<programlisting>$list = glob("*.txt");</programlisting>
+	<programlisting><command>my</command> *list $list = glob("*.txt");</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -10982,7 +10982,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 <tbody>
   <row>
     <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-    <entry><para><code><link linkend="any_type">any</link></code></para></entry>
+    <entry><para><code><link linkend="*list_type">*list</link></code></para></entry>
     <entry><para>Returns a list of files matching the string argument or <command><link linkend="NOTHING">NOTHING</link></command> if the call to <code>glob()</code> fails.</para></entry>
   </row>
 
@@ -11503,7 +11503,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Prototype</term>
       <listitem>
-            <para><code><link linkend="stat">stat</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
+            <para><code><link linkend="stat">stat</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>) <command>returns</command> <link linkend="*list_type">*list</link></code></para>
             <para><code><link linkend="stat">stat</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
@@ -11534,7 +11534,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <tbody>
 	<row>
 	  <entry><para><code><link linkend="string_type">string</link> <replaceable>$path</replaceable></code></para></entry>
-	  <entry><para><code><link linkend="any_type">any</link></code></para></entry>
+	  <entry><para><code><link linkend="*list_type">*list</link></code></para></entry>
 	  <entry><para>Returns a list of filesystem values for the file passed, following symbolic links or <command><link linkend="NOTHING">NOTHING</link></command> if the call fails.  See <link linkend="Stat_List">Stat List</link> below for a description of the list returned by this function.</para></entry>
 	</row>
       </tbody>
@@ -16534,13 +16534,13 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Prototype</term>
       <listitem>
-	<para><code><link linkend="getcwd">getcwd</link>() <command>returns</command> <link linkend="any_type">any</link></code></para>
+	<para><code><link linkend="getcwd">getcwd</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Example</term>
       <listitem>
-	<programlisting><command>my</command> $cwd = getcwd();</programlisting>
+	<programlisting><command>my</command> *string $cwd = getcwd();</programlisting>
       </listitem>
     </varlistentry>
       <varlistentry>
@@ -16566,7 +16566,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 <tbody>
   <row>
     <entry><para>n/a</para></entry>
-    <entry><para><code><link linkend="any_type">any</link></code></para></entry>
+    <entry><para><code><link linkend="*string_type">*string</link></code></para></entry>
     <entry><para>Returns the complete path of the current working directory as a string or <link linkend="NOTHING">NOTHING</link> if the current working directory could not be read.</para></entry>
   </row>
 
@@ -16662,14 +16662,14 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Prototype</term>
       <listitem>
-            <para><code><link linkend="hlstat">hlstat</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
+            <para><code><link linkend="hlstat">hlstat</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>) <command>returns</command> <link linkend="*hash_type">*hash</link></code></para>
             <para><code><link linkend="hlstat">hlstat</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Example</term>
       <listitem>
-	<programlisting>$type = hlstat("/bin/sh").type; # returns "REGULAR"</programlisting>
+	<programlisting><command>my</command> *string $type = hlstat("/bin/sh").type; # returns "REGULAR"</programlisting>
       </listitem>
     </varlistentry>
       <varlistentry>
@@ -16693,7 +16693,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <tbody>
 	<row>
 	  <entry><para><code><link linkend="string_type">string</link> <replaceable>$path</replaceable></code></para></entry>
-	  <entry><para><code><link linkend="hash_type">hash</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
+	  <entry><para><code><link linkend="*hash_type">*hash</link></code></para></entry>
 	  <entry><para>Returns a hash of filesystem values for the file passed or <link linkend="NOTHING">NOTHING</link> if the <code>stat()</code> call fails; symbolic links are not followed (information is returned about symbolic links).  See also <link linkend="hstat">hstat()</link>.  See <link linkend="Stat_Hash">Stat Hash</link> below for a description of the hash returned by this function.</para></entry>
 	</row>
       </tbody>
@@ -16818,7 +16818,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <tbody>
 	<row>
 	  <entry><para><code><link linkend="string_type">string</link> <replaceable>$path</replaceable></code></para></entry>
-	  <entry><para><code><link linkend="hash_type">hash</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
+	  <entry><para><code><link linkend="*hash_type">*hash</link></code></para></entry>
 	  <entry><para>Returns a hash of filesystem values for the file passed or <link linkend="NOTHING">NOTHING</link> if the <code>stat()</code> call fails; symbolic links are followed.  See also <link linkend="hlstat">hlstat()</link>.  See <link linkend="Stat_Hash">Stat Hash</link> for a description of the hash returned by this function.</para></entry>
 	</row>
       </tbody>
@@ -17513,14 +17513,14 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Prototype</term>
       <listitem>
-            <para><code><link linkend="lstat">lstat</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
+            <para><code><link linkend="lstat">lstat</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>) <command>returns</command> <link linkend="*list_type">*list</link></code></para>
             <para><code><link linkend="lstat">lstat</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Example</term>
       <listitem>
-	<programlisting>$list = lstat(("/bin/sh");</programlisting>
+	<programlisting><command>my</command> *list $list = lstat(("/bin/sh");</programlisting>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -17544,7 +17544,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <tbody>
 	<row>
 	  <entry><para><code><link linkend="string_type">string</link> <replaceable>$path</replaceable></code></para></entry>
-	  <entry><para><code><link linkend="list_type">list</link></code></para></entry>
+	  <entry><para><code><link linkend="*list_type">*list</link></code></para></entry>
 	  <entry><para>Returns a list of filesystem values for the file passed.  See <link linkend="Stat_List">Stat List</link> for a description of the list returned by this function.</para></entry>
 	</row>
       </tbody>
@@ -19174,14 +19174,14 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Prototype</term>
       <listitem>
-            <para><code><link linkend="functionType">functionType</link>(<link linkend="string_type">string</link>) <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="functionType">functionType</link>(<link linkend="string_type">string</link>) <command>returns</command> <link linkend="*string_type">*string</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
             <para><code><link linkend="functionType">functionType</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Example</term>
       <listitem>
-	<programlisting>$type = functionType("print");</programlisting>
+	<programlisting><command>my</command> *string $type = functionType("print");</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -19201,7 +19201,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 <tbody>
   <row>
     <entry><para><code><link linkend="string_type">string</link></code></para></entry>
-    <entry><para><code><link linkend="any_type">any</link></code></para></entry>
+    <entry><para><code><link linkend="*string_type">*string</link></code></para></entry>
     <entry><para>Returns &quot;builtin&quot; (for a builtin function), &quot;user&quot; (for a user function), or <command><link linkend="NOTHING">NOTHING</link></command> (if the function cannot be found) according to the function name passed.</para></entry>
   </row>
 
@@ -19228,13 +19228,13 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Prototype</term>
       <listitem>
-            <para><code><link linkend="get_byte">get_byte</link>(<link linkend="data_type">data</link> <replaceable>$data</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$offset</replaceable> <replaceable>$offset</replaceable> = 0) <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="get_byte">get_byte</link>(<link linkend="data_type">data</link> <replaceable>$data</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$offset</replaceable> <replaceable>$offset</replaceable> = 0) <command>returns</command> <link linkend="*int_type">*int</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Example</term>
       <listitem>
-	<programlisting>$byte = get_byte($bin, 2); # returns the third byte of the binary object</programlisting>
+	<programlisting><command>my</command> *int $byte = get_byte($bin, 2); # returns the third byte of the binary object</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -19253,7 +19253,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 <tbody>
   <row>
     <entry><para><code><link linkend="data_type">data</link> <replaceable>$data</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$offset</replaceable> <replaceable>$offset</replaceable> = 0)</code></para></entry>
-    <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+    <entry><para><code><link linkend="*int_type">*int</link></code></para></entry>
     <entry><para>The value of the byte at the offset in the string or binary object.  If no offset is passed, then the first byte is returned.  If the object is empty or the offset is larger than the object's size, then no value is returned.</para></entry>
   </row>
 
@@ -19279,13 +19279,13 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Prototype</term>
       <listitem>
-            <para><code><link linkend="get_word_16">get_word_16</link>(<link linkend="data_type">data</link> <replaceable>$data</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$offset</replaceable> = 0) <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="get_word_16">get_word_16</link>(<link linkend="data_type">data</link> <replaceable>$data</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$offset</replaceable> = 0) <command>returns</command> <link linkend="*int_type">*int</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Example</term>
       <listitem>
-	<programlisting>$val = get_word_16($bin, 2); # returns the third 16-bit value in <ulink url="http://en.wikipedia.org/wiki/Most_significant_bit">MSB</ulink> format of the binary object</programlisting>
+	<programlisting><command>my</command> *int $val = get_word_16($bin, 2); # returns the third 16-bit value in <ulink url="http://en.wikipedia.org/wiki/Most_significant_bit">MSB</ulink> format of the binary object</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -19304,7 +19304,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 <tbody>
   <row>
     <entry><para><code><link linkend="data_type">data</link> <replaceable>$data</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$offset</replaceable> = 0)</code></para></entry>
-    <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+    <entry><para><code><link linkend="*int_type">*int</link></code></para></entry>
     <entry><para>The <ulink url="http://en.wikipedia.org/wiki/Most_significant_bit">MSB</ulink> integer value of the data at the 2-byte offset given in the string or binary object.  If no offset is passed, then the first 16-bit value is returned.  If the object is empty or the offset is larger than the object's size, then no value is returned.</para></entry>
   </row>
 
@@ -19330,13 +19330,13 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Prototype</term>
       <listitem>
-            <para><code><link linkend="get_word_16_lsb">get_word_16_lsb</link>(<link linkend="data_type">data</link> <replaceable>$data</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$offset</replaceable> = 0) <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="get_word_16_lsb">get_word_16_lsb</link>(<link linkend="data_type">data</link> <replaceable>$data</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$offset</replaceable> = 0) <command>returns</command> <link linkend="*int_type">*int</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Example</term>
       <listitem>
-	<programlisting>$val = get_word_16_lsb($bin, 2); # returns the third 16-bit value in <ulink url="http://en.wikipedia.org/wiki/Least_significant_bit">LSB</ulink> format of the binary object</programlisting>
+	<programlisting><command>my</command> *int $val = get_word_16_lsb($bin, 2); # returns the third 16-bit value in <ulink url="http://en.wikipedia.org/wiki/Least_significant_bit">LSB</ulink> format of the binary object</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -19355,7 +19355,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 <tbody>
   <row>
     <entry><para><code><link linkend="data_type">data</link> <replaceable>$data</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$offset</replaceable> = 0)</code></para></entry>
-    <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+    <entry><para><code><link linkend="*int_type">*int</link></code></para></entry>
     <entry><para>The <ulink url="http://en.wikipedia.org/wiki/Least_significant_bit">LSB</ulink> integer value of the data at the 2-byte offset given in the string or binary object.  If no offset is passed, then the first 16-bit value is returned.  If the object is empty or the offset is larger than the object's size, then no value is returned.</para></entry>
   </row>
 
@@ -19384,13 +19384,13 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Prototype</term>
       <listitem>
-            <para><code><link linkend="get_word_32">get_word_32</link>(<link linkend="data_type">data</link> <replaceable>$data</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$offset</replaceable> = 0) <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="get_word_32">get_word_32</link>(<link linkend="data_type">data</link> <replaceable>$data</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$offset</replaceable> = 0) <command>returns</command> <link linkend="*int_type">*int</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Example</term>
       <listitem>
-	<programlisting>$val = get_word_32($bin, 2); # returns the third 32-bit value in <ulink url="http://en.wikipedia.org/wiki/Most_significant_bit">MSB</ulink> format of the binary object</programlisting>
+	<programlisting><command>my</command> *int $val = get_word_32($bin, 2); # returns the third 32-bit value in <ulink url="http://en.wikipedia.org/wiki/Most_significant_bit">MSB</ulink> format of the binary object</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -19409,7 +19409,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 <tbody>
   <row>
     <entry><para><code><link linkend="data_type">data</link>, <link linkend="softint_type">softint</link> <replaceable>$offset</replaceable> = 0)</code></para></entry>
-    <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+    <entry><para><code><link linkend="*int_type">*int</link></code></para></entry>
     <entry><para>The <ulink url="http://en.wikipedia.org/wiki/Most_significant_bit">MSB</ulink> integer value of the data at the 4-byte offset given in the string or binary object.  If no offset is passed, then the first 32-bit value is returned.  If the object is empty or the offset is larger than the object's size, then no value is returned.</para></entry>
   </row>
 
@@ -19435,13 +19435,13 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Prototype</term>
       <listitem>
-            <para><code><link linkend="get_word_32_lsb">get_word_32_lsb</link>(<link linkend="data_type">data</link> <replaceable>$data</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$offset</replaceable> = 0) <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="get_word_32_lsb">get_word_32_lsb</link>(<link linkend="data_type">data</link> <replaceable>$data</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$offset</replaceable> = 0) <command>returns</command> <link linkend="*int_type">*int</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Example</term>
       <listitem>
-	<programlisting>$val = get_word_32_lsb($bin, 2); # returns the third 32-bit value in <ulink url="http://en.wikipedia.org/wiki/Least_significant_bit">LSB</ulink> format of the binary object</programlisting>
+	<programlisting><command>my</command> *int $val = get_word_32_lsb($bin, 2); # returns the third 32-bit value in <ulink url="http://en.wikipedia.org/wiki/Least_significant_bit">LSB</ulink> format of the binary object</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -19460,7 +19460,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 <tbody>
   <row>
     <entry><para><code><link linkend="data_type">data</link> <replaceable>$data</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$offset</replaceable> = 0)</code></para></entry>
-    <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+    <entry><para><code><link linkend="*int_type">*int</link></code></para></entry>
     <entry><para>The <ulink url="http://en.wikipedia.org/wiki/Least_significant_bit">LSB</ulink> integer value of the data at the 4-byte offset given in the string or binary object.  If no offset is passed, then the first 32-bit value is returned.  If the object is empty or the offset is larger than the object's size, then no value is returned.</para></entry>
   </row>
 
@@ -19486,13 +19486,13 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Prototype</term>
       <listitem>
-            <para><code><link linkend="get_word_64">get_word_64</link>(<link linkend="data_type">data</link> <replaceable>$data</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$offset</replaceable> = 0) <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="get_word_64">get_word_64</link>(<link linkend="data_type">data</link> <replaceable>$data</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$offset</replaceable> = 0) <command>returns</command> <link linkend="*int_type">*int</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Example</term>
       <listitem>
-	<programlisting>$val = get_word_64($bin, 2); # returns the third 64-bit value in <ulink url="http://en.wikipedia.org/wiki/Most_significant_bit">MSB</ulink> format of the binary object</programlisting>
+	<programlisting><command>my</command> *int $val = get_word_64($bin, 2); # returns the third 64-bit value in <ulink url="http://en.wikipedia.org/wiki/Most_significant_bit">MSB</ulink> format of the binary object</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -19511,7 +19511,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 <tbody>
   <row>
     <entry><para><code><link linkend="data_type">data</link> <replaceable>$data</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$offset</replaceable> = 0)</code></para></entry>
-    <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+    <entry><para><code><link linkend="*int_type">*int</link></code></para></entry>
     <entry><para>The <ulink url="http://en.wikipedia.org/wiki/Most_significant_bit">MSB</ulink> integer value of the data at the 8-byte offset given in the string or binary object.  If no offset is passed, then the first 64-bit value is returned.  If the object is empty or the offset is larger than the object's size, then no value is returned.</para></entry>
   </row>
 
@@ -19537,13 +19537,13 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Prototype</term>
       <listitem>
-            <para><code><link linkend="get_word_64_lsb">get_word_64_lsb</link>(<link linkend="data_type">data</link> <replaceable>$data</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$offset</replaceable> = 0) <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="get_word_64_lsb">get_word_64_lsb</link>(<link linkend="data_type">data</link> <replaceable>$data</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$offset</replaceable> = 0) <command>returns</command> <link linkend="*int_type">*int</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Example</term>
       <listitem>
-	<programlisting>$val = get_word_64_lsb($bin, 2); # returns the third 64-bit value in <ulink url="http://en.wikipedia.org/wiki/Least_significant_bit">LSB</ulink> format of the binary object</programlisting>
+	<programlisting><command>my</command> *int $val = get_word_64_lsb($bin, 2); # returns the third 64-bit value in <ulink url="http://en.wikipedia.org/wiki/Least_significant_bit">LSB</ulink> format of the binary object</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -19562,7 +19562,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 <tbody>
   <row>
     <entry><para><code><link linkend="data_type">data</link> <replaceable>$data</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$offset</replaceable> = 0)</code></para></entry>
-    <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+    <entry><para><code><link linkend="*int_type">*int</link></code></para></entry>
     <entry><para>The <ulink url="http://en.wikipedia.org/wiki/Least_significant_bit">LSB</ulink> integer value of the data at the 8-byte offset given in the string or binary object.  If no offset is passed, then the first 64-bit value is returned.  If the object is empty or the offset is larger than the object's size, then no value is returned.</para></entry>
   </row>
 
@@ -19783,14 +19783,14 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Prototype</term>
       <listitem>
-            <para><code><link linkend="getByte">getByte</link>(<link linkend="data_type">data</link> <replaceable>$data</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$offset</replaceable> = 0) <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="getByte">getByte</link>(<link linkend="data_type">data</link> <replaceable>$data</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$offset</replaceable> = 0) <command>returns</command> <link linkend="*int_type">*int</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
             <para><code><link linkend="getByte">getByte</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Example</term>
       <listitem>
-	<programlisting>$byte = getByte($bin, 2); # returns the third byte of the binary object</programlisting>
+	<programlisting><command>my</command> *int $byte = getByte($bin, 2); # returns the third byte of the binary object</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -19809,7 +19809,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 <tbody>
   <row>
     <entry><para><code><link linkend="data_type">data</link> <replaceable>$data</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$offset</replaceable> = 0)</code></para></entry>
-    <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+    <entry><para><code><link linkend="*int_type">*int</link></code></para></entry>
     <entry><para>The value of the byte at the offset in the string or binary object.  If no offset is passed, then the first byte is returned.  If the object is empty or the offset is larger than the object's size, then no value is returned.</para></entry>
   </row>
 
@@ -20276,13 +20276,13 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <para><code><link linkend="getgrgid">getgrgid</link>(<link linkend="softint_type">softint</link> <replaceable>$gid</replaceable>) <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="getgrgid">getgrgid</link>(<link linkend="softint_type">softint</link> <replaceable>$gid</replaceable>) <command>returns</command> <link linkend="*hash_type">*hash</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Example</term>
           <listitem>
-            <programlisting><command>my</command> hash $hash = getgrgid(0); # returns the login information for root</programlisting>
+            <programlisting><command>my</command> *hash $hash = getgrgid(0); # returns the login information for root</programlisting>
           </listitem>
         </varlistentry>
     <varlistentry>
@@ -20315,7 +20315,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
                 <para><code><link linkend="int_type">int</link> <replaceable>$gid</replaceable></code></para>
               </entry>
               <entry>
-                <para><code><link linkend="hash_type">hash</link> or <link linkend="nothing_type">nothing</link></code></para>
+                <para><code><link linkend="*hash_type">*hash</link></code></para>
               </entry>
               <entry>
                 <para>Returns a hash representing the group information for the group ID passed.  If the gid does not exist, <command><link linkend="NOTHING">NOTHING</link></command> is returned.  See the <link linkend="grinfo">Group Information Hash</link> for information about the return value.</para>
@@ -20456,13 +20456,13 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <para><code><link linkend="getgrnam">getgrnam</link>(<link linkend="string_type">string</link> <replaceable>$group_name</replaceable>) <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="getgrnam">getgrnam</link>(<link linkend="string_type">string</link> <replaceable>$group_name</replaceable>) <command>returns</command> <link linkend="*hash_type">*hash</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Example</term>
           <listitem>
-            <programlisting><command>my</command> hash $hash = getgrnam("root"); # returns the login information for root</programlisting>
+            <programlisting><command>my</command> *hash $hash = getgrnam("root"); # returns the login information for root</programlisting>
           </listitem>
         </varlistentry>
     <varlistentry>
@@ -20495,7 +20495,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
                 <para><code><link linkend="int_type">int</link> <replaceable>$group_name</replaceable></code></para>
               </entry>
               <entry>
-                <para><code><link linkend="hash_type">hash</link> or <link linkend="nothing_type">nothing</link></code></para>
+                <para><code><link linkend="*hash_type">*hash</link></code></para>
               </entry>
               <entry>
                 <para>Returns a hash representing the group information for the group name passed.  If the group name does not exist, <command><link linkend="NOTHING">NOTHING</link></command> is returned.  See the <link linkend="grinfo">Group Information Hash</link> for information about the return value.</para>
@@ -20602,13 +20602,13 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <para><code><link linkend="getpwnam">getpwnam</link>(<link linkend="string_type">string</link> <replaceable>$user_name</replaceable>) <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="getpwnam">getpwnam</link>(<link linkend="string_type">string</link> <replaceable>$user_name</replaceable>) <command>returns</command> <link linkend="*hash_type">*hash</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Example</term>
           <listitem>
-            <programlisting><command>my</command> hash $hash = getpwnam("root"); # returns the login information for root</programlisting>
+            <programlisting><command>my</command> *hash $hash = getpwnam("root"); # returns the login information for root</programlisting>
           </listitem>
         </varlistentry>
     <varlistentry>
@@ -20641,7 +20641,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
                 <para><code><link linkend="int_type">int</link> <replaceable>$user_name</replaceable></code></para>
               </entry>
               <entry>
-                <para><code><link linkend="hash_type">hash</link> or <link linkend="nothing_type">nothing</link></code></para>
+                <para><code><link linkend="*hash_type">*hash</link></code></para>
               </entry>
               <entry>
                 <para>Returns a hash representing the user information for the user name passed.  If the user name does not exist, <command><link linkend="NOTHING">NOTHING</link></command> is returned.  See the <link linkend="pwinfo">Password Information Hash</link> for information about the return value.</para>
@@ -20797,13 +20797,13 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-            <para><code><link linkend="getpwuid">getpwuid</link>(<link linkend="softint_type">softint</link> <replaceable>$uid</replaceable>) <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="getpwuid">getpwuid</link>(<link linkend="softint_type">softint</link> <replaceable>$uid</replaceable>) <command>returns</command> <link linkend="*hash_type">*hash</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Example</term>
           <listitem>
-            <programlisting><command>my</command> hash $hash = getpwuid(0); # returns the login information for root</programlisting>
+            <programlisting><command>my</command> *hash $hash = getpwuid(0); # returns the login information for root</programlisting>
           </listitem>
         </varlistentry>
     <varlistentry>
@@ -20836,7 +20836,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
                 <para><code><link linkend="int_type">int</link> <replaceable>$uid</replaceable></code></para>
               </entry>
               <entry>
-                <para><code><link linkend="hash_type">hash</link> or <link linkend="nothing_type">nothing</link></code></para>
+                <para><code><link linkend="*hash_type">*hash</link></code></para>
               </entry>
               <entry>
                 <para>Returns a hash representing the user information for the user ID passed.  If the uid does not exist, <command><link linkend="NOTHING">NOTHING</link></command> is returned.  See the <link linkend="pwinfo">Password Information Hash</link> for information about the return value.</para>
@@ -20943,13 +20943,13 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <para><code><link linkend="get_script_path">get_script_path</link>() <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+	    <para><code><link linkend="get_script_path">get_script_path</link>() <command>returns</command> <link linkend="*string_type">*string</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$path = get_script_path();</programlisting>
+	    <programlisting><command>my</command> *string $path = get_script_path();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -20966,7 +20966,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<tbody>
 	  <row>
 	    <entry><para>n/a</para></entry>
-	    <entry><code><link linkend="string_type">string</link> or <link linkend="nothing_type">nothing</link></code></entry>
+	    <entry><code><link linkend="*string_type">*string</link></code></entry>
 	    <entry><para>Returns the path name of the current script, or <command><link linkend="NOTHING">NOTHING</link></command> if unknown.</para></entry>
 	  </row>
 	</tbody>
@@ -20989,13 +20989,13 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <para><code><link linkend="get_script_dir">get_script_dir</link>() <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+	    <para><code><link linkend="get_script_dir">get_script_dir</link>() <command>returns</command> <link linkend="*string_type">*string</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$dir = get_script_dir();</programlisting>
+	    <programlisting><command>my</command> *string $dir = get_script_dir();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -21012,7 +21012,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<tbody>
 	  <row>
 	    <entry><para>n/a</para></entry>
-	    <entry><code><link linkend="string_type">string</link> or <link linkend="nothing_type">nothing</link></code></entry>
+	    <entry><code><link linkend="*string_type">*string</link></code></entry>
 	    <entry><para>Returns the name of the directory for the current script, or <command><link linkend="NOTHING">NOTHING</link></command> if unknown.</para></entry>
 	  </row>
 	</tbody>
@@ -21035,13 +21035,13 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-	    <para><code><link linkend="get_script_name">get_script_name</link>() <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+	    <para><code><link linkend="get_script_name">get_script_name</link>() <command>returns</command> <link linkend="*string_type">*string</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$name = get_script_name();</programlisting>
+	    <programlisting><command>my</command> *string $name = get_script_name();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -21058,7 +21058,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<tbody>
 	  <row>
 	    <entry><para>n/a</para></entry>
-	    <entry><code><link linkend="string_type">string</link> or <link linkend="nothing_type">nothing</link></code></entry>
+	    <entry><code><link linkend="*string_type">*string</link></code></entry>
 	    <entry><para>Returns the filename of the current script, or <command><link linkend="NOTHING">NOTHING</link></command> if unknown.</para></entry>
 	  </row>
 	</tbody>
@@ -21087,14 +21087,14 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Prototype</term>
       <listitem>
-	<para><code><link linkend="getWord32">getWord32</link>(<link linkend="data_type">data</link> <replaceable>$data</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$offset</replaceable> = 0) <command>returns</command> <link linkend="any_type">any</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+	<para><code><link linkend="getWord32">getWord32</link>(<link linkend="data_type">data</link> <replaceable>$data</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$offset</replaceable> = 0) <command>returns</command> <link linkend="*int_type">*int</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
 	<para><code><link linkend="getWord32">getWord32</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Example</term>
       <listitem>
-	<programlisting>$val = getWord32($bin, 2); # returns the third 32-bit value in <ulink url="http://en.wikipedia.org/wiki/Most_significant_bit">MSB</ulink> format of the binary object</programlisting>
+	<programlisting><command>my</command> *int $val = getWord32($bin, 2); # returns the third 32-bit value in <ulink url="http://en.wikipedia.org/wiki/Most_significant_bit">MSB</ulink> format of the binary object</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -21113,7 +21113,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 <tbody>
   <row>
     <entry><para><code><link linkend="data_type">data</link> <replaceable>$data</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$offset</replaceable> = 0)</code></para></entry>
-    <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+    <entry><para><code><link linkend="*int_type">*int</link></code></para></entry>
     <entry><para>The <ulink url="http://en.wikipedia.org/wiki/Most_significant_bit">MSB</ulink> integer value of the data at the 4-byte offset given in the string or binary object.  If no offset is passed, then the first 32-bit value is returned.  If the object is empty or the offset is larger than the object's size, then no value is returned.</para></entry>
   </row>
 
@@ -22093,14 +22093,14 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Prototype</term>
       <listitem>
-            <para><code><link linkend="parseURL">parseURL</link>(<link linkend="string_type">string</link> <replaceable>$url</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
+            <para><code><link linkend="parseURL">parseURL</link>(<link linkend="string_type">string</link> <replaceable>$url</replaceable>) <command>returns</command> <link linkend="*hash_type">*hash</link></code></para>
             <para><code><link linkend="parseURL">parseURL</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Example</term>
       <listitem>
-	<programlisting>$hash = parseURL($url_string);</programlisting>
+	<programlisting><command>my</command> *hash $hash = parseURL($url_string);</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -22118,7 +22118,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <tbody>
 	<row>
 	  <entry><para><code><link linkend="string_type">string</link> <replaceable>$url</replaceable></code></para></entry>
-	  <entry><para><code><link linkend="hash_type">hash</link> or <link linkend="nothing_type">nothing</link></code></para></entry>
+	  <entry><para><code><link linkend="*hash_type">*hash</link></code></para></entry>
 	  <entry><para>Parses a URL string and returns a hash of the components.  URLs have the format: <code>protocol://username:password@host:port/path</code>, where only <code>host</code> is mandatory.  If the URL cannot be parsed, <link linkend="NOTHING">no value</link> is returned.</para></entry>
 	</row>
       </tbody>
@@ -24466,13 +24466,13 @@ the resulting string will always be the encoding of the fault string (2nd argume
     <varlistentry>
       <term>Prototype</term>
       <listitem>
-	<para><code><link linkend="makeXMLRPCResponseString">makeXMLRPCResponseString</link>(...) <command>returns</command> <link linkend="any_type">any</link></code></para>
+	<para><code><link linkend="makeXMLRPCResponseString">makeXMLRPCResponseString</link>(...) <command>returns</command> <link linkend="*string_type">*string</link></code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Example</term>
       <listitem>
-	<programlisting>$xml = makeXMLRPCResponseString($response);</programlisting>
+	<programlisting><command>my</command> *string $xml = makeXMLRPCResponseString($response);</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -24490,7 +24490,7 @@ the resulting string will always be the encoding of the fault string (2nd argume
       <tbody>
 	<row>
 	  <entry><para><code>...</code></para></entry>
-	  <entry><para><code><link linkend="string_type">string</link></code></para></entry>
+	  <entry><para><code><link linkend="*string_type">*string</link></code></para></entry>
 	  <entry><para>Serializes the arguments into an XML string formatted for an XML-RPC response without whitespace formatting>.  The encoding of the resulting string will always be the <link linkend="Default_Character_Encoding">default encoding</link>.</para></entry>
 	</row>
       </tbody>
@@ -24529,13 +24529,13 @@ the resulting string will always be the encoding of the fault string (2nd argume
     <varlistentry>
       <term>Prototype</term>
       <listitem>
-	<para><code><link linkend="makeXMLRPCResponseStringWithEncoding">makeXMLRPCResponseStringWithEncoding</link>(<link linkend="string_type">string</link> <replaceable>$encoding</replaceable>, ...) <command>returns</command> <link linkend="any_type">any</link></code></para>
+	<para><code><link linkend="makeXMLRPCResponseStringWithEncoding">makeXMLRPCResponseStringWithEncoding</link>(<link linkend="string_type">string</link> <replaceable>$encoding</replaceable>, ...) <command>returns</command> <link linkend="*string_type">*string</link></code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Example</term>
       <listitem>
-	<programlisting>$xml = makeXMLRPCResponseStringWithEncoding("ISO-8859-2", $response);</programlisting>
+	<programlisting><command>my</command> *string $xml = makeXMLRPCResponseStringWithEncoding("ISO-8859-2", $response);</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -24553,7 +24553,7 @@ the resulting string will always be the encoding of the fault string (2nd argume
       <tbody>
 	<row>
 	  <entry><para><code><link linkend="string_type">string</link> <replaceable>$encoding</replaceable>, ...</code></para></entry>
-	  <entry><para><code><link linkend="string_type">string</link></code></para></entry>
+	  <entry><para><code><link linkend="*string_type">*string</link></code></para></entry>
 	  <entry><para>Serializes the arguments into an XML string formatted for an XML-RPC response without whitespace formatting>.  The <link linkend="Qore_Strings_and_Character_Encoding">encoding</link> of the resulting string will correspond to the first argument.</para></entry>
 	</row>
       </tbody>

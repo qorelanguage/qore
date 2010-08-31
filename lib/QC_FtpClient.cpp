@@ -321,13 +321,15 @@ QoreClass *initFtpClientClass() {
    QC_FTPCLIENT->addMethodExtended("connect",               (q_method_t)FC_connect, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
    QC_FTPCLIENT->addMethodExtended("disconnect",            (q_method_t)FC_disconnect, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
 
-   // returns string or nothing
-   QC_FTPCLIENT->addMethodExtended("list",                  (q_method_t)FC_list, false, QC_NO_FLAGS, QDOM_DEFAULT);
-   QC_FTPCLIENT->addMethodExtended("list",                  (q_method_t)FC_list_str, false, QC_NO_FLAGS, QDOM_DEFAULT, 0, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   // FtpClient::list() returns *string
+   QC_FTPCLIENT->addMethodExtended("list",                  (q_method_t)FC_list, false, QC_NO_FLAGS, QDOM_DEFAULT, stringOrNothingTypeInfo);
+   // FtpClient::list(string $str) returns *string
+   QC_FTPCLIENT->addMethodExtended("list",                  (q_method_t)FC_list_str, false, QC_NO_FLAGS, QDOM_DEFAULT, stringOrNothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   // returns string or nothing
-   QC_FTPCLIENT->addMethodExtended("nlst",                  (q_method_t)FC_nlst, false, QC_NO_FLAGS, QDOM_DEFAULT);
-   QC_FTPCLIENT->addMethodExtended("nlst",                  (q_method_t)FC_nlst_str, false, QC_NO_FLAGS, QDOM_DEFAULT, 0, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   // FtpClient::nlst() returns *string
+   QC_FTPCLIENT->addMethodExtended("nlst",                  (q_method_t)FC_nlst, false, QC_NO_FLAGS, QDOM_DEFAULT, stringOrNothingTypeInfo);
+   // FtpClient::nlst(string $str) returns *string
+   QC_FTPCLIENT->addMethodExtended("nlst",                  (q_method_t)FC_nlst_str, false, QC_NO_FLAGS, QDOM_DEFAULT, stringOrNothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    QC_FTPCLIENT->addMethodExtended("pwd",                   (q_method_t)FC_pwd, false, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo);
 
@@ -355,14 +357,14 @@ QoreClass *initFtpClientClass() {
 
    QC_FTPCLIENT->addMethodExtended("setURL",                (q_method_t)FC_setURL, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   // returns string or NOTHING
-   QC_FTPCLIENT->addMethodExtended("getUserName",           (q_method_t)FC_getUserName, false, QC_RET_VALUE_ONLY);
+   // FtpClient::getUserName() returns *string
+   QC_FTPCLIENT->addMethodExtended("getUserName",           (q_method_t)FC_getUserName, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringOrNothingTypeInfo);
 
-   // returns string or NOTHING
-   QC_FTPCLIENT->addMethodExtended("getPassword",           (q_method_t)FC_getPassword, false, QC_RET_VALUE_ONLY);
+   // FtpClient::getPassword() returns *string
+   QC_FTPCLIENT->addMethodExtended("getPassword",           (q_method_t)FC_getPassword, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringOrNothingTypeInfo);
 
-   // returns string or NOTHING
-   QC_FTPCLIENT->addMethodExtended("getHostName",           (q_method_t)FC_getHostName, false, QC_RET_VALUE_ONLY);
+   // FtpClient::getHostName() returns *string
+   QC_FTPCLIENT->addMethodExtended("getHostName",           (q_method_t)FC_getHostName, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringOrNothingTypeInfo);
 
    QC_FTPCLIENT->addMethodExtended("getPort",               (q_method_t)FC_getPort, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo);
 
@@ -375,14 +377,14 @@ QoreClass *initFtpClientClass() {
    QC_FTPCLIENT->addMethodExtended("isSecure",              (q_method_t)FC_isSecure, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, boolTypeInfo); 
    QC_FTPCLIENT->addMethodExtended("isDataSecure",          (q_method_t)FC_isDataSecure, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, boolTypeInfo);
 
-   // returns string or NOTHING
-   QC_FTPCLIENT->addMethodExtended("getSSLCipherName",      (q_method_t)FC_getSSLCipherName, false, QC_RET_VALUE_ONLY);
+   // FtpClient::getSSLCipherName() returns *string
+   QC_FTPCLIENT->addMethodExtended("getSSLCipherName",      (q_method_t)FC_getSSLCipherName, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringOrNothingTypeInfo);
 
-   // returns string or NOTHING
-   QC_FTPCLIENT->addMethodExtended("getSSLCipherVersion",   (q_method_t)FC_getSSLCipherVersion, false, QC_RET_VALUE_ONLY);
+   // FtpClient::getSSLCipherVersion() returns *string
+   QC_FTPCLIENT->addMethodExtended("getSSLCipherVersion",   (q_method_t)FC_getSSLCipherVersion, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringOrNothingTypeInfo);
 
-   // returns string or NOTHING
-   QC_FTPCLIENT->addMethodExtended("verifyPeerCertificate", (q_method_t)FC_verifyPeerCertificate, false, QC_RET_VALUE_ONLY);
+   // FtpClient::verifyPeerCertificate() returns *string
+   QC_FTPCLIENT->addMethodExtended("verifyPeerCertificate", (q_method_t)FC_verifyPeerCertificate, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringOrNothingTypeInfo);
 
    QC_FTPCLIENT->addMethodExtended("setModeAuto",           (q_method_t)FC_setModeAuto, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
    QC_FTPCLIENT->addMethodExtended("setModeEPSV",           (q_method_t)FC_setModeEPSV, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);

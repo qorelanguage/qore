@@ -67,7 +67,7 @@ inline int substri(const QoreString & s, qore_offset_t len, ExceptionSink * xsin
     delete sub;
     return ret;
 }
-inline char * substrs(const QoreString & s, qore_offset_t len, ExceptionSink * xsink) {
+inline char *substrs(const QoreString & s, qore_offset_t len, ExceptionSink * xsink) {
     QoreString * sub = s.substr(0, len, xsink);
     char * ret = sub->giveBuffer();
     delete sub;

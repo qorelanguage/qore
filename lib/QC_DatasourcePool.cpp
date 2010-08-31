@@ -356,20 +356,26 @@ class QoreClass *initDatasourcePoolClass()
 
    QC_DATASOURCEPOOL->addMethodExtended("beginTransaction",  (q_method_t)DSP_beginTransaction, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
 
-   // returns NOTHING if not set, otherwise string
-   QC_DATASOURCEPOOL->addMethodExtended("getUserName",       (q_method_t)DSP_getUserName, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT);
-   // returns NOTHING if not set, otherwise string
-   QC_DATASOURCEPOOL->addMethodExtended("getPassword",       (q_method_t)DSP_getPassword, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT);
-   // returns NOTHING if not set, otherwise string
-   QC_DATASOURCEPOOL->addMethodExtended("getDBName",         (q_method_t)DSP_getDBName, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT);
-   // returns NOTHING if not set, otherwise string
-   QC_DATASOURCEPOOL->addMethodExtended("getDBCharset",      (q_method_t)DSP_getDBCharset, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT);
-   // returns NOTHING if not set, otherwise string
-   QC_DATASOURCEPOOL->addMethodExtended("getOSCharset",      (q_method_t)DSP_getOSCharset, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT);
-   // returns NOTHING if not set, otherwise string
-   QC_DATASOURCEPOOL->addMethodExtended("getHostName",       (q_method_t)DSP_getHostName, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT);
-   // returns NOTHING if not set, otherwise int
-   QC_DATASOURCEPOOL->addMethodExtended("getPort",           (q_method_t)DSP_getPort, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT);
+   // DatasourcePool::getUserName() returns *string
+   QC_DATASOURCEPOOL->addMethodExtended("getUserName",       (q_method_t)DSP_getUserName, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringOrNothingTypeInfo);
+
+   // DatasourcePool::getPassword() returns *string
+   QC_DATASOURCEPOOL->addMethodExtended("getPassword",       (q_method_t)DSP_getPassword, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringOrNothingTypeInfo);
+
+   // DatasourcePool::getDBName() returns *string
+   QC_DATASOURCEPOOL->addMethodExtended("getDBName",         (q_method_t)DSP_getDBName, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringOrNothingTypeInfo);
+
+   // DatasourcePool::getDBCharset() returns *string
+   QC_DATASOURCEPOOL->addMethodExtended("getDBCharset",      (q_method_t)DSP_getDBCharset, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringOrNothingTypeInfo);
+
+   // DatasourcePool::getDBCharset() returns *string
+   QC_DATASOURCEPOOL->addMethodExtended("getOSCharset",      (q_method_t)DSP_getOSCharset, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringOrNothingTypeInfo);
+
+   // DatasourcePool::getHostName() returns *string
+   QC_DATASOURCEPOOL->addMethodExtended("getHostName",       (q_method_t)DSP_getHostName, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringOrNothingTypeInfo);
+
+   // DatasourcePool::getPort() returns *int
+   QC_DATASOURCEPOOL->addMethodExtended("getPort",           (q_method_t)DSP_getPort, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntOrNothingTypeInfo);
 
    QC_DATASOURCEPOOL->addMethodExtended("getDriverName",     (q_method_t)DSP_getDriverName, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringTypeInfo);
 

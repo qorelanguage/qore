@@ -305,7 +305,8 @@ QoreClass *initDirClass() {
 
    QC_DIR->addMethodExtended("chdir",		(q_method_t)DIR_chdir, false, QC_NO_FLAGS, QDOM_DEFAULT, boolTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   QC_DIR->addMethodExtended("path",		(q_method_t)DIR_path, false, QC_RET_VALUE_ONLY);
+   // Dir::path() returns *string
+   QC_DIR->addMethodExtended("path",		(q_method_t)DIR_path, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringOrNothingTypeInfo);
 
    QC_DIR->addMethodExtended("exists",		(q_method_t)DIR_exists, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, boolTypeInfo);
 

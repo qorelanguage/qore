@@ -1162,6 +1162,7 @@ QoreHashNode *QoreHTTPClient::send(const char *meth, const char *new_path, const
    return priv->send_internal(meth, new_path, headers, data, size, getbody, info, xsink);
 }
 
+// returns *string
 AbstractQoreNode *QoreHTTPClient::get(const char *new_path, const QoreHashNode *headers, QoreHashNode *info, ExceptionSink *xsink) {
    ReferenceHolder<QoreHashNode> ans(priv->send_internal("GET", new_path, headers, 0, 0, true, info, xsink), xsink);
    if (!ans)
@@ -1174,6 +1175,7 @@ QoreHashNode *QoreHTTPClient::head(const char *new_path, const QoreHashNode *hea
    return priv->send_internal("HEAD", new_path, headers, 0, 0, false, info, xsink);
 }
 
+// returns *string
 AbstractQoreNode *QoreHTTPClient::post(const char *new_path, const QoreHashNode *headers, const void *data, unsigned size, QoreHashNode *info, ExceptionSink *xsink) {
    ReferenceHolder<QoreHashNode> ans(priv->send_internal("POST", new_path, headers, data, size, true, info, xsink), xsink);
    if (!ans)

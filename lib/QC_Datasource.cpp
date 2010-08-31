@@ -405,18 +405,18 @@ QoreClass *initDatasourceClass() {
    
    QC_DATASOURCE->addMethodExtended("setPort",           (q_method_t)DS_setPort, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, softBigIntTypeInfo, zero());
 
-   // returns string|nothing
-   QC_DATASOURCE->addMethodExtended("getUserName",       (q_method_t)DS_getUserName, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT);
-   // returns string|nothing
-   QC_DATASOURCE->addMethodExtended("getPassword",       (q_method_t)DS_getPassword, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT);
-   // returns string|nothing
-   QC_DATASOURCE->addMethodExtended("getDBName",         (q_method_t)DS_getDBName, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT);
-   // returns string|nothing
-   QC_DATASOURCE->addMethodExtended("getDBCharset",      (q_method_t)DS_getDBCharset, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT);
-   // returns string|nothing
-   QC_DATASOURCE->addMethodExtended("getOSCharset",      (q_method_t)DS_getOSCharset, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT);
-   // returns string|nothing
-   QC_DATASOURCE->addMethodExtended("getHostName",       (q_method_t)DS_getHostName, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT);
+   // returns *string
+   QC_DATASOURCE->addMethodExtended("getUserName",       (q_method_t)DS_getUserName, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringOrNothingTypeInfo);
+   // returns *string
+   QC_DATASOURCE->addMethodExtended("getPassword",       (q_method_t)DS_getPassword, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringOrNothingTypeInfo);
+   // returns *string
+   QC_DATASOURCE->addMethodExtended("getDBName",         (q_method_t)DS_getDBName, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringOrNothingTypeInfo);
+   // returns *string
+   QC_DATASOURCE->addMethodExtended("getDBCharset",      (q_method_t)DS_getDBCharset, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringOrNothingTypeInfo);
+   // returns *string
+   QC_DATASOURCE->addMethodExtended("getOSCharset",      (q_method_t)DS_getOSCharset, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringOrNothingTypeInfo);
+   // returns *string
+   QC_DATASOURCE->addMethodExtended("getHostName",       (q_method_t)DS_getHostName, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringOrNothingTypeInfo);
 
    // Datasource::getPort() returns *int
    QC_DATASOURCE->addMethodExtended("getPort",           (q_method_t)DS_getPort, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntOrNothingTypeInfo);

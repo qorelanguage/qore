@@ -45,6 +45,7 @@ static AbstractQoreNode *f_unsetenv(const QoreListNode *params, ExceptionSink *x
 
 void init_env_functions() {
    builtinFunctions.add2("getenv", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
+   // getenv() returns *string
    builtinFunctions.add2("getenv", f_getenv, QC_CONSTANT, QDOM_DEFAULT, 0, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add2("setenv", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
