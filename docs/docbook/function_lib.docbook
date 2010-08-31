@@ -8246,7 +8246,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
          </tgroup>
       </table>
 
-  <para>This function does not throw any exceptions.</para>
+  <para>This function does not throw any exceptions - except for <code>date(string, string)</code>. It can throw <code>DATE-CONVERT-ERROR</code> exception.</para>
 
 </sect2>
 
