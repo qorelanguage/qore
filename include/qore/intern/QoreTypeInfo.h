@@ -223,7 +223,7 @@ protected:
       assert(typeInfo->returns_mult);
 
       const type_vec_t &at = getAcceptTypeList();
-      const type_vec_t &rt = getReturnTypeList();
+      const type_vec_t &rt = typeInfo->getReturnTypeList();
 
       for (type_vec_t::const_iterator i = at.begin(), e = at.end(); i != e; ++i) {
 	 for (type_vec_t::const_iterator j = rt.begin(), je = rt.end(); j != je; ++j) {
@@ -978,6 +978,8 @@ protected:
 
 public:
    DLLLOCAL OrNothingTypeInfo(const QoreTypeInfo &ti) : AcceptsReturnsSameMultiTypeInfo(ti.qc, ti.qt, false, false, ti.qt == NT_INT) {
+      assert(ti.hasType());
+
       tname = "*";
       tname += ti.getName();
 
@@ -987,6 +989,7 @@ public:
          at = ti.getAcceptTypeList();
       else
          at.push_back(&ti);
+
       at.push_back(nothingTypeInfo);
    }
 };
@@ -1012,7 +1015,7 @@ protected:
    }
 
 public:
-   DLLLOCAL CodeOrNothingTypeInfo() {
+      DLLLOCAL CodeOrNothingTypeInfo() {
       at.push_back(nothingTypeInfo);
    }
 };

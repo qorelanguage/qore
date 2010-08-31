@@ -39,6 +39,7 @@
 #define NT_SOFTSTRING   -7
 #define NT_SOFTDATE     -8
 #define NT_TIMEOUT      -9
+
 #define NT_SOMETHING    -101 // i.e. "not NOTHING"
 #define NT_DATA         -102 // either QoreStringNode or BinaryNode
 
