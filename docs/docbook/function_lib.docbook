@@ -500,6 +500,7 @@
         <row>
           <entry>
             <para><code><link linkend="date">date</link>(<link linkend="string_type">string</link>) <command>returns</command> <link linkend="date_type">date</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="date">date</link>(<link linkend="string_type">string</link>, <link linkend="string_type">string</link>) <command>returns</command> <link linkend="date_type">date</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
             <para><code><link linkend="date">date</link>(<link linkend="softint_type">softint</link>) <command>returns</command> <link linkend="date_type">date</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
             <para><code><link linkend="date">date</link>(<link linkend="null_type">null</link>) <command>returns</command> <link linkend="date_type">date</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
             <para><code><link linkend="date">date</link>() <command>returns</command> <link linkend="date_type">date</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
@@ -8155,6 +8156,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <term>Prototype</term>
       <listitem>
             <para><code><link linkend="date">date</link>(<link linkend="string_type">string</link>) <command>returns</command> <link linkend="date_type">date</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="date">date</link>(<link linkend="string_type">string</link>, <link linkend="string_type">string</link>) <command>returns</command> <link linkend="date_type">date</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
             <para><code><link linkend="date">date</link>(<link linkend="softint_type">softint</link>) <command>returns</command> <link linkend="date_type">date</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
             <para><code><link linkend="date">date</link>(<link linkend="null_type">null</link>) <command>returns</command> <link linkend="date_type">date</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
             <para><code><link linkend="date">date</link>() <command>returns</command> <link linkend="date_type">date</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
@@ -8185,12 +8187,63 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <entry><para>Converts the argument to a date and returns the date.</para></entry>
             </row>
             <row>
+	      <entry><para><code><link linkend="string_type">string</link></code>, <code><link linkend="string_type">string</link></code></para></entry>
+              <entry><para><code><link linkend="date_type">date</link></code></para></entry>
+              <entry><para>Converts the 1st argument to a date by the given <link linkend="date_conversion_mask">conversion mask</link> (2nd arg) and returns the date. Example: <code>date("20100401 234520", "YYYYMMDD HHmmSS")</code></para></entry>
+            </row>
+            <row>
 	      <entry><para><code><link linkend="softint_type">softint</link></code></para></entry>
               <entry><para><code><link linkend="date_type">date</link></code></para></entry>
               <entry><para>The argument is assumed to be the number of seconds since 1970-01-01 in the local time zone; this value is used to produce the date value that is returned.</para></entry>
             </row>
           </tbody>
         </tgroup>
+      </table>
+
+      <table id="date_conversion_mask">
+        <title>String to Date conversion masks</title>
+        <tgroup cols="2" align="left">
+            <thead><row><entry><para>Symbol</para></entry>
+                        <entry><para>Description</para></entry></row></thead>
+            <tbody>
+                <row>
+                    <entry><para><code>YY</code></para></entry>
+                    <entry><para>Year's last two digits. The the current year's century is used for new date</para></entry>
+                </row>
+                <row>
+                    <entry><para><code>YYYY</code></para></entry>
+                    <entry><para>Year with the all digits (length 4) like 1956, 0870, or ' 546' with space as the placeholder</para></entry>
+                </row>
+                <row>
+                    <entry><para><code>MM</code></para></entry>
+                    <entry><para>Month number (length 2) like 11, 04, or ' 1' with space as the placeholder</para></entry>
+                </row>
+                <row>
+                    <entry><para><code>Mon</code></para></entry>
+                    <entry><para>Month name abbrevation (length 3) with the first letter uppercased. Example: <code>Apr</code> for April</para></entry>
+                </row>
+                <row>
+                    <entry><para><code>MON</code></para></entry>
+                    <entry><para>Month name abbrevation (length 3) with all letters uppercased. Example: <code>APR</code> for April</para></entry>
+                </row>
+                <row>
+                    <entry><para><code>DD</code></para></entry>
+                    <entry><para>Date number (length 2) like 29, 04, or ' 1' with space as the placeholder</para></entry>
+                </row>
+                <row>
+                    <entry><para><code>mm</code></para></entry>
+                    <entry><para>Minute number (length 2) like 11, 04, or ' 1' with space as the placeholder</para></entry>
+                </row>
+                <row>
+                    <entry><para><code>SS</code></para></entry>
+                    <entry><para>Second number (length 2) like 11, 04, or ' 1' with space as the placeholder</para></entry>
+                </row>
+                <row>
+                    <entry><para><code>ss</code></para></entry>
+                    <entry><para>Millisecond number (length 2) like 11, 04, or ' 1' with space as the placeholder</para></entry>
+                </row>
+            </tbody>
+         </tgroup>
       </table>
 
   <para>This function does not throw any exceptions.</para>
