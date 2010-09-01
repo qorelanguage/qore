@@ -319,7 +319,7 @@ int QoreTypeInfo::runtimeAcceptInputIntern(bool &priv_error, AbstractQoreNode *n
       return qt == nt ? -1 : 0;
 
    if (qt != nt)
-      return -1;
+      return is_int && nt > QORE_NUM_TYPES && dynamic_cast<QoreBigIntNode *>(n) ? 0 : -1;
 
    if (qt != NT_OBJECT || !qc)
       return 0;

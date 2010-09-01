@@ -944,49 +944,49 @@ False</programlisting></note>
           <row id="*int_type">
             <entry><para><code>*int</code></para></entry>
             <entry><para><link linkend="Integer">Integer</link> or <link linkend="NOTHING">NOTHING</link></para></entry>
-            <entry><para><link linkend="Integer">Integer</link> or <link linkend="NOTHING">NOTHING</link></para></entry>
+            <entry><para>same as received</para></entry>
             <entry><para>Restricts values to Qore's <link linkend="Integer">Integer</link> or <link linkend="NOTHING">NOTHING</link> types.</para></entry>
           </row>
           <row id="*float_type">
             <entry><para><code>*float</code></para></entry>
             <entry><para><link linkend="Float">Float</link> or <link linkend="NOTHING">NOTHING</link></para></entry>
-            <entry><para><link linkend="Float">Float</link> or <link linkend="NOTHING">NOTHING</link></para></entry>
+            <entry><para>same as received</para></entry>
             <entry><para>Restricts values to Qore's <link linkend="Float">Float</link> or <link linkend="NOTHING">NOTHING</link> types.</para></entry>
           </row>
           <row id="*bool_type">
             <entry><para><code>*bool</code></para></entry>
             <entry><para><link linkend="Boolean">Boolean</link> or <link linkend="NOTHING">NOTHING</link></para></entry>
-            <entry><para><link linkend="Boolean">Boolean</link> or <link linkend="NOTHING">NOTHING</link></para></entry>
+            <entry><para>same as received</para></entry>
             <entry><para>Restricts values to Qore's <link linkend="Boolean">Boolean</link> or <link linkend="NOTHING">NOTHING</link> types.</para></entry>
           </row>
           <row id="*string_type">
             <entry><para><code>*string</code></para></entry>
             <entry><para><link linkend="String">String</link> or <link linkend="NOTHING">NOTHING</link></para></entry>
-            <entry><para><link linkend="String">String</link> or <link linkend="NOTHING">NOTHING</link></para></entry>
+            <entry><para>same as received</para></entry>
             <entry><para>Restricts values to Qore's <link linkend="String">String</link> or <link linkend="NOTHING">NOTHING</link> types.</para></entry>
           </row>
           <row id="*date_type">
             <entry><para><code>*date</code></para></entry>
             <entry><para><link linkend="Date">Date</link> or <link linkend="NOTHING">NOTHING</link></para></entry>
-            <entry><para><link linkend="Date">Date</link> or <link linkend="NOTHING">NOTHING</link></para></entry>
+            <entry><para>same as received</para></entry>
             <entry><para>Restricts values to Qore's <link linkend="Date">Date</link> or <link linkend="NOTHING">NOTHING</link> type; values may be either absolute or relative date/time values.</para></entry>
           </row>
           <row id="*binary_type">
             <entry><para><code>*binary</code></para></entry>
             <entry><para><link linkend="Binary">Binary</link> or <link linkend="NOTHING">NOTHING</link></para></entry>
-            <entry><para><link linkend="Binary">Binary</link> or <link linkend="NOTHING">NOTHING</link></para></entry>
+            <entry><para>same as received</para></entry>
             <entry><para>Restricts values to Qore's <link linkend="Binary">Binary</link> or <link linkend="NOTHING">NOTHING</link> types.</para></entry>
           </row>
           <row id="*hash_type">
             <entry><para><code>*hash</code></para></entry>
             <entry><para><link linkend="Hashes">Hash</link> or <link linkend="NOTHING">NOTHING</link></para></entry>
-            <entry><para><link linkend="Hashes">Hash</link> or <link linkend="NOTHING">NOTHING</link></para></entry>
+            <entry><para>same as received</para></entry>
             <entry><para>Restricts values to Qore's <link linkend="Hashes">Hash</link> or <link linkend="NOTHING">NOTHING</link> types.</para></entry>
           </row>
           <row id="*list_type">
             <entry><para><code>*list</code></para></entry>
             <entry><para><link linkend="Lists">List</link> or <link linkend="NOTHING">NOTHING</link></para></entry>
-            <entry><para><link linkend="Lists">List</link> or <link linkend="NOTHING">NOTHING</link></para></entry>
+            <entry><para>same as received</para></entry>
             <entry><para>Accepts either a <link linkend="Lists">List</link> or <link linkend="NOTHING">NOTHING</link>.</para></entry>
           </row>
           <row id="*code_type">
