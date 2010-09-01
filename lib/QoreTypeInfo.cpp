@@ -445,9 +445,11 @@ const QoreTypeInfo *QoreParseTypeInfo::resolveAndDelete() {
 
    // resolve class
    const QoreClass *qc = getRootNS()->parseFindScopedClass(cscope);
+
+   bool my_or_nothing = or_nothing;
    delete this;
 
-   if (qc && or_nothing) {
+   if (qc && my_or_nothing) {
       const QoreTypeInfo *rv = qc->getOrNothingTypeInfo();
       if (!rv) {
 	 parse_error("class %s cannot be typed with '*' as the class' type handler has an input filter and the filter does not accept NOTHING", qc->getName());
