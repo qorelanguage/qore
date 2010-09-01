@@ -43,18 +43,6 @@ static QoreTypeInfo staticAnyTypeInfo,
    staticReferenceTypeInfo(NT_REFERENCE)
    ;
 
-// static "or nothing" reference types
-static OrNothingTypeInfo staticBigIntOrNothingTypeInfo(staticBigIntTypeInfo),
-   staticStringOrNothingTypeInfo(staticStringTypeInfo),
-   staticBoolOrNothingTypeInfo(staticBoolTypeInfo),
-   staticBinaryOrNothingTypeInfo(staticBinaryTypeInfo),
-   staticObjectOrNothingTypeInfo(staticObjectTypeInfo),
-   staticDateOrNothingTypeInfo(staticDateTypeInfo),
-   staticHashOrNothingTypeInfo(staticHashTypeInfo),
-   staticListOrNothingTypeInfo(staticListTypeInfo),
-   staticNullOrNothingTypeInfo(staticNullTypeInfo)
-   ;
-
 // const pointers to static reference types
 const QoreTypeInfo *anyTypeInfo = &staticAnyTypeInfo,
    *stringTypeInfo = &staticStringTypeInfo,
@@ -69,16 +57,17 @@ const QoreTypeInfo *anyTypeInfo = &staticAnyTypeInfo,
    *runTimeClosureTypeInfo = &staticRunTimeClosureTypeInfo,
    *callReferenceTypeInfo = &staticCallReferenceTypeInfo,
    *referenceTypeInfo = &staticReferenceTypeInfo,
-
-   *bigIntOrNothingTypeInfo = &staticBigIntOrNothingTypeInfo, 
-   *stringOrNothingTypeInfo = &staticStringOrNothingTypeInfo,
-   *boolOrNothingTypeInfo = &staticBoolOrNothingTypeInfo,
-   *binaryOrNothingTypeInfo = &staticBinaryOrNothingTypeInfo,
-   *objectOrNothingTypeInfo = &staticObjectOrNothingTypeInfo,
-   *dateOrNothingTypeInfo = &staticDateOrNothingTypeInfo,
-   *hashOrNothingTypeInfo = &staticHashOrNothingTypeInfo,
-   *listOrNothingTypeInfo = &staticListOrNothingTypeInfo,
-   *nullOrNothingTypeInfo = &staticNullOrNothingTypeInfo
+   
+   // assigned in init_qore_Types()
+   *bigIntOrNothingTypeInfo = 0, 
+   *stringOrNothingTypeInfo = 0,
+   *boolOrNothingTypeInfo = 0,
+   *binaryOrNothingTypeInfo = 0,
+   *objectOrNothingTypeInfo = 0,
+   *dateOrNothingTypeInfo = 0,
+   *hashOrNothingTypeInfo = 0,
+   *listOrNothingTypeInfo = 0,
+   *nullOrNothingTypeInfo = 0
    ;
 
 // provides for run-time assignment capability from any type
@@ -184,6 +173,17 @@ void init_qore_types() {
    def_val_map[NT_NULL]    = &Null;
    def_val_map[NT_NOTHING] = &Nothing;
 
+   // static "or nothing" reference types
+   bigIntOrNothingTypeInfo = new OrNothingTypeInfo(staticBigIntTypeInfo); 
+   stringOrNothingTypeInfo = new OrNothingTypeInfo(staticStringTypeInfo);
+   boolOrNothingTypeInfo = new OrNothingTypeInfo(staticBoolTypeInfo);
+   binaryOrNothingTypeInfo = new OrNothingTypeInfo(staticBinaryTypeInfo);
+   objectOrNothingTypeInfo = new OrNothingTypeInfo(staticObjectTypeInfo);
+   dateOrNothingTypeInfo = new OrNothingTypeInfo(staticDateTypeInfo);
+   hashOrNothingTypeInfo = new OrNothingTypeInfo(staticHashTypeInfo);
+   listOrNothingTypeInfo = new OrNothingTypeInfo(staticListTypeInfo);
+   nullOrNothingTypeInfo = new OrNothingTypeInfo(staticNullTypeInfo);
+
    do_maps(NT_INT,         "int", bigIntTypeInfo, bigIntOrNothingTypeInfo);
    do_maps(NT_STRING,      "string", stringTypeInfo, stringOrNothingTypeInfo);
    do_maps(NT_BOOLEAN,     "bool", boolTypeInfo, boolOrNothingTypeInfo);
@@ -221,6 +221,17 @@ void delete_qore_types() {
    ZeroDate->deref();
    emptyList->deref(0);
    emptyHash->deref(0);
+
+   // delete global typeinfo structures
+   delete bigIntOrNothingTypeInfo; 
+   delete stringOrNothingTypeInfo;
+   delete boolOrNothingTypeInfo;
+   delete binaryOrNothingTypeInfo;
+   delete objectOrNothingTypeInfo;
+   delete dateOrNothingTypeInfo;
+   delete hashOrNothingTypeInfo;
+   delete listOrNothingTypeInfo;
+   delete nullOrNothingTypeInfo;
 }
 
 void add_to_type_map(qore_type_t t, const QoreTypeInfo *typeInfo) {
