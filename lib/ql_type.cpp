@@ -77,7 +77,14 @@ inline char *substrs(const QoreString & s, qore_offset_t len, ExceptionSink * xs
 static AbstractQoreNode *f_date_mask(const QoreListNode *params, ExceptionSink *xsink) {
    const QoreStringNode * dtstr = HARD_QORE_STRING(params, 0);
    const QoreStringNode * mask = HARD_QORE_STRING(params, 1);
-   
+
+   // obtain the century
+   int century;
+   {
+      DateTime tmpdt(q_epoch());
+      century = tmpdt.getYear() / 100 * 100;
+   }
+
    struct tm dt;
    zero_tm(dt);
    // milliseconds
@@ -86,11 +93,6 @@ static AbstractQoreNode *f_date_mask(const QoreListNode *params, ExceptionSink *
    const char *d = dtstr->getBuffer();
    const char *s = mask->getBuffer();
    QoreString tmp;
-
-   // obtain the century
-   time_t ctime = time(NULL);
-   struct tm * curr = localtime(&ctime); 
-   int century = curr->tm_year / 100 * 100;
 
    while (*s) {
       tmp.clear();
