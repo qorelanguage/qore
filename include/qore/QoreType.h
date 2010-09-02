@@ -76,7 +76,13 @@ DLLEXPORT extern const QoreTypeInfo *anyTypeInfo,
    *hashOrNothingTypeInfo,
    *listOrNothingTypeInfo,
    *nullOrNothingTypeInfo,
-   *codeOrNothingTypeInfo;
+   *codeOrNothingTypeInfo,
+
+   *softBigIntOrNothingTypeInfo,
+   *softFloatOrNothingTypeInfo,
+   *softBoolOrNothingTypeInfo,
+   *softStringOrNothingTypeInfo,
+   *timeoutOrNothingTypeInfo;
 
 DLLEXPORT qore_type_t get_next_type_id();
 

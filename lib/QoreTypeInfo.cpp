@@ -92,19 +92,27 @@ const QoreTypeInfo *dataTypeInfo = &staticDataTypeInfo;
 
 // provides int compatibility with and conversions from float, string, date, and bool
 static SoftBigIntTypeInfo staticSoftBigIntTypeInfo;
-const QoreTypeInfo *softBigIntTypeInfo = &staticSoftBigIntTypeInfo;
+static SoftBigIntOrNothingTypeInfo staticBigIntOrNothingTypeInfo;
+const QoreTypeInfo *softBigIntTypeInfo = &staticSoftBigIntTypeInfo,
+   *softBigIntOrNothingTypeInfo = &staticBigIntOrNothingTypeInfo;
 
 // provides float compatibility with and conversions from int, string, date, and bool
 static SoftFloatTypeInfo staticSoftFloatTypeInfo;
-const QoreTypeInfo *softFloatTypeInfo = &staticSoftFloatTypeInfo;
+static SoftFloatOrNothingTypeInfo staticSoftFloatOrNothingTypeInfo;
+const QoreTypeInfo *softFloatTypeInfo = &staticSoftFloatTypeInfo,
+   *softFloatOrNothingTypeInfo = &staticSoftFloatOrNothingTypeInfo;
 
 // provides bool compatibility with and conversions from float, string, date, and int
 static SoftBoolTypeInfo staticSoftBoolTypeInfo;
-const QoreTypeInfo *softBoolTypeInfo = &staticSoftBoolTypeInfo;
+static SoftBoolOrNothingTypeInfo staticSoftBoolOrNothingTypeInfo;
+const QoreTypeInfo *softBoolTypeInfo = &staticSoftBoolTypeInfo,
+   *softBoolOrNothingTypeInfo = &staticSoftBoolOrNothingTypeInfo;
 
 // provides string compatibility with and conversions from float, int, date, and bool
 static SoftStringTypeInfo staticSoftStringTypeInfo;
-const QoreTypeInfo *softStringTypeInfo = &staticSoftStringTypeInfo;
+static SoftStringOrNothingTypeInfo staticSoftStringOrNothingTypeInfo;
+const QoreTypeInfo *softStringTypeInfo = &staticSoftStringTypeInfo,
+   *softStringOrNothingTypeInfo = &staticSoftStringOrNothingTypeInfo;
 
 // somethingTypeInfo means "not NOTHING"
 static SomethingTypeInfo staticSomethingTypeInfo;
@@ -112,7 +120,9 @@ const QoreTypeInfo *somethingTypeInfo = &staticSomethingTypeInfo;
 
 // timeout type info accepts int or date and returns an int giving milliseconds
 static TimeoutTypeInfo staticTimeoutTypeInfo;
-const QoreTypeInfo *timeoutTypeInfo = &staticTimeoutTypeInfo;
+static TimeoutOrNothingTypeInfo staticTimeoutOrNothingTypeInfo;
+const QoreTypeInfo *timeoutTypeInfo = &staticTimeoutTypeInfo,
+   *timeoutOrNothingTypeInfo = &staticTimeoutOrNothingTypeInfo;
 
 QoreListNode *emptyList;
 QoreHashNode *emptyHash;
@@ -198,11 +208,11 @@ void init_qore_types() {
    do_maps(NT_REFERENCE,   "reference", referenceTypeInfo, anyTypeInfo);
    do_maps(NT_NULL,        "null", nullTypeInfo, nullOrNothingTypeInfo);
    do_maps(NT_NOTHING,     "nothing", nothingTypeInfo);
-   do_maps(NT_SOFTINT,     "softint", softBigIntTypeInfo);
-   do_maps(NT_SOFTFLOAT,   "softfloat", softFloatTypeInfo);
-   do_maps(NT_SOFTBOOLEAN, "softbool", softBoolTypeInfo);
-   do_maps(NT_SOFTSTRING,  "softstring", softStringTypeInfo);
-   do_maps(NT_TIMEOUT,     "timeout", timeoutTypeInfo);
+   do_maps(NT_SOFTINT,     "softint", softBigIntTypeInfo, softBigIntOrNothingTypeInfo);
+   do_maps(NT_SOFTFLOAT,   "softfloat", softFloatTypeInfo, softFloatOrNothingTypeInfo);
+   do_maps(NT_SOFTBOOLEAN, "softbool", softBoolTypeInfo, softBoolOrNothingTypeInfo);
+   do_maps(NT_SOFTSTRING,  "softstring", softStringTypeInfo, softStringOrNothingTypeInfo);
+   do_maps(NT_TIMEOUT,     "timeout", timeoutTypeInfo, timeoutOrNothingTypeInfo);
 
    // map the closure and callref strings to codeTypeInfo to ensure that these
    // types are always interchangable

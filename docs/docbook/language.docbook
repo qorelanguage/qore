@@ -941,6 +941,30 @@ False</programlisting></note>
             <entry><para><link linkend="Integer">Integer</link></para></entry>
             <entry><para>Accepts <link linkend="Integer">Integer</link>, <link linkend="Date">Date</link> and converts dates to an integer value representing milliseconds and returns the integer; incoming integers are assumed to represent milliseconds.</para></entry>
           </row>
+          <row id="softint_type">
+            <entry><para><code>softint</code></para></entry>
+            <entry><para><link linkend="Integer">Integer</link>, <link linkend="Float">Float</link>, <link linkend="Boolean">Boolean</link>, <link linkend="String">String</link>, <link linkend="NULL">NULL</link></para></entry>
+            <entry><para><link linkend="Integer">Integer</link></para></entry>
+            <entry><para>Accepts <link linkend="Integer">Integer</link>, <link linkend="Float">Float</link>, <link linkend="Boolean">Boolean</link>, <link linkend="String">String</link>, <link linkend="NULL">NULL</link> and converts non-integer values to an integer and returns the integer.</para></entry>
+          </row>
+          <row id="softfloat_type">
+            <entry><para><code>softfloat</code></para></entry>
+            <entry><para><link linkend="Integer">Integer</link>, <link linkend="Float">Float</link>, <link linkend="Boolean">Boolean</link>, <link linkend="String">String</link>, <link linkend="NULL">NULL</link></para></entry>
+            <entry><para><link linkend="Float">Float</link></para></entry>
+            <entry><para>Accepts <link linkend="Integer">Integer</link>, <link linkend="Float">Float</link>, <link linkend="Boolean">Boolean</link>, <link linkend="String">String</link>, <link linkend="NULL">NULL</link> and converts non-float values to a float and returns the new value.</para></entry>
+          </row>
+          <row id="softbool_type">
+            <entry><para><code>softbool</code></para></entry>
+            <entry><para><link linkend="Integer">Integer</link>, <link linkend="Float">Float</link>, <link linkend="Boolean">Boolean</link>, <link linkend="String">String</link>, <link linkend="NULL">NULL</link></para></entry>
+            <entry><para><link linkend="Boolean">Boolean</link></para></entry>
+            <entry><para>Accepts <link linkend="Integer">Integer</link>, <link linkend="Float">Float</link>, <link linkend="Boolean">Boolean</link>, <link linkend="String">String</link>, <link linkend="NULL">NULL</link> and converts non-boolean values to a boolean and returns the new value.</para></entry>
+          </row>
+          <row id="softstring_type">
+            <entry><para><code>softstring</code></para></entry>
+            <entry><para><link linkend="Integer">Integer</link>, <link linkend="Float">Float</link>, <link linkend="Boolean">Boolean</link>, <link linkend="String">String</link>, <link linkend="NULL">NULL</link></para></entry>
+            <entry><para><link linkend="String">String</link></para></entry>
+            <entry><para>Accepts <link linkend="Integer">Integer</link>, <link linkend="Float">Float</link>, <link linkend="Boolean">Boolean</link>, <link linkend="String">String</link>, <link linkend="NULL">NULL</link> and converts non-string values to a string and returns the new value.</para></entry>
+          </row>
           <row id="*int_type">
             <entry><para><code>*int</code></para></entry>
             <entry><para><link linkend="Integer">Integer</link> or <link linkend="NOTHING">NOTHING</link></para></entry>
@@ -995,29 +1019,35 @@ False</programlisting></note>
             <entry><para>same as received</para></entry>
             <entry><para>Restricts values to <link linkend="closures">closures</link>, <link linkend="call_references">call references</link> and <link linkend="NOTHING">NOTHING</link>.</para></entry>
           </row>
-          <row id="softint_type">
-            <entry><para><code>softint</code></para></entry>
-            <entry><para><link linkend="Integer">Integer</link>, <link linkend="Float">Float</link>, <link linkend="Boolean">Boolean</link>, <link linkend="String">String</link>, <link linkend="NULL">NULL</link></para></entry>
-            <entry><para><link linkend="Integer">Integer</link></para></entry>
-            <entry><para>Accepts <link linkend="Integer">Integer</link>, <link linkend="Float">Float</link>, <link linkend="Boolean">Boolean</link>, <link linkend="String">String</link>, <link linkend="NULL">NULL</link> and converts non-integer values to an integer and returns the integer.</para></entry>
+          <row id="*timeout_type">
+            <entry><para><code>*timeout</code></para></entry>
+            <entry><para><link linkend="Integer">Integer</link>, <link linkend="Date">Date</link> or <link linkend="NOTHING">NOTHING</link></para></entry>
+            <entry><para><link linkend="Integer">Integer</link> or <link linkend="NOTHING">NOTHING</link></para></entry>
+            <entry><para>Accepts <link linkend="Integer">Integer</link>, <link linkend="Date">Date</link> and converts dates to an integer value representing milliseconds and returns the integer; incoming integers are assumed to represent milliseconds.  If no value is passed, then <link linkend="NOTHING">NOTHING</link> is returned.</para></entry>
           </row>
-          <row id="softfloat_type">
-            <entry><para><code>softfloat</code></para></entry>
-            <entry><para><link linkend="Integer">Integer</link>, <link linkend="Float">Float</link>, <link linkend="Boolean">Boolean</link>, <link linkend="String">String</link>, <link linkend="NULL">NULL</link></para></entry>
-            <entry><para><link linkend="Float">Float</link></para></entry>
-            <entry><para>Accepts <link linkend="Integer">Integer</link>, <link linkend="Float">Float</link>, <link linkend="Boolean">Boolean</link>, <link linkend="String">String</link>, <link linkend="NULL">NULL</link> and converts non-float values to a float and returns the new value.</para></entry>
+          <row id="*softint_type">
+            <entry><para><code>*softint</code></para></entry>
+            <entry><para><link linkend="Integer">Integer</link>, <link linkend="Float">Float</link>, <link linkend="Boolean">Boolean</link>, <link linkend="String">String</link>, <link linkend="NULL">NULL</link> or <link linkend="NOTHING">NOTHING</link></para></entry>
+            <entry><para><link linkend="Integer">Integer</link> or <link linkend="NOTHING">NOTHING</link></para></entry>
+            <entry><para>Accepts <link linkend="Integer">Integer</link>, <link linkend="Float">Float</link>, <link linkend="Boolean">Boolean</link>, <link linkend="String">String</link>, <link linkend="NULL">NULL</link> and converts non-integer values to an integer and returns the integer.  If no value is passed, then <link linkend="NOTHING">NOTHING</link> is returned.</para></entry>
           </row>
-          <row id="softbool_type">
-            <entry><para><code>softbool</code></para></entry>
-            <entry><para><link linkend="Integer">Integer</link>, <link linkend="Float">Float</link>, <link linkend="Boolean">Boolean</link>, <link linkend="String">String</link>, <link linkend="NULL">NULL</link></para></entry>
-            <entry><para><link linkend="Boolean">Boolean</link></para></entry>
-            <entry><para>Accepts <link linkend="Integer">Integer</link>, <link linkend="Float">Float</link>, <link linkend="Boolean">Boolean</link>, <link linkend="String">String</link>, <link linkend="NULL">NULL</link> and converts non-boolean values to a boolean and returns the new value.</para></entry>
+          <row id="*softfloat_type">
+            <entry><para><code>*softfloat</code></para></entry>
+            <entry><para><link linkend="Integer">Integer</link>, <link linkend="Float">Float</link>, <link linkend="Boolean">Boolean</link>, <link linkend="String">String</link>, <link linkend="NULL">NULL</link> or <link linkend="NOTHING">NOTHING</link></para></entry>
+            <entry><para><link linkend="Float">Float</link> or <link linkend="NOTHING">NOTHING</link></para></entry>
+            <entry><para>Accepts <link linkend="Integer">Integer</link>, <link linkend="Float">Float</link>, <link linkend="Boolean">Boolean</link>, <link linkend="String">String</link>, <link linkend="NULL">NULL</link> and converts non-float values to a float and returns the new value.  If no value is passed, then <link linkend="NOTHING">NOTHING</link> is returned.</para></entry>
           </row>
-          <row id="softstring_type">
-            <entry><para><code>softstring</code></para></entry>
-            <entry><para><link linkend="Integer">Integer</link>, <link linkend="Float">Float</link>, <link linkend="Boolean">Boolean</link>, <link linkend="String">String</link>, <link linkend="NULL">NULL</link></para></entry>
-            <entry><para><link linkend="String">String</link></para></entry>
-            <entry><para>Accepts <link linkend="Integer">Integer</link>, <link linkend="Float">Float</link>, <link linkend="Boolean">Boolean</link>, <link linkend="String">String</link>, <link linkend="NULL">NULL</link> and converts non-string values to a string and returns the new value.</para></entry>
+          <row id="*softbool_type">
+            <entry><para><code>*softbool</code></para></entry>
+            <entry><para><link linkend="Integer">Integer</link>, <link linkend="Float">Float</link>, <link linkend="Boolean">Boolean</link>, <link linkend="String">String</link>, <link linkend="NULL">NULL</link> or <link linkend="NOTHING">NOTHING</link></para></entry>
+            <entry><para><link linkend="Boolean">Boolean</link> or <link linkend="NOTHING">NOTHING</link></para></entry>
+            <entry><para>Accepts <link linkend="Integer">Integer</link>, <link linkend="Float">Float</link>, <link linkend="Boolean">Boolean</link>, <link linkend="String">String</link>, <link linkend="NULL">NULL</link> and converts non-boolean values to a boolean and returns the new value.  If no value is passed, then <link linkend="NOTHING">NOTHING</link> is returned.</para></entry>
+          </row>
+          <row id="*softstring_type">
+            <entry><para><code>*softstring</code></para></entry>
+            <entry><para><link linkend="Integer">Integer</link>, <link linkend="Float">Float</link>, <link linkend="Boolean">Boolean</link>, <link linkend="String">String</link>, <link linkend="NULL">NULL</link> or <link linkend="NOTHING">NOTHING</link></para></entry>
+            <entry><para><link linkend="String">String</link> or <link linkend="NOTHING">NOTHING</link></para></entry>
+            <entry><para>Accepts <link linkend="Integer">Integer</link>, <link linkend="Float">Float</link>, <link linkend="Boolean">Boolean</link>, <link linkend="String">String</link>, <link linkend="NULL">NULL</link> and converts non-string values to a string and returns the new value.  If no value is passed, then <link linkend="NOTHING">NOTHING</link> is returned.</para></entry>
           </row>
           <row id="any_type">
             <entry><para><code>any</code></para></entry>
