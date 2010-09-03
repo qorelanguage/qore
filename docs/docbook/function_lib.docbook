@@ -3129,15 +3129,16 @@
         </row>
         <row>
           <entry>
-            <para><code><link linkend="split">split</link>(<link linkend="string_type">string</link>, <link linkend="string_type">string</link>) <command>returns</command> <link linkend="list_type">list</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
-            <para><code><link linkend="split">split</link>(<link linkend="binary_type">binary</link>, <link linkend="binary_type">binary</link>) <command>returns</command> <link linkend="list_type">list</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="split">split</link>(<link linkend="string_type">string</link> <replaceable>$pattern</replaceable>, <link linkend="string_type">string</link> <replaceable>$string</replaceable>) <command>returns</command> <link linkend="list_type">list</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="split">split</link>(<link linkend="string_type">string</link> <replaceable>$pattern</replaceable>, <link linkend="string_type">string</link> <replaceable>$string</replaceable>, <link linkend="string_type">string</link> <replaceable>$quote</replaceable>) <command>returns</command> <link linkend="list_type">list</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="split">split</link>(<link linkend="binary_type">binary</link> <replaceable>$pattern</replaceable>, <link linkend="binary_type">binary</link> <replaceable>$bin</replaceable>) <command>returns</command> <link linkend="list_type">list</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
             <para><code><link linkend="split">split</link>() <command>returns</command> <link linkend="list_type">list</link> (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
           </entry>
           <entry>
-            <para>N</para>
+            <para>Y</para>
           </entry>
           <entry>
-            <para>Splits a string into a list of components based on a separator string</para>
+            <para>Splits a string into a list of components based on a separator string and an optional quote.</para>
           </entry>
         </row>
         <row>
@@ -9682,13 +9683,14 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Splits a string into a list of components based on a separator string.</para>
+	<para>Splits a string into a list of components based on a separator string.  Only the version that takes the third argument as a quote string can throw exceptions.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Prototype</term>
       <listitem>
             <para><code><link linkend="split">split</link>(<link linkend="string_type">string</link> <replaceable>$separator</replaceable>, <link linkend="string_type">string</link> <replaceable>$string</replaceable>) <command>returns</command> <link linkend="list_type">list</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="split">split</link>(<link linkend="string_type">string</link> <replaceable>$separator</replaceable>, <link linkend="string_type">string</link> <replaceable>$string</replaceable>, <link linkend="string_type">string</link> <replaceable>$quote</replaceable>) <command>returns</command> <link linkend="list_type">list</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
             <para><code><link linkend="split">split</link>(<link linkend="binary_type">binary</link> <replaceable>$separator</replaceable>, <link linkend="binary_type">binary</link> <replaceable>$bin</replaceable>) <command>returns</command> <link linkend="list_type">list</link> (<link linkend="CONST_flag">CONST</link>)</code></para>
             <para><code><link linkend="split">split</link>() <command>returns</command> <link linkend="list_type">list</link> (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
       </listitem>
@@ -9696,7 +9698,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Example</term>
       <listitem>
-	<programlisting>$list = split(":", "some:text:here"); # returns ("some", "text", "here")</programlisting>
+	<programlisting><command>my</command> list $list = split(":", "some:text:here"); # returns ("some", "text", "here")</programlisting>
       </listitem>
     </varlistentry>
   </variablelist>
@@ -9718,6 +9720,11 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
               <entry><para>Returns a list of each component of a string separated by a separator string, with the separator removed.</para></entry>
             </row>
             <row>
+	      <entry><para><code><link linkend="string_type">string</link> <replaceable>$separator</replaceable>, <link linkend="string_type">string</link> <replaceable>$string</replaceable>, <link linkend="string_type">string</link> <replaceable>$quote</replaceable></code></para></entry>
+              <entry><para><code><link linkend="list_type">list</link> of <link linkend="string_type">string</link></code></para></entry>
+              <entry><para>Returns a list of each component of a string separated by a separator string, with the separator removed; the quote character can appear as the first part of a field, in which case it is assumed to designate the entire field.  If instances of the quote character are found in the field preceded by a backquote character (\), then these quote characters are ignored.  Note that this variant of the function can throw exceptions if the quote character is found and not terminated, or the separator string does not follow an end quote.  This is the only variant of split() that can throw exceptions.</para></entry>
+            </row>
+            <row>
 	      <entry><para><code><link linkend="binary_type">binary</link> <replaceable>$separator</replaceable>, <link linkend="binary_type">binary</link> <replaceable>$bin</replaceable></code></para></entry>
               <entry><para><code><link linkend="list_type">list</link> of <link linkend="binary_type">binary</link></code></para></entry>
               <entry><para>Returns a list of each component of thebinary object separated by the bytes identified by <replaceable>$separator</replaceable>, with the separator removed.</para></entry>
@@ -9726,7 +9733,23 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         </tgroup>
       </table>
 
-  <para>This function does not throw any exceptions.</para>
+      <table>
+	<title>Exceptions Thrown by split()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>SPLIT-ERROR</code></para></entry>
+	      <entry><para>End quote character not found or excess text found following separator string.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
 
 </sect2>
 

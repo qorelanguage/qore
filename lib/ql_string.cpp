@@ -243,6 +243,93 @@ static AbstractQoreNode *f_split_str(const QoreListNode *args, ExceptionSink *xs
    return split_intern(temp->getBuffer(), temp->strlen(), s1->getBuffer(), s1->strlen(), s1->getEncoding());
 }
 
+// syntax: split(pattern, string, quote);
+static AbstractQoreNode *f_split_str_str_str(const QoreListNode *args, ExceptionSink *xsink) {
+   const QoreStringNode *s0 = HARD_QORE_STRING(args, 0);
+   const QoreStringNode *s1 = HARD_QORE_STRING(args, 1);
+   const QoreStringNode *s2 = HARD_QORE_STRING(args, 2);
+
+   // convert pattern encoding to string if necessary
+   TempEncodingHelper pat(s0, s1->getEncoding(), xsink);
+   if (*xsink)
+      return 0;
+   
+   // convert quote to string if necessary
+   TempEncodingHelper quote(s2, s1->getEncoding(), xsink);
+   if (*xsink)
+      return 0;
+
+   if (!quote->strlen() || quote->strlen() > s1->strlen())
+      return split_intern(pat->getBuffer(), pat->strlen(), s1->getBuffer(), s1->strlen(), s1->getEncoding());
+   
+   ReferenceHolder<QoreListNode> l(new QoreListNode, xsink);
+   const char *ostr = s1->getBuffer();
+   qore_size_t sl = s1->strlen();
+   const char *pattern = pat->getBuffer();
+   qore_size_t pl = pat->strlen();
+
+   const char *str = ostr;
+
+   // remaining byte length
+   qore_size_t len = sl;
+
+   while (len > 0) {
+      // see if the field begins with the quote string
+      // and if the remaining string length is at least big enough for two quote strings
+      if ((quote->strlen() * 2) <= len
+	  && !memcmp(quote->getBuffer(), str, quote->strlen())) {
+	 // advance pointer past quote
+	 str += quote->strlen();
+	 // find next quote character, ignore escaped quotes
+	 const char *tstr = str;
+	 const char *p;
+	 while (true) {
+	    p = memstr(tstr, quote->getBuffer(), quote->strlen(), len);
+	    if (!p) {
+	       xsink->raiseException("SPLIT-ERROR", "cannot find closing quote '%s' in field %d", quote->getBuffer(), l->size() + 1);
+	       return 0;
+	    }
+	    if (p == tstr)
+	       break;
+	    if (*(p - 1) != '\\')
+	       break;
+	    tstr = p + 1;
+	 }
+	 // optimistically add the field to the list
+	 l->push(new QoreStringNode(str, p - str, s1->getEncoding()));
+
+	 str = p + quote->strlen();
+	 // see if we are either at the end of the string
+	 len = sl + (ostr - str);
+
+	 if (!len)
+	    break;
+
+	 // or a separator string comes next
+	 if (len < pl || memcmp(pattern, str, pl)) {
+	    xsink->raiseException("SPLIT-ERROR", "separator pattern '%s' does not follow end quote in field %d", pattern, l->size());
+	    return 0;
+	 }
+	 str += pl;
+	 len -= pl;
+	 continue;
+      }
+      
+      const char *p = memstr(str, pattern, pl, sl - (str - ostr));
+      if (!p) {
+	 if (str != ostr)
+	    l->push(new QoreStringNode(str, sl - (str - ostr), s1->getEncoding()));
+	 break;
+      }
+
+      l->push(new QoreStringNode(str, p - str, s1->getEncoding()));
+      len -= (p - str);
+      str = p + pl;      
+   }
+   
+   return l.release();
+}
+
 static AbstractQoreNode *f_split_bin(const QoreListNode *args, ExceptionSink *xsink) {
    HARD_QORE_PARAM(b0, const BinaryNode, args, 0);
    HARD_QORE_PARAM(b1, const BinaryNode, args, 1);
@@ -484,6 +571,8 @@ void init_string_functions() {
    // an empty list was returned by split() if the types were not correct
    builtinFunctions.add2("split", f_list_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, listTypeInfo);
    builtinFunctions.add2("split", f_split_str, QC_CONSTANT, QDOM_DEFAULT, listTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
+   // split(string $pattern, string $str, string $quote) returns list
+   builtinFunctions.add2("split", f_split_str_str_str, QC_CONSTANT, QDOM_DEFAULT, listTypeInfo, 3, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("split", f_split_bin, QC_CONSTANT, QDOM_DEFAULT, listTypeInfo, 2, binaryTypeInfo, QORE_PARAM_NO_ARG, binaryTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add2("get_encoding", f_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, nothingTypeInfo);

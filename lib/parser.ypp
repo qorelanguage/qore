@@ -1706,13 +1706,24 @@ exp:    scalar
 	   if (!$1 && !strcmp($2, "argv"))
 	      inc_argv_ref();
 
-	   $$ = new VarRefDeclNode($2, VT_UNRESOLVED, $1->getTypeInfo(), $1->getParseTypeInfo());
+	   if ($1)
+	      $$ = new VarRefDeclNode($2, VT_UNRESOLVED, $1->getTypeInfo(), $1->getParseTypeInfo());
+	   else
+	      $$ = new VarRefNode($2, VT_UNRESOLVED);
 
 	   delete $1;
 	}
         | TOK_MY qtypedef VAR_REF {
-	   $$ = new VarRefDeclNode($3, VT_LOCAL, $2->getTypeInfo(), $2->getParseTypeInfo());
-	   delete $2;
+	   if ($2) {
+	      $$ = new VarRefDeclNode($3, VT_LOCAL, $2->getTypeInfo(), $2->getParseTypeInfo());
+	      delete $2;
+	   }
+	   else {
+	      // see if types are required
+	      if (checkParseOption(PO_REQUIRE_TYPES))
+		 parse_error("local variable '$%s' declared without type information, but parse options require all declarations to have type information", $3);
+	      $$ = new VarRefNode($3, VT_LOCAL);
+	   }
 	}
         | TOK_MY '(' list ')' {
 	   $3->setVariableList();
