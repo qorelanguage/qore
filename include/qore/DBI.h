@@ -22,7 +22,6 @@
 */
 
 #ifndef _QORE_DBI_H
-
 #define _QORE_DBI_H
 
 //! @file DBI.h describes Qore's DBI interface for writing database drivers
@@ -36,7 +35,8 @@
 #define DBI_CAP_LOB_SUPPORT              (1 << 4)
 #define DBI_CAP_BIND_BY_VALUE            (1 << 5)
 #define DBI_CAP_BIND_BY_PLACEHOLDER      (1 << 6)
-#define DBI_CAP_HAS_EXECRAW             (1 << 7)
+#define DBI_CAP_HAS_EXECRAW              (1 << 7)
+#define DBI_CAP_HAS_STATEMENT            (1 << 8)
 
 #define BN_PLACEHOLDER  0
 #define BN_VALUE        1
@@ -56,8 +56,14 @@
 #define QDBI_METHOD_GET_SERVER_VERSION       10
 #define QDBI_METHOD_GET_CLIENT_VERSION       11
 #define QDBI_METHOD_EXECRAW                  12
+#define QDBI_METHOD_STMT_PREPARE             13
+#define QDBI_METHOD_STMT_BIND                14
+#define QDBI_METHOD_STMT_EXEC                15
+#define QDBI_METHOD_STMT_FETCH_ROW           16
+#define QDBI_METHOD_STMT_NEXT                17
+#define QDBI_METHOD_STMT_CLOSE               18
 
-#define QDBI_VALID_CODES 13
+#define QDBI_VALID_CODES 19
 
 class Datasource;
 class ExceptionSink;
@@ -66,6 +72,7 @@ class QoreListNode;
 class AbstractQoreNode;
 class QoreHashNode;
 class QoreNamespace;
+class SQLStatement;
 
 // DBI method signatures - note that only get_client_version uses a "const Datasource" 
 // the others do not so that automatic reconnects can be supported (which will normally
@@ -75,14 +82,14 @@ class QoreNamespace;
 /** @param ds the Datasource for the connection
     @param xsink if any errors occur, error information should be added to this object
     @return 0 for OK, non-zero for error
- */
+*/
 typedef int (*q_dbi_open_t)(Datasource *ds, ExceptionSink *xsink);
 
 //! signature for the DBI "close" method - must be defined in each DBI driver
 /** this function cannot throw an exception and currently any return error code is ignored
     @param ds the Datasource for the connection to close
     @return 0 for OK, non-zero for error
- */
+*/
 typedef int (*q_dbi_close_t)(Datasource *ds);
 
 //! signature for the DBI "select" method - must be defined in each DBI driver
@@ -92,7 +99,7 @@ typedef int (*q_dbi_close_t)(Datasource *ds);
     @param args arguments for placeholders or DBI formatting codes in the SQL string
     @param xsink if any errors occur, error information should be added to this object
     @return the data returned by executing the SQL or 0
- */
+*/
 typedef AbstractQoreNode *(*q_dbi_select_t)(Datasource *ds, const QoreString *str, const QoreListNode *args, ExceptionSink *xsink);
 
 //! signature for the DBI "selectRows" method - must be defined in each DBI driver
@@ -102,7 +109,7 @@ typedef AbstractQoreNode *(*q_dbi_select_t)(Datasource *ds, const QoreString *st
     @param args arguments for placeholders or DBI formatting codes in the SQL string
     @param xsink if any errors occur, error information should be added to this object
     @return the data returned by executing the SQL or 0
- */
+*/
 typedef AbstractQoreNode *(*q_dbi_select_rows_t)(Datasource *ds, const QoreString *str, const QoreListNode *args, ExceptionSink *xsink);
 
 //! signature for the DBI "execSQL" method - must be defined in each DBI driver
@@ -112,16 +119,16 @@ typedef AbstractQoreNode *(*q_dbi_select_rows_t)(Datasource *ds, const QoreStrin
     @param args arguments for placeholders or DBI formatting codes in the SQL string
     @param xsink if any errors occur, error information should be added to this object
     @return the data returned by executing the SQL or 0
- */
+*/
 typedef AbstractQoreNode *(*q_dbi_exec_t)(Datasource *ds, const QoreString *str, const QoreListNode *args, ExceptionSink *xsink);
 
 //! signature for the DBI "execRawSQL" method - must be defined in each DBI driver
 /**
-    @param ds the Datasource for the connection
-    @param str the SQL string to execute, may not be in the encoding of the Datasource
-    @param xsink if any errors occur, error information should be added to this object
-    @return the data returned by executing the SQL or 0
- */
+   @param ds the Datasource for the connection
+   @param str the SQL string to execute, may not be in the encoding of the Datasource
+   @param xsink if any errors occur, error information should be added to this object
+   @return the data returned by executing the SQL or 0
+*/
 typedef AbstractQoreNode *(*q_dbi_execraw_t)(Datasource *ds, const QoreString *str, ExceptionSink *xsink);
 
 //! signature for the DBI "commit" method - must be defined in each DBI driver
@@ -129,7 +136,7 @@ typedef AbstractQoreNode *(*q_dbi_execraw_t)(Datasource *ds, const QoreString *s
     @param ds the Datasource for the connection
     @param xsink if any errors occur, error information should be added to this object
     @return 0 for OK, non-zero for error
- */
+*/
 typedef int (*q_dbi_commit_t)(Datasource *ds, ExceptionSink *xsink);
 
 //! signature for the DBI "rollback" method - must be defined in each DBI driver
@@ -137,7 +144,7 @@ typedef int (*q_dbi_commit_t)(Datasource *ds, ExceptionSink *xsink);
     @param ds the Datasource for the connection
     @param xsink if any errors occur, error information should be added to this object
     @return 0 for OK, non-zero for error
- */
+*/
 typedef int (*q_dbi_rollback_t)(Datasource *ds, ExceptionSink *xsink);
 
 //! signature for the DBI "begin_transaction" method, should only be defined for drivers needing this to explicitly start a transaction 
@@ -145,7 +152,7 @@ typedef int (*q_dbi_rollback_t)(Datasource *ds, ExceptionSink *xsink);
     @param ds the Datasource for the connection
     @param xsink if any errors occur, error information should be added to this object
     @return 0 for OK, non-zero for error
- */
+*/
 typedef int (*q_dbi_begin_transaction_t)(Datasource *ds, ExceptionSink *xsink);
 
 //! signature for the rollback method to be executed when the first statement in an explicit transaction started implicitly with the DBI "begin_transaction" method fails
@@ -153,7 +160,7 @@ typedef int (*q_dbi_begin_transaction_t)(Datasource *ds, ExceptionSink *xsink);
     @param ds the Datasource for the connection
     @param xsink if any errors occur, error information should be added to this object
     @return 0 for OK, non-zero for error
- */
+*/
 typedef int (*q_dbi_abort_transaction_start_t)(Datasource *ds, ExceptionSink *xsink);
 
 //! signature for the "get_server_version" method
@@ -161,7 +168,7 @@ typedef int (*q_dbi_abort_transaction_start_t)(Datasource *ds, ExceptionSink *xs
     @param ds the Datasource for the connection
     @param xsink if any errors occur, error information should be added to this object
     @return a value describing the server's version
- */
+*/
 typedef AbstractQoreNode *(*q_dbi_get_server_version_t)(Datasource *ds, ExceptionSink *xsink);
 
 //! signature for the "get_client_version" method
@@ -169,8 +176,16 @@ typedef AbstractQoreNode *(*q_dbi_get_server_version_t)(Datasource *ds, Exceptio
     @param ds the Datasource for the connection
     @param xsink if any errors occur, error information should be added to this object
     @return a value describing the client's version
- */
+*/
 typedef AbstractQoreNode *(*q_dbi_get_client_version_t)(const Datasource *ds, ExceptionSink *xsink);
+
+// FIXME: document
+typedef int (*q_dbi_stmt_prepare_t)(SQLStatement *stmt, QoreString &str, ExceptionSink *xsink);
+typedef int (*q_dbi_stmt_bind_t)(SQLStatement *stmt, QoreListNode &l, ExceptionSink *xsink);
+typedef int (*q_dbi_stmt_exec_t)(SQLStatement *stmt, ExceptionSink *xsink);
+typedef QoreListNode *(*q_dbi_stmt_fetch_row_t)(SQLStatement *stmt, ExceptionSink *xsink);
+typedef bool (*q_dbi_stmt_next_t)(SQLStatement *stmt, ExceptionSink *xsink);
+typedef int (*q_dbi_stmt_close_t)(SQLStatement *stmt, ExceptionSink *xsink);
 
 typedef std::pair<int, void *> qore_dbi_method_t;
 
@@ -179,34 +194,43 @@ typedef safe_dslist<qore_dbi_method_t> dbi_method_list_t;
 //! this is the data structure Qore DBI drivers will use to pass the supported DBI methods
 /** the minimum methods that must be supported are: open, close, select, selectRows, execSQL, execRawSQL, commit, and rollback
  */
-class qore_dbi_method_list
-{
-   private:
-      struct qore_dbi_mlist_private *priv; // private implementation
+class qore_dbi_method_list {
+private:
+   struct qore_dbi_mlist_private *priv; // private implementation
 
-      // not implemented
-      DLLLOCAL qore_dbi_method_list(const qore_dbi_method_list&);
-      DLLLOCAL qore_dbi_method_list& operator=(const qore_dbi_method_list&);
+   // not implemented
+   DLLLOCAL qore_dbi_method_list(const qore_dbi_method_list&);
+   DLLLOCAL qore_dbi_method_list& operator=(const qore_dbi_method_list&);
 
-   public:
-      DLLEXPORT qore_dbi_method_list();
-      DLLEXPORT ~qore_dbi_method_list();
+public:
+   DLLEXPORT qore_dbi_method_list();
+   DLLEXPORT ~qore_dbi_method_list();
 
-      // covers open, commit, rollback, and begin transaction
-      DLLEXPORT void add(int code, q_dbi_open_t method);
-      // for close
-      DLLEXPORT void add(int code, q_dbi_close_t method);
-      // covers select, select_rows. and exec
-      DLLEXPORT void add(int code, q_dbi_select_t method);
-      // covers execRaw
-      DLLEXPORT void add(int code, q_dbi_execraw_t method);
-      // covers get_server_version
-      DLLEXPORT void add(int code, q_dbi_get_server_version_t method);
-      // covers get_client_version
-      DLLEXPORT void add(int code, q_dbi_get_client_version_t method);
+   // covers open, commit, rollback, and begin transaction
+   DLLEXPORT void add(int code, q_dbi_open_t method);
+   // for close
+   DLLEXPORT void add(int code, q_dbi_close_t method);
+   // covers select, select_rows, and exec
+   DLLEXPORT void add(int code, q_dbi_select_t method);
+   // covers execRaw
+   DLLEXPORT void add(int code, q_dbi_execraw_t method);
+   // covers get_server_version
+   DLLEXPORT void add(int code, q_dbi_get_server_version_t method);
+   // covers get_client_version
+   DLLEXPORT void add(int code, q_dbi_get_client_version_t method);
+   // covers prepare
+   DLLEXPORT void add(int code, q_dbi_stmt_prepare_t method);
+   // covers bind
+   DLLEXPORT void add(int code, q_dbi_stmt_bind_t method);
+   // covers exec and close
+   DLLEXPORT void add(int code, q_dbi_stmt_exec_t method);
+   // covers fetchRow
+   DLLEXPORT void add(int code, q_dbi_stmt_fetch_row_t method);
+   // covers next
+   DLLEXPORT void add(int code, q_dbi_stmt_next_t method);
 
-      // internal interface
-      DLLLOCAL dbi_method_list_t *getMethods() const;
+   // internal interface
+   DLLLOCAL dbi_method_list_t *getMethods() const;
 };
 
 //! this class provides the internal link to the database driver for Qore's DBI layer
@@ -216,40 +240,49 @@ class qore_dbi_method_list
    @see Datasource
 */
 class DBIDriver {
-   private:
-      //! private implementation
-      struct qore_dbi_private *priv;
+private:
+   //! private implementation
+   struct qore_dbi_private *priv;
 
-      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-      DLLLOCAL DBIDriver(const DBIDriver&);
-      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-      DLLLOCAL DBIDriver& operator=(const DBIDriver&);
+   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+   DLLLOCAL DBIDriver(const DBIDriver&);
+   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+   DLLLOCAL DBIDriver& operator=(const DBIDriver&);
 
-   public:
-      //! this is the only public exported function available in this class
-      /**
-	 @return the name of the driver (ex: "oracle")
-       */
-      DLLEXPORT const char *getName() const;
+public:
+   //! this is the only public exported function available in this class
+   /**
+      @return the name of the driver (ex: "oracle")
+   */
+   DLLEXPORT const char *getName() const;
 
-      DLLLOCAL DBIDriver(const char *name, const dbi_method_list_t &methods, int cps);
-      DLLLOCAL ~DBIDriver();
-      DLLLOCAL int init(Datasource *ds, ExceptionSink *xsink);
-      DLLLOCAL int close(Datasource *ds);
-      DLLLOCAL AbstractQoreNode *select(Datasource *ds, const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink);
-      DLLLOCAL AbstractQoreNode *selectRows(Datasource *ds, const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink);
-      DLLLOCAL AbstractQoreNode *execSQL(Datasource *ds, const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink);
-      DLLLOCAL AbstractQoreNode *execRawSQL(Datasource *ds, const QoreString *sql, ExceptionSink *xsink);
-      DLLLOCAL int commit(Datasource *, ExceptionSink *xsink);
-      DLLLOCAL int rollback(Datasource *, ExceptionSink *xsink);
-      DLLLOCAL int autoCommit(Datasource *, ExceptionSink *xsink);
-      DLLLOCAL int beginTransaction(Datasource *, ExceptionSink *xsink);
-      DLLLOCAL int abortTransactionStart(Datasource *, ExceptionSink *xsink);
-      DLLLOCAL AbstractQoreNode *getServerVersion(Datasource *, ExceptionSink *xsink);
-      DLLLOCAL AbstractQoreNode *getClientVersion(const Datasource *, ExceptionSink *xsink);
+   DLLLOCAL DBIDriver(const char *name, const dbi_method_list_t &methods, int cps);
+   DLLLOCAL ~DBIDriver();
+   DLLLOCAL int init(Datasource *ds, ExceptionSink *xsink);
+   DLLLOCAL int close(Datasource *ds);
+   DLLLOCAL AbstractQoreNode *select(Datasource *ds, const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink);
+   DLLLOCAL AbstractQoreNode *selectRows(Datasource *ds, const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink);
+   DLLLOCAL AbstractQoreNode *execSQL(Datasource *ds, const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink);
+   DLLLOCAL AbstractQoreNode *execRawSQL(Datasource *ds, const QoreString *sql, ExceptionSink *xsink);
+   DLLLOCAL int commit(Datasource *, ExceptionSink *xsink);
+   DLLLOCAL int rollback(Datasource *, ExceptionSink *xsink);
+   DLLLOCAL int autoCommit(Datasource *, ExceptionSink *xsink);
+   DLLLOCAL int beginTransaction(Datasource *, ExceptionSink *xsink);
+   DLLLOCAL int abortTransactionStart(Datasource *, ExceptionSink *xsink);
+   DLLLOCAL AbstractQoreNode *getServerVersion(Datasource *, ExceptionSink *xsink);
+   DLLLOCAL AbstractQoreNode *getClientVersion(const Datasource *, ExceptionSink *xsink);
 
-      DLLLOCAL int getCaps() const;
-      DLLLOCAL QoreListNode *getCapList() const;
+   DLLLOCAL int stmt_prepare(SQLStatement *stmt, QoreString &str, ExceptionSink *xsink) const;
+   DLLLOCAL int stmt_bind(SQLStatement *stmt, QoreListNode &l, ExceptionSink *xsink) const;
+   DLLLOCAL int stmt_exec(SQLStatement *stmt, ExceptionSink *xsink) const;
+   DLLLOCAL QoreListNode *stmt_fetch_row(SQLStatement *stmt, ExceptionSink *xsink) const;
+   DLLLOCAL bool stmt_next(SQLStatement *stmt, ExceptionSink *xsink) const;
+   DLLLOCAL int stmt_close(SQLStatement *stmt, ExceptionSink *xsink) const;
+
+   DLLLOCAL bool hasStatementAPI() const;
+
+   DLLLOCAL int getCaps() const;
+   DLLLOCAL QoreListNode *getCapList() const;
 };
 
 struct qore_dbi_dlist_private;
@@ -258,45 +291,44 @@ struct qore_dbi_dlist_private;
 /**
    this class will all use the ModuleManager to try and load a driver if it is not already loaded when find() is called
    @see ModuleManager
- */
-class DBIDriverList
-{
-   private:
-      //! private implementation
-      struct qore_dbi_dlist_private *priv;
+*/
+class DBIDriverList {
+private:
+   //! private implementation
+   struct qore_dbi_dlist_private *priv;
 
-      DLLLOCAL DBIDriver *find_intern(const char *name) const;
+   DLLLOCAL DBIDriver *find_intern(const char *name) const;
 
 public:
-      //! registers a new DBI driver
-      /**
-	 @param name the name of the driver (ex: "oracle")
-	 @param methods the list of methods the driver supports
-	 @param caps the capabilities the driver supports
-	 @return the DBIDriver object created
-       */
-      DLLEXPORT class DBIDriver *registerDriver(const char *name, const struct qore_dbi_method_list &methods, int caps);
+   //! registers a new DBI driver
+   /**
+      @param name the name of the driver (ex: "oracle")
+      @param methods the list of methods the driver supports
+      @param caps the capabilities the driver supports
+      @return the DBIDriver object created
+   */
+   DLLEXPORT class DBIDriver *registerDriver(const char *name, const struct qore_dbi_method_list &methods, int caps);
 
-      //! finds a driver, will try to load the driver using the ModuleManager if no such driver is already present
-      /**
-	 @param name the name of the driver to find (or load)
-	 @return the DBIDriver found or 0 if not found and was not loaded
-	 @see ModuleManager
-       */
-      DLLEXPORT DBIDriver *find(const char *name) const;
+   //! finds a driver, will try to load the driver using the ModuleManager if no such driver is already present
+   /**
+      @param name the name of the driver to find (or load)
+      @return the DBIDriver found or 0 if not found and was not loaded
+      @see ModuleManager
+   */
+   DLLEXPORT DBIDriver *find(const char *name) const;
 
-      //! finds a driver, will try to load the driver using the ModuleManager if no such driver is already present
-      /** 
-	 @param name the name of the driver to find (or load)
-	 @param xsink Qore-language exceptions saved here if any occur
-	 @return the DBIDriver found or 0 if not found and was not loaded
-	 @see ModuleManager
-       */
-      DLLEXPORT DBIDriver *find(const char *name, ExceptionSink *xsink) const;
+   //! finds a driver, will try to load the driver using the ModuleManager if no such driver is already present
+   /** 
+       @param name the name of the driver to find (or load)
+       @param xsink Qore-language exceptions saved here if any occur
+       @return the DBIDriver found or 0 if not found and was not loaded
+       @see ModuleManager
+   */
+   DLLEXPORT DBIDriver *find(const char *name, ExceptionSink *xsink) const;
 
-      DLLLOCAL DBIDriverList();
-      DLLLOCAL ~DBIDriverList();
-      DLLLOCAL QoreListNode *getDriverList() const;
+   DLLLOCAL DBIDriverList();
+   DLLLOCAL ~DBIDriverList();
+   DLLLOCAL QoreListNode *getDriverList() const;
 };
 
 //! list of DBI drivers currently reigsted by the Qore library

@@ -29,22 +29,15 @@
  */
 
 #ifndef _QORE_MANAGEDDATASOURCE_H
-
 #define _QORE_MANAGEDDATASOURCE_H
 
-#ifdef _QORE_LIB_INTERN
-
-#include <qore/common.h>
-#include <qore/QoreThreadLock.h>
-#include <qore/QoreCondition.h>
-#include <qore/Datasource.h>
-#include <qore/AbstractThreadResource.h>
+#include <qore/intern/DatasourceStatementHelper.h>
 
 // default timeout set to 120 seconds
 #define DEFAULT_TL_TIMEOUT 120000
 
-class ManagedDatasource : public AbstractThreadResource, public Datasource {
-private:
+class ManagedDatasource : public AbstractThreadResource, public Datasource, public DatasourceStatementHelper {
+protected:
    mutable QoreThreadLock
       ds_lock,                     // transaction lock
       connection_lock;             // connection lock
@@ -57,6 +50,8 @@ private:
 
    QoreCondition cSQL,             // condition when no SQL is in-progress
       cTransaction;                // condition when transaction lock is freed
+
+   bool stmt_new_transaction;      // statement grabbed transaction lock
    
    DLLLOCAL int startDBAction(ExceptionSink *xsink, bool need_transaction_lock = false);
    DLLLOCAL void endDBActionIntern();
@@ -80,7 +75,9 @@ public:
    DLLLOCAL virtual void cleanup(ExceptionSink *xsink);
    DLLLOCAL virtual void destructor(ExceptionSink *xsink);
    DLLLOCAL virtual void deref(ExceptionSink *xsink);
-   DLLLOCAL virtual void deref();
+   DLLLOCAL virtual void deref() {
+      assert(false);
+   }
    DLLLOCAL AbstractQoreNode *select(const QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink);
    DLLLOCAL AbstractQoreNode *selectRow(const QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink);
    DLLLOCAL AbstractQoreNode *selectRows(const QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink);
@@ -89,7 +86,6 @@ public:
    DLLLOCAL int rollback(ExceptionSink *xsink);
    DLLLOCAL int open(ExceptionSink *xsink);
    DLLLOCAL int close(ExceptionSink *xsink);
-   DLLLOCAL int close();
    DLLLOCAL void reset(ExceptionSink *xsink);
    DLLLOCAL void setPendingUsername(const char *u);
    DLLLOCAL void setPendingPassword(const char *p);
@@ -105,13 +101,52 @@ public:
    DLLLOCAL int getPendingPort() const;
    DLLLOCAL void setTransactionLockTimeout(int t_ms);
    DLLLOCAL int getTransactionLockTimeout() const;
-   DLLLOCAL void beginTransaction(ExceptionSink *xsink);
+   // returns true if a new transaction was started
+   DLLLOCAL bool beginTransaction(ExceptionSink *xsink);
    DLLLOCAL void setAutoCommit(bool ac);   
    DLLLOCAL ManagedDatasource *copy();
    DLLLOCAL AbstractQoreNode *getServerVersion(ExceptionSink *xsink);
    DLLLOCAL AbstractQoreNode *getClientVersion(ExceptionSink *xsink) const;
-};
 
-#endif
+   // functions supporting DatasourceStatementHelper
+   DLLLOCAL DatasourceStatementHelper *getReferencedHelper() {
+      ref();
+      return this;
+   }
+
+   // implementing DatasourceStatementHelper virtual functions
+   DLLLOCAL virtual void helperDestructor(ExceptionSink *xsink) {
+      deref(xsink);
+   }
+
+   DLLLOCAL virtual Datasource *helperGetDatasource(ExceptionSink *xsink) {
+      bool nt = beginTransaction(xsink);
+      if (*xsink)
+         return 0;
+
+      stmt_new_transaction = nt;
+
+      return this;
+   }
+
+   DLLLOCAL virtual int helperReleaseDatasource(bool started_transaction, ExceptionSink *xsink) {
+      if (getAutoCommit())
+         return commit(xsink);
+
+      // only release transaction lock if stmt_new_transaction is true and started_transaction is false
+      if (stmt_new_transaction && !started_transaction) {
+         remove_thread_resource(this);
+         releaseLock();
+         endDBAction();
+      }
+
+      return 0;
+   }
+
+   DLLLOCAL virtual QoreThreadLock *helperGetConnectionLock() {
+      return &connection_lock;
+   }
+
+};
 
 #endif // _QORE_SQL_OBJECTS_DATASOURCE_H

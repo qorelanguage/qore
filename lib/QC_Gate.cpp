@@ -101,7 +101,7 @@ QoreClass *initRMutexClass() {
    QC_RMUTEX->addMethodExtended("enter",         (q_method_t)GATE_enter, false, QC_DEPRECATED, QDOM_DEFAULT, nothingTypeInfo);
 
    // Gate::enter(timeout $timeout) returns int
-   QC_RMUTEX->addMethodExtended("enter",         (q_method_t)GATE_enter_to, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, timeoutTypeInfo, QORE_PARAM_NO_ARG);
+   QC_RMUTEX->addMethodExtended("enter",         (q_method_t)GATE_enter_to, false, QC_DEPRECATED, QDOM_DEFAULT, bigIntTypeInfo, 1, timeoutTypeInfo, QORE_PARAM_NO_ARG);
 
    QC_RMUTEX->addMethodExtended("exit",          (q_method_t)GATE_exit, false, QC_DEPRECATED, QDOM_DEFAULT, bigIntTypeInfo);
    QC_RMUTEX->addMethodExtended("tryEnter",      (q_method_t)GATE_tryEnter, false, QC_DEPRECATED, QDOM_DEFAULT, bigIntTypeInfo);

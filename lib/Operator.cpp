@@ -3791,10 +3791,12 @@ static AbstractQoreNode *check_op_plus_equals(QoreTreeNode *tree, LocalVar *ofla
    // case it takes the value of the right side, or if it's anything else it's
    // converted to an integer, so we just check if it can be assigned an
    // integer value below, this is enough
-   else {
+   else if (leftTypeInfo->returnsSingle()) {
       returnTypeInfo = bigIntTypeInfo;
       check_lvalue_int(leftTypeInfo, name);
    }
+   else
+      returnTypeInfo = 0;
 
    return tree;
 }
@@ -3817,10 +3819,12 @@ static AbstractQoreNode *check_op_minus_equals(QoreTreeNode *tree, LocalVar *ofl
    // evaluates to a float, or if it's anything else it's converted to an 
    // integer, so we just check if it can be assigned an integer value below,
    // this is enough
-   else {
+   else if (leftTypeInfo->returnsSingle()) {
       returnTypeInfo = bigIntTypeInfo;
       check_lvalue_int(leftTypeInfo, name);
    }
+   else
+      returnTypeInfo = 0;
 
    return tree;
 }
@@ -3839,10 +3843,12 @@ static AbstractQoreNode *check_op_multdiv_equals(QoreTreeNode *tree, LocalVar *o
       returnTypeInfo = floatTypeInfo;
       check_lvalue_float(leftTypeInfo, name);
    }
-   else {
+   else if (leftTypeInfo->returnsSingle()) {
       returnTypeInfo = bigIntTypeInfo;
       check_lvalue_int(leftTypeInfo, name);
    }
+   else
+      returnTypeInfo = 0;
 
    return tree;
 }

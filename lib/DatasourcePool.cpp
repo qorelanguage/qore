@@ -5,15 +5,6 @@
  
  Copyright 2003 - 2010 David Nichols
  
- The Datasource class provides the low-level interface to Qore DBI drivers.
- 
- NOTE that this class is *not* thread-safe.  To use this class in a multi-
- threaded context, per-thread connection locking must be done at a level
- above this class...
- 
- NOTE that 2 copies of connection values are kept in case
- the values are changed while a connection is in use
- 
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public
  License as published by the Free Software Foundation; either

@@ -25,6 +25,7 @@
 #include <qore/Qore.h>
 #include <qore/intern/QC_Datasource.h>
 #include <qore/intern/QC_DatasourcePool.h>
+#include <qore/intern/QC_SQLStatement.h>
 
 #include <string.h>
 #include <stdio.h>
@@ -53,10 +54,22 @@ struct dbi_cap_hash dbi_cap_list[] =
   { DBI_CAP_BIND_BY_VALUE,          "BindByValue" },
   { DBI_CAP_BIND_BY_PLACEHOLDER,    "BindByPlaceholder" },
   { DBI_CAP_HAS_EXECRAW,            "HasExecRaw" },
+  { DBI_CAP_HAS_STATEMENT,          "HasStatementApi" },
 };
 
-class DBIDriverFunctions {
-public:
+struct dbi_driver_stmt {
+   q_dbi_stmt_prepare_t prepare;
+   q_dbi_stmt_bind_t bind;
+   q_dbi_stmt_exec_t exec;
+   q_dbi_stmt_fetch_row_t fetch_row;
+   q_dbi_stmt_next_t next;
+   q_dbi_stmt_close_t close;
+
+   DLLLOCAL dbi_driver_stmt() : prepare(0), bind(0), exec(0), fetch_row(0), next(0), close(0) {
+   }
+};
+
+struct DBIDriverFunctions {
    q_dbi_open_t open;
    q_dbi_close_t close;
    q_dbi_select_t select;
@@ -71,7 +84,9 @@ public:
    // in a transaction
    q_dbi_get_server_version_t get_server_version;
    q_dbi_get_client_version_t get_client_version;
-      
+
+   dbi_driver_stmt stmt;
+
    DLLLOCAL DBIDriverFunctions() : open(0), close(0), select(0), selectRows(0), execSQL(0), execRawSQL(0), 
 				   commit(0), rollback(0), begin_transaction(0), abort_transaction_start(0),
 				   get_server_version(0), get_client_version(0) {
@@ -91,31 +106,67 @@ qore_dbi_method_list::~qore_dbi_method_list() {
 
 // covers open, commit, rollback, and begin transaction
 void qore_dbi_method_list::add(int code, q_dbi_open_t method) {
+   assert(code == QDBI_METHOD_OPEN || code == QDBI_METHOD_COMMIT || code == QDBI_METHOD_ROLLBACK || code == QDBI_METHOD_BEGIN_TRANSACTION);
    priv->l.push_back(std::make_pair(code, (void *)method));
 }
 
 // for close
 void qore_dbi_method_list::add(int code, q_dbi_close_t method) {
+   assert(code == QDBI_METHOD_CLOSE);
    priv->l.push_back(std::make_pair(code, (void *)method));
 }
 
 // covers select, select_rows. and exec
 void qore_dbi_method_list::add(int code, q_dbi_select_t method) {
+   assert(code == QDBI_METHOD_SELECT || code == QDBI_METHOD_SELECT_ROWS || code == QDBI_METHOD_EXEC);
    priv->l.push_back(std::make_pair(code, (void *)method));
 }
 
 // covers execRaw
 void qore_dbi_method_list::add(int code, q_dbi_execraw_t method) {
+   assert(code == QDBI_METHOD_EXECRAW);
    priv->l.push_back(std::make_pair(code, (void *)method));
 }
 
 // covers get_server_version
 void qore_dbi_method_list::add(int code, q_dbi_get_server_version_t method) {
+   assert(code == QDBI_METHOD_GET_SERVER_VERSION);
    priv->l.push_back(std::make_pair(code, (void *)method));
 }
 
 // covers get_client_version
 void qore_dbi_method_list::add(int code, q_dbi_get_client_version_t method) {
+   assert(code == QDBI_METHOD_GET_CLIENT_VERSION);
+   priv->l.push_back(std::make_pair(code, (void *)method));
+}
+
+// covers prepare
+void qore_dbi_method_list::add(int code, q_dbi_stmt_prepare_t method) {
+   assert(code == QDBI_METHOD_STMT_PREPARE);
+   priv->l.push_back(std::make_pair(code, (void *)method));
+}
+
+// covers bind
+void qore_dbi_method_list::add(int code, q_dbi_stmt_bind_t method) {
+   assert(code == QDBI_METHOD_STMT_BIND);
+   priv->l.push_back(std::make_pair(code, (void *)method));
+}
+
+// covers exec and close
+void qore_dbi_method_list::add(int code, q_dbi_stmt_exec_t method) {
+   assert(code == QDBI_METHOD_STMT_EXEC || code == QDBI_METHOD_STMT_CLOSE);
+   priv->l.push_back(std::make_pair(code, (void *)method));
+}
+
+// covers fetchRow
+void qore_dbi_method_list::add(int code, q_dbi_stmt_fetch_row_t method) {
+   assert(code == QDBI_METHOD_STMT_FETCH_ROW);
+   priv->l.push_back(std::make_pair(code, (void *)method));
+}
+
+// covers next
+void qore_dbi_method_list::add(int code, q_dbi_stmt_next_t method) {
+   assert(code == QDBI_METHOD_STMT_NEXT);
    priv->l.push_back(std::make_pair(code, (void *)method));
 }
 
@@ -180,6 +231,31 @@ struct qore_dbi_private {
 	       assert(!f.get_client_version);
 	       f.get_client_version = (q_dbi_get_client_version_t)(*i).second;
 	       break;
+	    case QDBI_METHOD_STMT_PREPARE:
+	       assert(!f.stmt.prepare);
+	       f.stmt.prepare = (q_dbi_stmt_prepare_t)(*i).second;
+	       break;
+	    case QDBI_METHOD_STMT_BIND:
+	       assert(!f.stmt.bind);
+	       f.stmt.bind = (q_dbi_stmt_bind_t)(*i).second;
+	       break;
+	    case QDBI_METHOD_STMT_EXEC:
+	       assert(!f.stmt.exec);
+	       f.stmt.exec = (q_dbi_stmt_exec_t)(*i).second;
+	       break;
+	    case QDBI_METHOD_STMT_FETCH_ROW:
+	       assert(!f.stmt.fetch_row);
+	       f.stmt.fetch_row = (q_dbi_stmt_fetch_row_t)(*i).second;
+	       break;
+	    case QDBI_METHOD_STMT_NEXT:
+	       assert(!f.stmt.next);
+	       f.stmt.next = (q_dbi_stmt_next_t)(*i).second;
+	       break;
+	    case QDBI_METHOD_STMT_CLOSE:
+	       assert(!f.stmt.close);
+	       f.stmt.close = (q_dbi_stmt_close_t)(*i).second;
+	       break;
+
 #ifdef DEBUG
 	    default:
 	       assert(false);
@@ -194,9 +270,17 @@ struct qore_dbi_private {
       assert(f.execSQL);
       assert(f.commit);
       assert(f.rollback);
+
+      assert(!f.stmt.prepare || (f.stmt.prepare && f.stmt.bind && f.stmt.exec && f.stmt.fetch_row && f.stmt.next && f.stmt.close));
    
       name = nme;
       caps = cps;
+      if (f.stmt.prepare)
+	 caps |= DBI_CAP_HAS_STATEMENT;
+#ifdef DEBUG
+      else
+	 assert(!(caps & DBI_CAP_HAS_STATEMENT));
+#endif
    }
 };
 
@@ -290,6 +374,34 @@ AbstractQoreNode *DBIDriver::getClientVersion(const Datasource *ds, ExceptionSin
    if (priv->f.get_client_version)
       return priv->f.get_client_version(ds, xsink);
    return 0;
+}
+
+int DBIDriver::stmt_prepare(SQLStatement *stmt, QoreString &str, ExceptionSink *xsink) const {
+   return priv->f.stmt.prepare(stmt, str, xsink);
+}
+
+int DBIDriver::stmt_bind(SQLStatement *stmt, QoreListNode &l, ExceptionSink *xsink) const {
+   return priv->f.stmt.bind(stmt, l, xsink);
+}
+
+int DBIDriver::stmt_exec(SQLStatement *stmt, ExceptionSink *xsink) const {
+   return priv->f.stmt.exec(stmt, xsink);
+}
+
+QoreListNode *DBIDriver::stmt_fetch_row(SQLStatement *stmt, ExceptionSink *xsink) const {
+   return priv->f.stmt.fetch_row(stmt, xsink);
+}
+
+bool DBIDriver::stmt_next(SQLStatement *stmt, ExceptionSink *xsink) const {
+   return priv->f.stmt.exec(stmt, xsink);
+}
+
+int DBIDriver::stmt_close(SQLStatement *stmt, ExceptionSink *xsink) const {
+   return priv->f.stmt.exec(stmt, xsink);
+}
+
+bool DBIDriver::hasStatementAPI() const {
+   return priv->caps & DBI_CAP_HAS_STATEMENT;
 }
 
 /* it's not necessary to lock this object because it will only be written to in one thread at a time
@@ -637,8 +749,10 @@ QoreNamespace *getSQLNamespace() {
    // create Qore::SQL namespace
    QoreNamespace *SQLNS = new QoreNamespace("SQL");
 
-   SQLNS->addSystemClass(initDatasourceClass());
-   SQLNS->addSystemClass(initDatasourcePoolClass());
+   QoreClass *ds, *dsp;
+   SQLNS->addSystemClass((ds = initDatasourceClass()));
+   SQLNS->addSystemClass((dsp = initDatasourcePoolClass()));
+   SQLNS->addSystemClass(initSQLStatementClass(ds, dsp));
 
    // datasource type/driver constants
    SQLNS->addConstant("DSOracle",   new QoreStringNode("oracle"));

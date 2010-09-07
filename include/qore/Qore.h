@@ -70,6 +70,7 @@
 #include <qore/QoreCondition.h>
 #include <qore/DBI.h>
 #include <qore/Datasource.h>
+#include <qore/SQLStatement.h>
 #include <qore/QoreClass.h>
 #include <qore/ScopeGuard.h>
 #include <qore/SystemEnvironment.h>

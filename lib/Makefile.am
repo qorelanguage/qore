@@ -99,6 +99,7 @@ libqore_la_SOURCES = \
 	DBI.cpp \
 	Datasource.cpp \
 	DatasourcePool.cpp \
+	SQLStatement.cpp \
 	ManagedDatasource.cpp \
 	ReferenceArgumentHelper.cpp \
 	ReferenceHelper.cpp \
@@ -166,6 +167,7 @@ libqore_la_SOURCES = \
 	QC_FtpClient.cpp \
 	QC_Datasource.cpp \
 	QC_DatasourcePool.cpp \
+	QC_SQLStatement.cpp \
 	QC_Queue.cpp \
 	QC_Mutex.cpp \
 	QC_Condition.cpp \

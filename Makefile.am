@@ -77,6 +77,7 @@ include_HEADERS = \
 	include/qore/qore_bitopts.h \
 	include/qore/QoreSSLBase.h \
 	include/qore/Datasource.h \
+	include/qore/SQLStatement.h \
 	include/qore/SystemEnvironment.h \
 	include/qore/ParseOptionMap.h \
 	include/qore/QoreHTTPClient.h \
@@ -183,6 +184,7 @@ noinst_HEADERS = \
 	include/qore/intern/AutoNamespaceList.h \
 	include/qore/intern/CallReferenceNode.h \
 	include/qore/intern/CallReferenceCallNode.h \
+	include/qore/intern/DatasourceStatementHelper.h \
 	include/qore/intern/ParseNode.h \
 	include/qore/intern/QoreClosureNode.h \
 	include/qore/intern/QoreClosureParseNode.h \
@@ -190,6 +192,7 @@ noinst_HEADERS = \
 	include/qore/intern/QoreImplicitElementNode.h \
 	include/qore/intern/qore_string_private.h \
 	include/qore/intern/qore_date_private.h \
+	include/qore/intern/sql_statement_private.h \
 	include/qore/intern/QoreDir.h \
 	include/qore/intern/QoreXmlDoc.h \
 	include/qore/intern/QoreXPath.h \
@@ -235,6 +238,7 @@ noinst_HEADERS = \
 	include/qore/intern/QC_Counter.h \
 	include/qore/intern/QC_Datasource.h \
 	include/qore/intern/QC_DatasourcePool.h \
+	include/qore/intern/QC_SQLStatement.h \
 	include/qore/intern/QC_GetOpt.h \
 	include/qore/intern/QC_FtpClient.h \
 	include/qore/intern/QC_SSLCertificate.h \
