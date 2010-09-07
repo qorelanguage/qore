@@ -100,6 +100,7 @@ libqore_la_SOURCES = \
 	Datasource.cpp \
 	DatasourcePool.cpp \
 	SQLStatement.cpp \
+	QoreSQLStatement.cpp \
 	ManagedDatasource.cpp \
 	ReferenceArgumentHelper.cpp \
 	ReferenceHelper.cpp \

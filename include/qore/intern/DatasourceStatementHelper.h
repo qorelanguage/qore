@@ -24,6 +24,8 @@
 #ifndef _QORE_DATASOURCESTATEMENTHELPER_H
 #define _QORE_DATASOURCESTATEMENTHELPER_H
 
+class QoreSQLStatement;
+
 class DatasourceStatementHelper {
 public:
    DLLLOCAL DatasourceStatementHelper() {
@@ -33,11 +35,15 @@ public:
    }
 
    // must dereference the datasource-providing object
-   virtual void helperDestructor(ExceptionSink *xsink) = 0;
+   virtual void helperDestructor(QoreSQLStatement *s, ExceptionSink *xsink) = 0;
    virtual Datasource *helperGetDatasource(ExceptionSink *xsink) = 0;
-   virtual int helperReleaseDatasource(bool started_transaction, ExceptionSink *xsink) = 0;
-   virtual QoreThreadLock *helperGetConnectionLock() = 0;
+
+   virtual int helperStartAction(bool needs_transaction_lock, ExceptionSink *xsink) = 0;
+   virtual void helperEndAction() = 0;
+
+   virtual void helperReleaseDatasource() = 0;
+
+   //virtual QoreThreadLock *helperGetConnectionLock() = 0;
 };
 
 #endif
-

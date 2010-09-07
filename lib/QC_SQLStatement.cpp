@@ -33,11 +33,15 @@ static void SQLSTATEMENT_constructor_ds(QoreObject *self, const QoreListNode *pa
    if (*xsink)
       return;
 
-   self->setPrivate(CID_SQLSTATEMENT, new QoreSQLStatement(ds->getReferencedHelper()));
+   ReferenceHolder<QoreSQLStatement> ss(new QoreSQLStatement, xsink);
+   ss->init(ds->getReferencedHelper(*ss), xsink);
+   if (*xsink)
+      return;
+
+   self->setPrivate(CID_SQLSTATEMENT, ss.release());
 }
 
 static void SQLSTATEMENT_destructor(QoreObject *self, QoreSQLStatement *stmt, ExceptionSink *xsink) {
-   stmt->destructor(xsink);
    stmt->deref(xsink);
 }
 

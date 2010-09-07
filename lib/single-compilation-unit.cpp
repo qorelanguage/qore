@@ -93,6 +93,7 @@
 #include "DatasourcePool.cpp"
 #include "ManagedDatasource.cpp"
 #include "SQLStatement.cpp"
+#include "QoreSQLStatement.cpp"
 #include "ExecArgList.cpp"
 #include "CallReferenceNode.cpp"
 #include "NamedScope.cpp"

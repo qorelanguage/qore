@@ -43,7 +43,7 @@ public:
    /** this should only be called once in the actual DBI driver code
        @param data the data for the DBI driver that holds the driver-specific state of the connection
    */
-   DLLEXPORT void setPrivateData(void *n_data);
+   DLLEXPORT void setPrivateData(void *data);
 
    //! returns the Datasource bound to this statement
    /** @return the Datasource bound to this statement

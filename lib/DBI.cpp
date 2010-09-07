@@ -104,9 +104,10 @@ qore_dbi_method_list::~qore_dbi_method_list() {
    delete priv;
 }
 
-// covers open, commit, rollback, and begin transaction
+// covers open, commit, rollback, begin transaction, and abort transaction start
 void qore_dbi_method_list::add(int code, q_dbi_open_t method) {
-   assert(code == QDBI_METHOD_OPEN || code == QDBI_METHOD_COMMIT || code == QDBI_METHOD_ROLLBACK || code == QDBI_METHOD_BEGIN_TRANSACTION);
+   assert(code == QDBI_METHOD_OPEN || code == QDBI_METHOD_COMMIT || code == QDBI_METHOD_ROLLBACK || code == QDBI_METHOD_BEGIN_TRANSACTION
+      || code == QDBI_METHOD_ABORT_TRANSACTION_START);
    priv->l.push_back(std::make_pair(code, (void *)method));
 }
 
