@@ -8,7 +8,7 @@
 
     <para>The Qore programming language is a powerful, thread-capable, embeddable weakly-typed language with optional strong typing and procedural and object-oriented features designed for anything from quick scripting to complex multithreaded, network-aware application development to embedded application scripting.  Qore was initially designed to facilitate the rapid implementation of sophisticated interfaces in embedded code in an enterprise environment, and has since grown into a general-purpose language as well.</para>
 
-    <para>Qore exports a C++ API to allow programs or libraries to embed Qore code; this manual documents Qore's user-level features, for more information about Qore's C++ API, see the <ulink url="http://qore.org">Qore's home page</ulink>.</para>
+    <para>Qore exports a C++ API to allow programs or libraries to embed Qore code; this manual documents Qore's user-level features, for more information about Qore's C++ API, see the <ulink url="http://qore.org">Qore home page</ulink>.</para>
 
     <para>Qore features database, XML, and JSON integration into the syntax, functions, data structures, and operators of the language.</para>
 

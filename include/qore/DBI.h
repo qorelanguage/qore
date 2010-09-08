@@ -57,11 +57,17 @@
 #define QDBI_METHOD_GET_CLIENT_VERSION       11
 #define QDBI_METHOD_EXECRAW                  12
 #define QDBI_METHOD_STMT_PREPARE             13
-#define QDBI_METHOD_STMT_BIND                14
-#define QDBI_METHOD_STMT_EXEC                15
-#define QDBI_METHOD_STMT_FETCH_ROW           16
-#define QDBI_METHOD_STMT_NEXT                17
-#define QDBI_METHOD_STMT_CLOSE               18
+#define QDBI_METHOD_STMT_PREPARE_RAW         14
+#define QDBI_METHOD_STMT_BIND                15
+#define QDBI_METHOD_STMT_BIND_PLACEHOLDERS   16
+#define QDBI_METHOD_STMT_BIND_VALUES         17
+#define QDBI_METHOD_STMT_EXEC                18
+#define QDBI_METHOD_STMT_FETCH_ROW           19
+#define QDBI_METHOD_STMT_NEXT                20
+#define QDBI_METHOD_STMT_CLOSE               21
+#define QDBI_METHOD_STMT_AFFECTED_ROWS       22
+#define QDBI_METHOD_STMT_GET_OUTPUT          23
+#define QDBI_METHOD_STMT_GET_OUTPUT_ROWS     24
 
 #define QDBI_VALID_CODES 19
 
@@ -180,10 +186,42 @@ typedef AbstractQoreNode *(*q_dbi_get_server_version_t)(Datasource *ds, Exceptio
 typedef AbstractQoreNode *(*q_dbi_get_client_version_t)(const Datasource *ds, ExceptionSink *xsink);
 
 // FIXME: document
-typedef int (*q_dbi_stmt_prepare_t)(SQLStatement *stmt, QoreString &str, ExceptionSink *xsink);
-typedef int (*q_dbi_stmt_bind_t)(SQLStatement *stmt, QoreListNode &l, ExceptionSink *xsink);
+//! prepare statement and process placeholder specifications and bind parameters
+/** @returns -1 = an exception occurred, 0 = OK
+ */
+typedef int (*q_dbi_stmt_prepare_t)(SQLStatement *stmt, const QoreString &str, const QoreListNode *args, ExceptionSink *xsink);
+
+//! prepare statement with no bind parsing
+/** @returns -1 = an exception occurred, 0 = OK
+ */
+typedef int (*q_dbi_stmt_prepare_raw_t)(SQLStatement *stmt, const QoreString &str, ExceptionSink *xsink);
+
+//! bind input values and optionally describe output parameters
+/** @returns -1 = an exception occurred, 0 = OK
+ */
+typedef int (*q_dbi_stmt_bind_t)(SQLStatement *stmt, const QoreListNode &l, ExceptionSink *xsink);
+
+//! execute statement
+/** @returns -1 = an exception occurred, 0 = OK
+ */
 typedef int (*q_dbi_stmt_exec_t)(SQLStatement *stmt, ExceptionSink *xsink);
-typedef QoreListNode *(*q_dbi_stmt_fetch_row_t)(SQLStatement *stmt, ExceptionSink *xsink);
+
+//! get number of affected rows
+/** @returns number of rows affected by last query
+ */
+typedef int (*q_dbi_stmt_affected_rows_t)(SQLStatement *stmt, ExceptionSink *xsink);
+
+//! get output values, any row sets are returned as a hash of lists
+/** @returns a hash of output values, any row sets are returned as a hash of lists
+ */
+typedef QoreHashNode *(*q_dbi_stmt_get_output_t)(SQLStatement *stmt, ExceptionSink *xsink);
+
+//! get output values, any row sets are returned as a list of hashes
+/** @returns a hash of output values, any row sets are returned as a list of hashes
+ */
+typedef QoreHashNode *(*q_dbi_stmt_get_output_rows_t)(SQLStatement *stmt, ExceptionSink *xsink);
+
+typedef QoreHashNode *(*q_dbi_stmt_fetch_row_t)(SQLStatement *stmt, ExceptionSink *xsink);
 typedef bool (*q_dbi_stmt_next_t)(SQLStatement *stmt, ExceptionSink *xsink);
 typedef int (*q_dbi_stmt_close_t)(SQLStatement *stmt, ExceptionSink *xsink);
 
@@ -220,11 +258,13 @@ public:
    DLLEXPORT void add(int code, q_dbi_get_client_version_t method);
    // covers prepare
    DLLEXPORT void add(int code, q_dbi_stmt_prepare_t method);
-   // covers bind
+   // covers prepare_raw
+   DLLEXPORT void add(int code, q_dbi_stmt_prepare_raw_t method);
+   // covers bind, bind_placeholders, bind_values
    DLLEXPORT void add(int code, q_dbi_stmt_bind_t method);
-   // covers exec and close
+   // covers exec, close, and affectedRows
    DLLEXPORT void add(int code, q_dbi_stmt_exec_t method);
-   // covers fetchRow
+   // covers fetchRow, getOutput and getOutputRows
    DLLEXPORT void add(int code, q_dbi_stmt_fetch_row_t method);
    // covers next
    DLLEXPORT void add(int code, q_dbi_stmt_next_t method);
@@ -272,10 +312,17 @@ public:
    DLLLOCAL AbstractQoreNode *getServerVersion(Datasource *, ExceptionSink *xsink);
    DLLLOCAL AbstractQoreNode *getClientVersion(const Datasource *, ExceptionSink *xsink);
 
-   DLLLOCAL int stmt_prepare(SQLStatement *stmt, QoreString &str, ExceptionSink *xsink) const;
-   DLLLOCAL int stmt_bind(SQLStatement *stmt, QoreListNode &l, ExceptionSink *xsink) const;
+   DLLLOCAL int stmt_prepare(SQLStatement *stmt, const QoreString &str, const QoreListNode *args, ExceptionSink *xsink) const;
+   DLLLOCAL int stmt_prepare_raw(SQLStatement *stmt, const QoreString &str, ExceptionSink *xsink) const;
+   DLLLOCAL int stmt_bind(SQLStatement *stmt, const QoreListNode &l, ExceptionSink *xsink) const;
+   DLLLOCAL int stmt_bind_placeholders(SQLStatement *stmt, const QoreListNode &l, ExceptionSink *xsink) const;
+   DLLLOCAL int stmt_bind_values(SQLStatement *stmt, const QoreListNode &l, ExceptionSink *xsink) const;
    DLLLOCAL int stmt_exec(SQLStatement *stmt, ExceptionSink *xsink) const;
-   DLLLOCAL QoreListNode *stmt_fetch_row(SQLStatement *stmt, ExceptionSink *xsink) const;
+   DLLLOCAL int stmt_affected_rows(SQLStatement *stmt, ExceptionSink *xsink) const;
+   DLLLOCAL QoreHashNode *stmt_get_output(SQLStatement *stmt, ExceptionSink *xsink) const;
+   DLLLOCAL QoreHashNode *stmt_get_output_rows(SQLStatement *stmt, ExceptionSink *xsink) const;
+
+   DLLLOCAL QoreHashNode *stmt_fetch_row(SQLStatement *stmt, ExceptionSink *xsink) const;
    DLLLOCAL bool stmt_next(SQLStatement *stmt, ExceptionSink *xsink) const;
    DLLLOCAL int stmt_close(SQLStatement *stmt, ExceptionSink *xsink) const;
 

@@ -74,17 +74,27 @@ public:
 
    DLLLOCAL virtual void deref(ExceptionSink *xsink);
 
-   DLLLOCAL int prepare(QoreString &str, ExceptionSink *xsink);
+   DLLLOCAL int prepare(const QoreString &str, const QoreListNode *args, ExceptionSink *xsink);
 
-   DLLLOCAL int bind(QoreListNode &l, ExceptionSink *xsink);
+   DLLLOCAL int prepareRaw(const QoreString &str, ExceptionSink *xsink);
+
+   DLLLOCAL int bind(const QoreListNode &l, ExceptionSink *xsink);
+   DLLLOCAL int bindPlaceholders(const QoreListNode &l, ExceptionSink *xsink);
+   DLLLOCAL int bindValues(const QoreListNode &l, ExceptionSink *xsink);
 
    DLLLOCAL int exec(ExceptionSink *xsink);
 
-   DLLLOCAL int close(ExceptionSink *xsink);
+   DLLLOCAL int affectedRows(ExceptionSink *xsink);
+
+   DLLLOCAL QoreHashNode *getOutput(ExceptionSink *xsink);
+
+   DLLLOCAL QoreHashNode *getOutputRows(ExceptionSink *xsink);
 
    DLLLOCAL bool next(ExceptionSink *xsink);
 
-   DLLLOCAL QoreListNode *fetchRow(ExceptionSink *xsink);
+   DLLLOCAL QoreHashNode *fetchRow(ExceptionSink *xsink);
+
+   DLLLOCAL int close(ExceptionSink *xsink);
 
    DLLLOCAL bool active() const;
 };
