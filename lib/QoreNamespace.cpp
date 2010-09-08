@@ -257,17 +257,26 @@ void QoreNamespace::addNamespace(QoreNamespace *ns) {
 }
 
 void QoreNamespace::parseAddNamespace(QoreNamespace *ns) {
+   //printd(5, "QoreNamespace::parseAddNamespace() this=%p '%s' adding %p '%s' (exists %p)\n", this, getName(), ns, ns->getName(), priv->nsl->find(ns->getName()));
+
    // raise an exception if namespace collides with an object name
-   if (priv->classList->find(ns->priv->name.c_str())) {
-      parse_error("namespace name '%s' collides with previously-defined class '%s'", ns->priv->name.c_str(), ns->priv->name.c_str());
+   if (priv->classList->find(ns->getName())) {
+      parse_error("namespace name '%s' collides with previously-defined class '%s'", ns->getName(), ns->getName());
       delete ns;
       return;
    }
-   if (priv->pendClassList->find(ns->priv->name.c_str())) {
-      parse_error("namespace name '%s' collides with pending class '%s'", ns->priv->name.c_str(), ns->priv->name.c_str());
+   if (priv->pendClassList->find(ns->getName())) {
+      parse_error("namespace name '%s' collides with pending class '%s'", ns->getName(), ns->getName());
       delete ns;
       return;
    }
+   // see if a committed namespace with the same name already exists
+   QoreNamespace *orig = priv->nsl->find(ns->getName());
+   if (orig) {
+      orig->assimilate(ns);
+      return;
+   }
+
    ns->priv->parent = this;
    priv->pendNSL->add(ns);
 }
@@ -852,6 +861,11 @@ void QoreNamespace::addClass(QoreClass *oc) {
 }
 
 void QoreNamespace::assimilate(QoreNamespace *ns) {
+   // make sure there are no objects in the committed lists
+   assert(ns->priv->nsl->empty());
+   assert(ns->priv->constant->empty());
+   assert(ns->priv->classList->empty());
+
    // assimilate pending constants
    // assimilate target list - if there were errors then the list will be deleted anyway
    priv->pendConstant->assimilate(ns->priv->pendConstant, priv->constant, priv->name.c_str());

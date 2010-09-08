@@ -73,6 +73,10 @@ public:
    DLLLOCAL void parseInit();
    DLLLOCAL QoreHashNode *getInfo();
    DLLLOCAL void deleteAll();
+
+   DLLLOCAL bool empty() const {
+      return hm.empty();
+   } 
 };
 
 #endif

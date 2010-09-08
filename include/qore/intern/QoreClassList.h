@@ -63,6 +63,10 @@ public:
    DLLLOCAL void reset();
    DLLLOCAL void assimilate(QoreClassList *n, QoreClassList *otherlist, QoreNamespaceList *nsl, QoreNamespaceList *pendNSL, const char *nsname);
    DLLLOCAL QoreHashNode *getInfo();
+
+   DLLLOCAL bool empty() const {
+      return hm.empty();
+   }
 };
 
 #endif // _QORE_QORECLASSLIST_H
