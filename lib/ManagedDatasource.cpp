@@ -138,19 +138,35 @@ void ManagedDatasource::wait_for_sql() {
    cSQL.signal();
 }
 
-int ManagedDatasource::startDBAction(ExceptionSink *xsink, bool need_transaction_lock, QoreSQLStatement *s) {
+int ManagedDatasource::startDBAction(ExceptionSink *xsink, bool need_transaction_lock) {
    AutoLocker al(&ds_lock);
-   if (wait_for_sql(xsink))
-      return -1;
 
-   if (!isOpen() && (Datasource::open(xsink) || *xsink))
-      return -1;
+   // save previous trans lock status
+   bool had_lock = (tid == gettid());
 
+   // first grab the transaction lock
    if (need_transaction_lock) {
       if (grabLock(xsink))
 	 return -1;
    }
-   
+
+   // ensure no SQL is in progress on the connection
+   if (wait_for_sql(xsink)) {
+      // release transaction lock if necessary
+      if (need_transaction_lock && !had_lock)
+	 releaseLock();
+      return -1;
+   }
+
+   // open the datasource if necessary
+   if (!isOpen() && (Datasource::open(xsink) || *xsink)) {
+      // release transaction lock if necessary
+      if (need_transaction_lock && !had_lock)
+	 releaseLock();
+      return -1;
+   }
+
+   // flag for SQL in progress
    counter = 1;
    return 0;
 }

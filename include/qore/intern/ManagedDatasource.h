@@ -65,7 +65,7 @@ protected:
    // if the current statement started a new transaction
    bool stmt_new_transaction;
 
-   DLLLOCAL int startDBAction(ExceptionSink *xsink, bool need_transaction_lock = false, QoreSQLStatement *s = 0);
+   DLLLOCAL int startDBAction(ExceptionSink *xsink, bool need_transaction_lock = false);
    DLLLOCAL void endDBActionIntern();
    DLLLOCAL void endDBAction();
    DLLLOCAL int closeUnlocked(ExceptionSink *xsink);
