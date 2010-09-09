@@ -144,7 +144,7 @@ noinst_HEADERS = \
 	include/qore/intern/NamedScope.h \
 	include/qore/intern/QoreNamespaceList.h \
 	include/qore/intern/ManagedDatasource.h \
-	include/qore/Intern/QoreSQLStatement.h \
+	include/qore/intern/QoreSQLStatement.h \
 	include/qore/intern/ImportedFunctionList.h \
 	include/qore/intern/GlobalVariableList.h \
 	include/qore/intern/DatasourcePool.h \
