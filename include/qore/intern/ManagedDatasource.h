@@ -46,7 +46,6 @@ class ManagedDatasource : public AbstractThreadResource, public Datasource, publ
 protected:
    // connection and transaction lock
    mutable QoreThreadLock ds_lock;                     
-   //connection_lock;             // connection lock
 
    int counter,                    // flag if SQL is in progress
       tid,                         // TID of thread holding the connection/transaction lock
@@ -56,15 +55,6 @@ protected:
 
    QoreCondition cSQL,             // condition when no SQL is in-progress
       cTransaction;                // condition when transaction lock is freed
-
-   // set of statements attached to this object
-   //stmt_set_t stmt_set;
-
-   // statment currently owning the transaction lock
-   QoreSQLStatement *current_stmt;
-
-   // if the current statement started a new transaction
-   bool stmt_new_transaction;
 
    DLLLOCAL int startDBAction(ExceptionSink *xsink, bool need_transaction_lock = false);
    DLLLOCAL void endDBActionIntern();

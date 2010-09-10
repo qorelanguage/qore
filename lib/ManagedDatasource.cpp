@@ -27,8 +27,7 @@
 #include <string.h>
 
 ManagedDatasource::ManagedDatasource(DBIDriver *ndsl) : 
-   Datasource(ndsl), counter(0), tid(-1), waiting(0), sql_waiting(0), tl_timeout_ms(DEFAULT_TL_TIMEOUT),    
-   current_stmt(0), stmt_new_transaction(false) {
+   Datasource(ndsl), counter(0), tid(-1), waiting(0), sql_waiting(0), tl_timeout_ms(DEFAULT_TL_TIMEOUT) {
 }
 
 ManagedDatasource::~ManagedDatasource() {
