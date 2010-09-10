@@ -61,6 +61,17 @@ void ManagedDatasource::deref(ExceptionSink *xsink) {
    }
 }
 
+// this function is only called by remove_thread_resource()
+// during a call, meaning that the reference count cannot reach 0,
+// meaning that the close method will never be run here
+void ManagedDatasource::deref() {
+#ifdef DEBUG
+   assert(!ROdereference());
+#else
+   ROdereference();
+#endif
+}
+
 int ManagedDatasource::grabLockIntern() {
    int ctid = gettid();
    

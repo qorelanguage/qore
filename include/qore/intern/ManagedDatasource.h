@@ -87,9 +87,7 @@ public:
    DLLLOCAL virtual void cleanup(ExceptionSink *xsink);
    DLLLOCAL virtual void destructor(ExceptionSink *xsink);
    DLLLOCAL virtual void deref(ExceptionSink *xsink);
-   DLLLOCAL virtual void deref() {
-      assert(false);
-   }
+   DLLLOCAL virtual void deref();
    DLLLOCAL AbstractQoreNode *select(const QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink);
    DLLLOCAL AbstractQoreNode *selectRow(const QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink);
    DLLLOCAL AbstractQoreNode *selectRows(const QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink);
