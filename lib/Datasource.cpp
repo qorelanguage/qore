@@ -154,7 +154,7 @@ AbstractQoreNode *Datasource::exec_internal(bool doBind, const QoreString *query
       return 0;
 
    AbstractQoreNode *rv = doBind ? priv->dsl->execSQL(this, query_str, args, xsink)
-                                 : priv->dsl->execRawSQL(this, query_str, xsink);;
+      : priv->dsl->execRawSQL(this, query_str, xsink);;
    //printd(5, "Datasource::exec() this=%08p, autocommit=%d, in_transaction=%d, xsink=%d\n", this, priv->autocommit, priv->in_transaction, xsink->isException());
 
    if (priv->connection_aborted) {
@@ -167,10 +167,10 @@ AbstractQoreNode *Datasource::exec_internal(bool doBind, const QoreString *query
       priv->dsl->autoCommit(this, xsink);
    else if (!priv->in_transaction) {
       if (xsink->isException()) {
-     priv->dsl->abortTransactionStart(this, xsink);
+	 priv->dsl->abortTransactionStart(this, xsink);
       }
       else
-     priv->in_transaction = true;    
+	 priv->in_transaction = true;    
    }
    
    return rv;

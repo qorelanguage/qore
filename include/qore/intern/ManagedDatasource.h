@@ -42,6 +42,7 @@
 #define DEFAULT_TL_TIMEOUT 120000
 
 class ManagedDatasource : public AbstractThreadResource, public Datasource, public DatasourceStatementHelper {
+   friend class DatasourceActionHelper;
 protected:
    // connection and transaction lock
    mutable QoreThreadLock ds_lock;                     
@@ -160,6 +161,21 @@ public:
 
    DLLLOCAL virtual void helperReleaseDatasource() {
    }
+};
+
+class DatasourceActionHelper {
+protected:
+   ManagedDatasource &ds;
+   bool ok;
+
+public:
+   DLLLOCAL DatasourceActionHelper(ManagedDatasource &n_ds, bool need_transaction_lock, ExceptionSink *xsink) : ds(n_ds), ok(!ds.startDBAction(xsink, need_transaction_lock)) {
+   }
+   DLLLOCAL ~DatasourceActionHelper() {
+      if (ok)
+	 ds.endDBAction();
+   }
+   DLLLOCAL operator bool() const { return ok; }   
 };
 
 #endif // _QORE_SQL_OBJECTS_DATASOURCE_H
