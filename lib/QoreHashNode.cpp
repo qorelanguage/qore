@@ -314,6 +314,14 @@ void QoreHashNode::setKeyValue(const QoreString *key, AbstractQoreNode *val, Exc
    setKeyValue(tmp->getBuffer(), val, xsink);
 }
 
+void QoreHashNode::setKeyValue(const QoreString &key, AbstractQoreNode *val, ExceptionSink *xsink) {
+   TempEncodingHelper tmp(key, QCS_DEFAULT, xsink);
+   if (*xsink)
+      return;
+
+   setKeyValue(tmp->getBuffer(), val, xsink);
+}
+
 void QoreHashNode::setKeyValue(const char *key, AbstractQoreNode *val, ExceptionSink *xsink) {
    AbstractQoreNode **v = priv->getKeyValuePtr(key);
    //printd(5, "QoreHashNode::setKeyValue(%s, %p) v=%p *v=%p\n", key, val, v, *v);
@@ -347,6 +355,14 @@ AbstractQoreNode **QoreHashNode::getExistingValuePtr(const QoreString *key, Exce
 }
 
 AbstractQoreNode *QoreHashNode::getKeyValue(const QoreString *key, ExceptionSink *xsink) {
+   TempEncodingHelper tmp(key, QCS_DEFAULT, xsink);
+   if (*xsink)
+      return 0;
+
+   return getKeyValue(tmp->getBuffer());
+}
+
+AbstractQoreNode *QoreHashNode::getKeyValue(const QoreString &key, ExceptionSink *xsink) {
    TempEncodingHelper tmp(key, QCS_DEFAULT, xsink);
    if (*xsink)
       return 0;
@@ -492,8 +508,7 @@ AbstractQoreNode *QoreHashNode::getReferencedKeyValue(const char *key, bool &exi
    return 0;
 }
 
-AbstractQoreNode *QoreHashNode::getKeyValue(const char *key)
-{
+AbstractQoreNode *QoreHashNode::getKeyValue(const char *key) {
    assert(key);
 
    hm_hm_t::const_iterator i = priv->hm.find(key);
@@ -504,13 +519,11 @@ AbstractQoreNode *QoreHashNode::getKeyValue(const char *key)
    return 0;
 }
 
-const AbstractQoreNode *QoreHashNode::getKeyValue(const char *key) const
-{
+const AbstractQoreNode *QoreHashNode::getKeyValue(const char *key) const {
    return const_cast<QoreHashNode *>(this)->getKeyValue(key);
 }
 
-AbstractQoreNode *QoreHashNode::getKeyValueExistence(const char *key, bool &exists)
-{
+AbstractQoreNode *QoreHashNode::getKeyValueExistence(const char *key, bool &exists) {
    assert(key);
 
    hm_hm_t::const_iterator i = priv->hm.find(key);

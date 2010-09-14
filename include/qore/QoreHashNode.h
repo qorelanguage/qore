@@ -211,6 +211,15 @@ public:
        @param xsink if an error occurs, the Qore-language exception information will be added here	  
        @return the value of the key
    */
+   DLLEXPORT AbstractQoreNode *getKeyValue(const QoreString &key, ExceptionSink *xsink);
+
+   //! returns the value of the key if it exists
+   /** Converts "key" to the default character encoding (QCS_DEFAULT) if necessary.
+       An exception could be thrown if the character encoding conversion fails.
+       @param key the key to return the value for
+       @param xsink if an error occurs, the Qore-language exception information will be added here	  
+       @return the value of the key
+   */
    DLLEXPORT const AbstractQoreNode *getKeyValue(const QoreString *key, ExceptionSink *xsink) const;
 
    //! returns the value of the key (assumed to be in QCS_DEFAULT) if it exists
@@ -285,6 +294,15 @@ public:
        @note the assignment is made even if an exception occurs when dereferencing the old value
    */
    DLLEXPORT void setKeyValue(const QoreString *key, AbstractQoreNode *value, ExceptionSink *xsink);
+
+   //! sets the value of "key" to "value"
+   /** A Qore-language exception could be thrown converting the key string's encoding to QCS_DEFAULT, or if the given key has a current value and it's a QoreObject that goes out of scope when dereferenced (the object's destructor could throw an exception)
+       @param key the key to set the value for
+       @param value the value to assign to the key, must be already referenced for the assignment
+       @param xsink if an error occurs, the Qore-language exception information will be added here	  
+       @note the assignment is made even if an exception occurs when dereferencing the old value
+   */
+   DLLEXPORT void setKeyValue(const QoreString &key, AbstractQoreNode *value, ExceptionSink *xsink);
 
    //! sets the value of "key" to "value"
    /** A Qore-language exception could be thrown if the given key has a current value and it's a QoreObject that goes out of scope when dereferenced (the object's destructor could throw an exception).
