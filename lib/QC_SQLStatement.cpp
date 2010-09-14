@@ -99,6 +99,28 @@ static AbstractQoreNode *SQLSTATEMENT_exec(QoreObject *self, QoreSQLStatement *s
    return 0;
 }
 
+// SQLStatement::affectedRows() returns int
+static AbstractQoreNode *SQLSTATEMENT_affectedRows(QoreObject *self, QoreSQLStatement *stmt, const QoreListNode *args, ExceptionSink *xsink) {
+   int rows = stmt->affectedRows(xsink);
+   return *xsink ? 0 : new QoreBigIntNode(rows);
+}
+
+// SQLStatement::getOutput() returns hash
+static AbstractQoreNode *SQLSTATEMENT_getOutput(QoreObject *self, QoreSQLStatement *stmt, const QoreListNode *args, ExceptionSink *xsink) {
+   return stmt->getOutput(xsink);
+}
+
+// SQLStatement::getOutputRows() returns hash
+static AbstractQoreNode *SQLSTATEMENT_getOutputRows(QoreObject *self, QoreSQLStatement *stmt, const QoreListNode *args, ExceptionSink *xsink) {
+   return stmt->getOutputRows(xsink);
+}
+
+// SQLStatement::define() returns nothing
+static AbstractQoreNode *SQLSTATEMENT_define(QoreObject *self, QoreSQLStatement *stmt, const QoreListNode *args, ExceptionSink *xsink) {
+   stmt->define(xsink);
+   return 0;
+}
+
 // SQLStatement::close() returns nothing
 static AbstractQoreNode *SQLSTATEMENT_close(QoreObject *self, QoreSQLStatement *stmt, const QoreListNode *args, ExceptionSink *xsink) {
    stmt->close(xsink);
@@ -108,10 +130,10 @@ static AbstractQoreNode *SQLSTATEMENT_close(QoreObject *self, QoreSQLStatement *
 // SQLStatement::next() returns bool
 static AbstractQoreNode *SQLSTATEMENT_next(QoreObject *self, QoreSQLStatement *stmt, const QoreListNode *args, ExceptionSink *xsink) {
    bool b = stmt->next(xsink);
-   return *xsink ? get_bool_node(b) : 0;
+   return *xsink ? 0 : get_bool_node(b);
 }
 
-// SQLStatement::fetchRow() returns hash
+// SQLStatement::fetchRow() returns *hash
 static AbstractQoreNode *SQLSTATEMENT_fetchRow(QoreObject *self, QoreSQLStatement *stmt, const QoreListNode *args, ExceptionSink *xsink) {
    return stmt->fetchRow(xsink);
 }
@@ -129,31 +151,43 @@ QoreClass *initSQLStatementClass(QoreClass *QC_Datasource, QoreClass *QC_Datasou
    QC_SQLSTATEMENT->setCopy((q_copy_t)SQLSTATEMENT_copy);
 
    // SQLStatement::prepare(string $sql, ...) returns nothing 
-   QC_SQLSTATEMENT->addMethodExtended("prepare",     (q_method_t)SQLSTATEMENT_prepare, false, QC_USES_EXTRA_ARGS, QDOM_DEFAULT, nothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   QC_SQLSTATEMENT->addMethodExtended("prepare",          (q_method_t)SQLSTATEMENT_prepare, false, QC_USES_EXTRA_ARGS, QDOM_DEFAULT, nothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    // SQLStatement::prepareRaw(string $sql) returns nothing 
-   QC_SQLSTATEMENT->addMethodExtended("prepareRaw",  (q_method_t)SQLSTATEMENT_prepareRaw, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   QC_SQLSTATEMENT->addMethodExtended("prepareRaw",       (q_method_t)SQLSTATEMENT_prepareRaw, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    // SQLStatement::bind(...) returns nothing
-   QC_SQLSTATEMENT->addMethodExtended("bind",        (q_method_t)SQLSTATEMENT_bind, false, QC_USES_EXTRA_ARGS, QDOM_DEFAULT, nothingTypeInfo);
+   QC_SQLSTATEMENT->addMethodExtended("bind",             (q_method_t)SQLSTATEMENT_bind, false, QC_USES_EXTRA_ARGS, QDOM_DEFAULT, nothingTypeInfo);
 
    // SQLStatement::bindPlaceholders(...) returns nothing
    QC_SQLSTATEMENT->addMethodExtended("bindPlaceholders", (q_method_t)SQLSTATEMENT_bindPlaceholders, false, QC_USES_EXTRA_ARGS, QDOM_DEFAULT, nothingTypeInfo);
 
    // SQLStatement::bindValues(...) returns nothing
-   QC_SQLSTATEMENT->addMethodExtended("bindValues",  (q_method_t)SQLSTATEMENT_bindValues, false, QC_USES_EXTRA_ARGS, QDOM_DEFAULT, nothingTypeInfo);
+   QC_SQLSTATEMENT->addMethodExtended("bindValues",       (q_method_t)SQLSTATEMENT_bindValues, false, QC_USES_EXTRA_ARGS, QDOM_DEFAULT, nothingTypeInfo);
 
    // SQLStatement::exec() returns nothing
-   QC_SQLSTATEMENT->addMethodExtended("exec",        (q_method_t)SQLSTATEMENT_exec, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
+   QC_SQLSTATEMENT->addMethodExtended("exec",             (q_method_t)SQLSTATEMENT_exec, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
+
+   // SQLStatement::affectedRows() returns int
+   QC_SQLSTATEMENT->addMethodExtended("affectedRows",     (q_method_t)SQLSTATEMENT_affectedRows, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
+
+   // SQLStatement::getOutput() returns hash
+   QC_SQLSTATEMENT->addMethodExtended("getOutput",        (q_method_t)SQLSTATEMENT_getOutput, false, QC_NO_FLAGS, QDOM_DEFAULT, hashTypeInfo);
+
+   // SQLStatement::getOutputRows() returns hash
+   QC_SQLSTATEMENT->addMethodExtended("getOutputRows",    (q_method_t)SQLSTATEMENT_getOutputRows, false, QC_NO_FLAGS, QDOM_DEFAULT, hashTypeInfo);
+
+   // SQLStatement::define() returns nothing
+   QC_SQLSTATEMENT->addMethodExtended("define",           (q_method_t)SQLSTATEMENT_define, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
 
    // SQLStatement::close() returns nothing
-   QC_SQLSTATEMENT->addMethodExtended("close",       (q_method_t)SQLSTATEMENT_close, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
+   QC_SQLSTATEMENT->addMethodExtended("close",            (q_method_t)SQLSTATEMENT_close, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
 
    // SQLStatement::next() returns bool
-   QC_SQLSTATEMENT->addMethodExtended("next",        (q_method_t)SQLSTATEMENT_next, false, QC_NO_FLAGS, QDOM_DEFAULT, boolTypeInfo);
+   QC_SQLSTATEMENT->addMethodExtended("next",             (q_method_t)SQLSTATEMENT_next, false, QC_NO_FLAGS, QDOM_DEFAULT, boolTypeInfo);
 
-   // SQLStatement::fetchRow() returns hash
-   QC_SQLSTATEMENT->addMethodExtended("fetchRow",    (q_method_t)SQLSTATEMENT_fetchRow, false, QC_NO_FLAGS, QDOM_DEFAULT, hashTypeInfo);
+   // SQLStatement::fetchRow() returns *hash
+   QC_SQLSTATEMENT->addMethodExtended("fetchRow",         (q_method_t)SQLSTATEMENT_fetchRow, false, QC_NO_FLAGS, QDOM_DEFAULT, hashOrNothingTypeInfo);
 
    return QC_SQLSTATEMENT;
 }

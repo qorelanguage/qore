@@ -64,13 +64,14 @@ struct dbi_driver_stmt {
    q_dbi_stmt_exec_t exec;
    q_dbi_stmt_fetch_row_t fetch_row;
    q_dbi_stmt_next_t next;
+   q_dbi_stmt_define_t define;
    q_dbi_stmt_close_t close;
    q_dbi_stmt_affected_rows_t affected_rows;
    q_dbi_stmt_get_output_t get_output;
    q_dbi_stmt_get_output_rows_t get_output_rows;
    
    DLLLOCAL dbi_driver_stmt() : prepare(0), prepare_raw(0), bind(0), bind_placeholders(0), 
-				bind_values(0), exec(0), fetch_row(0), next(0), 
+				bind_values(0), exec(0), fetch_row(0), next(0), define(0),
 				close(0), affected_rows(0), get_output(0), get_output_rows(0) {
    }
 };
@@ -165,9 +166,9 @@ void qore_dbi_method_list::add(int code, q_dbi_stmt_bind_t method) {
    priv->l.push_back(std::make_pair(code, (void *)method));
 }
 
-// covers stmt exec, close, and affectedRows
+// covers stmt exec, close, define, and affectedRows
 void qore_dbi_method_list::add(int code, q_dbi_stmt_exec_t method) {
-   assert(code == QDBI_METHOD_STMT_EXEC || code == QDBI_METHOD_STMT_CLOSE || code == QDBI_METHOD_STMT_AFFECTED_ROWS);
+   assert(code == QDBI_METHOD_STMT_EXEC || code == QDBI_METHOD_STMT_CLOSE || code == QDBI_METHOD_STMT_DEFINE || code == QDBI_METHOD_STMT_AFFECTED_ROWS);
    priv->l.push_back(std::make_pair(code, (void *)method));
 }
 
@@ -276,6 +277,10 @@ struct qore_dbi_private {
 	       assert(!f.stmt.next);
 	       f.stmt.next = (q_dbi_stmt_next_t)(*i).second;
 	       break;
+	    case QDBI_METHOD_STMT_DEFINE:
+	       assert(!f.stmt.define);
+	       f.stmt.define = (q_dbi_stmt_define_t)(*i).second;
+	       break;
 	    case QDBI_METHOD_STMT_CLOSE:
 	       assert(!f.stmt.close);
 	       f.stmt.close = (q_dbi_stmt_close_t)(*i).second;
@@ -311,7 +316,7 @@ struct qore_dbi_private {
       assert(!f.stmt.prepare || (f.stmt.prepare_raw && f.stmt.bind && f.stmt.bind_values
 				 && f.stmt.exec && f.stmt.fetch_row 
 				 && f.stmt.next && f.stmt.close && f.stmt.affected_rows && f.stmt.get_output
-				 && f.stmt.get_output_rows));
+				 && f.stmt.get_output_rows && f.stmt.define));
    
       name = nme;
       caps = cps;
@@ -441,6 +446,10 @@ int DBIDriver::stmt_bind_values(SQLStatement *stmt, const QoreListNode &l, Excep
    return priv->f.stmt.bind_values(stmt, l, xsink);
 }
 
+int DBIDriver::stmt_define(SQLStatement *stmt, ExceptionSink *xsink) const {
+   return priv->f.stmt.define(stmt, xsink);
+}
+
 int DBIDriver::stmt_exec(SQLStatement *stmt, ExceptionSink *xsink) const {
    return priv->f.stmt.exec(stmt, xsink);
 }
@@ -462,11 +471,11 @@ QoreHashNode *DBIDriver::stmt_fetch_row(SQLStatement *stmt, ExceptionSink *xsink
 }
 
 bool DBIDriver::stmt_next(SQLStatement *stmt, ExceptionSink *xsink) const {
-   return priv->f.stmt.exec(stmt, xsink);
+   return priv->f.stmt.next(stmt, xsink);
 }
 
 int DBIDriver::stmt_close(SQLStatement *stmt, ExceptionSink *xsink) const {
-   return priv->f.stmt.exec(stmt, xsink);
+   return priv->f.stmt.close(stmt, xsink);
 }
 
 bool DBIDriver::hasStatementAPI() const {

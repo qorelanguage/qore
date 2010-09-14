@@ -26,7 +26,7 @@
 #include <qore/intern/DatasourceStatementHelper.h>
 #include <qore/intern/sql_statement_private.h>
 
-const char *QoreSQLStatement::stmt_statuses[] = { "idle", "prepared", "execed", "deleted" };
+const char *QoreSQLStatement::stmt_statuses[] = { "idle", "prepared", "defined", "executed", "deleted" };
 
 struct DBActionHelper {
    DatasourceStatementHelper *dsh;
@@ -47,7 +47,6 @@ struct DBActionHelper {
 };
 
 QoreSQLStatement::~QoreSQLStatement() {
-   assert(!priv->ds);
    assert(!priv->data);
 }
 
@@ -73,6 +72,8 @@ int QoreSQLStatement::closeIntern(ExceptionSink *xsink) {
    assert(!priv->data);
 
    dsh->helperReleaseDatasource();
+
+   priv->reset();
 
    return rc;
 }
@@ -154,6 +155,10 @@ int QoreSQLStatement::exec(ExceptionSink *xsink) {
    if (checkStatus(STMT_PREPARED, "exec", xsink))
       return -1;
 
+   return execIntern(xsink);
+}
+
+int QoreSQLStatement::execIntern(ExceptionSink *xsink) {
    int rc = priv->ds->getDriver()->stmt_exec(this, xsink);
    if (!rc)
       status = STMT_EXECED;
@@ -198,10 +203,28 @@ bool QoreSQLStatement::next(ExceptionSink *xsink) {
    if (!dba)
       return false;
 
-   if (checkStatus(STMT_EXECED, "next", xsink))
+   if (checkStatus(STMT_DEFINED, "next", xsink))
       return false;
 
    return priv->ds->getDriver()->stmt_next(this, xsink);
+}
+
+int QoreSQLStatement::define(ExceptionSink *xsink) {
+   DBActionHelper dba(dsh, false, xsink);
+   if (!dba)
+      return false;
+
+   if (checkStatus(STMT_EXECED, "define", xsink))
+      return false;
+
+   return defineIntern(xsink);
+}
+
+int QoreSQLStatement::defineIntern(ExceptionSink *xsink) {
+   int rc = priv->ds->getDriver()->stmt_define(this, xsink);
+   if (!rc)
+      status = STMT_DEFINED;
+   return rc;
 }
 
 QoreHashNode *QoreSQLStatement::fetchRow(ExceptionSink *xsink) {
@@ -209,7 +232,7 @@ QoreHashNode *QoreSQLStatement::fetchRow(ExceptionSink *xsink) {
    if (!dba)
       return 0;
 
-   if (checkStatus(STMT_EXECED, "fetchRow", xsink))
+   if (checkStatus(STMT_DEFINED, "fetchRow", xsink))
       return 0;
 
    return priv->ds->getDriver()->stmt_fetch_row(this, xsink);

@@ -30,8 +30,9 @@ class DatasourceStatementHelper;
 
 #define STMT_IDLE      0
 #define STMT_PREPARED  1
-#define STMT_EXECED    2
-#define STMT_DELETED   3
+#define STMT_DEFINED   2
+#define STMT_EXECED    3
+#define STMT_DELETED   4
 
 class QoreSQLStatement : public AbstractPrivateData, public SQLStatement {
 protected:
@@ -55,6 +56,18 @@ protected:
 	 if (stat == STMT_IDLE)
 	    return closeIntern(xsink);
 
+         if (stat == STMT_PREPARED && status == STMT_EXECED)
+            return 0;
+
+         if (stat == STMT_EXECED && status == STMT_PREPARED)
+            return execIntern(xsink);
+
+         if (stat == STMT_DEFINED && status == STMT_PREPARED && execIntern(xsink))
+            return -1;
+         
+         if (stat == STMT_DEFINED && status == STMT_EXECED)
+            return defineIntern(xsink);
+
          xsink->raiseException("SQLSTATMENT-ERROR", "SQLStatement::%s() called expecting status '%s', but statement has status '%s'", action, stmt_statuses[stat], stmt_statuses[status]);
          return -1;
       }
@@ -63,6 +76,8 @@ protected:
    }
 
    DLLLOCAL int closeIntern(ExceptionSink *xsink);
+   DLLLOCAL int execIntern(ExceptionSink *xsink);
+   DLLLOCAL int defineIntern(ExceptionSink *xsink);
 
 public:
    DLLLOCAL QoreSQLStatement() : dsh(0), status(STMT_IDLE) {
@@ -91,6 +106,8 @@ public:
    DLLLOCAL QoreHashNode *getOutputRows(ExceptionSink *xsink);
 
    DLLLOCAL bool next(ExceptionSink *xsink);
+
+   DLLLOCAL int define(ExceptionSink *xsink);
 
    DLLLOCAL QoreHashNode *fetchRow(ExceptionSink *xsink);
 

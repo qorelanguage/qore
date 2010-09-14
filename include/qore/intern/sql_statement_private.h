@@ -35,6 +35,11 @@ struct sql_statement_private {
 
    DLLLOCAL sql_statement_private() : ds(0), data(0), trans(false) {
    }
+
+   // called from QoreSQLStatement::closeIntern()
+   DLLLOCAL void reset() {
+      trans = false;
+   }
 }; 
 
 #endif

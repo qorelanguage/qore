@@ -68,8 +68,9 @@
 #define QDBI_METHOD_STMT_AFFECTED_ROWS       22
 #define QDBI_METHOD_STMT_GET_OUTPUT          23
 #define QDBI_METHOD_STMT_GET_OUTPUT_ROWS     24
+#define QDBI_METHOD_STMT_DEFINE              25
 
-#define QDBI_VALID_CODES 19
+#define QDBI_VALID_CODES 26
 
 class Datasource;
 class ExceptionSink;
@@ -221,6 +222,7 @@ typedef QoreHashNode *(*q_dbi_stmt_get_output_t)(SQLStatement *stmt, ExceptionSi
  */
 typedef QoreHashNode *(*q_dbi_stmt_get_output_rows_t)(SQLStatement *stmt, ExceptionSink *xsink);
 
+typedef int (*q_dbi_stmt_define_t)(SQLStatement *stmt, ExceptionSink *xsink);
 typedef QoreHashNode *(*q_dbi_stmt_fetch_row_t)(SQLStatement *stmt, ExceptionSink *xsink);
 typedef bool (*q_dbi_stmt_next_t)(SQLStatement *stmt, ExceptionSink *xsink);
 typedef int (*q_dbi_stmt_close_t)(SQLStatement *stmt, ExceptionSink *xsink);
@@ -256,13 +258,14 @@ public:
    DLLEXPORT void add(int code, q_dbi_get_server_version_t method);
    // covers get_client_version
    DLLEXPORT void add(int code, q_dbi_get_client_version_t method);
+
    // covers prepare
    DLLEXPORT void add(int code, q_dbi_stmt_prepare_t method);
    // covers prepare_raw
    DLLEXPORT void add(int code, q_dbi_stmt_prepare_raw_t method);
    // covers bind, bind_placeholders, bind_values
    DLLEXPORT void add(int code, q_dbi_stmt_bind_t method);
-   // covers exec, close, and affectedRows
+   // covers exec, close, affectedRows, and define
    DLLEXPORT void add(int code, q_dbi_stmt_exec_t method);
    // covers fetchRow, getOutput and getOutputRows
    DLLEXPORT void add(int code, q_dbi_stmt_fetch_row_t method);
@@ -319,6 +322,7 @@ public:
    DLLLOCAL int stmt_bind_values(SQLStatement *stmt, const QoreListNode &l, ExceptionSink *xsink) const;
    DLLLOCAL int stmt_exec(SQLStatement *stmt, ExceptionSink *xsink) const;
    DLLLOCAL int stmt_affected_rows(SQLStatement *stmt, ExceptionSink *xsink) const;
+   DLLLOCAL int stmt_define(SQLStatement *stmt, ExceptionSink *xsink) const;
    DLLLOCAL QoreHashNode *stmt_get_output(SQLStatement *stmt, ExceptionSink *xsink) const;
    DLLLOCAL QoreHashNode *stmt_get_output_rows(SQLStatement *stmt, ExceptionSink *xsink) const;
 
