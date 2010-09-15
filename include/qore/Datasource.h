@@ -162,6 +162,18 @@ public:
    //! returns the private DBI-specific data structure for this object
    DLLEXPORT void *getPrivateData() const;
 
+   //! returns the private DBI-specific data structure for this object
+   template <typename T>
+   DLLEXPORT T *getPrivateData() const {
+      return reinterpret_cast<T*>(getPrivateData());
+   }
+
+   //! returns the private DBI-specific data structure for this object
+   template <typename T>
+   DLLEXPORT T &getPrivateDataRef() const {
+      return *getPrivateData<T>();
+   }
+
    //! sets the private DBI-specific data structure for this object
    /** this should only be called once in the actual DBI driver code
        @param data the data for the DBI driver that holds the driver-specific state of the connection
