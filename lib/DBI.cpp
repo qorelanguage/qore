@@ -63,6 +63,8 @@ struct dbi_driver_stmt {
    q_dbi_stmt_bind_t bind, bind_placeholders, bind_values;
    q_dbi_stmt_exec_t exec;
    q_dbi_stmt_fetch_row_t fetch_row;
+   q_dbi_stmt_fetch_rows_t fetch_rows;
+   q_dbi_stmt_fetch_columns_t fetch_columns;
    q_dbi_stmt_next_t next;
    q_dbi_stmt_define_t define;
    q_dbi_stmt_close_t close;
@@ -71,7 +73,8 @@ struct dbi_driver_stmt {
    q_dbi_stmt_get_output_rows_t get_output_rows;
    
    DLLLOCAL dbi_driver_stmt() : prepare(0), prepare_raw(0), bind(0), bind_placeholders(0), 
-				bind_values(0), exec(0), fetch_row(0), next(0), define(0),
+				bind_values(0), exec(0), fetch_row(0), fetch_rows(0),
+				fetch_columns(0), next(0), define(0),
 				close(0), affected_rows(0), get_output(0), get_output_rows(0) {
    }
 };
@@ -172,9 +175,21 @@ void qore_dbi_method_list::add(int code, q_dbi_stmt_exec_t method) {
    priv->l.push_back(std::make_pair(code, (void *)method));
 }
 
-// covers stmt fetchRow, getOutput and getOutputRows
+// covers stmt fetch_row, get_output and get_output_rows
 void qore_dbi_method_list::add(int code, q_dbi_stmt_fetch_row_t method) {
    assert(code == QDBI_METHOD_STMT_FETCH_ROW || code == QDBI_METHOD_STMT_GET_OUTPUT_ROWS || code == QDBI_METHOD_STMT_GET_OUTPUT);
+   priv->l.push_back(std::make_pair(code, (void *)method));
+}
+
+// covers stmt fetch_rows
+void qore_dbi_method_list::add(int code, q_dbi_stmt_fetch_rows_t method) {
+   assert(code == QDBI_METHOD_STMT_FETCH_ROWS);
+   priv->l.push_back(std::make_pair(code, (void *)method));
+}
+
+// covers stmt fetch_columns
+void qore_dbi_method_list::add(int code, q_dbi_stmt_fetch_columns_t method) {
+   assert(code == QDBI_METHOD_STMT_FETCH_COLUMNS);
    priv->l.push_back(std::make_pair(code, (void *)method));
 }
 
@@ -195,7 +210,7 @@ struct qore_dbi_private {
    DLLLOCAL qore_dbi_private(const char *nme, const dbi_method_list_t &methods, int cps) {
       // add methods to internal data structure
       for (dbi_method_list_t::const_iterator i = methods.begin(), e = methods.end(); i != e; ++i) {
-	 assert((*i).first >= 0 && (*i).first < QDBI_VALID_CODES);
+	 assert((*i).first > 0 && (*i).first <= QDBI_VALID_CODES);
 	 switch ((*i).first) {
 	    case QDBI_METHOD_OPEN:
 	       assert(!f.open);
@@ -273,6 +288,14 @@ struct qore_dbi_private {
 	       assert(!f.stmt.fetch_row);
 	       f.stmt.fetch_row = (q_dbi_stmt_fetch_row_t)(*i).second;
 	       break;
+	    case QDBI_METHOD_STMT_FETCH_ROWS:
+	       assert(!f.stmt.fetch_rows);
+	       f.stmt.fetch_rows = (q_dbi_stmt_fetch_rows_t)(*i).second;
+	       break;
+	    case QDBI_METHOD_STMT_FETCH_COLUMNS:
+	       assert(!f.stmt.fetch_columns);
+	       f.stmt.fetch_columns = (q_dbi_stmt_fetch_columns_t)(*i).second;
+	       break;
 	    case QDBI_METHOD_STMT_NEXT:
 	       assert(!f.stmt.next);
 	       f.stmt.next = (q_dbi_stmt_next_t)(*i).second;
@@ -314,8 +337,9 @@ struct qore_dbi_private {
       assert(f.rollback);
 
       assert(!f.stmt.prepare || (f.stmt.prepare_raw && f.stmt.bind && f.stmt.bind_values
-				 && f.stmt.exec && f.stmt.fetch_row 
-				 && f.stmt.next && f.stmt.close && f.stmt.affected_rows && f.stmt.get_output
+				 && f.stmt.exec && f.stmt.fetch_row && f.stmt.fetch_rows
+				 && f.stmt.fetch_columns && f.stmt.next && f.stmt.close
+				 && f.stmt.affected_rows && f.stmt.get_output
 				 && f.stmt.get_output_rows && f.stmt.define));
    
       name = nme;
@@ -468,6 +492,14 @@ QoreHashNode *DBIDriver::stmt_get_output_rows(SQLStatement *stmt, ExceptionSink 
 
 QoreHashNode *DBIDriver::stmt_fetch_row(SQLStatement *stmt, ExceptionSink *xsink) const {
    return priv->f.stmt.fetch_row(stmt, xsink);
+}
+
+QoreListNode *DBIDriver::stmt_fetch_rows(SQLStatement *stmt, int rows, ExceptionSink *xsink) const {
+   return priv->f.stmt.fetch_rows(stmt, rows, xsink);
+}
+
+QoreHashNode *DBIDriver::stmt_fetch_columns(SQLStatement *stmt, int rows, ExceptionSink *xsink) const {
+   return priv->f.stmt.fetch_columns(stmt, rows, xsink);
 }
 
 bool DBIDriver::stmt_next(SQLStatement *stmt, ExceptionSink *xsink) const {

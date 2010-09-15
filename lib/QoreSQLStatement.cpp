@@ -238,6 +238,28 @@ QoreHashNode *QoreSQLStatement::fetchRow(ExceptionSink *xsink) {
    return priv->ds->getDriver()->stmt_fetch_row(this, xsink);
 }
 
+QoreListNode *QoreSQLStatement::fetchRows(int rows, ExceptionSink *xsink) {
+   DBActionHelper dba(dsh, false, xsink);
+   if (!dba)
+      return 0;
+
+   if (checkStatus(STMT_DEFINED, "fetchRows", xsink))
+      return 0;
+
+   return priv->ds->getDriver()->stmt_fetch_rows(this, rows, xsink);
+}
+
+QoreHashNode *QoreSQLStatement::fetchColumns(int rows, ExceptionSink *xsink) {
+   DBActionHelper dba(dsh, false, xsink);
+   if (!dba)
+      return 0;
+
+   if (checkStatus(STMT_DEFINED, "fetchColumns", xsink))
+      return 0;
+
+   return priv->ds->getDriver()->stmt_fetch_columns(this, rows, xsink);
+}
+
 bool QoreSQLStatement::active() const {
    return status != STMT_IDLE;
 }

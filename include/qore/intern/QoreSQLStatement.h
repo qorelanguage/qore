@@ -110,6 +110,8 @@ public:
    DLLLOCAL int define(ExceptionSink *xsink);
 
    DLLLOCAL QoreHashNode *fetchRow(ExceptionSink *xsink);
+   DLLLOCAL QoreListNode *fetchRows(int rows, ExceptionSink *xsink);
+   DLLLOCAL QoreHashNode *fetchColumns(int rows, ExceptionSink *xsink);
 
    DLLLOCAL int close(ExceptionSink *xsink);
 

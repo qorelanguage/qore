@@ -63,14 +63,16 @@
 #define QDBI_METHOD_STMT_BIND_VALUES         17
 #define QDBI_METHOD_STMT_EXEC                18
 #define QDBI_METHOD_STMT_FETCH_ROW           19
-#define QDBI_METHOD_STMT_NEXT                20
-#define QDBI_METHOD_STMT_CLOSE               21
-#define QDBI_METHOD_STMT_AFFECTED_ROWS       22
-#define QDBI_METHOD_STMT_GET_OUTPUT          23
-#define QDBI_METHOD_STMT_GET_OUTPUT_ROWS     24
-#define QDBI_METHOD_STMT_DEFINE              25
+#define QDBI_METHOD_STMT_FETCH_ROWS          20
+#define QDBI_METHOD_STMT_FETCH_COLUMNS       21
+#define QDBI_METHOD_STMT_NEXT                22
+#define QDBI_METHOD_STMT_CLOSE               23
+#define QDBI_METHOD_STMT_AFFECTED_ROWS       24
+#define QDBI_METHOD_STMT_GET_OUTPUT          25
+#define QDBI_METHOD_STMT_GET_OUTPUT_ROWS     26
+#define QDBI_METHOD_STMT_DEFINE              27
 
-#define QDBI_VALID_CODES 26
+#define QDBI_VALID_CODES 27
 
 class Datasource;
 class ExceptionSink;
@@ -224,6 +226,8 @@ typedef QoreHashNode *(*q_dbi_stmt_get_output_rows_t)(SQLStatement *stmt, Except
 
 typedef int (*q_dbi_stmt_define_t)(SQLStatement *stmt, ExceptionSink *xsink);
 typedef QoreHashNode *(*q_dbi_stmt_fetch_row_t)(SQLStatement *stmt, ExceptionSink *xsink);
+typedef QoreHashNode *(*q_dbi_stmt_fetch_columns_t)(SQLStatement *stmt, int rows, ExceptionSink *xsink);
+typedef QoreListNode *(*q_dbi_stmt_fetch_rows_t)(SQLStatement *stmt, int rows, ExceptionSink *xsink);
 typedef bool (*q_dbi_stmt_next_t)(SQLStatement *stmt, ExceptionSink *xsink);
 typedef int (*q_dbi_stmt_close_t)(SQLStatement *stmt, ExceptionSink *xsink);
 
@@ -265,10 +269,14 @@ public:
    DLLEXPORT void add(int code, q_dbi_stmt_prepare_raw_t method);
    // covers bind, bind_placeholders, bind_values
    DLLEXPORT void add(int code, q_dbi_stmt_bind_t method);
-   // covers exec, close, affectedRows, and define
+   // covers exec, close, affected_rows, and define
    DLLEXPORT void add(int code, q_dbi_stmt_exec_t method);
-   // covers fetchRow, getOutput and getOutputRows
+   // covers fetch_row, get_output, and get_output_rows
    DLLEXPORT void add(int code, q_dbi_stmt_fetch_row_t method);
+   // covers fetch_columns
+   DLLEXPORT void add(int code, q_dbi_stmt_fetch_columns_t method);
+   // covers fetch_rows
+   DLLEXPORT void add(int code, q_dbi_stmt_fetch_rows_t method);
    // covers next
    DLLEXPORT void add(int code, q_dbi_stmt_next_t method);
 
@@ -327,6 +335,8 @@ public:
    DLLLOCAL QoreHashNode *stmt_get_output_rows(SQLStatement *stmt, ExceptionSink *xsink) const;
 
    DLLLOCAL QoreHashNode *stmt_fetch_row(SQLStatement *stmt, ExceptionSink *xsink) const;
+   DLLLOCAL QoreListNode *stmt_fetch_rows(SQLStatement *stmt, int rows, ExceptionSink *xsink) const;
+   DLLLOCAL QoreHashNode *stmt_fetch_columns(SQLStatement *stmt, int rows, ExceptionSink *xsink) const;
    DLLLOCAL bool stmt_next(SQLStatement *stmt, ExceptionSink *xsink) const;
    DLLLOCAL int stmt_close(SQLStatement *stmt, ExceptionSink *xsink) const;
 

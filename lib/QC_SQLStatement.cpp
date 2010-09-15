@@ -138,6 +138,16 @@ static AbstractQoreNode *SQLSTATEMENT_fetchRow(QoreObject *self, QoreSQLStatemen
    return stmt->fetchRow(xsink);
 }
 
+// SQLStatement::fetchRows(softint $rows = -1) returns list
+static AbstractQoreNode *SQLSTATEMENT_fetchRows(QoreObject *self, QoreSQLStatement *stmt, const QoreListNode *args, ExceptionSink *xsink) {
+   return stmt->fetchRows(HARD_QORE_INT(args, 0), xsink);
+}
+
+// SQLStatement::fetchColumns(softint $rows = -1) returns hash
+static AbstractQoreNode *SQLSTATEMENT_fetchColumns(QoreObject *self, QoreSQLStatement *stmt, const QoreListNode *args, ExceptionSink *xsink) {
+   return stmt->fetchColumns(HARD_QORE_INT(args, 0), xsink);
+}
+
 QoreClass *initSQLStatementClass(QoreClass *QC_Datasource, QoreClass *QC_DatasourcePool) {
    QORE_TRACE("initSQLStatementClass()");
 
@@ -188,6 +198,12 @@ QoreClass *initSQLStatementClass(QoreClass *QC_Datasource, QoreClass *QC_Datasou
 
    // SQLStatement::fetchRow() returns *hash
    QC_SQLSTATEMENT->addMethodExtended("fetchRow",         (q_method_t)SQLSTATEMENT_fetchRow, false, QC_NO_FLAGS, QDOM_DEFAULT, hashOrNothingTypeInfo);
+
+   // SQLStatement::fetchRows(softint $rows = -1) returns list
+   QC_SQLSTATEMENT->addMethodExtended("fetchRows",        (q_method_t)SQLSTATEMENT_fetchRows, false, QC_NO_FLAGS, QDOM_DEFAULT, listTypeInfo, 1, softBigIntTypeInfo, new QoreBigIntNode(-1));
+
+   // SQLStatement::fetchColumns(softint $rows = -1) returns hash
+   QC_SQLSTATEMENT->addMethodExtended("fetchColumns",     (q_method_t)SQLSTATEMENT_fetchColumns, false, QC_NO_FLAGS, QDOM_DEFAULT, hashTypeInfo, 1, softBigIntTypeInfo, new QoreBigIntNode(-1));
 
    return QC_SQLSTATEMENT;
 }
