@@ -239,6 +239,11 @@ public:
    //! terminates the string at byte position "size", the string is reallocated if necessary
    DLLEXPORT void terminate(qore_size_t size);
 
+   //! ensures that at least the given size is available in the string; the string's contents are not affected
+   /** actually reserves size + 1 bytes to accommodate the terminating '\0' character
+   */
+   DLLEXPORT void reserve(qore_size_t size);
+
    //! this will concatentate a formatted string to the existing string according to the format string and the arguments
    /** NOTE that the formatted string is concatenated to the end of the current string!
     */

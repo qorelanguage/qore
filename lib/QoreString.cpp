@@ -252,6 +252,13 @@ void QoreString::terminate(qore_size_t size) {
    priv->buf[size] = '\0';
 }
 
+void QoreString::reserve(qore_size_t size) {
+   // leave room for the terminator char '\0'
+   ++size;
+   if (size > priv->len)
+      priv->check_char(size);
+}
+
 void QoreString::take(char *str) {
    if (priv->buf)
       free(priv->buf);
