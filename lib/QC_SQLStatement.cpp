@@ -27,7 +27,7 @@
 
 qore_classid_t CID_SQLSTATEMENT;
 
-// SQLStatement::constructor(Datasource *ds)
+// SQLStatement::constructor(Datasource $ds)
 static void SQLSTATEMENT_constructor_ds(QoreObject *self, const QoreListNode *args, ExceptionSink *xsink) {
    HARD_QORE_OBJ_DATA(ds, ManagedDatasource, args, 0, CID_DATASOURCE, "Datasource", "SQLStatment::constructor", xsink);
    if (*xsink)
@@ -42,14 +42,31 @@ static void SQLSTATEMENT_constructor_ds(QoreObject *self, const QoreListNode *ar
 
    ReferenceHolder<QoreSQLStatement> ss(new QoreSQLStatement, xsink);
    // FIXME: reuse reference from this call
-   ss->init(ds->getReferencedHelper(*ss), xsink);
+   ss->init(ds->getReferencedHelper(*ss));
+   self->setPrivate(CID_SQLSTATEMENT, ss.release());
+}
+
+// SQLStatement::constructor(DatasourcePool $dsp)
+static void SQLSTATEMENT_constructor_dsp(QoreObject *self, const QoreListNode *args, ExceptionSink *xsink) {
+   HARD_QORE_OBJ_DATA(dsp, DatasourcePool, args, 0, CID_DATASOURCEPOOL, "DatasourcePool", "SQLStatment::constructor", xsink);
    if (*xsink)
       return;
 
+   ReferenceHolder<DatasourcePool> dsp_holder(dsp, xsink);
+
+   if (!dsp->getDriver()->hasStatementAPI()) {
+      xsink->raiseException("SQLSTATEMENT-ERROR", "DBI driver '%s' does not support the prepared statement API", dsp->getDriver()->getName());
+      return;
+   }
+
+   ReferenceHolder<QoreSQLStatement> ss(new QoreSQLStatement, xsink);
+   // FIXME: reuse reference from this call
+   ss->init(dsp->getReferencedHelper(*ss));
    self->setPrivate(CID_SQLSTATEMENT, ss.release());
 }
 
 static void SQLSTATEMENT_destructor(QoreObject *self, QoreSQLStatement *stmt, ExceptionSink *xsink) {
+   stmt->close(xsink);
    stmt->deref(xsink);
 }
 
@@ -155,7 +172,7 @@ QoreClass *initSQLStatementClass(QoreClass *QC_Datasource, QoreClass *QC_Datasou
    CID_SQLSTATEMENT = QC_SQLSTATEMENT->getID();
 
    QC_SQLSTATEMENT->setConstructorExtended(SQLSTATEMENT_constructor_ds, false, QC_NO_FLAGS, QDOM_DATABASE, 1, QC_Datasource->getTypeInfo(), QORE_PARAM_NO_ARG);
-   //QC_SQLSTATEMENT->setConstructorExtended(SQLSTATEMENT_constructor_dsp, false, QC_NO_FLAGS, QDOM_DATABASE, 1, QC_DatasourcePool->getTypeInfo(), QORE_PARAM_NO_ARG);
+   QC_SQLSTATEMENT->setConstructorExtended(SQLSTATEMENT_constructor_dsp, false, QC_NO_FLAGS, QDOM_DATABASE, 1, QC_DatasourcePool->getTypeInfo(), QORE_PARAM_NO_ARG);
 
    QC_SQLSTATEMENT->setDestructor((q_destructor_t)SQLSTATEMENT_destructor);
    QC_SQLSTATEMENT->setCopy((q_copy_t)SQLSTATEMENT_copy);

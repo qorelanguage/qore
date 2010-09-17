@@ -30,15 +30,8 @@ struct sql_statement_private {
    Datasource *ds;
    // private data for statement handle/ptr
    void *data;
-   // started transaction flag
-   bool trans;
 
-   DLLLOCAL sql_statement_private() : ds(0), data(0), trans(false) {
-   }
-
-   // called from QoreSQLStatement::closeIntern()
-   DLLLOCAL void reset() {
-      trans = false;
+   DLLLOCAL sql_statement_private() : ds(0), data(0) {
    }
 }; 
 

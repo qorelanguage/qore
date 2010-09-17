@@ -36,8 +36,6 @@
 
 #include <set>
 
-//typedef std::set<QoreSQLStatement *> stmt_set_t;
-
 // default timeout set to 120 seconds
 #define DEFAULT_TL_TIMEOUT 120000
 
@@ -56,15 +54,18 @@ protected:
    QoreCondition cSQL,             // condition when no SQL is in-progress
       cTransaction;                // condition when transaction lock is freed
 
-   DLLLOCAL int startDBAction(ExceptionSink *xsink, bool need_transaction_lock = false);
-   DLLLOCAL void endDBActionIntern();
-   DLLLOCAL void endDBAction();
+   DLLLOCAL int startDBAction(ExceptionSink *xsink, bool need_transaction_lock = false, bool *new_transaction = 0);
+   // returns true if we have the transaction lock, false if not
+   DLLLOCAL bool endDBActionIntern(char cmd = DAH_NONE, bool new_transaction = false);
+   // returns true if we have the transaction lock, false if not
+   DLLLOCAL bool endDBAction(char cmd = DAH_NONE, bool new_transaction = false);
    DLLLOCAL int closeUnlocked(ExceptionSink *xsink);
    // returns 0 for OK, -1 for error
    DLLLOCAL int grabLockIntern();
    // returns 0 for OK, -1 for error
    DLLLOCAL int grabLock(ExceptionSink *xsink);
    DLLLOCAL void releaseLock();
+   DLLLOCAL void releaseLockIntern();
    DLLLOCAL void forceReleaseLock();
    DLLLOCAL int wait_for_sql(ExceptionSink *xsink);
    DLLLOCAL void wait_for_sql();
@@ -111,60 +112,50 @@ public:
 
    // functions supporting DatasourceStatementHelper
    DLLLOCAL DatasourceStatementHelper *getReferencedHelper(QoreSQLStatement *s) {
-      /*
-      {
-         AutoLocker al(ds_lock);
-         assert(stmt_set.find(s) == stmt_set.end());
-         stmt_set.insert(s);
-      }
-      */
-
       ref();
       return this;
    }
 
    // implementing DatasourceStatementHelper virtual functions
    DLLLOCAL virtual void helperDestructor(QoreSQLStatement *s, ExceptionSink *xsink) {
-      /*
-      // remove QoreSQLStatement from set
-      {
-         AutoLocker al(ds_lock);
-         assert(stmt_set.find(s) != stmt_set.end());
-         stmt_set.erase(s);
-      }
-      */
-
       deref(xsink);
    }
 
-   DLLLOCAL virtual Datasource *helperGetDatasource(ExceptionSink *xsink) {
-      return this;
+   DLLLOCAL virtual Datasource *helperStartAction(ExceptionSink *xsink, char cmd = DAH_NONE, bool *new_transaction = 0) {
+      if (!startDBAction(xsink, cmd, new_transaction))
+         return this;
+
+      // only return "this" when there was an exception in startDBAction if we already had the lock
+      return tid == gettid() ? this : 0;
    }
 
-   DLLLOCAL virtual int helperStartAction(bool needs_transaction_lock, ExceptionSink *xsink) {
-      return startDBAction(xsink, needs_transaction_lock);
-   }
-
-   DLLLOCAL virtual void helperEndAction() {
-      endDBAction();
-   }
-
-   DLLLOCAL virtual void helperReleaseDatasource() {
+   DLLLOCAL virtual Datasource *helperEndAction(char cmd, bool new_transaction) {
+      return endDBAction(cmd, new_transaction) ? this : 0;
    }
 };
 
 class DatasourceActionHelper {
 protected:
    ManagedDatasource &ds;
-   bool ok;
+   bool ok, new_transaction;
+   char cmd;
 
 public:
-   DLLLOCAL DatasourceActionHelper(ManagedDatasource &n_ds, bool need_transaction_lock, ExceptionSink *xsink) : ds(n_ds), ok(!ds.startDBAction(xsink, need_transaction_lock)) {
+   DLLLOCAL DatasourceActionHelper(ManagedDatasource &n_ds, ExceptionSink *xsink, char n_cmd = DAH_NONE) : 
+      ds(n_ds), ok(!ds.startDBAction(xsink, n_cmd, &new_transaction)), cmd(n_cmd) {
+      if (!ok || !cmd)
+         return;
    }
    DLLLOCAL ~DatasourceActionHelper() {
-      if (ok)
-	 ds.endDBAction();
+      if (ok) {
+         if (ds.wasConnectionAborted())
+            cmd = DAH_RELEASE;
+	 ds.endDBAction(cmd, new_transaction);
+      }
    }
+
+   DLLLOCAL bool newTransaction() const { return new_transaction; }
+
    DLLLOCAL operator bool() const { return ok; }   
 };
 

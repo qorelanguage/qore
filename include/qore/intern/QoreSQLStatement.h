@@ -34,7 +34,15 @@ class DatasourceStatementHelper;
 #define STMT_EXECED    3
 #define STMT_DELETED   4
 
+#define STMT_TRANS_UNKNOWN 0
+#define STMT_TRANS_NEW     1
+#define STMT_TRANS_EXISTED 2
+
+class DBActionHelper;
+
 class QoreSQLStatement : public AbstractPrivateData, public SQLStatement {
+   friend class DBActionHelper;
+
 protected:
    DLLLOCAL static const char *stmt_statuses[];
 
@@ -42,13 +50,15 @@ protected:
    DatasourceStatementHelper *dsh;
    // status
    unsigned char status;
+   // new transaction status
+   char trans_status;
 
    DLLLOCAL static int invalidException(ExceptionSink *xsink) {
       xsink->raiseException("SQLSTATMENT-ERROR", "TID %d attempted to acquire already deleted SQLStatement object", gettid());
       return -1;
    }
 
-   DLLLOCAL int checkStatus(int stat, const char *action, ExceptionSink *xsink) {
+   DLLLOCAL int checkStatus(DBActionHelper &dba, int stat, const char *action, ExceptionSink *xsink) {
       if (status == STMT_DELETED)
 	 return invalidException(xsink);
 
@@ -60,9 +70,9 @@ protected:
             return 0;
 
          if (stat == STMT_EXECED && status == STMT_PREPARED)
-            return execIntern(xsink);
+            return execIntern(dba, xsink);
 
-         if (stat == STMT_DEFINED && status == STMT_PREPARED && execIntern(xsink))
+         if (stat == STMT_DEFINED && status == STMT_PREPARED && execIntern(dba, xsink))
             return -1;
          
          if (stat == STMT_DEFINED && status == STMT_EXECED)
@@ -76,16 +86,16 @@ protected:
    }
 
    DLLLOCAL int closeIntern(ExceptionSink *xsink);
-   DLLLOCAL int execIntern(ExceptionSink *xsink);
+   DLLLOCAL int execIntern(DBActionHelper &dba, ExceptionSink *xsink);
    DLLLOCAL int defineIntern(ExceptionSink *xsink);
 
 public:
-   DLLLOCAL QoreSQLStatement() : dsh(0), status(STMT_IDLE) {
+   DLLLOCAL QoreSQLStatement() : dsh(0), status(STMT_IDLE), trans_status(STMT_TRANS_UNKNOWN) {
    }
 
    DLLLOCAL ~QoreSQLStatement();
 
-   DLLLOCAL int init(DatasourceStatementHelper *n_dsh, ExceptionSink *xsink);
+   DLLLOCAL void init(DatasourceStatementHelper *n_dsh);
 
    DLLLOCAL virtual void deref(ExceptionSink *xsink);
 

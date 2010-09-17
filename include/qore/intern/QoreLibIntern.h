@@ -132,6 +132,11 @@ enum qore_call_t {
    CT_RETHROW    =  3
 };
 
+// Datasource Access Helper codes
+#define DAH_NONE     0 // acquire lock temporarily
+#define DAH_ACQUIRE  1 // acquire lock and hold
+#define DAH_RELEASE  2 // release lock at end of action
+
 #include <qore/intern/NamedScope.h>
 #include <qore/intern/QoreTypeInfo.h>
 #include <qore/intern/ParseNode.h>

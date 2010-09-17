@@ -36,14 +36,10 @@ public:
 
    // must dereference the datasource-providing object
    virtual void helperDestructor(QoreSQLStatement *s, ExceptionSink *xsink) = 0;
-   virtual Datasource *helperGetDatasource(ExceptionSink *xsink) = 0;
 
-   virtual int helperStartAction(bool needs_transaction_lock, ExceptionSink *xsink) = 0;
-   virtual void helperEndAction() = 0;
+   virtual Datasource *helperStartAction(ExceptionSink *xsink, char cmd = DAH_NONE, bool *new_transaction = 0) = 0;
 
-   virtual void helperReleaseDatasource() = 0;
-
-   //virtual QoreThreadLock *helperGetConnectionLock() = 0;
+   virtual Datasource *helperEndAction(char cmd, bool new_transaction) = 0;
 };
 
 #endif

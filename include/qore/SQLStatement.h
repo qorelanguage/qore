@@ -27,6 +27,7 @@
 class DatasourceStatementHelper;
 
 class SQLStatement {
+   friend class DBActionHelper;
    friend class QoreSQLStatement;
 
 private:
@@ -52,9 +53,6 @@ public:
    /** @return the Datasource bound to this statement
     */
    DLLEXPORT Datasource *getDatasource() const;
-
-   //! sets the "in transaction" flag
-   DLLEXPORT void setInTransaction();
 };
 
 #endif

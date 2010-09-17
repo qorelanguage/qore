@@ -49,7 +49,3 @@ void SQLStatement::setPrivateData(void *n_data) {
 Datasource *SQLStatement::getDatasource() const {
    return priv->ds;
 }
-
-void SQLStatement::setInTransaction() {
-   priv->trans = true;
-}
