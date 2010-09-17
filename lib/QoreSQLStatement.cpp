@@ -34,11 +34,12 @@ struct DBActionHelper {
    char cmd;
    bool first;
 
-   DLLLOCAL DBActionHelper(QoreSQLStatement &n_stmt, ExceptionSink *xsink, char n_cmd = DAH_NONE, bool ignore_new_transaction = false) : stmt(n_stmt), valid(false), cmd(n_cmd), first(false) {
+   DLLLOCAL DBActionHelper(QoreSQLStatement &n_stmt, ExceptionSink *xsink, char n_cmd = DAH_NONE) : stmt(n_stmt), valid(false), cmd(n_cmd), first(false) {
       bool nt = false;
       stmt.priv->ds = stmt.dsh->helperStartAction(xsink, cmd, &nt);
+      //printd(5, "DBActionHelper::DBActionHelper() ds=%p\n", stmt.priv->ds);
 
-      if (cmd == DAH_ACQUIRE && stmt.trans_status == STMT_TRANS_UNKNOWN) {
+      if (stmt.trans_status == STMT_TRANS_UNKNOWN) {
          stmt.trans_status = nt ? STMT_TRANS_NEW : STMT_TRANS_EXISTED;
          // set first time acquisition status
          first = true;
@@ -55,11 +56,14 @@ struct DBActionHelper {
             cmd = DAH_RELEASE;
             // FIXME: do something else here?
          }
+         else if (first && stmt.trans_status == STMT_TRANS_NEW && cmd == DAH_NONE) {
+            cmd = DAH_RELEASE;
+         }
          if (cmd == DAH_RELEASE)
             stmt.trans_status = STMT_TRANS_UNKNOWN;
 
          stmt.priv->ds = stmt.dsh->helperEndAction(cmd, nt);
-         //printd(0, "DBActionHelper::~DBActionHelper() ds=%p\n", stmt.priv->ds);
+         //printd(5, "DBActionHelper::~DBActionHelper() ds=%p cmd=%s stat=%s nt=%d\n", stmt.priv->ds, cmd == DAH_RELEASE ? "release" : (cmd == DAH_ACQUIRE ? "acquire" : "none"), stmt.trans_status == STMT_TRANS_NEW ? "new" : (stmt.trans_status == STMT_TRANS_EXISTED ? "existed" : "unknown"), nt);
       }
    }
 
@@ -69,7 +73,7 @@ struct DBActionHelper {
 
    // release the datasource in the destructor if an error occurs when the datasource is initially acquired
    DLLLOCAL void error() {
-      if (cmd == DAH_ACQUIRE && first)
+      if (cmd == DAH_ACQUIRE && first && stmt.trans_status == STMT_TRANS_NEW)
          cmd = DAH_RELEASE;
    }
 };

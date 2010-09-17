@@ -130,8 +130,11 @@ public:
    }
 
    DLLLOCAL virtual Datasource *helperEndAction(char cmd, bool new_transaction) {
+      //printd(0, "DatasourcePool::helperEndAction() cmd=%d, nt=%d\n", cmd, new_transaction);
       if (cmd == DAH_RELEASE
           || (new_transaction && cmd == DAH_NONE)) {
+         //printd(0, "DatasourcePool::helperEndAction() returning 0\n");
+
          freeDS();
          return 0;
       }
