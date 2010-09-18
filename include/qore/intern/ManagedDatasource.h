@@ -41,20 +41,18 @@
 
 class ManagedDatasource : public AbstractThreadResource, public Datasource, public DatasourceStatementHelper {
    friend class DatasourceActionHelper;
+   friend class DatasourceLockHelper;
 protected:
-   // connection and transaction lock
+   // connection/transaction lock
    mutable QoreThreadLock ds_lock;                     
 
-   int counter,                    // flag if SQL is in progress
-      tid,                         // TID of thread holding the connection/transaction lock
+   int tid,                        // TID of thread holding the connection/transaction lock
       waiting,                     // number of threads waiting on the transaction lock
-      sql_waiting,                 // number of threads waiting on the SQL lock
       tl_timeout_ms;               // transaction timeout in milliseconds
 
-   QoreCondition cSQL,             // condition when no SQL is in-progress
-      cTransaction;                // condition when transaction lock is freed
+   QoreCondition cond;             // condition when transaction lock is freed
 
-   DLLLOCAL int startDBAction(ExceptionSink *xsink, bool need_transaction_lock = false, bool *new_transaction = 0);
+   DLLLOCAL int startDBAction(ExceptionSink *xsink, bool &new_transaction);
    // returns true if we have the transaction lock, false if not
    DLLLOCAL bool endDBActionIntern(char cmd = DAH_NONE, bool new_transaction = false);
    // returns true if we have the transaction lock, false if not
@@ -62,20 +60,22 @@ protected:
    DLLLOCAL int closeUnlocked(ExceptionSink *xsink);
    // returns 0 for OK, -1 for error
    DLLLOCAL int grabLockIntern();
+   DLLLOCAL void grabLockUnconditionalIntern();
    // returns 0 for OK, -1 for error
    DLLLOCAL int grabLock(ExceptionSink *xsink);
    DLLLOCAL void releaseLock();
    DLLLOCAL void releaseLockIntern();
-   DLLLOCAL void forceReleaseLock();
-   DLLLOCAL int wait_for_sql(ExceptionSink *xsink);
-   DLLLOCAL void wait_for_sql();
+   DLLLOCAL void forceReleaseLockIntern();
    DLLLOCAL void finish_transaction();
    
 protected:
-   DLLLOCAL virtual ~ManagedDatasource();
+   DLLLOCAL virtual ~ManagedDatasource() {
+   }
 
 public:
-   DLLLOCAL ManagedDatasource(DBIDriver *);
+   DLLLOCAL ManagedDatasource(DBIDriver *ndsl) : Datasource(ndsl), tid(-1), waiting(0), tl_timeout_ms(DEFAULT_TL_TIMEOUT) {
+   }
+
    DLLLOCAL virtual void cleanup(ExceptionSink *xsink);
    DLLLOCAL virtual void destructor(ExceptionSink *xsink);
    DLLLOCAL virtual void deref(ExceptionSink *xsink);
@@ -88,7 +88,7 @@ public:
    DLLLOCAL int rollback(ExceptionSink *xsink);
    DLLLOCAL int open(ExceptionSink *xsink);
    DLLLOCAL int close(ExceptionSink *xsink);
-   DLLLOCAL void reset(ExceptionSink *xsink);
+   DLLLOCAL int reset(ExceptionSink *xsink);
    DLLLOCAL void setPendingUsername(const char *u);
    DLLLOCAL void setPendingPassword(const char *p);
    DLLLOCAL void setPendingDBName(const char *d);
@@ -105,7 +105,7 @@ public:
    DLLLOCAL int getTransactionLockTimeout() const;
    // returns true if a new transaction was started
    DLLLOCAL bool beginTransaction(ExceptionSink *xsink);
-   DLLLOCAL void setAutoCommit(bool ac);   
+   DLLLOCAL void setAutoCommit(bool ac, ExceptionSink *xsink);   
    DLLLOCAL ManagedDatasource *copy();
    DLLLOCAL AbstractQoreNode *getServerVersion(ExceptionSink *xsink);
    DLLLOCAL AbstractQoreNode *getClientVersion(ExceptionSink *xsink) const;
@@ -121,8 +121,8 @@ public:
       deref(xsink);
    }
 
-   DLLLOCAL virtual Datasource *helperStartAction(ExceptionSink *xsink, char cmd = DAH_NONE, bool *new_transaction = 0) {
-      if (!startDBAction(xsink, cmd, new_transaction))
+   DLLLOCAL virtual Datasource *helperStartAction(ExceptionSink *xsink, bool &new_transaction) {
+      if (!startDBAction(xsink, new_transaction))
          return this;
 
       // only return "this" when there was an exception in startDBAction if we already had the lock
@@ -142,13 +142,13 @@ protected:
 
 public:
    DLLLOCAL DatasourceActionHelper(ManagedDatasource &n_ds, ExceptionSink *xsink, char n_cmd = DAH_NONE) : 
-      ds(n_ds), ok(!ds.startDBAction(xsink, n_cmd, &new_transaction)), cmd(n_cmd) {
-      if (!ok || !cmd)
-         return;
+      ds(n_ds), ok(!ds.startDBAction(xsink, new_transaction)), cmd(n_cmd) {
    }
    DLLLOCAL ~DatasourceActionHelper() {
       if (ok) {
-         if (ds.wasConnectionAborted())
+         // FIXME: check connection aborted handling if exec could have been executed after connection reset
+         if (ds.wasConnectionAborted() 
+             || (new_transaction && ((cmd == DAH_NONE) || !ds.isInTransaction())))
             cmd = DAH_RELEASE;
 	 ds.endDBAction(cmd, new_transaction);
       }
@@ -157,6 +157,29 @@ public:
    DLLLOCAL bool newTransaction() const { return new_transaction; }
 
    DLLLOCAL operator bool() const { return ok; }   
+};
+
+class DatasourceLockHelper {
+protected:
+   ManagedDatasource &ds;
+   bool valid;
+
+public:
+   DLLLOCAL DatasourceLockHelper(ManagedDatasource &n_ds, ExceptionSink *xsink) : ds(n_ds) {
+      ds.ds_lock.lock();
+      valid = !ds.grabLock(xsink);
+      if (!valid)
+         ds.ds_lock.unlock();
+   }
+
+   DLLLOCAL ~DatasourceLockHelper() {
+      if (valid) {
+         ds.releaseLockIntern();
+         ds.ds_lock.unlock();
+      }
+   }
+
+   DLLLOCAL operator bool() const { return valid; }
 };
 
 #endif // _QORE_SQL_OBJECTS_DATASOURCE_H

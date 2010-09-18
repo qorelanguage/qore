@@ -38,6 +38,8 @@ class DatasourceStatementHelper;
 #define STMT_TRANS_NEW     1
 #define STMT_TRANS_EXISTED 2
 
+#define STMT_TRANS_TEXT(t) (t == STMT_TRANS_NEW ? "new" : (t == STMT_TRANS_EXISTED ? "existed" : "unknown"))
+
 class DBActionHelper;
 
 class QoreSQLStatement : public AbstractPrivateData, public SQLStatement {
@@ -58,32 +60,7 @@ protected:
       return -1;
    }
 
-   DLLLOCAL int checkStatus(DBActionHelper &dba, int stat, const char *action, ExceptionSink *xsink) {
-      if (status == STMT_DELETED)
-	 return invalidException(xsink);
-
-      if (stat != status) {
-	 if (stat == STMT_IDLE)
-	    return closeIntern(xsink);
-
-         if (stat == STMT_PREPARED && status == STMT_EXECED)
-            return 0;
-
-         if (stat == STMT_EXECED && status == STMT_PREPARED)
-            return execIntern(dba, xsink);
-
-         if (stat == STMT_DEFINED && status == STMT_PREPARED && execIntern(dba, xsink))
-            return -1;
-         
-         if (stat == STMT_DEFINED && status == STMT_EXECED)
-            return defineIntern(xsink);
-
-         xsink->raiseException("SQLSTATMENT-ERROR", "SQLStatement::%s() called expecting status '%s', but statement has status '%s'", action, stmt_statuses[stat], stmt_statuses[status]);
-         return -1;
-      }
-
-      return 0;
-   }
+   DLLLOCAL int checkStatus(DBActionHelper &dba, int stat, const char *action, ExceptionSink *xsink);
 
    DLLLOCAL int closeIntern(ExceptionSink *xsink);
    DLLLOCAL int execIntern(DBActionHelper &dba, ExceptionSink *xsink);

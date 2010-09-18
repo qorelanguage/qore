@@ -37,7 +37,7 @@ public:
    // must dereference the datasource-providing object
    virtual void helperDestructor(QoreSQLStatement *s, ExceptionSink *xsink) = 0;
 
-   virtual Datasource *helperStartAction(ExceptionSink *xsink, char cmd = DAH_NONE, bool *new_transaction = 0) = 0;
+   virtual Datasource *helperStartAction(ExceptionSink *xsink, bool &new_transaction) = 0;
 
    virtual Datasource *helperEndAction(char cmd, bool new_transaction) = 0;
 };

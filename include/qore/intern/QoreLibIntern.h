@@ -137,6 +137,8 @@ enum qore_call_t {
 #define DAH_ACQUIRE  1 // acquire lock and hold
 #define DAH_RELEASE  2 // release lock at end of action
 
+#define DAH_TEXT(d) (d == DAH_RELEASE ? "release" : (d == DAH_ACQUIRE ? "acquire" : "none"))
+
 #include <qore/intern/NamedScope.h>
 #include <qore/intern/QoreTypeInfo.h>
 #include <qore/intern/ParseNode.h>

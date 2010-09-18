@@ -155,7 +155,7 @@ static AbstractQoreNode *DS_rollback(QoreObject *self, ManagedDatasource *ds, co
 }
 
 static AbstractQoreNode *DS_setAutoCommit_bool(QoreObject *self, ManagedDatasource *ds, const QoreListNode *params, ExceptionSink *xsink) {
-   ds->setAutoCommit(HARD_QORE_BOOL(params, 0));
+   ds->setAutoCommit(HARD_QORE_BOOL(params, 0), xsink);
    return 0;
 }
 

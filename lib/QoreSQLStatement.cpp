@@ -30,51 +30,47 @@ const char *QoreSQLStatement::stmt_statuses[] = { "idle", "prepared", "defined",
 
 struct DBActionHelper {
    QoreSQLStatement &stmt;
+   ExceptionSink *xsink;
    bool valid;
    char cmd;
+   bool nt;
    bool first;
 
-   DLLLOCAL DBActionHelper(QoreSQLStatement &n_stmt, ExceptionSink *xsink, char n_cmd = DAH_NONE) : stmt(n_stmt), valid(false), cmd(n_cmd), first(false) {
-      bool nt = false;
-      stmt.priv->ds = stmt.dsh->helperStartAction(xsink, cmd, &nt);
-      //printd(5, "DBActionHelper::DBActionHelper() ds=%p\n", stmt.priv->ds);
+   DLLLOCAL DBActionHelper(QoreSQLStatement &n_stmt, ExceptionSink *n_xsink, char n_cmd = DAH_NONE) : stmt(n_stmt), xsink(n_xsink), valid(false), cmd(n_cmd), nt(false), first(false) {
+      stmt.priv->ds = stmt.dsh->helperStartAction(xsink, nt);
 
       if (stmt.trans_status == STMT_TRANS_UNKNOWN) {
          stmt.trans_status = nt ? STMT_TRANS_NEW : STMT_TRANS_EXISTED;
-         // set first time acquisition status
          first = true;
       }
 
+      //printd(0, "DBActionHelper::DBActionHelper() ds=%p cmd=%s stat=%s nt=%d\n", stmt.priv->ds, DAH_TEXT(cmd), STMT_TRANS_TEXT(stmt.trans_status), nt);
       valid = *xsink ? false : true;
    }
 
    DLLLOCAL ~DBActionHelper() {
       if (valid) {
-         bool nt = stmt.trans_status == STMT_TRANS_NEW;
-
          if (stmt.priv->ds->wasConnectionAborted()) {
             cmd = DAH_RELEASE;
             // FIXME: do something else here?
          }
-         else if (first && stmt.trans_status == STMT_TRANS_NEW && cmd == DAH_NONE) {
+         else if (first && stmt.trans_status == STMT_TRANS_NEW && (cmd == DAH_NONE || *xsink)) {
             cmd = DAH_RELEASE;
          }
          if (cmd == DAH_RELEASE)
             stmt.trans_status = STMT_TRANS_UNKNOWN;
 
          stmt.priv->ds = stmt.dsh->helperEndAction(cmd, nt);
-         //printd(5, "DBActionHelper::~DBActionHelper() ds=%p cmd=%s stat=%s nt=%d\n", stmt.priv->ds, cmd == DAH_RELEASE ? "release" : (cmd == DAH_ACQUIRE ? "acquire" : "none"), stmt.trans_status == STMT_TRANS_NEW ? "new" : (stmt.trans_status == STMT_TRANS_EXISTED ? "existed" : "unknown"), nt);
+         //printd(0, "DBActionHelper::~DBActionHelper() ds=%p cmd=%s stat=%s nt=%d xsink=%d\n", stmt.priv->ds, DAH_TEXT(cmd), STMT_TRANS_TEXT(stmt.trans_status), nt, xsink->isEvent());
       }
+   }
+
+   DLLLOCAL void reset() {
+      first = true;
    }
 
    DLLLOCAL operator bool() const {
       return valid;
-   }
-
-   // release the datasource in the destructor if an error occurs when the datasource is initially acquired
-   DLLLOCAL void error() {
-      if (cmd == DAH_ACQUIRE && first && stmt.trans_status == STMT_TRANS_NEW)
-         cmd = DAH_RELEASE;
    }
 };
 
@@ -84,6 +80,35 @@ QoreSQLStatement::~QoreSQLStatement() {
 
 void QoreSQLStatement::init(DatasourceStatementHelper *n_dsh) {
    dsh = n_dsh;
+}
+
+int QoreSQLStatement::checkStatus(DBActionHelper &dba, int stat, const char *action, ExceptionSink *xsink) {
+   if (status == STMT_DELETED)
+      return invalidException(xsink);
+
+   if (stat != status) {
+      if (stat == STMT_IDLE) {
+         dba.reset();
+         return closeIntern(xsink);
+      }
+
+      if (stat == STMT_PREPARED && status == STMT_EXECED)
+         return 0;
+
+      if (stat == STMT_EXECED && status == STMT_PREPARED)
+         return execIntern(dba, xsink);
+
+      if (stat == STMT_DEFINED && status == STMT_PREPARED && execIntern(dba, xsink))
+         return -1;
+         
+      if (stat == STMT_DEFINED && status == STMT_EXECED)
+         return defineIntern(xsink);
+
+      xsink->raiseException("SQLSTATMENT-ERROR", "SQLStatement::%s() called expecting status '%s', but statement has status '%s'", action, stmt_statuses[stat], stmt_statuses[status]);
+      return -1;
+   }
+
+   return 0;
 }
 
 void QoreSQLStatement::deref(ExceptionSink *xsink) {
@@ -195,8 +220,6 @@ int QoreSQLStatement::execIntern(DBActionHelper &dba, ExceptionSink *xsink) {
    int rc = priv->ds->getDriver()->stmt_exec(this, xsink);
    if (!rc)
       status = STMT_EXECED;
-   else
-      dba.error();
    return rc;
 }
 

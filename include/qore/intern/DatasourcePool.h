@@ -121,12 +121,8 @@ public:
       deref(xsink);
    }
 
-   DLLLOCAL virtual Datasource *helperStartAction(ExceptionSink *xsink, char cmd = DAH_NONE, bool *new_transaction = 0) {
-      bool new_ds = false;
-      Datasource *ds = getDS(new_ds, xsink);
-      if (ds && new_ds && new_transaction)
-         *new_transaction = true;
-      return ds;
+   DLLLOCAL virtual Datasource *helperStartAction(ExceptionSink *xsink, bool &new_transaction) {
+      return getDS(new_transaction, xsink);
    }
 
    DLLLOCAL virtual Datasource *helperEndAction(char cmd, bool new_transaction) {
