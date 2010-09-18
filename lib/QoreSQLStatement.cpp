@@ -92,8 +92,13 @@ int QoreSQLStatement::checkStatus(DBActionHelper &dba, int stat, const char *act
          return closeIntern(xsink);
       }
 
-      if (stat == STMT_PREPARED && status == STMT_EXECED)
-         return 0;
+      if (stat == STMT_PREPARED) {
+         if (status == STMT_IDLE && str.strlen())
+            return prepareIntern(xsink);
+
+         if (status == STMT_EXECED)
+            return 0;
+      }
 
       if (stat == STMT_EXECED && status == STMT_PREPARED)
          return execIntern(dba, xsink);
@@ -114,7 +119,7 @@ int QoreSQLStatement::checkStatus(DBActionHelper &dba, int stat, const char *act
 void QoreSQLStatement::deref(ExceptionSink *xsink) {
    if (ROdereference()) {
       {
-         DBActionHelper dba(*this, xsink, DAH_RELEASE);
+         DBActionHelper dba(*this, xsink, trans_status == STMT_TRANS_EXISTED ? DAH_NONE : DAH_RELEASE);
          if (dba)
             closeIntern(xsink);
       }
@@ -132,33 +137,49 @@ int QoreSQLStatement::closeIntern(ExceptionSink *xsink) {
 
    int rc = priv->ds->getDriver()->stmt_close(this, xsink);
    assert(!priv->data);
+   status = STMT_IDLE;
 
    return rc;
 }
 
-int QoreSQLStatement::close(ExceptionSink *xsink) {
-   DBActionHelper dba(*this, xsink, trans_status == STMT_TRANS_NEW ? DAH_RELEASE : DAH_NONE);
-   if (!dba)
-      return -1;
+int QoreSQLStatement::prepareArgs(bool n_raw, const QoreString &n_str, const QoreListNode *args, ExceptionSink *xsink) {
+   raw = n_raw;
+   str = n_str;
 
-   return closeIntern(xsink);
+   if (prepare_args) {
+      prepare_args->deref(xsink);
+      if (*xsink) {
+         prepare_args = 0;
+         return -1;
+      }
+   }
+
+   prepare_args = args ? args->listRefSelf() : 0;
+   return 0;
 }
 
-int QoreSQLStatement::prepare(const QoreString &str, const QoreListNode *args, ExceptionSink *xsink) {
-   DBActionHelper dba(*this, xsink);
-   if (!dba)
-      return -1;
-
-   if (checkStatus(dba, STMT_IDLE, "prepare", xsink))
-      return -1;
-
-   int rc = priv->ds->getDriver()->stmt_prepare(this, str, args, xsink);
+int QoreSQLStatement::prepareIntern(ExceptionSink *xsink) {
+   int rc = priv->ds->getDriver()->stmt_prepare(this, str, prepare_args, xsink);
    if (!rc)
       status = STMT_PREPARED;
    return rc;
 }
 
-int QoreSQLStatement::prepareRaw(const QoreString &str, ExceptionSink *xsink) {
+int QoreSQLStatement::prepare(const QoreString &n_str, const QoreListNode *args, ExceptionSink *xsink) {
+   DBActionHelper dba(*this, xsink);
+   if (!dba)
+      return -1;   
+
+   if (checkStatus(dba, STMT_IDLE, "prepare", xsink))
+      return -1;
+
+   if (prepareArgs(false, n_str, args, xsink))
+      return -1;
+
+   return prepareIntern(xsink);
+}
+
+int QoreSQLStatement::prepareRaw(const QoreString &n_str, ExceptionSink *xsink) {
    DBActionHelper dba(*this, xsink);
    if (!dba)
       return -1;
@@ -166,10 +187,10 @@ int QoreSQLStatement::prepareRaw(const QoreString &str, ExceptionSink *xsink) {
    if (checkStatus(dba, STMT_IDLE, "prepareRaw", xsink))
       return -1;
 
-   int rc = priv->ds->getDriver()->stmt_prepare_raw(this, str, xsink);
-   if (!rc)
-      status = STMT_PREPARED;
-   return rc;
+   if (prepareArgs(true, n_str, 0, xsink))
+      return -1;
+
+   return prepareIntern(xsink);
 }
 
 int QoreSQLStatement::bind(const QoreListNode &l, ExceptionSink *xsink) {
@@ -320,4 +341,45 @@ QoreHashNode *QoreSQLStatement::fetchColumns(int rows, ExceptionSink *xsink) {
 
 bool QoreSQLStatement::active() const {
    return status != STMT_IDLE;
+}
+
+int QoreSQLStatement::close(ExceptionSink *xsink) {
+   DBActionHelper dba(*this, xsink, trans_status == STMT_TRANS_NEW ? DAH_RELEASE : DAH_NONE);
+   if (!dba)
+      return -1;
+
+   return closeIntern(xsink);
+}
+
+int QoreSQLStatement::commit(ExceptionSink *xsink) {
+   DBActionHelper dba(*this, xsink, DAH_RELEASE);
+   if (!dba)
+      return -1;
+
+   int rc = closeIntern(xsink);
+   rc = priv->ds->commit(xsink);
+   //printd(5, "QoreSQLStatement::commit() ds=%p rc=%d\n", priv->ds, rc);
+   return rc;
+}
+
+int QoreSQLStatement::rollback(ExceptionSink *xsink) {
+   DBActionHelper dba(*this, xsink, DAH_RELEASE);
+   if (!dba)
+      return -1;
+
+   int rc = closeIntern(xsink);
+   rc = priv->ds->rollback(xsink);
+   //printd(5, "QoreSQLStatement::rollback() d=%p rc=%d\n", priv->ds, rc);
+   return rc;
+}
+
+int QoreSQLStatement::beginTransaction(ExceptionSink *xsink) {
+   DBActionHelper dba(*this, xsink, DAH_ACQUIRE);
+   if (!dba)
+      return -1;
+
+   int rc = priv->ds->beginTransaction(xsink);
+   if (!rc)
+      trans_status = STMT_TRANS_EXISTED;
+   return rc;
 }

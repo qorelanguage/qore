@@ -376,27 +376,27 @@ QoreListNode *DBIDriver::getCapList() const {
    return l;
 }
 
-int DBIDriver::init(Datasource *ds, ExceptionSink *xsink) {
+int DBIDriver::init(Datasource *ds, ExceptionSink *xsink) const {
    return priv->f.open(ds, xsink);
 }
 
-int DBIDriver::close(Datasource *ds) {
+int DBIDriver::close(Datasource *ds) const {
    return priv->f.close(ds);
 }
 
-AbstractQoreNode *DBIDriver::select(Datasource *ds, const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink) {
+AbstractQoreNode *DBIDriver::select(Datasource *ds, const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink) const {
    return priv->f.select(ds, sql, args, xsink);
 }
 
-AbstractQoreNode *DBIDriver::selectRows(Datasource *ds, const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink) {
+AbstractQoreNode *DBIDriver::selectRows(Datasource *ds, const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink) const {
    return priv->f.selectRows(ds, sql, args, xsink);
 }
 
-AbstractQoreNode *DBIDriver::execSQL(Datasource *ds, const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink) {
+AbstractQoreNode *DBIDriver::execSQL(Datasource *ds, const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink) const {
    return priv->f.execSQL(ds, sql, args, xsink);
 }
 
-AbstractQoreNode *DBIDriver::execRawSQL(Datasource *ds, const QoreString *sql, ExceptionSink *xsink) {
+AbstractQoreNode *DBIDriver::execRawSQL(Datasource *ds, const QoreString *sql, ExceptionSink *xsink) const {
    if (!priv->f.execRawSQL) {
       xsink->raiseException("DBI-EXEC-RAW-SQL-ERROR", "this driver does not implement the Datasource::execRawSQL() method");
       return 0;
@@ -404,21 +404,21 @@ AbstractQoreNode *DBIDriver::execRawSQL(Datasource *ds, const QoreString *sql, E
    return priv->f.execRawSQL(ds, sql, xsink);
 }
 
-int DBIDriver::commit(Datasource *ds, ExceptionSink *xsink) {
+int DBIDriver::commit(Datasource *ds, ExceptionSink *xsink) const {
    return priv->f.commit(ds, xsink);
 }
 
-int DBIDriver::rollback(Datasource *ds, ExceptionSink *xsink) {
+int DBIDriver::rollback(Datasource *ds, ExceptionSink *xsink) const {
    return priv->f.rollback(ds, xsink);
 }
 
-int DBIDriver::beginTransaction(Datasource *ds, ExceptionSink *xsink) {
+int DBIDriver::beginTransaction(Datasource *ds, ExceptionSink *xsink) const {
    if (priv->f.begin_transaction)
       return priv->f.begin_transaction(ds, xsink);
    return 0; // 0 = OK
 }
 
-int DBIDriver::autoCommit(Datasource *ds, ExceptionSink *xsink) {
+int DBIDriver::autoCommit(Datasource *ds, ExceptionSink *xsink) const {
    // if the driver does not require explicit "begin" statements to
    // start a transaction, then we have to explicitly call "commit" here
    if (!priv->f.begin_transaction)
@@ -427,19 +427,19 @@ int DBIDriver::autoCommit(Datasource *ds, ExceptionSink *xsink) {
    return 0; // 0 = OK
 }
 
-int DBIDriver::abortTransactionStart(Datasource *ds, ExceptionSink *xsink) {
+int DBIDriver::abortTransactionStart(Datasource *ds, ExceptionSink *xsink) const {
    if (priv->f.abort_transaction_start)
       return priv->f.abort_transaction_start(ds, xsink);
    return 0; // 0 = OK
 }
 
-AbstractQoreNode *DBIDriver::getServerVersion(Datasource *ds, ExceptionSink *xsink) {
+AbstractQoreNode *DBIDriver::getServerVersion(Datasource *ds, ExceptionSink *xsink) const {
    if (priv->f.get_server_version)
       return priv->f.get_server_version(ds, xsink);
    return 0;
 }
 
-AbstractQoreNode *DBIDriver::getClientVersion(const Datasource *ds, ExceptionSink *xsink) {
+AbstractQoreNode *DBIDriver::getClientVersion(const Datasource *ds, ExceptionSink *xsink) const {
    if (priv->f.get_client_version)
       return priv->f.get_client_version(ds, xsink);
    return 0;

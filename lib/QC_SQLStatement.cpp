@@ -144,6 +144,24 @@ static AbstractQoreNode *SQLSTATEMENT_close(QoreObject *self, QoreSQLStatement *
    return 0;
 }
 
+// SQLStatement::commit() returns nothing
+static AbstractQoreNode *SQLSTATEMENT_commit(QoreObject *self, QoreSQLStatement *stmt, const QoreListNode *args, ExceptionSink *xsink) {
+   stmt->commit(xsink);
+   return 0;
+}
+
+// SQLStatement::rollback() returns nothing
+static AbstractQoreNode *SQLSTATEMENT_rollback(QoreObject *self, QoreSQLStatement *stmt, const QoreListNode *args, ExceptionSink *xsink) {
+   stmt->rollback(xsink);
+   return 0;
+}
+
+// SQLStatement::beginTransaction() returns nothing
+static AbstractQoreNode *SQLSTATEMENT_beginTransaction(QoreObject *self, QoreSQLStatement *stmt, const QoreListNode *args, ExceptionSink *xsink) {
+   stmt->beginTransaction(xsink);
+   return 0;
+}
+
 // SQLStatement::next() returns bool
 static AbstractQoreNode *SQLSTATEMENT_next(QoreObject *self, QoreSQLStatement *stmt, const QoreListNode *args, ExceptionSink *xsink) {
    bool b = stmt->next(xsink);
@@ -209,6 +227,15 @@ QoreClass *initSQLStatementClass(QoreClass *QC_Datasource, QoreClass *QC_Datasou
 
    // SQLStatement::close() returns nothing
    QC_SQLSTATEMENT->addMethodExtended("close",            (q_method_t)SQLSTATEMENT_close, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
+
+   // SQLStatement::commit() returns nothing
+   QC_SQLSTATEMENT->addMethodExtended("commit",           (q_method_t)SQLSTATEMENT_commit, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
+
+   // SQLStatement::rollback() returns nothing
+   QC_SQLSTATEMENT->addMethodExtended("rollback",         (q_method_t)SQLSTATEMENT_rollback, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
+
+   // SQLStatement::beginTransaction() returns nothing
+   QC_SQLSTATEMENT->addMethodExtended("beginTransaction", (q_method_t)SQLSTATEMENT_beginTransaction, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
 
    // SQLStatement::next() returns bool
    QC_SQLSTATEMENT->addMethodExtended("next",             (q_method_t)SQLSTATEMENT_next, false, QC_NO_FLAGS, QDOM_DEFAULT, boolTypeInfo);

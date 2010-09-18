@@ -50,10 +50,16 @@ protected:
 
    // helper object for acquiring a Datasource pointer
    DatasourceStatementHelper *dsh;
+   // copy of SQL string
+   QoreString str;
+   // copy of prepare args
+   QoreListNode *prepare_args;
    // status
    unsigned char status;
    // new transaction status
    char trans_status;
+   // raw prepare flag
+   bool raw;
 
    DLLLOCAL static int invalidException(ExceptionSink *xsink) {
       xsink->raiseException("SQLSTATMENT-ERROR", "TID %d attempted to acquire already deleted SQLStatement object", gettid());
@@ -65,9 +71,11 @@ protected:
    DLLLOCAL int closeIntern(ExceptionSink *xsink);
    DLLLOCAL int execIntern(DBActionHelper &dba, ExceptionSink *xsink);
    DLLLOCAL int defineIntern(ExceptionSink *xsink);
-
+   DLLLOCAL int prepareIntern(ExceptionSink *xsink);
+   DLLLOCAL int prepareArgs(bool n_raw, const QoreString &n_str, const QoreListNode *args, ExceptionSink *xsink);
+      
 public:
-   DLLLOCAL QoreSQLStatement() : dsh(0), status(STMT_IDLE), trans_status(STMT_TRANS_UNKNOWN) {
+   DLLLOCAL QoreSQLStatement() : dsh(0), prepare_args(0), status(STMT_IDLE), trans_status(STMT_TRANS_UNKNOWN), raw(false) {
    }
 
    DLLLOCAL ~QoreSQLStatement();
@@ -101,6 +109,9 @@ public:
    DLLLOCAL QoreHashNode *fetchColumns(int rows, ExceptionSink *xsink);
 
    DLLLOCAL int close(ExceptionSink *xsink);
+   DLLLOCAL int commit(ExceptionSink *xsink);
+   DLLLOCAL int rollback(ExceptionSink *xsink);
+   DLLLOCAL int beginTransaction(ExceptionSink *xsink);
 
    DLLLOCAL bool active() const;
 };

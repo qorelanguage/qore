@@ -309,19 +309,19 @@ public:
 
    DLLLOCAL DBIDriver(const char *name, const dbi_method_list_t &methods, int cps);
    DLLLOCAL ~DBIDriver();
-   DLLLOCAL int init(Datasource *ds, ExceptionSink *xsink);
-   DLLLOCAL int close(Datasource *ds);
-   DLLLOCAL AbstractQoreNode *select(Datasource *ds, const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink);
-   DLLLOCAL AbstractQoreNode *selectRows(Datasource *ds, const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink);
-   DLLLOCAL AbstractQoreNode *execSQL(Datasource *ds, const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink);
-   DLLLOCAL AbstractQoreNode *execRawSQL(Datasource *ds, const QoreString *sql, ExceptionSink *xsink);
-   DLLLOCAL int commit(Datasource *, ExceptionSink *xsink);
-   DLLLOCAL int rollback(Datasource *, ExceptionSink *xsink);
-   DLLLOCAL int autoCommit(Datasource *, ExceptionSink *xsink);
-   DLLLOCAL int beginTransaction(Datasource *, ExceptionSink *xsink);
-   DLLLOCAL int abortTransactionStart(Datasource *, ExceptionSink *xsink);
-   DLLLOCAL AbstractQoreNode *getServerVersion(Datasource *, ExceptionSink *xsink);
-   DLLLOCAL AbstractQoreNode *getClientVersion(const Datasource *, ExceptionSink *xsink);
+   DLLLOCAL int init(Datasource *ds, ExceptionSink *xsink) const;
+   DLLLOCAL int close(Datasource *ds) const;
+   DLLLOCAL AbstractQoreNode *select(Datasource *ds, const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink) const;
+   DLLLOCAL AbstractQoreNode *selectRows(Datasource *ds, const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink) const;
+   DLLLOCAL AbstractQoreNode *execSQL(Datasource *ds, const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink) const;
+   DLLLOCAL AbstractQoreNode *execRawSQL(Datasource *ds, const QoreString *sql, ExceptionSink *xsink) const;
+   DLLLOCAL int commit(Datasource *, ExceptionSink *xsink) const;
+   DLLLOCAL int rollback(Datasource *, ExceptionSink *xsink) const;
+   DLLLOCAL int autoCommit(Datasource *, ExceptionSink *xsink) const;
+   DLLLOCAL int beginTransaction(Datasource *, ExceptionSink *xsink) const;
+   DLLLOCAL int abortTransactionStart(Datasource *, ExceptionSink *xsink) const;
+   DLLLOCAL AbstractQoreNode *getServerVersion(Datasource *, ExceptionSink *xsink) const;
+   DLLLOCAL AbstractQoreNode *getClientVersion(const Datasource *, ExceptionSink *xsink) const;
 
    DLLLOCAL int stmt_prepare(SQLStatement *stmt, const QoreString &str, const QoreListNode *args, ExceptionSink *xsink) const;
    DLLLOCAL int stmt_prepare_raw(SQLStatement *stmt, const QoreString &str, ExceptionSink *xsink) const;
