@@ -118,8 +118,10 @@ int QoreSQLStatement::checkStatus(DBActionHelper &dba, int stat, const char *act
 
 void QoreSQLStatement::deref(ExceptionSink *xsink) {
    if (ROdereference()) {
+      char cmd = trans_status == STMT_TRANS_EXISTED ? DAH_NONE : DAH_RELEASE;
+      //printd(5, "QoreSQLStatement::deref() deleting this=%p cmd=%s\n", this, DAH_TEXT(cmd));
       {
-         DBActionHelper dba(*this, xsink, trans_status == STMT_TRANS_EXISTED ? DAH_NONE : DAH_RELEASE);
+         DBActionHelper dba(*this, xsink, cmd);
          if (dba)
             closeIntern(xsink);
       }
@@ -162,6 +164,8 @@ int QoreSQLStatement::prepareIntern(ExceptionSink *xsink) {
    int rc = priv->ds->getDriver()->stmt_prepare(this, str, prepare_args, xsink);
    if (!rc)
       status = STMT_PREPARED;
+   else
+      closeIntern(xsink);
    return rc;
 }
 
@@ -356,6 +360,11 @@ int QoreSQLStatement::commit(ExceptionSink *xsink) {
    if (!dba)
       return -1;
 
+   if (dba.first) {
+      xsink->raiseException("SQLSTATEMENT-COMMIT-ERROR", "cannot call SQLStatement::commit() with no active statement");
+      return -1;
+   }
+
    int rc = closeIntern(xsink);
    rc = priv->ds->commit(xsink);
    //printd(5, "QoreSQLStatement::commit() ds=%p rc=%d\n", priv->ds, rc);
@@ -366,6 +375,11 @@ int QoreSQLStatement::rollback(ExceptionSink *xsink) {
    DBActionHelper dba(*this, xsink, DAH_RELEASE);
    if (!dba)
       return -1;
+
+   if (dba.first) {
+      xsink->raiseException("SQLSTATEMENT-ROLLBACK-ERROR", "cannot call SQLStatement::rollback() with no active statement");
+      return -1;
+   }
 
    int rc = closeIntern(xsink);
    rc = priv->ds->rollback(xsink);

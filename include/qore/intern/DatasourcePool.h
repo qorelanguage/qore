@@ -138,7 +138,7 @@ public:
       return getAllocatedDS();
    }
    
-   //DLLLOCAL virtual Datasource *helperGetDatasource(ExceptionSink *xsink) { return 0; }
+   //DLLLOCAL virtual void helperAssignDatasource(ExceptionSink *xsink) { return 0; }
    //DLLLOCAL virtual void helperReleaseDatasource() { }
 };
 

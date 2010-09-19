@@ -86,7 +86,7 @@ void DatasourcePool::cleanup(ExceptionSink *xsink) {
 #ifndef DEBUG
    xsink->raiseException("DATASOURCEPOOL-LOCK-EXCEPTION", "TID %d terminated while in a transaction; transaction will be automatically rolled back and the datasource returned to the pool", tid);
 #else
-   class QoreString *sql = getAndResetSQL();
+   QoreString *sql = getAndResetSQL();
    xsink->raiseException("DATASOURCEPOOL-LOCK-EXCEPTION", "TID %d terminated while in a transaction; transaction will be automatically rolled back and the datasource returned to the pool\n%s", tid, sql ? sql->getBuffer() : "<no data>");
    if (sql)
       delete sql;
@@ -131,16 +131,9 @@ void DatasourcePool::destructor(ExceptionSink *xsink) {
       sl.unlock();
 
       // execute rollback on Datasource before releasing to pool
-      pool[i->second]->rollback(xsink);
+      pool[curr]->rollback(xsink);
 
-      // grab lock to add to free list and erase thread map entry
-      sl.lock();
-      free_list.push_back(curr);
-      // erase thread map entry
-      tmap.erase(i);
-      // signal any waiting threads
-      if (wait_count)
-	 signal();
+      freeDS();
    }
 }
 
