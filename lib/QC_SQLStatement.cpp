@@ -64,6 +64,7 @@ static void SQLSTATEMENT_constructor_dsp(QoreObject *self, const QoreListNode *a
    ss->init(dsp->getReferencedHelper(*ss));
    self->setPrivate(CID_SQLSTATEMENT, ss.release());
 }
+#endif
 
 static void SQLSTATEMENT_destructor(QoreObject *self, QoreSQLStatement *stmt, ExceptionSink *xsink) {
    stmt->close(xsink);

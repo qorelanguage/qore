@@ -26,7 +26,7 @@
 #include <qore/intern/DatasourceStatementHelper.h>
 #include <qore/intern/sql_statement_private.h>
 
-const char *QoreSQLStatement::stmt_statuses[] = { "idle", "prepared", "defined", "executed", "deleted" };
+const char *QoreSQLStatement::stmt_statuses[] = { "idle", "prepared", "defined", "executed" };
 
 struct DBActionHelper {
    QoreSQLStatement &stmt;
@@ -35,8 +35,9 @@ struct DBActionHelper {
    char cmd;
    bool nt;
    bool first;
+   bool do_release;
 
-   DLLLOCAL DBActionHelper(QoreSQLStatement &n_stmt, ExceptionSink *n_xsink, char n_cmd = DAH_NONE) : stmt(n_stmt), xsink(n_xsink), valid(false), cmd(n_cmd), nt(false), first(false) {
+   DLLLOCAL DBActionHelper(QoreSQLStatement &n_stmt, ExceptionSink *n_xsink, char n_cmd = DAH_NONE) : stmt(n_stmt), xsink(n_xsink), valid(false), cmd(n_cmd), nt(false), first(false), do_release(false) {
       stmt.priv->ds = stmt.dsh->helperStartAction(xsink, nt);
 
       if (stmt.trans_status == STMT_TRANS_UNKNOWN) {
@@ -50,23 +51,37 @@ struct DBActionHelper {
 
    DLLLOCAL ~DBActionHelper() {
       if (valid) {
+         char orig_cmd = cmd;
          if (stmt.priv->ds->wasConnectionAborted()) {
-            cmd = DAH_RELEASE;
+            orig_cmd = cmd = DAH_RELEASE;
             // FIXME: do something else here?
          }
-         else if (first && stmt.trans_status == STMT_TRANS_NEW && (cmd == DAH_NONE || *xsink)) {
-            cmd = DAH_RELEASE;
+         else if (first && stmt.trans_status == STMT_TRANS_NEW) {
+            if (*xsink) {
+               orig_cmd = cmd = DAH_RELEASE;
+            }
+            else if (cmd == DAH_NONE) {
+               cmd = DAH_RELEASE;
+               if (do_release)
+                  orig_cmd = cmd;
+            }
          }
+
+         stmt.priv->ds = stmt.dsh->helperEndAction(orig_cmd, cmd, nt);
+
          if (cmd == DAH_RELEASE)
             stmt.trans_status = STMT_TRANS_UNKNOWN;
 
-         stmt.priv->ds = stmt.dsh->helperEndAction(cmd, nt);
          //printd(0, "DBActionHelper::~DBActionHelper() ds=%p cmd=%s stat=%s nt=%d xsink=%d\n", stmt.priv->ds, DAH_TEXT(cmd), STMT_TRANS_TEXT(stmt.trans_status), nt, xsink->isEvent());
       }
    }
 
    DLLLOCAL void reset() {
       first = true;
+   }
+
+   DLLLOCAL void release() {
+      do_release = true;
    }
 
    DLLLOCAL operator bool() const {
@@ -83,9 +98,6 @@ void QoreSQLStatement::init(DatasourceStatementHelper *n_dsh) {
 }
 
 int QoreSQLStatement::checkStatus(DBActionHelper &dba, int stat, const char *action, ExceptionSink *xsink) {
-   if (status == STMT_DELETED)
-      return invalidException(xsink);
-
    if (stat != status) {
       if (stat == STMT_IDLE) {
          dba.reset();
@@ -180,7 +192,9 @@ int QoreSQLStatement::prepare(const QoreString &n_str, const QoreListNode *args,
    if (prepareArgs(false, n_str, args, xsink))
       return -1;
 
-   return prepareIntern(xsink);
+   dba.release();
+
+   return 0;//prepareIntern(xsink);
 }
 
 int QoreSQLStatement::prepareRaw(const QoreString &n_str, ExceptionSink *xsink) {
@@ -194,7 +208,9 @@ int QoreSQLStatement::prepareRaw(const QoreString &n_str, ExceptionSink *xsink) 
    if (prepareArgs(true, n_str, 0, xsink))
       return -1;
 
-   return prepareIntern(xsink);
+   dba.release();
+
+   return 0;//prepareIntern(xsink);
 }
 
 int QoreSQLStatement::bind(const QoreListNode &l, ExceptionSink *xsink) {

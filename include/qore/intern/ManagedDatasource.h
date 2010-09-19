@@ -129,7 +129,7 @@ public:
       return tid == gettid() ? this : 0;
    }
 
-   DLLLOCAL virtual Datasource *helperEndAction(char cmd, bool new_transaction) {
+   DLLLOCAL virtual Datasource *helperEndAction(char orig_cmd, char &cmd, bool new_transaction) {
       return endDBAction(cmd, new_transaction) ? this : 0;
    }
 };

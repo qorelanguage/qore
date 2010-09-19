@@ -39,7 +39,7 @@ public:
 
    virtual Datasource *helperStartAction(ExceptionSink *xsink, bool &new_transaction) = 0;
 
-   virtual Datasource *helperEndAction(char cmd, bool new_transaction) = 0;
+   virtual Datasource *helperEndAction(char orig_cmd, char &cmd, bool new_transaction) = 0;
 };
 
 #endif

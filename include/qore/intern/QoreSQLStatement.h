@@ -32,7 +32,6 @@ class DatasourceStatementHelper;
 #define STMT_PREPARED  1
 #define STMT_DEFINED   2
 #define STMT_EXECED    3
-#define STMT_DELETED   4
 
 #define STMT_TRANS_UNKNOWN 0
 #define STMT_TRANS_NEW     1
@@ -60,11 +59,6 @@ protected:
    char trans_status;
    // raw prepare flag
    bool raw;
-
-   DLLLOCAL static int invalidException(ExceptionSink *xsink) {
-      xsink->raiseException("SQLSTATMENT-ERROR", "TID %d attempted to acquire already deleted SQLStatement object", gettid());
-      return -1;
-   }
 
    DLLLOCAL int checkStatus(DBActionHelper &dba, int stat, const char *action, ExceptionSink *xsink);
 

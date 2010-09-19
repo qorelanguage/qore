@@ -125,14 +125,17 @@ public:
       return getDS(new_transaction, xsink);
    }
 
-   DLLLOCAL virtual Datasource *helperEndAction(char cmd, bool new_transaction) {
+   DLLLOCAL virtual Datasource *helperEndAction(char orig_cmd, char &cmd, bool new_transaction) {
       //printd(0, "DatasourcePool::helperEndAction() cmd=%d, nt=%d\n", cmd, new_transaction);
-      if (cmd == DAH_RELEASE
-          || (new_transaction && cmd == DAH_NONE)) {
-         //printd(0, "DatasourcePool::helperEndAction() returning 0\n");
+      if (cmd == DAH_RELEASE) {
+         if (orig_cmd != DAH_NONE) {
+            //|| (new_transaction && cmd == DAH_NONE)) {
+            //printd(0, "DatasourcePool::helperEndAction() returning 0\n");
 
-         freeDS();
-         return 0;
+            freeDS();
+            return 0;
+         }
+         cmd = DAH_NONE;
       }
 
       return getAllocatedDS();
