@@ -228,8 +228,10 @@ int Datasource::open(ExceptionSink *xsink) {
       priv->connection_aborted = false;
 
       rc = priv->dsl->init(this, xsink);
-      if (!xsink->isEvent())
+      if (!*xsink) {
+	 assert(priv->qorecharset);
 	 priv->isopen = true;
+      }
    }
    else
       rc = 0;

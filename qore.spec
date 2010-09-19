@@ -141,14 +141,14 @@ Requires: libqore5 = %{version}-%{release}
 
 %description devel
 Qore is a modular, multithreaded, weakly-typed, object-oriented programming
-language suitable for embedding application logic, application scripting,
-interface development, and even complex multi-threaded, network-aware object-
-oriented application development. Qore features integrated XML and JSON 
-support (as well as HTTP, XML-RPC, and JSON-RPC client classes), database
-integration, database-independent programming support, exception-handling and 
-exception-safe programming support, TIBCO and Tuxedo modules, as well as built-
-in date arithmetic, character encoding (including proper UTF-8) support, and
-much more.
+language with optional strong typing suitable for embedding application logic,
+application scripting, interface development, and even complex multi-threaded,
+network-aware object-oriented application development. Qore features integrated
+XML and JSON support (as well as HTTP, XML-RPC, and JSON-RPC client classes),
+database integration, database-independent programming support, exception-
+handling and exception-safe programming support, TIBCO and Tuxedo modules, as
+well as built-in date arithmetic, character encoding (including proper UTF-8)
+support, and much more.
 
 This module provides header files needed to compile client programs using the
 Qore library.
