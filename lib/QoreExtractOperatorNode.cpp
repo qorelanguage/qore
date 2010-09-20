@@ -47,6 +47,8 @@ AbstractQoreNode *QoreExtractOperatorNode::evalImpl(bool &needs_deref, Exception
 AbstractQoreNode *QoreExtractOperatorNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    const QoreTypeInfo *expTypeInfo = 0;
 
+   pflag &= ~PF_RETURN_VALUE_IGNORED;
+
    // check lvalue expression
    lvalue_exp = lvalue_exp->parseInit(oflag, pflag | PF_FOR_ASSIGNMENT, lvids, expTypeInfo);
    if (expTypeInfo->hasType()) {

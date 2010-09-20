@@ -233,7 +233,7 @@ protected:
       }
 
       // now check fundamental type
-      return parseAcceptsBasic(typeInfo);
+      return parseAcceptsBasic(typeInfo) ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
    }
 
    DLLLOCAL qore_type_result_e matchTypeIntern(qore_type_t t, bool n_is_int) const {
