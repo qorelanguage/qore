@@ -1290,6 +1290,88 @@ public:
    }
 };
 
+// accepts int, float, string, date, bool, or null and returns a date
+class SoftDateTypeInfo : public AcceptsMultiFilterTypeInfo {
+protected:
+   DLLLOCAL virtual const char *getNameImpl() const {
+      return "softdate";
+   }
+
+   DLLLOCAL virtual bool acceptInputImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const {
+      qore_type_t t = get_node_type(n);
+
+      if (t == NT_DATE)
+         return true;
+
+      if (t != NT_INT && (t < QORE_NUM_TYPES || !dynamic_cast<const QoreBigIntNode *>(n))
+          && t != NT_FLOAT
+          && t != NT_STRING
+          && t != NT_BOOLEAN
+          && t != NT_NULL)
+         return false;
+
+      DateTimeNodeValueHelper dt(n);
+      DateTimeNode *rv = dt.getReferencedValue();
+      n->deref(xsink);
+      n = rv;
+      return true;
+   }
+
+   // must be reimplemented in subclasses if has_defval is true
+   DLLLOCAL virtual AbstractQoreNode *getDefaultValueImpl() const {
+      return &False;
+   }
+
+public:
+   DLLLOCAL SoftDateTypeInfo(bool n_returns_mult = false) : AcceptsMultiFilterTypeInfo(0, NT_DATE, n_returns_mult, false, true, n_returns_mult ? false : true, false, n_returns_mult ? false : true) {
+      at.push_back(bigIntTypeInfo);
+      at.push_back(floatTypeInfo);
+      at.push_back(stringTypeInfo);
+      at.push_back(boolTypeInfo);
+      at.push_back(nullTypeInfo);
+   }
+};
+
+class SoftDateOrNothingTypeInfo : public SoftDateTypeInfo {
+protected:
+   type_vec_t rt;
+
+   DLLLOCAL virtual const type_vec_t &getReturnTypeList() const {
+      return rt;
+   }
+
+   DLLLOCAL virtual const char *getNameImpl() const {
+      return "*softdate";
+   }
+
+   DLLLOCAL virtual bool acceptInputImpl(AbstractQoreNode *&n, ExceptionSink *xsink) const {
+      qore_type_t t = get_node_type(n);
+
+      if (t == NT_DATE || t == NT_NOTHING)
+         return true;
+
+      if (t != NT_INT && (t < QORE_NUM_TYPES || !dynamic_cast<const QoreBigIntNode *>(n))
+          && t != NT_FLOAT
+          && t != NT_STRING
+          && t != NT_BOOLEAN
+          && t != NT_NULL)
+         return false;
+
+      DateTimeNodeValueHelper dt(n);
+      DateTimeNode *rv = dt.getReferencedValue();
+      n->deref(xsink);
+      n = rv;
+      return true;
+   }
+
+public:
+   DLLLOCAL SoftDateOrNothingTypeInfo() : SoftDateTypeInfo(true) {
+      at.push_back(nothingTypeInfo);
+      rt.push_back(dateTypeInfo);
+      rt.push_back(nothingTypeInfo);
+   }
+};
+
 // accepts int, float, string, date, null, or boolean and returns a string
 class SoftStringTypeInfo : public AcceptsMultiFilterTypeInfo {
 protected:
