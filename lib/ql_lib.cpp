@@ -185,7 +185,7 @@ static AbstractQoreNode *f_waitpid(const QoreListNode *params, ExceptionSink *xs
 */
 
 static QoreListNode *map_sbuf_to_list(struct stat *sbuf) {
-   QoreListNode *l = new QoreListNode();
+   QoreListNode *l = new QoreListNode;
 
    // note that dev_t on Linux is an unsigned 64-bit integer, so we could lose precision here
    l->push(new QoreBigIntNode((int64)sbuf->st_dev));
@@ -209,7 +209,7 @@ static QoreListNode *map_sbuf_to_list(struct stat *sbuf) {
 }
 
 static QoreHashNode *map_sbuf_to_hash(struct stat *sbuf) {
-   QoreHashNode *h = new QoreHashNode();
+   QoreHashNode *h = new QoreHashNode;
 
    // note that dev_t on Linux is an unsigned 64-bit integer, so we could lose precision here
    h->setKeyValue("dev",     new QoreBigIntNode((int64)sbuf->st_dev), 0);
@@ -623,11 +623,11 @@ void init_lib_functions() {
 
    builtinFunctions.add2("hstat",       f_noop, QC_RUNTIME_NOOP, QDOM_FILESYSTEM, nothingTypeInfo);
    // hstat(string $path) returns *hash
-   builtinFunctions.add2("hstat",       f_hstat, QC_NO_FLAGS, QDOM_FILESYSTEM, 0, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("hstat",       f_hstat, QC_NO_FLAGS, QDOM_FILESYSTEM, hashOrNothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add2("hlstat",      f_noop, QC_RUNTIME_NOOP, QDOM_FILESYSTEM, nothingTypeInfo);
    // hlstat(string $path) returns *hash
-   builtinFunctions.add2("hlstat",      f_hlstat, QC_NO_FLAGS, QDOM_FILESYSTEM, 0, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("hlstat",      f_hlstat, QC_NO_FLAGS, QDOM_FILESYSTEM, hashOrNothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    // glob(string $str) returns *list
    builtinFunctions.add2("glob",        f_noop, QC_RUNTIME_NOOP, QDOM_FILESYSTEM, nothingTypeInfo);

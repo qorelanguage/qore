@@ -16863,14 +16863,14 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Prototype</term>
       <listitem>
-	<para><code><link linkend="hstat">hstat</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para>
+	<para><code><link linkend="hstat">hstat</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>) <command>returns</command> <link linkend="*hstat_type">*hstat</link></code></para>
 	<para><code><link linkend="hstat">hstat</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Example</term>
       <listitem>
-	<programlisting>$type = hstat("/bin/sh").type; # returns "REGULAR"</programlisting>
+	<programlisting><command>my</command> *hash $h = hstat("/bin/sh")</programlisting>
       </listitem>
     </varlistentry>
       <varlistentry>

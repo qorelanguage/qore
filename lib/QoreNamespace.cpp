@@ -451,7 +451,7 @@ QoreNamespace *QoreNamespace::findCreateNamespacePath(const char *nspath) {
    // iterate through each level of the namespace path and find/create namespaces as needed
    QoreNamespaceList *nsl = priv->nsl;
    QoreNamespace *parent = this;
-   QoreNamespace *tns;
+   QoreNamespace *tns = 0;
    for (int i = 0; i < ns.size(); ++i) {
       const char *nsn = ns.strlist[i].c_str();
       tns = nsl->find(nsn);

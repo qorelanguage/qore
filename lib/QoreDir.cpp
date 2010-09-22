@@ -273,7 +273,7 @@ class qore_qd_private {
 		  fname.concat('/');
 		  fname.concat(de->d_name);
 		  struct stat buf;
-		  int rc = stat(fname.getBuffer(), &buf);
+		  int rc = hstat(fname.getBuffer(), &buf);
 		  if (rc) {
 		     xsink->raiseErrnoException("DIR-READ-ERROR", errno, "stat() failed on '%s'", fname.getBuffer());
 		     return 0;
