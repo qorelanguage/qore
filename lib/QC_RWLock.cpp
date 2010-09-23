@@ -45,7 +45,7 @@ static AbstractQoreNode *RWLOCK_readLock(QoreObject *self, RWLock *rwl, const Qo
 
 // RWLock::readLock(timeout $timeout) returns int
 static AbstractQoreNode *RWLOCK_readLock_timeout(QoreObject *self, RWLock *rwl, const QoreListNode *params, ExceptionSink *xsink) {
-   int timeout_ms = HARD_QORE_INT(params, 0);
+   int timeout_ms = (int)HARD_QORE_INT(params, 0);
    int rc = rwl->readLock(xsink, timeout_ms);
    return *xsink ? 0 : new QoreBigIntNode(rc);
 }
@@ -62,7 +62,7 @@ static AbstractQoreNode *RWLOCK_writeLock(QoreObject *self, RWLock *rwl, const Q
 
 // RWLock::writeLock(timeout $timeout) returns int
 static AbstractQoreNode *RWLOCK_writeLock_timeout(QoreObject *self, RWLock *rwl, const QoreListNode *params, ExceptionSink *xsink) {
-   int timeout_ms = HARD_QORE_INT(params, 0);
+   int timeout_ms = (int)HARD_QORE_INT(params, 0);
    int rc = rwl->grab(xsink, timeout_ms);
    return *xsink ? 0 : new QoreBigIntNode(rc);
 }

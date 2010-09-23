@@ -329,8 +329,8 @@ void ExceptionSink::defaultExceptionHandler(QoreException *e) {
 	    else {
 	       QoreStringNode *fn = reinterpret_cast<QoreStringNode *>(h->getKeyValue("file"));
 	       const char *fns = fn ? fn->getBuffer() : 0;
-	       int start_line = reinterpret_cast<QoreBigIntNode *>(h->getKeyValue("line"))->val;
-	       int end_line = reinterpret_cast<QoreBigIntNode *>(h->getKeyValue("endline"))->val;
+	       int start_line = (int)reinterpret_cast<QoreBigIntNode *>(h->getKeyValue("line"))->val;
+	       int end_line = (int)reinterpret_cast<QoreBigIntNode *>(h->getKeyValue("endline"))->val;
 	       if (!strcmp(type, "rethrow")) {
 		  if (fn)
 		     printe(" %2d: RETHROW at %s:%d\n", pos, fn->getBuffer(), start_line);

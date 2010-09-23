@@ -745,7 +745,7 @@ static AbstractQoreNode *f_makeFormattedJSONRPCErrorString(const QoreListNode *p
 
 // syntax: makeJSONRPC11ErrorString(code, message, id, error)
 static AbstractQoreNode *f_makeJSONRPC11ErrorString(const QoreListNode *params, ExceptionSink *xsink) {
-   int code = HARD_QORE_INT(params, 0);
+   int code = (int)HARD_QORE_INT(params, 0);
    if (code < 100 || code > 999) {
       xsink->raiseException("MAKE-JSONRPC11-ERROR-STRING-ERROR", "error code (first argument) must be between 100 and 999 inclusive (value passed: %d)", code);
       return 0;
@@ -791,7 +791,7 @@ static AbstractQoreNode *f_makeJSONRPC11ErrorString(const QoreListNode *params, 
 
 // syntax: makeFormattedJSONRPC11ErrorString(code, message, id, error)
 static AbstractQoreNode *f_makeFormattedJSONRPC11ErrorString(const QoreListNode *params, ExceptionSink *xsink) {
-   int code = HARD_QORE_INT(params, 0);
+   int code = (int)HARD_QORE_INT(params, 0);
    if (code < 100 || code > 999) {
       xsink->raiseException("MAKE-JSONRPC11-ERROR-STRING-ERROR", "error code (first argument) must be between 100 and 999 inclusive (value passed: %d)", code);
       return 0;

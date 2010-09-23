@@ -57,7 +57,7 @@ static AbstractQoreNode *COUNTER_waitForZero(QoreObject *self, Counter *c, const
 
 // Counter::waitForZero(timeout $timeout) returns int
 static AbstractQoreNode *COUNTER_waitForZero_timeout(QoreObject *self, Counter *c, const QoreListNode *params, ExceptionSink *xsink) {
-   int timeout_ms = HARD_QORE_INT(params, 0);
+   int timeout_ms = (int)HARD_QORE_INT(params, 0);
    int rc = c->waitForZero(xsink, timeout_ms);
    return *xsink ? 0 : new QoreBigIntNode(rc);
 }

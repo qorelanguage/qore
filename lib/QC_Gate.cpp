@@ -41,7 +41,7 @@ static void GATE_copy(QoreObject *self, QoreObject *old, QoreGate *g, ExceptionS
 
 // Gate::enter(timeout $timeout) returns int
 static AbstractQoreNode *GATE_enter_to(QoreObject *self, QoreGate *g, const QoreListNode *params, ExceptionSink *xsink) {
-   int rc = g->grab(xsink, HARD_QORE_INT(params, 0));
+   int rc = g->grab(xsink, (int)HARD_QORE_INT(params, 0));
    return *xsink ? 0 : new QoreBigIntNode(rc);
 }
 

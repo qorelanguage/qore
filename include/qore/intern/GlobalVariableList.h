@@ -53,7 +53,7 @@ public:
    DLLLOCAL Var *checkVar(const char *name, QoreParseTypeInfo *typeInfo, int *new_vars);
    DLLLOCAL Var *checkVar(const char *name, const QoreTypeInfo *typeInfo, int *new_vars);
    DLLLOCAL QoreListNode *getVarList() const;
-   DLLLOCAL void parseInit(int parse_options);
+   DLLLOCAL void parseInit(int64 parse_options);
    DLLLOCAL void parseCommit();
    DLLLOCAL void parseRollback();
 };

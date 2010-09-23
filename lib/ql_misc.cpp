@@ -690,7 +690,7 @@ BinaryNode *qore_gunzip_to_binary(const BinaryNode *bin, ExceptionSink *xsink) {
 
 static AbstractQoreNode *f_compress_str(const QoreListNode *params, ExceptionSink *xsink) {
    HARD_QORE_PARAM(str, const QoreStringNode, params, 0);
-   int level = HARD_QORE_INT(params, 1);
+   int level = (int)HARD_QORE_INT(params, 1);
 
    if ((level < 1 && level != -1) || level > 9) {
       xsink->raiseException("ZLIB-LEVEL-ERROR", "level must be between 1 - 9 or -1 (value passed: %d)", level);
@@ -705,7 +705,7 @@ static AbstractQoreNode *f_compress_str(const QoreListNode *params, ExceptionSin
 
 static AbstractQoreNode *f_compress_bin(const QoreListNode *params, ExceptionSink *xsink) {
    HARD_QORE_PARAM(b, const BinaryNode, params, 0);
-   int level = HARD_QORE_INT(params, 1);
+   int level = (int)HARD_QORE_INT(params, 1);
 
    if ((level < 1 && level != -1) || level > 9) {
       xsink->raiseException("ZLIB-LEVEL-ERROR", "level must be between 1 - 9 or -1 (value passed: %d)", level);
@@ -733,7 +733,7 @@ static AbstractQoreNode *f_uncompress_to_binary(const QoreListNode *params, Exce
 
 static AbstractQoreNode *f_gzip_str(const QoreListNode *params, ExceptionSink *xsink) {
    HARD_QORE_PARAM(str, const QoreStringNode, params, 0);
-   int level = HARD_QORE_INT(params, 1);
+   int level = (int)HARD_QORE_INT(params, 1);
 
    if (!level || level > 9) {
       xsink->raiseException("ZLIB-LEVEL-ERROR", "level must be between 0 - 9 (value passed: %d)", level);
@@ -748,7 +748,7 @@ static AbstractQoreNode *f_gzip_str(const QoreListNode *params, ExceptionSink *x
 
 static AbstractQoreNode *f_gzip_bin(const QoreListNode *params, ExceptionSink *xsink) {
    HARD_QORE_PARAM(b, const BinaryNode, params, 0);
-   int level = HARD_QORE_INT(params, 1);
+   int level = (int)HARD_QORE_INT(params, 1);
 
    if (!level || level > 9) {
       xsink->raiseException("ZLIB-LEVEL-ERROR", "level must be between 0 - 9 (value passed: %d)", level);
@@ -990,7 +990,7 @@ static AbstractQoreNode *f_get_word_64_lsb_bin(const QoreListNode *params, Excep
 
 static AbstractQoreNode *f_splice_str_int(const QoreListNode *params, ExceptionSink *xsink) {
    HARD_QORE_PARAM(pstr, const QoreStringNode, params, 0);
-   int start = HARD_QORE_INT(params, 1);
+   int start = (int)HARD_QORE_INT(params, 1);
    QoreStringNodeHolder str(pstr->copy());
    str->splice(start, xsink);
    return *xsink ? 0 : str.release();
@@ -998,8 +998,8 @@ static AbstractQoreNode *f_splice_str_int(const QoreListNode *params, ExceptionS
 
 static AbstractQoreNode *f_splice_str_int_int(const QoreListNode *params, ExceptionSink *xsink) {
    HARD_QORE_PARAM(pstr, const QoreStringNode, params, 0);
-   int start = HARD_QORE_INT(params, 1);
-   int len = HARD_QORE_INT(params, 2);
+   int start = (int)HARD_QORE_INT(params, 1);
+   int len = (int)HARD_QORE_INT(params, 2);
    const QoreStringNode *p3 = test_string_param(params, 3);
    QoreStringNodeHolder str(pstr->copy());
    str->splice(start, len, p3, xsink);
@@ -1008,7 +1008,7 @@ static AbstractQoreNode *f_splice_str_int_int(const QoreListNode *params, Except
 
 static AbstractQoreNode *f_splice_list_int(const QoreListNode *params, ExceptionSink *xsink) {
    HARD_QORE_PARAM(lst, const QoreListNode, params, 0);
-   int start = HARD_QORE_INT(params, 1);
+   int start = (int)HARD_QORE_INT(params, 1);
    ReferenceHolder<QoreListNode> l(lst->copy(), xsink);
    l->splice(start, xsink);
    return *xsink ? 0 : l.release();
@@ -1016,9 +1016,9 @@ static AbstractQoreNode *f_splice_list_int(const QoreListNode *params, Exception
 
 static AbstractQoreNode *f_splice_list_int_int(const QoreListNode *params, ExceptionSink *xsink) {
    HARD_QORE_PARAM(lst, const QoreListNode, params, 0);
-   int start = HARD_QORE_INT(params, 1);
+   int start = (int)HARD_QORE_INT(params, 1);
    ReferenceHolder<QoreListNode> l(lst->copy(), xsink);
-   int len = HARD_QORE_INT(params, 2);
+   int len = (int)HARD_QORE_INT(params, 2);
    const QoreListNode *p3 = test_list_param(params, 3);
    l->splice(start, len, p3, xsink);
    return *xsink ? 0 : l.release();
@@ -1076,7 +1076,7 @@ static AbstractQoreNode *f_hextoint(const QoreListNode *params, ExceptionSink *x
 // parses a string representing a number in a configurable base and returns the integer
 static AbstractQoreNode *f_strtoint(const QoreListNode *params, ExceptionSink *xsink) {
    HARD_QORE_PARAM(p0, const QoreStringNode, params, 0);
-   int base = HARD_QORE_INT(params, 1);
+   int base = (int)HARD_QORE_INT(params, 1);
    return new QoreBigIntNode(strtoll(p0->getBuffer(), 0, base));
 }
 
@@ -1088,7 +1088,7 @@ static AbstractQoreNode *f_load_module(const QoreListNode *params, ExceptionSink
 
 static AbstractQoreNode *f_set_signal_handler(const QoreListNode *params, ExceptionSink *xsink) {
 #ifdef HAVE_SIGNAL_HANDLING
-   int signal = HARD_QORE_INT(params, 0);
+   int signal = (int)HARD_QORE_INT(params, 0);
    if (!signal || signal > QORE_SIGNAL_MAX) {
       xsink->raiseException("SET-SIGNAL-HANDLER-ERROR", "%d is not a valid signal", signal);
       return 0;
@@ -1104,7 +1104,7 @@ static AbstractQoreNode *f_set_signal_handler(const QoreListNode *params, Except
 
 static AbstractQoreNode *f_remove_signal_handler(const QoreListNode *params, ExceptionSink *xsink) {
 #ifdef HAVE_SIGNAL_HANDLING
-   int signal = HARD_QORE_INT(params, 0);
+   int signal = (int)HARD_QORE_INT(params, 0);
    if (!signal || signal > QORE_SIGNAL_MAX) {
       xsink->raiseException("REMOVE-SIGNAL-HANDLER-ERROR", "%d is not a valid signal", signal);
       return 0;

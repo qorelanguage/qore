@@ -752,8 +752,8 @@ QoreListNode *QoreListNode::splice_intern(qore_size_t offset, qore_size_t len, c
    else {
       const QoreListNode *lst = reinterpret_cast<const QoreListNode *>(l);
       for (qore_size_t i = 0; i < n; ++i) {
-	 const AbstractQoreNode *n = lst->retrieve_entry(i);
-	 priv->entry[offset + i] = n ? n->refSelf() : 0;
+	 const AbstractQoreNode *v = lst->retrieve_entry(i);
+	 priv->entry[offset + i] = v ? v->refSelf() : 0;
       }
    }
 

@@ -87,6 +87,8 @@ public:
    DLLLOCAL int commit(ExceptionSink *xsink);
    DLLLOCAL int rollback(ExceptionSink *xsink);
    DLLLOCAL int open(ExceptionSink *xsink);
+
+   using Datasource::close;
    DLLLOCAL int close(ExceptionSink *xsink);
    DLLLOCAL int reset(ExceptionSink *xsink);
    DLLLOCAL void setPendingUsername(const char *u);
@@ -105,7 +107,11 @@ public:
    DLLLOCAL int getTransactionLockTimeout() const;
    // returns true if a new transaction was started
    DLLLOCAL bool beginTransaction(ExceptionSink *xsink);
+
+   using Datasource::setAutoCommit;
    DLLLOCAL void setAutoCommit(bool ac, ExceptionSink *xsink);   
+
+   using Datasource::copy;
    DLLLOCAL ManagedDatasource *copy();
    DLLLOCAL AbstractQoreNode *getServerVersion(ExceptionSink *xsink);
    DLLLOCAL AbstractQoreNode *getClientVersion(ExceptionSink *xsink) const;

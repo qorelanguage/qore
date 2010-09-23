@@ -76,6 +76,7 @@ public:
 
    DLLLOCAL void init(DatasourceStatementHelper *n_dsh);
 
+   using AbstractPrivateData::deref;
    DLLLOCAL virtual void deref(ExceptionSink *xsink);
 
    DLLLOCAL int prepare(const QoreString &str, const QoreListNode *args, ExceptionSink *xsink);

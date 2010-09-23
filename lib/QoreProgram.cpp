@@ -1083,7 +1083,7 @@ RootQoreNamespace *QoreProgram::getRootNS() const {
 }
 
 int QoreProgram::getParseOptions() const { 
-   return priv->parse_options; 
+   return (int)priv->parse_options; 
 }
 
 int64 QoreProgram::getParseOptions64() const { 

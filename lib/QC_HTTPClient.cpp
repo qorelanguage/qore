@@ -216,7 +216,7 @@ static AbstractQoreNode *HC_post(QoreObject *self, QoreHTTPClient *client, const
 
 // HTTPClient::setTimeout(timeout $timeout_ms = 0) returns nothing
 static AbstractQoreNode *HC_setTimeout(QoreObject *self, QoreHTTPClient *client, const QoreListNode *args, ExceptionSink *xsink) {
-   client->setTimeout(HARD_QORE_INT(args, 0));
+   client->setTimeout((int)HARD_QORE_INT(args, 0));
    return 0;
 }
 
@@ -297,7 +297,7 @@ static AbstractQoreNode *HC_setEventQueue_queue(QoreObject *self, QoreHTTPClient
 
 // HTTPClient::setConnectTimeout(timeout $timeout_ms = -1) returns nothing
 static AbstractQoreNode *HC_setConnectTimeout(QoreObject *self, QoreHTTPClient *client, const QoreListNode *args, ExceptionSink *xsink) {
-   client->setConnectTimeout(HARD_QORE_INT(args, 0));
+   client->setConnectTimeout((int)HARD_QORE_INT(args, 0));
    return 0;
 }
 

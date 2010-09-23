@@ -74,7 +74,7 @@ static void SOCKET_copy(QoreObject *self, QoreObject *old, AbstractPrivateData *
 // Socket::connect(string $sock, timeout $timeout_ms = -1)
 static AbstractQoreNode *SOCKET_connect_str_timeout(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
    const QoreStringNode *p0 = HARD_QORE_STRING(params, 0);
-   s->connect(p0->getBuffer(), HARD_QORE_INT(params, 1), xsink);
+   s->connect(p0->getBuffer(), (int)HARD_QORE_INT(params, 1), xsink);
    return 0;
 }
 
@@ -103,7 +103,7 @@ static AbstractQoreNode *SOCKET_connectUNIX(QoreObject *self, mySocket *s, const
 // Socket::connectSSL(string $sock, timeout $timeout_ms = -1)
 static AbstractQoreNode *SOCKET_connectSSL_str_timeout(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
    const QoreStringNode *p0 = HARD_QORE_STRING(params, 0);
-   s->connectSSL(p0->getBuffer(), HARD_QORE_INT(params, 1), xsink);
+   s->connectSSL(p0->getBuffer(), (int)HARD_QORE_INT(params, 1), xsink);
    return 0;
 }
 
@@ -242,7 +242,7 @@ static AbstractQoreNode *SOCKET_recv(QoreObject *self, mySocket *s, const QoreLi
    int bs = (int)HARD_QORE_INT(params, 0);
    
    // get timeout
-   int timeout = HARD_QORE_INT(params, 1);
+   int timeout = (int)HARD_QORE_INT(params, 1);
    int rc;
    QoreStringNodeHolder msg(bs > 0 ? s->recv(bs, timeout, &rc) : s->recv(timeout, &rc));
 
@@ -260,7 +260,7 @@ static AbstractQoreNode *SOCKET_recvBinary(QoreObject *self, mySocket *s, const 
    int bs = (int)HARD_QORE_INT(params, 0);
 
    // get timeout
-   int timeout = HARD_QORE_INT(params, 1);
+   int timeout = (int)HARD_QORE_INT(params, 1);
    int rc;
    SimpleRefHolder<BinaryNode> b(bs > 0 ? s->recvBinary(bs, timeout, &rc) : s->recvBinary(timeout, &rc));
 
@@ -274,7 +274,7 @@ static AbstractQoreNode *SOCKET_recvBinary(QoreObject *self, mySocket *s, const 
 // Socket::recvi1(timeout $timeout = -1)
 static AbstractQoreNode *SOCKET_recvi1(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
    // get timeout
-   int timeout = HARD_QORE_INT(params, 0);
+   int timeout = (int)HARD_QORE_INT(params, 0);
    char b;
    int rc = s->recvi1(timeout, &b);
    return doReadResult(rc, (int64)b, "recvi1", timeout, xsink);
@@ -282,7 +282,7 @@ static AbstractQoreNode *SOCKET_recvi1(QoreObject *self, mySocket *s, const Qore
 
 static AbstractQoreNode *SOCKET_recvi2(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
    // get timeout
-   int timeout = HARD_QORE_INT(params, 0);
+   int timeout = (int)HARD_QORE_INT(params, 0);
    short b;
    int rc = s->recvi2(timeout, &b);
    return doReadResult(rc, (int64)b, "recvi2", timeout, xsink);
@@ -290,7 +290,7 @@ static AbstractQoreNode *SOCKET_recvi2(QoreObject *self, mySocket *s, const Qore
 
 static AbstractQoreNode *SOCKET_recvi4(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
    // get timeout
-   int timeout = HARD_QORE_INT(params, 0);
+   int timeout = (int)HARD_QORE_INT(params, 0);
    int b;
    int rc = s->recvi4(timeout, &b);
    return doReadResult(rc, (int64)b, "recvi4", timeout, xsink);
@@ -298,7 +298,7 @@ static AbstractQoreNode *SOCKET_recvi4(QoreObject *self, mySocket *s, const Qore
 
 static AbstractQoreNode *SOCKET_recvi8(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
    // get timeout
-   int timeout = HARD_QORE_INT(params, 0);
+   int timeout = (int)HARD_QORE_INT(params, 0);
    int64 b;
    int rc = s->recvi8(timeout, &b);
    return doReadResult(rc, b, "recvi8", timeout, xsink);
@@ -306,7 +306,7 @@ static AbstractQoreNode *SOCKET_recvi8(QoreObject *self, mySocket *s, const Qore
 
 static AbstractQoreNode *SOCKET_recvi2LSB(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
    // get timeout
-   int timeout = HARD_QORE_INT(params, 0);
+   int timeout = (int)HARD_QORE_INT(params, 0);
    short b;
    int rc = s->recvi2LSB(timeout, &b);
    return doReadResult(rc, (int64)b, "recvi2LSB", timeout, xsink);
@@ -314,7 +314,7 @@ static AbstractQoreNode *SOCKET_recvi2LSB(QoreObject *self, mySocket *s, const Q
 
 static AbstractQoreNode *SOCKET_recvi4LSB(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
    // get timeout
-   int timeout = HARD_QORE_INT(params, 0);
+   int timeout = (int)HARD_QORE_INT(params, 0);
    int b;
    int rc = s->recvi4LSB(timeout, &b);
    return doReadResult(rc, (int64)b, "recvi4LSB", timeout, xsink);
@@ -322,7 +322,7 @@ static AbstractQoreNode *SOCKET_recvi4LSB(QoreObject *self, mySocket *s, const Q
 
 static AbstractQoreNode *SOCKET_recvi8LSB(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
    // get timeout
-   int timeout = HARD_QORE_INT(params, 0);
+   int timeout = (int)HARD_QORE_INT(params, 0);
    int64 b;
    int rc = s->recvi8LSB(timeout, &b);
    return doReadResult(rc, b, "recvi8LSB", timeout, xsink);
@@ -330,7 +330,7 @@ static AbstractQoreNode *SOCKET_recvi8LSB(QoreObject *self, mySocket *s, const Q
 
 static AbstractQoreNode *SOCKET_recvu1(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
    // get timeout
-   int timeout = HARD_QORE_INT(params, 0);   
+   int timeout = (int)HARD_QORE_INT(params, 0);   
    unsigned char b;
    int rc = s->recvu1(timeout, &b);
    return doReadResult(rc, (int64)b, "recvu1", timeout, xsink);
@@ -338,7 +338,7 @@ static AbstractQoreNode *SOCKET_recvu1(QoreObject *self, mySocket *s, const Qore
 
 static AbstractQoreNode *SOCKET_recvu2(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
    // get timeout
-   int timeout = HARD_QORE_INT(params, 0);
+   int timeout = (int)HARD_QORE_INT(params, 0);
    unsigned short b;
    int rc = s->recvu2(timeout, &b);
    return doReadResult(rc, (int64)b, "recvu2", timeout, xsink);
@@ -346,7 +346,7 @@ static AbstractQoreNode *SOCKET_recvu2(QoreObject *self, mySocket *s, const Qore
 
 static AbstractQoreNode *SOCKET_recvu4(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
    // get timeout
-   int timeout = HARD_QORE_INT(params, 0);   
+   int timeout = (int)HARD_QORE_INT(params, 0);   
    unsigned int b;
    int rc = s->recvu4(timeout, &b);
    return doReadResult(rc, (int64)b, "recvu4", timeout, xsink);
@@ -354,7 +354,7 @@ static AbstractQoreNode *SOCKET_recvu4(QoreObject *self, mySocket *s, const Qore
 
 static AbstractQoreNode *SOCKET_recvu2LSB(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
    // get timeout
-   int timeout = HARD_QORE_INT(params, 0);
+   int timeout = (int)HARD_QORE_INT(params, 0);
    unsigned short b;
    int rc = s->recvu2LSB(timeout, &b);
    return doReadResult(rc, (int64)b, "recvu2LSB", timeout, xsink);
@@ -362,7 +362,7 @@ static AbstractQoreNode *SOCKET_recvu2LSB(QoreObject *self, mySocket *s, const Q
 
 static AbstractQoreNode *SOCKET_recvu4LSB(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
    // get timeout
-   int timeout = HARD_QORE_INT(params, 0);
+   int timeout = (int)HARD_QORE_INT(params, 0);
    
    unsigned b;
    int rc = s->recvu4LSB(timeout, &b);
@@ -433,7 +433,7 @@ static AbstractQoreNode *SOCKET_sendHTTPResponse(QoreObject *self, mySocket *s, 
 
 // Socket::readHTTPHeader(timeout $timeout_ms = -1) returns string|hash
 static AbstractQoreNode *SOCKET_readHTTPHeader(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
-   int timeout = HARD_QORE_INT(params, 0);
+   int timeout = (int)HARD_QORE_INT(params, 0);
    int rc;
 
    // when rc = -3 it's a timeout, but rv will be NULL anyway, so we do nothing
@@ -447,7 +447,7 @@ static AbstractQoreNode *SOCKET_readHTTPHeader(QoreObject *self, mySocket *s, co
 
 // Socket::readHTTPChunkedBody(timeout $timeout_ms = -1) returns hash
 static AbstractQoreNode *SOCKET_readHTTPChunkedBody(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
-   int timeout = HARD_QORE_INT(params, 0);
+   int timeout = (int)HARD_QORE_INT(params, 0);
 
    // when rc = -3 it's a timeout, but rv will be NULL anyway, so we do nothing
    return s->readHTTPChunkedBody(timeout, xsink);
@@ -455,7 +455,7 @@ static AbstractQoreNode *SOCKET_readHTTPChunkedBody(QoreObject *self, mySocket *
 
 // Socket::readHTTPChunkedBodyBinary(timeout $timeout_ms = -1) returns hash
 static AbstractQoreNode *SOCKET_readHTTPChunkedBodyBinary(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
-   int timeout = HARD_QORE_INT(params, 0);
+   int timeout = (int)HARD_QORE_INT(params, 0);
 
    // when rc = -3 it's a timeout, but rv will be NULL anyway, so we do nothing
    return s->readHTTPChunkedBodyBinary(timeout, xsink);

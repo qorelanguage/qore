@@ -175,12 +175,12 @@ static AbstractQoreNode *SQLSTATEMENT_fetchRow(QoreObject *self, QoreSQLStatemen
 
 // SQLStatement::fetchRows(softint $rows = -1) returns list
 static AbstractQoreNode *SQLSTATEMENT_fetchRows(QoreObject *self, QoreSQLStatement *stmt, const QoreListNode *args, ExceptionSink *xsink) {
-   return stmt->fetchRows(HARD_QORE_INT(args, 0), xsink);
+   return stmt->fetchRows((int)HARD_QORE_INT(args, 0), xsink);
 }
 
 // SQLStatement::fetchColumns(softint $rows = -1) returns hash
 static AbstractQoreNode *SQLSTATEMENT_fetchColumns(QoreObject *self, QoreSQLStatement *stmt, const QoreListNode *args, ExceptionSink *xsink) {
-   return stmt->fetchColumns(HARD_QORE_INT(args, 0), xsink);
+   return stmt->fetchColumns((int)HARD_QORE_INT(args, 0), xsink);
 }
 
 QoreClass *initSQLStatementClass(QoreClass *QC_Datasource, QoreClass *QC_DatasourcePool) {

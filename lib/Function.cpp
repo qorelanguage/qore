@@ -68,7 +68,7 @@ static void addArgs(QoreStringNode &desc, const QoreListNode *args) {
    }
 }
 
-int CodeEvaluationHelper::processDefaultArgs(const AbstractQoreFunction *func, const AbstractQoreFunctionVariant *variant, bool check_args, ExceptionSink *xsink) {
+int CodeEvaluationHelper::processDefaultArgs(const AbstractQoreFunction *func, const AbstractQoreFunctionVariant *variant, bool check_args) {
    bool edit_done = false;
 
    // get default argument list of variant
@@ -1000,7 +1000,7 @@ AbstractQoreNode *AbstractQoreFunction::evalFunction(const AbstractQoreFunctionV
 	 return 0;
       }
    }
-   if (ceh.processDefaultArgs(this, variant, check_args, xsink))
+   if (ceh.processDefaultArgs(this, variant, check_args))
       return 0;
 
    ceh.setCallType(variant->getCallType());
@@ -1021,7 +1021,7 @@ AbstractQoreNode *AbstractQoreFunction::evalDynamic(const QoreListNode *args, Ex
       assert(*xsink);
       return 0;
    }
-   if (ceh.processDefaultArgs(this, variant, false, xsink))
+   if (ceh.processDefaultArgs(this, variant, false))
       return 0;
 
    ceh.setCallType(variant->getCallType());
@@ -1533,7 +1533,7 @@ AbstractQoreNode *UserClosureFunction::evalClosure(const QoreListNode *args, Qor
 
    // setup call, save runtime position
    CodeEvaluationHelper ceh(xsink, "<anonymous closure>", args, 0, CT_USER);
-   if (ceh.processDefaultArgs(this, variant, true, xsink))
+   if (ceh.processDefaultArgs(this, variant, true))
       return 0;
 
    ceh.setReturnTypeInfo(variant->getReturnTypeInfo());

@@ -501,8 +501,8 @@ static void addXMLElement(const char *key, QoreString &str, const AbstractQoreNo
 	 // add attributes to node
 	 ConstHashIterator hi(ah);
 	 while (hi.next()) {
-	    const char *key = hi.getKey();
-	    str.sprintf(" %s=\"", key);
+	    const char *tkey = hi.getKey();
+	    str.sprintf(" %s=\"", tkey);
 	    const AbstractQoreNode *v = hi.getValue();
 	    if (v) {
 	       if (v->getType() == NT_STRING) 
@@ -1114,11 +1114,11 @@ AbstractQoreNode *QoreXmlReader::getXmlData(const QoreEncoding *data_ccsid, bool
 	 if (hasAttributes()) {
 	    ReferenceHolder<QoreHashNode> h(new QoreHashNode(), xsink);
 	    while (moveToNextAttribute(xsink) == 1) {
-	       const char *name = constName();
+	       const char *aname = constName();
 	       QoreStringNode *value = getValue(data_ccsid, xsink);
 	       if (!value)
 		  return 0;
-	       h->setKeyValue(name, value, xsink);
+	       h->setKeyValue(aname, value, xsink);
 	    }
 	    if (*xsink)
 	       return 0;

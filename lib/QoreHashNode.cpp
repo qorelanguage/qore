@@ -801,7 +801,7 @@ AbstractQoreNode *QoreHashNode::parseInit(LocalVar *oflag, int pflag, int &lvids
    HashIterator hi(this);
    while (hi.next()) {
       const char *k = hi.getKey();
-      AbstractQoreNode **value = hi.getValuePtr();
+      AbstractQoreNode **val = hi.getValuePtr();
       
       // resolve constant references in keys
       if (k[0] == HE_TAG_CONST || k[0] == HE_TAG_SCOPED_CONST) {
@@ -819,18 +819,18 @@ AbstractQoreNode *QoreHashNode::parseInit(LocalVar *oflag, int pflag, int &lvids
 	    QoreStringValueHelper t(rv);
 
 	    // reference value for new hash key
-	    if (*value)
-	       (*value)->ref();
+	    if (*val)
+	       (*val)->ref();
 
 	    // check for duplicate key definitions
 	    if (priv->existsKey(t->getBuffer()))
 	       doDuplicateKeyWarning(t->getBuffer());
 
 	    // not possible to have an exception here
-	    setKeyValue(t->getBuffer(), *value, 0);
+	    setKeyValue(t->getBuffer(), *val, 0);
 	    
 	    // now reget new value ptr
-	    value = getKeyValuePtr(t->getBuffer());
+	    val = getKeyValuePtr(t->getBuffer());
 	 }
 	 
 	 // delete the old key (not possible to have an exception here)
@@ -838,14 +838,14 @@ AbstractQoreNode *QoreHashNode::parseInit(LocalVar *oflag, int pflag, int &lvids
 	 continue;
       }
 
-      if (value && *value) {
+      if (val && *val) {
 	 const QoreTypeInfo *argTypeInfo = 0;
 
-	 //printd(5, "checking hash %p key '%s' val=%p (%s)\n", this, k, *value, get_type_name(*value));
+	 //printd(5, "checking hash %p key '%s' val=%p (%s)\n", this, k, *val, get_type_name(*val));
 
-	 (*value) = (*value)->parseInit(oflag, pflag & ~PF_REFERENCE_OK, lvids, argTypeInfo);
-	 if (!needs_eval_flag && *value && (*value)->needs_eval()) {
-	    //printd(5, "setting needs_eval on hash %p key '%s' val=%p (%s)\n", this, k, *value, get_type_name(*value));
+	 (*val) = (*val)->parseInit(oflag, pflag & ~PF_REFERENCE_OK, lvids, argTypeInfo);
+	 if (!needs_eval_flag && *val && (*val)->needs_eval()) {
+	    //printd(5, "setting needs_eval on hash %p key '%s' val=%p (%s)\n", this, k, *val, get_type_name(*val));
 	    setNeedsEval();
 	 }
       }

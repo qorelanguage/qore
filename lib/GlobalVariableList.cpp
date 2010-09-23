@@ -144,7 +144,7 @@ Var *GlobalVariableList::checkVar(const char *name, const QoreTypeInfo *typeInfo
    return var;
 }
 
-void GlobalVariableList::parseInit(int parse_options) {
+void GlobalVariableList::parseInit(int64 parse_options) {
    bool needs_type = parse_options & PO_REQUIRE_TYPES;
    for (map_var_t::iterator i = pending_vmap.begin(); i != pending_vmap.end(); i++) {
       if (needs_type && !i->second->hasTypeInfo())

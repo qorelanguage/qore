@@ -692,11 +692,11 @@ static QoreStringNode *qore_load_module_from_path(const char *path, const char *
       if (qore_mod_api_list_len > 1)
 	 str->concat('s');
       // add all supported api pairs to the string
-      for (unsigned i = 0; i < qore_mod_api_list_len; ++i) {
-	 str->sprintf(" %d.%d", qore_mod_api_list[i].major, qore_mod_api_list[i].minor);
-	 if (i != qore_mod_api_list_len - 1) {
+      for (unsigned j = 0; j < qore_mod_api_list_len; ++j) {
+	 str->sprintf(" %d.%d", qore_mod_api_list[j].major, qore_mod_api_list[j].minor);
+	 if (j != qore_mod_api_list_len - 1) {
 	    if (qore_mod_api_list_len > 2) {
-	       if (i != qore_mod_api_list_len - 2)
+	       if (j != qore_mod_api_list_len - 2)
 		  str->concat(",");
 	       else
 		  str->concat(", and");
@@ -704,7 +704,7 @@ static QoreStringNode *qore_load_module_from_path(const char *path, const char *
 	    else
 	       str->concat(" and");
 	 }
-	 if (i == qore_mod_api_list_len - 1) {
+	 if (j == qore_mod_api_list_len - 1) {
 	    str->concat(' ');
 	    if (qore_mod_api_list_len > 1)
 	       str->concat("are");
@@ -816,7 +816,7 @@ static QoreStringNode *qore_load_module_from_path(const char *path, const char *
    if (dep_list) {
       char *dep = dep_list[0];
       //printd(5, "dep_list=%08p (0=%s)\n", dep_list, dep);
-      for (int i = 0; dep; dep = dep_list[++i]) {
+      for (int j = 0; dep; dep = dep_list[++j]) {
 	 //printd(5, "loading module dependency=%s\n", dep);
 	 str = qore_load_module_intern(dep, pgm);
 	 if (str) {
@@ -836,11 +836,11 @@ static QoreStringNode *qore_load_module_from_path(const char *path, const char *
    // run initialization
    if (str) {
       printd(5, "qore_load_module_from_path(%s): '%s': qore_module_init returned error: %s", path, name, str->getBuffer());
-      QoreString desc;
-      desc.sprintf("module '%s': feature '%s': ", path, name);
+      QoreString edesc;
+      edesc.sprintf("module '%s': feature '%s': ", path, name);
       dlclose(ptr);
       // insert text at beginning of string
-      str->replace(0, 0, desc.getBuffer());
+      str->prepend(edesc.getBuffer());
       return str;
    }
 

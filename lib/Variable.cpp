@@ -321,9 +321,9 @@ static AbstractQoreNode **do_object_val_ptr(const QoreTreeNode *tree, AutoVLock 
    if (h) {
       if (h->reference_count() > 1) {
 	 // otherwise if the reference_count > 1 (and it's not an object), then duplicate it.
-	 QoreHashNode *o = h;
+	 QoreHashNode *oh = h;
 	 h = h->copy();
-	 o->deref(xsink);
+	 oh->deref(xsink);
 	 (*val) = h;
       }
    }

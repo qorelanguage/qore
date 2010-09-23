@@ -90,7 +90,7 @@ static AbstractQoreNode *FILE_read(QoreObject *self, File *f, const QoreListNode
    }
 
    // get timeout
-   int timeout_ms = HARD_QORE_INT(args, 1);
+   int timeout_ms = (int)HARD_QORE_INT(args, 1);
 
    return f->read((qore_offset_t)size, timeout_ms, xsink);
 }
@@ -196,7 +196,7 @@ static AbstractQoreNode *FILE_readBinary(QoreObject *self, File *f, const QoreLi
    }
 
    // get timeout
-   int timeout_ms = HARD_QORE_INT(args, 1);
+   int timeout_ms = (int)HARD_QORE_INT(args, 1);
 
    return f->readBinary((qore_offset_t)size, timeout_ms, xsink);
 }
@@ -410,7 +410,7 @@ static AbstractQoreNode *FILE_chown(QoreObject *self, File *f, const QoreListNod
 
 // File::isDataAvailable(timeout $timeout = 0) returns bool
 static AbstractQoreNode *FILE_isDataAvailable(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
-   int timeout_ms = HARD_QORE_INT(args, 0);
+   int timeout_ms = (int)HARD_QORE_INT(args, 0);
    bool rc = f->isDataAvailable(timeout_ms, xsink);
    return *xsink ? 0 : get_bool_node(rc);
 }

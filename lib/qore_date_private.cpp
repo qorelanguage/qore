@@ -639,21 +639,21 @@ void qore_date_private::setAbsoluteDate(const char *str, const AbstractQoreZoneI
       }
 	 
       // read all digits
-      int len = 0;
+      int dlen = 0;
       while (isdigit(*p)) {
          // ignore excess digits beyond microsecond resolution
-         if (len < 6) {
+         if (dlen < 6) {
             us *= 10;
             us += *p - '0';
          }
-	 ++len;
+	 ++dlen;
 	 ++p;
       }
 	 
       // adjust to microseconds
-      while (len < 6) {
+      while (dlen < 6) {
 	 us *= 10;
-	 ++len;
+	 ++dlen;
       }
 
       if (!*p) {

@@ -146,10 +146,10 @@ struct qore_ns_private {
    }
 
    // finds a local class in the committed class list, if not found executes the class handler
-   DLLLOCAL QoreClass *findLoadClass(QoreNamespace *ns, const char *name) {
-      QoreClass *qc = classList->find(name);
+   DLLLOCAL QoreClass *findLoadClass(QoreNamespace *cns, const char *cname) {
+      QoreClass *qc = classList->find(cname);
       if (!qc && class_handler)
-	 qc = class_handler(ns, name);
+	 qc = class_handler(cns, cname);
       return qc;
    }
 };

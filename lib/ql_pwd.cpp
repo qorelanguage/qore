@@ -28,12 +28,12 @@
 #include <errno.h>
 
 static AbstractQoreNode *f_getpwuid(const QoreListNode *params, ExceptionSink *xsink) {
-   int uid = HARD_QORE_INT(params, 0);
+   int uid = (int)HARD_QORE_INT(params, 0);
    return q_getpwuid(uid);
 }
 
 static AbstractQoreNode *f_getpwuid2(const QoreListNode *params, ExceptionSink *xsink) {
-   int uid = HARD_QORE_INT(params, 0);
+   int uid = (int)HARD_QORE_INT(params, 0);
    errno = 0;
    QoreHashNode *h = q_getpwuid(uid);
    if (!h) {
@@ -64,12 +64,12 @@ static AbstractQoreNode *f_getpwnam2(const QoreListNode *params, ExceptionSink *
 }
 
 static AbstractQoreNode *f_getgrgid(const QoreListNode *params, ExceptionSink *xsink) {
-   int gid = HARD_QORE_INT(params, 0);
+   int gid = (int)HARD_QORE_INT(params, 0);
    return q_getgrgid(gid);
 }
 
 static AbstractQoreNode *f_getgrgid2(const QoreListNode *params, ExceptionSink *xsink) {
-   int gid = HARD_QORE_INT(params, 0);
+   int gid = (int)HARD_QORE_INT(params, 0);
    errno = 0;
    QoreHashNode *h = q_getgrgid(gid);
    if (!h) {

@@ -41,6 +41,7 @@ public:
       m->grab(xsink);
    }
 
+   using AbstractPrivateData::deref;
    DLLLOCAL virtual void deref(class ExceptionSink *xsink) {
       if (ROdereference()) {
 	 m->deref(xsink);

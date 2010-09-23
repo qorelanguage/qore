@@ -60,7 +60,7 @@ static AbstractQoreNode *CONDITION_wait(QoreObject *self, Condition *c, const Qo
    assert(m);
    ReferenceHolder<AbstractSmartLock> holder(m, xsink);
    
-   int timeout = HARD_QORE_INT(params, 1);
+   int timeout = (int)HARD_QORE_INT(params, 1);
    int rc = timeout ? c->wait(m, timeout, xsink) : c->wait(m, xsink);
 
    //printd(5, "CONDITION_wait() m=%s (%p) timeout=%d rc=%d\n", m->getName(), m, timeout, rc);

@@ -54,7 +54,7 @@ static AbstractQoreNode *QUEUE_insert(QoreObject *self, Queue *tq, const QoreLis
 static AbstractQoreNode *QUEUE_get(QoreObject *self, Queue *tq, const QoreListNode *params, ExceptionSink *xsink) {
    AbstractQoreNode *rv;
 
-   int timeout = HARD_QORE_INT(params, 0);
+   int timeout = (int)HARD_QORE_INT(params, 0);
    if (timeout) {
       bool to;
       rv = tq->shift(xsink, timeout, &to);
@@ -71,7 +71,7 @@ static AbstractQoreNode *QUEUE_get(QoreObject *self, Queue *tq, const QoreListNo
 static AbstractQoreNode *QUEUE_pop(QoreObject *self, Queue *tq, const QoreListNode *params, ExceptionSink *xsink) {
    AbstractQoreNode *rv;
 
-   int timeout = HARD_QORE_INT(params, 0);
+   int timeout = (int)HARD_QORE_INT(params, 0);
    if (timeout) {
       bool to;
       rv = tq->pop(xsink, timeout, &to);

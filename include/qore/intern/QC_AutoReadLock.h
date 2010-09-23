@@ -41,6 +41,7 @@ public:
       rwl->readLock(xsink);
    }
 
+   using AbstractPrivateData::deref;
    DLLLOCAL virtual void deref(ExceptionSink *xsink) {
       if (ROdereference()) {
 	 rwl->deref(xsink);

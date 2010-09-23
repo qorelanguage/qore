@@ -1757,7 +1757,7 @@ bool QoreClass::hasMemberNotification() const {
 }
 
 int QoreClass::getDomain() const {
-   return priv->domain;
+   return (int)priv->domain;
 }
 
 int64 QoreClass::getDomain64() const {
@@ -2116,7 +2116,7 @@ AbstractQoreNode *QoreMethod::evalNormalVariant(QoreObject *self, const QoreExte
    CodeEvaluationHelper ceh(xsink, getName(), args, variant->className());
    if (*xsink) return 0;
 
-   if (ceh.processDefaultArgs(priv->func, variant, true, xsink))
+   if (ceh.processDefaultArgs(priv->func, variant, true))
       return 0;
 
    ceh.setCallType(variant->getCallType());
@@ -2483,17 +2483,17 @@ int qore_class_private::addUserMethod(const char *mname, MethodVariantBase *f, b
    }
 
    // set flags for other special methods
-   bool methGate, memGate, memberNotification;
+   bool methGate, memGate, hasMemberNotification;
    if (dst || con || cpy)
-      methGate = memGate = memberNotification = false;
+      methGate = memGate = hasMemberNotification = false;
    else {
       methGate = !strcmp(mname, "methodGate");
       memGate = methGate ? false : !strcmp(mname, "memberGate");
-      memberNotification = methGate || memGate ? false : !strcmp(mname, "memberNotification");
+      hasMemberNotification = methGate || memGate ? false : !strcmp(mname, "memberNotification");
    }
 
    QoreMethod *m = const_cast<QoreMethod *>(!n_static ? parseFindMethod(mname) : parseFindStaticMethod(mname));
-   if (!n_static && m && (dst || cpy || methGate || memGate || memberNotification)) {
+   if (!n_static && m && (dst || cpy || methGate || memGate || hasMemberNotification)) {
       parseException("ILLEGAL-METHOD-OVERLOAD", "a %s::%s() method has already been defined; cannot overload %s methods", tname, mname, mname);
       return -1;
    }
@@ -2850,9 +2850,9 @@ void qore_class_private::recheckBuiltinMethodHierarchy() {
       scl->addNewStaticAncestors(i->second);
 }
 
-const QoreExternalMethodVariant *qore_class_private::findUserMethodVariant(const char *name, const QoreMethod *&method, const type_vec_t &argTypeList) const {
+const QoreExternalMethodVariant *qore_class_private::findUserMethodVariant(const char *mname, const QoreMethod *&method, const type_vec_t &argTypeList) const {
    bool p = false;
-   method = findMethod(name, p);
+   method = findMethod(mname, p);
    if (!method)
       return 0;
    // make sure it's not a special method
@@ -2860,7 +2860,7 @@ const QoreExternalMethodVariant *qore_class_private::findUserMethodVariant(const
        || method == destructor
        || method == copyMethod) {
 #ifdef DEBUG
-      printd(0, "cannot call QoreClass::findUserMethodVariant() with special methods like '%s'\n", name);
+      printd(0, "cannot call QoreClass::findUserMethodVariant() with special methods like '%s'\n", mname);
       assert(false);
 #endif
       return 0;
@@ -3206,7 +3206,7 @@ void ConstructorMethodFunction::evalConstructor(const AbstractQoreFunctionVarian
       xsink->raiseException("CONSTRUCTOR-IS-PRIVATE", "%s::constructor(%s) is private and therefore this class cannot be directly instantiated with the new operator by external code", thisclass.getName(), variant->getSignature()->getSignatureText());
       return;
    }
-   if (ceh.processDefaultArgs(this, variant, check_args, xsink))
+   if (ceh.processDefaultArgs(this, variant, check_args))
       return;
 
    qore_call_t ct = variant->getCallType();
@@ -3256,7 +3256,7 @@ AbstractQoreNode *MethodFunction::evalNormalMethod(const AbstractQoreFunctionVar
    }
    ceh.setClassName(METHVB_const(variant)->className());
 
-   if (ceh.processDefaultArgs(this, variant, check_args, xsink))
+   if (ceh.processDefaultArgs(this, variant, check_args))
       return 0;
 
    ceh.setCallType(variant->getCallType());
@@ -3281,7 +3281,7 @@ AbstractQoreNode *MethodFunction::evalStaticMethod(const AbstractQoreFunctionVar
    }
    ceh.setClassName(METHVB_const(variant)->className());
 
-   if (ceh.processDefaultArgs(this, variant, check_args, xsink))
+   if (ceh.processDefaultArgs(this, variant, check_args))
       return 0;
 
    ceh.setCallType(variant->getCallType());
