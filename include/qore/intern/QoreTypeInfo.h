@@ -542,7 +542,8 @@ public:
    }
 
    DLLLOCAL qore_type_result_e parseAccepts(const QoreTypeInfo *typeInfo) const {
-      bool may_not_match;
+      // set to true because value is ignored and can short-circuit logic in parseAcceptsMult() if called
+      bool may_not_match = true;
       return parseAccepts(typeInfo, may_not_match);
    }
 
