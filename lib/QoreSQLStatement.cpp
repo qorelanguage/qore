@@ -139,6 +139,10 @@ void QoreSQLStatement::deref(ExceptionSink *xsink) {
       }
 
       dsh->helperDestructor(this, xsink);
+
+      if (prepare_args)
+         prepare_args->deref(xsink);
+
       delete this;
    }
 }
