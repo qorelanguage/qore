@@ -564,11 +564,11 @@ public:
    }
 
    DLLLOCAL bool returnsSingle() const {
-      return !this || !returns_mult;
+      return this && !returns_mult && qt != NT_ALL;
    }
 
    DLLLOCAL bool acceptsSingle() const {
-      return !this || !accepts_mult;
+      return this && !accepts_mult && qt != NT_ALL;
    }
 
    DLLLOCAL bool hasType() const {

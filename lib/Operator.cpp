@@ -3964,7 +3964,7 @@ static AbstractQoreNode *check_op_keys(QoreTreeNode *tree, LocalVar *oflag, int 
    if (leftTypeInfo->hasType()
        && !hashTypeInfo->parseAccepts(leftTypeInfo)
        && !objectTypeInfo->parseAccepts(leftTypeInfo)) {
-      QoreStringNode *edesc = new QoreStringNode("left-hand side of the expression with the 'keys' operator is ");
+      QoreStringNode *edesc = new QoreStringNode("the expression with the 'keys' operator is ");
       leftTypeInfo->getThisType(*edesc);
       edesc->concat(" and so this expression will always return NOTHING; the 'keys' operator can only return a value with hashes and objects");
       getProgram()->makeParseWarning(QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
