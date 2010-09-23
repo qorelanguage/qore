@@ -691,8 +691,13 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
    int pmatch = -1;
    // the number of arguments matched perfectly in case of a tie score
    int nperfect = -1;
+   // number of possible variants
+   unsigned npv = 0;
+
    // pointer to the variant matched
    const AbstractQoreFunctionVariant *variant = 0;
+   // pointer to the last possible variant matched
+   const AbstractQoreFunctionVariant *pvariant = 0;
    unsigned num_args = argTypeInfo.size();
 
    //printd(0, "AbstractQoreFunction::parseFindVariant() this=%p %s() vlist=%d pend=%d ilist=%d num_args=%d\n", this, getName(), vlist.size(), pending_vlist.size(), ilist.size(), num_args);
@@ -714,6 +719,13 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
 	 if (!variant && !sig->getParamTypes() && pmatch == -1) {
 	    match = pmatch = nperfect = 0;
 	    variant = *i;
+
+	    if (!npv)
+	       pvariant = variant;
+	    else
+	       pvariant = 0;
+
+	    ++npv;
 
 	    //printd(0, "AbstractQoreFunction::parseFindVariant() this=%p matched with no args %s(%s) variant=%p sig->pt=%d sig->mpt=%d match=%d, args=%d\n", this, getName(), sig->getSignatureText(), variant, sig->getParamTypes(), sig->getMinParamTypes(), match, num_args);
 
@@ -753,7 +765,7 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
 	       }
 
 	       if (rc == QTI_UNASSIGNED) {
-		  rc = t->parseAccepts(a);
+		  rc = t->parseAccepts(a, variant_missing_types);
 		  if (rc == QTI_IDENT)
 		     ++variant_nperfect;
 	       }
@@ -776,7 +788,15 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
 	    if (!ok)
 	       continue;
 
-	    if (count >= match && variant_nperfect > nperfect) {
+	    if (!npv)
+	       pvariant = variant;
+	    else
+	       pvariant = 0;
+
+	    ++npv;
+
+	    //if (count >= match && variant_nperfect > nperfect) {
+	    if (count > match || (count == match && variant_nperfect > nperfect)) {
 	       // if we could possibly match less than another variant
 	       // then we have to match at runtime
 	       if (variant_pmatch < pmatch)
@@ -814,6 +834,14 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
 	 if (!variant && !sig->getParamTypes() && pmatch == -1) {
 	    match = pmatch = nperfect = 0;
 	    variant = *i;
+
+	    if (!npv)
+	       pvariant = variant;
+	    else
+	       pvariant = 0;
+
+	    ++npv;
+
 	    continue;
 	 }
 
@@ -871,7 +899,15 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
 	    if (!ok)
 	       continue;
 
-	    if (count >= match && variant_nperfect > nperfect) {
+	    if (!npv)
+	       pvariant = variant;
+	    else
+	       pvariant = 0;
+
+	    ++npv;
+
+	    //if (count >= match && variant_nperfect > nperfect) {
+	    if (count > match || (count == match && variant_nperfect > nperfect)) {
 	       // if we could possibly match less than another variant
 	       // then we have to match at runtime
 	       if (variant_pmatch < pmatch)
@@ -898,7 +934,10 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
       }
    }
 
-   if (!variant && pmatch == -1 && getProgram()->getParseExceptionSink()) {
+   // if we only have one possible variant, then assign it, even it it's not a guaranteed match
+   if (!variant && pvariant)
+      variant = pvariant;
+   else if (!variant && pmatch == -1 && getProgram()->getParseExceptionSink()) {
       QoreStringNode *desc = new QoreStringNode("no variant matching '");
       do_call_str(*desc, this, argTypeInfo);
       desc->concat(" can be found; the following variants were tested:");
