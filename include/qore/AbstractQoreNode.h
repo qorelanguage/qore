@@ -372,7 +372,7 @@ public:
    DLLEXPORT void ref() const;
 
    //! returns true if the object is reference-counted
-   DLLEXPORT bool isReferenceCounted() const { return there_can_be_only_one; }
+   DLLEXPORT bool isReferenceCounted() const { return !there_can_be_only_one; }
 
    //! for use by parse types to initialize them for execution during stage 1 parsing
    /** This function should only be overridden by types that can appear in

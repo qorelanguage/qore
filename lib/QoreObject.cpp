@@ -944,6 +944,7 @@ void QoreObject::merge(const QoreHashNode *h, ExceptionSink *xsink) {
 	    return;
 
 	 AbstractQoreNode *n = priv->data->swapKeyValue(hi.getKey(), val.release());
+	 //printd(5, "QoreObject::merge() n=%p (rc=%d, type=%s)\n", n, n ? n->isReferenceCounted() : 0, get_type_name(n));
 	 // if we are overwriting a value, then save it in the list for dereferencing after the lock is released
 	 if (n && n->isReferenceCounted()) {
 	    if (!holder)
