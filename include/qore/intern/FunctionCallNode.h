@@ -214,7 +214,8 @@ public:
       if (c_str)
 	 free(c_str);
    }
-   
+ 
+   using AbstractMethodCallNode::exec;
    DLLLOCAL AbstractQoreNode *exec(QoreObject *o, ExceptionSink *xsink) const {
       return AbstractMethodCallNode::exec(o, c_str, xsink);
    }

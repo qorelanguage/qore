@@ -3689,8 +3689,8 @@ static AbstractQoreNode *check_op_minus(QoreTreeNode *tree, LocalVar *oflag, int
 	       && (rightTypeInfo->isType(NT_STRING)
 		   || rightTypeInfo->isType(NT_LIST)))
 	 returnTypeInfo = hashTypeInfo;
-      else if (leftTypeInfo->hasType() && rightTypeInfo->hasType())
-	 // only return type nothing if both types are available
+      else if (leftTypeInfo->returnsSingle() && rightTypeInfo->returnsSingle()) 
+	 // only return type nothing if both types are available and return a single type
 	 returnTypeInfo = nothingTypeInfo;
    }
 
@@ -3740,8 +3740,8 @@ static AbstractQoreNode *check_op_plus(QoreTreeNode *tree, LocalVar *oflag, int 
 	       || rightTypeInfo->isType(NT_BINARY))
 	 returnTypeInfo = binaryTypeInfo;
 
-      else if (leftTypeInfo->hasType() && rightTypeInfo->hasType()) 
-	 // only return type nothing if both types are available
+      else if (leftTypeInfo->returnsSingle() && rightTypeInfo->returnsSingle()) 
+	 // only return type nothing if both types are available and return a single type
 	 returnTypeInfo = nothingTypeInfo;
    }
 

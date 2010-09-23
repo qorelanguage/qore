@@ -514,11 +514,11 @@ static AbstractQoreNode *SOCKET_setCharset(QoreObject *self, mySocket *s, const 
 
 // Socket::isDataAvailable(timeout $timeout_ms = 0)
 static AbstractQoreNode *SOCKET_isDataAvailable(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
-   return get_bool_node(s->isDataAvailable(HARD_QORE_INT(params, 0)));
+   return get_bool_node(s->isDataAvailable((int)HARD_QORE_INT(params, 0)));
 }
 
 static AbstractQoreNode *SOCKET_isWriteFinished(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
-   return get_bool_node(s->isWriteFinished(HARD_QORE_INT(params, 0)));
+   return get_bool_node(s->isWriteFinished((int)HARD_QORE_INT(params, 0)));
 }
 
 static AbstractQoreNode *SOCKET_isOpen(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {

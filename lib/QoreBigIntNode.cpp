@@ -64,7 +64,7 @@ bool QoreBigIntNode::getAsBoolImpl() const {
 }
 
 int QoreBigIntNode::getAsIntImpl() const {
-   return val;
+   return (int)val;
 }
 
 int64 QoreBigIntNode::getAsBigIntImpl() const {
