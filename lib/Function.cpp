@@ -1171,12 +1171,13 @@ AbstractQoreNode *UserVariantBase::evalIntern(ReferenceHolder<QoreListNode> &arg
    // if return value is NOTHING; make sure it's valid; maybe there wasn't a return statement
    // only check if there isn't an active exception
    if (!*xsink && is_nothing(val)) {
-      const QoreTypeInfo *rt = getReturnTypeInfo();
+      const QoreTypeInfo *rt = signature.getReturnTypeInfo();
       if (!rt->parseAccepts(nothingTypeInfo)) {
 	 QoreStringNode *desc = new QoreStringNode("block has declared return type ");
 	 rt->getThisType(*desc);
 	 desc->concat(" but NOTHING was returned");
 	 xsink->raiseException("RETURN-TYPE-ERROR", desc);
+	 abort();
       }
    }
 

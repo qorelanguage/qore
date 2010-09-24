@@ -210,6 +210,7 @@ public:
    DLLLOCAL virtual void evalDestructor(const QoreClass &thisclass, QoreObject *self, ExceptionSink *xsink) const {
       // there cannot be any params
       assert(!signature.numParams());
+      assert(!signature.getReturnTypeInfo() || signature.getReturnTypeInfo() == nothingTypeInfo);
       discard(eval("destructor", 0, self, xsink, thisclass.getName()), xsink);
    }
 };
