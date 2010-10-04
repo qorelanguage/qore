@@ -675,6 +675,8 @@ struct qore_socket_private {
 
    // socket must be open!
    DLLLOCAL int select(int timeout_ms) const {
+      assert(sock != -1);
+
       fd_set sfs;
 
       FD_ZERO(&sfs);
@@ -691,8 +693,8 @@ struct qore_socket_private {
 	    break;
       }
 #ifdef DEBUG
-      if (rc < 0)
-	 printd(0, "QoreSocket::select(%d) this=%p rc=%d, errno=%d: %s\n", timeout_ms, this, rc, errno, strerror(errno));
+      //if (rc < 0)
+      // printd(0, "QoreSocket::select(%d) this=%p rc=%d, errno=%d: %s\n", timeout_ms, this, rc, errno, strerror(errno));
 #endif
 
       return rc;
@@ -700,6 +702,8 @@ struct qore_socket_private {
 
    // socket must be open!
    DLLLOCAL int selectWrite(int timeout_ms) const {
+      assert(sock != -1);
+
       fd_set sfs;
       
       FD_ZERO(&sfs);
