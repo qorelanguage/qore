@@ -267,7 +267,7 @@ struct qore_socket_private {
    SSLSocketHelper *ssl;
    Queue *cb_queue;
 
-   DLLLOCAL qore_socket_private(int n_sock = 0, int n_type = AF_UNSPEC, const QoreEncoding *csid = QCS_DEFAULT) : sock(n_sock), type(n_type), port(-1), charsetid(csid), del(false), ssl(0), cb_queue(0) {
+   DLLLOCAL qore_socket_private(int n_sock = -1, int n_type = AF_UNSPEC, const QoreEncoding *csid = QCS_DEFAULT) : sock(n_sock), type(n_type), port(-1), charsetid(csid), del(false), ssl(0), cb_queue(0) {
       //sendTimeout = recvTimeout = -1
    }
 
@@ -287,7 +287,7 @@ struct qore_socket_private {
 
    DLLLOCAL int close_internal() {
       //printd(5, "qore_socket_private::close_internal(this=%08p) sock=%d\n", this, sock);
-      if (sock) {
+      if (sock >= 0) {
 	 // if an SSL connection has been established, shut it down first
 	 if (ssl) {
 	    ssl->shutdown();
@@ -311,7 +311,7 @@ struct qore_socket_private {
 	 }
 	 //printd(5, "qore_socket_private::close_internal(this=%08p) close(%d) returned %d\n", this, sock, rc);
 	 do_close_event();
-	 sock = 0;
+	 sock = -1;
 	 return rc;
       }
       else
@@ -354,7 +354,7 @@ struct qore_socket_private {
 
    DLLLOCAL int getPort() {
       // if we don't need to find out what port we are, then return current value
-      if (!sock || type != AF_INET || port != -1)
+      if (sock == -1 || type != AF_INET || port != -1)
 	 return port;
 
       // otherwise find out what port we're connected to
@@ -377,7 +377,7 @@ struct qore_socket_private {
 
    // returns a new socket
    DLLLOCAL int accept_internal(SocketSource *source) {
-      if (!sock)
+      if (sock == -1)
 	 return QSE_NOT_OPEN;
 
       int rc;
@@ -399,7 +399,7 @@ struct qore_socket_private {
 	 }
 	 //printd(1, "QoreSocket::accept() %d bytes returned\n", size);
 	    
-	 if (rc > 0 && source) {
+	 if (rc >= 0 && source) {
 	    QoreStringNode *addr = new QoreStringNode(charsetid);
 	    addr->sprintf("UNIX socket: %s", socketname.c_str());
 	    source->setAddress(addr);
@@ -422,16 +422,16 @@ struct qore_socket_private {
 	    if (rc != -1 || errno != EINTR)
 	       break;
 	 }
-	 //printd(1, "QoreSocket::accept() %d bytes returned\n", size);
+	 //printd(1, "QoreSocket::accept() rc=%d, %d bytes returned\n", rc, size);
 	    
-	 if (rc > 0 && source) {
+	 if (rc >= 0 && source) {
 	    char *host;
 	    if ((host = q_gethostbyaddr((const char *)&addr_in.sin_addr.s_addr, sizeof(addr_in.sin_addr.s_addr), AF_INET))) {
 	       int len = strlen(host);
 	       QoreStringNode *hostname = new QoreStringNode(host, len, len + 1, charsetid);
 	       source->setHostName(hostname);
 	    }
-	       
+
 	    // get IP address
 	    char ifname[80];
 	    if (inet_ntop(AF_INET, &addr_in.sin_addr, ifname, sizeof(ifname)))
@@ -640,7 +640,6 @@ struct qore_socket_private {
       strncpy(addr.sun_path, p, sizeof(addr.sun_path) - 1);
       addr.sun_path[sizeof(addr.sun_path) - 1] = '\0';
       if ((sock = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
-	 sock = 0;
 	 if (xsink)
 	    xsink->raiseException("SOCKET-CONNECT-ERROR", q_strerror(errno));
 	    
@@ -658,7 +657,7 @@ struct qore_socket_private {
 
 	 // otherwise close the socket and return an exception with the error code
 	 ::close(sock);
-	 sock = 0;
+	 sock = -1;
 	 if (xsink)
 	    xsink->raiseErrnoException("SOCKET-CONNECT-ERROR", errno, "connect returned error %d", errno);
 	    
@@ -691,6 +690,11 @@ struct qore_socket_private {
 	 if (rc >= 0 || errno != EINTR)
 	    break;
       }
+#ifdef DEBUG
+      if (rc < 0)
+	 printd(0, "QoreSocket::select(%d) this=%p rc=%d, errno=%d: %s\n", timeout_ms, this, rc, errno, strerror(errno));
+#endif
+
       return rc;
    }
 
@@ -715,7 +719,7 @@ struct qore_socket_private {
    }
 
    DLLLOCAL bool isDataAvailable(int timeout_ms) const {
-      if (!sock)
+      if (sock == -1)
 	 return false;
 
       return select(timeout_ms);
@@ -731,7 +735,7 @@ struct qore_socket_private {
    }
 
    DLLLOCAL bool isWriteFinished(int timeout_ms) const {
-      if (!sock)
+      if (sock == -1)
 	 return false;
 
       return selectWrite(timeout_ms);
@@ -739,7 +743,7 @@ struct qore_socket_private {
 
    DLLLOCAL int close_and_exit() {
       ::close(sock);
-      sock = 0;
+      sock = -1;
       return -1;
    }
 
@@ -801,7 +805,7 @@ struct qore_socket_private {
 
       // get socket descriptor status flags
       if ((arg = fcntl(sock, F_GETFL, 0)) < 0) { 
-	 sock = 0;
+	 sock = -1;
 	 if (xsink)
 	    xsink->raiseErrnoException("SOCKET-CONNECT-ERROR", errno, "error in fcntl() getting socket descriptor status flag");
 	 return -1;
@@ -813,7 +817,7 @@ struct qore_socket_private {
 	 arg &= ~O_NONBLOCK;
 
       if (fcntl(sock, F_SETFL, arg) < 0) { 
-	 sock = 0;
+	 sock = -1;
 	 if (xsink)
 	    xsink->raiseErrnoException("SOCKET-CONNECT-ERROR", errno, "error in fcntl() setting socket descriptor status flags");
 	 return -1;
@@ -844,7 +848,6 @@ struct qore_socket_private {
       do_resolved_event(AF_INET, (const char *)&addr_p.sin_addr);
 
       if ((sock = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
-	 sock = 0;
 	 if (xsink)
 	    xsink->raiseException("SOCKET-CONNECT-ERROR", q_strerror(errno));
 
@@ -1005,7 +1008,7 @@ int QoreSocket::close() {
 
 int QoreSocket::shutdown() {
    int rc;
-   if (priv->sock)
+   if (priv->sock != -1)
       rc = ::shutdown(priv->sock, SHUT_RDWR); 
    else 
       rc = 0; 
@@ -1014,7 +1017,7 @@ int QoreSocket::shutdown() {
 }
 
 int QoreSocket::shutdownSSL(ExceptionSink *xsink) {
-   if (!priv->sock)
+   if (priv->sock == -1)
       return 0;
    if (!priv->ssl)
       return 0;
@@ -1034,7 +1037,7 @@ void QoreSocket::setEncoding(const QoreEncoding *id) {
 } 
 
 bool QoreSocket::isOpen() const { 
-   return (bool)priv->sock; 
+   return (bool)(priv->sock != -1); 
 }
 
 const char *QoreSocket::getSSLCipherName() const {
@@ -1095,11 +1098,11 @@ int QoreSocket::bind(const char *name, bool reuseaddr) {
    }
    else { // bind to UNIX domain socket file
       // close if it's already been opened as an INET socket
-      if (priv->sock && priv->type != AF_UNIX)
+      if (priv->sock != -1 && priv->type != AF_UNIX)
 	 close();
 
       // try to open socket if necessary
-      if (!priv->sock && openUNIX())
+      if (priv->sock == -1 && openUNIX())
 	 return -1;
 
       // set SO_REUSEADDR option if necessary
@@ -1123,7 +1126,7 @@ int QoreSocket::bind(const char *name, bool reuseaddr) {
 }
 
 int QoreSocket::sendi1(char i) {
-   if (!priv->sock)
+   if (priv->sock == -1)
       return -1;
 
    int rc = send(&i, 1);
@@ -1137,7 +1140,7 @@ int QoreSocket::sendi1(char i) {
 }
 
 int QoreSocket::sendi2(short i) {
-   if (!priv->sock)
+   if (priv->sock == -1)
       return -1;
 
    // convert to network byte order
@@ -1146,7 +1149,7 @@ int QoreSocket::sendi2(short i) {
 }
 
 int QoreSocket::sendi4(int i) {
-   if (!priv->sock)
+   if (priv->sock == -1)
       return -1;
 
    // convert to network byte order
@@ -1155,7 +1158,7 @@ int QoreSocket::sendi4(int i) {
 }
 
 int QoreSocket::sendi8(int64 i) {
-   if (!priv->sock)
+   if (priv->sock == -1)
       return -1;
 
    // convert to network byte order
@@ -1164,7 +1167,7 @@ int QoreSocket::sendi8(int64 i) {
 }
 
 int QoreSocket::sendi2LSB(short i) {
-   if (!priv->sock)
+   if (priv->sock == -1)
       return -1;
 
    // convert to LSB byte order
@@ -1173,7 +1176,7 @@ int QoreSocket::sendi2LSB(short i) {
 }
 
 int QoreSocket::sendi4LSB(int i) {
-   if (!priv->sock)
+   if (priv->sock == -1)
       return -1;
 
    // convert to LSB byte order
@@ -1182,7 +1185,7 @@ int QoreSocket::sendi4LSB(int i) {
 }
 
 int QoreSocket::sendi8LSB(int64 i) {
-   if (!priv->sock)
+   if (priv->sock == -1)
       return -1;
 
    // convert to LSB byte order
@@ -1192,14 +1195,14 @@ int QoreSocket::sendi8LSB(int64 i) {
 
 // receive integer values and convert from network byte order
 int QoreSocket::recvi1(int timeout, char *val) {
-   if (!priv->sock)
+   if (priv->sock == -1)
       return -1;
 
    return recv(val, 1, 0, timeout);
 }
 
 int QoreSocket::recvi2(int timeout, short *val) {
-   if (!priv->sock)
+   if (priv->sock == -1)
       return -1;
 
    char *buf = (char *)val;
@@ -1221,7 +1224,7 @@ int QoreSocket::recvi2(int timeout, short *val) {
 }
 
 int QoreSocket::recvi4(int timeout, int *val) {
-   if (!priv->sock)
+   if (priv->sock == -1)
       return -1;
 
    char *buf = (char *)val;
@@ -1242,16 +1245,14 @@ int QoreSocket::recvi4(int timeout, int *val) {
    return 4;
 }
 
-int QoreSocket::recvi8(int timeout, int64 *val)
-{
-   if (!priv->sock)
+int QoreSocket::recvi8(int timeout, int64 *val) {
+   if (priv->sock == -1)
       return -1;
 
    char *buf = (char *)val;
 
    int br = 0;
-   while (true)
-   {
+   while (true) {
       int rc = recv(buf + br, 8 - br, 0, timeout);
       if (rc <= 0)
 	 return rc;
@@ -1267,7 +1268,7 @@ int QoreSocket::recvi8(int timeout, int64 *val)
 }
 
 int QoreSocket::recvi2LSB(int timeout, short *val) {
-   if (!priv->sock)
+   if (priv->sock == -1)
       return -1;
 
    char *buf = (char *)val;
@@ -1289,7 +1290,7 @@ int QoreSocket::recvi2LSB(int timeout, short *val) {
 }
 
 int QoreSocket::recvi4LSB(int timeout, int *val) {
-   if (!priv->sock)
+   if (priv->sock == -1)
       return -1;
 
    char *buf = (char *)val;
@@ -1311,14 +1312,13 @@ int QoreSocket::recvi4LSB(int timeout, int *val) {
 }
 
 int QoreSocket::recvi8LSB(int timeout, int64 *val) {
-   if (!priv->sock)
+   if (priv->sock == -1)
       return -1;
 
    char *buf = (char *)val;
 
    int br = 0;
-   while (true)
-   {
+   while (true) {
       int rc = recv(buf + br, 8 - br, 0, timeout);
       if (rc <= 0)
 	 return rc;
@@ -1333,24 +1333,21 @@ int QoreSocket::recvi8LSB(int timeout, int64 *val) {
    return 4;
 }
 
-int QoreSocket::recvu1(int timeout, unsigned char *val)
-{
-   if (!priv->sock)
+int QoreSocket::recvu1(int timeout, unsigned char *val) {
+   if (priv->sock == -1)
       return -1;
    
    return recv((char *)val, 1, 0, timeout);
 }
 
-int QoreSocket::recvu2(int timeout, unsigned short *val)
-{
-   if (!priv->sock)
+int QoreSocket::recvu2(int timeout, unsigned short *val) {
+   if (priv->sock == -1)
       return -1;
    
    char *buf = (char *)val;
    
    int br = 0;
-   while (true)
-   {
+   while (true) {
       int rc = recv(buf + br, 2 - br, 0, timeout);
       if (rc <= 0)
 	 return rc;
@@ -1365,16 +1362,14 @@ int QoreSocket::recvu2(int timeout, unsigned short *val)
    return 2;
 }
 
-int QoreSocket::recvu4(int timeout, unsigned int *val)
-{
-   if (!priv->sock)
+int QoreSocket::recvu4(int timeout, unsigned int *val) {
+   if (priv->sock == -1)
       return -1;
    
    char *buf = (char *)val;
    
    int br = 0;
-   while (true)
-   {
+   while (true) {
       int rc = recv(buf + br, 4 - br, 0, timeout);
       if (rc <= 0)
 	 return rc;
@@ -1389,16 +1384,14 @@ int QoreSocket::recvu4(int timeout, unsigned int *val)
    return 4;
 }
 
-int QoreSocket::recvu2LSB(int timeout, unsigned short *val)
-{
-   if (!priv->sock)
+int QoreSocket::recvu2LSB(int timeout, unsigned short *val) {
+   if (priv->sock == -1)
       return -1;
    
    char *buf = (char *)val;
    
    int br = 0;
-   while (true)
-   {
+   while (true) {
       int rc = recv(buf + br, 2 - br, 0, timeout);
       if (rc <= 0)
 	 return rc;
@@ -1413,16 +1406,14 @@ int QoreSocket::recvu2LSB(int timeout, unsigned short *val)
    return 2;
 }
 
-int QoreSocket::recvu4LSB(int timeout, unsigned int *val)
-{
-   if (!priv->sock)
+int QoreSocket::recvu4LSB(int timeout, unsigned int *val) {
+   if (priv->sock == -1)
       return -1;
    
    char *buf = (char *)val;
    
    int br = 0;
-   while (true)
-   {
+   while (true) {
       int rc = recv(buf + br, 4 - br, 0, timeout);
       if (rc <= 0)
 	 return rc;
@@ -1438,7 +1429,7 @@ int QoreSocket::recvu4LSB(int timeout, unsigned int *val)
 }
 
 int QoreSocket::send(int fd, qore_offset_t size) {
-   if (!priv->sock || !size) {
+   if (priv->sock == -1 || !size) {
       printd(5, "QoreSocket::send() ERROR: sock=%d size=%d\n", priv->sock, size);
       return -1;
    }
@@ -1482,7 +1473,7 @@ int QoreSocket::send(int fd, qore_offset_t size) {
 }
 
 BinaryNode *QoreSocket::recvBinary(qore_offset_t bufsize, int timeout, int *rc) {
-   if (!priv->sock) {
+   if (priv->sock == -1) {
       *rc = QSE_NOT_OPEN;
       return 0;
    }
@@ -1521,7 +1512,7 @@ BinaryNode *QoreSocket::recvBinary(qore_offset_t bufsize, int timeout, int *rc) 
 
 BinaryNode *QoreSocket::recvBinary(int timeout, int *rc) {
    //printd(5, "QoreSocket::recv(%d, %p) this=%p\n", timeout, rc, this);
-   if (!priv->sock) {
+   if (priv->sock == -1) {
       *rc = QSE_NOT_OPEN;
       return 0;
    }
@@ -1565,7 +1556,7 @@ BinaryNode *QoreSocket::recvBinary(int timeout, int *rc) {
 }
 
 QoreStringNode *QoreSocket::recv(qore_offset_t bufsize, int timeout, int *rc) {
-   if (!priv->sock) {
+   if (priv->sock == -1) {
       *rc = QSE_NOT_OPEN;
       return 0;
    }
@@ -1613,7 +1604,7 @@ QoreStringNode *QoreSocket::recv(qore_offset_t bufsize, int timeout, int *rc) {
 
 QoreStringNode *QoreSocket::recv(int timeout, int *rc) {
    //printd(5, "QoreSocket::recv(%d, %p) this=%p\n", timeout, rc, this);
-   if (!priv->sock) {
+   if (priv->sock == -1) {
       *rc = QSE_NOT_OPEN;
       return 0;
    }
@@ -1659,7 +1650,7 @@ QoreStringNode *QoreSocket::recv(int timeout, int *rc) {
 
 // receive data and write to file descriptor
 int QoreSocket::recv(int fd, qore_offset_t size, int timeout) {
-   if (!priv->sock || !size)
+   if (priv->sock == -1 || !size)
       return -1;
 
    char *buf = (char *)malloc(sizeof(char) * DEFAULT_SOCKET_BUFSIZE);
@@ -1906,7 +1897,7 @@ AbstractQoreNode *QoreSocket::readHTTPHeader(int timeout, int *rc, int source) {
 //   -2 for socket not open
 //   -3 for timeout
 AbstractQoreNode *QoreSocket::readHTTPHeader(QoreHashNode *info, int timeout, int *rc, int source) {
-   if (!priv->sock) {
+   if (priv->sock == -1) {
       *rc = QSE_NOT_OPEN;
       return 0;
    }
@@ -2341,7 +2332,7 @@ int QoreSocket::connectUNIXSSL(const char *p, X509 *cert, EVP_PKEY *pkey, Except
 }
 
 int QoreSocket::upgradeClientToSSL(X509 *cert, EVP_PKEY *pkey, ExceptionSink *xsink) {
-   if (!priv->sock)
+   if (priv->sock == -1)
       return -1;
    if (priv->ssl)
       return 0;
@@ -2349,7 +2340,7 @@ int QoreSocket::upgradeClientToSSL(X509 *cert, EVP_PKEY *pkey, ExceptionSink *xs
 }
 
 int QoreSocket::upgradeServerToSSL(X509 *cert, EVP_PKEY *pkey, ExceptionSink *xsink) {
-   if (!priv->sock)
+   if (priv->sock == -1)
       return -1;
    if (priv->ssl)
       return 0;
@@ -2358,11 +2349,11 @@ int QoreSocket::upgradeServerToSSL(X509 *cert, EVP_PKEY *pkey, ExceptionSink *xs
 
 // returns 0 = success, -1 = error
 int QoreSocket::openUNIX() {
-   if (priv->sock)
+   if (priv->sock != -1)
       close();
 
    if ((priv->sock = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
-      priv->sock = 0;
+      priv->sock = -1;
       return -1;
    }
    priv->type = AF_UNIX;
@@ -2372,13 +2363,12 @@ int QoreSocket::openUNIX() {
 
 // returns 0 = success, -1 = error
 int QoreSocket::openINET() {
-   if (priv->sock)
+   if (priv->sock != -1)
       close();
 
-   if ((priv->sock = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
-      priv->sock = 0;
+   if ((priv->sock = socket(AF_INET, SOCK_STREAM, 0)) == -1)
       return -1;
-   }
+
    priv->type = AF_INET;
    priv->port = -1;
    return 0;
@@ -2415,16 +2405,15 @@ int QoreSocket::bind(int prt, bool reuseaddr) {
 }
 
 // to bind to an INET tcp port on a specific interface
-int QoreSocket::bind(const char *interface, int prt, bool reuseaddr)
-{
+int QoreSocket::bind(const char *interface, int prt, bool reuseaddr) {
    printd(5, "QoreSocket::bind(%s, %d)\n", interface, prt);
 
    // close if it's already been opened as an INET socket
-   if (priv->sock && priv->type != AF_INET)
+   if (priv->sock != -1 && priv->type != AF_INET)
       close();
 
    // try to open socket if necessary
-   if (!priv->sock && openINET())
+   if (priv->sock == -1 && openINET())
       return -1;
 
    reuse(reuseaddr);
@@ -2435,8 +2424,7 @@ int QoreSocket::bind(const char *interface, int prt, bool reuseaddr)
    addr_p.sin_family = AF_INET;
    addr_p.sin_port = htons(prt);
 
-   if (q_gethostbyname(interface, &addr_p.sin_addr))
-   {
+   if (q_gethostbyname(interface, &addr_p.sin_addr)) {
       printd(5, "QoreSocket::bind(%s, %d) gethostbyname failed for %s\n",
 	     interface, priv->port, interface);
       return -1;
@@ -2451,14 +2439,13 @@ int QoreSocket::bind(const char *interface, int prt, bool reuseaddr)
 }
 
 // to bind an INET socket to a particular address
-int QoreSocket::bind(const struct sockaddr *addr, int size)
-{
+int QoreSocket::bind(const struct sockaddr *addr, int size) {
    // close if it's already been opened as an INET socket
-   if (priv->sock && priv->type != AF_INET)
+   if (priv->sock != -1 && priv->type != AF_INET)
       close();
 
    // try to open socket if necessary
-   if (!priv->sock && openINET())
+   if (priv->sock == -1 && openINET())
       return -1;
 
    if ((::bind(priv->sock, addr, size)) == -1)
@@ -2477,7 +2464,7 @@ int QoreSocket::getPort() {
 // QoreSocket::accept()
 // returns a new socket
 QoreSocket *QoreSocket::accept(class SocketSource *source, ExceptionSink *xsink) {
-   if (!priv->sock) {
+   if (priv->sock == -1) {
       xsink->raiseException("SOCKET-NOT-OPEN", "socket must be opened and in listening state before Socket::accept() call");
       return 0;
    }
@@ -2519,13 +2506,13 @@ int QoreSocket::acceptAndReplace(SocketSource *source) {
 }
 
 int QoreSocket::listen() {
-   if (!priv->sock)
+   if (priv->sock == -1)
       return QSE_NOT_OPEN;
    return ::listen(priv->sock, 5);
 }
 
 int QoreSocket::send(const char *buf, qore_size_t size) {
-   if (!priv->sock)
+   if (priv->sock == -1)
       return QSE_NOT_OPEN;
 
    qore_size_t bs = 0;
@@ -2580,8 +2567,7 @@ int QoreSocket::setSendTimeout(int ms) {
    return setsockopt(priv->sock, SOL_SOCKET, SO_SNDTIMEO, (void *)&tv, sizeof(struct timeval));
 }
 
-int QoreSocket::setRecvTimeout(int ms)
-{
+int QoreSocket::setRecvTimeout(int ms) {
    struct timeval tv;
    tv.tv_sec  = ms / 1000;
    tv.tv_usec = (ms % 1000) * 1000;
