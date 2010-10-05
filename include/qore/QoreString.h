@@ -526,6 +526,9 @@ public:
    //! concatenates the characters to the string; assumes the string to be concantenated is already in the character encoding of the "this" string
    DLLEXPORT QoreString &operator+=(const std::string &str);
 
+   //! returns true if the string is empty, false if not
+   DLLEXPORT bool empty() const;
+
    //! returns the character position of a substring within the string
    DLLEXPORT qore_offset_t index(const QoreString &needle, qore_offset_t pos, ExceptionSink *xsink) const;
 

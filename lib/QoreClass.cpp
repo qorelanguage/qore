@@ -2071,6 +2071,8 @@ QoreClass::QoreClass(const char *nme, int64 dom, const QoreTypeInfo *typeInfo) {
 }
 
 QoreClass::QoreClass() : priv(new qore_class_private(this, 0)) {
+   priv->orNothingTypeInfo = new OrNothingTypeInfo(*(priv->typeInfo));
+   priv->owns_ornothingtypeinfo = true;
 }
 
 QoreClass::~QoreClass() {

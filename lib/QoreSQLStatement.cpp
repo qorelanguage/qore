@@ -250,12 +250,15 @@ int QoreSQLStatement::bindValues(const QoreListNode &l, ExceptionSink *xsink) {
    return priv->ds->getDriver()->stmt_bind_values(this, l, xsink);
 }
 
-int QoreSQLStatement::exec(ExceptionSink *xsink) {
+int QoreSQLStatement::exec(const QoreListNode *args, ExceptionSink *xsink) {
    DBActionHelper dba(*this, xsink, DAH_ACQUIRE);
    if (!dba)
       return -1;
 
    if (checkStatus(dba, STMT_PREPARED, "exec", xsink))
+      return -1;
+
+   if (args && args->size() && priv->ds->getDriver()->stmt_bind(this, *args, xsink))
       return -1;
 
    return execIntern(dba, xsink);
@@ -416,4 +419,13 @@ int QoreSQLStatement::beginTransaction(ExceptionSink *xsink) {
    if (!rc)
       trans_status = STMT_TRANS_EXISTED;
    return rc;
+}
+
+QoreStringNode *QoreSQLStatement::getSQL(ExceptionSink *xsink) {
+   // we have to acquire the datasource in order to use the thread lock to access the SQL string
+   DBActionHelper dba(*this, xsink, DAH_NONE);
+   if (!dba)
+      return 0;
+
+   return str.empty() ? 0 : new QoreStringNode(str);
 }

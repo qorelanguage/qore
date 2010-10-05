@@ -1840,6 +1840,10 @@ char QoreString::operator[](qore_offset_t pos) const {
    return priv->buf[pos];
 }
 
+bool QoreString::empty() const {
+   return !priv->len;
+}
+
 void QoreString::prepend(const char *str) {
    prepend(str, ::strlen(str));
 }

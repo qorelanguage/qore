@@ -79,15 +79,15 @@ public:
    using AbstractPrivateData::deref;
    DLLLOCAL virtual void deref(ExceptionSink *xsink);
 
-   DLLLOCAL int prepare(const QoreString &str, const QoreListNode *args, ExceptionSink *xsink);
+   DLLLOCAL int prepare(const QoreString &n_str, const QoreListNode *args, ExceptionSink *xsink);
 
-   DLLLOCAL int prepareRaw(const QoreString &str, ExceptionSink *xsink);
+   DLLLOCAL int prepareRaw(const QoreString &n_str, ExceptionSink *xsink);
 
    DLLLOCAL int bind(const QoreListNode &l, ExceptionSink *xsink);
    DLLLOCAL int bindPlaceholders(const QoreListNode &l, ExceptionSink *xsink);
    DLLLOCAL int bindValues(const QoreListNode &l, ExceptionSink *xsink);
 
-   DLLLOCAL int exec(ExceptionSink *xsink);
+   DLLLOCAL int exec(const QoreListNode *args, ExceptionSink *xsink);
 
    DLLLOCAL int affectedRows(ExceptionSink *xsink);
 
@@ -109,6 +109,8 @@ public:
    DLLLOCAL int beginTransaction(ExceptionSink *xsink);
 
    DLLLOCAL bool active() const;
+
+   DLLLOCAL QoreStringNode *getSQL(ExceptionSink *xsink);
 };
 
 #endif

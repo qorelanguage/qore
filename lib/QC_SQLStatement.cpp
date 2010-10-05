@@ -110,9 +110,9 @@ static AbstractQoreNode *SQLSTATEMENT_bindValues(QoreObject *self, QoreSQLStatem
    return 0;
 }
 
-// SQLStatement::exec() returns nothing
+// SQLStatement::exec(...) returns nothing
 static AbstractQoreNode *SQLSTATEMENT_exec(QoreObject *self, QoreSQLStatement *stmt, const QoreListNode *args, ExceptionSink *xsink) {
-   stmt->exec(xsink);
+   stmt->exec(args, xsink);
    return 0;
 }
 
@@ -183,6 +183,11 @@ static AbstractQoreNode *SQLSTATEMENT_fetchColumns(QoreObject *self, QoreSQLStat
    return stmt->fetchColumns((int)HARD_QORE_INT(args, 0), xsink);
 }
 
+// SQLStatement::getSQL() returns *string
+static AbstractQoreNode *SQLSTATEMENT_getSQL(QoreObject *self, QoreSQLStatement *stmt, const QoreListNode *args, ExceptionSink *xsink) {
+   return stmt->getSQL(xsink);
+}
+
 QoreClass *initSQLStatementClass(QoreClass *QC_Datasource, QoreClass *QC_DatasourcePool) {
    QORE_TRACE("initSQLStatementClass()");
 
@@ -210,8 +215,8 @@ QoreClass *initSQLStatementClass(QoreClass *QC_Datasource, QoreClass *QC_Datasou
    // SQLStatement::bindValues(...) returns nothing
    QC_SQLSTATEMENT->addMethodExtended("bindValues",       (q_method_t)SQLSTATEMENT_bindValues, false, QC_USES_EXTRA_ARGS, QDOM_DEFAULT, nothingTypeInfo);
 
-   // SQLStatement::exec() returns nothing
-   QC_SQLSTATEMENT->addMethodExtended("exec",             (q_method_t)SQLSTATEMENT_exec, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
+   // SQLStatement::exec(...) returns nothing
+   QC_SQLSTATEMENT->addMethodExtended("exec",             (q_method_t)SQLSTATEMENT_exec, false, QC_USES_EXTRA_ARGS, QDOM_DEFAULT, nothingTypeInfo);
 
    // SQLStatement::affectedRows() returns int
    QC_SQLSTATEMENT->addMethodExtended("affectedRows",     (q_method_t)SQLSTATEMENT_affectedRows, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
@@ -248,6 +253,9 @@ QoreClass *initSQLStatementClass(QoreClass *QC_Datasource, QoreClass *QC_Datasou
 
    // SQLStatement::fetchColumns(softint $rows = -1) returns hash
    QC_SQLSTATEMENT->addMethodExtended("fetchColumns",     (q_method_t)SQLSTATEMENT_fetchColumns, false, QC_NO_FLAGS, QDOM_DEFAULT, hashTypeInfo, 1, softBigIntTypeInfo, new QoreBigIntNode(-1));
+
+   // SQLStatement::getSQL() returns *string
+   QC_SQLSTATEMENT->addMethodExtended("getSQL",           (q_method_t)SQLSTATEMENT_getSQL, false, QC_NO_FLAGS, QDOM_DEFAULT, stringOrNothingTypeInfo);
 
    return QC_SQLSTATEMENT;
 }
