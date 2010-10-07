@@ -98,15 +98,36 @@ static AbstractQoreNode *SQLSTATEMENT_bind(QoreObject *self, QoreSQLStatement *s
    return 0;
 }
 
+// SQLStatement::bindArgs(list) returns nothing 
+static AbstractQoreNode *SQLSTATEMENT_bindArgs(QoreObject *self, QoreSQLStatement *stmt, const QoreListNode *args, ExceptionSink *xsink) {
+   const QoreListNode *sql_args = HARD_QORE_LIST(args, 0);
+   stmt->bind(*sql_args, xsink);
+   return 0;
+}
+
 // SQLStatement::bindPlaceholders(...) returns nothing 
 static AbstractQoreNode *SQLSTATEMENT_bindPlaceholders(QoreObject *self, QoreSQLStatement *stmt, const QoreListNode *args, ExceptionSink *xsink) {
    stmt->bindPlaceholders(*args, xsink);
    return 0;
 }
 
+// SQLStatement::bindPlaceholdersArgs(list) returns nothing 
+static AbstractQoreNode *SQLSTATEMENT_bindPlaceholdersArgs(QoreObject *self, QoreSQLStatement *stmt, const QoreListNode *args, ExceptionSink *xsink) {
+   const QoreListNode *sql_args = HARD_QORE_LIST(args, 0);
+   stmt->bindPlaceholders(*sql_args, xsink);
+   return 0;
+}
+
 // SQLStatement::bindValues(...) returns nothing 
 static AbstractQoreNode *SQLSTATEMENT_bindValues(QoreObject *self, QoreSQLStatement *stmt, const QoreListNode *args, ExceptionSink *xsink) {
    stmt->bindValues(*args, xsink);
+   return 0;
+}
+
+// SQLStatement::bindValuesArgs(list) returns nothing 
+static AbstractQoreNode *SQLSTATEMENT_bindValuesArgs(QoreObject *self, QoreSQLStatement *stmt, const QoreListNode *args, ExceptionSink *xsink) {
+   const QoreListNode *sql_args = HARD_QORE_LIST(args, 0);
+   stmt->bindValues(*sql_args, xsink);
    return 0;
 }
 
@@ -209,11 +230,20 @@ QoreClass *initSQLStatementClass(QoreClass *QC_Datasource, QoreClass *QC_Datasou
    // SQLStatement::bind(...) returns nothing
    QC_SQLSTATEMENT->addMethodExtended("bind",             (q_method_t)SQLSTATEMENT_bind, false, QC_USES_EXTRA_ARGS, QDOM_DEFAULT, nothingTypeInfo);
 
+   // SQLStatement::bindArgs(list) returns nothing 
+   QC_SQLSTATEMENT->addMethodExtended("bindArgs",         (q_method_t)SQLSTATEMENT_bindArgs, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, listTypeInfo, QORE_PARAM_NO_ARG);
+
    // SQLStatement::bindPlaceholders(...) returns nothing
    QC_SQLSTATEMENT->addMethodExtended("bindPlaceholders", (q_method_t)SQLSTATEMENT_bindPlaceholders, false, QC_USES_EXTRA_ARGS, QDOM_DEFAULT, nothingTypeInfo);
 
+   // SQLStatement::bindPlaceholdersArgs(list) returns nothing 
+   QC_SQLSTATEMENT->addMethodExtended("bindPlaceholdersArgs", (q_method_t)SQLSTATEMENT_bindPlaceholdersArgs, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, listTypeInfo, QORE_PARAM_NO_ARG);
+
    // SQLStatement::bindValues(...) returns nothing
    QC_SQLSTATEMENT->addMethodExtended("bindValues",       (q_method_t)SQLSTATEMENT_bindValues, false, QC_USES_EXTRA_ARGS, QDOM_DEFAULT, nothingTypeInfo);
+
+   // SQLStatement::bindValuesArgs(list) returns nothing 
+   QC_SQLSTATEMENT->addMethodExtended("bindValuesArgs",   (q_method_t)SQLSTATEMENT_bindValuesArgs, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, listTypeInfo, QORE_PARAM_NO_ARG);
 
    // SQLStatement::exec(...) returns nothing
    QC_SQLSTATEMENT->addMethodExtended("exec",             (q_method_t)SQLSTATEMENT_exec, false, QC_USES_EXTRA_ARGS, QDOM_DEFAULT, nothingTypeInfo);
