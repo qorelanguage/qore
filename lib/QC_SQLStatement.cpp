@@ -209,6 +209,11 @@ static AbstractQoreNode *SQLSTATEMENT_getSQL(QoreObject *self, QoreSQLStatement 
    return stmt->getSQL(xsink);
 }
 
+// SQLStatement::active() returns bool
+static AbstractQoreNode *SQLSTATEMENT_active(QoreObject *self, QoreSQLStatement *stmt, const QoreListNode *args, ExceptionSink *xsink) {
+   return get_bool_node(stmt->active());
+}
+
 QoreClass *initSQLStatementClass(QoreClass *QC_Datasource, QoreClass *QC_DatasourcePool) {
    QORE_TRACE("initSQLStatementClass()");
 
@@ -286,6 +291,9 @@ QoreClass *initSQLStatementClass(QoreClass *QC_Datasource, QoreClass *QC_Datasou
 
    // SQLStatement::getSQL() returns *string
    QC_SQLSTATEMENT->addMethodExtended("getSQL",           (q_method_t)SQLSTATEMENT_getSQL, false, QC_NO_FLAGS, QDOM_DEFAULT, stringOrNothingTypeInfo);
+
+   // SQLStatement::active() returns bool
+   QC_SQLSTATEMENT->addMethodExtended("active",           (q_method_t)SQLSTATEMENT_active, false, QC_NO_FLAGS, QDOM_DEFAULT, boolTypeInfo);
 
    return QC_SQLSTATEMENT;
 }
