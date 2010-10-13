@@ -137,6 +137,12 @@ static AbstractQoreNode *SQLSTATEMENT_exec(QoreObject *self, QoreSQLStatement *s
    return 0;
 }
 
+// SQLStatement::execArgs(list $args) returns nothing
+static AbstractQoreNode *SQLSTATEMENT_execArgs(QoreObject *self, QoreSQLStatement *stmt, const QoreListNode *args, ExceptionSink *xsink) {
+   stmt->exec(HARD_QORE_LIST(args, 0), xsink);
+   return 0;
+}
+
 // SQLStatement::affectedRows() returns int
 static AbstractQoreNode *SQLSTATEMENT_affectedRows(QoreObject *self, QoreSQLStatement *stmt, const QoreListNode *args, ExceptionSink *xsink) {
    int rows = stmt->affectedRows(xsink);
@@ -252,6 +258,9 @@ QoreClass *initSQLStatementClass(QoreClass *QC_Datasource, QoreClass *QC_Datasou
 
    // SQLStatement::exec(...) returns nothing
    QC_SQLSTATEMENT->addMethodExtended("exec",             (q_method_t)SQLSTATEMENT_exec, false, QC_USES_EXTRA_ARGS, QDOM_DEFAULT, nothingTypeInfo);
+
+   // SQLStatement::execArgs(list $args) returns nothing
+   QC_SQLSTATEMENT->addMethodExtended("execArgs",         (q_method_t)SQLSTATEMENT_execArgs, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, listTypeInfo, QORE_PARAM_NO_ARG);
 
    // SQLStatement::affectedRows() returns int
    QC_SQLSTATEMENT->addMethodExtended("affectedRows",     (q_method_t)SQLSTATEMENT_affectedRows, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);

@@ -104,20 +104,25 @@ int QoreSQLStatement::checkStatus(DBActionHelper &dba, int stat, const char *act
          return closeIntern(xsink);
       }
 
-      if (stat == STMT_PREPARED) {
-         if (status == STMT_IDLE && str.strlen())
-            return prepareIntern(xsink);
+      if (stat > STMT_IDLE && status == STMT_IDLE && str.strlen()) {
+         if (prepareIntern(xsink))
+            return -1;
 
-         if (status == STMT_EXECED)
+         if (stat == status)
             return 0;
       }
 
-      if (stat == STMT_EXECED && status == STMT_PREPARED)
-         return execIntern(dba, xsink);
+      if (stat == STMT_PREPARED && status == STMT_EXECED)
+         return 0;
+      
+      if ((stat == STMT_EXECED || stat == STMT_DEFINED) && status == STMT_PREPARED) {
+         if (execIntern(dba, xsink))
+            return -1;
 
-      if (stat == STMT_DEFINED && status == STMT_PREPARED && execIntern(dba, xsink))
-         return -1;
-         
+         if (stat == status)
+            return 0;
+      }
+
       if (stat == STMT_DEFINED && status == STMT_EXECED)
          return defineIntern(xsink);
 

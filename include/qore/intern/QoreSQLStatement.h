@@ -30,8 +30,8 @@ class DatasourceStatementHelper;
 
 #define STMT_IDLE      0
 #define STMT_PREPARED  1
-#define STMT_DEFINED   2
-#define STMT_EXECED    3
+#define STMT_EXECED    2
+#define STMT_DEFINED   3
 
 #define STMT_TRANS_UNKNOWN 0
 #define STMT_TRANS_NEW     1
@@ -100,6 +100,7 @@ public:
    DLLLOCAL int define(ExceptionSink *xsink);
 
    DLLLOCAL QoreHashNode *fetchRow(ExceptionSink *xsink);
+
    DLLLOCAL QoreListNode *fetchRows(int rows, ExceptionSink *xsink);
    DLLLOCAL QoreHashNode *fetchColumns(int rows, ExceptionSink *xsink);
 
