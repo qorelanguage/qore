@@ -72,8 +72,8 @@ struct qore_hash_private {
       hm_hm_t::const_iterator i = hm.find(key);
 
       if (i != hm.end()) {
-	 found = true;
-	 return i->second->node ? i->second->node->getAsBigInt() : 0;
+         found = true;
+         return i->second->node ? i->second->node->getAsBigInt() : 0;
       }
 
       found = false;
@@ -89,17 +89,17 @@ struct qore_hash_private {
       assert(key);	 
       hm_hm_t::const_iterator i = hm.find(key);
       if (i == hm.end())
-	 return false;
+         return false;
       return !is_nothing(i->second->node);
    }
 
    DLLLOCAL AbstractQoreNode **getKeyValuePtr(const char *key) {
       assert(key);	 
       hm_hm_t::iterator i = hm.find(key);
-	 
+
       // if the key already exists, then return the value ptr
       if (i != hm.end())
-	 return &i->second->node;
+         return &i->second->node;
 
       // otherwise create the new hash entry
       HashMember *om = new HashMember;
@@ -110,11 +110,11 @@ struct qore_hash_private {
       assert(hm.find(om->key) == hm.end());
 
       if (tail)
-	 tail->next = om;
+         tail->next = om;
       else
-	 member_list = om;
+         member_list = om;
       tail = om;
-	 
+
       // add to the map
       hm[om->key] = om;
 
@@ -130,13 +130,13 @@ struct qore_hash_private {
    DLLLOCAL void internDeleteKey(HashMember *om) {
       // remove key from the linked list
       if (om->next)
-	 om->next->prev = om->prev;
+         om->next->prev = om->prev;
       if (om->prev)
-	 om->prev->next = om->next;
+         om->prev->next = om->next;
       if (om == member_list)
-	 member_list = om->next;
+         member_list = om->next;
       if (om == tail)
-	 tail = om->prev;
+         tail = om->prev;
 
       // free string memory
       free(om->key);
@@ -150,43 +150,43 @@ struct qore_hash_private {
 
    DLLLOCAL void deleteKey(const char *key, ExceptionSink *xsink) {
       assert(key);
-	 
+      
       hm_hm_t::iterator i = hm.find(key);
-	 
+      
       if (i == hm.end())
-	 return;
-	 
+         return;
+      
       HashMember *m = i->second;
-	 
+      
       hm.erase(i);
-	 
+      
       // dereference node if present
       if (m->node) {
-	 if (m->node->getType() == NT_OBJECT)
-	    reinterpret_cast<QoreObject *>(m->node)->doDelete(xsink);
-	 m->node->deref(xsink);
+         if (m->node->getType() == NT_OBJECT)
+            reinterpret_cast<QoreObject *>(m->node)->doDelete(xsink);
+         m->node->deref(xsink);
       }
-	 
+      
       internDeleteKey(m);
    }
 
    // removes the value and dereferences it, without performing a delete on it
    DLLLOCAL void removeKey(const char *key, ExceptionSink *xsink) {
       assert(key);
-	 
+      
       hm_hm_t::iterator i = hm.find(key);
-	 
+      
       if (i == hm.end())
-	 return;
-	 
+         return;
+      
       HashMember *m = i->second;
-	 
+      
       hm.erase(i);
-	 
+      
       // dereference node if present
       if (m->node)
-	 m->node->deref(xsink);
-	 
+         m->node->deref(xsink);
+      
       internDeleteKey(m);
    }
 
@@ -194,18 +194,18 @@ struct qore_hash_private {
       assert(key);
 
       hm_hm_t::iterator i = hm.find(key);
-	 
+      
       if (i == hm.end())
-	 return 0;
-	 
+         return 0;
+      
       HashMember *m = i->second;
-	 
+      
       hm.erase(i);
-	 
+      
       AbstractQoreNode *rv = m->node;
-	 
+      
       internDeleteKey(m);
-	 
+      
       return rv;
    }
 };
@@ -427,7 +427,7 @@ AbstractQoreNode *QoreHashNode::evalImpl(ExceptionSink *xsink) const
    while (where) {
       h->setKeyValue(where->key, where->node ? where->node->eval(xsink) : 0, xsink);
       if (*xsink)
-	 return 0;
+         return 0;
       where = where->next;
    }
 
@@ -553,20 +553,20 @@ bool QoreHashNode::compareSoft(const QoreHashNode *h, ExceptionSink *xsink) cons
    while (hi.next()) {
       hm_hm_t::const_iterator j = h->priv->hm.find(hi.getKey());
       if (j == h->priv->hm.end())
-	 return 1;
+         return 1;
 
       if (::compareSoft(hi.getValue(), j->second->node, xsink))
-	 return 1;
+         return 1;
    }
 /*
    for (hm_hm_t::const_iterator i = priv->hm.begin(); i != priv->hm.end(); i++)
    {
       hm_hm_t::const_iterator j = h->priv->hm.find(i->first);
       if (j == h->priv->hm.end())
-	 return 1;
+         return 1;
 
       if (::compareSoft(i->second->node, j->second->node, xsink))
-	 return 1;
+         return 1;
    }
 */
    return 0;
@@ -574,8 +574,7 @@ bool QoreHashNode::compareSoft(const QoreHashNode *h, ExceptionSink *xsink) cons
 
 // does a "hard" compare (types must be exactly the same)
 // 0 = equal, 1 = not equal
-bool QoreHashNode::compareHard(const QoreHashNode *h, ExceptionSink *xsink) const
-{
+bool QoreHashNode::compareHard(const QoreHashNode *h, ExceptionSink *xsink) const {
    if (h->priv->len != priv->len)
       return 1;
 
@@ -583,27 +582,15 @@ bool QoreHashNode::compareHard(const QoreHashNode *h, ExceptionSink *xsink) cons
    while (hi.next()) {
       hm_hm_t::const_iterator j = h->priv->hm.find(hi.getKey());
       if (j == h->priv->hm.end())
-	 return 1;
-
+         return 1;
+      
       if (::compareHard(hi.getValue(), j->second->node, xsink))
-	 return 1;
+         return 1;
    }
-/*
-   for (hm_hm_t::const_iterator i = priv->hm.begin(); i != priv->hm.end(); i++)
-   {
-      hm_hm_t::const_iterator j = h->priv->hm.find(i->first);
-      if (j == h->priv->hm.end())
-	 return 1;
-
-      if (::compareHard(i->second->node, j->second->node, xsink))
-	 return 1;
-   }
-*/
    return 0;
 }
 
-AbstractQoreNode **QoreHashNode::getExistingValuePtr(const char *key)
-{
+AbstractQoreNode **QoreHashNode::getExistingValuePtr(const char *key) {
    hm_hm_t::const_iterator i = priv->hm.find(key);
 
    if (i != priv->hm.end())
@@ -612,24 +599,23 @@ AbstractQoreNode **QoreHashNode::getExistingValuePtr(const char *key)
    return 0;
 }
 
-bool QoreHashNode::derefImpl(ExceptionSink *xsink)
-{
+bool QoreHashNode::derefImpl(ExceptionSink *xsink) {
    //printd(5, "QoreHashNode::derefImpl() this=%p priv->member_list=%p\n", this, priv->member_list);
    class HashMember *where = priv->member_list;
    while (where)
    {
 #if 0
       printd(5, "QoreHashNode::derefImpl() this=%p %s=%p type=%s references=%d\n", this,
-	     where->key ? where->key : "(null)",
-	     where->node, where->node ? where->node->getTypeName() : "(null)",
-	     where->node ? where->node->reference_count() : 0);
+             where->key ? where->key : "(null)",
+             where->node, where->node ? where->node->getTypeName() : "(null)",
+             where->node ? where->node->reference_count() : 0);
 #endif
       if (where->node)
-	 where->node->deref(xsink);
+         where->node->deref(xsink);
       HashMember *om = where;
       where = where->next;
       if (om->key)
-	 free(om->key);
+         free(om->key);
       delete om;
    }
 #ifdef DEBUG
@@ -708,22 +694,22 @@ int QoreHashNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) c
    bool first = false;
    while (hi.next()) {
       if (first)
-	 if (foff != FMT_NONE)
-	    str.concat('\n');
-	 else
-	    str.concat(", ");
+         if (foff != FMT_NONE)
+            str.concat('\n');
+         else
+            str.concat(", ");
       else
-	 first = true;
+         first = true;
       
       if (foff != FMT_NONE)
-	 str.addch(' ', foff + 2);
+         str.addch(' ', foff + 2);
 
       str.sprintf("%s : ", hi.getKey());
 
       const AbstractQoreNode *n = hi.getValue();
       if (!n) n = &Nothing;
       if (n->getAsString(str, foff != FMT_NONE ? foff + 2 : foff, xsink))
-	 return -1;
+         return -1;
    }
    
    if (foff == FMT_NONE)
@@ -752,19 +738,19 @@ QoreString *QoreHashNode::getAsString(bool &del, int foff, ExceptionSink *xsink)
       //printd(5, "QoreHashNode::getAsString() h=%p key=%s v=%p\n", this, hi.getKey(), hi.getValue());
 
       if (first)
-	 if (foff != FMT_NONE)
-	    rv->concat('\n');
-	 else
-	    rv->concat(", ");
+         if (foff != FMT_NONE)
+            rv->concat('\n');
+         else
+            rv->concat(", ");
       else
-	 first = true;
+         first = true;
 
       if (foff != FMT_NONE)
-	 rv->addch(' ', foff + 2);
+         rv->addch(' ', foff + 2);
 
       QoreNodeAsStringHelper elem(hi.getValue(), foff != FMT_NONE ? foff + 2 : foff, xsink);
       if (*xsink)
-	 return 0;
+         return 0;
       rv->sprintf("%s : %s", hi.getKey(), elem->getBuffer());
    }
 
@@ -805,49 +791,49 @@ AbstractQoreNode *QoreHashNode::parseInit(LocalVar *oflag, int pflag, int &lvids
       
       // resolve constant references in keys
       if (k[0] == HE_TAG_CONST || k[0] == HE_TAG_SCOPED_CONST) {
-	 AbstractQoreNode *rv;
-	 // currently type information is ignored
-	 const QoreTypeInfo *keyTypeInfo = 0;
-	 if (k[0] == HE_TAG_CONST)
-	    rv = getRootNS()->findConstantValue(k + 1, 1, keyTypeInfo);
-	 else {
-	    NamedScope *nscope = new NamedScope(strdup(k + 1));
-	    rv = getRootNS()->findConstantValue(nscope, 1, keyTypeInfo);
-	    delete nscope;
-	 }
-	 if (rv) {
-	    QoreStringValueHelper t(rv);
+         AbstractQoreNode *rv;
+         // currently type information is ignored
+         const QoreTypeInfo *keyTypeInfo = 0;
+         if (k[0] == HE_TAG_CONST)
+            rv = getRootNS()->findConstantValue(k + 1, 1, keyTypeInfo);
+         else {
+            NamedScope *nscope = new NamedScope(strdup(k + 1));
+            rv = getRootNS()->findConstantValue(nscope, 1, keyTypeInfo);
+            delete nscope;
+         }
+         if (rv) {
+            QoreStringValueHelper t(rv);
 
-	    // reference value for new hash key
-	    if (*val)
-	       (*val)->ref();
+            // reference value for new hash key
+            if (*val)
+               (*val)->ref();
+            
+            // check for duplicate key definitions
+            if (priv->existsKey(t->getBuffer()))
+               doDuplicateKeyWarning(t->getBuffer());
 
-	    // check for duplicate key definitions
-	    if (priv->existsKey(t->getBuffer()))
-	       doDuplicateKeyWarning(t->getBuffer());
-
-	    // not possible to have an exception here
-	    setKeyValue(t->getBuffer(), *val, 0);
-	    
-	    // now reget new value ptr
-	    val = getKeyValuePtr(t->getBuffer());
-	 }
-	 
-	 // delete the old key (not possible to have an exception here)
-	 hi.deleteKey(0);
-	 continue;
+            // not possible to have an exception here
+            setKeyValue(t->getBuffer(), *val, 0);
+            
+            // now reget new value ptr
+            val = getKeyValuePtr(t->getBuffer());
+         }
+         
+         // delete the old key (not possible to have an exception here)
+         hi.deleteKey(0);
+         continue;
       }
 
       if (val && *val) {
-	 const QoreTypeInfo *argTypeInfo = 0;
+         const QoreTypeInfo *argTypeInfo = 0;
 
-	 //printd(5, "checking hash %p key '%s' val=%p (%s)\n", this, k, *val, get_type_name(*val));
+         //printd(5, "checking hash %p key '%s' val=%p (%s)\n", this, k, *val, get_type_name(*val));
 
-	 (*val) = (*val)->parseInit(oflag, pflag & ~PF_REFERENCE_OK, lvids, argTypeInfo);
-	 if (!needs_eval_flag && *val && (*val)->needs_eval()) {
-	    //printd(5, "setting needs_eval on hash %p key '%s' val=%p (%s)\n", this, k, *val, get_type_name(*val));
-	    setNeedsEval();
-	 }
+         (*val) = (*val)->parseInit(oflag, pflag & ~PF_REFERENCE_OK, lvids, argTypeInfo);
+         if (!needs_eval_flag && *val && (*val)->needs_eval()) {
+            //printd(5, "setting needs_eval on hash %p key '%s' val=%p (%s)\n", this, k, *val, get_type_name(*val));
+            setNeedsEval();
+         }
       }
    }
    return this;

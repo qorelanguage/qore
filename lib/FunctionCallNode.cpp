@@ -294,6 +294,8 @@ AbstractQoreNode *ScopedObjectCallNode::parseInit(LocalVar *oflag, int pflag, in
    else assert(oc);
 #endif
 
+   
+
    const QoreMethod *constructor = oc ? oc->parseGetConstructor() : 0;
    lvids += parseArgs(oflag, pflag, constructor ? constructor->getFunction() : 0, typeInfo);
 

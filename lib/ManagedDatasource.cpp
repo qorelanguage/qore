@@ -31,7 +31,7 @@ void ManagedDatasource::cleanup(ExceptionSink *xsink) {
    AutoLocker al(&ds_lock);
    assert(isInTransaction());
 
-   xsink->raiseException("DATASOURCE-TRANSACTION-EXCEPTION", "TID %d terminated while in a transaction; transaction will be automatically rolled back and the lock released", gettid());
+   xsink->raiseException("DATASOURCE-TRANSACTION-EXCEPTION", "%s:%s@%s: TID %d terminated while in a transaction; transaction will be automatically rolled back and the lock released", getDriverName(), getUsernameStr().c_str(), getDBNameStr().c_str(), gettid());
    Datasource::rollback(xsink);
    setTransactionStatus(false);
    releaseLockIntern();
@@ -43,7 +43,7 @@ void ManagedDatasource::destructor(ExceptionSink *xsink) {
       // closeUnlocked will throw an exception if a transaction is in progress (and release the transaction lock if held)
       closeUnlocked(xsink);
    else
-      xsink->raiseException("DATASOURCEPOOL-ERROR", "TID %d deleted Datasource while TID %d is holding the transaction lock", gettid(), tid);
+      xsink->raiseException("DATASOURCEPOOL-ERROR", "%s:%s@%s: TID %d deleted Datasource while TID %d is holding the transaction lock", getDriverName(), getUsernameStr().c_str(), getDBNameStr().c_str(), gettid(), tid);
 }
 
 void ManagedDatasource::deref(ExceptionSink *xsink) {
@@ -95,7 +95,8 @@ int ManagedDatasource::grabLock(ExceptionSink *xsink) {
       endDBActionIntern();
       const char *un = getUsername();
       const char *db = getDBName();
-      xsink->raiseException("TRANSACTION-LOCK-TIMEOUT", "TID %d timed out on datasource '%s@%s' after waiting %d millisecond%s on transaction lock held by TID %d", 
+      xsink->raiseException("TRANSACTION-LOCK-TIMEOUT", "%s:%s@%s: TID %d timed out on datasource '%s@%s' after waiting %d millisecond%s on transaction lock held by TID %d",
+			    getDriverName(), getUsernameStr().c_str(), getDBNameStr().c_str(), 
 			    gettid(), un ? un : "<n/a>", db ? db : "<n/a>", tl_timeout_ms, 
 			    tl_timeout_ms == 1 ? "" : "s", tid);
       return -1;
@@ -284,7 +285,7 @@ int ManagedDatasource::closeUnlocked(ExceptionSink *xsink) {
       if (isInTransaction()) {
 	 if (!wasConnectionAborted()) {
 	    // FIXME: check for statement
-	    xsink->raiseException("DATASOURCE-TRANSACTION-EXCEPTION", "Datasource closed while in a transaction; transaction will be automatically rolled back and the lock released");
+	    xsink->raiseException("DATASOURCE-TRANSACTION-EXCEPTION", "%s:%s@%s: Datasource closed while in a transaction; transaction will be automatically rolled back and the lock released", getDriverName(), getUsernameStr().c_str(), getDBNameStr().c_str());
 	    Datasource::rollback(xsink);
 	 }
 	 remove_thread_resource(this);

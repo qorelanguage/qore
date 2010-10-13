@@ -187,7 +187,7 @@ AbstractQoreNode *Datasource::execRaw(const QoreString *query_str, ExceptionSink
 int Datasource::beginImplicitTransaction(ExceptionSink *xsink) {
    //printd(5, "Datasource::beginImplicitTransaction() autocommit=%s\n", autocommit ? "true" : "false");
    if (priv->autocommit) {
-      xsink->raiseException("AUTOCOMMIT-ERROR", "transaction management is not available because autocommit is enabled for this Datasource");
+      xsink->raiseException("AUTOCOMMIT-ERROR", "%s:%s@%s: transaction management is not available because autocommit is enabled for this Datasource", getDriverName(), priv->username.c_str(), priv->dbname.c_str());
       return -1;
    }
    return priv->dsl->beginTransaction(this, xsink);

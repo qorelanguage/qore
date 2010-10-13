@@ -84,10 +84,10 @@ void DatasourcePool::cleanup(ExceptionSink *xsink) {
    int tid = gettid();
 
 #ifndef DEBUG
-   xsink->raiseException("DATASOURCEPOOL-LOCK-EXCEPTION", "TID %d terminated while in a transaction; transaction will be automatically rolled back and the datasource returned to the pool", tid);
+   xsink->raiseException("DATASOURCEPOOL-LOCK-EXCEPTION", "%s:%s@%s: TID %d terminated while in a transaction; transaction will be automatically rolled back and the datasource returned to the pool", pool[0]->getDriverName(), pool[0]->getUsernameStr().c_str(), pool[0]->getDBNameStr().c_str(), tid);
 #else
    QoreString *sql = getAndResetSQL();
-   xsink->raiseException("DATASOURCEPOOL-LOCK-EXCEPTION", "TID %d terminated while in a transaction; transaction will be automatically rolled back and the datasource returned to the pool\n%s", tid, sql ? sql->getBuffer() : "<no data>");
+   xsink->raiseException("DATASOURCEPOOL-LOCK-EXCEPTION", "%s:%s@%s: TID %d terminated while in a transaction; transaction will be automatically rolled back and the datasource returned to the pool\n%s", pool[0]->getDriverName(), pool[0]->getUsernameStr().c_str(), pool[0]->getDBNameStr().c_str(), tid, sql ? sql->getBuffer() : "<no data>");
    if (sql)
       delete sql;
 #endif
@@ -123,11 +123,11 @@ void DatasourcePool::destructor(ExceptionSink *xsink) {
 
    for (unsigned j = 0; j < cmax; ++j) {
       if (j != curr && pool[j]->isInTransaction())
-	 xsink->raiseException("DATASOURCEPOOL-ERROR", "TID %d deleted DatasourcePool while TID %d using connection %d/%d was in a transaction", gettid(), tid_list[j], j + 1, cmax);
+	 xsink->raiseException("DATASOURCEPOOL-ERROR", "%s:%s@%s: TID %d deleted DatasourcePool while TID %d using connection %d/%d was in a transaction", pool[0]->getDriverName(), pool[0]->getUsernameStr().c_str(), pool[0]->getDBNameStr().c_str(), gettid(), tid_list[j], j + 1, cmax);
    } 
 
    if (i != tmap.end() && pool[curr]->isInTransaction()) {
-      xsink->raiseException("DATASOURCEPOOL-LOCK-EXCEPTION", "TID %d deleted DatasourcePool while in a transaction; transaction will be automatically rolled back", tid);
+      xsink->raiseException("DATASOURCEPOOL-LOCK-EXCEPTION", "%s:%s@%s: TID %d deleted DatasourcePool while in a transaction; transaction will be automatically rolled back", pool[0]->getDriverName(), pool[0]->getUsernameStr().c_str(), pool[0]->getDBNameStr().c_str(), tid);
       sl.unlock();
 
       // execute rollback on Datasource before releasing to pool
@@ -240,7 +240,7 @@ Datasource *DatasourcePool::getDSIntern(bool &new_ds, ExceptionSink *xsink) {
 	    wait_count--;
 
 	    if (!valid) {
-	       xsink->raiseException("DATASOURCEPOOL-ERROR", "DatasourcePool deleted while TID %d waiting on a connection to become free", tid);
+	       xsink->raiseException("DATASOURCEPOOL-ERROR", "%s:%s@%s: DatasourcePool deleted while TID %d waiting on a connection to become free", pool[0]->getDriverName(), pool[0]->getUsernameStr().c_str(), pool[0]->getDBNameStr().c_str(), tid);
 	       return 0;
 	    }
 
