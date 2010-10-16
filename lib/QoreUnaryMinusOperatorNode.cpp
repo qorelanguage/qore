@@ -95,11 +95,6 @@ AbstractQoreNode *QoreUnaryMinusOperatorNode::parseInit(LocalVar *oflag, int pfl
 	 th.release();	 
       }
 
-      ParseNode *pn = dynamic_cast<ParseNode *>(exp);
-      if (pn) {
-	 set_const_ok(pn->is_const_ok());
-      }
-
       if (typeInfo->hasType()) {
 	 if (typeInfo->isType(NT_FLOAT))
 	    typeInfo = floatTypeInfo;

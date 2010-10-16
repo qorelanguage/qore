@@ -1612,6 +1612,11 @@ raised from the <link linkend="FtpClient_Class">FtpClient</link> class.</para></
 	    <entry><para><code><link linkend="int_type">int</link>: 8</code></para></entry>
 	    <entry><para>ignores whitespace characters and enables comments prefixed by #, equivalent to /x</para></entry>
 	  </row>
+	  <row>
+	    <entry><para><code>RE_Global</code></para></entry>
+	    <entry><para><code><link linkend="int_type">int</link>: 0x100000000LL</code></para></entry>
+	    <entry><para>replace all matches globally in the string, equivalent to /g</para></entry>
+	  </row>
 	</tbody>
       </tgroup>
     </table>

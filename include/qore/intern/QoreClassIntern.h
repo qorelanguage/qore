@@ -524,24 +524,38 @@ public:
 };
 
 // abstract class for method functions (static and non-static)
-class MethodFunction : public MethodFunctionBase {
+class NormalMethodFunction : public MethodFunctionBase {
 public:
-   DLLLOCAL MethodFunction(const QoreClass *n_qc) : MethodFunctionBase(n_qc) {
+   DLLLOCAL NormalMethodFunction(const QoreClass *n_qc) : MethodFunctionBase(n_qc) {
    }
-   DLLLOCAL MethodFunction(const MethodFunction &old, const QoreClass *n_qc) : MethodFunctionBase(old, n_qc) {
+   DLLLOCAL NormalMethodFunction(const NormalMethodFunction &old, const QoreClass *n_qc) : MethodFunctionBase(old, n_qc) {
    }
-   DLLLOCAL virtual ~MethodFunction() {
+   DLLLOCAL virtual ~NormalMethodFunction() {
    }
-   DLLLOCAL virtual void parseInitMethod(const QoreClass &parent_class, bool static_flag);
+   DLLLOCAL virtual void parseInit();
 
    // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
-   DLLLOCAL AbstractQoreNode *evalNormalMethod(const AbstractQoreFunctionVariant *variant, const char *class_name, QoreObject *self, const QoreListNode *args, ExceptionSink *xsink) const;
-
-   // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
-   DLLLOCAL AbstractQoreNode *evalStaticMethod(const AbstractQoreFunctionVariant *variant, const char *class_name, const QoreListNode *args, ExceptionSink *xsink) const;
+   DLLLOCAL AbstractQoreNode *evalMethod(const AbstractQoreFunctionVariant *variant, QoreObject *self, const QoreListNode *args, ExceptionSink *xsink) const;
 };
 
-#define METHF(f) (reinterpret_cast<MethodFunction *>(f))
+#define NMETHF(f) (reinterpret_cast<NormalMethodFunction *>(f))
+
+// abstract class for method functions (static and non-static)
+class StaticMethodFunction : public MethodFunctionBase {
+public:
+   DLLLOCAL StaticMethodFunction(const QoreClass *n_qc) : MethodFunctionBase(n_qc) {
+   }
+   DLLLOCAL StaticMethodFunction(const StaticMethodFunction &old, const QoreClass *n_qc) : MethodFunctionBase(old, n_qc) {
+   }
+   DLLLOCAL virtual ~StaticMethodFunction() {
+   }
+   DLLLOCAL virtual void parseInit();
+
+   // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
+   DLLLOCAL AbstractQoreNode *evalMethod(const AbstractQoreFunctionVariant *variant, const QoreListNode *args, ExceptionSink *xsink) const;
+};
+
+#define SMETHF(f) (reinterpret_cast<StaticMethodFunction *>(f))
 
 // abstract class for constructor method functions
 class ConstructorMethodFunction : public MethodFunctionBase {
@@ -550,7 +564,7 @@ public:
    }
    DLLLOCAL ConstructorMethodFunction(const ConstructorMethodFunction &old, const QoreClass *n_qc) : MethodFunctionBase(old, n_qc) {
    }
-   DLLLOCAL void parseInitConstructor(const QoreClass &parent_class, BCList *bcl);
+   DLLLOCAL virtual void parseInit();
    DLLLOCAL virtual const char *getName() const {
       return "constructor";
    }
@@ -571,7 +585,7 @@ public:
    }
    DLLLOCAL DestructorMethodFunction(const DestructorMethodFunction &old, const QoreClass *n_qc) : MethodFunctionBase(old, n_qc) {
    }
-   DLLLOCAL void parseInitDestructor(const QoreClass &parent_class);
+   DLLLOCAL virtual void parseInit();
    DLLLOCAL virtual const char *getName() const {
       return "destructor";
    }
@@ -591,7 +605,7 @@ public:
    }
    DLLLOCAL CopyMethodFunction(const CopyMethodFunction &old, const QoreClass *n_qc) : MethodFunctionBase(old, n_qc) {
    }
-   DLLLOCAL void parseInitCopy(const QoreClass &parent_class);
+   DLLLOCAL virtual void parseInit();
    DLLLOCAL virtual const char *getName() const {
       return "copy";
    }
@@ -640,6 +654,9 @@ public:
    DLLLOCAL virtual MethodFunctionBase *copy(const QoreClass *n_qc) const {
       return new BuiltinSystemConstructor(*this, n_qc);
    }
+
+   // cannot add user variants to a builtin constructor
+   DLLLOCAL virtual void parseInit() {}
 };
 
 class BuiltinSystemConstructor2 : public BuiltinSystemConstructorBase {
@@ -660,14 +677,17 @@ public:
    DLLLOCAL virtual MethodFunctionBase *copy(const QoreClass *n_qc) const {
       return new BuiltinSystemConstructor2(*this, n_qc);
    }
+
+   // cannot add user variants to a builtin constructor
+   DLLLOCAL virtual void parseInit() {}
 };
 
-class BuiltinMethod : public MethodFunction, public BuiltinFunctionBase {
+class BuiltinNormalMethod : public NormalMethodFunction, public BuiltinFunctionBase {
 public:
-   DLLLOCAL BuiltinMethod(const QoreClass *n_qc, const char *mname) : MethodFunction(n_qc), BuiltinFunctionBase(mname) {
+   DLLLOCAL BuiltinNormalMethod(const QoreClass *n_qc, const char *mname) : NormalMethodFunction(n_qc), BuiltinFunctionBase(mname) {
    }
 
-   DLLLOCAL BuiltinMethod(const BuiltinMethod &old, const QoreClass *n_qc) : MethodFunction(old, n_qc), BuiltinFunctionBase(old) {
+   DLLLOCAL BuiltinNormalMethod(const BuiltinNormalMethod &old, const QoreClass *n_qc) : NormalMethodFunction(old, n_qc), BuiltinFunctionBase(old) {
    }
 
    DLLLOCAL virtual const char *getName() const { 
@@ -675,20 +695,37 @@ public:
    }
 
    DLLLOCAL virtual MethodFunctionBase *copy(const QoreClass *n_qc) const {
-      return new BuiltinMethod(*this, n_qc);
+      return new BuiltinNormalMethod(*this, n_qc);
+   }
+};
+
+class BuiltinStaticMethod : public StaticMethodFunction, public BuiltinFunctionBase {
+public:
+   DLLLOCAL BuiltinStaticMethod(const QoreClass *n_qc, const char *mname) : StaticMethodFunction(n_qc), BuiltinFunctionBase(mname) {
+   }
+
+   DLLLOCAL BuiltinStaticMethod(const BuiltinStaticMethod &old, const QoreClass *n_qc) : StaticMethodFunction(old, n_qc), BuiltinFunctionBase(old) {
+   }
+
+   DLLLOCAL virtual const char *getName() const { 
+      return name.c_str();
+   }
+
+   DLLLOCAL virtual MethodFunctionBase *copy(const QoreClass *n_qc) const {
+      return new BuiltinStaticMethod(*this, n_qc);
    }
 };
 
 // not visible to user code, does not follow abstract class pattern
-class BuiltinDeleteBlocker : public BuiltinMethod {
+class BuiltinDeleteBlocker : public BuiltinNormalMethod {
 protected:
    q_delete_blocker_t delete_blocker;
 
 public:
-   DLLLOCAL BuiltinDeleteBlocker(q_delete_blocker_t m) : BuiltinMethod(0, "<delete_blocker>"), delete_blocker(m) {
+   DLLLOCAL BuiltinDeleteBlocker(q_delete_blocker_t m) : BuiltinNormalMethod(0, "<delete_blocker>"), delete_blocker(m) {
    }   
 
-   DLLLOCAL BuiltinDeleteBlocker(const BuiltinDeleteBlocker &old, const QoreClass *n_qc) : BuiltinMethod(old, n_qc), delete_blocker(old.delete_blocker) {
+   DLLLOCAL BuiltinDeleteBlocker(const BuiltinDeleteBlocker &old, const QoreClass *n_qc) : BuiltinNormalMethod(old, n_qc), delete_blocker(old.delete_blocker) {
    }
 
    DLLLOCAL bool eval(QoreObject *self, AbstractPrivateData *private_data) const {
@@ -713,18 +750,31 @@ protected:
    }
 };
 
-class UserMethod : public MethodFunction, public UserMethodBase {
+class NormalUserMethod : public NormalMethodFunction, public UserMethodBase {
 public:
-   DLLLOCAL UserMethod(const QoreClass *n_qc, const char *mname) : MethodFunction(n_qc), UserMethodBase(mname) {
+   DLLLOCAL NormalUserMethod(const QoreClass *n_qc, const char *mname) : NormalMethodFunction(n_qc), UserMethodBase(mname) {
    }
-   DLLLOCAL UserMethod(const UserMethod &old, const QoreClass *n_qc) : MethodFunction(old, n_qc), UserMethodBase(old) {
+   DLLLOCAL NormalUserMethod(const NormalUserMethod &old, const QoreClass *n_qc) : NormalMethodFunction(old, n_qc), UserMethodBase(old) {
    }
    DLLLOCAL virtual const char *getName() const {
       return name.c_str();
    }
-
    DLLLOCAL virtual MethodFunctionBase *copy(const QoreClass *n_qc) const {
-      return new UserMethod(*this, n_qc);
+      return new NormalUserMethod(*this, n_qc);
+   }
+};
+
+class StaticUserMethod : public StaticMethodFunction, public UserMethodBase {
+public:
+   DLLLOCAL StaticUserMethod(const QoreClass *n_qc, const char *mname) : StaticMethodFunction(n_qc), UserMethodBase(mname) {
+   }
+   DLLLOCAL StaticUserMethod(const StaticUserMethod &old, const QoreClass *n_qc) : StaticMethodFunction(old, n_qc), UserMethodBase(old) {
+   }
+   DLLLOCAL virtual const char *getName() const {
+      return name.c_str();
+   }
+   DLLLOCAL virtual MethodFunctionBase *copy(const QoreClass *n_qc) const {
+      return new StaticUserMethod(*this, n_qc);
    }
 };
 

@@ -58,12 +58,13 @@ int ExpressionStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink
 }
 
 int ExpressionStatement::parseInitImpl(LocalVar *oflag, int pflag) {
-   //printd(5, "ES::pII() exp=%08p (%s)\n", exp, exp->getTypeName());
+   //printd(5, "ExpressionStatement::parseInitImpl() exp=%p (%s)\n", exp, exp->getTypeName());
    int lvids = 0;
    if (exp) {
       const QoreTypeInfo *argTypeInfo = 0;
       exp = exp->parseInit(oflag, pflag | PF_RETURN_VALUE_IGNORED, lvids, argTypeInfo);
    }
+   //printd(5, "ExpressionStatement::parseInitImpl() this=%p exp=%p (%s) lvids=%d\n", this, exp, exp->getTypeName(), lvids);
    return lvids;
 }
 

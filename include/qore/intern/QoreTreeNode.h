@@ -65,7 +65,6 @@ public:
    DLLLOCAL void leftParseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
       if (left) {
          left = left->parseInit(oflag, pflag, lvids, typeInfo);
-         checkArg(left);
          //printd(5, "QoreTreeNode::leftParseInit() this=%p new left=%p (%s)\n", this, left, get_type_name(left));
       }
    }
@@ -73,30 +72,16 @@ public:
    DLLLOCAL void rightParseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
       if (right) {
          right = right->parseInit(oflag, pflag, lvids, typeInfo);
-         checkArg(right);
          //printd(5, "QoreTreeNode::rightParseInit() this=%p new right=%p (%s)\n", this, right, get_type_name(right));
       }
    }
 
-   DLLLOCAL void checkArg(AbstractQoreNode *arg) {
-      if (!is_const_ok())
-         return;
-
-      ParseNode *pn = dynamic_cast<ParseNode *>(arg);
-      if (pn && !pn->is_const_ok())
-         set_const_ok(false);
-   }
-
    DLLLOCAL AbstractQoreNode *defaultParseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo) {
       const QoreTypeInfo *typeInfo = 0;
-      if (left) {
+      if (left)
          left = left->parseInit(oflag, pflag, lvids, typeInfo);
-         checkArg(left);
-      }
-      if (right) {
+      if (right)
          right = right->parseInit(oflag, pflag, lvids, typeInfo);
-         checkArg(right);
-      }
 
       if (constArgs())
          return evalSubst(returnTypeInfo);

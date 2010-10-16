@@ -441,6 +441,9 @@ public:
    // current implicit element offset
    int element;
 
+   // start of global thread-local variables for the current thread and program being parsed
+   VNode *global_vnode;
+
    DLLLOCAL ThreadData(int ptid, QoreProgram *p) : 
       tid(ptid), vlock(ptid), context_stack(0), plStack(0), 
       parse_line_start(0), parse_line_end(0), parse_file(0), 
@@ -449,7 +452,7 @@ public:
       parseClass(0), catchException(0), current_code(0),
       current_obj(0), current_pgm(p), current_implicit_arg(0),
       closure_parse_env(0), closure_rt_env(0), pch_link(0),
-      returnTypeInfo(0), element(0) {
+      returnTypeInfo(0), element(0), global_vnode(0) {
 #ifdef QORE_MANAGE_STACK
 
 #ifdef STACK_DIRECTION_DOWN
@@ -1189,6 +1192,15 @@ VNode *getVStack() {
    return (thread_data.get())->vstack;
 }
 
+void save_global_vnode(VNode *vn) {
+   ThreadData *td = thread_data.get();
+   td->global_vnode = vn;
+}
+
+VNode *get_global_vnode() {
+   return (thread_data.get())->global_vnode;
+}
+
 void setParseClass(QoreClass *c) {
    ThreadData *td = thread_data.get();
    td->parseClass = c;
@@ -1419,6 +1431,15 @@ static AbstractQoreNode *op_background(const AbstractQoreNode *left, const Abstr
    return ref_rv ? new QoreBigIntNode(tid) : 0;
 }
 
+static AbstractQoreNode *check_op_background(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo, const char *name, const char *descr) {
+   returnTypeInfo = bigIntTypeInfo;
+
+   if (pflag & PF_CONST_EXPRESSION)
+      parseException("ILLEGAL-OPERATION", "the background operator may not be used in a constant initialization expression");
+
+   return tree->defaultParseInit(oflag, pflag, lvids, returnTypeInfo);
+}
+
 void init_qore_threads() {
    QORE_TRACE("qore_init_threads()");
 
@@ -1456,7 +1477,7 @@ void init_qore_threads() {
    register_thread(get_thread_entry(), pthread_self(), 0);
 
    // register "background" Operator.handler
-   OP_BACKGROUND = oplist.add(new Operator(1, "background", "run in background thread", 0, true));
+   OP_BACKGROUND = oplist.add(new Operator(1, "background", "run in background thread", 0, true, false, check_op_background));
    OP_BACKGROUND->addFunction(NT_ALL, NT_NONE, op_background);
 
    // initialize recursive mutex attribute

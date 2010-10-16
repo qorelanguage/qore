@@ -289,9 +289,11 @@ protected:
    VRMutex *gate;
    // flag to recheck params against committed after type resolution
    bool recheck;
+   // flag to tell if variant has been initialized or not (still in pending list)
+   bool init;
    // code flags
    int64 flags;
-
+   
    DLLLOCAL AbstractQoreNode *evalIntern(ReferenceHolder<QoreListNode> &argv, QoreObject *self, ExceptionSink *xsink, const char *class_name) const;
    DLLLOCAL AbstractQoreNode *eval(const char *name, const QoreListNode *args, QoreObject *self, ExceptionSink *xsink, const char *class_name = 0) const;
    DLLLOCAL int setupCall(const QoreListNode *args, ReferenceHolder<QoreListNode> &argv, ExceptionSink *xsink) const;
@@ -308,6 +310,13 @@ public:
    }
    DLLLOCAL bool getRecheck() const {
       return recheck;
+   }
+
+   DLLLOCAL void setInit() {
+      init = true;
+   }
+   DLLLOCAL bool getInit() const {
+      return init;
    }
 
    DLLLOCAL void parseInitPushLocalVars(const QoreTypeInfo *classTypeInfo);
@@ -455,6 +464,7 @@ protected:
    int64 nn_unique_flags;
    int nn_count;
    bool parse_rt_done;
+   bool parse_init_done;
 
    const QoreTypeInfo *nn_uniqueReturnType;
 
@@ -554,7 +564,7 @@ protected:
 
 public:
    DLLLOCAL AbstractQoreFunction() : same_return_type(true), parse_same_return_type(true), unique_functionality(QDOM_DEFAULT), unique_flags(QC_NO_FLAGS),
-                                     nn_same_return_type(true), nn_unique_functionality(QDOM_DEFAULT), nn_unique_flags(QC_NO_FLAGS), nn_count(0), parse_rt_done(true), nn_uniqueReturnType(0) {
+                                     nn_same_return_type(true), nn_unique_functionality(QDOM_DEFAULT), nn_unique_flags(QC_NO_FLAGS), nn_count(0), parse_rt_done(true), parse_init_done(true), nn_uniqueReturnType(0) {
       ilist.push_back(this);
    }
 
@@ -567,7 +577,7 @@ public:
                                                                     nn_unique_functionality(old.nn_unique_functionality),
                                                                     nn_unique_flags(old.nn_unique_flags),
                                                                     nn_count(old.nn_count),
-                                                                    parse_rt_done(true),
+                                                                    parse_rt_done(true), parse_init_done(true),
                                                                     nn_uniqueReturnType(old.nn_uniqueReturnType) {
       // copy variants by reference
       for (vlist_t::const_iterator i = old.vlist.begin(), e = old.vlist.end(); i != e; ++i)
@@ -579,6 +589,8 @@ public:
 
    DLLLOCAL virtual ~AbstractQoreFunction() {
    }
+
+   DLLLOCAL virtual void parseInit() = 0;
 
    DLLLOCAL virtual const char *getName() const = 0;
 
@@ -767,6 +779,10 @@ public:
       return qc;
    }
 
+   DLLLOCAL const char *getClassName() const {
+      return qc->getName();
+   }
+
    // virtual copy constructor
    DLLLOCAL virtual MethodFunctionBase *copy(const QoreClass *n_qc) const = 0;
 
@@ -792,7 +808,7 @@ public:
       return name;
    }
 
-   DLLLOCAL void parseInit();
+   DLLLOCAL virtual void parseInit();
    DLLLOCAL virtual const QoreClass *getClass() const {
       return 0;
    }
@@ -846,6 +862,12 @@ public:
    }
    
    DLLLOCAL AbstractQoreNode *evalClosure(const QoreListNode *args, QoreObject *self, ExceptionSink *xsink) const;
+
+   // not possible to call; QoreClosureParseNode::parseInit() will be called again
+   // and this function calls parseInitClosure()
+   DLLLOCAL virtual void parseInit() {
+      assert(false);
+   }
 
    DLLLOCAL void parseInitClosure(const QoreTypeInfo *classTypeInfo, lvar_set_t *vlist);
 

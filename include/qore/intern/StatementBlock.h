@@ -52,34 +52,50 @@ class LVListInstantiator {
 public:
    DLLLOCAL LVListInstantiator(const LVList *n_l, ExceptionSink *xs) : l(n_l), xsink(xs) {
       if (!l) return;
-      for (int i = 0; i < l->num_lvars; ++i)
+      for (int i = 0; i < l->num_lvars; ++i) {
+         //printd(5, "LVListInstantiator::LVListInstantiator() this=%p v=%p %s\n", this, l->lv[i], l->lv[i]->getName());
          l->lv[i]->instantiate();
+      }
    }
 
    DLLLOCAL ~LVListInstantiator() {
       if (!l) return;
-      for (int i = 0; i < l->num_lvars; ++i)
+      for (int i = l->num_lvars - 1; i >= 0; --i) {
+         //printd(5, "LVListInstantiator::~LVListInstantiator() this=%p v=%p %s\n", this, l->lv[i], l->lv[i]->getName());
          l->lv[i]->uninstantiate(xsink);
+      }
    }
 };
 
 class StatementBlock : public AbstractStatement {
-private:
+protected:
    typedef safe_dslist<AbstractStatement *> statement_list_t;
    statement_list_t statement_list;
    block_list_t on_block_exit_list;
    LVList *lvars;
 
-   DLLLOCAL int parseInitIntern(LocalVar *oflag, int pflag = 0);
+   // start must be the element before the start position
+   DLLLOCAL int parseInitIntern(LocalVar *oflag, int pflag, statement_list_t::iterator start);
    DLLLOCAL bool hasLastReturn(AbstractStatement *as);
    DLLLOCAL void parseCheckReturn();
 
 public:
-   DLLLOCAL StatementBlock(AbstractStatement *s);
-   DLLLOCAL virtual ~StatementBlock();
+   DLLLOCAL StatementBlock() : AbstractStatement(-1, -1), lvars(0) {
+   }
+
+   // line numbers on statement blocks are set later
+   DLLLOCAL StatementBlock(AbstractStatement *s) : AbstractStatement(-1, -1), lvars(0) {
+      addStatement(s);
+   }
+
+   DLLLOCAL virtual ~StatementBlock() {
+      del();
+   }
+
    DLLLOCAL virtual int execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink);
    DLLLOCAL virtual int parseInitImpl(LocalVar *oflag, int pflag = 0);
-   DLLLOCAL int parseInitTopLevel(RootQoreNamespace *rns, UserFunctionList *ufl, bool first);
+
+   DLLLOCAL void del();
 
    DLLLOCAL void addStatement(AbstractStatement *s);
 
@@ -107,6 +123,34 @@ public:
          return false;
 
       return (*statement_list.last())->hasFinalReturn();
+   }
+};
+
+class TopLevelStatementBlock : public StatementBlock {
+protected:
+   // iterator to last commit element in statement list
+   statement_list_t::iterator hwm;
+   // true only the first time parseInit() is called
+   bool first;
+   
+public:
+   DLLLOCAL TopLevelStatementBlock() : hwm(statement_list.end()), first(true) {
+   }
+
+   DLLLOCAL virtual ~TopLevelStatementBlock() {
+   }
+
+   DLLLOCAL void parseInit(RootQoreNamespace *rns, UserFunctionList *ufl);
+
+   DLLLOCAL void parseCommit() {
+      hwm = statement_list.last();
+   }
+
+   DLLLOCAL void parseRollback() {
+      for (statement_list_t::iterator i = hwm, e = statement_list.end(); i != e; ++i)
+         delete *i;
+
+      statement_list.erase_to_end(hwm);
    }
 };
 

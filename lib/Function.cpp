@@ -294,19 +294,11 @@ void UserSignature::pushParam(VarRefNode *v, AbstractQoreNode *defArg, bool need
       parse_error(parse_file, first_line, last_line, "invalid global variable declaration in argument list; by default all variables declared in argument lists are local");
 }
 
-void UserVariantBase::parseInitPushLocalVars(const QoreTypeInfo *classTypeInfo) {
-   signature.parseInitPushLocalVars(classTypeInfo);
-}
-
-void UserVariantBase::parseInitPopLocalVars() {
-   signature.parseInitPopLocalVars();
-}
-
 void UserSignature::parseInitPushLocalVars(const QoreTypeInfo *classTypeInfo) {
    lv.reserve(parseTypeList.size());
    
    if (selfid)
-      push_self_var(selfid);
+      push_local_var(selfid);
    else if (classTypeInfo)
       selfid = push_local_var("self", classTypeInfo, false, 1);
    
@@ -1073,13 +1065,21 @@ UserVariantExecHelper::~UserVariantExecHelper() {
 
 UserVariantBase::UserVariantBase(StatementBlock *b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode *params, RetTypeInfo *rv, bool synced, int64 n_flags) 
    : statements(b), signature(n_sig_first_line, n_sig_last_line, params, rv), synchronized(synced), gate(synced ? new VRMutex() : 0),
-     recheck(false), flags(n_flags) {
+     recheck(false), init(false), flags(n_flags) {
    printd(5, "UserVariantBase::UserVariantBase() params=%p rv=%p b=%p synced=%d\n", params, rv, b, synced);
 }
 
 UserVariantBase::~UserVariantBase() {
    delete gate;
    delete statements;
+}
+
+void UserVariantBase::parseInitPushLocalVars(const QoreTypeInfo *classTypeInfo) {
+   signature.parseInitPushLocalVars(classTypeInfo);
+}
+
+void UserVariantBase::parseInitPopLocalVars() {
+   signature.parseInitPopLocalVars();
 }
 
 // evaluates arguments and sets up the argv variable
@@ -1480,6 +1480,7 @@ void AbstractQoreFunction::resolvePendingSignatures() {
 
 int AbstractQoreFunction::parseAddVariant(AbstractQoreFunctionVariant *variant) {
    parse_rt_done = false;
+   parse_init_done = false;
 
    // check for duplicate signature with existing variants
    if (parseCheckDuplicateSignature(variant->getUserVariantBase())) {
@@ -1502,6 +1503,7 @@ void AbstractQoreFunction::parseCommit() {
       same_return_type = false;
 
    parse_rt_done = true;
+   parse_init_done = true;
 }
 
 void AbstractQoreFunction::parseRollback() {
@@ -1511,9 +1513,14 @@ void AbstractQoreFunction::parseRollback() {
       parse_same_return_type = true;
 
    parse_rt_done = true;
+   parse_init_done = true;
 }
 
 void UserFunction::parseInit() {
+   if (parse_init_done)
+      return;
+   parse_init_done = true;
+
    parse_same_return_type = same_return_type;
 
    for (vlist_t::iterator i = pending_vlist.begin(), e = pending_vlist.end(); i != e; ++i) {
@@ -1545,6 +1552,10 @@ AbstractQoreNode *UserClosureFunction::evalClosure(const QoreListNode *args, Qor
 }
 
 void UserClosureFunction::parseInitClosure(const QoreTypeInfo *classTypeInfo, lvar_set_t *lvlist) {
+   if (parse_init_done)
+      return;
+   parse_init_done = true;
+
    // closures cannot be overloaded
    assert(pending_vlist.singular());
    UserClosureVariant *v = UCLOV(pending_first());

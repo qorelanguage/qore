@@ -995,11 +995,11 @@ protected:
    }
 
 public:
-   DLLLOCAL OrNothingTypeInfo(const QoreTypeInfo &ti) : AcceptsReturnsSameMultiTypeInfo(ti.qc, ti.qt, false, false, ti.qt == NT_INT) {
+   DLLLOCAL OrNothingTypeInfo(const QoreTypeInfo &ti, const char *name) : AcceptsReturnsSameMultiTypeInfo(ti.qc, ti.qt, false, false, ti.qt == NT_INT) {
       assert(ti.hasType());
 
       tname = "*";
-      tname += ti.getName();
+      tname += name;
 
       assert(!ti.input_filter);
       

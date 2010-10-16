@@ -65,10 +65,10 @@ public:
    } ref;
 
    // takes over memory for "n"
-   DLLLOCAL VarRefNode(char *n, qore_var_t t, bool n_has_effect = false) : ParseNode(NT_VARREF, true, n_has_effect, false), name(n), type(t), new_decl(t == VT_LOCAL) {
+   DLLLOCAL VarRefNode(char *n, qore_var_t t, bool n_has_effect = false) : ParseNode(NT_VARREF, true, n_has_effect), name(n), type(t), new_decl(t == VT_LOCAL) {
       assert(type != VT_GLOBAL);
    }
-   DLLLOCAL VarRefNode(char *n, Var *n_var, bool n_has_effect = false) : ParseNode(NT_VARREF, true, n_has_effect, false), name(n), type(VT_GLOBAL), new_decl(true) {      
+   DLLLOCAL VarRefNode(char *n, Var *n_var, bool n_has_effect = false) : ParseNode(NT_VARREF, true, n_has_effect), name(n), type(VT_GLOBAL), new_decl(true) {      
       ref.var = n_var;
    }
    

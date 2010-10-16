@@ -67,8 +67,6 @@ protected:
    DLLLOCAL void doFlags(int64 flags) {
       if (flags & QC_RET_VALUE_ONLY)
          set_effect(false);
-      if (flags & QC_CONSTANT)
-         set_const_ok(true);
    }
 
 public:
@@ -109,7 +107,7 @@ protected:
    char *c_str;
 
    // eval(): return value requires a deref(xsink)
-      using AbstractFunctionCallNode::evalImpl;
+   using AbstractFunctionCallNode::evalImpl;
    DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *) const;
 
 public:

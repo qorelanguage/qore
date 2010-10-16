@@ -138,17 +138,19 @@ struct qore_qtc_private {
 
    con_info connection, proxy_connection;
 
-   bool connected, nodelay;
+   bool connected, 
+      nodelay, 
+      proxy_connected; // means that a CONNECT message has been processed and the connection is now made as if it were directly with the client
    int default_port, max_redirects;
    std::string default_path;
    int timeout;
    std::string socketpath;
    QoreSocket m_socket;
    header_map_t default_headers;
-   int connect_timeout_ms;
+   int connect_timeout_ms;   
   
    DLLLOCAL qore_qtc_private() : http11(true), connection(HTTPCLIENT_DEFAULT_PORT),
-				 connected(false), nodelay(false),
+				 connected(false), nodelay(false), proxy_connected(false),
 				 default_port(HTTPCLIENT_DEFAULT_PORT), 
 				 max_redirects(HTTPCLIENT_DEFAULT_MAX_REDIRECTS),
 				 timeout(HTTPCLIENT_DEFAULT_TIMEOUT),
@@ -213,6 +215,7 @@ struct qore_qtc_private {
       if (connected) {
 	 m_socket.close();
 	 connected = false;
+	 proxy_connected = false;
       }
    }
 
@@ -843,13 +846,19 @@ QoreHashNode *qore_qtc_private::send_internal(const char *meth, const char *mpat
       }
    }
 
-   if (proxy_connection.port && !proxy_connection.username.empty()) {
+   // save original HTTP method in case we have to issue a CONNECT request to a proxy for an HTTPS connection
+   const char *meth_orig = meth;
+
+   bool use_proxy_connect = false;
+   const char *pauth_header = 0;
+   if (!proxy_connected && proxy_connection.port && !proxy_connection.username.empty()) {
       // check for "Proxy-Authorization" header
       bool auth_found = false;
       if (headers) {
 	 ConstHashIterator hi(headers);
 	 while (hi.next()) {
 	    if (!strcasecmp(hi.getKey(), "Proxy-Authorization")) {
+	       pauth_header = hi.getKey();
 	       auth_found = true;
 	       break;
 	    }
@@ -861,6 +870,13 @@ QoreHashNode *qore_qtc_private::send_internal(const char *meth, const char *mpat
 	 QoreStringNode *auth_str = new QoreStringNode("Basic ");
 	 auth_str->concatBase64(&tmp);
 	 nh->setKeyValue("Proxy-Authorization", auth_str, xsink);
+	 pauth_header = "Proxy-Authorization";
+      }
+
+      // use CONNECT if we need to make an HTTPS connection from the proxy
+      if (!proxy_connection.ssl && connection.ssl) {
+	 meth = "CONNECT";
+	 use_proxy_connect = true;
       }
    }
 
@@ -929,6 +945,21 @@ QoreHashNode *qore_qtc_private::send_internal(const char *meth, const char *mpat
 	    tmp.clear();
 	    tmp.sprintf("redirect-message-%d", redirect_count);
 	    info->setKeyValue(tmp.getBuffer(), mess ? mess->refSelf() : 0, xsink);
+	 }
+	 else if (use_proxy_connect) {
+	    meth = meth_orig;
+	    use_proxy_connect = false;
+	    if (m_socket.upgradeClientToSSL(0, 0, xsink))	       
+	       return 0;
+	    proxy_connected = true;
+	    
+	    // remove "Proxy-Authorization" header
+	    nh->removeKey("Proxy-Authorization", xsink);
+	    if (*xsink)
+	       return 0;
+
+	    // try again as if we are talking directly to the client
+	    continue;
 	 }
 
 	 // set mpath to NULL so that the new path will be taken

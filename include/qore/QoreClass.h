@@ -185,6 +185,7 @@ class QoreClass {
    friend class qore_method_private;
    friend class QoreMethodIterator;
    friend class QoreStaticMethodIterator;
+   friend class ConstructorMethodFunction;
 
 private:
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used

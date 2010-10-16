@@ -37,17 +37,12 @@ protected:
    //! if the return value is ignored
    bool ref_rv : 1;
 
-   //! if the node can be used to assign a constant
-   bool const_ok : 1;
-
 public:
-   DLLLOCAL ParseNode(qore_type_t t, bool n_needs_eval = true) : SimpleQoreNode(t, false, n_needs_eval), effect(n_needs_eval), ref_rv(true), const_ok(!n_needs_eval) {
+   DLLLOCAL ParseNode(qore_type_t t, bool n_needs_eval = true) : SimpleQoreNode(t, false, n_needs_eval), effect(n_needs_eval), ref_rv(true) {
    }
-   DLLLOCAL ParseNode(qore_type_t t, bool n_needs_eval, bool n_effect) : SimpleQoreNode(t, false, n_needs_eval), effect(n_effect), ref_rv(true), const_ok(!n_effect) {
+   DLLLOCAL ParseNode(qore_type_t t, bool n_needs_eval, bool n_effect) : SimpleQoreNode(t, false, n_needs_eval), effect(n_effect), ref_rv(true) {
    }
-   DLLLOCAL ParseNode(qore_type_t t, bool n_needs_eval, bool n_effect, bool n_const_ok) : SimpleQoreNode(t, false, n_needs_eval), effect(n_effect), ref_rv(true), const_ok(n_const_ok) {
-   }
-   DLLLOCAL ParseNode(const ParseNode &old) : SimpleQoreNode(old.type, false, old.needs_eval_flag), effect(old.effect), ref_rv(old.ref_rv), const_ok(old.const_ok) {
+   DLLLOCAL ParseNode(const ParseNode &old) : SimpleQoreNode(old.type, false, old.needs_eval_flag), effect(old.effect), ref_rv(old.ref_rv) {
    }
    // parse types should never be copied
    DLLLOCAL virtual AbstractQoreNode *realCopy() const {
@@ -67,12 +62,6 @@ public:
    }
    DLLLOCAL bool has_effect() const {
       return effect;
-   }
-   DLLLOCAL void set_const_ok(bool n_const_ok) {
-      const_ok = n_const_ok;
-   }
-   DLLLOCAL bool is_const_ok() const {
-      return const_ok;
    }
    DLLLOCAL void ignore_rv() {
       ref_rv = false;

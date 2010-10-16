@@ -110,8 +110,18 @@ int FunctionCallBase::parseArgsVariant(LocalVar *oflag, int pflag, AbstractQoreF
    }
 
    // resolves pending signatures unconditionally
-   if (func)
+   if (func) {
       func->resolvePendingSignatures();
+
+      // initialize function or class immediately if parsing a constant initialization expression
+      if (pflag & PF_CONST_EXPRESSION) {
+	 const QoreClass *qc = func->getClass();
+	 if (qc)
+	    const_cast<QoreClass *>(qc)->parseInit();
+	 else
+	    func->parseInit();
+      }
+   }
    
    // find variant
    variant = func && have_arg_type_info ? func->parseFindVariant(argTypeInfo) : 0;
@@ -137,6 +147,24 @@ int FunctionCallBase::parseArgsVariant(LocalVar *oflag, int pflag, AbstractQoreF
    }
 
    returnTypeInfo = variant ? variant->parseGetReturnTypeInfo() : (func ? func->parseGetUniqueReturnTypeInfo() : 0);
+
+   //printd(5, "FunctionCallBase::parseArgsVariant() this=%p func=%s variant=%p pflag=%d pe=%d\n", this, func ? func->getName() : "n/a", variant, pflag, func ? func->pendingEmpty() : -1);
+
+   // if the function call is being made as a part of a constant expression and 
+   // there are uncommitted user variants in the function, then raise an error
+   if (func && (pflag & PF_CONST_EXPRESSION) && !variant && !func->pendingEmpty()) {
+      const char *name = func->getName();
+      const char *cname = func->className();
+      QoreStringNode *desc = new QoreStringNode("cannot ");
+      if (cname && !strcmp(name, "constructor"))
+	 desc->sprintf("instantiate class %s", cname);
+      else
+	 desc->sprintf("cannot call %s%s%s()", cname ? cname : "", cname ? "::" : "", name);
+
+      desc->concat(" in an expression initializing a constant when the function has uncommitted variants and the variant cannot be matched at parse time; to fix this error, add enough type information to the call to allow the variant to be resolved");
+
+      parseException("ILLEGAL-CALL", desc);
+   }
 
    return lvids;
 }
@@ -204,6 +232,8 @@ AbstractQoreNode *SelfFunctionCallNode::parseInit(LocalVar *oflag, int pflag, in
    }
    else
       method = getParseClass()->parseResolveSelfMethod(&ns);
+
+   // by here, if there are no errors, the class has been initialized
 
    lvids += parseArgs(oflag, pflag, method ? method->getFunction() : 0, returnTypeInfo);
 
@@ -294,12 +324,14 @@ AbstractQoreNode *ScopedObjectCallNode::parseInit(LocalVar *oflag, int pflag, in
    else assert(oc);
 #endif
 
-   
-
    const QoreMethod *constructor = oc ? oc->parseGetConstructor() : 0;
    lvids += parseArgs(oflag, pflag, constructor ? constructor->getFunction() : 0, typeInfo);
 
    if (oc) {
+      // initialize class immediately, in case the class will be instantiated immediately after during parsing
+      // to be assigned to a constant
+      const_cast<QoreClass *>(oc)->initialize();
+
       typeInfo = oc->getTypeInfo();
       desc.sprintf("new %s", oc->getName());
    }

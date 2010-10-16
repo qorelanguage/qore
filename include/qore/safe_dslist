@@ -261,6 +261,27 @@ public:
       return head != tail;
    }
 
+   //! deletes the list element after the iterator argument and all other elements to the end of the list
+   /** O(n) where n=length of list after the element given
+       @note does not erase the element given by the iterator argument
+   */
+   DLLLOCAL void erase_to_end(iterator i) {         
+      if (!i.node) {
+         clear();
+         return;
+      }
+
+      node_t *w = i.node->next;
+      i.node->next = 0;
+      tail = i.node;
+
+      while (w) {
+         node_t *n = w->next;
+         delete w;
+         w = n;
+      }
+   }
+
    //! deletes the list element given by the iterator argument
    /** only constant time for the first element in the list, otherwise is O(n), linear with the length of the list
     */

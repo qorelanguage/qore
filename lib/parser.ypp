@@ -135,7 +135,8 @@ public:
    NamedScope *name;
    QoreClass *oc;
 
-   DLLLOCAL inline ObjClassDef(char *n, class QoreClass *o) { name = new NamedScope(n); oc = o; }
+   DLLLOCAL inline ObjClassDef(NamedScope *n, QoreClass *o) : name(n), oc(o) {}
+   DLLLOCAL inline ObjClassDef(char *n, QoreClass *o) : name(new NamedScope(n)), oc(o) {}
    DLLLOCAL inline ~ObjClassDef() { delete name; }
 };
 
@@ -1358,9 +1359,9 @@ class_def:
 	   $$ = new ObjClassDef($2, qc); 	   
 	}
 	| TOK_CLASS SCOPED_REF inheritance_list ';' { 
-	   QoreClass *qc = new QoreClass();
-	   $$ = new ObjClassDef($2, qc);
-	   qc->setName($$->name->getIdentifier());
+	   NamedScope *ns = new NamedScope($2);
+	   QoreClass *qc = new QoreClass(ns->getIdentifier());
+	   $$ = new ObjClassDef(ns, qc);
 	   qc->parseSetBaseClassList($3);
 	}
 	| TOK_CLASS IDENTIFIER inheritance_list '{' '}' { 
@@ -1369,9 +1370,9 @@ class_def:
 	   $$ = new ObjClassDef($2, qc); 	   
 	}
 	| TOK_CLASS SCOPED_REF inheritance_list '{' '}' { 
-	   QoreClass *qc = new QoreClass();
-	   $$ = new ObjClassDef($2, qc);
-	   qc->setName($$->name->getIdentifier());
+	   NamedScope *ns = new NamedScope($2);
+	   QoreClass *qc = new QoreClass(ns->getIdentifier());
+	   $$ = new ObjClassDef(ns, qc);
 	   qc->parseSetBaseClassList($3);
 	}
 	;

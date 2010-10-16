@@ -535,6 +535,9 @@ public:
    /** @return the script directory, if known (0 if not)
     */
    DLLLOCAL const char *parseGetScriptDir() const;
+
+   // can only be called while parsing from the same thread doing the parsing
+   DLLLOCAL bool parseExceptionRaised() const;
 };
 
 //! safely manages QoreProgram objects

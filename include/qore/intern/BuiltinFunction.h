@@ -142,6 +142,11 @@ public:
    DLLLOCAL virtual const QoreClass *getClass() const {
       return 0;
    }
+
+   DLLLOCAL virtual void parseInit() {
+      // FIXME
+      assert(pendingEmpty());
+   }
 };
 
 #endif // _QORE_BUILTIN_FUNCTION

@@ -38,7 +38,7 @@ typedef std::map<std::string, QoreMethod *> hm_method_t;
 // FIXME: check private method variant access at runtime
 
 struct SelfLocalVarParseHelper {
-   DLLLOCAL SelfLocalVarParseHelper(LocalVar *selfid) { push_self_var(selfid); }
+   DLLLOCAL SelfLocalVarParseHelper(LocalVar *selfid) { push_local_var(selfid); }
    DLLLOCAL ~SelfLocalVarParseHelper() { pop_local_var(); }
 };
 
@@ -879,14 +879,10 @@ struct qore_method_private {
 
       const char *name = func->getName();
 
-      if (!strcmp(name, "constructor"))
-	 CONMF(func)->parseInitConstructor(*parent_class, parent_class->priv->scl);
-      else if (!strcmp(name, "destructor"))
-	 DESMF(func)->parseInitDestructor(*parent_class);
-      else if (!strcmp(name, "copy"))
-	 COPYMF(func)->parseInitCopy(*parent_class);
-      else {
-	 METHF(func)->parseInitMethod(*parent_class, false);
+      func->parseInit();
+      if (!strcmp(name, "constructor") 
+	  && !strcmp(name, "destructor")
+	  && !strcmp(name, "copy")) {
 
 	 if ((!strcmp(name, "methodGate")
 	      || !strcmp(name, "memberGate")
@@ -909,7 +905,7 @@ struct qore_method_private {
 
    DLLLOCAL void parseInitStatic() {
       assert(static_flag);
-      METHF(func)->parseInitMethod(*parent_class, true);
+      func->parseInit();
    }
 
    DLLLOCAL const QoreTypeInfo *getUniqueReturnTypeInfo() const {
@@ -1038,8 +1034,9 @@ QoreObject *qore_class_private::execConstructor(const AbstractQoreFunctionVarian
 
    printd(5, "qore_class_private::execConstructor() class=%p %s::constructor() o=%p variant=%p\n", cls, name, self, variant);
 
-   if (!constructor) {
-      assert(!variant);
+   // it's possible for constructor = 0 and variant != 0, when a class is instantiated to initialize a constant
+   // and the matched variant is pending
+   if (!constructor && !variant) {
       if (scl) { // execute superconstructors if any
 	 CODE_CONTEXT_HELPER(CT_BUILTIN, "constructor", self, xsink);
 
@@ -1051,7 +1048,13 @@ QoreObject *qore_class_private::execConstructor(const AbstractQoreFunctionVarian
 	 initMembers(self, xsink);
    }
    else {
-      constructor->priv->evalConstructor(variant, self, args, *bceal, xsink);
+      if (!constructor) {
+	 hm_method_t::const_iterator i = hm.find("constructor");
+	 assert(i != hm.end());
+	 i->second->priv->evalConstructor(variant, self, args, *bceal, xsink);
+      }
+      else
+	 constructor->priv->evalConstructor(variant, self, args, *bceal, xsink);
       printd(5, "qore_class_private::execConstructor() class=%p %s done\n", cls, name);
    }
 
@@ -1151,7 +1154,7 @@ void qore_class_private::addBuiltinMethod(const char *mname, MethodVariantBase *
    hm_method_t::iterator i = hm.find(mname);
    QoreMethod *nm;
    if (i == hm.end()) {
-      MethodFunctionBase *m = new BuiltinMethod(cls, mname);
+      MethodFunctionBase *m = new BuiltinNormalMethod(cls, mname);
       nm = new QoreMethod(cls, m, false);
       insertBuiltinMethod(nm, true);
    }
@@ -1172,7 +1175,7 @@ void qore_class_private::addBuiltinStaticMethod(const char *mname, MethodVariant
    hm_method_t::iterator i = shm.find(mname);
    QoreMethod *nm;
    if (i == shm.end()) {
-      MethodFunctionBase *m = new BuiltinMethod(cls, mname);
+      MethodFunctionBase *m = new BuiltinStaticMethod(cls, mname);
       nm = new QoreMethod(cls, m, true);
       insertBuiltinStaticMethod(nm);
    }
@@ -1723,8 +1726,10 @@ const QoreExternalMethodVariant *QoreClass::findUserMethodVariant(const char *na
 // only called when parsing
 void QoreClass::setName(const char *n) {
    assert(!priv->name);
-   priv->name = strdup(n);
+   assert(!priv->orNothingTypeInfo);
 
+   priv->name = strdup(n);
+   priv->orNothingTypeInfo = new OrNothingTypeInfo(*(priv->typeInfo), priv->name);
    //printd(5, "QoreClass::setName() this=%p %s\n", this, n);
 }
 
@@ -2049,7 +2054,7 @@ void BCSMList::resolveCopy() {
 }
 
 QoreClass::QoreClass(const char *nme, int dom) : priv(new qore_class_private(this, nme, dom)) {
-   priv->orNothingTypeInfo = new OrNothingTypeInfo(*(priv->typeInfo));
+   priv->orNothingTypeInfo = new OrNothingTypeInfo(*(priv->typeInfo), nme);
    priv->owns_ornothingtypeinfo = true;
 }
 
@@ -2064,14 +2069,14 @@ QoreClass::QoreClass(const char *nme, int64 dom, const QoreTypeInfo *typeInfo) {
       priv->orNothingTypeInfo = const_cast<QoreTypeInfo *>(typeInfo);
    else {
       if (!typeInfo->hasInputFilter()) {
-	 priv->orNothingTypeInfo = new OrNothingTypeInfo(*typeInfo);
+	 priv->orNothingTypeInfo = new OrNothingTypeInfo(*typeInfo, nme);
 	 priv->owns_ornothingtypeinfo = true;
       }
    }
 }
 
 QoreClass::QoreClass() : priv(new qore_class_private(this, 0)) {
-   priv->orNothingTypeInfo = new OrNothingTypeInfo(*(priv->typeInfo));
+   //priv->orNothingTypeInfo = new OrNothingTypeInfo(*(priv->typeInfo), );
    priv->owns_ornothingtypeinfo = true;
 }
 
@@ -2135,12 +2140,12 @@ AbstractQoreNode *QoreMethod::eval(QoreObject *self, const QoreListNode *args, E
 #endif
 
    if (isStatic())
-      return METHF(priv->func)->evalStaticMethod(0, getClassName(), args, xsink);
+      return SMETHF(priv->func)->evalMethod(0, args, xsink);
 
    // switch to new program for imported objects
    ProgramContextHelper pch(self->getProgram(), xsink);
 
-   AbstractQoreNode *rv = METHF(priv->func)->evalNormalMethod(0, getClassName(), self, args, xsink);
+   AbstractQoreNode *rv = NMETHF(priv->func)->evalMethod(0, self, args, xsink);
    printd(5, "QoreMethod::eval() %s::%s() returning %p (type=%s, refs=%d)\n", oname, getName(), rv, rv ? rv->getTypeName() : "(null)", rv ? rv->reference_count() : 0);
    return rv;
 }
@@ -2519,8 +2524,10 @@ int qore_class_private::addUserMethod(const char *mname, MethodVariantBase *f, b
 	 mfb = new DestructorMethodFunction(cls);
       else if (cpy)
 	 mfb = new CopyMethodFunction(cls);
+      else if (n_static)
+	 mfb = new StaticUserMethod(cls, mname);
       else
-	 mfb = new UserMethod(cls, mname);
+	 mfb = new NormalUserMethod(cls, mname);
 
       m = new QoreMethod(cls, mfb, n_static);
    }
@@ -3027,11 +3034,15 @@ void MethodFunctionBase::parseRollbackMethod() {
    pending_all_private = true;
 }
 
-void MethodFunction::parseInitMethod(const QoreClass &parent_class, bool static_flag) {
-   //printd(5, "UserMethod::parseInitMethod() this=%p %s::%s() static_flag=%d\n", this, parent_class.getName(), getName(), static_flag);
+void NormalMethodFunction::parseInit() {
+   if (parse_init_done)
+      return;
+   parse_init_done = true;
+
+   //printd(5, "NormalUserMethod::parseInitMethod() this=%p %s::%s() static_flag=%d\n", this, getClassName(), getName(), static_flag);
    for (vlist_t::iterator i = pending_vlist.begin(), e = pending_vlist.end(); i != e; ++i) {
       UserMethodVariant *v = UMV(*i);
-      v->parseInitMethod(parent_class, static_flag);
+      v->parseInitMethod(*qc, false);
 
       // recheck types against committed types if necessary
       if (v->getRecheck())
@@ -3039,10 +3050,30 @@ void MethodFunction::parseInitMethod(const QoreClass &parent_class, bool static_
    }
 }
 
-void ConstructorMethodFunction::parseInitConstructor(const QoreClass &parent_class, BCList *bcl) {
+void StaticMethodFunction::parseInit() {
+   if (parse_init_done)
+      return;
+   parse_init_done = true;
+
+   //printd(5, "StaticUserMethod::parseInitMethod() this=%p %s::%s() static_flag=%d\n", this, getClassName(), getName(), static_flag);
+   for (vlist_t::iterator i = pending_vlist.begin(), e = pending_vlist.end(); i != e; ++i) {
+      UserMethodVariant *v = UMV(*i);
+      v->parseInitMethod(*qc, true);
+
+      // recheck types against committed types if necessary
+      if (v->getRecheck())
+	 parseCheckDuplicateSignatureCommitted(v);
+   }
+}
+
+void ConstructorMethodFunction::parseInit() {
+   if (parse_init_done)
+      return;
+   parse_init_done = true;
+
    for (vlist_t::iterator i = pending_vlist.begin(), e = pending_vlist.end(); i != e; ++i) {
       UserConstructorVariant *v = UCONV(*i);
-      v->parseInitConstructor(parent_class, bcl);
+      v->parseInitConstructor(*qc, qc->priv->scl);
 
       // recheck types against committed types if necessary
       if (v->getRecheck())
@@ -3050,7 +3081,11 @@ void ConstructorMethodFunction::parseInitConstructor(const QoreClass &parent_cla
    }
 }
 
-void DestructorMethodFunction::parseInitDestructor(const QoreClass &parent_class) {
+void DestructorMethodFunction::parseInit() {
+   if (parse_init_done)
+      return;
+   parse_init_done = true;
+
    // there can be only one destructor variant
    assert(!pending_vlist.plural());
 
@@ -3059,10 +3094,14 @@ void DestructorMethodFunction::parseInitDestructor(const QoreClass &parent_class
 
    UserDestructorVariant *v = UDESV(pending_first());
    assert(!v->getRecheck());
-   v->parseInitDestructor(parent_class);
+   v->parseInitDestructor(*qc);
 }
 
-void CopyMethodFunction::parseInitCopy(const QoreClass &parent_class) {
+void CopyMethodFunction::parseInit() {
+   if (parse_init_done)
+      return;
+   parse_init_done = true;
+
    // there can be only one copy method variant
    assert(!pending_vlist.plural());
 
@@ -3071,7 +3110,7 @@ void CopyMethodFunction::parseInitCopy(const QoreClass &parent_class) {
 
    UserCopyVariant *v = UCOPYV(pending_first());
    assert(!v->getRecheck());
-   v->parseInitCopy(parent_class);
+   v->parseInitCopy(*qc);
 }
 
 int ConstructorMethodVariant::constructorPrelude(const QoreClass &thisclass, CodeEvaluationHelper &ceh, QoreObject *self, BCList *bcl, BCEAList *bceal, ExceptionSink *xsink) const {
@@ -3243,9 +3282,9 @@ void DestructorMethodFunction::evalDestructor(const QoreClass &thisclass, QoreOb
 }
 
 // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
-AbstractQoreNode *MethodFunction::evalNormalMethod(const AbstractQoreFunctionVariant *variant, const char *class_name, QoreObject *self, const QoreListNode *args, ExceptionSink *xsink) const {
+AbstractQoreNode *NormalMethodFunction::evalMethod(const AbstractQoreFunctionVariant *variant, QoreObject *self, const QoreListNode *args, ExceptionSink *xsink) const {
    const char *mname = getName();
-   CodeEvaluationHelper ceh(xsink, mname, args, class_name);
+   CodeEvaluationHelper ceh(xsink, mname, args, getClassName());
    if (*xsink) return 0;
 
    bool check_args = variant;
@@ -3268,9 +3307,9 @@ AbstractQoreNode *MethodFunction::evalNormalMethod(const AbstractQoreFunctionVar
 }
 
 // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
-AbstractQoreNode *MethodFunction::evalStaticMethod(const AbstractQoreFunctionVariant *variant, const char *class_name, const QoreListNode *args, ExceptionSink *xsink) const {
+AbstractQoreNode *StaticMethodFunction::evalMethod(const AbstractQoreFunctionVariant *variant, const QoreListNode *args, ExceptionSink *xsink) const {
    const char *mname = getName();
-   CodeEvaluationHelper ceh(xsink, mname, args, class_name);
+   CodeEvaluationHelper ceh(xsink, mname, args, getClassName());
    if (*xsink) return 0;
 
    bool check_args = variant;

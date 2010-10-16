@@ -83,16 +83,6 @@ public:
    }
 };
 
-class SBNode {
-public:
-   StatementBlock *statements;
-   SBNode *next;
-   
-   DLLLOCAL SBNode() { next = 0; statements = 0; }
-   DLLLOCAL ~SBNode();
-   DLLLOCAL void reset();
-};
-
 // local variable container
 typedef safe_dslist<LocalVar *> local_var_list_t;
 
@@ -140,10 +130,12 @@ struct qore_program_private {
    mutable QoreThreadLock plock;
    // depedency counter, when this hits zero, the object is deleted
    QoreReferenceCounter dc;
-   SBNode *sb_head, *sb_tail;
    ExceptionSink *parseSink, *warnSink;
    RootQoreNamespace *RootNS;
    QoreNamespace *QoreNS;
+
+   // top level statements
+   TopLevelStatementBlock sb;
       
    // parsing
    bool only_first_except;
@@ -172,8 +164,6 @@ struct qore_program_private {
 #endif
       warnSink = 0;
       requires_exception = false;
-      sb_head = sb_tail = 0;
-      nextSB();
 	 
       // initialize global vars
       Var *var = global_var_list.newVar("ARGV", listTypeInfo);
@@ -291,26 +281,6 @@ struct qore_program_private {
       return global_var_list.getVarList();
    }
 
-   DLLLOCAL void deleteSBList() {
-      SBNode *w = sb_head;
-      while (w) {
-	 w = w->next;
-	 delete sb_head;
-	 sb_head = w;
-      }
-   }
-
-   DLLLOCAL void nextSB() {
-      if (sb_tail && !sb_tail->statements)
-	 return;
-      SBNode *sbn = new SBNode();
-      if (!sb_tail)
-	 sb_head = sbn;
-      else
-	 sb_tail->next = sbn;
-      sb_tail = sbn;
-   }
-
    DLLLOCAL QoreListNode *getFeatureList() const {
       QoreListNode *l = new QoreListNode();
 	 
@@ -331,7 +301,7 @@ struct qore_program_private {
       global_var_list.parseRollback();
 	 
       // delete pending statements 
-      sb_tail->reset();
+      sb.parseRollback();
    }
 
    // call must push the current program on the stack and pop it afterwards
@@ -398,12 +368,9 @@ struct qore_program_private {
       // if the first stage of parsing has already failed, 
       // then don't go forward
       if (!parseSink->isEvent()) {
-	 // initialize constants first
-	 RootNS->parseInitConstants();
-
 	 // initialize new statements second (for "our" and "my" declarations)
-	 // note: sb_tail->statements may be 0
-	 sb_tail->statements->parseInitTopLevel(RootNS, &user_func_list, sb_head == sb_tail);
+	 // also initializes namespaces, constants, etc
+	 sb.parseInit(RootNS, &user_func_list);
 
 	 // initialize all new global variables (resolve types)
 	 global_var_list.parseInit(parse_options);
@@ -430,7 +397,7 @@ struct qore_program_private {
 	 global_var_list.parseCommit();
 
 	 // commit pending statements
-	 nextSB();
+	 sb.parseCommit();
 
 	 rc = 0;
       }
@@ -653,7 +620,7 @@ struct qore_program_private {
       user_func_list.del();
 
       // method call can be repeated
-      deleteSBList();
+      sb.del();
 
       if (base_object) {
 	 endThread(xsink);
@@ -742,16 +709,12 @@ struct qore_program_private {
       else
 	 p->importUserFunction(ipgm, u, new_name, xsink);
    }
+
+   DLLLOCAL bool parseExceptionRaised() const {
+      assert(parseSink);
+      return *parseSink;
+   }
 };
-
-inline SBNode::~SBNode() {
-   reset();
-}
-
-inline void SBNode::reset() {
-   delete statements;
-   statements = 0;
-}
 
 QoreProgram::~QoreProgram() {
    printd(5, "QoreProgram::~QoreProgram() this=%08p\n", this);
@@ -891,7 +854,7 @@ void QoreProgram::makeParseException(QoreStringNode *desc) {
 
    QoreStringNodeHolder d(desc);
    if (!priv->requires_exception) {
-      class QoreException *ne = new ParseException("PARSE-EXCEPTION", d.release());
+      QoreException *ne = new ParseException("PARSE-EXCEPTION", d.release());
       if ((priv->only_first_except && !priv->exceptions_raised) || !priv->only_first_except)
          priv->parseSink->raiseException(ne);
       priv->exceptions_raised++;
@@ -904,7 +867,7 @@ void QoreProgram::makeParseException(int sline, int eline, QoreStringNode *desc)
 
    QoreStringNodeHolder d(desc);
    if (!priv->requires_exception) {
-      class QoreException *ne = new ParseException(sline, eline, "PARSE-EXCEPTION", d.release());
+      QoreException *ne = new ParseException(sline, eline, "PARSE-EXCEPTION", d.release());
       if ((priv->only_first_except && !priv->exceptions_raised) || !priv->only_first_except)
          priv->parseSink->raiseException(ne);
       priv->exceptions_raised++;
@@ -916,7 +879,7 @@ void QoreProgram::makeParseException(int sline, int eline, const char *file, Qor
 
    QoreStringNodeHolder d(desc);
    if (!priv->requires_exception) {
-      class QoreException *ne = new ParseException(sline, eline, file, "PARSE-EXCEPTION", d.release());
+      QoreException *ne = new ParseException(sline, eline, file, "PARSE-EXCEPTION", d.release());
       if ((priv->only_first_except && !priv->exceptions_raised) || !priv->only_first_except)
          priv->parseSink->raiseException(ne);
       priv->exceptions_raised++;
@@ -1143,14 +1106,7 @@ int QoreProgram::getWarningMask() const {
 }
 
 void QoreProgram::addStatement(AbstractStatement *s) {
-   if (!priv->sb_tail->statements) {
-      if (typeid(s) != typeid(StatementBlock))
-	 priv->sb_tail->statements = new StatementBlock(s);
-      else
-	 priv->sb_tail->statements = dynamic_cast<StatementBlock *>(s);
-   }
-   else
-      priv->sb_tail->statements->addStatement(s);
+   priv->sb.addStatement(s);
 
    // see if top level statements are allowed
    if (priv->parse_options & PO_NO_TOP_LEVEL_STATEMENTS && !s->isDeclaration()) {
@@ -1334,21 +1290,8 @@ void QoreProgram::parsePending(const QoreString *str, const QoreString *lstr, Ex
 
 AbstractQoreNode *QoreProgram::runTopLevel(ExceptionSink *xsink) {
    ProgramThreadCountHelper tch(this);
-
-   AbstractQoreNode *rv = 0;
-   SBNode *w = priv->sb_head;
-
-   {
-      ProgramContextHelper pch(this, xsink);
-      while (w && !xsink->isEvent() && !rv) {
-	 if (w->statements)
-	    rv = w->statements->exec(xsink);
-	 else
-	    rv = 0;
-	 w = w->next;
-      } 
-   }
-   return rv;
+   ProgramContextHelper pch(this, xsink);
+   return priv->sb.exec(xsink);
 }
 
 AbstractQoreNode *QoreProgram::callFunction(const char *name, const QoreListNode *args, ExceptionSink *xsink) {
@@ -1576,7 +1519,7 @@ void QoreProgram::setScriptPath(const char *path) {
 }
 
 const LVList *QoreProgram::getTopLevelLVList() const {
-   return (priv->sb_head && priv->sb_head->statements) ? priv->sb_head->statements->getLVList() : 0;
+   return priv->sb.getLVList();
 }
 
 AbstractQoreNode *QoreProgram::getGlobalVariableValue(const char *var, bool &found) const {
@@ -1606,6 +1549,10 @@ const AbstractQoreZoneInfo *QoreProgram::currentTZ() const {
 
 void QoreProgram::setTZ(const AbstractQoreZoneInfo *n_TZ) {
    priv->setTZ(n_TZ);
+}
+
+bool QoreProgram::parseExceptionRaised() const {
+   return priv->parseExceptionRaised();
 }
 
 int get_warning_code(const char *str) {

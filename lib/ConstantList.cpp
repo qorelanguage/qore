@@ -27,16 +27,16 @@
 #include <stdlib.h>
 
 void ConstantEntry::parseInit(const char *name) {
-   //printd(5, "ConstantEntry::parseInit() this=%p %s init=%d node=%p (%s)\n", this, name, init, node, get_type_name(node));
-      
+   //printd(5, "ConstantEntry::parseInit() this=%p %s init=%d node=%p (%s)\n", this, name, init, node, get_type_name(node));      
    if (init)
       return;
    init = true;
+
    if (!node)
       return;
 
    int lvids = 0;
-   node = node->parseInit((LocalVar *)0, 0, lvids, typeInfo);
+   node = node->parseInit((LocalVar *)0, PF_CONST_EXPRESSION, lvids, typeInfo);
 
    //printd(5, "ConstantEntry::parseInit() this=%p %s initialized to node=%p (%s)\n", this, name, node, get_type_name(node));
 
@@ -50,11 +50,10 @@ void ConstantEntry::parseInit(const char *name) {
    if (node->is_value())
       return;
 
-   ParseNode *pn = dynamic_cast<ParseNode *>(node);
-   if (pn && !pn->is_const_ok()) {
-      parse_error("invalid expression assigned to constant '%s' (possible side effects)", name);
+   // do not evaluate expression if any parse exception have been thrown
+   QoreProgram *pgm = getProgram();
+   if (pgm->parseExceptionRaised())
       return;
-   }
 
    // evaluate expression
    ExceptionSink xsink;
@@ -75,7 +74,7 @@ void ConstantEntry::parseInit(const char *name) {
    }
 	       
    if (xsink.isEvent())
-      getProgram()->addParseException(&xsink);
+      pgm->addParseException(&xsink);
    else if (!node->is_value())
       parse_error("invalid expression of type '%s' assigned to constant '%s' (possible side effects)", get_type_name(node), name);      
 }

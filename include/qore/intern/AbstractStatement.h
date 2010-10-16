@@ -36,6 +36,7 @@
 #define PF_REFERENCE_OK          (1 << 2)
 #define PF_RETHROW_OK            (1 << 3)
 #define PF_FOR_ASSIGNMENT        (1 << 4)
+#define PF_CONST_EXPRESSION      (1 << 5)
 
 // all definitions in this file are private to the library and subject to change
 
@@ -81,8 +82,8 @@ DLLLOCAL void push_cvar(const char *name);
 DLLLOCAL void pop_cvar();
 DLLLOCAL LocalVar *pop_local_var();
 DLLLOCAL int pop_local_var_get_id();
-// used for constructor methods sharing a common "self" local variable
-DLLLOCAL void push_self_var(LocalVar *lv);
+// used for constructor methods sharing a common "self" local variable and for top-level local variables
+DLLLOCAL void push_local_var(LocalVar *lv);
 DLLLOCAL LocalVar *push_local_var(const char *name, const QoreTypeInfo *typeInfo, bool check_dup = true, int n_refs = 0);
 DLLLOCAL LocalVar *find_local_var(const char *name, bool &in_closure);
 

@@ -216,6 +216,9 @@ DLLLOCAL void thread_set_runtime_closure_env(ClosureRuntimeEnvironment *cenv);
 DLLLOCAL int get_implicit_element();
 DLLLOCAL int save_implicit_element(int n_element);
 
+DLLLOCAL void save_global_vnode(VNode *vn);
+DLLLOCAL VNode *get_global_vnode();
+
 class QoreContainerHelper {
    const AbstractQoreNode *n;
    bool err;

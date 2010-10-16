@@ -58,7 +58,7 @@ const QoreTypeInfo *anyTypeInfo = &staticAnyTypeInfo,
    *callReferenceTypeInfo = &staticCallReferenceTypeInfo,
    *referenceTypeInfo = &staticReferenceTypeInfo,
    
-   // assigned in init_qore_Types()
+   // assigned in init_qore_types()
    *bigIntOrNothingTypeInfo = 0, 
    *stringOrNothingTypeInfo = 0,
    *boolOrNothingTypeInfo = 0,
@@ -189,15 +189,15 @@ void init_qore_types() {
    def_val_map[NT_NOTHING] = &Nothing;
 
    // static "or nothing" reference types
-   bigIntOrNothingTypeInfo = new OrNothingTypeInfo(staticBigIntTypeInfo); 
-   stringOrNothingTypeInfo = new OrNothingTypeInfo(staticStringTypeInfo);
-   boolOrNothingTypeInfo = new OrNothingTypeInfo(staticBoolTypeInfo);
-   binaryOrNothingTypeInfo = new OrNothingTypeInfo(staticBinaryTypeInfo);
-   objectOrNothingTypeInfo = new OrNothingTypeInfo(staticObjectTypeInfo);
-   dateOrNothingTypeInfo = new OrNothingTypeInfo(staticDateTypeInfo);
-   hashOrNothingTypeInfo = new OrNothingTypeInfo(staticHashTypeInfo);
-   listOrNothingTypeInfo = new OrNothingTypeInfo(staticListTypeInfo);
-   nullOrNothingTypeInfo = new OrNothingTypeInfo(staticNullTypeInfo);
+   bigIntOrNothingTypeInfo = new OrNothingTypeInfo(staticBigIntTypeInfo, "int"); 
+   stringOrNothingTypeInfo = new OrNothingTypeInfo(staticStringTypeInfo, "string");
+   boolOrNothingTypeInfo = new OrNothingTypeInfo(staticBoolTypeInfo, "bool");
+   binaryOrNothingTypeInfo = new OrNothingTypeInfo(staticBinaryTypeInfo, "binary");
+   objectOrNothingTypeInfo = new OrNothingTypeInfo(staticObjectTypeInfo, "object");
+   dateOrNothingTypeInfo = new OrNothingTypeInfo(staticDateTypeInfo, "date");
+   hashOrNothingTypeInfo = new OrNothingTypeInfo(staticHashTypeInfo, "hash");
+   listOrNothingTypeInfo = new OrNothingTypeInfo(staticListTypeInfo, "list");
+   nullOrNothingTypeInfo = new OrNothingTypeInfo(staticNullTypeInfo, "null");
 
    do_maps(NT_INT,         "int", bigIntTypeInfo, bigIntOrNothingTypeInfo);
    do_maps(NT_STRING,      "string", stringTypeInfo, stringOrNothingTypeInfo);
@@ -318,9 +318,9 @@ const char *getBuiltinTypeName(qore_type_t type) {
    }
 
    /*
-   printf("type: %d unknown\n", type);
+   printd(0, "type: %d unknown (map size: %d)\n", type, type_str_map.size());
    for (type_str_map_t::iterator i = type_str_map.begin(), e = type_str_map.end(); i != e; ++i)
-      printf("map[%d] = %s\n", i->first, i->second);
+      printd(0, "map[%d] = %s\n", i->first, i->second);
       
    assert(false);
    */
