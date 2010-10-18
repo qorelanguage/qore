@@ -851,6 +851,8 @@ QoreHashNode *qore_qtc_private::send_internal(const char *meth, const char *mpat
 
    bool use_proxy_connect = false;
    const char *pauth_header = 0;
+   const char *proxy_path = 0;
+   QoreString hostport;
    if (!proxy_connected && proxy_connection.port && !proxy_connection.username.empty()) {
       // check for "Proxy-Authorization" header
       bool auth_found = false;
@@ -877,6 +879,8 @@ QoreHashNode *qore_qtc_private::send_internal(const char *meth, const char *mpat
       if (!proxy_connection.ssl && connection.ssl) {
 	 meth = "CONNECT";
 	 use_proxy_connect = true;
+	 hostport.sprintf("%s:%d", connection.host.c_str(), connection.port);
+	 proxy_path = hostport.getBuffer();
       }
    }
 
@@ -897,7 +901,7 @@ QoreHashNode *qore_qtc_private::send_internal(const char *meth, const char *mpat
       }
 
       // send HTTP message and get response header
-      ans = getResponseHeader(meth, mpath, *(*nh), data, size, code, suppress_content_length, info, xsink);
+      ans = getResponseHeader(meth, proxy_path ? proxy_path : mpath, *(*nh), data, size, code, suppress_content_length, info, xsink);
       if (!ans)
 	 return 0;
 
@@ -949,6 +953,7 @@ QoreHashNode *qore_qtc_private::send_internal(const char *meth, const char *mpat
 	 else if (use_proxy_connect) {
 	    meth = meth_orig;
 	    use_proxy_connect = false;
+	    proxy_path = 0;
 	    if (m_socket.upgradeClientToSSL(0, 0, xsink))	       
 	       return 0;
 	    proxy_connected = true;
