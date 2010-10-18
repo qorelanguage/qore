@@ -180,7 +180,7 @@ struct qore_qtc_private {
 	 return;
       }
 
-      socketpath = con.path;	 
+      socketpath = con.path;
    }
 
    DLLLOCAL void setSocketPath() {
@@ -330,7 +330,7 @@ struct qore_qtc_private {
       return str;
    }
    
-   DLLLOCAL QoreHashNode *getResponseHeader(const char *meth, const char *mpath, const QoreHashNode &nh, const void *data, unsigned size, int &code,  bool suppress_content_length, QoreHashNode *info, ExceptionSink *xsink);
+   DLLLOCAL QoreHashNode *getResponseHeader(const char *meth, const char *mpath, const QoreHashNode &nh, const void *data, unsigned size, int &code,  bool suppress_content_length, QoreHashNode *info, bool with_connect, ExceptionSink *xsink);
 
    DLLLOCAL const char *getMsgPath(const char *mpath, QoreString &pstr) {
       pstr.clear();
@@ -367,7 +367,35 @@ struct qore_qtc_private {
       return (const char *)pstr.getBuffer();
    }   
 
-   QoreHashNode *send_internal(const char *meth, const char *mpath, const QoreHashNode *headers, const void *data, unsigned size, bool getbody, QoreHashNode *info, ExceptionSink *xsink, bool suppress_content_length = false);
+   DLLLOCAL QoreHashNode *send_internal(const char *meth, const char *mpath, const QoreHashNode *headers, const void *data, unsigned size, bool getbody, QoreHashNode *info, ExceptionSink *xsink, bool suppress_content_length = false);
+
+   DLLLOCAL void addProxyAuthorization(const QoreHashNode *headers, QoreHashNode &h, ExceptionSink *xsink) {
+      if (proxy_connection.username.empty())
+	 return;
+
+      AbstractQoreNode *pauth = 0;
+      // check for "Proxy-Authorization" header
+      if (headers) {
+	 ConstHashIterator hi(headers);
+	 while (hi.next()) {
+	    if (!strcasecmp(hi.getKey(), "Proxy-Authorization")) {
+	       pauth = hi.getReferencedValue();
+	       h.setKeyValue("Proxy-Authorization", pauth, xsink);
+	       assert(!*xsink);
+	       break;
+	    }
+	 }
+      }
+
+      if (!pauth) {
+	 QoreString tmp;
+	 tmp.sprintf("%s:%s", proxy_connection.username.c_str(), proxy_connection.password.c_str());
+	 QoreStringNode *auth_str = new QoreStringNode("Basic ");
+	 auth_str->concatBase64(&tmp);
+	 h.setKeyValue("Proxy-Authorization", auth_str, xsink);
+	 assert(!*xsink);
+      }
+   }
 };
 
 // static initialization
@@ -637,9 +665,9 @@ void QoreHTTPClient::disconnect() {
    priv->disconnect_unlocked();
 }
 
-QoreHashNode *qore_qtc_private::getResponseHeader(const char *meth, const char *mpath, const QoreHashNode &nh, const void *data, unsigned size, int &code, bool suppress_content_length, QoreHashNode *info, ExceptionSink *xsink) {
+QoreHashNode *qore_qtc_private::getResponseHeader(const char *meth, const char *mpath, const QoreHashNode &nh, const void *data, unsigned size, int &code, bool suppress_content_length, QoreHashNode *info, bool with_connect, ExceptionSink *xsink) {
    QoreString pathstr(m_socket.getEncoding());
-   const char *msgpath = getMsgPath(mpath, pathstr);
+   const char *msgpath = with_connect ? mpath : getMsgPath(mpath, pathstr);
 
    if (!connected && connect_unlocked(xsink))
       return 0;
@@ -850,38 +878,23 @@ QoreHashNode *qore_qtc_private::send_internal(const char *meth, const char *mpat
    const char *meth_orig = meth;
 
    bool use_proxy_connect = false;
-   const char *pauth_header = 0;
    const char *proxy_path = 0;
+   ReferenceHolder<QoreHashNode> proxy_headers(xsink);
    QoreString hostport;
-   if (!proxy_connected && proxy_connection.port && !proxy_connection.username.empty()) {
-      // check for "Proxy-Authorization" header
-      bool auth_found = false;
-      if (headers) {
-	 ConstHashIterator hi(headers);
-	 while (hi.next()) {
-	    if (!strcasecmp(hi.getKey(), "Proxy-Authorization")) {
-	       pauth_header = hi.getKey();
-	       auth_found = true;
-	       break;
-	    }
-	 }
-      }
-      if (!auth_found) {
-	 QoreString tmp;
-	 tmp.sprintf("%s:%s", proxy_connection.username.c_str(), proxy_connection.password.c_str());
-	 QoreStringNode *auth_str = new QoreStringNode("Basic ");
-	 auth_str->concatBase64(&tmp);
-	 nh->setKeyValue("Proxy-Authorization", auth_str, xsink);
-	 pauth_header = "Proxy-Authorization";
-      }
-
+   if (!proxy_connected && proxy_connection.port) {
       // use CONNECT if we need to make an HTTPS connection from the proxy
       if (!proxy_connection.ssl && connection.ssl) {
 	 meth = "CONNECT";
 	 use_proxy_connect = true;
 	 hostport.sprintf("%s:%d", connection.host.c_str(), connection.port);
 	 proxy_path = hostport.getBuffer();
+	 proxy_headers = new QoreHashNode;
+	 proxy_headers->setKeyValue("Host", new QoreStringNode(hostport), xsink);
+
+	 addProxyAuthorization(headers, **proxy_headers, xsink);
       }
+      else
+	 addProxyAuthorization(headers, **nh, xsink);
    }
 
    bool host_override = headers ? (bool)headers->getKeyValue("Host") : false;
@@ -900,8 +913,13 @@ QoreHashNode *qore_qtc_private::send_internal(const char *meth, const char *mpat
 	    return 0;
       }
 
+      //printd(5, "qore_qtc_private::send_internal() meth=%s proxy_path=%s mpath=%s upc=%d\n", meth, proxy_path ? proxy_path : "n/a", mpath, use_proxy_connect);
+
       // send HTTP message and get response header
-      ans = getResponseHeader(meth, proxy_path ? proxy_path : mpath, *(*nh), data, size, code, suppress_content_length, info, xsink);
+      if (use_proxy_connect)
+	 ans = getResponseHeader(meth, proxy_path, *(*proxy_headers), 0, 0, code, suppress_content_length, info, true, xsink);
+      else
+	 ans = getResponseHeader(meth, mpath, *(*nh), data, size, code, suppress_content_length, info, false, xsink);
       if (!ans)
 	 return 0;
 
@@ -950,25 +968,25 @@ QoreHashNode *qore_qtc_private::send_internal(const char *meth, const char *mpat
 	    tmp.sprintf("redirect-message-%d", redirect_count);
 	    info->setKeyValue(tmp.getBuffer(), mess ? mess->refSelf() : 0, xsink);
 	 }
-	 else if (use_proxy_connect) {
-	    meth = meth_orig;
-	    use_proxy_connect = false;
-	    proxy_path = 0;
-	    if (m_socket.upgradeClientToSSL(0, 0, xsink))	       
-	       return 0;
-	    proxy_connected = true;
-	    
-	    // remove "Proxy-Authorization" header
-	    nh->removeKey("Proxy-Authorization", xsink);
-	    if (*xsink)
-	       return 0;
-
-	    // try again as if we are talking directly to the client
-	    continue;
-	 }
 
 	 // set mpath to NULL so that the new path will be taken
 	 mpath = 0;
+	 continue;
+      }
+      else if (use_proxy_connect) {
+	 meth = meth_orig;
+	 use_proxy_connect = false;
+	 proxy_path = 0;
+	 if (m_socket.upgradeClientToSSL(0, 0, xsink))	       
+	    return 0;
+	 proxy_connected = true;
+	 
+	 // remove "Proxy-Authorization" header
+	 nh->removeKey("Proxy-Authorization", xsink);
+	 if (*xsink)
+	    return 0;
+
+	 // try again as if we are talking directly to the client
 	 continue;
       }
 
