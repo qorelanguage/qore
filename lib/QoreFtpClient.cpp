@@ -74,7 +74,7 @@ public:
    }
 
    DLLLOCAL inline const char *getBuffer() {
-      return str->getBuffer();
+      return str ? str->getBuffer() : "";
    }
 
    DLLLOCAL inline QoreStringNode *getStr() {
@@ -289,25 +289,23 @@ int QoreFtpClient::acceptDataConnection(ExceptionSink *xsink) {
 }
 
 // private unlocked
-int QoreFtpClient::connectData(ExceptionSink *xsink)
-{
-   switch (priv->mode)
-   {
+int QoreFtpClient::connectData(ExceptionSink *xsink) {
+   switch (priv->mode) {
       case FTP_MODE_UNKNOWN:
 	 if (!connectDataExtendedPassive(xsink))
 	    return 0;
 	 if (xsink->isEvent())
 	    return -1;
-	    if (!connectDataPassive(xsink))
-	       return 0;
-	       if (xsink->isEvent())
-		  return -1;
-		  if (!connectDataPort(xsink))
-		     return 0;
-		     
-		     if (!xsink->isEvent())
-			xsink->raiseException("FTP-CONNECT-ERROR", "Could not negotiate data channel connection with FTP server");
-			return -1;
+	 if (!connectDataPassive(xsink))
+	    return 0;
+	 if (xsink->isEvent())
+	    return -1;
+	 if (!connectDataPort(xsink))
+	    return 0;
+	 
+	 if (!xsink->isEvent())
+	    xsink->raiseException("FTP-CONNECT-ERROR", "Could not negotiate data channel connection with FTP server");
+	 return -1;
       case FTP_MODE_EPSV:
 	 return connectDataExtendedPassive(xsink);
       case FTP_MODE_PASV:
@@ -319,8 +317,7 @@ int QoreFtpClient::connectData(ExceptionSink *xsink)
 }
 
 // private unlocked
-int QoreFtpClient::disconnectInternal()
-{
+int QoreFtpClient::disconnectInternal() {
    priv->control.close();
    priv->control_connected = false;
    priv->mode = FTP_MODE_UNKNOWN;
@@ -329,8 +326,7 @@ int QoreFtpClient::disconnectInternal()
 }
 
 // public locked
-int QoreFtpClient::disconnect()
-{
+int QoreFtpClient::disconnect() {
    lock();
    int rc = disconnectInternal();
    unlock();
@@ -384,10 +380,13 @@ QoreStringNode *QoreFtpClient::getResponse(int &code, ExceptionSink *xsink) {
 	 p++;
       }
    }
-   printd(FTPDEBUG, "QoreFtpClient::getResponse() %s", resp ? resp->getBuffer() : "NULL");
-   resp->chomp();
-   if (resp)
+   printd(FTPDEBUG, "QoreFtpClient::getResponse() %s", resp ? resp->getBuffer() : "NULL");   
+   if (resp) {
+      resp->chomp();
       priv->do_event_msg_received(code, resp->getBuffer() + 4);
+   }
+   else
+      xsink->raiseException("FTP-RECEIVE-ERROR", "FTP server sent an empty response on the control port");
    return resp.release();
 }
 
@@ -410,8 +409,7 @@ int QoreFtpClient::connectDataLongPassive(ExceptionSink *xsink)
 
 // private unlocked
 // RFC 2428 Extended Passive Mode
-int QoreFtpClient::connectDataExtendedPassive(ExceptionSink *xsink)
-{
+int QoreFtpClient::connectDataExtendedPassive(ExceptionSink *xsink) {
    // try extended passive mode
    int code;
    FtpResp resp(sendMsg(code, "EPSV", 0, xsink));
@@ -587,8 +585,7 @@ int QoreFtpClient::connectIntern(FtpResp *resp, ExceptionSink *xsink) {
 }
 
 // do PBSZ and PROT commands
-int QoreFtpClient::doProt(class FtpResp *resp, ExceptionSink *xsink)
-{
+int QoreFtpClient::doProt(class FtpResp *resp, ExceptionSink *xsink) {
    int code;
    // RFC-4217: PBSZ 0 for streaming data
    resp->assign(sendMsg(code, "PBSZ", "0", xsink));
@@ -611,8 +608,7 @@ int QoreFtpClient::doProt(class FtpResp *resp, ExceptionSink *xsink)
 }
 
 // private unlocked
-int QoreFtpClient::doAuth(class FtpResp *resp, ExceptionSink *xsink)
-{
+int QoreFtpClient::doAuth(class FtpResp *resp, ExceptionSink *xsink) {
    int code;
    resp->assign(sendMsg(code, "AUTH", "TLS", xsink));
    if (xsink->isEvent())
@@ -638,14 +634,12 @@ int QoreFtpClient::doAuth(class FtpResp *resp, ExceptionSink *xsink)
 }
 
 // public locked
-int QoreFtpClient::connect(ExceptionSink *xsink)
-{
+int QoreFtpClient::connect(ExceptionSink *xsink) {
    SafeLocker sl(priv->m);
 
    disconnectInternal();
 
-   if (!priv->host)
-   {
+   if (!priv->host) {
       xsink->raiseException("FTP-CONNECT-ERROR", "no hostname set");
       return -1;
    }
@@ -804,8 +798,7 @@ int QoreFtpClient::put(const char *localpath, const char *remotename, ExceptionS
 
    if ((code / 100) != 1) {
       priv->data.close();
-      xsink->raiseException("FTP-PUT-ERROR", "could not put file, FTP server replied: %s", 
-			    resp.getBuffer());
+      xsink->raiseException("FTP-PUT-ERROR", "could not put file, FTP server replied: %s", resp.getBuffer());
       close(fd);
       return -1;
    }
@@ -816,7 +809,7 @@ int QoreFtpClient::put(const char *localpath, const char *remotename, ExceptionS
       return -1;
    }
    else if (priv->secure_data && priv->data.upgradeClientToSSL(0, 0, xsink))
-      return -1;      
+      return -1;
 
    int rc = priv->data.send(fd, file_info.st_size ? file_info.st_size : -1);
    priv->data.close();
@@ -829,7 +822,7 @@ int QoreFtpClient::put(const char *localpath, const char *remotename, ExceptionS
 
    //printf("PUT: %s", resp->getBuffer());
    if ((code / 100 != 2)) {
-      xsink->raiseException("FTP-PUT-ERROR", "FTP server returned an error to the PUT command: %s", resp.getBuffer());
+      xsink->raiseException("FTP-PUT-ERROR", "FTP server returned an error to the STOR command: %s", resp.getBuffer());
       return -1;
    }   
 
@@ -1163,11 +1156,9 @@ int QoreFtpClient::setInsecure() {
    return 0;
 }
 
-int QoreFtpClient::setInsecureData()
-{
+int QoreFtpClient::setInsecureData() {
    lock();
-   if (priv->control_connected)
-   {
+   if (priv->control_connected) {
       unlock();
       return -1;
    }
@@ -1177,77 +1168,64 @@ int QoreFtpClient::setInsecureData()
 }
 
 // returns true if the control connection can only be established with a secure connection
-bool QoreFtpClient::isSecure() const
-{
+bool QoreFtpClient::isSecure() const {
    return priv->secure;
 }
 
 // returns true if data connections can only be established with a secure connection
-bool QoreFtpClient::isDataSecure() const
-{
+bool QoreFtpClient::isDataSecure() const {
    return priv->secure_data;
 }
 
-const char *QoreFtpClient::getSSLCipherName() const
-{
+const char *QoreFtpClient::getSSLCipherName() const {
    return priv->control.getSSLCipherName();
 }
 
-const char *QoreFtpClient::getSSLCipherVersion() const
-{
+const char *QoreFtpClient::getSSLCipherVersion() const {
    return priv->control.getSSLCipherVersion();
 }
 
-long QoreFtpClient::verifyPeerCertificate() const
-{
+long QoreFtpClient::verifyPeerCertificate() const {
    return priv->control.verifyPeerCertificate();
 }	 
 
-void QoreFtpClient::setModeAuto()
-{
+void QoreFtpClient::setModeAuto() {
    lock();
    priv->mode = FTP_MODE_UNKNOWN;
    unlock();
 }
 
-void QoreFtpClient::setModeEPSV()
-{
+void QoreFtpClient::setModeEPSV() {
    lock();
    priv->mode = FTP_MODE_EPSV;
    unlock();
 }
 
-void QoreFtpClient::setModePASV()
-{
+void QoreFtpClient::setModePASV() {
    lock();
    priv->mode = FTP_MODE_PASV;
    unlock();
 }
 
-void QoreFtpClient::setModePORT()
-{
+void QoreFtpClient::setModePORT() {
    lock();
    priv->mode = FTP_MODE_PORT;
    unlock();
 }
 
-int QoreFtpClient::getPort() const 
-{
+int QoreFtpClient::getPort() const {
    return priv->port; 
 }
 
-const char *QoreFtpClient::getUserName() const 
-{ 
+const char *QoreFtpClient::getUserName() const { 
    return priv->user;
 }
 
-const char *QoreFtpClient::getPassword() const 
-{ 
+const char *QoreFtpClient::getPassword() const { 
    return priv->pass; 
 }
 
-const char *QoreFtpClient::getHostName() const 
-{ 
+const char *QoreFtpClient::getHostName() const { 
    return priv->host; 
 }
 

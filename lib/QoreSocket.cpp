@@ -1556,6 +1556,7 @@ BinaryNode *QoreSocket::recvBinary(int timeout, int *rc) {
       } while (isDataAvailable(0));
    }
 
+   *rc = rd;
    return new BinaryNode(buf, rd);
 }
 
@@ -1634,6 +1635,7 @@ QoreStringNode *QoreSocket::recv(int timeout, int *rc) {
 	    buf = (char *)realloc(buf, tot);
 	 }
 	 *rc = recv(buf + rd, tot - rd - 1, 0, 0, false);
+	 //printd(0, "QoreSocket::recv(to=%d) rc=%d rd=%lld\n", timeout, *rc, rd);
 	 // if the remote end has closed the connection, return what we have
 	 if (!(*rc))
 	    break;
@@ -1649,6 +1651,7 @@ QoreStringNode *QoreSocket::recv(int timeout, int *rc) {
    }
 
    buf[rd] = '\0';
+   *rc = rd;
    return new QoreStringNode(buf, rd, rd + 1, priv->charsetid);
 }
 
