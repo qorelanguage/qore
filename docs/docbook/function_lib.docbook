@@ -9683,7 +9683,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Splits a string into a list of components based on a separator string.  Only the version that takes the third argument as a quote string can throw exceptions.</para>
+	<para>Splits a string into a list of components based on a separator string.  If the separator string is not found in the string to split, then a list with only one element containing the entire string argument is returned.</para>
+	<para>Only the version that takes the third argument as a quote string can throw exceptions.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
