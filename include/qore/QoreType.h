@@ -78,6 +78,7 @@ DLLEXPORT extern const QoreTypeInfo *anyTypeInfo,
    *listOrNothingTypeInfo,
    *nullOrNothingTypeInfo,
    *codeOrNothingTypeInfo,
+   *dataOrNothingTypeInfo,
 
    *softBigIntOrNothingTypeInfo,
    *softFloatOrNothingTypeInfo,

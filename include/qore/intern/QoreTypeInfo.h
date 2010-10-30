@@ -1064,6 +1064,18 @@ public:
    }
 };
 
+class DataOrNothingTypeInfo : public DataTypeInfo {
+protected:
+   DLLLOCAL virtual const char *getNameImpl() const {
+      return "*data";
+   }
+
+public:
+   DLLLOCAL DataOrNothingTypeInfo() {
+      at.push_back(nothingTypeInfo);
+   }
+};
+
 // accepts int, float, string, date, null, or boolean and returns an int
 class SoftBigIntTypeInfo : public AcceptsMultiFilterTypeInfo {
 protected:

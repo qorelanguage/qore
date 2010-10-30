@@ -88,7 +88,9 @@ const QoreTypeInfo *codeTypeInfo = &staticCodeTypeInfo,
 
 // either string or binary
 static DataTypeInfo staticDataTypeInfo;
-const QoreTypeInfo *dataTypeInfo = &staticDataTypeInfo;
+static DataOrNothingTypeInfo staticDataOrNothingTypeInfo;
+const QoreTypeInfo *dataTypeInfo = &staticDataTypeInfo,
+   *dataOrNothingTypeInfo = &staticDataOrNothingTypeInfo;
 
 // provides int compatibility with and conversions from float, string, date, and bool
 static SoftBigIntTypeInfo staticSoftBigIntTypeInfo;
@@ -210,6 +212,7 @@ void init_qore_types() {
    do_maps(NT_ALL,         "any", anyTypeInfo);
    do_maps(NT_DATE,        "date", dateTypeInfo, dateOrNothingTypeInfo);
    do_maps(NT_CODE,        "code", codeTypeInfo, codeOrNothingTypeInfo);
+   do_maps(NT_DATA,        "data", dataTypeInfo, dataOrNothingTypeInfo);
    do_maps(NT_REFERENCE,   "reference", referenceTypeInfo, anyTypeInfo);
    do_maps(NT_NULL,        "null", nullTypeInfo, nullOrNothingTypeInfo);
    do_maps(NT_NOTHING,     "nothing", nothingTypeInfo);
@@ -312,10 +315,10 @@ const char *getBuiltinTypeName(qore_type_t type) {
       return typeInfo->getName();
 
    // implement for types that should not be available in user code
-   switch (type) {
-      case NT_DATA:
-	 return "string|binary";
-   }
+   //switch (type) {
+   //   case NT_DATA:
+   // return "string|binary";
+   //}
 
    /*
    printd(0, "type: %d unknown (map size: %d)\n", type, type_str_map.size());
