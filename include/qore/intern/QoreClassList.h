@@ -64,6 +64,8 @@ public:
    DLLLOCAL void assimilate(QoreClassList *n, QoreClassList *otherlist, QoreNamespaceList *nsl, QoreNamespaceList *pendNSL, const char *nsname);
    DLLLOCAL QoreHashNode *getInfo();
 
+   DLLLOCAL AbstractQoreNode *findConstant(const char *cname, const QoreTypeInfo *&typeInfo);
+
    DLLLOCAL bool empty() const {
       return hm.empty();
    }

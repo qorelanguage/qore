@@ -9,4 +9,3 @@ class T;
 my T $t = new T();
 my $l = list($t);
 $t."one" = $l;
-

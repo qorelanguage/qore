@@ -26,30 +26,30 @@
 #define _QORE_CONSTANTNODE_H
 
 class ConstantNode : public ParseNoEvalNode {
-   public:
-      NamedScope *scoped_ref;
+public:
+   NamedScope *scoped_ref;
 
-      // object takes over ownership of NamedScope
-      DLLLOCAL ConstantNode(char *ref);
-      DLLLOCAL virtual ~ConstantNode();
+   // object takes over ownership of NamedScope
+   DLLLOCAL ConstantNode(char *ref);
+   DLLLOCAL virtual ~ConstantNode();
 
-      // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
-      // the ExceptionSink is only needed for QoreObject where a method may be executed
-      // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
-      // returns -1 for exception raised, 0 = OK
-      DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const;
-      // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
-      DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const;
+   // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
+   // the ExceptionSink is only needed for QoreObject where a method may be executed
+   // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
+   // returns -1 for exception raised, 0 = OK
+   DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const;
+   // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
+   DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const;
 
-      // returns the data type
-      DLLLOCAL virtual qore_type_t getType() const;
-      // returns the type name as a c string
-      DLLLOCAL virtual const char *getTypeName() const;
+   // returns the data type
+   DLLLOCAL virtual qore_type_t getType() const;
+   // returns the type name as a c string
+   DLLLOCAL virtual const char *getTypeName() const;
 
-      // caller owns NamedScope returned
-      DLLLOCAL NamedScope *takeName();
+   // caller owns NamedScope returned
+   DLLLOCAL NamedScope *takeName();
 
-      DLLLOCAL AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
+   DLLLOCAL AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
 };
 
 #endif

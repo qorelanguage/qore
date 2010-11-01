@@ -137,8 +137,18 @@ void QoreClassList::assimilate(QoreClassList *n, QoreClassList *otherlist, class
 }
 
 QoreHashNode *QoreClassList::getInfo() {
-   QoreHashNode *h = new QoreHashNode();
+   QoreHashNode *h = new QoreHashNode;
    for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i)
       h->setKeyValue(i->first, i->second->getMethodList(), 0);
    return h;
+}
+
+AbstractQoreNode *QoreClassList::findConstant(const char *cname, const QoreTypeInfo *&typeInfo) {
+   for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
+      AbstractQoreNode *rv = i->second->getConstantValue(cname, typeInfo);
+      if (rv)
+	 return rv;
+   }
+
+   return 0;
 }

@@ -34,6 +34,8 @@
 #define OTF_USER    CT_USER
 #define OTF_BUILTIN CT_BUILTIN
 
+static inline const char *privpub(bool priv) { return priv ? "private" : "public"; }
+
 // forward reference for base class (constructor) argument list
 class BCAList;
 // forward reference for base class list
@@ -970,7 +972,7 @@ public:
 };
 
 // BCNode 
-// base class pointer, also stores arguments for base class constructors
+// base class pointer
 class BCNode {
 public:
    NamedScope *cname;

@@ -750,6 +750,11 @@ public:
    */
    DLLLOCAL void parseAddPublicMember(char *name, QoreMemberInfo *mInfo);
 
+   // adds public constants to pending list
+   DLLLOCAL void parseAssimilatePublicConstants(ConstantList &cmap);
+   // adds private constants to pending list
+   DLLLOCAL void parseAssimilatePrivateConstants(ConstantList &cmap);
+
    // returns 0 for success, -1 for error
    DLLLOCAL int parseAddBaseClassArgumentList(BCAList *bcal);
    // only called when parsing, sets the name of the class
@@ -801,9 +806,10 @@ public:
    // unsets the public member flag for builtin classes
    DLLLOCAL void unsetPublicMemberFlag();
    DLLLOCAL void parseInitPartial();
+   DLLLOCAL AbstractQoreNode *getConstantValue(const char *cname, const QoreTypeInfo *&typeInfo);
 };
 
-//! To be used to iterate throu a class' normal (non-static) methods
+//! To be used to iterate through a class' normal (non-static) methods
 class QoreMethodIterator {
 private:
    void *priv;
@@ -815,7 +821,7 @@ public:
    DLLEXPORT const QoreMethod *getMethod() const;
 };
 
-//! To be used to iterate throu a class' static methods
+//! To be used to iterate through a class' static methods
 class QoreStaticMethodIterator {
 private:
    void *priv;

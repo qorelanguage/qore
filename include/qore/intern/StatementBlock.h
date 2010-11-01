@@ -147,7 +147,14 @@ public:
    }
 
    DLLLOCAL void parseRollback() {
-      for (statement_list_t::iterator i = hwm, e = statement_list.end(); i != e; ++i)
+      // delete all statements after the high water mark (hwm) to the end of the list
+      statement_list_t::iterator start = hwm;
+      if (start != statement_list.end())
+         ++start;
+      else
+         start = statement_list.begin();
+
+      for (statement_list_t::iterator i = start, e = statement_list.end(); i != e; ++i)
          delete *i;
 
       statement_list.erase_to_end(hwm);

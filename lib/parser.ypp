@@ -43,6 +43,7 @@
 #include <qore/intern/CaseNodeWithOperator.h>
 #include <qore/intern/CaseNodeRegex.h>
 #include <qore/intern/OnBlockExitStatement.h>
+#include <qore/intern/ConstantList.h>
 
 #include "parser.h"
 
@@ -122,12 +123,12 @@ static void addUserFunctionVariant(char *name, UserFunctionVariant *variant) {
 
 // for constant definitions
 class ConstNode {
-   public:
-      NamedScope *name;
-      AbstractQoreNode *value;
+public:
+   NamedScope *name;
+   AbstractQoreNode *value;
 
-      DLLLOCAL inline ConstNode(char *n, AbstractQoreNode *v) { name = new NamedScope(n); value = v; }
-      DLLLOCAL inline ~ConstNode() { delete name; }
+   DLLLOCAL inline ConstNode(char *n, AbstractQoreNode *v) { name = new NamedScope(n); value = v; }
+   DLLLOCAL inline ~ConstNode() { delete name; }
 };
 
 class ObjClassDef {
@@ -148,8 +149,8 @@ struct NSNode {
    int type;
    union {
       class ObjClassDef *ocd;
-      class ConstNode  *cn;
-      class QoreNamespace  *ns;
+      class ConstNode *cn;
+      class QoreNamespace *ns;
    } n;
    DLLLOCAL NSNode(class ObjClassDef *o) { type = NSN_OCD; n.ocd = o; }
    DLLLOCAL NSNode(class ConstNode  *c) { type = NSN_CONST; n.cn = c; }
@@ -197,77 +198,115 @@ typedef std::pair<char *, QoreMemberInfo *> member_pair_t;
 
 struct MemberInfo {
    char *name;
-   QoreMemberInfo *memberInfo;
+   bool constant;
+   union {
+      QoreMemberInfo *memberInfo;
+      AbstractQoreNode *exp;
+   } u;
 
-   DLLLOCAL MemberInfo(char *n, QoreMemberInfo *mi) : name(n), memberInfo(mi)  {
+   DLLLOCAL MemberInfo(char *n, QoreMemberInfo *mi) : name(n), constant(false)  {
+      u.memberInfo = mi; 
       if (!mi->parseHasTypeInfo() && getProgram()->getParseOptions() & PO_REQUIRE_TYPES)
 	 parse_error("member $.%s declared without type information, but parse options require type information for all declarations", name);
+   }
+   DLLLOCAL MemberInfo(char *n) : name(n), constant(false)  {
+      u.memberInfo = 0; 
+      if (getProgram()->getParseOptions() & PO_REQUIRE_TYPES)
+	 parse_error("member $.%s declared without type information, but parse options require type information for all declarations", name);
+   }
+   DLLLOCAL MemberInfo(char *n, AbstractQoreNode *exp) : name(n), constant(true) {
+      u.exp = exp;
    }
    DLLLOCAL ~MemberInfo() {
       if (name)
 	 free(name);
-      delete memberInfo;
+      if (!constant)
+	 delete u.memberInfo;
+      else if (u.exp)
+	 u.exp->deref(0);
    }
    DLLLOCAL member_pair_t getPair() {
-      member_pair_t m = std::make_pair(name, memberInfo);
+      assert(!constant);
+      member_pair_t m = std::make_pair(name, u.memberInfo);
       name = 0;
-      memberInfo = 0;
+      u.memberInfo = 0;
       return m;
+   }
+   DLLLOCAL AbstractQoreNode *takeExp() {
+      assert(constant);
+      AbstractQoreNode *rv = u.exp;
+      u.exp = 0;
+      return rv;
    }
 };
 
-class MemberList : private member_map_t {
+class MemberList {
 protected:
+   QoreMemberMap mmap;
+   ConstantList cmap;
+   
    DLLLOCAL MemberList() {
    }
 
 public:
    DLLLOCAL MemberList(MemberInfo *member) {
-      insert(member->getPair());
+      if (!member->constant)
+	 mmap.insert(member->getPair());
+      else
+	 cmap.parseAdd(member->name, member->takeExp());
       delete member;
    }
 
    DLLLOCAL ~MemberList() {
-      member_map_t::iterator i;
-      while ((i = begin()) != end()) {
-	 char *name = i->first;
-	 delete i->second;
-	 erase(i);
-	 free(name);
-      }
    }
 
    // takes over ownership of name and typeInfo
    DLLLOCAL int add(MemberInfo *member) {
       std::auto_ptr<MemberInfo> mem(member);
-      if (find(member->name) != end()) {
-	 parse_error("duplicate member declaration '%s'", member->name);
-	 return -1;
-      }
+      if (!member->constant) {
+	 if (mmap.find(member->name) != mmap.end()) {
+	    parse_error("duplicate member declaration '%s'", member->name);
+	    return -1;
+	 }
 
-      // add new member to list
-      insert(member->getPair());
+	 // add new member to list
+	 mmap.insert(member->getPair());
+      }
+      else {
+	 if (cmap.inList(member->name)) {
+	    parse_error("duplicate constant declaration '%s'", member->name);
+	    return -1;
+	 }
+
+	 // add new constant to list
+	 cmap.parseAdd(member->name, member->takeExp());
+      }
       return 0;
    }
 
-   DLLLOCAL void mergePrivateMembers(QoreClass *qc) {
+   DLLLOCAL void mergePrivate(QoreClass *qc) {
       member_map_t::iterator i;
-      while ((i = begin()) != end()) {
+      while ((i = mmap.begin()) != mmap.end()) {
 	 qc->parseAddPrivateMember(i->first, i->second);
-	 erase(i);
+	 mmap.erase(i);
       }
+
+      qc->parseAssimilatePrivateConstants(cmap);
    }
 
-   DLLLOCAL void mergePublicMembers(QoreClass *qc) {
+   DLLLOCAL void mergePublic(QoreClass *qc) {
       member_map_t::iterator i;
-      if (empty()) {
+
+      if (mmap.empty())
 	 qc->parseSetEmptyPublicMemberDeclaration();
-	 return;
+      else {
+	 while ((i = mmap.begin()) != mmap.end()) {
+	    qc->parseAddPublicMember(i->first, i->second);
+	    mmap.erase(i);
+	 }
       }
-      while ((i = begin()) != end()) {
-	 qc->parseAddPublicMember(i->first, i->second);
-	 erase(i);
-      }
+
+      qc->parseAssimilatePublicConstants(cmap);
    }
 };
 
@@ -939,17 +978,14 @@ top_level_command:
 	   addClass($1->name, $1->oc); 
 	   // see if class definitions are allowed
 	   if (checkParseOption(PO_NO_CLASS_DEFS))
-	      parse_error("illegal class definition \"%s\" (conflicts with parse option NO_CLASS_DEFS)",
-			  $1->oc->getName());
+	      parse_error("illegal class definition \"%s\" (conflicts with parse option NO_CLASS_DEFS)", $1->oc->getName());
 	   delete $1;
 	}
 	| scoped_const_decl { 
 	   parseAddConstant($1->name, $1->value);
 	   // see if constant definitions are allowed
 	   if (checkParseOption(PO_NO_CONSTANT_DEFS))
-	      parse_error("illegal constant definition \"%s\" (conflicts with parse option NO_CONSTANT_DEFS)",
-			  $1->name->ostr);
-
+	      parse_error("illegal constant definition \"%s\" (conflicts with parse option NO_CONSTANT_DEFS)", $1->name->ostr);
 	   delete $1;
 	}
         | unscoped_const_decl { 
@@ -1424,12 +1460,12 @@ class_attributes:
 	}
         | private_member_list {
 	   $$ = new QoreClass;
-	   $1->mergePrivateMembers($$);
+	   $1->mergePrivate($$);
 	   delete $1;
 	}
         | public_member_list {
 	   $$ = new QoreClass;
-	   $1->mergePublicMembers($$);
+	   $1->mergePublic($$);
 	   delete $1;
 	}
 	| class_attributes method_definition { 
@@ -1437,12 +1473,12 @@ class_attributes:
 	   $$ = $1; 
 	}
 	| class_attributes private_member_list { 
-	   $2->mergePrivateMembers($1);
+	   $2->mergePrivate($1);
 	   $$ = $1;
 	   delete $2;
 	}
 	| class_attributes public_member_list {
-	   $2->mergePublicMembers($1);
+	   $2->mergePublic($1);
 	   $$ = $1; 
 	   delete $2;
 	}
@@ -1513,11 +1549,15 @@ member2:
 
 	   delete $1;
 	}
+        | TOK_CONST IDENTIFIER '=' exp ';' { 
+	   const_ok($4);
+	   $$ = new MemberInfo($2, $4);
+	}
         ;
 
 member:
 	SELF_REF {
-	   $$ = new MemberInfo($1, 0);
+	   $$ = new MemberInfo($1);
         }
         | SELF_REF SCOPED_REF {
 	   $$ = new MemberInfo($1, new QoreMemberInfo(@1.first_line, @2.last_line, $2));

@@ -66,7 +66,8 @@ protected:
    DLLLOCAL QoreClass *parseMatchScopedClassWithMethod(const NamedScope *nscope, int *matched);
    DLLLOCAL QoreNamespace *parseMatchNamespace(const NamedScope *nscope, int *matched) const;
    DLLLOCAL void assimilate(QoreNamespace *ns);
-   DLLLOCAL QoreNamespace *findNamespace(const char *name) const;
+   DLLLOCAL QoreNamespace *parseFindLocalNamespace(const char *name) const;
+   DLLLOCAL QoreClass *parseFindLocalClass(const char *name) const;
    DLLLOCAL QoreNamespace *resolveNameScope(const NamedScope *name) const;
    DLLLOCAL AbstractQoreNode *getConstantValue(const char *name, const QoreTypeInfo *&typeInfo) const;
    DLLLOCAL QoreNamespace(const char *n, QoreClassList *ocl, ConstantList *cl, QoreNamespaceList *nnsl);

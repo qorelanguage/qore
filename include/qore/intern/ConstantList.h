@@ -38,6 +38,7 @@
 #include <qore/common.h>
 
 #include <map>
+#include <string>
 
 class LocalVar;
 
@@ -52,26 +53,37 @@ public:
    DLLLOCAL void parseInit(const char *name);
 };
 
-typedef std::map<const char*, ConstantEntry, class ltstr> hm_qn_t;
+typedef std::map<std::string, ConstantEntry> hm_qn_t;
 
 class ConstantList {
 private:
    hm_qn_t hm;
 
-   DLLLOCAL void remove(hm_qn_t::iterator i);
+   DLLLOCAL void clearIntern(ExceptionSink *xsink);
 
 public:
    DLLLOCAL ~ConstantList();
+
+   DLLLOCAL ConstantList() {
+   }
+
+   DLLLOCAL ConstantList(const ConstantList &old);
+
    DLLLOCAL void add(const char *name, AbstractQoreNode *val, const QoreTypeInfo *typeInfo = 0);
    DLLLOCAL void parseAdd(const char *name, AbstractQoreNode *val, const QoreTypeInfo *typeInfo = 0);
    DLLLOCAL AbstractQoreNode *find(const char *name, const QoreTypeInfo *&constantTypeInfo);
    DLLLOCAL bool inList(const char *name) const;
-   DLLLOCAL ConstantList *copy();
-   DLLLOCAL void reset();
-   DLLLOCAL void assimilate(ConstantList *n, ConstantList *otherlist, const char *nsname);
+   DLLLOCAL bool inList(const std::string &name) const;
+   //DLLLOCAL ConstantList *copy();
+   // assimilate the list without any duplicate checking
    DLLLOCAL void assimilate(ConstantList *n);
+   // assimilate a constant list in a namespace with duplicate checking (also in pending list)
+   DLLLOCAL void assimilate(ConstantList *n, ConstantList *otherlist, const char *nsname);
+   // assimilate a constant list in a class constant list with duplicate checking (pub & priv + pending)
+   DLLLOCAL void assimilate(ConstantList &n, ConstantList &committed, ConstantList &other, ConstantList &otherPend, bool priv, const char *cname);
    DLLLOCAL void parseInit();
    DLLLOCAL QoreHashNode *getInfo();
+   DLLLOCAL void parseDeleteAll();
    DLLLOCAL void deleteAll();
 
    DLLLOCAL bool empty() const {

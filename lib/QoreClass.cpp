@@ -23,6 +23,7 @@
 #include <qore/Qore.h>
 #include <qore/intern/Sequence.h>
 #include <qore/intern/QoreClassIntern.h>
+#include <qore/intern/ConstantList.h>
 
 #include <string.h>
 #include <stdlib.h>
@@ -30,8 +31,6 @@
 
 // global class ID sequence
 DLLLOCAL Sequence classIDSeq(1);
-
-static inline const char *pubpriv(bool priv) { return priv ? "private" : "public"; }
 
 typedef std::map<std::string, QoreMethod *> hm_method_t;
 
@@ -59,11 +58,15 @@ void raiseNonExistentMethodCallWarning(const QoreClass *qc, const char *method) 
 
 // private QoreClass implementation
 struct qore_class_private {
-   char *name;            // the name of the class
-   QoreClass *cls;  // parent class
-   BCList *scl;           // base class list
-   hm_method_t hm,        // "normal" (non-static) method map
-      shm;                // static method map
+   char *name;                   // the name of the class
+   QoreClass *cls;               // parent class
+   BCList *scl;                  // base class list
+   hm_method_t hm,               // "normal" (non-static) method map
+      shm;                       // static method map
+   ConstantList pend_pub_const,  // pending public constants
+      pend_priv_const,           // pending private constants
+      pub_const,                 // committed public constants
+      priv_const;                // committed private constants
 
    QoreMemberMap private_members, pending_private_members; // private member lists (maps)
    QoreMemberMap public_members, pending_public_members;   // public member lists (maps)
@@ -480,13 +483,13 @@ struct qore_class_private {
 	    if (name)
 	       desc->sprintf("class '%s' ", name);
 	    desc->concat("cannot declare ");
-	    desc->sprintf("%s member ", pubpriv(priv));
+	    desc->sprintf("%s member ", privpub(priv));
 	    desc->sprintf("'%s' when ", mem);
 	    if (sclass == cls)
 	       desc->concat("this class");
 	    else
 	       desc->sprintf("base class '%s'", sclass->getName());
-	    desc->sprintf(" already declared this member as %s", pubpriv(is_priv));
+	    desc->sprintf(" already declared this member as %s", privpub(is_priv));
 	    getProgram()->makeParseException("PARSE-ERROR", desc);
 	 }
 	 return -1;
@@ -494,7 +497,7 @@ struct qore_class_private {
       else if (decl_has_type_info || member_has_type_info) {
 	 if (getProgram()->getParseExceptionSink()) {
 	    QoreStringNode *desc = new QoreStringNode;
-	    desc->sprintf("%s member ", pubpriv(priv));
+	    desc->sprintf("%s member ", privpub(priv));
 	    desc->sprintf("'%s' was already declared in ", mem);
 	    if (sclass == cls)
 	       desc->concat("this class");
@@ -549,6 +552,37 @@ struct qore_class_private {
 
       free(mem);
       delete memberInfo;
+   }
+
+   DLLLOCAL void parseAssimilatePublicConstants(ConstantList &cmap) {
+      pend_pub_const.assimilate(cmap, pub_const, priv_const, pend_priv_const, false, name);
+   }
+
+   DLLLOCAL void parseAssimilatePrivateConstants(ConstantList &cmap) {
+      pend_priv_const.assimilate(cmap, priv_const, pub_const, pend_pub_const, true, name);
+   }
+
+   DLLLOCAL AbstractQoreNode *getConstantValue(const char *cname, const QoreTypeInfo *&typeInfo) {
+      // first check public constants
+      AbstractQoreNode *rv = pub_const.find(cname, typeInfo);
+      if (!rv) {
+	 rv = pend_pub_const.find(cname, typeInfo);
+	 if (!rv) {
+	    // now check private constants
+	    rv = priv_const.find(cname, typeInfo);
+	    if (!rv)
+	       rv = pend_priv_const.find(cname, typeInfo);
+	 
+	    // check for accessibility to private constants
+	    if (rv && !parseCheckPrivateClassAccess(cls)) {
+	       rv = 0;
+	       typeInfo = 0;
+	    }
+	 }
+      }
+
+      //printd(0, "qore_class_private::getConstantValue(%s) this=%p (cls=%p %s) rv=%p\n", cname, this, cls, name, rv);      
+      return rv;
    }
 
    DLLLOCAL void parseAddPublicMember(char *mem, QoreMemberInfo *memberInfo) {
@@ -1072,7 +1106,6 @@ QoreObject *qore_class_private::execConstructor(const AbstractQoreFunctionVarian
 
 void qore_class_private::parseCommit() {
    //printd(5, "qore_class_private::parseCommit() %s this=%p cls=%p hm.size=%d\n", name, this, cls, hm.size());
-
    if (parse_init_called)
       parse_init_called = false;
 
@@ -1118,12 +1151,18 @@ void qore_class_private::parseCommit() {
 	 pending_public_members.erase(k);
 	 k = pending_public_members.begin();
       }
-   
+
+      // set flags
       if (pending_has_public_memdecl) {
 	 if (!has_public_memdecl)
 	    has_public_memdecl = true;
 	 pending_has_public_memdecl = false;
       }
+
+      // commit pending constants
+      priv_const.assimilate(&pend_priv_const);
+      pub_const.assimilate(&pend_pub_const);
+
       has_new_user_changes = false;
    }
 #ifdef DEBUG
@@ -1869,6 +1908,11 @@ void qore_class_private::parseRollback() {
       ++i;
    }
 
+   // rollback pending constants
+   pend_priv_const.parseDeleteAll();
+   pend_pub_const.parseDeleteAll();
+
+   // set flags
    if (pending_has_public_memdecl)
       pending_has_public_memdecl = false;
 
@@ -2835,6 +2879,10 @@ void qore_class_private::parseInit() {
 
    QoreParseClassHelper qpch(cls);
 
+   // initialize constants
+   pend_priv_const.parseInit();
+   pend_pub_const.parseInit();
+
    // initialize methods
    for (hm_method_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
       i->second->priv->parseInit();
@@ -3007,6 +3055,18 @@ void QoreClass::unsetPublicMemberFlag() {
 
 void QoreClass::resolveCopy() {
    priv->resolveCopy();
+}
+
+void QoreClass::parseAssimilatePublicConstants(ConstantList &cmap) {
+   priv->parseAssimilatePublicConstants(cmap);
+}
+
+void QoreClass::parseAssimilatePrivateConstants(ConstantList &cmap) {
+   priv->parseAssimilatePrivateConstants(cmap);
+}
+
+AbstractQoreNode *QoreClass::getConstantValue(const char *cname, const QoreTypeInfo *&typeInfo) {
+   return priv->getConstantValue(cname, typeInfo);
 }
 
 void MethodFunctionBase::addBuiltinMethodVariant(MethodVariantBase *variant) {
