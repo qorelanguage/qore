@@ -9,10 +9,7 @@
   constants can only be defined when parsing
   constants values will be substituted during the 2nd parse phase
 
-  this structure can be safely read at all times, and writes are
-  wrapped under the program-level parse lock
-
-  NOTE: constants can only hold immediate values (no objects)
+  reads and writes are (must be) wrapped under the program-level parse lock
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -60,6 +57,7 @@ private:
    hm_qn_t hm;
 
    DLLLOCAL void clearIntern(ExceptionSink *xsink);
+   DLLLOCAL int checkDup(const std::string &name, ConstantList &committed, ConstantList &other, ConstantList &otherPend, bool priv, const char *cname);
 
 public:
    DLLLOCAL ~ConstantList();
@@ -79,8 +77,12 @@ public:
    DLLLOCAL void assimilate(ConstantList *n);
    // assimilate a constant list in a namespace with duplicate checking (also in pending list)
    DLLLOCAL void assimilate(ConstantList *n, ConstantList *otherlist, const char *nsname);
+
    // assimilate a constant list in a class constant list with duplicate checking (pub & priv + pending)
    DLLLOCAL void assimilate(ConstantList &n, ConstantList &committed, ConstantList &other, ConstantList &otherPend, bool priv, const char *cname);
+   // add a constant to a list with duplicate checking (pub & priv + pending)
+   DLLLOCAL void parseAdd(const std::string &name, AbstractQoreNode *val, ConstantList &committed, ConstantList &other, ConstantList &otherPend, bool priv, const char *cname);
+
    DLLLOCAL void parseInit();
    DLLLOCAL QoreHashNode *getInfo();
    DLLLOCAL void parseDeleteAll();

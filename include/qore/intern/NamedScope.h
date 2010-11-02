@@ -82,6 +82,10 @@ public:
       return strlist[strlist.size() - 1].c_str();
    }
 
+   DLLLOCAL const std::string &getIdentifierStr() const {
+      return strlist[strlist.size() - 1];
+   }
+
    DLLLOCAL int size() const {
       return strlist.size(); 
    }

@@ -545,7 +545,7 @@ struct qore_class_private {
 	 if (!has_new_user_changes)
 	    has_new_user_changes = true;
 
-	 //printd(5, "QoreClass::parseAddPrivateMember() this=%p %s adding %p %s\n", this, name, mem, mem);
+	 //printd(5, "qore_class_private::parseAddPrivateMember() this=%p %s adding %p %s\n", this, name, mem, mem);
 	 pending_private_members[mem] = memberInfo;
 	 return;
       }
@@ -560,6 +560,10 @@ struct qore_class_private {
 
    DLLLOCAL void parseAssimilatePrivateConstants(ConstantList &cmap) {
       pend_priv_const.assimilate(cmap, priv_const, pub_const, pend_pub_const, true, name);
+   }
+
+   DLLLOCAL void parseAddPublicConstant(const std::string &cname, AbstractQoreNode *val) {
+      pend_pub_const.parseAdd(cname, val, pub_const, priv_const, pend_priv_const, false, name);
    }
 
    DLLLOCAL AbstractQoreNode *getConstantValue(const char *cname, const QoreTypeInfo *&typeInfo) {
@@ -3067,6 +3071,10 @@ void QoreClass::parseAssimilatePrivateConstants(ConstantList &cmap) {
 
 AbstractQoreNode *QoreClass::getConstantValue(const char *cname, const QoreTypeInfo *&typeInfo) {
    return priv->getConstantValue(cname, typeInfo);
+}
+
+void QoreClass::parseAddPublicConstant(const std::string &cname, AbstractQoreNode *val) {
+   priv->parseAddPublicConstant(cname, val);
 }
 
 void MethodFunctionBase::addBuiltinMethodVariant(MethodVariantBase *variant) {

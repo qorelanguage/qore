@@ -124,11 +124,19 @@ static void addUserFunctionVariant(char *name, UserFunctionVariant *variant) {
 // for constant definitions
 class ConstNode {
 public:
-   NamedScope *name;
+   NamedScope name;
    AbstractQoreNode *value;
 
-   DLLLOCAL inline ConstNode(char *n, AbstractQoreNode *v) { name = new NamedScope(n); value = v; }
-   DLLLOCAL inline ~ConstNode() { delete name; }
+   DLLLOCAL inline ConstNode(char *n, AbstractQoreNode *v) : name(n), value(v) {
+   }
+   DLLLOCAL AbstractQoreNode *takeValue() {
+      AbstractQoreNode *rv = value;
+      value = 0;
+      return rv;
+   }
+   DLLLOCAL const std::string &getName() const {
+      return name.getIdentifierStr();
+   }
 };
 
 class ObjClassDef {
@@ -396,7 +404,7 @@ struct ParserScopedOrNothingTypeStruct : public ParserTypeStruct {
    }
 };
 
-static inline void parseAddConstant(NamedScope *name, AbstractQoreNode *value) {
+static inline void parseAddConstant(const NamedScope &name, AbstractQoreNode *value) {
    getRootNS()->rootAddConstant(name, value);
 }
 
@@ -513,12 +521,17 @@ static bool needsEval(AbstractQoreNode *n) {
    return !n->is_value();
 }
 
-static void const_ok(AbstractQoreNode *v) {
+static void const_ok(const char *name, AbstractQoreNode *v) {
+   // see if constant definitions are allowed
+   if (checkParseOption(PO_NO_CONSTANT_DEFS))
+      parse_error("illegal constant definition \"%s\" (conflicts with parse option NO_CONSTANT_DEFS)", name);
+
    if (v && v->getType() == NT_FUNCREF)
-      parse_error("constants may not be assigned to call references");
+      parse_error("illegal constant definition \"%s\": constants may not be assigned to call references", name);
+
    /*
-   else if (needsEval(v))
-     parse_error("constant expression needs run-time evaluation");
+   if (needsEval(v))
+     parse_error("illegal constant defintiion \"%s\": constant expression needs run-time evaluation", name);
    */
 }
 
@@ -983,16 +996,10 @@ top_level_command:
 	}
 	| scoped_const_decl { 
 	   parseAddConstant($1->name, $1->value);
-	   // see if constant definitions are allowed
-	   if (checkParseOption(PO_NO_CONSTANT_DEFS))
-	      parse_error("illegal constant definition \"%s\" (conflicts with parse option NO_CONSTANT_DEFS)", $1->name->ostr);
 	   delete $1;
 	}
         | unscoped_const_decl { 
 	   getRootNS()->parseAddConstant($1->name, $1->value); 
-	   // see if constant definitions are allowed
-	   if (checkParseOption(PO_NO_CONSTANT_DEFS))
-	      parse_error("illegal constant definition \"%s\" (conflicts with parse option NO_CONSTANT_DEFS)", $1->name->ostr);
 	   delete $1;
 	}
         | object_outofline_function_def  // registered directly
@@ -1040,17 +1047,9 @@ namespace_decls:
 namespace_decl:
 	scoped_const_decl { 
 	   $$ = new NSNode($1); 
-	   // see if constant definitions are allowed
-	   if (checkParseOption(PO_NO_CONSTANT_DEFS))
-	      parse_error("illegal constant definition \"%s\" (conflicts with parse option NO_CONSTANT_DEFS)",
-			  $1->name->ostr);
         }
         | unscoped_const_decl { 
 	   $$ = new NSNode($1); 
-	   // see if constant definitions are allowed
-	   if (checkParseOption(PO_NO_CONSTANT_DEFS))
-	      parse_error("illegal constant definition \"%s\" (conflicts with parse option NO_CONSTANT_DEFS)",
-			  $1->name->ostr);
 	}
 	| class_def { 
 	   $$ = new NSNode($1); 
@@ -1068,14 +1067,14 @@ namespace_decl:
 
 unscoped_const_decl: 
 	TOK_CONST IDENTIFIER '=' exp ';' { 
-	   const_ok($4);
+	   const_ok($2, $4);
 	   $$ = new ConstNode($2, $4); 
 	}
         ;
 
 scoped_const_decl:
 	TOK_CONST SCOPED_REF '=' exp ';' {
-	   const_ok($4);
+	   const_ok($2, $4);
 	   $$ = new ConstNode($2, $4); 
 	}
         ;
@@ -1468,6 +1467,11 @@ class_attributes:
 	   $1->mergePublic($$);
 	   delete $1;
 	}
+        | unscoped_const_decl {
+	   $$ = new QoreClass;
+	   $$->parseAddPublicConstant($1->getName(), $1->takeValue());
+	   delete $1;
+	}
 	| class_attributes method_definition { 
 	   $2->addAndDelete($1);
 	   $$ = $1; 
@@ -1480,6 +1484,11 @@ class_attributes:
 	| class_attributes public_member_list {
 	   $2->mergePublic($1);
 	   $$ = $1; 
+	   delete $2;
+	}
+        | class_attributes unscoped_const_decl {
+	   $$->parseAddPublicConstant($2->getName(), $2->takeValue());
+	   $$ = $1;
 	   delete $2;
 	}
         ;
@@ -1550,7 +1559,7 @@ member2:
 	   delete $1;
 	}
         | TOK_CONST IDENTIFIER '=' exp ';' { 
-	   const_ok($4);
+	   const_ok($2, $4);
 	   $$ = new MemberInfo($2, $4);
 	}
         ;

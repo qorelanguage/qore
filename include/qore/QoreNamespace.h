@@ -209,7 +209,7 @@ public:
    DLLLOCAL QoreNamespace();
    DLLLOCAL void addClass(const NamedScope *n, QoreClass *oc);
 
-   DLLLOCAL void parseAddConstant(const NamedScope *name, AbstractQoreNode *value);
+   DLLLOCAL void parseAddConstant(const NamedScope &name, AbstractQoreNode *value);
 
    DLLLOCAL void addClass(QoreClass *oc);
    DLLLOCAL void parseAddNamespace(QoreNamespace *ns);
@@ -256,7 +256,7 @@ public:
    DLLLOCAL RootQoreNamespace *copy(int64 po = PO_DEFAULT) const;
    DLLLOCAL QoreClass *rootFindClass(const char *name) const;
    DLLLOCAL void rootAddClass(const NamedScope *name, QoreClass *oc);
-   DLLLOCAL void rootAddConstant(const NamedScope *name, AbstractQoreNode *value);
+   DLLLOCAL void rootAddConstant(const NamedScope &name, AbstractQoreNode *value);
    DLLLOCAL AbstractQoreNode *findConstantValue(const NamedScope *name, int level, const QoreTypeInfo *&typeInfo) const;
    DLLLOCAL AbstractQoreNode *findConstantValue(const char *name, int level, const QoreTypeInfo *&typeInfo) const;
    DLLLOCAL QoreClass *parseFindClass(const char *name) const;

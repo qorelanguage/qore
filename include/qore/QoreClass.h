@@ -26,6 +26,7 @@
 #define _QORE_QORECLASS_H
 
 #include <stdarg.h>
+#include <string>
 
 // all qore class IDs
 DLLEXPORT extern qore_classid_t CID_AUTOGATE;
@@ -754,6 +755,8 @@ public:
    DLLLOCAL void parseAssimilatePublicConstants(ConstantList &cmap);
    // adds private constants to pending list
    DLLLOCAL void parseAssimilatePrivateConstants(ConstantList &cmap);
+   // adds a single public constant to pending list
+   DLLLOCAL void parseAddPublicConstant(const std::string &name, AbstractQoreNode *val);
 
    // returns 0 for success, -1 for error
    DLLLOCAL int parseAddBaseClassArgumentList(BCAList *bcal);

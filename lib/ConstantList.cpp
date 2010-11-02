@@ -196,35 +196,46 @@ void ConstantList::assimilate(ConstantList *n, ConstantList *otherlist, const ch
    n->parseDeleteAll();
 }
 
+int ConstantList::checkDup(const std::string &name, ConstantList &committed, ConstantList &other, ConstantList &otherPend, bool priv, const char *cname) {
+   if (inList(name)) {
+      parse_error("%s constant \"%s\" is already pending in class \"%s\"", privpub(priv), name.c_str(), cname);
+      return -1;
+   }
+
+   // see if constant already exists in committed list
+   if (committed.inList(name)) {
+      parse_error("%s constant \"%s\" has already been added to class \"%s\"", privpub(priv), name.c_str(), cname);
+      return -1;
+   }
+
+   // see if constant is in the other pending list
+   if (otherPend.inList(name)) {
+      parse_error("%s constant \"%s\" is already pending in class \"%s\" as a %s constant", privpub(priv), name.c_str(), cname, privpub(!priv));
+      return -1;
+   }
+
+   // see if constant is in the other committed list
+   if (other.inList(name)) {
+      parse_error("%s constant \"%s\" has already been added to class \"%s\" as a %s constant", privpub(priv), name.c_str(), cname, privpub(!priv));
+      return -1;
+   }
+   
+   return 0;
+}
+
+void ConstantList::parseAdd(const std::string &name, AbstractQoreNode *val, ConstantList &committed, ConstantList &other, ConstantList &otherPend, bool priv, const char *cname) {
+   if (checkDup(name, committed, other, otherPend, priv, cname))
+      val->deref(0);
+   else
+      hm[name] = ConstantEntry(val, getTypeInfoForValue(val));
+}
+
 void ConstantList::assimilate(ConstantList &n, ConstantList &committed, ConstantList &other, ConstantList &otherPend, bool priv, const char *cname) {
    for (hm_qn_t::iterator i = n.hm.begin(), e = n.hm.end(); i != e; ++i) {
-      // see if constant already exists in this list
-      if (inList(i->first)) {
-	 parse_error("%s constant \"%s\" is already pending in class \"%s\"", privpub(priv), i->first.c_str(), cname);
-	 continue;
+      if (!checkDup(i->first, committed, other, otherPend, priv, cname)) {
+	 hm[i->first] = i->second;
+	 i->second = 0;
       }
-
-      // see if constant already exists in committed list
-      if (committed.inList(i->first)) {
-	 parse_error("%s constant \"%s\" has already been added to class \"%s\"", privpub(priv), i->first.c_str(), cname);
-	 continue;
-      }
-
-      // see if constant is in the other pending list
-      if (otherPend.inList(i->first)) {
-	 parse_error("%s constant \"%s\" is already pending in class \"%s\" as a %s constant", privpub(priv), i->first.c_str(), cname, privpub(!priv));
-	 continue;
-      }
-
-      // see if constant is in the other committed list
-      if (other.inList(i->first)) {
-	 parse_error("%s constant \"%s\" has already been added to class \"%s\" as a %s constant", privpub(priv), i->first.c_str(), cname, privpub(!priv));
-	 continue;
-      }
-
-      // "move" data to new list
-      hm[i->first] = i->second;
-      i->second = 0;
    }
 
    n.parseDeleteAll();

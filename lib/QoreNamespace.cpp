@@ -212,12 +212,12 @@ AbstractQoreNode *QoreNamespace::getConstantValue(const char *cname, const QoreT
 }
 
 // only called while parsing before addition to namespace tree, no locking needed
-void QoreNamespace::parseAddConstant(const NamedScope *nscope, AbstractQoreNode *value) {
-   QoreNamespace *sns = resolveNameScope(nscope);
+void QoreNamespace::parseAddConstant(const NamedScope &nscope, AbstractQoreNode *value) {
+   QoreNamespace *sns = resolveNameScope(&nscope);
    if (!sns)
       value->deref(0);
    else {
-      const char *cname = nscope->strlist[nscope->size() - 1].c_str();
+      const char *cname = nscope.strlist[nscope.size() - 1].c_str();
       if (sns->priv->constant->inList(cname)) {
 	 parse_error("constant '%s' has already been defined", cname);
 	 value->deref(0);
@@ -1095,13 +1095,13 @@ void RootQoreNamespace::rootAddClass(const NamedScope *nscope, QoreClass *oc) {
       delete oc;
 }
 
-void RootQoreNamespace::rootAddConstant(const NamedScope *nscope, AbstractQoreNode *value) {
-   QoreNamespace *sns = rootResolveNamespace(nscope);
+void RootQoreNamespace::rootAddConstant(const NamedScope &nscope, AbstractQoreNode *value) {
+   QoreNamespace *sns = rootResolveNamespace(&nscope);
 
    if (sns) {
-      printd(5, "RootQoreNamespace::rootAddConstant() %s: adding %s to %s (value=%p type=%s)\n", nscope->ostr, 
-	     nscope->getIdentifier(), sns->priv->name.c_str(), value, value ? value->getTypeName() : "(none)");
-      sns->priv->pendConstant->parseAdd(nscope->strlist[nscope->size() - 1].c_str(), value);
+      printd(5, "RootQoreNamespace::rootAddConstant() %s: adding %s to %s (value=%p type=%s)\n", nscope.ostr, 
+	     nscope.getIdentifier(), sns->priv->name.c_str(), value, value ? value->getTypeName() : "(none)");
+      sns->priv->pendConstant->parseAdd(nscope.strlist[nscope.size() - 1].c_str(), value);
    }
    else
       value->deref(0);
