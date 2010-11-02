@@ -147,9 +147,11 @@ struct qore_class_private {
    DLLLOCAL qore_class_private(const qore_class_private &old, QoreClass *n_cls) 
       : name(strdup(old.name)), 
 	cls(n_cls),
-	scl(), 
+	scl(0), // parent class list must be copied after new_copy set in old
+	pub_const(old.pub_const),
+	priv_const(old.priv_const),
 	system_constructor(old.system_constructor ? old.system_constructor->copy(cls) : 0),
-	constructor(0),
+	constructor(0), // method pointers set below when methods are copied
 	destructor(0),
 	copyMethod(0),
 	methodGate(0),
@@ -190,6 +192,9 @@ struct qore_class_private {
       // set pointer to new copy
       old.new_copy = cls;
 
+      // copy parent class list, if any, after new_copy is set in old
+      scl = old.scl ? new BCList(*old.scl) : 0;
+
       printd(5, "qore_class_private::qore_class_private() old name=%s (%p) new name=%s (%p)\n", old.name, old.name, name, name);
 
       // copy methods and maintain method pointers
@@ -224,9 +229,6 @@ struct qore_class_private {
       // copy public member list
       for (member_map_t::const_iterator i = old.public_members.begin(), e = old.public_members.end(); i != e; ++i)
 	 public_members[strdup(i->first)] = i->second->copy();
-
-      // set parent class list
-      scl = old.scl ? new BCList(*old.scl) : 0;
    }
 
    DLLLOCAL ~qore_class_private() {
