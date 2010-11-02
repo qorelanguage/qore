@@ -169,7 +169,7 @@ static void addNSNode(class QoreNamespace *ns, struct NSNode *n) {
    switch (n->type) {
       case NSN_OCD:
 	 ns->addClass(n->n.ocd->name, n->n.ocd->oc);
-	 delete n->n.cn;
+	 delete n->n.ocd;
 	 break;
       case NSN_CONST:
 	 ns->parseAddConstant(n->n.cn->name, n->n.cn->value);

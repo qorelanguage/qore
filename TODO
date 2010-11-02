@@ -1,3 +1,6 @@
+* fix class member initialization order to be same as declaration order
+  (currently is alphabetic)
+* fix class constant searches from within class code to look in class first
 * implement a way to tell if signal handling is enabled or not form qore code
 * implement warning for the case when an unquoted hash or object key is also a constant
 * add HTTPClient methods: setUser(), setPassword(), setUserPassword(), setProxyUser(), setProxyPassword(), setProxyUserPassword()
