@@ -12445,7 +12445,7 @@ $pgm.setParseOptions(<link linkend="PO_NO_THREADS">PO_NO_THREADS</link> | <link 
 
     <para>Socket objects allow Qore programs safe access to network sockets.  Non-blocking socket I/O can be performed by appending a timeout value in milliseconds to all Socket::recv*() methods, or by using the <link linkend="Socket_isDataAvailable">Socket::isDataAvailable()</link> method with a timeout value in milliseconds (1000 ms = 1 second).  Note that as with all Qore functions and methods accepting a timeout value, <link linkend="Relative_Dates">relative date/time values</link> can be given instead of integers to make the source more readable, for example:</para>
 
-    <programlisting><command>my</command> $rc = $socket.isDataAvailable(1250ms); # times out in 1.25 seconds</programlisting>
+    <programlisting><command>my</command> bool $rc = $socket.isDataAvailable(1250ms); # times out in 1.25 seconds</programlisting>
 
     <para>Socket objects can automatically convert character encodings if desired when sending string data with <link linkend="Socket_send">Socket::send()</link>.  Use the <link linkend="Socket_setCharset">Socket::setCharset()</link> method to set the character encoding for the socket.  If a character encoding is set, and string data is read with the <link linkend="Socket_recv">Socket::recv()</link> method, then it will be tagged with the encoding of the socket as well.</para>
 

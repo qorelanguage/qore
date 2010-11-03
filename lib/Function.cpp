@@ -737,7 +737,7 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
 	       const QoreTypeInfo *a = (num_args && num_args > pi) ? argTypeInfo[pi] : 0;
 	       
 	       //printd(0, "AbstractQoreFunction::parseFindVariant() %s(%s) pi=%d t=%s (has type: %d) a=%s (%p) t->parseAccepts(a)=%d\n", getName(), sig->getSignatureText(), pi, t->getName(), t->hasType(), a->getName(), a, t->parseAccepts(a));
-	       
+
 	       int rc = QTI_UNASSIGNED;
 	       if (t->hasType()) {
 		  if (!a->hasType()) {
@@ -757,7 +757,10 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
 	       }
 
 	       if (rc == QTI_UNASSIGNED) {
-		  rc = t->parseAccepts(a, variant_missing_types);
+		  bool may_not_match = false;
+		  rc = t->parseAccepts(a, may_not_match);
+		  if (may_not_match && !variant_missing_types)
+		     variant_missing_types = true;
 		  if (rc == QTI_IDENT)
 		     ++variant_nperfect;
 	       }
@@ -868,7 +871,10 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
 	       }
 
 	       if (rc == QTI_UNASSIGNED) {
-		  rc = t->parseAccepts(a);
+		  bool may_not_match = false;
+		  rc = t->parseAccepts(a, may_not_match);
+		  if (may_not_match && !variant_missing_types)
+		     variant_missing_types = true;
 		  if (rc == QTI_IDENT)
 		     ++variant_nperfect;
 	       }
