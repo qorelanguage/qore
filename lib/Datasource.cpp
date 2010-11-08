@@ -30,6 +30,7 @@
 
 struct qore_ds_private {
    bool in_transaction;
+   bool active_transaction;
    bool isopen;
    bool autocommit;
    bool connection_aborted;
@@ -53,7 +54,7 @@ struct qore_ds_private {
       hostname;
    int port; // port number (0 = default port)
 
-   DLLLOCAL qore_ds_private(DBIDriver *ndsl) : in_transaction(false), isopen(false), autocommit(false), connection_aborted(false), dsl(ndsl), qorecharset(QCS_DEFAULT), private_data(0), p_port(0), port(0) { }
+   DLLLOCAL qore_ds_private(DBIDriver *ndsl) : in_transaction(false), active_transaction(false), isopen(false), autocommit(false), connection_aborted(false), dsl(ndsl), qorecharset(QCS_DEFAULT), private_data(0), p_port(0), port(0) { }
       
    DLLLOCAL ~qore_ds_private() {
       assert(!private_data);
@@ -110,6 +111,10 @@ bool Datasource::isInTransaction() const {
    return priv->in_transaction; 
 }
 
+bool Datasource::activeTransaction() const { 
+   return priv->active_transaction; 
+}
+
 bool Datasource::getAutoCommit() const { 
    return priv->autocommit;
 }
@@ -138,6 +143,11 @@ AbstractQoreNode *Datasource::select(const QoreString *query_str, const QoreList
    if (priv->autocommit && !priv->connection_aborted)
       priv->dsl->autoCommit(this, xsink);
 
+   // set active_transaction flag if in a transaction and the active_transaction flag
+   // has not yet been set and no exception was raised
+   if (priv->in_transaction && !priv->active_transaction && !*xsink)
+      priv->active_transaction = true;
+
    return rv;
 }
 
@@ -145,6 +155,11 @@ AbstractQoreNode *Datasource::selectRows(const QoreString *query_str, const Qore
    AbstractQoreNode *rv = priv->dsl->selectRows(this, query_str, args, xsink);
    if (priv->autocommit && !priv->connection_aborted)
       priv->dsl->autoCommit(this, xsink);
+
+   // set active_transaction flag if in a transaction and the active_transaction flag
+   // has not yet been set and no exception was raised
+   if (priv->in_transaction && !priv->active_transaction && !*xsink)
+      priv->active_transaction = true;
 
    return rv;
 }
@@ -172,7 +187,9 @@ AbstractQoreNode *Datasource::exec_internal(bool doBind, const QoreString *query
       else
 	 priv->in_transaction = true;    
    }
-   
+   else if (!priv->active_transaction)
+      priv->active_transaction = true;
+
    return rv;
 }
 
@@ -195,8 +212,10 @@ int Datasource::beginImplicitTransaction(ExceptionSink *xsink) {
 
 int Datasource::beginTransaction(ExceptionSink *xsink) {
    int rc = beginImplicitTransaction(xsink);
-   if (!rc)
+   if (!rc) {
       priv->in_transaction = true;
+      assert(!priv->active_transaction);
+   }
    return rc;
 }
 
@@ -206,6 +225,8 @@ int Datasource::commit(ExceptionSink *xsink) {
 
    int rc = priv->dsl->commit(this, xsink);
    priv->in_transaction = false;
+   priv->active_transaction = false;
+
    return rc;
 }
 
@@ -215,6 +236,7 @@ int Datasource::rollback(ExceptionSink *xsink) {
 
    int rc = priv->dsl->rollback(this, xsink);
    priv->in_transaction = false;
+   priv->active_transaction = false;
    return rc;
 }
 
@@ -244,6 +266,7 @@ int Datasource::close() {
       priv->dsl->close(this);
       priv->isopen = false;
       priv->in_transaction = false;
+      priv->active_transaction = false;
       return 0;
    }
    return -1;
@@ -272,6 +295,7 @@ void Datasource::reset(ExceptionSink *xsink) {
       
       // close any open transaction(s)
       priv->in_transaction = false;
+      priv->active_transaction = false;
    }
 }
 

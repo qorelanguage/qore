@@ -351,11 +351,18 @@ public:
    */
    DLLEXPORT int beginTransaction(ExceptionSink *xsink);
 
-   //! returns the transaction status
+   //! returns the transaction status flag
    /**
-      @return the transaction status
+      @return the transaction status flag
    */
    DLLEXPORT bool isInTransaction() const;
+
+   //! returns true if a transaction is in progress and DB commands have been issued since the transaction was started
+   /** note that this function will return false if the transaction was started with beginTransaction() and no DB
+       commands have been issued since then
+      @return true if a transaction is in progress and DB commands have been issued since the transaction was started
+   */
+   DLLEXPORT bool activeTransaction() const;
 
    //! returns true if the connection is currently open
    /**

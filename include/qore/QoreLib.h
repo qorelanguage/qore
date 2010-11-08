@@ -66,6 +66,9 @@
 //! defined because this version of Qore has the prepared statement API
 #define _QORE_HAS_PREPARED_STATMENT_API 1
 
+//! defined because this version of Qore has the Datasource::activeTransaction() function
+#define _QORE_HAS_DATASOURCE_ACTIVETRANSACTION 1
+
 // qore code flags
 #define QC_NO_FLAGS                 0   //! no flag
 #define QC_NOOP               (1 << 0)  //! this variant is a noop, meaning it returns a constant value with the given argument types
