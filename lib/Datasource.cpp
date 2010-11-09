@@ -168,9 +168,11 @@ AbstractQoreNode *Datasource::exec_internal(bool doBind, const QoreString *query
    if (!priv->autocommit && !priv->in_transaction && beginImplicitTransaction(xsink))
       return 0;
 
+   assert(priv->isopen && priv->private_data);
+
    AbstractQoreNode *rv = doBind ? priv->dsl->execSQL(this, query_str, args, xsink)
       : priv->dsl->execRawSQL(this, query_str, xsink);;
-   //printd(5, "Datasource::exec() this=%08p, autocommit=%d, in_transaction=%d, xsink=%d\n", this, priv->autocommit, priv->in_transaction, xsink->isException());
+   //printd(5, "Datasource::exec_internal() this=%08p, autocommit=%d, in_transaction=%d, xsink=%d\n", this, priv->autocommit, priv->in_transaction, xsink->isException());
 
    if (priv->connection_aborted) {
       assert(*xsink);
@@ -274,7 +276,6 @@ int Datasource::close() {
 
 void Datasource::connectionAborted() {
    assert(priv->isopen);
-
    priv->connection_aborted = true;
    close();
 }

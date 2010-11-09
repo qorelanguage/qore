@@ -183,11 +183,12 @@ Datasource *DatasourcePool::getDS(bool &new_ds, ExceptionSink *xsink) {
    Datasource *ds = getDSIntern(new_ds, xsink);
 
    // try to open Datasource if it's not open already
-   if (ds && !ds->isOpen() && ds->open(xsink)) {
+   if (ds && !ds->isOpen() && (ds->open(xsink) || *xsink)) {
       freeDS();
       return 0;
    }
 
+   assert(ds->isOpen());
    return ds;
 }
 
@@ -204,71 +205,60 @@ Datasource *DatasourcePool::getDSIntern(bool &new_ds, ExceptionSink *xsink) {
 
    int tid = gettid();
    
+   SafeLocker sl((QoreThreadLock *)this);
+
+   // see if thread already has a datasource allocated
+   thread_use_t::iterator i = tmap.find(tid);
+   if (i != tmap.end())
+      return pool[i->second]; 
+
    Datasource *ds;
 
-   {
-      SafeLocker sl((QoreThreadLock *)this);
-
-      // see if thread already has a datasource allocated
-      thread_use_t::iterator i = tmap.find(tid);
-      if (i != tmap.end())
-	 ds = pool[i->second]; 
-      else {
-	 // will be a new allocation, not already in a transaction
-	 new_ds = true;
+   // will be a new allocation, not already in a transaction
+   new_ds = true;
    
-	 // see if there is a datasource free
-	 while (true) {
-	    if (!free_list.empty()) {
-	       int fi = free_list.front();
-	       free_list.pop_front();
-	       // DEBUG
-	       //printf("DSP::getDS() assigning tid %d index %d from free list (%N)\n", $tid, $i, $.p[$i]);
-	       
-	       tmap[tid] = fi;
-	       ds = pool[fi];
-	       tid_list[fi] = tid;
-	    }
-	    else {
-	       // see if we can open a new connection
-	       if (cmax < max) {
-		  ds = pool[cmax] = pool[0]->copy();
-		  
-		  tmap[tid] = cmax;
-		  tid_list[cmax++] = tid;
-	       }
-	       else {
-		  // otherwise we sleep until a connection becomes available
-		  ++wait_count;
-		  wait((QoreThreadLock *)this);
-		  wait_count--;
-		  
-		  if (!valid) {
-		     xsink->raiseException("DATASOURCEPOOL-ERROR", "%s:%s@%s: DatasourcePool deleted while TID %d waiting on a connection to become free", pool[0]->getDriverName(), pool[0]->getUsernameStr().c_str(), pool[0]->getDBNameStr().c_str(), tid);
-		     return 0;
-		  }
-		  
-		  continue;
-	       }
-	    }
-	    break;
-	 }
-	 sl.unlock();
+   // see if there is a datasource free
+   while (true) {
+      if (!free_list.empty()) {
+	 int fi = free_list.front();
+	 free_list.pop_front();
+	 // DEBUG
+	 //printf("DSP::getDS() assigning tid %d index %d from free list (%N)\n", $tid, $i, $.p[$i]);
 	 
-	 // add to thread resource list
-	 //printd(0, "DatasourcePool::getDS() set_thread_resource(this=%08p), tid=%d\n", this, gettid());
-	 set_thread_resource(this);
+	 tmap[tid] = fi;
+	 ds = pool[fi];
+	 tid_list[fi] = tid;
       }
-   }
-      
-   // make sure Datasource is open
-   if (!ds->isOpen()) {
-      if (ds->open(xsink) || *xsink) {
-	 freeDS();
-	 return 0;
+      else {
+	 // see if we can open a new connection
+	 if (cmax < max) {
+	    ds = pool[cmax] = pool[0]->copy();
+	    
+	    tmap[tid] = cmax;
+	    tid_list[cmax++] = tid;
+	 }
+	 else {
+	    // otherwise we sleep until a connection becomes available
+	    ++wait_count;
+	    wait((QoreThreadLock *)this);
+	    wait_count--;
+	    
+	    if (!valid) {
+	       xsink->raiseException("DATASOURCEPOOL-ERROR", "%s:%s@%s: DatasourcePool deleted while TID %d waiting on a connection to become free", pool[0]->getDriverName(), pool[0]->getUsernameStr().c_str(), pool[0]->getDBNameStr().c_str(), tid);
+	       return 0;
+	    }
+	    
+	    continue;
+	 }
       }
+      break;
    }
+   sl.unlock();
    
+   // add to thread resource list
+   //printd(0, "DatasourcePool::getDS() set_thread_resource(this=%08p), tid=%d\n", this, gettid());
+   set_thread_resource(this);
+
    return ds;
 }
 
