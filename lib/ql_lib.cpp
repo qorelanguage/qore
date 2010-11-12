@@ -229,27 +229,71 @@ static QoreHashNode *map_sbuf_to_hash(struct stat *sbuf) {
    h->setKeyValue("blksize", new QoreBigIntNode(sbuf->st_blksize), 0);
    h->setKeyValue("blocks",  new QoreBigIntNode(sbuf->st_blocks), 0);
 
+   // process permissions
+   QoreStringNode *perm = new QoreStringNode;
+
    const char *type;
-   if (S_ISBLK(sbuf->st_mode))
+   if (S_ISBLK(sbuf->st_mode)) {
       type = "BLOCK-DEVICE";
-   else if (S_ISDIR(sbuf->st_mode))
+      perm->concat('b');
+   }
+   else if (S_ISDIR(sbuf->st_mode)) {
       type = "DIRECTORY";
-   else if (S_ISCHR(sbuf->st_mode))
+      perm->concat('d');
+   }
+   else if (S_ISCHR(sbuf->st_mode)) {
       type = "CHARACTER-DEVICE";
-   else if (S_ISFIFO(sbuf->st_mode))
+      perm->concat('c');
+   }
+   else if (S_ISFIFO(sbuf->st_mode)) {
       type = "FIFO";
-   else if (S_ISLNK(sbuf->st_mode))
+      perm->concat('p');
+   }
+   else if (S_ISLNK(sbuf->st_mode)) {
       type = "SYMBOLIC-LINK";
-   else if (S_ISSOCK(sbuf->st_mode))
+      perm->concat('l');
+   }
+   else if (S_ISSOCK(sbuf->st_mode)) {
       type = "SOCKET";
-   else if (S_ISCHR(sbuf->st_mode))
-      type = "CHARACTER-DEVICE";
-   else if (S_ISREG(sbuf->st_mode))
+      perm->concat('s');
+   }
+   else if (S_ISREG(sbuf->st_mode)) {
       type = "REGULAR";
-   else
+      perm->concat('-');
+   }
+   else {
       type = "UNKNOWN";
+      perm->concat('?');
+   }
 
    h->setKeyValue("type",  new QoreStringNode(type), 0);
+
+   // add user permission flags
+   perm->concat(sbuf->st_mode & S_IRUSR ? 'r' : '-');
+   perm->concat(sbuf->st_mode & S_IWUSR ? 'w' : '-');
+   if (sbuf->st_mode & S_ISUID)
+      perm->concat(sbuf->st_mode & S_IXUSR ? 's' : 'S');
+   else
+      perm->concat(sbuf->st_mode & S_IXUSR ? 'x' : '-');
+
+   // add group permission flags
+   perm->concat(sbuf->st_mode & S_IRGRP ? 'r' : '-');
+   perm->concat(sbuf->st_mode & S_IWGRP ? 'w' : '-');
+   if (sbuf->st_mode & S_ISGID)
+      perm->concat(sbuf->st_mode & S_IXGRP ? 's' : 'S');
+   else
+      perm->concat(sbuf->st_mode & S_IXGRP ? 'x' : '-');
+
+   // add other permission flags
+   perm->concat(sbuf->st_mode & S_IROTH ? 'r' : '-');
+   perm->concat(sbuf->st_mode & S_IWOTH ? 'w' : '-');
+   if (sbuf->st_mode & S_ISVTX)
+      perm->concat(sbuf->st_mode & S_IXOTH ? 't' : 'T');
+   else
+      perm->concat(sbuf->st_mode & S_IXOTH ? 'x' : '-');
+
+   h->setKeyValue("perm",  perm, 0);
+
    return h;
 }
 
@@ -279,6 +323,7 @@ static AbstractQoreNode *f_lstat(const QoreListNode *params, ExceptionSink *xsin
    return map_sbuf_to_list(&sbuf);
 }
 
+// hstat(string $path) returns *hash
 static AbstractQoreNode *f_hstat(const QoreListNode *params, ExceptionSink *xsink) {
    QORE_TRACE("f_hstat()");
    HARD_QORE_PARAM(p0, const QoreStringNode, params, 0);

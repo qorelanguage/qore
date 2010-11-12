@@ -152,6 +152,22 @@ static inline void addFileConstants(QoreNamespace *ns) {
    ns->addConstant("S_IRWXO", new QoreBigIntNode(S_IRWXO));
 #endif
 
+#ifdef S_ISUID
+   ns->addConstant("S_ISUID", new QoreBigIntNode(S_ISUID));
+#endif
+#ifdef S_ISGID
+   ns->addConstant("S_ISGID", new QoreBigIntNode(S_ISGID));
+#endif
+#ifdef S_ISVTX
+   ns->addConstant("S_ISVTX", new QoreBigIntNode(S_ISVTX));
+#endif
+#ifdef S_ISTXT
+   ns->addConstant("S_ISTXT", new QoreBigIntNode(S_ISTXT));
+#endif
+#ifdef S_IEXEC
+   ns->addConstant("S_IEXEC", new QoreBigIntNode(S_IEXEC));
+#endif
+
    // file lock constants
    ns->addConstant("F_RDLCK",       new QoreBigIntNode(F_RDLCK));
    ns->addConstant("F_WRLCK",       new QoreBigIntNode(F_WRLCK));
