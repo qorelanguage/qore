@@ -2200,6 +2200,112 @@ raised from the <link linkend="FtpClient_Class">FtpClient</link> class.</para></
       </tgroup>
     </table>
 
+    <table id="Stat_Constants">
+      <title>Stat Constants in the Qore Namespace</title>
+      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	<thead>
+	  <row>
+	    <entry><para>Name</para></entry>
+	    <entry><para>Description</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+	  <row id="S_IFMT">
+	    <entry><para><code>S_IFMT</code></para></entry>
+	    <entry><para>File type bitmask</para></entry>
+	  </row>
+	  <row id="S_IFCHR">
+	    <entry><para><code>S_IFCHR</code></para></entry>
+	    <entry><para>Bit signifying if the file is a character special (device) file</para></entry>
+	  </row>
+	  <row id="S_IFDIR">
+	    <entry><para><code>S_IFDIR</code></para></entry>
+	    <entry><para>Bit signifying if the entry is a directory</para></entry>
+	  </row>
+	  <row id="S_IFBLK">
+	    <entry><para><code>S_IFBLK</code></para></entry>
+	    <entry><para>Bitmask signifying if the file is a block special (device) file</para></entry>
+	  </row>
+	  <row id="S_IFREG">
+	    <entry><para><code>S_IFREG</code></para></entry>
+	    <entry><para>Bit signifying if the file is a regular file</para></entry>
+	  </row>
+	  <row id="S_IFLNK">
+	    <entry><para><code>S_IFLNK</code></para></entry>
+	    <entry><para>Bitmask signifying if the file is a symbolic link</para></entry>
+	  </row>
+	  <row id="S_IFSOCK">
+	    <entry><para><code>S_IFSOCK</code></para></entry>
+	    <entry><para>Bitmask signifying if the file is a socket file</para></entry>
+	  </row>
+	  <row id="S_IFWHT">
+	    <entry><para><code>S_IFWHT</code></para></entry>
+	    <entry><para>Bitmask signifying if the file is a whiteout file</para></entry>
+	  </row>
+	  <row id="S_IRWXU">
+	    <entry><para><code>S_IRWXU</code></para></entry>
+	    <entry><para>Bitmask giving the RWX mask for the owner</para></entry>
+	  </row>
+	  <row id="S_IRUSR">
+	    <entry><para><code>S_IRUSR</code></para></entry>
+	    <entry><para>Bit signifying if the file's owner has read permissions</para></entry>
+	  </row>
+	  <row id="S_IWUSR">
+	    <entry><para><code>S_IWUSR</code></para></entry>
+	    <entry><para>Bit signifying if the file's owner has write permissions</para></entry>
+	  </row>
+	  <row id="S_IXUSR">
+	    <entry><para><code>S_IXUSR</code></para></entry>
+	    <entry><para>Bit signifying if the file's owner has execute permissions</para></entry>
+	  </row>
+	  <row id="S_IRWXG">
+	    <entry><para><code>S_IRWXG</code></para></entry>
+	    <entry><para>Bitmask giving the RWX mask for the group</para></entry>
+	  </row>
+	  <row id="S_IRGRP">
+	    <entry><para><code>S_IRGRP</code></para></entry>
+	    <entry><para>Bit signifying if the file's group has read permissions</para></entry>
+	  </row>
+	  <row id="S_IWGRP">
+	    <entry><para><code>S_IWGRP</code></para></entry>
+	    <entry><para>Bit signifying if the file's group has write permissions</para></entry>
+	  </row>
+	  <row id="S_IXGRP">
+	    <entry><para><code>S_IXGRP</code></para></entry>
+	    <entry><para>Bit signifying if the file's group has execute permissions</para></entry>
+	  </row>
+	  <row id="S_IRWXO">
+	    <entry><para><code>S_IRWXO</code></para></entry>
+	    <entry><para>Bitmask giving the RWX mask for other</para></entry>
+	  </row>
+	  <row id="S_IROTH">
+	    <entry><para><code>S_IROTH</code></para></entry>
+	    <entry><para>Bit signifying if other has read permissions</para></entry>
+	  </row>
+	  <row id="S_IWOTH">
+	    <entry><para><code>S_IWOTH</code></para></entry>
+	    <entry><para>Bit signifying if other has write permissions</para></entry>
+	  </row>
+	  <row id="S_IXOTH">
+	    <entry><para><code>S_IXOTH</code></para></entry>
+	    <entry><para>Bit signifying if other has execute permissions</para></entry>
+	  </row>
+	  <row id="S_ISUID">
+	    <entry><para><code>S_ISUID</code></para></entry>
+	    <entry><para>Bit signifying set user id on execution</para></entry>
+	  </row>
+	  <row id="S_ISGID">
+	    <entry><para><code>S_ISGID</code></para></entry>
+	    <entry><para>Bit signifying set group id on execution</para></entry>
+	  </row>
+	  <row id="S_ISVTX">
+	    <entry><para><code>S_ISVTX</code></para></entry>
+	    <entry><para>Bit signifying restricted deletes for directories</para></entry>
+	  </row>
+	</tbody>
+      </tgroup>
+    </table>
+
     <sect2 id="File_constructor">
       <title>File::constructor()</title>
       <variablelist>

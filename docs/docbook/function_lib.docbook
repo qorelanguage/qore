@@ -16836,14 +16836,14 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	  <entry><para>block size</para></entry>
 	</row>
 	<row>
-	  <entry><para><code>blocks</code></para></entry>
-	  <entry><para>blocks allocated for the file</para></entry>
-	</row>
-	<row>
 	  <entry><para><code>type</code></para></entry>
 	  <entry><para>a string indicating the type of file: 'BLOCK-DEVICE', 'DIRECTORY', 'CHARACTER-DEVICE', 'FIFO', 'SYMBOLIC-LINK', 'SOCKET', 'CHARACTER-DEVICE', 'REGULAR', 'UNKNOWN'</para></entry>
 	</row>
-      </tbody>
+	<row>
+	  <entry><para><code>perm</code></para></entry>
+	  <entry><para>a string symbolizing the permissions of the file/dir/etc like that output by ls, for example: <code>-rwxr-xr-x</code></para></entry>
+	</row>
+	<row>
     </tgroup>
   </table>
 
@@ -16864,7 +16864,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Prototype</term>
       <listitem>
-	<para><code><link linkend="hstat">hstat</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>) <command>returns</command> <link linkend="*hstat_type">*hstat</link></code></para>
+	<para><code><link linkend="hstat">hstat</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>) <command>returns</command> <link linkend="*hash_type">*hash</link></code></para>
 	<para><code><link linkend="hstat">hstat</link>() <command>returns</command> <link linkend="nothing_type">nothing</link> (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
