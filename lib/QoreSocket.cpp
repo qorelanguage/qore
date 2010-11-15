@@ -1878,19 +1878,19 @@ void QoreSocket::convertHeaderToHash(QoreHashNode *h, char *p) {
       AbstractQoreNode *val = new QoreStringNode(t);
 
       // see if header exists, and if so make it a list and add value to the list
-      AbstractQoreNode **n = h->getKeyValuePtr(buf);
-      if (*n) {
+      hash_assignment_priv ha(*h, buf);
+      if (*ha) {
 	 QoreListNode *l;
-	 if ((*n)->getType() == NT_LIST)
-	    l = reinterpret_cast<QoreListNode *>(*n);
+	 if ((*ha)->getType() == NT_LIST)
+	    l = reinterpret_cast<QoreListNode *>(*ha);
 	 else {
-	    l = new QoreListNode();
-	    l->push(*n);
+	    l = new QoreListNode;
+	    l->push(ha.swap(l, 0));
 	 }
 	 l->push(val);
       }
       else // otherwise set header normally
-	 *n = val;
+	 ha.assign(val, 0);
    }
 }
 

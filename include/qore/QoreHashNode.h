@@ -41,6 +41,8 @@ class LocalVar;
 class QoreHashNode : public AbstractQoreNode {
    friend class HashIterator;
    friend class ConstHashIterator;
+   friend class HashAssignmentHelper;
+   friend class hash_assignment_priv;
    
 private:
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
@@ -253,6 +255,7 @@ public:
        @param key the key to return the pointer to the value pointer for
        @param xsink if an error occurs, the Qore-language exception information will be added here	  
        @return a pointer to a pointer of the value of the key
+       @deprecated use HashAssignmentHelper instead; using this function could result in a memory leak
    */
    DLLEXPORT AbstractQoreNode **getKeyValuePtr(const QoreString *key, ExceptionSink *xsink);
 
@@ -260,6 +263,7 @@ public:
    /** The key hash entry is created if it does not already exist.
        @param key the key to return the pointer to the value pointer for
        @return a pointer to a pointer of the value of the key (assumed to be in QCS_DEFAULT)
+       @deprecated use HashAssignmentHelper instead; using this function could result in a memory leak
    */
    DLLEXPORT AbstractQoreNode **getKeyValuePtr(const char *key);
 
@@ -269,12 +273,14 @@ public:
        @param key the key to return the pointer to the value pointer for
        @param xsink if an error occurs, the Qore-language exception information will be added here	  
        @return a pointer to a pointer of the value of the key, only if the key already exists, otherwise 0 is returned
+       @deprecated use HashAssignmentHelper instead; using this function could result in a memory leak
    */
    DLLEXPORT AbstractQoreNode **getExistingValuePtr(const QoreString *key, ExceptionSink *xsink);
 
    //! returns a pointer to a pointer of the value of the key (assumed to be be in QCS_DEFAULT), only if the key already exists
    /** @param key the key to return the pointer to the value pointer for
        @return a pointer to a pointer of the value of the key (assumed to be in QCS_DEFAULT), only if the key already exists, otherwise 0 is returned
+       @deprecated use HashAssignmentHelper instead; using this function could result in a memory leak
    */
    DLLEXPORT AbstractQoreNode **getExistingValuePtr(const char *key);
 
@@ -287,7 +293,7 @@ public:
    DLLEXPORT void merge(const QoreHashNode *h, ExceptionSink *xsink);
 
    //! sets the value of "key" to "value"
-   /** A Qore-language exception could be thrown converting the key string's encoding to QCS_DEFAULT, or if the given key has a current value and it's a QoreObject that goes out of scope when dereferenced (the object's destructor could throw an exception)
+   /** A Qore-language exception could be thrown converting the key string's encoding to QCS_DEFAULT, or if the given key has a current value and it's a QoreObject that goes out of scope when dereferenced (the object's destructor could throw an exception); if an exception is thrown due to encoding conversion issues (and therefore the assignment is not made) then the value to be assigned is dereferenced automatically
        @param key the key to set the value for
        @param value the value to assign to the key, must be already referenced for the assignment
        @param xsink if an error occurs, the Qore-language exception information will be added here	  
@@ -296,7 +302,7 @@ public:
    DLLEXPORT void setKeyValue(const QoreString *key, AbstractQoreNode *value, ExceptionSink *xsink);
 
    //! sets the value of "key" to "value"
-   /** A Qore-language exception could be thrown converting the key string's encoding to QCS_DEFAULT, or if the given key has a current value and it's a QoreObject that goes out of scope when dereferenced (the object's destructor could throw an exception)
+   /** A Qore-language exception could be thrown converting the key string's encoding to QCS_DEFAULT, or if the given key has a current value and it's a QoreObject that goes out of scope when dereferenced (the object's destructor could throw an exception); if an exception is thrown due to encoding conversion issues (and therefore the assignment is not made) then the value to be assigned is dereferenced automatically
        @param key the key to set the value for
        @param value the value to assign to the key, must be already referenced for the assignment
        @param xsink if an error occurs, the Qore-language exception information will be added here	  
@@ -314,7 +320,7 @@ public:
    DLLEXPORT void setKeyValue(const char *key, AbstractQoreNode *value, ExceptionSink *xsink);
 
    //! sets the value of "key" to "value" and returns the old value (0 if not present or if already 0), caller owns any reference count returned
-   /** A Qore-language exception could be thrown converting the key string's encoding to QCS_DEFAULT
+   /** A Qore-language exception could be thrown converting the key string's encoding to QCS_DEFAULT; if an exception is thrown and the value is not assigned, then the value to be assigned is dereferenced automatically
        @param key the key to set the value for
        @param value the value to assign to the key, must be already referenced for the assignment
        @param xsink if an error occurs, the Qore-language exception information will be added here
@@ -326,8 +332,17 @@ public:
    /** @param key the key to set the value for (assumed to be in QCS_DEFAULT encoding)
        @param value the value to assign to the key, must be already referenced for the assignment
        @return the old value of the key (0 if not present or if the old value was already 0), caller owns any reference count returned
+       @deprecated this api could cause a crash if types are implemented for hash keys and the value to be assigned cannot be assigned; this API will be removed in a future version of the Qore library
    */
    DLLEXPORT AbstractQoreNode *swapKeyValue(const char *key, AbstractQoreNode *value);
+
+   //! sets the value of "key" to "value" and returns the old value (0 if not present or if already 0), caller owns any reference count returned
+   /** A Qore-language exception could be thrown converting the key string's encoding to QCS_DEFAULT; if an exception is thrown and the value is not assigned, then the value to be assigned is dereferenced automatically
+       @param key the key to set the value for (assumed to be in QCS_DEFAULT encoding)
+       @param value the value to assign to the key, must be already referenced for the assignment
+       @return the old value of the key (0 if not present or if the old value was already 0), caller owns any reference count returned
+   */
+   DLLEXPORT AbstractQoreNode *swapKeyValue(const char *key, AbstractQoreNode *value, ExceptionSink *xsink);
 
    //! performs a delete operation on the value of the given key
    /** The delete operation means a simple dereference for all types except QoreObject, on this type the destructor will be run immediately.
@@ -459,6 +474,8 @@ typedef ReferenceHolder<QoreHashNode> QoreHashNodeHolder;
    @endcode
 */
 class HashIterator {
+   friend class HashAssignmentHelper;
+
 private:
    QoreHashNode *h;
    HashMember *ptr;
@@ -505,6 +522,9 @@ public:
    DLLEXPORT void deleteKey(ExceptionSink *xsink);
 
    //! returns a pointer to a pointer to the current value so the value of the key may be manipulated externally
+   /**
+       @deprecated use HashAssignmentHelper instead; using this function could result in a memory leak
+    */
    DLLEXPORT AbstractQoreNode **getValuePtr() const;
 
    //! returns the value of the current key with an incremented reference count
@@ -573,6 +593,89 @@ public:
 
    //! returns true if on the last key of the hash
    DLLEXPORT bool last() const;
+};
+
+//! use this class to make assignments to hash keys from a pointer to the key value
+class HashAssignmentHelper {
+private:
+   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+   DLLLOCAL HashAssignmentHelper(const HashAssignmentHelper&);
+
+   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+   DLLLOCAL HashAssignmentHelper& operator=(const HashAssignmentHelper&);
+
+   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+   DLLLOCAL void* operator new(size_t);
+
+protected:
+   //! private implementation
+   struct hash_assignment_priv *priv;
+
+public:
+   //! constructor taking a const char *
+   /** @param n_h the hash to use
+       @param key the key to assign
+       @param must_already_exist if true, then this constructor will only succeed if the key already exists
+    */
+   DLLLOCAL HashAssignmentHelper(QoreHashNode &n_h, const char *key, bool must_already_exist = false);
+
+   //! constructor taking a const std::string&
+   /** @param n_h the hash to use
+       @param key the key to assign
+       @param must_already_exist if true, then this constructor will only succeed if the key already exists
+    */
+   DLLLOCAL HashAssignmentHelper(QoreHashNode &n_h, const std::string &key, bool must_already_exist = false);
+
+   //! constructor taking a const QoreString&
+   /** this constructor may raise a Qore-language exception if the key argument cannot be successfully converted to the default encoding,
+       in which case no further functions should be called on the object
+       @param xsink the container object for Qore-language exceptions, in case one is thrown trying to covert the key encoding to the default encoding
+       @param n_h the hash to use
+       @param key the key to assign
+       @param must_already_exist if true, then this constructor will only succeed if the key already exists
+    */
+   DLLLOCAL HashAssignmentHelper(ExceptionSink *xsink, QoreHashNode &n_h, const QoreString &key, bool must_already_exist = false);
+
+   //! constructor taking a const QoreString&
+   /** this constructor may raise a Qore-language exception if the key argument cannot be successfully converted to the default encoding,
+       in which case no further functions should be called on the object
+       @param xsink the container object for Qore-language exceptions, in case one is thrown trying to covert the key encoding to the default encoding
+       @param n_h the hash to use
+       @param key the key to assign
+       @param must_already_exist if true, then this constructor will only succeed if the key already exists
+    */
+   DLLLOCAL HashAssignmentHelper(ExceptionSink *xsink, QoreHashNode &n_h, const QoreString *key, bool must_already_exist = false);
+
+   //! constructor taking a HashIterator&
+   /** @param hi the HashIterator to use for the key and hash
+    */
+   DLLLOCAL HashAssignmentHelper(HashIterator &hi);
+
+   //! destroys the object and does post processing on the new value
+   DLLLOCAL ~HashAssignmentHelper();
+
+   //! returns true if the object is holding a valid pointer, false if not
+   /** in case this function returns false
+    */
+   DLLLOCAL operator bool() const;
+
+   //! assigns a value to the hash key, dereferences any old value, assumes that the value is already referenced for the assignment
+   /** a Qore-language exception could be raised when the existing value is dereferenced
+       (i.e. if it's an object that goes out of scope and the destructor raises an 
+       exception, for example)
+    */
+   DLLLOCAL void assign(AbstractQoreNode *v, ExceptionSink *xsink);
+
+   //! swaps the current value with the new value of the hash key, assumes that the new value is already referenced for the assignment; returns the old value
+   /** could throw a Qore-language exception if there is a type error; in this case 0 is returned and the value passed for the assignment is dereferenced
+@return the old value of the hash key including its reference count (the old value is not dereferenced); the caller owns the value returned
+    */
+   DLLLOCAL AbstractQoreNode *swap(AbstractQoreNode *v, ExceptionSink *xsink);
+
+   //! returns the current value of the hash key; the pointer returned is still owned by the hash
+   /** @return the current value of the hash key
+    */
+   DLLLOCAL AbstractQoreNode *operator*() const;
 };
 
 #endif // _QORE_HASH_H

@@ -358,4 +358,65 @@ public:
 
 DLLLOCAL void raiseNonExistentMethodCallWarning(const QoreClass *qc, const char *method);
 
+DLLLOCAL void qoreCheckContainer(AbstractQoreNode *v);
+
+/*
+class abstract_assignment_helper {
+public:
+   DLLLOCAL virtual AbstractQoreNode *swapImpl(AbstractQoreNode *v, ExceptionSink *xsink) = 0;
+   DLLLOCAL virtual AbstractQoreNode *getValueImpl() const = 0;
+};
+*/
+
+class qore_hash_private;
+
+class hash_assignment_priv {
+public:
+   qore_hash_private &h;
+   HashMember *om;
+
+   DLLLOCAL hash_assignment_priv(qore_hash_private &n_h, HashMember *n_om) : h(n_h), om(n_om) {
+   }
+
+   DLLLOCAL hash_assignment_priv(qore_hash_private &n_h, const char *key, bool must_already_exist = false);
+
+   DLLLOCAL hash_assignment_priv(QoreHashNode &n_h, const char *key, bool must_already_exist = false);
+
+   DLLLOCAL hash_assignment_priv(QoreHashNode &n_h, const std::string &key, bool must_already_exist = false);
+
+   DLLLOCAL hash_assignment_priv(ExceptionSink *xsink, QoreHashNode &n_h, const QoreString &key, bool must_already_exist = false);
+
+   DLLLOCAL hash_assignment_priv(ExceptionSink *xsink, QoreHashNode &n_h, const QoreString *key, bool must_already_exist = false);
+
+   DLLLOCAL AbstractQoreNode *swapImpl(AbstractQoreNode *v, ExceptionSink *xsink);
+
+   DLLLOCAL AbstractQoreNode *getValueImpl() const;
+
+   DLLLOCAL AbstractQoreNode *operator*() const {
+      return getValueImpl();
+   }
+
+   DLLLOCAL void assign(AbstractQoreNode *v, ExceptionSink *xsink) {
+      AbstractQoreNode *old = swapImpl(v, xsink);
+      if (*xsink)
+         return;
+      //qoreCheckContainer(v);
+      if (old) {
+         // "remove" logic here
+         old->deref(xsink);
+      }
+   }
+
+   DLLLOCAL AbstractQoreNode *swap(AbstractQoreNode *v, ExceptionSink *xsink) {      
+      AbstractQoreNode *old = swapImpl(v, xsink);
+      if (*xsink)
+         return 0;
+      if (old == v)
+         return v;
+      // "remove" and "add" logic here
+      return old;
+   }
+};
+
+
 #endif

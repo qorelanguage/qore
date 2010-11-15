@@ -1198,3 +1198,72 @@ QoreStringNode *q_strerror(int err) {
 QoreStringNode *qore_reassign_signal(int sig, const char *name) {
    return QSM.reassign_signal(sig, name);
 }
+
+static void qoreCheckContainerIntern(const_node_set_t &node_set, AbstractQoreNode *v);
+
+static void qoreCheckObject(const_node_set_t &node_set, QoreObject *obj) {
+}
+
+static void qoreCheckHash(const_node_set_t &node_set, QoreHashNode *h) {
+   // see if we've found a circular reference
+   if (node_set.find(h) != node_set.end()) {
+      printd(0, "qoreCheckHash() found circular reference h=%p elements=%d\n", h, node_set.size());
+   }
+
+   const_node_set_t::iterator i = node_set.insert(h).first;
+
+   HashIterator hi(h);
+   while (hi.next())
+      qoreCheckContainerIntern(node_set, hi.getValue());
+
+   node_set.erase(i);
+}
+
+static void qoreCheckList(const_node_set_t &node_set, QoreListNode *l) {
+   // see if we've found a circular reference
+   if (node_set.find(l) != node_set.end()) {
+      printd(0, "qoreCheckList() found circular reference l=%p elements=%d\n", l, node_set.size());
+   }
+
+   const_node_set_t::iterator i = node_set.insert(l).first;
+
+   ListIterator li(l);
+   while (li.next())
+      qoreCheckContainerIntern(node_set, li.getValue());
+
+   node_set.erase(i);
+}
+
+static void qoreCheckContainerIntern(const_node_set_t &node_set, AbstractQoreNode *v) {
+   if (!v)
+      return;
+   qore_type_t t = v->getType();
+
+   if (t == NT_OBJECT) {
+      qoreCheckObject(node_set, reinterpret_cast<QoreObject *>(v));
+      return;
+   }
+
+   if (t == NT_HASH) {
+      qoreCheckHash(node_set, reinterpret_cast<QoreHashNode *>(v));
+      return;
+   }
+
+   if (t == NT_LIST) {
+      qoreCheckList(node_set, reinterpret_cast<QoreListNode *>(v));
+      return;
+   }
+}
+
+void qoreCheckContainer(AbstractQoreNode *v) {
+   if (!v)
+      return;
+
+   qore_type_t t = v->getType();
+   if (t != NT_OBJECT && t != NT_HASH && t != NT_LIST)
+      return;
+
+   const_node_set_t node_set;
+
+   qoreCheckContainerIntern(node_set, v);
+}

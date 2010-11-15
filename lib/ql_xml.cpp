@@ -204,7 +204,7 @@ class xml_stack {
 } // anonymous namespace
 
 #if 0
-// does not work well, produces ugly,. uninformative output
+// does not work well, produces ugly, uninformative output
 static void qore_xml_structured_error_func(ExceptionSink *xsink, xmlErrorPtr error) {
    QoreStringNode *desc = new QoreStringNode;
 
@@ -1044,14 +1044,14 @@ AbstractQoreNode *QoreXmlReader::getXmlData(const QoreEncoding *data_ccsid, bool
 	 AbstractQoreNode *n = xstack.getNode();
 	 // if there is no node pointer, then make a hash
 	 if (!n) {
-	    QoreHashNode *h = new QoreHashNode();
+	    QoreHashNode *h = new QoreHashNode;
 	    xstack.setNode(h);
 	    xstack.push(h->getKeyValuePtr(name), depth);
 	 }
 	 else { // node ptr already exists
-	    QoreHashNode *h = dynamic_cast<QoreHashNode *>(n);
+	    QoreHashNode *h = n->getType() == NT_HASH ? reinterpret_cast<QoreHashNode *>(n) : 0;
 	    if (!h) {
-	       h = new QoreHashNode();
+	       h = new QoreHashNode;
 	       xstack.setNode(h);
 	       h->setKeyValue("^value^", n, 0);
 	       xstack.incValueCount();
@@ -1068,7 +1068,7 @@ AbstractQoreNode *QoreXmlReader::getXmlData(const QoreEncoding *data_ccsid, bool
 		     // if it's not a list, then make into a list with current value as first entry
 		     if (!vl) {
 			AbstractQoreNode **vp = h->getKeyValuePtr(name);
-			vl = new QoreListNode();
+			vl = new QoreListNode;
 			vl->push(v);
 			(*vp) = vl;
 		     }
@@ -1083,11 +1083,11 @@ AbstractQoreNode *QoreXmlReader::getXmlData(const QoreEncoding *data_ccsid, bool
 			if (get_value)
 			   v = h->getKeyValue(lk);
 			
-			QoreListNode *vl = dynamic_cast<QoreListNode *>(v);
+			QoreListNode *vl = v->getType() == NT_LIST ? reinterpret_cast<QoreListNode *>(v) : 0;
 			// if it's not a list, then make into a list with current value as first entry
 			if (!vl) {
 			   AbstractQoreNode **vp = h->getKeyValuePtr(lk);
-			   vl = new QoreListNode();
+			   vl = new QoreListNode;
 			   vl->push(v);
 			   (*vp) = vl;
 			}
@@ -1124,7 +1124,7 @@ AbstractQoreNode *QoreXmlReader::getXmlData(const QoreEncoding *data_ccsid, bool
 	       return 0;
 
 	    // make new new a hash and assign "^attributes^" key
-	    QoreHashNode *nv = new QoreHashNode();
+	    QoreHashNode *nv = new QoreHashNode;
 	    nv->setKeyValue("^attributes^", h.release(), xsink);
 	    xstack.setNode(nv);
 	 }
@@ -1142,7 +1142,7 @@ AbstractQoreNode *QoreXmlReader::getXmlData(const QoreEncoding *data_ccsid, bool
 
 	    AbstractQoreNode *n = xstack.getNode();
 	    if (n) {
-	       QoreHashNode *h = dynamic_cast<QoreHashNode *>(n);
+	       QoreHashNode *h = n->getType() == NT_HASH ? reinterpret_cast<QoreHashNode *>(n) : 0;
 	       if (h) {
 		  if (!xstack.getValueCount())
 		     h->setKeyValue("^value^", val, xsink);
@@ -1153,7 +1153,7 @@ AbstractQoreNode *QoreXmlReader::getXmlData(const QoreEncoding *data_ccsid, bool
 		  }		  
 	       }
 	       else { // convert value to hash and save value node
-		  h = new QoreHashNode();
+		  h = new QoreHashNode;
 		  xstack.setNode(h);
 		  h->setKeyValue("^value^", n, 0);
 		  xstack.incValueCount();
@@ -1190,7 +1190,7 @@ AbstractQoreNode *QoreXmlReader::getXmlData(const QoreEncoding *data_ccsid, bool
 	       }		  
 	    }
 	    else { // convert value to hash and save value node
-	       QoreHashNode *h = new QoreHashNode();
+	       QoreHashNode *h = new QoreHashNode;
 	       xstack.setNode(h);
 	       if (n) {
 		  h->setKeyValue("^value^", n, 0);

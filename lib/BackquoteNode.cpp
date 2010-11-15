@@ -99,7 +99,7 @@ AbstractQoreNode *backquoteEval(const char *cmd, ExceptionSink *xsink) {
    }
 
    // allocate buffer for return value
-   QoreStringNodeHolder s(new QoreStringNode());
+   QoreStringNodeHolder s(new QoreStringNode);
 
    // read in result string
    while (true) {

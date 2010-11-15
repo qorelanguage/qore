@@ -33,6 +33,7 @@
 #define OS_OK            0
 #define OS_DELETED      -1
 
+// object access constants
 #define QOA_OK           0
 #define QOA_PRIV_ERROR   1
 #define QOA_PUB_ERROR    2
@@ -126,10 +127,13 @@ public:
    bool system_object, delete_blocker_run, in_destructor;
    QoreObject *obj;
 
+   // xxx recursive reference count
+   unsigned rcount;
+
    DLLLOCAL qore_object_private(QoreObject *n_obj, const QoreClass *oc, QoreProgram *p, QoreHashNode *n_data) : 
       theclass(oc), status(OS_OK), 
       privateData(0), data(n_data), pgm(p), system_object(!p), delete_blocker_run(false), in_destructor(false),
-      obj(n_obj) {
+      obj(n_obj), rcount(0) {
 #ifdef QORE_DEBUG_OBJ_REFS
       printd(QORE_DEBUG_OBJ_REFS, "qore_object_private::qore_object_private() obj=%p, pgm=%p, class=%s, references 0->1\n", obj, p, oc->getName());
 #endif

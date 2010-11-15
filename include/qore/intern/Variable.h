@@ -281,7 +281,7 @@ public:
 
    DLLLOCAL int ensure_unique_int() {
       if (!(*v)) {
-	 (*v) = new QoreBigIntNode();
+	 (*v) = new QoreBigIntNode;
 	 return 0;
       }
 
@@ -307,7 +307,7 @@ public:
 
    DLLLOCAL int ensure_unique_float() {
       if (!(*v)) {
-	 (*v) = new QoreFloatNode();
+	 (*v) = new QoreFloatNode;
 	 return 0;
       }
 
