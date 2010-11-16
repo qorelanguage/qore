@@ -99,7 +99,7 @@ public:
    DLLLOCAL bool isGlobalDecl() const { return new_decl; }
 
    DLLLOCAL void setValue(AbstractQoreNode *val, ExceptionSink *xsink);
-   DLLLOCAL AbstractQoreNode **getValuePtr(AutoVLock *vl, const QoreTypeInfo *&typeInfo, ExceptionSink *xsink) const;
+   DLLLOCAL AbstractQoreNode **getValuePtr(AutoVLock *vl, const QoreTypeInfo *&typeInfo, obj_vec_t &ovec, ExceptionSink *xsink) const;
    DLLLOCAL AbstractQoreNode *getValue(AutoVLock *vl, ExceptionSink *xsink) const;
    DLLLOCAL qore_var_t getType() const { return type; }
    DLLLOCAL const char *getName() const { return name; }

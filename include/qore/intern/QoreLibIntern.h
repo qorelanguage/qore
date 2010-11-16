@@ -28,6 +28,7 @@
 #include <qore/intern/config.h>
 
 #include <stdarg.h>
+#include <vector>
 
 // here we define virtual types
 #define NT_NONE         -1
@@ -138,6 +139,9 @@ enum qore_call_t {
 #define DAH_RELEASE  2 // release lock at end of action
 
 #define DAH_TEXT(d) (d == DAH_RELEASE ? "release" : (d == DAH_ACQUIRE ? "acquire" : "none"))
+
+// keep a list of objects to find recursive data structures
+typedef std::vector<QoreObject *> obj_vec_t;
 
 #include <qore/intern/NamedScope.h>
 #include <qore/intern/QoreTypeInfo.h>

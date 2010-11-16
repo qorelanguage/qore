@@ -22,7 +22,6 @@
 */
 
 #ifndef _QORE_VARIABLE_H
-
 #define _QORE_VARIABLE_H
 
 enum qore_var_t { 
@@ -122,12 +121,12 @@ public:
    DLLLOCAL void doDoubleDeclarationError() {
       // make sure types are identical or throw an exception
       if (parseTypeInfo) {
-	 parse_error("global variable '%s' previously declared with type '%s'", name.c_str(), parseTypeInfo->getName());
-	 assert(!typeInfo);
+         parse_error("global variable '%s' previously declared with type '%s'", name.c_str(), parseTypeInfo->getName());
+         assert(!typeInfo);
       }
       if (typeInfo) {
-	 parse_error("global variable '%s' previously declared with type '%s'", name.c_str(), typeInfo->getName());
-	 assert(!parseTypeInfo);
+         parse_error("global variable '%s' previously declared with type '%s'", name.c_str(), typeInfo->getName());
+         assert(!parseTypeInfo);
       }
    }
 
@@ -137,13 +136,13 @@ public:
       //printd(5, "Var::parseCheckAssignType() this=%p %s: type=%s %s new type=%s %s\n", this, name.c_str(), typeInfo->getTypeName(), typeInfo->getCID(), n_typeInfo->getTypeName(), n_typeInfo->getCID());
       // it is safe to call QoreTypeInfo::hasType() when this is 0
       if (!n_parseTypeInfo)
-	 return;
+         return;
 
       // here we know that n_typeInfo is not null
       // if no previous type was declared, take the new type
       if (parseTypeInfo || typeInfo) {
-	 doDoubleDeclarationError();
-	 return;
+         doDoubleDeclarationError();
+         return;
       }
 
       parseTypeInfo = ti.release();
@@ -154,13 +153,13 @@ public:
       //printd(5, "Var::parseCheckAssignType() this=%p %s: type=%s %s new type=%s %s\n", this, name.c_str(), typeInfo->getTypeName(), typeInfo->getCID(), n_typeInfo->getTypeName(), n_typeInfo->getCID());
       // it is safe to call QoreTypeInfo::hasType() when this is 0
       if (!n_typeInfo->hasType())
-	 return;
+         return;
 
       // here we know that n_typeInfo is not null
       // if no previous type was declared, take the new type
       if (parseTypeInfo || typeInfo) {
-	 doDoubleDeclarationError();
-	 return;
+         doDoubleDeclarationError();
+         return;
       }
 
       typeInfo = n_typeInfo;
@@ -169,8 +168,8 @@ public:
 
    DLLLOCAL void parseInit() {
       if (parseTypeInfo) {
-	 typeInfo = parseTypeInfo->resolveAndDelete();
-	 parseTypeInfo = 0;
+         typeInfo = parseTypeInfo->resolveAndDelete();
+         parseTypeInfo = 0;
       }
       //assignInitialValue();
    }
@@ -216,7 +215,7 @@ DLLLOCAL AbstractQoreNode *remove_lvalue(AbstractQoreNode *node, ExceptionSink *
 DLLLOCAL void delete_global_variables();
 
 // for retrieving a pointer to a pointer to an lvalue expression
-DLLLOCAL AbstractQoreNode **get_var_value_ptr(const AbstractQoreNode *lvalue, AutoVLock *vl, const QoreTypeInfo *&typeInfo, ExceptionSink *xsink);
+DLLLOCAL AbstractQoreNode **get_var_value_ptr(const AbstractQoreNode *lvalue, AutoVLock *vl, const QoreTypeInfo *&typeInfo, obj_vec_t &ovec, ExceptionSink *xsink);
 
 DLLLOCAL extern QoreHashNode *ENV;
 
@@ -228,10 +227,13 @@ private:
    ExceptionSink *xsink;
    AutoVLock vl;
    const QoreTypeInfo *typeInfo;
-
+   obj_vec_t ovec;
+   
 public:
    DLLLOCAL LValueHelper(const AbstractQoreNode *exp, ExceptionSink *n_xsink) : xsink(n_xsink), vl(n_xsink), typeInfo(0) {
-      v = get_var_value_ptr(exp, &vl, typeInfo, xsink);
+      v = get_var_value_ptr(exp, &vl, typeInfo, ovec, xsink);
+   }
+   DLLLOCAL ~LValueHelper() {
    }
    DLLLOCAL operator bool() const { return v != 0; }
    DLLLOCAL const QoreTypeInfo *get_type_info() const {
@@ -240,7 +242,7 @@ public:
    DLLLOCAL const qore_type_t get_type() const { return *v ? (*v)->getType() : NT_NOTHING; }
    DLLLOCAL bool check_type(const qore_type_t t) const {
       if (!(*v))
-	 return (t == NT_NOTHING) ? true : false;
+         return (t == NT_NOTHING) ? true : false;
       return t == (*v)->getType();
    }
    DLLLOCAL bool is_nothing() const { return ::is_nothing(*v); }
@@ -251,17 +253,17 @@ public:
       //printd(0, "LValueHelper::assign() this=%p val=%p (%s) typeInfo=%s calling checkType()\n", this, val, val ? val->getTypeName() : "NOTHING", typeInfo->getName());
       val = typeInfo->acceptAssignment("<lvalue>", val, xsink);
       if (*xsink) {
-	 discard(val, xsink);
-	 return -1;
+         discard(val, xsink);
+         return -1;
       }
 
       if (*v) {
-	 (*v)->deref(xsink);
-	 if (*xsink) {
-	    (*v) = 0;
-	    discard(val, xsink);
-	    return -1;
-	 }
+         (*v)->deref(xsink);
+         if (*xsink) {
+            (*v) = 0;
+            discard(val, xsink);
+            return -1;
+         }
       }
       (*v) = val;
       return 0;
@@ -271,33 +273,33 @@ public:
       assert((*v) && (*v)->getType() != NT_OBJECT);
 
       if (!(*v)->is_unique()) {
-	 AbstractQoreNode *old = *v;
-	 (*v) = old->realCopy();
-	 old->deref(xsink);
-	 return *xsink; 
+         AbstractQoreNode *old = *v;
+         (*v) = old->realCopy();
+         old->deref(xsink);
+         return *xsink; 
       }
       return 0;
    }
 
    DLLLOCAL int ensure_unique_int() {
       if (!(*v)) {
-	 (*v) = new QoreBigIntNode;
-	 return 0;
+         (*v) = new QoreBigIntNode;
+         return 0;
       }
 
       if ((*v)->getType() != NT_INT) {
-	 int64 i = (*v)->getAsBigInt();
-	 (*v)->deref(xsink);
-	 if (*xsink) {
-	    (*v) = 0;
-	    return -1;
-	 }
-	 (*v) = new QoreBigIntNode(i);
-	 return 0;
+         int64 i = (*v)->getAsBigInt();
+         (*v)->deref(xsink);
+         if (*xsink) {
+            (*v) = 0;
+            return -1;
+         }
+         (*v) = new QoreBigIntNode(i);
+         return 0;
       }
 
       if ((*v)->is_unique())
-	 return 0;
+         return 0;
 
       QoreBigIntNode *old = reinterpret_cast<QoreBigIntNode *>(*v);
       (*v) = old->realCopy();
@@ -307,23 +309,23 @@ public:
 
    DLLLOCAL int ensure_unique_float() {
       if (!(*v)) {
-	 (*v) = new QoreFloatNode;
-	 return 0;
+         (*v) = new QoreFloatNode;
+         return 0;
       }
 
       if ((*v)->getType() != NT_FLOAT) {
-	 double f = (*v)->getAsFloat();
-	 (*v)->deref(xsink);
-	 if (*xsink) {
-	    (*v) = 0;
-	    return -1;
-	 }
-	 (*v) = new QoreFloatNode(f);
-	 return 0;
+         double f = (*v)->getAsFloat();
+         (*v)->deref(xsink);
+         if (*xsink) {
+            (*v) = 0;
+            return -1;
+         }
+         (*v) = new QoreFloatNode(f);
+         return 0;
       }
-	 
+      
       if ((*v)->is_unique())
-	 return 0;
+         return 0;
 
       QoreFloatNode *old = reinterpret_cast<QoreFloatNode *>(*v);
       (*v) = old->realCopy();

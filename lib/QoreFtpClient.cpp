@@ -737,7 +737,7 @@ QoreStringNode *QoreFtpClient::list(const char *path, bool long_list, ExceptionS
    if (xsink->isEvent())
       return 0;
 
-   //printd(5, "read done: code=%d LIST: %s\n", code, resp.getBuffer());
+   printd(5, "read done: code=%d LIST: %s\n", code, resp.getBuffer());
    if ((code / 100 != 2)) {
       xsink->raiseException("FTP-LIST-ERROR", "FTP server returned an error to the %s command: %s", 
 			    (long_list ? "LIST" : "NLST"), resp.getBuffer());
