@@ -54,7 +54,6 @@ class QoreExternalStaticMethodVariant;
 */
 class QoreObject : public AbstractQoreNode {
    friend struct qore_object_private;
-   friend class qore_object_lock_handoff_manager;
 
 private:
    //! the private implementation of the class
@@ -550,7 +549,7 @@ public:
    DLLLOCAL void execMemberNotification(const char *member, ExceptionSink *xsink);
 
    //! returns a pointer to an object member during initialization (no locking; interal use only)
-   DLLLOCAL AbstractQoreNode **getMemberValuePtrForInitialization(const char *member);
+   DLLLOCAL AbstractQoreNode **getMemberValuePtrForInitialization(const char *member);   
 };
 
 //! convenience class for holding AbstractPrivateData references

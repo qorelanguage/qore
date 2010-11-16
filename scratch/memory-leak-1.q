@@ -22,4 +22,4 @@ $obj4.one = $l;
 my T $obj5(5);
 my T $obj6(6);
 $obj5.a = $obj6;
-$obj6.a = $obj5;
+$obj6.b = $obj5;

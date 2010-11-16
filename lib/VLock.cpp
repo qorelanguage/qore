@@ -29,47 +29,42 @@
 #include <string>
 
 struct qore_obj_notification_s {
-      QoreObject *obj;
-      std::string member;
+   QoreObject *obj;
+   std::string member;
 
-      DLLLOCAL qore_obj_notification_s(QoreObject *o, const char *m) : obj(o), member(m) {}
+   DLLLOCAL qore_obj_notification_s(QoreObject *o, const char *m) : obj(o), member(m) {}
 };
 
 typedef std::vector<qore_obj_notification_s> qore_notify_list_t;
 
 struct qore_avl_private {
-      qore_notify_list_t *notify_list;
+   qore_notify_list_t *notify_list;
 
-      DLLLOCAL qore_avl_private() : notify_list(0)
-      {
+   DLLLOCAL qore_avl_private() : notify_list(0) {
       }
-      DLLLOCAL ~qore_avl_private()
-      {
-	 if (notify_list)
-	    delete notify_list;
+   DLLLOCAL ~qore_avl_private() {
+      if (notify_list)
+	 delete notify_list;
+   }
+   DLLLOCAL void add(QoreObject *obj, const char *mem) {
+      //printd(5, "qore_avl_private::add(%08x, '%s')\n", obj, mem);
+      if (!notify_list)
+	 notify_list = new qore_notify_list_t;
+      else {
+	 for (qore_notify_list_t::iterator i = notify_list->begin(), e = notify_list->end(); i != e; ++i)
+	    if ((*notify_list)[0].obj == obj && (*notify_list)[0].member != mem)
+	       return;
       }
-      DLLLOCAL void add(QoreObject *obj, const char *mem)
-      {
-	 //printd(5, "qore_avl_private::add(%08x, '%s')\n", obj, mem);
-	 if (!notify_list)
-	    notify_list = new qore_notify_list_t;
-	 else {
-	    for (qore_notify_list_t::iterator i = notify_list->begin(), e = notify_list->end(); i != e; ++i)
-	       if ((*notify_list)[0].obj == obj && (*notify_list)[0].member != mem)
-		  return;
-	 }
 
-	 notify_list->push_back(qore_obj_notification_s(obj, mem));
-      }
+      notify_list->push_back(qore_obj_notification_s(obj, mem));
+   }
 };
 
-AutoVLock::AutoVLock(ExceptionSink *n_xsink) : m(0), o(0), xsink(n_xsink), priv(0)
-{
+AutoVLock::AutoVLock(ExceptionSink *n_xsink) : m(0), o(0), xsink(n_xsink), priv(0) {
    //printd(5, "AutoVLock::AutoVLock() this=%08p\n", this);
 }
 
-AutoVLock::~AutoVLock()
-{
+AutoVLock::~AutoVLock() {
    //printd(5, "AutoVLock::~AutoVLock() this=%08p size=%d\n", this, size());
    del();
    if (priv && priv->notify_list) {
@@ -86,8 +81,7 @@ AutoVLock::~AutoVLock()
    delete priv;
 }
 
-void AutoVLock::del()
-{
+void AutoVLock::del() {
    if (m) {
       m->unlock();
       m = 0;
@@ -99,8 +93,16 @@ void AutoVLock::del()
    assert(!o);
 }
 
-void AutoVLock::set(QoreThreadLock *n_m)
-{
+void AutoVLock::clear() {
+   if (m) {
+      m = 0;
+      if (o)
+	 o = 0;
+   }
+   assert(!o);
+}
+
+void AutoVLock::set(QoreThreadLock *n_m) {
    assert(!m);
    m = n_m;
 }
@@ -111,8 +113,12 @@ void AutoVLock::set(QoreObject *n_o, QoreThreadLock *n_m) {
    m = n_m;
 }
 
-QoreThreadLock *AutoVLock::get() {
+QoreThreadLock *AutoVLock::get() const {
    return m;
+}
+
+QoreObject *AutoVLock::getObject() const {
+   return o;
 }
 
 void AutoVLock::addMemberNotification(QoreObject *obj, const char *member) {
@@ -132,8 +138,7 @@ int VLock::waitOn(AbstractSmartLock *asl, VLock *vl, ExceptionSink *xsink, int t
    int rc = 0;
    AbstractSmartLock *vl_wait = vl->waiting_on;
    //printd(5, "VLock::waitOn(asl=%08p) vl_wait=%08p other_tid=%d\n", asl, vl_wait, vl->tid);
-   if (vl_wait && find(vl_wait))
-   {
+   if (vl_wait && find(vl_wait)) {
       // NOTE: we throw an exception here anyway as a deadlock is a programming mistake and therefore should be visible to the programmer
       // (even if it really wouldn't technically deadlock at this point due to the timeout)
       if (timeout_ms)
@@ -143,8 +148,7 @@ int VLock::waitOn(AbstractSmartLock *asl, VLock *vl, ExceptionSink *xsink, int t
       rc = -1;
    }
 
-   if (!rc)
-   {
+   if (!rc) {
       //printd(0, "AbstractSmartLock::block() this=%08p asl=%08p about to block on VRMutex owned by TID %d\n", this, asl, vl ? vl->tid : -1);
       rc = asl->self_wait(timeout_ms);
       //printd(0, "AbstractSmartLock::block() this=%08p asl=%08p regrabbed lock\n", this, asl);
@@ -155,15 +159,13 @@ int VLock::waitOn(AbstractSmartLock *asl, VLock *vl, ExceptionSink *xsink, int t
    return rc;
 }
 
-int VLock::waitOn(AbstractSmartLock *asl, QoreCondition *cond, VLock *vl, ExceptionSink *xsink, int timeout_ms)
-{
+int VLock::waitOn(AbstractSmartLock *asl, QoreCondition *cond, VLock *vl, ExceptionSink *xsink, int timeout_ms) {
    waiting_on = asl;
 
    int rc = 0;
    AbstractSmartLock *vl_wait = vl->waiting_on;
    //printd(5, "VLock::waitOn(asl=%08p) vl_wait=%08p other_tid=%d\n", asl, vl_wait, vl->tid);
-   if (vl_wait && find(vl_wait))
-   {
+   if (vl_wait && find(vl_wait)) {
       // NOTE: we throw an exception here anyway as a deadlock is a programming mistake and therefore should be visible to the programmer
       // (even if it really wouldn't technically deadlock at this point due to the timeout)
       if (timeout_ms)
@@ -173,8 +175,7 @@ int VLock::waitOn(AbstractSmartLock *asl, QoreCondition *cond, VLock *vl, Except
       rc = -1;
    }
    
-   if (!rc)
-   {
+   if (!rc) {
       //printd(0, "AbstractSmartLock::block() this=%08p asl=%08p about to block on VRMutex owned by TID %d\n", this, asl, vl ? vl->tid : -1);
       rc = asl->self_wait(cond, timeout_ms);
       //printd(0, "AbstractSmartLock::block() this=%08p asl=%08p regrabbed lock\n", this, asl);
@@ -185,17 +186,14 @@ int VLock::waitOn(AbstractSmartLock *asl, QoreCondition *cond, VLock *vl, Except
    return rc;
 }
 
-int VLock::waitOn(AbstractSmartLock *asl, vlock_map_t &vmap, ExceptionSink *xsink, int timeout_ms)
-{
+int VLock::waitOn(AbstractSmartLock *asl, vlock_map_t &vmap, ExceptionSink *xsink, int timeout_ms) {
    waiting_on = asl;
 
    int rc = 0;
-   for (vlock_map_t::iterator i = vmap.begin(), e = vmap.end(); i != e; ++i)
-   {
+   for (vlock_map_t::iterator i = vmap.begin(), e = vmap.end(); i != e; ++i) {
       AbstractSmartLock *vl_wait = i->second->waiting_on;
       //printd(5, "VLock::waitOn(asl=%08p, vmap size=%d) vl_wait=%08p other_tid=%d\n", asl, vmap.size(), vl_wait, i->second->tid);
-      if (vl_wait && find(vl_wait))
-      {
+      if (vl_wait && find(vl_wait)) {
 	 // NOTE: we throw an exception here anyway as a deadlock is a programming mistake and therefore should be visible to the programmer
 	 // (even if it really wouldn't technically deadlock at this point due to the timeout)
 	 if (timeout_ms)
@@ -207,8 +205,7 @@ int VLock::waitOn(AbstractSmartLock *asl, vlock_map_t &vmap, ExceptionSink *xsin
       }
    }
    
-   if (!rc)
-   {
+   if (!rc) {
       //printd(0, "AbstractSmartLock::block() this=%08p asl=%08p about to block on VRMutex owned by TID %d\n", this, asl, vl ? vl->tid : -1);
       rc = asl->self_wait(timeout_ms);
       //printd(0, "AbstractSmartLock::block() this=%08p asl=%08p regrabbed lock\n", this, asl);
@@ -220,34 +217,28 @@ int VLock::waitOn(AbstractSmartLock *asl, vlock_map_t &vmap, ExceptionSink *xsin
 }
 
 #ifdef DEBUG
-void VLock::show(class VLock *vl) const
-{
+void VLock::show(class VLock *vl) const {
    //printd(0, "VLock::show() this=%08p, vl=%08p vl->waiting_on=%08p (in this=%08p)\n", this, vl, vl ? vl->waiting_on : 0, vl ? find(vl->waiting_on) : 0);
 }
 #endif
 
-VLock::VLock(int n_tid) : waiting_on(0), tid(n_tid)
-{
+VLock::VLock(int n_tid) : waiting_on(0), tid(n_tid) {
 }
 
-VLock::~VLock()
-{
+VLock::~VLock() {
    //printd(5, "VLock::~VLock() this=%08p\n", this);
    assert(begin() == end());
 }
 
-void VLock::push(AbstractSmartLock *g)
-{
+void VLock::push(AbstractSmartLock *g) {
    //printd(5, "VLock::push() this=%08p asl=%08p size=%d\n", this, g, size());
    push_back(g);
 }
 
-int VLock::pop(AbstractSmartLock *g)
-{
+int VLock::pop(AbstractSmartLock *g) {
    assert(begin() != end());
 
-   if (g == back())
-   {
+   if (g == back()) {
       pop_back();
       return 0;
    }
@@ -262,8 +253,7 @@ int VLock::pop(AbstractSmartLock *g)
    return -1;
 }
 
-class AbstractSmartLock *VLock::find(class AbstractSmartLock *g) const
-{
+AbstractSmartLock *VLock::find(class AbstractSmartLock *g) const {
    for (abstract_lock_list_t::const_iterator i = begin(), e = end(); i != e; ++i)
       if (*i == g)
 	 return g;

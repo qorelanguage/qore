@@ -115,7 +115,7 @@ public:
          val.ref.obj->tDeref();
    }
 
-   DLLLOCAL AbstractQoreNode **getValuePtr(AutoVLock *vl, const QoreTypeInfo *&typeInfo, obj_vec_t &ovec, ExceptionSink *xsink) {
+   DLLLOCAL AbstractQoreNode **getValuePtr(AutoVLock *vl, const QoreTypeInfo *&typeInfo, obj_map_t &omap, ExceptionSink *xsink) {
       if (!is_ref)
          return const_cast<AbstractQoreNode **>(&val.value);
 
@@ -124,10 +124,10 @@ public:
 
       if (val.ref.obj) {
          ObjectSubstitutionHelper osh(val.ref.obj);
-         return get_var_value_ptr(val.ref.vexp, vl, typeInfo, ovec, xsink);
+         return get_var_value_ptr(val.ref.vexp, vl, typeInfo, omap, xsink);
       }
 
-      return get_var_value_ptr(val.ref.vexp, vl, typeInfo, ovec, xsink);
+      return get_var_value_ptr(val.ref.vexp, vl, typeInfo, omap, xsink);
    }
 
    DLLLOCAL AbstractQoreNode *getValue(AutoVLock *vl, ExceptionSink *xsink) {
@@ -243,7 +243,7 @@ public:
 
    DLLLOCAL void deref(ExceptionSink *xsink) { if (ROdereference()) { del(xsink); delete this; } }
 
-   DLLLOCAL AbstractQoreNode **getValuePtr(AutoVLock *vl, const QoreTypeInfo *&typeInfo, obj_vec_t &ovec, ExceptionSink *xsink) {
+   DLLLOCAL AbstractQoreNode **getValuePtr(AutoVLock *vl, const QoreTypeInfo *&typeInfo, obj_map_t &omap, ExceptionSink *xsink) {
       if (!is_ref) {
          lock();
          vl->set(this);
@@ -255,10 +255,10 @@ public:
 
       if (val.ref.obj) {
          ObjectSubstitutionHelper osh(val.ref.obj);
-         return get_var_value_ptr(val.ref.vexp, vl, typeInfo, ovec, xsink);
+         return get_var_value_ptr(val.ref.vexp, vl, typeInfo, omap, xsink);
       }
 
-      return get_var_value_ptr(val.ref.vexp, vl, typeInfo, ovec, xsink);
+      return get_var_value_ptr(val.ref.vexp, vl, typeInfo, omap, xsink);
    }
 
    DLLLOCAL AbstractQoreNode *getValue(AutoVLock *vl, ExceptionSink *xsink) {
@@ -416,16 +416,16 @@ public:
          thread_uninstantiate_closure_var(xsink);
    }
 
-   DLLLOCAL AbstractQoreNode **getValuePtr(AutoVLock *vl, const QoreTypeInfo *&n_typeInfo, obj_vec_t &ovec, ExceptionSink *xsink) const {
+   DLLLOCAL AbstractQoreNode **getValuePtr(AutoVLock *vl, const QoreTypeInfo *&n_typeInfo, obj_map_t &omap, ExceptionSink *xsink) const {
       // typeInfo is set here, but in case the variable is a reference, the actual
       // typeInfo structure will be set from the referenced value
       n_typeInfo = typeInfo;
       if (!closure_use) {
          LocalVarValue *val = get_var();
-         return val->getValuePtr(vl, n_typeInfo, ovec, xsink);
+         return val->getValuePtr(vl, n_typeInfo, omap, xsink);
       }
       ClosureVarValue *val = thread_find_closure_var(name.c_str());
-      return val->getValuePtr(vl, n_typeInfo, ovec, xsink);
+      return val->getValuePtr(vl, n_typeInfo, omap, xsink);
    }
 
    DLLLOCAL AbstractQoreNode *getValue(AutoVLock *vl, ExceptionSink *xsink) const {

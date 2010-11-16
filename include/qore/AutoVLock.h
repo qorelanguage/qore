@@ -30,54 +30,59 @@ class AbstractSmartLock;
 //! AutoVLock is a container for safely managing global variable and object lock handovers, required for functions accessing global variables and object data where locking is necessary
 /** This object is used for lock handover management and automatically releasing the last lock.
  */
-class AutoVLock
-{
-   private:
-      // pointer to lock currently held
-      QoreThreadLock *m;
+class AutoVLock {
+private:
+   // pointer to lock currently held
+   QoreThreadLock *m;
 
-      // pointer to object to dereference
-      QoreObject *o;
+   // pointer to object to dereference
+   QoreObject *o;
 
-      // pointer to ExceptionSink object for use with object notifications
-      ExceptionSink *xsink;
+   // pointer to ExceptionSink object for use with object notifications
+   ExceptionSink *xsink;
 
-      //! private implementation of the object notification container
-      struct qore_avl_private *priv;
+   //! private implementation of the object notification container
+   struct qore_avl_private *priv;
 
-      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-      DLLLOCAL AutoVLock(const AutoVLock&);
-      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-      DLLLOCAL AutoVLock& operator=(const AutoVLock&);
-      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-      DLLLOCAL void *operator new(size_t);
+   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+   DLLLOCAL AutoVLock(const AutoVLock&);
+   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+   DLLLOCAL AutoVLock& operator=(const AutoVLock&);
+   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+   DLLLOCAL void *operator new(size_t);
    
-   public:
-      //! creates an empty lock container
-      /** @param n_xsink pointer to ExceptionSink object for use with object notifications
-       */
-      DLLEXPORT AutoVLock(ExceptionSink *n_xsink);
+public:
+   //! creates an empty lock container
+   /** @param n_xsink pointer to ExceptionSink object for use with object notifications
+    */
+   DLLEXPORT AutoVLock(ExceptionSink *n_xsink);
 
-      //! releases all locks held and destroys the container
-      DLLEXPORT ~AutoVLock();
+   //! releases all locks held and destroys the container
+   DLLEXPORT ~AutoVLock();
 
-      //! manually releases the lock currently held
-      DLLEXPORT void del();
+   //! manually releases the lock currently held
+   DLLEXPORT void del();
 
-      //! sets the current lock
-      DLLLOCAL void set(QoreThreadLock *n_m);
+   //! sets the current lock
+   DLLLOCAL void set(QoreThreadLock *n_m);
 
-      //! sets the current object (for dereference) and lock
-      DLLLOCAL void set(QoreObject *n_o, QoreThreadLock *n_m);
+   //! sets the current object (for dereference) and lock
+   DLLLOCAL void set(QoreObject *n_o, QoreThreadLock *n_m);
 
-      //! gets the current lock
-      DLLLOCAL QoreThreadLock *get();
+   //! gets the current lock
+   DLLLOCAL QoreThreadLock *get() const;
 
-      //! adds an object member notification entry, internal-only
-      /** @param o the object to add
-	  @param member the member that was changed (must be in QCS_DEFAULT encoding)
-       */
-      DLLLOCAL void addMemberNotification(QoreObject *o, const char *member);
+   //! gets the current object
+   DLLLOCAL QoreObject *getObject() const;
+
+   //! leaves the lock locked and the object referenced and clears the object and lock pointers
+   DLLLOCAL void clear();
+
+   //! adds an object member notification entry, internal-only
+   /** @param o the object to add
+       @param member the member that was changed (must be in QCS_DEFAULT encoding)
+   */
+   DLLLOCAL void addMemberNotification(QoreObject *o, const char *member);
 };
 
 #endif

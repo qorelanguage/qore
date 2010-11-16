@@ -28,7 +28,10 @@
 #include <qore/intern/config.h>
 
 #include <stdarg.h>
-#include <vector>
+
+#include <set>
+#include <list>
+#include <map>
 
 // here we define virtual types
 #define NT_NONE         -1
@@ -104,12 +107,8 @@ static inline long long atoll(const char *str) {
 #define OPENSSL_CONST
 #endif
 
-#include <set>
-
 typedef std::set<const AbstractQoreNode *> const_node_set_t;
 typedef std::set<LocalVar *> lvar_set_t;
-
-#include <list>
 
 enum obe_type_e { OBE_Unconditional, OBE_Success, OBE_Error };
 
@@ -140,8 +139,12 @@ enum qore_call_t {
 
 #define DAH_TEXT(d) (d == DAH_RELEASE ? "release" : (d == DAH_ACQUIRE ? "acquire" : "none"))
 
+// set of object keys for each object
+typedef std::set<std::string> strset_t;
 // keep a list of objects to find recursive data structures
-typedef std::vector<QoreObject *> obj_vec_t;
+typedef std::map<QoreObject *, strset_t> obj_map_t;
+
+DLLLOCAL bool qoreCheckContainer(AbstractQoreNode *v, obj_map_t &omap, AutoVLock &vl, ExceptionSink *xsink);
 
 #include <qore/intern/NamedScope.h>
 #include <qore/intern/QoreTypeInfo.h>
@@ -362,8 +365,6 @@ public:
 
 DLLLOCAL void raiseNonExistentMethodCallWarning(const QoreClass *qc, const char *method);
 
-DLLLOCAL void qoreCheckContainer(AbstractQoreNode *v);
-
 /*
 class abstract_assignment_helper {
 public:
@@ -421,6 +422,5 @@ public:
       return old;
    }
 };
-
 
 #endif

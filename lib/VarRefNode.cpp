@@ -126,13 +126,13 @@ double VarRefNode::floatEvalImpl(ExceptionSink *xsink) const {
    return rv ? rv->getAsFloat() : 0;
 }
 
-AbstractQoreNode **VarRefNode::getValuePtr(AutoVLock *vl, const QoreTypeInfo *&typeInfo, obj_vec_t &ovec, ExceptionSink *xsink) const {
+AbstractQoreNode **VarRefNode::getValuePtr(AutoVLock *vl, const QoreTypeInfo *&typeInfo, obj_map_t &omap, ExceptionSink *xsink) const {
    if (type == VT_LOCAL)
-      return ref.id->getValuePtr(vl, typeInfo, ovec, xsink);
+      return ref.id->getValuePtr(vl, typeInfo, omap, xsink);
    if (type == VT_CLOSURE) {
       printd(5, "VarRefNode::eval() closure var %p (%s)\n", ref.id, ref.id);
       ClosureVarValue *val = thread_get_runtime_closure_var(ref.id);
-      return val->getValuePtr(vl, typeInfo, ovec, xsink);
+      return val->getValuePtr(vl, typeInfo, omap, xsink);
    }
    return ref.var->getValuePtr(vl, typeInfo, xsink);
 }

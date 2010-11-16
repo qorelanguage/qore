@@ -23,6 +23,7 @@
 #include <qore/Qore.h>
 #include <qore/intern/svn-revision.h>
 #include <qore/intern/QoreSignal.h>
+#include <qore/intern/QoreObjectIntern.h>
 
 #include <string.h>
 #include <pwd.h>
@@ -1199,71 +1200,57 @@ QoreStringNode *qore_reassign_signal(int sig, const char *name) {
    return QSM.reassign_signal(sig, name);
 }
 
-static void qoreCheckContainerIntern(const_node_set_t &node_set, AbstractQoreNode *v);
-
-static void qoreCheckObject(const_node_set_t &node_set, QoreObject *obj) {
-}
-
-static void qoreCheckHash(const_node_set_t &node_set, QoreHashNode *h) {
-   // see if we've found a circular reference
-   if (node_set.find(h) != node_set.end()) {
-      printd(0, "qoreCheckHash() found circular reference h=%p elements=%d\n", h, node_set.size());
-   }
-
-   const_node_set_t::iterator i = node_set.insert(h).first;
-
+static bool qoreCheckHash(QoreHashNode *h, obj_map_t &omap, AutoVLock &vl, ExceptionSink *xsink) {
+   bool rc = false;
+   
    HashIterator hi(h);
    while (hi.next())
-      qoreCheckContainerIntern(node_set, hi.getValue());
-
-   node_set.erase(i);
+      if (qoreCheckContainer(hi.getValue(), omap, vl, xsink) && !rc)
+         rc = true;
+      
+   return rc;
 }
 
-static void qoreCheckList(const_node_set_t &node_set, QoreListNode *l) {
-   // see if we've found a circular reference
-   if (node_set.find(l) != node_set.end()) {
-      printd(0, "qoreCheckList() found circular reference l=%p elements=%d\n", l, node_set.size());
-   }
-
-   const_node_set_t::iterator i = node_set.insert(l).first;
-
+static bool qoreCheckList(QoreListNode *l, obj_map_t &omap, AutoVLock &vl, ExceptionSink *xsink) {
+   bool rc = false;
+   
    ListIterator li(l);
    while (li.next())
-      qoreCheckContainerIntern(node_set, li.getValue());
+      if (qoreCheckContainer(li.getValue(), omap, vl, xsink) && !rc)
+         rc = true;
 
-   node_set.erase(i);
+   return rc;
 }
 
-static void qoreCheckContainerIntern(const_node_set_t &node_set, AbstractQoreNode *v) {
-   if (!v)
-      return;
+bool qoreCheckContainer(AbstractQoreNode *v, obj_map_t &omap, AutoVLock &vl, ExceptionSink *xsink) {
+   if (!v || omap.empty())
+      return false;
    qore_type_t t = v->getType();
-
+   
    if (t == NT_OBJECT) {
-      qoreCheckObject(node_set, reinterpret_cast<QoreObject *>(v));
-      return;
+      QoreObject *o = reinterpret_cast<QoreObject *>(v);
+      obj_map_t::iterator i = omap.find(o);
+      if (i != omap.end()) {
+         /*
+         QoreString str("qoreCheckContainer() found recursive object ref ");
+         str.sprintf("%p (%s): ", o, o->getClassName());
+         for (strset_t::iterator si = i->second.begin(), se = i->second.end(); si != se; ++si)
+            str.sprintf("'%s', ", (*si).c_str());
+         str.terminate(str.strlen() - 2);
+         
+         printd(0, "%s\n", str.getBuffer());
+         */
+         return true;
+      }
+      return false;
+      //return qore_object_private::checkRecursive(o, omap, vl, xsink);
    }
 
-   if (t == NT_HASH) {
-      qoreCheckHash(node_set, reinterpret_cast<QoreHashNode *>(v));
-      return;
-   }
+   if (t == NT_HASH)
+      return qoreCheckHash(reinterpret_cast<QoreHashNode *>(v), omap, vl, xsink);
 
-   if (t == NT_LIST) {
-      qoreCheckList(node_set, reinterpret_cast<QoreListNode *>(v));
-      return;
-   }
-}
-
-void qoreCheckContainer(AbstractQoreNode *v) {
-   if (!v)
-      return;
-
-   qore_type_t t = v->getType();
-   if (t != NT_OBJECT && t != NT_HASH && t != NT_LIST)
-      return;
-
-   const_node_set_t node_set;
-
-   qoreCheckContainerIntern(node_set, v);
+   if (t == NT_LIST)
+      return qoreCheckList(reinterpret_cast<QoreListNode *>(v), omap, vl, xsink);
+   
+   return false;
 }

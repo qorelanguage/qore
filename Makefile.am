@@ -200,6 +200,7 @@ noinst_HEADERS = \
 	include/qore/intern/QoreXmlReader.h \
 	include/qore/intern/QoreTypeInfo.h \
 	include/qore/intern/QoreSSLIntern.h \
+	include/qore/intern/QoreObjectIntern.h \
 	include/qore/intern/QoreOperatorNode.h \
 	include/qore/intern/QoreDeleteOperatorNode.h \
 	include/qore/intern/QoreRemoveOperatorNode.h \

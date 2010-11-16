@@ -215,7 +215,7 @@ DLLLOCAL AbstractQoreNode *remove_lvalue(AbstractQoreNode *node, ExceptionSink *
 DLLLOCAL void delete_global_variables();
 
 // for retrieving a pointer to a pointer to an lvalue expression
-DLLLOCAL AbstractQoreNode **get_var_value_ptr(const AbstractQoreNode *lvalue, AutoVLock *vl, const QoreTypeInfo *&typeInfo, obj_vec_t &ovec, ExceptionSink *xsink);
+DLLLOCAL AbstractQoreNode **get_var_value_ptr(const AbstractQoreNode *lvalue, AutoVLock *vl, const QoreTypeInfo *&typeInfo, obj_map_t &omap, ExceptionSink *xsink);
 
 DLLLOCAL extern QoreHashNode *ENV;
 
@@ -227,13 +227,15 @@ private:
    ExceptionSink *xsink;
    AutoVLock vl;
    const QoreTypeInfo *typeInfo;
-   obj_vec_t ovec;
+   obj_map_t omap;
    
 public:
    DLLLOCAL LValueHelper(const AbstractQoreNode *exp, ExceptionSink *n_xsink) : xsink(n_xsink), vl(n_xsink), typeInfo(0) {
-      v = get_var_value_ptr(exp, &vl, typeInfo, ovec, xsink);
+      v = get_var_value_ptr(exp, &vl, typeInfo, omap, xsink);
    }
    DLLLOCAL ~LValueHelper() {
+      if (v && !*xsink)
+         qoreCheckContainer(*v, omap, vl, xsink);
    }
    DLLLOCAL operator bool() const { return v != 0; }
    DLLLOCAL const QoreTypeInfo *get_type_info() const {
