@@ -30,6 +30,9 @@ bool qore_object_private::checkRecursive(obj_map_t &omap, AutoVLock &vl, Excepti
    // do lock handoff
    qore_object_recursive_lock_handoff_helper qolhm(this, vl);
 
+   if (!qolhm)
+      return false;
+
    if (status == OS_DELETED)
       return false;
 
@@ -38,6 +41,7 @@ bool qore_object_private::checkRecursive(obj_map_t &omap, AutoVLock &vl, Excepti
    HashIterator hi(data);
    while (hi.next()) {
       if (qoreCheckContainer(hi.getValue(), omap, vl, xsink) && !rc) {
+	 //printd(0, "qore_object_private::checkRecursive() obj=%p (%s) '%s'\n", obj, theclass->getName(), hi.getKey());
 	 rc = true;
       }
    }

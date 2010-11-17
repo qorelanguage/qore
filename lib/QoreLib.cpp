@@ -1213,7 +1213,7 @@ static bool qoreCheckHash(QoreHashNode *h, obj_map_t &omap, AutoVLock &vl, Excep
 
 static bool qoreCheckList(QoreListNode *l, obj_map_t &omap, AutoVLock &vl, ExceptionSink *xsink) {
    bool rc = false;
-   
+
    ListIterator li(l);
    while (li.next())
       if (qoreCheckContainer(li.getValue(), omap, vl, xsink) && !rc)
@@ -1226,20 +1226,20 @@ bool qoreCheckContainer(AbstractQoreNode *v, obj_map_t &omap, AutoVLock &vl, Exc
    if (!v || omap.empty())
       return false;
    qore_type_t t = v->getType();
-   
+
    if (t == NT_OBJECT) {
       QoreObject *o = reinterpret_cast<QoreObject *>(v);
       obj_map_t::iterator i = omap.find(o);
       if (i != omap.end()) {
-         /*
+	 /*
          QoreString str("qoreCheckContainer() found recursive object ref ");
-         str.sprintf("%p (%s): ", o, o->getClassName());
+         str.sprintf("obj=%p (%s): ", o, o->getClassName());
          for (strset_t::iterator si = i->second.begin(), se = i->second.end(); si != se; ++si)
             str.sprintf("'%s', ", (*si).c_str());
          str.terminate(str.strlen() - 2);
-         
+
          printd(0, "%s\n", str.getBuffer());
-         */
+	 */
          return true;
       }
       return false;
@@ -1251,6 +1251,6 @@ bool qoreCheckContainer(AbstractQoreNode *v, obj_map_t &omap, AutoVLock &vl, Exc
 
    if (t == NT_LIST)
       return qoreCheckList(reinterpret_cast<QoreListNode *>(v), omap, vl, xsink);
-   
+
    return false;
 }

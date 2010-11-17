@@ -23,3 +23,7 @@ my T $obj5(5);
 my T $obj6(6);
 $obj5.a = $obj6;
 $obj6.b = $obj5;
+
+my T $obj7(7);
+$obj7.a = $obj7;
+$obj7.b = $obj7;
