@@ -820,6 +820,8 @@ sub date_time_tests() {
     test_value($date - 4M,   2003-10-01T12:30:00,      "fourth date month subtraction");
     test_value($date,        date("20040201123000"),   "date function");
 
+    test_value(2001-01-01,   date("2001-01", "YYYY-MM-DD"), "second date function");
+
     # times without a date are assumed to be on Jan 1, 1970
     test_value(11:25:27, 1970-01-01T11:25:27.000, "direct hour");
 

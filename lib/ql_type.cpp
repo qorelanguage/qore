@@ -63,12 +63,16 @@ static AbstractQoreNode *f_date(const QoreListNode *params, ExceptionSink *xsink
 
 inline int substri(const QoreString & s, qore_offset_t len, ExceptionSink * xsink) {
     QoreString * sub = s.substr(0, len, xsink);
+    if (!sub)
+       return 0;
     int ret = atoi(sub->getBuffer());
     delete sub;
     return ret;
 }
 inline char *substrs(const QoreString & s, qore_offset_t len, ExceptionSink * xsink) {
     QoreString * sub = s.substr(0, len, xsink);
+    if (!sub)
+       return 0;
     char * ret = sub->giveBuffer();
     delete sub;
     return ret;
