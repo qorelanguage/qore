@@ -127,9 +127,15 @@ static AbstractQoreNode *f_date_mask(const QoreListNode *params, ExceptionSink *
    int ms = 0;
 
    const char *d = dtstr->getBuffer();
+   const char *de = d + dtstr->strlen();
+
    const char *s = mask->getBuffer();
+   const char *se = s + mask->strlen();
 
    while (*s) {
+      // break if we run out of data in either the mask or the date string
+      if (d >= de || s >= se)
+	 break;
       switch (*s) {
          case 'Y':
             if (s[1] != 'Y') {
