@@ -24,6 +24,7 @@
 #include <qore/intern/ql_type.h>
 #include <qore/intern/qore_date_private.h>
 
+#include <memory>
 
 static AbstractQoreNode *f_boolean(const QoreListNode *params, ExceptionSink *xsink) {
    return get_bool_node(HARD_QORE_BOOL(params, 0));
@@ -61,21 +62,52 @@ static AbstractQoreNode *f_date(const QoreListNode *params, ExceptionSink *xsink
    return date.getReferencedValue();
 }
 
-inline int substri(const QoreString & s, qore_offset_t len, ExceptionSink * xsink) {
-    QoreString * sub = s.substr(0, len, xsink);
-    if (!sub)
-       return 0;
-    int ret = atoi(sub->getBuffer());
-    delete sub;
-    return ret;
+// returns 0 if invalid data is encountered
+static inline int parse_int_2(const char *p) {
+   if (*p < '0' || *p > '9')
+      return 0;
+   int rv = (*p - '0') * 10;
+   ++p;
+   if (*p < '0' || *p > '9')
+      return 0;
+   rv += (*p - '0');
+   return rv;
 }
-inline char *substrs(const QoreString & s, qore_offset_t len, ExceptionSink * xsink) {
-    QoreString * sub = s.substr(0, len, xsink);
-    if (!sub)
-       return 0;
-    char * ret = sub->giveBuffer();
-    delete sub;
-    return ret;
+
+// returns 0 if invalid data is encountered
+static inline int parse_int_3(const char *p) {
+   if (*p < '0' || *p > '9')
+      return 0;
+   int rv = (*p - '0') * 100;
+   ++p;
+   if (*p < '0' || *p > '9')
+      return 0;
+   rv += (*p - '0') * 10;
+   ++p;
+   if (*p < '0' || *p > '9')
+      return 0;
+   rv += (*p - '0');
+   return rv;
+}
+
+// returns 0 if invalid data is encountered
+static inline int parse_int_4(const char *p) {
+   if (*p < '0' || *p > '9')
+      return 0;
+   int rv = (*p - '0') * 1000;
+   ++p;
+   if (*p < '0' || *p > '9')
+      return 0;
+   rv += (*p - '0') * 100;
+   ++p;
+   if (*p < '0' || *p > '9')
+      return 0;
+   rv += (*p - '0') * 10;
+   ++p;
+   if (*p < '0' || *p > '9')
+      return 0;
+   rv += (*p - '0');
+   return rv;
 }
 
 static AbstractQoreNode *f_date_mask(const QoreListNode *params, ExceptionSink *xsink) {
@@ -96,11 +128,8 @@ static AbstractQoreNode *f_date_mask(const QoreListNode *params, ExceptionSink *
 
    const char *d = dtstr->getBuffer();
    const char *s = mask->getBuffer();
-   QoreString tmp;
 
    while (*s) {
-      tmp.clear();
-      tmp.concat(d);
       switch (*s) {
          case 'Y':
             if (s[1] != 'Y') {
@@ -108,44 +137,44 @@ static AbstractQoreNode *f_date_mask(const QoreListNode *params, ExceptionSink *
                return 0;
                break;
             }
-            s++;
+            ++s;
             if ((s[1] == 'Y') && (s[2] == 'Y')) {
-               dt.tm_year = substri(tmp, 4, xsink) - 1900;
+               dt.tm_year = parse_int_4(d) - 1900;
                s += 2;
                d += 3;
             }
             else {
-               dt.tm_year = substri(tmp, 2, xsink) + century;
-               d++;
+               dt.tm_year = parse_int_2(d) + century;
+               ++d;
             }
             break;
          case 'M':
             if (s[1] == 'M') {
-               dt.tm_mon = substri(tmp, 2, xsink) - 1;               
+               dt.tm_mon = parse_int_2(d) - 1;
                s++;
                d++;
                break;
             }
             // 'M' is not supported because there is no clear way how to get eg. 1 or 11
             if ((s[1] == 'o') && (s[2] == 'n')) {
-               char * key = substrs(tmp, 3, xsink);
-               ON_BLOCK_EXIT(free, key);               
-               dt.tm_mon = qore_date_info::getMonthIxFromAbbr(key, false);
+	       QoreString str(d, 3);
+               dt.tm_mon = str.strlen() == 3 ? qore_date_info::getMonthIxFromAbbr(str.getBuffer(), false) : 0;
                if (dt.tm_mon < 0 || dt.tm_mon > 11) {
-                   xsink->raiseException("DATE-CONVERT-ERROR", "Wrong 'Mon' string: '%s'", key);
-                   return 0;
+		  if (!*xsink)
+		     xsink->raiseException("DATE-CONVERT-ERROR", "Wrong 'Mon' string: '%s'", !str.empty() ? str.getBuffer() : "<none>");
+		  return 0;
                }
                s += 2;
                d += 2;
                break;
             }
             if ((s[1] == 'O') && (s[2] == 'N')) {
-               char * key = substrs(tmp, 3, xsink);
-               ON_BLOCK_EXIT(free, key);
-               dt.tm_mon = qore_date_info::getMonthIxFromAbbr(key, true);
+	       QoreString str(d, 3);
+               dt.tm_mon = str.strlen() == 3 ? qore_date_info::getMonthIxFromAbbr(str.getBuffer(), true) : 0;
                if (dt.tm_mon < 0 || dt.tm_mon > 11) {
-                   xsink->raiseException("DATE-CONVERT-ERROR", "Wrong 'MON' string: '%s'", key);
-                   return 0;
+		  if (!*xsink)
+		     xsink->raiseException("DATE-CONVERT-ERROR", "Wrong 'MON' string: '%s'", !str.empty() ? str.getBuffer() : "<none>");
+		  return 0;
                }
                s += 2;
                d += 2;
@@ -154,35 +183,35 @@ static AbstractQoreNode *f_date_mask(const QoreListNode *params, ExceptionSink *
             break;
          case 'D':
             if (s[1] == 'D') {
-               dt.tm_mday = substri(tmp, 2, xsink);
+               dt.tm_mday = parse_int_2(d);
                s++;
                d++;
             }
            break;
          case 'H':
             if (s[1] == 'H') {
-               dt.tm_hour = substri(tmp, 2, xsink);
+               dt.tm_hour = parse_int_2(d);
                s++;
                d++;
             }
             break;
          case 'm':
             if (s[1] == 'm') {
-               dt.tm_min = substri(tmp, 2, xsink);
+               dt.tm_min = parse_int_2(d);
                s++;
                d++;
             }
             break;
          case 's':
             if (s[1] == 's' && s[2] == 's') {
-               ms = substri(tmp, 3, xsink);
+               ms = parse_int_3(d);
                s += 2;
                d += 2;
             }
             break;
          case 'S':
             if (s[1] == 'S') {
-               dt.tm_sec = substri(tmp, 2, xsink);
+               dt.tm_sec = parse_int_2(d);
                s++;
                d++;
             }
@@ -208,7 +237,7 @@ static AbstractQoreNode *f_date_mask(const QoreListNode *params, ExceptionSink *
    if (*xsink)
       return 0;
 
-   DateTimeNode *n = new DateTimeNode();
+   DateTimeNode *n = new DateTimeNode;
    n->setDate(&dt, ms);
    return n;
 }
