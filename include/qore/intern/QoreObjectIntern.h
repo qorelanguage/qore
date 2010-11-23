@@ -30,6 +30,8 @@
 
 #include <map>
 
+#include "intern/QoreClassIntern.h"
+
 #define OS_OK            0
 #define OS_DELETED      -1
 
@@ -47,7 +49,7 @@
   private data against the qore class IDs of the parent classes, but we set the
   flag to true, meaning that we will not delete the private data when
   the parent classes' destructors are run, but rather only when the subclass that
-  actually owns data has its turn to destroy private object data. 
+  actually owns data has its turn to destroy private object data.
 
   So basically, the second boolean flag just means - does this class ID actually
   own the private data or not - if it's false, then it does not actually own the data,
@@ -130,8 +132,8 @@ public:
    // xxx recursive reference count
    unsigned rcount;
 
-   DLLLOCAL qore_object_private(QoreObject *n_obj, const QoreClass *oc, QoreProgram *p, QoreHashNode *n_data) : 
-      theclass(oc), status(OS_OK), 
+   DLLLOCAL qore_object_private(QoreObject *n_obj, const QoreClass *oc, QoreProgram *p, QoreHashNode *n_data) :
+      theclass(oc), status(OS_OK),
       privateData(0), data(n_data), pgm(p), system_object(!p), delete_blocker_run(false), in_destructor(false),
       obj(n_obj), rcount(0) {
 #ifdef QORE_DEBUG_OBJ_REFS
@@ -212,13 +214,13 @@ public:
 	 bool priv_member;
 	 if (!theclass->isPublicOrPrivateMember(mem, priv_member))
 	    return QOA_PUB_ERROR;
-	 
+
 	 if (priv_member && !runtimeCheckPrivateClassAccess(theclass))
 	    return QOA_PRIV_ERROR;
-	 
+
 	 return QOA_OK;
       }
-      
+
       // if accessed outside the class and the member is a private member
       return (!runtimeCheckPrivateClassAccess(theclass) && theclass->isPrivateMember(mem)) ? QOA_PRIV_ERROR : QOA_OK;
    }
@@ -227,7 +229,7 @@ public:
       int rc = checkMemberAccess(mem);
       if (!rc)
 	 return 0;
-      
+
       if (rc == QOA_PRIV_ERROR)
 	 doPrivateException(mem, xsink);
       else
@@ -255,7 +257,7 @@ public:
 
    // lock not held on entry
    DLLLOCAL void doDeleteIntern(ExceptionSink *xsink) {
-      printd(5, "qore_object_private::doDeleteIntern() execing destructor() obj=%p\n", obj);   
+      printd(5, "qore_object_private::doDeleteIntern() execing destructor() obj=%p\n", obj);
 
       // increment reference count for destructor
       {
@@ -286,7 +288,7 @@ public:
 	 privateData = 0;
 #endif
       }
-   
+
       if (pgm) {
 	 printd(5, "qore_object_private::cleanup() obj=%p (%s) calling QoreProgram::depDeref() (%p)\n", obj, theclass->getName(), pgm);
 	 pgm->depDeref(xsink);
@@ -305,16 +307,16 @@ public:
 #ifdef QORE_DEBUG_OBJ_REFS
       printd(QORE_DEBUG_OBJ_REFS, "qore_object_private::obliterate() obj=%p class=%s: references %d->%d\n", obj, theclass->getName(), obj->references, obj->references - 1);
 #endif
-	 
+
       {
 	 AutoLocker slr(ref_mutex);
 	 if (--obj->references)
 	    return;
       }
-   
+
       {
 	 SafeLocker sl(mutex);
-	    
+
 	 if (in_destructor || status != OS_OK) {
 	    printd(5, "qore_object_private::obliterate() obj=%p data=%p in_destructor=%d status=%d\n", obj, data, in_destructor, status);
 	    //printd(0, "Object lock %p unlocked (safe)\n", &mutex);
@@ -322,19 +324,19 @@ public:
 	    tDeref();
 	    return;
 	 }
-	    
+
 	 //printd(5, "Object lock %p locked   (safe)\n", &mutex);
 	 printd(5, "qore_object_private::obliterate() obj=%p class=%s\n", obj, theclass->getName());
-	    
+
 	 status = OS_DELETED;
 	 QoreHashNode *td = data;
 	 data = 0;
 	 //printd(0, "Object lock %p unlocked (safe)\n", &mutex);
 	 sl.unlock();
-	    
+
 	 if (privateData)
 	    privateData->derefAll(xsink);
-	    
+
 	 cleanup(xsink, td);
       }
       tDeref();
@@ -394,13 +396,13 @@ public:
 	 vl.clear();
 	 return;
       }
-   
+
       // reference current object
       pobj->obj->tRef();
-   
+
       // unlock previous lock and release from AutoVLock structure
       vl.del();
-   
+
       // lock current object
       pobj->mutex.lock();
    }
@@ -425,7 +427,7 @@ private:
    qore_object_private *pobj;
    AutoVLock &vl;
    bool locked;
-      
+
 public:
    DLLLOCAL qore_object_recursive_lock_handoff_helper(qore_object_private *n_pobj, AutoVLock &n_vl) : pobj(n_pobj), vl(n_vl) {
       // try to lock current object
