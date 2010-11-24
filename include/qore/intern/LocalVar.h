@@ -130,20 +130,6 @@ public:
       return get_var_value_ptr(val.ref.vexp, vl, typeInfo, omap, xsink);
    }
 
-   DLLLOCAL AbstractQoreNode *getValue(AutoVLock *vl, ExceptionSink *xsink) {
-      if (!is_ref)
-         return const_cast<AbstractQoreNode *>(val.value);
-
-      // skip this entry in case it's a recursive reference
-      VarStackPointerHelper helper(this);
-
-      if (val.ref.obj) {
-         ObjectSubstitutionHelper osh(val.ref.obj);
-         return getNoEvalVarValue(val.ref.vexp, vl, xsink);
-      }
-      return getNoEvalVarValue(val.ref.vexp, vl, xsink);
-   }
-
    // value is already referenced for assignment
    DLLLOCAL void setValue(AbstractQoreNode *value, ExceptionSink *xsink) {
       if (!is_ref) {
@@ -259,23 +245,6 @@ public:
       }
 
       return get_var_value_ptr(val.ref.vexp, vl, typeInfo, omap, xsink);
-   }
-
-   DLLLOCAL AbstractQoreNode *getValue(AutoVLock *vl, ExceptionSink *xsink) {
-      if (!is_ref) {
-         lock();
-         vl->set(this);
-         return const_cast<AbstractQoreNode *>(val.value);
-      }
-
-      // skip this entry in case it's a recursive reference
-      VarStackPointerClosureHelper helper(this);
-
-      if (val.ref.obj) {
-         ObjectSubstitutionHelper osh(val.ref.obj);
-         return getNoEvalVarValue(val.ref.vexp, vl, xsink);
-      }
-      return getNoEvalVarValue(val.ref.vexp, vl, xsink);
    }
 
    // value is already referenced for assignment
@@ -426,16 +395,6 @@ public:
       }
       ClosureVarValue *val = thread_find_closure_var(name.c_str());
       return val->getValuePtr(vl, n_typeInfo, omap, xsink);
-   }
-
-   DLLLOCAL AbstractQoreNode *getValue(AutoVLock *vl, ExceptionSink *xsink) const {
-      if (!closure_use) {
-         LocalVarValue *val = get_var();
-         return val->getValue(vl, xsink);
-      }
-
-      ClosureVarValue *val = thread_find_closure_var(name.c_str());
-      return val->getValue(vl, xsink);
    }
 
    // value is already referenced for assignment

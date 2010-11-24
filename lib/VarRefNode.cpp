@@ -137,17 +137,6 @@ AbstractQoreNode **VarRefNode::getValuePtr(AutoVLock *vl, const QoreTypeInfo *&t
    return ref.var->getValuePtr(vl, typeInfo, xsink);
 }
 
-AbstractQoreNode *VarRefNode::getValue(AutoVLock *vl, ExceptionSink *xsink) const {
-   if (type == VT_LOCAL)
-      return ref.id->getValue(vl, xsink);
-   if (type == VT_CLOSURE) {
-      printd(5, "VarRefNode::eval() closure var %p (%s)\n", ref.id, ref.id);
-      ClosureVarValue *val = thread_get_runtime_closure_var(ref.id);
-      return val->getValue(vl, xsink);
-   }
-   return ref.var->getValue(vl);
-}
-
 void VarRefNode::setValue(AbstractQoreNode *n, ExceptionSink *xsink) {
    if (type == VT_LOCAL)
       ref.id->setValue(n, xsink);

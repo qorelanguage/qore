@@ -115,7 +115,6 @@ public:
    DLLLOCAL void deref(ExceptionSink *xsink);
    DLLLOCAL AbstractQoreNode *eval(ExceptionSink *xsink);
    DLLLOCAL AbstractQoreNode **getValuePtr(AutoVLock *vl, const QoreTypeInfo *&typeInfo, ExceptionSink *xsink) const;
-   DLLLOCAL AbstractQoreNode *getValue(AutoVLock *vl);
    DLLLOCAL AbstractQoreNode *getReferencedValue() const;
    DLLLOCAL ScopedObjectCallNode *makeNewCall(AbstractQoreNode *args) const;
    DLLLOCAL void doDoubleDeclarationError() {
@@ -204,8 +203,7 @@ public:
    }
 };
 
-DLLLOCAL AbstractQoreNode *getNoEvalVarValue(AbstractQoreNode *n, AutoVLock *vl, ExceptionSink *xsink);
-DLLLOCAL AbstractQoreNode *getExistingVarValue(const AbstractQoreNode *n, ExceptionSink *xsink, AutoVLock *vl, ReferenceHolder<AbstractQoreNode> &pt);
+DLLLOCAL AbstractQoreNode *getExistingVarValue(const AbstractQoreNode *n, ExceptionSink *xsink);
 
 // deletes the value from an lvalue expression
 DLLLOCAL void delete_lvalue(AbstractQoreNode *node, ExceptionSink *xsink);

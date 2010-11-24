@@ -169,23 +169,11 @@ const AbstractQoreNode *Var::getValueIntern(AutoVLock *vl) const {
    return v.val.value;
 }
 
-// note: unlocking the lock is managed with the AutoVLock object
-AbstractQoreNode *Var::getValue(AutoVLock *vl) {
-   m.lock();
-   return getValueIntern(vl);
-}
-
 AbstractQoreNode *Var::getReferencedValue() const {
    AutoVLock vl(0);
-
-   AbstractQoreNode *rv;
-   { 
-      m.lock();
-
-      rv = (AbstractQoreNode *)getValueIntern(&vl);
-      if (rv) rv->ref();
-   }
-   return rv;
+   m.lock();
+   AbstractQoreNode *rv = (AbstractQoreNode *)getValueIntern(&vl);
+   return rv ? rv->refSelf() : 0;
 }
 
 // note: type enforcement is done at a higher level
@@ -406,75 +394,21 @@ AbstractQoreNode **get_var_value_ptr(const AbstractQoreNode *n, AutoVLock *vlp, 
    return do_object_val_ptr(tree, vlp, typeInfo, omap, xsink);
 }
 
-// finds value of partially evaluated lvalue expressions (for use with references)
-// will not do any evaluations, however, because local variables could hold imported
-// object references, exceptions could be thrown
-AbstractQoreNode *getNoEvalVarValue(AbstractQoreNode *n, AutoVLock *vl, ExceptionSink *xsink) {
-   printd(5, "getNoEvalVarValue(%p) %s\n", n, n->getTypeName());
-   if (n->getType() == NT_VARREF)
-      return reinterpret_cast<VarRefNode *>(n)->getValue(vl, xsink);
-
-   if (n->getType() == NT_SELF_VARREF)
-      return getStackObject()->getMemberValueNoMethod(reinterpret_cast<SelfVarrefNode *>(n)->str, vl, xsink);
-
-   // it's a variable reference tree
-   QoreTreeNode *tree = reinterpret_cast<QoreTreeNode *>(n);
-   AbstractQoreNode *val = getNoEvalVarValue(tree->left, vl, xsink);
-   if (!val)
-      return 0;
-
-   // if it's a list reference
-   if (tree->getOp() == OP_LIST_REF) {
-      if (val->getType() != NT_LIST)
-	 return 0;
-      // if it's not a list then return 0
-      QoreListNode *l = reinterpret_cast<QoreListNode *>(val);
-      
-      // otherwise return value
-      int i;
-      if (tree->right)
-	 i = tree->right->getAsInt();
-      else
-	 i = 0;
-      return l->retrieve_entry(i);
-   }
-      
-   // it's an object reference
-   // if not an object or a hash, return 0
-   QoreHashNode *h = val->getType() == NT_HASH ? reinterpret_cast<QoreHashNode *>(val) : 0;
-   QoreObject *o;
-   if (!h)
-      o = val->getType() == NT_OBJECT ? reinterpret_cast<QoreObject *>(val) : 0;
-   else
-      o = 0;
-   if (!o && !h)
-      return 0;
-      
-   // otherwise get member name
-   QoreStringValueHelper key(tree->right, QCS_DEFAULT, xsink);
-   if (*xsink)
-      return 0;
-
-   if (h)
-      return h->getKeyValue(key->getBuffer());
-   return o->getMemberValueNoMethod(key->getBuffer(), vl, xsink);
-}
-
 // finds object value pointers without making any changes to the referenced structures
 // will *not* execute memberGate methods
-AbstractQoreNode *getExistingVarValue(const AbstractQoreNode *n, ExceptionSink *xsink, AutoVLock *vl, ReferenceHolder<AbstractQoreNode> &pt) {
+AbstractQoreNode *getExistingVarValue(const AbstractQoreNode *n, ExceptionSink *xsink) {
    printd(5, "getExistingVarValue(%p) %s\n", n, n->getTypeName());
    qore_type_t ntype = n->getType();
    if (ntype == NT_VARREF)
-      return reinterpret_cast<const VarRefNode *>(n)->getValue(vl, xsink);
+      return reinterpret_cast<const VarRefNode *>(n)->eval(xsink);
 
    if (ntype == NT_SELF_VARREF)
-      return getStackObject()->getMemberValueNoMethod(reinterpret_cast<const SelfVarrefNode *>(n)->str, vl, xsink);
+      return getStackObject()->getReferencedMemberNoMethod(reinterpret_cast<const SelfVarrefNode *>(n)->str, xsink);
 
    // it's a variable reference tree
    const QoreTreeNode *tree = ntype == NT_TREE ? reinterpret_cast<const QoreTreeNode *>(n) : 0;
    if (tree && (tree->getOp() == OP_LIST_REF || tree->getOp() == OP_OBJECT_REF)) {
-      AbstractQoreNode *val = getExistingVarValue(tree->left, xsink, vl, pt);
+      ReferenceHolder<AbstractQoreNode> val(getExistingVarValue(tree->left, xsink), xsink);
       if (!val)
 	 return 0;
 
@@ -485,42 +419,37 @@ AbstractQoreNode *getExistingVarValue(const AbstractQoreNode *n, ExceptionSink *
 	    return 0;
 
 	 // otherwise return value
-	 return reinterpret_cast<QoreListNode *>(val)->retrieve_entry(tree->right->integerEval(xsink));
+	 return reinterpret_cast<QoreListNode *>(*val)->get_referenced_entry(tree->right->integerEval(xsink));
       }
       
       // if it's an object reference
-      if (tree->getOp() == OP_OBJECT_REF) {
-	 QoreHashNode *h = val->getType() == NT_HASH ? reinterpret_cast<QoreHashNode *>(val) : 0;
-	 QoreObject *o;
-	 if (!h)
-	    o = val->getType() == NT_OBJECT ? reinterpret_cast<QoreObject *>(val) : 0;
-	 else
-	    o = 0;
+      assert(tree->getOp() == OP_OBJECT_REF);
 
-	 // if not an object or a hash, return 0
-	 if (!o && !h)
-	    return 0;
-	 
-	 // otherwise evaluate member
-	 QoreNodeEvalOptionalRefHolder member(tree->right, xsink);
-	 if (*xsink)
-	    return 0;
-
-	 QoreStringValueHelper mem(*member, QCS_DEFAULT, xsink);
-	 if (*xsink)
-	    return 0;
-
-	 return h ? h->getKeyValue(mem->getBuffer()) : o->getMemberValueNoMethod(mem->getBuffer(), vl, xsink);
-      }
+      QoreHashNode *h = val->getType() == NT_HASH ? reinterpret_cast<QoreHashNode *>(*val) : 0;
+      QoreObject *o;
+      if (!h)
+	 o = val->getType() == NT_OBJECT ? reinterpret_cast<QoreObject *>(*val) : 0;
+      else
+	 o = 0;
+      
+      // if not an object or a hash, return 0
+      if (!o && !h)
+	 return 0;
+      
+      // otherwise evaluate member
+      QoreNodeEvalOptionalRefHolder member(tree->right, xsink);
+      if (*xsink)
+	 return 0;
+      
+      QoreStringValueHelper mem(*member, QCS_DEFAULT, xsink);
+      if (*xsink)
+	 return 0;
+      
+      return h ? h->getReferencedKeyValue(mem->getBuffer()) : o->getReferencedMemberNoMethod(mem->getBuffer(), xsink);
    }
    
    // otherwise need to evaluate
-   ReferenceHolder<AbstractQoreNode> t(n->eval(xsink), xsink);
-   if (*xsink)
-      return 0;
-
-   pt = t.release();
-   return *pt;
+   return n->eval(xsink);
 }
 
 static AbstractQoreNode **check_unique(AbstractQoreNode **p, ExceptionSink *xsink) {

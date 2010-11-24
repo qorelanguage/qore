@@ -287,8 +287,7 @@ static bool op_log_ne_list(const AbstractQoreNode *left, const AbstractQoreNode 
    return !l->is_equal_soft(r, xsink);
 }
 
-static bool op_log_ne_hash(const AbstractQoreNode *left, const AbstractQoreNode *right, ExceptionSink *xsink)
-{
+static bool op_log_ne_hash(const AbstractQoreNode *left, const AbstractQoreNode *right, ExceptionSink *xsink) {
    if (left->getType() != NT_HASH)
       return true;
    if (right->getType() != NT_HASH)
@@ -299,8 +298,7 @@ static bool op_log_ne_hash(const AbstractQoreNode *left, const AbstractQoreNode 
    return lh->compareSoft(rh, xsink);
 }
 
-static bool op_log_ne_object(const AbstractQoreNode *left, const AbstractQoreNode *right, ExceptionSink *xsink)
-{
+static bool op_log_ne_object(const AbstractQoreNode *left, const AbstractQoreNode *right, ExceptionSink *xsink) {
    if (left->getType() != NT_OBJECT)
       return true;
    if (right->getType() != NT_OBJECT)
@@ -311,14 +309,12 @@ static bool op_log_ne_object(const AbstractQoreNode *left, const AbstractQoreNod
    return l->compareSoft(r, xsink);
 }
 
-static bool op_log_ne_nothing(const AbstractQoreNode *left, const AbstractQoreNode *right, ExceptionSink *xsink)
-{
+static bool op_log_ne_nothing(const AbstractQoreNode *left, const AbstractQoreNode *right, ExceptionSink *xsink) {
    assert(left->getType() == NT_NOTHING && right->getType() == NT_NOTHING);
    return false;
 }
 
-static bool op_log_ne_null(const AbstractQoreNode *left, const AbstractQoreNode *right, ExceptionSink *xsink)
-{
+static bool op_log_ne_null(const AbstractQoreNode *left, const AbstractQoreNode *right, ExceptionSink *xsink) {
    if (left && left->getType() == NT_NULL && right && right->getType() == NT_NULL)
       return false;
    return true;
@@ -341,15 +337,13 @@ static bool op_exists(const AbstractQoreNode *left, const AbstractQoreNode *x, E
    if (!left->needs_eval())
       return true;
 
-   ReferenceHolder<AbstractQoreNode> tn(xsink);
    AutoVLock vl(xsink);
-   AbstractQoreNode *n = getExistingVarValue(left, xsink, &vl, tn);
-
+   ReferenceHolder<AbstractQoreNode> tn(getExistingVarValue(left, xsink), xsink);
    // return if an exception happened
    if (*xsink)
       return false;
 
-   return is_nothing(n) ? false : true;
+   return is_nothing(*tn) ? false : true;
 }
 
 static bool op_instanceof(const AbstractQoreNode *l, const AbstractQoreNode *r, ExceptionSink *xsink) {

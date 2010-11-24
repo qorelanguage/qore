@@ -100,7 +100,6 @@ public:
 
    DLLLOCAL void setValue(AbstractQoreNode *val, ExceptionSink *xsink);
    DLLLOCAL AbstractQoreNode **getValuePtr(AutoVLock *vl, const QoreTypeInfo *&typeInfo, obj_map_t &omap, ExceptionSink *xsink) const;
-   DLLLOCAL AbstractQoreNode *getValue(AutoVLock *vl, ExceptionSink *xsink) const;
    DLLLOCAL qore_var_t getType() const { return type; }
    DLLLOCAL const char *getName() const { return name; }
    // called when a list of variables are declared
