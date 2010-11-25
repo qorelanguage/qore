@@ -106,7 +106,7 @@ static void inline addError(QoreHashNode *h, QoreStringNode *err) {
    //printd(5, "addError() adding: %s\n", err->getBuffer())
    hash_assignment_priv ha(*h, "_ERRORS_");
    QoreListNode *l = reinterpret_cast<QoreListNode *>(*ha);
-   if (l) {
+   if (!l) {
       l = new QoreListNode;
       ha.assign(l, 0);
    }
