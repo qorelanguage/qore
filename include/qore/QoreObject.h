@@ -438,13 +438,6 @@ public:
    */
    DLLLOCAL AbstractQoreNode *evalMember(const QoreString *member, ExceptionSink *xsink);
 
-   //! merges data from a hash as members of the object
-   /**
-      @param h the hash to merge
-      @param xsink if an error occurs, the Qore-language exception information will be added here
-   */
-   DLLLOCAL void merge(const QoreHashNode *h, ExceptionSink *xsink);
-
    //! retuns member data of the object (or 0 if there's an exception), private members are excluded if called outside the class, caller owns the QoreHashNode reference returned
    /**
       @param xsink if an error occurs, the Qore-language exception information will be added here
@@ -502,7 +495,7 @@ public:
        @param typeInfo the type info for the member (if any)
        @param xsink if an error occurs, the Qore-language exception information will be added here
    */
-   DLLLOCAL AbstractQoreNode **getMemberValuePtr(const QoreString *key, AutoVLock *vl, const QoreTypeInfo *&typeInfo, ExceptionSink *xsink) const;
+   //DLLLOCAL AbstractQoreNode **getMemberValuePtr(const QoreString *key, AutoVLock *vl, const QoreTypeInfo *&typeInfo, ExceptionSink *xsink) const;
 
    //! returns a pointer to a pointer to the value of the member, so it can be set or changed externally
    /** if no exception occurs, the lock is held and added to the AutoVLock "vl", otherwise the lock is released
@@ -512,7 +505,7 @@ public:
        @param typeInfo the type info for the member (if any)
        @param xsink if an error occurs, the Qore-language exception information will be added here
    */
-   DLLLOCAL AbstractQoreNode **getMemberValuePtr(const char *key, AutoVLock *vl, const QoreTypeInfo *&typeInfo, ExceptionSink *xsink) const;
+   //DLLLOCAL AbstractQoreNode **getMemberValuePtr(const char *key, AutoVLock *vl, const QoreTypeInfo *&typeInfo, ExceptionSink *xsink) const;
 
    //! returns a pointer to a pointer to the value of the member only if it already exists, so it can be set externally
    /** if no exception occurs, the lock is held and added to the AutoVLock "vl", otherwise the lock is released

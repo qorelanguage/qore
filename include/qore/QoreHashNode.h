@@ -43,7 +43,8 @@ class QoreHashNode : public AbstractQoreNode {
    friend class ConstHashIterator;
    friend class HashAssignmentHelper;
    friend class hash_assignment_priv;
-   
+   friend class qore_object_private;
+
 private:
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
    DLLLOCAL QoreHashNode(const QoreHashNode&);

@@ -21,6 +21,7 @@
 */
 
 #include <qore/Qore.h>
+#include <qore/intern/QoreObjectIntern.h>
 
 #include <stdio.h>
 #include <string.h>
@@ -790,17 +791,10 @@ static AbstractQoreNode *op_plus_equals(const AbstractQoreNode *left, const Abst
    }
    // do hash/object plus-equals if left side is an object
    else if (vtype == NT_OBJECT) {
-      if (new_right) {
-	 QoreObject *o = reinterpret_cast<QoreObject *>(v.get_value());
-	 // do not need ensure_unique() for objects
-	 if (new_right->getType() == NT_OBJECT) {
-	    ReferenceHolder<QoreHashNode> h(const_cast<QoreObject *>(reinterpret_cast<const QoreObject *>(*new_right))->copyData(xsink), xsink);
-	    if (h)
-	       o->merge(*h, xsink);
-	 }
-	 else if (new_right->getType() == NT_HASH)
-	    o->merge(reinterpret_cast<const QoreHashNode *>(*new_right), xsink);
-      }
+      QoreObject *o = reinterpret_cast<QoreObject *>(v.get_value());
+      qore_object_private::plusEquals(o, *new_right, v.getObjMap(), v.getAutoVLock(), xsink);
+      // duplicates are checked in the call above
+      v.alreadyChecked();
    }
    // do string plus-equals if left-hand side is a string
    else if (vtype == NT_STRING) {

@@ -32,6 +32,7 @@
 #include <set>
 #include <list>
 #include <map>
+#include <vector>
 
 // here we define virtual types
 #define NT_NONE         -1
@@ -139,12 +140,95 @@ enum qore_call_t {
 
 #define DAH_TEXT(d) (d == DAH_RELEASE ? "release" : (d == DAH_ACQUIRE ? "acquire" : "none"))
 
-// set of object keys for each object
-typedef std::set<std::string> strset_t;
-// keep a list of objects to find recursive data structures
-typedef std::map<QoreObject *, strset_t> obj_map_t;
+// keep a map of objects to member names to find recursive data structures
+typedef std::map<QoreObject *, const char *> obj_map_t;
+typedef std::vector<obj_map_t::iterator> obj_vec_t;
+typedef std::set<QoreObject *> obj_set_t;
 
-DLLLOCAL bool qoreCheckContainer(AbstractQoreNode *v, obj_map_t &omap, AutoVLock &vl, ExceptionSink *xsink);
+class ObjMap {
+protected:
+   // map of object ptrs to keys
+   obj_map_t omap;
+   // vector to store object insert order
+   obj_vec_t ovec;
+   // set of already-mapped object ptrs
+   obj_set_t oset;
+   // start of new objects, objects in ovec before this index have already been added
+   unsigned start;
+
+   DLLLOCAL void popAll(obj_map_t::iterator i) {
+      while (ovec.back() != i) {
+         omap.erase(ovec.back());
+         ovec.pop_back();
+      }
+   }
+
+public:
+   DLLLOCAL ObjMap() : start(0) {
+   }
+
+   DLLLOCAL unsigned getMark() const {
+      return start;
+   }
+
+   DLLLOCAL void set(QoreObject *obj, const char *key);
+   DLLLOCAL void reset(QoreObject *obj, const char *key);
+
+   DLLLOCAL void foundObj(QoreObject *obj, const char *key);
+
+   // erase all objects pushed since the one passed
+   DLLLOCAL void erase(QoreObject *obj) {
+      obj_map_t::iterator i = omap.find(obj);
+      if (i != omap.end()) {
+         // erase objects inserted after key
+         popAll(i);
+
+         omap.erase(i);
+         ovec.pop_back();
+      }
+      if (start > ovec.size())
+         start = ovec.size();
+   }
+
+   DLLLOCAL void mark() {
+      start = ovec.size();
+      if (start)
+         --start;
+   }
+
+   DLLLOCAL int check(QoreObject *obj);
+
+   DLLLOCAL const char *getKey(QoreObject *obj) const {
+      obj_map_t::const_iterator i = omap.find(obj);
+      if (i == omap.end())
+         return 0;
+
+      return i->second;
+   }
+
+   DLLLOCAL bool empty() const {
+      return ovec.empty();
+   }
+
+   DLLLOCAL unsigned size() const {
+      return ovec.size();
+   }
+};
+
+class ObjectCycleHelper {
+protected:
+   ObjMap &omap;
+   QoreObject *obj;
+
+public:
+   DLLLOCAL ObjectCycleHelper(ObjMap &n_omap, QoreObject *n_obj) : omap(n_omap), obj(n_obj) {
+   }
+   DLLLOCAL ~ObjectCycleHelper() {
+      omap.erase(obj);
+   }
+};
+
+DLLLOCAL int qoreCheckContainer(AbstractQoreNode *v, ObjMap &omap, AutoVLock &vl, ExceptionSink *xsink);
 
 #include <qore/intern/NamedScope.h>
 #include <qore/intern/QoreTypeInfo.h>

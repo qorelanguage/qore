@@ -33,6 +33,7 @@ QoreHashNode *ENV;
 
 #include <qore/QoreType.h>
 #include <qore/intern/ParserSupport.h>
+#include <qore/intern/QoreObjectIntern.h>
 
 VarStackPointerHelper::VarStackPointerHelper(LocalVarValue *v) : orig(v) {
    v->skip = true;
@@ -238,7 +239,7 @@ void Var::deref(ExceptionSink *xsink) {
    }
 }
 
-static AbstractQoreNode **do_list_val_ptr(const QoreTreeNode *tree, AutoVLock *vlp, obj_map_t &omap, ExceptionSink *xsink) {
+static AbstractQoreNode **do_list_val_ptr(const QoreTreeNode *tree, AutoVLock *vlp, ObjMap &omap, ExceptionSink *xsink) {
    // first get index
    int ind = tree->right->integerEval(xsink);
    if (xsink->isEvent())
@@ -284,7 +285,7 @@ static AbstractQoreNode **do_list_val_ptr(const QoreTreeNode *tree, AutoVLock *v
 }
 
 // for objects and hashes
-static AbstractQoreNode **do_object_val_ptr(const QoreTreeNode *tree, AutoVLock *vlp, const QoreTypeInfo *&typeInfo, obj_map_t &omap, ExceptionSink *xsink) {
+static AbstractQoreNode **do_object_val_ptr(const QoreTreeNode *tree, AutoVLock *vlp, const QoreTypeInfo *&typeInfo, ObjMap &omap, ExceptionSink *xsink) {
    QoreNodeEvalOptionalRefHolder member(tree->right, xsink);
    if (*xsink)
       return 0;
@@ -339,8 +340,7 @@ static AbstractQoreNode **do_object_val_ptr(const QoreTreeNode *tree, AutoVLock 
    //printd(5, "do_object_val_ptr() member=%s\n", mem->getBuffer());
 
    AbstractQoreNode **rv;
-   if ((rv = o->getMemberValuePtr(mem->getBuffer(), vlp, typeInfo, xsink))) {
-      omap[o].insert(mem->getBuffer());
+   if ((rv = qore_object_private::getMemberValuePtr(o, mem->getBuffer(), vlp, typeInfo, omap, xsink))) {
       vlp->addMemberNotification(o, mem->getBuffer());
       return rv;
    }
@@ -364,7 +364,7 @@ static AbstractQoreNode **do_object_val_ptr(const QoreTreeNode *tree, AutoVLock 
 }
 
 // this function will change the lvalue to the right type if needed (used for assignments)
-AbstractQoreNode **get_var_value_ptr(const AbstractQoreNode *n, AutoVLock *vlp, const QoreTypeInfo *&typeInfo, obj_map_t &omap, ExceptionSink *xsink) {
+AbstractQoreNode **get_var_value_ptr(const AbstractQoreNode *n, AutoVLock *vlp, const QoreTypeInfo *&typeInfo, ObjMap &omap, ExceptionSink *xsink) {
    qore_type_t ntype = n->getType();
    //printd(0, "get_var_value_ptr(%p) %s\n", n, n->getTypeName());
    if (ntype == NT_VARREF) {
@@ -379,11 +379,9 @@ AbstractQoreNode **get_var_value_ptr(const AbstractQoreNode *n, AutoVLock *vlp, 
 
       // xxx add type info to call
       QoreObject *obj = getStackObject();
-      AbstractQoreNode **rv = obj->getMemberValuePtr(v->str, vlp, typeInfo, xsink);
+      AbstractQoreNode **rv = qore_object_private::getMemberValuePtr(obj, v->str, vlp, typeInfo, omap, xsink);
       if (!rv && !xsink->isException())
 	 xsink->raiseException("OBJECT-ALREADY-DELETED", "write attempted to member \"%s\" in an already-deleted object", v->str);
-      else
-	 omap[obj].insert(v->str);
       return rv;
    }
 
@@ -464,7 +462,7 @@ static AbstractQoreNode **check_unique(AbstractQoreNode **p, ExceptionSink *xsin
 // only returns a value ptr if the expression points to an already-existing value
 // (i.e. does not create entries anywhere)
 // needed for deletes
-static AbstractQoreNode **getUniqueExistingVarValuePtr(AbstractQoreNode *n, ExceptionSink *xsink, AutoVLock *vl, obj_map_t &omap) {
+static AbstractQoreNode **getUniqueExistingVarValuePtr(AbstractQoreNode *n, ExceptionSink *xsink, AutoVLock *vl, ObjMap &omap) {
    printd(5, "getUniqueExistingVarValuePtr(%p) %s\n", n, n->getTypeName());
    qore_type_t ntype = n->getType();
    const QoreTypeInfo *typeInfo = 0;
@@ -528,7 +526,7 @@ AbstractQoreNode *remove_lvalue(AbstractQoreNode *lvalue, ExceptionSink *xsink) 
    qore_type_t lvtype = lvalue->getType();
 
    // FIXME: add logic to detect breaking a recursive reference
-   obj_map_t omap;
+   ObjMap omap;
 
    // if the node is a variable reference, then find value ptr, set it to 0, and return the value
    if (lvtype == NT_VARREF) {

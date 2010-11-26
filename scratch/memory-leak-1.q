@@ -27,3 +27,14 @@ $obj6.b = $obj5;
 my T $obj7(7);
 $obj7.a = $obj7;
 $obj7.b = $obj7;
+
+printf("x\n");
+
+my T $obj8(8);
+my T $obj9(9);
+
+printf("8=%s\n9=%s\n", dbg_node_info($obj8), dbg_node_info($obj9));
+
+$obj8.a = ("a": $obj9, "b": $obj9);
+$obj9.b = $obj8;
+$obj9.c = $obj8;

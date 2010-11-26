@@ -1200,50 +1200,40 @@ QoreStringNode *qore_reassign_signal(int sig, const char *name) {
    return QSM.reassign_signal(sig, name);
 }
 
-static bool qoreCheckHash(QoreHashNode *h, obj_map_t &omap, AutoVLock &vl, ExceptionSink *xsink) {
-   bool rc = false;
-   
+static int qoreCheckHash(QoreHashNode *h, ObjMap &omap, AutoVLock &vl, ExceptionSink *xsink) {
+   int rc = 0;
+
    HashIterator hi(h);
-   while (hi.next())
-      if (qoreCheckContainer(hi.getValue(), omap, vl, xsink) && !rc)
-         rc = true;
+   while (hi.next()) {
+      rc += qoreCheckContainer(hi.getValue(), omap, vl, xsink);
+   }
       
    return rc;
 }
 
-static bool qoreCheckList(QoreListNode *l, obj_map_t &omap, AutoVLock &vl, ExceptionSink *xsink) {
-   bool rc = false;
+static int qoreCheckList(QoreListNode *l, ObjMap &omap, AutoVLock &vl, ExceptionSink *xsink) {
+   int rc = 0;
 
    ListIterator li(l);
-   while (li.next())
-      if (qoreCheckContainer(li.getValue(), omap, vl, xsink) && !rc)
-         rc = true;
+   while (li.next()) {
+      rc += qoreCheckContainer(li.getValue(), omap, vl, xsink);
+   }
 
    return rc;
 }
 
-bool qoreCheckContainer(AbstractQoreNode *v, obj_map_t &omap, AutoVLock &vl, ExceptionSink *xsink) {
+int qoreCheckContainer(AbstractQoreNode *v, ObjMap &omap, AutoVLock &vl, ExceptionSink *xsink) {
+   printd(0, "qoreCheckContainer() v=%p (%s) omap size=%d\n", v, get_type_name(v), omap.size());
    if (!v || omap.empty())
-      return false;
+      return 0;
    qore_type_t t = v->getType();
 
    if (t == NT_OBJECT) {
       QoreObject *o = reinterpret_cast<QoreObject *>(v);
-      obj_map_t::iterator i = omap.find(o);
-      if (i != omap.end()) {
-	 /*
-         QoreString str("qoreCheckContainer() found recursive object ref ");
-         str.sprintf("obj=%p (%s): ", o, o->getClassName());
-         for (strset_t::iterator si = i->second.begin(), se = i->second.end(); si != se; ++si)
-            str.sprintf("'%s', ", (*si).c_str());
-         str.terminate(str.strlen() - 2);
+      if (omap.check(o))
+	 return 1;
 
-         printd(0, "%s\n", str.getBuffer());
-	 */
-         return true;
-      }
-      return false;
-      //return qore_object_private::checkRecursive(o, omap, vl, xsink);
+      return qore_object_private::checkRecursive(o, omap, vl, xsink);
    }
 
    if (t == NT_HASH)
@@ -1252,5 +1242,68 @@ bool qoreCheckContainer(AbstractQoreNode *v, obj_map_t &omap, AutoVLock &vl, Exc
    if (t == NT_LIST)
       return qoreCheckList(reinterpret_cast<QoreListNode *>(v), omap, vl, xsink);
 
-   return false;
+   return 0;
+}
+
+void ObjMap::set(QoreObject *obj, const char *key) {
+   assert(omap.find(obj) == omap.end());
+   obj_map_t::iterator i = omap.insert(obj_map_t::value_type(obj, key)).first;
+   ovec.push_back(i);
+}
+
+void ObjMap::reset(QoreObject *obj, const char *key) {
+   obj_map_t::iterator i = omap.find(obj);
+   if (i == omap.end()) {
+      set(obj, key);
+      return;
+   }
+
+   // erase objects inserted from last key
+   popAll(i);
+   i->second = key;
+   return;
+}
+
+int ObjMap::check(QoreObject *obj) {
+   {
+      obj_map_t::iterator i = omap.find(obj);
+      if (i == omap.end()) {
+	 // now check if the object is already in the cycle list for any of the objects already in the list
+	 for (unsigned i = 0; i < ovec.size(); ++i) {
+	    if (qore_object_private::verifyRecursive(obj, ovec[i]->first)) {
+	       printd(0, "ObjMap::check() %p (%s) already mapped from %p (%s)\n", obj, obj->getClassName(), ovec[i]->first, ovec[i]->first->getClassName());
+	       return -1;
+	    }
+	 }
+
+	 printd(0, "ObjMap::check() %p (%s) not mapped, continuing\n", obj, obj->getClassName());
+	 return 0;
+      }
+   }
+
+   printd(0, "ObjMap::check() found recursive object refs (%ld): (obj=%p %s first=%p) ix range: [%d..%d]\n", ovec.size(), obj, obj->getClassName(), (*(ovec.begin()))->first, start, ovec.size());
+
+   unsigned i = start;
+   //if (i == ovec.size()) i = 0;
+   while (true) {
+      unsigned n = i + 1;
+      if (n == ovec.size())
+	 n = 0;
+
+      bool is_new = true;
+      printd(0, "  obj=%p (%s) '%s' -> %p (%s) '%s' i=%d/%d n=%d is_new=%d ix range: [%d..%d]\n", ovec[i]->first, ovec[i]->first->getClassName(), ovec[i]->second,
+	     ovec[n]->first, ovec[n]->first->getClassName(), ovec[n]->second, i, ovec.size(), n, is_new, start, ovec.size());
+
+      if (qore_object_private::addRecursive(ovec[i]->first, ovec[i]->second, ovec[n]->first, is_new)) {
+	 printd(0, "  ignoring rest of chain, last object already mapped\n");
+	 break;
+      }
+
+      if (!n)
+	 break;  
+
+      ++i;
+   }
+   mark();
+   return 1;
 }

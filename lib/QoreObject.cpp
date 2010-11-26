@@ -25,28 +25,80 @@
 #include <qore/Qore.h>
 #include <qore/intern/QoreClassIntern.h>
 #include <qore/intern/QoreObjectIntern.h>
+#include <qore/intern/QoreHashNodeIntern.h>
 
-bool qore_object_private::checkRecursive(obj_map_t &omap, AutoVLock &vl, ExceptionSink *xsink) {
+void RecursiveSet::merge(RecursiveSet *rset) {
+   assert(oset.size() >= rset->oset.size());
+
+   for (obj_set_t::iterator i = rset->oset.begin(), e = rset->oset.end(); i != e; ++i)
+      oset.insert(*i);
+}
+
+int qore_object_private::checkRecursive(ObjMap &omap, AutoVLock &vl, ExceptionSink *xsink) {
    // do lock handoff
    qore_object_recursive_lock_handoff_helper qolhm(this, vl);
 
    if (!qolhm)
-      return false;
+      return 0;
 
    if (status == OS_DELETED)
-      return false;
+      return 0;
 
-   bool rc = false;
+   ObjectCycleHelper och(omap, obj);
+   const char *key = omap.getKey(obj);
+   if (key) {
+      
+      AbstractQoreNode *n = obj->getMemberValueNoMethod(key, &vl, xsink);
+      // FIXME: wtf?
+      if (*xsink)
+	 return 0;
+      omap.reset(obj, key);
+
+      int rc = qoreCheckContainer(n, omap, vl, xsink);
+      if (rc)
+	 printd(0, "qore_object_private::checkRecursive() found recursive ref: obj=%p (%s) '%s' (key)\n", obj, theclass->getName(), key);
+      else
+	 printd(0, "qore_object_private::checkRecursive() checked obj=%p (%s) '%s' - no recursive ref (key)\n", obj, theclass->getName(), key);
+	 
+      
+      return rc;
+   }
+
+   int rc = 0;
 
    HashIterator hi(data);
    while (hi.next()) {
-      if (qoreCheckContainer(hi.getValue(), omap, vl, xsink) && !rc) {
-	 //printd(0, "qore_object_private::checkRecursive() obj=%p (%s) '%s'\n", obj, theclass->getName(), hi.getKey());
-	 rc = true;
+      omap.reset(obj, hi.getKey());
+
+      if (qoreCheckContainer(hi.getValue(), omap, vl, xsink)) {
+	 printd(0, "qore_object_private::checkRecursive() found recursive ref: obj=%p (%s) '%s'\n", obj, theclass->getName(), hi.getKey());
+	 ++rc;
       }
+      else
+	 printd(0, "qore_object_private::checkRecursive() checked obj=%p (%s) '%s' - no recursive ref\n", obj, theclass->getName(), hi.getKey());
    }
 
    return rc;
+}
+
+// unlocking the lock is managed with the AutoVLock object
+AbstractQoreNode **qore_object_private::getMemberValuePtr(const char *key, AutoVLock *vl, const QoreTypeInfo *&typeInfo, ObjMap &omap, ExceptionSink *xsink) const {
+   // check for external access to private members
+   if (checkMemberAccessGetTypeInfo(key, typeInfo, xsink))
+      return 0;
+
+   // do lock handoff
+   qore_object_lock_handoff_helper qolhm(const_cast<qore_object_private *>(this), *vl);
+
+   if (status == OS_DELETED)
+      return 0;
+
+   qolhm.stay_locked();
+
+   HashMember *m = data->priv->findCreateMember(key);
+   omap.set(obj, m->key);
+
+   return &m->node;
 }
 
 void QoreObject::externalDelete(qore_classid_t key, ExceptionSink *xsink) {
@@ -341,7 +393,7 @@ void QoreObject::customDeref(ExceptionSink *xsink) {
       //printd(5, "QoreObject::customDeref() this=%p, class=%s references=%d->%d (trefs=%d) status=%d has_delete_blocker=%d delete_blocker_run=%d\n", this, getClassName(), references, references - 1, priv->tRefs.reference_count(), priv->status, priv->theclass->has_delete_blocker(), priv->delete_blocker_run);
 
 #ifdef QORE_DEBUG_OBJ_REFS
-      printd(QORE_DEBUG_OBJ_REFS, "QoreObject::customDeref(this=%p) class=%s: references %d->%d\n", this, priv->status == OS_OK ? getClassName() : "<deleted>", references, references - 1);
+      printd(QORE_DEBUG_OBJ_REFS, "QoreObject::customDeref(this=%p) class=%s: references %d->%d (rcnt=%d)\n", this, priv->status == OS_OK ? getClassName() : "<deleted>", references, references - 1, priv->rcount);
 #endif
       {
 	 AutoLocker slr(priv->ref_mutex);
@@ -386,22 +438,7 @@ void QoreObject::obliterate(ExceptionSink *xsink) {
    priv->obliterate(xsink);
 }
 
-// unlocking the lock is managed with the AutoVLock object
-AbstractQoreNode **QoreObject::getMemberValuePtr(const char *key, AutoVLock *vl, const QoreTypeInfo *&typeInfo, ExceptionSink *xsink) const {
-   // check for external access to private members
-   if (priv->checkMemberAccessGetTypeInfo(key, typeInfo, xsink))
-      return 0;
-
-   // do lock handoff
-   qore_object_lock_handoff_helper qolhm(const_cast<qore_object_private *>(priv), *vl);
-
-   if (priv->status == OS_DELETED)
-      return 0;
-
-   qolhm.stay_locked();
-   return priv->data->getKeyValuePtr(key);
-}
-
+/*
 // unlocking the lock is managed with the AutoVLock object
 AbstractQoreNode **QoreObject::getMemberValuePtr(const QoreString *key, AutoVLock *vl, const QoreTypeInfo *&typeInfo, ExceptionSink *xsink) const {
    TempEncodingHelper enc(key, QCS_DEFAULT, xsink);
@@ -410,6 +447,7 @@ AbstractQoreNode **QoreObject::getMemberValuePtr(const QoreString *key, AutoVLoc
 
    return getMemberValuePtr(enc->getBuffer(), vl, typeInfo, xsink);
 }
+*/
 
 // unlocking the lock is managed with the AutoVLock object
 AbstractQoreNode *QoreObject::getMemberValueNoMethod(const QoreString *key, AutoVLock *vl, ExceptionSink *xsink) const {
@@ -553,45 +591,6 @@ int QoreObject::size(ExceptionSink *xsink) const
       return 0;
 
    return priv->data->size();
-}
-
-// adds all elements (and references them) from the hash passed, leaves the
-// hash passed alone
-void QoreObject::merge(const QoreHashNode *h, ExceptionSink *xsink) {
-   // list for saving all overwritten values to be dereferenced outside the object lock
-   ReferenceHolder<QoreListNode> holder(xsink);
-
-   {
-      AutoLocker al(priv->mutex);
-
-      if (priv->status == OS_DELETED) {
-	 makeAccessDeletedObjectException(xsink, priv->theclass->getName());
-	 return;
-      }
-
-      ConstHashIterator hi(h);
-      while (hi.next()) {
-	 const QoreTypeInfo *ti;
-
-	 // check member status
-	 if (priv->checkMemberAccessGetTypeInfo(hi.getKey(), ti, xsink))
-	    return;
-
-	 // check type compatibility and perform type translations, if any
-	 ReferenceHolder<AbstractQoreNode> val(ti->acceptInputMember(hi.getKey(), hi.getReferencedValue(), xsink), xsink);
-	 if (*xsink)
-	    return;
-
-	 AbstractQoreNode *n = priv->data->swapKeyValue(hi.getKey(), val.release());
-	 //printd(5, "QoreObject::merge() n=%p (rc=%d, type=%s)\n", n, n ? n->isReferenceCounted() : 0, get_type_name(n));
-	 // if we are overwriting a value, then save it in the list for dereferencing after the lock is released
-	 if (n && n->isReferenceCounted()) {
-	    if (!holder)
-	       holder = new QoreListNode;
-	    holder->push(n);
-	 }
-      }
-   }
 }
 
 int64 QoreObject::getMemberAsBigInt(const char *mem, bool &found, ExceptionSink *xsink) const {

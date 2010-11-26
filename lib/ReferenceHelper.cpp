@@ -26,7 +26,7 @@
 
 ReferenceHelper::ReferenceHelper(const ReferenceNode *ref, AutoVLock &vl, ExceptionSink *xsink) {
    const QoreTypeInfo *typeInfo = 0;
-   obj_map_t omap;
+   ObjMap omap;
    vp = get_var_value_ptr(ref->getExpression(), &vl, typeInfo, omap, xsink);
    if (!*xsink && typeInfo->hasType()) {
       // set the pointer to null so it cannot be used
@@ -79,7 +79,7 @@ const AbstractQoreNode *ReferenceHelper::getValue() const {
 struct qore_type_safe_ref_helper_priv_t {
    AbstractQoreNode **vp;
    const QoreTypeInfo *typeInfo;
-   obj_map_t omap;
+   ObjMap omap;
 
    DLLLOCAL qore_type_safe_ref_helper_priv_t(const ReferenceNode *ref, AutoVLock &vl, ExceptionSink *xsink) : typeInfo(0) {
       vp = get_var_value_ptr(ref->getExpression(), &vl, typeInfo, omap, xsink);

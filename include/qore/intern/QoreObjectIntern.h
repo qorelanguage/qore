@@ -40,7 +40,11 @@
 #define QOA_PRIV_ERROR   1
 #define QOA_PUB_ERROR    2
 
-#define QORE_DEBUG_OBJ_REFS 1
+#ifdef _QORE_CYCLE_CHECK
+#define QORE_DEBUG_OBJ_REFS 0
+#else
+#define QORE_DEBUG_OBJ_REFS 5
+#endif
 
 /*
   Qore internal class data is stored against the object with this data structure
@@ -115,6 +119,40 @@ public:
    }
 };
 
+class RecursiveSet {
+protected:
+   obj_set_t oset;
+   qore_size_t len;
+
+public:
+   DLLLOCAL RecursiveSet(QoreObject *obj1, QoreObject *obj2) {
+      oset.insert(obj1);
+      if (obj1 == obj2)
+         len = 1;
+      else {
+         oset.insert(obj2);
+         len = 2;
+      }
+   }
+   DLLLOCAL void merge(RecursiveSet *rset);
+   DLLLOCAL void add(QoreObject *obj) {
+      assert(oset.find(obj) == oset.end());
+      oset.insert(obj);
+      ++len;      
+   }
+   DLLLOCAL void remove(QoreObject *obj) {
+      assert(oset.find(obj) != oset.end());
+      oset.erase(obj);
+      --len;
+   }
+   DLLLOCAL bool find(QoreObject *obj) {
+      return oset.find(obj) != oset.end() ? true : false;
+   }
+   DLLLOCAL qore_size_t size() {
+      return len;
+   }
+};
+
 class qore_object_private {
 public:
    const QoreClass *theclass;
@@ -129,13 +167,16 @@ public:
    bool system_object, delete_blocker_run, in_destructor;
    QoreObject *obj;
 
-   // xxx recursive reference count
+   // recursive reference count for entire object
    unsigned rcount;
 
-   DLLLOCAL qore_object_private(QoreObject *n_obj, const QoreClass *oc, QoreProgram *p, QoreHashNode *n_data) :
-      theclass(oc), status(OS_OK),
+   // set of objects reachable from this object that are part of circular references
+   RecursiveSet *rset;
+
+   DLLLOCAL qore_object_private(QoreObject *n_obj, const QoreClass *oc, QoreProgram *p, QoreHashNode *n_data) : 
+      theclass(oc), status(OS_OK), 
       privateData(0), data(n_data), pgm(p), system_object(!p), delete_blocker_run(false), in_destructor(false),
-      obj(n_obj), rcount(0) {
+      obj(n_obj), rcount(0), rset(0) {
 #ifdef QORE_DEBUG_OBJ_REFS
       printd(QORE_DEBUG_OBJ_REFS, "qore_object_private::qore_object_private() obj=%p, pgm=%p, class=%s, references 0->1\n", obj, p, oc->getName());
 #endif
@@ -156,7 +197,127 @@ public:
       assert(!privateData);
    }
 
-   DLLLOCAL bool checkRecursive(obj_map_t &omap, AutoVLock &vl, ExceptionSink *xsink);
+   // adds a referece to an object as part of a circular reference set
+   // returns -1 if object already in circular reference set, 0 if not
+   DLLLOCAL int addRecursive(const char *key, QoreObject *next, bool is_new) {
+      printd(0, "  addRecursive() obj=%p (%s, rcount=%d, rset=%p) '%s' -> %p (%s rcount=%d, rset=%p) is_new=%d\n", obj, obj->getClassName(), rcount, rset, key, next, next->getClassName(), next->priv->rcount, next->priv->rset, is_new);
+
+      if (next->priv->rset) {
+         if (next->priv->rset == rset) {
+            // increment recursive reference count of "next"
+            if (is_new)
+               ++next->priv->rcount;
+            return -1;
+         }
+         ++next->priv->rcount;
+
+         if (!rset) {
+            rset = next->priv->rset;
+            rset->add(obj);
+         }
+         else {
+            if (rset->size() >= next->priv->rset->size()) {
+               rset->merge(next->priv->rset);
+               delete next->priv->rset;
+               next->priv->rset = rset;
+            }
+            else {
+               next->priv->rset->merge(rset);
+               delete rset;
+               rset = next->priv->rset;
+            }
+         }
+
+         return 0;
+      }
+      ++next->priv->rcount;
+
+      if (rset) {
+         next->priv->rset = rset;
+         rset->add(next);
+      }
+      else {
+         rset = new RecursiveSet(obj, next);
+         next->priv->rset = rset;
+      }
+
+      return 0;
+   }
+
+   DLLLOCAL int checkRecursive(ObjMap &omap, AutoVLock &vl, ExceptionSink *xsink);
+
+   DLLLOCAL int verifyRecursive(QoreObject *obj) {      
+      if (rset && rset->find(obj)) {
+         ++rcount;
+         return -1;
+      }
+      return 0;
+   }
+
+   DLLLOCAL void plusEquals(const AbstractQoreNode *v, ObjMap &omap, AutoVLock &vl, ExceptionSink *xsink) {
+      if (!v)
+         return;
+
+      // do not need ensure_unique() for objects
+      if (v->getType() == NT_OBJECT) {
+         ReferenceHolder<QoreHashNode> h(const_cast<QoreObject *>(reinterpret_cast<const QoreObject *>(v))->copyData(xsink), xsink);
+         if (h)
+            merge(*h, omap, vl, xsink);
+      }
+      else if (v->getType() == NT_HASH)
+         merge(reinterpret_cast<const QoreHashNode *>(v), omap, vl, xsink);
+   }
+
+   DLLLOCAL void merge(const QoreHashNode *h, ObjMap &omap, AutoVLock &vl, ExceptionSink *xsink) {
+      // list for saving all overwritten values to be dereferenced outside the object lock
+      ReferenceHolder<QoreListNode> holder(xsink);
+
+      {
+         AutoLocker al(mutex);
+
+         if (status == OS_DELETED) {
+            makeAccessDeletedObjectException(xsink, theclass->getName());
+            return;
+         }
+
+         //printd(5, "qore_object_private::merge() obj=%p\n", obj);
+
+#ifdef _QORE_CYCLE_CHECK
+         ObjectCycleHelper och(omap, obj);
+#endif
+
+         ConstHashIterator hi(h);
+         while (hi.next()) {
+            const QoreTypeInfo *ti;
+
+            // check member status
+            if (checkMemberAccessGetTypeInfo(hi.getKey(), ti, xsink))
+               return;
+            
+            // check type compatibility and perform type translations, if any
+            ReferenceHolder<AbstractQoreNode> val(ti->acceptInputMember(hi.getKey(), hi.getReferencedValue(), xsink), xsink);
+            if (*xsink)
+               return;
+            
+            AbstractQoreNode *n = data->swapKeyValue(hi.getKey(), val.release());
+            //printd(5, "QoreObject::merge() n=%p (rc=%d, type=%s)\n", n, n ? n->isReferenceCounted() : 0, get_type_name(n));
+            // if we are overwriting a value, then save it in the list for dereferencing after the lock is released
+            if (n && n->isReferenceCounted()) {
+               if (!holder)
+                  holder = new QoreListNode;
+               holder->push(n);
+            }
+
+#ifdef _QORE_CYCLE_CHECK
+            printd(0, "qore_object_private::merge() obj=%p key=%s\n", obj, hi.getKey());
+            omap.reset(obj, hi.getKey());
+            qoreCheckContainer(const_cast<AbstractQoreNode *>(hi.getValue()), omap, vl, xsink);
+#endif
+         }
+      }
+   }
+
+   DLLLOCAL AbstractQoreNode **getMemberValuePtr(const char *key, AutoVLock *vl, const QoreTypeInfo *&typeInfo, ObjMap &omap, ExceptionSink *xsink) const;
 
    DLLLOCAL QoreHashNode *getSlice(const QoreListNode *l, ExceptionSink *xsink) const {
       AutoLocker al(mutex);
@@ -379,8 +540,24 @@ public:
 	    privateData->insertVirtual((*i).first->getID(), apd);
    }
 
-   DLLLOCAL static bool checkRecursive(QoreObject *obj, obj_map_t &omap, AutoVLock &vl, ExceptionSink *xsink) {
+   DLLLOCAL static int checkRecursive(QoreObject *obj, ObjMap &omap, AutoVLock &vl, ExceptionSink *xsink) {
       return obj->priv->checkRecursive(omap, vl, xsink);
+   }
+
+   DLLLOCAL static int verifyRecursive(QoreObject *obj, QoreObject *other) {
+      return obj->priv->verifyRecursive(other);
+   }
+
+   DLLLOCAL static int addRecursive(QoreObject *obj, const char *key, QoreObject *next, bool is_new) {
+      return obj->priv->addRecursive(key, next, is_new);
+   }
+
+   DLLLOCAL static AbstractQoreNode **getMemberValuePtr(const QoreObject *obj, const char *key, AutoVLock *vl, const QoreTypeInfo *&typeInfo, ObjMap &omap, ExceptionSink *xsink) {
+      return obj->priv->getMemberValuePtr(key, vl, typeInfo, omap, xsink);
+   }
+
+   DLLLOCAL static void plusEquals(QoreObject *obj, const AbstractQoreNode *v, ObjMap &omap, AutoVLock &vl, ExceptionSink *xsink) {
+      obj->priv->plusEquals(v, omap, vl, xsink);
    }
 };
 

@@ -126,7 +126,7 @@ double VarRefNode::floatEvalImpl(ExceptionSink *xsink) const {
    return rv ? rv->getAsFloat() : 0;
 }
 
-AbstractQoreNode **VarRefNode::getValuePtr(AutoVLock *vl, const QoreTypeInfo *&typeInfo, obj_map_t &omap, ExceptionSink *xsink) const {
+AbstractQoreNode **VarRefNode::getValuePtr(AutoVLock *vl, const QoreTypeInfo *&typeInfo, ObjMap &omap, ExceptionSink *xsink) const {
    if (type == VT_LOCAL)
       return ref.id->getValuePtr(vl, typeInfo, omap, xsink);
    if (type == VT_CLOSURE) {

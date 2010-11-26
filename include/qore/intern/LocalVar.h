@@ -115,7 +115,7 @@ public:
          val.ref.obj->tDeref();
    }
 
-   DLLLOCAL AbstractQoreNode **getValuePtr(AutoVLock *vl, const QoreTypeInfo *&typeInfo, obj_map_t &omap, ExceptionSink *xsink) {
+   DLLLOCAL AbstractQoreNode **getValuePtr(AutoVLock *vl, const QoreTypeInfo *&typeInfo, ObjMap &omap, ExceptionSink *xsink) {
       if (!is_ref)
          return const_cast<AbstractQoreNode **>(&val.value);
 
@@ -229,7 +229,7 @@ public:
 
    DLLLOCAL void deref(ExceptionSink *xsink) { if (ROdereference()) { del(xsink); delete this; } }
 
-   DLLLOCAL AbstractQoreNode **getValuePtr(AutoVLock *vl, const QoreTypeInfo *&typeInfo, obj_map_t &omap, ExceptionSink *xsink) {
+   DLLLOCAL AbstractQoreNode **getValuePtr(AutoVLock *vl, const QoreTypeInfo *&typeInfo, ObjMap &omap, ExceptionSink *xsink) {
       if (!is_ref) {
          lock();
          vl->set(this);
@@ -385,7 +385,7 @@ public:
          thread_uninstantiate_closure_var(xsink);
    }
 
-   DLLLOCAL AbstractQoreNode **getValuePtr(AutoVLock *vl, const QoreTypeInfo *&n_typeInfo, obj_map_t &omap, ExceptionSink *xsink) const {
+   DLLLOCAL AbstractQoreNode **getValuePtr(AutoVLock *vl, const QoreTypeInfo *&n_typeInfo, ObjMap &omap, ExceptionSink *xsink) const {
       // typeInfo is set here, but in case the variable is a reference, the actual
       // typeInfo structure will be set from the referenced value
       n_typeInfo = typeInfo;

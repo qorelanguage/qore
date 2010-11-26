@@ -213,27 +213,33 @@ DLLLOCAL AbstractQoreNode *remove_lvalue(AbstractQoreNode *node, ExceptionSink *
 DLLLOCAL void delete_global_variables();
 
 // for retrieving a pointer to a pointer to an lvalue expression
-DLLLOCAL AbstractQoreNode **get_var_value_ptr(const AbstractQoreNode *lvalue, AutoVLock *vl, const QoreTypeInfo *&typeInfo, obj_map_t &omap, ExceptionSink *xsink);
+DLLLOCAL AbstractQoreNode **get_var_value_ptr(const AbstractQoreNode *lvalue, AutoVLock *vl, const QoreTypeInfo *&typeInfo, ObjMap &omap, ExceptionSink *xsink);
 
 DLLLOCAL extern QoreHashNode *ENV;
 
 // this class grabs global variable or object locks for the duration of the scope of the object
 // no evaluations can be done while this object is in scope or a deadlock may result
 class LValueHelper {
-private:
+protected:
    AbstractQoreNode **v;
    ExceptionSink *xsink;
    AutoVLock vl;
    const QoreTypeInfo *typeInfo;
-   obj_map_t omap;
-   
+   ObjMap omap;
+   bool already_checked;
+
 public:
-   DLLLOCAL LValueHelper(const AbstractQoreNode *exp, ExceptionSink *n_xsink) : xsink(n_xsink), vl(n_xsink), typeInfo(0) {
+   DLLLOCAL LValueHelper(const AbstractQoreNode *exp, ExceptionSink *n_xsink) : xsink(n_xsink), vl(n_xsink), typeInfo(0), already_checked(false) {
       v = get_var_value_ptr(exp, &vl, typeInfo, omap, xsink);
    }
    DLLLOCAL ~LValueHelper() {
-      if (v && !*xsink)
+#ifdef _QORE_CYCLE_CHECK
+      printd(0, "LValueHelper::~LValueHelper() v=%p *v=%p *xsink=%d already_checked=%d\n", v, v ? *v : 0, (bool)*xsink, already_checked);
+      if (v && !*xsink && !already_checked) {
+         omap.mark();
          qoreCheckContainer(*v, omap, vl, xsink);
+      }
+#endif
    }
    DLLLOCAL operator bool() const { return v != 0; }
    DLLLOCAL const QoreTypeInfo *get_type_info() const {
@@ -331,6 +337,18 @@ public:
       (*v) = old->realCopy();
       old->deref();
       return 0;
+   }
+
+   DLLLOCAL AutoVLock &getAutoVLock() {
+      return vl;
+   }
+
+   DLLLOCAL ObjMap &getObjMap() {
+      return omap;
+   }
+
+   DLLLOCAL void alreadyChecked() {
+      already_checked = true;
    }
 };
 
