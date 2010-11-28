@@ -16843,7 +16843,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	  <entry><para><code>perm</code></para></entry>
 	  <entry><para>a string symbolizing the permissions of the file/dir/etc like that output by ls, for example: <code>-rwxr-xr-x</code></para></entry>
 	</row>
-	<row>
+      </tbody>
     </tgroup>
   </table>
 

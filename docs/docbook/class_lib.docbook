@@ -70,6 +70,10 @@
 	    <entry><para>Provides transparent per-thread, per-transaction Datasource connection pooling.</para></entry>
 	  </row>
 	  <row>
+	    <entry><para><code><link linkend="SQLStatement_Class">SQL::SQLStatement</link></code></para></entry>
+	    <entry><para>The class providing the most flexibilty for executing SQL on a database server.</para></entry>
+	  </row>
+	  <row>
 	    <entry><para><code><link linkend="AbstractSmartLock_Class">Thread::AbstractSmartLock</link></code></para></entry>
 	    <entry><para>The abstract base class for locks that support the internal API for use with the <link linkend="Condition_Class">Condition</link> class.</para></entry>
 	  </row>
@@ -23331,6 +23335,8 @@ values (%v, %v, %v, %d)", $string, now(), $binary, 100);</programlisting>
       <para>Any thread attempting to do transaction-relevant actions on a Datasource with auto-commit disabled while a transaction is in progress by another thread will block until the thread currently executing a transaction executes the <link linkend="Datasource::commit">Datasource::commit()</link> or <link linkend="Datasource::rollback">Datasource::rollback()</link> methods (or the Datasource is deleted, reset, or closed, in which case the lock is released and an exception is raised as well).</para>
 
       <para>There is a timeout associated with the transaction lock; if a thread waits for the transaction lock for more than the timeout period, then an exception will be raised in the waiting thread. The timeout value can be read and changed with the <link linkend="Datasource::getTransactionLockTimeout">Datasource::getTransactionLockTimeout()</link> and <link linkend="Datasource::setTransactionLockTimeout">Datasource::setTransactionLockTimeout()</link> methods, respectively. The default transaction lock timeout value is 120 seconds.</para>
+
+      <para>Note that the <link linkend="SQLStatement_Class">SQLStatement class</link> also grabs the transaction lock when executing if it is created using a Datasource object in the constructor; for more information see the <link linkend="SQLStatement_Class">SQLStatement class</link>.</para>
     </sect2>
 
     <table>
@@ -25727,6 +25733,8 @@ $query = $db.select("select * from table where varchar_column = %v and timestamp
 
       <para>Executing a DatasourcePool method while not in a transaction is realized by allocating a temporary connection to the calling thread which is re-released when the method returns.  No explicit commits are executed by the class, therefore it is an error to execute transaction-relevant commands without first calling <link linkend="DatasourcePool::exec">DatasourcePool::exec()</link>, <link linkend="DatasourcePool::vexec">DatasourcePool::vexec()</link>, <link linkend="DatasourcePool::execRaw">DatasourcePool::execRaw()</link>, or <link linkend="DatasourcePool::beginTransaction">DatasourcePool::beginTransaction()</link>.</para>
 
+      <para>Note that the <link linkend="SQLStatement_Class">SQLStatement class</link> also grabs allocates a persistent connection to the calling thread when executing if it is created using a DatasourcePool object in the constructor; for more information see the <link linkend="SQLStatement_Class">SQLStatement class</link>.</para>
+
     </sect2>
 
     <table>
@@ -27522,6 +27530,1583 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
       </table>
 
     </sect2>
+  </sect1>
+
+  <sect1 id="SQLStatement_Class">
+    <title>SQL::SQLStatement Class</title>
+
+    <para>Note: This class is not available with the <code><link linkend="no-database">PO_NO_DATABASE</link></code> parse option.</para>
+
+    <para>The SQLStatement class provides the most flexibilty for executing SQL on a database server.</para>
+
+    <table>
+      <title>SQLStatement Method Overview</title>
+      <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<colspec colnum="2" align="center"/>
+	<thead>
+	  <row>
+	    <entry><para>Method</para></entry>
+	    <entry><para>Except?</para></entry>
+	    <entry><para>Description</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+	  <row>
+	    <entry>
+              <para><code><link linkend="SQLStatement::constructor">SQLStatement::constructor</link>(<link linkend="Datasource_Class">Datasource</link> $ds)</code></para>
+              <para><code><link linkend="SQLStatement::constructor">SQLStatement::constructor</link>(<link linkend="DatasourcePool_Class">DatasourcePool</link> $ds)</code></para>
+            </entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Creates the SQLStatement object based on the given <link linkend="Datasource_Class">Datasource</link> or <link linkend="DatasourcePool_Class">DatasourcePool</link> object that provides the connection to the database.  This method will throw an exception only if the object passed as an argument uses a driver that does not support the prepared statement interface added in Qore version 0.8.1.</para></entry>
+	  </row>
+
+	  <row>
+	    <entry>
+              <para><code><link linkend="SQLStatement::destructor">SQLStatement::destructor</link>()</code></para>
+            </entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Closes the statement if it is open and destroys the object.</para></entry>
+	  </row>
+
+	  <row>
+	    <entry>
+              <para><code><link linkend="SQLStatement::copy">SQLStatement::copy</link>()</code></para>
+            </entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Throws an exception; copying SQLStatement objects is not currently supported.</para></entry>
+	  </row>
+
+	  <row>
+	    <entry>
+              <para><code><link linkend="SQLStatement::prepare">SQLStatement::prepare</link>(<link linkend="string_type">string</link> <replaceable>$sql</replaceable>, ...) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+            </entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Saves an SQL statement that will be prepared and executed later, along with optional arguments.</para></entry>
+	  </row>
+
+	  <row>
+	    <entry>
+              <para><code><link linkend="SQLStatement::prepareRaw">SQLStatement::prepareRaw</link>(<link linkend="string_type">string</link> <replaceable>$sql</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+            </entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Saves an SQL statement that will be prepared and executed later; does not parse the SQL string for placeholder specifications and/or bind by value markers.</para></entry>
+	  </row>
+
+	  <row>
+	    <entry>
+              <para><code><link linkend="SQLStatement::affectedRows">SQLStatement::affectedRows</link>() <command>returns</command> <link linkend="int_type">int</link></code></para>
+            </entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Returns the number of rows affected by the last call to <link linkend="SQLStatement::exec">SQLStatement::exec()</link>.</para></entry>
+	  </row>
+
+	  <row>
+	    <entry>
+              <para><code><link linkend="SQLStatement::bind">SQLStatement::bind</link>(...) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+            </entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Binds placeholder buffer specifications and values to buffers defined in <link linkend="SQLStatement::prepare">SQLStatement::prepare()</link>.</para></entry>
+	  </row>
+
+	  <row>
+	    <entry>
+              <para><code><link linkend="SQLStatement::bindArgs">SQLStatement::bindArgs</link>(<link linkend="list_type">list</link> <replaceable>$args</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+            </entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Binds placeholder buffer specifications and values as given in a list argument to buffers defined in <link linkend="SQLStatement::prepare">SQLStatement::prepare()</link>.</para></entry>
+	  </row>
+
+	  <row>
+	    <entry>
+              <para><code><link linkend="SQLStatement::bindPlaceholders">SQLStatement::bindPlaceholders</link>(...) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+            </entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Binds placeholder buffer specifications only (values are skipped) to buffers defined in <link linkend="SQLStatement::prepare">SQLStatement::prepare()</link>.</para></entry>
+	  </row>
+
+	  <row>
+	    <entry>
+              <para><code><link linkend="SQLStatement::bindPlaceholdersArgs">SQLStatement::bindPlaceholdersArgs</link>(<link linkend="list_type">list</link> <replaceable>$args</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+            </entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Binds placeholder buffer specifications only (values are skipped) as given in a list argument to buffers defined in <link linkend="SQLStatement::prepare">SQLStatement::prepare()</link>.</para></entry>
+	  </row>
+
+	  <row>
+	    <entry>
+              <para><code><link linkend="SQLStatement::bindValues">SQLStatement::bindValues</link>(...) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+            </entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Binds value buffer specifications only (placeholder specifications are skipped) to buffers defined in <link linkend="SQLStatement::prepare">SQLStatement::prepare()</link>.</para></entry>
+	  </row>
+
+	  <row>
+	    <entry>
+              <para><code><link linkend="SQLStatement::bindValuesArgs">SQLStatement::bindValuesArgs</link>(<link linkend="list_type">list</link> <replaceable>$args</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+            </entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Binds value buffer specifications only (placeholder specifications are skipped) as given in a list argument to buffers defined in <link linkend="SQLStatement::prepare">SQLStatement::prepare()</link>.</para></entry>
+	  </row>
+
+	  <row>
+	    <entry>
+              <para><code><link linkend="SQLStatement::exec">SQLStatement::exec</link>(...) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+            </entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Executes the bound statement with any bound buffers, also optionally allows binding placeholder buffer specifications and values to buffers defined in <link linkend="SQLStatement::prepare">SQLStatement::prepare()</link> before executing the statement.</para></entry>
+	  </row>
+
+	  <row>
+	    <entry>
+              <para><code><link linkend="SQLStatement::execArgs">SQLStatement::execArgs</link>(<link linkend="list_type">list</link> <replaceable>$args</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+            </entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Executes the bound statement with any bound buffers, also optionally allows binding placeholder buffer specifications and values as given in a list argument to buffers defined in <link linkend="SQLStatement::prepare">SQLStatement::prepare()</link>.</para></entry>
+	  </row>
+
+	  <row>
+	    <entry>
+              <para><code><link linkend="SQLStatement::getOutput">SQLStatement::getOutput</link>() <command>returns</command> <link linkend="hash_type">hash</link></code></para>
+            </entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Retrieves output buffers as a hash; result sets will be returned as hashes of lists.</para></entry>
+	  </row>
+
+	  <row>
+	    <entry>
+              <para><code><link linkend="SQLStatement::getOutputRows">SQLStatement::getOutputRows</link>() <command>returns</command> <link linkend="hash_type">hash</link></code></para>
+            </entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Retrieves output buffers as a hash; result sets will be returned as lists of hashes.</para></entry>
+	  </row>
+
+	  <row>
+	    <entry>
+              <para><code><link linkend="SQLStatement::next">SQLStatement::next</link>() <command>returns</command> <link linkend="bool_type">bool</link></code></para>
+            </entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Increments the row pointer when retrieving rows from a select statement; returns <code>True</code> if there is a row to retrieve, <code>False</code> if not.</para></entry>
+	  </row>
+
+	  <row>
+	    <entry>
+              <para><code><link linkend="SQLStatement::fetchRow">SQLStatement::fetchRow</link>() <command>returns</command> <link linkend="*hash_type">*hash</link></code></para>
+            </entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Retrieves the current row as a hash where the keys are the column names and the values are the column values.</para></entry>
+	  </row>
+
+	  <row>
+	    <entry>
+              <para><code><link linkend="SQLStatement::fetchRows">SQLStatement::fetchRows</link>(<link linkend="softint_type">softint</link> <replaceable>$rows</replaceable> = -1) <command>returns</command> <link linkend="list_type">list</link></code></para>
+            </entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Retrieves a block of rows as a list of hashes with the maximum number of rows determined by the argument passed; automatically advances the row pointer; with this call it is not necessary to call <link linkend="SQLStatement::next">SQLStatement::next()</link>.</para></entry>
+	  </row>
+
+	  <row>
+	    <entry>
+              <para><code><link linkend="SQLStatement::fetchColumns">SQLStatement::fetchColumns</link>(<link linkend="softint_type">softint</link> <replaceable>$rows</replaceable> = -1) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
+            </entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Retrieves a block of rows as a hash of lists with the maximum number of rows retrieved determined by the argument passed; automatically advances the row pointer; with this call it is not necessary to call <link linkend="SQLStatement::next">SQLStatement::next()</link>.</para></entry>
+	  </row>
+
+	  <row>
+	    <entry>
+              <para><code><link linkend="SQLStatement::close">SQLStatement::close</link>() <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+            </entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Closes the statement if it is open, however this method does not release the connection or transaction lock.</para></entry>
+	  </row>
+
+	  <row>
+	    <entry>
+              <para><code><link linkend="SQLStatement::beginTransaction">SQLStatement::beginTransaction</link>() <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+            </entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Manually starts a transaction and allocates a connection or grabs the transaction lock according to the object used in the <link linkend="SQLStatement::constructor">SQLStatement::constructor()</link>.</para></entry>
+	  </row>
+
+	  <row>
+	    <entry>
+              <para><code><link linkend="SQLStatement::commit">SQLStatement::commit</link>() <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+            </entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Commits the transaction, releases the connection or the transaction lock according to the object used in the <link linkend="SQLStatement::constructor">SQLStatement::constructor()</link>, and closes the SQLStatement.</para></entry>
+	  </row>
+
+	  <row>
+	    <entry>
+              <para><code><link linkend="SQLStatement::commit">SQLStatement::commit</link>() <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+            </entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Closes the SQLStatement, commits the transaction, and releases the connection or the transaction lock according to the object used in the <link linkend="SQLStatement::constructor">SQLStatement::constructor()</link>.</para></entry>
+	  </row>
+
+	  <row>
+	    <entry>
+              <para><code><link linkend="SQLStatement::rollback">SQLStatement::rollback</link>() <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+            </entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Closes the SQLStatement, performs a transaction rollback, and releases the connection or the transaction lock according to the object used in the <link linkend="SQLStatement::constructor">SQLStatement::constructor()</link>.</para></entry>
+	  </row>
+
+	  <row>
+	    <entry>
+              <para><code><link linkend="SQLStatement::getSQL">SQLStatement::getSQL</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para>
+            </entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Returns the current SQL string set with the call to <link linkend="SQLStatement::prepare">SQLStatement::prepare()</link> or <link linkend="SQLStatement::prepareRaw">SQLStatement::prepareRaw()</link> or <command><link linkend="NOTHING">NOTHING</link></command> if no SQL has been set.</para></entry>
+	  </row>
+
+	  <row>
+	    <entry>
+              <para><code><link linkend="SQLStatement::active">SQLStatement::active</link>() <command>returns</command> <link linkend="bool_type">bool</link></code></para>
+            </entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Returns <code>True</code> if the object is currently active and has a connection or transaction lock allocated to it, or <code>False</code> if not.</para></entry>
+	  </row>
+
+	</tbody>
+      </tgroup>
+    </table>
+
+    <sect2 id="SQLStatement::constructor">
+      <title>SQLStatement::constructor()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Creates the SQLStatement object based on the given <link linkend="Datasource_Class">Datasource</link> or <link linkend="DatasourcePool_Class">DatasourcePool</link> object that provides the connection to the database.  This method will throw an exception only if the object passed as an argument uses a driver that does not support the prepared statement interface added in Qore version 0.8.1.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Prototype</term>
+	  <listitem>
+              <para><code><link linkend="SQLStatement::constructor">SQLStatement::constructor</link>(<link linkend="Datasource_Class">Datasource</link> $ds)</code></para>
+              <para><code><link linkend="SQLStatement::constructor">SQLStatement::constructor</link>(<link linkend="DatasourcePool_Class">DatasourcePool</link> $ds)</code></para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting><command>my</command> SQLStatement $stmt($ds);</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for SQLStatement::constructor()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code><link linkend="Datasource_Class">Datasource</link> <replaceable>$ds</replaceable></code></para></entry>
+	      <entry><para>The <link linkend="Datasource_Class">Datasource</link> object to use for the DB connection for the SQLStatement object.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code><link linkend="DatasourcePool_Class">DatasourcePool</link> <replaceable>$dsp</replaceable></code></para></entry>
+	      <entry><para>The <link linkend="DatasourcePool_Class">DatasourcePool</link> object to use for the DB connection for the SQLStatement object.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by SQLStatement::constructor()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>SQLSTATEMENT-ERROR</code></para></entry>
+	      <entry><para>The DBI driver used by the object passed as the sole argument does not support the prepared statement interface added in Qore 0.8.1.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+    </sect2>
+
+    <sect2 id="SQLStatement::destructor">
+      <title>SQLStatement::destructor()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Closes the statement if it is open and destroys the object.</para>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+    </sect2>
+
+    <sect2 id="SQLStatement::copy">
+      <title>SQLStatement::copy()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Throws an exception; objects of this class cannot be copied.</para>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Exceptions Thrown by SQLStatement::copy()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>SQLSTATEMENT-COPY-ERROR</code></para></entry>
+	      <entry><para>Objects of this class cannot be copied.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="SQLStatement::prepare">
+      <title>SQLStatement::prepare()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Saves an SQL statement that will be prepared and executed later, along with optional arguments.  The statement is actually only prepared when used for the first time, this is so that SQLStatement objects created with <link linkend="DatasourcePool_Class">DatasourcePool</link> objects use the <link linkend="DatasourcePool_Class">DatasourcePool</link> more efficiently, as many drivers require the actual DB API prepare call to be made on the same connection as the connection the statement will be executed on as well.</para>
+	    <para>Note that this method parses the SQL string for placeholders and bind by value tokens (<code>%v</code>); for a version of this method that does not parse the SQL string for placeholders and bind by value tokens, see <link linkend="SQLStatement::prepareRaw">SQLStatement::prepareRaw()</link>.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Prototype</term>
+	  <listitem>
+              <para><code><link linkend="SQLStatement::prepare">SQLStatement::prepare</link>(<link linkend="string_type">string</link> <replaceable>$sql</replaceable>, ...) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$stmt.prepare("select * from table where id = %v and name = %v", $fixed_id);</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for SQLStatement::prepare()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code><link linkend="string_type">string</link> <replaceable>$sql</replaceable></code></para></entry>
+	      <entry><para>The SQL string to prepare for execution on the DB server.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>...</code></para></entry>
+	      <entry><para>Any optional placeholder specifications (if required by the underlying DBI driver) or bind by value arguments can be given after the SQL string.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="SQLStatement::prepareRaw">
+      <title>SQLStatement::prepareRaw()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Saves an SQL statement that will be prepared and executed later, along with optional arguments.  The statement is actually only prepared when used for the first time, this is so that SQLStatement objects created with <link linkend="DatasourcePool_Class">DatasourcePool</link> objects use the <link linkend="DatasourcePool_Class">DatasourcePool</link> more efficiently, as many drivers require the actual DB API prepare call to be made on the same connection as the connection the statement will be executed on as well.</para>
+	    <para>Note that this method does not parse the SQL string for placeholders and bind by value tokens (<code>%v</code>); for a version of this method that does parse the SQL string for placeholders and bind by value tokens, see <link linkend="SQLStatement::prepare">SQLStatement::prepare()</link>.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Prototype</term>
+	  <listitem>
+              <para><code><link linkend="SQLStatement::prepare">SQLStatement::prepare</link>(<link linkend="string_type">string</link> <replaceable>$sql</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$stmt.prepareRaw("select * from table where id = %v");</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+      <table>
+	<title>Arguments for SQLStatement::prepareRaw()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code><link linkend="string_type">string</link> <replaceable>$sql</replaceable></code></para></entry>
+	      <entry><para>The SQL string to prepare for execution on the DB server.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="SQLStatement::bind">
+      <title>SQLStatement::bind()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Binds placeholder buffer specifications and values to buffers defined in <link linkend="SQLStatement::prepare">SQLStatement::prepare()</link>.</para>
+	    <para>If the statement has not previously been prepared with the DB API, it will be implicitly prepared by this method call.  This means that this call will cause a connection to be dedicated from a <link linkend="DatasourcePool_Class">DatasourcePool</link> object or the transaction lock to be grabbed with a <link linkend="Datasource_Class">Datasource</link> object, depending on the argument to <link linkend="SQLStatement::constructor">SQLStatement::constructor()</link>.</para>
+
+	    <para>Arguments to buffer specifications must be given in the same order as declared in the string given to the <link linkend="SQLStatement::prepare">SQLStatement::prepare()</link> method.</para>
+
+	    <para>Any arguments previously bound will be released when this call is made.</para>
+
+	    <para>Note that you can also bind directly when calling  <link linkend="SQLStatement::exec">SQLStatement::exec()</link> or <link linkend="SQLStatement::execArgs">SQLStatement::execArgs()</link> as a shortcut as well, in which case it's not necessary to make an extra call to this method.</para>
+
+	    <para>See also: <link linkend="SQLStatement::bindArgs">SQLStatement::bindArgs()</link>, <link linkend="SQLStatement::bindPlaceholders">SQLStatement::bindPlaceholders()</link>, <link linkend="SQLStatement::bindPlaceholdersArgs">SQLStatement::bindPlaceholdersArgs()</link>, <link linkend="SQLStatement::bindValues">SQLStatement::bindValues()</link>, and <link linkend="SQLStatement::bindValuesArgs">SQLStatement::bindValuesArgs()</link>.</para>
+
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Prototype</term>
+	  <listitem>
+              <para><code><link linkend="SQLStatement::bind">SQLStatement::bind</link>(...) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$stmt.prepare("insert into table (id, name) values (%v, %v)");
+foreach my hash $h in ($l) {
+    $stmt.bind($h.id, $h.name);
+    $stmt.exec();
+}</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for SQLStatement::bind()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>...</code></para></entry>
+	      <entry><para>Arguments to placeholder specifications (if required by the underlying DBI driver) and bind by value arguments.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by SQLStatement::bind()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>depends on DBI driver</para></entry>
+	      <entry><para>Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications; see the relevant DBI driver docs for more information</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+    </sect2>
+
+    <sect2 id="SQLStatement::bindArgs">
+      <title>SQLStatement::bindArgs()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Binds placeholder buffer specifications and values given as a list in the single argument to the method to buffers defined in <link linkend="SQLStatement::prepare">SQLStatement::prepare()</link>.</para>
+	    <para>If the statement has not previously been prepared with the DB API, it will be implicitly prepared by this method call.  This means that this call will cause a connection to be dedicated from a <link linkend="DatasourcePool_Class">DatasourcePool</link> object or the transaction lock to be grabbed with a <link linkend="Datasource_Class">Datasource</link> object, depending on the argument to <link linkend="SQLStatement::constructor">SQLStatement::constructor()</link>.</para>
+
+	    <para>Arguments to buffer specifications must be given in the same order as declared in the string given to the <link linkend="SQLStatement::prepare">SQLStatement::prepare()</link> method.</para>
+
+	    <para>Any arguments previously bound will be released when this call is made.</para>
+
+	    <para>Note that you can also bind directly when calling <link linkend="SQLStatement::exec">SQLStatement::exec()</link> or <link linkend="SQLStatement::execArgs">SQLStatement::execArgs()</link> as a shortcut as well, in which case it's not necessary to make an extra call to this method.</para>
+
+	    <para>See also: <link linkend="SQLStatement::bind">SQLStatement::bind()</link>, <link linkend="SQLStatement::bindPlaceholders">SQLStatement::bindPlaceholders()</link>, <link linkend="SQLStatement::bindPlaceholdersArgs">SQLStatement::bindPlaceholdersArgs()</link>, <link linkend="SQLStatement::bindValues">SQLStatement::bindValues()</link>, and <link linkend="SQLStatement::bindValuesArgs">SQLStatement::bindValuesArgs()</link>.</para>
+
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Prototype</term>
+	  <listitem>
+              <para><code><link linkend="SQLStatement::bindArgs">SQLStatement::bindArgs</link>(<link linkend="list_type">list</link> <replaceable>$args</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$stmt.prepare("insert into table (id, name) values (%v, %v)");
+foreach my hash $h in ($l) {
+    my list $l = ($h.id, $h.name);
+    $stmt.bind($l);
+    $stmt.exec();
+}</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for SQLStatement::bindArgs()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code><link linkend="list_type">list</link> <replaceable>$args</replaceable></code></para></entry>
+	      <entry><para>Arguments to placeholder specifications (if required by the underlying DBI driver) and bind by value arguments.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by SQLStatement::bindArgs()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>depends on DBI driver</para></entry>
+	      <entry><para>Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications; see the relevant DBI driver docs for more information</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="SQLStatement::bindPlaceholders">
+      <title>SQLStatement::bindPlaceholders()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Binds placeholder buffer specifications to buffers defined in <link linkend="SQLStatement::prepare">SQLStatement::prepare()</link>.</para>
+	    <para>If the statement has not previously been prepared with the DB API, it will be implicitly prepared by this method call.  This means that this call will cause a connection to be dedicated from a <link linkend="DatasourcePool_Class">DatasourcePool</link> object or the transaction lock to be grabbed with a <link linkend="Datasource_Class">Datasource</link> object, depending on the argument to <link linkend="SQLStatement::constructor">SQLStatement::constructor()</link>.</para>
+
+	    <para>Arguments to buffer specifications must be given in the same order as declared in the string given to the <link linkend="SQLStatement::prepare">SQLStatement::prepare()</link> method.  Only placeholder buffer specifications will be processed; value buffer specifications will be skipped by this method.</para>
+
+	    <para>Any buffer specifications previously defined will be released when this call is made.</para>
+
+	    <para>Note that you can also bind buffer specifications directly when calling  <link linkend="SQLStatement::exec">SQLStatement::exec()</link> or <link linkend="SQLStatement::execArgs">SQLStatement::execArgs()</link> as a shortcut as well, in which case it's not necessary to make an extra call to this method.</para>
+
+	    <para>See also: <link linkend="SQLStatement::bind">SQLStatement::bind()</link>, <link linkend="SQLStatement::bindArgs">SQLStatement::bindArgs()</link>, <link linkend="SQLStatement::bindPlaceholdersArgs">SQLStatement::bindPlaceholdersArgs()</link>, <link linkend="SQLStatement::bindValues">SQLStatement::bindValues()</link>, and <link linkend="SQLStatement::bindValuesArgs">SQLStatement::bindValuesArgs()</link>.</para>
+
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Prototype</term>
+	  <listitem>
+              <para><code><link linkend="SQLStatement::bindPlaceholders">SQLStatement::bindPlaceholders</link>(...) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$stmt.prepare("begin select sysdate into :sd from dual", Type::Date); end;
+$stmt.bindPlaceholders(Type::Date);
+my date $d = $stmt.getOutput().sd;</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for SQLStatement::bindPlaceholders()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>...</code></para></entry>
+	      <entry><para>Arguments to placeholder specifications (if required by the underlying DBI driver).</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by SQLStatement::bindPlaceholders()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>depends on DBI driver</para></entry>
+	      <entry><para>Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications; see the relevant DBI driver docs for more information</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+    </sect2>
+
+    <sect2 id="SQLStatement::bindPlaceholdersArgs">
+      <title>SQLStatement::bindPlaceholdersArgs()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Binds placeholder buffer specifications given as a list in the single argument to the method to buffers defined in <link linkend="SQLStatement::prepare">SQLStatement::prepare()</link>.</para>
+	    <para>If the statement has not previously been prepared with the DB API, it will be implicitly prepared by this method call.  This means that this call will cause a connection to be dedicated from a <link linkend="DatasourcePool_Class">DatasourcePool</link> object or the transaction lock to be grabbed with a <link linkend="Datasource_Class">Datasource</link> object, depending on the argument to <link linkend="SQLStatement::constructor">SQLStatement::constructor()</link>.</para>
+
+	    <para>Arguments to buffer specifications must be given in the same order as declared in the string given to the <link linkend="SQLStatement::prepare">SQLStatement::prepare()</link> method.  Only placeholder buffer specifications will be processed; value buffer specifications will be skipped by this method.</para>
+
+	    <para>Any arguments previously bound will be released when this call is made.</para>
+
+	    <para>Note that you can also bind directly when calling <link linkend="SQLStatement::exec">SQLStatement::exec()</link> or <link linkend="SQLStatement::execArgs">SQLStatement::execArgs()</link> as a shortcut as well, in which case it's not necessary to make an extra call to this method.</para>
+
+	    <para>See also: <link linkend="SQLStatement::bind">SQLStatement::bind()</link>, <link linkend="SQLStatement::bindArgs">SQLStatement::bindArgs()</link>, <link linkend="SQLStatement::bindPlaceholders">SQLStatement::bindPlaceholders()</link>, <link linkend="SQLStatement::bindValues">SQLStatement::bindValues()</link>, and <link linkend="SQLStatement::bindValuesArgs">SQLStatement::bindValuesArgs()</link>.</para>
+
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Prototype</term>
+	  <listitem>
+              <para><code><link linkend="SQLStatement::bindPlaceholdersArgs">SQLStatement::bindPlaceholdersArgs</link>(<link linkend="list_type">list</link> <replaceable>$args</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$stmt.prepare("begin select sysdate into :sd from dual", Type::Date); end;
+my list $l = list(Type::Date);
+$stmt.bindPlaceholdersArgs($l);
+my date $d = $stmt.getOutput().sd;</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for SQLStatement::bindPlaceholdersArgs()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code><link linkend="list_type">list</link> <replaceable>$args</replaceable></code></para></entry>
+	      <entry><para>Arguments to placeholder specification (if required by the underlying DBI driver).</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by SQLStatement::bindPlaceholdersArgs()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>depends on DBI driver</para></entry>
+	      <entry><para>Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications; see the relevant DBI driver docs for more information</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+    </sect2>
+
+    <sect2 id="SQLStatement::bindValues">
+      <title>SQLStatement::bindValues()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Binds values to value buffer specifications to buffers defined in <link linkend="SQLStatement::prepare">SQLStatement::prepare()</link>.</para>
+	    <para>If the statement has not previously been prepared with the DB API, it will be implicitly prepared by this method call.  This means that this call will cause a connection to be dedicated from a <link linkend="DatasourcePool_Class">DatasourcePool</link> object or the transaction lock to be grabbed with a <link linkend="Datasource_Class">Datasource</link> object, depending on the argument to <link linkend="SQLStatement::constructor">SQLStatement::constructor()</link>.</para>
+
+	    <para>Arguments must be given in the same order as declared in the string given to the <link linkend="SQLStatement::prepare">SQLStatement::prepare()</link> method.  Only bind by value buffer specifications will be processed by this method; placeholder buffer specifications will be skipped.</para>
+
+	    <para>Any values previously bound will be released when this call is made.</para>
+
+	    <para>Note that you can also bind buffer specifications directly when calling  <link linkend="SQLStatement::exec">SQLStatement::exec()</link> or <link linkend="SQLStatement::execArgs">SQLStatement::execArgs()</link> as a shortcut as well, in which case it's not necessary to make an extra call to this method.</para>
+
+	    <para>See also: <link linkend="SQLStatement::bind">SQLStatement::bind()</link>, <link linkend="SQLStatement::bindArgs">SQLStatement::bindArgs()</link>, <link linkend="SQLStatement::bindPlaceholders">SQLStatement::bindPlaceholders()</link>, <link linkend="SQLStatement::bindPlaceholdersArgs">SQLStatement::bindPlaceholdersArgs()</link>, and <link linkend="SQLStatement::bindValuesArgs">SQLStatement::bindValuesArgs()</link>.</para>
+
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Prototype</term>
+	  <listitem>
+              <para><code><link linkend="SQLStatement::bindValues">SQLStatement::bindValues</link>(...) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$stmt.prepare("insert into table (id, name) values (%v, %v)");
+foreach my hash $h in ($l) {
+    $stmt.bindValues($h.id, $h.name);
+    $stmt.exec();
+}</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for SQLStatement::bindValues()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>...</code></para></entry>
+	      <entry><para>Arguments to bind by value as per value buffer specifications in the prepared SQL string.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by SQLStatement::bindValues()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>depends on DBI driver</para></entry>
+	      <entry><para>Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications; see the relevant DBI driver docs for more information</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+    </sect2>
+
+    <sect2 id="SQLStatement::bindValuesArgs">
+      <title>SQLStatement::bindValuesArgs()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Binds values to value buffer specifications given as a list in the single argument to the method to value buffers defined in <link linkend="SQLStatement::prepare">SQLStatement::prepare()</link>.</para>
+	    <para>If the statement has not previously been prepared with the DB API, it will be implicitly prepared by this method call.  This means that this call will cause a connection to be dedicated from a <link linkend="DatasourcePool_Class">DatasourcePool</link> object or the transaction lock to be grabbed with a <link linkend="Datasource_Class">Datasource</link> object, depending on the argument to <link linkend="SQLStatement::constructor">SQLStatement::constructor()</link>.</para>
+
+	    <para>Arguments to value buffer specifications must be given in the same order as declared in the string given to the <link linkend="SQLStatement::prepare">SQLStatement::prepare()</link> method.  Only value buffer specifications will be processed by this method; value buffer specifications will be skipped.</para>
+
+	    <para>Any arguments previously bound will be released when this call is made.</para>
+
+	    <para>Note that you can also bind directly when calling <link linkend="SQLStatement::exec">SQLStatement::exec()</link> or <link linkend="SQLStatement::execArgs">SQLStatement::execArgs()</link> as a shortcut as well, in which case it's not necessary to make an extra call to this method.</para>
+
+	    <para>See also: <link linkend="SQLStatement::bind">SQLStatement::bind()</link>, <link linkend="SQLStatement::bindArgs">SQLStatement::bindArgs()</link>, <link linkend="SQLStatement::bindValues">SQLStatement::bindValues()</link>, <link linkend="SQLStatement::bindValues">SQLStatement::bindValues()</link>, and <link linkend="SQLStatement::bindValuesArgs">SQLStatement::bindValuesArgs()</link>.</para>
+
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Prototype</term>
+	  <listitem>
+              <para><code><link linkend="SQLStatement::bindValuesArgs">SQLStatement::bindValuesArgs</link>(<link linkend="list_type">list</link> <replaceable>$args</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$stmt.prepare("insert into table (id, name) values (%v, %v)");
+foreach my hash $h in ($l) {
+    my list $l = ($h.id, $h.name);
+    $stmt.bindValuesArgs($l);
+    $stmt.exec();
+}</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for SQLStatement::bindValuesArgs()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code><link linkend="list_type">list</link> <replaceable>$args</replaceable></code></para></entry>
+	      <entry><para>Arguments to bind by value as per value buffer specifications in the prepared SQL string.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by SQLStatement::bindValuesArgs()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>depends on DBI driver</para></entry>
+	      <entry><para>Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications; see the relevant DBI driver docs for more information</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+    </sect2>
+
+    <sect2 id="SQLStatement::exec">
+      <title>SQLStatement::exec()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Executes the bound statement with any bound buffers, also optionally allows binding placeholder buffer specifications and values to buffers defined in <link linkend="SQLStatement::prepare">SQLStatement::prepare()</link> before executing the statement.</para>
+
+	    <para>If the statement has not previously been prepared with the DB API, it will be implicitly prepared by this method call.  This means that this call will cause a connection to be dedicated from a <link linkend="DatasourcePool_Class">DatasourcePool</link> object or the transaction lock to be grabbed with a <link linkend="Datasource_Class">Datasource</link> object, depending on the argument to <link linkend="SQLStatement::constructor">SQLStatement::constructor()</link>.</para>
+
+	    <para>Optional arguments to buffer specifications must be given in the same order as declared in the string given to the <link linkend="SQLStatement::prepare">SQLStatement::prepare()</link> method.</para>
+
+	    <para>If bind arguments are provided, any arguments previously bound will be released when this call is made.</para>
+
+	    <para>After calling this method to execute the statement, to retrieve information about the call or output values bound in the call, call <link linkend="SQLStatement::affectedRows">SQLStatement::affectedRows()</link>, <link linkend="SQLStatement::getOutput">SQLStatement::getOutput()</link>, or <link linkend="SQLStatement::getOutputRows">SQLStatement::getOutputRows()</link> as needed.  To retrieve rows from a select statement call either <link linkend="SQLStatement::next">SQLStatement::next()</link> and <link linkend="SQLStatement::fetchRow">SQLStatement::fetchRow()</link>, or <link linkend="SQLStatement::fetchRows">SQLStatement::fetchRows()</link> or <link linkend="SQLStatement::fetchColumns">SQLStatement::fetchColumns()</link> as needed.</para>
+
+	    <para>See also: <link linkend="SQLStatement::execArgs">SQLStatement::execArgs()</link>.</para>
+
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Prototype</term>
+	  <listitem>
+              <para><code><link linkend="SQLStatement::exec">SQLStatement::exec</link>(...) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$stmt.prepare("insert into table (id, name) values (%v, %v)");
+foreach my hash $h in ($l) {
+    $stmt.exec($h.id, $h.name);
+}</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for SQLStatement::exec()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>...</code></para></entry>
+	      <entry><para>Optional arguments to placeholder specifications (if required by the underlying DBI driver) and bind by value arguments can be given in the call to the method; if present, arguments are bound before the statement is executed.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by SQLStatement::exec()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>depends on DBI driver</para></entry>
+	      <entry><para>Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications or when the statement is executed; see the relevant DBI driver docs for more information</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+    </sect2>
+
+    <sect2 id="SQLStatement::execArgs">
+      <title>SQLStatement::execArgs()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Executes the bound statement with any bound buffers, also optionally allows binding placeholder buffer specifications and values given as a list in the single argument to the method to buffers defined in <link linkend="SQLStatement::prepare">SQLStatement::prepare()</link>.</para>
+
+	    <para>If the statement has not previously been prepared with the DB API, it will be implicitly prepared by this method call.  This means that this call will cause a connection to be dedicated from a <link linkend="DatasourcePool_Class">DatasourcePool</link> object or the transaction lock to be grabbed with a <link linkend="Datasource_Class">Datasource</link> object, depending on the argument to <link linkend="SQLStatement::constructor">SQLStatement::constructor()</link>.</para>
+
+	    <para>Optional arguments to buffer specifications must be given in the same order as declared in the string given to the <link linkend="SQLStatement::prepare">SQLStatement::prepare()</link> method.</para>
+
+	    <para>If bind arguments are provided, any arguments previously bound will be released when this call is made.</para>
+
+	    <para>After calling this method to execute the statement, to retrieve information about the call or output values bound in the call, call <link linkend="SQLStatement::affectedRows">SQLStatement::affectedRows()</link>, <link linkend="SQLStatement::getOutput">SQLStatement::getOutput()</link>, or <link linkend="SQLStatement::getOutputRows">SQLStatement::getOutputRows()</link> as needed.  To retrieve rows from a select statement call either <link linkend="SQLStatement::next">SQLStatement::next()</link> and <link linkend="SQLStatement::fetchRow">SQLStatement::fetchRow()</link>, or <link linkend="SQLStatement::fetchRows">SQLStatement::fetchRows()</link> or <link linkend="SQLStatement::fetchColumns">SQLStatement::fetchColumns()</link> as needed.</para>
+
+	    <para>See also: <link linkend="SQLStatement::exec">SQLStatement::exec()</link>.</para>
+
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Prototype</term>
+	  <listitem>
+              <para><code><link linkend="SQLStatement::execArgs">SQLStatement::execArgs</link>(<link linkend="list_type">list</link> <replaceable>$args</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$stmt.prepare("insert into table (id, name) values (%v, %v)");
+foreach my hash $h in ($l) {
+    my list $l = ($h.id, $h.name);
+    $stmt.execArgs($l);
+}</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for SQLStatement::execArgs()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code><link linkend="list_type">list</link> <replaceable>$args</replaceable></code></para></entry>
+	      <entry><para>Optional arguments to placeholder specifications (if required by the underlying DBI driver) and bind by value arguments can be given in the call to the method; if present, arguments are bound before the statement is executed.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by SQLStatement::execArgs()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para>depends on DBI driver</para></entry>
+	      <entry><para>Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications or when the statement is executed; see the relevant DBI driver docs for more information</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+    </sect2>
+
+    <sect2 id="SQLStatement::getOutput">
+      <title>SQLStatement::getOutput()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Retrieves output buffers as a hash; result sets will be returned as hashes of lists.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Prototype</term>
+	  <listitem>
+              <para><code><link linkend="SQLStatement::getOutput">SQLStatement::getOutput</link>() <command>returns</command> <link linkend="hash_type">hash</link></code></para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting><command>my</command> hash $h = $stmt.getOutput();</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Return Values for SQLStatement::getOutput()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code><link linkend="hash_type">hash</link></code></para></entry>
+	      <entry><para>Retrieves output buffers as a hash; result sets will be returned as hashes of lists.  Each key in the hash is the same as the name given to the placeholder specification in the call to <link linkend="SQLStatement::prepare">SQLStatement::prepare()</link> or <link linkend="SQLStatement::prepareRaw">SQLStatement::prepareRaw()</link></para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="SQLStatement::getOutputRows">
+      <title>SQLStatement::getOutputRows()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Retrieves output buffers as a hash; result sets will be returned as lists of hashes.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Prototype</term>
+	  <listitem>
+              <para><code><link linkend="SQLStatement::getOutputRows">SQLStatement::getOutputRows</link>() <command>returns</command> <link linkend="hash_type">hash</link></code></para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting><command>my</command> hash $h = $stmt.getOutputRows();</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Return Values for SQLStatement::getOutputRows()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code><link linkend="hash_type">hash</link></code></para></entry>
+	      <entry><para>Retrieves output buffers as a hash; result sets will be returned as lists of hashes.  Each key in the hash is the same as the name given to the placeholder specification in the call to <link linkend="SQLStatement::prepare">SQLStatement::prepare()</link> or <link linkend="SQLStatement::prepareRaw">SQLStatement::prepareRaw()</link></para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="SQLStatement::affectedRows">
+      <title>SQLStatement::affectedRows()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Returns the number of rows affected by the last call to <link linkend="SQLStatement::exec">SQLStatement::exec()</link>.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Prototype</term>
+	  <listitem>
+              <para><code><link linkend="SQLStatement::affectedRows">SQLStatement::affectedRows</link>() <command>returns</command> <link linkend="int_type">int</link></code></para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting><command>my</command> int $rc = $stmt.affectedRows();</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Return Values for SQLStatement::affectedRows()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+	      <entry><para>Returns the number of rows affected by the last call to <link linkend="SQLStatement::exec">SQLStatement::exec()</link>.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="SQLStatement::next">
+      <title>SQLStatement::next()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Increments the row pointer when retrieving rows from a select statement; returns <code>True</code> if there is a row to retrieve, <code>False</code> if not.</para>
+	    <para>If this method returns <code>True</code>, then call <link linkend="SQLStatement::fetchRow">SQLStatement::fetchRow()</link> afterwards to retrieve the row.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Prototype</term>
+	  <listitem>
+	    <para><code><link linkend="SQLStatement::next">SQLStatement::next</link>() <command>returns</command> <link linkend="bool_type">bool</link></code></para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>while ($stmt.next()) {
+    my hash $h = $stmt.fetchRow();
+}</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Return Values for SQLStatement::next()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
+	      <entry><para>Returns <code>True</code> if there is a row to retrieve, <code>False</code> if not (all rows have already been retrieved).</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="SQLStatement::fetchRow">
+      <title>SQLStatement::fetchRow()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Retrieves the current row as a hash where the keys are the column names and the values are the column values.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Prototype</term>
+	  <listitem>
+	    <para><code><link linkend="SQLStatement::fetchRow">SQLStatement::fetchRow</link>() <command>returns</command> <link linkend="*hash_type">*hash</link></code></para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>while ($stmt.next()) {
+    my hash $h = $stmt.fetchRow();
+}</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Return Values for SQLStatement::fetchRow()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code><link linkend="*hash_type">*hash</link></code></para></entry>
+	      <entry><para>Returns the current row as a hash where the keys are the column names and the values are the column values.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="SQLStatement::fetchRows">
+      <title>SQLStatement::fetchRows()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Retrieves a block of rows as a list of hashes with the maximum number of rows determined by the argument passed; automatically advances the row pointer; with this call it is not necessary to call <link linkend="SQLStatement::next">SQLStatement::next()</link>.</para>
+	    <para>If the argument passed is omitted or less than or equal to zero, then all available rows from the current row position are retrieved, also if fewer rows are available than requested then only the rows available are retrieved.</para>
+	    <para>If no more rows are available then an empty list is returned.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Prototype</term>
+	  <listitem>
+	    <para><code><link linkend="SQLStatement::fetchRows">SQLStatement::fetchRows</link>(<link linkend="softint_type">softint</link> <replaceable>$rows</replaceable> = -1) <command>returns</command> <link linkend="list_type">list</link></code></para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>my list $l = $stmt.fetchRows(-1);</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for SQLStatement::fetchRows()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$rows</replaceable> = -1</code></para></entry>
+	      <entry><para>The maximum number of rows to retrieve, if this argument is omitted, negative, or equal to zero, then all available rows from the current row position are retrieved.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for SQLStatement::fetchRows()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code><link linkend="list_type">list</link></code></para></entry>
+	      <entry><para>Returns a list of hashes with the maximum number of rows determined by the argument passed.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="SQLStatement::fetchColumns">
+      <title>SQLStatement::fetchColumns()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Retrieves a block of rows as a hash of lists with the maximum number of rows determined by the argument passed; automatically advances the row pointer; with this call it is not necessary to call <link linkend="SQLStatement::next">SQLStatement::next()</link>.</para>
+	    <para>If the argument passed is omitted or less than or equal to zero, then all available rows from the current row position are retrieved, also if fewer rows are available than requested then only the rows available are retrieved.</para>
+	    <para>If no more rows are available then a hash is returned where each key value is an empty list.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Prototype</term>
+	  <listitem>
+              <para><code><link linkend="SQLStatement::fetchColumns">SQLStatement::fetchColumns</link>(<link linkend="softint_type">softint</link> <replaceable>$rows</replaceable> = -1) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>my hash $h = $stmt.fetchColumns(-1);</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for SQLStatement::fetchColumns()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$rows</replaceable> = -1</code></para></entry>
+	      <entry><para>The maximum number of rows to retrieve, if this argument is omitted, negative, or equal to zero, then all available rows from the current row position are retrieved.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for SQLStatement::fetchColumns()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code><link linkend="hash_type">hash</link></code></para></entry>
+	      <entry><para>Returns a hash of lists with the maximum number of rows determined by the argument passed.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="SQLStatement::close">
+      <title>SQLStatement::close()</title>
+
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Closes the statement if it is open, however this method does not release the connection or transaction lock.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Prototype</term>
+	  <listitem>
+	    <para><code><link linkend="SQLStatement::close">SQLStatement::close</link>() <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$stmt.close();</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+    </sect2>
+
+    <sect2 id="SQLStatement::beginTransaction">
+      <title>SQLStatement::beginTransaction()</title>
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Manually starts a transaction and allocates a connection or grabs the transaction lock according to the object used in the <link linkend="SQLStatement::constructor">SQLStatement::constructor()</link>.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Prototype</term>
+	  <listitem>
+	    <para><code><link linkend="SQLStatement::beginTransaction">SQLStatement::beginTransaction</link>() <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$stmt.beginTransaction();</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+    </sect2>
+
+    <sect2 id="SQLStatement::commit">
+      <title>SQLStatement::commit()</title>
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Commits the transaction, releases the connection or the transaction lock according to the object used in the <link linkend="SQLStatement::constructor">SQLStatement::constructor()</link>, and closes the SQLStatement.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Prototype</term>
+	  <listitem>
+	    <para><code><link linkend="SQLStatement::commit">SQLStatement::commit</link>() <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$stmt.commit();</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+    </sect2>
+
+    <sect2 id="SQLStatement::rollback">
+      <title>SQLStatement::rollback()</title>
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Closes the SQLStatement, performs a transaction rollback, and releases the connection or the transaction lock according to the object used in the <link linkend="SQLStatement::constructor">SQLStatement::constructor()</link>.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Prototype</term>
+	  <listitem>
+	    <para><code><link linkend="SQLStatement::rollback">SQLStatement::rollback</link>() <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$stmt.rollback();</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+    </sect2>
+
+    <sect2 id="SQLStatement::getSQL">
+      <title>SQLStatement::getSQL()</title>
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Returns the current SQL string set with the call to <link linkend="SQLStatement::prepare">SQLStatement::prepare()</link> or <link linkend="SQLStatement::prepareRaw">SQLStatement::prepareRaw()</link> or <command><link linkend="NOTHING">NOTHING</link></command> if no SQL has been set.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Prototype</term>
+	  <listitem>
+	    <para><code><link linkend="SQLStatement::getSQL">SQLStatement::getSQL</link>() <command>returns</command> <link linkend="*string_type">*string</link></code></para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting><command>my</command> *string $sql = $stmt.getSQL();</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+      <table>
+	<title>Return Values for SQLStatement::getSQL()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code><link linkend="*string_type">*string</link></code></para></entry>
+	      <entry><para>Returns the current SQL string set with the call to <link linkend="SQLStatement::prepare">SQLStatement::prepare()</link> or <link linkend="SQLStatement::prepareRaw">SQLStatement::prepareRaw()</link> or <command><link linkend="NOTHING">NOTHING</link></command> if no SQL has been set.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="SQLStatement::active">
+      <title>SQLStatement::active()</title>
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Returns <code>True</code> if the object is currently active and has a connection or transaction lock allocated to it, or <code>False</code> if not.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Prototype</term>
+	  <listitem>
+	    <para><code><link linkend="SQLStatement::active">SQLStatement::active</link>() <command>returns</command> <link linkend="bool_type">bool</link></code></para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>if ($stmt.active())
+    $stmt.commit();</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+      <table>
+	<title>Return Values for SQLStatement::active()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
+	      <entry><para>Returns <code>True</code> if the object is currently active and has a connection or transaction lock allocated to it, or <code>False</code> if not.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
   </sect1>
 
   <sect1 id="AbstractSmartLock_Class">
