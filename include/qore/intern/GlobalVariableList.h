@@ -31,10 +31,10 @@
 
 class Var;
 
-typedef std::map<const char*,  Var *, ltstr> map_var_t;
+typedef std::map<const char*, Var *, ltstr> map_var_t;
 
 // this is a "grow-only" container
-// all reading and writing is done withing the parse lock on the contining program object
+// all reading and writing is done within the parse lock on the containing program object
 class GlobalVariableList {
 private:
    map_var_t vmap, pending_vmap;
