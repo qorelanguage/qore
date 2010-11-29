@@ -181,6 +181,7 @@ class QoreClass {
    friend class BCNode;
    friend class BCSMList;
    friend class qore_object_private;
+   friend class qore_class_private;
    friend class QoreObject;
    friend class BCANode;
    friend class qore_method_private;

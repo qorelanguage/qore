@@ -206,6 +206,11 @@ static QoreListNode *splice_expressions(AbstractQoreNode *a1, AbstractQoreNode *
 typedef std::pair<char *, QoreMemberInfo *> member_pair_t;
 
 struct MemberInfo {
+protected:
+   DLLLOCAL MemberInfo() {
+   }
+
+public:
    enum mi_e { Member, Constant, Var };
 
    char *name;
@@ -288,9 +293,9 @@ protected:
 
 public:
    DLLLOCAL MemberList(MemberInfo *member) {
-      if (member->type == Member)
+      if (member->type == MemberInfo::Member)
 	 mmap.insert(member->getPair());
-      else if (member->type == Constant)
+      else if (member->type == MemberInfo::Constant)
 	 cmap.parseAdd(member->name, member->takeExp());
       else
 	 vmap.insert(member->getPair());
@@ -304,7 +309,7 @@ public:
    // takes over ownership of name and typeInfo
    DLLLOCAL int add(MemberInfo *member) {
       std::auto_ptr<MemberInfo> mem(member);
-      if (member->type == Member) {
+      if (member->type == MemberInfo::Member) {
 	 if (mmap.find(member->name) != mmap.end()) {
 	    parse_error("duplicate member declaration '%s'", member->name);
 	    return -1;
@@ -313,7 +318,7 @@ public:
 	 // add new member to list
 	 mmap.insert(member->getPair());
       }
-      else if (member->type == Constant) {
+      else if (member->type == MemberInfo::Constant) {
 	 if (cmap.inList(member->name)) {
 	    parse_error("duplicate constant declaration '%s'", member->name);
 	    return -1;
@@ -323,7 +328,7 @@ public:
 	 cmap.parseAdd(member->name, member->takeExp());
       }
       else {
-	 assert(member->type == Var);
+	 assert(member->type == MemberInfo::Var);
 	 if (vmap.find(member->name) != vmap.end()) {
 	    parse_error("duplicate static class variable declaration '%s'", member->name);
 	    return -1;
@@ -346,7 +351,7 @@ public:
 
       // merge private static class variables
       while ((i = vmap.begin()) != vmap.end()) {
-	 qc->parseAddPrivateStaticVariable(i->first, i->second);
+	 qore_class_private::parseAddPrivateStaticVar(qc, i->first, i->second);
 	 vmap.erase(i);
       }
 
@@ -369,7 +374,7 @@ public:
 
       // merge public static class variables
       while ((i = vmap.begin()) != vmap.end()) {
-	 qc->parseAddPublicStaticVariable(i->first, i->second);
+	 qore_class_private::parseAddPublicStaticVar(qc, i->first, i->second);
 	 vmap.erase(i);
       }
 
@@ -1623,11 +1628,13 @@ member2:
 	   $$ = new MemberInfo($2, $4);
 	}
 	| TOK_STATIC qtypedef IDENTIFIER ';' {
-	   $$ = new MemberInfo($3, new QoreMemberInfo($2.first_line, @3.last_line, $2->getTypeInfo(), $2->getParseTypeInfo()));
+	   int fl = $2 ? @2.first_line : @3.first_line;
+	   $$ = new MemberInfo($3, new QoreMemberInfo(fl, @3.last_line, $2->getTypeInfo(), $2->getParseTypeInfo()));
 	   delete $2;
 	}
         | TOK_STATIC qtypedef IDENTIFIER '=' exp ';' {
-	   $$ = new MemberInfo($3, new QoreMemberInfo(@1.first_line, @5.last_line, $2->getTypeInfo(), $2->getParseTypeInfo(), $5));
+	   int fl = $2 ? @2.first_line : @3.first_line;
+	   $$ = new MemberInfo($3, new QoreMemberInfo(fl, @5.last_line, $2->getTypeInfo(), $2->getParseTypeInfo(), $5));
 	   delete $2;
 	}
         | TOK_STATIC qtypedef IDENTIFIER '(' myexp ')' ';' {
@@ -1641,7 +1648,8 @@ member2:
 	   else
 	      new_call = new ScopedObjectCallNode(new NamedScope(strdup($2->getClassName())), makeArgs($5));
 
-	   $$ = new MemberInfo($3, new QoreMemberInfo(@1.first_line, @5.last_line, $2->getTypeInfo(), $2->getParseTypeInfo(), new_call));
+	   int fl = $2 ? @2.first_line : @3.first_line;
+	   $$ = new MemberInfo($3, new QoreMemberInfo(fl, @5.last_line, $2->getTypeInfo(), $2->getParseTypeInfo(), new_call));
 
 	   delete $2;
 	}
