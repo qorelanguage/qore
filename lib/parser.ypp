@@ -293,6 +293,9 @@ protected:
 
 public:
    DLLLOCAL MemberList(MemberInfo *member) {
+      if (!member)
+	 return;
+
       if (member->type == MemberInfo::Member)
 	 mmap.insert(member->getPair());
       else if (member->type == MemberInfo::Constant)
@@ -308,7 +311,11 @@ public:
 
    // takes over ownership of name and typeInfo
    DLLLOCAL int add(MemberInfo *member) {
+      if (!member)
+	 return -1;
+
       std::auto_ptr<MemberInfo> mem(member);
+
       if (member->type == MemberInfo::Member) {
 	 if (mmap.find(member->name) != mmap.end()) {
 	    parse_error("duplicate member declaration '%s'", member->name);
@@ -1037,9 +1044,10 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str) {
 %type <bcanode>     base_constructor
 %type <string>      ident_openparen
 %type <parsertype>  qtypedef
+%type <parsertype>  uncqtypedef
 
  // destructor actions for elements that need deleting when parse errors occur
-%destructor { delete $$; } REGEX REGEX_SUBST REGEX_EXTRACT REGEX_TRANS block statement_or_block statements statement return_statement try_statement hash_element context_mods context_mod method_definition class_def top_namespace_decl namespace_decls namespace_decl scoped_const_decl unscoped_const_decl switch_statement case_block case_code superclass base_constructor private_member_list public_member_list member_list member_list2 base_constructor_list base_constructors class_attributes return_value member member2 superclass_list inheritance_list qtypedef
+%destructor { delete $$; } REGEX REGEX_SUBST REGEX_EXTRACT REGEX_TRANS block statement_or_block statements statement return_statement try_statement hash_element context_mods context_mod method_definition class_def top_namespace_decl namespace_decls namespace_decl scoped_const_decl unscoped_const_decl switch_statement case_block case_code superclass base_constructor private_member_list public_member_list member_list member_list2 base_constructor_list base_constructors class_attributes return_value member member2 superclass_list inheritance_list qtypedef uncqtypedef
 %destructor { if ($$) $$->deref(); } string QUOTED_WORD DATETIME BINARY IMPLICIT_ARG_REF DOT_KW_IDENTIFIER
 %destructor { if ($$) $$->deref(0); } exp myexp scalar hash list
 %destructor { free($$); } IDENTIFIER VAR_REF SELF_REF CONTEXT_REF COMPLEX_CONTEXT_REF BACKQUOTE SCOPED_REF KW_IDENTIFIER_OPENPAREN optname ident_openparen
@@ -1558,10 +1566,8 @@ class_attributes:
 	}
         ;
 
-qtypedef:
-        /* empty */
-        { $$ = 0; }
-        | IDENTIFIER {
+uncqtypedef:
+        IDENTIFIER {
 	   $$ = new ParserTypeStruct($1);
 	}
         | SCOPED_REF {
@@ -1572,6 +1578,14 @@ qtypedef:
         }
         | '*' SCOPED_REF {
 	   $$ = new ParserScopedOrNothingTypeStruct($2);
+        }
+        ;
+
+qtypedef:
+        /* empty */
+        { $$ = 0; }
+        | uncqtypedef {
+           $$ = $1;
         }
         ;
 
@@ -1623,33 +1637,30 @@ member2:
 
 	   delete $1;
 	}
-        | TOK_CONST IDENTIFIER '=' exp ';' { 
-	   const_ok($2, $4);
-	   $$ = new MemberInfo($2, $4);
-	}
-	| TOK_STATIC qtypedef IDENTIFIER ';' {
-	   int fl = $2 ? @2.first_line : @3.first_line;
-	   $$ = new MemberInfo($3, new QoreMemberInfo(fl, @3.last_line, $2->getTypeInfo(), $2->getParseTypeInfo()));
+	| TOK_STATIC uncqtypedef IDENTIFIER ';' {
+	   $$ = new ClassVarInfo($3, new QoreMemberInfo(@2.first_line, @3.last_line, $2->getTypeInfo(), $2->getParseTypeInfo()));
 	   delete $2;
 	}
-        | TOK_STATIC qtypedef IDENTIFIER '=' exp ';' {
-	   int fl = $2 ? @2.first_line : @3.first_line;
-	   $$ = new MemberInfo($3, new QoreMemberInfo(fl, @5.last_line, $2->getTypeInfo(), $2->getParseTypeInfo(), $5));
-	   delete $2;
+	| TOK_STATIC IDENTIFIER ';' {
+	   $$ = new ClassVarInfo($2, new QoreMemberInfo(@2.first_line, @2.last_line));
 	}
-        | TOK_STATIC qtypedef IDENTIFIER '(' myexp ')' ';' {
+        | TOK_STATIC uncqtypedef IDENTIFIER '=' exp ';' {
+	   $$ = new ClassVarInfo($3, new QoreMemberInfo(@2.first_line, @5.last_line, $2->getTypeInfo(), $2->getParseTypeInfo(), $5));
+	   delete $2;
+        }
+        | TOK_STATIC IDENTIFIER '=' exp ';' {
+	   $$ = new ClassVarInfo($2, new QoreMemberInfo(@2.first_line, @4.last_line, $4));
+	}
+        | TOK_STATIC uncqtypedef IDENTIFIER '(' myexp ')' ';' {
 	   const QoreTypeInfo *t = $2->getTypeInfo();
 	   ScopedObjectCallNode *new_call = 0;
 
-	   if (!$2)
-	      parse_error("cannot call constructor without declaring the class");
-	   else if (t)
+	   if (t)
 	      parse_error("cannot call constructor for non-class base type '%s'", t->getName());
 	   else
 	      new_call = new ScopedObjectCallNode(new NamedScope(strdup($2->getClassName())), makeArgs($5));
 
-	   int fl = $2 ? @2.first_line : @3.first_line;
-	   $$ = new MemberInfo($3, new QoreMemberInfo(fl, @5.last_line, $2->getTypeInfo(), $2->getParseTypeInfo(), new_call));
+	   $$ = new ClassVarInfo($3, new QoreMemberInfo(@2.first_line, @5.last_line, $2->getTypeInfo(), $2->getParseTypeInfo(), new_call));
 
 	   delete $2;
 	}
@@ -1801,7 +1812,6 @@ list:
 	      l->push($1);
 	      // parse_error("problem in parsing ',' in list: left side of comma is not a list (type: '%s')", $1 ? $1->getTypeName() : "NOTHING");
 	      // so we don't insert null values in the parse tree
-	      //l = new QoreListNode();
 	   }
 	   $$ = l;
         }

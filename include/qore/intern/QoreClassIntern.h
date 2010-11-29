@@ -819,6 +819,10 @@ public:
                                                                     last_line(nll), file(get_parse_file()),
                                                                     parseTypeInfo(0) {
    }
+   DLLLOCAL QoreMemberInfo(int nfl, int nll) : typeInfo(0), exp(0), first_line(nfl), 
+                                               last_line(nll), file(get_parse_file()),
+                                               parseTypeInfo(0) {
+   }
    DLLLOCAL ~QoreMemberInfo() {
       if (exp)
 	 exp->deref(0);
