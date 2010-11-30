@@ -44,7 +44,10 @@ AbstractQoreNode *QoreRemoveOperatorNode::evalImpl(bool &needs_deref, ExceptionS
 }
 
 AbstractQoreNode *QoreRemoveOperatorNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
-   if (exp)
+   if (exp) {
       exp = exp->parseInit(oflag, pflag & ~PF_REFERENCE_OK, lvids, typeInfo);
+      if (exp && check_lvalue(exp))
+         parse_error("the remove operator expects an lvalue as its operand, got '%s' instead", exp->getTypeName());
+   }
    return this;
 }

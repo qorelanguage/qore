@@ -90,6 +90,9 @@ AbstractQoreNode *ReferenceNode::parseInit(LocalVar *oflag, int pflag, int &lvid
    if (lvexp) {
       const QoreTypeInfo *argTypeInfo;
       lvexp = lvexp->parseInit(oflag, pflag & ~PF_REFERENCE_OK, lvids, argTypeInfo);
+
+      if (lvexp && check_lvalue(lvexp))
+	 parse_error("the reference operator was expecting an lvalue, got '%s' instead", lvexp->getTypeName());
    }
 
    // if a background expression is being parsed, then check that no references to local variables

@@ -52,6 +52,7 @@ public:
    // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
    // returns -1 for exception raised, 0 = OK
    DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const;
+
    // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
    DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const;
 
@@ -64,24 +65,38 @@ public:
 
    DLLLOCAL void leftParseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
       if (left) {
+         bool for_assignment = pflag & PF_FOR_ASSIGNMENT;
+         if (for_assignment && left->getType() == NT_TREE) {
+            QoreTreeNode *t = reinterpret_cast<QoreTreeNode *>(left);
+            if (t->getOp() != OP_LIST_REF && t->getOp() != OP_OBJECT_REF) {
+               parse_error("expression used for assignment requires an lvalue but an expression with the %s operator is used instead", t->getOp()->getName());
+               return;
+            }
+
+         }
+
          left = left->parseInit(oflag, pflag, lvids, typeInfo);
+
+         // throw an exception if we are at the bottom left element of a tree being used for assignment
+         // and the value is not an lvalue
+         if (left && for_assignment && check_lvalue(left))
+            parse_error("expression used for assignment requires an lvalue, got '%s' instead", left->getTypeName());
+ 
          //printd(5, "QoreTreeNode::leftParseInit() this=%p new left=%p (%s)\n", this, left, get_type_name(left));
       }
    }
 
    DLLLOCAL void rightParseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
       if (right) {
-         right = right->parseInit(oflag, pflag, lvids, typeInfo);
+         right = right->parseInit(oflag, pflag & ~PF_FOR_ASSIGNMENT, lvids, typeInfo);
          //printd(5, "QoreTreeNode::rightParseInit() this=%p new right=%p (%s)\n", this, right, get_type_name(right));
       }
    }
 
    DLLLOCAL AbstractQoreNode *defaultParseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo) {
       const QoreTypeInfo *typeInfo = 0;
-      if (left)
-         left = left->parseInit(oflag, pflag, lvids, typeInfo);
-      if (right)
-         right = right->parseInit(oflag, pflag, lvids, typeInfo);
+      leftParseInit(oflag, pflag, lvids, typeInfo);
+      rightParseInit(oflag, pflag, lvids, typeInfo);
 
       if (constArgs())
          return evalSubst(returnTypeInfo);

@@ -3456,7 +3456,10 @@ static AbstractQoreNode *check_op_list_assignment(QoreTreeNode *tree, LocalVar *
       ri.next();
 
       const QoreTypeInfo *prototypeInfo = 0;
-      li.parseInit(prototypeInfo);
+      AbstractQoreNode *v = li.parseInit(prototypeInfo);
+
+      if (v && check_lvalue(v))
+	 parse_error("expecing lvalue in position %d of left-hand-side list in list assignment, got '%s' instead", li.index() + 1, v->getTypeName());
       
       ri.parseInit(argInfo);
 
@@ -3982,7 +3985,7 @@ static AbstractQoreNode *check_op_question_mark(QoreTreeNode *tree, LocalVar *of
 // issues a warning
 static AbstractQoreNode *check_op_list_op(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo, const char *name, const char *desc) {
    const QoreTypeInfo *leftTypeInfo = 0;
-   tree->leftParseInit(oflag, pflag, lvids, leftTypeInfo);
+   tree->leftParseInit(oflag, pflag | PF_FOR_ASSIGNMENT, lvids, leftTypeInfo);
 
    const QoreTypeInfo *rightTypeInfo = 0;
    tree->rightParseInit(oflag, pflag, lvids, rightTypeInfo);
@@ -4000,9 +4003,9 @@ static AbstractQoreNode *check_op_list_op(QoreTreeNode *tree, LocalVar *oflag, i
 }
 
 // throws a parse exception
-static AbstractQoreNode *check_op_list_op_err(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo, const char *name, const char *desc) {
+static AbstractQoreNode *check_op_unshift(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo, const char *name, const char *desc) {
    const QoreTypeInfo *leftTypeInfo = 0;
-   tree->leftParseInit(oflag, pflag, lvids, leftTypeInfo);
+   tree->leftParseInit(oflag, pflag | PF_FOR_ASSIGNMENT, lvids, leftTypeInfo);
 
    const QoreTypeInfo *rightTypeInfo = 0;
    tree->rightParseInit(oflag, pflag, lvids, rightTypeInfo);
@@ -4046,7 +4049,7 @@ static AbstractQoreNode *check_op_lvalue_string(QoreTreeNode *tree, LocalVar *of
 
 static AbstractQoreNode *check_op_chomp_trim(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo, const char *name, const char *descr) {
    const QoreTypeInfo *leftTypeInfo = 0;
-   tree->leftParseInit(oflag, pflag, lvids, leftTypeInfo);
+   tree->leftParseInit(oflag, pflag | PF_FOR_ASSIGNMENT, lvids, leftTypeInfo);
 
    assert(!tree->right);
 
@@ -4274,7 +4277,7 @@ void OperatorList::init() {
    OP_PUSH = add(new Operator(2, "push", "push on list", 0, true, true, check_op_list_op));
    OP_PUSH->addFunction(op_push);
 
-   OP_UNSHIFT = add(new Operator(2, "unshift", "unshift/insert to begnning of list", 0, true, true, check_op_list_op_err));
+   OP_UNSHIFT = add(new Operator(2, "unshift", "unshift/insert to begnning of list", 0, true, true, check_op_unshift));
    OP_UNSHIFT->addFunction(op_unshift);
 
    // can return a string or NOTHING

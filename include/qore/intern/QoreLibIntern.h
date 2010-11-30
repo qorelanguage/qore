@@ -229,6 +229,7 @@ public:
 };
 
 DLLLOCAL int qoreCheckContainer(AbstractQoreNode *v, ObjMap &omap, AutoVLock &vl, ExceptionSink *xsink);
+DLLLOCAL int check_lvalue(AbstractQoreNode *n);
 
 #include <qore/intern/NamedScope.h>
 #include <qore/intern/QoreTypeInfo.h>
@@ -342,7 +343,7 @@ public:
       ListIterator(n_l), oflag(n_oflag), pflag(n_pflag), lvids(n_lvids) {
    }
    
-   void parseInit(const QoreTypeInfo *&typeInfo) {
+   DLLLOCAL AbstractQoreNode *parseInit(const QoreTypeInfo *&typeInfo) {
       //printd(0, "QoreListNodeParseInitHelper::parseInit() this=%p %d/%d (l=%p)\n", this, index(), getList()->size(), getList());
 
       typeInfo = 0;
@@ -354,8 +355,12 @@ public:
 
 	 if (!getList()->needs_eval() && (*n) && (*n)->needs_eval())
 	    getList()->setNeedsEval();
+
+         return *n;
       }
-   }
+
+      return 0;
+   }   
 };
 
 class QorePossibleListNodeParseInitHelper {

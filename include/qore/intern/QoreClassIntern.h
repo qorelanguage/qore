@@ -895,6 +895,9 @@ public:
          free(n);
       }
    }
+   DLLLOCAL bool inList(const char *name) const {
+      return find((char *)name) != end();
+   }
 };
 
 /*
@@ -1425,14 +1428,18 @@ struct qore_class_private {
    }
 
    DLLLOCAL const QoreClass *parseFindPublicPrivateVar(const char *dname, const QoreTypeInfo *&varTypeInfo, bool &var_has_type_info, bool &priv) const {
+      //printd(0, "parseFindPublicPrivateVar() this=%p cls=%p (%s) scl=%p\n", this, cls, cls->getName(), scl);
+
       bool found = false;
       member_map_t::const_iterator i = private_vars.find(const_cast<char *>(dname));
-      if (i != private_vars.end())
+      if (i != private_vars.end()) {
 	 found = true;
+      }
       else {
 	 i = pending_private_vars.find(const_cast<char *>(dname));
-	 if (i != pending_private_members.end())
+	 if (i != pending_private_vars.end()) {
 	    found = true;
+         }
       }
       if (found) {
 	 priv = true;
@@ -1463,7 +1470,7 @@ struct qore_class_private {
    DLLLOCAL int checkExistingVarMember(char *dname, bool decl_has_type_info, bool priv, const QoreClass *sclass, bool has_type_info, bool is_priv, bool var = false) const {
       //printd(5, "checkExistingVarMember() name=%s priv=%d is_priv=%d sclass=%s\n", name, priv, is_priv, sclass->getName());
 
-      // here we know that the var already exists, so either it will be a
+      // here we know that the member or var already exists, so either it will be a
       // duplicate declaration, in which case it is ignored, or it is a
       // contradictory declaration, in which case a parse exception is raised
 
@@ -1515,8 +1522,14 @@ struct qore_class_private {
       bool has_type_info;
       bool is_priv;
       const QoreClass *sclass = parseFindPublicPrivateVar(dname, varTypeInfo, has_type_info, is_priv);
-      if (!sclass)
+      //printd(0, "parseCheckVar() %s cls=%p (%s)\n", dname, sclass, sclass ? sclass->getName() : "n/a");
+      if (!sclass) {
+         if (parseHasConstant(dname)) {
+            parse_error("'%s' has already been declared as a constant in this class and therefore cannot be also declared as a static class variable in the same class with the same name", dname);
+            return -1;
+         }
 	 return 0;
+      }
 
       return checkExistingVarMember(dname, decl_has_type_info, priv, sclass, has_type_info, is_priv, true);
    }
@@ -1572,14 +1585,12 @@ struct qore_class_private {
    }
 
    DLLLOCAL void parseAddPublicStaticVar(char *dname, QoreMemberInfo *memberInfo) {
-      if (!parseCheckMember(dname, memberInfo->parseHasTypeInfo(), false)) {
+      if (!parseCheckVar(dname, memberInfo->parseHasTypeInfo(), false)) {
 	 if (!has_new_user_changes)
 	    has_new_user_changes = true;
 
 	 //printd(5, "QoreClass::parseAddPublicMember() this=%p %s adding %p %s\n", this, name, mem, mem);
-	 pending_public_members[dname] = memberInfo;
-	 if (!pending_has_public_memdecl)
-	    pending_has_public_memdecl = true;
+	 pending_public_vars[dname] = memberInfo;
 	 return;
       }
 
@@ -1596,7 +1607,28 @@ struct qore_class_private {
    }
 
    DLLLOCAL void parseAddPublicConstant(const std::string &cname, AbstractQoreNode *val) {
+      if (parseHasVar(cname.c_str())) {
+         parse_error("'%s' has already been declared as a static variable in this class and therefore cannot be also declared as a constant in the same class with the same name", cname.c_str());
+         val->deref(0);
+         return;
+      }
+      //printd(0, "parseAddPublicConstant() this=%p cls=%p const=%s\n", this, cls, cname.c_str());
+      
       pend_pub_const.parseAdd(cname, val, pub_const, priv_const, pend_priv_const, false, name);
+   }
+
+   DLLLOCAL bool parseHasVar(const char *vn) {
+      return public_vars.inList(vn) || pending_public_vars.inList(vn)
+         || private_vars.inList(vn) || pending_private_vars.inList(vn)
+         ? true
+         : false;
+   }   
+
+   DLLLOCAL bool parseHasConstant(const std::string &cname) const {
+      return pub_const.inList(cname) || pend_pub_const.inList(cname)
+         || priv_const.inList(cname) || pend_priv_const.inList(cname)
+         ? true
+         : false;
    }
 
    DLLLOCAL AbstractQoreNode *getConstantValue(const char *cname, const QoreTypeInfo *&typeInfo) {

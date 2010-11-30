@@ -277,6 +277,17 @@ struct ClassVarInfo : public MemberInfo {
       if (getProgram()->getParseOptions() & PO_REQUIRE_TYPES)
 	 parse_error("class static variable '%s' declared without type information, but parse options require type information for all declarations", name);
    }
+   DLLLOCAL char *takeName() {
+      char *n = name;
+      name = 0;
+      return n;
+   }
+   DLLLOCAL QoreMemberInfo *takeMemberInfo() {
+      assert(u.memberInfo);
+      QoreMemberInfo *rv = u.memberInfo;
+      u.memberInfo = 0;
+      return rv;
+   }
 };
 
 class MemberList {
@@ -330,6 +341,10 @@ public:
 	    parse_error("duplicate constant declaration '%s'", member->name);
 	    return -1;
 	 }
+	 if (vmap.find(member->name) != vmap.end()) {
+	    parse_error("constant declaration collides with static class variable declaration '%s'", member->name);
+	    return -1;
+	 }	 
 
 	 // add new constant to list
 	 cmap.parseAdd(member->name, member->takeExp());
@@ -338,6 +353,10 @@ public:
 	 assert(member->type == MemberInfo::Var);
 	 if (vmap.find(member->name) != vmap.end()) {
 	    parse_error("duplicate static class variable declaration '%s'", member->name);
+	    return -1;
+	 }
+	 if (cmap.inList(member->name)) {
+	    parse_error("static class variable declaration collides with constant declaration '%s'", member->name);
 	    return -1;
 	 }
 
@@ -514,7 +533,7 @@ static AbstractQoreNode *process_dot(AbstractQoreNode *l, AbstractQoreNode *r) {
 }
 
 // returns 0 for OK, -1 for error
-static int check_lvalue(AbstractQoreNode *node) {
+int check_lvalue(AbstractQoreNode *node) {
    qore_type_t ntype = node->getType();
    //printd(5, "type=%s\n", node->getTypeName());
    if (ntype == NT_VARREF)
@@ -530,17 +549,6 @@ static int check_lvalue(AbstractQoreNode *node) {
    if (ntype == NT_SELF_VARREF)
       return 0;
    return -1;
-}
-
-static inline int check_vars(AbstractQoreNode *n) {
-   if (n && n->getType() == NT_LIST) {
-      QoreListNode *l = reinterpret_cast<QoreListNode *>(n);
-      for (unsigned i = 0; i < l->size(); i++)
-	 if (l->retrieve_entry(i)->getType() != NT_VARREF)
-	    return 1;
-      return 0;
-   }
-   return check_lvalue(n);
 }
 
 // returns true if the node needs run-time evaluation, false if not
@@ -807,6 +815,7 @@ static AbstractQoreNode *checkRewriteList(QoreListNode *l) {
    QoreListNode *list;
    AbstractStatement *statement;
    class MemberInfo *memberinfo;
+   class ClassVarInfo *classvarinfo;
    StatementBlock *sblock;
    ContextModList *cmods;
    ContextMod *cmod;
@@ -1022,6 +1031,7 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str) {
 %type <memberinfo>  member
 %type <memberlist>  member_list2
 %type <memberinfo>  member2
+%type <classvarinfo> classvardecl
 %type <qoreclass>   class_attributes
 %type <classdef>    class_def
 %type <ns>          top_namespace_decl
@@ -1047,7 +1057,7 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char *str) {
 %type <parsertype>  uncqtypedef
 
  // destructor actions for elements that need deleting when parse errors occur
-%destructor { delete $$; } REGEX REGEX_SUBST REGEX_EXTRACT REGEX_TRANS block statement_or_block statements statement return_statement try_statement hash_element context_mods context_mod method_definition class_def top_namespace_decl namespace_decls namespace_decl scoped_const_decl unscoped_const_decl switch_statement case_block case_code superclass base_constructor private_member_list public_member_list member_list member_list2 base_constructor_list base_constructors class_attributes return_value member member2 superclass_list inheritance_list qtypedef uncqtypedef
+%destructor { delete $$; } REGEX REGEX_SUBST REGEX_EXTRACT REGEX_TRANS block statement_or_block statements statement return_statement try_statement hash_element context_mods context_mod method_definition class_def top_namespace_decl namespace_decls namespace_decl scoped_const_decl unscoped_const_decl switch_statement case_block case_code superclass base_constructor private_member_list public_member_list member_list member_list2 base_constructor_list base_constructors class_attributes return_value member member2 superclass_list inheritance_list qtypedef uncqtypedef classvardecl
 %destructor { if ($$) $$->deref(); } string QUOTED_WORD DATETIME BINARY IMPLICIT_ARG_REF DOT_KW_IDENTIFIER
 %destructor { if ($$) $$->deref(0); } exp myexp scalar hash list
 %destructor { free($$); } IDENTIFIER VAR_REF SELF_REF CONTEXT_REF COMPLEX_CONTEXT_REF BACKQUOTE SCOPED_REF KW_IDENTIFIER_OPENPAREN optname ident_openparen
@@ -1564,6 +1574,19 @@ class_attributes:
 	   $$ = $1;
 	   delete $2;
 	}
+/*
+        // causes a shift-reduce conflict with static method declarations
+        | classvardecl {
+	   $$ = new QoreClass;
+	   qore_class_private::parseAddPublicStaticVar($$, $1->takeName(), $1->takeMemberInfo());
+	   delete $1;
+	}
+        | class_attributes classvardecl {
+	   qore_class_private::parseAddPublicStaticVar($1, $2->takeName(), $2->takeMemberInfo());
+	   $$ = $1;
+	   delete $2;
+	}
+*/
         ;
 
 uncqtypedef:
@@ -1610,6 +1633,35 @@ public_member_list:
 	}
         ;
 
+classvardecl: 
+	TOK_STATIC uncqtypedef IDENTIFIER ';' {
+	   $$ = new ClassVarInfo($3, new QoreMemberInfo(@2.first_line, @3.last_line, $2->getTypeInfo(), $2->getParseTypeInfo()));
+	   delete $2;
+	}
+	| TOK_STATIC IDENTIFIER ';' {
+	   $$ = new ClassVarInfo($2, new QoreMemberInfo(@2.first_line, @2.last_line));
+	}
+        | TOK_STATIC uncqtypedef IDENTIFIER '=' exp ';' {
+	   $$ = new ClassVarInfo($3, new QoreMemberInfo(@2.first_line, @5.last_line, $2->getTypeInfo(), $2->getParseTypeInfo(), $5));
+	   delete $2;
+        }
+        | TOK_STATIC IDENTIFIER '=' exp ';' {
+	   $$ = new ClassVarInfo($2, new QoreMemberInfo(@2.first_line, @4.last_line, $4));
+	}
+        | TOK_STATIC uncqtypedef IDENTIFIER '(' myexp ')' ';' {
+	   const QoreTypeInfo *t = $2->getTypeInfo();
+	   ScopedObjectCallNode *new_call = 0;
+
+	   if (t)
+	      parse_error("cannot call constructor for non-class base type '%s'", t->getName());
+	   else
+	      new_call = new ScopedObjectCallNode(new NamedScope(strdup($2->getClassName())), makeArgs($5));
+
+	   $$ = new ClassVarInfo($3, new QoreMemberInfo(@2.first_line, @5.last_line, $2->getTypeInfo(), $2->getParseTypeInfo(), new_call));
+
+	   delete $2;
+	}
+
 member2: 
         qtypedef SELF_REF ';' {
 	   int fl = $1 ? @1.first_line : @2.first_line;
@@ -1637,32 +1689,8 @@ member2:
 
 	   delete $1;
 	}
-	| TOK_STATIC uncqtypedef IDENTIFIER ';' {
-	   $$ = new ClassVarInfo($3, new QoreMemberInfo(@2.first_line, @3.last_line, $2->getTypeInfo(), $2->getParseTypeInfo()));
-	   delete $2;
-	}
-	| TOK_STATIC IDENTIFIER ';' {
-	   $$ = new ClassVarInfo($2, new QoreMemberInfo(@2.first_line, @2.last_line));
-	}
-        | TOK_STATIC uncqtypedef IDENTIFIER '=' exp ';' {
-	   $$ = new ClassVarInfo($3, new QoreMemberInfo(@2.first_line, @5.last_line, $2->getTypeInfo(), $2->getParseTypeInfo(), $5));
-	   delete $2;
-        }
-        | TOK_STATIC IDENTIFIER '=' exp ';' {
-	   $$ = new ClassVarInfo($2, new QoreMemberInfo(@2.first_line, @4.last_line, $4));
-	}
-        | TOK_STATIC uncqtypedef IDENTIFIER '(' myexp ')' ';' {
-	   const QoreTypeInfo *t = $2->getTypeInfo();
-	   ScopedObjectCallNode *new_call = 0;
-
-	   if (t)
-	      parse_error("cannot call constructor for non-class base type '%s'", t->getName());
-	   else
-	      new_call = new ScopedObjectCallNode(new NamedScope(strdup($2->getClassName())), makeArgs($5));
-
-	   $$ = new ClassVarInfo($3, new QoreMemberInfo(@2.first_line, @5.last_line, $2->getTypeInfo(), $2->getParseTypeInfo(), new_call));
-
-	   delete $2;
+        | classvardecl {
+	   $$ = $1;
 	}
         ;
 
@@ -1940,110 +1968,41 @@ exp:    scalar
         | TOK_FIND exp TOK_IN exp TOK_WHERE '(' exp ')'
         { $$ = new FindNode($2, $4, $7); }
 	| exp PLUS_EQUALS exp {
-	   if (check_lvalue($1)) {
-	      parse_error("left-hand side of plus-equals operator is not an lvalue");
-	      $$ = makeErrorTree($1, $3);
-	   }
-	   else
-	      $$ = new QoreTreeNode($1, OP_PLUS_EQUALS, $3);
+	   $$ = new QoreTreeNode($1, OP_PLUS_EQUALS, $3);
 	}
         | exp MINUS_EQUALS exp {
-	   if (check_lvalue($1)) {
-	      parse_error("left-hand side of minus-equals operator is not an lvalue");
-	      $$ = makeErrorTree($1, $3);
-	   }
-	   else
-	      $$ = new QoreTreeNode($1, OP_MINUS_EQUALS, $3);
+	   $$ = new QoreTreeNode($1, OP_MINUS_EQUALS, $3);
 	}
         | exp AND_EQUALS exp {
-	   if (check_lvalue($1)) {
-	      parse_error("left-hand side of and-equals operator is not an lvalue");
-	      $$ = makeErrorTree($1, $3);
-	   }
-	   else
-	      $$ = new QoreTreeNode($1, OP_AND_EQUALS, $3);
+	   $$ = new QoreTreeNode($1, OP_AND_EQUALS, $3);
 	}
         | exp OR_EQUALS exp {
-	   if (check_lvalue($1)) {
-	      parse_error("left-hand side of or-equals operator is not an lvalue");
-	      $$ = makeErrorTree($1, $3);
-	   }
-	   else
-	      $$ = new QoreTreeNode($1, OP_OR_EQUALS, $3);
+	   $$ = new QoreTreeNode($1, OP_OR_EQUALS, $3);
 	}
         | exp MODULA_EQUALS exp {
-	   if (check_lvalue($1)) {
-	      parse_error("left-hand side of modula-equals operator is not an lvalue");
-	      $$ = makeErrorTree($1, $3);
-	   }
-	   else
-	      $$ = new QoreTreeNode($1, OP_MODULA_EQUALS, $3);
+	   $$ = new QoreTreeNode($1, OP_MODULA_EQUALS, $3);
 	}
         | exp MULTIPLY_EQUALS exp {
-	   if (check_lvalue($1)) {
-	      parse_error("left-hand side of multiply-equals operator is not an lvalue");
-	      $$ = makeErrorTree($1, $3);
-	   }
-	   else
-	      $$ = new QoreTreeNode($1, OP_MULTIPLY_EQUALS, $3);
+	   $$ = new QoreTreeNode($1, OP_MULTIPLY_EQUALS, $3);
 	}
         | exp DIVIDE_EQUALS exp {
-	   if (check_lvalue($1)) {
-	      parse_error("left-hand side of divide-equals operator is not an lvalue");
-	      $$ = makeErrorTree($1, $3);
-	   }
-	   else
-	      $$ = new QoreTreeNode($1, OP_DIVIDE_EQUALS, $3);
+	   $$ = new QoreTreeNode($1, OP_DIVIDE_EQUALS, $3);
 	}
         | exp XOR_EQUALS exp {
-	   if (check_lvalue($1)) {
-	      parse_error("left-hand side of xor-equals operator is not an lvalue");
-	      $$ = makeErrorTree($1, $3);
-	   }
-	   else
-	      $$ = new QoreTreeNode($1, OP_XOR_EQUALS, $3);
+	   $$ = new QoreTreeNode($1, OP_XOR_EQUALS, $3);
 	}
         | exp SHIFT_LEFT_EQUALS exp {
-	   if (check_lvalue($1))
-	   {
-	      parse_error("left-hand side of shift-left-equals operator is not an lvalue");
-	      $$ = makeErrorTree($1, $3);
-	   }
-	   else
-	      $$ = new QoreTreeNode($1, OP_SHIFT_LEFT_EQUALS, $3);
+	   $$ = new QoreTreeNode($1, OP_SHIFT_LEFT_EQUALS, $3);
 	}
         | exp SHIFT_RIGHT_EQUALS exp {
-	   if (check_lvalue($1))
-	   {
-	      parse_error("left-hand side of shift-right-equals operator is not an lvalue");
-	      $$ = makeErrorTree($1, $3);
-	   }
-	   else
-	      $$ = new QoreTreeNode($1, OP_SHIFT_RIGHT_EQUALS, $3);
+	   $$ = new QoreTreeNode($1, OP_SHIFT_RIGHT_EQUALS, $3);
 	}
 	| exp '=' exp {
 	   if ($1 && $1->getType() == NT_LIST) {
-	      QoreListNode *l = reinterpret_cast<QoreListNode *>($1);
-	      bool ok = true;
-	      for (unsigned i = 0; i < l->size(); i++) {
-		 AbstractQoreNode *n = l->retrieve_entry(i);
-		 if (check_lvalue(n)) {
-		    parse_error("element %d in list assignment is not an lvalue (%s)", i, n->getTypeName());
-		    ok = false;
-		 }
-	      }
-	      if (ok)
-		 $$ = new QoreTreeNode($1, OP_LIST_ASSIGNMENT, $3);
-	      else
-		 $$ = makeErrorTree($1, $3);
+	      $$ = new QoreTreeNode($1, OP_LIST_ASSIGNMENT, $3);
 	   }
 	   else {
-	      if (check_lvalue($1)) {
-		 parse_error("left-hand side of assignment is not an lvalue (%s)", $1->getTypeName());
-		 $$ = makeErrorTree($1, $3);
-	      }
-	      else
-		 $$ = new QoreTreeNode($1, OP_ASSIGNMENT, $3);
+	      $$ = new QoreTreeNode($1, OP_ASSIGNMENT, $3);
 	   }
 	   //print_tree($1, 0);
 	}
@@ -2067,22 +2026,12 @@ exp:    scalar
 	   }
 	   else {
 	      AbstractQoreNode *lv = l->shift();
-	      if (check_lvalue(lv)) {
-		 parse_error("first argument to unshift is not an lvalue");
-		 $$ = makeErrorTree(lv, l->shift());
-	      }
-	      else
-		 $$ = new QoreTreeNode(lv, OP_UNSHIFT, l->shift());
+	      $$ = new QoreTreeNode(lv, OP_UNSHIFT, l->shift());
 	      $2->deref(0);
 	   }
 	}
 	| TOK_SHIFT exp {
-	   if (check_lvalue($2)) {
-	      parse_error("argument to shift operator is not an lvalue");
-	      $$ = makeErrorTree($2, 0); 
-	   }
-	   else
-	      $$ = new QoreTreeNode($2, OP_SHIFT, 0); 
+	   $$ = new QoreTreeNode($2, OP_SHIFT, 0); 
 	}
         | TOK_PUSH exp {  // push lvalue-list, element
 	   QoreListNode *l = $2 && $2->getType() == NT_LIST ? reinterpret_cast<QoreListNode *>($2) : 0;
@@ -2092,38 +2041,18 @@ exp:    scalar
 	   }
 	   else {
 	      AbstractQoreNode *lv = l->shift();
-	      if (check_lvalue(lv)) {
-		 parse_error("first argument to push is not an lvalue");
-		 $$ = makeErrorTree(lv, l->shift());
-	      }
-	      else
-		 $$ = new QoreTreeNode(lv, OP_PUSH, l->shift());
+	      $$ = new QoreTreeNode(lv, OP_PUSH, l->shift());
 	      $2->deref(0);
 	   }
 	}
         | TOK_POP exp {
-	   if (check_lvalue($2)) {
-	      parse_error("argument to pop operator is not an lvalue");
-	      $$ = makeErrorTree($2, 0); 
-	   }
-	   else
-	      $$ = new QoreTreeNode($2, OP_POP, 0); 
+	   $$ = new QoreTreeNode($2, OP_POP, 0); 
 	}
 	| TOK_CHOMP exp {
-	   if (check_lvalue($2)) {
-	      parse_error("argument to chomp operator is not an lvalue (use the chomp() function instead)");
-	      $$ = makeErrorTree($2, 0); 
-	   }
-	   else
-	      $$ = new QoreTreeNode($2, OP_CHOMP, 0); 
+	   $$ = new QoreTreeNode($2, OP_CHOMP, 0); 
 	}
 	| TOK_TRIM exp {
-	   if (check_lvalue($2)) {
-	      parse_error("argument to trim operator is not an lvalue (use the trim() function instead)");
-	      $$ = makeErrorTree($2, 0); 
-	   }
-	   else
-	      $$ = new QoreTreeNode($2, OP_TRIM, 0); 
+	   $$ = new QoreTreeNode($2, OP_TRIM, 0); 
 	}
         | TOK_SPLICE exp {  // splice lvalue-list, offset, [length, list]
 	   QoreListNode *l = $2 && $2->getType() == NT_LIST ? reinterpret_cast<QoreListNode *>($2) : 0;
@@ -2141,14 +2070,8 @@ exp:    scalar
 	   }
 	   else {
 	      AbstractQoreNode *lv = l->shift();
-	      if (check_lvalue(lv)) {
-		 parse_error("first argument to splice is not an lvalue");
-		 $$ = makeErrorTree(lv, $2);
-	      }
-	      else {
-		 $$ = new QoreSpliceOperatorNode(lv, l->shift(), l->shift(), l->shift());
-		 discard(l, 0);
-	      }
+	      $$ = new QoreSpliceOperatorNode(lv, l->shift(), l->shift(), l->shift());
+	      discard(l, 0);
 	   }
 	}
         | TOK_EXTRACT exp {  // extract lvalue-list, offset, [length, list]
@@ -2167,14 +2090,8 @@ exp:    scalar
 	   }
 	   else {
 	      AbstractQoreNode *lv = l->shift();
-	      if (check_lvalue(lv)) {
-		 parse_error("first argument to extract is not an lvalue");
-		 $$ = makeErrorTree(lv, $2);
-	      }
-	      else {
-		 $$ = new QoreExtractOperatorNode(lv, l->shift(), l->shift(), l->shift());
-		 discard(l, 0);
-	      }
+	      $$ = new QoreExtractOperatorNode(lv, l->shift(), l->shift(), l->shift());
+	      discard(l, 0);
 	   }
 	}
         | TOK_MAP exp {
@@ -2241,36 +2158,16 @@ exp:    scalar
         | exp '?' exp ':' exp
         { $$ = new QoreTreeNode($1, OP_QUESTION_MARK, make_list($3, $5)); } 
         | P_INCREMENT exp {  // pre-increment
-	   if (check_lvalue($2)) {
-	      parse_error("pre-increment expression is not an lvalue");
-	      $$ = makeErrorTree($2, 0);
-	   }
-	   else
-	      $$ = new QoreTreeNode($2, OP_PRE_INCREMENT, 0);
+	   $$ = new QoreTreeNode($2, OP_PRE_INCREMENT, 0);
         }
         | exp P_INCREMENT {  // post-increment
-	   if (check_lvalue($1)) {
-	      parse_error("post-increment expression is not an lvalue");
-	      $$ = makeErrorTree($1, 0);
-	   }
-	   else
-	      $$ = new QoreTreeNode($1, OP_POST_INCREMENT, 0);
+	   $$ = new QoreTreeNode($1, OP_POST_INCREMENT, 0);
         }
         | P_DECREMENT exp {  // pre-decrement
-	   if (check_lvalue($2)) {
-	      parse_error("pre-decrement expression is not an lvalue");
-	      $$ = makeErrorTree($2, 0);
-	   }
-	   else
-	      $$ = new QoreTreeNode($2, OP_PRE_DECREMENT, 0);
+	   $$ = new QoreTreeNode($2, OP_PRE_DECREMENT, 0);
         }
         | exp P_DECREMENT {   // post-decrement
-	   if (check_lvalue($1)) {
-	      parse_error("post-decrement expression is not an lvalue");
-	      $$ = makeErrorTree($1, 0);
-	   }
-	   else
-	      $$ = new QoreTreeNode($1, OP_POST_DECREMENT, 0);
+	   $$ = new QoreTreeNode($1, OP_POST_DECREMENT, 0);
         }
 	| exp '(' myexp ')' {
 	   //printd(5, "1=%s (%08p), 3=%s (%08p)\n", $1->getTypeName(), $1, $3 ? $3->getTypeName() : "n/a", $3); 
@@ -2368,23 +2265,11 @@ exp:    scalar
 	   $$ = new QoreTreeNode($1, OP_REGEX_NMATCH, $3);
 	}
         | exp REGEX_MATCH REGEX_SUBST {
-	   if (check_lvalue($1)) {
-	      parse_error("left-hand side of regular expression substitution operator is not an lvalue");
-	      $$ = makeErrorTree($1, $3);
-	   }
-	   else {
-	      //printf("REGEX_SUBST: '%s'\n", $3->getPattern()->getBuffer());
-	      $$ = new QoreTreeNode($1, OP_REGEX_SUBST, $3);
-	   }
+	   //printf("REGEX_SUBST: '%s'\n", $3->getPattern()->getBuffer());
+	   $$ = new QoreTreeNode($1, OP_REGEX_SUBST, $3);
 	}
         | exp REGEX_MATCH REGEX_TRANS {
-	   if (check_lvalue($1))  {
-	      parse_error("left-hand side of transliteration operator is not an lvalue");
-	      $$ = makeErrorTree($1, $3);
-	   }
-	   else {
-	      $$ = new QoreTreeNode($1, OP_REGEX_TRANS, $3);
-	   }
+	   $$ = new QoreTreeNode($1, OP_REGEX_TRANS, $3);
 	}
         | exp REGEX_MATCH REGEX_EXTRACT
         { $$ = new QoreTreeNode($1, OP_REGEX_EXTRACT, $3); }
@@ -2472,8 +2357,6 @@ exp:    scalar
 	      if (make_ref) {
 		 //printd(5, "type=%s\n", $2->getTypeName());
 		 $$ = new ReferenceNode($2);
-		 if (check_lvalue($2))
-		    parse_error("argument to reference operator is not an lvalue or a function or method");
 	      }
 	   }
 	}
@@ -2535,13 +2418,9 @@ exp:    scalar
 	}
         | TOK_DELETE exp {
 	   $$ = new QoreDeleteOperatorNode($2);
-	   if (check_vars($2))
-	      parse_error("delete operator takes only variable references as arguments");
 	}
         | TOK_REMOVE exp {
 	   $$ = new QoreRemoveOperatorNode($2);
-	   if (check_vars($2))
-	      parse_error("remove operator takes only variable references as arguments");
 	}
         | QORE_CAST '(' exp ')' {
            $$ = new QoreCastOperatorNode($1, $3);
