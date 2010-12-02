@@ -29,6 +29,7 @@ libqore_la_SOURCES = \
 	QoreTreeNode.cpp \
 	BarewordNode.cpp \
 	SelfVarrefNode.cpp \
+	StaticClassVarRefNode.cpp \
 	BackquoteNode.cpp \
 	ContextrefNode.cpp \
 	ComplexContextrefNode.cpp \

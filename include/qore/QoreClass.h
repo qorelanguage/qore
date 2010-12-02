@@ -810,7 +810,6 @@ public:
    // unsets the public member flag for builtin classes
    DLLLOCAL void unsetPublicMemberFlag();
    DLLLOCAL void parseInitPartial();
-   DLLLOCAL AbstractQoreNode *getConstantValue(const char *cname, const QoreTypeInfo *&typeInfo);
 };
 
 //! To be used to iterate through a class' normal (non-static) methods

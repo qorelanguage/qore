@@ -204,6 +204,7 @@ static QoreListNode *splice_expressions(AbstractQoreNode *a1, AbstractQoreNode *
 }
 
 typedef std::pair<char *, QoreMemberInfo *> member_pair_t;
+typedef std::pair<char *, QoreVarInfo *> var_pair_t;
 
 struct MemberInfo {
 protected:
@@ -217,7 +218,8 @@ public:
    mi_e type;
    union {
       QoreMemberInfo *memberInfo;
-      AbstractQoreNode *exp;
+      QoreVarInfo *varInfo;
+      AbstractQoreNode *exp;      
    } u;
 
    DLLLOCAL MemberInfo(char *n, QoreMemberInfo *mi) : name(n), type(Member)  {
@@ -238,8 +240,10 @@ public:
 	 free(name);
       switch (type) {
 	 case Member:
-	 case Var:
 	    delete u.memberInfo;
+	    break;
+	 case Var:
+	    delete u.varInfo;
 	    break;
 	 case Constant:
 	    if (u.exp)
@@ -248,10 +252,17 @@ public:
       }
    }
    DLLLOCAL member_pair_t getPair() {
-      assert(type == Member || type == Var);
+      assert(type == Member);
       member_pair_t m = std::make_pair(name, u.memberInfo);
       name = 0;
       u.memberInfo = 0;
+      return m;
+   }
+   DLLLOCAL var_pair_t getVarPair() {
+      assert(type == Var);
+      var_pair_t m = std::make_pair(name, u.varInfo);
+      name = 0;
+      u.varInfo = 0;
       return m;
    }
    DLLLOCAL AbstractQoreNode *takeExp() {
@@ -263,29 +274,31 @@ public:
 };
 
 struct ClassVarInfo : public MemberInfo {
-   DLLLOCAL ClassVarInfo(char *n, QoreMemberInfo *mi) {
+   DLLLOCAL ClassVarInfo(char *n, QoreVarInfo *vi) {
       name = n;
       type = Var;
-      u.memberInfo = mi; 
-      if (!mi->parseHasTypeInfo() && getProgram()->getParseOptions() & PO_REQUIRE_TYPES)
+      u.varInfo = vi; 
+      if (!vi->parseHasTypeInfo() && getProgram()->getParseOptions() & PO_REQUIRE_TYPES)
 	 parse_error("class static variable '%s' declared without type information, but parse options require type information for all declarations", name);
    }
+/*
    DLLLOCAL ClassVarInfo(char *n) {
       name = n;
       type = Var;
-      u.memberInfo = 0; 
+      u.varInfo = 0; 
       if (getProgram()->getParseOptions() & PO_REQUIRE_TYPES)
 	 parse_error("class static variable '%s' declared without type information, but parse options require type information for all declarations", name);
    }
+*/
    DLLLOCAL char *takeName() {
       char *n = name;
       name = 0;
       return n;
    }
-   DLLLOCAL QoreMemberInfo *takeMemberInfo() {
-      assert(u.memberInfo);
-      QoreMemberInfo *rv = u.memberInfo;
-      u.memberInfo = 0;
+   DLLLOCAL QoreVarInfo *takeVarInfo() {
+      assert(u.varInfo);
+      QoreVarInfo *rv = u.varInfo;
+      u.varInfo = 0;
       return rv;
    }
 };
@@ -297,7 +310,7 @@ protected:
    // for new class constants
    ConstantList cmap;
    // for new class static variables
-   QoreMemberMap vmap;
+   QoreVarMap vmap;
    
    DLLLOCAL MemberList() {
    }
@@ -312,7 +325,7 @@ public:
       else if (member->type == MemberInfo::Constant)
 	 cmap.parseAdd(member->name, member->takeExp());
       else
-	 vmap.insert(member->getPair());
+	 vmap.insert(member->getVarPair());
 
       delete member;
    }
@@ -341,7 +354,7 @@ public:
 	    parse_error("duplicate constant declaration '%s'", member->name);
 	    return -1;
 	 }
-	 if (vmap.find(member->name) != vmap.end()) {
+	 if (vmap.find(member->name)) {
 	    parse_error("constant declaration collides with static class variable declaration '%s'", member->name);
 	    return -1;
 	 }	 
@@ -351,7 +364,7 @@ public:
       }
       else {
 	 assert(member->type == MemberInfo::Var);
-	 if (vmap.find(member->name) != vmap.end()) {
+	 if (vmap.find(member->name)) {
 	    parse_error("duplicate static class variable declaration '%s'", member->name);
 	    return -1;
 	 }
@@ -361,24 +374,29 @@ public:
 	 }
 
 	 // add new member to list
-	 vmap.insert(member->getPair());
+	 vmap.insert(member->getVarPair());
       }
 
       return 0;
    }
 
    DLLLOCAL void mergePrivate(QoreClass *qc) {
-      member_map_t::iterator i;
-      // merge private members
-      while ((i = mmap.begin()) != mmap.end()) {
-	 qc->parseAddPrivateMember(i->first, i->second);
-	 mmap.erase(i);
+      {
+	 member_map_t::iterator i;
+	 // merge private members
+	 while ((i = mmap.begin()) != mmap.end()) {
+	    qc->parseAddPrivateMember(i->first, i->second);
+	    mmap.erase(i);
+	 }
       }
 
-      // merge private static class variables
-      while ((i = vmap.begin()) != vmap.end()) {
-	 qore_class_private::parseAddPrivateStaticVar(qc, i->first, i->second);
-	 vmap.erase(i);
+      {
+	 var_map_t::iterator i;
+	 // merge private static class variables
+	 while ((i = vmap.begin()) != vmap.end()) {
+	    qore_class_private::parseAddPrivateStaticVar(qc, i->first, i->second);
+	    vmap.erase(i);
+	 }
       }
 
       // merge private constants
@@ -386,22 +404,25 @@ public:
    }
 
    DLLLOCAL void mergePublic(QoreClass *qc) {
-      member_map_t::iterator i;
-
       // merge public members
       if (mmap.empty())
 	 qc->parseSetEmptyPublicMemberDeclaration();
       else {
+	 member_map_t::iterator i;
+
 	 while ((i = mmap.begin()) != mmap.end()) {
 	    qc->parseAddPublicMember(i->first, i->second);
 	    mmap.erase(i);
 	 }
       }
 
-      // merge public static class variables
-      while ((i = vmap.begin()) != vmap.end()) {
-	 qore_class_private::parseAddPublicStaticVar(qc, i->first, i->second);
-	 vmap.erase(i);
+      {
+	 var_map_t::iterator i;
+	 // merge public static class variables
+	 while ((i = vmap.begin()) != vmap.end()) {
+	    qore_class_private::parseAddPublicStaticVar(qc, i->first, i->second);
+	    vmap.erase(i);
+	 }
       }
 
       // merge public constants
@@ -530,25 +551,6 @@ static AbstractQoreNode *process_dot(AbstractQoreNode *l, AbstractQoreNode *r) {
    }
 
    return new QoreTreeNode(l, OP_OBJECT_REF, r);
-}
-
-// returns 0 for OK, -1 for error
-int check_lvalue(AbstractQoreNode *node) {
-   qore_type_t ntype = node->getType();
-   //printd(5, "type=%s\n", node->getTypeName());
-   if (ntype == NT_VARREF)
-      return 0;
-
-   if (ntype == NT_TREE) {
-      QoreTreeNode *t = reinterpret_cast<QoreTreeNode *>(node);
-      if (t->getOp() == OP_LIST_REF || t->getOp() == OP_OBJECT_REF)
-	 return check_lvalue(t->left);
-      else
-	 return -1;
-   }
-   if (ntype == NT_SELF_VARREF)
-      return 0;
-   return -1;
 }
 
 // returns true if the node needs run-time evaluation, false if not
@@ -1578,11 +1580,11 @@ class_attributes:
         // causes a shift-reduce conflict with static method declarations
         | classvardecl {
 	   $$ = new QoreClass;
-	   qore_class_private::parseAddPublicStaticVar($$, $1->takeName(), $1->takeMemberInfo());
+	   qore_class_private::parseAddPublicStaticVar($$, $1->takeName(), $1->takeVarInfo());
 	   delete $1;
 	}
         | class_attributes classvardecl {
-	   qore_class_private::parseAddPublicStaticVar($1, $2->takeName(), $2->takeMemberInfo());
+	   qore_class_private::parseAddPublicStaticVar($1, $2->takeName(), $2->takeVarInfo());
 	   $$ = $1;
 	   delete $2;
 	}
@@ -1635,18 +1637,19 @@ public_member_list:
 
 classvardecl: 
 	TOK_STATIC uncqtypedef IDENTIFIER ';' {
-	   $$ = new ClassVarInfo($3, new QoreMemberInfo(@2.first_line, @3.last_line, $2->getTypeInfo(), $2->getParseTypeInfo()));
+	   $$ = new ClassVarInfo($3, new QoreVarInfo(@2.first_line, @3.last_line, $2->getTypeInfo(), $2->getParseTypeInfo()));
 	   delete $2;
 	}
 	| TOK_STATIC IDENTIFIER ';' {
-	   $$ = new ClassVarInfo($2, new QoreMemberInfo(@2.first_line, @2.last_line));
+	   $$ = new ClassVarInfo($2, new QoreVarInfo(@2.first_line, @2.last_line));
 	}
         | TOK_STATIC uncqtypedef IDENTIFIER '=' exp ';' {
-	   $$ = new ClassVarInfo($3, new QoreMemberInfo(@2.first_line, @5.last_line, $2->getTypeInfo(), $2->getParseTypeInfo(), $5));
+	   $$ = new ClassVarInfo($3, new QoreVarInfo(@2.first_line, @5.last_line, $2->getTypeInfo(), $2->getParseTypeInfo(), $5));
+	   //printd(5, "new QoreVarInfo = %p (empty: %d)\n", $$->u.varInfo, $$->u.varInfo->empty());
 	   delete $2;
         }
         | TOK_STATIC IDENTIFIER '=' exp ';' {
-	   $$ = new ClassVarInfo($2, new QoreMemberInfo(@2.first_line, @4.last_line, $4));
+	   $$ = new ClassVarInfo($2, new QoreVarInfo(@2.first_line, @4.last_line, $4));
 	}
         | TOK_STATIC uncqtypedef IDENTIFIER '(' myexp ')' ';' {
 	   const QoreTypeInfo *t = $2->getTypeInfo();
@@ -1657,7 +1660,7 @@ classvardecl:
 	   else
 	      new_call = new ScopedObjectCallNode(new NamedScope(strdup($2->getClassName())), makeArgs($5));
 
-	   $$ = new ClassVarInfo($3, new QoreMemberInfo(@2.first_line, @5.last_line, $2->getTypeInfo(), $2->getParseTypeInfo(), new_call));
+	   $$ = new ClassVarInfo($3, new QoreVarInfo(@2.first_line, @5.last_line, $2->getTypeInfo(), $2->getParseTypeInfo(), new_call));
 
 	   delete $2;
 	}

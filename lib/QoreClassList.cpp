@@ -23,6 +23,7 @@
 #include <qore/Qore.h>
 #include <qore/intern/QoreClassList.h>
 #include <qore/intern/QoreNamespaceList.h>
+#include <qore/intern/QoreClassIntern.h>
 #include <qore/minitest.hpp>
 
 #include <assert.h>
@@ -145,10 +146,16 @@ QoreHashNode *QoreClassList::getInfo() {
 
 AbstractQoreNode *QoreClassList::findConstant(const char *cname, const QoreTypeInfo *&typeInfo) {
    for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
-      AbstractQoreNode *rv = i->second->getConstantValue(cname, typeInfo);
+      AbstractQoreNode *rv = qore_class_private::parseFindLocalConstantValue(i->second, cname, typeInfo);
       if (rv)
 	 return rv;
    }
 
    return 0;
+}
+
+void QoreClassList::deleteClassStaticVars(ExceptionSink *xsink) {
+   for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
+      qore_class_private::deleteClassStaticVars(i->second, xsink);
+   }
 }

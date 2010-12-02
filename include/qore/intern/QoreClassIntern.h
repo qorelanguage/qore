@@ -824,10 +824,19 @@ public:
                                                parseTypeInfo(0) {
    }
    DLLLOCAL ~QoreMemberInfo() {
+      del();
+   }
+
+   DLLLOCAL void del() {
       if (exp)
 	 exp->deref(0);
       delete parseTypeInfo;
+#ifdef DEBUG
+      exp = 0;
+      parseTypeInfo = 0;
+#endif
    }
+
    DLLLOCAL const QoreTypeInfo *getTypeInfo() const {
       return this ? typeInfo : 0;
    }
@@ -881,7 +890,105 @@ public:
    }
 };
 
+class QoreVarInfo : public QoreMemberInfo {
+protected:
+   DLLLOCAL QoreVarInfo(const QoreVarInfo &old) : QoreMemberInfo(old), val(old.val ? old.val->refSelf() : 0) {
+   }
+
+public:
+   QoreThreadLock l;
+   AbstractQoreNode *val;
+
+   DLLLOCAL QoreVarInfo(int nfl, int nll, const QoreTypeInfo *n_typeInfo, QoreParseTypeInfo *n_parseTypeInfo, AbstractQoreNode *e = 0) :
+      QoreMemberInfo(nfl, nll, n_typeInfo, n_parseTypeInfo, e), val(0) {
+   }
+
+   DLLLOCAL QoreVarInfo(int nfl, int nll) : QoreMemberInfo(nfl, nll), val(0) {
+   }
+
+   DLLLOCAL QoreVarInfo(int nfl, int nll, AbstractQoreNode *e) : QoreMemberInfo(nfl, nll, e), val(0) {
+   }
+   
+   DLLLOCAL ~QoreVarInfo() {
+      assert(!val);
+   }
+
+   DLLLOCAL void delVar(ExceptionSink *xsink) {
+      del();
+      if (val) {
+         val->deref(xsink);
+#ifdef DEBUG
+         val = 0;
+#endif
+      }
+   }
+
+   DLLLOCAL QoreVarInfo *copy() const {
+      if (!this)
+         return 0;
+
+      return new QoreVarInfo(*this);
+   }
+
+   DLLLOCAL void assignInit(AbstractQoreNode *v) {
+      assert(!val);
+      val = v;
+   }
+
+   DLLLOCAL void assign(AbstractQoreNode *v, ExceptionSink *xsink) {
+      AutoLocker al(l);
+
+      if (val)
+         val->deref(xsink);
+      val = v;
+   }
+
+   DLLLOCAL AbstractQoreNode *getReferencedValue() {
+      AutoLocker al(l);
+      return val ? val->refSelf() : 0;
+   }
+
+   DLLLOCAL void parseInit(const char *name, bool priv) {
+      if (!typeInfo) {
+         typeInfo = parseTypeInfo->resolveAndDelete();
+         parseTypeInfo = 0;
+      }
+#ifdef DEBUG
+      else assert(!parseTypeInfo);
+#endif
+
+      if (exp) {
+	 const QoreTypeInfo *argTypeInfo = 0;
+	 int lvids = 0;
+	 exp = exp->parseInit(0, 0, lvids, argTypeInfo);
+	 if (lvids) {
+	    update_parse_location(first_line, last_line, file);
+	    parse_error("illegal local variable declaration in class static variable initialization expression");
+	    while (lvids)
+	       pop_local_var();
+	 }
+	 // throw a type exception only if parse exceptions are enabled
+	 if (!typeInfo->parseAccepts(argTypeInfo) && getProgram()->getParseExceptionSink()) {
+            QoreStringNode *desc = new QoreStringNode("initialization expression for ");
+	    desc->sprintf("%s class static variable '%s' returns ", priv ? "private" : "public", name);
+            argTypeInfo->getThisType(*desc);
+            desc->concat(", but the variable was declared as ");
+            typeInfo->getThisType(*desc);
+	    update_parse_location(first_line, last_line, file);
+            getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
+         }
+      }
+   }
+
+#ifdef DEBUG
+   DLLLOCAL bool empty() const {
+      return !val;
+   }
+#endif
+};
+
 typedef std::map<char *, QoreMemberInfo *, ltstr> member_map_t;
+typedef std::map<char *, QoreVarInfo *, ltstr> var_map_t;
 
 class QoreMemberMap : public member_map_t {
 public:
@@ -897,6 +1004,35 @@ public:
    }
    DLLLOCAL bool inList(const char *name) const {
       return find((char *)name) != end();
+   }
+};
+
+class QoreVarMap : public var_map_t {
+public:
+   DLLLOCAL ~QoreVarMap() {
+      for (var_map_t::iterator i = begin(), e = end(); i != e; ++i) {
+         //printd(0, "QoreVarMap::~QoreVarMap() deleting static var %s\n", i->first);
+         assert(i->second->empty());
+         i->second->del();
+         free(i->first);
+      }
+   }
+
+   DLLLOCAL void del(ExceptionSink *xsink) {
+      for (var_map_t::iterator i = begin(), e = end(); i != e; ++i) {
+         i->second->delVar(xsink);
+         free(i->first);
+      }
+      clear();
+   }
+
+   DLLLOCAL bool inList(const char *name) const {
+      return var_map_t::find((char *)name) != end();
+   }
+
+   DLLLOCAL QoreVarInfo *find(const char *name) const {
+      var_map_t::const_iterator i = var_map_t::find((char *)name);
+      return i == end() ? 0 : i->second;
    }
 };
 
@@ -1102,6 +1238,8 @@ public:
    DLLLOCAL void addStaticAncestors(QoreMethod *m);
    DLLLOCAL void parseAddAncestors(QoreMethod *m);
    DLLLOCAL void parseAddStaticAncestors(QoreMethod *m);
+   DLLLOCAL AbstractQoreNode *parseFindConstantValueIntern(const char *cname, const QoreTypeInfo *&typeInfo);
+   DLLLOCAL QoreVarInfo *parseFindStaticVarIntern(const char *vname, const QoreClass *&qc) const;
 
    DLLLOCAL void resolveCopy();
 };
@@ -1169,8 +1307,8 @@ struct qore_class_private {
    QoreMemberMap private_members, pending_private_members; // private member lists (maps)
    QoreMemberMap public_members, pending_public_members;   // public member lists (maps)
 
-   QoreMemberMap private_vars, pending_private_vars; // private static var lists (maps)
-   QoreMemberMap public_vars, pending_public_vars;   // public static var lists (maps)
+   QoreVarMap private_vars, pending_private_vars; // private static var lists (maps)
+   QoreVarMap public_vars, pending_public_vars;   // public static var lists (maps)
 
    const QoreMethod *system_constructor, *constructor, *destructor,
       *copyMethod, *methodGate, *memberGate, *deleteBlocker,
@@ -1430,37 +1568,25 @@ struct qore_class_private {
    DLLLOCAL const QoreClass *parseFindPublicPrivateVar(const char *dname, const QoreTypeInfo *&varTypeInfo, bool &var_has_type_info, bool &priv) const {
       //printd(0, "parseFindPublicPrivateVar() this=%p cls=%p (%s) scl=%p\n", this, cls, cls->getName(), scl);
 
-      bool found = false;
-      member_map_t::const_iterator i = private_vars.find(const_cast<char *>(dname));
-      if (i != private_vars.end()) {
-	 found = true;
-      }
-      else {
-	 i = pending_private_vars.find(const_cast<char *>(dname));
-	 if (i != pending_private_vars.end()) {
-	    found = true;
-         }
-      }
-      if (found) {
+      QoreVarInfo *vi = private_vars.find(const_cast<char *>(dname));
+      if (!vi)
+	 vi = pending_private_vars.find(const_cast<char *>(dname));
+
+      if (vi) {
 	 priv = true;
-	 var_has_type_info = i->second->parseHasTypeInfo();
-	 varTypeInfo = i->second->getTypeInfo();
+	 var_has_type_info = vi->parseHasTypeInfo();
+	 varTypeInfo = vi->getTypeInfo();
 	 return cls;
       }
 
-      i = public_vars.find(const_cast<char *>(dname));
-      if (i != public_vars.end())
-	 found = true;
-      else {
-	 i = pending_public_vars.find(const_cast<char *>(dname));
-	 if (i != pending_public_vars.end())
-	    found = true;
-      }
+      vi = public_vars.find(const_cast<char *>(dname));
+      if (!vi)
+	 vi = pending_public_vars.find(const_cast<char *>(dname));
 
-      if (found) {
+      if (vi) {
 	 priv = false;
-	 var_has_type_info = i->second->parseHasTypeInfo();
-	 varTypeInfo = i->second->getTypeInfo();
+	 var_has_type_info = vi->parseHasTypeInfo();
+	 varTypeInfo = vi->getTypeInfo();
 	 return cls;
       }
 
@@ -1570,32 +1696,32 @@ struct qore_class_private {
       delete memberInfo;
    }
 
-   DLLLOCAL void parseAddPrivateStaticVar(char *dname, QoreMemberInfo *memberInfo) {
-      if (!parseCheckVar(dname, memberInfo->parseHasTypeInfo(), true)) {
+   DLLLOCAL void parseAddPrivateStaticVar(char *dname, QoreVarInfo *varInfo) {
+      if (!parseCheckVar(dname, varInfo->parseHasTypeInfo(), true)) {
 	 if (!has_new_user_changes)
 	    has_new_user_changes = true;
 
-	 //printd(5, "qore_class_private::parseAddPrivateMember() this=%p %s adding %p %s\n", this, name, mem, mem);
-	 pending_private_vars[dname] = memberInfo;
+	 //printd(5, "qore_class_private::parseAddPrivateStaticVar() this=%p %s adding %p %s\n", this, name, mem, mem);
+	 pending_private_vars[dname] = varInfo;
 	 return;
       }
 
       free(dname);
-      delete memberInfo;
+      delete varInfo;
    }
 
-   DLLLOCAL void parseAddPublicStaticVar(char *dname, QoreMemberInfo *memberInfo) {
-      if (!parseCheckVar(dname, memberInfo->parseHasTypeInfo(), false)) {
+   DLLLOCAL void parseAddPublicStaticVar(char *dname, QoreVarInfo *varInfo) {
+      if (!parseCheckVar(dname, varInfo->parseHasTypeInfo(), false)) {
 	 if (!has_new_user_changes)
 	    has_new_user_changes = true;
 
-	 //printd(5, "QoreClass::parseAddPublicMember() this=%p %s adding %p %s\n", this, name, mem, mem);
-	 pending_public_vars[dname] = memberInfo;
+	 //printd(5, "QoreClass::parseAddPublicStaticVar() this=%p %s adding %p %s\n", this, name, mem, mem);
+	 pending_public_vars[dname] = varInfo;
 	 return;
       }
 
       free(dname);
-      delete memberInfo;
+      delete varInfo;
    }
 
    DLLLOCAL void parseAssimilatePublicConstants(ConstantList &cmap) {
@@ -1631,7 +1757,7 @@ struct qore_class_private {
          : false;
    }
 
-   DLLLOCAL AbstractQoreNode *getConstantValue(const char *cname, const QoreTypeInfo *&typeInfo) {
+   DLLLOCAL AbstractQoreNode *parseFindLocalConstantValue(const char *cname, const QoreTypeInfo *&typeInfo) {
       // first check public constants
       AbstractQoreNode *rv = pub_const.find(cname, typeInfo);
       if (!rv) {
@@ -1650,8 +1776,64 @@ struct qore_class_private {
 	 }
       }
 
-      //printd(0, "qore_class_private::getConstantValue(%s) this=%p (cls=%p %s) rv=%p\n", cname, this, cls, name, rv);      
+      //printd(0, "qore_class_private::parseFindLocalConstantValue(%s) this=%p (cls=%p %s) rv=%p\n", cname, this, cls, name, rv);      
       return rv;
+   }
+
+   DLLLOCAL AbstractQoreNode *parseFindConstantValueIntern(const char *cname, const QoreTypeInfo *&typeInfo) {
+      // first check public constants
+      AbstractQoreNode *rv = pub_const.find(cname, typeInfo);
+      if (!rv) {
+	 rv = pend_pub_const.find(cname, typeInfo);
+	 if (!rv) {
+	    // now check private constants
+	    rv = priv_const.find(cname, typeInfo);
+	    if (!rv) {
+	       rv = pend_priv_const.find(cname, typeInfo);
+               if (!rv && scl)
+                  rv = scl->parseFindConstantValueIntern(cname, typeInfo);
+            }
+	 }
+      }
+
+      //printd(0, "qore_class_private::parseFindLocalConstantValue(%s) this=%p (cls=%p %s) rv=%p\n", cname, this, cls, name, rv);      
+      return rv;
+   }
+
+   DLLLOCAL QoreVarInfo *parseFindLocalStaticVar(const char *vname) const {
+      QoreVarInfo *vi = public_vars.find(vname);
+      if (!vi) {
+         vi = pending_public_vars.find(vname);
+         if (!vi) {
+            vi = private_vars.find(vname);
+            if (!vi)
+               vi = pending_private_vars.find(vname);
+            if (vi && !parseCheckPrivateClassAccess(cls))
+               vi = 0;
+         }
+      }
+
+      return vi;
+   }
+
+   DLLLOCAL QoreVarInfo *parseFindStaticVarIntern(const char *vname, const QoreClass *&qc) const {
+      QoreVarInfo *vi = public_vars.find(vname);
+
+      if (!vi) {
+         vi = pending_public_vars.find(vname);
+         if (!vi) {
+            vi = private_vars.find(vname);
+            if (!vi)
+               vi = pending_private_vars.find(vname);
+         }
+      }
+
+      if (vi)
+         qc = cls;
+      else if (scl)
+         vi = scl->parseFindStaticVarIntern(vname, qc);
+
+      return vi;
    }
 
    DLLLOCAL void parseAddPublicMember(char *mem, QoreMemberInfo *memberInfo) {
@@ -1793,6 +1975,28 @@ struct qore_class_private {
 	 }
       } 
       return 0;
+   }
+
+   DLLLOCAL int initVar(const char *name, QoreVarInfo &vi, ExceptionSink *xsink) const {
+      if (vi.exp) {
+         // evaluate expression
+         ReferenceHolder<AbstractQoreNode> val(vi.exp->eval(xsink), xsink);
+         if (*xsink)
+            return -1;
+
+         val = vi.getTypeInfo()->acceptInputMember(name, val.release(), xsink);
+         if (*xsink)
+            return -1;
+
+         vi.assignInit(val.release());
+      }
+
+      return 0;
+   }
+
+   DLLLOCAL void deleteClassStaticVars(ExceptionSink *xsink) {
+      private_vars.del(xsink);
+      public_vars.del(xsink);
    }
 
    DLLLOCAL int initMembers(QoreObject *o, ExceptionSink *xsink) const {
@@ -1943,12 +2147,42 @@ struct qore_class_private {
       return qc->priv->parseFindPublicPrivateVar(name, varTypeInfo, has_type_info, priv);
    }
 
-   DLLLOCAL static void parseAddPrivateStaticVar(QoreClass *qc, char *dname, QoreMemberInfo *memberInfo) {
-      qc->priv->parseAddPrivateStaticVar(dname, memberInfo);
+   DLLLOCAL static void parseAddPrivateStaticVar(QoreClass *qc, char *dname, QoreVarInfo *varInfo) {
+      qc->priv->parseAddPrivateStaticVar(dname, varInfo);
    }
 
-   DLLLOCAL static void parseAddPublicStaticVar(QoreClass *qc, char *dname, QoreMemberInfo *memberInfo) {
-      qc->priv->parseAddPublicStaticVar(dname, memberInfo);
+   DLLLOCAL static void parseAddPublicStaticVar(QoreClass *qc, char *dname, QoreVarInfo *varInfo) {
+      qc->priv->parseAddPublicStaticVar(dname, varInfo);
+   }
+
+   DLLLOCAL static void deleteClassStaticVars(QoreClass *qc, ExceptionSink *xsink) {
+      qc->priv->deleteClassStaticVars(xsink);
+   }
+
+   // searches only the current class, returns 0 if private found and not accessible in the current parse context
+   DLLLOCAL static AbstractQoreNode *parseFindLocalConstantValue(QoreClass *qc, const char *cname, const QoreTypeInfo *&typeInfo) {
+      return qc->priv->parseFindLocalConstantValue(cname, typeInfo);
+   }
+
+   // searches only the current class, returns 0 if private found and not accessible in the current parse context
+   DLLLOCAL static QoreVarInfo *parseFindLocalStaticVar(const QoreClass *qc, const char *vname, const QoreTypeInfo *&typeInfo) {
+      QoreVarInfo *vi = qc->priv->parseFindLocalStaticVar(vname);
+      if (vi)
+         typeInfo = vi->getTypeInfo();
+      return vi;
+   }
+
+   // searches this class and all superclasses, assumes parsing from within the class (getParseClass() == this class)
+   DLLLOCAL static AbstractQoreNode *parseFindConstantValueIntern(QoreClass *qc, const char *cname, const QoreTypeInfo *&typeInfo) {
+      return qc->priv->parseFindConstantValueIntern(cname, typeInfo);
+   }
+
+   // searches this class and all superclasses, assumes parsing from within the class (getParseClass() == this class)
+   DLLLOCAL static QoreVarInfo *parseFindStaticVarIntern(const QoreClass *qc, const char *vname, const QoreClass *&nqc, const QoreTypeInfo *&typeInfo) {
+      QoreVarInfo *vi = qc->priv->parseFindStaticVarIntern(vname, nqc);
+      if (vi)
+         typeInfo = vi->getTypeInfo();
+      return vi;
    }
 };
 

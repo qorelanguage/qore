@@ -250,6 +250,7 @@ DLLLOCAL int check_lvalue(AbstractQoreNode *n);
 #include <qore/intern/QoreTreeNode.h>
 #include <qore/intern/BarewordNode.h>
 #include <qore/intern/SelfVarrefNode.h>
+#include <qore/intern/StaticClassVarRefNode.h>
 #include <qore/intern/BackquoteNode.h>
 #include <qore/intern/ContextrefNode.h>
 #include <qore/intern/ContextRowNode.h>

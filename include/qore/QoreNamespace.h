@@ -221,6 +221,8 @@ public:
 
    //! destroys the object and frees all associated memory (not exported)
    DLLLOCAL void purge();
+
+   DLLLOCAL void deleteClassStaticVars(ExceptionSink *xsink);
 };
 
 //! the root namespace of a QoreProgram object
@@ -263,7 +265,7 @@ public:
    DLLLOCAL QoreClass *parseFindScopedClass(const NamedScope *name);
    DLLLOCAL QoreClass *parseFindScopedClassWithMethod(const NamedScope *name);
    // returns 0 for success, non-zero for error
-   DLLLOCAL int resolveSimpleConstant(AbstractQoreNode **, int level, const QoreTypeInfo *&) const;
+   DLLLOCAL int resolveBareword(AbstractQoreNode **, const QoreTypeInfo *&) const;
    // returns 0 for success, non-zero for error
    DLLLOCAL int resolveScopedConstant(AbstractQoreNode **, int level, const QoreTypeInfo *&) const;
    // returns 0 for success, non-zero for error

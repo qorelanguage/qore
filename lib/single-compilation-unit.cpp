@@ -4,6 +4,7 @@
 #include "QoreTreeNode.cpp"
 #include "BarewordNode.cpp"
 #include "SelfVarrefNode.cpp"
+#include "StaticClassVarRefNode.cpp"
 #include "ReferenceNode.cpp"
 #include "BackquoteNode.cpp"
 #include "ContextrefNode.cpp"

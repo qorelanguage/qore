@@ -493,6 +493,11 @@ const QoreNamespace *QoreNamespace::getParent() const {
    return priv->parent;
 }
 
+void QoreNamespace::deleteClassStaticVars(ExceptionSink *xsink) {
+   priv->classList->deleteClassStaticVars(xsink);
+   priv->nsl->deleteClassStaticVars(xsink);
+}
+
 // QoreNamespaceList::parseResolveNamespace()
 // does a recursive breadth-first search to resolve a namespace declaration
 QoreNamespace *QoreNamespaceList::parseResolveNamespace(const NamedScope *name, int *matched) {
@@ -643,6 +648,11 @@ QoreClass *QoreNamespaceList::parseFindScopedClass(const NamedScope *name, int *
    return oc;
 }
 
+void QoreNamespaceList::deleteClassStaticVars(ExceptionSink *xsink) {
+   for (nsmap_t::iterator i = nsmap.begin(), e = nsmap.end(); i != e; ++i)
+      i->second->deleteClassStaticVars(xsink);
+}
+
 // returns 0 for success, non-zero return value means error
 int RootQoreNamespace::addMethodToClass(const NamedScope *scname, MethodVariantBase *qcmethod, bool static_flag) {
    std::auto_ptr<MethodVariantBase> v(qcmethod);
@@ -746,22 +756,47 @@ QoreClass *RootQoreNamespace::parseFindScopedClassWithMethod(const NamedScope *s
 }
 
 // returns 0 for success, non-zero for error
-int RootQoreNamespace::resolveSimpleConstant(AbstractQoreNode **node, int level, const QoreTypeInfo *&typeInfo) const {
+int RootQoreNamespace::resolveBareword(AbstractQoreNode **node, const QoreTypeInfo *&typeInfo) const {
    assert(*node && (*node)->getType() == NT_BAREWORD);
    BarewordNode *b = reinterpret_cast<BarewordNode *>(*node);
-   printd(5, "RootQoreNamespace::resolveSimpleConstant(%s, %d)\n", b->str, level);
 
-   // if constant is not found, then a parse error will be raised
-   AbstractQoreNode *rv = findConstantValue(b->str, level, typeInfo);
+   QoreClass *pc = getParseClass();
 
-   printd(5, "RootQoreNamespace::resolveSimpleConstant(%s, %d) %p %s-> %p %s\n", 
-	  b->str, level, *node, (*node)->getTypeName(), rv, rv ? rv->getTypeName() : "n/a");
+   //printd(5, "RootQoreNamespace::resolveBareword(%s) pc=%p\n", b->str, pc);
+
+   AbstractQoreNode *rv = 0;
+
+   // if there is a current parse class context, then check it first
+   if (pc) {
+      rv = qore_class_private::parseFindConstantValueIntern(pc, b->str, typeInfo);
+      if (!rv) {
+	 // check for class static var reference
+	 const QoreClass *qc = 0;
+	 QoreVarInfo *vi = qore_class_private::parseFindStaticVarIntern(pc, b->str, qc, typeInfo);
+	 if (vi) {
+	    assert(qc);
+	    char *name = b->takeString();
+	    b->deref();
+	    *node = new StaticClassVarRefNode(name, *qc, *vi);
+	    return 0;
+	 }
+      }
+   }
+
+   if (!rv) {
+      int level = 1;
+      // if constant is not found, then a parse error will be raised
+      rv = findConstantValue(b->str, level, typeInfo);
+   }
+
+   printd(5, "RootQoreNamespace::resolveBareword(%s) %p %s-> %p %s\n", 
+	  b->str, *node, (*node)->getTypeName(), rv, rv ? rv->getTypeName() : "n/a");
 
    b->deref();
    // here we put &True in the tree, so a value will be there - 
    // nulls cannot appear in the parse tree
    *node = rv ? rv->refSelf() : &True;
-
+   
    if (!rv)
       return -1;
 
@@ -1003,7 +1038,7 @@ AbstractQoreNode *QoreNamespace::parseMatchScopedConstantValue(const NamedScope 
       // check for a class constant
       if (nscope->size() == 2) {
 	 QoreClass *qc = parseFindLocalClass(nscope->strlist[0].c_str());
-	 return qc ? qc->getConstantValue(nscope->getIdentifier(), typeInfo) : 0;
+	 return qc ? qore_class_private::parseFindLocalConstantValue(qc, nscope->getIdentifier(), typeInfo) : 0;
       }
 
       return 0;
@@ -1026,7 +1061,7 @@ AbstractQoreNode *QoreNamespace::parseMatchScopedConstantValue(const NamedScope 
 	    // then check for a class constant
 	    if (i == (last - 1)) {
 	       QoreClass *qc = ns->parseFindLocalClass(oname);
-	       return qc ? qc->getConstantValue(nscope->getIdentifier(), typeInfo) : 0;
+	       return qc ? qore_class_private::parseFindLocalConstantValue(qc, nscope->getIdentifier(), typeInfo) : 0;
 	    }
 	    return 0;
 	 }
@@ -1915,4 +1950,3 @@ RootQoreNamespace *RootQoreNamespace::copy(int64 po) const {
 // moved down to allow to test internal classes
 #  include "tests/Namespace_tests.cpp"
 #endif
-

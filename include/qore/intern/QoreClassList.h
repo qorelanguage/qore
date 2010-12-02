@@ -69,6 +69,8 @@ public:
    DLLLOCAL bool empty() const {
       return hm.empty();
    }
+
+   DLLLOCAL void deleteClassStaticVars(ExceptionSink *xsink);
 };
 
 #endif // _QORE_QORECLASSLIST_H

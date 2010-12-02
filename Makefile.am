@@ -113,6 +113,7 @@ noinst_HEADERS = \
 	include/qore/intern/TypeConstants.h \
 	include/qore/intern/QoreTreeNode.h \
 	include/qore/intern/BarewordNode.h \
+	include/qore/intern/StaticClassVarRefNode.h \
 	include/qore/intern/SelfVarrefNode.h \
 	include/qore/intern/VarRefNode.h \
 	include/qore/intern/BackquoteNode.h \

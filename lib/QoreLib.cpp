@@ -1307,3 +1307,21 @@ int ObjMap::check(QoreObject *obj) {
    mark();
    return 1;
 }
+
+// returns 0 for OK, -1 for error
+int check_lvalue(AbstractQoreNode *node) {
+   qore_type_t ntype = node->getType();
+   //printd(5, "type=%s\n", node->getTypeName());
+   if (ntype == NT_VARREF || ntype == NT_SELF_VARREF)
+      return 0;
+
+   if (ntype == NT_TREE) {
+      QoreTreeNode *t = reinterpret_cast<QoreTreeNode *>(node);
+      if (t->getOp() == OP_LIST_REF || t->getOp() == OP_OBJECT_REF)
+	 return check_lvalue(t->left);
+      else
+	 return -1;
+   }
+   return -1;
+}
+

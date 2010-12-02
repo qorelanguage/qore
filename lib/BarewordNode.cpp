@@ -79,6 +79,6 @@ AbstractQoreNode *BarewordNode::parseInit(LocalVar *oflag, int pflag, int &lvids
    AbstractQoreNode **node = &n;
    printd(5, "BarewordNode::parseInit() resolving simple constant \"%s\"\n", reinterpret_cast<BarewordNode *>(*node)->str);
    // FIXME: xxx set typeInfo
-   getRootNS()->resolveSimpleConstant(node, 1, typeInfo);
+   getRootNS()->resolveBareword(node, typeInfo);
    return *node;
 }

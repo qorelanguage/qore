@@ -296,16 +296,19 @@ qore_class_private::qore_class_private(const qore_class_private &old, QoreClass 
       public_members[strdup(i->first)] = i->second->copy();
 
    // copy private static var list
-   for (member_map_t::const_iterator i = old.private_vars.begin(), e = old.private_vars.end(); i != e; ++i)
+   for (var_map_t::const_iterator i = old.private_vars.begin(), e = old.private_vars.end(); i != e; ++i)
       private_vars[strdup(i->first)] = i->second->copy();
 
    // copy public static var list
-   for (member_map_t::const_iterator i = old.public_vars.begin(), e = old.public_vars.end(); i != e; ++i)
+   for (var_map_t::const_iterator i = old.public_vars.begin(), e = old.public_vars.end(); i != e; ++i)
       public_vars[strdup(i->first)] = i->second->copy();
 }
 
 qore_class_private::~qore_class_private() {
    printd(5, "qore_class_private::~qore_class_private() deleting %p %s\n", this, name ? name : "(null)");
+
+   assert(private_vars.empty());
+   assert(public_vars.empty());
 
    for (hm_method_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
       //printd(5, "QoreClass::~QoreClass() deleting method %p %s::%s()\n", m, name, m->getName());
@@ -468,7 +471,7 @@ void qore_class_private::parseCommit() {
       }
 
       {
-      // add all pending private members to real member list
+	 // add all pending private members to real member list
 	 member_map_t::iterator i = pending_private_members.begin();  
 	 while (i != pending_private_members.end()) { 
 	    //printd(5, "QoreClass::parseCommit() %s committing private member %p %s\n", name, j->first, j->first);
@@ -489,23 +492,32 @@ void qore_class_private::parseCommit() {
 	 }
       }
 
+      // exceptions thrown when initializing static class variables
+      // will be stored here and cannot be caught by user code
+      ExceptionSink xsink;
       {
-	 // add all pending private static vars to real list
-	 member_map_t::iterator i = pending_private_vars.begin();  
+	 // add all pending private static vars to real list and initialize them
+	 var_map_t::iterator i = pending_private_vars.begin();  
 	 while (i != pending_private_vars.end()) { 
 	    //printd(5, "QoreClass::parseCommit() %s committing private var %p %s\n", name, l->first, l->first);
 	    private_vars[i->first] = i->second;
+	    // initialize variable
+	    initVar(i->first, *(i->second), &xsink);
+
 	    pending_private_vars.erase(i);
 	    i = pending_private_vars.begin();
 	 }
       }
    
       {
-	 // add all pending public static vars to real list
-	 member_map_t::iterator i = pending_public_vars.begin();  
+	 // add all pending public static vars to real list and initialize them
+	 var_map_t::iterator i = pending_public_vars.begin();  
 	 while (i != pending_public_vars.end()) { 
 	    //printd(5, "QoreClass::parseCommit() %s committing public var %p %s\n", name, j->first, j->first);
 	    public_vars[i->first] = i->second;
+	    // initialize variable
+	    initVar(i->first, *(i->second), &xsink);
+
 	    pending_public_vars.erase(i);
 	    i = pending_public_vars.begin();
 	 }
@@ -1066,6 +1078,34 @@ void BCList::resolveCopy() {
    }
 
    sml.resolveCopy();
+}
+
+AbstractQoreNode *BCList::parseFindConstantValueIntern(const char *cname, const QoreTypeInfo *&typeInfo) {
+   for (bclist_t::iterator i = begin(), e = end(); i != e; ++i) {
+      QoreClass *qc = (*i)->sclass;
+      // qc may be 0 if there were a parse error with an unknown class earlier
+      if (!qc)
+	 continue;
+
+      AbstractQoreNode *rv = qore_class_private::parseFindConstantValueIntern(qc, cname, typeInfo);
+      if (rv)
+	 return rv;
+   }
+   return 0;
+}
+
+QoreVarInfo *BCList::parseFindStaticVarIntern(const char *vname, const QoreClass *&qc) const {
+   for (bclist_t::const_iterator i = begin(), e = end(); i != e; ++i) {
+      const QoreClass *nqc = (*i)->sclass;
+      // qc may be 0 if there were a parse error with an unknown class earlier
+      if (!nqc)
+	 continue;
+
+      QoreVarInfo *vi = nqc->priv->parseFindStaticVarIntern(vname, qc);
+      if (vi)
+	 return vi;
+   }
+   return 0;
 }
 
 int BCAList::execBaseClassConstructorArgs(BCEAList *bceal, ExceptionSink *xsink) const {
@@ -2228,13 +2268,13 @@ void qore_class_private::parseInitPartial() {
       }
 
       // initialize new private static vars
-      for (member_map_t::iterator i = pending_private_vars.begin(), e = pending_private_vars.end(); i != e; ++i) {
+      for (var_map_t::iterator i = pending_private_vars.begin(), e = pending_private_vars.end(); i != e; ++i) {
 	 if (i->second)
 	    i->second->parseInit(i->first, true);
       }
       
       // initialize new public static vars
-      for (member_map_t::iterator i = pending_public_vars.begin(), e = pending_public_vars.end(); i != e; ++i) {
+      for (var_map_t::iterator i = pending_public_vars.begin(), e = pending_public_vars.end(); i != e; ++i) {
 	 if (i->second)
 	    i->second->parseInit(i->first, false);
       }
@@ -2449,9 +2489,11 @@ void QoreClass::parseAssimilatePrivateConstants(ConstantList &cmap) {
    priv->parseAssimilatePrivateConstants(cmap);
 }
 
+/*
 AbstractQoreNode *QoreClass::getConstantValue(const char *cname, const QoreTypeInfo *&typeInfo) {
    return priv->getConstantValue(cname, typeInfo);
 }
+*/
 
 void QoreClass::parseAddPublicConstant(const std::string &cname, AbstractQoreNode *val) {
    priv->parseAddPublicConstant(cname, val);

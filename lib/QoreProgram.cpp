@@ -615,6 +615,9 @@ struct qore_program_private {
       // method call can be repeated
       global_var_list.delete_all(xsink);
 
+      // delete all class static vars
+      RootNS->deleteClassStaticVars(xsink);
+
       // delete user functions in case there are constant objects which are 
       // instances of classes that may be deleted below (call can be repeated)
       user_func_list.del();

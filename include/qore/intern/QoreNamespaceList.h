@@ -76,6 +76,7 @@ public:
    DLLLOCAL QoreClass *parseFindScopedClass(const NamedScope *name, int *matched);
    DLLLOCAL QoreClass *parseFindClass(const char *ocname);
    DLLLOCAL QoreClass *parseFindChangeClass(const char *ocname);
+   DLLLOCAL void deleteClassStaticVars(ExceptionSink *xsink);
 
    DLLLOCAL bool empty() const {
       return nsmap.empty();
