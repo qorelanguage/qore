@@ -58,6 +58,8 @@ public:
    DLLLOCAL virtual const char *getTypeName() const;
 
    DLLLOCAL AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
+
+   DLLLOCAL AbstractQoreNode **getValuePtr(AutoVLock &vl, const QoreTypeInfo *&typeInfo) const;
 };
 
 #endif

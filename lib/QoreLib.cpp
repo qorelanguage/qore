@@ -1312,7 +1312,7 @@ int ObjMap::check(QoreObject *obj) {
 int check_lvalue(AbstractQoreNode *node) {
    qore_type_t ntype = node->getType();
    //printd(5, "type=%s\n", node->getTypeName());
-   if (ntype == NT_VARREF || ntype == NT_SELF_VARREF)
+   if (ntype == NT_VARREF || ntype == NT_SELF_VARREF || ntype == NT_CLASS_VARREF)
       return 0;
 
    if (ntype == NT_TREE) {

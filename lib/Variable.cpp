@@ -384,7 +384,12 @@ AbstractQoreNode **get_var_value_ptr(const AbstractQoreNode *n, AutoVLock *vlp, 
 	 xsink->raiseException("OBJECT-ALREADY-DELETED", "write attempted to member \"%s\" in an already-deleted object", v->str);
       return rv;
    }
+   else if (ntype == NT_CLASS_VARREF) {
+      const StaticClassVarRefNode *v = reinterpret_cast<const StaticClassVarRefNode *>(n);
+      return v->getValuePtr(*vlp, typeInfo);
+   }
 
+   assert(n->getType() == NT_TREE);
    // it must be a tree
    const QoreTreeNode *tree = reinterpret_cast<const QoreTreeNode *>(n);
    if (tree->getOp() == OP_LIST_REF)
