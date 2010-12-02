@@ -121,7 +121,7 @@ noinst_HEADERS = \
 	include/qore/intern/ContextRowNode.h \
 	include/qore/intern/ComplexContextrefNode.h \
 	include/qore/intern/FunctionCallNode.h \
-	include/qore/intern/ConstantNode.h \
+	include/qore/intern/ScopedRefNode.h \
 	include/qore/intern/SmartMutex.h \
 	include/qore/intern/Sequence.h \
 	include/qore/intern/ScopedObjectCallNode.h \

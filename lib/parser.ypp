@@ -1883,7 +1883,7 @@ exp:    scalar
 	| '(' hash ')'
 	{ $$ = $2; }
         | SCOPED_REF
-        { $$ = new ConstantNode($1); }
+        { $$ = new ScopedRefNode($1); }
         | qtypedef VAR_REF {
 	   if (!$1 && !strcmp($2, "argv"))
 	      inc_argv_ref();
@@ -2184,7 +2184,7 @@ exp:    scalar
 	      $$ = new FunctionCallNode(str, makeArgs($3));
 	   }
 	   else if (t == NT_CONSTANT) {
-	      ConstantNode *c = reinterpret_cast<ConstantNode *>($1);
+	      ScopedRefNode *c = reinterpret_cast<ScopedRefNode *>($1);
 	      // take NamedScope from node and delete node
 	      NamedScope *ns = c->takeName();
 	      c->deref();

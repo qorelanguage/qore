@@ -1,6 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
- ConstantNode.h
+ ScopedRefNode.h
  
  Qore Programming Language
  
@@ -21,17 +21,17 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef _QORE_CONSTANTNODE_H
+#ifndef _QORE_SCOPEDREFNODE_H
 
-#define _QORE_CONSTANTNODE_H
+#define _QORE_SCOPEDREFNODE_H
 
-class ConstantNode : public ParseNoEvalNode {
+class ScopedRefNode : public ParseNoEvalNode {
 public:
    NamedScope *scoped_ref;
 
    // object takes over ownership of NamedScope
-   DLLLOCAL ConstantNode(char *ref);
-   DLLLOCAL virtual ~ConstantNode();
+   DLLLOCAL ScopedRefNode(char *ref);
+   DLLLOCAL virtual ~ScopedRefNode();
 
    // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
    // the ExceptionSink is only needed for QoreObject where a method may be executed

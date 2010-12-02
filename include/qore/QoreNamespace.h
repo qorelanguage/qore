@@ -57,6 +57,7 @@ typedef QoreClass *(*q_ns_class_handler_t)(QoreNamespace *ns, const char *cname)
 class QoreNamespace {
    friend class QoreNamespaceList;
    friend class RootQoreNamespace;
+   friend class qore_ns_private;
 
 protected:
    struct qore_ns_private *priv; // private implementation
@@ -66,7 +67,6 @@ protected:
    DLLLOCAL QoreClass *parseMatchScopedClassWithMethod(const NamedScope *nscope, int *matched);
    DLLLOCAL QoreNamespace *parseMatchNamespace(const NamedScope *nscope, int *matched) const;
    DLLLOCAL void assimilate(QoreNamespace *ns);
-   DLLLOCAL QoreNamespace *parseFindLocalNamespace(const char *name) const;
    DLLLOCAL QoreClass *parseFindLocalClass(const char *name) const;
    DLLLOCAL QoreNamespace *resolveNameScope(const NamedScope *name) const;
    DLLLOCAL AbstractQoreNode *getConstantValue(const char *name, const QoreTypeInfo *&typeInfo) const;
@@ -267,7 +267,7 @@ public:
    // returns 0 for success, non-zero for error
    DLLLOCAL int resolveBareword(AbstractQoreNode **, const QoreTypeInfo *&) const;
    // returns 0 for success, non-zero for error
-   DLLLOCAL int resolveScopedConstant(AbstractQoreNode **, int level, const QoreTypeInfo *&) const;
+   DLLLOCAL int resolveScopedReference(AbstractQoreNode **, const QoreTypeInfo *&) const;
    // returns 0 for success, non-zero for error
    DLLLOCAL int addMethodToClass(const NamedScope *name, MethodVariantBase *qcmethod, bool static_flag);
 };

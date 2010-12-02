@@ -86,7 +86,7 @@ public:
       return strlist[strlist.size() - 1];
    }
 
-   DLLLOCAL int size() const {
+   DLLLOCAL unsigned size() const {
       return strlist.size(); 
    }
 

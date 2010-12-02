@@ -152,7 +152,7 @@ void AbstractFunctionSignature::addDefaultArgument(const AbstractQoreNode *arg) 
       return;
    }
    if (t == NT_CONSTANT) {
-      str.append(reinterpret_cast<const ConstantNode *>(arg)->scoped_ref->getIdentifier());
+      str.append(reinterpret_cast<const ScopedRefNode *>(arg)->scoped_ref->getIdentifier());
       return;
    }
    if (arg->is_value()) {

@@ -37,7 +37,7 @@ libqore_la_SOURCES = \
 	VarRefNode.cpp \
 	FunctionCallNode.cpp \
 	ReferenceNode.cpp \
-	ConstantNode.cpp \
+	ScopedRefNode.cpp \
 	ClassRefNode.cpp \
 	AbstractQoreNode.cpp \
 	QoreStringNode.cpp \

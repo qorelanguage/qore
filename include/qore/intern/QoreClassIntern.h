@@ -1022,6 +1022,7 @@ public:
       for (var_map_t::iterator i = begin(), e = end(); i != e; ++i) {
          i->second->delVar(xsink);
          free(i->first);
+         delete i->second;
       }
       clear();
    }

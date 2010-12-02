@@ -24,6 +24,9 @@
 #ifndef _QORE_QORENAMESPACEINTERN_H
 #define _QORE_QORENAMESPACEINTERN_H
 
+#include <qore/intern/QoreClassList.h>
+#include <qore/intern/QoreNamespaceList.h>
+
 struct qore_ns_private {
    std::string name;
 
@@ -122,6 +125,11 @@ struct qore_ns_private {
       }
       return rv;
    }
+
+   DLLLOCAL AbstractQoreNode *parseCheckScopedReference(const NamedScope &ns, unsigned &m, const QoreTypeInfo *&typeInfo) const;
+   DLLLOCAL AbstractQoreNode *parseResolveScopedReference(const NamedScope &ns, unsigned &m, const QoreTypeInfo *&typeInfo) const;
+   DLLLOCAL AbstractQoreNode *parseFindLocalConstantValue(const char *cname, const QoreTypeInfo *&typeInfo) const;
+   DLLLOCAL QoreNamespace *parseFindLocalNamespace(const char *nname) const;
 };
 
 #endif

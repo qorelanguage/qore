@@ -79,6 +79,7 @@ public:
    DLLLOCAL void deleteClassStaticVars(ExceptionSink *xsink);
 
    DLLLOCAL AbstractQoreNode *parseResolveBareword(const char *name, const QoreTypeInfo *&typeInfo) const;
+   DLLLOCAL AbstractQoreNode *parseResolveScopedReference(const NamedScope &ns, unsigned &m, const QoreTypeInfo *&typeInfo) const;
 
    DLLLOCAL bool empty() const {
       return nsmap.empty();

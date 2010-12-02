@@ -11,7 +11,7 @@
 #include "ComplexContextrefNode.cpp"
 #include "ContextRowNode.cpp"
 #include "ClassRefNode.cpp"
-#include "ConstantNode.cpp"
+#include "ScopedRefNode.cpp"
 #include "AbstractQoreNode.cpp"
 #include "QoreStringNode.cpp"
 #include "DateTimeNode.cpp"
