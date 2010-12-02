@@ -25,6 +25,8 @@
 
 #define _QORE_STATICCLASSVARREFNODE_H
 
+#include <string>
+
 class QoreVarInfo;
 
 class StaticClassVarRefNode : public ParseNode {
@@ -41,9 +43,9 @@ protected:
 public:
    const QoreClass &qc;
    QoreVarInfo &vi;
-   char *str;
+   std::string str;
 
-   DLLLOCAL StaticClassVarRefNode(char *c_str, const QoreClass &n_qc, QoreVarInfo &n_vi);
+   DLLLOCAL StaticClassVarRefNode(const char *c_str, const QoreClass &n_qc, QoreVarInfo &n_vi);
 
    DLLLOCAL virtual ~StaticClassVarRefNode();
 
@@ -54,9 +56,6 @@ public:
 
    // returns the type name as a c string
    DLLLOCAL virtual const char *getTypeName() const;
-
-   // returns the string, caller owns the memory
-   DLLLOCAL char *takeString();
 
    DLLLOCAL AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
 };

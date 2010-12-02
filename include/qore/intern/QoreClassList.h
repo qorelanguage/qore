@@ -66,6 +66,8 @@ public:
 
    DLLLOCAL AbstractQoreNode *findConstant(const char *cname, const QoreTypeInfo *&typeInfo);
 
+   DLLLOCAL AbstractQoreNode *parseResolveBareword(const char *name, const QoreTypeInfo *&typeInfo);
+
    DLLLOCAL bool empty() const {
       return hm.empty();
    }

@@ -78,6 +78,8 @@ public:
    DLLLOCAL QoreClass *parseFindChangeClass(const char *ocname);
    DLLLOCAL void deleteClassStaticVars(ExceptionSink *xsink);
 
+   DLLLOCAL AbstractQoreNode *parseResolveBareword(const char *name, const QoreTypeInfo *&typeInfo) const;
+
    DLLLOCAL bool empty() const {
       return nsmap.empty();
    }

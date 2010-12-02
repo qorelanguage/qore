@@ -154,6 +154,20 @@ AbstractQoreNode *QoreClassList::findConstant(const char *cname, const QoreTypeI
    return 0;
 }
 
+AbstractQoreNode *QoreClassList::parseResolveBareword(const char *name, const QoreTypeInfo *&typeInfo) {
+   for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
+      AbstractQoreNode *rv = qore_class_private::parseFindLocalConstantValue(i->second, name, typeInfo);
+      if (rv)
+	 return rv->refSelf();
+
+      QoreVarInfo *vi = qore_class_private::parseFindLocalStaticVar(i->second, name, typeInfo);
+      if (vi)
+	 return new StaticClassVarRefNode(name, *(i->second), *vi);
+   }
+
+   return 0;
+}
+
 void QoreClassList::deleteClassStaticVars(ExceptionSink *xsink) {
    for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
       qore_class_private::deleteClassStaticVars(i->second, xsink);

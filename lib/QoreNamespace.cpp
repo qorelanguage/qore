@@ -1,3 +1,4 @@
+/* -*- indent-tabs-mode: nil -*- */
 /*
   QoreNamespace.cpp
 
@@ -34,6 +35,7 @@
 #include <qore/intern/QoreClassList.h>
 #include <qore/intern/QoreClassIntern.h>
 #include <qore/intern/QoreSignal.h>
+#include <qore/intern/QoreNamespaceIntern.h>
 
 #include <qore/minitest.hpp>
 
@@ -74,85 +76,6 @@
 StaticSystemNamespace staticSystemNamespace;
 
 AutoNamespaceList ANSL;
-
-struct qore_ns_private {
-   std::string name;
-
-   QoreClassList      *classList;
-   ConstantList       *constant;
-   QoreNamespaceList  *nsl;
-
-   // pending lists
-   // FIXME: can be normal members
-   QoreClassList      *pendClassList;
-   ConstantList       *pendConstant;
-   QoreNamespaceList  *pendNSL;
-
-   const QoreNamespace *parent;
-   q_ns_class_handler_t class_handler;   
-   QoreNamespace *ns;
-
-   DLLLOCAL qore_ns_private(QoreNamespace *n_ns, const char *n, QoreClassList *ocl, ConstantList *cl, QoreNamespaceList *nnsl) :
-      name(n), 
-      classList(ocl), constant(cl), nsl(nnsl), 
-      pendClassList(new QoreClassList), pendConstant(new ConstantList), pendNSL(new QoreNamespaceList),
-      parent(0), class_handler(0), ns(n_ns) {
-      assert(classList);
-      assert(constant);
-      assert(nsl);
-   }
-
-   DLLLOCAL qore_ns_private(QoreNamespace *n_ns, const char *n) :
-      name(n),
-      classList(new QoreClassList), constant(new ConstantList), nsl(new QoreNamespaceList), 
-      pendClassList(new QoreClassList), pendConstant(new ConstantList), pendNSL(new QoreNamespaceList),
-      parent(0), class_handler(0), ns(n_ns) {
-   }
-
-   DLLLOCAL qore_ns_private(const qore_ns_private &old, QoreNamespace *n_ns, int64 po) : 
-      name(old.name), classList(old.classList->copy(po)), constant(new ConstantList(*old.constant)),
-      nsl(old.nsl->copy(po, n_ns)), 
-      pendClassList(new QoreClassList), pendConstant(new ConstantList), pendNSL(new QoreNamespaceList),
-      parent(0), class_handler(old.class_handler), ns(n_ns) {
-   }		    
-
-   DLLLOCAL ~qore_ns_private() {
-      printd(5, "QoreNamespace::~QoreNamespace() this=%p '%s'\n", this, name.c_str());
-
-      purge();
-   }
-
-   DLLLOCAL void purge() {
-      delete constant;
-      constant = 0;
-
-      if (nsl)
-	 nsl->deleteAllConstants();
-
-      delete classList;
-      classList = 0;
-
-      delete nsl;
-      nsl = 0;
-	 
-      delete pendConstant;
-      pendConstant = 0;
-
-      delete pendClassList;
-      pendClassList = 0;
-
-      delete pendNSL;
-      pendNSL = 0;
-   }
-
-   // finds a local class in the committed class list, if not found executes the class handler
-   DLLLOCAL QoreClass *findLoadClass(QoreNamespace *cns, const char *cname) {
-      QoreClass *qc = classList->find(cname);
-      if (!qc && class_handler)
-	 qc = class_handler(cns, cname);
-      return qc;
-   }
-};
 
 QoreNamespace::QoreNamespace(const char *n) : priv(new qore_ns_private(this, n)) {
 }
@@ -544,6 +467,15 @@ AbstractQoreNode *QoreNamespaceList::parseFindConstantValue(const char *cname, c
    return rv;
 }
 
+AbstractQoreNode *QoreNamespaceList::parseResolveBareword(const char *name, const QoreTypeInfo *&typeInfo) const {
+   AbstractQoreNode *rv;
+   for (nsmap_t::const_iterator i = nsmap.begin(), e = nsmap.end(); i != e; ++i) {
+      if ((rv = i->second->priv->parseResolveBareword(name, typeInfo)))
+	 return rv;
+   }
+   return 0;
+}
+
 /*
 static void showNSL(QoreNamespaceList *nsl) {
    printd(5, "showNSL() dumping %p\n", nsl);
@@ -769,24 +701,23 @@ int RootQoreNamespace::resolveBareword(AbstractQoreNode **node, const QoreTypeIn
    // if there is a current parse class context, then check it first
    if (pc) {
       rv = qore_class_private::parseFindConstantValueIntern(pc, b->str, typeInfo);
-      if (!rv) {
+      if (rv)
+	 rv->ref();
+      else {
 	 // check for class static var reference
 	 const QoreClass *qc = 0;
 	 QoreVarInfo *vi = qore_class_private::parseFindStaticVarIntern(pc, b->str, qc, typeInfo);
 	 if (vi) {
 	    assert(qc);
-	    char *name = b->takeString();
+	    *node = new StaticClassVarRefNode(b->str, *qc, *vi);
 	    b->deref();
-	    *node = new StaticClassVarRefNode(name, *qc, *vi);
 	    return 0;
 	 }
       }
    }
 
    if (!rv) {
-      int level = 1;
-      // if constant is not found, then a parse error will be raised
-      rv = findConstantValue(b->str, level, typeInfo);
+      rv = priv->parseResolveBareword(b->str, typeInfo);
    }
 
    printd(5, "RootQoreNamespace::resolveBareword(%s) %p %s-> %p %s\n", 
@@ -795,7 +726,7 @@ int RootQoreNamespace::resolveBareword(AbstractQoreNode **node, const QoreTypeIn
    b->deref();
    // here we put &True in the tree, so a value will be there - 
    // nulls cannot appear in the parse tree
-   *node = rv ? rv->refSelf() : &True;
+   *node = rv ? rv : &True;
    
    if (!rv)
       return -1;

@@ -22,16 +22,14 @@
 
 #include <qore/Qore.h>
 
-StaticClassVarRefNode::StaticClassVarRefNode(char *c_str, const QoreClass &n_qc, QoreVarInfo &n_vi) : ParseNode(NT_SELF_VARREF), qc(n_qc), vi(n_vi), str(c_str) {
+StaticClassVarRefNode::StaticClassVarRefNode(const char *c_str, const QoreClass &n_qc, QoreVarInfo &n_vi) : ParseNode(NT_CLASS_VARREF), qc(n_qc), vi(n_vi), str(c_str) {
 }
 
 StaticClassVarRefNode::~StaticClassVarRefNode() {
-   if (str)
-      free(str);
 }
 
 int StaticClassVarRefNode::getAsString(QoreString &qstr, int foff, ExceptionSink *xsink) const {
-   qstr.sprintf("reference to static class variable %s::%s", qc.getName(), str ? str : "(null)");
+   qstr.sprintf("reference to static class variable %s::%s", qc.getName(), str.c_str());
    return 0;
 }
 
@@ -79,14 +77,7 @@ double StaticClassVarRefNode::floatEvalImpl(ExceptionSink *xsink) const {
    return rv ? rv->getAsFloat() : 0;
 }
 
-char *StaticClassVarRefNode::takeString() {
-   assert(str);
-   char *p = str;
-   str = 0;
-   return p;
-}
-
 AbstractQoreNode *StaticClassVarRefNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
-   printd(5, "StaticClassVarRefNode::parseInit() '%s::%s'\n", qc.getName(), str);
+   printd(5, "StaticClassVarRefNode::parseInit() '%s::%s'\n", qc.getName(), str.c_str());
    return this;
 }

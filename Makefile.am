@@ -143,6 +143,7 @@ noinst_HEADERS = \
 	include/qore/intern/Operator.h \
 	include/qore/intern/ObjectMethodReferenceNode.h \
 	include/qore/intern/NamedScope.h \
+	include/qore/intern/QoreNamespaceIntern.h \
 	include/qore/intern/QoreNamespaceList.h \
 	include/qore/intern/ManagedDatasource.h \
 	include/qore/intern/QoreSQLStatement.h \
