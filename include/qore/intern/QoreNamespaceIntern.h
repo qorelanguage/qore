@@ -104,19 +104,21 @@ struct qore_ns_private {
 
    DLLLOCAL AbstractQoreNode *parseResolveBareword(const char *name, const QoreTypeInfo *&typeInfo) const {
       AbstractQoreNode *rv = constant->find(name, typeInfo);
+      if (rv)
+         return rv->refSelf();
+
+      rv = pendConstant->find(name, typeInfo);
+      if (rv)
+         return rv->refSelf();
+
+      rv = classList->parseResolveBareword(name, typeInfo);
       if (!rv) {
-	 rv = pendConstant->find(name, typeInfo);
-	 if (!rv) {
-	    rv = classList->parseResolveBareword(name, typeInfo);
-	    if (!rv) {
-	       rv = pendClassList->parseResolveBareword(name, typeInfo);
-	       if (!rv) {
-		  rv = nsl->parseResolveBareword(name, typeInfo);
-		  if (!rv)
-		     rv = pendNSL->parseResolveBareword(name, typeInfo);
-	       }
-	    }
-	 }
+         rv = pendClassList->parseResolveBareword(name, typeInfo);
+         if (!rv) {
+            rv = nsl->parseResolveBareword(name, typeInfo);
+            if (!rv)
+               rv = pendNSL->parseResolveBareword(name, typeInfo);
+         }
       }
       return rv;
    }

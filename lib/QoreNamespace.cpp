@@ -720,8 +720,7 @@ int RootQoreNamespace::resolveBareword(AbstractQoreNode **node, const QoreTypeIn
       rv = priv->parseResolveBareword(b->str, typeInfo);
    }
 
-   printd(5, "RootQoreNamespace::resolveBareword(%s) %p %s-> %p %s\n", 
-	  b->str, *node, (*node)->getTypeName(), rv, rv ? rv->getTypeName() : "n/a");
+   //printd(5, "RootQoreNamespace::resolveBareword(%s) %p %s-> %p %s\n", b->str, *node, (*node)->getTypeName(), rv, get_type_name(rv));
 
    b->deref();
    // here we put &True in the tree, so a value will be there - 
