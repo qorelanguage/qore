@@ -108,7 +108,7 @@ QoreNamespace *QoreNamespace::resolveNameScope(const NamedScope *nscope) const {
    const QoreNamespace *sns = this;
 
    // find namespace
-   for (int i = 0; i < (nscope->size() - 1); i++)
+   for (unsigned i = 0; i < (nscope->size() - 1); i++)
       if (!(sns = sns->priv->parseFindLocalNamespace(nscope->strlist[i].c_str()))) {
 	 parse_error("namespace '%s' cannot be resolved while evaluating '%s' in constant declaration",
 		     nscope->strlist[i].c_str(), nscope->ostr);
@@ -416,7 +416,7 @@ void QoreNamespace::deleteClassStaticVars(ExceptionSink *xsink) {
 
 // QoreNamespaceList::parseResolveNamespace()
 // does a recursive breadth-first search to resolve a namespace declaration
-QoreNamespace *QoreNamespaceList::parseResolveNamespace(const NamedScope *name, int *matched) {
+QoreNamespace *QoreNamespaceList::parseResolveNamespace(const NamedScope *name, unsigned *matched) {
    QORE_TRACE("QoreNamespaceList::parseResolveNamespace()");
 
    QoreNamespace *ns = 0;
@@ -489,7 +489,7 @@ static void showNSL(QoreNamespaceList *nsl) {
 // QoreNamespaceList::parseFindScopedConstantValue()
 // does a recursive breadth-first search to resolve a namespace with the given object type
 // note: is only called with a namespace specifier
-AbstractQoreNode *QoreNamespaceList::parseFindScopedConstantValue(const NamedScope *name, int *matched, const QoreTypeInfo *&typeInfo) {
+AbstractQoreNode *QoreNamespaceList::parseFindScopedConstantValue(const NamedScope *name, unsigned *matched, const QoreTypeInfo *&typeInfo) {
    AbstractQoreNode *rv = 0;
 
    QORE_TRACE("QoreNamespaceList::parseFindScopedConstantValue()");
@@ -516,7 +516,7 @@ AbstractQoreNode *QoreNamespaceList::parseFindScopedConstantValue(const NamedSco
 // QoreNamespaceList::parseFindScopedClassWithMethod()
 // does a recursive breadth-first search to resolve a namespace containing the given class name
 // note: is only called with a namespace specifier
-QoreClass *QoreNamespaceList::parseFindScopedClassWithMethod(const NamedScope *name, int *matched) {
+QoreClass *QoreNamespaceList::parseFindScopedClassWithMethod(const NamedScope *name, unsigned *matched) {
    QoreClass *oc = 0;
 
    // see if a complete match can be found at the first level
@@ -562,7 +562,7 @@ QoreClass *QoreNamespaceList::parseFindClass(const char *ocname) {
 // QoreNamespaceList::parseFindScopedClass()
 // does a recursive breadth-first search to resolve a namespace with the given object type
 // note: is only called with a namespace specifier
-QoreClass *QoreNamespaceList::parseFindScopedClass(const NamedScope *name, int *matched) {
+QoreClass *QoreNamespaceList::parseFindScopedClass(const NamedScope *name, unsigned *matched) {
    QoreClass *oc = 0;
 
    // see if a complete match can be found at the first level
@@ -606,7 +606,7 @@ int RootQoreNamespace::addMethodToClass(const NamedScope *scname, MethodVariantB
       }
    }
    else {
-      int m = 0;
+      unsigned m = 0;
       oc = rootFindScopedClassWithMethod(scname, &m);
       if (!oc) {
 	 if (m != (scname->size() - 2))
@@ -637,7 +637,7 @@ QoreClass *RootQoreNamespace::parseFindScopedClass(const NamedScope *nscope) {
 	 parse_error("reference to undefined class '%s'", nscope->ostr);
    }
    else {
-      int m = 0;
+      unsigned m = 0;
       oc = rootFindScopedClass(nscope, &m);
 
       if (!oc) {
@@ -646,7 +646,7 @@ QoreClass *RootQoreNamespace::parseFindScopedClass(const NamedScope *nscope) {
 	 else {
 	    QoreString err;
 	    err.sprintf("cannot find class '%s' in any namespace '", nscope->getIdentifier());
-	    for (int i = 0; i < (nscope->size() - 1); i++) {
+	    for (unsigned i = 0; i < (nscope->size() - 1); i++) {
 	       err.concat(nscope->strlist[i].c_str());
 	       if (i != (nscope->size() - 2))
 		  err.concat("::");
@@ -666,7 +666,7 @@ QoreClass *RootQoreNamespace::parseFindScopedClassWithMethod(const NamedScope *s
 
    QoreClass *oc;
 
-   int m = 0;
+   unsigned m = 0;
    oc = rootFindScopedClassWithMethod(scname, &m);
    
    if (!oc) {
@@ -675,7 +675,7 @@ QoreClass *RootQoreNamespace::parseFindScopedClassWithMethod(const NamedScope *s
       else  {	 
 	 QoreString err;
 	 err.sprintf("cannot find class '%s' in any namespace '", scname->strlist[scname->size() - 2].c_str());
-	 for (int i = 0; i < (scname->size() - 2); i++) {
+	 for (unsigned i = 0; i < (scname->size() - 2); i++) {
 	    err.concat(scname->strlist[i].c_str());
 	    if (i != (scname->size() - 3))
 	       err.concat("::");
@@ -818,7 +818,7 @@ AbstractQoreNode *RootQoreNamespace::findConstantValue(const NamedScope *scname,
       return rv;
    }
 
-   int m = 0;
+   unsigned m = 0;
    rv = rootFindScopedConstantValue(scname, &m, typeInfo);
    if (rv)
       return rv;
@@ -828,7 +828,7 @@ AbstractQoreNode *RootQoreNamespace::findConstantValue(const NamedScope *scname,
    else {
       QoreString err;
       err.sprintf("cannot find constant '%s' in any namespace '", scname->getIdentifier());
-      for (int i = 0; i < (scname->size() - 1); i++) {
+      for (unsigned i = 0; i < (scname->size() - 1); i++) {
 	 err.concat(scname->strlist[i].c_str());
 	 if (i != (scname->size() - 2))
 	    err.concat("::");
@@ -901,7 +901,7 @@ void QoreNamespace::assimilate(QoreNamespace *ns) {
 
 // QoreNamespace::parseMatchNamespace()
 // will only be called if there is a match with the name and nscope->size() > 1
-QoreNamespace *QoreNamespace::parseMatchNamespace(const NamedScope *nscope, int *matched) const {
+QoreNamespace *QoreNamespace::parseMatchNamespace(const NamedScope *nscope, unsigned *matched) const {
    // see if starting name matches this namespace
    if (!strcmp(nscope->strlist[0].c_str(), priv->name.c_str())) {
       const QoreNamespace *ns = this;
@@ -911,7 +911,7 @@ QoreNamespace *QoreNamespace::parseMatchNamespace(const NamedScope *nscope, int 
 	 *matched = 1;
 
       // check for a match of the structure in this namespace
-      for (int i = 1; i < (nscope->size() - 1); i++) {
+      for (unsigned i = 1; i < (nscope->size() - 1); i++) {
 	 ns = ns->priv->parseFindLocalNamespace(nscope->strlist[i].c_str());
 	 if (!ns)
 	    break;
@@ -924,7 +924,7 @@ QoreNamespace *QoreNamespace::parseMatchNamespace(const NamedScope *nscope, int 
    return 0;
 }
 
-QoreClass *QoreNamespace::parseMatchScopedClassWithMethod(const NamedScope *nscope, int *matched) {
+QoreClass *QoreNamespace::parseMatchScopedClassWithMethod(const NamedScope *nscope, unsigned *matched) {
    printd(5, "QoreNamespace::parseMatchScopedClassWithMethod(this=%p) %s class=%s (%s)\n", this, priv->name.c_str(), nscope->strlist[nscope->size() - 2].c_str(), nscope->ostr);
 
    QoreNamespace *ns = this;
@@ -939,7 +939,7 @@ QoreClass *QoreNamespace::parseMatchScopedClassWithMethod(const NamedScope *nsco
 	 *matched = 1;
 
       // otherwise search the rest of the namespaces
-      for (int i = 1; i < (nscope->size() - 2); i++) {	 
+      for (unsigned i = 1; i < (nscope->size() - 2); i++) {	 
 	 ns = ns->priv->parseFindLocalNamespace(nscope->strlist[i].c_str());
 	 if (!ns)
 	    return 0;
@@ -956,7 +956,7 @@ QoreClass *QoreNamespace::parseMatchScopedClassWithMethod(const NamedScope *nsco
    return rv;
 }
 
-QoreClass *QoreNamespace::parseMatchScopedClass(const NamedScope *nscope, int *matched) {
+QoreClass *QoreNamespace::parseMatchScopedClass(const NamedScope *nscope, unsigned *matched) {
    if (nscope->strlist[0] != priv->name)
       return 0;
 
@@ -970,7 +970,7 @@ QoreClass *QoreNamespace::parseMatchScopedClass(const NamedScope *nscope, int *m
    
    // if we need to follow the namespaces, then do so
    if (nscope->size() > 2) {
-      for (int i = 1; i < (nscope->size() - 1); i++) {
+      for (unsigned i = 1; i < (nscope->size() - 1); i++) {
 	 ns = ns->priv->parseFindLocalNamespace(nscope->strlist[i].c_str());
 	 if (!ns)
 	    return 0;
@@ -984,7 +984,7 @@ QoreClass *QoreNamespace::parseMatchScopedClass(const NamedScope *nscope, int *m
    return rv;
 }
 
-AbstractQoreNode *QoreNamespace::parseMatchScopedConstantValue(const NamedScope *nscope, int *matched, const QoreTypeInfo *&typeInfo) const {
+AbstractQoreNode *QoreNamespace::parseMatchScopedConstantValue(const NamedScope *nscope, unsigned *matched, const QoreTypeInfo *&typeInfo) const {
    printd(5, "QoreNamespace::parseMatchScopedConstantValue) trying to find %s in %s (%p) typeInfo=%p\n", 
 	  nscope->getIdentifier(), priv->name.c_str(), getConstantValue(nscope->getIdentifier(), typeInfo));
 
@@ -1006,8 +1006,8 @@ AbstractQoreNode *QoreNamespace::parseMatchScopedConstantValue(const NamedScope 
 
    // if we need to follow the namespaces, then do so
    if (nscope->size() > 2) {
-      int last = nscope->size() - 1;
-      for (int i = 1; i < last; i++) {
+      unsigned last = nscope->size() - 1;
+      for (unsigned i = 1; i < last; i++) {
 	 const char *oname = nscope->strlist[i].c_str();
 	 ns = ns->priv->parseFindLocalNamespace(oname);
 	 if (!ns) {
@@ -1113,7 +1113,7 @@ QoreNamespace *RootQoreNamespace::rootResolveNamespace(const NamedScope *nscope)
       return this;
 
    QoreNamespace *ns;
-   int match = 0;
+   unsigned match = 0;
 
    if (!(ns = parseMatchNamespace(nscope, &match))
        && !(ns = priv->nsl->parseResolveNamespace(nscope, &match))
@@ -1126,7 +1126,7 @@ QoreNamespace *RootQoreNamespace::rootResolveNamespace(const NamedScope *nscope)
 }
 
 // private
-QoreClass *RootQoreNamespace::rootFindScopedClassWithMethod(const NamedScope *nscope, int *matched) {
+QoreClass *RootQoreNamespace::rootFindScopedClassWithMethod(const NamedScope *nscope, unsigned *matched) {
    QoreClass *oc;
 
    if (!(oc = parseMatchScopedClassWithMethod(nscope, matched))
@@ -1137,7 +1137,7 @@ QoreClass *RootQoreNamespace::rootFindScopedClassWithMethod(const NamedScope *ns
 
 // private
 // will always be called with a namespace (nscope->size() > 1)
-QoreClass *RootQoreNamespace::rootFindScopedClass(const NamedScope *nscope, int *matched) {
+QoreClass *RootQoreNamespace::rootFindScopedClass(const NamedScope *nscope, unsigned *matched) {
    QoreClass *oc = parseMatchScopedClass(nscope, matched);
    if (!oc && !(oc = priv->nsl->parseFindScopedClass(nscope, matched)))
       oc = priv->pendNSL->parseFindScopedClass(nscope, matched);
@@ -1145,7 +1145,7 @@ QoreClass *RootQoreNamespace::rootFindScopedClass(const NamedScope *nscope, int 
 }
 
 // private, will always be called with nscope->size() > 1
-AbstractQoreNode *RootQoreNamespace::rootFindScopedConstantValue(const NamedScope *nscope, int *matched, const QoreTypeInfo *&typeInfo) const {
+AbstractQoreNode *RootQoreNamespace::rootFindScopedConstantValue(const NamedScope *nscope, unsigned *matched, const QoreTypeInfo *&typeInfo) const {
    AbstractQoreNode *rv = parseMatchScopedConstantValue(nscope, matched, typeInfo);
    if (!rv && !(rv = priv->nsl->parseFindScopedConstantValue(nscope, matched, typeInfo)))
       rv = priv->pendNSL->parseFindScopedConstantValue(nscope, matched, typeInfo);

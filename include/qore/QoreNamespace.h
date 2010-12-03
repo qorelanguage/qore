@@ -62,10 +62,10 @@ class QoreNamespace {
 protected:
    struct qore_ns_private *priv; // private implementation
 
-   DLLLOCAL AbstractQoreNode *parseMatchScopedConstantValue(const NamedScope *name, int *matched, const QoreTypeInfo *&typeInfo) const;
-   DLLLOCAL QoreClass *parseMatchScopedClass(const NamedScope *name, int *matched);
-   DLLLOCAL QoreClass *parseMatchScopedClassWithMethod(const NamedScope *nscope, int *matched);
-   DLLLOCAL QoreNamespace *parseMatchNamespace(const NamedScope *nscope, int *matched) const;
+   DLLLOCAL AbstractQoreNode *parseMatchScopedConstantValue(const NamedScope *name, unsigned *matched, const QoreTypeInfo *&typeInfo) const;
+   DLLLOCAL QoreClass *parseMatchScopedClass(const NamedScope *name, unsigned *matched);
+   DLLLOCAL QoreClass *parseMatchScopedClassWithMethod(const NamedScope *nscope, unsigned *matched);
+   DLLLOCAL QoreNamespace *parseMatchNamespace(const NamedScope *nscope, unsigned *matched) const;
    DLLLOCAL void assimilate(QoreNamespace *ns);
    DLLLOCAL QoreClass *parseFindLocalClass(const char *name) const;
    DLLLOCAL QoreNamespace *resolveNameScope(const NamedScope *name) const;
@@ -240,11 +240,11 @@ protected:
    DLLLOCAL RootQoreNamespace(QoreClassList *ocl, ConstantList *cl, QoreNamespaceList *nnsl);
    // private constructor
    DLLLOCAL RootQoreNamespace();
-   DLLLOCAL QoreClass *rootFindScopedClassWithMethod(const NamedScope *nscope, int *matched);
-   DLLLOCAL QoreClass *rootFindScopedClass(const NamedScope *name, int *matched);
+   DLLLOCAL QoreClass *rootFindScopedClassWithMethod(const NamedScope *nscope, unsigned *matched);
+   DLLLOCAL QoreClass *rootFindScopedClass(const NamedScope *name, unsigned *matched);
    DLLLOCAL QoreClass *rootFindChangeClass(const char *name);
    DLLLOCAL AbstractQoreNode *rootFindConstantValue(const char *name, const QoreTypeInfo *&typeInfo) const;
-   DLLLOCAL AbstractQoreNode *rootFindScopedConstantValue(const NamedScope *name, int *matched, const QoreTypeInfo *&typeInfo) const;
+   DLLLOCAL AbstractQoreNode *rootFindScopedConstantValue(const NamedScope *name, unsigned *matched, const QoreTypeInfo *&typeInfo) const;
 
 public:
    //! returns a pointer to the QoreNamespace for the "Qore" namespace
