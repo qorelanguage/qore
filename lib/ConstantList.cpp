@@ -27,8 +27,25 @@
 #include <string.h>
 #include <stdlib.h>
 
+ConstantCycleHelper::ConstantCycleHelper(ConstantEntry *n_ce, const char *name) : ce(n_ce) {
+   if (set_constant(n_ce)) {
+      //printd(5, "ConstantCycleHelper::ConstantCycleHelper(%p, %s) already present\n", ce, name);
+      parse_error("recursive constant reference found to constant '%s'", name);
+      ce = 0;
+      return;
+   }
+   //printd(5, "ConstantCycleHelper::ConstantCycleHelper(%p, %s) OK\n", ce, name);
+}
+
 void ConstantEntry::parseInit(const char *name) {
    //printd(5, "ConstantEntry::parseInit() this=%p %s init=%d node=%p (%s)\n", this, name, init, node, get_type_name(node));      
+
+   ConstantCycleHelper cch(this, name);
+   if (!cch) {
+      assert(init);
+      return;
+   }
+   
    if (init)
       return;
    init = true;
@@ -76,8 +93,10 @@ void ConstantEntry::parseInit(const char *name) {
 	       
    if (xsink.isEvent())
       pgm->addParseException(&xsink);
+#if 0
    else if (!node->is_value())
-      parse_error("invalid expression of type '%s' assigned to constant '%s' (possible side effects)", get_type_name(node), name);      
+      parse_error("invalid expression of type '%s' assigned to constant '%s' (possible side effects)", get_type_name(node), name);
+#endif
 }
 
 ConstantList::ConstantList(const ConstantList &old) {

@@ -28,6 +28,8 @@
 #include <qore/intern/CallStack.h>
 #endif
 
+#include <qore/intern/ConstantList.h>
+
 // to register object types
 #include <qore/intern/QC_Queue.h>
 #include <qore/intern/QC_Mutex.h>
@@ -106,6 +108,9 @@ public:
 
 static tid_node *tid_head = 0, *tid_tail = 0;
  
+// for recursive constant reference detection while parsing
+typedef std::set<ConstantEntry *> constant_set_t;
+
 // this structure holds all thread data that can be addressed with the qore tid
 class ThreadEntry {
 public:
@@ -432,8 +437,11 @@ public:
 #endif
 #endif
 
-   // used to detect output of recursive data structures
+   // used to detect output of recursive data structures at runtime
    const_node_set_t node_set;
+
+   // for recursive constant reference detection while parsing
+   constant_set_t cset;
 
    // currently-executing/parsing block's return type
    const QoreTypeInfo *returnTypeInfo;
@@ -997,6 +1005,21 @@ int get_pop_argv_ref() {
 // clears the argv reference stack
 void clear_argv_ref() {
    thread_data.get()->argv_refs.clear();
+}
+
+int set_constant(ConstantEntry *ce) {
+   ThreadData *td  = thread_data.get();
+   if (td->cset.find(ce) != td->cset.end())
+      return -1;
+
+   td->cset.insert(ce);
+   return 0;
+}
+
+void remove_constant(ConstantEntry *ce) {
+   ThreadData *td  = thread_data.get();
+   assert(td->cset.find(ce) != td->cset.end());
+   td->cset.erase(ce);
 }
 
 int get_implicit_element() {

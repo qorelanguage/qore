@@ -71,6 +71,7 @@ class ClosureParseEnvironment;
 class ClosureRuntimeEnvironment;
 class ClosureVarValue;
 class VLock;
+class ConstantEntry;
 
 DLLLOCAL extern Operator *OP_BACKGROUND;
 
@@ -131,6 +132,9 @@ DLLLOCAL void clear_argv_ref();
 
 // ignore further local references to $argv
 //DLLLOCAL void ignore_local_argv();
+
+DLLLOCAL int set_constant(ConstantEntry *ce);
+DLLLOCAL void remove_constant(ConstantEntry *ce);
 
 DLLLOCAL void parseSetCodeInfo(const char *parse_code, const QoreTypeInfo *returnTypeInfo, const char *&old_code, const QoreTypeInfo *&old_returnTypeInfo);
 DLLLOCAL void parseRestoreCodeInfo(const char *parse_code, const QoreTypeInfo *returnTypeInfo);
@@ -427,6 +431,21 @@ public:
    }
    DLLLOCAL ~ParseCodeInfoHelper() {
       parseRestoreCodeInfo(parse_code, returnTypeInfo);
+   }
+};
+
+class ConstantCycleHelper {
+protected:
+   ConstantEntry *ce;
+
+public:
+   DLLLOCAL ConstantCycleHelper(ConstantEntry *n_ce, const char *name);
+   DLLLOCAL ~ConstantCycleHelper() {
+      if (ce)
+         remove_constant(ce);
+   }
+   DLLLOCAL operator bool() const {
+      return ce;
    }
 };
 
