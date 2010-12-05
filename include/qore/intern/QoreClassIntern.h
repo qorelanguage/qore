@@ -1725,6 +1725,27 @@ struct qore_class_private {
       delete varInfo;
    }
 
+   DLLLOCAL void addBuiltinConstant(const char *name, AbstractQoreNode *value, bool priv = false, const QoreTypeInfo *typeInfo = 0) {
+      assert(!pub_const.inList(name));
+      assert(!priv_const.inList(name));
+      if (priv)
+         priv_const.add(name, value, typeInfo);
+      else
+         pub_const.add(name, value, typeInfo);
+   }
+
+   DLLLOCAL void addBuiltinStaticVar(const char *name, AbstractQoreNode *value, bool priv = false, const QoreTypeInfo *typeInfo = 0) {
+      assert(!public_vars.inList(name));
+      assert(!private_vars.inList(name));
+
+      QoreVarInfo *vi = new QoreVarInfo(0, 0, typeInfo, 0, value);
+
+      if (priv)
+         private_vars[strdup(name)] = vi;
+      else
+         public_vars[strdup(name)] = vi;
+   }
+
    DLLLOCAL void parseAssimilatePublicConstants(ConstantList &cmap) {
       pend_pub_const.assimilate(cmap, pub_const, priv_const, pend_priv_const, false, name);
    }
@@ -1855,14 +1876,14 @@ struct qore_class_private {
 
    DLLLOCAL void addPublicMember(const char *mem, const QoreTypeInfo *n_typeInfo, AbstractQoreNode *initial_value) {
       assert(public_members.find(name) == public_members.end());
-      public_members[strdup(mem)] = new QoreMemberInfo(0, 0, n_typeInfo, initial_value);
+      public_members[strdup(mem)] = new QoreMemberInfo(0, 0, n_typeInfo, 0, initial_value);
       if (!has_public_memdecl)
 	 has_public_memdecl = true;
    }
 
    DLLLOCAL void addPrivateMember(const char *mem, const QoreTypeInfo *n_typeInfo, AbstractQoreNode *initial_value) {
       assert(private_members.find(name) == private_members.end());
-      private_members[strdup(mem)] = new QoreMemberInfo(0, 0, n_typeInfo, initial_value);
+      private_members[strdup(mem)] = new QoreMemberInfo(0, 0, n_typeInfo, 0, initial_value);
    }
 
    DLLLOCAL void insertBuiltinStaticMethod(QoreMethod *m) {

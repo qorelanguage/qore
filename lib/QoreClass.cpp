@@ -2499,6 +2499,14 @@ void QoreClass::parseAddPublicConstant(const std::string &cname, AbstractQoreNod
    priv->parseAddPublicConstant(cname, val);
 }
 
+void QoreClass::addBuiltinConstant(const char *name, AbstractQoreNode *value, bool is_priv, const QoreTypeInfo *typeInfo) {
+   priv->addBuiltinConstant(name, value, is_priv, typeInfo);
+}
+
+void QoreClass::addBuiltinStaticVar(const char *name, AbstractQoreNode *value, bool is_priv, const QoreTypeInfo *typeInfo) {
+   priv->addBuiltinStaticVar(name, value, is_priv, typeInfo);
+}
+
 void MethodFunctionBase::addBuiltinMethodVariant(MethodVariantBase *variant) {
    if (all_private && !variant->isPrivate())
       all_private = false;
