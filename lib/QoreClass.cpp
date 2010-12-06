@@ -1084,28 +1084,28 @@ void BCList::resolveCopy() {
    sml.resolveCopy();
 }
 
-AbstractQoreNode *BCList::parseFindConstantValueIntern(const char *cname, const QoreTypeInfo *&typeInfo) {
+AbstractQoreNode *BCList::parseFindConstantValue(const char *cname, const QoreTypeInfo *&typeInfo, bool check) {
    for (bclist_t::iterator i = begin(), e = end(); i != e; ++i) {
       QoreClass *qc = (*i)->sclass;
       // qc may be 0 if there were a parse error with an unknown class earlier
       if (!qc)
 	 continue;
 
-      AbstractQoreNode *rv = qore_class_private::parseFindConstantValueIntern(qc, cname, typeInfo);
+      AbstractQoreNode *rv = qore_class_private::parseFindConstantValue(qc, cname, typeInfo, check);
       if (rv)
 	 return rv;
    }
    return 0;
 }
 
-QoreVarInfo *BCList::parseFindStaticVarIntern(const char *vname, const QoreClass *&qc) const {
+QoreVarInfo *BCList::parseFindStaticVar(const char *vname, const QoreClass *&qc, bool check) const {
    for (bclist_t::const_iterator i = begin(), e = end(); i != e; ++i) {
       const QoreClass *nqc = (*i)->sclass;
       // qc may be 0 if there were a parse error with an unknown class earlier
       if (!nqc)
 	 continue;
 
-      QoreVarInfo *vi = nqc->priv->parseFindStaticVarIntern(vname, qc);
+      QoreVarInfo *vi = nqc->priv->parseFindStaticVar(vname, qc, check);
       if (vi)
 	 return vi;
    }
