@@ -307,8 +307,12 @@ qore_class_private::qore_class_private(const qore_class_private &old, QoreClass 
 qore_class_private::~qore_class_private() {
    printd(5, "qore_class_private::~qore_class_private() deleting %p %s\n", this, name ? name : "(null)");
 
-   assert(private_vars.empty());
-   assert(public_vars.empty());
+   if (!private_vars.empty() || !public_vars.empty()) {
+      ExceptionSink xsink;
+   
+      private_vars.del(&xsink);
+      public_vars.del(&xsink);
+   }
 
    for (hm_method_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
       //printd(5, "QoreClass::~QoreClass() deleting method %p %s::%s()\n", m, name, m->getName());
