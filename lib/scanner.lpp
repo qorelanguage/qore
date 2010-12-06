@@ -528,17 +528,18 @@ RTIME           PT(-?[0-9]+[HMSu])+
 ^%module-cmd{WS}*$                      { parse_error("missing argument to %%module-cmd"); }
 ^%module-cmd                            BEGIN(module_cmd);
 <module_cmd>{WS}*                       // ignore white space
-<module_cmd>[^\t\n\r]+                  {
+<module_cmd>[^\n\r]+                    {
                                            QoreString str(yytext);
+					   str.trim();
 					   const char *p = str.getBuffer();
 					   const char *op = strchr(p, '(');
 					   if (!op)
-					      parse_error("%module-cmd not in format %module-cmd(<module-name>) <command>; missing open parenthesis '(' before module name; text given: '%module-cmd %s'", p);
+					      parse_error("%%module-cmd not in format '%%module-cmd(<module-name>) <command>'; missing open parenthesis '(' before module name; text given: '%%module-cmd %s'", p);
 					   else {
 					      p = op + 1;
 					      const char *cp = strchr(p, ')');
 					      if (!cp)
-						 parse_error("%module-cmd not in format %module-cmd(<module-name>) <command>; missing close parenthesis ')' after module name; text given: '%module-cmd %s'", str.getBuffer());
+						 parse_error("%%module-cmd not in format '%%module-cmd(<module-name>) <command>'; missing close parenthesis ')' after module name; text given: '%%module-cmd %s'", str.getBuffer());
 					      else {
 						 // get module name
 						 QoreString module(p, cp - p);
