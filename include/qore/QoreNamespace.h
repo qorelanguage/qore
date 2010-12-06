@@ -205,6 +205,9 @@ public:
     */
    DLLEXPORT const QoreNamespace *getParent() const;
 
+   //! if any classes owned by this namespace have static variables, call this function before deleting the QoreNamespace object
+   DLLEXPORT void deleteClassStaticVars(ExceptionSink *xsink);
+
    // parse-only interfaces are not exported
    DLLLOCAL QoreNamespace();
    DLLLOCAL void addClass(const NamedScope *n, QoreClass *oc);
@@ -221,8 +224,6 @@ public:
 
    //! destroys the object and frees all associated memory (not exported)
    DLLLOCAL void purge();
-
-   DLLLOCAL void deleteClassStaticVars(ExceptionSink *xsink);
 };
 
 //! the root namespace of a QoreProgram object
