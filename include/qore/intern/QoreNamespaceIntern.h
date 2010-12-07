@@ -71,15 +71,13 @@ struct qore_ns_private {
    DLLLOCAL ~qore_ns_private() {
       printd(5, "QoreNamespace::~QoreNamespace() this=%p '%s'\n", this, name.c_str());
 
-      purge();
+      if (nsl)
+         purge();
    }
 
    DLLLOCAL void purge() {
       delete constant;
       constant = 0;
-
-      if (nsl)
-	 nsl->deleteAllConstants();
 
       delete classList;
       classList = 0;

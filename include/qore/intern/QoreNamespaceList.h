@@ -66,7 +66,7 @@ public:
    DLLLOCAL void parseInit();
    DLLLOCAL void parseCommit(QoreNamespaceList *n);
    DLLLOCAL void parseRollback();
-   DLLLOCAL void deleteAllConstants();
+   DLLLOCAL void deleteAllConstants(ExceptionSink *xsink);
    DLLLOCAL void reset();
    DLLLOCAL void assimilate(QoreNamespaceList *n);
    DLLLOCAL QoreNamespace *parseResolveNamespace(const NamedScope *name, unsigned *matched);
@@ -76,7 +76,7 @@ public:
    DLLLOCAL QoreClass *parseFindScopedClass(const NamedScope *name, unsigned *matched);
    DLLLOCAL QoreClass *parseFindClass(const char *ocname);
    DLLLOCAL QoreClass *parseFindChangeClass(const char *ocname);
-   DLLLOCAL void deleteClassStaticVars(ExceptionSink *xsink);
+   DLLLOCAL void deleteData(ExceptionSink *xsink);
 
    DLLLOCAL AbstractQoreNode *parseResolveBareword(const char *name, const QoreTypeInfo *&typeInfo) const;
    DLLLOCAL AbstractQoreNode *parseResolveScopedReference(const NamedScope &ns, unsigned &m, const QoreTypeInfo *&typeInfo) const;

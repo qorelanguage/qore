@@ -1,5 +1,5 @@
 /*
-  QoreClassList.cpp
+  Qoreclasslist.cpp
 
   Qore Programming Language
 
@@ -168,8 +168,8 @@ AbstractQoreNode *QoreClassList::parseResolveBareword(const char *name, const Qo
    return 0;
 }
 
-void QoreClassList::deleteClassStaticVars(ExceptionSink *xsink) {
+void QoreClassList::deleteClassData(ExceptionSink *xsink) {
    for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
-      qore_class_private::deleteClassStaticVars(i->second, xsink);
+      qore_class_private::deleteClassData(i->second, xsink);
    }
 }

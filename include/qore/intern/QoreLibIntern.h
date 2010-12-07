@@ -327,6 +327,12 @@ DLLLOCAL const char *check_hash_key(const QoreHashNode *h, const char *key, cons
 // class for master namespace of all builtin classes, constants, etc
 class StaticSystemNamespace : public RootQoreNamespace {
 public:
+   DLLLOCAL ~StaticSystemNamespace() {
+      purge();
+   }
+
+   DLLLOCAL void purge();
+
    DLLLOCAL void init();
 };
 

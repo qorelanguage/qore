@@ -114,22 +114,26 @@ ConstantList::ConstantList(const ConstantList &old) {
 
 ConstantList::~ConstantList() {
    //QORE_TRACE("ConstantList::~ConstantList()");
-   deleteAll();
+   // for non-debug mode with old modules: clear constants here
+   if (!hm.empty())
+      deleteAll(0);
 }
 
 void ConstantList::clearIntern(ExceptionSink *xsink) {
    for (hm_qn_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
-      if (i->second.node)
+      if (i->second.node) {
+	 // abort if an object is present and we are calling deref without an ExceptionSink object
+	 assert(get_node_type(i->second.node) != NT_OBJECT || xsink);
 	 i->second.node->deref(xsink);
+      }
    }
 
    hm.clear();
 }
 
 // called at runtime
-void ConstantList::deleteAll() {
-   ExceptionSink xsink;
-   clearIntern(&xsink);
+void ConstantList::deleteAll(ExceptionSink *xsink) {
+   clearIntern(xsink);
 }
 
 void ConstantList::parseDeleteAll() {

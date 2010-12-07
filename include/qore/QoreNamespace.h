@@ -205,8 +205,8 @@ public:
     */
    DLLEXPORT const QoreNamespace *getParent() const;
 
-   //! if any classes owned by this namespace have static variables, call this function before deleting the QoreNamespace object
-   DLLEXPORT void deleteClassStaticVars(ExceptionSink *xsink);
+   //! this function must be called before the QoreNamespace object is deleted or a crash could result due if constants and/or class static vars contain objects
+   DLLEXPORT void deleteData(ExceptionSink *xsink);
 
    // parse-only interfaces are not exported
    DLLLOCAL QoreNamespace();

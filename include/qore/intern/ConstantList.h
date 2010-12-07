@@ -86,7 +86,7 @@ public:
    DLLLOCAL void parseInit();
    DLLLOCAL QoreHashNode *getInfo();
    DLLLOCAL void parseDeleteAll();
-   DLLLOCAL void deleteAll();
+   DLLLOCAL void deleteAll(ExceptionSink *xsink);
 
    DLLLOCAL bool empty() const {
       return hm.empty();

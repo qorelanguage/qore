@@ -330,9 +330,9 @@ void QoreNamespaceList::parseInitConstants() {
       i->second->parseInitConstants();
 }
 
-void QoreNamespaceList::deleteAllConstants() {
+void QoreNamespaceList::deleteAllConstants(ExceptionSink *xsink) {
    for (nsmap_t::iterator i = nsmap.begin(), e = nsmap.end(); i != e; ++i)
-      i->second->priv->constant->deleteAll();
+      i->second->priv->constant->deleteAll(xsink);
 }
 
 void QoreNamespaceList::parseInit() {
@@ -409,9 +409,13 @@ const QoreNamespace *QoreNamespace::getParent() const {
    return priv->parent;
 }
 
-void QoreNamespace::deleteClassStaticVars(ExceptionSink *xsink) {
-   priv->classList->deleteClassStaticVars(xsink);
-   priv->nsl->deleteClassStaticVars(xsink);
+void QoreNamespace::deleteData(ExceptionSink *xsink) {
+   // clear all constants
+   priv->constant->deleteAll(xsink);
+   // clear all constants and static class vars
+   priv->classList->deleteClassData(xsink);
+   // repeat for all subnamespaces
+   priv->nsl->deleteData(xsink);
 }
 
 // QoreNamespaceList::parseResolveNamespace()
@@ -582,9 +586,9 @@ QoreClass *QoreNamespaceList::parseFindScopedClass(const NamedScope *name, unsig
    return oc;
 }
 
-void QoreNamespaceList::deleteClassStaticVars(ExceptionSink *xsink) {
+void QoreNamespaceList::deleteData(ExceptionSink *xsink) {
    for (nsmap_t::iterator i = nsmap.begin(), e = nsmap.end(); i != e; ++i)
-      i->second->deleteClassStaticVars(xsink);
+      i->second->deleteData(xsink);
 }
 
 // returns 0 for success, non-zero return value means error
@@ -1970,3 +1974,11 @@ QoreNamespace *qore_ns_private::parseFindLocalNamespace(const char *nname) const
    QoreNamespace *rv = nsl->find(nname);
    return rv ? rv : pendNSL->find(nname);
 }
+
+void StaticSystemNamespace::purge() {                                                                                                                                                          
+   if (priv->nsl) {                                                                                                                                                              
+      ExceptionSink xsink;                                                                                                                                                       
+      deleteData(&xsink);                                                                                                                                                        
+      QoreNamespace::purge();                                                                                                                                                    
+   }                                                                                                                                                                             
+}                                                                                                                                                                                

@@ -110,6 +110,12 @@ void qore_cleanup() {
    // clear the list before modules are unloaded
    builtinFunctions.clear();
 
+   // purge thread resources before deleteing modules
+   {
+      ExceptionSink xsink;
+      purge_thread_resources(&xsink);
+   }
+
    // delete all loadable modules
    MM.cleanup();
 

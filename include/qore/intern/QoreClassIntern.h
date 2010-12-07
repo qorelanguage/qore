@@ -831,10 +831,8 @@ public:
       if (exp)
 	 exp->deref(0);
       delete parseTypeInfo;
-#ifdef DEBUG
       exp = 0;
       parseTypeInfo = 0;
-#endif
    }
 
    DLLLOCAL const QoreTypeInfo *getTypeInfo() const {
@@ -993,15 +991,18 @@ typedef std::map<char *, QoreVarInfo *, ltstr> var_map_t;
 class QoreMemberMap : public member_map_t {
 public:
    DLLLOCAL ~QoreMemberMap() {
-      member_map_t::iterator j;
-      while ((j = begin()) != end()) {
-         char *n = j->first;
-         delete j->second;
-         erase(j);
-         //printd(5, "QoreMemberMap::~QoreMemberMap() this=%p freeing pending private member %p '%s'\n", this, n, n);
-         free(n);
-      }
+      del();
    }
+
+   DLLLOCAL void del() {
+      for (member_map_t::iterator i = begin(), e = end(); i != e; ++i) {
+         //printd(5, "QoreMemberMap::~QoreMemberMap() this=%p freeing pending private member %p '%s'\n", this, i->second, i->first);
+         delete i->second;
+         free(i->first);
+      }
+      clear();
+   }
+
    DLLLOCAL bool inList(const char *name) const {
       return find((char *)name) != end();
    }
@@ -2036,9 +2037,11 @@ struct qore_class_private {
       return 0;
    }
 
-   DLLLOCAL void deleteClassStaticVars(ExceptionSink *xsink) {
+   DLLLOCAL void deleteClassData(ExceptionSink *xsink) {
       private_vars.del(xsink);
       public_vars.del(xsink);
+      priv_const.deleteAll(xsink);
+      pub_const.deleteAll(xsink);
    }
 
    DLLLOCAL int initMembers(QoreObject *o, ExceptionSink *xsink) const {
@@ -2197,8 +2200,8 @@ struct qore_class_private {
       qc->priv->parseAddPublicStaticVar(dname, varInfo);
    }
 
-   DLLLOCAL static void deleteClassStaticVars(QoreClass *qc, ExceptionSink *xsink) {
-      qc->priv->deleteClassStaticVars(xsink);
+   DLLLOCAL static void deleteClassData(QoreClass *qc, ExceptionSink *xsink) {
+      qc->priv->deleteClassData(xsink);
    }
 
    // searches only the current class, returns 0 if private found and not accessible in the current parse context

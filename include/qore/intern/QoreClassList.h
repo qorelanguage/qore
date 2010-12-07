@@ -72,7 +72,7 @@ public:
       return hm.empty();
    }
 
-   DLLLOCAL void deleteClassStaticVars(ExceptionSink *xsink);
+   DLLLOCAL void deleteClassData(ExceptionSink *xsink);
 };
 
 #endif // _QORE_QORECLASSLIST_H
