@@ -506,7 +506,7 @@
       <varlistentry>
 	<term>Description</term>
 	<listitem>
-	  <para>Disallows access to database functionality.  Currently this means that access to the <link linkend="Datasource_Class">Datasource</link> and <link linkend="DatasourcePool_Class">DatasourcePool</link> classes is restricted.</para>
+	  <para>Disallows access to database functionality.  Currently this means that access to the <link linkend="Datasource_Class">Datasource</link>, <link linkend="DatasourcePool_Class">DatasourcePool</link>, and <link linkend="SQLStatement_Class">SQLStatement</link> classes is restricted.</para>
 	</listitem>
       </varlistentry>
     </variablelist>

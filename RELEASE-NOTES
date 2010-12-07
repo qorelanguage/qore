@@ -1,8 +1,135 @@
 RELEASE NOTES for qore v0.8.1
 
-release summary: in progress; see svn changelog for details
+release summary: major bugfixes and major new features including the new
+    prepared statement API, vastly improved type system, static class variables
+    and class constants
 
-* BUG FIX: fixed a deadlock when calling HTTPClient::setProxyURL() with an empty string argument
+* BUG FIX: fixed a deadlock when calling HTTPClient::setProxyURL() with an
+    empty string argument
+* BUG FIX: fixed a bug in the return statement to not check return type if an
+    exception is active
+* BUG FIX: fixed a crashing bug when on_exit, on_success, or on_error
+    statement bodies are empty ({})
+* BUG FIX: fixed command-line to take modules loaded on the command-line and
+    apply them immediately to the program class; previously the modules would
+    be loaded but only accessible in the parsed program if the program also
+    had a %requires declaration for the same module in it
+* BUG FIX: fixed a bug in QoreClass initialization from modules that could
+    cause a crash
+* BUG FIX: updated time zone initialization to parse /etc/TIMEZONE on solaris
+    if the TZ variable is not set to set the time zone
+* BUG FIX: made all Socket read methods taking a timeout throw a 
+    SOCKET-TIMEOUT exception instead of returning NOTHING
+* BUG FIX: fixed SSL read timeouts with Socket::recv*()
+* BUG FIX: fixed 2-byte bitop swap on MSB platforms (ex sparc)
+* BUG FIX: fixed DatasourcePool::constructor(hash), was ignoring "max" option
+    and setting to default (20)
+* BUG FIX: fixed the setegid() function, was non functional before
+* BUG FIX: fixed and improved parse-time variant matching
+* BUG FIX: fixed a bug where it was possible to declare a function/method/
+    closure with a return type and then not have a return statement as the
+    last statement in the block thereby exiting with return value NOTHING,
+    which could cause a crash
+* BUG FIX: implemented run-time checking when NOTHING is returned from a 
+    function, method, or closure that declares a return type
+* BUG FIX: fixed a bug in Dir::mkdir()
+* BUG FIX: fixed sign error with not found strings with index() and rindex()
+    functions
+* BUG FIX: fixed a bug with object += hash; member types were not checked
+    which could allow for members to be assigned types in violation of their
+    declared types
+* BUG FIX: fixed a bug where too-lax type checking when executing variants
+    resolved at parse time can lead to a crash when a call is made with a
+    runtime type error
+* BUG FIX: fixed a deadlock where if a global variable contains an object
+    which is deleted when the global var is reassigned and the object's
+    destructor references the containing global variable, a deadlock could
+    result due to incorrectly running the object's destructor while the global
+    variable's lock is held
+* BUG FIX: fixed incompatibility with string "splice" and "extract" operators;
+    they were ignoring the 4th argument if it was not a string
+* BUG FIX: fixed invalid memory access after delete error
+* BUG FIX: removed internal references to the non-thread-safe localtime()
+    function; use thread-safe Qore internal date/time APIs instead
+* BUG FIX: fixed %require-types checking with local variable declarations
+* BUG FIX: fixed a memory leak/error when a namespace is added to a namespace
+    list and a committed namespace of the same name already exists, the
+    committed namespace is leaked and replaced with the parsed namespace
+    (happened in the parseCommit stage)
+* BUG FIX: fixed race condition in ManagedDatasource without connection lock
+    when grabbing transaction lock - previously (without the connection lock,
+    which was recently removed) the startDBAction function did not guarantee
+    exclusive access to the datasource
+* BUG FIX: fixed a memory/reference leak with therad resource tracking with
+    the Datasource class
+* BUG FIX: the Datasource class will no longer allow read-only access to the
+    Datasource from other threads when a thread holds the transaction lock
+    because access to uncommitted data would be possible
+* BUG FIX: fixed DatasourcePool destruction with a transaction open in current
+    thread
+* BUG FIX: fix in the Dir class for stat()'ing symbolic links
+* BUG FIX: bug fix for Socket class to enable the descriptor to be 0 (a valid
+    socket descriptor); before this would fail with strange errors
+* BUG FIX: fixed constant initialization, parse intiialization order, and
+    global thread-local variable access from code parsed and committed to the
+    Program object after the first commit
+* BUG FIX: fixed connecting to a HTTPS server through a proxy by using the
+    HTTP CONNECT method with the proxy
+* BUG FIX: fixed bugs in FtpClient class handling invalid responses from buggy
+    FTP servers
+* BUG FIX: fixed socket read when socket is closed during a read(-1) or
+    readBinary(-1) operation; an exception was thrown instead of returning the
+    data that was already read
+* BUG FIX: added internal C++ API function Datasource::activeTransaction() so
+    DBI drivers can see if they need to throw an exception or not when
+    automatically reconnecting to a dataource - if
+    Datasource::beginTransaction() is called and then the driver finds out the
+    connection is down, it is safe to reconnect silently if no DB commands
+    have been issued since the beginTransaction() call -
+    Datasource::activeTransaction() will only return true if DB commands have
+    been issued since the transaction started.  All DBI drivers the support
+    auto-reconnect were separately updated as well to use the new API
+* new feature: class constants; classes can now declare constants in their
+    private and public declaration blocks
+* new feature: static class variables; classes can now declare static
+    variables in their private and public declaration blocks
+* new feature: much better type implementation
+  * new type "timeout": accepts either integer or date
+  * types prefixed by "*" mean "or nothing" - also allow assignments to
+    NOTHING
+* new feature: SQLStatement class and internal prepared statement API for DBI
+    drivers; the first driver supporting the new prepared statement API is the
+    Oracle driver
+* new feature: fixed in-object calls (ex: $.call()) to dynamically look up the
+    method if the run-time class is not the same as the parse class.  This
+    means that it's no longer necessary to use the "$self.method()" syntax to
+    make calls when the method may be called by a child class that has
+    reimplemented the method
+* new feature: implemented "#$" giving the implicit offset when implicitly
+    iterating a list (foreach, map, foldl, foldr, select)
+* new feature: added "perm" key to stat hash output giving the file's symbolic
+    permission (i.e. "drwxr-xr-x")
+* new feature: implemented %module-cmd(<module-name>) parse directive to allow
+    modules to handle commands while parsing; first module using this is the
+    gnu-java module for "import" statements allowing java classes (to be
+    imported to the current program)
+* new feature: implemented "deprecated" method and function tag
+* new feature: implemented splice(string, string, string) to split with an
+    optional quote character; this can be used, for example, to quickly parse
+    CSV files where some fields may be quoted and some not 
+* new feature: added the ability to deserialize xml-rpc extension types
+  * ex:nil
+  * ex:i1
+  * ex:i2
+  * ex:i8
+  * ex:float
+  * ex:dateTime 
+  note that none of these types can be serialized automatically yet
+* new feature: added methods:
+  * AbstractSmartLock::lockOwner()
+  * AbstractSmartLock::lockTID()
+* new feature: updated HTTPClient to accept URLs specifying UNIX domain
+    sockets
 
 
 ***********************
@@ -119,7 +246,7 @@ release.
 There is no defined roadmap for 1.0; this milestone will be declared when the
 time feels right (typical of open-source projects).
 
-Version 0.8.0 brings qore a lot closer to the 1.0 release; one main set of
+Version 0.8.1 brings qore a lot closer to the 1.0 release; one main set of
 features that may be added before then are hooks for debugging, tracing,
 breakpoints, etc.
 

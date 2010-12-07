@@ -27537,7 +27537,58 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
 
     <para>Note: This class is not available with the <code><link linkend="no-database">PO_NO_DATABASE</link></code> parse option.</para>
 
-    <para>The SQLStatement class provides the most flexibilty for executing SQL on a database server.</para>
+    <para>The SQLStatement class provides the most flexibilty for executing SQL on a database server; it allows statements to be executed and result sets to be iteratively returned in all formats supported by Qore (single row at a time as a hash or blocks of rows as either hashes of lists or lists of hashes).  The same flexibility of choosing the output format for result sets also applies to output values from stored procedure or function execution, for example.</para>
+
+    <para>This class does not differentiate between executing select statement or stored procedures or functions or other SQL code; the transaction lock for <link linkend="Datasource_Class">Datasource</link> objects and a dedicated connection for <link linkend="DatasourcePool_Class">DatasourcePool</link> objects is allocated to the object when the connection is necessary, and it is not automatically released by this class.  The transaction lock or connection must be manually released by calling <link linkend="SQLStatement::commit">SQLStatement::commit()</link> or <link linkend="SQLStatement::rollback">SQLStatement::rollback()</link> (or the methods with the same name in the parent <link linkend="Datasource_Class">Datasource</link> or <link linkend="DatasourcePool_Class">DatasourcePool</link> object).</para>
+
+    <para>Here is an example executing a select statement:</para>
+
+    <programlisting>{
+    <command>my</command> SQLStatement $stmt($ds);
+    # release transaction lock on exit
+    <command>on_exit</command> $stmt.commit();
+    $stmt.prepare("select * from table");
+    <command>while</command> ($stmt.next()) {
+        <command>my</command> hash $row = $stmt.fetchRow();
+        do_something($row);
+    }
+}</programlisting>
+
+    <para>Note that most commands are executed implicitly; for example, in the example above there is no call to <link linkend="SQLStatement::exec">SQLStatement::exec()</link> as it is executed implicitly in the call to <link linkend="SQLStatement::next">SQLStatement::next()</link>.</para>
+
+    <para>The following methods are useful when executing all statements:</para>
+    <itemizedlist>
+      <listitem><link linkend="SQLStatement::prepare">SQLStatement::prepare()</link></listitem>
+      <listitem><link linkend="SQLStatement::prepareRaw">SQLStatement::prepareRaw()</link></listitem>
+      <listitem><link linkend="SQLStatement::bind">SQLStatement::bind()</link></listitem>
+      <listitem><link linkend="SQLStatement::bindArgs">SQLStatement::bindArgs()</link></listitem>
+      <listitem><link linkend="SQLStatement::bindPlaceholders">SQLStatement::bindPlaceholders()</link></listitem>
+      <listitem><link linkend="SQLStatement::bindPlaceholdersArgs">SQLStatement::bindPlaceholdersArgs()</link></listitem>
+      <listitem><link linkend="SQLStatement::bindValues">SQLStatement::bindValues()</link></listitem>
+      <listitem><link linkend="SQLStatement::bindValuesArgs">SQLStatement::bindValuesArgs()</link></listitem>
+      <listitem><link linkend="SQLStatement::exec">SQLStatement::exec()</link></listitem>
+      <listitem><link linkend="SQLStatement::execArgs">SQLStatement::execArgs()</link></listitem>
+      <listitem><link linkend="SQLStatement::beginTransaction">SQLStatement::beginTransaction()</link></listitem>
+      <listitem><link linkend="SQLStatement::commit">SQLStatement::commit()</link></listitem>
+      <listitem><link linkend="SQLStatement::rollback">SQLStatement::rollback()</link></listitem>
+      <listitem><link linkend="SQLStatement::close">SQLStatement::close()</link></listitem>
+      <listitem><link linkend="SQLStatement::getSQL">SQLStatement::getSQL()</link></listitem>
+      <listitem><link linkend="SQLStatement::active">SQLStatement::active()</link></listitem>
+    </itemizedlist>
+
+    <para>The following methods are useful when executing select statements:</para>
+    <itemizedlist>
+      <listitem><link linkend="SQLStatement::next">SQLStatement::next()</link></listitem>
+      <listitem><link linkend="SQLStatement::fetchRow">SQLStatement::fetchRow()</link></listitem>
+      <listitem><link linkend="SQLStatement::fetchRows">SQLStatement::fetchRows()</link></listitem>
+      <listitem><link linkend="SQLStatement::fetchColumns">SQLStatement::fetchColumns()</link></listitem>
+    </itemizedlist>
+
+    <para>The following methods are useful when executing stored procedures, functions, or other non-select SQL statements:</para>
+    <itemizedlist>
+      <listitem><link linkend="SQLStatement::getOutput">SQLStatement::getOutput()</link></listitem>
+      <listitem><link linkend="SQLStatement::getOutputRows">SQLStatement::getOutputRows()</link></listitem>
+    </itemizedlist>
 
     <table>
       <title>SQLStatement Method Overview</title>
@@ -27929,6 +27980,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
 	  </tbody>
 	</tgroup>
       </table>
+
     </sect2>
 
     <sect2 id="SQLStatement::prepareRaw">
@@ -28004,7 +28056,7 @@ $string, 2007-10-11T15:31:26.289);</programlisting>
 	  <term>Example</term>
 	  <listitem>
 	    <programlisting>$stmt.prepare("insert into table (id, name) values (%v, %v)");
-foreach my hash $h in ($l) {
+<command>foreach my</command> hash $h <command>in</command> ($l) {
     $stmt.bind($h.id, $h.name);
     $stmt.exec();
 }</programlisting>
@@ -28040,6 +28092,10 @@ foreach my hash $h in ($l) {
 	    </row>
 	  </thead>
 	  <tbody>
+	    <row>
+	      <entry><para><code>SQLSTATEMENT-ERROR</code></para></entry>
+	      <entry><para>No SQL has been set with <link linkend="SQLStatement::prepare">SQLStatement::prepare()</link>.</para></entry>
+	    </row>
 	    <row>
 	      <entry><para>depends on DBI driver</para></entry>
 	      <entry><para>Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications; see the relevant DBI driver docs for more information</para></entry>
@@ -28080,9 +28136,9 @@ foreach my hash $h in ($l) {
 	  <term>Example</term>
 	  <listitem>
 	    <programlisting>$stmt.prepare("insert into table (id, name) values (%v, %v)");
-foreach my hash $h in ($l) {
-    my list $l = ($h.id, $h.name);
-    $stmt.bind($l);
+<command>foreach my</command> hash $h <command>in</command> ($l) {
+    <command>my</command> list $l = ($h.id, $h.name);
+    $stmt.bindArgs($l);
     $stmt.exec();
 }</programlisting>
 	  </listitem>
@@ -28117,6 +28173,10 @@ foreach my hash $h in ($l) {
 	    </row>
 	  </thead>
 	  <tbody>
+	    <row>
+	      <entry><para><code>SQLSTATEMENT-ERROR</code></para></entry>
+	      <entry><para>No SQL has been set with <link linkend="SQLStatement::prepare">SQLStatement::prepare()</link>.</para></entry>
+	    </row>
 	    <row>
 	      <entry><para>depends on DBI driver</para></entry>
 	      <entry><para>Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications; see the relevant DBI driver docs for more information</para></entry>
@@ -28157,7 +28217,7 @@ foreach my hash $h in ($l) {
 	  <listitem>
 	    <programlisting>$stmt.prepare("begin select sysdate into :sd from dual", Type::Date); end;
 $stmt.bindPlaceholders(Type::Date);
-my date $d = $stmt.getOutput().sd;</programlisting>
+<command>my</command> date $d = $stmt.getOutput().sd;</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -28190,6 +28250,10 @@ my date $d = $stmt.getOutput().sd;</programlisting>
 	    </row>
 	  </thead>
 	  <tbody>
+	    <row>
+	      <entry><para><code>SQLSTATEMENT-ERROR</code></para></entry>
+	      <entry><para>No SQL has been set with <link linkend="SQLStatement::prepare">SQLStatement::prepare()</link>.</para></entry>
+	    </row>
 	    <row>
 	      <entry><para>depends on DBI driver</para></entry>
 	      <entry><para>Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications; see the relevant DBI driver docs for more information</para></entry>
@@ -28230,9 +28294,9 @@ my date $d = $stmt.getOutput().sd;</programlisting>
 	  <term>Example</term>
 	  <listitem>
 	    <programlisting>$stmt.prepare("begin select sysdate into :sd from dual", Type::Date); end;
-my list $l = list(Type::Date);
+<command>my</command> list $l = list(Type::Date);
 $stmt.bindPlaceholdersArgs($l);
-my date $d = $stmt.getOutput().sd;</programlisting>
+<command>my</command> date $d = $stmt.getOutput().sd;</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -28265,6 +28329,10 @@ my date $d = $stmt.getOutput().sd;</programlisting>
 	    </row>
 	  </thead>
 	  <tbody>
+	    <row>
+	      <entry><para><code>SQLSTATEMENT-ERROR</code></para></entry>
+	      <entry><para>No SQL has been set with <link linkend="SQLStatement::prepare">SQLStatement::prepare()</link>.</para></entry>
+	    </row>
 	    <row>
 	      <entry><para>depends on DBI driver</para></entry>
 	      <entry><para>Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications; see the relevant DBI driver docs for more information</para></entry>
@@ -28305,7 +28373,7 @@ my date $d = $stmt.getOutput().sd;</programlisting>
 	  <term>Example</term>
 	  <listitem>
 	    <programlisting>$stmt.prepare("insert into table (id, name) values (%v, %v)");
-foreach my hash $h in ($l) {
+<command>foreach my</command> hash $h in ($l) {
     $stmt.bindValues($h.id, $h.name);
     $stmt.exec();
 }</programlisting>
@@ -28341,6 +28409,10 @@ foreach my hash $h in ($l) {
 	    </row>
 	  </thead>
 	  <tbody>
+	    <row>
+	      <entry><para><code>SQLSTATEMENT-ERROR</code></para></entry>
+	      <entry><para>No SQL has been set with <link linkend="SQLStatement::prepare">SQLStatement::prepare()</link>.</para></entry>
+	    </row>
 	    <row>
 	      <entry><para>depends on DBI driver</para></entry>
 	      <entry><para>Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications; see the relevant DBI driver docs for more information</para></entry>
@@ -28381,8 +28453,8 @@ foreach my hash $h in ($l) {
 	  <term>Example</term>
 	  <listitem>
 	    <programlisting>$stmt.prepare("insert into table (id, name) values (%v, %v)");
-foreach my hash $h in ($l) {
-    my list $l = ($h.id, $h.name);
+<command>foreach my</command> hash $h <command>in</command> ($l) {
+    <command>my</command> list $l = ($h.id, $h.name);
     $stmt.bindValuesArgs($l);
     $stmt.exec();
 }</programlisting>
@@ -28418,6 +28490,10 @@ foreach my hash $h in ($l) {
 	    </row>
 	  </thead>
 	  <tbody>
+	    <row>
+	      <entry><para><code>SQLSTATEMENT-ERROR</code></para></entry>
+	      <entry><para>No SQL has been set with <link linkend="SQLStatement::prepare">SQLStatement::prepare()</link>.</para></entry>
+	    </row>
 	    <row>
 	      <entry><para>depends on DBI driver</para></entry>
 	      <entry><para>Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications; see the relevant DBI driver docs for more information</para></entry>
@@ -28459,7 +28535,7 @@ foreach my hash $h in ($l) {
 	  <term>Example</term>
 	  <listitem>
 	    <programlisting>$stmt.prepare("insert into table (id, name) values (%v, %v)");
-foreach my hash $h in ($l) {
+<command>foreach my</command> hash $h <command>in</command> ($l) {
     $stmt.exec($h.id, $h.name);
 }</programlisting>
 	  </listitem>
@@ -28494,6 +28570,10 @@ foreach my hash $h in ($l) {
 	    </row>
 	  </thead>
 	  <tbody>
+	    <row>
+	      <entry><para><code>SQLSTATEMENT-ERROR</code></para></entry>
+	      <entry><para>No SQL has been set with <link linkend="SQLStatement::prepare">SQLStatement::prepare()</link> or <link linkend="SQLStatement::prepareRaw">SQLStatement::prepareRaw()</link></para></entry>
+	    </row>
 	    <row>
 	      <entry><para>depends on DBI driver</para></entry>
 	      <entry><para>Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications or when the statement is executed; see the relevant DBI driver docs for more information</para></entry>
@@ -28535,8 +28615,8 @@ foreach my hash $h in ($l) {
 	  <term>Example</term>
 	  <listitem>
 	    <programlisting>$stmt.prepare("insert into table (id, name) values (%v, %v)");
-foreach my hash $h in ($l) {
-    my list $l = ($h.id, $h.name);
+<command>foreach my</command> hash $h <command>in</command> ($l) {
+    <command>my</command> list $l = ($h.id, $h.name);
     $stmt.execArgs($l);
 }</programlisting>
 	  </listitem>
@@ -28571,6 +28651,10 @@ foreach my hash $h in ($l) {
 	    </row>
 	  </thead>
 	  <tbody>
+	    <row>
+	      <entry><para><code>SQLSTATEMENT-ERROR</code></para></entry>
+	      <entry><para>No SQL has been set with <link linkend="SQLStatement::prepare">SQLStatement::prepare()</link>.</para></entry>
+	    </row>
 	    <row>
 	      <entry><para>depends on DBI driver</para></entry>
 	      <entry><para>Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications or when the statement is executed; see the relevant DBI driver docs for more information</para></entry>
@@ -28622,6 +28706,29 @@ foreach my hash $h in ($l) {
 	  </tbody>
 	</tgroup>
       </table>
+
+      <table>
+	<title>Exceptions Thrown by SQLStatement::getOutput()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>SQLSTATEMENT-ERROR</code></para></entry>
+	      <entry><para>No SQL has been set with <link linkend="SQLStatement::prepare">SQLStatement::prepare()</link>.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para>depends on DBI driver</para></entry>
+	      <entry><para>Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications or when the statement is executed or when the output values are retrieved; see the relevant DBI driver docs for more information</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
     </sect2>
 
     <sect2 id="SQLStatement::getOutputRows">
@@ -28661,6 +28768,27 @@ foreach my hash $h in ($l) {
 	    <row>
 	      <entry><para><code><link linkend="hash_type">hash</link></code></para></entry>
 	      <entry><para>Retrieves output buffers as a hash; result sets will be returned as lists of hashes.  Each key in the hash is the same as the name given to the placeholder specification in the call to <link linkend="SQLStatement::prepare">SQLStatement::prepare()</link> or <link linkend="SQLStatement::prepareRaw">SQLStatement::prepareRaw()</link></para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+      <table>
+	<title>Exceptions Thrown by SQLStatement::getOutputRows()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>SQLSTATEMENT-ERROR</code></para></entry>
+	      <entry><para>No SQL has been set with <link linkend="SQLStatement::prepare">SQLStatement::prepare()</link>.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para>depends on DBI driver</para></entry>
+	      <entry><para>Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications or when the statement is executed or when the output values are retrieved; see the relevant DBI driver docs for more information</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -28708,6 +28836,27 @@ foreach my hash $h in ($l) {
 	  </tbody>
 	</tgroup>
       </table>
+      <table>
+	<title>Exceptions Thrown by SQLStatement::affectedRows()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>SQLSTATEMENT-ERROR</code></para></entry>
+	      <entry><para>No SQL has been set with <link linkend="SQLStatement::prepare">SQLStatement::prepare()</link>.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para>depends on DBI driver</para></entry>
+	      <entry><para>Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications or when the statement is executed or when the output values are retrieved; see the relevant DBI driver docs for more information</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
     </sect2>
 
     <sect2 id="SQLStatement::next">
@@ -28730,8 +28879,8 @@ foreach my hash $h in ($l) {
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>while ($stmt.next()) {
-    my hash $h = $stmt.fetchRow();
+	    <programlisting><command>while</command> ($stmt.next()) {
+    <command>my</command> hash $h = $stmt.fetchRow();
 }</programlisting>
 	  </listitem>
 	</varlistentry>
@@ -28754,6 +28903,27 @@ foreach my hash $h in ($l) {
 	  </tbody>
 	</tgroup>
       </table>
+      <table>
+	<title>Exceptions Thrown by SQLStatement::next()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>SQLSTATEMENT-ERROR</code></para></entry>
+	      <entry><para>No SQL has been set with <link linkend="SQLStatement::prepare">SQLStatement::prepare()</link>.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para>depends on DBI driver</para></entry>
+	      <entry><para>Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications or when the statement is executed or when the output values are retrieved; see the relevant DBI driver docs for more information</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
     </sect2>
 
     <sect2 id="SQLStatement::fetchRow">
@@ -28764,6 +28934,7 @@ foreach my hash $h in ($l) {
 	  <term>Synopsis</term>
 	  <listitem>
 	    <para>Retrieves the current row as a hash where the keys are the column names and the values are the column values.</para>
+	    <para>Use with <link linkend="SQLStatement::next">SQLStatement::next()</link> to iterate through the results of a select statement onw row at a time.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -28775,8 +28946,8 @@ foreach my hash $h in ($l) {
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>while ($stmt.next()) {
-    my hash $h = $stmt.fetchRow();
+	    <programlisting><command>while</command> ($stmt.next()) {
+    <command>my</command> hash $h = $stmt.fetchRow();
 }</programlisting>
 	  </listitem>
 	</varlistentry>
@@ -28795,6 +28966,27 @@ foreach my hash $h in ($l) {
 	    <row>
 	      <entry><para><code><link linkend="*hash_type">*hash</link></code></para></entry>
 	      <entry><para>Returns the current row as a hash where the keys are the column names and the values are the column values.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+      <table>
+	<title>Exceptions Thrown by SQLStatement::fetchRow()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>SQLSTATEMENT-ERROR</code></para></entry>
+	      <entry><para>No SQL has been set with <link linkend="SQLStatement::prepare">SQLStatement::prepare()</link>.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para>depends on DBI driver</para></entry>
+	      <entry><para>Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications or when the statement is executed or when the output values are retrieved; see the relevant DBI driver docs for more information</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -28822,7 +29014,7 @@ foreach my hash $h in ($l) {
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>my list $l = $stmt.fetchRows(-1);</programlisting>
+	    <programlisting><command>my</command> list $l = $stmt.fetchRows(-1);</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -28862,6 +29054,27 @@ foreach my hash $h in ($l) {
 	  </tbody>
 	</tgroup>
       </table>
+      <table>
+	<title>Exceptions Thrown by SQLStatement::fetchRows()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>SQLSTATEMENT-ERROR</code></para></entry>
+	      <entry><para>No SQL has been set with <link linkend="SQLStatement::prepare">SQLStatement::prepare()</link>.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para>depends on DBI driver</para></entry>
+	      <entry><para>Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications or when the statement is executed or when the output values are retrieved; see the relevant DBI driver docs for more information</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
     </sect2>
 
     <sect2 id="SQLStatement::fetchColumns">
@@ -28885,7 +29098,7 @@ foreach my hash $h in ($l) {
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>my hash $h = $stmt.fetchColumns(-1);</programlisting>
+	    <programlisting><command>my</command> hash $h = $stmt.fetchColumns(-1);</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -28921,6 +29134,28 @@ foreach my hash $h in ($l) {
 	    <row>
 	      <entry><para><code><link linkend="hash_type">hash</link></code></para></entry>
 	      <entry><para>Returns a hash of lists with the maximum number of rows determined by the argument passed.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by SQLStatement::fetchColumns()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>SQLSTATEMENT-ERROR</code></para></entry>
+	      <entry><para>No SQL has been set with <link linkend="SQLStatement::prepare">SQLStatement::prepare()</link>.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para>depends on DBI driver</para></entry>
+	      <entry><para>Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications or when the statement is executed or when the output values are retrieved; see the relevant DBI driver docs for more information</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -28998,6 +29233,25 @@ foreach my hash $h in ($l) {
 	  </listitem>
 	</varlistentry>
       </variablelist>
+
+      <table>
+	<title>Exceptions Thrown by SQLStatement::commit()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>SQLSTATEMENT-COMMIT-ERROR</code></para></entry>
+	      <entry><para>cannot call with no active statement</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
     </sect2>
 
     <sect2 id="SQLStatement::rollback">
@@ -29022,6 +29276,25 @@ foreach my hash $h in ($l) {
 	  </listitem>
 	</varlistentry>
       </variablelist>
+
+      <table>
+	<title>Exceptions Thrown by SQLStatement::rollback()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>SQLSTATEMENT-ROLLBACK-ERROR</code></para></entry>
+	      <entry><para>cannot call with no active statement</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
     </sect2>
 
     <sect2 id="SQLStatement::getSQL">
@@ -29083,7 +29356,7 @@ foreach my hash $h in ($l) {
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>if ($stmt.active())
+	    <programlisting><command>if</command> ($stmt.active())
     $stmt.commit();</programlisting>
 	  </listitem>
 	</varlistentry>

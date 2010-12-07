@@ -819,7 +819,7 @@ False</programlisting></note>
 
     <programlisting><replaceable>object_reference.member_name</replaceable></programlisting>
 
-    <para>For more information, see <link linkend="Object_Members">Object Members</link>.</para>
+    <para>For more information, see <link linkend="Class_Members">Class Members</link>.</para>
 
     <para>Object methods are called by appending a dot '.' and a method name to the object reference as follows:</para>
 
@@ -1347,7 +1347,7 @@ False</programlisting></note>
 	  </row>
 	  <row>
 	    <entry><para>An in-class object member reference</para></entry>
-	    <entry><para>References to members of an object from within the class (see <link linkend="Object_Members">Object Members</link> for more information)</para></entry>
+	    <entry><para>References to members of an object from within the class (see <link linkend="Class_Members">Class Members</link> for more information)</para></entry>
 	    <entry><programlisting>$.member</programlisting></entry>
 	  </row>
 	  <row>
@@ -2892,24 +2892,30 @@ $var[1].count++;
 
 <note><para>The expression cannot be an expression that has side effects or a parse exception will be raised.  Only functions tagged with the <code><link linkend="CONST_flag">CONST</link></code> can be used to initialize a constant.</para></note>
 
+<para>Classes can also declare constants; see <link linkend="Class_Constants">class constants</link> for more information.</para>
+
 </sect1>
 <sect1 id="Classes">
 <title>Classes</title>
 
 <para>Objects are instantiations of a Qore class.  Classes can define private members and methods, which are functions that operate only on the objects of that class.</para>
 
-<para>Classes are declared with the following syntax:</para>
+<para id="Class_Definition_Syntax">Classes are declared with the following syntax:</para>
 
 <programlisting><command>class</command> [<replaceable>namespace_path::</replaceable>...]<replaceable>class_identifier</replaceable> [<command>inherits</command> [<command>private|public</command>] [<replaceable>namespace_path::</replaceable>...]<replaceable>class_identifier</replaceable>[, ...]] {
     [<command>private</command> <replaceable>$.var1[, ...]</replaceable>;]
 
     [<command>private</command> {
         [<replaceable><link linkend="Data_Type_Declarations">type</link></replaceable>] <replaceable>$.member_name</replaceable> [ = <replaceable>expr</replaceable>];
+	[<command>static</command> [<replaceable><link linkend="Data_Type_Declarations">type</link></replaceable>] <replaceable>var_name</replaceable> [ = <replaceable>expr</replaceable>];
+	[<command>const</command> <replaceable>const_name</replaceable> = <replaceable>expr</replaceable>;
 	...
     }]
 
     [<command>public</command> {
         [<replaceable><link linkend="Data_Type_Declarations">type</link></replaceable>] <replaceable>$.member_name</replaceable> [ = <replaceable>expr</replaceable>];
+	[<command>static</command> [<replaceable><link linkend="Data_Type_Declarations">type</link></replaceable>] <replaceable>var_name</replaceable> [ = <replaceable>expr</replaceable>];
+	[<command>const</command> <replaceable>const_name</replaceable> = <replaceable>expr</replaceable>;
 	...
     }]
 
@@ -2920,7 +2926,7 @@ $var[1].count++;
 }
 </programlisting>
 
-<para>Alternatively objects can be defined out of line as follows:</para>
+<para>Alternatively class declarations and method declarations can be defined out of line as follows:</para>
 
 <programlisting><command>class</command> [<replaceable>namespace_path::</replaceable>]<replaceable>class_identifier</replaceable> [<command>inherits</command> [<command>private|public</command>] [<replaceable>namespace_path::</replaceable>...]<replaceable>class_identifier</replaceable>[, ...]];
 
@@ -2929,102 +2935,154 @@ $var[1].count++;
 }
 </programlisting>
 
-<para>Public and private members can only be declared in an in-line class definition (the first example above).  If a class has at least one public member declared (or inherits a class with at least one public member declared), then only those members declared as public can be accessed from outside the class, and from within the class only members explicitly declared can be accessed as well (unless the class also defines a <code><link linkend="memberGate">memberGate()</link></code> method).  In this way typographical errors in member names can be caught (at parse time if types are declared).</para>
+<para><link linkend="Class_Members">Class members</link>, <link linkend="Class_Constants">class constants</link>, and <link linkend="Static_Class_Variables">static class variables</link> can only be declared in an in-line class definition (the first example above).  If a class has at least one public member declared (or inherits a class with at least one public member declared), then only those members declared as public can be accessed from outside the class, and from within the class only members explicitly declared can be accessed as well (unless the class also defines a <code><link linkend="memberGate">memberGate()</link></code> method).  In this way typographical errors in member names can be caught (at parse time if types are declared).</para>
 
 <para>In a class hierarchy, base class constructor methods can be explicitly specified using a special syntax unique to subclass constructor methods.  Please see <link linkend='Class_Inheritance'>Class Inheritance</link> for more information.</para>
 
 <note><para>It's possible to write purely object-oriented scripts/programs in Qore by defining an application class and using the <code>-x</code> or <code>--exec-class</code> command-line arguments to tell Qore to instantiate the class instead of doing normal top-level execution (in fact, the <code>--exec-class</code> arguments disallow the use of top-level statements entirely).  For more information, please see <link linkend="Command-Line_Parsing">Command-Line Parsing</link> and <link linkend="Parse_Directives">Parse Directives</link>.</para></note>
 
-<sect2 id="Private_and_Synchronized_Methods">
-<title>Private and Synchronized Methods</title>
+<sect2 id="Class_Methods">
+  <title>Class Methods</title>
+  <sect3 id="Private_and_Synchronized_Methods">
+    <title>Private and Synchronized Methods</title>
 
-<para>Methods declared with the <command>private</command> keyword can only be called by other member functions of the same class.  Any attempt to call these methods from outside the class will result in a run-time exception.</para>
+    <para>Methods declared with the <command>private</command> keyword can only be called by other member functions of the same class.  Any attempt to call these methods from outside the class will result in a run-time exception.</para>
+    
+    <para>Methods declared with the <command>synchronized</command> keyword will only run in one thread at a time.</para>
+  </sect3>
 
-<para>Methods declared with the <command>synchronized</command> keyword will only run in one thread at a time.</para>
+  <sect3 id="Static_Methods">
+    <title>Static Methods</title>
+
+    <para>Methods declared with the <command>static</command> keyword are like regular <link linkend="Subroutines">subroutines</link> that are attached to the class.  These methods are not associated with a particular object's state and therefore are not allowed to refer to object members or call non-static methods.  Also, no reference to the special <code>$self</code> variable is allowed within static methods.</para>
+
+    <para>Static methods may be declared <command>private</command> or <command>public</command> like non-static methods.</para>
+    
+    <para>Static method calls take a special syntax as documented <link linkend="Static_Method_Calls">here</link>.
+    </para>
+  </sect3>
+
+  <sect3 id="Constructors_Destructors_and_Other_Special_Methods">
+    <title>Constructors, Destructors, and Other Special Methods</title>
+
+    <para>All class methods are optional, but some methods have a special meaning.</para>
+
+    <table>
+      <title>Special Methods</title>
+      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	<thead>
+	  <row>
+	    <entry><para>Name</para></entry>
+	    <entry><para>Description</para></entry>
+	  </row>
+	</thead>
+	
+	<tbody>
+	  <row id="constructor_methods">
+	    <entry><para><code>constructor()</code></para></entry>
+	    <entry>
+	      <para>Called when objects are created when instantiated by a variable declaration with a class type and constructor arguments or explicitly with the <link linkend='New_Object_Operator'><command>new</command></link> operator. User code may not explicitly call <code>constructor()</code> methods directly.  In a class tree, <code>constructor()</code> methods are called for base classes first in left-to-right, depth-first declaration order.</para>
+	      <para><code>constructor()</code> methods may be overloaded and also private constructors may be defined.  Private constructors can only be called from within the class.</para>
+	    </entry>
+	  </row>
+	  <row id="copy_methods">
+	    <entry><para><code>copy()</code></para></entry>
+	    <entry>
+	      <para>When a user explicitly calls a copy method, Qore will generate a new object with references to the same members as the source object.  Then, if there are any base classes, base class <code>copy()</code> methods are called in the same order as the <code>constructor()</code> methods.  If a <code>copy()</code> method is defined, it will be run in the new object with a reference to the old object passed as the first argument.  Any other arguments passed to the <code>copy()</code> method are ignored.</para>
+	      <para><code>copy()</code> methods cannot be overloaded and cannot be private.</para>
+	    </entry>
+	  </row>
+	  <row id="destructor_methods">
+	    <entry><para><code>destructor()</code></para></entry>
+	    <entry>
+	      <para>Called when objects go out of scope or are explicitly deleted. User code may not explicitly call <code>destructor()</code> methods.  In a class tree, <code>destructor()</code> methods are called for base classes in the opposite order in which the constructors are called.</para>
+	      <para><code>destructor()</code> methods cannot be overloaded and cannot be private.</para>
+	    </entry>
+	  </row>
+	  <row id="memberGate">
+	    <entry><para><code>memberGate(<link linkend="string_type">string</link> <replaceable>$name</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para></entry>
+	    <entry>
+	      <para>If this method is implemented in the class, it is called when read access is attempted to private member or members that do not exist in the current object; the return value of this method is returned as the value of the member.</para>
+	      <para><code>memberGate()</code> methods cannot be overloaded and are not inherited by subclasses.</para>
+	    </entry>
+	  </row>
+	  <row id="methodGate">
+	    <entry><para><code>methodGate(<link linkend="string_type">string</link> <replaceable>$name</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para></entry>
+	    <entry>
+	      <para>If this method is implemented in the class, it is called when methods are called on the object that do not exist in the current object and the return value of this method is returned as the value of the method call.</para>
+	      <para><code>methodGate()</code> methods cannot be overloaded and are not inherited by subclasses.</para>
+	    </entry>
+	  </row>
+	  <row id="memberNotification">
+	    <entry><para><code>memberNotification(<link linkend="string_type">string</link> <replaceable>$name</replaceable>)</code></para></entry>
+	    <entry>
+	      <para>If this method is implemented in the class, it is called when an object member is updated outside the class with the member name as the argument.  Note that this method is called after the member has been updated and without locking; the call is not atomic respective to other threads that also may update the same member simultaneously.</para>
+	      <para><code>memberNotification()</code> methods cannot be overloaded and are not inherited by subclasses.</para>
+	    </entry>
+	  </row>
+	  
+	</tbody>
+      </tgroup>
+    </table>
+  </sect3>
 </sect2>
 
-<sect2 id="Static_Methods">
-  <title>Static Methods</title>
+  <sect2 id="Class_Constants">
+    <title>Class Constants</title>
 
-  <para>Methods declared with the <command>static</command> keyword are like regular <link linkend="Subroutines">subroutines</link> that are attached to the class.  These methods are not associated with a particular object's state and therefore are not allowed to refer to object members or call non-static methods.  Also, no reference to the special <code>$self</code> variable is allowed within static methods.</para>
+    <para>Class constants, like <link linkend="Constants">non-class constants</link>, allow programmers to refer to values with Qore identifiers rather than using the value or the expression that generates the value.</para>
 
-  <para>Static method calls take a special syntax as documented <link linkend="Static_Method_Calls">here</link>.
-  </para>
-</sect2>
+    <para>See <link linkend="Class_Definition_Syntax">Class Definition Syntax</link> for a description of the syntax required to declare a class constant.</para>
 
-<sect2 id="Constructors_Destructors_and_Other_Special_Methods">
-<title>Constructors, Destructors, and Other Special Methods</title>
+    <para>Like other attributes of classes, class constants may be declared <command>private</command> or <command>public</command>.  The following is an example of a class constant definition:</para>
 
-<para>All class methods are optional, but some methods have a special meaning.</para>
+    <programlisting><command>class</command> Test {
+    <command>public</command> {
+        <command>const</command> Version = "1.0";
+    }
 
-<table><title>Special Methods</title>
-<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-  <thead>
-  <row>
-    <entry><para>Name</para></entry>
-    <entry><para>Description</para></entry>
-  </row>
-  </thead>
+    <command>private</command> {
+        <command>const</command> Limit = 100;
+    }
+}</programlisting>
+    
+    <note><para>Note that a class constant cannot have the same same as a <link linkend="Static_Class_Variables">static class variable</link>.</para></note>
 
-<tbody>
-  <row id="constructor_methods">
-    <entry><para><code>constructor()</code></para></entry>
-    <entry>
-      <para>Called when objects are created when instantiated by a variable declaration with a class type and constructor arguments or explicitly with the <link linkend='New_Object_Operator'><command>new</command></link> operator. User code may not explicitly call <code>constructor()</code> methods directly.  In a class tree, <code>constructor()</code> methods are called for base classes first in left-to-right, depth-first declaration order.</para>
-      <para><code>constructor()</code> methods may be overloaded and also private constructors may be defined.  Private constructors can only be called from within the class.</para>
-    </entry>
-  </row>
-  <row id="copy_methods">
-    <entry><para><code>copy()</code></para></entry>
-    <entry>
-      <para>When a user explicitly calls a copy method, Qore will generate a new object with references to the same members as the source object.  Then, if there are any base classes, base class <code>copy()</code> methods are called in the same order as the <code>constructor()</code> methods.  If a <code>copy()</code> method is defined, it will be run in the new object with a reference to the old object passed as the first argument.  Any other arguments passed to the <code>copy()</code> method are ignored.</para>
-      <para><code>copy()</code> methods cannot be overloaded and cannot be private.</para>
-    </entry>
-  </row>
-  <row id="destructor_methods">
-    <entry><para><code>destructor()</code></para></entry>
-    <entry>
-      <para>Called when objects go out of scope or are explicitly deleted. User code may not explicitly call <code>destructor()</code> methods.  In a class tree, <code>destructor()</code> methods are called for base classes in the opposite order in which the constructors are called.</para>
-      <para><code>destructor()</code> methods cannot be overloaded and cannot be private.</para>
-    </entry>
-  </row>
-  <row id="memberGate">
-    <entry><para><code>memberGate(<link linkend="string_type">string</link> <replaceable>$name</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para></entry>
-    <entry>
-      <para>If this method is implemented in the class, it is called when read access is attempted to private member or members that do not exist in the current object; the return value of this method is returned as the value of the member.</para>
-      <para><code>memberGate()</code> methods cannot be overloaded and are not inherited by subclasses.</para>
-    </entry>
-  </row>
-  <row id="methodGate">
-    <entry><para><code>methodGate(<link linkend="string_type">string</link> <replaceable>$name</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para></entry>
-    <entry>
-      <para>If this method is implemented in the class, it is called when methods are called on the object that do not exist in the current object and the return value of this method is returned as the value of the method call.</para>
-      <para><code>methodGate()</code> methods cannot be overloaded and are not inherited by subclasses.</para>
-    </entry>
-  </row>
-  <row id="memberNotification">
-    <entry><para><code>memberNotification(<link linkend="string_type">string</link> <replaceable>$name</replaceable>)</code></para></entry>
-    <entry>
-      <para>If this method is implemented in the class, it is called when an object member is updated outside the class with the member name as the argument.  Note that this method is called after the member has been updated and without locking; the call is not atomic respective to other threads that also may update the same member simultaneously.</para>
-      <para><code>memberNotification()</code> methods cannot be overloaded and are not inherited by subclasses.</para>
-    </entry>
-  </row>
+  </sect2>
 
-</tbody>
-</tgroup>
-</table>
-</sect2>
+  <sect2 id="Static_Class_Variables">
+    <title>Static Class Variables</title>
 
-<sect2 id="Object_Members">
-<title>Object Members</title>
+    <para>Static class variables are like global variables that belong to a class.  They are not associated with any particular object.</para>
 
-<para>When defining a class, members of the current object can be referred to with a special syntax as follows:</para>
+    <para>See <link linkend="Class_Definition_Syntax">Class Definition Syntax</link> for a description of the syntax required to declare a static class variable.</para>
 
-<programlisting>$.<replaceable>member_name_identifier</replaceable></programlisting>
+    <para>Like other attributes of classes, static class variables may be declared <command>private</command> or <command>public</command>.  The following is an example of a static class variable definition:</para>
 
-<para>Furthermore, the automatic variable <code>$self</code> is instantiated which represents the current object (similar to the <code>this</code> in C++ or Java). Therefore if you need to access hash members which are not valid Qore identifiers, then enclose the member name in double quotes after the dot operator as follows: </para>
+    <programlisting><command>class</command> Test {
+    <command>public</command> {
+        <command>static</command> string lastFile = "none";
+    }
 
-<programlisting>$self."&amp;member-name"</programlisting>
+    <command>private</command> {
+        <command>static</command> int numProcessed = 0;
+    }
+}</programlisting>
+    
+    <note><para>Static class variables cannot have the same same as a <link linkend="Class_Constants">class constant</link>.</para></note>
+
+  </sect2>
+
+  <sect2 id="Class_Members">
+    <title>Class Members</title>
+
+    <para>When defining a class, members of instantiated objects are referred to with a special syntax as follows:</para>
+
+    <programlisting>$.<replaceable>member_name_identifier</replaceable></programlisting>
+
+    <para>Furthermore, the automatic variable <code>$self</code> is instantiated which represents the current object (similar to the <code>this</code> in C++ or Java). Therefore if you need to access hash members which are not valid Qore identifiers, then enclose the member name in double quotes after the dot operator as follows: </para>
+    
+    <programlisting>$self."&amp;member-name"</programlisting>
 
 <para>The automatic <code>$argv</code> local variable is instantiated as usual in all class methods where there are more arguments than variables declared in the method declaration.</para>
 
