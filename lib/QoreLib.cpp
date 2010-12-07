@@ -1269,9 +1269,9 @@ int ObjMap::check(QoreObject *obj) {
       obj_map_t::iterator i = omap.find(obj);
       if (i == omap.end()) {
 	 // now check if the object is already in the cycle list for any of the objects already in the list
-	 for (unsigned i = 0; i < ovec.size(); ++i) {
-	    if (qore_object_private::verifyRecursive(obj, ovec[i]->first)) {
-	       printd(0, "ObjMap::check() %p (%s) already mapped from %p (%s)\n", obj, obj->getClassName(), ovec[i]->first, ovec[i]->first->getClassName());
+	 for (unsigned j = 0; j < ovec.size(); ++j) {
+	    if (qore_object_private::verifyRecursive(obj, ovec[j]->first)) {
+	       printd(0, "ObjMap::check() %p (%s) already mapped from %p (%s)\n", obj, obj->getClassName(), ovec[j]->first, ovec[j]->first->getClassName());
 	       return -1;
 	    }
 	 }

@@ -83,7 +83,7 @@ public:
       while (true) {
 	 int64 done = (int64)total_out_lo32 + (((int64)total_out_hi32) << 32);
 	 next_out = ((char *)b->getPtr()) + done;
-	 avail_out = bs - done;
+	 avail_out = (unsigned)(bs - done);
 
 	 int rc = BZ2_bzCompress(this, BZ_FINISH);
 	 //printd(5, "bs=%d, done=%lld, avail_out=%d, rc=%d, total_out_lo32=%d, total_out_hi32 = %d\n", bs, done, avail_out, rc, total_out_lo32, total_out_hi32);
@@ -140,7 +140,7 @@ public:
       while (true) {
 	 int64 done = (int64)total_out_lo32 + (((int64)total_out_hi32) << 32);
 	 next_out = ((char *)b->getPtr()) + done;
-	 avail_out = bs - done;
+	 avail_out = (unsigned)(bs - done);
 
 	 int rc = BZ2_bzDecompress(this);
 	 //printd(5, "bs=%d, done=%lld, avail_out=%d, rc=%d, total_out_lo32=%d, total_out_hi32 = %d\n", bs, done, avail_out, rc, total_out_lo32, total_out_hi32);

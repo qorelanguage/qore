@@ -1725,25 +1725,25 @@ struct qore_class_private {
       delete varInfo;
    }
 
-   DLLLOCAL void addBuiltinConstant(const char *name, AbstractQoreNode *value, bool priv = false, const QoreTypeInfo *typeInfo = 0) {
-      assert(!pub_const.inList(name));
-      assert(!priv_const.inList(name));
+   DLLLOCAL void addBuiltinConstant(const char *cname, AbstractQoreNode *value, bool priv = false, const QoreTypeInfo *cTypeInfo = 0) {
+      assert(!pub_const.inList(cname));
+      assert(!priv_const.inList(cname));
       if (priv)
-         priv_const.add(name, value, typeInfo);
+         priv_const.add(cname, value, cTypeInfo);
       else
-         pub_const.add(name, value, typeInfo);
+         pub_const.add(cname, value, cTypeInfo);
    }
 
-   DLLLOCAL void addBuiltinStaticVar(const char *name, AbstractQoreNode *value, bool priv = false, const QoreTypeInfo *typeInfo = 0) {
-      assert(!public_vars.inList(name));
-      assert(!private_vars.inList(name));
+   DLLLOCAL void addBuiltinStaticVar(const char *vname, AbstractQoreNode *value, bool priv = false, const QoreTypeInfo *vTypeInfo = 0) {
+      assert(!public_vars.inList(vname));
+      assert(!private_vars.inList(vname));
 
-      QoreVarInfo *vi = new QoreVarInfo(0, 0, typeInfo, 0, value);
+      QoreVarInfo *vi = new QoreVarInfo(0, 0, vTypeInfo, 0, value);
 
       if (priv)
-         private_vars[strdup(name)] = vi;
+         private_vars[strdup(vname)] = vi;
       else
-         public_vars[strdup(name)] = vi;
+         public_vars[strdup(vname)] = vi;
    }
 
    DLLLOCAL void parseAssimilatePublicConstants(ConstantList &cmap) {
@@ -1779,16 +1779,16 @@ struct qore_class_private {
          : false;
    }
 
-   DLLLOCAL AbstractQoreNode *parseFindLocalConstantValue(const char *cname, const QoreTypeInfo *&typeInfo) {
+   DLLLOCAL AbstractQoreNode *parseFindLocalConstantValue(const char *cname, const QoreTypeInfo *&cTypeInfo) {
       // first check public constants
-      AbstractQoreNode *rv = pub_const.find(cname, typeInfo);
+      AbstractQoreNode *rv = pub_const.find(cname, cTypeInfo);
       if (!rv) {
-	 rv = pend_pub_const.find(cname, typeInfo);
+	 rv = pend_pub_const.find(cname, cTypeInfo);
 	 if (!rv) {
 	    // now check private constants
-	    rv = priv_const.find(cname, typeInfo);
+	    rv = priv_const.find(cname, cTypeInfo);
 	    if (!rv)
-	       rv = pend_priv_const.find(cname, typeInfo);
+	       rv = pend_priv_const.find(cname, cTypeInfo);
 	 
 	    // check for accessibility to private constants
 	    if (rv && !parseCheckPrivateClassAccess(cls)) {
@@ -1802,20 +1802,20 @@ struct qore_class_private {
       return rv;
    }
 
-   DLLLOCAL AbstractQoreNode *parseFindConstantValue(const char *cname, const QoreTypeInfo *&typeInfo, bool check = false) {
+   DLLLOCAL AbstractQoreNode *parseFindConstantValue(const char *cname, const QoreTypeInfo *&cTypeInfo, bool check = false) {
       bool priv = false;
 
       // first check public constants
-      AbstractQoreNode *rv = pub_const.find(cname, typeInfo);
+      AbstractQoreNode *rv = pub_const.find(cname, cTypeInfo);
       if (!rv) {
-	 rv = pend_pub_const.find(cname, typeInfo);
+	 rv = pend_pub_const.find(cname, cTypeInfo);
 	 if (!rv) {
             priv = true;
 
 	    // now check private constants
-	    rv = priv_const.find(cname, typeInfo);
+	    rv = priv_const.find(cname, cTypeInfo);
 	    if (!rv) {
-	       rv = pend_priv_const.find(cname, typeInfo);
+	       rv = pend_priv_const.find(cname, cTypeInfo);
             }
 	 }
       }
@@ -1823,14 +1823,14 @@ struct qore_class_private {
       // check for accessibility to private constants
       if (rv) {
          if (check && priv && !parseCheckPrivateClassAccess(cls)) {
-            typeInfo = 0;
+            cTypeInfo = 0;
             return 0;
          }
 
          return rv;
       }
 
-      return scl ? scl->parseFindConstantValue(cname, typeInfo, check) : 0;
+      return scl ? scl->parseFindConstantValue(cname, cTypeInfo, check) : 0;
    }
 
    DLLLOCAL QoreVarInfo *parseFindLocalStaticVar(const char *vname) const {
@@ -2019,14 +2019,14 @@ struct qore_class_private {
       return 0;
    }
 
-   DLLLOCAL int initVar(const char *name, QoreVarInfo &vi, ExceptionSink *xsink) const {
+   DLLLOCAL int initVar(const char *vname, QoreVarInfo &vi, ExceptionSink *xsink) const {
       if (vi.exp) {
          // evaluate expression
          ReferenceHolder<AbstractQoreNode> val(vi.exp->eval(xsink), xsink);
          if (*xsink)
             return -1;
 
-         val = vi.getTypeInfo()->acceptInputMember(name, val.release(), xsink);
+         val = vi.getTypeInfo()->acceptInputMember(vname, val.release(), xsink);
          if (*xsink)
             return -1;
 

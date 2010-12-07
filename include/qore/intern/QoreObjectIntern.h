@@ -246,8 +246,8 @@ public:
 
    DLLLOCAL int checkRecursive(ObjMap &omap, AutoVLock &vl, ExceptionSink *xsink);
 
-   DLLLOCAL int verifyRecursive(QoreObject *obj) {      
-      if (rset && rset->find(obj)) {
+   DLLLOCAL int verifyRecursive(QoreObject *nobj) {
+      if (rset && rset->find(nobj)) {
          ++rcount;
          return -1;
       }

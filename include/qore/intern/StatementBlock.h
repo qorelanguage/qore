@@ -140,6 +140,7 @@ public:
    DLLLOCAL virtual ~TopLevelStatementBlock() {
    }
 
+   using StatementBlock::parseInit;
    DLLLOCAL void parseInit(RootQoreNamespace *rns, UserFunctionList *ufl);
 
    DLLLOCAL void parseCommit() {
