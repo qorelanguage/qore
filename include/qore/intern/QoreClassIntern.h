@@ -26,6 +26,7 @@
 #define _QORE_QORECLASSINTERN_H
 
 #include <qore/safe_dslist>
+#include <qore/intern/ConstantList.h>
 
 #include <list>
 #include <map>

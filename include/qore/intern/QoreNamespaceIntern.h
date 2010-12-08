@@ -26,6 +26,7 @@
 
 #include <qore/intern/QoreClassList.h>
 #include <qore/intern/QoreNamespaceList.h>
+#include <qore/intern/ConstantList.h>
 
 struct qore_ns_private {
    std::string name;
