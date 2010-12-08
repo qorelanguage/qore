@@ -164,7 +164,7 @@ public:
    QoreReferenceCounter tRefs;  // reference-references
    QoreHashNode *data;
    QoreProgram *pgm;
-   bool system_object, delete_blocker_run, in_destructor;
+   bool system_object, delete_blocker_run, in_destructor, pgm_ref;
    QoreObject *obj;
 
    // recursive reference count for entire object
@@ -175,7 +175,8 @@ public:
 
    DLLLOCAL qore_object_private(QoreObject *n_obj, const QoreClass *oc, QoreProgram *p, QoreHashNode *n_data) : 
       theclass(oc), status(OS_OK), 
-      privateData(0), data(n_data), pgm(p), system_object(!p), delete_blocker_run(false), in_destructor(false),
+      privateData(0), data(n_data), pgm(p), system_object(!p), 
+      delete_blocker_run(false), in_destructor(false), pgm_ref(true),
       obj(n_obj), rcount(0), rset(0) {
 #ifdef QORE_DEBUG_OBJ_REFS
       printd(QORE_DEBUG_OBJ_REFS, "qore_object_private::qore_object_private() obj=%p, pgm=%p, class=%s, references 0->1\n", obj, p, oc->getName());
@@ -450,15 +451,28 @@ public:
 #endif
       }
 
-      if (pgm) {
-	 printd(5, "qore_object_private::cleanup() obj=%p (%s) calling QoreProgram::depDeref() (%p)\n", obj, theclass->getName(), pgm);
-	 pgm->depDeref(xsink);
-#ifdef DEBUG
-	 pgm = 0;
-#endif
+      {
+         AutoLocker al(mutex);
+
+         if (pgm) {
+            if (pgm_ref) {
+               printd(5, "qore_object_private::cleanup() obj=%p (%s) calling QoreProgram::depDeref() (%p)\n", obj, theclass->getName(), pgm);
+               pgm->depDeref(xsink);
+            }
+            pgm = 0;
+         }
       }
 
       td->deref(xsink);
+   }
+
+   DLLLOCAL void derefProgramCycle(QoreProgram *p) {
+      AutoLocker al(mutex);
+
+      if (pgm && pgm_ref) {
+         pgm->depDeref(0);
+         pgm_ref = 0;
+      }
    }
 
    // this method is called when there is an exception in a constructor and the object should be deleted
@@ -558,6 +572,10 @@ public:
 
    DLLLOCAL static void plusEquals(QoreObject *obj, const AbstractQoreNode *v, ObjMap &omap, AutoVLock &vl, ExceptionSink *xsink) {
       obj->priv->plusEquals(v, omap, vl, xsink);
+   }
+
+   DLLLOCAL static void derefProgramCycle(QoreObject *obj, QoreProgram *p) {
+      obj->priv->derefProgramCycle(p);
    }
 };
 

@@ -37,6 +37,35 @@ ConstantCycleHelper::ConstantCycleHelper(ConstantEntry *n_ce, const char *name) 
    //printd(5, "ConstantCycleHelper::ConstantCycleHelper(%p, %s) OK\n", ce, name);
 }
 
+/* the following functions find all objects that are directly reachable by a resolved
+   constant value and dereference the QoreProgram object that the object has 
+   referenced (as long as its the same QoreProgram object that owns the constant)
+   in order to break the circular reference
+*/ 
+static void check_constant_cycle(QoreProgram *pgm, AbstractQoreNode *n);
+
+static void check_constant_cycle_list(QoreProgram *pgm, QoreListNode *l) {
+   ListIterator li(l);
+   while (li.next())
+      check_constant_cycle(pgm, li.getValue());
+}
+
+static void check_constant_cycle_hash(QoreProgram *pgm, QoreHashNode *h) {
+   HashIterator hi(h);
+   while (hi.next())
+      check_constant_cycle(pgm, hi.getValue());
+}
+
+static void check_constant_cycle(QoreProgram *pgm, AbstractQoreNode *n) {
+   qore_type_t t = get_node_type(n);
+   if (t == NT_LIST)
+      check_constant_cycle_list(pgm, reinterpret_cast<QoreListNode *>(n));
+   else if (t == NT_HASH)
+      check_constant_cycle_hash(pgm, reinterpret_cast<QoreHashNode *>(n));
+   else if (t == NT_OBJECT)
+      qore_object_private::derefProgramCycle(reinterpret_cast<QoreObject *>(n), pgm);
+}
+
 void ConstantEntry::parseInit(const char *name) {
    //printd(5, "ConstantEntry::parseInit() this=%p %s init=%d node=%p (%s)\n", this, name, init, node, get_type_name(node));      
 
@@ -68,7 +97,7 @@ void ConstantEntry::parseInit(const char *name) {
    if (node->is_value())
       return;
 
-   // do not evaluate expression if any parse exception have been thrown
+   // do not evaluate expression if any parse exceptions have been thrown
    QoreProgram *pgm = getProgram();
    if (pgm->parseExceptionRaised())
       return;
@@ -88,15 +117,13 @@ void ConstantEntry::parseInit(const char *name) {
 	    node = nothing();
 	    typeInfo = nothingTypeInfo;
 	 }
+	 else
+	    check_constant_cycle(pgm, node); // address circular refs: pgm->const->pgm
       }
    }
-	       
+
    if (xsink.isEvent())
       pgm->addParseException(&xsink);
-#if 0
-   else if (!node->is_value())
-      parse_error("invalid expression of type '%s' assigned to constant '%s' (possible side effects)", get_type_name(node), name);
-#endif
 }
 
 ConstantList::ConstantList(const ConstantList &old) {
