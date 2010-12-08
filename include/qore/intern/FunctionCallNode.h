@@ -282,6 +282,9 @@ public:
    DLLLOCAL SelfFunctionCallNode(char *n, QoreListNode *n_args, const QoreMethod *m) : AbstractMethodCallNode(NT_SELF_CALL, n_args, getParseClass(), m), ns(n), is_copy(false) {
    }
 
+   DLLLOCAL SelfFunctionCallNode(char *n, QoreListNode *n_args, const QoreClass *n_qc) : AbstractMethodCallNode(NT_SELF_CALL, n_args, n_qc), ns(n), is_copy(false) {
+   }
+
    DLLLOCAL SelfFunctionCallNode(NamedScope *n_ns, QoreListNode *n_args) : AbstractMethodCallNode(NT_SELF_CALL, n_args, getParseClass()), ns(n_ns), is_copy(false) {
    }
 
@@ -357,6 +360,16 @@ public:
       QoreClass *qc = getRootNS()->parseFindScopedClassWithMethod(scope);
       if (!qc)
 	 return this;
+      
+      // see if this is a call to a base class method if bare refs are allowed
+      // and we're parsing in a class context and the class found is in the
+      // current class parse context
+      if (oflag && (getParseOptions() & PO_ALLOW_BARE_REFS) && oflag->getTypeInfo()->getUniqueReturnClass()->parseCheckHierarchy(qc)) {
+         SelfFunctionCallNode *sfcn = new SelfFunctionCallNode(scope->takeName(), takeArgs(), qc);
+         deref();
+         sfcn->parseInit(oflag, pflag, lvids, typeInfo);
+         return sfcn;
+      }
 
       method = qc->parseFindStaticMethodTree(scope->getIdentifier());
       if (!method) {
