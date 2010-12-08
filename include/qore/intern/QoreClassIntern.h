@@ -1450,7 +1450,7 @@ struct qore_class_private {
 
    DLLLOCAL const QoreExternalMethodVariant *findUserMethodVariant(const char *name, const QoreMethod *&method, const type_vec_t &argTypeList) const;
 
-   DLLLOCAL const int parseCheckMemberAccess(const char *mem, const QoreTypeInfo *&memberTypeInfo, int pflag) const {
+   DLLLOCAL int parseCheckMemberAccess(const char *mem, const QoreTypeInfo *&memberTypeInfo, int pflag) const {
       const_cast<qore_class_private *>(this)->parseInitPartial();
 
       bool priv;
@@ -1485,12 +1485,19 @@ struct qore_class_private {
       return 0;
    }
 
-   DLLLOCAL const int parseCheckInternalMemberAccess(const char *mem, const QoreTypeInfo *&memberTypeInfo) const {
+   DLLLOCAL int parseResolveInternalMemberAccess(const char *mem, const QoreTypeInfo *&memberTypeInfo) const {
+      const_cast<qore_class_private *>(this)->parseInitPartial();
+
+      bool priv, has_type_info;
+      const QoreClass *sclass = parseFindPublicPrivateMember(mem, memberTypeInfo, has_type_info, priv);
+      return sclass ? 0 : -1;
+   }
+
+   DLLLOCAL int parseCheckInternalMemberAccess(const char *mem, const QoreTypeInfo *&memberTypeInfo) const { 
       const_cast<qore_class_private *>(this)->parseInitPartial();
 
       // throws a parse exception if there are public members and the name is not valid
-      bool priv;
-      bool has_type_info;
+      bool priv, has_type_info;
       const QoreClass *sclass = parseFindPublicPrivateMember(mem, memberTypeInfo, has_type_info, priv);
       int rc = 0;
       if (!sclass) {
@@ -2187,6 +2194,18 @@ struct qore_class_private {
    DLLLOCAL void parseRollback();
    DLLLOCAL int addUserMethod(const char *mname, MethodVariantBase *f, bool n_static);
 
+   DLLLOCAL const QoreMethod *parseResolveSelfMethodIntern(const char *nme) {
+      const QoreMethod *m = parseFindLocalMethod(nme);
+      if (!m)
+         m = parseFindLocalStaticMethod(nme);
+
+      // if still not found now look in superclass methods
+      if (!m && scl)
+         m = scl->parseResolveSelfMethod(nme);
+
+      return m;
+   }
+
    // static methods
    //DLLLOCAL void 
    DLLLOCAL static const QoreClass *parseFindPublicPrivateVar(const QoreClass *qc, const char *name, const QoreTypeInfo *&varTypeInfo, bool &has_type_info, bool &priv) {
@@ -2229,6 +2248,27 @@ struct qore_class_private {
       if (vi)
          typeInfo = vi->getTypeInfo();
       return vi;
+   }
+
+   DLLLOCAL static int parseCheckInternalMemberAccess(const QoreClass *qc, const char *mem, const QoreTypeInfo *&memberTypeInfo) {
+      return qc->priv->parseCheckInternalMemberAccess(mem, memberTypeInfo);
+   }
+
+   DLLLOCAL static int parseResolveInternalMemberAccess(const QoreClass *qc, const char *mem, const QoreTypeInfo *&memberTypeInfo) {
+      return qc->priv->parseResolveInternalMemberAccess(mem, memberTypeInfo);
+   }
+
+   DLLLOCAL static const QoreMethod *parseFindSelfMethod(QoreClass *qc, const char *mname) {
+      qc->priv->initialize();
+      const QoreMethod *m = qc->priv->parseResolveSelfMethodIntern(mname);
+      if (!m)
+         return 0;
+
+      // make sure we're not calling a method that cannot be called directly
+      if (!m->isStatic() && (!strcmp(mname, "constructor") || !strcmp(mname, "destructor") || !strcmp(mname, "copy")))
+         return 0;
+
+      return m;
    }
 };
 

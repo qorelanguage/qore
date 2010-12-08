@@ -802,8 +802,6 @@ public:
    DLLLOCAL bool parseCheckHierarchy(const QoreClass *cls) const;
    // checks if the given member can be accessed at parse time
    DLLLOCAL int parseCheckMemberAccess(const char *mem, const QoreTypeInfo *&memberTypeInfo, int pflag) const;
-   // checks if the given member can be accessed from within the class
-   DLLLOCAL int parseCheckInternalMemberAccess(const char *mem, const QoreTypeInfo *&typeInfo) const;
    // finds the named member in the hierarchy, returns the class implementing the member
    DLLLOCAL const QoreClass *parseFindPublicPrivateMember(const char *mem, const QoreTypeInfo *&memberTypeInfo, bool &member_has_type_info, bool &priv) const;
    DLLLOCAL bool parseHasPublicMembersInHierarchy() const;

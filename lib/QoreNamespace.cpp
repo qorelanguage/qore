@@ -704,19 +704,31 @@ int RootQoreNamespace::resolveBareword(AbstractQoreNode **node, const QoreTypeIn
 
    AbstractQoreNode *rv = 0;
 
-   /*
-   bool abr = getProgram()->getParseOptions64() & PO_ALLOW_BARE_REFS;
+   QoreProgram *pgm = getProgram();
+   bool abr = pgm->getParseOptions64() & PO_ALLOW_BARE_REFS;
 
    if (abr) {
       bool in_closure;
-      LocalVar *id = find_local_var(name, in_closure);
+      LocalVar *id = find_local_var(b->str, in_closure);
       if (id) {
+         typeInfo = id->getTypeInfo();
+         *node = new VarRefNode(b->takeString(), id, in_closure);
+         b->deref();
+         return 0;
       }
    }
-   */
 
    // if there is a current parse class context, then check it first
    if (pc) {
+      // check for member reference
+      if (abr) {
+         if (!qore_class_private::parseResolveInternalMemberAccess(pc, b->str, typeInfo)) {
+            *node = new SelfVarrefNode(b->takeString());
+            b->deref();
+            return 0;
+         }
+      }
+
       rv = qore_class_private::parseFindConstantValue(pc, b->str, typeInfo);
       if (rv)
 	 rv->ref();
@@ -733,8 +745,20 @@ int RootQoreNamespace::resolveBareword(AbstractQoreNode **node, const QoreTypeIn
       }
    }
 
-   if (!rv)
+   if (!rv) {
+      // try to resolve a global variable
+      if (abr) {
+         Var *v = pgm->findGlobalVar(b->str);
+         if (v) {
+            *node = new GlobalVarRefNode(b->takeString(), v);
+            b->deref();
+            return 0;
+         }
+      }
+
+      // try to resolve to constant, class constant, or static class variable
       rv = priv->parseResolveBareword(b->str, typeInfo);
+   }
 
    if (rv) {
       b->deref();

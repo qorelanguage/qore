@@ -59,6 +59,7 @@ class LocalVar;
 class VarRefNode;
 class BCAList;
 class QoreTreeNode;
+class BarewordNode;
 
 class AbstractFunctionSignature {
 protected:
@@ -160,6 +161,7 @@ protected:
    int first_line, last_line;
    const char *parse_file;
 
+   DLLLOCAL void pushParam(BarewordNode *b, bool needs_types);
    DLLLOCAL void pushParam(QoreTreeNode *t, bool needs_types);
    DLLLOCAL void pushParam(VarRefNode *v, AbstractQoreNode *defArg, bool needs_types);
 

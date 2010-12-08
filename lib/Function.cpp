@@ -187,6 +187,11 @@ UserSignature::UserSignature(int n_first_line, int n_last_line, AbstractQoreNode
       return;
    }
 
+   if (params->getType() == NT_BAREWORD) {
+      pushParam(reinterpret_cast<BarewordNode *>(params), needs_types);
+      return;
+   }
+
    if (params->getType() == NT_TREE) {
       pushParam(reinterpret_cast<QoreTreeNode *>(params), needs_types);
       return;
@@ -209,6 +214,8 @@ UserSignature::UserSignature(int n_first_line, int n_last_line, AbstractQoreNode
       qore_type_t t = n ? n->getType() : 0;
       if (t == NT_TREE)
 	 pushParam(reinterpret_cast<QoreTreeNode *>(n), needs_types);
+      else if (t == NT_BAREWORD)
+	 pushParam(reinterpret_cast<BarewordNode *>(n), needs_types);
       else if (t == NT_VARREF)
 	 pushParam(reinterpret_cast<VarRefNode *>(n), 0, needs_types);
       else {
@@ -236,22 +243,37 @@ void UserSignature::pushParam(QoreTreeNode *t, bool needs_types) {
    }
 }
 
+void UserSignature::pushParam(BarewordNode *b, bool needs_types) {
+   names.push_back(b->str);
+   parseTypeList.push_back(0);
+   typeList.push_back(0);
+   str.append(NO_TYPE_INFO);
+   defaultArgList.push_back(0);
+
+   if (needs_types)
+      parse_error(parse_file, first_line, last_line, "parameter '%s' declared without type information, but parse options require all declarations to have type information", b->str);
+
+   if (!(getProgram()->getParseOptions64() & PO_ALLOW_BARE_REFS))
+      parse_error("parameter '%s' declared without '$' prefix, but parse option 'allow-bare-defs' is not set", b->str);
+   return;
+}
+
 void UserSignature::pushParam(VarRefNode *v, AbstractQoreNode *defArg, bool needs_types) {
    // check for duplicate name
    for (name_vec_t::iterator i = names.begin(), e = names.end(); i != e; ++i)
       if (*i == v->getName())
-	 parse_error(parse_file, first_line, last_line, "duplicate variable '$%s' declared in parameter list", (*i).c_str());
+	 parse_error(parse_file, first_line, last_line, "duplicate variable '%s' declared in parameter list", (*i).c_str());
 
    names.push_back(v->getName());
 
    bool is_decl = v->isDecl();
    if (needs_types && !is_decl)
-      parse_error(parse_file, first_line, last_line, "parameter '$%s' declared without type information, but parse options require all declarations to have type information", v->getName());
+      parse_error(parse_file, first_line, last_line, "parameter '%s' declared without type information, but parse options require all declarations to have type information", v->getName());
 
    // see if this is a new object call
    if (v->has_effect()) {
       // here we make 4 virtual function calls when 2 would be enough, but no need to optimize for speed for an exception
-      parse_error(parse_file, first_line, last_line, "parameter '$%s' may not be declared with new object syntax; instead use: '%s $%s = new %s()'", v->getName(), v->getNewObjectClassName(), v->getName(), v->getNewObjectClassName());
+      parse_error(parse_file, first_line, last_line, "parameter '%s' may not be declared with new object syntax; instead use: '%s $%s = new %s()'", v->getName(), v->getNewObjectClassName(), v->getName(), v->getNewObjectClassName());
    }
 
    if (is_decl) {
@@ -262,7 +284,7 @@ void UserSignature::pushParam(VarRefNode *v, AbstractQoreNode *defArg, bool need
       typeList.push_back(ti);
 
       if (ti == nothingTypeInfo)
-	 parse_error(parse_file, first_line, last_line, "parameter '$%s' may not be declared as type 'nothing'", v->getName());
+	 parse_error(parse_file, first_line, last_line, "parameter '%s' may not be declared as type 'nothing'", v->getName());
 
       assert(!(pti && ti));
 
@@ -355,14 +377,14 @@ void UserSignature::resolve() {
 	 defaultArgList[i] = defaultArgList[i]->parseInit(selfid, 0, lvids, argTypeInfo);
 	 if (lvids) {
 	    // FIXME: set parse position?
-	    parse_error("illegal local variable declaration in default value expression in parameter '$%s'", names[i].c_str());
+	    parse_error("illegal local variable declaration in default value expression in parameter '%s'", names[i].c_str());
 	    while (lvids--)
 	       pop_local_var();
 	 }
 	 // check type compatibility
 	 if (!typeList[i]->parseAccepts(argTypeInfo)) {
 	    QoreStringNode *desc = new QoreStringNode;
-	    desc->sprintf("parameter '$%s' expects ", names[i].c_str());
+	    desc->sprintf("parameter '%s' expects ", names[i].c_str());
 	    typeList[i]->getThisType(*desc);
 	    desc->concat(", but the default value is ");
 	    argTypeInfo->getThisType(*desc);

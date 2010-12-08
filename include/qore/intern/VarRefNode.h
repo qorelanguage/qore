@@ -68,9 +68,19 @@ public:
    DLLLOCAL VarRefNode(char *n, qore_var_t t, bool n_has_effect = false) : ParseNode(NT_VARREF, true, n_has_effect), name(n), type(t), new_decl(t == VT_LOCAL) {
       assert(type != VT_GLOBAL);
    }
-   DLLLOCAL VarRefNode(char *n, Var *n_var, bool n_has_effect = false) : ParseNode(NT_VARREF, true, n_has_effect), name(n), type(VT_GLOBAL), new_decl(true) {      
+   DLLLOCAL VarRefNode(char *n, Var *n_var, bool n_has_effect = false, bool n_new_decl = true) : ParseNode(NT_VARREF, true, n_has_effect), name(n), type(VT_GLOBAL), new_decl(n_new_decl) {
       ref.var = n_var;
    }
+
+   VarRefNode(char *n, LocalVar *n_id, bool in_closure) : ParseNode(NT_VARREF, true, false), name(n), new_decl(false) {
+      ref.id = n_id;
+      if (in_closure) {
+	 n_id->setClosureUse();
+	 type = VT_CLOSURE;
+      }
+      else
+         type = VT_LOCAL;
+   }      
    
    DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const;
    DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const;
@@ -118,6 +128,13 @@ public:
 
    // takes the name - caller owns the memory
    DLLLOCAL char *takeName();
+};
+
+class GlobalVarRefNode : public VarRefNode {
+protected:
+public:
+   DLLLOCAL GlobalVarRefNode(char *n, Var *v) : VarRefNode(n, v, false, false) {
+   }
 };
 
 class VarRefDeclNode : public VarRefNode {

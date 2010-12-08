@@ -959,7 +959,7 @@ const QoreMethod *BCList::parseResolveSelfMethod(const char *name) {
       if ((*i)->sclass) {
 	 (*i)->sclass->initialize();
 	 const QoreMethod *m;
-	 if ((m = (*i)->sclass->parseResolveSelfMethodIntern(name)))
+	 if ((m = (*i)->sclass->priv->parseResolveSelfMethodIntern(name)))
 	    return m;
       }
    }
@@ -1877,23 +1877,10 @@ void QoreClass::addBaseClassesToSubclass(QoreClass *sc, bool is_virtual) {
    sc->priv->scl->sml.add(sc, this, is_virtual);
 }
 
-// private, called from subclasses only
-const QoreMethod *QoreClass::parseResolveSelfMethodIntern(const char *nme) {
-   const QoreMethod *m = priv->parseFindLocalMethod(nme);
-   if (!m)
-      m = priv->parseFindLocalStaticMethod(nme);
-
-   // if still not found now look in superclass methods
-   if (!m && priv->scl)
-      m = priv->scl->parseResolveSelfMethod(nme);
-
-   return m;
-}
-
 // searches all methods, both pending and comitted
 const QoreMethod *QoreClass::parseResolveSelfMethod(const char *nme) {
    initialize();
-   const QoreMethod *m = parseResolveSelfMethodIntern(nme);
+   const QoreMethod *m = priv->parseResolveSelfMethodIntern(nme);
 
    if (!m) {
       parse_error("no method %s::%s() has been defined; if you want to make a call to a method that will be defined in an inherited class, then use $self.%s() instead", priv->name ? priv->name : "<pending>", nme, nme);
@@ -2434,10 +2421,6 @@ const QoreTypeInfo *QoreClass::getOrNothingTypeInfo() const {
 
 int QoreClass::parseCheckMemberAccess(const char *mem, const QoreTypeInfo *&memberTypeInfo, int pflag) const {
    return priv->parseCheckMemberAccess(mem, memberTypeInfo, pflag);
-}
-
-int QoreClass::parseCheckInternalMemberAccess(const char *mem, const QoreTypeInfo *&memberTypeInfo) const {
-   return priv->parseCheckInternalMemberAccess(mem, memberTypeInfo);
 }
 
 const QoreClass *QoreClass::parseFindPublicPrivateMember(const char *mem, const QoreTypeInfo *&memberTypeInfo, bool &member_has_type_info, bool &priv_member) const {

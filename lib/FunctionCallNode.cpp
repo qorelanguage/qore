@@ -209,6 +209,13 @@ AbstractQoreNode *SelfFunctionCallNode::evalImpl(ExceptionSink *xsink) const {
    return self->evalMethod(*method, args, xsink);
 }
 
+void SelfFunctionCallNode::parseInitCall(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo) {
+   lvids += parseArgs(oflag, pflag, method ? method->getFunction() : 0, returnTypeInfo);
+
+   if (method)
+      printd(5, "SelfFunctionCallNode::parseInitCall() this=%p resolved '%s' to %p\n", this, method->getName(), method);
+}
+
 // called at parse time
 AbstractQoreNode *SelfFunctionCallNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo) {
    if (!oflag) {
@@ -234,12 +241,7 @@ AbstractQoreNode *SelfFunctionCallNode::parseInit(LocalVar *oflag, int pflag, in
       method = getParseClass()->parseResolveSelfMethod(&ns);
 
    // by here, if there are no errors, the class has been initialized
-
-   lvids += parseArgs(oflag, pflag, method ? method->getFunction() : 0, returnTypeInfo);
-
-   if (method)
-      printd(5, "SelfFunctionCallNode::parseInit() this=%p resolved '%s' to %p\n", this, method->getName(), method);
-
+   parseInitCall(oflag, pflag, lvids, returnTypeInfo);
    return this;
 }
 
@@ -295,6 +297,30 @@ AbstractQoreNode *FunctionCallNode::evalImpl(ExceptionSink *xsink) const {
 AbstractQoreNode *FunctionCallNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo) {
    assert(!func);
    assert(c_str);
+
+   // try to resolve a method call if bare references are allowed
+   // and we are parsing in an object context
+   if (checkParseOption(PO_ALLOW_BARE_REFS) && oflag) {
+      const QoreClass *qc = oflag->getTypeInfo()->getUniqueReturnClass();
+      SelfFunctionCallNode *sfcn = 0;
+      if (!strcmp(c_str, "copy")) {
+	 if (args) {
+	    parse_error("no arguments may be passed to copy methods (%d argument%s given in call to %s::copy())", args->size(), args->size() == 1 ? "" : "s", qc->getName());
+	    return this;
+	 }
+	 sfcn = new SelfFunctionCallNode(takeName(), 0);
+      }
+      else {
+	 const QoreMethod *m = qore_class_private::parseFindSelfMethod(const_cast<QoreClass *>(qc), c_str);
+	 if (m)
+	    sfcn = new SelfFunctionCallNode(takeName(), take_args(), m);
+      }
+      if (sfcn) {
+	 deref();
+	 sfcn->parseInitCall(oflag, pflag, lvids, returnTypeInfo);
+	 return sfcn;
+      }
+   }
 
    // resolves the function and assigns pgm for imported code
    func = ::getProgram()->resolveFunction(c_str, pgm);
