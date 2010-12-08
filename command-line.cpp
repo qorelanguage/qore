@@ -106,6 +106,8 @@ static const char parseopts[] =    "qore options controlling parse options:\n"
    "  -p, --set-parse-option=arg   set parse option (ex: -pno-database)\n"
    "\n PARSE OPTIONS:\n"
    "  -A, --lock-warnings          do not allow changes in warning levels\n"
+   "  -B, --allow-bare-refs        allow refs to vars without '$' and refs to\n"
+   "                               class members without '$.'\n"
    "      --no-class-defs          make class definitions illegal\n"
    "  -D, --no-database            disallow access to database functionality\n"
    "      --no-external-info       disallow access to external info\n"
@@ -352,6 +354,10 @@ static void do_lock_options(const char *arg) {
    lock_options = true;
 }
 
+static void allow_bare_refs(const char *arg) {
+   parse_options |= PO_ALLOW_BARE_REFS;
+}
+
 static void short_version(const char *arg) {
    printf("%s\n", qore_version_string);
    exit(0);
@@ -473,6 +479,7 @@ static struct opt_struct_s {
    { 'w', "enable-warning",        ARG_MAND, enable_warning },
    { 'x', "exec-class",            ARG_OPT,  do_exec_class },
    { 'A', "lock-warnings",         ARG_NONE, do_lock_warnings },
+   { 'B', "allow-bare-refs",       ARG_NONE, allow_bare_refs },
    { '\0', "no-class-defs",        ARG_NONE, do_no_class_defs },
    { 'D', "no-database",           ARG_NONE, do_no_database },
    { 'E', "no-external-process",   ARG_NONE, do_no_external_process },

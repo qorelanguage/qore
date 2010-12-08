@@ -57,6 +57,7 @@
 #define PO_NO_LOCALE_CONTROL         (1 << 24)    //!< do not allow changes to program locale
 #define PO_REQUIRE_PROTOTYPES        (1 << 25)    //!< require types in method and function declarations
 #define PO_STRICT_ARGS               (1 << 26)    //!< do not allow access to RT_NOOP code or excess args
+#define PO_ALLOW_BARE_REFS           (1 << 27)    //!< do not require '$' for vars and '$.' for class member refs
 
 // combination options
 //! cannot access any thread functionality

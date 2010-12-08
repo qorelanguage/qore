@@ -704,6 +704,17 @@ int RootQoreNamespace::resolveBareword(AbstractQoreNode **node, const QoreTypeIn
 
    AbstractQoreNode *rv = 0;
 
+   /*
+   bool abr = getProgram()->getParseOptions64() & PO_ALLOW_BARE_REFS;
+
+   if (abr) {
+      bool in_closure;
+      LocalVar *id = find_local_var(name, in_closure);
+      if (id) {
+      }
+   }
+   */
+
    // if there is a current parse class context, then check it first
    if (pc) {
       rv = qore_class_private::parseFindConstantValue(pc, b->str, typeInfo);
