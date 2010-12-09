@@ -33,9 +33,9 @@ class App {
 	closure1();
 	func = closure1;
 	func();
-	#closure2();
-	#func = closure2;
-	#func();
+	closure2();
+	func = closure2;
+	func();
 	closure3();
 	func = closure3;
 	func();

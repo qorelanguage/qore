@@ -25,6 +25,8 @@
 
 #define _QORE_QORECLOSURENODE_H 
 
+#include <qore/intern/QoreObjectIntern.h>
+
 #include <map>
 
 typedef std::map<const LocalVar *, ClosureVarValue *> cvar_map_t;
@@ -43,10 +45,11 @@ public:
 class QoreClosureBase : public ResolvedCallReferenceNode {
 protected:
    const QoreClosureParseNode *closure;
+   bool pgm_ref;
 
 public:
    //! constructor is not exported outside the library
-   DLLLOCAL QoreClosureBase(const QoreClosureParseNode *n_closure) : ResolvedCallReferenceNode(false, NT_RUNTIME_CLOSURE), closure(n_closure) {
+   DLLLOCAL QoreClosureBase(const QoreClosureParseNode *n_closure) : ResolvedCallReferenceNode(false, NT_RUNTIME_CLOSURE), closure(n_closure), pgm_ref(true) {
       closure->ref();
    }
 
@@ -61,6 +64,8 @@ public:
    DLLLOCAL virtual AbstractQoreFunction *getFunction() {
       return closure->getFunction();
    }
+
+   DLLLOCAL virtual void derefProgramCycle(QoreProgram *cpgm) = 0;
 };
 
 class QoreClosureNode : public QoreClosureBase {
@@ -75,8 +80,13 @@ protected:
    DLLLOCAL virtual bool derefImpl(ExceptionSink *xsink);
       
 public:
-   DLLLOCAL QoreClosureNode(const QoreClosureParseNode *n_closure);
-   DLLLOCAL virtual ~QoreClosureNode();
+   DLLLOCAL QoreClosureNode(const QoreClosureParseNode *n_closure) : QoreClosureBase(n_closure), closure_env(n_closure->getVList()), pgm(::getProgram()) {
+      pgm->depRef();
+   }
+
+   DLLLOCAL virtual ~QoreClosureNode() {
+   }
+
    DLLLOCAL virtual AbstractQoreNode *exec(const QoreListNode *args, ExceptionSink *xsink) const;
 
    DLLLOCAL virtual QoreProgram *getProgram() const {
@@ -108,6 +118,13 @@ public:
    DLLLOCAL virtual bool is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const {
       return v == this;
    }
+
+   DLLLOCAL virtual void derefProgramCycle(QoreProgram *cpgm) {
+      assert(pgm_ref);
+      assert(cpgm == pgm);
+      pgm->depDeref(0);
+      pgm_ref = false;
+   }
 };
 
 class QoreObjectClosureNode : public QoreClosureBase {
@@ -115,8 +132,8 @@ private:
    mutable ClosureRuntimeEnvironment closure_env;
    QoreObject *obj;
 
-   DLLLOCAL QoreObjectClosureNode(const QoreClosureNode&); // not implemented
-   DLLLOCAL QoreObjectClosureNode& operator=(const QoreClosureNode&); // not implemented
+   DLLLOCAL QoreObjectClosureNode(const QoreObjectClosureNode&); // not implemented
+   DLLLOCAL QoreObjectClosureNode& operator=(const QoreObjectClosureNode&); // not implemented
 
 protected:
    DLLLOCAL virtual bool derefImpl(ExceptionSink *xsink);
@@ -154,6 +171,12 @@ public:
 
    DLLLOCAL virtual bool is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const {
       return v == this;
+   }
+
+   DLLLOCAL virtual void derefProgramCycle(QoreProgram *cpgm) {
+      assert(pgm_ref);
+      qore_object_private::derefProgramCycle(obj, cpgm);
+      pgm_ref = false;
    }
 };
 
