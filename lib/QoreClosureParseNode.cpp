@@ -59,13 +59,13 @@ double QoreClosureParseNode::floatEvalImpl(ExceptionSink *xsink) const {
 }
 
 int QoreClosureParseNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {
-   str.sprintf("function closure (%slambda, 0x%08p)", lambda ? "" : "non-", this);
+   str.sprintf("parsed closure (%slambda, 0x%08p)", lambda ? "" : "non-", this);
    return 0;
 }
 
 QoreString *QoreClosureParseNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const {
    del = true;
-   QoreString *rv = new QoreString();
+   QoreString *rv = new QoreString;
    getAsString(*rv, foff, xsink);
    return rv;
 }

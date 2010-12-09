@@ -67,14 +67,14 @@ static void check_constant_cycle(QoreProgram *pgm, AbstractQoreNode *n) {
 }
 
 void ConstantEntry::parseInit(const char *name) {
-   //printd(5, "ConstantEntry::parseInit() this=%p %s init=%d node=%p (%s)\n", this, name, init, node, get_type_name(node));      
+   //printd(5, "ConstantEntry::parseInit() this=%p %s init=%d node=%p (%s)\n", this, name, init, node, get_type_name(node));
 
    ConstantCycleHelper cch(this, name);
    if (!cch) {
       assert(init);
       return;
    }
-   
+
    if (init)
       return;
    init = true;

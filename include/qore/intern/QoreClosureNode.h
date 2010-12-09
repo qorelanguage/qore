@@ -47,6 +47,11 @@ protected:
 public:
    //! constructor is not exported outside the library
    DLLLOCAL QoreClosureBase(const QoreClosureParseNode *n_closure) : ResolvedCallReferenceNode(false, NT_RUNTIME_CLOSURE), closure(n_closure) {
+      closure->ref();
+   }
+
+   DLLLOCAL ~QoreClosureBase() {
+      const_cast<QoreClosureParseNode*>(closure)->deref();
    }
       
    DLLLOCAL static const char *getStaticTypeName() {

@@ -323,7 +323,7 @@ AbstractQoreNode *FunctionCallNode::parseInit(LocalVar *oflag, int pflag, int &l
 	 n = new SelfVarrefNode(takeName());
       }
       else if ((n = qore_class_private::parseFindConstantValue(const_cast<QoreClass *>(qc), c_str, returnTypeInfo))) {
-	 printd(0, "FunctionCallNode::parseInit() this=%p n=%p (%d -> %d)\n", this, n, n->reference_count(), n->reference_count() + 1);
+	 //printd(5, "FunctionCallNode::parseInit() this=%p n=%p (%d -> %d)\n", this, n, n->reference_count(), n->reference_count() + 1);
 	 n->ref();
       }
       else {

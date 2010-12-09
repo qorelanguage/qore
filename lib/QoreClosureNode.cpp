@@ -49,7 +49,7 @@ void ClosureRuntimeEnvironment::del(ExceptionSink *xsink) {
 #endif
 }
 
-QoreClosureNode::QoreClosureNode(const QoreClosureParseNode *n_closure) : QoreClosureBase(n_closure), closure_env(n_closure->getVList()), pgm(::getProgram()) {
+QoreClosureNode::QoreClosureNode(const QoreClosureParseNode *n_closure) : QoreClosureBase(n_closure), closure_env(n_closure->getVList()), pgm(::getProgram()) {   
    pgm->depRef();
 }
 
