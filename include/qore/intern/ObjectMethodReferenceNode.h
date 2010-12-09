@@ -101,8 +101,11 @@ private:
    char *method;
    const QoreMethod *meth;
 
-   DLLLOCAL virtual ~ParseSelfMethodReferenceNode();
-   
+   DLLLOCAL ~ParseSelfMethodReferenceNode() {
+      if (method)
+         free(method);
+   }
+
 protected:
    // returns a RunTimeObjectMethodReference or NULL if there's an exception
    DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *xsink) const;
@@ -119,7 +122,12 @@ protected:
    DLLLOCAL virtual double floatEvalImpl(ExceptionSink *xsink) const;
 
 public:
-   DLLLOCAL ParseSelfMethodReferenceNode(char *n_method);
+   DLLLOCAL ParseSelfMethodReferenceNode(char *n_method) : method(n_method), meth(0) {
+   }
+
+   DLLLOCAL ParseSelfMethodReferenceNode(const QoreMethod *m) : method(0), meth(m) {
+   }
+
    DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
 };
 

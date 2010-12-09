@@ -77,8 +77,11 @@ AbstractQoreNode *BarewordNode::parseInit(LocalVar *oflag, int pflag, int &lvids
    // resolve simple constant
    AbstractQoreNode *n = this;
    AbstractQoreNode **node = &n;
-   printd(5, "BarewordNode::parseInit() resolving simple constant \"%s\"\n", reinterpret_cast<BarewordNode *>(*node)->str);
+   printd(5, "BarewordNode::parseInit() resolving bareword '%s'\n", reinterpret_cast<BarewordNode *>(*node)->str);
    // FIXME: xxx set typeInfo
-   getRootNS()->resolveBareword(node, typeInfo);
+   if (getRootNS()->resolveBareword(node, typeInfo))
+      parse_error("cannot resolve bareword '%s' to any reachable object", reinterpret_cast<BarewordNode *>(*node)->str);
+   else
+      (*node)->parseInit(oflag, pflag, lvids, typeInfo);
    return *node;
 }

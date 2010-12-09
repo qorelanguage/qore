@@ -649,29 +649,6 @@ static bool hasEffect(AbstractQoreNode *n) {
    return pn ? pn->has_effect() : true;
 }
 
-/*
-static bool hasEffect(AbstractQoreNode *n) {
-   // check for expressions with no effect
-   qore_type_t ntype = n->getType();
-   if (ntype == NT_FUNCTION_CALL || ntype == NT_STATIC_METHOD_CALL 
-       || ntype == NT_FIND || ntype == NT_FUNCREFCALL || ntype == NT_SELF_CALL
-       || ntype == NT_SCOPE_REF)
-      return true;
-
-   if (ntype == NT_TREE)
-      return reinterpret_cast<QoreTreeNode *>(n)->op->hasEffect();
-
-   if (ntype == NT_VARREF)
-      return reinterpret_cast<VarRefNode *>(n)->hasEffect();
-
-   if (ntype == NT_OPERATOR)
-      return reinterpret_cast<QoreOperatorNode *>(n)->hasEffect();
-
-   //printd(5, "hasEffect() node %08p type=%s\n", n, n->getTypeName());
-   return false;
-}
-*/
-
 static int checkMethod(const char *name, BCAList *bcal, RetTypeInfo *returnTypeInfo) {
    bool con = !strcmp(name, "constructor");
    bool dst = !strcmp(name, "destructor");
@@ -795,6 +772,16 @@ static AbstractQoreNode *checkRewriteList(QoreListNode *l) {
       }
    }
    return l;
+}
+
+AbstractQoreNode *get_static_call(NamedScope *ns, QoreListNode *args) {
+   // if this is really
+   if (ns->size() == 2 && ns->strlist[0] == "") {
+      ProgramFunctionCallNode *rv = new ProgramFunctionCallNode(strdup(ns->getIdentifier()), args);
+      delete ns;
+      return rv;
+   }
+   return new StaticMethodCallNode(ns, args);
 }
 
 %}
@@ -1222,8 +1209,8 @@ statement:
         | SCOPED_REF '(' myexp ')' ';' {
 	   NamedScope *ns = new NamedScope($1);
 	   assert(ns->size() > 1);
-	   printd(5, "statement: parsing static method call: %s()\n", ns->ostr);
-	   $$ = new ExpressionStatement(@1.first_line, @1.last_line, new StaticMethodCallNode(ns, makeArgs($3)));
+	   printd(5, "statement: parsing static method call: %s() size=%d\n", ns->ostr, ns->size());
+	   $$ = new ExpressionStatement(@1.first_line, @1.last_line, get_static_call(ns, makeArgs($3)));
 	}
         | try_statement
         { $$ = $1; }
@@ -1739,6 +1726,10 @@ member2:
         | classvardecl {
 	   $$ = $1;
 	}
+        | unscoped_const_decl {
+	   $$ = new MemberInfo($1->name.takeName(), $1->value);
+	   delete $1;
+        }
         ;
 
 member:
@@ -2292,8 +2283,8 @@ exp:    scalar
 	      NamedScope *ns = c->takeName();
 	      c->deref();
 	      assert(ns->size() > 1);
-	      printd(5, "parsing scoped call (static method or new object call) %s()\n", ns->ostr);
-	      $$ = new StaticMethodCallNode(ns, makeArgs($3));
+	      printd(5, "parsing scoped call (static method, new object call, or program function call) %s()\n", ns->ostr);
+	      $$ = get_static_call(ns, makeArgs($3));
 	   }
 	   else if (t == NT_SELF_VARREF) {
 	      SelfVarrefNode *v = reinterpret_cast<SelfVarrefNode *>($1);
@@ -2407,31 +2398,14 @@ exp:    scalar
 	   qore_type_t t = $2 ? $2->getType() : 0;
 	   //printd(5, "backslash exp line %d, type %s\n", @2.first_line, $2->getTypeName());
 
-	   if (t == NT_FUNCTION_CALL) {
-	      FunctionCallNode *f = reinterpret_cast<FunctionCallNode *>($2);
-	      if (f->getArgs()) {
-		 parse_error("argument given to call reference");
-		 $$ = $2;
-	      }
-	      else {
-		 assert(!f->getFunction());
-		 $$ = new UnresolvedCallReferenceNode(f->takeName());
-		 f->deref();
-	      }
+	   if (t == NT_FUNCTION_CALL || t == NT_PROGRAM_FUNC_CALL) {
+	      $$ = reinterpret_cast<FunctionCallNode *>($2)->makeReferenceNodeAndDeref();
 	   }
 	   else if (t == NT_SELF_CALL) {
 	      $$ = reinterpret_cast<SelfFunctionCallNode *>($2)->makeReferenceNodeAndDeref();
 	   }
 	   else if (t == NT_STATIC_METHOD_CALL) {
-	      StaticMethodCallNode *m = reinterpret_cast<StaticMethodCallNode *>($2);
-	      if (m->getArgs()) {
-		 parse_error("argument given to static method call reference");
-		 $$ = $2;
-	      }
-	      else {
-		 $$ = new UnresolvedStaticMethodCallReferenceNode(m->takeScope());
-		 m->deref();
-	      }
+	      $$ = reinterpret_cast<StaticMethodCallNode *>($2)->makeReferenceNodeAndDeref();
 	   }
 	   else {
 	      bool make_ref = true;

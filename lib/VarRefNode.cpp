@@ -164,8 +164,10 @@ AbstractQoreNode *VarRefNode::parseInitIntern(LocalVar *oflag, int pflag, int &l
    // if it is a new variable being declared
    if (type == VT_LOCAL) {
       outTypeInfo = typeInfo;
-      ref.id = push_local_var(name, typeInfo, true, is_new ? 1 : 0);
-      ++lvids;
+      if (!ref.id) {
+	 ref.id = push_local_var(name, typeInfo, true, is_new ? 1 : 0);
+	 ++lvids;
+      }
       //printd(5, "VarRefNode::parseInitIntern() this=%p local var '%s' declared (id=%p)\n", this, name, ref.id);
    }
    else if (type == VT_GLOBAL) {
@@ -225,17 +227,6 @@ AbstractQoreNode *VarRefDeclNode::parseInit(LocalVar *oflag, int pflag, int &lvi
    parseInitCommon(oflag, pflag, lvids, outTypeInfo);
 
    bool is_assignment = pflag & PF_FOR_ASSIGNMENT;
-
-/*
-   if (type == VT_LOCAL) {
-      if (!is_assignment) {
-	 if (ref.id->needsAssignmentAtInstantiation())
-	     parseException("PARSE-TYPE-ERROR", "local variable '$%s' has been defined with a complex type and must be assigned when instantiated", name);
-      }
-      else
-	 ref.id->unsetNeedsValueInstantiation();
-   }
-*/
 
    // this expression returns nothing if it's a new local variable
    // so if we're not assigning we return nothingTypeInfo as the

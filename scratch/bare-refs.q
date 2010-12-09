@@ -11,6 +11,10 @@ class App {
 	static string var1 = "var1";
 	mem1 = "mem1";
 	string mem2 = "mem2";
+
+	code closure1 = sub () { printf("closure1\n"); };
+	const closure2 = sub () { printf("closure2\n"); };
+	static closure3 = sub () { printf("closure3\n"); };
     }
 
     constructor() {
@@ -18,6 +22,25 @@ class App {
 	t1();
 	App::test("2", False);
 	App::t1();
+	my code func = \test();
+	func("hi", True);
+	func = \t1();
+	func();
+	func = \App::test();
+	func("2", False);
+	func = \App::t1();
+	func();
+	closure1();
+	func = closure1;
+	func();
+	#closure2();
+	#func = closure2;
+	#func();
+	closure3();
+	func = closure3;
+	func();
+	#App::closure2();
+	#App::closure3();
     }
 
     test(string str, any) {

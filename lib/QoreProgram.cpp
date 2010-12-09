@@ -1233,8 +1233,8 @@ const AbstractQoreFunction *QoreProgram::resolveFunction(const char *fname, Qore
 }
 
 // called during parsing (plock already grabbed)
-AbstractCallReferenceNode *QoreProgram::resolveCallReference(UnresolvedCallReferenceNode *fr) {
-   std::auto_ptr<UnresolvedCallReferenceNode> fr_holder(fr);
+AbstractCallReferenceNode *QoreProgram::resolveCallReference(UnresolvedProgramCallReferenceNode *fr) {
+   std::auto_ptr<UnresolvedProgramCallReferenceNode> fr_holder(fr);
    char *fname = fr->str;
 
    {   

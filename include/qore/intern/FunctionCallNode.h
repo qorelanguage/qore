@@ -110,6 +110,9 @@ protected:
    using AbstractFunctionCallNode::evalImpl;
    DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *) const;
 
+   DLLLOCAL FunctionCallNode(char *name, QoreListNode *a, qore_type_t n_type) : AbstractFunctionCallNode(n_type, a), func(0), pgm(0), c_str(name) {
+   }
+
 public:
    DLLLOCAL FunctionCallNode(const AbstractQoreFunction *f, QoreListNode *a, QoreProgram *n_pgm) : AbstractFunctionCallNode(NT_FUNCTION_CALL, a), func(f), pgm(n_pgm), c_str(0) {
    }
@@ -136,6 +139,8 @@ public:
       return const_cast<QoreProgram *>(pgm);
    }
 
+   DLLLOCAL void parseInitCall(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
+
    DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
 
    DLLLOCAL virtual const char *getName() const {
@@ -159,6 +164,33 @@ public:
       args = 0;
       return rv;
    }
+
+   DLLLOCAL AbstractQoreNode *makeReferenceNodeAndDeref() {
+      if (args) {
+         parse_error("argument given to call reference");
+         return this;
+      }
+
+      assert(!func);
+      AbstractQoreNode *rv = makeReferenceNodeAndDerefImpl();
+      deref();
+      return rv;
+   }
+
+   DLLLOCAL virtual AbstractQoreNode *makeReferenceNodeAndDerefImpl();
+};
+
+class ProgramFunctionCallNode : public FunctionCallNode {
+public:
+   DLLLOCAL ProgramFunctionCallNode(char *name, QoreListNode *a) : FunctionCallNode(name, a, NT_PROGRAM_FUNC_CALL) {
+   }
+
+   DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+      parseInitCall(oflag, pflag, lvids, typeInfo);
+      return this;
+   }
+
+   DLLLOCAL virtual AbstractQoreNode *makeReferenceNodeAndDerefImpl();
 };
 
 class AbstractMethodCallNode : public AbstractFunctionCallNode {
@@ -405,6 +437,8 @@ public:
       return getStaticTypeName();
    }
 
+   DLLLOCAL AbstractQoreNode *makeReferenceNodeAndDeref();
+   
    DLLLOCAL static const char *getStaticTypeName() {
       return "static method call";
    }

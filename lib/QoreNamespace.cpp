@@ -696,7 +696,7 @@ QoreClass *RootQoreNamespace::parseFindScopedClassWithMethod(const NamedScope *s
 // returns 0 for success, non-zero for error
 int RootQoreNamespace::resolveBareword(AbstractQoreNode **node, const QoreTypeInfo *&typeInfo) const {
    assert(*node && (*node)->getType() == NT_BAREWORD);
-   BarewordNode *b = reinterpret_cast<BarewordNode *>(*node);
+   SimpleRefHolder<BarewordNode> b(reinterpret_cast<BarewordNode *>(*node));
 
    QoreClass *pc = getParseClass();
 
@@ -713,7 +713,6 @@ int RootQoreNamespace::resolveBareword(AbstractQoreNode **node, const QoreTypeIn
       if (id) {
          typeInfo = id->getTypeInfo();
          *node = new VarRefNode(b->takeString(), id, in_closure);
-         b->deref();
          return 0;
       }
    }
@@ -724,7 +723,6 @@ int RootQoreNamespace::resolveBareword(AbstractQoreNode **node, const QoreTypeIn
       if (abr) {
          if (!qore_class_private::parseResolveInternalMemberAccess(pc, b->str, typeInfo)) {
             *node = new SelfVarrefNode(b->takeString());
-            b->deref();
             return 0;
          }
       }
@@ -739,7 +737,6 @@ int RootQoreNamespace::resolveBareword(AbstractQoreNode **node, const QoreTypeIn
 	 if (vi) {
 	    assert(qc);
 	    *node = new StaticClassVarRefNode(b->str, *qc, *vi);
-	    b->deref();
 	    return 0;
 	 }
       }
@@ -751,7 +748,6 @@ int RootQoreNamespace::resolveBareword(AbstractQoreNode **node, const QoreTypeIn
          Var *v = pgm->findGlobalVar(b->str);
          if (v) {
             *node = new GlobalVarRefNode(b->takeString(), v);
-            b->deref();
             return 0;
          }
       }
@@ -761,13 +757,12 @@ int RootQoreNamespace::resolveBareword(AbstractQoreNode **node, const QoreTypeIn
    }
 
    if (rv) {
-      b->deref();
       *node = rv;
       return 0;
    }
 
    //printd(5, "RootQoreNamespace::resolveBareword(%s) %p %s-> %p %s\n", b->str, *node, (*node)->getTypeName(), rv, get_type_name(rv));
-   parse_error("cannot resolve bareword '%s' to any reachable object", b->str);
+   b.release();
    return -1;
 }
 

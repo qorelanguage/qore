@@ -298,40 +298,96 @@ AbstractQoreNode *FunctionCallNode::parseInit(LocalVar *oflag, int pflag, int &l
    assert(!func);
    assert(c_str);
 
-   // try to resolve a method call if bare references are allowed
-   // and we are parsing in an object context
-   if (checkParseOption(PO_ALLOW_BARE_REFS) && oflag) {
-      const QoreClass *qc = oflag->getTypeInfo()->getUniqueReturnClass();
-      SelfFunctionCallNode *sfcn = 0;
-      if (!strcmp(c_str, "copy")) {
-	 if (args) {
-	    parse_error("no arguments may be passed to copy methods (%d argument%s given in call to %s::copy())", args->size(), args->size() == 1 ? "" : "s", qc->getName());
-	    return this;
-	 }
-	 sfcn = new SelfFunctionCallNode(takeName(), 0);
-      }
-      else {
-	 const QoreMethod *m = qore_class_private::parseFindSelfMethod(const_cast<QoreClass *>(qc), c_str);
-	 if (m)
-	    sfcn = new SelfFunctionCallNode(takeName(), take_args(), m);
-      }
-      if (sfcn) {
+   bool abr = checkParseOption(PO_ALLOW_BARE_REFS);
+
+   // try to resolve bare reference if allowed
+   if (abr) {
+      // check for a local variable with the same name
+
+      bool in_closure;
+      LocalVar *id = find_local_var(c_str, in_closure);
+      if (id) {
+         VarRefNode *vrn = new VarRefNode(takeName(), id, in_closure);
+	 CallReferenceCallNode *crcn = new CallReferenceCallNode(vrn, take_args());	 
 	 deref();
-	 sfcn->parseInitCall(oflag, pflag, lvids, returnTypeInfo);
-	 return sfcn;
+	 return crcn->parseInit(oflag, pflag, lvids, returnTypeInfo);
       }
    }
+
+   // try to resolve a method call if we are parsing in an object context
+   if (oflag) {
+      const QoreClass *qc = oflag->getTypeInfo()->getUniqueReturnClass();
+
+      AbstractQoreNode *n = 0;
+      if (abr && !qore_class_private::parseResolveInternalMemberAccess(qc, c_str, returnTypeInfo)) {
+	 n = new SelfVarrefNode(takeName());
+      }
+      else if ((n = qore_class_private::parseFindConstantValue(const_cast<QoreClass *>(qc), c_str, returnTypeInfo))) {
+	 printd(0, "FunctionCallNode::parseInit() this=%p n=%p (%d -> %d)\n", this, n, n->reference_count(), n->reference_count() + 1);
+	 n->ref();
+      }
+      else {
+	 // check for class static var reference
+	 const QoreClass *oqc = 0;
+	 QoreVarInfo *vi = qore_class_private::parseFindStaticVar(qc, c_str, oqc, returnTypeInfo);
+	 if (vi) {
+	    assert(qc);
+	    n = new StaticClassVarRefNode(c_str, *oqc, *vi);
+	 }
+      }
+
+      if (n) {
+	 CallReferenceCallNode *crcn = new CallReferenceCallNode(n, take_args());	 
+	 deref();
+	 return crcn->parseInit(oflag, pflag, lvids, returnTypeInfo);
+      }
+
+      if (abr) {
+	 SelfFunctionCallNode *sfcn = 0;
+	 if (!strcmp(c_str, "copy")) {
+	    if (args) {
+	       parse_error("no arguments may be passed to copy methods (%d argument%s given in call to %s::copy())", args->size(), args->size() == 1 ? "" : "s", qc->getName());
+	       return this;
+	    }
+	    sfcn = new SelfFunctionCallNode(takeName(), 0);
+	 }
+	 else {
+	    const QoreMethod *m = qore_class_private::parseFindSelfMethod(const_cast<QoreClass *>(qc), c_str);
+	    if (m)
+	       sfcn = new SelfFunctionCallNode(takeName(), take_args(), m);
+	 }
+	 if (sfcn) {
+	    deref();
+	    sfcn->parseInitCall(oflag, pflag, lvids, returnTypeInfo);
+	    return sfcn;
+	 }
+      }
+   }
+
+   parseInitCall(oflag, pflag, lvids, returnTypeInfo);
+   return this;
+}
+
+void FunctionCallNode::parseInitCall(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo) {
+   assert(!func);
+   assert(c_str);
 
    // resolves the function and assigns pgm for imported code
    func = ::getProgram()->resolveFunction(c_str, pgm);
    free(c_str);
    c_str = 0;
    if (!func)
-      return this;
+      return;
 
    lvids += parseArgs(oflag, pflag, const_cast<AbstractQoreFunction *>(func), returnTypeInfo);
+}
 
-   return this;
+AbstractQoreNode *FunctionCallNode::makeReferenceNodeAndDerefImpl() {
+   return new UnresolvedCallReferenceNode(takeName());
+}
+
+AbstractQoreNode *ProgramFunctionCallNode::makeReferenceNodeAndDerefImpl() {
+   return new UnresolvedProgramCallReferenceNode(takeName());
 }
 
 AbstractQoreNode *ScopedObjectCallNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
@@ -374,4 +430,15 @@ AbstractQoreNode *ScopedObjectCallNode::parseInit(LocalVar *oflag, int pflag, in
    //printd(5, "ScopedObjectCallNode::parseInit() this=%p class=%s (%p) constructor=%p function=%p variant=%p\n", this, oc->getName(), oc, constructor, constructor ? constructor->getFunction() : 0, variant);
       
    return this;
+}
+
+AbstractQoreNode *StaticMethodCallNode::makeReferenceNodeAndDeref() {
+   if (args) {
+      parse_error("argument given to static method call reference");
+      return this;
+   }
+
+   UnresolvedStaticMethodCallReferenceNode *rv = new UnresolvedStaticMethodCallReferenceNode(takeScope());
+   deref();
+   return rv;
 }

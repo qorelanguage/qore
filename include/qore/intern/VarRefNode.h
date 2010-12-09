@@ -36,7 +36,7 @@ class VarRefNode : public ParseNode {
 protected:
    char *name;
    qore_var_t type;
-   bool new_decl;    // is this a new variable declaration
+   bool new_decl;  // is this a new variable declaration
 
    DLLLOCAL ~VarRefNode();
 
@@ -66,6 +66,8 @@ public:
 
    // takes over memory for "n"
    DLLLOCAL VarRefNode(char *n, qore_var_t t, bool n_has_effect = false) : ParseNode(NT_VARREF, true, n_has_effect), name(n), type(t), new_decl(t == VT_LOCAL) {
+      if (type == VT_LOCAL)
+         ref.id = 0;
       assert(type != VT_GLOBAL);
    }
    DLLLOCAL VarRefNode(char *n, Var *n_var, bool n_has_effect = false, bool n_new_decl = true) : ParseNode(NT_VARREF, true, n_has_effect), name(n), type(VT_GLOBAL), new_decl(n_new_decl) {
@@ -117,6 +119,7 @@ public:
       assert(type == VT_UNRESOLVED); 
       type = VT_LOCAL; 
       new_decl = true;
+      ref.id = 0;
    }
    // called when a list of variables are declared
    DLLLOCAL virtual void makeGlobal() {
@@ -165,7 +168,6 @@ public:
    DLLLOCAL VarRefDeclNode(char *n, qore_var_t t, const QoreTypeInfo *n_typeInfo, QoreParseTypeInfo *n_parseTypeInfo) : VarRefNode(n, t), parseTypeInfo(n_parseTypeInfo), typeInfo(n_typeInfo) {
       //printd(5, "VarRefDeclNode::VarRefDeclNode() typeInfo=%p %s type=%d (%s)\n", typeInfo, n, n_qt, getBuiltinTypeName(n_qt));
    }
-
 
    DLLLOCAL ~VarRefDeclNode() {
       delete parseTypeInfo;

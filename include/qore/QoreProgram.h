@@ -70,7 +70,7 @@ class QoreStringNode;
 class QoreHashNode;
 class FunctionCallNode;
 class AbstractStatement;
-class UnresolvedCallReferenceNode;
+class UnresolvedProgramCallReferenceNode;
 class Var;
 class LVList;
 class UserFunction;
@@ -483,7 +483,7 @@ public:
    // raises a parse exception if the function cannot be found
    DLLLOCAL const AbstractQoreFunction *resolveFunction(const char *name, QoreProgram *&pgm);
 
-   DLLLOCAL AbstractCallReferenceNode *resolveCallReference(UnresolvedCallReferenceNode *fr);      
+   DLLLOCAL AbstractCallReferenceNode *resolveCallReference(UnresolvedProgramCallReferenceNode *fr);      
    DLLLOCAL Var *addGlobalVarDef(const char *name, QoreParseTypeInfo *typeInfo);
    DLLLOCAL Var *addResolvedGlobalVarDef(const char *name, const QoreTypeInfo *typeInfo);
    DLLLOCAL void addStatement(AbstractStatement *s);

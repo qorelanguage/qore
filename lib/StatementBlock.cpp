@@ -54,9 +54,11 @@ public:
    DLLLOCAL VNode(LocalVar *lv, int n_refs = 0) : refs(n_refs), file(get_parse_file()), lvar(lv), next(getVStack()) {
       get_parse_location(first_line, last_line);
       updateVStack(this);
+      //printd(5, "push_local_var() id=%p %s\n", lvar, lvar ? lvar->getName() : "n/a");
    }
 
    DLLLOCAL ~VNode() {
+      //printd(5, "pop_local_var() id=%p %s\n", lvar, lvar ? lvar->getName() : "n/a");
       if (lvar && !refs)
 	 getProgram()->makeParseWarning(first_line, last_line, file, QP_WARN_UNREFERENCED_VARIABLE, "UNREFERENCED-VARIABLE", "local variable '%s' was declared in this block but not referenced; to disable this warning, use '%%disable-warning unreferenced-variable' in your code", lvar->getName());
    }
