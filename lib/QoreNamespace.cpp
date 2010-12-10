@@ -770,29 +770,23 @@ int RootQoreNamespace::resolveScopedReference(AbstractQoreNode **node, const Qor
    assert(node && (*node)->getType() == NT_CONSTANT);
    ScopedRefNode *c = reinterpret_cast<ScopedRefNode *>(*node);
 
-   if (c->scoped_ref->size() == 1) {
-      AbstractQoreNode *rv = priv->parseResolveBareword(c->scoped_ref->ostr, typeInfo);
-      if (rv) {
-         c->deref();
-         *node = rv;
-         return 0;
-      }
-
-      //printd(5, "RootQoreNamespace::resolveBareword(%s) %p %s-> %p %s\n", b->str, *node, (*node)->getTypeName(), rv, get_type_name(rv));
-      parse_error("cannot resolve bareword '%s' to any reachable object", c->scoped_ref->ostr);
-      return -1;
-   }
-
    unsigned m = 0;
-   AbstractQoreNode *rv = priv->parseResolveScopedReference(*c->scoped_ref, m, typeInfo);
-   if (rv) {
+   AbstractQoreNode *n = resolveScopedReference(*c->scoped_ref, m, typeInfo);
+   if (n) {
+      //printd(5, "RootQoreNamespace::resolveScopedReference(%s) %p %s-> %p %s\n", c->scoped_ref->ostr, *node, (*node)->getTypeName(), n, get_type_name(n));
       c->deref();
-      *node = rv;
-      //printd(5, "RootQoreNamespace::resolveScopedReference(%s) %p %s-> %p %s\n", c->scoped_ref->ostr, *node, (*node)->getTypeName(), rv, rv->getTypeName());
+      *node = n;
       return 0;
    }
 
    NamedScope &ns = *c->scoped_ref;
+
+   if (ns.size() == 1) {
+      //printd(5, "RootQoreNamespace::resolveBareword(%s) %p %s-> %p %s\n", b->str, *node, (*node)->getTypeName(), rv, get_type_name(rv));
+      parse_error("cannot resolve bareword '%s' to any reachable object", ns.ostr);
+      return -1;
+   }
+
    // raise parse exception
    if (m != (ns.size() - 1))
       parse_error("cannot find any namespace or class '%s' in '%s' with a reference to constant or static class variable '%s'", ns.strlist[m].c_str(), ns.ostr, ns.getIdentifier());
@@ -810,6 +804,20 @@ int RootQoreNamespace::resolveScopedReference(AbstractQoreNode **node, const Qor
 
    //printd(5, "RootQoreNamespace::resolveScopedReference(%s) not found\n", c->scoped_ref->ostr);
    return -1;
+}
+
+AbstractQoreNode *RootQoreNamespace::resolveScopedReference(const NamedScope &ns, unsigned &m, const QoreTypeInfo *&typeInfo) const {
+   if (ns.size() == 1)
+      return priv->parseResolveBareword(ns.ostr, typeInfo);
+
+   // first try to resolve a global variable
+   if (ns.size() == 2 && ns.strlist[0] == "") {
+      Var *v = getProgram()->findGlobalVar(ns.getIdentifier());
+      if (v)
+         return new GlobalVarRefNode(strdup(ns.getIdentifier()), v);
+   }
+
+   return priv->parseResolveScopedReference(ns, m, typeInfo);
 }
 
 AbstractQoreNode *RootQoreNamespace::findConstantValue(const char *cname, int level, const QoreTypeInfo *&typeInfo) const {
@@ -1567,6 +1575,7 @@ void StaticSystemNamespace::init() {
    qoreNS->addConstant("WARN_EXCESS_ARGS",               new QoreBigIntNode(QP_WARN_EXCESS_ARGS));
    qoreNS->addConstant("WARN_DUPLICATE_HASH_KEY",        new QoreBigIntNode(QP_WARN_DUPLICATE_HASH_KEY));
    qoreNS->addConstant("WARN_UNREFERENCED_VARIABLE",     new QoreBigIntNode(QP_WARN_UNREFERENCED_VARIABLE));
+   qoreNS->addConstant("WARN_DUPLICATE_BLOCK_VARS",      new QoreBigIntNode(QP_WARN_DUPLICATE_BLOCK_VARS));
    qoreNS->addConstant("WARN_ALL",                       new QoreBigIntNode(QP_WARN_ALL));
 
    // event constants

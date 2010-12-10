@@ -139,7 +139,7 @@ public:
       return const_cast<QoreProgram *>(pgm);
    }
 
-   DLLLOCAL void parseInitCall(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
+   DLLLOCAL AbstractQoreNode *parseInitCall(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
 
    DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
 
@@ -186,8 +186,7 @@ public:
    }
 
    DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
-      parseInitCall(oflag, pflag, lvids, typeInfo);
-      return this;
+      return parseInitCall(oflag, pflag, lvids, typeInfo);
    }
 
    DLLLOCAL virtual AbstractQoreNode *makeReferenceNodeAndDerefImpl();
@@ -388,49 +387,7 @@ public:
       return method->getName();
    }
 
-   DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
-      QoreClass *qc = getRootNS()->parseFindScopedClassWithMethod(scope);
-      if (!qc)
-	 return this;
-      
-      // see if this is a call to a base class method if bare refs are allowed
-      // and we're parsing in a class context and the class found is in the
-      // current class parse context
-      if (oflag && (getParseOptions() & PO_ALLOW_BARE_REFS) && oflag->getTypeInfo()->getUniqueReturnClass()->parseCheckHierarchy(qc)) {
-         SelfFunctionCallNode *sfcn = new SelfFunctionCallNode(scope->takeName(), takeArgs(), qc);
-         deref();
-         sfcn->parseInit(oflag, pflag, lvids, typeInfo);
-         return sfcn;
-      }
-
-      method = qc->parseFindStaticMethodTree(scope->getIdentifier());
-      if (!method) {
-	 parseException("INVALID-METHOD", "class '%s' has no static method '%s()'", qc->getName(), scope->getIdentifier());
-	 return this;
-      }
-
-      assert(method->isStatic());
-
-      delete scope;
-      scope = 0;
-
-      if (method->parseIsPrivate()) {
-	 const QoreClass *cls = getParseClass();
-	 if (!cls || !cls->parseCheckHierarchy(qc)) {
-	    parseException("PRIVATE-METHOD", "method %s::%s() is private and cannot be accessed outside of the class", qc->getName(), method->getName());
-	    return this;
-	 }
-      }
-
-      // check class capabilities against parse options
-      if (qc->getDomain() & getProgram()->getParseOptions()) {
-	 parseException("INVALID-METHOD", "class '%s' implements capabilities that are not allowed by current parse options", qc->getName());
-	 return this;
-      }
-
-      lvids += parseArgs(oflag, pflag, method->getFunction(), typeInfo);
-      return this;
-   }
+   DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
 
    // returns the type name as a c string
    DLLLOCAL virtual const char *getTypeName() const {

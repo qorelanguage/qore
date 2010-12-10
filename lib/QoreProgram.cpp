@@ -59,7 +59,8 @@ static const char *qore_warnings_l[] = {
    "deprecated",
    "excess-args",
    "duplicate-hash-key",
-   "unreferenced-variable"
+   "unreferenced-variable",
+   "duplicate-local-var-scope",
 };
 #define NUM_WARNINGS (sizeof(qore_warnings_l)/sizeof(const char *))
 
@@ -800,12 +801,12 @@ Var *QoreProgram::checkGlobalVar(const char *name, const QoreTypeInfo *typeInfo)
       printd(5, "QoreProgram::checkVar() new global var \"%s\" found\n", name);
       // check if unflagged global vars are allowed
       if (priv->parse_options & PO_REQUIRE_OUR)
-	 parseException("UNDECLARED-GLOBAL-VARIABLE", "global variable '$%s' must first be declared with 'our' (conflicts with parse option REQUIRE_OUR)", name);
+	 parseException("UNDECLARED-GLOBAL-VARIABLE", "global variable '%s' must first be declared with 'our' (conflicts with parse option REQUIRE_OUR)", name);
       // check if new global variables are allowed to be created at all
       else if (priv->parse_options & PO_NO_GLOBAL_VARS)
-	 parseException("ILLEGAL-GLOBAL-VARIABLE", "illegal reference to new global variable '$%s' (conflicts with parse option NO_GLOBAL_VARS)", name);
+	 parseException("ILLEGAL-GLOBAL-VARIABLE", "illegal reference to new global variable '%s' (conflicts with parse option NO_GLOBAL_VARS)", name);
       else if (new_var)
-	 makeParseWarning(QP_WARN_UNDECLARED_VAR, "UNDECLARED-GLOBAL-VARIABLE", "global variable '$%s' should be declared with 'our'", name);
+	 makeParseWarning(QP_WARN_UNDECLARED_VAR, "UNDECLARED-GLOBAL-VARIABLE", "global variable '%s' should be declared with 'our'", name);
    }
    return rv;
 }
@@ -1591,4 +1592,6 @@ DLLLOCAL void addProgramConstants(class QoreNamespace *ns) {
    ns->addConstant("PO_NO_EXTERNAL_INFO",         new QoreBigIntNode(PO_NO_EXTERNAL_INFO));
    ns->addConstant("PO_REQUIRE_PROTOTYPES",       new QoreBigIntNode(PO_REQUIRE_PROTOTYPES));
    ns->addConstant("PO_STRICT_ARGS",              new QoreBigIntNode(PO_STRICT_ARGS));
+   ns->addConstant("PO_ALLOW_BARE_REFS",          new QoreBigIntNode(PO_ALLOW_BARE_REFS));
+   ns->addConstant("PO_ASSUME_LOCAL",             new QoreBigIntNode(PO_ASSUME_LOCAL));
 }

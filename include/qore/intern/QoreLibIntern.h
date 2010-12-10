@@ -231,6 +231,8 @@ public:
 DLLLOCAL int qoreCheckContainer(AbstractQoreNode *v, ObjMap &omap, AutoVLock &vl, ExceptionSink *xsink);
 DLLLOCAL int check_lvalue(AbstractQoreNode *n);
 
+DLLLOCAL bool checkParseOption(int64 o);
+
 #include <qore/intern/NamedScope.h>
 #include <qore/intern/QoreTypeInfo.h>
 #include <qore/intern/ParseNode.h>

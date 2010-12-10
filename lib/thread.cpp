@@ -1192,9 +1192,13 @@ RootQoreNamespace *getRootNS() {
    //return (thread_data.get())->pgmStack->getProgram()->getRootNS();
 }
 
-int getParseOptions() {
-   return (thread_data.get())->current_pgm->getParseOptions();
+int64 getParseOptions() {
+   return (thread_data.get())->current_pgm->getParseOptions64();
    //return (thread_data.get())->pgmStack->getProgram()->getParseOptions();
+}
+
+bool checkParseOption(int64 o) {
+   return (getParseOptions() & o) == o;
 }
 
 void updateCVarStack(CVNode *ncvs) {
@@ -1274,6 +1278,8 @@ void qore_exit_process(int rc) {
    // to avoid an assert on exit
    sl.unlock();
 #endif
+
+   threads_initialized = false;
    exit(rc);
 }
 

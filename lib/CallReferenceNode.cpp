@@ -558,7 +558,7 @@ AbstractQoreNode *UnresolvedStaticMethodCallReferenceNode::parseInit(LocalVar *o
    if (!qc)
       return this;
    
-   const QoreMethod *qm;
+   const QoreMethod *qm = 0;
    // try to find a pointer to a non-static method if parsing in the class' context
    // and bare references are enabled
    if (oflag && checkParseOption(PO_ALLOW_BARE_REFS) && oflag->getTypeInfo()->getUniqueReturnClass()->parseCheckHierarchy(qc)) {

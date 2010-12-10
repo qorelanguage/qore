@@ -95,7 +95,7 @@ DLLLOCAL bool inMethod(const char *name, const QoreObject *o);
 DLLLOCAL void pushProgram(QoreProgram *pgm);
 DLLLOCAL void popProgram();
 DLLLOCAL RootQoreNamespace *getRootNS();
-DLLLOCAL int getParseOptions();
+DLLLOCAL int64 getParseOptions();
 DLLLOCAL void updateCVarStack(CVNode *ncvs);
 DLLLOCAL CVNode *getCVarStack();
 DLLLOCAL void updateVStack(VNode *nvs);

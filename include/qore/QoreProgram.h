@@ -34,7 +34,7 @@
 // new warnings must also be added as constants
 #define QP_WARN_NONE                     0
 #define QP_WARN_WARNING_MASK_UNCHANGED   (1 << 0)   //!< when the warning mask is attempted to be changed but it's locked
-#define QP_WARN_DUPLICATE_LOCAL_VARS     (1 << 1)   //!< duplicate local variable name
+#define QP_WARN_DUPLICATE_LOCAL_VARS     (1 << 1)   //!< duplicate local variable name reachable in the same scope
 #define QP_WARN_UNKNOWN_WARNING          (1 << 2)   //!< when an unknown warning is encountered
 #define QP_WARN_UNDECLARED_VAR           (1 << 3)   //!< when a variable is not declared
 #define QP_WARN_DUPLICATE_GLOBAL_VARS    (1 << 4)   //!< when a global variable is declared more than once
@@ -47,9 +47,10 @@
 #define QP_WARN_EXCESS_ARGS              (1 << 11)  //!< when excess arguments are given to a function that does not access them
 #define QP_WARN_DUPLICATE_HASH_KEY       (1 << 12)  //!< when a hash key has been defined more than once in a literal hash
 #define QP_WARN_UNREFERENCED_VARIABLE    (1 << 13)  //!< when a variable is declared but not referenced
+#define QP_WARN_DUPLICATE_BLOCK_VARS     (1 << 14)  //!< when a variable is declared more than once in the same block; this would normally be an error, but for backwards-compatibility it's just a warning unless parse option 'assume-variable-scope' is set, in which case it's an error
 #define QP_WARN_ALL                      -1         //!< for all possible warnings
 
-#define QP_WARN_DEFAULT (QP_WARN_UNKNOWN_WARNING|QP_WARN_UNREACHABLE_CODE|QP_WARN_NONEXISTENT_METHOD_CALL|QP_WARN_INVALID_OPERATION|QP_WARN_CALL_WITH_TYPE_ERRORS|QP_WARN_RETURN_VALUE_IGNORED|QP_WARN_DUPLICATE_HASH_KEY)
+#define QP_WARN_DEFAULT (QP_WARN_UNKNOWN_WARNING|QP_WARN_UNREACHABLE_CODE|QP_WARN_NONEXISTENT_METHOD_CALL|QP_WARN_INVALID_OPERATION|QP_WARN_CALL_WITH_TYPE_ERRORS|QP_WARN_RETURN_VALUE_IGNORED|QP_WARN_DUPLICATE_HASH_KEY|QP_WARN_DUPLICATE_BLOCK_VARS)
 
 //! list of strings of warning codes
 DLLEXPORT extern const char **qore_warnings;

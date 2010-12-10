@@ -1211,6 +1211,7 @@ public:
    // looks in committed and pending method lists
    DLLLOCAL const QoreMethod *parseFindMethodTree(const char *name);
    DLLLOCAL const QoreMethod *parseFindStaticMethodTree(const char *name);
+   DLLLOCAL const QoreMethod *parseFindAnyMethodTree(const char *name);
 
    DLLLOCAL const QoreMethod *findCommittedMethod(const char *name, bool &priv_flag) const;
    DLLLOCAL const QoreMethod *findCommittedStaticMethod(const char *name, bool &priv_flag) const;
@@ -2090,6 +2091,12 @@ struct qore_class_private {
       return (i != hm.end()) ? i->second : 0;
    }
 
+   // returns any method if it exists in the local class
+   DLLLOCAL const QoreMethod *parseFindAnyLocalMethod(const char *nme) const {
+      const QoreMethod *m = parseFindLocalMethod(nme);
+      return m ? m : parseFindLocalStaticMethod(nme);
+   }
+
    // returns a static method if it exists in the local class
    DLLLOCAL QoreMethod *parseFindLocalStaticMethod(const char *nme) {
       hm_method_t::iterator i = shm.find(nme);
@@ -2128,6 +2135,13 @@ struct qore_class_private {
       return m;
    }
 */
+
+   DLLLOCAL const QoreMethod *parseFindAnyMethodIntern(const char *mname) {
+      const QoreMethod *m = parseFindAnyLocalMethod(mname);
+      if (!m && scl)
+	 m = scl->parseFindAnyMethodTree(mname);
+      return m;
+   }
 
    // finds a non-static method in the class hierarchy at parse time, optionally initializes classes
    DLLLOCAL const QoreMethod *parseFindMethod(const char *mname) {
@@ -2269,6 +2283,10 @@ struct qore_class_private {
          return 0;
 
       return m;
+   }
+
+   DLLLOCAL static const QoreMethod *parseFindAnyMethodIntern(const QoreClass *qc, const char *mname) {
+      return qc->priv->parseFindAnyMethodIntern(mname);
    }
 };
 

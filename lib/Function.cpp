@@ -273,7 +273,7 @@ void UserSignature::pushParam(VarRefNode *v, AbstractQoreNode *defArg, bool need
    // see if this is a new object call
    if (v->has_effect()) {
       // here we make 4 virtual function calls when 2 would be enough, but no need to optimize for speed for an exception
-      parse_error(parse_file, first_line, last_line, "parameter '%s' may not be declared with new object syntax; instead use: '%s $%s = new %s()'", v->getName(), v->getNewObjectClassName(), v->getName(), v->getNewObjectClassName());
+      parse_error(parse_file, first_line, last_line, "parameter '%s' may not be declared with new object syntax; instead use: '%s %s = new %s()'", v->getName(), v->getNewObjectClassName(), v->getName(), v->getNewObjectClassName());
    }
 
    if (is_decl) {
@@ -310,10 +310,12 @@ void UserSignature::pushParam(VarRefNode *v, AbstractQoreNode *defArg, bool need
    if (defArg)
       addDefaultArgument(defArg);
 
-   if (v->getType() == VT_LOCAL)
-      parse_error(parse_file, first_line, last_line, "invalid local variable declaration in argument list; by default all variables declared in argument lists are local");
-   else if (v->getType() == VT_GLOBAL)
-      parse_error(parse_file, first_line, last_line, "invalid global variable declaration in argument list; by default all variables declared in argument lists are local");
+   if (v->explicitScope()) {
+      if (v->getType() == VT_LOCAL)
+	 parse_error(parse_file, first_line, last_line, "invalid local variable declaration in argument list; by default all variables declared in argument lists are local");
+      else if (v->getType() == VT_GLOBAL)
+	 parse_error(parse_file, first_line, last_line, "invalid global variable declaration in argument list; by default all variables declared in argument lists are local");
+   }
 }
 
 void UserSignature::parseInitPushLocalVars(const QoreTypeInfo *classTypeInfo) {

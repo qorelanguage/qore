@@ -892,6 +892,17 @@ const QoreMethod *BCList::parseFindMethodTree(const char *name) {
    return 0;
 }
 
+const QoreMethod *BCList::parseFindAnyMethodTree(const char *name) {
+   for (bclist_t::iterator i = begin(), e = end(); i != e; ++i) {
+      if ((*i)->sclass) {
+	 const QoreMethod *m;
+	 if ((m = (*i)->sclass->priv->parseFindAnyMethodIntern(name)))
+	    return m;
+      }
+   }
+   return 0;
+}
+
 // called at run time
 const QoreMethod *BCList::findCommittedStaticMethod(const char *name, bool &priv_flag) const {
    for (bclist_t::const_iterator i = begin(), e = end(); i != e; ++i) {
@@ -1883,7 +1894,7 @@ const QoreMethod *QoreClass::parseResolveSelfMethod(const char *nme) {
    const QoreMethod *m = priv->parseResolveSelfMethodIntern(nme);
 
    if (!m) {
-      parse_error("no method %s::%s() has been defined; if you want to make a call to a method that will be defined in an inherited class, then use $self.%s() instead", priv->name ? priv->name : "<pending>", nme, nme);
+      parse_error("no method %s::%s() has been defined; if you want to make a call to a method that will be defined in an inherited class, then use 'self.%s()' instead", priv->name ? priv->name : "<pending>", nme, nme);
       return 0;
    }
    printd(5, "QoreClass::parseResolveSelfMethod(%s) resolved to %s::%s() %p (static=%d)\n", nme, getName(), nme, m, m->isStatic());

@@ -46,12 +46,13 @@ protected:
    // to store parse location in case of errors
    int first_line, last_line;
    const char *file;
-
+   bool block_start;
+   
 public:
    LocalVar *lvar;
    VNode *next;
 
-   DLLLOCAL VNode(LocalVar *lv, int n_refs = 0) : refs(n_refs), file(get_parse_file()), lvar(lv), next(getVStack()) {
+   DLLLOCAL VNode(LocalVar *lv, int n_refs = 0) : refs(n_refs), file(get_parse_file()), block_start(false), lvar(lv), next(getVStack()) {
       get_parse_location(first_line, last_line);
       updateVStack(this);
       //printd(5, "push_local_var() id=%p %s\n", lvar, lvar ? lvar->getName() : "n/a");
@@ -65,6 +66,16 @@ public:
 
    DLLLOCAL void setRef() {
       ++refs;
+   }
+
+   DLLLOCAL bool setBlockStart(bool bs = true) {
+      bool rc = block_start;
+      block_start = bs;
+      return rc;
+   }
+
+   DLLLOCAL bool isBlockStart() const {
+      return block_start;
    }
 
    DLLLOCAL bool isReferenced() const {
@@ -88,6 +99,23 @@ public:
       VNode *rv = get_global_vnode();
       //printd(5, "VNode::nextSearch() returning global VNode %p\n", rv);
       return rv;
+   }
+};
+
+class BlockStartHelper {
+protected:
+   bool bs;
+
+public:
+   DLLLOCAL BlockStartHelper() {
+      VNode *v = getVStack();
+      //printd(5, "BlockStartHelper::BlockStartHelper() v=%p ibs=%d\n", v, v ? v->isBlockStart() : 0);
+      bs = v ? v->setBlockStart(true) : true;
+   }
+   DLLLOCAL ~BlockStartHelper() {
+      //printd(5, "BlockStartHelper::~BlockStartHelper() bs=%d\n", bs);
+      if (!bs)
+	 getVStack()->setBlockStart(false);
    }
 };
 
@@ -167,7 +195,7 @@ int StatementBlock::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsi
    //printd(5, "StatementBlock::execImpl() this=%p, lvars=%p, %d vars\n", this, lvars, lvars->num_lvars);
 
    bool obe = !on_block_exit_list.empty();
-   // push on block exit iterator if necessary
+   // push "on block exit" iterator if necessary
    if (obe)
       pushBlock(on_block_exit_list.end());
    
@@ -176,7 +204,7 @@ int StatementBlock::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsi
       if ((rc = (*i)->exec(return_value, xsink)) || xsink->isEvent())
 	 break;
 
-   // execute on block exit code if applicable
+   // execute "on block exit" code if applicable
    if (obe) {
       ExceptionSink obe_xsink;
       int nrc = 0;
@@ -212,13 +240,26 @@ LocalVar *push_local_var(const char *name, const QoreTypeInfo *typeInfo, bool ch
 
    LocalVar *lv = pgm->createLocalVar(name, typeInfo);
 
+   bool found_block = false;
    // check stack for duplicate entries
-   if (check_dup && pgm->checkWarning(QP_WARN_DUPLICATE_LOCAL_VARS)) {
+   if (check_dup && (pgm->checkWarning(QP_WARN_DUPLICATE_LOCAL_VARS) || pgm->checkWarning(QP_WARN_DUPLICATE_BLOCK_VARS))) {
+      bool avs = checkParseOption(PO_ASSUME_LOCAL);
       VNode *vnode = getVStack();
       while (vnode) {
+	 //printd(5, "push_local_var() vnode=%p %s ibs=%d found_block=%d\n", vnode, vnode->getName(), vnode->isBlockStart(), found_block);
+	 if (!found_block && vnode->isBlockStart())
+	    found_block = true;
 	 if (!strcmp(vnode->getName(), name)) {
-	    getProgram()->makeParseWarning(QP_WARN_DUPLICATE_LOCAL_VARS, "DUPLICATE-LOCAL-VARIABLE", "local variable '$%s' was already declared in this lexical scope", name);
-	    break;
+	    if (!found_block && avs) {
+	       parse_error("local variable '%s' was already declared in the same block");
+	    }
+	    else {
+	       if (!found_block)
+		  getProgram()->makeParseWarning(QP_WARN_DUPLICATE_BLOCK_VARS, "DUPLICATE-BLOCK-VARIABLE", "local variable '%s' was already declared in the same block", name);
+	       else
+		  getProgram()->makeParseWarning(QP_WARN_DUPLICATE_LOCAL_VARS, "DUPLICATE-LOCAL-VARIABLE", "local variable '%s' was already declared in this lexical scope", name);
+	       break;
+	    }
 	 }
 	 vnode = vnode->nextSearch();
       }
@@ -295,7 +336,9 @@ int StatementBlock::parseInitImpl(LocalVar *oflag, int pflag) {
 
    printd(4, "StatementBlock::parseInitImpl(b=%p, oflag=%p)\n", this, oflag);
 
-   int lvids = parseInitIntern(oflag, pflag, statement_list.end());
+   BlockStartHelper bsh;
+   
+   int lvids = parseInitIntern(oflag, pflag & ~PF_TOP_LEVEL, statement_list.end());
 
    // this call will pop all local vars off the stack
    lvars = new LVList(lvids);
@@ -400,7 +443,7 @@ void TopLevelStatementBlock::parseInit(RootQoreNamespace *rns, UserFunctionList 
 	 push_local_var(lvars->lv[i]);
    }
 
-   int lvids = parseInitIntern(0, 0, hwm);
+   int lvids = parseInitIntern(0, PF_TOP_LEVEL, hwm);
 
    //printd(5, "TopLevelStatementBlock::parseInit(rns=%p, ufl=%p) first=%d, lvids=%d\n", rns, ufl, first, lvids);
 

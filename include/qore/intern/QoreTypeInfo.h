@@ -475,10 +475,10 @@ protected:
       if (param_num) {
          str.sprintf("%d ", param_num);
          if (param_name && param_name[0] != '<')
-            str.sprintf("('$%s') ", param_name);
+            str.sprintf("('%s') ", param_name);
       }
       else
-         str.sprintf("'$%s' ", param_name);
+         str.sprintf("'%s' ", param_name);
    }
 
    DLLLOCAL QoreTypeInfo(const QoreClass *n_qc, qore_type_t n_qt, bool n_returns_mult,

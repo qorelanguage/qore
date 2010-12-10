@@ -28,26 +28,26 @@
 #include "intern/AbstractStatement.h"
 
 class ExpressionStatement : public AbstractStatement {
-   private:
-      AbstractQoreNode *exp;
-      bool is_declaration;
-      bool is_parse_declaration;
+private:
+   AbstractQoreNode *exp;
+   bool is_declaration;
+   bool is_parse_declaration;
 
-      DLLLOCAL virtual int execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink);
-      DLLLOCAL virtual int parseInitImpl(LocalVar *oflag, int pflag = 0);
+   DLLLOCAL virtual int execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink);
+   DLLLOCAL virtual int parseInitImpl(LocalVar *oflag, int pflag = 0);
    
-   public:
-      DLLLOCAL ExpressionStatement(int start_line, int end_line, AbstractQoreNode *v);
+public:
+   DLLLOCAL ExpressionStatement(int start_line, int end_line, AbstractQoreNode *v);
 
-      DLLLOCAL virtual ~ExpressionStatement();
+   DLLLOCAL virtual ~ExpressionStatement();
 
-      DLLLOCAL virtual bool isParseDeclaration() const {
-	 return is_parse_declaration;
-      }
+   DLLLOCAL virtual bool isParseDeclaration() const {
+      return is_parse_declaration;
+   }
 
-      DLLLOCAL virtual bool isDeclaration() const {
-	 return is_declaration;
-      }      
+   DLLLOCAL virtual bool isDeclaration() const {
+      return is_declaration;
+   }
 };
 
 #endif

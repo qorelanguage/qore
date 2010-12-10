@@ -474,6 +474,8 @@ RTIME           PT(-?[0-9]+[HMSu])+
 ^%require-prototypes{WS}*$              getProgram()->parseSetParseOptions(PO_REQUIRE_PROTOTYPES);
 ^%strict-args{WS}*$                     getProgram()->parseSetParseOptions(PO_STRICT_ARGS);
 ^%allow-bare-refs{WS}*$                 getProgram()->parseSetParseOptions(PO_ALLOW_BARE_REFS);
+^%assume-local{WS}*$                    getProgram()->parseSetParseOptions(PO_ASSUME_LOCAL);
+^%new-style{WS}*$                       getProgram()->parseSetParseOptions(PO_NEW_STYLE);
 ^%append-include-path{WS}+              BEGIN(append_path_state);
 <append_path_state>[^\t\n\r]+           {
 					   setIncludePath(yytext);

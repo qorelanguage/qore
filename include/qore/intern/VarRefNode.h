@@ -37,6 +37,7 @@ protected:
    char *name;
    qore_var_t type;
    bool new_decl;  // is this a new variable declaration
+   bool explicit_scope; // scope was explicitly provided
 
    DLLLOCAL ~VarRefNode();
 
@@ -65,16 +66,16 @@ public:
    } ref;
 
    // takes over memory for "n"
-   DLLLOCAL VarRefNode(char *n, qore_var_t t, bool n_has_effect = false) : ParseNode(NT_VARREF, true, n_has_effect), name(n), type(t), new_decl(t == VT_LOCAL) {
+   DLLLOCAL VarRefNode(char *n, qore_var_t t, bool n_has_effect = false) : ParseNode(NT_VARREF, true, n_has_effect), name(n), type(t), new_decl(t == VT_LOCAL), explicit_scope(false) {
       if (type == VT_LOCAL)
          ref.id = 0;
       assert(type != VT_GLOBAL);
    }
-   DLLLOCAL VarRefNode(char *n, Var *n_var, bool n_has_effect = false, bool n_new_decl = true) : ParseNode(NT_VARREF, true, n_has_effect), name(n), type(VT_GLOBAL), new_decl(n_new_decl) {
+   DLLLOCAL VarRefNode(char *n, Var *n_var, bool n_has_effect = false, bool n_new_decl = true) : ParseNode(NT_VARREF, true, n_has_effect), name(n), type(VT_GLOBAL), new_decl(n_new_decl), explicit_scope(false) {
       ref.var = n_var;
    }
 
-   VarRefNode(char *n, LocalVar *n_id, bool in_closure) : ParseNode(NT_VARREF, true, false), name(n), new_decl(false) {
+   DLLLOCAL VarRefNode(char *n, LocalVar *n_id, bool in_closure) : ParseNode(NT_VARREF, true, false), name(n), new_decl(false), explicit_scope(false) {
       ref.id = n_id;
       if (in_closure) {
 	 n_id->setClosureUse();
@@ -97,7 +98,10 @@ public:
       return !(type == VT_GLOBAL);
    }
 
+   DLLLOCAL virtual bool parseIsDecl() const { return type != VT_UNRESOLVED; }
    DLLLOCAL virtual bool isDecl() const { return false; }
+   DLLLOCAL bool explicitScope() const { return explicit_scope; }
+   DLLLOCAL void setExplicitScope() { explicit_scope = true; }
 
    // will only be called on *VarRefNewObjectNode objects, but this is their common class
    DLLLOCAL virtual const char *getNewObjectClassName() const {
@@ -137,6 +141,7 @@ class GlobalVarRefNode : public VarRefNode {
 protected:
 public:
    DLLLOCAL GlobalVarRefNode(char *n, Var *v) : VarRefNode(n, v, false, false) {
+      explicit_scope = true;
    }
 };
 
@@ -171,6 +176,9 @@ public:
 
    DLLLOCAL ~VarRefDeclNode() {
       delete parseTypeInfo;
+   }
+   DLLLOCAL virtual bool parseIsDecl() const { 
+      return true;
    }
    DLLLOCAL virtual bool isDecl() const {
       return true;

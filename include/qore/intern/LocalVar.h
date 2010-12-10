@@ -433,6 +433,10 @@ public:
       return name.c_str();
    }
 
+   DLLLOCAL const std::string &getNameStr() const {
+      return name;
+   }
+
    DLLLOCAL void setClosureUse() {
       closure_use = true;
    }

@@ -38,6 +38,8 @@
 #include <time.h>
 #include <glob.h>
 
+extern bool threads_initialized;
+
 #ifdef DEBUG_TESTS
 // Unsorted unit tests are put here
 #  include "tests/ReferenceHolder_tests.cpp"
@@ -50,6 +52,7 @@ static AbstractQoreNode *f_exit(const QoreListNode *params, ExceptionSink *xsink
 }
 
 static AbstractQoreNode *f_abort(const QoreListNode *params, ExceptionSink *xsink) {
+   threads_initialized = false;
    abort();
    return 0;
 }

@@ -129,6 +129,10 @@ struct qore_ns_private {
    DLLLOCAL AbstractQoreNode *parseResolveScopedReference(const NamedScope &ns, unsigned &m, const QoreTypeInfo *&typeInfo) const;
    DLLLOCAL AbstractQoreNode *parseFindLocalConstantValue(const char *cname, const QoreTypeInfo *&typeInfo) const;
    DLLLOCAL QoreNamespace *parseFindLocalNamespace(const char *nname) const;
+
+   DLLLOCAL static AbstractQoreNode *parseResolveBareword(const QoreNamespace *ns, const char *bname, const QoreTypeInfo *&typeInfo) {
+      return ns->priv->parseResolveBareword(bname, typeInfo);
+   }
 };
 
 #endif

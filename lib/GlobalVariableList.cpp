@@ -148,7 +148,7 @@ void GlobalVariableList::parseInit(int64 parse_options) {
    bool needs_type = (bool)(parse_options & PO_REQUIRE_TYPES);
    for (map_var_t::iterator i = pending_vmap.begin(); i != pending_vmap.end(); i++) {
       if (needs_type && !i->second->hasTypeInfo())
-	 parse_error("global variable '$%s' declared without type information, but parse options require all declarations to have type information", i->second->getName());
+	 parse_error("global variable '%s' declared without type information, but parse options require all declarations to have type information", i->second->getName());
       i->second->parseInit();
    }
 }

@@ -57,7 +57,8 @@
 #define PO_NO_LOCALE_CONTROL         (1 << 24)    //!< do not allow changes to program locale
 #define PO_REQUIRE_PROTOTYPES        (1 << 25)    //!< require types in method and function declarations
 #define PO_STRICT_ARGS               (1 << 26)    //!< do not allow access to RT_NOOP code or excess args
-#define PO_ALLOW_BARE_REFS           (1 << 27)    //!< do not require '$' for vars and '$.' for class member refs
+#define PO_ALLOW_BARE_REFS           (1 << 27)    //!< do not allow '$' for vars and '$.' for class member refs
+#define PO_ASSUME_LOCAL              (1 << 28)    //!< assume local variable scope if not declared (implicit "my")
 
 // combination options
 //! cannot access any thread functionality
@@ -71,6 +72,9 @@
 
 //! most restrictive access - can just execute logic, no I/O, no threading, no external access
 #define PO_LOCKDOWN                  (PO_NO_EXTERNAL_ACCESS|PO_NO_THREADS|PO_NO_IO)
+
+//! new Qore style: no more '$' and with assumed variable scope
+#define PO_NEW_STYLE                 (PO_ALLOW_BARE_REFS|PO_ASSUME_LOCAL)
 
 //! mask of all options allowing for more freedom (instead of less)
 #define PO_POSITIVE_OPTIONS          (PO_NO_CHILD_PO_RESTRICTIONS)

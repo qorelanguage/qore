@@ -111,10 +111,6 @@ static AbstractQoreNode *makeErrorTree(AbstractQoreNode *left, AbstractQoreNode 
    return &False;
 }
 
-static int checkParseOption(int o) {
-   return getParseOptions() & o;
-}
-
 static void addUserFunctionVariant(char *name, UserFunctionVariant *variant) {
    getProgram()->registerUserFunctionVariant(name, variant); 
    // make sure definition was legal
@@ -774,6 +770,10 @@ static AbstractQoreNode *checkRewriteList(QoreListNode *l) {
    return l;
 }
 
+static qore_var_t get_var_type() {
+   return checkParseOption(PO_ASSUME_LOCAL) ? VT_LOCAL : VT_UNRESOLVED;
+}
+
 AbstractQoreNode *get_static_call(NamedScope *ns, QoreListNode *args) {
    // if this is really
    if (ns->size() == 2 && ns->strlist[0] == "") {
@@ -1188,16 +1188,17 @@ statement:
 	exp ';' {
 	   // if the expression has no effect and it's not a variable declaration
 	   qore_type_t t = $1 ? $1->getType() : 0;
+	   bool ok = false;
 	   if (t == NT_LIST) {
 	      QoreListNode *l = reinterpret_cast<QoreListNode *>($1);
-	      // rewrite expression if it's a list without perentheses under certail
-	      // conditions
+	      // rewrite expression if it's a list without parentheses under certain conditions
 	      $1 = checkRewriteList(l);
+
+	      if (l->isVariableList())
+		 ok = true;
 	   }
 
-	   if (!hasEffect($1)
-	       && (t != NT_VARREF)
-	       && (t != NT_LIST || !reinterpret_cast<QoreListNode *>($1)->isVariableList()))
+	   if (!ok && !hasEffect($1) && (t != NT_VARREF || !reinterpret_cast<VarRefNode*>($1)->parseIsDecl()))
 	      parse_error("statement has no effect (%s)", $1 ? $1->getTypeName() : "NOTHING");
 	   if (t == NT_TREE)
 	      reinterpret_cast<QoreTreeNode *>($1)->ignoreReturnValue();
@@ -1657,11 +1658,15 @@ member2:
 	   int fl = $1 ? @1.first_line : @2.first_line;
 	   $$ = new MemberInfo($2, new QoreMemberInfo(fl, @2.last_line, $1->getTypeInfo(), $1->getParseTypeInfo()));
 	   delete $1;
+	   if (checkParseOption(PO_ALLOW_BARE_REFS))
+	      parse_error("reference to '$.%s' with the '$.' prefix is not allowed when parse option 'allow-bare-refs' is set", $2);
 	}
         | qtypedef SELF_REF '=' exp ';' {
 	   int fl = $1 ? @1.first_line : @2.first_line;
 	   $$ = new MemberInfo($2, new QoreMemberInfo(fl, @4.last_line, $1->getTypeInfo(), $1->getParseTypeInfo(), $4));
 	   delete $1;
+	   if (checkParseOption(PO_ALLOW_BARE_REFS))
+	      parse_error("reference to '$.%s' with the '$.' prefix is not allowed when parse option 'allow-bare-refs' is set", $2);
 	}
         | qtypedef SELF_REF '(' myexp ')' ';' {
 	   int fl = $1 ? @1.first_line : @2.first_line;
@@ -1678,6 +1683,8 @@ member2:
 	   $$ = new MemberInfo($2, new QoreMemberInfo(fl, @4.last_line, $1->getTypeInfo(), $1->getParseTypeInfo(), new_call));
 
 	   delete $1;
+	   if (checkParseOption(PO_ALLOW_BARE_REFS))
+	      parse_error("reference to '$.%s' with the '$.' prefix is not allowed when parse option 'allow-bare-refs' is set", $2);
 	}
         | uncqtypedef IDENTIFIER ';' {
 	   int fl = @1.first_line;
@@ -1735,9 +1742,13 @@ member2:
 member:
 	SELF_REF {
 	   $$ = new MemberInfo($1);
+	   if (checkParseOption(PO_ALLOW_BARE_REFS))
+	      parse_error("reference to '$.%s' with the '$.' prefix is not allowed when parse option 'allow-bare-refs' is set", $1);
         }
         | SELF_REF SCOPED_REF {
 	   $$ = new MemberInfo($1, new QoreMemberInfo(@1.first_line, @2.last_line, $2));
+	   if (checkParseOption(PO_ALLOW_BARE_REFS))
+	      parse_error("reference to '$.%s' with the '$.' prefix is not allowed when parse option 'allow-bare-refs' is set", $1);
 	}
         ;
 
@@ -1924,18 +1935,22 @@ exp:    scalar
 	      inc_argv_ref();
 
 	   if ($1)
-	      $$ = new VarRefDeclNode($2, VT_UNRESOLVED, $1->getTypeInfo(), $1->getParseTypeInfo());
+	      $$ = new VarRefDeclNode($2, get_var_type(), $1->getTypeInfo(), $1->getParseTypeInfo());
 	   else
-	      $$ = new VarRefNode($2, VT_UNRESOLVED);
+	      $$ = new VarRefNode($2, get_var_type());
 
 	   delete $1;
+	   if (checkParseOption(PO_ALLOW_BARE_REFS))
+	      parse_error("reference to variable '$%s' with the '$' sign is not allowed when parse option 'allow-bare-refs' is set", $2);
 	}
         | uncqtypedef IDENTIFIER {
-	   $$ = new VarRefDeclNode($2, VT_UNRESOLVED, $1->getTypeInfo(), $1->getParseTypeInfo());
+	   $$ = new VarRefDeclNode($2, get_var_type(), $1->getTypeInfo(), $1->getParseTypeInfo());
 	   delete $1;
 	}
         | TOK_MY uncqtypedef IDENTIFIER {
-	   $$ = new VarRefDeclNode($3, VT_LOCAL, $2->getTypeInfo(), $2->getParseTypeInfo());
+	   VarRefDeclNode *v = new VarRefDeclNode($3, VT_LOCAL, $2->getTypeInfo(), $2->getParseTypeInfo());
+	   v->setExplicitScope();
+	   $$ = v;
 	   delete $2;
 	   if (!checkParseOption(PO_ALLOW_BARE_REFS))
 	      parse_error("local variable '%s' declared without '$' prefix, but parse option 'allow-bare-refs' is not set", $3);
@@ -1944,21 +1959,28 @@ exp:    scalar
 	   // see if types are required
 	   if (checkParseOption(PO_REQUIRE_TYPES))
 	      parse_error("local variable '%s' declared without type information, but parse options require all declarations to have type information", $2);
-	   $$ = new VarRefNode($2, VT_LOCAL);
+	   VarRefNode *v = new VarRefNode($2, VT_LOCAL);
+	   v->setExplicitScope();
+	   $$ = v;
 	   if (!checkParseOption(PO_ALLOW_BARE_REFS))
 	      parse_error("local variable '%s' declared without '$' prefix, but parse option 'allow-bare-refs' is not set", $2);
 	}
         | TOK_MY qtypedef VAR_REF {
+	   VarRefNode *v; 
 	   if ($2) {
-	      $$ = new VarRefDeclNode($3, VT_LOCAL, $2->getTypeInfo(), $2->getParseTypeInfo());
+	      v = new VarRefDeclNode($3, VT_LOCAL, $2->getTypeInfo(), $2->getParseTypeInfo());
 	      delete $2;
 	   }
 	   else {
 	      // see if types are required
 	      if (checkParseOption(PO_REQUIRE_TYPES))
-		 parse_error("local variable '$%s' declared without type information, but parse options require all declarations to have type information", $3);
-	      $$ = new VarRefNode($3, VT_LOCAL);
+		 parse_error("local variable '%s' declared without type information, but parse options require all declarations to have type information", $3);
+	      v = new VarRefNode($3, VT_LOCAL);
 	   }
+	   v->setExplicitScope();
+	   $$ = v;
+	   if (checkParseOption(PO_ALLOW_BARE_REFS))
+	      parse_error("reference to variable '$%s' with the '$' sign is not allowed when parse option 'allow-bare-refs' is set", $3);
 	}
         | TOK_MY '(' list ')' {
 	   $3->setVariableList();
@@ -1973,6 +1995,7 @@ exp:    scalar
 		 if (!checkParseOption(PO_ALLOW_BARE_REFS))
 		    parse_error("local variable '%s' in local variable declaration list declared without '$' prefix, but parse option 'allow-bare-refs' is not set", b->str);
 		 VarRefNode *v = new VarRefNode(b->takeString(), VT_LOCAL);
+		 v->setExplicitScope();
 		 b->deref();
 		 AbstractQoreNode **p = li.getValuePtr();
 		 *p = v;
@@ -1982,12 +2005,15 @@ exp:    scalar
 		 // see if types are required
 		 if (checkParseOption(PO_REQUIRE_TYPES) && !v->isDecl())
 		    parse_error("local variable '%s' declared without type information, but parse options require all declarations to have type information", v->getName());
-		 if (v->getType() == VT_LOCAL)
-		    parse_error("illegal use of 'my %s' in local variable declaration list", v->getName());
-		 else if (v->getType() == VT_GLOBAL)
-		    parse_error("illegal use of 'our %s' in local variable declaration list", v->getName());
+		 if (v->explicitScope()) {
+		    if (v->getType() == VT_LOCAL)
+		       parse_error("illegal use of 'my %s' in local variable declaration list", v->getName());
+		    else if (v->getType() == VT_GLOBAL)
+		       parse_error("illegal use of 'our %s' in local variable declaration list", v->getName());
+		 }
 		 else
 		    v->makeLocal();
+		 v->setExplicitScope();
 	      }
 	      else
 		 parse_error("element %d in list following 'my' is not a variable reference (%s)", li.index(), get_type_name(n));
@@ -1996,26 +2022,36 @@ exp:    scalar
         }
         | TOK_OUR uncqtypedef IDENTIFIER {
 	   const QoreTypeInfo *t = $2->getTypeInfo();
+	   VarRefNode *v;
 	   if (t)
-	      $$ = new VarRefNode($3, getProgram()->addResolvedGlobalVarDef($3, t));
+	      v = new VarRefNode($3, getProgram()->addResolvedGlobalVarDef($3, t));
 	   else	
-	      $$ = new VarRefNode($3, getProgram()->addGlobalVarDef($3, $2->getParseTypeInfo()));
+	      v = new VarRefNode($3, getProgram()->addGlobalVarDef($3, $2->getParseTypeInfo()));
+	   v->setExplicitScope();
+	   $$ = v;
 	   delete $2;
 	   if (!checkParseOption(PO_ALLOW_BARE_REFS))
 	      parse_error("global variable '%s' declared without '$' prefix, but parse option 'allow-bare-refs' is not set", $3);
 	}
         | TOK_OUR IDENTIFIER {
-	   $$ = new VarRefNode($2, getProgram()->addGlobalVarDef($2, 0));
+	   VarRefNode *v = new VarRefNode($2, getProgram()->addGlobalVarDef($2, 0));
+	   v->setExplicitScope();
+	   $$ = v;
 	   if (!checkParseOption(PO_ALLOW_BARE_REFS))
 	      parse_error("global variable '%s' declared without '$' prefix, but parse option 'allow-bare-refs' is not set", $2);
 	}
         | TOK_OUR qtypedef VAR_REF {
 	   const QoreTypeInfo *t = $2->getTypeInfo();
+	   VarRefNode *v;
 	   if (t)
-	      $$ = new VarRefNode($3, getProgram()->addResolvedGlobalVarDef($3, t));
+	      v = new VarRefNode($3, getProgram()->addResolvedGlobalVarDef($3, t));
 	   else
-	      $$ = new VarRefNode($3, getProgram()->addGlobalVarDef($3, $2->getParseTypeInfo()));
+	      v = new VarRefNode($3, getProgram()->addGlobalVarDef($3, $2->getParseTypeInfo()));
+	   v->setExplicitScope();
+	   $$ = v;
 	   delete $2;
+	   if (checkParseOption(PO_ALLOW_BARE_REFS))
+	      parse_error("reference to variable '$%s' with the '$' sign is not allowed when parse option 'allow-bare-refs' is set", $3);
 	}
         | TOK_OUR '(' list ')' { 
 	   $3->setVariableList();
@@ -2041,13 +2077,16 @@ exp:    scalar
 		 if (checkParseOption(PO_REQUIRE_TYPES) && !v->isDecl())
 		    parse_error("global variable '%s' declared without type information, but parse options require all declarations to have type information", v->getName());
 
-		 if (v->getType() == VT_LOCAL)
-		    parse_error("illegal use of 'my %s' in global variable declaration list", v->getName());
-		 else if (v->getType() == VT_GLOBAL)
-		    parse_error("illegal use of 'our %s' in global variable declaration list", v->getName());
+		 if (v->explicitScope()) {
+		    if (v->getType() == VT_LOCAL)
+		       parse_error("illegal use of 'my %s' in global variable declaration list", v->getName());
+		    else if (v->getType() == VT_GLOBAL)
+		       parse_error("illegal use of 'our %s' in global variable declaration list", v->getName());
+		 }
 		 else {
 		    v->makeGlobal();
 		 }
+		 v->setExplicitScope();
 	      }
 	      else
 		 parse_error("element %d in list following 'our' is not a variable reference (%s)", li.index(), get_node_type(n));
@@ -2055,7 +2094,12 @@ exp:    scalar
 	   $$ = $3;
 	}
 	| IDENTIFIER
-        { $$ = new BarewordNode($1); }
+        {
+	   if (checkParseOption(PO_ASSUME_LOCAL & PO_ALLOW_BARE_REFS) && !strcmp($1, "argv"))
+	      inc_argv_ref();
+
+	   $$ = new BarewordNode($1);
+	}
 	| CONTEXT_REF
         { $$ = new ContextrefNode($1); }
         | TOK_CONTEXT_ROW
@@ -2324,16 +2368,17 @@ exp:    scalar
 		 if ($1 && $1->getType() == NT_VARREF) {
 		    VarRefNode *r = reinterpret_cast<VarRefNode *>($1);
 		    qore_var_t vartype = r->getType();
+
 		    if (vartype != VT_UNRESOLVED) {
 		       $$ = r->makeNewCall($3);
 		       //printd(5, "makeNewCall(%p) returned %p (%s)\n", $3, $$, get_type_name($$));
 		       if (!$$)
-			  parseException("INVALID-CODE-REFERENCE-CALL", "%s variable '$%s' declared as a function reference call", r->getType() == VT_GLOBAL ? "global" : "local", r->getName());
+			  parseException("INVALID-CODE-REFERENCE-CALL", "%s variable '%s' declared as a function reference call", r->getType() == VT_GLOBAL ? "global" : "local", r->getName());
 		    }
 		 }
 		 if (!$$) {
 		    $$ = new CallReferenceCallNode($1, makeArgs($3));
-		    //printd(5, "made new CallReferenceCallNode: %p\n", $$);
+		    printd(5, "made new CallReferenceCallNode: %p exp=%p %s\n", $$, $1, get_type_name($1));
 		 }
 	      }
 	   }
@@ -2349,7 +2394,12 @@ exp:    scalar
 	   printd(5, "parsing call %s()\n", $1);
 	   $$ = new FunctionCallNode($1, makeArgs($2));
         }
-        | SELF_REF                   { $$ = new SelfVarrefNode($1); }
+        | SELF_REF
+	{
+	   $$ = new SelfVarrefNode($1); 
+	   if (checkParseOption(PO_ALLOW_BARE_REFS))
+	      parse_error("reference to '$.%s' with the '$.' prefix is not allowed when parse option 'allow-bare-refs' is set", $1);
+	}
         | exp LOGICAL_AND exp	     { $$ = new QoreTreeNode($1, OP_LOG_AND, $3); }
         | exp LOGICAL_OR exp	     { $$ = new QoreTreeNode($1, OP_LOG_OR, $3); }
         | exp '|' exp		     { $$ = new QoreTreeNode($1, OP_BIN_OR, $3); }

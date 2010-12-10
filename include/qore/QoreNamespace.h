@@ -241,7 +241,6 @@ protected:
    DLLLOCAL RootQoreNamespace(QoreClassList *ocl, ConstantList *cl, QoreNamespaceList *nnsl);
    // private constructor
    DLLLOCAL RootQoreNamespace();
-   DLLLOCAL QoreClass *rootFindScopedClassWithMethod(const NamedScope *nscope, unsigned *matched);
    DLLLOCAL QoreClass *rootFindScopedClass(const NamedScope *name, unsigned *matched);
    DLLLOCAL QoreClass *rootFindChangeClass(const char *name);
    DLLLOCAL AbstractQoreNode *rootFindConstantValue(const char *name, const QoreTypeInfo *&typeInfo) const;
@@ -267,10 +266,13 @@ public:
    DLLLOCAL QoreClass *parseFindScopedClassWithMethod(const NamedScope *name);
    // returns 0 for success, non-zero for error
    DLLLOCAL int resolveBareword(AbstractQoreNode **, const QoreTypeInfo *&) const;
-   // returns 0 for success, non-zero for error
+   // returns 0 for success, non-zero for error (parse exception thrown)
    DLLLOCAL int resolveScopedReference(AbstractQoreNode **, const QoreTypeInfo *&) const;
+   // does not throw parse exceptions
+   DLLLOCAL AbstractQoreNode *resolveScopedReference(const NamedScope &ns, unsigned &m, const QoreTypeInfo *&typeInfo) const;
    // returns 0 for success, non-zero for error
    DLLLOCAL int addMethodToClass(const NamedScope *name, MethodVariantBase *qcmethod, bool static_flag);
+   DLLLOCAL QoreClass *rootFindScopedClassWithMethod(const NamedScope *nscope, unsigned *matched);
 };
 
 #endif // QORE_NAMESPACE_H

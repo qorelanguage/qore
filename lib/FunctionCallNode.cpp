@@ -295,7 +295,9 @@ AbstractQoreNode *FunctionCallNode::evalImpl(ExceptionSink *xsink) const {
 }
 
 AbstractQoreNode *FunctionCallNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo) {
-   assert(!func);
+   if (func)
+      return this;
+   //assert(!func);
    assert(c_str);
 
    bool abr = checkParseOption(PO_ALLOW_BARE_REFS);
@@ -364,22 +366,60 @@ AbstractQoreNode *FunctionCallNode::parseInit(LocalVar *oflag, int pflag, int &l
       }
    }
 
-   parseInitCall(oflag, pflag, lvids, returnTypeInfo);
-   return this;
+   AbstractQoreNode *n = 0;
+
+   // try to resolve a global var
+   if (abr) {
+      Var *v = ::getProgram()->findGlobalVar(c_str);
+      if (v)
+	 n = new GlobalVarRefNode(takeName(), v);
+   }
+
+   // see if a constant can be resolved
+   if (!n)
+      n = qore_ns_private::parseResolveBareword(::getProgram()->getRootNS(), c_str, returnTypeInfo);
+
+   if (n) {
+      CallReferenceCallNode *crcn = new CallReferenceCallNode(n, take_args());	 
+      deref();
+      return crcn->parseInit(oflag, pflag, lvids, returnTypeInfo);
+   }
+
+   return parseInitCall(oflag, pflag, lvids, returnTypeInfo);
 }
 
-void FunctionCallNode::parseInitCall(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo) {
+AbstractQoreNode *FunctionCallNode::parseInitCall(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo) {
    assert(!func);
    assert(c_str);
+
+   bool abr = checkParseOption(PO_ALLOW_BARE_REFS);
+
+   AbstractQoreNode *n = 0;
+
+   // try to resolve a global var
+   if (abr) {
+      Var *v = ::getProgram()->findGlobalVar(c_str);
+      if (v)
+	 n = new GlobalVarRefNode(takeName(), v);
+   }
+
+   // see if a constant can be resolved
+   if (!n)
+      n = qore_ns_private::parseResolveBareword(::getProgram()->getRootNS(), c_str, returnTypeInfo);
+
+   if (n) {
+      CallReferenceCallNode *crcn = new CallReferenceCallNode(n, take_args());	 
+      deref();
+      return crcn->parseInit(oflag, pflag, lvids, returnTypeInfo);
+   }
 
    // resolves the function and assigns pgm for imported code
    func = ::getProgram()->resolveFunction(c_str, pgm);
    free(c_str);
    c_str = 0;
-   if (!func)
-      return;
-
-   lvids += parseArgs(oflag, pflag, const_cast<AbstractQoreFunction *>(func), returnTypeInfo);
+   if (func) 
+       lvids += parseArgs(oflag, pflag, const_cast<AbstractQoreFunction *>(func), returnTypeInfo);
+   return this;
 }
 
 AbstractQoreNode *FunctionCallNode::makeReferenceNodeAndDerefImpl() {
@@ -441,4 +481,64 @@ AbstractQoreNode *StaticMethodCallNode::makeReferenceNodeAndDeref() {
    UnresolvedStaticMethodCallReferenceNode *rv = new UnresolvedStaticMethodCallReferenceNode(takeScope());
    deref();
    return rv;
+}
+
+AbstractQoreNode *StaticMethodCallNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+   bool abr = checkParseOption(PO_ALLOW_BARE_REFS);
+
+   RootQoreNamespace &rns = *(getRootNS());
+   unsigned m = 0;
+   QoreClass *qc = rns.rootFindScopedClassWithMethod(scope, &m);
+      //rns.parseFindScopedClassWithMethod(scope);
+
+   // see if this is a call to a base class method if bare refs are allowed
+   // and we're parsing in a class context and the class found is in the
+   // current class parse context
+   if (qc)
+      method = (oflag && abr && oflag->getTypeInfo()->getUniqueReturnClass()->parseCheckHierarchy(qc))
+	 ? qore_class_private::parseFindAnyMethodIntern(qc, scope->getIdentifier())
+	 : qc->parseFindStaticMethodTree(scope->getIdentifier());
+
+   // see if a constant can be resolved
+   if (!method) {
+      m = 0;
+      AbstractQoreNode *n = rns.resolveScopedReference(*scope, m, typeInfo);
+      if (n) {
+	 CallReferenceCallNode *crcn = new CallReferenceCallNode(n, takeArgs());	 
+	 deref();
+	 return crcn->parseInit(oflag, pflag, lvids, typeInfo);
+      }
+      parse_error("cannot resolve call '%s()' to any reachable object", scope->ostr);
+      return this;
+   }
+
+   // check class capabilities against parse options
+   if (qc->getDomain() & getProgram()->getParseOptions()) {
+      parseException("INVALID-METHOD", "class '%s' implements capabilities that are not allowed by current parse options", qc->getName());
+      return this;
+   }
+
+   // we don't need to check for accessibility if the method is not static
+   if (!method->isStatic()) {
+      SelfFunctionCallNode *sfcn = new SelfFunctionCallNode(scope->takeName(), takeArgs(), qc);
+      deref();
+      sfcn->parseInit(oflag, pflag, lvids, typeInfo);
+      return sfcn;
+   }
+
+   assert(method->isStatic());
+
+   delete scope;
+   scope = 0;
+
+   if (method->parseIsPrivate()) {
+      const QoreClass *cls = getParseClass();
+      if (!cls || !cls->parseCheckHierarchy(qc)) {
+	 parseException("PRIVATE-METHOD", "method %s::%s() is private and cannot be accessed outside of the class", qc->getName(), method->getName());
+	 return this;
+      }
+   }
+
+   lvids += parseArgs(oflag, pflag, method->getFunction(), typeInfo);
+   return this;
 }
