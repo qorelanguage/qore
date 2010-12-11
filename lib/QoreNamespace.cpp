@@ -752,8 +752,10 @@ int RootQoreNamespace::resolveBareword(AbstractQoreNode **node, const QoreTypeIn
          }
       }
 
-      // try to resolve to constant, class constant, or static class variable
-      rv = priv->parseResolveBareword(b->str, typeInfo);
+      // try to resolve constant
+      rv = rootFindConstantValue(b->str, typeInfo);
+      if (rv)
+         rv->ref();
    }
 
    if (rv) {

@@ -243,7 +243,6 @@ protected:
    DLLLOCAL RootQoreNamespace();
    DLLLOCAL QoreClass *rootFindScopedClass(const NamedScope *name, unsigned *matched);
    DLLLOCAL QoreClass *rootFindChangeClass(const char *name);
-   DLLLOCAL AbstractQoreNode *rootFindConstantValue(const char *name, const QoreTypeInfo *&typeInfo) const;
    DLLLOCAL AbstractQoreNode *rootFindScopedConstantValue(const NamedScope *name, unsigned *matched, const QoreTypeInfo *&typeInfo) const;
 
 public:
@@ -273,6 +272,7 @@ public:
    // returns 0 for success, non-zero for error
    DLLLOCAL int addMethodToClass(const NamedScope *name, MethodVariantBase *qcmethod, bool static_flag);
    DLLLOCAL QoreClass *rootFindScopedClassWithMethod(const NamedScope *nscope, unsigned *matched);
+   DLLLOCAL AbstractQoreNode *rootFindConstantValue(const char *name, const QoreTypeInfo *&typeInfo) const;
 };
 
 #endif // QORE_NAMESPACE_H

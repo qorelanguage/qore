@@ -376,8 +376,11 @@ AbstractQoreNode *FunctionCallNode::parseInit(LocalVar *oflag, int pflag, int &l
    }
 
    // see if a constant can be resolved
-   if (!n)
-      n = qore_ns_private::parseResolveBareword(::getProgram()->getRootNS(), c_str, returnTypeInfo);
+   if (!n) {
+      n = getRootNS()->rootFindConstantValue(c_str, returnTypeInfo);
+      if (n)
+	 n->ref();
+   }
 
    if (n) {
       CallReferenceCallNode *crcn = new CallReferenceCallNode(n, take_args());	 
