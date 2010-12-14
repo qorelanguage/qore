@@ -37,7 +37,7 @@ static void dni(QoreStringNode *s, const AbstractQoreNode *n, int indent, Except
       return;
    }
    
-   s->sprintf("node=%08p refs=%d type=%s ", n, n->reference_count(), n->getTypeName());
+   s->sprintf("node=%p refs=%d type=%s ", n, n->reference_count(), n->getTypeName());
 
    qore_type_t ntype = n->getType();
 
@@ -143,7 +143,7 @@ static void dni(QoreStringNode *s, const AbstractQoreNode *n, int indent, Except
 
    if (ntype == NT_BINARY) {
       const BinaryNode *b = reinterpret_cast<const BinaryNode *>(n);
-      s->sprintf("ptr=%08p len=%d", b->getPtr(), b->size());
+      s->sprintf("ptr=%p len=%d", b->getPtr(), b->size());
       return;
    }
 

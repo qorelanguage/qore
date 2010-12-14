@@ -35,7 +35,7 @@
 
 AbstractQoreNode::AbstractQoreNode(qore_type_t t, bool n_value, bool n_needs_eval, bool n_there_can_be_only_one, bool n_custom_reference_handlers) : type(t), value(n_value), needs_eval_flag(n_needs_eval), there_can_be_only_one(n_there_can_be_only_one), custom_reference_handlers(n_custom_reference_handlers) {
 #if TRACK_REFS
-   printd(REF_LVL, "AbstractQoreNode::ref() %08p type=%d (0->1)\n", this, type);
+   printd(REF_LVL, "AbstractQoreNode::ref() %p type=%d (0->1)\n", this, type);
 #endif
 }
 
@@ -50,10 +50,10 @@ void AbstractQoreNode::ref() const {
 #if TRACK_REFS
    if (type == NT_OBJECT) {
       const QoreObject *o = reinterpret_cast<const QoreObject *>(this);
-      printd(REF_LVL, "AbstractQoreNode::ref() %08p type=object (%d->%d) object=%08p, class=%s\n", this, references, references + 1, o, o->getClass()->getName());
+      printd(REF_LVL, "AbstractQoreNode::ref() %p type=object (%d->%d) object=%p, class=%s\n", this, references, references + 1, o, o->getClass()->getName());
    }
    else
-      printd(REF_LVL, "AbstractQoreNode::ref() %08p type=%s (%d->%d)\n", this, getTypeName(), references, references + 1);
+      printd(REF_LVL, "AbstractQoreNode::ref() %p type=%s (%d->%d)\n", this, getTypeName(), references, references + 1);
 #endif
 #endif
    if (!there_can_be_only_one) {
@@ -85,11 +85,11 @@ void AbstractQoreNode::deref(ExceptionSink *xsink) {
    //QORE_TRACE("AbstractQoreNode::deref()");
 #ifdef DEBUG
 #if TRACK_REFS
-   if (type == NT_STRING) printd(REF_LVL, "AbstractQoreNode::deref() %08p (%d->%d) string='%s'\n", this, references, references - 1, ((QoreStringNode *)this)->getBuffer());
+   if (type == NT_STRING) printd(REF_LVL, "AbstractQoreNode::deref() %p (%d->%d) string='%s'\n", this, references, references - 1, ((QoreStringNode *)this)->getBuffer());
    else if (type == NT_OBJECT)
-      printd(REF_LVL, "QoreObject::deref() %08p class=%s (%d->%d) %d\n", this, ((QoreObject *)this)->getClassName(), references, references - 1, custom_reference_handlers);
+      printd(REF_LVL, "QoreObject::deref() %p class=%s (%d->%d) %d\n", this, ((QoreObject *)this)->getClassName(), references, references - 1, custom_reference_handlers);
    else
-      printd(REF_LVL, "AbstractQoreNode::deref() %08p type=%s (%d->%d)\n", this, getTypeName(), references, references - 1);
+      printd(REF_LVL, "AbstractQoreNode::deref() %p type=%s (%d->%d)\n", this, getTypeName(), references, references - 1);
 
 #endif
    if (references > 10000000 || references <= 0){

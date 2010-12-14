@@ -58,7 +58,7 @@ int TryStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink
    
    class QoreException *except = xsink->catchException();
    if (except) {
-      printd(5, "TryStatement::execImpl() entering catch handler, e=%08p\n", except);
+      printd(5, "TryStatement::execImpl() entering catch handler, e=%p\n", except);
       
       if (catch_block) {
 	 // save exception
@@ -105,7 +105,7 @@ int TryStatement::parseInitImpl(LocalVar *oflag, int pflag) {
       // push as if the variable is already referenced so no warning will be emitted
       // in case the variable is not actually referenced in the catch block
       id = push_local_var(param, 0, true, 1);
-      printd(3, "TryStatement::parseInitImpl() reg. local var %s (id=%08p)\n", param, id);
+      printd(3, "TryStatement::parseInitImpl() reg. local var %s (id=%p)\n", param, id);
    }
    else
       id = 0;

@@ -396,13 +396,13 @@ BinaryNode *qore_deflate(const void *ptr, unsigned long len, int level, Exceptio
       
       if (!c_stream.avail_out) {
          int new_space = ((len / 3) + 100);
-         //printd(5, "deflate() Z_BUF_ERROR:1 bsize=%d->%d, new_space=%d avail_out=%d -> %d next_out=%08p\n", bsize, bsize + new_space, new_space, c_stream.avail_out, c_stream.avail_out + new_space, c_stream.next_out);
+         //printd(5, "deflate() Z_BUF_ERROR:1 bsize=%d->%d, new_space=%d avail_out=%d -> %d next_out=%p\n", bsize, bsize + new_space, new_space, c_stream.avail_out, c_stream.avail_out + new_space, c_stream.next_out);
          bsize += new_space;
          c_stream.avail_out += new_space;
          buf = realloc(buf, bsize);
          c_stream.next_out = ((Bytef *)buf) + c_stream.total_out;
       }
-      //printd(5, "deflate() Z_BUF_ERROR:1 bsize=%d, avail_out=%d, next_out=%08p\n", bsize, c_stream.avail_out, c_stream.next_out);
+      //printd(5, "deflate() Z_BUF_ERROR:1 bsize=%d, avail_out=%d, next_out=%p\n", bsize, c_stream.avail_out, c_stream.next_out);
    }
 
    while (true) {
@@ -416,7 +416,7 @@ BinaryNode *qore_deflate(const void *ptr, unsigned long len, int level, Exceptio
       }
       // resize buffer
       int new_space = 2; //((len / 3) + 100);
-      //printd(5, "deflate() Z_BUF_ERROR:2 bsize=%d->%d, new_space=%d avail_out=%d -> %d, next_out=%08p\n", bsize, bsize + new_space, new_space, c_stream.avail_out, c_stream.avail_out + new_space, c_stream.next_out);
+      //printd(5, "deflate() Z_BUF_ERROR:2 bsize=%d->%d, new_space=%d avail_out=%d -> %d, next_out=%p\n", bsize, bsize + new_space, new_space, c_stream.avail_out, c_stream.avail_out + new_space, c_stream.next_out);
       
       bsize += new_space;
       c_stream.avail_out += new_space;
@@ -424,7 +424,7 @@ BinaryNode *qore_deflate(const void *ptr, unsigned long len, int level, Exceptio
       c_stream.next_out = ((Bytef *)buf) + c_stream.total_out;
    }
 
-   //printd(5, "deflate() buf=%08p, bsize=%d, avail_out=%d, size=%d, next_out=%08p\n", buf, bsize, c_stream.avail_out, bsize - c_stream.avail_out, c_stream.next_out);
+   //printd(5, "deflate() buf=%p, bsize=%d, avail_out=%d, size=%d, next_out=%p\n", buf, bsize, c_stream.avail_out, bsize - c_stream.avail_out, c_stream.next_out);
    return new BinaryNode(buf, bsize - c_stream.avail_out);
 }
 
@@ -557,14 +557,14 @@ BinaryNode *qore_gzip(const void *ptr, unsigned long len, int level, ExceptionSi
 
       if (!c_stream.avail_out) {
          int new_space = ((len / 3) + 100);
-         //printd(5, "deflate() Z_BUF_ERROR:1 bsize=%d->%d, new_space=%d avail_out=%d -> %d next_out=%08p\n", bsize, bsize + new_space, new_space, c_stream.avail_out, c_stream.avail_out + new_space, c_stream.next_out);
+         //printd(5, "deflate() Z_BUF_ERROR:1 bsize=%d->%d, new_space=%d avail_out=%d -> %d next_out=%p\n", bsize, bsize + new_space, new_space, c_stream.avail_out, c_stream.avail_out + new_space, c_stream.next_out);
 
          bsize += new_space;
          c_stream.avail_out += new_space;
          buf = realloc(buf, bsize);
          c_stream.next_out = ((Bytef *)buf) + c_stream.total_out;
       }
-      //printd(5, "deflate() Z_BUF_ERROR:1 bsize=%d, avail_out=%d, next_out=%08p\n", bsize, c_stream.avail_out, c_stream.next_out);
+      //printd(5, "deflate() Z_BUF_ERROR:1 bsize=%d, avail_out=%d, next_out=%p\n", bsize, c_stream.avail_out, c_stream.next_out);
    }
 
    while (true) {
@@ -578,7 +578,7 @@ BinaryNode *qore_gzip(const void *ptr, unsigned long len, int level, ExceptionSi
       }
       // resize buffer
       int new_space = 2; //((len / 3) + 100);
-      //printd(5, "deflate() Z_BUF_ERROR:2 bsize=%d->%d, new_space=%d avail_out=%d -> %d, next_out=%08p\n", bsize, bsize + new_space, new_space, c_stream.avail_out, c_stream.avail_out + new_space, c_stream.next_out);
+      //printd(5, "deflate() Z_BUF_ERROR:2 bsize=%d->%d, new_space=%d avail_out=%d -> %d, next_out=%p\n", bsize, bsize + new_space, new_space, c_stream.avail_out, c_stream.avail_out + new_space, c_stream.next_out);
 
       bsize += new_space;
       c_stream.avail_out += new_space;
@@ -586,7 +586,7 @@ BinaryNode *qore_gzip(const void *ptr, unsigned long len, int level, ExceptionSi
       c_stream.next_out = ((Bytef *)buf) + c_stream.total_out;
    }
 
-   //printd(5, "deflate() buf=%08p, bsize=%d, avail_out=%d, size=%d, next_out=%08p\n", buf, bsize, c_stream.avail_out, bsize - c_stream.avail_out, c_stream.next_out);
+   //printd(5, "deflate() buf=%p, bsize=%d, avail_out=%d, size=%d, next_out=%p\n", buf, bsize, c_stream.avail_out, bsize - c_stream.avail_out, c_stream.next_out);
    return new BinaryNode(buf, bsize - c_stream.avail_out);
 }
 

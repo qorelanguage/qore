@@ -35,7 +35,7 @@ SelfVarrefNode::~SelfVarrefNode() {
 // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
 // returns -1 for exception raised, 0 = OK
 int SelfVarrefNode::getAsString(QoreString &qstr, int foff, ExceptionSink *xsink) const {
-   qstr.sprintf("in-object variable reference '%s' (0x%08p)", str ? str : "<null>", this);
+   qstr.sprintf("in-object variable reference '%s' (0x%p)", str ? str : "<null>", this);
    return 0;
 }
 
@@ -92,7 +92,7 @@ char *SelfVarrefNode::takeString() {
 }
 
 AbstractQoreNode *SelfVarrefNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
-   printd(5, "SelfVarrefNode::parseInit() SELF_REF '%s' oflag=%08p\n", str, oflag);
+   printd(5, "SelfVarrefNode::parseInit() SELF_REF '%s' oflag=%p\n", str, oflag);
    if (!oflag)
       parse_error("cannot reference member \"%s\" out of an object member function definition", str);
    else

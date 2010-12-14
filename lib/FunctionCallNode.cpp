@@ -373,13 +373,15 @@ AbstractQoreNode *FunctionCallNode::parseInit(LocalVar *oflag, int pflag, int &l
       Var *v = ::getProgram()->findGlobalVar(c_str);
       if (v)
 	 n = new GlobalVarRefNode(takeName(), v);
-   }
+      //}
 
    // see if a constant can be resolved
    if (!n) {
       n = getRootNS()->rootFindConstantValue(c_str, returnTypeInfo);
       if (n)
 	 n->ref();
+   }
+   //xxx
    }
 
    if (n) {

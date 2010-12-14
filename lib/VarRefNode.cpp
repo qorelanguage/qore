@@ -26,7 +26,7 @@
 
 VarRefNode::~VarRefNode() {
    if (name) {
-      printd(3, "VarRefNode::~VarRefNode() deleting variable reference %08p %s\n", name, name);
+      printd(3, "VarRefNode::~VarRefNode() deleting variable reference %p %s\n", name, name);
       free(name);
    }
 }

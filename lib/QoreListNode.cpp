@@ -425,7 +425,7 @@ QoreListNode *QoreListNode::extract(qore_offset_t offset, qore_offset_t len, con
 }
 
 static int compareListEntries(AbstractQoreNode *l, AbstractQoreNode *r) {
-   //printd(5, "compareListEntries(%08p, %08p) (%s %s)\n", l, r, l->getType() == NT_STRING ? l->val.String->getBuffer() : "?", r->getType() == NT_STRING ? r->val.String->getBuffer() : "?");
+   //printd(5, "compareListEntries(%p, %p) (%s %s)\n", l, r, l->getType() == NT_STRING ? l->val.String->getBuffer() : "?", r->getType() == NT_STRING ? r->val.String->getBuffer() : "?");
 
    // sort non-existant values last
    if (is_nothing(l))
@@ -445,14 +445,14 @@ static int compareListEntriesDescending(AbstractQoreNode *l, AbstractQoreNode *r
 
 QoreListNode *QoreListNode::sort() const {
    QoreListNode *rv = copy();
-   //printd(5, "List::sort() priv->entry=%08p priv->length=%d\n", rv->priv->entry, priv->length);
+   //printd(5, "List::sort() priv->entry=%p priv->length=%d\n", rv->priv->entry, priv->length);
    std::sort(rv->priv->entry, rv->priv->entry + priv->length, compareListEntries);
    return rv;
 }
 
 QoreListNode *QoreListNode::sortDescending() const {
    QoreListNode *rv = copy();
-   //printd(5, "List::sort() priv->entry=%08p priv->length=%d\n", rv->priv->entry, priv->length);
+   //printd(5, "List::sort() priv->entry=%p priv->length=%d\n", rv->priv->entry, priv->length);
    std::sort(rv->priv->entry, rv->priv->entry + priv->length, compareListEntriesDescending);
    return rv;
 }
@@ -485,7 +485,7 @@ static inline QoreListNode *do_args(AbstractQoreNode *e1, AbstractQoreNode *e2) 
 
 // mergesort for controlled and interruptible sorts (stable)
 int QoreListNode::mergesort(const ResolvedCallReferenceNode *fr, bool ascending, ExceptionSink *xsink) {
-   //printd(5, "List::mergesort() ENTER this=%08p, pgm=%08p, f=%08p priv->length=%d\n", this, pgm, f, priv->length);
+   //printd(5, "List::mergesort() ENTER this=%p, pgm=%p, f=%p priv->length=%d\n", this, pgm, f, priv->length);
    
    if (priv->length <= 1)
       return 0;
@@ -532,7 +532,7 @@ int QoreListNode::mergesort(const ResolvedCallReferenceNode *fr, bool ascending,
    while (ri < right.priv->length)
       push(right.getAndClear(ri++));
 
-   //printd(5, "List::mergesort() EXIT this=%08p, priv->length=%d\n", this, priv->length);
+   //printd(5, "List::mergesort() EXIT this=%p, priv->length=%d\n", this, priv->length);
 
    return 0;
 }
@@ -607,14 +607,14 @@ QoreListNode *QoreListNode::sort(const ResolvedCallReferenceNode *fr, ExceptionS
 
 QoreListNode *QoreListNode::sortStable() const {
    QoreListNode *rv = copy();
-   //printd(5, "List::sort() priv->entry=%08p priv->length=%d\n", rv->priv->entry, priv->length);
+   //printd(5, "List::sort() priv->entry=%p priv->length=%d\n", rv->priv->entry, priv->length);
    std::stable_sort(rv->priv->entry, rv->priv->entry + priv->length, compareListEntries);
    return rv;
 }
 
 QoreListNode *QoreListNode::sortDescendingStable() const {
    QoreListNode *rv = copy();
-   //printd(5, "List::sort() priv->entry=%08p priv->length=%d\n", rv->priv->entry, priv->length);
+   //printd(5, "List::sort() priv->entry=%p priv->length=%d\n", rv->priv->entry, priv->length);
    std::stable_sort(rv->priv->entry, rv->priv->entry + priv->length, compareListEntriesDescending);
    return rv;
 }

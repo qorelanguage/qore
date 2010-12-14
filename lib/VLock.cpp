@@ -61,18 +61,18 @@ struct qore_avl_private {
 };
 
 AutoVLock::AutoVLock(ExceptionSink *n_xsink) : m(0), o(0), xsink(n_xsink), priv(0) {
-   //printd(5, "AutoVLock::AutoVLock() this=%08p\n", this);
+   //printd(5, "AutoVLock::AutoVLock() this=%p\n", this);
 }
 
 AutoVLock::~AutoVLock() {
-   //printd(5, "AutoVLock::~AutoVLock() this=%08p size=%d\n", this, size());
+   //printd(5, "AutoVLock::~AutoVLock() this=%p size=%d\n", this, size());
    del();
    if (priv && priv->notify_list) {
       ExceptionSink xsink2;
       
       for (qore_notify_list_t::iterator i = priv->notify_list->begin(), e = priv->notify_list->end(); i != e; ++i) {
 	 // run member notifications regardless of exception status
-	 //printd(5, "posting notification to object %08p, member %s\n", i->obj, i->member.c_str());
+	 //printd(5, "posting notification to object %p, member %s\n", i->obj, i->member.c_str());
 	 i->obj->execMemberNotification(i->member.c_str(), &xsink2);
       }
       xsink->assimilate(&xsink2);
@@ -137,7 +137,7 @@ int VLock::waitOn(AbstractSmartLock *asl, VLock *vl, ExceptionSink *xsink, int t
    
    int rc = 0;
    AbstractSmartLock *vl_wait = vl->waiting_on;
-   //printd(5, "VLock::waitOn(asl=%08p) vl_wait=%08p other_tid=%d\n", asl, vl_wait, vl->tid);
+   //printd(5, "VLock::waitOn(asl=%p) vl_wait=%p other_tid=%d\n", asl, vl_wait, vl->tid);
    if (vl_wait && find(vl_wait)) {
       // NOTE: we throw an exception here anyway as a deadlock is a programming mistake and therefore should be visible to the programmer
       // (even if it really wouldn't technically deadlock at this point due to the timeout)
@@ -149,9 +149,9 @@ int VLock::waitOn(AbstractSmartLock *asl, VLock *vl, ExceptionSink *xsink, int t
    }
 
    if (!rc) {
-      //printd(0, "AbstractSmartLock::block() this=%08p asl=%08p about to block on VRMutex owned by TID %d\n", this, asl, vl ? vl->tid : -1);
+      //printd(0, "AbstractSmartLock::block() this=%p asl=%p about to block on VRMutex owned by TID %d\n", this, asl, vl ? vl->tid : -1);
       rc = asl->self_wait(timeout_ms);
-      //printd(0, "AbstractSmartLock::block() this=%08p asl=%08p regrabbed lock\n", this, asl);
+      //printd(0, "AbstractSmartLock::block() this=%p asl=%p regrabbed lock\n", this, asl);
    }
    
    waiting_on = 0;
@@ -164,7 +164,7 @@ int VLock::waitOn(AbstractSmartLock *asl, QoreCondition *cond, VLock *vl, Except
 
    int rc = 0;
    AbstractSmartLock *vl_wait = vl->waiting_on;
-   //printd(5, "VLock::waitOn(asl=%08p) vl_wait=%08p other_tid=%d\n", asl, vl_wait, vl->tid);
+   //printd(5, "VLock::waitOn(asl=%p) vl_wait=%p other_tid=%d\n", asl, vl_wait, vl->tid);
    if (vl_wait && find(vl_wait)) {
       // NOTE: we throw an exception here anyway as a deadlock is a programming mistake and therefore should be visible to the programmer
       // (even if it really wouldn't technically deadlock at this point due to the timeout)
@@ -176,9 +176,9 @@ int VLock::waitOn(AbstractSmartLock *asl, QoreCondition *cond, VLock *vl, Except
    }
    
    if (!rc) {
-      //printd(0, "AbstractSmartLock::block() this=%08p asl=%08p about to block on VRMutex owned by TID %d\n", this, asl, vl ? vl->tid : -1);
+      //printd(0, "AbstractSmartLock::block() this=%p asl=%p about to block on VRMutex owned by TID %d\n", this, asl, vl ? vl->tid : -1);
       rc = asl->self_wait(cond, timeout_ms);
-      //printd(0, "AbstractSmartLock::block() this=%08p asl=%08p regrabbed lock\n", this, asl);
+      //printd(0, "AbstractSmartLock::block() this=%p asl=%p regrabbed lock\n", this, asl);
    }
 
    waiting_on = 0;
@@ -192,7 +192,7 @@ int VLock::waitOn(AbstractSmartLock *asl, vlock_map_t &vmap, ExceptionSink *xsin
    int rc = 0;
    for (vlock_map_t::iterator i = vmap.begin(), e = vmap.end(); i != e; ++i) {
       AbstractSmartLock *vl_wait = i->second->waiting_on;
-      //printd(5, "VLock::waitOn(asl=%08p, vmap size=%d) vl_wait=%08p other_tid=%d\n", asl, vmap.size(), vl_wait, i->second->tid);
+      //printd(5, "VLock::waitOn(asl=%p, vmap size=%d) vl_wait=%p other_tid=%d\n", asl, vmap.size(), vl_wait, i->second->tid);
       if (vl_wait && find(vl_wait)) {
 	 // NOTE: we throw an exception here anyway as a deadlock is a programming mistake and therefore should be visible to the programmer
 	 // (even if it really wouldn't technically deadlock at this point due to the timeout)
@@ -206,9 +206,9 @@ int VLock::waitOn(AbstractSmartLock *asl, vlock_map_t &vmap, ExceptionSink *xsin
    }
    
    if (!rc) {
-      //printd(0, "AbstractSmartLock::block() this=%08p asl=%08p about to block on VRMutex owned by TID %d\n", this, asl, vl ? vl->tid : -1);
+      //printd(0, "AbstractSmartLock::block() this=%p asl=%p about to block on VRMutex owned by TID %d\n", this, asl, vl ? vl->tid : -1);
       rc = asl->self_wait(timeout_ms);
-      //printd(0, "AbstractSmartLock::block() this=%08p asl=%08p regrabbed lock\n", this, asl);
+      //printd(0, "AbstractSmartLock::block() this=%p asl=%p regrabbed lock\n", this, asl);
    }
 
    waiting_on = 0;
@@ -218,7 +218,7 @@ int VLock::waitOn(AbstractSmartLock *asl, vlock_map_t &vmap, ExceptionSink *xsin
 
 #ifdef DEBUG
 void VLock::show(class VLock *vl) const {
-   //printd(0, "VLock::show() this=%08p, vl=%08p vl->waiting_on=%08p (in this=%08p)\n", this, vl, vl ? vl->waiting_on : 0, vl ? find(vl->waiting_on) : 0);
+   //printd(0, "VLock::show() this=%p, vl=%p vl->waiting_on=%p (in this=%p)\n", this, vl, vl ? vl->waiting_on : 0, vl ? find(vl->waiting_on) : 0);
 }
 #endif
 
@@ -226,12 +226,12 @@ VLock::VLock(int n_tid) : waiting_on(0), tid(n_tid) {
 }
 
 VLock::~VLock() {
-   //printd(5, "VLock::~VLock() this=%08p\n", this);
+   //printd(5, "VLock::~VLock() this=%p\n", this);
    assert(begin() == end());
 }
 
 void VLock::push(AbstractSmartLock *g) {
-   //printd(5, "VLock::push() this=%08p asl=%08p size=%d\n", this, g, size());
+   //printd(5, "VLock::push() this=%p asl=%p size=%d\n", this, g, size());
    push_back(g);
 }
 

@@ -51,12 +51,12 @@ static inline int in_list(AbstractQoreNode *node, struct node_row_list_s *nlist,
 	 if (xsink->isEvent()) return 0;
 	 // resize array if necessary
 	 if (nlist[i].num_rows == nlist[i].allocated) {
-	    printd(5, "%d: old row_list: %08p\n", i, nlist[i].row_list);
+	    printd(5, "%d: old row_list: %p\n", i, nlist[i].row_list);
 	    int d = nlist[i].allocated >> 2;
 	    nlist[i].allocated += (d > ROW_BLOCK ? d : ROW_BLOCK);
 	    nlist[i].row_list = (int *)
 	       realloc(nlist[i].row_list, sizeof(int) * nlist[i].allocated);
-	    printd(5, "%d: new row_list: %08p\n", i, nlist[i].row_list);
+	    printd(5, "%d: new row_list: %p\n", i, nlist[i].row_list);
 	 }
 	 printd(5, "in_list() row %d added to list for unique value %d (%d)\n", row, i, nlist[i].num_rows);
 	 nlist[i].row_list[nlist[i].num_rows++] = row;
@@ -105,7 +105,7 @@ Context::Context(char *nme, ExceptionSink *xsink, AbstractQoreNode *exp, Abstrac
 	    return;
 	 }
 	 memcpy(row_list, next->row_list, sizeof(int) * max_pos);
-	 printd(5, "Context::Context() subcontext: max_pos=%d row_list=%08p\n", max_pos, row_list);
+	 printd(5, "Context::Context() subcontext: max_pos=%d row_list=%p\n", max_pos, row_list);
       }
    }
    else { // copy object (query) list
@@ -137,7 +137,7 @@ Context::Context(char *nme, ExceptionSink *xsink, AbstractQoreNode *exp, Abstrac
 
 	 for (int i = 0; i < max_pos; i++)
 	    row_list[i] = i;
-	 printd(5, "Context::Context() object: max_pos=%d row_list=%08p\n", max_pos, row_list);
+	 printd(5, "Context::Context() object: max_pos=%d row_list=%p\n", max_pos, row_list);
       }
       else
 	 max_pos = 0;
@@ -145,7 +145,7 @@ Context::Context(char *nme, ExceptionSink *xsink, AbstractQoreNode *exp, Abstrac
       rv.release();
    }
 
-   printd(5, "Context::Context() %s max_pos=%d row_list=%08p\n", 
+   printd(5, "Context::Context() %s max_pos=%d row_list=%p\n", 
 	  sub ? "<SUBCONTEXT>" : "<NORMAL>", max_pos, row_list);
    // check for nested contexts
 /*
@@ -166,7 +166,7 @@ Context::Context(char *nme, ExceptionSink *xsink, AbstractQoreNode *exp, Abstrac
       }
    }
 */
-   //printd(2, "Context::Context() %08p (%s) cond=%08p\n", key, key ? sense == K_DIRECT ? "direct" : "reverse" : "none", cond);
+   //printd(2, "Context::Context() %p (%s) cond=%p\n", key, key ? sense == K_DIRECT ? "direct" : "reverse" : "none", cond);
    // if there are restrictions, then evaluate each row
    if (//key || 
        cond)
@@ -182,7 +182,7 @@ Context::Context(char *nme, ExceptionSink *xsink, AbstractQoreNode *exp, Abstrac
       // iterate each row in results
       for (pos = 0; pos < max_pos; pos++)
       {
-	 //printd(5, "Context::Context() row iteration: %d/%d (%08p)\n", pos, max_pos, key);
+	 //printd(5, "Context::Context() row iteration: %d/%d (%p)\n", pos, max_pos, key);
 	 
 	 // if query is in nested context
 /*
@@ -307,7 +307,7 @@ Context::Context(char *nme, ExceptionSink *xsink, AbstractQoreNode *exp, Abstrac
 	    return;
 	 }
 
-	 printd(5, "%d: start row_list: %08p\n", max_group_pos, 
+	 printd(5, "%d: start row_list: %p\n", max_group_pos, 
 		group_values[max_group_pos].row_list);
 	 group_values[max_group_pos].row_list[0] = 
 	    master_row_list[pos];
@@ -348,7 +348,7 @@ Context::~Context() {
 	 for (i = 0; i < max_group_pos; i++) {
 	    printd(5, "%d/%d: ", i, max_group_pos);
 	    group_values[i].node->deref(0);
-	    printd(5, "row_list=%08p (num_rows=%d, allocated=%d): ",
+	    printd(5, "row_list=%p (num_rows=%d, allocated=%d): ",
 		   group_values[i].row_list,
 		   group_values[i].num_rows,
 		   group_values[i].allocated);
@@ -414,13 +414,13 @@ AbstractQoreNode *Context::evalValue(char *field, ExceptionSink *xsink) {
 
    AbstractQoreNode *rv = l->retrieve_entry(row_list[pos]);
    if (rv) rv->ref();
-   //printd(5, "Context::evalValue(%s) this=%08p pos=%d rv=%08p %s %lld\n", field, this, pos, rv, rv ? rv->getTypeName() : "none", rv && rv->getType() == NT_INT ? ((QoreBigIntNode *)rv)->val : -1);
+   //printd(5, "Context::evalValue(%s) this=%p pos=%d rv=%p %s %lld\n", field, this, pos, rv, rv ? rv->getTypeName() : "none", rv && rv->getType() == NT_INT ? ((QoreBigIntNode *)rv)->val : -1);
    //printd(5, "Context::evalValue(%s) pos=%d, val=%s\n", field, pos, rv && rv->getType() == NT_STRING ? rv->val.String->getBuffer() : "?");
    return rv;
 }
 
 QoreHashNode *Context::getRow(ExceptionSink *xsink) {
-   printd(5, "Context::getRow() value=%08p %s\n", value, value ? value->getTypeName() : "NULL");
+   printd(5, "Context::getRow() value=%p %s\n", value, value ? value->getTypeName() : "NULL");
    if (!value)
       return 0;
 
@@ -443,7 +443,7 @@ QoreHashNode *Context::getRow(ExceptionSink *xsink) {
 
 // to sort non-existing values last
 static inline int compare_templist(class Templist t1, class Templist t2) {
-   //printd(5, "t1.node=%08p pos=%d t2.node=%08p pos=%d\n", t1.node, t1.pos, t2.node, t2.pos);
+   //printd(5, "t1.node=%p pos=%d t2.node=%p pos=%d\n", t1.node, t1.pos, t2.node, t2.pos);
 
    if (is_nothing(t1.node))
       return 0;
@@ -479,7 +479,7 @@ void Context::Sort(AbstractQoreNode *snode, int sort_type) {
 	 delete [] list;
 	 return;
       }
-      printd(5, "Context::Sort() eval(): max=%d list[%d].node = %08p (refs=%d) pos=%d\n",
+      printd(5, "Context::Sort() eval(): max=%d list[%d].node = %p (refs=%d) pos=%d\n",
 	     max_pos, pos, list[pos].node ? list[pos].node : 0,
 	     list[pos].node ? list[pos].node->reference_count() : 0,
 	     row_list[pos]);
@@ -500,7 +500,7 @@ void Context::Sort(AbstractQoreNode *snode, int sort_type) {
    for (pos = 0; pos < max_pos; pos++)
    {
       row_list[pos] = list[i].pos;
-      printd(5, "Context::Sort() deref(): max=%d list[%d].node = %08p (refs=%d)\n",
+      printd(5, "Context::Sort() deref(): max=%d list[%d].node = %p (refs=%d)\n",
 	     max_pos, i, list[i].node ? list[pos].node : 0, 
 	     list[pos].node ? list[i].node->reference_count() : 0);
       discard(list[i].node, sort_xsink);
@@ -512,7 +512,7 @@ void Context::Sort(AbstractQoreNode *snode, int sort_type) {
 }
 
 int Context::next_summary() {
-   printd(5, "Context::next_summary() %08p %d/%d\n", this, group_pos, max_group_pos);
+   printd(5, "Context::next_summary() %p %d/%d\n", this, group_pos, max_group_pos);
    group_pos++;
    if (group_pos == max_group_pos)
       return 0;

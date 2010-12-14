@@ -638,7 +638,7 @@ QoreString *QoreString::convertEncoding(const QoreEncoding *nccs, ExceptionSink 
 // NOTE: not very high-performance - high-performance versions
 //       would likely be endian-aware and operate directly on 32-bit words
 void QoreString::concatBase64(const char *bbuf, qore_size_t size) {
-   //printf("bbuf=%08p, size=%d\n", bbuf, size);
+   //printf("bbuf=%p, size=%d\n", bbuf, size);
    if (!size)
       return;
 
@@ -699,7 +699,7 @@ void QoreString::concatBase64(const QoreString *str) {
 #define DO_HEX_CHAR(b) ((b) + (((b) > 9) ? 87 : 48))
 
 void QoreString::concatHex(const char *binbuf, qore_size_t size) {
-   //printf("priv->buf=%08p, size=%d\n", binbuf, size);
+   //printf("priv->buf=%p, size=%d\n", binbuf, size);
    if (!size)
       return;
 
@@ -846,7 +846,7 @@ int QoreString::vsprintf(const char *fmt, va_list args) {
 #ifdef HPUX
    // vsnprintf failed but didn't tell us how bug the priv->buffer should be
    if (i < 0) {
-      //printf("DEBUG: vsnprintf() failed: i=%d priv->allocated=%d priv->len=%d priv->buf=%08p fmtlen=%d (new=i+%d = %d)\n", i, priv->allocated, priv->len, priv->buf, fmtlen, STR_CLASS_EXTRA, i + STR_CLASS_EXTRA);
+      //printf("DEBUG: vsnprintf() failed: i=%d priv->allocated=%d priv->len=%d priv->buf=%p fmtlen=%d (new=i+%d = %d)\n", i, priv->allocated, priv->len, priv->buf, fmtlen, STR_CLASS_EXTRA, i + STR_CLASS_EXTRA);
       // resize priv->buffer
       priv->allocated += STR_CLASS_EXTRA;
       priv->buf = (char *)realloc(priv->buf, sizeof(char) * priv->allocated);
@@ -855,7 +855,7 @@ int QoreString::vsprintf(const char *fmt, va_list args) {
    }
 #else
    if (i >= free) {
-      //printd(5, "vsnprintf() failed: i=%d priv->allocated=%d priv->len=%d priv->buf=%08p fmtlen=%d (new=i+%d = %d)\n", i, priv->allocated, priv->len, priv->buf, fmtlen, STR_CLASS_EXTRA, i + STR_CLASS_EXTRA);
+      //printd(5, "vsnprintf() failed: i=%d priv->allocated=%d priv->len=%d priv->buf=%p fmtlen=%d (new=i+%d = %d)\n", i, priv->allocated, priv->len, priv->buf, fmtlen, STR_CLASS_EXTRA, i + STR_CLASS_EXTRA);
       // resize priv->buffer
       priv->allocated = priv->len + i + STR_CLASS_EXTRA;
       priv->buf = (char *)realloc(priv->buf, sizeof(char) * priv->allocated);
@@ -1016,7 +1016,7 @@ int QoreString::snprintf(size_t size, const char *fmt, ...) {
 }
 
 int QoreString::substr_simple(QoreString *ns, qore_offset_t offset, qore_offset_t length) const {
-   printd(5, "QoreString::substr_simple(offset=%d, length=%d) string=\"%s\" (this=%08p priv->len=%d)\n", 
+   printd(5, "QoreString::substr_simple(offset=%d, length=%d) string=\"%s\" (this=%p priv->len=%d)\n", 
 	  offset, length, priv->buf, this, priv->len);
 
    qore_size_t n_offset;
@@ -1045,7 +1045,7 @@ int QoreString::substr_simple(QoreString *ns, qore_offset_t offset, qore_offset_
 }
 
 int QoreString::substr_simple(QoreString *ns, qore_offset_t offset) const {
-   printd(5, "QoreString::substr_simple(offset=%d) string=\"%s\" (this=%08p priv->len=%d)\n", 
+   printd(5, "QoreString::substr_simple(offset=%d) string=\"%s\" (this=%p priv->len=%d)\n", 
 	  offset, priv->buf, this, priv->len);
 
    qore_size_t n_offset;
@@ -1063,7 +1063,7 @@ int QoreString::substr_simple(QoreString *ns, qore_offset_t offset) const {
 
 int QoreString::substr_complex(QoreString *ns, qore_offset_t offset, qore_offset_t length, ExceptionSink *xsink) const {
    QORE_TRACE("QoreString::substr_complex(offset, length)");
-   printd(5, "QoreString::substr_complex(offset=%d, length=%d) string=\"%s\" (this=%08p priv->len=%d)\n", 
+   printd(5, "QoreString::substr_complex(offset=%d, length=%d) string=\"%s\" (this=%p priv->len=%d)\n", 
 	  offset, length, priv->buf, this, priv->len);
 
    char *pend = priv->buf + priv->len;
@@ -1102,7 +1102,7 @@ int QoreString::substr_complex(QoreString *ns, qore_offset_t offset, qore_offset
 }
 
 int QoreString::substr_complex(QoreString *ns, qore_offset_t offset, ExceptionSink *xsink) const {
-   //printd(5, "QoreString::substr_complex(offset=%d) string=\"%s\" (this=%08p priv->len=%d)\n", offset, priv->buf, this, priv->len);
+   //printd(5, "QoreString::substr_complex(offset=%d) string=\"%s\" (this=%p priv->len=%d)\n", offset, priv->buf, this, priv->len);
    char *pend = priv->buf + priv->len;
    if (offset < 0) {
       qore_size_t clength = priv->charset->getLength(priv->buf, pend, xsink);
@@ -1112,7 +1112,7 @@ int QoreString::substr_complex(QoreString *ns, qore_offset_t offset, ExceptionSi
       offset = clength + offset;
 
       if ((offset < 0) || ((qore_size_t)offset >= clength)) {  // if offset outside of string, return nothing
-	 //printd(5, "this=%08p, priv->len=%d, offset=%d, clength=%d, priv->buf=%s\n", this, priv->len, offset, clength, priv->buf);
+	 //printd(5, "this=%p, priv->len=%d, offset=%d, clength=%d, priv->buf=%s\n", this, priv->len, offset, clength, priv->buf);
 	 return -1;
       }
    }
@@ -1123,7 +1123,7 @@ int QoreString::substr_complex(QoreString *ns, qore_offset_t offset, ExceptionSi
 
    //printd(5, "offset=%d, start=%d\n", offset, start);
    if (start == priv->len) {
-      //printd(5, "this=%08p, priv->len=%d, offset=%d, priv->buf=%08p, start=d, %s\n", this, priv->len, offset, priv->buf, start, priv->buf);
+      //printd(5, "this=%p, priv->len=%d, offset=%d, priv->buf=%p, start=d, %s\n", this, priv->len, offset, priv->buf, start, priv->buf);
       return -1;
    }
 

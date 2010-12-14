@@ -1786,9 +1786,25 @@ method_definition:
 	   checkMethod($2, $5, $6);
 	   $$ = new MethodNode($2, newMethodVariant($2, $1, @3.first_line, @3.last_line, $3, $5, $6, $7, $1 & OFM_DEPRECATED), $1 & OFM_STATIC);
 	}
+        | method_modifiers uncqtypedef ident_openparen myexp ')' base_constructor_list block {
+	   RetTypeInfo *rt = new RetTypeInfo($2->getParseTypeInfo(), $2->getTypeInfo());
+	   delete $2;
+	   
+	   checkMethod($3, $6, rt);
+
+	   $$ = new MethodNode($3, newMethodVariant($3, $1, @4.first_line, @4.last_line, $4, $6, rt, $7, $1 & OFM_DEPRECATED), $1 & OFM_STATIC);
+	}
 	| ident_openparen myexp ')' base_constructor_list return_value block {
 	   checkMethod($1, $4, $5);
 	   $$ = new MethodNode($1, newMethodVariant($1, 0, @2.first_line, @2.last_line, $2, $4, $5, $6), false);
+	}
+	| uncqtypedef ident_openparen myexp ')' base_constructor_list block {
+	   RetTypeInfo *rt = new RetTypeInfo($1->getParseTypeInfo(), $1->getTypeInfo());
+	   delete $1;
+
+	   checkMethod($2, $5, rt);
+
+	   $$ = new MethodNode($2, newMethodVariant($2, 0, @3.first_line, @3.last_line, $3, $5, rt, $6), false);
 	}
 	;
 
@@ -1796,8 +1812,20 @@ object_outofline_function_def:
 	method_modifiers SCOPED_REF '(' myexp ')' base_constructor_list return_value block {
 	   tryAddMethod($1, $2, @4.first_line, @4.last_line, $4, $6, $7, $8);
 	}
+	|method_modifiers uncqtypedef SCOPED_REF '(' myexp ')' base_constructor_list block {
+	   RetTypeInfo *rt = new RetTypeInfo($2->getParseTypeInfo(), $2->getTypeInfo());
+	   delete $2;
+
+	   tryAddMethod($1, $3, @5.first_line, @5.last_line, $5, $7, rt, $8);
+	}
 	| SCOPED_REF '(' myexp ')' base_constructor_list return_value block {
 	   tryAddMethod(0, $1, @3.first_line, @3.last_line, $3, $5, $6, $7);
+	}
+	| uncqtypedef SCOPED_REF '(' myexp ')' base_constructor_list block {
+	   RetTypeInfo *rt = new RetTypeInfo($1->getParseTypeInfo(), $1->getTypeInfo());
+	   delete $1;
+
+	   tryAddMethod(0, $2, @4.first_line, @4.last_line, $4, $6, rt, $7);
 	}
 	;
 
@@ -1867,6 +1895,15 @@ sub_def:
 	   int64 flags = ar > 0 ? QC_USES_EXTRA_ARGS : QC_NO_FLAGS;
 	   addUserFunctionVariant($2, new UserFunctionVariant($6, @3.first_line, @3.last_line, $3, $5, false, flags));
 	}
+        | uncqtypedef TOK_SUB ident_openparen myexp ')' block { 
+	   int ar = get_pop_argv_ref();
+	   int64 flags = ar > 0 ? QC_USES_EXTRA_ARGS : QC_NO_FLAGS;
+	   
+	   RetTypeInfo *rt = new RetTypeInfo($1->getParseTypeInfo(), $1->getTypeInfo());
+	   delete $1;
+
+	   addUserFunctionVariant($3, new UserFunctionVariant($6, @4.first_line, @4.last_line, $4, rt, false, flags));
+	}
 	| method_modifiers TOK_SUB ident_openparen myexp ')' return_value block {
 	   check_funcmod($1);
 	   int ar = get_pop_argv_ref();
@@ -1874,6 +1911,18 @@ sub_def:
 	   if ($1 & OFM_DEPRECATED)
 	      flags |= QC_DEPRECATED;
 	   addUserFunctionVariant($3, new UserFunctionVariant($7, @4.first_line, @4.last_line, $4, $6, $1 & OFM_SYNCED, flags)); 
+	}
+	| method_modifiers uncqtypedef TOK_SUB ident_openparen myexp ')' block {
+	   check_funcmod($1);
+	   int ar = get_pop_argv_ref();
+	   int64 flags = ar > 0 ? QC_USES_EXTRA_ARGS : QC_NO_FLAGS;
+	   if ($1 & OFM_DEPRECATED)
+	      flags |= QC_DEPRECATED;
+
+	   RetTypeInfo *rt = new RetTypeInfo($2->getParseTypeInfo(), $2->getTypeInfo());
+	   delete $2;
+
+	   addUserFunctionVariant($4, new UserFunctionVariant($7, @5.first_line, @5.last_line, $5, rt, $1 & OFM_SYNCED, flags)); 
 	}
 	;
 
@@ -2311,14 +2360,14 @@ exp:    scalar
 	   $$ = new QoreTreeNode($1, OP_POST_DECREMENT, 0);
         }
 	| exp '(' myexp ')' {
-	   //printd(5, "1=%s (%08p), 3=%s (%08p)\n", $1->getTypeName(), $1, $3 ? $3->getTypeName() : "n/a", $3); 
+	   //printd(5, "1=%s (%p), 3=%s (%p)\n", $1->getTypeName(), $1, $3 ? $3->getTypeName() : "n/a", $3); 
 	   qore_type_t t = $1 ? $1->getType() : 0;
 	   if (t == NT_BAREWORD) {
 	      BarewordNode *b = reinterpret_cast<BarewordNode *>($1);
 	      // take string from node and delete node
 	      char *str = b->takeString();
 	      b->deref();
-	      printd(5, "parsing call %s() args=%08p %s\n", str, $3, $3 ? $3->getTypeName() : "n/a");
+	      printd(5, "parsing call %s() args=%p %s\n", str, $3, $3 ? $3->getTypeName() : "n/a");
 	      $$ = new FunctionCallNode(str, makeArgs($3));
 	   }
 	   else if (t == NT_CONSTANT) {
@@ -2356,7 +2405,7 @@ exp:    scalar
 		 char *cstr = str->giveBuffer();
 		 str->deref();
 		 
-		 //printd(5, "method call to %s: tree=%s, args=%08p %s\n", cstr, tree->left->getTypeName(), $3, $3 ? $3->getTypeName() : "n/a");
+		 //printd(5, "method call to %s: tree=%s, args=%p %s\n", cstr, tree->left->getTypeName(), $3, $3 ? $3->getTypeName() : "n/a");
 
 		 MethodCallNode *mc = new MethodCallNode(cstr, makeArgs($3));
 		 tree->right = mc;
@@ -2478,7 +2527,7 @@ exp:    scalar
 		       tree->right = 0;
 		       tree->deref();
 		       $$ = new ParseObjectMethodReferenceNode(exp, meth);
-		       //printd(5, "made parse object method reference: exp=%08p meth=%s (node=%08p)\n", exp, meth, $$);
+		       //printd(5, "made parse object method reference: exp=%p meth=%s (node=%p)\n", exp, meth, $$);
 		       make_ref = false;
 		    }
 		 }
@@ -2531,6 +2580,13 @@ exp:    scalar
 	   int ar = get_pop_argv_ref();
 	   $$ = new QoreClosureParseNode(new UserClosureFunction($6, @3.first_line, @3.last_line, $3, $5, false, ar > 0 ? QC_USES_EXTRA_ARGS : QC_NO_FLAGS));
 	}
+        | uncqtypedef TOK_SUB '(' myexp ')' block {
+	   RetTypeInfo *rt = new RetTypeInfo($1->getParseTypeInfo(), $1->getTypeInfo());
+	   delete $1;
+
+	   int ar = get_pop_argv_ref();
+	   $$ = new QoreClosureParseNode(new UserClosureFunction($6, @4.first_line, @4.last_line, $4, rt, false, ar > 0 ? QC_USES_EXTRA_ARGS : QC_NO_FLAGS));
+	}
 	| method_modifiers TOK_SUB '(' myexp ')' return_value block {
 	   check_funcmod($1);
 	   int ar = get_pop_argv_ref();
@@ -2538,6 +2594,18 @@ exp:    scalar
 	   if ($1 & OFM_DEPRECATED)
 	      flags |= QC_DEPRECATED;
 	   $$ = new QoreClosureParseNode(new UserClosureFunction($7, @4.first_line, @4.last_line, $4, $6, $1 | OFM_SYNCED, flags));
+	}
+	| method_modifiers uncqtypedef TOK_SUB '(' myexp ')' block {
+	   check_funcmod($1);
+
+	   RetTypeInfo *rt = new RetTypeInfo($2->getParseTypeInfo(), $2->getTypeInfo());
+	   delete $2;
+
+	   int ar = get_pop_argv_ref();
+	   int64 flags = ar > 0 ? QC_USES_EXTRA_ARGS : QC_NO_FLAGS;
+	   if ($1 & OFM_DEPRECATED)
+	      flags |= QC_DEPRECATED;
+	   $$ = new QoreClosureParseNode(new UserClosureFunction($7, @5.first_line, @5.last_line, $5, rt, $1 | OFM_SYNCED, flags));
 	}
         | IMPLICIT_ARG_REF { 
 	   $$ = $1;

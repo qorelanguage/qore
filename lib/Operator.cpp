@@ -3182,7 +3182,7 @@ int Operator::get_function(const QoreNodeEvalOptionalRefHolder &nleft, const Qor
 // 2: evalArgs 2 arguments
 // 3: pass-through all arguments
 AbstractQoreNode *Operator::eval(const AbstractQoreNode *left_side, const AbstractQoreNode *right_side, bool ref_rv, ExceptionSink *xsink) const {
-   printd(5, "evaluating operator %s (0x%p 0x%p)\n", description, left_side, right_side);
+   printd(5, "evaluating operator %s (%p %p)\n", description, left_side, right_side);
    if (evalArgs) {
       QoreNodeEvalOptionalRefHolder nleft(left_side, xsink);
       if (*xsink)
@@ -3223,7 +3223,7 @@ AbstractQoreNode *Operator::eval(const AbstractQoreNode *left_side, const Abstra
 // 2: evalArgs 2 arguments
 // 3: pass-through all arguments
 bool Operator::bool_eval(const AbstractQoreNode *left_side, const AbstractQoreNode *right_side, ExceptionSink *xsink) const {
-   printd(5, "evaluating operator %s (0x%p 0x%p)\n", description, left_side, right_side);
+   printd(5, "evaluating operator %s (%p %p)\n", description, left_side, right_side);
    if (evalArgs) {
       QoreNodeEvalOptionalRefHolder nleft(left_side, xsink);
       if (*xsink)
@@ -3263,7 +3263,7 @@ bool Operator::bool_eval(const AbstractQoreNode *left_side, const AbstractQoreNo
 // 2: evalArgs 2 arguments
 // 3: pass-through all arguments
 int64 Operator::bigint_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, ExceptionSink *xsink) const {
-   printd(5, "evaluating operator %s (0x%p 0x%p)\n", description, left, right);
+   printd(5, "evaluating operator %s (%p %p)\n", description, left, right);
    if (evalArgs) {
       QoreNodeEvalOptionalRefHolder nleft(left, xsink);
       if (*xsink)
@@ -3304,7 +3304,7 @@ int64 Operator::bigint_eval(const AbstractQoreNode *left, const AbstractQoreNode
 // 2: evalArgs 2 arguments
 // 3: pass-through all arguments
 double Operator::float_eval(const AbstractQoreNode *left, const AbstractQoreNode *right, ExceptionSink *xsink) const {
-   printd(5, "evaluating operator %s (0x%p 0x%p)\n", description, left, right);
+   printd(5, "evaluating operator %s (%p %p)\n", description, left, right);
    if (evalArgs) {
       QoreNodeEvalOptionalRefHolder nleft(left, xsink);
       if (*xsink)

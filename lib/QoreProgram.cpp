@@ -157,7 +157,7 @@ struct qore_program_private {
    QoreProgram *pgm;
 
    DLLLOCAL qore_program_private(QoreProgram *n_pgm, int64 n_parse_options, const AbstractQoreZoneInfo *n_TZ = QTZM.getLocalZoneInfo()) : thread_count(0), parse_options(n_parse_options), TZ(n_TZ), pgm(n_pgm) {
-      printd(5, "QoreProgram::QoreProgram() (init()) this=%08p\n", this);
+      printd(5, "QoreProgram::QoreProgram() (init()) this=%p\n", this);
       only_first_except = false;
       exceptions_raised = 0;
 #ifdef DEBUG
@@ -307,7 +307,7 @@ struct qore_program_private {
 
    // call must push the current program on the stack and pop it afterwards
    DLLLOCAL int internParsePending(const char *code, const char *label) {
-      printd(5, "QoreProgram::internParsePending(code=%08p, label=%s)\n", code, label);
+      printd(5, "QoreProgram::internParsePending(code=%p, label=%s)\n", code, label);
 	 
       if (!(*code))
 	 return 0;
@@ -319,8 +319,7 @@ struct qore_program_private {
       beginParsing(sname);
 
       // no need to save buffer, because it's deleted automatically in lexer
-
-      printd(5, "QoreProgram::internParsePending() parsing tag=%s (%08p): '%s'\n", label, label, code);
+      //printd(5, "QoreProgram::internParsePending() parsing tag=%s (%p): '%s'\n", label, label, code);
 
       yyscan_t lexer;
       yylex_init(&lexer);
@@ -364,7 +363,7 @@ struct qore_program_private {
    // caller must have grabbed the lock and put the current program on the program stack
    DLLLOCAL int internParseCommit() {
       QORE_TRACE("QoreProgram::internParseCommit()");
-      printd(5, "QoreProgram::internParseCommit() pgm=%08p isEvent=%d\n", pgm, parseSink->isEvent());
+      printd(5, "QoreProgram::internParseCommit() pgm=%p isEvent=%d\n", pgm, parseSink->isEvent());
 
       // if the first stage of parsing has already failed, 
       // then don't go forward
@@ -376,7 +375,7 @@ struct qore_program_private {
 	 // initialize all new global variables (resolve types)
 	 global_var_list.parseInit(parse_options);
 
-	 printd(5, "QoreProgram::internParseCommit() this=%08p RootNS=%08p\n", pgm, RootNS);
+	 printd(5, "QoreProgram::internParseCommit() this=%p RootNS=%p\n", pgm, RootNS);
       }
 	 
       // if a parse exception has occurred, then back out all new
@@ -451,13 +450,13 @@ struct qore_program_private {
    }
 
    DLLLOCAL void parse(FILE *fp, const char *name, ExceptionSink *xsink, ExceptionSink *wS, int wm) {
-      printd(5, "QoreProgram::parse(fp=%08p, name=%s, xsink=%08p, wS=%08p, wm=%d)\n", fp, name, xsink, wS, wm);
+      printd(5, "QoreProgram::parse(fp=%p, name=%s, xsink=%p, wS=%p, wm=%d)\n", fp, name, xsink, wS, wm);
 
       // if already at the end of file, then return
       // try to get one character from file
       int c = fgetc(fp);
       if (feof(fp)) {
-	 printd(5, "QoreProgram::parse(fp=%08p, name=%s) EOF\n", fp, name);
+	 printd(5, "QoreProgram::parse(fp=%p, name=%s) EOF\n", fp, name);
 	 return;
       }
       // push back read character
@@ -608,7 +607,7 @@ struct qore_program_private {
    }
 
    DLLLOCAL void del(ExceptionSink *xsink) {
-      printd(5, "QoreProgram::del() pgm=%08p (base_object=%d)\n", pgm, base_object);
+      printd(5, "QoreProgram::del() pgm=%p (base_object=%d)\n", pgm, base_object);
       // wait for all threads to terminate
       waitForAllThreadsToTerminate();
 
@@ -642,7 +641,7 @@ struct qore_program_private {
 
    DLLLOCAL QoreHashNode *clearThreadData(ExceptionSink *xsink) {
       QoreHashNode *h = thread_local_storage->get();
-      printd(5, "QoreProgram::clearThreadData() this=%08p h=%08p (size=%d)\n", this, h, h->size());
+      printd(5, "QoreProgram::clearThreadData() this=%p h=%p (size=%d)\n", this, h, h->size());
       h->clear(xsink);
       return h;
    }
@@ -721,7 +720,7 @@ struct qore_program_private {
 };
 
 QoreProgram::~QoreProgram() {
-   printd(5, "QoreProgram::~QoreProgram() this=%08p\n", this);
+   printd(5, "QoreProgram::~QoreProgram() this=%p\n", this);
    delete priv;
 }
 
@@ -775,7 +774,7 @@ QoreThreadLock *QoreProgram::getParseLock() {
 }
 
 void QoreProgram::deref(ExceptionSink *xsink) {
-   //printd(5, "QoreProgram::deref() this=%08p %d->%d\n", this, reference_count(), reference_count() - 1);
+   //printd(5, "QoreProgram::deref() this=%p %d->%d\n", this, reference_count(), reference_count() - 1);
    if (ROdereference()) {
       // delete all global variables
       priv->global_var_list.clear_all(xsink);
@@ -913,7 +912,7 @@ void QoreProgram::addParseException(ExceptionSink *xsink) {
 void QoreProgram::makeParseWarning(int code, const char *warn, const char *fmt, ...) {
    QORE_TRACE("QoreProgram::makeParseWarning()");
 
-   //printd(5, "QP::mPW(code=%d, warn='%s', fmt='%s') priv->warn_mask=%d priv->warnSink=%08p %s\n", code, warn, fmt, priv->warn_mask, priv->warnSink, priv->warnSink && (code & priv->warn_mask) ? "OK" : "SKIPPED");
+   //printd(5, "QP::mPW(code=%d, warn='%s', fmt='%s') priv->warn_mask=%d priv->warnSink=%p %s\n", code, warn, fmt, priv->warn_mask, priv->warnSink, priv->warnSink && (code & priv->warn_mask) ? "OK" : "SKIPPED");
    if (!priv->warnSink || !(code & priv->warn_mask))
       return;
 
@@ -933,7 +932,7 @@ void QoreProgram::makeParseWarning(int code, const char *warn, const char *fmt, 
 void QoreProgram::makeParseWarning(int sline, int eline, const char *file, int code, const char *warn, const char *fmt, ...) {
    QORE_TRACE("QoreProgram::makeParseWarning()");
 
-   //printd(5, "QP::mPW(code=%d, warn='%s', fmt='%s') priv->warn_mask=%d priv->warnSink=%08p %s\n", code, warn, fmt, priv->warn_mask, priv->warnSink, priv->warnSink && (code & priv->warn_mask) ? "OK" : "SKIPPED");
+   //printd(5, "QP::mPW(code=%d, warn='%s', fmt='%s') priv->warn_mask=%d priv->warnSink=%p %s\n", code, warn, fmt, priv->warn_mask, priv->warnSink, priv->warnSink && (code & priv->warn_mask) ? "OK" : "SKIPPED");
    if (!priv->warnSink || !(code & priv->warn_mask))
       return;
 
@@ -953,7 +952,7 @@ void QoreProgram::makeParseWarning(int sline, int eline, const char *file, int c
 void QoreProgram::makeParseWarning(int code, const char *warn, QoreStringNode *desc) {
    QORE_TRACE("QoreProgram::makeParseWarning()");
 
-   //printd(5, "QoreProgram::makeParseWarning(code=%d, warn='%s', desc='%s') priv->warn_mask=%d priv->warnSink=%08p %s\n", code, warn, desc->getBuffer(), priv->warn_mask, priv->warnSink, priv->warnSink && (code & priv->warn_mask) ? "OK" : "SKIPPED");
+   //printd(5, "QoreProgram::makeParseWarning(code=%d, warn='%s', desc='%s') priv->warn_mask=%d priv->warnSink=%p %s\n", code, warn, desc->getBuffer(), priv->warn_mask, priv->warnSink, priv->warnSink && (code & priv->warn_mask) ? "OK" : "SKIPPED");
    if (!priv->warnSink || !(code & priv->warn_mask)) {
       desc->deref();
       return;
@@ -1089,12 +1088,12 @@ QoreNamespace *QoreProgram::getQoreNS() const {
 }
 
 void QoreProgram::depRef() {
-   //printd(5, "QoreProgram::depRef() this=%08p %d->%d\n", this, priv->dc.reference_count(), priv->dc.reference_count() + 1);
+   //printd(5, "QoreProgram::depRef() this=%p %d->%d\n", this, priv->dc.reference_count(), priv->dc.reference_count() + 1);
    priv->dc.ROreference();
 }
 
 void QoreProgram::depDeref(ExceptionSink *xsink) {
-   //printd(5, "QoreProgram::depDeref() this=%08p %d->%d\n", this, priv->dc.reference_count(), priv->dc.reference_count() - 1);
+   //printd(5, "QoreProgram::depDeref() this=%p %d->%d\n", this, priv->dc.reference_count(), priv->dc.reference_count() - 1);
    if (priv->dc.ROdereference()) {
       priv->del(xsink);
       delete this;
@@ -1249,7 +1248,7 @@ AbstractCallReferenceNode *QoreProgram::resolveCallReference(UnresolvedProgramCa
    {
       ImportedFunctionEntry *ifn;
       if ((ifn = priv->imported_func_list.findNode(fname))) {
-	 printd(5, "QoreProgram::resolveCallReference() resolved function reference to imported function %s (pgm=%08p, func=%08p)\n", fname, ifn->getProgram(), ifn->getFunction());
+	 printd(5, "QoreProgram::resolveCallReference() resolved function reference to imported function %s (pgm=%p, func=%p)\n", fname, ifn->getProgram(), ifn->getFunction());
 	 return new UserCallReferenceNode(ifn->getFunction(), ifn->getProgram());
       }
    }

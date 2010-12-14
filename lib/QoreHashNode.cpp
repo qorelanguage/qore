@@ -623,10 +623,10 @@ AbstractQoreNode *QoreHashNode::parseInit(LocalVar *oflag, int pflag, int &lvids
          // currently type information is ignored
          const QoreTypeInfo *keyTypeInfo = 0;
          if (k[0] == HE_TAG_CONST)
-            rv = getRootNS()->findConstantValue(k + 1, 1, keyTypeInfo);
+            rv = getRootNS()->findConstantValue(k + 1, keyTypeInfo);
          else {
             NamedScope *nscope = new NamedScope(strdup(k + 1));
-            rv = getRootNS()->findConstantValue(nscope, 1, keyTypeInfo);
+            rv = getRootNS()->findConstantValue(nscope, keyTypeInfo);
             delete nscope;
          }
          if (rv) {
