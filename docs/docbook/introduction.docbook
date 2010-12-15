@@ -105,9 +105,7 @@ any valid statement may be used in the positions indicated.</para>
 
 <para><code><command>sub</command> name([<replaceable>$variable1</replaceable>,<replaceable> $variable2</replaceable>, ...])</code></para>
 
-<para>indicating that an arbitrarily long 
-list of variable names separated by commas (or nothing at all) may appear in 
-subroutine (function) declarations.</para>
+<para>indicating that an arbitrarily long list of variable names separated by commas (or nothing at all) may appear in function declarations.</para>
 
 </sect1>
 

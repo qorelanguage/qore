@@ -6,15 +6,15 @@
   <sect1 id="Language_Overview">
     <title>Language Overview</title>
 
-    <para>A Qore program is composed of a series of declarations, statements, subroutine definitions, and/or class definitions. Non-block statements are terminated by a semi-colon ";". Block statements are grouped by using curly brackets ("{" and "}"), as in C, C++, Java, and Perl.</para>
+    <para>A Qore program is composed of a series of declarations, statements, function definitions, and/or class definitions. Non-block statements are terminated by a semi-colon ";". Block statements are grouped by using curly brackets ("{" and "}"), as in C, C++, Java, and Perl.</para>
 
     <para>Programmers familiar with C, C++, Java, and/or Perl should find the standard Qore syntax intuitive and should be productive fairly quickly with the language. However Qore has unique features that differentiate it from other languages, and these features must be mastered in order to leverage the full power of Qore.</para>
     
     <para>Qore programs/scripts are free form. Formatting does not affect the execution of the program; formatting is at the discretion of the programmer and should be used to enhance readability and clarity of the source code.</para>
 
-    <para>Qore was creaetd as a weakly typed language. That means that variables without type restructions can hold values of any type and subroutines with out type restrictions can return any value type (or none at all, see <link linkend='Variables'>Variables</link>) and take arguments of any type. Furthermore list elements can be of any type (they do not have to be uniform), and multidimensional lists can have a different number of elements in each list. The same type flexibility holds true of hashes, objects, and all combinations of container types.</para>
+    <para>Qore was created as a weakly typed language. That means that variables without type restrictions can hold values of any type and functions without type restrictions can return any value type (or none at all, see <link linkend='Variables'>Variables</link>) and take arguments of any type. Furthermore list elements can be of any type (they do not have to be uniform), and multidimensional lists can have a different number of elements in each list. The same type flexibility holds true of hashes, objects, and all combinations of container types.</para>
 
-    <para>Qore can be used a a traditional subroutine-based scripting language or as a pure object-oriented language, where the application is defined as a class. Aside from traditional local and global variables, constants, and subroutines, Qore also supports nested namespaces, classes, multiple inheritance, overriding base class constructor arguments, private members and methods, and static class methods.</para>
+    <para>Qore can be used a a traditional function-based scripting language or as a pure object-oriented language, where the application is defined as a class. Aside from traditional local and global variables, constants, and functions, Qore also supports nested namespaces, classes, multiple inheritance, overriding base class constructor arguments, private members and methods, and static class methods.</para>
     
     <para>All elements of Qore are designed to work together seamlessly: <link linkend="Datasource_Class">database access</link>, <link linkend="XML_Integration">XML transformations</link>, <link linkend="Socket_Class">socket communication</link>, <link linkend="Program_Class">embedding logic</link> in subprograms, <link linkend="Regular_Expressions">regular expressions</link>, <link linkend="Operators">operators</link>, <link linkend="Function_Library">functions</link>, and all other elements are thread-safe and built on an execution engine that was designed for SMP scalability.</para>
 
@@ -194,7 +194,7 @@
     <programlisting>#!/usr/bin/qore
 %include /usr/qore/lib/functions.lib</programlisting>
     
-    <para>After this, any variable, subroutine, namespace, constant, or object declared in the above file can be used by the Qore program.</para>
+    <para>After this, any variable, function, namespace, constant, or object declared in the above file can be used by the Qore program.</para>
     
     <para>The <code>QORE_INCLUDE_DIR</code> environment variable determines the search path for include files.</para>
     
@@ -328,7 +328,7 @@
 	    <entry><para><code>$argv</code></para></entry>
 	    <entry><para>Local</para></entry>
 	    <entry><para>List</para></entry>
-	    <entry><para>automatically assigned local variable containing the list of subroutine or method arguments that were not assigned to parameter variables (see <link linkend='Subroutines'>Subroutines</link> and <link linkend="Implicit_Arguments">Implicit Arguments</link> for supporting related information)</para></entry>
+	    <entry><para>automatically assigned local variable containing the list of function or method arguments that were not assigned to parameter variables (see <link linkend='Functions'>Functions</link> and <link linkend="Implicit_Arguments">Implicit Arguments</link> for supporting related information)</para></entry>
 	  </row>
 	  <row id="ARGV">
 	    <entry><para><code>$ARGV</code></para></entry>
@@ -357,7 +357,7 @@
 <sect2 id="Variable_Declarations_And_Lexical_Scope">
 <title>Variable Declarations and Lexical Scope</title>
 
-<para>Variables not in a parameter list automatically have global scope unless the first reference is prefixed with <command>my</command>.  Variable names in a parameter list are always local to their associated subroutine, method, or catch block. Global variables can be explicitly declared with <command>our</command>.  The <command>our</command> keyword is required if the parse option <code><link linkend="require-our">PO_REQUIRE_OUR</link></code> (<code>-O</code> or <code>--require-our</code> command-line option) is set for the parent program.  See the section on <link linkend="Parse_Options">Parse Options</link> for more information.</para>
+<para>Variables not in a parameter list automatically have global scope unless the first reference is prefixed with <command>my</command>.  Variable names in a parameter list are always local to their associated function, method, or catch block. Global variables can be explicitly declared with <command>our</command>.  The <command>our</command> keyword is required if the parse option <code><link linkend="require-our">PO_REQUIRE_OUR</link></code> (<code>-O</code> or <code>--require-our</code> command-line option) is set for the parent program.  See the section on <link linkend="Parse_Options">Parse Options</link> for more information.</para>
 
 <para>Variables may be assigned any value unless restricted with a <link linkend="Data_Type_Declarations">type declaration</link>.  If no type declaration is given, then the variable is assumed to be type <link linkend="any_type">any</link>.  Note that type declarations are required for all variables (and for function and method parameters and class members) when the <code><link linkend="require-types">PO_REQUIRE_TYPES</link></code> parse option is set.</para>
 
@@ -831,7 +831,7 @@ False</programlisting></note>
 
     <para>For more information, see <link linkend="Object_Method_Calls">Object Method Calls</link>.</para>
 
-    <para>The object references above are normally variable references holding an object, but could be any expression that returns an object, such as a <link linkend="New_Object_Operator"><command>new</command></link> expression or even a subroutine call.</para>
+    <para>The object references above are normally variable references holding an object, but could be any expression that returns an object, such as a <link linkend="New_Object_Operator"><command>new</command></link> expression or even a function call.</para>
 
     <note>
       <para>Objects are treated differently than other Qore data types; they are only explicitly copied (see <link linkend="Object_References">Object References</link> for more informaion).  Any object instantiated with the <link linkend='New_Object_Operator'><command>new</command></link> operator will remain unique until deleted or explicitly copied.  An explicit copy is made with the <link linkend="copy_methods">copy method</link>, and does not always guarantee an exact copy of the source object (it depends on the definition of the copy method for the class in question).</para>
@@ -1096,12 +1096,12 @@ False</programlisting></note>
 
     <para>Functions and methods can be overloaded if parameter types are declared as in the following example:</para>
 
-  <programlisting><command>sub</command> example(int $i) <command>returns</command> int {
+  <programlisting>int <command>sub</command> example(int $i) {
     printf("i=%d\n", $i);
     <command>return</command> $i + 1;
 }
 
-<command>sub</command> example(string $str) <command>returns</command> string {
+<command>string sub</command> example(string $str) {
     printf("str=%s\n", $str);
     <command>return</command> $str + "foo";
 }</programlisting>
@@ -1359,8 +1359,8 @@ False</programlisting></note>
 	    </entry>
 	  </row>
 	  <row>
-	    <entry><para>A subroutine/function call</para></entry>
-	    <entry><para>Qore subroutine calls (see <link linkend="Subroutines">Subroutines</link> for more information)</para></entry>
+	    <entry><para>A function call</para></entry>
+	    <entry><para>Qore function calls (see <link linkend="Functions">Functions</link> for more information)</para></entry>
 	    <entry><programlisting>calculate($var1, $var2, "string", 4)</programlisting></entry>
 	  </row>
 	  <row>
@@ -1432,7 +1432,7 @@ $a || $b
 	  <row>
 	    <entry><para>A <link linkend="closures">closure</link></para></entry>
 	    <entry><para>An anonymous function used a value; technically in computer science a closure must have at least one bound variable, but in qore a closure is any function used as a value, whether or not it encloses local variables from the scope in which it was created or not.</para></entry>
-	    <entry><programlisting><command>sub</command> (string $a) returns string { return $a + $b; }</programlisting></entry>
+	    <entry><programlisting>string <command>sub</command> (string $a) { return $a + $b; }</programlisting></entry>
 	  </row>
 	  <row>
 	    <entry><para>A call reference call</para></entry>
@@ -1591,6 +1591,8 @@ $call_ref = \$object.method_name();</programlisting>
 	  <term>Syntax</term>
 	  <listitem>
 	    <para>
+	      <programlisting>[<replaceable><link linkend="Data_Type_Declarations">return_type</link></replaceable>] <command>sub</command> ([<replaceable>[<link linkend="Data_Type_Declarations">type</link>] variable1, ...</replaceable>]) { <replaceable>code...</replaceable> }</programlisting>
+	      or the alternate syntax with the <command>returns</command> keyword after the parameters:
 	      <programlisting><command>sub</command> ([<replaceable>[<link linkend="Data_Type_Declarations">type</link>] variable1, ...</replaceable>]) [<command>returns</command> <replaceable><link linkend="Data_Type_Declarations">type</link></replaceable>] { <replaceable>code...</replaceable> }</programlisting>
 	    </para>
 	  </listitem>
@@ -1608,7 +1610,7 @@ $call_ref = \$object.method_name();</programlisting>
 	  <listitem>
 	    <programlisting># if $b is a local variable in the function where the closure is created
 # then $b will be bound to the closure when the closure is created
-<command>my</command> code $closure = <command>sub</command> (int $a) <command>returns</command> int { <command>return</command> $a + $b; };</programlisting>
+<command>my</command> code $closure = int <command>sub</command> (int $a) { <command>return</command> $a + $b; };</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
@@ -2620,7 +2622,7 @@ $var[1].count++;
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para><command>return</command> statements causes the flow of execution of the subroutine, method or program to stop immediately and return to the caller.  This statement can take an optional expression to return a value to the caller as well.</para>
+	    <para><command>return</command> statements causes the flow of execution of the function, method or program to stop immediately and return to the caller.  This statement can take an optional expression to return a value to the caller as well.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -2632,13 +2634,13 @@ $var[1].count++;
 	<varlistentry>
 	  <term>Description</term>
 	  <listitem>
-	    <para>This statement causes execution of the current subroutine, method, or program to cease and optionalls returns a value to the caller.</para>
+	    <para>This statement causes execution of the current function, method, or program to cease and optionalls returns a value to the caller.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting><command>sub</command> getName() <command>returns</command> string {
+	    <programlisting>string <command>sub</command> getName() {
    <command>return</command> "Barney";
 }
 
@@ -2786,49 +2788,56 @@ $var[1].count++;
 
 </sect1>
 
-<sect1 id="Subroutines">
-<title>Subroutines</title>
+<sect1 id="Functions">
+<title>Functions</title>
 
-<para>A subroutine is declared in Qore by using the key word <command>sub</command> as follows:</para>
+<para>A function is declared in Qore by using the key word <command>sub</command> (for subroutine) as follows:</para>
 
-<programlisting><command>sub</command> <replaceable>subroutine_name</replaceable>([<replaceable>[<link linkend="Data_Type_Declarations">type</link>] variable1, ...</replaceable>]) [<command>returns</command> <replaceable><link linkend="Data_Type_Declarations">type</link></replaceable>] {
+<programlisting>[<replaceable><link linkend="Data_Type_Declarations">return_type</link></replaceable>] <command>sub</command> <replaceable>function_name</replaceable>([<replaceable>[<link linkend="Data_Type_Declarations">type</link>] variable1, ...</replaceable>]) {
     <replaceable>statements;</replaceable>
 }
 </programlisting>
 
-<para>Variables listed in parentheses after the subroutine name are the parameters to the subrouting and automatically get local lexical scoping.  In order to process a variable number of arguments to a function, the <code>$argv</code> variable (local variable) is instantiated as a list with the remaining arguments passed to the subroutine.  <link linkend="Data_Type_Declarations">Type declarations</link> optionally precede the parameter variable and will restrict any arguments passed to the type declared.   The same subrouting can be declared multiple times if each declaration has different parameter types; this is called <link linkend="Overloading">overloading</link> the subroutine.</para>
+or the alternate syntax with the <command>returns</command> keyword:
 
-<para>Subroutines can use the <command>return</command> statement to provide a return value. Subroutine names must be valid Qore identifiers.</para>
+<programlisting><command>sub</command> <replaceable>function_name</replaceable>([<replaceable>[<link linkend="Data_Type_Declarations">type</link>] variable1, ...</replaceable>]) [<command>returns</command> <replaceable><link linkend="Data_Type_Declarations">type</link></replaceable>] {
+    <replaceable>statements;</replaceable>
+}
+</programlisting>
 
-<para>The return type of the subroutine can be given by listing a <link linkend="Data_Type_Declarations">type declaration</link> after the <command>returns</command> keyword after the parentheses after the subroutine name.</para>
+<para>Variables listed in parentheses after the function name are the parameters to the function and automatically get local lexical scoping.  In order to process a variable number of arguments to a function, the <code>$argv</code> variable (local variable) is instantiated as a list with the remaining arguments passed to the function.  <link linkend="Data_Type_Declarations">Type declarations</link> optionally precede the parameter variable and will restrict any arguments passed to the type declared.   The same function can be declared multiple times if each declaration has different parameter types; this is called <link linkend="Overloading">overloading</link> the function.</para>
+
+<para>Functions use the <command>return</command> statement to provide a return value. Function names must be valid Qore identifiers.</para>
+
+<para>The return type of the function can be given by placing a <link linkend="Data_Type_Declarations">type declaration</link> before the <command>sub</command> keyword (the older syntax with the <command>returns</command> keyword after the parameter list is still accepted as well).</para>
 
 <para>Note that parameter and return types are required when the <code><link linkend="require-types">PO_REQUIRE_TYPES</link></code> or <code><link linkend="require-prototypes">PO_REQUIRE_PROTOTYPES</link></code> parse options are set.</para>
 
-<note><para>Variables passed as function arguments are passed by value by default, unless the caller places a "\" character before an lvalue in the argument list. In this case the subroutine must have a parameter defined to accept the variable passed by reference. Any changes to the local variable will be reflected in the original variable for variables passed by reference. Also note that it is illegal to pass an argument by reference in a background expression.</para></note>
+<note><para>Variables passed as function arguments are passed by value by default, unless the caller places a "\" character before an lvalue in the argument list. In this case the function must have a parameter defined to accept the variable passed by reference. Any changes to the local variable will be reflected in the original variable for variables passed by reference. Also note that it is illegal to pass an argument by reference in a background expression.</para></note>
 
-<para>Subroutines can return values to the calling expression by using the <command>return</command> statement, with the following syntax:</para>
+<para>Functions can return values to the calling expression by using the <command>return</command> statement, with the following syntax:</para>
 
 <programlisting><command>return</command> <replaceable>expression</replaceable>;</programlisting>
 
-<para>Here is an example subroutine declaration for a function returning a value:</para>
+<para>Here is an example function declaration returning a value:</para>
 
 <programlisting>#!/usr/bin/qore
 #
-# subroutine declaration example
+# function declaration example
 
-<command>sub</command> print_string(string $string) <command>returns</command> int {
+<command>int sub</command> print_string(string $string) {
     print("%s\n", $string);
     <command>return</command> 1;
 }
 </programlisting>
 
-<para>Subroutines may also be recursive.  Here is an example of a recursive Qore subroutine definition implementing the Fibonacci function:</para>
+<para>Functions may also be recursive.  Here is an example of a recursive Qore function implementing the Fibonacci function:</para>
 
 <programlisting>#!/usr/bin/qore
 #
-# recursive subroutine example
+# recursive function example
 
-<command>sub</command> fibonacci(int $num) <command>returns</command> int {
+int <command>sub</command> fibonacci(int $num) {
     <command>if</command> ($num == 1)
         <command>return</command> 1;
     <command>return</command> $num * fibonacci($num - 1);
@@ -2877,7 +2886,6 @@ $var[1].count++;
 <sect2 id="System_Namespaces">
 <title>System Namespaces</title>
 
-
 <para>All Qore-language constants and classes are defined in the Qore namespace or in a subnamespace of the Qore namespace. The Qore namespace is a direct child of the unnamed default root namespace (::).</para>
 
 <para>For detailed information on all constants and classes defined in system namespaces, see <link linkend="System_Namespaces_and_Class_Library">System Namespaces and Class Library</link>.</para>
@@ -2890,7 +2898,7 @@ $var[1].count++;
 
 <programlisting><command>const</command> [<replaceable>namespace_path</replaceable>::]<replaceable>constant_identifier</replaceable> = <replaceable>expr</replaceable>;</programlisting>
 
-<note><para>The expression cannot be an expression that has side effects or a parse exception will be raised.  Only functions tagged with the <code><link linkend="CONST_flag">CONST</link></code> can be used to initialize a constant.</para></note>
+<note><para>As of Qore 0.8.1 and onwards, the expression used to initialize a constant can be any valid Qore expression as long as no variables are referenced.  Note that the order that constants are initialized and assigned does not necessarily correspond to the declaration order, and it is bad programming practice to assign a constant with an expression that has side effects.  Furthermore if an expression used to initialize a constant throws an exception, that exception cannot be caught.</para></note>
 
 <para>Classes can also declare constants; see <link linkend="Class_Constants">class constants</link> for more information.</para>
 
@@ -2954,7 +2962,7 @@ $var[1].count++;
   <sect3 id="Static_Methods">
     <title>Static Methods</title>
 
-    <para>Methods declared with the <command>static</command> keyword are like regular <link linkend="Subroutines">subroutines</link> that are attached to the class.  These methods are not associated with a particular object's state and therefore are not allowed to refer to object members or call non-static methods.  Also, no reference to the special <code>$self</code> variable is allowed within static methods.</para>
+    <para>Methods declared with the <command>static</command> keyword are like regular <link linkend="Functions">functions</link> that are attached to the class.  These methods are not associated with a particular object's state and therefore are not allowed to refer to object members or call non-static methods.  Also, no reference to the special <code>$self</code> variable is allowed within static methods.</para>
 
     <para>Static methods may be declared <command>private</command> or <command>public</command> like non-static methods.</para>
     
@@ -3000,14 +3008,14 @@ $var[1].count++;
 	    </entry>
 	  </row>
 	  <row id="memberGate">
-	    <entry><para><code>memberGate(<link linkend="string_type">string</link> <replaceable>$name</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para></entry>
+	    <entry><para><code><link linkend="any_type">any</link> memberGate(<link linkend="string_type">string</link> <replaceable>$name</replaceable>)</code></para></entry>
 	    <entry>
 	      <para>If this method is implemented in the class, it is called when read access is attempted to private member or members that do not exist in the current object; the return value of this method is returned as the value of the member.</para>
 	      <para><code>memberGate()</code> methods cannot be overloaded and are not inherited by subclasses.</para>
 	    </entry>
 	  </row>
 	  <row id="methodGate">
-	    <entry><para><code>methodGate(<link linkend="string_type">string</link> <replaceable>$name</replaceable>) <command>returns</command> <link linkend="any_type">any</link></code></para></entry>
+	    <entry><para><link linkend="any_type">any</link> <code>methodGate(<link linkend="string_type">string</link> <replaceable>$name</replaceable>)</code></para></entry>
 	    <entry>
 	      <para>If this method is implemented in the class, it is called when methods are called on the object that do not exist in the current object and the return value of this method is returned as the value of the method call.</para>
 	      <para><code>methodGate()</code> methods cannot be overloaded and are not inherited by subclasses.</para>
@@ -3279,7 +3287,7 @@ $self.member();</programlisting>
   <sect2 id="Creating_and_Terminating_Threads">
     <title>Creating and Terminating Threads</title>
 
-    <para>New threads are created with the <link linkend="Background_Operator"><command>background</command></link> operator.  This operator executes the expression given as an argument in a new thread and returns the TID of the new thread to the calling thread.  This is most useful for calling user subroutines or object methods designed to run in a separate thread.</para>
+    <para>New threads are created with the <link linkend="Background_Operator"><command>background</command></link> operator.  This operator executes the expression given as an argument in a new thread and returns the TID of the new thread to the calling thread.  This is most useful for calling user functions or object methods designed to run in a separate thread.</para>
 
     <para>To terminate a thread, the <link linkend="thread_exit_Statements"><command>thread_exit</command> statement</link> should be called, as calling the <link linkend="exit">exit() function</link> will terminate the entire UNIX process (and therefore all threads) immediately.</para>
 
@@ -3315,7 +3323,7 @@ x=&lt;NOTHING&gt;</programlisting>
   <sect2 id="Thread_Synchronization_and_Inter-Thread_Communication">
     <title>Thread Synchronization and Inter-Thread Communication</title>
 
-    <para>The <command>synchronized</command> keyword can be used before subroutine or class method definitions in order to guarantee that the function or method call will only be executed in one thread at a time.  As in Java, this keyword can also be used safely with recursive functions and methods (internally a <link linkend="Gate_Class">Gate</link>-like object is used to guarantee thread-exclusivity and allow recursion).</para>
+    <para>The <command>synchronized</command> keyword can be used before function or class method definitions in order to guarantee that the function or method call will only be executed in one thread at a time.  As in Java, this keyword can also be used safely with recursive functions and methods (internally a <link linkend="Gate_Class">Gate</link>-like object is used to guarantee thread-exclusivity and allow recursion).</para>
 
     <para>The following classes are useful when developing multi-threaded Qore programs:</para>
 
@@ -3434,7 +3442,7 @@ x=&lt;NOTHING&gt;</programlisting>
     <sect2 id="Deadlocks">
       <title>Deadlocks</title>
   
-      <para>Qore supports deadlock detection in complex locking scenarios and will throw a <code>THREAD-DEADLOCK</code> exception rather than allow an operation to be performed that would cause a deadlock.  Deadlock detection is implemented for internal locking (global variable and object access), synchronized methods and subroutinges, etc, as well as for all Qore threading classes.</para>
+      <para>Qore supports deadlock detection in complex locking scenarios and will throw a <code>THREAD-DEADLOCK</code> exception rather than allow an operation to be performed that would cause a deadlock.  Deadlock detection is implemented for internal locking (global variable and object access), synchronized methods and functions, etc, as well as for all Qore threading classes.</para>
 
       <para>Qore can only detect deadlocks when a lock resource acquired by one thread is required by another who holds a lock that the first thread also needs.  Other errors such as forgetting to unlock a global lock and trying to acquire that lock in another thread cannot be differentiated from valid use of threading primitives and will result in a process that never terminates.  However, common threading errors such as trying to lock the same Mutex twice in the same thread without unlocking it between the two Mutex::lock() calls are caught in Qore and exceptions are thrown.  Additionally, locks are tracked as thread resources, so if a thread terminates while holding a lock, an exception will be thrown and the lock will be automatically released.</para>
 
@@ -3444,7 +3452,7 @@ x=&lt;NOTHING&gt;</programlisting>
 <sect1 id="Exception_Handling">
   <title>Exception Handling</title>
 
-  <para>Exceptions are errors that can only be handled using a <link linkend='try_and_catch_Statements'><command>try catch</command> block</link>.  Any exception that is thrown in a <command>try</command> block will immediately cause execution of that thread to begin with the first statement of the <command>catch</command> block, regardless of the position of the program pointer of the running thread, even if nested subroutines or object method calls have been made.</para>
+  <para>Exceptions are errors that can only be handled using a <link linkend='try_and_catch_Statements'><command>try catch</command> block</link>.  Any exception that is thrown in a <command>try</command> block will immediately cause execution of that thread to begin with the first statement of the <command>catch</command> block, regardless of the position of the program pointer of the running thread, even if nested function or object method calls have been made.</para>
 
   <para>Exceptions can be thrown by the Qore system for a number of reasons, see the documentation for each function and object method for details.</para>
 

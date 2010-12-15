@@ -33,7 +33,7 @@
       <link linkend="return_Statements">return</link>,
       <link linkend="context_Statements">sortBy</link>,
       <link linkend="context_Statements">sortDescendingBy</link>,
-      <link linkend="Subroutines">sub</link>,
+      <link linkend="Functions">sub</link>,
       <link linkend="subcontext_Statements">subcontext</link>, 
       <link linkend="summarize_Statements">summarize</link>,
       <link linkend="switch_Statements">switch</link>,
