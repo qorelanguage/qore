@@ -22,6 +22,7 @@
 
 #include <qore/Qore.h>
 #include <qore/intern/QoreClassIntern.h>
+#include <qore/intern/QoreNamespaceIntern.h>
 
 #include <vector>
 
