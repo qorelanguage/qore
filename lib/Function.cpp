@@ -358,6 +358,9 @@ void UserSignature::resolve() {
       
    resolved = true;
 
+   // push parse location in case of exceptions
+   update_parse_location(first_line, last_line, parse_file);
+
    if (!returnTypeInfo) {
       returnTypeInfo = parseReturnTypeInfo->resolveAndDelete();
       parseReturnTypeInfo = 0;
