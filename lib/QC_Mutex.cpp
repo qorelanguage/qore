@@ -43,7 +43,7 @@ static AbstractQoreNode *MUTEX_lock(QoreObject *self, SmartMutex *m, const QoreL
    return 0;
 }
 
-// Mutex::lock(timeout $timeout) returns int
+// int Mutex::lock(timeout $timeout)  
 static AbstractQoreNode *MUTEX_lock_to(QoreObject *self, SmartMutex *m, const QoreListNode *params, ExceptionSink *xsink) {
    int timeout_ms = (int)HARD_QORE_INT(params, 0);
    int rc = m->grab(xsink, timeout_ms);
@@ -74,7 +74,7 @@ QoreClass *initMutexClass(QoreClass *AbstractSmartLock) {
 
    QC_MUTEX->addMethodExtended("lock",     (q_method_t)MUTEX_lock, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
 
-   // Mutex::lock(timeout $timeout) returns int
+   // int Mutex::lock(timeout $timeout)  
    QC_MUTEX->addMethodExtended("lock",     (q_method_t)MUTEX_lock_to, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, timeoutTypeInfo, QORE_PARAM_NO_ARG);
 
    QC_MUTEX->addMethodExtended("trylock",  (q_method_t)MUTEX_trylock, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);

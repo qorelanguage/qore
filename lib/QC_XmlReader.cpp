@@ -184,12 +184,12 @@ static AbstractQoreNode *XMLREADER_getAttributeNs(QoreObject *self, QoreXmlReade
    return xr->getAttributeNs(lname->getBuffer(), ns->getBuffer());
 }
 
-// XmlReader::lookupNamespace() returns *string
+// *string XmlReader::lookupNamespace()  
 static AbstractQoreNode *XMLREADER_lookupNamespace(QoreObject *self, QoreXmlReaderData *xr, const QoreListNode *params, ExceptionSink *xsink) {
    return xr->lookupNamespace(0);
 }
 
-// XmlReader::lookupNamespace(string $ns) returns *string
+// *string XmlReader::lookupNamespace(string $ns)  
 static AbstractQoreNode *XMLREADER_lookupNamespace_str(QoreObject *self, QoreXmlReaderData *xr, const QoreListNode *params, ExceptionSink *xsink) {
    const QoreStringNode *prefix = HARD_QORE_STRING(params, 0);
    return xr->lookupNamespace(prefix->getBuffer());
@@ -279,15 +279,15 @@ QoreClass *initXmlReaderClass(QoreClass *XmlDoc) {
 
    QC_XMLREADER->addMethodExtended("nodeType",                  (q_method_t)XMLREADER_nodeType, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo);
 
-   // XmlReader::nodeTypeName() returns *string
+   // *string XmlReader::nodeTypeName()  
    QC_XMLREADER->addMethodExtended("nodeTypeName",              (q_method_t)XMLREADER_nodeTypeName, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringOrNothingTypeInfo);
 
    QC_XMLREADER->addMethodExtended("depth",                     (q_method_t)XMLREADER_depth, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo);
 
-   // XmlReader::name() returns *string
+   // *string XmlReader::name()  
    QC_XMLREADER->addMethodExtended("name",                      (q_method_t)XMLREADER_name, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringOrNothingTypeInfo);
 
-   // XmlReader::value() returns *string
+   // *string XmlReader::value()  
    QC_XMLREADER->addMethodExtended("value",                     (q_method_t)XMLREADER_value, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringOrNothingTypeInfo);
 
    QC_XMLREADER->addMethodExtended("hasAttributes",             (q_method_t)XMLREADER_hasAttributes, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, boolTypeInfo);
@@ -302,56 +302,56 @@ QoreClass *initXmlReaderClass(QoreClass *XmlDoc) {
 
    QC_XMLREADER->addMethodExtended("isValid",                   (q_method_t)XMLREADER_isValid, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, boolTypeInfo);
 
-   // XmlReader::toQore() returns hash|string|nothing
+   // hash XmlReader::toQore()  |string|nothing
    QC_XMLREADER->addMethodExtended("toQore",                    (q_method_t)XMLREADER_toQore, false, QC_RET_VALUE_ONLY);
 
-   // XmlReader::toQoreData() returns hash|string|nothing
+   // hash XmlReader::toQoreData()  |string|nothing
    QC_XMLREADER->addMethodExtended("toQoreData",                (q_method_t)XMLREADER_toQoreData, false, QC_RET_VALUE_ONLY);
 
    QC_XMLREADER->addMethodExtended("attributeCount",            (q_method_t)XMLREADER_attributeCount, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo);
 
-   // XmlReader::baseUri() returns *string
+   // *string XmlReader::baseUri()  
    QC_XMLREADER->addMethodExtended("baseUri",                   (q_method_t)XMLREADER_baseUri, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringOrNothingTypeInfo);
 
-   // XmlReader::encoding() returns *string
+   // *string XmlReader::encoding()  
    QC_XMLREADER->addMethodExtended("encoding",                  (q_method_t)XMLREADER_encoding, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringOrNothingTypeInfo);
 
-   // XmlReader::localName() returns *string
+   // *string XmlReader::localName()  
    QC_XMLREADER->addMethodExtended("localName",                 (q_method_t)XMLREADER_localName, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringOrNothingTypeInfo);
 
-   // XmlReader::namespaceUri() returns *string
+   // *string XmlReader::namespaceUri()  
    QC_XMLREADER->addMethodExtended("namespaceUri",              (q_method_t)XMLREADER_namespaceUri, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringOrNothingTypeInfo);
 
-   // XmlReader::prefix() returns *string
+   // *string XmlReader::prefix()  
    QC_XMLREADER->addMethodExtended("prefix",                    (q_method_t)XMLREADER_prefix, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringOrNothingTypeInfo);
 
-   // XmlReader::xmlLang() returns *string
+   // *string XmlReader::xmlLang()  
    QC_XMLREADER->addMethodExtended("xmlLang",                   (q_method_t)XMLREADER_xmlLang, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringOrNothingTypeInfo);
 
-   // XmlReader::xmlVersion() returns *string
+   // *string XmlReader::xmlVersion()  
    QC_XMLREADER->addMethodExtended("xmlVersion",                (q_method_t)XMLREADER_xmlVersion, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringOrNothingTypeInfo);
 
-   // XmlReader::getAttribute(string $attr) returns *string
+   // *string XmlReader::getAttribute(string $attr)  
    QC_XMLREADER->addMethodExtended("getAttribute",              (q_method_t)XMLREADER_getAttribute, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringOrNothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   // XmlReader::getAttribute(softint $offset = 0) returns *string
+   // *string XmlReader::getAttribute(softint $offset = 0)  
    QC_XMLREADER->addMethodExtended("getAttributeOffset",        (q_method_t)XMLREADER_getAttributeOffset, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringOrNothingTypeInfo, 1, softBigIntTypeInfo, zero());
 
-   // XmlReader::getAttributeNs(string $attr, string $ns) returns *string
+   // *string XmlReader::getAttributeNs(string $attr, string $ns)  
    QC_XMLREADER->addMethodExtended("getAttributeNs",            (q_method_t)XMLREADER_getAttributeNs, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringOrNothingTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   // XmlReader::lookupNamespace() returns *string
+   // *string XmlReader::lookupNamespace()  
    QC_XMLREADER->addMethodExtended("lookupNamespace",           (q_method_t)XMLREADER_lookupNamespace, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringOrNothingTypeInfo);
-   // XmlReader::lookupNamespace(string $ns) returns *string
+   // *string XmlReader::lookupNamespace(string $ns)  
    QC_XMLREADER->addMethodExtended("lookupNamespace",           (q_method_t)XMLREADER_lookupNamespace_str, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringOrNothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   // XmlReader::moveToAttribute(string $attr) returns bool
+   // bool XmlReader::moveToAttribute(string $attr)  
    QC_XMLREADER->addMethodExtended("moveToAttribute",           (q_method_t)XMLREADER_moveToAttribute, false, QC_NO_FLAGS, QDOM_DEFAULT, boolTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   // XmlReader::moveToAttributeOffset(softint $offset = 0) returns bool
+   // bool XmlReader::moveToAttributeOffset(softint $offset = 0)  
    QC_XMLREADER->addMethodExtended("moveToAttributeOffset",     (q_method_t)XMLREADER_moveToAttributeOffset, false, QC_NO_FLAGS, QDOM_DEFAULT, boolTypeInfo, 1, softBigIntTypeInfo, zero());
 
-   // XmlReader::moveToAttributeNs(string $attr, string $ns) returns bool
+   // bool XmlReader::moveToAttributeNs(string $attr, string $ns)  
    QC_XMLREADER->addMethodExtended("moveToAttributeNs",         (q_method_t)XMLREADER_moveToAttributeNs, false, QC_NO_FLAGS, QDOM_DEFAULT, boolTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    QC_XMLREADER->addMethodExtended("moveToElement",             (q_method_t)XMLREADER_moveToElement, false, QC_NO_FLAGS, QDOM_DEFAULT, boolTypeInfo);
@@ -362,16 +362,16 @@ QoreClass *initXmlReaderClass(QoreClass *XmlDoc) {
 
    QC_XMLREADER->addMethodExtended("next",                      (q_method_t)XMLREADER_next, false, QC_NO_FLAGS, QDOM_DEFAULT, boolTypeInfo);
 
-   // XmlReader::getInnerXml() returns *string
+   // *string XmlReader::getInnerXml()  
    QC_XMLREADER->addMethodExtended("getInnerXml",               (q_method_t)XMLREADER_getInnerXml, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringOrNothingTypeInfo);
 
-   // XmlReader::getOuterXml() returns *string
+   // *string XmlReader::getOuterXml()  
    QC_XMLREADER->addMethodExtended("getOuterXml",               (q_method_t)XMLREADER_getOuterXml, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringOrNothingTypeInfo);
 
-   // XmlReader::relaxNGValidate() returns nothing
+   // nothing XmlReader::relaxNGValidate()  
    QC_XMLREADER->addMethodExtended("relaxNGValidate",           (q_method_t)XMLREADER_relaxNGValidate, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   // XmlReader::schemaValidate() returns nothing
+   // nothing XmlReader::schemaValidate()  
    QC_XMLREADER->addMethodExtended("schemaValidate",            (q_method_t)XMLREADER_schemaValidate, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    return QC_XMLREADER;   

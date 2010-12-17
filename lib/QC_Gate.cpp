@@ -39,7 +39,7 @@ static void GATE_copy(QoreObject *self, QoreObject *old, QoreGate *g, ExceptionS
    self->setPrivate(CID_GATE, new QoreGate());
 }
 
-// Gate::enter(timeout $timeout) returns int
+// int Gate::enter(timeout $timeout)  
 static AbstractQoreNode *GATE_enter_to(QoreObject *self, QoreGate *g, const QoreListNode *params, ExceptionSink *xsink) {
    int rc = g->grab(xsink, (int)HARD_QORE_INT(params, 0));
    return *xsink ? 0 : new QoreBigIntNode(rc);
@@ -80,7 +80,7 @@ QoreClass *initGateClass() {
 
    QC_GATE->addMethodExtended("enter",         (q_method_t)GATE_enter, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
 
-   // Gate::enter(timeout $timeout) returns int
+   // int Gate::enter(timeout $timeout)  
    QC_GATE->addMethodExtended("enter",         (q_method_t)GATE_enter_to, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, timeoutTypeInfo, QORE_PARAM_NO_ARG);
 
    QC_GATE->addMethodExtended("exit",          (q_method_t)GATE_exit, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
@@ -100,7 +100,7 @@ QoreClass *initRMutexClass() {
 
    QC_RMUTEX->addMethodExtended("enter",         (q_method_t)GATE_enter, false, QC_DEPRECATED, QDOM_DEFAULT, nothingTypeInfo);
 
-   // Gate::enter(timeout $timeout) returns int
+   // int Gate::enter(timeout $timeout)  
    QC_RMUTEX->addMethodExtended("enter",         (q_method_t)GATE_enter_to, false, QC_DEPRECATED, QDOM_DEFAULT, bigIntTypeInfo, 1, timeoutTypeInfo, QORE_PARAM_NO_ARG);
 
    QC_RMUTEX->addMethodExtended("exit",          (q_method_t)GATE_exit, false, QC_DEPRECATED, QDOM_DEFAULT, bigIntTypeInfo);

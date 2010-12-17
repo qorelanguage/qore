@@ -140,48 +140,48 @@ static QoreClass *initXmlNodeClass() {
    QC_XMLNODE->addMethodExtended("getLineNumber",          (q_method_t)XMLNODE_getLineNumber, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo);
    QC_XMLNODE->addMethodExtended("getElementType",         (q_method_t)XMLNODE_getElementType, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo);
 
-   // XmlNode::getElementTypeName() returns *string
+   // *string XmlNode::getElementTypeName()  
    QC_XMLNODE->addMethodExtended("getElementTypeName",     (q_method_t)XMLNODE_getElementTypeName, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringOrNothingTypeInfo);
 
-   // XmlNode::firstElementChild() returns *XmlNode
+   // *XmlNode XmlNode::firstElementChild()  
    QC_XMLNODE->addMethodExtended("firstElementChild",      (q_method_t)XMLNODE_firstElementChild, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, QC_XMLNODE->getOrNothingTypeInfo());
 
-   // XmlNode::getLastChild() returns *XmlNode
+   // *XmlNode XmlNode::getLastChild()  
    QC_XMLNODE->addMethodExtended("getLastChild",           (q_method_t)XMLNODE_getLastChild, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, QC_XMLNODE->getOrNothingTypeInfo());
 
-   // XmlNode::lastElementChild() returns *XmlNode
+   // *XmlNode XmlNode::lastElementChild()  
    QC_XMLNODE->addMethodExtended("lastElementChild",       (q_method_t)XMLNODE_lastElementChild, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, QC_XMLNODE->getOrNothingTypeInfo());
 
-   // XmlNode::nextElementSibling() returns *XmlNode
+   // *XmlNode XmlNode::nextElementSibling()  
    QC_XMLNODE->addMethodExtended("nextElementSibling",     (q_method_t)XMLNODE_nextElementSibling, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, QC_XMLNODE->getOrNothingTypeInfo());
 
-   // XmlNode::previousElementSibling() returns *XmlNode
+   // *XmlNode XmlNode::previousElementSibling()  
    QC_XMLNODE->addMethodExtended("previousElementSibling", (q_method_t)XMLNODE_previousElementSibling, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, QC_XMLNODE->getOrNothingTypeInfo());
 
    QC_XMLNODE->addMethodExtended("getPath",                (q_method_t)XMLNODE_getPath, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringTypeInfo);
 
-   // XmlNode::getNsProp(string $prop, string $ns) returns *string
+   // *string XmlNode::getNsProp(string $prop, string $ns)  
    QC_XMLNODE->addMethodExtended("getNsProp",              (q_method_t)XMLNODE_getNsProp, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringOrNothingTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   // XmlNode::getProp(string $prop) returns *string
+   // *string XmlNode::getProp(string $prop)  
    QC_XMLNODE->addMethodExtended("getProp",                (q_method_t)XMLNODE_getProp, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringOrNothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    //QC_XMLNODE->addMethod("getBase",                (q_method_t)XMLNODE_getBase);
 
-   // XmlNode::getContent() returns *string
+   // *string XmlNode::getContent()  
    QC_XMLNODE->addMethodExtended("getContent",             (q_method_t)XMLNODE_getContent, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringOrNothingTypeInfo);
 
-   // XmlNode::getLang() returns *string
+   // *string XmlNode::getLang()  
    QC_XMLNODE->addMethodExtended("getLang",                (q_method_t)XMLNODE_getLang, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringOrNothingTypeInfo);
 
-   // XmlNode::getName() returns *string
+   // *string XmlNode::getName()  
    QC_XMLNODE->addMethodExtended("getName",                (q_method_t)XMLNODE_getName, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringOrNothingTypeInfo);
 
    QC_XMLNODE->addMethodExtended("isText",                 (q_method_t)XMLNODE_isText, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, boolTypeInfo);
 
    QC_XMLNODE->addMethodExtended("isBlank",                (q_method_t)XMLNODE_isBlank, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, boolTypeInfo);
 
-   // XmlNode::getXML() returns *string
+   // *string XmlNode::getXML()  
    QC_XMLNODE->addMethodExtended("getXML",                 (q_method_t)XMLNODE_getXML, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringOrNothingTypeInfo);
 
    return QC_XMLNODE;   

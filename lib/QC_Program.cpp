@@ -147,14 +147,14 @@ static AbstractQoreNode *PROGRAM_run(QoreObject *self, QoreProgram *p, const Qor
    return p->run(xsink);
 }
 
-// Program::importFunction(string $func) returns nothing
+// nothing Program::importFunction(string $func)  
 static AbstractQoreNode *PROGRAM_importFunction_str(QoreObject *self, QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink) {
    const QoreStringNode *p0 = HARD_QORE_STRING(params, 0);
    getProgram()->exportUserFunction(p0->getBuffer(), p, xsink);
    return 0;
 }
 
-// Program::importFunction(string $func, string $new_name) returns nothing
+// nothing Program::importFunction(string $func, string $new_name)  
 static AbstractQoreNode *PROGRAM_importFunction_str_str(QoreObject *self, QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink) {
    const QoreStringNode *p0 = HARD_QORE_STRING(params, 0);
    const QoreStringNode *p1 = HARD_QORE_STRING(params, 1);
@@ -162,7 +162,7 @@ static AbstractQoreNode *PROGRAM_importFunction_str_str(QoreObject *self, QorePr
    return 0;
 }
 
-// Program::importGlobalVariable(string $var, bool $readonly = False) returns nothing
+// nothing Program::importGlobalVariable(string $var, bool $readonly = False)  
 static AbstractQoreNode *PROGRAM_importGlobalVariable(QoreObject *self, QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink) {
    const QoreStringNode *p0 = HARD_QORE_STRING(params, 0);
    bool readonly = HARD_QORE_BOOL(params, 1);
@@ -175,66 +175,66 @@ static AbstractQoreNode *PROGRAM_importGlobalVariable(QoreObject *self, QoreProg
    return 0;
 }
 
-// Program::getUserFunctionList() returns list
+// list Program::getUserFunctionList()  
 static AbstractQoreNode *PROGRAM_getUserFunctionList(QoreObject *self, QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink) {
    return p->getUserFunctionList();
 }
 
-// Program::getParseOptions() returns int
+// int Program::getParseOptions()  
 static AbstractQoreNode *PROGRAM_getParseOptions(QoreObject *self, QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink) {
    return new QoreBigIntNode(p->getParseOptions());
 }
 
-// Program::setParseOptions(int $opt = PO_DEFAULT) returns nothing
+// nothing Program::setParseOptions(int $opt = PO_DEFAULT)  
 static AbstractQoreNode *PROGRAM_setParseOptions(QoreObject *self, QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink) {
    int opt = (int)HARD_QORE_INT(params, 0);
    p->setParseOptions(opt, xsink);
    return 0;
 }
 
-// Program::disableParseOptions(int $opt = PO_DEFAULT) returns nothing
+// nothing Program::disableParseOptions(int $opt = PO_DEFAULT)  
 static AbstractQoreNode *PROGRAM_disableParseOptions(QoreObject *self, QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink) {
    int opt = (int)HARD_QORE_INT(params, 0);
    p->disableParseOptions(opt, xsink);
    return 0;
 }
 
-// Program::setScriptPath() returns nothing
+// nothing Program::setScriptPath()  
 static AbstractQoreNode *PROGRAM_setScriptPath_nothing(QoreObject *self, QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink) {
    p->setScriptPath(0);
    return 0;
 }
 
-// Program::setScriptPath(string $path) returns nothing
+// nothing Program::setScriptPath(string $path)  
 static AbstractQoreNode *PROGRAM_setScriptPath_str(QoreObject *self, QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink) {
    const QoreStringNode *p0 = HARD_QORE_STRING(params, 0);
    p->setScriptPath(p0->getBuffer());
    return 0;
 }
 
-// Program::getScriptDir() returns *string
+// *string Program::getScriptDir()  
 static AbstractQoreNode *PROGRAM_getScriptDir(QoreObject *self, QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink) {
    return p->getScriptDir();
 }
 
-// Program::getScriptName() returns *string
+// *string Program::getScriptName()  
 static AbstractQoreNode *PROGRAM_getScriptName(QoreObject *self, QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink) {
    return p->getScriptName();
 }
 
-// Program::getScriptPath() returns *string
+// *string Program::getScriptPath()  
 static AbstractQoreNode *PROGRAM_getScriptPath(QoreObject *self, QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink) {
    return p->getScriptPath();
 }
 
-// Program::lockOptions() returns nothing
+// nothing Program::lockOptions()  
 static AbstractQoreNode *PROGRAM_lockOptions(QoreObject *self, QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink) {
    p->lockOptions();
    return 0;
 }
 
-// Program::getGlobalVariable(string $varname) returns any
-// Program::getGlobalVariable(string $varname, reference $ref) returns any
+// any Program::getGlobalVariable(string $varname)  
+// any Program::getGlobalVariable(string $varname, reference $ref)  
 static AbstractQoreNode *PROGRAM_getGlobalVariable(QoreObject *self, QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink) {
    const QoreStringNode *str = HARD_QORE_STRING(params, 0);
    TempEncodingHelper t(str, QCS_DEFAULT, xsink);
@@ -259,7 +259,7 @@ static AbstractQoreNode *PROGRAM_getGlobalVariable(QoreObject *self, QoreProgram
     return rv.release();
 }
 
-// Program::setTimeZoneRegion(string $region) returns nothing
+// nothing Program::setTimeZoneRegion(string $region)  
 static AbstractQoreNode *PROGRAM_setTimeZoneRegion(QoreObject *self, QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink) {
    const QoreStringNode *str = HARD_QORE_STRING(params, 0);
    const AbstractQoreZoneInfo *zone = QTZM.findLoadRegion(str->getBuffer(), xsink);
@@ -270,7 +270,7 @@ static AbstractQoreNode *PROGRAM_setTimeZoneRegion(QoreObject *self, QoreProgram
    return 0;
 }
 
-// Program::setTimeZoneUTCOffset(softint $seconds_east) returns nothing
+// nothing Program::setTimeZoneUTCOffset(softint $seconds_east)  
 static AbstractQoreNode *PROGRAM_setTimeZoneUTCOffset(QoreObject *self, QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink) {
    int seconds_east = (int)HARD_QORE_INT(params, 0);
    const AbstractQoreZoneInfo *zone = QTZM.findCreateOffsetZone(seconds_east);
@@ -278,7 +278,7 @@ static AbstractQoreNode *PROGRAM_setTimeZoneUTCOffset(QoreObject *self, QoreProg
    return 0;
 }
 
-// Program::setTimeZone(TimeZone $zone) returns nothing
+// nothing Program::setTimeZone(TimeZone $zone)  
 static AbstractQoreNode *PROGRAM_setTimeZone(QoreObject *self, QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink) {
    HARD_QORE_OBJ_DATA(zone, TimeZoneData, params, 0, CID_TIMEZONE, "TimeZone", "Program::setTimeZone", xsink);
    if (*xsink)
@@ -287,7 +287,7 @@ static AbstractQoreNode *PROGRAM_setTimeZone(QoreObject *self, QoreProgram *p, c
    return 0;
 }
 
-// Program::getTimeZone() returns TimeZone
+// TimeZone Program::getTimeZone()  
 static AbstractQoreNode *PROGRAM_getTimeZone(QoreObject *self, QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink) {
    return new QoreObject(QC_TIMEZONE, 0, new TimeZoneData(p->currentTZ()));
 }
@@ -302,91 +302,91 @@ QoreClass *initProgramClass() {
 
    QC_PROGRAM->setCopy((q_copy_t)PROGRAM_copy);
 
-   // Program::parse(string $code, string $label) returns nothing
+   // nothing Program::parse(string $code, string $label)  
    QC_PROGRAM->addMethodExtended("parse",                (q_method_t)PROGRAM_parse_str_str, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
-   // Program::parse(string $code, string $label, softint $warning_mask) returns *hash
+   // *hash Program::parse(string $code, string $label, softint $warning_mask)  
    QC_PROGRAM->addMethodExtended("parse",                (q_method_t)PROGRAM_parse_str_str, false, QC_NO_FLAGS, QDOM_DEFAULT, hashOrNothingTypeInfo, 3, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
 
-   // Program::parsePending(string $code, string $label) returns nothing
+   // nothing Program::parsePending(string $code, string $label)  
    QC_PROGRAM->addMethodExtended("parsePending",         (q_method_t)PROGRAM_parsePending_str_str, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
-   // Program::parsePending(string $code, string $label, softint $warning_mask) returns *hash
+   // *hash Program::parsePending(string $code, string $label, softint $warning_mask)  
    QC_PROGRAM->addMethodExtended("parsePending",         (q_method_t)PROGRAM_parsePending_str_str, false, QC_NO_FLAGS, QDOM_DEFAULT, hashOrNothingTypeInfo, 3, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
 
-   // Program::parseCommit() returns nothing
+   // nothing Program::parseCommit()  
    QC_PROGRAM->addMethodExtended("parseCommit",          (q_method_t)PROGRAM_parseCommit, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
-   // Program::parseCommit(int $arning_mask) returns *hash
+   // *hash Program::parseCommit(int $arning_mask)  
    QC_PROGRAM->addMethodExtended("parseCommit",          (q_method_t)PROGRAM_parseCommit, false, QC_NO_FLAGS, QDOM_DEFAULT, hashOrNothingTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
 
-   // Programm::parseRollback() returns nothing
+   // nothing Programm::parseRollback()  
    QC_PROGRAM->addMethodExtended("parseRollback",        (q_method_t)PROGRAM_parseRollback, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
 
-   // Program::callFunction(string $name, ...) returns any
+   // any Program::callFunction(string $name, ...)  
    QC_PROGRAM->addMethodExtended("callFunction",         (q_method_t)PROGRAM_callFunction, false, QC_USES_EXTRA_ARGS, QDOM_DEFAULT, 0, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    QC_PROGRAM->addMethodExtended("callFunctionArgs",     (q_method_t)PROGRAM_callFunctionArgs_str_list, false, QC_NO_FLAGS, QDOM_DEFAULT, 0, 2, stringTypeInfo, QORE_PARAM_NO_ARG, listTypeInfo, QORE_PARAM_NO_ARG);
    QC_PROGRAM->addMethodExtended("callFunctionArgs",     (q_method_t)PROGRAM_callFunctionArgs_str, false, QC_NO_FLAGS, QDOM_DEFAULT, 0, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
    QC_PROGRAM->addMethodExtended("callFunctionArgs",     (q_method_t)PROGRAM_callFunctionArgs_str_something, false, QC_NO_FLAGS, QDOM_DEFAULT, 0, 2, stringTypeInfo, QORE_PARAM_NO_ARG, somethingTypeInfo, QORE_PARAM_NO_ARG);
 
-   // Program::existsFunction() returns nothing
+   // nothing Program::existsFunction()  
    QC_PROGRAM->addMethodExtended("existsFunction",       (q_method_t)class_noop, false, QC_RUNTIME_NOOP, QDOM_DEFAULT, nothingTypeInfo);
-   // Program::existsFunction(string $str) returns bool
+   // bool Program::existsFunction(string $str)  
    QC_PROGRAM->addMethodExtended("existsFunction",       (q_method_t)PROGRAM_existsFunction, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, boolTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   // Program::run() returns any
+   // any Program::run()  
    QC_PROGRAM->addMethodExtended("run",                  (q_method_t)PROGRAM_run);
 
-   // Program::importFunction() returns nothing
+   // nothing Program::importFunction()  
    QC_PROGRAM->addMethodExtended("importFunction",       (q_method_t)PROGRAM_importFunction_str, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
-   // Program::importFunction(string $func, string $new_name) returns nothing
+   // nothing Program::importFunction(string $func, string $new_name)  
    QC_PROGRAM->addMethodExtended("importFunction",       (q_method_t)PROGRAM_importFunction_str_str, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   // Program::importGlobalVariable(string $var, bool $readonly = False) returns nothing
+   // nothing Program::importGlobalVariable(string $var, bool $readonly = False)  
    QC_PROGRAM->addMethodExtended("importGlobalVariable", (q_method_t)PROGRAM_importGlobalVariable, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, boolTypeInfo, &False);
 
-   // Program::getUserFunctionList() returns list
+   // list Program::getUserFunctionList()  
    QC_PROGRAM->addMethodExtended("getUserFunctionList",  (q_method_t)PROGRAM_getUserFunctionList, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, listTypeInfo);
 
-   // Program::getParseOptions() returns int
+   // int Program::getParseOptions()  
    QC_PROGRAM->addMethodExtended("getParseOptions",      (q_method_t)PROGRAM_getParseOptions, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo);
 
-   // Program::setParseOptions(int $opt = PO_DEFAULT) returns nothing
+   // nothing Program::setParseOptions(int $opt = PO_DEFAULT)  
    QC_PROGRAM->addMethodExtended("setParseOptions",      (q_method_t)PROGRAM_setParseOptions, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, bigIntTypeInfo, new QoreBigIntNode(PO_DEFAULT));
 
-   // Program::disableParseOptions(int $opt = PO_DEFAULT) returns nothing
+   // nothing Program::disableParseOptions(int $opt = PO_DEFAULT)  
    QC_PROGRAM->addMethodExtended("disableParseOptions",  (q_method_t)PROGRAM_disableParseOptions, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, bigIntTypeInfo, new QoreBigIntNode(PO_DEFAULT));
 
-   // Program::setScriptPath() returns nothing
+   // nothing Program::setScriptPath()  
    QC_PROGRAM->addMethodExtended("setScriptPath",        (q_method_t)PROGRAM_setScriptPath_nothing, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
-   // Program::setScriptPath(string $path) returns nothing
+   // nothing Program::setScriptPath(string $path)  
    QC_PROGRAM->addMethodExtended("setScriptPath",        (q_method_t)PROGRAM_setScriptPath_str, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   // Program::getScriptDir() returns *string
+   // *string Program::getScriptDir()  
    QC_PROGRAM->addMethodExtended("getScriptDir",         (q_method_t)PROGRAM_getScriptDir, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringOrNothingTypeInfo);
 
-   // Program::getScriptName() returns *string
+   // *string Program::getScriptName()  
    QC_PROGRAM->addMethodExtended("getScriptName",        (q_method_t)PROGRAM_getScriptName, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringOrNothingTypeInfo);
 
-   // Program::getScriptPath() returns *string
+   // *string Program::getScriptPath()  
    QC_PROGRAM->addMethodExtended("getScriptPath",        (q_method_t)PROGRAM_getScriptPath, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringOrNothingTypeInfo);
 
-   // Program::lockOptions() returns nothing
+   // nothing Program::lockOptions()  
    QC_PROGRAM->addMethodExtended("lockOptions",          (q_method_t)PROGRAM_lockOptions, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
 
-   // Program::getGlobalVariable(string $varname) returns any
+   // any Program::getGlobalVariable(string $varname)  
    QC_PROGRAM->addMethodExtended("getGlobalVariable",    (q_method_t)PROGRAM_getGlobalVariable, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, 0, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
-   // Program::getGlobalVariable(string $varname, reference $ref) returns any
+   // any Program::getGlobalVariable(string $varname, reference $ref)  
    QC_PROGRAM->addMethodExtended("getGlobalVariable",    (q_method_t)PROGRAM_getGlobalVariable, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, 0, 2, stringTypeInfo, QORE_PARAM_NO_ARG, referenceTypeInfo, QORE_PARAM_NO_ARG);
 
-   // Program::setTimeZoneRegion(string $region) returns nothing
+   // nothing Program::setTimeZoneRegion(string $region)  
    QC_PROGRAM->addMethodExtended("setTimeZoneRegion",    (q_method_t)PROGRAM_setTimeZoneRegion, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   // Program::setTimeZoneOffset(softint $minutes_east) returns nothing
+   // nothing Program::setTimeZoneOffset(softint $minutes_east)  
    QC_PROGRAM->addMethodExtended("setTimeZoneUTCOffset", (q_method_t)PROGRAM_setTimeZoneUTCOffset, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
 
-   // Program::setTimeZone(TimeZone $zone) returns nothing
+   // nothing Program::setTimeZone(TimeZone $zone)  
    QC_PROGRAM->addMethodExtended("setTimeZone",          (q_method_t)PROGRAM_setTimeZone, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, QC_TIMEZONE->getTypeInfo(), QORE_PARAM_NO_ARG);
 
-   // Program::getTimeZone() returns TimeZone
+   // TimeZone Program::getTimeZone()  
    QC_PROGRAM->addMethodExtended("getTimeZone",          (q_method_t)PROGRAM_getTimeZone, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, QC_TIMEZONE->getTypeInfo());
 
    return QC_PROGRAM;

@@ -290,19 +290,19 @@ static AbstractQoreNode *f_date_us(const QoreListNode *params, ExceptionSink *xs
    return DateTimeNode::makeAbsoluteLocal(currentTZ(), us / 1000000, (int)(us % 1000000));
 }
 
-// get_duration_seconds(date) returns int
+// get_duration_int seconds(date)  
 static AbstractQoreNode *f_get_duration_seconds(const QoreListNode *params, ExceptionSink *xsink) {
    const DateTimeNode *d = HARD_QORE_DATE(params, 0);
    return new QoreBigIntNode(d->getRelativeSeconds());
 }
 
-// get_duration_milliseconds(date) returns int
+// get_duration_int milliseconds(date)  
 static AbstractQoreNode *f_get_duration_milliseconds(const QoreListNode *params, ExceptionSink *xsink) {
    const DateTimeNode *d = HARD_QORE_DATE(params, 0);
    return new QoreBigIntNode(d->getRelativeMilliseconds());
 }
 
-// get_duration_microseconds(date) returns int
+// get_duration_int microseconds(date)  
 static AbstractQoreNode *f_get_duration_microseconds(const QoreListNode *params, ExceptionSink *xsink) {
    const DateTimeNode *d = HARD_QORE_DATE(params, 0);
    return new QoreBigIntNode(d->getRelativeMicroseconds());
@@ -409,12 +409,12 @@ void init_time_functions() {
 
    builtinFunctions.add2("date_us", f_date_us, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
 
-   // get_duration_seconds(date) returns int
+   // get_duration_int seconds(date)  
    builtinFunctions.add2("get_duration_seconds", f_get_duration_seconds, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
 
-   // get_duration_milliseconds(date) returns int
+   // get_duration_int milliseconds(date)  
    builtinFunctions.add2("get_duration_milliseconds", f_get_duration_milliseconds, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
 
-   // get_duration_microseconds(date) returns int
+   // get_duration_int microseconds(date)  
    builtinFunctions.add2("get_duration_microseconds", f_get_duration_microseconds, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
 }

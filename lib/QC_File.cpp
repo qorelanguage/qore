@@ -81,7 +81,7 @@ static AbstractQoreNode *FILE_sync(QoreObject *self, File *f, const QoreListNode
    return new QoreBigIntNode(f->sync());
 }
 
-// File::read(softint $size, timeout $timeout_ms = -1) returns *string
+// *string File::read(softint $size, timeout $timeout_ms = -1)  
 static AbstractQoreNode *FILE_read(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
    int64 size = HARD_QORE_INT(args, 0);
    if (!size) {
@@ -187,7 +187,7 @@ static AbstractQoreNode *FILE_readi8LSB(QoreObject *self, File *f, const QoreLis
    return new QoreBigIntNode(i);
 }
 
-// File::readBinary(softint $size, timeout $timeout_ms = -1) returns *binary
+// *binary File::readBinary(softint $size, timeout $timeout_ms = -1)  
 static AbstractQoreNode *FILE_readBinary(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
    int64 size = HARD_QORE_INT(args, 0);
    if (!size) {
@@ -347,7 +347,7 @@ static AbstractQoreNode *FILE_getPos(QoreObject *self, File *f, const QoreListNo
    return new QoreBigIntNode(f->getPos());
 }
 
-// File::getchar() returns *string
+// *string File::getchar()  
 static AbstractQoreNode *FILE_getchar(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
    return f->getchar();
 }
@@ -408,7 +408,7 @@ static AbstractQoreNode *FILE_chown(QoreObject *self, File *f, const QoreListNod
    return 0;
 }
 
-// File::isDataAvailable(timeout $timeout = 0) returns bool
+// bool File::isDataAvailable(timeout $timeout = 0)  
 static AbstractQoreNode *FILE_isDataAvailable(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
    int timeout_ms = (int)HARD_QORE_INT(args, 0);
    bool rc = f->isDataAvailable(timeout_ms, xsink);
@@ -473,10 +473,10 @@ QoreClass *initFileClass(QoreClass *QC_TERMIOS) {
    QC_FILE->addMethodExtended("close",             (q_method_t)FILE_close, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
    QC_FILE->addMethodExtended("sync",              (q_method_t)FILE_sync, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
 
-   // File::read(softint $size, timeout $timeout_ms = -1) returns *string
+   // *string File::read(softint $size, timeout $timeout_ms = -1)  
    QC_FILE->addMethodExtended("read",              (q_method_t)FILE_read, false, QC_NO_FLAGS, QDOM_DEFAULT, stringOrNothingTypeInfo, 2, softBigIntTypeInfo, QORE_PARAM_NO_ARG, timeoutTypeInfo, new QoreBigIntNode(-1));
 
-   // File::readu1() returns *int
+   // *int File::readu1()  
    QC_FILE->addMethodExtended("readu1",            (q_method_t)FILE_readu1, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntOrNothingTypeInfo);
    QC_FILE->addMethodExtended("readu2",            (q_method_t)FILE_readu2, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntOrNothingTypeInfo);
    QC_FILE->addMethodExtended("readu4",            (q_method_t)FILE_readu4, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntOrNothingTypeInfo);
@@ -490,7 +490,7 @@ QoreClass *initFileClass(QoreClass *QC_TERMIOS) {
    QC_FILE->addMethodExtended("readi4LSB",         (q_method_t)FILE_readi4LSB, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntOrNothingTypeInfo);
    QC_FILE->addMethodExtended("readi8LSB",         (q_method_t)FILE_readi8LSB, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntOrNothingTypeInfo);
 
-   // File::readBinary(softint $size, timeout $timeout_ms = -1) returns *binary
+   // *binary File::readBinary(softint $size, timeout $timeout_ms = -1)  
    QC_FILE->addMethodExtended("readBinary",        (q_method_t)FILE_readBinary, false, QC_NO_FLAGS, QDOM_DEFAULT, binaryOrNothingTypeInfo, 2, softBigIntTypeInfo, QORE_PARAM_NO_ARG, timeoutTypeInfo, new QoreBigIntNode(-1));
 
    // overloaded write method
@@ -505,7 +505,7 @@ QoreClass *initFileClass(QoreClass *QC_TERMIOS) {
    QC_FILE->addMethodExtended("writei4LSB",        (q_method_t)FILE_writei4LSB, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, softBigIntTypeInfo, zero());
    QC_FILE->addMethodExtended("writei8LSB",        (q_method_t)FILE_writei8LSB, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, softBigIntTypeInfo, zero());
 
-   // File::readLine() returns *string
+   // *string File::readLine()  
    QC_FILE->addMethodExtended("readLine",          (q_method_t)FILE_readLine, false, QC_NO_FLAGS, QDOM_DEFAULT, stringOrNothingTypeInfo);
 
    QC_FILE->addMethodExtended("setCharset",        (q_method_t)FILE_setCharset, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
@@ -520,7 +520,7 @@ QoreClass *initFileClass(QoreClass *QC_TERMIOS) {
 
    QC_FILE->addMethodExtended("getPos",            (q_method_t)FILE_getPos, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo);
 
-   // File::getchar() returns *string
+   // *string File::getchar()  
    QC_FILE->addMethodExtended("getchar",           (q_method_t)FILE_getchar, false, QC_NO_FLAGS, QDOM_DEFAULT, stringOrNothingTypeInfo);
 
    // add an alias for write(string)
@@ -545,7 +545,7 @@ QoreClass *initFileClass(QoreClass *QC_TERMIOS) {
 
    QC_FILE->addMethodExtended("chown",             (q_method_t)FILE_chown, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 2, softBigIntTypeInfo, new QoreBigIntNode(-1), softBigIntTypeInfo, new QoreBigIntNode(-1));
 
-   // File::isDataAvailable(timeout $timeout = 0) returns bool
+   // bool File::isDataAvailable(timeout $timeout = 0)  
    QC_FILE->addMethodExtended("isDataAvailable",        (q_method_t)FILE_isDataAvailable, false, QC_NO_FLAGS, QDOM_DEFAULT, boolTypeInfo, 1, timeoutTypeInfo, zero());
 
    QC_FILE->addMethodExtended("getTerminalAttributes",  (q_method_t)FILE_getTerminalAttributes, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, QC_TERMIOS->getTypeInfo(), QORE_PARAM_NO_ARG);

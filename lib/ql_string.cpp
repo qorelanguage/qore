@@ -571,7 +571,7 @@ void init_string_functions() {
    // an empty list was returned by split() if the types were not correct
    builtinFunctions.add2("split", f_list_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, listTypeInfo);
    builtinFunctions.add2("split", f_split_str, QC_CONSTANT, QDOM_DEFAULT, listTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
-   // split(string $pattern, string $str, string $quote) returns list
+   // list split(string $pattern, string $str, string $quote)  
    builtinFunctions.add2("split", f_split_str_str_str, QC_CONSTANT, QDOM_DEFAULT, listTypeInfo, 3, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("split", f_split_bin, QC_CONSTANT, QDOM_DEFAULT, listTypeInfo, 2, binaryTypeInfo, QORE_PARAM_NO_ARG, binaryTypeInfo, QORE_PARAM_NO_ARG);
 
@@ -591,7 +591,7 @@ void init_string_functions() {
    builtinFunctions.add2("regex_subst", f_regex_subst, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 4, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, zero());
 
    builtinFunctions.add2("regex_extract", f_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, nothingTypeInfo);
-   // regex_extract() returns *list
+   // regex_*list extract()  
    builtinFunctions.add2("regex_extract", f_regex_extract, QC_NO_FLAGS, QDOM_DEFAULT, listOrNothingTypeInfo, 3, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, zero());
 
    builtinFunctions.add2("replace", f_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, nothingTypeInfo);

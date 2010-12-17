@@ -257,7 +257,7 @@ static AbstractQoreNode *f_parse_url(const QoreListNode *params, ExceptionSink *
    return url.getHash();
 }
 
-// parseURL(string $url) returns *hash
+// *hash parseURL(string $url)  
 static AbstractQoreNode *f_parseURL(const QoreListNode *params, ExceptionSink *xsink) {
    HARD_QORE_PARAM(p0, const QoreStringNode, params, 0);
 
@@ -1215,7 +1215,7 @@ void init_misc_functions() {
    builtinFunctions.add2("existsFunction", f_existsFunction_str, QC_CONSTANT, QDOM_DEFAULT, boolTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add2("functionType", f_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, nothingTypeInfo);
-   // functionType(string $name) returns *string
+   // *string functionType(string $name)  
    builtinFunctions.add2("functionType", f_functionType, QC_CONSTANT, QDOM_DEFAULT, stringOrNothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add2("html_encode", f_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, nothingTypeInfo);
@@ -1229,7 +1229,7 @@ void init_misc_functions() {
    builtinFunctions.add2("parse_url", f_parse_url, QC_NO_FLAGS, QDOM_DEFAULT, hashTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add2("parseURL", f_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, nothingTypeInfo);
-   // parseURL(string $url) returns *hash
+   // *hash parseURL(string $url)  
    builtinFunctions.add2("parseURL", f_parseURL, QC_NO_FLAGS, QDOM_DEFAULT, hashOrNothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add2("getClassName", f_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, nothingTypeInfo);
@@ -1285,15 +1285,15 @@ void init_misc_functions() {
    builtinFunctions.add2("gunzip_to_binary", f_gunzip_to_binary, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo, 1, binaryTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add2("getByte", f_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, nothingTypeInfo);
-   // getByte(string $str, softint $offset = 0) returns *int
+   // *int getByte(string $str, softint $offset = 0)  
    builtinFunctions.add2("getByte", f_get_byte_str, QC_CONSTANT, QDOM_DEFAULT, bigIntOrNothingTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, zero());
-   // getByte(binary $bin, softint $offset = 0) returns *int
+   // *int getByte(binary $bin, softint $offset = 0)  
    builtinFunctions.add2("getByte", f_get_byte_bin, QC_CONSTANT, QDOM_DEFAULT, bigIntOrNothingTypeInfo, 2, binaryTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, zero());
 
    builtinFunctions.add2("getWord32", f_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, nothingTypeInfo);
-   // getWord32(string $str, softint $offset = 0) returns *int
+   // *int getWord32(string $str, softint $offset = 0)  
    builtinFunctions.add2("getWord32", f_get_word_32_str, QC_CONSTANT, QDOM_DEFAULT, bigIntOrNothingTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, zero());
-   // getWord32(binary $bin, softint $offset = 0) returns *int
+   // *int getWord32(binary $bin, softint $offset = 0)  
    builtinFunctions.add2("getWord32", f_get_word_32_bin, QC_CONSTANT, QDOM_DEFAULT, bigIntOrNothingTypeInfo, 2, binaryTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, zero());
 
    // with only hard typing

@@ -60,7 +60,7 @@ release summary: major bugfixes and major new features including the new
     when grabbing transaction lock - previously (without the connection lock,
     which was recently removed) the startDBAction function did not guarantee
     exclusive access to the datasource
-* BUG FIX: fixed a memory/reference leak with therad resource tracking with
+* BUG FIX: fixed a memory/reference leak with thread resource tracking with
     the Datasource class
 * BUG FIX: the Datasource class will no longer allow read-only access to the
     Datasource from other threads when a thread holds the transaction lock
@@ -116,6 +116,10 @@ release summary: major bugfixes and major new features including the new
     ex: int sub function() {}
     the new syntax with the return type before the method signature is
     preferred over the olf syntax with the "returns" keyword
+* new feature: implemented warning "duplicate-block-vars" enabled by default
+    for the case when a variable is declared twice within the same block at
+    the exact same lexical scope; this is an error when %assume-local is
+    enabled
 * new feature: implemented "#$" giving the implicit offset when implicitly
     iterating a list (foreach, map, foldl, foldr, select)
 * new feature: added the following methods to the HTTPClient class:

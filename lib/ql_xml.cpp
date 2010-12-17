@@ -2650,9 +2650,9 @@ void init_xml_functions() {
    builtinFunctions.add2("makeXMLRPCFaultResponseString",                      f_makeXMLRPCFaultResponseString, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringTypeInfo, 2, QORE_PARAM_NO_ARG, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("makeXMLRPCFaultResponseStringWithEncoding",          f_makeXMLRPCFaultResponseStringWithEncoding, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringTypeInfo, 3, stringTypeInfo, QORE_PARAM_NO_ARG, QORE_PARAM_NO_ARG, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   // makeXMLRPCValueString(any $any) returns any
+   // any makeXMLRPCValueString(any $any)  
    builtinFunctions.add2("makeXMLRPCValueString",                              f_makeXMLRPCValueString, QC_RET_VALUE_ONLY, QDOM_DEFAULT, 0, 1, anyTypeInfo, QORE_PARAM_NO_ARG);
-   // makeXMLRPCValueString(any $any, string $encoding) returns any
+   // any makeXMLRPCValueString(any $any, string $encoding)  
    builtinFunctions.add2("makeXMLRPCValueString",                              f_makeXMLRPCValueString, QC_RET_VALUE_ONLY, QDOM_DEFAULT, 0, 2, anyTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add2("makeFormattedXMLRPCCallString",                      f_makeFormattedXMLRPCCallString, QC_USES_EXTRA_ARGS | QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
@@ -2667,9 +2667,9 @@ void init_xml_functions() {
    builtinFunctions.add2("makeFormattedXMLRPCFaultResponseString",             f_makeFormattedXMLRPCFaultResponseString, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringTypeInfo, 2, QORE_PARAM_NO_ARG, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("makeFormattedXMLRPCFaultResponseStringWithEncoding", f_makeFormattedXMLRPCFaultResponseStringWithEncoding, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringTypeInfo, 3, stringTypeInfo, QORE_PARAM_NO_ARG, QORE_PARAM_NO_ARG, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   // makeFormattedXMLRPCValueString(any $any) returns any
+   // any makeFormattedXMLRPCValueString(any $any)  
    builtinFunctions.add2("makeFormattedXMLRPCValueString",                     f_makeFormattedXMLRPCValueString, QC_RET_VALUE_ONLY, QDOM_DEFAULT, 0, 1, anyTypeInfo, QORE_PARAM_NO_ARG);
 
-   // makeFormattedXMLRPCValueString(any $any, string $encoding) returns any
+   // any makeFormattedXMLRPCValueString(any $any, string $encoding)  
    builtinFunctions.add2("makeFormattedXMLRPCValueString",                     f_makeFormattedXMLRPCValueString, QC_RET_VALUE_ONLY, QDOM_DEFAULT, 0, 2, anyTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
 }

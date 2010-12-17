@@ -74,7 +74,7 @@ static AbstractQoreNode *TERMIOS_getCC(QoreObject *self, QoreTermIOS *s, const Q
    return *xsink ? 0 : new QoreBigIntNode(rc);
 }
 
-// TermIOS::setCC(softint $offset = 0, softint $value = 0) returns nothing
+// nothing TermIOS::setCC(softint $offset = 0, softint $value = 0)  
 static AbstractQoreNode *TERMIOS_setCC(QoreObject *self, QoreTermIOS *s, const QoreListNode *params, ExceptionSink *xsink) {
    s->set_cc(HARD_QORE_INT(params, 0), (cc_t)HARD_QORE_INT(params, 1), xsink);
    return 0;
@@ -120,22 +120,22 @@ QoreClass *initTermIOSClass() {
    QC_TERMIOS->addMethodExtended("getOFlag", (q_method_t)TERMIOS_getOFlag, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo);
    QC_TERMIOS->addMethodExtended("getIFlag", (q_method_t)TERMIOS_getIFlag, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo);
 
-   // TermIOS::setLFlag(softint $flag = 0) returns nothing
+   // nothing TermIOS::setLFlag(softint $flag = 0)  
    QC_TERMIOS->addMethodExtended("setLFlag", (q_method_t)TERMIOS_setLFlag, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, softBigIntTypeInfo, zero());
 
-   // TermIOS::setCFlag(softint $flag = 0) returns nothing
+   // nothing TermIOS::setCFlag(softint $flag = 0)  
    QC_TERMIOS->addMethodExtended("setCFlag", (q_method_t)TERMIOS_setCFlag, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, softBigIntTypeInfo, zero());
 
-   // TermIOS::setOFlag(softint $flag = 0) returns nothing
+   // nothing TermIOS::setOFlag(softint $flag = 0)  
    QC_TERMIOS->addMethodExtended("setOFlag", (q_method_t)TERMIOS_setOFlag, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, softBigIntTypeInfo, zero());
 
-   // TermIOS::setIFlag(softint $flag = 0) returns nothing
+   // nothing TermIOS::setIFlag(softint $flag = 0)  
    QC_TERMIOS->addMethodExtended("setIFlag", (q_method_t)TERMIOS_setIFlag, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, softBigIntTypeInfo, zero());
 
-   // TermIOS::getCC(softint $offset = 0) returns int
+   // int TermIOS::getCC(softint $offset = 0)  
    QC_TERMIOS->addMethodExtended("getCC",    (q_method_t)TERMIOS_getCC, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo, 1, softBigIntTypeInfo, zero());
 
-   // TermIOS::setCC(softint $offset = 0, softint $value = 0) returns nothing
+   // nothing TermIOS::setCC(softint $offset = 0, softint $value = 0)  
    QC_TERMIOS->addMethodExtended("setCC",    (q_method_t)TERMIOS_setCC, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 2, softBigIntTypeInfo, zero(), softBigIntTypeInfo, zero());
 
    QC_TERMIOS->addMethodExtended("isEqual",  (q_method_t)TERMIOS_isEqual, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, boolTypeInfo, 1, QC_TERMIOS->getTypeInfo(), QORE_PARAM_NO_ARG);

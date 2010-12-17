@@ -192,9 +192,9 @@ QoreClass *initJsonRpcClientClass(QoreClass *http_client) {
    client->addMethodExtended("callArgsWithInfo", (q_method_t)JRC_callArgsWithInfo, false, QC_NO_FLAGS, QDOM_DEFAULT, 0, 3, referenceTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG, anyTypeInfo, QORE_PARAM_NO_ARG);
    client->addMethodExtended("callWithInfo",     (q_method_t)JRC_callWithInfo, false, QC_USES_EXTRA_ARGS, QDOM_DEFAULT, 0, 2, referenceTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   // JsonRpcClient::setEventQueue() returns nothing
+   // nothing JsonRpcClient::setEventQueue()  
    client->addMethodExtended("setEventQueue",    (q_method_t)JRC_setEventQueue_nothing, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
-   // JsonRpcClient::setEventQueue(Queue $queue) returns nothing
+   // nothing JsonRpcClient::setEventQueue(Queue $queue)  
    client->addMethodExtended("setEventQueue",    (q_method_t)JRC_setEventQueue_queue, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, QC_QUEUE->getTypeInfo(), QORE_PARAM_NO_ARG);
 
    return client;

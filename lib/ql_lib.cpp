@@ -326,7 +326,7 @@ static AbstractQoreNode *f_lstat(const QoreListNode *params, ExceptionSink *xsin
    return map_sbuf_to_list(&sbuf);
 }
 
-// hstat(string $path) returns *hash
+// *hash hstat(string $path)  
 static AbstractQoreNode *f_hstat(const QoreListNode *params, ExceptionSink *xsink) {
    QORE_TRACE("f_hstat()");
    HARD_QORE_PARAM(p0, const QoreStringNode, params, 0);
@@ -662,22 +662,22 @@ void init_lib_functions() {
    // builtinFunctions.add("waitpid",     f_waitpid);
 
    builtinFunctions.add2("stat",        f_noop, QC_RUNTIME_NOOP, QDOM_FILESYSTEM, nothingTypeInfo);
-   // stat(string $path) returns *list
+   // *list stat(string $path)  
    builtinFunctions.add2("stat",        f_stat, QC_NO_FLAGS, QDOM_FILESYSTEM, listOrNothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add2("lstat",       f_noop, QC_RUNTIME_NOOP, QDOM_FILESYSTEM, nothingTypeInfo);
-   // lstat(string $path) returns *list
+   // *list lstat(string $path)  
    builtinFunctions.add2("lstat",       f_lstat, QC_NO_FLAGS, QDOM_FILESYSTEM, listOrNothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add2("hstat",       f_noop, QC_RUNTIME_NOOP, QDOM_FILESYSTEM, nothingTypeInfo);
-   // hstat(string $path) returns *hash
+   // *hash hstat(string $path)  
    builtinFunctions.add2("hstat",       f_hstat, QC_NO_FLAGS, QDOM_FILESYSTEM, hashOrNothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add2("hlstat",      f_noop, QC_RUNTIME_NOOP, QDOM_FILESYSTEM, nothingTypeInfo);
-   // hlstat(string $path) returns *hash
+   // *hash hlstat(string $path)  
    builtinFunctions.add2("hlstat",      f_hlstat, QC_NO_FLAGS, QDOM_FILESYSTEM, hashOrNothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   // glob(string $str) returns *list
+   // *list glob(string $str)  
    builtinFunctions.add2("glob",        f_noop, QC_RUNTIME_NOOP, QDOM_FILESYSTEM, nothingTypeInfo);
    builtinFunctions.add2("glob",        f_glob, QC_NO_FLAGS, QDOM_FILESYSTEM, listOrNothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
@@ -728,24 +728,24 @@ void init_lib_functions() {
 
    builtinFunctions.add2("setsid",      f_setsid, QC_NO_FLAGS, QDOM_PROCESS, bigIntTypeInfo);
 
-   // gethostbyname(string $name) returns *string
+   // *string gethostbyname(string $name)  
    builtinFunctions.add2("gethostbyname",       f_noop, QC_RUNTIME_NOOP, QDOM_EXTERNAL_INFO, nothingTypeInfo);
    builtinFunctions.add2("gethostbyname",       f_gethostbyname, QC_CONSTANT, QDOM_EXTERNAL_INFO, stringOrNothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   // gethostbyaddr(string $addr, softint $type = AF_INET) returns *string
+   // *string gethostbyaddr(string $addr, softint $type = AF_INET)  
    builtinFunctions.add2("gethostbyaddr",       f_noop, QC_RUNTIME_NOOP, QDOM_EXTERNAL_INFO, nothingTypeInfo);
    builtinFunctions.add2("gethostbyaddr",       f_gethostbyaddr, QC_CONSTANT, QDOM_EXTERNAL_INFO, stringOrNothingTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, new QoreBigIntNode(AF_INET));
 
-   // gethostbyname_long(string $name) returns *hash
+   // gethostbyname_*hash long(string $name)  
    builtinFunctions.add2("gethostbyname_long",  f_noop, QC_RUNTIME_NOOP, QDOM_EXTERNAL_INFO, nothingTypeInfo);
    builtinFunctions.add2("gethostbyname_long",  f_gethostbyname_long, QC_CONSTANT, QDOM_EXTERNAL_INFO, hashOrNothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   // gethostbyaddr_long(string $addr, softint $type = AF_INET) returns *hash
+   // gethostbyaddr_*hash long(string $addr, softint $type = AF_INET)  
    builtinFunctions.add2("gethostbyaddr_long",  f_noop, QC_RUNTIME_NOOP, QDOM_EXTERNAL_INFO, nothingTypeInfo);
    builtinFunctions.add2("gethostbyaddr_long",  f_gethostbyaddr_long, QC_CONSTANT, QDOM_EXTERNAL_INFO, hashOrNothingTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, new QoreBigIntNode(AF_INET));
 
    // getcwd can return NOTHING if an error occurs
-   // getcwd() returns *string
+   // *string getcwd()  
    builtinFunctions.add2("getcwd",      f_getcwd, QC_CONSTANT, QDOM_FILESYSTEM | QDOM_EXTERNAL_INFO, stringOrNothingTypeInfo);
 
    // getcwd2 throws an exception if an error occurs

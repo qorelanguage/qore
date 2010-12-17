@@ -51,7 +51,7 @@ static AbstractQoreNode *CONDITION_broadcast(QoreObject *self, Condition *c, con
    return 0;
 }
 
-// Condition::wait(AbstractSmartLock $lock, timeout $timeout_ms = 0) returns int
+// int Condition::wait(AbstractSmartLock $lock, timeout $timeout_ms = 0)  
 static AbstractQoreNode *CONDITION_wait(QoreObject *self, Condition *c, const QoreListNode *params, ExceptionSink *xsink) {
    HARD_QORE_OBJ_DATA(m, AbstractSmartLock, params, 0, CID_ABSTRACTSMARTLOCK, "AbstractSmartLock", "Condition::wait", xsink);
    if (*xsink)
@@ -72,7 +72,7 @@ static AbstractQoreNode *CONDITION_wait(QoreObject *self, Condition *c, const Qo
    return new QoreBigIntNode(rc);   
 }
 
-// Condition::wait_count(AbstractSmartLock $lock) returns int
+// Condition::wait_int count(AbstractSmartLock $lock)  
 static AbstractQoreNode *CONDITION_wait_count(QoreObject *self, Condition *c, const QoreListNode *params, ExceptionSink *xsink) {
    HARD_QORE_OBJ_DATA(m, AbstractSmartLock, params, 0, CID_ABSTRACTSMARTLOCK, "AbstractSmartLock", "Condition::wait_count", xsink);
    if (*xsink)
@@ -96,10 +96,10 @@ QoreClass *initConditionClass(QoreClass *AbstractSmartLock) {
    QC_CONDITION->addMethodExtended("signal",        (q_method_t)CONDITION_signal, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
    QC_CONDITION->addMethodExtended("broadcast",     (q_method_t)CONDITION_broadcast, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
 
-   // Condition::wait(AbstractSmartLock $lock, timeout $timeout_ms = 0) returns int
+   // int Condition::wait(AbstractSmartLock $lock, timeout $timeout_ms = 0)  
    QC_CONDITION->addMethodExtended("wait",          (q_method_t)CONDITION_wait, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 2, AbstractSmartLock->getTypeInfo(), QORE_PARAM_NO_ARG, timeoutTypeInfo, zero());
 
-   // Condition::wait_count(AbstractSmartLock $lock) returns int
+   // Condition::wait_int count(AbstractSmartLock $lock)  
    QC_CONDITION->addMethodExtended("wait_count",    (q_method_t)CONDITION_wait_count, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, AbstractSmartLock->getTypeInfo(), QORE_PARAM_NO_ARG);
 
    return QC_CONDITION;

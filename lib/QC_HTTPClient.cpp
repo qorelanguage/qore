@@ -124,7 +124,7 @@ public:
    }
 };
 
-// send(data = "", method, path = "", headers = hash(), getbody = False, [info_reference]) returns hash
+// hash send(data = "", method, path = "", headers = hash(), getbody = False, [info_reference])  
 static AbstractQoreNode *HC_send(QoreObject *self, QoreHTTPClient *client, const QoreListNode *args, ExceptionSink *xsink) {
    const void *ptr = 0;
    qore_size_t size = 0;
@@ -157,7 +157,7 @@ static AbstractQoreNode *HC_send(QoreObject *self, QoreHTTPClient *client, const
    return *xsink ? 0 : rv.release();
 }
 
-// HTTPClient::get(string $path, hash $headers = hash(), *reference $ref) returns *string
+// *string HTTPClient::get(string $path, hash $headers = hash(), *reference $ref)  
 static AbstractQoreNode *HC_get(QoreObject *self, QoreHTTPClient *client, const QoreListNode *args, ExceptionSink *xsink) {
    const QoreStringNode *pstr = HARD_QORE_STRING(args, 0);
    const char *path = pstr->getBuffer();
@@ -184,8 +184,8 @@ static AbstractQoreNode *HC_head(QoreObject *self, QoreHTTPClient *client, const
    return *xsink ? 0 : rv.release();
 }
 
-// HTTPClient::post(string $path, data $data, hash $headers = hash()) returns *string
-// HTTPClient::post(string $path, data $data, hash $headers = hash(), reference $info) returns *string
+// *string HTTPClient::post(string $path, data $data, hash $headers = hash())  
+// *string HTTPClient::post(string $path, data $data, hash $headers = hash(), reference $info)  
 static AbstractQoreNode *HC_post(QoreObject *self, QoreHTTPClient *client, const QoreListNode *args, ExceptionSink *xsink) {
    const QoreStringNode *pstr = HARD_QORE_STRING(args, 0);
    const char *path = pstr->getBuffer();
@@ -214,7 +214,7 @@ static AbstractQoreNode *HC_post(QoreObject *self, QoreHTTPClient *client, const
    return *xsink ? 0 : rv.release();
 }
 
-// HTTPClient::setTimeout(timeout $timeout_ms = 0) returns nothing
+// nothing HTTPClient::setTimeout(timeout $timeout_ms = 0)  
 static AbstractQoreNode *HC_setTimeout(QoreObject *self, QoreHTTPClient *client, const QoreListNode *args, ExceptionSink *xsink) {
    client->setTimeout((int)HARD_QORE_INT(args, 0));
    return 0;
@@ -295,7 +295,7 @@ static AbstractQoreNode *HC_setEventQueue_queue(QoreObject *self, QoreHTTPClient
    return 0;
 }
 
-// HTTPClient::setConnectTimeout(timeout $timeout_ms = -1) returns nothing
+// nothing HTTPClient::setConnectTimeout(timeout $timeout_ms = -1)  
 static AbstractQoreNode *HC_setConnectTimeout(QoreObject *self, QoreHTTPClient *client, const QoreListNode *args, ExceptionSink *xsink) {
    client->setConnectTimeout((int)HARD_QORE_INT(args, 0));
    return 0;
@@ -374,7 +374,7 @@ QoreClass *initHTTPClientClass() {
    client->addMethodExtended("isSecure",               (q_method_t)HC_isSecure, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, boolTypeInfo);
 
    // returns either a string or nothing
-   //HTTPClient::verifyPeerCertificate() returns *string
+   //*string HTTPClient::verifyPeerCertificate()  
    client->addMethodExtended("verifyPeerCertificate",  (q_method_t)HC_verifyPeerCertificate, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringOrNothingTypeInfo);
 
    // returns either a string or nothing
@@ -387,27 +387,27 @@ QoreClass *initHTTPClientClass() {
 
    client->addMethodExtended("disconnect",             (q_method_t)HC_disconnect, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
 
-   // HTTPClient::send([data], string $method, string $path = "", hash headers = hash(), bool $getbody = False) returns hash
-   // HTTPClient::send([data], string $method, string $path = "", hash headers = hash(), bool $getbody = False, reference $info) returns hash
+   // hash HTTPClient::send([data], string $method, string $path = "", hash headers = hash(), bool $getbody = False)  
+   // hash HTTPClient::send([data], string $method, string $path = "", hash headers = hash(), bool $getbody = False, reference $info)  
    client->addMethodExtended("send",                   (q_method_t)HC_send, false, QC_NO_FLAGS, QDOM_DEFAULT, hashTypeInfo, 5, dataTypeInfo, new BinaryNode, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, null_string(), hashTypeInfo, empty_hash(), softBoolTypeInfo, &False);
    client->addMethodExtended("send",                   (q_method_t)HC_send, false, QC_NO_FLAGS, QDOM_DEFAULT, hashTypeInfo, 6, dataTypeInfo, new BinaryNode, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, null_string(), hashTypeInfo, empty_hash(), softBoolTypeInfo, &False, referenceTypeInfo, QORE_PARAM_NO_ARG);
 
-   // HTTPClient::get(string $path, hash $headers = hash()) returns *string
-   // HTTPClient::get(string $path, hash $headers = hash(), reference $ref) returns *string
+   // *string HTTPClient::get(string $path, hash $headers = hash())  
+   // *string HTTPClient::get(string $path, hash $headers = hash(), reference $ref)  
    client->addMethodExtended("get",                    (q_method_t)HC_get, false, QC_NO_FLAGS, QDOM_DEFAULT, stringOrNothingTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, hashTypeInfo, empty_hash());
    client->addMethodExtended("get",                    (q_method_t)HC_get, false, QC_NO_FLAGS, QDOM_DEFAULT, stringOrNothingTypeInfo, 3, stringTypeInfo, QORE_PARAM_NO_ARG, hashTypeInfo, empty_hash(), referenceTypeInfo, QORE_PARAM_NO_ARG);
 
-   // HTTPClient::head(string $path, hash $headers = hash()) returns hash
-   // HTTPClient::head(string $path, hash $headers = hash(), reference $info) returns hash
+   // hash HTTPClient::head(string $path, hash $headers = hash())  
+   // hash HTTPClient::head(string $path, hash $headers = hash(), reference $info)  
    client->addMethodExtended("head",                   (q_method_t)HC_head, false, QC_NO_FLAGS, QDOM_DEFAULT, hashTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, hashTypeInfo, empty_hash());
    client->addMethodExtended("head",                   (q_method_t)HC_head, false, QC_NO_FLAGS, QDOM_DEFAULT, hashTypeInfo, 3, stringTypeInfo, QORE_PARAM_NO_ARG, hashTypeInfo, empty_hash(), referenceTypeInfo, QORE_PARAM_NO_ARG);
 
-   // HTTPClient::post(string $path, data $data, hash $headers = hash()) returns *string
-   // HTTPClient::post(string $path, data $data, hash $headers = hash(), reference $info) returns *string 
+   // *string HTTPClient::post(string $path, data $data, hash $headers = hash())  
+   // *string HTTPClient::post(string $path, data $data, hash $headers = hash(), reference $info)   
   client->addMethodExtended("post",                   (q_method_t)HC_post, false, QC_NO_FLAGS, QDOM_DEFAULT, stringOrNothingTypeInfo, 3, stringTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, hashTypeInfo, empty_hash());
    client->addMethodExtended("post",                   (q_method_t)HC_post, false, QC_NO_FLAGS, QDOM_DEFAULT, stringOrNothingTypeInfo, 4, stringTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, hashTypeInfo, empty_hash(), referenceTypeInfo, QORE_PARAM_NO_ARG);
 
-   // HTTPClient::setTimeout(timeout $timeout_ms = 0) returns nothing
+   // nothing HTTPClient::setTimeout(timeout $timeout_ms = 0)  
    client->addMethodExtended("setTimeout",             (q_method_t)HC_setTimeout, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, timeoutTypeInfo, zero());
 
    client->addMethodExtended("getTimeout",             (q_method_t)HC_getTimeout, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo);
@@ -420,48 +420,48 @@ QoreClass *initHTTPClientClass() {
 
    client->addMethodExtended("getURL",                 (q_method_t)HC_getURL, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringTypeInfo);
 
-   // HTTPClient::setProxyURL() returns nothing
+   // nothing HTTPClient::setProxyURL()  
    // clears the proxy URL
    client->addMethodExtended("setProxyURL",            (q_method_t)HC_setProxyURL_nothing, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
-   // HTTPClient::setProxyURL(string $url) returns nothing
+   // nothing HTTPClient::setProxyURL(string $url)  
    client->addMethodExtended("setProxyURL",            (q_method_t)HC_setProxyURL_str, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   // HTTPClient::getProxyURL() returns *string
+   // *string HTTPClient::getProxyURL()  
    client->addMethodExtended("getProxyURL",            (q_method_t)HC_getProxyURL, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringOrNothingTypeInfo);
 
-   // HTTPClient::clearProxyURL() returns nothing
+   // nothing HTTPClient::clearProxyURL()  
    client->addMethodExtended("clearProxyURL",          (q_method_t)HC_clearProxyURL, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
 
-   // HTTPClient::setProxySecure(softbool $b = True) returns nothing
+   // nothing HTTPClient::setProxySecure(softbool $b = True)  
    client->addMethodExtended("setProxySecure",         (q_method_t)HC_setProxySecure, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, softBoolTypeInfo, &True);
 
-   // HTTPClient::isProxySecure() returns bool
+   // bool HTTPClient::isProxySecure()  
    client->addMethodExtended("isProxySecure",          (q_method_t)HC_isProxySecure, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, boolTypeInfo);
 
-   // HTTPClient::setMaxRedirects(softint $mr = 0) returns nothing
+   // nothing HTTPClient::setMaxRedirects(softint $mr = 0)  
    client->addMethodExtended("setMaxRedirects",        (q_method_t)HC_setMaxRedirects, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, softBigIntTypeInfo, zero());
 
-   // HTTPClient::getMaxRedirects() returns int
+   // int HTTPClient::getMaxRedirects()  
    client->addMethodExtended("getMaxRedirects",        (q_method_t)HC_getMaxRedirects, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo);
 
-   // HTTPClient::setEventQueue() returns nothing
+   // nothing HTTPClient::setEventQueue()  
    client->addMethodExtended("setEventQueue",          (q_method_t)HC_setEventQueue_nothing, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
-   // HTTPClient::setEventQueue(Queue $queue) returns nothing
+   // nothing HTTPClient::setEventQueue(Queue $queue)  
    client->addMethodExtended("setEventQueue",          (q_method_t)HC_setEventQueue_queue, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, QC_QUEUE->getTypeInfo(), QORE_PARAM_NO_ARG);
 
-   // HTTPClient::setConnectTimeout(timeout $timeout_ms = -1) returns nothing
+   // nothing HTTPClient::setConnectTimeout(timeout $timeout_ms = -1)  
    client->addMethodExtended("setConnectTimeout",      (q_method_t)HC_setConnectTimeout, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, timeoutTypeInfo, new QoreBigIntNode(-1));
 
-   // HTTPClient::getConnectTimeout() returns int
+   // int HTTPClient::getConnectTimeout()  
    client->addMethodExtended("getConnectTimeout",      (q_method_t)HC_getConnectTimeout, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo);
 
-   // HTTPClient::setNoDelay(softbool $b = True) returns int
+   // int HTTPClient::setNoDelay(softbool $b = True)  
    client->addMethodExtended("setNoDelay",             (q_method_t)HC_setNoDelay, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, softBoolTypeInfo, &True);
 
-   // HTTPClient::getNoDelay() returns bool
+   // bool HTTPClient::getNoDelay()  
    client->addMethodExtended("getNoDelay",             (q_method_t)HC_getNoDelay, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, boolTypeInfo);
 
-   // HTTPClient::isConnected() returns bool
+   // bool HTTPClient::isConnected()  
    client->addMethodExtended("isConnected",            (q_method_t)HC_isConnected, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, boolTypeInfo);
 
    // nothing HTTPClient::setUserPassword(string user, string pass)
