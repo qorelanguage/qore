@@ -146,6 +146,16 @@ public:
    */
    DLLEXPORT QoreStringNode *getURL();
 
+   //! sets the username and password for the connection
+   /** @param user the username to set
+       @param pass the password to set
+       @note setURL() will overwrite any settings set here
+   */
+   DLLEXPORT void setUserPassword(const char *user, const char *pass);
+
+   //! clears the username and password for the connection
+   DLLEXPORT void clearUserPassword();
+
    //! sets the proxy URL
    /** @param proxy the URL to use for connection to the proxy
        @param xsink if an error occurs, the Qore-language exception information will be added here	  
@@ -161,6 +171,16 @@ public:
 
    //! clears the proxy URL
    DLLEXPORT void clearProxyURL();
+
+   //! sets the username and password for the proxy connection
+   /** @param user the username to set
+       @param pass the password to set
+       @note these settings will only take effect if a proxy URL is set, so it only makes sense to call this function after setProxyURL(); also setProxyURL() will overwrite any settings here.
+   */
+   DLLEXPORT void setProxyUserPassword(const char *user, const char *pass);
+
+   //! clears the username and password for the proxy connection
+   DLLEXPORT void clearProxyUserPassword();
 
    //! sets the SSL flag for use in the next connection
    DLLEXPORT void setSecure(bool is_secure);

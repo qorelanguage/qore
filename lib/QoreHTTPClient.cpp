@@ -121,6 +121,17 @@ struct con_info {
       return pstr;
    }
 
+   DLLLOCAL void setUserPassword(const char *user, const char *pass) {
+      assert(user && pass);
+      username = user;
+      password = pass;
+   }
+
+   DLLLOCAL void clearUserPassword() {
+      username.clear();
+      password.clear();
+   }
+
    DLLLOCAL void clear() {
       port = 0;
       username.clear();
@@ -317,6 +328,30 @@ struct qore_qtc_private {
 
       setSocketPath();
       return 0;
+   }
+
+   DLLLOCAL void setUserPassword(const char *user, const char *pass) {
+      assert(user && pass);
+      AutoLocker al(m);
+
+      connection.setUserPassword(user, pass);
+   }
+
+   DLLLOCAL void clearUserPassword() {
+      AutoLocker al(m);
+      connection.clearUserPassword();
+   }
+
+   DLLLOCAL void setProxyUserPassword(const char *user, const char *pass) {
+      assert(user && pass);
+      AutoLocker al(m);
+
+      proxy_connection.setUserPassword(user, pass);
+   }
+
+   DLLLOCAL void clearProxyUserPassword() {
+      AutoLocker al(m);
+      proxy_connection.clearUserPassword();
    }
 
    // always generate a Host header pointing to the host hosting the resource, not the proxy
@@ -1282,4 +1317,20 @@ bool QoreHTTPClient::getNoDelay() const {
 
 bool QoreHTTPClient::isConnected() const {
    return priv->connected;
+}
+
+void QoreHTTPClient::setUserPassword(const char *user, const char *pass) {
+   priv->setUserPassword(user, pass);
+}
+
+void QoreHTTPClient::clearUserPassword() {
+   priv->clearUserPassword();
+}
+
+void QoreHTTPClient::setProxyUserPassword(const char *user, const char *pass) {
+   priv->setProxyUserPassword(user, pass);
+}
+
+void QoreHTTPClient::clearProxyUserPassword() {
+   priv->clearProxyUserPassword();
 }

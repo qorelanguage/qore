@@ -317,6 +317,36 @@ static AbstractQoreNode *HC_isConnected(QoreObject *self, QoreHTTPClient *client
     return get_bool_node(client->isConnected());
 }
 
+// nothing HTTPClient::setUserPassword(string user, string pass)
+static AbstractQoreNode *HC_setUserPassword(QoreObject *self, QoreHTTPClient *client, const QoreListNode *args, ExceptionSink *xsink) {
+   const QoreStringNode *user = HARD_QORE_STRING(args, 0);
+   const QoreStringNode *pass = HARD_QORE_STRING(args, 1);
+
+   client->setUserPassword(user->getBuffer(), pass->getBuffer());
+   return 0;
+}
+
+// nothing HTTPClient::clearUserPassword()
+static AbstractQoreNode *HC_clearUserPassword(QoreObject *self, QoreHTTPClient *client, const QoreListNode *args, ExceptionSink *xsink) {
+   client->clearUserPassword();
+   return 0;
+}
+
+// nothing HTTPClient::setProxyUserPassword(string user, string pass)
+static AbstractQoreNode *HC_setProxyUserPassword(QoreObject *self, QoreHTTPClient *client, const QoreListNode *args, ExceptionSink *xsink) {
+   const QoreStringNode *user = HARD_QORE_STRING(args, 0);
+   const QoreStringNode *pass = HARD_QORE_STRING(args, 1);
+
+   client->setProxyUserPassword(user->getBuffer(), pass->getBuffer());
+   return 0;
+}
+
+// nothing HTTPClient::clearProxyUserPassword()
+static AbstractQoreNode *HC_clearProxyUserPassword(QoreObject *self, QoreHTTPClient *client, const QoreListNode *args, ExceptionSink *xsink) {
+   client->clearProxyUserPassword();
+   return 0;
+}
+
 QoreClass *initHTTPClientClass() {
    QORE_TRACE("initHTTPClientClass");
 
@@ -433,6 +463,22 @@ QoreClass *initHTTPClientClass() {
 
    // HTTPClient::isConnected() returns bool
    client->addMethodExtended("isConnected",            (q_method_t)HC_isConnected, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, boolTypeInfo);
+
+   // nothing HTTPClient::setUserPassword(string user, string pass)
+   client->addMethodExtended("setUserPassword",        (q_method_t)HC_setUserPassword, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
+   // nothing HTTPClient::setUserPassword()   
+   client->addMethodExtended("setUserPassword",        (q_method_t)HC_clearUserPassword, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
+
+   // nothing HTTPClient::clearUserPassword()
+   client->addMethodExtended("clearUserPassword",      (q_method_t)HC_clearUserPassword, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
+
+   // nothing HTTPClient::setProxyUserPassword(string user, string pass)
+   client->addMethodExtended("setProxyUserPassword",   (q_method_t)HC_setProxyUserPassword, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
+   // nothing HTTPClient::setProxyUserPassword()   
+   client->addMethodExtended("setProxyUserPassword",   (q_method_t)HC_clearProxyUserPassword, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
+
+   // nothing HTTPClient::clearProxyUserPassword()
+   client->addMethodExtended("clearProxyUserPassword", (q_method_t)HC_clearProxyUserPassword, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
 
    return client;
 }

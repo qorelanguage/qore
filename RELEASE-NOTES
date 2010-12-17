@@ -105,8 +105,24 @@ release summary: major bugfixes and major new features including the new
     means that it's no longer necessary to use the "$self.method()" syntax to
     make calls when the method may be called by a child class that has
     reimplemented the method
+* new feature: new parse options:
+  * %assume-local: variables declared with type and without "my" are assumed
+    to be local variables
+  * %allow-bare-refs: allows all variables, object members, and object
+    method calls to be made without using "$" or "$."
+  * %new-style: combination of %assume-local and %allow-bare-refs
+* new feature: return types for functions, methods, and closures can appear
+    before the function signature:
+    ex: int sub function() {}
+    the new syntax with the return type before the method signature is
+    preferred over the olf syntax with the "returns" keyword
 * new feature: implemented "#$" giving the implicit offset when implicitly
     iterating a list (foreach, map, foldl, foldr, select)
+* new feature: added the following methods to the HTTPClient class:
+  * HTTPClient::setUserPassword()
+  * HTTPClient::clearUserPassword()
+  * HTTPClient::setProxyUserPassword()
+  * HTTPClient::clearProxyUserPassword()
 * new feature: added "perm" key to stat hash output giving the file's symbolic
     permission (i.e. "drwxr-xr-x")
 * new feature: implemented %module-cmd(<module-name>) parse directive to allow

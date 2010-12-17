@@ -17530,6 +17530,21 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
           </row>
           <row>
             <entry>
+              <para><code><link linkend="nothing_type">nothing</link> <link linkend="HTTPClient_setUserPassword">HTTPClient::setUserPassword</link>(<link linkend="string_type">string</link> <replaceable>$user</replaceable>, <link linkend="string_type">string</link> <replaceable>$pass</replaceable>)</code></para>
+              <para><code><link linkend="nothing_type">nothing</link> <link linkend="HTTPClient_setUserPassword">HTTPClient::setUserPassword</link>()</code></para>
+            </entry>
+            <entry><para>Y</para></entry>
+            <entry><para>Sets or clears (in case called with no arguments) the username and password for the connection; call after <link linkend="HTTPClient_setURL">HTTPClient::setURL()</link>.</para></entry>
+          </row>
+          <row>
+            <entry>
+              <para><code><link linkend="nothing_type">nothing</link> <link linkend="HTTPClient_clearUserPassword">HTTPClient::clearUserPassword</link>()</code></para>
+            </entry>
+            <entry><para>N</para></entry>
+            <entry><para>Clears the username and password values.</para></entry>
+          </row>
+          <row>
+            <entry>
               <para><code><link linkend="*string_type">*string</link> <link linkend="HTTPClient_getProxyURL">HTTPClient::getProxyURL</link>()</code></para>
             </entry>
             <entry><para>N</para></entry>
@@ -17540,8 +17555,8 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
               <para><code><link linkend="nothing_type">nothing</link> <link linkend="HTTPClient_setProxyURL">HTTPClient::setProxyURL</link>()</code></para>
               <para><code><link linkend="nothing_type">nothing</link> <link linkend="HTTPClient_setProxyURL">HTTPClient::setProxyURL</link>(<link linkend="string_type">string</link> <replaceable>$url</replaceable>)</code></para>
             </entry>
-            <entry><para>Y</para></entry>
-            <entry><para>Sets or clears (in case called with no argument) a new proxy URL value for the next connection.</para></entry>
+            <entry><para>N</para></entry>
+            <entry><para>Sets or clears (in case called with no arguments) a new proxy URL value for the next connection.</para></entry>
           </row>
           <row>
             <entry>
@@ -17549,6 +17564,21 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
             </entry>
             <entry><para>N</para></entry>
             <entry><para>Clears the proxy URL value.</para></entry>
+          </row>
+          <row>
+            <entry>
+              <para><code><link linkend="nothing_type">nothing</link> <link linkend="HTTPClient_setProxyUserPassword">HTTPClient::setProxyUserPassword</link>(<link linkend="string_type">string</link> <replaceable>$user</replaceable>, <link linkend="string_type">string</link> <replaceable>$pass</replaceable>)</code></para>
+              <para><code><link linkend="nothing_type">nothing</link> <link linkend="HTTPClient_setProxyUserPassword">HTTPClient::setProxyUserPassword</link>()</code></para>
+            </entry>
+            <entry><para>Y</para></entry>
+            <entry><para>Sets or clears (in case called with no arguments) the username and password for the proxy connection; call after <link linkend="HTTPClient_setProxyURL">HTTPClient::setProxyURL()</link>.</para></entry>
+          </row>
+          <row>
+            <entry>
+              <para><code><link linkend="nothing_type">nothing</link> <link linkend="HTTPClient_clearProxyUserPassword">HTTPClient::clearProxyUserPassword</link>()</code></para>
+            </entry>
+            <entry><para>N</para></entry>
+            <entry><para>Clears the proxy username and password values.</para></entry>
           </row>
           <row>
             <entry>
@@ -18094,6 +18124,75 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
       </table>
     </sect2>
 
+    <sect2 id="HTTPClient_setUserPassword">
+      <title>HTTPClient::setUserPassword()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Sets or clears (in case called with no arguments) the username and password for the proxy connection; note that <link linkend="HTTPClient_setURL">HTTPClient::setURL()</link> will overwrite any values set here.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Prototype</term>
+          <listitem>
+              <para><code><link linkend="nothing_type">nothing</link> <link linkend="HTTPClient_setUserPassword">HTTPClient::setUserPassword</link>(<link linkend="string_type">string</link> <replaceable>$user</replaceable>, <link linkend="string_type">string</link> <replaceable>$pass</replaceable>)</code></para>
+              <para><code><link linkend="nothing_type">nothing</link> <link linkend="HTTPClient_setUserPassword">HTTPClient::setUserPassword</link>()</code></para>
+
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$httpclient.setUserPassword("user1", "password1");</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for HTTPClient::setUserPassword()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry><para>Argument</para></entry>
+              <entry><para>Description</para></entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry><para><code>[<link linkend="string_type">string</link> <replaceable>$user</replaceable>, <link linkend="string_type">string</link> <replaceable>$pass</replaceable>]</code></para></entry>
+              <entry><para>The new username and password for the proxy connection; call with no arguments to clear.</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+
+    </sect2>
+
+    <sect2 id="HTTPClient_clearUserPassword">
+      <title>HTTPClient::clearUserPassword()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Clears the proxy username and password values; normally called after <link linkend="HTTPClient_setURL">HTTPClient::setURL()</link>.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Prototype</term>
+          <listitem>
+              <para><code><link linkend="nothing_type">nothing</link> <link linkend="HTTPClient_clearUserPassword">HTTPClient::clearUserPassword</link>()</code></para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$httpclient.clearUserPassword();</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+
+    </sect2>
+
     <sect2 id="HTTPClient_getProxyURL">
       <title>HTTPClient::getProxyURL()</title>
       <variablelist>
@@ -18223,6 +18322,75 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
           <term>Example</term>
           <listitem>
             <programlisting>$httpclient.clearProxyURL();</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+
+    </sect2>
+
+    <sect2 id="HTTPClient_setProxyUserPassword">
+      <title>HTTPClient::setProxyUserPassword()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Sets or clears (in case called with no arguments) the username and password for the proxy connection; call after <link linkend="HTTPClient_setProxyURL">HTTPClient::setProxyURL()</link> because <link linkend="HTTPClient_setProxyURL">HTTPClient::setProxyURL()</link> will overwrite any values set here.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Prototype</term>
+          <listitem>
+              <para><code><link linkend="nothing_type">nothing</link> <link linkend="HTTPClient_setProxyUserPassword">HTTPClient::setProxyUserPassword</link>(<link linkend="string_type">string</link> <replaceable>$user</replaceable>, <link linkend="string_type">string</link> <replaceable>$pass</replaceable>)</code></para>
+              <para><code><link linkend="nothing_type">nothing</link> <link linkend="HTTPClient_setProxyUserPassword">HTTPClient::setProxyUserPassword</link>()</code></para>
+
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$httpclient.setProxyUserPassword("user1", "password1");</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      <table>
+        <title>Arguments for HTTPClient::setProxyUserPassword()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry><para>Argument</para></entry>
+              <entry><para>Description</para></entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry><para><code>[<link linkend="string_type">string</link> <replaceable>$user</replaceable>, <link linkend="string_type">string</link> <replaceable>$pass</replaceable>]</code></para></entry>
+              <entry><para>The new username and password for the proxy connection; call with no arguments to clear.</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+
+    </sect2>
+
+    <sect2 id="HTTPClient_clearProxyUserPassword">
+      <title>HTTPClient::clearProxyUserPassword()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Clears the proxy username and password values; normally called after <link linkend="HTTPClient_setProxyURL">HTTPClient::setProxyURL()</link>.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Prototype</term>
+          <listitem>
+              <para><code><link linkend="nothing_type">nothing</link> <link linkend="HTTPClient_clearProxyUserPassword">HTTPClient::clearProxyUserPassword</link>()</code></para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting>$httpclient.clearProxyUserPassword();</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
