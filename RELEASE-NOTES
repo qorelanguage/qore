@@ -4,6 +4,7 @@ release summary: major bugfixes and major new features including the new
     prepared statement API, vastly improved type system, static class variables
     and class constants
 
+* COMPATIBILITY WARNING: removed all XML functionality to the new "xml" module
 * BUG FIX: fixed a deadlock when calling HTTPClient::setProxyURL() with an
     empty string argument
 * BUG FIX: fixed a bug in the return statement to not check return type if an

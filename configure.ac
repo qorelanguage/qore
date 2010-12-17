@@ -320,15 +320,6 @@ AC_ARG_ENABLE([static-openssl],
       esac],
      [enable_static_openssl=no])
 
-AC_ARG_ENABLE([static-libxml2],
-     [AS_HELP_STRING([--enable-static-libxml2],
-		     [force static linkage of libxml2 libraries (default=auto)])],
-     [case "${enable_static_libxml2}" in
-       yes|no) ;;
-       *)      AC_MSG_ERROR(bad value ${enable_static_libxml2} for --enable-static-libxml2) ;;
-      esac],
-     [enable_static_libxml2=no])
-
 AC_ARG_ENABLE([static-zlib],
      [AS_HELP_STRING([--enable-static-zlib],
 		     [force static linkage of zlib libraries (default=auto)])],
@@ -358,7 +349,7 @@ AC_ARG_ENABLE([static-pcre],
 
 AC_ARG_ENABLE([static-common],
      [AS_HELP_STRING([--enable-static-common],
-		     [force static linkage of openssl, libxml2, and pcre libraries (default=auto)])],
+		     [force static linkage of openssl and pcre libraries (default=auto)])],
      [case "${enable_static_common}" in
        yes|no) ;;
        *)      AC_MSG_ERROR(bad value ${enable_static_common} for --enable-static-common) ;;
@@ -367,10 +358,6 @@ AC_ARG_ENABLE([static-common],
 
 if test "$enable_static_openssl" = "yes"; then
    openssl_static=yes
-fi
-
-if test "$enable_static_libxml2" = "yes"; then
-   libxml2_static=yes
 fi
 
 if test "$enable_static_zlib" = "yes"; then
@@ -390,7 +377,6 @@ fi
 if test "$enable_static_common" = "yes"; then
    zlib_static=yes
    openssl_static=yes
-   libxml2_static=yes
    pcre_static=yes
    bz2lib_static=yes
 fi
@@ -556,202 +542,6 @@ if test -n "$pcre_static"; then
    AC_MSG_RESULT([includes $with_pcre_includes libs $with_pcre_libs (static)])
 else
    AC_MSG_RESULT([includes $with_pcre_includes libs $with_pcre_libs (shared)])
-fi
-
-set_libxml2_cppflags() {
-    LIBXML2_INC_DIR=$1
-    if test "$1" != "/usr/include"; then
-        LIBXML2_CPPFLAGS=-I$1
-    fi
-}
-
-find_libxml2() {
-    dir="$1"
-    if test -z "$dir" -o "$dir" = "/"; then
-        dir="/"
-	lib=/lib
-	inc=/usr/include
-    else
-        lib="$dir/lib${LIBSUFFIX}"
-        inc="$dir/include"
-    fi
-    # if we only want the static libxml2 libraries
-    if test -n "$libxml2_static"; then
-    	if test -f "$lib/libxml2.a"; then
-	    LIBXML2_LDFLAGS="$lib/libxml2.a"
-       	    AC_MSG_RESULT([$lib (forced static)])
-    	fi
-    else
-        if test -f "$lib/libxml2.${SHLIB_SUFFIX}"; then
-	    if test "$lib" != "/lib" -a "$lib" != "/usr/lib"; then
-       	        LIBXML2_LDFLAGS="-L$lib"
-    	    fi
-	    LIBXML2_LDFLAGS="$LIBXML2_LDFLAGS -lxml2"
-       	    AC_MSG_RESULT([$lib (shared)])
-    	elif test -f "$lib/libxml2.a"; then
-	    if test "$lib" != "/lib" -a "$lib" != "/usr/lib"; then
-       	        LIBXML2_LDFLAGS="-L$lib"
-    	    fi
-	    LIBXML2_LDFLAGS="$LIBXML2_LDFLAGS -lxml2"
-       	    AC_MSG_RESULT([$lib (static)])
-	elif test "$windows" = yes -a -f "$dir/bin/libxml2.${SHLIB_SUFFIX}"; then
-	    LIBXML2_LDFLAGS="-L$dir/bin -lxml2"
-    	fi
-    fi
-    if test -z "$LIBXML2_LDFLAGS"; then
-        return
-    fi
-    AC_MSG_CHECKING([for libxml2 include files])
-    # try to find include files
-    if test -f "$inc/libxml/xmlversion.h"; then
-        AC_MSG_RESULT([found: $inc])
-        set_libxml2_cppflags $inc
-    elif test -f "$inc/libxml2/libxml/xmlversion.h"; then
-        AC_MSG_RESULT([found: $inc/libxml2])
-	inc=$inc/libxml2
-        set_libxml2_cppflags $inc
-    else
-	AC_MSG_ERROR([not found])
-    fi
-    AC_MSG_CHECKING([libxml2 version])
-    # check version
-    full=`grep define.*LIBXML_DOTTED_VERSION $inc/libxml/xmlversion.h | cut -f2 -d\"`
-    vers=`echo $full | awk 'BEGIN { FS = "."; } {printf("%04d%03d\n", $1 * 1000 + $2, $3);}'`
-    if test "$vers" -ge 2006000; then
-        AC_MSG_RESULT([$full (OK)])
-    else
-	AC_MSG_ERROR([libxml2 2.6.0 or higher is needed; found version $full])
-    fi
-
-    QORE_LIB_LDFLAGS="$QORE_LIB_LDFLAGS $LIBXML2_LDFLAGS"
-    QORE_LIB_CPPFLAGS="$QORE_LIB_CPPFLAGS $LIBXML2_CPPFLAGS"
-}
-
-# see if we can figure out where the libxml2 library is
-AC_ARG_WITH([libxml2-dir],
-  [AS_HELP_STRING([--with-libxml2-dir@<:@=DIR@:>@],
-                  [LIBXML2 directory])],
-  [if test ! -d "${with_libxml2_dir}"; then AC_MSG_ERROR(bad value ${with_libxml2_dir} for --with-libxml2-dir); unset with_libxml2_dir; fi],
-  [with_libxml2_dir="$LIBXML2_DIR"])
-
-AC_MSG_CHECKING([for libxml2 libraries and header files])
-for dir in "${with_libxml2_dir}" "${find_prefix}" /usr / /usr/local /opt/gnu /opt/libxml2 /usr/local/libxml2 /opt/local /sw /usr/sfw /opt/sfw; do
-    find_libxml2 $dir
-    if test -n "$LIBXML2_LDFLAGS"; then
-        break
-    fi
-done
-if test -n "$LIBXML2_LDFLAGS"; then
-   # check for xmlTextReaderSetSchema()
-   AC_MSG_CHECKING([for xmlTextReaderSetSchema()])
-   file=`grep xmlTextReaderSetSchema $LIBXML2_INC_DIR/libxml/*.h`
-   if test -n "$file"; then
-      AC_DEFINE(HAVE_XMLTEXTREADERSETSCHEMA, 1, [Define if libxml2 defines xmlTextReaderSetSchema()])
-      AC_MSG_RESULT([found])
-   else
-      AC_MSG_RESULT([not found])
-   fi
-   # check for xmlTextReaderRelaxNGSetSchema()
-   AC_MSG_CHECKING([for xmlTextReaderRelaxNGSetSchema()])
-   file=`grep xmlTextReaderRelaxNGSetSchema $LIBXML2_INC_DIR/libxml/*.h`
-   if test -n "$file"; then
-      AC_DEFINE(HAVE_XMLTEXTREADERRELAXNGSETSCHEMA, 1, [Define if libxml2 defines xmlTextReaderRelaxNGSetSchema()])
-      AC_MSG_RESULT([found])
-   else
-      AC_MSG_RESULT([not found])
-   fi
-   # check for xmlChildElementCount()
-   AC_MSG_CHECKING([for xmlChildElementCount()])
-   file=`grep xmlChildElementCount $LIBXML2_INC_DIR/libxml/*.h`
-   if test -n "$file"; then
-      AC_DEFINE(HAVE_XMLCHILDELEMENTCOUNT, 1, [Define if libxml2 defines xmlChildElementCount()])
-      AC_MSG_RESULT([found])
-   else
-      AC_MSG_RESULT([not found])
-   fi
-   # check for xmlFirstElementChild()
-   AC_MSG_CHECKING([for xmlFirstElementChild()])
-   file=`grep xmlFirstElementChild $LIBXML2_INC_DIR/libxml/*.h`
-   if test -n "$file"; then
-      AC_DEFINE(HAVE_XMLFIRSTELEMENTCHILD, 1, [Define if libxml2 defines xmlFirstElementChild()])
-      AC_MSG_RESULT([found])
-   else
-      AC_MSG_RESULT([not found])
-   fi
-   # check for xmlGetLastChild()
-   AC_MSG_CHECKING([for xmlGetLastChild()])
-   file=`grep xmlGetLastChild $LIBXML2_INC_DIR/libxml/*.h`
-   if test -n "$file"; then
-      AC_DEFINE(HAVE_XMLGETLASTCHILD, 1, [Define if libxml2 defines xmlGetLastChild()])
-      AC_MSG_RESULT([found])
-   else
-      AC_MSG_RESULT([not found])
-   fi
-   # check for xmlLastElementChild()
-   AC_MSG_CHECKING([for xmlLastElementChild()])
-   file=`grep xmlLastElementChild $LIBXML2_INC_DIR/libxml/*.h`
-   if test -n "$file"; then
-      AC_DEFINE(HAVE_XMLLASTELEMENTCHILD, 1, [Define if libxml2 defines xmlLastElementChild()])
-      AC_MSG_RESULT([found])
-   else
-      AC_MSG_RESULT([not found])
-   fi
-   # check for xmlLastElementChild()
-   AC_MSG_CHECKING([for xmlNextElementSibling()])
-   file=`grep xmlNextElementSibling $LIBXML2_INC_DIR/libxml/*.h`
-   if test -n "$file"; then
-      AC_DEFINE(HAVE_XMLNEXTLEMENTSIBLING, 1, [Define if libxml2 defines xmlNextElementSibling()])
-      AC_MSG_RESULT([found])
-   else
-      AC_MSG_RESULT([not found])
-   fi
-   # check for xmlLastElementChild()
-   AC_MSG_CHECKING([for xmlPreviousElementSibling()])
-   file=`grep xmlPreviousElementSibling $LIBXML2_INC_DIR/libxml/*.h`
-   if test -n "$file"; then
-      AC_DEFINE(HAVE_XMLPREVIOUSELEMENTSIBLING, 1, [Define if libxml2 defines xmlPreviousElementSibling()])
-      AC_MSG_RESULT([found])
-   else
-      AC_MSG_RESULT([not found])
-   fi
-   # check for xmlTextReaderIsNamespaceDecl()
-   AC_MSG_CHECKING([for xmlTextReaderIsNamespaceDecl()])
-   file=`grep xmlTextReaderIsNamespaceDecl $LIBXML2_INC_DIR/libxml/*.h`
-   if test -n "$file"; then
-      AC_DEFINE(HAVE_XMLTEXTREADERISNAMESPACEDECL, 1, [Define if libxml2 defines xmlTextReaderIsNamespaceDecl()])
-      AC_MSG_RESULT([found])
-   else
-      AC_MSG_RESULT([not found])
-   fi
-   # check for xmlTextReaderByteConsumed()
-   AC_MSG_CHECKING([for xmlTextReaderByteConsumed()])
-   file=`grep xmlTextReaderByteConsumed $LIBXML2_INC_DIR/libxml/*.h`
-   if test -n "$file"; then
-      AC_DEFINE(HAVE_XMLTEXTREADERBYTECONSUMED, 1, [Define if libxml2 defines xmlTextReaderByteConsumed()])
-      AC_MSG_RESULT([found])
-   else
-      AC_MSG_RESULT([not found])
-   fi
-   # check for xmlTextReaderGetParserColumnNumber()
-   AC_MSG_CHECKING([for xmlTextReaderGetParserColumnNumber()])
-   file=`grep xmlTextReaderGetParserColumnNumber $LIBXML2_INC_DIR/libxml/*.h`
-   if test -n "$file"; then
-      AC_DEFINE(HAVE_XMLTEXTREADERGETPARSERCOLUMNNUMBER, 1, [Define if libxml2 defines xmlTextReaderGetParserColumnNumber()])
-      AC_MSG_RESULT([found])
-   else
-      AC_MSG_RESULT([not found])
-   fi
-   # check for xmlTextReaderGetParserLineNumber()
-   AC_MSG_CHECKING([for xmlTextReaderGetParserLineNumber()])
-   file=`grep xmlTextReaderGetParserLineNumber $LIBXML2_INC_DIR/libxml/*.h`
-   if test -n "$file"; then
-      AC_DEFINE(HAVE_XMLTEXTREADERGETPARSERLINENUMBER, 1, [Define if libxml2 defines xmlTextReaderGetParserLineNumber()])
-      AC_MSG_RESULT([found])
-   else
-      AC_MSG_RESULT([not found])
-   fi
-else
-    AC_MSG_ERROR([no libxml2 library found])
 fi
 
 set_bz2lib_cppflags() {

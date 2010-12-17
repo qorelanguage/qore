@@ -42,14 +42,14 @@
     contains prototypes for various helper functions in the Qore library
  */
 
-//! defined because this version of Qore has the XmlNode Qore class
-#define _QORE_HAS_QORE_XMLNODE_CLASS 1
+//! not defined because this version of Qore has moved all XML functionality to the "xml" module
+#undef _QORE_HAS_QORE_XMLNODE_CLASS
 
-//! defined because this version of Qore has the XmlReader Qore class
-#define _QORE_HAS_QORE_XMLREADER_CLASS 1
+//! not defined because this version of Qore has moved all XML functionality to the "xml" module
+#undef _QORE_HAS_QORE_XMLREADER_CLASS
 
-//! defined because this version of Qore has the XmlDoc Qore class
-#define _QORE_HAS_QORE_XMLDOC_CLASS 1
+//! not defined because this version of Qore has moved all XML functionality to the "xml" module
+#undef _QORE_HAS_QORE_XMLDOC_CLASS
 
 //! defined because this version of Qore supports hard typing, overloading, default arguments, etc
 #define _QORE_HAS_HARD_TYPING 1
@@ -330,10 +330,6 @@ DLLEXPORT const AbstractQoreZoneInfo *findCreateOffsetZone(int seconds_east);
 #define QORE_OPT_FUNC_SETEUID            "seteuid()"
 //! option: setegid() function available
 #define QORE_OPT_FUNC_SETEGID            "setegid()"
-//! option: parseXMLWithSchema() function available (depends on libxml2)
-#define QORE_OPT_FUNC_PARSEXMLWITHSCHEMA "parseXMLWithSchema()"
-//! option: parseXMLWithRelaxNG() function available (depends on libxml2)
-#define QORE_OPT_FUNC_PARSEXMLWITHRELAXNG "parseXMLWithRelaxNG()"
 
 //! option type feature
 #define QO_OPTION     0

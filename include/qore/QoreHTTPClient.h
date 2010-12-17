@@ -305,6 +305,9 @@ public:
    */
    DLLEXPORT int setNoDelay(bool nodelay);
 
+   //! sets the event queue, must be already referenced before call
+   DLLEXPORT void setEventQueue(Queue *cbq, ExceptionSink *xsink);
+
    //! returns the value of the TCP_NODELAY flag on the object
    DLLEXPORT bool getNoDelay() const;
 
@@ -312,9 +315,6 @@ public:
    DLLEXPORT bool isConnected() const;
 
    DLLLOCAL static void static_init();
-
-   //! sets the event queue (not part of the library's pubilc API), must be already referenced before call
-   DLLLOCAL void setEventQueue(Queue *cbq, ExceptionSink *xsink);
 
    DLLLOCAL void cleanup(ExceptionSink *xsink);
 };

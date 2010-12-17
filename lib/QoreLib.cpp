@@ -238,24 +238,6 @@ const qore_option_s qore_option_list_l[] = {
      false
 #endif
    },
-   { QORE_OPT_FUNC_PARSEXMLWITHSCHEMA,
-     "HAVE_PARSEXMLWITHSCHEMA",
-     QO_FUNCTION,
-#ifdef HAVE_XMLTEXTREADERSETSCHEMA
-     true
-#else
-     false
-#endif
-   },
-   { QORE_OPT_FUNC_PARSEXMLWITHRELAXNG,
-     "HAVE_PARSEXMLWITHRELAXNG",
-     QO_FUNCTION,
-#ifdef HAVE_XMLTEXTREADERRELAXNGSETSCHEMA
-     true
-#else
-     false
-#endif
-   },
 };
 
 const qore_option_s *qore_option_list = qore_option_list_l;
@@ -291,7 +273,6 @@ FeatureList::FeatureList() {
    // register default features
    push_back("sql");
    push_back("threads");
-   push_back("xml");
    push_back("json");
 #ifdef DEBUG
    push_back("debug");

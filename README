@@ -47,15 +47,15 @@ examples/:
    2.5.35 recommended) in order to compile the multithreaded parser; you can
    get this version at: 
       http://sourceforge.net/projects/flex
- * requires libxml2 headers and libraries; libxml2 support is no longer
-   optional
  * requires pcre headers and libraries for perl5-compatible regex support;
    POSIX regex support is no longer used
  * requires openssl headers and libraries
  * requires zlib & bzlib headers and libraries
- * optionally support for Oracle, MySQL, PostgreSQL, Sybase, MS SQL Server,
-   ncurses, OpenGL, GLUT, QT4, TIBCO Rendezvou and AE Adapters, SSH2, Bea 
-   Tuxedo and more can be built (see README-MODULES for details)
+ * optionally support for XML, Oracle, MySQL, PostgreSQL, Sybase, MS SQL
+   Server, ncurses, OpenGL, GLUT, QT4, TIBCO Rendezvous and AE Adapters, SSH2,
+   Bea Tuxedo and more can be built (see README-MODULES for details)
+ * XML support has been removed as of Qore 0.8.1+; use the "xml" module
+   instead
 
 
 ***************

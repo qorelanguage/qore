@@ -28,8 +28,8 @@
 #include <qore/intern/QoreQueue.h>
 
 DLLEXPORT extern qore_classid_t CID_QUEUE;
+DLLEXPORT extern QoreClass *QC_QUEUE;
 DLLLOCAL QoreClass *initQueueClass();
-DLLLOCAL extern QoreClass *QC_QUEUE;
 
 class Queue : public AbstractPrivateData, public QoreQueue {
 protected:

@@ -48,7 +48,6 @@ BuildRequires: flex >= 2.5.31
 BuildRequires: bison
 BuildRequires: openssl-devel
 BuildRequires: pcre-devel
-BuildRequires: libxml2-devel
 BuildRequires: zlib-devel
 %if 0%{?suse_version}
 %if 0%{?sles_version} && %{?sles_version} <= 10
@@ -64,9 +63,8 @@ BuildRequires: bzip2-devel
 Qore is a modular, multithreaded, weakly-typed, object-oriented programming
 language suitable for embedding application logic, application scripting,
 interface development, and even complex multi-threaded, network-aware object-
-oriented application development. Qore features integrated XML and JSON 
-support (as well as HTTP, XML-RPC, and JSON-RPC client classes), database
-integration, database-independent programming support, exception-handling and 
+oriented application development. Qore features database integration, 
+database-independent programming support, exception-handling and 
 exception-safe programming support, as well as built-in date arithmetic,
 character encoding (including proper UTF-8) support, and much more.
 
@@ -89,9 +87,8 @@ Provides: qore-module-api-0.5
 Qore is a modular, multithreaded, weakly-typed, object-oriented programming
 language suitable for embedding application logic, application scripting,
 interface development, and even complex multi-threaded, network-aware object-
-oriented application development. Qore features integrated XML and JSON 
-support (as well as HTTP, XML-RPC, and JSON-RPC client classes), database
-integration, database-independent programming support, exception-handling and 
+oriented application development. Qore features database integration, 
+database-independent programming support, exception-handling and 
 exception-safe programming support, TIBCO and Tuxedo modules, as well as built-
 in date arithmetic, character encoding (including proper UTF-8) support, and
 much more.
@@ -119,9 +116,8 @@ Group: Development/Languages
 Qore is a modular, multithreaded, weakly-typed, object-oriented programming
 language suitable for embedding application logic, application scripting,
 interface development, and even complex multi-threaded, network-aware object-
-oriented application development. Qore features integrated XML and JSON 
-support (as well as HTTP, XML-RPC, and JSON-RPC client classes), database
-integration, database-independent programming support, exception-handling and 
+oriented application development. Qore features database integration, 
+database-independent programming support, exception-handling and 
 exception-safe programming support, TIBCO and Tuxedo modules, as well as built-
 in date arithmetic, character encoding (including proper UTF-8) support, and
 much more.
@@ -143,8 +139,7 @@ Requires: libqore5 = %{version}-%{release}
 Qore is a modular, multithreaded, weakly-typed, object-oriented programming
 language with optional strong typing suitable for embedding application logic,
 application scripting, interface development, and even complex multi-threaded,
-network-aware object-oriented application development. Qore features integrated
-XML and JSON support (as well as HTTP, XML-RPC, and JSON-RPC client classes),
+network-aware object-oriented application development. Qore features
 database integration, database-independent programming support, exception-
 handling and exception-safe programming support, TIBCO and Tuxedo modules, as
 well as built-in date arithmetic, character encoding (including proper UTF-8)

@@ -49,13 +49,9 @@
 #include <qore/intern/QC_GetOpt.h>
 #include <qore/intern/QC_FtpClient.h>
 #include <qore/intern/QC_HTTPClient.h>
-#include <qore/intern/QC_XmlRpcClient.h>
 #include <qore/intern/QC_JsonRpcClient.h>
 #include <qore/intern/QC_TermIOS.h>
 #include <qore/intern/QC_TimeZone.h>
-
-// for initXmlNs()
-#include <qore/intern/QC_XmlNode.h>
 
 #include <string.h>
 #include <stdlib.h>
@@ -1472,13 +1468,9 @@ void StaticSystemNamespace::init() {
    qoreNS->addSystemClass(initGetOptClass());
    qoreNS->addSystemClass(initFtpClientClass());
 
-   // add Xml namespace
-   qoreNS->addInitialNamespace(initXmlNs());
-
    // add HTTPClient namespace
    QoreClass *http_client_class;
    qoreNS->addSystemClass((http_client_class = initHTTPClientClass()));
-   qoreNS->addSystemClass(initXmlRpcClientClass(http_client_class));
    qoreNS->addSystemClass(initJsonRpcClientClass(http_client_class));
 
    // add signal constants
@@ -1853,18 +1845,6 @@ void StaticSystemNamespace::init() {
    option->addConstant("HAVE_SETEGID",  &True);
 #else
    option->addConstant("HAVE_SETEGID",  &False);
-#endif
-
-#ifdef HAVE_XMLTEXTREADERSETSCHEMA
-   option->addConstant("HAVE_PARSEXMLWITHSCHEMA",  &True);
-#else
-   option->addConstant("HAVE_PARSEXMLWITHSCHEMA",  &False);
-#endif
-
-#ifdef HAVE_XMLTEXTREADERRELAXNGSETSCHEMA
-   option->addConstant("HAVE_PARSEXMLWITHRELAXNG",  &True);
-#else
-   option->addConstant("HAVE_PARSEXMLWITHRELAXNG",  &False);
 #endif
 
 #if !defined(OPENSSL_NO_SHA256) && defined(HAVE_OPENSSL_SHA512)

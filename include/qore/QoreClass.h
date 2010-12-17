@@ -51,8 +51,10 @@ DLLEXPORT extern qore_classid_t CID_SSLCERTIFICATE;
 DLLEXPORT extern qore_classid_t CID_SSLPRIVATEKEY;
 DLLEXPORT extern qore_classid_t CID_SEQUENCE;
 DLLEXPORT extern qore_classid_t CID_SOCKET;
-DLLEXPORT extern qore_classid_t CID_XMLRPCCLIENT;
 DLLEXPORT extern qore_classid_t CID_TERMIOS;
+
+DLLEXPORT extern QoreClass *QC_QUEUE;
+DLLEXPORT extern QoreClass *QC_HTTPCLIENT;
 
 class BCList;
 class BCSMList;

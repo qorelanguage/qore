@@ -32,8 +32,6 @@
 #include <unistd.h>
 #include <time.h>
 
-#include <libxml/parser.h>
-
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 
@@ -53,9 +51,6 @@ qore_license_t qore_license;
 void qore_init(qore_license_t license, const char *def_charset, bool show_module_errors, int n_qore_library_options) {
    qore_license = license;
    qore_library_options = n_qore_library_options;
-
-   // initialize libxml2 library
-   LIBXML_TEST_VERSION
 
    // initialize openssl library
    SSL_load_error_strings();
@@ -128,7 +123,4 @@ void qore_cleanup() {
    // cleanup openssl library
    EVP_cleanup();
    ERR_free_strings();
-
-   // cleanup libxml2 library
-   xmlCleanupParser();
 }

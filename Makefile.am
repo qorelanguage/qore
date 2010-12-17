@@ -197,9 +197,6 @@ noinst_HEADERS = \
 	include/qore/intern/qore_date_private.h \
 	include/qore/intern/sql_statement_private.h \
 	include/qore/intern/QoreDir.h \
-	include/qore/intern/QoreXmlDoc.h \
-	include/qore/intern/QoreXPath.h \
-	include/qore/intern/QoreXmlReader.h \
 	include/qore/intern/QoreTypeInfo.h \
 	include/qore/intern/QoreSSLIntern.h \
 	include/qore/intern/QoreObjectIntern.h \
@@ -223,7 +220,6 @@ noinst_HEADERS = \
 	include/qore/intern/ql_time.h \
 	include/qore/intern/ql_debug.h \
 	include/qore/intern/ql_thread.h \
-	include/qore/intern/ql_xml.h \
 	include/qore/intern/ql_json.h \
 	include/qore/intern/ql_crypto.h \
 	include/qore/intern/ql_file.h \
@@ -249,15 +245,11 @@ noinst_HEADERS = \
 	include/qore/intern/QC_SSLCertificate.h \
 	include/qore/intern/QC_SSLPrivateKey.h \
 	include/qore/intern/QC_HTTPClient.h \
-	include/qore/intern/QC_XmlRpcClient.h \
 	include/qore/intern/QC_JsonRpcClient.h \
 	include/qore/intern/QC_AutoGate.h \
 	include/qore/intern/QC_AutoLock.h \
 	include/qore/intern/QC_AutoReadLock.h \
 	include/qore/intern/QC_AutoWriteLock.h \
-	include/qore/intern/QC_XmlDoc.h \
-	include/qore/intern/QC_XmlNode.h \
-	include/qore/intern/QC_XmlReader.h \
 	include/qore/intern/QC_AbstractSmartLock.h \
 	include/qore/intern/QC_TimeZone.h \
 	command-line.h
@@ -286,14 +278,11 @@ EXTRA_DIST = next_build.sh WHATISQORE RELEASE-NOTES \
 	test/deadlock.q \
 	test/optest.q \
 	examples/HTTPServer.qc \
-        examples/XmlRpcHandler.qc \
-        examples/XmlRpcServerValidation.q \
 	examples/stmt.q \
 	examples/exp.q \
 	examples/obj2.q \
 	examples/hash.q \
 	examples/clisrv.q \
-	examples/xml-rpc-client.q \
 	examples/inherit.q \
 	examples/inherit2.q \
 	examples/getopt.q \
