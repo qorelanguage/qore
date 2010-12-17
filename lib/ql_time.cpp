@@ -290,19 +290,19 @@ static AbstractQoreNode *f_date_us(const QoreListNode *params, ExceptionSink *xs
    return DateTimeNode::makeAbsoluteLocal(currentTZ(), us / 1000000, (int)(us % 1000000));
 }
 
-// get_duration_int seconds(date)  
+// int get_duration_seconds(date)  
 static AbstractQoreNode *f_get_duration_seconds(const QoreListNode *params, ExceptionSink *xsink) {
    const DateTimeNode *d = HARD_QORE_DATE(params, 0);
    return new QoreBigIntNode(d->getRelativeSeconds());
 }
 
-// get_duration_int milliseconds(date)  
+// int get_duration_milliseconds(date)  
 static AbstractQoreNode *f_get_duration_milliseconds(const QoreListNode *params, ExceptionSink *xsink) {
    const DateTimeNode *d = HARD_QORE_DATE(params, 0);
    return new QoreBigIntNode(d->getRelativeMilliseconds());
 }
 
-// get_duration_int microseconds(date)  
+// int get_duration_microseconds(date)  
 static AbstractQoreNode *f_get_duration_microseconds(const QoreListNode *params, ExceptionSink *xsink) {
    const DateTimeNode *d = HARD_QORE_DATE(params, 0);
    return new QoreBigIntNode(d->getRelativeMicroseconds());

@@ -72,7 +72,7 @@ static AbstractQoreNode *CONDITION_wait(QoreObject *self, Condition *c, const Qo
    return new QoreBigIntNode(rc);   
 }
 
-// Condition::wait_int count(AbstractSmartLock $lock)  
+// int Condition::wait_count(AbstractSmartLock $lock)  
 static AbstractQoreNode *CONDITION_wait_count(QoreObject *self, Condition *c, const QoreListNode *params, ExceptionSink *xsink) {
    HARD_QORE_OBJ_DATA(m, AbstractSmartLock, params, 0, CID_ABSTRACTSMARTLOCK, "AbstractSmartLock", "Condition::wait_count", xsink);
    if (*xsink)
@@ -99,7 +99,7 @@ QoreClass *initConditionClass(QoreClass *AbstractSmartLock) {
    // int Condition::wait(AbstractSmartLock $lock, timeout $timeout_ms = 0)  
    QC_CONDITION->addMethodExtended("wait",          (q_method_t)CONDITION_wait, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 2, AbstractSmartLock->getTypeInfo(), QORE_PARAM_NO_ARG, timeoutTypeInfo, zero());
 
-   // Condition::wait_int count(AbstractSmartLock $lock)  
+   // int Condition::wait_count(AbstractSmartLock $lock)  
    QC_CONDITION->addMethodExtended("wait_count",    (q_method_t)CONDITION_wait_count, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, AbstractSmartLock->getTypeInfo(), QORE_PARAM_NO_ARG);
 
    return QC_CONDITION;
