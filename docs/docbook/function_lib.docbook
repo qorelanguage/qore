@@ -1289,7 +1289,7 @@
           </entry>
         </row>
         <row>
-          <entry><para><code><link linkend="getgid">getgid</link> <command>returns</command> <link linkend="int_type">int</link> (<link linkend="CONST_flag">CONST</link>)</code></para></entry>
+          <entry><para><code><link linkend="int_type">int</link> <link linkend="getgid">getgid</link>(<link linkend="CONST_flag">CONST</link>)</code></para></entry>
           <entry>
             <para>N</para>
           </entry>
@@ -10447,13 +10447,13 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Prototype</term>
       <listitem>
-          <entry><para><code><link linkend="getgid">getgid</link> <command>returns</command> <link linkend="int_type">int</link> (<link linkend="CONST_flag">CONST</link>)</code></para></entry>
+          <entry><para><code><link linkend="int_type">int</link> <link linkend="getgid">getgid</link>(<link linkend="CONST_flag">CONST</link>)</code></para></entry>
       </listitem>
     </varlistentry>
     <varlistentry>
       <term>Example</term>
       <listitem>
-	<programlisting>$gid = getgid();</programlisting>
+	<programlisting><command>my</command> int $gid = getgid();</programlisting>
       </listitem>
     </varlistentry>
     <varlistentry>
