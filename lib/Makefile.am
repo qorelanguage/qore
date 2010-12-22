@@ -155,7 +155,6 @@ libqore_la_SOURCES = \
 	ql_pwd.cpp \
 	ql_misc.cpp \
 	ql_list.cpp \
-	ql_json.cpp \
 	ql_crypto.cpp \
 	ql_object.cpp \
 	ql_file.cpp \
@@ -179,7 +178,6 @@ libqore_la_SOURCES = \
 	QC_SSLCertificate.cpp \
 	QC_SSLPrivateKey.cpp \
 	QC_HTTPClient.cpp \
-	QC_JsonRpcClient.cpp \
 	QC_AutoLock.cpp \
 	QC_AutoGate.cpp \
 	QC_AutoReadLock.cpp \

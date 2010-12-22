@@ -486,27 +486,6 @@ public:
    */
    DLLLOCAL void defaultSystemDestructor(qore_classid_t classID, ExceptionSink *xsink);
 
-   //! returns a pointer to a pointer to the value of the member, so it can be set externally
-   /** if no exception occurs, the lock is held and added to the AutoVLock "vl", otherwise the lock is released
-       an exception will be thrown if the character encoding conversion fails
-       also if the object has a deleted status an exception will be thrown
-       @param key the name of the member
-       @param vl the AutoVLock container for nested locking
-       @param typeInfo the type info for the member (if any)
-       @param xsink if an error occurs, the Qore-language exception information will be added here
-   */
-   //DLLLOCAL AbstractQoreNode **getMemberValuePtr(const QoreString *key, AutoVLock *vl, const QoreTypeInfo *&typeInfo, ExceptionSink *xsink) const;
-
-   //! returns a pointer to a pointer to the value of the member, so it can be set or changed externally
-   /** if no exception occurs, the lock is held and added to the AutoVLock "vl", otherwise the lock is released
-       if the object has a deleted status an exception will be thrown
-       @param key the name of the member, assumed to be in the default encoding (QCS_DEFAULT)
-       @param vl the AutoVLock container for nested locking
-       @param typeInfo the type info for the member (if any)
-       @param xsink if an error occurs, the Qore-language exception information will be added here
-   */
-   //DLLLOCAL AbstractQoreNode **getMemberValuePtr(const char *key, AutoVLock *vl, const QoreTypeInfo *&typeInfo, ExceptionSink *xsink) const;
-
    //! returns a pointer to a pointer to the value of the member only if it already exists, so it can be set externally
    /** if no exception occurs, the lock is held and added to the AutoVLock "vl", otherwise the lock is released
        an exception will be thrown if the character encoding conversion fails
@@ -514,6 +493,7 @@ public:
        @param mem the name of the member
        @param vl the AutoVLock container for nested locking
        @param xsink if an error occurs, the Qore-language exception information will be added here
+       @return a pointer to the pointer for the value of the member or 0 if it didn't already exist
    */
    DLLLOCAL AbstractQoreNode **getExistingValuePtr(const QoreString *mem, AutoVLock *vl, ExceptionSink *xsink) const;
 
@@ -523,6 +503,7 @@ public:
        @param mem the name of the member, assumed to be in the default encoding (QCS_DEFAULT)
        @param vl the AutoVLock container for nested locking
        @param xsink if an error occurs, the Qore-language exception information will be added here
+       @return a pointer to the pointer for the value of the member or 0 if it didn't already exist
    */
    DLLLOCAL AbstractQoreNode **getExistingValuePtr(const char *mem, AutoVLock *vl, ExceptionSink *xsink) const;
 

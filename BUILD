@@ -17,11 +17,6 @@ qore requires bison 1.85 or greater to be able to interface properly with the sc
 *) POSIX threads
 OS-level POSIX thread support is required to build qore.
 
-*) libxml2 2.6.0 or better
-for the XML subsystem - note that this is no longer an optional component of Qore
-	http://www.xmlsoft.org
-to find libxml2 headers and libraries in a non-standard location, use the --with-libxml2-dir configure option or set the LIBXML2_DIR environment variable
-
 *) PCRE 6 or higher (earlier versions will probably work as well)
 for Perl-Compatible Regular Expressions, Qore now uses the pcre library for regular expression support instead of relying on POSIX regex functions.  tested with pcre 6.3 & 6.6
 	http://www.pcre.org
@@ -35,6 +30,8 @@ if you have the open headers and libraries in a location the configure script ca
 
 *) zlib 1.1.3 or higher (some earlier versions will work as well)
 
+(note that libxml2 is no longer a build requirement as all xml functionality has been moved to the xml module)
+
 "configure" Option Overview
 ---------------------------
 --enable-64bit                      : to build a 64-bit binary (support for x86_64, sparc, and pa-risc architectures)
@@ -42,7 +39,6 @@ if you have the open headers and libraries in a location the configure script ca
 --disable-debug                     : to disable debugging code - if you are not planning on debugging the qore language itself then it is highly advised to include this flag, as enabling debugging in qore slows down the language a great deal
 --prefix=<dir>                      : default=/usr/local = qore in /usr/local/bin, libraries in /usr/local/lib, modules in /usr/local/lib/qore-module-api-<ver>/
 --with-openssl-dir=<dir>            : directory of openssl installation
---with-libxml2-dir=<dir>            : directory of libxml2 installation
 --with-pcre-dir=<dir>               : directory of pcre installation
 --with-zlib-dir=<dir>               : directory of zlib installation
 

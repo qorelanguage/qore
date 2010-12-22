@@ -220,7 +220,6 @@ noinst_HEADERS = \
 	include/qore/intern/ql_time.h \
 	include/qore/intern/ql_debug.h \
 	include/qore/intern/ql_thread.h \
-	include/qore/intern/ql_json.h \
 	include/qore/intern/ql_crypto.h \
 	include/qore/intern/ql_file.h \
 	include/qore/intern/ql_object.h \
@@ -245,7 +244,6 @@ noinst_HEADERS = \
 	include/qore/intern/QC_SSLCertificate.h \
 	include/qore/intern/QC_SSLPrivateKey.h \
 	include/qore/intern/QC_HTTPClient.h \
-	include/qore/intern/QC_JsonRpcClient.h \
 	include/qore/intern/QC_AutoGate.h \
 	include/qore/intern/QC_AutoLock.h \
 	include/qore/intern/QC_AutoReadLock.h \

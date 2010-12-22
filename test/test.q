@@ -11,7 +11,7 @@
 %require-types
 
 # make sure we have the right version of qore
-%requires qore >= 0.8.0
+%requires qore >= 0.8.1
 
 # global variables needed for tests
 our Test $to = new Test("program-test.q");
@@ -1568,47 +1568,6 @@ sub constant_tests() {
     test_value(hexp2, (1, 2, 3), "evaluated constant hash");
 }
 
-sub json_tests() {
-    my hash $h = ( "test" : 1, 
-		   "gee" : "philly-\"test-quotes\"", 
-		   "marguile" : 1.0392,
-		   "list" : (1, 2, 3, ( "four" : 4 ), 5.0, True, ( "key1" : "one", "key2" : 2.0 )),
-		   "hash" : ( "howdy" : 123, "partner" : 456 ),
-		   "bool" : True,
-		   "time" : format_date("YYYY-MM-DD HH:mm:SS", now()),
-		   "key"  : "this & that" );
-    my string $jstr = makeJSONString($h);
-    test_value($h == parseJSON($jstr), True, "first JSON");
-
-    my string $ver = "1.1";
-    my int $id = 512;
-    my string $method = "methodname";
-    my string $mess = "an error occurred, OH NO!!!!";
-
-    my hash $jc = ( "version" : $ver,
-		    "id" : $id,
-		    "method" : $method,
-		    "params" : $h );
-
-    test_value(parseJSON(makeJSONRPCRequestString($method, $ver, $id, $h)) == $jc, True, "makeJSONRPCRequestString");
-    test_value(parseJSON(makeFormattedJSONRPCRequestString($method, $ver, $id, $h)) == $jc, True, "makeJSONRPCRequestString");
-
-    # create result hash by modifying the call hash above: delete "method" and "params" keys and add "result" key
-    my hash $jr = $jc - "method" - "params" + ( "result" : $h );
-    test_value(parseJSON(makeJSONRPCResponseString($ver, $id, $h)) == $jr, True, "makeJSONRPCResponseString");
-    test_value(parseJSON(makeFormattedJSONRPCResponseString($ver, $id, $h)) == $jr, True, "makeFormattedJSONRPCResponseString");
-
-    # create error hash by modifying the result hash: delete "result" key and add "error" key
-    my hash $je = $jr - "result" + ( "error" : $h );
-    test_value(parseJSON(makeJSONRPCErrorString($ver, $id, $h)) == $je, True, "makeJSONRPCErrorString");
-    test_value(parseJSON(makeFormattedJSONRPCErrorString($ver, $id, $h)) == $je, True, "makeFormattedJSONRPCErrorString");
-
-    # create JSON-RPC 1.1 error string
-    $je = $je + ( "error" : ( "name" : "JSONRPCError", "code" : $id, "message" : $mess, "error" : $h ) );
-    test_value(parseJSON(makeJSONRPC11ErrorString($id, $mess, $id, $h)) == $je, True, "makeJSONRPCErrorString");
-    test_value(parseJSON(makeFormattedJSONRPC11ErrorString($id, $mess, $id, $h)) == $je, True, "makeFormattedJSONRPCErrorString");
-}
-
 sub digest_tests() {
     my string $str = "Hello There This is a Test - 1234567890";
 
@@ -1699,7 +1658,6 @@ sub do_tests() {
 	    function_tests();
 	    context_tests();
 	    constant_tests();	
-	    json_tests();
 	    crypto_tests();
 	    digest_tests();
 	    closure_tests();

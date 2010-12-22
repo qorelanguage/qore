@@ -49,7 +49,6 @@
 #include <qore/intern/QC_GetOpt.h>
 #include <qore/intern/QC_FtpClient.h>
 #include <qore/intern/QC_HTTPClient.h>
-#include <qore/intern/QC_JsonRpcClient.h>
 #include <qore/intern/QC_TermIOS.h>
 #include <qore/intern/QC_TimeZone.h>
 
@@ -1471,7 +1470,6 @@ void StaticSystemNamespace::init() {
    // add HTTPClient namespace
    QoreClass *http_client_class;
    qoreNS->addSystemClass((http_client_class = initHTTPClientClass()));
-   qoreNS->addSystemClass(initJsonRpcClientClass(http_client_class));
 
    // add signal constants
    addSignalConstants(qoreNS);

@@ -36,7 +36,7 @@ class LocalVar;
    it is both a value type and can hold parse expressions as well (in which case it needs to be evaluated)
    This type also maintains the insertion order as well as offering a hash-based lookup of string keys.
    The insertion order of keys is maintained in order to support consistent serialization and 
-   deserialization to and from XML and JSON (and possibly others in the future).
+   deserialization to and from XML, JSON, YAML, etc
  */
 class QoreHashNode : public AbstractQoreNode {
    friend class HashIterator;
@@ -340,7 +340,8 @@ public:
    //! sets the value of "key" to "value" and returns the old value (0 if not present or if already 0), caller owns any reference count returned
    /** A Qore-language exception could be thrown converting the key string's encoding to QCS_DEFAULT; if an exception is thrown and the value is not assigned, then the value to be assigned is dereferenced automatically
        @param key the key to set the value for (assumed to be in QCS_DEFAULT encoding)
-       @param value the value to assign to the key, must be already referenced for the assignment
+       @param value the value to assign to the key, must be already referenced for the assignment 
+       @param xsink if an error occurs, the Qore-language exception information will be added here (currently no exceptions can be raised with this version of qore)
        @return the old value of the key (0 if not present or if the old value was already 0), caller owns any reference count returned
    */
    DLLEXPORT AbstractQoreNode *swapKeyValue(const char *key, AbstractQoreNode *value, ExceptionSink *xsink);

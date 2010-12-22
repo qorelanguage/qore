@@ -42,7 +42,6 @@ DLLEXPORT extern qore_classid_t CID_FTPCLIENT;
 DLLEXPORT extern qore_classid_t CID_GATE;
 DLLEXPORT extern qore_classid_t CID_GETOPT;
 DLLEXPORT extern qore_classid_t CID_HTTPCLIENT;
-DLLEXPORT extern qore_classid_t CID_JSONRPCCLIENT;
 DLLEXPORT extern qore_classid_t CID_MUTEX;
 DLLEXPORT extern qore_classid_t CID_PROGRAM;
 DLLEXPORT extern qore_classid_t CID_QUEUE;

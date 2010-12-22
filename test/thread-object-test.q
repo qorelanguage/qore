@@ -195,7 +195,7 @@ class ThreadTest inherits Mutex {
         for (my $i = 0; $i < $.iters; $i++) {
             #if (!($i % 1000))
             #    printf("TID %3d: %d/%d\n", gettid(), $i, $.iters);
-            my $c = rand() % 7;
+            my $c = rand() % 6;
             my $key1 = sprintf("key%d", rand() % 10);
             my $key2 = sprintf("key%d", (rand() % 10) + 10);
             my $key3 = sprintf("key%d", rand() % 20);
@@ -228,10 +228,6 @@ class ThreadTest inherits Mutex {
             if ($c == 5) {
                 $.getGateData(($key1, $key2, $key3));
                 continue;
-            }
-            if ($c == 6) {
-                my $str = makeXMLRPCValueString($.getData());
-                parseXML($str);
             }
         }
 	$.c.dec();

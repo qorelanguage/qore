@@ -2,7 +2,7 @@ As of version 0.7.0, qore modules are now delivered separately from the qore lib
 
 Currently the following modules are available (note the svn URLs point to the current development source):
 * xml
-XML module; XML functionality was removed from the mail Qore library into this
+XML module; XML functionality was removed from the main Qore library into this
 module as of Qore 0.8.1
 source: https://qore.svn.sourceforge.net/svnroot/qore/module-xml/trunk
 
@@ -62,3 +62,15 @@ source: https://qore.svn.sourceforge.net/svnroot/qore/module-ssh2/trunk
 * sqlite3
 SQLite3 driver
 source: https://qore.svn.sourceforge.net/svnroot/qore/module-sqlite3/trunk
+
+* yaml
+YAML module
+source: https://qore.svn.sourceforge.net/svnroot/qore/module-yaml/trunk
+
+* uuid
+UUID module
+source: https://qore.svn.sourceforge.net/svnroot/qore/module-uuid/trunk
+
+* gnu-java
+Java bindings, import class and JAR files to use Java APIs directly in Qore
+source: https://qore.svn.sourceforge.net/svnroot/qore/module-gnu-java/trunk
