@@ -16,7 +16,7 @@
 
     <para>Qore can be used a a traditional function-based scripting language or as a pure object-oriented language, where the application is defined as a class. Aside from traditional local and global variables, constants, and functions, Qore also supports nested namespaces, classes, multiple inheritance, overriding base class constructor arguments, private members and methods, and static class methods.</para>
     
-    <para>All elements of Qore are designed to work together seamlessly: <link linkend="Datasource_Class">database access</link>, <link linkend="XML_Integration">XML transformations</link>, <link linkend="Socket_Class">socket communication</link>, <link linkend="Program_Class">embedding logic</link> in subprograms, <link linkend="Regular_Expressions">regular expressions</link>, <link linkend="Operators">operators</link>, <link linkend="Function_Library">functions</link>, and all other elements are thread-safe and built on an execution engine that was designed for SMP scalability.</para>
+    <para>All elements of Qore are designed to work together seamlessly: <link linkend="Datasource_Class">database access</link>, <link linkend="Socket_Class">socket communication</link>, <link linkend="Program_Class">embedding logic</link> in subprograms, <link linkend="Regular_Expressions">regular expressions</link>, <link linkend="Operators">operators</link>, <link linkend="Function_Library">functions</link>, and all other elements are thread-safe and built on an execution engine that was designed for SMP scalability.</para>
 
     <para>Qore automatically converts data types when necessary when evaluating operators. The goal is to provide the expected result for the programmer without requiring the programmer to explicitly convert data types. Please see <link linkend='Operators'>Operators</link> for more information.</para>
 
@@ -108,8 +108,16 @@
 	  <entry><para>Provides ASN.1 functionality to Qore</para></entry>
 	</row>
 	<row>
+	  <entry><para><code>xml</code></para></entry>
+	  <entry><para>Provides XML, XPath, etc functionality to Qore.</para></entry>
+	</row>
+	<row>
 	  <entry><para><code>xmlsec</code></para></entry>
 	  <entry><para>Provides <code>xmldsig</code> and <code>xmlenc</code> functionality to Qore.</para></entry>
+	</row>
+	<row>
+	  <entry><para><code>json</code></para></entry>
+	  <entry><para>Provides JSON functionality to Qore.</para></entry>
 	</row>
 	<row>
 	  <entry><para><code>ssh2</code></para></entry>
@@ -753,7 +761,7 @@ False</programlisting></note>
 
     <para>Hashes are containers that associate values to a string key.</para>
 
-    <note><para>Note that Qore hashes preserve the insertion order in order to be able to guarantee the order of keys when hashes are serialized to XML strings (see <link linkend="XML_Integration">XML Integration</link>), therefore the <link linkend='Keys_Operator'><command>keys</command></link> operator will always return the hash keys in insertion/creation order.</para></note>
+    <note><para>Note that Qore hashes preserve the insertion order in order to be able to guarantee the order of keys when hashes are serialized to XML strings, therefore the <link linkend='Keys_Operator'><command>keys</command></link> operator will always return the hash keys in insertion/creation order.</para></note>
     
     <para>Hashes are specified using the following syntax:</para>
     
@@ -1298,9 +1306,9 @@ False</programlisting></note>
   
     <para>The <link linkend='File_Class'>File</link> and <link linkend='Socket_Class'>Socket</link> classes translate character encodings to the encoding specified for the object if necessary, as well as tagging strings received or read with the object's encoding.</para>
   
-    <para>The <link linkend='HTTPClient_Class'>HTTPClient</link>, <link linkend='XmlRpcClient_Class'>XmlRpcClient</link>, and <link linkend='JsonRpcClient_Class'>JsonRpcClient</link> classes will translate character encodings to the encoding specified for the object if necessary, as well as tag strings received with the object's encoding.  Additionally, if an HTTP server response specifies a specific encoding to use, the encoding will be automatically set to this encoding as well.</para>
+    <para>The <link linkend='HTTPClient_Class'>HTTPClient</link> class will translate character encodings to the encoding specified for the object if necessary, as well as tag strings received with the object's encoding.  Additionally, if an HTTP server response specifies a specific encoding to use, the encoding of strings read from the server will be automatically set to this encoding as well.</para>
   
-    <para>Additionally you can serialize a Qore hash to an XML string and specify the character encoding to use. If the target encoding is different than the source encoding conversions are automatically performed. See <link linkend="XML_Integration">XML Integration</link> for more information about XML handling.</para>  
+    <para>Additionally you can serialize a Qore hash to an XML string and specify the character encoding to use.  If the target encoding is different than the source encoding conversions are automatically performed.</para>  
   </sect2>
 
 </sect1>
@@ -3559,301 +3567,6 @@ x=&lt;NOTHING&gt;</programlisting>
   <para>Classes that assist in exception-safe lock handling are the <link linkend="AutoLock_Class">AutoLock class</link>, the <link linkend="AutoGate_Class">AutoGate class</link>, the <link linkend="AutoReadLock_Class">AutoReadLock class</link>, and the <link linkend="AutoWriteLock_Class">AutoWriteLock class</link>.</para>
 
 </sect1>
-
-  <sect1 id="XML_Integration">
-    <title>XML Integration</title>
-
-    <para>XML functionality in Qore is provided by the <ulink url="http://www.xmlsoft.org">libxml2</ulink> library, which provides a powerful, stable, clean, and thread-safe basis for XML integration in Qore.</para>
-
-    <para>XML provides an excellent way to describe hierarchical data, and thanks to libxml2, Qore can allow for easy serialization and deserialization between XML strings and Qore data structures.</para>
-
-    <para>XML serialization (conversion from Qore data structures to XML strings) in Qore relies on the fact that Qore <link linkend="Hashes">hashes</link> retain insertion order, which means that conversion to and from Qore data structures and XML strings can be done without data loss and without reordering the XML elements.  In general, XML serialization is relatively straighforward, but there are a few issues to be aware of, particularly regarding element attributes and lists.  These issues are described in the following paragraphs.</para>
-
-    <para>First, a straightforward example:</para>
-
-    <programlisting>$h = ( "record" : ( "name" : ( "first" : "Fred", "last" : "Smith" ) ) );
-printf("%s\n", makeFormattedXMLString($h));</programlisting>
-
-    <para>This produces the following result</para>
-
-    <programlisting>&lt;?xml version="1.0" encoding="UTF-8"?&gt;
-&lt;record&gt;
-  &lt;name&gt;
-    &lt;first&gt;Fred&lt;/first&gt;
-    &lt;last&gt;Smith&lt;/last&gt;
-  &lt;/name&gt;
-&lt;/record&gt;</programlisting>
-
-    <para>To set XML attributes, the Qore value must be a hash and the attributes are stored in another hash in the key <code>^attributes^</code>.  That is; the value of the <code>^attributes^</code> key must be a hash, and each member of this hash will represent an attribute-value pair.</para>
-
-    <para>For example:</para>
-
-    <programlisting>$h = ( "record" : ( "^attributes^" : ( "type" : "customer" ) , 
-	            "name" : ( "first" : "Fred", "last" : "Smith" ) ) );
-printf("%s\n", makeFormattedXMLString($h));</programlisting>
-
-    <para>This produces the following results:</para>
-
-    <programlisting>&lt;?xml version="1.0" encoding="UTF-8"?&gt;
-&lt;record type="customer"&gt;
-  &lt;name&gt;
-    &lt;first&gt;Fred&lt;/first&gt;
-    &lt;last&gt;Smith&lt;/last&gt;
-  &lt;/name&gt;
-&lt;/record&gt;</programlisting>
-
-    <para>If instead we wanted to have text instead of child data under the "record" node, we must set the <code>^value^</code> key of the hash along with the <code>^attributes^</code> key as follows: </para>
-
-    <programlisting>$h = ( "record" : ( "^attributes^" : ( "type" : "customer" ) , 
-	            "^value^" : "NO-RECORD" ) );
-printf("%s\n", makeFormattedXMLString($h));</programlisting>
-
-    <para>Giving the following results:</para>
-
-    <programlisting>&lt;?xml version="1.0" encoding="UTF-8"?&gt;
-&lt;record type="customer"&gt;NO-RECORD&lt;/record&gt;</programlisting>
-
-    <para>Arrays are serialized with repeating node names as follows:</para>
-
-    <programlisting>$h = ( "record" : ( "part" : ( "part-02-05", "part-99-23", "part-34-28" ) ) );
-printf("%s\n", makeFormattedXMLString($h));</programlisting>
-
-    <para>Producing the following results:</para>
-
-    <programlisting>&lt;?xml version="1.0" encoding="UTF-8"?&gt;
-&lt;record type="customer"&gt;
-  &lt;part&gt;part-02-05&lt;/part&gt;
-  &lt;part&gt;part-99-23&lt;/part&gt;
-  &lt;part&gt;part-34-28&lt;/part&gt;
-&lt;/record&gt;
-</programlisting>
-
-   <para>It gets a little trickier when a key should repeated at the same level in an XML string, but other keys come between, for example, take the following XML string:</para>
-
-   <programlisting>&lt;?xml version="1.0" encoding="UTF-8"?&gt;
-&lt;para&gt;Keywords: &lt;code&gt;this&lt;/code&gt;, &lt;code&gt;that&lt;/code&gt;, and &lt;code&gt;the_other&lt;/code&gt;.&lt;/para&gt;</programlisting>
-
-   <para>It's not possible to use a list, because text is required in between.  As described earlier, the <code>^value^</code> hash key can be used to serialize text in an XML string.  In this case, we need to have several text nodes and several <code>code</code> nodes in a mixed-up order to give us the XML string we want.  Because qore hases have unique keys (we can't use the same key twice in the same hash), we resort to a key naming trick that allows us to virtually duplicate our key names and therefore arrive at the XML string we want.  We do this by appending a '^' character to the end of the key name and then some unique text.  When serializing hash keys, any text after (and including) the '^' character is ignored.  For the special key name <code>^value^</code>, we do not need to duplicate the final '^' character.  Instead we just add unique text to ensure that our hash can contain all the data we want and that it will be serialized in the right order to the XML string as follows:</para>
-
-    <programlisting>
-$h = ( "para" : ( "^value^" : "Keywords: ", 
-                  "code" : "this", 
-                  "^value^1" : ", ", 
-                  "code^1" : "that", 
-                  "^value^2" : ", and ", 
-                  "code^2" : "the_other", 
-                  "^value^3" : "." ) );
-printf("%s\n", makeFormattedXMLString($h));</programlisting>
-
-    <para>By ignoring the text after the '^' character, the above code will serialize to the XML string we want.  In general, by using this convention, we can properly serialize multiple out-of-order keys without losing data and still have unique names for our hash keys.</para>
-
-   <para>Note than when deserializing XML strings to Qore data structures, the above rules are applied in reverse.  If any out-of-order duplicate keys are detected, Qore will automatically generate unique hash key names based on the above rules.</para>
-
-   <para>Also note that CDATA text will be generated if a hash key starts with '^cdata'; such text will not be processed for escape code substitution.  When deserializing XML strings to qore data structures, CDATA text will be placed unmodified under such a hash key as well.</para>
-
-    <table>
-      <title>Functions For XML Serialization and Deserialization</title>
-      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	<thead>
-	  <row>
-	    <entry><para>Function Name</para></entry>
-	    <entry><para>Description</para></entry>
-	  </row>
-	</thead>
-	<tbody>
-	  <row>
-	    <entry><para><link linkend="makeFormattedXMLFragment">makeFormattedXMLFragment()</link></para></entry>
-	    <entry><para>Serializes a hash into an XML string with formatting without an XML header.</para></entry>
-	  </row>
-	  <row>
-	    <entry><para><link linkend="makeFormattedXMLString">makeFormattedXMLString()</link></para></entry>
-	    <entry><para>Serializes a hash into an XML string with formatting and an XML header.</para></entry>
-	  </row>
-	  <row>
-	    <entry><para><link linkend="makeXMLFragment">makeXMLFragment()</link></para></entry>
-	    <entry><para>Serializes a hash into an XML string without an XML header or formatting.</para></entry>
-	  </row>
-	  <row>
-	    <entry><para><link linkend="makeXMLString">makeXMLString()</link></para></entry>
-	    <entry><para>Serializes a hash into a complete XML string with an XML header and without formatting.</para></entry>
-	  </row>
-	  <row>
-	    <entry><para><link linkend="parseXMLAsData">parseXMLAsData()</link></para></entry>
-	    <entry><para>parses an XML string as data (duplicate, out-of-order XML elements are collapsed into lists) and returns a Qore hash structure.</para></entry>
-	  </row>
-	  <row>
-	    <entry><para><link linkend="parseXMLAsDataWithSchema">parseXMLAsDataWithSchema()</link></para></entry>
-	    <entry><para>parses an XML string as data (duplicate, out-of-order XML elements are collapsed into lists) and validates against an XSD schema string and returns a Qore hash structure.</para></entry>
-	  </row>
-	  <row>
-	    <entry><para><link linkend="parseXML">parseXML()</link></para></entry>
-	    <entry><para>parses an XML string (XML element order is preserved by appending numeric suffixes to Qore hash key names when necessary) and returns a Qore hash structure.</para></entry>
-	  </row>
-	  <row>
-	    <entry><para><link linkend="parseXMLWithSchema">parseXMLWithSchema()</link></para></entry>
-	    <entry><para>parses an XML string (XML element order is preserved by appending numeric suffixes to Qore hash key names when necessary) and validates against an XSD schema string and returns a Qore hash structure.</para></entry>
-	  </row>
-	</tbody>
-      </tgroup>
-    </table>
-
-    <table>
-      <title>Classes Providing XML Functionality</title>
-      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	<thead>
-	  <row>
-	    <entry><para>Class</para></entry>
-	    <entry><para>Description</para></entry>
-	  </row>
-	</thead>
-	<tbody>
-	  <row>
-	    <entry><para><code><link linkend="XmlDoc_Class">XmlDoc</link></code></para></entry>
-	    <entry><para>For analyzing and manipulating XML documents.</para></entry>
-	  </row>
-	  <row>
-	    <entry><para><code><link linkend="XmlNode_Class">XmlNode</link></code></para></entry>
-	    <entry><para>Gives information about XML data in an XML document.</para></entry>
-	  </row>
-	  <row>
-	    <entry><para><code><link linkend="XmlReader_Class">XmlReader</link></code></para></entry>
-	    <entry><para>For parsing or iterating through the elements of an XML document.</para></entry>
-	  </row>
-	</tbody>
-      </tgroup>
-    </table>
-
-    <para>XML-RPC is a lightweight but powerful XML over HTTP web service protocol.  Qore includes builtin support for this protocol.  You can find more information about XML-RPC, including specifications and examples at <ulink url="http://xmlrpc.org">http://xmlrpc.org</ulink>.</para>
-
-    <para>Information about Qore's XML-RPC serialization can be found below.</para>
-
-    <table id="XMLRPC_Serialization">
-      <title>XML-RPC Serialization in Qore</title>
-      <tgroup cols='4' align='left' colsep='1' rowsep='1'>
-      <colspec colnum="2" align="center"/>
-	<thead>
-	  <row>
-	    <entry><para>Qore Type</para></entry>
-	    <entry><para>XML-RPC Type</para></entry>
-	    <entry><para>Description</para></entry>
-	  </row>
-	</thead>
-	<tbody>
-	  <row>
-	    <entry><para><code><link linkend="String">string</link></code></para></entry>
-	    <entry><para><code>string</code></para></entry>
-	    <entry><para>direct conversion to UTF-8 string</para></entry>
-	  </row>
-	  <row>
-	    <entry><para><code><link linkend="Integer">integer</link></code></para></entry>
-	    <entry><para><code>i4</code> or <code>string</code></para></entry>
-	    <entry><para>If the integer requires more than 32 bits to represent, then it is sent as a string</para></entry>
-	  </row>
-	  <row>
-	    <entry><para><code><link linkend="Float">float</link></code></para></entry>
-	    <entry><para><code>double</code></para></entry>
-	    <entry><para>direct conversion</para></entry>
-	  </row>
-	  <row>
-	    <entry><para><code><link linkend="Boolean">boolean</link></code></para></entry>
-	    <entry><para><code>boolean</code></para></entry>
-	    <entry><para>direct conversion</para></entry>
-	  </row>
-	  <row>
-	    <entry><para><code><link linkend="Date">date</link></code></para></entry>
-	    <entry><para><code>iso8601</code></para></entry>
-	    <entry><para><link linkend="Absolute_Dates">Absolute date/time values</link> will convert to the default time zone for the calling context for the output string if necessary.  Note that <link linkend="Relative_Dates">relative date/time values</link> (durations) will be serialized with the same format as <link linkend="Absolute_Dates">absolute date/time values</link>.</para></entry>
-	  </row>
-	  <row>
-	    <entry><para><code><link linkend="Binary">binary</link></code></para></entry>
-	    <entry><para><code>base64</code></para></entry>
-	    <entry><para>direct conversion</para></entry>
-	  </row>
-	  <row>
-	    <entry><para><code><link linkend="Lists">list</link></code></para></entry>
-	    <entry><para><code>array</code></para></entry>
-	    <entry><para>direct conversion</para></entry>
-	  </row>
-	  <row>
-	    <entry><para><code><link linkend="Hashes">hash</link></code></para></entry>
-	    <entry><para><code>struct</code></para></entry>
-	    <entry><para>direct conversion</para></entry>
-	  </row>
-	  <row>
-	    <entry><para>all others</para></entry>
-	    <entry><para>n/a</para></entry>
-	    <entry><para>All other types will cause an <code>XML-RPC-SERIALIZATION-ERROR</code> to be raised.</para></entry>
-	  </row>
-	</tbody>
-      </tgroup>
-    </table>
-    
-    <table>
-      <title>Functions Providing XML-RPC Functionality</title>
-      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	<thead>
-	  <row>
-	    <entry><para>Function Name</para></entry>
-	    <entry><para>Description</para></entry>
-	  </row>
-	</thead>
-	<tbody>
-	  <row>
-	    <entry><para><link linkend="makeFormattedXMLRPCCallString">makeFormattedXMLRPCCallString()</link></para></entry>
-	    <entry><para>Serializes a hash into an XML string formatted for an XML-RPC call with formatting.</para></entry>
-	  </row>
-	  <row>
-	    <entry><para><link linkend="makeFormattedXMLRPCCallStringArgs">makeFormattedXMLRPCCallStringArgs()</link></para></entry>
-	    <entry><para>Serializes a hash into an XML string formatted for an XML-RPC call with formatting, taking a single list argument for the argument list.</para></entry>
-	  </row>
-	  <row>
-	    <entry><para><link linkend="makeFormattedXMLRPCFaultResponseString">makeFormattedXMLRPCFaultResponseString()</link></para></entry>
-	    <entry><para>Serializes a hash into an XML string formatted for an XML-RPC fault response with formatting.</para></entry>
-	  </row>
-	  <row>
-	    <entry><para><link linkend="makeFormattedXMLRPCResponseString">makeFormattedXMLRPCResponseString()</link></para></entry>
-	    <entry><para>Serializes a hash into an XML string formatted for an XML-RPC response with formatting.</para></entry>
-	  </row>
-	  <row>
-	    <entry><para><link linkend="makeFormattedXMLRPCValueString">makeFormattedXMLRPCValueString()</link></para></entry>
-	    <entry><para>Serializes a hash into an XML string in XML-RPC value format with formatting.</para></entry>
-	  </row>
-	  <row>
-	    <entry><para><link linkend="makeXMLRPCCallString">makeXMLRPCCallString()</link></para></entry>
-	    <entry><para>Serializes a hash into an XML string formatted for an XML-RPC call without formatting.</para></entry>
-	  </row>
-	  <row>
-	    <entry><para><link linkend="makeXMLRPCCallStringArgs">makeXMLRPCCallStringArgs()</link></para></entry>
-	    <entry><para>Serializes a hash into an XML string formatted for an XML-RPC call without formatting, taking a single list argument for the argument list.</para></entry>
-	  </row>
-	  <row>
-	    <entry><para><link linkend="makeXMLRPCFaultResponseString">makeXMLRPCFaultResponseString()</link></para></entry>
-	    <entry><para>Serializes a hash into an XML string formatted for an XML-RPC fault response without formatting.</para></entry>
-	  </row>
-	  <row>
-	    <entry><para><link linkend="makeXMLRPCResponseString">makeXMLRPCResponseString()</link></para></entry>
-	    <entry><para>Serializes a hash into an XML string formatted for an XML-RPC response without formatting.</para></entry>
-	  </row>
-	  <row>
-	    <entry><para><link linkend="makeXMLRPCValueString">makeXMLRPCValueString()</link></para></entry>
-	    <entry><para>Serializes a hash into an XML string in XML-RPC value format without formatting.</para></entry>
-	  </row>
-	  <row>
-	    <entry><para><link linkend="parseXMLRPCCall">parseXMLRPCCall()</link></para></entry>
-	    <entry><para>deserializies an XML-RPC call string, returning a Qore hash respresenting the call information.</para></entry>
-	  </row>
-	  <row>
-	    <entry><para><link linkend="parseXMLRPCResponse">parseXMLRPCResponse()</link></para></entry>
-	    <entry><para>deserializies an XML-RPC response string, returning a Qore hash respresenting the response information.</para></entry>
-	  </row>
-	  <row>
-	    <entry><para><link linkend="parseXMLRPCValue">parseXMLRPCValue()</link></para></entry>
-	    <entry><para>deserializies an XML-RPC value tree, returning a Qore hash respresenting the information.</para></entry>
-	  </row>
-	</tbody>
-      </tgroup>
-    </table>
-  </sect1>
 
   <sect1 id="signal_handling">
     <title>Signal Handling</title>

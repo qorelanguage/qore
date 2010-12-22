@@ -985,12 +985,6 @@
 		  <entry><para><link linkend="HTTPClient_Class">HTTPClient</link> class</para></entry>
 		</row>
 		<row>
-		  <entry><para><link linkend="XmlRpcClient_Class">XmlRpcClient</link> class</para></entry>
-		</row>
-		<row>
-		  <entry><para><link linkend="JsonRpcClient_Class">JsonRpcClient</link> class</para></entry>
-		</row>
-		<row>
 		  <entry><para><link linkend="Socket_Class">Socket</link> class</para></entry>
 		</row>
 	      </tbody>
