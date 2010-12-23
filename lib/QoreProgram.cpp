@@ -23,12 +23,8 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/ParserSupport.h>
 #include <qore/Restrictions.h>
 #include <qore/QoreCounter.h>
-#include <qore/intern/UserFunctionList.h>
-#include <qore/intern/GlobalVariableList.h>
-#include <qore/intern/ImportedFunctionList.h>
 #include <qore/intern/LocalVar.h>
 #include <qore/intern/qore_program_private.h>
 
@@ -65,6 +61,126 @@ static const char *qore_warnings_l[] = {
 //public symbols
 const char **qore_warnings = qore_warnings_l;
 unsigned qore_num_warnings = NUM_WARNINGS;
+
+void qore_program_private::internParseRollback() {
+   // delete pending user functions
+   user_func_list.parseRollback();
+	 
+   // delete pending changes to namespaces
+   RootNS->parseRollback();
+
+   // commit global variables
+   global_var_list.parseRollback();
+	 
+   // delete pending statements 
+   sb.parseRollback();
+}
+
+int qore_program_private::internParseCommit() {
+   QORE_TRACE("qore_program_private::internParseCommit()");
+   printd(5, "qore_program_private::internParseCommit() pgm=%p isEvent=%d\n", pgm, parseSink->isEvent());
+
+   // if the first stage of parsing has already failed, 
+   // then don't go forward
+   if (!parseSink->isEvent()) {
+      // initialize new statements second (for "our" and "my" declarations)
+      // also initializes namespaces, constants, etc
+      sb.parseInit(RootNS, &user_func_list);
+
+      // initialize all new global variables (resolve types)
+      global_var_list.parseInit(pwo.parse_options);
+
+      printd(5, "QoreProgram::internParseCommit() this=%p RootNS=%p\n", pgm, RootNS);
+   }
+	 
+   // if a parse exception has occurred, then back out all new
+   // changes to the QoreProgram atomically
+   int rc;
+   if (parseSink->isEvent()) {
+      internParseRollback();
+      requires_exception = false;
+      rc = -1;
+   }
+   else { // otherwise commit them
+      // merge pending user functions
+      user_func_list.parseCommit();
+	    
+      // merge pending namespace additions
+      RootNS->parseCommit();
+	    
+      // commit global variables
+      global_var_list.parseCommit();
+
+      // commit pending statements
+      sb.parseCommit();
+
+      rc = 0;
+   }
+   return rc;
+}
+
+void qore_program_private::importUserFunction(QoreProgram *p, UserFunction *u, ExceptionSink *xsink) {
+   AutoLocker al(&plock);
+   // check if a user function already exists with this name
+   if (user_func_list.find(u->getName()))
+      xsink->raiseException("FUNCTION-IMPORT-ERROR", "user function '%s' already exists in this program object", u->getName());
+   else if (imported_func_list.findNode(u->getName()))
+      xsink->raiseException("FUNCTION-IMPORT-ERROR", "function '%s' has already been imported into this program object", u->getName());
+   else
+      imported_func_list.add(p, u);
+}
+
+void qore_program_private::importUserFunction(QoreProgram *p, UserFunction *u, const char *new_name, ExceptionSink *xsink) {
+   AutoLocker al(&plock);
+   // check if a user function already exists with this name
+   if (user_func_list.find(new_name))
+      xsink->raiseException("FUNCTION-IMPORT-ERROR", "user function '%s' already exists in this program object", u->getName());
+   else if (imported_func_list.findNode(new_name))
+      xsink->raiseException("FUNCTION-IMPORT-ERROR", "function '%s' has already been imported into this program object", u->getName());
+   else
+      imported_func_list.add(p, new_name, u);
+}
+
+void qore_program_private::del(ExceptionSink *xsink) {
+   printd(5, "QoreProgram::del() pgm=%p (base_object=%d)\n", pgm, base_object);
+   // wait for all threads to terminate
+   waitForAllThreadsToTerminate();
+
+   // have to delete global variables first because of destructors.
+   // method call can be repeated
+   global_var_list.delete_all(xsink);
+
+   // delete all class static vars and constants
+   RootNS->deleteData(xsink);
+
+   // delete user functions in case there are constant objects which are 
+   // instances of classes that may be deleted below (call can be repeated)
+   user_func_list.del();
+
+   // method call can be repeated
+   sb.del();
+
+   if (base_object) {
+      endThread(xsink);
+
+      // delete thread local storage key
+      delete thread_local_storage;
+      base_object = false;
+   }
+
+   //printd(5, "QoreProgram::~QoreProgram() this=%p deleting root ns %p\n", this, RootNS);
+
+   delete RootNS;
+   RootNS = 0;
+}
+
+UserFunction *qore_program_private::findUserImportedFunctionUnlocked(const char *name, QoreProgram *&ipgm) {
+   UserFunction *u = user_func_list.find(name);
+   if (!u)
+      u = imported_func_list.find(name, ipgm);
+   
+   return u;
+}
 
 QoreProgram::~QoreProgram() {
    printd(5, "QoreProgram::~QoreProgram() this=%p\n", this);

@@ -27,6 +27,13 @@
 extern QoreListNode *ARGV, *QORE_ARGV;
 extern QoreHashNode *ENV;
 
+#include <qore/intern/ParserSupport.h>
+#include <qore/intern/UserFunctionList.h>
+#include <qore/intern/GlobalVariableList.h>
+#include <qore/intern/ImportedFunctionList.h>
+
+#include <errno.h>
+
 class CharPtrList : public safe_dslist<const char *> {
 public:
    // returns true for found, false for not found
@@ -250,19 +257,7 @@ struct qore_program_private {
       return l;
    }
 
-   DLLLOCAL void internParseRollback() {
-      // delete pending user functions
-      user_func_list.parseRollback();
-	 
-      // delete pending changes to namespaces
-      RootNS->parseRollback();
-
-      // commit global variables
-      global_var_list.parseRollback();
-	 
-      // delete pending statements 
-      sb.parseRollback();
-   }
+   DLLLOCAL void internParseRollback();
 
    // call must push the current program on the stack and pop it afterwards
    DLLLOCAL int internParsePending(const char *code, const char *label) {
@@ -320,48 +315,7 @@ struct qore_program_private {
    }
 
    // caller must have grabbed the lock and put the current program on the program stack
-   DLLLOCAL int internParseCommit() {
-      QORE_TRACE("QoreProgram::internParseCommit()");
-      printd(5, "QoreProgram::internParseCommit() pgm=%p isEvent=%d\n", pgm, parseSink->isEvent());
-
-      // if the first stage of parsing has already failed, 
-      // then don't go forward
-      if (!parseSink->isEvent()) {
-	 // initialize new statements second (for "our" and "my" declarations)
-	 // also initializes namespaces, constants, etc
-	 sb.parseInit(RootNS, &user_func_list);
-
-	 // initialize all new global variables (resolve types)
-	 global_var_list.parseInit(pwo.parse_options);
-
-	 printd(5, "QoreProgram::internParseCommit() this=%p RootNS=%p\n", pgm, RootNS);
-      }
-	 
-      // if a parse exception has occurred, then back out all new
-      // changes to the QoreProgram atomically
-      int rc;
-      if (parseSink->isEvent()) {
-	 internParseRollback();
-	 requires_exception = false;
-	 rc = -1;
-      }
-      else { // otherwise commit them
-	 // merge pending user functions
-	 user_func_list.parseCommit();
-	    
-	 // merge pending namespace additions
-	 RootNS->parseCommit();
-	    
-	 // commit global variables
-	 global_var_list.parseCommit();
-
-	 // commit pending statements
-	 sb.parseCommit();
-
-	 rc = 0;
-      }
-      return rc;
-   }
+   DLLLOCAL int internParseCommit();
 
    // checks to see if parseCommit() can be called - updating existing runtime data structures
    DLLLOCAL int checkParseCommitUnlocked(ExceptionSink *xsink) {
@@ -542,61 +496,12 @@ struct qore_program_private {
    }
 
    // called during run time (not during parsing)
-   DLLLOCAL void importUserFunction(QoreProgram *p, UserFunction *u, ExceptionSink *xsink) {
-      AutoLocker al(&plock);
-      // check if a user function already exists with this name
-      if (user_func_list.find(u->getName()))
-	 xsink->raiseException("FUNCTION-IMPORT-ERROR", "user function '%s' already exists in this program object", u->getName());
-      else if (imported_func_list.findNode(u->getName()))
-	 xsink->raiseException("FUNCTION-IMPORT-ERROR", "function '%s' has already been imported into this program object", u->getName());
-      else
-	 imported_func_list.add(p, u);
-   }
+   DLLLOCAL void importUserFunction(QoreProgram *p, UserFunction *u, ExceptionSink *xsink);
 
    // called during run time (not during parsing)
-   DLLLOCAL void importUserFunction(QoreProgram *p, UserFunction *u, const char *new_name, ExceptionSink *xsink) {
-      AutoLocker al(&plock);
-      // check if a user function already exists with this name
-      if (user_func_list.find(new_name))
-	 xsink->raiseException("FUNCTION-IMPORT-ERROR", "user function '%s' already exists in this program object", u->getName());
-      else if (imported_func_list.findNode(new_name))
-	 xsink->raiseException("FUNCTION-IMPORT-ERROR", "function '%s' has already been imported into this program object", u->getName());
-      else
-	 imported_func_list.add(p, new_name, u);
-   }
+   DLLLOCAL void importUserFunction(QoreProgram *p, UserFunction *u, const char *new_name, ExceptionSink *xsink);
 
-   DLLLOCAL void del(ExceptionSink *xsink) {
-      printd(5, "QoreProgram::del() pgm=%p (base_object=%d)\n", pgm, base_object);
-      // wait for all threads to terminate
-      waitForAllThreadsToTerminate();
-
-      // have to delete global variables first because of destructors.
-      // method call can be repeated
-      global_var_list.delete_all(xsink);
-
-      // delete all class static vars and constants
-      RootNS->deleteData(xsink);
-
-      // delete user functions in case there are constant objects which are 
-      // instances of classes that may be deleted below (call can be repeated)
-      user_func_list.del();
-
-      // method call can be repeated
-      sb.del();
-
-      if (base_object) {
-	 endThread(xsink);
-
-	 // delete thread local storage key
-	 delete thread_local_storage;
-	 base_object = false;
-      }
-
-      //printd(5, "QoreProgram::~QoreProgram() this=%p deleting root ns %p\n", this, RootNS);
-
-      delete RootNS;
-      RootNS = 0;
-   }
+   DLLLOCAL void del(ExceptionSink *xsink);
 
    DLLLOCAL QoreHashNode *clearThreadData(ExceptionSink *xsink) {
       QoreHashNode *h = thread_local_storage->get();
@@ -624,13 +529,7 @@ struct qore_program_private {
       TZ = n_TZ;
    }
 
-   DLLLOCAL UserFunction *findUserImportedFunctionUnlocked(const char *name, QoreProgram *&ipgm) {
-      UserFunction *u = user_func_list.find(name);
-      if (!u)
-	 u = imported_func_list.find(name, ipgm);
-
-      return u;
-   }
+   DLLLOCAL UserFunction *findUserImportedFunctionUnlocked(const char *name, QoreProgram *&ipgm);
 
    DLLLOCAL void exportUserFunction(const char *name, qore_program_private *p, ExceptionSink *xsink) {
       if (this == p) {
