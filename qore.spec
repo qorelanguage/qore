@@ -74,7 +74,7 @@ character encoding (including proper UTF-8) support, and much more.
 
 %package -n libqore5
 Summary: The libraries for qore runtime and qore clients
-Group: Development/Languages
+Group: Development/Languages/Other
 Provides: qore-module-api-0.10
 Provides: qore-module-api-0.9
 Provides: qore-module-api-0.8
@@ -109,7 +109,7 @@ ldconfig %{_libdir}
 
 %package doc
 Summary: API documentation, programming language reference, and Qore example programs
-Group: Development/Languages
+Group: Development/Languages/Other
 
 %description doc
 Qore is a modular, multithreaded, weakly-typed, object-oriented programming
@@ -130,7 +130,7 @@ example programs
 
 %package devel
 Summary: The header files needed to compile programs using the qore library
-Group: Development/Languages
+Group: Development/Languages/Other
 Requires: libqore5 = %{version}-%{release}
 
 %description devel
