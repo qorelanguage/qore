@@ -4,7 +4,8 @@ release summary: major bugfixes and major new features including the new
     prepared statement API, vastly improved type system, static class variables
     and class constants
 
-* COMPATIBILITY WARNING: removed all XML functionality to the new "xml" module
+* COMPATIBILITY WARNING: removed all XML and JSON functionality to the new
+    "xml" and "json" modules; see README-MODULES for more information
 * BUG FIX: fixed a deadlock when calling HTTPClient::setProxyURL() with an
     empty string argument
 * BUG FIX: fixed a bug in the return statement to not check return type if an
@@ -12,9 +13,9 @@ release summary: major bugfixes and major new features including the new
 * BUG FIX: fixed a crashing bug when on_exit, on_success, or on_error
     statement bodies are empty ({})
 * BUG FIX: fixed command-line to take modules loaded on the command-line and
-    apply them immediately to the program class; previously the modules would
-    be loaded but only accessible in the parsed program if the program also
-    had a %requires declaration for the same module in it
+    apply them immediately to the program; previously the modules would be
+    loaded but only accessible in the parsed program if the program also had a
+    %requires declaration for the same module as well
 * BUG FIX: fixed a bug in QoreClass initialization from modules that could
     cause a crash
 * BUG FIX: updated time zone initialization to parse /etc/TIMEZONE on solaris
