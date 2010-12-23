@@ -39,8 +39,8 @@ Release: 1%{dist}
 License: LGPL or GPL
 Group: Development/Languages/Other
 URL: http://www.qoretechnologies.com/qore
-Source: http://prdownloads.sourceforge.net/qore/qore-%{version}.tar.gz
-#Source0: %{name}-%{version}.tar.gz
+Source: http://prdownloads.sourceforge.net/qore/qore-%{version}.tar.bz2
+#Source0: %{name}-%{version}.tar.bz2
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 Requires: /usr/bin/env
 BuildRequires: gcc-c++
