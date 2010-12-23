@@ -28,8 +28,6 @@
 #include <qore/intern/LocalVar.h>
 #include <qore/intern/qore_program_private.h>
 
-#include <errno.h>
-
 #include <string>
 #include <set>
 #include <typeinfo>
