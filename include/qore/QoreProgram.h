@@ -81,6 +81,7 @@ class QoreParseTypeInfo;
 class ParamList;
 class AbstractQoreFunction;
 class AbstractQoreZoneInfo;
+class qore_program_private;
 
 //! supports parsing and executing Qore-language code, reference counted, dynamically-allocated only
 /** This class implements a transaction and thread-safe container for qore-language code
@@ -91,9 +92,10 @@ class AbstractQoreZoneInfo;
     so it can be deleted.
 */
 class QoreProgram : public AbstractPrivateData {
+   friend class qore_program_private;
 private:
    //! private implementation
-   struct qore_program_private *priv;
+   qore_program_private *priv;
       
    DLLLOCAL void del(ExceptionSink *xsink);
 

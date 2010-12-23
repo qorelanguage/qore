@@ -48,6 +48,22 @@
 #define NT_SOMETHING    -101 // i.e. "not NOTHING"
 #define NT_DATA         -102 // either QoreStringNode or BinaryNode
 
+struct ParseWarnOptions {
+   int64 parse_options;
+   int warn_mask;
+
+   DLLLOCAL ParseWarnOptions() : parse_options(0), warn_mask(0) {
+   }
+
+   DLLLOCAL ParseWarnOptions(int64 n_parse_options, int n_warn_mask = 0) : parse_options(n_parse_options), warn_mask(n_warn_mask) {
+   }
+
+   DLLLOCAL void operator=(const ParseWarnOptions &pwo) {
+      parse_options = pwo.parse_options;
+      warn_mask = pwo.warn_mask;
+   }
+};
+
 // the following functions are implemented in support.cc
 // FIXME: remove this function and use the one below
 DLLLOCAL void parse_error(int sline, int eline, const char *fmt, ...);

@@ -50,6 +50,7 @@ public:
    int LineNumber;
    int EndLineNumber;
    const char *FileName;
+   struct ParseWarnOptions pwo;
 
    DLLLOCAL AbstractStatement(int start_line, int end_line);
 

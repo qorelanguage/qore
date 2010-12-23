@@ -12,17 +12,19 @@
     
     <para>Qore programs/scripts are free form. Formatting does not affect the execution of the program; formatting is at the discretion of the programmer and should be used to enhance readability and clarity of the source code.</para>
 
-    <para>Qore was created as a weakly typed language. That means that variables without type restrictions can hold values of any type and functions without type restrictions can return any value type (or none at all, see <link linkend='Variables'>Variables</link>) and take arguments of any type. Furthermore list elements can be of any type (they do not have to be uniform), and multidimensional lists can have a different number of elements in each list. The same type flexibility holds true of hashes, objects, and all combinations of container types.</para>
+    <para>Qore was created as a weakly typed language.  That means that variables (without type restrictions) can hold values of any type and functions (without a return type restriction or parameter type descriptions) can return any value type (or none at all, see <link linkend='Variables'>Variables</link>) and take arguments of any type.  Furthermore list elements can be of any type (they do not have to be uniform), and multidimensional lists can have a different number of elements in each list.  The same type flexibility holds true of hashes, objects, and all combinations of container types.</para>
 
-    <para>Qore can be used a a traditional function-based scripting language or as a pure object-oriented language, where the application is defined as a class. Aside from traditional local and global variables, constants, and functions, Qore also supports nested namespaces, classes, multiple inheritance, overriding base class constructor arguments, private members and methods, and static class methods.</para>
+    <para>Qore also allows variable, parameter, class member, and return types to be declared, so that APIs can be formally defined or the programmer can decide to declare types to catch more errors at parse time (which is often preferable to discovering a type error at runtime).</para>
+
+    <para>Qore can be used a a traditional function-based scripting language or as a pure object-oriented language, where the application is defined as a class.  Aside from traditional local and global variables, constants, and functions, Qore also supports nested <link linkend="Namespaces">namespaces</link>, <link linkend="Classes">classes</link>, <link linkend="Class_Inheritance">multiple inheritance</link>, overriding base class constructor arguments, public and private <link linkend="Class_Members">members</link> and <link linkend="Class_Methods">methods</link>, <link linkend="Static_Methods">static class methods</link>, and <link linkend="Static_Class_Variables">static class variables</link>.</para>
     
     <para>All elements of Qore are designed to work together seamlessly: <link linkend="Datasource_Class">database access</link>, <link linkend="Socket_Class">socket communication</link>, <link linkend="Program_Class">embedding logic</link> in subprograms, <link linkend="Regular_Expressions">regular expressions</link>, <link linkend="Operators">operators</link>, <link linkend="Function_Library">functions</link>, and all other elements are thread-safe and built on an execution engine that was designed for SMP scalability.</para>
 
     <para>Qore automatically converts data types when necessary when evaluating operators. The goal is to provide the expected result for the programmer without requiring the programmer to explicitly convert data types. Please see <link linkend='Operators'>Operators</link> for more information.</para>
 
-    <para>Qore supports <link linkend="signal_handling">signal handling</link> by dispatching Qore-language signal handlers in a safe manner, asynchronously to the actual receipt of the signal.</para>
+    <para>Qore supports <link linkend="signal_handling">signal handling</link> by executing Qore-language signal handlers in special single-handling thread.</para>
 
-    <para>UNIX operating systems allow an executable script to specify their interpreter. This is done by setting the first line in the program to a special string indicating the location of the Qore binary. For the purposes of this document, the location for the Qore binary is assumed to be <code>/usr/bin/qore</code>. The first line of Qore scripts in this case should look as follows:</para>
+    <para>UNIX operating systems allow an executable script to specify their interpreter.  This is done by setting the first line in the program to a special string indicating the location of the Qore binary. For the purposes of this document, the location for the Qore binary is assumed to be <code>/usr/bin/qore</code>. The first line of Qore scripts in this case should look as follows:</para>
 
     <programlisting>#!/usr/bin/qore</programlisting>
 
@@ -80,13 +82,13 @@
     <title>Qore Modules</title>
     <para>Qore modules allow the Qore language to be extended at run-time.  Qore modules must conform to the Qore Module API and have the file extension <command><code>*.qmod</code></command>.  Qore modules normally depend on other shared libraries and therefore can only be loaded if the libraries they require are present on the system and can be found in the library path.</para>
 
-  <para>Please note that as of version 0.7.0, modules are no longer delivered with the Qore library.  Modules must be downloaded separately; see <ulink url="http://qore.org">Qore's home page</ulink> for more information.</para>
+  <para>Please note that as of version 0.7.0 onwards, modules are no longer delivered with the Qore library.  Modules must be downloaded separately; see <ulink url="http://qore.org">Qore's home page</ulink> for more information.</para>
 
     <para>To load a module at parse time (normally required for most modules), use the <code><link linkend="requires">%requires</link></code> parse directive. If the named feature is not already present in Qore, Qore looks for a module with this name in the directories listed in the <code>QORE_MODULE_DIR</code> environment variable.</para>
 
     <para>Use the <link linkend="load_module">load_module()</link> function to load Qore modules at run-time; however, note that any module providing parse support (classes, constants, functions, etc) must be loaded at parse time using the <code><link linkend="requires">%requires</link></code> directive.</para>
 
-    <para>From Qore 0.7.1, you can specify a comparison operator (one of &lt; &lt;=, =, &gt;=, or &gt;) and version information after the module name as well.  Version numbers are compared via integer comparisons of each element, where elements are separated by a '.'.  If one of the versions does not have as many elements as another, the missing elements are assumed to be '0' (i.e. version &quot;1.0&quot; compared with version &quot;1.0.1&quot; will be exteneded to &quot;1.0.0&quot;).</para>
+    <para>From Qore 0.7.1 onwards, you can specify a comparison operator (one of &lt; &lt;=, =, &gt;=, or &gt;) and version information after the module name as well.  Version numbers are compared via integer comparisons of each element, where elements are separated by a '.'.  If one of the versions does not have as many elements as another, the missing elements are assumed to be '0' (i.e. version &quot;1.0&quot; compared with version &quot;1.0.1&quot; will be exteneded to &quot;1.0.0&quot;).</para>
 
     <para>Also note that DBI drivers are loaded on demand by the <link linkend="Datasource_Class">Datasource</link> and <link linkend="DatasourcePool_Class">DatasourcePool</link> classes.</para>
 
@@ -316,7 +318,7 @@
   <sect1 id="Variables">
     <title>Variables</title>
 
-    <para>Variables are Qore identifiers prefixed by a "$" sign, similar to Perl. The data type of variables does not have to be declared in advance, and variable types are assigned and changed automatically as appropriate in the context of the operations being performed on them or the values being assigned. Any Qore variable can hold any Qore data type including container types (lists, hashes, or objects).</para>
+    <para>Unless parse option <code><link linkend="allow-bare-refs">%allow-bare-refs</link></code> is set, variables are Qore identifiers prefixed by a "$" sign, similar to Perl.  If a variable is declared without any type restriction, then it is assumed to have type <link linkend="any_type">any</link>.  In this case, variables so declared can hold any data type.</para>
 
     <para>A few variables are set by the Qore language during the execution of Qore programs. These are normal variables that can be reassigned to other values by the user if necessary.</para>
 
@@ -363,13 +365,13 @@
     <note><para>As of version 0.5.0, <code>$STDERR</code> and <code>$STDOUT</code> have been removed from Qore.  Use the <link linkend="Qore_IO_Constants">I/O constants</link> <command>stderr</command>, <command>stdout</command>, and <command>stdin</command> constants of the <link linkend='File_Class'>File Class</link> instead.</para></note>
 
 <sect2 id="Variable_Declarations_And_Lexical_Scope">
-<title>Variable Declarations and Lexical Scope</title>
+  <title>Variable Declarations and Lexical Scope</title>
 
-<para>Variables not in a parameter list automatically have global scope unless the first reference is prefixed with <command>my</command>.  Variable names in a parameter list are always local to their associated function, method, or catch block. Global variables can be explicitly declared with <command>our</command>.  The <command>our</command> keyword is required if the parse option <code><link linkend="require-our">PO_REQUIRE_OUR</link></code> (<code>-O</code> or <code>--require-our</code> command-line option) is set for the parent program.  See the section on <link linkend="Parse_Options">Parse Options</link> for more information.</para>
+  <para>Unless the <code><link linkend="assume-local">%assume-local</link></code> parse directive is used, variables not in a parameter list automatically have global scope unless the first reference is prefixed with <command>my</command>.  Variable names in a parameter list are always local to their associated function, method, or catch block.  Global variables can be explicitly declared with <command>our</command>.  The <command>our</command> keyword is required if the parse option <code><link linkend="require-our">%require-our</link></code> (<code>-O</code> or <code>--require-our</code> command-line option) is set for the parent program.  See the section on <link linkend="Parse_Options">Parse Options</link> for more information.</para>
 
-<para>Variables may be assigned any value unless restricted with a <link linkend="Data_Type_Declarations">type declaration</link>.  If no type declaration is given, then the variable is assumed to be type <link linkend="any_type">any</link>.  Note that type declarations are required for all variables (and for function and method parameters and class members) when the <code><link linkend="require-types">PO_REQUIRE_TYPES</link></code> parse option is set.</para>
+  <para>When the <code><link linkend="assume-local">%assume-local</link></code> parse directive is used, variables without an explicit scope declaration (i.e. <command>my</command> or <command>our</command>) are assumed to be local variables.</para>
 
-<para>Note that variable types can only be declared when the <command>my</command> or <command>our</command> keywords are used; it is a syntax error to declare a variable's type without declaring its scope at the same time with one of these keywords.</para>
+<para>Variables may be assigned any value unless restricted with a <link linkend="Data_Type_Declarations">type declaration</link>.  If no type declaration is given, then the variable is assumed to be type <link linkend="any_type">any</link>.  Note that type declarations are required for all variables (and for function and method parameters and class members) when the <code><link linkend="require-types">%require-types</link></code> parse option is set.</para>
 
 <para>Local variables are not shared between threads (local variables have a distinct value in each thread), however global variables are.  See <link linkend='Threading'>Threading</link> (and in particular <link linkend="Threading_And_Variables">Threading and Variables</link>) for more information.</para>
 
@@ -1020,6 +1022,12 @@ False</programlisting></note>
             <entry><para><link linkend="Lists">List</link> or <link linkend="NOTHING">NOTHING</link></para></entry>
             <entry><para>same as received</para></entry>
             <entry><para>Accepts either a <link linkend="Lists">List</link> or <link linkend="NOTHING">NOTHING</link>.</para></entry>
+          </row>
+          <row id="*data_type">
+            <entry><para><code>*data</code></para></entry>
+            <entry><para><link linkend="String">String</link>, <link linkend="Binary">Binary</link>, or <link linkend="NOTHING">NOTHING</link></para></entry>
+            <entry><para>same as received</para></entry>
+            <entry><para>Restricts input to <link linkend="String">String</link>, <link linkend="Binary">Binary</link>, or <link linkend="NOTHING">NOTHING</link> and returns the same type.</para></entry>
           </row>
           <row id="*code_type">
             <entry><para><code>*code</code></para></entry>
@@ -3111,25 +3119,27 @@ int <command>sub</command> fibonacci(int $num) {
 </sect2>
 
 <sect2 id="Object_Method_Calls">
-<title>Object Method Calls</title>
+  <title>Object Method Calls</title>
 
-<para>Within a class method definition, calls to methods in the same class hierarchy (of the current class or a base class) can be defined as follows:</para>
+  <para>Within a class method definition, calls to methods in the same class hierarchy (of the current class or a base class) can be made as follows:</para>
 
-<programlisting>[<replaceable>namespace_path::</replaceable>]$.<replaceable>method_name([arg, ...])</replaceable></programlisting>
+  <programlisting>[<replaceable>namespace_path::</replaceable>]$.<replaceable>method_name([arg, ...])</replaceable></programlisting>
 
-<para>For example:</para>
+  <para>For example:</para>
 
-<programlisting># to call base class Mutex::lock()
+  <programlisting># to call base class Mutex::lock()
 Thread::Mutex::$.lock();
 # to call lock() in the current (or lower base) class
 $.lock();</programlisting>
 
-<para>This syntax can only be used to call methods in the current class or in base classes.  This is because these calls are resolved at parse time, and only these classes are known and accessible at parse time.  To call a derived class method from a base class, you must use the <code>$self</code> variable to call the method, so that the call will be resolved at run-time, for example:</para>
+  <para>When the <code><link linkend="allow-bare-refs">%allow-bare-refs</link></code> parse directive is set, then object methods are called without the <code>'$.'</code> prefix as in the following example:</para>
 
-<programlisting># this way, "member" can be resolved to a derived class method
-$self.member();</programlisting>
+  <programlisting># to call base class Mutex::lock()
+Thread::Mutex::lock();
+# to call lock() in the current (or lower base) class
+lock();</programlisting>
 
-<para>Calls to object methods can be made outside the class by using the above syntax as well.  All such calls are resolved at run-time, therefore if the call is made to a private function outside the defining class, then a run-time <code>METHOD-IS-PRIVATE</code> (if the method is private) or <code>BASE-CLASS-IS-PRIVATE</code> (if the method resolves to a privately-inherited base class) exception will be raised.</para>
+  <para>Calls to object methods can be made outside the class by using the above syntax as well.  If the object's class is not known at parse time, then the call is resolved at run-time, and if a call is attempted to a private function outside the defining class, then a run-time <code>METHOD-IS-PRIVATE</code> (if the method is private) or <code>BASE-CLASS-IS-PRIVATE</code> (if the method resolves to a privately-inherited base class) exception is raised.</para>
 
 </sect2>
 

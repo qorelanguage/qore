@@ -15,6 +15,21 @@
       </thead>
       <tbody>
 	<row>
+	  <entry><para><code><link linkend="allow-bare-refs">%allow-bare-refs</link></code></para></entry>
+	  <entry>
+	    <para>Prohibits the use of the <code>'$'</code> character in variable names, method calls, and object member references.  This makes Qore scripts appear superficially more like C++ or Java programs.  This parse option is set by default with <code><link linkend="new-style">%new-style</link></code>.</para>
+	    <para>Note that <link linkend="Implicit_Arguments">implicit arguments</link> are still referenced with the <code>'$'</code> character even when this parse option is set.</para>
+	    <para>Since Qore 0.8.1.</para>
+	  </entry>
+	</row>
+	<row>
+	  <entry><para><code><link linkend="assume-local">%assume-local</link></code></para></entry>
+	  <entry>
+	    <para>Assume local variable scope when variables are first referenced if no <command>my</command> or <command>our</command> is present.  When used with <code><link linkend="allow-bare-refs">%allow-bare-refs</link></code>, local variables without <command>my</command> must be declared with a data type restriction (can be <code><link linkend="any_type">any</link></code>).  This parse option is set by default with <code><link linkend="new-style">%new-style</link></code></para>
+	    <para>Since Qore 0.8.1.</para>
+	  </entry>
+	</row>
+	<row>
 	  <entry><para><code><link linkend="disable-all-warnings">%disable-all-warnings</link></code></para></entry>
 	  <entry><para>Turns off all warnings</para></entry>
 	</row>
@@ -46,6 +61,13 @@
 	<row>
 	  <entry><para><code><link linkend="lock-warnings">%lock-warnings</link></code></para></entry>
 	  <entry><para>Prohibits further changes to the warning mask (equivalent to the <code>--lock-warnings</code> command-line option).</para></entry>
+	</row>
+	<row>
+	  <entry><para><code><link linkend="new-style">%new-style</link></code></para></entry>
+	  <entry>
+	    <para>Sets both <code><link linkend="allow-bare-refs">%allow-bare-refs</link></code> and <code><link linkend="assume-local">%assume-local</link></code>.  These two options together make programming in Qore superficially more like programming in C++ or Java programs; use this if you dislike programming with the <code>'$'</code> sign, for example.</para>
+	    <para>Since Qore 0.8.1.</para>
+	  </entry>
 	</row>
 	<row>
 	  <entry><para><code><link linkend="no-class-defs">%no-class-defs</link></code></para></entry>
@@ -157,6 +179,71 @@
       </tbody>
     </tgroup>
   </table>
+
+  <sect1 id="allow-bare-refs">
+    <title>allow-bare-refs</title>
+
+    <variablelist>
+      <varlistentry>
+	<term>Parse Directive</term>
+	<listitem>
+	  <para><code>%allow-bare-refs</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Command-Line</term>
+	<listitem>
+	  <para><code>--allow-bare-refs, -B</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Parse Option Constant</term>
+	<listitem>
+	  <para>PO_ALLOW_BARE_REFS</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Description</term>
+	<listitem>
+	  <para>Prohibits the use of the <code>'$'</code> character in variable names, method calls, and object member references.  This makes Qore scripts appear superficially more like C++ or Java programs.  This parse option is set by default with <code><link linkend="new-style">%new-style</link></code>.</para>
+	  <para>Note that <link linkend="Implicit_Arguments">implicit arguments</link> are still referenced with the <code>'$'</code> character even when this parse option is set.</para>
+	  <para>Since Qore 0.8.1.</para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </sect1>
+
+  <sect1 id="assume-local">
+    <title>assume-local</title>
+
+    <variablelist>
+      <varlistentry>
+	<term>Parse Directive</term>
+	<listitem>
+	  <para><code>%assume-local</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Command-Line</term>
+	<listitem>
+	  <para><code>--assume-local</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Parse Option Constant</term>
+	<listitem>
+	  <para>PO_ASSUME_LOCAL</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Description</term>
+	<listitem>
+	  <para>Assume local variable scope when variables are first referenced if no <command>my</command> or <command>our</command> is present.  When used with <code><link linkend="allow-bare-refs">%allow-bare-refs</link></code>, local variables without <command>my</command> must be declared with a data type restriction (can be <code><link linkend="any_type">any</link></code>).  This parse option is set by default with <code><link linkend="new-style">%new-style</link></code></para>
+	  <para>Since Qore 0.8.1.</para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </sect1>
 
   <sect1 id="disable-all-warnings">
     <title>disable-all-warnings</title>
@@ -395,6 +482,38 @@
       </varlistentry>
     </variablelist>
   </sect1>
+
+  <sect1 id="new-style">
+    <title>new-style</title>
+    <variablelist>
+      <varlistentry>
+	<term>Parse Directive</term>
+	<listitem>
+	  <para><code>%new-style</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Command-Line</term>
+	<listitem>
+	  <para><code>--new-style, -n</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Parse Option Constant</term>
+	<listitem>
+	  <para>PO_NEW_STYLE</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Description</term>
+	<listitem>
+	  <para>Sets both <code><link linkend="allow-bare-refs">%allow-bare-refs</link></code> and <code><link linkend="assume-local">%assume-local</link></code>.  These two options together make programming in Qore superficially more like programming in C++ or Java programs; use this if you dislike programming with the <code>'$'</code> sign, for example.</para>
+	  <para>Since Qore 0.8.1.</para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </sect1>
+
   <sect1 id="no-child-restrictions">
     <title>no-child-restrictions</title>
     <variablelist>

@@ -92,8 +92,6 @@ DLLLOCAL const char *get_parse_code();
 DLLLOCAL void update_parse_location(int start_line, int end_line);
 DLLLOCAL void update_parse_location(int start_line, int end_line, const char *f);
 DLLLOCAL bool inMethod(const char *name, const QoreObject *o);
-DLLLOCAL void pushProgram(QoreProgram *pgm);
-DLLLOCAL void popProgram();
 DLLLOCAL RootQoreNamespace *getRootNS();
 DLLLOCAL int64 getParseOptions();
 DLLLOCAL void updateCVarStack(CVNode *ncvs);

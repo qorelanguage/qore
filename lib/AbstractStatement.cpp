@@ -22,10 +22,14 @@
 
 #include <qore/Qore.h>
 #include <qore/intern/AbstractStatement.h>
+#include <qore/intern/qore_program_private.h>
 
 #include <typeinfo>
 
 AbstractStatement::AbstractStatement(int start_line, int end_line) : LineNumber(start_line), EndLineNumber(end_line) {
+   QoreProgram *pgm = getProgram();
+   if (pgm)
+      pwo = qore_program_private::getParseWarnOptions(getProgram());
    FileName = get_parse_file();
 }
 
@@ -46,6 +50,9 @@ int AbstractStatement::parseInit(LocalVar *oflag, int pflag) {
    // turn off "reference OK" parse flag
    pflag &= ~PF_REFERENCE_OK;
    printd(2, "AbstractStatement::parseInit() %08p type=%s line %d file %s\n", this, typeid(this).name(), LineNumber, FileName);
+   // set parse options and warning mask for this statement
+   ParseWarnHelper pwh(pwo);
+
    // set pgm position in case of errors
    update_parse_location(LineNumber, EndLineNumber, FileName);
    return parseInitImpl(oflag, pflag);

@@ -83,6 +83,8 @@ static const char helpstr[] =
    "      --module-api             show compatible qore module API version and\n"
    "                               exit\n"
    "      --module-apis            show all qore module API versions\n"
+   "  -n, --new-style              turns on 'allow-bare-refs' and 'assume-local'\n"
+   "                               for programming style more similar to C++/Java\n"
    "      --latest-module-api      show most recent module API version and exit\n"
    "  -o, --list-parse-options     list all parse options\n"
    "  -p, --set-parse-option=arg   set parse option (ex: -pno-database)\n"
@@ -108,6 +110,8 @@ static const char parseopts[] =    "qore options controlling parse options:\n"
    "  -A, --lock-warnings          do not allow changes in warning levels\n"
    "  -B, --allow-bare-refs        allow refs to vars without '$' and refs to\n"
    "                               class members without '$.'\n"
+   "      --assume-local           assume local scope for variables declared\n"
+   "                               without 'my' or 'our'\n"
    "      --no-class-defs          make class definitions illegal\n"
    "  -D, --no-database            disallow access to database functionality\n"
    "      --no-external-info       disallow access to external info\n"
@@ -356,6 +360,14 @@ static void do_lock_options(const char *arg) {
 
 static void allow_bare_refs(const char *arg) {
    parse_options |= PO_ALLOW_BARE_REFS;
+}
+
+static void assume_local(const char *arg) {
+   parse_options |= PO_ASSUME_LOCAL;
+}
+
+static void new_style(const char *arg) {
+   parse_options |= PO_NEW_STYLE;
 }
 
 static void short_version(const char *arg) {

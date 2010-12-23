@@ -10640,15 +10640,30 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	</thead>
 
 	<tbody>
-	  <row id="PO_NO_GLOBAL_VARS">
-	    <entry><para><code>PO_NO_GLOBAL_VARS</code></para></entry>
-	    <entry><para><code><link linkend="no-global-vars">%no-global-vars</link></code></para></entry>
-	    <entry><para>Disallows the use of global variables.</para></entry>
+	  <row id="PO_ALLOW_BARE_REFS">
+	    <entry><para><code>PO_ALLOW_BARE_REFS</code></para></entry>
+	    <entry><para><code><link linkend="allow-bare-refs">%allow-bare-refs</link></code></para></entry>
+	    <entry><para>Prohibits the use of the <code>'$'</code> character in variable names, method calls, and object member references.</para></entry>
+	  </row>
+	  <row id="PO_ASSUME_LOCAL">
+	    <entry><para><code>PO_ASSUME_LOCAL</code></para></entry>
+	    <entry><para><code><link linkend="assume-local">%assume-local</link></code></para></entry>
+	    <entry><para>Assume local variable scope when variables are first referenced if no <command>my</command> or <command>our</command> is present.</para></entry>
 	  </row>
 	  <row id="PO_DEFAULT">
 	    <entry><para><code>PO_DEFAULT</code></para></entry>
 	    <entry><para>no parse options</para></entry>
 	    <entry><para>This option is the empty option, meaning no options are set.</para></entry>
+	  </row>
+	  <row id="PO_NEW_STYLE">
+	    <entry><para><code>PO_NEW_STYLE</code></para></entry>
+	    <entry><para><code><link linkend="new-style">%new-style</link></code></para></entry>
+	    <entry><para>Sets both <code><link linkend="PO_ALLOW_BARE_REFS">PO_ALLOW_BARE_REFS</link></code> and <code><link linkend="PO_ASSUME_LOCAL">PO_ASSUME_LOCAL</link></code></para></entry>
+	  </row>
+	  <row id="PO_NO_GLOBAL_VARS">
+	    <entry><para><code>PO_NO_GLOBAL_VARS</code></para></entry>
+	    <entry><para><code><link linkend="no-global-vars">%no-global-vars</link></code></para></entry>
+	    <entry><para>Disallows the use of global variables.</para></entry>
 	  </row>
 	  <row id="PO_NO_SUBROUTINE_DEFS">
 	    <entry><para><code>PO_NO_SUBROUTINE_DEFS</code></para></entry>
