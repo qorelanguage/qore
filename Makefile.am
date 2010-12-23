@@ -276,7 +276,7 @@ EXTRA_DIST = next_build.sh WHATISQORE RELEASE-NOTES \
 	test/regex.q \
 	test/deadlock.q \
 	test/optest.q \
-	examples/HTTPServer.qc \
+	examples/HttpServer.qc \
 	examples/stmt.q \
 	examples/exp.q \
 	examples/obj2.q \
