@@ -580,9 +580,12 @@ struct qore_program_private {
       return pgm->priv->pwo;
    }
 
-   DLLLOCAL static void setSaveParseWarnOptions(const QoreProgram *pgm, const ParseWarnOptions &new_opts, ParseWarnOptions &old_opts) {
+   DLLLOCAL static bool setSaveParseWarnOptions(const QoreProgram *pgm, const ParseWarnOptions &new_opts, ParseWarnOptions &old_opts) {
+      if (new_opts == pgm->priv->pwo)
+         return false;
       old_opts = pgm->priv->pwo;
       pgm->priv->pwo = new_opts;
+      return true;
    }
 
    DLLLOCAL static void setParseWarnOptions(const QoreProgram *pgm, const ParseWarnOptions &new_opts) {
@@ -591,15 +594,15 @@ struct qore_program_private {
 };
 
 class ParseWarnHelper : public ParseWarnOptions {
+protected:
+   bool restore;
 public:
    DLLLOCAL ParseWarnHelper(const ParseWarnOptions &new_opts) {
       QoreProgram *pgm = getProgram();
-      if (pgm)
-	 qore_program_private::setSaveParseWarnOptions(pgm, new_opts, *this);
+      restore = pgm ? qore_program_private::setSaveParseWarnOptions(pgm, new_opts, *this) : false;
    }
    DLLLOCAL ~ParseWarnHelper() {
-      QoreProgram *pgm = getProgram();
-      if (pgm)
+      if (restore)
 	 qore_program_private::setParseWarnOptions(getProgram(), *this);
    }
 };

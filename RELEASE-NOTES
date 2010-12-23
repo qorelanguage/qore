@@ -91,6 +91,8 @@ release summary: major bugfixes and major new features including the new
     Datasource::activeTransaction() will only return true if DB commands have
     been issued since the transaction started.  All DBI drivers the support
     auto-reconnect were separately updated as well to use the new API
+* BUG FIX: warnings and parse options are now stored on each statement so that
+    they are applied in the same way during both parse stages
 * new feature: class constants; classes can now declare constants in their
     private and public declaration blocks
 * new feature: static class variables; classes can now declare static

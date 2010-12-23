@@ -62,6 +62,10 @@ struct ParseWarnOptions {
       parse_options = pwo.parse_options;
       warn_mask = pwo.warn_mask;
    }
+   
+   DLLLOCAL bool operator==(const ParseWarnOptions &pwo) const {
+      return parse_options == pwo.parse_options && warn_mask == pwo.warn_mask;
+   }
 };
 
 // the following functions are implemented in support.cc
