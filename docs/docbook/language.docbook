@@ -404,7 +404,7 @@ print("global a = %d\n", $a); </programlisting>
 <programlisting>global a = 1</programlisting>
 
   <note>
-    <para>If parse option <code><link linkend="allow-bare-refs">%allow-bare-refs</link></code> is set, then variable references are made without the <code>&quot;$&quot;</code> character.</para>
+    <para>If parse option <code><link linkend="allow-bare-refs">%allow-bare-refs</link></code> is set, then variable references must be made without the <code>&quot;$&quot;</code> character.</para>
   </note>
 
 </sect2>
@@ -1369,17 +1369,26 @@ False</programlisting></note>
 	  </row>
 	  <row>
 	    <entry><para>A variable reference</para></entry>
-	    <entry><para>Qore variables (see <link linkend="Variables">Variables</link> for more information)</para></entry>
+	    <entry>
+	      <para>Qore variables (see <link linkend="Variables">Variables</link> for more information)</para>
+	      <para>See also parse option <code><link linkend="allow-bare-refs">%allow-bare-refs</link></code>.</para>
+	    </entry>
 	    <entry><programlisting>$var</programlisting></entry>
 	  </row>
 	  <row>
 	    <entry><para>A variable declaration</para></entry>
-	    <entry><para>Qore variable declarations (see <link linkend="Variables">Variables</link> for more information)</para></entry>
+	    <entry>
+	      <para>Qore variable declarations (see <link linkend="Variables">Variables</link> for more information)</para>
+	      <para>See also parse option <code><link linkend="assume-local">%assume-local</link></code>.</para>
+	    </entry>
 	    <entry><programlisting><command>my</command> int $var</programlisting></entry>
 	  </row>
 	  <row>
 	    <entry><para>An in-class object member reference</para></entry>
-	    <entry><para>References to members of an object from within the class (see <link linkend="Class_Members">Class Members</link> for more information)</para></entry>
+	    <entry>
+	      <para>References to members of an object from within the class (see <link linkend="Class_Members">Class Members</link> for more information)</para>
+	      <para>See also parse option <code><link linkend="allow-bare-refs">%allow-bare-refs</link></code>.</para>
+	    </entry>
 	    <entry><programlisting>$.member</programlisting></entry>
 	  </row>
 	  <row>
@@ -1397,12 +1406,18 @@ False</programlisting></note>
 	  </row>
 	  <row>
 	    <entry><para>A method call</para></entry>
-	    <entry><para>Qore object method calls (see <link linkend="Object_Method_Calls">Object_Method_Calls</link> for more information)</para></entry>
+	    <entry>
+	      <para>Qore object method calls (see <link linkend="Object_Method_Calls">Object_Method_Calls</link> for more information)</para>
+	      <para>See also parse option <code><link linkend="allow-bare-refs">%allow-bare-refs</link></code>.</para>
+	    </entry>
 	    <entry><programlisting>$object.method("argument")</programlisting></entry>
 	  </row>
 	  <row>
 	    <entry><para>An in-class method call</para></entry>
-	    <entry><para>Qore in-class object method calls (see <link linkend="Object_Method_Calls">Object_Method_Calls</link> for more information)</para></entry>
+	    <entry>
+	      <para>Qore in-class object method calls (see <link linkend="Object_Method_Calls">Object_Method_Calls</link> for more information)</para>
+	      <para>See also parse option <code><link linkend="allow-bare-refs">%allow-bare-refs</link></code>.</para>
+	    </entry>
 	    <entry><programlisting>$.method("argument")</programlisting></entry>
 	  </row>
 	  <row>
@@ -2975,6 +2990,8 @@ int <command>sub</command> fibonacci(int $num) {
 }
 </programlisting>
 
+  <para>Note that when parse option <code><link linkend="allow-bare-refs">%allow-bare-refs</link></code> is enabled, no <code>&quot;$&quot;</code> or <code>&quot;$.&quot;</code> prefixes can be used with variable or method or member names as in the specifications above.</para>
+
 <para><link linkend="Class_Members">Class members</link>, <link linkend="Class_Constants">class constants</link>, and <link linkend="Static_Class_Variables">static class variables</link> can only be declared in an in-line class definition (the first example above).  If a class has at least one public member declared (or inherits a class with at least one public member declared), then only those members declared as public can be accessed from outside the class, and from within the class only members explicitly declared can be accessed as well (unless the class also defines a <code><link linkend="memberGate">memberGate()</link></code> method).  In this way typographical errors in member names can be caught (at parse time if types are declared).</para>
 
 <para>In a class hierarchy, base class constructor methods can be explicitly specified using a special syntax unique to subclass constructor methods.  Please see <link linkend='Class_Inheritance'>Class Inheritance</link> for more information.</para>
@@ -3157,6 +3174,7 @@ lock();</programlisting>
 
   <para>Calls to object methods can be made outside the class by using the above syntax as well.  If the object's class is not known at parse time, then the call is resolved at run-time, and if a call is attempted to a private function outside the defining class, then a run-time <code>METHOD-IS-PRIVATE</code> (if the method is private) or <code>BASE-CLASS-IS-PRIVATE</code> (if the method resolves to a privately-inherited base class) exception is raised.</para>
 
+  
 </sect2>
 
 <sect2 id="Class_Inheritance">
@@ -3252,6 +3270,8 @@ lock();</programlisting>
    <command>if</command> ($o.member == "tree")
       print("ok\n");
 }</programlisting>
+
+    <para>Note that when parse option <code><link linkend="allow-bare-refs">%allow-bare-refs</link></code> is set, then variable references as in the above examples are made without the <code>&quot;$&quot;</code> character.</para>
 
   </sect2>
 
