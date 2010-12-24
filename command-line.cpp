@@ -492,6 +492,8 @@ static struct opt_struct_s {
    { 'x', "exec-class",            ARG_OPT,  do_exec_class },
    { 'A', "lock-warnings",         ARG_NONE, do_lock_warnings },
    { 'B', "allow-bare-refs",       ARG_NONE, allow_bare_refs },
+   { '\0', "assume-local",         ARG_NONE, assume_local },
+   { '\0', "new-style",            ARG_NONE, new_style },
    { '\0', "no-class-defs",        ARG_NONE, do_no_class_defs },
    { 'D', "no-database",           ARG_NONE, do_no_database },
    { 'E', "no-external-process",   ARG_NONE, do_no_external_process },

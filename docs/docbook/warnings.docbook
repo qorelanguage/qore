@@ -6,8 +6,6 @@
 
   <para>Warnings can be enabled using the -W command-line option (see <link linkend="Command-Line_Parsing">Command-Line Parsing</link> for more information) or by using the <code>%enable-all-warnings</code> or <code>%enable-warning</code> <link linkend="Parse_Directives">parse directives</link>.</para>
 
-  <para>Note that parsing is done in two stages, so if a warning is enabled when the second stage of parsing begins, the warning can be generated anywhere in the source code.  Parse directives are processed in the first stage of parsing.  In other words, for warnings only raised in the second stage of parsing, it is not possible to turn on and turn off these warnings for specific code blocks within a section of text being parsed.</para>
-
   <table>
     <title>Warnings</title>
     <tgroup cols='2' align='left' colsep='1' rowsep='1'>

@@ -37,10 +37,10 @@ Name: qore
 Version: 0.8.1
 Release: 1%{dist}
 License: LGPL or GPL
-Group: Development/Languages
+Group: Development/Languages/Other
 URL: http://www.qoretechnologies.com/qore
-Source: http://prdownloads.sourceforge.net/qore/qore-%{version}.tar.gz
-#Source0: %{name}-%{version}.tar.gz
+Source: http://prdownloads.sourceforge.net/qore/qore-%{version}.tar.bz2
+#Source0: %{name}-%{version}.tar.bz2
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 Requires: /usr/bin/env
 BuildRequires: gcc-c++
@@ -68,14 +68,13 @@ database-independent programming support, exception-handling and
 exception-safe programming support, as well as built-in date arithmetic,
 character encoding (including proper UTF-8) support, and much more.
 
-
 %if 0%{?suse_version}
 %debug_package
 %endif
 
 %package -n libqore5
 Summary: The libraries for qore runtime and qore clients
-Group: Development/Languages
+Group: Development/Languages/Other
 Provides: qore-module-api-0.10
 Provides: qore-module-api-0.9
 Provides: qore-module-api-0.8
@@ -110,7 +109,7 @@ ldconfig %{_libdir}
 
 %package doc
 Summary: API documentation, programming language reference, and Qore example programs
-Group: Development/Languages
+Group: Development/Languages/Other
 
 %description doc
 Qore is a modular, multithreaded, weakly-typed, object-oriented programming
@@ -125,14 +124,13 @@ much more.
 This module provides API documentation, programming language reference, and
 example programs
 
-
 %files doc
 %defattr(-,root,root,-)
-%doc docs/library docs/qore-style.css docs/img docs/qore.html examples/ test/ 
+%doc docs/library docs/qore-style.css docs/img docs/qore.html examples/
 
 %package devel
 Summary: The header files needed to compile programs using the qore library
-Group: Development/Languages
+Group: Development/Languages/Other
 Requires: libqore5 = %{version}-%{release}
 
 %description devel
@@ -153,9 +151,10 @@ Qore library.
 %{_libdir}/libqore.so
 %{_prefix}/include/*
 
-
 %prep
 %setup -q
+mv $RPM_BUILD_DIR/%{name}-%{version}/test $RPM_BUILD_DIR/%{name}-%{version}/examples
+
 %ifarch x86_64 ppc64 x390x
 c64=--enable-64bit
 %endif
@@ -170,8 +169,6 @@ mkdir -p $RPM_BUILD_ROOT/usr/bin
 mkdir -p $RPM_BUILD_ROOT/%{module_dir}
 mkdir -p $RPM_BUILD_ROOT/%{module_dir}/auto
 mkdir -p $RPM_BUILD_ROOT/usr/man/man1
-mkdir -p $RPM_BUILD_ROOT/usr/share/doc/qore/examples
-mkdir -p $RPM_BUILD_ROOT/usr/share/doc/qore/test
 make install prefix=$RPM_BUILD_ROOT/usr
 rm $RPM_BUILD_ROOT/%{_libdir}/libqore.la
 

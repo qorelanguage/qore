@@ -196,6 +196,7 @@ noinst_HEADERS = \
 	include/qore/intern/qore_string_private.h \
 	include/qore/intern/qore_date_private.h \
 	include/qore/intern/sql_statement_private.h \
+	include/qore/intern/qore_program_private.h \
 	include/qore/intern/QoreDir.h \
 	include/qore/intern/QoreTypeInfo.h \
 	include/qore/intern/QoreSSLIntern.h \
@@ -275,7 +276,7 @@ EXTRA_DIST = next_build.sh WHATISQORE RELEASE-NOTES \
 	test/regex.q \
 	test/deadlock.q \
 	test/optest.q \
-	examples/HTTPServer.qc \
+	examples/HttpServer.qc \
 	examples/stmt.q \
 	examples/exp.q \
 	examples/obj2.q \
