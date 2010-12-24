@@ -18,6 +18,7 @@
 	  <entry><para><code><link linkend="allow-bare-refs">%allow-bare-refs</link></code></para></entry>
 	  <entry>
 	    <para>Prohibits the use of the <code>'$'</code> character in variable names, method calls, and object member references.  This makes Qore scripts appear superficially more like C++ or Java programs.  This parse option is set by default with <code><link linkend="new-style">%new-style</link></code>.</para>
+	  <para>Name resolution is made in the following order when this option is set: local variables, class constants and static class vars (when parsing in class code), global variables, and (non-class) constants.</para>
 	    <para>Note that <link linkend="Implicit_Arguments">implicit arguments</link> are still referenced with the <code>'$'</code> character even when this parse option is set.</para>
 	    <para>Since Qore 0.8.1.</para>
 	  </entry>
@@ -206,6 +207,7 @@
 	<term>Description</term>
 	<listitem>
 	  <para>Prohibits the use of the <code>'$'</code> character in variable names, method calls, and object member references.  This makes Qore scripts appear superficially more like C++ or Java programs.  This parse option is set by default with <code><link linkend="new-style">%new-style</link></code>.</para>
+	  <para>Name resolution is made in the following order when this option is set: local variables, class constants and static class vars (when parsing in class code), global variables, and (non-class) constants.</para>
 	  <para>Note that <link linkend="Implicit_Arguments">implicit arguments</link> are still referenced with the <code>'$'</code> character even when this parse option is set.</para>
 	  <para>Since Qore 0.8.1.</para>
 	</listitem>

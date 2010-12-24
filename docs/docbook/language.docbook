@@ -403,6 +403,10 @@ print("global a = %d\n", $a); </programlisting>
 
 <programlisting>global a = 1</programlisting>
 
+  <note>
+    <para>If parse option <code><link linkend="allow-bare-refs">%allow-bare-refs</link></code> is set, then variable references are made without the <code>&quot;$&quot;</code> character.</para>
+  </note>
+
 </sect2>
 </sect1>
 
@@ -817,6 +821,10 @@ False</programlisting></note>
 
     <programlisting><command>my</command> Mutex $m();</programlisting>
 
+    <para>If parse option <code><link linkend="new-style">%new-style</link></code> is set, the above example declaring a local variable of class <link linkend="Mutex_Class">Mutex</link> would look as follows:</para>
+
+    <programlisting>Mutex m();</programlisting>
+
   <para>Objects can also be instantiated using the <link linkend='New_Object_Operator'><command>new</command></link> operator as follows.</para>
 
     <programlisting><command>new</command> <replaceable>class_identifier</replaceable>([<replaceable>argument list</replaceable>])</programlisting>
@@ -824,6 +832,10 @@ False</programlisting></note>
     <para>For example:</para>
 
     <programlisting><command>my</command> $m = <command>new</command> Mutex();</programlisting>
+
+    <para>Or, with parse option <code><link linkend="new-style">%new-style</link></code>:</para>
+
+    <programlisting>Mutex m = <command>new</command> Mutex();</programlisting>
 
     <para>Objects have named data members that are referenced like hash elements, although this behavior can be modified for objects using the <code><link linkend="memberGate">memberGate()</link></code> method.  Object members are accessed by appending a dot '.' and the member name to the object reference as follows:</para>
 
@@ -838,6 +850,10 @@ False</programlisting></note>
     <para>Or, from within the class code itself to call another method from inside the same class hierarchy:</para>
 
     <programlisting>$.<replaceable>method_name</replaceable>([<replaceable>argument_list</replaceable>])</programlisting>
+
+    <para>Or, with parse option <code><link linkend="new-style">%new-style</link></code>, the method call is made without the <code>&quot;$.&quot;</code>:</para>
+
+    <programlisting><replaceable>method_name</replaceable>([<replaceable>argument_list</replaceable>])</programlisting>
 
     <para>For more information, see <link linkend="Object_Method_Calls">Object Method Calls</link>.</para>
 
@@ -1585,7 +1601,7 @@ $$</programlisting></entry>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$call_ref = \func_name();
+	    <programlisting><command>my</command> code $call_ref = \func_name();
 $call_ref = \$object.method_name();</programlisting>
 	  </listitem>
 	</varlistentry>
@@ -3648,10 +3664,7 @@ x=&lt;NOTHING&gt;</programlisting>
   <sect1 id="event_handling">
     <title>Event Handling</title>
 
-    <para>Qore supports a simple event-handling mechanism to provide
-notification and details of socket and network events in higher-level classes.
-Classes currently supporting events are the <link linkend="Socket_Class">Socket</link>,
-<link linkend="HTTPClient_Class">HTTPClient</link>, and <link linkend="FtpClient_Class">FtpClient</link> classes.</para>
+    <para>Qore supports a simple event-handling mechanism to provide notification and details of socket and network events in higher-level classes.  Classes currently supporting events are the <link linkend="Socket_Class">Socket</link>, <link linkend="HTTPClient_Class">HTTPClient</link>, <link linkend="FtpClient_Class">FtpClient</link>, and <link linkend="File_Class">File</link> classes.</para>
 
     <para>See <link linkend="event_constants">Event Constants</link> for a list
 of all event constants; details about each event are documented in the
