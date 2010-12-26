@@ -14,15 +14,10 @@
 %requires qore >= 0.8.1
 
 # global variables needed for tests
-our Test $to = new Test("program-test.q");
-our Test $ro = new Test("readonly");
+our Test $to("program-test.q");
+our Test $ro("readonly");
 our (hash $o, int $errors);
 our hash $thash;
-
-sub get_program_name() returns string {
-    my list $l = split("/", $ENV."_");
-    return $l[elements $l - 1];
-}
 
 sub usage() {
     printf(
@@ -32,7 +27,7 @@ sub usage() {
   -t,--threads=ARG  runs tests in ARG threads
   -v,--verbose=ARG  sets verbosity level to ARG
 ", 
-	   get_program_name());
+	   get_script_name());
     exit(1);
 }
 
@@ -43,7 +38,7 @@ const opts =
       "threads" : "threads,t=i" );
 
 sub parse_command_line() {
-    my GetOpt $g = new GetOpt(opts);
+    my GetOpt $g(opts);
     $o = $g.parse(\$ARGV);
     if (exists $o."_ERRORS_") {
         printf("%s\n", $o."_ERRORS_"[0]);
@@ -77,35 +72,35 @@ sub test_value(any $v1, any $v2, string $msg) {
     $thash.$msg = True;
 }
 
-sub test1() returns int { return 1;} sub test2() returns int { return 2; } 
-sub test3() returns list { return (1, 2, 3); }
+int sub test1() { return 1;} int sub test2() { return 2; } 
+list sub test3() { return (1, 2, 3); }
 
 sub array_helper(list $a) {
     $a[1][1] = 2;
     test_value($a[1][1], 2, "passed local array variable assignment");    
 }
 
-sub list_return(any $var) returns list {
+list sub list_return(any $var) {
     return (1, test2(), $var);
 }
 
-sub hash_return(any $var) returns hash {
+hash sub hash_return(any $var) {
     return ( "gee" : "whiz", 
 	     "num" : test1(),
 	     "var" : $var );
 }
 
 class Sort {
-    hash(hash $l, hash $r) returns int {
+    int hash(hash $l, hash $r) {
 	return $l.key1 <=> $r.key1;
     }
 }
-sub hash_sort_callback(hash $l, hash $r) returns int {
+int sub hash_sort_callback(hash $l, hash $r) {
     return $l.key1 <=> $r.key1;
 }
 
 class SC;
-static SC::hash_sort_callback(hash $l, hash $r) returns int {
+static int SC::hash_sort_callback(hash $l, hash $r) {
     return $l.key1 <=> $r.key1;
 }
 
@@ -191,9 +186,9 @@ sub array_tests() {
 	  ( "key1" : 7, "key2" : "six" ),
 	  ( "key1" : 8, "key2" : "two" ),
 	  ( "key1" : 9, "key2" : "three" ) );
-    my Sort $s = new Sort();
+    my Sort $s();
 
-    my code $hash_compare = sub (hash $l, hash $r) returns int { return $l.key1 <=> $r.key1; };
+    my code $hash_compare = int sub (hash $l, hash $r) { return $l.key1 <=> $r.key1; };
 
     test_value(sort($l1), (1,2,3,4,5,6), "first sort()");
     test_value(sort($l2), ("five", "four", "one", "six", "three", "two"), "second sort()");
@@ -320,7 +315,7 @@ sub hash_tests() {
     # test hash slice creation
     test_value($a.("unique", "new"), ("unique" : 100, "new" : 45), "hash slice creation");
 
-    my Test $ot = new Test(1, "two", 3.0);
+    my Test $ot(1, "two", 3.0);
     $ot += $a;
     test_value($ot.("unique", "new"), ("unique" : 100, "new" : 45), "hash slice creation from object");
 
@@ -341,7 +336,7 @@ sub global_variable_testa() {
     printf("user=%s\n", $ENV{"USER"});
 }
 
-sub map_closure(any $v) returns code { return sub(any $v1) returns any { return $v * $v1; }; }
+code sub map_closure(any $v) { return any sub(any $v1) { return $v * $v1; }; }
 
 # operator tests
 sub operator_test() {
@@ -440,7 +435,7 @@ sub operator_test() {
     test_value((select (1, 2, 3), $1 > 1), (2, 3), "select operator with expression");
 
     # create a sinple closure to subtract the second argument from the first
-    $c = sub(any $x, any $y) returns any { return $x - $y; };
+    $c = any sub(any $x, any $y) { return $x - $y; };
 
     # left fold function on list using closure
     test_value((foldl $c($1, $2), (2, 3, 4)), -5, "foldl operator with closure");
@@ -484,7 +479,7 @@ sub parameter_tests() {
     one_parameter_shift_test(1);
 }
 
-sub short_circuit_test(string $op) returns bool {
+bool sub short_circuit_test(string $op) {
     print("ERROR: %n logic short-circuiting is not working!\n", $op);
     $errors++;
     return False;
@@ -546,7 +541,7 @@ sub printf_tests() {
     printf(  "  printf: 3 char arg right in 5 char field: %5s\n", "abc"); 
 }
 
-sub switch_test(any $val) returns string {
+string sub switch_test(any $val) {
     my string $rv;
 
     switch ($val) {
@@ -566,7 +561,7 @@ sub switch_test(any $val) returns string {
     return $rv;
 }
 
-sub regex_switch_test(any $val) returns string {
+string sub regex_switch_test(any $val) {
     my string $rv;
 
     switch ($val) {
@@ -591,7 +586,7 @@ sub regex_switch_test(any $val) returns string {
     return $rv;
 }
 
-sub switch_with_relation_test(float $val) returns string {
+string sub switch_with_relation_test(float $val) {
   my string $rv;
   switch ($val) {
   case < -1.0: $rv = "first switch"; break;
@@ -711,7 +706,7 @@ sub statement_tests() {
     test_value($success, False, "on_success");
 }
 
-sub fibonacci(int $num) returns int {
+int sub fibonacci(int $num) {
     if ($num == 2)
         return 2;
     return $num * fibonacci($num - 1);
@@ -726,7 +721,7 @@ sub backquote_tests() {
     test_value(`echo -n 1`, "1", "backquote");
 }
 
-sub sd(date $d) returns string {
+string sub sd(date $d) {
     return format_date("YYYY-MM-DD HH:mm:SS", $d);
 }
 
@@ -1156,7 +1151,7 @@ sub pwd_tests() {
     }
 }
 
-sub simple_shift() returns any {
+any sub simple_shift() {
     return shift $argv;
 }
 
@@ -1243,19 +1238,19 @@ sub io_tests() {
     test_value(f_sprintf("%3s", "niña"), "niñ", "UTF-8 f_sprintf()");
 }
 
-sub f1_test(string $x) returns string {
+string sub f1_test(string $x) {
     return type($x);
 }
 
-sub f1_test(float $x) returns string {
+string sub f1_test(float $x) {
     return type($x);
 }
 
-sub f_test(int $x) returns string {
+string sub f_test(int $x) {
     return type($x);
 }
 
-sub f_test(float $x) returns string {
+string sub f_test(float $x) {
     return type($x);
 }
 
@@ -1285,7 +1280,7 @@ sub function_tests() {
     overload_tests();
 }
 
-sub t(any $a) returns int {
+int sub t(any $a) {
     return $a + 1;
 }
 
@@ -1310,34 +1305,34 @@ class Test inherits Socket {
 	$.b = 2;
         $.data = ($a, $b, $c);
     }
-    getData(int $elem) returns any {
+    any getData(int $elem) {
 	if (exists $elem)
 	    return $.data[$elem];
         return $.data;
     }
-    methodGate(string $m) returns string {
+    string methodGate(string $m) {
         return $m;
     }
-    memberGate(string $m) returns string {
+    string memberGate(string $m) {
         return "memberGate-" + $m;
     }
     memberNotification(string $m) {
 	$.t.$m = $self.$m;
     }
-    closure(any $x) returns code {
+    code closure(any $x) {
 	my int $a = 1;
 	# return a closure encapsulating the state of the object
-	return sub (any $y) returns string {
+	return string sub (any $y) {
 	    return sprintf("%s-%n-%n-%n", $.data[1], $x, $y, ++$a);
 	};
     }
-    argTest() returns any {
+    any argTest() {
         return $argv;
     }
 }
 
 sub class_test_Program() {
-    my string $func = "namespace ITest { const val = 1.0; } $gv2 = 123; sub t2(int $a) returns int { return $a + 2; } sub et(int $a) returns int { return t($a); } sub tot() returns string { return getClassName($to); } sub getObject() returns Queue { return new Queue(); } sub deleteException() { $ro.getData(0); delete $ro; }";
+    my string $func = "namespace ITest { const val = 1.0; } $gv2 = 123; int sub t2(int $a) { return $a + 2; } int sub et(int $a) { return t($a); } string sub tot() { return getClassName($to); } Queue sub getObject() { return new Queue(); } sub deleteException() { $ro.getData(0); delete $ro; }";
 
     my string $pf = "newfunc();";
     my string $nf = "sub newfunc() { return True; }";
@@ -1620,14 +1615,14 @@ sub crypto_tests() {
     test_value($str, $xstr, "DES random single key encrypt-decrypt");
 }
 
-sub closures(string $x) returns list {
+list sub closures(string $x) {
     my int $a = 1;
     
-    my code $inc = sub (any $y) returns string {
+    my code $inc = string sub (any $y) {
 	return sprintf("%s-%n-%n", $x, $y, ++$a);
     };
 
-    my code $dec = sub (any $y) returns string {
+    my code $dec = string sub (any $y) {
 	return sprintf("%s-%n-%n", $x, $y, --$a);
     };
 
