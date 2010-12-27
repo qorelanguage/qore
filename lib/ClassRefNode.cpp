@@ -62,7 +62,9 @@ int ClassRefNode::getID() const {
    return cid;
 }
 
-AbstractQoreNode *ClassRefNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+AbstractQoreNode *ClassRefNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+   // FIXME: implement a type for this
+   typeInfo = 0;
    if (cscope) {
       const QoreClass *qc = getRootNS()->parseFindScopedClass(cscope);
       if (qc)

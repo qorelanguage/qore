@@ -26,39 +26,49 @@
 #define _QORE_SELFVARREFNODE_H
 
 class SelfVarrefNode : public ParseNode  {
-   protected:
-      DLLLOCAL virtual AbstractQoreNode *evalImpl(class ExceptionSink *xsink) const;
+protected:
+   const QoreTypeInfo *returnTypeInfo;
+
+   DLLLOCAL virtual AbstractQoreNode *evalImpl(class ExceptionSink *xsink) const;
       
-      DLLLOCAL virtual AbstractQoreNode *evalImpl(bool &needs_deref, ExceptionSink *xsink) const;
+   DLLLOCAL virtual AbstractQoreNode *evalImpl(bool &needs_deref, ExceptionSink *xsink) const;
 
-      DLLLOCAL virtual int64 bigIntEvalImpl(ExceptionSink *xsink) const;
-      DLLLOCAL virtual int integerEvalImpl(ExceptionSink *xsink) const;
-      DLLLOCAL virtual bool boolEvalImpl(ExceptionSink *xsink) const;
-      DLLLOCAL virtual double floatEvalImpl(ExceptionSink *xsink) const;      
+   DLLLOCAL virtual int64 bigIntEvalImpl(ExceptionSink *xsink) const;
+   DLLLOCAL virtual int integerEvalImpl(ExceptionSink *xsink) const;
+   DLLLOCAL virtual bool boolEvalImpl(ExceptionSink *xsink) const;
+   DLLLOCAL virtual double floatEvalImpl(ExceptionSink *xsink) const;      
 
-   public:
-      char *str;
+   DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
 
-      DLLLOCAL SelfVarrefNode(char *c_str);
+   DLLLOCAL virtual const QoreTypeInfo *getTypeInfo() const {
+      return returnTypeInfo;
+   }
 
-      DLLLOCAL virtual ~SelfVarrefNode();
+public:
+   char *str;
 
-      // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
-      // the ExceptionSink is only needed for QoreObject where a method may be executed
-      // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
-      // returns -1 for exception raised, 0 = OK
-      DLLLOCAL virtual int getAsString(QoreString &str, int foff, class ExceptionSink *xsink) const;
+   DLLLOCAL SelfVarrefNode(char *c_str) : ParseNode(NT_SELF_VARREF), returnTypeInfo(0), str(c_str) {
+   }
 
-      // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
-      DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, class ExceptionSink *xsink) const;
+   DLLLOCAL virtual ~SelfVarrefNode() {
+      if (str)
+         free(str);
+   }
 
-      // returns the type name as a c string
-      DLLLOCAL virtual const char *getTypeName() const;
+   // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
+   // the ExceptionSink is only needed for QoreObject where a method may be executed
+   // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
+   // returns -1 for exception raised, 0 = OK
+   DLLLOCAL virtual int getAsString(QoreString &str, int foff, class ExceptionSink *xsink) const;
 
-      // returns the string, caller owns the memory
-      DLLLOCAL char *takeString();
+   // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
+   DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, class ExceptionSink *xsink) const;
 
-      DLLLOCAL AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
+   // returns the type name as a c string
+   DLLLOCAL virtual const char *getTypeName() const;
+
+   // returns the string, caller owns the memory
+   DLLLOCAL char *takeString();
 };
 
 #endif

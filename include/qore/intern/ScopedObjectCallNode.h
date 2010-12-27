@@ -38,6 +38,11 @@ protected:
       return oc->execConstructor(variant, args, xsink);
    }
 
+   DLLLOCAL AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
+   DLLLOCAL virtual const QoreTypeInfo *getTypeInfo() const {
+      return oc ? oc->getTypeInfo() : objectTypeInfo;
+   }
+
 public:
    NamedScope *name;
    const QoreClass *oc;
@@ -86,8 +91,6 @@ public:
    DLLLOCAL virtual const char *getName() const {
       return desc.getBuffer();
    }
-   
-   DLLLOCAL AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
 };
 
 #endif

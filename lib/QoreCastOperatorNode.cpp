@@ -77,7 +77,7 @@ AbstractQoreNode *QoreCastOperatorNode::evalImpl(bool &needs_deref, ExceptionSin
    return rv.getReferencedValue();
 }
 
-AbstractQoreNode *QoreCastOperatorNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+AbstractQoreNode *QoreCastOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    bool err = false;
    if (path->size() == 1) {
       // if the class is "object", then set qc = 0 to use as a catch-all and generic "cast to object"

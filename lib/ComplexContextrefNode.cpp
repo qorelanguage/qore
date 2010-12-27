@@ -119,7 +119,9 @@ double ComplexContextrefNode::floatEvalImpl(ExceptionSink *xsink) const {
    return rv ? rv->getAsFloat() : 0;
 }
 
-AbstractQoreNode *ComplexContextrefNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+AbstractQoreNode *ComplexContextrefNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+   typeInfo = 0;
+
    if (!getCVarStack()) {
       parse_error("complex context reference \"%s:%s\" encountered out of context", name, member);
       return this;

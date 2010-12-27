@@ -37,12 +37,18 @@ protected:
    //! if the return value is ignored
    bool ref_rv : 1;
 
+   //! if the node has undergone "parse initialization"
+   bool parse_init : 1;
+
+   DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) = 0;
+   DLLLOCAL virtual const QoreTypeInfo *getTypeInfo() const = 0;
+
 public:
-   DLLLOCAL ParseNode(qore_type_t t, bool n_needs_eval = true) : SimpleQoreNode(t, false, n_needs_eval), effect(n_needs_eval), ref_rv(true) {
+   DLLLOCAL ParseNode(qore_type_t t, bool n_needs_eval = true) : SimpleQoreNode(t, false, n_needs_eval), effect(n_needs_eval), ref_rv(true), parse_init(false) {
    }
-   DLLLOCAL ParseNode(qore_type_t t, bool n_needs_eval, bool n_effect) : SimpleQoreNode(t, false, n_needs_eval), effect(n_effect), ref_rv(true) {
+   DLLLOCAL ParseNode(qore_type_t t, bool n_needs_eval, bool n_effect) : SimpleQoreNode(t, false, n_needs_eval), effect(n_effect), ref_rv(true), parse_init(false) {
    }
-   DLLLOCAL ParseNode(const ParseNode &old) : SimpleQoreNode(old.type, false, old.needs_eval_flag), effect(old.effect), ref_rv(old.ref_rv) {
+   DLLLOCAL ParseNode(const ParseNode &old) : SimpleQoreNode(old.type, false, old.needs_eval_flag), effect(old.effect), ref_rv(old.ref_rv), parse_init(false) {
    }
    // parse types should never be copied
    DLLLOCAL virtual AbstractQoreNode *realCopy() const {
@@ -69,6 +75,15 @@ public:
    DLLLOCAL bool need_rv() const {
       return ref_rv;
    }
+
+   DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+      if (parse_init) {
+         typeInfo = getTypeInfo();
+         return this;
+      }
+      parse_init = true;
+      return parseInitImpl(oflag, pflag, lvids, typeInfo);
+   }
 };
 
 // these objects will never be copied or referenced therefore they can have 
@@ -77,6 +92,9 @@ class ParseNoEvalNode : public ParseNode {
 private:
    // not implemented
    DLLLOCAL ParseNoEvalNode& operator=(const ParseNoEvalNode&);
+
+   DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) = 0;
+   DLLLOCAL virtual const QoreTypeInfo *getTypeInfo() const = 0;
 
 protected:
    DLLLOCAL virtual int64 bigIntEvalImpl(ExceptionSink *xsink) const {

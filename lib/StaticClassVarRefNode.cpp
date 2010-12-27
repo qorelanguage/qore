@@ -78,8 +78,9 @@ double StaticClassVarRefNode::floatEvalImpl(ExceptionSink *xsink) const {
    return rv ? rv->getAsFloat() : 0;
 }
 
-AbstractQoreNode *StaticClassVarRefNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+AbstractQoreNode *StaticClassVarRefNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    printd(5, "StaticClassVarRefNode::parseInit() '%s::%s'\n", qc.getName(), str.c_str());
+   typeInfo = vi.getTypeInfo();
    return this;
 }
 
@@ -87,4 +88,8 @@ AbstractQoreNode **StaticClassVarRefNode::getValuePtr(AutoVLock &vl, const QoreT
    typeInfo = vi.getTypeInfo();
    vl.set(&vi.l);
    return &vi.val;
+}
+
+const QoreTypeInfo *StaticClassVarRefNode::getTypeInfo() const {
+   return vi.getTypeInfo();
 }

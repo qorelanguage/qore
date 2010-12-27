@@ -147,7 +147,7 @@ static void dni(QoreStringNode *s, const AbstractQoreNode *n, int indent, Except
       return;
    }
 
-   s->sprintf("don't know how to print type '%s' :-(", n->getTypeName());
+   s->sprintf("don't know how to print type %d: '%s' :-(", ntype, n->getTypeName());
 }
 
 //static 

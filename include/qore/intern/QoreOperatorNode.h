@@ -22,7 +22,6 @@
  */
 
 #ifndef _QORE_QOREOPERATORNODE_H
-
 #define _QORE_QOREOPERATORNODE_H
 
 class QoreOperatorNode : public ParseNode {

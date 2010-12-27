@@ -22,7 +22,7 @@
 
 #include <qore/Qore.h>
 
-QoreTreeNode::QoreTreeNode(AbstractQoreNode *l, Operator *o, AbstractQoreNode *r) : ParseNode(NT_TREE, true, o->hasEffect()), op(o), left(l), right(r) {
+QoreTreeNode::QoreTreeNode(AbstractQoreNode *l, Operator *o, AbstractQoreNode *r) : ParseNode(NT_TREE, true, o->hasEffect()), op(o), returnTypeInfo(0), left(l), right(r) {
    //printd(5, "QoreTreeNode::QoreTreeNode() this=%p left=%p (%s) right=%p (%s) op=%s has_effect=%d\n", this, left, get_type_name(left), right, get_type_name(right), op->getDescription(), has_effect());
 }
 
@@ -93,7 +93,7 @@ double QoreTreeNode::floatEvalImpl(ExceptionSink *xsink) const {
    return op->float_eval(left, right, xsink);
 }
 
-AbstractQoreNode *QoreTreeNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo) {
+AbstractQoreNode *QoreTreeNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    // set "parsing background" flag if the background operator is being parsed
    if (op == OP_BACKGROUND)
       pflag |= PF_BACKGROUND;
@@ -102,5 +102,8 @@ AbstractQoreNode *QoreTreeNode::parseInit(LocalVar *oflag, int pflag, int &lvids
    pflag &= ~(PF_REFERENCE_OK | PF_RETURN_VALUE_IGNORED);
 
    // check argument types for operator   
-   return op->parseInit(this, oflag, pflag, lvids, returnTypeInfo);
+   AbstractQoreNode *n = op->parseInit(this, oflag, pflag, lvids, typeInfo);
+   if (n == this)
+      returnTypeInfo = typeInfo;
+   return n;
 }

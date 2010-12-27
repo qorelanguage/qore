@@ -35,6 +35,12 @@ protected:
    DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *xsink) const;
    DLLLOCAL virtual AbstractQoreNode *evalImpl(bool &needs_deref, ExceptionSink *xsink) const;
 
+   DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
+
+   DLLLOCAL virtual const QoreTypeInfo *getTypeInfo() const {
+      return qc ? qc->getTypeInfo() : objectTypeInfo;
+   }
+
 public:
    DLLLOCAL QoreCastOperatorNode(char *str, AbstractQoreNode *n_exp) : QoreSingleExpressionOperatorNode(n_exp), path(new NamedScope(str)), qc(0) {
    }
@@ -54,8 +60,6 @@ public:
    DLLLOCAL virtual bool hasEffect() const {
       return false;
    }
-
-   DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
 };
 
 #endif

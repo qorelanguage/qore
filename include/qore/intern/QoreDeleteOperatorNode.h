@@ -32,6 +32,12 @@ protected:
    DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *xsink) const;
    DLLLOCAL virtual AbstractQoreNode *evalImpl(bool &needs_deref, ExceptionSink *xsink) const;
 
+   DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
+
+   DLLLOCAL virtual const QoreTypeInfo *getTypeInfo() const {
+      return nothingTypeInfo;
+   }
+
 public:
    DLLLOCAL QoreDeleteOperatorNode(AbstractQoreNode *n_exp) : QoreSingleExpressionOperatorNode(n_exp) {
    }
@@ -41,8 +47,6 @@ public:
    DLLLOCAL virtual const char *getTypeName() const {
       return delete_str.getBuffer();
    }
-
-   DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
 
    DLLLOCAL virtual bool hasEffect() const {
       return true;

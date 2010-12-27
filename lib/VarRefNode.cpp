@@ -182,7 +182,7 @@ AbstractQoreNode *VarRefNode::parseInitIntern(LocalVar *oflag, int pflag, int &l
    return this;
 }
 
-AbstractQoreNode *VarRefNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&outTypeInfo) {
+AbstractQoreNode *VarRefNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&outTypeInfo) {
    parseInitIntern(oflag, pflag, lvids, 0, outTypeInfo);
 
    bool is_assignment = pflag & PF_FOR_ASSIGNMENT;
@@ -226,7 +226,7 @@ void VarRefDeclNode::parseInitCommon(LocalVar *oflag, int pflag, int &lvids, con
    parseInitIntern(oflag, pflag, lvids, typeInfo, outTypeInfo, is_new);
 }
 
-AbstractQoreNode *VarRefDeclNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&outTypeInfo) {
+AbstractQoreNode *VarRefDeclNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&outTypeInfo) {
    parseInitCommon(oflag, pflag, lvids, outTypeInfo);
 
    bool is_assignment = pflag & PF_FOR_ASSIGNMENT;
@@ -259,7 +259,7 @@ void VarRefFunctionCallBase::parseInitConstructorCall(LocalVar *oflag, int pflag
    const QoreTypeInfo *typeInfo;
    lvids += parseArgsVariant(oflag, pflag, constructor ? constructor->getFunction() : 0, typeInfo);
 
-   //printd(5, "LocalVarRefNewObjectNode::parseInit() this=%p constructor=%p variant=%p\n", this, constructor, variant);
+   //printd(5, "LocalVarRefNewObjectNode::parseInitConstructorCall() this=%p constructor=%p variant=%p\n", this, constructor, variant);
 
    if (((constructor && constructor->parseIsPrivate()) || (variant && CONMV_const(variant)->isPrivate())) && !parseCheckPrivateClassAccess(qc)) {
       if (variant)
@@ -268,13 +268,13 @@ void VarRefFunctionCallBase::parseInitConstructorCall(LocalVar *oflag, int pflag
 	 parse_error("illegal external access to private constructor of class %s", qc->getName());
    }
 
-   //printd(5, "LocalVarRefNewObjectNode::parseInit() this=%p class=%s (%p) constructor=%p function=%p variant=%p\n", this, qc->getName(), qc, constructor, constructor ? constructor->getFunction() : 0, variant);
+   //printd(5, "LocalVarRefNewObjectNode::parseInitConstructorCall() this=%p class=%s (%p) constructor=%p function=%p variant=%p\n", this, qc->getName(), qc, constructor, constructor ? constructor->getFunction() : 0, variant);
 
    if (pflag & PF_FOR_ASSIGNMENT)
       parse_error("local variable new object instantiation will be assigned when the object is created; it is an error to make an additional assignment");
 }
 
-AbstractQoreNode *LocalVarRefNewObjectNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&outTypeInfo) {
+AbstractQoreNode *LocalVarRefNewObjectNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&outTypeInfo) {
    parseInitCommon(oflag, pflag, lvids, outTypeInfo, true);
 
    const QoreClass *qc = typeInfo->getUniqueReturnClass();
@@ -298,7 +298,7 @@ AbstractQoreNode *LocalVarRefNewObjectNode::evalImpl(bool &needs_deref, Exceptio
    return LocalVarRefNewObjectNode::evalImpl(xsink);
 }
 
-AbstractQoreNode *GlobalVarRefNewObjectNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&outTypeInfo) {
+AbstractQoreNode *GlobalVarRefNewObjectNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&outTypeInfo) {
    outTypeInfo = ref.var->parseGetTypeInfo();
 
    const QoreClass *qc = outTypeInfo->getUniqueReturnClass();

@@ -27,13 +27,21 @@
 
 class QoreUnaryMinusOperatorNode : public QoreSingleExpressionOperatorNode {
 protected:
+   const QoreTypeInfo *returnTypeInfo;
+
    DLLLOCAL static QoreString unaryminus_str;
 
    DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *xsink) const;
    DLLLOCAL virtual AbstractQoreNode *evalImpl(bool &needs_deref, ExceptionSink *xsink) const;
 
+   DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
+
+   DLLLOCAL virtual const QoreTypeInfo *getTypeInfo() const {
+      return returnTypeInfo;
+   }   
+
 public:
-   DLLLOCAL QoreUnaryMinusOperatorNode(AbstractQoreNode *n_exp) : QoreSingleExpressionOperatorNode(n_exp) {
+   DLLLOCAL QoreUnaryMinusOperatorNode(AbstractQoreNode *n_exp) : QoreSingleExpressionOperatorNode(n_exp), returnTypeInfo(0) {
    }
    DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const;
    DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const;
@@ -41,8 +49,6 @@ public:
    DLLLOCAL virtual const char *getTypeName() const {
       return unaryminus_str.getBuffer();
    }
-
-   DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
 
    DLLLOCAL virtual bool hasEffect() const {
       return true;

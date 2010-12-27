@@ -30,44 +30,53 @@
 #include <qore/intern/QoreRegexBase.h>
 #include <sys/types.h>
 
-class RegexSubstNode : public ParseNoEvalNode, public QoreRegexBase
-{
-   protected:
+class RegexSubstNode : public ParseNoEvalNode, public QoreRegexBase {
+protected:
+   DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+      // FIXME: implement a type for this
+      typeInfo = 0;
+      return this;
+   }
 
-   private:
-      bool global;
-      class QoreString *newstr;
+   DLLLOCAL virtual const QoreTypeInfo *getTypeInfo() const {
+      // FIXME: implement a type for this
+      return 0;
+   }
 
-      DLLLOCAL void init();
-      DLLLOCAL static void concat(QoreString *str, int *ovector, int olen, const char *ptr, const char *target);
+private:
+   bool global;
+   class QoreString *newstr;
 
-   public:
-      DLLLOCAL RegexSubstNode();
-      // used at run-time
-      DLLLOCAL RegexSubstNode(const QoreString *pstr, int opts, ExceptionSink *xsink);
-      DLLLOCAL virtual ~RegexSubstNode();
+   DLLLOCAL void init();
+   DLLLOCAL static void concat(QoreString *str, int *ovector, int olen, const char *ptr, const char *target);
 
-      // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
-      // the ExceptionSink is only needed for QoreObject where a method may be executed
-      // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
-      // returns -1 for exception raised, 0 = OK
-      DLLLOCAL virtual int getAsString(QoreString &str, int foff, class ExceptionSink *xsink) const;
-      // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
-      DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, class ExceptionSink *xsink) const;
+public:
+   DLLLOCAL RegexSubstNode();
+   // used at run-time
+   DLLLOCAL RegexSubstNode(const QoreString *pstr, int opts, ExceptionSink *xsink);
+   DLLLOCAL virtual ~RegexSubstNode();
 
-      // returns the data type
-      DLLLOCAL virtual qore_type_t getType() const;
-      // returns the type name as a c string
-      DLLLOCAL virtual const char *getTypeName() const;
+   // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
+   // the ExceptionSink is only needed for QoreObject where a method may be executed
+   // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
+   // returns -1 for exception raised, 0 = OK
+   DLLLOCAL virtual int getAsString(QoreString &str, int foff, class ExceptionSink *xsink) const;
+   // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
+   DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, class ExceptionSink *xsink) const;
 
-      DLLLOCAL void parseRT(const QoreString *pstr, ExceptionSink *xsink);
-      DLLLOCAL void parse();
-      DLLLOCAL QoreStringNode *exec(const QoreString *target, ExceptionSink *xsink) const;
-      DLLLOCAL QoreStringNode *exec(const QoreString *target, const QoreString *newstr, ExceptionSink *xsink) const;
-      DLLLOCAL void concatSource(char c);
-      DLLLOCAL void concatTarget(char c);
-      DLLLOCAL void setGlobal();
-      DLLLOCAL QoreString *getPattern() const;
+   // returns the data type
+   DLLLOCAL virtual qore_type_t getType() const;
+   // returns the type name as a c string
+   DLLLOCAL virtual const char *getTypeName() const;
+
+   DLLLOCAL void parseRT(const QoreString *pstr, ExceptionSink *xsink);
+   DLLLOCAL void parse();
+   DLLLOCAL QoreStringNode *exec(const QoreString *target, ExceptionSink *xsink) const;
+   DLLLOCAL QoreStringNode *exec(const QoreString *target, const QoreString *newstr, ExceptionSink *xsink) const;
+   DLLLOCAL void concatSource(char c);
+   DLLLOCAL void concatTarget(char c);
+   DLLLOCAL void setGlobal();
+   DLLLOCAL QoreString *getPattern() const;
 };
 
 #endif // _QORE_REGEXSUBSTNODE_H

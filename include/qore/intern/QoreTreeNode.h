@@ -28,6 +28,7 @@
 class QoreTreeNode : public ParseNode {
 protected:
    Operator *op;
+   const QoreTypeInfo *returnTypeInfo;
 
    DLLLOCAL virtual ~QoreTreeNode();
 
@@ -40,6 +41,11 @@ protected:
    DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *xsink) const;
 
    DLLLOCAL virtual AbstractQoreNode *evalImpl(bool &needs_deref, ExceptionSink *xsink) const;
+
+   DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
+   DLLLOCAL virtual const QoreTypeInfo *getTypeInfo() const {
+      return returnTypeInfo;
+   }
       
 public:
    AbstractQoreNode *left;
@@ -60,8 +66,6 @@ public:
    DLLLOCAL virtual const char *getTypeName() const;
 
    DLLLOCAL void ignoreReturnValue();
-
-   DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
 
    DLLLOCAL void leftParseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
       if (left) {

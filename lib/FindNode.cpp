@@ -123,7 +123,9 @@ double FindNode::floatEvalImpl(ExceptionSink *xsink) const {
    return rv ? rv->getAsFloat() : 0;
 }
 
-AbstractQoreNode *FindNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+AbstractQoreNode *FindNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+   typeInfo = 0;
+
    push_cvar(0);
    pflag &= ~PF_REFERENCE_OK;
    const QoreTypeInfo *argTypeInfo = 0;

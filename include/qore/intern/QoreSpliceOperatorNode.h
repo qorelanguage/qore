@@ -28,6 +28,7 @@
 class QoreSpliceOperatorNode : public QoreOperatorNode {
 protected:
    AbstractQoreNode *lvalue_exp, *offset_exp, *length_exp, *new_exp;
+   const QoreTypeInfo *returnTypeInfo;
 
    DLLLOCAL static QoreString splice_str;
 
@@ -41,12 +42,19 @@ protected:
       discard(new_exp, 0);
    }
 
+   DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
+
+   DLLLOCAL virtual const QoreTypeInfo *getTypeInfo() const {
+      return returnTypeInfo;
+   }
+
 public:
    DLLLOCAL QoreSpliceOperatorNode(AbstractQoreNode *n_lvalue_exp, AbstractQoreNode *n_offset_exp,
                                    AbstractQoreNode *n_length_exp, AbstractQoreNode *n_new_exp) : lvalue_exp(n_lvalue_exp),
                                                                                                   offset_exp(n_offset_exp),
                                                                                                   length_exp(n_length_exp),
-                                                                                                  new_exp(n_new_exp) {
+                                                                                                  new_exp(n_new_exp), 
+                                                                                                  returnTypeInfo(0) {
    }
    DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const;
    DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const;
@@ -54,8 +62,6 @@ public:
    DLLLOCAL virtual const char *getTypeName() const {
       return splice_str.getBuffer();
    }
-
-   DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
 
    DLLLOCAL virtual bool hasEffect() const {
       return true;

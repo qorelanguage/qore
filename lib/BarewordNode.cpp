@@ -73,12 +73,11 @@ char *BarewordNode::takeString() {
    return p;
 }
 
-AbstractQoreNode *BarewordNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+AbstractQoreNode *BarewordNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    // resolve simple constant
    AbstractQoreNode *n = this;
    AbstractQoreNode **node = &n;
-   printd(5, "BarewordNode::parseInit() resolving bareword '%s'\n", reinterpret_cast<BarewordNode *>(*node)->str);
-   // FIXME: xxx set typeInfo
+   printd(5, "BarewordNode::parseInitImpl() resolving bareword '%s'\n", reinterpret_cast<BarewordNode *>(*node)->str);
    if (getRootNS()->resolveBareword(node, typeInfo))
       parse_error("cannot resolve bareword '%s' to any reachable object", reinterpret_cast<BarewordNode *>(*node)->str);
    else

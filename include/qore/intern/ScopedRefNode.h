@@ -26,6 +26,12 @@
 #define _QORE_SCOPEDREFNODE_H
 
 class ScopedRefNode : public ParseNoEvalNode {
+protected:
+   DLLLOCAL AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
+   DLLLOCAL virtual const QoreTypeInfo *getTypeInfo() const {
+      return 0;
+   }
+
 public:
    NamedScope *scoped_ref;
 
@@ -48,8 +54,6 @@ public:
 
    // caller owns NamedScope returned
    DLLLOCAL NamedScope *takeName();
-
-   DLLLOCAL AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
 };
 
 #endif

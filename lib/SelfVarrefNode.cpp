@@ -22,14 +22,6 @@
 
 #include <qore/Qore.h>
 
-SelfVarrefNode::SelfVarrefNode(char *c_str) : ParseNode(NT_SELF_VARREF), str(c_str) {
-}
-
-SelfVarrefNode::~SelfVarrefNode() {
-   if (str)
-      free(str);
-}
-
 // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
 // the ExceptionSink is only needed for QoreObject where a method may be executed
 // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
@@ -91,12 +83,14 @@ char *SelfVarrefNode::takeString() {
    return p;
 }
 
-AbstractQoreNode *SelfVarrefNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+AbstractQoreNode *SelfVarrefNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    printd(5, "SelfVarrefNode::parseInit() SELF_REF '%s' oflag=%p\n", str, oflag);
    if (!oflag)
       parse_error("cannot reference member \"%s\" out of an object member function definition", str);
-   else
+   else {
       qore_class_private::parseCheckInternalMemberAccess(getParseClass(), str, typeInfo);
+      returnTypeInfo = typeInfo;
+   }
 
    return this;
 }

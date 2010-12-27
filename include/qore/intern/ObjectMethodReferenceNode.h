@@ -76,6 +76,10 @@ private:
 
    DLLLOCAL virtual ~ParseObjectMethodReferenceNode();
 
+   DLLLOCAL virtual const QoreTypeInfo *getTypeInfo() const {
+      return callReferenceTypeInfo;
+   }
+
 protected:
    // returns a RunTimeObjectMethodReference or NULL if there's an exception
    DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *xsink) const;
@@ -93,7 +97,7 @@ protected:
    
 public:
    DLLLOCAL ParseObjectMethodReferenceNode(AbstractQoreNode *n_exp, char *n_method);
-   DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
+   DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
 };
 
 class ParseSelfMethodReferenceNode : public AbstractParseObjectMethodReferenceNode {
@@ -104,6 +108,12 @@ private:
    DLLLOCAL ~ParseSelfMethodReferenceNode() {
       if (method)
          free(method);
+   }
+
+   DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
+
+   DLLLOCAL virtual const QoreTypeInfo *getTypeInfo() const {
+      return callReferenceTypeInfo;
    }
 
 protected:
@@ -127,8 +137,6 @@ public:
 
    DLLLOCAL ParseSelfMethodReferenceNode(const QoreMethod *m) : method(0), meth(m) {
    }
-
-   DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
 };
 
 class ParseScopedSelfMethodReferenceNode : public AbstractParseObjectMethodReferenceNode {
@@ -137,7 +145,7 @@ private:
    const QoreMethod *method;
 
    DLLLOCAL virtual ~ParseScopedSelfMethodReferenceNode();
-      
+
 protected:
    // returns a RunTimeObjectMethodReference or NULL if there's an exception
    DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *xsink) const;
@@ -153,9 +161,13 @@ protected:
    DLLLOCAL virtual bool boolEvalImpl(ExceptionSink *xsink) const;
    DLLLOCAL virtual double floatEvalImpl(ExceptionSink *xsink) const;
 
+   DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
+   DLLLOCAL virtual const QoreTypeInfo *getTypeInfo() const {
+      return callReferenceTypeInfo;
+   }
+
 public:
    DLLLOCAL ParseScopedSelfMethodReferenceNode(NamedScope *n_nscope);
-   DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
 };
 
 #endif

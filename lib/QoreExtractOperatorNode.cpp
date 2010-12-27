@@ -44,7 +44,7 @@ AbstractQoreNode *QoreExtractOperatorNode::evalImpl(bool &needs_deref, Exception
    return extract(xsink);
 }
 
-AbstractQoreNode *QoreExtractOperatorNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+AbstractQoreNode *QoreExtractOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    const QoreTypeInfo *expTypeInfo = 0;
 
    pflag &= ~PF_RETURN_VALUE_IGNORED;
@@ -63,7 +63,7 @@ AbstractQoreNode *QoreExtractOperatorNode::parseInit(LocalVar *oflag, int pflag,
 	 getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
       }
       else
-	 typeInfo = expTypeInfo;
+	 returnTypeInfo = typeInfo = expTypeInfo;
    }
 
    // check offset expression

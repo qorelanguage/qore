@@ -33,35 +33,45 @@
 
 #include <qore/intern/QoreRegexBase.h>
 
-class QoreRegexNode : public ParseNoEvalNode, public QoreRegexBase 
-{
-   private:
-      DLLLOCAL void init();
+class QoreRegexNode : public ParseNoEvalNode, public QoreRegexBase {
+private:
+   DLLLOCAL void init();
 
-   public:
-      DLLLOCAL QoreRegexNode();
-      // this version is used while parsing, takes ownership of str
-      DLLLOCAL QoreRegexNode(QoreString *str);
-      // used at run-time, does not change str
-      DLLLOCAL QoreRegexNode(const QoreString *str, int options, ExceptionSink *xsink);
-      DLLLOCAL virtual ~QoreRegexNode();
+   DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+      // FIXME: implement a type for this
+      typeInfo = 0;
+      return this;
+   }
 
-      DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const;
-      // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
-      DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const;
+   DLLLOCAL virtual const QoreTypeInfo *getTypeInfo() const {
+      // FIXME: implement a type for this
+      return 0;
+   }
 
-      // returns the data type
-      DLLLOCAL virtual qore_type_t getType() const;
-      // returns the type name as a c string
-      DLLLOCAL virtual const char *getTypeName() const;      
+public:
+   DLLLOCAL QoreRegexNode();
+   // this version is used while parsing, takes ownership of str
+   DLLLOCAL QoreRegexNode(QoreString *str);
+   // used at run-time, does not change str
+   DLLLOCAL QoreRegexNode(const QoreString *str, int options, ExceptionSink *xsink);
+   DLLLOCAL virtual ~QoreRegexNode();
 
-      DLLLOCAL void concat(char c);
-      DLLLOCAL void parse();
-      DLLLOCAL void parseRT(const QoreString *pattern, ExceptionSink *xsink);
-      DLLLOCAL bool exec(const QoreString *target, ExceptionSink *xsink) const;
-      DLLLOCAL QoreListNode *extractSubstrings(const QoreString *target, ExceptionSink *xsink) const;
-      // caller owns QoreString returned
-      DLLLOCAL QoreString *getString();
+   DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const;
+   // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
+   DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const;
+
+   // returns the data type
+   DLLLOCAL virtual qore_type_t getType() const;
+   // returns the type name as a c string
+   DLLLOCAL virtual const char *getTypeName() const;      
+
+   DLLLOCAL void concat(char c);
+   DLLLOCAL void parse();
+   DLLLOCAL void parseRT(const QoreString *pattern, ExceptionSink *xsink);
+   DLLLOCAL bool exec(const QoreString *target, ExceptionSink *xsink) const;
+   DLLLOCAL QoreListNode *extractSubstrings(const QoreString *target, ExceptionSink *xsink) const;
+   // caller owns QoreString returned
+   DLLLOCAL QoreString *getString();
 };
 
 #endif // _QORE_QOREREGEXNODE_H

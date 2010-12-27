@@ -25,35 +25,41 @@
 
 #define _QORE_IMPLICIT_ARGUMENT_NODE_H 
 
-class QoreImplicitArgumentNode : public ParseNode
-{
-   private:
-      int offset;
+class QoreImplicitArgumentNode : public ParseNode {
+private:
+   int offset;
 
-      DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *xsink) const;
-      DLLLOCAL virtual AbstractQoreNode *evalImpl(bool &needs_deref, ExceptionSink *xsink) const;
+   DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *xsink) const;
+   DLLLOCAL virtual AbstractQoreNode *evalImpl(bool &needs_deref, ExceptionSink *xsink) const;
 
-      DLLLOCAL virtual int64 bigIntEvalImpl(ExceptionSink *xsink) const;
-      DLLLOCAL virtual int integerEvalImpl(ExceptionSink *xsink) const;
-      DLLLOCAL virtual bool boolEvalImpl(ExceptionSink *xsink) const;
-      DLLLOCAL virtual double floatEvalImpl(ExceptionSink *xsink) const;
+   DLLLOCAL virtual int64 bigIntEvalImpl(ExceptionSink *xsink) const;
+   DLLLOCAL virtual int integerEvalImpl(ExceptionSink *xsink) const;
+   DLLLOCAL virtual bool boolEvalImpl(ExceptionSink *xsink) const;
+   DLLLOCAL virtual double floatEvalImpl(ExceptionSink *xsink) const;
 
-      DLLLOCAL const AbstractQoreNode *get() const;
+   DLLLOCAL const AbstractQoreNode *get() const;
 
-      DLLLOCAL ~QoreImplicitArgumentNode();
+   DLLLOCAL ~QoreImplicitArgumentNode();
 
-   public:
-      // offset = -1 means return the entire "$argv" list
-      DLLLOCAL QoreImplicitArgumentNode(int n_offset = -1);
+   DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+      return this;
+   }
 
-      DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const;
-      DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const;
-      DLLLOCAL virtual const char *getTypeName() const;
+   DLLLOCAL virtual const QoreTypeInfo *getTypeInfo() const {
+      return 0;
+   }
 
-      DLLLOCAL static const char *getStaticTypeName()
-      {
-         return "implicit argument reference";
-      }
+public:
+   // offset = -1 means return the entire "$argv" list
+   DLLLOCAL QoreImplicitArgumentNode(int n_offset = -1);
+
+   DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const;
+   DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const;
+   DLLLOCAL virtual const char *getTypeName() const;
+
+   DLLLOCAL static const char *getStaticTypeName() {
+      return "implicit argument reference";
+   }
       
 };
 

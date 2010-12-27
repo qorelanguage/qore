@@ -47,7 +47,7 @@ class UnresolvedCallReferenceNode : public UnresolvedProgramCallReferenceNode {
 public:
    DLLLOCAL UnresolvedCallReferenceNode(char *n_str) : UnresolvedProgramCallReferenceNode(n_str) {
    }
-   DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);   
+   DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
 };
 
 //! a call reference to a static user method
@@ -194,12 +194,12 @@ protected:
 public:
    DLLLOCAL UnresolvedStaticMethodCallReferenceNode(NamedScope *n_scope);
    DLLLOCAL virtual ~UnresolvedStaticMethodCallReferenceNode();
-   DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
    using AbstractQoreNode::deref;
    DLLLOCAL void deref() {
       if (ROdereference())
 	 delete this;
    }
+   DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
 };
 
 //! a call reference to a builtin function

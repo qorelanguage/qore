@@ -33,7 +33,7 @@ private:
    //! this function will never be executed for parse types; this function should never be called directly
    /** in debug mode this function calls assert(false)
     */
-   DLLLOCAL virtual class AbstractQoreNode *realCopy() const;
+   DLLLOCAL virtual AbstractQoreNode *realCopy() const;
 
    //! this function will never be executed for parse types; this function should never be called directly
    /** in debug mode this function calls assert(false)
@@ -91,7 +91,7 @@ public:
        @param xsink not used by this implementation of the function
        @return -1 for exception raised, 0 = OK
    */
-   DLLLOCAL virtual int getAsString(QoreString &str, int foff, class ExceptionSink *xsink) const;
+   DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const;
 
    //! returns a QoreString giving the verbose string representation of the value
    /** used for %n and %N printf formatting
@@ -101,7 +101,7 @@ public:
        NOTE: Use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using this function directly
        @see QoreNodeAsStringHelper
    */
-   DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, class ExceptionSink *xsink) const;
+   DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const;
 
    //! returns the type name as a c string
    DLLLOCAL virtual const char *getTypeName() const;

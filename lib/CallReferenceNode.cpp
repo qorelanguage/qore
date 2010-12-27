@@ -98,7 +98,7 @@ double CallReferenceCallNode::floatEvalImpl(ExceptionSink *xsink) const {
    return rv ? rv->getAsFloat() : 0;
 }
 
-AbstractQoreNode *CallReferenceCallNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+AbstractQoreNode *CallReferenceCallNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    // call references calls can return any value
    typeInfo = 0;
 
@@ -275,7 +275,7 @@ double ParseObjectMethodReferenceNode::floatEvalImpl(ExceptionSink *xsink) const
    return 0.0;
 }
 
-AbstractQoreNode *ParseObjectMethodReferenceNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+AbstractQoreNode *ParseObjectMethodReferenceNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    typeInfo = callReferenceTypeInfo;
    if (exp) {
       const QoreTypeInfo *argTypeInfo = 0;
@@ -331,7 +331,7 @@ double ParseSelfMethodReferenceNode::floatEvalImpl(ExceptionSink *xsink) const {
    return 0.0;
 }
 
-AbstractQoreNode *ParseSelfMethodReferenceNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+AbstractQoreNode *ParseSelfMethodReferenceNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    typeInfo = callReferenceTypeInfo;
    if (!oflag)
       parse_error("reference to object member '%s' out of a class member function definition", method);
@@ -378,7 +378,7 @@ double ParseScopedSelfMethodReferenceNode::floatEvalImpl(ExceptionSink *xsink) c
    return 0.0;
 }
 
-AbstractQoreNode *ParseScopedSelfMethodReferenceNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+AbstractQoreNode *ParseScopedSelfMethodReferenceNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    typeInfo = callReferenceTypeInfo;
    if (!oflag)
       parse_error("reference to object member '%s' out of a class member function definition", method);

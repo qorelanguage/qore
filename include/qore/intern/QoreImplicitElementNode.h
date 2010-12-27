@@ -38,6 +38,15 @@ private:
    DLLLOCAL virtual ~QoreImplicitElementNode() {
    }
 
+   DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+      typeInfo = bigIntTypeInfo;
+      return this;
+   }
+
+   DLLLOCAL virtual const QoreTypeInfo *getTypeInfo() const {
+      return bigIntTypeInfo;
+   }
+
 public:
    DLLLOCAL QoreImplicitElementNode() : ParseNode(NT_IMPLICIT_ELEMENT) {
    }

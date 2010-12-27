@@ -40,6 +40,9 @@ protected:
    DLLLOCAL virtual bool boolEvalImpl(ExceptionSink *xsink) const;
    DLLLOCAL virtual double floatEvalImpl(ExceptionSink *xsink) const;      
 
+   DLLLOCAL AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
+   DLLLOCAL const QoreTypeInfo *getTypeInfo() const;
+
 public:
    const QoreClass &qc;
    QoreVarInfo &vi;
@@ -56,8 +59,6 @@ public:
 
    // returns the type name as a c string
    DLLLOCAL virtual const char *getTypeName() const;
-
-   DLLLOCAL AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
 
    DLLLOCAL AbstractQoreNode **getValuePtr(AutoVLock &vl, const QoreTypeInfo *&typeInfo) const;
 };

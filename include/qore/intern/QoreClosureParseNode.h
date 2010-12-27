@@ -77,6 +77,11 @@ private:
    DLLLOCAL QoreClosureNode *evalClosure() const;
    DLLLOCAL QoreObjectClosureNode *evalObjectClosure() const;
 
+   DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
+   DLLLOCAL virtual const QoreTypeInfo *getTypeInfo() const {
+      return runTimeClosureTypeInfo;
+   }
+
 public:
    DLLLOCAL QoreClosureParseNode(UserClosureFunction *n_uf, bool n_lambda = false);
 
@@ -98,8 +103,6 @@ public:
    DLLLOCAL const lvar_set_t *getVList() const {
       return &vlist;
    }
-
-   DLLLOCAL AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
 
    DLLLOCAL UserClosureFunction *getFunction() const {
       return uf;

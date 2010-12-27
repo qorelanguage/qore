@@ -76,7 +76,7 @@ AbstractQoreNode *QoreUnaryMinusOperatorNode::evalImpl(bool &needs_deref, Except
    return Zero;
 }
 
-AbstractQoreNode *QoreUnaryMinusOperatorNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+AbstractQoreNode *QoreUnaryMinusOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    if (exp) {
       exp = exp->parseInit(oflag, pflag & ~PF_REFERENCE_OK, lvids, typeInfo);
 
@@ -85,12 +85,18 @@ AbstractQoreNode *QoreUnaryMinusOperatorNode::parseInit(LocalVar *oflag, int pfl
 	 SimpleRefHolder<QoreUnaryMinusOperatorNode> th(this);
 
 	 qore_type_t t = exp->getType();
-	 if (t == NT_INT)
+	 if (t == NT_INT) {
+	    typeInfo = bigIntTypeInfo;
 	    return new QoreBigIntNode(-reinterpret_cast<const QoreBigIntNode *>(exp)->val);
-	 if (t == NT_FLOAT)
+	 }
+	 if (t == NT_FLOAT) {
+	    typeInfo = floatTypeInfo;
 	    return new QoreFloatNode(-reinterpret_cast<const QoreFloatNode *>(exp)->f);
-	 if (t == NT_DATE)
+	 }
+	 if (t == NT_DATE) {
+	    typeInfo = dateTypeInfo;
 	    return reinterpret_cast<const DateTimeNode *>(exp)->unaryMinus();
+	 }
 
 	 th.release();	 
       }
@@ -113,6 +119,8 @@ AbstractQoreNode *QoreUnaryMinusOperatorNode::parseInit(LocalVar *oflag, int pfl
    }
    else
       typeInfo = 0;
+
+   returnTypeInfo = typeInfo;
    return this;
 }
 

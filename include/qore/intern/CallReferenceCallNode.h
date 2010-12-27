@@ -50,6 +50,12 @@ private:
    DLLLOCAL virtual bool boolEvalImpl(ExceptionSink *xsink) const;
    DLLLOCAL virtual double floatEvalImpl(ExceptionSink *xsink) const;
 
+   DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
+
+   DLLLOCAL virtual const QoreTypeInfo *getTypeInfo() const {
+      return 0;
+   }
+
 public:
    DLLLOCAL CallReferenceCallNode(AbstractQoreNode *n_exp, QoreListNode *n_args);
 
@@ -67,8 +73,6 @@ public:
 
    //! returns the arguments (for background operator processing)
    DLLLOCAL const QoreListNode *getArgs() const { return args; }
-
-   DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
 };
 
 #endif
