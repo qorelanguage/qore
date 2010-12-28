@@ -603,14 +603,6 @@ static void const_ok(const char *name, AbstractQoreNode *v) {
    // see if constant definitions are allowed
    if (checkParseOption(PO_NO_CONSTANT_DEFS))
       parse_error("illegal constant definition \"%s\" (conflicts with parse option NO_CONSTANT_DEFS)", name);
-
-   if (v && v->getType() == NT_FUNCREF)
-      parse_error("illegal constant definition \"%s\": constants may not be assigned to call references", name);
-
-   /*
-   if (needsEval(v))
-     parse_error("illegal constant defintiion \"%s\": constant expression needs run-time evaluation", name);
-   */
 }
 
 static int check_case(const char *op, AbstractQoreNode *exp) {
