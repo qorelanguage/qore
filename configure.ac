@@ -113,9 +113,9 @@ case "${host_os}" in
 		fi
 		AC_DEFINE(SOLARIS, 1, if compiling on Solaris)
 		AC_DEFINE(ZONEINFO_LOCATION, "/usr/share/lib/zoneinfo", zoneinfo location)
-		# add -ldl to libs if on Solaris 8
+		# add -ldl and -lthread to libs if on Solaris 8
 		if test "${host_os}" = "solaris2.8"; then
-		   QORE_LIB_LDFLAGS="$QORE_LIB_LDFLAGS -ldl"
+		   QORE_LIB_LDFLAGS="$QORE_LIB_LDFLAGS -ldl -lthread"
 		fi
 		solaris=yes
 	        ;;
