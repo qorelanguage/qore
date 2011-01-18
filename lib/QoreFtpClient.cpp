@@ -608,7 +608,7 @@ int QoreFtpClient::doProt(class FtpResp *resp, ExceptionSink *xsink) {
 }
 
 // private unlocked
-int QoreFtpClient::doAuth(class FtpResp *resp, ExceptionSink *xsink) {
+int QoreFtpClient::doAuth(FtpResp *resp, ExceptionSink *xsink) {
    int code;
    resp->assign(sendMsg(code, "AUTH", "TLS", xsink));
    if (xsink->isEvent())
@@ -1013,6 +1013,38 @@ BinaryNode *QoreFtpClient::getAsBinary(const char *remotepath, ExceptionSink *xs
       return 0;
    }
    return rv.release();
+}
+
+// public locked
+int QoreFtpClient::rename(const char *from, const char *to, ExceptionSink *xsink) {
+   SafeLocker sl(priv->m);
+   if (!priv->loggedin) {
+      xsink->raiseException("FTP-NOT-CONNECTED", "QoreFtpClient::connect() must be called before the QoreFtpClient::rename()");
+      return 0;
+   }
+
+   printd(FTPDEBUG, "QoreFtpClient::rename(from=%s, to=%s)\n", from, to);
+
+   int code;
+   FtpResp resp(sendMsg(code, "RNFR", from, xsink));
+   if (*xsink)
+      return -1;
+
+   if ((code / 100) != 3) {
+      xsink->raiseException("FTP-RENAME-ERROR", "rename('%s' -> '%s'): server rejected original path: FTP server replied: %s", from, to, resp.getBuffer());
+      return -1;
+   }
+
+   resp.assign(sendMsg(code, "RNTO", to, xsink));
+   if (*xsink)
+      return -1;
+
+   if ((code / 100) != 2) {
+      xsink->raiseException("FTP-RENAME-ERROR", "rename('%s' -> '%s'): server rejected target path: FTP server replied: %s", from, to, resp.getBuffer());
+      return -1;
+   }
+
+   return 0;
 }
 
 // public locked

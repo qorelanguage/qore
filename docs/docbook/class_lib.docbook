@@ -8337,6 +8337,13 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	  </row>
 	  <row>
 	    <entry>
+              <para><code><link linkend="nothing_type">nothing</link> <link linkend="FtpClient_rename">FtpClient::rename</link>(<link linkend="string_type">string</link> <replaceable>$from</replaceable>, <link linkend="string_type">string</link> <replaceable>$to</replaceable>)</code></para>
+            </entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Renames/moves a file or directory; if any errors occur, an exception is thrown.</para></entry>
+	  </row>
+	  <row>
+	    <entry>
               <para><code><link linkend="nothing_type">nothing</link> <link linkend="FtpClient_setUserName">FtpClient::setUserName</link>(<link linkend="string_type">string</link> <replaceable>$user</replaceable>)</code></para>
             </entry>
 	    <entry><para>N</para></entry>
@@ -9474,10 +9481,6 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	      <entry><para><code>FTP-CWD-ERROR</code></para></entry>
 	      <entry><para>FTP server returned an error to the CWD command.</para></entry>
 	    </row>
-	    <row>
-	      <entry><para><code>FTPCLIENT-CWD-PARAMETER-ERROR</code></para></entry>
-	      <entry><para>Missing argument to the method.</para></entry>
-	    </row>
 	  </tbody>
 	</tgroup>
       </table>
@@ -9564,10 +9567,6 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	    <row>
 	      <entry><para><code>FTP-GET-ERROR</code></para></entry>
 	      <entry><para>There was an error retrieving the file.</para></entry>
-	    </row>
-	    <row>
-	      <entry><para><code>FTPCLIENT-GET-PARAMETER-ERROR</code></para></entry>
-	      <entry><para>Missing argument to the method.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -9663,10 +9662,6 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	      <entry><para><code>FTP-GET-ERROR</code></para></entry>
 	      <entry><para>There was an error retrieving the file.</para></entry>
 	    </row>
-	    <row>
-	      <entry><para><code>FTPCLIENT-GET-PARAMETER-ERROR</code></para></entry>
-	      <entry><para>Missing argument to the method.</para></entry>
-	    </row>
 	  </tbody>
 	</tgroup>
       </table>
@@ -9760,10 +9755,6 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	    <row>
 	      <entry><para><code>FTP-GET-ERROR</code></para></entry>
 	      <entry><para>There was an error retrieving the file.</para></entry>
-	    </row>
-	    <row>
-	      <entry><para><code>FTPCLIENT-GET-PARAMETER-ERROR</code></para></entry>
-	      <entry><para>Missing argument to the method.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -9912,24 +9903,6 @@ stdin.getTerminalAttributes($termios);</programlisting>
       </table>
 
       <table>
-	<title>Return Values for FtpClient::del()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>Return Type</para></entry>
-	      <entry><para>Description</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para><code><link linkend="int_type">int</link></code></para></entry>
-	      <entry><para>Always returns 0, on errors exceptions are raised.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
 	<title>Exceptions Thrown by FtpClient::del()</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
@@ -9951,9 +9924,81 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	      <entry><para><code>FTP-DELETE-ERROR</code></para></entry>
 	      <entry><para>FTP server returned an error to the DELE command.</para></entry>
 	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="FtpClient_rename">
+      <title>FtpClient::rename()</title>
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Renames/moves a file or directory; if any errors occur, an exception is thrown.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Prototype</term>
+	  <listitem>
+	    <para><code><link linkend="nothing_type">nothing</link> <link linkend="FtpClient_rename">FtpClient::rename</link>(<link linkend="string_type">string</link> <replaceable>$from</replaceable>, <link linkend="string_type">string</link> <replaceable>$to</replaceable>)</code></para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$ftp.rename("file.txt", "file.txt.orig");</programlisting>
+	  </listitem>
+	</varlistentry>
+        <varlistentry>
+          <term>Events</term>
+          <listitem><para><code><link linkend="event_ftp_send_message">EVENT_FTP_SEND_MESSAGE</link>, <link linkend="event_ftp_message_received">EVENT_FTP_MESSAGE_RECEIVED</link>, <link linkend="event_packet_read">EVENT_PACKET_READ</link>, <link linkend="event_packet_sent">EVENT_PACKET_SENT</link></code></para></listitem>
+        </varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for FtpClient::rename()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
 	    <row>
-	      <entry><para><code>FTPCLIENT-DEL-PARAMETER-ERROR</code></para></entry>
-	      <entry><para>Missing argument to the method.</para></entry>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code><link linkend="string_type">string</link> <replaceable>$from</replaceable></code></para></entry>
+	      <entry><para>The original file path on the server to rename/move.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code><link linkend="string_type">string</link> <replaceable>$from</replaceable></code></para></entry>
+	      <entry><para>The new file path on the server.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by FtpClient::rename()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>FTP-RECEIVE-ERROR</code></para></entry>
+	      <entry><para>Incomplete message received on control port.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>FTP-NOT-CONNECTED</code></para></entry>
+	      <entry><para>Not connected to FTP server (call FtpClient::connect() first).</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>FTP-RENAME-ERROR</code></para></entry>
+	      <entry><para>FTP server returned an error to the RNFR or RNTO commands.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -9996,24 +10041,6 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	    <row>
 	      <entry><para><code><link linkend="string_type">string</link> <replaceable>$user</replaceable></code></para></entry>
 	      <entry><para>The username to use when logging in to the FTP server.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
-	<title>Exceptions Thrown by FtpClient::setUserName()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>err</para></entry>
-	      <entry><para>desc</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para><code>FTPCLIENT-SETUSERNAME-PARAMETER-ERROR</code></para></entry>
-	      <entry><para>Missing argument to the method.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -10061,23 +10088,6 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	</tgroup>
       </table>
 
-      <table>
-	<title>Exceptions Thrown by FtpClient::setPassword()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>err</para></entry>
-	      <entry><para>desc</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para><code>FTPCLIENT-SETPASSWORD-PARAMETER-ERROR</code></para></entry>
-	      <entry><para>Missing argument to the method.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
     </sect2>
 
     <sect2 id="FtpClient_setHostName">
@@ -10116,24 +10126,6 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	    <row>
 	      <entry><para><code><link linkend="string_type">string</link> <replaceable>$host</replaceable></code></para></entry>
 	      <entry><para>The hostname to use when connecting to the FTP server.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
-      <table>
-	<title>Exceptions Thrown by FtpClient::setHostName()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>err</para></entry>
-	      <entry><para>desc</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para><code>FTPCLIENT-SETHOSTNAME-PARAMETER-ERROR</code></para></entry>
-	      <entry><para>Missing argument to the method.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -10193,7 +10185,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	  <tbody>
 	    <row>
 	      <entry><para><code>FTPCLIENT-SETPORT-PARAMETER-ERROR</code></para></entry>
-	      <entry><para>Missing argument to the method.</para></entry>
+	      <entry><para>Illegal port number passed as an argument (&lt;= 0).</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -10258,10 +10250,6 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	    <row>
 	      <entry><para><code>FTP-URL-ERROR</code></para></entry>
 	      <entry><para>No hostname given in the URL.</para></entry>
-	    </row>
-	    <row>
-	      <entry><para><code>FTPCLIENT-SETURL-PARAMETER-ERROR</code></para></entry>
-	      <entry><para>Missing argument to the method.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>

@@ -97,13 +97,13 @@ public:
       }
    }
 
-   DLLLOCAL AbstractQoreNode *defaultParseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo) {
+   DLLLOCAL AbstractQoreNode *defaultParseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&rtTypeInfo) {
       const QoreTypeInfo *typeInfo = 0;
       leftParseInit(oflag, pflag, lvids, typeInfo);
       rightParseInit(oflag, pflag, lvids, typeInfo);
 
       if (constArgs())
-         return evalSubst(returnTypeInfo);
+         return evalSubst(rtTypeInfo);
 
       return this;
    }
@@ -121,11 +121,11 @@ public:
    DLLLOCAL bool constArgs() {
       return left && left->is_value() && (op->numArgs() == 1 || (right && right->is_value()));
    }
-   DLLLOCAL AbstractQoreNode *evalSubst(const QoreTypeInfo *&returnTypeInfo) {
+   DLLLOCAL AbstractQoreNode *evalSubst(const QoreTypeInfo *&rtTypeInfo) {
       SimpleRefHolder<QoreTreeNode> rh(this);
       ExceptionSink xsink;
       AbstractQoreNode *rv = op->eval(left, right, true, &xsink);
-      returnTypeInfo = rv ? getTypeInfoForType(rv->getType()) : nothingTypeInfo;
+      rtTypeInfo = rv ? getTypeInfoForType(rv->getType()) : nothingTypeInfo;
       return rv ? rv : nothing();
    }
 };
