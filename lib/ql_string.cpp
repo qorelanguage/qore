@@ -526,6 +526,39 @@ static AbstractQoreNode *f_trim_ref_str(const QoreListNode *args, ExceptionSink 
    return str->refSelf();
 }
 
+// string sub trunc_str(softstring $str, int $len, *string $enc) {}
+static AbstractQoreNode *f_trunc_str(const QoreListNode *args, ExceptionSink *xsink) {
+   const QoreStringNode *str = HARD_QORE_STRING(args, 0);
+   int64 len = HARD_QORE_INT(args, 1);
+   const QoreStringNode *estr = test_string_param(args, 2);
+   const QoreEncoding *enc = estr ? QEM.findCreate(estr) : str->getEncoding();
+
+   TempEncodingHelper tmp(str, enc, xsink);
+   if (!tmp)
+      return 0;
+
+   if (tmp->strlen() <= len) {
+      len = tmp->strlen();
+      return new QoreStringNode(tmp.giveBuffer(), len, len + 1, enc);
+   }
+
+   if (!enc->isMultiByte())
+      return new QoreStringNode(tmp->getBuffer(), len, enc);
+
+   // find position of last character fitting in len bytes
+   const char *p = str->getBuffer();
+   int64 sl = 0;
+   while (true) {
+      qore_size_t size = enc->getCharLen(p, len - sl);
+      if ((sl + size) > len)
+	 break;
+      sl += size;
+      p += size;
+   }
+
+   return new QoreStringNode(tmp->getBuffer(), sl, enc);
+}
+
 void init_string_functions() {
    builtinFunctions.add2("length", f_length_str, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo, 1, softStringTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("length", f_length_bin, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo, 1, binaryTypeInfo, QORE_PARAM_NO_ARG);
@@ -608,4 +641,7 @@ void init_string_functions() {
    builtinFunctions.add2("trim", f_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("trim", f_trim_str_str, QC_CONSTANT, QDOM_DEFAULT, stringTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, null_string());
    builtinFunctions.add2("trim", f_trim_ref_str, QC_NO_FLAGS, QDOM_DEFAULT, 0, 2, referenceTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, null_string());
+
+   // string sub trunc_str(softstring $str, int $len, *string $enc) {}
+   builtinFunctions.add2("trunc_str", f_trunc_str, QC_CONSTANT, QDOM_DEFAULT, stringTypeInfo, 3, softStringTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, QORE_PARAM_NO_ARG, stringOrNothingTypeInfo, QORE_PARAM_NO_ARG);
 }

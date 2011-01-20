@@ -96,7 +96,7 @@ public:
    */
    DLLEXPORT QoreStringNode(char *nbuf, qore_size_t nlen, qore_size_t nallocated, const QoreEncoding *enc);
 
-   // copies str
+   //! copies the c-string passed (up to len) and assigns the encoding passed
    DLLEXPORT QoreStringNode(const char *str, qore_size_t len, const QoreEncoding *new_qorecharset = QCS_DEFAULT);
 
    // creates a string from a single character
