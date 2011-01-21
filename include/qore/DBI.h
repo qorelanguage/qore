@@ -37,6 +37,7 @@
 #define DBI_CAP_BIND_BY_PLACEHOLDER      (1 << 6)
 #define DBI_CAP_HAS_EXECRAW              (1 << 7)
 #define DBI_CAP_HAS_STATEMENT            (1 << 8)
+#define DBI_CAP_HAS_SELECT_ROW           (1 << 9)
 
 #define BN_PLACEHOLDER  0
 #define BN_VALUE        1
@@ -71,8 +72,9 @@
 #define QDBI_METHOD_STMT_GET_OUTPUT          25
 #define QDBI_METHOD_STMT_GET_OUTPUT_ROWS     26
 #define QDBI_METHOD_STMT_DEFINE              27
+#define QDBI_METHOD_SELECT_ROW               28
 
-#define QDBI_VALID_CODES 27
+#define QDBI_VALID_CODES 28
 
 class Datasource;
 class ExceptionSink;
@@ -120,6 +122,17 @@ typedef AbstractQoreNode *(*q_dbi_select_t)(Datasource *ds, const QoreString *st
     @return the data returned by executing the SQL or 0
 */
 typedef AbstractQoreNode *(*q_dbi_select_rows_t)(Datasource *ds, const QoreString *str, const QoreListNode *args, ExceptionSink *xsink);
+
+//! signature for the DBI "selectRow" method - must be defined in each DBI driver
+/** if the SQL causes more than 1 row to be returned, then the driver must raise an exception
+    @param ds the Datasource for the connection
+    @param str the SQL string to execute, may not be in the encoding of the Datasource; must cause at most one row to be returned
+    @param args arguments for placeholders or DBI formatting codes in the SQL string
+    @param xsink if any errors occur, error information should be added to this object
+    @return the row data returned by executing the SQL or 0
+    @since qore 0.8.2
+*/
+typedef QoreHashNode *(*q_dbi_select_row_t)(Datasource *ds, const QoreString *str, const QoreListNode *args, ExceptionSink *xsink);
 
 //! signature for the DBI "execSQL" method - must be defined in each DBI driver
 /** 
@@ -256,6 +269,8 @@ public:
    DLLEXPORT void add(int code, q_dbi_close_t method);
    // covers select, select_rows, and exec
    DLLEXPORT void add(int code, q_dbi_select_t method);
+   // covers select_row
+   DLLEXPORT void add(int code, q_dbi_select_row_t method);
    // covers execRaw
    DLLEXPORT void add(int code, q_dbi_execraw_t method);
    // covers get_server_version
@@ -313,6 +328,7 @@ public:
    DLLLOCAL int close(Datasource *ds) const;
    DLLLOCAL AbstractQoreNode *select(Datasource *ds, const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink) const;
    DLLLOCAL AbstractQoreNode *selectRows(Datasource *ds, const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink) const;
+   DLLLOCAL QoreHashNode *selectRow(Datasource *ds, const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink) const;
    DLLLOCAL AbstractQoreNode *execSQL(Datasource *ds, const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink) const;
    DLLLOCAL AbstractQoreNode *execRawSQL(Datasource *ds, const QoreString *sql, ExceptionSink *xsink) const;
    DLLLOCAL int commit(Datasource *, ExceptionSink *xsink) const;

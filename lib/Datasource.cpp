@@ -164,6 +164,19 @@ AbstractQoreNode *Datasource::selectRows(const QoreString *query_str, const Qore
    return rv;
 }
 
+QoreHashNode *Datasource::selectRow(const QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink) {
+   QoreHashNode *rv = priv->dsl->selectRow(this, query_str, args, xsink);
+   if (priv->autocommit && !priv->connection_aborted)
+      priv->dsl->autoCommit(this, xsink);
+
+   // set active_transaction flag if in a transaction and the active_transaction flag
+   // has not yet been set and no exception was raised
+   if (priv->in_transaction && !priv->active_transaction && !*xsink)
+      priv->active_transaction = true;
+
+   return rv;
+}
+
 AbstractQoreNode *Datasource::exec_internal(bool doBind, const QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink) {
    if (!priv->autocommit && !priv->in_transaction && beginImplicitTransaction(xsink))
       return 0;

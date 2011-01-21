@@ -79,7 +79,7 @@ public:
    DLLLOCAL void destructor(ExceptionSink *xsink);
    DLLLOCAL virtual void cleanup(ExceptionSink *xsink);
    DLLLOCAL AbstractQoreNode *select(const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink);
-   DLLLOCAL AbstractQoreNode *selectRow(const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink);
+   DLLLOCAL QoreHashNode *selectRow(const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink);
    DLLLOCAL AbstractQoreNode *selectRows(const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink);
    DLLLOCAL int beginTransaction(ExceptionSink *xsink);
    DLLLOCAL AbstractQoreNode *exec(const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink);

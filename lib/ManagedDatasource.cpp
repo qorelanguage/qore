@@ -198,27 +198,12 @@ AbstractQoreNode *ManagedDatasource::select(const QoreString *query_str, const Q
    return Datasource::select(query_str, args, xsink);
 }
 
-// FIXME: should be a native DBI driver method
-AbstractQoreNode *ManagedDatasource::selectRow(const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink) {
-   AbstractQoreNode *rv;
+QoreHashNode *ManagedDatasource::selectRow(const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink) {
+   DatasourceActionHelper dbah(*this, xsink);
+   if (!dbah)
+      return 0;
 
-   {
-      DatasourceActionHelper dbah(*this, xsink);
-      if (!dbah)
-	 return 0;
-
-      rv = Datasource::selectRows(sql, args, xsink);
-   }
-
-   // return only hash of first row, if any
-   if (rv && rv->getType() == NT_LIST) {
-      QoreListNode *l = reinterpret_cast<QoreListNode *>(rv);
-      AbstractQoreNode *h = l->shift();
-      rv->deref(xsink);
-      rv = h;
-   }
-   
-   return rv;
+   return Datasource::selectRow(sql, args, xsink);
 }
 
 AbstractQoreNode *ManagedDatasource::selectRows(const QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink) {

@@ -270,26 +270,12 @@ AbstractQoreNode *DatasourcePool::select(const QoreString *sql, const QoreListNo
    return dpah->select(sql, args, xsink);
 }
 
-// FIXME: should be a native DBI driver method
-AbstractQoreNode *DatasourcePool::selectRow(const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink) {
-   AbstractQoreNode *rv;
+QoreHashNode *DatasourcePool::selectRow(const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink) {
+   DatasourcePoolActionHelper dpah(*this, xsink);
+   if (!dpah)
+      return 0;
 
-   {
-      DatasourcePoolActionHelper dpah(*this, xsink);
-      if (!dpah)
-	 return 0;
-
-      rv = dpah->selectRows(sql, args, xsink);
-   }
-
-   //printd(5, "DSP::selectRow() ds=%08p SQL=%s rv=%s (%08p)\n", ds, sql->getBuffer(), rv ? rv->getTypeName() : "(null)", rv);
-
-   // return only hash of first row, if any
-   if (!rv || rv->getType() != NT_LIST)
-      return rv;
-
-   ReferenceHolder<AbstractQoreNode> holder(rv, xsink);
-   return reinterpret_cast<QoreListNode *>(rv)->shift();
+   return dpah->selectRow(sql, args, xsink);
 }
 
 AbstractQoreNode *DatasourcePool::selectRows(const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink) {

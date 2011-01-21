@@ -55,6 +55,7 @@ struct dbi_cap_hash dbi_cap_list[] =
   { DBI_CAP_BIND_BY_PLACEHOLDER,    "BindByPlaceholder" },
   { DBI_CAP_HAS_EXECRAW,            "HasExecRaw" },
   { DBI_CAP_HAS_STATEMENT,          "HasStatementApi" },
+  { DBI_CAP_HAS_SELECT_ROW,         "HasSelectRow" },
 };
 
 struct dbi_driver_stmt {
@@ -84,6 +85,7 @@ struct DBIDriverFunctions {
    q_dbi_close_t close;
    q_dbi_select_t select;
    q_dbi_select_rows_t selectRows;
+   q_dbi_select_row_t selectRow;
    q_dbi_exec_t execSQL;
    q_dbi_execraw_t execRawSQL;
    q_dbi_commit_t commit;
@@ -97,8 +99,9 @@ struct DBIDriverFunctions {
 
    dbi_driver_stmt stmt;
 
-   DLLLOCAL DBIDriverFunctions() : open(0), close(0), select(0), selectRows(0), execSQL(0), execRawSQL(0), 
-				   commit(0), rollback(0), begin_transaction(0), abort_transaction_start(0),
+   DLLLOCAL DBIDriverFunctions() : open(0), close(0), select(0), selectRows(0), selectRow(0), 
+				   execSQL(0), execRawSQL(0), commit(0), rollback(0), 
+				   begin_transaction(0), abort_transaction_start(0),
 				   get_server_version(0), get_client_version(0) {
    }
 };
@@ -228,6 +231,10 @@ struct qore_dbi_private {
 	       assert(!f.selectRows);
 	       f.selectRows = (q_dbi_select_rows_t)(*i).second;
 	       break;
+	    case QDBI_METHOD_SELECT_ROW:
+	       assert(!f.selectRow);
+	       f.selectRow = (q_dbi_select_row_t)(*i).second;
+	       break;
 	    case QDBI_METHOD_EXEC:
 	       assert(!f.execSQL);
 	       f.execSQL = (q_dbi_exec_t)(*i).second;
@@ -336,6 +343,7 @@ struct qore_dbi_private {
       assert(f.commit);
       assert(f.rollback);
 
+      // ensure either no or minimum stmt methods are defined
       assert(!f.stmt.prepare || (f.stmt.prepare_raw && f.stmt.bind && f.stmt.bind_values
 				 && f.stmt.exec && f.stmt.fetch_row && f.stmt.fetch_rows
 				 && f.stmt.fetch_columns && f.stmt.next && f.stmt.close
@@ -390,6 +398,30 @@ AbstractQoreNode *DBIDriver::select(Datasource *ds, const QoreString *sql, const
 
 AbstractQoreNode *DBIDriver::selectRows(Datasource *ds, const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink) const {
    return priv->f.selectRows(ds, sql, args, xsink);
+}
+
+QoreHashNode *DBIDriver::selectRow(Datasource *ds, const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink) const {
+   if (priv->f.selectRow)
+      return priv->f.selectRow(ds, sql, args, xsink);
+
+   ReferenceHolder<AbstractQoreNode> res(priv->f.selectRows(ds, sql, args, xsink), xsink);
+   if (!res)
+      return 0;
+
+   if (res->getType() != NT_LIST) {
+      xsink->raiseException("DBI-SELECT-ROW-ERROR", "the call to selectRow() did not return a single row; type returned: %s", res->getTypeName());
+      return 0;
+   }
+
+   QoreListNode *l = reinterpret_cast<QoreListNode *>(*res);
+   if (l->size() > 1) {
+      xsink->raiseException("DBI-SELECT-ROW-ERROR", "the call to selectRow() returned %lld rows; SQL passed to this method must return not more than 1 row", l->size());
+      return 0;
+   }
+
+   AbstractQoreNode *rv = l->shift();
+   assert(!rv || rv->getType() == NT_HASH);
+   return reinterpret_cast<QoreHashNode *>(rv);
 }
 
 AbstractQoreNode *DBIDriver::execSQL(Datasource *ds, const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink) const {

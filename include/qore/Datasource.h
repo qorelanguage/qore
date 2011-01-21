@@ -261,6 +261,16 @@ public:
    */
    DLLEXPORT AbstractQoreNode *selectRows(const QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink);
 
+   //! executes SQL throught the "selectRow" function of the DBI driver and returns the result, makes an implicit connection if necessary
+   /** This function is not "const" to allow for implicit connections (and reconnections).
+       An exception will be thrown by the DBI driver if the query returns more than 1 row of data.
+       @param query_str the qurey to execute
+       @param args query arguments for %s, %n, %d placeholders
+       @param xsink if an error occurs, the Qore-language exception information will be added here
+       @return the row data returned or 0
+   */
+   DLLEXPORT QoreHashNode *selectRow(const QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink);
+
    //! executes SQL throught the "exec" function of the DBI driver and returns the result, makes an implicit connection if necessary
    /** The "in_transaction" flag will be set to true if this method executes without
        throwing an exception and the object was not already in a transaction.

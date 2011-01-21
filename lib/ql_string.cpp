@@ -537,7 +537,7 @@ static AbstractQoreNode *f_trunc_str(const QoreListNode *args, ExceptionSink *xs
    if (!tmp)
       return 0;
 
-   if (tmp->strlen() <= len) {
+   if (tmp->strlen() <= (qore_size_t)len) {
       len = tmp->strlen();
       return new QoreStringNode(tmp.giveBuffer(), len, len + 1, enc);
    }
