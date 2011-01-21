@@ -33,8 +33,6 @@
 #include <assert.h>
 #include <ctype.h>
 
-#define NUM_DBI_CAPS 8
-
 typedef safe_dslist<DBIDriver *> dbi_list_t;
 
 // global qore library class for DBI driver management
@@ -57,6 +55,8 @@ struct dbi_cap_hash dbi_cap_list[] =
   { DBI_CAP_HAS_STATEMENT,          "HasStatementApi" },
   { DBI_CAP_HAS_SELECT_ROW,         "HasSelectRow" },
 };
+
+#define NUM_DBI_CAPS (sizeof(dbi_cap_list) / sizeof(dbi_cap_hash))
 
 struct dbi_driver_stmt {
    q_dbi_stmt_prepare_t prepare;
@@ -133,6 +133,12 @@ void qore_dbi_method_list::add(int code, q_dbi_close_t method) {
 // covers select, select_rows. and exec
 void qore_dbi_method_list::add(int code, q_dbi_select_t method) {
    assert(code == QDBI_METHOD_SELECT || code == QDBI_METHOD_SELECT_ROWS || code == QDBI_METHOD_EXEC);
+   priv->l.push_back(std::make_pair(code, (void *)method));
+}
+
+// covers select_row
+void qore_dbi_method_list::add(int code, q_dbi_select_row_t method) {
+   assert(code == QDBI_METHOD_SELECT_ROW);
    priv->l.push_back(std::make_pair(code, (void *)method));
 }
 
@@ -234,6 +240,7 @@ struct qore_dbi_private {
 	    case QDBI_METHOD_SELECT_ROW:
 	       assert(!f.selectRow);
 	       f.selectRow = (q_dbi_select_row_t)(*i).second;
+	       cps |= DBI_CAP_HAS_SELECT_ROW;
 	       break;
 	    case QDBI_METHOD_EXEC:
 	       assert(!f.execSQL);
@@ -242,6 +249,7 @@ struct qore_dbi_private {
 	    case QDBI_METHOD_EXECRAW:
                assert(!f.execRawSQL);
                f.execRawSQL = (q_dbi_execraw_t)(*i).second;
+	       cps |= DBI_CAP_HAS_EXECRAW;
                break;
 	    case QDBI_METHOD_COMMIT:
 	       assert(!f.commit);
@@ -378,7 +386,7 @@ int DBIDriver::getCaps() const {
 
 QoreListNode *DBIDriver::getCapList() const {
    QoreListNode *l = new QoreListNode;
-   for (int i = 0; i < NUM_DBI_CAPS; i++)
+   for (unsigned i = 0; i < NUM_DBI_CAPS; ++i)
       if (priv->caps & dbi_cap_list[i].cap)
 	 l->push(new QoreStringNode(dbi_cap_list[i].desc));
    return l;
