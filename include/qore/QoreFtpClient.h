@@ -171,6 +171,7 @@ public:
    /** the connection must be already established before this function is called or an error will be raised.
        @param from the original file path on the remote server
        @param to the new file path on the remote server
+       @param xsink if an error occurs, the Qore-language exception information will be added here
        @return 0 for OK, non-zero for error (meaning that an exception has been raised)
    */
    DLLEXPORT int rename(const char *from, const char *to, ExceptionSink *xsink);
