@@ -22360,6 +22360,13 @@ values (%v, %v, %v, %d)", $string, now(), $binary, 100);</programlisting>
 	  </row>
 	  <row>
 	    <entry>
+              <para><code><link linkend="bool_type">bool</link> <link linkend="Datasource::getAutoCommit">Datasource::getAutoCommit</link>()</code></para>
+            </entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Returns the autocommit status for this object.</para></entry>
+	  </row>
+	  <row>
+	    <entry>
               <para><code><link linkend="any_type">any</link> <link linkend="Datasource::exec">Datasource::exec</link>(<link linkend="string_type">string</link> <replaceable>$sql</replaceable>, ...)</code></para>
               <para><code><link linkend="nothing_type">nothing</link> <link linkend="Datasource::exec">Datasource::exec</link>() (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
             </entry>
@@ -23088,6 +23095,49 @@ values (%v, %v, %v, %d)", $string, now(), $binary, 100);</programlisting>
 	    <row>
 	      <entry><para><code><link linkend="softbool_type">softbool</link> <replaceable>$b</replaceable> = True</code></para></entry>
 	      <entry><para>True to turn on autocommit (a commit will be executed after every <link linkend="Datasource::exec">Datasource::exec()</link>), <code>False</code> to turn off autocommit (commits must be manually triggered).</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+    </sect2>
+
+    <sect2 id="Datasource::getAutoCommit">
+      <title>Datasource::getAutoCommit()</title>
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Returns the autocommit status for this object.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Prototype</term>
+	  <listitem>
+              <para><code><link linkend="bool_type">bool</link> <link linkend="Datasource::getAutoCommit">Datasource::getAutoCommit</link>()</code></para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting><command>my</command> bool $b = $db.getAutoCommit();</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Return Values for Datasource::getAutoCommit()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><link linkend="bool_type">bool</link></para></entry>
+	      <entry><para>Returns the autocommit status for this object.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>

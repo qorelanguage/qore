@@ -869,19 +869,33 @@ QoreListNode *QoreListNode::reverse() const {
 }
 
 int QoreListNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {
+   QoreContainerHelper cch(this);
+   if (!cch) {
+      str.sprintf("[ERROR: recursive reference to list %p]", this);
+      return 0;
+   }
+
+   if (foff == FMT_YAML_SHORT) {
+      str.concat('[');
+      ConstListIterator li(this);
+      while (li.next()) {
+	 const AbstractQoreNode *n = li.getValue();
+	 if (!n) n = &Nothing;
+	 if (n->getAsString(str, foff, xsink))
+	    return -1;
+	 if (!li.last())
+	    str.concat(", ");
+      }
+      str.concat(']');
+      return 0;
+   }
+
    if (!size()) {
       str.concat(&EmptyListString);
       return 0;
    }
-   str.concat("list: ");
+   str.concat("list: (");
 
-   QoreContainerHelper cch(this);
-   if (!cch) {
-      str.sprintf("(ERROR: recursive reference to list %p)", this);
-      return 0;
-   }
-
-   str.concat('(');
    if (foff != FMT_NONE)
       str.sprintf("%d element%s)\n", priv->length, priv->length == 1 ? "" : "s");
 
@@ -918,7 +932,7 @@ QoreString *QoreListNode::getAsString(bool &del, int foff, ExceptionSink *xsink)
    if (!priv->length)
       return &EmptyListString;
       
-   TempString rv(new QoreString());
+   TempString rv(new QoreString);
    if (getAsString(*(*rv), foff, xsink))
       return 0;
 

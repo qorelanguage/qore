@@ -498,36 +498,41 @@ void QoreHashNode::setNeedsEval() {
 }
 
 int QoreHashNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {
+   QoreContainerHelper cch(this);
+   if (!cch) {
+      str.sprintf("{ERROR: recursive reference to hash %p}", this);
+      return 0;
+   }
+
+   if (foff == FMT_YAML_SHORT) {
+      str.concat('{');
+      ConstHashIterator hi(this);
+      while (hi.next()) {
+	 str.sprintf("%s: ", hi.getKey());
+	 const AbstractQoreNode *n = hi.getValue();
+	 if (!n) n = &Nothing;
+	 if (n->getAsString(str, foff, xsink))
+	    return -1;
+	 if (!hi.last())
+	    str.concat(", ");
+      }
+      str.concat('}');
+      return 0;
+   }
+
    if (!size()) {
       str.concat(&EmptyHashString);
       return 0;
    }
-   str.concat("hash: ");
+   str.concat("hash: (");
 
-   QoreContainerHelper cch(this);
-   if (!cch) {
-      str.sprintf("(ERROR: recursive reference to hash %p)", this);
-      return 0;
-   }
-
-   str.concat('(');
    if (foff != FMT_NONE) {
       qore_size_t elements = size();
       str.sprintf("%lu member%s)\n", elements, elements == 1 ? "" : "s");
    }
    
    ConstHashIterator hi(this);
-   
-   bool first = false;
    while (hi.next()) {
-      if (first)
-         if (foff != FMT_NONE)
-            str.concat('\n');
-         else
-            str.concat(", ");
-      else
-         first = true;
-      
       if (foff != FMT_NONE)
          str.addch(' ', foff + 2);
 
@@ -537,6 +542,13 @@ int QoreHashNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) c
       if (!n) n = &Nothing;
       if (n->getAsString(str, foff != FMT_NONE ? foff + 2 : foff, xsink))
          return -1;
+
+      if (!hi.last()) {
+         if (foff != FMT_NONE)
+            str.concat('\n');
+         else
+            str.concat(", ");
+      }
    }
    
    if (foff == FMT_NONE)
@@ -551,38 +563,9 @@ QoreString *QoreHashNode::getAsString(bool &del, int foff, ExceptionSink *xsink)
    if (!elements)
       return &EmptyHashString;
 
-   TempString rv(new QoreString());
-   rv->concat("hash: ");
-   if (foff != FMT_NONE)
-      rv->sprintf("(%lu member%s)\n", elements, elements == 1 ? "" : "s");
-   else
-      rv->concat('(');
-
-   ConstHashIterator hi(this);
-
-   bool first = false;
-   while (hi.next()) {
-      //printd(5, "QoreHashNode::getAsString() h=%p key=%s v=%p\n", this, hi.getKey(), hi.getValue());
-
-      if (first)
-         if (foff != FMT_NONE)
-            rv->concat('\n');
-         else
-            rv->concat(", ");
-      else
-         first = true;
-
-      if (foff != FMT_NONE)
-         rv->addch(' ', foff + 2);
-
-      QoreNodeAsStringHelper elem(hi.getValue(), foff != FMT_NONE ? foff + 2 : foff, xsink);
-      if (*xsink)
-         return 0;
-      rv->sprintf("%s : %s", hi.getKey(), elem->getBuffer());
-   }
-
-   if (foff == FMT_NONE)
-      rv->concat(')');
+   TempString rv(new QoreString);
+   if (getAsString(*(*rv), foff, xsink))
+      return 0;
 
    del = true;
    return rv.release();

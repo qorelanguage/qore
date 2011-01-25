@@ -33,8 +33,9 @@
 
 #include <assert.h>
 
-#define FMT_NONE   -1
-#define FMT_NORMAL 0
+#define FMT_YAML_SHORT -2
+#define FMT_NONE       -1
+#define FMT_NORMAL      0
 
 class LocalVar;
 class QoreTypeInfo;

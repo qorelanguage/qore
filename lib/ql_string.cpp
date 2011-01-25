@@ -533,6 +533,9 @@ static AbstractQoreNode *f_trunc_str(const QoreListNode *args, ExceptionSink *xs
    const QoreStringNode *estr = test_string_param(args, 2);
    const QoreEncoding *enc = estr ? QEM.findCreate(estr) : str->getEncoding();
 
+   if (len <= 0)
+      return new QoreStringNode(enc);
+
    TempEncodingHelper tmp(str, enc, xsink);
    if (!tmp)
       return 0;
@@ -550,7 +553,7 @@ static AbstractQoreNode *f_trunc_str(const QoreListNode *args, ExceptionSink *xs
    int64 sl = 0;
    while (true) {
       qore_size_t size = enc->getCharLen(p, len - sl);
-      if ((sl + size) > len)
+      if ((sl + size) > (qore_size_t)len)
 	 break;
       sl += size;
       p += size;

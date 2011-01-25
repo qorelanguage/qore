@@ -25,6 +25,7 @@
 #include <qore/intern/QC_SQLStatement.h>
 #include <qore/intern/DatasourceStatementHelper.h>
 #include <qore/intern/sql_statement_private.h>
+#include <qore/intern/qore_ds_private.h>
 
 const char *QoreSQLStatement::stmt_statuses[] = { "idle", "prepared", "defined", "executed" };
 
@@ -273,6 +274,8 @@ int QoreSQLStatement::execIntern(DBActionHelper &dba, ExceptionSink *xsink) {
    int rc = priv->ds->getDriver()->stmt_exec(this, xsink);
    if (!rc)
       status = STMT_EXECED;
+
+   priv->ds->priv->statementExecuted(rc, xsink);
    return rc;
 }
 

@@ -43,6 +43,8 @@ class DBIDriver;
     @see DBIDriver
 */
 class Datasource {
+   friend class QoreSQLStatement;
+
 private:
    struct qore_ds_private *priv; // private implementation
 

@@ -761,9 +761,35 @@ QoreString *QoreObject::getAsString(bool &del, int foff, ExceptionSink *xsink) c
 }
 
 int QoreObject::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {
+   QoreContainerHelper cch(this);
+   if (!cch) {
+      str.sprintf("{ERROR: recursive reference to object %p (class %s)}", this, getClassName());
+      return 0;
+   }
+
    QoreHashNodeHolder h(copyData(xsink), xsink);
    if (*xsink)
       return -1;
+
+   if (foff == FMT_YAML_SHORT) {
+      str.sprintf("{<%s object>", getClassName());
+      if (!h->empty()) {
+	 str.concat(": ");
+	 ConstHashIterator hi(*h);
+      
+	 while (hi.next()) {
+	    str.sprintf("%s: ", hi.getKey());
+	    const AbstractQoreNode *n = hi.getValue();
+	    if (!n) n = &Nothing;
+	    if (n->getAsString(str, foff, xsink))
+	       return -1;
+	    if (!hi.last())
+	       str.concat(", ");
+	 }
+      }
+      str.concat('}');
+      return 0;      
+   }
 
    str.sprintf("class %s: ", priv->theclass->getName());
 
@@ -777,43 +803,34 @@ int QoreObject::getAsString(QoreString &str, int foff, ExceptionSink *xsink) con
    if (!h->size())
       str.concat("<NO MEMBERS>");
    else {
-      QoreContainerHelper cch(this);
-      if (!cch) {
-	 str.sprintf("(ERROR: recursive reference to object %p (class %s))", this, getClassName());
-	 return 0;
-      }
-
       str.concat('(');
       if (foff != FMT_NONE)
          str.sprintf("%d member%s)\n", h->size(), h->size() == 1 ? "" : "s");
 
       //bool private_access_ok = runtimeCheckPrivateClassAccess(priv->theclass);
 
-      HashIterator hi(*h);
-
-      bool first = false;
+      ConstHashIterator hi(*h);
       while (hi.next()) {
 	 // skip private members when accessed outside the class
 	 //if (!private_access_ok && priv->checkMemberAccessIntern(hi.getKey(), false, false) == QOA_PRIV_ERROR)
 	 //   continue;
-
-         if (first)
-            if (foff != FMT_NONE)
-               str.concat('\n');
-            else
-               str.concat(", ");
-         else
-            first = true;
 
          if (foff != FMT_NONE)
             str.addch(' ', foff + 2);
 
          str.sprintf("%s : ", hi.getKey());
 
-	 AbstractQoreNode *n = hi.getValue();
+	 const AbstractQoreNode *n = hi.getValue();
 	 if (!n) n = &Nothing;
 	 if (n->getAsString(str, foff != FMT_NONE ? foff + 2 : foff, xsink))
 	    return -1;
+
+         if (!hi.last()) {
+            if (foff != FMT_NONE)
+               str.concat('\n');
+            else
+               str.concat(", ");
+	 }
       }
       if (foff == FMT_NONE)
          str.concat(')');

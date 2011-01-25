@@ -28,17 +28,12 @@ class QoreSQLStatement;
 
 class DatasourceStatementHelper {
 public:
-   DLLLOCAL DatasourceStatementHelper() {
-   }
-
-   DLLLOCAL virtual ~DatasourceStatementHelper() {
-   }
+   DLLLOCAL DatasourceStatementHelper() {}
+   DLLLOCAL virtual ~DatasourceStatementHelper() {}
 
    // must dereference the datasource-providing object
    virtual void helperDestructor(QoreSQLStatement *s, ExceptionSink *xsink) = 0;
-
    virtual Datasource *helperStartAction(ExceptionSink *xsink, bool &new_transaction) = 0;
-
    virtual Datasource *helperEndAction(char orig_cmd, char &cmd, bool new_transaction) = 0;
 };
 

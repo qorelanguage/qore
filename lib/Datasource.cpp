@@ -24,63 +24,12 @@
  */
 
 #include <qore/Qore.h>
+#include <qore/intern/qore_ds_private.h>
 
 #include <stdlib.h>
 #include <string.h>
 
-struct qore_ds_private {
-   bool in_transaction;
-   bool active_transaction;
-   bool isopen;
-   bool autocommit;
-   bool connection_aborted;
-   mutable class DBIDriver *dsl;
-   const QoreEncoding *qorecharset;
-   void *private_data;               // driver private data per connection
-      
-   // for pending connection values
-   std::string p_username,
-      p_password,
-      p_dbname,
-      p_db_encoding, // database-specific name for the encoding for the connection
-      p_hostname;
-   int p_port;       // pending port number (0 = default port)
-
-   // actual connection values set by init() before the datasource is opened
-   std::string username,
-      password,
-      db_encoding,   // database-specific name for the encoding for the connection
-      dbname,
-      hostname;
-   int port; // port number (0 = default port)
-
-   DLLLOCAL qore_ds_private(DBIDriver *ndsl) : in_transaction(false), active_transaction(false), isopen(false), autocommit(false), connection_aborted(false), dsl(ndsl), qorecharset(QCS_DEFAULT), private_data(0), p_port(0), port(0) { }
-      
-   DLLLOCAL ~qore_ds_private() {
-      assert(!private_data);
-   }
-
-   DLLLOCAL void setPendingConnectionValues(const qore_ds_private *other) {
-      p_username    = other->p_username;
-      p_password    = other->p_password;
-      p_dbname      = other->p_dbname;
-      p_hostname    = other->p_hostname;
-      p_db_encoding = other->p_db_encoding;
-      autocommit    = other->autocommit;
-      p_port        = other->p_port;
-   }
-
-   DLLLOCAL void setConnectionValues() {
-      dbname      = p_dbname;
-      username    = p_username;
-      password    = p_password;
-      hostname    = p_hostname;
-      db_encoding = p_db_encoding;
-      port        = p_port;
-   }
-};
-
-Datasource::Datasource(DBIDriver *ndsl) : priv(new qore_ds_private(ndsl)) {
+Datasource::Datasource(DBIDriver *ndsl) : priv(new qore_ds_private(this, ndsl)) {
 }
 
 Datasource::~Datasource() {
@@ -195,15 +144,8 @@ AbstractQoreNode *Datasource::exec_internal(bool doBind, const QoreString *query
 
    if (priv->autocommit)
       priv->dsl->autoCommit(this, xsink);
-   else if (!priv->in_transaction) {
-      if (xsink->isException()) {
-	 priv->dsl->abortTransactionStart(this, xsink);
-      }
-      else
-	 priv->in_transaction = true;    
-   }
-   else if (!priv->active_transaction)
-      priv->active_transaction = true;
+   else 
+      priv->statementExecuted(*xsink, xsink);
 
    return rv;
 }
@@ -227,7 +169,7 @@ int Datasource::beginImplicitTransaction(ExceptionSink *xsink) {
 
 int Datasource::beginTransaction(ExceptionSink *xsink) {
    int rc = beginImplicitTransaction(xsink);
-   if (!rc) {
+   if (!rc && !priv->in_transaction) {
       priv->in_transaction = true;
       assert(!priv->active_transaction);
    }
