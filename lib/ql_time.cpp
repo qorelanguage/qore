@@ -22,6 +22,7 @@
 
 #include <qore/Qore.h>
 #include <qore/intern/ql_time.h>
+#include <qore/intern/QC_TimeZone.h>
 
 #include <stdio.h>
 #include <time.h>
@@ -308,6 +309,42 @@ static AbstractQoreNode *f_get_duration_microseconds(const QoreListNode *params,
    return new QoreBigIntNode(d->getRelativeMicroseconds());
 }
 
+static QoreHashNode *date_info(const DateTime &d) {
+   qore_tm info;
+   d.getInfo(info);
+
+   QoreHashNode *h = new QoreHashNode;
+   h->setKeyValue("relative", get_bool_node(d.isRelative()), 0);
+   h->setKeyValue("year", new QoreBigIntNode(info.year), 0);
+   h->setKeyValue("month", new QoreBigIntNode(info.month), 0);
+   h->setKeyValue("day", new QoreBigIntNode(info.day), 0);
+   h->setKeyValue("hour", new QoreBigIntNode(info.hour), 0);
+   h->setKeyValue("minute", new QoreBigIntNode(info.minute), 0);
+   h->setKeyValue("second", new QoreBigIntNode(info.second), 0);
+   h->setKeyValue("microsecond", new QoreBigIntNode(info.us), 0);
+
+   if (d.isAbsolute()) {
+      h->setKeyValue("utc_secs_east", new QoreBigIntNode(info.utc_secs_east), 0);
+      h->setKeyValue("dst", get_bool_node(info.dst), 0);
+      h->setKeyValue("zone", new QoreObject(QC_TIMEZONE, 0, new TimeZoneData(info.zone)), 0);
+   }
+
+   return h;
+}
+
+static AbstractQoreNode *f_date_info_date(const QoreListNode *params, ExceptionSink *xsink) {
+   const DateTimeNode *d = HARD_QORE_DATE(params, 0);
+   return date_info(*d);
+}
+
+static AbstractQoreNode *f_date_info(const QoreListNode *params, ExceptionSink *xsink) {
+   int us;
+   int64 seconds = q_epoch_us(us);
+   DateTime d;
+   d.setDate(currentTZ(), seconds, us);
+   return date_info(d);
+}
+
 void init_time_functions() {
    builtinFunctions.add2("now", f_localtime, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo);
    builtinFunctions.add2("now_ms", f_now_ms, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo);
@@ -409,12 +446,17 @@ void init_time_functions() {
 
    builtinFunctions.add2("date_us", f_date_us, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
 
-   // get_duration_int seconds(date)  
+   // int get_duration_seconds(date)  
    builtinFunctions.add2("get_duration_seconds", f_get_duration_seconds, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
 
-   // get_duration_int milliseconds(date)  
+   // int get_duration_milliseconds(date)  
    builtinFunctions.add2("get_duration_milliseconds", f_get_duration_milliseconds, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
 
-   // get_duration_int microseconds(date)  
+   // int get_duration_microseconds(date)  
    builtinFunctions.add2("get_duration_microseconds", f_get_duration_microseconds, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
+
+   // hash date_info($date)
+   builtinFunctions.add2("date_info", f_date_info_date, QC_CONSTANT, QDOM_DEFAULT, hashTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
+   // hash date_info()
+   builtinFunctions.add2("date_info", f_date_info, QC_CONSTANT, QDOM_DEFAULT, hashTypeInfo);
 }

@@ -931,6 +931,11 @@ public:
 
    DLLLOCAL void get(qore_time_info &info) const {
       info = *this;
+
+      info.zname = 0;
+      info.utcoffset = 0;
+      info.isdst = false;
+      info.zone = 0;
    }
 
    DLLLOCAL void zero() {
