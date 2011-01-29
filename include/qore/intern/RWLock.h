@@ -89,6 +89,28 @@ public:
       return waiting;
    }
 
+   DLLLOCAL bool lockOwner() const {
+      if (writeLockOwner())
+         return true;
+
+      return readLockOwner();
+   }
+
+   DLLLOCAL bool writeLockOwner() const {
+      return tid == gettid();
+   }
+
+   DLLLOCAL bool readLockOwner() const {
+      // if the write lock is held or the lock is deleted or nobody has the read lock, then return false
+      if (tid > -1 || tid == Lock_Deleted || !num_readers)
+         return false;
+
+      // to check the read lock status, er have to acquire the asl_lock
+      int mtid = gettid();
+      AutoLocker al(&asl_lock);
+      return tmap.find(mtid) == tmap.end() ? false : true;
+   }
+
    DLLLOCAL virtual const char *getName() const { return "RWLock"; }
 };
 
