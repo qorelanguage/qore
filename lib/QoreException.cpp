@@ -220,9 +220,18 @@ void QoreException::addStackInfo(AbstractQoreNode *n) {
 void ExceptionSink::defaultExceptionHandler(QoreException *e) {
    ExceptionSink xsink;
 
+   QoreString nstr;
+   {
+      DateTime now;
+      int us;
+      int64 seconds = q_epoch_us(us);
+      now.setDate(currentTZ(), seconds, us);
+      now.format(nstr, "YYYY-MM-DD HH:mm:SS.xx Dy Z (z)");
+   }
+
    while (e) {
       //printd(5, "ExceptionSink::defaultExceptionHandler() cs size=%d\n", cs->size());
-      printe("unhandled QORE %s exception thrown in TID %d", e->type == ET_USER ? "User" : "System", gettid());
+      printe("unhandled QORE %s exception thrown in TID %d at %s", e->type == ET_USER ? "User" : "System", gettid(), nstr.getBuffer());
 
       QoreListNode *cs = e->callStack;
       bool found = false;

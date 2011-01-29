@@ -324,6 +324,8 @@ static QoreHashNode *date_info(const DateTime &d) {
    h->setKeyValue("microsecond", new QoreBigIntNode(info.us), 0);
 
    if (d.isAbsolute()) {
+      h->setKeyValue("dow", new QoreBigIntNode(d.getDayOfWeek()), 0);
+      h->setKeyValue("doy", new QoreBigIntNode(d.getDayNumber()), 0);
       h->setKeyValue("utc_secs_east", new QoreBigIntNode(info.utc_secs_east), 0);
       h->setKeyValue("dst", get_bool_node(info.dst), 0);
       h->setKeyValue("zone", new QoreObject(QC_TIMEZONE, 0, new TimeZoneData(info.zone)), 0);
