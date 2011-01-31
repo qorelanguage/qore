@@ -158,7 +158,7 @@ char *VarRefNode::takeName() {
 
 AbstractQoreNode *VarRefNode::parseInitIntern(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *typeInfo, const QoreTypeInfo *&outTypeInfo, bool is_new) {
    if (pflag & PF_CONST_EXPRESSION)
-      parseException("ILLEGAL-VARIABLE-REFERENCE", "variable reference '%s' used in a constant initialization expression", name);
+      parseException("ILLEGAL-VARIABLE-REFERENCE", "variable reference '%s' used illegally in an expression executed at parse time to initialize a constant value", name);
 
    //printd(5, "VarRefNode::parseInitIntern() this=%p '%s' type=%d\n", this, name, type);
    // if it is a new variable being declared

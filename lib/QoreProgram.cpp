@@ -358,15 +358,20 @@ ExceptionSink *QoreProgram::getParseExceptionSink() {
 }
 
 void QoreProgram::addParseException(ExceptionSink *xsink) {
+   addParseException(*xsink);
+   delete xsink;
+}
+
+void QoreProgram::addParseException(ExceptionSink &xsink) {
    if (priv->requires_exception) {
-      delete xsink;
+      xsink.clear();
       return;
    }
 
    // ensure that all exceptions reflect the current parse location
    int sline, eline;
    get_parse_location(sline, eline);
-   xsink->overrideLocation(sline, eline, get_parse_file());
+   xsink.overrideLocation(sline, eline, get_parse_file());
    priv->parseSink->assimilate(xsink);
 }
 

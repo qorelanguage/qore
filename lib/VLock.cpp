@@ -75,7 +75,7 @@ AutoVLock::~AutoVLock() {
 	 //printd(5, "posting notification to object %p, member %s\n", i->obj, i->member.c_str());
 	 i->obj->execMemberNotification(i->member.c_str(), &xsink2);
       }
-      xsink->assimilate(&xsink2);
+      xsink->assimilate(xsink2);
    }
 
    delete priv;

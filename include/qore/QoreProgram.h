@@ -498,8 +498,10 @@ public:
    DLLLOCAL void makeParseException(int sline, int eline, QoreStringNode *desc);
    DLLLOCAL void makeParseException(int sline, int eline, const char *file, QoreStringNode *desc);
    DLLLOCAL void makeParseException(QoreStringNode *desc);
-   // takes over ownership of the xsink arg
+   // takes over ownership of the xsink arg (and deletes it)
    DLLLOCAL void addParseException(ExceptionSink *xsink);
+   // clears xsink arg
+   DLLLOCAL void addParseException(ExceptionSink &xsink);
    // returns 0 if a "requires" exception has already occurred
    DLLLOCAL ExceptionSink *getParseExceptionSink();
    DLLLOCAL void makeParseWarning(int sline, int eline, const char *file, int code, const char *warn, const char *fmt, ...);

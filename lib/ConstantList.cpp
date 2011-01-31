@@ -127,7 +127,7 @@ void ConstantEntry::parseInit(const char *name) {
    }
 
    if (xsink.isEvent())
-      pgm->addParseException(&xsink);
+      pgm->addParseException(xsink);
 }
 
 ConstantList::ConstantList(const ConstantList &old) {
@@ -172,7 +172,7 @@ void ConstantList::parseDeleteAll() {
    clearIntern(&xsink);
 
    if (xsink.isEvent())
-      getProgram()->addParseException(&xsink);
+      getProgram()->addParseException(xsink);
 }
 
 void ConstantList::parseAdd(const char *name, AbstractQoreNode *value, const QoreTypeInfo *typeInfo) {

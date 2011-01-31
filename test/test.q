@@ -541,6 +541,8 @@ sub printf_tests() {
     printf(  "  printf: 3 char arg right in 5 char field: %5s\n", "abc"); 
 }
 
+const TH = ("a":1);
+
 string sub switch_test(any $val) {
     my string $rv;
 
@@ -548,7 +550,7 @@ string sub switch_test(any $val) {
 	case 0:
 	case "hello":
 	
-	case 1:
+	case TH.a:
 	    $rv = "case 1";
             break;
 

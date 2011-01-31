@@ -1465,7 +1465,7 @@ static AbstractQoreNode *check_op_background(QoreTreeNode *tree, LocalVar *oflag
    returnTypeInfo = bigIntTypeInfo;
 
    if (pflag & PF_CONST_EXPRESSION)
-      parseException("ILLEGAL-OPERATION", "the background operator may not be used in a constant initialization expression");
+      parseException("ILLEGAL-OPERATION", "the background operator may not be used in an expression initializing a constant value executed at parse time");
 
    return tree->defaultParseInit(oflag, pflag, lvids, returnTypeInfo);
 }

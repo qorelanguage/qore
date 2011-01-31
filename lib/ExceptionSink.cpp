@@ -243,18 +243,23 @@ void ExceptionSink::rethrow(class QoreException *old) {
 }
 
 void ExceptionSink::assimilate(ExceptionSink *xs) {
-   if (xs->priv->thread_exit) {
-      priv->thread_exit = xs->priv->thread_exit;
-      xs->priv->thread_exit = false;
+   assimilate(*xs);
+   delete xs;
+}
+
+void ExceptionSink::assimilate(ExceptionSink &xs) {
+   if (xs.priv->thread_exit) {
+      priv->thread_exit = xs.priv->thread_exit;
+      xs.priv->thread_exit = false;
    }
-   if (xs->priv->tail) {
+   if (xs.priv->tail) {
       if (priv->tail)
-	 priv->tail->next = xs->priv->head;
+	 priv->tail->next = xs.priv->head;
       else
-	 priv->head = xs->priv->head;
-      priv->tail = xs->priv->tail;
+	 priv->head = xs.priv->head;
+      priv->tail = xs.priv->tail;
    }
-   xs->priv->head = xs->priv->tail = 0;
+   xs.priv->head = xs.priv->tail = 0;
 }
 
 void ExceptionSink::outOfMemory() {

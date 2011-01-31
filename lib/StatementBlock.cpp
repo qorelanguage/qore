@@ -216,7 +216,7 @@ int StatementBlock::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsi
 	       nrc = (*i).second->execImpl(return_value, &obe_xsink);
       }
       if (obe_xsink)
-	 xsink->assimilate(&obe_xsink);
+	 xsink->assimilate(obe_xsink);
       if (nrc)
 	 rc = nrc;
    }

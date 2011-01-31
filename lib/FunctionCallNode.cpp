@@ -162,7 +162,7 @@ int FunctionCallBase::parseArgsVariant(LocalVar *oflag, int pflag, AbstractQoreF
       else
 	 desc->sprintf("cannot call %s%s%s()", cname ? cname : "", cname ? "::" : "", name);
 
-      desc->concat(" in an expression initializing a constant when the function has uncommitted variants and the variant cannot be matched at parse time; to fix this error, add enough type information to the call to allow the variant to be resolved");
+      desc->concat(" in an expression initializing a constant value at parse time when the function has uncommitted variants and the variant cannot be matched at parse time; to fix this error, add enough type information to the call to allow the variant to be resolved");
 
       parseException("ILLEGAL-CALL", desc);
    }

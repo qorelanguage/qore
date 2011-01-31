@@ -1823,7 +1823,7 @@ void qore_class_private::execDestructor(QoreObject *self, ExceptionSink *xsink) 
 	 scl->sml.execDestructors(self, &de);
    }
 
-   xsink->assimilate(&de);
+   xsink->assimilate(de);
 }
 
 void qore_class_private::execBaseClassDestructor(QoreObject *self, ExceptionSink *xsink) const {
@@ -1835,7 +1835,7 @@ void qore_class_private::execBaseClassDestructor(QoreObject *self, ExceptionSink
    else if (sys)
       self->defaultSystemDestructor(classID, &de);
 
-   xsink->assimilate(&de);
+   xsink->assimilate(de);
 }
 
 void qore_class_private::execBaseClassSystemDestructor(QoreObject *self, ExceptionSink *xsink) const {
@@ -1847,7 +1847,7 @@ void qore_class_private::execBaseClassSystemDestructor(QoreObject *self, Excepti
    else if (sys)
       self->defaultSystemDestructor(classID, &de);
 
-   xsink->assimilate(&de);
+   xsink->assimilate(de);
 }
 
 void qore_class_private::execBaseClassCopy(QoreObject *self, QoreObject *old, ExceptionSink *xsink) const {

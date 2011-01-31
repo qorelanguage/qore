@@ -48,7 +48,7 @@ bool CaseNode::isCaseNodeImpl() const {
    return true;
 }
 
-bool CaseNode::matches(AbstractQoreNode* lhs_value, ExceptionSink *xsink) {
+bool CaseNode::matches(AbstractQoreNode *lhs_value, ExceptionSink *xsink) {
    return !compareHard(lhs_value, val, xsink); // the ! is because of compareHard() semantics
 }
 
@@ -134,14 +134,37 @@ int SwitchStatement::parseInitImpl(LocalVar *oflag, int pflag) {
    
    CaseNode *w = head;
    ExceptionSink xsink;
+   QoreProgram *pgm = getProgram();
    while (w) {
       if (w->val) {
-	 w->val = w->val->parseInit(oflag, pflag, lvids, argTypeInfo);
-	 //printd(5, "SwitchStatement::parseInit() this=%p case exp: %p %s\n", this, w->val, w->val ? w->val->getTypeName() : "n/a");
+	 w->val = w->val->parseInit(oflag, pflag | PF_CONST_EXPRESSION, lvids, argTypeInfo);
+	 if (lvids) {
+	    parse_error("illegal local variable declaration in assignment expression for case block");
+	    while (lvids--)
+	       pop_local_var();
+	    continue;
+	 }
+
+	 // evaluate case expression if necessary and no parse expressions have been raised
+	 if (w->val && !w->val->is_value()) {
+	    if (pgm->parseExceptionRaised())
+	       continue;
+
+	    ReferenceHolder<AbstractQoreNode> v(w->val->eval(&xsink), &xsink);
+	    if (!xsink) {
+	       w->val->deref(&xsink);
+	       w->val = v.release();
+	       if (!w->val)
+		  w->val = nothing();
+	    }
+	    else
+	       pgm->addParseException(xsink);
+	 }
+	 //printd(5, "SwitchStatement::parseInit() this=%p case exp: %p %s\n", this, w->val, get_type_name(w->val));
 
 	 // check for duplicate values
 	 CaseNode *cw = head;
-	 while (cw != w) {
+	 while (cw != w) {    
             // Check only the simple case blocks (case 1: ...),
             // not those with relational operators. Could be changed later to provide more checking.
 	    // note that no exception can be raised here as the case node values are parse values
