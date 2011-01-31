@@ -68,7 +68,7 @@ struct DBActionHelper {
             }
          }
 
-         stmt.priv->ds = stmt.dsh->helperEndAction(orig_cmd, cmd, nt);
+         stmt.priv->ds = stmt.dsh->helperEndAction(orig_cmd, cmd, nt, xsink);
 
          if (cmd == DAH_RELEASE)
             stmt.trans_status = STMT_TRANS_UNKNOWN;

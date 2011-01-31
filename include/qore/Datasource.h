@@ -421,6 +421,13 @@ public:
    /** @return the connection aborted status
     */
    DLLEXPORT bool wasConnectionAborted() const;	  
+
+   //! called from subclasses when releasing the transaction lock
+   /** Calls the DBI driver's "commit" method if autocommit is enabled and the current connection was not lost and the driver requires a commit
+       this function is not "const" to allow for implicit connections (and reconnections)
+       @param xsink if an error occurs, the Qore-language exception information will be added here
+   */
+   DLLEXPORT int autoCommit(ExceptionSink *xsink);
 };
 
 #endif // _QORE_DATASOURCE_H

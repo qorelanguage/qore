@@ -135,7 +135,11 @@ public:
       return tid == gettid() ? this : 0;
    }
 
-   DLLLOCAL virtual Datasource *helperEndAction(char orig_cmd, char &cmd, bool new_transaction) {
+   DLLLOCAL virtual Datasource *helperEndAction(char orig_cmd, char &cmd, bool new_transaction, ExceptionSink *xsink) {
+      // execute a commit if auto-commit is enabled and the resource is being released
+      // and the connection was not aborted
+      if (cmd == DAH_RELEASE)
+         autoCommit(xsink);
       return endDBAction(cmd, new_transaction) ? this : 0;
    }
 };

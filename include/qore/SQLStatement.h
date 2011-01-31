@@ -26,6 +26,9 @@
 
 class DatasourceStatementHelper;
 
+//! This is the public class for DBI drivers supporting Qore's new prepared statement API
+/** @see DBIDriver
+ */
 class SQLStatement {
    friend class DBActionHelper;
    friend class QoreSQLStatement;

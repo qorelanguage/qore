@@ -125,7 +125,7 @@ public:
       return getDS(new_transaction, xsink);
    }
 
-   DLLLOCAL virtual Datasource *helperEndAction(char orig_cmd, char &cmd, bool new_transaction) {
+   DLLLOCAL virtual Datasource *helperEndAction(char orig_cmd, char &cmd, bool new_transaction, ExceptionSink *xsink) {
       //printd(0, "DatasourcePool::helperEndAction() cmd=%d, nt=%d\n", cmd, new_transaction);
       if (cmd == DAH_RELEASE) {
          if (orig_cmd != DAH_NONE) {

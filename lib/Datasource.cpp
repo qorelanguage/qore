@@ -89,8 +89,7 @@ void Datasource::setAutoCommit(bool ac) {
 
 AbstractQoreNode *Datasource::select(const QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink) {
    AbstractQoreNode *rv = priv->dsl->select(this, query_str, args, xsink);
-   if (priv->autocommit && !priv->connection_aborted)
-      priv->dsl->autoCommit(this, xsink);
+   autoCommit(xsink);
 
    // set active_transaction flag if in a transaction and the active_transaction flag
    // has not yet been set and no exception was raised
@@ -102,8 +101,7 @@ AbstractQoreNode *Datasource::select(const QoreString *query_str, const QoreList
 
 AbstractQoreNode *Datasource::selectRows(const QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink) {
    AbstractQoreNode *rv = priv->dsl->selectRows(this, query_str, args, xsink);
-   if (priv->autocommit && !priv->connection_aborted)
-      priv->dsl->autoCommit(this, xsink);
+   autoCommit(xsink);
 
    // set active_transaction flag if in a transaction and the active_transaction flag
    // has not yet been set and no exception was raised
@@ -115,8 +113,7 @@ AbstractQoreNode *Datasource::selectRows(const QoreString *query_str, const Qore
 
 QoreHashNode *Datasource::selectRow(const QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink) {
    QoreHashNode *rv = priv->dsl->selectRow(this, query_str, args, xsink);
-   if (priv->autocommit && !priv->connection_aborted)
-      priv->dsl->autoCommit(this, xsink);
+   autoCommit(xsink);
 
    // set active_transaction flag if in a transaction and the active_transaction flag
    // has not yet been set and no exception was raised
@@ -148,6 +145,12 @@ AbstractQoreNode *Datasource::exec_internal(bool doBind, const QoreString *query
       priv->statementExecuted(*xsink, xsink);
 
    return rv;
+}
+
+int Datasource::autoCommit(ExceptionSink *xsink) {
+   if (priv->autocommit && !priv->connection_aborted)
+      return priv->dsl->autoCommit(this, xsink);
+   return 0;
 }
 
 AbstractQoreNode *Datasource::exec(const QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink) {
