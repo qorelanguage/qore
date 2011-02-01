@@ -35,359 +35,382 @@
 #include <unistd.h>
 #include <dirent.h>
 
+#include <string>
+
 class qore_qd_private {
-   public:
-      // check if the given directory is accessable
-      // return errno of opendir function
-      // unlocked
-      DLLLOCAL static int verifyDirectory(const char* dir)
-      {
-	 DIR *dptr = opendir(dir);
-	 if (!dptr) {
-	    return errno;
-	 }
+protected:  
+   const QoreEncoding *enc;
+   std::string dirname;
+   mutable QoreThreadLock m;
 
-	 // free again
-	 closedir(dptr);
+   // tokenize the strings by the delimiter
+   DLLLOCAL static void tokenize(const std::string& str, std::vector<std::string>& tokens, const std::string& delimiter = "/") {
+      // Skip delimiters at beginning.
+      std::string::size_type lastPos = str.find_first_not_of(delimiter, 0);
+      // Find first "non-delimiter".
+      std::string::size_type pos     = str.find_first_of(delimiter, lastPos);
 	 
-	 return 0;
+      while (std::string::npos != pos || std::string::npos != lastPos) {
+	 // Found a token, add it to the vector.
+	 tokens.push_back(str.substr(lastPos, pos - lastPos));
+	 // Skip delimiters.  Note the "not_of"
+	 lastPos = str.find_first_not_of(delimiter, pos);
+	 // Find next "non-delimiter"
+	 pos = str.find_first_of(delimiter, lastPos);
       }
+   }
 
-      // tokenize the strings by the delimiter
-      DLLLOCAL static void tokenize(const std::string& str, std::vector<std::string>& tokens, const std::string& delimiter = "/") {
-	 // Skip delimiters at beginning.
-	 std::string::size_type lastPos = str.find_first_not_of(delimiter, 0);
-	 // Find first "non-delimiter".
-	 std::string::size_type pos     = str.find_first_of(delimiter, lastPos);
-	 
-	 while (std::string::npos != pos || std::string::npos != lastPos) {
-	    // Found a token, add it to the vector.
-	    tokens.push_back(str.substr(lastPos, pos - lastPos));
-	    // Skip delimiters.  Note the "not_of"
-	    lastPos = str.find_first_not_of(delimiter, pos);
-	    // Find next "non-delimiter"
-	    pos = str.find_first_of(delimiter, lastPos);
+   // tokenizes the string (path) and 
+   DLLLOCAL static const std::string stripPath(const std::string& odir) {
+      // tokenize the string
+      std::vector<std::string> ptoken, dirs;
+      tokenize(odir, ptoken);
+
+      // push them to the new path
+      std::vector<std::string>::iterator it;
+      for (it = ptoken.begin(); it<ptoken.end(); it++) {
+	 std::string d = *it;
+	 if (d == "." || d == "") { // ignore
+	    continue;
 	 }
-      }
-
-      // tokenizes the string (path) and 
-      DLLLOCAL static const std::string stripPath(const std::string& odir) {
-	 // tokenize the string
-	 std::vector<std::string> ptoken, dirs;
-	 tokenize(odir, ptoken);
-
-	 // push them to the new path
-	 std::vector<std::string>::iterator it;
-	 for (it = ptoken.begin(); it<ptoken.end(); it++) {
-	    std::string d = *it;
-	    if (d == "." || d == "") { // ignore
-	       continue;
-	    }
 	    
-	    if (d == ".." && !dirs.empty()) { // step back one step
-	       dirs.pop_back();
-	    }
-	    else {
-	       dirs.push_back(d);
-	    }
-	 }
-
-	 // create string out of rest..
-	 std::string ret;
-	 for (it = dirs.begin(); it<dirs.end(); it++) {
-	    ret+= "/"+(*it);
-	 }
-
-	 return ret;
-      }
-
-   protected:
-      // unlocked
-      DLLLOCAL std::string getPathIntern(const char *sub) const
-      {
-	 if (dirname)
-	    return std::string(dirname) + "/" + std::string(sub);
-	 return std::string(sub);
-      }
-
-      // check if the path in dirname exists
-      // return 0 if the path exists
-      // return errno of the opendir function
-      // unlocked
-      DLLLOCAL int checkPathIntern() const
-      {
-	 return !dirname ? -1 : verifyDirectory(dirname);
-      }
-
-   public:
-      const QoreEncoding *charset;
-      char *dirname;
-      mutable QoreThreadLock m;
-  
-      DLLLOCAL qore_qd_private(ExceptionSink *xsink, const QoreEncoding *cs, const char *dir) : charset(cs), dirname(dir ? strdup(dir) : 0)
-      {
-	 if (!dirname) {
-	    // set the directory to the cwd
-	    char *cwd = (char*)malloc(sizeof(char)*QORE_PATH_MAX);
-	    if (!cwd) { // error in malloc
-	       xsink->outOfMemory();
-	       return;
-	    }
-
-	    if (!getcwd(cwd, (size_t)QORE_PATH_MAX)) { // error in cwd
-	       free(cwd);
-	       return;
-	    }
-
-	    dirname = cwd;
-	 }
-      }
-
-      DLLLOCAL qore_qd_private(ExceptionSink *xsink, const qore_qd_private &old)
-      {
-	 AutoLocker al(old.m);
-	 charset = old.charset;
-	 if (old.dirname) {
-	    dirname = strdup(old.dirname);
-	    if (!dirname)
-	       xsink->outOfMemory();
-	 }
-	 else
-	    dirname = 0;
-      }
-      
-      DLLLOCAL ~qore_qd_private() {
-	 if (dirname) {
-	    free(dirname);
-	 }
-      }
-
-      DLLLOCAL QoreStringNode *get_dir_string() const
-      {
-	 AutoLocker al(m);
-	 return dirname ? new QoreStringNode(dirname, charset) : 0;
-      }
-
-      DLLLOCAL std::string getPath(const char *sub) const
-      {
-	 AutoLocker al(m);
-
-	 return getPathIntern(sub);
-      }
- 
-      DLLLOCAL int checkPath() const
-      {
-	 AutoLocker al(m);
-
-	 return checkPathIntern();
-      }
-
-      DLLLOCAL int chdir(const char* ndir, ExceptionSink *xsink)
-      {
-	 assert(ndir);
-
-	 // if relative path then join with the old path and strip the path
-	 std::string ds;
-
-	 AutoLocker al(m);
-	 if (ndir[0] != '/') { // relative path
-	    if (!dirname) {
-	       xsink->raiseException("DIR-CHDIR-ERROR", "cannot change to relative directory; no directory is set");
-	       return -1;
-	    }
-      
-	    ds = std::string(dirname) + "/" + std::string(ndir);
+	 if (d == ".." && !dirs.empty()) { // step back one step
+	    dirs.pop_back();
 	 }
 	 else {
-	    ds = ndir;
+	    dirs.push_back(d);
 	 }
-	 ds = stripPath(ds);
+      }
 
-	 // clean up old dirname
-	 if (dirname)
-	    free(dirname);
-	 // set the new dirname
-	 dirname = strdup(ds.c_str());
+      // create string out of rest..
+      std::string ret;
+      for (it = dirs.begin(); it<dirs.end(); it++) {
+	 ret+= "/"+(*it);
+      }
+
+      return ret;
+   }
+
+   // check if the given directory is accessable
+   // return errno of opendir function
+   // unlocked
+   DLLLOCAL static int verifyDirectory(const std::string &dir) {
+      DIR *dptr = opendir(dir.c_str());
+      if (!dptr)
+	 return errno;
+
+      // free again
+      closedir(dptr);
+	 
+      return 0;
+   }
+
+   // unlocked
+   DLLLOCAL std::string getPathIntern(const char *sub) const {
+      if (!dirname.empty())
+	 return dirname + "/" + std::string(sub);
+      return std::string(sub);
+   }
+
+   // check if the path in dirname exists
+   // return 0 if the path exists
+   // return errno of the opendir function
+   // unlocked
+   DLLLOCAL int checkPathIntern() const {
+      return dirname.empty() ? -1 : verifyDirectory(dirname);
+   }
+
+public:
+   DLLLOCAL qore_qd_private(ExceptionSink *xsink, const QoreEncoding *cs, const char *dir) : enc(cs) {
+      if (dir) {
+	 dirname = dir;
+	 return;
+      }
+
+      // set the directory to the cwd
+      char *cwd = (char*)malloc(sizeof(char)*QORE_PATH_MAX);
+      if (!cwd) { // error in malloc
+	 xsink->outOfMemory();
+	 return;
+      }
+      ON_BLOCK_EXIT(free, cwd);
+
+      if (getcwd(cwd, (size_t)QORE_PATH_MAX))
+	 dirname = cwd;
+   }
+
+   DLLLOCAL qore_qd_private(ExceptionSink *xsink, const qore_qd_private &old) {
+      AutoLocker al(old.m);
+      enc = old.enc;
+      dirname = old.dirname;
+   }
+      
+   DLLLOCAL QoreStringNode *get_dir_string() const {
+      AutoLocker al(m);
+      return !dirname.empty() ? new QoreStringNode(dirname, enc) : 0;
+   }
+
+   DLLLOCAL std::string getPath(const char *sub) const {
+      AutoLocker al(m);
+
+      return getPathIntern(sub);
+   }
  
-	 return checkPathIntern();
-      }
+   DLLLOCAL int checkPath() const {
+      AutoLocker al(m);
 
-      DLLLOCAL int mkdir(const char *subdir, int mode, ExceptionSink *xsink) const {
-	 assert(subdir);
-	 AutoLocker al(m);
+      return checkPathIntern();
+   }
 
-	 std::string path = getPathIntern(subdir);
-	 if (::mkdir(path.c_str(), mode)) {
-	    xsink->raiseErrnoException("DIR-MKDIR-ERROR", errno, "error creating directory '%s'", path.c_str());
+   DLLLOCAL int chdir(const char *ndir, ExceptionSink *xsink) {
+      assert(ndir);
+
+      // if relative path then join with the old path and strip the path
+      std::string ds;
+
+      AutoLocker al(m);
+      if (ndir[0] != '/') { // relative path
+	 if (dirname.empty()) {
+	    xsink->raiseException("DIR-CHDIR-ERROR", "cannot change to relative directory; no directory is set");
 	    return -1;
 	 }
+      
+	 ds = dirname + "/" + std::string(ndir);
+      }
+      else
+	 ds = ndir;
+
+      ds = stripPath(ds);
+      dirname = ds;
+ 
+      return checkPathIntern();
+   }
+
+   DLLLOCAL int mkdir(const char *subdir, int mode, ExceptionSink *xsink) const {
+      assert(subdir);
+      AutoLocker al(m);
+
+      std::string path = getPathIntern(subdir);
+      if (::mkdir(path.c_str(), mode)) {
+	 xsink->raiseErrnoException("DIR-MKDIR-ERROR", errno, "error creating directory '%s'", path.c_str());
+	 return -1;
+      }
+      return 0;
+   }
+
+   DLLLOCAL int rmdir(const char *subdir, ExceptionSink *xsink) const {
+      assert(subdir);
+      AutoLocker al(m);
+
+      std::string path = getPathIntern(subdir);
+      if (::rmdir(path.c_str())) {
+	 xsink->raiseErrnoException("DIR-RMDIR-ERROR", errno, "error removing directory '%s'", path.c_str());
+	 return -1;
+      }
+	 
+      return 0;
+   }
+
+   DLLLOCAL QoreListNode *list(ExceptionSink *xsink, int stat_filter, const QoreString *regex, int regex_options) const {
+      AutoLocker al(m);
+
+      if (dirname.empty()) {
+	 xsink->raiseException("DIR-READ-ERROR", "cannot list directory; no directory is set");
 	 return 0;
       }
-
-      DLLLOCAL int rmdir(const char *subdir, ExceptionSink *xsink) const
-      {
-	 assert(subdir);
-	 AutoLocker al(m);
-
-	 std::string path = getPathIntern(subdir);
-	 if (::rmdir(path.c_str())) {
-	    xsink->raiseErrnoException("DIR-RMDIR-ERROR", errno, "error removing directory '%s'", path.c_str());
-	    return -1;
-	 }
+   
+      SimpleRefHolder<QoreRegexNode> re(0);
+   
+      if (regex) {
+	 re = new QoreRegexNode(regex, regex_options, xsink);
+	 if (*xsink)
+	    return 0;
+      }
+      // avoid memory leaks...
+      ReferenceHolder<QoreListNode> lst(new QoreListNode, xsink);
 	 
+      DIR *dptr = opendir(dirname.c_str());
+      if (!dptr) {
+	 xsink->raiseErrnoException("DIR-READ-ERROR", errno, "error opening directory for reading");
 	 return 0;
       }
-
-      DLLLOCAL QoreListNode *list(ExceptionSink *xsink, int stat_filter, const QoreString *regex, int regex_options) const {
-	 AutoLocker al(m);
-
-	 if (!dirname) {
-	    xsink->raiseException("DIR-READ-ERROR", "cannot list directory; no directory is set");
-	    return 0;
-	 }
-   
-	 SimpleRefHolder<QoreRegexNode> re(0);
-   
-	 if (regex) {
-	    re = new QoreRegexNode(regex, regex_options, xsink);
-	    if (*xsink)
-	       return 0;
-	 }
-	 // avoid memory leaks...
-	 ReferenceHolder<QoreListNode> lst(new QoreListNode, xsink);
+      ON_BLOCK_EXIT(closedir, dptr);
 	 
-	 DIR *dptr = opendir(dirname);
-	 if (!dptr) {
-	    xsink->raiseErrnoException("DIR-READ-ERROR", errno, "error opening directory for reading");
-	    return 0;
-	 }
-	 ON_BLOCK_EXIT(closedir, dptr);
-	 
-	 struct dirent *de;
-	 while ((de = readdir(dptr))) {
-	    if (strcmp(de->d_name, ".") && strcmp(de->d_name, "..")) {
-	       bool ok = true;
-	       // if we are filtering out directories, then we have to stat the file
-	       if (stat_filter != -1) {
-		  QoreString fname(dirname);
-		  fname.concat('/');
-		  fname.concat(de->d_name);
-		  struct stat buf;
-		  int rc = lstat(fname.getBuffer(), &buf);
-		  if (rc) {
-		     xsink->raiseErrnoException("DIR-READ-ERROR", errno, "stat() failed on '%s'", fname.getBuffer());
+      struct dirent *de;
+      while ((de = readdir(dptr))) {
+	 if (strcmp(de->d_name, ".") && strcmp(de->d_name, "..")) {
+	    bool ok = true;
+	    // if we are filtering out directories, then we have to stat the file
+	    if (stat_filter != -1) {
+	       QoreString fname(dirname);
+	       fname.concat('/');
+	       fname.concat(de->d_name);
+	       struct stat buf;
+	       int rc = lstat(fname.getBuffer(), &buf);
+	       if (rc) {
+		  xsink->raiseErrnoException("DIR-READ-ERROR", errno, "stat() failed on '%s'", fname.getBuffer());
+		  return 0;
+	       }
+	       ok = (bool)(buf.st_mode & stat_filter);
+	    }
+	    if (ok) {
+	       // if there is a regular expression, see if the name matches
+	       if (regex) {
+		  QoreString targ(de->d_name, enc);
+		  bool b = re->exec(&targ, xsink);
+		  if (*xsink)
 		     return 0;
-		  }
-		  ok = (bool)(buf.st_mode & stat_filter);
+		  if (!b)
+		     continue;
 	       }
-	       if (ok) {
-		  // if there is a regular expression, see if the name matches
-		  if (regex) {
-		     QoreString targ(de->d_name, charset);
-		     bool b = re->exec(&targ, xsink);
-		     if (*xsink)
-			return 0;
-		     if (!b)
-			continue;
-		  }
-		  lst->push(new QoreStringNode(de->d_name, charset));
-	       }
+	       lst->push(new QoreStringNode(de->d_name, enc));
 	    }
 	 }
+      }
 	    
 #if 0
-	 // check for error of readdir - not necessary???
-	 if (errno) {
-	    xsink->raiseErrnoException("DIR-READ-ERROR", errno, "error while reading directory");
-	    // but anyhow: close the dir pointer and ignore the message
-	    return 0;
-	 }
+      // check for error of readdir - not necessary???
+      if (errno) {
+	 xsink->raiseErrnoException("DIR-READ-ERROR", errno, "error while reading directory");
+	 // but anyhow: close the dir pointer and ignore the message
+	 return 0;
+      }
 #endif
-	 return lst.release();
+      return lst.release();
+   }
+
+   DLLLOCAL int create(int mode, ExceptionSink *xsink) const {
+      AutoLocker al(m);
+
+      if (dirname.empty()) {
+	 xsink->raiseException("DIR-CREATE-ERROR", "cannot create directory; no directory is set");
+	 return -1;
       }
 
-      DLLLOCAL int create(int mode, ExceptionSink *xsink) const
-      {
-	 AutoLocker al(m);
-
-	 if (!dirname) {
-	    xsink->raiseException("DIR-CREATE-ERROR", "cannot create directory; no directory is set");
-	    return -1;
-	 }
-
-	 // split the directory in its subdirectories tree
-	 std::vector<std::string> dirs;
-	 tokenize(std::string(dirname), dirs);
+      // split the directory in its subdirectories tree
+      std::vector<std::string> dirs;
+      tokenize(dirname, dirs);
 	 
-	 // iterate through all directories and try to create them if
-	 // they do not exist (should happen only on the first level)
-	 std::vector<std::string>::iterator it;
-	 std::string path;
-	 int cnt = 0;
-	 const char *path_str;
-	 for (it = dirs.begin(); it < dirs.end(); it++) {
-	    path += "/" + (*it); // the actual path
-	    path_str = path.c_str();
-	    if (verifyDirectory(path_str)) { // not existing
-	       if (::mkdir(path_str, mode)) { // failed
-		  xsink->raiseErrnoException("DIR-CREATE-ERROR", errno, "cannot mkdir '%s'", path_str);
-		  return -1;
-	       }
-	       cnt++;
+      // iterate through all directories and try to create them if
+      // they do not exist (should happen only on the first level)
+      std::vector<std::string>::iterator it;
+      std::string path;
+      int cnt = 0;
+      const char *path_str;
+      for (it = dirs.begin(); it < dirs.end(); it++) {
+	 path += "/" + (*it); // the actual path
+	 path_str = path.c_str();
+	 if (verifyDirectory(path)) { // not existing
+	    if (::mkdir(path_str, mode)) { // failed
+	       xsink->raiseErrnoException("DIR-CREATE-ERROR", errno, "cannot mkdir '%s'", path_str);
+	       return -1;
 	    }
+	    cnt++;
 	 }
+      }
 	 
-	 return cnt;
+      return cnt;
+   }
+
+   DLLLOCAL int chmod(int mode, ExceptionSink *xsink) const {
+      AutoLocker al(m);
+
+      if (dirname.empty()) {
+	 xsink->raiseException("DIR-CHMOD-ERROR", "cannot change directory mode; no directory is set");
+	 return -1;
       }
 
-      DLLLOCAL int chmod(int mode, ExceptionSink *xsink) const 
-      {
-	 AutoLocker al(m);
+      if (::chmod(dirname.c_str(), mode)) {
+	 xsink->raiseErrnoException("DIR-CHMOD-ERROR", errno, "error in Dir::chmod()");
+	 return -1;
+      }
 
-	 if (!dirname) {
-	    xsink->raiseException("DIR-CHMOD-ERROR", "cannot change directory mode; no directory is set");
-	    return -1;
-	 }
+      return 0;
+   }
 
-	 if (::chmod(dirname, mode)) {
-	    xsink->raiseErrnoException("DIR-CHMOD-ERROR", errno, "error in Dir::chmod()");
-	    return -1;
-	 }
+   DLLLOCAL int chown(uid_t uid, gid_t gid, ExceptionSink *xsink) const {
+      AutoLocker al(m);
 
+      if (dirname.empty()) {
+	 xsink->raiseException("DIR-CHOWN-ERROR", "cannot change directory ownership; no directory is set");
+	 return -1;
+      }
+
+      if (::chown(dirname.c_str(), uid, gid)) {
+	 xsink->raiseErrnoException("DIR-CHOWN-ERROR", errno, "error in Dir::chown()");
 	 return 0;
       }
 
-      DLLLOCAL int chown(uid_t uid, gid_t gid, ExceptionSink *xsink) const
-      {
-	 AutoLocker al(m);
+      return 0;
+   }
 
-	 if (!dirname) {
-	    xsink->raiseException("DIR-CHOWN-ERROR", "cannot change directory ownership; no directory is set");
-	    return -1;
-	 }
+   DLLLOCAL QoreListNode *stat(ExceptionSink *xsink) const {
+      AutoLocker al(m);
 
-	 if (::chown(dirname, uid, gid)) {
-	    xsink->raiseErrnoException("DIR-CHOWN-ERROR", errno, "error in Dir::chown()");
-	    return 0;
-	 }
-
+      if (dirname.empty()) {
+	 xsink->raiseException("DIR-STAT-ERROR", "cannot stat; no directory is set");
 	 return 0;
       }
 
+      struct stat sbuf;
+      if (::stat(dirname.c_str(), &sbuf)) {
+	 xsink->raiseErrnoException("DIR-STAT-ERROR", errno, "stat() call failed");
+	 return 0;
+      }
+
+      return stat_to_list(sbuf);
+   }
+
+   DLLLOCAL QoreHashNode *hstat(ExceptionSink *xsink) const {
+      AutoLocker al(m);
+
+      if (dirname.empty()) {
+	 xsink->raiseException("DIR-HSTAT-ERROR", "cannot stat; no directory is set");
+	 return 0;
+      }
+
+      struct stat sbuf;
+      if (::stat(dirname.c_str(), &sbuf)) {
+	 xsink->raiseErrnoException("DIR-HSTAT-ERROR", errno, "stat() call failed");
+	 return 0;
+      }
+
+      return stat_to_hash(sbuf);
+   }
+
+   DLLLOCAL QoreHashNode *statvfs(ExceptionSink *xsink) const {
+      AutoLocker al(m);
+
+      if (dirname.empty()) {
+	 xsink->raiseException("DIR-STATVFS-ERROR", "cannot execute File::statvfs(); no directory is set");
+	 return 0;
+      }
+  
+      struct statvfs vfs;
+      if (::statvfs(dirname.c_str(), &vfs)) {
+	 xsink->raiseErrnoException("DIR-STATVFS-ERROR", errno, "statvfs() call failed");
+	 return 0;
+      }
+
+      return statvfs_to_hash(vfs);
+   }
+
+   const QoreEncoding *getEncoding() const {
+      return enc;
+   }
 };
 
 const QoreEncoding *QoreDir::getEncoding() const {
-  return priv->charset;
+   return priv->getEncoding();
 }
 
 QoreDir::QoreDir(ExceptionSink *xsink, const QoreEncoding *cs, const char *dir) : priv(new qore_qd_private(xsink, cs, dir)) {}
 
-QoreDir::QoreDir(ExceptionSink *xsink, const QoreDir &old) : priv(new qore_qd_private(xsink, *old.priv))
-{
+QoreDir::QoreDir(ExceptionSink *xsink, const QoreDir &old) : priv(new qore_qd_private(xsink, *old.priv)) {
 }
 
 QoreDir::~QoreDir() {
-  delete priv;
+   delete priv;
 }
 
 // return the actual dirname
@@ -414,32 +437,38 @@ QoreListNode* QoreDir::list(ExceptionSink *xsink, int stat_filter, const QoreStr
    return priv->list(xsink, stat_filter, regex, regex_options);
 }
 
-int QoreDir::mkdir(ExceptionSink *xsink, const char *subdir, int mode) const
-{
+int QoreDir::mkdir(ExceptionSink *xsink, const char *subdir, int mode) const {
    return priv->mkdir(subdir, mode, xsink);
 }
 
-int QoreDir::rmdir(const char *subdir, ExceptionSink *xsink) const
-{
+int QoreDir::rmdir(const char *subdir, ExceptionSink *xsink) const {
    return priv->rmdir(subdir, xsink);
 }
 
-std::string QoreDir::getPath(const char *sub) const
-{
+std::string QoreDir::getPath(const char *sub) const {
    return priv->getPath(sub);
 }
 
-int QoreDir::checkPath() const
-{
+int QoreDir::checkPath() const {
    return priv->checkPath();
 }
 
-int QoreDir::chmod(int mode, ExceptionSink *xsink) const
-{
+int QoreDir::chmod(int mode, ExceptionSink *xsink) const {
    return priv->chmod(mode, xsink);
 }
 
-int QoreDir::chown(uid_t uid, gid_t gid, ExceptionSink *xsink) const
-{
+int QoreDir::chown(uid_t uid, gid_t gid, ExceptionSink *xsink) const {
    return priv->chown(uid, gid, xsink);
+}
+
+QoreListNode *QoreDir::stat(ExceptionSink *xsink) const {
+   return priv->stat(xsink);
+}
+
+QoreHashNode *QoreDir::hstat(ExceptionSink *xsink) const {
+   return priv->hstat(xsink);
+}
+
+QoreHashNode *QoreDir::statvfs(ExceptionSink *xsink) const {
+   return priv->statvfs(xsink);
 }

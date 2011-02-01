@@ -1839,6 +1839,13 @@ raised from the <link linkend="FtpClient_Class">FtpClient</link> class.</para></
 	  </row>
 	  <row>
 	    <entry>
+              <para><code><link linkend="hash_type">hash</link> <link linkend="File_hstat">File::hstat</link>()</code></para>
+            </entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Returns a <link linkend="Stat_Hash">Stat Hash</link> about the file's status or throws an exception if any errors occur.</para></entry>
+	  </row>
+	  <row>
+	    <entry>
               <para><code><link linkend="bool_type">bool</link> <link linkend="File_isDataAvailable">File::isDataAvailable</link>(<link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = 0)</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
@@ -2011,6 +2018,20 @@ raised from the <link linkend="FtpClient_Class">FtpClient</link> class.</para></
 	  </row>
 	  <row>
 	    <entry>
+              <para><code><link linkend="list_type">list</link> <link linkend="File_stat">File::stat</link>()</code></para>
+            </entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Returns a <link linkend="Stat_List">Stat List</link> about the file's status or throws an exception if any errors occur.</para></entry>
+	  </row>
+	  <row>
+	    <entry>
+              <para><code><link linkend="hash_type">hash</link> <link linkend="File_statvfs">File::statvfs</link>()</code></para>
+            </entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Returns a <link linkend="Filesystem_Status_Hash">Filesystem Status Hash</link> about the file's filesystem status or throws an exception if any errors occur.</para></entry>
+	  </row>
+	  <row>
+	    <entry>
               <para><code><link linkend="int_type">int</link> <link linkend="File_sync">File::sync</link>()</code></para>
             </entry>
 	    <entry><para>N</para></entry>
@@ -2080,6 +2101,43 @@ raised from the <link linkend="FtpClient_Class">FtpClient</link> class.</para></
 	    <entry><para>Y</para></entry>
 	    <entry><para>Writes an 8-byte integer in little-endian format.</para></entry>
 	  </row>
+
+	  <row>
+	    <entry>
+              <para><code><command>static</command> <link linkend="hash_type">hash</link> <link linkend="static_File_hlstat">File::hlstat</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>)</code></para>
+            </entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Returns a <link linkend="Stat_Hash">Stat Hash</link> about the given path's status (does not follow symbolic links) or throws an exception if any errors occur.</para></entry>
+	  </row>
+	  <row>
+	    <entry>
+              <para><code><command>static</command> <link linkend="hash_type">hash</link> <link linkend="static_File_hstat">File::hstat</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>)</code></para>
+            </entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Returns a <link linkend="Stat_Hash">Stat Hash</link> about the given path's status (follows symbolic links) or throws an exception if any errors occur.</para></entry>
+	  </row>
+	  <row>
+	    <entry>
+              <para><code><command>static</command> <link linkend="list_type">list</link> <link linkend="static_File_lstat">File::lstat</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>)</code></para>
+            </entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Returns a <link linkend="Stat_List">Stat List</link> about given path's status (does not follow synbolic links) or throws an exception if any errors occur.</para></entry>
+	  </row>
+	  <row>
+	    <entry>
+              <para><code><command>static</command> <link linkend="list_type">list</link> <link linkend="static_File_stat">File::stat</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>)</code></para>
+            </entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Returns a <link linkend="Stat_List">Stat List</link> about given path's status (follows symbolic links) or throws an exception if any errors occur.</para></entry>
+	  </row>
+	  <row>
+	    <entry>
+              <para><code><command>static</command> <link linkend="hash_type">hash</link> <link linkend="static_File_statvfs">File::statvfs</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>)</code></para>
+            </entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Returns a <link linkend="Filesystem_Status_Hash">Filesystem Status Hash</link> about the given path's filesystem status or throws an exception if any errors occur.</para></entry>
+	  </row>
+
 	</tbody>
       </tgroup>
     </table>
@@ -2930,6 +2988,69 @@ stdin.getTerminalAttributes($termios);</programlisting>
       </table>
 
     </sect2>
+
+  <sect2 id="File_hstat">
+    <title>File::hstat()</title>
+
+    <variablelist>
+      <varlistentry>
+	<term>Synopsis</term>
+	<listitem>
+	  <para>Returns a <link linkend="Stat_Hash">hash of file status values</link> for the current file.</para>
+	  <para>If any errors occur, a <code>FILE-HSTAT-ERROR</code> exception is thrown.</para>
+	  <para>See also <link linkend="static_File_hstat">static File::hstat()</link>.</para>
+	</listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Prototype</term>
+      <listitem>
+	<para><code><link linkend="hash_type">hash</link> <link linkend="File_hstat">File::hstat</link>()</code></para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting><command>my</command> hash $h = $file.hstat();</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+  <table>
+    <title>Return Values for File::hstat()</title>
+    <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>Return Type</para></entry>
+	  <entry><para>Description</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><code><link linkend="hash_type">hash</link></code></para></entry>
+	  <entry><para>Returns a hash of file status values for the current file (must be open); if any errors occur, an exception is thrown.  See also <link linkend="static_File_hstat">static File::hstat()</link>.  See <link linkend="Stat_Hash">Stat Hash</link> for a description of the hash returned by this method.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+
+      <table>
+	<title>Exceptions Thrown by File::hstat()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>FILE-HSTAT-ERROR</code></para></entry>
+	      <entry><para><code>stat()</code> call failed or file not open.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+  </sect2>
 
     <sect2 id="File_isDataAvailable">
       <title>File::isDataAvailable()</title>
@@ -4717,6 +4838,132 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 
     </sect2>
 
+  <sect2 id="File_stat">
+    <title>File::stat()</title>
+
+    <variablelist>
+      <varlistentry>
+	<term>Synopsis</term>
+	<listitem>
+	  <para>Returns a <link linkend="Stat_List">list of file status values</link> for the current file (must be open).</para>
+	  <para>If any errors occur, a <code>FILE-STAT-ERROR</code> exception is thrown.</para>
+	  <para>See also <link linkend="static_File_stat">static File::stat()</link>.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Prototype</term>
+	<listitem>
+	  <para><code><link linkend="list_type">list</link> <link linkend="File_stat">File::stat</link>()</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Example</term>
+	<listitem>
+	  <programlisting><command>my</command> int $mode = $file.stat()[2];</programlisting>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+
+    <table>
+      <title>Return Values for File::stat()</title>
+    <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>Return Type</para></entry>
+	  <entry><para>Description</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><code><link linkend="list_type">list</link></code></para></entry>
+	  <entry><para>Returns a list of file status values for the current file (must be open); an exception is thrown if any errors occur.  See <link linkend="Stat_List">Stat List</link> below for a description of the list returned by this method.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+
+      <table>
+	<title>Exceptions Thrown by File::stat()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>FILE-STAT-ERROR</code></para></entry>
+	      <entry><para><code>stat()</code> call failed or file not open.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+  </sect2>
+
+  <sect2 id="File_statvfs">
+    <title>File::statvfs()</title>
+
+    <variablelist>
+      <varlistentry>
+	<term>Synopsis</term>
+	<listitem>
+	  <para>Returns a <link linkend="Filesystem_Status_Hash">hash of filesystem status values</link> for the current file (must be open).</para>
+	  <para>If any errors occur, a <code>FILE-STATVFS-ERROR</code> exception is thrown.</para>
+	  <para>See also <link linkend="static_File_statvfs">static File::statvfs()</link>.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Prototype</term>
+      <listitem>
+	<para><code><link linkend="hash_type">hash</link> <link linkend="File_statvfs">File::statvfs</link>()</code></para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting><command>my</command> hash $h = $file.statvfs()</programlisting>
+      </listitem>
+    </varlistentry>
+    </variablelist>
+
+    <table>
+      <title>Return Values for File::statvfs()</title>
+      <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<thead>
+	  <row>
+	    <entry><para>Return Type</para></entry>
+	    <entry><para>Description</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+	  <row>
+	    <entry><para><code><link linkend="hash_type">hash</link></code></para></entry>
+	    <entry><para>Returns a hash of filesystem status values current file; an exception is thrown if any errors occur.  See also <link linkend="static_File_statvfs">static File::statvfs()</link>.  See <link linkend="Filesystem_Status_Hash">Filesystem Status Hash</link> for a description of the hash returned by this function.</para></entry>
+	  </row>
+	</tbody>
+      </tgroup>
+    </table>
+    
+    <table>
+      <title>Exceptions Thrown by File::statvfs()</title>
+      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	<thead>
+	  <row>
+	    <entry><para>err</para></entry>
+	    <entry><para>desc</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+	  <row>
+	    <entry><para><code>FILE-STATVFS-ERROR</code></para></entry>
+	    <entry><para><code>statvfs()</code> call failed or file is not open.</para></entry>
+	  </row>
+	</tbody>
+      </tgroup>
+    </table>
+  </sect2>
+
     <sect2 id="File_sync">
       <title>File::sync()</title>
 
@@ -5509,7 +5756,362 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
       </table>
     </sect2>
   </sect1>
+  
+  <sect2 id="static_File_hlstat">
+    <title>static File::hlstat()</title>
 
+    <variablelist>
+      <varlistentry>
+	<term>Synopsis</term>
+	<listitem>
+	  <para>Returns a <link linkend="Stat_Hash"> hash of file status values</link> for the path passed; symbolic links are not followed; information is returned about symbolic links (see <link linkend="static_File_hstat">File::hstat()</link> for a version of this method that follows symbolic links).</para>
+	  <para>If any errors occur, a <code>FILE-HLSTAT-ERROR</code> exception is thrown.</para>
+	  <para>See also <link linkend="hlstat">hlstat()</link> for a normal function returns <code>NOTHING</code> instead of throwing an exception when errors occur.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Prototype</term>
+	<listitem>
+	  <para><code><command>static</command> <link linkend="hash_type">hash</link> <link linkend="static_File_hlstat">File::hlstat</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>)</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Example</term>
+	<listitem>
+	  <programlisting><command>my</command> string $type = File::hlstat("/bin/sh").type; # returns "REGULAR"</programlisting>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Restrictions</term>
+	<listitem>
+	  <para>Not available with <code><link linkend="no-filesystem">PO_NO_FILESYSTEM</link></code></para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+    
+    <table>
+      <title>Arguments and Return Values for File::hlstat()</title>
+      <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<thead>
+	  <row>
+	    <entry><para>Argument Type</para></entry>
+	    <entry><para>Return Type</para></entry>
+	    <entry><para>Description</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+	  <row>
+	    <entry><para><code><link linkend="string_type">string</link> <replaceable>$path</replaceable></code></para></entry>
+	    <entry><para><code><link linkend="hash_type">hash</link></code></para></entry>
+	    <entry><para>Returns a hash of file status values for the file passed or <link linkend="NOTHING">NOTHING</link> if the <code>stat()</code> call fails; symbolic links are not followed (information is returned about symbolic links).  See also <link linkend="hlstat">hlstat()</link>.  See <link linkend="Stat_Hash">Stat Hash</link> below for a description of the hash returned by this method.</para></entry>
+	  </row>
+	</tbody>
+      </tgroup>
+    </table>
+    
+    <table>
+      <title>Exceptions Thrown by File::hlstat()</title>
+      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	<thead>
+	  <row>
+	    <entry><para>err</para></entry>
+	    <entry><para>desc</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+	  <row>
+	    <entry><para><code>FILE-HLSTAT-ERROR</code></para></entry>
+	    <entry><para><code>lstat()</code> call failed.</para></entry>
+	  </row>
+	</tbody>
+      </tgroup>
+    </table>
+  </sect2>
+
+  <sect2 id="static_File_hstat">
+    <title>static File::hstat()</title>
+
+    <variablelist>
+      <varlistentry>
+	<term>Synopsis</term>
+	<listitem>
+	  <para>Returns a <link linkend="Stat_Hash">hash of file status values</link> for the file passed; symbolic links are followed; see <link linkend="static_File_hlstat">File::hlstat()</link> to retrieve information about a symbolic link.</para>
+	  <para>If any errors occur, a <code>FILE-HSTAT-ERROR</code> exception is thrown.</para>
+	  <para>See also <link linkend="hstat">hstat()</link> for a normal function returns <code>NOTHING</code> instead of throwing an exception when errors occur.</para>
+	</listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Prototype</term>
+      <listitem>
+	<para><code><command>static</command> <link linkend="hash_type">hash</link> <link linkend="static_File_hstat">File::hstat</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>)</code></para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting><command>my</command> hash $h = File::hstat("/bin/sh");</programlisting>
+      </listitem>
+    </varlistentry>
+      <varlistentry>
+	<term>Restrictions</term>
+	<listitem>
+	  <para>Not available with <code><link linkend="no-filesystem">PO_NO_FILESYSTEM</link></code></para>
+	</listitem>
+      </varlistentry>
+  </variablelist>
+
+  <table>
+    <title>Arguments and Return Values for File::hstat()</title>
+    <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>Argument Type</para></entry>
+	  <entry><para>Return Type</para></entry>
+	  <entry><para>Description</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><code><link linkend="string_type">string</link> <replaceable>$path</replaceable></code></para></entry>
+	  <entry><para><code><link linkend="hash_type">hash</link></code></para></entry>
+	  <entry><para>Returns a hash of file status values for the file passed; symbolic links are followed; if any errors occur, an exception is thrown.  See also <link linkend="hstat">hstat()</link>.  See <link linkend="Stat_Hash">Stat Hash</link> for a description of the hash returned by this method.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+
+      <table>
+	<title>Exceptions Thrown by File::hstat()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>FILE-HSTAT-ERROR</code></para></entry>
+	      <entry><para><code>stat()</code> call failed.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+  </sect2>
+
+  <sect2 id="static_File_lstat">
+    <title>static File::lstat()</title>
+
+    <variablelist>
+      <varlistentry>
+	<term>Synopsis</term>
+	<listitem>
+	  <para>Returns a <link linkend="Stat_List">list of file status values</link> for the file or symbolic link passed.  Does not follow symbolic links, but rather returns filesystem information for symbolic links.</para>
+	  <para>If any errors occur, a <code>FILE-LSTAT-ERROR</code> exception is thrown.</para>
+	  <para>See also <link linkend="lstat">lstat()</link> for a normal function returns <code>NOTHING</code> instead of throwing an exception when errors occur.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Prototype</term>
+      <listitem>
+            <para><code><command>static</command> <link linkend="list_type">list</link> <link linkend="static_File_lstat">File::lstat</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>)</code></para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting><command>my</command> list $list = File::lstat("/bin/sh");</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Restrictions</term>
+      <listitem>
+	<para>Not available with <code><link linkend="no-filesystem">PO_NO_FILESYSTEM</link></code></para>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+  <table>
+    <title>Arguments and Return Values for File::lstat()</title>
+    <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>Argument Type</para></entry>
+	  <entry><para>Return Type</para></entry>
+	  <entry><para>Description</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><code><link linkend="string_type">string</link> <replaceable>$path</replaceable></code></para></entry>
+	  <entry><para><code><link linkend="list_type">list</link></code></para></entry>
+	  <entry><para>Returns a list of file status values for the file passed.  See <link linkend="Stat_List">Stat List</link> for a description of the list returned by this function.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+
+      <table>
+	<title>Exceptions Thrown by File::lstat()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>FILE-LSTAT-ERROR</code></para></entry>
+	      <entry><para><code>lstat()</code> call failed.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+</sect2>
+
+  <sect2 id="static_File_stat">
+    <title>static File::stat()</title>
+
+    <variablelist>
+      <varlistentry>
+	<term>Synopsis</term>
+	<listitem>
+	  <para>Returns a <link linkend="Stat_List">list of file status values</link> for the path passed, following any symbolic links.</para>
+	  <para>If any errors occur, a <code>FILE-STAT-ERROR</code> exception is thrown.</para>
+	  <para>See also <link linkend="stat">stat()</link> for a normal function returns <code>NOTHING</code> instead of throwing an exception when errors occur.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Prototype</term>
+	<listitem>
+	  <para><code><command>static</command> <link linkend="list_type">list</link> <link linkend="static_File_stat">File::stat</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>)</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Example</term>
+	<listitem>
+	  <programlisting><command>my</command> int $mode = File::stat($filepath)[2];</programlisting>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Restrictions</term>
+	<listitem>
+	  <para>Not available with <code><link linkend="no-filesystem">PO_NO_FILESYSTEM</link></code></para>
+      </listitem>
+      </varlistentry>
+    </variablelist>
+
+    <table>
+      <title>Arguments and Return Values for File::stat()</title>
+    <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>Argument Type</para></entry>
+	  <entry><para>Return Type</para></entry>
+	  <entry><para>Description</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><code><link linkend="string_type">string</link> <replaceable>$path</replaceable></code></para></entry>
+	  <entry><para><code><link linkend="list_type">list</link></code></para></entry>
+	  <entry><para>Returns a list of file status values for the file passed, following symbolic links; an exception is thrown if any errors occur.  See <link linkend="Stat_List">Stat List</link> below for a description of the list returned by this method.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+
+      <table>
+	<title>Exceptions Thrown by File::stat()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>FILE-STAT-ERROR</code></para></entry>
+	      <entry><para><code>stat()</code> call failed.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+  </sect2>
+
+  <sect2 id="static_File_statvfs">
+    <title>static File::statvfs()</title>
+
+    <variablelist>
+      <varlistentry>
+	<term>Synopsis</term>
+	<listitem>
+	  <para>Returns a <link linkend="Filesystem_Status_Hash">hash of filesystem status values</link> for the path passed.</para>
+	  <para>If any errors occur, a <code>FILE-STATVFS-ERROR</code> exception is thrown.</para>
+	  <para>See also <link linkend="statvfs">statvfs()</link> for a normal function returns <code>NOTHING</code> instead of throwing an exception when errors occur.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Prototype</term>
+      <listitem>
+	<para><code><command>static</command> <link linkend="hash_type">hash</link> <link linkend="static_File_statvfs">File::statvfs</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>)</code></para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting><command>my</command> hash $h = File::statvfs("/tmp")</programlisting>
+      </listitem>
+    </varlistentry>
+      <varlistentry>
+	<term>Restrictions</term>
+	<listitem>
+	  <para>Not available with <code><link linkend="no-filesystem">PO_NO_FILESYSTEM</link></code></para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+
+    <table>
+      <title>Arguments and Return Values for File::statvfs()</title>
+      <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<thead>
+	  <row>
+	    <entry><para>Argument Type</para></entry>
+	    <entry><para>Return Type</para></entry>
+	    <entry><para>Description</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+	  <row>
+	    <entry><para><code><link linkend="string_type">string</link> <replaceable>$path</replaceable></code></para></entry>
+	    <entry><para><code><link linkend="hash_type">hash</link></code></para></entry>
+	    <entry><para>Returns a hash of filesystem status values for the file or directory name passed; an exception is thrown if any errors occur.  See also <link linkend="statvfs">statvfs()</link>.  See <link linkend="Filesystem_Status_Hash">Filesystem Status Hash</link> for a description of the hash returned by this function.</para></entry>
+	  </row>
+	</tbody>
+      </tgroup>
+    </table>
+    
+    <table>
+      <title>Exceptions Thrown by File::statvfs()</title>
+      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	<thead>
+	  <row>
+	    <entry><para>err</para></entry>
+	    <entry><para>desc</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+	  <row>
+	    <entry><para><code>FILE-STATVFS-ERROR</code></para></entry>
+	    <entry><para><code>statvfs()</code> call failed.</para></entry>
+	  </row>
+	</tbody>
+      </tgroup>
+    </table>
+  </sect2>
 
   <sect1 id="Dir_Class">
     <title>Dir Class</title>
@@ -5608,6 +6210,13 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 	  </row>
 	  <row>
 	    <entry>
+              <para><code><link linkend="hash_type">hash</link> <link linkend="Dir_hstat">Dir::hstat</link>()</code></para>
+            </entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Returns a <link linkend="Stat_Hash">Stat Hash</link> about the directory's status or throws an exception if any errors occur.</para></entry>
+	  </row>
+	  <row>
+	    <entry>
               <para><code><link linkend="nothing_type">nothing</link> <link linkend="Dir_mkdir">Dir::mkdir</link>(<link linkend="string_type">string</link> <replaceable>$name</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$mode</replaceable> = 0777)</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
@@ -5621,6 +6230,20 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 	    <entry><para>Delete an empty subdirectory with the name in the directory; if any errors occur an exception is thrown.</para></entry>
 	  </row>
 	  <row>
+	    <entry>
+              <para><code><link linkend="list_type">list</link> <link linkend="Dir_stat">File::stat</link>()</code></para>
+            </entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Returns a <link linkend="Stat_List">Stat List</link> about the directory's status or throws an exception if any errors occur.</para></entry>
+	  </row>
+	  <row>
+	    <entry>
+              <para><code><link linkend="hash_type">hash</link> <link linkend="Dir_statvfs">Dir::statvfs</link>()</code></para>
+            </entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Returns a <link linkend="Filesystem_Status_Hash">Filesystem Status Hash</link> about the directory's filesystem status or throws an exception if any errors occur.</para></entry>
+	  </row>
+          <row>
 	    <entry>
               <para><code><link linkend="list_type">list</link> <link linkend="Dir_list">Dir::list</link>()</code></para>
               <para><code><link linkend="list_type">list</link> <link linkend="Dir_list">Dir::list</link>(<link linkend="string_type">string</link> <replaceable>$regex</replaceable>)</code></para>
@@ -5992,7 +6615,7 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 	    </row>
 	  </tbody>
 	</tgroup>
-      </table>
+      </table> 
     </sect2>
 
     <sect2 id="Dir_chown">
@@ -6202,6 +6825,67 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
       </table>
     </sect2>
 
+  <sect2 id="Dir_hstat">
+    <title>Dir::hstat()</title>
+
+    <variablelist>
+      <varlistentry>
+	<term>Synopsis</term>
+	<listitem>
+	  <para>Returns a <link linkend="Stat_Hash">hash of directory status values</link> for the current directory.</para>
+	  <para>If any errors occur, a <code>DIR-HSTAT-ERROR</code> exception is thrown.</para>
+	</listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Prototype</term>
+      <listitem>
+	<para><code><link linkend="hash_type">hash</link> <link linkend="Dir_hstat">Dir::hstat</link>()</code></para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting><command>my</command> hash $h = $dir.hstat();</programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+  <table>
+    <title>Return Values for Dir::hstat()</title>
+    <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>Return Type</para></entry>
+	  <entry><para>Description</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><code><link linkend="hash_type">hash</link></code></para></entry>
+	  <entry><para>Returns a hash of directory status values for the current directory (must be set); if any errors occur, an exception is thrown.  See <link linkend="Stat_Hash">Stat Hash</link> for a description of the hash returned by this method.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+
+      <table>
+	<title>Exceptions Thrown by Dir::hstat()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>DIR-HSTAT-ERROR</code></para></entry>
+	      <entry><para><code>stat()</code> call failed or no directory name set.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+  </sect2>
 
     <sect2 id="Dir_mkdir">
       <title>Dir::mkdir()</title>
@@ -6334,6 +7018,132 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
       </table>
     </sect2>
 
+
+  <sect2 id="Dir_stat">
+    <title>Dir::stat()</title>
+
+    <variablelist>
+      <varlistentry>
+	<term>Synopsis</term>
+	<listitem>
+	  <para>Returns a <link linkend="Stat_List">list of file status values</link> for the current directory.</para>
+	  <para>If any errors occur, a <code>DIR-STAT-ERROR</code> exception is thrown.</para>
+	  <para>See also <link linkend="static_File_stat">static File::stat()</link>.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Prototype</term>
+	<listitem>
+	  <para><code><link linkend="list_type">list</link> <link linkend="Dir_stat">Dir::stat</link>()</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Example</term>
+	<listitem>
+	  <programlisting><command>my</command> int $mode = $dir.stat()[2];</programlisting>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+
+    <table>
+      <title>Return Values for Dir::stat()</title>
+    <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>Return Type</para></entry>
+	  <entry><para>Description</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><code><link linkend="list_type">list</link></code></para></entry>
+	  <entry><para>Returns a list of status values for the current directory; an exception is thrown if any errors occur.  See <link linkend="Stat_List">Stat List</link> below for a description of the list returned by this method.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+
+      <table>
+	<title>Exceptions Thrown by Dir::stat()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>DIR-STAT-ERROR</code></para></entry>
+	      <entry><para><code>stat()</code> call failed or directory not set.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+  </sect2>
+
+  <sect2 id="Dir_statvfs">
+    <title>Dir::statvfs()</title>
+
+    <variablelist>
+      <varlistentry>
+	<term>Synopsis</term>
+	<listitem>
+	  <para>Returns a <link linkend="Filesystem_Status_Hash">hash of filesystem status values</link> for the current directory.</para>
+	  <para>If any errors occur, a <code>DIR-STATVFS-ERROR</code> exception is thrown.</para>
+	  <para>See also <link linkend="static_File_statvfs">static File::statvfs()</link>.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Prototype</term>
+      <listitem>
+	<para><code><link linkend="hash_type">hash</link> <link linkend="Dir_statvfs">Dir::statvfs</link>()</code></para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting><command>my</command> hash $h = $dir.statvfs()</programlisting>
+      </listitem>
+    </varlistentry>
+    </variablelist>
+
+    <table>
+      <title>Return Values for Dir::statvfs()</title>
+      <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+	<thead>
+	  <row>
+	    <entry><para>Return Type</para></entry>
+	    <entry><para>Description</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+	  <row>
+	    <entry><para><code><link linkend="hash_type">hash</link></code></para></entry>
+	    <entry><para>Returns a hash of filesystem status values current file; an exception is thrown if any errors occur.  See also <link linkend="static_File_statvfs">static File::statvfs()</link>.  See <link linkend="Filesystem_Status_Hash">Filesystem Status Hash</link> for a description of the hash returned by this function.</para></entry>
+	  </row>
+	</tbody>
+      </tgroup>
+    </table>
+    
+    <table>
+      <title>Exceptions Thrown by Dir::statvfs()</title>
+      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	<thead>
+	  <row>
+	    <entry><para>err</para></entry>
+	    <entry><para>desc</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+	  <row>
+	    <entry><para><code>DIR-STATVFS-ERROR</code></para></entry>
+	    <entry><para><code>statvfs()</code> call failed or directory name is not set.</para></entry>
+	  </row>
+	</tbody>
+      </tgroup>
+    </table>
+  </sect2>
 
     <sect2 id="Dir_list">
       <title>Dir::list()</title>

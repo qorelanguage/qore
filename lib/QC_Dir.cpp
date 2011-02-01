@@ -289,11 +289,23 @@ static AbstractQoreNode *DIR_removeFile(QoreObject *self, Dir *d, const QoreList
    return get_bool_node(errno ? 0 : 1);
 }
 
+static AbstractQoreNode *DIR_stat(QoreObject *self, Dir *d, const QoreListNode *args, ExceptionSink *xsink) {
+   return d->stat(xsink);
+}
+
+static AbstractQoreNode *DIR_hstat(QoreObject *self, Dir *d, const QoreListNode *args, ExceptionSink *xsink) {
+   return d->hstat(xsink);
+}
+
+static AbstractQoreNode *DIR_statvfs(QoreObject *self, Dir *d, const QoreListNode *args, ExceptionSink *xsink) {
+   return d->statvfs(xsink);
+}
+
 // init the class
 QoreClass *initDirClass() {
    QORE_TRACE("initDirClass()");
 
-   assert(QC_FILE);
+   assert(QC_DIR);
 
    QC_DIR = new QoreClass("Dir", QDOM_FILESYSTEM);
    CID_DIR = QC_DIR->getID();
@@ -339,10 +351,14 @@ QoreClass *initDirClass() {
    QC_DIR->addMethodExtended("openDir",		(q_method_t)DIR_openDir, false, QC_NO_FLAGS, QDOM_DEFAULT, QC_DIR->getTypeInfo(), 1, stringTypeInfo, QORE_PARAM_NO_ARG);
    QC_DIR->addMethodExtended("openDir",		(q_method_t)DIR_openDir, false, QC_NO_FLAGS, QDOM_DEFAULT, QC_DIR->getTypeInfo(), 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   QC_DIR->addMethodExtended("openFile",	(q_method_t)DIR_openFile, false, QC_NO_FLAGS, QDOM_DEFAULT, QC_FILE->getTypeInfo(), 3, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, new QoreBigIntNode(O_RDONLY), softBigIntTypeInfo, new QoreBigIntNode(0666));
-   QC_DIR->addMethodExtended("openFile",	(q_method_t)DIR_openFile, false, QC_NO_FLAGS, QDOM_DEFAULT, QC_FILE->getTypeInfo(), 4, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, new QoreBigIntNode(O_RDONLY), softBigIntTypeInfo, new QoreBigIntNode(0666), stringTypeInfo, QORE_PARAM_NO_ARG);
+   QC_DIR->addMethodExtended("openFile",	(q_method_t)DIR_openFile, false, QC_NO_FLAGS, QDOM_DEFAULT, QC_DIR->getTypeInfo(), 3, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, new QoreBigIntNode(O_RDONLY), softBigIntTypeInfo, new QoreBigIntNode(0666));
+   QC_DIR->addMethodExtended("openFile",	(q_method_t)DIR_openFile, false, QC_NO_FLAGS, QDOM_DEFAULT, QC_DIR->getTypeInfo(), 4, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, new QoreBigIntNode(O_RDONLY), softBigIntTypeInfo, new QoreBigIntNode(0666), stringTypeInfo, QORE_PARAM_NO_ARG);
 
    QC_DIR->addMethodExtended("removeFile",	(q_method_t)DIR_removeFile, false, QC_NO_FLAGS, QDOM_DEFAULT, boolTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+
+   QC_DIR->addMethodExtended("stat",            (q_method_t)DIR_stat, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, listTypeInfo);
+   QC_DIR->addMethodExtended("hstat",           (q_method_t)DIR_hstat, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, hashTypeInfo);
+   QC_DIR->addMethodExtended("statvfs",         (q_method_t)DIR_statvfs, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, hashTypeInfo);
 
    return QC_DIR;
 }

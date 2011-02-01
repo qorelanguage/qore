@@ -184,27 +184,31 @@ static AbstractQoreNode *f_waitpid(const QoreListNode *params, ExceptionSink *xs
 }
 */
 
+static AbstractQoreNode *f_statvfs(const QoreListNode *params, ExceptionSink *xsink) {
+   HARD_QORE_PARAM(p0, const QoreStringNode, params, 0);
+
+   struct statvfs vfs;
+   if (statvfs(p0->getbuffer(), &vfs))
+      return 0;
+   
+   return statvfs_to_hash(vfs);
+}
+
 static AbstractQoreNode *f_stat(const QoreListNode *params, ExceptionSink *xsink) {
-   QORE_TRACE("f_stat()");
    HARD_QORE_PARAM(p0, const QoreStringNode, params, 0);
 
    struct stat sbuf;
-   int rc;
-
-   if ((rc = stat(p0->getBuffer(), &sbuf)))
+   if (stat(p0->getBuffer(), &sbuf))
       return 0;
 
    return stat_to_list(sbuf);
 }
 
 static AbstractQoreNode *f_lstat(const QoreListNode *params, ExceptionSink *xsink) {
-   QORE_TRACE("f_lstat()");
    HARD_QORE_PARAM(p0, const QoreStringNode, params, 0);
 
    struct stat sbuf;
-   int rc;
-
-   if ((rc = lstat(p0->getBuffer(), &sbuf)))
+   if (lstat(p0->getBuffer(), &sbuf))
       return 0;
 
    return stat_to_list(sbuf);
@@ -212,26 +216,20 @@ static AbstractQoreNode *f_lstat(const QoreListNode *params, ExceptionSink *xsin
 
 // *hash hstat(string $path)  
 static AbstractQoreNode *f_hstat(const QoreListNode *params, ExceptionSink *xsink) {
-   QORE_TRACE("f_hstat()");
    HARD_QORE_PARAM(p0, const QoreStringNode, params, 0);
 
    struct stat sbuf;
-   int rc;
-
-   if ((rc = stat(p0->getBuffer(), &sbuf)))
+   if (stat(p0->getBuffer(), &sbuf))
       return 0;
 
    return stat_to_hash(sbuf);
 }
 
 static AbstractQoreNode *f_hlstat(const QoreListNode *params, ExceptionSink *xsink) {
-   QORE_TRACE("f_hlstat()");
    HARD_QORE_PARAM(p0, const QoreStringNode, params, 0);
 
    struct stat sbuf;
-   int rc;
-
-   if ((rc = lstat(p0->getBuffer(), &sbuf)))
+   if (lstat(p0->getBuffer(), &sbuf))
       return 0;
 
    return stat_to_hash(sbuf);
@@ -545,21 +543,24 @@ void init_lib_functions() {
    // builtinFunctions.add("wait",        f_wait);
    // builtinFunctions.add("waitpid",     f_waitpid);
 
+   // *hash statvfs(string $path)  
+   builtinFunctions.add2("statvfs",     f_statvfs, QC_CONSTANT, QDOM_FILESYSTEM, hashOrNothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+
    builtinFunctions.add2("stat",        f_noop, QC_RUNTIME_NOOP, QDOM_FILESYSTEM, nothingTypeInfo);
    // *list stat(string $path)  
-   builtinFunctions.add2("stat",        f_stat, QC_NO_FLAGS, QDOM_FILESYSTEM, listOrNothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("stat",        f_stat, QC_CONSTANT, QDOM_FILESYSTEM, listOrNothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add2("lstat",       f_noop, QC_RUNTIME_NOOP, QDOM_FILESYSTEM, nothingTypeInfo);
    // *list lstat(string $path)  
-   builtinFunctions.add2("lstat",       f_lstat, QC_NO_FLAGS, QDOM_FILESYSTEM, listOrNothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("lstat",       f_lstat, QC_CONSTANT, QDOM_FILESYSTEM, listOrNothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add2("hstat",       f_noop, QC_RUNTIME_NOOP, QDOM_FILESYSTEM, nothingTypeInfo);
    // *hash hstat(string $path)  
-   builtinFunctions.add2("hstat",       f_hstat, QC_NO_FLAGS, QDOM_FILESYSTEM, hashOrNothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("hstat",       f_hstat, QC_CONSTANT, QDOM_FILESYSTEM, hashOrNothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add2("hlstat",      f_noop, QC_RUNTIME_NOOP, QDOM_FILESYSTEM, nothingTypeInfo);
    // *hash hlstat(string $path)  
-   builtinFunctions.add2("hlstat",      f_hlstat, QC_NO_FLAGS, QDOM_FILESYSTEM, hashOrNothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("hlstat",      f_hlstat, QC_CONSTANT, QDOM_FILESYSTEM, hashOrNothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    // *list glob(string $str)  
    builtinFunctions.add2("glob",        f_noop, QC_RUNTIME_NOOP, QDOM_FILESYSTEM, nothingTypeInfo);

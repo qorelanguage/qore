@@ -1985,7 +1985,7 @@
             <para>N</para>
           </entry>
           <entry>
-            <para>Returns a list of filesystem values for the file or symbolic link passed or <command><link linkend="NOTHING">NOTHING</link></command> if the call to <code>stat()</code> fails.</para>
+            <para>Returns a list of file status values for the file or symbolic link passed or <command><link linkend="NOTHING">NOTHING</link></command> if the call to <code>stat()</code> fails.</para>
           </entry>
         </row>
         <row>
@@ -2847,7 +2847,18 @@
             <para>N</para>
           </entry>
           <entry>
-            <para>Returns a list of filesystem information for the filename passed or <command><link linkend="NOTHING">NOTHING</link></command> if the <code>stat</code> call fails.</para>
+            <para>Returns a list of file status information for the filename passed or <command><link linkend="NOTHING">NOTHING</link></command> if the <code>stat()</code> call fails.</para>
+          </entry>
+        </row>
+        <row>
+          <entry>
+            <para><code><link linkend="*hash_type">*hash</link> <link linkend="statvfs">statvfs</link>(<link linkend="string_type">string</link>)</code></para>
+          </entry>
+          <entry>
+            <para>N</para>
+          </entry>
+          <entry>
+            <para>Returns a list of filesystem status information for the filename passed or <command><link linkend="NOTHING">NOTHING</link></command> if the <code>statvfs()</code> call fails.</para>
           </entry>
         </row>
         <row>
@@ -11203,141 +11214,6 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 
 </sect2>
 
-
-<sect2 id="stat">
-<title>stat()</title>
-
-  <variablelist>
-    <varlistentry>
-      <term>Synopsis</term>
-      <listitem>
-	<para>Returns a list of filesystem values for the file passed, following any symbolic links.  See also <link linkend="lstat">lstat()</link> for a version of this function that does not follow symbolic links, and see <link linkend="hstat">hstat()</link> for a version of this function that returns a user-friendly hash instead of a list.</para>
-      </listitem>
-    </varlistentry>
-    <varlistentry>
-      <term>Prototype</term>
-      <listitem>
-            <para><code><link linkend="*list_type">*list</link> <link linkend="stat">stat</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>)</code></para>
-            <para><code><link linkend="nothing_type">nothing</link> <link linkend="stat">stat</link>() (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
-      </listitem>
-    </varlistentry>
-    <varlistentry>
-      <term>Example</term>
-      <listitem>
-	<programlisting>$mode = stat($filepath)[2];</programlisting>
-      </listitem>
-    </varlistentry>
-    <varlistentry>
-      <term>Restrictions</term>
-      <listitem>
-	<para>Not available with <code><link linkend="no-filesystem">PO_NO_FILESYSTEM</link></code></para>
-      </listitem>
-    </varlistentry>
-  </variablelist>
-
-  <table>
-    <title>Arguments and Return Values for stat()</title>
-    <tgroup cols='3' align='left' colsep='1' rowsep='1'>
-      <thead>
-	<row>
-	  <entry><para>Argument Type</para></entry>
-	  <entry><para>Return Type</para></entry>
-	  <entry><para>Description</para></entry>
-	</row>
-      </thead>
-      <tbody>
-	<row>
-	  <entry><para><code><link linkend="string_type">string</link> <replaceable>$path</replaceable></code></para></entry>
-	  <entry><para><code><link linkend="*list_type">*list</link></code></para></entry>
-	  <entry><para>Returns a list of filesystem values for the file passed, following symbolic links or <command><link linkend="NOTHING">NOTHING</link></command> if the call fails.  See <link linkend="Stat_List">Stat List</link> below for a description of the list returned by this function.</para></entry>
-	</row>
-      </tbody>
-    </tgroup>
-  </table>
-  <para>This function does not throw any exceptions.</para>
-
-  <table id="Stat_List">
-    <title>Stat List Description</title>
-    <tgroup cols='3' align='left' colsep='1' rowsep='1'>
-      <thead>
-	<row>
-	  <entry><para>Position</para></entry>
-	  <entry><para>Data Type</para></entry>
-	  <entry><para>Description</para></entry>
-	</row>
-      </thead>
-      <tbody>
-	<row>
-	  <entry><para>0</para></entry>
-	  <entry><para><code><link linkend="int_type">int</link></code></para></entry>
-	  <entry><para>device inode number the file is on</para></entry>
-	</row>
-	<row>
-	  <entry><para>1</para></entry>
-	  <entry><para><code><link linkend="int_type">int</link></code></para></entry>
-	  <entry><para>inode of the file</para></entry>
-	</row>
-	<row>
-	  <entry><para>2</para></entry>
-	  <entry><para><code><link linkend="int_type">int</link></code></para></entry>
-	  <entry><para>inode protection mode</para></entry>
-	</row>
-	<row>
-	  <entry><para>3</para></entry>
-	  <entry><para><code><link linkend="int_type">int</link></code></para></entry>
-	  <entry><para>number of hard links to this file</para></entry>
-	</row>
-	<row>
-	  <entry><para>4</para></entry>
-	  <entry><para><code><link linkend="int_type">int</link></code></para></entry>
-	  <entry><para>user ID of the owner</para></entry>
-	</row>
-	<row>
-	  <entry><para>5</para></entry>
-	  <entry><para><code><link linkend="int_type">int</link></code></para></entry>
-	  <entry><para>group ID of the owner</para></entry>
-	</row>
-	<row>
-	  <entry><para>6</para></entry>
-	  <entry><para><code><link linkend="int_type">int</link></code></para></entry>
-	  <entry><para>device type number</para></entry>
-	</row>
-	<row>
-	  <entry><para>7</para></entry>
-	  <entry><para><code><link linkend="int_type">int</link></code></para></entry>
-	  <entry><para>file size in bytes</para></entry>
-	</row>
-	<row>
-	  <entry><para>8</para></entry>
-	  <entry><para><code><link linkend="date_type">date</link></code></para></entry>
-	  <entry><para>last access time of the file</para></entry>
-	</row>
-	<row>
-	  <entry><para>9</para></entry>
-	  <entry><para><code><link linkend="date_type">date</link></code></para></entry>
-	  <entry><para>last modified time of the file</para></entry>
-	</row>
-	<row>
-	  <entry><para>10</para></entry>
-	  <entry><para><code><link linkend="date_type">date</link></code></para></entry>
-	  <entry><para>last change time of the file's inode</para></entry>
-	</row>
-	<row>
-	  <entry><para>11</para></entry>
-	  <entry><para><code><link linkend="int_type">int</link></code></para></entry>
-	  <entry><para>block size</para></entry>
-	</row>
-	<row>
-	  <entry><para>12</para></entry>
-	  <entry><para><code><link linkend="int_type">int</link></code></para></entry>
-	  <entry><para>blocks allocated for the file</para></entry>
-	</row>
-      </tbody>
-    </tgroup>
-  </table>
-
-</sect2>
-
 <sect2 id="strerror">
 <title>strerror()</title>
 
@@ -16370,7 +16246,8 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Returns a hash of filesystem values for the file passed; symbolic links are not followed; information is returned about symbolic links (see <link linkend="hstat">hstat()</link> for a version of this function that follows symbolic links).</para>
+	<para>Returns a hash of file status values for the file passed; symbolic links are not followed; information is returned about symbolic links (see <link linkend="hstat">hstat()</link> for a version of this function that follows symbolic links).</para>
+	<para>See also <link linkend="static_File_hlstat">File::hlstat()</link> for a static method in the <link linkend="File_Class">File class</link> that throws an exception instead of returning <code>NOTHING</code> when errors occur.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -16408,11 +16285,13 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<row>
 	  <entry><para><code><link linkend="string_type">string</link> <replaceable>$path</replaceable></code></para></entry>
 	  <entry><para><code><link linkend="*hash_type">*hash</link></code></para></entry>
-	  <entry><para>Returns a hash of filesystem values for the file passed or <link linkend="NOTHING">NOTHING</link> if the <code>stat()</code> call fails; symbolic links are not followed (information is returned about symbolic links).  See also <link linkend="hstat">hstat()</link>.  See <link linkend="Stat_Hash">Stat Hash</link> below for a description of the hash returned by this function.</para></entry>
+	  <entry><para>Returns a hash of file status values for the file passed or <link linkend="NOTHING">NOTHING</link> if the <code>stat()</code> call fails; symbolic links are not followed (information is returned about symbolic links).  See also <link linkend="hstat">hstat()</link>.  See <link linkend="Stat_Hash">Stat Hash</link> below for a description of the hash returned by this function.</para></entry>
 	</row>
       </tbody>
     </tgroup>
   </table>
+
+  <para>This function does not throw any exceptions.</para>
 
   <table id="Stat_Hash">
     <title>Stat Hash Description</title>
@@ -16484,8 +16363,6 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     </tgroup>
   </table>
 
-  <para>This function does not throw any exceptions.</para>
-
 </sect2>
 
 <sect2 id="hstat">
@@ -16495,7 +16372,9 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Returns a hash of filesystem values for the file passed; symbolic links are followed; see <link linkend="hlstat">hlstat()</link> to retrieve information about a symbolic link.</para>
+	<para>Returns a hash of file status values for the file passed; symbolic links are followed; see <link linkend="hlstat">hlstat()</link> to retrieve information about a symbolic link.</para>
+	<para>If any errors occur, <code>NOTHING</code> is returned and <link linkend="errno">errno()</link> can be used to retrieve the error number.</para>
+	<para>See also <link linkend="static_File_hstat">File::hstat()</link> for a static method in the <link linkend="File_Class">File class</link> that throws an exception instead of returning <code>NOTHING</code> when errors occur.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -16533,7 +16412,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<row>
 	  <entry><para><code><link linkend="string_type">string</link> <replaceable>$path</replaceable></code></para></entry>
 	  <entry><para><code><link linkend="*hash_type">*hash</link></code></para></entry>
-	  <entry><para>Returns a hash of filesystem values for the file passed or <link linkend="NOTHING">NOTHING</link> if the <code>stat()</code> call fails; symbolic links are followed.  See also <link linkend="hlstat">hlstat()</link>.  See <link linkend="Stat_Hash">Stat Hash</link> for a description of the hash returned by this function.</para></entry>
+	  <entry><para>Returns a hash of file status values for the file passed or <link linkend="NOTHING">NOTHING</link> if the <code>stat()</code> call fails; symbolic links are followed.  See also <link linkend="hlstat">hlstat()</link>.  See <link linkend="Stat_Hash">Stat Hash</link> for a description of the hash returned by this function.</para></entry>
 	</row>
       </tbody>
     </tgroup>
@@ -17221,7 +17100,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Returns a list of filesystem values for the file or symbolic link passed.  Does not follow symbolic links, but rather returns filesystem information for symbolic links.  See also <link linkend="stat">stat()</link> for a version of this function that follows symbolic links, and <link linkend="hlstat">hlstat()</link> for a version of this function that returns a user-friendly hash instead of a list.</para>
+	<para>Returns a list of file status values for the file or symbolic link passed.  Does not follow symbolic links, but rather returns filesystem information for symbolic links.  See also <link linkend="stat">stat()</link> for a version of this function that follows symbolic links, and <link linkend="hlstat">hlstat()</link> for a version of this function that returns a user-friendly hash instead of a list.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -17234,7 +17113,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Example</term>
       <listitem>
-	<programlisting><command>my</command> *list $list = lstat(("/bin/sh");</programlisting>
+	<programlisting><command>my</command> *list $list = lstat("/bin/sh");</programlisting>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -17259,7 +17138,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	<row>
 	  <entry><para><code><link linkend="string_type">string</link> <replaceable>$path</replaceable></code></para></entry>
 	  <entry><para><code><link linkend="*list_type">*list</link></code></para></entry>
-	  <entry><para>Returns a list of filesystem values for the file passed.  See <link linkend="Stat_List">Stat List</link> for a description of the list returned by this function.</para></entry>
+	  <entry><para>Returns a list of file status values for the file passed.  See <link linkend="Stat_List">Stat List</link> for a description of the list returned by this function.</para></entry>
 	</row>
       </tbody>
     </tgroup>
@@ -17581,6 +17460,255 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 </tbody>
 </tgroup>
 </table>
+
+</sect2>
+
+<sect2 id="stat">
+<title>stat()</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Returns a list of file status values for the file passed, following any symbolic links.  If any errors occur, <code>NOTHING</code> is returned and <link linkend="errno">errno()</link> can be used to retrieve the error number.</para>
+	<para>See also <link linkend="lstat">lstat()</link> for a version of this function that does not follow symbolic links, and see <link linkend="hstat">hstat()</link> for a version of this function that returns a user-friendly hash instead of a list.</para>
+	<para>See also <link linkend="static_File_stat">File::stat()</link> for a static method in the <link linkend="File_Class">File class</link> that throws an exception instead of returning <code>NOTHING</code> when errors occur.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Prototype</term>
+      <listitem>
+            <para><code><link linkend="*list_type">*list</link> <link linkend="stat">stat</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>)</code></para>
+            <para><code><link linkend="nothing_type">nothing</link> <link linkend="stat">stat</link>() (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>$mode = stat($filepath)[2];</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Restrictions</term>
+      <listitem>
+	<para>Not available with <code><link linkend="no-filesystem">PO_NO_FILESYSTEM</link></code></para>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+  <table>
+    <title>Arguments and Return Values for stat()</title>
+    <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>Argument Type</para></entry>
+	  <entry><para>Return Type</para></entry>
+	  <entry><para>Description</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><code><link linkend="string_type">string</link> <replaceable>$path</replaceable></code></para></entry>
+	  <entry><para><code><link linkend="*list_type">*list</link></code></para></entry>
+	  <entry><para>Returns a list of file status values for the file passed, following symbolic links or <command><link linkend="NOTHING">NOTHING</link></command> if the call fails.  See <link linkend="Stat_List">Stat List</link> below for a description of the list returned by this function.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+  <para>This function does not throw any exceptions.</para>
+
+  <table id="Stat_List">
+    <title>Stat List Description</title>
+    <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>Position</para></entry>
+	  <entry><para>Data Type</para></entry>
+	  <entry><para>Description</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para>0</para></entry>
+	  <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+	  <entry><para>device inode number the file is on</para></entry>
+	</row>
+	<row>
+	  <entry><para>1</para></entry>
+	  <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+	  <entry><para>inode of the file</para></entry>
+	</row>
+	<row>
+	  <entry><para>2</para></entry>
+	  <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+	  <entry><para>inode protection mode</para></entry>
+	</row>
+	<row>
+	  <entry><para>3</para></entry>
+	  <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+	  <entry><para>number of hard links to this file</para></entry>
+	</row>
+	<row>
+	  <entry><para>4</para></entry>
+	  <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+	  <entry><para>user ID of the owner</para></entry>
+	</row>
+	<row>
+	  <entry><para>5</para></entry>
+	  <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+	  <entry><para>group ID of the owner</para></entry>
+	</row>
+	<row>
+	  <entry><para>6</para></entry>
+	  <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+	  <entry><para>device type number</para></entry>
+	</row>
+	<row>
+	  <entry><para>7</para></entry>
+	  <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+	  <entry><para>file size in bytes</para></entry>
+	</row>
+	<row>
+	  <entry><para>8</para></entry>
+	  <entry><para><code><link linkend="date_type">date</link></code></para></entry>
+	  <entry><para>last access time of the file</para></entry>
+	</row>
+	<row>
+	  <entry><para>9</para></entry>
+	  <entry><para><code><link linkend="date_type">date</link></code></para></entry>
+	  <entry><para>last modified time of the file</para></entry>
+	</row>
+	<row>
+	  <entry><para>10</para></entry>
+	  <entry><para><code><link linkend="date_type">date</link></code></para></entry>
+	  <entry><para>last change time of the file's inode</para></entry>
+	</row>
+	<row>
+	  <entry><para>11</para></entry>
+	  <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+	  <entry><para>block size</para></entry>
+	</row>
+	<row>
+	  <entry><para>12</para></entry>
+	  <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+	  <entry><para>blocks allocated for the file</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+
+</sect2>
+
+<sect2 id="statvfs">
+<title>statvfs()</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Returns a hash of filesystem status values for the file or directory path passed.</para>
+	<para>If any errors occur, <code>NOTHING</code> is returned and <link linkend="errno">errno()</link> can be used to retrieve the error number.</para>
+	<para>See also <link linkend="static_File_statvfs">File::statvfs()</link> for a static method in the <link linkend="File_Class">File class</link> that throws an exception instead of returning <code>NOTHING</code> when errors occur.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Prototype</term>
+      <listitem>
+	<para><code><link linkend="*hash_type">*hash</link> <link linkend="statvfs">statvfs</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>)</code></para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting><command>my</command> *hash $h = statvfs("/tmp")</programlisting>
+      </listitem>
+    </varlistentry>
+      <varlistentry>
+	<term>Restrictions</term>
+	<listitem>
+	  <para>Not available with <code><link linkend="no-filesystem">PO_NO_FILESYSTEM</link></code></para>
+	</listitem>
+      </varlistentry>
+  </variablelist>
+
+  <table>
+    <title>Arguments and Return Values for statvfs()</title>
+    <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>Argument Type</para></entry>
+	  <entry><para>Return Type</para></entry>
+	  <entry><para>Description</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><code><link linkend="string_type">string</link> <replaceable>$path</replaceable></code></para></entry>
+	  <entry><para><code><link linkend="*hash_type">*hash</link></code></para></entry>
+	  <entry><para>Returns a hash of filesystem status values for the file or directory name passed or <link linkend="NOTHING">NOTHING</link> if the <code>statvfs()</code> call fails.  See also <link linkend="static_File_statvfs">File::statvfs()</link>.  See <link linkend="Filesystem_Status_Hash">Filesystem Status Hash</link> for a description of the hash returned by this function.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
+  <para>This function does not throw any exceptions.</para>
+
+  <table id="Filesystem_Status_Hash">
+    <title>Filesystem Status Hash Description</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>Key</para></entry>
+	  <entry><para>Value Description</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><code>namemax</code></para></entry>
+	  <entry><para>The maximum length in mytes of file names on the filesystem</para></entry>
+	</row>
+	<row>
+	  <entry><para><code>fsid</code></para></entry>
+	  <entry><para>The filesystem ID; may not be set or meaningful on all filesystems/systems: see system documentation for <code>statvfs()</code></para></entry>
+	</row>
+	<row>
+	  <entry><para><code>frsize</code></para></entry>
+	  <entry><para>The size in bytes of the minimum allocation unit on the filesystem</para></entry>
+	</row>
+	<row>
+	  <entry><para><code>bsize</code></para></entry>
+	  <entry><para>The filesystem's block size</para></entry>
+	</row>
+	<row>
+	  <entry><para><code>flag</code></para></entry>
+	  <entry><para>Flags describing mount options for the filesystem</para></entry>
+	</row>
+	<row>
+	  <entry><para><code>files</code></para></entry>
+	  <entry><para>The total number of inodes on the filesystem</para></entry>
+	</row>
+	<row>
+	  <entry><para><code>favail</code></para></entry>
+	  <entry><para>The number of free inodes available to unpriviledged users</para></entry>
+	</row>
+	<row>
+	  <entry><para><code>ffree</code></para></entry>
+	  <entry><para>The total number of free indes available to priviledged users</para></entry>
+	</row>
+	<row>
+	  <entry><para><code>blocks</code></para></entry>
+	  <entry><para>The total number of blocks on the filesystem (capacity in bytes = bsize * blocks)</para></entry>
+	</row>
+	<row>
+	  <entry><para><code>bavail</code></para></entry>
+	  <entry><para>The number of free blocks available to unpriviledged users (bytes = bavail * blocks)</para></entry>
+	</row>
+	<row>
+	  <entry><para><code>bfree</code></para></entry>
+	  <entry><para>The total number of free indes available to priviledged users (bytes = bfree * blocks)</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+  </table>
 
 </sect2>
 
