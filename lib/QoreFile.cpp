@@ -371,6 +371,51 @@ struct qore_qf_private {
 	 cb_queue->push_and_take_ref(h);
       }
    }
+
+   DLLLOCAL QoreListNode *stat(ExceptionSink *xsink) const {
+      AutoLocker al(m);
+
+      if (check_read_open(xsink))
+	 return 0;
+   
+      struct stat sbuf;
+      if (fstat(fd, &sbuf)) {
+	 xsink->raiseErrnoException("FILE-STAT-ERROR", errno, "fstat() call failed");
+	 return 0;
+      }
+
+      return stat_to_list(sbuf);
+   }
+
+   DLLLOCAL QoreHashNode *hstat(ExceptionSink *xsink) const {
+      AutoLocker al(m);
+
+      if (check_read_open(xsink))
+	 return 0;
+   
+      struct stat sbuf;
+      if (fstat(fd, &sbuf)) {
+	 xsink->raiseErrnoException("FILE-HSTAT-ERROR", errno, "fstat() call failed");
+	 return 0;
+      }
+
+      return stat_to_hash(sbuf);
+   }
+
+   DLLLOCAL QoreHashNode *statvfs(ExceptionSink *xsink) const {
+      AutoLocker al(m);
+
+      if (check_read_open(xsink))
+	 return 0;
+   
+      struct statvfs vfs;
+      if (fstatvfs(fd, &vfs)) {
+	 xsink->raiseErrnoException("FILE-STATVFS-ERROR", errno, "fstatvfs() call failed");
+	 return 0;
+      }
+
+      return statvfs_to_hash(vfs);
+   }
 };
 
 QoreFile::QoreFile(const QoreEncoding *cs) : priv(new qore_qf_private(cs)) {
@@ -1048,4 +1093,16 @@ void QoreFile::setEventQueue(Queue *cbq, ExceptionSink *xsink) {
 
 void QoreFile::cleanup(ExceptionSink *xsink) {
    priv->cleanup(xsink);
+}
+
+QoreListNode *QoreFile::stat(ExceptionSink *xsink) const {
+   return priv->stat(xsink);
+}
+
+QoreHashNode *QoreFile::hstat(ExceptionSink *xsink) const {
+   return priv->hstat(xsink);
+}
+
+QoreHashNode *QoreFile::statvfs(ExceptionSink *xsink) const {
+   return priv->statvfs(xsink);
 }

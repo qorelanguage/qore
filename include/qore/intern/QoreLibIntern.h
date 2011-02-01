@@ -28,6 +28,10 @@
 #include <qore/intern/config.h>
 
 #include <stdarg.h>
+#include <sys/types.h>
+#include <sys/statvfs.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 #include <set>
 #include <list>
@@ -340,6 +344,10 @@ DLLLOCAL void addProgramConstants(QoreNamespace *ns);
 
 DLLLOCAL void init_qore_types();
 DLLLOCAL void delete_qore_types();
+
+DLLLOCAL QoreListNode *stat_to_list(const struct stat &sbuf);
+DLLLOCAL QoreHashNode *stat_to_hash(const struct stat &sbuf);
+DLLLOCAL QoreHashNode *statvfs_to_hash(const struct statvfs &statvfs);
 
 // only called in stage 1 parsing: true means node requires run-time evaluation
 //DLLLOCAL bool needsEval(AbstractQoreNode *n);

@@ -1310,3 +1310,137 @@ int check_lvalue(AbstractQoreNode *node) {
    return -1;
 }
 
+QoreListNode *stat_to_list(const struct stat &sbuf) {
+   QoreListNode *l = new QoreListNode;
+
+   // note that dev_t on Linux is an unsigned 64-bit integer, so we could lose precision here
+   l->push(new QoreBigIntNode((int64)sbuf.st_dev));
+   l->push(new QoreBigIntNode(sbuf.st_ino));
+   l->push(new QoreBigIntNode(sbuf.st_mode));
+   l->push(new QoreBigIntNode(sbuf.st_nlink));
+   l->push(new QoreBigIntNode(sbuf.st_uid));
+   l->push(new QoreBigIntNode(sbuf.st_gid));
+   // note that dev_t on Linux is an unsigned 64-bit integer, so we could lose precision here
+   l->push(new QoreBigIntNode((int64)sbuf.st_rdev));
+   l->push(new QoreBigIntNode(sbuf.st_size));
+   
+   l->push(DateTimeNode::makeAbsolute(currentTZ(), (int64)sbuf.st_atime));
+   l->push(DateTimeNode::makeAbsolute(currentTZ(), (int64)sbuf.st_mtime));
+   l->push(DateTimeNode::makeAbsolute(currentTZ(), (int64)sbuf.st_ctime));
+
+   l->push(new QoreBigIntNode(sbuf.st_blksize));
+   l->push(new QoreBigIntNode(sbuf.st_blocks));
+
+   return l;
+}
+
+QoreHashNode *stat_to_hash(const struct stat &sbuf) {
+   QoreHashNode *h = new QoreHashNode;
+
+   // note that dev_t on Linux is an unsigned 64-bit integer, so we could lose precision here
+   h->setKeyValue("dev",     new QoreBigIntNode((int64)sbuf.st_dev), 0);
+   h->setKeyValue("inode",   new QoreBigIntNode(sbuf.st_ino), 0);
+   h->setKeyValue("mode",    new QoreBigIntNode(sbuf.st_mode), 0);
+   h->setKeyValue("nlink",   new QoreBigIntNode(sbuf.st_nlink), 0);
+   h->setKeyValue("uid",     new QoreBigIntNode(sbuf.st_uid), 0);
+   h->setKeyValue("gid",     new QoreBigIntNode(sbuf.st_gid), 0);
+   // note that dev_t on Linux is an unsigned 64-bit integer, so we could lose precision here
+   h->setKeyValue("rdev",    new QoreBigIntNode((int64)sbuf.st_rdev), 0);
+   h->setKeyValue("size",    new QoreBigIntNode(sbuf.st_size), 0);
+   
+   h->setKeyValue("atime",   DateTimeNode::makeAbsolute(currentTZ(), (int64)sbuf.st_atime), 0);
+   h->setKeyValue("mtime",   DateTimeNode::makeAbsolute(currentTZ(), (int64)sbuf.st_mtime), 0);
+   h->setKeyValue("ctime",   DateTimeNode::makeAbsolute(currentTZ(), (int64)sbuf.st_ctime), 0);
+
+   h->setKeyValue("blksize", new QoreBigIntNode(sbuf.st_blksize), 0);
+   h->setKeyValue("blocks",  new QoreBigIntNode(sbuf.st_blocks), 0);
+
+   // process permissions
+   QoreStringNode *perm = new QoreStringNode;
+
+   const char *type;
+   if (S_ISBLK(sbuf.st_mode)) {
+      type = "BLOCK-DEVICE";
+      perm->concat('b');
+   }
+   else if (S_ISDIR(sbuf.st_mode)) {
+      type = "DIRECTORY";
+      perm->concat('d');
+   }
+   else if (S_ISCHR(sbuf.st_mode)) {
+      type = "CHARACTER-DEVICE";
+      perm->concat('c');
+   }
+   else if (S_ISFIFO(sbuf.st_mode)) {
+      type = "FIFO";
+      perm->concat('p');
+   }
+   else if (S_ISLNK(sbuf.st_mode)) {
+      type = "SYMBOLIC-LINK";
+      perm->concat('l');
+   }
+   else if (S_ISSOCK(sbuf.st_mode)) {
+      type = "SOCKET";
+      perm->concat('s');
+   }
+   else if (S_ISREG(sbuf.st_mode)) {
+      type = "REGULAR";
+      perm->concat('-');
+   }
+   else {
+      type = "UNKNOWN";
+      perm->concat('?');
+   }
+
+   h->setKeyValue("type",  new QoreStringNode(type), 0);
+
+   // add user permission flags
+   perm->concat(sbuf.st_mode & S_IRUSR ? 'r' : '-');
+   perm->concat(sbuf.st_mode & S_IWUSR ? 'w' : '-');
+   if (sbuf.st_mode & S_ISUID)
+      perm->concat(sbuf.st_mode & S_IXUSR ? 's' : 'S');
+   else
+      perm->concat(sbuf.st_mode & S_IXUSR ? 'x' : '-');
+
+   // add group permission flags
+   perm->concat(sbuf.st_mode & S_IRGRP ? 'r' : '-');
+   perm->concat(sbuf.st_mode & S_IWGRP ? 'w' : '-');
+   if (sbuf.st_mode & S_ISGID)
+      perm->concat(sbuf.st_mode & S_IXGRP ? 's' : 'S');
+   else
+      perm->concat(sbuf.st_mode & S_IXGRP ? 'x' : '-');
+
+   // add other permission flags
+   perm->concat(sbuf.st_mode & S_IROTH ? 'r' : '-');
+   perm->concat(sbuf.st_mode & S_IWOTH ? 'w' : '-');
+   if (sbuf.st_mode & S_ISVTX)
+      perm->concat(sbuf.st_mode & S_IXOTH ? 't' : 'T');
+   else
+      perm->concat(sbuf.st_mode & S_IXOTH ? 'x' : '-');
+
+   h->setKeyValue("perm",  perm, 0);
+
+   return h;
+}
+
+QoreHashNode *statvfs_to_hash(const struct statvfs &vfs) {
+   QoreHashNode *h = new QoreHashNode;
+
+#ifdef DARWIN
+#else
+   h->setKeyValue("namemax", new QoreBigIntNode(vfs.f_namemax), 0);
+#endif
+   h->setKeyValue("fsid", new QoreBigIntNode(vfs.f_fsid), 0);
+   h->setKeyValue("frsize", new QoreBigIntNode(vfs.f_frsize), 0);
+   h->setKeyValue("bsize", new QoreBigIntNode(vfs.f_bsize), 0);
+   h->setKeyValue("flag", new QoreBigIntNode(vfs.f_flag), 0);
+   h->setKeyValue("blocks", new QoreBigIntNode(vfs.f_blocks), 0);
+   h->setKeyValue("bfree", new QoreBigIntNode(vfs.f_bfree), 0);
+   h->setKeyValue("bavail", new QoreBigIntNode(vfs.f_bavail), 0);
+   h->setKeyValue("files", new QoreBigIntNode(vfs.f_files), 0);
+   h->setKeyValue("ffree", new QoreBigIntNode(vfs.f_ffree), 0);
+   h->setKeyValue("favail", new QoreBigIntNode(vfs.f_favail), 0);
+
+   return h;
+}
+

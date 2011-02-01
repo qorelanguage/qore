@@ -451,6 +451,80 @@ static AbstractQoreNode *FILE_setEventQueue_nothing(QoreObject *self, File *f, c
    return 0;
 }
 
+static AbstractQoreNode *FILE_stat(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
+   return f->stat(xsink);
+}
+
+static AbstractQoreNode *FILE_hstat(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
+   return f->hstat(xsink);
+}
+
+static AbstractQoreNode *FILE_statvfs(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
+   return f->statvfs(xsink);
+}
+
+// static methods
+static AbstractQoreNode *f_FILE_stat(const QoreListNode *args, ExceptionSink *xsink) {
+   HARD_QORE_PARAM(p0, const QoreStringNode, args, 0);
+
+   struct stat sbuf;
+   if (stat(p0->getBuffer(), &sbuf)) {
+      xsink->raiseErrnoException("FILE-STAT-ERROR", errno, "stat() command failed");
+      return 0;
+   }
+
+   return stat_to_list(sbuf);
+}
+
+static AbstractQoreNode *f_FILE_lstat(const QoreListNode *args, ExceptionSink *xsink) {
+   HARD_QORE_PARAM(p0, const QoreStringNode, args, 0);
+
+   struct stat sbuf;
+   if (lstat(p0->getBuffer(), &sbuf)) {
+      xsink->raiseErrnoException("FILE-LSTAT-ERROR", errno, "lstat() command failed");
+      return 0;
+   }
+
+   return stat_to_list(sbuf);
+}
+
+static AbstractQoreNode *f_FILE_hstat(const QoreListNode *args, ExceptionSink *xsink) {
+   HARD_QORE_PARAM(p0, const QoreStringNode, args, 0);
+
+   struct stat sbuf;
+   if (stat(p0->getBuffer(), &sbuf)) {
+      xsink->raiseErrnoException("FILE-HSTAT-ERROR", errno, "stat() command failed");
+      return 0;
+   }
+
+   return stat_to_hash(sbuf);
+}
+
+static AbstractQoreNode *f_FILE_hlstat(const QoreListNode *args, ExceptionSink *xsink) {
+   HARD_QORE_PARAM(p0, const QoreStringNode, args, 0);
+
+   struct stat sbuf;
+   if (lstat(p0->getBuffer(), &sbuf)) {
+      xsink->raiseErrnoException("FILE-HLSTAT-ERROR", errno, "lstat() command failed");
+      return 0;
+   }
+
+   return stat_to_hash(sbuf);
+}
+
+static AbstractQoreNode *f_FILE_statvfs(const QoreListNode *args, ExceptionSink *xsink) {
+   HARD_QORE_PARAM(p0, const QoreStringNode, args, 0);
+
+   struct statvfs vfs;
+   if (statvfs(p0->getBuffer(), &vfs)) {
+      xsink->raiseErrnoException("FILE-STATVFS-ERROR", errno, "statvfs() call failed");
+      return 0;
+   }
+
+   return statvfs_to_hash(vfs);
+}
+
+
 QoreClass *initFileClass(QoreClass *QC_TERMIOS) {
    QORE_TRACE("initFileClass()");
 
@@ -554,6 +628,17 @@ QoreClass *initFileClass(QoreClass *QC_TERMIOS) {
    // overloaded setEventQueue() method
    QC_FILE->addMethodExtended("setEventQueue",          (q_method_t)FILE_setEventQueue_queue, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, QC_QUEUE->getTypeInfo(), QORE_PARAM_NO_ARG);
    QC_FILE->addMethodExtended("setEventQueue",          (q_method_t)FILE_setEventQueue_nothing, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
+
+   QC_FILE->addMethodExtended("stat",                   (q_method_t)FILE_stat, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, listTypeInfo);
+   QC_FILE->addMethodExtended("hstat",                  (q_method_t)FILE_hstat, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, hashTypeInfo);
+   QC_FILE->addMethodExtended("statvfs",                (q_method_t)FILE_statvfs, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, hashTypeInfo);
+
+   // static methods
+   QC_FILE->addStaticMethodExtended("stat",     f_FILE_stat, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, listTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   QC_FILE->addStaticMethodExtended("lstat",    f_FILE_lstat, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, listTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   QC_FILE->addStaticMethodExtended("hstat",    f_FILE_hstat, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, hashTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   QC_FILE->addStaticMethodExtended("hlstat",   f_FILE_hlstat, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, hashTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   QC_FILE->addStaticMethodExtended("statvfs",  f_FILE_statvfs, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, hashTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    return QC_FILE;
 }

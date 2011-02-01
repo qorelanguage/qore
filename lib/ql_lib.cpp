@@ -29,12 +29,9 @@
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <fcntl.h>
 #include <signal.h>
-#include <sys/types.h>
 #include <sys/wait.h>
-#include <sys/stat.h>
 #include <time.h>
 #include <glob.h>
 
@@ -72,7 +69,7 @@ static AbstractQoreNode *f_system(const QoreListNode *params, ExceptionSink *xsi
 
    int rc;
    // use system() if shell meta-characters are found
-   if (strchrs(p0->getBuffer(), "*?><;")) {
+   if (strchrs(p0->getBuffer(), "*?><;|")) {
       QoreString c;
       c.sprintf("/bin/sh -c \"%s\"", p0->getBuffer());
       rc = system(c.getBuffer());
@@ -187,119 +184,6 @@ static AbstractQoreNode *f_waitpid(const QoreListNode *params, ExceptionSink *xs
 }
 */
 
-static QoreListNode *map_sbuf_to_list(struct stat *sbuf) {
-   QoreListNode *l = new QoreListNode;
-
-   // note that dev_t on Linux is an unsigned 64-bit integer, so we could lose precision here
-   l->push(new QoreBigIntNode((int64)sbuf->st_dev));
-   l->push(new QoreBigIntNode(sbuf->st_ino));
-   l->push(new QoreBigIntNode(sbuf->st_mode));
-   l->push(new QoreBigIntNode(sbuf->st_nlink));
-   l->push(new QoreBigIntNode(sbuf->st_uid));
-   l->push(new QoreBigIntNode(sbuf->st_gid));
-   // note that dev_t on Linux is an unsigned 64-bit integer, so we could lose precision here
-   l->push(new QoreBigIntNode((int64)sbuf->st_rdev));
-   l->push(new QoreBigIntNode(sbuf->st_size));
-   
-   l->push(DateTimeNode::makeAbsolute(currentTZ(), (int64)sbuf->st_atime));
-   l->push(DateTimeNode::makeAbsolute(currentTZ(), (int64)sbuf->st_mtime));
-   l->push(DateTimeNode::makeAbsolute(currentTZ(), (int64)sbuf->st_ctime));
-
-   l->push(new QoreBigIntNode(sbuf->st_blksize));
-   l->push(new QoreBigIntNode(sbuf->st_blocks));
-
-   return l;
-}
-
-static QoreHashNode *map_sbuf_to_hash(struct stat *sbuf) {
-   QoreHashNode *h = new QoreHashNode;
-
-   // note that dev_t on Linux is an unsigned 64-bit integer, so we could lose precision here
-   h->setKeyValue("dev",     new QoreBigIntNode((int64)sbuf->st_dev), 0);
-   h->setKeyValue("inode",   new QoreBigIntNode(sbuf->st_ino), 0);
-   h->setKeyValue("mode",    new QoreBigIntNode(sbuf->st_mode), 0);
-   h->setKeyValue("nlink",   new QoreBigIntNode(sbuf->st_nlink), 0);
-   h->setKeyValue("uid",     new QoreBigIntNode(sbuf->st_uid), 0);
-   h->setKeyValue("gid",     new QoreBigIntNode(sbuf->st_gid), 0);
-   // note that dev_t on Linux is an unsigned 64-bit integer, so we could lose precision here
-   h->setKeyValue("rdev",    new QoreBigIntNode((int64)sbuf->st_rdev), 0);
-   h->setKeyValue("size",    new QoreBigIntNode(sbuf->st_size), 0);
-   
-   h->setKeyValue("atime",   DateTimeNode::makeAbsolute(currentTZ(), (int64)sbuf->st_atime), 0);
-   h->setKeyValue("mtime",   DateTimeNode::makeAbsolute(currentTZ(), (int64)sbuf->st_mtime), 0);
-   h->setKeyValue("ctime",   DateTimeNode::makeAbsolute(currentTZ(), (int64)sbuf->st_ctime), 0);
-
-   h->setKeyValue("blksize", new QoreBigIntNode(sbuf->st_blksize), 0);
-   h->setKeyValue("blocks",  new QoreBigIntNode(sbuf->st_blocks), 0);
-
-   // process permissions
-   QoreStringNode *perm = new QoreStringNode;
-
-   const char *type;
-   if (S_ISBLK(sbuf->st_mode)) {
-      type = "BLOCK-DEVICE";
-      perm->concat('b');
-   }
-   else if (S_ISDIR(sbuf->st_mode)) {
-      type = "DIRECTORY";
-      perm->concat('d');
-   }
-   else if (S_ISCHR(sbuf->st_mode)) {
-      type = "CHARACTER-DEVICE";
-      perm->concat('c');
-   }
-   else if (S_ISFIFO(sbuf->st_mode)) {
-      type = "FIFO";
-      perm->concat('p');
-   }
-   else if (S_ISLNK(sbuf->st_mode)) {
-      type = "SYMBOLIC-LINK";
-      perm->concat('l');
-   }
-   else if (S_ISSOCK(sbuf->st_mode)) {
-      type = "SOCKET";
-      perm->concat('s');
-   }
-   else if (S_ISREG(sbuf->st_mode)) {
-      type = "REGULAR";
-      perm->concat('-');
-   }
-   else {
-      type = "UNKNOWN";
-      perm->concat('?');
-   }
-
-   h->setKeyValue("type",  new QoreStringNode(type), 0);
-
-   // add user permission flags
-   perm->concat(sbuf->st_mode & S_IRUSR ? 'r' : '-');
-   perm->concat(sbuf->st_mode & S_IWUSR ? 'w' : '-');
-   if (sbuf->st_mode & S_ISUID)
-      perm->concat(sbuf->st_mode & S_IXUSR ? 's' : 'S');
-   else
-      perm->concat(sbuf->st_mode & S_IXUSR ? 'x' : '-');
-
-   // add group permission flags
-   perm->concat(sbuf->st_mode & S_IRGRP ? 'r' : '-');
-   perm->concat(sbuf->st_mode & S_IWGRP ? 'w' : '-');
-   if (sbuf->st_mode & S_ISGID)
-      perm->concat(sbuf->st_mode & S_IXGRP ? 's' : 'S');
-   else
-      perm->concat(sbuf->st_mode & S_IXGRP ? 'x' : '-');
-
-   // add other permission flags
-   perm->concat(sbuf->st_mode & S_IROTH ? 'r' : '-');
-   perm->concat(sbuf->st_mode & S_IWOTH ? 'w' : '-');
-   if (sbuf->st_mode & S_ISVTX)
-      perm->concat(sbuf->st_mode & S_IXOTH ? 't' : 'T');
-   else
-      perm->concat(sbuf->st_mode & S_IXOTH ? 'x' : '-');
-
-   h->setKeyValue("perm",  perm, 0);
-
-   return h;
-}
-
 static AbstractQoreNode *f_stat(const QoreListNode *params, ExceptionSink *xsink) {
    QORE_TRACE("f_stat()");
    HARD_QORE_PARAM(p0, const QoreStringNode, params, 0);
@@ -310,7 +194,7 @@ static AbstractQoreNode *f_stat(const QoreListNode *params, ExceptionSink *xsink
    if ((rc = stat(p0->getBuffer(), &sbuf)))
       return 0;
 
-   return map_sbuf_to_list(&sbuf);
+   return stat_to_list(sbuf);
 }
 
 static AbstractQoreNode *f_lstat(const QoreListNode *params, ExceptionSink *xsink) {
@@ -323,7 +207,7 @@ static AbstractQoreNode *f_lstat(const QoreListNode *params, ExceptionSink *xsin
    if ((rc = lstat(p0->getBuffer(), &sbuf)))
       return 0;
 
-   return map_sbuf_to_list(&sbuf);
+   return stat_to_list(sbuf);
 }
 
 // *hash hstat(string $path)  
@@ -337,7 +221,7 @@ static AbstractQoreNode *f_hstat(const QoreListNode *params, ExceptionSink *xsin
    if ((rc = stat(p0->getBuffer(), &sbuf)))
       return 0;
 
-   return map_sbuf_to_hash(&sbuf);
+   return stat_to_hash(sbuf);
 }
 
 static AbstractQoreNode *f_hlstat(const QoreListNode *params, ExceptionSink *xsink) {
@@ -350,7 +234,7 @@ static AbstractQoreNode *f_hlstat(const QoreListNode *params, ExceptionSink *xsi
    if ((rc = lstat(p0->getBuffer(), &sbuf)))
       return 0;
 
-   return map_sbuf_to_hash(&sbuf);
+   return stat_to_hash(sbuf);
 }
 
 static AbstractQoreNode *f_glob(const QoreListNode *params, ExceptionSink *xsink) {

@@ -418,6 +418,24 @@ public:
    **/
    DLLEXPORT bool isDataAvailable(int timeout_ms, ExceptionSink *xsink) const;
 
+   //! returns a QoreListNode with file status information
+   /** @param xsink if an error occurs, the Qore-language exception info will be added here
+       @return a QoreListNode with file status information
+   **/
+   DLLEXPORT QoreListNode *stat(ExceptionSink *xsink) const;
+
+   //! returns a QoreHashNode with file status information
+   /** @param xsink if an error occurs, the Qore-language exception info will be added here
+       @return a QoreHashNode with file status information
+   **/
+   DLLEXPORT QoreHashNode *hstat(ExceptionSink *xsink) const;
+
+   //! returns a QoreHashNode with filesystem status information
+   /** @param xsink if an error occurs, the Qore-language exception info will be added here
+       @return a QoreHashNode with filesystem status information
+   **/
+   DLLEXPORT QoreHashNode *statvfs(ExceptionSink *xsink) const;
+
 #if 0
    //! preallocates storage
    DLLEXPORT int preallocate(fstore_t &fs, ExceptionSink *xsink);
