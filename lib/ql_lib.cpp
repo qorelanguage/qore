@@ -188,7 +188,7 @@ static AbstractQoreNode *f_statvfs(const QoreListNode *params, ExceptionSink *xs
    HARD_QORE_PARAM(p0, const QoreStringNode, params, 0);
 
    struct statvfs vfs;
-   if (statvfs(p0->getbuffer(), &vfs))
+   if (statvfs(p0->getBuffer(), &vfs))
       return 0;
    
    return statvfs_to_hash(vfs);
