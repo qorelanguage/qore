@@ -448,6 +448,13 @@ static AbstractQoreNode *f_gethostbyaddr_long(const QoreListNode *params, Except
    return q_gethostbyaddr_to_hash(xsink, p0->getBuffer(), type);
 }
 
+static AbstractQoreNode *f_getaddrinfo(const QoreListNode *params, ExceptionSink *xsink) {
+   const QoreStringNode *node = HARD_QORE_STRING(params, 0);
+   const QoreStringNode *service = test_string_param(params, 1);
+   int family = (int)HARD_QORE_INT(params, 2);
+   return q_getaddrinfo_to_list(xsink, node->getBuffer(), service ? service->getBuffer() : 0, family);
+}
+
 //int chown (const char *path, uid_t owner, gid_t group);
 static AbstractQoreNode *f_chown(const QoreListNode *params, ExceptionSink *xsink) {
    HARD_QORE_PARAM(p0, const QoreStringNode, params, 0);
@@ -621,13 +628,16 @@ void init_lib_functions() {
    builtinFunctions.add2("gethostbyaddr",       f_noop, QC_RUNTIME_NOOP, QDOM_EXTERNAL_INFO, nothingTypeInfo);
    builtinFunctions.add2("gethostbyaddr",       f_gethostbyaddr, QC_CONSTANT, QDOM_EXTERNAL_INFO, stringOrNothingTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, new QoreBigIntNode(AF_INET));
 
-   // gethostbyname_*hash long(string $name)  
+   // *hash gethostbyname_long(string $name)  
    builtinFunctions.add2("gethostbyname_long",  f_noop, QC_RUNTIME_NOOP, QDOM_EXTERNAL_INFO, nothingTypeInfo);
    builtinFunctions.add2("gethostbyname_long",  f_gethostbyname_long, QC_CONSTANT, QDOM_EXTERNAL_INFO, hashOrNothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   // gethostbyaddr_*hash long(string $addr, softint $type = AF_INET)  
+   // *hash gethostbyaddr_long(string $addr, softint $type = AF_INET)  
    builtinFunctions.add2("gethostbyaddr_long",  f_noop, QC_RUNTIME_NOOP, QDOM_EXTERNAL_INFO, nothingTypeInfo);
    builtinFunctions.add2("gethostbyaddr_long",  f_gethostbyaddr_long, QC_CONSTANT, QDOM_EXTERNAL_INFO, hashOrNothingTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, new QoreBigIntNode(AF_INET));
+
+   // *hash getaddrinfo(string $node, *string $service, softint $family = AF_UNSPEC)
+   builtinFunctions.add2("getaddrinfo",         f_getaddrinfo, QC_CONSTANT, QDOM_EXTERNAL_INFO, listOrNothingTypeInfo, 3, stringTypeInfo, QORE_PARAM_NO_ARG, stringOrNothingTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, new QoreBigIntNode(AF_UNSPEC));
 
    // getcwd can return NOTHING if an error occurs
    // *string getcwd()  

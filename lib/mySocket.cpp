@@ -50,6 +50,11 @@ int mySocket::connectINET(const char *host, int port, int timeout_ms, ExceptionS
    return socket->connectINET(host, port, timeout_ms, xsink);
 }
 
+int mySocket::connectINET2(const char *name, const char *service, int family, int timeout_ms, ExceptionSink *xsink) {
+   AutoLocker al(this);
+   return socket->connectINET2(name, service, family, timeout_ms, xsink);
+}
+
 int mySocket::connectUNIX(const char *p, ExceptionSink *xsink) {
    AutoLocker al(this);
    return socket->connectUNIX(p, xsink);
@@ -362,6 +367,14 @@ int mySocket::connectINETSSL(const char *host, int port, int timeout_ms, Excepti
 				 cert ? cert->getData() : 0,
 				 pk ? pk->getData() : 0,
 				 xsink);
+}
+
+int mySocket::connectINET2SSL(const char *name, const char *service, int family, int timeout_ms, ExceptionSink *xsink) {
+   AutoLocker al(this);
+   return socket->connectINET2SSL(name, service, family, timeout_ms, 
+				  cert ? cert->getData() : 0,
+				  pk ? pk->getData() : 0,
+				  xsink);
 }
 
 int mySocket::connectUNIXSSL(const char *p, ExceptionSink *xsink) {

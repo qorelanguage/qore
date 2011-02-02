@@ -27,7 +27,9 @@
 
 #define _QORE_QORENET_H
 
+#include <sys/types.h>
 #include <sys/socket.h>
+#include <netdb.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
@@ -50,6 +52,51 @@ DLLEXPORT QoreHashNode *q_gethostbyaddr_to_hash(ExceptionSink *xsink, const char
 DLLEXPORT QoreStringNode *q_gethostbyaddr_to_string(ExceptionSink *xsink, const char *addr, int type = AF_INET);
 
 //! converts a network address in network byte order to a string (address_family = AF_INET or AF_INET6), returns 0 on error
+/** @see q_addr_to_string2()
+ */
 DLLEXPORT QoreStringNode *q_addr_to_string(int address_family, const char *addr);
+
+//! converts a network address in network byte order to a string (address_family = AF_INET or AF_INET6), returns 0 on error
+DLLEXPORT QoreStringNode *q_addr_to_string2(int family, struct sockaddr *ai_addr);
+
+//! get port from struct sockaddr, returns -1 if port cannot be determined
+DLLEXPORT int q_get_port_from_addr(int family, struct sockaddr *ai_addr);
+
+//! returns address info as a hash
+DLLEXPORT QoreListNode *q_getaddrinfo_to_list(ExceptionSink *xsink, const char *node, const char *service, int family = AF_UNSPEC, int flags = 0, int socktype = SOCK_STREAM);
+
+class QoreAddrInfo {
+protected:
+   struct addrinfo *ai;
+   bool has_svc;
+
+public:
+   //! create an empty structure
+   DLLEXPORT QoreAddrInfo();
+
+   //! destroy the object
+   DLLEXPORT ~QoreAddrInfo();
+
+   //! clears the current results, if any
+   DLLEXPORT void clear();
+
+   //! get address info with the given parameters, if any errors occur, a Qore-language exception is thrown
+   /** @param xsink if any errors occur, Qore-language exception info is added to this object
+       @param node the node name for the lookup
+       @param service the service name (from /etc/services, for example) or port number
+       @param family a hint for the address family, AF_UNSPEC means any family
+       @param flags hint flags as per the getaddrinfo() call: AI_ADDRCONFIG, AI_ALL, AI_CANONNAME, AI_NUMERICHOST, AI_NUMERICSERV, AI_PASSIVE, AI_V4MAPPED
+       @param socktype a hint for the type of socket; 0 = any socket type
+    */
+   DLLEXPORT int getInfo(ExceptionSink *xsink, const char *node, const char *service, int family = AF_UNSPEC, int flags = 0, int socktype = SOCK_STREAM);
+
+   //! returns the struct addrinfo * being managed (may by 0)
+   DLLEXPORT struct addrinfo *getAddrInfo() const {
+      return ai;
+   }
+   
+   //! returns a list of hashes of address info, if an addrinfo structure is being managed
+   DLLEXPORT QoreListNode *getList() const;   
+};
 
 #endif // _QORE_QORENET_H

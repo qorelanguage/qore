@@ -415,8 +415,14 @@ public:
     */
    DLLEXPORT void toupr();
 
-   //! returns number of bytes in the string
+   //! returns number of bytes in the string (not including the null pointer)
    DLLEXPORT qore_size_t strlen() const;
+
+   //! returns number of bytes in the string (not including the null pointer)
+   DLLEXPORT qore_size_t size() const;
+
+   //! returns number of bytes allocated for the string's buffer, capacity is always >= size
+   DLLEXPORT qore_size_t capacity() const;
 
    //! returns the string's buffer; this data should not be changed
    DLLEXPORT const char *getBuffer() const;

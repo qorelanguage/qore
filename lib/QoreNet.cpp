@@ -27,13 +27,49 @@
 #include <strings.h>
 #include <string.h>
 #include <stdlib.h>
-#include <netdb.h>
 
 #define QORE_NET_ADDR_BUF_LEN 80
 
-QoreStringNode *q_addr_to_string(int address_family, const char *addr) {
+QoreStringNode *q_addr_to_string(int family, const char *addr) {
    char buf[QORE_NET_ADDR_BUF_LEN];
-   return inet_ntop(address_family, addr, buf, QORE_NET_ADDR_BUF_LEN) ? new QoreStringNode(buf) : 0;
+   return inet_ntop(family, addr, buf, QORE_NET_ADDR_BUF_LEN) ? new QoreStringNode(buf) : 0;
+}
+
+QoreStringNode *q_addr_to_string2(int family, struct sockaddr *ai_addr) {
+   SimpleRefHolder<QoreStringNode> str(new QoreStringNode);
+
+   void *addr;
+   if (family == AF_INET) {
+      struct sockaddr_in *ipv4 = (struct sockaddr_in *)ai_addr;
+      addr = &(ipv4->sin_addr);
+      str->reserve(INET_ADDRSTRLEN);
+   }
+   else if (family == AF_INET6) {
+      struct sockaddr_in6 *ipv6 = (struct sockaddr_in6 *)ai_addr;
+      addr = &(ipv6->sin6_addr);
+      str->reserve(INET6_ADDRSTRLEN);
+   }
+   else
+      return 0;
+
+   if (!inet_ntop(family, addr, (char *)str->getBuffer(), str->capacity()))
+      return 0;
+
+   str->terminate(strlen(str->getBuffer()));
+   return str.release();
+}
+
+int q_get_port_from_addr(int family, struct sockaddr *ai_addr) {
+   if (family == AF_INET) {
+      struct sockaddr_in *ipv4 = (struct sockaddr_in *)ai_addr;
+      return ntohs(ipv4->sin_port);
+   }
+   else if (family == AF_INET6) {
+      struct sockaddr_in6 *ipv6 = (struct sockaddr_in6 *)ai_addr;
+      return ntohs(ipv6->sin6_port);
+   }
+
+   return -1;
 }
 
 // FIXME: check err?
@@ -79,12 +115,12 @@ int q_gethostbyname(const char *host, struct in_addr *sin_addr) {
 }
 
 static QoreHashNode *he_to_hash(struct hostent &he) {
-   QoreHashNode *h = new QoreHashNode();
+   QoreHashNode *h = new QoreHashNode;
    
    if (he.h_name && he.h_name[0])
       h->setKeyValue("name", new QoreStringNode(he.h_name), 0); // official host name
    if (he.h_aliases) {
-      QoreListNode *l = new QoreListNode();
+      QoreListNode *l = new QoreListNode;
       char **a = he.h_aliases;
       while (*a)
 	 l->push(new QoreStringNode(*(a++)));
@@ -126,7 +162,7 @@ static QoreStringNode *hename_string(struct hostent &he) {
    if (he.h_name && he.h_name[0])
       return new QoreStringNode(he.h_name);
 
-   return new QoreStringNode();
+   return new QoreStringNode;
 }
 
 static QoreStringNode *headdr_string(struct hostent &he) {
@@ -136,7 +172,7 @@ static QoreStringNode *headdr_string(struct hostent &he) {
 	 return new QoreStringNode(buf);
    }
 
-   return new QoreStringNode();
+   return new QoreStringNode;
 }
 
 QoreHashNode *q_gethostbyname_to_hash(const char *host) {  
@@ -348,4 +384,91 @@ QoreStringNode *q_gethostbyaddr_to_string(ExceptionSink *xsink, const char *addr
 
    return hename_string(*he);
 #endif // HAVE_GETHOSTBYADDR_R
+}
+
+QoreListNode *q_getaddrinfo_to_list(ExceptionSink *xsink, const char *node, const char *service, int family, int flags, int socktype) {
+   QoreAddrInfo ai;
+   if (ai.getInfo(xsink, node, service, family, flags, socktype))
+      return 0;
+
+   return ai.getList();
+}
+
+QoreAddrInfo::QoreAddrInfo() : ai(0), has_svc(false) {
+}
+
+QoreAddrInfo::~QoreAddrInfo() {
+   clear();
+}
+
+void QoreAddrInfo::clear() {
+   if (ai) {
+      freeaddrinfo(ai);
+      ai = 0;
+      has_svc = false;
+   }
+}
+
+int QoreAddrInfo::getInfo(ExceptionSink *xsink, const char *node, const char *service, int family, int flags, int socktype) {
+   if (ai)
+      clear();
+
+   struct addrinfo hints;
+   memset(&hints, 0, sizeof hints); // make sure the struct is empty
+
+   hints.ai_family = family;
+   hints.ai_flags = flags;
+   hints.ai_socktype = socktype;
+
+   int status = getaddrinfo(node, service, &hints, &ai);
+   if (status) {
+      if (xsink)
+	 xsink->raiseException("QOREADDRINFO-GETINFO-ERROR", "getaddrinfo() error: %s", gai_strerror(status));
+      return -1;
+   }
+
+   if (service)
+      has_svc = true;
+   return 0;   
+}
+
+QoreListNode *QoreAddrInfo::getList() const {
+   if (!ai)
+      return 0;
+
+   QoreListNode *l = new QoreListNode;
+
+   for (struct addrinfo *p = ai; p; p = p->ai_next) {
+      QoreHashNode *h = new QoreHashNode;
+
+      const char *family;
+
+      // get the pointer to the address itself, different fields in IPv4 and IPv6:
+      if (p->ai_family == AF_INET)
+	 family = "ipv4";
+      else if (p->ai_family == AF_INET6)
+	 family = "ipv6";
+      else // should never happen, but just in case, for extreme/partial forwards-compatibility... :-)
+	 family = "unknown";
+
+      if (p->ai_canonname && *p->ai_canonname)
+	 h->setKeyValue("canonname", new QoreStringNode(p->ai_canonname), 0);
+
+      QoreStringNode *addr = q_addr_to_string2(p->ai_family, p->ai_addr);
+      if (addr)
+	 h->setKeyValue("address", addr, 0);
+
+      h->setKeyValue("family", new QoreBigIntNode(p->ai_family), 0);
+      h->setKeyValue("familystr", new QoreStringNode(family), 0);
+      h->setKeyValue("addrlen", new QoreBigIntNode(p->ai_addrlen), 0);
+      if (has_svc) {
+	 int port = q_get_port_from_addr(p->ai_family, p->ai_addr);
+	 if (port != -1)
+	    h->setKeyValue("port", new QoreBigIntNode(port), 0);
+      }
+
+      l->push(h);
+   }
+
+   return l;
 }

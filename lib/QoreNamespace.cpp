@@ -1551,6 +1551,7 @@ void StaticSystemNamespace::init() {
 #else
    qoreNS->addConstant("AF_LOCAL",      new QoreBigIntNode(AF_UNIX));
 #endif
+   qoreNS->addConstant("AF_UNSPEC",     new QoreBigIntNode(AF_UNSPEC));
 
    // zlib constants
    qoreNS->addConstant("Z_DEFAULT_COMPRESSION", new QoreBigIntNode(Z_DEFAULT_COMPRESSION));

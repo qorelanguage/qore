@@ -69,9 +69,11 @@ class mySocket : public AbstractPrivateData, public QoreThreadLock {
 
       DLLLOCAL int connect(const char *name, int timeout_ms, ExceptionSink *xsink = NULL);
       DLLLOCAL int connectINET(const char *host, int port, int timeout_ms, ExceptionSink *xsink = NULL);
+      DLLLOCAL int connectINET2(const char *host, const char *service, int family, int timeout_ms = -1, ExceptionSink *xsink = NULL);
       DLLLOCAL int connectUNIX(const char *p, ExceptionSink *xsink = NULL);
       DLLLOCAL int connectSSL(const char *name, int timeout_ms, ExceptionSink *xsink);
       DLLLOCAL int connectINETSSL(const char *host, int port, int timeout_ms, ExceptionSink *xsink);
+      DLLLOCAL int connectINET2SSL(const char *host, const char *service, int family, int timeout_ms = -1, ExceptionSink *xsink = NULL);
       DLLLOCAL int connectUNIXSSL(const char *p, ExceptionSink *xsink);
       // to bind to either a UNIX socket or an INET interface:port
       DLLLOCAL int bind(const char *name, bool reuseaddr = false);

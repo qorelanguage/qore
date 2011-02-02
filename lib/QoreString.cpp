@@ -1531,6 +1531,14 @@ qore_size_t QoreString::strlen() const {
    return priv->len;
 }
 
+qore_size_t QoreString::size() const {
+   return priv->len;
+}
+
+qore_size_t QoreString::capacity() const {
+   return priv->allocated;
+}
+
 const char *QoreString::getBuffer() const {
    return priv->buf;
 }
