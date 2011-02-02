@@ -209,7 +209,7 @@ static AbstractQoreNode *DIR_listDirs_str_int(QoreObject *self, Dir *d, const Qo
    return d->list(xsink, S_IFDIR, p0, regex_options);
 }
 
-// openFile(filename, [flags, mode, charset])
+// File openFile(string $filename, int $flags = O_RDONLY, int $mode = 0666, *string encoding)
 // throw exception from File::open2()
 static AbstractQoreNode *DIR_openFile(QoreObject *self, Dir *d, const QoreListNode *params, ExceptionSink *xsink) {
    const QoreStringNode *p0 = HARD_QORE_STRING(params, 0);
@@ -305,8 +305,6 @@ static AbstractQoreNode *DIR_statvfs(QoreObject *self, Dir *d, const QoreListNod
 QoreClass *initDirClass() {
    QORE_TRACE("initDirClass()");
 
-   assert(QC_DIR);
-
    QC_DIR = new QoreClass("Dir", QDOM_FILESYSTEM);
    CID_DIR = QC_DIR->getID();
 
@@ -351,8 +349,7 @@ QoreClass *initDirClass() {
    QC_DIR->addMethodExtended("openDir",		(q_method_t)DIR_openDir, false, QC_NO_FLAGS, QDOM_DEFAULT, QC_DIR->getTypeInfo(), 1, stringTypeInfo, QORE_PARAM_NO_ARG);
    QC_DIR->addMethodExtended("openDir",		(q_method_t)DIR_openDir, false, QC_NO_FLAGS, QDOM_DEFAULT, QC_DIR->getTypeInfo(), 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
 
-   QC_DIR->addMethodExtended("openFile",	(q_method_t)DIR_openFile, false, QC_NO_FLAGS, QDOM_DEFAULT, QC_DIR->getTypeInfo(), 3, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, new QoreBigIntNode(O_RDONLY), softBigIntTypeInfo, new QoreBigIntNode(0666));
-   QC_DIR->addMethodExtended("openFile",	(q_method_t)DIR_openFile, false, QC_NO_FLAGS, QDOM_DEFAULT, QC_DIR->getTypeInfo(), 4, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, new QoreBigIntNode(O_RDONLY), softBigIntTypeInfo, new QoreBigIntNode(0666), stringTypeInfo, QORE_PARAM_NO_ARG);
+   QC_DIR->addMethodExtended("openFile",	(q_method_t)DIR_openFile, false, QC_NO_FLAGS, QDOM_DEFAULT, QC_FILE->getTypeInfo(), 4, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, new QoreBigIntNode(O_RDONLY), softBigIntTypeInfo, new QoreBigIntNode(0666), stringOrNothingTypeInfo, QORE_PARAM_NO_ARG);
 
    QC_DIR->addMethodExtended("removeFile",	(q_method_t)DIR_removeFile, false, QC_NO_FLAGS, QDOM_DEFAULT, boolTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
