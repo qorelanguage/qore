@@ -197,6 +197,7 @@ public:
    /** @param name the name or address of the host
        @param service the port number or service name of the remote socket
        @param family should be either AF_INET (for ipv4) or AF_INET6 (for ipv6)
+       @param sock_type the type of socket, normally SOCK_STREAM for tcp sockets
        @param timeout_ms the timeout period in milliseconds
        @param xsink if not 0, if an error occurs, the Qore-language exception information will be added here
        @return 0 for OK, -1 means that an error occured and a Qore-language exception was raised
@@ -206,7 +207,7 @@ public:
        @see QoreSocket::connectINETSSL()
        @see QoreSocket::connectUNIXSSL()
    */
-   DLLEXPORT int connectINET2(const char *name, const char *service, int family, int timeout_ms = -1, ExceptionSink *xsink = 0);
+   DLLEXPORT int connectINET2(const char *name, const char *service, int family = AF_UNSPEC, int sock_type = SOCK_STREAM, int timeout_ms = -1, ExceptionSink *xsink = 0);
 
    //! connects to an INET socket by hostname and port number and returns a status code, Qore-language exceptions are raised in the case of any errors
    /** @param host the name or IP address of the host
@@ -310,6 +311,7 @@ public:
    /** @param name the name or address of the host
        @param service the port number or service name of the remote socket
        @param family should be either AF_INET (for ipv4) or AF_INET6 (for ipv6)
+       @param sock_type the type of socket, normally SOCK_STREAM for tcp sockets
        @param timeout_ms the timeout period in milliseconds
        @param cert the X509 certificate to use for the connection, may be 0 if no certificate should be used
        @param pkey the private key to use for the connection, may be 0 if no private key should be used
@@ -321,7 +323,7 @@ public:
        @see QoreSocket::connectINETSSL()
        @see QoreSocket::connectUNIXSSL()
    */
-   DLLEXPORT int connectINET2SSL(const char *name, const char *service, int family, int timeout_ms, X509 *cert, EVP_PKEY *pkey, ExceptionSink *xsink = 0);
+   DLLEXPORT int connectINET2SSL(const char *name, const char *service, int family, int sock_type, int timeout_ms, X509 *cert, EVP_PKEY *pkey, ExceptionSink *xsink = 0);
 
    //! connects to a UNIX domain socket, negotiates an SSL connection, and returns a status code, Qore-language exceptions are raised in the case of any errors
    /** @param p the file name of the UNIX domain socket

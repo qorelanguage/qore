@@ -1198,8 +1198,8 @@ int QoreSocket::connectINET(const char *host, int prt, ExceptionSink *xsink) {
    return priv->connectINET(host, prt, -1, xsink);
 }
 
-int QoreSocket::connectINET2(const char *name, const char *service, int family, int timeout_ms, ExceptionSink *xsink) {
-   return priv->connectINET2(name, service, timeout_ms, xsink, family);
+int QoreSocket::connectINET2(const char *name, const char *service, int family, int socktype, int timeout_ms, ExceptionSink *xsink) {
+   return priv->connectINET2(name, service, timeout_ms, xsink, family, socktype);
 }
 
 int QoreSocket::connectUNIX(const char *p, ExceptionSink *xsink) {
@@ -2455,8 +2455,8 @@ int QoreSocket::connectINETSSL(const char *host, int prt, X509 *cert, EVP_PKEY *
    return connectINETSSL(host, prt, -1, cert, pkey, xsink);
 }
 
-int QoreSocket::connectINET2SSL(const char *name, const char *service, int family, int timeout_ms, X509 *cert, EVP_PKEY *pkey, ExceptionSink *xsink) {
-   int rc = connectINET2(name, service, family, timeout_ms, xsink);
+int QoreSocket::connectINET2SSL(const char *name, const char *service, int family, int sock_type, int timeout_ms, X509 *cert, EVP_PKEY *pkey, ExceptionSink *xsink) {
+   int rc = connectINET2(name, service, family, sock_type, timeout_ms, xsink);
    if (rc)
       return rc;
    return priv->upgradeClientToSSLIntern(cert, pkey, xsink);

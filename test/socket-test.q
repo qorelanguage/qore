@@ -60,7 +60,7 @@ class socket_test {
     private server_thread() {
 	on_exit $.stopc.dec();
 	socket_test::printf("listening for incoming connections on %s\n", $.server_port);
-	my $s = new Socket();
+	my Socket $s();
 	# setting the callback will output far too much data
 	if ($.o.events) {
 	    $s.setEventQueue($.queue);
@@ -123,7 +123,7 @@ class socket_test {
 	on_exit $.stopc.dec();
 	if (!exists $.o.server)
 	    $.counter.waitForZero();
-	my $s = new Socket();
+	my Socket $s();
 	# setting the callback will output far too much data
 	if ($.o.events)
 	    $s.setEventQueue($.queue);
@@ -268,7 +268,7 @@ class socket_test {
     }
 
     private process_command_line() {
-	my $g = new GetOpt(opts);
+	my GetOpt $g(opts);
 	$.o = $g.parse(\$ARGV);
 	
 	if (exists $.o{"_ERRORS_"}) {
