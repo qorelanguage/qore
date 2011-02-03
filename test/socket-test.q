@@ -85,9 +85,7 @@ class socket_test {
 		    $f.open2($.o.cert);
 		    my SSLCertificate $cert($f.read(-1));
 		    $s.setCertificate($cert);
-		    if (!strlen($.o.key))
-			$s.setPrivateKey($cert);
-		    else {
+		    if (strlen($.o.key)) {
 			$f.open2($.o.key);
 			$s.setPrivateKey(new SSLPrivateKey($f.read(-1)));
 		    }
