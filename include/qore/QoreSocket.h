@@ -62,6 +62,7 @@ class Queue;
     @see QoreSocket::acceptAndReplace()
  */
 class SocketSource {
+   friend struct qore_socket_private;
 private:
    struct qore_socketsource_private *priv; // private implementation
 
@@ -98,10 +99,6 @@ public:
     */
    DLLEXPORT const char *getHostName() const;
 
-   DLLLOCAL void setAddress(QoreStringNode *addr);
-   DLLLOCAL void setAddress(const char *addr);
-   DLLLOCAL void setHostName(const char *host);
-   DLLLOCAL void setHostName(QoreStringNode *host);
    DLLLOCAL void setAll(QoreObject *o, ExceptionSink *xsink);
 };
 
