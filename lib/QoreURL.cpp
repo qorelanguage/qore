@@ -29,7 +29,6 @@
 
 struct qore_url_private {
 private:
-
    DLLLOCAL void parse_intern(const char *buf) {
       if (!buf || !buf[0])
 	 return;
@@ -83,6 +82,12 @@ private:
       else
 	 pos = nbuf;
 
+      // see if the "hostname" is an ipv6 address in brackets
+      if (*pos == '[' && (p = (char *)strchr(pos, ']'))) {
+	 host = new QoreStringNode(pos + 1, p - pos - 1);
+	 pos = p + 1;
+      }
+
       bool has_port = false;
       // see if there's a port
       if ((p = (char *)strchr(pos, ':'))) {
@@ -94,12 +99,14 @@ private:
 
       // there is no hostname if there is no port specification and 
       // no protocol, username, or password -- just a relative path
-      if (!has_port && !protocol && !username && !password && path)
-	 path->replace(0, 0, pos);
-      else if (*pos) {
-	 // set hostname
-	 printd(5, "QoreURL::parse_intern host=%s\n", pos);	 
-	 host = new QoreStringNode(pos);
+      if (!host) {
+	 if (!has_port && !protocol && !username && !password && path)
+	    path->replace(0, 0, pos);
+	 else if (*pos) {
+	    // set hostname
+	    printd(5, "QoreURL::parse_intern host=%s\n", pos);	 
+	    host = new QoreStringNode(pos);
+	 }
       }
 
       free(nbuf);
