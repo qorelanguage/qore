@@ -29,22 +29,31 @@
 
 // only called with derived classes
 QoreException::QoreException() {
-   //printd(5, "QoreException::QoreException() this=%08p\n", this);
+   //printd(5, "QoreException::QoreException() this=%p\n", this);
 }
 
 // called for runtime errors
-QoreException::QoreException(const char *e, QoreStringNode *d) {
-   //printd(5, "QoreException::QoreException() this=%08p\n", this);
+void QoreException::init(const char *e, QoreStringNode *d) {
+   //printd(5, "QoreException::init() this=%p\n", this);
    type = ET_SYSTEM;
    const char *f = get_pgm_counter(start_line, end_line);
    file = f ? strdup(f) : 0;
-   callStack = new QoreListNode();
+   callStack = new QoreListNode;
 
    err = new QoreStringNode(e);
    desc = d;
    arg = 0;
 
    next = 0;
+}
+
+QoreException::QoreException(const char *e, QoreStringNode *d) {
+   init(e, d);
+}
+
+QoreException::QoreException(const char *e, QoreStringNode *d, AbstractQoreNode *a) {
+   init(e, d);
+   arg = a;
 }
 
 // called when parsing

@@ -1501,63 +1501,73 @@ void StaticSystemNamespace::init() {
    addSSLConstants(qoreNS);
 
    // add boolean constants for true and false
-   qoreNS->addConstant("True",          boolean_true());
-   qoreNS->addConstant("False",         boolean_false());
+   qoreNS->addConstant("True",           boolean_true());
+   qoreNS->addConstant("False",          boolean_false());
 
    // add File object constants for stdin (0), stdout (1), stderr (2)
-   qoreNS->addConstant("stdin",         File->execSystemConstructor(0));
-   qoreNS->addConstant("stdout",        File->execSystemConstructor(1));
-   qoreNS->addConstant("stderr",        File->execSystemConstructor(2));
+   qoreNS->addConstant("stdin",          File->execSystemConstructor(0));
+   qoreNS->addConstant("stdout",         File->execSystemConstructor(1));
+   qoreNS->addConstant("stderr",         File->execSystemConstructor(2));
 
    // add constants for exception types
-   qoreNS->addConstant("ET_System",     new QoreStringNode("System"));
-   qoreNS->addConstant("ET_User",       new QoreStringNode("User"));
+   qoreNS->addConstant("ET_System",      new QoreStringNode("System"));
+   qoreNS->addConstant("ET_User",        new QoreStringNode("User"));
 
    // create constants for call types
-   qoreNS->addConstant("CT_User",       new QoreBigIntNode(CT_USER));
-   qoreNS->addConstant("CT_Builtin",    new QoreBigIntNode(CT_BUILTIN));
-   qoreNS->addConstant("CT_NewThread",  new QoreBigIntNode(CT_NEWTHREAD));
-   qoreNS->addConstant("CT_Rethrow",    new QoreBigIntNode(CT_RETHROW));
+   qoreNS->addConstant("CT_User",        new QoreBigIntNode(CT_USER));
+   qoreNS->addConstant("CT_Builtin",     new QoreBigIntNode(CT_BUILTIN));
+   qoreNS->addConstant("CT_NewThread",   new QoreBigIntNode(CT_NEWTHREAD));
+   qoreNS->addConstant("CT_Rethrow",     new QoreBigIntNode(CT_RETHROW));
 
    // create constants for version and platform information
-   qoreNS->addConstant("VersionString", new QoreStringNode(qore_version_string));
-   qoreNS->addConstant("VersionMajor",  new QoreBigIntNode(qore_version_major));
-   qoreNS->addConstant("VersionMinor",  new QoreBigIntNode(qore_version_minor));
-   qoreNS->addConstant("VersionSub",    new QoreBigIntNode(qore_version_sub));
-   qoreNS->addConstant("Build",         new QoreBigIntNode(qore_build_number));
-   qoreNS->addConstant("PlatformCPU",   new QoreStringNode(TARGET_ARCH));
-   qoreNS->addConstant("PlatformOS",    new QoreStringNode(TARGET_OS));
+   qoreNS->addConstant("VersionString",  new QoreStringNode(qore_version_string));
+   qoreNS->addConstant("VersionMajor",   new QoreBigIntNode(qore_version_major));
+   qoreNS->addConstant("VersionMinor",   new QoreBigIntNode(qore_version_minor));
+   qoreNS->addConstant("VersionSub",     new QoreBigIntNode(qore_version_sub));
+   qoreNS->addConstant("Build",          new QoreBigIntNode(qore_build_number));
+   qoreNS->addConstant("PlatformCPU",    new QoreStringNode(TARGET_ARCH));
+   qoreNS->addConstant("PlatformOS",     new QoreStringNode(TARGET_OS));
 
    // constants for build info
-   qoreNS->addConstant("BuildHost",     new QoreStringNode(qore_build_host));
-   qoreNS->addConstant("Compiler",      new QoreStringNode(qore_cplusplus_compiler));
-   qoreNS->addConstant("CFLAGS",        new QoreStringNode(qore_cflags));
-   qoreNS->addConstant("LDFLAGS",       new QoreStringNode(qore_ldflags));
+   qoreNS->addConstant("BuildHost",      new QoreStringNode(qore_build_host));
+   qoreNS->addConstant("Compiler",       new QoreStringNode(qore_cplusplus_compiler));
+   qoreNS->addConstant("CFLAGS",         new QoreStringNode(qore_cflags));
+   qoreNS->addConstant("LDFLAGS",        new QoreStringNode(qore_ldflags));
 
    // add constants for regex() function options
-   qoreNS->addConstant("RE_Caseless",   new QoreBigIntNode(PCRE_CASELESS));
-   qoreNS->addConstant("RE_DotAll",     new QoreBigIntNode(PCRE_DOTALL));
-   qoreNS->addConstant("RE_Extended",   new QoreBigIntNode(PCRE_EXTENDED));
-   qoreNS->addConstant("RE_MultiLine",  new QoreBigIntNode(PCRE_MULTILINE));
+   qoreNS->addConstant("RE_Caseless",    new QoreBigIntNode(PCRE_CASELESS));
+   qoreNS->addConstant("RE_DotAll",      new QoreBigIntNode(PCRE_DOTALL));
+   qoreNS->addConstant("RE_Extended",    new QoreBigIntNode(PCRE_EXTENDED));
+   qoreNS->addConstant("RE_MultiLine",   new QoreBigIntNode(PCRE_MULTILINE));
    // note that the following constant is > 32-bits so it can't collide with PCRE constants
-   qoreNS->addConstant("RE_Global",     new QoreBigIntNode(QRE_GLOBAL));
+   qoreNS->addConstant("RE_Global",      new QoreBigIntNode(QRE_GLOBAL));
 
    // network constants
-   qoreNS->addConstant("AF_INET",       new QoreBigIntNode(AF_INET));
-   qoreNS->addConstant("AF_INET6",      new QoreBigIntNode(AF_INET6));
-   qoreNS->addConstant("AF_UNIX",       new QoreBigIntNode(AF_UNIX));
+   qoreNS->addConstant("AF_INET",        new QoreBigIntNode(AF_INET));
+   qoreNS->addConstant("AF_INET6",       new QoreBigIntNode(AF_INET6));
+   qoreNS->addConstant("AF_UNIX",        new QoreBigIntNode(AF_UNIX));
 #ifdef AF_LOCAL
-   qoreNS->addConstant("AF_LOCAL",      new QoreBigIntNode(AF_LOCAL)); // POSIX synonym for AF_UNIX
+   qoreNS->addConstant("AF_LOCAL",       new QoreBigIntNode(AF_LOCAL)); // POSIX synonym for AF_UNIX
 #else
-   qoreNS->addConstant("AF_LOCAL",      new QoreBigIntNode(AF_UNIX));
+   qoreNS->addConstant("AF_LOCAL",       new QoreBigIntNode(AF_UNIX));
 #endif
-   qoreNS->addConstant("AF_UNSPEC",     new QoreBigIntNode(AF_UNSPEC));
+   qoreNS->addConstant("AF_UNSPEC",      new QoreBigIntNode(AF_UNSPEC));
+
+   qoreNS->addConstant("AI_ADDRCONFIG",  new QoreBigIntNode(AI_ADDRCONFIG));   
+   qoreNS->addConstant("AI_ALL",         new QoreBigIntNode(AI_ALL));
+   qoreNS->addConstant("AI_CANONNAME",   new QoreBigIntNode(AI_CANONNAME));
+   qoreNS->addConstant("AI_NUMERICHOST", new QoreBigIntNode(AI_NUMERICHOST));
+   qoreNS->addConstant("AI_NUMERICSERV", new QoreBigIntNode(AI_NUMERICSERV));
+   qoreNS->addConstant("AI_PASSIVE",     new QoreBigIntNode(AI_PASSIVE));
+   qoreNS->addConstant("AI_V4MAPPED",    new QoreBigIntNode(AI_V4MAPPED));
+   qoreNS->addConstant("IPPROTO_UDP",    new QoreBigIntNode(IPPROTO_UDP));
+   qoreNS->addConstant("IPPROTO_TCP",    new QoreBigIntNode(IPPROTO_TCP));
 
    // zlib constants
    qoreNS->addConstant("Z_DEFAULT_COMPRESSION", new QoreBigIntNode(Z_DEFAULT_COMPRESSION));
 
    // math constants
-   qoreNS->addConstant("M_PI",          new QoreFloatNode(3.14159265358979323846));
+   qoreNS->addConstant("M_PI",           new QoreFloatNode(3.14159265358979323846));
 
    // system constants
 #ifdef WORDS_BIGENDIAN

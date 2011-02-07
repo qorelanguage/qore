@@ -35,10 +35,10 @@ QoreStringNode *q_addr_to_string(int family, const char *addr) {
    return inet_ntop(family, addr, buf, QORE_NET_ADDR_BUF_LEN) ? new QoreStringNode(buf) : 0;
 }
 
-QoreStringNode *q_addr_to_string2(int family, struct sockaddr *ai_addr) {
+QoreStringNode *q_addr_to_string2(int family, const struct sockaddr *ai_addr) {
    SimpleRefHolder<QoreStringNode> str(new QoreStringNode);
 
-   void *addr;
+   const void *addr;
    if (family == AF_INET) {
       struct sockaddr_in *ipv4 = (struct sockaddr_in *)ai_addr;
       addr = &(ipv4->sin_addr);
@@ -59,13 +59,13 @@ QoreStringNode *q_addr_to_string2(int family, struct sockaddr *ai_addr) {
    return str.release();
 }
 
-int q_get_port_from_addr(int family, struct sockaddr *ai_addr) {
+int q_get_port_from_addr(int family, const struct sockaddr *ai_addr) {
    if (family == AF_INET) {
-      struct sockaddr_in *ipv4 = (struct sockaddr_in *)ai_addr;
+      const struct sockaddr_in *ipv4 = (struct sockaddr_in *)ai_addr;
       return ntohs(ipv4->sin_port);
    }
    else if (family == AF_INET6) {
-      struct sockaddr_in6 *ipv6 = (struct sockaddr_in6 *)ai_addr;
+      const struct sockaddr_in6 *ipv6 = (struct sockaddr_in6 *)ai_addr;
       return ntohs(ipv6->sin6_port);
    }
 
@@ -409,7 +409,7 @@ void QoreAddrInfo::clear() {
    }
 }
 
-int QoreAddrInfo::getInfo(ExceptionSink *xsink, const char *node, const char *service, int family, int flags, int socktype) {
+int QoreAddrInfo::getInfo(ExceptionSink *xsink, const char *node, const char *service, int family, int flags, int socktype, int protocol) {
    if (ai)
       clear();
 
@@ -419,6 +419,7 @@ int QoreAddrInfo::getInfo(ExceptionSink *xsink, const char *node, const char *se
    hints.ai_family = family;
    hints.ai_flags = flags;
    hints.ai_socktype = socktype;
+   hints.ai_protocol = protocol;
 
    int status = getaddrinfo(node, service, &hints, &ai);
    if (status) {

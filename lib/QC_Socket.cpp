@@ -169,6 +169,49 @@ static AbstractQoreNode *SOCKET_bind_int_bool(QoreObject *self, mySocket *s, con
    return new QoreBigIntNode(s->bind(port, reuseaddr));
 }
 
+// nothing bindUNIX(string $name, softbool $reuseaddr = False, softint $socktype = SOCK_STREAM, softint $protocol = 0)
+static AbstractQoreNode *SOCKET_bindUNIX(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
+   const QoreStringNode *name = HARD_QORE_STRING(params, 0);
+   bool reuseaddr = HARD_QORE_BOOL(params, 1);
+   int socktype = (int)HARD_QORE_INT(params, 2);
+   int prot = (int)HARD_QORE_INT(params, 3);
+
+   s->bindUNIX(name->getBuffer(), reuseaddr, socktype, prot, xsink);
+   return 0;
+}
+
+// nothing bindINET(*string $interface, *softstring $service, softbool $reuseaddr = False, softint $family = AF_UNSPEC, softint $socktype = SOCK_STREAM, softint $protocol = 0)
+static AbstractQoreNode *SOCKET_bindINET(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
+   const QoreStringNode *interface = test_string_param(params, 0);
+   const QoreStringNode *service = test_string_param(params, 1);
+
+   if ((!interface || !interface->strlen())
+       && (!service || !service->strlen())) {
+      xsink->raiseException("SOCKET-BIND-ERROR", "both interace (first parameter) and service (second parameter) were either not present or empty strings; at least one of the first 2 parameters must be present for a successful call to Socket::bindINET()");
+      return 0;
+   }
+
+   bool reuseaddr = HARD_QORE_BOOL(params, 2);
+   int family = (int)HARD_QORE_INT(params, 3);
+   int socktype = (int)HARD_QORE_INT(params, 4);
+   int prot = (int)HARD_QORE_INT(params, 5);
+
+   s->bindINET(interface ? interface->getBuffer() : 0, service ? service->getBuffer() : 0, reuseaddr, family, socktype, prot, xsink);
+   return 0;
+}
+
+// nothing bindAll(softstring $service, softbool $reuseaddr = False, softint $family = AF_UNSPEC, softint $socktype = SOCK_STREAM, softint $protocol = 0)
+static AbstractQoreNode *SOCKET_bindAll(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
+   const QoreStringNode *service = test_string_param(params, 0);
+   bool reuseaddr = HARD_QORE_BOOL(params, 1);
+   int family = (int)HARD_QORE_INT(params, 2);
+   int socktype = (int)HARD_QORE_INT(params, 3);
+   int prot = (int)HARD_QORE_INT(params, 4);
+
+   s->bindAll(service->getBuffer(), reuseaddr, family, socktype, prot, xsink);
+   return 0;
+}
+
 // Socket::accept()
 // returns a new Socket object, connection source address is in $.source
 // member of new object, hostname in $.source_host
@@ -721,6 +764,15 @@ QoreClass *initSocketClass(QoreClass *SSLCert, QoreClass *SSLPrivKey) {
 
    // int Socket::bind(int $port, bool $reuseaddr = False)  
    QC_SOCKET->addMethodExtended("bind",                      (q_method_t)SOCKET_bind_int_bool, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 2, bigIntTypeInfo, QORE_PARAM_NO_ARG, boolTypeInfo, &False);
+
+   // nothing bindUNIX(string $name, softbool $reuseaddr = False, softint $socktype = SOCK_STREAM, softint $protocol = 0)
+   QC_SOCKET->addMethodExtended("bindUNIX",                  (q_method_t)SOCKET_bindUNIX, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 4, stringTypeInfo, QORE_PARAM_NO_ARG, softBoolTypeInfo, &False, softBigIntTypeInfo, new QoreBigIntNode(SOCK_STREAM), bigIntTypeInfo, zero());
+
+   // nothing bindINET(*string $interface, *softstring $service, softbool $reuseaddr = False, softint $family = AF_UNSPEC, softint $socktype = SOCK_STREAM, int $protocol = 0)
+   QC_SOCKET->addMethodExtended("bindINET",                  (q_method_t)SOCKET_bindINET, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 6, stringOrNothingTypeInfo, QORE_PARAM_NO_ARG, softStringOrNothingTypeInfo, QORE_PARAM_NO_ARG, softBoolTypeInfo, &False, softBigIntTypeInfo, new QoreBigIntNode(AF_UNSPEC), softBigIntTypeInfo, new QoreBigIntNode(SOCK_STREAM), bigIntTypeInfo, zero());
+
+   // nothing bindAll(softstring $service, softbool $reuseaddr = False, softint $family = AF_UNSPEC, softint $socktype = SOCK_STREAM, softint $protocol = 0)
+   QC_SOCKET->addMethodExtended("bindAll",                   (q_method_t)SOCKET_bindAll, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 5, softStringTypeInfo, QORE_PARAM_NO_ARG, softBoolTypeInfo, &False, softBigIntTypeInfo, new QoreBigIntNode(AF_UNSPEC), softBigIntTypeInfo, new QoreBigIntNode(SOCK_STREAM), bigIntTypeInfo, zero());
 
    QC_SOCKET->addMethodExtended("accept",                    (q_method_t)SOCKET_accept, false, QC_NO_FLAGS, QDOM_DEFAULT, QC_SOCKET->getTypeInfo());
    QC_SOCKET->addMethodExtended("acceptSSL",                 (q_method_t)SOCKET_acceptSSL, false, QC_NO_FLAGS, QDOM_DEFAULT, QC_SOCKET->getTypeInfo());

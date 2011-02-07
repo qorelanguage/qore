@@ -192,7 +192,7 @@ AbstractQoreNode* ExceptionSink::raiseErrnoException(const char *err, int en, co
    q_strerror(*desc, en);
 
    printd(5, "ExceptionSink::raiseException(%s, %s)\n", err, desc->getBuffer());
-   insert(new QoreException(err, desc));
+   insert(new QoreException(err, desc, new QoreBigIntNode(en)));
    return 0;
 }
 

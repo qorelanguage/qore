@@ -81,6 +81,12 @@ public:
    DLLLOCAL int bind(int port, bool reuseaddr = false);
    // to bind an open socket to an INET tcp port on a specific interface
    DLLLOCAL int bind(const char *interface, int port, bool reuseaddr = false);
+
+   DLLLOCAL int bindUNIX(const char *name, bool reuseaddr, int socktype, int protocol, ExceptionSink *xsink);
+   DLLLOCAL int bindINET(const char *name, const char *service, bool reuseaddr, int family, int socktype, int protocol, ExceptionSink *xsink);
+
+   DLLLOCAL int bindAll(const char *service, bool reuseaddr, int family = AF_UNSPEC, int socktype = SOCK_STREAM, int protocol = 0, ExceptionSink *xsink = 0);
+
    // get port number for INET sockets
    DLLLOCAL int getPort();
    DLLLOCAL mySocket *accept(SocketSource *source, ExceptionSink *xsink);

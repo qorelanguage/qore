@@ -121,16 +121,9 @@ private:
    //! private implementation of the class
    struct qore_socket_private *priv; 
 
-   //! private constructor, not exported in the library's public itnerface
-   DLLLOCAL QoreSocket(int s, int t, const QoreEncoding *csid);
+   //! private constructor, not exported in the library's public interface
+   DLLLOCAL QoreSocket(int n_sock, int n_sfamily, int n_stype, int s_prot, const QoreEncoding *csid);
 
-   //! opens an INET socket
-   DLLLOCAL int openINET();
-
-   //! opens a UNIX socket
-   DLLLOCAL int openUNIX();
-
-   DLLLOCAL void reuse(int opt);
    DLLLOCAL int recv(char *buf, qore_size_t bs, int flags, int timeout, bool do_event = true);
 
    //! read until \\r\\n and return the string
@@ -342,17 +335,15 @@ public:
    DLLEXPORT int connectUNIXSSL(const char *p, X509 *cert, EVP_PKEY *pkey, ExceptionSink *xsink);
 
    //! binds to a UNIX domain socket or INET interface:port using TCP and returns a status code
-   /** If "name" has a ':' in it; it's assumed to be a address:port specification for binding to an INET socket, 
-       otherwise "name" is assumed to be a file name for a UNIX domain socket.
-       @note a socket file will be created on the filesystem if a UNIX domain socket is opened.
+   /** @note a socket file will be created on the filesystem if a UNIX domain socket is opened.
        @note the socket will be closed and reopened if necessary
-       @param name address:port or filename to bind to
+       @param name address:port or filename to bind to; if the name has a ':' in it; it's assumed to be an address:port specification for binding to an INET socket, otherwise it is assumed to be a file name for a UNIX domain socket.  If there is more than 1 ':' in the name, then the address is assumed to be an ipv6 interface address, otherwise it is assumed to be an ipv4 address.
        @param reuseaddr if true then setsockopt() will be called with SO_REUSEADDR, allowing the bind to succeed even if the port is still in a TIME_WAIT state, for example
        @return 0 for OK, not 0 for error
    */
    DLLEXPORT int bind(const char *name, bool reuseaddr = false);
 
-   //! binds to a TCP INET port on all interfaces and returns a status code
+   //! binds to a TCP INET (ipv4 only) port on all interfaces and returns a status code
    /** @note the socket will be closed and reopened if necessary
        @param prt the port to bind to
        @param reuseaddr if true then setsockopt() will be called with SO_REUSEADDR, allowing the bind to succeed even if the port is still in a TIME_WAIT state, for example
@@ -360,7 +351,7 @@ public:
    */
    DLLEXPORT int bind(int prt, bool reuseaddr);
 
-   //! binds to a TCP INET port on the given interface and returns a status code
+   //! binds to a TCP INET (ipv4 only) port on the given interface and returns a status code
    /** @note the socket will be closed and reopened if necessary
        @param interface the interface to bind to (hostname or IP address)
        @param prt the port to bind to
@@ -369,13 +360,62 @@ public:
    */
    DLLEXPORT int bind(const char *interface, int prt, bool reuseaddr = false);
 
-   //! binds an INET TCP socket to a specific socket address
-   /** @note the socket will be closed and reopened if necessary
+   //! binds an INET TCP socket to a specific socket address - do not use, deprecated, use bind(int family, const struct sockaddr *addr, int addr_size, int socktype, int protocol) instead
+   /** this function will not set the port number; use bind(int family, const struct sockaddr *addr, int addr_size) instead
+       @note the socket will be closed and reopened if necessary
        @param addr the socket address to bind to
        @param addr_size the size of the addr argument
        @return 0 for OK, not 0 for error
+       @deprecated use bind(int family, const struct sockaddr *addr, int addr_size, int socktype, int protocol) instead
    */
    DLLEXPORT int bind(const struct sockaddr *addr, int addr_size);
+
+   //! binds an INET or INET6 TCP socket to a specific socket address
+   /** @note the socket will be closed and reopened if necessary
+       @param family the address family (AF_INET or AF_INET6)
+       @param addr the socket address to bind to
+       @param addr_size the size of the addr argument
+       @param socktype the type of socket (SOCK_STREAM = tcp socket)
+       @param protocol the protocol for the socket
+       @return 0 for OK, not 0 for error
+   */
+   DLLEXPORT int bind(int family, const struct sockaddr *addr, int addr_size, int socktype = SOCK_STREAM, int protocol = 0);
+
+   //! binds to a UNIX domain socket and returns a status code
+   /** @note a socket file will be created on the filesystem if a UNIX domain socket is opened.
+       @note the socket will be closed and reopened if necessary
+       @param name UNIX filename to bind to
+       @param reuseaddr if true then setsockopt() will be called with SO_REUSEADDR, allowing the bind to succeed even if the port is still in a TIME_WAIT state, for example
+       @param socktype the type of socket (SOCK_STREAM = tcp socket)
+       @param protocol the protocol for the socket
+       @return 0 for OK, not 0 for error
+   */
+   DLLEXPORT int bindUNIX(const char *name, bool reuseaddr = false, int socktype = SOCK_STREAM, int protocol = 0, ExceptionSink *xsink = 0);
+
+   //! binds an INET or INET6 TCP socket to a specific socket address
+   /** @note the socket will be closed and reopened if necessary
+       @param name the name or address of the interface, can be 0 meaning all interfaces
+       @param service the service name or port number
+       @param reuseaddr if true then setsockopt() will be called with SO_REUSEADDR, allowing the bind to succeed even if the port is still in a TIME_WAIT state, for example
+       @param family the address family (AF_INET, AF_INET6, or AF_UNSPEC)
+       @param socktype the type of socket (SOCK_STREAM = tcp socket)
+       @param protocol the protocol for the socket
+       @param xsink if not 0 and an error occurs, the Qore-language exception information will be added here
+       @return 0 for OK, not 0 for error
+   */
+   DLLEXPORT int bindINET(const char *name, const char *service, bool reuseaddr = true, int family = AF_UNSPEC, int socktype = SOCK_STREAM, int protocol = 0, ExceptionSink *xsink = 0);
+
+   //! binds to all available interfaces for the given service or port number (passed as a string in the first argument) for the given socket parameters
+   /** @note the socket will first be closed and then reopened and bound
+       @param service the service name or port number
+       @param reuseaddr if true then setsockopt() will be called with SO_REUSEADDR, allowing the bind to succeed even if the port is still in a TIME_WAIT state, for example
+       @param family the address family (AF_INET, AF_INET6, or AF_UNSPEC)
+       @param socktype the type of socket (SOCK_STREAM = tcp socket)
+       @param protocol the protocol for the socket
+       @param xsink if not 0 and an error occurs, the Qore-language exception information will be added here
+       @return 0 for OK, not 0 for error
+    */
+   DLLEXPORT int bindAll(const char *service, bool reuseaddr, int family = AF_UNSPEC, int socktype = SOCK_STREAM, int protocol = 0, ExceptionSink *xsink = 0);
 
    //! returns the TCP port number, also assigns the interal port number if it must be discovered
    DLLEXPORT int getPort();

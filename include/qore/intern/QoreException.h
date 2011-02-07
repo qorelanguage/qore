@@ -50,6 +50,7 @@ class QoreException {
       DLLLOCAL ~QoreException();
       DLLLOCAL void addStackInfo(AbstractQoreNode *n);
       DLLLOCAL static QoreHashNode *getStackHash(int type, const char *class_name, const char *code, const char *file, int start_line, int end_line);
+      DLLLOCAL void init(const char *err, QoreStringNode *desc);
 
    public:
       // called for generic exceptions
@@ -58,6 +59,8 @@ class QoreException {
 
       // called for runtime exceptions
       DLLLOCAL QoreException(const char *err, QoreStringNode *desc);
+      // called for runtime exceptions
+      DLLLOCAL QoreException(const char *err, QoreStringNode *desc, AbstractQoreNode *arg);
       // called for rethrow
       DLLLOCAL QoreException(QoreException *old, ExceptionSink *xsink);
       // called for user exceptions

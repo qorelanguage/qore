@@ -34,6 +34,8 @@
 #include <arpa/inet.h>
 
 //! thread-safe gethostbyname (0 = success, !0 = error)
+/** FIXME: should be const struct in_addr
+ */
 DLLEXPORT int q_gethostbyname(const char *host, struct in_addr *sin_addr);
 
 //! thread-safe gethostbyname (0/NULL = error)
@@ -57,10 +59,10 @@ DLLEXPORT QoreStringNode *q_gethostbyaddr_to_string(ExceptionSink *xsink, const 
 DLLEXPORT QoreStringNode *q_addr_to_string(int address_family, const char *addr);
 
 //! converts a network address in network byte order to a string (address_family = AF_INET or AF_INET6), returns 0 on error
-DLLEXPORT QoreStringNode *q_addr_to_string2(int family, struct sockaddr *ai_addr);
+DLLEXPORT QoreStringNode *q_addr_to_string2(int family, const struct sockaddr *ai_addr);
 
 //! get port from struct sockaddr, returns -1 if port cannot be determined
-DLLEXPORT int q_get_port_from_addr(int family, struct sockaddr *ai_addr);
+DLLEXPORT int q_get_port_from_addr(int family, const struct sockaddr *ai_addr);
 
 //! returns address info as a hash
 DLLEXPORT QoreListNode *q_getaddrinfo_to_list(ExceptionSink *xsink, const char *node, const char *service, int family = AF_UNSPEC, int flags = 0, int socktype = SOCK_STREAM);
@@ -88,7 +90,7 @@ public:
        @param flags hint flags as per the getaddrinfo() call: AI_ADDRCONFIG, AI_ALL, AI_CANONNAME, AI_NUMERICHOST, AI_NUMERICSERV, AI_PASSIVE, AI_V4MAPPED
        @param socktype a hint for the type of socket; 0 = any socket type
     */
-   DLLEXPORT int getInfo(ExceptionSink *xsink, const char *node, const char *service, int family = AF_UNSPEC, int flags = 0, int socktype = SOCK_STREAM);
+   DLLEXPORT int getInfo(ExceptionSink *xsink, const char *node, const char *service, int family = AF_UNSPEC, int flags = 0, int socktype = SOCK_STREAM, int protocol = 0);
 
    //! returns the struct addrinfo * being managed (may by 0)
    DLLEXPORT struct addrinfo *getAddrInfo() const {

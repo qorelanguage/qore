@@ -696,10 +696,10 @@
 		  <entry><para><link linkend="gethostbyaddr">gethostbyaddr()</link></para></entry>
 		</row>
 		<row>
-		  <entry><para><link linkend="gethostbyaddr_long">gehostbyaddr_longt()</link></para></entry>
+		  <entry><para><link linkend="gethostbyaddr_long">gethostbyaddr_long()</link></para></entry>
 		</row>
 		<row>
-		  <entry><para><link linkend="gethostbyaddr_long">gethostbyaddr_long()</link></para></entry>
+		  <entry><para><link linkend="gethostbyname_long">gethostbyname_long()</link></para></entry>
 		</row>
 		<row>
 		  <entry><para><link linkend="getcwd">getcwd()</link></para></entry>

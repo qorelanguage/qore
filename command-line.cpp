@@ -83,8 +83,6 @@ static const char helpstr[] =
    "      --module-api             show compatible qore module API version and\n"
    "                               exit\n"
    "      --module-apis            show all qore module API versions\n"
-   "  -n, --new-style              turns on 'allow-bare-refs' and 'assume-local'\n"
-   "                               for programming style more similar to C++/Java\n"
    "      --latest-module-api      show most recent module API version and exit\n"
    "  -o, --list-parse-options     list all parse options\n"
    "  -p, --set-parse-option=arg   set parse option (ex: -pno-database)\n"
@@ -125,6 +123,8 @@ static const char parseopts[] =    "qore options controlling parse options:\n"
    "  -L, --no-top-level           make top-level statements illegal\n"
    "  -M, --no-namespace-defs      make namespace declarations illegal\n"
    "  -N, --no-new                 make using the 'new' operator illegal\n"
+   "  -n, --new-style              turns on 'allow-bare-refs' and 'assume-local'\n"
+   "                               for programming style more similar to C++/Java\n"
    "  -O, --require-our            require 'our' with global vars (recommended)\n"
    "      --require-types          require type declarations\n"
    "      --require-prototypes     require type declarations in method and function\n"
@@ -493,7 +493,7 @@ static struct opt_struct_s {
    { 'A', "lock-warnings",         ARG_NONE, do_lock_warnings },
    { 'B', "allow-bare-refs",       ARG_NONE, allow_bare_refs },
    { '\0', "assume-local",         ARG_NONE, assume_local },
-   { '\0', "new-style",            ARG_NONE, new_style },
+   { 'n', "new-style",             ARG_NONE, new_style },
    { '\0', "no-class-defs",        ARG_NONE, do_no_class_defs },
    { 'D', "no-database",           ARG_NONE, do_no_database },
    { 'E', "no-external-process",   ARG_NONE, do_no_external_process },

@@ -66,18 +66,35 @@ class socket_test {
 	    $s.setEventQueue($.queue);
 	}
 
-	if ($s.bind($.server_port, True) == -1){
-	    socket_test::printf("server_thread: error opening socket! (%s)\n", strerror(errno()));
-	    thread_exit;
+	{
+	    on_exit
+		$.counter.dec();
+
+	    /*
+	    # get bind addresses for the local host
+	    my *list $addr = getaddrinfo(NOTHING, $.server_port, AF_UNSPEC, AI_PASSIVE);
+	    foreach my hash $a in ($addr) {
+		try {
+		    $s.bindINET($a.address, $.server_port, True, $a.family);
+		    socket_test::printf("server: bound to %s socket on %s:%d\n", $a.familystr, $a.address, $.server_port);
+		}
+		catch($ex) {
+			socket_test::printf("server: error binding socket to %s: %s: %s (arg=%n)\n", $a.address, $ex.err, $ex.desc, $ex.arg);
+			thread_exit;
+		}
+	    }
+            */
+	    if ($s.bindAll($.server_port, True) == -1) {
+		socket_test::printf("server: error binding socket: %s\n", strerror(errno()));
+		thread_exit;
+	    }
+	    
+	    if ($s.listen()) {
+		socket_test::printf("listen error (%s)\n", strerror(errno()));
+		thread_exit;
+	    }
 	}
-	
-	if ($s.listen()) {
-	    socket_test::printf("listen error (%s)\n", strerror(errno()));
-	    thread_exit;
-	}
-    
-	# socket created, now wake up client
-	$.counter.dec();
+
 	try {
 	    if ($.o.ssl) {
 		if (strlen($.o.cert)) {

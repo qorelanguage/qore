@@ -78,6 +78,21 @@ int mySocket::bind(const char *interface, int port, bool reuseaddr) {
    return socket->bind(interface, port, reuseaddr);
 }
 
+int mySocket::bindUNIX(const char *name, bool reuseaddr, int socktype, int protocol, ExceptionSink *xsink) {
+   AutoLocker al(this);
+   return socket->bindUNIX(name, reuseaddr, socktype, protocol, xsink);
+}
+
+int mySocket::bindINET(const char *name, const char *service, bool reuseaddr, int family, int socktype, int protocol, ExceptionSink *xsink) {
+   AutoLocker al(this);
+   return socket->bindINET(name, service, reuseaddr, family, socktype, protocol, xsink);
+}
+
+int mySocket::bindAll(const char *service, bool reuseaddr, int family, int socktype, int protocol, ExceptionSink *xsink) {
+   AutoLocker al(this);
+   return socket->bindAll(service, reuseaddr, family, socktype, protocol, xsink);
+}
+
 // get port number for INET sockets
 int mySocket::getPort() {
    AutoLocker al(this);
