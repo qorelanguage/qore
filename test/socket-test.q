@@ -70,7 +70,6 @@ class socket_test {
 	    on_exit
 		$.counter.dec();
 
-	    /*
 	    # get bind addresses for the local host
 	    my *list $addr = getaddrinfo(NOTHING, $.server_port, AF_UNSPEC, AI_PASSIVE);
 	    foreach my hash $a in ($addr) {
@@ -83,11 +82,13 @@ class socket_test {
 			thread_exit;
 		}
 	    }
-            */
+
+	    /*
 	    if ($s.bindAll($.server_port, True) == -1) {
 		socket_test::printf("server: error binding socket: %s\n", strerror(errno()));
 		thread_exit;
 	    }
+            */
 	    
 	    if ($s.listen()) {
 		socket_test::printf("listen error (%s)\n", strerror(errno()));

@@ -377,10 +377,24 @@ struct qore_socket_private {
       return port;
    }
 
+   DLLLOCAL static void *get_in_addr(struct sockaddr *sa) {
+      if (sa->sa_family == AF_INET)
+	 return &(((struct sockaddr_in *)sa)->sin_addr);
+      return &(((struct sockaddr_in6 *)sa)->sin6_addr);
+   }
+
+   DLLLOCAL static size_t get_in_len(struct sockaddr *sa) {
+      if (sa->sa_family == AF_INET)
+	 return sizeof(struct sockaddr_in);
+      return sizeof(struct sockaddr_in6);
+   }
+
    // returns a new socket
    DLLLOCAL int accept_internal(SocketSource *source) {
-      if (sock == -1)
+      if (sock == -1) {
+	 printd(0, "accept_internal() socket not open\n");
 	 return QSE_NOT_OPEN;
+      }
 
       int rc;
       if (sfamily == AF_UNIX) {
@@ -408,8 +422,8 @@ struct qore_socket_private {
 	    source->setHostName("localhost");
 	 }
       }
-      else if (sfamily == AF_INET) {
-	 struct sockaddr_in addr_in;
+      else if (sfamily == AF_INET || sfamily == AF_INET6) {
+	 struct sockaddr_storage addr_in;
 #if defined(HPUX) && defined(__ia64) && defined(__LP64__)
 	 // on HPUX 64-bit the OS defines socklen_t to be 8 bytes
 	 // but the library expects a 32-bit value
@@ -427,16 +441,28 @@ struct qore_socket_private {
 	 //printd(1, "qore_socket_private::accept_internal() rc=%d, %d bytes returned\n", rc, size);
 
 	 if (rc >= 0 && source) {
+	    char host[NI_MAXHOST + 1];
+	    char service[NI_MAXSERV + 1];
+
+	    // pretend sa is full of good information about the host and port...
+
+	    int rc = getnameinfo((struct sockaddr *)&addr_in, get_in_len((struct sockaddr *)&addr_in), host, sizeof(host), service, sizeof(service), 0);
+	    if (!rc) {
+	       QoreStringNode *hostname = new QoreStringNode(host);
+	       source->setHostName(hostname);
+	    }
+	    /*
 	    char *host;
 	    if ((host = q_gethostbyaddr((const char *)&addr_in.sin_addr.s_addr, sizeof(addr_in.sin_addr.s_addr), AF_INET))) {
 	       int len = strlen(host);
 	       QoreStringNode *hostname = new QoreStringNode(host, len, len + 1, enc);
 	       source->setHostName(hostname);
 	    }
+	    */
 
-	    // get IP address
-	    char ifname[80];
-	    if (inet_ntop(AF_INET, &addr_in.sin_addr, ifname, sizeof(ifname)))
+	    // get ipv4 or ipv6 address
+	    char ifname[INET6_ADDRSTRLEN];
+	    if (inet_ntop(addr_in.ss_family, get_in_addr((struct sockaddr *)&addr_in), ifname, sizeof(ifname)))
 	       source->setAddress(ifname);
 	 }
       }
