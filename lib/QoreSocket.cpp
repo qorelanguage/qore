@@ -451,9 +451,9 @@ struct qore_socket_private {
 #if defined(HPUX) && defined(__ia64) && defined(__LP64__)
 	 // on HPUX 64-bit the OS defines socklen_t to be 8 bytes
 	 // but the library expects a 32-bit value
-	 int size = sizeof(struct sockaddr_in);
+	 int size = sizeof(addr_in);
 #else
-	 socklen_t size = sizeof(struct sockaddr_in);
+	 socklen_t size = sizeof(addr_in);
 #endif
 
 	 while (true) {
@@ -1104,7 +1104,7 @@ struct qore_socket_private {
 	    do_resolved_event(p->ai_family, p->ai_addr);
 
       // try to open socket if necessary
-      if (sock == -1 && openINET(aip->ai_family, aip->ai_socktype, protocol)) {
+      if (openINET(aip->ai_family, aip->ai_socktype, protocol)) {
 	 if (xsink)
 	    xsink->raiseErrnoException("SOCKET-BIND-ERROR", errno, "error opening socket for bind");
 	 return -1;
