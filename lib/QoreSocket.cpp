@@ -200,7 +200,7 @@ struct qore_socketsource_private {
    DLLLOCAL ~qore_socketsource_private() {
       if (address)  address->deref();
       if (hostname) hostname->deref();
-      if (familystr) hostname->deref();
+      if (familystr) familystr->deref();
    }
 
    DLLLOCAL void setAddress(QoreStringNode *addr) {
