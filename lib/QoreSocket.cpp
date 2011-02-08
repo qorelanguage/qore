@@ -475,8 +475,10 @@ struct qore_socket_private {
 
 	    // get ipv4 or ipv6 address
 	    char ifname[INET6_ADDRSTRLEN];
-	    if (inet_ntop(addr_in.ss_family, get_in_addr((struct sockaddr *)&addr_in), ifname, sizeof(ifname)))
+	    if (inet_ntop(addr_in.ss_family, get_in_addr((struct sockaddr *)&addr_in), ifname, sizeof(ifname))) {
+	       //printd(5, "inet_ntop() '%s' host: '%s'\n", ifname, host);
 	       source->priv->setAddress(ifname);
+	    }
 
 	    source->priv->setFamily(addr_in.ss_family);
 	 }
@@ -915,6 +917,7 @@ struct qore_socket_private {
 	 if (xsink && *xsink)
 	    break;
       }
+
       if (xsink && !*xsink)
 	 xsink->raiseErrnoException("SOCKET-CONNECT-ERROR", ECONNREFUSED, "error in connect()");
       return -1;
@@ -1087,9 +1090,7 @@ struct qore_socket_private {
    }
 
    DLLLOCAL int bindINET2(const char *name, const char *service, bool reuseaddr = true, int family = AF_UNSPEC, int socktype = SOCK_STREAM, int protocol = 0, ExceptionSink *xsink = 0) {
-      // close if it's already been opened as socket with other parameters
-      if (sock != -1 && (sfamily != family || stype != socktype || sprot != protocol))
-	 close();
+      close();
 
       QoreAddrInfo ai;
       do_resolve_event(name, service);
@@ -1097,7 +1098,10 @@ struct qore_socket_private {
 	 return -1;
 
       struct addrinfo *aip = ai.getAddrInfo();
-      do_resolved_event(aip->ai_family, aip->ai_addr);
+      // first emit all "resolved" events
+      if (cb_queue)
+	 for (struct addrinfo *p = aip; p; p = p->ai_next)
+	    do_resolved_event(p->ai_family, p->ai_addr);
 
       // try to open socket if necessary
       if (sock == -1 && openINET(aip->ai_family, aip->ai_socktype, protocol)) {
@@ -1107,13 +1111,32 @@ struct qore_socket_private {
       }
 
       int prt = q_get_port_from_addr(aip->ai_family, aip->ai_addr);
+
+      int en = 0;
+      // iterate through addresses and bind to the first interface possible
+      for (struct addrinfo *p = aip; p; p = p->ai_next) {
+	 if (!bindIntern(p->ai_addr, p->ai_addrlen, prt, reuseaddr))
+	    return 0;
+
+	 en = errno;
+	 //printd(5, "qore_socket_private::bindINET2() failed to bind: service=%s f=%d st=%d p=%d, errno=%d (%s)\n", service, p->ai_family, p->ai_socktype, p->ai_protocol, en, strerror(en));
+      }
+
+      // if no bind was possible, then raise an exception
+      if (xsink)
+	 xsink->raiseErrnoException("SOCKET-BIND-ERROR", en, "error binding on socket");
+      return -1;
+
+      /*
       if (bindIntern(aip->ai_addr, aip->ai_addrlen, prt, reuseaddr, xsink))
 	 return -1;
 
       //printd(5, "qore_socket_private::bindINET2() returning 0 (success)\n");
       return 0;   
+      */
    }
 
+   /*
    DLLLOCAL int bindINET(const char *interface, int prt, bool reuseaddr, ExceptionSink *xsink = 0) {
       // close if it's already been opened as socket with other parameters
       if (sock != -1 && (sfamily != AF_INET || stype != SOCK_STREAM || sprot != 0))
@@ -1151,7 +1174,9 @@ struct qore_socket_private {
       //printd(5, "qore_socket_private::bindINET() returning 0 (success)\n");
       return 0;   
    }
+   */
 
+   /*
    int bindAll(const char *service, bool reuseaddr, int family = AF_UNSPEC, int socktype = SOCK_STREAM, int protocol = 0, ExceptionSink *xsink = 0) {
       close();
 
@@ -1189,10 +1214,11 @@ struct qore_socket_private {
       }
 
       // if no bind was possible, then raise an exception
-      xsink->raiseErrnoException("SOCKET-BIND-ERROR", en, "error binding on socket");
+      if (xsink)
+	 xsink->raiseErrnoException("SOCKET-BIND-ERROR", en, "error binding on socket");
       return -1;
    }
-
+   */
 };
 
 int SSLSocketHelper::read(char *buf, int size, int timeout_ms, qore_socket_private &sock) {
@@ -2618,6 +2644,7 @@ int QoreSocket::bind(const char *name, bool reuseaddr) {
 	 return priv->bindINET2(host.getBuffer() + 1, service.getBuffer(), reuseaddr, AF_INET6, SOCK_STREAM);
       }
 
+      // assume an ipv6 address if there is a ':' character in the hostname, otherwise bind ipv4
       return priv->bindINET2(host.getBuffer(), service.getBuffer(), reuseaddr, strchr(host.getBuffer(), ':') ? AF_INET6 : AF_INET, SOCK_STREAM);
    }
 
@@ -2633,7 +2660,8 @@ int QoreSocket::bindINET(const char *name, const char *service, bool reuseaddr, 
 }
 
 int QoreSocket::bindAll(const char *service, bool reuseaddr, int family, int socktype, int protocol, ExceptionSink *xsink) {
-   return priv->bindAll(service, reuseaddr, family, socktype, protocol, xsink);
+   //return priv->bindAll(service, reuseaddr, family, socktype, protocol, xsink);
+   return priv->bindINET2(0, service, reuseaddr, family, socktype, protocol, xsink);
 }
 
 // currently hardcoded to SOCK_STREAM (tcp-only)
@@ -2643,14 +2671,17 @@ int QoreSocket::bindAll(const char *service, bool reuseaddr, int family, int soc
 // * bind(port);
 int QoreSocket::bind(int prt, bool reuseaddr) {
    priv->close();
-   return priv->bindINET(0, prt, reuseaddr);
+   QoreString service;
+   service.sprintf("%d", prt);
+   return priv->bindINET2(0, service.getBuffer(), reuseaddr);
 }
 
 // to bind to an INET tcp port on a specific interface
 int QoreSocket::bind(const char *interface, int prt, bool reuseaddr) {
    printd(5, "QoreSocket::bind(%s, %d)\n", interface, prt);
-
-   return priv->bindINET(interface, prt, reuseaddr);
+   QoreString service;
+   service.sprintf("%d", prt);
+   return priv->bindINET2(interface, service.getBuffer(), reuseaddr);
 }
 
 // to bind an INET socket to a particular address
@@ -2698,7 +2729,7 @@ int QoreSocket::getPort() {
 
 // QoreSocket::accept()
 // returns a new socket
-QoreSocket *QoreSocket::accept(class SocketSource *source, ExceptionSink *xsink) {
+QoreSocket *QoreSocket::accept(SocketSource *source, ExceptionSink *xsink) {
    if (priv->sock == -1) {
       xsink->raiseException("SOCKET-NOT-OPEN", "socket must be opened and in listening state before Socket::accept() call");
       return 0;

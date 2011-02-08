@@ -724,8 +724,12 @@ QoreClass *initSocketClass(QoreClass *SSLCert, QoreClass *SSLPrivKey) {
    CID_SOCKET = QC_SOCKET->getID();
 
    // register public members
-   QC_SOCKET->addPublicMember("source", anyTypeInfo);
-   QC_SOCKET->addPublicMember("source_host", anyTypeInfo);
+   QC_SOCKET->addPublicMember("source", stringOrNothingTypeInfo);
+   QC_SOCKET->addPublicMember("source_host", stringOrNothingTypeInfo);
+   QC_SOCKET->addPublicMember("source_familystr", stringOrNothingTypeInfo);
+   QC_SOCKET->addPublicMember("source_family", bigIntOrNothingTypeInfo);
+   QC_SOCKET->addPublicMember("source_port", bigIntOrNothingTypeInfo);
+
    // unset the public member flag for backwards-compatibility
    // this allows older code where a user class inherits this class to still be able
    // to be run in new Qore >= 0.8
