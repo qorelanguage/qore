@@ -1115,8 +1115,10 @@ struct qore_socket_private {
       int en = 0;
       // iterate through addresses and bind to the first interface possible
       for (struct addrinfo *p = aip; p; p = p->ai_next) {
-	 if (!bindIntern(p->ai_addr, p->ai_addrlen, prt, reuseaddr))
+	 if (!bindIntern(p->ai_addr, p->ai_addrlen, prt, reuseaddr)) {
+	    //printd(0, "qore_socket_private::bindINET2() bound: service=%s f=%d st=%d p=%d(%s)\n", service, p->ai_family, p->ai_socktype, p->ai_protocol);
 	    return 0;
+	 }
 
 	 en = errno;
 	 //printd(5, "qore_socket_private::bindINET2() failed to bind: service=%s f=%d st=%d p=%d, errno=%d (%s)\n", service, p->ai_family, p->ai_socktype, p->ai_protocol, en, strerror(en));
