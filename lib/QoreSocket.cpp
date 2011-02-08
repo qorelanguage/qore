@@ -802,7 +802,7 @@ struct qore_socket_private {
       return -1;
    }
 
-   DLLLOCAL int connectINETTimeout(int timeout_ms, const struct sockaddr *ai_addr, qore_size_t ai_addrlen, ExceptionSink *xsink) {
+   DLLLOCAL int connectINETTimeout(int timeout_ms, const struct sockaddr *ai_addr, qore_size_t ai_addrlen, ExceptionSink *xsink, bool no_connrefused) {
       while (true) {
 	 if (!::connect(sock, ai_addr, ai_addrlen))
 	    return 0;
@@ -814,6 +814,8 @@ struct qore_socket_private {
 	 if (errno != EINPROGRESS)
 	    break;
 
+	 //printd(5, "qore_socket_private::connectINETTimeout() errno=%d\n", errno);
+
 	 // check for timeout or connection with EINPROGRESS
 	 while (true) {
 	    int rc = selectWrite(timeout_ms);
@@ -821,8 +823,8 @@ struct qore_socket_private {
 	    //printd(0, "selectWrite(%d) returned %d\n", timeout_ms, rc);
 	    if (rc < 0 && errno != EINTR) { 
 	       if (xsink)
-		  xsink->raiseException("SOCKET-CONNECT-ERROR", q_strerror(errno));
-	       return close_and_exit();
+		  xsink->raiseErrnoException("SOCKET-CONNECT-ERROR", errno, "error in select() with Socket::connect() with timeout");
+	       return -1;
 	    } 
 	    else if (rc > 0) { 
 	       // socket selected for write 
@@ -832,13 +834,17 @@ struct qore_socket_private {
 	       if (getsockopt(sock, SOL_SOCKET, SO_ERROR, (void *)(&val), &lon) < 0) { 
 		  if (xsink)
 		     xsink->raiseErrnoException("SOCKET-CONNECT-ERROR", errno, "error in getsockopt()");
-		  return close_and_exit();
+		  return -1;
 	       } 
 	       
-	       if (val) { 
+	       if (val) {
+		  if (no_connrefused && val == ECONNREFUSED) {
+		     errno = val;
+		     return -1;
+		  }
 		  if (xsink)
-		     xsink->raiseException("SOCKET-CONNECT-ERROR", q_strerror(val));
-		  return close_and_exit();
+		     xsink->raiseErrnoException("SOCKET-CONNECT-ERROR", val, "error in getsockopt()");
+		  return -1;
 	       }
 
 	       // connected successfully within the timeout period
@@ -847,7 +853,7 @@ struct qore_socket_private {
 	    else { 
 	       if (xsink)
 		  xsink->raiseException("SOCKET-CONNECT-ERROR", "timeout in connection after %dms", timeout_ms);
-	       return close_and_exit();
+	       return -1;
 	    }
 	 }
       }
@@ -883,6 +889,11 @@ struct qore_socket_private {
    DLLLOCAL int connectINET(const char *host, int prt, int timeout_ms, ExceptionSink *xsink = 0) {
       QORE_TRACE("qore_socket_private::connectINET()");
 
+      QoreString service;
+      service.sprintf("%d", prt);
+
+      return connectINET2(host, service.getBuffer(), timeout_ms, xsink);
+      /*
       // close socket if already open
       close();
 
@@ -903,6 +914,7 @@ struct qore_socket_private {
       do_resolved_event(AF_INET, (struct sockaddr *)&addr_p);
 
       return connectINETIntern(host, 0, AF_INET, (struct sockaddr *)&addr_p, sizeof(addr_p), SOCK_STREAM, 0, prt, timeout_ms, xsink);
+      */
    }
 
    DLLLOCAL int connectINET2(const char *host, const char *service, int timeout_ms, ExceptionSink *xsink = 0, int family = AF_UNSPEC, int type = SOCK_STREAM) {
@@ -911,21 +923,36 @@ struct qore_socket_private {
       // close socket if already open
       close();
 
-      printd(5, "qore_socket_private::connectINET(%s:%s, %dms)\n", host, service, timeout_ms);
+      printd(5, "qore_socket_private::connectINET2(%s:%s, %dms)\n", host, service, timeout_ms);
+
+      do_resolve_event(host, service);
 
       QoreAddrInfo ai;
-      do_resolve_event(host, service);
       if (ai.getInfo(xsink, host, service, family, 0, type))
 	 return -1;
 
       struct addrinfo *aip = ai.getAddrInfo();
-      do_resolved_event(aip->ai_family, aip->ai_addr);
+
+      // emit all "resolved" events
+      if (cb_queue)
+	 for (struct addrinfo *p = aip; p; p = p->ai_next)
+	    do_resolved_event(p->ai_family, p->ai_addr);
 
       int prt = q_get_port_from_addr(aip->ai_family, aip->ai_addr);
-      return connectINETIntern(host, service, aip->ai_family, aip->ai_addr, aip->ai_addrlen, aip->ai_socktype, aip->ai_protocol, prt, timeout_ms, xsink);
+
+      for (struct addrinfo *p = aip; p; p = p->ai_next) {
+	 if (!connectINETIntern(host, service, p->ai_family, p->ai_addr, p->ai_addrlen, p->ai_socktype, p->ai_protocol, prt, timeout_ms, xsink, true))
+	    return 0;
+	 if (xsink && *xsink)
+	    break;
+      }
+      if (xsink && !*xsink)
+	 xsink->raiseErrnoException("SOCKET-CONNECT-ERROR", ECONNREFUSED, "error in connect()");
+      return -1;
    }
 
-   DLLLOCAL int connectINETIntern(const char *host, const char *service, int ai_family, struct sockaddr *ai_addr, size_t ai_addrlen, int ai_socktype, int ai_protocol, int prt, int timeout_ms, ExceptionSink *xsink) {
+   DLLLOCAL int connectINETIntern(const char *host, const char *service, int ai_family, struct sockaddr *ai_addr, size_t ai_addrlen, int ai_socktype, int ai_protocol, int prt, int timeout_ms, ExceptionSink *xsink, bool no_connrefused = false) {
+      //printd(5, "qore_socket_private::connectINETIntern() host=%s service=%s family=%d\n", host, service, ai_family);
       if ((sock = socket(ai_family, ai_socktype, ai_protocol)) == -1) {
 	 if (xsink)
 	    xsink->raiseException("SOCKET-CONNECT-ERROR", q_strerror(errno));
@@ -940,16 +967,21 @@ struct qore_socket_private {
       // perform connect with timeout if a non-negative timeout was passed
       if (timeout_ms >= 0) {
 	 // set non-blocking
-	 if (set_non_blocking(true, xsink))
+	 if (set_non_blocking(true, xsink)) {
+	    close_and_exit();
 	    return -1;
+	 }
 
 	 do_connect_event(ai_family, host, service, prt);
 
-	 rc = connectINETTimeout(timeout_ms, ai_addr, ai_addrlen, xsink);
+	 rc = connectINETTimeout(timeout_ms, ai_addr, ai_addrlen, xsink, no_connrefused);
+	 //printd(5, "qore_socket_private::connectINETIntern() errno=%d rc=%d, xsink=%d\n", errno, rc, xsink && *xsink);
 
 	 // set blocking
-	 if (set_non_blocking(false, xsink))
+	 if (set_non_blocking(false, xsink)) {
+	    close_and_exit();
 	    return -1;
+	 }
       }
       else {
 	 do_connect_event(ai_family, host, service, prt);
@@ -963,9 +995,9 @@ struct qore_socket_private {
       }
 
       if (rc < 0) {
-	 if (xsink)
-	    xsink->raiseException("SOCKET-CONNECT-ERROR", q_strerror(errno));
-	 
+	 if (xsink && (!no_connrefused || errno != ECONNREFUSED))
+	    xsink->raiseErrnoException("SOCKET-CONNECT-ERROR", errno, "error in connect()");
+
 	 return close_and_exit();
       }
 
@@ -1166,7 +1198,7 @@ struct qore_socket_private {
 	 for (struct addrinfo *p = aip; p; p = p->ai_next)
 	    do_resolved_event(p->ai_family, p->ai_addr);
 
-      //printd(0, "qore_socket_private::bindAll() service=%s f=%d st=%d p=%d\n", service, aip->ai_family, aip->ai_socktype, aip->ai_protocol);
+      //printd(5, "qore_socket_private::bindAll() service=%s f=%d st=%d p=%d\n", service, aip->ai_family, aip->ai_socktype, aip->ai_protocol);
 
       // try to open socket
       if (openINET(aip->ai_family, aip->ai_socktype, protocol)) {
@@ -1184,7 +1216,7 @@ struct qore_socket_private {
 	    return 0;
 
 	 en = errno;
-	 //printd(0, "qore_socket_private::bindAll() failed to bind: service=%s f=%d st=%d p=%d, errno=%d (%s)\n", service, p->ai_family, p->ai_socktype, p->ai_protocol, en, strerror(en));
+	 //printd(5, "qore_socket_private::bindAll() failed to bind: service=%s f=%d st=%d p=%d, errno=%d (%s)\n", service, p->ai_family, p->ai_socktype, p->ai_protocol, en, strerror(en));
       }
 
       // if no bind was possible, then raise an exception
@@ -2488,7 +2520,14 @@ int QoreSocket::connect(const char *name, int timeout_ms, ExceptionSink *xsink) 
    if ((p = strrchr(name, ':'))) {
       QoreString host(name, p - name);
       QoreString service(p + 1);
-      rc = priv->connectINET2(host.getBuffer(), service.getBuffer(), timeout_ms, xsink, strchr(host.getBuffer(), ':') ? AF_INET6 : AF_INET);
+      // if the address is an ipv6 address like: [<addr>], then connect as ipv6
+      if (host.strlen() > 2 && host[0] == '[' && host[host.strlen() - 1] == ']') {
+	 host.terminate(host.strlen() - 1);
+	 //printd(5, "QoreSocket::connect(%s, %s) [ipv6]\n", host.getBuffer() + 1, service.getBuffer());
+	 rc = priv->connectINET2(host.getBuffer() + 1, service.getBuffer(), timeout_ms, xsink, AF_INET6);
+      }
+      else 
+	 rc = priv->connectINET2(host.getBuffer(), service.getBuffer(), timeout_ms, xsink);
    }
    else {
       // else assume it's a file name for a UNIX domain socket
@@ -2578,8 +2617,10 @@ int QoreSocket::upgradeServerToSSL(X509 *cert, EVP_PKEY *pkey, ExceptionSink *xs
    and binds to a local UNIX socket file
    for UNIX domain sockets (AF_UNIX)
    - bind("filename");
-   for INET sockets (AF_INET)
+   for ipv4 or ipv6 sockets (AF_INET and AF_INET6)
    - bind("interface:port");
+   for ipv6 sockets (AF_INET6)
+   - bind("[interface]:port");
 */
 int QoreSocket::bind(const char *name, bool reuseaddr) {
    //printd(5, "QoreSocket::bind(%s)\n", name);
@@ -2588,6 +2629,12 @@ int QoreSocket::bind(const char *name, bool reuseaddr) {
    if (p) {
       QoreString host(name, p - name);
       QoreString service(p + 1);
+
+      // if the address is an ipv6 address like: [<addr>], then bind as ipv6
+      if (host.strlen() > 2 && host[0] == '[' && host[host.strlen() - 1] == ']') {
+	 host.terminate(host.strlen() - 1);
+	 return priv->bindINET2(host.getBuffer() + 1, service.getBuffer(), reuseaddr, AF_INET6, SOCK_STREAM);
+      }
 
       return priv->bindINET2(host.getBuffer(), service.getBuffer(), reuseaddr, strchr(host.getBuffer(), ':') ? AF_INET6 : AF_INET, SOCK_STREAM);
    }
