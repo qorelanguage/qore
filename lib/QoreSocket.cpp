@@ -886,44 +886,13 @@ struct qore_socket_private {
       return 0;
    }
 
-   DLLLOCAL int connectINET(const char *host, int prt, int timeout_ms, ExceptionSink *xsink = 0) {
+   DLLLOCAL int connectINET(const char *host, const char *service, int timeout_ms, ExceptionSink *xsink = 0, int family = AF_UNSPEC, int type = SOCK_STREAM) {
       QORE_TRACE("qore_socket_private::connectINET()");
 
-      QoreString service;
-      service.sprintf("%d", prt);
-
-      return connectINET2(host, service.getBuffer(), timeout_ms, xsink);
-      /*
       // close socket if already open
       close();
 
-      printd(5, "qore_socket_private::connectINET(%s:%d, %dms)\n", host, prt, timeout_ms);
-
-      struct sockaddr_in addr_p;
-      addr_p.sin_family = AF_INET;
-      addr_p.sin_port = htons(prt);
-
-      do_resolve_event(host);
-
-      if (q_gethostbyname(host, &addr_p.sin_addr)) {
-	 if (xsink)
-	    xsink->raiseException("SOCKET-CONNECT-ERROR", "cannot resolve hostname '%s'", host);
-	 return -1;
-      }
-
-      do_resolved_event(AF_INET, (struct sockaddr *)&addr_p);
-
-      return connectINETIntern(host, 0, AF_INET, (struct sockaddr *)&addr_p, sizeof(addr_p), SOCK_STREAM, 0, prt, timeout_ms, xsink);
-      */
-   }
-
-   DLLLOCAL int connectINET2(const char *host, const char *service, int timeout_ms, ExceptionSink *xsink = 0, int family = AF_UNSPEC, int type = SOCK_STREAM) {
-      QORE_TRACE("qore_socket_private::connectINET2()");
-
-      // close socket if already open
-      close();
-
-      printd(5, "qore_socket_private::connectINET2(%s:%s, %dms)\n", host, service, timeout_ms);
+      printd(5, "qore_socket_private::connectINET(%s:%s, %dms)\n", host, service, timeout_ms);
 
       do_resolve_event(host, service);
 
@@ -1361,15 +1330,21 @@ long QoreSocket::verifyPeerCertificate() const {
 
 // hardcoded to SOCK_STREAM (tcp only)
 int QoreSocket::connectINET(const char *host, int prt, int timeout_ms, ExceptionSink *xsink) {
-   return priv->connectINET(host, prt, timeout_ms, xsink);
+   QoreString service;
+   service.sprintf("%d", prt);
+
+   return priv->connectINET(host, service.getBuffer(), timeout_ms, xsink);
 }
 
 int QoreSocket::connectINET(const char *host, int prt, ExceptionSink *xsink) {
-   return priv->connectINET(host, prt, -1, xsink);
+   QoreString service;
+   service.sprintf("%d", prt);
+
+   return priv->connectINET(host, service.getBuffer(), -1, xsink);
 }
 
 int QoreSocket::connectINET2(const char *name, const char *service, int family, int socktype, int timeout_ms, ExceptionSink *xsink) {
-   return priv->connectINET2(name, service, timeout_ms, xsink, family, socktype);
+   return priv->connectINET(name, service, timeout_ms, xsink, family, socktype);
 }
 
 int QoreSocket::connectUNIX(const char *p, ExceptionSink *xsink) {
@@ -2524,10 +2499,10 @@ int QoreSocket::connect(const char *name, int timeout_ms, ExceptionSink *xsink) 
       if (host.strlen() > 2 && host[0] == '[' && host[host.strlen() - 1] == ']') {
 	 host.terminate(host.strlen() - 1);
 	 //printd(5, "QoreSocket::connect(%s, %s) [ipv6]\n", host.getBuffer() + 1, service.getBuffer());
-	 rc = priv->connectINET2(host.getBuffer() + 1, service.getBuffer(), timeout_ms, xsink, AF_INET6);
+	 rc = priv->connectINET(host.getBuffer() + 1, service.getBuffer(), timeout_ms, xsink, AF_INET6);
       }
       else 
-	 rc = priv->connectINET2(host.getBuffer(), service.getBuffer(), timeout_ms, xsink);
+	 rc = priv->connectINET(host.getBuffer(), service.getBuffer(), timeout_ms, xsink);
    }
    else {
       // else assume it's a file name for a UNIX domain socket
@@ -2552,12 +2527,16 @@ int QoreSocket::connectSSL(const char *name, int timeout_ms, X509 *cert, EVP_PKE
    int rc;
 
    if ((p = strchr(name, ':'))) {
-      char *host = (char *)malloc(sizeof(char) * (p - name + 1));
-      strncpy(host, name, p - name);
-      host[p - name] = '\0';
-      int prt = strtol(p + 1, 0, 10);
-      rc = connectINETSSL(host, prt, timeout_ms, cert, pkey, xsink);
-      free(host);
+      QoreString host(name, p - name);
+      QoreString service(p + 1);
+      // if the address is an ipv6 address like: [<addr>], then connect as ipv6
+      if (host.strlen() > 2 && host[0] == '[' && host[host.strlen() - 1] == ']') {
+	 host.terminate(host.strlen() - 1);
+	 //printd(5, "QoreSocket::connect(%s, %s) [ipv6]\n", host.getBuffer() + 1, service.getBuffer());
+	 rc = connectINET2SSL(host.getBuffer() + 1, service.getBuffer(), AF_INET6, SOCK_STREAM, timeout_ms, cert, pkey, xsink);
+      }
+      else 
+	 rc = connectINET2SSL(host.getBuffer(), service.getBuffer(), AF_UNSPEC, SOCK_STREAM, timeout_ms, cert, pkey, xsink);
    }
    else {
       // else assume it's a file name for a UNIX domain socket
@@ -2572,7 +2551,10 @@ int QoreSocket::connectSSL(const char *name, X509 *cert, EVP_PKEY *pkey, Excepti
 }
 
 int QoreSocket::connectINETSSL(const char *host, int prt, int timeout_ms, X509 *cert, EVP_PKEY *pkey, ExceptionSink *xsink) {
-   int rc = connectINET(host, prt, timeout_ms, xsink);
+   QoreString service;
+   service.sprintf("%d", prt);
+
+   int rc = priv->connectINET(host, service.getBuffer(), timeout_ms, xsink);
    if (rc)
       return rc;
    return priv->upgradeClientToSSLIntern(cert, pkey, xsink);
