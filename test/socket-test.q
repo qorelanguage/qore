@@ -8,6 +8,8 @@ const opts =
     ( "help"       : "h,help",
       "server"     : "S,server=s",
       "servonly"   : "O,server-only",
+      "ipv4"       : "4,ipv4",
+      "ipv6"       : "6,ipv6",
       "ssl"        : "s,ssl",
       "key"        : "k,private-key=s",
       "cert"       : "c,cert=s",
@@ -71,25 +73,19 @@ class socket_test {
 		$.counter.dec();
 
 	    # get bind addresses for the local host
-	    my *list $addr = getaddrinfo(NOTHING, $.server_port, AF_UNSPEC, AI_PASSIVE);
+	    my *list $addr = getaddrinfo(NOTHING, $.server_port, $.fam, AI_PASSIVE);
 	    foreach my hash $a in ($addr) {
 		try {
 		    $s.bindINET($a.address, $.server_port, True, $a.family);
 		    socket_test::printf("server: bound to %s socket on %s:%d\n", $a.familystr, $a.address_desc, $.server_port);
+		    break;
 		}
 		catch($ex) {
-			socket_test::printf("server: error binding socket to %s: %s: %s (arg=%n)\n", $a.address_desc, $ex.err, $ex.desc, $ex.arg);
-			thread_exit;
+		    socket_test::printf("server: error binding socket to %s: %s: %s (arg=%n)\n", $a.address_desc, $ex.err, $ex.desc, $ex.arg);
+		    thread_exit;
 		}
 	    }
 
-	    /*
-	    if ($s.bindAll($.server_port, True) == -1) {
-		socket_test::printf("server: error binding socket: %s\n", strerror(errno()));
-		thread_exit;
-	    }
-            */
-	    
 	    if ($s.listen()) {
 		socket_test::printf("listen error (%s)\n", strerror(errno()));
 		thread_exit;
@@ -153,16 +149,16 @@ class socket_test {
 		}
 		if (strlen($.o.clientkey))
 		    $s.setPrivateKey($.o.clientkey);
-		$s.connectSSL($.client_port);
+		$s.connectINET2SSL($.client_host, $.client_port, 15s, $.fam);
 		
 		my $str = $s.verifyPeerCertificate();
 		socket_test::printf("client: server certificate: %s: %s\n", $str, X509_VerificationReasons.$str);
 	    }
 	    else
-		$s.connect($.client_port);
+		$s.connectINET2($.client_host, $.client_port, 15s, $.fam);
 	}
 	catch ($ex) {
-	    socket_test::printf("client error: %s: %s\n", $ex.err, $ex.desc);
+	    socket_test::printf("client error (line %d): %s: %s\n", $ex.line, $ex.err, $ex.desc);
 	    thread_exit;
 	}
 
@@ -273,6 +269,8 @@ class socket_test {
   -h,--help                    this help text
   -S,--server=ip:port          no server thread; connect to remote server
   -O,--server-only             no client thread; wait for remote clients
+  -4,--ipv4                    ipv4 sockets only
+  -6,--ipv6                    ipv6 sockets only
   -s,--ssl                     use secure connections
   -c,--cert=arg                set server SSL x509 certificate
   -k,--private-key=arg         set server SSL private key
@@ -287,7 +285,7 @@ class socket_test {
 	my GetOpt $g(opts);
 	$.o = $g.parse(\$ARGV);
 	
-	if (exists $.o{"_ERRORS_"}) {
+	if (exists $.o."_ERRORS_") {
 	    socket_test::printf("%s\n", $.o{"_ERRORS_"}[0]);
 	    exit(1);
 	}
@@ -304,12 +302,36 @@ class socket_test {
 	    $.server_port = 9001;
 	
 	if (exists $.o.server) {
-	    $.client_port = $.o.server;
-	    if ($.client_port == int($.client_port))
-		$.client_port = "localhost:" + $.client_port;
+	    if ($.o.server == int($.o.server)) {
+		$.client_port = int($.o.server);
+		$.client_host = "localhost";
+	    }
+	    else {
+		my hash $h = parse_url($.o.server);
+		if (!exists $h.port) {
+		    socket_test::printf("missing port in server specification %n - aborting\n", $.o.server);
+		    exit(1);
+		}
+
+		$.client_port = $h.port;
+		if (!exists $h.host)
+		    $.client_host = "localhost";
+		else
+		    $.client_host = $h.host;
+	    }
 	}
+	else {
+	    $.client_port = $.server_port;
+	    $.client_host = "localhost";
+	}
+
+	# set address family for sockets
+	if ($.o.ipv4 && !$.o.ipv6)
+	    $.fam = AF_INET;
+	else if ($.o.ipv6 && !$.o.ipv4)
+	    $.fam = AF_INET6;
 	else
-	    $.client_port = sprintf("localhost:%d", $.server_port);
+	    $.fam = AF_UNSPEC;
     }
 
     private listen() {

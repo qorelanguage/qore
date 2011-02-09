@@ -706,7 +706,7 @@ int RootQoreNamespace::resolveBareword(AbstractQoreNode **node, const QoreTypeIn
    AbstractQoreNode *rv = 0;
 
    QoreProgram *pgm = getProgram();
-   bool abr = pgm->getParseOptions64() & PO_ALLOW_BARE_REFS;
+   bool abr = (bool)(pgm->getParseOptions64() & PO_ALLOW_BARE_REFS);
 
    if (abr) {
       bool in_closure;

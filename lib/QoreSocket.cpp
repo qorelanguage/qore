@@ -794,7 +794,7 @@ struct qore_socket_private {
       return -1;
    }
 
-   DLLLOCAL int connectINETTimeout(int timeout_ms, const struct sockaddr *ai_addr, qore_size_t ai_addrlen, ExceptionSink *xsink, bool no_connrefused) {
+   DLLLOCAL int connectINETTimeout(int timeout_ms, const struct sockaddr *ai_addr, qore_size_t ai_addrlen, ExceptionSink *xsink, bool only_timeout) {
       while (true) {
 	 if (!::connect(sock, ai_addr, ai_addrlen))
 	    return 0;
@@ -814,7 +814,7 @@ struct qore_socket_private {
 
 	    //printd(0, "selectWrite(%d) returned %d\n", timeout_ms, rc);
 	    if (rc < 0 && errno != EINTR) { 
-	       if (xsink)
+	       if (xsink && !only_timeout)
 		  xsink->raiseErrnoException("SOCKET-CONNECT-ERROR", errno, "error in select() with Socket::connect() with timeout");
 	       return -1;
 	    } 
@@ -824,13 +824,13 @@ struct qore_socket_private {
 	       int val;
 
 	       if (getsockopt(sock, SOL_SOCKET, SO_ERROR, (void *)(&val), &lon) < 0) { 
-		  if (xsink)
+		  if (xsink && !only_timeout)
 		     xsink->raiseErrnoException("SOCKET-CONNECT-ERROR", errno, "error in getsockopt()");
 		  return -1;
 	       } 
 	       
 	       if (val) {
-		  if (no_connrefused && val == ECONNREFUSED) {
+		  if (only_timeout) {
 		     errno = val;
 		     return -1;
 		  }
@@ -909,11 +909,11 @@ struct qore_socket_private {
       }
 
       if (xsink && !*xsink)
-	 xsink->raiseErrnoException("SOCKET-CONNECT-ERROR", ECONNREFUSED, "error in connect()");
+	 xsink->raiseErrnoException("SOCKET-CONNECT-ERROR", errno, "error in connect()");
       return -1;
    }
 
-   DLLLOCAL int connectINETIntern(const char *host, const char *service, int ai_family, struct sockaddr *ai_addr, size_t ai_addrlen, int ai_socktype, int ai_protocol, int prt, int timeout_ms, ExceptionSink *xsink, bool no_connrefused = false) {
+   DLLLOCAL int connectINETIntern(const char *host, const char *service, int ai_family, struct sockaddr *ai_addr, size_t ai_addrlen, int ai_socktype, int ai_protocol, int prt, int timeout_ms, ExceptionSink *xsink, bool only_timeout = false) {
       //printd(5, "qore_socket_private::connectINETIntern() host=%s service=%s family=%d\n", host, service, ai_family);
       if ((sock = socket(ai_family, ai_socktype, ai_protocol)) == -1) {
 	 if (xsink)
@@ -936,7 +936,7 @@ struct qore_socket_private {
 
 	 do_connect_event(ai_family, host, service, prt);
 
-	 rc = connectINETTimeout(timeout_ms, ai_addr, ai_addrlen, xsink, no_connrefused);
+	 rc = connectINETTimeout(timeout_ms, ai_addr, ai_addrlen, xsink, only_timeout);
 	 //printd(5, "qore_socket_private::connectINETIntern() errno=%d rc=%d, xsink=%d\n", errno, rc, xsink && *xsink);
 
 	 // set blocking
@@ -957,7 +957,7 @@ struct qore_socket_private {
       }
 
       if (rc < 0) {
-	 if (xsink && (!no_connrefused || errno != ECONNREFUSED))
+	 if (xsink && (!only_timeout || errno == ETIMEDOUT))
 	    xsink->raiseErrnoException("SOCKET-CONNECT-ERROR", errno, "error in connect()");
 
 	 return close_and_exit();
