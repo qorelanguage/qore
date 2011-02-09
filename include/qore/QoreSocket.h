@@ -2,7 +2,7 @@
 /*
   QoreSocket.h
 
-  IPv4 Socket Class
+  ipv4, ipv6, unix socket class with SSL support
   
   Qore Programming Language
 
@@ -60,6 +60,8 @@ class Queue;
     @see QoreSocket::accept()
     @see QoreSocket::acceptSSL()
     @see QoreSocket::acceptAndReplace()
+
+    @deprecated use QoreSocket::getPeerInfo() and QoreSocket::getSocketInfo() to get more detailed information; this data structure will not be enhanced and will disappear in the next major version of the Qore library
  */
 class SocketSource {
    friend struct qore_socket_private;
@@ -451,6 +453,40 @@ public:
        @see SocketSource
    */
    DLLEXPORT int acceptAndReplace(SocketSource *source);
+
+   //! accepts a new connection on a listening socket and returns a new QoreSocket object for the new connection with a timeout; if no connection is accepted within the timeout period 0 is returned
+   /** the socket must be opened and in a listening state before making this call.
+       @param timeout_ms the timeout in milliseconds; if a timeout occurs then 0 is returned (no Qore-language excepton is raised)
+       @param xsink if an error occurs, the Qore-language exception information will be added here
+       @return a new QoreSocket object for the new connection (or 0 if an error or timeout occured)
+       @see QoreSocket::listen()
+       @see QoreSocket::acceptSSL(int timeout_ms, X509 *cert, EVP_PKEY *pkey, ExceptionSink *xsink)
+   */
+   DLLEXPORT QoreSocket *accept(int timeout_ms, ExceptionSink *xsink);
+
+   //! accepts a new connection on a listening socket, negotiates an SSL connection, and returns a new QoreSocket object for the new connection with a timeout; if no connection is accepted within the timeout period 0 is returned
+   /** the socket must be opened and in a listening state before making this call.
+       @param timeout_ms the timeout in milliseconds; if a timeout occurs then 0 is returned (no Qore-language excepton is raised)
+       @param cert the X509 certificate to use for the connection, may be 0 if no certificate should be used
+       @param pkey the private key to use for the connection, may be 0 if no private key should be used
+       @param xsink if an error occurs, the Qore-language exception information will be added here
+       @return a new QoreSocket object for the new connection (or 0 if an error or timeout occured)
+       @note the same as calling QoreSocket::accept() and then QoreSocket::upgradeServerToSSL() on the new socket
+       @see QoreSocket::accept(int timeout_ms, ExceptionSink *xsink)
+       @see QoreSocket::listen()
+   */
+   DLLEXPORT QoreSocket *acceptSSL(int timeout_ms, X509 *cert, EVP_PKEY *pkey, ExceptionSink *xsink);
+
+   //! accepts a new connection on a listening socket and replaces the current socket with the new connection with a timeout; if no connection is accepted within the timeout period, -3 (QSE_TIMEOUT) is returned
+   /** the socket must be opened and in a listening state before making this call.
+       @param timeout_ms the timeout in milliseconds; if a timeout occurs then 0 is returned (no Qore-language excepton is raised)
+       @param xsink if an error occurs, the Qore-language exception information will be added here
+       @return 0 for OK, -1 if an error occured, -3 (QSE_TIMEOUT) if a timeout occured
+       @see QoreSocket::listen()
+       @see QoreSocket::accept(int timeout_ms, ExceptionSink *xsink)
+       @see QoreSocket::acceptSSL(int timeout_ms, X509 *cert, EVP_PKEY *pkey, ExceptionSink *xsink)
+   */
+   DLLEXPORT int acceptAndReplace(int timeout_ms, ExceptionSink *xsink);
 
    //! sets an open socket to the listening state
    /**
@@ -966,6 +1002,9 @@ public:
 
    DLLLOCAL int setNoDelay(int nodelay);
    DLLLOCAL int getNoDelay() const;
+
+   //! sets backwards-compatible members on accept in a new object - will be removed in a future version of qore
+   DLLLOCAL void setAccept(QoreObject *o);
 };
 
 #endif // _QORE_QORESOCKET_H

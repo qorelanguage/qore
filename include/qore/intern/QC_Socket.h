@@ -29,6 +29,7 @@
 
 DLLLOCAL QoreClass *initSocketClass(QoreClass *SSLCert, QoreClass *SSLPrivKey);
 DLLEXPORT extern qore_classid_t CID_SOCKET;
+DLLLOCAL extern QoreClass *QC_SOCKET;
 
 class Queue;
 
@@ -91,6 +92,9 @@ public:
    DLLLOCAL int getPort();
    DLLLOCAL mySocket *accept(SocketSource *source, ExceptionSink *xsink);
    DLLLOCAL mySocket *acceptSSL(SocketSource *source, ExceptionSink *xsink);
+   DLLLOCAL mySocket *accept(int timeout_ms, ExceptionSink *xsink);
+   DLLLOCAL mySocket *acceptSSL(int timeout_ms, ExceptionSink *xsink);
+
    DLLLOCAL int listen();
    // send a buffer of a particular size
    DLLLOCAL int send(const char *buf, int size);
@@ -167,6 +171,11 @@ public:
    DLLLOCAL void setEventQueue(Queue *cbq, ExceptionSink *xsink);
    DLLLOCAL QoreHashNode *getPeerInfo(ExceptionSink *xsink) const;
    DLLLOCAL QoreHashNode *getSocketInfo(ExceptionSink *xsink) const;
+
+   //! sets backwards-compatible members on accept in a new object - will be removed in a future version of qore
+   DLLLOCAL void setAccept(QoreObject *o) {
+      socket->setAccept(o);
+   }
 };
 
 #endif // _QORE_CLASS_QORESOCKET_H

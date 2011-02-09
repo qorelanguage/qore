@@ -389,10 +389,34 @@ struct qore_socket_private {
       return sizeof(struct sockaddr_in6);
    }
 
+   DLLLOCAL int accept_intern(struct sockaddr *addr, socklen_t *size, int timeout_ms = -1, ExceptionSink *xsink = 0) {
+      while (true) {
+	 if (timeout_ms >= 0 && !isDataAvailable(timeout_ms)) {
+	    // do not throw exception here, NOTHING will be returned in Qore on timeout
+	    return QSE_TIMEOUT; // -3
+	 }
+
+	 int rc = ::accept(sock, addr, size);
+	 if (rc >= 0)
+	    return rc;
+
+	 // retry if interrupted by a signal
+	 if (errno == EINTR)
+	    continue;
+	 
+	 if (xsink)
+	    xsink->raiseErrnoException("SOCKET-ACCEPT-ERROR", errno, "error in accept()");
+	 return -1;
+      }
+   }
+   
    // returns a new socket
-   DLLLOCAL int accept_internal(SocketSource *source) {
-      if (sock == -1)
+   DLLLOCAL int accept_internal(SocketSource *source, int timeout_ms = -1, ExceptionSink *xsink = 0) {
+      if (sock == -1) {
+	 if (xsink)
+	    xsink->raiseException("SOCKET-NOT-OPEN", "socket must be opened, bound, and in a listening state before new connections can be accepted");
 	 return QSE_NOT_OPEN;
+      }
 
       int rc;
       if (sfamily == AF_UNIX) {
@@ -405,12 +429,7 @@ struct qore_socket_private {
 #else
 	 socklen_t size = sizeof(struct sockaddr_un);
 #endif
-	 while (true) {
-	    rc = ::accept(sock, (struct sockaddr *)&addr_un, (socklen_t *)&size);
-	    // retry if interrupted by a signal
-	    if (rc != -1 || errno != EINTR)
-	       break;
-	 }
+	 rc = accept_intern((struct sockaddr *)&addr_un, (socklen_t *)&size, timeout_ms, xsink);
 	 //printd(1, "qore_socket_private::accept_internal() %d bytes returned\n", size);
 
 	 if (rc >= 0 && source) {
@@ -430,12 +449,7 @@ struct qore_socket_private {
 	 socklen_t size = sizeof(addr_in);
 #endif
 
-	 while (true) {
-	    rc = ::accept(sock, (struct sockaddr *)&addr_in, (socklen_t *)&size);
-	    // retry if interrupted by a signal
-	    if (rc != -1 || errno != EINTR)
-	       break;
-	 }
+	 rc = accept_intern((struct sockaddr *)&addr_in, (socklen_t *)&size, timeout_ms, xsink);
 	 //printd(1, "qore_socket_private::accept_internal() rc=%d, %d bytes returned\n", rc, size);
 
 	 if (rc >= 0 && source) {
@@ -454,14 +468,17 @@ struct qore_socket_private {
 	    }
 	 }
       }
-      else
+      else {
+	 // should not happen
+	 if (xsink)
+	    xsink->raiseException("SOCKET-ACCEPT-ERROR", "do not know how to accept connections with address family %d", sfamily);
 	 rc = -1;
+      }
       return rc;
    }
 
    DLLLOCAL void cleanup(ExceptionSink *xsink) {
       if (cb_queue) {
-
 	 // close the socket before the delete message is put on the queue
 	 // the socket would be closed anyway in the destructor
 	 close_internal();
@@ -1179,6 +1196,36 @@ struct qore_socket_private {
       h->setKeyValue("familystr", new QoreStringNode(QoreAddrInfo::getFamilyName(addr.ss_family)), 0);
 
       return h;
+   }
+
+   // set backwards-compatible object members on accept
+   // to be (hopefully) deleted in a future version of qore
+   void setAccept(QoreObject *o) {
+      struct sockaddr_storage addr;
+
+      socklen_t len = sizeof addr;
+      if (getpeername(sock, (struct sockaddr*)&addr, &len))
+	 return;
+
+      if (addr.ss_family == AF_INET || addr.ss_family == AF_INET6) {
+	 // get ipv4 or ipv6 address
+	 char ifname[INET6_ADDRSTRLEN];
+	 if (inet_ntop(addr.ss_family, get_in_addr((struct sockaddr *)&addr), ifname, sizeof(ifname))) {
+	    //printd(5, "inet_ntop() '%s' host: '%s'\n", ifname, host);
+	    o->setValue("source", new QoreStringNode(ifname), 0);
+	 }
+
+	 char host[NI_MAXHOST + 1];
+	 if (!getnameinfo((struct sockaddr *)&addr, get_in_len((struct sockaddr *)&addr), host, sizeof(host), 0, 0, 0))
+	    o->setValue("source_host", new QoreStringNode(host), 0);
+      }
+      else if (addr.ss_family == AF_UNIX) {
+	 QoreStringNode *astr = new QoreStringNode(enc);
+	 struct sockaddr_un *addr_un = (struct sockaddr_un *)&addr;
+	 astr->sprintf("UNIX socket: %s", addr_un->sun_path);
+	 o->setValue("source", astr, 0); 
+	 o->setValue("source_host", new QoreStringNode("localhost"), 0);
+      }
    }
 };
 
@@ -2686,15 +2733,9 @@ int QoreSocket::getPort() {
 // QoreSocket::accept()
 // returns a new socket
 QoreSocket *QoreSocket::accept(SocketSource *source, ExceptionSink *xsink) {
-   if (priv->sock == -1) {
-      xsink->raiseException("SOCKET-NOT-OPEN", "socket must be opened and in listening state before Socket::accept() call");
+   int rc = priv->accept_internal(source, -1, xsink);
+   if (rc < 0)
       return 0;
-   }
-   int rc = priv->accept_internal(source);
-   if (rc < 0) {
-      xsink->raiseErrnoException("SOCKET-ACCEPT-ERROR", errno, "error in accept");
-      return 0;
-   }
 
    return new QoreSocket(rc, priv->sfamily, priv->stype, priv->sprot, priv->enc);
 }
@@ -2719,11 +2760,42 @@ QoreSocket *QoreSocket::acceptSSL(SocketSource *source, X509 *cert, EVP_PKEY *pk
 int QoreSocket::acceptAndReplace(SocketSource *source) {
    QORE_TRACE("QoreSocket::acceptAndReplace()");
    int rc = priv->accept_internal(source);
-   if (rc == -1)
+   if (rc < 0)
       return -1;
    priv->close_internal();
    priv->sock = rc;
 
+   return 0;
+}
+
+QoreSocket *QoreSocket::accept(int timeout_ms, ExceptionSink *xsink) {
+   int rc = priv->accept_internal(0, timeout_ms, xsink);
+   if (rc < 0)
+      return 0;
+
+   return new QoreSocket(rc, priv->sfamily, priv->stype, priv->sprot, priv->enc);
+}
+
+QoreSocket *QoreSocket::acceptSSL(int timeout_ms, X509 *cert, EVP_PKEY *pkey, ExceptionSink *xsink) {
+   std::auto_ptr<QoreSocket> s(accept(timeout_ms, xsink));
+   if (!s.get())
+      return 0;
+
+   if (s->priv->upgradeServerToSSLIntern(cert, pkey, xsink)) {
+      assert(*xsink);
+      return 0;
+   }
+   
+   return s.release();
+}
+
+int QoreSocket::acceptAndReplace(int timeout_ms, ExceptionSink *xsink) {
+   int rc = priv->accept_internal(0, timeout_ms, xsink);
+   if (rc < 0)
+      return -1;
+
+   priv->close_internal();
+   priv->sock = rc;
    return 0;
 }
 
@@ -2827,4 +2899,8 @@ QoreHashNode *QoreSocket::getPeerInfo(ExceptionSink *xsink) const {
 
 QoreHashNode *QoreSocket::getSocketInfo(ExceptionSink *xsink) const {
    return priv->getSocketInfo(xsink);
+}
+
+void QoreSocket::setAccept(QoreObject *o) {
+   priv->setAccept(o);
 }

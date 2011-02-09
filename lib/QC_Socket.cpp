@@ -29,6 +29,7 @@
 #include <string.h>
 
 qore_classid_t CID_SOCKET;
+QoreClass *QC_SOCKET;
 
 static AbstractQoreNode *doReadResult(int rc, int64 val, const char *method_name, int timeout_ms, ExceptionSink *xsink) {
    if (rc > 0)
@@ -181,37 +182,76 @@ static AbstractQoreNode *SOCKET_bindINET(QoreObject *self, mySocket *s, const Qo
    return 0;
 }
 
-// Socket::accept()
-// returns a new Socket object, connection source address is in $.source
-// member of new object, hostname in $.source_host
+// Socket Socket::accept()
 static AbstractQoreNode *SOCKET_accept(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
-   SocketSource source;
-   mySocket *n = s->accept(&source, xsink);
-   if (xsink->isEvent())
+   mySocket *n = s->accept(-1, xsink);
+   if (!n) {
+      assert(*xsink);
       return 0;
+   }
+
+   assert(n);
 
    // ensure that a socket object is returned (and not a subclass)
-   QoreObject *ns = new QoreObject(self->getClass(CID_SOCKET), getProgram());
-   ns->setPrivate(CID_SOCKET, n);
-   source.setAll(ns, xsink);
-      
+   QoreObject *ns = new QoreObject(QC_SOCKET, getProgram(), n);
+
+   // save backwards-compatible peer parameters as members in new object (deprecated: Socket::getPeerInfo() should be used in the future)
+   s->setAccept(ns);
+
    return ns;
 }
 
-// Socket::acceptSSL()
-// accepts a new connection, negotiates an SSL connection, and returns the new socket
-// the connection source string is in the "$.source" member of new object,
-// hostname in "$.source_host"
-static AbstractQoreNode *SOCKET_acceptSSL(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
-   SocketSource source;
-   mySocket *n = s->acceptSSL(&source, xsink);
-   if (xsink->isEvent())
+// *Socket Socket::accept(timeout timeout_ms)
+// returns a new Socket object, connection source address is in $.source, hostname in $.source_host
+static AbstractQoreNode *SOCKET_accept_timeout(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
+   int timeout_ms = (int)HARD_QORE_INT(params, 0);
+
+   mySocket *n = s->accept(timeout_ms, xsink);
+   if (!n)
       return 0;
 
    // ensure that a socket object is returned (and not a subclass)
-   QoreObject *ns = new QoreObject(self->getClass(CID_SOCKET), getProgram());
-   ns->setPrivate(CID_SOCKET, n);
-   source.setAll(ns, xsink);
+   QoreObject *ns = new QoreObject(QC_SOCKET, getProgram(), n);
+
+   // save backwards-compatible peer parameters as members in new object (deprecated: Socket::getPeerInfo() should be used in the future)
+   s->setAccept(ns);
+
+   return ns;
+}
+
+// Socket Socket::acceptSSL()
+static AbstractQoreNode *SOCKET_acceptSSL(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
+   mySocket *n = s->acceptSSL(-1, xsink);
+   if (!n) {
+      assert(*xsink);
+      return 0;
+   }
+
+   // ensure that a socket object is returned (and not a subclass)
+   QoreObject *ns = new QoreObject(QC_SOCKET, getProgram(), n);
+
+   // save backwards-compatible peer parameters as members in new object (deprecated: Socket::getPeerInfo() should be used in the future)
+   s->setAccept(ns);
+   
+   return ns;
+}
+
+// *Socket Socket::acceptSSL(timeout timeout_ms)
+/* accepts a new connection, negotiates an SSL connection, and returns the new socket
+   the connection source string is in the "$.source" member of new object, hostname in "$.source_host"
+*/
+static AbstractQoreNode *SOCKET_acceptSSL_timeout(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
+   int timeout_ms = (int)HARD_QORE_INT(params, 0);
+
+   mySocket *n = s->acceptSSL(timeout_ms, xsink);
+   if (!n)
+      return 0;
+
+   // ensure that a socket object is returned (and not a subclass)
+   QoreObject *ns = new QoreObject(QC_SOCKET, getProgram(), n);
+
+   // save backwards-compatible peer parameters as members in new object (deprecated: Socket::getPeerInfo() should be used in the future)
+   s->setAccept(ns);
    
    return ns;
 }
@@ -697,7 +737,7 @@ QoreClass *initSocketClass(QoreClass *SSLCert, QoreClass *SSLPrivKey) {
 
    assert(QC_QUEUE);
 
-   QoreClass *QC_SOCKET = new QoreClass("Socket", QDOM_NETWORK);
+   QC_SOCKET = new QoreClass("Socket", QDOM_NETWORK);
    CID_SOCKET = QC_SOCKET->getID();
 
    // register public members
@@ -743,7 +783,14 @@ QoreClass *initSocketClass(QoreClass *SSLCert, QoreClass *SSLPrivKey) {
    // nothing bindINET(*string $interface, *softstring $service, softbool $reuseaddr = False, softint $family = AF_UNSPEC, softint $socktype = SOCK_STREAM, int $protocol = 0)
    QC_SOCKET->addMethodExtended("bindINET",                  (q_method_t)SOCKET_bindINET, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 6, stringOrNothingTypeInfo, QORE_PARAM_NO_ARG, softStringOrNothingTypeInfo, QORE_PARAM_NO_ARG, softBoolTypeInfo, &False, softBigIntTypeInfo, new QoreBigIntNode(AF_UNSPEC), softBigIntTypeInfo, new QoreBigIntNode(SOCK_STREAM), bigIntTypeInfo, zero());
 
+   // *Socket Socket::accept(timeout timeout_ms)
+   QC_SOCKET->addMethodExtended("accept",                    (q_method_t)SOCKET_accept_timeout, false, QC_NO_FLAGS, QDOM_DEFAULT, QC_SOCKET->getOrNothingTypeInfo(), 1, timeoutTypeInfo, QORE_PARAM_NO_ARG);
+   // Socket Socket::accept()
    QC_SOCKET->addMethodExtended("accept",                    (q_method_t)SOCKET_accept, false, QC_NO_FLAGS, QDOM_DEFAULT, QC_SOCKET->getTypeInfo());
+
+   // *Socket Socket::acceptSSL(timeout timeout_ms)
+   QC_SOCKET->addMethodExtended("acceptSSL",                 (q_method_t)SOCKET_acceptSSL_timeout, false, QC_NO_FLAGS, QDOM_DEFAULT, QC_SOCKET->getOrNothingTypeInfo(), 1, timeoutTypeInfo, QORE_PARAM_NO_ARG);
+   // Socket Socket::acceptSSL()
    QC_SOCKET->addMethodExtended("acceptSSL",                 (q_method_t)SOCKET_acceptSSL, false, QC_NO_FLAGS, QDOM_DEFAULT, QC_SOCKET->getTypeInfo());
 
    QC_SOCKET->addMethodExtended("listen",                    (q_method_t)SOCKET_listen, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);

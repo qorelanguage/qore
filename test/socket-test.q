@@ -106,8 +106,8 @@ class socket_test {
 		}
 		$s = $s.acceptSSL();
 		#socket_test::printf("returned from Socket::acceptSSL() s=%N\n", $s);
-		socket_test::printf("server: secure connection (%s %s) from %s on %s\n", $s.getSSLCipherName(), $s.getSSLCipherVersion(), $s.getPeerInfo().address_desc, $s.getSocketInfo().address_desc);
-		my $str = $s.verifyPeerCertificate();
+		socket_test::printf("server: secure connection (%s %s) from %s\n", $s.getSSLCipherName(), $s.getSSLCipherVersion(), $s.getPeerInfo().address_desc);
+		my *string $str = $s.verifyPeerCertificate();
 		if (!exists $str)
 		    socket_test::printf("server: no client certificate\n");
 		else
@@ -115,7 +115,7 @@ class socket_test {
 	    }
 	    else {
 		$s = $s.accept();
-		socket_test::printf("server: cleartext connection from %s on %s\n", $s.getPeerInfo().address_desc, $s.getSocketInfo().address_desc);
+		socket_test::printf("server: cleartext connection from %s\n", $s.getPeerInfo().address_desc);
 	    }
 	    if ($.o.events)
 		$s.setEventQueue($.queue);

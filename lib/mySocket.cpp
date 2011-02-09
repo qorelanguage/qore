@@ -94,15 +94,6 @@ int mySocket::getPort() {
    return socket->getPort();
 }
 
-mySocket *mySocket::accept(class SocketSource *source, ExceptionSink *xsink) {
-   QoreSocket *s;
-   {
-      AutoLocker al(m);
-      s = socket->accept(source, xsink);
-   }
-   return s ? new mySocket(s) : 0;
-}
-
 int mySocket::listen() {
    AutoLocker al(m);
    return socket->listen();
@@ -403,7 +394,16 @@ int mySocket::connectSSL(const char *name, int timeout_ms, ExceptionSink *xsink)
 			     xsink);
 }
 
-mySocket *mySocket::acceptSSL(class SocketSource *source, ExceptionSink *xsink) {
+mySocket *mySocket::accept(SocketSource *source, ExceptionSink *xsink) {
+   QoreSocket *s;
+   {
+      AutoLocker al(m);
+      s = socket->accept(source, xsink);
+   }
+   return s ? new mySocket(s) : 0;
+}
+
+mySocket *mySocket::acceptSSL(SocketSource *source, ExceptionSink *xsink) {
    QoreSocket *s;
    {
       AutoLocker al(m);
@@ -412,8 +412,26 @@ mySocket *mySocket::acceptSSL(class SocketSource *source, ExceptionSink *xsink) 
    return s ? new mySocket(s) : 0;
 }
 
+mySocket *mySocket::accept(int timeout_ms, ExceptionSink *xsink) {
+   QoreSocket *s;
+   {
+      AutoLocker al(m);
+      s = socket->accept(timeout_ms, xsink);
+   }
+   return s ? new mySocket(s) : 0;
+}
+
+mySocket *mySocket::acceptSSL(int timeout_ms, ExceptionSink *xsink) {
+   QoreSocket *s;
+   {
+      AutoLocker al(m);
+      s = socket->acceptSSL(timeout_ms, cert ? cert->getData() : 0, pk ? pk->getData() : 0, xsink);
+   }
+   return s ? new mySocket(s) : 0;
+}
+
 // c must be already referenced before this call
-void mySocket::setCertificate(class QoreSSLCertificate *c) {
+void mySocket::setCertificate(QoreSSLCertificate *c) {
    AutoLocker al(m);
    if (cert)
       cert->deref();
