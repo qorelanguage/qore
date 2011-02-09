@@ -75,10 +75,10 @@ class socket_test {
 	    foreach my hash $a in ($addr) {
 		try {
 		    $s.bindINET($a.address, $.server_port, True, $a.family);
-		    socket_test::printf("server: bound to %s socket on %s:%d\n", $a.familystr, $a.address, $.server_port);
+		    socket_test::printf("server: bound to %s socket on %s:%d\n", $a.familystr, $a.address_desc, $.server_port);
 		}
 		catch($ex) {
-			socket_test::printf("server: error binding socket to %s: %s: %s (arg=%n)\n", $a.address, $ex.err, $ex.desc, $ex.arg);
+			socket_test::printf("server: error binding socket to %s: %s: %s (arg=%n)\n", $a.address_desc, $ex.err, $ex.desc, $ex.arg);
 			thread_exit;
 		}
 	    }
@@ -119,7 +119,7 @@ class socket_test {
 	    }
 	    else {
 		$s = $s.accept();
-		socket_test::printf("server: cleartext connection from %s (%s)\n", $s.source, $s.source_host);
+		socket_test::printf("server: cleartext connection from %s (%s)\n", $s.source_desc, $s.source_host);
 	    }
 	    if ($.o.events)
 		$s.setEventQueue($.queue);

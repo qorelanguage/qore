@@ -99,6 +99,12 @@ public:
    
    //! returns a list of hashes of address info, if an addrinfo structure is being managed
    DLLEXPORT QoreListNode *getList() const;   
+
+   //! returns the name of the address family as a string (ie AF_INET = "ipv4", etc)
+   DLLEXPORT static const char *getFamilyName(int address_family);
+
+   //! returns a descriptive string for the address family and an address string (ie AF_INET6, "::1" = "ipv6[::1]")
+   DLLEXPORT static QoreStringNode *getAddressDesc(int address_family, const char *addr);
 };
 
 #endif // _QORE_QORENET_H

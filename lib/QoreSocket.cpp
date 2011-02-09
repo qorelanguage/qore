@@ -220,51 +220,20 @@ struct qore_socketsource_private {
       family = af;
    }
 
-   DLLLOCAL const char *getFamilyName() {
-      switch (family) {
-	 case AF_INET:
-	    return "ipv4";
-	    break;
-	 case AF_INET6:
-	    return "ipv6";
-	    break;
-	 case AF_UNIX:
-	    return "unix";
-	    break;
-      }
-      return "unknown";
-   }
-
-   DLLLOCAL QoreStringNode *getAddressDesc(const char *addr) {
-      QoreStringNode *str = new QoreStringNode;
-      switch (family) {
-	 case AF_INET:
-	    str->sprintf("ipv4(%s)", addr);
-	    break;
-	 case AF_INET6:
-	    str->sprintf("ipv6[%s]", addr);
-	    break;
-	 default:
-	    str->sprintf("%s:%s", getFamilyName(), addr);
-	    break;
-      }
-      return str;
-   }
-
    DLLLOCAL void setAll(QoreObject *o, ExceptionSink *xsink) {
       o->setValue("source_family", new QoreBigIntNode(family), xsink);
-      o->setValue("source_familystr", new QoreStringNode(getFamilyName()), xsink);
+      o->setValue("source_familystr", new QoreStringNode(QoreAddrInfo::getFamilyName(family)), xsink);
       
       if (address) {
 	 o->setValue("source", address, xsink);
-	 o->setValue("source_desc", getAddressDesc(address->getBuffer()), xsink);
+	 o->setValue("source_desc", QoreAddrInfo::getAddressDesc(family, address->getBuffer()), xsink);
 	       
 	 address = 0;
       }
 
       if (hostname) {
 	 o->setValue("source_host", hostname, xsink);
-	 o->setValue("source_host_desc", getAddressDesc(hostname->getBuffer()), xsink);
+	 o->setValue("source_host_desc", QoreAddrInfo::getAddressDesc(family, hostname->getBuffer()), xsink);
 	       
 	 hostname = 0;
       }

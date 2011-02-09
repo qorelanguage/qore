@@ -456,8 +456,10 @@ QoreListNode *QoreAddrInfo::getList() const {
 	 h->setKeyValue("canonname", new QoreStringNode(p->ai_canonname), 0);
 
       QoreStringNode *addr = q_addr_to_string2(p->ai_family, p->ai_addr);
-      if (addr)
+      if (addr) {
 	 h->setKeyValue("address", addr, 0);
+	 h->setKeyValue("address_desc", getAddressDesc(p->ai_family, addr->getBuffer()), 0);
+      }
 
       h->setKeyValue("family", new QoreBigIntNode(p->ai_family), 0);
       h->setKeyValue("familystr", new QoreStringNode(family), 0);
@@ -473,3 +475,35 @@ QoreListNode *QoreAddrInfo::getList() const {
 
    return l;
 }
+
+const char *QoreAddrInfo::getFamilyName(int family) {
+   switch (family) {
+      case AF_INET:
+	 return "ipv4";
+	 break;
+      case AF_INET6:
+	 return "ipv6";
+	 break;
+      case AF_UNIX:
+	 return "unix";
+	 break;
+   }
+   return "unknown";
+}
+
+QoreStringNode *QoreAddrInfo::getAddressDesc(int family, const char *addr) {
+   QoreStringNode *str = new QoreStringNode;
+   switch (family) {
+      case AF_INET:
+	 str->sprintf("ipv4(%s)", addr);
+	 break;
+      case AF_INET6:
+	 str->sprintf("ipv6[%s]", addr);
+	 break;
+      default:
+	 str->sprintf("%s:%s", getFamilyName(family), addr);
+	 break;
+   }
+   return str;
+}
+
