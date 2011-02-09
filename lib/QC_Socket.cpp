@@ -78,17 +78,8 @@ static AbstractQoreNode *SOCKET_connect_str_timeout(QoreObject *self, mySocket *
    return 0;
 }
 
-// nothing Socket::connectINET(string $host, int $port, timeout $timeout_ms = -1)  
-static AbstractQoreNode *SOCKET_connectINET_str_int_timeout(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
-   const QoreStringNode *p0 = HARD_QORE_STRING(params, 0);
-   int port = (int)HARD_QORE_INT(params, 1);
-   int timeout_ms = (int)HARD_QORE_INT(params, 2);
-   s->connectINET(p0->getBuffer(), port, timeout_ms, xsink);
-   return 0;
-}
-
-// nothing Socket::connectINET2(string $host, softstring $service, timeout $timeout_ms = -1, softint $family = AF_UNSPEC, softint $socktype = SOCK_STREAM)  
-static AbstractQoreNode *SOCKET_connectINET2(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
+// nothing Socket::connectINET(string $host, softstring $service, timeout $timeout_ms = -1, softint $family = AF_UNSPEC, softint $socktype = SOCK_STREAM)  
+static AbstractQoreNode *SOCKET_connectINET(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
    const QoreStringNode *host = HARD_QORE_STRING(params, 0);
    const QoreStringNode *service = HARD_QORE_STRING(params, 1);
    int timeout_ms = (int)HARD_QORE_INT(params, 2);
@@ -118,17 +109,8 @@ static AbstractQoreNode *SOCKET_connectSSL_str_timeout(QoreObject *self, mySocke
    return 0;
 }
 
-// nothing Socket::connectINETSSL(string $host, int $port, timeout $timeout_ms = -1)  
-static AbstractQoreNode *SOCKET_connectINETSSL_str_int_timeout(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
-   const QoreStringNode *p0 = HARD_QORE_STRING(params, 0);
-   int port = (int)HARD_QORE_INT(params, 1);
-   int timeout_ms = (int)HARD_QORE_INT(params, 2);
-   s->connectINETSSL(p0->getBuffer(), port, timeout_ms, xsink);
-   return 0;
-}
-
-// nothing Socket::connectINET2SSL(string $host, softstring $service, timeout $timeout_ms = -1, softint $family = AF_UNSPEC, softint $socktype = SOCK_STREAM)  
-static AbstractQoreNode *SOCKET_connectINET2SSL(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
+// nothing Socket::connectINETSSL(string $host, softstring $service, timeout $timeout_ms = -1, softint $family = AF_UNSPEC, softint $socktype = SOCK_STREAM) 
+static AbstractQoreNode *SOCKET_connectINETSSL(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
    const QoreStringNode *host = HARD_QORE_STRING(params, 0);
    const QoreStringNode *service = HARD_QORE_STRING(params, 1);
    int timeout_ms = (int)HARD_QORE_INT(params, 2);
@@ -137,7 +119,6 @@ static AbstractQoreNode *SOCKET_connectINET2SSL(QoreObject *self, mySocket *s, c
    s->connectINET2SSL(host->getBuffer(), service->getBuffer(), family, socktype, timeout_ms, xsink);
    return 0;
 }
-
 
 // nothing Socket::connectUNIXSSL(string $path)  
 static AbstractQoreNode *SOCKET_connectUNIXSSL(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
@@ -735,11 +716,8 @@ QoreClass *initSocketClass(QoreClass *SSLCert, QoreClass *SSLPrivKey) {
    // Socket::connect(string $sock, timeout $timeout_ms = -1)
    QC_SOCKET->addMethodExtended("connect",                   (q_method_t)SOCKET_connect_str_timeout, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, timeoutTypeInfo, new QoreBigIntNode(-1));
 
-   // nothing Socket::connectINET(string $host, int $port, timeout $timeout_ms = -1)  
-   QC_SOCKET->addMethodExtended("connectINET",               (q_method_t)SOCKET_connectINET_str_int_timeout, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 3, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, QORE_PARAM_NO_ARG, timeoutTypeInfo, new QoreBigIntNode(-1));
-
-   // nothing Socket::connectINET2(string $host, softstring $service, timeout $timeout_ms = -1, softint $family = AF_UNSPEC, softint $socktype = SOCK_STREAM)  
-   QC_SOCKET->addMethodExtended("connectINET2",               (q_method_t)SOCKET_connectINET2, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 5, stringTypeInfo, QORE_PARAM_NO_ARG, softStringTypeInfo, QORE_PARAM_NO_ARG, timeoutTypeInfo, new QoreBigIntNode(-1), softBigIntTypeInfo, new QoreBigIntNode(AF_UNSPEC), softBigIntTypeInfo, new QoreBigIntNode(SOCK_STREAM));
+   // nothing Socket::connectINET(string $host, softstring $service, timeout $timeout_ms = -1, softint $family = AF_UNSPEC, softint $socktype = SOCK_STREAM) 
+   QC_SOCKET->addMethodExtended("connectINET",               (q_method_t)SOCKET_connectINET, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 5, stringTypeInfo, QORE_PARAM_NO_ARG, softStringTypeInfo, QORE_PARAM_NO_ARG, timeoutTypeInfo, new QoreBigIntNode(-1), softBigIntTypeInfo, new QoreBigIntNode(AF_UNSPEC), softBigIntTypeInfo, new QoreBigIntNode(SOCK_STREAM));
 
    // nothing Socket::connectUNIX(string $path)  
    QC_SOCKET->addMethodExtended("connectUNIX",               (q_method_t)SOCKET_connectUNIX, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
@@ -747,11 +725,8 @@ QoreClass *initSocketClass(QoreClass *SSLCert, QoreClass *SSLPrivKey) {
    // Socket::connectSSL(string $sock, timeout $timeout_ms = -1)
    QC_SOCKET->addMethodExtended("connectSSL",                (q_method_t)SOCKET_connectSSL_str_timeout, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, timeoutTypeInfo, new QoreBigIntNode(-1));
 
-   // nothing Socket::connectINETSSL(string $host, int $port, timeout $timeout_ms = -1)  
-   QC_SOCKET->addMethodExtended("connectINETSSL",            (q_method_t)SOCKET_connectINETSSL_str_int_timeout, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 3, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, QORE_PARAM_NO_ARG, timeoutTypeInfo, new QoreBigIntNode(-1));
-
-   // nothing Socket::connectINET2SSL(string $host, softstring $service, timeout $timeout_ms = -1, softint $family = AF_UNSPEC, softint $socktype = SOCK_STREAM)  
-   QC_SOCKET->addMethodExtended("connectINET2SSL",           (q_method_t)SOCKET_connectINET2SSL, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 5, stringTypeInfo, QORE_PARAM_NO_ARG, softStringTypeInfo, QORE_PARAM_NO_ARG, timeoutTypeInfo, new QoreBigIntNode(-1), softBigIntTypeInfo, new QoreBigIntNode(AF_UNSPEC), softBigIntTypeInfo, new QoreBigIntNode(SOCK_STREAM));
+   // nothing Socket::connectINETSSL(string $host, softstring $service, timeout $timeout_ms = -1, softint $family = AF_UNSPEC, softint $socktype = SOCK_STREAM)  
+   QC_SOCKET->addMethodExtended("connectINETSSL",            (q_method_t)SOCKET_connectINETSSL, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 5, stringTypeInfo, QORE_PARAM_NO_ARG, softStringTypeInfo, QORE_PARAM_NO_ARG, timeoutTypeInfo, new QoreBigIntNode(-1), softBigIntTypeInfo, new QoreBigIntNode(AF_UNSPEC), softBigIntTypeInfo, new QoreBigIntNode(SOCK_STREAM));
 
    // nothing Socket::connectUNIXSSL(string $path)  
    QC_SOCKET->addMethodExtended("connectUNIXSSL",            (q_method_t)SOCKET_connectUNIXSSL, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);

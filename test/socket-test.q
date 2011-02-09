@@ -106,7 +106,7 @@ class socket_test {
 		}
 		$s = $s.acceptSSL();
 		#socket_test::printf("returned from Socket::acceptSSL() s=%N\n", $s);
-		socket_test::printf("server: secure connection (%s %s) from %s (%s)\n", $s.getSSLCipherName(), $s.getSSLCipherVersion(), $s.source, $s.source_host);
+		socket_test::printf("server: secure connection (%s %s) from %s on %s\n", $s.getSSLCipherName(), $s.getSSLCipherVersion(), $s.getPeerInfo().address_desc, $s.getSocketInfo().address_desc);
 		my $str = $s.verifyPeerCertificate();
 		if (!exists $str)
 		    socket_test::printf("server: no client certificate\n");
@@ -115,7 +115,7 @@ class socket_test {
 	    }
 	    else {
 		$s = $s.accept();
-		socket_test::printf("server: cleartext connection from %s (%s)\n", $s.source_desc, $s.source_host);
+		socket_test::printf("server: cleartext connection from %s on %s\n", $s.getPeerInfo().address_desc, $s.getSocketInfo().address_desc);
 	    }
 	    if ($.o.events)
 		$s.setEventQueue($.queue);
@@ -149,13 +149,13 @@ class socket_test {
 		}
 		if (strlen($.o.clientkey))
 		    $s.setPrivateKey($.o.clientkey);
-		$s.connectINET2SSL($.client_host, $.client_port, 15s, $.fam);
+		$s.connectINETSSL($.client_host, $.client_port, 15s, $.fam);
 		
 		my $str = $s.verifyPeerCertificate();
 		socket_test::printf("client: server certificate: %s: %s\n", $str, X509_VerificationReasons.$str);
 	    }
 	    else
-		$s.connectINET2($.client_host, $.client_port, 15s, $.fam);
+		$s.connectINET($.client_host, $.client_port, 15s, $.fam);
 	}
 	catch ($ex) {
 	    socket_test::printf("client error (line %d): %s: %s\n", $ex.line, $ex.err, $ex.desc);
