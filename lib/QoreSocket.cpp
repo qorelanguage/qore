@@ -191,16 +191,14 @@ long SSLSocketHelper::verifyPeerCertificate() const {
 struct qore_socketsource_private {
    QoreStringNode *address;
    QoreStringNode *hostname;
-   QoreStringNode *familystr;
    int port, family;
    
-   DLLLOCAL qore_socketsource_private() : address(0), hostname(0), familystr(0), port(0), family(AF_UNSPEC) {
+   DLLLOCAL qore_socketsource_private() : address(0), hostname(0), port(0), family(AF_UNSPEC) {
    }
 
    DLLLOCAL ~qore_socketsource_private() {
       if (address)  address->deref();
       if (hostname) hostname->deref();
-      if (familystr) familystr->deref();
    }
 
    DLLLOCAL void setAddress(QoreStringNode *addr) {
@@ -220,21 +218,59 @@ struct qore_socketsource_private {
 
    DLLLOCAL void setFamily(int af) {
       family = af;
-      assert(!familystr);
-      switch (af) {
+   }
+
+   DLLLOCAL const char *getFamilyName() {
+      switch (family) {
 	 case AF_INET:
-	    familystr = new QoreStringNode("ipv4");
+	    return "ipv4";
 	    break;
 	 case AF_INET6:
-	    familystr = new QoreStringNode("ipv6");
+	    return "ipv6";
 	    break;
 	 case AF_UNIX:
-	    familystr = new QoreStringNode("unix");
+	    return "unix";
+	    break;
+      }
+      return "unknown";
+   }
+
+   DLLLOCAL QoreStringNode *getAddressDesc(const char *addr) {
+      QoreStringNode *str = new QoreStringNode;
+      switch (family) {
+	 case AF_INET:
+	    str->sprintf("ipv4(%s)", addr);
+	    break;
+	 case AF_INET6:
+	    str->sprintf("ipv6[%s]", addr);
 	    break;
 	 default:
-	    familystr = new QoreStringNode("unknown");
-	    break;	    
+	    str->sprintf("%s:%s", getFamilyName(), addr);
+	    break;
       }
+      return str;
+   }
+
+   DLLLOCAL void setAll(QoreObject *o, ExceptionSink *xsink) {
+      o->setValue("source_family", new QoreBigIntNode(family), xsink);
+      o->setValue("source_familystr", new QoreStringNode(getFamilyName()), xsink);
+      
+      if (address) {
+	 o->setValue("source", address, xsink);
+	 o->setValue("source_desc", getAddressDesc(address->getBuffer()), xsink);
+	       
+	 address = 0;
+      }
+
+      if (hostname) {
+	 o->setValue("source_host", hostname, xsink);
+	 o->setValue("source_host_desc", getAddressDesc(hostname->getBuffer()), xsink);
+	       
+	 hostname = 0;
+      }
+
+      if (port && port != -1)
+	 o->setValue("source_port", new QoreBigIntNode(port), xsink);
    }
 };
 
@@ -266,22 +302,7 @@ const char *SocketSource::getHostName() const {
 }
 
 void SocketSource::setAll(QoreObject *o, ExceptionSink *xsink) {
-   if (priv->address) {
-      o->setValue("source", priv->address, xsink);
-      priv->address = 0;
-   }
-   if (priv->hostname) {
-      o->setValue("source_host", priv->hostname, xsink);
-      priv->hostname = 0;
-   }
-   if (priv->port)
-      o->setValue("source_port", new QoreBigIntNode(priv->port), xsink);
-   if (priv->familystr) {
-      o->setValue("source_familystr", priv->familystr, xsink);
-      priv->familystr = 0;
-   }
-   if (priv->family != AF_UNSPEC)
-      o->setValue("source_family", new QoreBigIntNode(priv->family), xsink);
+   return priv->setAll(o, xsink);
 }
 
 struct qore_socket_private {

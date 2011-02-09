@@ -725,7 +725,9 @@ QoreClass *initSocketClass(QoreClass *SSLCert, QoreClass *SSLPrivKey) {
 
    // register public members
    QC_SOCKET->addPublicMember("source", stringOrNothingTypeInfo);
+   QC_SOCKET->addPublicMember("source_desc", stringOrNothingTypeInfo);
    QC_SOCKET->addPublicMember("source_host", stringOrNothingTypeInfo);
+   QC_SOCKET->addPublicMember("source_host_desc", stringOrNothingTypeInfo);
    QC_SOCKET->addPublicMember("source_familystr", stringOrNothingTypeInfo);
    QC_SOCKET->addPublicMember("source_family", bigIntOrNothingTypeInfo);
    QC_SOCKET->addPublicMember("source_port", bigIntOrNothingTypeInfo);
