@@ -448,7 +448,7 @@ static AbstractQoreNode *f_gethostbyaddr_long(const QoreListNode *params, Except
    return q_gethostbyaddr_to_hash(xsink, p0->getBuffer(), type);
 }
 
-// *list getaddrinfo(*string $node, *softstring $service, softint $family = AF_UNSPEC, softint $flags = 0)
+// list getaddrinfo(*string $node, *softstring $service, softint $family = AF_UNSPEC, softint $flags = 0)
 static AbstractQoreNode *f_getaddrinfo(const QoreListNode *params, ExceptionSink *xsink) {
    const QoreStringNode *node = test_string_param(params, 0);
    const QoreStringNode *service = test_string_param(params, 1);
@@ -645,8 +645,8 @@ void init_lib_functions() {
    builtinFunctions.add2("gethostbyaddr_long",  f_noop, QC_RUNTIME_NOOP, QDOM_EXTERNAL_INFO, nothingTypeInfo);
    builtinFunctions.add2("gethostbyaddr_long",  f_gethostbyaddr_long, QC_CONSTANT, QDOM_EXTERNAL_INFO, hashOrNothingTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, new QoreBigIntNode(AF_INET));
 
-   // *list getaddrinfo(*string $node, *softstring $service, softint $family = AF_UNSPEC, softint $flags = 0)
-   builtinFunctions.add2("getaddrinfo",         f_getaddrinfo, QC_CONSTANT, QDOM_EXTERNAL_INFO, listOrNothingTypeInfo, 4, stringOrNothingTypeInfo, QORE_PARAM_NO_ARG, softStringOrNothingTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, new QoreBigIntNode(AF_UNSPEC), softBigIntTypeInfo, zero());
+   // list getaddrinfo(*string $node, *softstring $service, softint $family = AF_UNSPEC, softint $flags = 0)
+   builtinFunctions.add2("getaddrinfo",         f_getaddrinfo, QC_RET_VALUE_ONLY, QDOM_EXTERNAL_INFO, listTypeInfo, 4, stringOrNothingTypeInfo, QORE_PARAM_NO_ARG, softStringOrNothingTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, new QoreBigIntNode(AF_UNSPEC), softBigIntTypeInfo, zero());
 
    // getcwd can return NOTHING if an error occurs
    // *string getcwd()  

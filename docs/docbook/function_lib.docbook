@@ -1148,6 +1148,14 @@
       </row>
 
         <row>
+          <entry> softint $family = AF_UNSPEC, softint $flags = 0
+            <para><code><link linkend="list_type">list</link> <link linkend="getaddrinfo">getaddrinfo</link>(<link linkend="*string_type">*string</link> <replaceable>$node</replaceable>, <link linkend="*softstring_type">*softstring</link> <replaceable>$service</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$family</replaceable> = AF_UNSPEC, <link linkend="softint_type">softint</link> <replaceable>$flags</replaceable> = 0) (<link linkend="CONST_flag">CONST</link>)</code></para>
+          </entry>
+          <entry><para>Y</para></entry>
+          <entry><para>Returns a list of address information hashes for the given node name or string address.</para></entry>
+        </row>
+
+        <row>
           <entry>
             <para><code><link linkend="hash_type">hash</link> <link linkend="getAllThreadCallStacks">getAllThreadCallStacks</link>()</code></para>
           </entry>
@@ -9977,61 +9985,204 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 
 </sect2>
 
-<sect2 id="getegid">
-<title>getegid()</title>
+  <sect2 id="getaddrinfo">
+    <title>getaddrinfo()</title>
 
-  <variablelist>
-    <varlistentry>
-      <term>Synopsis</term>
-      <listitem>
-	<para>Returns the effective group ID of the current process.</para>
-      </listitem>
-    </varlistentry>
-    <varlistentry>
-      <term>Prototype</term>
-      <listitem>
-            <para><code><link linkend="int_type">int</link> <link linkend="getegid">getegid</link>() (<link linkend="CONST_flag">CONST</link>)</code></para>
-      </listitem>
-    </varlistentry>
-    <varlistentry>
-      <term>Example</term>
-      <listitem>
-	<programlisting>$egid = getegid();</programlisting>
-      </listitem>
-    </varlistentry>
-    <varlistentry>
-      <term>Restrictions</term>
-      <listitem>
-	<para>Not available with <code><link linkend="no-external-info">PO_NO_EXTERNAL_INFO</link></code></para>
-      </listitem>
-    </varlistentry>
-  </variablelist>
+    <variablelist>
+      <varlistentry>
+	<term>Synopsis</term>
+	<listitem>
+	  <para>Returns a list of <link linkend="address_info_hash">address information hashes</link> for the given node name or string address.  If no lookup can be performed then an exception is thrown.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Prototype</term>
+	<listitem>
+	  <para><code><link linkend="list_type">list</link> <link linkend="getaddrinfo">getaddrinfo</link>(<link linkend="*string_type">*string</link> <replaceable>$node</replaceable>, <link linkend="*softstring_type">*softstring</link> <replaceable>$service</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$family</replaceable> = AF_UNSPEC, <link linkend="softint_type">softint</link> <replaceable>$flags</replaceable> = 0) (<link linkend="CONST_flag">CONST</link>)</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Example</term>
+	<listitem>
+	  <programlisting><command>my</command> *list $l = getaddrinfo("localhost");</programlisting>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Restrictions</term>
+	<listitem>
+	  <para>Not available with <code><link linkend="no-external-info">PO_NO_EXTERNAL_INFO</link></code></para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
 
-<table><title>Arguments and Return Values for getegid()</title>
-<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+      <table>
+	<title>Arguments for getaddrinfo()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code><link linkend="*string_type">*string</link> <replaceable>$node</replaceable></code></para></entry>
+	      <entry><para>The host name or node name to look up.  Either <replaceable>$node</replaceable> or <replaceable>$service</replaceable> may be NOTHING but not both or an exception will be thrown.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code><link linkend="*softstring_type">*softstring</link> <replaceable>$service</replaceable></code></para></entry>
+	      <entry><para>The service name to look up to a port number.  Either <replaceable>$node</replaceable> or <replaceable>$service</replaceable> may be NOTHING but not both or an exception will be thrown.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$family</replaceable> = AF_UNSPEC</code></para></entry>
+	      <entry><para>The address family for the lookup, must be one of <code>AF_INET</code>, <code>AF_INET6</code>, or <code>AF_UNSPEC</code>.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$flags</replaceable> = 0</code></para></entry>
+	      <entry><para>See <link linkend="address_information_constants">Address Information Constants</link>.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
 
-  <thead>
-  <row>
-    <entry><para>Argument Type</para></entry>
-    <entry><para>Return Type</para></entry>
-    <entry><para>Description</para></entry>
-  </row>
-  </thead>
+      <table>
+	<title>Return Value for getaddrinfo()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code><link linkend="list_type">list</link></code></para></entry>
+	      <entry><para>Returns a list of <link linkend="address_info_hash">address information hashes</link> for the given node name or string address.  If no lookup can be performed then an exception is thrown.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
 
-<tbody>
-  <row>
-    <entry><para>n/a</para></entry>
-    <entry><para><code><link linkend="int_type">int</link></code></para></entry>
-    <entry><para>Returns the effective group ID of the current process.</para></entry>
-  </row>
+      <table>
+	<title>Exceptions Thrown by getaddrinfo()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>QOREADDRINFO-GETINFO-ERROR</code></para></entry>
+	      <entry><para>nodename nor servname provided, or not known.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
 
-</tbody>
-</tgroup>
-</table>
+    <para>This function does not throw any exceptions.</para>
 
-  <para>This function does not throw any exceptions.</para>
+    <table id="address_info_hash">
+      <title>Address Information Hash</title>
+      <tgroup cols='3' align='left' colsep='1' rowsep='1'>
 
-</sect2>
+      <thead>
+	<row>
+	  <entry><para>Key</para></entry>
+	  <entry><para>Type</para></entry>
+	  <entry><para>Description</para></entry>
+	</row>
+      </thead>
+
+      <tbody>
+	<row>
+	  <entry><para><code>address</code></para></entry>
+	  <entry><para><code><link linkend="string_type">string</link></code></para></entry>
+	  <entry><para>A valid address of the host, for example: <code>&quot;::1&quot;</code>.</para></entry>
+	</row>
+	<row>
+	  <entry><para><code>address_desc</code></para></entry>
+	  <entry><para><code><link linkend="string_type">string</link></code></para></entry>
+	  <entry><para>A descriptive string of the address containing the address family, for example: <code>&quot;ipv6[::1]&quot;</code>.</para></entry>
+	</row>
+	<row>
+	  <entry><para><code>family</code></para></entry>
+	  <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+	  <entry><para>The network address family; see <link linkend="network_address_constants">Network Address Family Constants</link>.</para></entry>
+	</row>
+	<row>
+	  <entry><para><code>familystr</code></para></entry>
+	  <entry><para><code><link linkend="string_type">string</link></code></para></entry>
+	  <entry><para>A descriptive string for the network address family, for example: <code>&quot;ipv6&quot;</code>.</para></entry>
+	</row>
+	<row>
+	  <entry><para><code>addrlen</code></para></entry>
+	  <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+	  <entry><para>The length of the internal network address data structure (not normally needed in Qore but provided anyway).</para></entry>
+	</row>
+
+      </tbody>
+    </tgroup>
+    </table>
+
+  </sect2>
+
+  <sect2 id="getegid">
+    <title>getegid()</title>
+
+    <variablelist>
+      <varlistentry>
+	<term>Synopsis</term>
+	<listitem>
+	  <para>Returns the effective group ID of the current process.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Prototype</term>
+	<listitem>
+	  <para><code><link linkend="int_type">int</link> <link linkend="getegid">getegid</link>() (<link linkend="CONST_flag">CONST</link>)</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Example</term>
+	<listitem>
+	  <programlisting>$egid = getegid();</programlisting>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Restrictions</term>
+	<listitem>
+	  <para>Not available with <code><link linkend="no-external-info">PO_NO_EXTERNAL_INFO</link></code></para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+
+    <table><title>Arguments and Return Values for getegid()</title>
+    <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+
+      <thead>
+	<row>
+	  <entry><para>Argument Type</para></entry>
+	  <entry><para>Return Type</para></entry>
+	  <entry><para>Description</para></entry>
+	</row>
+      </thead>
+
+      <tbody>
+	<row>
+	  <entry><para>n/a</para></entry>
+	  <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+	  <entry><para>Returns the effective group ID of the current process.</para></entry>
+	</row>
+
+      </tbody>
+    </tgroup>
+    </table>
+
+    <para>This function does not throw any exceptions.</para>
+
+  </sect2>
 
 <sect2 id="geteuid">
 <title>geteuid()</title>
