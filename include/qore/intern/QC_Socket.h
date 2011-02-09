@@ -38,7 +38,7 @@ class Queue;
 #include <qore/intern/QC_SSLCertificate.h>
 #include <qore/intern/QC_SSLPrivateKey.h>
 
-class mySocket : public AbstractPrivateData, public QoreThreadLock {
+class mySocket : public AbstractPrivateData {
 private:
    QoreSocket *socket;
    QoreSSLCertificate *cert;
@@ -47,6 +47,8 @@ private:
    DLLLOCAL mySocket(QoreSocket *s);
 
 protected:
+   mutable QoreThreadLock m;
+
    DLLLOCAL virtual ~mySocket();
 
 public:
@@ -84,8 +86,6 @@ public:
 
    DLLLOCAL int bindUNIX(const char *name, bool reuseaddr, int socktype, int protocol, ExceptionSink *xsink);
    DLLLOCAL int bindINET(const char *name, const char *service, bool reuseaddr, int family, int socktype, int protocol, ExceptionSink *xsink);
-
-   DLLLOCAL int bindAll(const char *service, bool reuseaddr, int family = AF_UNSPEC, int socktype = SOCK_STREAM, int protocol = 0, ExceptionSink *xsink = 0);
 
    // get port number for INET sockets
    DLLLOCAL int getPort();
@@ -165,6 +165,8 @@ public:
    DLLLOCAL int setNoDelay(int nodelay);
    DLLLOCAL int getNoDelay();
    DLLLOCAL void setEventQueue(Queue *cbq, ExceptionSink *xsink);
+   DLLLOCAL QoreHashNode *getPeerInfo(ExceptionSink *xsink) const;
+   DLLLOCAL QoreHashNode *getSocketInfo(ExceptionSink *xsink) const;
 };
 
 #endif // _QORE_CLASS_QORESOCKET_H

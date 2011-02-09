@@ -922,6 +922,34 @@ public:
    */
    DLLEXPORT bool isWriteFinished(int timeout = 0) const;
 
+   //! returns peer information for a connected socket
+   /** if the socket is not connected, a Qore-language exception is thrown
+       @param xsink if an error occurs, the Qore-language exception information will be added here
+       @return a hash with the following keys:
+       - \c hostname: the hostname of the remote end (if known or appropriate for the socket type)
+       - \c hostname_desc: a descriptive string for the remote hostname (including the socket type - ie "ipv6[host]")
+       - \c address: the address of the remote end - for UNIX sockets this is the file path
+       - \c address_desc: a descriptive string for the remote address
+       - \c port: the port number if known
+       - \c family: the address family (ie AF_INET, AF_INET6, AF_UNIX, ...)
+       - \c familystr: a string description of the address family ("ipv4", "ipv6", etc)
+   */
+   DLLEXPORT QoreHashNode *getPeerInfo(ExceptionSink *xsink) const;
+
+   //! returns information for the current socket; the socket must be open
+   /** if the socket is not open, a Qore-language exception is thrown
+       @param xsink if an error occurs, the Qore-language exception information will be added here
+       @return a hash with the following keys:
+       - \c hostname: the hostname for the local interface (if known or appropriate for the socket type)
+       - \c hostname_desc: a descriptive string for the local hostname (including the socket type - ie "ipv6[host]")
+       - \c address: the address of the local interface - for UNIX sockets this is the file path
+       - \c address_desc: a descriptive string for the local interface
+       - \c port: the port number if known
+       - \c family: the address family (ie AF_INET, AF_INET6, AF_UNIX, ...)
+       - \c familystr: a string description of the address family ("ipv4", "ipv6", etc)
+   */
+   DLLEXPORT QoreHashNode *getSocketInfo(ExceptionSink *xsink) const;
+
    DLLLOCAL static void doException(int rc, const char *meth, int timeout_ms, ExceptionSink *xsink);
 
    //! sets the event queue (not part of the library's pubilc API), must be already referenced before call

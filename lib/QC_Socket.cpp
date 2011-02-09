@@ -200,18 +200,6 @@ static AbstractQoreNode *SOCKET_bindINET(QoreObject *self, mySocket *s, const Qo
    return 0;
 }
 
-// nothing bindAll(softstring $service, softbool $reuseaddr = False, softint $family = AF_UNSPEC, softint $socktype = SOCK_STREAM, softint $protocol = 0)
-static AbstractQoreNode *SOCKET_bindAll(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
-   const QoreStringNode *service = test_string_param(params, 0);
-   bool reuseaddr = HARD_QORE_BOOL(params, 1);
-   int family = (int)HARD_QORE_INT(params, 2);
-   int socktype = (int)HARD_QORE_INT(params, 3);
-   int prot = (int)HARD_QORE_INT(params, 4);
-
-   s->bindAll(service->getBuffer(), reuseaddr, family, socktype, prot, xsink);
-   return 0;
-}
-
 // Socket::accept()
 // returns a new Socket object, connection source address is in $.source
 // member of new object, hostname in $.source_host
@@ -715,6 +703,14 @@ static AbstractQoreNode *SOCKET_getNoDelay(QoreObject *self, mySocket *s, const 
    return get_bool_node(s->getNoDelay());
 }
 
+static AbstractQoreNode *SOCKET_getPeerInfo(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
+   return s->getPeerInfo(xsink);
+}
+
+static AbstractQoreNode *SOCKET_getSocketInfo(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
+   return s->getSocketInfo(xsink);
+}
+
 QoreClass *initSocketClass(QoreClass *SSLCert, QoreClass *SSLPrivKey) {
    QORE_TRACE("initSocketClass()");
 
@@ -725,12 +721,7 @@ QoreClass *initSocketClass(QoreClass *SSLCert, QoreClass *SSLPrivKey) {
 
    // register public members
    QC_SOCKET->addPublicMember("source", stringOrNothingTypeInfo);
-   QC_SOCKET->addPublicMember("source_desc", stringOrNothingTypeInfo);
    QC_SOCKET->addPublicMember("source_host", stringOrNothingTypeInfo);
-   QC_SOCKET->addPublicMember("source_host_desc", stringOrNothingTypeInfo);
-   QC_SOCKET->addPublicMember("source_familystr", stringOrNothingTypeInfo);
-   QC_SOCKET->addPublicMember("source_family", bigIntOrNothingTypeInfo);
-   QC_SOCKET->addPublicMember("source_port", bigIntOrNothingTypeInfo);
 
    // unset the public member flag for backwards-compatibility
    // this allows older code where a user class inherits this class to still be able
@@ -776,9 +767,6 @@ QoreClass *initSocketClass(QoreClass *SSLCert, QoreClass *SSLPrivKey) {
 
    // nothing bindINET(*string $interface, *softstring $service, softbool $reuseaddr = False, softint $family = AF_UNSPEC, softint $socktype = SOCK_STREAM, int $protocol = 0)
    QC_SOCKET->addMethodExtended("bindINET",                  (q_method_t)SOCKET_bindINET, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 6, stringOrNothingTypeInfo, QORE_PARAM_NO_ARG, softStringOrNothingTypeInfo, QORE_PARAM_NO_ARG, softBoolTypeInfo, &False, softBigIntTypeInfo, new QoreBigIntNode(AF_UNSPEC), softBigIntTypeInfo, new QoreBigIntNode(SOCK_STREAM), bigIntTypeInfo, zero());
-
-   // nothing bindAll(softstring $service, softbool $reuseaddr = False, softint $family = AF_UNSPEC, softint $socktype = SOCK_STREAM, softint $protocol = 0)
-   QC_SOCKET->addMethodExtended("bindAll",                   (q_method_t)SOCKET_bindAll, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 5, softStringTypeInfo, QORE_PARAM_NO_ARG, softBoolTypeInfo, &False, softBigIntTypeInfo, new QoreBigIntNode(AF_UNSPEC), softBigIntTypeInfo, new QoreBigIntNode(SOCK_STREAM), bigIntTypeInfo, zero());
 
    QC_SOCKET->addMethodExtended("accept",                    (q_method_t)SOCKET_accept, false, QC_NO_FLAGS, QDOM_DEFAULT, QC_SOCKET->getTypeInfo());
    QC_SOCKET->addMethodExtended("acceptSSL",                 (q_method_t)SOCKET_acceptSSL, false, QC_NO_FLAGS, QDOM_DEFAULT, QC_SOCKET->getTypeInfo());
@@ -930,6 +918,12 @@ QoreClass *initSocketClass(QoreClass *SSLCert, QoreClass *SSLPrivKey) {
    QC_SOCKET->addMethodExtended("setNoDelay",                (q_method_t)SOCKET_setNoDelay, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, boolTypeInfo, &True);
 
    QC_SOCKET->addMethodExtended("getNoDelay",                (q_method_t)SOCKET_getNoDelay, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, boolTypeInfo);
+
+   // hash Socket::getPeerInfo()
+   QC_SOCKET->addMethodExtended("getPeerInfo",               (q_method_t)SOCKET_getPeerInfo, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, hashTypeInfo);
+
+   // hash Socket::getSocketInfo()
+   QC_SOCKET->addMethodExtended("getSocketInfo",             (q_method_t)SOCKET_getSocketInfo, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, hashTypeInfo);
 
    return QC_SOCKET;
 }
