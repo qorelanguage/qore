@@ -1557,7 +1557,9 @@ void StaticSystemNamespace::init() {
    qoreNS->addConstant("AI_ALL",         new QoreBigIntNode(AI_ALL));
    qoreNS->addConstant("AI_CANONNAME",   new QoreBigIntNode(AI_CANONNAME));
    qoreNS->addConstant("AI_NUMERICHOST", new QoreBigIntNode(AI_NUMERICHOST));
+#ifdef AI_NUMERICSERV
    qoreNS->addConstant("AI_NUMERICSERV", new QoreBigIntNode(AI_NUMERICSERV));
+#endif
    qoreNS->addConstant("AI_PASSIVE",     new QoreBigIntNode(AI_PASSIVE));
    qoreNS->addConstant("AI_V4MAPPED",    new QoreBigIntNode(AI_V4MAPPED));
    qoreNS->addConstant("IPPROTO_UDP",    new QoreBigIntNode(IPPROTO_UDP));
