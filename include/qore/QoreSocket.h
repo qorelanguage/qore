@@ -189,7 +189,8 @@ public:
    /** @param name the name or address of the host
        @param service the port number or service name of the remote socket
        @param family should be either AF_INET (for ipv4) or AF_INET6 (for ipv6)
-       @param sock_type the type of socket, normally SOCK_STREAM for tcp sockets
+       @param sock_type the type of socket, normally SOCK_STREAM for tcp sockets or SOCK_DGRAM for udp sockets
+       @param protocol the protocol number, use 0 for the default
        @param timeout_ms the timeout period in milliseconds
        @param xsink if not 0, if an error occurs, the Qore-language exception information will be added here
        @return 0 for OK, -1 means that an error occured and a Qore-language exception was raised
@@ -199,7 +200,7 @@ public:
        @see QoreSocket::connectINETSSL()
        @see QoreSocket::connectUNIXSSL()
    */
-   DLLEXPORT int connectINET2(const char *name, const char *service, int family = AF_UNSPEC, int sock_type = SOCK_STREAM, int timeout_ms = -1, ExceptionSink *xsink = 0);
+   DLLEXPORT int connectINET2(const char *name, const char *service, int family = AF_UNSPEC, int sock_type = SOCK_STREAM, int protocol = 0, int timeout_ms = -1, ExceptionSink *xsink = 0);
 
    //! connects to an INET socket by hostname and port number and returns a status code, Qore-language exceptions are raised in the case of any errors
    /** @param host the name or IP address of the host
@@ -226,6 +227,20 @@ public:
        @see QoreSocket::connectUNIXSSL()
    */
    DLLEXPORT int connectUNIX(const char *p, ExceptionSink *xsink = 0);
+
+   //! connects to a UNIX domain socket and returns a status code, Qore-language exceptions are raised in the case of any errors
+   /** @param p the file name of the UNIX domain socket
+       @param socktype the type of socket (SOCK_STREAM = tcp socket)
+       @param protocol the protocol for the socket (use 0 for default)
+       @param xsink if not 0, if an error occurs, the Qore-language exception information will be added here
+       @return 0 for OK, -1 means that an error occured and a Qore-language exception was raised
+       @see QoreSocket::connect()
+       @see QoreSocket::connectINET()
+       @see QoreSocket::connectSSL()
+       @see QoreSocket::connectINETSSL()
+       @see QoreSocket::connectUNIXSSL()
+   */
+   DLLEXPORT int connectUNIX(const char *p, int socktype, int protocol = 0, ExceptionSink *xsink = 0);
 
    //! connects to a socket, negotiates an SSL connection, and returns a status code, Qore-language exceptions are raised in the case of any errors
    /** If "name" has a ':' in it; it's assumed to be a hostname:port specification and QoreSocket::connectINETSSL() is called.
@@ -303,7 +318,8 @@ public:
    /** @param name the name or address of the host
        @param service the port number or service name of the remote socket
        @param family should be either AF_INET (for ipv4) or AF_INET6 (for ipv6)
-       @param sock_type the type of socket, normally SOCK_STREAM for tcp sockets
+       @param sock_type the type of socket, normally SOCK_STREAM for tcp sockets or SOCK_DGRAM for udp sockets
+       @param protocol the protocol number, use 0 for the default
        @param timeout_ms the timeout period in milliseconds
        @param cert the X509 certificate to use for the connection, may be 0 if no certificate should be used
        @param pkey the private key to use for the connection, may be 0 if no private key should be used
@@ -315,7 +331,7 @@ public:
        @see QoreSocket::connectINETSSL()
        @see QoreSocket::connectUNIXSSL()
    */
-   DLLEXPORT int connectINET2SSL(const char *name, const char *service, int family, int sock_type, int timeout_ms, X509 *cert, EVP_PKEY *pkey, ExceptionSink *xsink = 0);
+   DLLEXPORT int connectINET2SSL(const char *name, const char *service, int family, int sock_type, int protocol, int timeout_ms, X509 *cert, EVP_PKEY *pkey, ExceptionSink *xsink = 0);
 
    //! connects to a UNIX domain socket, negotiates an SSL connection, and returns a status code, Qore-language exceptions are raised in the case of any errors
    /** @param p the file name of the UNIX domain socket
@@ -332,6 +348,24 @@ public:
        @see QoreSocket::upgradeClientToSSL()
    */
    DLLEXPORT int connectUNIXSSL(const char *p, X509 *cert, EVP_PKEY *pkey, ExceptionSink *xsink);
+
+   //! connects to a UNIX domain socket, negotiates an SSL connection, and returns a status code, Qore-language exceptions are raised in the case of any errors
+   /** @param p the file name of the UNIX domain socket
+       @param socktype the type of socket (SOCK_STREAM = tcp socket)
+       @param protocol the protocol for the socket (use 0 for default)
+       @param cert the X509 certificate to use for the connection, may be 0 if no certificate should be used
+       @param pkey the private key to use for the connection, may be 0 if no private key should be used
+       @param xsink if not 0, if an error occurs, the Qore-language exception information will be added here
+       @return 0 for OK, -1 means that an error occured and a Qore-language exception was raised
+       @note the same as calling QoreSocket::connectUNIX() and then QoreSocket::upgradeClientToSSL()
+       @see QoreSocket::connect()
+       @see QoreSocket::connectINET()
+       @see QoreSocket::connectUNIX()
+       @see QoreSocket::connectSSL()
+       @see QoreSocket::connectINETSSL()
+       @see QoreSocket::upgradeClientToSSL()
+   */
+   DLLEXPORT int connectUNIXSSL(const char *p, int socktype, int protocol, X509 *cert, EVP_PKEY *pkey, ExceptionSink *xsink);
 
    //! binds to a UNIX domain socket or INET interface:port using TCP and returns a status code
    /** @note a socket file will be created on the filesystem if a UNIX domain socket is opened.
@@ -384,12 +418,21 @@ public:
    /** @note a socket file will be created on the filesystem if a UNIX domain socket is opened.
        @note the socket will be closed and reopened if necessary
        @param name UNIX filename to bind to
-       @param reuseaddr if true then setsockopt() will be called with SO_REUSEADDR, allowing the bind to succeed even if the port is still in a TIME_WAIT state, for example
-       @param socktype the type of socket (SOCK_STREAM = tcp socket)
-       @param protocol the protocol for the socket
+       @param xsink if not 0 and an error occurs, the Qore-language exception information will be added here
        @return 0 for OK, not 0 for error
    */
-   DLLEXPORT int bindUNIX(const char *name, bool reuseaddr = false, int socktype = SOCK_STREAM, int protocol = 0, ExceptionSink *xsink = 0);
+   DLLEXPORT int bindUNIX(const char *name, ExceptionSink *xsink = 0);
+
+   //! binds to a UNIX domain socket and returns a status code
+   /** @note a socket file will be created on the filesystem if a UNIX domain socket is opened.
+       @note the socket will be closed and reopened if necessary
+       @param name UNIX filename to bind to
+       @param socktype the type of socket (SOCK_STREAM = tcp socket)
+       @param protocol the protocol for the socket (use 0 for default)
+       @param xsink if not 0 and an error occurs, the Qore-language exception information will be added here
+       @return 0 for OK, not 0 for error
+   */
+   DLLEXPORT int bindUNIX(const char *name, int socktype, int protocol = 0, ExceptionSink *xsink = 0);
 
    //! binds an INET or INET6 TCP socket to a specific socket address
    /** @note the socket will be closed and reopened if necessary

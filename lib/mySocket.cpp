@@ -50,14 +50,14 @@ int mySocket::connectINET(const char *host, int port, int timeout_ms, ExceptionS
    return socket->connectINET(host, port, timeout_ms, xsink);
 }
 
-int mySocket::connectINET2(const char *name, const char *service, int family, int sock_type, int timeout_ms, ExceptionSink *xsink) {
+int mySocket::connectINET2(const char *name, const char *service, int family, int sock_type, int protocol, int timeout_ms, ExceptionSink *xsink) {
    AutoLocker al(m);
-   return socket->connectINET2(name, service, family, sock_type, timeout_ms, xsink);
+   return socket->connectINET2(name, service, family, sock_type, protocol, timeout_ms, xsink);
 }
 
-int mySocket::connectUNIX(const char *p, ExceptionSink *xsink) {
+int mySocket::connectUNIX(const char *p, int sock_type, int protocol, ExceptionSink *xsink) {
    AutoLocker al(m);
-   return socket->connectUNIX(p, xsink);
+   return socket->connectUNIX(p, sock_type, protocol, xsink);
 }
 
 // to bind to either a UNIX socket or an INET interface:port
@@ -78,9 +78,9 @@ int mySocket::bind(const char *interface, int port, bool reuseaddr) {
    return socket->bind(interface, port, reuseaddr);
 }
 
-int mySocket::bindUNIX(const char *name, bool reuseaddr, int socktype, int protocol, ExceptionSink *xsink) {
+int mySocket::bindUNIX(const char *name, int socktype, int protocol, ExceptionSink *xsink) {
    AutoLocker al(m);
-   return socket->bindUNIX(name, reuseaddr, socktype, protocol, xsink);
+   return socket->bindUNIX(name, socktype, protocol, xsink);
 }
 
 int mySocket::bindINET(const char *name, const char *service, bool reuseaddr, int family, int socktype, int protocol, ExceptionSink *xsink) {
@@ -370,17 +370,17 @@ int mySocket::connectINETSSL(const char *host, int port, int timeout_ms, Excepti
 				 xsink);
 }
 
-int mySocket::connectINET2SSL(const char *name, const char *service, int family, int sock_type, int timeout_ms, ExceptionSink *xsink) {
+int mySocket::connectINET2SSL(const char *name, const char *service, int family, int sock_type, int protocol, int timeout_ms, ExceptionSink *xsink) {
    AutoLocker al(m);
-   return socket->connectINET2SSL(name, service, family, sock_type, timeout_ms, 
+   return socket->connectINET2SSL(name, service, family, sock_type, protocol, timeout_ms, 
 				  cert ? cert->getData() : 0,
 				  pk ? pk->getData() : 0,
 				  xsink);
 }
 
-int mySocket::connectUNIXSSL(const char *p, ExceptionSink *xsink) {
+int mySocket::connectUNIXSSL(const char *p, int sock_type, int protocol, ExceptionSink *xsink) {
    AutoLocker al(m);
-   return socket->connectUNIXSSL(p, 
+   return socket->connectUNIXSSL(p, sock_type, protocol, 
 				 cert ? cert->getData() : 0,
 				 pk ? pk->getData() : 0,
 				 xsink);

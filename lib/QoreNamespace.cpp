@@ -1565,6 +1565,10 @@ void StaticSystemNamespace::init() {
    qoreNS->addConstant("IPPROTO_UDP",    new QoreBigIntNode(IPPROTO_UDP));
    qoreNS->addConstant("IPPROTO_TCP",    new QoreBigIntNode(IPPROTO_TCP));
 
+   qoreNS->addConstant("SOCK_STREAM",    new QoreBigIntNode(SOCK_STREAM));
+   qoreNS->addConstant("SOCK_DGRAM",     new QoreBigIntNode(SOCK_DGRAM));
+   qoreNS->addConstant("SOCK_RAW",       new QoreBigIntNode(SOCK_RAW));
+
    // zlib constants
    qoreNS->addConstant("Z_DEFAULT_COMPRESSION", new QoreBigIntNode(Z_DEFAULT_COMPRESSION));
 

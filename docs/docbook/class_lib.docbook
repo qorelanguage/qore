@@ -753,6 +753,32 @@ raised from the <link linkend="FtpClient_Class">FtpClient</link> class.</para></
       </tgroup>
     </table>
 
+    <table id="socket_type_constants">
+      <title>Socket Type Constants</title>
+      <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	<thead>
+	  <row>
+	    <entry><para>Name</para></entry>
+	    <entry><para>Description</para></entry>
+	  </row>
+	</thead>
+	<tbody>
+	  <row id="SOCK_STREAM">
+	    <entry><para><code>SOCK_STREAM</code></para></entry>
+	    <entry><para>TCP sockets: sequenced, reliable, two-way connection based byte streams.</para></entry>
+	  </row>
+	  <row id="SOCK_DGRAM">
+	    <entry><para><code>SOCK_DGRAM</code></para></entry>
+	    <entry><para>UDP Sockets: connectionless, unreliable messages of a fixed maximum length.</para></entry>
+	  </row>
+	  <row id="SOCK_RAW">
+	    <entry><para><code>SOCK_RAW</code></para></entry>
+	    <entry><para>Raw sockets, provide access to networking internals, only available to the superuser.</para></entry>
+	  </row>
+	</tbody>
+      </tgroup>
+    </table>
+
     <table id="address_information_constants">
       <title>Network Address Information Constants</title>
       <tgroup cols='2' align='left' colsep='1' rowsep='1'>
@@ -765,31 +791,31 @@ raised from the <link linkend="FtpClient_Class">FtpClient</link> class.</para></
 	<tbody>
           <row id="AI_ADDRCONFIG">
             <entry><para><code>AI_ADDRCONFIG</code></para></entry>
-            <entry><para>If the AI_ADDRCONFIG bit is set, IPv4 addresses shall be returned only if an IPv4 address is configured on the local system, and IPv6 addresses shall be returned only if an IPv6 address is configured on the local system.</para></entry>
+            <entry><para>If the <code>AI_ADDRCONFIG</code> bit is set, IPv4 addresses shall be returned only if an IPv4 address is configured on the local system, and IPv6 addresses shall be returned only if an IPv6 address is configured on the local system.</para></entry>
           </row>
           <row id="AI_ALL">
             <entry><para><code>AI_ALL</code></para></entry>
-            <entry><para>If the AI_ALL bit is set with the AI_V4MAPPED bit, then getaddrinfo() shall return all matching IPv6 and IPv4 addresses.  The AI_ALL bit without the AI_V4MAPPED bit is ignored.</para></entry>
+            <entry><para>If the <code>AI_ALL</code> bit is set with the <link linkend="AI_V4MAPPED">AI_V4MAPPED</link> bit, then <link linkend="getaddrinfo">getaddrinfo()</link> shall return all matching IPv6 and IPv4 addresses.  The <code>AI_ALL</code> bit without the <link linkend="AI_V4MAPPED">AI_V4MAPPED</link> bit is ignored.</para></entry>
           </row>
           <row id="AI_CANONNAME">
             <entry><para><code>AI_CANONNAME</code></para></entry>
-            <entry><para>If the AI_CANONNAME bit is set, a successful call to getaddrinfo() will return a NUL-terminated string containing the canonical name of the specified hostname in the ai_canonname element of the first addrinfo structure returned.</para></entry>
+            <entry><para>If the <code>AI_CANONNAME</code> bit is set, a successful call to <link linkend="getaddrinfo">getaddrinfo()</link> will return a string containing the canonical name of the specified hostname in the <code>&quot;canonname&quot;</code> element of the first addrinfo hash returned.</para></entry>
           </row>
           <row id="AI_NUMERICHOST">
             <entry><para><code>AI_NUMERICHOST</code></para></entry>
-            <entry><para>If the AI_NUMERICHOST bit is set, it indicates that hostname should be treated as a numeric string defining an IPv4 or IPv6 address and no name resolution should be attempted.</para></entry>
+            <entry><para>If the <code>AI_NUMERICHOST</code> bit is set, it indicates that hostname should be treated as a numeric string defining an IPv4 or IPv6 address and no name resolution should be attempted.</para></entry>
           </row>
           <row id="AI_NUMERICSERV">
             <entry><para><code>AI_NUMERICSERV</code></para></entry>
-            <entry><para>If the AI_NUMERICSERV bit is set, then a non-null servname string supplied shall be a numeric port string.  Otherwise, an EAI_NONAME error shall be returned.  This bit shall prevent any type of name resolution service (for example, NIS+) from being invoked (this constant is operating-system-dependent and is not available on all operating systems).</para></entry>
+            <entry><para>If the <code>AI_NUMERICSERV</code> bit is set, then a non-null servname string supplied shall be a numeric port string.  Otherwise, a <code>QOREADDRINFO-GETINFO-ERROR</code> exception will be thrown due to the <code>EAI_NONAME</code> error raised internally.  This bit shall prevent any type of name resolution service (for example, NIS+) from being invoked (this constant is operating system dependent; it is not available on all operating systems; for example, it is not available on Solaris 8).</para></entry>
           </row>
           <row id="AI_PASSIVE">
             <entry><para><code>AI_PASSIVE</code></para></entry>
-            <entry><para>If the AI_PASSIVE bit is set it indicates that the returned socket address structure is intended for use in a call to bind(2).  In this case, if the hostname argument is NOTHING pointer, then the IP address portion of the socket address structure will be set to INADDR_ANY for an IPv4 address or IN6ADDR_ANY_INIT for an IPv6 address. If the AI_PASSIVE bit is not set, the returned socket address structure will be ready for use in a call to connect(2) for a connection-oriented protocol or connect(2), sendto(2), or sendmsg(2) if a connectionless protocol was chosen.  The IP address portion of the socket address structure will be set to the loopback address if hostname is the null pointer and AI_PASSIVE is not set.</para></entry>
+            <entry><para>If the <code>AI_PASSIVE</code> bit is set it indicates that the returned socket address structure is intended for use in a call to <link linkend="Socket_bind">Socket::bind()</link>.  In this case, if the hostname argument is NOTHING, then the IP address portion of the socket address structure will be internally set to <code>INADDR_ANY</code> for an IPv4 address or <code>IN6ADDR_ANY_INIT</code> for an IPv6 address. If the <code>AI_PASSIVE</code> bit is not set, the returned socket address structure will be ready for use in a call to <link linkend="Socket_connect">Socket::connect()</link>.  The IP address portion of the socket address structure will be set to the loopback address if hostname is NOTHING and <code>AI_PASSIVE</code> is not set.</para></entry>
           </row>
           <row id="AI_V4MAPPED">
             <entry><para><code>AI_V4MAPPED</code></para></entry>
-            <entry><para>If the AI_V4MAPPED flag is specified along with an ai_family of AF_INET6, then getaddrinfo() shall return IPv4-mapped IPv6 addresses on finding no matching IPv6 addresses.  The AI_V4MAPPED flag shall be ignored unless ai_family equals AF_INET6.</para></entry>
+            <entry><para>If the <code>AI_V4MAPPED</code> flag is specified along with an ai_family of <link linkend="AF_INET6">AF_INET6</link>, then <link linkend="getaddrinfo">getaddrinfo()</link> shall return IPv4-mapped IPv6 addresses on finding no matching IPv6 addresses.  The <code>AI_V4MAPPED</code> flag shall be ignored unless ai_family equals <link linkend="AF_INET6">AF_INET6</link>.</para></entry>
           </row>
 	</tbody>
       </tgroup>
@@ -13504,7 +13530,7 @@ $pgm.setParseOptions(<link linkend="PO_NO_THREADS">PO_NO_THREADS</link> | <link 
 
 	  <row>
 	    <entry>
-              <para><code><link linkend="nothing_type">nothing</link> <link linkend="Socket_connectINET">Socket::connectINET</link>(<link linkend="string_type">string</link> <replaceable>$host</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$port</replaceable>, <link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1)</code></para>
+              <para><code><link linkend="nothing_type">nothing</link> <link linkend="Socket_connectINET">Socket::connectINET</link>(<link linkend="string_type">string</link> <replaceable>$host</replaceable>, <link linkend="softstring_type">softstring</link> <replaceable>$service</replaceable>, <link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1, <link linkend="softint_type">softint</link> <replaceable>$family</replaceable> = <link linkend="AF_UNSPEC">AF_UNSPEC</link>, <link linkend="softint_type">softint</link> <replaceable>$socktype</replaceable> = <link linkend="SOCK_STREAM">SOCK_STREAM</link>)</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Connects to the given host and port with an optional timeout value with a millisecond resolution.</para></entry>
@@ -13532,7 +13558,7 @@ $pgm.setParseOptions(<link linkend="PO_NO_THREADS">PO_NO_THREADS</link> | <link 
 
 	  <row>
 	    <entry>
-              <para><code><link linkend="nothing_type">nothing</link> <link linkend="Socket_connectINETSSL">Socket::connectINETSSL</link>(<link linkend="string_type">string</link> <replaceable>$host</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$port</replaceable>, <link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1)</code></para>
+              <para><code><link linkend="nothing_type">nothing</link> <link linkend="Socket_connectINETSSL">Socket::connectINETSSL</link>(<link linkend="string_type">string</link> <replaceable>$host</replaceable>, <link linkend="softstring_type">softstring</link> <replaceable>$service</replaceable>, <link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1, <link linkend="softint_type">softint</link> <replaceable>$family</replaceable> = <link linkend="AF_UNSPEC">AF_UNSPEC</link>, <link linkend="softint_type">softint</link> <replaceable>$socktype</replaceable> = <link linkend="SOCK_STREAM">SOCK_STREAM</link>)</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Connects to the given host and port and attempts to establish a TLS/SSL connection; accepts an optional timeout value with a millisecond resolution.</para></entry>
@@ -13549,28 +13575,47 @@ $pgm.setParseOptions(<link linkend="PO_NO_THREADS">PO_NO_THREADS</link> | <link 
 
 	  <row>
 	    <entry>
-              <para><code><link linkend="int_type">int</link> <link linkend="Socket_bind">Socket::bind</link>(<link linkend="string_type">string</link> <replaceable>$bind_to</replaceable>, <link linkend="bool_type">bool</link> <replaceable>$reuseaddr</replaceable> = False)</code></para>
-              <para><code><link linkend="int_type">int</link> <link linkend="Socket_bind">Socket::bind</link>(<link linkend="int_type">int</link> <replaceable>$port</replaceable>, <link linkend="bool_type">bool</link> <replaceable>$reuseaddr</replaceable> = False)</code></para>
+              <para><code><link linkend="int_type">int</link> <link linkend="Socket_bind">Socket::bind</link>(<link linkend="string_type">string</link> <replaceable>$bind_to</replaceable>, <link linkend="softbool_type">softbool</link> <replaceable>$reuseaddr</replaceable> = False)</code></para>
+              <para><code><link linkend="int_type">int</link> <link linkend="Socket_bind">Socket::bind</link>(<link linkend="int_type">int</link> <replaceable>$port</replaceable>, <link linkend="softbool_type">softbool</link> <replaceable>$reuseaddr</replaceable> = False)</code></para>
             </entry>
 	    <entry><para>N</para></entry>
-	    <entry><para>Binds the socket to a port, interface and port (if the <replaceable>$bind_to</replaceable> string has a format &quot;host:port&quot;), or UNIX domain socket file.  If the second parameter is <code>True</code>, then the socket will set the <code>SO_REUSEADDR</code> option, which will allow the socket to be bound to a port that is not yet closed (for example, in a <code>TIME_WAIT</code> state).</para></entry>
+	    <entry><para>Opens and binds the socket to a port, interface and port (if the <replaceable>$bind_to</replaceable> string has a format &quot;host:port&quot;), or UNIX domain socket file.  If the second parameter is <code>True</code>, then the socket will set the <code>SO_REUSEADDR</code> option, which will allow the socket to be bound to a port that is not yet closed (for example, in a <code>TIME_WAIT</code> state).  If any errors occur a non-zero error code is returned.  This method tries to automatically pick the appropriate address family from the arguments; note that a hostname or address in square brackets (ex: <code>[localhost]</code>) will be looked up and bound as an IPv6 address.</para></entry>
 	  </row>
+
+	  <row>
+	    <entry>
+              <para><code><link linkend="nothing_type">nothing</link> <link linkend="Socket_bindINET">Socket::bindINET</link>(<link linkend="*string_type">*string</link> <replaceable>$interface</replaceable>, <link linkend="*softstring_type">*softstring</link> <replaceable>$service</replaceable>, <link linkend="softbool_type">softbool</link> <replaceable>$reuseaddr</replaceable> = False, <link linkend="softint_type">softint</link> <replaceable>$family</replaceable> = <link linkend="AF_UNSPEC">AF_UNSPEC</link>, <link linkend="softint_type">softint</link> <replaceable>$socktype</replaceable> = <link linkend="SOCK_STREAM">SOCK_STREAM</link>, <link linkend="softint_type">softint</link> <replaceable>$protocol</replaceable> = 0)</code></para>
+            </entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Opens and binds the socket to the given IPv4 or IPv6 interface (or if no interface is given, then to all interfaces on the local system) and port (the port number will be derived from the service name if a numeric port number is not given).  If the third parameter is <code>True</code>, then the socket will set the <code>SO_REUSEADDR</code> option, which will allow the socket to be bound to a port that is not yet closed (for example, in a <code>TIME_WAIT</code> state).  If any errors occur, an exception is thrown.</para></entry>
+	  </row>
+
+	  <row>
+	    <entry>
+              <para><code><link linkend="nothing_type">nothing</link> <link linkend="Socket_bindUNIX">Socket::bindUNIX</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$socktype</replaceable> = <link linkend="SOCK_STREAM">SOCK_STREAM</link>, <link linkend="softint_type">softint</link> <replaceable>$protocol</replaceable> = 0)</code></para>
+            </entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Opens and binds the socket to the given UNIX domain socket file as given by the filename argument.  If any errors occur, an exception is thrown.</para></entry>
+	  </row>
+
 	  <row>
 	    <entry>
               <para><code><link linkend="Socket_Class">Socket</link> <link linkend="Socket_accept">Socket::accept</link>()</code></para>
+	      <para><code><link linkend="Socket_Class">*Socket</link> <link linkend="Socket_accept">Socket::accept</link>(<link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable>)</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
-	    <entry><para>Accepts connections on a listening socket.</para></entry>
+	    <entry><para>Accepts connections on a listening socket with a variant accepting a timeout value with a millisecond resolution.  If the variant with a timeout is used, then if no connection is accepted within the timeout period, then NOTHING is returned, otherwise a <link linkend="Socket_Class">Socket</link> object for the new connection is returned.  Otherwise, if any errors occur, an exception is thrown.</para></entry>
 	  </row>
           <row>
             <entry>
               <para><code><link linkend="Socket_Class">Socket</link> <link linkend="Socket_acceptSSL">Socket::acceptSSL</link>()</code></para>
+	      <para><code><link linkend="Socket_Class">*Socket</link> <link linkend="Socket_acceptSSL">Socket::acceptSSL</link>(<link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable>)</code></para>
             </entry>
             <entry>
               <para>Y</para>
             </entry>
             <entry>
-              <para>Accepts a remote connection and attempts to negotiate a TLS/SSL connection.</para>
+              <para>Accepts a remote connection and attempts to negotiate a TLS/SSL connection.  If the variant with a timeout is used, then if no connection is accepted within the timeout period, then NOTHING is returned, otherwise a <link linkend="Socket_Class">Socket</link> object for the new connection is returned.  Otherwise, if any errors occur, an exception is thrown.</para>
             </entry>
           </row>
           <row>
@@ -13791,10 +13836,24 @@ $pgm.setParseOptions(<link linkend="PO_NO_THREADS">PO_NO_THREADS</link> | <link 
 	  </row>
 	  <row>
 	    <entry>
+              <para><code><link linkend="hash_type">hash</link> <link linkend="Socket_getPeerInfo">Socket::getPeerInfo</link>()</code></para>
+            </entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Returns information about the remote end for connected sockets as a hash.</para></entry>
+	  </row>
+	  <row>
+	    <entry>
               <para><code><link linkend="int_type">int</link> <link linkend="Socket_getPort">Socket::getPort</link>()</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns the port number of the socket for INET sockets.</para></entry>
+	  </row>
+	  <row>
+	    <entry>
+              <para><code><link linkend="hash_type">hash</link> <link linkend="Socket_getSocketInfo">Socket::getSocketInfo</link>()</code></para>
+            </entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Returns information about the local socket as a hash; the socket must be open.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
@@ -13967,7 +14026,7 @@ $pgm.setParseOptions(<link linkend="PO_NO_THREADS">PO_NO_THREADS</link> | <link 
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Closes the socket if it's open and destroys the object.  If the socket was a UNIX domain socket, and was created with <link linkend="Socket_bind">Socket::bind()</link>, then the socket file will be deleted as well.</para>
+	    <para>Closes the socket if it's open and destroys the object.  If the socket was a UNIX domain socket, and was created with <link linkend="Socket_bind">Socket::bind()</link> or <link linkend="Socket_bindUNIX">Socket::bindUNIX()</link>, then the socket file will be deleted as well.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -14009,31 +14068,43 @@ $pgm.setParseOptions(<link linkend="PO_NO_THREADS">PO_NO_THREADS</link> | <link 
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Binds the socket to a port, interface and port (if the <replaceable>$bind_to</replaceable> string has a format &quot;host:port&quot;), or UNIX domain socket file.  If the second parameter is <code>True</code>, then the socket will set the <code>SO_REUSEADDR</code> option, which will allow the socket to be bound to a port that is not yet closed (for example, in a <code>TIME_WAIT</code> state).</para>
+	    <para>Binds the socket to a port, interface and port (if the <replaceable>$bind_to</replaceable> string has a format &quot;host:port&quot;), or UNIX domain socket file (if no port or service name appears in the bind string).  If the second parameter is <code>True</code>, then the socket will set the <code>SO_REUSEADDR</code> option, which will allow the socket to be bound to a port that is not yet closed (for example, in a <code>TIME_WAIT</code> state).</para>
+	    <para> This method tries to automatically pick the appropriate address family from the arguments; note that a hostname or address in square brackets (ex: <code>[localhost]</code>) will be looked up and bound as an ipv6 address, additionally, the method recognizes ipv6 addresses by embedded colons (:) in the address string and binds them as such.</para>
+	    <para>Internally, the <link linkend="getaddrinfo">getaddrinfo()</link> function is used to look up bind addresses; internal bind() operations are tried in sequence for each address returned; as soon as a bind operation is successful, the method returns.  If none of the addresses can be bound, then an error code is returned.</para>
+	    <para>See also <link linkend="Socket_bindINET">Socket::bindINET()</link> and <link linkend="Socket_bindUNIX">Socket::bindUNIX()</link>.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="int_type">int</link> <link linkend="Socket_bind">Socket::bind</link>(<link linkend="string_type">string</link> <replaceable>$bind_to</replaceable>, <link linkend="bool_type">bool</link> <replaceable>$reuseaddr</replaceable> = False)</code></para>
-              <para><code><link linkend="int_type">int</link> <link linkend="Socket_bind">Socket::bind</link>(<link linkend="int_type">int</link> <replaceable>$port</replaceable>, <link linkend="bool_type">bool</link> <replaceable>$reuseaddr</replaceable> = False)</code></para>
+              <para><code><link linkend="int_type">int</link> <link linkend="Socket_bind">Socket::bind</link>(<link linkend="string_type">string</link> <replaceable>$bind_to</replaceable>, <link linkend="softbool_type">softbool</link> <replaceable>$reuseaddr</replaceable> = False)</code></para>
+              <para><code><link linkend="int_type">int</link> <link linkend="Socket_bind">Socket::bind</link>(<link linkend="int_type">int</link> <replaceable>$port</replaceable>, <link linkend="softbool_type">softbool</link> <replaceable>$reuseaddr</replaceable> = False)</code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Examples</term>
 	  <listitem>
-	    <programlisting># bind to port 80 on all interfaces on the local system and reuse the address
-$sock.bind(80, <code>True</code>);</programlisting>
-	    <programlisting># bind to interface 192.168.2.23 port 8080 and do not reuse the address
-$sock.bind("192.168.2.23:8080");</programlisting>
-	    <programlisting># bind to UNIX domain socket file "/tmp/socket"
-$sock.bind("/tmp/socket");</programlisting>
+	    <programlisting># bind to port 80 on all interfaces on the local system and reuse the address, check return code
+if ($sock.bind(80, <code>True</code>))
+    throw "BIND-ERROR", strerror(errno());</programlisting>
+	    <programlisting># bind to interface 192.168.2.23 port 8080 and do not reuse the address, check return code
+if ($sock.bind("192.168.2.23:8080"))
+    throw "BIND-ERROR", strerror(errno());</programlisting>
+	    <programlisting># bind to localhost port 8080 with ipv6 and do not reuse the address, check return code
+if ($sock.bind("[localhost]:8080"))
+    throw "BIND-ERROR", strerror(errno());</programlisting>
+	    <programlisting># bind to ipv6 host address fe80::21c:42ff:fe00:8, port 1001, reuse the address, check return code
+if ($sock.bind("[fe80::21c:42ff:fe00:8]:1001", True))
+    throw "BIND-ERROR", strerror(errno());</programlisting>
+	    <programlisting># bind to UNIX domain socket file "/tmp/socket", check return code
+if ($sock.bind("/tmp/socket"))
+    throw "BIND-ERROR", strerror(errno());</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
 
       <table>
-	<title>Arguments for Socket::bind(string $bind_to, bool $reuseaddr = False) Variant</title>
+	<title>Arguments for Socket::bind(string $bind_to, softbool $reuseaddr = False) Variant</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
@@ -14047,15 +14118,15 @@ $sock.bind("/tmp/socket");</programlisting>
 	      <entry><para>If a colon appears in the string, the string will be assumed to be a hostname:port specification, and the port on the named IP address will be bound, otherwise, if the string contains no colon, the socket will be bound to a UNIX domain socket file on the local filesystem with the given name.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para><code><link linkend="bool_type">bool</link> <replaceable>$reuseaddr</replaceable> = False</code></para></entry>
-	      <entry><para>If this optional argument evaluates to <code>True</code>, the <code>SO_REUSEADDR</code> option will be set on the socket, which will allow the socket to be bound to a port that is not yet closed (for example, in a <code>TIME_WAIT</code> state).</para></entry>
+	      <entry><para><code><link linkend="softbool_type">softbool</link> <replaceable>$reuseaddr</replaceable> = False</code></para></entry>
+	      <entry><para>If this optional argument evaluates to <code>True</code>, the <code>SO_REUSEADDR</code> option will be set on the socket, which will allow the socket to be bound to a port that is not yet closed (for example, in a <code>TIME_WAIT</code> state); note that this only applies to IPv4 (<link linkend="AF_INET">AF_INET</link>) and IPv6 (<link linkend="AF_INET6">AF_INET6</link>) sockets; this option is ignored for UNIX (<link linkend="AF_UNIX">AF_UNIX</link>) sockets.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
       </table>
 
       <table>
-	<title>Arguments for Socket::bind(int $port, bool $reuseaddr = False) Variant</title>
+	<title>Arguments for Socket::bind(int $port, softbool $reuseaddr = False) Variant</title>
 	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
 	  <thead>
 	    <row>
@@ -14065,11 +14136,11 @@ $sock.bind("/tmp/socket");</programlisting>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code><link linkend="int_type">int</link> <replaceable>$port</replaceable>, <link linkend="bool_type">bool</link> <replaceable>$reuseaddr</replaceable> = False</code></para></entry>
+	      <entry><para><code><link linkend="int_type">int</link> <replaceable>$port</replaceable>, <link linkend="softbool_type">softbool</link> <replaceable>$reuseaddr</replaceable> = False</code></para></entry>
 	      <entry><para>The first argument gives the port number on the local machine; all network interfaces will be bound with this port number.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para><code><link linkend="bool_type">bool</link> <replaceable>$reuseaddr</replaceable> = False</code></para></entry>
+	      <entry><para><code><link linkend="softbool_type">softbool</link> <replaceable>$reuseaddr</replaceable> = False</code></para></entry>
 	      <entry><para>If this optional argument evaluates to <code>True</code>, the <code>SO_REUSEADDR</code> option will be set on the socket, which will allow the socket to be bound to a port that is not yet closed (for example, in a <code>TIME_WAIT</code> state).</para></entry>
 	    </row>
 	  </tbody>
@@ -14094,6 +14165,176 @@ $sock.bind("/tmp/socket");</programlisting>
 	</tgroup>
       </table>
 
+      <para>This method does not throw any exceptions.</para>
+
+    </sect2>
+
+    <sect2 id="Socket_bindINET">
+      <title>Socket::bindINET()</title>
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Opens and binds the socket to a port, interface and port (if the <replaceable>$bind_to</replaceable> string has a format &quot;host:port&quot;), or UNIX domain socket file (if no port or service name appears in the bind string).  If the second parameter is <code>True</code>, then the socket will set the <code>SO_REUSEADDR</code> option, which will allow the socket to be bound to a port that is not yet closed (for example, in a <code>TIME_WAIT</code> state).</para>
+	    <para>Internally, the <link linkend="getaddrinfo">getaddrinfo()</link> function is used to look up bind addresses; internal bind() operations are tried in sequence for each address returned; as soon as a bind operation is successful, the method returns.  If none of the addresses can be bound, then an error code is returned.</para>
+	    <para>If any errors occur, an exception is thrown.</para>
+	    <para>See also <link linkend="Socket_bind">Socket::bind()</link> and <link linkend="Socket_bindUNIX">Socket::bindUNIX()</link>.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Prototype</term>
+	  <listitem>
+              <para><code><link linkend="nothing_type">nothing</link> <link linkend="Socket_bindINET">Socket::bindINET</link>(<link linkend="*string_type">*string</link> <replaceable>$interface</replaceable>, <link linkend="*softstring_type">*softstring</link> <replaceable>$service</replaceable>, <link linkend="softbool_type">softbool</link> <replaceable>$reuseaddr</replaceable> = False, <link linkend="softint_type">softint</link> <replaceable>$family</replaceable> = <link linkend="AF_UNSPEC">AF_UNSPEC</link>, <link linkend="softint_type">softint</link> <replaceable>$socktype</replaceable> = <link linkend="SOCK_STREAM">SOCK_STREAM</link>, <link linkend="softint_type">softint</link> <replaceable>$protocol</replaceable> = 0)</code></para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Examples</term>
+	  <listitem>
+	    <programlisting># bind to port 80 on all interfaces on the local system and reuse the address
+$sock.bindINET(NOTHING, 80, <code>True</code>);</programlisting>
+	    <programlisting># bind to interface 192.168.2.23 port 8080 and do not reuse the address
+$sock.bindINET("192.168.2.23", 8080);</programlisting>
+	    <programlisting># bind to localhost port 8080 with ipv6 and do not reuse the address
+$sock.bindINET("localhost", 8080, False, AF_INET6);</programlisting>
+	    <programlisting># bind to ipv6 host address fe80::21c:42ff:fe00:8, port 1001, reuse the address
+$sock.bindINET("fe80::21c:42ff:fe00:8", 1001, True);</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for Socket::bindINET()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code><link linkend="*string_type">*string</link> <replaceable>$interface</replaceable></code></para></entry>
+	      <entry><para>The host name or IP address to bind to.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code><link linkend="*softstring_type">*softstring</link> <replaceable>$service</replaceable></code></para></entry>
+	      <entry><para>The service name (ex: <code>&quot;http&quot;</code> or port number (given as or converted to a string) to bind to.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code><link linkend="softbool_type">softbool</link> <replaceable>$reuseaddr</replaceable> = False</code></para></entry>
+	      <entry><para>If this optional argument evaluates to <code>True</code>, the <code>SO_REUSEADDR</code> option will be set on the socket, which will allow the socket to be bound to a port that is not yet closed (for example, in a <code>TIME_WAIT</code> state).</para></entry>
+	    </row>
+
+	    <row>
+	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$family</replaceable> = <link linkend="AF_UNSPEC">AF_UNSPEC</link></code></para></entry>
+	      <entry><para>The address family to use to bind; see <link linkend="network_address_constants">Network Address Family Constants</link>.  <link linkend="AF_UNSPEC">AF_UNSPEC</link> means to try all possible addres families.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$socktype</replaceable> = <link linkend="SOCK_STREAM">SOCK_STREAM</link></code></para></entry>
+	      <entry><para>The type of socket; see <link linkend="socket_type_constants">Socket Type Constants</link>; typically <link linkend="SOCK_STREAM">SOCK_STREAM</link> for TCP sockets.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$protocol</replaceable> = 0</code></para></entry>
+	      <entry><para>The protocol number for the socket; use 0 for the default protocol.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by Socket::bindINET()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>SOCKET-BIND-ERROR</code></para></entry>
+	      <entry><para>Both hostname and service name are empty or not set; error opening socket for bind; error binding on socket.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>QOREADDRINFO-GETINFO-ERROR</code></para></entry>
+	      <entry><para>error looking up either nodename or servicename (or not known)</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+    </sect2>
+
+    <sect2 id="Socket_bindUNIX">
+      <title>Socket::bindUNIX()</title>
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Opens and binds the socket to the given UNIX domain socket file as given by the filename argument.  Note that the socket file is automatically deleted in the destructor when a UNIX socket is closed.</para>
+	    <para>If any errors occur, an exception is thrown.</para>
+	    <para>See also <link linkend="Socket_bind">Socket::bind()</link> and <link linkend="Socket_bindINET">Socket::bindINET()</link>.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Prototype</term>
+	  <listitem>
+              <para><code><link linkend="nothing_type">nothing</link> <link linkend="Socket_bindUNIX">Socket::bindUNIX</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$socktype</replaceable> = <link linkend="SOCK_STREAM">SOCK_STREAM</link>, <link linkend="softint_type">softint</link> <replaceable>$protocol</replaceable> = 0)</code></para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Examples</term>
+	  <listitem>
+	    <programlisting># bind to UNIX domain socket file "/tmp/socket"
+$sock.bindUNIX("/tmp/socket");</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for Socket::bindUNIX()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code><link linkend="string_type">string</link> <replaceable>$path</replaceable></code></para></entry>
+	      <entry><para>The path of the UNIX domain socket to create and bind to.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$socktype</replaceable> = <link linkend="SOCK_STREAM">SOCK_STREAM</link></code></para></entry>
+	      <entry><para>The type of socket; see <link linkend="socket_type_constants">Socket Type Constants</link>; typically <link linkend="SOCK_STREAM">SOCK_STREAM</link> for TCP sockets.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$protocol</replaceable> = 0</code></para></entry>
+	      <entry><para>The protocol number for the socket; use 0 for the default protocol.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by Socket::bindUNIX()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>SOCKET-BIND-ERROR</code></para></entry>
+	      <entry><para>Error opening socket for bind; error binding on socket.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
     </sect2>
 
     <sect2 id="Socket_accept">
@@ -14102,23 +14343,43 @@ $sock.bind("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Accepts connections on a listening socket (see <link linkend="Socket_listen">Socket::listen()</link>).  As this method does not accept a timeout, use <link linkend="Socket_isDataAvailable">Socket::isDataAvailable()</link> to check if data is available on the socket before calling if necessary.</para>
-	    <para>The new Socket object returned will have the same character encoding as the current object.</para>
+	    <para>Accepts connections on a listening socket (see <link linkend="Socket_listen">Socket::listen()</link>) with a variant accepting a timeout value with a millisecond resolution.  If the variant with a timeout is used, then if no connection is accepted within the timeout period, then NOTHING is returned, otherwise a <link linkend="Socket_Class">Socket</link> object for the new connection is returned.</para>
+	    <para>Otherwise, if any errors occur, an exception is thrown.</para>
+	    <para>The new Socket object returned will have the same character encoding as the current object.  Once a new connection has been accepted, call <link linkend="Socket_getPeerInfo">Socket::getPeerInfo()</link> to get information about the remote socket.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
               <para><code><link linkend="Socket_Class">Socket</link> <link linkend="Socket_accept">Socket::accept</link>()</code></para>
+	      <para><code><link linkend="Socket_Class">*Socket</link> <link linkend="Socket_accept">Socket::accept</link>(<link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable>)</code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting><command>my</command> Socket $new_socket = $sock.accept();</programlisting>
+	    <programlisting><command>my</command> *Socket $new_socket = $sock.accept(30s);</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
+
+      <table>
+	<title>Arguments for Socket::accept()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>[<link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable>]</code></para></entry>
+	      <entry><para>If a timeout value is passed and the connection takes longer to establish than the timeout, then NOTHING is returned.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
 
       <table>
 	<title>Return Values for Socket::accept()</title>
@@ -14131,8 +14392,8 @@ $sock.bind("/tmp/socket");</programlisting>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code><link linkend="Socket_Class">Socket</link></code></para></entry>
-	      <entry><para>When a new connection has been accepted, a new Socket object is returned for the new connection.</para></entry>
+	      <entry><para><code><link linkend="Socket_Class">*Socket</link></code></para></entry>
+	      <entry><para>When a new connection has been accepted, a new Socket object is returned for the new connection, unless the variable with a timeout is used and a timeout occurs; in this case NOTHING is returned.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -14167,20 +14428,23 @@ $sock.bind("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Synopsis</term>
           <listitem>
-            <para>Accepts a remote connection and attempts to negotiate a TLS/SSL connection.  As this method does not accept a timeout, use <link linkend="Socket_isDataAvailable">Socket::isDataAvailable()</link> to check if data is available on the socket before calling if necessary.</para>
-	    <para>The new Socket object returned will have the same character encoding as the current object.</para>
+	    <para>Accepts connections on a listening socket (see <link linkend="Socket_listen">Socket::listen()</link>) and attempts to negotiate a TLS/SSL connection.</para>
+	    <para>If the variant with a timeout is used, then if no connection is accepted within the timeout period, then NOTHING is returned, otherwise a <link linkend="Socket_Class">Socket</link> object for the new connection is returned.</para>
+	    <para>Otherwise, if any errors occur, an exception is thrown.</para>
+	    <para>The new Socket object returned will have the same character encoding as the current object.  Once a new connection has been accepted, call <link linkend="Socket_getPeerInfo">Socket::getPeerInfo()</link> to get information about the remote socket.</para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-               <para><code><link linkend="Socket_Class">Socket</link> <link linkend="Socket_acceptSSL">Socket::acceptSSL</link>()</code></para>
+	    <para><code><link linkend="Socket_Class">Socket</link> <link linkend="Socket_acceptSSL">Socket::acceptSSL</link>()</code></para>
+	    <para><code><link linkend="Socket_Class">*Socket</link> <link linkend="Socket_acceptSSL">Socket::acceptSSL</link>(<link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable>)</code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
           <term>Example</term>
           <listitem>
-            <programlisting><command>my</command> Socket $new_sock = $sock.acceptSSL();</programlisting>
+            <programlisting><command>my</command> *Socket $new_sock = $sock.acceptSSL(30s);</programlisting>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -14188,6 +14452,24 @@ $sock.bind("/tmp/socket");</programlisting>
           <listitem><para><code><link linkend="event_start_ssl">EVENT_START_SSL</link>, <link linkend="event_ssl_established">EVENT_SSL_ESTABLISHED</link></code></para></listitem>
         </varlistentry>
       </variablelist>
+
+      <table>
+	<title>Arguments for Socket::acceptSSL()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>[<link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable>]</code></para></entry>
+	      <entry><para>If a timeout value is passed and the connection takes longer to establish than the timeout, then NOTHING is returned.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
 
       <table>
         <title>Return Values for Socket::acceptSSL()</title>
@@ -14204,10 +14486,8 @@ $sock.bind("/tmp/socket");</programlisting>
           </thead>
           <tbody>
             <row>
-	      <entry><para><code><link linkend="Socket_Class">Socket</link></code></para></entry>
-              <entry>
-                <para>A new socket object is returned for the new connection.</para>
-              </entry>
+	      <entry><para><code><link linkend="Socket_Class">*Socket</link></code></para></entry>
+	      <entry><para>When a new connection is accepted and a TLS/SSL session has been successfully negotated, a new Socket object is returned for the new connection, unless the variable with a timeout is used and a timeout occurs; in this case NOTHING is returned.</para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -14330,7 +14610,7 @@ $sock.bind("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="nothing_type">nothing</link> <link linkend="Socket_connectINET">Socket::connectINET</link>(<link linkend="string_type">string</link> <replaceable>$host</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$port</replaceable>, <link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1)</code></para>
+              <para><code><link linkend="nothing_type">nothing</link> <link linkend="Socket_connectINET">Socket::connectINET</link>(<link linkend="string_type">string</link> <replaceable>$host</replaceable>, <link linkend="softstring_type">softstring</link> <replaceable>$service</replaceable>, <link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1, <link linkend="softint_type">softint</link> <replaceable>$family</replaceable> = <link linkend="AF_UNSPEC">AF_UNSPEC</link>, <link linkend="softint_type">softint</link> <replaceable>$socktype</replaceable> = <link linkend="SOCK_STREAM">SOCK_STREAM</link>)</code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -14361,12 +14641,20 @@ $sock.connectINET("192.168.1.45", 8080, 30s);</programlisting>
 	      <entry><para>The host name or IP address to connect to.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$port</replaceable></code></para></entry>
-	      <entry><para>The port number to connect to.</para></entry>
+	      <entry><para><code><link linkend="softstring_type">softstring</link> <replaceable>$service</replaceable></code></para></entry>
+	      <entry><para>The service name (ex: <code>&quot;http&quot;</code> or port number (given as or converted to a string) to connect to.</para></entry>
 	    </row>
 	    <row>
 	      <entry><para><code><link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1</code></para></entry>
 	      <entry><para>If a timeout value is passed and the connection takes longer to establish than the timeout, an exception is thrown.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$family</replaceable> = <link linkend="AF_UNSPEC">AF_UNSPEC</link></code></para></entry>
+	      <entry><para>The address family to use to connect to the remote socket; see <link linkend="network_address_constants">Network Address Family Constants</link>.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$socktype</replaceable> = <link linkend="SOCK_STREAM">SOCK_STREAM</link></code></para></entry>
+	      <entry><para>The type of socket; see <link linkend="socket_type_constants">Socket Type Constants</link>; typically <link linkend="SOCK_STREAM">SOCK_STREAM</link> for TCP sockets.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -14404,7 +14692,7 @@ $sock.connectINET("192.168.1.45", 8080, 30s);</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="nothing_type">nothing</link> <link linkend="Socket_connectINETSSL">Socket::connectINETSSL</link>(<link linkend="string_type">string</link> <replaceable>$host</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$port</replaceable>, <link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1)</code></para>
+              <para><code><link linkend="nothing_type">nothing</link> <link linkend="Socket_connectINETSSL">Socket::connectINETSSL</link>(<link linkend="string_type">string</link> <replaceable>$host</replaceable>, <link linkend="softstring_type">softstring</link> <replaceable>$service</replaceable>, <link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1, <link linkend="softint_type">softint</link> <replaceable>$family</replaceable> = <link linkend="AF_UNSPEC">AF_UNSPEC</link>, <link linkend="softint_type">softint</link> <replaceable>$socktype</replaceable> = <link linkend="SOCK_STREAM">SOCK_STREAM</link>)</code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -14435,12 +14723,20 @@ $sock.connectINETSSL("192.168.1.45", 8080, 30s);</programlisting>
 	      <entry><para>The host name or IP address to connect to.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$port</replaceable></code></para></entry>
-	      <entry><para>The port number to connect to.</para></entry>
+	      <entry><para><code><link linkend="softstring_type">softstring</link> <replaceable>$service</replaceable></code></para></entry>
+	      <entry><para>The service name (ex: <code>&quot;http&quot;</code> or port number (given as or converted to a string) to connect to.</para></entry>
 	    </row>
 	    <row>
 	      <entry><para><code><link linkend="timeout_type">timeout</link> <replaceable>$timeout_ms</replaceable> = -1</code></para></entry>
 	      <entry><para>If a timeout value is passed and the connection takes longer to establish than the timeout, an exception is thrown.</para></entry>
+	    <row>
+	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$family</replaceable> = <link linkend="AF_UNSPEC">AF_UNSPEC</link></code></para></entry>
+	      <entry><para>The address family to use to connect to the remote socket; see <link linkend="network_address_constants">Network Address Family Constants</link>.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$socktype</replaceable> = <link linkend="SOCK_STREAM">SOCK_STREAM</link></code></para></entry>
+	      <entry><para>The type of socket; see <link linkend="socket_type_constants">Socket Type Constants</link>; typically <link linkend="SOCK_STREAM">SOCK_STREAM</link> for TCP sockets.</para></entry>
+	    </row>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -14478,7 +14774,7 @@ $sock.connectINETSSL("192.168.1.45", 8080, 30s);</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="nothing_type">nothing</link> <link linkend="Socket_connectUNIX">Socket::connectUNIX</link>(<link linkend="string_type">string</link> <replaceable>$file</replaceable>)</code></para>
+              <para><code><link linkend="nothing_type">nothing</link> <link linkend="Socket_connectUNIX">Socket::connectUNIX</link>(<link linkend="string_type">string</link> <replaceable>$file</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$socktype</replaceable> = <link linkend="SOCK_STREAM">SOCK_STREAM</link>, <link linkend="softint_type">softint</link> <replaceable>$protocol</replaceable> = 0)</code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -14507,6 +14803,14 @@ $sock.connectUNIX("/tmp/socket");</programlisting>
 	    <row>
 	      <entry><para><code><link linkend="string_type">string</link> <replaceable>$file</replaceable></code></para></entry>
 	      <entry><para>The socket will try to connect to a UNIX domain socket file on the local filesystem with the given name.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$socktype</replaceable> = <link linkend="SOCK_STREAM">SOCK_STREAM</link></code></para></entry>
+	      <entry><para>The type of socket; see <link linkend="socket_type_constants">Socket Type Constants</link>; typically <link linkend="SOCK_STREAM">SOCK_STREAM</link> for TCP sockets.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$protocol</replaceable> = 0</code></para></entry>
+	      <entry><para>The protocol number for the socket; use 0 for the default protocol.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -14544,7 +14848,7 @@ $sock.connectUNIX("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="nothing_type">nothing</link> <link linkend="Socket_connectUNIXSSL">Socket::connectUNIXSSL</link>(<link linkend="string_type">string</link> <replaceable>$file</replaceable>)</code></para>
+              <para><code><link linkend="nothing_type">nothing</link> <link linkend="Socket_connectUNIXSSL">Socket::connectUNIXSSL</link>(<link linkend="string_type">string</link> <replaceable>$file</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$socktype</replaceable> = <link linkend="SOCK_STREAM">SOCK_STREAM</link>, <link linkend="softint_type">softint</link> <replaceable>$protocol</replaceable> = 0)</code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -14573,6 +14877,14 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	    <row>
 	      <entry><para><code><link linkend="string_type">string</link> <replaceable>$file</replaceable></code></para></entry>
 	      <entry><para>The socket will try to connect to a UNIX domain socket file on the local filesystem with the given name.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$socktype</replaceable> = <link linkend="SOCK_STREAM">SOCK_STREAM</link></code></para></entry>
+	      <entry><para>The type of socket; see <link linkend="socket_type_constants">Socket Type Constants</link>; typically <link linkend="SOCK_STREAM">SOCK_STREAM</link> for TCP sockets.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$protocol</replaceable> = 0</code></para></entry>
+	      <entry><para>The protocol number for the socket; use 0 for the default protocol.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -17760,6 +18072,109 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
       </table>
     </sect2>
 
+    <sect2 id="Socket_getPeerInfo">
+      <title>Socket::getPeerInfo()</title>
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Returns a <link linkend="socket_information_hash">Socket Information Hash</link> about the remote end for connected sockets; if the socket is not connected, an exception is thrown.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Prototype</term>
+	  <listitem>
+              <para><code><link linkend="hash_type">hash</link> <link linkend="Socket_getPeerInfo">Socket::getPeerInfo</link>()</code></para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting><command>my</command> hash $h = $sock.getPeerInfo();</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Return Values for Socket::getPeerInfo()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code><link linkend="hash_type">hash</link></code></para></entry>
+	      <entry><para>Returns a <link linkend="socket_information_hash">Socket Information Hash</link> about the remote end for connected sockets; if the socket is not connected, an exception is thrown.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+        <title>Exceptions thrown by Socket::getPeerInfo()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+	      <entry><para>err</para></entry>
+              <entry><para>desc</para></entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry><para><code>SOCKET-GETPEERINFO-ERROR</code></para></entry>
+              <entry><para>Socket is not open or error in getpeername()</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+
+      <table id="socket_information_hash">
+        <title>Socket Information Hash</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+	      <entry><para>Key</para></entry>
+              <entry><para>Description</para></entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry><para><code>hostname</code></para></entry>
+              <entry><para>The interface name if available (ex: <code>&quot;localhost&quot;</code>; note that this key is not present when retrieving information about UNIX sockets)</para></entry>
+            </row>
+            <row>
+              <entry><para><code>hostname_desc</code></para></entry>
+              <entry><para>A descriptive string giving the hostname and the address family if the hostname is available (ex: <code>&quot;ipv6[localhost]&quot;</code>; note that this key is not present when retrieving information about UNIX sockets)</para></entry>
+            </row>
+            <row>
+              <entry><para><code>address</code></para></entry>
+              <entry><para>A string giving the address (ex: <code>&quot;::ffff:0.0.0.0&quot;</code>)</para></entry>
+            </row>
+            <row>
+              <entry><para><code>address_desc</code></para></entry>
+              <entry><para>A descriptive string giving the address and the address family (ex: <code>&quot;ipv6[::ffff:0.0.0.0]&quot;</code>)</para></entry>
+            </row>
+            <row>
+              <entry><para><code>port</code></para></entry>
+              <entry><para>An integer port number if available (note that this key is not present when retrieving information about UNIX sockets)</para></entry>
+            </row>
+            <row>
+              <entry><para><code>family</code></para></entry>
+              <entry><para>The network address family (see <link linkend="network_address_constants">Network Address Family Constants</link>)</para></entry>
+            </row>
+            <row>
+              <entry><para><code>familystr</code></para></entry>
+              <entry><para>A string describing the network address family (ex: <code>&quot;ipv4&quot;</code>)</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+
+    </sect2>
+
     <sect2 id="Socket_getPort">
       <title>Socket::getPort()</title>
       <variablelist>
@@ -17800,6 +18215,67 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	  </tbody>
 	</tgroup>
       </table>
+    </sect2>
+
+    <sect2 id="Socket_getSocketInfo">
+      <title>Socket::getPeerInfo()</title>
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Returns a <link linkend="socket_information_hash">Socket Information Hash</link> about the local socket; if the socket is not open, an exception is thrown.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Prototype</term>
+	  <listitem>
+	    <para><code><link linkend="hash_type">hash</link> <link linkend="Socket_getSocketInfo">Socket::getSocketInfo</link>()</code></para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting><command>my</command> hash $h = $sock.getSocketInfo();</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Return Values for Socket::getSocketInfo()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code><link linkend="hash_type">hash</link></code></para></entry>
+	      <entry><para>Returns a <link linkend="socket_information_hash">Socket Information Hash</link> about the local socket; if the socket is not open, an exception is thrown.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+        <title>Exceptions thrown by Socket::getSocketInfo()</title>
+        <tgroup cols="2" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+	      <entry><para>err</para></entry>
+              <entry><para>desc</para></entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry><para><code>SOCKET-GETSOCKETINFO-ERROR</code></para></entry>
+              <entry><para>Socket is not open or error in getsockname()</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+
     </sect2>
 
     <sect2 id="Socket_shutdown">

@@ -72,12 +72,12 @@ public:
 
    DLLLOCAL int connect(const char *name, int timeout_ms, ExceptionSink *xsink = NULL);
    DLLLOCAL int connectINET(const char *host, int port, int timeout_ms, ExceptionSink *xsink = NULL);
-   DLLLOCAL int connectINET2(const char *host, const char *service, int family, int sock_type, int timeout_ms = -1, ExceptionSink *xsink = NULL);
-   DLLLOCAL int connectUNIX(const char *p, ExceptionSink *xsink = NULL);
+   DLLLOCAL int connectINET2(const char *host, const char *service, int family, int sock_type, int protocol, int timeout_ms = -1, ExceptionSink *xsink = NULL);
+   DLLLOCAL int connectUNIX(const char *p, int socktype, int protocol, ExceptionSink *xsink = NULL);
    DLLLOCAL int connectSSL(const char *name, int timeout_ms, ExceptionSink *xsink);
    DLLLOCAL int connectINETSSL(const char *host, int port, int timeout_ms, ExceptionSink *xsink);
-   DLLLOCAL int connectINET2SSL(const char *host, const char *service, int family, int sock_type, int timeout_ms = -1, ExceptionSink *xsink = NULL);
-   DLLLOCAL int connectUNIXSSL(const char *p, ExceptionSink *xsink);
+   DLLLOCAL int connectINET2SSL(const char *host, const char *service, int family, int sock_type, int protocol, int timeout_ms = -1, ExceptionSink *xsink = NULL);
+   DLLLOCAL int connectUNIXSSL(const char *p, int socktype, int protocol, ExceptionSink *xsink);
    // to bind to either a UNIX socket or an INET interface:port
    DLLLOCAL int bind(const char *name, bool reuseaddr = false);
    // to bind to an INET tcp port on all interfaces
@@ -85,7 +85,7 @@ public:
    // to bind an open socket to an INET tcp port on a specific interface
    DLLLOCAL int bind(const char *interface, int port, bool reuseaddr = false);
 
-   DLLLOCAL int bindUNIX(const char *name, bool reuseaddr, int socktype, int protocol, ExceptionSink *xsink);
+   DLLLOCAL int bindUNIX(const char *name, int socktype, int protocol, ExceptionSink *xsink);
    DLLLOCAL int bindINET(const char *name, const char *service, bool reuseaddr, int family, int socktype, int protocol, ExceptionSink *xsink);
 
    // get port number for INET sockets

@@ -10035,7 +10035,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	    </row>
 	    <row>
 	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$family</replaceable> = AF_UNSPEC</code></para></entry>
-	      <entry><para>The address family for the lookup, must be one of <code>AF_INET</code>, <code>AF_INET6</code>, or <code>AF_UNSPEC</code>.</para></entry>
+	      <entry><para>The address family for the lookup, must be one of <code>AF_INET</code>, <code>AF_INET6</code>, or <code>AF_UNSPEC</code>, meaning to return all possible addresses.</para></entry>
 	    </row>
 	    <row>
 	      <entry><para><code><link linkend="softint_type">softint</link> <replaceable>$flags</replaceable> = 0</code></para></entry>
@@ -10080,8 +10080,6 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	  </tbody>
 	</tgroup>
       </table>
-
-    <para>This function does not throw any exceptions.</para>
 
     <table id="address_info_hash">
       <title>Address Information Hash</title>
