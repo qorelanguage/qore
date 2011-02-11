@@ -73,7 +73,11 @@ class socket_test {
 		$.counter.dec();
 
 	    # get bind addresses for the local host
-	    my *list $addr = getaddrinfo(NOTHING, $.server_port, $.fam, AI_PASSIVE);
+	    my list $addr = getaddrinfo(NOTHING, $.server_port, $.fam, AI_PASSIVE);
+
+	    # sort ipv6 addresses first in list
+	    $addr = sort($addr, int sub (hash $l, hash $r) { return $l.family === AF_INET6 ? -1 : 0; });
+
 	    foreach my hash $a in ($addr) {
 		try {
 		    $s.bindINET($a.address, $.server_port, True, $a.family);
