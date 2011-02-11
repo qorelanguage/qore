@@ -1430,6 +1430,11 @@ try_statement:
 	   if ($5) {
 	      if ($5->getType() == NT_VARREF) 
 		 param = reinterpret_cast<VarRefNode *>($5)->takeName();
+	      else if ($5->getType() == NT_BAREWORD) {
+		 param = reinterpret_cast<BarewordNode *>($5)->takeString();
+		 if (!checkParseOption(PO_ALLOW_BARE_REFS))
+		    parse_error("local variable '%s' in catch parameter list declared without '$' prefix, but parse option 'allow-bare-refs' is not set", param);
+	      }
 	      else
 		 parse_error("only one parameter accepted in catch block for exception hash");
 	      $5->deref(0);
