@@ -200,7 +200,7 @@ static AbstractQoreNode *SOCKET_accept(QoreObject *self, mySocket *s, const Qore
    QoreObject *ns = new QoreObject(QC_SOCKET, getProgram(), n);
 
    // save backwards-compatible peer parameters as members in new object (deprecated: Socket::getPeerInfo() should be used in the future)
-   s->setAccept(ns);
+   n->setAccept(ns);
 
    return ns;
 }
@@ -218,7 +218,7 @@ static AbstractQoreNode *SOCKET_accept_timeout(QoreObject *self, mySocket *s, co
    QoreObject *ns = new QoreObject(QC_SOCKET, getProgram(), n);
 
    // save backwards-compatible peer parameters as members in new object (deprecated: Socket::getPeerInfo() should be used in the future)
-   s->setAccept(ns);
+   n->setAccept(ns);
 
    return ns;
 }
@@ -235,7 +235,7 @@ static AbstractQoreNode *SOCKET_acceptSSL(QoreObject *self, mySocket *s, const Q
    QoreObject *ns = new QoreObject(QC_SOCKET, getProgram(), n);
 
    // save backwards-compatible peer parameters as members in new object (deprecated: Socket::getPeerInfo() should be used in the future)
-   s->setAccept(ns);
+   n->setAccept(ns);
    
    return ns;
 }
@@ -255,7 +255,7 @@ static AbstractQoreNode *SOCKET_acceptSSL_timeout(QoreObject *self, mySocket *s,
    QoreObject *ns = new QoreObject(QC_SOCKET, getProgram(), n);
 
    // save backwards-compatible peer parameters as members in new object (deprecated: Socket::getPeerInfo() should be used in the future)
-   s->setAccept(ns);
+   n->setAccept(ns);
    
    return ns;
 }
