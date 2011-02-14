@@ -70,8 +70,8 @@ static void check_constant_cycle(QoreProgram *pgm, AbstractQoreNode *n) {
    }
 }
 
-void ConstantEntry::parseInit(const char *name) {
-   //printd(5, "ConstantEntry::parseInit() this=%p %s init=%d node=%p (%s)\n", this, name, init, node, get_type_name(node));
+void ConstantEntry::parseInit(const char *name, QoreClass *class_context) {
+   //printd(5, "ConstantEntry::parseInit() this=%p %s init=%d node=%p (%s) class context=%p (%s)\n", this, name, init, node, get_type_name(node), class_context, class_context ? class_context->getName() : "<none>");
 
    ConstantCycleHelper cch(this, name);
    if (!cch) {
@@ -87,6 +87,10 @@ void ConstantEntry::parseInit(const char *name) {
       return;
 
    int lvids = 0;
+
+   // push parse class context
+   QoreParseClassHelper qpch(class_context);
+   
    node = node->parseInit((LocalVar *)0, PF_CONST_EXPRESSION, lvids, typeInfo);
 
    //printd(5, "ConstantEntry::parseInit() this=%p %s initialized to node=%p (%s)\n", this, name, node, get_type_name(node));
@@ -196,10 +200,10 @@ void ConstantList::add(const char *name, AbstractQoreNode *value, const QoreType
    hm[name] = ConstantEntry(value, typeInfo || value->needs_eval() ? typeInfo : getTypeInfoForValue(value), true);
 }
 
-AbstractQoreNode *ConstantList::find(const char *name, const QoreTypeInfo *&constantTypeInfo) {
+AbstractQoreNode *ConstantList::find(const char *name, const QoreTypeInfo *&constantTypeInfo, QoreClass *class_context) {
    hm_qn_t::iterator i = hm.find(name);
    if (i != hm.end()) {
-      i->second.parseInit(i->first.c_str());
+      i->second.parseInit(i->first.c_str(), class_context);
       constantTypeInfo = i->second.typeInfo;
       return i->second.node;
    }
@@ -296,11 +300,11 @@ void ConstantList::assimilate(ConstantList &n, ConstantList &committed, Constant
    n.parseDeleteAll();
 }
 
-void ConstantList::parseInit() {
+void ConstantList::parseInit(QoreClass *class_context) {
    //RootQoreNamespace *rns = getRootNS();
    for (hm_qn_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
-      printd(5, "ConstantList::parseInit() %s %p\n", i->first.c_str(), i->second.node);
-      i->second.parseInit(i->first.c_str());
+      printd(5, "ConstantList::parseInit() %s %p (class: %s)\n", i->first.c_str(), i->second.node, class_context ? class_context->getName() : "<none>");
+      i->second.parseInit(i->first.c_str(), class_context);
    }
 }
 

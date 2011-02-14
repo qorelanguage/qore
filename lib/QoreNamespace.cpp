@@ -701,7 +701,7 @@ int RootQoreNamespace::resolveBareword(AbstractQoreNode **node, const QoreTypeIn
 
    QoreClass *pc = getParseClass();
 
-   //printd(5, "RootQoreNamespace::resolveBareword(%s) pc=%p\n", b->str, pc);
+   //printd(5, "RootQoreNamespace::resolveBareword(%s) pc=%p (%s)\n", b->str, pc, pc ? pc->getName() : "<none>");
 
    AbstractQoreNode *rv = 0;
 

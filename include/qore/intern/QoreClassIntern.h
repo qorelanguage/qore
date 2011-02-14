@@ -1791,14 +1791,14 @@ struct qore_class_private {
 
    DLLLOCAL AbstractQoreNode *parseFindLocalConstantValue(const char *cname, const QoreTypeInfo *&cTypeInfo) {
       // first check public constants
-      AbstractQoreNode *rv = pub_const.find(cname, cTypeInfo);
+      AbstractQoreNode *rv = pub_const.find(cname, cTypeInfo, cls);
       if (!rv) {
-	 rv = pend_pub_const.find(cname, cTypeInfo);
+	 rv = pend_pub_const.find(cname, cTypeInfo, cls);
 	 if (!rv) {
 	    // now check private constants
-	    rv = priv_const.find(cname, cTypeInfo);
+	    rv = priv_const.find(cname, cTypeInfo, cls);
 	    if (!rv)
-	       rv = pend_priv_const.find(cname, cTypeInfo);
+	       rv = pend_priv_const.find(cname, cTypeInfo, cls);
 	 
 	    // check for accessibility to private constants
 	    if (rv && !parseCheckPrivateClassAccess(cls)) {
@@ -1816,16 +1816,16 @@ struct qore_class_private {
       bool priv = false;
 
       // first check public constants
-      AbstractQoreNode *rv = pub_const.find(cname, cTypeInfo);
+      AbstractQoreNode *rv = pub_const.find(cname, cTypeInfo, cls);
       if (!rv) {
-	 rv = pend_pub_const.find(cname, cTypeInfo);
+	 rv = pend_pub_const.find(cname, cTypeInfo, cls);
 	 if (!rv) {
             priv = true;
 
 	    // now check private constants
-	    rv = priv_const.find(cname, cTypeInfo);
+	    rv = priv_const.find(cname, cTypeInfo, cls);
 	    if (!rv) {
-	       rv = pend_priv_const.find(cname, cTypeInfo);
+	       rv = pend_priv_const.find(cname, cTypeInfo, cls);
             }
 	 }
       }

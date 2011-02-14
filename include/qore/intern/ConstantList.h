@@ -47,7 +47,7 @@ public:
 
    DLLLOCAL ConstantEntry() : typeInfo(0), node(0), init(false) {}
    DLLLOCAL ConstantEntry(AbstractQoreNode *v, const QoreTypeInfo *ti = 0, bool n_init = false) : typeInfo(ti), node(v), init(n_init) {}
-   DLLLOCAL void parseInit(const char *name);
+   DLLLOCAL void parseInit(const char *name, QoreClass *class_context);
 };
 
 typedef std::map<std::string, ConstantEntry> hm_qn_t;
@@ -69,7 +69,7 @@ public:
 
    DLLLOCAL void add(const char *name, AbstractQoreNode *val, const QoreTypeInfo *typeInfo = 0);
    DLLLOCAL void parseAdd(const char *name, AbstractQoreNode *val, const QoreTypeInfo *typeInfo = 0);
-   DLLLOCAL AbstractQoreNode *find(const char *name, const QoreTypeInfo *&constantTypeInfo);
+   DLLLOCAL AbstractQoreNode *find(const char *name, const QoreTypeInfo *&constantTypeInfo, QoreClass *class_context = 0);
    DLLLOCAL bool inList(const char *name) const;
    DLLLOCAL bool inList(const std::string &name) const;
    //DLLLOCAL ConstantList *copy();
@@ -83,7 +83,7 @@ public:
    // add a constant to a list with duplicate checking (pub & priv + pending)
    DLLLOCAL void parseAdd(const std::string &name, AbstractQoreNode *val, ConstantList &committed, ConstantList &other, ConstantList &otherPend, bool priv, const char *cname);
 
-   DLLLOCAL void parseInit();
+   DLLLOCAL void parseInit(QoreClass *class_context = 0);
    DLLLOCAL QoreHashNode *getInfo();
    DLLLOCAL void parseDeleteAll();
    DLLLOCAL void deleteAll(ExceptionSink *xsink);

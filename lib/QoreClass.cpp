@@ -2311,8 +2311,8 @@ void qore_class_private::parseInit() {
    QoreParseClassHelper qpch(cls);
 
    // initialize constants
-   pend_priv_const.parseInit();
-   pend_pub_const.parseInit();
+   pend_priv_const.parseInit(cls);
+   pend_pub_const.parseInit(cls);
 
    // initialize methods
    for (hm_method_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
