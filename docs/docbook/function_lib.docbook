@@ -17849,11 +17849,11 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
 	</row>
 	<row>
 	  <entry><para><code>bavail</code></para></entry>
-	  <entry><para>The number of free blocks available to unpriviledged users (bytes = bavail * blocks)</para></entry>
+	  <entry><para>The number of free blocks available to unpriviledged users (bytes = bsize * bavail)</para></entry>
 	</row>
 	<row>
 	  <entry><para><code>bfree</code></para></entry>
-	  <entry><para>The total number of free indes available to priviledged users (bytes = bfree * blocks)</para></entry>
+	  <entry><para>The total number of free indes available to priviledged users (bytes = bsize * bfree)</para></entry>
 	</row>
       </tbody>
     </tgroup>
