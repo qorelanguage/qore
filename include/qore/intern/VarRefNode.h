@@ -126,16 +126,17 @@ public:
    DLLLOCAL AbstractQoreNode **getValuePtr(AutoVLock *vl, const QoreTypeInfo *&typeInfo, ObjMap &omap, ExceptionSink *xsink) const;
    DLLLOCAL qore_var_t getType() const { return type; }
    DLLLOCAL const char *getName() const { return name; }
-   // called when a list of variables are declared
+   // called when a list of variables is declared
    DLLLOCAL void makeLocal() {
-      assert(type == VT_UNRESOLVED); 
+      assert(type != VT_GLOBAL); 
       type = VT_LOCAL; 
       new_decl = true;
       ref.id = 0;
    }
-   // called when a list of variables are declared
+   // called when a list of variables is declared
    DLLLOCAL virtual void makeGlobal() {
-      assert(type == VT_UNRESOLVED); 
+      assert(type != VT_GLOBAL);
+      assert(!ref.id);
       type = VT_GLOBAL;
       ref.var = getProgram()->addGlobalVarDef(name, 0);      
       new_decl = true;
