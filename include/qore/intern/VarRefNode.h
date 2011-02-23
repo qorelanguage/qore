@@ -136,7 +136,7 @@ public:
    // called when a list of variables is declared
    DLLLOCAL virtual void makeGlobal() {
       assert(type != VT_GLOBAL);
-      assert(!ref.id);
+      assert(type == VT_UNRESOLVED || !ref.id);
       type = VT_GLOBAL;
       ref.var = getProgram()->addGlobalVarDef(name, 0);      
       new_decl = true;
