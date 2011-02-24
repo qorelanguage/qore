@@ -929,7 +929,7 @@ int QoreListNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) c
 // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using this function directly
 QoreString *QoreListNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const {
    del = false;
-   if (!priv->length)
+   if (!priv->length && foff != FMT_YAML_SHORT)
       return &EmptyListString;
       
    TempString rv(new QoreString);

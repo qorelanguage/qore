@@ -560,7 +560,7 @@ int QoreHashNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) c
 QoreString *QoreHashNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const {
    del = false;
    qore_size_t elements = size();
-   if (!elements)
+   if (!elements && foff != FMT_YAML_SHORT)
       return &EmptyHashString;
 
    TempString rv(new QoreString);
