@@ -34,38 +34,57 @@
  */
 template<typename T>
 class QoreThreadLocalStorage {
-   private:
-      //! the actual thread local storage key wrapped in this class
-      pthread_key_t key;
+protected:
+   //! the actual thread local storage key wrapped in this class
+   pthread_key_t key;
+   
+   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+   DLLLOCAL QoreThreadLocalStorage(const QoreThreadLocalStorage&);
+   
+   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+   DLLLOCAL QoreThreadLocalStorage& operator=(const QoreThreadLocalStorage&);
 
-      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-      DLLLOCAL QoreThreadLocalStorage(const QoreThreadLocalStorage&);
+public:
+   //! creates the key
+   DLLLOCAL QoreThreadLocalStorage() {
+      create();
+   }
 
-      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-      DLLLOCAL QoreThreadLocalStorage& operator=(const QoreThreadLocalStorage&);
+   //! destroys the key
+   DLLLOCAL ~QoreThreadLocalStorage() {
+      destroy();
+   }
 
-   public:
-      //! creates the lock
-      DLLLOCAL QoreThreadLocalStorage()
-      {
-         pthread_key_create(&key, 0);
-      }
+   //! creates the key
+   DLLLOCAL void create() {
+      pthread_key_create(&key, 0);
+   }
 
-      //! destroys the lock
-      DLLLOCAL ~QoreThreadLocalStorage()
-      {
-         pthread_key_delete(key);
-      }
+   //! destroys the key
+   DLLLOCAL void destroy() {
+      pthread_key_delete(key);
+   }
 
-      DLLLOCAL T *get()
-      {
-	 return (T *)pthread_getspecific(key);
-      }
+   //! retrieves the key's value
+   DLLLOCAL T *get() {
+#ifndef DEBUG
+      return (T *)pthread_getspecific(key);
+#else
+      T *rv = (T *)pthread_getspecific(key);
+      assert(rv);
+      return rv;
+#endif
+   }
 
-      DLLLOCAL void set(T *ptr)
-      {
-	 pthread_setspecific(key, (void *)ptr);
-      }
+   //! sets the key's value
+   DLLLOCAL void set(T *ptr) {
+#ifndef DEBUG
+      pthread_setspecific(key, (void *)ptr);
+#else
+      int rc = pthread_setspecific(key, (void *)ptr);
+      assert(!rc);
+#endif
+   }
 };
 
 #endif // _QORE_QORETHREADLOCALSTORAGE_H

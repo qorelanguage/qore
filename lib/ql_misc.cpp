@@ -1095,7 +1095,7 @@ static AbstractQoreNode *f_set_signal_handler(const QoreListNode *params, Except
    }
 
    HARD_QORE_PARAM(f, const ResolvedCallReferenceNode, params, 1);
-   QoreSignalManager::setHandler(signal, f, xsink);
+   QSM.setHandler(signal, f, xsink);
 #else
    xsink->raiseException("MISSING-FEATURE-ERROR", "this platform does not support signal handling, therefore the set_signal_handler() and remove_signal_handler() functions are not available in Qore; for maximum portability, use the constant Option::HAVE_SIGNAL_HANDLING to check if this function is implemented before calling");
 #endif
@@ -1109,7 +1109,7 @@ static AbstractQoreNode *f_remove_signal_handler(const QoreListNode *params, Exc
       xsink->raiseException("REMOVE-SIGNAL-HANDLER-ERROR", "%d is not a valid signal", signal);
       return 0;
    }
-   QoreSignalManager::removeHandler(signal, xsink);
+   QSM.removeHandler(signal, xsink);
 #else
    xsink->raiseException("MISSING-FEATURE-ERROR", "this platform does not support signal handling, therefore the set_signal_handler() and remove_signal_handler() functions are not available in Qore; for maximum portability, use the constant Option::HAVE_SIGNAL_HANDLING to check if this function is implemented before calling");
 #endif

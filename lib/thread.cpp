@@ -497,7 +497,7 @@ class ThreadCleanupNode {
 public:
    qtdest_t func;
    void *arg;
-   class ThreadCleanupNode *next;
+   ThreadCleanupNode *next;
 };
 
 DLLLOCAL ThreadCleanupNode *ThreadCleanupList::head = 0;
@@ -1279,6 +1279,9 @@ void qore_exit_process(int rc) {
    // to avoid an assert on exit
    sl.unlock();
 #endif
+
+   // stop signal handling thread
+   QSM.del();
 
    threads_initialized = false;
    exit(rc);

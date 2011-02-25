@@ -29,6 +29,12 @@
 
 #include <assert.h>
 
+#include <string.h>
+#include <stdio.h>
+#include <execinfo.h>
+#include <signal.h>
+#include <stdlib.h>
+
 //! provides a mutually-exclusive thread lock
 /** This class is just a simple wrapper for pthread_mutex_t.  It does not provide any special
     logic for checking for correct usage, etc.
@@ -53,6 +59,7 @@ private:
    }
 
 public:
+
    //! creates the lock
    DLLLOCAL QoreThreadLock() {
       init();
@@ -78,7 +85,7 @@ public:
 	 pthread_mutex_lock(&ptm_lock);
       assert(!rc);
    }
-      
+
    //! releases the lock (assumes that the lock is locked)
    /** no error checking is implemented here
     */
@@ -89,7 +96,7 @@ public:
 	 pthread_mutex_unlock(&ptm_lock);
       assert(!rc);
    }
-      
+
    //! attempts to acquire the mutex and returns the status immediately; does not block
    /**
       @return 0 if the lock was acquired, a non-zero error number if the lock was not acquired
@@ -164,7 +171,7 @@ protected:
 
    //! flag indicating if the lock is held or not
    bool locked;
-      
+
 public:
    //! creates the object and grabs the lock
    DLLEXPORT SafeLocker(QoreThreadLock *l) : lck(l) {

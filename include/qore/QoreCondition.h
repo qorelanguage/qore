@@ -35,73 +35,81 @@
     @see QoreThreadLock
  */
 class QoreCondition {
-   private:
-      //! the condition thread primitive
-      pthread_cond_t c;
+private:
+   //! the condition thread primitive
+   pthread_cond_t c;
 
-      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-      DLLLOCAL QoreCondition(const QoreCondition&);
+   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+   DLLLOCAL QoreCondition(const QoreCondition&);
 
-      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-      DLLLOCAL QoreCondition& operator=(const QoreCondition&);
+   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+   DLLLOCAL QoreCondition& operator=(const QoreCondition&);
 
-   public:
-      //! creates the condition object
-      DLLEXPORT QoreCondition();
+public:
+   //! creates the condition object
+   DLLEXPORT QoreCondition();
 
-      //! destroys the condition object
-      DLLEXPORT ~QoreCondition();
+   //! destroys the condition object
+   DLLEXPORT ~QoreCondition();
 
-      //! signals a single waiting thread to wake up
-      DLLEXPORT int signal();
+   //! signals a single waiting thread to wake up
+   DLLEXPORT int signal();
 
-      //! singles all threads blocked on this condition to wake up
-      DLLEXPORT int broadcast();
+   //! singles all threads blocked on this condition to wake up
+   DLLEXPORT int broadcast();
 
-      //! blocks a thread on a mutex until the condition is signaled
-      /**
-	 @param m the mutex to wait on
-	 @return 0 for success, non-zero for error
-       */
-      DLLEXPORT int wait(pthread_mutex_t *m);
+   //! blocks a thread on a mutex until the condition is signaled
+   /**
+      @param m the mutex to wait on
+      @return 0 for success, non-zero for error
+   */
+   DLLEXPORT int wait(pthread_mutex_t *m);
+   
+   //! blocks a thread on a mutex for a certain number of milliseconds until the condition is signaled
+   /**
+      @param m the mutext to wait on
+      @param timeout_ms the timeout value is milliseconds
+      @return a non-zero return value indicates a timeout occured
+   */
+   DLLEXPORT int wait(pthread_mutex_t *m, int timeout_ms);
 
-      //! blocks a thread on a mutex for a certain number of milliseconds until the condition is signaled
-      /**
-	 @param m the mutext to wait on
-	 @param timeout_ms the timeout value is milliseconds
-	 @return a non-zero return value indicates a timeout occured
-       */
-      DLLEXPORT int wait(pthread_mutex_t *m, int timeout_ms);
-
-      //! blocks a thread on a lock until the condition is signaled
-      /**
-	 @param l the QoreThreadLock to wait on
-	 @return 0 for success, non-zero for error
-       */
-      DLLEXPORT int wait(QoreThreadLock *l) { return wait(&l->ptm_lock); }
-
-      //! blocks a thread on a lock for a certain number of milliseconds until the condition is signaled
-      /**
-	 @param l the QoreThreadLock to wait on
-	 @param timeout the timeout value is milliseconds
-	 @return a non-zero return value indicates a timeout occured
-       */
-      DLLEXPORT int wait(QoreThreadLock *l, int timeout) { return wait(&l->ptm_lock, timeout); }
-
-      //! blocks a thread on a lock until the condition is signaled
-      /**
-	 @param l the QoreThreadLock to wait on
-	 @return 0 for success, non-zero for error
-       */
-      DLLEXPORT int wait(QoreThreadLock &l) { return wait(&l.ptm_lock); }
-
-      //! blocks a thread on a lock for a certain number of milliseconds until the condition is signaled
-      /**
-	 @param l the QoreThreadLock to wait on
-	 @param timeout the timeout value is milliseconds
-	 @return a non-zero return value indicates a timeout occured
-       */
-      DLLEXPORT int wait(QoreThreadLock &l, int timeout) { return wait(&l.ptm_lock, timeout); }
+   //! blocks a thread on a lock until the condition is signaled
+   /**
+      @param l the QoreThreadLock to wait on
+      @return 0 for success, non-zero for error
+   */
+   DLLEXPORT int wait(QoreThreadLock *l) { 
+      return wait(&l->ptm_lock);
+   }
+   
+   //! blocks a thread on a lock for a certain number of milliseconds until the condition is signaled
+   /**
+      @param l the QoreThreadLock to wait on
+      @param timeout the timeout value is milliseconds
+      @return a non-zero return value indicates a timeout occured
+   */
+   DLLEXPORT int wait(QoreThreadLock *l, int timeout_ms) {
+      return wait(&l->ptm_lock, timeout_ms); 
+   }
+   
+   //! blocks a thread on a lock until the condition is signaled
+   /**
+      @param l the QoreThreadLock to wait on
+      @return 0 for success, non-zero for error
+   */
+   DLLEXPORT int wait(QoreThreadLock &l) {
+      return wait(&l);
+   }
+   
+   //! blocks a thread on a lock for a certain number of milliseconds until the condition is signaled
+   /**
+      @param l the QoreThreadLock to wait on
+      @param timeout the timeout value is milliseconds
+      @return a non-zero return value indicates a timeout occured
+   */
+   DLLEXPORT int wait(QoreThreadLock &l, int timeout_ms) { 
+      return wait(&l, timeout_ms);
+   }
 };
 
 #endif // QORE_CONDITION

@@ -39,7 +39,7 @@ int QoreCondition::broadcast() {
    return pthread_cond_broadcast(&c);
 }
 
-int QoreCondition::wait(pthread_mutex_t *m) {
+int QoreCondition::wait(pthread_mutex_t *m) {   
 #ifdef DEBUG
    int rc = pthread_cond_wait(&c, m);
    if (rc)
@@ -66,5 +66,13 @@ int QoreCondition::wait(pthread_mutex_t *m, int timeout_ms) {
    tmout.tv_nsec = nsecs;
 
    //printd(5, "QoreCondition::wait(%p, %d) this=%p now=%d.%09d trigger=%d.%09d\n", m, timeout_ms, this, now.tv_sec, now.tv_usec * 1000, tmout.tv_sec, tmout.tv_nsec);
+#ifndef DEBUG
    return pthread_cond_timedwait(&c, m, &tmout);
+#else
+   int rc = pthread_cond_timedwait(&c, m, &tmout);
+   if (rc && rc != ETIMEDOUT)
+      printd(0, "QoreCondition::wait(m=%p, timeout_ms=%d) pthread_cond_timedwait() returned %d\n", m, timeout_ms, rc);
+   assert(!rc || rc == ETIMEDOUT);
+   return rc;
+#endif
 }

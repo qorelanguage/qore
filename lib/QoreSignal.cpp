@@ -27,22 +27,6 @@
 
 QoreSignalManager QSM;
 
-bool QoreSignalManager::is_enabled = false;
-int QoreSignalManager::num_handlers = 0;
-QoreThreadLock QoreSignalManager::mutex;
-sigset_t QoreSignalManager::mask;
-sig_map_t QoreSignalManager::fmap;
-bool QoreSignalManager::thread_running = false;
-QoreCondition QoreSignalManager::cond;
-QoreSignalManager::sig_cmd_e QoreSignalManager::cmd = QoreSignalManager::C_None;
-pthread_t QoreSignalManager::ptid;
-int QoreSignalManager::tid = -1;
-QoreCounter QoreSignalManager::tcount;
-int QoreSignalManager::waiting = 0;
-bool QoreSignalManager::block = false;
-
-QoreSignalHandler QoreSignalManager::handlers[QORE_SIGNAL_MAX];
-
 // must be called in the signal lock
 void QoreSignalHandler::set(int sig, const ResolvedCallReferenceNode *n_funcref) {
    funcref = const_cast<ResolvedCallReferenceNode *>(n_funcref);
@@ -68,22 +52,17 @@ void QoreSignalHandler::runHandler(int sig, ExceptionSink *xsink) {
    discard(funcref->exec(*args, xsink), xsink);
 }
 
-QoreSignalManager::QoreSignalManager() {
-   // set command to none
-   cmd = C_None;
-   
+QoreSignalManager::QoreSignalManager() : is_enabled(false), tid(-1), block(false), waiting(0), num_handlers(0), thread_running(false), cmd(C_None) {
    // initilize handlers
    for (int i = 0; i < QORE_SIGNAL_MAX; ++i)
       handlers[i].init();
-
-   tid = -1;
 }
 
 void QoreSignalManager::init(bool disable_signal_mask) {
    // set SIGPIPE to ignore
    struct sigaction sa;
    sa.sa_handler = SIG_IGN;
-   sigemptyset (&sa.sa_mask);
+   sigemptyset(&sa.sa_mask);
    sa.sa_flags = SA_RESTART;
    // ignore SIGPIPE signals
    sigaction(SIGPIPE, &sa, 0);
@@ -129,7 +108,7 @@ void QoreSignalManager::reload() {
 	 pthread_kill(ptid, QORE_STATUS_SIGNAL);
       assert(!rc);
       // unlock lock and wait for condition
-      cond.wait(&mutex);
+      cond.wait(mutex);
    }
 }
 
@@ -169,25 +148,23 @@ void QoreSignalManager::pre_fork_block_and_stop() {
       ++waiting;
       cond.wait(&mutex);
       --waiting;
-   }	 
+   }
    block = true;
    stop_signal_thread_unlocked();
 
    // wait for thread to exit (may be already gone)
    sl.unlock();
    tcount.waitForZero();
-   
+
    printd(5, "QoreSignalManager::pre_fork_block_and_stop() pid=%d signal handling thread stopped\n", getpid());
 }
 
 void QoreSignalManager::post_fork_unblock_and_start(bool new_process, ExceptionSink *xsink) {
-   AutoLocker al(&mutex);
    if (!enabled())
       return;
 
    block = false;
-   if (waiting)
-      cond.signal();
+   assert(!waiting);
 
    // set new default signal mask for new process
    if (new_process) {
@@ -198,6 +175,8 @@ void QoreSignalManager::post_fork_unblock_and_start(bool new_process, ExceptionS
    }
 
    printd(5, "QoreSignalManager::post_fork_unblock_and_start() pid=%d, new_process=%d, starting signal thread\n", getpid(), new_process);
+
+   AutoLocker al(mutex);
    start_signal_thread(xsink);
 }
 
@@ -332,25 +311,19 @@ void QoreSignalManager::signal_handler_thread() {
    tclist.exec();
       
    tcount.dec();
-   //printf("signal handler thread %d stopped (count=%d)\n", c_tid, tcount.getCount());fflush(stdout);
+   //fprintf(stderr, "signal handler thread %d stopped (count=%d)\n", c_tid, tcount.getCount());fflush(stderr);
    pthread_exit(0);
 }
 
 extern "C" void *sig_thread(void *x) {
-   QoreSignalManager::signal_handler_thread();
+   QSM.signal_handler_thread();
    return 0;
 }
 
 int QoreSignalManager::start_signal_thread(ExceptionSink *xsink) {
    printd(5, "QoreSignalManager::start_signal_thread() pid=%d, start_signal_thread() called\n", getpid());
    tid = get_signal_thread_entry();
-
-   // if can't start thread, then throw exception
-   if (tid == -1) {
-      xsink->raiseException("THREAD-CREATION-FAILURE", "thread list is full with %d threads", MAX_QORE_THREADS);
-      return -1;
-   }
-   printd(5, "QoreSignalManager::start_signal_thread() pid=%d, got TID %d\n", getpid(), tid);
+   assert(!tid);
    
    thread_running = true;
    tcount.inc();
@@ -361,7 +334,7 @@ int QoreSignalManager::start_signal_thread(ExceptionSink *xsink) {
       tcount.dec();
       deregister_signal_thread();
       tid = -1;
-      xsink->raiseErrnoException("THREAD-CREATION-FAILURE", rc, "could not create thread");
+      xsink->raiseErrnoException("THREAD-CREATION-FAILURE", rc, "could not create signal handler thread");
       thread_running = false;
    }
 

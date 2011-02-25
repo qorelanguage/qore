@@ -164,6 +164,7 @@ AbstractQoreNode *QoreQueue::shift(ExceptionSink *xsink, int timeout_ms, bool *t
       ++waiting;
       int rc = timeout_ms ? cond.wait(l, timeout_ms) : cond.wait(l);
       --waiting;
+
       if (rc) {	 
 	 // lock has timed out, unlock and return -1
 	 sl.unlock();
@@ -186,15 +187,15 @@ AbstractQoreNode *QoreQueue::shift(ExceptionSink *xsink, int timeout_ms, bool *t
    if (to)
       *to = false;
 
-   printd(5, "QoreQueue::shift() GOT DATA this=%p head=%p (rv=%p) tail=%p (%p) waiting=%d len=%d\n", this, head, head->node, tail, tail->node, waiting, len);
-   
+   //printd(5, "QoreQueue::shift() GOT DATA this=%p head=%p (rv=%p) tail=%p (%p) waiting=%d len=%d\n", this, head, head->node, tail, tail->node, waiting, len);
+
    QoreQueueNode *n = head;
    head = head->next;
    if (!head)
       tail = 0;
    else
       head->prev = 0;
-   
+
    len--;
    sl.unlock();
    AbstractQoreNode *rv = n->node;

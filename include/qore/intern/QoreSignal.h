@@ -79,58 +79,58 @@ class QoreSignalManager {
    friend class QoreSignalManagerBusyHelper;
 
 private:
-   DLLLOCAL static bool is_enabled;      // signal handling enabled?
-   DLLLOCAL static pthread_t ptid;       // handler thread
-   DLLLOCAL static int tid;              // handler thread TID
-   DLLLOCAL static QoreCounter tcount;   // thread counter, for synchronization only
-   DLLLOCAL static QoreCondition cond;   // to ensure atomicity of set and remove calls
-   DLLLOCAL static bool block;
-   DLLLOCAL static int waiting;
+   bool is_enabled;      // signal handling enabled?
+   pthread_t ptid;       // handler thread
+   int tid;              // handler thread TID
+   QoreCounter tcount;   // thread counter, for synchronization only
+   QoreCondition cond;   // to ensure atomicity of set and remove calls
+   bool block;
+   int waiting;
       
-   DLLLOCAL static void reload();
-   DLLLOCAL static void stop_signal_thread_unlocked();
-   DLLLOCAL static int start_signal_thread(ExceptionSink *xsink);
-   DLLLOCAL static void stop_signal_thread();
+   DLLLOCAL void reload();
+   DLLLOCAL void stop_signal_thread_unlocked();
+   DLLLOCAL int start_signal_thread(ExceptionSink *xsink);
+   DLLLOCAL void stop_signal_thread();
       
 public:
    enum sig_cmd_e { C_None = 0, C_Reload = 1, C_Exit = 2 };
 
    // set of signals we are managing
-   static sigset_t mask;
+   sigset_t mask;
 
    // set of signals we do not manage (empty at start)
-   static sig_map_t fmap;
+   sig_map_t fmap;
 
-   static int num_handlers;
-   static bool thread_running;
-   static QoreSignalHandler handlers[QORE_SIGNAL_MAX];
-   static QoreThreadLock mutex;
-   static sig_cmd_e cmd;
+   int num_handlers;
+   bool thread_running;
+   QoreSignalHandler handlers[QORE_SIGNAL_MAX];
+   QoreThreadLock mutex;
+   sig_cmd_e cmd;
       
    DLLLOCAL QoreSignalManager();
-   DLLLOCAL static void init(bool disable_signal_mask = false);
-   DLLLOCAL static void del();
-   DLLLOCAL static int setHandler(int sig, const ResolvedCallReferenceNode *fr, ExceptionSink *xsink);
-   DLLLOCAL static int removeHandler(int sig, ExceptionSink *xsink);
-   DLLLOCAL static const char *getSignalName(int sig);
-   DLLLOCAL static void signal_handler_thread();
-   DLLLOCAL static void lock_idle();
-   DLLLOCAL static void release_idle();
-   DLLLOCAL static void start_handler();
-   DLLLOCAL static void end_handler();
-   DLLLOCAL static void pre_fork_block_and_stop();
-   DLLLOCAL static void post_fork_unblock_and_start(bool new_process, ExceptionSink *xsink);
-   DLLLOCAL static int gettid() {
+   DLLLOCAL void init(bool disable_signal_mask = false);
+   DLLLOCAL void del();
+   DLLLOCAL int setHandler(int sig, const ResolvedCallReferenceNode *fr, ExceptionSink *xsink);
+   DLLLOCAL int removeHandler(int sig, ExceptionSink *xsink);
+   DLLLOCAL const char *getSignalName(int sig);
+   DLLLOCAL void signal_handler_thread();
+   DLLLOCAL void lock_idle();
+   DLLLOCAL void release_idle();
+   DLLLOCAL void start_handler();
+   DLLLOCAL void end_handler();
+   DLLLOCAL void pre_fork_block_and_stop();
+   DLLLOCAL void post_fork_unblock_and_start(bool new_process, ExceptionSink *xsink);
+   DLLLOCAL int gettid() {
       return tid;
    }
-   DLLLOCAL static void reset_default_signal_mask();
-   DLLLOCAL static bool running() { return tid != -1; }
-   DLLLOCAL static bool enabled() { return is_enabled; }
+   DLLLOCAL void reset_default_signal_mask();
+   DLLLOCAL bool running() { return tid != -1; }
+   DLLLOCAL bool enabled() { return is_enabled; }
 
    // try to allow the signal to be managed externally (by a module)
    // sig = signal number, name = name of module to manage signal
    // returns 0 for OK, or an error string on error
-   DLLLOCAL static QoreStringNode *reassign_signal(int sig, const char *name);
+   DLLLOCAL QoreStringNode *reassign_signal(int sig, const char *name);
 };
 
 DLLLOCAL extern QoreSignalManager QSM;

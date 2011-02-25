@@ -517,7 +517,7 @@ struct qore_program_private {
    }
 
    DLLLOCAL void start_thread() {
-      assert(!thread_local_storage->get());
+      //assert(!thread_local_storage->get());
       thread_local_storage->set(new QoreHashNode);
    }
 
