@@ -23,6 +23,8 @@
 #include <qore/Qore.h>
 #include <qore/QoreCondition.h>
 
+#include <string.h>
+
 QoreCondition::QoreCondition() {
    pthread_cond_init(&c, 0);
 }
@@ -42,8 +44,11 @@ int QoreCondition::broadcast() {
 int QoreCondition::wait(pthread_mutex_t *m) {   
 #ifdef DEBUG
    int rc = pthread_cond_wait(&c, m);
-   if (rc)
-      printd(0, "QoreCondition::wait(%p) pthread_cond_wait() returned %d\n", m, rc);
+   if (rc) {
+      printd(0, "QoreCondition::wait(%p) pthread_cond_wait() returned %d %s\n", m, rc, strerror(rc));
+      // print out a backtrace if possible
+      qore_machine_backtrace();
+   }
    assert(!rc);
    return rc;
 #else
@@ -70,8 +75,11 @@ int QoreCondition::wait(pthread_mutex_t *m, int timeout_ms) {
    return pthread_cond_timedwait(&c, m, &tmout);
 #else
    int rc = pthread_cond_timedwait(&c, m, &tmout);
-   if (rc && rc != ETIMEDOUT)
-      printd(0, "QoreCondition::wait(m=%p, timeout_ms=%d) pthread_cond_timedwait() returned %d\n", m, timeout_ms, rc);
+   if (rc && rc != ETIMEDOUT) {
+      printd(0, "QoreCondition::wait(m=%p, timeout_ms=%d) pthread_cond_timedwait() returned %d %s\n", m, timeout_ms, rc, strerror(rc));
+      // print out a backtrace if possible
+      qore_machine_backtrace();
+   }
    assert(!rc || rc == ETIMEDOUT);
    return rc;
 #endif

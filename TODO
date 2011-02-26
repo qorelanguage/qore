@@ -1,3 +1,5 @@
+* make it so that a call ref/closure can be imported as a function in a
+  Program
 * fix class member initialization order to be same as declaration order
   (currently is alphabetic)
 * implement a way to tell if signal handling is enabled or not from qore code

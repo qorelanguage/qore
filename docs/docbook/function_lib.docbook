@@ -55,6 +55,10 @@
 	  <entry><para><code>CONST</code></para></entry>
 	  <entry><para>This flag indicates that the function or method has no side effects and does not throw any exceptions.</para></entry>
 	</row>
+        <row id="RET_VALUE_flag">
+	  <entry><para><code>RET_VALUE</code></para></entry>
+	  <entry><para>This flag indicates that the function or method has no side effects but could throw an exception.</para></entry>
+	</row>
         <row id="DEPRECATED_flag">
 	  <entry><para><code>DEPRECATED</code></para></entry>
 	  <entry><para>Code with this flag is deprecated and may be removed in a future version of Qore; if a variant with this flag is resolved at parse time, a <code><link linkend="deprecated">deprecated</link></code> warning is raised (assuming this warning is enabled).</para></entry>
@@ -2775,7 +2779,7 @@
         <row>
           <entry>
             <para><code><link linkend="list_type">list</link> <link linkend="split">split</link>(<link linkend="string_type">string</link> <replaceable>$pattern</replaceable>, <link linkend="string_type">string</link> <replaceable>$string</replaceable>) (<link linkend="CONST_flag">CONST</link>)</code></para>
-            <para><code><link linkend="list_type">list</link> <link linkend="split">split</link>(<link linkend="string_type">string</link> <replaceable>$pattern</replaceable>, <link linkend="string_type">string</link> <replaceable>$string</replaceable>, <link linkend="string_type">string</link> <replaceable>$quote</replaceable>) (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="list_type">list</link> <link linkend="split">split</link>(<link linkend="string_type">string</link> <replaceable>$pattern</replaceable>, <link linkend="string_type">string</link> <replaceable>$string</replaceable>, <link linkend="string_type">string</link> <replaceable>$quote</replaceable>) (<link linkend="RET_VALUE_flag">RET_VALUE</link>)</code></para>
             <para><code><link linkend="list_type">list</link> <link linkend="split">split</link>(<link linkend="binary_type">binary</link> <replaceable>$pattern</replaceable>, <link linkend="binary_type">binary</link> <replaceable>$bin</replaceable>) (<link linkend="CONST_flag">CONST</link>)</code></para>
             <para><code><link linkend="list_type">list</link> <link linkend="split">split</link>() (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
           </entry>

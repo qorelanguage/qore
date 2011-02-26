@@ -607,8 +607,8 @@ void init_string_functions() {
    // an empty list was returned by split() if the types were not correct
    builtinFunctions.add2("split", f_list_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, listTypeInfo);
    builtinFunctions.add2("split", f_split_str, QC_CONSTANT, QDOM_DEFAULT, listTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
-   // list split(string $pattern, string $str, string $quote)  
-   builtinFunctions.add2("split", f_split_str_str_str, QC_CONSTANT, QDOM_DEFAULT, listTypeInfo, 3, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
+   // list split(string $pattern, string $str, string $quote) - this version can throw exceptions
+   builtinFunctions.add2("split", f_split_str_str_str, QC_RET_VALUE_ONLY, QDOM_DEFAULT, listTypeInfo, 3, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("split", f_split_bin, QC_CONSTANT, QDOM_DEFAULT, listTypeInfo, 2, binaryTypeInfo, QORE_PARAM_NO_ARG, binaryTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add2("get_encoding", f_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, nothingTypeInfo);
