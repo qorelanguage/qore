@@ -552,6 +552,7 @@ public:
    }
 };
 
+#ifdef DEBUG
 #ifdef HAVE_BACKTRACE
 #define _QORE_BT_SIZE 20
 DLLLOCAL static inline void qore_machine_backtrace() {
@@ -563,8 +564,9 @@ DLLLOCAL static inline void qore_machine_backtrace() {
    backtrace_symbols_fd(array, size, 2);
 }
 #else
-DLLLOCAL static inline void qore_machine_backtrac() {
+DLLLOCAL static inline void qore_machine_backtrace() {
 }
+#endif
 #endif
 
 #endif
