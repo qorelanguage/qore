@@ -555,7 +555,7 @@ public:
 #ifdef DEBUG
 #ifdef HAVE_BACKTRACE
 #define _QORE_BT_SIZE 20
-DLLLOCAL static inline void qore_machine_backtrace() {
+static inline void qore_machine_backtrace() {
    void *array[_QORE_BT_SIZE];
    // get void*'s for all entries on the stack
    size_t size = backtrace(array, _QORE_BT_SIZE);
@@ -564,7 +564,7 @@ DLLLOCAL static inline void qore_machine_backtrace() {
    backtrace_symbols_fd(array, size, 2);
 }
 #else
-DLLLOCAL static inline void qore_machine_backtrace() {
+static inline void qore_machine_backtrace() {
 }
 #endif
 #endif
