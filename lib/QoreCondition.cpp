@@ -23,6 +23,8 @@
 #include <qore/Qore.h>
 #include <qore/QoreCondition.h>
 
+#include <qore/intern/ErrnoConstants.h>
+
 #include <string.h>
 
 QoreCondition::QoreCondition() {

@@ -30,6 +30,7 @@
 #endif
 
 #include <qore/intern/ConstantList.h>
+#include <qore/intern/QoreSignal.h>
 
 // to register object types
 #include <qore/intern/QC_Queue.h>
