@@ -1275,10 +1275,7 @@ void qore_exit_process(int rc) {
 #endif
       }
    }
-#ifdef DEBUG
-   // to avoid an assert on exit
    sl.unlock();
-#endif
 
    // stop signal handling thread
    QSM.del();
