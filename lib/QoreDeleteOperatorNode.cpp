@@ -41,6 +41,7 @@ AbstractQoreNode *QoreDeleteOperatorNode::evalImpl(ExceptionSink *xsink) const {
 }
 
 AbstractQoreNode *QoreDeleteOperatorNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
+   needs_deref = false;
    delete_lvalue(exp, xsink);
    return 0;
 }
