@@ -38,15 +38,15 @@
 #define PO_NO_CLASS_DEFS             (1 <<  5)    //!< cannot define new object classes
 #define PO_NO_NAMESPACE_DEFS         (1 <<  6)    //!< cannot define new namespaces
 #define PO_NO_CONSTANT_DEFS          (1 <<  7)    //!< cannot define new constants
-#define PO_NO_NEW                    (1 <<  8)    //!< cannot use the new operator
+#define PO_NO_NEW                    (1 <<  8)    //!< cannot use the new operator (DEPRECATED: this option is not useful anymore because objects can be declared and created without "new")
 #define PO_NO_SYSTEM_CLASSES         (1 <<  9)    //!< do not inherit system classes into this program space
 #define PO_NO_USER_CLASSES           (1 << 10)    //!< do not inherit user classes into this program space
 #define PO_NO_CHILD_PO_RESTRICTIONS  (1 << 11)    //!< turn off parse option inheritance restrictions
-#define PO_NO_EXTERNAL_PROCESS       (1 << 12)    //!< do not allow backquote op, system(), exec()
+#define PO_NO_EXTERNAL_PROCESS       (1 << 12)    //!< do not allow access to functionality that calls external processes: backquote op, system(), exec(), etc
 #define PO_REQUIRE_OUR               (1 << 13)    //!< require "our" for global var declaration
-#define PO_NO_PROCESS_CONTROL        (1 << 14)    //!< do not allow fork(), exec(), abort(), etc
+#define PO_NO_PROCESS_CONTROL        (1 << 14)    //!< do not allow access to functionality that can affect the current process: fork(), exec(), abort(), etc
 #define PO_NO_NETWORK                (1 << 15)    //!< do not allow any network access (objs & subroutines)
-#define PO_NO_FILESYSTEM             (1 << 16)    //!< do not allow any file access (objects & subroutines)
+#define PO_NO_FILESYSTEM             (1 << 16)    //!< do not allow any filesystem access (objects & subroutines)
 #define PO_LOCK_WARNINGS             (1 << 17)    //!< do not allow programs to change the warning mask
 #define PO_NO_DATABASE               (1 << 18)    //!< do not allow database access
 #define PO_NO_GUI                    (1 << 19)    //!< do not allow any GUI-relevant actions to be performed
@@ -78,6 +78,9 @@
 
 //! mask of all options allowing for more freedom (instead of less)
 #define PO_POSITIVE_OPTIONS          (PO_NO_CHILD_PO_RESTRICTIONS)
+
+//! mask of options that have no effect on code access or code safety
+#define PO_FREE_OPTIONS              (PO_ALLOW_BARE_REFS|PO_ASSUME_LOCAL)
 
 #define QDOM_DEFAULT            PO_DEFAULT                //!< the default domain (no domain)
 #define QDOM_PROCESS            PO_NO_PROCESS_CONTROL     //!< provides process control functionality (can affect or stop the current process)

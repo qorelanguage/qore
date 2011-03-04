@@ -199,6 +199,8 @@ QoreProgram::QoreProgram(QoreProgram *pgm, int64 po, bool ec, const char *ecn) :
    // flag as derived object
    priv->base_object = false;
 
+   //printd(5, "parent=%p this=%p parent po: %lld new po: %lld parent no_child_po_restrictions=%d\n", pgm, this, pgm->priv->pwo.parse_options, po, pgm->priv->pwo.parse_options & PO_NO_CHILD_PO_RESTRICTIONS);
+
    // if children inherit restrictions, then set all child restrictions
    if (!(pgm->priv->pwo.parse_options & PO_NO_CHILD_PO_RESTRICTIONS)) {
       // lock child parse options
@@ -208,8 +210,10 @@ QoreProgram::QoreProgram(QoreProgram *pgm, int64 po, bool ec, const char *ecn) :
       // make sure all options that give more freedom and are off in the parent program are turned off in the child
       priv->pwo.parse_options &= (pgm->priv->pwo.parse_options | ~PO_POSITIVE_OPTIONS);
    }
-   else
-      priv->po_locked = false;
+   else {
+      priv->pwo.parse_options = po;
+      priv->po_locked = !(po & PO_NO_CHILD_PO_RESTRICTIONS);
+   }
 
    priv->exec_class = ec;
    if (ecn)
@@ -591,15 +595,12 @@ bool QoreProgram::existsFunction(const char *name) {
 
 // DEPRECATED
 void QoreProgram::parseSetParseOptions(int po) {
-   if (priv->po_locked) {
-      parse_error("parse options have been locked on this program object");
-      return;
-   }
-   priv->pwo.parse_options |= po;
+   parseSetParseOptions((int64)po);
 }
 
 void QoreProgram::parseSetParseOptions(int64 po) {
-   if (priv->po_locked) {
+   // only raise the exception if parse options are locked and the option is not a "free option"
+   if (!(po & PO_FREE_OPTIONS) && priv->po_locked) {
       parse_error("parse options have been locked on this program object");
       return;
    }
@@ -608,16 +609,13 @@ void QoreProgram::parseSetParseOptions(int64 po) {
 
 // DEPRECATED
 void QoreProgram::setParseOptions(int po, ExceptionSink *xsink) {
-   if (priv->po_locked) {
-      xsink->raiseException("OPTIONS-LOCKED", "parse options have been locked on this program object");
-      return;
-   }
-   priv->pwo.parse_options |= po;
+   setParseOptions((int64)po, xsink);
 }
 
 void QoreProgram::setParseOptions(int64 po, ExceptionSink *xsink) {
-   if (priv->po_locked) {
-      xsink->raiseException("OPTIONS-LOCKED", "parse options have been locked on this program object");
+   // only raise the exception if parse options are locked and the option is not a "free option"
+   if (!(po & PO_FREE_OPTIONS) && priv->po_locked) {
+      xsink->raiseException("OPTIONS-LOCKED", "parse options have been locked on this program object po=%lld PO_FREE_OTIONS=%d po|PO_FREE_OPTIONS=%lld", po, PO_FREE_OPTIONS, po & PO_FREE_OPTIONS);
       return;
    }
    priv->pwo.parse_options |= po;
@@ -625,14 +623,11 @@ void QoreProgram::setParseOptions(int64 po, ExceptionSink *xsink) {
 
 // DEPRECATED
 void QoreProgram::disableParseOptions(int po, ExceptionSink *xsink) {
-   if (priv->po_locked) {
-      xsink->raiseException("OPTIONS-LOCKED", "parse options have been locked on this program object");
-      return;
-   }
-   priv->pwo.parse_options &= ~po;
+   disableParseOptions((int64)po, xsink);
 }
 
 void QoreProgram::disableParseOptions(int64 po, ExceptionSink *xsink) {
+   // only raise the exception if parse options are locked and the option is not a "free option"
    if (priv->po_locked) {
       xsink->raiseException("OPTIONS-LOCKED", "parse options have been locked on this program object");
       return;
@@ -1059,4 +1054,5 @@ DLLLOCAL void addProgramConstants(class QoreNamespace *ns) {
    ns->addConstant("PO_STRICT_ARGS",              new QoreBigIntNode(PO_STRICT_ARGS));
    ns->addConstant("PO_ALLOW_BARE_REFS",          new QoreBigIntNode(PO_ALLOW_BARE_REFS));
    ns->addConstant("PO_ASSUME_LOCAL",             new QoreBigIntNode(PO_ASSUME_LOCAL));
+   ns->addConstant("PO_NEW_STYLE",                new QoreBigIntNode(PO_NEW_STYLE));
 }
