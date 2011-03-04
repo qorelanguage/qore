@@ -35,16 +35,16 @@ QoreStringNode *q_addr_to_string(int family, const char *addr) {
    return inet_ntop(family, addr, buf, QORE_NET_ADDR_BUF_LEN) ? new QoreStringNode(buf) : 0;
 }
 
-QoreStringNode *q_addr_to_string2(int family, const struct sockaddr *ai_addr) {
+QoreStringNode *q_addr_to_string2(const struct sockaddr *ai_addr) {
    SimpleRefHolder<QoreStringNode> str(new QoreStringNode);
 
    const void *addr;
-   if (family == AF_INET) {
+   if (ai_addr->sa_family == AF_INET) {
       struct sockaddr_in *ipv4 = (struct sockaddr_in *)ai_addr;
       addr = &(ipv4->sin_addr);
       str->reserve(INET_ADDRSTRLEN);
    }
-   else if (family == AF_INET6) {
+   else if (ai_addr->sa_family == AF_INET6) {
       struct sockaddr_in6 *ipv6 = (struct sockaddr_in6 *)ai_addr;
       addr = &(ipv6->sin6_addr);
       str->reserve(INET6_ADDRSTRLEN);
@@ -52,19 +52,19 @@ QoreStringNode *q_addr_to_string2(int family, const struct sockaddr *ai_addr) {
    else
       return 0;
 
-   if (!inet_ntop(family, addr, (char *)str->getBuffer(), str->capacity()))
+   if (!inet_ntop(ai_addr->sa_family, addr, (char *)str->getBuffer(), str->capacity()))
       return 0;
 
    str->terminate(strlen(str->getBuffer()));
    return str.release();
 }
 
-int q_get_port_from_addr(int family, const struct sockaddr *ai_addr) {
-   if (family == AF_INET) {
+int q_get_port_from_addr(const struct sockaddr *ai_addr) {
+   if (ai_addr->sa_family == AF_INET) {
       const struct sockaddr_in *ipv4 = (struct sockaddr_in *)ai_addr;
       return ntohs(ipv4->sin_port);
    }
-   else if (family == AF_INET6) {
+   else if (ai_addr->sa_family == AF_INET6) {
       const struct sockaddr_in6 *ipv6 = (struct sockaddr_in6 *)ai_addr;
       return ntohs(ipv6->sin6_port);
    }
@@ -455,7 +455,7 @@ QoreListNode *QoreAddrInfo::getList() const {
       if (p->ai_canonname && *p->ai_canonname)
 	 h->setKeyValue("canonname", new QoreStringNode(p->ai_canonname), 0);
 
-      QoreStringNode *addr = q_addr_to_string2(p->ai_family, p->ai_addr);
+      QoreStringNode *addr = q_addr_to_string2(p->ai_addr);
       if (addr) {
 	 h->setKeyValue("address", addr, 0);
 	 h->setKeyValue("address_desc", getAddressDesc(p->ai_family, addr->getBuffer()), 0);
@@ -465,7 +465,7 @@ QoreListNode *QoreAddrInfo::getList() const {
       h->setKeyValue("familystr", new QoreStringNode(family), 0);
       h->setKeyValue("addrlen", new QoreBigIntNode(p->ai_addrlen), 0);
       if (has_svc) {
-	 int port = q_get_port_from_addr(p->ai_family, p->ai_addr);
+	 int port = q_get_port_from_addr(p->ai_addr);
 	 if (port != -1)
 	    h->setKeyValue("port", new QoreBigIntNode(port), 0);
       }

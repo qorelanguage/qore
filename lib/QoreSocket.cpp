@@ -643,19 +643,19 @@ struct qore_socket_private {
       }
    }
 
-   DLLLOCAL void do_resolved_event(int af, const struct sockaddr *addr) {
+   DLLLOCAL void do_resolved_event(const struct sockaddr *addr) {
       // post bytes sent on event queue, if any
       if (cb_queue) {
 	 QoreHashNode *h = new QoreHashNode;
 	 h->setKeyValue("event", new QoreBigIntNode(QORE_EVENT_HOSTNAME_RESOLVED), 0);
 	 h->setKeyValue("source", new QoreBigIntNode(QORE_SOURCE_SOCKET), 0);
 	 h->setKeyValue("id", new QoreBigIntNode((int64)this), 0);
-	 QoreStringNode *str = q_addr_to_string2(af, addr);
+	 QoreStringNode *str = q_addr_to_string2(addr);
 	 if (str)
 	    h->setKeyValue("address", str, 0);
 	 else
 	    h->setKeyValue("error", q_strerror(errno), 0);
-	 int prt = q_get_port_from_addr(af, addr);
+	 int prt = q_get_port_from_addr(addr);
 	 if (prt > 0)
 	    h->setKeyValue("port", new QoreBigIntNode(prt), 0);
 	 cb_queue->push_and_take_ref(h);
@@ -895,9 +895,9 @@ struct qore_socket_private {
       // emit all "resolved" events
       if (cb_queue)
 	 for (struct addrinfo *p = aip; p; p = p->ai_next)
-	    do_resolved_event(p->ai_family, p->ai_addr);
+	    do_resolved_event(p->ai_addr);
 
-      int prt = q_get_port_from_addr(aip->ai_family, aip->ai_addr);
+      int prt = q_get_port_from_addr(aip->ai_addr);
 
       for (struct addrinfo *p = aip; p; p = p->ai_next) {
 	 if (!connectINETIntern(host, service, p->ai_family, p->ai_addr, p->ai_addrlen, p->ai_socktype, p->ai_protocol, prt, timeout_ms, xsink, true))
@@ -1033,7 +1033,7 @@ struct qore_socket_private {
       return setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(int));
    }
 
-   DLLLOCAL int bindIntern(const struct sockaddr *ai_addr, size_t ai_addrlen, int prt, bool reuseaddr, ExceptionSink *xsink = 0) {
+   DLLLOCAL int bindIntern(struct sockaddr *ai_addr, size_t ai_addrlen, int prt, bool reuseaddr, ExceptionSink *xsink = 0) {
       reuse(reuseaddr);
 
       if ((::bind(sock, ai_addr, ai_addrlen)) == -1) {
@@ -1043,8 +1043,17 @@ struct qore_socket_private {
 	 return -1;
       }
 
-      // set port number if known
-      port = prt ? prt : -1;
+      // set port number
+      if (prt)
+	 port = prt;
+      else {
+	 // get port number
+	 socklen_t len;
+	 if (getsockname(sock, ai_addr, &len))
+	    port = -1;
+	 else
+	    port = q_get_port_from_addr(ai_addr);
+      }
       return 0;
    }
 
@@ -1065,7 +1074,7 @@ struct qore_socket_private {
       strncpy(addr.sun_path, name, sizeof(addr.sun_path) - 1);
       addr.sun_path[sizeof(addr.sun_path) - 1] = '\0';
 
-      if (bindIntern((const sockaddr *)&addr, sizeof(struct sockaddr_un), 0, false, xsink))
+      if (bindIntern((sockaddr *)&addr, sizeof(struct sockaddr_un), -1, false, xsink))
 	 return -1;
 
       // save socket file name for deleting on close
@@ -1087,7 +1096,7 @@ struct qore_socket_private {
       // first emit all "resolved" events
       if (cb_queue)
 	 for (struct addrinfo *p = aip; p; p = p->ai_next)
-	    do_resolved_event(p->ai_family, p->ai_addr);
+	    do_resolved_event(p->ai_addr);
 
       // try to open socket if necessary
       if (openINET(aip->ai_family, aip->ai_socktype, protocol)) {
@@ -1096,7 +1105,7 @@ struct qore_socket_private {
 	 return -1;
       }
 
-      int prt = q_get_port_from_addr(aip->ai_family, aip->ai_addr);
+      int prt = q_get_port_from_addr(aip->ai_addr);
 
       int en = 0;
       // iterate through addresses and bind to the first interface possible
@@ -2721,7 +2730,7 @@ int QoreSocket::bind(int family, const struct sockaddr *addr, int size, int sock
       return -1;
 
    // set port number
-   int prt = q_get_port_from_addr(family, addr);
+   int prt = q_get_port_from_addr(addr);
    priv->port = prt ? prt : -1;
    //printd(5, "QoreSocket::bind(interface, port) returning 0 (success)\n");
    return 0;   
