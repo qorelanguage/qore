@@ -7747,7 +7747,7 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 
     <para>This class is used with <link linkend="File_getTerminalAttributes">File::getTerminalAttributes()</link>, <link linkend="File_setTerminalAttributes">File::setTerminalAttributes()</link>, and the <link linkend="Qore_IO_Constants">terminal I/O constants</link> to manipulate terminal attributes.</para>
 
-    <para>For example, here is some code to set terminal attributes, read in a character from stanrdard input with a timeout, and reset the terminal attributes:</para>
+    <para>For example, here is some code to set terminal attributes, read in a character from standard input with a timeout, and reset the terminal attributes:</para>
 
     <programlisting><command>my</command> TermIOS $t();
 stdin.getTerminalAttributes($t);
