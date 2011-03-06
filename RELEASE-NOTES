@@ -1,6 +1,80 @@
 RELEASE NOTES for qore v0.8.2
 
-release in progress
+release summary: 16 bug fixes, IPv6 support, and other minor
+                 improvements
+
+* BUG FIX: fixed a crash when calling exit() right after fork() in the
+    parent process by ensuring that the signal thread is stopped
+    before exit()ing
+* BUG FIX: fixed parse option inheritance with Program objects; when
+    PO_NO_CHILD_PO_RESTRICTIONS is set, then take the parse option
+    argument to Program::constructor() and apply them literally to the
+    new Program object (before the parse options were ignored and the
+    parse options applied to the child were applied from unitialized
+    memory)
+* BUG FIX: fixed a memory/reference leak in the remove operator
+* BUG FIX: fixed a bug initializing the internal signal manager
+    related to static C++ initialization ordering
+* BUG FIX: fixed some bugs with %new-style with variable declaration
+    lists
+* BUG FIX: fixed typos in statvfs hash output
+* BUG FIX: fixed constant resolution when a class constant refers to
+    other (unscoped) class constants in the constant's definition
+* BUG FIX: fixed catch block parameter parsing when %allow-bare-refs
+    is set
+* BUG FIX: Dir::openFile() return type corrected to "File"
+* BUG FIX: fixed memory errors merging in exception thrown when
+    executing code at parse time to the run-time exception sink
+* BUG FIX: fixed initializing case expressions requiring parse-time
+    evaluation
+* BUG FIX: fixed the SQLStatement class to perform an auto-commit if
+    necessary when the statement is closed when used with a Datasource
+    with auto-commit enabled
+* BUG FIX: fixed (with an override) RWLock::lockOwner() to return True
+    if the read lock is held
+* BUG FIX: the SQLStatement class did not set the "in transaction" flag when
+    executing SQL; this could cause the transaction state to be
+    silently lost when a driver does a reconnect with a lost
+    connection
+* BUG FIX: the internal c++ Datasource class did not set the "active
+    transaction" flag properly with the first exec
+* BUG FIX: added -lthread to sparc8 builds
+* new feature: IPv6 support: Socket class updated, parseURL(), and
+    parse_url() updated to work with IPv6 addresses and hostnames
+* new feature: added Socket::getPeerInfo() and Socket::getSocketInfo()
+    methods to get verbose information about local and remote sockets
+* new feature: getaddrinfo() function and related constants to get
+    network address information for hostnames and services
+* new feature: added statvfs() function
+* new feature: added normal methods: Dir::hstat(), Dir::stat(),
+    Dir::statvfs()
+* new feature: added normal methods: File::stat(), File::hstat(),
+    File::statvfs(); added static methods: File::stat(),
+    File::lstat(), File::hstat(), File::hlstat(), File::statvfs()
+* new feature: added the %y printf format specifier to give YAML-like
+    output for complex data structures
+* new feature: added RWLock::writeLockOwner() and
+    RWLock::readLockOwner() methods
+* new feature: added date_info() function with 2 variants to get
+    broken-down date/time information
+* new feature: added FtpClient::rename() method
+* new feature: removed restriction assigning function references to
+    constants
+* new feature: added trunc_str() function for more efficient trimming
+    a multi-byte string to a certain maximum byte length
+* new feature: added a new DBI method: selectRow() and capability
+    (DBI_CAP_HAS_SELECT_ROW); this allows drivers to efficiently
+    select only one row from a select statement; if more than one row
+    is returned, then an exception should be raised and the data not
+    actually returned from the DB server; if the DBI driver does not
+    implement this function, then the Qore library will emulate this
+    behavior with selectRows()
+* new feature: added timestamp to default exception handler output
+* new feature: when the debugging compile-time option is enabled, then
+    simple backtraces are supported in specific places that will
+    assert on Linux and OSX
+* doc updates: content was added for new and existing features and
+    corrections were made
 
 
 ***********************
@@ -117,7 +191,7 @@ release.
 There is no defined roadmap for 1.0; this milestone will be declared when the
 time feels right (typical of open-source projects).
 
-Version 0.8.1 brings qore a lot closer to the 1.0 release; one main set of
+Version 0.8.2 brings qore a lot closer to the 1.0 release; one main set of
 features that may be added before then are hooks for debugging, tracing,
 breakpoints, etc.
 

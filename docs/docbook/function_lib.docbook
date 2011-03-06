@@ -512,6 +512,14 @@
         </row>
         <row>
           <entry>
+            <para><code><link linkend="hash_type">hash</link> <link linkend="date_info">date_info</link>(<link linkend="date_type">date</link> <replaceable>$date</replaceable>) (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="hash_type">hash</link> <link linkend="date_info">date_info</link>() (<link linkend="CONST_flag">CONST</link>)</code></para>
+          </entry>
+          <entry><para>N</para></entry>
+          <entry><para>Returns a hash of broken-down date/time information for the given date argument; if the variant with no argument is used, then the current date/time is assumed.</para></entry>
+        </row>
+        <row>
+          <entry>
             <para><code><link linkend="date_type">date</link> <link linkend="date_ms">date_ms</link>(<link linkend="softint_type">softint</link>) (<link linkend="CONST_flag">CONST</link>)</code></para>
             <para><code><link linkend="date_type">date</link> <link linkend="date_ms">date_ms</link>() (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
           </entry>
@@ -5102,6 +5110,149 @@
   <para>This function does not throw any exceptions.</para>
 
 </sect2>
+
+  <sect2 id="date_info">
+    <title>date_info()</title>
+
+    <variablelist>
+      <varlistentry>
+	<term>Synopsis</term>
+	<listitem>
+          <para>Returns a hash of broken-down date/time information for the given date argument; if the variant with no argument is used, then the current date/time is assumed.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Prototype</term>
+	<listitem>
+            <para><code><link linkend="hash_type">hash</link> <link linkend="date_info">date_info</link>(<link linkend="date_type">date</link> <replaceable>$date</replaceable>) (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="hash_type">hash</link> <link linkend="date_info">date_info</link>() (<link linkend="CONST_flag">CONST</link>)</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Example</term>
+	<listitem>
+	  <programlisting><command>my</command> hash $h = date_info($date);</programlisting>
+	</listitem>
+    </varlistentry>
+  </variablelist>
+
+      <table>
+        <title>Arguments and Return Values for date_info()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry><para>Argument Type</para></entry>
+              <entry><para>Return Type</para></entry>
+              <entry><para>Description</para></entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+	      <entry><para><code>[<link linkend="date_type">date</link> <replaceable>$date</replaceable>]</code></para></entry>
+              <entry><para><code><link linkend="hash_type">hash</link></code></para></entry>
+              <entry><para>Returns a <link linkend="date_info_hash">hash of broken-down date/time information</link> for the given date argument; if the variant with no argument is used, then the current date/time is assumed.</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+
+  <para>This function does not throw any exceptions.</para>
+
+      <table id="date_info_hash">
+        <title>Date Info Hash Description</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry><para>Key</para></entry>
+              <entry><para>Type</para></entry>
+              <entry><para>Absolute/Relative</para></entry>
+              <entry><para>Description</para></entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+	      <entry><para><code>relative</code></para></entry>
+              <entry><para><link linkend="bool_type">bool</link></para></entry>
+              <entry><para>Both</para></entry>
+              <entry><para>True if the date is a relative date, False if it is absolute</para></entry>
+            </row>
+            <row>
+	      <entry><para><code>year</code></para></entry>
+              <entry><para><link linkend="int_type">int</link></para></entry>
+              <entry><para>Both</para></entry>
+              <entry><para>The year value of the date</para></entry>
+            </row>
+            <row>
+	      <entry><para><code>month</code></para></entry>
+              <entry><para><link linkend="int_type">int</link></para></entry>
+              <entry><para>Both</para></entry>
+              <entry><para>The month value of the date</para></entry>
+            </row>
+            <row>
+	      <entry><para><code>day</code></para></entry>
+              <entry><para><link linkend="int_type">int</link></para></entry>
+              <entry><para>Both</para></entry>
+              <entry><para>The day value of the date (day of the month for absolute dates)</para></entry>
+            </row>
+            <row>
+	      <entry><para><code>hour</code></para></entry>
+              <entry><para><link linkend="int_type">int</link></para></entry>
+              <entry><para>Both</para></entry>
+              <entry><para>The hour value of the date</para></entry>
+            </row>
+            <row>
+	      <entry><para><code>minute</code></para></entry>
+              <entry><para><link linkend="int_type">int</link></para></entry>
+              <entry><para>Both</para></entry>
+              <entry><para>The minute value of the date</para></entry>
+            </row>
+            <row>
+	      <entry><para><code>second</code></para></entry>
+              <entry><para><link linkend="int_type">int</link></para></entry>
+              <entry><para>Both</para></entry>
+              <entry><para>The second value of the date</para></entry>
+            </row>
+            <row>
+	      <entry><para><code>microsecond</code></para></entry>
+              <entry><para><link linkend="int_type">int</link></para></entry>
+              <entry><para>Both</para></entry>
+              <entry><para>The microsecond value of the date</para></entry>
+            </row>
+            <row>
+	      <entry><para><code>dow</code></para></entry>
+              <entry><para><link linkend="int_type">int</link></para></entry>
+              <entry><para>Absolute Only</para></entry>
+              <entry><para>The day of the week, where 0=Sunday, 1=Monday, ... 6=Saturday</para></entry>
+            </row>
+            <row>
+	      <entry><para><code>doy</code></para></entry>
+              <entry><para><link linkend="int_type">int</link></para></entry>
+              <entry><para>Absolute Only</para></entry>
+              <entry><para>The ordinal day number in the year.</para></entry>
+            </row>
+            <row>
+	      <entry><para><code>utc_secs_east</code></para></entry>
+              <entry><para><link linkend="int_type">int</link></para></entry>
+              <entry><para>Absolute Only</para></entry>
+              <entry><para>Offset from UTC in seconds east; if the time zone is west of UTC then the value will be negative.</para></entry>
+            </row>
+            <row>
+	      <entry><para><code>dst</code></para></entry>
+              <entry><para><link linkend="bool_type">bool</link></para></entry>
+              <entry><para>Absolute Only</para></entry>
+              <entry><para>A flag if daylight savings time is in effect</para></entry>
+            </row>
+            <row>
+	      <entry><para><code>zone</code></para></entry>
+              <entry><para><link linkend="TimeZone_Class">TimeZone</link></para></entry>
+              <entry><para>Absolute Only</para></entry>
+              <entry><para>The time zone for the time.</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+
+  </sect2>
 
   <sect2 id="date_ms">
     <title>date_ms()</title>
@@ -10008,7 +10159,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <varlistentry>
 	<term>Example</term>
 	<listitem>
-	  <programlisting><command>my</command> *list $l = getaddrinfo("localhost");</programlisting>
+	  <programlisting><command>my</command> list $l = getaddrinfo("localhost");</programlisting>
 	</listitem>
       </varlistentry>
       <varlistentry>
