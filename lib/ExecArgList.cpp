@@ -28,8 +28,7 @@
 
 #define ARG_BLOCK 10
 
-char *ExecArgList::getString(const char *start, int size)
-{
+char *ExecArgList::getString(const char *start, int size) {
    char *str = (char *)malloc(sizeof(char) * (size + 1));
    strncpy(str, start, size);
    str[size] = '\0';
@@ -37,11 +36,9 @@ char *ExecArgList::getString(const char *start, int size)
    return str;
 }
 
-void ExecArgList::addArg(char *str)
-{
+void ExecArgList::addArg(char *str) {
    // resize args
-   if (len == allocated)
-   {
+   if (len == allocated) {
       allocated += ARG_BLOCK;
       arg = (char **)realloc(arg, sizeof(char *) * allocated);
    }
@@ -49,8 +46,7 @@ void ExecArgList::addArg(char *str)
    len++;
 }
 
-ExecArgList::ExecArgList(const char *str)
-{
+ExecArgList::ExecArgList(const char *str) {
    // copy string as we will edit it in place
    QoreString tmp(str);
 
@@ -61,25 +57,21 @@ ExecArgList::ExecArgList(const char *str)
    char *p = start;
    int quote = 0;
    
-   while (*p)
-   {
-      if (start == p && !quote && (*p == '\'' || *p == '\"'))
-      {
+   while (*p) {
+      if (start == p && !quote && (*p == '\'' || *p == '\"')) {
 	 quote = *p;
 	 start = p + 1;
 	 continue;
       }
       p++;
-      if (quote && (*p == '\'' || *p == '\"') && *p == quote)
-      {
+      if (quote && (*p == '\'' || *p == '\"') && *p == quote) {
 	 // move characters down to quote position
 	 memmove(p, p + 1, strlen(p));
 	 quote = 0;
 	 p--;
 	 continue;
       }
-      else if (!quote && *p == ' ')
-      {
+      else if (!quote && *p == ' ') {
 	 addArg(getString(start, p - start));
 	 start = p + 1;
       }
@@ -90,10 +82,8 @@ ExecArgList::ExecArgList(const char *str)
    addArg(0);
 }
 
-ExecArgList::~ExecArgList()
-{
-   if (arg)
-   {
+ExecArgList::~ExecArgList() {
+   if (arg) {
       for (int i = 0; i < len; i++)
 	 if (arg[i])
 	    free(arg[i]);
@@ -101,14 +91,29 @@ ExecArgList::~ExecArgList()
    }
 }
 
-char *ExecArgList::getFile()
-{
+char *ExecArgList::getFile() {
    if (len)
       return arg[0];
    return 0;
 }
 
-char **ExecArgList::getArgs()
-{
+char **ExecArgList::getArgs() {
    return arg;
 }
+
+#ifdef DEBUG
+void ExecArgList::showArgs() {
+   printd(0, "ExecArgList %p len=%d\n", this, len);
+   if (!len)
+      return;
+
+   QoreString str;
+
+   str.sprintf("file: %s", arg[0]);
+
+   for (int i = 1; i < len; ++i)
+      str.sprintf(" [%s]='%s'", i, arg[i]);
+   
+   printd(0, "  %s\n", str.getBuffer());
+}
+#endif

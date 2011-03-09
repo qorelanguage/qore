@@ -59,7 +59,7 @@ static AbstractQoreNode *f_exec(const QoreListNode *params, ExceptionSink *xsink
    ExecArgList args(p0->getBuffer());
    execvp(args.getFile(), args.getArgs());
    
-   xsink->raiseException("EXEC-ERROR", "execvp() failed with error code %d", errno);
+   xsink->raiseErrnoException("EXEC-ERROR", errno, "execvp() failed in child process for target '%s'", args.getFile());
    return 0;
 }
 
@@ -79,7 +79,7 @@ static AbstractQoreNode *f_system(const QoreListNode *params, ExceptionSink *xsi
       if (!(pid = fork())) {
 	 ExecArgList args(p0->getBuffer());
 	 execvp(args.getFile(), args.getArgs());
-	 fprintf(stderr, "execvp() failed with error code %d: %s\n", errno, strerror(errno));
+	 fprintf(stderr, "execvp() failed in child process for target '%s' with error code %d: %s\n", args.getFile(), errno, strerror(errno));
 	 qore_exit_process(-1);
       }
       if (pid == -1)
@@ -276,7 +276,7 @@ static AbstractQoreNode *f_gethostname(const QoreListNode *params, ExceptionSink
    char buf[HOSTNAMEBUFSIZE + 1];
 
    if (gethostname(buf, HOSTNAMEBUFSIZE)) {
-      xsink->raiseException("GETHOSTNAME-ERROR", q_strerror(errno));
+      xsink->raiseErrnoException("GETHOSTNAME-ERROR", errno, "gethostname() failed");
       return 0;
    }
    return new QoreStringNode(buf);
@@ -345,7 +345,7 @@ static AbstractQoreNode *f_getcwd_intern(ExceptionSink *xsink = 0) {
 	      continue;
 	  }
 	  if (xsink)
-	     xsink->raiseExceptionArg("GETCWD2-ERROR", new QoreBigIntNode(errno), q_strerror(errno));
+	     xsink->raiseErrnoException("GETCWD2-ERROR", errno, "getcwd() failed");
 	  return 0;
       }
       break;
