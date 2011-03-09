@@ -1,3 +1,5 @@
+* add warning for "." and {} operators where operand cannot be converted to a
+* string
 * make it so that a call ref/closure can be imported as a function in a
   Program
 * fix class member initialization order to be same as declaration order

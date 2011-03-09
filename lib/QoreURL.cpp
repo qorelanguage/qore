@@ -90,7 +90,7 @@ private:
 
       bool has_port = false;
       // see if there's a port
-      if ((p = (char *)strchr(pos, ':'))) {
+      if ((p = (char *)strrchr(pos, ':'))) {
 	 *p = '\0';
 	 port = atoi(p + 1);
 	 has_port = true;
