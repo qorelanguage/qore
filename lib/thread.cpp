@@ -1458,7 +1458,6 @@ static AbstractQoreNode *op_background(const AbstractQoreNode *left, const Abstr
       return 0;
    }
    //printd(5, "pthread_create() new thread TID %d, pthread_create() returned %d\n", tid, rc);
-
    return ref_rv ? new QoreBigIntNode(tid) : 0;
 }
 

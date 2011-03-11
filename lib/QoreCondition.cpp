@@ -45,6 +45,9 @@ int QoreCondition::broadcast() {
 
 int QoreCondition::wait(pthread_mutex_t *m) {   
 #ifdef DEBUG
+   // make sure mutex is locked
+   assert(pthread_mutex_trylock(m) == EBUSY);
+
    int rc = pthread_cond_wait(&c, m);
    if (rc) {
       printd(0, "QoreCondition::wait(%p) pthread_cond_wait() returned %d %s\n", m, rc, strerror(rc));
@@ -60,8 +63,32 @@ int QoreCondition::wait(pthread_mutex_t *m) {
 
 // timeout is in milliseconds
 int QoreCondition::wait(pthread_mutex_t *m, int timeout_ms) {
+#ifdef DARWIN
+   // use more efficient pthread_cond_timedwait_relative_np() on Darwin
+   struct timespec tmout;
+   tmout.tv_sec = timeout_ms / 1000;
+   tmout.tv_nsec = (timeout_ms - tmout.tv_sec * 1000) * 1000000;
+
+#ifndef DEBUG
+   return pthread_cond_timedwait_relative_np(&c, m, &tmout);
+#else // !DEBUG
+   //printd(5, "QoreCondition::wait(%p, %d) this=%p +trigger=%d.%09d\n", m, timeout_ms, this, tmout.tv_sec, tmout.tv_nsec);
+   int rc = pthread_cond_timedwait_relative_np(&c, m, &tmout);
+   if (rc && rc != ETIMEDOUT) {
+      printd(0, "QoreCondition::wait(m=%p, timeout_ms=%d) this=%p pthread_cond_timedwait_relative_np() returned %d %s (errno=%d %s)\n", m, timeout_ms, this, rc, strerror(rc), errno, strerror(errno));
+      // print out a backtrace if possible
+      qore_machine_backtrace();
+   }
+   assert(!rc || rc == ETIMEDOUT);
+   return rc;
+#endif // DEBUG
+#else // !DARWIN
    struct timeval now;
    struct timespec tmout;
+
+#ifdef DEBUG
+   int timeout_ms_orig = timeout_ms;
+#endif // DEBUG
    
    gettimeofday(&now, 0);
    int secs = timeout_ms / 1000;
@@ -72,17 +99,21 @@ int QoreCondition::wait(pthread_mutex_t *m, int timeout_ms) {
    tmout.tv_sec = now.tv_sec + secs + dsecs;
    tmout.tv_nsec = nsecs;
 
-   //printd(5, "QoreCondition::wait(%p, %d) this=%p now=%d.%09d trigger=%d.%09d\n", m, timeout_ms, this, now.tv_sec, now.tv_usec * 1000, tmout.tv_sec, tmout.tv_nsec);
+   // make sure mutex is locked
+   assert(pthread_mutex_trylock(m) == EBUSY);
+
 #ifndef DEBUG
    return pthread_cond_timedwait(&c, m, &tmout);
-#else
+#else // !DEBUG
+   //printd(5, "QoreCondition::wait(%p, %d) this=%p now=%d.%09d trigger=%d.%09d\n", m, timeout_ms, this, now.tv_sec, now.tv_usec * 1000, tmout.tv_sec, tmout.tv_nsec);
    int rc = pthread_cond_timedwait(&c, m, &tmout);
    if (rc && rc != ETIMEDOUT) {
-      printd(0, "QoreCondition::wait(m=%p, timeout_ms=%d) pthread_cond_timedwait() returned %d %s\n", m, timeout_ms, rc, strerror(rc));
+      printd(0, "QoreCondition::wait(m=%p, timeout_ms=%d) pthread_cond_timedwait() returned %d %s\n", m, timeout_ms_orig, rc, strerror(rc));
       // print out a backtrace if possible
       qore_machine_backtrace();
    }
    assert(!rc || rc == ETIMEDOUT);
    return rc;
-#endif
+#endif // DEBUG
+#endif // DARWIN
 }

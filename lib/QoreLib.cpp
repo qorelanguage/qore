@@ -1444,3 +1444,17 @@ QoreHashNode *statvfs_to_hash(const struct statvfs &vfs) {
    return h;
 }
 
+#if defined(DEBUG) && defined(HAVE_BACKTRACE)
+#define _QORE_BT_SIZE 20
+void qore_machine_backtrace() {
+   void *array[_QORE_BT_SIZE];
+   // get void*'s for all entries on the stack
+   size_t size = backtrace(array, _QORE_BT_SIZE);
+   
+   // print out all the frames to stderr
+   backtrace_symbols_fd(array, size, 2);
+}
+#else
+void qore_machine_backtrace() {
+}
+#endif
