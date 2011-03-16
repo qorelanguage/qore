@@ -107,7 +107,7 @@ static AbstractQoreNode *f_is_readable(const QoreListNode *args, ExceptionSink *
        || (getegid() == sbuf.st_gid && (sbuf.st_mode & S_IRGRP)))
       return boolean_true();
    
-   return boolean_true();
+   return boolean_false();
 }
 
 static AbstractQoreNode *f_is_writable(const QoreListNode *args, ExceptionSink *xsink) {
