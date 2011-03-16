@@ -199,6 +199,13 @@ static AbstractQoreNode *PROGRAM_disableParseOptions(QoreObject *self, QoreProgr
    return 0;
 }
 
+// nothing Program::replaceParseOptions(int $opt)  
+static AbstractQoreNode *PROGRAM_replaceParseOptions(QoreObject *self, QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink) {
+   int opt = (int)HARD_QORE_INT(params, 0);
+   p->replaceParseOptions(opt, xsink);
+   return 0;
+}
+
 // nothing Program::setScriptPath()  
 static AbstractQoreNode *PROGRAM_setScriptPath_nothing(QoreObject *self, QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink) {
    p->setScriptPath(0);
@@ -354,6 +361,9 @@ QoreClass *initProgramClass() {
 
    // nothing Program::disableParseOptions(int $opt = PO_DEFAULT)  
    QC_PROGRAM->addMethodExtended("disableParseOptions",  (q_method_t)PROGRAM_disableParseOptions, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, bigIntTypeInfo, new QoreBigIntNode(PO_DEFAULT));
+
+   // nothing Program::replaceParseOptions(int $opt)  
+   QC_PROGRAM->addMethodExtended("replaceParseOptions",  (q_method_t)PROGRAM_replaceParseOptions, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, bigIntTypeInfo, QORE_PARAM_NO_ARG);
 
    // nothing Program::setScriptPath()  
    QC_PROGRAM->addMethodExtended("setScriptPath",        (q_method_t)PROGRAM_setScriptPath_nothing, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);

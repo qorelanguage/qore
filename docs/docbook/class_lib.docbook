@@ -11880,6 +11880,14 @@ stdin.getTerminalAttributes($termios);</programlisting>
 
 	  <row>
 	    <entry>
+              <para><code><link linkend="nothing_type">nothing</link> <link linkend="Program_replaceParseOptions">Program::replaceParseOptions</link>(<link linkend="int_type">int</link> <replaceable>$options</replaceable>)</code></para>
+            </entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Replaces the current parse option mask with the parse options given as an argument; an exception is thrown if the calling Program object does not have <link linkend="PO_NO_CHILD_PO_RESTRICTIONS">PO_NO_CHILD_PO_RESTRICTIONS</link> set.</para></entry>
+	  </row>
+
+	  <row>
+	    <entry>
               <para><code><link linkend="nothing_type">nothing</link> <link linkend="Program_setParseOptions">Program::setParseOptions</link>(<link linkend="int_type">int</link> <replaceable>$options</replaceable> = <link linkend="PO_DEFAULT">PO_DEFAULT</link>)</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
@@ -12199,6 +12207,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	  <term>Synopsis</term>
 	  <listitem>
 	    <para>Disables <link linkend="Parse_Options">parse options</link> in the parse option mask for the Program object.  An exception is thrown if parse options have been locked (for example with <link linkend="Program_lockOptions">Program::lockOptions()</link>).   For a reciprocal method that sets parse options, see <link linkend="Program_setParseOptions">Program::setParseOptions()</link>.</para>
+	    <para>See also <link linkend="Program_replaceParseOptions">Program::replaceParseOptions()</link>.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -13136,6 +13145,69 @@ $pgm.disableParseOptions(<link linkend="PO_NO_THREADS">PO_NO_THREADS</link> | <l
       </table>
     </sect2>
 
+    <sect2 id="Program_replaceParseOptions">
+      <title>Program::replaceParseOptions()</title>
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Replaces the <link linkend="Parse_Options">parse options</link> for the Program object; an exception is thrown if the calling Program object does not have <link linkend="PO_NO_CHILD_PO_RESTRICTIONS">PO_NO_CHILD_PO_RESTRICTIONS</link> set.</para>
+	    <para>See also <link linkend="Program_setParseOptions">Program::setParseOptions()</link> and <link linkend="Program_disableParseOptions">Program::disableParseOptions()</link>.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Prototype</term>
+	  <listitem>
+            <para><code><link linkend="nothing_type">nothing</link> <link linkend="Program_replaceParseOptions">Program::replaceParseOptions</link>(<link linkend="int_type">int</link> <replaceable>$options</replaceable>)</code></para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting># disallow threading and GUI operations
+$pgm.replaceParseOptions(<link linkend="PO_NO_THREADS">PO_NO_THREADS</link> | <link linkend="PO_NO_GUI">PO_NO_GUI</link>);</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for Program::replaceParseOptions()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code><link linkend="int_type">int</link> <replaceable>$options</replaceable></code></para></entry>
+	      <entry><para>A single <link linkend="Parse_Options">parse option</link> or binary-or combination of <link linkend="Parse_Options">parse options</link> to set in the parse option mask for the current object.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by Program::replaceParseOptions()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>OPTION-ERROR</code></para></entry>
+	      <entry><para>the calling Program does not have the <link linkend="PO_NO_CHILD_PO_RESTRICTIONS">PO_NO_CHILD_PO_RESTRICTIONS</link> option set, and therefore cannot call Program::replaceParseOptions().</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+    </sect2>
+
     <sect2 id="Program_setParseOptions">
       <title>Program::setParseOptions()</title>
       <variablelist>
@@ -13143,6 +13215,7 @@ $pgm.disableParseOptions(<link linkend="PO_NO_THREADS">PO_NO_THREADS</link> | <l
 	  <term>Synopsis</term>
 	  <listitem>
 	    <para>Sets <link linkend="Parse_Options">parse options</link> in the parse option mask for the Program object.  An exception is thrown if parse options have been locked (for example with <link linkend="Program_lockOptions">Program::lockOptions()</link>).  For a reciprocal method that disables parse options, see <link linkend="Program_disableParseOptions">Program::disableParseOptions()</link>.</para>
+	    <para>See also <link linkend="Program_replaceParseOptions">Program::replaceParseOptions()</link>.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -13172,7 +13245,7 @@ $pgm.setParseOptions(<link linkend="PO_NO_THREADS">PO_NO_THREADS</link> | <link 
 	  <tbody>
 	    <row>
 	      <entry><para><code><link linkend="int_type">int</link> <replaceable>$options</replaceable> = <link linkend="PO_DEFAULT">PO_DEFAULT</link></code></para></entry>
-	      <entry><para> A single <link linkend="Parse_Options">parse option</link> or binary-or combination of <link linkend="Parse_Options">parse options</link> to set in the parse option mask for the current object.</para></entry>
+	      <entry><para>A single <link linkend="Parse_Options">parse option</link> or binary-or combination of <link linkend="Parse_Options">parse options</link> to set in the parse option mask for the current object.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>

@@ -110,9 +110,8 @@ struct qore_program_private {
 
    ParseWarnOptions pwo;
 
-   std::string exec_class_name, script_dir, script_path, script_name,
-      include_path;
-   bool po_locked, exec_class, base_object, requires_exception;
+   std::string exec_class_name, script_dir, script_path, script_name, include_path;
+   bool po_locked, po_allow_restrict, exec_class, base_object, requires_exception;
 
    // thread-local data (could be inherited from another program)
    qpgm_thread_local_storage_t *thread_local_storage;
@@ -122,15 +121,13 @@ struct qore_program_private {
 
    QoreProgram *pgm;
 
-   DLLLOCAL qore_program_private(QoreProgram *n_pgm, int64 n_parse_options, const AbstractQoreZoneInfo *n_TZ = QTZM.getLocalZoneInfo()) : thread_count(0), pwo(n_parse_options), TZ(n_TZ), pgm(n_pgm) {
-      printd(5, "QoreProgram::QoreProgram() (init()) this=%p\n", this);
-      only_first_except = false;
-      exceptions_raised = 0;
-#ifdef DEBUG
-      parseSink = 0;
-#endif
-      warnSink = 0;
-      requires_exception = false;
+   DLLLOCAL qore_program_private(QoreProgram *n_pgm, int64 n_parse_options, const AbstractQoreZoneInfo *n_TZ = QTZM.getLocalZoneInfo()) 
+      : thread_count(0), parseSink(0), warnSink(0), RootNS(0), QoreNS(0),
+        only_first_except(false), exceptions_raised(0), 
+        pwo(n_parse_options), po_locked(false), po_allow_restrict(true), 
+        exec_class(false), base_object(false), requires_exception(false), 
+        thread_local_storage(0), TZ(n_TZ), pgm(n_pgm) {
+      printd(5, "qore_program_private::qore_program_private() this=%p pgm=%p\n", this, pgm);
 	 
       // initialize global vars
       Var *var = global_var_list.newVar("ARGV", listTypeInfo);
@@ -574,6 +571,38 @@ struct qore_program_private {
    DLLLOCAL bool parseExceptionRaised() const {
       assert(parseSink);
       return *parseSink;
+   }
+
+   DLLLOCAL void setParseOptions(int64 po, ExceptionSink *xsink = 0) {
+      // only raise the exception if parse options are locked and the option is not a "free option"
+      // also check if options may be made more restrictive and the option also does so
+      if (!(po & PO_FREE_OPTIONS) && po_locked && (!po_allow_restrict || (po & PO_POSITIVE_OPTIONS))) {
+         if (xsink)
+            xsink->raiseException("OPTIONS-LOCKED", "parse options have been locked on this program object");
+         else
+            parse_error("parse options have been locked on this program object");
+         return;
+      }
+      pwo.parse_options |= po;
+   }
+   
+   DLLLOCAL void disableParseOptions(int64 po, ExceptionSink *xsink) {
+      // only raise the exception if parse options are locked and the option is not a "free option"
+      // also check if options may be made more restrictive and the option also does so
+      if (po_locked && (!po_allow_restrict || !(po & PO_POSITIVE_OPTIONS))) {
+         xsink->raiseException("OPTIONS-LOCKED", "parse options have been locked on this program object");
+         return;
+      }
+      pwo.parse_options &= ~po;
+   }
+
+   DLLLOCAL void replaceParseOptions(int64 po, ExceptionSink *xsink) {
+      if (!(getProgram()->priv->pwo.parse_options & PO_NO_CHILD_PO_RESTRICTIONS)) {
+         xsink->raiseException("OPTION-ERROR", "the calling Program does not have the PO_NO_CHILD_PO_RESTRICTIONS option set, and therefore cannot call Program::replaceParseOptions()");
+         return;
+      }
+      
+      pwo.parse_options = po;
    }
 
    DLLLOCAL static const ParseWarnOptions &getParseWarnOptions(const QoreProgram *pgm) {

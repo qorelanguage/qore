@@ -595,44 +595,33 @@ bool QoreProgram::existsFunction(const char *name) {
 
 // DEPRECATED
 void QoreProgram::parseSetParseOptions(int po) {
-   parseSetParseOptions((int64)po);
+   priv->setParseOptions((int64)po);
 }
 
 void QoreProgram::parseSetParseOptions(int64 po) {
-   // only raise the exception if parse options are locked and the option is not a "free option"
-   if (!(po & PO_FREE_OPTIONS) && priv->po_locked) {
-      parse_error("parse options have been locked on this program object");
-      return;
-   }
-   priv->pwo.parse_options |= po;
+   priv->setParseOptions(po);
 }
 
 // DEPRECATED
 void QoreProgram::setParseOptions(int po, ExceptionSink *xsink) {
-   setParseOptions((int64)po, xsink);
+   priv->setParseOptions((int64)po, xsink);
 }
 
 void QoreProgram::setParseOptions(int64 po, ExceptionSink *xsink) {
-   // only raise the exception if parse options are locked and the option is not a "free option"
-   if (!(po & PO_FREE_OPTIONS) && priv->po_locked) {
-      xsink->raiseException("OPTIONS-LOCKED", "parse options have been locked on this program object po=%lld PO_FREE_OTIONS=%d po|PO_FREE_OPTIONS=%lld", po, PO_FREE_OPTIONS, po & PO_FREE_OPTIONS);
-      return;
-   }
-   priv->pwo.parse_options |= po;
+   priv->setParseOptions(po, xsink);
 }
 
 // DEPRECATED
 void QoreProgram::disableParseOptions(int po, ExceptionSink *xsink) {
-   disableParseOptions((int64)po, xsink);
+   priv->disableParseOptions((int64)po, xsink);
 }
 
 void QoreProgram::disableParseOptions(int64 po, ExceptionSink *xsink) {
-   // only raise the exception if parse options are locked and the option is not a "free option"
-   if (priv->po_locked) {
-      xsink->raiseException("OPTIONS-LOCKED", "parse options have been locked on this program object");
-      return;
-   }
-   priv->pwo.parse_options &= ~po;
+   priv->disableParseOptions(po, xsink);
+}
+
+void QoreProgram::replaceParseOptions(int64 po, ExceptionSink *xsink) {
+   priv->replaceParseOptions(po, xsink);
 }
 
 void QoreProgram::parsePending(const char *code, const char *label, ExceptionSink *xsink, ExceptionSink *wS, int wm) {
