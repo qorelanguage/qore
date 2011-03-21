@@ -516,6 +516,8 @@ public:
 
       // ex: 229 Entering Extended Passive Mode (|||63519|)
       // get port for data connection
+      //printd(5, "EPSV: %s\n", resp.getBuffer());
+
       const char *s = strstr(resp.getBuffer(), "|||");
       if (!s) {
 	 xsink->raiseException("FTP-RESPONSE-ERROR", "cannot find port in EPSV response: %s", resp.getBuffer());
@@ -531,7 +533,7 @@ public:
 
       int data_port = atoi(s);
       if (data.connectINET(host, data_port)) {
-	 xsink->raiseErrnoException("FTP-CONNECT-ERROR", errno, "could not connect to passive data port (%s:%d)", host, data_port);
+	 xsink->raiseErrnoException("FTP-CONNECT-ERROR", errno, "could not connect to extended passive data port (%s:%d)", host, data_port);
 	 return -1;
       }
       printd(FTPDEBUG, "EPSV connected to %s:%d\n", host, data_port);
@@ -1154,25 +1156,6 @@ int QoreFtpClient::mkdir(const char *remotepath, ExceptionSink *xsink) {
       return -1;
 
    int code;
-   QoreStringNodeHolder p(priv->sendMsg(code, "RMD", remotepath, xsink));
-   sl.unlock();
-   if (xsink->isEvent())
-      return -1;
-
-   if ((code / 100) == 2)
-      return 0;
-
-   p->chomp();
-   xsink->raiseException("FTP-MKDIR-ERROR", "FTP server returned an error to the RMD command: %s", p->getBuffer());
-   return -1;
-}
-
-int QoreFtpClient::rmdir(const char *remotepath, ExceptionSink *xsink) {
-   SafeLocker sl(priv->m);
-   if (priv->checkConnectedUnlocked(xsink))
-      return -1;
-
-   int code;
    QoreStringNodeHolder p(priv->sendMsg(code, "MKD", remotepath, xsink));
    sl.unlock();
    if (xsink->isEvent())
@@ -1183,6 +1166,25 @@ int QoreFtpClient::rmdir(const char *remotepath, ExceptionSink *xsink) {
 
    p->chomp();
    xsink->raiseException("FTP-MKDIR-ERROR", "FTP server returned an error to the MKD command: %s", p->getBuffer());
+   return -1;
+}
+
+int QoreFtpClient::rmdir(const char *remotepath, ExceptionSink *xsink) {
+   SafeLocker sl(priv->m);
+   if (priv->checkConnectedUnlocked(xsink))
+      return -1;
+
+   int code;
+   QoreStringNodeHolder p(priv->sendMsg(code, "RMD", remotepath, xsink));
+   sl.unlock();
+   if (xsink->isEvent())
+      return -1;
+
+   if ((code / 100) == 2)
+      return 0;
+
+   p->chomp();
+   xsink->raiseException("FTP-RMDIR-ERROR", "FTP server returned an error to the RMD command: %s", p->getBuffer());
    return -1;
 }
 

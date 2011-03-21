@@ -326,9 +326,9 @@ struct qore_socket_private {
 #if defined(HPUX) && defined(__ia64) && defined(__LP64__)
       // on HPUX 64-bit the OS defines socklen_t to be 8 bytes
       // but the library expects a 32-bit value
-      int size = sizeof(struct sockaddr_un);
+      int size = sizeof(struct timeval);
 #else
-      socklen_t size = sizeof(struct sockaddr_un);
+      socklen_t size = sizeof(struct timeval);
 #endif
 
       if (getsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, (void *)&tv, (socklen_t *)&size))
@@ -343,9 +343,9 @@ struct qore_socket_private {
 #if defined(HPUX) && defined(__ia64) && defined(__LP64__)
       // on HPUX 64-bit the OS defines socklen_t to be 8 bytes
       // but the library expects a 32-bit value
-      int size = sizeof(struct sockaddr_un);
+      int size = sizeof(struct timeval);
 #else
-      socklen_t size = sizeof(struct sockaddr_un);
+      socklen_t size = sizeof(struct timeval);
 #endif
 
       if (getsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (void *)&tv, (socklen_t *)&size))
@@ -356,24 +356,22 @@ struct qore_socket_private {
 
    DLLLOCAL int getPort() {
       // if we don't need to find out what port we are, then return current value
-      if (sock == -1 || sfamily != AF_INET || port != -1)
+      if (sock == -1 || (sfamily != AF_INET && sfamily != AF_INET6) || port > 0)
 	 return port;
 
       // otherwise find out what port we're connected to
-      struct sockaddr_in add;
-
+      struct sockaddr_storage addr;
 #if defined(HPUX) && defined(__ia64) && defined(__LP64__)
-      // on HPUX 64-bit the OS defines socklen_t to be 8 bytes
-      // but the library expects a 32-bit value
-      int size = sizeof(struct sockaddr_un);
+      // on HPUX 64-bit the OS defines socklen_t to be 8 bytes, but the library expects a 32-bit value
+      int size = sizeof addr;
 #else
-      socklen_t size = sizeof(struct sockaddr_un);
+      socklen_t size = sizeof addr;
 #endif
 
-      if (getsockname(sock, (struct sockaddr *) &add, (socklen_t *)&size) < 0)
+      if (getsockname(sock, (struct sockaddr *)&addr, (socklen_t *)&size) < 0)
 	 return -1;
 
-      port = ntohs(add.sin_port);
+      port = q_get_port_from_addr((const struct sockaddr *)&addr);
       return port;
    }
 
@@ -1048,7 +1046,13 @@ struct qore_socket_private {
 	 port = prt;
       else {
 	 // get port number
-	 socklen_t len;
+#if defined(HPUX) && defined(__ia64) && defined(__LP64__)
+	 // on HPUX 64-bit the OS defines socklen_t to be 8 bytes, but the library expects a 32-bit value
+	 int len = ai_addrlen;
+#else
+	 socklen_t len = ai_addrlen;
+#endif
+
 	 if (getsockname(sock, ai_addr, &len))
 	    port = -1;
 	 else
@@ -1149,8 +1153,13 @@ struct qore_socket_private {
       }
 
       struct sockaddr_storage addr;
-
+#if defined(HPUX) && defined(__ia64) && defined(__LP64__)
+      // on HPUX 64-bit the OS defines socklen_t to be 8 bytes, but the library expects a 32-bit value
+      int len = sizeof addr;
+#else
       socklen_t len = sizeof addr;
+#endif
+
       if (getsockname(sock, (struct sockaddr*)&addr, &len)) {
 	 xsink->raiseErrnoException("SOCKET-GETSOCKETINFO-ERROR", errno, "error in getsockname()");
 	 return 0;
