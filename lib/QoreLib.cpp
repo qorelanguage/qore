@@ -247,12 +247,13 @@ const qore_option_s *qore_option_list = qore_option_list_l;
 size_t qore_option_list_size = QORE_OPTION_LIST_SIZE;
 
 static inline int get_number(char **param) {
-   int i, num; 
-   
-   i = strspn((*param), "0123456789");
-   num = atoi(*param);
-   (*param) += i;
-   return num;
+   int num = 0;
+   while (isdigit(**param)) {
+      num = num*10 + (**param - '0');
+      ++(*param);
+   }
+   //printd(0, "get_number(%x: %s) num=%d\n", *param, *param, num);
+      return num;
 }
 
 // print options
