@@ -8931,7 +8931,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
       </tgroup>
     </table>
 
-    <para>Once the URL (at least the hostname) has been set, the <link linkend="FtpClient_connect">FtpClient::connect() method</link> must be called to connect and login to the FTP server.</para>
+    <para>Once the URL (at least the hostname) has been set, any method requiring a connection will make an implicit call to <link linkend="FtpClient_connect">FtpClient::connect()</link> to attempt to connect and login to the FTP server before executing the method.</para>
 
     <para>Objects of this class are capable of making encrypted FTPS connections according to <ulink url="http://www.ietf.org/rfc/rfc4217.txt">RFC-4217</ulink>.  TLS/SSL encrypted control and data connection will be attempted if the protocol is set to 'ftps' or the <link linkend="FtpClient_setSecure">FtpClient::setSecure() method</link> is called before connecting.</para>
 
@@ -9042,7 +9042,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="FtpClient_setInsecureData">FtpClient::setInsecureData()</link> <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="nothing_type">nothing</link> <link linkend="FtpClient_setInsecureData">FtpClient::setInsecureData()</link></code></para>
             </entry>
             <entry>
               <para>Y</para>
@@ -9212,10 +9212,31 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	  </row>
 	  <row>
 	    <entry>
+              <para><code><link linkend="nothing_type">nothing</link> <link linkend="FtpClient_putData">FtpClient::putData</link>(<link linkend="data_type">data</link> <replaceable>$file_data</replaceable>, <link linkend="string_type">string</link> <replaceable>$remote_file_name</replaceable>)</code></para>
+            </entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Transfers a data to the FTP server and saves it as a file on the remote machine; if any errors occur, an exception is thrown.</para></entry>
+	  </row>
+	  <row>
+	    <entry>
               <para><code><link linkend="nothing_type">nothing</link> <link linkend="FtpClient_del">FtpClient::del</link>(<link linkend="string_type">string</link> <replaceable>$remote_file</replaceable>)</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Deletes a file from the FTP server</para></entry>
+	  </row>
+	  <row>
+	    <entry>
+              <para><code><link linkend="nothing_type">nothing</link> <link linkend="FtpClient_mkdir">FtpClient::mkdir</link>(<link linkend="string_type">string</link> <replaceable>$remote_dir</replaceable>)</code></para>
+            </entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Creates a directory on the FTP server</para></entry>
+	  </row>
+	  <row>
+	    <entry>
+              <para><code><link linkend="nothing_type">nothing</link> <link linkend="FtpClient_rmdir">FtpClient::rmdir</link>(<link linkend="string_type">string</link> <replaceable>$remote_dir</replaceable>)</code></para>
+            </entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Removes a directory on the FTP server</para></entry>
 	  </row>
 	  <row>
 	    <entry>
@@ -9331,8 +9352,6 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	  <term>Synopsis</term>
 	  <listitem>
 	    <para>Creates the FtpClient object. It accepts one optional argument that will set the URL for the FTP connection; the path is ignored in the URL, however the username,  password, hostname and port are respected; additionally if the protocol is &quot;ftps&quot;, the client will attempt to establish a secure connection to the server according to <ulink url="http://www.ietf.org/rfc/rfc4217.txt">RFC-4217</ulink> when the first connection is established.</para>
-
-	    <para>A call to <link linkend="FtpClient_connect">FtpClient::connect()</link> must be made explicitly before any actions requiring a connection to the server are made; connections are not made implicitly by this class.</para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -9454,6 +9473,8 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	  <term>Synopsis</term>
 	  <listitem>
 	    <para>Connects to the FTP server and attempts a login; if any errors occur, an exception is thrown.</para>
+	    <para>This method does not need to be called explicitly; connections are established implicitly by all methdods that communicate with FTP servers.</para>
+
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -9666,7 +9687,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-              <para><code><link linkend="FtpClient_setInsecureData">FtpClient::setInsecureData()</link> <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="nothing_type">nothing</link> <link linkend="FtpClient_setInsecureData">FtpClient::setInsecureData()</link></code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -10118,10 +10139,6 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	      <entry><para>Incomplete message received on control port.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para><code>FTP-NOT-CONNECTED</code></para></entry>
-	      <entry><para>Not connected to FTP server (call FtpClient::connect() first).</para></entry>
-	    </row>
-	    <row>
 	      <entry><para><code>FTP-LIST-ERROR</code></para></entry>
 	      <entry><para>FTP server returned an error in response to the LIST command.</para></entry>
 	    </row>
@@ -10210,10 +10227,6 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	      <entry><para>Incomplete message received on control port.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para><code>FTP-NOT-CONNECTED</code></para></entry>
-	      <entry><para>Not connected to FTP server (call FtpClient::connect() first).</para></entry>
-	    </row>
-	    <row>
 	      <entry><para><code>FTP-LIST-ERROR</code></para></entry>
 	      <entry><para>FTP server returned an error in response to the NSLT command.</para></entry>
 	    </row>
@@ -10283,10 +10296,6 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	      <entry><para>Incomplete message received on control port.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para><code>FTP-NOT-CONNECTED</code></para></entry>
-	      <entry><para>Not connected to FTP server (call FtpClient::connect() first).</para></entry>
-	    </row>
-	    <row>
 	      <entry><para><code>FTP-PWD-ERROR</code></para></entry>
 	      <entry><para>FTP server returned an error to the PWD command.</para></entry>
 	    </row>
@@ -10354,10 +10363,6 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	    <row>
 	      <entry><para><code>FTP-RECEIVE-ERROR</code></para></entry>
 	      <entry><para>Incomplete message received on control port.</para></entry>
-	    </row>
-	    <row>
-	      <entry><para><code>FTP-NOT-CONNECTED</code></para></entry>
-	      <entry><para>Not connected to FTP server (call FtpClient::connect() first).</para></entry>
 	    </row>
 	    <row>
 	      <entry><para><code>FTP-CWD-ERROR</code></para></entry>
@@ -10437,10 +10442,6 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	    <row>
 	      <entry><para><code>FTP-RECEIVE-ERROR</code></para></entry>
 	      <entry><para>Incomplete message received on control port.</para></entry>
-	    </row>
-	    <row>
-	      <entry><para><code>FTP-NOT-CONNECTED</code></para></entry>
-	      <entry><para>Not connected to FTP server (call FtpClient::connect() first).</para></entry>
 	    </row>
 	    <row>
 	      <entry><para><code>FTP-FILE-OPEN-ERROR</code></para></entry>
@@ -10533,10 +10534,6 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	      <entry><para>Incomplete message received on control port.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para><code>FTP-NOT-CONNECTED</code></para></entry>
-	      <entry><para>Not connected to FTP server (call FtpClient::connect() first).</para></entry>
-	    </row>
-	    <row>
 	      <entry><para><code>FTP-FILE-OPEN-ERROR</code></para></entry>
 	      <entry><para>Could not create the local file.</para></entry>
 	    </row>
@@ -10627,10 +10624,6 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	      <entry><para>Incomplete message received on control port.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para><code>FTP-NOT-CONNECTED</code></para></entry>
-	      <entry><para>Not connected to FTP server (call FtpClient::connect() first).</para></entry>
-	    </row>
-	    <row>
 	      <entry><para><code>FTP-FILE-OPEN-ERROR</code></para></entry>
 	      <entry><para>Could not create the local file.</para></entry>
 	    </row>
@@ -10642,7 +10635,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	</tgroup>
       </table>
     </sect2>
-
+ 
     <sect2 id="FtpClient_put">
       <title>FtpClient::put()</title>
       <variablelist>
@@ -10715,10 +10708,6 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	      <entry><para>Incomplete message received on control port.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para><code>FTP-NOT-CONNECTED</code></para></entry>
-	      <entry><para>Not connected to FTP server (call FtpClient::connect() first).</para></entry>
-	    </row>
-	    <row>
 	      <entry><para><code>FTP-FILE-OPEN-ERROR</code></para></entry>
 	      <entry><para>Could not open local file for reading.</para></entry>
 	    </row>
@@ -10733,6 +10722,78 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	    <row>
 	      <entry><para><code>FTPCLIENT-PUT-PARAMETER-ERROR</code></para></entry>
 	      <entry><para>Missing argument to the method.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="FtpClient_putData">
+      <title>FtpClient::putData()</title>
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Transfers a data to the FTP server and saves it as a file on the remote machine; if any errors occur, an exception is thrown.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Prototype</term>
+	  <listitem>
+	    <para><code><link linkend="nothing_type">nothing</link> <link linkend="FtpClient_putData">FtpClient::putData</link>(<link linkend="data_type">data</link> <replaceable>$file_data</replaceable>, <link linkend="string_type">string</link> <replaceable>$remote_file_name</replaceable>)</code></para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$ftp.putData($str, "file.txt");</programlisting>
+	  </listitem>
+	</varlistentry>
+        <varlistentry>
+          <term>Events</term>
+          <listitem><para><code><link linkend="event_ftp_send_message">EVENT_FTP_SEND_MESSAGE</link>, <link linkend="event_ftp_message_received">EVENT_FTP_MESSAGE_RECEIVED</link>, <link linkend="event_packet_read">EVENT_PACKET_READ</link>, <link linkend="event_packet_sent">EVENT_PACKET_SENT</link></code></para></listitem>
+        </varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for FtpClient::putData()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code><link linkend="data_type">data</link> <replaceable>$file_data</replaceable></code></para></entry>
+	      <entry><para>The file data to save on the remote server.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>[<link linkend="string_type">string</link> <replaceable>$remote_file_name</replaceable>]</code></para></entry>
+	      <entry><para>The file name on the remote server.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by FtpClient::putData()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>FTP-RECEIVE-ERROR</code></para></entry>
+	      <entry><para>Incomplete message received on control port.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>FTP-PUT-ERROR</code></para></entry>
+	      <entry><para>An error occurred while sending the file.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -10799,12 +10860,144 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	      <entry><para>Incomplete message received on control port.</para></entry>
 	    </row>
 	    <row>
-	      <entry><para><code>FTP-NOT-CONNECTED</code></para></entry>
-	      <entry><para>Not connected to FTP server (call FtpClient::connect() first).</para></entry>
-	    </row>
-	    <row>
 	      <entry><para><code>FTP-DELETE-ERROR</code></para></entry>
 	      <entry><para>FTP server returned an error to the DELE command.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="FtpClient_mkdir">
+      <title>FtpClient::mkdir()</title>
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Creates a directory on the remote FTP server; if any errors occur, an exception is thrown.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Prototype</term>
+	  <listitem>
+              <para><code><link linkend="nothing_type">nothing</link> <link linkend="FtpClient_mkdir">FtpClient::mkdir</link>(<link linkend="string_type">string</link> <replaceable>$remote_dir</replaceable>)</code></para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$ftp.mkdir("tmp");</programlisting>
+	  </listitem>
+	</varlistentry>
+        <varlistentry>
+          <term>Events</term>
+          <listitem><para><code><link linkend="event_ftp_send_message">EVENT_FTP_SEND_MESSAGE</link>, <link linkend="event_ftp_message_received">EVENT_FTP_MESSAGE_RECEIVED</link>, <link linkend="event_packet_read">EVENT_PACKET_READ</link>, <link linkend="event_packet_sent">EVENT_PACKET_SENT</link></code></para></listitem>
+        </varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for FtpClient::mkdir()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code><link linkend="string_type">string</link> <replaceable>$remote_dir</replaceable></code></para></entry>
+	      <entry><para>The path on the server to the directory to create.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by FtpClient::mkdir()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>FTP-RECEIVE-ERROR</code></para></entry>
+	      <entry><para>Incomplete message received on control port.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>FTP-MKDIR-ERROR</code></para></entry>
+	      <entry><para>FTP server returned an error to the MKD command.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="FtpClient_rmdir">
+      <title>FtpClient::rmdir()</title>
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Removes a directory on the remote FTP server; if any errors occur, an exception is thrown.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Prototype</term>
+	  <listitem>
+              <para><code><link linkend="nothing_type">nothing</link> <link linkend="FtpClient_rmdir">FtpClient::rmdir</link>(<link linkend="string_type">string</link> <replaceable>$remote_dir</replaceable>)</code></para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$ftp.rmdir("tmp");</programlisting>
+	  </listitem>
+	</varlistentry>
+        <varlistentry>
+          <term>Events</term>
+          <listitem><para><code><link linkend="event_ftp_send_message">EVENT_FTP_SEND_MESSAGE</link>, <link linkend="event_ftp_message_received">EVENT_FTP_MESSAGE_RECEIVED</link>, <link linkend="event_packet_read">EVENT_PACKET_READ</link>, <link linkend="event_packet_sent">EVENT_PACKET_SENT</link></code></para></listitem>
+        </varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for FtpClient::rmdir()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code><link linkend="string_type">string</link> <replaceable>$remote_dir</replaceable></code></para></entry>
+	      <entry><para>The path on the server to the directory to delete.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by FtpClient::rmdir()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>FTP-RECEIVE-ERROR</code></para></entry>
+	      <entry><para>Incomplete message received on control port.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>FTP-RMDIR-ERROR</code></para></entry>
+	      <entry><para>FTP server returned an error to the RMD command.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -10873,10 +11066,6 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	    <row>
 	      <entry><para><code>FTP-RECEIVE-ERROR</code></para></entry>
 	      <entry><para>Incomplete message received on control port.</para></entry>
-	    </row>
-	    <row>
-	      <entry><para><code>FTP-NOT-CONNECTED</code></para></entry>
-	      <entry><para>Not connected to FTP server (call FtpClient::connect() first).</para></entry>
 	    </row>
 	    <row>
 	      <entry><para><code>FTP-RENAME-ERROR</code></para></entry>
@@ -13791,7 +13980,7 @@ $pgm.setParseOptions(<link linkend="PO_NO_THREADS">PO_NO_THREADS</link> | <link 
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Socket_sendHTTPMessage">Socket::sendHTTPMessage</link>(<link linkend="string_type">string</link> <replaceable>$method</replaceable>, <link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="string_type">string</link> <replaceable>$http_version</replaceable>, <link linkend="hash_type">hash</link> <replaceable>$headers</replaceable>, <link linkend="data_type">data</link> <replaceable>$body</replaceable> = binary()) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="nothing_type">nothing</link> <link linkend="Socket_sendHTTPMessage">Socket::sendHTTPMessage</link>(<link linkend="string_type">string</link> <replaceable>$method</replaceable>, <link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="string_type">string</link> <replaceable>$http_version</replaceable>, <link linkend="hash_type">hash</link> <replaceable>$headers</replaceable>, <link linkend="data_type">data</link> <replaceable>$body</replaceable> = binary())</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Sends an HTTP message with a method and user-defined headers given as a hash and an optional message body.</para></entry>
@@ -16467,7 +16656,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="Socket_sendHTTPMessage">Socket::sendHTTPMessage</link>(<link linkend="string_type">string</link> <replaceable>$method</replaceable>, <link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="string_type">string</link> <replaceable>$http_version</replaceable>, <link linkend="hash_type">hash</link> <replaceable>$headers</replaceable>, <link linkend="data_type">data</link> <replaceable>$body</replaceable> = binary()) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="nothing_type">nothing</link> <link linkend="Socket_sendHTTPMessage">Socket::sendHTTPMessage</link>(<link linkend="string_type">string</link> <replaceable>$method</replaceable>, <link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="string_type">string</link> <replaceable>$http_version</replaceable>, <link linkend="hash_type">hash</link> <replaceable>$headers</replaceable>, <link linkend="data_type">data</link> <replaceable>$body</replaceable> = binary())</code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -16555,7 +16744,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="Socket_sendHTTPResponse">Socket::sendHTTPResponse</link>(<link linkend="softint_type">softint</link> <replaceable>$status_code</replaceable>, <link linkend="string_type">string</link> <replaceable>$desc</replaceable>, <link linkend="string_type">string</link> <replaceable>$http_version</replaceable>, <link linkend="hash_type">hash</link> <replaceable>$headers</replaceable>, data <replaceable>$body</replaceable> = binary()) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><link linkend="nothing_type">nothing</link> <link linkend="Socket_sendHTTPResponse">Socket::sendHTTPResponse</link>(<link linkend="softint_type">softint</link> <replaceable>$status_code</replaceable>, <link linkend="string_type">string</link> <replaceable>$desc</replaceable>, <link linkend="string_type">string</link> <replaceable>$http_version</replaceable>, <link linkend="hash_type">hash</link> <replaceable>$headers</replaceable>, data <replaceable>$body</replaceable> = binary())</code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -19011,8 +19200,8 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="HTTPClient_get">HTTPClient::get</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="hash_type">hash</link> $headers = <link linkend="hash">hash()</link>, <link linkend="reference_type">reference</link> <replaceable>$info</replaceable>) <command>returns</command> <link linkend="*string_type">*string</link></code></para>
-              <para><code><link linkend="HTTPClient_get">HTTPClient::get</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="hash_type">hash</link> $headers = <link linkend="hash">hash()</link>) <command>returns</command> <link linkend="*string_type">*string</link></code></para>
+              <para><code><link linkend="*string_type">*string</link> <link linkend="HTTPClient_get">HTTPClient::get</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="hash_type">hash</link> $headers = <link linkend="hash">hash()</link>, <link linkend="reference_type">reference</link> <replaceable>$info</replaceable>)</code></para>
+              <para><code><link linkend="*string_type">*string</link> <link linkend="HTTPClient_get">HTTPClient::get</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="hash_type">hash</link> $headers = <link linkend="hash">hash()</link>)</code></para>
             </entry>
             <entry>
               <para>Y</para>
@@ -19023,8 +19212,8 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="HTTPClient_head">HTTPClient::head</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="hash_type">hash</link> <replaceable>$headers</replaceable> = <link linkend="hash">hash()</link>, <link linkend="reference_type">reference</link> <replaceable>$info</replaceable>) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
-              <para><code><link linkend="HTTPClient_head">HTTPClient::head</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="hash_type">hash</link> <replaceable>$headers</replaceable> = <link linkend="hash">hash()</link>) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
+              <para><code><link linkend="hash_type">hash</link> <link linkend="HTTPClient_head">HTTPClient::head</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="hash_type">hash</link> <replaceable>$headers</replaceable> = <link linkend="hash">hash()</link>, <link linkend="reference_type">reference</link> <replaceable>$info</replaceable>)</code></para>
+              <para><code><link linkend="hash_type">hash</link> <link linkend="HTTPClient_head">HTTPClient::head</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="hash_type">hash</link> <replaceable>$headers</replaceable> = <link linkend="hash">hash()</link>)</code></para>
             </entry>
             <entry>
               <para>Y</para>
@@ -19035,8 +19224,8 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="HTTPClient_post">HTTPClient::post</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="data_type">data</link> <replaceable>$body</replaceable>, <link linkend="hash_type">hash</link> <replaceable>$headers</replaceable> = <link linkend="hash">hash()</link>, <link linkend="reference_type">reference</link> <replaceable>$info</replaceable>) <command>returns</command> <link linkend="*string_type">*string</link></code></para>
-              <para><code><link linkend="HTTPClient_post">HTTPClient::post</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="data_type">data</link> <replaceable>$body</replaceable>, <link linkend="hash_type">hash</link> <replaceable>$headers</replaceable> = <link linkend="hash">hash()</link>) <command>returns</command> <link linkend="*string_type">*string</link></code></para>
+              <para><code><link linkend="*string_type">*string</link> <link linkend="HTTPClient_post">HTTPClient::post</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="data_type">data</link> <replaceable>$body</replaceable>, <link linkend="hash_type">hash</link> <replaceable>$headers</replaceable> = <link linkend="hash">hash()</link>, <link linkend="reference_type">reference</link> <replaceable>$info</replaceable>)</code></para>
+              <para><code><link linkend="*string_type">*string</link> <link linkend="HTTPClient_post">HTTPClient::post</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="data_type">data</link> <replaceable>$body</replaceable>, <link linkend="hash_type">hash</link> <replaceable>$headers</replaceable> = <link linkend="hash">hash()</link>)</code></para>
             </entry>
             <entry>
               <para>Y</para>
@@ -19047,8 +19236,8 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
           </row>
           <row>
             <entry>
-              <para><code><link linkend="HTTPClient_send">HTTPClient::send</link>(<link linkend="data_type">data</link> <replaceable>$body</replaceable> = binary(), <link linkend="string_type">string</link> <replaceable>$method</replaceable>, <link linkend="string_type">string</link> <replaceable>$path</replaceable> = "", <link linkend="hash_type">hash</link> $headers = <link linkend="hash">hash()</link>, <link linkend="bool_type">bool</link> <replaceable>$getbody</replaceable> = False, <link linkend="reference_type">reference</link> <replaceable>$info</replaceable>) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
-              <para><code><link linkend="HTTPClient_send">HTTPClient::send</link>(<link linkend="data_type">data</link> <replaceable>$body</replaceable> = binary(), <link linkend="string_type">string</link> <replaceable>$method</replaceable>, <link linkend="string_type">string</link> <replaceable>$path</replaceable> = "", <link linkend="hash_type">hash</link> $headers = <link linkend="hash">hash()</link>, <link linkend="bool_type">bool</link> <replaceable>$getbody</replaceable> = False) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
+              <para><code><link linkend="hash_type">hash</link> <link linkend="HTTPClient_send">HTTPClient::send</link>(<link linkend="data_type">data</link> <replaceable>$body</replaceable> = binary(), <link linkend="string_type">string</link> <replaceable>$method</replaceable>, <link linkend="string_type">string</link> <replaceable>$path</replaceable> = "", <link linkend="hash_type">hash</link> $headers = <link linkend="hash">hash()</link>, <link linkend="bool_type">bool</link> <replaceable>$getbody</replaceable> = False, <link linkend="reference_type">reference</link> <replaceable>$info</replaceable>)</code></para>
+              <para><code><link linkend="hash_type">hash</link> <link linkend="HTTPClient_send">HTTPClient::send</link>(<link linkend="data_type">data</link> <replaceable>$body</replaceable> = binary(), <link linkend="string_type">string</link> <replaceable>$method</replaceable>, <link linkend="string_type">string</link> <replaceable>$path</replaceable> = "", <link linkend="hash_type">hash</link> $headers = <link linkend="hash">hash()</link>, <link linkend="bool_type">bool</link> <replaceable>$getbody</replaceable> = False)</code></para>
             </entry>
             <entry>
               <para>Y</para>
@@ -19256,7 +19445,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
                 <para><replaceable><code>[<link linkend="hash_type">hash</link> <replaceable>$opts</replaceable>]</code></replaceable></para>
               </entry>
               <entry>
-                <para>sets options and changes default behaviour for the object, etc.  See the table below for information on valid keys and their mening.  Note that the key names are case-sensitive and therefore must all be in lower-case.</para>
+                <para>sets options and changes default behaviour for the object, etc.  See the table below for information on valid keys and their meaning.  Note that the key names are case-sensitive and therefore must all be in lower-case.</para>
               </entry>
             </row>
           </tbody>
@@ -20036,8 +20225,8 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-              <para><code><link linkend="HTTPClient_get">HTTPClient::get</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="hash_type">hash</link> $headers = <link linkend="hash">hash()</link>, <link linkend="reference_type">reference</link> <replaceable>$info</replaceable>) <command>returns</command> <link linkend="*string_type">*string</link></code></para>
-              <para><code><link linkend="HTTPClient_get">HTTPClient::get</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="hash_type">hash</link> $headers = <link linkend="hash">hash()</link>) <command>returns</command> <link linkend="*string_type">*string</link></code></para>
+              <para><code><link linkend="*string_type">*string</link> <link linkend="HTTPClient_get">HTTPClient::get</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="hash_type">hash</link> $headers = <link linkend="hash">hash()</link>, <link linkend="reference_type">reference</link> <replaceable>$info</replaceable>)</code></para>
+              <para><code><link linkend="*string_type">*string</link> <link linkend="HTTPClient_get">HTTPClient::get</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="hash_type">hash</link> $headers = <link linkend="hash">hash()</link>)</code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -20151,8 +20340,8 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-              <para><code><link linkend="HTTPClient_head">HTTPClient::head</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="hash_type">hash</link> <replaceable>$headers</replaceable> = <link linkend="hash_type">hash</link>(), <link linkend="reference_type">reference</link> <replaceable>$info</replaceable>) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
-              <para><code><link linkend="HTTPClient_head">HTTPClient::head</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="hash_type">hash</link> <replaceable>$headers</replaceable> = <link linkend="hash_type">hash</link>()) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
+              <para><code><link linkend="hash_type">hash</link> <link linkend="HTTPClient_head">HTTPClient::head</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="hash_type">hash</link> <replaceable>$headers</replaceable> = <link linkend="hash_type">hash</link>(), <link linkend="reference_type">reference</link> <replaceable>$info</replaceable>)</code></para>
+              <para><code><link linkend="hash_type">hash</link> <link linkend="HTTPClient_head">HTTPClient::head</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="hash_type">hash</link> <replaceable>$headers</replaceable> = <link linkend="hash_type">hash</link>())</code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -20266,8 +20455,8 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-              <para><code><link linkend="HTTPClient_post">HTTPClient::post</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="data_type">data</link> <replaceable>$body</replaceable>, <link linkend="hash_type">hash</link> <replaceable>$headers</replaceable> = <link linkend="hash_type">hash</link>(), <link linkend="reference_type">reference</link> <replaceable>$info</replaceable>) <command>returns</command> <link linkend="*string_type">*string</link></code></para>
-              <para><code><link linkend="HTTPClient_post">HTTPClient::post</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="data_type">data</link> <replaceable>$body</replaceable>, <link linkend="hash_type">hash</link> <replaceable>$headers</replaceable> = <link linkend="hash_type">hash</link>()) <command>returns</command> <link linkend="*string_type">*string</link></code></para>
+              <para><code><link linkend="*string_type">*string</link> <link linkend="HTTPClient_post">HTTPClient::post</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="data_type">data</link> <replaceable>$body</replaceable>, <link linkend="hash_type">hash</link> <replaceable>$headers</replaceable> = <link linkend="hash_type">hash</link>(), <link linkend="reference_type">reference</link> <replaceable>$info</replaceable>)</code></para>
+              <para><code><link linkend="*string_type">*string</link> <link linkend="HTTPClient_post">HTTPClient::post</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>, <link linkend="data_type">data</link> <replaceable>$body</replaceable>, <link linkend="hash_type">hash</link> <replaceable>$headers</replaceable> = <link linkend="hash_type">hash</link>())</code></para>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -20371,8 +20560,8 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-              <para><code><link linkend="HTTPClient_send">HTTPClient::send</link>(<link linkend="data_type">data</link> <replaceable>$body</replaceable> = binary(), <link linkend="string_type">string</link> <replaceable>$method</replaceable>, <link linkend="string_type">string</link> <replaceable>$path</replaceable> = "", <link linkend="hash_type">hash</link> $headers = <link linkend="hash_type">hash</link>(), <link linkend="bool_type">bool</link> <replaceable>$getbody</replaceable> = False, <link linkend="reference_type">reference</link> <replaceable>$info</replaceable>) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
-              <para><code><link linkend="HTTPClient_send">HTTPClient::send</link>(<link linkend="data_type">data</link> <replaceable>$body</replaceable> = binary(), <link linkend="string_type">string</link> <replaceable>$method</replaceable>, <link linkend="string_type">string</link> <replaceable>$path</replaceable> = "", <link linkend="hash_type">hash</link> $headers = <link linkend="hash_type">hash</link>(), <link linkend="bool_type">bool</link> <replaceable>$getbody</replaceable> = False) <command>returns</command> <link linkend="hash_type">hash</link></code></para>
+              <para><code><link linkend="hash_type">hash</link> <link linkend="HTTPClient_send">HTTPClient::send</link>(<link linkend="data_type">data</link> <replaceable>$body</replaceable> = binary(), <link linkend="string_type">string</link> <replaceable>$method</replaceable>, <link linkend="string_type">string</link> <replaceable>$path</replaceable> = "", <link linkend="hash_type">hash</link> $headers = <link linkend="hash_type">hash</link>(), <link linkend="bool_type">bool</link> <replaceable>$getbody</replaceable> = False, <link linkend="reference_type">reference</link> <replaceable>$info</replaceable>)</code></para>
+              <para><code><link linkend="hash_type">hash</link> <link linkend="HTTPClient_send">HTTPClient::send</link>(<link linkend="data_type">data</link> <replaceable>$body</replaceable> = binary(), <link linkend="string_type">string</link> <replaceable>$method</replaceable>, <link linkend="string_type">string</link> <replaceable>$path</replaceable> = "", <link linkend="hash_type">hash</link> $headers = <link linkend="hash_type">hash</link>(), <link linkend="bool_type">bool</link> <replaceable>$getbody</replaceable> = False)</code></para>
           </listitem>
         </varlistentry>
         <varlistentry>

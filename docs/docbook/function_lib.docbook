@@ -1627,7 +1627,7 @@
           </entry>
         </row>
         <row>
-          <entry><para><code><link linkend="hextoint">hextoint</link>(<link linkend="string_type">string</link>) <command>returns</command> bigint</code></para></entry>
+          <entry><para><code><link linkend="int_type">int</link> <link linkend="hextoint">hextoint</link>(<link linkend="string_type">string</link>)</code></para></entry>
           <entry><para>Y</para></entry>
           <entry><para>Returns an integer for a hexadecimal string value; throws an exception if non-hex digits are found.</para></entry>
         </row>
@@ -21339,7 +21339,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-	    <para><code><link linkend="hextoint">hextoint</link>(<link linkend="string_type">string</link>) <command>returns</command> bigint</code></para>
+	    <para><code><link linkend="int_type">int</link> <link linkend="hextoint">hextoint</link>(<link linkend="string_type">string</link>)</code></para>
           </listitem>
         </varlistentry>
         <varlistentry>

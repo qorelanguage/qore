@@ -62,32 +62,11 @@ protected:
    //! private implementation of the object
    struct qore_ftp_private *priv;
 
-   DLLLOCAL QoreStringNode *getResponse(int &code, ExceptionSink *xsink);
-   DLLLOCAL QoreStringNode *sendMsg(int &code, const char *cmd, const char *arg, ExceptionSink *xsink);
-   //DLLLOCAL int connectDataLongPassive(ExceptionSink *xsink);
-   DLLLOCAL int connectDataExtendedPassive(ExceptionSink *xsink);
-   DLLLOCAL int connectDataPassive(ExceptionSink *xsink);
-   DLLLOCAL int connectDataPort(ExceptionSink *xsink);
-   DLLLOCAL int connectData(ExceptionSink *xsink);
-   DLLLOCAL int acceptDataConnection(ExceptionSink *xsink);
-   DLLLOCAL int setBinaryMode(bool t, ExceptionSink *xsink);
-   DLLLOCAL int disconnectInternal();
-   DLLLOCAL int connectIntern(class FtpResp *resp, ExceptionSink *xsink);
-   DLLLOCAL int doAuth(class FtpResp *resp, ExceptionSink *xsink);
-   DLLLOCAL int doProt(class FtpResp *resp, ExceptionSink *xsink);
-
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
    DLLLOCAL QoreFtpClient(const QoreFtpClient&);
 
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
    DLLLOCAL QoreFtpClient& operator=(const QoreFtpClient&);
-
-   DLLLOCAL int pre_get(FtpResp &resp, const char *remotepath, ExceptionSink *xsink);
-   DLLLOCAL void do_event_msg_sent(const char *cmd, const char *arg);
-   DLLLOCAL void do_event_msg_received(int code, const char *msg);
-
-   DLLLOCAL void lock();
-   DLLLOCAL void unlock();
 
 public:
    //! creates the object and sets connection parameters based on the url passed
@@ -148,8 +127,20 @@ public:
        @param localname the local name of the file
        @param xsink if an error occurs, the Qore-language exception information will be added here
        @return 0 for OK, non-zero for error (meaning that an exception has been raised)
+
+       @see QoreFtpClient::getAsString()
+       @see QoreFtpCleint::getAsBinary()
    */
    DLLEXPORT int get(const char *remotepath, const char *localname, ExceptionSink *xsink);
+
+   //! sends a file data io the remote server
+   /** the connection must be already established before this function is called or an error will be raised.
+       @param data the data to send
+       @param len the length of the data to send (if 0, a Qore-language exception will be raised)
+       @param xsink if an error occurs, the Qore-language exception information will be added here
+       @return 0 for OK, non-zero for error (meaning that an exception has been raised)
+   */
+   DLLEXPORT int putData(const void *data, qore_size_t len, const char *remotename, ExceptionSink *xsink);
 
    //! gets a file from the remote server and returns it as a string
    /** the connection must be already established before this function is called or an error will be raised.
@@ -192,6 +183,22 @@ public:
        @return 0 for OK, non-zero for error (meaning that an exception has been raised)
    */
    DLLEXPORT int del(const char *file, ExceptionSink *xsink);
+
+   //! creates a directory on the remote server
+   /** the connection must be already established before this function is called or an error will be raised.
+       @param remotepath the path of the directory on the remote server
+       @param xsink if an error occurs, the Qore-language exception information will be added here
+       @return 0 for OK, non-zero for error (meaning that an exception has been raised)
+   */
+   DLLEXPORT int mkdir(const char *remotepath, ExceptionSink *xsink);
+
+   //! removes a directory on the remote server
+   /** the connection must be already established before this function is called or an error will be raised.
+       @param remotepath the path of the directory on the remote server
+       @param xsink if an error occurs, the Qore-language exception information will be added here
+       @return 0 for OK, non-zero for error (meaning that an exception has been raised)
+   */
+   DLLEXPORT int rmdir(const char *remotepath, ExceptionSink *xsink);
  
    //! returns the port number connection parameter
    DLLEXPORT int getPort() const;
