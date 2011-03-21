@@ -253,6 +253,19 @@ static inline T *get_hard_param(const QoreListNode *n, qore_size_t i) {
    return reinterpret_cast<T *>(n->retrieve_entry(i));
 }
 
+static inline void HARD_QORE_DATA(const QoreListNode *n, qore_size_t i, const void *&ptr, qore_size_t &len) {
+   const AbstractQoreNode *p = get_hard_param<const AbstractQoreNode>(n, i);
+   if (p->getType() == NT_STRING) {
+      const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(p);
+      ptr = (const void *)str->getBuffer();
+      len = str->size();
+      return;
+   }
+   const BinaryNode *b = reinterpret_cast<const BinaryNode *>(p);
+   ptr = b->getPtr();
+   len = b->size();
+}
+
 //! returns a hard typed parameter
 #define HARD_QORE_PARAM(name, Type, list, i) Type *name = get_hard_param<Type>(list, i)
 

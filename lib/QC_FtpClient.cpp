@@ -119,6 +119,16 @@ static AbstractQoreNode *FC_get_str(QoreObject *self, QoreFtpClientClass *f, con
    return 0;
 }
 
+static AbstractQoreNode *FC_putData(QoreObject *self, QoreFtpClientClass *f, const QoreListNode *args, ExceptionSink *xsink) {
+   const void *ptr;
+   qore_size_t len;
+   HARD_QORE_DATA(args, 0, ptr, len);
+   const QoreStringNode *p1 = HARD_QORE_STRING(args, 1);
+
+   f->putData(ptr, len, p1->getBuffer(), xsink);
+   return 0;
+}
+
 static AbstractQoreNode *FC_get_str_str(QoreObject *self, QoreFtpClientClass *f, const QoreListNode *args, ExceptionSink *xsink) {
    const QoreStringNode *p0 = HARD_QORE_STRING(args, 0);
    const QoreStringNode *p1 = HARD_QORE_STRING(args, 1);
@@ -140,6 +150,18 @@ static AbstractQoreNode *FC_getAsBinary(QoreObject *self, QoreFtpClientClass *f,
 static AbstractQoreNode *FC_del(QoreObject *self, QoreFtpClientClass *f, const QoreListNode *args, ExceptionSink *xsink) {
    const QoreStringNode *p0 = HARD_QORE_STRING(args, 0);
    f->del(p0->getBuffer(), xsink);
+   return 0;
+}
+
+static AbstractQoreNode *FC_mkdir(QoreObject *self, QoreFtpClientClass *f, const QoreListNode *args, ExceptionSink *xsink) {
+   const QoreStringNode *p0 = HARD_QORE_STRING(args, 0);
+   f->mkdir(p0->getBuffer(), xsink);
+   return 0;
+}
+
+static AbstractQoreNode *FC_rmdir(QoreObject *self, QoreFtpClientClass *f, const QoreListNode *args, ExceptionSink *xsink) {
+   const QoreStringNode *p0 = HARD_QORE_STRING(args, 0);
+   f->rmdir(p0->getBuffer(), xsink);
    return 0;
 }
 
@@ -354,9 +376,14 @@ QoreClass *initFtpClientClass() {
    QC_FTPCLIENT->addMethodExtended("put",                   (q_method_t)FC_put_str, false, QC_NO_FLAGS, QDOM_FILESYSTEM, nothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
    QC_FTPCLIENT->addMethodExtended("put",                   (q_method_t)FC_put_str_str, false, QC_NO_FLAGS, QDOM_FILESYSTEM, nothingTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
 
+   QC_FTPCLIENT->addMethodExtended("putData",               (q_method_t)FC_putData, false, QC_NO_FLAGS, QDOM_FILESYSTEM, nothingTypeInfo, 2, dataTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
+
    QC_FTPCLIENT->addMethodExtended("rename",                (q_method_t)FC_rename, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    QC_FTPCLIENT->addMethodExtended("del",                   (q_method_t)FC_del, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+
+   QC_FTPCLIENT->addMethodExtended("mkdir",                 (q_method_t)FC_mkdir, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+   QC_FTPCLIENT->addMethodExtended("rmdir",                 (q_method_t)FC_rmdir, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
    QC_FTPCLIENT->addMethodExtended("setUserName",           (q_method_t)FC_setUserName, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
 
