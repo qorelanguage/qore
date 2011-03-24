@@ -53,11 +53,11 @@
 	</row>
         <row id="CONST_flag">
 	  <entry><para><code>CONST</code></para></entry>
-	  <entry><para>This flag indicates that the function or method has no side effects and does not throw any exceptions.</para></entry>
+	  <entry><para>This flag indicates that the function or method has no side effects and does not throw any exceptions (see also <link linkend="RET_VALUE_ONLY_flag">RET_VALUE_ONLY</link>).</para></entry>
 	</row>
-        <row id="RET_VALUE_flag">
-	  <entry><para><code>RET_VALUE</code></para></entry>
-	  <entry><para>This flag indicates that the function or method has no side effects but could throw an exception.</para></entry>
+        <row id="RET_VALUE_ONLY_flag">
+	  <entry><para><code>RET_VALUE_ONLY</code></para></entry>
+	  <entry><para>This flag indicates that the function or method has no side effects but could throw an exception (see also <link linkend="CONST_flag">CONST</link>).</para></entry>
 	</row>
         <row id="DEPRECATED_flag">
 	  <entry><para><code>DEPRECATED</code></para></entry>
@@ -2787,7 +2787,7 @@
         <row>
           <entry>
             <para><code><link linkend="list_type">list</link> <link linkend="split">split</link>(<link linkend="string_type">string</link> <replaceable>$pattern</replaceable>, <link linkend="string_type">string</link> <replaceable>$string</replaceable>) (<link linkend="CONST_flag">CONST</link>)</code></para>
-            <para><code><link linkend="list_type">list</link> <link linkend="split">split</link>(<link linkend="string_type">string</link> <replaceable>$pattern</replaceable>, <link linkend="string_type">string</link> <replaceable>$string</replaceable>, <link linkend="string_type">string</link> <replaceable>$quote</replaceable>) (<link linkend="RET_VALUE_flag">RET_VALUE</link>)</code></para>
+            <para><code><link linkend="list_type">list</link> <link linkend="split">split</link>(<link linkend="string_type">string</link> <replaceable>$pattern</replaceable>, <link linkend="string_type">string</link> <replaceable>$string</replaceable>, <link linkend="string_type">string</link> <replaceable>$quote</replaceable>) (<link linkend="RET_VALUE_ONLY_flag">RET_VALUE_ONLY</link>)</code></para>
             <para><code><link linkend="list_type">list</link> <link linkend="split">split</link>(<link linkend="binary_type">binary</link> <replaceable>$pattern</replaceable>, <link linkend="binary_type">binary</link> <replaceable>$bin</replaceable>) (<link linkend="CONST_flag">CONST</link>)</code></para>
             <para><code><link linkend="list_type">list</link> <link linkend="split">split</link>() (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
           </entry>
@@ -9502,7 +9502,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <term>Prototype</term>
       <listitem>
             <para><code><link linkend="list_type">list</link> <link linkend="split">split</link>(<link linkend="string_type">string</link> <replaceable>$separator</replaceable>, <link linkend="string_type">string</link> <replaceable>$string</replaceable>) (<link linkend="CONST_flag">CONST</link>)</code></para>
-            <para><code><link linkend="list_type">list</link> <link linkend="split">split</link>(<link linkend="string_type">string</link> <replaceable>$separator</replaceable>, <link linkend="string_type">string</link> <replaceable>$string</replaceable>, <link linkend="string_type">string</link> <replaceable>$quote</replaceable>) (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="list_type">list</link> <link linkend="split">split</link>(<link linkend="string_type">string</link> <replaceable>$separator</replaceable>, <link linkend="string_type">string</link> <replaceable>$string</replaceable>, <link linkend="string_type">string</link> <replaceable>$quote</replaceable>) (<link linkend="RET_VALUE_ONLY_flag">RET_VALUE_ONLY</link>)</code></para>
             <para><code><link linkend="list_type">list</link> <link linkend="split">split</link>(<link linkend="binary_type">binary</link> <replaceable>$separator</replaceable>, <link linkend="binary_type">binary</link> <replaceable>$bin</replaceable>) (<link linkend="CONST_flag">CONST</link>)</code></para>
             <para><code><link linkend="list_type">list</link> <link linkend="split">split</link>() (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
       </listitem>
