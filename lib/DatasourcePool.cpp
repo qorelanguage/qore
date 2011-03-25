@@ -83,7 +83,7 @@ DatasourcePool::~DatasourcePool() {
 void DatasourcePool::cleanup(ExceptionSink *xsink) {
    int tid = gettid();
 
-#ifndef DEBUG
+#ifndef DEBUG_1
    xsink->raiseException("DATASOURCEPOOL-LOCK-EXCEPTION", "%s:%s@%s: TID %d terminated while in a transaction; transaction will be automatically rolled back and the datasource returned to the pool", pool[0]->getDriverName(), pool[0]->getUsernameStr().c_str(), pool[0]->getDBNameStr().c_str(), tid);
 #else
    QoreString *sql = getAndResetSQL();
@@ -114,7 +114,7 @@ void DatasourcePool::cleanup(ExceptionSink *xsink) {
 void DatasourcePool::destructor(ExceptionSink *xsink) {
    SafeLocker sl((QoreThreadLock *)this);
 
-   // mark object is invalid in case any threads are waiting on a free Datasource
+   // mark object as invalid in case any threads are waiting on a free Datasource
    valid = false;
 
    int tid = gettid();
