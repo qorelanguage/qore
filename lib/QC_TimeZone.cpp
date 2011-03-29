@@ -148,7 +148,7 @@ QoreClass *initTimeZoneClass() {
    QC_TIMEZONE->addMethodExtended("dateMs", (q_method_t)TZ_dateMs, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, dateTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
 
    // date TimeZone::dateUs(softint)  
-   QC_TIMEZONE->addMethodExtended("dateUs", (q_method_t)TZ_dateUs, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, dateTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
+   QC_TIMEZONE->addMethodExtended("dateUs", (q_method_t)TZ_dateUs, false, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
 
    // static methods
    // TimeZone TimeZone::get()  
