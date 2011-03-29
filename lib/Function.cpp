@@ -1210,7 +1210,6 @@ AbstractQoreNode *UserVariantBase::evalIntern(ReferenceHolder<QoreListNode> &arg
 	 rt->getThisType(*desc);
 	 desc->concat(" but NOTHING was returned");
 	 xsink->raiseException("RETURN-TYPE-ERROR", desc);
-	 abort();
       }
    }
 
