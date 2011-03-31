@@ -142,13 +142,17 @@ int SwitchStatement::parseInitImpl(LocalVar *oflag, int pflag) {
 	    parse_error("illegal local variable declaration in assignment expression for case block");
 	    while (lvids--)
 	       pop_local_var();
+
+	    w = w->next;
 	    continue;
 	 }
 
 	 // evaluate case expression if necessary and no parse expressions have been raised
 	 if (w->val && !w->val->is_value()) {
-	    if (pgm->parseExceptionRaised())
+	    if (pgm->parseExceptionRaised()) {
+	       w = w->next;
 	       continue;
+	    }
 
 	    ReferenceHolder<AbstractQoreNode> v(w->val->eval(&xsink), &xsink);
 	    if (!xsink) {
