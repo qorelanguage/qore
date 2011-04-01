@@ -274,7 +274,7 @@
         <row>
           <entry>
             <para><code><link linkend="binary_type">binary</link> <link linkend="bzip2">bzip2</link>(<link linkend="data_type">data</link>, <link linkend="softint_type">softint</link> = 9)</code></para>
-            <para><code><link linkend="nothing_type">nothing</link> <link linkend="bzip2">bzip2</link>()> (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
+            <para><code><link linkend="nothing_type">nothing</link> <link linkend="bzip2">bzip2</link>() (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
           </entry>
           <entry><para>Y</para></entry>
           <entry><para>Compresses the given data with the <ulink url="http://en.wikipedia.org/wiki/Bzip2">bzip2</ulink> algorithm and returns the uncompressed data as a binary.</para></entry>
@@ -18279,7 +18279,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
       <term>Prototype</term>
       <listitem>
 	<code><link linkend="binary_type">binary</link> <link linkend="bzip2">bzip2</link>(<link linkend="data_type">data</link> <replaceable>$bin</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$level</replaceable> = 9)</code>
-	<para><code><link linkend="nothing_type">nothing</link> <link linkend="bzip2">bzip2</link>()> (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
+	<para><code><link linkend="nothing_type">nothing</link> <link linkend="bzip2">bzip2</link>() (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
