@@ -112,7 +112,6 @@ libqore_la_SOURCES = \
 	VRMutex.cpp \
 	VLock.cpp \
 	AbstractSmartLock.cpp \
-	RMutex.cpp \
 	ExecArgList.cpp \
 	NamedScope.cpp \
 	RWLock.cpp \

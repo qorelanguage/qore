@@ -122,7 +122,7 @@ struct qore_program_private {
    QoreProgram *pgm;
 
    DLLLOCAL qore_program_private(QoreProgram *n_pgm, int64 n_parse_options, const AbstractQoreZoneInfo *n_TZ = QTZM.getLocalZoneInfo()) 
-      : thread_count(0), parseSink(0), warnSink(0), RootNS(0), QoreNS(0),
+      : thread_count(0), plock(&ma_recursive), parseSink(0), warnSink(0), RootNS(0), QoreNS(0),
         only_first_except(false), exceptions_raised(0), 
         pwo(n_parse_options), po_locked(false), po_allow_restrict(true), 
         exec_class(false), base_object(false), requires_exception(false), 
@@ -190,8 +190,16 @@ struct qore_program_private {
       }
    }
 
+   DLLLOCAL const char *parseGetScriptPath() const {
+      return script_path.empty() ? 0 : script_path.c_str();
+   }
+
    DLLLOCAL const char *parseGetScriptDir() const {
       return script_dir.empty() ? 0 : script_dir.c_str();
+   }
+
+   DLLLOCAL const char *parseGetScriptName() const {
+      return script_name.empty() ? 0 : script_name.c_str();
    }
 
    DLLLOCAL QoreStringNode *getScriptPath() const {
@@ -259,7 +267,7 @@ struct qore_program_private {
    // call must push the current program on the stack and pop it afterwards
    DLLLOCAL int internParsePending(const char *code, const char *label) {
       printd(5, "QoreProgram::internParsePending(code=%p, label=%s)\n", code, label);
-	 
+ 
       if (!(*code))
 	 return 0;
 

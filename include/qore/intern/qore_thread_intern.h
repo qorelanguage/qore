@@ -447,4 +447,6 @@ public:
    }
 };
 
+DLLLOCAL extern pthread_mutexattr_t ma_recursive;
+
 #endif

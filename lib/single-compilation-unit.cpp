@@ -86,7 +86,6 @@
 #include "VLock.cpp"
 #include "AbstractSmartLock.cpp"
 #include "SmartMutex.cpp"
-#include "RMutex.cpp"
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
 #include "CallStack.cpp"
 #endif

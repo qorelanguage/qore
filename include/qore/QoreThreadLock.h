@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2010 David Nichols, all rights reserved
+  Copyright (C) 2003 - 2011 David Nichols, all rights reserved
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -49,11 +49,11 @@ private:
    DLLLOCAL QoreThreadLock& operator=(const QoreThreadLock&);
 
    //! internal initialization
-   DLLLOCAL void init() {
+   DLLLOCAL void init(const pthread_mutexattr_t *pma = 0) {
 #ifndef NDEBUG
       int rc =
 #endif
-	 pthread_mutex_init(&ptm_lock, 0);
+	 pthread_mutex_init(&ptm_lock, pma);
       assert(!rc);
    }
 
@@ -62,6 +62,11 @@ public:
    //! creates the lock
    DLLLOCAL QoreThreadLock() {
       init();
+   }
+
+   //! creates the lock with the given attributes
+   DLLLOCAL QoreThreadLock(const pthread_mutexattr_t *ma) {
+      init(ma);
    }
 
    //! destroys the lock
