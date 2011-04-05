@@ -103,7 +103,7 @@ void QoreRegexNode::parse() {
    delete str;
    str = 0;
    if (xsink.isEvent())
-      getProgram()->addParseException(&xsink);
+      getProgram()->addParseException(xsink);
 }
 
 #define OVECCOUNT 30

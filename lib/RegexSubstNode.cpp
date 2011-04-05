@@ -29,16 +29,14 @@
 #include <strings.h>
 #include <ctype.h>
 
-void RegexSubstNode::init()
-{
+void RegexSubstNode::init() {
    p = 0;
    global = false;
    options = PCRE_UTF8;
 }
 
 // constructor used when parsing
-RegexSubstNode::RegexSubstNode() : ParseNoEvalNode(NT_REGEX_SUBST)
-{
+RegexSubstNode::RegexSubstNode() : ParseNoEvalNode(NT_REGEX_SUBST) {
    //printd(5, "RegexSubstNode::RegexSubstNode() this=%p\n", this);
    init();
    str = new QoreString();
@@ -46,8 +44,7 @@ RegexSubstNode::RegexSubstNode() : ParseNoEvalNode(NT_REGEX_SUBST)
 }
 
 // constructor when used at run-time
-RegexSubstNode::RegexSubstNode(const QoreString *pstr, int opts, ExceptionSink *xsink) : ParseNoEvalNode(NT_REGEX_SUBST)
-{
+RegexSubstNode::RegexSubstNode(const QoreString *pstr, int opts, ExceptionSink *xsink) : ParseNoEvalNode(NT_REGEX_SUBST) {
    init();
    if (check_re_options(opts))
       xsink->raiseException("REGEX-OPTION-ERROR", "%d contains invalid option bits", opts);
@@ -59,8 +56,7 @@ RegexSubstNode::RegexSubstNode(const QoreString *pstr, int opts, ExceptionSink *
    parseRT(pstr, xsink);
 }
 
-RegexSubstNode::~RegexSubstNode()
-{
+RegexSubstNode::~RegexSubstNode() {
    //printd(5, "RegexSubstNode::~RegexSubstNode() this=%p\n", this);
    if (newstr)
       delete newstr;
@@ -74,15 +70,13 @@ RegexSubstNode::~RegexSubstNode()
 // the ExceptionSink is only needed for QoreObject where a method may be executed
 // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
 // returns -1 for exception raised, 0 = OK
-int RegexSubstNode::getAsString(QoreString &mstr, int foff, ExceptionSink *xsink) const
-{
+int RegexSubstNode::getAsString(QoreString &mstr, int foff, ExceptionSink *xsink) const {
    mstr.sprintf("regular expression substitution expression (0x%p)", this);
    return 0;
 }
 
 // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
-QoreString *RegexSubstNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const
-{
+QoreString *RegexSubstNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const {
    del = true;
    QoreString *rv = new QoreString();
    getAsString(*rv, foff, xsink);
@@ -90,30 +84,25 @@ QoreString *RegexSubstNode::getAsString(bool &del, int foff, ExceptionSink *xsin
 }
 
 // returns the data type
-qore_type_t RegexSubstNode::getType() const
-{
+qore_type_t RegexSubstNode::getType() const {
    return NT_REGEX_SUBST;
 }
 
 // returns the type name as a c string
-const char *RegexSubstNode::getTypeName() const
-{
+const char *RegexSubstNode::getTypeName() const {
    return "regular expression substitution expression";
 }
 
-void RegexSubstNode::concatSource(char c)
-{
+void RegexSubstNode::concatSource(char c) {
    str->concat(c);
 }
 
-void RegexSubstNode::concatTarget(char c)
-{
+void RegexSubstNode::concatTarget(char c) {
    newstr->concat(c);
 }
 
 // returns 0 for OK, -1 if parse error raised
-void RegexSubstNode::parseRT(const QoreString *pstr, ExceptionSink *xsink)
-{
+void RegexSubstNode::parseRT(const QoreString *pstr, ExceptionSink *xsink) {
    // convert to UTF-8 if necessary
    TempEncodingHelper t(pstr, QCS_UTF8, xsink);
    if (*xsink)
@@ -126,13 +115,12 @@ void RegexSubstNode::parseRT(const QoreString *pstr, ExceptionSink *xsink)
       xsink->raiseException("REGEX-COMPILATION-ERROR", (char *)err);
 }
 
-void RegexSubstNode::parse()
-{
+void RegexSubstNode::parse() {
    //printd(5, "RegexSubstNode() this=%p: str='%s', divider=%d\n", this, str->getBuffer(), divider);
    ExceptionSink xsink;
    parseRT(str, &xsink);
    if (xsink.isEvent())
-      getProgram()->addParseException(&xsink);
+      getProgram()->addParseException(xsink);
    
    //printd(5, "RegexSubstNode::parse() this=%p: pstr=%s, newstr=%s, global=%s\n", this, pstr->getBuffer(), newstr->getBuffer(), global ? "true" : "false"); 
    
@@ -141,13 +129,10 @@ void RegexSubstNode::parse()
 }
 
 // static function
-void RegexSubstNode::concat(class QoreString *cstr, int *ovector, int olen, const char *ptr, const char *target)
-{
-   while (*ptr)
-   {
-      if (*ptr == '$' && isdigit(ptr[1]))
-      {
-	 class QoreString n;
+void RegexSubstNode::concat(QoreString *cstr, int *ovector, int olen, const char *ptr, const char *target) {
+   while (*ptr) {
+      if (*ptr == '$' && isdigit(ptr[1])) {
+	 QoreString n;
 	 ptr++;
 	 do
 	    n.concat(*(ptr++));
