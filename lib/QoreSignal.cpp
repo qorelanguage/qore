@@ -23,7 +23,10 @@
 #include <qore/Qore.h>
 #include <qore/intern/QoreSignal.h>
 
+#include <stdio.h>
 #include <stdlib.h>
+#include <errno.h>
+#include <string.h>
 
 QoreSignalManager QSM;
 
@@ -123,7 +126,11 @@ void QoreSignalManager::stop_signal_thread_unlocked() {
       int rc = 
 #endif
 	 pthread_kill(ptid, QORE_STATUS_SIGNAL);
+#ifdef DEBUG
+      if (rc)
+	 printd(0, "pthread_kill() returned %d: %s\n", rc, strerror(rc));
       assert(!rc);
+#endif
    }
 }
 
@@ -182,8 +189,8 @@ void QoreSignalManager::post_fork_unblock_and_start(bool new_process, ExceptionS
 
 void QoreSignalManager::signal_handler_thread() {
    register_thread(tid, ptid, 0);
-   
-   printd(5, "QoreSignalManager::signal_handler_thread() pid=%d, signal handler thread started (TID %d)\n", getpid(), tid);
+
+   printd(5, "QoreSignalManager::signal_handler_thread() pid=%d, signal handler thread started (TID %d) &ptid=%p\n", getpid(), tid, &ptid);
 
    sigset_t c_mask;
    int sig;
@@ -309,9 +316,10 @@ void QoreSignalManager::signal_handler_thread() {
       
    // run thread cleanup handlers
    tclist.exec();
-      
+
    tcount.dec();
-   //fprintf(stderr, "signal handler thread %d stopped (count=%d)\n", c_tid, tcount.getCount());fflush(stderr);
+
+   //fprintf(stderr, "signal handler thread stopped (count=%d) &ptid=%p\n", tcount.getCount(), &ptid);fflush(stderr);
    pthread_exit(0);
 }
 

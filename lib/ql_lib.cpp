@@ -69,7 +69,7 @@ static AbstractQoreNode *f_system(const QoreListNode *params, ExceptionSink *xsi
 
    int rc;
    // use system() if shell meta-characters are found
-   if (strchrs(p0->getBuffer(), "*?><;|")) {
+   if (strchrs(p0->getBuffer(), "$=*?><;|")) {
       QoreString c;
       c.sprintf("/bin/sh -c \"%s\"", p0->getBuffer());
       rc = system(c.getBuffer());
@@ -80,7 +80,8 @@ static AbstractQoreNode *f_system(const QoreListNode *params, ExceptionSink *xsi
 	 ExecArgList args(p0->getBuffer());
 	 execvp(args.getFile(), args.getArgs());
 	 fprintf(stderr, "execvp() failed in child process for target '%s' with error code %d: %s\n", args.getFile(), errno, strerror(errno));
-	 qore_exit_process(-1);
+	 exit(-1);
+	 //qore_exit_process(-1);
       }
       if (pid == -1)
 	 rc = -1;
