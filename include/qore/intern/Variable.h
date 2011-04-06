@@ -188,6 +188,8 @@ public:
    }
 
    DLLLOCAL bool hasTypeInfo() const {
+      if (type == GV_IMPORT)
+         return v.ivar.refptr->hasTypeInfo();
       return parseTypeInfo || typeInfo;
    }
 
