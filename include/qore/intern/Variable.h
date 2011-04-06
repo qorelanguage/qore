@@ -137,6 +137,11 @@ public:
       if (!n_parseTypeInfo)
          return;
 
+      if (type == GV_IMPORT) {
+         v.ivar.refptr->parseCheckAssignType(n_parseTypeInfo);
+         return;
+      }
+
       // here we know that n_typeInfo is not null
       // if no previous type was declared, take the new type
       if (parseTypeInfo || typeInfo) {
@@ -154,6 +159,11 @@ public:
       if (!n_typeInfo->hasType())
          return;
 
+      if (type == GV_IMPORT) {
+         v.ivar.refptr->checkAssignType(n_typeInfo);
+         return;
+      }
+
       // here we know that n_typeInfo is not null
       // if no previous type was declared, take the new type
       if (parseTypeInfo || typeInfo) {
@@ -166,6 +176,9 @@ public:
    }
 
    DLLLOCAL void parseInit() {
+      if (type == GV_IMPORT)
+         return;
+
       if (parseTypeInfo) {
          typeInfo = parseTypeInfo->resolveAndDelete();
          parseTypeInfo = 0;
@@ -178,12 +191,18 @@ public:
    }
 
    DLLLOCAL const QoreTypeInfo *parseGetTypeInfo() {
+      // imported variables have already been initialized
+      if (type == GV_IMPORT)
+         return v.ivar.refptr->getTypeInfo();
+
       parseInit();
       return typeInfo;
    }
 
    DLLLOCAL const QoreTypeInfo *getTypeInfo() const {
       assert(!parseTypeInfo);
+      if (type == GV_IMPORT)
+         return v.ivar.refptr->getTypeInfo();
       return typeInfo;
    }
 
@@ -195,6 +214,9 @@ public:
 
    // only called with a new object declaration expression (ie our <class> $x())
    DLLLOCAL const char *getClassName() const {
+      if (type == GV_IMPORT)
+         return v.ivar.refptr->getClassName();
+
       if (typeInfo) {
          assert(typeInfo->getUniqueReturnClass());
          return typeInfo->getUniqueReturnClass()->getName();

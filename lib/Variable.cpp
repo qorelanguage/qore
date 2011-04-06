@@ -58,6 +58,9 @@ VarValue::VarValue(Var *n_refptr, bool n_readonly) {
 }
 
 ScopedObjectCallNode *Var::makeNewCall(AbstractQoreNode *args) const {
+   if (type == GV_IMPORT)
+      return v.ivar.refptr->makeNewCall(args);
+
    const QoreClass *qc = typeInfo->getUniqueReturnClass();
    if (qc)
       return new ScopedObjectCallNode(qc, makeArgs(args));
@@ -205,7 +208,6 @@ void Var::setValueIntern(AbstractQoreNode *val, ExceptionSink *xsink) {
    // dereference old value once lock has been released
    if (old)
       old->deref(xsink);
-
 }
 
 void Var::setValue(AbstractQoreNode *val, ExceptionSink *xsink) {
