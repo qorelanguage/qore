@@ -183,11 +183,8 @@ struct qore_program_private {
    DLLLOCAL void waitForAllThreadsToTerminate() {
       // grab program-level lock
       AutoLocker al(&plock);
-      while (true) {
-	 if (!thread_count)
-	    return;
-	 tcond.wait(plock);
-      }
+      while (thread_count)
+	 tcond.wait(&plock);
    }
 
    DLLLOCAL const char *parseGetScriptPath() const {

@@ -45,9 +45,6 @@ int QoreCondition::broadcast() {
 
 int QoreCondition::wait(pthread_mutex_t *m) {   
 #ifdef DEBUG
-   // make sure mutex is locked
-   assert(pthread_mutex_trylock(m) == EBUSY);
-
    int rc = pthread_cond_wait(&c, m);
    if (rc) {
       printd(0, "QoreCondition::wait(%p) pthread_cond_wait() returned %d %s\n", m, rc, strerror(rc));
