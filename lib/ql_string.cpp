@@ -216,11 +216,11 @@ static void split_add_element(QoreListNode *l, const char *str, unsigned len, co
    }
 }
 
-static QoreListNode *split_intern(const char *pattern, qore_size_t pl, const char *str, qore_size_t sl, const QoreEncoding *enc) {
+static QoreListNode *split_intern(const char *pattern, qore_size_t pl, const char *str, qore_size_t sl, const QoreEncoding *enc, bool with_separator = false) {
    QoreListNode *l = new QoreListNode();
    const char *ostr = str;
    while (const char *p = memstr(str, pattern, pl, sl - (str - ostr))) {
-      split_add_element(l, str, p - str, enc);
+      split_add_element(l, str, p - str + (with_separator ? pl : 0), enc);
       str = p + pl;
    }
    // add last field if there is data remaining
@@ -230,17 +230,18 @@ static QoreListNode *split_intern(const char *pattern, qore_size_t pl, const cha
    return l;
 }
 
-// syntax: split(pattern, string);
+// list split(string $pattern, string $string, bool $with_separator)
 static AbstractQoreNode *f_split_str(const QoreListNode *args, ExceptionSink *xsink) {
    HARD_QORE_PARAM(s0, const QoreStringNode, args, 0);
    HARD_QORE_PARAM(s1, const QoreStringNode, args, 1);
+   bool with_separator = HARD_QORE_BOOL(args, 2);
 
    // convert pattern encoding to string if necessary
    TempEncodingHelper temp(s0, s1->getEncoding(), xsink);
    if (*xsink)
       return 0;
    
-   return split_intern(temp->getBuffer(), temp->strlen(), s1->getBuffer(), s1->strlen(), s1->getEncoding());
+   return split_intern(temp->getBuffer(), temp->strlen(), s1->getBuffer(), s1->strlen(), s1->getEncoding(), with_separator);
 }
 
 // syntax: split(pattern, string, quote);
@@ -606,7 +607,7 @@ void init_string_functions() {
 
    // an empty list was returned by split() if the types were not correct
    builtinFunctions.add2("split", f_list_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, listTypeInfo);
-   builtinFunctions.add2("split", f_split_str, QC_CONSTANT, QDOM_DEFAULT, listTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("split", f_split_str, QC_CONSTANT, QDOM_DEFAULT, listTypeInfo, 3, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG, boolTypeInfo, &False);
    // list split(string $pattern, string $str, string $quote) - this version can throw exceptions
    builtinFunctions.add2("split", f_split_str_str_str, QC_RET_VALUE_ONLY, QDOM_DEFAULT, listTypeInfo, 3, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("split", f_split_bin, QC_CONSTANT, QDOM_DEFAULT, listTypeInfo, 2, binaryTypeInfo, QORE_PARAM_NO_ARG, binaryTypeInfo, QORE_PARAM_NO_ARG);

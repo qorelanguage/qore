@@ -2786,7 +2786,7 @@
         </row>
         <row>
           <entry>
-            <para><code><link linkend="list_type">list</link> <link linkend="split">split</link>(<link linkend="string_type">string</link> <replaceable>$pattern</replaceable>, <link linkend="string_type">string</link> <replaceable>$string</replaceable>) (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="list_type">list</link> <link linkend="split">split</link>(<link linkend="string_type">string</link> <replaceable>$pattern</replaceable>, <link linkend="string_type">string</link> <replaceable>$string</replaceable>, <link linkend="bool_type">bool</link> <replaceable>$with_pattern</replaceable> = False) (<link linkend="CONST_flag">CONST</link>)</code></para>
             <para><code><link linkend="list_type">list</link> <link linkend="split">split</link>(<link linkend="string_type">string</link> <replaceable>$pattern</replaceable>, <link linkend="string_type">string</link> <replaceable>$string</replaceable>, <link linkend="string_type">string</link> <replaceable>$quote</replaceable>) (<link linkend="RET_VALUE_ONLY_flag">RET_VALUE_ONLY</link>)</code></para>
             <para><code><link linkend="list_type">list</link> <link linkend="split">split</link>(<link linkend="binary_type">binary</link> <replaceable>$pattern</replaceable>, <link linkend="binary_type">binary</link> <replaceable>$bin</replaceable>) (<link linkend="CONST_flag">CONST</link>)</code></para>
             <para><code><link linkend="list_type">list</link> <link linkend="split">split</link>() (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
@@ -9501,7 +9501,7 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
     <varlistentry>
       <term>Prototype</term>
       <listitem>
-            <para><code><link linkend="list_type">list</link> <link linkend="split">split</link>(<link linkend="string_type">string</link> <replaceable>$separator</replaceable>, <link linkend="string_type">string</link> <replaceable>$string</replaceable>) (<link linkend="CONST_flag">CONST</link>)</code></para>
+            <para><code><link linkend="list_type">list</link> <link linkend="split">split</link>(<link linkend="string_type">string</link> <replaceable>$pattern</replaceable>, <link linkend="string_type">string</link> <replaceable>$string</replaceable>, <link linkend="bool_type">bool</link> <replaceable>$with_pattern</replaceable> = False) (<link linkend="CONST_flag">CONST</link>)</code></para>
             <para><code><link linkend="list_type">list</link> <link linkend="split">split</link>(<link linkend="string_type">string</link> <replaceable>$separator</replaceable>, <link linkend="string_type">string</link> <replaceable>$string</replaceable>, <link linkend="string_type">string</link> <replaceable>$quote</replaceable>) (<link linkend="RET_VALUE_ONLY_flag">RET_VALUE_ONLY</link>)</code></para>
             <para><code><link linkend="list_type">list</link> <link linkend="split">split</link>(<link linkend="binary_type">binary</link> <replaceable>$separator</replaceable>, <link linkend="binary_type">binary</link> <replaceable>$bin</replaceable>) (<link linkend="CONST_flag">CONST</link>)</code></para>
             <para><code><link linkend="list_type">list</link> <link linkend="split">split</link>() (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
@@ -9527,9 +9527,9 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
           </thead>
           <tbody>
             <row>
-	      <entry><para><code><link linkend="string_type">string</link> <replaceable>$separator</replaceable>, <link linkend="string_type">string</link> <replaceable>$string</replaceable></code></para></entry>
+	      <entry><para><code><link linkend="string_type">string</link> <replaceable>$separator</replaceable>, <link linkend="string_type">string</link> <replaceable>$string</replaceable>, <link linkend="bool_type">bool</link> <replaceable>$with_pattern</replaceable> = False</code></para></entry>
               <entry><para><code><link linkend="list_type">list</link> of <link linkend="string_type">string</link></code></para></entry>
-              <entry><para>Returns a list of each component of a string separated by a separator string, with the separator removed.</para></entry>
+              <entry><para>Returns a list of each component of a string separated by a separator string, with the separator removed; the separator pattern will not be included in the elements of the list returned unless the third argument is <code>True</code>.</para></entry>
             </row>
             <row>
 	      <entry><para><code><link linkend="string_type">string</link> <replaceable>$separator</replaceable>, <link linkend="string_type">string</link> <replaceable>$string</replaceable>, <link linkend="string_type">string</link> <replaceable>$quote</replaceable></code></para></entry>

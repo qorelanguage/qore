@@ -171,9 +171,7 @@ The expansion is entirely correct because it uses the C preprocessor."
   '(;; Functions
     (nil "^sub\\s-+\\([-A-Za-z0-9+_:]+\\)" 1)
     ;;Variables
-    ("Variables" "^\\([$@%][-A-Za-z0-9+_:]+\\)\\s-*=" 1)
-    ("Packages" "^package\\s-+\\([-A-Za-z0-9+_:]+\\);" 1)
-    ("Doc sections" "^=head[0-9][ \t]+\\(.*\\)" 1))
+    ("Variables" "^\\([$@%][-A-Za-z0-9+_:]+\\)\\s-*=" 1))
   "Imenu generic expression for Qore mode.  See `imenu-generic-expression'.")
 
 ;; Regexps updated with help from Tom Tromey <tromey@cambric.colorado.edu> and
@@ -196,7 +194,7 @@ The expansion is entirely correct because it uses the C preprocessor."
     ;; Fontify function and package names in declarations.
     ("\\<\\(namespace\\|class\\|sub\\)\\>[ \t]*\\(\\sw+\\)?"
      (1 font-lock-keyword-face) (2 font-lock-function-name-face nil t))
-    ("\\<\\(import\\|no\\|require\\|use\\)\\>[ \t]*\\(\\sw+\\)?"
+    ("\\<\\(%include\\|%requires\\|const\\)\\>[ \t]*\\(\\sw+\\)?"
      (1 font-lock-keyword-face) (2 font-lock-constant-face nil t)))
   "Subdued level highlighting for Qore mode.")
 
@@ -229,7 +227,7 @@ The expansion is entirely correct because it uses the C preprocessor."
     ;; Additionally underline non-scalar variables.  Maybe this is a bad idea.
     ;;'("[$@%*][#{]?\\(\\sw+\\)" 1 font-lock-variable-name-face)
     '("[$*]{?\\(\\sw+\\(::\\sw+\\)*\\)" 1 font-lock-variable-name-face)
-    '("\\([@%]\\|\\$#\\)\\(\\sw+\\(::\\sw+\\)*\\)"
+    '("\\(\\$#\\)\\(\\sw+\\(::\\sw+\\)*\\)"
       (2 (cons font-lock-variable-name-face '(underline))))
     '("<\\(\\sw+\\)>" 1 font-lock-constant-face)
     ;;
@@ -484,7 +482,6 @@ create a new comment."
 
 (defun qore-outline-level ()
   (cond
-   ((looking-at "package\\s-") 0)
    ((looking-at "sub\\s-") 1)
    ((looking-at "=head[0-9]") (- (char-before (match-end 0)) ?0))
    ((looking-at "=cut") 1)
