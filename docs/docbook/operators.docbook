@@ -3906,7 +3906,7 @@ printf("0x%x\n", $binary[2]);
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Removes and optionally inserts elements in lists and strings.  For a similar operator that only removes value and does not return any value, see the <link linkend="Splice_Operator">splice</link> operator.</para>
+	<para>Removes and optionally inserts elements in lists and strings.  For a similar operator that only removes values and does not return any value, see the <link linkend="Splice_Operator">splice</link> operator.</para>
      </listitem>
     </varlistentry>
     <varlistentry>
