@@ -171,7 +171,7 @@ The expansion is entirely correct because it uses the C preprocessor."
   '(;; Functions
     (nil "^sub\\s-+\\([-A-Za-z0-9+_:]+\\)" 1)
     ;;Variables
-    ("Variables" "^\\([$@%][-A-Za-z0-9+_:]+\\)\\s-*=" 1))
+    ("Variables" "^\\(\\$\\(\\.\\)?[-A-Za-z0-9+_:]+\\)\\s-*=" 1))
   "Imenu generic expression for Qore mode.  See `imenu-generic-expression'.")
 
 ;; Regexps updated with help from Tom Tromey <tromey@cambric.colorado.edu> and
@@ -226,9 +226,12 @@ The expansion is entirely correct because it uses the C preprocessor."
     '("&\\(\\sw+\\(::\\sw+\\)*\\)" 1 font-lock-function-name-face)
     ;; Additionally underline non-scalar variables.  Maybe this is a bad idea.
     ;;'("[$@%*][#{]?\\(\\sw+\\)" 1 font-lock-variable-name-face)
-    '("[$*]{?\\(\\sw+\\(::\\sw+\\)*\\)" 1 font-lock-variable-name-face)
-    '("\\(\\$#\\)\\(\\sw+\\(::\\sw+\\)*\\)"
-      (2 (cons font-lock-variable-name-face '(underline))))
+    ;;orig '("[$*]{?\\(\\sw+\\(::\\sw+\\)*\\)" 1 font-lock-variable-name-face)
+    '("\\${?\\(\\sw+\\(::\\sw+\\)*\\)" 1 font-lock-variable-name-face)
+    '("\\$\\.{?\\(\\sw+\\(::\\sw+\\)*\\)" 1 font-lock-variable-name-face)
+    '("%{?\\(\\sw+\\(::\\sw+\\)*\\)" 1 font-lock-constant-face)
+    ;;'("\\(\\$#\\)\\(\\sw+\\(::\\sw+\\)*\\)"
+    ;;  (2 (cons font-lock-variable-name-face '(underline))))
     '("<\\(\\sw+\\)>" 1 font-lock-constant-face)
     ;;
     ;; Fontify keywords with/and labels as we do in `c++-font-lock-keywords'.
@@ -270,11 +273,11 @@ The expansion is entirely correct because it uses the C preprocessor."
     ;; Catch ${ so that ${var} doesn't screw up indentation.
     ;; This also catches $' to handle 'foo$', although it should really
     ;; check that it occurs inside a '..' string.
-    ("\\(\\$\\)[{']" (1 ". p"))
+    ;;xxx("\\(\\$\\)[{']" (1 ". p"))
     ;; Handle funny names like $DB'stop.
-    ("\\$ ?{?^?[_a-zA-Z][_a-zA-Z0-9]*\\('\\)[_a-zA-Z]" (1 "_"))
+    ;;zzz("\\$ ?{?^?[_a-zA-Z][_a-zA-Z0-9]*\\('\\)[_a-zA-Z]" (1 "_"))
     ;; format statements
-    ("^[ \t]*format.*=[ \t]*\\(\n\\)" (1 '(7)))
+    ;;xxx("^[ \t]*format.*=[ \t]*\\(\n\\)" (1 '(7)))
     ;; Funny things in sub arg specifications like `sub myfunc ($$)'
     ;; Be careful not to match "sub { (...) ... }".
     ("\\<sub[[:space:]]+[^{}[:punct:][:space:]]+[[:space:]]*(\\([^)]+\\))"
