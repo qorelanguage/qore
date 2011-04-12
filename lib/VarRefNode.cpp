@@ -165,7 +165,7 @@ AbstractQoreNode *VarRefNode::parseInitIntern(LocalVar *oflag, int pflag, int &l
    if (type == VT_LOCAL || type == VT_CLOSURE) {
       outTypeInfo = typeInfo;
       if (!ref.id) {
-	 ref.id = push_local_var(name, typeInfo, true, is_new ? 1 : 0);
+	 ref.id = push_local_var(name, typeInfo, true, is_new ? 1 : 0, pflag & PF_TOP_LEVEL);
 	 ++lvids;
       }
       //printd(5, "VarRefNode::parseInitIntern() this=%p local var '%s' declared (id=%p)\n", this, name, ref.id);

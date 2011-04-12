@@ -50,7 +50,7 @@
 #define QP_WARN_DUPLICATE_BLOCK_VARS     (1 << 14)  //!< when a variable is declared more than once in the same block; this would normally be an error, but for backwards-compatibility it's just a warning unless parse option 'assume-local' is set, in which case it's an error
 #define QP_WARN_ALL                      -1         //!< for all possible warnings
 
-#define QP_WARN_DEFAULT (QP_WARN_UNKNOWN_WARNING|QP_WARN_UNREACHABLE_CODE|QP_WARN_NONEXISTENT_METHOD_CALL|QP_WARN_INVALID_OPERATION|QP_WARN_CALL_WITH_TYPE_ERRORS|QP_WARN_RETURN_VALUE_IGNORED|QP_WARN_DUPLICATE_HASH_KEY|QP_WARN_DUPLICATE_BLOCK_VARS)
+#define QP_WARN_DEFAULT (QP_WARN_UNKNOWN_WARNING|QP_WARN_UNREACHABLE_CODE|QP_WARN_NONEXISTENT_METHOD_CALL|QP_WARN_INVALID_OPERATION|QP_WARN_CALL_WITH_TYPE_ERRORS|QP_WARN_RETURN_VALUE_IGNORED|QP_WARN_DEPRECATED|QP_WARN_DUPLICATE_HASH_KEY|QP_WARN_DUPLICATE_BLOCK_VARS)
 
 //! list of strings of warning codes
 DLLEXPORT extern const char **qore_warnings;
