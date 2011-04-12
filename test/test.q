@@ -1288,8 +1288,8 @@ int sub t(any $a) {
 
 class Test inherits Socket {
     private {
-	int $.a;
-	int $.b;
+        int $.a;
+        int $.b;
     }
     public {
 	list $.data;
