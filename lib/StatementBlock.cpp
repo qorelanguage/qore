@@ -255,7 +255,7 @@ LocalVar *push_local_var(const char *name, const QoreTypeInfo *typeInfo, bool ch
       bool avs = checkParseOption(PO_ASSUME_LOCAL);
       VNode *vnode = getVStack();
       while (vnode) {
-	 printd(0, "push_local_var() vnode=%p %s (top: %s) ibs=%d found_block=%d\n", vnode, vnode->getName(), vnode->isTopLevel() ? "true" : "false", vnode->isBlockStart(), found_block);
+	 printd(5, "push_local_var() vnode=%p %s (top: %s) ibs=%d found_block=%d\n", vnode, vnode->getName(), vnode->isTopLevel() ? "true" : "false", vnode->isBlockStart(), found_block);
 	 if (!found_block && vnode->isBlockStart())
 	    found_block = true;
 	 if (!strcmp(vnode->getName(), name)) {
