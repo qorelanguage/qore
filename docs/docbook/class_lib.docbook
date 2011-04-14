@@ -372,55 +372,90 @@
 	  </row>
 	</thead>
 	<tbody>
-          <row>
-            <entry><para><code>WARN_NONE</code></para></entry>
-	    <entry><para><code><link linkend="int_type">int</link></code></para></entry>
-            <entry><para>No warnings are enabled with this constant</para></entry>
-          </row>
-          <row>
-            <entry><para><code>WARN_WARNING_MASK_UNCHANGED</code></para></entry>
-	    <entry><para><code><link linkend="int_type">int</link></code></para></entry>
-            <entry><para>This warning means that the embedded code tried to change the warning mask, but it was locked, so the warning mask was actually unchanged</para></entry>
-          </row>
-          <row>
-            <entry><para><code>WARN_DUPLICATE_LOCAL_VARS</code></para></entry>
-	    <entry><para><code><link linkend="int_type">int</link></code></para></entry>
-            <entry><para>Indicates that a local variable was redeclared with the same name in the same local scope</para></entry>
-          </row>
-          <row>
-            <entry><para><code>WARN_UNKNOWN_WARNING</code></para></entry>
-	    <entry><para><code><link linkend="int_type">int</link></code></para></entry>
-            <entry><para>Indicates that the embedded code tried to enable or disable an unknown warning</para></entry>
-          </row>
-          <row>
-            <entry><para><code>WARN_UNDECLARED_VAR</code></para></entry>
-	    <entry><para><code><link linkend="int_type">int</link></code></para></entry>
-            <entry><para>Indicates that the embedded code referenced an undeclared variable that will be assumed to be a global variable</para></entry>
-          </row>
-          <row>
-            <entry><para><code>WARN_DUPLICATE_GLOBAL_VARS</code></para></entry>
-	    <entry><para><code><link linkend="int_type">int</link></code></para></entry>
-            <entry><para>Indicates that the embedded code has declared the same global variable more than once</para></entry>
-          </row>
-          <row>
-            <entry><para><code>WARN_UNREACHABLE_CODE</code></para></entry>
-	    <entry><para><code><link linkend="int_type">int</link></code></para></entry>
-            <entry><para>Indicates that code cannot be reached (for example; code in the same local block after an unconditional <command>return</command> or <command>thread_exit</command> statement)</para></entry>
-          </row>
-          <row>
-            <entry><para><code>WARN_NONEXISTENT_METHOD_CALL</code></para></entry>
-	    <entry><para><code><link linkend="int_type">int</link></code></para></entry>
-            <entry><para>Indicates that the embedded code is calling an unknown method in a class; this may be vaild if the calling method is only called from a base class that actually implements the method</para></entry>
-          </row>
-          <row>
-            <entry><para><code>WARN_INVALID_OPERATION</code></para></entry>
-	    <entry><para><code><link linkend="int_type">int</link></code></para></entry>
-            <entry><para>Indicates that the embedded code performs some operation that is guaranteed to produce no result (for example, using the [] operator on an integer value)</para></entry>
-          </row>
-          <row>
+          <row id="WARN_ALL">
             <entry><para><code>WARN_ALL</code></para></entry>
 	    <entry><para><code><link linkend="int_type">int</link></code></para></entry>
             <entry><para>Enables all warnings</para></entry>
+          </row>
+          <row id="WARN_CALL_WITH_TYPE_ERRORS">
+            <entry><para><code>WARN_CALL_WITH_TYPE_ERRORS</code></para></entry>
+	    <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+            <entry><para>Enables warnings when the parser determines that the argument types of a function or method call are such that the operation is guaranteed to produce a constant value.  See also <link linkend="call-with-type-errors">call-with-type-errors</link>.</para></entry>
+          </row>
+          <row id="WARN_DEFAULT">
+            <entry><para><code>WARN_DEFAULT</code></para></entry>
+	    <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+            <entry><para>The default warning mask made up of: <code>QP_WARN_UNKNOWN_WARNING | QP_WARN_UNREACHABLE_CODE | QP_WARN_NONEXISTENT_METHOD_CALL | QP_WARN_INVALID_OPERATION | QP_WARN_CALL_WITH_TYPE_ERRORS | QP_WARN_RETURN_VALUE_IGNORED | QP_WARN_DEPRECATED | QP_WARN_DUPLICATE_HASH_KEY | QP_WARN_DUPLICATE_BLOCK_VARS</code>.</para></entry>
+          </row>
+          <row id="WARN_DEPRECATED">
+            <entry><para><code>WARN_DEPRECATED</code></para></entry>
+	    <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+            <entry><para>Enables a warning when deprecated code is used.  See also <link linkend="deprecated">deprecated</link>.</para></entry>
+          </row>
+          <row id="WARN_DUPLICATE_BLOCK_VARS">
+            <entry><para><code>WARN_DUPLICATE_BLOCK_VARS</code></para></entry>
+	    <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+            <entry><para>Enables a warning when a program declares a local variable more than once in the same block; note that this is not a warning but rather an error when <link linkend="assume-local">%assume-local</link> or <link linkend="new-style">%new-style</link> parse options are set.  See also <link linkend="duplicate-block-vars">duplicate-block-vars</link>.</para></entry>
+          </row>
+          <row id="WARN_DUPLICATE_GLOBAL_VARS">
+            <entry><para><code>WARN_DUPLICATE_GLOBAL_VARS</code></para></entry>
+	    <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+            <entry><para>Indicates that the embedded code has declared the same global variable more than once.  See also <link linkend="duplicate-global-vars">duplicate-global-vars</link>.</para></entry>
+          </row>
+          <row id="WARN_DUPLICATE_HASH_KEY">
+            <entry><para><code>WARN_DUPLICATE_HASH_KEY</code></para></entry>
+	    <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+            <entry><para>Enables a warning when an immediate <link linkend="Hashes">hash</link> is declared and at least one of the keys is repeated.  See also <link linkend="duplicate-hash-key">duplicate-hash-key</link>.</para></entry>
+          </row>
+          <row id="WARN_DUPLICATE_LOCAL_VARS">
+            <entry><para><code>WARN_DUPLICATE_LOCAL_VARS</code></para></entry>
+	    <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+            <entry><para>Enables a warning when a local variable with the same name is declared in a subblock (ie another local variable with the same name is reachable in the same lexical scope); note that this warning can raise false positives if the programmer is used to redeclaring the same variable names in subblocks.  See also <link linkend="WARN_DUPLICATE_BLOCK_VARS">WARN_DUPLICATE_BLOCK_VARS</link> and <link linkend="duplicate-local-vars">duplicate-local-vars</link>.</para></entry>
+          </row>
+          <row id="WARN_EXCESS_ARGS">
+            <entry><para><code>WARN_EXCESS_ARGS</code></para></entry>
+	    <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+            <entry><para>Enables a warning when a function or method call is made with more arguments than are used by the function or method.  See also <link linkend="excess-args">excess-args</link>.</para></entry>
+          </row>
+          <row id="WARN_INVALID_OPERATION">
+            <entry><para><code>WARN_INVALID_OPERATION</code></para></entry>
+	    <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+            <entry><para>Indicates that the embedded code performs some operation that is guaranteed to produce no result (for example, using the [] operator on an integer value).  See also <link linkend="invalid-operation">invalid-operation</link>.</para></entry>
+          </row>
+          <row id="WARN_NONE">
+            <entry><para><code>WARN_NONE</code></para></entry>
+	    <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+            <entry><para>No warnings are enabled with this constant.</para></entry>
+          </row>
+          <row id="WARN_NONEXISTENT_METHOD_CALL">
+            <entry><para><code>WARN_NONEXISTENT_METHOD_CALL</code></para></entry>
+	    <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+            <entry><para>Indicates that the embedded code is calling an unknown method in a class; this may be vaild if the calling method is only called from a base class that actually implements the method.  See also <link linkend="non-existent-method-call">non-existent-method-call</link>.</para></entry>
+          </row>
+          <row id="WARN_RETURN_VALUE_IGNORED">
+            <entry><para><code>WARN_RETURN_VALUE_IGNORED</code></para></entry>
+	    <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+            <entry><para>Enables a warning when a function or method call is made with no side effects and the return value is ignored.  See also <link linkend="return-value-ignored">return-value-ignored</link>.</para></entry>
+          </row>
+          <row id="WARN_UNDECLARED_VAR">
+            <entry><para><code>WARN_UNDECLARED_VAR</code></para></entry>
+	    <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+            <entry><para>Indicates that the embedded code referenced an undeclared variable that will be assumed to be a global variable.  See also <link linkend="undeclared-var">undeclared-var</link>.</para></entry>
+          </row>
+          <row id="WARN_UNKNOWN_WARNING">
+            <entry><para><code>WARN_UNKNOWN_WARNING</code></para></entry>
+	    <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+            <entry><para>Indicates that the embedded code tried to enable or disable an unknown warning.  See also <link linkend="unknown-warning">unknown-warning</link>.</para></entry>
+          </row>
+          <row id="WARN_UNREACHABLE_CODE">
+            <entry><para><code>WARN_UNREACHABLE_CODE</code></para></entry>
+	    <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+            <entry><para>Indicates that code cannot be reached (for example; code in the same local block after an unconditional <command>return</command> or <command>thread_exit</command> statement).  See also <link linkend="unreachable-code">unreachable-code</link>.</para></entry>
+          </row>
+          <row id="WARN_WARNING_MASK_UNCHANGED">
+            <entry><para><code>WARN_WARNING_MASK_UNCHANGED</code></para></entry>
+	    <entry><para><code><link linkend="int_type">int</link></code></para></entry>
+            <entry><para>This warning means that the embedded code tried to change the warning mask, but it was locked, so the warning mask was actually unchanged.  See also <link linkend="warning-mask-unchanged">warning-mask-unchanged</link>.</para></entry>
           </row>
 	</tbody>
       </tgroup>

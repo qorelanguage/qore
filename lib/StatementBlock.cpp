@@ -251,8 +251,8 @@ LocalVar *push_local_var(const char *name, const QoreTypeInfo *typeInfo, bool ch
 
    bool found_block = false;
    // check stack for duplicate entries
-   if (check_dup && pgm->checkWarning(QP_WARN_DUPLICATE_LOCAL_VARS | QP_WARN_DUPLICATE_BLOCK_VARS)) {
-      bool avs = checkParseOption(PO_ASSUME_LOCAL);
+   bool avs = checkParseOption(PO_ASSUME_LOCAL);
+   if (check_dup && (pgm->checkWarning(QP_WARN_DUPLICATE_LOCAL_VARS | QP_WARN_DUPLICATE_BLOCK_VARS) || avs)) {
       VNode *vnode = getVStack();
       while (vnode) {
 	 printd(5, "push_local_var() vnode=%p %s (top: %s) ibs=%d found_block=%d\n", vnode, vnode->getName(), vnode->isTopLevel() ? "true" : "false", vnode->isBlockStart(), found_block);

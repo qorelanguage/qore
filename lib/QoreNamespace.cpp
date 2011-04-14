@@ -1600,6 +1600,7 @@ void StaticSystemNamespace::init() {
    qoreNS->addConstant("WARN_UNREFERENCED_VARIABLE",     new QoreBigIntNode(QP_WARN_UNREFERENCED_VARIABLE));
    qoreNS->addConstant("WARN_DUPLICATE_BLOCK_VARS",      new QoreBigIntNode(QP_WARN_DUPLICATE_BLOCK_VARS));
    qoreNS->addConstant("WARN_ALL",                       new QoreBigIntNode(QP_WARN_ALL));
+   qoreNS->addConstant("WARN_DEFAULT",                   new QoreBigIntNode(QP_WARN_DEFAULT));
 
    // event constants
    QoreHashNode *qesm = new QoreHashNode;
