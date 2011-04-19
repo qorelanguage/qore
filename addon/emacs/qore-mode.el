@@ -268,8 +268,11 @@ The expansion is entirely correct because it uses the C preprocessor."
 (defvar qore-font-lock-syntactic-keywords
   ;; TODO: here-documents ("<<\\(\\sw\\|['\"]\\)")
   '(;; Turn POD into b-style comments
-    ("^\\(=\\)\\sw" (1 "< b"))
-    ("^=cut[ \t]*\\(\n\\)" (1 "> b"))
+    ;;("^\\(=\\)\\sw" (1 "< b"))
+    ;;("^=cut[ \t]*\\(\n\\)" (1 "> b"))
+    ;;c-style block comments
+    ("\\(/\\)\\*" (1 "< b"))
+    ("\\*\\(/\\)" (1 "> b"))
     ;; Catch ${ so that ${var} doesn't screw up indentation.
     ;; This also catches $' to handle 'foo$', although it should really
     ;; check that it occurs inside a '..' string.
