@@ -274,14 +274,22 @@ void ExceptionSink::defaultExceptionHandler(QoreException *e) {
 
       if (!found) {
 	 if (e->file) {
-	    if (e->start_line == e->end_line)
-	       printe(" at %s:%d", e->file, e->start_line);
+	    if (e->start_line == e->end_line) {
+	       if (!e->start_line)
+		  printe(" at %s:<init>", e->file);
+	       else
+		  printe(" at %s:%d", e->file, e->start_line);
+	    }
 	    else
 	       printe(" at %s:%d-%d", e->file, e->start_line, e->end_line);
 	 }
 	 else if (e->start_line) {
-	    if (e->start_line == e->end_line)
-	       printe(" on line %d", e->start_line);
+	    if (e->start_line == e->end_line) {
+	       if (!e->start_line)
+		  printe(" at <init>");
+	       else
+		  printe(" on line %d", e->start_line);
+	    }
 	    else
 	       printe(" on lines %d through %d", e->start_line, e->end_line);
 	 }
@@ -359,13 +367,21 @@ void ExceptionSink::defaultExceptionHandler(QoreException *e) {
 		  QoreStringNode *fs = reinterpret_cast<QoreStringNode *>(h->getKeyValue("function"));
 		  const char *func = fs->getBuffer();
 		  if (fns)
-		     if (start_line == end_line)
-			printe(" %2d: %s() (%s:%d, %s code)\n", pos, func, fns, start_line, type);
+		     if (start_line == end_line) {
+			if (!start_line)
+			   printe(" %2d: %s() (%s:<init>, %s code)\n", pos, func, fns, type);
+			else
+			   printe(" %2d: %s() (%s:%d, %s code)\n", pos, func, fns, start_line, type);
+		     }
 		     else
 			printe(" %2d: %s() (%s:%d-%d, %s code)\n", pos, func, fns, start_line, end_line, type);
 		  else
-		     if (start_line == end_line)
-			printe(" %2d: %s() (line %d, %s code)\n", pos, func, start_line, type);
+		     if (start_line == end_line) {
+			if (!start_line)
+			   printe(" %2d: %s() (<init>, %s code)\n", pos, func, type);
+			else
+			   printe(" %2d: %s() (line %d, %s code)\n", pos, func, start_line, type);
+		     }
 		     else
 			printe(" %2d: %s() (line %d - %d, %s code)\n", pos, func, start_line, end_line, type);
 	       }
@@ -386,14 +402,22 @@ void ExceptionSink::defaultWarningHandler(QoreException *e) {
       printe("warning encountered ");
 
       if (e->file) {
-	 if (e->start_line == e->end_line)
-	    printe("at %s:%d", e->file, e->start_line);
+	 if (e->start_line == e->end_line) {
+	    if (!e->start_line)
+	       printe("at %s:<init>", e->file);
+	    else
+	       printe("at %s:%d", e->file, e->start_line);
+	 }
 	 else
 	    printe("at %s:%d-%d", e->file, e->start_line, e->end_line);
       }
       else if (e->start_line) {
-	 if (e->start_line == e->end_line)
-	    printe("on line %d", e->start_line);
+	 if (e->start_line == e->end_line) {
+	    if (!e->start_line)
+	       printe("at <init>");
+	    else
+	       printe("on line %d", e->start_line);
+	 }
 	 else
 	    printe("on line %d-%d", e->start_line, e->end_line);
       }
