@@ -29864,23 +29864,7 @@ $stmt.bindPlaceholdersArgs($l);
 	</varlistentry>
       </variablelist>
 
-      <table>
-	<title>Exceptions Thrown by SQLStatement::commit()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>err</para></entry>
-	      <entry><para>desc</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para><code>SQLSTATEMENT-COMMIT-ERROR</code></para></entry>
-	      <entry><para>cannot call with no active statement</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
+      <para>For possible exceptions; see DBI driver docs for the commit() method.</para>
 
     </sect2>
 
@@ -29907,24 +29891,7 @@ $stmt.bindPlaceholdersArgs($l);
 	</varlistentry>
       </variablelist>
 
-      <table>
-	<title>Exceptions Thrown by SQLStatement::rollback()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>err</para></entry>
-	      <entry><para>desc</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para><code>SQLSTATEMENT-ROLLBACK-ERROR</code></para></entry>
-	      <entry><para>cannot call with no active statement</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
-
+      <para>For possible exceptions; see DBI driver docs for the commit() method.</para>
     </sect2>
 
     <sect2 id="SQLStatement::getSQL">

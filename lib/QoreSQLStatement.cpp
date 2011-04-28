@@ -391,11 +391,6 @@ int QoreSQLStatement::commit(ExceptionSink *xsink) {
    if (!dba)
       return -1;
 
-   if (dba.first) {
-      xsink->raiseException("SQLSTATEMENT-COMMIT-ERROR", "cannot call SQLStatement::commit() with no active statement");
-      return -1;
-   }
-
    int rc = closeIntern(xsink);
    rc = priv->ds->commit(xsink);
    //printd(5, "QoreSQLStatement::commit() ds=%p rc=%d\n", priv->ds, rc);
@@ -406,11 +401,6 @@ int QoreSQLStatement::rollback(ExceptionSink *xsink) {
    DBActionHelper dba(*this, xsink, DAH_RELEASE);
    if (!dba)
       return -1;
-
-   if (dba.first) {
-      xsink->raiseException("SQLSTATEMENT-ROLLBACK-ERROR", "cannot call SQLStatement::rollback() with no active statement");
-      return -1;
-   }
 
    int rc = closeIntern(xsink);
    rc = priv->ds->rollback(xsink);
