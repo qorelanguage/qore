@@ -1062,8 +1062,8 @@ AbstractQoreNode *QoreNamespace::parseMatchScopedConstantValue(const NamedScope 
       unsigned last = nscope->size() - 1;
       for (unsigned i = 1; i < last; i++) {
 	 const char *oname = nscope->strlist[i].c_str();
-	 ns = ns->priv->parseFindLocalNamespace(oname);
-	 if (!ns) {
+         const QoreNamespace *nns = ns->priv->parseFindLocalNamespace(oname);
+	 if (!nns) {
 	    // if we are on the last element before the constant in the namespace path list,
 	    // then check for a class constant
 	    if (i == (last - 1)) {
@@ -1072,6 +1072,7 @@ AbstractQoreNode *QoreNamespace::parseMatchScopedConstantValue(const NamedScope 
 	    }
 	    return 0;
 	 }
+         ns = nns;
 	 if (i >= (*matched))
 	    (*matched) = i + 1;
       }
