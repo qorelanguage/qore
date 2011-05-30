@@ -275,6 +275,7 @@ public:
    */
    DLLEXPORT void setDefaultHeaderValue(const char *header, const char *val);
 
+   using AbstractPrivateData::deref;
    //! decrements the reference count and deletes the object when it reaches 0
    /**
       @param xsink if an error occurs, the Qore-language exception information will be added here
