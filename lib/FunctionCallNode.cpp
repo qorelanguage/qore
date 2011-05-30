@@ -65,7 +65,7 @@ static void warn_deprecated(AbstractQoreFunction *func) {
 }
 
 static void check_flags(AbstractQoreFunction *func, int64 flags, int64 pflag) {
-   if ((pflag & PF_RETURN_VALUE_IGNORED) && (flags & QC_CONSTANT))
+   if ((pflag & PF_RETURN_VALUE_IGNORED) && ((flags & QC_CONSTANT) == QC_CONSTANT))
       warn_retval_ignored(func);
    if (flags & QC_DEPRECATED)
       warn_deprecated(func);
