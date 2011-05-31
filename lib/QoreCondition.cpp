@@ -3,7 +3,7 @@
  
  Qore Programming Language
  
- Copyright (C) David Nichols 2005 - 2010
+ Copyright (C) David Nichols 2005 - 2011
  
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public

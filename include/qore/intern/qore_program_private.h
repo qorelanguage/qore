@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright 2003 - 2010 David Nichols
+  Copyright 2003 - 2011 David Nichols
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -642,21 +642,31 @@ struct qore_program_private {
       pwo.parse_options = po;
    }
 
+   DLLLOCAL void mergeParseException(ExceptionSink &xsink) {
+      if (parseSink)
+         parseSink->assimilate(xsink);
+      else {
+         // grab program-level parse lock if we are not already parsing; just in case
+         AutoLocker al(&plock);
+         
+         if (!pendingParseSink)
+            pendingParseSink = new ExceptionSink;
+         pendingParseSink->assimilate(xsink);
+      }
+   }
+
    DLLLOCAL void parseSetTimeZone(const char *zone) {
+      // check PO_NO_LOCALE_CONTROL
       ExceptionSink xsink;
+      if (pwo.parse_options & PO_NO_LOCALE_CONTROL) {
+         mergeParseException(xsink);
+         return;
+      }
+
       const AbstractQoreZoneInfo *tz = (*zone == '-' || *zone == '+') ? QTZM.findCreateOffsetZone(zone, &xsink) : QTZM.findLoadRegion(zone, &xsink);
       if (xsink) {
          assert(!tz);
-         if (parseSink)
-            parseSink->assimilate(xsink);
-         else {
-            // grab program-level parse lock if we are not already parsing; just in case
-            AutoLocker al(&plock);
-
-            if (!pendingParseSink)
-               pendingParseSink = new ExceptionSink;
-            pendingParseSink->assimilate(xsink);
-         }
+         mergeParseException(xsink);
          return;
       }
       // note that tz may be NULL in case the offset is UTC (ie 0)

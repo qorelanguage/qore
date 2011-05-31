@@ -7,7 +7,7 @@
 
   it should offer POSIX style command-line handling on any platform...
 
-  Copyright 2003 - 2010 David Nichols
+  Copyright 2003 - 2011 David Nichols
 */
 
 #include <qore/Qore.h>
@@ -388,7 +388,7 @@ static void set_time_zone(const char *arg) {
 static const char *tlist[] = { "OPTION", "ALGORITHM", "FUNCTION", "UNKNOWN" };
 
 static void do_version(const char *arg) {
-   printf("QORE for %s %s (%d-bit build), Copyright (C) 2003 - 2010 David Nichols\n", qore_target_os, qore_target_arch, qore_target_bits);
+   printf("QORE for %s %s (%d-bit build), Copyright (C) 2003 - 2011 David Nichols\n", qore_target_os, qore_target_arch, qore_target_bits);
 
    printf("version %s", qore_version_string);
    FeatureList::iterator i = qoreFeatureList.begin();

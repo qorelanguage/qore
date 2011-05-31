@@ -134,23 +134,6 @@ void parse_set_time_zone(const char *zone) {
    }
 
    getProgram()->parseSetTimeZone(zone);
-/*
-   ExceptionSink xsink;
-   const AbstractQoreZoneInfo *tz = (*zone == '-' || *zone == '+') ? QTZM.findCreateOffsetZone(zone, &xsink) : QTZM.findLoadRegion(zone, &xsink);
-   if (xsink) {
-      assert(!tz);
-      ExceptionSink *pxs = getProgram()->getParseExceptionSink();
-      if (pxs)
-	 pxs->assimilate(xsink);
-      else
-	 xsink.clear();
-      return;
-   }
-   // note that tz may be NULL in case the offset is UTC (ie 0)
-   assert(tz || ((*zone == '-' || *zone == '+')));
-
-   getProgram()->setTZ(tz);
-*/
 }
 
 void setIncludePath(const char *path) {

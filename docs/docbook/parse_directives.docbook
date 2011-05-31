@@ -162,11 +162,17 @@
 	</row>
 	<row>
 	  <entry><para><code><link linkend="require-prototypes">%require-prototypes</link></code></para></entry>
-	  <entry><para>Requires <link linkend="Data_Type_Declarations">type declarations</link> for all function and method parameters and return types.  Variables and object members do not need to have type declarations.  Equivalent to parse option <code><link linkend="PO_REQUIRE_PROTOTYPES">PO_REQUIRE_PROTOTYPES</link></code> and the <code>--require-prototypes</code> command-line option.</para></entry>
+	  <entry>
+	    <para>Requires <link linkend="Data_Type_Declarations">type declarations</link> for all function and method parameters and return types.  Variables and object members do not need to have type declarations.  Equivalent to parse option <code><link linkend="PO_REQUIRE_PROTOTYPES">PO_REQUIRE_PROTOTYPES</link></code> and the <code>--require-prototypes</code> command-line option.</para>
+	    <para>Since Qore 0.8.0.</para>
+	  </entry>
 	</row>
 	<row>
 	  <entry><para><code><link linkend="require-types">%require-types</link></code></para></entry>
-	  <entry><para>Requires <link linkend="Data_Type_Declarations">type declarations</link> for all function and method parameters, return types, variables, and object members.  Equivalent to parse option <code><link linkend="PO_REQUIRE_TYPES">PO_REQUIRE_TYPES</link></code> and the <code>--require-types</code> command-line option.  Implies also <link linkend="strict-args">%strict-args</link>.</para></entry>
+	  <entry>
+	    <para>Requires <link linkend="Data_Type_Declarations">type declarations</link> for all function and method parameters, return types, variables, and object members.  Equivalent to parse option <code><link linkend="PO_REQUIRE_TYPES">PO_REQUIRE_TYPES</link></code> and the <code>--require-types</code> command-line option.  Implies also <link linkend="strict-args">%strict-args</link>.</para>
+	    <para>Since Qore 0.8.0.</para>
+	  </entry>
 	</row>
 	<row>
 	  <entry><para><code><link linkend="requires">%requires</link></code> <replaceable>feature [&lt;|&lt;=|=|&gt;=|&gt; &lt;version&gt;]</replaceable></para></entry>
@@ -175,11 +181,17 @@
 	</row>
 	<row>
 	  <entry><para><code><link linkend="set-time-zone">%set-time-zone</link></code></para></entry>
-	  <entry><para>Sets the time zone for the current program from a UTC offset (with format +/-[00[:00[:00]]; ':' characters are optional) or a time zone region name (ex: 'Europe/Prague').</para></entry>
+	  <entry>
+	    <para>Sets the time zone for the current program from a UTC offset (with format <code>+/-[00[:00[:00]]</code>; <code>':'</code> characters are optional) or a time zone region name (ex: <code>'Europe/Prague'</code>).</para>
+	    <para>Since Qore 0.8.3.</para>
+	  </entry>
 	</row>
 	<row>
 	  <entry><para><code><link linkend="strict-args">%strict-args</link></code></para></entry>
-	  <entry><para>Prohibits access to builtin functions and methods flagged with <code><link linkend="RT_NOOP_flag">RT_NOOP</link></code> and also causes errors to be raised if excess arguments are given to functions that do not access excess arguments.</para></entry>
+	  <entry>
+	    <para>Prohibits access to builtin functions and methods flagged with <code><link linkend="RT_NOOP_flag">RT_NOOP</link></code> and also causes errors to be raised if excess arguments are given to functions that do not access excess arguments.</para>
+	    <para>Since Qore 0.8.0.</para>
+	  </entry>
 	</row>
       </tbody>
     </tgroup>
@@ -1730,7 +1742,7 @@
       <varlistentry>
 	<term>Description</term>
 	<listitem>
-	  <para>Sets the time zone for the current program from a UTC offset (with format '+/-00[:00[:00]]'; ':' characters are optional) or a time zone region name (ex: 'Europe/Prague').</para>
+	  <para>Sets the time zone for the current program from a UTC offset (with format <code>+/-00[:00[:00]]</code>; <code>':'</code> characters are optional) or a time zone region name (ex: <code>'Europe/Prague'</code>).</para>
 	</listitem>
       </varlistentry>
     </variablelist>
