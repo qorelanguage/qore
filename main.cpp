@@ -18,7 +18,7 @@
 extern int parse_options;
 extern int warnings, qore_lib_options;
 extern const char *def_charset;
-extern const char *cl_pgm, *exec_class_name, *eval_arg;
+extern const char *cl_pgm, *exec_class_name, *eval_arg, *cmd_zone;
 extern bool show_mod_errs, lock_options, exec_class, warnings_are_errors, only_first_except;
 extern qore_license_t license;
 
@@ -52,6 +52,10 @@ int main(int argc, char *argv[]) {
 	 rc = 2;
 	 goto exit;
       }
+
+      // set time zone if requested
+      if (cmd_zone)
+	 qpgm->parseSetTimeZone(cmd_zone);
       
       // lock the parse options if necessary
       if (lock_options)

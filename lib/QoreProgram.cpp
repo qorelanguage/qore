@@ -240,14 +240,8 @@ QoreThreadLock *QoreProgram::getParseLock() {
 
 void QoreProgram::deref(ExceptionSink *xsink) {
    //printd(5, "QoreProgram::deref() this=%p %d->%d\n", this, reference_count(), reference_count() - 1);
-   if (ROdereference()) {
-      // delete all global variables
-      priv->global_var_list.clear_all(xsink);
-      // clear thread data if base object
-      if (priv->base_object)
-	 priv->clearThreadData(xsink);
-      depDeref(xsink);
-   }
+   if (ROdereference())
+      priv->clear(xsink);
 }
 
 Var *QoreProgram::findGlobalVar(const char *name) {
@@ -563,11 +557,7 @@ void QoreProgram::depRef() {
 }
 
 void QoreProgram::depDeref(ExceptionSink *xsink) {
-   //printd(5, "QoreProgram::depDeref() this=%p %d->%d\n", this, priv->dc.reference_count(), priv->dc.reference_count() - 1);
-   if (priv->dc.ROdereference()) {
-      priv->del(xsink);
-      delete this;
-   }
+   priv->depDeref(xsink);
 }
 
 bool QoreProgram::checkWarning(int code) const {
@@ -1006,6 +996,10 @@ void QoreProgram::setTZ(const AbstractQoreZoneInfo *n_TZ) {
 
 bool QoreProgram::parseExceptionRaised() const {
    return priv->parseExceptionRaised();
+}
+
+void QoreProgram::parseSetTimeZone(const char *zone) {
+   return priv->parseSetTimeZone(zone);
 }
 
 int get_warning_code(const char *str) {

@@ -115,7 +115,9 @@ void qore_absolute_time::getAsString(QoreString &str) const {
    const char *wday = days[qore_date_info::getDayOfWeek(i.year, i.month, i.day)].abbr;
    str.sprintf(" %s ", wday);
    concatOffset(i.utcoffset, str);
-   str.sprintf(" (%s)", i.zname);
+   // only concat zone name if it's not the same as the offset just output
+   if (*i.zname != '+' && *i.zname != '-')
+      str.sprintf(" (%s)", i.zname);
 }
 
 qore_absolute_time &qore_absolute_time::operator+=(const qore_relative_time &dt) {

@@ -304,42 +304,83 @@ int QoreZoneInfo::getUTCOffsetImpl(int64 epoch_offset, bool &is_dst, const char 
    return utcoff;
 }
 
-// format: S00[[:]00[[:]00]]
-const QoreOffsetZoneInfo *QoreTimeZoneManager::findCreateOffsetZone(const char *offset) {
-   assert(strlen(offset) > 1);
+// format: S00[[:]00[[:]00]] (S is + or -)
+const QoreOffsetZoneInfo *QoreTimeZoneManager::findCreateOffsetZone(const char *offset, ExceptionSink *xsink) {
+   static const char *fmt = "format must be: +DD[:DD[:DD]] or -DD[:DD[:DD]] where D is a digit from 0 - 9 (the ':' characters are optional)";
+
+   // the caller must verify that the first character is either + or -
+   assert(*offset == '-' || *offset == '+');
+
+   if (strlen(offset) < 3) {
+      if (xsink)
+         xsink->raiseException("PARSE-SET-TIME-ZONE-ERROR", "error setting UTC offset '%s': less than minimum 3 characters long; %s", offset, fmt);
+      return 0;
+   }
 
    const char *p = offset + 1;
-   assert(isdigit(*p));
+   if (!isdigit(*p)) {
+      if (xsink)
+         xsink->raiseException("PARSE-SET-TIME-ZONE-ERROR", "error setting UTC offset '%s': expecting a digit after the offset sign character; %s", offset, fmt);
+      return 0;
+   }
    int secs = (*p - '0') * SECS_PER_HOUR * 10;
    ++p;
-   assert(isdigit(*p));
+   if (!isdigit(*p)) {
+      if (xsink)
+         xsink->raiseException("PARSE-SET-TIME-ZONE-ERROR", "error setting UTC offset '%s': expecting a 2 digit value for the hours portion of the UTC offset; %s", offset, fmt);
+      return 0;
+   }
    secs += (*p - '0') * SECS_PER_HOUR;
    ++p;
    if (*p) {
       if (*p == ':')
          ++p;
-      assert(isdigit(*p));
+      if (!isdigit(*p)) {
+         if (xsink)
+            xsink->raiseException("PARSE-SET-TIME-ZONE-ERROR", "error setting UTC offset '%s': expecting a digit for the minutes portion of the UTC offset; %s", offset, fmt);
+         return 0;
+      }
       secs += (*p - '0') * SECS_PER_MINUTE * 10;
       ++p;
-      assert(isdigit(*p));
+      if (!isdigit(*p)) {
+         if (xsink)
+            xsink->raiseException("PARSE-SET-TIME-ZONE-ERROR", "error setting UTC offset '%s': expecting a 2 digit value for the minutes portion of the UTC offset; %s", offset, fmt);
+         return 0;
+      }
       secs += (*p - '0') * SECS_PER_MINUTE;
       ++p;
       if (*p) {
          if (*p == ':')
             ++p;
-         assert(isdigit(*p));
+         if (!isdigit(*p)) {
+            if (xsink)
+               xsink->raiseException("PARSE-SET-TIME-ZONE-ERROR", "error setting UTC offset '%s': expecting a digit for the seconds portion of the UTC offset; %s", offset, fmt);
+            return 0;
+         }
          secs += (*p - '0') * 10;
          ++p;
-         assert(isdigit(*p));
+         if (!isdigit(*p)) {
+            if (xsink)
+               xsink->raiseException("PARSE-SET-TIME-ZONE-ERROR", "error setting UTC offset '%s': expecting a 2 digit value for the seconds portion of the UTC offset; %s", offset, fmt);
+            return 0;
+         }
          secs += *p - '0';
+         ++p;
+         if (*p) {
+            if (xsink)
+               xsink->raiseException("PARSE-SET-TIME-ZONE-ERROR", "error setting UTC offset '%s': excess text after the seconds value; %s", offset, fmt);
+            return 0;
+         }
       }
    }
 
    //printd(5, "QoreTimeZoneManager::findCreateOffsetZone(%s) secs=%d\n", offset, secs);
 
+   // this is not an error; this is the UTC offset
    if (!secs)
       return 0;
 
+   // we do not need to check for '+' or '-' here; this has been verified by the caller before sending to this function
    if (*offset == '-')
       secs = -secs;
 

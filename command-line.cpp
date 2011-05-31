@@ -1,5 +1,5 @@
 /*
-  command-line.cc
+  command-line.cpp
 
   Qore Programming Language
 
@@ -40,6 +40,9 @@ const char *def_charset = 0;
 
 // classname to instantiate as program
 const char *exec_class_name = 0;
+
+// time zone to set after initialization
+const char *cmd_zone = 0;
 
 // show module errors
 bool show_mod_errs = false;
@@ -97,6 +100,9 @@ static const char helpstr[] =
    "  -x, --exec-class[=arg]       instantiate class with same name as file name\n"
    "                               (override with arg, also sets --no-top-level)\n"
    "  -X, --eval=arg               evaluates argument and displays result\n"
+   "  -z, --time-zone=arg          sets the time zone from the argument; can be\n"
+   "                               either a region name (ex: 'Europe/Prague') or a\n"
+   "                               UTC offset with format S[DD[:DD[:DD]]], S=+ or -\n"
    "\n"
    " PARSE OPTIONS:\n"
    "  -H, --parse-option-help      display options controlling parse options\n";
@@ -375,6 +381,10 @@ static void short_version(const char *arg) {
    exit(0);
 }
 
+static void set_time_zone(const char *arg) {
+   cmd_zone = arg;
+}
+
 static const char *tlist[] = { "OPTION", "ALGORITHM", "FUNCTION", "UNKNOWN" };
 
 static void do_version(const char *arg) {
@@ -520,7 +530,9 @@ static struct opt_struct_s {
    { 'W', "enable-all-warnings",   ARG_NONE, enable_warnings },
    { '\0', "no-thread-classes",    ARG_NONE, do_no_thread_classes },
    { '\0', "no-thread-info",       ARG_NONE, do_no_thread_info },
+   { 'X', "eval",                  ARG_MAND, set_eval_arg },
    { 'Y', "no-network",            ARG_NONE, do_no_network },
+   { 'z', "time-zone",             ARG_MAND, set_time_zone },
    { '\0', "no-terminal-io",       ARG_NONE, do_no_terminal_io },
    { '\0', "no-gui",               ARG_NONE, do_no_gui },
    { '\0', "lgpl",                 ARG_NONE, set_lgpl },
@@ -529,7 +541,6 @@ static struct opt_struct_s {
    { '\0', "module-api",           ARG_NONE, show_module_api },
    { '\0', "module-apis",          ARG_NONE, show_module_apis },
    { '\0', "latest-module-api",    ARG_NONE, show_latest_module_api },
-   { 'X', "eval",                  ARG_MAND, set_eval_arg },
 // debugging options
    { 'b', "disable-signals",       ARG_NONE, disable_signals },
    { 'd', "debug",                 ARG_MAND, do_debug },

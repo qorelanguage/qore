@@ -97,7 +97,7 @@ struct qore_program_private {
    mutable QoreThreadLock plock;
    // depedency counter, when this hits zero, the object is deleted
    QoreReferenceCounter dc;
-   ExceptionSink *parseSink, *warnSink;
+   ExceptionSink *parseSink, *warnSink, *pendingParseSink;
    RootQoreNamespace *RootNS;
    QoreNamespace *QoreNS;
 
@@ -122,7 +122,7 @@ struct qore_program_private {
    QoreProgram *pgm;
 
    DLLLOCAL qore_program_private(QoreProgram *n_pgm, int64 n_parse_options, const AbstractQoreZoneInfo *n_TZ = QTZM.getLocalZoneInfo()) 
-      : thread_count(0), plock(&ma_recursive), parseSink(0), warnSink(0), RootNS(0), QoreNS(0),
+      : thread_count(0), plock(&ma_recursive), parseSink(0), warnSink(0), pendingParseSink(0), RootNS(0), QoreNS(0),
         only_first_except(false), exceptions_raised(0), 
         pwo(n_parse_options), po_locked(false), po_allow_restrict(true), 
         exec_class(false), base_object(false), requires_exception(false), 
@@ -143,6 +143,34 @@ struct qore_program_private {
    }
 
    DLLLOCAL ~qore_program_private() {
+      assert(!parseSink);
+      assert(!warnSink);
+      assert(!pendingParseSink);
+   }
+
+   DLLLOCAL void depDeref(ExceptionSink *xsink) {
+      //printd(5, "QoreProgram::depDeref() this=%p %d->%d\n", this, priv->dc.reference_count(), priv->dc.reference_count() - 1);
+      if (dc.ROdereference()) {
+         del(xsink);
+         delete pgm;
+      }
+   }
+
+   // called when the program's ref count = 0 (but the dc count may not go to 0 yet)
+   DLLLOCAL void clear(ExceptionSink *xsink) {
+      // delete all global variables
+      global_var_list.clear_all(xsink);
+      // clear thread data if base object
+      if (base_object)
+         clearThreadData(xsink);
+
+      // merge pending parse exceptions into the passed exception sink, if any
+      if (pendingParseSink) {
+         xsink->assimilate(pendingParseSink);
+         pendingParseSink = 0;
+      }
+
+      depDeref(xsink);
    }
 
    // for independent programs (not inherited from another QoreProgram object)
@@ -299,15 +327,25 @@ struct qore_program_private {
       return rc;
    }
 
+   DLLLOCAL void startParsing(ExceptionSink *xsink, ExceptionSink *wS, int wm) {
+      warnSink = wS;
+      pwo.warn_mask = wm;
+      parseSink = xsink;
+
+      if (pendingParseSink) {
+         parseSink->assimilate(pendingParseSink);
+         pendingParseSink = 0;
+      }
+   }
+
    DLLLOCAL int parsePending(const char *code, const char *label, ExceptionSink *xsink, ExceptionSink *wS, int wm) {
       //printd(5, "qore_program_private::parsePending() wm=0x%x UV=0x%x on=%d\n", wm, QP_WARN_UNREFERENCED_VARIABLE, wm & QP_WARN_UNREFERENCED_VARIABLE);
 
       // grab program-level parse lock
       AutoLocker al(&plock);
-      warnSink = wS;
-      pwo.warn_mask = wm;
 
-      parseSink = xsink;
+      startParsing(xsink, wS, wm);
+
       int rc = internParsePending(code, label);
       warnSink = 0;
 #ifdef DEBUG
@@ -339,9 +377,7 @@ struct qore_program_private {
       if (checkParseCommitUnlocked(xsink))
 	 return -1;
 
-      warnSink = wS;
-      pwo.warn_mask = wm;
-      parseSink = xsink;
+      startParsing(xsink, wS, wm);
 
       // finalize parsing, back out or commit all changes
       int rc = internParseCommit();
@@ -385,9 +421,7 @@ struct qore_program_private {
 	 if (checkParseCommitUnlocked(xsink))
 	    return;
 	 
-	 warnSink = wS;
-	 pwo.warn_mask = wm;
-	 parseSink = xsink;
+         startParsing(xsink, wS, wm);
 	 
 	 // save this file name for storage in the parse tree and deletion
 	 // when the QoreProgram object is deleted
@@ -445,9 +479,7 @@ struct qore_program_private {
       if (checkParseCommitUnlocked(xsink))
 	 return;
 
-      warnSink = wS;
-      pwo.warn_mask = wm;
-      parseSink = xsink;
+      startParsing(xsink, wS, wm);
 
       // parse text given
       if (!internParsePending(code, label))
@@ -608,6 +640,29 @@ struct qore_program_private {
       }
       
       pwo.parse_options = po;
+   }
+
+   DLLLOCAL void parseSetTimeZone(const char *zone) {
+      ExceptionSink xsink;
+      const AbstractQoreZoneInfo *tz = (*zone == '-' || *zone == '+') ? QTZM.findCreateOffsetZone(zone, &xsink) : QTZM.findLoadRegion(zone, &xsink);
+      if (xsink) {
+         assert(!tz);
+         if (parseSink)
+            parseSink->assimilate(xsink);
+         else {
+            // grab program-level parse lock if we are not already parsing; just in case
+            AutoLocker al(&plock);
+
+            if (!pendingParseSink)
+               pendingParseSink = new ExceptionSink;
+            pendingParseSink->assimilate(xsink);
+         }
+         return;
+      }
+      // note that tz may be NULL in case the offset is UTC (ie 0)
+      assert(tz || ((*zone == '-' || *zone == '+')));
+      
+      TZ = tz;
    }
 
    DLLLOCAL static const ParseWarnOptions &getParseWarnOptions(const QoreProgram *pgm) {

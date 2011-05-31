@@ -380,4 +380,9 @@ DLLEXPORT QoreStringNode *qore_reassign_signal(int sig, const char *name);
 #endif
 #endif
 
+//! to set the time zone from the command line
+/** @note this function can only be called when a program exists
+ */
+DLLEXPORT void parse_set_time_zone(const char *zone);
+
 #endif // _QORE_QORELIB_H

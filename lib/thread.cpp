@@ -481,11 +481,11 @@ public:
 
    DLLLOCAL ~ThreadData();
 
-   DLLLOCAL int get_element() {
+   DLLLOCAL int getElement() {
       return element;
    }
 
-   DLLLOCAL int save_element(int n_element) {
+   DLLLOCAL int saveElement(int n_element) {
       int rc = element;
       element = n_element;
       return rc;
@@ -1025,11 +1025,11 @@ void remove_constant(ConstantEntry *ce) {
 }
 
 int get_implicit_element() {
-   return thread_data.get()->get_element();
+   return thread_data.get()->getElement();
 }
 
 int save_implicit_element(int n_element) {
-   return thread_data.get()->save_element(n_element);
+   return thread_data.get()->saveElement(n_element);
 }
 
 ObjectSubstitutionHelper::ObjectSubstitutionHelper(QoreObject *obj) {

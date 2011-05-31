@@ -3608,23 +3608,7 @@ $f.open("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</prog
 	</tgroup>
       </table>
 
-      <table>
-	<title>Exceptions Thrown by File::open()</title>
-	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
-	  <thead>
-	    <row>
-	      <entry><para>err</para></entry>
-	      <entry><para>desc</para></entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><para><code>FILE-OPEN-PARAMETER-ERROR</code></para></entry>
-	      <entry><para>Missing filename argument.</para></entry>
-	    </row>
-	  </tbody>
-	</tgroup>
-      </table>
+      <para>This method does not throw any exceptions.</para>
     </sect2>
 
     <sect2 id="File_open2">
@@ -3700,10 +3684,6 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 	    </row>
 	  </thead>
 	  <tbody>
-	    <row>
-	      <entry><para><code>FILE-OPEN2-PARAMETER-ERROR</code></para></entry>
-	      <entry><para>Missing filename argument.</para></entry>
-	    </row>
 	    <row>
 	      <entry><para><code>FILE-OPEN2-ERROR</code></para></entry>
 	      <entry><para>Error opening the file; attempted to reopen a system file (<link linkend="Qore_IO_Constants">I/O constants</link>).</para></entry>
@@ -3797,7 +3777,7 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 	  <tbody>
 	    <row>
 	      <entry><para><code>FILE-READ-PARAMETER-ERROR</code></para></entry>
-	      <entry><para>Missing size argument.</para></entry>
+	      <entry><para>Zero size argument passed.</para></entry>
 	    </row>
 	    <row>
 	      <entry><para><code>FILE-READ-ERROR</code></para></entry>
@@ -4660,7 +4640,7 @@ $f.open2("new_file.txt", O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");</pro
 	  <tbody>
 	    <row>
 	      <entry><para><code>FILE-READ-BINARY-PARAMETER-ERROR</code></para></entry>
-	      <entry><para>Missing size argument.</para></entry>
+	      <entry><para>Zero size argument passed.</para></entry>
 	    </row>
 	    <row>
 	      <entry><para><code>FILE-READ-ERROR</code></para></entry>
@@ -5261,7 +5241,7 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 	  <tbody>
 	    <row>
 	      <entry><para><code><link linkend="int_type">int</link></code></para></entry>
-	      <entry><para>Returns 0 for success, -1 for error.</para></entry>
+	      <entry><para>Returns the number of bytes written or -1 for error.  If -1 is returned, the error can be checked with the <link linkend="errno">errno()</link> function.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -5276,10 +5256,6 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 	    </row>
 	  </thead>
 	  <tbody>
-	    <row>
-	      <entry><para><code>FILE-WRITE-PARAMETER-ERROR</code></para></entry>
-	      <entry><para>Missing string or binary argument.</para></entry>
-	    </row>
 	    <row>
 	      <entry><para><code>FILE-WRITE-ERROR</code></para></entry>
 	      <entry><para>File is not open.</para></entry>
@@ -6795,7 +6771,6 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
       </table>
     </sect2>
 
-
     <sect2 id="Dir_chgrp">
       <title>Dir::chgrp()</title>
 
@@ -6919,10 +6894,6 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 	    </row>
 	  </thead>
 	  <tbody>
-	    <row>
-	      <entry><para><code>DIR-CHMOD-PARAMETER-ERROR</code></para></entry>
-	      <entry><para>Parameter error.</para></entry>
-	    </row>
 	    <row>
 	      <entry><para><code>DIR-CHMOD-ERROR</code></para></entry>
 	      <entry><para>The error returned from the chmod() system call.</para></entry>
@@ -10754,10 +10725,6 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	      <entry><para><code>FTP-PUT-ERROR</code></para></entry>
 	      <entry><para>An error occurred while sending the file.</para></entry>
 	    </row>
-	    <row>
-	      <entry><para><code>FTPCLIENT-PUT-PARAMETER-ERROR</code></para></entry>
-	      <entry><para>Missing argument to the method.</para></entry>
-	    </row>
 	  </tbody>
 	</tgroup>
       </table>
@@ -12934,12 +12901,8 @@ $pgm.disableParseOptions(<link linkend="PO_NO_THREADS">PO_NO_THREADS</link> | <l
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code>PROGRAM-IMPORTFUNCTION-PARAMETER-ERROR</code></para></entry>
-	      <entry><para>No function name was passed to the method.</para></entry>
-	    </row>
-	    <row>
-	      <entry><para><code>PROGRAM-IMPORTFUNCTION-PARAMETER-ERROR</code></para></entry>
-	      <entry><para>Cannot import a function into the same Program object.</para></entry>
+	      <entry><para><code>FUNCTION-IMPORT-ERROR</code></para></entry>
+	      <entry><para>Cannot import a function into the same Program object; function with this name already exists.</para></entry>
 	    </row>
 	    <row>
 	      <entry><para><code>PROGRAM-IMPORTFUNCTION-NO-FUNCTION</code></para></entry>
@@ -13005,10 +12968,6 @@ $pgm.disableParseOptions(<link linkend="PO_NO_THREADS">PO_NO_THREADS</link> | <l
 	    </row>
 	  </thead>
 	  <tbody>
-	    <row>
-	      <entry><para><code>PROGRAM-IMPORTGLOBALVARIABLE-PARAMETER-ERROR</code></para></entry>
-	      <entry><para>No variable name was passed to the method.</para></entry>
-	    </row>
 	    <row>
 	      <entry><para><code>PROGRAM-IMPORTGLOBALVARIABLE-EXCEPTION</code></para></entry>
 	      <entry><para>The global variable does not exist.</para></entry>
@@ -15994,10 +15953,6 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code>SOCKET-SEND-PARAMETER-ERROR</code></para></entry>
-	      <entry><para>No argument was passed to the method.</para></entry>
-	    </row>
-	    <row>
 	      <entry><para><code>SOCKET-NOT-OPEN</code></para></entry>
 	      <entry><para>The socket is not connected.</para></entry>
 	    </row>
@@ -16085,10 +16040,6 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	    </row>
 	  </thead>
 	  <tbody>
-	    <row>
-	      <entry><para><code>SOCKET-SEND-PARAMETER-ERROR</code></para></entry>
-	      <entry><para>No argument was passed to the method.</para></entry>
-	    </row>
 	    <row>
 	      <entry><para><code>SOCKET-NOT-OPEN</code></para></entry>
 	      <entry><para>The socket is not connected.</para></entry>
@@ -16751,10 +16702,6 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	  </thead>
 	  <tbody>
 	    <row>
-	      <entry><para><code>SOCKET-SENDHTTPMESSAGE-PARAMETER-ERROR</code></para></entry>
-	      <entry><para>One or more of the required arguments is missing.</para></entry>
-	    </row>
-	    <row>
 	      <entry><para><code>SOCKET-NOT-OPEN</code></para></entry>
 	      <entry><para>The socket is not connected.</para></entry>
 	    </row>
@@ -16838,10 +16785,6 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	    </row>
 	  </thead>
 	  <tbody>
-	    <row>
-	      <entry><para><code>SOCKET-SENDHTTPRESPONSE-PARAMETER-ERROR</code></para></entry>
-	      <entry><para>One or more of the required arguments is missing.</para></entry>
-	    </row>
 	    <row>
 	      <entry><para><code>SOCKET-NOT-OPEN</code></para></entry>
 	      <entry><para>The socket is not connected.</para></entry>
@@ -24366,10 +24309,6 @@ values (%v, %v, %v, %d)", $string, now(), $binary, 100);</programlisting>
 	    </row>
 	  </thead>
 	  <tbody>
-	    <row>
-	      <entry><para><code>DATASOURCE-PARAMETER-EEROR</code></para></entry>
-	      <entry><para>Missing DBI driver identifier as first argument.</para></entry>
-	    </row>
 	    <row>
 	      <entry><para><code>DATASOURCE-UNSUPPORTED-DATABASE</code></para></entry>
 	      <entry><para>Could not load a driver for the database identified.</para></entry>

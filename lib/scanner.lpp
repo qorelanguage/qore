@@ -83,6 +83,20 @@ static char *trim(const char *str) {
    return n;
 }
 
+// edits the string (even though it's a 'const char*') and returns a pointer to a string with leading and trailing whitespace removed
+static const char *trim_inplace(const char *str) {
+   while ((*str) == ' ' || (*str) == '\t')
+      str++;
+   // find end of string
+   unsigned l = (unsigned)strlen(str);
+   if (l) {
+      const char *e = str + l - 1;
+      while ((*e) == ' ' || (*e) == '\t')
+	 *((char *)(e--)) = '\0';
+   }
+   return str[0] ? str : 0;
+}
+
 static QoreString *getIncludeFileName(char *file) {
    //printd(5, "getIncludeFileName(%s)\n", file);
    // FIXME: UNIX-specific
@@ -109,6 +123,34 @@ static QoreString *getIncludeFileName(char *file) {
    }
 
    return rv;
+}
+
+// sets the time zone at parse time
+void parse_set_time_zone(const char *zone) {
+   zone = trim_inplace(zone);
+   if (!zone) {
+      parse_error("empty argument to %set-time-zone");
+      return;
+   }
+
+   getProgram()->parseSetTimeZone(zone);
+/*
+   ExceptionSink xsink;
+   const AbstractQoreZoneInfo *tz = (*zone == '-' || *zone == '+') ? QTZM.findCreateOffsetZone(zone, &xsink) : QTZM.findLoadRegion(zone, &xsink);
+   if (xsink) {
+      assert(!tz);
+      ExceptionSink *pxs = getProgram()->getParseExceptionSink();
+      if (pxs)
+	 pxs->assimilate(xsink);
+      else
+	 xsink.clear();
+      return;
+   }
+   // note that tz may be NULL in case the offset is UTC (ie 0)
+   assert(tz || ((*zone == '-' || *zone == '+')));
+
+   getProgram()->setTZ(tz);
+*/
 }
 
 void setIncludePath(const char *path) {
@@ -423,7 +465,7 @@ static char *make_cast(const char *s) {
 %option noyy_push_state
 %option noyy_pop_state
 
-%x str_state regex_state incl case_state regex_googleplex regex_negative_universe regex_subst1 regex_subst2 line_comment exec_class_state requires regex_trans1 regex_trans2 regex_extract_state disable_warning enable_warning append_path_state module_cmd
+%x str_state regex_state incl case_state regex_googleplex regex_negative_universe regex_subst1 regex_subst2 line_comment exec_class_state requires regex_trans1 regex_trans2 regex_extract_state disable_warning enable_warning append_path_state module_cmd set_zone
 
 HEX_DIGIT       [0-9A-Fa-f]
 HEX_CONST       0x{HEX_DIGIT}+
@@ -479,6 +521,11 @@ RTIME           PT(-?[0-9]+[HMSu])+
 ^%append-include-path{WS}+              BEGIN(append_path_state);
 <append_path_state>[^\t\n\r]+           {
 					   setIncludePath(yytext);
+					   BEGIN(INITIAL);
+                                        }
+^%set-time-zone{WS}+                    BEGIN(set_zone);
+<set_zone>[^\t\n\r]+                    {
+					   parse_set_time_zone(yytext);
 					   BEGIN(INITIAL);
                                         }
 ^%enable-all-warnings{WS}*$             { 

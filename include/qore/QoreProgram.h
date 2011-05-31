@@ -96,8 +96,6 @@ class QoreProgram : public AbstractPrivateData {
 private:
    //! private implementation
    qore_program_private *priv;
-      
-   DLLLOCAL void del(ExceptionSink *xsink);
 
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
    DLLLOCAL QoreProgram(const QoreProgram&);
@@ -480,6 +478,11 @@ public:
        @param name the name of the feature to add to the QoreProgram's feature list
     */
    DLLEXPORT void addFeature(const char *name);
+
+   //! sets the time zone during parsing
+   /** @param zone can be either a region name (ex: 'Europe/Prague') or a UTC offset in the format SDD[:DD[:DD]] where S is + or - and D is an integer 0 - 9; the ':' characters are optional
+    */
+   DLLEXPORT void parseSetTimeZone(const char *zone);
 
    /// returns a pointed to the given user function if it exists (otherwise returns 0)
    DLLLOCAL UserFunction *findUserFunction(const char *name);

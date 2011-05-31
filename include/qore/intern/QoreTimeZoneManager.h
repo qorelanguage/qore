@@ -252,7 +252,7 @@ public:
    }
 
    DLLLOCAL const QoreOffsetZoneInfo *findCreateOffsetZone(int seconds_east);
-   DLLLOCAL const QoreOffsetZoneInfo *findCreateOffsetZone(const char *offset);
+   DLLLOCAL const QoreOffsetZoneInfo *findCreateOffsetZone(const char *offset, ExceptionSink *xsink = 0);
 
    DLLLOCAL int readAll(ExceptionSink *xsink);
 

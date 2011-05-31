@@ -174,6 +174,10 @@
 </entry>
 	</row>
 	<row>
+	  <entry><para><code><link linkend="set-time-zone">%set-time-zone</link></code></para></entry>
+	  <entry><para>Sets the time zone for the current program from a UTC offset (with format +/-[00[:00[:00]]; ':' characters are optional) or a time zone region name (ex: 'Europe/Prague').</para></entry>
+	</row>
+	<row>
 	  <entry><para><code><link linkend="strict-args">%strict-args</link></code></para></entry>
 	  <entry><para>Prohibits access to builtin functions and methods flagged with <code><link linkend="RT_NOOP_flag">RT_NOOP</link></code> and also causes errors to be raised if excess arguments are given to functions that do not access excess arguments.</para></entry>
 	</row>
@@ -1697,6 +1701,36 @@
 	  <programlisting>%requires oracle >= 1.0.1</programlisting>
 	  <para>This will load the oracle module if it is at least version 1.0.1.</para>
 	  <para>Note that there is one special feature name: &quot;qore&quot;.  This pseudo-feature can be used to check the minimum qore version; if this feature is requested with version information, then the Qore library's version information is used for the version number comparison.</para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </sect1>
+
+  <sect1 id="set-time-zone">
+    <title>set-time-zone</title>
+    <variablelist>
+      <varlistentry>
+	<term>Parse Directive</term>
+	<listitem>
+	  <para><code>%set-time-zone</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Command-Line</term>
+	<listitem>
+	  <para><code>--time-zone, -z</code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Parse Option Constant</term>
+	<listitem>
+	  <para>none; this is set by calling <link linkend="TimeZone::setRegion">TimeZone::setRegion()</link> or <link linkend="TimeZone::setUTCOffset">TimeZone::setUTCOffset()</link></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Description</term>
+	<listitem>
+	  <para>Sets the time zone for the current program from a UTC offset (with format '+/-00[:00[:00]]'; ':' characters are optional) or a time zone region name (ex: 'Europe/Prague').</para>
 	</listitem>
       </varlistentry>
     </variablelist>

@@ -45,7 +45,7 @@ static void FILE_copy(QoreObject *self, QoreObject *old, File *f, ExceptionSink 
    self->setPrivate(CID_FILE, new File(f->getEncoding()));
 }
 
-// open(filename, [flags, mode, charset])
+// open(string filename, [flags, mode, charset])
 static AbstractQoreNode *FILE_open(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
    const QoreStringNode *p0 = HARD_QORE_STRING(args, 0);
 
@@ -56,14 +56,10 @@ static AbstractQoreNode *FILE_open(QoreObject *self, File *f, const QoreListNode
    return new QoreBigIntNode(f->open(p0->getBuffer(), flags, mode, charset));
 }
 
-// open2(filename, [flags, mode, charset])
+// open2(string filename, [flags, mode, charset])
 // throws an exception if there is an error
 static AbstractQoreNode *FILE_open2(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
-   const QoreStringNode *p0 = test_string_param(args, 0);
-   if (!p0) {
-      xsink->raiseException("FILE-OPEN2-PARAMETER-ERROR", "expecting string filename as first argument of File::open2()");
-      return 0;
-   }
+   const QoreStringNode *p0 = HARD_QORE_STRING(args, 0);
 
    int flags = get_int_param_with_default(args, 1, O_RDONLY);
    int mode = get_int_param_with_default(args, 2, 0666);
