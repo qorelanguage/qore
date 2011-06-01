@@ -1039,12 +1039,6 @@ void BCList::addAncestors(QoreMethod *m) {
       QoreClass *qc = (*i)->sclass;
       assert(qc);
 
-      /*
-      // this function is also called at parse time, so the class could be 0
-      if (!qc)
-	 continue;
-      */
-
       const QoreMethod *w = qc->priv->findLocalCommittedMethod(name);
       if (w)
 	 m->getFunction()->addAncestor(w->getFunction());
@@ -1058,12 +1052,6 @@ void BCList::addStaticAncestors(QoreMethod *m) {
    for (bclist_t::iterator i = begin(), e = end(); i != e; ++i) {
       QoreClass *qc = (*i)->sclass;
       assert(qc);
-
-      /*
-      // this function is also called at parse time, so the class could be 0
-      if (!qc)
-	 continue;
-      */
 
       const QoreMethod *w = qc->priv->findLocalCommittedStaticMethod(name);
       if (w)
