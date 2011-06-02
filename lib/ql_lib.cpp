@@ -69,9 +69,16 @@ static AbstractQoreNode *f_system(const QoreListNode *params, ExceptionSink *xsi
 
    int rc;
    // use system() if shell meta-characters are found
-   if (strchrs(p0->getBuffer(), "$=*?><;|")) {
-      QoreString c;
-      c.sprintf("/bin/sh -c \"%s\"", p0->getBuffer());
+   if (strchrs(p0->getBuffer(), "$=*?><;|\"\\")) {
+      QoreString c(*p0);
+      // escape backslashes: replace '\' -> '\\'
+      c.replaceAll("\\", "\\\\");
+      // escape double quotes: replace '"' -> '\"'
+      c.replaceAll("\"", "\\\"");
+
+      c.concat('"');
+      c.prepend("/bin/sh -c \"");
+
       rc = system(c.getBuffer());
    }
    else { // otherwise fork and exec

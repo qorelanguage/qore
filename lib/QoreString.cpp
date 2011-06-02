@@ -379,7 +379,7 @@ void QoreString::replaceAll(const char *old_str, const char *new_str) {
       if (i < 0)
 	 break;
 
-      replace(i, old_len, "::");
+      replace(i, old_len, new_str);
       start = i + new_len;
    }
 }
