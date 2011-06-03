@@ -798,10 +798,13 @@ void BCList::parseInit(QoreClass *cls, bool &has_delete_blocker) {
    for (bclist_t::iterator i = begin(), e = end(); i != e; ++i) {
       if ((*i)->sclass) {
 	 bclist_t::iterator j = i;
-	 while (++j != end())
+	 while (++j != e) {
+	    if (!(*j)->sclass)
+	       continue;
 	    if ((*i)->sclass->getID() == (*j)->sclass->getID())
 	       parse_error("class '%s' cannot inherit '%s' more than once", cls->getName(), (*i)->sclass->getName());
-      }	 
+	 }
+      }
    }
 }
 
@@ -960,7 +963,7 @@ bool BCList::match(const QoreClass *cls) {
 
 bool BCList::isPrivateMember(const char *str) const {
    for (bclist_t::const_iterator i = begin(); i != end(); i++)
-      if ((*i)->sclass->isPrivateMember(str))
+      if ((*i)->sclass && (*i)->sclass->isPrivateMember(str))
 	 return true;
    return false;
 }
@@ -980,7 +983,6 @@ const QoreMethod *BCList::parseResolveSelfMethod(const char *name) {
 bool BCList::execDeleteBlockers(QoreObject *o, ExceptionSink *xsink) const {
    for (bclist_t::const_iterator i = begin(), e = end(); i != e; ++i) {
       //printd(5, "BCList::execDeleteBlockers() %s o=%p (for subclass %s)\n", (*i)->sclass->getName(), o, o->getClass()->getName());
-
       if ((*i)->sclass->execDeleteBlocker(o, xsink))
 	 return true;
    }
@@ -1002,7 +1004,7 @@ void BCList::execConstructors(QoreObject *o, BCEAList *bceal, ExceptionSink *xsi
 
 bool BCList::parseCheckHierarchy(const QoreClass *cls) const {
    for (bclist_t::const_iterator i = begin(); i != end(); ++i)
-      if ((*i)->sclass->parseCheckHierarchy(cls))
+      if ((*i)->sclass && (*i)->sclass->parseCheckHierarchy(cls))
 	 return true;
    return false;
 }
@@ -1012,6 +1014,7 @@ void BCList::addNewAncestors(QoreMethod *m) {
    const char *name = m->getName();
    for (bclist_t::iterator i = begin(), e = end(); i != e; ++i) {
       QoreClass *qc = (*i)->sclass;
+      // should be only called from builtin classes, therefore qc != NULL
       assert(qc);
       const QoreMethod *w = qc->priv->findLocalCommittedMethod(name);
       if (w)
@@ -1025,6 +1028,7 @@ void BCList::addNewStaticAncestors(QoreMethod *m) {
    const char *name = m->getName();
    for (bclist_t::iterator i = begin(), e = end(); i != e; ++i) {
       QoreClass *qc = (*i)->sclass;
+      // should be only called from builtin classes, therefore qc != NULL
       assert(qc);
       const QoreMethod *w = qc->priv->findLocalCommittedStaticMethod(name);
       if (w)
@@ -1292,7 +1296,7 @@ void QoreClass::addBuiltinVirtualBaseClass(QoreClass *qc) {
    //printd(5, "adding %s as virtual base class to %s\n", qc->priv->name, priv->name);
    if (!priv->scl)
       priv->scl = new BCList;
-   priv->scl->push_back(new BCNode(qc, true));   
+   priv->scl->push_back(new BCNode(qc, true));
 }
 
 // deletes all pending user methods
