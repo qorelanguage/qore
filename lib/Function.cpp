@@ -1012,7 +1012,7 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
 }
 
 // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
-AbstractQoreNode *AbstractQoreFunction::evalFunction(const AbstractQoreFunctionVariant *variant, const QoreListNode *args, ExceptionSink *xsink) const {
+AbstractQoreNode *AbstractQoreFunction::evalFunction(const AbstractQoreFunctionVariant *variant, const QoreListNode *args, QoreProgram *pgm, ExceptionSink *xsink) const {
    const char *fname = getName();
    CodeEvaluationHelper ceh(xsink, fname, args);
    if (*xsink) return 0;
@@ -1030,6 +1030,9 @@ AbstractQoreNode *AbstractQoreFunction::evalFunction(const AbstractQoreFunctionV
 
    ceh.setCallType(variant->getCallType());
    ceh.setReturnTypeInfo(variant->getReturnTypeInfo());
+
+   // if pgm is 0, then ProgramContextHelper does nothing                                                                                                                              
+   ProgramContextHelper pch(pgm);
 
    return variant->evalFunction(fname, ceh.getArgs(), xsink);
 }

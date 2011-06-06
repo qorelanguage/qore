@@ -521,7 +521,7 @@ bool StaticMethodCallReferenceNode::derefImpl(ExceptionSink *xsink) {
 }
 
 AbstractQoreNode *StaticMethodCallReferenceNode::exec(const QoreListNode *args, ExceptionSink *xsink) const {
-   ProgramContextHelper pch(pgm, xsink);
+   ProgramContextHelper pch(pgm);
    return method->eval(0, args, xsink);
 }
 
@@ -538,7 +538,7 @@ bool MethodCallReferenceNode::derefImpl(ExceptionSink *xsink) {
 }
 
 AbstractQoreNode *MethodCallReferenceNode::exec(const QoreListNode *args, ExceptionSink *xsink) const {
-   ProgramContextHelper pch(pgm, xsink);
+   ProgramContextHelper pch(pgm);
    return method->eval(getStackObject(), args, xsink);
 }
 
@@ -602,7 +602,7 @@ AbstractQoreNode *LocalUserCallReferenceNode::evalImpl(bool &needs_deref, Except
 }
 
 AbstractQoreNode *LocalUserCallReferenceNode::exec(const QoreListNode *args, ExceptionSink *xsink) const {
-   return uf->evalFunction(0, args, xsink);
+   return uf->evalFunction(0, args, 0, xsink);
 }
 
 bool LocalUserCallReferenceNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const {   
@@ -618,15 +618,15 @@ bool UserCallReferenceNode::derefImpl(ExceptionSink *xsink) {
 }
 
 AbstractQoreNode *UserCallReferenceNode::exec(const QoreListNode *args, ExceptionSink *xsink) const {
-   ProgramContextHelper pch(pgm, xsink);
-   return uf->evalFunction(0, args, xsink);
+   ProgramContextHelper pch(pgm);
+   return uf->evalFunction(0, args, 0, xsink);
 }
 
 BuiltinCallReferenceNode::BuiltinCallReferenceNode(const BuiltinFunction *n_bf) : bf(n_bf) {
 }
 
 AbstractQoreNode *BuiltinCallReferenceNode::exec(const QoreListNode *args, ExceptionSink *xsink) const {
-   return bf->evalFunction(0, args, xsink);
+   return bf->evalFunction(0, args, 0, xsink);
 }
 
 bool BuiltinCallReferenceNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const {

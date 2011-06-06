@@ -290,9 +290,7 @@ QoreString *FunctionCallNode::getAsString(bool &del, int foff, ExceptionSink *xs
 // eval(): return value requires a deref(xsink)
 AbstractQoreNode *FunctionCallNode::evalImpl(ExceptionSink *xsink) const {
    //printd(5, "FunctionCallNode::evalImpl() calling %s() current pgm=%p new pgm=%p\n", func->getName(), ::getProgram(), pgm);
-   // if pgm is 0, then ProgramContextHelper does nothing
-   ProgramContextHelper pch(pgm, xsink);
-   return func->evalFunction(variant, args, xsink);
+   return func->evalFunction(variant, args, pgm, xsink);
 }
 
 AbstractQoreNode *FunctionCallNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo) {

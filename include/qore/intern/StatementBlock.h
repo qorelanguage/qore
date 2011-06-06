@@ -65,6 +65,10 @@ public:
          l->lv[i]->uninstantiate(xsink);
       }
    }
+
+   DLLLOCAL void leaveInstantiated() {
+      l = 0;
+   }
 };
 
 class StatementBlock : public AbstractStatement {
@@ -78,6 +82,8 @@ protected:
    DLLLOCAL int parseInitIntern(LocalVar *oflag, int pflag, statement_list_t::iterator start);
    DLLLOCAL bool hasLastReturn(AbstractStatement *as);
    DLLLOCAL void parseCheckReturn();
+
+   DLLLOCAL int execIntern(AbstractQoreNode **return_value, ExceptionSink *xsink);
 
 public:
    DLLLOCAL StatementBlock() : AbstractStatement(-1, -1), lvars(0) {
@@ -160,6 +166,9 @@ public:
 
       statement_list.erase_to_end(hwm);
    }
+
+   // local vars are not instantiated here because they are instantiated by the QoreProgram object
+   DLLLOCAL virtual int execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink);
 };
 
 #endif // _QORE_STATEMENT_BLOCK_H

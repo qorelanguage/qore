@@ -126,7 +126,7 @@ struct qore_method_private {
 
    DLLLOCAL void evalCopy(QoreObject *self, QoreObject *old, ExceptionSink *xsink) const {
       // switch to new program for imported objects
-      ProgramContextHelper pch(self->getProgram(), xsink);
+      ProgramContextHelper pch(self->getProgram());
 
       COPYMF(func)->evalCopy(*parent_class, self, old, parent_class->priv->scl, xsink);
    }
@@ -138,7 +138,7 @@ struct qore_method_private {
 
    DLLLOCAL void evalDestructor(QoreObject *self, ExceptionSink *xsink) const {
       // switch to new program for imported objects
-      ProgramContextHelper pch(self->getProgram(), xsink);
+      ProgramContextHelper pch(self->getProgram());
 
       DESMF(func)->evalDestructor(*parent_class, self, xsink);
    }
@@ -1625,7 +1625,7 @@ AbstractQoreNode *QoreMethod::eval(QoreObject *self, const QoreListNode *args, E
       return SMETHF(priv->func)->evalMethod(0, args, xsink);
 
    // switch to new program for imported objects
-   ProgramContextHelper pch(self->getProgram(), xsink);
+   ProgramContextHelper pch(self->getProgram());
 
    AbstractQoreNode *rv = NMETHF(priv->func)->evalMethod(0, self, args, xsink);
    printd(5, "QoreMethod::eval() %s::%s() returning %p (type=%s, refs=%d)\n", oname, getName(), rv, rv ? rv->getTypeName() : "(null)", rv ? rv->reference_count() : 0);

@@ -158,8 +158,23 @@ void qore_program_private::del(ExceptionSink *xsink) {
    // method call can be repeated
    sb.del();
 
+   pgm_data_map_t pdm_copy;
+
+   // copy the map and run on the copy to avoid deadlocks
+   {
+      AutoLocker al(tlock);
+      pdm_copy.swap(pgm_data_map);
+      pgm_data_map.clear();
+   }
+
+   // delete local variables for all threads that have used this program
+   for (pgm_data_map_t::iterator i = pdm_copy.begin(), e = pdm_copy.end(); i != e; ++i) {
+      i->second.del(xsink);
+      del_program(i->first, pgm);
+   }
+
    if (base_object) {
-      endThread(xsink);
+      //end_thread(pgm, xsink);
 
       // delete thread local storage key
       delete thread_local_storage;
@@ -618,7 +633,7 @@ void QoreProgram::parsePending(const char *code, const char *label, ExceptionSin
    if (!code || !code[0])
       return;
 
-   ProgramContextHelper pch(this, xsink);
+   ProgramContextHelper pch(this, false);
 
    priv->parsePending(code, label, xsink, wS, wm);
 }
@@ -641,10 +656,6 @@ AbstractQoreNode *QoreProgram::run(ExceptionSink *xsink) {
 
 QoreHashNode *QoreProgram::clearThreadData(ExceptionSink *xsink) {
    return priv->clearThreadData(xsink);
-}
-
-void QoreProgram::endThread(ExceptionSink *xsink) {
-   priv->endThread(xsink);
 }
 
 const AbstractQoreFunction *QoreProgram::resolveFunction(const char *fname, QoreProgram *&pgm) {
@@ -733,7 +744,7 @@ void QoreProgram::parsePending(const QoreString *str, const QoreString *lstr, Ex
 
 AbstractQoreNode *QoreProgram::runTopLevel(ExceptionSink *xsink) {
    ProgramThreadCountHelper tch(this);
-   ProgramContextHelper pch(this, xsink);
+   ProgramContextHelper pch(this);
    return priv->sb.exec(xsink);
 }
 
@@ -775,7 +786,7 @@ AbstractQoreNode *QoreProgram::callFunction(const char *name, const QoreListNode
    ProgramThreadCountHelper tch(this);
 
    {
-      ProgramContextHelper pch(this, xsink);
+      ProgramContextHelper pch(this);
       rv = fc->eval(xsink);
    }
 
@@ -795,7 +806,7 @@ AbstractQoreNode *QoreProgram::callFunction(const UserFunction *ufc, const QoreL
    ProgramThreadCountHelper tch(this);
 
    {
-      ProgramContextHelper pch(this, xsink);
+      ProgramContextHelper pch(this);
       rv = fc->eval(xsink);
    }
    
@@ -807,7 +818,7 @@ AbstractQoreNode *QoreProgram::callFunction(const UserFunction *ufc, const QoreL
 */
 
 void QoreProgram::parseCommit(ExceptionSink *xsink, ExceptionSink *wS, int wm) {
-   ProgramContextHelper pch(this, xsink);
+   ProgramContextHelper pch(this, false);
    priv->parseCommit(xsink, wS, wm);
 }
 
@@ -829,7 +840,7 @@ void QoreProgram::runClass(const char *classname, ExceptionSink *xsink) {
    ProgramThreadCountHelper tch(this);
 
    {
-      ProgramContextHelper pch(this, xsink);
+      ProgramContextHelper pch(this);
       discard(qc->execConstructor(0, xsink), xsink); 
    }   
 }

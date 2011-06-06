@@ -163,7 +163,7 @@ AbstractQoreNode *StatementBlock::exec(ExceptionSink *xsink) {
    return return_value;
 }
 
-void StatementBlock::addStatement(class AbstractStatement *s) {
+void StatementBlock::addStatement(AbstractStatement *s) {
    //QORE_TRACE("StatementBlock::addStatement()");
 
    if (s) {
@@ -189,13 +189,17 @@ void StatementBlock::del() {
 }
 
 int StatementBlock::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink) {
+   // instantiate local variables
+   LVListInstantiator lvi(lvars, xsink);
+
+   return execIntern(return_value, xsink);
+}
+
+int StatementBlock::execIntern(AbstractQoreNode **return_value, ExceptionSink *xsink) {
    QORE_TRACE("StatementBlock::execImpl()");
    int rc = 0;
 
    assert(xsink);
-
-   // instantiate local variables
-   LVListInstantiator lvi(lvars, xsink);
 
    //printd(5, "StatementBlock::execImpl() this=%p, lvars=%p, %d vars\n", this, lvars, lvars->num_lvars);
 
@@ -305,7 +309,7 @@ LocalVar *find_local_var(const char *name, bool &in_closure) {
    in_closure = false;
 
    while (vnode) {
-      if (cenv && cenv->getHighWaterMark() == vnode)
+      if (cenv && !in_closure && cenv->getHighWaterMark() == vnode)
 	 in_closure = true;
       if (!strcmp(vnode->getName(), name)) {
 	 if (in_closure)
@@ -436,7 +440,6 @@ void StatementBlock::parseInitClosure(UserVariantBase *uvb, const QoreTypeInfo *
    // initialize code block
    if (this)
       parseInitImpl(uvb->getUserSignature()->selfid);
-
    parseCheckReturn();
 }
 
@@ -490,6 +493,12 @@ void TopLevelStatementBlock::parseInit(RootQoreNamespace *rns, UserFunctionList 
 
    assert(!getVStack());
 
-   //printd(5, "StatementBlock::parseInitTopLevel(this=%p): done (lvars=%p, %d vars, vstack = %p)\n", this, lvars, lvids, getVStack());
+   //printd(5, "TopLevelStatementBlock::parseInitTopLevel(this=%p): done (lvars=%p, %d vars, vstack = %p)\n", this, lvars, lvids, getVStack());
    return;
 }
+
+int TopLevelStatementBlock::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink) {
+   // do not instantiate local vars here; they are instantiated by the QoreProgram object for each thread
+   return execIntern(return_value, xsink);
+}
+

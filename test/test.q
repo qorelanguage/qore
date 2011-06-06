@@ -1339,7 +1339,7 @@ sub class_test_Program() {
     my string $pf = "newfunc();";
     my string $nf = "sub newfunc() { return True; }";
 
-    my Program $a = new Program();
+    my Program $a();
     $a.parsePending($pf, "pending test part1");
     $a.parsePending($nf, "pending test part2");
     $a.parseCommit();    

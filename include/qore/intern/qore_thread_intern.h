@@ -77,6 +77,7 @@ DLLLOCAL extern Operator *OP_BACKGROUND;
 
 class VNode;
 class AbstractQoreZoneInfo;
+class ThreadData;
 
 DLLLOCAL void purge_thread_resources(ExceptionSink *xsink);
 DLLLOCAL void beginParsing(char *file, void *ps = NULL);
@@ -106,6 +107,9 @@ DLLLOCAL QoreObject *substituteObject(QoreObject *o);
 DLLLOCAL void catchSaveException(QoreException *e);
 DLLLOCAL QoreException *catchGetException();
 DLLLOCAL VLock *getVLock();
+DLLLOCAL void del_program(ThreadData *td, QoreProgram *pgm);
+DLLLOCAL void end_thread(QoreProgram *pgm, ExceptionSink *xsink);
+DLLLOCAL void delete_thread_local_data();
 
 // pushes a new argv reference counter
 DLLLOCAL void new_argv_ref();
@@ -299,15 +303,18 @@ public:
    DLLLOCAL ~ObjectSubstitutionHelper();
 };
 
+class ThreadLocalVariableData;
+class ThreadClosureVariableStack;
+
 class ProgramContextHelper {
 private:
    QoreProgram *old_pgm;
-   ProgramContextHelper *last;
-   ExceptionSink *xsink;  // to keep for uninstantiating program thread-local variables if necessary
+   ThreadLocalVariableData *old_lvstack;
+   ThreadClosureVariableStack *old_cvstack;
    bool restore;
    
 public:
-   DLLLOCAL ProgramContextHelper(QoreProgram *pgm, ExceptionSink *xsink);
+   DLLLOCAL ProgramContextHelper(QoreProgram *pgm, bool runtime = true);
    DLLLOCAL ~ProgramContextHelper();
 };
 

@@ -91,6 +91,9 @@ void qore_init(qore_license_t license, const char *def_charset, bool show_module
 // unloaded in case there are any module-specific thread
 // cleanup functions to be run...
 void qore_cleanup() {
+   // delete thread-local data
+   delete_thread_local_data();
+
    // delete static system namespaces
    staticSystemNamespace.purge();
 

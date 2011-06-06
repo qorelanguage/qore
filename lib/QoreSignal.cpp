@@ -278,7 +278,7 @@ void QoreSignalManager::signal_handler_thread() {
 
 	 // delete thread-local storage, if any
 	 if (pgm)
-	    pgm->endThread(&xsink);
+	    end_thread(pgm, &xsink);
 
 	 // cleanup thread resources
 	 purge_thread_resources(&xsink);

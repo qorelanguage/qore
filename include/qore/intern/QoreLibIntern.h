@@ -554,4 +554,48 @@ public:
 
 DLLLOCAL void qore_machine_backtrace();
 
+#ifndef QORE_THREAD_STACK_BLOCK
+#define QORE_THREAD_STACK_BLOCK 256
+#endif
+
+template <typename T, int S1 = QORE_THREAD_STACK_BLOCK>
+class ThreadBlock {
+private:
+   DLLLOCAL ThreadBlock(const ThreadBlock &);
+
+public:
+   T var[S1];
+   int pos;
+   ThreadBlock<T, S1> *prev, *next;
+
+   DLLLOCAL ThreadBlock(ThreadBlock *n_prev = 0) : pos(0), prev(n_prev), next(0) { }
+   DLLLOCAL ~ThreadBlock() { }
+};
+
+template <typename T>
+class ThreadLocalData {
+private:
+   DLLLOCAL ThreadLocalData(const ThreadLocalData &);
+   
+public:
+   T *curr;
+      
+   DLLLOCAL ThreadLocalData() {
+      curr = new T;
+      //printf("this=%p: first curr=%p\n", this, curr);
+   }
+
+   DLLLOCAL ~ThreadLocalData() {
+#ifdef DEBUG
+      //if (curr->pos)
+	 //printf("~ThreadLocalData::~~ThreadLocalData() this=%p: del curr=%p pos=%d next=%p prev=%p\n", this, curr, curr->pos, curr->next, curr->prev);
+#endif
+      assert(!curr->prev);
+      assert(!curr->pos);
+      if (curr->next)
+	 delete curr->next;
+      delete curr;
+   }
+};
+
 #endif

@@ -672,7 +672,7 @@ public:
    }
 
    // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
-   DLLLOCAL AbstractQoreNode *evalFunction(const AbstractQoreFunctionVariant *variant, const QoreListNode *args, ExceptionSink *xsink) const;
+   DLLLOCAL AbstractQoreNode *evalFunction(const AbstractQoreFunctionVariant *variant, const QoreListNode *args, QoreProgram *pgm, ExceptionSink *xsink) const;
 
    // finds a variant and checks variant capabilities against current program parse options and executes the variant
    DLLLOCAL AbstractQoreNode *evalDynamic(const QoreListNode *args, ExceptionSink *xsink) const;

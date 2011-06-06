@@ -67,13 +67,7 @@ public:
 
    //! retrieves the key's value
    DLLLOCAL T *get() {
-#ifndef DEBUG
       return (T *)pthread_getspecific(key);
-#else
-      T *rv = (T *)pthread_getspecific(key);
-      assert(rv);
-      return rv;
-#endif
    }
 
    //! sets the key's value

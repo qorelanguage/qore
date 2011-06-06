@@ -31,6 +31,7 @@
 
 #include <qore/intern/ConstantList.h>
 #include <qore/intern/QoreSignal.h>
+#include <qore/intern/qore_program_private.h>
 
 // to register object types
 #include <qore/intern/QC_Queue.h>
@@ -51,6 +52,8 @@
 #include <assert.h>
 
 #include <vector>
+#include <map>
+#include <set>
 
 #if defined(DARWIN) && MAX_QORE_THREADS > 2560
 // testing has revealed that darwin's pthread_create will not return an error when more than 2560 threads
@@ -113,6 +116,9 @@ static tid_node *tid_head = 0, *tid_tail = 0;
 // for recursive constant reference detection while parsing
 typedef std::set<ConstantEntry *> constant_set_t;
 
+// for the set of QoreProgram objects we have local variables in
+typedef std::set<QoreProgram *> pgm_set_t;
+
 // this structure holds all thread data that can be addressed with the qore tid
 class ThreadEntry {
 public:
@@ -162,172 +168,6 @@ public:
    DLLLOCAL ProgramLocation(const char *fname, void *ps = 0) { 
       file       = fname; 
       parseState = ps;
-   }
-};
-
-#ifndef QORE_THREAD_STACK_BLOCK
-#define QORE_THREAD_STACK_BLOCK 256
-#endif
-
-struct ThreadVariableBlock {
-   LocalVarValue lvar[QORE_THREAD_STACK_BLOCK];
-   int pos;
-   ThreadVariableBlock *prev, *next;
-
-   DLLLOCAL ThreadVariableBlock(struct ThreadVariableBlock *n_prev = 0) : pos(0), prev(n_prev), next(0) { }
-   DLLLOCAL ~ThreadVariableBlock() { }
-};
-
-class ThreadLocalVariableData {
-private:
-   ThreadVariableBlock *curr;
-      
-public:
-   DLLLOCAL ThreadLocalVariableData() {
-      curr = new ThreadVariableBlock;
-      //printf("this=%p: first curr=%p\n", this, curr);
-   }
-
-   DLLLOCAL ~ThreadLocalVariableData() {
-#ifdef DEBUG
-      if (curr->pos)
-	 printf("~ThreadLocalVariableData::~~ThreadLocalVariableData() this=%p: del curr=%p pos=%d next=%p prev=%p\n", this, curr, curr->pos, curr->next, curr->prev);
-#endif
-      assert(!curr->prev);
-      assert(!curr->pos);
-      if (curr->next)
-	 delete curr->next;
-      delete curr;
-   }
-
-   DLLLOCAL LocalVarValue *instantiate() {
-      if (curr->pos == QORE_THREAD_STACK_BLOCK) {
-	 if (curr->next)
-	    curr = curr->next;
-	 else {
-	    curr->next = new ThreadVariableBlock(curr);
-	    //printf("this=%p: add curr=%p, curr->next=%p\n", this, curr, curr->next);
-	    curr = curr->next;
-	 }
-      }
-      return &curr->lvar[curr->pos++];
-   }
-
-   DLLLOCAL void uninstantiate(ExceptionSink *xsink) {
-      if (!curr->pos) {
-	 if (curr->next) {
-	    //printf("this %p: del curr=%p, curr->next=%p\n", this, curr, curr->next);
-	    delete curr->next;
-	    curr->next = 0;
-	 }
-	 curr = curr->prev;
-      }
-      curr->lvar[--curr->pos].uninstantiate(xsink);
-   }
-
-#ifndef HAVE_UNLIMITED_THREAD_KEYS
-   DLLLOCAL LocalVarValue *find(const char *id) {
-      ThreadVariableBlock *w = curr;
-      while (true) {
-	 int p = w->pos;
-	 while (p) {
-	    if (w->lvar[--p].id == id && !w->lvar[p].skip)
-	       return &w->lvar[p];
-	 }
-	 w = w->prev;
-#ifdef DEBUG
-	 if (!w) printd(0, "no local variable '%s' on stack\n", id);
-#endif
-	 assert(w);
-      }
-      // to avoid a warning on most compilers - note that this generates a warning on recent versions of aCC!
-      return 0;
-   }
-#endif
-};
-
-struct ThreadClosureVariableBlock {
-   ClosureVarValue *cvar[QORE_THREAD_STACK_BLOCK];
-   int pos;
-   ThreadClosureVariableBlock *prev, *next;
-
-   DLLLOCAL ThreadClosureVariableBlock(ThreadClosureVariableBlock *n_prev = 0) : pos(0), prev(n_prev), next(0) { }
-
-   DLLLOCAL ~ThreadClosureVariableBlock() { }
-};
-
-class ThreadClosureVariableStack {
-private:
-   ThreadClosureVariableBlock *curr;
-
-   DLLLOCAL void instantiate(ClosureVarValue *cvar) {
-      if (curr->pos == QORE_THREAD_STACK_BLOCK) {
-	 if (curr->next)
-	    curr = curr->next;
-	 else {
-	    curr->next = new ThreadClosureVariableBlock(curr);
-	    //printf("this=%p: add curr=%p, curr->next=%p\n", this, curr, curr->next);
-	    curr = curr->next;
-	 }
-      }
-      curr->cvar[curr->pos++] = cvar;
-   }
-      
-public:
-   DLLLOCAL ThreadClosureVariableStack() {
-      curr = new ThreadClosureVariableBlock;
-      //printf("this=%p: first curr=%p\n", this, curr);
-   }
-
-   DLLLOCAL ~ThreadClosureVariableStack() {
-      assert(!curr->prev);
-      assert(!curr->pos);
-      //printf("this=%p: del curr=%p\n", this, curr);
-      if (curr->next)
-	 delete curr->next;
-      delete curr;
-   }
-
-   DLLLOCAL ClosureVarValue *instantiate(const char *id, AbstractQoreNode *value) {
-      ClosureVarValue *cvar = new ClosureVarValue(id, value);
-      instantiate(cvar);
-      return cvar;
-   }
-
-   DLLLOCAL ClosureVarValue *instantiate(const char *id, AbstractQoreNode *vexp, QoreObject *obj) {
-      ClosureVarValue *cvar = new ClosureVarValue(id, vexp, obj);
-      instantiate(cvar);
-      return cvar;
-   }
-
-   DLLLOCAL void uninstantiate(ExceptionSink *xsink) {
-      if (!curr->pos) {
-	 if (curr->next) {
-	    //printf("this %p: del curr=%p, curr->next=%p\n", this, curr, curr->next);
-	    delete curr->next;
-	    curr->next = 0;
-	 }
-	 curr = curr->prev;
-      }
-      curr->cvar[--curr->pos]->deref(xsink);
-   }
-
-   DLLLOCAL ClosureVarValue *find(const char *id) {
-      ThreadClosureVariableBlock *w = curr;
-      while (true) {
-	 int p = w->pos;
-	 while (p) {
-	    if (w->cvar[--p]->id == id && !w->cvar[p]->skip)
-	       return w->cvar[p];
-	 }
-	 w = w->prev;
-#ifdef DEBUG
-	 if (!w) printd(0, "no closure variable '%s' on stack\n", id);
-#endif
-	 assert(w);
-      }
-      // to avoid a warning on most compilers - note that this generates a warning on recent versions of aCC!
-      return 0;
    }
 };
 
@@ -415,20 +255,16 @@ public:
    QoreListNode *current_implicit_arg;
 
    // local variable data slots
-   ThreadLocalVariableData lvstack;
+   ThreadLocalVariableData *lvstack;
 
    // closure variable stack
-   ThreadClosureVariableStack cvstack;
+   ThreadClosureVariableStack *cvstack;
 
    // current parsing closure environment
    ClosureParseEnvironment *closure_parse_env;
 
    // current runtime closure environment
    ClosureRuntimeEnvironment *closure_rt_env;
-
-   // link to last ProgramContextHelp to check for
-   // already-instantiated thread-local variables
-   ProgramContextHelper *pch_link;
 
    ArgvRefStack argv_refs;
 
@@ -454,15 +290,22 @@ public:
    // start of global thread-local variables for the current thread and program being parsed
    VNode *global_vnode;
 
+   // lock for pgm_set data structure (which is accessed from multiple threads)
+   QoreThreadLock pslock;
+
+   // set of QoreProgram objects that have instantiated local variables for this thread
+   pgm_set_t pgm_set;
+
    DLLLOCAL ThreadData(int ptid, QoreProgram *p) : 
       tid(ptid), vlock(ptid), context_stack(0), plStack(0), 
       parse_line_start(0), parse_line_end(0), parse_file(0), 
       pgm_counter_start(0), pgm_counter_end(0), pgm_file(0), 
       parse_code(0), parseState(0), vstack(0), cvarstack(0),
       parseClass(0), catchException(0), current_code(0),
-      current_obj(0), current_pgm(p), current_implicit_arg(0),
-      closure_parse_env(0), closure_rt_env(0), pch_link(0),
+      current_obj(0), current_pgm(p), current_implicit_arg(0), lvstack(0), cvstack(0),
+      closure_parse_env(0), closure_rt_env(0), 
       returnTypeInfo(0), element(0), global_vnode(0) {
+ 
 #ifdef QORE_MANAGE_STACK
 
 #ifdef STACK_DIRECTION_DOWN
@@ -489,6 +332,35 @@ public:
       int rc = element;
       element = n_element;
       return rc;
+   }
+
+   DLLLOCAL void delProgram(QoreProgram *pgm) {
+      AutoLocker al(pslock);
+      pgm_set.erase(pgm);
+   }
+
+   DLLLOCAL void saveProgram(bool runtime) {
+      if (qore_program_private::setThreadVarData(current_pgm, this, lvstack, cvstack, runtime)) {
+         AutoLocker al(pslock);
+         assert(pgm_set.find(current_pgm) == pgm_set.end());
+         pgm_set.insert(current_pgm);
+      }
+   }
+
+   DLLLOCAL void del(ExceptionSink *xsink) {
+      while (true) {
+         QoreProgram *pgm;
+         {
+            AutoLocker al(pslock);
+            pgm_set_t::iterator i = pgm_set.begin();
+            if (i == pgm_set.end())
+               break;
+            
+            pgm = (*i);
+            pgm_set.erase(i);
+         }         
+         qore_program_private::endThread(pgm, this, xsink);
+      }
    }
 };
 
@@ -682,6 +554,7 @@ void ThreadCleanupList::pop(bool exec) {
 
 ThreadData::~ThreadData() {
    assert(on_block_exit_list.empty());
+   assert(pgm_set.empty());
 }
 
 #ifdef QORE_MANAGE_STACK
@@ -727,33 +600,33 @@ void thread_pop_container(const AbstractQoreNode *n) {
 }
 
 LocalVarValue *thread_instantiate_lvar() {
-   return thread_data.get()->lvstack.instantiate();
+   return thread_data.get()->lvstack->instantiate();
 }
 
 void thread_uninstantiate_lvar(ExceptionSink *xsink) {
    ThreadData *td = thread_data.get();
-   td->lvstack.uninstantiate(xsink);
+   td->lvstack->uninstantiate(xsink);
 }
 
 LocalVarValue *thread_find_lvar(const char *id) {
    ThreadData *td = thread_data.get();
-   return td->lvstack.find(id);
+   return td->lvstack->find(id);
 }
 
 ClosureVarValue *thread_instantiate_closure_var(const char *n_id, AbstractQoreNode *value) {
-   return thread_data.get()->cvstack.instantiate(n_id, value);
+   return thread_data.get()->cvstack->instantiate(n_id, value);
 }
 
 ClosureVarValue *thread_instantiate_closure_var(const char *n_id, AbstractQoreNode *vexp, QoreObject *obj) {
-   return thread_data.get()->cvstack.instantiate(n_id, vexp, obj);
+   return thread_data.get()->cvstack->instantiate(n_id, vexp, obj);
 }
 
 void thread_uninstantiate_closure_var(ExceptionSink *xsink) {
-   thread_data.get()->cvstack.uninstantiate(xsink);
+   thread_data.get()->cvstack->uninstantiate(xsink);
 }
 
 ClosureVarValue *thread_find_closure_var(const char *id) {
-   return thread_data.get()->cvstack.find(id);
+   return thread_data.get()->cvstack->find(id);
 }
 
 ClosureRuntimeEnvironment *thread_get_runtime_closure_env() {
@@ -1032,6 +905,14 @@ int save_implicit_element(int n_element) {
    return thread_data.get()->saveElement(n_element);
 }
 
+void del_program(ThreadData *td, QoreProgram *pgm) {
+   td->delProgram(pgm);
+}
+
+void end_thread(QoreProgram *pgm, ExceptionSink *xsink) {
+   qore_program_private::endThread(pgm, thread_data.get(), xsink);
+}
+
 ObjectSubstitutionHelper::ObjectSubstitutionHelper(QoreObject *obj) {
    ThreadData *td  = thread_data.get();
    old_obj = td->current_obj;
@@ -1135,35 +1016,18 @@ QoreObject *getStackObject() {
    return (thread_data.get())->current_obj;
 }
 
-ProgramContextHelper::ProgramContextHelper(QoreProgram *pgm, ExceptionSink *xs) : 
-   old_pgm(0), last(0), xsink (0), restore(false) {
+ProgramContextHelper::ProgramContextHelper(QoreProgram *pgm, bool runtime) : 
+   old_pgm(0), old_lvstack(0), old_cvstack(0), restore(false) {
    if (pgm) {
       ThreadData *td = thread_data.get();
-      //printd(5, "ProgramContextHelper::ProgramContextHelper() current_pgm=%p new_pgm=%p\n", td->current_pgm, pgm);
+      printd(5, "ProgramContextHelper::ProgramContextHelper() current_pgm=%p new_pgm=%p\n", td->current_pgm, pgm);
       if (pgm != td->current_pgm) {
-	 // push link to last ProgramContextHelper
-	 last = td->pch_link;
-	 td->pch_link = this;
-
-	 // instantiate program thread-local variables
-	 // (top-level local variables) if necessary
-	 const LVList *l = pgm->getTopLevelLVList();
-	 if (l && xs) {
-	    ProgramContextHelper *w = last;
-	    while (w && w->old_pgm != pgm)
-	       w = w->last;
-
-	    // instantiate variables if program not found
-	    if (!w) {
-	       xsink = xs; // <- marks for uninstantiation
-	       for (int i = 0; i < l->num_lvars; ++i)
-		  l->lv[i]->instantiate();
-	    }
-	 }
-
 	 restore = true;
 	 old_pgm = td->current_pgm;
+         old_lvstack = td->lvstack;
+         old_cvstack = td->cvstack;
 	 td->current_pgm = pgm;
+         td->saveProgram(runtime);
       }
    }
 }
@@ -1172,15 +1036,10 @@ ProgramContextHelper::~ProgramContextHelper() {
    if (restore) {
       ThreadData *td = thread_data.get();      
 
-      // uninstantiate thread-local variables if necessary
-      if (xsink) {
-	 const LVList *l = td->current_pgm->getTopLevelLVList();
-	 for (int i = 0; i < l->num_lvars; ++i)
-            l->lv[i]->uninstantiate(xsink);
-      }
-      //printd(5, "ProgramContextHelper::~ProgramContextHelper() current_pgm=%p restoring old pgm=%p\n", td->current_pgm, old_pgm);
+      //printd(5, "ProgramContextHelper::~ProgramContextHelper() current_pgm=%p restoring old pgm=%p old lvstack=%p\n", td->current_pgm, old_pgm, old_lvstack);
       td->current_pgm = old_pgm;
-      td->pch_link = last;
+      td->lvstack     = old_lvstack;
+      td->cvstack     = old_cvstack;
    }
 }
 
@@ -1343,7 +1202,11 @@ void register_thread(int tid, pthread_t ptid, QoreProgram *p) {
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
    thread_list[tid].callStack = new CallStack();
 #endif
-   thread_data.set(new ThreadData(tid, p));
+   ThreadData *td = new ThreadData(tid, p);
+   thread_data.set(td);
+   // set lvstack if QoreProgram set
+   if (p)
+      td->saveProgram(true);
 }
 
 // put "op_background_thread" in an unnamed namespace to make it 'static extern "C"'
@@ -1369,9 +1232,6 @@ namespace {
 	 CallStackHelper csh("background operator", CT_NEWTHREAD, btp->getCallObject(), &xsink);
 #endif
 
-	 // instantiate top-level local variables with no value
-	 LVListInstantiator lv_helper(getProgram()->getTopLevelLVList(), &xsink);
-
 	 // dereference call object if present
 	 btp->derefCallObj();
 
@@ -1387,7 +1247,7 @@ namespace {
 	 rv->deref(&xsink);
 
       // delete any thread data
-      btp->pgm->endThread(&xsink);
+      thread_data.get()->del(&xsink);
       
       // cleanup thread resources
       purge_thread_resources(&xsink);
@@ -1544,6 +1404,18 @@ QoreNamespace *get_thread_ns() {
    return Thread;
 }
 
+void delete_thread_local_data() {
+   // set no program location
+   update_pgm_counter_pgm_file(0, 0, 0);
+
+   ExceptionSink xsink;
+   // delete any thread data
+   thread_data.get()->del(&xsink);
+   
+   purge_thread_resources(&xsink);
+   xsink.handleExceptions();
+}
+
 void delete_qore_threads() {
    QORE_TRACE("delete_qore_threads()");
 
@@ -1551,13 +1423,6 @@ void delete_qore_threads() {
    // mark threading as inactive
    threads_initialized = false;
 #endif
-
-   // set no program location
-   update_pgm_counter_pgm_file(0, 0, 0);
-
-   ExceptionSink xsink;
-   purge_thread_resources(&xsink);
-   xsink.handleExceptions();
 
    pthread_mutexattr_destroy(&ma_recursive);
 
