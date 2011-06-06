@@ -193,13 +193,13 @@ void init_qore_types() {
    // static "or nothing" reference types
    bigIntOrNothingTypeInfo = new OrNothingTypeInfo(staticBigIntTypeInfo, "int"); 
    stringOrNothingTypeInfo = new OrNothingTypeInfo(staticStringTypeInfo, "string");
-   boolOrNothingTypeInfo = new OrNothingTypeInfo(staticBoolTypeInfo, "bool");
+   boolOrNothingTypeInfo   = new OrNothingTypeInfo(staticBoolTypeInfo, "bool");
    binaryOrNothingTypeInfo = new OrNothingTypeInfo(staticBinaryTypeInfo, "binary");
    objectOrNothingTypeInfo = new OrNothingTypeInfo(staticObjectTypeInfo, "object");
-   dateOrNothingTypeInfo = new OrNothingTypeInfo(staticDateTypeInfo, "date");
-   hashOrNothingTypeInfo = new OrNothingTypeInfo(staticHashTypeInfo, "hash");
-   listOrNothingTypeInfo = new OrNothingTypeInfo(staticListTypeInfo, "list");
-   nullOrNothingTypeInfo = new OrNothingTypeInfo(staticNullTypeInfo, "null");
+   dateOrNothingTypeInfo   = new OrNothingTypeInfo(staticDateTypeInfo, "date");
+   hashOrNothingTypeInfo   = new OrNothingTypeInfo(staticHashTypeInfo, "hash");
+   listOrNothingTypeInfo   = new OrNothingTypeInfo(staticListTypeInfo, "list");
+   nullOrNothingTypeInfo   = new OrNothingTypeInfo(staticNullTypeInfo, "null");
 
    do_maps(NT_INT,         "int", bigIntTypeInfo, bigIntOrNothingTypeInfo);
    do_maps(NT_STRING,      "string", stringTypeInfo, stringOrNothingTypeInfo);
@@ -230,7 +230,7 @@ void init_qore_types() {
 }
 
 void delete_qore_types() {
-   // delete all values from default value map
+   // dereference all values from default value map
    for (def_val_map_t::iterator i = def_val_map.begin(), e = def_val_map.end(); i != e; ++i)
       i->second->deref(0);
 

@@ -291,6 +291,7 @@ public:
    }
 };
 
+// now shared between parent and child Program objects for top-level local variables with global scope
 class LocalVar {
 private:
 #ifdef HAVE_UNLIMITED_THREAD_KEYS

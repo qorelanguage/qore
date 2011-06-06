@@ -174,7 +174,7 @@ void qore_program_private::del(ExceptionSink *xsink) {
    }
 
    if (base_object) {
-      //end_thread(pgm, xsink);
+      deleteThreadData(xsink);
 
       // delete thread local storage key
       delete thread_local_storage;
@@ -202,51 +202,16 @@ QoreProgram::~QoreProgram() {
 
 // setup independent program object
 QoreProgram::QoreProgram() : priv(new qore_program_private(this, PO_DEFAULT)) {
-   priv->new_program();
 }
 
 // setup independent program object
 QoreProgram::QoreProgram(int64 po) : priv(new qore_program_private(this, po)) {
-   priv->new_program();
 }
 
-QoreProgram::QoreProgram(QoreProgram *pgm, int64 po, bool ec, const char *ecn) : priv(new qore_program_private(this, po, pgm->currentTZ())) {
-   // flag as derived object
-   priv->base_object = false;
-
-   //printd(5, "parent=%p this=%p parent po: %lld new po: %lld parent no_child_po_restrictions=%d\n", pgm, this, pgm->priv->pwo.parse_options, po, pgm->priv->pwo.parse_options & PO_NO_CHILD_PO_RESTRICTIONS);
-
-   // if children inherit restrictions, then set all child restrictions
-   if (!(pgm->priv->pwo.parse_options & PO_NO_CHILD_PO_RESTRICTIONS)) {
-      // lock child parse options
-      priv->po_locked = true;
-      // turn on all restrictions in the child that are set in the parent
-      priv->pwo.parse_options |= pgm->priv->pwo.parse_options;
-      // make sure all options that give more freedom and are off in the parent program are turned off in the child
-      priv->pwo.parse_options &= (pgm->priv->pwo.parse_options | ~PO_POSITIVE_OPTIONS);
-   }
-   else {
-      priv->pwo.parse_options = po;
-      priv->po_locked = !(po & PO_NO_CHILD_PO_RESTRICTIONS);
-   }
-
+QoreProgram::QoreProgram(QoreProgram *pgm, int64 po, bool ec, const char *ecn) : priv(new qore_program_private(this, po, pgm)) {
    priv->exec_class = ec;
    if (ecn)
       priv->exec_class_name = ecn;
-
-   // inherit parent's thread local storage key
-   priv->thread_local_storage = pgm->priv->thread_local_storage;
-   
-   {
-      // grab program's parse lock
-      AutoLocker al(pgm->priv->plock);
-      // setup derived namespaces
-      priv->RootNS = pgm->priv->RootNS->copy(po);
-   }
-   priv->QoreNS = priv->RootNS->rootGetQoreNamespace();
-
-   // copy parent feature list
-   pgm->priv->featureList.populate(&priv->featureList);
 }
 
 QoreThreadLock *QoreProgram::getParseLock() {

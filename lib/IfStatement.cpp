@@ -33,12 +33,9 @@ IfStatement::IfStatement(int start_line, int end_line, AbstractQoreNode *c, clas
 
 IfStatement::~IfStatement() {
    cond->deref(0);
-   if (if_code)
-      delete if_code;
-   if (else_code)
-      delete else_code;
-   if (lvars)
-      delete lvars;
+   delete if_code;
+   delete else_code;
+   delete lvars;
 }
 
 // only executed by Statement::exec()
@@ -71,7 +68,8 @@ int IfStatement::parseInitImpl(LocalVar *oflag, int pflag) {
       else_code->parseInitImpl(oflag, pflag);
 
    // save local variables
-   lvars = new LVList(lvids);
+   if (lvids)
+      lvars = new LVList(lvids);
 
    return 0;
 }

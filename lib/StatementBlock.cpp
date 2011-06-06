@@ -139,24 +139,6 @@ public:
    }
 };
 
-LVList::LVList(int num) {
-   if (num) {
-      lv = new lvar_ptr_t[num];
-      // pop variables off stack and save in reverse order
-      for (int i = num - 1; i >= 0; --i)
-	 lv[i] = pop_local_var();
-   }
-   else
-      lv = 0;
-
-   num_lvars = num;
-}
-
-LVList::~LVList() {
-   if (lv)
-      delete [] lv;
-}
-
 AbstractQoreNode *StatementBlock::exec(ExceptionSink *xsink) {
    AbstractQoreNode *return_value = 0;
    execImpl(&return_value, xsink);
@@ -201,7 +183,7 @@ int StatementBlock::execIntern(AbstractQoreNode **return_value, ExceptionSink *x
 
    assert(xsink);
 
-   //printd(5, "StatementBlock::execImpl() this=%p, lvars=%p, %d vars\n", this, lvars, lvars->num_lvars);
+   //printd(5, "StatementBlock::execImpl() this=%p, lvars=%p, %ld vars\n", this, lvars, lvars->size());
 
    bool obe = !on_block_exit_list.empty();
    // push "on block exit" iterator if necessary
@@ -356,7 +338,7 @@ int StatementBlock::parseInitImpl(LocalVar *oflag, int pflag) {
    int lvids = parseInitIntern(oflag, pflag & ~PF_TOP_LEVEL, statement_list.end());
 
    // this call will pop all local vars off the stack
-   lvars = new LVList(lvids);
+   setupLVList(lvids);
 
    //printd(5, "StatementBlock::parseInitImpl(this=%p): done (lvars=%p, %d vars, vstack = %p)\n", this, lvars, lvids, getVStack());
 
@@ -451,9 +433,9 @@ void TopLevelStatementBlock::parseInit(RootQoreNamespace *rns, UserFunctionList 
 
    //printd(5, "TopLevelStatementBlock::parseInit(rns=%p, ufl=%p) first=%d\n", rns, ufl, first);
 
-   if (!first) {
+   if (!first && lvars) {
       // push already-registered local variables on the stack
-      for (int i = 0; i < lvars->num_lvars; ++i)
+      for (unsigned i = 0; i < lvars->size(); ++i)
 	 push_top_level_local_var(lvars->lv[i]);
    }
 
@@ -480,11 +462,11 @@ void TopLevelStatementBlock::parseInit(RootQoreNamespace *rns, UserFunctionList 
 
    if (first) {
       // this call will pop all local vars off the stack
-      lvars = new LVList(lvids);
+      setupLVList(lvids);
       first = false;
    }
-   else {
-      for (int i = 0; i < lvars->num_lvars; ++i)
+   else if (lvars) {
+      for (unsigned i = 0; i < lvars->size(); ++i)
 	 pop_local_var();
    }
 

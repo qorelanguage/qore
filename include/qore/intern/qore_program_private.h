@@ -60,7 +60,7 @@ public:
 
    DLLLOCAL ~LocalVariableList() {
       for (local_var_list_t::iterator i = begin(), e = end(); i != e; ++i)
-	 delete *i;
+         delete *i;
    }
 };
 
@@ -125,9 +125,9 @@ public:
 	 w = w->prev;
 #ifdef DEBUG
 	 if (!w) {
-            printd(0, "no local variable '%s' on stack\n", id);
+            printd(0, "ThreadLocalVariableData::find() no local variable '%s' on stack\n", id);
             p = curr->pos - 1;
-            while (p) {
+            while (p >= 0) {
                printd(0, "var p=%d: %s (%p) == %s (%p) (skip=%d)\n", p, curr->var[p].id, curr->var[p].id, id, id, curr->var[p].skip);
                --p;
             }
@@ -209,7 +209,7 @@ public:
 	 if (!w) {
             printd(0, "ThreadClosureVariableStack::find(%p) this=%p no closure variable '%s' on stack\n", id, this, id);
             p = curr->pos - 1;
-            while (p) {
+            while (p >= 0) {
                printd(0, "var p=%d: %s (%p) == %s (%p) (skip=%d)\n", p, curr->var[p]->id, curr->var[p]->id, id, id, curr->var[p]->skip);
                --p;
             }
@@ -235,11 +235,11 @@ struct ThreadLocalProgramData {
    bool inst;
 
    DLLLOCAL ThreadLocalProgramData() : lvstack(new ThreadLocalVariableData), cvstack(new ThreadClosureVariableStack), inst(false) {
-      //printd(0, "ThreadLocalProgramData::ThreadLocalProgramData() this=%p\n", this);
+      //printd(5, "ThreadLocalProgramData::ThreadLocalProgramData() this=%p\n", this);
    }
 
    DLLLOCAL ThreadLocalProgramData(const ThreadLocalProgramData &old) : lvstack(old.lvstack), cvstack(old.cvstack), inst(old.inst) {
-      //printd(0, "ThreadLocalProgramData::ThreadLocalProgramData() this=%p old=%p\n", this, &old);
+      //printd(5, "ThreadLocalProgramData::ThreadLocalProgramData() this=%p old=%p\n", this, &old);
 #ifdef DEBUG
       const_cast<ThreadLocalProgramData&>(old).lvstack = 0;
       const_cast<ThreadLocalProgramData&>(old).cvstack = 0;
@@ -270,6 +270,41 @@ struct ThreadLocalProgramData {
 typedef std::map<ThreadData *, ThreadLocalProgramData> pgm_data_map_t;
 
 struct qore_program_private {
+private:
+   DLLLOCAL void init(QoreProgram *n_pgm, int64 n_parse_options, const AbstractQoreZoneInfo *n_TZ = QTZM.getLocalZoneInfo()) {
+      thread_count = 0;
+      parseSink = 0;
+      warnSink = 0;
+      pendingParseSink = 0;
+      RootNS = 0;
+      QoreNS = 0;
+      only_first_except = false;
+      exceptions_raised = 0;
+      po_locked = false;
+      po_allow_restrict = true;
+      exec_class = false;
+      base_object = false;
+      requires_exception = false;
+      thread_local_storage = 0;
+      TZ = n_TZ;
+      pgm = n_pgm;
+
+      printd(5, "qore_program_private::init() this=%p pgm=%p\n", this, pgm);
+	 
+      // initialize global vars
+      Var *var = global_var_list.newVar("ARGV", listTypeInfo);
+      if (ARGV)
+	 var->setValue(ARGV->copy(), 0);
+	 
+      var = global_var_list.newVar("QORE_ARGV", listTypeInfo);
+      if (QORE_ARGV)
+	 var->setValue(QORE_ARGV->copy(), 0);
+	 
+      var = global_var_list.newVar("ENV", hashTypeInfo);
+      var->setValue(ENV->copy(), 0);
+   }
+
+public:
    UserFunctionList user_func_list;
    ImportedFunctionList imported_func_list;
    GlobalVariableList global_var_list;
@@ -319,27 +354,51 @@ struct qore_program_private {
 
    QoreProgram *pgm;
 
-   DLLLOCAL qore_program_private(QoreProgram *n_pgm, int64 n_parse_options, const AbstractQoreZoneInfo *n_TZ = QTZM.getLocalZoneInfo()) 
-      : thread_count(0), plock(&ma_recursive), parseSink(0), warnSink(0), pendingParseSink(0), RootNS(0), QoreNS(0),
-        only_first_except(false), exceptions_raised(0), 
-        pwo(n_parse_options), po_locked(false), po_allow_restrict(true), 
-        exec_class(false), base_object(false), requires_exception(false), 
-        thread_local_storage(0), TZ(n_TZ), pgm(n_pgm) {
-      printd(5, "qore_program_private::qore_program_private() this=%p pgm=%p\n", this, pgm);
-	 
-      // initialize global vars
-      Var *var = global_var_list.newVar("ARGV", listTypeInfo);
-      if (ARGV)
-	 var->setValue(ARGV->copy(), 0);
-	 
-      var = global_var_list.newVar("QORE_ARGV", listTypeInfo);
-      if (QORE_ARGV)
-	 var->setValue(QORE_ARGV->copy(), 0);
-	 
-      var = global_var_list.newVar("ENV", hashTypeInfo);
-      var->setValue(ENV->copy(), 0);
+   DLLLOCAL qore_program_private(QoreProgram *n_pgm, int64 n_parse_options) : plock(&ma_recursive), pwo(n_parse_options) {
+      init(n_pgm, n_parse_options);
+
+      newProgram();
    }
 
+   DLLLOCAL qore_program_private(QoreProgram *n_pgm, int64 n_parse_options, QoreProgram *p_pgm) : plock(&ma_recursive), pwo(n_parse_options) {
+      init(n_pgm, n_parse_options, p_pgm->currentTZ());
+
+      //printd(5, "qore_program_private::qore_program_private() parent=%p (parent lvl=%p) this=%p (this pgm=%p) parent po: %lld new po: %lld parent no_child_po_restrictions=%d\n", p_pgm, p_pgm->priv->sb.getLVList(), this, pgm, p_pgm->priv->pwo.parse_options, n_parse_options, p_pgm->priv->pwo.parse_options & PO_NO_CHILD_PO_RESTRICTIONS);
+
+      // if children inherit restrictions, then set all child restrictions
+      if (!(p_pgm->priv->pwo.parse_options & PO_NO_CHILD_PO_RESTRICTIONS)) {
+         // lock child parse options
+         po_locked = true;
+         // turn on all restrictions in the child that are set in the parent
+         pwo.parse_options |= p_pgm->priv->pwo.parse_options;
+         // make sure all options that give more freedom and are off in the parent program are turned off in the child
+         pwo.parse_options &= (p_pgm->priv->pwo.parse_options | ~PO_POSITIVE_OPTIONS);
+      }
+      else {
+         pwo.parse_options = n_parse_options;
+         po_locked = !(n_parse_options & PO_NO_CHILD_PO_RESTRICTIONS);
+      }
+      
+      // inherit parent's thread local storage key
+      thread_local_storage = p_pgm->priv->thread_local_storage;
+      
+      {
+         // grab program's parse lock
+         AutoLocker al(p_pgm->priv->plock);
+         // setup derived namespaces
+         RootNS = p_pgm->priv->RootNS->copy(n_parse_options);
+      }
+      QoreNS = RootNS->rootGetQoreNamespace();
+      
+      // copy parent feature list
+      p_pgm->priv->featureList.populate(&featureList);
+      
+      // copy top-level local variables in case any are referenced in static methods in the parent program (static methods are executed in the child's space)
+      const LVList *lvl = p_pgm->priv->sb.getLVList();
+      if (lvl)
+         sb.assignLocalVars(lvl);
+   }
+   
    DLLLOCAL ~qore_program_private() {
       assert(!parseSink);
       assert(!warnSink);
@@ -373,7 +432,7 @@ struct qore_program_private {
    }
 
    // for independent programs (not inherited from another QoreProgram object)
-   DLLLOCAL void new_program() {
+   DLLLOCAL void newProgram() {
       base_object = true;
       po_locked = false;
       exec_class = false;
@@ -744,14 +803,18 @@ struct qore_program_private {
       return h;
    }
 
-   DLLLOCAL void endThread(ThreadData *td, ExceptionSink *xsink) {
-      //printd(5, "qore_program_private::endThread() this=%p pgm=%p\n", this, pgm);
-      // delete thread local storage data
+   DLLLOCAL void deleteThreadData(ExceptionSink *xsink) {
       QoreHashNode *h = clearThreadData(xsink);
       if (h) {
          h->deref(xsink);
          thread_local_storage->set(0);
       }
+   }
+
+   DLLLOCAL void endThread(ThreadData *td, ExceptionSink *xsink) {
+      //printd(5, "qore_program_private::endThread() this=%p pgm=%p\n", this, pgm);
+      // delete thread local storage data
+      deleteThreadData(xsink);
 
       // delete all local variables for this thread
       SafeLocker sl(tlock);
@@ -769,10 +832,10 @@ struct qore_program_private {
       // instantiate top-level vars for this thread
       const LVList *lvl = sb.getLVList();
       if (lvl)
-         for (int i = 0; i < lvl->num_lvars; ++i)
+         for (unsigned i = 0; i < lvl->size(); ++i)
             lvl->lv[i]->instantiate();
 
-      //printd(5, "qore_program_private::doTopLevelInstantiation() setup %d local vars\n", lvl ? lvl->num_lvars : 0);
+      //printd(5, "qore_program_private::doTopLevelInstantiation() lvl=%p setup %ld local vars\n", lvl, lvl ? lvl->size() : 0);
 
       tlpd.inst = true;
    }

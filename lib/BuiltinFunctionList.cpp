@@ -219,5 +219,6 @@ void BuiltinFunctionList::init() {
 #ifdef DEBUG
    init_debug_functions();
 #endif
+
    library_init_done = true;
 }

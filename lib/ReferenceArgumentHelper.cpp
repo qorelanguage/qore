@@ -25,61 +25,54 @@
 #include "ReferenceArgumentHelper.h"
 
 struct lvih_intern {
-      LocalVar lv;
-      ExceptionSink *xsink;
-      ReferenceNode *ref;
+   LocalVar lv;
+   ExceptionSink *xsink;
+   ReferenceNode *ref;
 
-      DLLLOCAL lvih_intern(AbstractQoreNode *val, ExceptionSink *xs) : lv("ref_arg_helper", 0), xsink(xs) {
-	 printd(5, "ReferenceArgumentHelper::ReferenceArgumentHelper() instantiating %08p (val=%08p type='%s') \n", &lv, val, val ? val->getTypeName() : "n/a");
-	 lv.instantiate(val);
-	 VarRefNode *vr = new VarRefNode(strdup("ref_arg_helper"), VT_LOCAL);
-	 vr->ref.id = &lv;
-	 ref = new ReferenceNode(vr);
-      }
+   DLLLOCAL lvih_intern(AbstractQoreNode *val, ExceptionSink *xs) : lv("ref_arg_helper", 0), xsink(xs) {
+      printd(5, "ReferenceArgumentHelper::ReferenceArgumentHelper() instantiating %08p (val=%08p type='%s') \n", &lv, val, val ? val->getTypeName() : "n/a");
+      lv.instantiate(val);
+      VarRefNode *vr = new VarRefNode(strdup("ref_arg_helper"), VT_LOCAL);
+      vr->ref.id = &lv;
+      ref = new ReferenceNode(vr);
+   }
 
-      DLLLOCAL ~lvih_intern()
-      {
-	 ref->deref();
-	 lv.uninstantiate(xsink);
-      }
+   DLLLOCAL ~lvih_intern() {
+      ref->deref();
+      lv.uninstantiate(xsink);
+   }
 
-      DLLLOCAL AbstractQoreNode *getOutputValue()
-      {
-	 // there will be no locking here, because it's our temporary local "variable"
-	 ExceptionSink xsink2;
-	 LValueHelper vp(ref->getExpression(), &xsink2);
+   DLLLOCAL AbstractQoreNode *getOutputValue() {
+      // there will be no locking here, because it's our temporary local "variable"
+      ExceptionSink xsink2;
+      LValueHelper vp(ref->getExpression(), &xsink2);
 
-	 // no exception should be possible here
-	 assert(!xsink2);
-	 if (!vp)
-	    return 0;
+      // no exception should be possible here
+      assert(!xsink2);
+      if (!vp)
+	 return 0;
 
-	 // take output value from our temporary "variable" and return it
-	 return vp.take_value();
-      }
-      
-      DLLLOCAL AbstractQoreNode *getArg()
-      {
-	 return ref->refSelf();
-      }
+      // take output value from our temporary "variable" and return it
+      return vp.take_value();
+   }
+
+   DLLLOCAL AbstractQoreNode *getArg() {
+      return ref->refSelf();
+   }
 };
 
-ReferenceArgumentHelper::ReferenceArgumentHelper(AbstractQoreNode *val, ExceptionSink *xsink) : priv(new lvih_intern(val, xsink))
-{
+ReferenceArgumentHelper::ReferenceArgumentHelper(AbstractQoreNode *val, ExceptionSink *xsink) : priv(new lvih_intern(val, xsink)) {
 }
 
-ReferenceArgumentHelper::~ReferenceArgumentHelper()
-{
+ReferenceArgumentHelper::~ReferenceArgumentHelper() {
    delete priv;
 }
 
-AbstractQoreNode *ReferenceArgumentHelper::getArg() const
-{
+AbstractQoreNode *ReferenceArgumentHelper::getArg() const {
    return priv->getArg();
 }
 
-AbstractQoreNode *ReferenceArgumentHelper::getOutputValue()
-{
+AbstractQoreNode *ReferenceArgumentHelper::getOutputValue() {
    return priv->getOutputValue();
 }
 

@@ -86,7 +86,8 @@ int SummarizeStatement::parseInitImpl(LocalVar *oflag, int pflag) {
       code->parseInitImpl(oflag, pflag);
    
    // save local variables
-   lvars = new LVList(lvids);
+   if (lvars)
+      lvars = new LVList(lvids);
    
    pop_cvar();
 

@@ -97,10 +97,8 @@ ContextStatement::~ContextStatement() {
       free(name);
    if (exp)
       exp->deref(0);
-   if (code)
-      delete code;
-   if (lvars)
-      delete lvars;
+   delete code;
+   delete lvars;
    if (where_exp)
       where_exp->deref(0);
    if (sort_ascending)
@@ -168,7 +166,8 @@ int ContextStatement::parseInitImpl(LocalVar *oflag, int pflag) {
       code->parseInitImpl(oflag, pflag);
    
    // save local variables
-   lvars = new LVList(lvids);
+   if (lvids)
+      lvars = new LVList(lvids);
    
    pop_cvar();
 

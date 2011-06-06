@@ -32,10 +32,8 @@ ForEachStatement::~ForEachStatement() {
       var->deref(0);
    if (list)
       list->deref(0);
-   if (code)
-      delete code;
-   if (lvars)
-      delete lvars;
+   delete code;
+   delete lvars;
 }
 
 int ForEachStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink) {
@@ -199,7 +197,8 @@ int ForEachStatement::parseInitImpl(LocalVar *oflag, int pflag) {
       code->parseInitImpl(oflag, pflag);
    
    // save local variables 
-   lvars = new LVList(lvids);
+   if (lvids)
+      lvars = new LVList(lvids);
 
    is_ref = (list->getType() == NT_REFERENCE);
 

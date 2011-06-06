@@ -62,14 +62,13 @@ SwitchStatement::SwitchStatement(class CaseNode *f) : AbstractStatement(-1, -1),
 
 SwitchStatement::~SwitchStatement() {
    while (head) {
-      class CaseNode *w = head->next;
+      CaseNode *w = head->next;
       delete head;
       head = w;
    }
    if (sexp)
       sexp->deref(0);
-   if (lvars)
-      delete lvars;
+   delete lvars;
 }
 
 void SwitchStatement::setSwitch(AbstractQoreNode *s) {
@@ -185,7 +184,8 @@ int SwitchStatement::parseInitImpl(LocalVar *oflag, int pflag) {
    }
    
    // save local variables
-   lvars = new LVList(lvids);
+   if (lvids)
+      lvars = new LVList(lvids);
 
    return 0;
 }

@@ -98,7 +98,8 @@ int ForStatement::parseInitImpl(LocalVar *oflag, int pflag) {
       code->parseInitImpl(oflag, pflag);
    
    // save local variables
-   lvars = new LVList(lvids);
+   if (lvids)
+      lvars = new LVList(lvids);
 
    return 0;
 }

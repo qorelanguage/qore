@@ -29,6 +29,7 @@
 #include <qore/safe_dslist> 
 
 #include <set>
+#include <vector>
 
 // all definitions in this file are private to the library and subject to change
 class RootQoreNamespace;
@@ -38,11 +39,39 @@ class BCList;
 
 class LVList {
 public:
-   int num_lvars;
-   LocalVar **lv;
-      
-   DLLLOCAL LVList(int num);
-   DLLLOCAL ~LVList();
+   typedef std::vector<LocalVar *> lv_vec_t;
+   lv_vec_t lv;
+
+   DLLLOCAL LVList(int num) {
+      add(num);
+   }
+
+   DLLLOCAL LVList(const LVList &old) {
+      lv.resize(old.size());
+      for (unsigned i = 0; i < old.size(); ++i)
+         lv[i] = old.lv[i];
+
+      //printd(5, "LVList::LVList() populated with %d vars\n", lv.size());
+   }
+
+   DLLLOCAL ~LVList() {
+   }
+
+   DLLLOCAL qore_size_t size() const {
+      return lv.size();
+   }
+
+   DLLLOCAL void add(int num) {
+      assert(num > 0);
+      unsigned start = lv.size();
+      //printd(5, "LVList::add(num=%d) this=%p start=%d\n", num, this, start);
+      lv.resize(start + num);
+      // pop variables off stack and save in reverse order
+      for (int i = (int)(start + num - 1); i >= (int)start; --i) {
+         lv[i] = pop_local_var();
+         //printd(5, "LVList::add() %d = %p: %s\n", i, lv[i], lv[i]->getName());
+      }
+   }
 };
 
 class LVListInstantiator {
@@ -52,7 +81,7 @@ class LVListInstantiator {
 public:
    DLLLOCAL LVListInstantiator(const LVList *n_l, ExceptionSink *xs) : l(n_l), xsink(xs) {
       if (!l) return;
-      for (int i = 0; i < l->num_lvars; ++i) {
+      for (unsigned i = 0; i < l->size(); ++i) {
          //printd(5, "LVListInstantiator::LVListInstantiator() this=%p v=%p %s\n", this, l->lv[i], l->lv[i]->getName());
          l->lv[i]->instantiate();
       }
@@ -60,14 +89,10 @@ public:
 
    DLLLOCAL ~LVListInstantiator() {
       if (!l) return;
-      for (int i = l->num_lvars - 1; i >= 0; --i) {
+      for (int i = (int)l->size() - 1; i >= 0; --i) {
          //printd(5, "LVListInstantiator::~LVListInstantiator() this=%p v=%p %s\n", this, l->lv[i], l->lv[i]->getName());
          l->lv[i]->uninstantiate(xsink);
       }
-   }
-
-   DLLLOCAL void leaveInstantiated() {
-      l = 0;
    }
 };
 
@@ -130,6 +155,14 @@ public:
 
       return (*statement_list.last())->hasFinalReturn();
    }
+
+   DLLLOCAL void setupLVList(int lvids) {
+      assert(!lvars);
+      if (!lvids)
+         return;
+
+      lvars = new LVList(lvids);
+   }
 };
 
 class TopLevelStatementBlock : public StatementBlock {
@@ -169,6 +202,22 @@ public:
 
    // local vars are not instantiated here because they are instantiated by the QoreProgram object
    DLLLOCAL virtual int execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink);
+
+   // assign inherited local var list from parent program
+   DLLLOCAL void assignLocalVars(const LVList *lvl) {
+      assert(!lvars);
+      lvars = new LVList(*lvl);
+   }
+
+   DLLLOCAL void setupLVList(int lvids) {
+      if (!lvids)
+         return;
+
+      if (lvars)
+         lvars->add(lvids);
+      else
+         lvars = new LVList(lvids);
+   }
 };
 
 #endif // _QORE_STATEMENT_BLOCK_H

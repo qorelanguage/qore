@@ -1624,9 +1624,6 @@ AbstractQoreNode *QoreMethod::eval(QoreObject *self, const QoreListNode *args, E
    if (isStatic())
       return SMETHF(priv->func)->evalMethod(0, args, xsink);
 
-   // switch to new program for imported objects
-   ProgramContextHelper pch(self->getProgram());
-
    AbstractQoreNode *rv = NMETHF(priv->func)->evalMethod(0, self, args, xsink);
    printd(5, "QoreMethod::eval() %s::%s() returning %p (type=%s, refs=%d)\n", oname, getName(), rv, rv ? rv->getTypeName() : "(null)", rv ? rv->reference_count() : 0);
    return rv;
@@ -2809,6 +2806,9 @@ AbstractQoreNode *NormalMethodFunction::evalMethod(const AbstractQoreFunctionVar
 
    ceh.setCallType(variant->getCallType());
    ceh.setReturnTypeInfo(variant->getReturnTypeInfo());
+
+   // switch to new program context if necessary
+   ProgramContextHelper pch(self->getProgram());
 
    return METHV_const(variant)->evalMethod(self, ceh.getArgs(), xsink);      
 }

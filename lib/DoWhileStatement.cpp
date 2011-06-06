@@ -57,7 +57,8 @@ int DoWhileStatement::parseInitImpl(LocalVar *oflag, int pflag) {
    }
    
    // save local variables
-   lvars = new LVList(lvids);
+   if (lvids)
+      lvars = new LVList(lvids);
 
    return 0;
 }
