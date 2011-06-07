@@ -125,11 +125,12 @@ int FunctionCallBase::parseArgsVariant(LocalVar *oflag, int pflag, AbstractQoreF
    }
    
    // find variant
-   variant = func && have_arg_type_info ? func->parseFindVariant(argTypeInfo) : 0;
+   //variant = func && have_arg_type_info ? func->parseFindVariant(argTypeInfo) : 0;
+   variant = func ? func->parseFindVariant(argTypeInfo) : 0;
 
    int64 po = getProgram()->getParseOptions64();
 
-   //printd(5, "FunctionCallBase::parseArgsVariant() this=%p po=%lld, ign=%d\n", this, po, pflag & PF_RETURN_VALUE_IGNORED);
+   //printd(5, "FunctionCallBase::parseArgsVariant() this=%p po=%lld, ign=%d func=%p have_arg_type_info=%d variant=%p\n", this, po, pflag & PF_RETURN_VALUE_IGNORED, func, have_arg_type_info, variant);
 
    if (variant) {
       //printd(5, "FunctionCallBase::parseArgsVariant() this=%p variant=%p f=%lld (%lld) c=%lld (%lld)\n", this, variant, variant->getFunctionality(), variant->getFunctionality() & po, variant->getFlags(), variant->getFlags() & QC_RET_VALUE_ONLY);

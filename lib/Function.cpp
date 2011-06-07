@@ -721,7 +721,7 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
    const AbstractQoreFunctionVariant *pvariant = 0;
    unsigned num_args = argTypeInfo.size();
 
-   //printd(0, "AbstractQoreFunction::parseFindVariant() this=%p %s() vlist=%d pend=%d ilist=%d num_args=%d\n", this, getName(), vlist.size(), pending_vlist.size(), ilist.size(), num_args);
+   //printd(5, "AbstractQoreFunction::parseFindVariant() this=%p %s() vlist=%d pend=%d ilist=%d num_args=%d\n", this, getName(), vlist.size(), pending_vlist.size(), ilist.size(), num_args);
 
    AbstractQoreFunction *aqf = 0;
    
@@ -765,7 +765,7 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
 	       const QoreTypeInfo *t = sig->getParamTypeInfo(pi);
 	       const QoreTypeInfo *a = (num_args && num_args > pi) ? argTypeInfo[pi] : 0;
 	       
-	       //printd(0, "AbstractQoreFunction::parseFindVariant() %s(%s) pi=%d t=%s (has type: %d) a=%s (%p) t->parseAccepts(a)=%d\n", getName(), sig->getSignatureText(), pi, t->getName(), t->hasType(), a->getName(), a, t->parseAccepts(a));
+	       //printd(5, "AbstractQoreFunction::parseFindVariant() %s(%s) committed pi=%d t=%s (has type: %d) a=%s (%p) t->parseAccepts(a)=%d\n", getName(), sig->getSignatureText(), pi, t->getName(), t->hasType(), a->getName(), a, t->parseAccepts(a));
 
 	       int rc = QTI_UNASSIGNED;
 	       if (t->hasType()) {
@@ -880,6 +880,8 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
 	    for (unsigned pi = 0; pi < sig->numParams(); ++pi) {
 	       const QoreTypeInfo *t = sig->getParamTypeInfo(pi);
 	       const QoreTypeInfo *a = (num_args && num_args > pi) ? argTypeInfo[pi] : 0;
+
+	       //printd(5, "AbstractQoreFunction::parseFindVariant() %s(%s) uncommitted pi=%d t=%s (has type: %d) a=%s (%p) t->parseAccepts(a)=%d\n", getName(), sig->getSignatureText(), pi, t->getName(), t->hasType(), a->getName(), a, t->parseAccepts(a));
 
 	       int rc = QTI_UNASSIGNED;
 	       if (t->hasType()) {
