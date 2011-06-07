@@ -220,8 +220,6 @@ public:
    }
 };
 
-class ThreadData;
-
 struct ThreadLocalProgramData {
    // local variable data slots
    ThreadLocalVariableData *lvstack;
@@ -263,6 +261,8 @@ struct ThreadLocalProgramData {
 #endif
    }
 };
+
+class ThreadData;
 
 // maps from thread handles to thread-local data
 typedef std::map<ThreadData *, ThreadLocalProgramData> pgm_data_map_t;
@@ -414,6 +414,9 @@ public:
 
    // called when the program's ref count = 0 (but the dc count may not go to 0 yet)
    DLLLOCAL void clear(ExceptionSink *xsink) {
+      // wait for all threads to terminate
+      waitForAllThreadsToTerminate();
+
       // delete all global variables
       global_var_list.clear_all(xsink);
       // clear thread data if base object
@@ -426,6 +429,19 @@ public:
          pendingParseSink = 0;
       }
 
+      // delete local variables for all threads that have used this program
+      pgm_data_map_t pdm_copy;
+      // copy the map and run on the copy to avoid deadlocks
+      {
+         AutoLocker al(tlock);
+         pdm_copy.swap(pgm_data_map);
+         pgm_data_map.clear();
+      }
+      for (pgm_data_map_t::iterator i = pdm_copy.begin(), e = pdm_copy.end(); i != e; ++i) {
+         i->second.del(xsink);
+         del_program(i->first, pgm);
+      }
+      
       depDeref(xsink);
    }
 

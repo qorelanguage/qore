@@ -141,8 +141,14 @@ void qore_program_private::importUserFunction(QoreProgram *p, UserFunction *u, c
 
 void qore_program_private::del(ExceptionSink *xsink) {
    printd(5, "QoreProgram::del() pgm=%p (base_object=%d)\n", pgm, base_object);
-   // wait for all threads to terminate
-   waitForAllThreadsToTerminate();
+
+   if (base_object) {
+      deleteThreadData(xsink);
+
+      // delete thread local storage key
+      delete thread_local_storage;
+      base_object = false;
+   }
 
    // have to delete global variables first because of destructors.
    // method call can be repeated
@@ -157,29 +163,6 @@ void qore_program_private::del(ExceptionSink *xsink) {
 
    // method call can be repeated
    sb.del();
-
-   pgm_data_map_t pdm_copy;
-
-   // copy the map and run on the copy to avoid deadlocks
-   {
-      AutoLocker al(tlock);
-      pdm_copy.swap(pgm_data_map);
-      pgm_data_map.clear();
-   }
-
-   // delete local variables for all threads that have used this program
-   for (pgm_data_map_t::iterator i = pdm_copy.begin(), e = pdm_copy.end(); i != e; ++i) {
-      i->second.del(xsink);
-      del_program(i->first, pgm);
-   }
-
-   if (base_object) {
-      deleteThreadData(xsink);
-
-      // delete thread local storage key
-      delete thread_local_storage;
-      base_object = false;
-   }
 
    //printd(5, "QoreProgram::~QoreProgram() this=%p deleting root ns %p\n", this, RootNS);
 
