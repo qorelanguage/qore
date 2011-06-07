@@ -1743,6 +1743,10 @@ void QoreClass::execMemberNotification(QoreObject *self, const char *mem, Except
 }
 
 QoreObject *QoreClass::execConstructor(const AbstractQoreFunctionVariant *variant, const QoreListNode *args, ExceptionSink *xsink) const {
+#ifdef QORE_MANAGE_STACK
+   if (check_stack(xsink))
+      return 0;
+#endif
    return priv->execConstructor(variant, args, xsink);
 }
 
