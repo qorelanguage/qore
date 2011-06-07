@@ -211,7 +211,7 @@ DLLLOCAL void thread_set_closure_parse_env(ClosureParseEnvironment *cenv);
 DLLLOCAL ClosureParseEnvironment *thread_get_closure_parse_env();
 
 DLLLOCAL ClosureVarValue *thread_instantiate_closure_var(const char *id, AbstractQoreNode *value);
-DLLLOCAL ClosureVarValue *thread_instantiate_closure_var(const char *id, AbstractQoreNode *vexp, QoreObject *obj);
+DLLLOCAL ClosureVarValue *thread_instantiate_closure_var(const char *id, AbstractQoreNode *vexp, QoreObject *obj, QoreProgram *pgm);
 DLLLOCAL void thread_uninstantiate_closure_var(ExceptionSink *xsink);
 DLLLOCAL ClosureVarValue *thread_find_closure_var(const char *id);
 DLLLOCAL ClosureVarValue *thread_get_runtime_closure_var(const LocalVar *id);
@@ -274,9 +274,7 @@ public:
 
 DLLLOCAL const QoreListNode *thread_get_implicit_args();
 
-#ifndef HAVE_UNLIMITED_THREAD_KEYS
 DLLLOCAL LocalVarValue *thread_find_lvar(const char *id);
-#endif
 
 // for object implementation
 DLLLOCAL QoreObject *getStackObject();

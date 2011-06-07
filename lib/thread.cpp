@@ -617,8 +617,8 @@ ClosureVarValue *thread_instantiate_closure_var(const char *n_id, AbstractQoreNo
    return thread_data.get()->cvstack->instantiate(n_id, value);
 }
 
-ClosureVarValue *thread_instantiate_closure_var(const char *n_id, AbstractQoreNode *vexp, QoreObject *obj) {
-   return thread_data.get()->cvstack->instantiate(n_id, vexp, obj);
+ClosureVarValue *thread_instantiate_closure_var(const char *n_id, AbstractQoreNode *vexp, QoreObject *obj, QoreProgram *pgm) {
+   return thread_data.get()->cvstack->instantiate(n_id, vexp, obj, pgm);
 }
 
 void thread_uninstantiate_closure_var(ExceptionSink *xsink) {

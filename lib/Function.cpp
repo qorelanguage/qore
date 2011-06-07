@@ -435,7 +435,9 @@ static QoreStringNode *getNoopError(const AbstractQoreFunction *func, const Abst
       }
       else {
 	 // get actual value and include in warning
-	 ReferenceHolder<AbstractQoreNode> v(variant->evalFunction(func->getName(), 0, 0), 0);
+	 ExceptionSink xsink;
+	 CodeEvaluationHelper ceh(&xsink, "noop-dummy");
+	 ReferenceHolder<AbstractQoreNode> v(variant->evalFunction(func->getName(), ceh, 0), 0);
 	 if (is_nothing(*v))
 	    desc->concat("NOTHING");
 	 else {
@@ -1011,7 +1013,7 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
    return variant;
 }
 
-// if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
+// if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL, then it is identified at run time
 AbstractQoreNode *AbstractQoreFunction::evalFunction(const AbstractQoreFunctionVariant *variant, const QoreListNode *args, QoreProgram *pgm, ExceptionSink *xsink) const {
    const char *fname = getName();
    CodeEvaluationHelper ceh(xsink, fname, args);
@@ -1031,10 +1033,9 @@ AbstractQoreNode *AbstractQoreFunction::evalFunction(const AbstractQoreFunctionV
    ceh.setCallType(variant->getCallType());
    ceh.setReturnTypeInfo(variant->getReturnTypeInfo());
 
-   // if pgm is 0, then ProgramContextHelper does nothing                                                                                                                              
    ProgramContextHelper pch(pgm);
 
-   return variant->evalFunction(fname, ceh.getArgs(), xsink);
+   return variant->evalFunction(fname, ceh, xsink);
 }
 
 // finds a variant and checks variant capabilities against current
@@ -1055,7 +1056,7 @@ AbstractQoreNode *AbstractQoreFunction::evalDynamic(const QoreListNode *args, Ex
    ceh.setCallType(variant->getCallType());
    ceh.setReturnTypeInfo(variant->getReturnTypeInfo());
 
-   return variant->evalFunction(fname, ceh.getArgs(), xsink);
+   return variant->evalFunction(fname, ceh, xsink);
 }
 
 void AbstractQoreFunction::addBuiltinVariant(AbstractQoreFunctionVariant *variant) {
@@ -1118,8 +1119,9 @@ void UserVariantBase::parseInitPopLocalVars() {
    signature.parseInitPopLocalVars();
 }
 
-// evaluates arguments and sets up the argv variable
-int UserVariantBase::setupCall(const QoreListNode *args, ReferenceHolder<QoreListNode> &argv, ExceptionSink *xsink) const {
+// instantiates arguments and sets up the argv variable
+int UserVariantBase::setupCall(CodeEvaluationHelper *ceh, ReferenceHolder<QoreListNode> &argv, ExceptionSink *xsink) const {
+   const QoreListNode *args = ceh ? ceh->getArgs() : 0;
    unsigned num_args = args ? args->size() : 0;
    // instantiate local vars from param list
    unsigned num_params = signature.numParams();
@@ -1134,8 +1136,10 @@ int UserVariantBase::setupCall(const QoreListNode *args, ReferenceHolder<QoreLis
 	    //printd(5, "UserVariantBase::setupCall() eval %d: instantiating (%s) as reference (ref exp nt=%d %p %s)\n", i, signature.lv[i]->getName(), get_node_type(r->getExpression()), r->getExpression(), get_type_name(r->getExpression()));
 	    bool is_self_ref = false;
 	    n = doPartialEval(r->getExpression(), &is_self_ref, xsink);
+	    // ceh can only be 0 with a destructor, in which case there are no arguments
+	    assert(ceh);
 	    if (!*xsink)
-	       signature.lv[i]->instantiate(n, is_self_ref ? getStackObject() : 0);
+	       signature.lv[i]->instantiate(n, is_self_ref ? getStackObject() : 0, ceh->getSourceProgram());
 	 }
 	 else
 	    signature.lv[i]->instantiate(np->refSelf());
@@ -1220,11 +1224,14 @@ AbstractQoreNode *UserVariantBase::evalIntern(ReferenceHolder<QoreListNode> &arg
 }
 
 // primary function for executing user code
-AbstractQoreNode *UserVariantBase::eval(const char *name, const QoreListNode *args, QoreObject *self, ExceptionSink *xsink, const char *class_name) const {
+AbstractQoreNode *UserVariantBase::eval(const char *name, CodeEvaluationHelper *ceh, QoreObject *self, ExceptionSink *xsink, const char *class_name) const {
    QORE_TRACE("UserVariantBase::eval()");
-   printd(5, "UserVariantBase::eval() this=%p name=%s() args=%p (size=%d) self=%p\n", this, name, args, args ? args->size() : 0, self);
+   printd(5, "UserVariantBase::eval() this=%p name=%s() args=%p (size=%d) self=%p\n", this, name, ceh ? ceh->getArgs() : 0, ceh && ceh->getArgs() ? ceh->getArgs()->size() : 0, self);
 
-   UserVariantExecHelper uveh(this, args, xsink);
+   // if pgm is 0, then ProgramContextHelper does nothing                                                                                                                              
+   ProgramContextHelper pch(self ? self->getProgram() : 0);
+
+   UserVariantExecHelper uveh(this, ceh, xsink);
    if (!uveh)
       return 0;
 
@@ -1583,7 +1590,7 @@ AbstractQoreNode *UserClosureFunction::evalClosure(const QoreListNode *args, Qor
 
    //printd(0, "UserClosureFunction::evalClosure() this=%p (%s) variant=%p args=%p self=%p\n", this, getName(), variant, args, self);
 
-   return variant->evalClosure(ceh.getArgs(), self, xsink);
+   return variant->evalClosure(ceh, self, xsink);
 }
 
 void UserClosureFunction::parseInitClosure(const QoreTypeInfo *classTypeInfo, lvar_set_t *lvlist) {

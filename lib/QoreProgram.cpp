@@ -724,7 +724,7 @@ AbstractQoreNode *QoreProgram::callFunction(const char *name, const QoreListNode
    if (ufc) {
       priv->plock.unlock();
       // we assign the args to 0 below so that they will not be deleted
-      fc = new FunctionCallNode(ufc, const_cast<QoreListNode *>(args), 0);
+      fc = new FunctionCallNode(ufc, const_cast<QoreListNode *>(args), this);
    }
    else {
       QoreProgram *ipgm = 0;
@@ -738,7 +738,7 @@ AbstractQoreNode *QoreProgram::callFunction(const char *name, const QoreListNode
 	 const BuiltinFunction *bfc;
 	 if ((bfc = builtinFunctions.find(name))) {
 	    // we assign the args to 0 below so that they will not be deleted
-	    fc = new FunctionCallNode(bfc, const_cast<QoreListNode *>(args), 0);
+	    fc = new FunctionCallNode(bfc, const_cast<QoreListNode *>(args), this);
 	 }
 	 else {
 	    xsink->raiseException("NO-FUNCTION", "function name '%s' does not exist", name);
@@ -747,13 +747,9 @@ AbstractQoreNode *QoreProgram::callFunction(const char *name, const QoreListNode
       }
    }
    
-   AbstractQoreNode *rv;
    ProgramThreadCountHelper tch(this);
 
-   {
-      ProgramContextHelper pch(this);
-      rv = fc->eval(xsink);
-   }
+   AbstractQoreNode *rv = fc->eval(xsink);
 
    // let caller delete function arguments if necessary
    fc->take_args();

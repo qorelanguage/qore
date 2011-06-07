@@ -113,7 +113,6 @@ public:
       curr->var[--curr->pos].uninstantiate(xsink);
    }
 
-#ifndef HAVE_UNLIMITED_THREAD_KEYS
    DLLLOCAL LocalVarValue *find(const char *id) {
       ThreadVariableBlock *w = curr;
       while (true) {
@@ -138,7 +137,6 @@ public:
       // to avoid a warning on most compilers - note that this generates a warning on recent versions of aCC!
       return 0;
    }
-#endif
 };
 
 typedef ThreadBlock<ClosureVarValue *> ThreadClosureVariableBlock;
@@ -172,8 +170,8 @@ public:
       return cvar;
    }
 
-   DLLLOCAL ClosureVarValue *instantiate(const char *id, AbstractQoreNode *vexp, QoreObject *obj) {
-      ClosureVarValue *cvar = new ClosureVarValue(id, vexp, obj);
+   DLLLOCAL ClosureVarValue *instantiate(const char *id, AbstractQoreNode *vexp, QoreObject *obj, QoreProgram *pgm) {
+      ClosureVarValue *cvar = new ClosureVarValue(id, vexp, obj, pgm);
       instantiate(cvar);
       return cvar;
    }

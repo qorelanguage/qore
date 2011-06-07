@@ -125,9 +125,6 @@ struct qore_method_private {
    }
 
    DLLLOCAL void evalCopy(QoreObject *self, QoreObject *old, ExceptionSink *xsink) const {
-      // switch to new program for imported objects
-      ProgramContextHelper pch(self->getProgram());
-
       COPYMF(func)->evalCopy(*parent_class, self, old, parent_class->priv->scl, xsink);
    }
 
@@ -137,9 +134,6 @@ struct qore_method_private {
    }
 
    DLLLOCAL void evalDestructor(QoreObject *self, ExceptionSink *xsink) const {
-      // switch to new program for imported objects
-      ProgramContextHelper pch(self->getProgram());
-
       DESMF(func)->evalDestructor(*parent_class, self, xsink);
    }
 
@@ -1611,7 +1605,7 @@ AbstractQoreNode *QoreMethod::evalNormalVariant(QoreObject *self, const QoreExte
    ceh.setCallType(variant->getCallType());
    ceh.setReturnTypeInfo(variant->getReturnTypeInfo());
 
-   return METHV_const(variant)->evalMethod(self, ceh.getArgs(), xsink);      
+   return METHV_const(variant)->evalMethod(self, ceh, xsink);      
 }
 
 AbstractQoreNode *QoreMethod::eval(QoreObject *self, const QoreListNode *args, ExceptionSink *xsink) const {
@@ -2664,10 +2658,14 @@ void UserCopyVariant::evalCopy(const QoreClass &thisclass, QoreObject *self, Qor
    // there can only be max 1 param
    assert(signature.numParams() <= 1);
 
-   ReferenceHolder<QoreListNode> args(new QoreListNode, xsink);
+   QoreListNode *args = new QoreListNode;
    args->push(self->refSelf());
+   ceh.setArgs(args);
 
-   UserVariantExecHelper uveh(this, *args, xsink);
+   ////ReferenceHolder<QoreListNode> args(new QoreListNode, xsink);
+   ////args->push(self->refSelf());
+
+   UserVariantExecHelper uveh(this, &ceh, xsink);
    if (!uveh)
       return;
 
@@ -2807,10 +2805,7 @@ AbstractQoreNode *NormalMethodFunction::evalMethod(const AbstractQoreFunctionVar
    ceh.setCallType(variant->getCallType());
    ceh.setReturnTypeInfo(variant->getReturnTypeInfo());
 
-   // switch to new program context if necessary
-   ProgramContextHelper pch(self->getProgram());
-
-   return METHV_const(variant)->evalMethod(self, ceh.getArgs(), xsink);      
+   return METHV_const(variant)->evalMethod(self, ceh, xsink);      
 }
 
 // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
@@ -2835,7 +2830,7 @@ AbstractQoreNode *StaticMethodFunction::evalMethod(const AbstractQoreFunctionVar
    ceh.setCallType(variant->getCallType());
    ceh.setReturnTypeInfo(variant->getReturnTypeInfo());
 
-   return METHV_const(variant)->evalMethod(0, ceh.getArgs(), xsink);      
+   return METHV_const(variant)->evalMethod(0, ceh, xsink);      
 }
 
 class qmi_priv {
