@@ -163,7 +163,7 @@ catch ($ex)
 }
 
 
-$queue.push(sprintf("key1=%s key2=%s mutex=%s\n", $obj.key1, $obj.key2, typename(type($obj.m))));
+$queue.push(sprintf("key1=%s key2=%s mutex=%s\n", $obj.key1, $obj.key2, type($obj.m)));
 
 # tell output thread to terminate
 $queue.push("exit");

@@ -221,9 +221,13 @@ public:
 };
 
 struct ThreadLocalProgramData {
+private:
+   // not implemented
+   DLLLOCAL ThreadLocalProgramData(const ThreadLocalProgramData &old);
+
+public:
    // local variable data slots
    ThreadLocalVariableData *lvstack;
-
    // closure variable stack
    ThreadClosureVariableStack *cvstack;
 
@@ -232,14 +236,6 @@ struct ThreadLocalProgramData {
 
    DLLLOCAL ThreadLocalProgramData() : lvstack(new ThreadLocalVariableData), cvstack(new ThreadClosureVariableStack), inst(false) {
       //printd(5, "ThreadLocalProgramData::ThreadLocalProgramData() this=%p\n", this);
-   }
-
-   DLLLOCAL ThreadLocalProgramData(const ThreadLocalProgramData &old) : lvstack(old.lvstack), cvstack(old.cvstack), inst(old.inst) {
-      //printd(5, "ThreadLocalProgramData::ThreadLocalProgramData() this=%p old=%p\n", this, &old);
-#ifdef DEBUG
-      const_cast<ThreadLocalProgramData&>(old).lvstack = 0;
-      const_cast<ThreadLocalProgramData&>(old).cvstack = 0;
-#endif
    }
 
    DLLLOCAL ~ThreadLocalProgramData() {
@@ -259,11 +255,12 @@ struct ThreadLocalProgramData {
       lvstack = 0;
       cvstack = 0;
 #endif
+      delete this;
    }
 };
 
 // maps from thread handles to thread-local data
-typedef std::map<ThreadProgramData *, ThreadLocalProgramData> pgm_data_map_t;
+typedef std::map<ThreadProgramData *, ThreadLocalProgramData *> pgm_data_map_t;
 
 struct qore_program_private {
 private:
@@ -419,7 +416,7 @@ public:
          pdm_copy.swap(pgm_data_map);
       }
       for (pgm_data_map_t::iterator i = pdm_copy.begin(), e = pdm_copy.end(); i != e; ++i) {
-         i->second.del(xsink);
+         i->second->del(xsink);
          i->first->delProgram(pgm);
       }
    }
@@ -836,10 +833,10 @@ public:
       pgm_data_map_t::iterator i = pgm_data_map.find(td);
       if (i != pgm_data_map.end()) {
          // remove from map and delete outside of lock to avoid deadlocks (or the need for recursive locking)
-         ThreadLocalProgramData tlpd = i->second;
+         ThreadLocalProgramData *tlpd = i->second;
          pgm_data_map.erase(i);
          sl.unlock();
-         tlpd.del(xsink);
+         tlpd->del(xsink);
       }
    }
 
@@ -861,10 +858,10 @@ public:
 
       pgm_data_map_t::iterator i = pgm_data_map.find(td);
       if (i == pgm_data_map.end()) {
-         ThreadLocalProgramData tlpd;
+         ThreadLocalProgramData *tlpd = new ThreadLocalProgramData;
 
-         lvstack = tlpd.lvstack;
-         cvstack = tlpd.cvstack;
+         lvstack = tlpd->lvstack;
+         cvstack = tlpd->cvstack;
 
          pgm_data_map.insert(pgm_data_map_t::value_type(td, tlpd));
 
@@ -872,19 +869,21 @@ public:
 
          if (run) {
             //printd(5, "qore_program_private::setThreadVarData() (first) this=%p pgm=%p td=%p\n", this, pgm, td);
-            doTopLevelInstantiation(pgm_data_map[td]);
+            doTopLevelInstantiation(*pgm_data_map[td]);
          }
 
          return true;
       }
       
-      ThreadLocalProgramData &tlpd = pgm_data_map[td];
-      lvstack = tlpd.lvstack;
-      cvstack = tlpd.cvstack;
+      ThreadLocalProgramData *tlpd = pgm_data_map[td];
+      lvstack = tlpd->lvstack;
+      cvstack = tlpd->cvstack;
       
-      if (run && !tlpd.inst) {
+      sl.unlock();
+
+      if (run && !tlpd->inst) {
          //printd(5, "qore_program_private::setThreadVarData() (not first) this=%p pgm=%p td=%p\n", this, pgm, td);
-         doTopLevelInstantiation(tlpd);
+         doTopLevelInstantiation(*tlpd);
       }
 
       return false;
