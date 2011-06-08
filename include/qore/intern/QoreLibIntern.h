@@ -569,7 +569,7 @@ public:
    ThreadBlock<T, S1> *prev, *next;
 
    DLLLOCAL ThreadBlock(ThreadBlock *n_prev = 0) : pos(0), prev(n_prev), next(0) { }
-   DLLLOCAL ~ThreadBlock() { }
+   DLLLOCAL ~ThreadBlock() { }   
 };
 
 template <typename T>
@@ -596,6 +596,11 @@ public:
 	 delete curr->next;
       delete curr;
    }
+#ifdef DEBUG
+   DLLLOCAL bool empty() const {
+      return (!curr->pos && !curr->prev);
+   }
+#endif
 };
 
 #endif

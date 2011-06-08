@@ -227,34 +227,25 @@ private:
 
 public:
    // local variable data slots
-   ThreadLocalVariableData *lvstack;
+   ThreadLocalVariableData lvstack;
    // closure variable stack
-   ThreadClosureVariableStack *cvstack;
+   ThreadClosureVariableStack cvstack;
 
    // top-level vars instantiated
    bool inst;
 
-   DLLLOCAL ThreadLocalProgramData() : lvstack(new ThreadLocalVariableData), cvstack(new ThreadClosureVariableStack), inst(false) {
+   DLLLOCAL ThreadLocalProgramData() : inst(false) {
       //printd(5, "ThreadLocalProgramData::ThreadLocalProgramData() this=%p\n", this);
    }
 
    DLLLOCAL ~ThreadLocalProgramData() {
-      assert(!lvstack);
-      assert(!cvstack);
+      assert(lvstack.empty());
+      assert(cvstack.empty());
    }
 
    DLLLOCAL void del(ExceptionSink *xsink) {
-      assert(lvstack);
-      assert(cvstack);
-
-      lvstack->del(xsink);
-      delete lvstack;
-      cvstack->del(xsink);
-      delete cvstack;
-#ifdef DEBUG
-      lvstack = 0;
-      cvstack = 0;
-#endif
+      lvstack.del(xsink);
+      cvstack.del(xsink);
       delete this;
    }
 };
@@ -860,8 +851,8 @@ public:
       if (i == pgm_data_map.end()) {
          ThreadLocalProgramData *tlpd = new ThreadLocalProgramData;
 
-         lvstack = tlpd->lvstack;
-         cvstack = tlpd->cvstack;
+         lvstack = &tlpd->lvstack;
+         cvstack = &tlpd->cvstack;
 
          pgm_data_map.insert(pgm_data_map_t::value_type(td, tlpd));
 
@@ -876,8 +867,8 @@ public:
       }
       
       ThreadLocalProgramData *tlpd = pgm_data_map[td];
-      lvstack = tlpd->lvstack;
-      cvstack = tlpd->cvstack;
+      lvstack = &tlpd->lvstack;
+      cvstack = &tlpd->cvstack;
       
       sl.unlock();
 
