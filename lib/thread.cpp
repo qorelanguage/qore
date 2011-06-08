@@ -116,9 +116,6 @@ static tid_node *tid_head = 0, *tid_tail = 0;
 // for recursive constant reference detection while parsing
 typedef std::set<ConstantEntry *> constant_set_t;
 
-// for the set of QoreProgram objects we have local variables in
-typedef std::set<QoreProgram *> pgm_set_t;
-
 // this structure holds all thread data that can be addressed with the qore tid
 class ThreadEntry {
 public:
@@ -254,11 +251,13 @@ public:
    // current implicit argument
    QoreListNode *current_implicit_arg;
 
-   // local variable data slots
+   //// local variable data slots
    ThreadLocalVariableData *lvstack;
 
-   // closure variable stack
+   //// closure variable stack
    ThreadClosureVariableStack *cvstack;
+
+   ThreadProgramData *tpd;
 
    // current parsing closure environment
    ClosureParseEnvironment *closure_parse_env;
@@ -290,11 +289,11 @@ public:
    // start of global thread-local variables for the current thread and program being parsed
    VNode *global_vnode;
 
-   // lock for pgm_set data structure (which is accessed from multiple threads)
-   QoreThreadLock pslock;
+   //// lock for pgm_set data structure (which is accessed from multiple threads)
+   //QoreThreadLock pslock;
 
-   // set of QoreProgram objects that have instantiated local variables for this thread
-   pgm_set_t pgm_set;
+   //// set of QoreProgram objects that have instantiated local variables for this thread
+   //pgm_set_t pgm_set;
 
    DLLLOCAL ThreadData(int ptid, QoreProgram *p) : 
       tid(ptid), vlock(ptid), context_stack(0), plStack(0), 
@@ -302,7 +301,7 @@ public:
       pgm_counter_start(0), pgm_counter_end(0), pgm_file(0), 
       parse_code(0), parseState(0), vstack(0), cvarstack(0),
       parseClass(0), catchException(0), current_code(0),
-      current_obj(0), current_pgm(p), current_implicit_arg(0), lvstack(0), cvstack(0),
+      current_obj(0), current_pgm(p), current_implicit_arg(0), tpd(new ThreadProgramData(this)), //lvstack(0), cvstack(0),
       closure_parse_env(0), closure_rt_env(0), 
       returnTypeInfo(0), element(0), global_vnode(0) {
  
@@ -322,7 +321,10 @@ public:
 #endif // #ifdef QORE_MANAGE_STACK
    }
 
-   DLLLOCAL ~ThreadData();
+   DLLLOCAL ~ThreadData() {
+      assert(on_block_exit_list.empty());
+      assert(!tpd);
+   }
 
    DLLLOCAL int getElement() {
       return element;
@@ -334,35 +336,57 @@ public:
       return rc;
    }
 
-   DLLLOCAL void delProgram(QoreProgram *pgm) {
-      AutoLocker al(pslock);
-      pgm_set.erase(pgm);
-   }
-
-   DLLLOCAL void saveProgram(bool runtime) {
-      if (qore_program_private::setThreadVarData(current_pgm, this, lvstack, cvstack, runtime)) {
-         AutoLocker al(pslock);
-         assert(pgm_set.find(current_pgm) == pgm_set.end());
-         pgm_set.insert(current_pgm);
-      }
-   }
-
    DLLLOCAL void del(ExceptionSink *xsink) {
-      while (true) {
-         QoreProgram *pgm;
-         {
-            AutoLocker al(pslock);
-            pgm_set_t::iterator i = pgm_set.begin();
-            if (i == pgm_set.end())
-               break;
-            
-            pgm = (*i);
-            pgm_set.erase(i);
-         }         
-         qore_program_private::endThread(pgm, this, xsink);
-      }
+      tpd->del(xsink);
+      tpd->deref();
+#ifdef DEBUG
+      tpd = 0;
+#endif
    }
 };
+
+void ThreadProgramData::delProgram(QoreProgram *pgm) {
+   {
+      AutoLocker al(pslock);
+      pgm_set_t::iterator i = pgm_set.find(pgm);
+      if (i == pgm_set.end())
+         return;
+      pgm_set.erase(i);
+   }
+   // xxx FIXME!!
+   pgm->depDeref(0);
+   deref();
+}
+
+void ThreadProgramData::saveProgram(bool runtime) {
+   if (!qore_program_private::setThreadVarData(td->current_pgm, this, td->lvstack, td->cvstack, runtime))
+      return;
+   ref();
+   // xxx
+   td->current_pgm->depRef();
+   AutoLocker al(pslock);
+   assert(pgm_set.find(td->current_pgm) == pgm_set.end());
+   pgm_set.insert(td->current_pgm);
+}
+
+void ThreadProgramData::del(ExceptionSink *xsink) {
+   while (true) {
+      QoreProgram *pgm;
+      {
+         AutoLocker al(pslock);
+         pgm_set_t::iterator i = pgm_set.begin();
+         if (i == pgm_set.end())
+            break;
+         
+         pgm = (*i);
+         pgm_set.erase(i);
+      }
+      // xxx
+      pgm->depDeref(xsink);
+      qore_program_private::endThread(pgm, this, xsink);
+      deref();
+   }
+}
 
 static QoreThreadLocalStorage<ThreadData> thread_data;
 
@@ -550,11 +574,6 @@ void ThreadCleanupList::pop(bool exec) {
       delete head;
       head = w;
    }
-}
-
-ThreadData::~ThreadData() {
-   assert(on_block_exit_list.empty());
-   assert(pgm_set.empty());
 }
 
 #ifdef QORE_MANAGE_STACK
@@ -905,12 +924,8 @@ int save_implicit_element(int n_element) {
    return thread_data.get()->saveElement(n_element);
 }
 
-void del_program(ThreadData *td, QoreProgram *pgm) {
-   td->delProgram(pgm);
-}
-
-void end_thread(QoreProgram *pgm, ExceptionSink *xsink) {
-   qore_program_private::endThread(pgm, thread_data.get(), xsink);
+void end_signal_thread(ExceptionSink *xsink) {
+   thread_data.get()->tpd->del(xsink);
 }
 
 ObjectSubstitutionHelper::ObjectSubstitutionHelper(QoreObject *obj) {
@@ -1027,7 +1042,7 @@ ProgramContextHelper::ProgramContextHelper(QoreProgram *pgm, bool runtime) :
          old_lvstack = td->lvstack;
          old_cvstack = td->cvstack;
 	 td->current_pgm = pgm;
-         td->saveProgram(runtime);
+         td->tpd->saveProgram(runtime);
       }
    }
 }
@@ -1179,7 +1194,7 @@ int get_thread_entry() {
    return tid;
 }
 
-void delete_thread_data() {
+static void delete_thread_data() {
    delete thread_data.get();
 }
 
@@ -1196,6 +1211,13 @@ void deregister_signal_thread() {
    thread_list[0].cleanup();
 }
 
+void delete_signal_thread() {
+   thread_data.get()->del(0);
+   delete_thread_data();
+   deregister_signal_thread();
+}
+
+
 // should only be called from new thread
 void register_thread(int tid, pthread_t ptid, QoreProgram *p) {
    thread_list[tid].ptid = ptid;
@@ -1206,7 +1228,7 @@ void register_thread(int tid, pthread_t ptid, QoreProgram *p) {
    thread_data.set(td);
    // set lvstack if QoreProgram set
    if (p)
-      td->saveProgram(true);
+      td->tpd->saveProgram(true);
 }
 
 // put "op_background_thread" in an unnamed namespace to make it 'static extern "C"'

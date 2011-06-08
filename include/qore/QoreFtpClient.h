@@ -137,6 +137,7 @@ public:
    /** the connection must be already established before this function is called or an error will be raised.
        @param data the data to send
        @param len the length of the data to send (if 0, a Qore-language exception will be raised)
+       @param remotename the name of the file on the remote server
        @param xsink if an error occurs, the Qore-language exception information will be added here
        @return 0 for OK, non-zero for error (meaning that an exception has been raised)
    */

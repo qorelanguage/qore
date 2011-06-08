@@ -278,7 +278,7 @@ void QoreSignalManager::signal_handler_thread() {
 
 	 // delete thread-local storage, if any
 	 if (pgm)
-	    end_thread(pgm, &xsink);
+	    end_signal_thread(&xsink);
 
 	 // cleanup thread resources
 	 purge_thread_resources(&xsink);
@@ -308,11 +308,8 @@ void QoreSignalManager::signal_handler_thread() {
 
    printd(5, "QoreSignalManager::signal_handler_thread() pid=%d signal handler thread terminating\n", getpid());
    
-   // delete internal thread data structure
-   delete_thread_data();
-      
-   // deregister_thread
-   deregister_signal_thread();
+   // delete internal thread data structure   
+   delete_signal_thread();
       
    // run thread cleanup handlers
    tclist.exec();

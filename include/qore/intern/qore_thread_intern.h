@@ -107,8 +107,7 @@ DLLLOCAL QoreObject *substituteObject(QoreObject *o);
 DLLLOCAL void catchSaveException(QoreException *e);
 DLLLOCAL QoreException *catchGetException();
 DLLLOCAL VLock *getVLock();
-DLLLOCAL void del_program(ThreadData *td, QoreProgram *pgm);
-DLLLOCAL void end_thread(QoreProgram *pgm, ExceptionSink *xsink);
+DLLLOCAL void end_signal_thread(ExceptionSink *xsink);
 DLLLOCAL void delete_thread_local_data();
 
 // pushes a new argv reference counter
@@ -188,10 +187,10 @@ public:
 DLLLOCAL int get_thread_entry();
 // acquires TID 0 and sets up the signal thread entry, always returns 0
 DLLLOCAL int get_signal_thread_entry();
-DLLLOCAL void delete_thread_data();
+DLLLOCAL void deregister_signal_thread();
 DLLLOCAL void register_thread(int tid, pthread_t ptid, QoreProgram *pgm);
 DLLLOCAL void deregister_thread(int tid);
-DLLLOCAL void deregister_signal_thread();
+DLLLOCAL void delete_signal_thread();
 
 // returns 1 if data structure is already on stack, 0 if not (=OK)
 DLLLOCAL int thread_push_container(const AbstractQoreNode *n);
@@ -449,6 +448,41 @@ public:
    }
    DLLLOCAL operator bool() const {
       return ce;
+   }
+};
+
+class ThreadData;
+
+class ThreadProgramData : public QoreReferenceCounter {
+private:
+   // for the set of QoreProgram objects we have local variables in
+   typedef std::set<QoreProgram *> pgm_set_t;
+   pgm_set_t pgm_set;
+
+   // lock for pgm_set data structure (which is accessed from multiple threads when QorePrograms deregister themselves)
+   QoreThreadLock pslock;
+
+   ThreadData *td;
+
+   DLLLOCAL void ref() {
+      ROreference();
+   }
+
+   DLLLOCAL ~ThreadProgramData() {
+      assert(pgm_set.empty());
+   }
+
+public:
+   DLLLOCAL ThreadProgramData(ThreadData *n_td) : td(n_td) {
+   }
+
+   DLLLOCAL void delProgram(QoreProgram *pgm);
+   DLLLOCAL void saveProgram(bool runtime);
+   DLLLOCAL void del(ExceptionSink *xsink);
+
+   DLLLOCAL void deref() {
+      if (ROdereference())
+         delete this;
    }
 };
 

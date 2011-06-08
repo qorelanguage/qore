@@ -262,10 +262,8 @@ struct ThreadLocalProgramData {
    }
 };
 
-class ThreadData;
-
 // maps from thread handles to thread-local data
-typedef std::map<ThreadData *, ThreadLocalProgramData> pgm_data_map_t;
+typedef std::map<ThreadProgramData *, ThreadLocalProgramData> pgm_data_map_t;
 
 struct qore_program_private {
 private:
@@ -412,6 +410,20 @@ public:
       }
    }
 
+   DLLLOCAL void clearProgramThreadData(ExceptionSink *xsink) {
+      // delete local variables for all threads that have used this program
+      pgm_data_map_t pdm_copy;
+      // copy the map and run on the copy to avoid deadlocks
+      {
+         AutoLocker al(tlock);
+         pdm_copy.swap(pgm_data_map);
+      }
+      for (pgm_data_map_t::iterator i = pdm_copy.begin(), e = pdm_copy.end(); i != e; ++i) {
+         i->second.del(xsink);
+         i->first->delProgram(pgm);
+      }
+   }
+
    // called when the program's ref count = 0 (but the dc count may not go to 0 yet)
    DLLLOCAL void clear(ExceptionSink *xsink) {
       // wait for all threads to terminate
@@ -429,18 +441,7 @@ public:
          pendingParseSink = 0;
       }
 
-      // delete local variables for all threads that have used this program
-      pgm_data_map_t pdm_copy;
-      // copy the map and run on the copy to avoid deadlocks
-      {
-         AutoLocker al(tlock);
-         pdm_copy.swap(pgm_data_map);
-         pgm_data_map.clear();
-      }
-      for (pgm_data_map_t::iterator i = pdm_copy.begin(), e = pdm_copy.end(); i != e; ++i) {
-         i->second.del(xsink);
-         del_program(i->first, pgm);
-      }
+      clearProgramThreadData(xsink);
       
       depDeref(xsink);
    }
@@ -825,7 +826,7 @@ public:
       }
    }
 
-   DLLLOCAL void endThread(ThreadData *td, ExceptionSink *xsink) {
+   DLLLOCAL void endThread(ThreadProgramData *td, ExceptionSink *xsink) {
       //printd(5, "qore_program_private::endThread() this=%p pgm=%p\n", this, pgm);
       // delete thread local storage data
       deleteThreadData(xsink);
@@ -838,7 +839,7 @@ public:
          ThreadLocalProgramData tlpd = i->second;
          pgm_data_map.erase(i);
          sl.unlock();
-         tlpd.del(xsink);         
+         tlpd.del(xsink);
       }
    }
 
@@ -855,7 +856,7 @@ public:
    }
 
    // returns true if setting for the first time, false if not
-   DLLLOCAL bool setThreadVarData(ThreadData *td, ThreadLocalVariableData *&lvstack, ThreadClosureVariableStack *&cvstack, bool run) {
+   DLLLOCAL bool setThreadVarData(ThreadProgramData *td, ThreadLocalVariableData *&lvstack, ThreadClosureVariableStack *&cvstack, bool run) {
       SafeLocker sl(tlock);
 
       pgm_data_map_t::iterator i = pgm_data_map.find(td);
@@ -1030,11 +1031,11 @@ public:
       pgm->priv->pwo = new_opts;
    }
 
-   DLLLOCAL static bool setThreadVarData(QoreProgram *pgm, ThreadData *td, ThreadLocalVariableData *&lvstack, ThreadClosureVariableStack *&cvstack, bool run) {
+   DLLLOCAL static bool setThreadVarData(QoreProgram *pgm, ThreadProgramData *td, ThreadLocalVariableData *&lvstack, ThreadClosureVariableStack *&cvstack, bool run) {
       return pgm->priv->setThreadVarData(td, lvstack, cvstack, run);
    }
 
-   DLLLOCAL static void endThread(QoreProgram *pgm, ThreadData *td, ExceptionSink *xsink) {
+   DLLLOCAL static void endThread(QoreProgram *pgm, ThreadProgramData *td, ExceptionSink *xsink) {
       pgm->priv->endThread(td, xsink);
    }
 };

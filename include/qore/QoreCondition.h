@@ -85,7 +85,7 @@ public:
    //! blocks a thread on a lock for a certain number of milliseconds until the condition is signaled
    /**
       @param l the QoreThreadLock to wait on
-      @param timeout the timeout value is milliseconds
+      @param timeout_ms the timeout value is milliseconds
       @return a non-zero return value indicates a timeout occured
    */
    DLLEXPORT int wait(QoreThreadLock *l, int timeout_ms) {
@@ -104,7 +104,7 @@ public:
    //! blocks a thread on a lock for a certain number of milliseconds until the condition is signaled
    /**
       @param l the QoreThreadLock to wait on
-      @param timeout the timeout value is milliseconds
+      @param timeout_ms the timeout value is milliseconds
       @return a non-zero return value indicates a timeout occured
    */
    DLLEXPORT int wait(QoreThreadLock &l, int timeout_ms) { 
