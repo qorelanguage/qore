@@ -120,10 +120,11 @@ public:
    }
 
    DLLLOCAL virtual void derefProgramCycle(QoreProgram *cpgm) {
-      assert(pgm_ref);
-      assert(cpgm == pgm);
-      pgm->depDeref(0);
-      pgm_ref = false;
+      if (pgm_ref) {
+         assert(cpgm == pgm);
+         pgm->depDeref(0);
+         pgm_ref = false;
+      }
    }
 };
 
@@ -174,9 +175,10 @@ public:
    }
 
    DLLLOCAL virtual void derefProgramCycle(QoreProgram *cpgm) {
-      assert(pgm_ref);
-      qore_object_private::derefProgramCycle(obj, cpgm);
-      pgm_ref = false;
+      if (pgm_ref) {
+         qore_object_private::derefProgramCycle(obj, cpgm);
+         pgm_ref = false;
+      }
    }
 };
 
