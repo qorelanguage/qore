@@ -251,10 +251,10 @@ public:
    // current implicit argument
    QoreListNode *current_implicit_arg;
 
-   //// local variable data slots
+   // local variable data slots
    ThreadLocalVariableData *lvstack;
 
-   //// closure variable stack
+   // closure variable stack
    ThreadClosureVariableStack *cvstack;
 
    ThreadProgramData *tpd;
@@ -288,12 +288,6 @@ public:
 
    // start of global thread-local variables for the current thread and program being parsed
    VNode *global_vnode;
-
-   //// lock for pgm_set data structure (which is accessed from multiple threads)
-   //QoreThreadLock pslock;
-
-   //// set of QoreProgram objects that have instantiated local variables for this thread
-   //pgm_set_t pgm_set;
 
    DLLLOCAL ThreadData(int ptid, QoreProgram *p) : 
       tid(ptid), vlock(ptid), context_stack(0), plStack(0), 
@@ -353,7 +347,8 @@ void ThreadProgramData::delProgram(QoreProgram *pgm) {
          return;
       pgm_set.erase(i);
    }
-   // xxx FIXME!!
+   // this can never cause the program to go out of scope because it's always called
+   // when the reference count > 1, therefore *xsink = 0 is OK
    pgm->depDeref(0);
    deref();
 }
@@ -362,7 +357,6 @@ void ThreadProgramData::saveProgram(bool runtime) {
    if (!qore_program_private::setThreadVarData(td->current_pgm, this, td->lvstack, td->cvstack, runtime))
       return;
    ref();
-   // xxx
    td->current_pgm->depRef();
    AutoLocker al(pslock);
    assert(pgm_set.find(td->current_pgm) == pgm_set.end());
@@ -381,7 +375,6 @@ void ThreadProgramData::del(ExceptionSink *xsink) {
          pgm = (*i);
          pgm_set.erase(i);
       }
-      // xxx
       pgm->depDeref(xsink);
       qore_program_private::endThread(pgm, this, xsink);
       deref();
