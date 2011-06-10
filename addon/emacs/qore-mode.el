@@ -1,6 +1,8 @@
 ;;; qore-mode.el --- Qore code editing commands for GNU Emacs
 
-;; this is just the perl mode with the tr and y stuff edited out for now
+;; based on perl-mode; not all perlisms remove, and not all qoreisms added ...
+;; edited from perl-mode by David Nichols (who knows basically nothing
+;; about emacs syntax highlighting or lisp)
 
 ;; Copyright (C) 1990, 1994, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
 ;; Free Software Foundation, Inc.
@@ -296,7 +298,8 @@ The expansion is entirely correct because it uses the C preprocessor."
             nil ;; A division sign instead of a regexp-match.
           '(7))))
     ;;("\\(^\\|[?:.,;=!~({[ \t]\\)\\([msx]\\|q[qxrw]?\\|tr\\)\\>\\s-*\\([^])}> \n\t]\\)"
-    ("\\(^\\|[?:~({[ \t]\\)\\([msx]\\|q[qxrw]?\\|tr\\)\\>\\s-*\\([^])}> \n\t]\\)"
+    ;;("\\(^\\|[?:~({[ \t]\\)\\([msx]\\|q[qxrw]?\\|tr\\)\\>\\s-*\\([^])}> \n\t]\\)"
+    ("\\(^\\|[?:~({[ \t]\\)\\([msx]\\|tr\\)\\>\\s-*\\([^])}> \n\t]\\)"
      ;; Nasty cases:
      ;; /foo/m  $a->m  $#m $m @m %m
      ;; \s (appears often in regexps).
@@ -710,7 +713,7 @@ changed by, or (parse-state) if line starts in a quoted string."
     (setq shift-amt
 	  (cond ((eq (char-after bof) ?=) 0)
 		((listp (setq indent (qore-calculate-indent bof))) indent)
-		((looking-at (or nochange qore-nochange)) 0)
+		((looking-at (or nochange qore-nochange )) 0)
 		(t
 		 (skip-chars-forward " \t\f")
 		 (setq indent (qore-indent-new-calculate nil indent bof))
