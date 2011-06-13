@@ -75,9 +75,15 @@ struct ParseWarnOptions {
    }
 };
 
+struct QoreProgramLocation {
+   int start_line, end_line;
+   const char *file;
+
+   DLLLOCAL QoreProgramLocation(int sline, int eline, const char *f) : start_line(sline), end_line(eline), file(f) {
+   }
+};
+
 // the following functions are implemented in support.cc
-// FIXME: remove this function and use the one below
-DLLLOCAL void parse_error(int sline, int eline, const char *fmt, ...);
 DLLLOCAL void parse_error(const char *file, int sline, int eline, const char *fmt, ...);
 
 DLLLOCAL void parse_error(const char *fmt, ...);

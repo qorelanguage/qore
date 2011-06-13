@@ -850,43 +850,7 @@ public:
       return new QoreMemberInfo(*this);
    }
 
-   DLLLOCAL void parseInit(const char *name, bool priv) {
-      if (!typeInfo) {
-         typeInfo = parseTypeInfo->resolveAndDelete();
-         parseTypeInfo = 0;
-      }
-#ifdef DEBUG
-      else assert(!parseTypeInfo);
-#endif
-
-      if (exp) {
-	 const QoreTypeInfo *argTypeInfo = 0;
-	 int lvids = 0;
-	 exp = exp->parseInit(0, 0, lvids, argTypeInfo);
-	 if (lvids) {
-	    update_parse_location(first_line, last_line, file);
-	    parse_error("illegal local variable declaration in member initialization expression");
-	    while (lvids)
-	       pop_local_var();
-	 }
-	 // throw a type exception only if parse exceptions are enabled
-	 if (!typeInfo->parseAccepts(argTypeInfo) && getProgram()->getParseExceptionSink()) {
-            QoreStringNode *desc = new QoreStringNode("initialization expression for ");
-	    desc->sprintf("%s member '$.%s' returns ", priv ? "private" : "public", name);
-            argTypeInfo->getThisType(*desc);
-            desc->concat(", but the member was declared as ");
-            typeInfo->getThisType(*desc);
-	    update_parse_location(first_line, last_line, file);
-            getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
-         }
-      }
-#if 0
-      else if (hasType() && qt == NT_OBJECT) {
-	 update_parse_location(first_line, last_line, file);
-	 parseException("PARSE-TYPE-ERROR", "%s member '$.%s' has been defined with a complex type and must be assigned when instantiated", priv ? "private" : "public", name);
-      }
-#endif
-   }
+   DLLLOCAL void parseInit(const char *name, bool priv);
 };
 
 class QoreVarInfo : public QoreMemberInfo {
@@ -947,37 +911,7 @@ public:
       return val ? val->refSelf() : 0;
    }
 
-   DLLLOCAL void parseInit(const char *name, bool priv) {
-      if (!typeInfo) {
-         typeInfo = parseTypeInfo->resolveAndDelete();
-         parseTypeInfo = 0;
-      }
-#ifdef DEBUG
-      else assert(!parseTypeInfo);
-#endif
-
-      if (exp) {
-	 const QoreTypeInfo *argTypeInfo = 0;
-	 int lvids = 0;
-	 exp = exp->parseInit(0, 0, lvids, argTypeInfo);
-	 if (lvids) {
-	    update_parse_location(first_line, last_line, file);
-	    parse_error("illegal local variable declaration in class static variable initialization expression");
-	    while (lvids)
-	       pop_local_var();
-	 }
-	 // throw a type exception only if parse exceptions are enabled
-	 if (!typeInfo->parseAccepts(argTypeInfo) && getProgram()->getParseExceptionSink()) {
-            QoreStringNode *desc = new QoreStringNode("initialization expression for ");
-	    desc->sprintf("%s class static variable '%s' returns ", priv ? "private" : "public", name);
-            argTypeInfo->getThisType(*desc);
-            desc->concat(", but the variable was declared as ");
-            typeInfo->getThisType(*desc);
-	    update_parse_location(first_line, last_line, file);
-            getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
-         }
-      }
-   }
+   DLLLOCAL void parseInit(const char *name, bool priv);
 
 #ifdef DEBUG
    DLLLOCAL bool empty() const {
@@ -1604,55 +1538,7 @@ struct qore_class_private {
       return scl ? scl->parseFindPublicPrivateVar(dname, varTypeInfo, var_has_type_info, priv) : 0;
    }
 
-   DLLLOCAL int checkExistingVarMember(char *dname, bool decl_has_type_info, bool priv, const QoreClass *sclass, bool has_type_info, bool is_priv, bool var = false) const {
-      //printd(5, "checkExistingVarMember() name=%s priv=%d is_priv=%d sclass=%s\n", name, priv, is_priv, sclass->getName());
-
-      // here we know that the member or var already exists, so either it will be a
-      // duplicate declaration, in which case it is ignored, or it is a
-      // contradictory declaration, in which case a parse exception is raised
-
-      // if the var was previously declared public
-      if (priv != is_priv) {
-	 // raise an exception only if parse exceptions are enabled
-	 if (getProgram()->getParseExceptionSink()) {
-	    QoreStringNode *desc = new QoreStringNode;
-	    if (name)
-	       desc->sprintf("class '%s' ", name);
-	    desc->concat("cannot declare ");
-	    desc->sprintf("%s %s ", privpub(priv), var ? "static variable" : "member");
-	    desc->sprintf("'%s' when ", dname);
-	    if (sclass == cls)
-	       desc->concat("this class");
-	    else
-	       desc->sprintf("base class '%s'", sclass->getName());
-	    desc->sprintf(" already declared this %s as %s", var ? "variable" : "member", privpub(is_priv));
-	    getProgram()->makeParseException("PARSE-ERROR", desc);
-	 }
-	 return -1;
-      }
-      else if (decl_has_type_info || has_type_info) {
-	 if (getProgram()->getParseExceptionSink()) {
-	    QoreStringNode *desc = new QoreStringNode;
-	    desc->sprintf("%s %s ", privpub(priv), var ? "static variable" : "member");
-	    desc->sprintf("'%s' was already declared in ", dname);
-	    if (sclass == cls)
-	       desc->concat("this class");
-	    else
-	       desc->sprintf("base class '%s'", sclass->getName());
-	    if (has_type_info)
-	       desc->sprintf(" with a type definition");
-	    desc->concat(" and cannot be declared again");
-	    if (name)
-	       desc->sprintf(" in class '%s'", name);
-	    desc->concat(" if the declaration has a type definition");
-	    
-	    getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
-	 }
-	 return -1;
-      }
-      
-      return 0;
-   }
+   DLLLOCAL int checkExistingVarMember(char *dname, bool decl_has_type_info, bool priv, const QoreClass *sclass, bool has_type_info, bool is_priv, bool var = false) const;
 
    DLLLOCAL int parseCheckVar(char *dname, bool decl_has_type_info, bool priv) const {
       const QoreTypeInfo *varTypeInfo;

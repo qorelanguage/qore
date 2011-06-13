@@ -1005,6 +1005,37 @@ public:
       TZ = tz;
    }
 
+   DLLLOCAL void makeParseException(const char *err, QoreStringNode *desc) {
+      QoreStringNodeHolder d(desc);
+      if (!requires_exception) {
+         assert(parseSink);
+         QoreException *ne = new ParseException(err, d.release());
+         parseSink->raiseException(ne);
+      }
+   }
+
+   DLLLOCAL void makeParseException(QoreStringNode *desc) {
+      QoreStringNodeHolder d(desc);
+      if (!requires_exception) {
+         QoreException *ne = new ParseException("PARSE-EXCEPTION", d.release());
+         if ((only_first_except && !exceptions_raised) || !only_first_except)
+            parseSink->raiseException(ne);
+         exceptions_raised++;
+      }
+   }
+
+   DLLLOCAL void makeParseException(const QoreProgramLocation &loc, const char *err, QoreStringNode *desc) {
+      QORE_TRACE("QoreProgram::makeParseException()");
+
+      QoreStringNodeHolder d(desc);
+      if (!requires_exception) {
+         QoreException *ne = new ParseException(loc.start_line, loc.end_line, loc.file, err, d.release());
+         if ((only_first_except && !exceptions_raised) || !only_first_except)
+            parseSink->raiseException(ne);
+         exceptions_raised++;
+      }
+   }
+
    DLLLOCAL static const ParseWarnOptions &getParseWarnOptions(const QoreProgram *pgm) {
       return pgm->priv->pwo;
    }
@@ -1027,6 +1058,22 @@ public:
 
    DLLLOCAL static void endThread(QoreProgram *pgm, ThreadProgramData *td, ExceptionSink *xsink) {
       pgm->priv->endThread(td, xsink);
+   }
+
+   DLLLOCAL static void makeParseException(QoreProgram *pgm, const char *err, QoreStringNode *desc) {
+      pgm->priv->makeParseException(err, desc);
+   }
+
+   DLLLOCAL static void makeParseException(QoreProgram *pgm, QoreStringNode *desc) {
+      pgm->priv->makeParseException(desc);
+   }
+
+   DLLLOCAL static void makeParseException(QoreProgram *pgm, const QoreProgramLocation &loc, QoreStringNode *desc) {
+      pgm->priv->makeParseException(loc, "PARSE-EXCEPTION", desc);
+   }
+
+   DLLLOCAL static void makeParseException(QoreProgram *pgm, const QoreProgramLocation &loc, const char *err, QoreStringNode *desc) {
+      pgm->priv->makeParseException(loc, err, desc);
    }
 };
 

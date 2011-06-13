@@ -110,12 +110,15 @@ protected:
 
    DLLLOCAL int execIntern(AbstractQoreNode **return_value, ExceptionSink *xsink);
 
-public:
    DLLLOCAL StatementBlock() : AbstractStatement(-1, -1), lvars(0) {
    }
 
+public:
+   DLLLOCAL StatementBlock(int sline, int eline) : AbstractStatement(sline, eline), lvars(0) {
+   }
+
    // line numbers on statement blocks are set later
-   DLLLOCAL StatementBlock(AbstractStatement *s) : AbstractStatement(-1, -1), lvars(0) {
+   DLLLOCAL StatementBlock(int sline, int eline, AbstractStatement *s) : AbstractStatement(sline, eline), lvars(0) {
       addStatement(s);
    }
 

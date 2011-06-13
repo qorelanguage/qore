@@ -504,10 +504,7 @@ public:
    DLLLOCAL const Var *findGlobalVar(const char *name) const;
    DLLLOCAL Var *checkGlobalVar(const char *name, const QoreTypeInfo *typeInfo);
    DLLLOCAL void importGlobalVariable(Var *var, ExceptionSink *xsink, bool readonly);
-   DLLLOCAL void makeParseException(const char *err, QoreStringNode *desc);
-   DLLLOCAL void makeParseException(int sline, int eline, QoreStringNode *desc);
-   DLLLOCAL void makeParseException(int sline, int eline, const char *file, QoreStringNode *desc);
-   DLLLOCAL void makeParseException(QoreStringNode *desc);
+
    // takes over ownership of the xsink arg (and deletes it)
    DLLLOCAL void addParseException(ExceptionSink *xsink);
    // clears xsink arg
@@ -519,6 +516,7 @@ public:
    // takes over ownership of "desc"
    DLLLOCAL void makeParseWarning(int code, const char *warn, QoreStringNode *desc);
    DLLLOCAL void addParseWarning(int code, ExceptionSink *xsink);
+
    DLLLOCAL void cannotProvideFeature(QoreStringNode *desc);
    DLLLOCAL void exportUserFunction(const char *name, QoreProgram *p, ExceptionSink *xsink);
    DLLLOCAL void exportUserFunction(const char *name, const char *new_name, QoreProgram *p, ExceptionSink *xsink);
