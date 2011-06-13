@@ -21,6 +21,7 @@
  */
 
 #include <qore/Qore.h>
+#include <qore/intern/qore_program_private.h>
 
 QoreString QoreExtractOperatorNode::extract_str("extract operator expression");
 
@@ -60,7 +61,7 @@ AbstractQoreNode *QoreExtractOperatorNode::parseInitImpl(LocalVar *oflag, int pf
 	 QoreStringNode *desc = new QoreStringNode("the lvalue expression (1st position) with the 'extract' operator is ");
 	 expTypeInfo->getThisType(*desc);
 	 desc->sprintf(", therefore this operation is invalid and would throw an exception at run-time; the 'extract' operator only operates on lists and strings");
-	 getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
+	 qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", desc);
       }
       else
 	 returnTypeInfo = typeInfo = expTypeInfo;

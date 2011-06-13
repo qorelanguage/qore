@@ -24,6 +24,7 @@
 #include <qore/intern/Sequence.h>
 #include <qore/intern/QoreClassIntern.h>
 #include <qore/intern/ConstantList.h>
+#include <qore/intern/qore_program_private.h>
 
 #include <string.h>
 #include <stdlib.h>
@@ -105,7 +106,7 @@ struct qore_method_private {
 	       desc->sprintf("%s::%s(%s) has an invalid signature; the first argument declared as ", parent_class->getName(), func->getName(), sig->getSignatureText());
 	       t->getThisType(*desc);
 	       desc->concat(" is not compatible with 'string'");
-	       getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
+	       qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", desc);
 	    }
 	 }
       }
@@ -2374,6 +2375,56 @@ void qore_class_private::resolveCopy() {
       scl->resolveCopy();
 }
 
+int qore_class_private::checkExistingVarMember(char *dname, bool decl_has_type_info, bool priv, const QoreClass *sclass, bool has_type_info, bool is_priv, bool var) const {
+   //printd(5, "checkExistingVarMember() name=%s priv=%d is_priv=%d sclass=%s\n", name, priv, is_priv, sclass->getName());
+
+   // here we know that the member or var already exists, so either it will be a
+   // duplicate declaration, in which case it is ignored, or it is a
+   // contradictory declaration, in which case a parse exception is raised
+
+   // if the var was previously declared public
+   if (priv != is_priv) {
+      // raise an exception only if parse exceptions are enabled
+      if (getProgram()->getParseExceptionSink()) {
+	 QoreStringNode *desc = new QoreStringNode;
+	 if (name)
+	    desc->sprintf("class '%s' ", name);
+	 desc->concat("cannot declare ");
+	 desc->sprintf("%s %s ", privpub(priv), var ? "static variable" : "member");
+	 desc->sprintf("'%s' when ", dname);
+	 if (sclass == cls)
+	    desc->concat("this class");
+	 else
+	    desc->sprintf("base class '%s'", sclass->getName());
+	 desc->sprintf(" already declared this %s as %s", var ? "variable" : "member", privpub(is_priv));
+	 qore_program_private::makeParseException(getProgram(), "PARSE-ERROR", desc);
+      }
+      return -1;
+   }
+   else if (decl_has_type_info || has_type_info) {
+      if (getProgram()->getParseExceptionSink()) {
+	 QoreStringNode *desc = new QoreStringNode;
+	 desc->sprintf("%s %s ", privpub(priv), var ? "static variable" : "member");
+	 desc->sprintf("'%s' was already declared in ", dname);
+	 if (sclass == cls)
+	    desc->concat("this class");
+	 else
+	    desc->sprintf("base class '%s'", sclass->getName());
+	 if (has_type_info)
+	    desc->sprintf(" with a type definition");
+	 desc->concat(" and cannot be declared again");
+	 if (name)
+	    desc->sprintf(" in class '%s'", name);
+	 desc->concat(" if the declaration has a type definition");
+	    
+	 qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", desc);
+      }
+      return -1;
+   }
+      
+   return 0;
+}
+
 bool QoreClass::hasParentClass() const {
    return (bool)priv->scl;
 }
@@ -2710,7 +2761,7 @@ void UserCopyVariant::parseInitCopy(const QoreClass &parent_class) {
 	       desc->concat(", but the object's parameter was defined expecting ");
 	       typeInfo->getThisType(*desc);
 	       desc->concat(" instead");
-	       getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
+	       qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", desc);
 	    }
 	 }
       }
@@ -2887,6 +2938,70 @@ bool QoreStaticMethodIterator::next() {
 
 const QoreMethod *QoreStaticMethodIterator::getMethod() const {
    return HMI_CAST(priv)->getMethod();
+}
+
+void QoreMemberInfo::parseInit(const char *name, bool priv) {
+   if (!typeInfo) {
+      typeInfo = parseTypeInfo->resolveAndDelete();
+      parseTypeInfo = 0;
+   }
+#ifdef DEBUG
+   else assert(!parseTypeInfo);
+#endif
+   
+   if (exp) {
+      const QoreTypeInfo *argTypeInfo = 0;
+      int lvids = 0;
+      exp = exp->parseInit(0, 0, lvids, argTypeInfo);
+      if (lvids) {
+	 update_parse_location(first_line, last_line, file);
+	 parse_error("illegal local variable declaration in member initialization expression");
+	 while (lvids)
+	    pop_local_var();
+      }
+      // throw a type exception only if parse exceptions are enabled
+      if (!typeInfo->parseAccepts(argTypeInfo) && getProgram()->getParseExceptionSink()) {
+	 QoreStringNode *desc = new QoreStringNode("initialization expression for ");
+	 desc->sprintf("%s member '$.%s' returns ", priv ? "private" : "public", name);
+	 argTypeInfo->getThisType(*desc);
+	 desc->concat(", but the member was declared as ");
+	 typeInfo->getThisType(*desc);
+	 update_parse_location(first_line, last_line, file);
+	 qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", desc);
+      }
+   }
+}
+
+void QoreVarInfo::parseInit(const char *name, bool priv) {
+   if (!typeInfo) {
+      typeInfo = parseTypeInfo->resolveAndDelete();
+      parseTypeInfo = 0;
+   }
+#ifdef DEBUG
+   else assert(!parseTypeInfo);
+#endif
+
+   if (exp) {
+      const QoreTypeInfo *argTypeInfo = 0;
+      int lvids = 0;
+      exp = exp->parseInit(0, 0, lvids, argTypeInfo);
+      if (lvids) {
+	 update_parse_location(first_line, last_line, file);
+	 parse_error("illegal local variable declaration in class static variable initialization expression");
+	 while (lvids)
+	    pop_local_var();
+      }
+      // throw a type exception only if parse exceptions are enabled
+      if (!typeInfo->parseAccepts(argTypeInfo) && getProgram()->getParseExceptionSink()) {
+	 QoreStringNode *desc = new QoreStringNode("initialization expression for ");
+	 desc->sprintf("%s class static variable '%s' returns ", priv ? "private" : "public", name);
+	 argTypeInfo->getThisType(*desc);
+	 desc->concat(", but the variable was declared as ");
+	 typeInfo->getThisType(*desc);
+	 update_parse_location(first_line, last_line, file);
+	 qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", desc);
+      }
+   }
 }
 
 // this is the "noop" function for class methods that do nothing if the

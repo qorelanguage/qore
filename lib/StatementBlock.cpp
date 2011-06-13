@@ -153,6 +153,8 @@ void StatementBlock::addStatement(AbstractStatement *s) {
       OnBlockExitStatement *obe = dynamic_cast<OnBlockExitStatement *>(s);
       if (obe)
 	 on_block_exit_list.push_front(std::make_pair(obe->getType(), obe->getCode()));
+
+      EndLineNumber = s->EndLineNumber;
    }
 }
 
@@ -369,7 +371,10 @@ void StatementBlock::parseCheckReturn() {
 	 QoreStringNode *desc = new QoreStringNode("this code block has declared return type ");
 	 returnTypeInfo->getThisType(*desc);
 	 desc->concat(" but does not have a return statement as the last statement in the block");
-	 getProgram()->makeParseException("MISSING-RETURN", desc);
+	 if (!this)
+	    qore_program_private::makeParseException(getProgram(), "MISSING-RETURN", desc);
+	 else
+	    qore_program_private::makeParseException(getProgram(), QoreProgramLocation(LineNumber, EndLineNumber, FileName), "MISSING-RETURN", desc);
       }
    }
 }

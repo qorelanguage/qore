@@ -22,6 +22,7 @@
 
 #include <qore/Qore.h>
 #include <qore/intern/QoreClassIntern.h>
+#include <qore/intern/qore_program_private.h>
 
 #include <stdlib.h>
 #include <string.h>
@@ -113,7 +114,7 @@ AbstractQoreNode *CallReferenceCallNode::parseInitImpl(LocalVar *oflag, int pfla
 	 QoreStringNode *desc = new QoreStringNode("invalid call; expression gives ");
 	 expTypeInfo->getThisType(*desc);
 	 desc->concat(", but a call reference or closure is required to make a call");
-	 getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
+	 qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", desc);
       }
    }
 
@@ -287,7 +288,7 @@ AbstractQoreNode *ParseObjectMethodReferenceNode::parseInitImpl(LocalVar *oflag,
 	    QoreStringNode *desc = new QoreStringNode("invalid call; object expression gives ");
 	    argTypeInfo->getThisType(*desc);
 	    desc->concat(", but should resolve to an object to make a call with this syntax");
-	    getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
+	    qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", desc);
 	 }
 	 else {
 	    const QoreClass *n_qc = argTypeInfo->getUniqueReturnClass();

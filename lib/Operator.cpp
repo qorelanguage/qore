@@ -22,6 +22,7 @@
 
 #include <qore/Qore.h>
 #include <qore/intern/QoreObjectIntern.h>
+#include <qore/intern/qore_program_private.h>
 
 #include <stdio.h>
 #include <string.h>
@@ -3472,7 +3473,7 @@ static AbstractQoreNode *check_op_list_assignment(QoreTreeNode *tree, LocalVar *
 	       prototypeInfo->getThisType(*edesc);
 	       edesc->concat(", but right-hand side is ");
 	       argInfo->getThisType(*edesc);
-	       getProgram()->makeParseException("PARSE-TYPE-ERROR", edesc);
+	       qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", edesc);
 	    }
 	 }
       }
@@ -3509,7 +3510,7 @@ static AbstractQoreNode *check_op_assignment(QoreTreeNode *tree, LocalVar *oflag
       l->getThisType(*edesc);
       edesc->concat(", but right-hand side is ");
       r->getThisType(*edesc);
-      getProgram()->makeParseException("PARSE-TYPE-ERROR", edesc);
+      qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", edesc);
    }
    return tree;
 }
@@ -3530,7 +3531,7 @@ static AbstractQoreNode *check_op_object_func_ref(QoreTreeNode *tree, LocalVar *
 	 QoreStringNode *edesc = new QoreStringNode("the object method or hash call reference call operator expects an object or a hash on the left side of the '.', but ");
 	 typeInfo->getThisType(*edesc);
 	 edesc->concat(" was provided instead");
-	 getProgram()->makeParseException("PARSE-TYPE-ERROR", edesc);
+	 qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", edesc);
       }
 
       tree->rightParseInit(oflag, pflag, lvids, typeInfo);
@@ -3608,8 +3609,8 @@ static void check_lvalue_int(const QoreTypeInfo *&typeInfo, const char *name) {
       QoreStringNode *desc = new QoreStringNode("lvalue has type ");
       typeInfo->getThisType(*desc);
       desc->sprintf(", but the %s operator will assign it an integer value", name);
-      getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
-   }   
+      qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", desc);
+   }
 }
 
 static void check_lvalue_float(const QoreTypeInfo *&typeInfo, const char *name) {
@@ -3619,8 +3620,8 @@ static void check_lvalue_float(const QoreTypeInfo *&typeInfo, const char *name) 
       QoreStringNode *desc = new QoreStringNode("lvalue has type ");
       typeInfo->getThisType(*desc);
       desc->sprintf(", but the %s operator will assign it a float value", name);
-      getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
-   }   
+      qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", desc);
+   }
 }
 
 // for post increment/decrement operators
@@ -3862,7 +3863,7 @@ static AbstractQoreNode *check_op_list_ref(QoreTreeNode *tree, LocalVar *oflag, 
 	    QoreStringNode *edesc = new QoreStringNode("cannot convert lvalue defined as ");
 	    leftTypeInfo->getThisType(*edesc);
 	    edesc->sprintf(" to a list using the '[]' operator in an assignment expression");
-	    getProgram()->makeParseException("PARSE-TYPE-ERROR", edesc);
+	    qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", edesc);
 	 }
       }
       else if (!listTypeInfo->parseAccepts(leftTypeInfo)
@@ -3927,7 +3928,7 @@ static AbstractQoreNode *check_op_object_ref(QoreTreeNode *tree, LocalVar *oflag
 	    QoreStringNode *edesc = new QoreStringNode("cannot convert lvalue defined as ");
 	    leftTypeInfo->getThisType(*edesc);
 	    edesc->sprintf(" to a hash using the '.' or '{}' operator in an assignment expression");
-	    getProgram()->makeParseException("PARSE-TYPE-ERROR", edesc);
+	    qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", edesc);
 	 }
       }
       else if (!can_be_hash && !can_be_obj) {
@@ -4017,7 +4018,7 @@ static AbstractQoreNode *check_op_unshift(QoreTreeNode *tree, LocalVar *oflag, i
 	 edesc->sprintf("'%s' operator is ", name);
 	 leftTypeInfo->getThisType(*edesc);
 	 edesc->sprintf(" therefore this operation is invalid and would throw an exception at run-time; the '%s' operator can only operate on lists", name);
-	 getProgram()->makeParseException("PARSE-TYPE-ERROR", edesc);
+	 qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", edesc);
       }
    }
    else

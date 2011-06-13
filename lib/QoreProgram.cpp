@@ -264,53 +264,6 @@ Var *QoreProgram::addResolvedGlobalVarDef(const char *name, const QoreTypeInfo *
    return v;
 }
 
-void QoreProgram::makeParseException(const char *err, QoreStringNode *desc) {
-   QORE_TRACE("QoreProgram::makeParseException()");
-
-   QoreStringNodeHolder d(desc);
-   if (!priv->requires_exception) {
-      class QoreException *ne = new ParseException(err, d.release());
-      priv->parseSink->raiseException(ne);
-   }
-}
-
-void QoreProgram::makeParseException(QoreStringNode *desc) {
-   QORE_TRACE("QoreProgram::makeParseException()");
-
-   QoreStringNodeHolder d(desc);
-   if (!priv->requires_exception) {
-      QoreException *ne = new ParseException("PARSE-EXCEPTION", d.release());
-      if ((priv->only_first_except && !priv->exceptions_raised) || !priv->only_first_except)
-         priv->parseSink->raiseException(ne);
-      priv->exceptions_raised++;
-   }
-}
-
-// FIXME: remove this function
-void QoreProgram::makeParseException(int sline, int eline, QoreStringNode *desc) {
-   QORE_TRACE("QoreProgram::makeParseException()");
-
-   QoreStringNodeHolder d(desc);
-   if (!priv->requires_exception) {
-      QoreException *ne = new ParseException(sline, eline, "PARSE-EXCEPTION", d.release());
-      if ((priv->only_first_except && !priv->exceptions_raised) || !priv->only_first_except)
-         priv->parseSink->raiseException(ne);
-      priv->exceptions_raised++;
-   }
-}
-
-void QoreProgram::makeParseException(int sline, int eline, const char *file, QoreStringNode *desc) {
-   QORE_TRACE("QoreProgram::makeParseException()");
-
-   QoreStringNodeHolder d(desc);
-   if (!priv->requires_exception) {
-      QoreException *ne = new ParseException(sline, eline, file, "PARSE-EXCEPTION", d.release());
-      if ((priv->only_first_except && !priv->exceptions_raised) || !priv->only_first_except)
-         priv->parseSink->raiseException(ne);
-      priv->exceptions_raised++;
-   }
-}
-
 ExceptionSink *QoreProgram::getParseExceptionSink() {
    if (priv->requires_exception)
       return 0;

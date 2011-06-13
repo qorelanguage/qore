@@ -22,6 +22,8 @@
 
 #include <qore/Qore.h>
 
+#include <qore/intern/qore_program_private.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -153,23 +155,7 @@ void parse_error(const char *fmt, ...) {
       if (!rc)
 	 break;
    }
-   getProgram()->makeParseException(desc);
-}
-
-// FIXME: remove this function and use the version with const char *file as first arg
-void parse_error(int sline, int eline, const char *fmt, ...) {
-   printd(5, "parse_error(sline=%d, eline=%d, \"%s\", ...) called\n", sline, eline, fmt);
-
-   QoreStringNode *desc = new QoreStringNode();
-   while (true) {
-      va_list args;
-      va_start(args, fmt);
-      int rc = desc->vsprintf(fmt, args);
-      va_end(args);
-      if (!rc)
-	 break;
-   }
-   getProgram()->makeParseException(sline, eline, desc);
+   qore_program_private::makeParseException(getProgram(), desc);
 }
 
 void parse_error(const char *file, int sline, int eline, const char *fmt, ...) {
@@ -184,17 +170,15 @@ void parse_error(const char *file, int sline, int eline, const char *fmt, ...) {
       if (!rc)
 	 break;
    }
-   getProgram()->makeParseException(sline, eline, file, desc);
+   qore_program_private::makeParseException(getProgram(), QoreProgramLocation(sline, eline, file), desc);
 }
 
 void parseException(const char *err, QoreStringNode *desc) {
-   printd(5, "parseException(%s. %s) called\n", err, desc->getBuffer());
-   getProgram()->makeParseException(err, desc);
+   printd(5, "parseException(%s, %s) called\n", err, desc->getBuffer());
+   qore_program_private::makeParseException(getProgram(), err, desc);
 }
 
 void parseException(const char *err, const char *fmt, ...) {
-   printd(5, "parseException(%s. '%s', ...) called\n", err, fmt);
-
    QoreStringNode *desc = new QoreStringNode;
    while (true) {
       va_list args;
@@ -204,7 +188,7 @@ void parseException(const char *err, const char *fmt, ...) {
       if (!rc)
 	 break;
    }
-   getProgram()->makeParseException(err, desc);
+   parseException(err, desc);
 }
 
 // returns 1 for success

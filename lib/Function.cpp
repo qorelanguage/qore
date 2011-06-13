@@ -22,6 +22,7 @@
 
 #include <qore/Qore.h>
 #include <qore/intern/QoreClassIntern.h>
+#include <qore/intern/qore_program_private.h>
 
 #include <stdio.h>
 #include <ctype.h>
@@ -394,7 +395,7 @@ void UserSignature::resolve() {
 	    desc->concat(", but the default value is ");
 	    argTypeInfo->getThisType(*desc);
 	    desc->concat(" instead");
-	    getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
+	    qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", desc);
 	 }
       }
    }
@@ -586,7 +587,7 @@ static AbstractQoreFunctionVariant *doSingleVariantTypeException(int pi, const c
    proto->getThisType(*desc);
    desc->concat(", but call supplies ");
    arg->getThisType(*desc);
-   getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
+   qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", desc);
    return 0;
 }
 
@@ -695,7 +696,7 @@ static void warn_excess_args(AbstractQoreFunction *func, const type_vec_t &argTy
    // raise warning if require-types is not set
    if (getProgram()->getParseOptions64() & (PO_REQUIRE_TYPES | PO_STRICT_ARGS)) {
       desc->concat("; this is an error when PO_REQUIRE_TYPES or PO_STRICT_ARGS is set");
-      getProgram()->makeParseException("CALL-WITH-TYPE-ERRORS", desc);
+      qore_program_private::makeParseException(getProgram(), "CALL-WITH-TYPE-ERRORS", desc);
    }
    else {
       // raise warning
@@ -990,7 +991,7 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
 	    desc->sprintf("%s(%s)", getName(), (*i)->getSignature()->getSignatureText());
 	 }
       }
-      getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
+      qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", desc);
    }
    else if (variant) {
       int64 flags = variant->getFlags();
@@ -998,7 +999,7 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
 	 QoreStringNode *desc = getNoopError(this, aqf, variant);
 	 if ((flags & QC_RUNTIME_NOOP) && (getProgram()->getParseOptions64() & (PO_REQUIRE_TYPES|PO_STRICT_ARGS))) {
 	    desc->concat("; this variant is not accessible when PO_REQUIRE_TYPES or PO_STRICT_ARGS is set");
-	    getProgram()->makeParseException("CALL-WITH-TYPE-ERRORS", desc);
+	    qore_program_private::makeParseException(getProgram(), "CALL-WITH-TYPE-ERRORS", desc);
 	 }
 	 else {
 	    desc->concat("; to disable this warning, use '%disable-warning invalid-operation' in your code");

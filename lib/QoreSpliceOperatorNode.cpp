@@ -21,6 +21,7 @@
  */
 
 #include <qore/Qore.h>
+#include <qore/intern/qore_program_private.h>
 
 QoreString QoreSpliceOperatorNode::splice_str("splice operator expression");
 
@@ -60,7 +61,7 @@ AbstractQoreNode *QoreSpliceOperatorNode::parseInitImpl(LocalVar *oflag, int pfl
 	 QoreStringNode *desc = new QoreStringNode("the lvalue expression (1st position) with the 'splice' operator is ");
 	 expTypeInfo->getThisType(*desc);
 	 desc->sprintf(", therefore this operation is invalid and would throw an exception at run-time; the 'splice' operator only operates on lists and strings");
-	 getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
+	 qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", desc);
       }
       else
 	 returnTypeInfo = typeInfo = expTypeInfo;

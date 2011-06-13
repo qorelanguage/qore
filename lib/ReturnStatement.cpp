@@ -22,6 +22,7 @@
 
 #include <qore/Qore.h>
 #include <qore/intern/ReturnStatement.h>
+#include <qore/intern/qore_program_private.h>
 
 ReturnStatement::ReturnStatement(int start_line, int end_line, AbstractQoreNode *v) : AbstractStatement(start_line, end_line) {
    exp = v;
@@ -81,7 +82,7 @@ int ReturnStatement::parseInitImpl(LocalVar *oflag, int pflag) {
 	 returnTypeInfo->getThisType(*desc);
 	 desc->concat(", but value given to the return statement is ");
 	 argTypeInfo->getThisType(*desc);
-	 getProgram()->makeParseException("PARSE-TYPE-ERROR", desc);
+	 qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", desc);
       }
    }
    else if (returnTypeInfo->isType(NT_NOTHING) && exp && (!argTypeInfo->hasType() || !argTypeInfo->isType(NT_NOTHING))) {

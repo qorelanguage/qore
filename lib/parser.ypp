@@ -1153,7 +1153,7 @@ block:
 
 statement_or_block:
 	statement
-        { $$ = new StatementBlock($1); }
+        { $$ = new StatementBlock(@1.first_line, @1.last_line, $1); }
 	|
         block
         { $$ = $1; }
@@ -1161,9 +1161,9 @@ statement_or_block:
 
 statements:
 	statement
-        { $$ = new StatementBlock($1); }
+        { $$ = new StatementBlock(@1.first_line, @1.last_line, $1); }
 	| block
-	{ $$ = new StatementBlock($1); }
+	{ $$ = new StatementBlock(@1.first_line, @1.last_line, $1); }
  	| statements block
         { $1->addStatement($2); $$ = $1; }
 	| statements statement
