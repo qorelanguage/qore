@@ -27,7 +27,7 @@
 #include <qore/intern/sql_statement_private.h>
 #include <qore/intern/qore_ds_private.h>
 
-const char *QoreSQLStatement::stmt_statuses[] = { "idle", "prepared", "defined", "executed" };
+const char *QoreSQLStatement::stmt_statuses[] = { "idle", "prepared", "executed", "defined" };
 
 struct DBActionHelper {
    QoreSQLStatement &stmt;
@@ -115,6 +115,12 @@ int QoreSQLStatement::checkStatus(DBActionHelper &dba, int stat, const char *act
 
       if (stat == STMT_PREPARED && status == STMT_EXECED)
          return 0;
+
+      if (stat == STMT_PREPARED && status == STMT_DEFINED) {
+         if (closeIntern(xsink))
+            return -1;
+         return prepareIntern(xsink);
+      }
       
       if ((stat == STMT_EXECED || stat == STMT_DEFINED) && status == STMT_PREPARED) {
          if (execIntern(dba, xsink))
