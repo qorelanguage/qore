@@ -563,6 +563,41 @@ static AbstractQoreNode *f_trunc_str(const QoreListNode *args, ExceptionSink *xs
    return new QoreStringNode(tmp->getBuffer(), sl, enc);
 }
 
+
+static AbstractQoreNode *f_strmul(const QoreListNode *args, ExceptionSink *xsink) {
+   const QoreStringNode *argStr = HARD_QORE_STRING(args, 0);
+   int64 smul = HARD_QORE_INT(args, 1);
+   int64 offset = 0;
+   if (!test_nothing_param(args, 2)) {
+      offset = HARD_QORE_INT(args, 2);
+   }
+
+   if (offset < 0) {
+      xsink->raiseException("STRMUL-ERROR", "Offset argument has to be 0 or greater than 0. Value: %d", offset);
+      return 0;
+   }
+   
+   if (smul < 1) {
+      xsink->raiseException("STRMUL-ERROR", "Multiple argument has to be greater than 0. Value: %d", smul);
+      return 0;
+   }
+
+//   QoreStringNode * ret = reinterpret_cast<QoreStringNode*>(argStr->realCopy());
+   QoreStringNode * ret = new QoreStringNode(argStr);
+   while (smul != 1) {
+      ret->concat(argStr);
+      --smul;
+   }
+   
+   if (offset) {
+      offset = ret->length() - offset; 
+      ret = ret->substr(0, offset, xsink);
+   }
+       
+   return ret;
+}
+
+
 void init_string_functions() {
    builtinFunctions.add2("length", f_length_str, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo, 1, softStringTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("length", f_length_bin, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo, 1, binaryTypeInfo, QORE_PARAM_NO_ARG);
@@ -572,7 +607,7 @@ void init_string_functions() {
    builtinFunctions.add2("strlen", f_strlen_str, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo, 1, softStringTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("strlen", f_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("strlen", f_int_noop, QC_NOOP, QDOM_DEFAULT, bigIntTypeInfo, 1, anyTypeInfo, QORE_PARAM_NO_ARG);
-
+    
    // tolower() called without a string argument returns 0
    builtinFunctions.add2("tolower", f_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("tolower", f_tolower, QC_CONSTANT, QDOM_DEFAULT, stringTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
@@ -648,4 +683,7 @@ void init_string_functions() {
 
    // string sub trunc_str(softstring $str, int $len, *string $enc) {}
    builtinFunctions.add2("trunc_str", f_trunc_str, QC_CONSTANT, QDOM_DEFAULT, stringTypeInfo, 3, softStringTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, QORE_PARAM_NO_ARG, stringOrNothingTypeInfo, QORE_PARAM_NO_ARG);
+
+   builtinFunctions.add2("strmul", f_strmul, QC_CONSTANT, QDOM_DEFAULT, stringTypeInfo, 3, softStringTypeInfo, QORE_PARAM_NO_ARG, bigIntTypeInfo, QORE_PARAM_NO_ARG, bigIntOrNothingTypeInfo, QORE_PARAM_NO_ARG);
+
 }
