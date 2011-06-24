@@ -26,6 +26,7 @@
 #include <qore/intern/ParserSupport.h>
 #include <qore/intern/QoreClassIntern.h>
 #include <qore/intern/UserFunctionList.h>
+#include <qore/intern/qore_program_private.h>
 #include <qore/minitest.hpp>
 
 #include <stdio.h>
