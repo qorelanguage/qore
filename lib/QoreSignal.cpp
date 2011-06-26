@@ -50,7 +50,7 @@ void QoreSignalHandler::del(int sig, ExceptionSink *xsink) {
 
 void QoreSignalHandler::runHandler(int sig, ExceptionSink *xsink) {
    // create signal number argument
-   ReferenceHolder<QoreListNode> args(new QoreListNode(), xsink);
+   ReferenceHolder<QoreListNode> args(new QoreListNode, xsink);
    args->push(new QoreBigIntNode(sig));
    discard(funcref->exec(*args, xsink), xsink);
 }
@@ -274,7 +274,10 @@ void QoreSignalManager::signal_handler_thread() {
 	 if (pgm)
 	    pgm->startThread();
 
-	 handlers[sig].runHandler(sig, &xsink);
+	 {
+	    ProgramContextHelper pch(pgm);
+	    handlers[sig].runHandler(sig, &xsink);
+	 }
 
 	 // delete thread-local storage, if any
 	 if (pgm)
