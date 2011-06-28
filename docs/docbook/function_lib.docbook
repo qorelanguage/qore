@@ -2921,6 +2921,18 @@
         </row>
         <row>
           <entry>
+            <para><code><link linkend="string_type">string</link> <link linkend="strmul">strmul</link>(<link linkend="softstring_type">softstring</link>, <link linkend="int_type">int</link>)</code></para>
+            <para><code><link linkend="string_type">string</link> <link linkend="strmul">strmul</link>(<link linkend="softstring_type">softstring</link>, <link linkend="int_type">int</link>, <link linkend="int_type">int</link>)</code></para>
+          </entry>
+          <entry>
+            <para>Y</para>
+          </entry>
+          <entry>
+            <para>"Multiplies" the string.</para>
+          </entry>
+        </row>
+        <row>
+          <entry>
             <para><code><link linkend="int_type">int</link> <link linkend="strtoint">strtoint</link>(<link linkend="softstring_type">softstring</link>, <link linkend="int_type">int</link> = 10) (<link linkend="CONST_flag">CONST</link>)</code></para>
             <para><code><link linkend="nothing_type">nothing</link> <link linkend="strtoint">strtoint</link>() (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
           </entry>
@@ -9614,6 +9626,78 @@ ning of every year (for example 2006-01-01 is ISO-8601 calendar week format is: 
   <para>This function does not throw any exceptions.</para>
 
 </sect2>
+
+<sect2 id="strmul">
+<title>strmul()</title>
+
+  <variablelist>
+    <varlistentry>
+      <term>Synopsis</term>
+      <listitem>
+	<para>Returns new string with repeated original content with optionaly removed trailing characters.</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Prototype</term>
+      <listitem>
+            <para><code><link linkend="string_type">string</link> <link linkend="strmul">strmul</link>(<link linkend="softstring_type">softstring</link>, <link linkend="int_type">int</link>)</code></para>
+            <para><code><link linkend="string_type">string</link> <link linkend="strmul">strmul</link>(<link linkend="softstring_type">softstring</link>, <link linkend="int_type">int</link>, <link linkend="int_type">int</link>)</code></para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Example</term>
+      <listitem>
+	<programlisting>my string $ret = strmul("hello", 2); # returns "hellohello"
+my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
+    </programlisting>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+
+      <table>
+        <title>Arguments and Return Values for strmul()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry><para>Argument Type</para></entry>
+              <entry><para>Return Type</para></entry>
+              <entry><para>Description</para></entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+	      <entry><para><code><link linkend="softstring_type">softstring</link> <replaceable>$original</replaceable>, <link linkend="int_type">int</link> <replaceable>$multiplicator</replaceable>, [<link linkend="*int_type">int</link> <replaceable>$offset</replaceable>]</code></para></entry>
+              <entry><para><code><link linkend="string_type">string</link></code></para></entry>
+              <entry><para>Returns the <replaceable>$multiplicator</replaceable> times copied <replaceable>$original</replaceable>.
+                    If there <replaceable>$offset</replaceable> given the offset length is removed from end of the new string.</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+
+      <table>
+	<title>Exceptions Thrown by strmul()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>err</para></entry>
+	      <entry><para>desc</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code>STRMUL-ERROR</code></para></entry>
+	      <entry><para>Offset argument has to be 0 or greater than 0.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>STRMUL-ERROR</code></para></entry>
+	      <entry><para>Multiple argument has to be greater than 0.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+</sect2>
+
 <sect2 id="substr">
 <title>substr()</title>
 
