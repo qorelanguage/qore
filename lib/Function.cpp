@@ -809,9 +809,19 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
 		     count += rc;
 		  //}
 	    }
+	    
 	    //printd(0, "AbstractQoreFunction::parseFindVariant() this=%p tested %s(%s) ok=%d count=%d match=%d variant_missing_types=%d variant_pmatch=%d variant_nperfect=%d nperfect=%d\n", this, getName(), sig->getSignatureText(), ok, count, match, variant_missing_types, variant_pmatch, variant_nperfect, nperfect);
 	    if (!ok)
 	       continue;
+
+	    // now check if additional args are present that could be NOTHING and cound as partial matches xxx
+	    for (unsigned pi = sig->numParams(); pi < num_args; ++pi) {
+	       const QoreTypeInfo *a = argTypeInfo[pi];
+	       if (a->parseAcceptsReturns(NT_NOTHING)) {
+		  ++variant_pmatch;
+		  count += QTI_AMBIGUOUS;
+	       }
+	    }
 
 	    if (!npv)
 	       pvariant = variant;
@@ -928,6 +938,15 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
 	    }
 	    if (!ok)
 	       continue;
+
+	    // now check if additional args are present that could be NOTHING and cound as partial matches xxx
+	    for (unsigned pi = sig->numParams(); pi < num_args; ++pi) {
+	       const QoreTypeInfo *a = argTypeInfo[pi];
+	       if (a->parseAcceptsReturns(NT_NOTHING)) {
+		  ++variant_pmatch;
+		  count += QTI_AMBIGUOUS;
+	       }
+	    }
 
 	    if (!npv)
 	       pvariant = variant;
