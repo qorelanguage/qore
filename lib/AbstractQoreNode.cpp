@@ -420,19 +420,15 @@ AbstractQoreNode *copy_and_resolve_lvar_refs(const AbstractQoreNode *n, Exceptio
    if (ntype == NT_FIND)
       return eval_notnull(n, xsink);
 
-   if (ntype == NT_VARREF && reinterpret_cast<const VarRefNode *>(n)->getType() == VT_LOCAL)
+   if (ntype == NT_VARREF && reinterpret_cast<const VarRefNode *>(n)->getType() != VT_GLOBAL)
       return eval_notnull(n, xsink);
-
-   if (ntype == NT_FUNCREFCALL)
+   else if (ntype == NT_FUNCREFCALL)
       return call_ref_call_copy(reinterpret_cast<const CallReferenceCallNode *>(n), xsink);
-
-   if (ntype == NT_METHOD_CALL)
+   else if (ntype == NT_METHOD_CALL)
       return crlr_mcall_copy(reinterpret_cast<const MethodCallNode *>(n), xsink);
-
-   if (ntype == NT_STATIC_METHOD_CALL)
+   else if (ntype == NT_STATIC_METHOD_CALL)
       return crlr_smcall_copy(reinterpret_cast<const StaticMethodCallNode *>(n), xsink);
-
-   if (ntype == NT_REFERENCE)
+   else if (ntype == NT_REFERENCE)
       return crlr_reference_copy(reinterpret_cast<const ReferenceNode *>(n), xsink);
 
    return n->refSelf();
