@@ -284,9 +284,6 @@ void UserSignature::pushParam(VarRefNode *v, AbstractQoreNode *defArg, bool need
       const QoreTypeInfo *ti = vd->getTypeInfo();
       typeList.push_back(ti);
 
-      if (ti == nothingTypeInfo)
-	 parse_error(parse_file, first_line, last_line, "parameter '%s' may not be declared as type 'nothing'", v->getName());
-
       assert(!(pti && ti));
 
       if (pti || ti->hasType()) {
