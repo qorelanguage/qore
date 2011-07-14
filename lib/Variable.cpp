@@ -526,9 +526,18 @@ static AbstractQoreNode **getUniqueExistingVarValuePtr(AbstractQoreNode *n, Exce
    return rv;
 }
 
+static AbstractQoreNode *remove_hash_object_value(QoreHashNode *h, QoreObject *o, const char *mem, ExceptionSink *xsink) {
+   // otherwise if not a hash or object then exit
+   if (o)
+      return o->takeMember(mem, xsink);
+
+   // if it's a hash reference, then remove the key
+   return h->takeKeyValue(mem);
+}
+
 AbstractQoreNode *remove_lvalue(AbstractQoreNode *lvalue, ExceptionSink *xsink) {
    AutoVLock vl(xsink);
-   AbstractQoreNode **val, *rv;
+   AbstractQoreNode **val;
 
    qore_type_t lvtype = lvalue->getType();
 
@@ -543,7 +552,7 @@ AbstractQoreNode *remove_lvalue(AbstractQoreNode *lvalue, ExceptionSink *xsink) 
 	 return 0;
 
       printd(5, "remove_lvalue() setting ptr %p (val=%p) to NULL\n", val, (*val));
-      rv = *val;
+      AbstractQoreNode *rv = *val;
       *val = 0;
 
       return rv;
@@ -576,30 +585,45 @@ AbstractQoreNode *remove_lvalue(AbstractQoreNode *lvalue, ExceptionSink *xsink) 
    }
    assert(tree->getOp() == OP_OBJECT_REF);
 
-   // get the member name
+   // get the member name or names
    QoreNodeEvalOptionalRefHolder member(tree->right, xsink);
    if (*xsink)
       return 0;
+
+   // find variable ptr, exit if doesn't exist anyway
+   val = getUniqueExistingVarValuePtr(tree->left, xsink, &vl, omap);      
+   if (!val || !(*val) || *xsink)
+      return 0;
+
+   QoreObject *o = (*val)->getType() == NT_OBJECT ? reinterpret_cast<QoreObject *>(*val) : 0;
+   QoreHashNode *h = !o && (*val)->getType() == NT_HASH ? reinterpret_cast<QoreHashNode *>(*val) : 0;
+   if (!o && !h)
+      return 0;
+
+   if (get_node_type(*member) == NT_LIST) {
+      ReferenceHolder<QoreHashNode> rv(new QoreHashNode, xsink);
+
+      ConstListIterator li(reinterpret_cast<const QoreListNode *>(*member));
+      while (li.next()) {
+	 QoreStringValueHelper mem(li.getValue(), QCS_DEFAULT, xsink);
+	 if (*xsink)
+	    return 0;
+
+	 AbstractQoreNode *n = remove_hash_object_value(h, o, mem->getBuffer(), xsink);
+	 if (*xsink)
+	    return 0;
+
+	 rv->setKeyValue(mem->getBuffer(), n, xsink);
+      }
+
+      return rv.release();
+   }
 
    QoreStringValueHelper mem(*member, QCS_DEFAULT, xsink);
    if (*xsink)
       return 0;
 
-   // find variable ptr, exit if doesn't exist anyway
-   val = getUniqueExistingVarValuePtr(tree->left, xsink, &vl, omap);
-      
-   if (!val || !(*val) || *xsink)
-      return 0;
-
-   QoreObject *o = (*val)->getType() == NT_OBJECT ? reinterpret_cast<QoreObject *>(*val) : 0;
-
-   // otherwise if not a hash or object then exit
-   if (o)
-      return o->takeMember(mem->getBuffer(), xsink);
-
-   // if it's a hash reference, then remove the key
-   QoreHashNode *h = (*val)->getType() == NT_HASH ? reinterpret_cast<QoreHashNode *>(*val) : 0;
-   return h ? h->takeKeyValue(mem->getBuffer()) : 0;
+   return remove_hash_object_value(h, o, mem->getBuffer(), xsink);
 }
 
 void delete_lvalue(AbstractQoreNode *lvalue, ExceptionSink *xsink) {
