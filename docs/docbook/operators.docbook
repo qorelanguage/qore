@@ -1141,10 +1141,11 @@ printf("0x%x\n", $binary[2]);
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>The <command>delete</command> operator deletes the contents of an lvalue.  If the <command>delete</command> operator is called on an object, the object will be destroyed unconditionally.  The <command>delete</command> operator does not return any value.  When called on a hash key, the key is removed from the hash entirely; when called on a list, the element is assigned <command><link linkend="NOTHING">NOTHING</link></command>.</para>
-
+	<para>The <command>delete</command> operator deletes the contents of an lvalue.  If the <command>delete</command> operator is called on an object, the object will be destroyed unconditionally.  The <command>delete</command> operator does not return any value.</para>
+	<para>When called on a hash key, the key is removed from the hash entirely; when called on a list element, the element is assigned <command><link linkend="NOTHING">NOTHING</link></command> (i.e. the list size does not change).</para>
+	<para>The <command>delete</command> operator will delete multiple keys from a hash (i.e. delete a slice from a hash) when called on a hash dereferenced by a list of strings, giving the keys to delete as follows:</para>
+	<programlisting><command>delete</command> $h.("a", "b", "c");</programlisting>
         <para>In the case the <command>delete</command> operator operates on an object, any exception can be thrown that is thrown by the class' destructor.</para>
-
         <para>For a similar operator that returns the value that is removed from the data structure, and does not delete objects, see the <link linkend="Remove_Operator">remove</link> operator.</para>
      </listitem>
     </varlistentry>
@@ -1177,7 +1178,10 @@ printf("0x%x\n", $binary[2]);
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>The <command>remove</command> operator removes a value from a data structure, or, in the case the operand of the <command>remove</command> operator is a simple value, the value itself is removed from the variable and returned.  The <command>remove</command> operator returns the value removed from the lvalue.  When called on a hash key, the key is removed from the hash entirely; when called on a list, the element is assigned <command><link linkend="NOTHING">NOTHING</link></command>.</para>
+	<para>The <command>remove</command> operator removes a value from a data structure, or, in the case the operand of the <command>remove</command> operator is a simple value, the value itself is removed from the variable and returned.  The <command>remove</command> operator returns the value removed from the lvalue.</para>
+	<para>When called on a hash key, the key is removed from the hash entirely, and the value returned is a single element hash with the given key; when called on a list element, the element is assigned <command><link linkend="NOTHING">NOTHING</link></command>. (i.e. the list size does not change).</para>
+	<para>The <command>remove</command> operator will remove and return a slice from a hash when called on a hash dereferenced by a list of strings, giving the keys to remove and return as follows:</para>
+	<programlisting><command>my</command> hash $nh = <command>remove</command> $h.("a", "b", "c");</programlisting>
 
   <para>The <command>remove</command> operator does not call destructors when operating on objects, but if removing an object from an lvalue or from a data structure within the lvalue causes the object to go out of scope, it will be destroyed, and then its destructor could throw an exception.</para>
 
