@@ -253,9 +253,7 @@ protected:
    bool already_checked;
 
 public:
-   DLLLOCAL LValueHelper(const AbstractQoreNode *exp, ExceptionSink *n_xsink) : xsink(n_xsink), vl(n_xsink), typeInfo(0), already_checked(false) {
-      v = get_var_value_ptr(exp, &vl, typeInfo, omap, xsink);
-   }
+   DLLLOCAL LValueHelper(const AbstractQoreNode *exp, ExceptionSink *n_xsink);
    DLLLOCAL ~LValueHelper() {
 #ifdef _QORE_CYCLE_CHECK
       printd(0, "LValueHelper::~LValueHelper() v=%p *v=%p *xsink=%d already_checked=%d\n", v, v ? *v : 0, (bool)*xsink, already_checked);

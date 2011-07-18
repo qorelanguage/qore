@@ -103,6 +103,10 @@ int64 QoreHashNode::getKeyAsBigInt(const char *key, bool &found) const {
    return priv->getKeyAsBigInt(key, found);
 }
 
+bool QoreHashNode::getKeyAsBool(const char *key, bool &found) const {
+   return priv->getKeyAsBool(key, found);
+}
+
 void QoreHashNode::deleteKey(const QoreString *key, ExceptionSink *xsink) {
    TempEncodingHelper tmp(key, QCS_DEFAULT, xsink);
    if (*xsink)

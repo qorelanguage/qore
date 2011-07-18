@@ -71,6 +71,19 @@ struct qore_hash_private {
       return 0;
    }
 
+   DLLLOCAL bool getKeyAsBool(const char *key, bool &found) const {
+      assert(key);	 
+      hm_hm_t::const_iterator i = hm.find(key);
+
+      if (i != hm.end()) {
+         found = true;
+         return i->second->node ? i->second->node->getAsBool() : false;
+      }
+
+      found = false;
+      return false;
+   }
+
    DLLLOCAL bool existsKey(const char *key) const {
       assert(key);	 
       return hm.find(key) != hm.end();

@@ -244,6 +244,13 @@ public:
    */
    DLLEXPORT int64 getKeyAsBigInt(const char *key, bool &found) const;
 
+   //! returns the value of the key as a bool
+   /** @param key the key to return the value for
+       @param found returns as true if the key exists, false if not
+       @return the value of the key as a bool
+   */
+   DLLEXPORT bool getKeyAsBool(const char *key, bool &found) const;
+
    //! performs a deep copy of the hash and returns the new hash
    /** @return a copy of the current QoreHashNode
     */

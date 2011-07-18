@@ -35,6 +35,10 @@ QoreHashNode *ENV;
 #include <qore/intern/ParserSupport.h>
 #include <qore/intern/QoreObjectIntern.h>
 
+LValueHelper::LValueHelper(const AbstractQoreNode *exp, ExceptionSink *n_xsink) : xsink(n_xsink), vl(n_xsink), typeInfo(0), already_checked(false) {
+   v = get_var_value_ptr(exp, &vl, typeInfo, omap, xsink);
+}
+
 VarStackPointerHelper::VarStackPointerHelper(LocalVarValue *v) : orig(v) {
    v->skip = true;
 }
