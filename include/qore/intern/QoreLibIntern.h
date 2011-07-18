@@ -609,4 +609,30 @@ public:
 #endif
 };
 
+class AbstractVirtualMethod {
+protected:
+   const char *name;
+   type_vec_t params;
+   const QoreTypeInfo *return_type;
+
+   DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *xsink) const = 0;
+
+public:
+   DLLLOCAL AbstractVirtualMethod(const char *n_name, const QoreTypeInfo *n_return_type, ...);
+   DLLLOCAL virtual ~AbstractVirtualMethod();
+   DLLLOCAL AbstractQoreNode *eval(AbstractQoreNode *self, const QoreListNode *args, ExceptionSink *xsink) const;
+   DLLLOCAL unsigned numArgs() const {
+      return params.size();
+   }
+   DLLLOCAL const QoreTypeInfo *getReturnTypeInfo() const {
+      return return_type;
+   }
+   DLLLOCAL const char *getName() const {
+      return name;
+   }
+   DLLLOCAL const type_vec_t &getParamTypeList() const {
+      return params;
+   }
+};
+
 #endif

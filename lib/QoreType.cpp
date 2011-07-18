@@ -73,7 +73,6 @@ bool compareHard(const AbstractQoreNode *l, const AbstractQoreNode *r, Exception
 // convert values to do the conversion
 // 0 = equal, 1 = not equal
 bool compareSoft(const AbstractQoreNode *l, const AbstractQoreNode *r, ExceptionSink *xsink) {
-   // logical equals always returns an integer result
    return !OP_LOG_EQ->bool_eval(l, r, xsink);
 }
 
@@ -179,4 +178,3 @@ bool typeInfoHasType(const QoreTypeInfo *typeInfo) {
 const char *typeInfoGetName(const QoreTypeInfo *typeInfo) {
    return typeInfo->getName();
 }
-

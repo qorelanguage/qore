@@ -458,18 +458,17 @@ public:
 	 obj->ref();
 	 callobj = 0;
       }
-      else if (fctype == NT_TREE) {
-	 QoreTreeNode *tree = reinterpret_cast<QoreTreeNode *>(fc);
-	 if (tree->getOp() == OP_OBJECT_FUNC_REF) {
+      else if (fctype == NT_OPERATOR) {
+         QoreDotEvalOperatorNode *deon = dynamic_cast<QoreDotEvalOperatorNode*>(fc);
+         if (deon) {
 	    // evaluate object
-	    QoreNodeEvalOptionalRefHolder n(tree->left, xsink);
+	    QoreNodeEvalOptionalRefHolder n(deon->getExpression(), xsink);
 	    if (*xsink || is_nothing(*n))
 	       return;
 
 	    // if we have actually evaluated something, then we save the result in the tree
 	    if (n.isTemp()) {
-	       tree->left->deref(xsink);
-	       tree->left = n.getReferencedValue();
+               deon->replaceExpression(n.getReferencedValue());
 	    } else if (n->getType() == NT_OBJECT) {
 	       // we reference the object so it won't go out of scope while the thread is running
 	       obj = reinterpret_cast<QoreObject *>(n.getReferencedValue());

@@ -39,7 +39,7 @@ Operator *OP_ASSIGNMENT, *OP_MODULA,
    *OP_POST_INCREMENT, *OP_POST_DECREMENT, *OP_PRE_INCREMENT, *OP_PRE_DECREMENT, 
    *OP_LOG_CMP, *OP_PLUS_EQUALS, *OP_MINUS_EQUALS, *OP_AND_EQUALS, *OP_OR_EQUALS, 
    *OP_LIST_REF, *OP_OBJECT_REF, *OP_ELEMENTS, *OP_KEYS, *OP_QUESTION_MARK, 
-   *OP_OBJECT_FUNC_REF, *OP_SHIFT, *OP_POP, *OP_PUSH,
+   *OP_SHIFT, *OP_POP, *OP_PUSH,
    *OP_UNSHIFT, *OP_REGEX_SUBST, *OP_LIST_ASSIGNMENT, *OP_MODULA_EQUALS, 
    *OP_MULTIPLY_EQUALS, *OP_DIVIDE_EQUALS, *OP_XOR_EQUALS, *OP_SHIFT_LEFT_EQUALS, 
    *OP_SHIFT_RIGHT_EQUALS, *OP_REGEX_TRANS, *OP_REGEX_EXTRACT, 
@@ -633,34 +633,6 @@ static AbstractQoreNode *op_object_ref(const AbstractQoreNode *left, const Abstr
 
    QoreStringNodeValueHelper key(*mem);
    return o->evalMember(*key, xsink);
-}
-
-static AbstractQoreNode *op_object_method_call(const AbstractQoreNode *left, const AbstractQoreNode *func, bool ref_rv, ExceptionSink *xsink) {
-   QoreNodeEvalOptionalRefHolder op(left, xsink);
-   if (*xsink)
-      return 0;
-
-   assert(func && func->getType() == NT_METHOD_CALL);
-   const MethodCallNode *m = reinterpret_cast<const MethodCallNode *>(func);
-
-   if (*op && (*op)->getType() == NT_HASH) {
-      // FIXME: this is an ugly hack!
-      const QoreHashNode *h = reinterpret_cast<const QoreHashNode *>(*op);
-      // see if the hash member is a call reference
-      const AbstractQoreNode *ref = h->getKeyValue(m->getName());
-      if (ref && (ref->getType() == NT_FUNCREF || ref->getType() == NT_RUNTIME_CLOSURE))
-	 return reinterpret_cast<const ResolvedCallReferenceNode *>(ref)->exec(m->getArgs(), xsink);
-   }
-
-   if (!(*op) || (*op)->getType() != NT_OBJECT) {
-      //printd(5, "op=%p (%s) func=%p (%s)\n", op, op ? op->getTypeName() : "n/a", func, func ? func->getTypeName() : "n/a");
-      xsink->raiseException("OBJECT-METHOD-EVAL-ON-NON-OBJECT", "member function \"%s\" called on type \"%s\"", 
-			    m->getName(), op ? op->getTypeName() : "NOTHING" );
-      return 0;
-   }
-
-   QoreObject *o = const_cast<QoreObject *>(reinterpret_cast<const QoreObject *>(*op));
-   return m->exec(o, xsink);
 }
 
 static AbstractQoreNode *op_assignment(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink) {
@@ -3515,81 +3487,6 @@ static AbstractQoreNode *check_op_assignment(QoreTreeNode *tree, LocalVar *oflag
    return tree;
 }
 
-static AbstractQoreNode *check_op_object_func_ref(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo, const char *name, const char *desc) {
-   const QoreTypeInfo *typeInfo = 0;
-   tree->leftParseInit(oflag, pflag, lvids, typeInfo);
-
-   QoreClass *qc = const_cast<QoreClass *>(typeInfo->getUniqueReturnClass());
-
-   if (!qc) {
-      // if the left side has a type and it's not hash or object, then
-      // no call can be made
-      if (typeInfo->hasType()
-	  && !objectTypeInfo->parseAccepts(typeInfo)
-	  && !hashTypeInfo->parseAccepts(typeInfo)
-	  && getProgram()->getParseExceptionSink()) {
-	 QoreStringNode *edesc = new QoreStringNode("the object method or hash call reference call operator expects an object or a hash on the left side of the '.', but ");
-	 typeInfo->getThisType(*edesc);
-	 edesc->concat(" was provided instead");
-	 qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", edesc);
-      }
-
-      tree->rightParseInit(oflag, pflag, lvids, typeInfo);
-      return tree;
-   }
-
-   // make sure method arguments and return types are resolved
-   qc->parseInitPartial();
-
-   assert(tree->right && tree->right->getType() == NT_METHOD_CALL);
-   MethodCallNode *mc = reinterpret_cast<MethodCallNode *>(tree->right);
-
-   const char *meth = mc->getName();
-
-   const QoreMethod *m = qc->parseFindMethodTree(meth);
-
-   //printd(5, "check_op_object_func_ref() %s::%s() method=%p (%s) (private=%s)\n", qc->getName(), meth, m, m ? m->getClassName() : "n/a", m && m->parseIsPrivate() ? "true" : "false" );
-
-   const QoreListNode *args = mc->getArgs();
-   if (!strcmp(meth, "copy")) {
-      if (args && args->size())
-	 parse_error("no arguments may be passed to copy methods (%d argument%s given in call to %s::copy())", args->size(), args->size() == 1 ? "" : "s", qc->getName());
-
-      if (m && m->parseIsPrivate() && (!oflag || !parseCheckCompatibleClass(qc, getParseClass())))
-	 parse_error("illegal call to private %s::copy() method", qc->getName());
-
-      // do not save method pointer for copy methods
-      returnTypeInfo = qc->getTypeInfo();
-      tree->rightParseInit(oflag, pflag, lvids, typeInfo);
-      return tree;
-   }
-
-   // if a normal method is not found, then look for a static method
-   if (!m)
-      m = qc->parseFindStaticMethodTree(meth);
-
-   if (!m) {
-      if (!qc->parseHasMethodGate())
-	 raiseNonExistentMethodCallWarning(qc, meth);
-
-      tree->rightParseInit(oflag, pflag, lvids, typeInfo);
-      return tree;
-   }
-
-   if (m->parseIsPrivate() && !parseCheckCompatibleClass(qc, getParseClass()))
-      parse_error("illegal call to private method %s::%s()", qc->getName(), meth);
-
-   // save method for optimizing calls later
-   mc->parseSetClassAndMethod(qc, m);
-
-   // check parameters, if any
-   lvids += mc->parseArgs(oflag, pflag, m->getFunction(), returnTypeInfo);
-
-   printd(5, "check_op_object_func_ref() %s::%s() method=%p (%s::%s()) (private=%s, static=%s) rv=%s\n", qc->getName(), meth, m, m ? m->getClassName() : "n/a", meth, m && m->parseIsPrivate() ? "true" : "false", m->isStatic() ? "true" : "false", returnTypeInfo->getName());
-
-   return tree;
-}
-
 // for logical operators that always return a boolean
 static AbstractQoreNode *check_op_logical(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo, const char *name, const char *desc) {
    returnTypeInfo = boolTypeInfo;
@@ -4265,9 +4162,6 @@ void OperatorList::init() {
 
    OP_QUESTION_MARK = add(new Operator(2, "question", "question-mark colon", 0, false, false, check_op_question_mark));
    OP_QUESTION_MARK->addFunction(NT_ALL, NT_ALL, op_question_mark);
-
-   OP_OBJECT_FUNC_REF = add(new Operator(2, ".", "object method call", 0, true, false, check_op_object_func_ref));
-   OP_OBJECT_FUNC_REF->addFunction(NT_ALL, NT_ALL, op_object_method_call);
 
    OP_SHIFT = add(new Operator(1, "shift", "shift from list", 0, true, true, check_op_list_op));
    OP_SHIFT->addFunction(op_shift);

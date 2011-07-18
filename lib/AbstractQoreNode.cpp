@@ -204,6 +204,31 @@ double AbstractQoreNode::getAsFloat() const {
    return getAsFloatImpl();
 }
 
+// get the value of the type in a string context, empty string for complex types (default implementation)
+QoreString *AbstractQoreNode::getStringRepresentation(bool &del) const {
+   del = false;
+   return NullString;
+}
+
+// empty default implementation
+void AbstractQoreNode::getStringRepresentation(QoreString &str) const {
+}
+
+// if del is true, then the returned DateTime * should be deleted, if false, then it should not
+DateTime *AbstractQoreNode::getDateTimeRepresentation(bool &del) const {
+   del = false;
+   return ZeroDate;
+}
+
+// assign date representation to a DateTime (no action for complex types = default implementation)
+void AbstractQoreNode::getDateTimeRepresentation(DateTime &dt) const {
+   dt.setDate(0LL);
+}
+
+AbstractQoreNode *AbstractQoreNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+   return this;
+}
+
 // for getting relative time values or integer values
 int getSecZeroInt(const AbstractQoreNode *a) {
    if (is_nothing(a))
@@ -410,17 +435,16 @@ AbstractQoreNode *copy_and_resolve_lvar_refs(const AbstractQoreNode *n, Exceptio
    if (ntype == NT_TREE)
       return crlr_tree_copy(reinterpret_cast<const QoreTreeNode *>(n), xsink);
 
-   if (ntype == NT_SELF_CALL)
+   if (ntype == NT_OPERATOR)
+      return reinterpret_cast<const QoreOperatorNode*>(n)->copyBackground(xsink);
+   else if (ntype == NT_SELF_CALL)
       return crlr_selfcall_copy(reinterpret_cast<const SelfFunctionCallNode *>(n), xsink);
-
-   if (ntype == NT_FUNCTION_CALL || ntype == NT_PROGRAM_FUNC_CALL)
+   else if (ntype == NT_FUNCTION_CALL || ntype == NT_PROGRAM_FUNC_CALL)
       return crlr_fcall_copy(reinterpret_cast<const FunctionCallNode *>(n), xsink);
-
    // must make sure to return a value here or it could cause a segfault - parse expressions expect non-NULL values for the operands
-   if (ntype == NT_FIND)
+   else if (ntype == NT_FIND)
       return eval_notnull(n, xsink);
-
-   if (ntype == NT_VARREF && reinterpret_cast<const VarRefNode *>(n)->getType() != VT_GLOBAL)
+   else if (ntype == NT_VARREF && reinterpret_cast<const VarRefNode *>(n)->getType() != VT_GLOBAL)
       return eval_notnull(n, xsink);
    else if (ntype == NT_FUNCREFCALL)
       return call_ref_call_copy(reinterpret_cast<const CallReferenceCallNode *>(n), xsink);
@@ -432,31 +456,6 @@ AbstractQoreNode *copy_and_resolve_lvar_refs(const AbstractQoreNode *n, Exceptio
       return crlr_reference_copy(reinterpret_cast<const ReferenceNode *>(n), xsink);
 
    return n->refSelf();
-}
-
-// get the value of the type in a string context, empty string for complex types (default implementation)
-QoreString *AbstractQoreNode::getStringRepresentation(bool &del) const {
-   del = false;
-   return NullString;
-}
-
-// empty default implementation
-void AbstractQoreNode::getStringRepresentation(QoreString &str) const {
-}
-
-// if del is true, then the returned DateTime * should be deleted, if false, then it should not
-DateTime *AbstractQoreNode::getDateTimeRepresentation(bool &del) const {
-   del = false;
-   return ZeroDate;
-}
-
-// assign date representation to a DateTime (no action for complex types = default implementation)
-void AbstractQoreNode::getDateTimeRepresentation(DateTime &dt) const {
-   dt.setDate(0LL);
-}
-
-AbstractQoreNode *AbstractQoreNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
-   return this;
 }
 
 void SimpleQoreNode::deref() {

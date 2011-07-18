@@ -1,10 +1,10 @@
-%{
-/*
+%{ /* -*- mode: c++; indent-tabs-mode: nil -*-
+
    parser.yy
 
    Qore Programming Language
 
-   Copyright 2003 - 2010 David Nichols
+   Copyright 2003 - 2011 David Nichols
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -543,7 +543,7 @@ static AbstractQoreNode *process_dot(AbstractQoreNode *l, AbstractQoreNode *r) {
       MethodCallNode *m = new MethodCallNode(f->takeName(), f->take_args());
       f->deref();
 
-      return new QoreTreeNode(l, OP_OBJECT_FUNC_REF, m);
+      return new QoreDotEvalOperatorNode(l, m);
    }
 
    return new QoreTreeNode(l, OP_OBJECT_REF, r);
@@ -2406,9 +2406,15 @@ exp:    scalar
 		 //printd(5, "method call to %s: tree=%s, args=%p %s\n", cstr, tree->left->getTypeName(), $3, $3 ? $3->getTypeName() : "n/a");
 
 		 MethodCallNode *mc = new MethodCallNode(cstr, makeArgs($3));
-		 tree->right = mc;
-		 tree->setOp(OP_OBJECT_FUNC_REF);
-		 $$ = $1;
+                 
+                 // destroy the tree and create a new operator object
+                 assert(tree->is_unique());
+                 AbstractQoreNode *l = tree->left;
+                 tree->right = 0;
+                 tree->left = 0;
+                 tree->deref(0);
+
+		 $$ = new QoreDotEvalOperatorNode(l, mc);
 	      }
 	      else {
 		 $$ = 0;
@@ -2507,28 +2513,12 @@ exp:    scalar
 	   else {
 	      bool make_ref = true;
 
-	      if (t == NT_TREE) {
-		 QoreTreeNode *tree = reinterpret_cast<QoreTreeNode *>($2);
-		 if (tree->getOp() == OP_OBJECT_FUNC_REF) {
-		    assert(tree->right->getType() == NT_METHOD_CALL);
-		    MethodCallNode *m = reinterpret_cast<MethodCallNode *>(tree->right);
-		    if (m->getArgs()) {
-		       parse_error("argument given to call reference");
-		       $$ = $2;
-		    }
-		    else { // rewrite as a call reference
-		       // take components of tree and delete tree
-		       AbstractQoreNode *exp = tree->left;
-		       tree->left = 0;
-		       char *meth = m->takeName();
-		       m->deref();
-		       tree->right = 0;
-		       tree->deref();
-		       $$ = new ParseObjectMethodReferenceNode(exp, meth);
-		       //printd(5, "made parse object method reference: exp=%p meth=%s (node=%p)\n", exp, meth, $$);
-		       make_ref = false;
-		    }
-		 }
+	      if (t == NT_OPERATOR) {
+                 QoreDotEvalOperatorNode *deon = dynamic_cast<QoreDotEvalOperatorNode*>($2);
+                 if (deon) {
+                    $$ = deon->makeCallReference();
+                    make_ref = false;
+                 }
 	      }
 
 	      if (make_ref) {

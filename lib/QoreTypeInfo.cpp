@@ -171,7 +171,7 @@ static void do_maps(qore_type_t t, const char *name, const QoreTypeInfo *typeInf
 
 // at least the NullString must be created after the default character encoding is set
 void init_qore_types() {
-   // initialize global default values                                                                                                                                    
+   // initialize global default values
    NullString    = new QoreStringNode;
    ZeroDate      = DateTimeNode::makeAbsolute(0, 0, 0);
    Zero          = new QoreBigIntNode;
@@ -491,3 +491,4 @@ const QoreTypeInfo *QoreParseTypeInfo::resolveAndDelete() {
    // qc maybe NULL when the class is not found
    return qc ? qc->getTypeInfo() : objectTypeInfo;
 }
+

@@ -45,6 +45,10 @@ public:
    }
    
    DLLLOCAL virtual bool hasEffect() const = 0;
+
+   DLLLOCAL virtual QoreOperatorNode *copyBackground(ExceptionSink *xsink) const {
+      return const_cast<QoreOperatorNode *>(this);
+   }
 };
 
 class QoreSingleExpressionOperatorNode : public QoreOperatorNode {
@@ -74,5 +78,6 @@ public:
 #include <qore/intern/QoreExtractOperatorNode.h>
 #include <qore/intern/QoreCastOperatorNode.h>
 #include <qore/intern/QoreUnaryMinusOperatorNode.h>
+#include <qore/intern/QoreDotEvalOperatorNode.h>
 
 #endif
