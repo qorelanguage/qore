@@ -892,6 +892,10 @@ sub string_tests() {
     test_value(toupper($str), "HI THERE, YOU THERE, PAL", "toupper()");
     test_value(tolower($big), "gee whiz", "tolower()");
     test_value(reverse($big), "ZIHW EEG", "reverse()");
+    # strmul
+    test_value(strmul($big, 2), "GEE WHIZGEE WHIZ", "strmul() basic");
+    test_value(strmul("%v, ", 3, 2), "%v, %v, %v", "strmul() extended");
+    test_value(strmul(123, 2), "123123", "strmul() type conversion");
     
     # set up a string with UTF-8 multi-byte characters
     $str = "Über die Wolken läßt sich die Höhe begrüßen";
