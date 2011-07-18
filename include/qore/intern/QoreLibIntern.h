@@ -608,17 +608,31 @@ public:
    }
 #endif
 };
+/*
+struct QoreParam {
+   const char *name;
+   const QoreTypeInfo *type;
+
+   DLLLOCAL QoreParam() : name(0), type(0) {
+   }
+
+   DLLLOCAL QoreParam(const char *n_name, const QoreTypeInfo *n_type) : name(n_name), type(n_type) {
+   } 
+};
+
+typedef std::vector<QoreParam> param_vec_t;
 
 class AbstractVirtualMethod {
 protected:
    const char *name;
-   type_vec_t params;
+   bool requires_value;
    const QoreTypeInfo *return_type;
+   param_vec_t params;
 
    DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *xsink) const = 0;
 
 public:
-   DLLLOCAL AbstractVirtualMethod(const char *n_name, const QoreTypeInfo *n_return_type, ...);
+   DLLLOCAL AbstractVirtualMethod(const char *n_name, bool n_requires_lvalue, const QoreTypeInfo *n_return_type, ...);
    DLLLOCAL virtual ~AbstractVirtualMethod();
    DLLLOCAL AbstractQoreNode *eval(AbstractQoreNode *self, const QoreListNode *args, ExceptionSink *xsink) const;
    DLLLOCAL unsigned numArgs() const {
@@ -630,9 +644,9 @@ public:
    DLLLOCAL const char *getName() const {
       return name;
    }
-   DLLLOCAL const type_vec_t &getParamTypeList() const {
+   DLLLOCAL const param_vec_t &getParamList() const {
       return params;
    }
 };
-
+*/
 #endif

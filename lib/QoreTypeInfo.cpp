@@ -491,4 +491,18 @@ const QoreTypeInfo *QoreParseTypeInfo::resolveAndDelete() {
    // qc maybe NULL when the class is not found
    return qc ? qc->getTypeInfo() : objectTypeInfo;
 }
+/*
+AbstractVirtualMethod::AbstractVirtualMethod(const char *n_name, bool n_requires_lvalue, const QoreTypeInfo *n_return_type, ...) 
+   : name(n_name), requires_value(n_requires_lvalue), return_type(n_return_type) {
+   va_list args;
+   va_start(args, n_return_type);
+   while (true) {
+      QoreParam p = va_arg(args, QoreParam);
+      if (!p.name)
+	 break;
 
+      params.push_back(p);
+   }
+   va_end(args);
+}
+*/

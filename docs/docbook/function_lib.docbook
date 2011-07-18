@@ -1601,6 +1601,18 @@
         </row>
         <row>
           <entry>
+            <para><code><link linkend="bool_type">bool</link> <link linkend="has_key">has_key</link>(<link linkend="hash_type">hash</link> <replaceable>$hash</replaceable>, <link linkend="string_type">string</link> <replaceable>$key</replaceable>) (<link linkend="RET_VALUE_ONLY_flag">RET_VALUE_ONLY</link>)</code></para>
+            <para><code><link linkend="bool_type">bool</link> <link linkend="has_key">has_key</link>(<link linkend="object_type">object</link> <replaceable>$obj</replaceable>, <link linkend="string_type">string</link> <replaceable>$key</replaceable>) (<link linkend="RET_VALUE_ONLY_flag">RET_VALUE_ONLY</link>)</code></para>
+          </entry>
+          <entry>
+            <para>Y</para>
+          </entry>
+          <entry>
+            <para>Returns <code>True</code> if the given key exists in the hash or object (does not necessarily have to have a value assigned); exceptions are only raised if string encoding errors are encountered or in case of object access errors.</para>
+          </entry>
+        </row>
+        <row>
+          <entry>
             <para><code><link linkend="hash_type">hash</link> <link linkend="hash">hash</link>(<link linkend="list_type">list</link> <replaceable>$list</replaceable>)</code></para>
             <para><code><link linkend="hash_type">hash</link> <link linkend="hash">hash</link>(<link linkend="list_type">list</link> <replaceable>$keys</replaceable>, <link linkend="list_type">list</link> <replaceable>$values</replaceable>)</code></para>
             <para><code><link linkend="hash_type">hash</link> <link linkend="hash">hash</link>(<link linkend="hash_type">hash</link> <replaceable>$hash</replaceable>) (<link linkend="CONST_flag">CONST</link>)</code></para>
@@ -21352,6 +21364,63 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
 </table>
 
 </sect2>
+
+    <sect2 id="has_key">
+      <title>has_key()</title>
+      <variablelist>
+        <varlistentry>
+          <term>Synopsis</term>
+          <listitem>
+            <para>Returns <code>True</code> if the given key exists in the hash or object (does not necessarily have to have a value assigned); exceptions are only raised if string encoding errors are encountered or in case of object access errors.</para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Prototype</term>
+          <listitem>
+            <para><code><link linkend="bool_type">bool</link> <link linkend="has_key">has_key</link>(<link linkend="hash_type">hash</link> <replaceable>$hash</replaceable>, <link linkend="string_type">string</link> <replaceable>$key</replaceable>) (<link linkend="RET_VALUE_ONLY_flag">RET_VALUE_ONLY</link>)</code></para>
+            <para><code><link linkend="bool_type">bool</link> <link linkend="has_key">has_key</link>(<link linkend="object_type">object</link> <replaceable>$obj</replaceable>, <link linkend="string_type">string</link> <replaceable>$key</replaceable>) (<link linkend="RET_VALUE_ONLY_flag">RET_VALUE_ONLY</link>)</code></para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Example</term>
+          <listitem>
+            <programlisting><command>my</command> bool $b = has_key($hash, "key");</programlisting>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+      
+      <table>
+        <title>Arguments and Return Values for has_key()</title>
+        <tgroup cols="3" align="left" colsep="1" rowsep="1">
+          <thead>
+            <row>
+              <entry>
+                <para>Argument Type</para>
+              </entry>
+              <entry>
+                <para>Return Type</para>
+              </entry>
+              <entry>
+                <para>Description</para>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry><para><code><link linkend="hash_type">hash</link> <replaceable>$hash</replaceable>, <link linkend="string_type">string</link> <replaceable>$key</replaceable></code></para></entry>
+              <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
+              <entry><para>Returns <code>True</code> if the given key exists in the hash (does not necessarily have to have a value assigned), <code>False</code> if not.</para></entry>
+            </row>
+            <row>
+              <entry><para><code><link linkend="object_type">object</link> <replaceable>$obj</replaceable>, <link linkend="string_type">string</link> <replaceable>$key</replaceable></code></para></entry>
+              <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
+              <entry><para>Returns <code>True</code> if the given key exists in the object (does not necessarily have to have a value assigned), <code>False</code> if not.</para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <para>Exceptions are only raised if string encoding errors are encountered or in case of object access errors.</para>
+    </sect2>
 
     <sect2 id="hash_values">
       <title>hash_values()</title>

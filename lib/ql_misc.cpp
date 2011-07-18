@@ -316,6 +316,29 @@ static AbstractQoreNode *f_hash_values(const QoreListNode *params, ExceptionSink
    return l;
 }
 
+static AbstractQoreNode *f_has_key_hash(const QoreListNode *params, ExceptionSink *xsink) {
+   const QoreHashNode *h = HARD_QORE_HASH(params, 0);
+   const QoreStringNode *key = HARD_QORE_STRING(params, 1);
+
+   bool exists;
+   h->getKeyValueExistence(key, exists, xsink);
+   if (*xsink)
+      return 0;
+
+   return get_bool_node(exists);
+}
+
+static AbstractQoreNode *f_has_key_obj(const QoreListNode *params, ExceptionSink *xsink) {
+   const QoreObject *o = HARD_QORE_OBJECT(params, 0);
+   const QoreStringNode *key = HARD_QORE_STRING(params, 1);
+
+   AutoVLock vl(xsink);
+   AbstractQoreNode **ptr = o->getExistingValuePtr(key, &vl, xsink);
+   if (*xsink)
+      return 0;
+   return get_bool_node(ptr);
+}
+
 void do_zlib_exception(int rc, const char *func, ExceptionSink *xsink) {
    QoreStringNode *desc = new QoreStringNode();
    desc->sprintf("%s(): ", func);
@@ -1256,6 +1279,9 @@ void init_misc_functions() {
 
    builtinFunctions.add2("hash_values", f_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("hash_values", f_hash_values, QC_CONSTANT, QDOM_DEFAULT, listTypeInfo, 1, hashTypeInfo, QORE_PARAM_NO_ARG);
+
+   builtinFunctions.add2("has_key", f_has_key_hash, QC_RET_VALUE_ONLY, QDOM_DEFAULT, 0, 2, hashTypeInfo, QORE_PARAM_NO_ARG, softStringTypeInfo, QORE_PARAM_NO_ARG);
+   builtinFunctions.add2("has_key", f_has_key_obj, QC_RET_VALUE_ONLY, QDOM_DEFAULT, 0, 2, objectTypeInfo, QORE_PARAM_NO_ARG, softStringTypeInfo, QORE_PARAM_NO_ARG);
 
    builtinFunctions.add2("compress", f_noop, QC_RUNTIME_NOOP, QDOM_DEFAULT, nothingTypeInfo);
    builtinFunctions.add2("compress", f_compress_str, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, new QoreBigIntNode(Z_DEFAULT_COMPRESSION));
