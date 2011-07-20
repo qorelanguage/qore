@@ -27,8 +27,6 @@
 
 #include <qore/common.h>
 
-#include <arpa/inet.h>
-
 static inline int64 i8LSB(int64 i);
 static inline int   i4LSB(int i);
 static inline short i2LSB(short i);

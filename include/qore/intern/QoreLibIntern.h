@@ -29,11 +29,38 @@
 
 #include <stdarg.h>
 #include <sys/types.h>
+#ifdef HAVE_SYS_STATVFS_H
 #include <sys/statvfs.h>
+#endif
 #include <sys/stat.h>
 #include <unistd.h>
 #ifdef HAVE_EXECINFO_H
 #include <execinfo.h>
+#endif
+#ifdef HAVE_ARPA_INET_H
+#include <arpa/inet.h>
+#endif
+#ifdef HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif
+#ifdef HAVE_NETDB_H
+#include <netdb.h>
+#endif
+#ifdef HAVE_NETINET_IN_H
+#include <netinet/in.h>
+#endif
+#ifdef HAVE_ARPA_INET_H
+#include <arpa/inet.h>
+#endif
+#ifdef HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif
+#include <netinet/in.h>
+#ifdef HAVE_NETDB_H
+#include <netdb.h>
+#endif
+#ifdef HAVE_ARPA_INET_H
+#include <arpa/inet.h>
 #endif
 
 #include <set>

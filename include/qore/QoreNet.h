@@ -28,10 +28,6 @@
 #define _QORE_QORENET_H
 
 #include <sys/types.h>
-#include <sys/socket.h>
-#include <netdb.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
 
 //! thread-safe gethostbyname (0 = success, !0 = error)
 /** FIXME: should be const struct in_addr

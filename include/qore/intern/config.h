@@ -29,10 +29,14 @@
 #define __int64 long long
 #endif
 
+#ifdef HAVE_UNIX_CONFIG_H
+#include <qore/intern/unix-config.h>
+#else
 #if defined(_WIN32) && !defined(__CYGWIN__)
 #include <qore/intern/win32-config.h>
 #else
-#include <qore/intern/unix-config.h>
+#error no configuration file for this build
+#endif
 #endif
 
 #endif
