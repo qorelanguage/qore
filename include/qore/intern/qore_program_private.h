@@ -80,13 +80,15 @@ public:
 
 class ThreadLocalVariableData : public ThreadLocalData<LocalVarValue> {
 public:
-   // deletes everything on the stack
-   DLLLOCAL void del(ExceptionSink *xsink) {
-      // first we dereference everything
+   // marks all variables as finalized on the stack
+   DLLLOCAL void finalize(ExceptionSink *xsink) {
       ThreadLocalVariableData::iterator i(curr);
       while (i.next())
-         i.get().setValue(0, xsink);
+         i.get().finalize(xsink);
+   }
 
+   // deletes everything on the stack
+   DLLLOCAL void del(ExceptionSink *xsink) {
       // then we uninstantiate
       while (curr->prev || curr->pos)
          uninstantiate(xsink);
@@ -161,13 +163,15 @@ private:
    }
 
 public:
-   // deletes everything on the stack
-   DLLLOCAL void del(ExceptionSink *xsink) {
-      // first we dereference everything
+   // marks all variables as finalized on the stack
+   DLLLOCAL void finalize(ExceptionSink *xsink) {
       ThreadClosureVariableStack::iterator i(curr);
       while (i.next())
-         i.get()->setValue(0, xsink);
+         i.get()->finalize(xsink);
+   }
 
+   // deletes everything on the stack
+   DLLLOCAL void del(ExceptionSink *xsink) {
       while (curr->prev || curr->pos)
          uninstantiate(xsink);
    }
@@ -249,6 +253,11 @@ public:
    DLLLOCAL ~ThreadLocalProgramData() {
       assert(lvstack.empty());
       assert(cvstack.empty());
+   }
+
+   DLLLOCAL void finalize(ExceptionSink *xsink) {
+      lvstack.finalize(xsink);
+      cvstack.finalize(xsink);
    }
 
    DLLLOCAL void del(ExceptionSink *xsink) {
@@ -412,11 +421,22 @@ public:
       // copy the map and run on the copy to avoid deadlocks
       {
          AutoLocker al(tlock);
-         pdm_copy.swap(pgm_data_map);
+         pdm_copy = pgm_data_map;
       }
+      for (pgm_data_map_t::iterator i = pdm_copy.begin(), e = pdm_copy.end(); i != e; ++i) {
+         i->second->finalize(xsink);
+      }
+
       for (pgm_data_map_t::iterator i = pdm_copy.begin(), e = pdm_copy.end(); i != e; ++i) {
          i->second->del(xsink);
          i->first->delProgram(pgm);
+      }
+      
+      // now clear the original map xxx
+      {
+         AutoLocker al(tlock);
+         assert(pgm_data_map.size() == pdm_copy.size());
+         pgm_data_map.clear();
       }
    }
 
@@ -425,17 +445,17 @@ public:
       // wait for all threads to terminate
       waitForAllThreadsToTerminate();
 
-      // delete all global variables
-      global_var_list.clear_all(xsink);
-      // clear thread data if base object
-      if (base_object)
-         clearThreadData(xsink);
-
       // merge pending parse exceptions into the passed exception sink, if any
       if (pendingParseSink) {
          xsink->assimilate(pendingParseSink);
          pendingParseSink = 0;
       }
+
+      // delete all global variables
+      global_var_list.clear_all(xsink);
+      // clear thread data if base object
+      if (base_object)
+         clearThreadData(xsink);
 
       clearProgramThreadData(xsink);
       
@@ -833,6 +853,9 @@ public:
       if (i != pgm_data_map.end()) {
          // remove from map and delete outside of lock to avoid deadlocks (or the need for recursive locking)
          ThreadLocalProgramData *tlpd = i->second;
+         sl.unlock();
+         tlpd->finalize(xsink);
+         sl.lock();
          pgm_data_map.erase(i);
          sl.unlock();
          tlpd->del(xsink);

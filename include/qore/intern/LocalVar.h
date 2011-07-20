@@ -56,13 +56,31 @@ public:
    DLLLOCAL ~VarStackPointerClosureHelper();
 };
 
-class LocalVarValue {
+class VarValueBase {
+protected:
+   DLLLOCAL int checkFinalized(ExceptionSink *xsink) {
+      if (finalized) {
+         xsink->raiseException("DESTRUCTOR-ERROR", "illegal variable assignment after second phase of variable destruction");
+         return -1;
+      }
+      return 0;
+   }
+
 public:
    union lvar_u val;
    const char *id;
    bool is_ref : 1;
    bool skip : 1;
+   bool finalized : 1;
 
+   DLLLOCAL VarValueBase(const char *n_id, bool n_is_ref = false, bool n_skip = false) : id(n_id), is_ref(n_is_ref), skip(n_skip), finalized(false) {
+   }
+   DLLLOCAL VarValueBase() : finalized(false) {
+   }
+};
+
+class LocalVarValue : public VarValueBase {
+public:
    DLLLOCAL void set(const char *n_id, AbstractQoreNode *value) {
       is_ref = false;
       skip = false;
@@ -96,6 +114,9 @@ public:
    }
 
    DLLLOCAL AbstractQoreNode **getValuePtr(AutoVLock *vl, const QoreTypeInfo *&typeInfo, ObjMap &omap, ExceptionSink *xsink) {
+      if (checkFinalized(xsink))
+         return 0;
+
       if (!is_ref)
          return const_cast<AbstractQoreNode **>(&val.value);
 
@@ -112,16 +133,30 @@ public:
       return get_var_value_ptr(val.ref.vexp, vl, typeInfo, omap, xsink);
    }
 
+   DLLLOCAL void finalize(ExceptionSink *xsink) {
+      assert(!finalized);
+      if (!is_ref) {
+         if (val.value) {
+            discard(val.value, xsink);
+            val.value = 0;
+         }
+         finalized = true;
+      }
+   }
+
    // value is already referenced for assignment
    DLLLOCAL void setValue(AbstractQoreNode *value, ExceptionSink *xsink) {
+      ReferenceHolder<AbstractQoreNode> value_holder(value, xsink);
+
       if (!is_ref) {
+         if (checkFinalized(xsink))
+            return;
+
          if (val.value)
             val.value->deref(xsink);
-         val.value = value;
+         val.value = value_holder.release();
          return;
       }
-
-      ReferenceHolder<AbstractQoreNode> value_holder(value, xsink);
 
       ObjectSubstitutionHelper osh(val.ref.obj);
 
@@ -176,7 +211,7 @@ public:
    and object will also not change.
    only the value operations are locked.
 */
-struct ClosureVarValue : public QoreReferenceCounter, public QoreThreadLock {
+struct ClosureVarValue : public VarValueBase, public QoreReferenceCounter, public QoreThreadLock {
 private:
    DLLLOCAL void del(ExceptionSink *xsink) {
       if (!is_ref) {
@@ -192,23 +227,14 @@ private:
       }
    }
 
-public:
-   union lvar_u val;
-   const char *id;
-   bool is_ref : 1;
-   bool skip : 1;
+   ///DLLLOCAL VarValueBase(const char *n_id, bool n_is_ref, bool n_skip) : id(n_id), is_ref(n_is_ref), skip(n_skip), finalized(false) {
 
-   DLLLOCAL ClosureVarValue(const char *n_id, AbstractQoreNode *value) {
-      is_ref = false;
-      skip = false;
-      id = n_id;
+public:
+   DLLLOCAL ClosureVarValue(const char *n_id, AbstractQoreNode *value) : VarValueBase(n_id) {
       val.value = value;
    }
 
-   DLLLOCAL ClosureVarValue(const char *n_id, AbstractQoreNode *vexp, QoreObject *obj, QoreProgram *pgm) {
-      is_ref = true;
-      skip = false;
-      id = n_id;
+   DLLLOCAL ClosureVarValue(const char *n_id, AbstractQoreNode *vexp, QoreObject *obj, QoreProgram *pgm) : VarValueBase(n_id, true) {
       val.ref.vexp = vexp;
       val.ref.obj = obj;
       val.ref.pgm = pgm;
@@ -223,6 +249,10 @@ public:
    DLLLOCAL AbstractQoreNode **getValuePtr(AutoVLock *vl, const QoreTypeInfo *&typeInfo, ObjMap &omap, ExceptionSink *xsink) {
       if (!is_ref) {
          lock();
+
+         if (checkFinalized(xsink))
+            return 0;
+
          vl->set(this);
          return const_cast<AbstractQoreNode **>(&val.value);
       }
@@ -240,21 +270,40 @@ public:
       return get_var_value_ptr(val.ref.vexp, vl, typeInfo, omap, xsink);
    }
 
+   DLLLOCAL void finalize(ExceptionSink *xsink) {
+      SafeLocker sl(this);
+      if (!finalized && !is_ref) {
+         AbstractQoreNode *dr = val.value;
+         val.value = 0;
+         finalized = true;
+         sl.unlock();
+         discard(dr, xsink);         
+      }
+   }
+
    // value is already referenced for assignment
    DLLLOCAL void setValue(AbstractQoreNode *value, ExceptionSink *xsink) {
+      ReferenceHolder<AbstractQoreNode> value_holder(value, xsink);
+
       if (!is_ref) {
-         AutoLocker al(this);
-         if (val.value)
-            val.value->deref(xsink);
-         val.value = value;
+         // make sure and dereference the old value outside the lock
+         AbstractQoreNode *dr = 0;
+         {
+            AutoLocker al(this);
+
+            if (checkFinalized(xsink))
+               return;
+
+            if (val.value)
+               dr = val.value;
+            val.value = value_holder.release();
+         }
+         discard(dr, xsink);
          return;
       }
 
-      ReferenceHolder<AbstractQoreNode> value_holder(value, xsink);
-
       ObjectSubstitutionHelper osh(val.ref.obj);
       ProgramContextHelper pch(val.ref.pgm);
-      AutoVLock vl(xsink);
 
       // skip this entry in case it's a recursive reference
       VarStackPointerClosureHelper helper(this);
