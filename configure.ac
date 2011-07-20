@@ -6,7 +6,6 @@ AC_INIT([qore], [0.8.3],
         [qore])
 AM_INIT_AUTOMAKE([no-dist-gzip dist-bzip2])
 AC_CONFIG_HEADER(include/qore/intern/unix-config.h)
-AC_DEFINE(HAVE_UNIX_CONFIG_H, 1, define to 1 if unix-config.h should be used)
 
 # fix default include dir
 DEFAULT_INCLUDES="-I\${top_builddir}/include/qore"
@@ -157,6 +156,8 @@ if test -z "$MODULE_SUFFIX" ; then
    MODULE_SUFFIX=$SHLIB_SUFFIX
 fi
 AC_SUBST(MODULE_SUFFIX)
+
+CPPFLAGS="$CPPFLAGS -DHAVE_UNIX_CONFIG_H"
 
 if test "$no_sig_handling" != "yes"; then
    AC_DEFINE(HAVE_SIGNAL_HANDLING, 1, [if signal handling is supported])
@@ -850,7 +851,7 @@ AC_CHECK_LIB(rt, clock_gettime)
 # Checks for header files.
 AC_HEADER_STDC
 AC_HEADER_SYS_WAIT
-AC_CHECK_HEADERS([fcntl.h inttypes.h netdb.h netinet/in.h stddef.h stdlib.h string.h strings.h sys/socket.h sys/time.h unistd.h execinfo.h cxxabi.h arpa/inet.h sys/socket.h sys/statvfs.h])
+AC_CHECK_HEADERS([fcntl.h inttypes.h netdb.h netinet/in.h stddef.h stdlib.h string.h strings.h sys/socket.h sys/time.h unistd.h execinfo.h cxxabi.h arpa/inet.h sys/socket.h sys/statvfs.h winsock.h])
 
 # check for umem.h
 AC_CHECK_HEADER([umem.h], have_umem_h=yes, have_umem_h=no)

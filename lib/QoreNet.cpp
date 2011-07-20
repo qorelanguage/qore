@@ -30,7 +30,30 @@
 
 #define QORE_NET_ADDR_BUF_LEN 80
 
+static int q_get_af(int type) {
+   if (type >= 0)
+      return type;
+
+   switch (type) {
+      case Q_AF_UNSPEC:
+	 return AF_UNSPEC;
+      case Q_AF_INET6:
+	 return AF_INET6;
+   }
+
+   return AF_INET;
+}
+
+static int q_get_sock_type(int t) {
+   if (t >= 0)
+      return t;
+
+   return SOCK_STREAM;
+}
+
 QoreStringNode *q_addr_to_string(int family, const char *addr) {
+   family = q_get_af(family);
+
    char buf[QORE_NET_ADDR_BUF_LEN];
    return inet_ntop(family, addr, buf, QORE_NET_ADDR_BUF_LEN) ? new QoreStringNode(buf) : 0;
 }
@@ -246,6 +269,8 @@ QoreStringNode *q_gethostbyname_to_string(const char *host) {
 // FIXME: check err?
 char *q_gethostbyaddr(const char *addr, int len, int type) {
    char *host;
+
+   type = q_get_af(type);
     
 #ifdef HAVE_GETHOSTBYADDR_R
    struct hostent he;
@@ -281,6 +306,8 @@ QoreHashNode *q_gethostbyaddr_to_hash(ExceptionSink *xsink, const char *addr, in
    in6_addr sin6_addr;
    void *dst;
    int len;
+
+   type = q_get_af(type);
 
    if (type == AF_INET) {
       dst = (void *)&sin_addr;
@@ -337,6 +364,8 @@ QoreStringNode *q_gethostbyaddr_to_string(ExceptionSink *xsink, const char *addr
    in6_addr sin6_addr;
    void *dst;
    int len;
+
+   type = q_get_af(type);
 
    if (type == AF_INET) {
       dst = (void *)&sin_addr;
@@ -410,6 +439,9 @@ void QoreAddrInfo::clear() {
 }
 
 int QoreAddrInfo::getInfo(ExceptionSink *xsink, const char *node, const char *service, int family, int flags, int socktype, int protocol) {
+   family = q_get_af(family);
+   socktype = q_get_sock_type(socktype);
+
    if (ai)
       clear();
 
@@ -477,6 +509,8 @@ QoreListNode *QoreAddrInfo::getList() const {
 }
 
 const char *QoreAddrInfo::getFamilyName(int family) {
+   family = q_get_af(family);
+
    switch (family) {
       case AF_INET:
 	 return "ipv4";
@@ -492,6 +526,8 @@ const char *QoreAddrInfo::getFamilyName(int family) {
 }
 
 QoreStringNode *QoreAddrInfo::getAddressDesc(int family, const char *addr) {
+   family = q_get_af(family);
+
    QoreStringNode *str = new QoreStringNode;
    switch (family) {
       case AF_INET:

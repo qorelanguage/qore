@@ -62,6 +62,9 @@
 #ifdef HAVE_ARPA_INET_H
 #include <arpa/inet.h>
 #endif
+#ifdef HAVE_WINSOCK_H
+#include <winsock.h>
+#endif
 
 #include <set>
 #include <list>

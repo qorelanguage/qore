@@ -41,6 +41,18 @@
 #include <algorithm>
 #include <set>
 
+//! cross-platform define for AF_UNSPEC
+#define Q_AF_UNSPEC -1
+
+//! cross-platform define for AF_INET
+#define Q_AF_INET -2
+
+//! cross-platform define for AF_INET6
+#define Q_AF_INET6 -3
+
+//! platform-independent define for SOCK_STREAM
+#define Q_SOCK_STREAM -1
+
 //! used to identify unique Qore data and parse types (descendents of AbstractQoreNode)
 typedef signed short qore_type_t;
 

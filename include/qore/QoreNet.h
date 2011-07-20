@@ -44,10 +44,10 @@ DLLEXPORT QoreStringNode *q_gethostbyname_to_string(const char *host);
 DLLEXPORT char *q_gethostbyaddr(const char *addr, int len, int type);
 
 //! thread-safe gethostbyaddr (0/NULL = error)
-DLLEXPORT QoreHashNode *q_gethostbyaddr_to_hash(ExceptionSink *xsink, const char *addr, int type = AF_INET);
+DLLEXPORT QoreHashNode *q_gethostbyaddr_to_hash(ExceptionSink *xsink, const char *addr, int type = Q_AF_INET);
 
 //! thread-safe gethostbyaddr (0/NULL = error)
-DLLEXPORT QoreStringNode *q_gethostbyaddr_to_string(ExceptionSink *xsink, const char *addr, int type = AF_INET);
+DLLEXPORT QoreStringNode *q_gethostbyaddr_to_string(ExceptionSink *xsink, const char *addr, int type = Q_AF_INET);
 
 //! converts a network address in network byte order to a string (address_family = AF_INET or AF_INET6), returns 0 on error
 /** @see q_addr_to_string2()
@@ -61,7 +61,7 @@ DLLEXPORT QoreStringNode *q_addr_to_string2(const struct sockaddr *ai_addr);
 DLLEXPORT int q_get_port_from_addr(const struct sockaddr *ai_addr);
 
 //! returns address info as a hash
-DLLEXPORT QoreListNode *q_getaddrinfo_to_list(ExceptionSink *xsink, const char *node, const char *service, int family = AF_UNSPEC, int flags = 0, int socktype = SOCK_STREAM);
+DLLEXPORT QoreListNode *q_getaddrinfo_to_list(ExceptionSink *xsink, const char *node, const char *service, int family = Q_AF_UNSPEC, int flags = 0, int socktype = Q_SOCK_STREAM);
 
 class QoreAddrInfo {
 protected:
@@ -86,7 +86,7 @@ public:
        @param flags hint flags as per the getaddrinfo() call: AI_ADDRCONFIG, AI_ALL, AI_CANONNAME, AI_NUMERICHOST, AI_NUMERICSERV, AI_PASSIVE, AI_V4MAPPED
        @param socktype a hint for the type of socket; 0 = any socket type
     */
-   DLLEXPORT int getInfo(ExceptionSink *xsink, const char *node, const char *service, int family = AF_UNSPEC, int flags = 0, int socktype = SOCK_STREAM, int protocol = 0);
+   DLLEXPORT int getInfo(ExceptionSink *xsink, const char *node, const char *service, int family = Q_AF_UNSPEC, int flags = 0, int socktype = Q_SOCK_STREAM, int protocol = 0);
 
    //! returns the struct addrinfo * being managed (may by 0)
    DLLEXPORT struct addrinfo *getAddrInfo() const {
