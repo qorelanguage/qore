@@ -605,19 +605,70 @@ public:
    ThreadBlock<T, S1> *prev, *next;
 
    DLLLOCAL ThreadBlock(ThreadBlock *n_prev = 0) : pos(0), prev(n_prev), next(0) { }
-   DLLLOCAL ~ThreadBlock() { }   
+   DLLLOCAL ~ThreadBlock() { }
+   DLLLOCAL T& get(int p) {
+      return var[p];
+   }
 };
 
-template <typename T>
+template <typename T, int S1 = QORE_THREAD_STACK_BLOCK>
+class ThreadLocalDataIterator {
+   typedef ThreadLocalDataIterator<T, S1> self_t;
+
+public:
+   typedef ThreadBlock<T, S1> Block;
+
+protected:
+   Block *orig, *curr;
+   int pos;
+
+public:
+   DLLLOCAL ThreadLocalDataIterator(Block *n_orig) : orig(n_orig && n_orig->pos ? n_orig : 0), curr(0), pos(0) {
+   }
+   DLLLOCAL ThreadLocalDataIterator() : orig(0), curr(0), pos(0) {
+   }
+   DLLLOCAL bool next() {
+      if (!orig)
+         return false;
+
+      if (!curr) {
+         curr = orig;
+         pos = orig->pos - 1;
+         return true;
+      }
+
+      --pos;
+      if (pos < 0) {
+         if (!curr->prev) {
+            curr = 0;
+            pos = 0;
+            return false;
+         }
+         curr = curr->prev;
+         pos = curr->pos - 1;
+      }
+
+      return true;
+   }
+   DLLLOCAL T& get() {
+      assert(curr);
+      return curr->get(pos);
+   }
+};
+
+template <typename T, int S1 = QORE_THREAD_STACK_BLOCK>
 class ThreadLocalData {
 private:
    DLLLOCAL ThreadLocalData(const ThreadLocalData &);
    
 public:
-   T *curr;
+   typedef ThreadBlock<T, S1> Block;
+   typedef ThreadLocalDataIterator<T, S1> iterator;
+
+   Block *curr;
       
    DLLLOCAL ThreadLocalData() {
-      curr = new T;
+      curr = new Block;
       //printf("this=%p: first curr=%p\n", this, curr);
    }
 

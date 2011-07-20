@@ -78,12 +78,16 @@ public:
    }
 };
 
-typedef ThreadBlock<LocalVarValue> ThreadVariableBlock;
-
-class ThreadLocalVariableData : public ThreadLocalData<ThreadVariableBlock> {
+class ThreadLocalVariableData : public ThreadLocalData<LocalVarValue> {
 public:
    // deletes everything on the stack
    DLLLOCAL void del(ExceptionSink *xsink) {
+      // first we dereference everything
+      ThreadLocalVariableData::iterator i(curr);
+      while (i.next())
+         i.get().setValue(0, xsink);
+
+      // then we uninstantiate
       while (curr->prev || curr->pos)
          uninstantiate(xsink);
    }
@@ -93,7 +97,7 @@ public:
 	 if (curr->next)
 	    curr = curr->next;
 	 else {
-	    curr->next = new ThreadVariableBlock(curr);
+	    curr->next = new Block(curr);
 	    //printf("this=%p: add curr=%p, curr->next=%p\n", this, curr, curr->next);
 	    curr = curr->next;
 	 }
@@ -114,7 +118,7 @@ public:
    }
 
    DLLLOCAL LocalVarValue *find(const char *id) {
-      ThreadVariableBlock *w = curr;
+      Block *w = curr;
       while (true) {
 	 int p = w->pos;
 	 while (p) {
@@ -124,10 +128,10 @@ public:
 	 w = w->prev;
 #ifdef DEBUG
 	 if (!w) {
-            printd(0, "ThreadLocalVariableData::find() no local variable '%s' on stack\n", id);
+            printd(0, "ThreadLocalVariableData::find() this=%p no local variable '%s' (%p) on stack (pgm=%p) p=%d\n", this, id, id, getProgram(), p);
             p = curr->pos - 1;
             while (p >= 0) {
-               printd(0, "var p=%d: %s (%p) == %s (%p) (skip=%d)\n", p, curr->var[p].id, curr->var[p].id, id, id, curr->var[p].skip);
+               printd(0, "var p=%d: %s (%p) (skip=%d)\n", p, curr->var[p].id, curr->var[p].id, curr->var[p].skip);
                --p;
             }
          }
@@ -139,17 +143,16 @@ public:
    }
 };
 
-typedef ThreadBlock<ClosureVarValue *> ThreadClosureVariableBlock;
-
-class ThreadClosureVariableStack : public ThreadLocalData<ThreadClosureVariableBlock> {
+class ThreadClosureVariableStack : public ThreadLocalData<ClosureVarValue*> {
 private:
    DLLLOCAL void instantiate(ClosureVarValue *cvar) {
-      //printd(5, "ThreadClosureVariableStack::instantiate(%p = %s) this=%p\n", cvar->id, cvar->id, this);
+      //printd(5, "ThreadClosureVariableStack::instantiate(%p = %s) this=%p pgm=%p\n", cvar->id, cvar->id, this, getProgram());
+
       if (curr->pos == QORE_THREAD_STACK_BLOCK) {
 	 if (curr->next)
 	    curr = curr->next;
 	 else {
-	    curr->next = new ThreadClosureVariableBlock(curr);
+	    curr->next = new Block(curr);
 	    //printf("this=%p: add curr=%p, curr->next=%p\n", this, curr, curr->next);
 	    curr = curr->next;
 	 }
@@ -160,6 +163,11 @@ private:
 public:
    // deletes everything on the stack
    DLLLOCAL void del(ExceptionSink *xsink) {
+      // first we dereference everything
+      ThreadClosureVariableStack::iterator i(curr);
+      while (i.next())
+         i.get()->setValue(0, xsink);
+
       while (curr->prev || curr->pos)
          uninstantiate(xsink);
    }
@@ -179,9 +187,9 @@ public:
    DLLLOCAL void uninstantiate(ExceptionSink *xsink) {
 #ifdef DEBUG_1
       if (!curr->pos)
-         printd(5, "ThreadClosureVariableStack::uninstantiate() this=%p %p %s\n", this, curr->prev->var[curr->pos - 1]->id, curr->prev->var[curr->pos - 1]->id);
+         printd(5, "ThreadClosureVariableStack::uninstantiate() this=%p pos=%d %p %s\n", this, curr->prev->pos - 1, curr->prev->var[curr->prev->pos - 1]->id, curr->prev->var[curr->prev->pos - 1]->id);
       else
-         printd(5, "ThreadClosureVariableStack::uninstantiate() this=%p %p %s\n", this, curr->var[curr->pos - 1]->id, curr->var[curr->pos - 1]->id);
+         printd(5, "ThreadClosureVariableStack::uninstantiate() this=%p pos=%d %p %s\n", this, curr->pos - 1, curr->var[curr->pos - 1]->id, curr->var[curr->pos - 1]->id);
 #endif
       if (!curr->pos) {
 	 if (curr->next) {
@@ -195,7 +203,7 @@ public:
    }
 
    DLLLOCAL ClosureVarValue *find(const char *id) {
-      ThreadClosureVariableBlock *w = curr;
+      Block *w = curr;
       while (true) {
 	 int p = w->pos;
 	 while (p) {
@@ -205,10 +213,10 @@ public:
 	 w = w->prev;
 #ifdef DEBUG
 	 if (!w) {
-            printd(0, "ThreadClosureVariableStack::find(%p) this=%p no closure variable '%s' on stack\n", id, this, id);
+            printd(0, "ThreadClosureVariableStack::find() this=%p no local variable '%s' (%p) on stack (pgm=%p) p=%d curr->prev=%p\n", this, id, id, getProgram(), p, curr->prev);
             p = curr->pos - 1;
             while (p >= 0) {
-               printd(0, "var p=%d: %s (%p) == %s (%p) (skip=%d)\n", p, curr->var[p]->id, curr->var[p]->id, id, id, curr->var[p]->skip);
+               printd(0, "var p=%d: %s (%p) (skip=%d)\n", p, curr->var[p]->id, curr->var[p]->id, curr->var[p]->skip);
                --p;
             }
          }
@@ -838,7 +846,7 @@ public:
          for (unsigned i = 0; i < lvl->size(); ++i)
             lvl->lv[i]->instantiate();
 
-      //printd(5, "qore_program_private::doTopLevelInstantiation() lvl=%p setup %ld local vars\n", lvl, lvl ? lvl->size() : 0);
+      //printd(5, "qore_program_private::doTopLevelInstantiation() lvl=%p setup %ld local vars pgm=%p\n", lvl, lvl ? lvl->size() : 0, getProgram());
 
       tlpd.inst = true;
    }
@@ -850,6 +858,8 @@ public:
       pgm_data_map_t::iterator i = pgm_data_map.find(td);
       if (i == pgm_data_map.end()) {
          ThreadLocalProgramData *tlpd = new ThreadLocalProgramData;
+
+         //printd(5, "qore_program_private::setThreadVarData() (first) this=%p pgm=%p td=%p run=%s inst=%s\n", this, pgm, td, run ? "true" : "false", tlpd->inst ? "true" : "false");
 
          lvstack = &tlpd->lvstack;
          cvstack = &tlpd->cvstack;
@@ -872,8 +882,9 @@ public:
       
       sl.unlock();
 
+      //printd(5, "qore_program_private::setThreadVarData() (not first) this=%p pgm=%p td=%p run=%s inst=%s\n", this, pgm, td, run ? "true" : "false", tlpd->inst ? "true" : "false");
+
       if (run && !tlpd->inst) {
-         //printd(5, "qore_program_private::setThreadVarData() (not first) this=%p pgm=%p td=%p\n", this, pgm, td);
          doTopLevelInstantiation(*tlpd);
       }
 

@@ -245,7 +245,8 @@ DLLLOCAL extern QoreHashNode *ENV;
 // no evaluations can be done while this object is in scope or a deadlock may result
 class LValueHelper {
 protected:
-   AbstractQoreNode **v;
+   AbstractQoreNode **v, // pointer to value ptr of lvalue 
+      *dr;               // old value to dereference outside the lock
    ExceptionSink *xsink;
    AutoVLock vl;
    const QoreTypeInfo *typeInfo;
@@ -253,7 +254,10 @@ protected:
    bool already_checked;
 
 public:
-   DLLLOCAL LValueHelper(const AbstractQoreNode *exp, ExceptionSink *n_xsink);
+   DLLLOCAL LValueHelper(const AbstractQoreNode *exp, ExceptionSink *n_xsink) : dr(0), xsink(n_xsink), vl(n_xsink), typeInfo(0), already_checked(false) {
+      v = get_var_value_ptr(exp, &vl, typeInfo, omap, xsink);
+   }
+
    DLLLOCAL ~LValueHelper() {
 #ifdef _QORE_CYCLE_CHECK
       printd(0, "LValueHelper::~LValueHelper() v=%p *v=%p *xsink=%d already_checked=%d\n", v, v ? *v : 0, (bool)*xsink, already_checked);
@@ -262,6 +266,9 @@ public:
          qoreCheckContainer(*v, omap, vl, xsink);
       }
 #endif
+      vl.del();
+      if (dr)
+         dr->deref(xsink);
    }
    DLLLOCAL operator bool() const { return v != 0; }
    DLLLOCAL const QoreTypeInfo *get_type_info() const {
@@ -286,12 +293,10 @@ public:
       }
 
       if (*v) {
-         (*v)->deref(xsink);
-         if (*xsink) {
-            (*v) = 0;
-            discard(val, xsink);
-            return -1;
-         }
+         // save value and dereference outside the lock in the destructor
+         if (dr)
+            dr->deref(xsink);
+         dr = (*v);
       }
       (*v) = val;
       return 0;

@@ -315,7 +315,7 @@ public:
    }
 
    DLLLOCAL void instantiate(AbstractQoreNode *value) const {
-      //printd(5, "LocalVar::instantiate(%p) this=%p '%s'\n", value, this, name.c_str());
+      //printd(5, "LocalVar::instantiate(%p) this=%p '%s' value type=%s closure_use=%s pgm=%p\n", value, this, name.c_str(), get_type_name(value), closure_use ? "true" : "false", getProgram());
 
       if (!closure_use) {
          LocalVarValue *val = thread_instantiate_lvar();
@@ -343,6 +343,8 @@ public:
    }
 
    DLLLOCAL void uninstantiate(ExceptionSink *xsink) const  {
+      //printd(5, "LocalVar::uninstantiate() this=%p '%s' closure_use=%s pgm=%p\n", this, name.c_str(), closure_use ? "true" : "false", getProgram());
+
       if (!closure_use) {
          thread_uninstantiate_lvar(xsink);
       }
