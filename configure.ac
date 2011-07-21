@@ -150,6 +150,12 @@ case "${host_os}" in
 		windows=yes
 		no_sig_handling=yes
      		;;
+     *mingw32*) SHLIB_SUFFIX=dll
+     		windows=yes
+		no_sig_handling=yes
+		;;
+     *)         AC_WARN(Unknown platform ${host_os})
+     		;;
 esac
 AC_SUBST(SHLIB_SUFFIX)
 if test -z "$MODULE_SUFFIX" ; then
@@ -1110,6 +1116,7 @@ AM_CONDITIONAL([COND_HPUX_ACC_PARISC32],       [test "$hpux_acc_parisc32" = yes]
 AM_CONDITIONAL([COND_HPUX_ACC_64BIT_IA64],     [test "$hpux_acc_64bit_ia64" = yes])
 #AM_CONDITIONAL([COND_HPUX_ACC_32BIT_IA64],     [test "$hpux_acc_3b2it_ia64" = yes])
 AM_CONDITIONAL([COND_SIGNAL_HANDLING],         [test "$no_sig_handling" != yes])
+AM_CONDITIONAL([COND_NEED_GLOB],               [test "$ac_cv_func_glob" != yes])
 
 # find prefix
 if test -n "${exec_prefix}" -a "${exec_prefix}" != NONE; then
