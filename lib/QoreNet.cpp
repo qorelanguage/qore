@@ -30,7 +30,7 @@
 
 #define QORE_NET_ADDR_BUF_LEN 80
 
-static int q_get_af(int type) {
+int q_get_af(int type) {
    if (type >= 0)
       return type;
 
@@ -44,7 +44,7 @@ static int q_get_af(int type) {
    return AF_INET;
 }
 
-static int q_get_sock_type(int t) {
+int q_get_sock_type(int t) {
    if (t >= 0)
       return t;
 

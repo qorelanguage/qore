@@ -152,6 +152,7 @@ case "${host_os}" in
      		;;
      *mingw32*) SHLIB_SUFFIX=dll
      		windows=yes
+		mingw=yes
 		no_sig_handling=yes
 		;;
      *)         AC_WARN(Unknown platform ${host_os})
@@ -446,6 +447,13 @@ find_zlib() {
     QORE_LIB_CPPFLAGS="$QORE_LIB_CPPFLAGS $ZLIB_CPPFLAGS"
 }
 
+# allow the user to set a generic search prefix for libraries, includes, etc
+AC_ARG_WITH([lib-prefix],
+  [AS_HELP_STRING([--with-lib-prefix@<:@=DIR@:>@],
+                  [generic search prefix for libraries, includes, etc])],
+  [if test ! -d "${with_lib_prefix}"; then AC_MSG_ERROR([bad value ${with_lib_prefix} for --with-lib-prefix]); unset with_lib_prefix; fi],
+  [with_lib_prefix="$LIB_PREFIX"])
+
 # see if we can figure out where the zlib library is
 AC_ARG_WITH([zlib-dir],
   [AS_HELP_STRING([--with-zlib-dir@<:@=DIR@:>@],
@@ -454,7 +462,7 @@ AC_ARG_WITH([zlib-dir],
   [with_zlib_dir="$ZLIB_DIR"])
 
 AC_MSG_CHECKING([for zlib libraries and header files])
-for dir in "${with_zlib_dir}" "${find_prefix}" /usr / /usr/local /opt/gnu /opt/zlib /usr/local/zlib /opt/local /sw /usr/sfw /opt/sfw; do
+for dir in "${with_zlib_dir}" "${with_lib_prefix}" "${find_prefix}" /usr / /usr/local /opt/gnu /opt/zlib /usr/local/zlib /opt/local /sw /usr/sfw /opt/sfw; do
     find_zlib $dir
     if test -n "$ZLIB_LDFLAGS"; then
         break
@@ -537,7 +545,7 @@ AC_ARG_WITH([pcre-dir],
   [with_pcre_dir="$PCRE_DIR"])
 
 AC_MSG_CHECKING([for pcre libraries and header files])
-for dir in "${with_pcre_dir}" "${find_prefix}" /usr / /usr/local /opt/gnu /opt/pcre /usr/local/pcre /opt/local /sw /usr/sfw /opt/sfw; do
+for dir in "${with_pcre_dir}" "${with_lib_prefix}" "${find_prefix}" /usr / /usr/local /opt/gnu /opt/pcre /usr/local/pcre /opt/local /sw /usr/sfw /opt/sfw; do
     find_pcre $dir
     if test -n "$PCRE_LDFLAGS"; then
         break
@@ -610,7 +618,7 @@ AC_ARG_WITH([bz2lib-dir],
   [with_bz2lib_dir="$BZ2_DIR"])
 
 AC_MSG_CHECKING([for bz2lib libraries and header files])
-for dir in "${with_bz2lib_dir}" "${find_prefix}" /usr / /usr/local /opt/gnu /opt/bzlib /usr/local/bzlib /opt/local /sw /usr/sfw /opt/sfw; do
+for dir in "${with_bz2lib_dir}" "${with_lib_prefix}" "${find_prefix}" /usr / /usr/local /opt/gnu /opt/bzlib /usr/local/bzlib /opt/local /sw /usr/sfw /opt/sfw; do
     find_bz2lib $dir
     if test -n "$BZ2_LDFLAGS"; then
         break
@@ -690,7 +698,7 @@ AC_ARG_WITH([openssl-dir],
   [with_openssl_dir="$OPENSSL_DIR"])
 
 AC_MSG_CHECKING([for openssl libraries and header files])
-for dir in "${with_openssl_dir}" "${find_prefix}" /usr / /usr/local /opt/gnu /opt/openssl /usr/local/openssl /opt/local /sw /usr/sfw /opt/sfw; do
+for dir in "${with_openssl_dir}" "${with_lib_prefix}" "${find_prefix}" /usr / /usr/local /opt/gnu /opt/openssl /usr/local/openssl /opt/local /sw /usr/sfw /opt/sfw; do
     find_openssl $dir
     if test -n "$OPENSSL_LDFLAGS"; then
         break
@@ -843,7 +851,9 @@ if test -n "${with_doxygen}"; then
 fi
 
 # check if socklen_t is needed
-TYPE_SOCKLEN_T
+if test "$mingw" != yes; then
+   TYPE_SOCKLEN_T
+fi
 
 # see if the iconv library is required
 AC_CHECK_LIB(iconv, iconv)
@@ -857,13 +867,23 @@ AC_CHECK_LIB(rt, clock_gettime)
 # Checks for header files.
 AC_HEADER_STDC
 AC_HEADER_SYS_WAIT
-AC_CHECK_HEADERS([fcntl.h inttypes.h netdb.h netinet/in.h stddef.h stdlib.h string.h strings.h sys/socket.h sys/time.h unistd.h execinfo.h cxxabi.h arpa/inet.h sys/socket.h sys/statvfs.h winsock.h glob.h])
+AC_CHECK_HEADERS([fcntl.h inttypes.h netdb.h netinet/in.h stddef.h stdlib.h string.h strings.h sys/socket.h sys/time.h unistd.h execinfo.h cxxabi.h arpa/inet.h sys/socket.h sys/statvfs.h winsock2.h ws2tcpip.h glob.h sys/un.h termios.h netinet/tcp.h pwd.h sys/wait.h])
 
 # check for umem.h
 AC_CHECK_HEADER([umem.h], have_umem_h=yes, have_umem_h=no)
 if test "$have_umem_h" = "yes"; then
    AC_DEFINE(HAVE_UMEM_H, 1, [define if umem.h is available])
    QORE_LIB_LDFLAGS="$QORE_LIB_LDFLAGS -lumem"
+fi
+
+# see if struct flock is declared
+if test "$ac_cv_header_fcntl_h" = yes; then
+   AC_MSG_CHECKING([for struct flock in fcntl.h])
+   AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+   [[#include <fcntl.h>]], [[struct flock fl;]])], 
+      [AC_MSG_RESULT(yes)
+       AC_DEFINE(HAVE_STRUCT_FLOCK, 1, [Define to 1 if you have struct flock in fcntl.h])], 
+      [AC_MSG_RESULT(no)])
 fi
 
 # Checks for typedefs, structures, and compiler characteristics.
@@ -898,7 +918,7 @@ AC_FUNC_STAT
 AC_FUNC_STRERROR_R
 AC_FUNC_STRTOD
 AC_FUNC_VPRINTF
-AC_CHECK_FUNCS([bzero floor gethostbyaddr gethostbyaddr_r gethostbyname gethostbyname_r gethostname gettimeofday memmove memset mkfifo putenv regcomp select socket setsockopt getsockopt strcasecmp strchr strdup strerror strspn strstr atoll strtol strtoll isblank localtime_r gmtime_r exp2 clock_gettime realloc timegm seteuid setegid setenv unsetenv round pthread_attr_getstacksize getpwuid_r getpwnam_r getgrgid_r getgrnam_r backtrace glob])
+AC_CHECK_FUNCS([bzero floor gethostbyaddr gethostbyaddr_r gethostbyname gethostbyname_r gethostname gettimeofday memmove memset mkfifo putenv regcomp select socket setsockopt getsockopt strcasecmp strchr strdup strerror strspn strstr atoll strtol strtoll isblank localtime_r gmtime_r exp2 clock_gettime realloc timegm seteuid setegid setenv unsetenv round pthread_attr_getstacksize getpwuid_r getpwnam_r getgrgid_r getgrnam_r backtrace glob system])
 
 # try to find strtoimax on HPUX
 AC_MSG_CHECKING([for strtoimax])
@@ -1117,6 +1137,7 @@ AM_CONDITIONAL([COND_HPUX_ACC_64BIT_IA64],     [test "$hpux_acc_64bit_ia64" = ye
 #AM_CONDITIONAL([COND_HPUX_ACC_32BIT_IA64],     [test "$hpux_acc_3b2it_ia64" = yes])
 AM_CONDITIONAL([COND_SIGNAL_HANDLING],         [test "$no_sig_handling" != yes])
 AM_CONDITIONAL([COND_NEED_GLOB],               [test "$ac_cv_func_glob" != yes])
+AM_CONDITIONAL([COND_HAVE_TERMIOS],            [test "$ac_cv_header_termios_h" = yes])
 
 # find prefix
 if test -n "${exec_prefix}" -a "${exec_prefix}" != NONE; then

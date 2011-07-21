@@ -26,8 +26,10 @@
 #include <qore/intern/QoreObjectIntern.h>
 
 #include <string.h>
+#ifdef HAVE_PWD_H
 #include <pwd.h>
 #include <grp.h>
+#endif
 #include <errno.h>
 #include <time.h>
 #include <sys/time.h>
@@ -233,6 +235,33 @@ const qore_option_s qore_option_list_l[] = {
      "HAVE_SETEGID",
      QO_FUNCTION,
 #ifdef HAVE_SETEGID
+     true
+#else
+     false
+#endif
+   },
+   { QORE_OPT_TERMIOS,
+     "HAVE_TERMIOS",
+     QO_OPTION,
+#ifdef HAVE_TERMIOS_H
+     true
+#else
+     false
+#endif
+   },
+   { QORE_OPT_PWD,
+     "HAVE_PWD",
+     QO_OPTION,
+#ifdef HAVE_PWD_H
+     true
+#else
+     false
+#endif
+   },
+   { QORE_OPT_FILE_LOCKING,
+     "HAVE_FILE_LOCKING",
+     QO_OPTION,
+#ifdef HAVE_STRUCT_FLOCK
      true
 #else
      false
@@ -856,6 +885,7 @@ static inline void assign_hv(QoreHashNode *h, const char *key, int val) {
    h->setKeyValue(key, new QoreBigIntNode(val), 0);
 }
 
+#ifdef HAVE_PWD_H
 static QoreHashNode *pwd2hash(const struct passwd &pw) {
    QoreHashNode *h = new QoreHashNode;
    // assign values
@@ -987,6 +1017,7 @@ int q_gname2gid(const char *name, gid_t &gid) {
    return 0;
 #endif
 }
+#endif // HAVE_PWD_H
 
 ResolvedCallReferenceNode *getCallReference(const QoreString *str, ExceptionSink *xsink) {
    QoreProgram *pgm = getProgram();

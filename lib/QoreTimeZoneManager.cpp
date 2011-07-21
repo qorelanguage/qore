@@ -28,7 +28,13 @@
 #include <stdio.h>
 #include <time.h>
 #include <sys/timeb.h>
+
+#ifdef HAVE_GLOB_H
 #include <glob.h>
+#else
+#include <qore/intern/glob.h>
+#endif
+
 #include <string.h>
 #include <errno.h>
 #include <sys/types.h>

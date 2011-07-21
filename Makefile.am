@@ -99,6 +99,7 @@ noinst_HEADERS = \
 	include/qore/intern/unix-config.h \
 	include/qore/intern/win32-config.h \
 	include/qore/intern/svn-revision.h \
+	include/qore/intern/glob.h \
 	include/qore/intern/ReferenceHelper.h \
 	include/qore/intern/ThreadResourceList.h \
 	include/qore/intern/ssl_constants.h \

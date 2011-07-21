@@ -399,9 +399,12 @@ public:
    //! returns the filename of the file being read
    DLLEXPORT QoreStringNode *getFileName() const;
 
+#ifndef _WIN32
    //! changes ownership of the file (if possible)
    DLLEXPORT int chown(uid_t owner, gid_t group, ExceptionSink *xsink);
+#endif
 
+#ifndef _WIN32
    //! perform a file lock operation
    DLLEXPORT int lockBlocking(struct flock &fl, ExceptionSink *xsink);
 
@@ -410,6 +413,7 @@ public:
 
    //! get lock info operation, does not block
    DLLEXPORT int getLockInfo(struct flock &fl, ExceptionSink *xsink);
+#endif
 
    //! returns true if data is available for the file descriptor
    /** @param timeout_ms the maximum time to read a single block from the file; -1 = never timeout, 0 timeout immediately if no data is available

@@ -152,13 +152,13 @@ libqore_la_SOURCES = \
 	ql_type.cpp \
 	ql_env.cpp \
 	ql_string.cpp \
-	ql_pwd.cpp \
 	ql_misc.cpp \
 	ql_list.cpp \
 	ql_crypto.cpp \
 	ql_object.cpp \
 	ql_file.cpp \
 	ql_bzip.cpp \
+	ql_pwd.cpp \
 	QC_Socket.cpp \
 	QC_Program.cpp \
 	QC_File.cpp \
@@ -182,7 +182,6 @@ libqore_la_SOURCES = \
 	QC_AutoGate.cpp \
 	QC_AutoReadLock.cpp \
 	QC_AutoWriteLock.cpp \
-	QC_TermIOS.cpp \
 	QC_AbstractSmartLock.cpp \
 	QC_TimeZone.cpp \
 	QoreHTTPClient.cpp \
@@ -196,6 +195,12 @@ libqore_la_SOURCES += ql_debug.cpp
 endif
 if COND_STACK_TRACE
 libqore_la_SOURCES += CallStack.cpp
+endif
+if COND_NEED_GLOB
+libqore_la_SOURCES += glob.cpp
+endif
+if COND_HAVE_TERMIOS
+libqore_la_SOURCES += QC_TermIOS.cpp
 endif
 endif
 

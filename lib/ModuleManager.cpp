@@ -29,7 +29,13 @@
 #include <dlfcn.h>
 #include <errno.h>
 #include <string.h>
+
+#ifdef HAVE_GLOB_H
 #include <glob.h>
+#else
+#include <qore/intern/glob.h>
+#endif
+
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/stat.h>

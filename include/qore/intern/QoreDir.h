@@ -102,6 +102,7 @@ public:
    */
    DLLEXPORT int chmod(int mode, ExceptionSink *xsink) const;
 
+#ifdef HAVE_PWD_H
    //! changes the user and/or group owner for the current directory
    /** @param uid the UID to change to (-1 = leave the same)
        @param gid the GID to change to (-1 = leave the same)
@@ -109,6 +110,7 @@ public:
        @return 0 = OK, -1 = an exception was raised
    */	  
    DLLEXPORT int chown(uid_t uid, gid_t gid, ExceptionSink *xsink) const;
+#endif
 
    //! creates the current directory, including all parent directories, if they do not exist
    /** @param mode the mode for any directoreis created

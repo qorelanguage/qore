@@ -55,15 +55,23 @@
 #ifdef HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
 #endif
-#include <netinet/in.h>
 #ifdef HAVE_NETDB_H
 #include <netdb.h>
 #endif
 #ifdef HAVE_ARPA_INET_H
 #include <arpa/inet.h>
 #endif
-#ifdef HAVE_WINSOCK_H
-#include <winsock.h>
+#ifdef HAVE_WINSOCK2_H
+#include <winsock2.h>
+#endif
+#ifdef HAVE_WS2TCPIP_H
+#include <ws2tcpip.h>
+#endif
+#ifdef HAVE_SYS_UN_H
+#include <sys/un.h>
+#endif
+#ifdef HAVE_NETINET_TCP_H
+#include <netinet/tcp.h>
 #endif
 
 #include <set>
@@ -689,6 +697,10 @@ public:
    }
 #endif
 };
+
+DLLLOCAL int q_get_af(int type);
+DLLLOCAL int q_get_sock_type(int t);
+
 /*
 struct QoreParam {
    const char *name;

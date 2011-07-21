@@ -25,13 +25,14 @@
 #include <qore/Qore.h>
 #include <qore/QoreFile.h>
 #include <qore/intern/QC_Queue.h>
+#ifdef HAVE_TERMIOS_H
 #include <qore/intern/QC_TermIOS.h>
+#endif
 
 #include <unistd.h>
 #include <sys/types.h>
 #include <stdlib.h>
 #include <string.h>
-#include <netinet/in.h>
 #include <stdio.h>
 #include <errno.h>
 #include <sys/file.h>
@@ -172,6 +173,7 @@ struct qore_qf_private {
       return rc;
    }
 
+#ifdef HAVE_TERMIOS_H
    DLLLOCAL int setTerminalAttributes(int action, QoreTermIOS *ios, ExceptionSink *xsink) const {
       AutoLocker al(m);
       
@@ -189,6 +191,7 @@ struct qore_qf_private {
 
       return ios->get(fd, xsink);
    }
+#endif
 
    // unlocked, assumes file is open
    DLLLOCAL qore_size_t read(void *buf, qore_size_t bs) const {
@@ -425,6 +428,7 @@ QoreFile::~QoreFile() {
    delete priv;
 }
 
+#ifdef HAVE_STRUCT_FLOCK
 int QoreFile::lockBlocking(struct flock &fl, ExceptionSink *xsink) {
    AutoLocker al(priv->m);
 
@@ -491,6 +495,7 @@ int QoreFile::getLockInfo(struct flock &fl, ExceptionSink *xsink) {
 
    return rc;
 }
+#endif
 
 int QoreFile::chown(uid_t owner, gid_t group, ExceptionSink *xsink) {
    AutoLocker al(priv->m);
@@ -1079,6 +1084,7 @@ int QoreFile::getFD() const {
    return priv->fd;
 }
 
+#ifdef HAVE_TERMIOS_H
 int QoreFile::setTerminalAttributes(int action, QoreTermIOS *ios, ExceptionSink *xsink) const {
    return priv->setTerminalAttributes(action, ios, xsink);
 }
@@ -1086,6 +1092,7 @@ int QoreFile::setTerminalAttributes(int action, QoreTermIOS *ios, ExceptionSink 
 int QoreFile::getTerminalAttributes(QoreTermIOS *ios, ExceptionSink *xsink) const {
    return priv->getTerminalAttributes(ios, xsink);
 }
+#endif
 
 void QoreFile::setEventQueue(Queue *cbq, ExceptionSink *xsink) {
    priv->setEventQueue(cbq, xsink);

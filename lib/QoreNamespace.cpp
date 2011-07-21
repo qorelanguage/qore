@@ -49,14 +49,15 @@
 #include <qore/intern/QC_GetOpt.h>
 #include <qore/intern/QC_FtpClient.h>
 #include <qore/intern/QC_HTTPClient.h>
+#ifdef HAVE_TERMIOS_H
 #include <qore/intern/QC_TermIOS.h>
+#endif
 #include <qore/intern/QC_TimeZone.h>
 
 #include <string.h>
 #include <stdlib.h>
 #include <pcre.h>
 #include <assert.h>
-#include <sys/socket.h> // for AF_INET and AF_INET6
 
 // for Z_DEFAULT_COMPRESSION
 #include <zlib.h>
@@ -1454,7 +1455,7 @@ void StaticSystemNamespace::init() {
 
    qoreNS->addInitialNamespace(get_thread_ns());
 
-   QoreClass *TermIOS, *SSLCert, *File, *SSLPrivKey;
+   QoreClass *SSLCert, *File, *SSLPrivKey;
 
    // add system object types
    qoreNS->addSystemClass(initTimeZoneClass());
@@ -1462,8 +1463,11 @@ void StaticSystemNamespace::init() {
    qoreNS->addSystemClass(SSLPrivKey = initSSLPrivateKeyClass());
    qoreNS->addSystemClass(initSocketClass(SSLCert, SSLPrivKey));
    qoreNS->addSystemClass(initProgramClass());
-   qoreNS->addSystemClass(TermIOS = initTermIOSClass());
-   qoreNS->addSystemClass(File = initFileClass(TermIOS));
+
+#ifdef HAVE_TERMIOS_H
+   qoreNS->addSystemClass(initTermIOSClass());
+#endif
+   qoreNS->addSystemClass(File = initFileClass());
    qoreNS->addSystemClass(initDirClass());
    qoreNS->addSystemClass(initGetOptClass());
    qoreNS->addSystemClass(initFtpClientClass());
@@ -1554,15 +1558,27 @@ void StaticSystemNamespace::init() {
 #endif
    qoreNS->addConstant("AF_UNSPEC",      new QoreBigIntNode(AF_UNSPEC));
 
-   qoreNS->addConstant("AI_ADDRCONFIG",  new QoreBigIntNode(AI_ADDRCONFIG));   
+#ifdef AI_ADDRCONFIG
+   qoreNS->addConstant("AI_ADDRCONFIG",  new QoreBigIntNode(AI_ADDRCONFIG));
+#endif
+#ifdef AI_ALL
    qoreNS->addConstant("AI_ALL",         new QoreBigIntNode(AI_ALL));
+#endif
+#ifdef AI_CANONNAME
    qoreNS->addConstant("AI_CANONNAME",   new QoreBigIntNode(AI_CANONNAME));
+#endif
+#ifdef AI_NUMERICHOST
    qoreNS->addConstant("AI_NUMERICHOST", new QoreBigIntNode(AI_NUMERICHOST));
+#endif
 #ifdef AI_NUMERICSERV
    qoreNS->addConstant("AI_NUMERICSERV", new QoreBigIntNode(AI_NUMERICSERV));
 #endif
+#ifdef AI_PASSIVE
    qoreNS->addConstant("AI_PASSIVE",     new QoreBigIntNode(AI_PASSIVE));
+#endif
+#ifdef AI_V4MAPPED
    qoreNS->addConstant("AI_V4MAPPED",    new QoreBigIntNode(AI_V4MAPPED));
+#endif
    qoreNS->addConstant("IPPROTO_UDP",    new QoreBigIntNode(IPPROTO_UDP));
    qoreNS->addConstant("IPPROTO_TCP",    new QoreBigIntNode(IPPROTO_TCP));
 
@@ -1671,6 +1687,7 @@ void StaticSystemNamespace::init() {
    qoreNS->addConstant("EVENT_DATA_WRITTEN", new QoreBigIntNode(QORE_EVENT_DATA_WRITTEN));
    //qoreNS->addConstant("EVENT_", new QoreBigIntNode(QORE_EVENT_));
 
+#ifdef HAVE_TERMIOS_H
    // setup terminal mode constants
    // input modes
    qoreNS->addConstant("IGNBRK", new QoreBigIntNode(IGNBRK));
@@ -1809,6 +1826,8 @@ void StaticSystemNamespace::init() {
    qoreNS->addConstant("TCSASOFT", new QoreBigIntNode(TCSASOFT));
 #endif
 
+#endif // HAVE_TERMIOS_H
+
    // set up Option namespace for Qore options
    QoreNamespace *option = new QoreNamespace("Option");
 
@@ -1862,6 +1881,24 @@ void StaticSystemNamespace::init() {
    option->addConstant("HAVE_SETEGID",  &True);
 #else
    option->addConstant("HAVE_SETEGID",  &False);
+#endif
+
+#ifdef HAVE_TERMIOS_H
+   option->addConstant("HAVE_TERMIOS",  &True);
+#else
+   option->addConstant("HAVE_TERMIOS",  &False);
+#endif
+
+#ifdef HAVE_PWD_H
+   option->addConstant("HAVE_PWD",  &True);
+#else
+   option->addConstant("HAVE_PWD",  &False);
+#endif
+
+#ifdef HAVE_STRUCT_FLOCK
+   option->addConstant("HAVE_FILE_LOCKING",  &True);
+#else
+   option->addConstant("HAVE_FILE_LOCKING",  &False);
 #endif
 
 #if !defined(OPENSSL_NO_SHA256) && defined(HAVE_OPENSSL_SHA512)

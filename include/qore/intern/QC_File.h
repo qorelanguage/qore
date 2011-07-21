@@ -28,7 +28,7 @@
 DLLEXPORT extern qore_classid_t CID_FILE;
 DLLEXPORT extern QoreClass *QC_FILE;
 
-DLLLOCAL QoreClass *initFileClass(QoreClass *QC_TERMIOS);
+DLLLOCAL QoreClass *initFileClass();
 static inline void addFileConstants(QoreNamespace *ns);
 
 #include <qore/QoreFile.h>
@@ -168,10 +168,12 @@ static inline void addFileConstants(QoreNamespace *ns) {
    ns->addConstant("S_IEXEC", new QoreBigIntNode(S_IEXEC));
 #endif
 
+#ifdef HAVE_STRUCT_FLOCK
    // file lock constants
    ns->addConstant("F_RDLCK",       new QoreBigIntNode(F_RDLCK));
    ns->addConstant("F_WRLCK",       new QoreBigIntNode(F_WRLCK));
    ns->addConstant("F_UNLCK",       new QoreBigIntNode(F_UNLCK));
+#endif
 
    // file seek constants
    ns->addConstant("SEEK_SET",      new QoreBigIntNode(SEEK_SET));

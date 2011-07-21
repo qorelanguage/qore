@@ -23,7 +23,9 @@
 #include <qore/Qore.h>
 #include <qore/intern/QC_File.h>
 #include <qore/intern/QC_Queue.h>
+#ifdef HAVE_TERMIOS_H
 #include <qore/intern/QC_TermIOS.h>
+#endif
 
 qore_classid_t CID_FILE;
 QoreClass *QC_FILE = 0;
@@ -348,6 +350,7 @@ static AbstractQoreNode *FILE_getchar(QoreObject *self, File *f, const QoreListN
    return f->getchar();
 }
 
+#ifdef HAVE_STRUCT_FLOCK
 static int lock_intern(struct flock &fl, const QoreListNode *args, ExceptionSink *xsink) {
    fl.l_type = (short)HARD_QORE_INT(args, 0);
    fl.l_start = (off_t)HARD_QORE_INT(args, 1);
@@ -359,8 +362,15 @@ static int lock_intern(struct flock &fl, const QoreListNode *args, ExceptionSink
    fl.l_whence = (short)HARD_QORE_INT(args, 3);
    return 0;
 }
+#else
+static AbstractQoreNode *file_lock_error(const char *f, ExceptionSink *xsink) {
+   xsink->raiseException("MISSING-FEATURE-ERROR", "this platform does not support UNIX-style file locking with fnctl(), therefore the File::%s() method is not available; for maximum portability, check Option::HAVE_FILE_LOCKING before calling this method", f);
+   return 0;
+}
+#endif
 
 static AbstractQoreNode *FILE_lock(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
+#ifdef HAVE_STRUCT_FLOCK
    struct flock fl;
 
    if (lock_intern(fl, args, xsink))
@@ -370,9 +380,13 @@ static AbstractQoreNode *FILE_lock(QoreObject *self, File *f, const QoreListNode
    if (*xsink)
       return 0;
    return new QoreBigIntNode(rc);
+#else
+   return file_lock_error("lock", xsink);
+#endif
 }
 
 static AbstractQoreNode *FILE_lockBlocking(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
+#ifdef HAVE_STRUCT_FLOCK
    struct flock fl;
 
    if (lock_intern(fl, args, xsink))
@@ -380,9 +394,13 @@ static AbstractQoreNode *FILE_lockBlocking(QoreObject *self, File *f, const Qore
 
    f->lockBlocking(fl, xsink);
    return 0;
+#else
+   return file_lock_error("lockBlocking", xsink);
+#endif
 }
 
 static AbstractQoreNode *FILE_getLockInfo(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
+#ifdef HAVE_STRUCT_FLOCK
    struct flock fl;
    if (f->getLockInfo(fl, xsink))
       return 0;
@@ -395,6 +413,9 @@ static AbstractQoreNode *FILE_getLockInfo(QoreObject *self, File *f, const QoreL
    h->setKeyValue("whence", new QoreBigIntNode(fl.l_whence), xsink);
 
    return h;
+#else
+   return file_lock_error("getLockInfo", xsink);
+#endif
 }
 
 static AbstractQoreNode *FILE_chown(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
@@ -411,6 +432,7 @@ static AbstractQoreNode *FILE_isDataAvailable(QoreObject *self, File *f, const Q
    return *xsink ? 0 : get_bool_node(rc);
 }
 
+#ifdef HAVE_TERMIOS_H
 static AbstractQoreNode *FILE_getTerminalAttributes(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
    HARD_QORE_OBJ_DATA(ios, QoreTermIOS, args, 0, CID_TERMIOS, "TermIOS", "File::getTerminalAttributes", xsink);
    if (*xsink)
@@ -431,6 +453,7 @@ static AbstractQoreNode *FILE_setTerminalAttributes(QoreObject *self, File *f, c
    f->setTerminalAttributes(action, ios, xsink);
    return 0;
 }
+#endif
 
 static AbstractQoreNode *FILE_setEventQueue_queue(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
    HARD_QORE_OBJ_DATA(q, Queue, args, 0, CID_QUEUE, "Queue", "File::setEventQueue", xsink);
@@ -521,7 +544,7 @@ static AbstractQoreNode *f_FILE_statvfs(const QoreListNode *args, ExceptionSink 
 }
 
 
-QoreClass *initFileClass(QoreClass *QC_TERMIOS) {
+QoreClass *initFileClass() {
    QORE_TRACE("initFileClass()");
 
    QC_FILE = new QoreClass("File", QDOM_FILESYSTEM);
@@ -618,8 +641,10 @@ QoreClass *initFileClass(QoreClass *QC_TERMIOS) {
    // bool File::isDataAvailable(timeout $timeout = 0)  
    QC_FILE->addMethodExtended("isDataAvailable",        (q_method_t)FILE_isDataAvailable, false, QC_NO_FLAGS, QDOM_DEFAULT, boolTypeInfo, 1, timeoutTypeInfo, zero());
 
+#ifdef HAVE_TERMIOS_H
    QC_FILE->addMethodExtended("getTerminalAttributes",  (q_method_t)FILE_getTerminalAttributes, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, QC_TERMIOS->getTypeInfo(), QORE_PARAM_NO_ARG);
    QC_FILE->addMethodExtended("setTerminalAttributes",  (q_method_t)FILE_setTerminalAttributes, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 2, softBigIntTypeInfo, new QoreBigIntNode(TCSANOW), QC_TERMIOS->getTypeInfo(), QORE_PARAM_NO_ARG);
+#endif
 
    // overloaded setEventQueue() method
    QC_FILE->addMethodExtended("setEventQueue",          (q_method_t)FILE_setEventQueue_queue, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, QC_QUEUE->getTypeInfo(), QORE_PARAM_NO_ARG);

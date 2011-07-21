@@ -31,9 +31,18 @@
 #include <stdlib.h>
 #include <fcntl.h>
 #include <signal.h>
+
+#ifdef HAVE_SYS_WAIT_H
 #include <sys/wait.h>
+#endif
+
 #include <time.h>
+
+#ifdef HAVE_GLOB_H
 #include <glob.h>
+#else
+#include <qore/intern/glob.h>
+#endif
 
 extern bool threads_initialized;
 
@@ -65,6 +74,7 @@ static AbstractQoreNode *f_exec(const QoreListNode *params, ExceptionSink *xsink
 
 // executes a command and returns exit status
 static AbstractQoreNode *f_system(const QoreListNode *params, ExceptionSink *xsink) {
+#ifdef HAVE_SYSTEM
    HARD_QORE_PARAM(p0, const QoreStringNode, params, 0);
 
    int rc;
@@ -102,6 +112,9 @@ static AbstractQoreNode *f_system(const QoreListNode *params, ExceptionSink *xsi
       }
    }
    return new QoreBigIntNode(rc);
+#else // FIXME: implement for windows
+   xsink->raiseException("OOPS", "not yet implemented for non-Unix platforms");
+#endif
 }
 
 static AbstractQoreNode *f_getuid(const QoreListNode *params, ExceptionSink *xsink) {

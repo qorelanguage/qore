@@ -73,9 +73,9 @@ int mySocket::bind(int port, bool reuseaddr) {
 }
 
 // to bind an open socket to an INET tcp port on a specific interface
-int mySocket::bind(const char *interface, int port, bool reuseaddr) {
+int mySocket::bind(const char *iface, int port, bool reuseaddr) {
    AutoLocker al(m);
-   return socket->bind(interface, port, reuseaddr);
+   return socket->bind(iface, port, reuseaddr);
 }
 
 int mySocket::bindUNIX(const char *name, int socktype, int protocol, ExceptionSink *xsink) {

@@ -32,7 +32,6 @@
 #include <qore/Qore.h>
 
 #include <sys/types.h>
-#include <sys/un.h>
 #include <unistd.h>
 #include <strings.h>
 #include <string.h>
@@ -196,7 +195,7 @@ public:
        @see QoreSocket::connectINETSSL()
        @see QoreSocket::connectUNIXSSL()
    */
-   DLLEXPORT int connectINET2(const char *name, const char *service, int family = AF_UNSPEC, int sock_type = SOCK_STREAM, int protocol = 0, int timeout_ms = -1, ExceptionSink *xsink = 0);
+   DLLEXPORT int connectINET2(const char *name, const char *service, int family = Q_AF_UNSPEC, int sock_type = Q_SOCK_STREAM, int protocol = 0, int timeout_ms = -1, ExceptionSink *xsink = 0);
 
    //! connects to an INET socket by hostname and port number and returns a status code, Qore-language exceptions are raised in the case of any errors
    /** @param host the name or IP address of the host
@@ -387,7 +386,7 @@ public:
        @param reuseaddr if true then setsockopt() will be called with SO_REUSEADDR, allowing the bind to succeed even if the port is still in a TIME_WAIT state, for example
        @return 0 for OK, not 0 for error
    */
-   DLLEXPORT int bind(const char *interface, int prt, bool reuseaddr = false);
+   DLLEXPORT int bind(const char *iface, int prt, bool reuseaddr = false);
 
    //! binds an INET TCP socket to a specific socket address - do not use, deprecated, use bind(int family, const struct sockaddr *addr, int addr_size, int socktype, int protocol) instead
    /** this function will not set the port number; use bind(int family, const struct sockaddr *addr, int addr_size) instead
@@ -408,7 +407,7 @@ public:
        @param protocol the protocol for the socket
        @return 0 for OK, not 0 for error
    */
-   DLLEXPORT int bind(int family, const struct sockaddr *addr, int addr_size, int socktype = SOCK_STREAM, int protocol = 0);
+   DLLEXPORT int bind(int family, const struct sockaddr *addr, int addr_size, int socktype = Q_SOCK_STREAM, int protocol = 0);
 
    //! binds to a UNIX domain socket and returns a status code
    /** @note a socket file will be created on the filesystem if a UNIX domain socket is opened.
@@ -441,19 +440,7 @@ public:
        @param xsink if not 0 and an error occurs, the Qore-language exception information will be added here
        @return 0 for OK, not 0 for error
    */
-   DLLEXPORT int bindINET(const char *name, const char *service, bool reuseaddr = true, int family = AF_UNSPEC, int socktype = SOCK_STREAM, int protocol = 0, ExceptionSink *xsink = 0);
-
-   //! binds to all available interfaces for the given service or port number (passed as a string in the first argument) for the given socket parameters
-   /** @note the socket will first be closed and then reopened and bound
-       @param service the service name or port number
-       @param reuseaddr if true then setsockopt() will be called with SO_REUSEADDR, allowing the bind to succeed even if the port is still in a TIME_WAIT state, for example
-       @param family the address family (AF_INET, AF_INET6, or AF_UNSPEC)
-       @param socktype the type of socket (SOCK_STREAM = tcp socket)
-       @param protocol the protocol for the socket
-       @param xsink if not 0 and an error occurs, the Qore-language exception information will be added here
-       @return 0 for OK, not 0 for error
-    */
-   DLLEXPORT int bindAll(const char *service, bool reuseaddr, int family = AF_UNSPEC, int socktype = SOCK_STREAM, int protocol = 0, ExceptionSink *xsink = 0);
+   DLLEXPORT int bindINET(const char *name, const char *service, bool reuseaddr = true, int family = Q_AF_UNSPEC, int socktype = Q_SOCK_STREAM, int protocol = 0, ExceptionSink *xsink = 0);
 
    //! returns the TCP port number, also assigns the interal port number if it must be discovered
    DLLEXPORT int getPort();

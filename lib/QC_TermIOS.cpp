@@ -23,6 +23,7 @@
 #include <qore/Qore.h>
 #include <qore/intern/QC_TermIOS.h>
 
+QoreClass *QC_TERMIOS;
 qore_classid_t CID_TERMIOS;
 
 static void TERMIOS_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink) {
@@ -108,7 +109,7 @@ QoreClass *initTermIOSClass() {
    QORE_TRACE("initTermIOSClass()");
 
    // note that this class does not block therefore has no QDOM_THREAD
-   QoreClass *QC_TERMIOS = new QoreClass("TermIOS", QDOM_TERMINAL_IO);
+   QC_TERMIOS = new QoreClass("TermIOS", QDOM_TERMINAL_IO);
    CID_TERMIOS = QC_TERMIOS->getID();
 
    QC_TERMIOS->setConstructorExtended(TERMIOS_constructor);

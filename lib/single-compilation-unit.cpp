@@ -52,7 +52,9 @@
 #include "SwitchStatement.cpp"
 #include "Variable.cpp"
 #include "support.cpp"
+#ifdef HAVE_SIGNAL_HANDLING
 #include "QoreSignal.cpp"
+#endif
 #include "QoreType.cpp"
 #include "ModuleManager.cpp"
 #include "QoreException.cpp"
@@ -162,9 +164,14 @@
 #include "QC_AutoGate.cpp"
 #include "QC_AutoReadLock.cpp"
 #include "QC_AutoWriteLock.cpp"
+#ifdef HAVE_TERMIOS_H
 #include "QC_TermIOS.cpp"
+#endif
 #include "QC_AbstractSmartLock.cpp"
 #include "QC_TimeZone.cpp"
+#ifndef HAVE_GLOB
+#include "glob.cpp"
+#endif
 #include "minitest.cpp"
 //#include "inline_printf.cpp"
 //#include "QException.h"

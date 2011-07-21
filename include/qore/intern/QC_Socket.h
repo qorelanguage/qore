@@ -83,7 +83,7 @@ public:
    // to bind to an INET tcp port on all interfaces
    DLLLOCAL int bind(int port, bool reuseaddr = false);
    // to bind an open socket to an INET tcp port on a specific interface
-   DLLLOCAL int bind(const char *interface, int port, bool reuseaddr = false);
+   DLLLOCAL int bind(const char *iface, int port, bool reuseaddr = false);
 
    DLLLOCAL int bindUNIX(const char *name, int socktype, int protocol, ExceptionSink *xsink);
    DLLLOCAL int bindINET(const char *name, const char *service, bool reuseaddr, int family, int socktype, int protocol, ExceptionSink *xsink);

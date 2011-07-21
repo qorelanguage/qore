@@ -120,6 +120,7 @@ DLLEXPORT char *q_dirname(const char *path);
 //! frees memory if there is an allocation error
 DLLEXPORT void *q_realloc(void *ptr, size_t size);
 
+#ifndef _WIN32
 //! thread-safe version of getpwuid(): returns a Qore hash of the passwd information from the uid if possible, otherwise 0
 DLLEXPORT QoreHashNode *q_getpwuid(uid_t uid);
 
@@ -147,6 +148,7 @@ int q_uname2uid(const char *name, uid_t &uid);
    @return 0 for no error, non-zero is an error code like errno
  */
 int q_gname2gid(const char *name, gid_t &gid);
+#endif
 
 //! sets up the Qore ARGV and QORE_ARGV values
 DLLEXPORT void qore_setup_argv(int pos, int argc, char *argv[]);
@@ -325,6 +327,12 @@ DLLEXPORT const AbstractQoreZoneInfo *findCreateOffsetZone(int seconds_east);
 #define QORE_OPT_RC5                     "openssl rc5"
 //! option: md2 algorithm supported (depends on openssl used to compile qore)
 #define QORE_OPT_MD2                     "openssl md2"
+//! option: TermIOS class available
+#define QORE_OPT_TERMIOS                 "TermIOS"
+//! option: pwd functions available
+#define QORE_OPT_PWD                     "pwd"
+//! option: file locking
+#define QORE_OPT_FILE_LOCKING            "file locking"
 //! option: round() function available
 #define QORE_OPT_FUNC_ROUND              "round()"
 //! option: timegm() function available

@@ -34,7 +34,6 @@
 #include <strings.h>
 #include <errno.h>
 #include <ctype.h>
-#include <netinet/tcp.h>
 
 #include <openssl/ssl.h>
 #include <openssl/err.h>
@@ -875,6 +874,9 @@ struct qore_socket_private {
    }
 
    DLLLOCAL int connectINET(const char *host, const char *service, int timeout_ms, ExceptionSink *xsink = 0, int family = AF_UNSPEC, int type = SOCK_STREAM, int protocol = 0) {
+      family = q_get_af(family);
+      type = q_get_sock_type(type);
+
       QORE_TRACE("qore_socket_private::connectINET()");
 
       // close socket if already open
@@ -1089,6 +1091,9 @@ struct qore_socket_private {
    }
 
    DLLLOCAL int bindINET(const char *name, const char *service, bool reuseaddr = true, int family = AF_UNSPEC, int socktype = SOCK_STREAM, int protocol = 0, ExceptionSink *xsink = 0) {
+      family = q_get_af(family);
+      socktype = q_get_sock_type(socktype);
+
       close();
 
       QoreAddrInfo ai;
@@ -2700,11 +2705,11 @@ int QoreSocket::bind(int prt, bool reuseaddr) {
 }
 
 // to bind to an INET tcp port on a specific interface
-int QoreSocket::bind(const char *interface, int prt, bool reuseaddr) {
-   printd(5, "QoreSocket::bind(%s, %d)\n", interface, prt);
+int QoreSocket::bind(const char *iface, int prt, bool reuseaddr) {
+   printd(5, "QoreSocket::bind(%s, %d)\n", iface, prt);
    QoreString service;
    service.sprintf("%d", prt);
-   return priv->bindINET(interface, service.getBuffer(), reuseaddr);
+   return priv->bindINET(iface, service.getBuffer(), reuseaddr);
 }
 
 // to bind an INET socket to a particular address
@@ -2727,6 +2732,9 @@ int QoreSocket::bind(const struct sockaddr *addr, int size) {
 }
 
 int QoreSocket::bind(int family, const struct sockaddr *addr, int size, int sock_type, int protocol) {
+   family = q_get_af(family);
+   sock_type = q_get_sock_type(sock_type);
+
    // close if it's already been opened as an INET socket or with different parameters
    if (priv->sock != -1 && (priv->sfamily != family || priv->stype != sock_type || priv->sprot != protocol))
       close();
