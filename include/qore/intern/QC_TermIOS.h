@@ -31,7 +31,7 @@
 #include <sys/ioctl.h>
 #include <fcntl.h>
 
-DLLLOCAL QoreClass *QC_TERMIOS;
+DLLLOCAL extern QoreClass *QC_TERMIOS;
 DLLEXPORT extern qore_classid_t CID_TERMIOS;
 DLLLOCAL QoreClass *initTermIOSClass();
 
