@@ -172,6 +172,12 @@
 #ifndef HAVE_GLOB
 #include "glob.cpp"
 #endif
+#ifndef HAVE_INET_NTOP
+#include "inet_ntop.cpp"
+#endif
+#ifndef HAVE_INET_PTON
+#include "inet_pton.cpp"
+#endif
 #include "minitest.cpp"
 //#include "inline_printf.cpp"
 //#include "QException.h"

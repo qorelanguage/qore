@@ -196,11 +196,17 @@ endif
 if COND_STACK_TRACE
 libqore_la_SOURCES += CallStack.cpp
 endif
+if COND_HAVE_TERMIOS
+libqore_la_SOURCES += QC_TermIOS.cpp
+endif
 if COND_NEED_GLOB
 libqore_la_SOURCES += glob.cpp
 endif
-if COND_HAVE_TERMIOS
-libqore_la_SOURCES += QC_TermIOS.cpp
+if COND_NEED_INET_NTOP
+libqore_la_SOURCES += inet_ntop.cpp
+endif
+if COND_NEED_INET_PTON
+libqore_la_SOURCES += inet_pton.cpp
 endif
 endif
 

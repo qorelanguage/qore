@@ -742,4 +742,12 @@ public:
    }
 };
 */
+
+#ifndef HAVE_INET_NTOP
+DLLLOCAL const char *inet_ntop(int af, const void *src, char *dst, size_t size);
+#endif
+#ifndef HAVE_INET_PTON
+DLLLOCAL int inet_pton(int af, const char *src, void *dst);
+#endif
+
 #endif

@@ -542,4 +542,3 @@ QoreStringNode *QoreAddrInfo::getAddressDesc(int family, const char *addr) {
    }
    return str;
 }
-
