@@ -154,6 +154,7 @@ case "${host_os}" in
      		windows=yes
 		mingw=yes
 		no_sig_handling=yes
+		CPPFLAGS="$CPPFLAGS -D_WIN32_WINNT=0x0501"
 		;;
      *)         AC_WARN(Unknown platform ${host_os})
      		;;
