@@ -658,9 +658,14 @@ void QoreTimeZoneManager::init() {
 void QoreTimeZoneManager::setFromLocalTimeFile() {
    // determine local region
    struct stat sbuf;
+#ifdef HAVE_LSTAT
    if (!lstat(LOCALTIME_LOCATION, &sbuf)) {
+#else
+   if (!stat(LOCALTIME_LOCATION, &sbuf)) {
+#endif
       // normally this file is a symlink
       //printd(0, "QoreTimeZoneManager::QoreTimeZoneManager() %s: %d (%d)\n", LOCALTIME_LOCATION, sbuf.st_mode & S_IFMT, S_IFLNK);
+#ifdef S_IFLNK
       if ((sbuf.st_mode & S_IFMT) == S_IFLNK) {
 	 char buf[QORE_PATH_MAX + 1];
 	 qore_offset_t len = readlink(LOCALTIME_LOCATION, buf, QORE_PATH_MAX);
@@ -671,9 +676,10 @@ void QoreTimeZoneManager::setFromLocalTimeFile() {
 #ifdef DEBUG
 	 else
 	    printd(1, "QoreTimeZoneManager::QoreTimeZoneManager() failed to read %s link: %s\n", LOCALTIME_LOCATION, strerror(errno));
-#endif
+#endif // DEBUG
       }
       else
+#endif // S_IFLNK
 	 setLocalTZ(LOCALTIME_LOCATION);
    }
 #ifdef DEBUG

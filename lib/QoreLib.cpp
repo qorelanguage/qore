@@ -1448,7 +1448,7 @@ QoreHashNode *stat_to_hash(const struct stat &sbuf) {
       perm->concat(sbuf.st_mode & S_IXUSR ? 'x' : '-');
 #else
    // Windows
-   perm->concat(sbuf.st_mode, '-');
+   perm->concat('-');
 #endif
 
    // add group permission flags
