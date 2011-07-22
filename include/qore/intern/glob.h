@@ -37,7 +37,7 @@ protected:
    names_t names;
 
 public:
-   int gl_pathc;
+   size_t gl_pathc;
    const char **gl_pathv;
 
    DLLLOCAL QoreGlobWin() : gl_pathc(0), gl_pathv(0) {

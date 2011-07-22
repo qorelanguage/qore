@@ -405,6 +405,7 @@ struct qore_qf_private {
       return stat_to_hash(sbuf);
    }
 
+#ifdef HAVE_SYS_STATVFS_H
    DLLLOCAL QoreHashNode *statvfs(ExceptionSink *xsink) const {
       AutoLocker al(m);
 
@@ -419,6 +420,7 @@ struct qore_qf_private {
 
       return statvfs_to_hash(vfs);
    }
+#endif
 };
 
 QoreFile::QoreFile(const QoreEncoding *cs) : priv(new qore_qf_private(cs)) {
@@ -497,6 +499,7 @@ int QoreFile::getLockInfo(struct flock &fl, ExceptionSink *xsink) {
 }
 #endif
 
+#ifdef HAVE_PWD_H
 int QoreFile::chown(uid_t owner, gid_t group, ExceptionSink *xsink) {
    AutoLocker al(priv->m);
 
@@ -511,6 +514,7 @@ int QoreFile::chown(uid_t owner, gid_t group, ExceptionSink *xsink) {
 
    return rc;
 }
+#endif
 
 #if 0
 int QoreFile::preallocate(fstore_t &fs, ExceptionSink *xsink) {
@@ -549,6 +553,48 @@ void QoreFile::setEncoding(const QoreEncoding *cs)
 const QoreEncoding *QoreFile::getEncoding() const {
    return priv->charset;
 }
+
+#ifndef HAVE_FSYNC
+/* Emulate fsync on platforms which lack it, primarily Windows and 
+   cross-compilers like MinGW. 
+ 
+   This is derived from sqlite3 sources and is in the public domain. 
+ 
+   Written by Richard W.M. Jones <rjones.at.redhat.com> 
+*/ 
+#if (defined _WIN32 || defined __WIN32__)
+int fsync (int fd) { 
+   HANDLE h = (HANDLE) _get_osfhandle (fd); 
+   DWORD err; 
+ 
+   if (h == INVALID_HANDLE_VALUE) { 
+      errno = EBADF; 
+      return -1; 
+   }
+ 
+   if (!FlushFileBuffers (h)) { 
+      /* Translate some Windows errors into rough approximations of Unix 
+       * errors.  MSDN is useless as usual - in this case it doesn't 
+       * document the full range of errors. 
+       */ 
+      err = GetLastError (); 
+      switch (err) { 
+	 /* eg. Trying to fsync a tty. */ 
+	 case ERROR_INVALID_HANDLE: 
+	    errno = EINVAL; 
+	    break; 
+ 
+	 default: 
+	    errno = EIO; 
+      } 
+      return -1; 
+   } 
+   return 0; 
+}
+#else // windows
+#error no fsync() on this platform
+#endif
+#endif // HAVE_FSYNC
 
 int QoreFile::sync() {
    AutoLocker al(priv->m);
@@ -1110,6 +1156,8 @@ QoreHashNode *QoreFile::hstat(ExceptionSink *xsink) const {
    return priv->hstat(xsink);
 }
 
+#ifdef HAVE_SYS_STATVFS_H
 QoreHashNode *QoreFile::statvfs(ExceptionSink *xsink) const {
    return priv->statvfs(xsink);
 }
+#endif

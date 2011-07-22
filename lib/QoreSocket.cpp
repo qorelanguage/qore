@@ -50,6 +50,16 @@
 #define QORE_MAX_HEADER_SIZE 16384
 #endif
 
+#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__ 
+#define GETSOCKOPT_ARG_4 char*
+#define SETSOCKOPT_ARG_4 const char*
+#define SHUTDOWN_ARG SD_BOTH
+#else
+#define GETSOCKOPT_ARG_4 void*
+#define SETSOCKOPT_ARG_4 void*
+#define SHUTDOWN_ARG SHUT_RDWR
+#endif
+
 int SSLSocketHelper::setIntern(int sd, X509* cert, EVP_PKEY *pk, ExceptionSink *xsink) {
    ctx  = SSL_CTX_new(meth);
    if (!ctx) {
@@ -330,7 +340,7 @@ struct qore_socket_private {
       socklen_t size = sizeof(struct timeval);
 #endif
 
-      if (getsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, (void *)&tv, (socklen_t *)&size))
+      if (getsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, (GETSOCKOPT_ARG_4)&tv, (socklen_t *)&size))
 	 return -1;
 
       return tv.tv_sec * 1000 + tv.tv_usec / 1000;
@@ -347,7 +357,7 @@ struct qore_socket_private {
       socklen_t size = sizeof(struct timeval);
 #endif
 
-      if (getsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (void *)&tv, (socklen_t *)&size))
+      if (getsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (GETSOCKOPT_ARG_4)&tv, (socklen_t *)&size))
 	 return -1;
 
       return tv.tv_sec * 1000 + tv.tv_usec / 1000;
@@ -417,6 +427,11 @@ struct qore_socket_private {
 
       int rc;
       if (sfamily == AF_UNIX) {
+#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+	 if (xsink)
+	    xsink->raiseException("SOCKET-ACCEPT-ERROR", "UNIX sockets are not available under Windows");
+	 return -1;
+#else
 	 struct sockaddr_un addr_un;
 
 #if defined(HPUX) && defined(__ia64) && defined(__LP64__)
@@ -435,6 +450,7 @@ struct qore_socket_private {
 	    source->priv->setAddress(addr);
 	    source->priv->setHostName("localhost");
 	 }
+#endif // windows
       }
       else if (sfamily == AF_INET || sfamily == AF_INET6) {
 	 struct sockaddr_storage addr_in;
@@ -665,10 +681,14 @@ struct qore_socket_private {
 
    DLLLOCAL int connectUNIX(const char *p, int sock_type, int protocol, ExceptionSink *xsink) {
       QORE_TRACE("connectUNIX()");
-	 
+
+#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+      xsink->raiseException("SOCKET-CONNECTUNIX-ERROR", "UNIX sockets are not available under Windows");
+      return -1;
+#else
       // close socket if already open
       close();
-	 
+
       printd(5, "qore_socket_private::connectUNIX(%s)\n", p);
 	 
       struct sockaddr_un addr;
@@ -709,6 +729,7 @@ struct qore_socket_private {
       do_connected_event();
 
       return 0;
+#endif // windows
    }
 
    // socket must be open!
@@ -798,8 +819,10 @@ struct qore_socket_private {
 	 if (errno == EINTR)
 	    continue;
 
+#ifdef EINPROGRESS
 	 if (errno != EINPROGRESS)
 	    break;
+#endif
 
 	 //printd(5, "qore_socket_private::connectINETTimeout() errno=%d\n", errno);
 
@@ -818,7 +841,7 @@ struct qore_socket_private {
 	       socklen_t lon = sizeof(int);
 	       int val;
 
-	       if (getsockopt(sock, SOL_SOCKET, SO_ERROR, (void *)(&val), &lon) < 0) { 
+	       if (getsockopt(sock, SOL_SOCKET, SO_ERROR, (GETSOCKOPT_ARG_4)(&val), &lon) < 0) { 
 		  if (xsink && !only_timeout)
 		     xsink->raiseErrnoException("SOCKET-CONNECT-ERROR", errno, "error in getsockopt()");
 		  return -1;
@@ -848,28 +871,53 @@ struct qore_socket_private {
       return -1;
    }
 
+   DLLLOCAL int sock_errno_err(const char *err, const char *desc, ExceptionSink *xsink) {
+      sock = -1;
+      if (xsink)
+	 xsink->raiseErrnoException(err, errno, desc);
+      return -1;
+   }
+
    DLLLOCAL int set_non_blocking(bool non_blocking, ExceptionSink *xsink = 0) {
+#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__ 
+      u_long mode = non_blocking ? 1 : 0;
+      int rc = ioctlsocket(sock, FIONBIO, &mode);
+      if (rc) {
+	 switch (rc) {
+	    case WSANOTINITIALISED:
+	       errno = EINVAL;
+	       break;
+	    case WSAENETDOWN:
+	       errno = ENODEV;
+	       break;
+	    case WSAEINPROGRESS:
+	       errno = EAGAIN;
+	       break;
+	    case WSAENOTSOCK:
+	       errno = EBADF;
+	       break;
+	    case WSAEFAULT:
+	       errno = EFAULT;
+	       break;
+	 }
+	 return sock_errno_err("SOCKET-CONNECT-ERROR", "error in ioctlsocket(FIONBIO)", xsink);
+      }
+#else
       int arg;
 
       // get socket descriptor status flags
-      if ((arg = fcntl(sock, F_GETFL, 0)) < 0) { 
-	 sock = -1;
-	 if (xsink)
-	    xsink->raiseErrnoException("SOCKET-CONNECT-ERROR", errno, "error in fcntl() getting socket descriptor status flag");
-	 return -1;
-      }
+      if ((arg = fcntl(sock, F_GETFL, 0)) < 0)
+	 return sock_errno_err("SOCKET-CONNECT-ERROR", "error in fcntl() getting socket descriptor status flag", xsink);
 
       if (non_blocking) // set non-blocking
 	 arg |= O_NONBLOCK; 
       else // set blocking
 	 arg &= ~O_NONBLOCK;
 
-      if (fcntl(sock, F_SETFL, arg) < 0) { 
-	 sock = -1;
-	 if (xsink)
-	    xsink->raiseErrnoException("SOCKET-CONNECT-ERROR", errno, "error in fcntl() setting socket descriptor status flags");
-	 return -1;
-      } 
+      if (fcntl(sock, F_SETFL, arg) < 0)
+	 return sock_errno_err("SOCKET-CONNECT-ERROR", "error in fcntl() setting socket descriptor status flag", xsink);
+#endif
+
       return 0;
    }
 
@@ -1030,7 +1078,7 @@ struct qore_socket_private {
 
    DLLLOCAL int reuse(int opt) {
       //printf("qore_socket_private::reuse(%s)\n", opt ? "true" : "false");
-      return setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(int));
+      return setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (SETSOCKOPT_ARG_4)&opt, sizeof(int));
    }
 
    DLLLOCAL int bindIntern(struct sockaddr *ai_addr, size_t ai_addrlen, int prt, bool reuseaddr, ExceptionSink *xsink = 0) {
@@ -1065,6 +1113,10 @@ struct qore_socket_private {
 
    // bind to UNIX domain socket file
    DLLLOCAL int bindUNIX(const char *name, int socktype = SOCK_STREAM, int protocol = 0, ExceptionSink *xsink = 0) {
+#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+      xsink->raiseException("SOCKET-BINDUNIX-ERROR", "UNIX sockets are not available under Windows");
+      return -1;
+#else
       close();
 
       // try to open socket if necessary
@@ -1088,6 +1140,7 @@ struct qore_socket_private {
       // delete UNIX domain socket on close
       del = true;
       return 0;
+#endif // windows
    }
 
    DLLLOCAL int bindINET(const char *name, const char *service, bool reuseaddr = true, int family = AF_UNSPEC, int socktype = SOCK_STREAM, int protocol = 0, ExceptionSink *xsink = 0) {
@@ -1206,12 +1259,14 @@ struct qore_socket_private {
 
 	 h->setKeyValue("port", new QoreBigIntNode(port), 0);
       }
+#if (!defined _WIN32 && !defined __WIN32__) || defined __CYGWIN__
       else if (addr.ss_family == AF_UNIX) {
 	 struct sockaddr_un *addr_un = (struct sockaddr_un *)&addr;
 	 QoreStringNode *addrstr = new QoreStringNode(addr_un->sun_path);
 	 h->setKeyValue("address", addrstr, 0); 
 	 h->setKeyValue("address_desc", QoreAddrInfo::getAddressDesc(addr.ss_family, addrstr->getBuffer()), 0);
       }
+#endif
 
       h->setKeyValue("family", new QoreBigIntNode(addr.ss_family), 0);
       h->setKeyValue("familystr", new QoreStringNode(QoreAddrInfo::getFamilyName(addr.ss_family)), 0);
@@ -1240,6 +1295,7 @@ struct qore_socket_private {
 	 if (!getnameinfo((struct sockaddr *)&addr, get_in_len((struct sockaddr *)&addr), host, sizeof(host), 0, 0, 0))
 	    o->setValue("source_host", new QoreStringNode(host), 0);
       }
+#if (!defined _WIN32 && !defined __WIN32__) || defined __CYGWIN__
       else if (addr.ss_family == AF_UNIX) {
 	 QoreStringNode *astr = new QoreStringNode(enc);
 	 struct sockaddr_un *addr_un = (struct sockaddr_un *)&addr;
@@ -1247,6 +1303,7 @@ struct qore_socket_private {
 	 o->setValue("source", astr, 0); 
 	 o->setValue("source_host", new QoreStringNode("localhost"), 0);
       }
+#endif
    }
 };
 
@@ -1310,13 +1367,13 @@ QoreSocket::~QoreSocket() {
 }
 
 int QoreSocket::setNoDelay(int nodelay) {
-   return setsockopt(priv->sock, IPPROTO_TCP, TCP_NODELAY, &nodelay, sizeof(int));
+   return setsockopt(priv->sock, IPPROTO_TCP, TCP_NODELAY, (SETSOCKOPT_ARG_4)&nodelay, sizeof(int));
 }
 
 int QoreSocket::getNoDelay() const {
    int rc;
    socklen_t optlen = sizeof(int);
-   int sorc = getsockopt(priv->sock, IPPROTO_TCP, TCP_NODELAY, &rc, &optlen);
+   int sorc = getsockopt(priv->sock, IPPROTO_TCP, TCP_NODELAY, (GETSOCKOPT_ARG_4)&rc, &optlen);
    //printd(5, "Socket::getNoDelay() sorc=%d rc=%d optlen=%d\n", sorc, rc, optlen);
    if (sorc)
        return sorc;
@@ -1330,7 +1387,7 @@ int QoreSocket::close() {
 int QoreSocket::shutdown() {
    int rc;
    if (priv->sock != -1)
-      rc = ::shutdown(priv->sock, SHUT_RDWR); 
+      rc = ::shutdown(priv->sock, SHUTDOWN_ARG); 
    else 
       rc = 0; 
    
@@ -2886,7 +2943,7 @@ int QoreSocket::setSendTimeout(int ms) {
    tv.tv_sec  = ms / 1000;
    tv.tv_usec = (ms % 1000) * 1000;
 
-   return setsockopt(priv->sock, SOL_SOCKET, SO_SNDTIMEO, (void *)&tv, sizeof(struct timeval));
+   return setsockopt(priv->sock, SOL_SOCKET, SO_SNDTIMEO, (SETSOCKOPT_ARG_4)&tv, sizeof(struct timeval));
 }
 
 int QoreSocket::setRecvTimeout(int ms) {
@@ -2894,7 +2951,7 @@ int QoreSocket::setRecvTimeout(int ms) {
    tv.tv_sec  = ms / 1000;
    tv.tv_usec = (ms % 1000) * 1000;
 
-   return setsockopt(priv->sock, SOL_SOCKET, SO_RCVTIMEO, (void *)&tv, sizeof(struct timeval));
+   return setsockopt(priv->sock, SOL_SOCKET, SO_RCVTIMEO, (SETSOCKOPT_ARG_4)&tv, sizeof(struct timeval));
 }
 
 int QoreSocket::getSendTimeout() const {

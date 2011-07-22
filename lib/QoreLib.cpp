@@ -1360,8 +1360,12 @@ QoreListNode *stat_to_list(const struct stat &sbuf) {
    l->push(DateTimeNode::makeAbsolute(currentTZ(), (int64)sbuf.st_mtime));
    l->push(DateTimeNode::makeAbsolute(currentTZ(), (int64)sbuf.st_ctime));
 
+#ifdef HAVE_STRUCT_STAT_ST_BLKSIZE
    l->push(new QoreBigIntNode(sbuf.st_blksize));
+#endif
+#ifdef HAVE_STRUCT_STAT_ST_BLOCKS
    l->push(new QoreBigIntNode(sbuf.st_blocks));
+#endif
 
    return l;
 }
@@ -1384,8 +1388,12 @@ QoreHashNode *stat_to_hash(const struct stat &sbuf) {
    h->setKeyValue("mtime",   DateTimeNode::makeAbsolute(currentTZ(), (int64)sbuf.st_mtime), 0);
    h->setKeyValue("ctime",   DateTimeNode::makeAbsolute(currentTZ(), (int64)sbuf.st_ctime), 0);
 
+#ifdef HAVE_STRUCT_STAT_ST_BLKSIZE
    h->setKeyValue("blksize", new QoreBigIntNode(sbuf.st_blksize), 0);
+#endif
+#ifdef HAVE_STRUCT_STAT_ST_BLOCKS
    h->setKeyValue("blocks",  new QoreBigIntNode(sbuf.st_blocks), 0);
+#endif
 
    // process permissions
    QoreStringNode *perm = new QoreStringNode;
@@ -1407,14 +1415,18 @@ QoreHashNode *stat_to_hash(const struct stat &sbuf) {
       type = "FIFO";
       perm->concat('p');
    }
+#ifdef S_ISLNK
    else if (S_ISLNK(sbuf.st_mode)) {
       type = "SYMBOLIC-LINK";
       perm->concat('l');
    }
+#endif
+#ifdef S_ISSOCK
    else if (S_ISSOCK(sbuf.st_mode)) {
       type = "SOCKET";
       perm->concat('s');
    }
+#endif
    else if (S_ISREG(sbuf.st_mode)) {
       type = "REGULAR";
       perm->concat('-');
@@ -1429,19 +1441,35 @@ QoreHashNode *stat_to_hash(const struct stat &sbuf) {
    // add user permission flags
    perm->concat(sbuf.st_mode & S_IRUSR ? 'r' : '-');
    perm->concat(sbuf.st_mode & S_IWUSR ? 'w' : '-');
+#ifdef S_ISUID
    if (sbuf.st_mode & S_ISUID)
       perm->concat(sbuf.st_mode & S_IXUSR ? 's' : 'S');
    else
       perm->concat(sbuf.st_mode & S_IXUSR ? 'x' : '-');
+#else
+   // Windows
+   perm->concat(sbuf.st_mode, '-');
+#endif
 
    // add group permission flags
+#ifdef S_IRGRP
    perm->concat(sbuf.st_mode & S_IRGRP ? 'r' : '-');
    perm->concat(sbuf.st_mode & S_IWGRP ? 'w' : '-');
+#else
+   // Windows
+   perm->concat("--");
+#endif
+#ifdef S_ISGID
    if (sbuf.st_mode & S_ISGID)
       perm->concat(sbuf.st_mode & S_IXGRP ? 's' : 'S');
    else
       perm->concat(sbuf.st_mode & S_IXGRP ? 'x' : '-');
+#else
+   // Windows
+   perm->concat('-');
+#endif
 
+#ifdef S_IROTH
    // add other permission flags
    perm->concat(sbuf.st_mode & S_IROTH ? 'r' : '-');
    perm->concat(sbuf.st_mode & S_IWOTH ? 'w' : '-');
@@ -1449,12 +1477,17 @@ QoreHashNode *stat_to_hash(const struct stat &sbuf) {
       perm->concat(sbuf.st_mode & S_IXOTH ? 't' : 'T');
    else
       perm->concat(sbuf.st_mode & S_IXOTH ? 'x' : '-');
+#else
+   // Windows
+   perm->concat("---");
+#endif
 
    h->setKeyValue("perm",  perm, 0);
 
    return h;
 }
 
+#ifdef HAVE_SYS_STATVFS_H
 QoreHashNode *statvfs_to_hash(const struct statvfs &vfs) {
    QoreHashNode *h = new QoreHashNode;
 
@@ -1475,6 +1508,7 @@ QoreHashNode *statvfs_to_hash(const struct statvfs &vfs) {
 
    return h;
 }
+#endif
 
 #if defined(DEBUG) && defined(HAVE_BACKTRACE)
 #define _QORE_BT_SIZE 20

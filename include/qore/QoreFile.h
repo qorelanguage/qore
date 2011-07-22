@@ -399,12 +399,10 @@ public:
    //! returns the filename of the file being read
    DLLEXPORT QoreStringNode *getFileName() const;
 
-#ifndef _WIN32
+#if (!defined _WIN32 && !defined __WIN32__) || defined __CYGWIN__ 
    //! changes ownership of the file (if possible)
    DLLEXPORT int chown(uid_t owner, gid_t group, ExceptionSink *xsink);
-#endif
 
-#ifndef _WIN32
    //! perform a file lock operation
    DLLEXPORT int lockBlocking(struct flock &fl, ExceptionSink *xsink);
 

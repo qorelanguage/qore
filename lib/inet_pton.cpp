@@ -25,8 +25,8 @@
  * sizeof(int) < 4.  sizeof(int) > 4 is fine; all the world's not a VAX.
  */
  
-static int      inet_pton4 (const char *src, uint8_t *dst);
-static int      inet_pton6 (const char *src, uint8_t *dst);
+static int inet_pton4(const char *src, uint8_t *dst);
+static int inet_pton6(const char *src, uint8_t *dst);
  
 /*
  *
@@ -57,16 +57,13 @@ static int      inet_pton6 (const char *src, uint8_t *dst);
  *      Paul Vixie, 1996.
  */
 int
-inet_pton(af, src, dst)
-        int af;
-        const char *src;
-        void *dst;
+inet_pton(int af, const char *src, void *dst)
 {
         switch (af) {
         case AF_INET:
-                return (inet_pton4(src, dst));
+	   return (inet_pton4(src, (uint8_t*)dst));
         case AF_INET6:
-                return (inet_pton6(src, dst));
+	   return (inet_pton6(src, (uint8_t*)dst));
         default:
 #ifdef EAFNOSUPPORT
                 errno = EAFNOSUPPORT;
@@ -89,9 +86,7 @@ inet_pton(af, src, dst)
  *      Paul Vixie, 1996.
  */
 static int
-inet_pton4(src, dst)
-        const char *src;
-        uint8_t *dst;
+inet_pton4(const char *src, uint8_t *dst)
 {
         static const char digits[] = "0123456789";
         int saw_digit, octets, ch;
@@ -104,11 +99,11 @@ inet_pton4(src, dst)
                 const char *pch;
  
                 if ((pch = strchr(digits, ch)) != NULL) {
-                        uint32_t new = *tp * 10 + (pch - digits);
+                        uint32_t nw = *tp * 10 + (pch - digits);
  
-                        if (new > 255)
+                        if (nw > 255)
                                 return (0);
-                        *tp = new;
+                        *tp = nw;
                         if (! saw_digit) {
                                 if (++octets > 4)
                                         return (0);
@@ -143,9 +138,7 @@ inet_pton4(src, dst)
  *      Paul Vixie, 1996.
  */
 static int
-inet_pton6(src, dst)
-        const char *src;
-        uint8_t *dst;
+inet_pton6(const char *src, uint8_t *dst)
 {
         static const char xdigits_l[] = "0123456789abcdef",
                           xdigits_u[] = "0123456789ABCDEF";

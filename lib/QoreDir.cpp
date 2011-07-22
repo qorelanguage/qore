@@ -37,6 +37,12 @@
 
 #include <string>
 
+#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__ 
+static int mkdir(const char *path, mode_t mode) {
+   return mkdir(path);
+}
+#endif
+
 class qore_qd_private {
 protected:  
    const QoreEncoding *enc;
@@ -246,7 +252,12 @@ public:
 	       fname.concat('/');
 	       fname.concat(de->d_name);
 	       struct stat buf;
-	       int rc = lstat(fname.getBuffer(), &buf);
+	       int rc =
+#ifdef HAVE_LSTAT
+		  lstat(fname.getBuffer(), &buf);
+#else
+	          ::stat(fname.getBuffer(), &buf);
+#endif
 	       if (rc) {
 		  xsink->raiseErrnoException("DIR-READ-ERROR", errno, "stat() failed on '%s'", fname.getBuffer());
 		  return 0;
@@ -328,6 +339,7 @@ public:
       return 0;
    }
 
+#ifdef HAVE_PWD_H
    DLLLOCAL int chown(uid_t uid, gid_t gid, ExceptionSink *xsink) const {
       AutoLocker al(m);
 
@@ -343,6 +355,7 @@ public:
 
       return 0;
    }
+#endif
 
    DLLLOCAL QoreListNode *stat(ExceptionSink *xsink) const {
       AutoLocker al(m);
@@ -378,6 +391,7 @@ public:
       return stat_to_hash(sbuf);
    }
 
+#ifdef HAVE_SYS_STATVFS_H
    DLLLOCAL QoreHashNode *statvfs(ExceptionSink *xsink) const {
       AutoLocker al(m);
 
@@ -394,6 +408,7 @@ public:
 
       return statvfs_to_hash(vfs);
    }
+#endif
 
    const QoreEncoding *getEncoding() const {
       return enc;
@@ -457,9 +472,11 @@ int QoreDir::chmod(int mode, ExceptionSink *xsink) const {
    return priv->chmod(mode, xsink);
 }
 
+#ifdef HAVE_PWD_H
 int QoreDir::chown(uid_t uid, gid_t gid, ExceptionSink *xsink) const {
    return priv->chown(uid, gid, xsink);
 }
+#endif
 
 QoreListNode *QoreDir::stat(ExceptionSink *xsink) const {
    return priv->stat(xsink);
@@ -469,6 +486,8 @@ QoreHashNode *QoreDir::hstat(ExceptionSink *xsink) const {
    return priv->hstat(xsink);
 }
 
+#ifdef HAVE_SYS_STATVFS_H
 QoreHashNode *QoreDir::statvfs(ExceptionSink *xsink) const {
    return priv->statvfs(xsink);
 }
+#endif

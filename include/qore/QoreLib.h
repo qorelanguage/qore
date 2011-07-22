@@ -120,7 +120,7 @@ DLLEXPORT char *q_dirname(const char *path);
 //! frees memory if there is an allocation error
 DLLEXPORT void *q_realloc(void *ptr, size_t size);
 
-#ifndef _WIN32
+#if (!defined _WIN32 && !defined __WIN32__) || defined __CYGWIN__
 //! thread-safe version of getpwuid(): returns a Qore hash of the passwd information from the uid if possible, otherwise 0
 DLLEXPORT QoreHashNode *q_getpwuid(uid_t uid);
 
@@ -148,7 +148,7 @@ int q_uname2uid(const char *name, uid_t &uid);
    @return 0 for no error, non-zero is an error code like errno
  */
 int q_gname2gid(const char *name, gid_t &gid);
-#endif
+#endif // ! windows
 
 //! sets up the Qore ARGV and QORE_ARGV values
 DLLEXPORT void qore_setup_argv(int pos, int argc, char *argv[]);

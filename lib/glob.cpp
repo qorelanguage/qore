@@ -23,9 +23,9 @@
 #include <qore/Qore.h>
 
 int glob(const char *pattern, int flags, glob_error_t errfunc, glob_t *buf) {
-   buf->set(pattern, flags, errfunc);
+   return buf->set(pattern, flags, errfunc);
 }
 
 int globfree(glob_t *buf) {
-   buf->reset();
+   return buf->reset();
 }

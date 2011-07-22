@@ -532,6 +532,7 @@ static AbstractQoreNode *f_FILE_hlstat(const QoreListNode *args, ExceptionSink *
 }
 
 static AbstractQoreNode *f_FILE_statvfs(const QoreListNode *args, ExceptionSink *xsink) {
+#ifdef HAVE_SYS_STATVFS_H
    HARD_QORE_PARAM(p0, const QoreStringNode, args, 0);
 
    struct statvfs vfs;
@@ -541,6 +542,9 @@ static AbstractQoreNode *f_FILE_statvfs(const QoreListNode *args, ExceptionSink 
    }
 
    return statvfs_to_hash(vfs);
+#else
+   return file_lock_error("statvfs", xsink);
+#endif
 }
 
 

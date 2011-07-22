@@ -750,4 +750,6 @@ DLLLOCAL const char *inet_ntop(int af, const void *src, char *dst, size_t size);
 DLLLOCAL int inet_pton(int af, const char *src, void *dst);
 #endif
 
+DLLLOCAL AbstractQoreNode *missing_function_error(const char *func, ExceptionSink *xsink);
+
 #endif

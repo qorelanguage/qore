@@ -51,6 +51,13 @@ extern bool threads_initialized;
 #  include "tests/ReferenceHolder_tests.cpp"
 #endif
 
+AbstractQoreNode *missing_function_error(const char *func, ExceptionSink *xsink) {
+   QoreString have(func);
+   have.toupr();
+   xsink->raiseException("MISSING-FEATURE-ERROR", "this system does not implement %s(); for maximum portability use the constant Option::HAVE_%s to check if this function is implemented before calling", func, have.getBuffer());
+   return 0;
+}
+
 static AbstractQoreNode *f_exit(const QoreListNode *params, ExceptionSink *xsink) {
    const AbstractQoreNode *p0 = get_param(params, 0);
    qore_exit_process(p0 ? p0->getAsInt() : 0);
@@ -72,24 +79,30 @@ static AbstractQoreNode *f_exec(const QoreListNode *params, ExceptionSink *xsink
    return 0;
 }
 
+#ifdef HAVE_SYSTEM
+static int do_system(const QoreString &str) {
+   QoreString c(str);
+   // escape backslashes: replace '\' -> '\\'
+   c.replaceAll("\\", "\\\\");
+   // escape double quotes: replace '"' -> '\"'
+   c.replaceAll("\"", "\\\"");
+
+   c.concat('"');
+   c.prepend("/bin/sh -c \"");
+   
+   return system(c.getBuffer());
+}
+#endif
+
 // executes a command and returns exit status
 static AbstractQoreNode *f_system(const QoreListNode *params, ExceptionSink *xsink) {
-#ifdef HAVE_SYSTEM
+#ifdef HAVE_FORK
    HARD_QORE_PARAM(p0, const QoreStringNode, params, 0);
 
    int rc;
    // use system() if shell meta-characters are found
    if (strchrs(p0->getBuffer(), "$=*?><;|\"\\")) {
-      QoreString c(*p0);
-      // escape backslashes: replace '\' -> '\\'
-      c.replaceAll("\\", "\\\\");
-      // escape double quotes: replace '"' -> '\"'
-      c.replaceAll("\"", "\\\"");
-
-      c.concat('"');
-      c.prepend("/bin/sh -c \"");
-
-      rc = system(c.getBuffer());
+      rc = do_system(*p0);
    }
    else { // otherwise fork and exec
       pid_t pid;
@@ -112,25 +125,46 @@ static AbstractQoreNode *f_system(const QoreListNode *params, ExceptionSink *xsi
       }
    }
    return new QoreBigIntNode(rc);
-#else // FIXME: implement for windows
-   xsink->raiseException("OOPS", "not yet implemented for non-Unix platforms");
-#endif
+#else
+#ifdef HAVE_SYSTEM
+   HARD_QORE_PARAM(p0, const QoreStringNode, params, 0);
+   return new QoreBigIntNode(do_system(*p0));
+#else
+   return missing_function_error("system", xsink);
+#endif // HAVE_SYSTEM
+#endif // HAVE_FORK
 }
 
 static AbstractQoreNode *f_getuid(const QoreListNode *params, ExceptionSink *xsink) {
+#ifdef HAVE_GETUID
    return new QoreBigIntNode(getuid());
+#else
+   return missing_function_error("getuid", xsink);
+#endif
 }
 
 static AbstractQoreNode *f_geteuid(const QoreListNode *params, ExceptionSink *xsink) {
+#ifdef HAVE_GETEUID
    return new QoreBigIntNode(getuid());
+#else
+   return missing_function_error("geteuid", xsink);
+#endif
 }
 
 static AbstractQoreNode *f_getgid(const QoreListNode *params, ExceptionSink *xsink) {
+#ifdef HAVE_GETGID
    return new QoreBigIntNode(getgid());
+#else
+   return missing_function_error("getgid", xsink);
+#endif
 }
 
 static AbstractQoreNode *f_getegid(const QoreListNode *params, ExceptionSink *xsink) {
+#ifdef HAVE_GETEGID
    return new QoreBigIntNode(getgid());
+#else
+   return missing_function_error("getegid", xsink);
+#endif
 }
 
 static AbstractQoreNode *f_sleep(const QoreListNode *params, ExceptionSink *xsink) {
@@ -138,12 +172,24 @@ static AbstractQoreNode *f_sleep(const QoreListNode *params, ExceptionSink *xsin
    if (!timeout)
       return 0;
 
+#ifdef HAVE_SLEEP
    while (true) {
       timeout = sleep(timeout);
       if (!timeout)
 	 return zero();
    }
-   
+#else
+#ifdef HAVE_USLEEP
+   useconds_t us = (useconds_t)timeout * 1000000;
+   us = usleep(us);
+#else
+#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__ 
+   Sleep(timeout * 1000);
+#else
+#error no sleep(), usleep(), or Sleep() function available
+#endif // windows
+#endif // usleep
+#endif // sleep
    return 0;
 }
 
@@ -160,11 +206,16 @@ static AbstractQoreNode *f_getpid(const QoreListNode *params, ExceptionSink *xsi
 }
 
 static AbstractQoreNode *f_getppid(const QoreListNode *params, ExceptionSink *xsink) {
+#ifdef HAVE_GETPPID
    return new QoreBigIntNode(getppid());   
+#else
+   return missing_function_error("getppid", xsink);
+#endif
 }
 
 extern int num_threads;
 static AbstractQoreNode *f_fork(const QoreListNode *params, ExceptionSink *xsink) {
+#ifdef HAVE_FORK
    int sh = (QSM.thread_running ? 1 : 0);
    if (num_threads > (1 + sh)) {   
       xsink->raiseException("ILLEGAL-FORK", "cannot fork() when other threads are running");
@@ -187,12 +238,19 @@ static AbstractQoreNode *f_fork(const QoreListNode *params, ExceptionSink *xsink
    QSM.post_fork_unblock_and_start(!pid, xsink);
 
    return new QoreBigIntNode(pid);
+#else
+   return missing_function_error("fork", xsink);
+#endif
 }
 
 static AbstractQoreNode *f_kill(const QoreListNode *params, ExceptionSink *xsink) {
+#ifdef HAVE_KILL
    int pid = (int)HARD_QORE_INT(params, 0);
    int sig = (int)HARD_QORE_INT(params, 1);
    return new QoreBigIntNode(kill(pid, sig));
+#else
+   return missing_function_error("kill", xsink);
+#endif
 }
 
 /*
@@ -206,6 +264,7 @@ static AbstractQoreNode *f_waitpid(const QoreListNode *params, ExceptionSink *xs
 */
 
 static AbstractQoreNode *f_statvfs(const QoreListNode *params, ExceptionSink *xsink) {
+#ifdef HAVE_SYS_STATVFS_H
    HARD_QORE_PARAM(p0, const QoreStringNode, params, 0);
 
    struct statvfs vfs;
@@ -213,6 +272,9 @@ static AbstractQoreNode *f_statvfs(const QoreListNode *params, ExceptionSink *xs
       return 0;
    
    return statvfs_to_hash(vfs);
+#else
+   return missing_function_error("statvfs", xsink);
+#endif
 }
 
 static AbstractQoreNode *f_stat(const QoreListNode *params, ExceptionSink *xsink) {
@@ -229,7 +291,11 @@ static AbstractQoreNode *f_lstat(const QoreListNode *params, ExceptionSink *xsin
    HARD_QORE_PARAM(p0, const QoreStringNode, params, 0);
 
    struct stat sbuf;
+#ifdef HAVE_LSTAT
    if (lstat(p0->getBuffer(), &sbuf))
+#else
+   if (stat(p0->getBuffer(), &sbuf))
+#endif
       return 0;
 
    return stat_to_list(sbuf);
@@ -250,7 +316,11 @@ static AbstractQoreNode *f_hlstat(const QoreListNode *params, ExceptionSink *xsi
    HARD_QORE_PARAM(p0, const QoreStringNode, params, 0);
 
    struct stat sbuf;
+#ifdef HAVE_LSTAT
    if (lstat(p0->getBuffer(), &sbuf))
+#else
+   if (stat(p0->getBuffer(), &sbuf))
+#endif
       return 0;
 
    return stat_to_hash(sbuf);
@@ -284,12 +354,20 @@ static AbstractQoreNode *f_umask(const QoreListNode *params, ExceptionSink *xsin
 }
 
 static AbstractQoreNode *f_rand(const QoreListNode *params, ExceptionSink *xsink) {
+#ifdef HAVE_RANDOM
    // return a random 64-bit integer by calling random() twice
    return new QoreBigIntNode(random() | (((int64)random()) << 32));
+#else
+   return new QoreBigIntNode(rand() | (((int64)rand()) << 32));
+#endif
 }
 
 static AbstractQoreNode *f_srand(const QoreListNode *params, ExceptionSink *xsink) {
+#ifdef HAVE_RANDOM
    srandom((int)HARD_QORE_INT(params, 0));
+#else
+   srand((int)HARD_QORE_INT(params, 0));
+#endif
    return 0;
 }
 
@@ -410,41 +488,55 @@ static AbstractQoreNode *f_mknod(const QoreListNode *params, ExceptionSink *xsin
 */
 
 static AbstractQoreNode *f_mkfifo(const QoreListNode *params, ExceptionSink *xsink) {
+#ifdef HAVE_MKFIFO
    HARD_QORE_PARAM(p0, const QoreStringNode, params, 0);
    const char *fn = p0->getBuffer();
 
    int mode = (int)HARD_QORE_INT(params, 1);
    return new QoreBigIntNode(mkfifo(fn, mode));
+#else
+   return missing_function_error("mkfifo", xsink);
+#endif
 }
 
 static AbstractQoreNode *f_setuid(const QoreListNode *params, ExceptionSink *xsink) {
+#ifdef HAVE_SETUID
    return new QoreBigIntNode(setuid((int)HARD_QORE_INT(params, 0)));
+#else
+   return missing_function_error("setuid", xsink);
+#endif
 }
 
 static AbstractQoreNode *f_seteuid(const QoreListNode *params, ExceptionSink *xsink) {
 #ifdef HAVE_SETEUID
    return new QoreBigIntNode(seteuid((int)HARD_QORE_INT(params, 0)));
 #else
-   xsink->raiseException("MISSING-FEATURE-ERROR", "this system does not implement seteuid(); for maximum portability use the constant Option::HAVE_SETEUID to check if this function is implemented before calling");
-   return 0;
+   return missing_function_error("seteuid", xsink);
 #endif
 }
 
 static AbstractQoreNode *f_setgid(const QoreListNode *params, ExceptionSink *xsink) {
+#ifdef HAVE_SETGID
    return new QoreBigIntNode(setgid((int)HARD_QORE_INT(params, 0)));
+#else
+   return missing_function_error("setgid", xsink);
+#endif
 }
 
 static AbstractQoreNode *f_setegid(const QoreListNode *params, ExceptionSink *xsink) {
 #ifdef HAVE_SETEGID
    return new QoreBigIntNode(setegid((int)HARD_QORE_INT(params, 0)));
 #else
-   xsink->raiseException("MISSING-FEATURE-ERROR", "this system does not implement setegid(); for maximum portability use the constant Option::HAVE_SETEGID to check if this function is implemented before calling");
-   return 0;
+   return missing_function_error("setegid", xsink);
 #endif
 }
 
 static AbstractQoreNode *f_setsid(const QoreListNode *params, ExceptionSink *xsink) {
+#ifdef HAVE_SETSID
     return new QoreBigIntNode(setsid());
+#else
+   return missing_function_error("setsid", xsink);
+#endif
 }
 
 static AbstractQoreNode *f_gethostbyname(const QoreListNode *params, ExceptionSink *xsink) {
@@ -487,23 +579,32 @@ static AbstractQoreNode *f_getaddrinfo(const QoreListNode *params, ExceptionSink
 
 //int chown (const char *path, uid_t owner, gid_t group);
 static AbstractQoreNode *f_chown(const QoreListNode *params, ExceptionSink *xsink) {
+#ifdef HAVE_CHOWN
    HARD_QORE_PARAM(p0, const QoreStringNode, params, 0);
    const char *path = p0->getBuffer();
    uid_t owner = (uid_t)HARD_QORE_INT(params, 1);
    gid_t group = (gid_t)HARD_QORE_INT(params, 2);
    return new QoreBigIntNode(chown(path, owner, group));
+#else
+   return missing_function_error("chown", xsink);
+#endif
 }
 
 //int lchown (const char *path, uid_t owner, gid_t group);
 static AbstractQoreNode *f_lchown(const QoreListNode *params, ExceptionSink *xsink) {
+#ifdef HAVE_LCHOWN
    HARD_QORE_PARAM(p0, const QoreStringNode, params, 0);
    const char *path = p0->getBuffer();
    uid_t owner = (uid_t)HARD_QORE_INT(params, 1);
    gid_t group = (gid_t)HARD_QORE_INT(params, 2);
    return new QoreBigIntNode(lchown(path, owner, group));
+#else
+   return missing_function_error("lchown", xsink);
+#endif
 }
 
 static AbstractQoreNode *f_readlink(const QoreListNode *params, ExceptionSink *xsink) {
+#ifdef HAVE_READLINK
    HARD_QORE_PARAM(p0, const QoreStringNode, params, 0);
    
    char buf[QORE_PATH_MAX + 1];
@@ -515,6 +616,9 @@ static AbstractQoreNode *f_readlink(const QoreListNode *params, ExceptionSink *x
    assert(len <= QORE_PATH_MAX);
    buf[len] = '\0';
    return new QoreStringNode(buf);
+#else
+   return missing_function_error("readlink", xsink);
+#endif
 }
 
 #ifdef DEBUG
@@ -575,6 +679,9 @@ void init_lib_functions() {
    builtinFunctions.add2("fork",        f_fork, QC_NO_FLAGS, QDOM_PROCESS, bigIntTypeInfo);
 
    builtinFunctions.add2("kill",        f_noop, QC_RUNTIME_NOOP, QDOM_EXTERNAL_PROCESS, nothingTypeInfo);
+#ifndef SIGHUP
+#define SIGHUP -1
+#endif
    builtinFunctions.add2("kill",        f_kill, QC_NO_FLAGS, QDOM_EXTERNAL_PROCESS, bigIntTypeInfo, 2, softBigIntTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, new QoreBigIntNode(SIGHUP));
 
    // builtinFunctions.add("wait",        f_wait);
