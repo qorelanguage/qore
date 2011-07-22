@@ -94,7 +94,7 @@ static AbstractQoreNode *f_is_dev(const QoreListNode *args, ExceptionSink *xsink
 }
 
 static AbstractQoreNode *f_is_link(const QoreListNode *args, ExceptionSink *xsink) {
-#ifdef HAVE_IS_LINK
+#ifdef HAVE_LSTAT
    return check_lstat(S_IFLNK, args, xsink);
 #else
    return missing_function_error("is_link", xsink);
