@@ -80,13 +80,18 @@ static AbstractQoreNode *DIR_chmod(QoreObject *self, Dir *d, const QoreListNode 
 
 // chown(userid)
 static AbstractQoreNode *DIR_chown_int(QoreObject *self, Dir *d, const QoreListNode *params, ExceptionSink *xsink) {
+#ifdef HAVE_CHOWN
    uid_t uid = (uid_t)HARD_QORE_INT(params, 0);
    d->chown(uid, (gid_t)-1, xsink);
    return 0;
+#else
+   return missing_method_error("Dir::chown", "CHOWN", xsink);
+#endif
 }
 
 // chown(username)
 static AbstractQoreNode *DIR_chown_str(QoreObject *self, Dir *d, const QoreListNode *params, ExceptionSink *xsink) {
+#ifdef HAVE_CHOWN
    const QoreStringNode *p0 = HARD_QORE_STRING(params, 0);
    uid_t uid;
 
@@ -99,16 +104,24 @@ static AbstractQoreNode *DIR_chown_str(QoreObject *self, Dir *d, const QoreListN
 
    d->chown(uid, (gid_t)-1, xsink);
    return 0;
+#else
+   return missing_method_error("Dir::chown", "CHOWN", xsink);
+#endif
 }
 
 static AbstractQoreNode *DIR_chgrp_int(QoreObject *self, Dir *d, const QoreListNode *params, ExceptionSink *xsink) {
+#ifdef HAVE_CHGRP
    gid_t gid = (gid_t)HARD_QORE_INT(params, 0);
    d->chown((uid_t)-1, gid, xsink);
    return 0;
+#else
+   return missing_method_error("Dir::chgrp", "CHGRP", xsink);
+#endif
 }
 
 // chgrp(groupname|groupid)
 static AbstractQoreNode *DIR_chgrp_str(QoreObject *self, Dir *d, const QoreListNode *params, ExceptionSink *xsink) {
+#ifdef HAVE_CHGRP
    const QoreStringNode *p0 = HARD_QORE_STRING(params, 0);
    gid_t gid;
 
@@ -121,6 +134,9 @@ static AbstractQoreNode *DIR_chgrp_str(QoreObject *self, Dir *d, const QoreListN
 
    d->chown((uid_t)-1, gid, xsink);
    return 0;
+#else
+   return missing_method_error("Dir::chgrp", "CHGRP", xsink);
+#endif
 }
 
 // mkdir(dirname, [mode]): make subdirectory with given mode

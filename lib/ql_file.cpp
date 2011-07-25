@@ -64,7 +64,11 @@ static AbstractQoreNode *f_is_dir(const QoreListNode *args, ExceptionSink *xsink
 }
 
 static AbstractQoreNode *f_is_socket(const QoreListNode *args, ExceptionSink *xsink) {
+#ifdef S_IFSOCK
    return check_stat(S_IFSOCK, args, xsink);
+#else
+   return missing_function_error("is_socket", xsink);
+#endif
 }
 
 static AbstractQoreNode *f_is_pipe(const QoreListNode *args, ExceptionSink *xsink) {
@@ -85,7 +89,11 @@ static AbstractQoreNode *f_is_dev(const QoreListNode *args, ExceptionSink *xsink
    struct stat sbuf;
    int rc;
    
+#ifdef HAVE_LSTAT
    if ((rc = lstat(p0->getBuffer(), &sbuf)))
+#else
+   if ((rc = stat(p0->getBuffer(), &sbuf)))
+#endif
       return boolean_false();
    
    return ((sbuf.st_mode & S_IFMT) == S_IFCHR)
@@ -102,6 +110,7 @@ static AbstractQoreNode *f_is_link(const QoreListNode *args, ExceptionSink *xsin
 }
 
 static AbstractQoreNode *f_is_readable(const QoreListNode *args, ExceptionSink *xsink) {
+#ifdef HAVE_PWD_H
    HARD_QORE_PARAM(p0, const QoreStringNode, args, 0);   
    
    struct stat sbuf;
@@ -117,9 +126,13 @@ static AbstractQoreNode *f_is_readable(const QoreListNode *args, ExceptionSink *
       return boolean_true();
    
    return boolean_false();
+#else
+   return missing_function_error("is_readable", xsink);
+#endif
 }
 
 static AbstractQoreNode *f_is_writable(const QoreListNode *args, ExceptionSink *xsink) {
+#ifdef HAVE_PWD_H
    HARD_QORE_PARAM(p0, const QoreStringNode, args, 0);   
    
    QORE_TRACE("f_stat()");
@@ -136,9 +149,13 @@ static AbstractQoreNode *f_is_writable(const QoreListNode *args, ExceptionSink *
       return boolean_true();
    
    return boolean_false();
+#else
+   return missing_function_error("is_writable", xsink);
+#endif
 }
 
 static AbstractQoreNode *f_is_executable(const QoreListNode *args, ExceptionSink *xsink) {
+#ifdef HAVE_PWD_H
    HARD_QORE_PARAM(p0, const QoreStringNode, args, 0);   
    
    struct stat sbuf;
@@ -153,6 +170,9 @@ static AbstractQoreNode *f_is_executable(const QoreListNode *args, ExceptionSink
       return boolean_true();
    
    return boolean_false();
+#else
+   return missing_function_error("is_executable", xsink);
+#endif
 }
 
 static AbstractQoreNode *f_rename(const QoreListNode *args, ExceptionSink *xsink) {

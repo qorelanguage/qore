@@ -168,10 +168,10 @@ static AbstractQoreNode *SOCKET_bindUNIX(QoreObject *self, mySocket *s, const Qo
 
 // nothing bindINET(*string $interface, *softstring $service, softbool $reuseaddr = False, softint $family = AF_UNSPEC, softint $socktype = SOCK_STREAM, softint $protocol = 0)
 static AbstractQoreNode *SOCKET_bindINET(QoreObject *self, mySocket *s, const QoreListNode *params, ExceptionSink *xsink) {
-   const QoreStringNode *interface = test_string_param(params, 0);
+   const QoreStringNode *iface = test_string_param(params, 0);
    const QoreStringNode *service = test_string_param(params, 1);
 
-   if ((!interface || !interface->strlen())
+   if ((!iface || !iface->strlen())
        && (!service || !service->strlen())) {
       xsink->raiseException("SOCKET-BIND-ERROR", "both interace (first parameter) and service (second parameter) were either not present or empty strings; at least one of the first 2 parameters must be present for a successful call to Socket::bindINET()");
       return 0;
@@ -182,7 +182,7 @@ static AbstractQoreNode *SOCKET_bindINET(QoreObject *self, mySocket *s, const Qo
    int socktype = (int)HARD_QORE_INT(params, 4);
    int prot = (int)HARD_QORE_INT(params, 5);
 
-   s->bindINET(interface ? interface->getBuffer() : 0, service ? service->getBuffer() : 0, reuseaddr, family, socktype, prot, xsink);
+   s->bindINET(iface ? iface->getBuffer() : 0, service ? service->getBuffer() : 0, reuseaddr, family, socktype, prot, xsink);
    return 0;
 }
 

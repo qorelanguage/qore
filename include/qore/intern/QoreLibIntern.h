@@ -74,6 +74,15 @@
 #include <netinet/tcp.h>
 #endif
 
+// printf format for 64-bit integers
+#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__ 
+#define QLLD "%I64d"
+#define QLLDx(a) "%" #a "I64d"
+#else
+#define QLLD "%lld"
+#define QLLDx(a) "%" #a "lld"
+#endif
+
 #include <set>
 #include <list>
 #include <map>
@@ -751,5 +760,6 @@ DLLLOCAL int inet_pton(int af, const char *src, void *dst);
 #endif
 
 DLLLOCAL AbstractQoreNode *missing_function_error(const char *func, ExceptionSink *xsink);
+DLLLOCAL AbstractQoreNode *missing_method_error(const char *meth, const char *feat, ExceptionSink *xsink);
 
 #endif

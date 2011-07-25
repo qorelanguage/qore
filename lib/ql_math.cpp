@@ -199,7 +199,8 @@ static AbstractQoreNode *f_format_number(const QoreListNode *params, ExceptionSi
 
    if (tr) {
       if (len == 3)
-	 sprintf(str, "%lld%c%03lld%c%03lld%c%03lld%c%03lld%c%s", 
+	 //sprintf(str, "%lld%c%03lld%c%03lld%c%03lld%c%03lld%c%s", 
+	 sprintf(str, QLLD "%c" QLLDx(03) "%c" QLLDx(03) "%c" QLLDx(03) "%c" QLLDx(03) "%c%s", 
 		 neg * tr, thousands_sep,
 		 bi, thousands_sep, 
 		 mi, thousands_sep,
@@ -207,7 +208,8 @@ static AbstractQoreNode *f_format_number(const QoreListNode *params, ExceptionSi
 		 val, decimal_sep,
 		 dec + 2);
       else
-	 sprintf(str, "%lld%c%03lld%c%03lld%c%03lld%c%03lld", 
+	 //sprintf(str, "%lld%c%03lld%c%03lld%c%03lld%c%03lld", 
+	 sprintf(str, QLLD "%c" QLLDx(03) "%c" QLLDx(03) "%c" QLLDx(03) "%c" QLLDx(03), 
 		 neg * tr, thousands_sep,
 		 bi, thousands_sep, 
 		 mi, thousands_sep,
@@ -216,41 +218,43 @@ static AbstractQoreNode *f_format_number(const QoreListNode *params, ExceptionSi
    }
    else if (bi)
       if (len == 3)
-	 sprintf(str, "%lld%c%03lld%c%03lld%c%03lld%c%s", 
+	 //sprintf(str, "%lld%c%03lld%c%03lld%c%03lld%c%s", 
+	 sprintf(str, QLLD "%c" QLLDx(03) "%c" QLLDx(03) "%c" QLLDx(03) "%c%s", 
 		 neg * bi, thousands_sep,
 		 mi, thousands_sep,
 		 th, thousands_sep,
 		 val, decimal_sep,
 		 dec + 2);
       else
-	 sprintf(str, "%lld%c%03lld%c%03lld%c%03lld", 
-		 neg * bi, thousands_sep,
-		 mi, thousands_sep,
-		 th, thousands_sep,
-		 val);
+	 //sprintf(str, "%lld%c%03lld%c%03lld%c%03lld", 
+	 sprintf(str, QLLD "%c" QLLDx(03) "%c" QLLDx(03) "%c" QLLDx(03), 
+		 neg * bi, thousands_sep, mi, thousands_sep, 
+		 th, thousands_sep, val);
    else if (mi)
       if (len == 3)
-	 sprintf(str, "%lld%c%03lld%c%03lld%c%s", neg * mi, thousands_sep,
-		 th, thousands_sep,
-		 val, decimal_sep,
-		 dec + 2);
+	 //sprintf(str, "%lld%c%03lld%c%03lld%c%s", neg * mi, thousands_sep,
+	 sprintf(str, QLLD "%c" QLLDx(03) "%c" QLLDx(03) "%c%s", neg * mi, thousands_sep,
+		 th, thousands_sep, val, decimal_sep, dec + 2);
       else
-	 sprintf(str, "%lld%c%03lld%c%03lld", neg * mi, thousands_sep,
-		 th, thousands_sep,
-		 val);
+	 //sprintf(str, "%lld%c%03lld%c%03lld", neg * mi, thousands_sep,
+	 sprintf(str, QLLD "%c" QLLDx(03) "%c" QLLDx(03), neg * mi, thousands_sep,
+		 th, thousands_sep, val);
    else if (th)
       if (len == 3)
-	 sprintf(str, "%lld%c%03lld%c%s", neg * th, thousands_sep,
+	 //sprintf(str, "%lld%c%03lld%c%s", neg * th, thousands_sep,
+	 sprintf(str, QLLD "%c" QLLDx(03) "%c%s", neg * th, thousands_sep,
 		 val, decimal_sep,
 		 dec + 2);
       else
-	 sprintf(str, "%lld%c%03lld", neg * th, thousands_sep,
-		 val);
+	 //sprintf(str, "%lld%c%03lld", neg * th, thousands_sep, val);
+	 sprintf(str, QLLD "%c" QLLDx(03), neg * th, thousands_sep, val);
    else
       if (len == 3)
-	 sprintf(str, "%lld%c%s", neg * val, decimal_sep, &dec[2]);
+	 //sprintf(str, "%lld%c%s", neg * val, decimal_sep, &dec[2]);
+	 sprintf(str, QLLD "%c%s", neg * val, decimal_sep, &dec[2]);
       else
-	 sprintf(str, "%lld", neg * val);
+	 //sprintf(str, "%lld", neg * val);
+	 sprintf(str, QLLD, neg * val);
 
    return new QoreStringNode(str);
 }

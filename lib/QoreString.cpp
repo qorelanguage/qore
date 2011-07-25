@@ -154,11 +154,7 @@ QoreString::QoreString(char c) : priv(new qore_string_private) {
 QoreString::QoreString(int64 i) : priv(new qore_string_private) {
    priv->allocated = MAX_BIGINT_STRING_LEN + 1;
    priv->buf = (char *)malloc(sizeof(char) * priv->allocated);
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__ 
-   priv->len = ::snprintf(priv->buf, MAX_BIGINT_STRING_LEN, "%I64d", i);
-#else
-   priv->len = ::snprintf(priv->buf, MAX_BIGINT_STRING_LEN, "%lld", i);
-#endif
+   priv->len = ::snprintf(priv->buf, MAX_BIGINT_STRING_LEN, QLLD, i);
    // terminate string just in case
    priv->buf[MAX_BIGINT_STRING_LEN] = '\0';
    priv->charset = QCS_DEFAULT;

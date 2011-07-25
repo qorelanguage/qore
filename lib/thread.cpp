@@ -102,6 +102,13 @@ DLLLOCAL int num_threads = 0;
 // default thread creation attribute
 QorePThreadAttr ta_default;
 
+#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+pthread_t PTHREAD_NA, PTHREAD_AVAIL;
+#else
+#define PTHREAD_NA (-1L)
+#define PTHREAD_AVAIL (0L)
+#endif
+
 class tid_node {
 public:
    int tid;
@@ -134,18 +141,22 @@ public:
       // delete call stack
       delete callStack;
 #endif
-  
-      if (ptid != (pthread_t)-1L) {
+
+#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__  
+      if (ptid.p != PTHREAD_NA.p) {
+#else
+      if (ptid != PTHREAD_NA) {
+#endif
 	 if (!joined)
 	    pthread_detach(ptid);
 	    
 	 // set ptid to 0
-	 ptid = 0L;
+	 ptid = PTHREAD_AVAIL;
       }
    }
 
    DLLLOCAL void allocate(tid_node *tn) {
-      ptid = (pthread_t)-1L;
+      ptid = PTHREAD_NA;
       tidnode = tn;
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
       callStack = 0;
@@ -1127,7 +1138,11 @@ void qore_exit_process(int rc) {
    // call pthread_cancel on all threads so the call to exit() will not
    // cause a core dump
    for (int i = 1; i < MAX_QORE_THREADS; ++i) {
+#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+      if (i != tid && thread_list[i].ptid.p != PTHREAD_AVAIL.p && thread_list[i].ptid.p != PTHREAD_NA.p) {
+#else
       if (i != tid && thread_list[i].ptid) {
+#endif
 	 int trc = pthread_cancel(thread_list[i].ptid);
 	 if (!trc) {
 	    thread_list[i].joined = true;
@@ -1167,7 +1182,11 @@ int get_thread_entry() {
       int i;
       // scan thread_list for free entry
       for (i = 1; i < MAX_QORE_THREADS; i++) {
-	 if (!thread_list[i].ptid) {
+#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+	 if (thread_list[i].ptid.p == PTHREAD_AVAIL.p) {
+#else
+	 if (thread_list[i].ptid == PTHREAD_AVAIL) {
+#endif
 	    tid = i;
 	    goto finish;
 	 }

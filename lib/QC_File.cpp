@@ -367,7 +367,15 @@ static AbstractQoreNode *file_lock_error(const char *f, ExceptionSink *xsink) {
    xsink->raiseException("MISSING-FEATURE-ERROR", "this platform does not support UNIX-style file locking with fnctl(), therefore the File::%s() method is not available; for maximum portability, check Option::HAVE_FILE_LOCKING before calling this method", f);
    return 0;
 }
+#ifndef F_RDLCK
+#define F_RDLCK -1
 #endif
+#endif
+
+AbstractQoreNode *missing_method_error(const char *meth, const char *feat, ExceptionSink *xsink) {
+   xsink->raiseException("MISSING-FEATURE-ERROR", "the %s() method is not available on this build; for maximum portability, check Option::%s before calling this method", meth, feat);
+   return 0;
+}
 
 static AbstractQoreNode *FILE_lock(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
 #ifdef HAVE_STRUCT_FLOCK
@@ -419,10 +427,14 @@ static AbstractQoreNode *FILE_getLockInfo(QoreObject *self, File *f, const QoreL
 }
 
 static AbstractQoreNode *FILE_chown(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
+#ifdef HAVE_CHOWN
    uid_t owner = (uid_t)HARD_QORE_INT(args, 0);
    gid_t group = (gid_t)HARD_QORE_INT(args, 1);
    f->chown(owner, group, xsink);
    return 0;
+#else
+   return missing_method_error("File::chown", "CHOWN", xsink);
+#endif
 }
 
 // bool File::isDataAvailable(timeout $timeout = 0)  
@@ -499,7 +511,11 @@ static AbstractQoreNode *f_FILE_lstat(const QoreListNode *args, ExceptionSink *x
    HARD_QORE_PARAM(p0, const QoreStringNode, args, 0);
 
    struct stat sbuf;
+#ifdef HAVE_LSTAT
    if (lstat(p0->getBuffer(), &sbuf)) {
+#else
+   if (stat(p0->getBuffer(), &sbuf)) {
+#endif
       xsink->raiseErrnoException("FILE-LSTAT-ERROR", errno, "lstat() command failed");
       return 0;
    }
@@ -523,7 +539,11 @@ static AbstractQoreNode *f_FILE_hlstat(const QoreListNode *args, ExceptionSink *
    HARD_QORE_PARAM(p0, const QoreStringNode, args, 0);
 
    struct stat sbuf;
+#ifdef HAVE_LSTAT
    if (lstat(p0->getBuffer(), &sbuf)) {
+#else
+   if (stat(p0->getBuffer(), &sbuf)) {
+#endif
       xsink->raiseErrnoException("FILE-HLSTAT-ERROR", errno, "lstat() command failed");
       return 0;
    }

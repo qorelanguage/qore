@@ -407,8 +407,14 @@ static int process_opt(QoreString *cstr, char *param, const AbstractQoreNode *no
 	       *(f++) = '0';
 	    f += sprintf(f, "%d", width);
 	 }
+#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__ 
+	 *(f++) = 'I';
+	 *(f++) = '6';
+	 *(f++) = '4';
+#else
 	 *(f++) = 'l';
 	 *(f++) = 'l';
+#endif
 	 *(f++) = p; // 'd', etc;
 	 *f = '\0';
 	 tbuf.sprintf(fmt, val);
