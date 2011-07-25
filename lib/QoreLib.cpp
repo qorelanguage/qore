@@ -1219,9 +1219,11 @@ QoreStringNode *q_strerror(int err) {
    return rv;
 }
 
+#ifdef HAVE_SIGNAL_HANDLING
 QoreStringNode *qore_reassign_signal(int sig, const char *name) {
    return QSM.reassign_signal(sig, name);
 }
+#endif
 
 static int qoreCheckHash(QoreHashNode *h, ObjMap &omap, AutoVLock &vl, ExceptionSink *xsink) {
    int rc = 0;

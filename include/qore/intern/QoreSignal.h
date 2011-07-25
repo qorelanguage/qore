@@ -21,6 +21,7 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+#ifdef HAVE_SIGNAL_HANDLING
 #ifndef _QORE_QORESIGNAL_H
 
 #define _QORE_QORESIGNAL_H
@@ -135,4 +136,5 @@ public:
 
 DLLLOCAL extern QoreSignalManager QSM;
 
-#endif
+#endif // _QORE_QORESIGNAL_H
+#endif // HAVE_SIGNAL_HANDLING

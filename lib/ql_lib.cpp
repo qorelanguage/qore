@@ -222,6 +222,7 @@ static AbstractQoreNode *f_fork(const QoreListNode *params, ExceptionSink *xsink
       return 0;
    }
 
+#ifdef HAVE_SIGNAL_HANDLING
    // we may not fork from within a signal handler
    if (sh && gettid() == QSM.gettid()) {
       xsink->raiseException("ILLEGAL-FORK", "cannot fork() within a signal handler");
@@ -230,12 +231,15 @@ static AbstractQoreNode *f_fork(const QoreListNode *params, ExceptionSink *xsink
    
    // stop signal handling thread and make sure it can't be restarted until fork is done
    QSM.pre_fork_block_and_stop();
+#endif
 
    //printd(5, "stopped signal thread, about to fork pid %d\n", getpid()); fflush(stdout);
    int pid = fork();
 
+#ifdef HAVE_SIGNAL_HANDLING
    // release signal handler lock
    QSM.post_fork_unblock_and_start(!pid, xsink);
+#endif
 
    return new QoreBigIntNode(pid);
 #else

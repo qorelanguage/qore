@@ -314,7 +314,11 @@ static AbstractQoreNode *DIR_hstat(QoreObject *self, Dir *d, const QoreListNode 
 }
 
 static AbstractQoreNode *DIR_statvfs(QoreObject *self, Dir *d, const QoreListNode *args, ExceptionSink *xsink) {
+#ifdef HAVE_SYS_STATVFS_H
    return d->statvfs(xsink);
+#else
+   return missing_method_error("Dir::statvfs", "STATVFS", xsink);
+#endif
 }
 
 // init the class

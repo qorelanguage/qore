@@ -154,6 +154,8 @@ case "${host_os}" in
 		mingw=yes
 		no_sig_handling=yes
 		CPPFLAGS="$CPPFLAGS -D_WIN32_WINNT=0x0501"
+		LDFLAGS="$LDFLAGS -lwsock32 -lws2_32 -lgdi32 -liconv"
+		OS=Windows
 		;;
      *)         AC_WARN(Unknown platform ${host_os})
      		;;

@@ -1159,8 +1159,10 @@ void qore_exit_process(int rc) {
    }
    sl.unlock();
 
+#ifdef HAVE_SIGNAL_HANDLING
    // stop signal handling thread
    QSM.del();
+#endif
 
    threads_initialized = false;
    exit(rc);

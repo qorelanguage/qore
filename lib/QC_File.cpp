@@ -491,7 +491,11 @@ static AbstractQoreNode *FILE_hstat(QoreObject *self, File *f, const QoreListNod
 }
 
 static AbstractQoreNode *FILE_statvfs(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
+#ifdef HAVE_SYS_STATVFS_H
    return f->statvfs(xsink);
+#else
+   return missing_method_error("File::statvfs", "STATVFS", xsink);
+#endif
 }
 
 // static methods
