@@ -880,17 +880,17 @@ if test "$need_user_dl" = yes; then
    fi
 fi
 
-for lib in $need_libs; do
-    AC_MSG_CHECKING([for the $lib library])
+for clib in $need_libs; do
+    AC_MSG_CHECKING([for the $clib library])
     for dir in "${with_lib_prefix}" "${find_prefix}" /usr / /usr/local /opt/gnu /opt/mingw /opt/mingw32 /opt/local /sw /usr/sfw /opt/sfw; do
       LIB_LDFLAG=
-      find_lib "$lib" "$dir"
+      find_lib "$clib" "$dir"
       if test -n "$LIB_LDFLAGS"; then
          break
       fi
    done
    if test -z "$LIB_LDFLAGS"; then
-      AC_MSG_ERROR([cannot find the $lib library which is needed to compile Qore for the target platform ($OS)])
+      AC_MSG_ERROR([cannot find the $clib library which is needed to compile Qore for the target platform ($OS)])
    fi    
 done
 
