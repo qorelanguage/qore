@@ -43,8 +43,6 @@ fi
 AC_CANONICAL_HOST
 if test "${host_os}" = "mingw32"; then
     AC_LIBTOOL_WIN32_DLL
-else
-    AC_MSG_ERROR(oops)
 fi
 
 AC_LANG(C++)
