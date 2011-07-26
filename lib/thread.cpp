@@ -145,7 +145,7 @@ public:
 #if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__  
       if (ptid.p != PTHREAD_NA.p) {
 #else
-      if (ptid != PTHREAD_NA) {
+         if ((int64)ptid != PTHREAD_NA) {
 #endif
 	 if (!joined)
 	    pthread_detach(ptid);

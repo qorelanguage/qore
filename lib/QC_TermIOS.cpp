@@ -27,61 +27,110 @@ QoreClass *QC_TERMIOS;
 qore_classid_t CID_TERMIOS;
 
 static void TERMIOS_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink) {
+#ifdef HAVE_TERMIOS_H
    self->setPrivate(CID_TERMIOS, new QoreTermIOS);
+#else
+   missing_method_error("TermIOS::constructor", "TERMIOS", xsink);
+#endif
 }
 
 static void TERMIOS_copy(QoreObject *self, QoreObject *old, QoreTermIOS *s, ExceptionSink *xsink) {
+#ifdef HAVE_TERMIOS_H
    self->setPrivate(CID_TERMIOS, new QoreTermIOS(*s));
+#else
+   missing_method_error("TermIOS::copy", "TERMIOS", xsink);
+#endif
 }
 
 static AbstractQoreNode *TERMIOS_getLFlag(QoreObject *self, QoreTermIOS *s, const QoreListNode *params, ExceptionSink *xsink) {
+#ifdef HAVE_TERMIOS_H
    return new QoreBigIntNode(s->get_lflag());
+#else
+   return missing_method_error("TermIOS::getLFlag", "TERMIOS", xsink);
+#endif
 }
 
 static AbstractQoreNode *TERMIOS_getCFlag(QoreObject *self, QoreTermIOS *s, const QoreListNode *params, ExceptionSink *xsink) {
+#ifdef HAVE_TERMIOS_H
    return new QoreBigIntNode(s->get_cflag());
+#else
+   return missing_method_error("TermIOS::getCFlag", "TERMIOS", xsink);
+#endif
 }
 
 static AbstractQoreNode *TERMIOS_getOFlag(QoreObject *self, QoreTermIOS *s, const QoreListNode *params, ExceptionSink *xsink) {
+#ifdef HAVE_TERMIOS_H
    return new QoreBigIntNode(s->get_oflag());
+#else
+   return missing_method_error("TermIOS::getOFlag", "TERMIOS", xsink);
+#endif
 }
 
 static AbstractQoreNode *TERMIOS_getIFlag(QoreObject *self, QoreTermIOS *s, const QoreListNode *params, ExceptionSink *xsink) {
+#ifdef HAVE_TERMIOS_H
    return new QoreBigIntNode(s->get_iflag());
+#else
+   return missing_method_error("TermIOS::getIFlag", "TERMIOS", xsink);
+#endif
 }
 
 static AbstractQoreNode *TERMIOS_setLFlag(QoreObject *self, QoreTermIOS *s, const QoreListNode *params, ExceptionSink *xsink) {
+#ifdef HAVE_TERMIOS_H
    s->set_lflag((int)HARD_QORE_INT(params, 0));
    return 0;
+#else
+   return missing_method_error("TermIOS::setLFlag", "TERMIOS", xsink);
+#endif
 }
 
 static AbstractQoreNode *TERMIOS_setCFlag(QoreObject *self, QoreTermIOS *s, const QoreListNode *params, ExceptionSink *xsink) {
+#ifdef HAVE_TERMIOS_H
    s->set_cflag((int)HARD_QORE_INT(params, 0));
    return 0;
+#else
+   return missing_method_error("TermIOS::setCFlag", "TERMIOS", xsink);
+#endif
 }
 
 static AbstractQoreNode *TERMIOS_setOFlag(QoreObject *self, QoreTermIOS *s, const QoreListNode *params, ExceptionSink *xsink) {
+#ifdef HAVE_TERMIOS_H
    s->set_oflag((int)HARD_QORE_INT(params, 0));
    return 0;
+#else
+   return missing_method_error("TermIOS::setOFlag", "TERMIOS", xsink);
+#endif
 }
 
 static AbstractQoreNode *TERMIOS_setIFlag(QoreObject *self, QoreTermIOS *s, const QoreListNode *params, ExceptionSink *xsink) {
+#ifdef HAVE_TERMIOS_H
    s->set_iflag((int)HARD_QORE_INT(params, 0));
    return 0;
+#else
+   return missing_method_error("TermIOS::setIFlag", "TERMIOS", xsink);
+#endif
 }
 
 static AbstractQoreNode *TERMIOS_getCC(QoreObject *self, QoreTermIOS *s, const QoreListNode *params, ExceptionSink *xsink) {
+#ifdef HAVE_TERMIOS_H
    int64 rc = s->get_cc(HARD_QORE_INT(params, 0), xsink);
    return *xsink ? 0 : new QoreBigIntNode(rc);
+#else
+   return missing_method_error("TermIOS::getCC", "TERMIOS", xsink);
+#endif
 }
 
 // nothing TermIOS::setCC(softint $offset = 0, softint $value = 0)  
 static AbstractQoreNode *TERMIOS_setCC(QoreObject *self, QoreTermIOS *s, const QoreListNode *params, ExceptionSink *xsink) {
+#ifdef HAVE_TERMIOS_H
    s->set_cc(HARD_QORE_INT(params, 0), (cc_t)HARD_QORE_INT(params, 1), xsink);
    return 0;
+#else
+   return missing_method_error("TermIOS::setCC", "TERMIOS", xsink);
+#endif
 }
 
 static AbstractQoreNode *TERMIOS_isEqual(QoreObject *self, QoreTermIOS *s, const QoreListNode *params, ExceptionSink *xsink) {
+#ifdef HAVE_TERMIOS_H
    QoreObject *p0 = test_object_param(params, 0);
    QoreTermIOS *ios = p0 ? (QoreTermIOS *)p0->getReferencedPrivateData(CID_TERMIOS, xsink) : 0;
    if (!ios) {
@@ -91,9 +140,13 @@ static AbstractQoreNode *TERMIOS_isEqual(QoreObject *self, QoreTermIOS *s, const
    }
    ReferenceHolder<QoreTermIOS> holder(ios, xsink);
    return get_bool_node(s->is_equal(ios));
+#else
+   return missing_method_error("TermIOS::isEqual", "TERMIOS", xsink);
+#endif
 }
 
 static AbstractQoreNode *f_TERMIOS_getWindowSize(const QoreListNode *params, ExceptionSink *xsink) {
+#ifdef HAVE_TERMIOS_H
    int rows, columns;
 
    if (QoreTermIOS::getWindowSize(rows, columns, xsink))
@@ -103,6 +156,9 @@ static AbstractQoreNode *f_TERMIOS_getWindowSize(const QoreListNode *params, Exc
    rv->setKeyValue("rows", new QoreBigIntNode(rows), xsink);
    rv->setKeyValue("columns", new QoreBigIntNode(columns), xsink);
    return rv;
+#else
+   return missing_method_error("TermIOS::getWindowSize", "TERMIOS", xsink);
+#endif
 }
 
 QoreClass *initTermIOSClass() {

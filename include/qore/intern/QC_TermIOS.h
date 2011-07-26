@@ -24,16 +24,18 @@
 #ifndef _QORE_QC_TERMIOS_H
 #define _QORE_QC_TERMIOS_H
 
+DLLLOCAL extern QoreClass *QC_TERMIOS;
+DLLEXPORT extern qore_classid_t CID_TERMIOS;
+DLLLOCAL QoreClass *initTermIOSClass();
+
+#ifdef HAVE_TERMIOS_H
+
 #include <termios.h>
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>
 #include <sys/ioctl.h>
 #include <fcntl.h>
-
-DLLLOCAL extern QoreClass *QC_TERMIOS;
-DLLEXPORT extern qore_classid_t CID_TERMIOS;
-DLLLOCAL QoreClass *initTermIOSClass();
 
 class QoreTermIOS : public AbstractPrivateData {
 protected:
@@ -151,8 +153,6 @@ public:
     }
 };
 
-#endif
+#endif // HAVE_TERMIOS_H
 
-// EOF
-
-
+#endif // _QORE_QC_TERMIOS_H

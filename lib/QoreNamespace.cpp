@@ -49,9 +49,7 @@
 #include <qore/intern/QC_GetOpt.h>
 #include <qore/intern/QC_FtpClient.h>
 #include <qore/intern/QC_HTTPClient.h>
-#ifdef HAVE_TERMIOS_H
 #include <qore/intern/QC_TermIOS.h>
-#endif
 #include <qore/intern/QC_TimeZone.h>
 
 #include <string.h>
@@ -1464,9 +1462,7 @@ void StaticSystemNamespace::init() {
    qoreNS->addSystemClass(initSocketClass(SSLCert, SSLPrivKey));
    qoreNS->addSystemClass(initProgramClass());
 
-#ifdef HAVE_TERMIOS_H
    qoreNS->addSystemClass(initTermIOSClass());
-#endif
    qoreNS->addSystemClass(File = initFileClass());
    qoreNS->addSystemClass(initDirClass());
    qoreNS->addSystemClass(initGetOptClass());
