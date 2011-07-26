@@ -26,7 +26,14 @@
 #include <qore/intern/ModuleInfo.h>
 #include <qore/intern/AutoNamespaceList.h>
 
+#ifdef NEED_DLFCN_WRAPPER
+extern "C" {
+#endif
 #include <dlfcn.h>
+#ifdef NEED_DLFCN_WRAPPER
+}
+#endif
+
 #include <errno.h>
 #include <string.h>
 

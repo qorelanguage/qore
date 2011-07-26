@@ -184,6 +184,7 @@ libqore_la_SOURCES = \
 	QC_AutoWriteLock.cpp \
 	QC_AbstractSmartLock.cpp \
 	QC_TimeZone.cpp \
+	QC_TermIOS.cpp \
 	QoreHTTPClient.cpp \
 	minitest.cpp
 
@@ -195,9 +196,6 @@ libqore_la_SOURCES += ql_debug.cpp
 endif
 if COND_STACK_TRACE
 libqore_la_SOURCES += CallStack.cpp
-endif
-if COND_HAVE_TERMIOS
-libqore_la_SOURCES += QC_TermIOS.cpp
 endif
 if COND_NEED_GLOB
 libqore_la_SOURCES += glob.cpp

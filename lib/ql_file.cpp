@@ -39,8 +39,8 @@ static AbstractQoreNode *check_stat(unsigned code, const QoreListNode *args, Exc
    return (sbuf.st_mode & S_IFMT) == code ? boolean_true() : boolean_false();
 }
 
-static AbstractQoreNode *check_lstat(unsigned code, const QoreListNode *args, ExceptionSink *xsink) {
 #ifdef HAVE_LSTAT
+static AbstractQoreNode *check_lstat(unsigned code, const QoreListNode *args, ExceptionSink *xsink) {
    HARD_QORE_PARAM(p0, const QoreStringNode, args, 0);   
    struct stat sbuf;
    int rc;
@@ -49,11 +49,8 @@ static AbstractQoreNode *check_lstat(unsigned code, const QoreListNode *args, Ex
       return boolean_false();
    
    return (sbuf.st_mode & S_IFMT) == code ? boolean_true() : boolean_false();
-#else
-   assert(false);
-   return 0;
-#endif
 }
+#endif
 
 static AbstractQoreNode *f_is_file(const QoreListNode *args, ExceptionSink *xsink) {
    return check_stat(S_IFREG, args, xsink);

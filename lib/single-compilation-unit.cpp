@@ -164,9 +164,7 @@
 #include "QC_AutoGate.cpp"
 #include "QC_AutoReadLock.cpp"
 #include "QC_AutoWriteLock.cpp"
-#ifdef HAVE_TERMIOS_H
 #include "QC_TermIOS.cpp"
-#endif
 #include "QC_AbstractSmartLock.cpp"
 #include "QC_TimeZone.cpp"
 #ifndef HAVE_GLOB

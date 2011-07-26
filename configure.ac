@@ -40,6 +40,13 @@ else
 	AC_MSG_RESULT([yes])
 fi
 
+AC_CANONICAL_HOST
+if test "${host_os}" = "mingw32"; then
+    AC_LIBTOOL_WIN32_DLL
+else
+    AC_MSG_ERROR(oops)
+fi
+
 AC_LANG(C++)
 AC_PROG_CXX
 AC_PROG_CC
@@ -73,7 +80,6 @@ if test -n "$prefix" -a "$prefix" != "NONE"; then
    find_prefix="$prefix"
 fi
 
-#AC_CANONICAL_HOST
 # get CPU family
 case "${host_cpu}" in
    i[[3456]]86) cpu_family=i386 ;;
@@ -152,9 +158,12 @@ case "${host_os}" in
      *mingw32*) SHLIB_SUFFIX=dll
      		windows=yes
 		mingw=yes
+		need_user_dl=yes # set to make sure there's a user-provided dlfcn.h and libdl.(a|dll) available
+		# libraries to find
+		need_libs="$need_libs wsock32 ws2_32 gdi32 iconv pthread"
 		no_sig_handling=yes
 		CPPFLAGS="$CPPFLAGS -D_WIN32_WINNT=0x0501"
-		LDFLAGS="$LDFLAGS -lwsock32 -lws2_32 -lgdi32 -liconv"
+		QORE_LIB_CPPFLAGS="-DBUILDING_DLL=1"
 		OS=Windows
 		;;
      *)         AC_WARN(Unknown platform ${host_os})
@@ -424,10 +433,14 @@ find_zlib() {
 	    ZLIB_LDFLAGS="$ZLIB_LDFLAGS -lz"
 	    with_zlib_libs="$lib"
     	elif test -f "$lib/libz.a"; then
-	    if test "$lib" != "/lib" -a "$lib" != "/usr/lib"; then
-       	        ZLIB_LDFLAGS="-L$lib"
-    	    fi
-	    ZLIB_LDFLAGS="$ZLIB_LDFLAGS -lz"
+	    if test "$mingw" = yes; then
+	        ZLIB_LDFLAGS="-Wl,$lib/libz.a"
+	    else
+	        if test "$lib" != "/lib" -a "$lib" != "/usr/lib"; then
+       	            ZLIB_LDFLAGS="-L$lib"
+    	        fi
+	        ZLIB_LDFLAGS="$ZLIB_LDFLAGS -lz"
+            fi
 	    with_zlib_libs="$lib"
 	    zlib_static=1
     	fi
@@ -511,10 +524,14 @@ find_pcre() {
 	    PCRE_LDFLAGS="$PCRE_LDFLAGS -lpcre"
 	    with_pcre_libs="$lib"
     	elif test -f "$lib/libpcre.a"; then
-	    if test "$lib" != "/lib" -a "$lib" != "/usr/lib"; then
-       	        PCRE_LDFLAGS="-L$lib"
-    	    fi
-	    PCRE_LDFLAGS="$PCRE_LDFLAGS -lpcre"
+	    if test "$mingw" = yes; then
+	        PCRE_LDFLAGS="-Wl,$lib/libpcre.a"
+	    else
+	        if test "$lib" != "/lib" -a "$lib" != "/usr/lib"; then
+       	            PCRE_LDFLAGS="-L$lib"
+    	        fi
+	        PCRE_LDFLAGS="$PCRE_LDFLAGS -lpcre"
+            fi
 	    with_pcre_libs="$lib"
 	    pcre_static=1
 	elif test "$windows" = yes -a -f "$dir/bin/libpcre.${SHLIB_SUFFIX}"; then
@@ -592,7 +609,11 @@ find_bz2lib() {
 	    BZ2_LDFLAGS="$BZ2_LDFLAGS -lbz2"
        	    AC_MSG_RESULT([$lib (shared)])
     	elif test -f "$lib/libbz2.a"; then
-	    BZ2_LDFLAGS="$BZ2_LDFLAGS $lib/libbz2.a"
+            if test "$mingw" = yes; then
+		BZ2_LDFLAGS="-Wl,$lib/libbz2.a"
+	    else
+	        BZ2_LDFLAGS="$BZ2_LDFLAGS $lib/libbz2.a"
+            fi
        	    AC_MSG_RESULT([$lib (static)])
     	fi
     fi
@@ -663,10 +684,15 @@ find_openssl() {
 	    OPENSSL_LDFLAGS="$OPENSSL_LDFLAGS -lssl -lcrypto"
        	    AC_MSG_RESULT([$lib (shared)])
     	elif test -f "$lib/libssl.a" -a -f "$lib/libcrypto.a"; then
-	    if test "$lib" != "/lib" -a "$lib" != "/usr/lib"; then
-       	        OPENSSL_LDFLAGS="-L$lib"
-    	    fi
-	    OPENSSL_LDFLAGS="$OPENSSL_LDFLAGS -lssl -lcrypto"
+	    if test "$mingw" = yes; then
+	    	OPENSSL_LDFLAGS="-Wl,$lib/libssl.a -Wl,$lib/libcrypto.a"
+		#OPENSSL_LDFLAGS="-L$lib -lssl -lcrypto"
+	    else
+	        if test "$lib" != "/lib" -a "$lib" != "/usr/lib"; then
+       	            OPENSSL_LDFLAGS="-L$lib"
+    	        fi
+	        OPENSSL_LDFLAGS="$OPENSSL_LDFLAGS -lssl -lcrypto"
+            fi
        	    AC_MSG_RESULT([$lib (static)])
         elif test "$bits" = 64 -a -f "$lib/64/libssl.${SHLIB_SUFFIX}" -a -f "$lib/64/libcrypto.${SHLIB_SUFFIX}"; then
 	    OPENSSL_LDFLAGS="-L$lib/64 -lssl -lcrypto"
@@ -743,6 +769,129 @@ else
 
     CPPFLAGS="$SAVE_CPPFLAGS"
     LDFLAGS="$SAVE_LDFLAGS"
+fi
+
+set_dl_cppflags() {
+    if test "$1" != "/usr/include"; then
+        DL_CPPFLAGS=-I$1
+    fi
+}
+
+find_dl() {
+    dir="$1"
+    if test -z "$dir" -o "$dir" = "/"; then
+        dir="/"
+	lib=/lib
+	inc=/usr/include
+    else
+        lib="$dir/lib${LIBSUFFIX}"
+        inc="$dir/include"
+    fi
+
+    if test -f "$lib/libdl.${SHLIB_SUFFIX}"; then
+        if test "$lib" != "/lib" -a "$lib" != "/usr/lib"; then
+     	    DL_LDFLAGS="-L$lib"
+        fi
+	DL_LDFLAGS="$DL_LDFLAGS -ldl"
+       	AC_MSG_RESULT([$lib (shared)])
+    elif test -f "$lib/libdl.a"; then
+        if test "$mingw" = yes; then
+	    DL_LDFLAGS="-Wl,$lib/libdl.a"
+	else
+	    DL_LDFLAGS="$DL_LDFLAGS $lib/libdl.a"
+	fi
+       	AC_MSG_RESULT([$lib (static)])
+    fi
+
+    if test -z "$DL_LDFLAGS"; then
+        return
+    fi
+    AC_MSG_CHECKING([for dllib include files])
+    # try to find include files
+    if test -f "$inc/dlfcn.h"; then
+        AC_MSG_RESULT([found: $inc/dlfcn.h])
+        set_dl_cppflags $inc
+    else
+	AC_MSG_ERROR([not found])
+    fi
+
+    QORE_LIB_LDFLAGS="$QORE_LIB_LDFLAGS $DL_LDFLAGS"
+    QORE_LIB_CPPFLAGS="$QORE_LIB_CPPFLAGS $DL_CPPFLAGS"
+}
+
+# see if we can figure out where libdl is
+AC_ARG_WITH([dl-dir],
+  [AS_HELP_STRING([--with-dl-dir@<:@=DIR@:>@],
+                  [dl directory])],
+  [if test ! -d "${with_dl_dir}"; then AC_MSG_ERROR(bad value ${with_dl_dir} for --with-dl-dir); unset with_dl_dir; fi], 
+  [with_dl_dir="$DL_DIR"])
+
+# -Wl,foo.a
+#QORE_LIB_LDFLAGS="$QORE_LIB_LDFLAGS -lwsock32 -lws2_32 -lgdi32 -liconv"
+
+find_lib() {
+    libname="$1"
+    dir="$2"
+    if test -z "$dir" -o "$dir" = "/"; then
+        dir="/"
+	lib=/lib
+	inc=/usr/include
+    else
+        lib="$dir/lib${LIBSUFFIX}"
+        inc="$dir/include"
+    fi
+
+    if test -f "$lib/lib${libname}.${SHLIB_SUFFIX}"; then
+        if test "$lib" != "/lib" -a "$lib" != "/usr/lib"; then
+     	    LIB_LDFLAGS="-L$lib"
+        fi
+	LIB_LDFLAGS="$LIB_LDFLAGS -l${libname}"
+       	AC_MSG_RESULT([$lib (shared)])
+    elif test -f "$lib/lib${libname}.a"; then
+        if test "$mingw" = yes; then
+	    LIB_LDFLAGS="$LIB_LDFLAGS -Wl,$lib/lib${libname}.a"
+	else
+	    LIB_LDFLAGS="$LIB_LDFLAGS $lib/lib${libname}.a"
+	fi
+       	AC_MSG_RESULT([$lib (static)])
+    fi
+
+    if test -z "$LIB_LDFLAGS"; then
+        return
+    fi
+
+    QORE_LIB_LDFLAGS="$QORE_LIB_LDFLAGS $LIB_LDFLAGS"
+}
+
+for lib in $need_libs; do
+    AC_MSG_CHECKING([for the $lib library])
+    LIB_LDFLAG=
+    for dir in "${with_lib_prefix}" "${find_prefix}" /usr / /usr/local /opt/gnu /opt/mingw /opt/mingw32 /opt/local /sw /usr/sfw /opt/sfw; do
+      find_lib "$lib" "$dir"
+      if test -n "$LIB_LDFLAGS"; then
+         break
+      fi
+   done
+   if test -z "$LIB_LDFLAGS"; then
+      AC_MSG_ERROR([cannot find the $lib library which is needed to compile Qore for the target platform ($OS)])
+   fi    
+done
+
+if test "$need_user_dl" = yes; then
+   AC_MSG_CHECKING([for dl libraries and header files])
+   for dir in "${with_dl_dir}" "${with_lib_prefix}" "${find_prefix}" /usr / /usr/local /opt/gnu /opt/mingw /opt/mingw32 /opt/local /sw /usr/sfw /opt/sfw; do
+      find_dl $dir
+      if test -n "$DL_LDFLAGS"; then
+          break
+      fi
+   done
+   if test -z "$DL_LDFLAGS"; then
+      if test "$windows" = yes; then
+         AC_MSG_ERROR([cannot find dlfcn.h and libdl; set DL_DIR=... if available or use the --with-dl-dir=... option; a version for Windows is available at http://code.google.com/p/dlfcn-win32/downloads/list])
+      else
+	 AC_MSG_ERROR([cannot find dlfcn.h and libdl; set DL_DIR=... if available or use the --with-dl-dir=... option])
+      fi
+   fi
 fi
 
 AC_ARG_ENABLE([profile],
@@ -886,6 +1035,33 @@ if test "$ac_cv_header_fcntl_h" = yes; then
       [AC_MSG_RESULT(yes)
        AC_DEFINE(HAVE_STRUCT_FLOCK, 1, [Define to 1 if you have struct flock in fcntl.h])], 
       [AC_MSG_RESULT(no)])
+fi
+
+if test "$need_user_dl" = yes; then
+    SAVE_CPPFLAGS="$CPPFLAGS"
+    SAVE_LDFLAGS="$LDFLAGS"
+    CPPFLAGS="$CPPFLAGS $DL_CPPFLAGS"
+    LDFLAGS="$LDFLAGS $DL_LDFLAGS"
+
+   # make sure libdl is available
+   AC_MSG_CHECKING([if libdl is available])
+   AC_LINK_IFELSE([AC_LANG_PROGRAM(
+     [[#include <dlfcn.h>]],
+     [[int a = 1;]])],
+       [AC_MSG_RESULT([yes])],
+       [AC_MSG_ERROR([no; cannot link with -ldl])])
+
+   # make sure dlfcn.h header file can be parsed without 'extern "C" {}'
+   AC_MSG_CHECKING([if dlfcn.h is c++ compatible])
+   AC_LINK_IFELSE([AC_LANG_PROGRAM(
+     [[#include <dlfcn.h>]],
+     [[dlopen("tmp.dll", RTLD_LAZY|RTLD_GLOBAL);]])],
+       [AC_MSG_RESULT([yes])],
+       [AC_MSG_RESULT([no; needs wrapper])
+       AC_DEFINE([NEED_DLFCN_WRAPPER], [1], [define if dlfcn.h is not c++ compatible])])
+
+   CPPFLAGS="$SAVE_CPPFLAGS"
+   LDFLAGS="$SAVE_LDFLAGS"
 fi
 
 # Checks for typedefs, structures, and compiler characteristics.

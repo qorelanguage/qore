@@ -73,7 +73,7 @@ enum qore_license_t { QL_GPL = 0,         //!< code to be used under the GPL lic
 		      QL_LGPL = 1         //!< code to be used under the LGPL license
 };
 
-#ifdef _MSC_VER
+#if defined _MSC_VER || ((defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__)
   #ifdef BUILDING_DLL
     #define DLLEXPORT __declspec(dllexport)
   #else
