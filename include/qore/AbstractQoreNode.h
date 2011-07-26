@@ -56,25 +56,25 @@ private:
    /** This function is called by the normal class function "getAsBool()"
        @return the value of the object interpreted as a boolean
    */
-   DLLEXPORT virtual bool getAsBoolImpl() const { return false; }
+   DLLLOCAL virtual bool getAsBoolImpl() const { return false; }
 
    //! default implementation, returns 0
    /** This function is called by the normal class function "getAsInt()"
        @return the value of the object interpreted as an integer
    */
-   DLLEXPORT virtual int getAsIntImpl() const { return 0; }
+   DLLLOCAL virtual int getAsIntImpl() const { return 0; }
 
    //! default implementation, returns 0
    /** This function is called by the normal class function "getAsBigInt()"
        @return the value of the object interpreted as a 64-bit integer
    */
-   DLLEXPORT virtual int64 getAsBigIntImpl() const { return 0; }
+   DLLLOCAL virtual int64 getAsBigIntImpl() const { return 0; }
 
    //! default implementation, returns 0.0
    /** This function is called by the normal class function "getAsFloat()"
        @return the value of the object interpreted as a floating-point number
    */
-   DLLEXPORT virtual double getAsFloatImpl() const { return 0.0; }
+   DLLLOCAL virtual double getAsFloatImpl() const { return 0.0; }
 
    //! evaluates the value and returns the result
    /** if a qore-language exception occurs, then the result returned must be 0.
@@ -373,7 +373,7 @@ public:
    DLLEXPORT void ref() const;
 
    //! returns true if the object is reference-counted
-   DLLEXPORT bool isReferenceCounted() const { return !there_can_be_only_one; }
+   DLLLOCAL bool isReferenceCounted() const { return !there_can_be_only_one; }
 
    //! for use by parse types to initialize them for execution during stage 1 parsing
    /** This function should only be overridden by types that can appear in
@@ -401,7 +401,7 @@ public:
    DLLLOCAL SimpleQoreNode(qore_type_t t, bool n_value, bool n_needs_eval, bool n_there_can_be_only_one = false) : AbstractQoreNode(t, n_value, n_needs_eval, n_there_can_be_only_one) { }
 
    //! copy constructor
-   DLLEXPORT SimpleQoreNode(const SimpleQoreNode &) : AbstractQoreNode(type, value, needs_eval_flag, there_can_be_only_one) { }
+   DLLLOCAL SimpleQoreNode(const SimpleQoreNode &) : AbstractQoreNode(type, value, needs_eval_flag, there_can_be_only_one) { }
 
    //! decrements the reference count and deletes the object when references = 0
    /**

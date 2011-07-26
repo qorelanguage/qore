@@ -178,39 +178,39 @@ protected:
 
 public:
    //! creates the object and grabs the lock
-   DLLEXPORT SafeLocker(QoreThreadLock *l) : lck(l) {
+   DLLLOCAL SafeLocker(QoreThreadLock *l) : lck(l) {
       lck->lock();
       locked = true;
    }
 
    //! creates the object and grabs the lock
-   DLLEXPORT SafeLocker(QoreThreadLock &l) : lck(&l) {
+   DLLLOCAL SafeLocker(QoreThreadLock &l) : lck(&l) {
       lck->lock();
       locked = true;
    }
 
    //! destroys the object and unlocks the lock if it's held
-   DLLEXPORT ~SafeLocker() {
+   DLLLOCAL ~SafeLocker() {
       if (locked)
          lck->unlock();
    }
 
    //! locks the object and updates the locked flag, assumes that the lock is not already held
-   DLLEXPORT void lock() {
+   DLLLOCAL void lock() {
       assert(!locked);
       lck->lock();
       locked = true;
    }
 
    //! unlocks the object and updates the locked flag, assumes that the lock is held
-   DLLEXPORT void unlock() {
+   DLLLOCAL void unlock() {
       assert(locked);
       locked = false;
       lck->unlock();
    }
 
    //! will not unlock the lock when the destructor is run; do not use any other functions of this class after calling this function
-   DLLEXPORT void stay_locked() {
+   DLLLOCAL void stay_locked() {
       assert(locked);
       locked = false;
    }

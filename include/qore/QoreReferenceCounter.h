@@ -50,7 +50,7 @@ public:
    /**
       @return returns the current reference count
    */
-   DLLEXPORT int reference_count() const { 
+   DLLLOCAL int reference_count() const { 
       return references; 
    }
 
@@ -58,7 +58,7 @@ public:
    /**
       @return returns true if the reference count is 1
    */
-   DLLEXPORT bool is_unique() const { 
+   DLLLOCAL bool is_unique() const { 
       return references == 1; 
    }
 

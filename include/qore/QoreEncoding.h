@@ -153,22 +153,22 @@ public:
       }
       
       //! returns true if the encoding is a multi-byte encoding
-      DLLEXPORT bool isMultiByte() const {
+      DLLLOCAL bool isMultiByte() const {
 	 return (bool)flength;
       }
 
       //! returns the string code (ex: "UTF-8") for the encoding
-      DLLEXPORT const char *getCode() const {
+      DLLLOCAL const char *getCode() const {
 	 return code.c_str();
       }
 
       //! returns the description for the encoding
-      DLLEXPORT const char *getDesc() const {
+      DLLLOCAL const char *getDesc() const {
 	 return desc.empty() ? "<no description available>" : desc.c_str();
       }
 
       //! returns the maximum character width in bytes for the encoding
-      DLLEXPORT int getMaxCharWidth() const {
+      DLLLOCAL int getMaxCharWidth() const {
 	  return maxwidth;
       }
 };

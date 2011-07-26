@@ -157,8 +157,12 @@ case "${host_os}" in
      		windows=yes
 		mingw=yes
 		need_user_dl=yes # set to make sure there's a user-provided dlfcn.h and libdl.(a|dll) available
+		# DEBUG
+		make_dll=yes
 		# libraries to find
 		need_libs="$need_libs wsock32 ws2_32 gdi32 iconv pthread"
+		# DEBUG
+		need_libs="$need_libs user32 gdi32 iberty msvcrt advapi32 mingwex moldname kernel32"
 		no_sig_handling=yes
 		CPPFLAGS="$CPPFLAGS -D_WIN32_WINNT=0x0501"
 		QORE_LIB_CPPFLAGS="-DBUILDING_DLL=1"
@@ -431,8 +435,8 @@ find_zlib() {
 	    ZLIB_LDFLAGS="$ZLIB_LDFLAGS -lz"
 	    with_zlib_libs="$lib"
     	elif test -f "$lib/libz.a"; then
-	    if test "$mingw" = yes; then
-	        ZLIB_LDFLAGS="-Wl,$lib/libz.a"
+	    if test "$mingw" = yes -a "$make_dll" = yes; then
+	    	ZLIB_LDFLAGS="-Wl,$lib/libz.a"
 	    else
 	        if test "$lib" != "/lib" -a "$lib" != "/usr/lib"; then
        	            ZLIB_LDFLAGS="-L$lib"
@@ -522,7 +526,7 @@ find_pcre() {
 	    PCRE_LDFLAGS="$PCRE_LDFLAGS -lpcre"
 	    with_pcre_libs="$lib"
     	elif test -f "$lib/libpcre.a"; then
-	    if test "$mingw" = yes; then
+	    if test "$mingw" = yes -a "$make_dll" = yes; then
 	        PCRE_LDFLAGS="-Wl,$lib/libpcre.a"
 	    else
 	        if test "$lib" != "/lib" -a "$lib" != "/usr/lib"; then
@@ -607,10 +611,10 @@ find_bz2lib() {
 	    BZ2_LDFLAGS="$BZ2_LDFLAGS -lbz2"
        	    AC_MSG_RESULT([$lib (shared)])
     	elif test -f "$lib/libbz2.a"; then
-            if test "$mingw" = yes; then
-		BZ2_LDFLAGS="-Wl,$lib/libbz2.a"
+            if test "$mingw" = yes -a "$make_dll" = yes; then
+	    	BZ2_LDFLAGS="-Wl,$lib/libbz2.a"
 	    else
-	        BZ2_LDFLAGS="$BZ2_LDFLAGS $lib/libbz2.a"
+	        BZ2_LDFLAGS="$lib/libbz2.a"
             fi
        	    AC_MSG_RESULT([$lib (static)])
     	fi
@@ -682,7 +686,7 @@ find_openssl() {
 	    OPENSSL_LDFLAGS="$OPENSSL_LDFLAGS -lssl -lcrypto"
        	    AC_MSG_RESULT([$lib (shared)])
     	elif test -f "$lib/libssl.a" -a -f "$lib/libcrypto.a"; then
-	    if test "$mingw" = yes; then
+	    if test "$mingw" = yes -a "$make_dll" = yes; then
 	    	OPENSSL_LDFLAGS="-Wl,$lib/libssl.a -Wl,$lib/libcrypto.a"
 		#OPENSSL_LDFLAGS="-L$lib -lssl -lcrypto"
 	    else
@@ -793,7 +797,7 @@ find_dl() {
 	DL_LDFLAGS="$DL_LDFLAGS -ldl"
        	AC_MSG_RESULT([$lib (shared)])
     elif test -f "$lib/libdl.a"; then
-        if test "$mingw" = yes; then
+        if test "$mingw" = yes -a "$make_dll" = yes; then
 	    DL_LDFLAGS="-Wl,$lib/libdl.a"
 	else
 	    DL_LDFLAGS="$DL_LDFLAGS $lib/libdl.a"
@@ -824,9 +828,6 @@ AC_ARG_WITH([dl-dir],
   [if test ! -d "${with_dl_dir}"; then AC_MSG_ERROR(bad value ${with_dl_dir} for --with-dl-dir); unset with_dl_dir; fi], 
   [with_dl_dir="$DL_DIR"])
 
-# -Wl,foo.a
-#QORE_LIB_LDFLAGS="$QORE_LIB_LDFLAGS -lwsock32 -lws2_32 -lgdi32 -liconv"
-
 find_lib() {
     libname="$1"
     dir="$2"
@@ -846,10 +847,11 @@ find_lib() {
 	LIB_LDFLAGS="$LIB_LDFLAGS -l${libname}"
        	AC_MSG_RESULT([$lib (shared)])
     elif test -f "$lib/lib${libname}.a"; then
-        if test "$mingw" = yes; then
-	    LIB_LDFLAGS="$LIB_LDFLAGS -Wl,$lib/lib${libname}.a"
+        if test "$mingw" = yes -a "$make_dll" = yes; then
+	    LIB_LDFLAGS="-Wl,$lib/lib${libname}.a"
+	    #LIB_LDFLAGS="$LIB_LDFLAGS -l${libname}"
 	else
-	    LIB_LDFLAGS="$LIB_LDFLAGS $lib/lib${libname}.a"
+	    LIB_LDFLAGS="$lib/lib${libname}.a"
 	fi
        	AC_MSG_RESULT([$lib (static)])
     fi
@@ -860,20 +862,6 @@ find_lib() {
 
     QORE_LIB_LDFLAGS="$QORE_LIB_LDFLAGS $LIB_LDFLAGS"
 }
-
-for lib in $need_libs; do
-    AC_MSG_CHECKING([for the $lib library])
-    LIB_LDFLAG=
-    for dir in "${with_lib_prefix}" "${find_prefix}" /usr / /usr/local /opt/gnu /opt/mingw /opt/mingw32 /opt/local /sw /usr/sfw /opt/sfw; do
-      find_lib "$lib" "$dir"
-      if test -n "$LIB_LDFLAGS"; then
-         break
-      fi
-   done
-   if test -z "$LIB_LDFLAGS"; then
-      AC_MSG_ERROR([cannot find the $lib library which is needed to compile Qore for the target platform ($OS)])
-   fi    
-done
 
 if test "$need_user_dl" = yes; then
    AC_MSG_CHECKING([for dl libraries and header files])
@@ -891,6 +879,20 @@ if test "$need_user_dl" = yes; then
       fi
    fi
 fi
+
+for lib in $need_libs; do
+    AC_MSG_CHECKING([for the $lib library])
+    for dir in "${with_lib_prefix}" "${find_prefix}" /usr / /usr/local /opt/gnu /opt/mingw /opt/mingw32 /opt/local /sw /usr/sfw /opt/sfw; do
+      LIB_LDFLAG=
+      find_lib "$lib" "$dir"
+      if test -n "$LIB_LDFLAGS"; then
+         break
+      fi
+   done
+   if test -z "$LIB_LDFLAGS"; then
+      AC_MSG_ERROR([cannot find the $lib library which is needed to compile Qore for the target platform ($OS)])
+   fi    
+done
 
 AC_ARG_ENABLE([profile],
      [AS_HELP_STRING([--enable-profile],
@@ -1340,12 +1342,13 @@ fi
 AC_SUBST([BUILD_TYPE])
 
 # set up flags
-QORE_LIB_CXXFLAGS="`echo $QORE_LIB_CXXFLAGS $CXXFLAGS -lm|sed 's/  / /g'`"
+QORE_LIB_CXXFLAGS="`echo $QORE_LIB_CXXFLAGS $CXXFLAGS -lm|sed 's/ +/ /g'`"
 AC_SUBST([QORE_LIB_CXXFLAGS])
 
-QORE_LIB_LDFLAGS="`echo $QORE_LIB_LDFLAGS $LDFLAGS -lm|sed 's/  / /g'`"
+QORE_LIB_LDFLAGS="`echo $QORE_LIB_LDFLAGS $LDFLAGS -lm|sed 's/ +/ /g'`"
 AC_SUBST([QORE_LIB_LDFLAGS])
-QORE_LIB_CPPFLAGS="`echo $QORE_LIB_CPPFLAGS $CPPFLAGS -D_QORE_LIB_INTERN|sed 's/  / /g'`"
+
+QORE_LIB_CPPFLAGS="`echo $QORE_LIB_CPPFLAGS $CPPFLAGS -D_QORE_LIB_INTERN|sed 's/ +/ /g'`"
 QORE_LIB_CPPFLAGS="$QORE_LIB_CPPFLAGS -DMODULE_DIR=\\\"${myprefix}/lib${LIBSUFFIX}/${mypkglibdir}\\\""
 AC_SUBST([QORE_LIB_CPPFLAGS])
 if test -n "$QORE_LIB_CXXFLAGS"; then

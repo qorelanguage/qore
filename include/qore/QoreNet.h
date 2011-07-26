@@ -89,7 +89,7 @@ public:
    DLLEXPORT int getInfo(ExceptionSink *xsink, const char *node, const char *service, int family = Q_AF_UNSPEC, int flags = 0, int socktype = Q_SOCK_STREAM, int protocol = 0);
 
    //! returns the struct addrinfo * being managed (may by 0)
-   DLLEXPORT struct addrinfo *getAddrInfo() const {
+   DLLLOCAL struct addrinfo *getAddrInfo() const {
       return ai;
    }
    

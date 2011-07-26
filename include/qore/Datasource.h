@@ -166,13 +166,13 @@ public:
 
    //! returns the private DBI-specific data structure for this object
    template <typename T>
-   DLLEXPORT T *getPrivateData() const {
+   DLLLOCAL T *getPrivateData() const {
       return reinterpret_cast<T*>(getPrivateData());
    }
 
    //! returns the private DBI-specific data structure for this object
    template <typename T>
-   DLLEXPORT T &getPrivateDataRef() const {
+   DLLLOCAL T &getPrivateDataRef() const {
       return *getPrivateData<T>();
    }
 

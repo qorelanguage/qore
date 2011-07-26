@@ -78,7 +78,7 @@ public:
       @param l the QoreThreadLock to wait on
       @return 0 for success, non-zero for error
    */
-   DLLEXPORT int wait(QoreThreadLock *l) { 
+   DLLLOCAL int wait(QoreThreadLock *l) { 
       return wait(&l->ptm_lock);
    }
    
@@ -88,7 +88,7 @@ public:
       @param timeout_ms the timeout value is milliseconds
       @return a non-zero return value indicates a timeout occured
    */
-   DLLEXPORT int wait(QoreThreadLock *l, int timeout_ms) {
+   DLLLOCAL int wait(QoreThreadLock *l, int timeout_ms) {
       return wait(&l->ptm_lock, timeout_ms); 
    }
    
@@ -97,7 +97,7 @@ public:
       @param l the QoreThreadLock to wait on
       @return 0 for success, non-zero for error
    */
-   DLLEXPORT int wait(QoreThreadLock &l) {
+   DLLLOCAL int wait(QoreThreadLock &l) {
       return wait(&l);
    }
    
@@ -107,7 +107,7 @@ public:
       @param timeout_ms the timeout value is milliseconds
       @return a non-zero return value indicates a timeout occured
    */
-   DLLEXPORT int wait(QoreThreadLock &l, int timeout_ms) { 
+   DLLLOCAL int wait(QoreThreadLock &l, int timeout_ms) { 
       return wait(&l, timeout_ms);
    }
 };

@@ -33,16 +33,14 @@
 /** C++ constructor code for Qore classes must set private data of the class
     against the class ID using QoreObject::setPrivate()
  */
-class AbstractPrivateData : public QoreReferenceCounter
-{
+class AbstractPrivateData : public QoreReferenceCounter {
    protected:
       //! as these objects are reference counted, the destructor should be called only when the reference count = 0 and not manually
-      DLLEXPORT virtual ~AbstractPrivateData() {}
+      DLLLOCAL virtual ~AbstractPrivateData() {}
 
    public:
       //! increments the reference count of the object
-      DLLEXPORT void ref()
-      {
+      DLLLOCAL void ref() {
 	 ROreference();
       }
 
@@ -50,15 +48,13 @@ class AbstractPrivateData : public QoreReferenceCounter
       /**
 	 @param xsink any Qore-language exception information is stored here
        */
-      DLLEXPORT virtual void deref(class ExceptionSink *xsink)
-      {
+      DLLLOCAL virtual void deref(class ExceptionSink *xsink) {
 	 if (ROdereference())
 	    delete this;
       }
 
       //! decrements the reference count of the object without the possibility of throwing a Qore-language exception
-      DLLEXPORT virtual void deref()
-      {
+      DLLLOCAL virtual void deref() {
 	 if (ROdereference())
 	    delete this;
       }
