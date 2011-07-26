@@ -105,8 +105,8 @@ QorePThreadAttr ta_default;
 #if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
 pthread_t PTHREAD_NA, PTHREAD_AVAIL;
 #else
-#define PTHREAD_NA (-1L)
-#define PTHREAD_AVAIL (0L)
+#define PTHREAD_NA ((pthread_t)(-1L))
+#define PTHREAD_AVAIL ((pthread_t)(0L))
 #endif
 
 class tid_node {
@@ -145,7 +145,7 @@ public:
 #if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__  
       if (ptid.p != PTHREAD_NA.p) {
 #else
-         if ((int64)ptid != PTHREAD_NA) {
+         if (ptid != PTHREAD_NA) {
 #endif
 	 if (!joined)
 	    pthread_detach(ptid);
