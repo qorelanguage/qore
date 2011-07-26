@@ -69,6 +69,7 @@ public:
    DLLLOCAL void parse();
    DLLLOCAL void parseRT(const QoreString *pattern, ExceptionSink *xsink);
    DLLLOCAL bool exec(const QoreString *target, ExceptionSink *xsink) const;
+   DLLLOCAL bool exec(const char *str, size_t len) const;
    DLLLOCAL QoreListNode *extractSubstrings(const QoreString *target, ExceptionSink *xsink) const;
    // caller owns QoreString returned
    DLLLOCAL QoreString *getString();

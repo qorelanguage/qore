@@ -111,12 +111,16 @@ bool QoreRegexNode::exec(const QoreString *target, ExceptionSink *xsink) const {
    TempEncodingHelper t(target, QCS_UTF8, xsink);
    if (!t)
       return false;
-   
+
+   return exec(t->getBuffer(), t->strlen());
+}
+
+bool QoreRegexNode::exec(const char *str, size_t len) const {   
    // the PCRE docs say that if we don't send an ovector here the library may have to malloc
    // memory, so, even though we don't need the results, we include the vector to avoid 
    // extraneous malloc()s
    int ovector[OVECCOUNT];
-   int rc = pcre_exec(p, 0, t->getBuffer(), t->strlen(), 0, 0, ovector, OVECCOUNT);
+   int rc = pcre_exec(p, 0, str, len, 0, 0, ovector, OVECCOUNT);
    //printd(0, "QoreRegexNode::exec(%s =~ /%s/ = %d\n", target->getBuffer(), str->getBuffer(), rc);   
    return rc >= 0;
 }

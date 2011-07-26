@@ -28,6 +28,8 @@
 #include <string>
 #include <vector>
 
+#include <qore/intern/QoreRegexNode.h>
+
 typedef int (*glob_error_t)(const char *, int);
 
 #ifdef _WIN32
@@ -62,8 +64,33 @@ public:
       HANDLE h = ::FindFirstFile(dir.getBuffer(), &pfd);
       ON_BLOCK_EXIT(::FindClose, h);
 
+      // make regex pattern
+      QoreString str(q_basenameptr(pattern));
+      str.replaceAll(".", "\\.");
+      str.replaceAll("?", ".");
+      str.replaceAll("*", ".*");
+      str.prepend("^");
+      str.concat("$");
+
+      ExceptionSink xsink;
+      SimpleRefHolder<QoreRegexNode> qrn(new QoreRegexNode(&str, PCRE_CASELESS, &xsink));
+      if (xsink)
+	 return -1;
+
       while (FindNextFile(h, &pfd)) {
-	 printd(0, "QoreGlobWin::set(pattern='%s') %s\n", pattern, pfd.cFileName);
+	 if (qrn->exec(pfd.cFileName, strlen(pfd.cFileName))) {
+	    names.push_back(pfd.cFileName);
+	    //printd(5, "QoreGlobWin::set(pattern='%s') dir='%s' regex='%s' %s MATCHED\n", pattern, dir.getBuffer(), str.getBuffer(), pfd.cFileName);
+	 }
+      }
+
+      if (names.size()) {
+	 gl_pathc = names.size();
+
+	 gl_pathv = (const char **)malloc(sizeof(char *) * names.size());
+	 for (unsigned i = 0; i < names.size(); ++i) {
+	    gl_pathv[i] = names[i].c_str();
+	 }
       }
 
       return 0;
