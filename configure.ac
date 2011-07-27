@@ -151,6 +151,7 @@ case "${host_os}" in
      *cygwin*)  SHLIB_SUFFIX=dll
      		CPPFLAGS=-mwin32
 		windows=yes
+		# turn off signal handling for cygwin; cygwin supports it, but it's emulated/slow/non-native
 		no_sig_handling=yes
      		;;
      *mingw32*) SHLIB_SUFFIX=dll
@@ -161,12 +162,29 @@ case "${host_os}" in
 		make_dll=yes
 		# libraries to find
 		need_libs="$need_libs wsock32 ws2_32 gdi32 iconv pthread"
-		# DEBUG
+		# DEBUG: cannot create dll without these libraries for some reason
 		need_libs="$need_libs user32 gdi32 iberty msvcrt advapi32 mingwex moldname kernel32"
+		# turn off signal handling for windows
 		no_sig_handling=yes
+		# have to set _WIN32_WINNT level so that some networking APIs are available
 		CPPFLAGS="$CPPFLAGS -D_WIN32_WINNT=0x0501"
+		# have to set a flag when building the library so symbols are exported correctly
 		QORE_LIB_CPPFLAGS="-DBUILDING_DLL=1"
+		# make sure OS is set to Windows when cross-compiling
 		OS=Windows
+		# set LIB_PREFIX if not already set
+		if test -z "$LIB_PREFIX"; then
+   		   AC_MSG_CHECKING([for mingw32 library prefix])
+		   cc_loc=`which $CXX|head -1`
+		   mingw_base=`dirname $cc_loc|sed 's/\/@<:@^/@:>@*$//'`
+		   cc_targ=`echo $CXX|sed s/-g++$//`
+		   if test -d $mingw_base/$cc_targ; then
+		      LIB_PREFIX=$mingw_base/$cc_targ
+		      AC_MSG_RESULT([$LIB_PREFIX])
+		   else
+		      AC_MSG_RESULT([not found])
+		   fi
+		fi
 		;;
      *)         AC_WARN(Unknown platform ${host_os})
      		;;
