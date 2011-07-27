@@ -452,11 +452,11 @@ find_zlib() {
     	    fi
 	    ZLIB_LDFLAGS="$ZLIB_LDFLAGS -lz"
 	    with_zlib_libs="$lib"
-    	elif test -f "$lib/libz.a"; then
+    	elif test -f "$lib/libz.a"; then	
 	    if test "$mingw" = yes -a "$make_dll" = yes; then
 	    	ZLIB_LDFLAGS="-Wl,$lib/libz.a"
 	    else
-	        if test "$lib" != "/lib" -a "$lib" != "/usr/lib"; then
+		if test "$lib" != "/lib" -a "$lib" != "/usr/lib"; then
        	            ZLIB_LDFLAGS="-L$lib"
     	        fi
 	        ZLIB_LDFLAGS="$ZLIB_LDFLAGS -lz"

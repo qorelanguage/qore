@@ -847,7 +847,7 @@ struct tm *q_gmtime(const time_t *clock, struct tm *tms) {
 
 // thread-safe basename function (resulting pointer must be free()ed)
 char *q_basename(const char *path) {
-   const char *p = strrchr(path, '/');
+   const char *p = strrchr(path, QORE_DIR_SEP);
    if (!p)
       return strdup(path);
    return strdup(p + 1);
@@ -855,7 +855,7 @@ char *q_basename(const char *path) {
 
 // returns a pointer within the same string
 char *q_basenameptr(const char *path) {
-   const char *p = strrchr(path, '/');
+   const char *p = strrchr(path, QORE_DIR_SEP);
    if (!p)
       return (char *)path;
    return (char *)p + 1;   
@@ -863,10 +863,10 @@ char *q_basenameptr(const char *path) {
 
 // thread-safe basename function (resulting pointer must be free()ed)
 char *q_dirname(const char *path) {
-   const char *p = strrchr(path, '/');
+   const char *p = strrchr(path, QORE_DIR_SEP);
    if (!p || p == path) {
       char *x = (char *)malloc(sizeof(char) * 2);
-      x[0] = !p ? '.' : '/';
+      x[0] = !p ? '.' : QORE_DIR_SEP;
       x[1] = '\0';
       return x;
    }

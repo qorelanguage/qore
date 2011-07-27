@@ -507,7 +507,7 @@ QoreStringNode *qore_load_module_intern(const char *name, QoreProgram *pgm, mod_
    QoreStringNode *errstr;
 
    // see if this is actually a path
-   if (strchr(name, '/')) {
+   if (strchr(name, QORE_DIR_SEP)) {
       if ((errstr = qore_load_module_from_path(name, 0, &mi, pgm)))
 	 return errstr;
 
@@ -534,7 +534,7 @@ QoreStringNode *qore_load_module_intern(const char *name, QoreProgram *pgm, mod_
       // try to find module with supported api tags
       for (unsigned ai = 0; ai <= qore_mod_api_list_len; ++ai) {
 	 str.clear();
-	 str.sprintf("%s/%s", (*w).c_str(), name);
+	 str.sprintf("%s" QORE_DIR_SEP_STR "%s", (*w).c_str(), name);
 
 	 // make new extension string
 	 if (ai < qore_mod_api_list_len)
