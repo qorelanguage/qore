@@ -84,6 +84,14 @@ void qore_init(qore_license_t license, const char *def_charset, bool show_module
 
    // initialize static system namespaces
    staticSystemNamespace.init();
+
+#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__ 
+   WORD wsver = MAKEWORD(2, 2);
+   WSADATA wsd;
+   int err = WSAStartup(wsver, &wsd);
+   if (err)
+      printf("qore_init(): WSAStartup() failed with error: %d; sockets will not be available\n", err);
+#endif
 }
 
 // NOTE: we do not cleanup in reverse initialization order
@@ -96,6 +104,10 @@ void qore_cleanup() {
 
    // delete static system namespaces
    staticSystemNamespace.purge();
+
+#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__ 
+   WSACleanup();
+#endif
 
 #ifdef HAVE_SIGNAL_HANDLING
    // stop signal manager
