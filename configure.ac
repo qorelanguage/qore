@@ -159,11 +159,11 @@ case "${host_os}" in
 		mingw=yes
 		need_user_dl=yes # set to make sure there's a user-provided dlfcn.h and libdl.(a|dll) available
 		# DEBUG
-		make_dll=yes
+		#make_dll=no
 		# libraries to find
 		need_libs="$need_libs wsock32 ws2_32 gdi32 iconv pthread"
 		# DEBUG: cannot create dll without these libraries for some reason
-		need_libs="$need_libs user32 gdi32 iberty msvcrt advapi32 mingwex moldname kernel32"
+		#need_libs="$need_libs user32 gdi32 iberty msvcrt advapi32 mingwex moldname kernel32"
 		# turn off signal handling for windows
 		no_sig_handling=yes
 		# have to set _WIN32_WINNT level so that some networking APIs are available
@@ -1419,9 +1419,9 @@ show_library_feature "runtime thread stack tracing" $enable_runtime_thread_stack
 echo
 echo "*** MODULES DELIVERED SEPARATELY - SEE 'README-MODULES' FOR MORE INFO ***"
 
-# hack to use our libtool if on HP-UX to enable static libs to be linked in to modules
-# also to allow 64-bit libraries to be linked to modules
-if test "$OS" = "HP-UX" ; then
+# hack to use our libtool if on HP-UX and mingw to enable static libs to be linked in to modules
+# on HP-UX, also to allow 64-bit libraries to be linked to modules
+if test "$OS" = "HP-UX" -o "$mingw" = yes; then
    # backup generated libtool
    if test ! -e libtool.orig ; then
       cp libtool libtool.orig
@@ -1430,7 +1430,7 @@ if test "$OS" = "HP-UX" ; then
    sed "s/-ldl//g" libtool > libtool.tmp
    # ensure static libs can be linked to modules
    sed "s/valid_a_lib=no/valid_a_lib=yes/g" libtool.tmp > libtool.tmp.1
-   # ensure that valid 64-bit libraries are not recognized as invalid
+   # ensure static libs can be linked to modules and ensure that valid 64-bit libraries are not recognized as invalid
    sed "s/deplibs_check_method=.*/deplibs_check_method=pass_all/g" libtool.tmp.1 > libtool
    # delete temporary files
    rm -f libtool.tmp libtool.tmp.1
