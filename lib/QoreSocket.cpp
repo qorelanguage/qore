@@ -164,7 +164,7 @@ static int sock_get_raw_error() {
 static int sock_get_error() {
    return errno;
 }
-static void qore_socket_error(int rc, ExceptionSink *xsink, const char *err, const char *cdesc) {
+static void qore_socket_error_intern(int rc, ExceptionSink *xsink, const char *err, const char *cdesc) {
    if (!xsink)
       return;
    xsink->raiseErrnoException(err, rc, cdesc);
