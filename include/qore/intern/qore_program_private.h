@@ -551,7 +551,7 @@ public:
 	 const char *p = q_basenameptr(path);
 	 if (p == path) {
 	    script_name = path;
-	    script_dir = "./";
+	    script_dir = "." QORE_DIR_SEP_STR;
 	    script_path = script_dir + script_name;
 	 }
 	 else {

@@ -192,13 +192,15 @@ void parseException(const char *err, const char *fmt, ...) {
 }
 
 // returns 1 for success
-static inline int tryIncludeDir(class QoreString *dir, const char *file) {
+static inline int tryIncludeDir(QoreString *dir, const char *file) {
+   //printd(5, "tryIncludeDir(dir='%s', file='%s')\n", dir->getBuffer(), file);
+
    // make fully-justified path
-   if (dir->strlen() && dir->getBuffer()[dir->strlen() - 1] != '/')
-      dir->concat('/');
+   if (dir->strlen() && dir->getBuffer()[dir->strlen() - 1] != QORE_DIR_SEP)
+      dir->concat(QORE_DIR_SEP);
    dir->concat(file);
    struct stat sb;
-   //printd(5, "trying \"%s\"\n", dir->getBuffer());
+   //printd(5, "tryIncludeDir() trying \"%s\"\n", dir->getBuffer());
    return !stat(dir->getBuffer(), &sb);
 }
 
@@ -216,6 +218,14 @@ QoreString *findFileInPath(const char *file, const char *path) {
    // try each directory
    while (char *p = strchr(idir, ':')) {
       if (p != idir) {
+#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+	 // do not assume ':' separates paths on windows if it's the second character in a path
+	 if (p == idir + 1) {
+	    p = strchr(p + 1, ':');
+	    if (!p)
+	       break;
+	 }
+#endif
 	 *p = '\0';
 	 TempString str(new QoreString(idir));
 	 if (tryIncludeDir(*str, file))
@@ -239,7 +249,7 @@ QoreString *findFileInEnvPath(const char *file, const char *varname) {
    //printd(5, "findFileInEnvPath(file=%s var=%s)\n", file, varname);
 
    // if the file is an absolute path, then return it
-   if (file[0] == '/')
+   if (file[0] == QORE_DIR_SEP)
       return new QoreString(file);
 
    // get path from environment

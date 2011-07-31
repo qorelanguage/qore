@@ -145,7 +145,7 @@ static AbstractQoreNode *DIR_mkdir(QoreObject *self, Dir *d, const QoreListNode 
 
    // check if there is a path delimiter in
    const char *dname = p0->getBuffer();
-   if (strchr(dname, '/')) {
+   if (strchr(dname, QORE_DIR_SEP)) {
      xsink->raiseException("DIR-MKDIR-PARAMETER-ERROR", "only single, direct subdirectories are allowed");
      return 0;
    }
@@ -163,7 +163,7 @@ static AbstractQoreNode *DIR_rmdir(QoreObject *self, Dir *d, const QoreListNode 
   
    // check if there is a path delimiter in
    const char *dname = p0->getBuffer();  
-   if (strchr(dname, '/')) {
+   if (strchr(dname, QORE_DIR_SEP)) {
       xsink->raiseException("DIR-RMDIR-PARAMETER-ERROR", "only direct subdirectories are allowed");
       return 0;
    }
@@ -232,8 +232,8 @@ static AbstractQoreNode *DIR_openFile(QoreObject *self, Dir *d, const QoreListNo
 
    // check if there is a path delimiter in
    const char *fname = p0->getBuffer();  
-   if (strchr(fname, '/')) {
-      xsink->raiseException("DIR-OPENFILE-PARAMETER-ERROR", "only filenames without path (i.e. without '/' characters) are allowed");
+   if (strchr(fname, QORE_DIR_SEP)) {
+      xsink->raiseException("DIR-OPENFILE-PARAMETER-ERROR", "only filenames without path (i.e. without '%c' characters) are allowed", QORE_DIR_SEP);
       return 0;
    }
   
@@ -265,8 +265,8 @@ static AbstractQoreNode *DIR_openDir(QoreObject *self, Dir *d, const QoreListNod
 
    // check if there is a path delimiter in
    const char *dirname = p0->getBuffer();  
-   if (strchr(dirname, '/')) {
-      xsink->raiseException("DIR-OPENDIR-PARAMETER-ERROR", "only direct directory names without path (i.e. without '/' characters) are allowed");
+   if (strchr(dirname, QORE_DIR_SEP)) {
+      xsink->raiseException("DIR-OPENDIR-PARAMETER-ERROR", "only direct directory names without path (i.e. without '%c' characters) are allowed", QORE_DIR_SEP);
       return 0;
    }
    
@@ -288,8 +288,8 @@ static AbstractQoreNode *DIR_removeFile(QoreObject *self, Dir *d, const QoreList
 
    // check if there is a path delimiter in
    const char *fname = p0->getBuffer();  
-   if (strchr(fname, '/')) {
-      xsink->raiseException("DIR-REMOVEFILE-PARAMETER-ERROR", "only filenames without path (i.e. without '/' characters) are allowed");
+   if (strchr(fname, QORE_DIR_SEP)) {
+      xsink->raiseException("DIR-REMOVEFILE-PARAMETER-ERROR", "only filenames without path (i.e. without '%c' characters) are allowed", QORE_DIR_SEP);
       return 0;
    }
 

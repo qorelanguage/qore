@@ -695,7 +695,7 @@ QoreHashNode *parseDatasource(const char *ds, ExceptionSink *xsink) {
    }
 
    bool has_pass = false;
-   p = strchr(str, '/');
+   p = strchr(str, QORE_DIR_SEP);
    if (p) {
       *p = '\0';
       if (*str)

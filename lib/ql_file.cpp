@@ -107,8 +107,8 @@ static AbstractQoreNode *f_is_link(const QoreListNode *args, ExceptionSink *xsin
 }
 
 static AbstractQoreNode *f_is_readable(const QoreListNode *args, ExceptionSink *xsink) {
+   const QoreStringNode *p0 = HARD_QORE_STRING(args, 0);
 #ifdef HAVE_PWD_H
-   HARD_QORE_PARAM(p0, const QoreStringNode, args, 0);   
    
    struct stat sbuf;
    int rc;
@@ -124,7 +124,25 @@ static AbstractQoreNode *f_is_readable(const QoreListNode *args, ExceptionSink *
    
    return boolean_false();
 #else
-   return missing_function_error("is_readable", xsink);
+   // FIXME: implement properly for windows
+   
+   // check if it's a directory
+   struct stat sbuf;
+   int rc;   
+   if ((rc = stat(p0->getBuffer(), &sbuf)))
+      return boolean_false();
+
+   // just return true on windows if it's a directory
+   if ((sbuf.st_mode & S_IFMT) == S_IFDIR)
+      return boolean_true();
+
+   // otherwise try to open file, if successful, then the file is readable
+   rc = open(p0->getBuffer(), O_RDONLY);
+   if (rc != -1) {
+      close(rc);
+      return &True;
+   }
+   return &False;
 #endif
 }
 

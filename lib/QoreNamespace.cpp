@@ -1556,6 +1556,9 @@ void StaticSystemNamespace::init() {
 
 #ifdef AI_ADDRCONFIG
    qoreNS->addConstant("AI_ADDRCONFIG",  new QoreBigIntNode(AI_ADDRCONFIG));
+#else
+   // define to 0 in case it's not present
+   qoreNS->addConstant("AI_ADDRCONFIG",  new QoreBigIntNode(0));
 #endif
 #ifdef AI_ALL
    qoreNS->addConstant("AI_ALL",         new QoreBigIntNode(AI_ALL));

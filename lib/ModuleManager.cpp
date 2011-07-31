@@ -101,6 +101,14 @@ void DirectoryList::addDirList(const char *str) {
 
    // add each directory
    while (char *p = (char *)strchr(str, ':')) {
+#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+      // don't match ':' as the second character in a path as a path separator
+      if (p == str + 1) {
+	 p = (char *)strchr(p + 1, ':');
+	 if (!p)
+	    break;
+      }
+#endif
       if (p != str) {
 	 *p = '\0';
 	 // add string to list
@@ -542,8 +550,7 @@ QoreStringNode *qore_load_module_intern(const char *name, QoreProgram *pgm, mod_
 	 else
 	    str.concat(".qmod");
 
-	 printd(5, "ModuleManager::loadModule(%s) trying %s\n", name, str.getBuffer());
-
+	 //printd(0, "ModuleManager::loadModule(%s) trying %s\n", name, str.getBuffer());
 	 if (!stat(str.getBuffer(), &sb)) {
 	    printd(5, "ModuleManager::loadModule(%s) found %s\n", name, str.getBuffer());
 	    if ((errstr = qore_load_module_from_path(str.getBuffer(), name, &mi, pgm)))

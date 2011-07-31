@@ -98,9 +98,16 @@ static const char *trim_inplace(const char *str) {
 }
 
 static QoreString *getIncludeFileName(char *file) {
+#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+   // convert UNIX-style '/' character to '\'
+   for (char *p = file; *p; ++p)
+      if (*p == '/')
+	 *p = '\\';
+#endif
+
    //printd(5, "getIncludeFileName(%s)\n", file);
-   // FIXME: UNIX-specific
-   if (file[0] == '/')
+   // FIXME: UNIX-specific - need to check for drive name on windows
+   if (file[0] == QORE_DIR_SEP)
       return new QoreString(file);
 
    QoreString *rv;
@@ -150,7 +157,12 @@ void setIncludePath(const char *path) {
     p = lp = ip;
     
     while (true) {
-	if (*p == ':' || !*p) {
+#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+       // do not assume ':' separates paths on windows if it's the second character in a path
+       if ((*p == ':' && p != lp + 1) || !*p) {
+#else
+       if (*p == ':' || !*p) {
+#endif
 	    // skip if at beginning of new path
 	    if (p != lp) {
 		QoreString tpath;
@@ -171,25 +183,32 @@ void setIncludePath(const char *path) {
 		    if (ep != i) {
 			char save = *ep;
 			*ep = '\0';
-			//printd(5, "found variable '$%s'\n", i);
 			TempString val(SystemEnvironment::get(i));
+			//printd(5, "setIncludePath() found variable '$%s' = %s\n", i, val->getBuffer());			
 			*ep = save;
-			if (val) {
-			    // replace with value
-			    int pos = (int)(i - sp);			    
-			    //printd(5, "got $%s = '%s' (replacing %d char(s))\n", i, val->getBuffer(), ep - i + 1);
-			    tpath.replace(pos - 1, ep - i + 1, *val);			    
-			    // re-assign sp in case it's changed
-			    int diff = (int)(pos + val->strlen());
-			    sp = tpath.getBuffer();
-			    spt = sp + diff;
-			    //printd(5, "new string = '%s' ('%s')\n", sp, spt);
+			if (val && val->strlen()) {
+			   // see if environment value ends in the directory separator char, if so, and the
+			   // rest of the string starts with the directory separator char, then make sure the
+			   // character is not doubled (can cause problems on windows)
+			   if (val->getBuffer()[val->strlen() - 1] == QORE_DIR_SEP
+			       && *ep == QORE_DIR_SEP)
+			      ++ep;
+
+			   // replace with value
+			   int pos = (int)(i - sp);			    
+			   //printd(5, "got $%s = '%s' (replacing %d char(s))\n", i, val->getBuffer(), ep - i + 1);
+			   tpath.replace(pos - 1, ep - i + 1, *val);			    
+			   // re-assign sp in case it's changed
+			   int diff = (int)(pos + val->strlen());
+			   sp = tpath.getBuffer();
+			   spt = sp + diff;
+			   //printd(5, "new string = '%s' ('%s')\n", sp, spt);
 			}
 		    }
 		}
 		struct stat sb;
 	    
-		//printd(5, "trying '%s'\n", sp);
+		//printd(5, "setIncludePath() trying '%s'\n", sp);
 		// add to path list if the directory exists
 		if (!stat(sp, &sb)) {
 		    //printd(5, "OK: adding '%s' to path list\n", sp);
@@ -204,6 +223,11 @@ void setIncludePath(const char *path) {
 	    lp = ++p;
 	    continue;
 	}
+#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+	// transform '/ characters to '\' characters
+	if (*p == '/')
+	   *p = '\\';
+#endif
 
 	++p;
     }

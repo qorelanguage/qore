@@ -175,7 +175,8 @@ public:
       std::string ds;
 
       AutoLocker al(m);
-      if (ndir[0] != '/') { // relative path
+      // FIXME: the check below is not sufficient on windows (check for drive name)
+      if (ndir[0] != QORE_DIR_SEP) { // relative path
 	 if (dirname.empty()) {
 	    xsink->raiseException("DIR-CHDIR-ERROR", "cannot change to relative directory; no directory is set");
 	    return -1;
@@ -249,7 +250,7 @@ public:
 	    // if we are filtering out directories, then we have to stat the file
 	    if (stat_filter != -1) {
 	       QoreString fname(dirname);
-	       fname.concat('/');
+	       fname.concat(QORE_DIR_SEP);
 	       fname.concat(de->d_name);
 	       struct stat buf;
 	       int rc =
