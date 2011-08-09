@@ -54,7 +54,6 @@
 #define GETSOCKOPT_ARG_4 char*
 #define SETSOCKOPT_ARG_4 const char*
 #define SHUTDOWN_ARG SD_BOTH
-
 #define QORE_INVALID_SOCKET ((int)INVALID_SOCKET)
 #define QORE_SOCKET_ERROR SOCKET_ERROR
 
@@ -138,7 +137,7 @@ static void qore_socket_error_intern(int rc, ExceptionSink *xsink, const char *e
    // get windows error message
    if (!FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER, 0, rc, LANG_USER_DEFAULT, (LPTSTR)&buf, 0, 0)) {
       assert(!buf);
-      desc->sprintf("Windows FormatMessage() failed on erro code %d", rc);
+      desc->sprintf("Windows FormatMessage() failed on error code %d", rc);
    }
 
    assert(buf);
@@ -158,12 +157,15 @@ static void qore_socket_error(ExceptionSink *xsink, const char *err, const char 
 #define SHUTDOWN_ARG SHUT_RDWR
 #define QORE_INVALID_SOCKET -1
 #define QORE_SOCKET_ERROR -1
+
 static int sock_get_raw_error() {
    return errno;
 }
+
 static int sock_get_error() {
    return errno;
 }
+
 static void qore_socket_error_intern(int rc, ExceptionSink *xsink, const char *err, const char *cdesc) {
    if (!xsink)
       return;
@@ -2899,8 +2901,9 @@ int QoreSocket::bind(const struct sockaddr *addr, int size) {
       return -1;
 
    if ((::bind(priv->sock, addr, size)) == QORE_SOCKET_ERROR) {
-#if (!defined _WIN32 && !defined __WIN32__) || defined __CYGWIN__
-      errno = sock_get_error();
+#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__ 
+      // set errno from windows error
+      sock_get_error();
 #endif
       return -1;
    }
@@ -2924,8 +2927,9 @@ int QoreSocket::bind(int family, const struct sockaddr *addr, int size, int sock
       return -1;
 
    if ((::bind(priv->sock, addr, size)) == -1) {
-#if (!defined _WIN32 && !defined __WIN32__) || defined __CYGWIN__
-      errno = sock_get_error();
+#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__ 
+      // set errno from windows error
+      sock_get_error();
 #endif
       return -1;
    }
