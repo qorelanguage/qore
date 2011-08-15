@@ -144,6 +144,51 @@ const qore_option_s qore_option_list_l[] = {
      false
 #endif
    },
+   { QORE_OPT_TERMIOS,
+     "HAVE_TERMIOS",
+     QO_OPTION,
+#ifdef HAVE_TERMIOS_H
+     true
+#else
+     false
+#endif
+   },
+   { QORE_OPT_PWD,
+     "HAVE_PWD",
+     QO_OPTION,
+#ifdef HAVE_PWD_H
+     true
+#else
+     false
+#endif
+   },
+   { QORE_OPT_UNIX_USERMGT,
+     "HAVE_UNIX_USERMGT",
+     QO_OPTION,
+#ifdef HAVE_GETUID
+     true
+#else
+     false
+#endif
+   },
+   { QORE_OPT_UNIX_FILEMGT,
+     "HAVE_UNIX_FILEMGT",
+     QO_OPTION,
+#ifdef HAVE_CHOWN
+     true
+#else
+     false
+#endif
+   },
+   { QORE_OPT_FILE_LOCKING,
+     "HAVE_FILE_LOCKING",
+     QO_OPTION,
+#ifdef HAVE_STRUCT_FLOCK
+     true
+#else
+     false
+#endif
+   },
    { QORE_OPT_SHA224,
      "HAVE_SSH224",
      QO_ALGORITHM,
@@ -240,28 +285,64 @@ const qore_option_s qore_option_list_l[] = {
      false
 #endif
    },
-   { QORE_OPT_TERMIOS,
-     "HAVE_TERMIOS",
-     QO_OPTION,
-#ifdef HAVE_TERMIOS_H
+   { QORE_OPT_FUNC_SYSTEM,
+     "HAVE_SYSTEM",
+     QO_FUNCTION,
+#ifdef HAVE_SYSTEM
      true
 #else
      false
 #endif
    },
-   { QORE_OPT_PWD,
-     "HAVE_PWD",
-     QO_OPTION,
+   { QORE_OPT_FUNC_KILL,
+     "HAVE_KILL",
+     QO_FUNCTION,
+#ifdef HAVE_KILL
+     true
+#else
+     false
+#endif
+   },
+   { QORE_OPT_FUNC_FORK,
+     "HAVE_FORK",
+     QO_FUNCTION,
+#ifdef HAVE_FORK
+     true
+#else
+     false
+#endif
+   },
+   { QORE_OPT_FUNC_GETPPID,
+     "HAVE_GETPPID",
+     QO_FUNCTION,
+#ifdef HAVE_GETPPID
+     true
+#else
+     false
+#endif
+   },
+   { QORE_OPT_FUNC_STATVFS,
+     "HAVE_STATVFS",
+     QO_FUNCTION,
+#ifdef HAVE_STATVFS
+     true
+#else
+     false
+#endif
+   },
+   { QORE_OPT_FUNC_SETSID,
+     "HAVE_SETSID",
+     QO_FUNCTION,
+#ifdef HAVE_SETSID
+     true
+#else
+     false
+#endif
+   },
+   { QORE_OPT_FUNC_IS_EXECUTABLE,
+     "HAVE_IS_EXECUTABLE",
+     QO_FUNCTION,
 #ifdef HAVE_PWD_H
-     true
-#else
-     false
-#endif
-   },
-   { QORE_OPT_FILE_LOCKING,
-     "HAVE_FILE_LOCKING",
-     QO_OPTION,
-#ifdef HAVE_STRUCT_FLOCK
      true
 #else
      false

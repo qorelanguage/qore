@@ -433,7 +433,7 @@ static AbstractQoreNode *FILE_chown(QoreObject *self, File *f, const QoreListNod
    f->chown(owner, group, xsink);
    return 0;
 #else
-   return missing_method_error("File::chown", "CHOWN", xsink);
+   return missing_method_error("File::chown", "UNIX_FILEMGT", xsink);
 #endif
 }
 

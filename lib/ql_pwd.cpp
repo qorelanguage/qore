@@ -29,18 +29,13 @@
 #endif
 #include <errno.h>
 
-#ifndef HAVE_PWD_H
-static void missing_pwd_function(const char *f, ExceptionSink *xsink) {
-   xsink->raiseException("MISSING-FEATURE-ERROR", "this platform does not support the %s() function; for maximum portability, check Option::HAVE_PWD before calling this function", f);
-}
-#endif
-
 static AbstractQoreNode *f_getpwuid(const QoreListNode *params, ExceptionSink *xsink) {
 #ifdef HAVE_PWD_H
    int uid = (int)HARD_QORE_INT(params, 0);
    return q_getpwuid(uid);
 #else
-   missing_pwd_function("getpwuid", xsink);
+   missing_function_error("getpwuid", "UNIX_USERMGT", xsink);
+xsink);
    return 0;
 #endif
 }
@@ -58,7 +53,7 @@ static AbstractQoreNode *f_getpwuid2(const QoreListNode *params, ExceptionSink *
    }
    return h;
 #else
-   missing_pwd_function("getpwuid2", xsink);
+   missing_function_error("getpwuid2", "UNIX_USERMGT", xsink);
    return 0;
 #endif
 }
@@ -68,7 +63,7 @@ static AbstractQoreNode *f_getpwnam(const QoreListNode *params, ExceptionSink *x
    const QoreStringNode *name = HARD_QORE_STRING(params, 0);
    return q_getpwnam(name->getBuffer());
 #else
-   missing_pwd_function("getpwnam", xsink);
+   missing_function_error("getpwnam", "UNIX_USERMGT", xsink);
    return 0;
 #endif
 }
@@ -86,7 +81,7 @@ static AbstractQoreNode *f_getpwnam2(const QoreListNode *params, ExceptionSink *
    }
    return h;
 #else
-   missing_pwd_function("getpwnam2", xsink);
+   missing_function_error("getpwnam2", "UNIX_USERMGT", xsink);
    return 0;
 #endif
 }
@@ -96,7 +91,7 @@ static AbstractQoreNode *f_getgrgid(const QoreListNode *params, ExceptionSink *x
    int gid = (int)HARD_QORE_INT(params, 0);
    return q_getgrgid(gid);
 #else
-   missing_pwd_function("getgrgid", xsink);
+   missing_function_error("getgrgid", "UNIX_USERMGT", xsink);
    return 0;
 #endif
 }
@@ -114,7 +109,7 @@ static AbstractQoreNode *f_getgrgid2(const QoreListNode *params, ExceptionSink *
    }
    return h;
 #else
-   missing_pwd_function("getgrgid2", xsink);
+   missing_function_error("getgrgid2", "UNIX_USERMGT", xsink);
    return 0;
 #endif
 }
@@ -124,7 +119,7 @@ static AbstractQoreNode *f_getgrnam(const QoreListNode *params, ExceptionSink *x
    const QoreStringNode *name = HARD_QORE_STRING(params, 0);
    return q_getgrnam(name->getBuffer());
 #else
-   missing_pwd_function("getgrnam", xsink);
+   missing_function_error("getgrnam", "UNIX_USERMGT", xsink);
    return 0;
 #endif
 }
@@ -142,7 +137,7 @@ static AbstractQoreNode *f_getgrnam2(const QoreListNode *params, ExceptionSink *
    }
    return h;
 #else
-   missing_pwd_function("getgrnam2", xsink);
+   missing_function_error("getgrnam2", "UNIX_USERMGT", xsink);
    return 0;
 #endif
 }

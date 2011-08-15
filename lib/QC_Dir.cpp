@@ -85,7 +85,7 @@ static AbstractQoreNode *DIR_chown_int(QoreObject *self, Dir *d, const QoreListN
    d->chown(uid, (gid_t)-1, xsink);
    return 0;
 #else
-   return missing_method_error("Dir::chown", "CHOWN", xsink);
+   return missing_method_error("Dir::chown", "UNIX_FILEMGT", xsink);
 #endif
 }
 
@@ -105,7 +105,7 @@ static AbstractQoreNode *DIR_chown_str(QoreObject *self, Dir *d, const QoreListN
    d->chown(uid, (gid_t)-1, xsink);
    return 0;
 #else
-   return missing_method_error("Dir::chown", "CHOWN", xsink);
+   return missing_method_error("Dir::chown", "UNIX_FILEMGT", xsink);
 #endif
 }
 
@@ -115,7 +115,7 @@ static AbstractQoreNode *DIR_chgrp_int(QoreObject *self, Dir *d, const QoreListN
    d->chown((uid_t)-1, gid, xsink);
    return 0;
 #else
-   return missing_method_error("Dir::chgrp", "CHGRP", xsink);
+   return missing_method_error("Dir::chgrp", "UNIX_FILEMGT", xsink);
 #endif
 }
 
@@ -135,7 +135,7 @@ static AbstractQoreNode *DIR_chgrp_str(QoreObject *self, Dir *d, const QoreListN
    d->chown((uid_t)-1, gid, xsink);
    return 0;
 #else
-   return missing_method_error("Dir::chgrp", "CHGRP", xsink);
+   return missing_method_error("Dir::chgrp", "UNIX_FILEMGT", xsink);
 #endif
 }
 

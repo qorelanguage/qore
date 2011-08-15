@@ -64,7 +64,7 @@ static AbstractQoreNode *f_is_socket(const QoreListNode *args, ExceptionSink *xs
 #ifdef S_IFSOCK
    return check_stat(S_IFSOCK, args, xsink);
 #else
-   return missing_function_error("is_socket", xsink);
+   return missing_function_error("is_socket", "UNIX_FILEMGT", xsink);
 #endif
 }
 
@@ -102,7 +102,7 @@ static AbstractQoreNode *f_is_link(const QoreListNode *args, ExceptionSink *xsin
 #ifdef HAVE_LSTAT
    return check_lstat(S_IFLNK, args, xsink);
 #else
-   return missing_function_error("is_link", xsink);
+   return missing_function_error("is_link", "UNIX_FILEMGT", xsink);
 #endif
 }
 
@@ -147,10 +147,8 @@ static AbstractQoreNode *f_is_readable(const QoreListNode *args, ExceptionSink *
 }
 
 static AbstractQoreNode *f_is_writable(const QoreListNode *args, ExceptionSink *xsink) {
+   const QoreStringNode *p0 = HARD_QORE_STRING(args, 0);
 #ifdef HAVE_PWD_H
-   HARD_QORE_PARAM(p0, const QoreStringNode, args, 0);   
-   
-   QORE_TRACE("f_stat()");
    struct stat sbuf;
    int rc;
    
@@ -165,7 +163,12 @@ static AbstractQoreNode *f_is_writable(const QoreListNode *args, ExceptionSink *
    
    return boolean_false();
 #else
-   return missing_function_error("is_writable", xsink);
+   // try to open the file with write permissions
+   int rc = open(p0->getBuffer(), O_WRONLY);
+   if (rc == -1)
+      return &False;
+   close(rc);
+   return &True;
 #endif
 }
 

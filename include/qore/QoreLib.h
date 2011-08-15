@@ -328,11 +328,15 @@ DLLEXPORT const AbstractQoreZoneInfo *findCreateOffsetZone(int seconds_east);
 //! option: md2 algorithm supported (depends on openssl used to compile qore)
 #define QORE_OPT_MD2                     "openssl md2"
 //! option: TermIOS class available
-#define QORE_OPT_TERMIOS                 "TermIOS"
-//! option: pwd functions available
+#define QORE_OPT_TERMIOS                 "termios"
+//! option: unix pwd functions available
 #define QORE_OPT_PWD                     "pwd"
 //! option: file locking
 #define QORE_OPT_FILE_LOCKING            "file locking"
+//! option: unix user/group management functions available
+#define QORE_OPT_UNIX_USERMGT            "unix user management"
+//! option: unix file management functions available
+#define QORE_OPT_UNIX_FILEMGT            "unix file management"
 //! option: round() function available
 #define QORE_OPT_FUNC_ROUND              "round()"
 //! option: timegm() function available
@@ -341,6 +345,20 @@ DLLEXPORT const AbstractQoreZoneInfo *findCreateOffsetZone(int seconds_east);
 #define QORE_OPT_FUNC_SETEUID            "seteuid()"
 //! option: setegid() function available
 #define QORE_OPT_FUNC_SETEGID            "setegid()"
+//! option: system() function available
+#define QORE_OPT_FUNC_SYSTEM             "system()"
+//! option: kill() function available
+#define QORE_OPT_FUNC_KILL               "kill()"
+//! option: fork() function available
+#define QORE_OPT_FUNC_FORK               "fork()"
+//! option: getppid() function available
+#define QORE_OPT_FUNC_GETPPID            "getppid()"
+//! option: statvfs() function available
+#define QORE_OPT_FUNC_STATVFS            "statvfs()"
+//! option: setsid() function available
+#define QORE_OPT_FUNC_SETSID             "setsid()"
+//! option: is_executable() function available
+#define QORE_OPT_FUNC_IS_EXECUTABLE      "is_executable()"
 
 //! option type feature
 #define QO_OPTION     0

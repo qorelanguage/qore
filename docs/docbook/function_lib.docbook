@@ -413,7 +413,7 @@
 
         <row>
           <entry><para><code><link linkend="int_type">int</link> <link linkend="chown">chown</link>(<link linkend="string_type">string</link>, <link linkend="softint_type">softint</link> = -1, <link linkend="softint_type">softint</link> = -1)</code></para></entry>
-          <entry><para>N</para></entry>
+          <entry><para>Y</para></entry>
           <entry><para>Changes the user and group owners of a file (if the current user has permission to do so), follows symbolic links.</para></entry>
         </row>
 
@@ -870,7 +870,7 @@
           <entry>
             <para><code><link linkend="int_type">int</link> <link linkend="fork">fork</link>()</code></para>
           </entry>
-          <entry><para>N</para></entry>
+          <entry><para>Y</para></entry>
           <entry>
             <para>Creates a duplicate of the current process</para>
           </entry>
@@ -1266,7 +1266,7 @@
             <para><code><link linkend="int_type">int</link> <link linkend="getegid">getegid</link>() (<link linkend="CONST_flag">CONST</link>)</code></para>
           </entry>
           <entry>
-            <para>N</para>
+            <para>Y</para>
           </entry>
           <entry>
             <para>Returns the effective group ID of the current process.</para>
@@ -1277,7 +1277,7 @@
             <para><code><link linkend="int_type">int</link> <link linkend="geteuid">geteuid</link>() (<link linkend="CONST_flag">CONST</link>)</code></para>
           </entry>
           <entry>
-            <para>N</para>
+            <para>Y</para>
           </entry>
           <entry>
             <para>Returns the effective user ID of the current process.</para>
@@ -1309,7 +1309,7 @@
         <row>
           <entry><para><code><link linkend="int_type">int</link> <link linkend="getgid">getgid</link>(<link linkend="CONST_flag">CONST</link>)</code></para></entry>
           <entry>
-            <para>N</para>
+            <para>Y</para>
           </entry>
           <entry>
             <para>Returns the real group ID of the current process.</para>
@@ -1321,7 +1321,7 @@
             <para><code><link linkend="*hash_type">*hash</link> <link linkend="getgrnam">getgrnam</link>(<link linkend="string_type">string</link>) (<link linkend="CONST_flag">CONST</link>)</code></para>
           </entry>
           <entry>
-            <para>N</para>
+            <para>Y</para>
           </entry>
           <entry>
             <para>Returns a hash representing the group information of the group name passed or <command><link linkend="NOTHING">NOTHING</link></command> if the group name is not found.</para>
@@ -1332,7 +1332,7 @@
             <para><code><link linkend="hash_type">hash</link> <link linkend="getgrnam2">getgrnam2</link>(<link linkend="string_type">string</link>)</code></para>
           </entry>
           <entry>
-            <para>N</para>
+            <para>Y</para>
           </entry>
           <entry>
             <para>Returns a hash representing the group information of the group name passed; throws an exception if the group name is not found.</para>
@@ -1343,7 +1343,7 @@
             <para><code><link linkend="*hash_type">*hash</link> <link linkend="getgrgid">getgrgid</link>(<link linkend="softint_type">softint</link>) (<link linkend="CONST_flag">CONST</link>)</code></para>
           </entry>
           <entry>
-            <para>N</para>
+            <para>Y</para>
           </entry>
           <entry>
             <para>Returns a hash representing the group information of the group ID passed or <command><link linkend="NOTHING">NOTHING</link></command> if the group ID is not found.</para>
@@ -1354,7 +1354,7 @@
             <para><code><link linkend="hash_type">hash</link> <link linkend="getgrgid2">getgrgid2</link>(<link linkend="softint_type">softint</link>)</code></para>
           </entry>
           <entry>
-            <para>N</para>
+            <para>Y</para>
           </entry>
           <entry>
             <para>Returns a hash representing the group information of the group ID passed; throws an exception if the group ID is not found.</para>
@@ -1470,7 +1470,7 @@
           <entry>
             <para><code><link linkend="int_type">int</link> <link linkend="getppid">getppid</link>() (<link linkend="CONST_flag">CONST</link>)</code></para>
           </entry>
-          <entry><para>N</para></entry>
+          <entry><para>Y</para></entry>
           <entry><para>Returns the parent PID of the current process.</para></entry>
         </row>
         <row>
@@ -1478,7 +1478,7 @@
             <para><code><link linkend="*hash_type">*hash</link> <link linkend="getpwnam">getpwnam</link>(<link linkend="string_type">string</link>) (<link linkend="CONST_flag">CONST</link>)</code></para>
           </entry>
           <entry>
-            <para>N</para>
+            <para>Y</para>
           </entry>
           <entry>
             <para>Returns a hash representing the user information of the username passed or <command><link linkend="NOTHING">NOTHING</link></command> if the username is not found.</para>
@@ -1489,7 +1489,7 @@
             <para><code><link linkend="hash_type">hash</link> <link linkend="getpwnam2">getpwnam2</link>(<link linkend="string_type">string</link>)</code></para>
           </entry>
           <entry>
-            <para>N</para>
+            <para>Y</para>
           </entry>
           <entry>
             <para>Returns a hash representing the user information of the username passed; throws an exception if the username is not found.</para>
@@ -1500,7 +1500,7 @@
             <para><code><link linkend="*hash_type">*hash</link> <link linkend="getpwuid">getpwuid</link>(<link linkend="softint_type">softint</link>) (<link linkend="CONST_flag">CONST</link>)</code></para>
           </entry>
           <entry>
-            <para>N</para>
+            <para>Y</para>
           </entry>
           <entry>
             <para>Returns a hash representing the user information of the user ID passed or <command><link linkend="NOTHING">NOTHING</link></command> if the user ID is not found.</para>
@@ -1533,7 +1533,7 @@
             <para><code><link linkend="int_type">int</link> <link linkend="getuid">getuid</link>() (<link linkend="CONST_flag">CONST</link>)</code></para>
           </entry>
           <entry>
-            <para>N</para>
+            <para>Y</para>
           </entry>
           <entry>
             <para>Returns the real user ID of the current process.</para>
@@ -1820,7 +1820,7 @@
           <para><code><link linkend="bool_type">bool</link> <link linkend="is_executable">is_executable</link>(<link linkend="string_type">string</link>) (<link linkend="CONST_flag">CONST</link>)</code></para>
         </entry>
         <entry>
-          <para>N</para>
+          <para>Y</para>
         </entry>
         <entry>
           <para>Returns <code>True</code> if the string passed identifies an executable file.</para>
@@ -1842,7 +1842,7 @@
           <para><code><link linkend="bool_type">bool</link> <link linkend="is_link">is_link</link>(<link linkend="string_type">string</link>) (<link linkend="CONST_flag">CONST</link>)</code></para>
         </entry>
         <entry>
-          <para>N</para>
+          <para>Y</para>
         </entry>
         <entry>
           <para>Returns <code>True</code> if the string passed identifies a symbolic link on the filesystem.</para>
@@ -1874,9 +1874,7 @@
         <entry>
           <para><code><link linkend="bool_type">bool</link> <link linkend="is_socket">is_socket</link>(<link linkend="string_type">string</link>) (<link linkend="CONST_flag">CONST</link>)</code></para>
         </entry>
-        <entry>
-          <para>N</para>
-        </entry>
+        <entry><para>Y</para></entry>
         <entry>
           <para>Returns <code>True</code> if the string passed identifies a socket on the filesystem.</para>
         </entry>
@@ -1911,7 +1909,7 @@
             <para><code><link linkend="nothing_type">nothing</link> <link linkend="kill">kill</link>() (<link linkend="RT_NOOP_flag">RT_NOOP</link>)</code></para>
           </entry>
           <entry>
-            <para>N</para>
+            <para>Y</para>
           </entry>
           <entry>
             <para>Sends a signal to a process (default: SIGHUP)</para>
@@ -1920,7 +1918,7 @@
 
         <row>
           <entry><para><code><link linkend="int_type">int</link> <link linkend="lchown">lchown</link>(<link linkend="string_type">string</link>, <link linkend="softint_type">softint</link> = -1, <link linkend="softint_type">softint</link> = -1)</code></para></entry>
-          <entry><para>N</para></entry>
+          <entry><para>Y</para></entry>
           <entry><para>Changes the user and group owners of a file (if the current user has permission to do so), does not follow symbolic links.</para></entry>
         </row>
 
@@ -2186,7 +2184,7 @@
             <para><code><link linkend="int_type">int</link> <link linkend="mkfifo">mkfifo</link>(<link linkend="string_type">string</link>, <link linkend="softint_type">softint</link> = 0600)</code></para>
           </entry>
           <entry>
-            <para>N</para>
+            <para>Y</para>
           </entry>
           <entry>
             <para>Creates a named pipe with the given mode/permissions.</para>
@@ -2646,7 +2644,7 @@
         <entry>
           <para><code><link linkend="int_type">int</link> <link linkend="setgid">setgid</link>(<link linkend="softint_type">softint</link>)</code></para>
         </entry>
-        <entry><para>N</para></entry>
+        <entry><para>Y</para></entry>
         <entry>
           <para>Changes the process group ID according to the argument passed.  Returns 0 for success, non-zero for errors (the error code can be retrieved with <link linkend="errno">errno()</link>)</para>
         </entry>
@@ -2655,7 +2653,7 @@
         <entry>
           <para><code><link linkend="int_type">int</link> <link linkend="setsid">setsid</link>()</code></para>
         </entry>
-        <entry><para>N</para></entry>
+        <entry><para>Y</para></entry>
         <entry>
           <para>Creates a new session lead by the current process.</para>
         </entry>
@@ -2664,7 +2662,7 @@
         <entry>
           <para><code><link linkend="int_type">int</link> <link linkend="setuid">setuid</link>(<link linkend="softint_type">softint</link>)</code></para>
         </entry>
-        <entry><para>N</para></entry>
+        <entry><para>Y</para></entry>
         <entry>
           <para>Changes the process user ID according to the argument passed.  Returns 0 for success, non-zero for errors (the error code can be retrieved with <link linkend="errno">errno()</link>)</para>
         </entry>
@@ -2887,7 +2885,7 @@
             <para><code><link linkend="*hash_type">*hash</link> <link linkend="statvfs">statvfs</link>(<link linkend="string_type">string</link>)</code></para>
           </entry>
           <entry>
-            <para>N</para>
+            <para>Y</para>
           </entry>
           <entry>
             <para>Returns a list of filesystem status information for the filename passed or <command><link linkend="NOTHING">NOTHING</link></command> if the <code>statvfs()</code> call fails.</para>
@@ -4184,7 +4182,7 @@
     <varlistentry>
       <term>Synopsis</term>
       <listitem>
-	<para>Returns a floating-point number equal to the closest integer to the argument passed.  Numers halfway between two integers are arounded away from zero.  The availability of this function depends on the presence of the C-library's round() function; for maximum portability check the constant <code><link linkend="HAVE_ROUND">HAVE_ROUND</link></code> before running this function.  See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
+	<para>Returns a floating-point number equal to the closest integer to the argument passed.  Numbers halfway between two integers are arounded away from zero.</para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -4200,8 +4198,13 @@
 	<programlisting>$x = round(3.2); # returns 3.0 </programlisting>
       </listitem>
     </varlistentry>
+    <varlistentry>
+      <term>Platform Availability</term>
+      <listitem>
+	<para><code><link linkend="HAVE_ROUND">HAVE_ROUND</link></code></para>
+      </listitem>
+    </varlistentry>
   </variablelist>
-
   
   <table>
     <title>Arguments and Return Values for round()</title>
@@ -10185,6 +10188,12 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
 	<programlisting>$pid = fork();</programlisting>
       </listitem>
     </varlistentry>
+      <varlistentry>
+	<term>Platform Availability</term>
+	<listitem>
+	  <para><code><link linkend="HAVE_FORK">HAVE_FORK</link></code></para>
+	</listitem>
+      </varlistentry>
     <varlistentry>
       <term>Restrictions</term>
       <listitem>
@@ -10229,6 +10238,10 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
 	    <row>
 	      <entry><para><code>ILLEGAL-FORK</code></para></entry>
 	      <entry><para>Cannot fork if more than one thread is running.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
+	      <entry><para>This exception is thrown when the function is not available on the runtime platform; for maximum portability, check the constant <code><link linkend="HAVE_FORK">HAVE_FORK</link></code> before calling this function.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -10399,6 +10412,12 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
 	  <programlisting>$egid = getegid();</programlisting>
 	</listitem>
       </varlistentry>
+    <varlistentry>
+      <term>Platform Availability</term>
+      <listitem>
+	<para><code><link linkend="HAVE_UNIX_USERMGT">HAVE_UNIX_USERMGT</link></code></para>
+      </listitem>
+    </varlistentry>
       <varlistentry>
 	<term>Restrictions</term>
 	<listitem>
@@ -10429,7 +10448,22 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
     </tgroup>
     </table>
 
-    <para>This function does not throw any exceptions.</para>
+    <table><title>Exceptions Thrown by getegid()</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>err</para></entry>
+	  <entry><para>desc</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
+	  <entry><para>This exception is thrown when the function is not available on the runtime platform; for maximum portability, check the constant <code><link linkend="HAVE_UNIX_USERMGT">HAVE_UNIX_USERMGT</link></code> before calling this function.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+    </table>
 
   </sect2>
 
@@ -10447,6 +10481,12 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
       <term>Prototype</term>
       <listitem>
             <para><code><link linkend="int_type">int</link> <link linkend="geteuid">geteuid</link>() (<link linkend="CONST_flag">CONST</link>)</code></para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Platform Availability</term>
+      <listitem>
+	<para><code><link linkend="HAVE_UNIX_USERMGT">HAVE_UNIX_USERMGT</link></code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -10478,8 +10518,22 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
 </tbody>
 </tgroup>
 </table>
-
-  <para>This function does not throw any exceptions.</para>
+    <table><title>Exceptions Thrown by geteuid()</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>err</para></entry>
+	  <entry><para>desc</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
+	  <entry><para>This exception is thrown when the function is not available on the runtime platform; for maximum portability, check the constant <code><link linkend="HAVE_UNIX_USERMGT">HAVE_UNIX_USERMGT</link></code> before calling this function.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+    </table>
 
 </sect2>
 <sect2 id="getgid">
@@ -10502,6 +10556,12 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
       <term>Example</term>
       <listitem>
 	<programlisting><command>my</command> int $gid = getgid();</programlisting>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term>Platform Availability</term>
+      <listitem>
+	<para><code><link linkend="HAVE_UNIX_USERMGT">HAVE_UNIX_USERMGT</link></code></para>
       </listitem>
     </varlistentry>
     <varlistentry>
@@ -10533,7 +10593,23 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
 </tbody>
 </tgroup>
 </table>
-  <para>This function does not throw any exceptions.</para>
+
+    <table><title>Exceptions Thrown by geteuid()</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>err</para></entry>
+	  <entry><para>desc</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
+	  <entry><para>This exception is thrown when the function is not available on the runtime platform; for maximum portability, check the constant <code><link linkend="HAVE_UNIX_USERMGT">HAVE_UNIX_USERMGT</link></code> before calling this function.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+    </table>
 
 </sect2>
 
@@ -10978,6 +11054,12 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
 	<programlisting>$ppid = getppid();</programlisting>
       </listitem>
     </varlistentry>
+      <varlistentry>
+	<term>Platform Availability</term>
+	<listitem>
+	  <para><code><link linkend="HAVE_GETPPID">HAVE_GETPPID</link></code></para>
+	</listitem>
+      </varlistentry>
     <varlistentry>
       <term>Restrictions</term>
       <listitem>
@@ -11007,7 +11089,22 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
 </tbody>
 </tgroup>
 </table>
-  <para>This function does not throw any exceptions.</para>
+   <table><title>Exceptions Thrown by getppid()</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>err</para></entry>
+	  <entry><para>desc</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
+	  <entry><para>This exception is thrown when the function is not available on the runtime platform; for maximum portability, check the constant <code><link linkend="HAVE_GETPPID">HAVE_GETPPID</link></code> before calling this function.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+    </table>
 
 </sect2>
 
@@ -11033,6 +11130,12 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
 	<programlisting>$uid = getuid();</programlisting>
       </listitem>
     </varlistentry>
+      <varlistentry>
+	<term>Platform Availability</term>
+	<listitem>
+	  <para><code><link linkend="HAVE_UNIX_USERMGT">HAVE_UNIX_USERMGT</link></code></para>
+	</listitem>
+      </varlistentry>
     <varlistentry>
       <term>Restrictions</term>
       <listitem>
@@ -11063,7 +11166,23 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
 </tbody>
 </tgroup>
 </table>
-  <para>This function does not throw any exceptions.</para>
+
+    <table><title>Exceptions Thrown by getuid()</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>err</para></entry>
+	  <entry><para>desc</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
+	  <entry><para>This exception is thrown when the function is not available on the runtime platform; for maximum portability, check the constant <code><link linkend="HAVE_UNIX_USERMGT">HAVE_UNIX_USERMGT</link></code> before calling this function.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+    </table>
 
 </sect2>
 
@@ -11140,6 +11259,12 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
 	<programlisting>kill($pid, SIGINT);</programlisting>
       </listitem>
     </varlistentry>
+      <varlistentry>
+	<term>Platform Availability</term>
+	<listitem>
+	  <para><code><link linkend="HAVE_KILL">HAVE_KILL</link></code></para>
+	</listitem>
+      </varlistentry>
     <varlistentry>
       <term>Restrictions</term>
       <listitem>
@@ -11167,7 +11292,22 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
       </tbody>
     </tgroup>
   </table>
-  <para>This function does not throw any exceptions.</para>
+   <table><title>Exceptions Thrown by kill()</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>err</para></entry>
+	  <entry><para>desc</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
+	  <entry><para>This exception is thrown when the function is not available on the runtime platform; for maximum portability, check the constant <code><link linkend="HAVE_KILL">HAVE_KILL</link></code> before calling this function.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+    </table>
 </sect2>
 
   <sect2 id="setegid">
@@ -11176,7 +11316,7 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Changes the process effective group ID according to the argument passed.  Returns 0 for success, non-zero for errors (the error code can be retrieved with <link linkend="errno">errno()</link>).  The availabilty of this function depends on the system's underlying C-library; the Qore function is only available if the constant <code><link linkend="HAVE_SETEGID">HAVE_SETEGID</link></code> is <code>True</code>.  See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
+          <para>Changes the process effective group ID according to the argument passed.  Returns 0 for success, non-zero for errors (the error code can be retrieved with <link linkend="errno">errno()</link>).</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -11191,12 +11331,18 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
           <programlisting>setegid($egid);</programlisting>
         </listitem>
       </varlistentry>
-    <varlistentry>
-      <term>Restrictions</term>
-      <listitem>
-	<para>Not available with <code><link linkend="no-process-control">PO_NO_PROCESS_CONTROL</link></code></para>
-      </listitem>
-    </varlistentry>
+      <varlistentry>
+	<term>Platform Availability</term>
+	<listitem>
+	  <para><code><link linkend="HAVE_SETEGID">HAVE_SETEGID</link></code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Restrictions</term>
+	<listitem>
+	  <para>Not available with <code><link linkend="no-process-control">PO_NO_PROCESS_CONTROL</link></code></para>
+	</listitem>
+      </varlistentry>
     </variablelist>
     <table>
       <title>Arguments and Return Values for setegid()</title>
@@ -11254,7 +11400,7 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Changes the process effective user ID according to the argument passed.  Returns 0 for success, non-zero for errors (the error code can be retrieved with <link linkend="errno">errno()</link>).  The availabilty of this function depends on the system's underlying C-library; the Qore function is only available if the constant <code><link linkend="HAVE_SETEUID">HAVE_SETEUID</link></code> is <code>True</code>.  See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
+          <para>Changes the process effective user ID according to the argument passed.  Returns 0 for success, non-zero for errors (the error code can be retrieved with <link linkend="errno">errno()</link>).</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -11268,6 +11414,12 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
         <listitem>
           <programlisting>seteuid($euid);</programlisting>
         </listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Platform Availability</term>
+	<listitem>
+	  <para><code><link linkend="HAVE_SETEUID">HAVE_SETEUID</link></code></para>
+	</listitem>
       </varlistentry>
       <varlistentry>
 	<term>Restrictions</term>
@@ -11357,6 +11509,12 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
         </listitem>
       </varlistentry>
       <varlistentry>
+	<term>Platform Availability</term>
+	<listitem>
+	  <para><code><link linkend="HAVE_UNIX_USERMGT">HAVE_UNIX_USERMGT</link></code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
 	<term>Restrictions</term>
 	<listitem>
 	  <para>Not available with <code><link linkend="no-process-control">PO_NO_PROCESS_CONTROL</link></code></para>
@@ -11390,32 +11548,21 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
         </tbody>
       </tgroup>
     </table>
-    <table>
-      <title>Exceptions thrown by setgid()</title>
-      <tgroup cols="2" align="left" colsep="1" rowsep="1">
-        <thead>
-          <row>
-            <entry>
-              <para>err</para>
-            </entry>
-            <entry>
-              <para>desc</para>
-            </entry>
-          </row>
-        </thead>
-        <tbody>
-          <row>
-            <entry>
-              <para>
-                <code>SETGID-ERROR</code>
-              </para>
-            </entry>
-            <entry>
-              <para>missing GID argument to function</para>
-            </entry>
-          </row>
-        </tbody>
-      </tgroup>
+    <table><title>Exceptions Thrown by setgid()</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>err</para></entry>
+	  <entry><para>desc</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
+	  <entry><para>This exception is thrown when the function is not available on the runtime platform; for maximum portability, check the constant <code><link linkend="HAVE_UNIX_USERMGT">HAVE_UNIX_USERMGT</link></code> before calling this function.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
     </table>
   </sect2>
 
@@ -11441,6 +11588,12 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
         <listitem>
           <programlisting><command>my</command> int $rc = setsid();</programlisting>
         </listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Platform Availability</term>
+	<listitem>
+	  <para><code><link linkend="HAVE_SETSID">HAVE_SETSID</link></code></para>
+	</listitem>
       </varlistentry>
       <varlistentry>
 	<term>Restrictions</term>
@@ -11470,6 +11623,22 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
         </tbody>
       </tgroup>
     </table>
+   <table><title>Exceptions Thrown by setsid()</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>err</para></entry>
+	  <entry><para>desc</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
+	  <entry><para>This exception is thrown when the function is not available on the runtime platform; for maximum portability, check the constant <code><link linkend="HAVE_SETSID">HAVE_SETSID</link></code> before calling this function.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+    </table>
   </sect2>
 
   <sect2 id="setuid">
@@ -11492,6 +11661,12 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
         <listitem>
           <programlisting>setuid($uid);</programlisting>
         </listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Platform Availability</term>
+	<listitem>
+	  <para><code><link linkend="HAVE_UNIX_USERMGT">HAVE_UNIX_USERMGT</link></code></para>
+	</listitem>
       </varlistentry>
       <varlistentry>
 	<term>Restrictions</term>
@@ -11527,32 +11702,21 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
         </tbody>
       </tgroup>
     </table>
-    <table>
-      <title>Exceptions thrown by setuid()</title>
-      <tgroup cols="2" align="left" colsep="1" rowsep="1">
-        <thead>
-          <row>
-            <entry>
-              <para>err</para>
-            </entry>
-            <entry>
-              <para>desc</para>
-            </entry>
-          </row>
-        </thead>
-        <tbody>
-          <row>
-            <entry>
-              <para>
-                <code>SETUID-ERROR</code>
-              </para>
-            </entry>
-            <entry>
-              <para>missing UID argument to function</para>
-            </entry>
-          </row>
-        </tbody>
-      </tgroup>
+    <table><title>Exceptions Thrown by setuid()</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>err</para></entry>
+	  <entry><para>desc</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
+	  <entry><para>This exception is thrown when the function is not available on the runtime platform; for maximum portability, check the constant <code><link linkend="HAVE_UNIX_USERMGT">HAVE_UNIX_USERMGT</link></code> before calling this function.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
     </table>
   </sect2>
 
@@ -11686,6 +11850,12 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
 	<programlisting>$rc = system("ls -l");</programlisting>
       </listitem>
     </varlistentry>
+      <varlistentry>
+	<term>Platform Availability</term>
+	<listitem>
+	  <para><code><link linkend="HAVE_SYSTEM">HAVE_SYSTEM</link></code></para>
+	</listitem>
+      </varlistentry>
     <varlistentry>
       <term>Restrictions</term>
       <listitem>
@@ -11714,7 +11884,22 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
     </tgroup>
   </table>
 
-  <para>This function does not throw any exceptions.</para>
+    <table><title>Exceptions Thrown by system()</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>err</para></entry>
+	  <entry><para>desc</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
+	  <entry><para>This exception is thrown when the function is not available on the runtime platform; for maximum portability, check the constant <code><link linkend="HAVE_SYSTEM">HAVE_SYSTEM</link></code> before calling this function.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+    </table>
 </sect2>
 
 <sect2 id="usleep">
@@ -13891,7 +14076,7 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Encrypts data using the Cipher Block Chaining function for <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC5(tm) algorithm using a variable-length key and an optional 8-byte initialization vector.  Returns a binary object of the encrypted data.  The availability of this function depends on the availability of the RC5 algorithm in the openssl library used to compile the Qore library; for maximum portability check the constant <code>HAVE_RC5</code> before running this function.  See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
+          <para>Encrypts data using the Cipher Block Chaining function for <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC5(tm) algorithm using a variable-length key and an optional 8-byte initialization vector.  Returns a binary object of the encrypted data.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -13905,6 +14090,12 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
         <listitem>
           <programlisting>$bin = rc5_encrypt_cbc($data, $key);</programlisting>
         </listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Platform Availability</term>
+	<listitem>
+	  <para><code><link linkend="HAVE_RC5">HAVE_RC5</link></code></para>
+	</listitem>
       </varlistentry>
     </variablelist>
     <table>
@@ -13982,7 +14173,7 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Decrypts data using the Cipher Block Chaining function for <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC5(tm) algorithm using a variable-length key and an optional 8-byte initialization vector.  This function returns a binary object, for an equivalent function that decrypts to a string, see <link linkend="rc5_decrypt_cbc_to_string">rc5_decrypt_cbc_to_string()</link>.  The availability of this function depends on the availability of the RC5 algorithm in the openssl library used to compile the Qore library; for maximum portability check the constant <code>HAVE_RC5</code> before running this function.  See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
+          <para>Decrypts data using the Cipher Block Chaining function for <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC5(tm) algorithm using a variable-length key and an optional 8-byte initialization vector.  This function returns a binary object, for an equivalent function that decrypts to a string, see <link linkend="rc5_decrypt_cbc_to_string">rc5_decrypt_cbc_to_string()</link>.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -13996,6 +14187,12 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
         <listitem>
           <programlisting>$bin = rc5_decrypt_cbc($data, $key);</programlisting>
         </listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Platform Availability</term>
+	<listitem>
+	  <para><code><link linkend="HAVE_RC5">HAVE_RC5</link></code></para>
+	</listitem>
       </varlistentry>
     </variablelist>
     <table>
@@ -14073,7 +14270,7 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Decrypts data to a string using the Cipher Block Chaining function for <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC5(tm) algorithm using a variable-length key and an optional 8-byte initialization vector.  This function returns a string, for an equivalent function that decrypts to a binary object, see <link linkend="rc5_decrypt_cbc">rc5_decrypt_cbc()</link>.  The availability of this function depends on the availability of the RC5 algorithm in the openssl library used to compile the Qore library; for maximum portability check the constant <code>HAVE_RC5</code> before running this function.  See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
+          <para>Decrypts data to a string using the Cipher Block Chaining function for <ulink url="http://www.rsasecurity.com/">RSA's</ulink> RC5(tm) algorithm using a variable-length key and an optional 8-byte initialization vector.  This function returns a string, for an equivalent function that decrypts to a binary object, see <link linkend="rc5_decrypt_cbc">rc5_decrypt_cbc()</link>.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -14087,6 +14284,12 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
         <listitem>
           <programlisting>$str = rc5_decrypt_cbc_to_string($data, $key);</programlisting>
         </listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Platform Availability</term>
+	<listitem>
+	  <para><code><link linkend="HAVE_RC5">HAVE_RC5</link></code></para>
+	</listitem>
       </varlistentry>
     </variablelist>
     <table>
@@ -14972,7 +15175,7 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Returns the MDC2 message digest of the supplied argument (for strings, the trailing null character is not included in the digest).  The availability of this function depends on the availability of the MDC2 algorithm in the openssl library used to compile the Qore library; for maximum portability check the constant <code>HAVE_MDC2</code> before running this function.  See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
+          <para>Returns the MDC2 message digest of the supplied argument (for strings, the trailing null character is not included in the digest).</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -14986,6 +15189,12 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
         <listitem>
           <programlisting>$str = MDC2("hello");</programlisting>
         </listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Platform Availability</term>
+	<listitem>
+	  <para><code><link linkend="HAVE_MDC2">HAVE_MDC2</link></code></para>
+	</listitem>
       </varlistentry>
     </variablelist>
     <table>
@@ -15057,7 +15266,7 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Returns the MDC2 message digest of the supplied argument (for strings, the trailing null character is not included in the digest) as a binary object.  The availability of this function depends on the availability of the MDC2 algorithm in the openssl library used to compile the Qore library; for maximum portability check the constant <code>HAVE_MDC2</code> before running this function.  See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
+          <para>Returns the MDC2 message digest of the supplied argument (for strings, the trailing null character is not included in the digest) as a binary object.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -15071,6 +15280,12 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
         <listitem>
           <programlisting>$bin = MDC2_bin("hello");</programlisting>
         </listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Platform Availability</term>
+	<listitem>
+	  <para><code><link linkend="HAVE_MDC2">HAVE_MDC2</link></code></para>
+	</listitem>
       </varlistentry>
     </variablelist>
     <table>
@@ -15638,6 +15853,12 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
           <programlisting>$str = SHA224("hello"); # "ea09ae9cc6768c50fcee903ed054556e5bfc8347907f12598aa24193"</programlisting>
         </listitem>
       </varlistentry>
+      <varlistentry>
+	<term>Platform Availability</term>
+	<listitem>
+	  <para><code><link linkend="HAVE_SHA224">HAVE_SHA224</link></code></para>
+	</listitem>
+      </varlistentry>
     </variablelist>
     <table>
       <title>Arguments and Return Values for SHA224()</title>
@@ -15708,7 +15929,7 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Returns the <ulink url="http://en.wikipedia.org/wiki/Secure_Hash_Algorithm">SHA224</ulink> message digest of the supplied argument as a string of hex characters.  For string arguments, the trailing null character is not included in the digest.  The availability of this function depends on the availability of the <ulink url="http://en.wikipedia.org/wiki/Secure_Hash_Algorithm">SHA224</ulink> algorithm in the openssl library used to compile the Qore library; for maximum portability check the constant <code>HAVE_SHA224</code> before running this function. See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
+          <para>Returns the <ulink url="http://en.wikipedia.org/wiki/Secure_Hash_Algorithm">SHA224</ulink> message digest of the supplied argument as a string of hex characters.  For string arguments, the trailing null character is not included in the digest.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -15723,6 +15944,12 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
           <programlisting>$bin = SHA224_bin("hello");
 # &lt;ea09ae9cc6768c50fcee903ed054556e5bfc8347907f12598aa24193&gt;</programlisting>
         </listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Platform Availability</term>
+	<listitem>
+	  <para><code><link linkend="HAVE_SHA224">HAVE_SHA224</link></code></para>
+	</listitem>
       </varlistentry>
     </variablelist>
     <table>
@@ -15794,7 +16021,7 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Returns the <ulink url="http://en.wikipedia.org/wiki/Secure_Hash_Algorithm">SHA256</ulink> message digest of the supplied argument as a string of hex characters.  For string arguments, the trailing null character is not included in the digest.  The availability of this function depends on the availability of the <ulink url="http://en.wikipedia.org/wiki/Secure_Hash_Algorithm">SHA256</ulink> algorithm in the openssl library used to compile the Qore library; for maximum portability check the constant <code>HAVE_SHA256</code> before running this function. See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
+          <para>Returns the <ulink url="http://en.wikipedia.org/wiki/Secure_Hash_Algorithm">SHA256</ulink> message digest of the supplied argument as a string of hex characters.  For string arguments, the trailing null character is not included in the digest.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -15809,6 +16036,12 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
           <programlisting>$str = SHA256("hello");
 # "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"</programlisting>
         </listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Platform Availability</term>
+	<listitem>
+	  <para><code><link linkend="HAVE_SHA256">HAVE_SHA256</link></code></para>
+	</listitem>
       </varlistentry>
     </variablelist>
     <table>
@@ -15880,7 +16113,7 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Returns the <ulink url="http://en.wikipedia.org/wiki/Secure_Hash_Algorithm">SHA256</ulink> message digest of the supplied argument as a string of hex characters.  For string arguments, the trailing null character is not included in the digest.  The availability of this function depends on the availability of the <ulink url="http://en.wikipedia.org/wiki/Secure_Hash_Algorithm">SHA256</ulink> algorithm in the openssl library used to compile the Qore library; for maximum portability check the constant <code>HAVE_SHA256</code> before running this function. See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
+          <para>Returns the <ulink url="http://en.wikipedia.org/wiki/Secure_Hash_Algorithm">SHA256</ulink> message digest of the supplied argument as a string of hex characters.  For string arguments, the trailing null character is not included in the digest.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -15895,6 +16128,12 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
           <programlisting>$bin = SHA256_bin("hello");
 # &lt;2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824&gt;</programlisting>
         </listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Platform Availability</term>
+	<listitem>
+	  <para><code><link linkend="HAVE_SHA256">HAVE_SHA256</link></code></para>
+	</listitem>
       </varlistentry>
     </variablelist>
     <table>
@@ -15966,7 +16205,7 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Returns the <ulink url="http://en.wikipedia.org/wiki/Secure_Hash_Algorithm">SHA384</ulink> message digest of the supplied argument as a string of hex characters.  For string arguments, the trailing null character is not included in the digest.  The availability of this function depends on the availability of the <ulink url="http://en.wikipedia.org/wiki/Secure_Hash_Algorithm">SHA384</ulink> algorithm in the openssl library used to compile the Qore library; for maximum portability check the constant <code>HAVE_SHA384</code> before running this function. See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
+          <para>Returns the <ulink url="http://en.wikipedia.org/wiki/Secure_Hash_Algorithm">SHA384</ulink> message digest of the supplied argument as a string of hex characters.  For string arguments, the trailing null character is not included in the digest.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -15981,6 +16220,12 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
           <programlisting>$str = SHA384("hello");
 # "59e1748777448c69de6b800d7a33bbfb9ff1b463e44354c3553bcdb9c666fa90125a3c79f90397bdf5f6a13de828684f"</programlisting>
         </listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Platform Availability</term>
+	<listitem>
+	  <para><code><link linkend="HAVE_SHA384">HAVE_SHA384</link></code></para>
+	</listitem>
       </varlistentry>
     </variablelist>
     <table>
@@ -16052,7 +16297,7 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Returns the <ulink url="http://en.wikipedia.org/wiki/Secure_Hash_Algorithm">SHA384</ulink> message digest of the supplied argument as a string of hex characters.  For string arguments, the trailing null character is not included in the digest.  The availability of this function depends on the availability of the <ulink url="http://en.wikipedia.org/wiki/Secure_Hash_Algorithm">SHA384</ulink> algorithm in the openssl library used to compile the Qore library; for maximum portability check the constant <code>HAVE_SHA384</code> before running this function. See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
+          <para>Returns the <ulink url="http://en.wikipedia.org/wiki/Secure_Hash_Algorithm">SHA384</ulink> message digest of the supplied argument as a string of hex characters.  For string arguments, the trailing null character is not included in the digest.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -16067,6 +16312,12 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
           <programlisting>$bin = SHA384_bin("hello");
 # &lt;59e1748777448c69de6b800d7a33bbfb9ff1b463e44354c3553bcdb9c666fa90125a3c79f90397bdf5f6a13de828684f&gt;</programlisting>
         </listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Platform Availability</term>
+	<listitem>
+	  <para><code><link linkend="HAVE_SHA384">HAVE_SHA384</link></code></para>
+	</listitem>
       </varlistentry>
     </variablelist>
     <table>
@@ -16138,7 +16389,7 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Returns the <ulink url="http://en.wikipedia.org/wiki/Secure_Hash_Algorithm">SHA512</ulink> message digest of the supplied argument as a string of hex characters.  For string arguments, the trailing null character is not included in the digest.  The availability of this function depends on the availability of the <ulink url="http://en.wikipedia.org/wiki/Secure_Hash_Algorithm">SHA512</ulink> algorithm in the openssl library used to compile the Qore library; for maximum portability check the constant <code>HAVE_SHA512</code> before running this function. See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
+          <para>Returns the <ulink url="http://en.wikipedia.org/wiki/Secure_Hash_Algorithm">SHA512</ulink> message digest of the supplied argument as a string of hex characters.  For string arguments, the trailing null character is not included in the digest.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -16153,6 +16404,12 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
           <programlisting>$str = SHA512("hello");
 # "9b71d224bd62f3785d96d46ad3ea3d73319bfbc2890caadae2dff72519673ca72323c3d99ba5c11d7c7acc6e14b8c5da0c4663475c2e5c3adef46f73bcdec043"</programlisting>
         </listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Platform Availability</term>
+	<listitem>
+	  <para><code><link linkend="HAVE_SHA512">HAVE_SHA512</link></code></para>
+	</listitem>
       </varlistentry>
     </variablelist>
     <table>
@@ -16224,7 +16481,7 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Returns the <ulink url="http://en.wikipedia.org/wiki/Secure_Hash_Algorithm">SHA512</ulink> message digest of the supplied argument as a string of hex characters.  For string arguments, the trailing null character is not included in the digest.  The availability of this function depends on the availability of the <ulink url="http://en.wikipedia.org/wiki/Secure_Hash_Algorithm">SHA512</ulink> algorithm in the openssl library used to compile the Qore library; for maximum portability check the constant <code>HAVE_SHA512</code> before running this function. See <link linkend="Library_Options">Library Option Constants</link> for a list of all option constants.</para>
+          <para>Returns the <ulink url="http://en.wikipedia.org/wiki/Secure_Hash_Algorithm">SHA512</ulink> message digest of the supplied argument as a string of hex characters.  For string arguments, the trailing null character is not included in the digest.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -16239,6 +16496,12 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
           <programlisting>$bin = SHA512_bin("hello");
 # &lt;9b71d224bd62f3785d96d46ad3ea3d73319bfbc2890caadae2dff72519673ca72323c3d99ba5c11d7c7acc6e14b8c5da0c4663475c2e5c3adef46f73bcdec043&gt;</programlisting>
         </listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Platform Availability</term>
+	<listitem>
+	  <para><code><link linkend="HAVE_SHA512">HAVE_SHA512</link></code></para>
+	</listitem>
       </varlistentry>
     </variablelist>
     <table>
@@ -16478,6 +16741,12 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
       </listitem>
     </varlistentry>
       <varlistentry>
+	<term>Platform Availability</term>
+	<listitem>
+	  <para><code><link linkend="HAVE_UNIX_FILEMGT">HAVE_UNIX_FILEMGT</link></code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
 	<term>Restrictions</term>
 	<listitem>
 	  <para>Not available with <code><link linkend="no-filesystem">PO_NO_FILESYSTEM</link></code></para>
@@ -16507,6 +16776,23 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
 </tbody>
 </tgroup>
 </table>
+
+    <table><title>Exceptions Thrown by chown()</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>err</para></entry>
+	  <entry><para>desc</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
+	  <entry><para>This exception is thrown when the function is not available on the runtime platform; for maximum portability, check the constant <code><link linkend="HAVE_UNIX_FILEMGT">HAVE_UNIX_FILEMGT</link></code> before calling this function.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+    </table>
 
 </sect2>
 
@@ -17067,6 +17353,12 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
         </listitem>
       </varlistentry>
       <varlistentry>
+	<term>Platform Availability</term>
+	<listitem>
+	  <para><code><link linkend="HAVE_IS_EXECUTABLE">HAVE_IS_EXECUTABLE</link></code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
 	<term>Restrictions</term>
 	<listitem>
 	  <para>Not available with <code><link linkend="no-filesystem">PO_NO_FILESYSTEM</link></code></para>
@@ -17099,6 +17391,22 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
           </row>
         </tbody>
       </tgroup>
+    </table>
+    <table><title>Exceptions Thrown by is_executable()</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>err</para></entry>
+	  <entry><para>desc</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
+	  <entry><para>This exception is thrown when the function is not available; for maximum portability, check the constant <code><link linkend="HAVE_IS_EXECUTABLE">HAVE_IS_EXECUTABLE</link></code> before calling this function.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
     </table>
   </sect2>
   <sect2 id="is_file">
@@ -17177,6 +17485,12 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
         <listitem>
           <programlisting>$bool = is_link("/bin/sh");</programlisting>
         </listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Platform Availability</term>
+	<listitem>
+	  <para><code><link linkend="HAVE_UNIX_FILEMGT">HAVE_UNIX_FILEMGT</link></code></para>
+	</listitem>
       </varlistentry>
       <varlistentry>
 	<term>Restrictions</term>
@@ -17347,6 +17661,12 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
         </listitem>
       </varlistentry>
       <varlistentry>
+	<term>Platform Availability</term>
+	<listitem>
+	  <para><code><link linkend="HAVE_UNIX_FILEMGT">HAVE_UNIX_FILEMGT</link></code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
 	<term>Restrictions</term>
 	<listitem>
 	  <para>Not available with <code><link linkend="no-filesystem">PO_NO_FILESYSTEM</link></code></para>
@@ -17380,6 +17700,23 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
         </tbody>
       </tgroup>
     </table>
+    <table><title>Exceptions Thrown by is_socket()</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>err</para></entry>
+	  <entry><para>desc</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
+	  <entry><para>This exception is thrown when the function is not available; for maximum portability, check the constant <code><link linkend="HAVE_UNIX_FILEMGT">HAVE_UNIX_FILEMGT</link></code> before calling this function.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+    </table>
+
   </sect2>
   <sect2 id="is_writeable">
     <title>is_writeable()</title>
@@ -17461,6 +17798,12 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
       </listitem>
     </varlistentry>
       <varlistentry>
+	<term>Platform Availability</term>
+	<listitem>
+	  <para><code><link linkend="HAVE_UNIX_FILEMGT">HAVE_UNIX_FILEMGT</link></code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
 	<term>Restrictions</term>
 	<listitem>
 	  <para>Not available with <code><link linkend="no-filesystem">PO_NO_FILESYSTEM</link></code></para>
@@ -17490,6 +17833,22 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
 </tbody>
 </tgroup>
 </table>
+    <table><title>Exceptions Thrown by lchown()</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>err</para></entry>
+	  <entry><para>desc</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
+	  <entry><para>This exception is thrown when the function is not available on the runtime platform; for maximum portability, check the constant <code><link linkend="HAVE_UNIX_FILEMGT">HAVE_UNIX_FILEMGT</link></code> before calling this function.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+    </table>
 
 </sect2>
 
@@ -17620,6 +17979,12 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
 	<programlisting>mkfifo("/tmp/pipe");</programlisting>
       </listitem>
     </varlistentry>
+      <varlistentry>
+	<term>Platform Availability</term>
+	<listitem>
+	  <para><code><link linkend="HAVE_UNIX_FILEMGT">HAVE_UNIX_FILEMGT</link></code></para>
+	</listitem>
+      </varlistentry>
     <varlistentry>
       <term>Restrictions</term>
       <listitem>
@@ -17660,7 +18025,22 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
         </tgroup>
       </table>
 
-  <para>This function does not throw any exceptions.</para>
+    <table><title>Exceptions Thrown by mkfifo()</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>err</para></entry>
+	  <entry><para>desc</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
+	  <entry><para>This exception is thrown when the function is not available on the runtime platform; for maximum portability, check the constant <code><link linkend="HAVE_UNIX_FILEMGT">HAVE_UNIX_FILEMGT</link></code> before calling this function.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+    </table>
 
 </sect2>
 
@@ -17686,6 +18066,12 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
 	<programlisting><command>my</command> string $str = readlink("/tmp/symbolic_link");</programlisting>
       </listitem>
     </varlistentry>
+      <varlistentry>
+	<term>Platform Availability</term>
+	<listitem>
+	  <para><code><link linkend="HAVE_UNIX_FILEMGT">HAVE_UNIX_FILEMGT</link></code></para>
+	</listitem>
+      </varlistentry>
     <varlistentry>
       <term>Restrictions</term>
       <listitem>
@@ -17728,6 +18114,10 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
 	<row>
 	  <entry><para><code>READLINK-ERROR</code></para></entry>
 	  <entry><para>Invalid arguments or a system error occured (ex: file does not exist or is not a symbolic link).</para></entry>
+	</row>
+	<row>
+	  <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
+	  <entry><para>This exception is thrown when the function is not available on the runtime platform; for maximum portability, check the constant <code><link linkend="HAVE_UNIX_FILEMGT">HAVE_UNIX_FILEMGT</link></code> before calling this function.</para></entry>
 	</row>
       </tbody>
     </tgroup>
@@ -18024,6 +18414,12 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
       </listitem>
     </varlistentry>
       <varlistentry>
+	<term>Platform Availability</term>
+	<listitem>
+	  <para><code><link linkend="HAVE_STATVFS">HAVE_STATVFS</link></code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
 	<term>Restrictions</term>
 	<listitem>
 	  <para>Not available with <code><link linkend="no-filesystem">PO_NO_FILESYSTEM</link></code></para>
@@ -18050,7 +18446,22 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
       </tbody>
     </tgroup>
   </table>
-  <para>This function does not throw any exceptions.</para>
+   <table><title>Exceptions Thrown by statvfs()</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>err</para></entry>
+	  <entry><para>desc</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
+	  <entry><para>This exception is thrown when the function is not available on the runtime platform; for maximum portability, check the constant <code><link linkend="HAVE_STATVFS">HAVE_STATVFS</link></code> before calling this function.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+    </table>
 
   <table id="Filesystem_Status_Hash">
     <title>Filesystem Status Hash Description</title>
@@ -20527,6 +20938,12 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
             <programlisting><command>my</command> *hash $hash = getgrgid(0); # returns the login information for root</programlisting>
           </listitem>
         </varlistentry>
+      <varlistentry>
+	<term>Platform Availability</term>
+	<listitem>
+	  <para><code><link linkend="HAVE_UNIX_USERMGT">HAVE_UNIX_USERMGT</link></code></para>
+	</listitem>
+      </varlistentry>
     <varlistentry>
       <term>Restrictions</term>
       <listitem>
@@ -20566,7 +20983,23 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
           </tbody>
         </tgroup>
       </table>
-      <para>This function does not throw any exceptions.</para>
+
+    <table><title>Exceptions Thrown by getgrgid()</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>err</para></entry>
+	  <entry><para>desc</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
+	  <entry><para>This exception is thrown when the function is not available on the runtime platform; for maximum portability, check the constant <code><link linkend="HAVE_UNIX_USERMGT">HAVE_UNIX_USERMGT</link></code> before calling this function.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+    </table>
 
   <table id="grinfo"><title>Group Information Hash</title>
   <tgroup cols='3' align='left' colsep='1' rowsep='1'>
@@ -20626,6 +21059,12 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
             <programlisting><command>my</command> hash $hash = getgrgid2(0); # returns the login information for root</programlisting>
           </listitem>
         </varlistentry>
+      <varlistentry>
+	<term>Platform Availability</term>
+	<listitem>
+	  <para><code><link linkend="HAVE_UNIX_USERMGT">HAVE_UNIX_USERMGT</link></code></para>
+	</listitem>
+      </varlistentry>
     <varlistentry>
       <term>Restrictions</term>
       <listitem>
@@ -20679,6 +21118,10 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
 	<entry><para><code>GETGRGID2-ERROR</code></para></entry>
 	<entry><para>The group information could not be retrieved (group does not exist or other error in call)</para></entry>
       </row>
+	<row>
+	  <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
+	  <entry><para>This exception is thrown when the function is not available on the runtime platform; for maximum portability, check the constant <code><link linkend="HAVE_UNIX_USERMGT">HAVE_UNIX_USERMGT</link></code> before calling this function.</para></entry>
+	</row>
     </tbody>
   </tgroup>
   </table>
@@ -20707,6 +21150,12 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
             <programlisting><command>my</command> *hash $hash = getgrnam("root"); # returns the login information for root</programlisting>
           </listitem>
         </varlistentry>
+      <varlistentry>
+	<term>Platform Availability</term>
+	<listitem>
+	  <para><code><link linkend="HAVE_UNIX_USERMGT">HAVE_UNIX_USERMGT</link></code></para>
+	</listitem>
+      </varlistentry>
     <varlistentry>
       <term>Restrictions</term>
       <listitem>
@@ -20746,7 +21195,22 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
           </tbody>
         </tgroup>
       </table>
-      <para>This function does not throw any exceptions.</para>
+    <table><title>Exceptions Thrown by getgrnam()</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>err</para></entry>
+	  <entry><para>desc</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
+	  <entry><para>This exception is thrown when the function is not available on the runtime platform; for maximum portability, check the constant <code><link linkend="HAVE_UNIX_USERMGT">HAVE_UNIX_USERMGT</link></code> before calling this function.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+    </table>
 
     </sect2>
 
@@ -20772,6 +21236,12 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
             <programlisting><command>my</command> hash $hash = getgrnam2("root"); # returns the login information for root</programlisting>
           </listitem>
         </varlistentry>
+      <varlistentry>
+	<term>Platform Availability</term>
+	<listitem>
+	  <para><code><link linkend="HAVE_UNIX_USERMGT">HAVE_UNIX_USERMGT</link></code></para>
+	</listitem>
+      </varlistentry>
     <varlistentry>
       <term>Restrictions</term>
       <listitem>
@@ -20825,6 +21295,10 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
 	<entry><para><code>GETGRNAM2-ERROR</code></para></entry>
 	<entry><para>The group information could not be retrieved (group does not exist or other error in call)</para></entry>
       </row>
+	<row>
+	  <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
+	  <entry><para>This exception is thrown when the function is not available on the runtime platform; for maximum portability, check the constant <code><link linkend="HAVE_UNIX_USERMGT">HAVE_UNIX_USERMGT</link></code> before calling this function.</para></entry>
+	</row>
     </tbody>
   </tgroup>
   </table>
@@ -20853,6 +21327,12 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
             <programlisting><command>my</command> *hash $hash = getpwnam("root"); # returns the login information for root</programlisting>
           </listitem>
         </varlistentry>
+      <varlistentry>
+	<term>Platform Availability</term>
+	<listitem>
+	  <para><code><link linkend="HAVE_UNIX_USERMGT">HAVE_UNIX_USERMGT</link></code></para>
+	</listitem>
+      </varlistentry>
     <varlistentry>
       <term>Restrictions</term>
       <listitem>
@@ -20892,7 +21372,23 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
           </tbody>
         </tgroup>
       </table>
-      <para>This function does not throw any exceptions.</para>
+
+    <table><title>Exceptions Thrown by getpwnam()</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>err</para></entry>
+	  <entry><para>desc</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
+	  <entry><para>This exception is thrown when the function is not available on the runtime platform; for maximum portability, check the constant <code><link linkend="HAVE_UNIX_USERMGT">HAVE_UNIX_USERMGT</link></code> before calling this function.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+    </table>
 
   <table id="pwinfo"><title>Password Information Hash</title>
   <tgroup cols='3' align='left' colsep='1' rowsep='1'>
@@ -20967,6 +21463,12 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
             <programlisting><command>my</command> hash $hash = getpwnam2("root"); # returns the login information for root</programlisting>
           </listitem>
         </varlistentry>
+      <varlistentry>
+	<term>Platform Availability</term>
+	<listitem>
+	  <para><code><link linkend="HAVE_UNIX_USERMGT">HAVE_UNIX_USERMGT</link></code></para>
+	</listitem>
+      </varlistentry>
     <varlistentry>
       <term>Restrictions</term>
       <listitem>
@@ -21020,6 +21522,10 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
 	<entry><para><code>GETPWNAM2-ERROR</code></para></entry>
 	<entry><para>The user information could not be retrieved (user does not exist or other error in call)</para></entry>
       </row>
+	<row>
+	  <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
+	  <entry><para>This exception is thrown when the function is not available on the runtime platform; for maximum portability, check the constant <code><link linkend="HAVE_UNIX_USERMGT">HAVE_UNIX_USERMGT</link></code> before calling this function.</para></entry>
+	</row>
     </tbody>
   </tgroup>
   </table>
@@ -21048,6 +21554,12 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
             <programlisting><command>my</command> *hash $hash = getpwuid(0); # returns the login information for root</programlisting>
           </listitem>
         </varlistentry>
+      <varlistentry>
+	<term>Platform Availability</term>
+	<listitem>
+	  <para><code><link linkend="HAVE_UNIX_USERMGT">HAVE_UNIX_USERMGT</link></code></para>
+	</listitem>
+      </varlistentry>
     <varlistentry>
       <term>Restrictions</term>
       <listitem>
@@ -21087,7 +21599,22 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
           </tbody>
         </tgroup>
       </table>
-      <para>This function does not throw any exceptions.</para>
+    <table><title>Exceptions Thrown by getpwuid()</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>err</para></entry>
+	  <entry><para>desc</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
+	  <entry><para>This exception is thrown when the function is not available on the runtime platform; for maximum portability, check the constant <code><link linkend="HAVE_UNIX_USERMGT">HAVE_UNIX_USERMGT</link></code> before calling this function.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+    </table>
       
     </sect2>
 
@@ -21113,6 +21640,12 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
             <programlisting><command>my</command> hash $hash = getpwuid2(0); # returns the login information for root</programlisting>
           </listitem>
         </varlistentry>
+      <varlistentry>
+	<term>Platform Availability</term>
+	<listitem>
+	  <para><code><link linkend="HAVE_UNIX_USERMGT">HAVE_UNIX_USERMGT</link></code></para>
+	</listitem>
+      </varlistentry>
     <varlistentry>
       <term>Restrictions</term>
       <listitem>
@@ -21165,6 +21698,10 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
       <row>
 	<entry><para><code>GETPWUID2-ERROR</code></para></entry>
 	<entry><para>The user information could not be retrieved (user does not exist or other error in call)</para></entry>
+      </row>
+      <row>
+	<entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
+	<entry><para>This exception is thrown when the function is not available on the runtime platform; for maximum portability, check the constant <code><link linkend="HAVE_UNIX_USERMGT">HAVE_UNIX_USERMGT</link></code> before calling this function.</para></entry>
       </row>
     </tbody>
   </tgroup>
@@ -23133,6 +23670,12 @@ delete_thread_data($list_of_strings);</programlisting>
             <para><code><link linkend="hash_type">hash</link> <link linkend="getAllThreadCallStacks">getAllThreadCallStacks</link>()</code></para>
       </listitem>
     </varlistentry>
+      <varlistentry>
+	<term>Platform Availability</term>
+	<listitem>
+	  <para><code><link linkend="HAVE_RUNTIME_THREAD_STACK_TRACE">HAVE_RUNTIME_THREAD_STACK_TRACE</link></code></para>
+	</listitem>
+      </varlistentry>
     <varlistentry>
       <term>Restrictions</term>
       <listitem>

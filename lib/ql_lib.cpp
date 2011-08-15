@@ -58,6 +58,11 @@ AbstractQoreNode *missing_function_error(const char *func, ExceptionSink *xsink)
    return 0;
 }
 
+AbstractQoreNode *missing_function_error(const char *func, const char *opt, ExceptionSink *xsink) {
+   xsink->raiseException("MISSING-FEATURE-ERROR", "this system does not implement %s(); for maximum portability use the constant Option::HAVE_%s to check if this function is implemented before calling", func, opt);
+   return 0;
+}
+
 static AbstractQoreNode *f_exit(const QoreListNode *params, ExceptionSink *xsink) {
    const AbstractQoreNode *p0 = get_param(params, 0);
    qore_exit_process(p0 ? p0->getAsInt() : 0);
@@ -139,7 +144,7 @@ static AbstractQoreNode *f_getuid(const QoreListNode *params, ExceptionSink *xsi
 #ifdef HAVE_GETUID
    return new QoreBigIntNode(getuid());
 #else
-   return missing_function_error("getuid", xsink);
+   return missing_function_error("getuid", "UNIX_USERMGT", xsink);
 #endif
 }
 
@@ -147,7 +152,7 @@ static AbstractQoreNode *f_geteuid(const QoreListNode *params, ExceptionSink *xs
 #ifdef HAVE_GETEUID
    return new QoreBigIntNode(getuid());
 #else
-   return missing_function_error("geteuid", xsink);
+   return missing_function_error("geteuid", "UNIX_USERMGT", xsink);
 #endif
 }
 
@@ -155,7 +160,7 @@ static AbstractQoreNode *f_getgid(const QoreListNode *params, ExceptionSink *xsi
 #ifdef HAVE_GETGID
    return new QoreBigIntNode(getgid());
 #else
-   return missing_function_error("getgid", xsink);
+   return missing_function_error("getgid", "UNIX_USERMGT", xsink);
 #endif
 }
 
@@ -163,7 +168,7 @@ static AbstractQoreNode *f_getegid(const QoreListNode *params, ExceptionSink *xs
 #ifdef HAVE_GETEGID
    return new QoreBigIntNode(getgid());
 #else
-   return missing_function_error("getegid", xsink);
+   return missing_function_error("getegid", "UNIX_USERMGT", xsink);
 #endif
 }
 
@@ -499,7 +504,7 @@ static AbstractQoreNode *f_mkfifo(const QoreListNode *params, ExceptionSink *xsi
    int mode = (int)HARD_QORE_INT(params, 1);
    return new QoreBigIntNode(mkfifo(fn, mode));
 #else
-   return missing_function_error("mkfifo", xsink);
+   return missing_function_error("mkfifo", "UNIX_FILEMGT", xsink);
 #endif
 }
 
@@ -507,7 +512,7 @@ static AbstractQoreNode *f_setuid(const QoreListNode *params, ExceptionSink *xsi
 #ifdef HAVE_SETUID
    return new QoreBigIntNode(setuid((int)HARD_QORE_INT(params, 0)));
 #else
-   return missing_function_error("setuid", xsink);
+   return missing_function_error("setuid", "UNIX_USERMGT", xsink);
 #endif
 }
 
@@ -523,7 +528,7 @@ static AbstractQoreNode *f_setgid(const QoreListNode *params, ExceptionSink *xsi
 #ifdef HAVE_SETGID
    return new QoreBigIntNode(setgid((int)HARD_QORE_INT(params, 0)));
 #else
-   return missing_function_error("setgid", xsink);
+   return missing_function_error("setgid", "UNIX_USERMGT", xsink);
 #endif
 }
 
@@ -590,7 +595,7 @@ static AbstractQoreNode *f_chown(const QoreListNode *params, ExceptionSink *xsin
    gid_t group = (gid_t)HARD_QORE_INT(params, 2);
    return new QoreBigIntNode(chown(path, owner, group));
 #else
-   return missing_function_error("chown", xsink);
+   return missing_function_error("chown", "UNIX_FILEMGT", xsink);
 #endif
 }
 
@@ -603,7 +608,7 @@ static AbstractQoreNode *f_lchown(const QoreListNode *params, ExceptionSink *xsi
    gid_t group = (gid_t)HARD_QORE_INT(params, 2);
    return new QoreBigIntNode(lchown(path, owner, group));
 #else
-   return missing_function_error("lchown", xsink);
+   return missing_function_error("lchown", "UNIX_FILEMGT", xsink);
 #endif
 }
 
@@ -621,12 +626,12 @@ static AbstractQoreNode *f_readlink(const QoreListNode *params, ExceptionSink *x
    buf[len] = '\0';
    return new QoreStringNode(buf);
 #else
-   return missing_function_error("readlink", xsink);
+   return missing_function_error("readlink", "UNIX_FILEMGT", xsink);
 #endif
 }
 
 #ifdef DEBUG
-static AbstractQoreNode* runQoreTests(const QoreListNode *params, ExceptionSink *xsink) {
+static AbstractQoreNode *runQoreTests(const QoreListNode *params, ExceptionSink *xsink) {
    minitest::result res = minitest::execute_all_tests();
    if (res.all_tests_succeeded) {
       printf("Qore runtime: %d tests succeeded\n", res.sucessful_tests_count);
@@ -638,7 +643,7 @@ static AbstractQoreNode* runQoreTests(const QoreListNode *params, ExceptionSink 
    return 0;
 }
 
-static AbstractQoreNode* runRecentQoreTests(const QoreListNode *params, ExceptionSink *xsink) {
+static AbstractQoreNode *runRecentQoreTests(const QoreListNode *params, ExceptionSink *xsink) {
    minitest::result res = minitest::test_last_changed_files(3); // 3 last modified files
    if (res.all_tests_succeeded) {
       printf("Qore runtime: %d recent tests succeeded\n", res.sucessful_tests_count);

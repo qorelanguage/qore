@@ -764,6 +764,7 @@ DLLLOCAL int inet_pton(int af, const char *src, void *dst);
 #endif
 
 DLLLOCAL AbstractQoreNode *missing_function_error(const char *func, ExceptionSink *xsink);
-DLLLOCAL AbstractQoreNode *missing_method_error(const char *meth, const char *feat, ExceptionSink *xsink);
+DLLLOCAL AbstractQoreNode *missing_function_error(const char *func, const char *opt, ExceptionSink *xsink);
+DLLLOCAL AbstractQoreNode *missing_method_error(const char *meth, const char *opt, ExceptionSink *xsink);
 
 #endif

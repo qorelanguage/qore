@@ -237,35 +237,70 @@
 	    <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
 	    <entry><para>Indicates if the Qore library supports fast atomic reference counting.  Note that if this constant is <code>False</code>, atomic operations are supported by mutexes and are therefore slower than with native atomic reference counting operations.</para></entry>
 	  </row>
-	  <row id="HAVE_STACK_GUARD">
-	    <entry><para><code>HAVE_STACK_GUARD</code></para></entry>
+	  <row id="HAVE_FILE_LOCKING">
+	    <entry><para><code>HAVE_FILE_LOCKING</code></para></entry>
 	    <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
-	    <entry><para>Indicates if protection against stack overruns is provided</para></entry>
+	    <entry><para>Indicates if the Qore library supports file locking; currently this depends on UNIX-style file locking with the fnctl() function.</para></entry>
+	  </row>
+	  <row id="HAVE_FORK">
+	    <entry><para><code>HAVE_FORK</code></para></entry>
+	    <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
+	    <entry><para>Indicates if the <link linkend="fork">fork()</link> function is available.  This constant is always <code>False</code> on native Windows ports.</para></entry>
+	  </row>
+	  <row id="HAVE_GETPPID">
+	    <entry><para><code>HAVE_GETPPID</code></para></entry>
+	    <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
+	    <entry><para>Indicates if the <link linkend="getppid">getppid()</link> function is available.  This constant is always <code>False</code> on native Windows ports.</para></entry>
+	  </row>
+	  <row id="HAVE_IS_EXECUTABLE">
+	    <entry><para><code>HAVE_IS_EXECUTABLE</code></para></entry>
+	    <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
+	    <entry><para>Indicates if the Qore library supports the <link linkend="is_executable">is_executable()</link> function; currently this function is only available when running on UNIX or UNIX-like platforms.</para></entry>
+	  </row>
+	  <row id="HAVE_KILL">
+	    <entry><para><code>HAVE_KILL</code></para></entry>
+	    <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
+	    <entry><para>Indicates if the <link linkend="kill">kill()</link> function is available.  This constant is always <code>False</code> on native Windows ports.</para></entry>
+	  </row>
+	  <row id="HAVE_MDC2">
+	    <entry><para><code>HAVE_MDC2</code></para></entry>
+	    <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
+	    <entry><para>Indicates if the openssl library used to build the qore library supported the MDC2 algorithm and therefore if the <link linkend="MDC2">MDC2()</link> and <link linkend="MDC2_bin">MDC2_bin()</link> functions are available.</para></entry>
+	  </row>
+	  <row id="HAVE_MD2">
+	    <entry><para><code>HAVE_MD2</code></para></entry>
+	    <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
+	    <entry><para>Indicates if the openssl library used to build the qore library supported the MD2 algorithm and therefore if the <link linkend="MD2">MD2()</link> and <link linkend="MD2_bin">MD2_bin()</link> functions are available.</para></entry>
+	  </row>
+	  <row id="HAVE_RC5">
+	    <entry><para><code>HAVE_RC5</code></para></entry>
+	    <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
+	    <entry><para>Indicates if the openssl library used to build the qore library supported the RC5 encryption algorithm and therefore if the <link linkend="rc5_encrypt_cbc">rc5_encrypt_cbc()</link>, <link linkend="rc5_decrypt_cbc">rc5_decrypt_cbc()</link> and <link linkend="rc5_decrypt_cbc_to_string">rc5_encrypt_cbc_to_string()</link> functions are available.</para></entry>
+	  </row>
+	  <row id="HAVE_ROUND">
+	    <entry><para><code>HAVE_ROUND</code></para></entry>
+	    <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
+	    <entry><para>Indicates if the <link linkend="round">round()</link> function is available; the availability of this function depends on the presence of the C-library's round() function.</para></entry>
 	  </row>
 	  <row id="HAVE_RUNTIME_THREAD_STACK_TRACE">
 	    <entry><para><code>HAVE_RUNTIME_THREAD_STACK_TRACE</code></para></entry>
 	    <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
 	    <entry><para>Indicates if active thread stack tracing has been enabled as a debugging option and if the <link linkend="getAllThreadCallStacks">getAllThreadCallStacks()</link> function is available.</para></entry>
 	  </row>
-	  <row id="HAVE_ROUND">
-	    <entry><para><code>HAVE_ROUND</code></para></entry>
-	    <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
-	    <entry><para>Indicates if the <link linkend="round">round()</link> function is available.</para></entry>
-	  </row>
-	  <row id="HAVE_TIMEGM">
-	    <entry><para><code>HAVE_TIMEGM</code></para></entry>
-	    <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
-	    <entry><para>Always <code>True</code> (as of qore 0.8.0+): indicates that the <link linkend="timegm">timegm()</link> function is available.</para></entry>
-	  </row>
 	  <row id="HAVE_SETEUID">
 	    <entry><para><code>HAVE_SETEUID</code></para></entry>
 	    <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
-	    <entry><para>Indicates if the <link linkend="seteuid">seteuid()</link> function is available.</para></entry>
+	    <entry><para>Indicates if the <link linkend="seteuid">seteuid()</link> function is available; the availabilty of this function depends on the system's underlying C-library.  This constant is always <code>False</code> on native Windows ports.</para></entry>
 	  </row>
 	  <row id="HAVE_SETEGID">
 	    <entry><para><code>HAVE_SETEGID</code></para></entry>
 	    <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
-	    <entry><para>Indicates if the <link linkend="setegid">setegid()</link> function is available.</para></entry>
+	    <entry><para>Indicates if the <link linkend="setegid">setegid()</link> function is available.  This constant is always <code>False</code> on native Windows ports.</para></entry>
+	  </row>
+	  <row id="HAVE_SETSID">
+	    <entry><para><code>HAVE_SETSID</code></para></entry>
+	    <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
+	    <entry><para>Indicates if the <link linkend="setsid">setsid()</link> function is available on the current platform.  This constant is always <code>False</code> on native Windows ports.</para></entry>
 	  </row>
 	  <row id="HAVE_SHA224">
 	    <entry><para><code>HAVE_SHA224</code></para></entry>
@@ -287,20 +322,40 @@
 	    <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
 	    <entry><para>Indicates if the openssl library used to build the qore library supported the SHA512 algorithm and therefore if the <link linkend="SHA512">SHA512()</link> and <link linkend="SHA512_bin">SHA512_bin()</link> functions are available.</para></entry>
 	  </row>
-	  <row id="HAVE_MDC2">
-	    <entry><para><code>HAVE_MDC2</code></para></entry>
+	  <row id="HAVE_STACK_GUARD">
+	    <entry><para><code>HAVE_STACK_GUARD</code></para></entry>
 	    <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
-	    <entry><para>Indicates if the openssl library used to build the qore library supported the MDC2 algorithm and therefore if the <link linkend="MDC2">MDC2()</link> and <link linkend="MDC2_bin">MDC2_bin()</link> functions are available.</para></entry>
+	    <entry><para>Indicates if protection against stack overruns is provided</para></entry>
 	  </row>
-	  <row id="HAVE_RC5">
-	    <entry><para><code>HAVE_RC5</code></para></entry>
+	  <row id="HAVE_STATVFS">
+	    <entry><para><code>HAVE_STATVFS</code></para></entry>
 	    <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
-	    <entry><para>Indicates if the openssl library used to build the qore library supported the RC5 encryption algorithm and therefore if the <link linkend="rc5_encrypt_cbc">rc5_encrypt_cbc()</link>, <link linkend="rc5_decrypt_cbc">rc5_decrypt_cbc()</link> and <link linkend="rc5_decrypt_cbc_to_string">rc5_encrypt_cbc_to_string()</link> functions are available.</para></entry>
+	    <entry><para>Indicates if the <link linkend="statvfs">statvfs()</link> function is available.  This constant is always <code>False</code> on native Windows ports.</para></entry>
 	  </row>
-	  <row id="HAVE_MD2">
-	    <entry><para><code>HAVE_MD2</code></para></entry>
+	  <row id="HAVE_SYSTEM">
+	    <entry><para><code>HAVE_SYSTEM</code></para></entry>
 	    <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
-	    <entry><para>Indicates if the openssl library used to build the qore library supported the MD2 algorithm and therefore if the <link linkend="MD2">MD2()</link> and <link linkend="MD2_bin">MD2_bin()</link> functions are available.</para></entry>
+	    <entry><para>Indicates if the <link linkend="system">system()</link> function is available.</para></entry>
+	  </row>
+	  <row id="HAVE_TERMIOS">
+	    <entry><para><code>HAVE_TERMIOS</code></para></entry>
+	    <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
+	    <entry><para>Iindicates if the <link linkend="TermIOS_Class">TermIOS class</link> is available.  This constant is always <code>False</code> on native Windows ports.</para></entry>
+	  </row>
+	  <row id="HAVE_TIMEGM">
+	    <entry><para><code>HAVE_TIMEGM</code></para></entry>
+	    <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
+	    <entry><para>Always <code>True</code> (as of qore 0.8.0+): indicates that the <link linkend="timegm">timegm()</link> function is available.</para></entry>
+	  </row>
+	  <row id="HAVE_UNIX_FILEMGT">
+	    <entry><para><code>HAVE_UNIX_FILEMGT</code></para></entry>
+	    <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
+	    <entry><para>Indicates if UNIX-style file management functionality is available (ex: <link linkend="chown">chown()</link>, <link linkend="Dir_chgrp">Dir::chgrp()</link>, etc).  This constant is always <code>False</code> on native Windows ports.</para></entry>
+	  </row>
+	  <row id="HAVE_UNIX_USERMGT">
+	    <entry><para><code>HAVE_UNIX_USERMGT</code></para></entry>
+	    <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
+	    <entry><para>Indicates if UNIX-style user management functionality is available (ex: <link linkend="getuid">getuid()</link>, <link linkend="setuid">setuid()</link>, <link linkend="getgid">getgid()</link>, <link linkend="setgid">setgid()</link>, etc).  This constant is always <code>False</code> on native Windows ports.</para></entry>
 	  </row>
 	</tbody>
       </tgroup>
@@ -1883,7 +1938,7 @@ raised from the <link linkend="FtpClient_Class">FtpClient</link> class.</para></
 	    <entry>
               <para><code><link linkend="nothing_type">nothing</link> <link linkend="File_chown">File::chown</link>(<link linkend="softint_type">softint</link> <replaceable>$uid</replaceable>, <link linkend="softint_type">softint</link> <replaceable>$gid</replaceable> = -1)</code></para>
             </entry>
-	    <entry><para>N</para></entry>
+	    <entry><para>Y</para></entry>
 	    <entry><para>Changes the user and group owners of the file on the filesystem (if the current user has sufficient permission to do so).</para></entry>
 	  </row>
 	  <row>
@@ -2556,6 +2611,12 @@ raised from the <link linkend="FtpClient_Class">FtpClient</link> class.</para></
 	    <programlisting>$f.chown(0, 0);</programlisting>
 	  </listitem>
 	</varlistentry>
+      <varlistentry>
+	<term>Platform Availability</term>
+	<listitem>
+	  <para><code><link linkend="HAVE_UNIX_FILEMGT">HAVE_UNIX_FILEMGT</link></code></para>
+	</listitem>
+      </varlistentry>
       </variablelist>
 
       <table>
@@ -2612,6 +2673,10 @@ raised from the <link linkend="FtpClient_Class">FtpClient</link> class.</para></
 	      <entry><para><code>FILE-CHOWN-ERROR</code></para></entry>
 	      <entry><para>File is not open or the chown operation failed.</para></entry>
 	    </row>
+	<row>
+	  <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
+	  <entry><para>This exception is thrown when the method is not available on the runtime platform; for maximum portability, check the constant <code><link linkend="HAVE_UNIX_FILEMGT">HAVE_UNIX_FILEMGT</link></code> before calling this function.</para></entry>
+	</row>
 	  </tbody>
 	</tgroup>
       </table>
@@ -3267,6 +3332,12 @@ $f.lock(F_RDLCK, 512, 2048);
 $f.lock(F_UNLCK);</programlisting>
 	  </listitem>
 	</varlistentry>
+      <varlistentry>
+	<term>Platform Availability</term>
+	<listitem>
+	  <para><code><link linkend="HAVE_FILE_LOCKING">HAVE_FILE_LOCKING</link></code></para>
+	</listitem>
+      </varlistentry>
       </variablelist>
 
       <table>
@@ -3331,6 +3402,10 @@ $f.lock(F_UNLCK);</programlisting>
 	      <entry><para><code>FILE-LOCK-ERROR</code></para></entry>
 	      <entry><para>File is not open, lock length is negative, or the fcntl operation failed.</para></entry>
 	    </row>
+	<row>
+	  <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
+	  <entry><para>This exception is thrown when the method is not available on the runtime platform; for maximum portability, check the constant <code><link linkend="HAVE_FILE_LOCKING">HAVE_FILE_LOCKING</link></code> before calling this function.</para></entry>
+	</row>
 	  </tbody>
 	</tgroup>
       </table>
@@ -3366,6 +3441,12 @@ $f.lockBlocking(F_RDLCK, 512, 2048);
 $f.lockBlocking(F_UNLCK);</programlisting>
 	  </listitem>
 	</varlistentry>
+      <varlistentry>
+	<term>Platform Availability</term>
+	<listitem>
+	  <para><code><link linkend="HAVE_FILE_LOCKING">HAVE_FILE_LOCKING</link></code></para>
+	</listitem>
+      </varlistentry>
       </variablelist>
 
       <table>
@@ -3430,6 +3511,10 @@ $f.lockBlocking(F_UNLCK);</programlisting>
 	      <entry><para><code>FILE-LOCK-ERROR</code></para></entry>
 	      <entry><para>File is not open, lock length is negative, or the fcntl operation failed.</para></entry>
 	    </row>
+	<row>
+	  <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
+	  <entry><para>This exception is thrown when the method is not available on the runtime platform; for maximum portability, check the constant <code><link linkend="HAVE_FILE_LOCKING">HAVE_FILE_LOCKING</link></code> before calling this function.</para></entry>
+	</row>
 	  </tbody>
 	</tgroup>
       </table>
@@ -5012,6 +5097,12 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 	<programlisting><command>my</command> hash $h = $file.statvfs()</programlisting>
       </listitem>
     </varlistentry>
+      <varlistentry>
+	<term>Platform Availability</term>
+	<listitem>
+	  <para><code><link linkend="HAVE_STATVFS">HAVE_STATVFS</link></code></para>
+	</listitem>
+      </varlistentry>
     </variablelist>
 
     <table>
@@ -5046,6 +5137,10 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 	    <entry><para><code>FILE-STATVFS-ERROR</code></para></entry>
 	    <entry><para><code>statvfs()</code> call failed or file is not open.</para></entry>
 	  </row>
+	<row>
+	  <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
+	  <entry><para>This exception is thrown when the method is not available on the runtime platform; for maximum portability, check the constant <code><link linkend="HAVE_STATVFS">HAVE_STATVFS</link></code> before calling this function.</para></entry>
+	</row>
 	</tbody>
       </tgroup>
     </table>
@@ -6150,6 +6245,12 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
       </listitem>
     </varlistentry>
       <varlistentry>
+	<term>Platform Availability</term>
+	<listitem>
+	  <para><code><link linkend="HAVE_STATVFS">HAVE_STATVFS</link></code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
 	<term>Restrictions</term>
 	<listitem>
 	  <para>Not available with <code><link linkend="no-filesystem">PO_NO_FILESYSTEM</link></code></para>
@@ -6191,6 +6292,10 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 	    <entry><para><code>FILE-STATVFS-ERROR</code></para></entry>
 	    <entry><para><code>statvfs()</code> call failed.</para></entry>
 	  </row>
+	<row>
+	  <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
+	  <entry><para>This exception is thrown when the method is not available on the runtime platform; for maximum portability, check the constant <code><link linkend="HAVE_STATVFS">HAVE_STATVFS</link></code> before calling this function.</para></entry>
+	</row>
 	</tbody>
       </tgroup>
     </table>
@@ -6724,6 +6829,12 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 	    <programlisting>$d.chown("nobody");</programlisting>
 	  </listitem>
 	</varlistentry>
+      <varlistentry>
+	<term>Platform Availability</term>
+	<listitem>
+	  <para><code><link linkend="HAVE_UNIX_FILEMGT">HAVE_UNIX_FILEMGT</link></code></para>
+	</listitem>
+      </varlistentry>
       </variablelist>
 
       <table>
@@ -6766,6 +6877,10 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 	      <entry><para><code>DIR-CHOWN-ERROR</code></para></entry>
 	      <entry><para>The error occoured in the chown() call.</para></entry>
 	    </row>
+	<row>
+	  <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
+	  <entry><para>This exception is thrown when the method is not available on the runtime platform; for maximum portability, check the constant <code><link linkend="HAVE_UNIX_FILEMGT">HAVE_UNIX_FILEMGT</link></code> before calling this function.</para></entry>
+	</row>
 	  </tbody>
 	</tgroup>
       </table>
@@ -6794,6 +6909,12 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 	    <programlisting>$d.chgrp("nogroup");</programlisting>
 	  </listitem>
 	</varlistentry>
+      <varlistentry>
+	<term>Platform Availability</term>
+	<listitem>
+	  <para><code><link linkend="HAVE_UNIX_FILEMGT">HAVE_UNIX_FILEMGT</link></code></para>
+	</listitem>
+      </varlistentry>
       </variablelist>
 
       <table>
@@ -6836,6 +6957,10 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 	      <entry><para><code>DIR-CHGRP-ERROR</code></para></entry>
 	      <entry><para>Error occoured during the change group chown() system call.</para></entry>
 	    </row>
+	<row>
+	  <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
+	  <entry><para>This exception is thrown when the method is not available on the runtime platform; for maximum portability, check the constant <code><link linkend="HAVE_UNIX_FILEMGT">HAVE_UNIX_FILEMGT</link></code> before calling this function.</para></entry>
+	</row>
 	  </tbody>
 	</tgroup>
       </table>
@@ -7184,6 +7309,12 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 	<programlisting><command>my</command> hash $h = $dir.statvfs()</programlisting>
       </listitem>
     </varlistentry>
+      <varlistentry>
+	<term>Platform Availability</term>
+	<listitem>
+	  <para><code><link linkend="HAVE_STATVFS">HAVE_STATVFS</link></code></para>
+	</listitem>
+      </varlistentry>
     </variablelist>
 
     <table>
@@ -7218,6 +7349,10 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 	    <entry><para><code>DIR-STATVFS-ERROR</code></para></entry>
 	    <entry><para><code>statvfs()</code> call failed or directory name is not set.</para></entry>
 	  </row>
+	<row>
+	  <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
+	  <entry><para>This exception is thrown when the method is not available on the runtime platform; for maximum portability, check the constant <code><link linkend="HAVE_STATVFS">HAVE_STATVFS</link></code> before calling this function.</para></entry>
+	</row>
 	</tbody>
       </tgroup>
     </table>
@@ -7749,6 +7884,8 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 
     <para>Note: This class is not available with the <code><link linkend="no-terminal-io">PO_NO_TERMINAL_IO</link></code> parse option.</para>
 
+    <para>On platforms without TermIOS support (such as Windows), none of the methods in this class are available; to write a portable program, check the <link linkend="HAVE_TERMIOS">HAVE_TERMIOS</link> constant at runtime before using this functionality.</para>
+
     <para>This class contains the data structure used to read and set terminal attributes on <link linkend="Qore_IO_Constants">terminal I/O constants</link>.</para>
 
     <para>This class is used with <link linkend="File_getTerminalAttributes">File::getTerminalAttributes()</link>, <link linkend="File_setTerminalAttributes">File::setTerminalAttributes()</link>, and the <link linkend="Qore_IO_Constants">terminal I/O constants</link> to manipulate terminal attributes.</para>
@@ -7927,7 +8064,30 @@ stdout.printf(" GOT ASCII 0x%02x (%d) '%s'\n", ord($c), ord($c), $c);</programli
 stdin.getTerminalAttributes($termios);</programlisting>
 	  </listitem>
 	</varlistentry>
+      <varlistentry>
+	<term>Platform Availability</term>
+	<listitem>
+	  <para><code><link linkend="HAVE_TERMIOS">HAVE_TERMIOS</link></code></para>
+	</listitem>
+      </varlistentry>
       </variablelist>
+
+   <table><title>Exceptions Thrown by TermIOS::constructor()</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>err</para></entry>
+	  <entry><para>desc</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
+	  <entry><para>This exception is thrown when the method is not available on the runtime platform; for maximum portability, check the constant <code><link linkend="HAVE_TERMIOS">HAVE_TERMIOS</link></code> before calling this function.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+    </table>
 
     </sect2>
 
@@ -7990,6 +8150,12 @@ stdin.getTerminalAttributes($termios);</programlisting>
               <para><code><link linkend="int_type">int</link> <link linkend="TermIOS::getLFlag">TermIOS::getLFlag</link>()</code></para>
           </listitem>
         </varlistentry>
+      <varlistentry>
+	<term>Platform Availability</term>
+	<listitem>
+	  <para><code><link linkend="HAVE_TERMIOS">HAVE_TERMIOS</link></code></para>
+	</listitem>
+      </varlistentry>
       </variablelist>
 
       <table>
@@ -8009,6 +8175,22 @@ stdin.getTerminalAttributes($termios);</programlisting>
           </tbody>
         </tgroup>
       </table>
+   <table><title>Exceptions Thrown by TermIOS::getLFlag()</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>err</para></entry>
+	  <entry><para>desc</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
+	  <entry><para>This exception is thrown when the method is not available on the runtime platform; for maximum portability, check the constant <code><link linkend="HAVE_TERMIOS">HAVE_TERMIOS</link></code> before calling this function.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+    </table>
     </sect2>
 
     <sect2 id="TermIOS::getCFlag">
@@ -8026,6 +8208,12 @@ stdin.getTerminalAttributes($termios);</programlisting>
               <para><code><link linkend="int_type">int</link> <link linkend="TermIOS::getCFlag">TermIOS::getCFlag</link>()</code></para>
           </listitem>
         </varlistentry>
+      <varlistentry>
+	<term>Platform Availability</term>
+	<listitem>
+	  <para><code><link linkend="HAVE_TERMIOS">HAVE_TERMIOS</link></code></para>
+	</listitem>
+      </varlistentry>
       </variablelist>
       <table>
         <title>Return Values for TermIOS::getCFlag()</title>
@@ -8052,6 +8240,22 @@ stdin.getTerminalAttributes($termios);</programlisting>
           </tbody>
         </tgroup>
       </table>
+   <table><title>Exceptions Thrown by TermIOS::getCFlag()</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>err</para></entry>
+	  <entry><para>desc</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
+	  <entry><para>This exception is thrown when the method is not available on the runtime platform; for maximum portability, check the constant <code><link linkend="HAVE_TERMIOS">HAVE_TERMIOS</link></code> before calling this function.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+    </table>
     </sect2>
     <sect2 id="TermIOS::getIFlag">
       <title>TermIOS::getIFlag()</title>
@@ -8068,6 +8272,12 @@ stdin.getTerminalAttributes($termios);</programlisting>
               <para><code><link linkend="int_type">int</link> <link linkend="TermIOS::getIFlag">TermIOS::getIFlag</link>()</code></para>
           </listitem>
         </varlistentry>
+      <varlistentry>
+	<term>Platform Availability</term>
+	<listitem>
+	  <para><code><link linkend="HAVE_TERMIOS">HAVE_TERMIOS</link></code></para>
+	</listitem>
+      </varlistentry>
       </variablelist>
       <table>
         <title>Return Values for TermIOS::getIFlag()</title>
@@ -8094,6 +8304,22 @@ stdin.getTerminalAttributes($termios);</programlisting>
           </tbody>
         </tgroup>
       </table>
+   <table><title>Exceptions Thrown by TermIOS::getIFlag()</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>err</para></entry>
+	  <entry><para>desc</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
+	  <entry><para>This exception is thrown when the method is not available on the runtime platform; for maximum portability, check the constant <code><link linkend="HAVE_TERMIOS">HAVE_TERMIOS</link></code> before calling this function.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+    </table>
     </sect2>
     <sect2 id="TermIOS::getOFlag">
       <title>TermIOS::getOFlag()</title>
@@ -8110,6 +8336,12 @@ stdin.getTerminalAttributes($termios);</programlisting>
               <para><code><link linkend="int_type">int</link> <link linkend="TermIOS::getOFlag">TermIOS::getOFlag</link>()</code></para>
           </listitem>
         </varlistentry>
+      <varlistentry>
+	<term>Platform Availability</term>
+	<listitem>
+	  <para><code><link linkend="HAVE_TERMIOS">HAVE_TERMIOS</link></code></para>
+	</listitem>
+      </varlistentry>
       </variablelist>
       <table>
         <title>Return Values for TermIOS::getOFlag()</title>
@@ -8136,6 +8368,22 @@ stdin.getTerminalAttributes($termios);</programlisting>
           </tbody>
         </tgroup>
       </table>
+   <table><title>Exceptions Thrown by TermIOS::getOFlag()</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>err</para></entry>
+	  <entry><para>desc</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
+	  <entry><para>This exception is thrown when the method is not available on the runtime platform; for maximum portability, check the constant <code><link linkend="HAVE_TERMIOS">HAVE_TERMIOS</link></code> before calling this function.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+    </table>
     </sect2>
     <sect2 id="TermIOS::setLFlag">
       <title>TermIOS::setLFlag()</title>
@@ -8152,6 +8400,12 @@ stdin.getTerminalAttributes($termios);</programlisting>
               <para><code><link linkend="nothing_type">nothing</link> <link linkend="TermIOS::setLFlag">TermIOS::setLFlag</link>(<link linkend="softint_type">softint</link> <replaceable>$val</replaceable> = 0)</code></para>
           </listitem>
         </varlistentry>
+      <varlistentry>
+	<term>Platform Availability</term>
+	<listitem>
+	  <para><code><link linkend="HAVE_TERMIOS">HAVE_TERMIOS</link></code></para>
+	</listitem>
+      </varlistentry>
       </variablelist>
       <table>
         <title>Arguments for TermIOS::setLFlag()</title>
@@ -8170,6 +8424,22 @@ stdin.getTerminalAttributes($termios);</programlisting>
           </tbody>
         </tgroup>
       </table>
+   <table><title>Exceptions Thrown by TermIOS::setLFlag()</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>err</para></entry>
+	  <entry><para>desc</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
+	  <entry><para>This exception is thrown when the method is not available on the runtime platform; for maximum portability, check the constant <code><link linkend="HAVE_TERMIOS">HAVE_TERMIOS</link></code> before calling this function.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+    </table>
     </sect2>
     <sect2 id="TermIOS::setCFlag">
       <title>TermIOS::setCFlag()</title>
@@ -8186,6 +8456,12 @@ stdin.getTerminalAttributes($termios);</programlisting>
               <para><code><link linkend="nothing_type">nothing</link> <link linkend="TermIOS::setCFlag">TermIOS::setCFlag</link>(<link linkend="softint_type">softint</link> <replaceable>$val</replaceable> = 0)</code></para>
           </listitem>
         </varlistentry>
+      <varlistentry>
+	<term>Platform Availability</term>
+	<listitem>
+	  <para><code><link linkend="HAVE_TERMIOS">HAVE_TERMIOS</link></code></para>
+	</listitem>
+      </varlistentry>
       </variablelist>
       <table>
         <title>Arguments for TermIOS::setCFlag()</title>
@@ -8206,6 +8482,22 @@ stdin.getTerminalAttributes($termios);</programlisting>
           </tbody>
         </tgroup>
       </table>
+   <table><title>Exceptions Thrown by TermIOS::setCFlag()</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>err</para></entry>
+	  <entry><para>desc</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
+	  <entry><para>This exception is thrown when the method is not available on the runtime platform; for maximum portability, check the constant <code><link linkend="HAVE_TERMIOS">HAVE_TERMIOS</link></code> before calling this function.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+    </table>
     </sect2>
     <sect2 id="TermIOS::setIFlag">
       <title>TermIOS::setIFlag()</title>
@@ -8222,6 +8514,12 @@ stdin.getTerminalAttributes($termios);</programlisting>
               <para><code><link linkend="nothing_type">nothing</link> <link linkend="TermIOS::setIFlag">TermIOS::setIFlag</link>(<link linkend="softint_type">softint</link> <replaceable>$val</replaceable> = 0)</code></para>
           </listitem>
         </varlistentry>
+      <varlistentry>
+	<term>Platform Availability</term>
+	<listitem>
+	  <para><code><link linkend="HAVE_TERMIOS">HAVE_TERMIOS</link></code></para>
+	</listitem>
+      </varlistentry>
       </variablelist>
       <table>
         <title>Arguments for TermIOS::setIFlag()</title>
@@ -8242,6 +8540,22 @@ stdin.getTerminalAttributes($termios);</programlisting>
           </tbody>
         </tgroup>
       </table>
+   <table><title>Exceptions Thrown by TermIOS::setIFlag()</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>err</para></entry>
+	  <entry><para>desc</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
+	  <entry><para>This exception is thrown when the method is not available on the runtime platform; for maximum portability, check the constant <code><link linkend="HAVE_TERMIOS">HAVE_TERMIOS</link></code> before calling this function.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+    </table>
     </sect2>
     <sect2 id="TermIOS::setOFlag">
       <title>TermIOS::setOFlag()</title>
@@ -8258,6 +8572,12 @@ stdin.getTerminalAttributes($termios);</programlisting>
               <para><code><link linkend="nothing_type">nothing</link> <link linkend="TermIOS::setOFlag">TermIOS::setOFlag</link>(<link linkend="softint_type">softint</link> <replaceable>$val</replaceable> = 0)</code></para>
           </listitem>
         </varlistentry>
+      <varlistentry>
+	<term>Platform Availability</term>
+	<listitem>
+	  <para><code><link linkend="HAVE_TERMIOS">HAVE_TERMIOS</link></code></para>
+	</listitem>
+      </varlistentry>
       </variablelist>
       <table>
         <title>Arguments for TermIOS::setOFlag()</title>
@@ -8278,6 +8598,22 @@ stdin.getTerminalAttributes($termios);</programlisting>
           </tbody>
         </tgroup>
       </table>
+   <table><title>Exceptions Thrown by TermIOS::setOFlag()</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>err</para></entry>
+	  <entry><para>desc</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
+	  <entry><para>This exception is thrown when the method is not available on the runtime platform; for maximum portability, check the constant <code><link linkend="HAVE_TERMIOS">HAVE_TERMIOS</link></code> before calling this function.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+    </table>
     </sect2>
     <sect2 id="TermIOS::getCC">
       <title>TermIOS::getCC()</title>
@@ -8294,6 +8630,12 @@ stdin.getTerminalAttributes($termios);</programlisting>
               <para><code><link linkend="int_type">int</link> <link linkend="TermIOS::getCC">TermIOS::getCC</link>(<link linkend="softint_type">softint</link> <replaceable>$offset</replaceable> = 0)</code></para>
           </listitem>
         </varlistentry>
+      <varlistentry>
+	<term>Platform Availability</term>
+	<listitem>
+	  <para><code><link linkend="HAVE_TERMIOS">HAVE_TERMIOS</link></code></para>
+	</listitem>
+      </varlistentry>
       </variablelist>
       <table>
         <title>Arguments for TermIOS::getCC()</title>
@@ -8341,6 +8683,22 @@ stdin.getTerminalAttributes($termios);</programlisting>
           </tbody>
         </tgroup>
       </table>
+   <table><title>Exceptions Thrown by TermIOS::getCC()</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>err</para></entry>
+	  <entry><para>desc</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
+	  <entry><para>This exception is thrown when the method is not available on the runtime platform; for maximum portability, check the constant <code><link linkend="HAVE_TERMIOS">HAVE_TERMIOS</link></code> before calling this function.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+    </table>
     </sect2>
     <sect2 id="TermIOS::setCC">
       <title>TermIOS::setCC()</title>
@@ -8357,6 +8715,12 @@ stdin.getTerminalAttributes($termios);</programlisting>
               <para><code><link linkend="nothing_type">nothing</link> <link linkend="TermIOS::setCC">TermIOS::setCC</link>(<link linkend="softint_type">softint</link> <replaceable>$offset</replaceable> = 0, <link linkend="softint_type">softint</link> <replaceable>$value</replaceable> = 0)</code></para>
           </listitem>
         </varlistentry>
+      <varlistentry>
+	<term>Platform Availability</term>
+	<listitem>
+	  <para><code><link linkend="HAVE_TERMIOS">HAVE_TERMIOS</link></code></para>
+	</listitem>
+      </varlistentry>
       </variablelist>
       <table>
         <title>Arguments for TermIOS::setCC()</title>
@@ -8387,6 +8751,22 @@ stdin.getTerminalAttributes($termios);</programlisting>
           </tbody>
         </tgroup>
       </table>
+   <table><title>Exceptions Thrown by TermIOS::setCC()</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>err</para></entry>
+	  <entry><para>desc</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
+	  <entry><para>This exception is thrown when the method is not available on the runtime platform; for maximum portability, check the constant <code><link linkend="HAVE_TERMIOS">HAVE_TERMIOS</link></code> before calling this function.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+    </table>
     </sect2>
     <sect2 id="TermIOS::isEqual">
       <title>TermIOS::isEqual()</title>
@@ -8403,6 +8783,12 @@ stdin.getTerminalAttributes($termios);</programlisting>
               <para><code><link linkend="bool_type">bool</link> <link linkend="TermIOS::isEqual">TermIOS::isEqual</link>(<link linkend="TermIOS_Class">TermIOS</link> <replaceable>$other</replaceable>)</code></para>
           </listitem>
         </varlistentry>
+      <varlistentry>
+	<term>Platform Availability</term>
+	<listitem>
+	  <para><code><link linkend="HAVE_TERMIOS">HAVE_TERMIOS</link></code></para>
+	</listitem>
+      </varlistentry>
       </variablelist>
       <table>
         <title>Arguments for TermIOS::isEqual()</title>
@@ -8476,6 +8862,10 @@ stdin.getTerminalAttributes($termios);</programlisting>
                 <para>argument passed is not a TermIOS object</para>
               </entry>
             </row>
+	<row>
+	  <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
+	  <entry><para>This exception is thrown when the method is not available on the runtime platform; for maximum portability, check the constant <code><link linkend="HAVE_TERMIOS">HAVE_TERMIOS</link></code> before calling this function.</para></entry>
+	</row>
           </tbody>
         </tgroup>
       </table>
@@ -8502,6 +8892,12 @@ stdin.getTerminalAttributes($termios);</programlisting>
             <programlisting>$hash = TermIOS::getWindowSize()</programlisting>
           </listitem>
         </varlistentry>
+      <varlistentry>
+	<term>Platform Availability</term>
+	<listitem>
+	  <para><code><link linkend="HAVE_TERMIOS">HAVE_TERMIOS</link></code></para>
+	</listitem>
+      </varlistentry>
       </variablelist>
       <table>
         <title>Return Values for TermIOS::getWindowSize()</title>
@@ -8520,6 +8916,23 @@ stdin.getTerminalAttributes($termios);</programlisting>
           </tbody>
         </tgroup>
       </table>
+   <table><title>Exceptions Thrown by TermIOS::getWindowSize()</title>
+    <tgroup cols='2' align='left' colsep='1' rowsep='1'>
+      <thead>
+	<row>
+	  <entry><para>err</para></entry>
+	  <entry><para>desc</para></entry>
+	</row>
+      </thead>
+      <tbody>
+	<row>
+	  <entry><para><code>MISSING-FEATURE-ERROR</code></para></entry>
+	  <entry><para>This exception is thrown when the method is not available on the runtime platform; for maximum portability, check the constant <code><link linkend="HAVE_TERMIOS">HAVE_TERMIOS</link></code> before calling this function.</para></entry>
+	</row>
+      </tbody>
+    </tgroup>
+    </table>
+
     </sect2>
 
   </sect1>

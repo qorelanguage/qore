@@ -1882,6 +1882,48 @@ void StaticSystemNamespace::init() {
    option->addConstant("HAVE_SETEGID",  &False);
 #endif
 
+#ifdef HAVE_SYSTEM
+   option->addConstant("HAVE_SYSTEM",  &True);
+#else
+   option->addConstant("HAVE_SYSTEM",  &False);
+#endif
+
+#ifdef HAVE_KILL
+   option->addConstant("HAVE_KILL",  &True);
+#else
+   option->addConstant("HAVE_KILL",  &False);
+#endif
+
+#ifdef HAVE_FORK
+   option->addConstant("HAVE_FORK",  &True);
+#else
+   option->addConstant("HAVE_FORK",  &False);
+#endif
+
+#ifdef HAVE_GETPPID
+   option->addConstant("HAVE_GETPPID",  &True);
+#else
+   option->addConstant("HAVE_GETPPID",  &False);
+#endif
+
+#ifdef HAVE_STATVFS
+   option->addConstant("HAVE_STATVFS",  &True);
+#else
+   option->addConstant("HAVE_STATVFS",  &False);
+#endif
+
+#ifdef HAVE_SETSID
+   option->addConstant("HAVE_SETSID",  &True);
+#else
+   option->addConstant("HAVE_SETSID",  &False);
+#endif
+
+#ifdef HAVE_PWD_H
+   option->addConstant("HAVE_IS_EXECUTABLE",  &True);
+#else
+   option->addConstant("HAVE_IS_EXECUTABLE",  &False);
+#endif
+
 #ifdef HAVE_TERMIOS_H
    option->addConstant("HAVE_TERMIOS",  &True);
 #else
@@ -1892,6 +1934,18 @@ void StaticSystemNamespace::init() {
    option->addConstant("HAVE_PWD",  &True);
 #else
    option->addConstant("HAVE_PWD",  &False);
+#endif
+
+#ifdef HAVE_GETUID
+   option->addConstant("HAVE_UNIX_USERMGT",  &True);
+#else
+   option->addConstant("HAVE_UNIX_USERMGT",  &False);
+#endif
+
+#ifdef HAVE_CHOWN
+   option->addConstant("HAVE_UNIX_FILEMGT",  &True);
+#else
+   option->addConstant("HAVE_UNIX_FILEMGT",  &False);
 #endif
 
 #ifdef HAVE_STRUCT_FLOCK
