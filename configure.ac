@@ -43,6 +43,7 @@ fi
 AC_CANONICAL_HOST
 if test "${host_os}" = "mingw32"; then
     AC_LIBTOOL_WIN32_DLL
+    a=1
 fi
 
 AC_LANG(C++)
