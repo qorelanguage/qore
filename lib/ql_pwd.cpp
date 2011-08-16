@@ -35,7 +35,6 @@ static AbstractQoreNode *f_getpwuid(const QoreListNode *params, ExceptionSink *x
    return q_getpwuid(uid);
 #else
    missing_function_error("getpwuid", "UNIX_USERMGT", xsink);
-xsink);
    return 0;
 #endif
 }
