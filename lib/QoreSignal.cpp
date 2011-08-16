@@ -61,6 +61,23 @@ QoreSignalManager::QoreSignalManager() : is_enabled(false), tid(-1), block(false
       handlers[i].init();
 }
 
+void QoreSignalManager::setMask(sigset_t &mask) {
+   // block all signals
+   sigfillset(&mask);
+#ifdef PROFILE
+   // do not block SIGPROF if profiling is enabled
+   sigdelset(&mask, SIGPROF);
+   if (!is_enabled)
+      fmap[SIGPROF] = "profiling";
+#endif
+#ifdef SOLARIS
+   // do not block SIGALRM on Solaris
+   sigdelset(&mask, SIGALRM);
+   if (!is_enabled)
+      fmap[SIGPROF] = "Solaris sleep";
+#endif
+}
+
 void QoreSignalManager::init(bool disable_signal_mask) {
    // set SIGPIPE to ignore
    struct sigaction sa;
@@ -71,15 +88,8 @@ void QoreSignalManager::init(bool disable_signal_mask) {
    sigaction(SIGPIPE, &sa, 0);
 
    if (!disable_signal_mask) {
+      setMask(mask);
       is_enabled = true;
-
-      // block all signals
-      sigfillset(&mask);
-#ifdef PROFILE
-      // do not block SIGPROF if profiling is enabled
-      sigdelset(&mask, SIGPROF);
-      fmap[SIGPROF] = "profiling";
-#endif
 
       pthread_sigmask(SIG_SETMASK, &mask, 0);
 
@@ -174,10 +184,10 @@ void QoreSignalManager::post_fork_unblock_and_start(bool new_process, ExceptionS
    assert(!waiting);
 
    // set new default signal mask for new process
-   if (new_process) {
+   if (new_process) {      
       // block all signals
       sigset_t new_mask;
-      sigfillset(&new_mask);
+      setMask(new_mask);
       pthread_sigmask(SIG_SETMASK, &new_mask, 0);
    }
 

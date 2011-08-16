@@ -56,7 +56,7 @@
 class QoreSignalHandler {
 private:
    ResolvedCallReferenceNode *funcref;
-   
+
 public:
    enum sh_status_e { SH_OK = 0, SH_InProgress = 1, SH_Delete = 2 };
    sh_status_e status;
@@ -92,6 +92,7 @@ private:
    DLLLOCAL void stop_signal_thread_unlocked();
    DLLLOCAL int start_signal_thread(ExceptionSink *xsink);
    DLLLOCAL void stop_signal_thread();
+   DLLLOCAL void setMask(sigset_t &mask);   
       
 public:
    enum sig_cmd_e { C_None = 0, C_Reload = 1, C_Exit = 2 };
