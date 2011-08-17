@@ -177,23 +177,8 @@ static AbstractQoreNode *f_sleep(const QoreListNode *params, ExceptionSink *xsin
    if (!timeout)
       return 0;
 
-#ifdef HAVE_SLEEP
-   while (true) {
-      timeout = sleep(timeout);
-      if (!timeout)
-	 return zero();
-   }
-#else
    useconds_t us = (useconds_t)timeout * 1000000;
    us = qore_usleep(us);
-#else
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__ 
-   Sleep(timeout * 1000);
-#else
-#error no sleep(), usleep(), or Sleep() function available
-#endif // windows
-#endif // usleep
-#endif // sleep
    return 0;
 }
 
@@ -202,7 +187,7 @@ static AbstractQoreNode *f_usleep(const QoreListNode *params, ExceptionSink *xsi
    if (!timeout)
       return 0;
 
-   return new QoreBigIntNode(usleep(timeout));
+   return new QoreBigIntNode(qore_usleep(timeout));
 }
 
 static AbstractQoreNode *f_getpid(const QoreListNode *params, ExceptionSink *xsink) {
