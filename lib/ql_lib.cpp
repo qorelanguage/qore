@@ -184,9 +184,8 @@ static AbstractQoreNode *f_sleep(const QoreListNode *params, ExceptionSink *xsin
 	 return zero();
    }
 #else
-#ifdef HAVE_USLEEP
    useconds_t us = (useconds_t)timeout * 1000000;
-   us = usleep(us);
+   us = qore_usleep(us);
 #else
 #if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__ 
    Sleep(timeout * 1000);

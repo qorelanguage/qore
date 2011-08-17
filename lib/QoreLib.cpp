@@ -1614,17 +1614,19 @@ void qore_machine_backtrace() {
 }
 #endif
 
-static int qore_nanosleep(int64 ns) {
 #ifdef HAVE_NANOSLEEP
+static int qore_nanosleep(int64 ns) {
    struct timespec ts;
    ts.tv_sec = ns / 1000000000ll;
    ts.tv_nsec = (ns = ts.tv_sec * 1000000000);
    return nanosleep(&ts, 0);
-#else
-#error nanosleep is required
-#endif
 }
+#endif
 
 int qore_usleep(int64 usecs) {
+#ifdef HAVE_NANOSLEEP
    return qore_nanosleep(usecs * 1000);
+#else
+   return ::usleep(usecs);
+#endif
 }
