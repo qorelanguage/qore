@@ -70,12 +70,10 @@ void QoreSignalManager::setMask(sigset_t &mask) {
    if (!is_enabled)
       fmap[SIGPROF] = "profiling";
 #endif
-#ifdef SOLARIS
-   // do not block SIGALRM on Solaris
+   // do not block SIGALRM on UNIX platforms (any platform that supports signals)
    sigdelset(&mask, SIGALRM);
    if (!is_enabled)
-      fmap[SIGPROF] = "Solaris sleep";
-#endif
+      fmap[SIGPROF] = "SIGALRM for sleep()/usleep()";
 }
 
 void QoreSignalManager::init(bool disable_signal_mask) {
