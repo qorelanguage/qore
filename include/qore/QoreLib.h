@@ -411,4 +411,7 @@ DLLEXPORT QoreStringNode *qore_reassign_signal(int sig, const char *name);
  */
 DLLEXPORT void parse_set_time_zone(const char *zone);
 
+//! use this function instead of usleep(), as usleep() is not signal-safe on some platforms (ex: Solaris 8, 9)
+DLLEXPORT int qore_usleep(int64 usecs);
+
 #endif // _QORE_QORELIB_H
