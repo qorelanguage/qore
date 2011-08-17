@@ -340,7 +340,7 @@
 	  <row id="HAVE_TERMIOS">
 	    <entry><para><code>HAVE_TERMIOS</code></para></entry>
 	    <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
-	    <entry><para>Iindicates if the <link linkend="TermIOS_Class">TermIOS class</link> is available.  This constant is always <code>False</code> on native Windows ports.</para></entry>
+	    <entry><para>Indicates if the <link linkend="TermIOS_Class">TermIOS class</link> is available.  This constant is always <code>False</code> on native Windows ports.</para></entry>
 	  </row>
 	  <row id="HAVE_TIMEGM">
 	    <entry><para><code>HAVE_TIMEGM</code></para></entry>
@@ -1296,7 +1296,7 @@ raised from the <link linkend="FtpClient_Class">FtpClient</link> class.</para></
 	<tbody>
           <row>
             <entry><para><code>X509_V_OK</code></para></entry>
-            <entry><para><code>&quot;OK</code></para></entry>
+            <entry><para><code>&quot;OK&quot;</code></para></entry>
           </row>
           <row>
             <entry><para><code>X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT</code></para></entry>

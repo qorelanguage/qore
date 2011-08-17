@@ -230,6 +230,47 @@ public:
    }
 };
 
+struct ParseConditionalStack {
+   unsigned count;
+   unsigned mark;
+
+   DLLLOCAL ParseConditionalStack() : count(0), mark(0) {
+   }
+
+   DLLLOCAL void push(bool do_mark = false) {
+      if (do_mark) {
+         assert(!mark);
+         mark = count;
+      }
+      ++count;
+   }
+
+   DLLLOCAL bool checkElse() {
+      return count;
+   }
+
+   DLLLOCAL bool pop() {
+      if (!count) {
+         parse_error("unmatched %%endif");
+         return false;
+      }
+      --count;
+      if (count == mark) {
+         mark = 0;
+         return true;
+      }
+      return false;
+   }
+
+   DLLLOCAL void purge() {
+      if (count) {
+         parse_error("%d conditional block%s left open at end of file", count, count == 1 ? "" : "s");
+         count = 0;
+         mark = 0;
+      }
+   }
+};
+
 // this structure holds all thread-specific data
 class ThreadData {
 public:
@@ -299,6 +340,9 @@ public:
 
    // start of global thread-local variables for the current thread and program being parsed
    VNode *global_vnode;
+
+   // Maintaining the conditional parse block count for each file parsed
+   ParseConditionalStack pcs;
 
    DLLLOCAL ThreadData(int ptid, QoreProgram *p) : 
       tid(ptid), vlock(ptid), context_stack(0), plStack(0), 
@@ -704,6 +748,21 @@ void purge_thread_resources(ExceptionSink *xsink) {
    td->trlist.purge(xsink);
 }
 
+void parse_cond_push(bool mark) {
+   ThreadData *td = thread_data.get();
+   td->pcs.push(mark);
+}
+
+bool parse_cond_else() {
+   ThreadData *td = thread_data.get();
+   return td->pcs.checkElse();
+}
+
+bool parse_cond_pop() {
+   ThreadData *td = thread_data.get();
+   return td->pcs.pop();
+}
+
 // called when a StatementBlock has "on_exit" blocks
 void pushBlock(block_list_t::iterator i) {
    ThreadData *td = thread_data.get();
@@ -749,6 +808,9 @@ void beginParsing(char *file, void *ps) {
 void *endParsing() {
    ThreadData *td = thread_data.get();
    void *rv = td->parseState;
+
+   // ensure there are no conditional blocks left open at EOF
+   td->pcs.purge();
    
    printd(5, "endParsing() ending parsing of \"%s\", returning %p\n", td->parse_file, rv);
    if (td->plStack) {

@@ -15,12 +15,18 @@
 #include <stdlib.h>
 #include <strings.h>
 
+#include <map>
+
 extern int parse_options;
 extern int warnings, qore_lib_options;
 extern const char *def_charset;
 extern const char *cl_pgm, *exec_class_name, *eval_arg, *cmd_zone;
 extern bool show_mod_errs, lock_options, exec_class, warnings_are_errors, only_first_except;
 extern qore_license_t license;
+// define map type
+typedef std::map<std::string, std::string> defmap_t;
+// parse define map
+extern defmap_t defmap;
 
 int main(int argc, char *argv[]) {   
    int rc = 0;
@@ -34,6 +40,10 @@ int main(int argc, char *argv[]) {
    ExceptionSink wsink, xsink;
    {
       QoreProgramHelper qpgm(parse_options, xsink);
+
+      // set parse defines
+      for (defmap_t::iterator i = defmap.begin(), e = defmap.end(); i != e; ++i)
+	 qpgm->parseDefine(i->first.c_str(), i->second.c_str());
 
       // load any modules requested on the command-line
       bool mod_errs = false;

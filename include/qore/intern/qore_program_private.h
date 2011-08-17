@@ -270,6 +270,9 @@ public:
 // maps from thread handles to thread-local data
 typedef std::map<ThreadProgramData *, ThreadLocalProgramData *> pgm_data_map_t;
 
+// map for "defines" in programs
+typedef std::map<std::string, AbstractQoreNode *> dmap_t;
+
 struct qore_program_private {
 private:
    DLLLOCAL void init(QoreProgram *n_pgm, int64 n_parse_options, const AbstractQoreZoneInfo *n_TZ = QTZM.getLocalZoneInfo()) {
@@ -352,6 +355,9 @@ public:
 
    // time zone setting for the program
    const AbstractQoreZoneInfo *TZ;
+
+   // define map
+   dmap_t dmap;
 
    QoreProgram *pgm;
 
@@ -1070,6 +1076,44 @@ public:
       }
    }
 
+   DLLLOCAL void setDefine(const char *name, AbstractQoreNode *v) {
+      dmap_t::iterator i = dmap.find(name);
+      if (i != dmap.end()) {
+         if (i->second)
+            i->second->deref(0);
+         i->second = v;
+         return;
+      }
+
+      dmap[name] = v;
+   }
+
+   DLLLOCAL const AbstractQoreNode *getDefine(const char *name, bool &is_defined) {
+      dmap_t::iterator i = dmap.find(name);
+      if (i != dmap.end()) {
+         is_defined = true;
+         return i->second;
+      }
+      is_defined = false;
+      return 0;
+   }
+
+   DLLLOCAL bool unDefine(const char *name) {
+      dmap_t::iterator i = dmap.find(name);
+      if (i != dmap.end()) {
+         if (i->second)
+            i->second->deref(0);
+         dmap.erase(i);
+         return true;
+      }
+      return false;
+   }
+
+   DLLLOCAL bool isDefined(const char *name) {
+      dmap_t::iterator i = dmap.find(name);
+      return i == dmap.end() ? false : true;
+   }
+
    DLLLOCAL static const ParseWarnOptions &getParseWarnOptions(const QoreProgram *pgm) {
       return pgm->priv->pwo;
    }
@@ -1108,6 +1152,27 @@ public:
 
    DLLLOCAL static void makeParseException(QoreProgram *pgm, const QoreProgramLocation &loc, const char *err, QoreStringNode *desc) {
       pgm->priv->makeParseException(loc, err, desc);
+   }
+
+   DLLLOCAL static void setDefine(QoreProgram *pgm, const char *name, AbstractQoreNode *v) {
+      pgm->priv->setDefine(name, v);
+   }
+
+   DLLLOCAL static const AbstractQoreNode *getDefine(QoreProgram *pgm, const char *name) {
+      bool is_defined;
+      return pgm->priv->getDefine(name, is_defined);
+   }
+
+   DLLLOCAL static const AbstractQoreNode *getDefine(QoreProgram *pgm, const char *name, bool &is_defined) {
+      return pgm->priv->getDefine(name, is_defined);
+   }
+
+   DLLLOCAL static bool unDefine(QoreProgram *pgm, const char *name) {
+      return pgm->priv->unDefine(name);
+   }
+
+   DLLLOCAL static bool isDefined(QoreProgram *pgm, const char *name) {
+      return pgm->priv->isDefined(name);
    }
 };
 

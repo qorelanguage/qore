@@ -756,6 +756,8 @@ public:
 };
 */
 
+DLLLOCAL AbstractQoreNode *qore_parse_get_define_value(const char *str, QoreString &arg, bool &ok);
+
 #ifndef HAVE_INET_NTOP
 DLLLOCAL const char *inet_ntop(int af, const void *src, char *dst, size_t size);
 #endif

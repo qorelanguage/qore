@@ -381,7 +381,7 @@ public:
 
    //! binds to a TCP INET (ipv4 only) port on the given interface and returns a status code
    /** @note the socket will be closed and reopened if necessary
-       @param interface the interface to bind to (hostname or IP address)
+       @param iface the interface to bind to (hostname or IP address)
        @param prt the port to bind to
        @param reuseaddr if true then setsockopt() will be called with SO_REUSEADDR, allowing the bind to succeed even if the port is still in a TIME_WAIT state, for example
        @return 0 for OK, not 0 for error

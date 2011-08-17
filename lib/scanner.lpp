@@ -33,6 +33,7 @@
 
 #include <qore/Qore.h>
 #include <qore/intern/ParserSupport.h>
+#include <qore/intern/qore_program_private.h>
 
 #include "parser.h"
 
@@ -457,6 +458,47 @@ static char *make_cast(const char *s) {
    return str.giveBuffer();
 }
 
+static void qore_parse_define(const char *pstr) {
+   QoreString str(pstr);
+   // trim trailing and leading whitespace
+   str.trim();
+   const char *p = strchr(str.getBuffer(), ' ');
+   QoreString arg;
+   if (p) {
+      // copy arg to arg string
+      arg.set(p + 1);
+      // trim leading whitespace, if any
+      arg.trim_leading();
+      // remove argument from define string
+      str.terminate(p - str.getBuffer());
+   }
+   // check define string
+   if (str.empty()) {
+      parse_error("missing argument to %%define");
+      return;
+   }
+
+   AbstractQoreNode *v = 0;
+   if (!arg.empty()) {
+      bool ok;
+      v = qore_parse_get_define_value(str.getBuffer(), arg, ok);
+      if (!ok)
+	 return;
+   }
+ 
+   getProgram()->parseDefine(str.getBuffer(), v);
+}
+
+bool parse_is_defined(const char *pstr, bool def = true) {
+   QoreString str(pstr);
+   str.trim();
+   if (str.empty()) {
+      parse_error("missing argument to %%if%sdef", def ? "" : "n");
+      return false;
+   }
+   return qore_program_private::isDefined(getProgram(), str.getBuffer());
+}
+
 #define QORE_FLEX_DO_EOF { /* delete current buffer */ yy_delete_buffer(YY_CURRENT_BUFFER, yyscanner); \
       /* get last parse state */ YY_BUFFER_STATE yybs = (YY_BUFFER_STATE)endParsing(); \
       if (yybs) { /* need to close file and switch to previous buffer */ \
@@ -472,7 +514,7 @@ static char *make_cast(const char *s) {
 %option noyy_push_state
 %option noyy_pop_state
 
-%x str_state regex_state incl case_state regex_googleplex regex_negative_universe regex_subst1 regex_subst2 line_comment exec_class_state requires regex_trans1 regex_trans2 regex_extract_state disable_warning enable_warning append_path_state module_cmd set_zone
+%x str_state regex_state incl p_def p_ifdef p_skip_to_endif case_state regex_googleplex regex_negative_universe regex_subst1 regex_subst2 line_comment exec_class_state requires regex_trans1 regex_trans2 regex_extract_state disable_warning enable_warning append_path_state module_cmd set_zone
 
 HEX_DIGIT       [0-9A-Fa-f]
 HEX_CONST       0x{HEX_DIGIT}+
@@ -606,7 +648,7 @@ RTIME           PT(-?[0-9]+[HMSu])+
 						 str.replace(0, cp - str.getBuffer() + 1, (const char *)0);
 						 str.trim();
 						 if (!str.strlen())
-						    parse_error("%module-cmd not in format %module-cmd(<module-name>) <command>; missing command; text given: '%module-cmd %s'", str.getBuffer());
+						    parse_error("%%module-cmd not in format %%module-cmd(<module-name>) <command>; missing command; text given: '%%module-cmd %s'", str.getBuffer());
 						 else {
 						    ModuleManager::issue_parse_cmd(module.getBuffer(), 0, str);
 						 }
@@ -614,7 +656,49 @@ RTIME           PT(-?[0-9]+[HMSu])+
 					   }
 					   BEGIN(INITIAL);
                                         }
-
+^%define{WS}*$                          { parse_error("missing argument to %%define"); }
+^%define{WS}+				BEGIN(p_def);
+<p_def>{WS}*                            // ignore white space
+<p_def>[^\t\n\r]+                       {
+                                           qore_parse_define(yytext);
+					   BEGIN(INITIAL);
+                                        }
+^%ifdef{WS}*$                           { parse_error("missing argument to %%ifdef"); }
+^%ifdef{WS}+                            BEGIN(p_ifdef);
+<p_ifdef>{
+   [^\t\n\r]+$                          {
+                                           parse_cond_push(true);
+                                           if (parse_is_defined(yytext)) {
+					      //printd(5, "'%s' is defined\n", yytext);
+					      BEGIN(INITIAL);
+					   }
+					   else {
+					      //printd(5, "'%s' is not defined\n", yytext);
+					      // skip to the next %else or %endif
+					      BEGIN(p_skip_to_endif);
+					   }
+                                        }
+}
+<p_skip_to_endif>{
+   ^%endif{WS}*$                        {
+                                           if (parse_cond_pop()) {
+					      //printd(5, "p_skip_to_endif: found %%endif (%s)\n", yytext);
+					      BEGIN(INITIAL);
+					   }
+                                        }
+   ^%ifdef{WS}+                         {
+                                           parse_cond_push();
+                                        }
+   ^.*$                                 {
+                                           // ignore other text
+                                           //printd(5, "p_skip_to_endif: %s\n", yytext);
+                                        }
+   \n                                   // ignore
+   <<EOF>>                              {
+                                           QORE_FLEX_DO_EOF
+                                        }
+}
+^%endif{WS}*$                           parse_cond_pop();
 ^%include{WS}*$                         { parse_error("missing argument to %%include"); }
 ^%include{WS}+				BEGIN(incl);
 <exec_class_state>{

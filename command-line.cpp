@@ -21,6 +21,8 @@
 #include <libgen.h>
 #include <ctype.h>
 
+#include <map>
+
 // license type for initializing the library
 qore_license_t license = QL_GPL;
 
@@ -65,6 +67,12 @@ const char *eval_arg = 0;
 // program name
 static char *pn;
 
+// define map type
+typedef std::map<std::string, std::string> defmap_t;
+
+// parse define map
+defmap_t defmap;
+
 static int opt_errors = 0;
 
 static const char usage[] = "usage: %s [option(s)]... [program file]\n";
@@ -74,6 +82,7 @@ static const char helpstr[] =
    "  -a, --show-aliases           displays the list of character sets aliases\n"
    "  -b, --disable-signals        disables signal handling\n"
    "  -c, --charset=arg            sets default character set encoding\n"
+   "  -D, --define=arg             sets the value of a parse define\n"
    "  -e, --exec=arg               execute program given on command-line\n"
    "  -h, --help                   shows this help text and exit\n"
    "  -i, --list-warnings          list all warnings and quit\n"
@@ -117,7 +126,7 @@ static const char parseopts[] =    "qore options controlling parse options:\n"
    "      --assume-local           assume local scope for variables declared\n"
    "                               without 'my' or 'our'\n"
    "      --no-class-defs          make class definitions illegal\n"
-   "  -D, --no-database            disallow access to database functionality\n"
+   "      --no-database            disallow access to database functionality\n"
    "      --no-external-info       disallow access to external info\n"
    "  -E, --no-external-process    make access to external processes illegal\n"
    "  -F, --no-filesystem          disallow access to the local filesystem\n"
@@ -202,7 +211,7 @@ static void show_latest_module_api(const char *arg) {
 static void set_parse_option(const char *arg) {
    int code = ParseOptionMap::find_code(arg);
    if (code == -1) {
-      printf("unknown parse option '%s', use -L or --list-parse-options\n", arg);
+      fprintf(stderr, "unknown parse option '%s', use -L or --list-parse-options\n", arg);
       exit(1);
    }
    parse_options |= code;
@@ -385,6 +394,34 @@ static void set_time_zone(const char *arg) {
    cmd_zone = arg;
 }
 
+static void set_define(const char *carg) {
+   QoreString str(carg);
+   // trim trailing and leading whitespace
+   str.trim();
+   const char *p = strchr(str.getBuffer(), ' ');
+   QoreString arg;
+   if (p) {
+      // copy arg to arg string
+      arg.set(p + 1);
+      // trim leading whitespace, if any
+      arg.trim_leading();
+      // remove argument from define string
+      str.terminate(p - str.getBuffer());
+   }
+   // check define string
+   if (str.empty()) {
+      fprintf(stderr, "missing argument for --define\n");
+      exit(1);
+   }
+
+   if (defmap.find(str.getBuffer()) != defmap.end()) {
+      fprintf(stderr, "more than one definition for parse define '%s' given\n", str.getBuffer());
+      exit(1);
+   }
+
+   defmap[str.getBuffer()] = arg.getBuffer();
+}
+
 static const char *tlist[] = { "OPTION", "ALGORITHM", "FUNCTION", "UNKNOWN" };
 
 static void do_version(const char *arg) {
@@ -505,7 +542,8 @@ static struct opt_struct_s {
    { '\0', "assume-local",         ARG_NONE, assume_local },
    { 'n', "new-style",             ARG_NONE, new_style },
    { '\0', "no-class-defs",        ARG_NONE, do_no_class_defs },
-   { 'D', "no-database",           ARG_NONE, do_no_database },
+   { '\0', "no-database",          ARG_NONE, do_no_database },
+   { 'D', "define",                ARG_MAND, set_define },
    { 'E', "no-external-process",   ARG_NONE, do_no_external_process },
    { '\0', "no-external-info",     ARG_NONE, do_no_external_info },
    { 'F', "no-filesystem",         ARG_NONE, do_no_filesystem },

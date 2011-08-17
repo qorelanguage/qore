@@ -228,6 +228,15 @@ public:
       tail = n;
    }
 
+   //! removes an element from the beginning of the list
+   DLLLOCAL void pop_front() {
+      if (!tail)
+         return;
+      head = head->next;
+      if (!head)
+         tail = 0;
+   }
+
    //! concatenates all elements of this list to the end of the list passed
    DLLLOCAL void populate(self_t &other) {
       iterator i = begin();

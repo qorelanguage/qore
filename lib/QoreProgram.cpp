@@ -157,6 +157,11 @@ void qore_program_private::del(ExceptionSink *xsink) {
    // delete all class static vars and constants
    RootNS->deleteData(xsink);
 
+   // delete defines
+   for (dmap_t::iterator i = dmap.begin(), e = dmap.end(); i != e; ++i)
+      discard(i->second, xsink);
+   dmap.clear();
+
    // delete user functions in case there are constant objects which are 
    // instances of classes that may be deleted below (call can be repeated)
    user_func_list.del();
@@ -908,6 +913,86 @@ bool QoreProgram::parseExceptionRaised() const {
 
 void QoreProgram::parseSetTimeZone(const char *zone) {
    return priv->parseSetTimeZone(zone);
+}
+
+AbstractQoreNode *qore_parse_get_define_value(const char *str, QoreString &arg, bool &ok) {
+   ok = true;
+   char c = arg[0];
+   // see if a string is being defined
+   if (c == '"' || c == '\'') {
+      // make sure the string is terminated in the same way
+      char e = arg[arg.strlen() - 1];
+      if (c != e || arg.strlen() == 1) {
+	 parse_error("'%s' is defined with an unterminated string; %%define directives must be made on a single line", str);
+	 ok = false;
+	 return 0;
+      }
+
+      // string is OK, remove quotes
+      arg.trim_single_trailing(c);
+      arg.trim_single_leading(c);
+      qore_size_t len = arg.strlen();
+      return new QoreStringNode(arg.giveBuffer(), len, len + 1, QCS_DEFAULT);
+   }
+
+   const char *p = arg.getBuffer();
+   // check for 'true' and 'false'
+   if (!strcasecmp(p, "true"))
+      return &True;
+   if (!strcasecmp(p, "false"))
+      return &False;
+
+   // see if there are non-numeric characters in the string
+   bool flt = false;
+   while (*p) {
+      if (*p == '.') {
+	 if (flt) {
+	    parse_error("'%s' is defined with an invalid number: '%s'", str, arg.getBuffer());
+	    ok = false;
+	    return 0;
+	 }
+	 flt = true;
+      }
+      else if (isalpha(*p)) {
+	 parse_error("'%s' has unquoted alphabetic characters in the value; use quotes (\" or ') to define strings", str);
+	 ok = false;
+	 return 0;
+      }
+      ++p;
+   }
+
+   p = arg.getBuffer();   
+   if (flt)
+      return new QoreFloatNode(atof(p));
+   return new QoreBigIntNode(strtoll(p, 0, 10));
+}
+
+void QoreProgram::parseDefine(const char *str, AbstractQoreNode *val) {
+   const char *p = str;
+   if (!isalpha(*p)) {
+      parse_error("illegal define variable '%s'; does not begin with an alphabetic character", p);
+      return;
+   }
+
+   while (*(++p)) {
+      if (!isalnum(*p) && *p != '_') {
+	 parse_error("illegal character '%c' in define variable '%s'", *p, str);
+	 return;
+      }
+   }
+   
+   priv->setDefine(str, val);
+}
+
+void QoreProgram::parseDefine(const char *str, const char *val) {
+   QoreString arg(val);
+   arg.trim();
+
+   bool ok;
+   AbstractQoreNode *v = qore_parse_get_define_value(str, arg, ok);
+   if (!ok)
+      return;
+   parseDefine(str, v);
 }
 
 int get_warning_code(const char *str) {
