@@ -322,6 +322,16 @@ int getMicroSecZeroInt(const AbstractQoreNode *a) {
    return a->getAsInt();
 }
 
+int64 getMicroSecZeroInt64(const AbstractQoreNode *a) {
+   if (is_nothing(a))
+      return 0;
+
+   if (a->getType() == NT_DATE)
+      return (reinterpret_cast<const DateTimeNode *>(a)->getRelativeMicroseconds());
+
+   return a->getAsBigInt();
+}
+
 static inline QoreListNode *crlr_list_copy(const QoreListNode *n, ExceptionSink *xsink) {
    ReferenceHolder<QoreListNode> l(new QoreListNode(true), xsink);
    for (unsigned i = 0; i < n->size(); i++) {

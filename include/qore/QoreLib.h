@@ -247,6 +247,9 @@ DLLEXPORT int64 getMsMinusOneBigInt(const AbstractQoreNode *a);
 //! for getting an integer number of microseconds, with 0 as the default, from either a relative time value or an integer value
 DLLEXPORT int getMicroSecZeroInt(const AbstractQoreNode *a);
 
+//! for getting an integer number of microseconds, with 0 as the default, from either a relative time value or an integer value
+DLLEXPORT int64 getMicroSecZeroInt64(const AbstractQoreNode *a);
+
 //! to check if an AbstractQoreNode object is NOTHING
 static inline bool is_nothing(const AbstractQoreNode *n) {
    if (!n || n->getType() == NT_NOTHING)

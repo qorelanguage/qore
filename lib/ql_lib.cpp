@@ -177,13 +177,13 @@ static AbstractQoreNode *f_sleep(const QoreListNode *params, ExceptionSink *xsin
    if (!timeout)
       return 0;
 
-   useconds_t us = (useconds_t)timeout * 1000000;
+   int64 us = (int64)timeout * 1000000ll;
    us = qore_usleep(us);
    return 0;
 }
 
 static AbstractQoreNode *f_usleep(const QoreListNode *params, ExceptionSink *xsink) {
-   int timeout = getMicroSecZeroInt(get_param(params, 0));
+   int64 timeout = getMicroSecZeroInt64(get_param(params, 0));
    if (!timeout)
       return 0;
 
