@@ -1618,7 +1618,7 @@ void qore_machine_backtrace() {
 static int qore_nanosleep(int64 ns) {
    struct timespec ts;
    ts.tv_sec = ns / 1000000000ll;
-   ts.tv_nsec = (ns = ts.tv_sec * 1000000000);
+   ts.tv_nsec = (ns - ts.tv_sec * 1000000000);
    return nanosleep(&ts, 0);
 }
 #endif
