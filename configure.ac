@@ -121,7 +121,6 @@ case "${host_os}" in
 		if test "${host_os}" = "solaris2.8"; then
 		   QORE_LIB_LDFLAGS="$QORE_LIB_LDFLAGS -ldl -lthread"
 		fi
-		AC_DEFINE(USE_NANOSLEEP, 1, [if we should use nanosleep instead of usleep as on Solaris])
 		solaris=yes
 	        ;;
      *darwin*)  # set compile flags for Darwin/OSX
