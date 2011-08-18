@@ -968,20 +968,7 @@ AbstractQoreNode *qore_parse_get_define_value(const char *str, QoreString &arg, 
 }
 
 void QoreProgram::parseDefine(const char *str, AbstractQoreNode *val) {
-   const char *p = str;
-   if (!isalpha(*p)) {
-      parse_error("illegal define variable '%s'; does not begin with an alphabetic character", p);
-      return;
-   }
-
-   while (*(++p)) {
-      if (!isalnum(*p) && *p != '_') {
-	 parse_error("illegal character '%c' in define variable '%s'", *p, str);
-	 return;
-      }
-   }
-   
-   priv->setDefine(str, val);
+   priv->parseDefine(qoreCommandLineLocation, str, val);
 }
 
 void QoreProgram::parseDefine(const char *str, const char *val) {
@@ -992,7 +979,7 @@ void QoreProgram::parseDefine(const char *str, const char *val) {
    AbstractQoreNode *v = qore_parse_get_define_value(str, arg, ok);
    if (!ok)
       return;
-   parseDefine(str, v);
+   priv->parseDefine(qoreCommandLineLocation, str, v);
 }
 
 int get_warning_code(const char *str) {
@@ -1002,7 +989,7 @@ int get_warning_code(const char *str) {
    return 0;
 }
 
-DLLLOCAL void addProgramConstants(class QoreNamespace *ns) {
+DLLLOCAL void addProgramConstants(QoreNamespace *ns) {
    ns->addConstant("PO_DEFAULT",                  new QoreBigIntNode(PO_DEFAULT));
    ns->addConstant("PO_NO_GLOBAL_VARS",           new QoreBigIntNode(PO_NO_GLOBAL_VARS));
    ns->addConstant("PO_NO_SUBROUTINE_DEFS",       new QoreBigIntNode(PO_NO_SUBROUTINE_DEFS));  

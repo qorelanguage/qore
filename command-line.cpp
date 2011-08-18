@@ -398,7 +398,8 @@ static void set_define(const char *carg) {
    QoreString str(carg);
    // trim trailing and leading whitespace
    str.trim();
-   const char *p = strchr(str.getBuffer(), ' ');
+   // find assignment character, if any
+   const char *p = strchr(str.getBuffer(), '=');
    QoreString arg;
    if (p) {
       // copy arg to arg string

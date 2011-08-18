@@ -132,7 +132,18 @@ struct QoreProgramLocation {
 
    DLLLOCAL QoreProgramLocation(int sline, int eline, const char *f) : start_line(sline), end_line(eline), file(f) {
    }
+
+   // sets from current parse location in thread-local data
+   DLLLOCAL QoreProgramLocation();
 };
+
+struct QoreCommandLineLocation : public QoreProgramLocation {
+   DLLLOCAL QoreCommandLineLocation() : QoreProgramLocation(0, 0, "<command-line>") {
+   }
+};
+
+// parse location for objects parsed on the command-line
+DLLLOCAL extern QoreCommandLineLocation qoreCommandLineLocation;
 
 // the following functions are implemented in support.cc
 DLLLOCAL void parse_error(const char *file, int sline, int eline, const char *fmt, ...);

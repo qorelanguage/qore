@@ -87,6 +87,9 @@ static QoreThreadLock lck_group;
 // time zone information source
 QoreTimeZoneManager QTZM;
 
+// parse location for objects parsed on the command-line
+QoreCommandLineLocation qoreCommandLineLocation;
+
 // for base64 encoding
 char table64[64] = {
    'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 
@@ -1629,4 +1632,9 @@ int qore_usleep(int64 usecs) {
 #else
    return ::usleep(usecs);
 #endif
+}
+
+QoreProgramLocation::QoreProgramLocation() {
+   get_parse_location(start_line, end_line);
+   file = get_parse_file();
 }

@@ -32,6 +32,7 @@ extern QoreHashNode *ENV;
 #include <qore/intern/GlobalVariableList.h>
 #include <qore/intern/ImportedFunctionList.h>
 
+#include <stdarg.h>
 #include <errno.h>
 
 class CharPtrList : public safe_dslist<const char *> {
@@ -273,42 +274,7 @@ typedef std::map<ThreadProgramData *, ThreadLocalProgramData *> pgm_data_map_t;
 // map for "defines" in programs
 typedef std::map<std::string, AbstractQoreNode *> dmap_t;
 
-struct qore_program_private {
-private:
-   DLLLOCAL void init(QoreProgram *n_pgm, int64 n_parse_options, const AbstractQoreZoneInfo *n_TZ = QTZM.getLocalZoneInfo()) {
-      thread_count = 0;
-      parseSink = 0;
-      warnSink = 0;
-      pendingParseSink = 0;
-      RootNS = 0;
-      QoreNS = 0;
-      only_first_except = false;
-      exceptions_raised = 0;
-      po_locked = false;
-      po_allow_restrict = true;
-      exec_class = false;
-      base_object = false;
-      requires_exception = false;
-      thread_local_storage = 0;
-      TZ = n_TZ;
-      pgm = n_pgm;
-
-      printd(5, "qore_program_private::init() this=%p pgm=%p\n", this, pgm);
-	 
-      // initialize global vars
-      Var *var = global_var_list.newVar("ARGV", listTypeInfo);
-      if (ARGV)
-	 var->setValue(ARGV->copy(), 0);
-	 
-      var = global_var_list.newVar("QORE_ARGV", listTypeInfo);
-      if (QORE_ARGV)
-	 var->setValue(QORE_ARGV->copy(), 0);
-	 
-      var = global_var_list.newVar("ENV", hashTypeInfo);
-      var->setValue(ENV->copy(), 0);
-   }
-
-public:
+struct qore_program_private_base {
    UserFunctionList user_func_list;
    ImportedFunctionList imported_func_list;
    GlobalVariableList global_var_list;
@@ -361,15 +327,58 @@ public:
 
    QoreProgram *pgm;
 
-   DLLLOCAL qore_program_private(QoreProgram *n_pgm, int64 n_parse_options) : plock(&ma_recursive), pwo(n_parse_options) {
-      init(n_pgm, n_parse_options);
+   DLLLOCAL qore_program_private_base(QoreProgram *n_pgm, int64 n_parse_options, const AbstractQoreZoneInfo *n_TZ = QTZM.getLocalZoneInfo()) 
+      : thread_count(0), plock(&ma_recursive), parseSink(0), warnSink(0), pendingParseSink(0), RootNS(0), QoreNS(0), only_first_except(false),
+        exceptions_raised(0), pwo(n_parse_options), po_locked(false), po_allow_restrict(true), exec_class(false), base_object(false),
+        requires_exception(false), thread_local_storage(0), TZ(n_TZ), pgm(n_pgm) {
+      printd(5, "qore_program_private::init() this=%p pgm=%p\n", this, pgm);
+	 
+      // initialize global vars
+      Var *var = global_var_list.newVar("ARGV", listTypeInfo);
+      if (ARGV)
+	 var->setValue(ARGV->copy(), 0);
+	 
+      var = global_var_list.newVar("QORE_ARGV", listTypeInfo);
+      if (QORE_ARGV)
+	 var->setValue(QORE_ARGV->copy(), 0);
+	 
+      var = global_var_list.newVar("ENV", hashTypeInfo);
+      var->setValue(ENV->copy(), 0);
+   }
+};
 
+class PreParseHelper {
+protected:
+   qore_program_private_base *p;
+   bool swapped;
+
+public:
+   DLLLOCAL PreParseHelper(qore_program_private_base *n_p) : p(n_p), swapped(false) {
+      if (!p->parseSink) {
+         if (!p->pendingParseSink)
+            p->pendingParseSink = new ExceptionSink;
+         p->parseSink = p->pendingParseSink;
+         swapped = true;
+      }
+   }
+
+   DLLLOCAL ~PreParseHelper() {
+      if (swapped)
+         p->parseSink = 0;
+   }
+};
+
+struct qore_program_private : public qore_program_private_base {
+private:
+   DLLLOCAL void init(QoreProgram *n_pgm, int64 n_parse_options, const AbstractQoreZoneInfo *n_TZ = QTZM.getLocalZoneInfo()) {
+   }
+
+public:
+   DLLLOCAL qore_program_private(QoreProgram *n_pgm, int64 n_parse_options) : qore_program_private_base(n_pgm, n_parse_options) {
       newProgram();
    }
 
-   DLLLOCAL qore_program_private(QoreProgram *n_pgm, int64 n_parse_options, QoreProgram *p_pgm) : plock(&ma_recursive), pwo(n_parse_options) {
-      init(n_pgm, n_parse_options, p_pgm->currentTZ());
-
+   DLLLOCAL qore_program_private(QoreProgram *n_pgm, int64 n_parse_options, QoreProgram *p_pgm) : qore_program_private_base(n_pgm, n_parse_options, p_pgm->currentTZ()) {
       //printd(5, "qore_program_private::qore_program_private() parent=%p (parent lvl=%p) this=%p (this pgm=%p) parent po: %lld new po: %lld parent no_child_po_restrictions=%d\n", p_pgm, p_pgm->priv->sb.getLVList(), this, pgm, p_pgm->priv->pwo.parse_options, n_parse_options, p_pgm->priv->pwo.parse_options & PO_NO_CHILD_PO_RESTRICTIONS);
 
       // if children inherit restrictions, then set all child restrictions
@@ -1076,6 +1085,25 @@ public:
       }
    }
 
+   DLLLOCAL void parseException(QoreProgramLocation &loc, const char *fmt, ...) {
+      //printd(5, "qore_program_private::parseException(\"%s\", ...) called\n", fmt);
+
+      // ignore if a "requires" exception has been raised
+      if (requires_exception)
+         return;
+
+      QoreStringNode *desc = new QoreStringNode;
+      while (true) {
+         va_list args;
+         va_start(args, fmt);
+         int rc = desc->vsprintf(fmt, args);
+         va_end(args);
+         if (!rc)
+            break;
+      }
+      makeParseException(loc, "PARSE-EXCEPTION", desc);
+   }
+
    DLLLOCAL void setDefine(const char *name, AbstractQoreNode *v) {
       dmap_t::iterator i = dmap.find(name);
       if (i != dmap.end()) {
@@ -1112,6 +1140,25 @@ public:
    DLLLOCAL bool isDefined(const char *name) {
       dmap_t::iterator i = dmap.find(name);
       return i == dmap.end() ? false : true;
+   }
+
+   DLLLOCAL void parseDefine(QoreProgramLocation &loc, const char *str, AbstractQoreNode *val) {
+      PreParseHelper pph(this);
+
+      const char *p = str;
+      if (!isalpha(*p)) {
+         parseException(loc, "illegal define variable '%s'; does not begin with an alphabetic character", p);
+         return;
+      }
+
+      while (*(++p)) {
+         if (!isalnum(*p) && *p != '_') {
+            parseException(loc, "illegal character '%c' in define variable '%s'", *p, str);
+            return;
+         }
+      }
+   
+      setDefine(str, val);
    }
 
    DLLLOCAL static const ParseWarnOptions &getParseWarnOptions(const QoreProgram *pgm) {
@@ -1173,6 +1220,10 @@ public:
 
    DLLLOCAL static bool isDefined(QoreProgram *pgm, const char *name) {
       return pgm->priv->isDefined(name);
+   }
+
+   DLLLOCAL static void parseDefine(QoreProgram *pgm, QoreProgramLocation loc, const char *str, AbstractQoreNode *val) {
+      pgm->priv->parseDefine(loc, str, val);
    }
 };
 

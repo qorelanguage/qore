@@ -486,7 +486,7 @@ static void qore_parse_define(const char *pstr) {
 	 return;
    }
  
-   getProgram()->parseDefine(str.getBuffer(), v);
+   qore_program_private::parseDefine(getProgram(), QoreProgramLocation(), str.getBuffer(), v);
 }
 
 bool parse_is_defined(const char *pstr, bool def = true) {
