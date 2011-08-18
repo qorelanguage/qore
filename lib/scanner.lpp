@@ -689,14 +689,11 @@ RTIME           PT(-?[0-9]+[HMSu])+
    ^%ifdef{WS}+                         {
                                            parse_cond_push();
                                         }
-   ^.*$                                 {
+   ^.*                                  {
                                            // ignore other text
-                                           //printd(5, "p_skip_to_endif: %s\n", yytext);
+                                           //printd(0, "p_skip_to_endif: %s\n", yytext);
                                         }
    \n                                   // ignore
-   <<EOF>>                              {
-                                           QORE_FLEX_DO_EOF
-                                        }
 }
 ^%endif{WS}*$                           parse_cond_pop();
 ^%include{WS}*$                         { parse_error("missing argument to %%include"); }

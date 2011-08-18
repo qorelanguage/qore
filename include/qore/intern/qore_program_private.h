@@ -1104,16 +1104,18 @@ public:
       makeParseException(loc, "PARSE-EXCEPTION", desc);
    }
 
-   DLLLOCAL void setDefine(const char *name, AbstractQoreNode *v) {
+   // returns true if the define already existed
+   DLLLOCAL bool setDefine(const char *name, AbstractQoreNode *v) {
       dmap_t::iterator i = dmap.find(name);
       if (i != dmap.end()) {
          if (i->second)
             i->second->deref(0);
          i->second = v;
-         return;
+         return true;
       }
 
       dmap[name] = v;
+      return false;
    }
 
    DLLLOCAL const AbstractQoreNode *getDefine(const char *name, bool &is_defined) {
@@ -1126,6 +1128,7 @@ public:
       return 0;
    }
 
+   // returns true if the define existed
    DLLLOCAL bool unDefine(const char *name) {
       dmap_t::iterator i = dmap.find(name);
       if (i != dmap.end()) {
