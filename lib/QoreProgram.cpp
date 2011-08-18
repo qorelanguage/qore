@@ -103,6 +103,11 @@ void qore_program_private_base::newProgram() {
 
       dmap[cli.getName()] = v->refSelf();
    }
+
+#ifdef DEBUG
+   // if Qore library debugging is enabled, then set an option
+   dmap["QoreDebug"] = &True;
+#endif
 }
 
 void qore_program_private_base::setParent(QoreProgram *p_pgm, int64 n_parse_options) {

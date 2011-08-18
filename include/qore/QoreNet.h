@@ -85,6 +85,7 @@ public:
        @param family a hint for the address family, AF_UNSPEC means any family
        @param flags hint flags as per the getaddrinfo() call: AI_ADDRCONFIG, AI_ALL, AI_CANONNAME, AI_NUMERICHOST, AI_NUMERICSERV, AI_PASSIVE, AI_V4MAPPED
        @param socktype a hint for the type of socket; 0 = any socket type
+       @param protocol a hint for the protocol number; 0 = the default protocol
     */
    DLLEXPORT int getInfo(ExceptionSink *xsink, const char *node, const char *service, int family = Q_AF_UNSPEC, int flags = 0, int socktype = Q_SOCK_STREAM, int protocol = 0);
 
