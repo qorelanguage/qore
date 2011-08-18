@@ -514,7 +514,7 @@ bool parse_is_defined(const char *pstr, bool def = true) {
 %option noyy_push_state
 %option noyy_pop_state
 
-%x str_state regex_state incl p_def p_ifdef p_skip_to_endif case_state regex_googleplex regex_negative_universe regex_subst1 regex_subst2 line_comment exec_class_state requires regex_trans1 regex_trans2 regex_extract_state disable_warning enable_warning append_path_state module_cmd set_zone
+%x str_state regex_state incl p_def p_ifdef p_ifndef p_skip_to_endif case_state regex_googleplex regex_negative_universe regex_subst1 regex_subst2 line_comment exec_class_state requires regex_trans1 regex_trans2 regex_extract_state disable_warning enable_warning append_path_state module_cmd set_zone
 
 HEX_DIGIT       [0-9A-Fa-f]
 HEX_CONST       0x{HEX_DIGIT}+
@@ -669,11 +669,27 @@ RTIME           PT(-?[0-9]+[HMSu])+
    [^\t\n\r]+$                          {
                                            parse_cond_push(true);
                                            if (parse_is_defined(yytext)) {
-					      //printd(5, "'%s' is defined\n", yytext);
+					      //printd(5, "ifdef: '%s' is defined\n", yytext);
 					      BEGIN(INITIAL);
 					   }
 					   else {
-					      //printd(5, "'%s' is not defined\n", yytext);
+					      //printd(5, "ifdef: '%s' is not defined\n", yytext);
+					      // skip to the next %else or %endif
+					      BEGIN(p_skip_to_endif);
+					   }
+                                        }
+}
+^%ifndef{WS}*$                           { parse_error("missing argument to %%ifndef"); }
+^%ifndef{WS}+                            BEGIN(p_ifndef);
+<p_ifndef>{
+   [^\t\n\r]+$                          {
+                                           parse_cond_push(true);
+                                           if (!parse_is_defined(yytext)) {
+					      //printd(5, "ifndef: '%s' is not defined\n", yytext);
+					      BEGIN(INITIAL);
+					   }
+					   else {
+					      //printd(5, "ifndef: '%s' is defined\n", yytext);
 					      // skip to the next %else or %endif
 					      BEGIN(p_skip_to_endif);
 					   }
