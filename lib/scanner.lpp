@@ -698,16 +698,23 @@ RTIME           PT(-?[0-9]+[HMSu])+
 <p_skip_to_endif>{
    ^%endif{WS}*$                        {
                                            if (parse_cond_pop()) {
-					      //printd(5, "p_skip_to_endif: found %%endif (%s)\n", yytext);
+					      printd(5, "p_skip_to_endif: found %%endif (%s) (final)\n", yytext);
 					      BEGIN(INITIAL);
 					   }
-                                        }
-   ^%ifdef{WS}+                         {
-                                           parse_cond_push();
+#ifdef DEBUG
+					   //else
+					   //printd(5, "p_skip_to_endif: found %%endif (%s) (not final)\n", yytext);
+#endif
                                         }
    ^.*                                  {
+                                           if (!strncmp("%ifdef", yytext, 6)) {
+					      //printd(5, "p_skip_to_endif: found %%ifdef (%s); skipping\n", yytext);
+					      parse_cond_push();
+					   }
+#ifdef DEBUG
                                            // ignore other text
-                                           //printd(0, "p_skip_to_endif: %s\n", yytext);
+                                           //printd(5, "p_skip_to_endif: %s\n", yytext);
+#endif
                                         }
    \n                                   // ignore
 }

@@ -27,6 +27,8 @@
 #include <qore/QoreCounter.h>
 #include <qore/intern/LocalVar.h>
 #include <qore/intern/qore_program_private.h>
+#include <qore/intern/QoreNamespaceIntern.h>
+#include <qore/intern/ConstantList.h>
 
 #include <string>
 #include <set>
@@ -59,6 +61,92 @@ static const char *qore_warnings_l[] = {
 //public symbols
 const char **qore_warnings = qore_warnings_l;
 unsigned qore_num_warnings = NUM_WARNINGS;
+
+void qore_program_private_base::newProgram() {
+   base_object = true;
+   po_locked = false;
+   exec_class = false;
+
+   // init thread local storage key
+   thread_local_storage = new qpgm_thread_local_storage_t;
+
+   // save thread local storage hash
+   start_thread();
+
+   // copy global feature list to local list
+   for (FeatureList::iterator i = qoreFeatureList.begin(), e = qoreFeatureList.end(); i != e; ++i)
+      featureList.push_back((*i).c_str());
+
+   // setup namespaces
+   RootNS = new RootQoreNamespace(QoreNS, pwo.parse_options);
+
+   // setup initial defines
+   // add platform defines
+   dmap["QoreVersionString"] = new QoreStringNode(qore_version_string);
+   dmap["QoreVersionMajor"] = new QoreBigIntNode(qore_version_major);
+   dmap["QoreVersionMinor"] = new QoreBigIntNode(qore_version_minor);
+   dmap["QoreVersionSub"] = new QoreBigIntNode(qore_version_sub);
+   dmap["QoreVersionBuild"] = new QoreBigIntNode(qore_build_number);
+   dmap["QoreVersionBits"] = new QoreBigIntNode(qore_target_bits);
+   dmap["QorePlatformCPU"] = new QoreStringNode(TARGET_ARCH);
+   dmap["QorePlatformOS"] = new QoreStringNode(TARGET_OS);
+
+   QoreNamespace *ns = QoreNS->findLocalNamespace("Option");
+   assert(ns);
+   ConstantListIterator cli(*qore_ns_private::getConstantList(ns));
+   while (cli.next()) {
+      AbstractQoreNode *v = cli.getValue();
+      assert(v);
+      // skip boolean options defined as False
+      if (v->getType() == NT_BOOLEAN && !reinterpret_cast<QoreBoolNode *>(v)->getValue())
+	 continue;
+
+      dmap[cli.getName()] = v->refSelf();
+   }
+}
+
+void qore_program_private_base::setParent(QoreProgram *p_pgm, int64 n_parse_options) {
+   //printd(5, "qore_program_private_base::setParent() parent=%p (parent lvl=%p) this=%p (this pgm=%p) parent po: %lld new po: %lld parent no_child_po_restrictions=%d\n", p_pgm, p_pgm->priv->sb.getLVList(), this, pgm, p_pgm->priv->pwo.parse_options, n_parse_options, p_pgm->priv->pwo.parse_options & PO_NO_CHILD_PO_RESTRICTIONS);
+      
+   TZ = p_pgm->currentTZ();
+
+   // if children inherit restrictions, then set all child restrictions
+   if (!(p_pgm->priv->pwo.parse_options & PO_NO_CHILD_PO_RESTRICTIONS)) {
+      // lock child parse options
+      po_locked = true;
+      // turn on all restrictions in the child that are set in the parent
+      pwo.parse_options |= p_pgm->priv->pwo.parse_options;
+      // make sure all options that give more freedom and are off in the parent program are turned off in the child
+      pwo.parse_options &= (p_pgm->priv->pwo.parse_options | ~PO_POSITIVE_OPTIONS);
+   }
+   else {
+      pwo.parse_options = n_parse_options;
+      po_locked = !(n_parse_options & PO_NO_CHILD_PO_RESTRICTIONS);
+   }
+      
+   // inherit parent's thread local storage key
+   thread_local_storage = p_pgm->priv->thread_local_storage;
+      
+   {
+      // grab program's parse lock
+      AutoLocker al(p_pgm->priv->plock);
+      // setup derived namespaces
+      RootNS = p_pgm->priv->RootNS->copy(n_parse_options);
+   }
+   QoreNS = RootNS->rootGetQoreNamespace();
+      
+   // copy parent feature list
+   p_pgm->priv->featureList.populate(&featureList);
+      
+   // copy top-level local variables in case any are referenced in static methods in the parent program (static methods are executed in the child's space)
+   const LVList *lvl = p_pgm->priv->sb.getLVList();
+   if (lvl)
+      sb.assignLocalVars(lvl);
+
+   // copy program defines to child program
+   for (dmap_t::const_iterator i = p_pgm->priv->dmap.begin(), e = p_pgm->priv->dmap.end(); i != e; ++i)
+      dmap[i->first] = i->second ? i->second->refSelf() : 0;
+}
 
 void qore_program_private::internParseRollback() {
    // delete pending user functions

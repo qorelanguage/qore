@@ -327,10 +327,10 @@ struct qore_program_private_base {
 
    QoreProgram *pgm;
 
-   DLLLOCAL qore_program_private_base(QoreProgram *n_pgm, int64 n_parse_options, const AbstractQoreZoneInfo *n_TZ = QTZM.getLocalZoneInfo()) 
+   DLLLOCAL qore_program_private_base(QoreProgram *n_pgm, int64 n_parse_options, QoreProgram *p_pgm = 0) 
       : thread_count(0), plock(&ma_recursive), parseSink(0), warnSink(0), pendingParseSink(0), RootNS(0), QoreNS(0), only_first_except(false),
         exceptions_raised(0), pwo(n_parse_options), po_locked(false), po_allow_restrict(true), exec_class(false), base_object(false),
-        requires_exception(false), thread_local_storage(0), TZ(n_TZ), pgm(n_pgm) {
+        requires_exception(false), thread_local_storage(0), pgm(n_pgm) {
       printd(5, "qore_program_private::init() this=%p pgm=%p\n", this, pgm);
 	 
       // initialize global vars
@@ -344,7 +344,25 @@ struct qore_program_private_base {
 	 
       var = global_var_list.newVar("ENV", hashTypeInfo);
       var->setValue(ENV->copy(), 0);
+
+      if (p_pgm)
+	 setParent(p_pgm, n_parse_options);
+      else {
+	 TZ = QTZM.getLocalZoneInfo();
+	 newProgram();
+      }
    }
+
+   DLLLOCAL void start_thread() {
+      assert(!thread_local_storage->get());
+      thread_local_storage->set(new QoreHashNode);
+   }
+
+protected:
+   DLLLOCAL void setParent(QoreProgram *p_pgm, int64 n_parse_options);
+
+   // for independent programs (not inherited from another QoreProgram object)
+   DLLLOCAL void newProgram();
 };
 
 class PreParseHelper {
@@ -375,44 +393,9 @@ private:
 
 public:
    DLLLOCAL qore_program_private(QoreProgram *n_pgm, int64 n_parse_options) : qore_program_private_base(n_pgm, n_parse_options) {
-      newProgram();
    }
 
-   DLLLOCAL qore_program_private(QoreProgram *n_pgm, int64 n_parse_options, QoreProgram *p_pgm) : qore_program_private_base(n_pgm, n_parse_options, p_pgm->currentTZ()) {
-      //printd(5, "qore_program_private::qore_program_private() parent=%p (parent lvl=%p) this=%p (this pgm=%p) parent po: %lld new po: %lld parent no_child_po_restrictions=%d\n", p_pgm, p_pgm->priv->sb.getLVList(), this, pgm, p_pgm->priv->pwo.parse_options, n_parse_options, p_pgm->priv->pwo.parse_options & PO_NO_CHILD_PO_RESTRICTIONS);
-
-      // if children inherit restrictions, then set all child restrictions
-      if (!(p_pgm->priv->pwo.parse_options & PO_NO_CHILD_PO_RESTRICTIONS)) {
-         // lock child parse options
-         po_locked = true;
-         // turn on all restrictions in the child that are set in the parent
-         pwo.parse_options |= p_pgm->priv->pwo.parse_options;
-         // make sure all options that give more freedom and are off in the parent program are turned off in the child
-         pwo.parse_options &= (p_pgm->priv->pwo.parse_options | ~PO_POSITIVE_OPTIONS);
-      }
-      else {
-         pwo.parse_options = n_parse_options;
-         po_locked = !(n_parse_options & PO_NO_CHILD_PO_RESTRICTIONS);
-      }
-      
-      // inherit parent's thread local storage key
-      thread_local_storage = p_pgm->priv->thread_local_storage;
-      
-      {
-         // grab program's parse lock
-         AutoLocker al(p_pgm->priv->plock);
-         // setup derived namespaces
-         RootNS = p_pgm->priv->RootNS->copy(n_parse_options);
-      }
-      QoreNS = RootNS->rootGetQoreNamespace();
-      
-      // copy parent feature list
-      p_pgm->priv->featureList.populate(&featureList);
-      
-      // copy top-level local variables in case any are referenced in static methods in the parent program (static methods are executed in the child's space)
-      const LVList *lvl = p_pgm->priv->sb.getLVList();
-      if (lvl)
-         sb.assignLocalVars(lvl);
+   DLLLOCAL qore_program_private(QoreProgram *n_pgm, int64 n_parse_options, QoreProgram *p_pgm) : qore_program_private_base(n_pgm, n_parse_options, p_pgm) {
    }
    
    DLLLOCAL ~qore_program_private() {
@@ -475,26 +458,6 @@ public:
       clearProgramThreadData(xsink);
       
       depDeref(xsink);
-   }
-
-   // for independent programs (not inherited from another QoreProgram object)
-   DLLLOCAL void newProgram() {
-      base_object = true;
-      po_locked = false;
-      exec_class = false;
-
-      // init thread local storage key
-      thread_local_storage = new qpgm_thread_local_storage_t;
-
-      // save thread local storage hash
-      start_thread();
-
-      // copy global feature list to local list
-      for (FeatureList::iterator i = qoreFeatureList.begin(), e = qoreFeatureList.end(); i != e; ++i)
-	 featureList.push_back((*i).c_str());
-
-      // setup namespaces
-      RootNS = new RootQoreNamespace(QoreNS, pwo.parse_options);
    }
 
    DLLLOCAL void incThreadCount() {
@@ -927,11 +890,6 @@ public:
       }
 
       return false;
-   }
-
-   DLLLOCAL void start_thread() {
-      assert(!thread_local_storage->get());
-      thread_local_storage->set(new QoreHashNode);
    }
 
    DLLLOCAL const AbstractQoreZoneInfo *currentTZ() const {

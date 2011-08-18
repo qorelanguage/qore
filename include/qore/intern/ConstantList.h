@@ -53,6 +53,7 @@ public:
 typedef std::map<std::string, ConstantEntry> hm_qn_t;
 
 class ConstantList {
+   friend class ConstantListIterator;
 private:
    hm_qn_t hm;
 
@@ -91,6 +92,32 @@ public:
    DLLLOCAL bool empty() const {
       return hm.empty();
    } 
+};
+
+class ConstantListIterator {
+protected:
+   hm_qn_t cl;
+   hm_qn_t::iterator i;
+
+public:
+   DLLLOCAL ConstantListIterator(ConstantList &n_cl) : cl(n_cl.hm), i(cl.end()) {
+   }
+
+   DLLLOCAL bool next() {
+      if (i == cl.end())
+         i = cl.begin();
+      else
+         ++i;
+      return i != cl.end();
+   }
+
+   DLLLOCAL std::string getName() {
+      return i->first;
+   }
+
+   DLLLOCAL AbstractQoreNode *getValue() {
+      return i->second.node;
+   }
 };
 
 #endif

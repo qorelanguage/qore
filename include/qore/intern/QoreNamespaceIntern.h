@@ -133,6 +133,10 @@ struct qore_ns_private {
    DLLLOCAL static AbstractQoreNode *parseResolveBareword(const QoreNamespace *ns, const char *bname, const QoreTypeInfo *&typeInfo) {
       return ns->priv->parseResolveBareword(bname, typeInfo);
    }
+
+   DLLLOCAL static ConstantList *getConstantList(const QoreNamespace *ns) {
+      return ns->priv->constant;
+   }
 };
 
 #endif

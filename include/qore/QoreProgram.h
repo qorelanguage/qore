@@ -92,6 +92,7 @@ class qore_program_private;
     so it can be deleted.
 */
 class QoreProgram : public AbstractPrivateData {
+   friend class qore_program_private_base;
    friend class qore_program_private;
 private:
    //! private implementation
