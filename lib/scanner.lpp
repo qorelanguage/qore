@@ -514,7 +514,7 @@ bool parse_is_defined(const char *pstr, bool def = true) {
 %option noyy_push_state
 %option noyy_pop_state
 
-%x str_state regex_state incl p_def p_ifdef p_ifndef p_skip_to_endif case_state regex_googleplex regex_negative_universe regex_subst1 regex_subst2 line_comment exec_class_state requires regex_trans1 regex_trans2 regex_extract_state disable_warning enable_warning append_path_state module_cmd set_zone
+%x str_state regex_state incl p_def p_ifdef p_ifndef p_skip_to_endif p_skip_to_endif_or_else case_state regex_googleplex regex_negative_universe regex_subst1 regex_subst2 line_comment exec_class_state requires regex_trans1 regex_trans2 regex_extract_state disable_warning enable_warning append_path_state module_cmd set_zone
 
 HEX_DIGIT       [0-9A-Fa-f]
 HEX_CONST       0x{HEX_DIGIT}+
@@ -675,7 +675,7 @@ RTIME           PT(-?[0-9]+[HMSu])+
 					   else {
 					      //printd(5, "ifdef: '%s' is not defined\n", yytext);
 					      // skip to the next %else or %endif
-					      BEGIN(p_skip_to_endif);
+					      BEGIN(p_skip_to_endif_or_else);
 					   }
                                         }
 }
@@ -691,10 +691,18 @@ RTIME           PT(-?[0-9]+[HMSu])+
 					   else {
 					      //printd(5, "ifndef: '%s' is defined\n", yytext);
 					      // skip to the next %else or %endif
-					      BEGIN(p_skip_to_endif);
+					      BEGIN(p_skip_to_endif_or_else);
 					   }
                                         }
 }
+^%else{WS}*$                            {
+                                              if (!parse_cond_else()) {
+						 parse_error("%%else found without %%if");
+					      }
+					      else {
+						 BEGIN(p_skip_to_endif);
+					      }                                           
+                                        }
 <p_skip_to_endif>{
    ^%endif{WS}*$                        {
                                            if (parse_cond_pop()) {
@@ -714,6 +722,33 @@ RTIME           PT(-?[0-9]+[HMSu])+
 #ifdef DEBUG
                                            // ignore other text
                                            //printd(5, "p_skip_to_endif: %s\n", yytext);
+#endif
+                                        }
+   \n                                   // ignore
+}
+<p_skip_to_endif_or_else>{
+   ^%else{WS}*$                         {
+                                           //printd(5, "p_skip_to_endif_or_else: found %else\n");
+                                           BEGIN(INITIAL);
+                                        }
+   ^%endif{WS}*$                        {
+                                           if (parse_cond_pop()) {
+					      //printd(5, "p_skip_to_endif_or_else: found %%endif (%s) (final)\n", yytext);
+					      BEGIN(INITIAL);
+					   }
+#ifdef DEBUG
+					   //else
+					   //printd(5, "p_skip_to_endif_or_else: found %%endif (%s) (not final)\n", yytext);
+#endif
+                                        }
+   ^.*                                  {
+                                           if (!strncmp("%ifdef", yytext, 6)) {
+					      //printd(5, "p_skip_to_endif_or_else: found %%ifdef (%s); skipping\n", yytext);
+					      parse_cond_push();
+					   }
+#ifdef DEBUG
+                                           // ignore other text
+                                           //printd(5, "p_skip_to_endif_or_else: %s\n", yytext);
 #endif
                                         }
    \n                                   // ignore
