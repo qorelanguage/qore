@@ -184,6 +184,31 @@ public:
    }
 };
 
+#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+class QoreWindowsZoneInfo : public AbstractQoreZoneInfo {
+protected:
+   QoreString display,  // display name for the zone from the registry
+      daylight,         // name for daylight savings time for the zone from the registry
+      standard;         // standard name for the zone from the registry
+   bool valid;
+   // UTC offset for daylight savings time in seconds east
+   int dst_off;
+
+   // returns the UTC offset and local time zone name for the given time given as seconds from the epoch (1970-01-01Z)
+   DLLLOCAL virtual int getUTCOffsetImpl(int64 epoch_offset, bool &is_dst, const char *&zone_name) const;
+
+public:
+   DLLLOCAL QoreWindowsZoneInfo(const char *name, ExceptionSink *xsink);
+
+   DLLLOCAL virtual ~QoreWindowsZoneInfo() {
+   }
+
+   DLLLOCAL operator bool() const {
+      return valid;
+   }
+};
+#endif
+
 class QoreTimeZoneManager {
 protected:
    // read-write lock to manage real (non-offset) zone info objects
@@ -193,7 +218,7 @@ protected:
    mutable QoreRWLock rwl_offset;
 
    // time zone info map (ex: "Europe/Prague" -> QoreZoneInfo*)
-   typedef std::map<std::string, QoreZoneInfo *> tzmap_t;
+   typedef std::map<std::string, AbstractQoreZoneInfo *> tzmap_t;
 
    // offset map type
    typedef std::map<int, QoreOffsetZoneInfo *> tzomap_t;
@@ -213,17 +238,19 @@ protected:
    tzomap_t tzomap;
 
    // pointer to our regional time information
-   QoreZoneInfo *localtz;
+   AbstractQoreZoneInfo *localtz;
    std::string localtzname;
 
    DLLLOCAL int processIntern(const char *fn, ExceptionSink *xsink);
    DLLLOCAL int process(const char *fn);
 
-   DLLLOCAL const QoreZoneInfo *processFile(const char *fn, ExceptionSink *xsink);
+   DLLLOCAL const AbstractQoreZoneInfo *processFile(const char *fn, ExceptionSink *xsink);
    DLLLOCAL int processDir(const char *d, ExceptionSink *xsink);
 
    // to set the local time zone information from a file 
    DLLLOCAL int setLocalTZ(std::string fname);
+
+   DLLLOCAL int setLocalTZ(std::string fname, AbstractQoreZoneInfo *tzi);
 
    DLLLOCAL void setFromLocalTimeFile();
 
@@ -245,7 +272,7 @@ public:
 	 delete i->second;
    }
 
-   DLLLOCAL QoreZoneInfo *getZone(const char *name) {
+   DLLLOCAL AbstractQoreZoneInfo *getZone(const char *name) {
       QoreAutoRWReadLocker al(rwl);
       tzmap_t::iterator i = tzmap.find(name);
       return i == tzmap.end() ? 0 : i->second;

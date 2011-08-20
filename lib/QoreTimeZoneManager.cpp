@@ -240,7 +240,26 @@ int QoreTimeZoneManager::process(const char *fn) {
    return processIntern(fn, &xsink);
 }
 
-const QoreZoneInfo *QoreTimeZoneManager::processFile(const char *fn, ExceptionSink *xsink) {
+const AbstractQoreZoneInfo *QoreTimeZoneManager::processFile(const char *fn, ExceptionSink *xsink) {
+#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+   tzmap_t::iterator i = tzmap.find(fn);
+   if (i != tzmap.end())
+      return i->second;
+
+   //printd(5, "QoreTimeZoneManager::processFile() %s: loading from registry\n", fn);
+
+   std::auto_ptr<QoreWindowsZoneInfo> tzi(new QoreWindowsZoneInfo(fn, xsink));
+   if (!*(tzi.get())) {
+      return 0;
+   }
+
+   //printd(5, "QoreTimeZoneManager::processFile() %s -> %p\n", name.c_str(), tzi.get());
+   QoreWindowsZoneInfo *rv = tzi.release();
+   tzmap[fn] = rv;
+   ++tzsize;
+
+   return rv;
+#else
    std::string name = !strncmp(root.getBuffer(), fn, root.strlen()) ? fn + root.strlen() + 1 : fn;
    tzmap_t::iterator i = tzmap.find(name);
    if (i != tzmap.end())
@@ -252,12 +271,13 @@ const QoreZoneInfo *QoreTimeZoneManager::processFile(const char *fn, ExceptionSi
       return 0;
    }
 
-   //printd(5, "QoreTimeZoneManager::processIntern() %s -> %p\n", name.c_str(), tzi.get());
+   //printd(5, "QoreTimeZoneManager::processFile() %s -> %p\n", name.c_str(), tzi.get());
    QoreZoneInfo *rv = tzi.release();
    tzmap[name] = rv;
    ++tzsize;
 
    return rv;
+#endif
 }
 
 int QoreTimeZoneManager::processIntern(const char *fn, ExceptionSink *xsink) {
@@ -443,7 +463,18 @@ int QoreTimeZoneManager::processDir(const char *d, ExceptionSink *xsink) {
    return 0;
 }
 
-// to set the local time zone information from a file 
+int QoreTimeZoneManager::setLocalTZ(std::string fname, AbstractQoreZoneInfo *tzi) {
+   localtz = tzi;
+   tzmap[fname] = localtz;
+   localtzname = fname;
+   ++tzsize;
+
+   printd(1, "QoreTimeZoneManager::setLocalTZ() set zoneinfo from region: %s (%s has_dst=%d utcoff=%d)\n", fname.c_str(), tzi->getRegionName(), tzi->hasDST(), tzi->getUTCOffset());
+
+   return 0;
+}
+
+// to set the local time zone information from a file
 int QoreTimeZoneManager::setLocalTZ(std::string fname) {
    if (fname.empty())
       return -1;
@@ -468,14 +499,7 @@ int QoreTimeZoneManager::setLocalTZ(std::string fname) {
       return -1;
    }
 
-   localtz = tzi.release();
-   tzmap[fname] = localtz;
-   localtzname = fname;
-   ++tzsize;
-
-   printd(1, "QoreTimeZoneManager::setLocalTZ() set zoneinfo from region: %s\n", fname.c_str());
-
-   return 0;
+   return setLocalTZ(fname, tzi.release());
 }
 
 #define MAKE_STD_ZONE(offset, name) tzo_std_map[offset] = new QoreOffsetZoneInfo((name), (offset))
@@ -602,7 +626,144 @@ QoreTimeZoneManager::QoreTimeZoneManager() : tzsize(0), our_utcoffset(0), root(Z
    MAKE_STD_ZONE(-12 * SECS_PER_HOUR, "-12");
 }
 
+#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+/* typedef struct _SYSTEMTIME {
+  WORD wYear;
+  WORD wMonth;
+  WORD wDayOfWeek;
+  WORD wDay;
+  WORD wHour;
+  WORD wMinute;
+  WORD wSecond;
+  WORD wMilliseconds;
+} SYSTEMTIME, *PSYSTEMTIME;*/
+/*
+static int wdate2date(const SYSTEMTIME &st, DateTime &dt) {
+   dt.setDate(0, st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds * 1000);
+   return 0;
+}
+*/
+static int wdate2str(const SYSTEMTIME &st, QoreString &str) {
+   str.sprintf("year: %d mon: %d day: %d dow: %d %02d:%02d:%02d.%03d", st.wYear, st.wMonth, st.wDay, st.wDayOfWeek, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds * 1000);
+   return 0;
+}
+
+static int wchar2utf8(const wchar_t *wstr, QoreString &str) {
+   size_t len = WideCharToMultiByte(CP_UTF8, 0, wstr, -1, 0, 0, 0, 0);
+   if (!len)
+      return -1;
+   str.reserve(len);
+   WideCharToMultiByte(CP_UTF8, 0, wstr, -1, (LPSTR)str.getBuffer(), len, 0, 0);
+   str.terminate(len);
+   return 0;
+}
+
+static LONG wopenkey(HKEY hKey, const char *path, REGSAM samDesired, HKEY *pkey) {
+   return RegOpenKeyEx(hKey, path, 0, samDesired, pkey);
+}
+
+#define WERR_SIZE 2048
+QoreStringNode *get_windows_err(LONG rc) {
+   QoreStringNode *desc = new QoreStringNode;
+   desc->reserve(WERR_SIZE);
+   DWORD drc = FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, 0, rc, LANG_USER_DEFAULT, (LPTSTR)desc->getBuffer(), WERR_SIZE, 0);
+   desc->terminate(drc);
+   if (!drc)
+      desc->sprintf("FormatMessage() failed to retrieve error message for code %d", rc);
+   return desc;
+}
+
+#define RRF_RT_REG_SZ 0x0000ffff
+static int wgetregstr(HKEY hk, const char *name, QoreString &val, ExceptionSink *xsink) {
+   DWORD size = 0;
+   LONG rc = RegQueryValueEx(hk, name, 0, 0, 0, &size);
+   if (rc != ERROR_SUCCESS) {
+      xsink->raiseException("TZINFO-ERROR", get_windows_err(rc));
+      return -1;
+   }
+   val.reserve(size);
+
+   rc = RegQueryValueEx(hk, name, 0, 0, (LPBYTE)val.getBuffer(), &size);
+   if (rc != ERROR_SUCCESS) {
+      xsink->raiseException("TZINFO-ERROR", get_windows_err(rc));
+      return -1;
+   }
+   val.terminate(size);
+   //printd(5, "wgetregstr(%s) got: %s\n", name, val.getBuffer());
+   return 0;
+}
+
+typedef struct _REG_TZI_FORMAT {
+   LONG Bias;
+   LONG StandardBias;
+   LONG DaylightBias;
+   SYSTEMTIME StandardDate;
+   SYSTEMTIME DaylightDate;
+} REG_TZI_FORMAT;
+
+#define WTZ_INFO "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Time Zones\\"
+
+QoreWindowsZoneInfo::QoreWindowsZoneInfo(const char *n_name, ExceptionSink *xsink) : valid(false), dst_off(0) {
+   name = n_name;
+
+   QoreString key(WTZ_INFO);
+   key.concat(n_name);
+
+   HKEY hk;
+   LONG rc = wopenkey(HKEY_LOCAL_MACHINE, key.getBuffer(), KEY_QUERY_VALUE, &hk);
+   if (rc) {
+      QoreStringNode *desc = get_windows_err(rc);
+      desc->prepend("': ");
+      desc->prepend(key.getBuffer());
+      desc->prepend("error opening windows registry key '");
+      xsink->raiseException("TZINFO-ERROR", desc);
+      return;
+   }
+   ON_BLOCK_EXIT(RegCloseKey, hk);
+
+   if (wgetregstr(hk, "Display", display, xsink))
+      return;
+   if (wgetregstr(hk, "Dlt", daylight, xsink))
+      return;
+   if (wgetregstr(hk, "Std", standard, xsink))
+      return;
+
+   // get TZI value
+   REG_TZI_FORMAT tzi;
+   DWORD size = sizeof(tzi);
+   rc = RegQueryValueEx(hk, "TZI", 0, 0, (BYTE *)&tzi, &size);
+   if (rc) {
+      xsink->raiseException("TZINFO-ERROR", get_windows_err(rc));
+      return;
+   }
+
+   QoreString sd, dd;
+   wdate2str(tzi.StandardDate, sd);
+   wdate2str(tzi.DaylightDate, dd);
+   //printd(5, "QoreWindowsZoneInfo::QoreWindowsZoneInfo(%s) bias=%ld standardbias=%ld daylightbias=%ld standarddate=%s daylightdate=%s\n", n_name, tzi.Bias, tzi.StandardBias, tzi.DaylightBias, sd.getBuffer(), dd.getBuffer());
+
+   // convert to seconds east
+   utcoff = tzi.Bias * -60 + tzi.StandardBias * -60;
+   if (tzi.DaylightBias) {
+      dst_off = tzi.Bias * -60 + tzi.DaylightBias * -60;
+      has_dst = true;
+   }
+
+   valid = true;
+
+   //printd(5, "QoreWindowsZoneInfo::QoreWindowsZoneInfo(%s) utcoff=%d has_dst=%d dst_off=%d\n", n_name, utcoff, has_dst, dst_off);
+}
+
+int QoreWindowsZoneInfo::getUTCOffsetImpl(int64 epoch_offset, bool &is_dst, const char *&zone_name) const {
+   is_dst = false;
+   zone_name = standard.getBuffer();
+   return utcoff;
+}
+
+#endif
+
 void QoreTimeZoneManager::init_intern(QoreString &TZ) {
+   // unix-style zoneinfo initialization
    if (SysEnv.get("TZ", TZ)) {
       setFromLocalTimeFile();
       return;
@@ -626,7 +787,9 @@ void QoreTimeZoneManager::init_intern(QoreString &TZ) {
 void QoreTimeZoneManager::init() {
    QoreString TZ(QCS_USASCII);
 
+#if (!defined _WIN32 && !defined __WIN32__) || defined __CYGWIN__
    init_intern(TZ);
+#endif
 
 #ifdef SOLARIS
    // on solaris try to parse /etc/TIMEZONE if TZ is not set
@@ -649,6 +812,31 @@ void QoreTimeZoneManager::init() {
       }
    }
 #endif
+#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+   TIME_ZONE_INFORMATION tzi;
+   int rc = GetTimeZoneInformation(&tzi);
+   // assume UTC if no zone info is available
+   if (rc == TIME_ZONE_ID_UNKNOWN) {
+      printd(0, "QoreTimeZoneManager::init() Windows GetTimeZoneInformation returned TIME_ZONE_ID_UNKNOWN, assuming UTC\n");
+   }
+   else {
+      QoreString sn;
+      wchar2utf8(tzi.StandardName, sn);
+
+      ExceptionSink xsink;
+
+      // try to set the local time zone from the standard zone name
+      std::auto_ptr<QoreWindowsZoneInfo> twzi(new QoreWindowsZoneInfo(sn.getBuffer(), &xsink));
+      if (!*(twzi.get())) {
+         //xsink.handleExceptions();
+         xsink.clear();
+         printd(1, "error reading windows registry while setting local time zone: %s\n", sn.getBuffer());
+         return;
+      }
+
+      setLocalTZ(sn.getBuffer(), twzi.release());
+   }
+#endif
 
    // if no local time zone has been set, then set to UTC
    if (!localtz)
@@ -664,7 +852,7 @@ void QoreTimeZoneManager::setFromLocalTimeFile() {
    if (!stat(LOCALTIME_LOCATION, &sbuf)) {
 #endif
       // normally this file is a symlink
-      //printd(0, "QoreTimeZoneManager::QoreTimeZoneManager() %s: %d (%d)\n", LOCALTIME_LOCATION, sbuf.st_mode & S_IFMT, S_IFLNK);
+      //printd(5, "QoreTimeZoneManager::QoreTimeZoneManager() %s: %d (%d)\n", LOCALTIME_LOCATION, sbuf.st_mode & S_IFMT, S_IFLNK);
 #ifdef S_IFLNK
       if ((sbuf.st_mode & S_IFMT) == S_IFLNK) {
 	 char buf[QORE_PATH_MAX + 1];
