@@ -8883,7 +8883,7 @@ stdin.getTerminalAttributes($termios);</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-              <para><code><command>static</command> <link linkend="TermIOS::getWindowSize">TermIOS::getWindowSize</link>() <command>returns</command> <link linkend="hash_type">hash</link></code></para>
+              <para><code><command>static</command> <link linkend="hash_type">hash</link> <link linkend="TermIOS::getWindowSize">TermIOS::getWindowSize</link>()</code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -23415,7 +23415,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 
 	  <row>
 	    <entry>
-              <para><code><command>static</command> <link linkend="TimeZone::get">TimeZone::get</link>() <command>returns</command> <link linkend="TimeZone_Class">TimeZone</link></code></para>
+              <para><code><command>static</command> <link linkend="TimeZone_Class">TimeZone</link> <link linkend="TimeZone::get">TimeZone::get</link>()</code></para>
 	    </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Returns the default time zone for the current execution context.</para></entry>
@@ -23423,14 +23423,14 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 
 	  <row>
 	    <entry>
-              <para><code><command>static</command> <link linkend="TimeZone::set">TimeZone::set</link>(<link linkend="TimeZone_Class">TimeZone</link> <replaceable>$zone</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><command>static</command> <link linkend="nothing_type">nothing</link> <link linkend="TimeZone::set">TimeZone::set</link>(<link linkend="TimeZone_Class">TimeZone</link> <replaceable>$zone</replaceable>)</code></para>
 	    </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Sets the default time zone for the current execution context.</para></entry>
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><command>static</command> <link linkend="TimeZone::setUTCOffset">TimeZone::setUTCOffset</link>(<link linkend="softint_type">softint</link> <replaceable>$secs_east</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><command>static</command> <link linkend="nothing_type">nothing</link> <link linkend="TimeZone::setUTCOffset">TimeZone::setUTCOffset</link>(<link linkend="softint_type">softint</link> <replaceable>$secs_east</replaceable>)</code></para>
 	    </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Sets the default time zone for the current execution context based on the number of seconds east of UTC; for zones west of UTC, use negative numbers.</para></entry>
@@ -23438,7 +23438,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 
 	  <row>
 	    <entry>
-              <para><code><command>static</command> <link linkend="TimeZone::setRegion">TimeZone::setRegion</link>(<link linkend="string_type">string</link> <replaceable>$region</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><command>static</command> <link linkend="nothing_type">nothing</link> <link linkend="TimeZone::setRegion">TimeZone::setRegion</link>(<link linkend="string_type">string</link> <replaceable>$region</replaceable>)</code></para>
 	    </entry>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Sets the default time zone for the current execution context from a zoneinfo region file; if there are errors reading or parsing the file, an exception is thrown.</para></entry>
@@ -23877,7 +23877,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-              <para><code><command>static</command> <link linkend="TimeZone::get">TimeZone::get</link>() <command>returns</command> <link linkend="TimeZone_Class">TimeZone</link></code></para>
+              <para><code><command>static</command> <link linkend="TimeZone_Class">TimeZone</link><link linkend="TimeZone::get">TimeZone::get</link>()</code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -23926,7 +23926,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-              <para><code><command>static</command> <link linkend="TimeZone::set">TimeZone::set</link>(<link linkend="TimeZone_Class">TimeZone</link> <replaceable>$zone</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><command>static</command> <link linkend="nothing_type">nothing</link> <link linkend="TimeZone::set">TimeZone::set</link>(<link linkend="TimeZone_Class">TimeZone</link> <replaceable>$zone</replaceable>)</code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -23971,7 +23971,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-              <para><code><command>static</command> <link linkend="TimeZone::setUTCOffset">TimeZone::setUTCOffset</link>(<link linkend="softint_type">softint</link> <replaceable>$secs_east</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><command>static</command> <link linkend="nothing_type">nothing</link> <link linkend="TimeZone::setUTCOffset">TimeZone::setUTCOffset</link>(<link linkend="softint_type">softint</link> <replaceable>$secs_east</replaceable>)</code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -24018,7 +24018,7 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
         <varlistentry>
           <term>Prototype</term>
           <listitem>
-              <para><code><command>static</command> <link linkend="TimeZone::setRegion">TimeZone::setRegion</link>(<link linkend="string_type">string</link> <replaceable>$region</replaceable>) <command>returns</command> <link linkend="nothing_type">nothing</link></code></para>
+              <para><code><command>static</command> <link linkend="nothing_type">nothing</link> <link linkend="TimeZone::setRegion">TimeZone::setRegion</link>(<link linkend="string_type">string</link> <replaceable>$region</replaceable>)</code></para>
           </listitem>
         </varlistentry>
         <varlistentry>
