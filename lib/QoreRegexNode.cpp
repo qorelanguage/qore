@@ -31,16 +31,18 @@ QoreRegexNode::QoreRegexNode(QoreString *s) : ParseNoEvalNode(NT_REGEX) {
    parse();
 }
 
-QoreRegexNode::QoreRegexNode(const QoreString *s, int opts, ExceptionSink *xsink) : ParseNoEvalNode(NT_REGEX) {
+QoreRegexNode::QoreRegexNode(const QoreString &s, int opts, ExceptionSink *xsink) : ParseNoEvalNode(NT_REGEX) {
    init();
    str = 0;
    
-   if (check_re_options(opts))
+   if (check_re_options(opts)) {
       xsink->raiseException("REGEX-OPTION-ERROR", "%d contains invalid option bits", opts);
+      options = 0;
+   }
    else
-      options |= opts;
+      options = opts;
    
-   parseRT(s, xsink);
+   parseRT(&s, xsink);
 }
 
 QoreRegexNode::~QoreRegexNode() {
@@ -89,6 +91,8 @@ void QoreRegexNode::parseRT(const QoreString *pattern, ExceptionSink *xsink) {
    TempEncodingHelper t(pattern, QCS_UTF8, xsink);
    if (*xsink)
       return;
+
+   //printd(5, "QoreRegexNode::parseRT(%s) this=%p\n", t->getBuffer(), this);
    
    p = pcre_compile(t->getBuffer(), options, &err, &eo, 0);
    if (err) {
@@ -121,7 +125,7 @@ bool QoreRegexNode::exec(const char *str, size_t len) const {
    // extraneous malloc()s
    int ovector[OVECCOUNT];
    int rc = pcre_exec(p, 0, str, len, 0, 0, ovector, OVECCOUNT);
-   //printd(0, "QoreRegexNode::exec(%s =~ /%s/ = %d\n", target->getBuffer(), str->getBuffer(), rc);   
+   //printd(5, "QoreRegexNode::exec(%s) this=%p pre_exec() rc=%d\n", str, this, rc);   
    return rc >= 0;
 }
 

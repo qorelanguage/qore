@@ -229,7 +229,7 @@ public:
       SimpleRefHolder<QoreRegexNode> re(0);
    
       if (regex) {
-	 re = new QoreRegexNode(regex, regex_options, xsink);
+	 re = new QoreRegexNode(*regex, regex_options, xsink);
 	 if (*xsink)
 	    return 0;
       }

@@ -627,26 +627,18 @@ QoreTimeZoneManager::QoreTimeZoneManager() : tzsize(0), our_utcoffset(0), root(Z
 }
 
 #if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
-/* typedef struct _SYSTEMTIME {
-  WORD wYear;
-  WORD wMonth;
-  WORD wDayOfWeek;
-  WORD wDay;
-  WORD wHour;
-  WORD wMinute;
-  WORD wSecond;
-  WORD wMilliseconds;
-} SYSTEMTIME, *PSYSTEMTIME;*/
 /*
 static int wdate2date(const SYSTEMTIME &st, DateTime &dt) {
    dt.setDate(0, st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds * 1000);
    return 0;
 }
 */
+#ifdef DEBUG
 static int wdate2str(const SYSTEMTIME &st, QoreString &str) {
    str.sprintf("year: %d mon: %d day: %d dow: %d %02d:%02d:%02d.%03d", st.wYear, st.wMonth, st.wDay, st.wDayOfWeek, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds * 1000);
    return 0;
 }
+#endif
 
 static int wchar2utf8(const wchar_t *wstr, QoreString &str) {
    size_t len = WideCharToMultiByte(CP_UTF8, 0, wstr, -1, 0, 0, 0, 0);
@@ -670,6 +662,8 @@ QoreStringNode *get_windows_err(LONG rc) {
    desc->terminate(drc);
    if (!drc)
       desc->sprintf("FormatMessage() failed to retrieve error message for code %d", rc);
+   else
+      desc->trim();
    return desc;
 }
 
@@ -703,9 +697,7 @@ typedef struct _REG_TZI_FORMAT {
 
 #define WTZ_INFO "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Time Zones\\"
 
-QoreWindowsZoneInfo::QoreWindowsZoneInfo(const char *n_name, ExceptionSink *xsink) : valid(false), dst_off(0) {
-   name = n_name;
-
+QoreWindowsZoneInfo::QoreWindowsZoneInfo(const char *n_name, ExceptionSink *xsink) : valid(false), rule(false), daylight_first(false), dst_off(0) {
    QoreString key(WTZ_INFO);
    key.concat(n_name);
 
@@ -728,6 +720,9 @@ QoreWindowsZoneInfo::QoreWindowsZoneInfo(const char *n_name, ExceptionSink *xsin
    if (wgetregstr(hk, "Std", standard, xsink))
       return;
 
+   // set name from display name
+   name = display.getBuffer();
+   
    // get TZI value
    REG_TZI_FORMAT tzi;
    DWORD size = sizeof(tzi);
@@ -737,10 +732,12 @@ QoreWindowsZoneInfo::QoreWindowsZoneInfo(const char *n_name, ExceptionSink *xsin
       return;
    }
 
+#ifdef DEBUG
    QoreString sd, dd;
    wdate2str(tzi.StandardDate, sd);
    wdate2str(tzi.DaylightDate, dd);
-   //printd(5, "QoreWindowsZoneInfo::QoreWindowsZoneInfo(%s) bias=%ld standardbias=%ld daylightbias=%ld standarddate=%s daylightdate=%s\n", n_name, tzi.Bias, tzi.StandardBias, tzi.DaylightBias, sd.getBuffer(), dd.getBuffer());
+   printd(5, "QoreWindowsZoneInfo::QoreWindowsZoneInfo(%s) bias=%ld standardbias=%ld daylightbias=%ld standarddate=%s daylightdate=%s\n", n_name, tzi.Bias, tzi.StandardBias, tzi.DaylightBias, sd.getBuffer(), dd.getBuffer());
+#endif
 
    // convert to seconds east
    utcoff = tzi.Bias * -60 + tzi.StandardBias * -60;
@@ -749,17 +746,77 @@ QoreWindowsZoneInfo::QoreWindowsZoneInfo(const char *n_name, ExceptionSink *xsin
       has_dst = true;
    }
 
+   daylight_date = tzi.DaylightDate;
+   standard_date = tzi.StandardDate;
+
    valid = true;
+   if (!has_dst)
+      return;
+
+   if (!standard_date.wYear && !daylight_date.wYear) {      
+      rule = true;
+      if (daylight_date.wMonth < standard_date.wMonth)
+         daylight_first = true;
+
+      // FIXME: change logic to set valid = false
+      assert(standard_date.wDay >= 1 && standard_date.wDay <= 5);
+      assert(daylight_date.wDay >= 1 && daylight_date.wDay <= 5);
+   }
+   else {
+      // cannot handle this yet
+      assert(false);
+      valid = false;
+   }
 
    //printd(5, "QoreWindowsZoneInfo::QoreWindowsZoneInfo(%s) utcoff=%d has_dst=%d dst_off=%d\n", n_name, utcoff, has_dst, dst_off);
 }
 
 int QoreWindowsZoneInfo::getUTCOffsetImpl(int64 epoch_offset, bool &is_dst, const char *&zone_name) const {
-   is_dst = false;
-   zone_name = standard.getBuffer();
-   return utcoff;
+   if (has_dst) {
+      int64 dst, std;
+      qore_simple_tm tm;
+      tm.set(epoch_offset, 0);
+      getTransitions(tm.year, dst, std);
+      if (daylight_first)
+         is_dst = epoch_offset < dst || epoch_offset >= std ? false : true;
+      else
+         is_dst = epoch_offset < std || epoch_offset >= dst ? false : true;
+   }
+   else
+      is_dst = false;
+
+   zone_name = is_dst ? daylight.getBuffer() : standard.getBuffer();
+   return is_dst ? dst_off : utcoff;
 }
 
+static int64 wget_trans_date(int year, SYSTEMTIME date, int64 utc_offset) {
+   // get the day of the week of the first day of the transition month (Sun = 0)
+   int dow = qore_date_info::getDayOfWeek(year, date.wMonth, 1);
+
+   // get the last day of the month
+   int ld = qore_date_info::getLastDayOfMonth(year, date.wMonth);
+
+   // get transition date in month
+   // first date date of first occurrence of the day in the month
+   int day = date.wDayOfWeek - dow;
+   if (day < 0)
+      day += 7;
+
+   day += (date.wDay - 1) * 7;
+   if (day > ld)
+      day -= 7;
+
+   // get epoch offset for this date as UTC
+   int64 rc = qore_date_info::getEpochSeconds(year, date.wMonth, day);
+
+   // return with local time offset added
+   return rc + utc_offset;
+}
+
+void QoreWindowsZoneInfo::getTransitions(int year, int64 &dst, int64 &std) const {
+   dst = wget_trans_date(year, daylight_date, utcoff);
+   std = wget_trans_date(year, standard_date, dst_off);
+}
 #endif
 
 void QoreTimeZoneManager::init_intern(QoreString &TZ) {

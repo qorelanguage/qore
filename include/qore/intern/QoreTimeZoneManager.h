@@ -190,12 +190,22 @@ protected:
    QoreString display,  // display name for the zone from the registry
       daylight,         // name for daylight savings time for the zone from the registry
       standard;         // standard name for the zone from the registry
-   bool valid;
+
+   bool valid,          // is the object valid
+      rule,             // is it based on a rule
+      daylight_first;   // is the first transition in the year a transition to daylight savings time?
+
    // UTC offset for daylight savings time in seconds east
    int dst_off;
 
+   // DST transition times
+   SYSTEMTIME daylight_date, standard_date;
+
    // returns the UTC offset and local time zone name for the given time given as seconds from the epoch (1970-01-01Z)
    DLLLOCAL virtual int getUTCOffsetImpl(int64 epoch_offset, bool &is_dst, const char *&zone_name) const;
+
+   // given a year, get the epoch offsets in seconds for DST and standard time
+   DLLLOCAL void getTransitions(int year, int64 &dst, int64 &std) const;
 
 public:
    DLLLOCAL QoreWindowsZoneInfo(const char *name, ExceptionSink *xsink);

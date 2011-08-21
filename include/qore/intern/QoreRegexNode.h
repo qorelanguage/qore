@@ -53,7 +53,7 @@ public:
    // this version is used while parsing, takes ownership of str
    DLLLOCAL QoreRegexNode(QoreString *str);
    // used at run-time, does not change str
-   DLLLOCAL QoreRegexNode(const QoreString *str, int options, ExceptionSink *xsink);
+   DLLLOCAL QoreRegexNode(const QoreString &str, int options, ExceptionSink *xsink);
    DLLLOCAL virtual ~QoreRegexNode();
 
    DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const;

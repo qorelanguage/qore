@@ -61,10 +61,10 @@ void qore_init(qore_license_t license, const char *def_charset, bool show_module
    // init threading infrastructure
    init_qore_threads();
 
-   init_lib_intern(environ);
-
    // initialize charset encoding support
    QEM.init(def_charset);
+
+   init_lib_intern(environ);
 
    // create default type values
    init_qore_types();

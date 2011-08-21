@@ -361,7 +361,7 @@ static AbstractQoreNode *f_regex(const QoreListNode *args, ExceptionSink *xsink)
    HARD_QORE_PARAM(p1, const QoreStringNode, args, 1);
    int options = (int)HARD_QORE_INT(args, 2);
    
-   QoreRegexNode qr(p1, options, xsink);
+   QoreRegexNode qr(*p1, options, xsink);
    if (*xsink)
       return 0;
 
@@ -398,7 +398,7 @@ static AbstractQoreNode *f_regex_extract(const QoreListNode *args, ExceptionSink
    HARD_QORE_PARAM(p1, const QoreStringNode, args, 1);
    int options = (int)HARD_QORE_INT(args, 2);
    
-   QoreRegexNode qr(p1, options, xsink);
+   QoreRegexNode qr(*p1, options, xsink);
    if (*xsink)
       return 0;
    
