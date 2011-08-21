@@ -789,28 +789,33 @@ int QoreWindowsZoneInfo::getUTCOffsetImpl(int64 epoch_offset, bool &is_dst, cons
    return is_dst ? dst_off : utcoff;
 }
 
-static int64 wget_trans_date(int year, SYSTEMTIME date, int64 utc_offset) {
+static int64 wget_trans_date(int year, SYSTEMTIME date, int utc_offset) {
    // get the day of the week of the first day of the transition month (Sun = 0)
    int dow = qore_date_info::getDayOfWeek(year, date.wMonth, 1);
 
    // get the last day of the month
-   int ld = qore_date_info::getLastDayOfMonth(year, date.wMonth);
+   int ld = qore_date_info::getLastDayOfMonth(date.wMonth, year);
 
    // get transition date in month
    // first date date of first occurrence of the day in the month
    int day = date.wDayOfWeek - dow;
    if (day < 0)
       day += 7;
+   ++day;
 
    day += (date.wDay - 1) * 7;
    if (day > ld)
       day -= 7;
 
+   QoreString td;
+   wdate2str(date, td);
+   //printf("wget_trans_date(year=%d, trans=%s, utc_offset=%d) day=%d (dow=%d, ld=%d)\n", year, td.getBuffer(), utc_offset, day, dow, ld);
+
    // get epoch offset for this date as UTC
-   int64 rc = qore_date_info::getEpochSeconds(year, date.wMonth, day);
+   int64 rc = qore_date_info::getEpochSeconds(year, date.wMonth, day, date.wHour, date.wMinute, date.wSecond);
 
    // return with local time offset added
-   return rc + utc_offset;
+   return rc - utc_offset;
 }
 
 void QoreWindowsZoneInfo::getTransitions(int year, int64 &dst, int64 &std) const {

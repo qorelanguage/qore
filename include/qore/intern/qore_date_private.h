@@ -217,6 +217,7 @@ struct qore_date_info {
 
    // number of leap days from 1970-01-01Z to a certain month and year
    DLLLOCAL static int leap_days_from_epoch(int year, int month) {
+      assert(month > 0 && month < 13);
       // 1968-02-29 was the 478th leap day from year 0 assuming a proleptic gregorian calendar
       int d;
       if (year >= 1970) {
@@ -238,12 +239,14 @@ struct qore_date_info {
       return d;
    }
    DLLLOCAL static int getLastDayOfMonth(int month, int year) {
+      assert(month > 0 && month < 13);
       if (month != 2)
          return qore_date_info::month_lengths[month];
       return qore_date_info::isLeapYear(year) ? 29 : 28;
    }
 
    DLLLOCAL static int getDayOfWeek(int year, int month, int day) {
+      assert(month > 0 && month < 13);
       int a = (14 - month) / 12;
       int y = year - a;
       int m = month + 12 * a - 2;
