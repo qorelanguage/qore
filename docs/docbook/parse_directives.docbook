@@ -31,6 +31,13 @@
 	  </entry>
 	</row>
 	<row>
+	  <entry><para><code><link linkend="define">%define</link></code></para></entry>
+	  <entry>
+	    <para>Creates and optionally sets a value for a <link linkend="Parse_Defines">parse define</link></para>
+	    <para>Since Qore 0.8.3.</para>
+	  </entry>
+	</row>
+	<row>
 	  <entry><para><code><link linkend="disable-all-warnings">%disable-all-warnings</link></code></para></entry>
 	  <entry><para>Turns off all warnings</para></entry>
 	</row>
@@ -38,6 +45,15 @@
 	  <entry><para><code><link linkend="disable-warning">%disable-warning</link></code> <replaceable>warning-code</replaceable></para></entry>
 	  <entry><para>Disables the named warning until <code>%enable-warning</code> is encountered with the same code or <code>%enable-all-warnings</code> is encountered</para></entry>
 	</row>
+
+	<row>
+	  <entry><para><code><link linkend="else">%else</link></code></para></entry>
+	  <entry>
+	    <para>Allows for parsing an alternate block when used with the <code><link linkend="ifdef">%ifdef</link></code> or <code><link linkend="ifndef">%ifndef</link></code> parse directives (for conditional parsing based on <link linkend="Parse_Defines">parse defines</link>)</para>
+	    <para>Since Qore 0.8.3.</para>
+	  </entry>
+	</row>
+
 	<row>
 	  <entry><para><code><link linkend="enable-all-warnings">%enable-all-warnings</link></code></para></entry>
 	  <entry><para>Turns on all warnings</para></entry>
@@ -46,9 +62,33 @@
 	  <entry><para><code><link linkend="enable-warning">%enable-warning</link></code> <replaceable>warning-code</replaceable></para></entry>
 	  <entry><para>Enables the named warning.</para></entry>
 	</row>
+
+	<row>
+	  <entry><para><code><link linkend="endif">%endif</link></code></para></entry>
+	  <entry>
+	    <para>Closes a conditionally-parsed block started by the <code><link linkend="ifdef">%ifdef</link></code> or <code><link linkend="ifndef">%ifndef</link></code> parse directives (for conditional parsing based on <link linkend="Parse_Defines">parse defines</link>)</para>
+	    <para>Since Qore 0.8.3.</para>
+	  </entry>
+	</row>
+
  	<row>
 	  <entry><para><code><link linkend="exec-class">%exec-class</link></code> <replaceable>class name</replaceable></para></entry>
 	  <entry><para>Instantiates the named class as the application class.  Also turns on <code>%no-top-level</code>.  If the program is read from stdin or from the command-line, an argument must be given specifying the class name.</para></entry>
+	</row>
+
+	<row>
+	  <entry><para><code><link linkend="ifdef">%ifdef</link></code></para></entry>
+	  <entry>
+	    <para>Opens a conditionally-parsed block; if the given <link linkend="Parse_Defines">parse define</link> is defined, then the block after the <code>%ifdef</code> is parsed until either an <code><link linkend="else">%else</link></code> or an <code><link linkend="endif">%endif</link></code></para>
+	    <para>Since Qore 0.8.3.</para>
+	  </entry>
+	</row>
+	<row>
+	  <entry><para><code><link linkend="ifndef">%ifndef</link></code></para></entry>
+	  <entry>
+	    <para>Opens a conditionally-parsed block; if the given <link linkend="Parse_Defines">parse define</link> is not defined, then the block after the <code>%ifdef</code> is parsed until either an <code><link linkend="else">%else</link></code> or an <code><link linkend="endif">%endif</link></code></para>
+	    <para>Since Qore 0.8.3.</para>
+	  </entry>
 	</row>
 
 	<row>
@@ -203,21 +243,15 @@
     <variablelist>
       <varlistentry>
 	<term>Parse Directive</term>
-	<listitem>
-	  <para><code>%allow-bare-refs</code></para>
-	</listitem>
+	<listitem><code>%allow-bare-refs</code></listitem>
       </varlistentry>
       <varlistentry>
 	<term>Command-Line</term>
-	<listitem>
-	  <para><code>--allow-bare-refs, -B</code></para>
-	</listitem>
+	<listitem><code>--allow-bare-refs, -B</code>	</listitem>
       </varlistentry>
       <varlistentry>
 	<term>Parse Option Constant</term>
-	<listitem>
-	  <para>PO_ALLOW_BARE_REFS</para>
-	</listitem>
+	<listitem><code><link linkend="PO_ALLOW_BARE_REFS">PO_ALLOW_BARE_REFS</link></code></listitem>
       </varlistentry>
       <varlistentry>
 	<term>Description</term>
@@ -237,21 +271,15 @@
     <variablelist>
       <varlistentry>
 	<term>Parse Directive</term>
-	<listitem>
-	  <para><code>%assume-local</code></para>
-	</listitem>
+	<listitem><code>%assume-local</code></listitem>
       </varlistentry>
       <varlistentry>
 	<term>Command-Line</term>
-	<listitem>
-	  <para><code>--assume-local</code></para>
-	</listitem>
+	<listitem><code>--assume-local</code></listitem>
       </varlistentry>
       <varlistentry>
 	<term>Parse Option Constant</term>
-	<listitem>
-	  <para>PO_ASSUME_LOCAL</para>
-	</listitem>
+	<listitem><code><link linkend="PO_ASSUME_LOCAL">PO_ASSUME_LOCAL</link></code></listitem>
       </varlistentry>
       <varlistentry>
 	<term>Description</term>
@@ -263,33 +291,51 @@
     </variablelist>
   </sect1>
 
+  <sect1 id="define">
+    <title>define</title>
+
+    <variablelist>
+      <varlistentry>
+	<term>Parse Directive</term>
+	<listitem><code>%define</code></listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Command-Line</term>
+	<listitem>none</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Parse Option Constant</term>
+	<listitem>n/a</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Description</term>
+	<listitem>
+	  <para>Creates and optionally sets a value for a <link linkend="Parse_Defines">parse define</link></para>
+	  <para>Since Qore 0.8.3.</para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </sect1>
+
   <sect1 id="disable-all-warnings">
     <title>disable-all-warnings</title>
 
     <variablelist>
       <varlistentry>
 	<term>Parse Directive</term>
-	<listitem>
-	  <para><code>%disable-all-warnings</code></para>
-	</listitem>
+	<listitem><code>%disable-all-warnings</code></listitem>
       </varlistentry>
       <varlistentry>
 	<term>Command-Line</term>
-	<listitem>
-	  <para>none, warnings are disabled by default</para>
-	</listitem>
+	<listitem>none, warnings are disabled by default</listitem>
       </varlistentry>
       <varlistentry>
 	<term>Parse Option Constant</term>
-	<listitem>
-	  <para>n/a</para>
-	</listitem>
+	<listitem>n/a</listitem>
       </varlistentry>
       <varlistentry>
 	<term>Description</term>
-	<listitem>
-	  <para>Disables all warnings while parsing.  See <link linkend="Warnings">Warnings</link> for more information.</para>
-	</listitem>
+	<listitem>Disables all warnings while parsing.  See <link linkend="Warnings">Warnings</link> for more information.</listitem>
       </varlistentry>
     </variablelist>
 
@@ -301,26 +347,44 @@
     <variablelist>
       <varlistentry>
 	<term>Parse Directive</term>
-	<listitem>
-	  <para><code>%disable-warning</code></para>
-	</listitem>
+	<listitem><code>%disable-warning</code></listitem>
       </varlistentry>
       <varlistentry>
 	<term>Command-Line</term>
-	<listitem>
-	  <para>none, warnings are disabled by default</para>
-	</listitem>
+	<listitem>none, warnings are disabled by default</listitem>
       </varlistentry>
       <varlistentry>
 	<term>Parse Option Constant</term>
-	<listitem>
-	  <para>n/a</para>
-	</listitem>
+	<listitem>n/a</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Description</term>
+	<listitem>Disables the named warning while parsing.  See <link linkend="Warnings">Warnings</link> for more information.</listitem>
+      </varlistentry>
+    </variablelist>
+  </sect1>
+
+  <sect1 id="else">
+    <title>else</title>
+
+    <variablelist>
+      <varlistentry>
+	<term>Parse Directive</term>
+	<listitem><code>%else</code></listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Command-Line</term>
+	<listitem>none</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Parse Option Constant</term>
+	<listitem>n/a</listitem>
       </varlistentry>
       <varlistentry>
 	<term>Description</term>
 	<listitem>
-	  <para>Disables the named warning while parsing.  See <link linkend="Warnings">Warnings</link> for more information.</para>
+	  <para>Allows for parsing an alternate block when used with the <code><link linkend="ifdef">%ifdef</link></code> or <code><link linkend="ifndef">%ifndef</link></code> parse directives (for conditional parsing based on <link linkend="Parse_Defines">parse defines</link>)</para>
+	  <para>Since Qore 0.8.3.</para>
 	</listitem>
       </varlistentry>
     </variablelist>
@@ -331,27 +395,19 @@
     <variablelist>
       <varlistentry>
 	<term>Parse Directive</term>
-	<listitem>
-	  <para><code>%enable-all-warnings</code></para>
-	</listitem>
+	<listitem><code>%enable-all-warnings</code></listitem>
       </varlistentry>
       <varlistentry>
 	<term>Command-Line</term>
-	<listitem>
-	  <para><code>--enable-all-warnings, -W</code></para>
-	</listitem>
+	<listitem><code>--enable-all-warnings, -W</code></listitem>
       </varlistentry>
       <varlistentry>
 	<term>Parse Option Constant</term>
-	<listitem>
-	  <para>n/a</para>
-	</listitem>
+	<listitem>n/a</listitem>
       </varlistentry>
       <varlistentry>
 	<term>Description</term>
-	<listitem>
-	  <para>Enables all warnings while parsing.  See <link linkend="Warnings">Warnings</link> for more information.</para>
-	</listitem>
+	<listitem>Enables all warnings while parsing.  See <link linkend="Warnings">Warnings</link> for more information.</listitem>
       </varlistentry>
     </variablelist>
   </sect1>
@@ -360,85 +416,141 @@
     <variablelist>
       <varlistentry>
 	<term>Parse Directive</term>
-	<listitem>
-	  <para><code>%enable-warning</code></para>
-	</listitem>
+	<listitem><code>%enable-warning</code></listitem>
       </varlistentry>
       <varlistentry>
 	<term>Command-Line</term>
-	<listitem>
-	  <para><code>--enable-warning, -w</code></para>
-	</listitem>
+	<listitem><code>--enable-warning, -w</code></listitem>
       </varlistentry>
       <varlistentry>
 	<term>Parse Option Constant</term>
-	<listitem>
-	  <para>n/a</para>
-	</listitem>
+	<listitem>n/a</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Description</term>
+	<listitem>Enables the named warning while parsing.  See <link linkend="Warnings">Warnings</link> for more information.</listitem>
+      </varlistentry>
+    </variablelist>
+  </sect1>
+
+  <sect1 id="endif">
+    <title>endif</title>
+
+    <variablelist>
+      <varlistentry>
+	<term>Parse Directive</term>
+	<listitem><code>%endif</code></listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Command-Line</term>
+	<listitem>none</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Parse Option Constant</term>
+	<listitem>n/a</listitem>
       </varlistentry>
       <varlistentry>
 	<term>Description</term>
 	<listitem>
-	  <para>Enables the named warning while parsing.  See <link linkend="Warnings">Warnings</link> for more information.</para>
+	  <para>Closes a conditionally-parsed block started by the <code><link linkend="ifdef">%ifdef</link></code> or <code><link linkend="ifndef">%ifndef</link></code> parse directives (for conditional parsing based on <link linkend="Parse_Defines">parse defines</link>)</para>
+	  <para>Since Qore 0.8.3.</para>
 	</listitem>
       </varlistentry>
     </variablelist>
   </sect1>
+
   <sect1 id="exec-class">
     <title>exec-class</title>
     <variablelist>
       <varlistentry>
 	<term>Parse Directive</term>
-	<listitem>
-	  <para><code>%exec-class</code></para>
-	</listitem>
+	<listitem><code>%exec-class</code></listitem>
       </varlistentry>
       <varlistentry>
 	<term>Command-Line</term>
-	<listitem>
-	  <para><code>--exec-class, -x</code></para>
-	</listitem>
+	<listitem><code>--exec-class, -x</code></listitem>
       </varlistentry>
       <varlistentry>
 	<term>Parse Option Constant</term>
-	<listitem>
-	  <para>n/a</para>
-	</listitem>
+	<listitem>n/a</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Description</term>
+	<listitem>Executes the named class as the application class and turns on <code><link linkend="no-top-level">no-top-level</link></code> as well.</listitem>
+      </varlistentry>
+    </variablelist>
+  </sect1>
+
+  <sect1 id="ifdef">
+    <title>ifdef</title>
+
+    <variablelist>
+      <varlistentry>
+	<term>Parse Directive</term>
+	<listitem><code>%ifdef</code></listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Command-Line</term>
+	<listitem>none</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Parse Option Constant</term>
+	<listitem>n/a</listitem>
       </varlistentry>
       <varlistentry>
 	<term>Description</term>
 	<listitem>
-	  <para>Executes the named class as the application class and turns on <code><link linkend="no-top-level">no-top-level</link></code> as well.</para>
+	  <para>Opens a conditionally-parsed block; if the given <link linkend="Parse_Defines">parse define</link> is defined, then the block after the <code>%ifdef</code> is parsed until either an <code><link linkend="else">%else</link></code> or an <code><link linkend="endif">%endif</link></code></para>
+	  <para>Since Qore 0.8.3.</para>
+      </listitem>
+      </varlistentry>
+    </variablelist>
+  </sect1>
+
+  <sect1 id="ifndef">
+    <title>ifndef</title>
+
+    <variablelist>
+      <varlistentry>
+	<term>Parse Directive</term>
+	<listitem><code>%ifndef</code></listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Command-Line</term>
+	<listitem>none</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Parse Option Constant</term>
+	<listitem>n/a</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Description</term>
+	<listitem>
+	  <para>Opens a conditionally-parsed block; if the given <link linkend="Parse_Defines">parse define</link> is not defined, then the block after the <code>%ifdef</code> is parsed until either an <code><link linkend="else">%else</link></code> or an <code><link linkend="endif">%endif</link></code></para>
+	  <para>Since Qore 0.8.3.</para>
 	</listitem>
       </varlistentry>
     </variablelist>
   </sect1>
+
   <sect1 id="include">
     <title>include</title>
     <variablelist>
       <varlistentry>
 	<term>Parse Directive</term>
-	<listitem>
-	  <para><code>%include</code></para>
-	</listitem>
+	<listitem><code>%include</code></listitem>
       </varlistentry>
       <varlistentry>
 	<term>Command-Line</term>
-	<listitem>
-	  <para>n/a from the command-line</para>
-	</listitem>
+	<listitem>n/a from the command-line</listitem>
       </varlistentry>
       <varlistentry>
 	<term>Parse Option Constant</term>
-	<listitem>
-	  <para>n/a</para>
-	</listitem>
+	<listitem>n/a</listitem>
       </varlistentry>
       <varlistentry>
 	<term>Description</term>
-	<listitem>
-	  <para>Includes a file to be parsed.  If the path is not absolute (i.e. starting with '/'), then files are searched first in the directory of the currently-executing script (if known), then in each path in the environment variable <code>QORE_INCLUDE_DIR</code>.</para>
-	</listitem>
+	<listitem>Includes a file to be parsed.  If the path is not absolute (i.e. starting with '/'), then files are searched first in the directory of the currently-executing script (if known), then in each path in the environment variable <code>QORE_INCLUDE_DIR</code>.</listitem>
       </varlistentry>
     </variablelist>
   </sect1>
@@ -447,27 +559,19 @@
     <variablelist>
       <varlistentry>
 	<term>Parse Directive</term>
-	<listitem>
-	  <para><code>%lock-options</code></para>
-	</listitem>
+	<listitem><code>%lock-options</code></listitem>
       </varlistentry>
       <varlistentry>
 	<term>Command-Line</term>
-	<listitem>
-	  <para><code>--lock-options, -K</code></para>
-	</listitem>
+	<listitem><code>--lock-options, -K</code></listitem>
       </varlistentry>
       <varlistentry>
 	<term>Parse Option Constant</term>
-	<listitem>
-	  <para>n/a</para>
-	</listitem>
+	<listitem>n/a</listitem>
       </varlistentry>
       <varlistentry>
 	<term>Description</term>
-	<listitem>
-	  <para>Prohibits further changes to parse options.</para>
-	</listitem>
+	<listitem>Prohibits further changes to parse options.</listitem>
       </varlistentry>
     </variablelist>
   </sect1>
@@ -476,27 +580,19 @@
     <variablelist>
       <varlistentry>
 	<term>Parse Directive</term>
-	<listitem>
-	  <para><code>%lock-warnings</code></para>
-	</listitem>
+	<listitem><code>%lock-warnings</code></listitem>
       </varlistentry>
       <varlistentry>
 	<term>Command-Line</term>
-	<listitem>
-	  <para><code>--lock-warnings, -A</code></para>
-	</listitem>
+	<listitem><code>--lock-warnings, -A</code></listitem>
       </varlistentry>
       <varlistentry>
 	<term>Parse Option Constant</term>
-	<listitem>
-	  <para><code><link linkend="PO_LOCK_WARNINGS">PO_LOCK_WARNINGS</link></code></para>
-	</listitem>
+	<listitem><code><link linkend="PO_LOCK_WARNINGS">PO_LOCK_WARNINGS</link></code></listitem>
       </varlistentry>
       <varlistentry>
 	<term>Description</term>
-	<listitem>
-	  <para>Prohibits further changes to the warning mask.</para>
-	</listitem>
+	<listitem>Prohibits further changes to the warning mask.</listitem>
       </varlistentry>
     </variablelist>
   </sect1>
@@ -506,21 +602,15 @@
     <variablelist>
       <varlistentry>
 	<term>Parse Directive</term>
-	<listitem>
-	  <para><code>%new-style</code></para>
-	</listitem>
+	<listitem><code>%new-style</code></listitem>
       </varlistentry>
       <varlistentry>
 	<term>Command-Line</term>
-	<listitem>
-	  <para><code>--new-style, -n</code></para>
-	</listitem>
+	<listitem><code>--new-style, -n</code></listitem>
       </varlistentry>
       <varlistentry>
 	<term>Parse Option Constant</term>
-	<listitem>
-	  <para>PO_NEW_STYLE</para>
-	</listitem>
+	<listitem><code><link linkend="PO_NEW_STYLE">PO_NEW_STYLE</link></code></listitem>
       </varlistentry>
       <varlistentry>
 	<term>Description</term>
@@ -537,27 +627,19 @@
     <variablelist>
       <varlistentry>
 	<term>Parse Directive</term>
-	<listitem>
-	  <para><code>%no-child-restrictions</code></para>
-	</listitem>
+	<listitem><code>%no-child-restrictions</code></listitem>
       </varlistentry>
       <varlistentry>
 	<term>Command-Line</term>
-	<listitem>
-	  <para><code>--no-child-restrictions, -I</code></para>
-	</listitem>
+	<listitem><code>--no-child-restrictions, -I</code></listitem>
       </varlistentry>
       <varlistentry>
 	<term>Parse Option Constant</term>
-	<listitem>
-	  <para><code><link linkend="PO_NO_CHILD_PO_RESTRICTIONS">PO_NO_CHILD_PO_RESTRICTIONS</link></code></para>
-	</listitem>
+	<listitem><code><link linkend="PO_NO_CHILD_PO_RESTRICTIONS">PO_NO_CHILD_PO_RESTRICTIONS</link></code></listitem>
       </varlistentry>
       <varlistentry>
 	<term>Description</term>
-	<listitem>
-	  <para>Allows child program objects to have parse option restrictions that are not a strict subset of the parents'.</para>
-	</listitem>
+	<listitem>Allows child program objects to have parse option restrictions that are not a strict subset of the parents'.</listitem>
       </varlistentry>
     </variablelist>
   </sect1>
@@ -566,27 +648,19 @@
     <variablelist>
       <varlistentry>
 	<term>Parse Directive</term>
-	<listitem>
-	  <para><code>%no-class-defs</code></para>
-	</listitem>
+	<listitem><code>%no-class-defs</code></listitem>
       </varlistentry>
       <varlistentry>
 	<term>Command-Line</term>
-	<listitem>
-	  <para><code>--no-class-defs</code></para>
-	</listitem>
+	<listitem><code>--no-class-defs</code></listitem>
       </varlistentry>
       <varlistentry>
 	<term>Parse Option Constant</term>
-	<listitem>
-	  <para><code><link linkend="PO_NO_CLASS_DEFS">PO_NO_CLASS_DEFS</link></code></para>
-	</listitem>
+	<listitem><code><link linkend="PO_NO_CLASS_DEFS">PO_NO_CLASS_DEFS</link></code></listitem>
       </varlistentry>
       <varlistentry>
 	<term>Description</term>
-	<listitem>
-	  <para>Disallows new class definitions.  Any use of the reserved word <command>class</command> will result in a parse exception.</para>
-	</listitem>
+	<listitem>Disallows new class definitions.  Any use of the reserved word <command>class</command> will result in a parse exception.</listitem>
       </varlistentry>
     </variablelist>
   </sect1>
@@ -595,27 +669,19 @@
     <variablelist>
       <varlistentry>
 	<term>Parse Directive</term>
-	<listitem>
-	  <para><code>%no-constant-defs</code></para>
-	</listitem>
+	<listitem><code>%no-constant-defs</code></listitem>
       </varlistentry>
       <varlistentry>
 	<term>Command-Line</term>
-	<listitem>
-	  <para><code>--no-constant-defs</code></para>
-	</listitem>
+	<listitem><code>--no-constant-defs</code></listitem>
       </varlistentry>
       <varlistentry>
 	<term>Parse Option Constant</term>
-	<listitem>
-	  <para><code><link linkend="PO_NO_CONSTANT_DEFS">PO_NO_CONSTANT_DEFS</link></code></para>
-	</listitem>
+	<listitem><code><link linkend="PO_NO_CONSTANT_DEFS">PO_NO_CONSTANT_DEFS</link></code></listitem>
       </varlistentry>
       <varlistentry>
 	<term>Description</term>
-	<listitem>
-	  <para>Disallows new constant definitions.  Any use of the reserved word <command>const</command> will result in a parse exception.</para>
-	</listitem>
+	<listitem>Disallows new constant definitions.  Any use of the reserved word <command>const</command> will result in a parse exception.</listitem>
       </varlistentry>
     </variablelist>
   </sect1>
@@ -624,26 +690,22 @@
     <variablelist>
       <varlistentry>
 	<term>Parse Directive</term>
-	<listitem>
-	  <para><code>%no-database</code></para>
-	</listitem>
+	<listitem><code>%no-database</code></listitem>
       </varlistentry>
       <varlistentry>
 	<term>Command-Line</term>
-	<listitem>
-	  <para><code>--no-database, -D</code></para>
-	</listitem>
+	<listitem><code>--no-database, -D</code></listitem>
       </varlistentry>
       <varlistentry>
 	<term>Parse Option Constant</term>
 	<listitem>
-	  <para><code><link linkend="PO_NO_DATABASE">PO_NO_DATABASE</link></code></para>
+	  <code><link linkend="PO_NO_DATABASE">PO_NO_DATABASE</link></code>
 	</listitem>
       </varlistentry>
       <varlistentry>
 	<term>Description</term>
 	<listitem>
-	  <para>Disallows access to database functionality.  Currently this means that access to the <link linkend="Datasource_Class">Datasource</link>, <link linkend="DatasourcePool_Class">DatasourcePool</link>, and <link linkend="SQLStatement_Class">SQLStatement</link> classes is restricted.</para>
+	  Disallows access to database functionality.  Currently this means that access to the <link linkend="Datasource_Class">Datasource</link>, <link linkend="DatasourcePool_Class">DatasourcePool</link>, and <link linkend="SQLStatement_Class">SQLStatement</link> classes is restricted.
 	</listitem>
       </varlistentry>
     </variablelist>
@@ -654,21 +716,15 @@
     <variablelist>
       <varlistentry>
 	<term>Parse Directive</term>
-	<listitem>
-	  <para><code>%no-external-info</code></para>
-	</listitem>
+	<listitem><code>%no-external-info</code></listitem>
       </varlistentry>
       <varlistentry>
 	<term>Command-Line</term>
-	<listitem>
-	  <para><code>--no-external-info</code></para>
-	</listitem>
+	<listitem><code>--no-external-info</code></listitem>
       </varlistentry>
       <varlistentry>
 	<term>Parse Option Constant</term>
-	<listitem>
-	  <para><code><link linkend="PO_NO_EXTERNAL_INFO">PO_NO_EXTERNAL_INFO</link></code></para>
-	</listitem>
+	<listitem><code><link linkend="PO_NO_EXTERNAL_INFO">PO_NO_EXTERNAL_INFO</link></code></listitem>
       </varlistentry>
       <varlistentry>
 	<term>Description</term>
@@ -761,20 +817,18 @@
     <variablelist>
       <varlistentry>
 	<term>Parse Directive</term>
-	<listitem>
-	  <para><code>%no-external-process</code></para>
-	</listitem>
+	<listitem><code>%no-external-process</code></listitem>
       </varlistentry>
       <varlistentry>
 	<term>Command-Line</term>
 	<listitem>
-	  <para><code>--no-external-process, -E</code></para>
+	  <code>--no-external-process, -E</code>
 	</listitem>
       </varlistentry>
       <varlistentry>
 	<term>Parse Option Constant</term>
 	<listitem>
-	  <para><code><link linkend="PO_NO_EXTERNAL_PROCESS">PO_NO_EXTERNAL_PROCESS</link></code></para>
+	  <code><link linkend="PO_NO_EXTERNAL_PROCESS">PO_NO_EXTERNAL_PROCESS</link></code>
 	</listitem>
       </varlistentry>
       <varlistentry>
@@ -821,19 +875,19 @@
       <varlistentry>
 	<term>Parse Directive</term>
 	<listitem>
-	  <para><code>%no-filesystem</code></para>
+	  <code>%no-filesystem</code>
 	</listitem>
       </varlistentry>
       <varlistentry>
 	<term>Command-Line</term>
 	<listitem>
-	  <para><code>--no-filesystem, -F</code></para>
+	  <code>--no-filesystem, -F</code>
 	</listitem>
       </varlistentry>
       <varlistentry>
 	<term>Parse Option Constant</term>
 	<listitem>
-	  <para><code><link linkend="PO_NO_FILESYSTEM">PO_NO_FILESYSTEM</link></code></para>
+	  <code><link linkend="PO_NO_FILESYSTEM">PO_NO_FILESYSTEM</link></code>
 	</listitem>
       </varlistentry>
       <varlistentry>
@@ -944,26 +998,24 @@
       <varlistentry>
 	<term>Parse Directive</term>
 	<listitem>
-	  <para><code>%no-global-vars</code></para>
+	  <code>%no-global-vars</code>
 	</listitem>
       </varlistentry>
       <varlistentry>
 	<term>Command-Line</term>
 	<listitem>
-	  <para><code>--no-global-vars, -G</code></para>
+	  <code>--no-global-vars, -G</code>
 	</listitem>
       </varlistentry>
       <varlistentry>
 	<term>Parse Option Constant</term>
 	<listitem>
-	  <para><code><link linkend="PO_NO_GLOBAL_VARS">PO_NO_GLOBAL_VARS</link></code></para>
+	  <code><link linkend="PO_NO_GLOBAL_VARS">PO_NO_GLOBAL_VARS</link></code>
 	</listitem>
       </varlistentry>
       <varlistentry>
 	<term>Description</term>
-	<listitem>
-	  <para>Disallows the use of global variables.</para>
-	</listitem>
+	<listitem>Disallows the use of global variables.</listitem>
       </varlistentry>
     </variablelist>
   </sect1>
@@ -974,26 +1026,24 @@
       <varlistentry>
 	<term>Parse Directive</term>
 	<listitem>
-	  <para><code>%no-gui</code></para>
+	  <code>%no-gui</code>
 	</listitem>
       </varlistentry>
       <varlistentry>
 	<term>Command-Line</term>
 	<listitem>
-	  <para><code>--no-gui, --set-parse-option=no-gui, -pno-gui</code></para>
+	  <code>--no-gui, --set-parse-option=no-gui, -pno-gui</code>
 	</listitem>
       </varlistentry>
       <varlistentry>
 	<term>Parse Option Constant</term>
 	<listitem>
-	  <para><code><link linkend="PO_NO_GUI">PO_NO_GUI</link></code></para>
+	  <code><link linkend="PO_NO_GUI">PO_NO_GUI</link></code>
 	</listitem>
       </varlistentry>
       <varlistentry>
 	<term>Description</term>
-	<listitem>
-	  <para>Disallows the use of functionality that draws graphics to the display (this functionality is not implemented in the qore library; only implemented in modules).</para>
-	</listitem>
+	<listitem>Disallows the use of functionality that draws graphics to the display (this functionality is not implemented in the qore library; only implemented in modules).</listitem>
       </varlistentry>
     </variablelist>
   </sect1>
@@ -1003,21 +1053,15 @@
     <variablelist>
       <varlistentry>
 	<term>Parse Directive</term>
-	<listitem>
-	  <para><code>%no-locale-control</code></para>
-	</listitem>
+	<listitem><code>%no-locale-control</code></listitem>
       </varlistentry>
       <varlistentry>
 	<term>Command-Line</term>
-	<listitem>
-	  <para><code>--no-locale-control, -P</code></para>
-	</listitem>
+	<listitem><code>--no-locale-control, -P</code></listitem>
       </varlistentry>
       <varlistentry>
 	<term>Parse Option Constant</term>
-	<listitem>
-	  <para><code><link linkend="PO_NO_LOCALE_CONTROL">PO_NO_LOCALE_CONTROL</link></code></para>
-	</listitem>
+	<listitem><code><link linkend="PO_NO_LOCALE_CONTROL">PO_NO_LOCALE_CONTROL</link></code></listitem>
       </varlistentry>
       <varlistentry>
 	<term>Description</term>
@@ -1056,26 +1100,22 @@
       <varlistentry>
 	<term>Parse Directive</term>
 	<listitem>
-	  <para><code>%no-namespace-defs</code></para>
+	  <code>%no-namespace-defs</code>
 	</listitem>
       </varlistentry>
       <varlistentry>
 	<term>Command-Line</term>
 	<listitem>
-	  <para><code>--no-namespace-defs, -M</code></para>
+	  <code>--no-namespace-defs, -M</code>
 	</listitem>
       </varlistentry>
       <varlistentry>
 	<term>Parse Option Constant</term>
-	<listitem>
-	  <para><code><link linkend="PO_NO_NAMESPACE_DEFS">PO_NO_NAMESPACE_DEFS</link></code></para>
-	</listitem>
+	<listitem><code><link linkend="PO_NO_NAMESPACE_DEFS">PO_NO_NAMESPACE_DEFS</link></code></listitem>
       </varlistentry>
       <varlistentry>
 	<term>Description</term>
-	<listitem>
-	  <para>Disallows new namespace definitions.</para>
-	</listitem>
+	<listitem>Disallows new namespace definitions.</listitem>
       </varlistentry>
     </variablelist>
   </sect1>
@@ -1085,21 +1125,15 @@
     <variablelist>
       <varlistentry>
 	<term>Parse Directive</term>
-	<listitem>
-	  <para><code>%no-network</code></para>
-	</listitem>
+	<listitem><code>%no-network</code></listitem>
       </varlistentry>
       <varlistentry>
 	<term>Command-Line</term>
-	<listitem>
-	  <para><code>--no-network, -Y</code></para>
-	</listitem>
+	<listitem><code>--no-network, -Y</code></listitem>
       </varlistentry>
       <varlistentry>
 	<term>Parse Option Constant</term>
-	<listitem>
-	  <para><code><link linkend="PO_NO_NETWORK">PO_NO_NETWORK</link></code></para>
-	</listitem>
+	<listitem><code><link linkend="PO_NO_NETWORK">PO_NO_NETWORK</link></code></listitem>
       </varlistentry>
       <varlistentry>
 	<term>Description</term>
@@ -1139,26 +1173,24 @@
       <varlistentry>
 	<term>Parse Directive</term>
 	<listitem>
-	  <para><code>%no-new</code></para>
+	  <code>%no-new</code>
 	</listitem>
       </varlistentry>
       <varlistentry>
 	<term>Command-Line</term>
 	<listitem>
-	  <para><code>--no-new, -N</code></para>
+	  <code>--no-new, -N</code>
 	</listitem>
       </varlistentry>
       <varlistentry>
 	<term>Parse Option Constant</term>
 	<listitem>
-	  <para><code><link linkend="PO_NO_NEW">PO_NO_NEW</link></code></para>
+	  <code><link linkend="PO_NO_NEW">PO_NO_NEW</link></code>
 	</listitem>
       </varlistentry>
       <varlistentry>
 	<term>Description</term>
-	<listitem>
-	  <para>Disallows use of the <link linkend='New_Object_Operator'><command>new</command></link> operator.</para>
-	</listitem>
+	<listitem>Disallows use of the <link linkend='New_Object_Operator'><command>new</command></link> operator.</listitem>
       </varlistentry>
     </variablelist>
   </sect1>
@@ -1168,19 +1200,19 @@
       <varlistentry>
 	<term>Parse Directive</term>
 	<listitem>
-	  <para><code>%no-process-control</code></para>
+	  <code>%no-process-control</code>
 	</listitem>
       </varlistentry>
       <varlistentry>
 	<term>Command-Line</term>
 	<listitem>
-	  <para><code>--no-process-control, -P</code></para>
+	  <code>--no-process-control, -P</code>
 	</listitem>
       </varlistentry>
       <varlistentry>
 	<term>Parse Option Constant</term>
 	<listitem>
-	  <para><code><link linkend="PO_NO_PROCESS_CONTROL">PO_NO_PROCESS_CONTROL</link></code></para>
+	  <code><link linkend="PO_NO_PROCESS_CONTROL">PO_NO_PROCESS_CONTROL</link></code>
 	</listitem>
       </varlistentry>
       <varlistentry>
@@ -1245,26 +1277,24 @@
       <varlistentry>
 	<term>Parse Directive</term>
 	<listitem>
-	  <para><code>%no-subroutine-defs</code></para>
+	  <code>%no-subroutine-defs</code>
 	</listitem>
       </varlistentry>
       <varlistentry>
 	<term>Command-Line</term>
 	<listitem>
-	  <para><code>--no-subroutine-defs, -S</code></para>
+	  <code>--no-subroutine-defs, -S</code>
 	</listitem>
       </varlistentry>
       <varlistentry>
 	<term>Parse Option Constant</term>
 	<listitem>
-	  <para><code><link linkend="PO_NO_SUBROUTINE_DEFS">PO_NO_SUBROUTINE_DEFS</link></code></para>
+	  <code><link linkend="PO_NO_SUBROUTINE_DEFS">PO_NO_SUBROUTINE_DEFS</link></code>
 	</listitem>
       </varlistentry>
       <varlistentry>
 	<term>Description</term>
-	<listitem>
-	  <para>Disallows subroutine (function) definitions.</para>
-	</listitem>
+	<listitem>Disallows subroutine (function) definitions.</listitem>
       </varlistentry>
     </variablelist>
   </sect1>
@@ -1275,19 +1305,19 @@
       <varlistentry>
 	<term>Parse Directive</term>
 	<listitem>
-	  <para><code>%no-terminal-io</code></para>
+	  <code>%no-terminal-io</code>
 	</listitem>
       </varlistentry>
       <varlistentry>
 	<term>Command-Line</term>
 	<listitem>
-	  <para><code>--no-terminal-io, --set-parse-option=no-terminal-io, -pno-terminal-io</code></para>
+	  <code>--no-terminal-io, --set-parse-option=no-terminal-io, -pno-terminal-io</code>
 	</listitem>
       </varlistentry>
       <varlistentry>
 	<term>Parse Option Constant</term>
 	<listitem>
-	  <para><code><link linkend="PO_NO_TERMINAL_IO">PO_NO_TERMINAL_IO</link></code></para>
+	  <code><link linkend="PO_NO_TERMINAL_IO">PO_NO_TERMINAL_IO</link></code>
 	</listitem>
       </varlistentry>
       <varlistentry>
@@ -1341,19 +1371,19 @@
       <varlistentry>
 	<term>Parse Directive</term>
 	<listitem>
-	  <para><code>%no-thread-classes</code></para>
+	  <code>%no-thread-classes</code>
 	</listitem>
       </varlistentry>
       <varlistentry>
 	<term>Command-Line</term>
 	<listitem>
-	  <para><code>--no-thread-classes</code></para>
+	  <code>--no-thread-classes</code>
 	</listitem>
       </varlistentry>
       <varlistentry>
 	<term>Parse Option Constant</term>
 	<listitem>
-	  <para><code><link linkend="PO_NO_THREAD_CLASSES">PO_NO_THREAD_CLASSES</link></code></para>
+	  <code><link linkend="PO_NO_THREAD_CLASSES">PO_NO_THREAD_CLASSES</link></code>
 	</listitem>
       </varlistentry>
       <varlistentry>
@@ -1410,19 +1440,19 @@
       <varlistentry>
 	<term>Parse Directive</term>
 	<listitem>
-	  <para><code>%no-thread-control</code></para>
+	  <code>%no-thread-control</code>
 	</listitem>
       </varlistentry>
       <varlistentry>
 	<term>Command-Line</term>
 	<listitem>
-	  <para><code>--no-thread-control, -R</code></para>
+	  <code>--no-thread-control, -R</code>
 	</listitem>
       </varlistentry>
       <varlistentry>
 	<term>Parse Option Constant</term>
 	<listitem>
-	  <para><code><link linkend="PO_NO_THREAD_CONTROL">PO_NO_THREAD_CONTROL</link></code></para>
+	  <code><link linkend="PO_NO_THREAD_CONTROL">PO_NO_THREAD_CONTROL</link></code>
 	</listitem>
       </varlistentry>
       <varlistentry>
@@ -1479,19 +1509,19 @@
       <varlistentry>
 	<term>Parse Directive</term>
 	<listitem>
-	  <para><code>%no-thread-info</code></para>
+	  <code>%no-thread-info</code>
 	</listitem>
       </varlistentry>
       <varlistentry>
 	<term>Command-Line</term>
 	<listitem>
-	  <para><code>--no-thread-info</code></para>
+	  <code>--no-thread-info</code>
 	</listitem>
       </varlistentry>
       <varlistentry>
 	<term>Parse Option Constant</term>
 	<listitem>
-	  <para><code><link linkend="PO_NO_THREAD_INFO">PO_NO_THREAD_INFO</link></code></para>
+	  <code><link linkend="PO_NO_THREAD_INFO">PO_NO_THREAD_INFO</link></code>
 	</listitem>
       </varlistentry>
       <varlistentry>
@@ -1539,26 +1569,24 @@
       <varlistentry>
 	<term>Parse Directive</term>
 	<listitem>
-	  <para><code>%no-threads</code></para>
+	  <code>%no-threads</code>
 	</listitem>
       </varlistentry>
       <varlistentry>
 	<term>Command-Line</term>
 	<listitem>
-	  <para><code>--no-threads, -T</code></para>
+	  <code>--no-threads, -T</code>
 	</listitem>
       </varlistentry>
       <varlistentry>
 	<term>Parse Option Constant</term>
 	<listitem>
-	  <para><code><link linkend="PO_NO_THREADS">PO_NO_THREADS</link></code></para>
+	  <code><link linkend="PO_NO_THREADS">PO_NO_THREADS</link></code>
 	</listitem>
       </varlistentry>
       <varlistentry>
 	<term>Description</term>
-	<listitem>
-	  <para>Disallows access to all thread control operations and thread classes (equivalent to <code><link linkend="no-thread-control">no-thread-control</link></code> and <code><link linkend="no-thread-classes">no-thread-classes</link></code> together).</para>
-	</listitem>
+	<listitem>Disallows access to all thread control operations and thread classes (equivalent to <code><link linkend="no-thread-control">no-thread-control</link></code> and <code><link linkend="no-thread-classes">no-thread-classes</link></code> together).</listitem>
       </varlistentry>
     </variablelist>
   </sect1>
@@ -1568,26 +1596,24 @@
       <varlistentry>
 	<term>Parse Directive</term>
 	<listitem>
-	  <para><code>%no-top-level</code></para>
+	  <code>%no-top-level</code>
 	</listitem>
       </varlistentry>
       <varlistentry>
 	<term>Command-Line</term>
 	<listitem>
-	  <para><code>--no-top-level, -L</code></para>
+	  <code>--no-top-level, -L</code>
 	</listitem>
       </varlistentry>
       <varlistentry>
 	<term>Parse Option Constant</term>
 	<listitem>
-	  <para><code><link linkend="PO_NO_TOP_LEVEL_STATEMENTS">PO_NO_TOP_LEVEL_STATEMENTS</link></code></para>
+	  <code><link linkend="PO_NO_TOP_LEVEL_STATEMENTS">PO_NO_TOP_LEVEL_STATEMENTS</link></code>
 	</listitem>
       </varlistentry>
       <varlistentry>
 	<term>Description</term>
-	<listitem>
-	  <para>Disallows top level code.</para>
-	</listitem>
+	<listitem>Disallows top level code.</listitem>
       </varlistentry>
     </variablelist>
   </sect1>
@@ -1597,26 +1623,24 @@
       <varlistentry>
 	<term>Parse Directive</term>
 	<listitem>
-	  <para><code>%require-our</code></para>
+	  <code>%require-our</code>
 	</listitem>
       </varlistentry>
       <varlistentry>
 	<term>Command-Line</term>
 	<listitem>
-	  <para><code>--require-our, -O</code></para>
+	  <code>--require-our, -O</code>
 	</listitem>
       </varlistentry>
       <varlistentry>
 	<term>Parse Option Constant</term>
 	<listitem>
-	  <para><code><link linkend="PO_REQUIRE_OUR">PO_REQUIRE_OUR</link></code></para>
+	  <code><link linkend="PO_REQUIRE_OUR">PO_REQUIRE_OUR</link></code>
 	</listitem>
       </varlistentry>
       <varlistentry>
 	<term>Description</term>
-	<listitem>
-	  <para>Requires global variables to be declared with <command>our</command> prior to use (recommended to use for all larger scripts/programs).</para>
-	</listitem>
+	<listitem>Requires global variables to be declared with <command>our</command> prior to use (recommended to use for all larger scripts/programs).</listitem>
       </varlistentry>
     </variablelist>
   </sect1>
@@ -1627,19 +1651,19 @@
       <varlistentry>
 	<term>Parse Directive</term>
 	<listitem>
-	  <para><code>%require-prototypes</code></para>
+	  <code>%require-prototypes</code>
 	</listitem>
       </varlistentry>
       <varlistentry>
 	<term>Command-Line</term>
 	<listitem>
-	  <para><code>--require-prototypes</code></para>
+	  <code>--require-prototypes</code>
 	</listitem>
       </varlistentry>
       <varlistentry>
 	<term>Parse Option Constant</term>
 	<listitem>
-	  <para><code><link linkend="PO_REQUIRE_PROTOTYPES">PO_REQUIRE_PROTOTYPES</link></code></para>
+	  <code><link linkend="PO_REQUIRE_PROTOTYPES">PO_REQUIRE_PROTOTYPES</link></code>
 	</listitem>
       </varlistentry>
       <varlistentry>
@@ -1658,19 +1682,19 @@
       <varlistentry>
 	<term>Parse Directive</term>
 	<listitem>
-	  <para><code>%require-types</code></para>
+	  <code>%require-types</code>
 	</listitem>
       </varlistentry>
       <varlistentry>
 	<term>Command-Line</term>
 	<listitem>
-	  <para><code>--require-types</code></para>
+	  <code>--require-types</code>
 	</listitem>
       </varlistentry>
       <varlistentry>
 	<term>Parse Option Constant</term>
 	<listitem>
-	  <para><code><link linkend="PO_REQUIRE_TYPES">PO_REQUIRE_TYPES</link></code></para>
+	  <code><link linkend="PO_REQUIRE_TYPES">PO_REQUIRE_TYPES</link></code>
 	</listitem>
       </varlistentry>
       <varlistentry>
@@ -1689,20 +1713,18 @@
       <varlistentry>
 	<term>Parse Directive</term>
 	<listitem>
-	  <para><code>%requires</code></para>
+	  <code>%requires</code>
 	</listitem>
       </varlistentry>
       <varlistentry>
 	<term>Command-Line</term>
 	<listitem>
-	  <para><code>--load, -l</code></para>
+	  <code>--load, -l</code>
 	</listitem>
       </varlistentry>
       <varlistentry>
 	<term>Parse Option Constant</term>
-	<listitem>
-	  <para>n/a</para>
-	</listitem>
+	<listitem>n/a</listitem>
       </varlistentry>
       <varlistentry>
 	<term>Description</term>
@@ -1724,26 +1746,23 @@
       <varlistentry>
 	<term>Parse Directive</term>
 	<listitem>
-	  <para><code>%set-time-zone</code></para>
+	  <code>%set-time-zone</code>
 	</listitem>
       </varlistentry>
       <varlistentry>
 	<term>Command-Line</term>
 	<listitem>
-	  <para><code>--time-zone, -z</code></para>
+	  <code>--time-zone, -z</code>
 	</listitem>
       </varlistentry>
       <varlistentry>
 	<term>Parse Option Constant</term>
-	<listitem>
-	  <para>none; this is set by calling <link linkend="TimeZone::setRegion">TimeZone::setRegion()</link> or <link linkend="TimeZone::setUTCOffset">TimeZone::setUTCOffset()</link></para>
+	<listitem>none; this is set by calling <link linkend="TimeZone::setRegion">TimeZone::setRegion()</link> or <link linkend="TimeZone::setUTCOffset">TimeZone::setUTCOffset()</link>
 	</listitem>
       </varlistentry>
       <varlistentry>
 	<term>Description</term>
-	<listitem>
-	  <para>Sets the time zone for the current program from a UTC offset (with format <code>+/-00[:00[:00]]</code>; <code>':'</code> characters are optional) or a time zone region name (ex: <code>'Europe/Prague'</code>).</para>
-	</listitem>
+	<listitem>Sets the time zone for the current program from a UTC offset (with format <code>+/-00[:00[:00]]</code>; <code>':'</code> characters are optional) or a time zone region name (ex: <code>'Europe/Prague'</code>).</listitem>
       </varlistentry>
     </variablelist>
   </sect1>
@@ -1754,26 +1773,22 @@
       <varlistentry>
 	<term>Parse Directive</term>
 	<listitem>
-	  <para><code>%strict-args</code></para>
+	  <code>%strict-args</code>
 	</listitem>
       </varlistentry>
       <varlistentry>
 	<term>Command-Line</term>
 	<listitem>
-	  <para><code>--strict-args</code></para>
+	  <code>--strict-args</code>
 	</listitem>
       </varlistentry>
       <varlistentry>
 	<term>Parse Option Constant</term>
-	<listitem>
-	  <para><code><link linkend="PO_STRICT_ARGS">PO_STRICT_ARGS</link></code></para>
-	</listitem>
+	<listitem><code><link linkend="PO_STRICT_ARGS">PO_STRICT_ARGS</link></code></listitem>
       </varlistentry>
       <varlistentry>
 	<term>Description</term>
-	<listitem>
-	  <para>Prohibits access to builtin functions and methods flagged with <code><link linkend="RT_NOOP_flag">RT_NOOP</link></code> and also causes errors to be raised if excess arguments are given to functions that do not access excess arguments.</para>
-	</listitem>
+	<listitem>Prohibits access to builtin functions and methods flagged with <code><link linkend="RT_NOOP_flag">RT_NOOP</link></code> and also causes errors to be raised if excess arguments are given to functions that do not access excess arguments.</listitem>
       </varlistentry>
     </variablelist>
   </sect1>

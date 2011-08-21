@@ -77,6 +77,38 @@
     </table>
     
   </sect1>
+
+  <sect1 id="Parse_Defines">
+    <title>Conditional Parsing and Parse Defines</title>
+    <para>Qore supports conditional parsing with parse defines similar to the C/C++ preprocessor.  In the current version of Qore, the implementation is very simple; only the following parse directives are supported: <link linkend="define">%define</link>, <link linkend="else">%else</link>, <link linkend="endif">%endif</link>, <link linkend="ifdef">%ifdef</link>, and  <link linkend="endif">%endif</link>.</para>
+
+    <para>Basically, the above allow for the existence (or lack thereof) of a parse define to affect which code is parsed into the program at parse time.</para>
+
+    <para>Parse defines are defined on the command-line (or through the C++ API when executed in embedded code), as well as created automatically based on sytem options; all <link linkend="Library_Options">library options</link> (if the option is <code>True</code>, then it is defined as <code>True</code>, if the option is <code>False</code>, then it is not defined at all), as well as the following options (however they are not yet useful as the value of parse options cannot be used yet at parse time; only the existence or lack of can affect parsing in this version of Qore):
+    <itemizedlist mark='bullet'>
+      <listitem><code>QoreVersionString</code>: Version string for the Qore library</listitem>
+      <listitem><code>QoreVersionMajor</code>: Major version for the Qore library</listitem>
+      <listitem><code>QoreVersionMinor</code>: Minor version for the Qore library</listitem>
+      <listitem><code>QoreVersionSub</code>: Sub version for the Qore library</listitem>
+      <listitem><code>QoreVersionBuild</code>: Build version for the Qore library</listitem>
+      <listitem><code>QoreVersionBits</code>: 32 or 64 depending on the library target</listitem>
+      <listitem><code>QorePlatformCPU</code>: The CPU targeted by the library</listitem>
+      <listitem><code>QorePlatformOS</code>: The OS targeted by the library</listitem>
+    </itemizedlist>
+    </para>
+
+    <para>Additionally, only if the Qore library was compiled with debugging support, the following parse define is present (otherwise it is not defined):
+      <itemizedlist mark='bullet'>
+	<listitem><code>QoreDebug</code>: <code>True</code></listitem>
+      </itemizedlist>
+    </para>
+
+    <para>Here is an example of using parse defines in a program:</para>
+    <programlisting>%ifndef HAVE_TERMIOS
+printf("This program requires UNIX TermIOS features to be present; it does not run on platforms without this feature (current platform: %s); exiting...\n", Qore::PlatformOS);
+exit(1);
+%endif</programlisting>
+  </sect1>
   
   <sect1 id="Qore_Modules">
     <title>Qore Modules</title>

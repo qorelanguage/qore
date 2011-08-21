@@ -20,6 +20,11 @@
 
 <tbody>
   <row>
+    <entry><para><code>--define=arg</code></para></entry>
+    <entry><para><code>-D</code></para></entry>
+    <entry><para>Creates and optionally sets a value for a <link linkend="Parse_Defines">parse define</link>.</para></entry>
+  </row>
+  <row>
     <entry><para><code>--load=arg</code></para></entry>
     <entry><para><code>-l</code></para></entry>
     <entry><para>Loads a module immediately.  The argument can be a module/feature name or an absolute path to the module.</para></entry>
@@ -61,7 +66,7 @@
   </row>
   <row>
     <entry><para><code>--no-namespace-defs</code></para></entry>
-    <entry><para><code>-D</code></para></entry>
+    <entry><para><code>n/a</code></para></entry>
     <entry><para>Disallows new namespace definitions.  Equivalent to <code><link linkend="PO_NO_NAMESPACE_DEFS">PO_NO_NAMESPACE_DEFS</link></code> and the <code>%no-namespace-defs</code> directive.</para></entry>
   </row>
   <row>
