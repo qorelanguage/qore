@@ -1930,12 +1930,6 @@ void StaticSystemNamespace::init() {
    option->addConstant("HAVE_TERMIOS",  &False);
 #endif
 
-#ifdef HAVE_PWD_H
-   option->addConstant("HAVE_PWD",  &True);
-#else
-   option->addConstant("HAVE_PWD",  &False);
-#endif
-
 #ifdef HAVE_GETUID
    option->addConstant("HAVE_UNIX_USERMGT",  &True);
 #else

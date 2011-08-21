@@ -332,8 +332,6 @@ DLLEXPORT const AbstractQoreZoneInfo *findCreateOffsetZone(int seconds_east);
 #define QORE_OPT_MD2                     "openssl md2"
 //! option: TermIOS class available
 #define QORE_OPT_TERMIOS                 "termios"
-//! option: unix pwd functions available
-#define QORE_OPT_PWD                     "pwd"
 //! option: file locking
 #define QORE_OPT_FILE_LOCKING            "file locking"
 //! option: unix user/group management functions available

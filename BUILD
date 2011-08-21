@@ -91,19 +91,17 @@ when compiling on Itanium 64-bit binaries are produced by default
 Note that as of qore 0.8.0, building with aCC A.03.90 (for HP-UX PA-RISC 11.23) failed; unfortunately I don't have access to a newer OS and compiler combination to try
 
 *) Windows
-As of 0.8.0, qore builds on Windows with cygwin, but only as a monolithic binary.  No modules are working yet.
-Windows may be supported in the future if I get it to work without Cygwin (i.e. using native win32 apis)
-There have been numerous requests for this, so any patches would be appreciated!
+As of 0.8.3, a fully functional version of Qore can now be build for Windows; see README-WINDOWS for more information
 
 CPU Support
 -----------
-*) gcc with i386, x86_64, ppc, sparc32, itanium, aCC with itanium, CC (SunPro or Sun Studio CC) with i386, x86_64, sparc32: fast inline assembly atomic operations are supported for reference counting, as well as a SMP cache invalidation optimization for temporary objects (temporary object do not require a cache invalidation);
+*) gcc with i386, x86_64, ppc, sparc32, itanium, aCC with itanium, CC (SunPro or Sun Studio CC) with i386, x86_64, sparc32: fast inline assembly atomic operations are supported for reference counting, as well as a SMP cache invalidation optimization for temporary objects (temporary objects do not require a cache invalidation);
 *) CPU stack guard is working on all above combinations and with g++ and aCC with PA-RISC as well
 *) all others: I use a pthread mutex to ensure atomicity for reference counting.
 The cache invalidation optimization is not safe on platforms without an atomic reference counting implementation, therefore is not implemented for these platforms
 
 Modules
 -------
-On platforms that support building shared libraries, modules are stored in a subdirectory named "qore-module-api-<ver>" of the library directoy.
+On platforms that support building shared libraries, modules are stored in a subdirectory named "qore-modules" of the library directoy.
 Modules are installed with the extension *.qmod
 Note that modules are (as of version 0.7.0 of qore) delivered separately from the qore library, see the file README-MODULES for more information.

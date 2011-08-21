@@ -156,15 +156,6 @@ const qore_option_s qore_option_list_l[] = {
      false
 #endif
    },
-   { QORE_OPT_PWD,
-     "HAVE_PWD",
-     QO_OPTION,
-#ifdef HAVE_PWD_H
-     true
-#else
-     false
-#endif
-   },
    { QORE_OPT_UNIX_USERMGT,
      "HAVE_UNIX_USERMGT",
      QO_OPTION,
