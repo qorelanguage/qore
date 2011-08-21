@@ -1,0 +1,105 @@
+As of Qore 0.8.3, it is possible to build a native Qore DLL for windows (i.e. without cygwin).
+
+BUILDING
+--------
+Currently Qore can only be built with the mingw compiler as a cross-compiler (from Linux, OSX, etc).  See http://mingw-cross-env.nongnu.org/
+
+It requires the dlfcn library as well for dynamic module loading (http://code.google.com/p/dlfcn-win32/).
+
+Once dlfcn has been built and installed, configure Qore on the source (ie UNIX) host as follows:
+configure --host=i686-pc-mingw32 --with-dl-dir=<wherever you installed dlfcn> --prefix=<wherever you want windows qore>
+
+Then a Qore DLL is built along with a qore.exe when you type "make"
+
+"make install" will install everything; the library and headers can be used with the same compiler to build qore modules for windows.
+
+The Qore DLL built this way will be statically linked with the libraries necessary for it to run (pcre, openssl, libxml2, etc).  This makes for a pretty large DLL, but eliminates the need for all the supporting DLLs in one place.
+
+Currently Windows XP is targeted as the mininum required Windows target.
+
+
+FUNCTIONAL NOTES
+----------------
+The following is a list of things particular to the Windows build:
+* unsupported functionality
+Some things are not available on Windows because they are UNIX-specific, others because the standard UNIX API is not available on Windows, and therefore they have to be ported to another API.  For each unsupported feature, there is a constant listed that can be used either at runtime or at parse time (with the %ifdef or %ifndef parse directives) in portable programs to handle the lack of a feature gracefully.
+
+function implementations missing in the Windows build (calling these will cause a MISSING-FEATURE-ERROR to be issued at runtime):
+  + is_executable() (HAVE_IS_EXECUTABLE)
+  + is_link() (HAVE_UNIX_FILEMGT)
+  + getuid() (HAVE_UNIX_USERMGT)
+  + geteuid() (HAVE_UNIX_USERMGT)
+  + getgid() (HAVE_UNIX_USERMGT)
+  + getegid() (HAVE_UNIX_USERMGT)
+  + getppid() (HAVE_GETPPID)
+  + fork() (HAVE_FORK)
+  + kill() (HAVE_KILL)
+  + statvfs() (HAVE_STATVFS)
+  + mkfifo() (HAVE_UNIX_FILEMGT)
+  + setuid() (HAVE_UNIX_USERMGT)
+  + seteuid() (HAVE_UNIX_USERMGT)
+  + setgid() (HAVE_UNIX_USERMGT)
+  + setegid() (HAVE_UNIX_USERMGT)
+  + setsid() (HAVE_SETSID)
+  + chown() (HAVE_UNIX_FILEMGT)
+  + lchown() (HAVE_UNIX_FILEMGT)
+  + readlink() (HAVE_UNIX_FILEMGT)
+  + set_signal_handler() (HAVE_SIGNAL_HANDLING)
+  + remove_signal_handler() (HAVE_SIGNAL_HANDLING)
+  + getpwuid() (HAVE_UNIX_USERMGT)
+  + getpwuid2() (HAVE_UNIX_USERMGT)
+  + getpwnam() (HAVE_UNIX_USERMGT)
+  + getpwnam2() (HAVE_UNIX_USERMGT)
+  + getgrgid() (HAVE_UNIX_USERMGT)
+  + getgrgid2() (HAVE_UNIX_USERMGT)
+  + getgrnam() (HAVE_UNIX_USERMGT)
+  + getgrnam2() (HAVE_UNIX_USERMGT)
+
+method implementations missing in the Windows build (calling these will cause a MISSING-FEATURE-ERROR to be issued at runtime):
+  + Dir::chown() (HAVE_UNIX_FILEMGT)
+  + Dir::chgrp() (HAVE_UNIX_FILEMGT)
+  + Dir::statvfs() (HAVE_STATVFS)
+  + File::lock() (HAVE_FILE_LOCKING)
+  + File::lockBlocking() (HAVE_FILE_LOCKING)
+  + File::getLockInfo() (HAVE_FILE_LOCKING)
+  + File::chown() (HAVE_UNIX_FILEMGT)
+  + File::getTerminalAttributes() (HAVE_TERMIOS)
+  + File::setTerminalAttributes() (HAVE_TERMIOS)
+  + File::statvfs() (HAVE_STATVFS)
+  + static File::statvfs() (HAVE_STATVFS)
+  
+class implementations missing in the Windows build (calling any methods or trying to instantiate the class will cause a MISSING-FEATURE-ERROR to be issued at runtime):
+  + TermIOS (HAVE_TERMIOS)
+
+* different functionality
+functions:
+  + is_readable() always returns True on directories (will be fixed in a later version of Qore), but is reliable with files
+  + lstat() is an alias for stat() on Windows
+  + hlstat() is an alias for hstat() on Windows
+
+methods:
+  + File::lstat() is an alias for File::stat() on Windows
+
+* time zone handling
+Qore's time zone information is read from binary time zone data in the Windows registry under HKEY_LOCAL_MACHINE SOFTWARE\Microsoft\Windows NT\CurrentVersion\Time Zones.
+
+Region names for TimeZone::constructor() (for example) must correspond to keys under the above key or the time zine information will not be loaded.
+
+The region name reported by TimeZone::region() will be the display name for the time zone, as found in the registry.
+
+For example:
+O:\bin>qore -ne "TimeZone tz('Central Europe Standard Time'); printf(\"%s\n\", tz.region());"
+(GMT+01:00) Belgrade, Bratislava, Budapest, Ljubljana, Prague
+
+This differs from UNIX where the region name passed to the TimeZone constructor is the same region name that appears in the TimeZone::region() output; this is because Windows uses "Standard Time" in the key name in the registry, even though the underlying definition is for both standard and daylight savings time for the zone.
+
+Please be aware that the region names may differ in localized versions of Windows; I have read some information that leads me to believe that Windows stores localized names in the registry for the region names.  This will make is harder to make use  of time zone regions on Windows in portable programs.
+
+* socket support
+the Socket class should work the same on Windows as on UNIX systems; error messages will be Windows error messages
+
+* %include directives
+"/" characters will be transposed automatically to "\" characters on Windows
+
+* path separator
+The path separator is understood to be "\" on windows

@@ -444,8 +444,8 @@ static AbstractQoreNode *FILE_isDataAvailable(QoreObject *self, File *f, const Q
    return *xsink ? 0 : get_bool_node(rc);
 }
 
-#ifdef HAVE_TERMIOS_H
 static AbstractQoreNode *FILE_getTerminalAttributes(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
+#ifdef HAVE_TERMIOS_H
    HARD_QORE_OBJ_DATA(ios, QoreTermIOS, args, 0, CID_TERMIOS, "TermIOS", "File::getTerminalAttributes", xsink);
    if (*xsink)
       return 0;
@@ -453,9 +453,13 @@ static AbstractQoreNode *FILE_getTerminalAttributes(QoreObject *self, File *f, c
    ReferenceHolder<QoreTermIOS> holder(ios, xsink);
    f->getTerminalAttributes(ios, xsink);
    return 0;
+#else
+   return missing_method_error("File::setTerminalAttributes", "TERMIOS", xsink);
+#endif
 }
 
 static AbstractQoreNode *FILE_setTerminalAttributes(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
+#ifdef HAVE_TERMIOS_H
    int action = (int)HARD_QORE_INT(args, 0);
    HARD_QORE_OBJ_DATA(ios, QoreTermIOS, args, 1, CID_TERMIOS, "TermIOS", "File::setTerminalAttributes", xsink);
    if (*xsink)
@@ -464,8 +468,10 @@ static AbstractQoreNode *FILE_setTerminalAttributes(QoreObject *self, File *f, c
    ReferenceHolder<QoreTermIOS> holder(ios, xsink);
    f->setTerminalAttributes(action, ios, xsink);
    return 0;
-}
+#else
+   return missing_method_error("File::setTerminalAttributes", "TERMIOS", xsink);
 #endif
+}
 
 static AbstractQoreNode *FILE_setEventQueue_queue(QoreObject *self, File *f, const QoreListNode *args, ExceptionSink *xsink) {
    HARD_QORE_OBJ_DATA(q, Queue, args, 0, CID_QUEUE, "Queue", "File::setEventQueue", xsink);
