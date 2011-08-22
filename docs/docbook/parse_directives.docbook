@@ -301,7 +301,7 @@
       </varlistentry>
       <varlistentry>
 	<term>Command-Line</term>
-	<listitem>none</listitem>
+	<listitem><code>--define, -D</code></listitem>
       </varlistentry>
       <varlistentry>
 	<term>Parse Option Constant</term>
@@ -694,7 +694,7 @@
       </varlistentry>
       <varlistentry>
 	<term>Command-Line</term>
-	<listitem><code>--no-database, -D</code></listitem>
+	<listitem><code>--no-database</code></listitem>
       </varlistentry>
       <varlistentry>
 	<term>Parse Option Constant</term>
@@ -1333,6 +1333,7 @@
 		</row>
 	      </thead>
 	      <tbody>
+		<row><entry><para><link linkend="File_Class">File</link> class</para> methods on <code>stdin, stdout, stderr</code></entry></row>
 		<row>
 		  <entry><para><link linkend="flush">flush()</link></para></entry>
 		</row>
@@ -1357,6 +1358,7 @@
 		<row>
 		  <entry><para><link linkend="stderr_constant">stderr</link></para></entry>
 		</row>
+		<row><entry><para>><code><command>static</command> <link linkend="TermIOS::getWindowSize">TermIOS::getWindowSize</link>()</code></para></entry></row>
 	      </tbody>
 	    </tgroup>
 	  </table>

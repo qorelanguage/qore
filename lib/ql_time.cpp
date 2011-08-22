@@ -328,6 +328,7 @@ static QoreHashNode *date_info(const DateTime &d) {
       h->setKeyValue("doy", new QoreBigIntNode(d.getDayNumber()), 0);
       h->setKeyValue("utc_secs_east", new QoreBigIntNode(info.utc_secs_east), 0);
       h->setKeyValue("dst", get_bool_node(info.dst), 0);
+      h->setKeyValue("zone_name", new QoreStringNode(info.zone_name), 0);
       h->setKeyValue("zone", new QoreObject(QC_TIMEZONE, 0, new TimeZoneData(info.zone)), 0);
    }
 

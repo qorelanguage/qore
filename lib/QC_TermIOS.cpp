@@ -198,7 +198,7 @@ QoreClass *initTermIOSClass() {
    QC_TERMIOS->addMethodExtended("isEqual",  (q_method_t)TERMIOS_isEqual, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, boolTypeInfo, 1, QC_TERMIOS->getTypeInfo(), QORE_PARAM_NO_ARG);
 
    // static methods
-   QC_TERMIOS->addStaticMethodExtended("getWindowSize", f_TERMIOS_getWindowSize, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, hashTypeInfo);
+   QC_TERMIOS->addStaticMethodExtended("getWindowSize", f_TERMIOS_getWindowSize, false, QC_RET_VALUE_ONLY, QDOM_TERMINAL_IO, hashTypeInfo);
 
    return QC_TERMIOS;
 }

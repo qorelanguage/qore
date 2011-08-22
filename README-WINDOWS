@@ -74,6 +74,8 @@ method implementations missing in the Windows build (calling these will cause a 
 class implementations missing in the Windows build (calling any methods or trying to instantiate the class will cause a MISSING-FEATURE-ERROR to be issued at runtime):
   + TermIOS (HAVE_TERMIOS)
 
+Also all TermIOS-related constants are missing on Windows
+
 * different functionality
 functions:
   + is_readable() always returns True on directories (will be fixed in a later version of Qore), but is reliable with files
@@ -82,6 +84,9 @@ functions:
 
 methods:
   + File::lstat() is an alias for File::stat() on Windows
+  + File::hlstat() is an alias for File::hstat() on Windows
+  + static File::lstat() is an alias for File::stat() on Windows
+  + static File::hlstat() is an alias for File::hstat() on Windows
 
 * time zone handling
 On Windows, Qore's time zone information is read from binary time zone data in the Windows registry under HKEY_LOCAL_MACHINE SOFTWARE\Microsoft\Windows NT\CurrentVersion\Time Zones.
@@ -99,10 +104,10 @@ This differs from UNIX where the region name passed to the TimeZone constructor 
 Please be aware that the region names may differ in localized versions of Windows; I have read some information that leads me to believe that Windows stores localized names in the registry for the region names.  This will make is harder to make use  of time zone regions on Windows in portable programs.
 
 * socket support
-the Socket class should work the same on Windows as on UNIX systems; error messages will be Windows error messages
+There are no UNIX sockets available on Windows, otherwise the Socket class should work the same as on UNIX systems; error messages will be Windows error messages
 
 * threading
-threading should work identically as with UNIX
+threading should work identically as on UNIX
 
 * %include directives
 "/" characters will be transposed automatically to "\" characters on Windows

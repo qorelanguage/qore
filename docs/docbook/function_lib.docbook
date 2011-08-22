@@ -5275,6 +5275,12 @@
               <entry><para>Absolute Only</para></entry>
               <entry><para>The time zone for the time.</para></entry>
             </row>
+            <row>
+	      <entry><para><code>zone_name</code></para></entry>
+              <entry><para><link linkend="string_type">string</link></para></entry>
+              <entry><para>Absolute Only</para></entry>
+              <entry><para>The name of the time zone for the given time (ex: &quot;CEST&quot; for Central European Summer Time for a time during summer time or &quot;CET&quot; for Central European Time for the same time zone while daylight savings time is not active).</para></entry>
+            </row>
           </tbody>
         </tgroup>
       </table>

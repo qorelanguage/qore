@@ -485,7 +485,7 @@
           <row id="WARN_NONEXISTENT_METHOD_CALL">
             <entry><para><code>WARN_NONEXISTENT_METHOD_CALL</code></para></entry>
 	    <entry><para><code><link linkend="int_type">int</link></code></para></entry>
-            <entry><para>Indicates that the embedded code is calling an unknown method in a class; this may be vaild if the calling method is only called from a base class that actually implements the method.  See also <link linkend="non-existent-method-call">non-existent-method-call</link>.</para></entry>
+            <entry><para>Indicates that the embedded code is calling an unknown method in a class; this may be vaild if the calling method is only called from a derived class that actually implements the method.  See also <link linkend="non-existent-method-call">non-existent-method-call</link>.</para></entry>
           </row>
           <row id="WARN_RETURN_VALUE_IGNORED">
             <entry><para><code>WARN_RETURN_VALUE_IGNORED</code></para></entry>
@@ -3185,6 +3185,12 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	<programlisting><command>my</command> hash $h = $file.hstat();</programlisting>
       </listitem>
     </varlistentry>
+      <varlistentry>
+	<term>Restrictions</term>
+	<listitem>
+	  <para>Not available with <code><link linkend="no-filesystem">PO_NO_FILESYSTEM</link></code></para>
+	</listitem>
+      </varlistentry>
   </variablelist>
 
   <table>
@@ -5034,6 +5040,12 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 	  <programlisting><command>my</command> int $mode = $file.stat()[2];</programlisting>
 	</listitem>
       </varlistentry>
+      <varlistentry>
+	<term>Restrictions</term>
+	<listitem>
+	  <para>Not available with <code><link linkend="no-filesystem">PO_NO_FILESYSTEM</link></code></para>
+	</listitem>
+      </varlistentry>
     </variablelist>
 
     <table>
@@ -5101,6 +5113,12 @@ stdin.setTerminalAttributes(TCSADRAIN, $termios);</programlisting>
 	<term>Platform Availability</term>
 	<listitem>
 	  <para><code><link linkend="HAVE_STATVFS">HAVE_STATVFS</link></code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Restrictions</term>
+	<listitem>
+	  <para>Not available with <code><link linkend="no-filesystem">PO_NO_FILESYSTEM</link></code></para>
 	</listitem>
       </varlistentry>
     </variablelist>
@@ -8896,6 +8914,12 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	<term>Platform Availability</term>
 	<listitem>
 	  <para><code><link linkend="HAVE_TERMIOS">HAVE_TERMIOS</link></code></para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Restrictions</term>
+	<listitem>
+	  <para>Not available with <code><link linkend="no-filesystem">PO_NO_FILESYSTEM</link></code></para>
 	</listitem>
       </varlistentry>
       </variablelist>
