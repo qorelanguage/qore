@@ -81,6 +81,7 @@ functions:
   + is_readable() always returns True on directories (will be fixed in a later version of Qore), but is reliable with files
   + lstat() is an alias for stat() on Windows
   + hlstat() is an alias for hstat() on Windows
+  + glob() is implemented by transforing the glob argument to a regular expression and then applying the regex to the list of files returned; it should give the same results as UNIX glob(), but in case it doesn't please let me know (david@qore.org)
 
 methods:
   + File::lstat() is an alias for File::stat() on Windows

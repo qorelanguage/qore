@@ -1,7 +1,158 @@
 RELEASE NOTES for qore v0.8.3
 
-release summary: in progress, see changelog
+release summary: 32 bug fixes and new feature support
 
+* BUG FIX: fixed a bug in parse_url() & parseURL(); parsing urls with
+	   IPv6 addresses without ":" - this will only work if a port
+	   number is included; otherwise raw IPv6 addresses must be
+	   enclosed in square brackets: [ipv6addr]
+* BUG FIX: fixed a bug in is_readable() - was returning True for all
+	   arguments
+* BUG FIX: fixed a file descriptor leak in the FtpClient class related
+	   to exception handling
+* BUG FIX: fixed some crashing memory bugs in socket handling
+	   (particularly related to the internal getPort() call) 
+* BUG FIX: fixed split() with quote argument
+* BUG FIX: fixed a bug in handling parse errors in switch statements
+	   that caused an endless loop
+* BUG FIX: fixed 2 memory errors handling parse exceptions with
+	   regular expressions
+* BUG FIX: fixed an error in system() recognizing "$=" as shell
+	   meta-characters
+* BUG FIX: fixed a bug in system() where system() caused a deadlock in
+	   both child and parent processes if launching the child
+	   process launch fails
+* BUG FIX: fixed a bug in system() where quotes and backslashes were
+	   not being properly quoted
+* BUG FIX: fixed typeinfo handling with imported variables in many
+	   places - particulary subprograms with imported variables
+	   could fail to parse if %require-types is set in the
+	   subprogram
+* BUG FIX: fixed detected duplicate variables in the same block when
+   	   %assume-local is set
+* BUG FIX: SQLStatement::commit() and SQLStatement::rollback() no
+	   longer throw an exception when called without an active
+	   statement; instead, the statement is closed and the
+	   operation is executed on the underlying database connection
+	   object (Datasource or DatasourcePool object)
+* BUG FIX: fixed a memory error looking up scoped constant values at
+	   parse time
+* BUG FIX: do not issue a "return value ignored" exception if the
+	   function/method could throw an exception - the usage
+	   without using the return value could be to test if an
+	   exception is raised (ie an exception would be considered a
+	   side effect)
+* BUG FIX: fixed the string output for dates (when date/time values
+	   are converted to a string) to not duplicate UTC offset
+	   information in case the associated time zone has no region
+	   name
+* BUG FIX: fixed a bug in the c++ function QoreString::replaceAll()
+* BUG FIX: fixed a crash when parsing a class with an
+	   unknown/undefined base class
+* BUG FIX: fixed a memory leak in the Socket class static
+	   initialization
+* BUG FIX: fixed issues with passing a reference through different
+	   program stacks
+* BUG FIX: fixed a bug where some specific type errors in function or
+	   method calls were not found at parse time, but rather only
+	   at bug time - now these errors are found at parse time
+* BUG FIX: added stack overrun check in QoreClass::execConstructor()
+	   call to catch the case when a class instantiation is
+	   recursively defined
+* BUG FIX: fixed a crash due to a memory error in managing reference
+	   cycles with closures assigned to constant containers
+* BUG FIX: fixed a crash when referencing closure-bound local
+	   variables in expressions executed by the background
+	   operator
+* BUG FIX: fixed function/method variant matching to ensure that
+	   variants are matched at run time if there is a variant with
+	   fewer parameters than arguments in the call, but the
+	   arguments could be NOTHING (count these as ambiguous
+	   matches)
+* BUG FIX: fixed 2 extremely tricky bugs where deleting a
+	   global-thread-local and closure-bound variable that causes
+	   an object to go out of scope that in turn references the
+	   variable int its destructor caused a crash due to improper
+	   thread-local variable stack deletion 
+* BUF FIX: fixed a deadlock when deleting the old value of the
+	   closure-bound global-thread-local variable while holding
+	   the variable's lock (happened when the value was an object
+	   that referenced the variable in the destructor)
+* BUG FIX: implemented variable finalization to ensure that variables
+	   are not assigned after they are destroyed during program
+	   and thread termination and destruction - this fixed some
+	   possible memory leaks in QoreProgram destruction
+* BUG FIX: implemented sleep() and usleep() with nanosleep() (on all
+	   platforms with nanosleep(); also no longer mask SIGALRM as
+	   it may be used by a library; SIGALRM is also needed for
+	   sleep() and usleep() on UNIX and UNIX-like platforms; this
+	   eliminated some strange crashes due to unhandled SIGALRM
+	   signals when qore is used with some 3rd party libraries
+* BUG FIX: added QDOM_FILESYSTEM to all static File class methods (so
+	   they cannot be called while "no-filesystem" restrictions
+	   are in place for a Program object)
+* BUG FIX: added QDOM_TERMINAL_IO to TermIOS::getWindowSize() (so it
+	   cannot be called while "no-terminal-io" restrictions are in
+	   place for a Program object)
+* BUG FIX: added runtime checks for method calls to system File class
+	   constants while "no-terminal-io" is in force (so they
+	   cannot be called while "no-terminal-io" restrictions are in
+	   place for a Program object)
+* new feature: Qore is now supported on Windows with a native DLL and
+	   binaries; see README-WINDOWS for more information
+* new feature: parse defines are now supported for conditional parsing
+	   in a very simple way similar to a very simplified form of
+	   the C/C++ pre-processor.  All option (HAVE_*) are now
+	   supported as parse defines as well (they are defined only
+	   if they are True):
+	   new parse directives supporting parse defines:
+	   + %define
+	   + %ifdef
+	   + %ifndef
+	   + %else
+	   + %endif
+* new feature: FtpClient class enhancements:
+      	   new methods
+	   + FtpClient::mkdir()
+	   + FtpClient::rmdir()
+  	   + FtpClient::putData()
+  	   implemented implicit connection handling for the
+ 	   FtpClient class 
+* new feature: Program class enhancements:
+      	   new method: Program::replaceParseOptions()
+   	   also expanded the parse option checking logic to allow
+	   parse options to be set even when options are locked, if
+	   the options make the Program's option environment more
+	   restrictive
+* new feature: added a new argument to split(string, string); now it's
+	   split(string, string, bool = False) - if the 3rd arg is
+	   True then the separator pattern string will be included in
+	   each element of the output list
+* new feature: do not issue "duplicate-local-vars" warning when the
+	   other var is a top-level (thread-) local var
+* new feature: include "deprecated" in the default warning mask
+* new feature: added WARN_DEFAULT constant
+* new features: new command-line options for the qore executable:
+           + --time-zone,-z (set default time region)
+	   + --define, -D   (create a parse define)
+* new feature: thread-local variables are now persistent in each
+	   Program object; they do not disappear between calls to
+	   Program::run() or Program::callFunction(), etc
+* new feature: allow SQLStatments to go from state 'defined'
+	   (retrieving select after exec) to 'executed' automatically
+	   without forcing the user to call SQLStatement::close()
+* new feature: new functions:
+           + strmul(string, int, *int)
+	   + has_key()
+* new feature: parser improvements: implemented parser error recovery
+	   for syntax errors in argument list declarations
+* new feature: added support for removing or deleting a list of keys
+	   from a hash in a single atomic operation:
+	   + my hash $h = remove $hash.$list_of_keys;
+	   + delete $hash.("a", "b", "c")
+* new feature: allow parameters to be declared with type "nothing"
+* doc updates: documentation updated for new features, documentation
+	   corrections
 
 ***********************
 *** LANGUAGE ISSUES ***
@@ -117,7 +268,7 @@ release.
 There is no defined roadmap for 1.0; this milestone will be declared when the
 time feels right (typical of open-source projects).
 
-Version 0.8.2 brings qore a lot closer to the 1.0 release; one main set of
+Version 0.8.3 brings qore a lot closer to the 1.0 release; one main set of
 features that may be added before then are hooks for debugging, tracing,
 breakpoints, etc.
 
@@ -158,7 +309,7 @@ RELEASE NOTES HISTORY
 ---------------------
 
 *****************************
-RELEASE NOTES for qore v0.8.1
+RELEASE NOTES for qore v0.8.2
 *****************************
 
 release summary: 16 bug fixes, IPv6 support, and other minor
