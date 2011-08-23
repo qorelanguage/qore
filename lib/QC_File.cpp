@@ -829,7 +829,12 @@ QoreClass *initFileClass() {
    QC_FILE->addMethodExtended("isDataAvailable",        (q_method_t)FILE_isDataAvailable, false, QC_NO_FLAGS, QDOM_DEFAULT, boolTypeInfo, 1, timeoutTypeInfo, zero());
 
    QC_FILE->addMethodExtended("getTerminalAttributes",  (q_method_t)FILE_getTerminalAttributes, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, QC_TERMIOS->getTypeInfo(), QORE_PARAM_NO_ARG);
-   QC_FILE->addMethodExtended("setTerminalAttributes",  (q_method_t)FILE_setTerminalAttributes, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 2, softBigIntTypeInfo, new QoreBigIntNode(TCSANOW), QC_TERMIOS->getTypeInfo(), QORE_PARAM_NO_ARG);
+#ifndef TCSANOW
+#define Q_TCSANOW 0
+#else
+#define Q_TCSANOW TCSANOW
+#endif
+   QC_FILE->addMethodExtended("setTerminalAttributes",  (q_method_t)FILE_setTerminalAttributes, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 2, softBigIntTypeInfo, new QoreBigIntNode(Q_TCSANOW), QC_TERMIOS->getTypeInfo(), QORE_PARAM_NO_ARG);
 
    // overloaded setEventQueue() method
    QC_FILE->addMethodExtended("setEventQueue",          (q_method_t)FILE_setEventQueue_queue, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, QC_QUEUE->getTypeInfo(), QORE_PARAM_NO_ARG);
