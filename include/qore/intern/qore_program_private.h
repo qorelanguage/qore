@@ -430,7 +430,7 @@ public:
          i->first->delProgram(pgm);
       }
       
-      // now clear the original map xxx
+      // now clear the original map
       {
          AutoLocker al(tlock);
          assert(pgm_data_map.size() == pdm_copy.size());
@@ -871,7 +871,7 @@ public:
 
          if (run) {
             //printd(5, "qore_program_private::setThreadVarData() (first) this=%p pgm=%p td=%p\n", this, pgm, td);
-            doTopLevelInstantiation(*pgm_data_map[td]);
+            doTopLevelInstantiation(*tlpd);
          }
 
          return true;
