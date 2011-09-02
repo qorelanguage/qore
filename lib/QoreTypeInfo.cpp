@@ -121,6 +121,12 @@ static SoftDateOrNothingTypeInfo staticSoftDateOrNothingTypeInfo;
 const QoreTypeInfo *softDateTypeInfo = &staticSoftDateTypeInfo,
    *softDateOrNothingTypeInfo = &staticSoftDateOrNothingTypeInfo;
 
+// provides automatic conversion to a list
+static SoftListTypeInfo staticSoftListTypeInfo;
+static SoftListOrNothingTypeInfo staticListOrNothingTypeInfo;
+const QoreTypeInfo *softListTypeInfo = &staticSoftListTypeInfo,
+   *softListOrNothingTypeInfo = &staticListOrNothingTypeInfo;
+
 // somethingTypeInfo means "not NOTHING"
 static SomethingTypeInfo staticSomethingTypeInfo;
 const QoreTypeInfo *somethingTypeInfo = &staticSomethingTypeInfo;
@@ -216,11 +222,14 @@ void init_qore_types() {
    do_maps(NT_REFERENCE,   "reference", referenceTypeInfo, anyTypeInfo);
    do_maps(NT_NULL,        "null", nullTypeInfo, nullOrNothingTypeInfo);
    do_maps(NT_NOTHING,     "nothing", nothingTypeInfo);
+
    do_maps(NT_SOFTINT,     "softint", softBigIntTypeInfo, softBigIntOrNothingTypeInfo);
    do_maps(NT_SOFTFLOAT,   "softfloat", softFloatTypeInfo, softFloatOrNothingTypeInfo);
    do_maps(NT_SOFTBOOLEAN, "softbool", softBoolTypeInfo, softBoolOrNothingTypeInfo);
    do_maps(NT_SOFTSTRING,  "softstring", softStringTypeInfo, softStringOrNothingTypeInfo);
    do_maps(NT_SOFTDATE,    "softdate", softDateTypeInfo, softDateOrNothingTypeInfo);
+   do_maps(NT_SOFTLIST,    "softlist", softListTypeInfo, softListOrNothingTypeInfo);
+
    do_maps(NT_TIMEOUT,     "timeout", timeoutTypeInfo, timeoutOrNothingTypeInfo);
 
    // map the closure and callref strings to codeTypeInfo to ensure that these

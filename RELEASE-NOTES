@@ -111,6 +111,8 @@ release summary: 32 bug fixes and new feature support
 	   + %ifndef
 	   + %else
 	   + %endif
+* new feature: new softlist and *softlist types
+      	   for automatically converting values to a list
 * new feature: FtpClient class enhancements:
       	   new methods
 	   + FtpClient::mkdir()

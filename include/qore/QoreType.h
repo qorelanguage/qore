@@ -63,6 +63,7 @@ DLLEXPORT extern const QoreTypeInfo *anyTypeInfo,
    *softBoolTypeInfo,          // converts to bool from int, float, and string
    *softStringTypeInfo,        // converts to string from int, float, and bool
    *softDateTypeInfo,          // converts to date from int, float, bool, and string
+   *softListTypeInfo,          // converts NOTHING -> empty list, list -> the same list, and everything else: list(arg)
    *somethingTypeInfo,         // i.e. not "NOTHING"
    *dataTypeInfo,              // either string or binary
    *timeoutTypeInfo,           // accepts int or date and returns int giving timeout in milliseconds
@@ -85,6 +86,7 @@ DLLEXPORT extern const QoreTypeInfo *anyTypeInfo,
    *softBoolOrNothingTypeInfo,
    *softStringOrNothingTypeInfo,
    *softDateOrNothingTypeInfo,
+   *softListOrNothingTypeInfo,
    *timeoutOrNothingTypeInfo;
 
 DLLEXPORT qore_type_t get_next_type_id();

@@ -1023,6 +1023,18 @@ False</programlisting></note>
             <entry><para><link linkend="String">String</link></para></entry>
             <entry><para>Accepts <link linkend="Integer">Integer</link>, <link linkend="Float">Float</link>, <link linkend="Boolean">Boolean</link>, <link linkend="String">String</link>, <link linkend="NULL">NULL</link> and converts non-string values to a string and returns the new value.</para></entry>
           </row>
+          <row id="softdate_type">
+            <entry><para><code>softdate</code></para></entry>
+            <entry><para><link linkend="Integer">Integer</link>, <link linkend="Float">Float</link>, <link linkend="Boolean">Boolean</link>, <link linkend="String">String</link>, <link linkend="Date">Date</link>, <link linkend="NULL">NULL</link></para></entry>
+            <entry><para><link linkend="Date">Date</link></para></entry>
+            <entry><para>Accepts <link linkend="Integer">Integer</link>, <link linkend="Float">Float</link>, <link linkend="Boolean">Boolean</link>, <link linkend="String">String</link>, <link linkend="Date">Date</link>, and <link linkend="NULL">NULL</link> and converts non-date values to a date and returns the new value.</para></entry>
+          </row>
+          <row id="softlist_type">
+            <entry><para><code>softlist</code></para></entry>
+            <entry><para>all types</para></entry>
+            <entry><para><link linkend="Lists">List</link></para></entry>
+            <entry><para>Accepts all types; <link linkend="NOTHING">NOTHING</link> is returned as an empty list; a list is returned unchanged, and any other type is returned as the first element of a new list.</para></entry>
+          </row>
           <row id="*int_type">
             <entry><para><code>*int</code></para></entry>
             <entry><para><link linkend="Integer">Integer</link> or <link linkend="NOTHING">NOTHING</link></para></entry>
@@ -1112,6 +1124,18 @@ False</programlisting></note>
             <entry><para><link linkend="Integer">Integer</link>, <link linkend="Float">Float</link>, <link linkend="Boolean">Boolean</link>, <link linkend="String">String</link>, <link linkend="NULL">NULL</link> or <link linkend="NOTHING">NOTHING</link></para></entry>
             <entry><para><link linkend="String">String</link> or <link linkend="NOTHING">NOTHING</link></para></entry>
             <entry><para>Accepts <link linkend="Integer">Integer</link>, <link linkend="Float">Float</link>, <link linkend="Boolean">Boolean</link>, <link linkend="String">String</link>, <link linkend="NULL">NULL</link> and converts non-string values to a string and returns the new value.  If no value is passed, then <link linkend="NOTHING">NOTHING</link> is returned.</para></entry>
+          </row>
+          <row id="*softdate_type">
+            <entry><para><code>*softdate</code></para></entry>
+            <entry><para><link linkend="Integer">Integer</link>, <link linkend="Float">Float</link>, <link linkend="Boolean">Boolean</link>, <link linkend="String">String</link>, <link linkend="Date">Date</link>, <link linkend="NULL">NULL</link> or <link linkend="NOTHING">NOTHING</link></para></entry>
+            <entry><para><link linkend="Date">Date</link> or <link linkend="NOTHING">NOTHING</link></para></entry>
+            <entry><para>Accepts <link linkend="Integer">Integer</link>, <link linkend="Float">Float</link>, <link linkend="Boolean">Boolean</link>, <link linkend="String">String</link>, <link linkend="Date">Date</link>, and <link linkend="NULL">NULL</link> and converts non-date values to a date and returns the new value.  If no value is passed, then <link linkend="NOTHING">NOTHING</link> is returned.</para></entry>
+          </row>
+          <row id="*softlist_type">
+            <entry><para><code>*softlist</code></para></entry>
+            <entry><para>all types</para></entry>
+            <entry><para><link linkend="Lists">List</link> or <link linkend="NOTHING">NOTHING</link></para></entry>
+            <entry><para>Accepts all types; <link linkend="NOTHING">NOTHING</link> and list values are returned as the same value; any other type is returned as the first element of a new list.</para></entry>
           </row>
           <row id="any_type">
             <entry><para><code>any</code></para></entry>
