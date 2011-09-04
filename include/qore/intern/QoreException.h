@@ -25,61 +25,140 @@
 
 #define _QORE_QOREEXCEPTION_H
 
+#include <stdarg.h>
+
 // exception/callstack entry types
 #define ET_SYSTEM     0
 #define ET_USER       1
 
-class QoreException {
+struct QoreExceptionBase {
+   int type;
+   QoreListNode *callStack;
+   AbstractQoreNode *err, *desc, *arg;
+
+   DLLLOCAL QoreExceptionBase(AbstractQoreNode *n_err, AbstractQoreNode *n_desc, AbstractQoreNode *n_arg = 0, int n_type = ET_SYSTEM) : type(n_type), callStack(new QoreListNode), err(n_err), desc(n_desc), arg(n_arg) {
+   }
+
+   DLLLOCAL QoreExceptionBase(const QoreExceptionBase &old) : type(old.type), callStack(old.callStack->copy()), err(old.err ? old.err->refSelf() : 0), desc(old.desc ? old.desc->refSelf() : 0), arg(old.arg ? old.arg->refSelf() : 0) {
+   }
+};
+
+class QoreException : public QoreExceptionBase, public QoreProgramLocation {
    friend class ExceptionSink;
+   friend class qore_es_private;
 
-   private:
-      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-      DLLLOCAL QoreException(const QoreException&);
+private:
+   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+   DLLLOCAL QoreException& operator=(const QoreException&);
 
-      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-      DLLLOCAL QoreException& operator=(const QoreException&);
+protected:
+   QoreException *next;
 
-   protected:
-      int type;
-      int start_line, end_line;
-      char *file;
-      QoreListNode *callStack;
-      AbstractQoreNode *err, *desc, *arg;
-      QoreException *next;
+   DLLLOCAL ~QoreException() {
+      assert(!callStack);
+      assert(!err);
+      assert(!desc);
+      assert(!arg);
+   }
 
-      DLLLOCAL ~QoreException();
-      DLLLOCAL void addStackInfo(AbstractQoreNode *n);
-      DLLLOCAL static QoreHashNode *getStackHash(int type, const char *class_name, const char *code, const char *file, int start_line, int end_line);
-      DLLLOCAL void init(const char *err, QoreStringNode *desc);
+   DLLLOCAL void addStackInfo(AbstractQoreNode *n);
+   DLLLOCAL static QoreHashNode *getStackHash(int type, const char *class_name, const char *code, const char *file, int start_line, int end_line);
 
-   public:
-      // called for generic exceptions
-      DLLLOCAL QoreHashNode *makeExceptionObjectAndDelete(ExceptionSink *xsink);
-      DLLLOCAL QoreHashNode *makeExceptionObject();
+public:
+   // called for generic exceptions
+   DLLLOCAL QoreHashNode *makeExceptionObjectAndDelete(ExceptionSink *xsink);
+   DLLLOCAL QoreHashNode *makeExceptionObject();
 
-      // called for runtime exceptions
-      DLLLOCAL QoreException(const char *err, QoreStringNode *desc);
-      // called for runtime exceptions
-      DLLLOCAL QoreException(const char *err, QoreStringNode *desc, AbstractQoreNode *arg);
-      // called for rethrow
-      DLLLOCAL QoreException(QoreException *old, ExceptionSink *xsink);
-      // called for user exceptions
-      DLLLOCAL QoreException(const QoreListNode *n);
-      // for derived classes
-      DLLLOCAL QoreException();
-      DLLLOCAL void del(ExceptionSink *xsink);
+   // called for runtime exceptions
+   DLLLOCAL QoreException(const char *n_err, AbstractQoreNode *n_desc, AbstractQoreNode *n_arg = 0) : QoreExceptionBase(new QoreStringNode(n_err), n_desc, n_arg), QoreProgramLocation(RunTimeLocation), next(0) {      
+   }
+
+   DLLLOCAL QoreException(const QoreException &old) : QoreExceptionBase(old), QoreProgramLocation(old), next(old.next ? new QoreException(*old.next) : 0) {
+   }
+
+   // called for user exceptions
+   DLLLOCAL QoreException(const QoreListNode *n) : QoreExceptionBase(0, 0, 0, ET_USER), QoreProgramLocation(RunTimeLocation), next(0) {
+      if (n) {
+         err = n->get_referenced_entry(0);
+         desc = n->get_referenced_entry(1);
+         arg = n->size() > 3 ? n->copyListFrom(2) : n->get_referenced_entry(2);
+      }
+   }
+;
+
+   DLLLOCAL QoreException(const QoreProgramLocation &n_loc, const char *n_err, AbstractQoreNode *n_desc, AbstractQoreNode *n_arg = 0, int n_type = ET_SYSTEM) : QoreExceptionBase(new QoreStringNode(n_err), n_desc, n_arg, n_type), QoreProgramLocation(n_loc), next(0) {
+   }
+   
+   DLLLOCAL void del(ExceptionSink *xsink);
+
+   DLLLOCAL QoreException *rethrow() {
+      QoreException *e = new QoreException(*this);
+
+      // insert current position as a rethrow entry in the new callstack
+      QoreListNode *l = e->callStack;
+      const char *fn = 0;
+      QoreHashNode *n = reinterpret_cast<QoreHashNode *>(l->retrieve_entry(0));
+      // get function name
+      if (n) {
+         QoreStringNode *func = reinterpret_cast<QoreStringNode *>(n->getKeyValue("function"));
+         fn = func->getBuffer();
+      }
+      if (!fn)
+         fn = "<unknown>";
+   
+      int sline, eline;
+      const char *cf = get_pgm_counter(sline, eline);
+      QoreHashNode *h = getStackHash(CT_RETHROW, 0, fn, cf, sline, eline);
+      l->insert(h);
+
+      return e;
+   }
 };
 
 class ParseException : public QoreException {
-   public:
-      // called for parse exceptions
-      DLLLOCAL ParseException(const char *err, QoreStringNode *desc);
+public:
+   // called for parse exceptions
+   DLLLOCAL ParseException(const char *err, QoreStringNode *desc) : QoreException(QoreProgramLocation(ParseLocation), err, desc) {
+   }
 
-      // called for parse exceptions
-      DLLLOCAL ParseException(int s_line, int e_line, const char *err, QoreStringNode *desc);
+   // called for parse exceptions
+   DLLLOCAL ParseException(const QoreProgramLocation &loc, const char *err, QoreStringNode *desc) : QoreException(loc, err, desc) {
+   }
 
-      // called for parse exceptions
-      DLLLOCAL ParseException(int s_line, int e_line, const char *file, const char *err, QoreStringNode *desc);
+   // called for parse exceptions
+   DLLLOCAL ParseException(int s_line, int e_line, const char *file, const char *err, QoreStringNode *desc) : QoreException(QoreProgramLocation(s_line, e_line, file), err, desc) {
+   }
+};
+
+struct qore_es_private {
+   bool thread_exit;
+   QoreException *head, *tail;
+
+   DLLLOCAL qore_es_private() {
+      thread_exit = false;
+      head = tail = 0;
+   }
+   
+   DLLLOCAL ~qore_es_private() {
+   }
+
+   DLLLOCAL void clearIntern() {
+      // delete all exceptions
+      ExceptionSink xs;
+      if (head) {
+         head->del(&xs);
+         head = tail = 0;
+      }
+   }
+
+   DLLLOCAL void insert(QoreException *e) {
+      // append exception to the list
+      if (!head)
+         head = e;
+      else
+         tail->next = e;
+      tail = e;
+   }
 };
 
 #endif

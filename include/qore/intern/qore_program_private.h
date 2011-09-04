@@ -1063,11 +1063,11 @@ public:
    }
 
    // returns true if the define already existed
-   DLLLOCAL bool setDefine(const char *name, AbstractQoreNode *v) {
+   DLLLOCAL bool setDefine(const char *name, AbstractQoreNode *v, ExceptionSink *xsink) {
       dmap_t::iterator i = dmap.find(name);
       if (i != dmap.end()) {
          if (i->second)
-            i->second->deref(0);
+            i->second->deref(xsink);
          i->second = v;
          return true;
       }
@@ -1103,23 +1103,41 @@ public:
       return i == dmap.end() ? false : true;
    }
 
-   DLLLOCAL void parseDefine(QoreProgramLocation &loc, const char *str, AbstractQoreNode *val) {
-      PreParseHelper pph(this);
-
+   DLLLOCAL int checkDefine(const QoreProgramLocation &loc, const char *str, ExceptionSink *xsink) {
       const char *p = str;
       if (!isalpha(*p)) {
-         parseException(loc, "illegal define variable '%s'; does not begin with an alphabetic character", p);
-         return;
+         xsink->raiseException(loc, "PARSE-EXCEPTION", 0, "illegal define variable '%s'; does not begin with an alphabetic character", p);
+         return -1;
       }
 
       while (*(++p)) {
          if (!isalnum(*p) && *p != '_') {
-            parseException(loc, "illegal character '%c' in define variable '%s'", *p, str);
-            return;
+            
+            xsink->raiseException(loc, "PARSE-EXCEPTION", 0, "illegal character '%c' in define variable '%s'", *p, str);
+            return -1;
          }
       }
-   
-      setDefine(str, val);
+
+      return 0;
+   }
+
+   DLLLOCAL void parseDefine(const QoreProgramLocation &loc, const char *str, AbstractQoreNode *val) {
+      PreParseHelper pph(this);
+
+      if (checkDefine(loc, str, parseSink))
+         return;
+
+      setDefine(str, val, parseSink);
+   }
+
+   DLLLOCAL void runTimeParseDefine(const char *str, AbstractQoreNode *val, ExceptionSink *xsink) {
+      QoreProgramLocation loc(RunTimeLocation);
+
+      if (checkDefine(loc, str, xsink))
+         return;
+
+      AutoLocker al(plock);
+      setDefine(str, val, xsink);
    }
 
    DLLLOCAL static const ParseWarnOptions &getParseWarnOptions(const QoreProgram *pgm) {
@@ -1162,10 +1180,6 @@ public:
       pgm->priv->makeParseException(loc, err, desc);
    }
 
-   DLLLOCAL static void setDefine(QoreProgram *pgm, const char *name, AbstractQoreNode *v) {
-      pgm->priv->setDefine(name, v);
-   }
-
    DLLLOCAL static const AbstractQoreNode *getDefine(QoreProgram *pgm, const char *name) {
       bool is_defined;
       return pgm->priv->getDefine(name, is_defined);
@@ -1185,6 +1199,10 @@ public:
 
    DLLLOCAL static void parseDefine(QoreProgram *pgm, QoreProgramLocation loc, const char *str, AbstractQoreNode *val) {
       pgm->priv->parseDefine(loc, str, val);
+   }
+
+   DLLLOCAL static void runTimeParseDefine(QoreProgram *pgm, const char *str, AbstractQoreNode *val, ExceptionSink *xsink) {
+      pgm->priv->runTimeParseDefine(str, val, xsink);
    }
 };
 

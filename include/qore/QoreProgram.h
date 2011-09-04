@@ -485,17 +485,25 @@ public:
     */
    DLLEXPORT void parseSetTimeZone(const char *zone);
 
-   //! defines a parse-time variable
+   //! defines a parse-time variable; call only at parse time (or before parsing)
    /** @param str the name of the variable
        @param val the value of the variable; may be 0; if non-0, then the QoreProgram object assumes ownership of the reference
+
+       @note if this function is called at runtime it could cause a crash
+
+       @see runtimeDefine()
    */
    DLLEXPORT void parseDefine(const char *str, AbstractQoreNode *val);
 
-   //! defines a parse-time variable
+   //! defines a parse-time variable; call only at parse time (or before parsing)
    /** @param str the name of the variable
        @param val a string value that will be parsed and converted to a qore value
+
+       @note if this function is called at runtime it could cause a crash
+
+       @see runtimeDefine()
    */
-   DLLEXPORT void parseDefine(const char *str, const char *val);
+   DLLEXPORT void parseDefine(const char *str, const char *val);   
 
    /// returns a pointed to the given user function if it exists (otherwise returns 0)
    DLLLOCAL UserFunction *findUserFunction(const char *name);

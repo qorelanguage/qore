@@ -1135,7 +1135,7 @@ sub string_tests() {
 sub pwd_tests() {
     # getpwuid(0).pw_name may not always be "root"
     # skip the test on windows
-    if (Option::HAVE_PWD) {
+    if (Option::HAVE_UNIX_USERMGT) {
         test_value(getpwuid(0).pw_uid, 0, "getpwuid()");
         my hash $h;
         # try to get passwd entry for uid 0, ignore exceptions

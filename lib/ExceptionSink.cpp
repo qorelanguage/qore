@@ -22,21 +22,6 @@
 
 #include <qore/Qore.h>
 
-struct qore_es_private {
-      bool thread_exit;
-      class QoreException *head, *tail;
-
-      DLLLOCAL qore_es_private()
-      {
-	 thread_exit = false;
-	 head = tail = 0;
-      }
-
-      DLLLOCAL ~qore_es_private()
-      {
-      }
-};
-
 ExceptionSink::ExceptionSink() : priv(new qore_es_private) {
 }
 
@@ -100,12 +85,10 @@ ExceptionSink::operator bool () const {
 }
 
 void ExceptionSink::overrideLocation(int sline, int eline, const char *file) {
-   class QoreException *w = priv->head;
+   QoreException *w = priv->head;
    while (w) {
       w->start_line = sline;
       w->end_line = eline;
-      if (w->file)
-	 free(w->file);
       w->file = file ? strdup(file) : 0;
       w = w->next;
    }
@@ -133,32 +116,14 @@ void ExceptionSink::handleWarnings() {
    }
 }
 
-void ExceptionSink::clearIntern() {
-   // delete all exceptions
-   ExceptionSink xs;
-   if (priv->head) {
-      priv->head->del(&xs);
-      priv->head = priv->tail = 0;
-   }
-}
-
 void ExceptionSink::clear() {
-   clearIntern();
+   priv->clearIntern();
    priv->head = priv->tail = 0;
    priv->thread_exit = false;
 }
 
-void ExceptionSink::insert(QoreException *e) {
-   // append exception to the list
-   if (!priv->head)
-      priv->head = e;
-   else
-      priv->tail->next = e;
-   priv->tail = e;
-}
-
 AbstractQoreNode* ExceptionSink::raiseException(const char *err, const char *fmt, ...) {
-   QoreStringNode *desc = new QoreStringNode();
+   QoreStringNode *desc = new QoreStringNode;
    
    va_list args;
    
@@ -170,7 +135,7 @@ AbstractQoreNode* ExceptionSink::raiseException(const char *err, const char *fmt
 	 break;
    }
    printd(5, "ExceptionSink::raiseException(%s, %s)\n", err, desc->getBuffer());
-   insert(new QoreException(err, desc));
+   priv->insert(new QoreException(err, desc));
    return 0;
 }
 
@@ -192,14 +157,14 @@ AbstractQoreNode* ExceptionSink::raiseErrnoException(const char *err, int en, co
    q_strerror(*desc, en);
 
    printd(5, "ExceptionSink::raiseException(%s, %s)\n", err, desc->getBuffer());
-   insert(new QoreException(err, desc, new QoreBigIntNode(en)));
+   priv->insert(new QoreException(err, desc, new QoreBigIntNode(en)));
    return 0;
 }
 
 // returns 0, takes ownership of the "desc" argument
 AbstractQoreNode *ExceptionSink::raiseException(const char *err, QoreStringNode *desc) {
    printd(5, "ExceptionSink::raiseException(%s, %s)\n", err, desc->getBuffer());
-   insert(new QoreException(err, desc));
+   priv->insert(new QoreException(err, desc));
    return 0;
 }
 
@@ -207,12 +172,12 @@ AbstractQoreNode* ExceptionSink::raiseExceptionArg(const char* err, AbstractQore
    printd(5, "ExceptionSink::raiseExceptionArg(%s, %s)\n", err, desc->getBuffer());
    QoreException* exc = new QoreException(err, desc);
    exc->arg = arg;
-   insert(exc);
+   priv->insert(exc);
    return 0;
 }
 
 AbstractQoreNode* ExceptionSink::raiseExceptionArg(const char* err, AbstractQoreNode* arg, const char* fmt, ...) {
-   QoreStringNode *desc = new QoreStringNode();
+   QoreStringNode *desc = new QoreStringNode;
    
    va_list args;
    
@@ -226,20 +191,41 @@ AbstractQoreNode* ExceptionSink::raiseExceptionArg(const char* err, AbstractQore
    printd(5, "ExceptionSink::raiseExceptionArg(%s, %s)\n", err, desc->getBuffer());
    QoreException* exc = new QoreException(err, desc);
    exc->arg = arg;
-   insert(exc);
+   priv->insert(exc);
    return 0;
 }
 
 void ExceptionSink::raiseException(QoreException *e) {
-   insert(e);
+   priv->insert(e);
 }
 
 void ExceptionSink::raiseException(const QoreListNode *n) {
-   insert(new QoreException(n));
+   priv->insert(new QoreException(n));
 }
 
-void ExceptionSink::rethrow(class QoreException *old) {
-   insert(new QoreException(old, this));
+void ExceptionSink::raiseException(const QoreProgramLocation &loc, const char *err, AbstractQoreNode *arg, AbstractQoreNode *desc) {
+   printd(5, "ExceptionSink::raiseExceptionArg(%s, %s)\n", err, get_node_type(desc) == NT_STRING ? reinterpret_cast<QoreStringNode *>(desc)->getBuffer() : get_type_name(desc));
+   priv->insert(new QoreException(loc, err, desc, arg));
+}
+
+void ExceptionSink::raiseException(const QoreProgramLocation &loc, const char *err, AbstractQoreNode *arg, const char *fmt, ...) {
+   QoreStringNode *desc = new QoreStringNode;
+
+   va_list args;
+
+   while (true) {
+      va_start(args, fmt);
+      int rc = desc->vsprintf(fmt, args);
+      va_end(args);
+      if (!rc)
+         break;
+   }
+
+   raiseException(loc, err, arg, desc);
+}
+
+void ExceptionSink::rethrow(QoreException *old) {
+   priv->insert(old->rethrow());
 }
 
 void ExceptionSink::assimilate(ExceptionSink *xs) {
@@ -265,7 +251,7 @@ void ExceptionSink::assimilate(ExceptionSink &xs) {
 void ExceptionSink::outOfMemory() {
 #ifdef QORE_OOM
    // get pre-allocated out of memory exception for this thread
-   class QoreException *ex = getOutOfMemoryException();
+   QoreException *ex = getOutOfMemoryException();
    // if it's already been used then return
    if (!ex)
       return;
@@ -274,7 +260,7 @@ void ExceptionSink::outOfMemory() {
    ex->file = f ? strdup(f) : 0;
    // there is no callstack in an out-of-memory exception
    // add exception to list
-   insert(ex);
+   priv->insert(ex);
 #else
    printf("OUT OF MEMORY: aborting\n");
    exit(1);

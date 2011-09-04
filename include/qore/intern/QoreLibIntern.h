@@ -127,6 +127,8 @@ struct ParseWarnOptions {
    }
 };
 
+enum prog_loc_e { RunTimeLocation = 0, ParseLocation = 1 };
+
 struct QoreProgramLocation {
    int start_line, end_line;
    const char *file;
@@ -134,8 +136,8 @@ struct QoreProgramLocation {
    DLLLOCAL QoreProgramLocation(int sline, int eline, const char *f) : start_line(sline), end_line(eline), file(f) {
    }
 
-   // sets from current parse location in thread-local data
-   DLLLOCAL QoreProgramLocation();
+   // sets from current parse or runtime location in thread-local data
+   DLLLOCAL QoreProgramLocation(prog_loc_e loc = ParseLocation);
 };
 
 struct QoreCommandLineLocation : public QoreProgramLocation {

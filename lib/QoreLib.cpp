@@ -1625,7 +1625,12 @@ int qore_usleep(int64 usecs) {
 #endif
 }
 
-QoreProgramLocation::QoreProgramLocation() {
-   get_parse_location(start_line, end_line);
-   file = get_parse_file();
+QoreProgramLocation::QoreProgramLocation(prog_loc_e loc) {
+   if (loc == ParseLocation) {
+      start_line = end_line = -1;
+      get_parse_location(start_line, end_line);
+      file = get_parse_file();
+   }
+   else
+      file = get_pgm_counter(start_line, end_line);
 }

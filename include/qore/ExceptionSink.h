@@ -29,15 +29,13 @@
 #include <stdio.h>
 
 class QoreException;
+class QoreProgramLocation;
 
 //! container for holding Qore-language exception information and also for registering a "thread_exit" call
 class ExceptionSink {
 private:
    //! private implementation of the class
    struct qore_es_private *priv;
-
-   DLLLOCAL void insert(QoreException *e);
-   DLLLOCAL void clearIntern();
 
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
    DLLLOCAL ExceptionSink(const ExceptionSink&);
@@ -136,6 +134,8 @@ public:
 
    DLLLOCAL void raiseException(QoreException *e);
    DLLLOCAL void raiseException(const QoreListNode *n);
+   DLLLOCAL void raiseException(const QoreProgramLocation &loc, const char *err, AbstractQoreNode *arg, AbstractQoreNode *desc);
+   DLLLOCAL void raiseException(const QoreProgramLocation &loc, const char *err, AbstractQoreNode *arg, const char *fmt, ...);
    DLLLOCAL QoreException *catchException();
    DLLLOCAL void overrideLocation(int sline, int eline, const char *file);
    DLLLOCAL void rethrow(QoreException *old);
