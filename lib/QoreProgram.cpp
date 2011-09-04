@@ -91,6 +91,12 @@ void qore_program_private_base::newProgram() {
    dmap["QorePlatformCPU"] = new QoreStringNode(TARGET_ARCH);
    dmap["QorePlatformOS"] = new QoreStringNode(TARGET_OS);
 
+#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__ 
+   dmap["Windows"] = &True;
+#else
+   dmap["Unix"] = &True;
+#endif
+
    QoreNamespace *ns = QoreNS->findLocalNamespace("Option");
    assert(ns);
    ConstantListIterator cli(*qore_ns_private::getConstantList(ns));

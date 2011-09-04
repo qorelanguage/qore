@@ -1062,6 +1062,7 @@ public:
       makeParseException(loc, "PARSE-EXCEPTION", desc);
    }
 
+   // internal method - does not bother with the parse lock
    // returns true if the define already existed
    DLLLOCAL bool setDefine(const char *name, AbstractQoreNode *v, ExceptionSink *xsink) {
       dmap_t::iterator i = dmap.find(name);
@@ -1076,6 +1077,7 @@ public:
       return false;
    }
 
+   // internal method - does not bother with the parse lock
    DLLLOCAL const AbstractQoreNode *getDefine(const char *name, bool &is_defined) {
       dmap_t::iterator i = dmap.find(name);
       if (i != dmap.end()) {
@@ -1086,21 +1088,44 @@ public:
       return 0;
    }
 
+   DLLLOCAL AbstractQoreNode *runTimeGetDefine(const char *name, bool &is_defined) {
+      AutoLocker al(plock);
+      const AbstractQoreNode *rv = getDefine(name, is_defined);
+      return rv ? rv->refSelf() : 0;
+   }
+
+   // internal method - does not bother with the parse lock
    // returns true if the define existed
-   DLLLOCAL bool unDefine(const char *name) {
+   DLLLOCAL bool unDefine(const char *name, ExceptionSink *xsink) {
       dmap_t::iterator i = dmap.find(name);
       if (i != dmap.end()) {
          if (i->second)
-            i->second->deref(0);
+            i->second->deref(xsink);
          dmap.erase(i);
          return true;
       }
       return false;
    }
 
+   DLLLOCAL bool parseUnDefine(const char *name) {
+      PreParseHelper pph(this);
+      return unDefine(name, parseSink);
+   }
+
+   DLLLOCAL bool runTimeUnDefine(const char *name, ExceptionSink *xsink) {
+      AutoLocker al(plock);
+      return unDefine(name, xsink);
+   }
+
+   // internal method - does not bother with the parse lock
    DLLLOCAL bool isDefined(const char *name) {
       dmap_t::iterator i = dmap.find(name);
       return i == dmap.end() ? false : true;
+   }
+
+   DLLLOCAL bool runTimeIsDefined(const char *name) {
+      AutoLocker al(plock);
+      return isDefined(name);
    }
 
    DLLLOCAL int checkDefine(const QoreProgramLocation &loc, const char *str, ExceptionSink *xsink) {
@@ -1130,7 +1155,7 @@ public:
       setDefine(str, val, parseSink);
    }
 
-   DLLLOCAL void runTimeParseDefine(const char *str, AbstractQoreNode *val, ExceptionSink *xsink) {
+   DLLLOCAL void runTimeDefine(const char *str, AbstractQoreNode *val, ExceptionSink *xsink) {
       QoreProgramLocation loc(RunTimeLocation);
 
       if (checkDefine(loc, str, xsink))
@@ -1180,29 +1205,46 @@ public:
       pgm->priv->makeParseException(loc, err, desc);
    }
 
-   DLLLOCAL static const AbstractQoreNode *getDefine(QoreProgram *pgm, const char *name) {
+   DLLLOCAL static const AbstractQoreNode *parseGetDefine(QoreProgram *pgm, const char *name) {
       bool is_defined;
       return pgm->priv->getDefine(name, is_defined);
    }
 
-   DLLLOCAL static const AbstractQoreNode *getDefine(QoreProgram *pgm, const char *name, bool &is_defined) {
+   DLLLOCAL static const AbstractQoreNode *parseGetDefine(QoreProgram *pgm, const char *name, bool &is_defined) {
       return pgm->priv->getDefine(name, is_defined);
    }
 
-   DLLLOCAL static bool unDefine(QoreProgram *pgm, const char *name) {
-      return pgm->priv->unDefine(name);
+   DLLLOCAL static AbstractQoreNode *runTimeGetDefine(QoreProgram *pgm, const char *name) {
+      bool is_defined;
+      return pgm->priv->runTimeGetDefine(name, is_defined);
    }
 
-   DLLLOCAL static bool isDefined(QoreProgram *pgm, const char *name) {
+   DLLLOCAL static AbstractQoreNode *runTimeGetDefine(QoreProgram *pgm, const char *name, bool &is_defined) {
+      return pgm->priv->runTimeGetDefine(name, is_defined);
+   }
+
+   DLLLOCAL static bool parseUnDefine(QoreProgram *pgm, const char *name) {
+      return pgm->priv->parseUnDefine(name);
+   }
+
+   DLLLOCAL static bool runTimeUnDefine(QoreProgram *pgm, const char *name, ExceptionSink *xsink) {
+      return pgm->priv->runTimeUnDefine(name, xsink);
+   }
+
+   DLLLOCAL static bool parseIsDefined(QoreProgram *pgm, const char *name) {
       return pgm->priv->isDefined(name);
+   }
+
+   DLLLOCAL static bool runTimeIsDefined(QoreProgram *pgm, const char *name) {
+      return pgm->priv->runTimeIsDefined(name);
    }
 
    DLLLOCAL static void parseDefine(QoreProgram *pgm, QoreProgramLocation loc, const char *str, AbstractQoreNode *val) {
       pgm->priv->parseDefine(loc, str, val);
    }
 
-   DLLLOCAL static void runTimeParseDefine(QoreProgram *pgm, const char *str, AbstractQoreNode *val, ExceptionSink *xsink) {
-      pgm->priv->runTimeParseDefine(str, val, xsink);
+   DLLLOCAL static void runTimeDefine(QoreProgram *pgm, const char *str, AbstractQoreNode *val, ExceptionSink *xsink) {
+      pgm->priv->runTimeDefine(str, val, xsink);
    }
 };
 

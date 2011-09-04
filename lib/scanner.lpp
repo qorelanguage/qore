@@ -496,7 +496,7 @@ bool parse_is_defined(const char *pstr, bool def = true) {
       parse_error("missing argument to %%if%sdef", def ? "" : "n");
       return false;
    }
-   return qore_program_private::isDefined(getProgram(), str.getBuffer());
+   return qore_program_private::parseIsDefined(getProgram(), str.getBuffer());
 }
 
 #define QORE_FLEX_DO_EOF { /* delete current buffer */ yy_delete_buffer(YY_CURRENT_BUFFER, yyscanner); \

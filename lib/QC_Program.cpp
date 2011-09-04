@@ -299,6 +299,50 @@ static AbstractQoreNode *PROGRAM_getTimeZone(QoreObject *self, QoreProgram *p, c
    return new QoreObject(QC_TIMEZONE, 0, new TimeZoneData(p->currentTZ()));
 }
 
+// nothing Program::define(string $def, any $val)
+static AbstractQoreNode *PROGRAM_define(QoreObject *self, QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink) {
+   const QoreStringNode *str = HARD_QORE_STRING(params, 0);
+   const AbstractQoreNode *val = get_param(params, 1);
+
+   TempEncodingHelper t(str, QCS_DEFAULT, xsink);
+   if (!t)
+      return 0;
+
+   qore_program_private::runTimeDefine(p, t->getBuffer(), val ? val->refSelf() : 0, xsink);
+   return 0;
+}
+
+// nothing Program::undefine(string $def)
+static AbstractQoreNode *PROGRAM_undefine(QoreObject *self, QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink) {
+   const QoreStringNode *str = HARD_QORE_STRING(params, 0);
+   TempEncodingHelper t(str, QCS_DEFAULT, xsink);
+   if (!t)
+      return 0;
+
+   qore_program_private::runTimeUnDefine(p, t->getBuffer(), xsink);
+   return 0;
+}
+
+// bool Program::isDefined(string $def)
+static AbstractQoreNode *PROGRAM_isDefined(QoreObject *self, QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink) {
+   const QoreStringNode *str = HARD_QORE_STRING(params, 0);
+   TempEncodingHelper t(str, QCS_DEFAULT, xsink);
+   if (!t)
+      return 0;
+
+   return get_bool_node(qore_program_private::runTimeIsDefined(p, t->getBuffer()));
+}
+
+// any Program::getDefine(string $def)
+static AbstractQoreNode *PROGRAM_getDefine(QoreObject *self, QoreProgram *p, const QoreListNode *params, ExceptionSink *xsink) {
+   const QoreStringNode *str = HARD_QORE_STRING(params, 0);
+   TempEncodingHelper t(str, QCS_DEFAULT, xsink);
+   if (!t)
+      return 0;
+
+   return qore_program_private::runTimeGetDefine(p, t->getBuffer());
+}
+
 QoreClass *initProgramClass() {
    QORE_TRACE("initProgramClass()");
 
@@ -399,5 +443,16 @@ QoreClass *initProgramClass() {
    // TimeZone Program::getTimeZone()  
    QC_PROGRAM->addMethodExtended("getTimeZone",          (q_method_t)PROGRAM_getTimeZone, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, QC_TIMEZONE->getTypeInfo());
 
+   // nothing Program::define(string $def, any $val)
+   QC_PROGRAM->addMethodExtended("define",               (q_method_t)PROGRAM_define, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, QORE_PARAM_NO_ARG, QORE_PARAM_NO_ARG);
+
+   // nothing Program::undefine(string $def)
+   QC_PROGRAM->addMethodExtended("undefine",             (q_method_t)PROGRAM_undefine, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+
+   // bool Program::isDefined(string $def)
+   QC_PROGRAM->addMethodExtended("isDefined",            (q_method_t)PROGRAM_isDefined, false, QC_NO_FLAGS, QDOM_DEFAULT, boolTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+
+   // any Program::getDefine(string $def)
+   QC_PROGRAM->addMethodExtended("getDefine",            (q_method_t)PROGRAM_getDefine, false, QC_NO_FLAGS, QDOM_DEFAULT, 0, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
    return QC_PROGRAM;
 }
