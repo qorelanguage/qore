@@ -12369,6 +12369,14 @@ stdin.getTerminalAttributes($termios);</programlisting>
 
 	  <row>
 	    <entry>
+              <para><code><link linkend="nothing_type">nothing</link> <link linkend="Program_define">Program::define</link>(<link linkend="string_type">string</link> <replaceable>$def</replaceable>, <link linkend="any_type">any</link> <replaceable>$val</replaceable>)</code></para>
+            </entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Sets a <link linkend="Parse_Defines">parse define</link> for the current Program.</para></entry>
+	  </row>
+
+	  <row>
+	    <entry>
               <para><code><link linkend="nothing_type">nothing</link> <link linkend="Program_disableParseOptions">Program::disableParseOptions</link>(<link linkend="int_type">int</link> <replaceable>$options</replaceable> = <link linkend="PO_DEFAULT">PO_DEFAULT</link>)</code></para>
             </entry>
 	    <entry><para>Y</para></entry>
@@ -12382,6 +12390,14 @@ stdin.getTerminalAttributes($termios);</programlisting>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Checks if a user function exists in the program object</para></entry>
+	  </row>
+
+	  <row>
+	    <entry>
+              <para><code><link linkend="any_type">any</link> <link linkend="Program_getDefine">Program::getDefine</link>(<link linkend="string_type">string</link> <replaceable>$def</replaceable>)</code></para>
+            </entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Retrieves the value of the given <link linkend="Parse_Defines">parse define</link> in the current Program.</para></entry>
 	  </row>
 
 	  <row>
@@ -12456,6 +12472,14 @@ stdin.getTerminalAttributes($termios);</programlisting>
 	    <entry><para>Y</para></entry>
 	    <entry><para>Imports a global variable into the Program object's space.  If the variable is an object, then any methods
 	    called will run in the parent's space.</para></entry>
+	  </row>
+
+	  <row>
+	    <entry>
+              <para><code><link linkend="bool_type">bool</link> <link linkend="Program_isDefined">Program::isDefined</link>(<link linkend="string_type">string</link> <replaceable>$def</replaceable>)</code></para>
+            </entry>
+	    <entry><para>N</para></entry>
+	    <entry><para>Returns <code>True</code> if the given <link linkend="Parse_Defines">parse define</link> is defined in the current Program (does not have to have a value defined to return <code>True</code>).</para></entry>
 	  </row>
 
 	  <row>
@@ -12553,6 +12577,14 @@ stdin.getTerminalAttributes($termios);</programlisting>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Sets the default local time zone for the object from a UTC offset in seconds east of UTC; for zones west of UTC, use negative numbers.</para></entry>
+	  </row>
+
+	  <row>
+	    <entry>
+              <para><code><link linkend="nothing_type">nothing</link> <link linkend="Program_undefine">Program::undefine</link>(<link linkend="string_type">string</link> <replaceable>$def</replaceable>)</code></para>
+            </entry>
+	    <entry><para>Y</para></entry>
+	    <entry><para>Undefines the given <link linkend="Parse_Defines">parse define</link> in the current Program.</para></entry>
 	  </row>
 
 	</tbody>
@@ -12828,6 +12860,55 @@ stdin.getTerminalAttributes($termios);</programlisting>
       </table>
     </sect2>
 
+    <sect2 id="Program_define">
+      <title>Program::define()</title>
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Sets a <link linkend="Parse_Defines">parse define</link> for the current Program.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Prototype</term>
+	  <listitem>
+	    <para><code><link linkend="nothing_type">nothing</link> <link linkend="Program_define">Program::define</link>(<link linkend="string_type">string</link> <replaceable>$def</replaceable>, <link linkend="any_type">any</link> <replaceable>$val</replaceable>)</code></para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$pgm.define("PRODUCTION", True);</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for Program::define()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code><link linkend="string_type">string</link> <replaceable>$def</replaceable></code></para></entry>
+	      <entry><para>The name of the define to set.</para></entry>
+	    </row>
+	    <row>
+	      <entry><para><code><link linkend="any_type">any</link> <replaceable>$val</replaceable></code></para></entry>
+	      <entry><para>The value to assign to the define.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <para>This method will only throw an exception if the old value of the define was an object, and this call causes the object to go out of scope, and the object's destructor throws an exception.</para>
+
+    </sect2>
+
     <sect2 id="Program_disableParseOptions">
       <title>Program::disableParseOptions()</title>
       <variablelist>
@@ -12946,6 +13027,66 @@ $pgm.disableParseOptions(<link linkend="PO_NO_THREADS">PO_NO_THREADS</link> | <l
 	    <row>
 	      <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
 	      <entry><para>Returns <code>True</code> if the function exists, <code>False</code> if not.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+    </sect2>
+
+    <sect2 id="Program_getDefine">
+      <title>Program::getDefine()</title>
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Retrieves the value of the given <link linkend="Parse_Defines">parse define</link> in the current Program.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Prototype</term>
+	  <listitem>
+	    <para><code><link linkend="any_type">any</link> <link linkend="Program_getDefine">Program::getDefine</link>(<link linkend="string_type">string</link> <replaceable>$def</replaceable>)</code></para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting><command>my</command> any $val = $pgm.getDefine("PRODUCTION");</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for Program::getDefine()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code><link linkend="string_type">string</link> <replaceable>$def</replaceable></code></para></entry>
+	      <entry><para>The name of the define to retrieve.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for Program::getDefine()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code><link linkend="any_type">any</link></code></para></entry>
+	      <entry><para>The value of the given <link linkend="Parse_Defines">parse define</link>; note that a <link linkend="Parse_Defines">parse define</link> may be defined with no value; use <link linkend="Program_isDefined">Program::isDefined</link> to check if a <link linkend="Parse_Defines">parse define</link> is actually defined or not.</para></entry>
 	    </row>
 	  </tbody>
 	</tgroup>
@@ -13412,7 +13553,66 @@ $pgm.disableParseOptions(<link linkend="PO_NO_THREADS">PO_NO_THREADS</link> | <l
 	  </tbody>
 	</tgroup>
       </table>
+    </sect2>
 
+    <sect2 id="Program_isDefined">
+      <title>Program::isDefined()</title>
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Returns <code>True</code> if the given <link linkend="Parse_Defines">parse define</link> is defined in the current Program (does not have to have a value defined to return <code>True</code>).</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Prototype</term>
+	  <listitem>
+	    <para><code><link linkend="bool_type">bool</link> <link linkend="Program_isDefined">Program::isDefined</link>(<link linkend="string_type">string</link> <replaceable>$def</replaceable>)</code></para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting><command>my</command> bool $b = $pgm.isDefined("PRODUCTION");</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for Program::isDefined()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code><link linkend="string_type">string</link> <replaceable>$def</replaceable></code></para></entry>
+	      <entry><para>The name of the define to check.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <table>
+	<title>Return Values for Program::isDefined()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Return Type</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
+	      <entry><para><code>True</code> if the given define exists in the current Program.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
     </sect2>
 
     <sect2 id="Program_lockOptions">
@@ -14092,6 +14292,51 @@ $pgm.setParseOptions(<link linkend="PO_NO_THREADS">PO_NO_THREADS</link> | <link 
       </table>
 
       <para>This method does not throw any exceptions.</para>
+
+    </sect2>
+
+    <sect2 id="Program_undefine">
+      <title>Program::undefine()</title>
+      <variablelist>
+	<varlistentry>
+	  <term>Synopsis</term>
+	  <listitem>
+	    <para>Undefines the given <link linkend="Parse_Defines">parse define</link> in the current Program.</para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Prototype</term>
+	  <listitem>
+	    <para><code><link linkend="nothing_type">nothing</link> <link linkend="Program_undefine">Program::undefine</link>(<link linkend="string_type">string</link> <replaceable>$def</replaceable>)</code></para>
+	  </listitem>
+	</varlistentry>
+	<varlistentry>
+	  <term>Example</term>
+	  <listitem>
+	    <programlisting>$pgm.undefine("PRODUCTION");</programlisting>
+	  </listitem>
+	</varlistentry>
+      </variablelist>
+
+      <table>
+	<title>Arguments for Program::undefine()</title>
+	<tgroup cols='2' align='left' colsep='1' rowsep='1'>
+	  <thead>
+	    <row>
+	      <entry><para>Argument</para></entry>
+	      <entry><para>Description</para></entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><para><code><link linkend="string_type">string</link> <replaceable>$def</replaceable></code></para></entry>
+	      <entry><para>The name of the define to remove.</para></entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+
+      <para>This method will only throw an exception if the old value of the define was an object, and this call causes the object to go out of scope, and the object's destructor throws an exception.</para>
 
     </sect2>
 
