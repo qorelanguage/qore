@@ -27,6 +27,8 @@
 
 #include <stdarg.h>
 
+#include <string>
+
 // exception/callstack entry types
 #define ET_SYSTEM     0
 #define ET_USER       1
@@ -43,7 +45,19 @@ struct QoreExceptionBase {
    }
 };
 
-class QoreException : public QoreExceptionBase, public QoreProgramLocation {
+struct QoreExceptionLocation : QoreProgramLineLocation {
+   std::string file;
+
+   QoreExceptionLocation(int sline, int eline, const char *n_file) : QoreProgramLineLocation(sline, eline), file(n_file) {
+   }
+
+   QoreExceptionLocation(const QoreProgramLocation &loc) : QoreProgramLineLocation(loc), file(loc.file) {
+   }
+
+   QoreExceptionLocation(prog_loc_e loc = ParseLocation);
+};
+
+class QoreException : public QoreExceptionBase, public QoreExceptionLocation {
    friend class ExceptionSink;
    friend class qore_es_private;
 
@@ -70,14 +84,14 @@ public:
    DLLLOCAL QoreHashNode *makeExceptionObject();
 
    // called for runtime exceptions
-   DLLLOCAL QoreException(const char *n_err, AbstractQoreNode *n_desc, AbstractQoreNode *n_arg = 0) : QoreExceptionBase(new QoreStringNode(n_err), n_desc, n_arg), QoreProgramLocation(RunTimeLocation), next(0) {      
+   DLLLOCAL QoreException(const char *n_err, AbstractQoreNode *n_desc, AbstractQoreNode *n_arg = 0) : QoreExceptionBase(new QoreStringNode(n_err), n_desc, n_arg), QoreExceptionLocation(RunTimeLocation), next(0) {      
    }
 
-   DLLLOCAL QoreException(const QoreException &old) : QoreExceptionBase(old), QoreProgramLocation(old), next(old.next ? new QoreException(*old.next) : 0) {
+   DLLLOCAL QoreException(const QoreException &old) : QoreExceptionBase(old), QoreExceptionLocation(old), next(old.next ? new QoreException(*old.next) : 0) {
    }
 
    // called for user exceptions
-   DLLLOCAL QoreException(const QoreListNode *n) : QoreExceptionBase(0, 0, 0, ET_USER), QoreProgramLocation(RunTimeLocation), next(0) {
+   DLLLOCAL QoreException(const QoreListNode *n) : QoreExceptionBase(0, 0, 0, ET_USER), QoreExceptionLocation(RunTimeLocation), next(0) {
       if (n) {
          err = n->get_referenced_entry(0);
          desc = n->get_referenced_entry(1);
@@ -86,7 +100,7 @@ public:
    }
 ;
 
-   DLLLOCAL QoreException(const QoreProgramLocation &n_loc, const char *n_err, AbstractQoreNode *n_desc, AbstractQoreNode *n_arg = 0, int n_type = ET_SYSTEM) : QoreExceptionBase(new QoreStringNode(n_err), n_desc, n_arg, n_type), QoreProgramLocation(n_loc), next(0) {
+   DLLLOCAL QoreException(const QoreProgramLocation &n_loc, const char *n_err, AbstractQoreNode *n_desc, AbstractQoreNode *n_arg = 0, int n_type = ET_SYSTEM) : QoreExceptionBase(new QoreStringNode(n_err), n_desc, n_arg, n_type), QoreExceptionLocation(n_loc), next(0) {
    }
    
    DLLLOCAL void del(ExceptionSink *xsink);

@@ -1627,7 +1627,6 @@ int qore_usleep(int64 usecs) {
 
 QoreProgramLocation::QoreProgramLocation(prog_loc_e loc) {
    if (loc == ParseLocation) {
-      start_line = end_line = -1;
       get_parse_location(start_line, end_line);
       file = get_parse_file();
    }

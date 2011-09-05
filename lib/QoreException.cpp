@@ -27,6 +27,15 @@
 
 #include <assert.h>
 
+QoreExceptionLocation::QoreExceptionLocation(prog_loc_e loc) {
+   if (loc == ParseLocation) {
+      get_parse_location(start_line, end_line);
+      file = get_parse_file();
+   }
+   else
+      file = get_pgm_counter(start_line, end_line);
+}
+
 void QoreException::del(ExceptionSink *xsink) {
    if (callStack) {
       callStack->deref(xsink);
@@ -135,23 +144,23 @@ void ExceptionSink::defaultExceptionHandler(QoreException *e) {
 	    QoreStringNode *type = reinterpret_cast<QoreStringNode *>(h->getKeyValue("type"));
 
 	    if (e->start_line == e->end_line)
-	       printe(" in %s() (%s:%d, %s code)\n", func->getBuffer(), e->file, e->start_line, type->getBuffer());
+	       printe(" in %s() (%s:%d, %s code)\n", func->getBuffer(), e->file.c_str(), e->start_line, type->getBuffer());
 	    else
 	       printe(" in %s() (%s:%d-%d, %s code)\n", func->getBuffer(), 
-		      e->file, e->start_line, e->end_line, type->getBuffer());
+		      e->file.c_str(), e->start_line, e->end_line, type->getBuffer());
 	 }
       }
 
       if (!found) {
-	 if (e->file) {
+	 if (!e->file.empty()) {
 	    if (e->start_line == e->end_line) {
 	       if (!e->start_line)
-		  printe(" at %s:<init>", e->file);
+		  printe(" at %s:<init>", e->file.c_str());
 	       else
-		  printe(" at %s:%d", e->file, e->start_line);
+		  printe(" at %s:%d", e->file.c_str(), e->start_line);
 	    }
 	    else
-	       printe(" at %s:%d-%d", e->file, e->start_line, e->end_line);
+	       printe(" at %s:%d-%d", e->file.c_str(), e->start_line, e->end_line);
 	 }
 	 else if (e->start_line) {
 	    if (e->start_line == e->end_line) {
@@ -271,15 +280,15 @@ void ExceptionSink::defaultWarningHandler(QoreException *e) {
    while (e) {
       printe("warning encountered ");
 
-      if (e->file) {
+      if (!e->file.empty()) {
 	 if (e->start_line == e->end_line) {
 	    if (!e->start_line)
-	       printe("at %s:<init>", e->file);
+	       printe("at %s:<init>", e->file.c_str());
 	    else
-	       printe("at %s:%d", e->file, e->start_line);
+	       printe("at %s:%d", e->file.c_str(), e->start_line);
 	 }
 	 else
-	    printe("at %s:%d-%d", e->file, e->start_line, e->end_line);
+	    printe("at %s:%d-%d", e->file.c_str(), e->start_line, e->end_line);
       }
       else if (e->start_line) {
 	 if (e->start_line == e->end_line) {
