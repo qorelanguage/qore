@@ -454,5 +454,6 @@ QoreClass *initProgramClass() {
 
    // any Program::getDefine(string $def)
    QC_PROGRAM->addMethodExtended("getDefine",            (q_method_t)PROGRAM_getDefine, false, QC_NO_FLAGS, QDOM_DEFAULT, 0, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
+
    return QC_PROGRAM;
 }
