@@ -23,6 +23,7 @@
 #include <qore/Qore.h>
 #include <qore/intern/QC_Program.h>
 #include <qore/intern/QC_TimeZone.h>
+#include <qore/intern/qore_program_private.h>
 
 qore_classid_t CID_PROGRAM;
 
