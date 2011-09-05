@@ -28,12 +28,14 @@
 #include <assert.h>
 
 QoreExceptionLocation::QoreExceptionLocation(prog_loc_e loc) {
+   const char *f;
    if (loc == ParseLocation) {
       get_parse_location(start_line, end_line);
-      file = get_parse_file();
+      f = get_parse_file();
    }
    else
-      file = get_pgm_counter(start_line, end_line);
+      f = get_pgm_counter(start_line, end_line);
+   file = f ? f : "";
 }
 
 void QoreException::del(ExceptionSink *xsink) {

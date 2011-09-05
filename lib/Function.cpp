@@ -523,7 +523,8 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::findVariant(const QoreL
 	    }
 	 }
       }
-      if (match == perfect)
+      // if we have a useable match, then do not search base classes
+      if (variant)
 	 break;
    }
    if (!variant && !only_user) {
@@ -1028,7 +1029,7 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
 	 warn_excess_args(this, argTypeInfo, sig);
    }
 
-   //printd(0, "AbstractQoreFunction::parseFindVariant() this=%p %s%s%s() returning %p %s(%s) flags=%lld\n", this, className() ? className() : "", className() ? "::" : "", getName(), variant, getName(), variant ? variant->getSignature()->getSignatureText() : "n/a", variant ? variant->getFlags() : 0ll);
+   //printd(5, "AbstractQoreFunction::parseFindVariant() this=%p %s%s%s() returning %p %s(%s) flags=%lld\n", this, className() ? className() : "", className() ? "::" : "", getName(), variant, getName(), variant ? variant->getSignature()->getSignatureText() : "n/a", variant ? variant->getFlags() : 0ll);
    return variant;
 }
 

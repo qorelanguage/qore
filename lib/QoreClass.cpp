@@ -1669,7 +1669,7 @@ AbstractQoreNode *QoreClass::evalMethod(QoreObject *self, const char *nme, const
    // check for illegal explicit call
    if (w == priv->constructor || w == priv->destructor || w == priv->deleteBlocker) {
       xsink->raiseException("ILLEGAL-EXPLICIT-METHOD-CALL", "explicit calls to ::%s() methods are not allowed", nme);
-      return 0;      
+      return 0;
    }
 
    if (external) {
@@ -2852,6 +2852,7 @@ AbstractQoreNode *NormalMethodFunction::evalMethod(const AbstractQoreFunctionVar
 	 return 0;
       }
    }
+   //printd(5, "NormalMethodFunction::evalMethod() this=%p calling %s::%s()\n", this, METHVB_const(variant)->className(), mname);
    ceh.setClassName(METHVB_const(variant)->className());
 
    if (ceh.processDefaultArgs(this, variant, check_args))

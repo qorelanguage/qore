@@ -48,7 +48,7 @@ struct QoreExceptionBase {
 struct QoreExceptionLocation : QoreProgramLineLocation {
    std::string file;
 
-   QoreExceptionLocation(int sline, int eline, const char *n_file) : QoreProgramLineLocation(sline, eline), file(n_file) {
+   QoreExceptionLocation(int sline, int eline, const char *n_file) : QoreProgramLineLocation(sline, eline), file(n_file ? n_file : "") {
    }
 
    QoreExceptionLocation(const QoreProgramLocation &loc) : QoreProgramLineLocation(loc), file(loc.file) {
