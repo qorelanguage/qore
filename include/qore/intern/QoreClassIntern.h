@@ -124,7 +124,14 @@ public:
 #define COPYMV(f) (reinterpret_cast<CopyMethodVariant *>(f))
 #define COPYMV_const(f) (reinterpret_cast<const CopyMethodVariant *>(f))
 
-class UserMethodVariant : public MethodVariant, public UserVariantBase {
+struct UserMethodVariantBase {
+   QoreProgram *pgm;
+
+   DLLLOCAL UserMethodVariantBase() : pgm(getProgram()) {
+   }
+};
+
+class UserMethodVariant : public MethodVariant, public UserVariantBase, public UserMethodVariantBase {
 public:
    DLLLOCAL UserMethodVariant(bool n_priv_flag, StatementBlock *b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode *params, RetTypeInfo *rv, bool synced, int64 n_flags) : MethodVariant(n_priv_flag), UserVariantBase(b, n_sig_first_line, n_sig_last_line, params, rv, synced, n_flags) {
    }
@@ -144,6 +151,8 @@ public:
 	 statements->parseInit(this);
    }
    DLLLOCAL virtual AbstractQoreNode *evalMethod(QoreObject *self, CodeEvaluationHelper &ceh, ExceptionSink *xsink) const {
+      // in case this method is called from a subclass, switch to the program where the class was created
+      ProgramContextHelper pch(pgm);
       return eval(qmethod->getName(), &ceh, self, xsink, qmethod->getClass()->getName());
    }
 };
@@ -151,15 +160,15 @@ public:
 #define UMV(f) (reinterpret_cast<UserMethodVariant *>(f))
 #define UMV_const(f) (reinterpret_cast<const UserMethodVariant *>(f))
 
-class UserConstructorVariant : public ConstructorMethodVariant, public UserVariantBase {
+class UserConstructorVariant : public ConstructorMethodVariant, public UserVariantBase, public UserMethodVariantBase {
 protected:
    // base class argument list for constructors
-   BCAList *bcal;
+   BCAList *bcal;   
 
    DLLLOCAL virtual ~UserConstructorVariant();
 
 public:
-      DLLLOCAL UserConstructorVariant(bool n_priv_flag, StatementBlock *b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode *params, BCAList *n_bcal, int64 n_flags = QC_NO_FLAGS) : ConstructorMethodVariant(n_priv_flag), UserVariantBase(b, n_sig_first_line, n_sig_last_line, params, 0, false, n_flags), bcal(n_bcal) {
+   DLLLOCAL UserConstructorVariant(bool n_priv_flag, StatementBlock *b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode *params, BCAList *n_bcal, int64 n_flags = QC_NO_FLAGS) : ConstructorMethodVariant(n_priv_flag), UserVariantBase(b, n_sig_first_line, n_sig_last_line, params, 0, false, n_flags), bcal(n_bcal) {
    }
 
    // the following defines the pure virtual functions that are common to all user variants
@@ -170,6 +179,9 @@ public:
    }
 
    DLLLOCAL virtual void evalConstructor(const QoreClass &thisclass, QoreObject *self, CodeEvaluationHelper &ceh, BCList *bcl, BCEAList *bceal, ExceptionSink *xsink) const {
+      // in case this method is called from a subclass, switch to the program where the class was created
+      ProgramContextHelper pch(pgm);
+
       UserVariantExecHelper uveh(this, &ceh, xsink);
       if (!uveh)
 	 return;
@@ -192,7 +204,7 @@ public:
 #define UCONV(f) (reinterpret_cast<UserConstructorVariant *>(f))
 #define UCONV_const(f) (reinterpret_cast<const UserConstructorVariant *>(f))
 
-class UserDestructorVariant : public DestructorMethodVariant, public UserVariantBase {
+class UserDestructorVariant : public DestructorMethodVariant, public UserVariantBase, public UserMethodVariantBase {
 protected:
 public:
    DLLLOCAL UserDestructorVariant(StatementBlock *b, int n_sig_first_line, int n_sig_last_line) : DestructorMethodVariant(), UserVariantBase(b, n_sig_first_line, n_sig_last_line, 0, 0, false) {
@@ -216,6 +228,7 @@ public:
       // there cannot be any params
       assert(!signature.numParams());
       assert(!signature.getReturnTypeInfo() || signature.getReturnTypeInfo() == nothingTypeInfo);
+      ProgramContextHelper pch(pgm);
       discard(eval("destructor", 0, self, xsink, thisclass.getName()), xsink);
    }
 };
@@ -223,7 +236,7 @@ public:
 #define UDESV(f) (reinterpret_cast<UserDestructorVariant *>(f))
 #define UDESV_const(f) (reinterpret_cast<const UserDestructorVariant *>(f))
 
-class UserCopyVariant : public CopyMethodVariant, public UserVariantBase {
+class UserCopyVariant : public CopyMethodVariant, public UserVariantBase, public UserMethodVariantBase {
 protected:
 public:
    DLLLOCAL UserCopyVariant(bool n_priv_flag, StatementBlock *b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode *params, RetTypeInfo *rv, bool synced) : CopyMethodVariant(n_priv_flag), UserVariantBase(b, n_sig_first_line, n_sig_last_line, params, rv, synced) {

@@ -1596,7 +1596,7 @@ const QoreClass *QoreClass::getClass(qore_classid_t cid, bool &cpriv) const {
 
 AbstractQoreNode *QoreMethod::evalNormalVariant(QoreObject *self, const QoreExternalMethodVariant *ev, const QoreListNode *args, ExceptionSink *xsink) const {   
    const MethodVariantBase *variant = METHVB_const(ev);
-   
+
    CodeEvaluationHelper ceh(xsink, getName(), args, variant->className());
    if (*xsink) return 0;
 
@@ -2717,9 +2717,6 @@ void UserCopyVariant::evalCopy(const QoreClass &thisclass, QoreObject *self, Qor
    args->push(self->refSelf());
    ceh.setArgs(args);
 
-   ////ReferenceHolder<QoreListNode> args(new QoreListNode, xsink);
-   ////args->push(self->refSelf());
-
    UserVariantExecHelper uveh(this, &ceh, xsink);
    if (!uveh)
       return;
@@ -2732,7 +2729,8 @@ void UserCopyVariant::evalCopy(const QoreClass &thisclass, QoreObject *self, Qor
 	 return;
       ceh.restorePosition();
    }
-   
+
+   ProgramContextHelper pch(pgm);
    discard(evalIntern(uveh.getArgv(), self, xsink, thisclass.getName()), xsink);
 }
 
