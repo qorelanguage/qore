@@ -90,6 +90,14 @@ int CodeEvaluationHelper::processDefaultArgs(const AbstractQoreFunction *func, c
 	 *p = defaultArgList[i]->eval(xsink);
 	 if (*xsink)
 	    return -1;
+
+	 // process default argument with accepting type's filter if necessary
+	 const QoreTypeInfo *paramTypeInfo = sig->getParamTypeInfo(i);
+	 if (paramTypeInfo->mayRequireFilter(*p)) {
+	    *p = paramTypeInfo->acceptInputParam(i, sig->getName(i), *p, xsink);
+	    if (*xsink)
+	       return -1;
+	 }
       }
       else if (i < typeList.size()) {
 	 const AbstractQoreNode *n = tmp ? tmp->retrieve_entry(i) : 0;
