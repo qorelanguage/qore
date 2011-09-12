@@ -110,16 +110,17 @@ case "${host_os}" in
      *solaris*) # set compile flags for Solaris
 		CPPFLAGS="${CPPFLAGS} -D_POSIX_C_SOURCE=199506L -D_XPG4_2 -D_XPG5 -D__EXTENSIONS__"
 		# for checking for some network functions on Solaris
-		LDFLAGS="$LDFLAGS -lnsl"
-		# assume we are using CC if not using g++, add -norunpath to link flags in this case
+		QORE_LIB_LDFLAGS="$QORE_LIB_LDFLAGS -lnsl"
+		# assume we are using CC if not using g++, add -norunpath and -mt to link flags in this case
 		if test "$GXX" != "yes"; then
-		   LDFLAGS="$LDFLAGS -norunpath"
+		   CXXFLAGS="${CXXFLAGS} -mt"
+		   QORE_LIB_LDFLAGS="$QORE_LIB_LDFLAGS -norunpath -mt"
 		fi
 		AC_DEFINE(SOLARIS, 1, if compiling on Solaris)
 		AC_DEFINE(ZONEINFO_LOCATION, "/usr/share/lib/zoneinfo", zoneinfo location)
 		# add -ldl and -lthread to libs if on Solaris 8
 		if test "${host_os}" = "solaris2.8"; then
-		   QORE_LIB_LDFLAGS="$QORE_LIB_LDFLAGS -ldl -lthread"
+		   QORE_LIB_LDFLAGS="$QORE_LIB_LDFLAGS -ldl -lthread -lpthread"
 		fi
 		solaris=yes
 	        ;;
