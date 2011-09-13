@@ -11984,12 +11984,11 @@ my string $ret = strmul("%s,", 3, 1); # returns "%s,%s". See missing last ','
     <para>The following is an example of a function that uses /dev/random to read in a random key for use with encryption functions:</para>
 
     <programlisting># read a key from /dev/random and return the key
-<command>sub</command> get_key($size)
-{
+binary <command>sub</command> get_key(int $size) {
     # throw an exception if an invalid key size was passed
     <command>if</command> (!$size || $size &lt; 0)
         <command>throw</command> "GET-KEY-ERROR", sprintf("invalid size = %n", $size);
-    <command>my</command> $f = <command>new</command> File();
+    <command>my</command> File $f();
     # File::open2() will throw an exception if /dev/random cannot be opened for reading
     $f.open2("/dev/random");
     <command>return</command> $f.readBinary($size);

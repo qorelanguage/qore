@@ -29624,7 +29624,7 @@ $stmt.bindPlaceholdersArgs($l);
 	  <term>Example</term>
 	  <listitem>
 	    <programlisting>$stmt.prepare("insert into table (id, name) values (%v, %v)");
-<command>foreach my</command> hash $h in ($l) {
+<command>foreach my</command> hash $h <command>in</command> ($l) {
     $stmt.bindValues($h.id, $h.name);
     $stmt.exec();
 }</programlisting>
