@@ -21983,7 +21983,7 @@ binary <command>sub</command> get_key(int $size) {
         <varlistentry>
           <term>Example</term>
           <listitem>
-            <programlisting>$list = hash_values($hash);</programlisting>
+            <programlisting><command>my</command> list $l = hash_values($hash);</programlisting>
           </listitem>
         </varlistentry>
       </variablelist>
@@ -22010,7 +22010,7 @@ binary <command>sub</command> get_key(int $size) {
                 <para><code><link linkend="hash_type">hash</link></code></para>
               </entry>
               <entry>
-                ><para><code><link linkend="list_type">list</link></code></para>
+                <para><code><link linkend="list_type">list</link></code></para>
               </entry>
               <entry>
                 <para>Returns a list of all the values in the hash argument passed.</para>

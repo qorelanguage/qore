@@ -34065,7 +34065,7 @@ $stmt.bindPlaceholdersArgs($l);
 	  </row>
 	  <row>
 	    <entry>
-              <para><code><link linkend="Gate::tryEnter">Gate::tryEnter</link>() return <link linkend="int_type">int</link></code></para>
+              <para><code><link linkend="int_type">int</link> <link linkend="Gate::tryEnter">Gate::tryEnter</link>()</code></para>
             </entry>
 	    <entry><para>N</para></entry>
 	    <entry><para>Acquires the lock if it is unlocked or locked by the same thread, otherwise returns immediately with -1.</para></entry>
@@ -34274,13 +34274,13 @@ $stmt.bindPlaceholdersArgs($l);
 	<varlistentry>
 	  <term>Prototype</term>
 	  <listitem>
-              <para><code><link linkend="Gate::tryEnter">Gate::tryEnter</link>() return <link linkend="int_type">int</link></code></para>
+              <para><code><link linkend="int_type">int</link> <link linkend="Gate::tryEnter">Gate::tryEnter</link>()</code></para>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
 	  <term>Example</term>
 	  <listitem>
-	    <programlisting>$gate.tryEnter();</programlisting>
+	    <programlisting><command>my</command> int $rc = $gate.tryEnter();</programlisting>
 	  </listitem>
 	</varlistentry>
       </variablelist>
