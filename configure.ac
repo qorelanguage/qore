@@ -1027,13 +1027,13 @@ if test "$mingw" != yes; then
 fi
 
 # see if the iconv library is required
-AC_CHECK_LIB(iconv, iconv)
+AC_SEARCH_LIBS(iconv, iconv)
 
 # see if the socket library is required
-AC_CHECK_LIB(socket, setsockopt)
+AC_SEARCH_LIBS(socket, setsockopt)
 
 # look for librt (needed by clock_gettime() on some platforms)
-AC_CHECK_LIB(rt, clock_gettime)
+AC_SEARCH_LIBS(rt, clock_gettime)
 
 # Checks for header files.
 AC_HEADER_STDC
@@ -1365,7 +1365,7 @@ AC_SUBST([BUILD_TYPE])
 QORE_LIB_CXXFLAGS="`echo $QORE_LIB_CXXFLAGS $CXXFLAGS -lm|sed 's/ +/ /g'`"
 AC_SUBST([QORE_LIB_CXXFLAGS])
 
-QORE_LIB_LDFLAGS="`echo $QORE_LIB_LDFLAGS $LDFLAGS -lm|sed 's/ +/ /g'`"
+QORE_LIB_LDFLAGS="`echo $QORE_LIB_LDFLAGS $LDFLAGS $LIBS -lm|sed 's/ +/ /g'`"
 AC_SUBST([QORE_LIB_LDFLAGS])
 
 QORE_LIB_CPPFLAGS="`echo $QORE_LIB_CPPFLAGS $CPPFLAGS -D_QORE_LIB_INTERN|sed 's/ +/ /g'`"
