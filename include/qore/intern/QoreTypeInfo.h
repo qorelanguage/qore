@@ -563,12 +563,15 @@ public:
    }
 
    DLLLOCAL qore_type_result_e parseAccepts(const QoreTypeInfo *typeInfo, bool &may_not_match) const {
+      //printd(5, "QoreTypeInfo::parseAccepts() this=%p (%s) ti=%p (%s) ti->returnsSingle()=%d\n", this, getName(), typeInfo, typeInfo->getName(), typeInfo->returnsSingle());
       if (!hasType() || !typeInfo->hasType() || accepts_all)
          return QTI_AMBIGUOUS;
 
       if (!typeInfo->returnsSingle()) {
-	 if (!accepts_mult)
+	 if (!accepts_mult) {
+            may_not_match = true;
 	    return qc ? typeInfo->parseReturnsClass(qc) : typeInfo->parseReturnsType(qt, is_int);
+         }
 	 return parseAcceptsMult(typeInfo, may_not_match);
       }
 
