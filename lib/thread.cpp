@@ -1427,8 +1427,24 @@ static AbstractQoreNode *check_op_background(QoreTreeNode *tree, LocalVar *oflag
    return tree->defaultParseInit(oflag, pflag, lvids, returnTypeInfo);
 }
 
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
+#include <qore/QoreRWLock.h>
+
+#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+extern QoreRWLock *thread_stack_lock;
+#else
+extern QoreRWLock thread_stack_lock;
+#endif
+#endif
+
 void init_qore_threads() {
    QORE_TRACE("qore_init_threads()");
+
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
+#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+   thread_stack_lock = new QoreRWLock;
+#endif
+#endif
 
 #ifdef QORE_MANAGE_STACK
    // get default stack size
@@ -1526,6 +1542,12 @@ void delete_qore_threads() {
    delete_thread_data();
 
    thread_list[1].cleanup();
+
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
+#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+   delete thread_stack_lock;
+#endif
+#endif
 }
 
 QoreListNode *get_thread_list() {
@@ -1543,7 +1565,11 @@ QoreListNode *get_thread_list() {
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
 #include <qore/QoreRWLock.h>
 
+#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+extern QoreRWLock *thread_stack_lock;
+#else
 extern QoreRWLock thread_stack_lock;
+#endif
 
 QoreHashNode *getAllCallStacks() {
    QoreHashNode *h = new QoreHashNode();

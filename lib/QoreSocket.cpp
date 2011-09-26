@@ -65,6 +65,10 @@ static int sock_get_error() {
    int rc = WSAGetLastError();
 
    switch (rc) {
+      case 0:
+	 errno = 0;
+	 break;
+
       case WSANOTINITIALISED:
       case WSAEINVAL:
       case WSAENOTSOCK:
@@ -92,6 +96,10 @@ static int sock_get_error() {
 
       case WSAETIMEDOUT:
 	 errno = ETIMEDOUT;
+	 break;
+
+      case WSAECONNREFUSED:
+	 errno = ENOFILE;
 	 break;
 
 #ifdef DEBUG
@@ -128,6 +136,11 @@ static void qore_socket_error_intern(int rc, ExceptionSink *xsink, const char *e
    sock_get_error();
    if (!xsink)
       return;
+
+   if (!errno) {
+      xsink->raiseException(err, cdesc);
+      return;
+   }
 
    QoreStringNode *desc = new QoreStringNode(cdesc);
    desc->concat(": ");
@@ -167,6 +180,7 @@ static int sock_get_error() {
 }
 
 static void qore_socket_error_intern(int rc, ExceptionSink *xsink, const char *err, const char *cdesc) {
+   assert(rc);
    if (!xsink)
       return;
    xsink->raiseErrnoException(err, rc, cdesc);

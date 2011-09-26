@@ -28,7 +28,11 @@
 // the read lock, reading all threads' stacks is performed in the write lock
 #include <qore/QoreRWLock.h>
 
+#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+QoreRWLock *thread_stack_lock;
+#else
 QoreRWLock thread_stack_lock;
+#endif
 
 CallNode::CallNode(const char *f, int t, QoreObject *o) {
    func = f;
