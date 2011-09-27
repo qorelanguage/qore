@@ -110,7 +110,7 @@ case "${host_os}" in
      *solaris*) # set compile flags for Solaris
 		CPPFLAGS="${CPPFLAGS} -D_POSIX_C_SOURCE=199506L -D_XPG4_2 -D_XPG5 -D__EXTENSIONS__"
 		# for checking for some network functions on Solaris
-		QORE_LIB_LDFLAGS="$QORE_LIB_LDFLAGS -lnsl"
+		QORE_LIB_LDFLAGS="$QORE_LIB_LDFLAGS -lnsl -lsocket"
 		# assume we are using CC if not using g++, add -norunpath and -mt to link flags in this case
 		if test "$GXX" != "yes"; then
 		   CXXFLAGS="${CXXFLAGS} -mt"
