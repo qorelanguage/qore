@@ -998,6 +998,7 @@ if test "$acx_pthread_ok" = "no"; then
    AC_MSG_ERROR(POSIX threads do not seem to be supported on this platform, aborting)
 fi
 CXXFLAGS="$CXXFLAGS $PTHREAD_CFLAGS"
+QORE_LIB_LDFLAGS="$QORE_LIB_LDFLAGS $PTHREAD_LIBS"
 
 AC_ARG_WITH([doxygen],
     [AS_HELP_STRING([--with-doxygen@<:@=PATH@:>@],
