@@ -1387,6 +1387,7 @@ AC_DEFINE_UNQUOTED([QORE_LIB_LDFLAGS],  "$QORE_LIB_LDFLAGS", [linker flags])
 AC_DEFINE_UNQUOTED([QORE_BUILD_HOST],   "`uname -a`", [Qore build host info])
 
 AC_CONFIG_FILES([Makefile lib/Makefile])
+AC_CONFIG_FILES([qore.pc])
 AC_OUTPUT
 
 echo "*** BUILTIN FEATURES ***"

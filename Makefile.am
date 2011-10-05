@@ -355,6 +355,11 @@ qore_SOURCES = \
 	command-line.cpp
 endif
 
+
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA = qore.pc
+
+
 BUILD=$(shell $(top_srcdir)/next_build.sh -b)
 PACKAGE_VERSION=$(shell grep PACKAGE_VERSION include/qore/intern/unix-config.h | cut -f3 -d\  | sed s/\"//g)
 TAR_NAME := arch/qore-v$(PACKAGE_VERSION)-$(BUILD)-$(shell date +%Y%m%d).tar
