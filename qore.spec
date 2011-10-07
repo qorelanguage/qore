@@ -49,6 +49,8 @@ BuildRequires: bison
 BuildRequires: openssl-devel
 BuildRequires: pcre-devel
 BuildRequires: zlib-devel
+BuildRequires: doxygen
+BuildRequires: pkg-config
 %if 0%{?suse_version}
 %if 0%{?sles_version} && %{?sles_version} <= 10
 BuildRequires: bzip2
@@ -75,6 +77,7 @@ character encoding (including proper UTF-8) support, and much more.
 %package -n libqore5
 Summary: The libraries for qore runtime and qore clients
 Group: Development/Languages/Other
+Provides: qore-module-api-0.11
 Provides: qore-module-api-0.10
 Provides: qore-module-api-0.9
 Provides: qore-module-api-0.8
@@ -149,6 +152,7 @@ Qore library.
 %files devel
 %defattr(-,root,root,-)
 %{_libdir}/libqore.so
+%{_libdir}/pkgconfig/qore.pc
 %{_prefix}/include/*
 
 %prep
@@ -191,6 +195,9 @@ rm -rf $RPM_BUILD_ROOT
 %endif
 
 %changelog
+* Fri Oct 07 2011 Petr Vanek <petr.vanek@qoretechnologies.com> 0.8.3
+- pkg-config
+
 * Sun Mar 6 2011 David Nichols <david@qore.org>
 - updated to 0.8.3
 
