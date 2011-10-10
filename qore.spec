@@ -50,14 +50,15 @@ BuildRequires: openssl-devel
 BuildRequires: pcre-devel
 BuildRequires: zlib-devel
 BuildRequires: doxygen
-BuildRequires: pkg-config
 %if 0%{?suse_version}
+BuildRequires: pkg-config
 %if 0%{?sles_version} && %{?sles_version} <= 10
 BuildRequires: bzip2
 %else
 BuildRequires: libbz2-devel
 %endif
 %else
+BuildRequires: pkgconfig
 BuildRequires: bzip2-devel
 %endif
 
