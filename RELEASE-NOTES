@@ -1,6 +1,6 @@
 RELEASE NOTES for qore v0.8.3
 
-release summary: 32 bug fixes and new feature support
+release summary: 33 bug fixes and new feature support
 
 * BUG FIX: fixed a bug in parse_url() & parseURL(); parsing urls with
 	   IPv6 addresses without ":" - this will only work if a port
@@ -98,6 +98,9 @@ release summary: 32 bug fixes and new feature support
 	   constants while "no-terminal-io" is in force (so they
 	   cannot be called while "no-terminal-io" restrictions are in
 	   place for a Program object)
+* BUF FIX: fixed a crashing bug where a hash passed to the context statement
+	   will cause a crash if one of the keys after the first is not
+	   assigned to a list
 * new feature: Qore is now supported on Windows with a native DLL and
 	   binaries; see README-WINDOWS for more information
 * new feature: parse defines are now supported for conditional parsing

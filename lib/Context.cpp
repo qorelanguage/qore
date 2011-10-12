@@ -432,10 +432,15 @@ QoreHashNode *Context::getRow(ExceptionSink *xsink) {
       printd(5, "Context::getRow() key=%s\n", key);
       // get list from hash
       ReferenceHolder<AbstractQoreNode> v(hi.getReferencedValue(), xsink);
-      assert(*v && v->getType() == NT_LIST);
-      // set key value to list entry
-      QoreListNode *l = reinterpret_cast<QoreListNode *>(*v);
-      h->setKeyValue(key, l->eval_entry(row_list[pos], xsink), 0);
+
+      // if the hash key does not contain a list, then set the value to NOTHING
+      if (get_node_type(*v) != NT_LIST)
+	 h->setKeyValue(key, 0, 0);
+      else {
+	 // set key value to list entry
+	 QoreListNode *l = reinterpret_cast<QoreListNode *>(*v);
+	 h->setKeyValue(key, l->eval_entry(row_list[pos], xsink), 0);
+      }
    }
    
    return h.release();
