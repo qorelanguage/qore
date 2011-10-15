@@ -328,7 +328,7 @@ dist_man_MANS = qore.1
 
 $(dist_man_MANS): doxygen-doc
 
-qore_LDADD = lib/libqore.la ${PTHREAD_LIBS}
+qore_LDADD = lib/libqore.la
 
 ACLOCAL_AMFLAGS=-I m4
 
