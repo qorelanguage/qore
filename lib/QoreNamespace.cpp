@@ -1906,7 +1906,7 @@ void StaticSystemNamespace::init() {
    option->addConstant("HAVE_GETPPID",  &False);
 #endif
 
-#ifdef HAVE_STATVFS
+#ifdef HAVE_STATVFS_H
    option->addConstant("HAVE_STATVFS",  &True);
 #else
    option->addConstant("HAVE_STATVFS",  &False);
