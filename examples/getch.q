@@ -7,26 +7,26 @@
 # require all variables to be declared
 %require-our
 
-# uses features first found in qore 0.7.2
-%requires qore >= 0.7.2
+# require current version of qore
+%requires qore >= 0.8.3
 
 # enable all warnings
 %enable-all-warnings
 
 sub main() {
-    my $t = new TermIOS();
+    my TermIOS $t();
     # get current terminal attributes for stdin
     stdin.getTerminalAttributes($t);
 
     # save a copy
-    my $orig = $t.copy();
+    my TermIOS $orig = $t.copy();
 
     # restore terminal attributes on exit
     on_exit
 	stdin.setTerminalAttributes(TCSADRAIN, $orig);
 
     # get local flags
-    my $lflag = $t.getLFlag();
+    my int $lflag = $t.getLFlag();
 
     # disable canonical input mode (= turn on "raw" mode)
     $lflag &= ~ICANON;
@@ -61,7 +61,7 @@ sub main() {
     }
 
     # read the character input
-    my $c = stdin.read(1);
+    my string $c = stdin.read(1);
 
     # output the character read
     stdout.printf(" GOT: ASCII 0x%02x (%d) '%s'\n", ord($c), ord($c), $c);

@@ -1,8 +1,13 @@
-Qore started out as a urely UNIX language, but, as of Qore 0.8.3, it is possible to build a fully-functional native Qore DLL (and qore.exe) for windows (i.e. without cygwin).
+Qore started out as a purely UNIX language, but, as of Qore 0.8.3, it is possible to build a fully-functional native Qore DLL (and qore.exe) for windows (i.e. without cygwin).
+
+BINARIES
+--------
+For Windows binaries, check for a zip package for the latest version on sourceforge:
+    http://sourceforge.net/projects/qore/files/qore/
 
 BUILDING
 --------
-Currently Qore can only be built with the mingw compiler as a cross-compiler (from Linux, OSX, etc).  
+Currently Qore can only be (easily) built with the mingw compiler as a cross-compiler (from Linux, OSX, etc).  
 Information about this cross-compiler can be found here:
 	    http://mingw-cross-env.nongnu.org/
 
@@ -18,7 +23,7 @@ Then a Qore DLL is built along with a qore.exe when you type "make"
 
 The Qore DLL built this way will be statically linked with the libraries necessary for it to run (pcre, openssl, libxml2, etc).  This makes for a pretty large DLL, but eliminates the need for all the supporting DLLs in one place.
 
-Currently Windows XP is targeted as the mininum required Windows target.
+Currently Windows XP is required as the mininum required Windows target.
 
 
 FUNCTIONAL NOTES
@@ -102,7 +107,7 @@ O:\bin>qore -ne "TimeZone tz('Central Europe Standard Time'); printf(\"%s\n\", t
 
 This differs from UNIX where the region name passed to the TimeZone constructor is the same region name that appears in the TimeZone::region() output; this is because Windows uses "Standard Time" in the key name in the registry, even though the underlying zone definition is for both standard and daylight savings time.
 
-Please be aware that the region names may differ in localized versions of Windows; I have read some information that leads me to believe that Windows stores localized names in the registry for the region names.  This will make is harder to make use  of time zone regions on Windows in portable programs.
+Please be aware that the region names may differ in localized versions of Windows; I have read some information that leads me to believe that Windows stores localized names in the registry for the region names.  This will make is harder to make use of time zone regions on Windows in portable programs.
 
 * socket support
 There are no UNIX sockets available on Windows, otherwise the Socket class should work the same as on UNIX systems; error messages will be Windows error messages
@@ -115,3 +120,6 @@ threading should work identically as on UNIX
 
 * path separator
 The path separator is understood to be "\" on windows
+
+* errata
+other than the above, I have seen Qore crash on windows when using the pgsql driver connected to a remote server and the interface used for the pgsql connection changes its IP address.  I suspect that this is problem with the pgsql libs I'm using on Windows, but I'm not totally sure.

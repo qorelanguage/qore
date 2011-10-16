@@ -15011,6 +15011,7 @@ $pgm.setParseOptions(<link linkend="PO_NO_THREADS">PO_NO_THREADS</link> | <link 
 	    <para> This method tries to automatically pick the appropriate address family from the arguments; note that a hostname or address in square brackets (ex: <code>[localhost]</code>) will be looked up and bound as an ipv6 address, additionally, the method recognizes ipv6 addresses by embedded colons (:) in the address string and binds them as such.</para>
 	    <para>Internally, the <link linkend="getaddrinfo">getaddrinfo()</link> function is used to look up bind addresses; internal bind() operations are tried in sequence for each address returned; as soon as a bind operation is successful, the method returns.  If none of the addresses can be bound, then an error code is returned.</para>
 	    <para>See also <link linkend="Socket_bindINET">Socket::bindINET()</link> and <link linkend="Socket_bindUNIX">Socket::bindUNIX()</link>.</para>
+	    <note><para>UNIX domain sockets are not available on native Windows ports.</para></note>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -15213,6 +15214,7 @@ $sock.bindINET("fe80::21c:42ff:fe00:8", 1001, True);</programlisting>
 	    <para>Opens and binds the socket to the given UNIX domain socket file as given by the filename argument.  Note that the socket file is automatically deleted in the destructor when a UNIX socket is closed.</para>
 	    <para>If any errors occur, an exception is thrown.</para>
 	    <para>See also <link linkend="Socket_bind">Socket::bind()</link> and <link linkend="Socket_bindINET">Socket::bindINET()</link>.</para>
+	    <note><para>UNIX domain sockets are not available on native Windows ports.</para></note>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -15472,8 +15474,13 @@ $sock.bindUNIX("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Synopsis</term>
 	  <listitem>
-	    <para>Connects the socket to a remote (or local) port or UNIX domain socket file, for network (INET) connections, accepts an optional timeout value in milliseconds (<link linkend="Relative_Dates">relative date/time values</link> can be given instead of an integer in milliseconds to make the source more readable; ex: <code>20s</code>).  If any errors occur, an exception is thrown.</para>
+	    <para>Connects the socket to a remote (or local) port or UNIX domain socket file, for network (ipv4 and ipv6) connections, accepts an optional timeout value in milliseconds (<link linkend="Relative_Dates">relative date/time values</link> can be given instead of an integer in milliseconds to make the source more readable; ex: <code>20s</code>).  If any errors occur, an exception is thrown.</para>
+
+	    <para>Enclose ipv6 addresses in square brackets (ex: <code>&quot;[2001:0db8:85a3:0000:0000:8a2e:0370:7334]:80&quot;</code>, will connect to port 80 on the given ipv6 address); also if a hostname is enclosed in squark brackets, it will be resolved as an ipv6 adress (ex: <code>&quot;[localhost]:80&quot;</code> will connect to port 80 on <code>::1</code>, assuming <code>&quot;localhost&quot;</code> can be resolved to the ipv6 loopback address on the system).</para>
+
 	    <para>See also <link linkend="Socket_connectUNIX">Socket::connectUNIX()</link>, <link linkend="Socket_connectUNIX">Socket::connectUNIX()</link>, <link linkend="Socket_connectSSL">Socket::connectSSL()</link>, <link linkend="Socket_connectINETSSL">Socket::connectINETSSL()</link>, and <link linkend="Socket_connectUNIXSSL">Socket::connectUNIXSSL()</link>.</para>
+
+	    <note><para>UNIX domain sockets are not available on native Windows ports.</para></note>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -15485,8 +15492,14 @@ $sock.bindUNIX("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Examples</term>
 	  <listitem>
-	    <programlisting>$sock.connect("192.168.1.45:8080", 30s); # connect to 192.168.1.45 port 8080 with a 30 second timeout</programlisting>
-	    <programlisting>$sock.connect("/tmp/socket");            # connect to UNIX domain socket file "/tmp/socket"</programlisting>
+	    <programlisting># connect to ipv4 adress 192.168.1.45 port 8080 with a 30 second timeout
+$sock.connect("192.168.1.45:8080", 30s);</programlisting>
+	    <programlisting># connect to ipv6 adress 2001:0db8:85a3:0000:0000:8a2e:0370:7334 port 80 with a 10 second timeout
+$sock.connect("[2001:0db8:85a3:0000:0000:8a2e:0370:7334]:80", 10s);</programlisting>
+	    <programlisting># connect to localhost using ipv6 (::1) port 80 with a 10 second timeout
+$sock.connect("[localhost]:80", 15s);</programlisting>
+	    <programlisting># connect to UNIX domain socket file "/tmp/socket"
+$sock.connect("/tmp/socket");</programlisting>
 	  </listitem>
         </varlistentry>
         <varlistentry>
@@ -15543,7 +15556,12 @@ $sock.bindUNIX("/tmp/socket");</programlisting>
 	  <term>Synopsis</term>
 	  <listitem>
 	    <para>Connects the socket to a remote (or local) port; accepts an optional timeout value in milliseconds (<link linkend="Relative_Dates">relative date/time values</link> can be given instead of an integer in milliseconds to make the source more readable; ex: <code>20s</code>).  If any errors occur, an exception is thrown.</para>
+
+	    <para>Do not use square brackets to designate ipv6 addresses with this method; just give the address in its normal form (ex: &quot;2001:0db8:85a3:0000:0000:8a2e:0370:7334&quot;).</para>
+
 	    <para>See also <link linkend="Socket_connect">Socket::connect()</link>, <link linkend="Socket_connectUNIX">Socket::connectUNIX()</link>, <link linkend="Socket_connectSSL">Socket::connectSSL()</link>, <link linkend="Socket_connectINETSSL">Socket::connectINETSSL()</link>, and <link linkend="Socket_connectUNIXSSL">Socket::connectUNIXSSL()</link>.</para>
+
+	    <note><para>UNIX domain sockets are not available on native Windows ports.</para></note>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -15555,8 +15573,10 @@ $sock.bindUNIX("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Examples</term>
 	  <listitem>
-	    <programlisting># connect to 192.168.1.45 port 8080 with a 30 second timeout
+	    <programlisting># connect to ipv4 address 192.168.1.45 port 8080 with a 30 second timeout
 $sock.connectINET("192.168.1.45", 8080, 30s);</programlisting>
+	    <programlisting># connect to ipv6 address 2001:0db8:85a3:0000:0000:8a2e:0370:7334 port 80 with a 20 second timeout
+$sock.connectINET("2001:0db8:85a3:0000:0000:8a2e:0370:7334", 80, 20s);</programlisting>
 	  </listitem>
         </varlistentry>
         <varlistentry>
@@ -15625,6 +15645,9 @@ $sock.connectINET("192.168.1.45", 8080, 30s);</programlisting>
 	  <term>Synopsis</term>
 	  <listitem>
 	    <para>Connects the socket to a remote (or local) port and attempts to establish a TLS/SSL connection; accepts an optional timeout value in milliseconds (<link linkend="Relative_Dates">relative date/time values</link> can be given instead of an integer in milliseconds to make the source more readable; ex: <code>20s</code>).  If any errors occur, an exception is thrown.</para>
+
+	    <para>Do not use square brackets to designate ipv6 addresses with this method; just give the address in its normal form (ex: &quot;2001:0db8:85a3:0000:0000:8a2e:0370:7334&quot;).</para>
+
 	    <para>See also <link linkend="Socket_connect">Socket::connect()</link>, <link linkend="Socket_connectUNIX">Socket::connectUNIX()</link>, <link linkend="Socket_connectSSL">Socket::connectSSL()</link>, <link linkend="Socket_connectINET">Socket::connectINET()</link>, and <link linkend="Socket_connectUNIXSSL">Socket::connectUNIXSSL()</link>.</para>
 	  </listitem>
 	</varlistentry>
@@ -15639,6 +15662,8 @@ $sock.connectINET("192.168.1.45", 8080, 30s);</programlisting>
 	  <listitem>
 	    <programlisting># connect to 192.168.1.45 port 8080 with a 30 second timeout
 $sock.connectINETSSL("192.168.1.45", 8080, 30s);</programlisting>
+	    <programlisting># connect to ipv6 address 2001:0db8:85a3:0000:0000:8a2e:0370:7334 port 80 with a 20 second timeout
+$sock.connectINETSSL("2001:0db8:85a3:0000:0000:8a2e:0370:7334", 80, 20s);</programlisting>
 	  </listitem>
         </varlistentry>
         <varlistentry>
@@ -15708,6 +15733,7 @@ $sock.connectINETSSL("192.168.1.45", 8080, 30s);</programlisting>
 	  <listitem>
 	    <para>Connects the socket to a UNIX domain socket file.  If any errors occur, an exception is thrown.</para>
 	    <para>See also <link linkend="Socket_connect">Socket::connect()</link>, <link linkend="Socket_connectINET">Socket::connectINET()</link>, <link linkend="Socket_connectSSL">Socket::connectSSL()</link>, <link linkend="Socket_connectINETSSL">Socket::connectINETSSL()</link>, and <link linkend="Socket_connectUNIXSSL">Socket::connectUNIXSSL()</link>.</para>
+	    <note><para>UNIX domain sockets are not available on native Windows ports.</para></note>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -15782,6 +15808,7 @@ $sock.connectUNIX("/tmp/socket");</programlisting>
 	  <listitem>
 	    <para>Connects the socket to a UNIX domain socket file and attempts to establish a TLS/SSL connection.  If any errors occur, an exception is thrown.</para>
 	    <para>See also <link linkend="Socket_connect">Socket::connect()</link>, <link linkend="Socket_connectUNIX">Socket::connectUNIX()</link>, <link linkend="Socket_connectSSL">Socket::connectSSL()</link>, <link linkend="Socket_connectINETSSL">Socket::connectINETSSL()</link>, and <link linkend="Socket_connectINET">Socket::connectINET()</link>.</para>
+	    <note><para>UNIX domain sockets are not available on native Windows ports.</para></note>
 	  </listitem>
 	</varlistentry>
 	<varlistentry>
@@ -15855,7 +15882,12 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
           <term>Synopsis</term>
           <listitem>
             <para>Connects to a remote socket and attempts to establish a TLS/SSL connection, for network (INET) connections, accepts an optional timeout value in milliseconds (<link linkend="Relative_Dates">relative date/time values</link> can be given instead of an integer in milliseconds to make the source more readable; ex: <code>20s</code>).  If any errors occur, an exception is thrown.</para>
+
+	    <para>Enclose ipv6 addresses in square brackets (ex: <code>&quot;[2001:0db8:85a3:0000:0000:8a2e:0370:7334]:80&quot;</code>, will connect to port 80 on the given ipv6 address); also if a hostname is enclosed in squark brackets, it will be resolved as an ipv6 adress (ex: <code>&quot;[localhost]:80&quot;</code> will connect to port 80 on <code>::1</code>, assuming <code>&quot;localhost&quot;</code> can be resolved to the ipv6 loopback address on the system).</para>
+
 	    <para>See also <link linkend="Socket_connect">Socket::connect()</link>, <link linkend="Socket_connectUNIX">Socket::connectUNIX()</link>, <link linkend="Socket_connectUNIXSSL">Socket::connectUNIXSSL()</link>, <link linkend="Socket_connectINETSSL">Socket::connectINETSSL()</link>, and <link linkend="Socket_connectINET">Socket::connectINET()</link>.</para>
+
+	    <note><para>UNIX domain sockets are not available on native Windows ports.</para></note>
           </listitem>
         </varlistentry>
         <varlistentry>
@@ -15867,8 +15899,14 @@ $sock.connectUNIXSSL("/tmp/socket");</programlisting>
 	<varlistentry>
 	  <term>Examples</term>
 	  <listitem>
-	    <programlisting>$sock.connectSSL("192.168.1.45:8080", 30s); # connect to 192.168.1.45 port 8080 with a 30-second timeout</programlisting>
-	    <programlisting>$sock.connectSSL("/tmp/socket");            # connect to UNIX domain socket file "/tmp/socket"</programlisting>
+	    <programlisting># connect to ipv4 adress 192.168.1.45 port 8080 with a 30 second timeout
+$sock.connectSSL("192.168.1.45:8080", 30s);</programlisting>
+	    <programlisting># connect to ipv6 adress 2001:0db8:85a3:0000:0000:8a2e:0370:7334 port 80 with a 10 second timeout
+$sock.connectSSL("[2001:0db8:85a3:0000:0000:8a2e:0370:7334]:80", 10s);</programlisting>
+	    <programlisting># connect to localhost using ipv6 (::1) port 80 with a 10 second timeout
+$sock.connectSSL("[localhost]:80", 15s);</programlisting>
+	    <programlisting># connect to UNIX domain socket file "/tmp/socket"
+$sock.connectSSL("/tmp/socket");</programlisting>
 	  </listitem>
 	</varlistentry>
         <varlistentry>

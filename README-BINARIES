@@ -6,3 +6,6 @@ For Linux RPMs for many distributions, see the opensuse build service:
 For OS/X, use macports: http://www.macports.org
     sudo port selfupdate
     sudo port -vu install qore
+
+For Windows, check for a zip package for the latest version on sourceforge:
+    http://sourceforge.net/projects/qore/files/qore/
