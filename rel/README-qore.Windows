@@ -1,0 +1,33 @@
+Qore for Windows
+
+homepage: http://www.qore.org
+
+To use Qore, add the bin directory to your path:
+
+ex:
+c:\> set PATH=%PATH%;c:\qore\bin
+
+To use modules from Qore for Windows, make sure and set the QORE_MODULE_DIR
+environment variable to the correct location - lib\qore-modules in this
+package
+
+ex:
+c:\> set QORE_MODULE_DIR=c:\qore\lib\qore-modules
+
+you can check it by running
+c:\> qore -lxml -XgetModuleHash()
+
+you should see output like the following if it works:
+hash: (1 member)
+  xml : hash: (8 members)
+    filename : "c:\\qore\\lib\\qore-modules\\xml-api-0.11.qmod"
+    name : "xml"
+    desc : "xml module"
+    version : "1.1"
+    author : "David Nichols"
+    api_major : 0
+    api_minor : 11
+    url : "http://qore.org"
+
+This is first release of Qore for Windows; any problems and shoot me an email:
+     david@qore.org
