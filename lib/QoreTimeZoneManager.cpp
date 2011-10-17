@@ -633,12 +633,10 @@ static int wdate2date(const SYSTEMTIME &st, DateTime &dt) {
    return 0;
 }
 */
-#ifdef DEBUG
 static int wdate2str(const SYSTEMTIME &st, QoreString &str) {
    str.sprintf("year: %d mon: %d day: %d dow: %d %02d:%02d:%02d.%03d", st.wYear, st.wMonth, st.wDay, st.wDayOfWeek, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds * 1000);
    return 0;
 }
-#endif
 
 static int wchar2utf8(const wchar_t *wstr, QoreString &str) {
    size_t len = WideCharToMultiByte(CP_UTF8, 0, wstr, -1, 0, 0, 0, 0);
