@@ -8,6 +8,8 @@
 # php_value short_open_tag 0
 #
 
+%requires xml
+
 
 %require-types
 
@@ -67,6 +69,14 @@ sub fixA(string $in) returns string
 
 my Dir $d();
 $d.chdir(SRC);
+
+my Dir $targetDir();
+$targetDir.chdir(DST);
+if (!$targetDir.exists())
+{
+    $targetDir.chdir("..");
+    $targetDir.mkdir(DST, 0755);
+}
 
 foreach my string $i in ($d.listFiles(".*\.html")) {
     printf("Processing: %s\n", $i);
