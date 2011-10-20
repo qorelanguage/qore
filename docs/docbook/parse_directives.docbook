@@ -956,9 +956,8 @@
 		<row>
 		  <entry><para><link linkend="is_socket">is_socket()</link></para></entry>
 		</row>
-		<row>
-		  <entry><para><link linkend="is_writeable">is_writeable()</link></para></entry>
-		</row>
+		<row><entry><para><link linkend="is_writable">is_writable()</link></para></entry></row>
+		<row><entry><para><link linkend="is_writeable">is_writeable()</link></para></entry></row>
 		<row><entry><para><link linkend="lchown">lchown()</link></para></entry></row>
 		<row><entry><para><link linkend="lstat">lstat()</link></para></entry></row>
 		<row>

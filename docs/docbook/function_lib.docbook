@@ -1880,14 +1880,21 @@
         </entry>
       </row>
       <row>
-        <entry>
-          <para><code><link linkend="bool_type">bool</link> <link linkend="is_writeable">is_writeable</link>(<link linkend="string_type">string</link>) (<link linkend="CONST_flag">CONST</link>)</code></para>
-        </entry>
+        <entry><para><code><link linkend="bool_type">bool</link> <link linkend="is_writable">is_writable</link>(<link linkend="string_type">string</link>) (<link linkend="CONST_flag">CONST</link>)</code></para></entry>
         <entry>
           <para>N</para>
         </entry>
         <entry>
           <para>Returns <code>True</code> if the string passed identifies a file writable by the current user.</para>
+        </entry>
+      </row>
+      <row>
+        <entry><para><code><link linkend="bool_type">bool</link> <link linkend="is_writeable">is_writeable</link>(<link linkend="string_type">string</link>) (<link linkend="CONST_flag">CONST</link>)</code></para></entry>
+        <entry>
+          <para>N</para>
+        </entry>
+        <entry>
+          <para>Returns <code>True</code> if the string passed identifies a file writable by the current user (common misspelling of  <link linkend="is_writable">is_writable</link>()).</para>
         </entry>
       </row>
         <row>
@@ -17723,13 +17730,69 @@ binary <command>sub</command> get_key(int $size) {
     </table>
 
   </sect2>
+  <sect2 id="is_writable">
+    <title>is_writable()</title>
+    <variablelist>
+      <varlistentry>
+        <term>Synopsis</term>
+        <listitem>
+          <para>Returns <code>True</code> if the string passed identifies a file writable by the current user.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Prototype</term>
+        <listitem>
+          <para><code><link linkend="bool_type">bool</link> <link linkend="is_writable">is_writable</link>(<link linkend="string_type">string</link> <replaceable>$path</replaceable>) (<link linkend="CONST_flag">CONST</link>)</code></para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>Example</term>
+        <listitem>
+          <programlisting>$bool = is_writable("/etc/hosts");</programlisting>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>Restrictions</term>
+	<listitem>
+	  <para>Not available with <code><link linkend="no-filesystem">PO_NO_FILESYSTEM</link></code></para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+    <table>
+      <title>Arguments and Return Values for is_writable()</title>
+      <tgroup cols="3" align="left" colsep="1" rowsep="1">
+        <thead>
+          <row>
+            <entry>
+              <para>Argument Type</para>
+            </entry>
+            <entry>
+              <para>Return Type</para>
+            </entry>
+            <entry>
+              <para>Description</para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry><para><code><link linkend="string_type">string</link> <replaceable>$path</replaceable></code></para></entry>
+            <entry><para><code><link linkend="bool_type">bool</link></code></para></entry>
+            <entry>
+              <para>Returns <code>True</code> if the string passed identifies a file writable by the current user.</para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </sect2>
   <sect2 id="is_writeable">
     <title>is_writeable()</title>
     <variablelist>
       <varlistentry>
         <term>Synopsis</term>
         <listitem>
-          <para>Returns <code>True</code> if the string passed identifies a file writable by the current user.</para>
+          <para>Returns <code>True</code> if the string passed identifies a file writable by the current user (common misspelling of  <link linkend="is_writable">is_writable</link>()).</para>
         </listitem>
       </varlistentry>
       <varlistentry>
