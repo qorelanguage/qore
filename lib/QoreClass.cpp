@@ -1674,9 +1674,12 @@ AbstractQoreNode *QoreClass::evalMethod(QoreObject *self, const char *nme, const
       if (priv->methodGate && !priv->methodGate->inMethod(self)) // call methodGate with unknown method name and arguments
 	 return evalMethodGate(self, nme, args, xsink);
 
+      return pseudo_classes_eval(self, nme, args, xsink);
+      /*
       // otherwise return an exception
       xsink->raiseException("METHOD-DOES-NOT-EXIST", "no method %s::%s() has been defined", priv->name, nme);
       return 0;
+      */
    }
 
    //printd(5, "QoreClass::evalMethod() %s::%s() found method %p class %s\n", priv->name, nme, w, w->getClassName());

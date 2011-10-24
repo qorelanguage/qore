@@ -124,8 +124,11 @@ AbstractQoreNode *QoreDotEvalOperatorNode::parseInitImpl(LocalVar *oflag, int pf
       meth = qc->parseFindStaticMethodTree(mname);
 
    if (!meth) {
-      if (!qc->parseHasMethodGate())
-	 raiseNonExistentMethodCallWarning(qc, mname);
+      if (!qc->parseHasMethodGate()) {
+	 // check if it could be a pseudo-method call
+	 if (!pseudo_classes_find_method(NT_OBJECT, mname))
+	    raiseNonExistentMethodCallWarning(qc, mname);
+      }
 
 #ifdef DEBUG
       AbstractQoreNode *n = m->parseInit(oflag, pflag, lvids, typeInfo);

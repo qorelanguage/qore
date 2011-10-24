@@ -56,3 +56,9 @@ AbstractQoreNode *pseudo_classes_eval(const AbstractQoreNode *n, const char *nam
    return qore_class_private::evalPseudoMethod(qc, n, name, args, xsink);
 }
 
+bool pseudo_classes_find_method(qore_type_t t, const char *mname) {
+   po_map_t::iterator i = po_map.find(t);
+   QoreClass *qc = i == po_map.end() ? pseudoAll : i->second;
+
+   return qc->findMethod(mname);
+}
