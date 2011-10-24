@@ -1,6 +1,4 @@
 * implement parse options for pushing and restoring formatting options
-* add warning for "." and {} operators where operand cannot be converted to a
-  string
 * make it so that a call ref/closure can be imported as a function in a
   Program
 * fix class member initialization order to be same as declaration order
@@ -56,7 +54,9 @@
 * implement GZFile and BZFile classes
 
 done 0.8.4:
-* implement optimized foreach statement for hash key iteration
+* implement optimized foreach statement for hash key iteratio
+* add warning for "." and {} operators where operand cannot be converted to a
+  string
 
 done 0.8.3:
 * implement parse option for setting the time zone offset/region

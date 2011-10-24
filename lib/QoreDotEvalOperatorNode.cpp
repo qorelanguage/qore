@@ -40,10 +40,13 @@ AbstractQoreNode *QoreDotEvalOperatorNode::evalImpl(ExceptionSink *xsink) const 
    }
 
    if (!(*op) || (*op)->getType() != NT_OBJECT) {
+      return pseudo_classes_eval(*op, m->getName(), m->getArgs(), xsink);
+      /*
       //printd(5, "op=%p (%s) func=%p (%s)\n", op, op ? op->getTypeName() : "n/a", func, func ? func->getTypeName() : "n/a");
       xsink->raiseException("OBJECT-METHOD-EVAL-ON-NON-OBJECT", "member function \"%s\" called on type \"%s\"", 
 			    m->getName(), op ? op->getTypeName() : "NOTHING" );
       return 0;
+      */
    }
 
    QoreObject *o = const_cast<QoreObject *>(reinterpret_cast<const QoreObject *>(*op));
@@ -62,16 +65,19 @@ AbstractQoreNode *QoreDotEvalOperatorNode::parseInitImpl(LocalVar *oflag, int pf
    QoreClass *qc = const_cast<QoreClass *>(typeInfo->getUniqueReturnClass());
 
    if (!qc) {
-      // if the left side has a type and it's not hash or object, then
-      // no call can be made
+      /*
+      // if the left side has a type and it's not hash or object, then only pseudo-method calls can be made
       if (typeInfo->hasType()
 	  && !objectTypeInfo->parseAccepts(typeInfo)
 	  && !hashTypeInfo->parseAccepts(typeInfo)) {
+	 // check for pseudo-methods
+	
 	 QoreStringNode *edesc = new QoreStringNode("the object method or hash call reference call operator expects an object or a hash on the left side of the '.', but ");
 	 typeInfo->getThisType(*edesc);
 	 edesc->concat(" was provided instead");
 	 qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", edesc);
       }
+      */
 
 #ifdef DEBUG
       AbstractQoreNode *n = m->parseInit(oflag, pflag, lvids, typeInfo);

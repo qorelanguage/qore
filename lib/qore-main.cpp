@@ -72,6 +72,9 @@ void qore_init(qore_license_t license, const char *def_charset, bool show_module
    // set up core operators
    oplist.init();
 
+   // set up pseudo-methods
+   pseudo_classes_init();
+
    builtinFunctions.init();
 
    // init module subsystem
@@ -119,6 +122,9 @@ void qore_cleanup() {
 
    // clear the list before modules are unloaded
    builtinFunctions.clear();
+
+   // delete pseudo-methods
+   pseudo_classes_del();
 
    // purge thread resources before deleteing modules
    {

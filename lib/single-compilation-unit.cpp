@@ -167,6 +167,9 @@
 #include "QC_TermIOS.cpp"
 #include "QC_AbstractSmartLock.cpp"
 #include "QC_TimeZone.cpp"
+
+#include "QorePseudoMethods.cpp"
+
 #ifndef HAVE_GLOB
 #include "glob.cpp"
 #endif

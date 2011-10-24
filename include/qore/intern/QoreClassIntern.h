@@ -82,6 +82,9 @@ public:
    DLLLOCAL MethodVariant(bool n_priv_flag) : MethodVariantBase(n_priv_flag) {
    }
    DLLLOCAL virtual AbstractQoreNode *evalMethod(QoreObject *self, CodeEvaluationHelper &ceh, ExceptionSink *xsink) const = 0;
+   DLLLOCAL virtual AbstractQoreNode *evalPseudoMethod(const AbstractQoreNode *n, CodeEvaluationHelper &ceh, ExceptionSink *xsink) const {
+      assert(false);
+   }
 };
 
 #define METHV(f) (reinterpret_cast<MethodVariant *>(f))
@@ -268,6 +271,9 @@ public:
 
       return self->evalBuiltinMethodWithPrivateData(*qmethod, this, ceh.getArgs(), xsink);
    }
+
+   DLLLOCAL virtual AbstractQoreNode *evalPseudoMethod(const AbstractQoreNode *n, CodeEvaluationHelper &ceh, ExceptionSink *xsink) const;
+
    DLLLOCAL virtual AbstractQoreNode *evalImpl(QoreObject *self, AbstractPrivateData *private_data, const QoreListNode *args, ExceptionSink *xsink) const = 0;
 };
 
@@ -554,6 +560,9 @@ public:
 
    // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
    DLLLOCAL AbstractQoreNode *evalMethod(const AbstractQoreFunctionVariant *variant, QoreObject *self, const QoreListNode *args, ExceptionSink *xsink) const;
+
+   // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
+   DLLLOCAL AbstractQoreNode *evalPseudoMethod(const AbstractQoreFunctionVariant *variant, const AbstractQoreNode *n, const QoreListNode *args, ExceptionSink *xsink) const;
 };
 
 #define NMETHF(f) (reinterpret_cast<NormalMethodFunction *>(f))
@@ -2107,6 +2116,8 @@ struct qore_class_private {
    DLLLOCAL void parseRollback();
    DLLLOCAL int addUserMethod(const char *mname, MethodVariantBase *f, bool n_static);
 
+   DLLLOCAL AbstractQoreNode *evalPseudoMethod(const AbstractQoreNode *n, const char *name, const QoreListNode *args, ExceptionSink *xsink) const;
+
    DLLLOCAL const QoreMethod *parseResolveSelfMethodIntern(const char *nme) {
       const QoreMethod *m = parseFindLocalMethod(nme);
       if (!m)
@@ -2186,6 +2197,10 @@ struct qore_class_private {
 
    DLLLOCAL static const QoreMethod *parseFindAnyMethodIntern(const QoreClass *qc, const char *mname) {
       return qc->priv->parseFindAnyMethodIntern(mname);
+   }
+
+   DLLLOCAL static AbstractQoreNode *evalPseudoMethod(const QoreClass *qc, const AbstractQoreNode *n, const char *name, const QoreListNode *args, ExceptionSink *xsink) {
+      return qc->priv->evalPseudoMethod(n, name, args, xsink);
    }
 };
 

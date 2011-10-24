@@ -146,6 +146,20 @@ struct qore_method_private {
    DLLLOCAL void evalSystemConstructor(QoreObject *self, int code, va_list args) const {
       BSYSCONB(func)->eval(*parent_class, self, code, args);
    }
+
+   DLLLOCAL AbstractQoreNode *evalPseudoMethod(const AbstractQoreNode *n, const QoreListNode *args, ExceptionSink *xsink) const {
+      QORE_TRACE("qore_method_private::evalPseudoMethod()");
+
+      assert(!static_flag);
+
+      AbstractQoreNode *rv = NMETHF(func)->evalPseudoMethod(0, n, args, xsink);
+      printd(5, "qore_method_private::evalPseudoMethod() %s::%s() returning %p (type=%s, refs=%d)\n", parent_class->getName(), getName(), rv, rv ? rv->getTypeName() : "(null)", rv ? rv->reference_count() : 0);
+      return rv;
+   }
+
+   DLLLOCAL static AbstractQoreNode *evalPseudoMethod(const QoreMethod *m, const AbstractQoreNode *n, const QoreListNode *args, ExceptionSink *xsink) {
+      return m->priv->evalPseudoMethod(n, args, xsink);
+   }
 };
 
 class VRMutexHelper {
@@ -1659,6 +1673,7 @@ AbstractQoreNode *QoreClass::evalMethod(QoreObject *self, const char *nme, const
    if (!(w = findMethod(nme, priv_flag)) && !(w = findStaticMethod(nme, priv_flag))) {
       if (priv->methodGate && !priv->methodGate->inMethod(self)) // call methodGate with unknown method name and arguments
 	 return evalMethodGate(self, nme, args, xsink);
+
       // otherwise return an exception
       xsink->raiseException("METHOD-DOES-NOT-EXIST", "no method %s::%s() has been defined", priv->name, nme);
       return 0;
@@ -2425,6 +2440,27 @@ int qore_class_private::checkExistingVarMember(char *dname, bool decl_has_type_i
    return 0;
 }
 
+AbstractQoreNode *qore_class_private::evalPseudoMethod(const AbstractQoreNode *n, const char *nme, const QoreListNode *args, ExceptionSink *xsink) const {
+   QORE_TRACE("qore_class_private::evalPseudoMethod()");
+
+   const QoreMethod *w;
+
+   bool priv_flag = false;
+   if (!(w = findMethod(nme, priv_flag))) {
+      qore_type_t t = get_node_type(n);
+      // throw an exception
+      if (t == NT_OBJECT)
+	 xsink->raiseException("METHOD-DOES-NOT-EXIST", "no method %s::%s() has been defined and no pseudo-method with this name is available", name, nme);
+      else
+	 xsink->raiseException("PSEUDO-METHOD-DOES-NOT-EXIST", "no pseduo method <%s>::%s() has been defined", get_type_name(n), nme);
+      return 0;
+   }
+
+   //printd(5, "qore_class_private::evalPseudoMethod() %s::%s() found method %p class %s\n", priv->name, nme, w, w->getClassName());
+
+   return qore_method_private::evalPseudoMethod(w, n, args, xsink);
+}
+
 bool QoreClass::hasParentClass() const {
    return (bool)priv->scl;
 }
@@ -2863,6 +2899,32 @@ AbstractQoreNode *NormalMethodFunction::evalMethod(const AbstractQoreFunctionVar
 }
 
 // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
+AbstractQoreNode *NormalMethodFunction::evalPseudoMethod(const AbstractQoreFunctionVariant *variant, const AbstractQoreNode *n, const QoreListNode *args, ExceptionSink *xsink) const {
+   const char *mname = getName();
+   CodeEvaluationHelper ceh(xsink, mname, args, getClassName());
+   if (*xsink) return 0;
+
+   bool check_args = variant;
+   if (!variant) {
+      variant = findVariant(ceh.getArgs(), false, xsink);
+      if (!variant) {
+	 assert(*xsink);
+	 return 0;
+      }
+   }
+   //printd(5, "NormalMethodFunction::evalPseudoMethod() this=%p calling %s::%s()\n", this, METHVB_const(variant)->className(), mname);
+   ceh.setClassName(METHVB_const(variant)->className());
+
+   if (ceh.processDefaultArgs(this, variant, check_args))
+      return 0;
+
+   ceh.setCallType(variant->getCallType());
+   ceh.setReturnTypeInfo(variant->getReturnTypeInfo());
+
+   return METHV_const(variant)->evalPseudoMethod(n, ceh, xsink);      
+}
+
+// if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
 AbstractQoreNode *StaticMethodFunction::evalMethod(const AbstractQoreFunctionVariant *variant, const QoreListNode *args, ExceptionSink *xsink) const {
    const char *mname = getName();
    CodeEvaluationHelper ceh(xsink, mname, args, getClassName());
@@ -2885,6 +2947,11 @@ AbstractQoreNode *StaticMethodFunction::evalMethod(const AbstractQoreFunctionVar
    ceh.setReturnTypeInfo(variant->getReturnTypeInfo());
 
    return METHV_const(variant)->evalMethod(0, ceh, xsink);      
+}
+
+AbstractQoreNode *BuiltinNormalMethodVariantBase::evalPseudoMethod(const AbstractQoreNode *n, CodeEvaluationHelper &ceh, ExceptionSink *xsink) const {
+   CODE_CONTEXT_HELPER(CT_BUILTIN, qmethod->getName(), 0, xsink);
+   return evalImpl(NULL, (AbstractPrivateData*)n, ceh.getArgs(), xsink);
 }
 
 class qmi_priv {

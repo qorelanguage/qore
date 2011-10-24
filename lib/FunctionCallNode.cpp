@@ -373,15 +373,13 @@ AbstractQoreNode *FunctionCallNode::parseInitImpl(LocalVar *oflag, int pflag, in
       Var *v = ::getProgram()->findGlobalVar(c_str);
       if (v)
 	 n = new GlobalVarRefNode(takeName(), v);
-      //}
 
-   // see if a constant can be resolved
-   if (!n) {
-      n = getRootNS()->rootFindConstantValue(c_str, returnTypeInfo);
-      if (n)
-	 n->ref();
-   }
-   //xxx
+      // see if a constant can be resolved
+      if (!n) {
+	 n = getRootNS()->rootFindConstantValue(c_str, returnTypeInfo);
+	 if (n)
+	    n->ref();
+      }
    }
 
    if (n) {
@@ -494,7 +492,6 @@ AbstractQoreNode *StaticMethodCallNode::parseInitImpl(LocalVar *oflag, int pflag
    RootQoreNamespace &rns = *(getRootNS());
    unsigned m = 0;
    QoreClass *qc = rns.rootFindScopedClassWithMethod(scope, &m);
-      //rns.parseFindScopedClassWithMethod(scope);
 
    // see if this is a call to a base class method if bare refs are allowed
    // and we're parsing in a class context and the class found is in the

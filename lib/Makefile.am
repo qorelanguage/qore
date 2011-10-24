@@ -185,6 +185,7 @@ libqore_la_SOURCES = \
 	QC_AbstractSmartLock.cpp \
 	QC_TimeZone.cpp \
 	QC_TermIOS.cpp \
+	QorePseudoMethods.cpp \
 	QoreHTTPClient.cpp \
 	minitest.cpp
 

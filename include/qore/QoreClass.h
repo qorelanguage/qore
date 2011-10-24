@@ -82,6 +82,7 @@ class QoreMethod {
    friend class StaticMethodCallNode;
    friend class QoreObject;
    friend class qore_class_private;
+   friend class qore_method_private;
 
 private:
    //! private implementation of the method

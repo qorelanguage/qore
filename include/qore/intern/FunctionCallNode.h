@@ -239,7 +239,7 @@ protected:
       return 0;
    }
 
-   // note that the class and method are set in Operator.cpp:check_op_object_func_ref()
+   // note that the class and method are set in QoreDotEvalOperatorNode::parseInitImpl()
    DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
       typeInfo = 0;
       lvids += parseArgs(oflag, pflag, 0, typeInfo);

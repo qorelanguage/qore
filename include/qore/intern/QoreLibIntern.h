@@ -386,6 +386,7 @@ DLLLOCAL bool checkParseOption(int64 o);
 #include <qore/intern/QoreTimeZoneManager.h>
 #include <qore/intern/ContextStatement.h>
 #include <qore/intern/SwitchStatement.h>
+#include <qore/intern/QorePseudoMethods.h>
 
 DLLLOCAL extern int qore_library_options;
 
