@@ -93,7 +93,7 @@ public:
    DLLLOCAL void rightParseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
       if (right) {
          right = right->parseInit(oflag, pflag & ~PF_FOR_ASSIGNMENT, lvids, typeInfo);
-         //printd(5, "QoreTreeNode::rightParseInit() this=%p new right=%p (%s)\n", this, right, get_type_name(right));
+         //printd(0, "QoreTreeNode::rightParseInit() this=%p new right=%p (%s, type: %s)\n", this, right, get_type_name(right), typeInfo->getName());
       }
    }
 

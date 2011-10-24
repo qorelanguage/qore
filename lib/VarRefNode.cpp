@@ -53,7 +53,7 @@ const char *VarRefNode::getTypeName() const {
    return "variable reference";
 }
 
-void VarRefNode::resolve(const QoreTypeInfo *typeInfo, const QoreTypeInfo *&outTypeInfo) {
+void VarRefNode::resolve(const QoreTypeInfo *typeInfo) {
    LocalVar *id;
 
    bool in_closure;
@@ -70,12 +70,10 @@ void VarRefNode::resolve(const QoreTypeInfo *typeInfo, const QoreTypeInfo *&outT
 	 type = VT_LOCAL;
 	 ref.id = id;
       }
-      outTypeInfo = id->getTypeInfo();
       printd(5, "VarRefNode::resolve(): local var %s resolved (id=%p, in_closure=%d)\n", name, ref.id, in_closure);
    }
    else {
       ref.var = getProgram()->checkGlobalVar(name, typeInfo);
-      outTypeInfo = ref.var->parseGetTypeInfo();
       type = VT_GLOBAL;
       printd(5, "VarRefNode::resolve(): global var %s resolved (var=%p)\n", name, ref.var);
    }
@@ -156,34 +154,30 @@ char *VarRefNode::takeName() {
    return p;
 }
 
-AbstractQoreNode *VarRefNode::parseInitIntern(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *typeInfo, const QoreTypeInfo *&outTypeInfo, bool is_new) {
+AbstractQoreNode *VarRefNode::parseInitIntern(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *typeInfo, bool is_new) {
    if (pflag & PF_CONST_EXPRESSION)
       parseException("ILLEGAL-VARIABLE-REFERENCE", "variable reference '%s' used illegally in an expression executed at parse time to initialize a constant value", name);
 
    //printd(5, "VarRefNode::parseInitIntern() this=%p '%s' type=%d\n", this, name, type);
    // if it is a new variable being declared
    if (type == VT_LOCAL || type == VT_CLOSURE) {
-      outTypeInfo = typeInfo;
       if (!ref.id) {
 	 ref.id = push_local_var(name, typeInfo, true, is_new ? 1 : 0, pflag & PF_TOP_LEVEL);
 	 ++lvids;
       }
       //printd(5, "VarRefNode::parseInitIntern() this=%p local var '%s' declared (id=%p)\n", this, name, ref.id);
    }
-   else if (type == VT_GLOBAL) {
-      outTypeInfo = typeInfo;
-   }
-   else {
+   else if (type != VT_GLOBAL) {
       assert(type == VT_UNRESOLVED);
       // otherwise reference must be resolved
-      resolve(typeInfo, outTypeInfo);
+      resolve(typeInfo);
    }
    
    return this;
 }
 
 AbstractQoreNode *VarRefNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&outTypeInfo) {
-   parseInitIntern(oflag, pflag, lvids, 0, outTypeInfo);
+   parseInitIntern(oflag, pflag, lvids, 0);
 
    bool is_assignment = pflag & PF_FOR_ASSIGNMENT;
 
@@ -194,6 +188,8 @@ AbstractQoreNode *VarRefNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvi
       assert(!outTypeInfo);
       outTypeInfo = nothingTypeInfo;
    }
+   else
+      outTypeInfo = parseGetTypeInfo();
 
    return this;
 }
@@ -213,7 +209,7 @@ AbstractQoreNode *VarRefNode::makeNewCall(AbstractQoreNode *args) {
    return type == VT_GLOBAL && new_decl ? globalMakeNewCall(args) : 0;
 }
 
-void VarRefDeclNode::parseInitCommon(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&outTypeInfo, bool is_new) {
+void VarRefDeclNode::parseInitCommon(LocalVar *oflag, int pflag, int &lvids, bool is_new) {
    if (!typeInfo) {
       typeInfo = parseTypeInfo->resolveAndDelete();
       parseTypeInfo = 0;
@@ -222,8 +218,7 @@ void VarRefDeclNode::parseInitCommon(LocalVar *oflag, int pflag, int &lvids, con
    else assert(!parseTypeInfo);
 #endif
 
-   outTypeInfo = typeInfo;
-   parseInitIntern(oflag, pflag, lvids, typeInfo, outTypeInfo, is_new);
+   parseInitIntern(oflag, pflag, lvids, typeInfo, is_new);
 }
 
 AbstractQoreNode *VarRefDeclNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&outTypeInfo) {
@@ -236,6 +231,8 @@ AbstractQoreNode *VarRefDeclNode::parseInitImpl(LocalVar *oflag, int pflag, int 
    // return type
    if (!is_assignment && new_decl)
       outTypeInfo = nothingTypeInfo;
+   else
+      outTypeInfo = parseGetTypeInfo();
 
    return this;
 }
@@ -275,10 +272,11 @@ void VarRefFunctionCallBase::parseInitConstructorCall(LocalVar *oflag, int pflag
 }
 
 AbstractQoreNode *LocalVarRefNewObjectNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&outTypeInfo) {
-   parseInitCommon(oflag, pflag, lvids, outTypeInfo, true);
+   parseInitCommon(oflag, pflag, lvids, true);
 
    const QoreClass *qc = typeInfo->getUniqueReturnClass();
    parseInitConstructorCall(oflag, pflag, lvids, qc);
+   outTypeInfo = typeInfo;
    return this;
 }
 

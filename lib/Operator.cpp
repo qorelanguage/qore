@@ -3837,6 +3837,13 @@ static AbstractQoreNode *check_op_object_ref(QoreTreeNode *tree, LocalVar *oflag
       }
    }
 
+   //printd(5, "check_op_object_ref() rightTypeInfo=%s rightTypeInfo->nonStringValue(): %d !listTypeInfo->parseAccepts(rightTypeInfo): %d\n", rightTypeInfo->getName(), rightTypeInfo->nonStringValue(), !listTypeInfo->parseAccepts(rightTypeInfo));
+
+   // issue a warning if the right side of the expression cannot be converted to a string
+   // and can not be a list (for a slice)
+   if (rightTypeInfo->nonStringValue() && !listTypeInfo->parseAccepts(rightTypeInfo))
+      rightTypeInfo->doNonStringWarning("the right side of the expression with the '.' or '{}' operator is ");
+
    return tree;
 }
 

@@ -55,8 +55,8 @@ protected:
    DLLLOCAL virtual bool boolEvalImpl(ExceptionSink *xsink) const;
    DLLLOCAL virtual double floatEvalImpl(ExceptionSink *xsink) const;
 
-   DLLLOCAL void resolve(const QoreTypeInfo *typeInfo, const QoreTypeInfo *&outTypeInfo);
-   DLLLOCAL AbstractQoreNode *parseInitIntern(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *typeInfo, const QoreTypeInfo *&outTypeInfo, bool is_new = false);
+   DLLLOCAL void resolve(const QoreTypeInfo *typeInfo);
+   DLLLOCAL AbstractQoreNode *parseInitIntern(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *typeInfo, bool is_new = false);
    DLLLOCAL GlobalVarRefNewObjectNode *globalMakeNewCall(AbstractQoreNode *args);
 
    // initializes during parsing
@@ -67,6 +67,14 @@ protected:
          return ref.id->getTypeInfo();
       if (type == VT_GLOBAL)
          return ref.var->getTypeInfo();
+      return 0;
+   }
+
+   DLLLOCAL virtual const QoreTypeInfo *parseGetTypeInfo() const {
+      if (type == VT_LOCAL || type == VT_CLOSURE)
+         return ref.id->getTypeInfo();
+      if (type == VT_GLOBAL)
+         return ref.var->parseGetTypeInfo();
       return 0;
    }
 
@@ -221,7 +229,7 @@ public:
       new_decl = true;
    }
 
-   void parseInitCommon(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&outTypeInfo, bool is_new = false);
+   void parseInitCommon(LocalVar *oflag, int pflag, int &lvids, bool is_new = false);
 };
 
 class VarRefFunctionCallBase : public FunctionCallBase {

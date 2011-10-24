@@ -534,7 +534,7 @@ release summary: major bugfixes and major new features including the new
     for the case when a variable is declared twice within the same block at
     the exact same lexical scope; this is an error when %assume-local is
     enabled
-* new feature: implemented "#$" giving the implicit offset when implicitly
+* new feature: implemented "$#" giving the implicit offset when implicitly
     iterating a list (foreach, map, foldl, foldr, select)
 * new feature: added the following methods to the HTTPClient class:
   * HTTPClient::setUserPassword()

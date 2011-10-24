@@ -244,7 +244,7 @@ int ForEachStatement::execRef(AbstractQoreNode **return_value, ExceptionSink *xs
 int ForEachStatement::parseInitImpl(LocalVar *oflag, int pflag) {
    int lvids = 0;
    
-   const QoreTypeInfo *argTypeInfo;
+   const QoreTypeInfo *argTypeInfo = 0;
    if (var)
       var = var->parseInit(oflag, pflag, lvids, argTypeInfo);
    if (list)

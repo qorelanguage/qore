@@ -713,6 +713,32 @@ public:
       getProgram()->makeParseWarning(QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
    }
 
+   // returns false if there is no type or if the type can be converted to a string value, true if otherwise
+   DLLLOCAL bool nonStringValue() const {
+      if (!hasType())
+         return false;
+
+      if (returns_mult) {
+         const type_vec_t &rt = getReturnTypeList();
+
+         // return true only if none of the return types are a string
+         for (type_vec_t::const_iterator i = rt.begin(), e = rt.end(); i != e; ++i) {
+            if (!(*i)->nonStringValue())
+               return false;
+         }
+         return true;
+      }
+
+      return is_int || qt == NT_FLOAT || qt == NT_STRING || qt == NT_BOOLEAN || qt == NT_DATE ? false : true;
+   }
+
+   DLLLOCAL void doNonStringWarning(const char *preface) const {
+      QoreStringNode *desc = new QoreStringNode(preface);
+      getThisType(*desc);
+      desc->sprintf(", which cannot be converted to a string, therefore will always evaluate to an empty string at runtime");
+      getProgram()->makeParseWarning(QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
+   }
+
    DLLLOCAL void concatName(std::string &str) const {
       if (!hasType()) {
 	 str.append(NO_TYPE_INFO);
