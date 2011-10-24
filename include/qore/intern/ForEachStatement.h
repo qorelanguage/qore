@@ -33,9 +33,11 @@ private:
    class AbstractQoreNode *list;
    class StatementBlock *code;
    class LVList *lvars;
-   bool is_ref;
+   bool is_ref,
+      is_keys;
    
    DLLLOCAL int execRef(AbstractQoreNode **return_value, class ExceptionSink *xsink);
+   DLLLOCAL int execKeys(AbstractQoreNode **return_value, ExceptionSink *xsink);
    DLLLOCAL virtual int execImpl(class AbstractQoreNode **return_value, class ExceptionSink *xsink);
    DLLLOCAL virtual int parseInitImpl(LocalVar *oflag, int pflag = 0);
    

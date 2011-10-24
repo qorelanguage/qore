@@ -24,7 +24,7 @@
 #include <qore/intern/ForEachStatement.h>
 #include <qore/intern/StatementBlock.h>
 
-ForEachStatement::ForEachStatement(int start_line, int end_line, AbstractQoreNode *v, AbstractQoreNode *l, StatementBlock *cd) : AbstractStatement(start_line, end_line), var(v), list(l), code(cd), lvars(0) {
+ForEachStatement::ForEachStatement(int start_line, int end_line, AbstractQoreNode *v, AbstractQoreNode *l, StatementBlock *cd) : AbstractStatement(start_line, end_line), var(v), list(l), code(cd), lvars(0), is_ref(false), is_keys(false) {
 }
 
 ForEachStatement::~ForEachStatement() {
@@ -40,7 +40,8 @@ int ForEachStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *x
    if (is_ref)
       return execRef(return_value, xsink);
 
-   int rc = 0;
+   if (is_keys)
+      return execKeys(return_value, xsink);
 
    // instantiate local variables
    LVListInstantiator lvi(lvars, xsink);
@@ -56,6 +57,8 @@ int ForEachStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *x
 
    // execute "foreach" body
    unsigned i = 0;
+
+   int rc = 0;
 
    while (true) {
       {
@@ -85,6 +88,59 @@ int ForEachStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *x
       // if the argument is not a list or list iteration is done, then break
       if (!l_tlist || i == l_tlist->size())
 	 break;
+   }
+
+   return rc;
+}
+
+// specialization for foreach ... in (keys <hash>) {}
+int ForEachStatement::execKeys(AbstractQoreNode **return_value, ExceptionSink *xsink) {
+   // instantiate local variables
+   LVListInstantiator lvi(lvars, xsink);
+
+   assert(get_node_type(list) == NT_TREE);
+   QoreTreeNode *t = reinterpret_cast<QoreTreeNode *>(list);
+
+   QoreNodeEvalOptionalRefHolder hash(t->left, xsink);
+   if (*xsink)
+      return 0;
+
+   // if the result is not a hash, then return
+   if (get_node_type(*hash) != NT_HASH)
+      return 0;
+
+   const QoreHashNode *h = reinterpret_cast<const QoreHashNode *>(*hash);
+
+   ConstHashIterator hi(h);
+
+   int rc = 0;
+
+   int i = 0;
+
+   while (hi.next()) {
+      {
+	 LValueHelper n(var, xsink);
+	 if (!n)
+	    break;
+	 
+	 // assign variable to current key value in list
+	 if (n.assign(new QoreStringNode(hi.getKey())))
+	    break;
+      }
+
+      // set offset in thread-local data for "$#"
+      ImplicitElementHelper eh(i++);
+      
+      // execute "foreach" body
+      if (((rc = code->execImpl(return_value, xsink)) == RC_BREAK) || *xsink) {
+	 rc = 0;
+	 break;
+      }
+      
+      if (rc == RC_RETURN)
+	 break;
+      else if (rc == RC_CONTINUE)
+	 rc = 0;
    }
 
    return rc;
@@ -200,7 +256,16 @@ int ForEachStatement::parseInitImpl(LocalVar *oflag, int pflag) {
    if (lvids)
       lvars = new LVList(lvids);
 
-   is_ref = (list->getType() == NT_REFERENCE);
+   qore_type_t typ = list->getType();
+
+   is_ref = (typ == NT_REFERENCE);
+
+   // check for "keys <hash>" specialization
+   if (!is_ref && typ == NT_TREE) {
+      QoreTreeNode *t = reinterpret_cast<QoreTreeNode *>(list);
+      if (t->getOp() == OP_KEYS)
+	 is_keys = true;
+   }
 
    return 0;
 }
