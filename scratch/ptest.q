@@ -27,6 +27,7 @@ sub main() {
     for (int i = 0; i < 50; ++i)
 	h.(UUID::get()) = UUID::get();
 
+    /*
     timeit("foreach specialized", 
 	sub () {
 	    for (int i = 0; i < total; ++i) {
@@ -56,13 +57,49 @@ sub main() {
 	});
 
     timeit("check type string", 
-	sub () {
+           sub () {
 	    for (int i = 0; i < total; ++i) {
 		bool b;
 		if (type(h) == Type::Hash)
 		    delete b;
 	    }
 	});
+    */
 
+    timeit("inlist comparison",
+	   sub () {
+	       for (int i = 0; i < total; ++i) {
+		   int t = NT_STRING;
+		   if (inlist(t, (NT_INT, NT_LIST, NT_FLOAT, NT_DATE, NT_STRING)))
+		       int x1 = 0;
+	       }
+	   }
+	);
+
+    timeit("if comparison",
+	   sub () {
+	       for (int i = 0; i < total; ++i) {
+		   int t = NT_STRING;
+		   if (t == NT_INT || t == NT_LIST || t == NT_FLOAT || t == NT_DATE || t == NT_STRING)
+		       int x1 = 0;
+	       }
+	   }
+	);
+
+    timeit("switch comparison",
+	   sub () {
+	       for (int i = 0; i < total; ++i) {
+		   int t = NT_STRING;
+		   switch (t) {
+		       case NT_INT:
+		       case NT_LIST:
+		       case NT_FLOAT:
+		       case NT_DATE:
+		       case NT_STRING:
+		           int x1 = 0;
+		   }
+	       }
+	   }
+	);
 }
 
