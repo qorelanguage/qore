@@ -84,6 +84,7 @@ public:
    DLLLOCAL virtual AbstractQoreNode *evalMethod(QoreObject *self, CodeEvaluationHelper &ceh, ExceptionSink *xsink) const = 0;
    DLLLOCAL virtual AbstractQoreNode *evalPseudoMethod(const AbstractQoreNode *n, CodeEvaluationHelper &ceh, ExceptionSink *xsink) const {
       assert(false);
+      return 0;
    }
 };
 
