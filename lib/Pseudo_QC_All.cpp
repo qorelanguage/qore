@@ -33,8 +33,7 @@ static AbstractQoreNode *PSEUDOALL_type(QoreObject *ignored, AbstractQoreNode *n
 }
 
 QoreClass *initPseudoAllClass() {   
-   QoreClass *QC_PseudoAll = new QoreClass("$PseudoAll");
-   //CID_PSEUDOALL = QC_PseudoAll->getID();
+   QoreClass *QC_PseudoAll = new QoreClass("<value>");
 
    QC_PseudoAll->addMethodExtended("typeCode", (q_method_t)PSEUDOALL_typeCode, false, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo);
 

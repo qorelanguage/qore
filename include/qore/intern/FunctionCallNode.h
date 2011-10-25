@@ -232,6 +232,7 @@ public:
 class MethodCallNode : public AbstractMethodCallNode {
 protected:
    char *c_str;
+   bool pseudo;
 
    using AbstractFunctionCallNode::evalImpl;
    DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *) const {
@@ -247,11 +248,11 @@ protected:
    }
 
 public:
-   DLLLOCAL MethodCallNode(char *name, QoreListNode *n_args) : AbstractMethodCallNode(NT_METHOD_CALL, n_args), c_str(name) {
+   DLLLOCAL MethodCallNode(char *name, QoreListNode *n_args) : AbstractMethodCallNode(NT_METHOD_CALL, n_args), c_str(name), pseudo(false) {
       //printd(0, "MethodCallNode::MethodCallNode() this=%08p name='%s' args=%08p (len=%d)\n", this, c_str, args, args ? args->size() : -1);
    }
 
-   DLLLOCAL MethodCallNode(const MethodCallNode &old, QoreListNode *n_args) : AbstractMethodCallNode(NT_METHOD_CALL, n_args), c_str(old.c_str ? strdup(old.c_str) : 0) {
+   DLLLOCAL MethodCallNode(const MethodCallNode &old, QoreListNode *n_args) : AbstractMethodCallNode(NT_METHOD_CALL, n_args), c_str(old.c_str ? strdup(old.c_str) : 0), pseudo(old.pseudo) {
    }
 
    DLLLOCAL virtual ~MethodCallNode() {
@@ -264,6 +265,8 @@ public:
       return AbstractMethodCallNode::exec(o, c_str, xsink);
    }
 
+   DLLLOCAL AbstractQoreNode *execPseudo(const AbstractQoreNode *n, ExceptionSink *xsink) const;
+
    DLLLOCAL virtual const char *getName() const {
       return c_str ? c_str : "copy";
    }
@@ -273,7 +276,7 @@ public:
    }
 
    DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {
-      str.sprintf("'%s' method call (0x%08p)", getName(), this);
+      str.sprintf("'%s' %smethod call (%p)", getName(), pseudo ? "pseudo " : "", this);
       return 0;
    }
 
@@ -306,6 +309,15 @@ public:
       method = n_method;
       assert(qc);
       assert(method);
+   }
+
+   DLLLOCAL void setPseudo() {
+      assert(!pseudo);
+      pseudo = true;
+   }
+   
+   DLLLOCAL bool isPseudo() const {
+      return pseudo;
    }
 };
 

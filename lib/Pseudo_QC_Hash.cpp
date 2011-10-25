@@ -64,11 +64,11 @@ static AbstractQoreNode *PSEUDOHASH_empty(QoreObject *ignored, QoreHashNode *h, 
 
 // int <hash>.size() {}
 static AbstractQoreNode *PSEUDOHASH_size(QoreObject *ignored, QoreHashNode *h, const QoreListNode *args, ExceptionSink *xsink) {
-   return get_bool_node(h->size());
+   return new QoreBigIntNode(h->size());
 }
 
 QoreClass *initPseudoHashClass(QoreClass *pseudoAll) {   
-   QoreClass *QC_PseudoHash = new QoreClass("$PseudoHash");
+   QoreClass *QC_PseudoHash = new QoreClass("<hash>");
    //CID_PSEUDOHASH = QC_PseudoHash->getID();
 
    QC_PseudoHash->addBuiltinVirtualBaseClass(pseudoAll);
@@ -93,6 +93,9 @@ QoreClass *initPseudoHashClass(QoreClass *pseudoAll) {
 
    // int <hash>.size() {}
    QC_PseudoHash->addMethodExtended("size", (q_method_t)PSEUDOHASH_size, false, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo);
+  
+   // int <hash>.elements() {}
+   QC_PseudoHash->addMethodExtended("elements", (q_method_t)PSEUDOHASH_size, false, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo);
   
    return QC_PseudoHash;
 }

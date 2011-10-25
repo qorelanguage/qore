@@ -21,6 +21,7 @@
 */
 
 #include <qore/Qore.h>
+#include <qore/intern/QoreObjectIntern.h>
 
 // list <object>.keys() {}
 static AbstractQoreNode *PSEUDOOBJECT_keys(QoreObject *ignored, QoreObject *obj, const QoreListNode *args, ExceptionSink *xsink) {
@@ -49,22 +50,31 @@ static AbstractQoreNode *PSEUDOOBJECT_isSystem(QoreObject *ignored, QoreObject *
    return get_bool_node(obj->isSystemObject());
 }
 
+// string <object>.firstKey() {}
+static AbstractQoreNode *PSEUDOOBJECT_firstKey(QoreObject *ignored, QoreObject *obj, const QoreListNode *args, ExceptionSink *xsink) {
+   return qore_object_private::firstKey(obj, xsink);
+}
+
+// string <object>.lastKey() {}
+static AbstractQoreNode *PSEUDOOBJECT_lastKey(QoreObject *ignored, QoreObject *obj, const QoreListNode *args, ExceptionSink *xsink) {
+   return qore_object_private::lastKey(obj, xsink);
+}
+
 QoreClass *initPseudoObjectClass(QoreClass *pseudoAll) {   
-   QoreClass *QC_PseudoObject = new QoreClass("$PseudoObject");
-   //CID_PSEUDOOBJECT = QC_PseudoObject->getID();
+   QoreClass *QC_PseudoObject = new QoreClass("<object>");
 
    QC_PseudoObject->addBuiltinVirtualBaseClass(pseudoAll);
 
    // list <object>.keys() {}
    QC_PseudoObject->addMethodExtended("keys", (q_method_t)PSEUDOOBJECT_keys, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, listTypeInfo);
 
-/*
    // *string <object>.firstKey() {}
-   QC_PseudoObject->addMethodExtended("firstKey", (q_method_t)PSEUDOOBJECT_firstKey, false, QC_CONSTANT, QDOM_DEFAULT, stringOrNothingTypeInfo);
+   QC_PseudoObject->addMethodExtended("firstKey", (q_method_t)PSEUDOOBJECT_firstKey, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringOrNothingTypeInfo);
 
    // *string <object>.lastKey() {}
-   QC_PseudoObject->addMethodExtended("lastKey", (q_method_t)PSEUDOOBJECT_lastKey, false, QC_CONSTANT, QDOM_DEFAULT, stringOrNothingTypeInfo);
+   QC_PseudoObject->addMethodExtended("lastKey", (q_method_t)PSEUDOOBJECT_lastKey, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringOrNothingTypeInfo);
 
+/*
    // bool <object>.hasKey(softstring $key) {}
    QC_PseudoObject->addMethodExtended("hasKey", (q_method_t)PSEUDOOBJECT_hasKey, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, boolTypeInfo, 1, softStringTypeInfo, NULL);
 

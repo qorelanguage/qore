@@ -11,7 +11,7 @@
 %require-types
 
 # make sure we have the right version of qore
-%requires qore >= 0.8.1
+%requires qore >= 0.8.4
 
 # global variables needed for tests
 our Test $to("program-test.q");
@@ -318,6 +318,20 @@ sub hash_tests() {
     my Test $ot(1, "two", 3.0);
     $ot += $a;
     test_value($ot.("unique", "new"), ("unique" : 100, "new" : 45), "hash slice creation from object");
+
+    # use the foreach ... in (keys <hash>) specialization
+    my int $cnt = 0;
+    foreach my string $k in (keys $c) {
+        # to avoid unused local var warning
+        delete $k;
+        ++$cnt;
+    }
+    test_value($cnt, 5, "foreach hash keys specialization");
+    # do pseudo-method tests
+    test_value($c.firstKey(), "key", "<hash>.firstKey()");
+    test_value($c.lastKey(), "barn", "<hash>.lastKey()");
+    test_value($c.size(), 5, "<hash>.size()");
+    test_value($c.elements(), 5, "<hash>.elements()");
 
     # delete 3 keys from the $c hash
     $b = $c - "new" - "barn" - "asd";

@@ -475,6 +475,11 @@ AbstractQoreNode *ScopedObjectCallNode::parseInitImpl(LocalVar *oflag, int pflag
    return this;
 }
 
+AbstractQoreNode *MethodCallNode::execPseudo(const AbstractQoreNode *n, ExceptionSink *xsink) const {
+   //printd(5, "MethodCallNode::execPseudo() %s::%s() variant=%p\n", qc->getName(), method->getName(), variant);
+   return qore_class_private::evalPseudoMethod(qc, method, variant, n, args, xsink);
+}
+
 AbstractQoreNode *StaticMethodCallNode::makeReferenceNodeAndDeref() {
    if (args) {
       parse_error("argument given to static method call reference");

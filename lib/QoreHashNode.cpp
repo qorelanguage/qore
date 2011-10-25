@@ -661,14 +661,10 @@ void QoreHashNode::doDuplicateKeyWarning(const char *key) {
    getProgram()->makeParseWarning(QP_WARN_DUPLICATE_HASH_KEY, "DUPLICATE-HASH-KEY", "hash key '%s' has already been given in this hash; the value given in the last occurrence will be assigned to the hash; to avoid seeing this warning, remove the extraneous key definitions or turn off the warning by using '%%disable-warning duplicate-hash-key' in your code", key);
 }
 
-HashIterator::HashIterator(QoreHashNode *qh) {
-   h = qh;
-   ptr = 0;
+HashIterator::HashIterator(QoreHashNode *qh) : h(qh), ptr(0) {
 }
 
-HashIterator::HashIterator(QoreHashNode &qh) {
-   h = &qh;
-   ptr = 0;
+HashIterator::HashIterator(QoreHashNode &qh) : h(&qh), ptr(0) {
 }
 
 AbstractQoreNode *HashIterator::getReferencedValue() const {
@@ -753,14 +749,21 @@ bool HashIterator::first() const {
    return (bool)(ptr ? !ptr->prev : false); 
 } 
 
-ConstHashIterator::ConstHashIterator(const QoreHashNode *qh) {
-   h = qh;
-   ptr = 0;
+ReverseHashIterator::ReverseHashIterator(QoreHashNode *h) : HashIterator(h) {
 }
 
-ConstHashIterator::ConstHashIterator(const QoreHashNode &qh) {
-   h = &qh;
-   ptr = 0;
+ReverseHashIterator::ReverseHashIterator(QoreHashNode &h) : HashIterator(h) {
+}
+
+bool ReverseHashIterator::next() { 
+   ptr = ptr ? ptr->prev : h->priv->tail;
+   return ptr;
+}
+
+ConstHashIterator::ConstHashIterator(const QoreHashNode *qh) : h(qh), ptr(0) {
+}
+
+ConstHashIterator::ConstHashIterator(const QoreHashNode &qh) : h(&qh), ptr(0) {
 }
 
 AbstractQoreNode *ConstHashIterator::getReferencedValue() const {
@@ -802,6 +805,17 @@ bool ConstHashIterator::last() const {
 bool ConstHashIterator::first() const {
    return (bool)(ptr ? !ptr->prev : false); 
 } 
+
+ReverseConstHashIterator::ReverseConstHashIterator(const QoreHashNode *h) : ConstHashIterator(h) {
+}
+
+ReverseConstHashIterator::ReverseConstHashIterator(const QoreHashNode &h) : ConstHashIterator(h) {
+}
+
+bool ReverseConstHashIterator::next() { 
+   ptr = ptr ? ptr->prev : h->priv->tail;
+   return ptr;
+}
 
 hash_assignment_priv::hash_assignment_priv(qore_hash_private &n_h, const char *key, bool must_already_exist) : h(n_h), om(must_already_exist ? h.findMember(key) : h.findCreateMember(key)) {
 }

@@ -147,18 +147,18 @@ struct qore_method_private {
       BSYSCONB(func)->eval(*parent_class, self, code, args);
    }
 
-   DLLLOCAL AbstractQoreNode *evalPseudoMethod(const AbstractQoreNode *n, const QoreListNode *args, ExceptionSink *xsink) const {
+   DLLLOCAL AbstractQoreNode *evalPseudoMethod(const AbstractQoreFunctionVariant *variant, const AbstractQoreNode *n, const QoreListNode *args, ExceptionSink *xsink) const {
       QORE_TRACE("qore_method_private::evalPseudoMethod()");
 
       assert(!static_flag);
 
-      AbstractQoreNode *rv = NMETHF(func)->evalPseudoMethod(0, n, args, xsink);
+      AbstractQoreNode *rv = NMETHF(func)->evalPseudoMethod(variant, n, args, xsink);
       printd(5, "qore_method_private::evalPseudoMethod() %s::%s() returning %p (type=%s, refs=%d)\n", parent_class->getName(), getName(), rv, rv ? rv->getTypeName() : "(null)", rv ? rv->reference_count() : 0);
       return rv;
    }
 
-   DLLLOCAL static AbstractQoreNode *evalPseudoMethod(const QoreMethod *m, const AbstractQoreNode *n, const QoreListNode *args, ExceptionSink *xsink) {
-      return m->priv->evalPseudoMethod(n, args, xsink);
+   DLLLOCAL static AbstractQoreNode *evalPseudoMethod(const QoreMethod *m, const AbstractQoreFunctionVariant *variant, const AbstractQoreNode *n, const QoreListNode *args, ExceptionSink *xsink) {
+      return m->priv->evalPseudoMethod(variant, n, args, xsink);
    }
 };
 
@@ -2461,7 +2461,11 @@ AbstractQoreNode *qore_class_private::evalPseudoMethod(const AbstractQoreNode *n
 
    //printd(5, "qore_class_private::evalPseudoMethod() %s::%s() found method %p class %s\n", priv->name, nme, w, w->getClassName());
 
-   return qore_method_private::evalPseudoMethod(w, n, args, xsink);
+   return qore_method_private::evalPseudoMethod(w, 0, n, args, xsink);
+}
+
+AbstractQoreNode *qore_class_private::evalPseudoMethod(const QoreMethod *m, const AbstractQoreFunctionVariant *variant, const AbstractQoreNode *n, const QoreListNode *args, ExceptionSink *xsink) const {
+   return qore_method_private::evalPseudoMethod(m, variant, n, args, xsink);
 }
 
 bool QoreClass::hasParentClass() const {

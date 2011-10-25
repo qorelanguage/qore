@@ -320,6 +320,55 @@ public:
 
    DLLLOCAL AbstractQoreNode **getMemberValuePtr(const char *key, AutoVLock *vl, const QoreTypeInfo *&typeInfo, ObjMap &omap, ExceptionSink *xsink) const;
 
+   DLLLOCAL QoreStringNode *firstKey(ExceptionSink *xsink) {
+      AutoLocker al(mutex);
+
+      if (status == OS_DELETED) {
+         makeAccessDeletedObjectException(xsink, theclass->getName());
+         return 0;
+      }
+
+      if (runtimeCheckPrivateClassAccess(theclass)) {
+         const char *str = data->getFirstKey();
+         printd(0, "qore_object_private::firstKey() got %p (%s)\n", str, str ? str : "<null>");
+         return !str ? 0 : new QoreStringNode(str);
+      }
+
+      // get first public member
+      ConstHashIterator hi(data);
+      while (hi.next()) {
+         //printd(5, "qore_object_private::firstKey() checking '%s'\n", hi.getKey());
+         if (!checkMemberAccessIntern(hi.getKey(), false, false))
+            return new QoreStringNode(hi.getKey());
+         //printd(5, "qore_object_private::firstKey() skipping '%s' (private)\n", hi.getKey());
+      }
+
+      return 0;
+   }
+
+   DLLLOCAL QoreStringNode *lastKey(ExceptionSink *xsink) {
+      AutoLocker al(mutex);
+
+      if (status == OS_DELETED) {
+         makeAccessDeletedObjectException(xsink, theclass->getName());
+         return 0;
+      }
+
+      if (runtimeCheckPrivateClassAccess(theclass)) {
+         const char *str = data->getLastKey();
+         return !str ? 0 : new QoreStringNode(str);
+      }
+
+      // get first public member
+      ReverseConstHashIterator hi(data);
+      while (hi.next()) {
+         if (!checkMemberAccessIntern(hi.getKey(), false, false))
+            return new QoreStringNode(hi.getKey());
+      }
+
+      return 0;
+   }
+
    DLLLOCAL QoreHashNode *getSlice(const QoreListNode *l, ExceptionSink *xsink) const {
       AutoLocker al(mutex);
 
@@ -577,6 +626,15 @@ public:
    DLLLOCAL static void derefProgramCycle(QoreObject *obj, QoreProgram *p) {
       obj->priv->derefProgramCycle(p);
    }
+
+   DLLLOCAL static QoreStringNode *firstKey(QoreObject *obj, ExceptionSink *xsink) {
+      return obj->priv->firstKey(xsink);
+   }
+
+   DLLLOCAL static QoreStringNode *lastKey(QoreObject *obj, ExceptionSink *xsink) {
+      return obj->priv->lastKey(xsink);
+   }
+
 };
 
 class qore_object_lock_handoff_helper {

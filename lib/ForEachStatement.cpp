@@ -105,11 +105,24 @@ int ForEachStatement::execKeys(AbstractQoreNode **return_value, ExceptionSink *x
    if (*xsink)
       return 0;
 
-   // if the result is not a hash, then return
-   if (get_node_type(*hash) != NT_HASH)
-      return 0;
+   qore_type_t hnt = get_node_type(*hash);
 
-   const QoreHashNode *h = reinterpret_cast<const QoreHashNode *>(*hash);
+   // create an empty reference holder for a temporary hash in case the operand is an object
+   ReferenceHolder<QoreHashNode> hh(xsink);
+   const QoreHashNode *h;
+
+   // if the result is not a hash, then return
+   if (hnt == NT_OBJECT) {
+      hh = reinterpret_cast<const QoreObject *>(*hash)->getRuntimeMemberHash(xsink);
+      if (*xsink)
+	 return 0;
+      h = *hh;
+   }
+   else if (hnt != NT_HASH) {
+      return 0;
+   }
+   else
+      h = reinterpret_cast<const QoreHashNode *>(*hash);
 
    ConstHashIterator hi(h);
 

@@ -433,18 +433,6 @@ protected:
       return 0;
    }
 
-   // must be reimplemented in subclasses if returns_mult is true
-   DLLLOCAL virtual const type_vec_t &getReturnTypeList() const {
-      assert(false);
-      return *((type_vec_t*)0);
-   }
-
-   // must be reimplemented in subclasses if accepts_mult is true
-   DLLLOCAL virtual const type_vec_t &getAcceptTypeList() const {
-      assert(false);
-      return *((type_vec_t*)0);
-   }
-
    // must be reimplemented in subclasses if has_name is true
    DLLLOCAL virtual const char *getNameImpl() const {
       assert(false);
@@ -515,6 +503,10 @@ public:
    }
 
    DLLLOCAL virtual ~QoreTypeInfo() {
+   }
+
+   DLLLOCAL qore_type_t getSingleType() const {
+      return this ? qt : NT_ALL;
    }
 
    DLLLOCAL bool parseAcceptsReturns(qore_type_t t) const {
@@ -618,6 +610,18 @@ public:
 	 return;
       }
       str.sprintf("type '%s'", getName());
+   }
+
+   // must be reimplemented in subclasses if returns_mult is true
+   DLLLOCAL virtual const type_vec_t &getReturnTypeList() const {
+      assert(false);
+      return *((type_vec_t*)0);
+   }
+
+   // must be reimplemented in subclasses if accepts_mult is true
+   DLLLOCAL virtual const type_vec_t &getAcceptTypeList() const {
+      assert(false);
+      return *((type_vec_t*)0);
    }
 
    DLLLOCAL AbstractQoreNode *acceptInputParam(int param_num, const char *param_name, AbstractQoreNode *n, ExceptionSink *xsink) const {

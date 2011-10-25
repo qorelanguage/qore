@@ -2118,6 +2118,8 @@ struct qore_class_private {
 
    DLLLOCAL AbstractQoreNode *evalPseudoMethod(const AbstractQoreNode *n, const char *name, const QoreListNode *args, ExceptionSink *xsink) const;
 
+   DLLLOCAL AbstractQoreNode *evalPseudoMethod(const QoreMethod *m, const AbstractQoreFunctionVariant *variant, const AbstractQoreNode *n, const QoreListNode *args, ExceptionSink *xsink) const;
+
    DLLLOCAL const QoreMethod *parseResolveSelfMethodIntern(const char *nme) {
       const QoreMethod *m = parseFindLocalMethod(nme);
       if (!m)
@@ -2201,6 +2203,10 @@ struct qore_class_private {
 
    DLLLOCAL static AbstractQoreNode *evalPseudoMethod(const QoreClass *qc, const AbstractQoreNode *n, const char *name, const QoreListNode *args, ExceptionSink *xsink) {
       return qc->priv->evalPseudoMethod(n, name, args, xsink);
+   }
+
+   DLLLOCAL static AbstractQoreNode *evalPseudoMethod(const QoreClass *qc, const QoreMethod *m, const AbstractQoreFunctionVariant *variant, const AbstractQoreNode *n, const QoreListNode *args, ExceptionSink *xsink) {
+      return qc->priv->evalPseudoMethod(m, variant, n, args, xsink);
    }
 };
 

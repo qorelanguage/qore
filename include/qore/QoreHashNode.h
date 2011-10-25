@@ -40,7 +40,9 @@ class LocalVar;
  */
 class QoreHashNode : public AbstractQoreNode {
    friend class HashIterator;
+   friend class ReverseHashIterator;
    friend class ConstHashIterator;
+   friend class ReverseConstHashIterator;
    friend class HashAssignmentHelper;
    friend class hash_assignment_priv;
    friend class qore_object_private;
@@ -382,7 +384,7 @@ public:
    DLLEXPORT AbstractQoreNode *takeKeyValue(const char *key);
 
    //! returns a QoreListNode of QoreStringNodes representing all keys in the hash, caller owns the reference count returned
-   /** to iterate through a hash, use HashIterator or ConstHashIterator
+   /** to iterate through a hash, use HashIterator, ReverseHashIterator, ConstHashIterator, or ReverseConstHashIterator
        @return a QoreListNode of QoreStringNodes representing all keys in the hash, caller owns the reference count returned
    */
    DLLEXPORT QoreListNode *getKeys() const;
@@ -485,7 +487,7 @@ typedef ReferenceHolder<QoreHashNode> QoreHashNodeHolder;
 class HashIterator {
    friend class HashAssignmentHelper;
 
-private:
+protected:
    QoreHashNode *h;
    HashMember *ptr;
 
@@ -548,6 +550,31 @@ public:
    //DLLEXPORT void setValue(AbstractQoreNode *val, ExceptionSink *xsink);
 };
 
+//! reverse iterator class for QoreHashNode, to be only created on the stack
+/**
+   @code
+   ReverseHashIterator hi(h);
+   while (hi.next()) {
+   QoreStringValueHelper str(hi.getValue());
+   printf("key: '%s', value: '%s'\n", hi.getKey(), str->getBuffer());
+   }
+   @endcode
+*/
+class ReverseHashIterator : public HashIterator {
+public:
+   //! initializes the iterator with the passed hash
+   DLLEXPORT ReverseHashIterator(QoreHashNode *h);
+
+   //! initializes the iterator with the passed hash
+   DLLEXPORT ReverseHashIterator(QoreHashNode &h);
+
+   //! moves to the next element in reverse order, returns false when there are no more elements to iterate
+   /** also moves to the last element if the object has just been initialized after a complete iteration
+       (assuming there is at least one element in the hash)
+   */
+   DLLEXPORT bool next();
+};
+
 //! constant iterator class for QoreHashNode, to be only created on the stack
 /**
    @code
@@ -559,7 +586,7 @@ public:
    @endcode
 */
 class ConstHashIterator {
-private:
+protected:
    const QoreHashNode *h;
    HashMember *ptr;
 
@@ -602,6 +629,31 @@ public:
 
    //! returns true if on the last key of the hash
    DLLEXPORT bool last() const;
+};
+
+//! reverse constant iterator class for QoreHashNode, to be only created on the stack
+/**
+   @code
+   ReverseConstHashIterator hi(h);
+   while (hi.next()) {
+   QoreStringValueHelper str(hi.getValue());
+   printf("key: '%s', value: '%s'\n", hi.getKey(), str->getBuffer());
+   }
+   @endcode
+*/
+class ReverseConstHashIterator : public ConstHashIterator {
+public:
+   //! initializes the iterator with the passed hash
+   DLLEXPORT ReverseConstHashIterator(const QoreHashNode *h);
+
+   //! initializes the iterator with the passed hash
+   DLLEXPORT ReverseConstHashIterator(const QoreHashNode &h);
+
+   //! moves to the next element in reverse order, returns false when there are no more elements to iterate
+   /** also moves to the last element if the object has just been initialized after a complete iteration
+       (assuming there is at least one element in the hash)
+   */
+   DLLEXPORT bool next();
 };
 
 //! use this class to make assignments to hash keys from a pointer to the key value
