@@ -1543,6 +1543,19 @@ void StaticSystemNamespace::init() {
    // note that the following constant is > 32-bits so it can't collide with PCRE constants
    qoreNS->addConstant("RE_Global",      new QoreBigIntNode(QRE_GLOBAL));
 
+   // type constants (as reported from <all>.typeCode())
+   qoreNS->addConstant("NT_NOTHING",     new QoreBigIntNode(NT_NOTHING));
+   qoreNS->addConstant("NT_INT",         new QoreBigIntNode(NT_INT));
+   qoreNS->addConstant("NT_FLOAT",       new QoreBigIntNode(NT_FLOAT));
+   qoreNS->addConstant("NT_STRING",      new QoreBigIntNode(NT_STRING));
+   qoreNS->addConstant("NT_DATE",        new QoreBigIntNode(NT_DATE));
+   qoreNS->addConstant("NT_BOOLEAN",     new QoreBigIntNode(NT_BOOLEAN));
+   qoreNS->addConstant("NT_NULL",        new QoreBigIntNode(NT_NULL));
+   qoreNS->addConstant("NT_BINARY",      new QoreBigIntNode(NT_BINARY));
+   qoreNS->addConstant("NT_LIST",        new QoreBigIntNode(NT_LIST));
+   qoreNS->addConstant("NT_HASH",        new QoreBigIntNode(NT_HASH));
+   qoreNS->addConstant("NT_OBJECT",      new QoreBigIntNode(NT_OBJECT));
+   
    // network constants
    qoreNS->addConstant("AF_INET",        new QoreBigIntNode(AF_INET));
    qoreNS->addConstant("AF_INET6",       new QoreBigIntNode(AF_INET6));

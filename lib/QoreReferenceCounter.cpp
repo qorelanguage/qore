@@ -35,6 +35,11 @@ void QoreReferenceCounter::ROreference() const {
       assert(false);
    }
 #endif
+   // if references == 1, then it should still be in single-threaded access (experimental)
+   if (references == 1) {
+      ++references; 
+      return;
+   }
 #ifdef HAVE_ATOMIC_MACROS
    atomic_inc(&references);
 #else

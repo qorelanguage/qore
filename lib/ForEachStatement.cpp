@@ -102,7 +102,7 @@ int ForEachStatement::execKeys(AbstractQoreNode **return_value, ExceptionSink *x
    QoreTreeNode *t = reinterpret_cast<QoreTreeNode *>(list);
 
    QoreNodeEvalOptionalRefHolder hash(t->left, xsink);
-   if (*xsink)
+   if (*xsink || !code)
       return 0;
 
    qore_type_t hnt = get_node_type(*hash);
