@@ -23,6 +23,13 @@
 #include <qore/Qore.h>
 #include <qore/intern/QoreObjectIntern.h>
 
+static QoreBigIntNode *n_OBJECT;
+
+// int <object>.typeCode() {}
+static AbstractQoreNode *PSEUDOOBJECT_typeCode(QoreObject *ignored, AbstractQoreNode *node, const QoreListNode *args, ExceptionSink *xsink) {
+   return n_OBJECT->refSelf();
+}
+
 // list <object>.keys() {}
 static AbstractQoreNode *PSEUDOOBJECT_keys(QoreObject *ignored, QoreObject *obj, const QoreListNode *args, ExceptionSink *xsink) {
    return obj->getMemberList(xsink);
@@ -61,9 +68,14 @@ static AbstractQoreNode *PSEUDOOBJECT_lastKey(QoreObject *ignored, QoreObject *o
 }
 
 QoreClass *initPseudoObjectClass(QoreClass *pseudoAll) {   
+   n_OBJECT = Node_NT_Array[NT_OBJECT];
+
    QoreClass *QC_PseudoObject = new QoreClass("<object>");
 
    QC_PseudoObject->addBuiltinVirtualBaseClass(pseudoAll);
+
+   // int <object>.typeCode() {}
+   QC_PseudoObject->addMethodExtended("typeCode", (q_method_t)PSEUDOOBJECT_typeCode, false, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo);
 
    // list <object>.keys() {}
    QC_PseudoObject->addMethodExtended("keys", (q_method_t)PSEUDOOBJECT_keys, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, listTypeInfo);

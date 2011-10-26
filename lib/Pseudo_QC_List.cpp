@@ -22,6 +22,13 @@
 
 #include <qore/Qore.h>
 
+static QoreBigIntNode *n_LIST;
+
+// int <list>.typeCode() {}
+static AbstractQoreNode *PSEUDOLIST_typeCode(QoreObject *ignored, AbstractQoreNode *node, const QoreListNode *args, ExceptionSink *xsink) {
+   return n_LIST->refSelf();
+}
+
 // int <list>.size() {}
 static AbstractQoreNode *PSEUDOLIST_size(QoreObject *ignored, QoreListNode *l, const QoreListNode *args, ExceptionSink *xsink) {
    return new QoreBigIntNode(l->size());
@@ -33,9 +40,14 @@ static AbstractQoreNode *PSEUDOLIST_empty(QoreObject *ignored, QoreListNode *l, 
 }
 
 QoreClass *initPseudoListClass(QoreClass *pseudoAll) {   
+   n_LIST = Node_NT_Array[NT_LIST];
+
    QoreClass *QC_PseudoList = new QoreClass("<list>");
 
    QC_PseudoList->addBuiltinVirtualBaseClass(pseudoAll);
+
+   // int <list>.typeCode() {}
+   QC_PseudoList->addMethodExtended("typeCode", (q_method_t)PSEUDOLIST_typeCode, false, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo);
 
    // int <list>.size() {}
    QC_PseudoList->addMethodExtended("size", (q_method_t)PSEUDOLIST_size, false, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo);

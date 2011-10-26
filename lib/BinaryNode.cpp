@@ -60,6 +60,10 @@ unsigned long BinaryNode::size() const {
    return len;
 }
 
+bool BinaryNode::empty() const {
+   return !len;
+}
+
 BinaryNode *BinaryNode::copy() const {
    if (!len)
       return new BinaryNode();

@@ -22,6 +22,13 @@
 
 #include <qore/Qore.h>
 
+static QoreBigIntNode *n_STRING;
+
+// int <string>.typeCode() {}
+static AbstractQoreNode *PSEUDOSTRING_typeCode(QoreObject *ignored, AbstractQoreNode *node, const QoreListNode *args, ExceptionSink *xsink) {
+   return n_STRING->refSelf();
+}
+
 // int <string>.strlen() {}
 static AbstractQoreNode *PSEUDOSTRING_strlen(QoreObject *ignored, QoreStringNode *str, const QoreListNode *args, ExceptionSink *xsink) {
    return new QoreBigIntNode(str->strlen());
@@ -43,9 +50,14 @@ static AbstractQoreNode *PSEUDOSTRING_encoding(QoreObject *ignored, QoreStringNo
 }
 
 QoreClass *initPseudoStringClass(QoreClass *pseudoAll) {   
+   n_STRING = Node_NT_Array[NT_STRING];
+
    QoreClass *QC_PseudoString = new QoreClass("<string>");
 
    QC_PseudoString->addBuiltinVirtualBaseClass(pseudoAll);
+
+    // int <string>.typeCode() {}
+   QC_PseudoString->addMethodExtended("typeCode", (q_method_t)PSEUDOSTRING_typeCode, false, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo);
 
    // int <string>.strlen() {}
    QC_PseudoString->addMethodExtended("strlen", (q_method_t)PSEUDOSTRING_strlen, false, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo);

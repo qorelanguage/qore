@@ -103,11 +103,14 @@ public:
    //! returns the number of bytes in the object
    DLLEXPORT qore_size_t size() const;
 
+   //! returns true if empty
+   DLLEXPORT bool empty() const;
+
    //! returns a copy of the object
    /**
       @return a copy of the current object
    */
-   DLLEXPORT class BinaryNode *copy() const;
+   DLLEXPORT BinaryNode *copy() const;
       
    //! returns the pointer to the data
    DLLEXPORT const void *getPtr() const;

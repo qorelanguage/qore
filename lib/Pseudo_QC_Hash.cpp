@@ -22,6 +22,13 @@
 
 #include <qore/Qore.h>
 
+static QoreBigIntNode *n_HASH;
+
+// int <hash>.typeCode() {}
+static AbstractQoreNode *PSEUDOHASH_typeCode(QoreObject *ignored, AbstractQoreNode *node, const QoreListNode *args, ExceptionSink *xsink) {
+   return n_HASH->refSelf();
+}
+
 // list <hash>.keys() {}
 static AbstractQoreNode *PSEUDOHASH_keys(QoreObject *ignored, QoreHashNode *h, const QoreListNode *args, ExceptionSink *xsink) {
    return h->getKeys();
@@ -67,11 +74,15 @@ static AbstractQoreNode *PSEUDOHASH_size(QoreObject *ignored, QoreHashNode *h, c
    return new QoreBigIntNode(h->size());
 }
 
-QoreClass *initPseudoHashClass(QoreClass *pseudoAll) {   
+QoreClass *initPseudoHashClass(QoreClass *pseudoAll) {
+   n_HASH = Node_NT_Array[NT_HASH];
+   
    QoreClass *QC_PseudoHash = new QoreClass("<hash>");
-   //CID_PSEUDOHASH = QC_PseudoHash->getID();
 
    QC_PseudoHash->addBuiltinVirtualBaseClass(pseudoAll);
+
+   // int <hash>.typeCode() {}
+   QC_PseudoHash->addMethodExtended("typeCode", (q_method_t)PSEUDOHASH_typeCode, false, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo);
 
    // list <hash>.keys() {}
    QC_PseudoHash->addMethodExtended("keys", (q_method_t)PSEUDOHASH_keys, false, QC_CONSTANT, QDOM_DEFAULT, listTypeInfo);

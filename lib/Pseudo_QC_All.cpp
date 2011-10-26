@@ -24,7 +24,9 @@
 
 // int <obj>.typeCode()
 static AbstractQoreNode *PSEUDOALL_typeCode(QoreObject *ignored, AbstractQoreNode *node, const QoreListNode *args, ExceptionSink *xsink) {
-   return new QoreBigIntNode(get_node_type(node));
+   qore_type_t t = get_node_type(node);
+   assert(t > 0);
+   return t < NODE_ARRAY_LEN ? Node_NT_Array[t]->refSelf() : new QoreBigIntNode(t);
 }
 
 // string <obj>.type()
