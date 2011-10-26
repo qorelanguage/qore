@@ -80,5 +80,6 @@ public:
 #include <qore/intern/QoreUnaryMinusOperatorNode.h>
 #include <qore/intern/QoreDotEvalOperatorNode.h>
 #include <qore/intern/QoreLogicalEqualsOperatorNode.h>
+#include <qore/intern/QoreLogicalNotEqualsOperatorNode.h>
 
 #endif

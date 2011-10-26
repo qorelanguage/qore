@@ -212,6 +212,7 @@ noinst_HEADERS = \
 	include/qore/intern/QoreUnaryMinusOperatorNode.h \
 	include/qore/intern/QoreDotEvalOperatorNode.h \
 	include/qore/intern/QoreLogicalEqualsOperatorNode.h \
+	include/qore/intern/QoreLogicalNotEqualsOperatorNode.h \
 	include/qore/intern/QorePseudoMethods.h \
 	include/qore/intern/ql_string.h \
 	include/qore/intern/ql_list.h \

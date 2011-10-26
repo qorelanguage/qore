@@ -23,17 +23,7 @@
 #include <qore/Qore.h>
 
 QoreString QoreLogicalEqualsOperatorNode::logical_equals_str("logical equals operator expression");
-
-// if del is true, then the returned QoreString * should be LogicalEqualsd, if false, then it must not be
-QoreString *QoreLogicalEqualsOperatorNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const {
-   del = false;
-   return &logical_equals_str;
-}
-
-int QoreLogicalEqualsOperatorNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {
-   str.concat(&logical_equals_str);
-   return 0;
-}
+QoreString QoreLogicalNotEqualsOperatorNode::logical_not_equals_str("logical not equals operator expression");
 
 bool QoreLogicalEqualsOperatorNode::boolEvalImpl(ExceptionSink *xsink) const {
    if (pfunc)
