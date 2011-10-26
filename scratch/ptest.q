@@ -70,7 +70,7 @@ sub main() {
 	   sub () {
 	       for (int i = 0; i < total; ++i) {
 		   int t = NT_STRING;
-		   if (inlist(t, (NT_INT, NT_LIST, NT_FLOAT, NT_DATE, NT_STRING)))
+		   if (inlist_hard(t, (NT_INT, NT_LIST, NT_FLOAT, NT_DATE, NT_STRING)))
 		       int x1 = 0;
 	       }
 	   }
