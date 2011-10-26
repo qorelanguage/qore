@@ -41,6 +41,31 @@ static inline void ambiguousDuplicateSignatureException(const char *name, Abstra
    parseException("DUPLICATE-SIGNATURE", "%s(%s) matches already declared variant %s(%s)", name, uvb2->getUserSignature()->getSignatureText(), name, uvb1->getSignature()->getSignatureText());
 }
 
+CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink *n_xsink, const AbstractQoreFunction *func, const AbstractQoreFunctionVariant *&variant, const char *n_name, const QoreListNode *args, const char *n_class_name, qore_call_t n_ct)
+   : ct(n_ct), name(n_name), xsink(n_xsink), class_name(n_class_name), tmp(n_xsink), returnTypeInfo((const QoreTypeInfo *)-1), pgm(getProgram()) {
+   o_fn = get_pgm_counter(o_ln, o_eln);
+   tmp.assignEval(args);
+   // reset program position if arguments were evaluated
+   if (tmp.needsDeref())
+      update_pgm_counter_pgm_file(o_ln, o_eln, o_fn);      
+
+   bool check_args = variant;
+   if (!variant) {
+      variant = func->findVariant(getArgs(), false, xsink);
+      if (!variant) {
+	 assert(*xsink);
+	 return;
+      }
+   }
+
+   class_name = variant->className();
+   if (processDefaultArgs(func, variant, check_args))
+      return;
+
+   setCallType(variant->getCallType());
+   setReturnTypeInfo(variant->getReturnTypeInfo());
+}
+
 static void do_call_name(QoreString &desc, const AbstractQoreFunction *func) {
    const char *class_name = func->className();
    if (class_name)
@@ -442,7 +467,7 @@ static QoreStringNode *getNoopError(const AbstractQoreFunction *func, const Abst
       else {
 	 // get actual value and include in warning
 	 ExceptionSink xsink;
-	 CodeEvaluationHelper ceh(&xsink, "noop-dummy");
+	 CodeEvaluationHelper ceh(&xsink, func, variant, "noop-dummy");
 	 ReferenceHolder<AbstractQoreNode> v(variant->evalFunction(func->getName(), ceh, 0), 0);
 	 if (is_nothing(*v))
 	    desc->concat("NOTHING");
@@ -1045,45 +1070,56 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
 // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL, then it is identified at run time
 AbstractQoreNode *AbstractQoreFunction::evalFunction(const AbstractQoreFunctionVariant *variant, const QoreListNode *args, QoreProgram *pgm, ExceptionSink *xsink) const {
    const char *fname = getName();
-   CodeEvaluationHelper ceh(xsink, fname, args);
+   CodeEvaluationHelper ceh(xsink, this, variant, fname, args);
    if (*xsink) return 0;
 
-   bool check_args = variant;
-   if (!variant) {
-      variant = findVariant(ceh.getArgs(), false, xsink);
-      if (!variant) {
-	 assert(*xsink);
-	 return 0;
-      }
-   }
-   if (ceh.processDefaultArgs(this, variant, check_args))
-      return 0;
+   ProgramContextHelper pch(pgm);
+   return variant->evalFunction(fname, ceh, xsink);
+}
 
-   ceh.setCallType(variant->getCallType());
-   ceh.setReturnTypeInfo(variant->getReturnTypeInfo());
+int64 AbstractQoreFunction::bigIntEvalFunction(const AbstractQoreFunctionVariant *variant, const QoreListNode *args, QoreProgram *pgm, ExceptionSink *xsink) const {
+   const char *fname = getName();
+   CodeEvaluationHelper ceh(xsink, this, variant, fname, args);
+   if (*xsink) return 0;
 
    ProgramContextHelper pch(pgm);
+   return variant->bigIntEvalFunction(fname, ceh, xsink);
+}
 
-   return variant->evalFunction(fname, ceh, xsink);
+int AbstractQoreFunction::intEvalFunction(const AbstractQoreFunctionVariant *variant, const QoreListNode *args, QoreProgram *pgm, ExceptionSink *xsink) const {
+   const char *fname = getName();
+   CodeEvaluationHelper ceh(xsink, this, variant, fname, args);
+   if (*xsink) return 0;
+
+   ProgramContextHelper pch(pgm);
+   return variant->intEvalFunction(fname, ceh, xsink);
+}
+
+bool AbstractQoreFunction::boolEvalFunction(const AbstractQoreFunctionVariant *variant, const QoreListNode *args, QoreProgram *pgm, ExceptionSink *xsink) const {
+   const char *fname = getName();
+   CodeEvaluationHelper ceh(xsink, this, variant, fname, args);
+   if (*xsink) return 0;
+
+   ProgramContextHelper pch(pgm);
+   return variant->boolEvalFunction(fname, ceh, xsink);
+}
+
+double AbstractQoreFunction::floatEvalFunction(const AbstractQoreFunctionVariant *variant, const QoreListNode *args, QoreProgram *pgm, ExceptionSink *xsink) const {
+   const char *fname = getName();
+   CodeEvaluationHelper ceh(xsink, this, variant, fname, args);
+   if (*xsink) return 0;
+
+   ProgramContextHelper pch(pgm);
+   return variant->floatEvalFunction(fname, ceh, xsink);
 }
 
 // finds a variant and checks variant capabilities against current
 // program parse options
 AbstractQoreNode *AbstractQoreFunction::evalDynamic(const QoreListNode *args, ExceptionSink *xsink) const {
    const char *fname = getName();
-   CodeEvaluationHelper ceh(xsink, fname, args);
+   const AbstractQoreFunctionVariant *variant = 0;
+   CodeEvaluationHelper ceh(xsink, this, variant, fname, args);
    if (*xsink) return 0;
-
-   const AbstractQoreFunctionVariant *variant = findVariant(ceh.getArgs(), false, xsink);
-   if (!variant) {
-      assert(*xsink);
-      return 0;
-   }
-   if (ceh.processDefaultArgs(this, variant, false))
-      return 0;
-
-   ceh.setCallType(variant->getCallType());
-   ceh.setReturnTypeInfo(variant->getReturnTypeInfo());
 
    return variant->evalFunction(fname, ceh, xsink);
 }
@@ -1608,18 +1644,16 @@ AbstractQoreNode *UserClosureFunction::evalClosure(const QoreListNode *args, Qor
    // closures cannot be overloaded
    assert(vlist.singular());
 
-   const UserClosureVariant *variant = UCLOV_const(first());
+   const AbstractQoreFunctionVariant *variant = first();
 
    // setup call, save runtime position
-   CodeEvaluationHelper ceh(xsink, "<anonymous closure>", args, 0, CT_USER);
-   if (ceh.processDefaultArgs(this, variant, true))
+   CodeEvaluationHelper ceh(xsink, this, variant, "<anonymous closure>", args, 0, CT_USER);
+   if (*xsink)
       return 0;
-
-   ceh.setReturnTypeInfo(variant->getReturnTypeInfo());
 
    //printd(0, "UserClosureFunction::evalClosure() this=%p (%s) variant=%p args=%p self=%p\n", this, getName(), variant, args, self);
 
-   return variant->evalClosure(ceh, self, xsink);
+   return UCLOV_const(variant)->evalClosure(ceh, self, xsink);
 }
 
 void UserClosureFunction::parseInitClosure(const QoreTypeInfo *classTypeInfo, lvar_set_t *lvlist) {

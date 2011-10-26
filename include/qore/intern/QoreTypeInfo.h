@@ -522,6 +522,7 @@ public:
       return parseReturnsType(t, n_is_int) ? true : false;
    }
 
+   // returns true if this type only returns the value given
    DLLLOCAL bool isType(qore_type_t t) const {
       if (!this || returns_mult)
          return false;

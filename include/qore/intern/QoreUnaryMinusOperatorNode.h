@@ -51,7 +51,7 @@ public:
    }
 
    DLLLOCAL virtual bool hasEffect() const {
-      return true;
+      return false;
    }
 
    DLLLOCAL static AbstractQoreNode *makeNode(AbstractQoreNode *exp);

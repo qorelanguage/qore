@@ -25,17 +25,22 @@
 
 QoreString QoreDotEvalOperatorNode::name("dot eval expression");
 
+static const AbstractQoreNode *check_call_ref(const AbstractQoreNode *op, const char *name) {
+   // FIXME: this is an ugly hack!
+   const QoreHashNode *h = reinterpret_cast<const QoreHashNode *>(op);
+   // see if the hash member is a call reference
+   const AbstractQoreNode *ref = h->getKeyValue(name);
+   return (ref && (ref->getType() == NT_FUNCREF || ref->getType() == NT_RUNTIME_CLOSURE)) ? ref : 0;
+}
+
 AbstractQoreNode *QoreDotEvalOperatorNode::evalImpl(ExceptionSink *xsink) const {
    QoreNodeEvalOptionalRefHolder op(left, xsink);
    if (*xsink)
       return 0;
 
-   if (*op && (*op)->getType() == NT_HASH) {
-      // FIXME: this is an ugly hack!
-      const QoreHashNode *h = reinterpret_cast<const QoreHashNode *>(*op);
-      // see if the hash member is a call reference
-      const AbstractQoreNode *ref = h->getKeyValue(m->getName());
-      if (ref && (ref->getType() == NT_FUNCREF || ref->getType() == NT_RUNTIME_CLOSURE))
+   if (get_node_type(*op) == NT_HASH) {
+      const AbstractQoreNode *ref = check_call_ref(*op, m->getName());
+      if (ref)
 	 return reinterpret_cast<const ResolvedCallReferenceNode *>(ref)->exec(m->getArgs(), xsink);
    }
 
@@ -44,16 +49,98 @@ AbstractQoreNode *QoreDotEvalOperatorNode::evalImpl(ExceptionSink *xsink) const 
 	 return m->execPseudo(*op, xsink);
 
       return pseudo_classes_eval(*op, m->getName(), m->getArgs(), xsink);
-      /*
-      //printd(5, "op=%p (%s) func=%p (%s)\n", op, op ? op->getTypeName() : "n/a", func, func ? func->getTypeName() : "n/a");
-      xsink->raiseException("OBJECT-METHOD-EVAL-ON-NON-OBJECT", "member function \"%s\" called on type \"%s\"", 
-			    m->getName(), op ? op->getTypeName() : "NOTHING" );
-      return 0;
-      */
    }
 
    QoreObject *o = const_cast<QoreObject *>(reinterpret_cast<const QoreObject *>(*op));
    return m->exec(o, xsink);
+}
+
+int64 QoreDotEvalOperatorNode::bigIntEvalImpl(ExceptionSink *xsink) const {
+   QoreNodeEvalOptionalRefHolder op(left, xsink);
+   if (*xsink)
+      return 0;
+
+   if (get_node_type(*op) == NT_HASH) {
+      const AbstractQoreNode *ref = check_call_ref(*op, m->getName());
+      if (ref)
+	 return reinterpret_cast<const ResolvedCallReferenceNode *>(ref)->bigIntExec(m->getArgs(), xsink);
+   }
+
+   if (!(*op) || (*op)->getType() != NT_OBJECT) {
+      if (m->isPseudo())
+	 return m->bigIntExecPseudo(*op, xsink);
+
+      return pseudo_classes_int64_eval(*op, m->getName(), m->getArgs(), xsink);
+   }
+
+   QoreObject *o = const_cast<QoreObject *>(reinterpret_cast<const QoreObject *>(*op));
+   return m->bigIntExec(o, xsink);
+}
+
+int QoreDotEvalOperatorNode::integerEvalImpl(ExceptionSink *xsink) const {
+   QoreNodeEvalOptionalRefHolder op(left, xsink);
+   if (*xsink)
+      return 0;
+
+   if (get_node_type(*op) == NT_HASH) {
+      const AbstractQoreNode *ref = check_call_ref(*op, m->getName());
+      if (ref)
+	 return reinterpret_cast<const ResolvedCallReferenceNode *>(ref)->intExec(m->getArgs(), xsink);
+   }
+
+   if (!(*op) || (*op)->getType() != NT_OBJECT) {
+      if (m->isPseudo())
+	 return m->intExecPseudo(*op, xsink);
+
+      return pseudo_classes_int_eval(*op, m->getName(), m->getArgs(), xsink);
+   }
+
+   QoreObject *o = const_cast<QoreObject *>(reinterpret_cast<const QoreObject *>(*op));
+   return m->intExec(o, xsink);
+}
+
+bool QoreDotEvalOperatorNode::boolEvalImpl(ExceptionSink *xsink) const {
+   QoreNodeEvalOptionalRefHolder op(left, xsink);
+   if (*xsink)
+      return 0;
+
+   if (get_node_type(*op) == NT_HASH) {
+      const AbstractQoreNode *ref = check_call_ref(*op, m->getName());
+      if (ref)
+	 return reinterpret_cast<const ResolvedCallReferenceNode *>(ref)->boolExec(m->getArgs(), xsink);
+   }
+
+   if (!(*op) || (*op)->getType() != NT_OBJECT) {
+      if (m->isPseudo())
+	 return m->boolExecPseudo(*op, xsink);
+
+      return pseudo_classes_bool_eval(*op, m->getName(), m->getArgs(), xsink);
+   }
+
+   QoreObject *o = const_cast<QoreObject *>(reinterpret_cast<const QoreObject *>(*op));
+   return m->boolExec(o, xsink);
+}
+
+double QoreDotEvalOperatorNode::floatEvalImpl(ExceptionSink *xsink) const {
+   QoreNodeEvalOptionalRefHolder op(left, xsink);
+   if (*xsink)
+      return 0;
+
+   if (get_node_type(*op) == NT_HASH) {
+      const AbstractQoreNode *ref = check_call_ref(*op, m->getName());
+      if (ref)
+	 return reinterpret_cast<const ResolvedCallReferenceNode *>(ref)->floatExec(m->getArgs(), xsink);
+   }
+
+   if (!(*op) || (*op)->getType() != NT_OBJECT) {
+      if (m->isPseudo())
+	 return m->floatExecPseudo(*op, xsink);
+
+      return pseudo_classes_double_eval(*op, m->getName(), m->getArgs(), xsink);
+   }
+
+   QoreObject *o = const_cast<QoreObject *>(reinterpret_cast<const QoreObject *>(*op));
+   return m->floatExec(o, xsink);
 }
 
 AbstractQoreNode *QoreDotEvalOperatorNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {

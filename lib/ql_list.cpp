@@ -160,7 +160,7 @@ static AbstractQoreNode *f_inlist_any_list(const QoreListNode *args, ExceptionSi
 
    ConstListIterator li(p1);
    while (li.next()) {
-      bool b = OP_LOG_EQ->bool_eval(p0, li.getValue(), xsink);
+      bool b = QoreLogicalEqualsOperatorNode::softEqual(p0, li.getValue(), xsink);
       if (*xsink)
 	 return 0;
       if (b)
@@ -173,7 +173,7 @@ static AbstractQoreNode *f_inlist_any_any(const QoreListNode *args, ExceptionSin
    const AbstractQoreNode *p0 = get_param(args, 0);
    const AbstractQoreNode *p1 = get_param(args, 1);
 
-   return get_bool_node(OP_LOG_EQ->bool_eval(p0, p1, xsink));
+   return get_bool_node(QoreLogicalEqualsOperatorNode::softEqual(p0, p1, xsink));
 }
 
 static AbstractQoreNode *f_inlist_hard_any_something(const QoreListNode *args, ExceptionSink *xsink) { 

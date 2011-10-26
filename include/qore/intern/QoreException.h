@@ -175,4 +175,19 @@ struct qore_es_private {
    }
 };
 
+class ParseExceptionSink {
+protected:
+   ExceptionSink xsink;
+
+public:
+   DLLLOCAL ~ParseExceptionSink() {
+      if (xsink)
+         getProgram()->addParseException(xsink);
+   }
+
+   DLLLOCAL ExceptionSink *operator*() {
+      return &xsink;
+   }
+};
+
 #endif

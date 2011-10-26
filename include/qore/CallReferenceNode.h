@@ -125,6 +125,26 @@ public:
    */
    DLLLOCAL virtual AbstractQoreNode *exec(const QoreListNode *args, ExceptionSink *xsink) const = 0;
 
+   DLLLOCAL virtual int64 bigIntExec(const QoreListNode *args, ExceptionSink *xsink) const {
+      ReferenceHolder<AbstractQoreNode> rv(exec(args, xsink), xsink);
+      return rv ? rv->getAsBigInt() : 0;
+   }
+
+   DLLLOCAL virtual int intExec(const QoreListNode *args, ExceptionSink *xsink) const {
+      ReferenceHolder<AbstractQoreNode> rv(exec(args, xsink), xsink);
+      return rv ? rv->getAsInt() : 0;
+   }
+
+   DLLLOCAL virtual bool boolExec(const QoreListNode *args, ExceptionSink *xsink) const {
+      ReferenceHolder<AbstractQoreNode> rv(exec(args, xsink), xsink);
+      return rv ? rv->getAsBool() : false;
+   }
+
+   DLLLOCAL virtual double floatExec(const QoreListNode *args, ExceptionSink *xsink) const {
+      ReferenceHolder<AbstractQoreNode> rv(exec(args, xsink), xsink);
+      return rv ? rv->getAsFloat() : 0.0;
+   }
+
    //! returns a pointer to the QoreProgram object associated with this reference (can be 0)
    /** this function is not exported in the library's public interface
        @return a pointer to the QoreProgram object associated with this reference (can be 0)

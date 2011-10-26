@@ -23,10 +23,8 @@
 #include <qore/Qore.h>
 
 // int <obj>.typeCode()
-static AbstractQoreNode *PSEUDOALL_typeCode(QoreObject *ignored, AbstractQoreNode *node, const QoreListNode *args, ExceptionSink *xsink) {
-   qore_type_t t = get_node_type(node);
-   assert(t > 0);
-   return t < NODE_ARRAY_LEN ? Node_NT_Array[t]->refSelf() : new QoreBigIntNode(t);
+static int64 PSEUDOALL_typeCode(QoreObject *ignored, AbstractQoreNode *node, const QoreListNode *args, ExceptionSink *xsink) {
+   return get_node_type(node);
 }
 
 // string <obj>.type()
@@ -37,7 +35,7 @@ static AbstractQoreNode *PSEUDOALL_type(QoreObject *ignored, AbstractQoreNode *n
 QoreClass *initPseudoAllClass() {   
    QoreClass *QC_PseudoAll = new QoreClass("<value>");
 
-   QC_PseudoAll->addMethodExtended("typeCode", (q_method_t)PSEUDOALL_typeCode, false, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_PseudoAll->addMethodExtended("typeCode", (q_method_int64_t)PSEUDOALL_typeCode, false, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo);
 
    QC_PseudoAll->addMethodExtended("type", (q_method_t)PSEUDOALL_type, false, QC_CONSTANT, QDOM_DEFAULT, stringTypeInfo);
    

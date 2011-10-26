@@ -194,6 +194,54 @@ AbstractQoreNode *QoreObject::evalBuiltinMethodWithPrivateData(const QoreMethod 
    return 0;
 }
 
+int64 QoreObject::bigIntEvalBuiltinMethodWithPrivateData(const QoreMethod &method, const BuiltinNormalMethodVariantBase *meth, const QoreListNode *args, ExceptionSink *xsink) {
+   // get referenced object
+   ReferenceHolder<AbstractPrivateData> pd(getReferencedPrivateData(meth->getClass()->getIDForMethod(), xsink), xsink);
+
+   if (pd)
+      return meth->bigIntEvalImpl(this, *pd, args, xsink);
+
+   //printd(5, "QoreObject::evalBuiltingMethodWithPrivateData() this=%p (%s) pd=%p, call=%s::%s(), class ID=%d, method class ID=%d\n", this, priv->theclass->getName(), *pd, method.getClass()->getName(), method.getName(), method.getClass()->getID(), method.getClass()->getIDForMethod());
+   check_meth_eval(priv->theclass, method.getName(), method.getClass(), xsink);
+   return 0;
+}
+
+int QoreObject::intEvalBuiltinMethodWithPrivateData(const QoreMethod &method, const BuiltinNormalMethodVariantBase *meth, const QoreListNode *args, ExceptionSink *xsink) {
+   // get referenced object
+   ReferenceHolder<AbstractPrivateData> pd(getReferencedPrivateData(meth->getClass()->getIDForMethod(), xsink), xsink);
+
+   if (pd)
+      return meth->intEvalImpl(this, *pd, args, xsink);
+
+   //printd(5, "QoreObject::evalBuiltingMethodWithPrivateData() this=%p (%s) pd=%p, call=%s::%s(), class ID=%d, method class ID=%d\n", this, priv->theclass->getName(), *pd, method.getClass()->getName(), method.getName(), method.getClass()->getID(), method.getClass()->getIDForMethod());
+   check_meth_eval(priv->theclass, method.getName(), method.getClass(), xsink);
+   return 0;
+}
+
+bool QoreObject::boolEvalBuiltinMethodWithPrivateData(const QoreMethod &method, const BuiltinNormalMethodVariantBase *meth, const QoreListNode *args, ExceptionSink *xsink) {
+   // get referenced object
+   ReferenceHolder<AbstractPrivateData> pd(getReferencedPrivateData(meth->getClass()->getIDForMethod(), xsink), xsink);
+
+   if (pd)
+      return meth->boolEvalImpl(this, *pd, args, xsink);
+
+   //printd(5, "QoreObject::evalBuiltingMethodWithPrivateData() this=%p (%s) pd=%p, call=%s::%s(), class ID=%d, method class ID=%d\n", this, priv->theclass->getName(), *pd, method.getClass()->getName(), method.getName(), method.getClass()->getID(), method.getClass()->getIDForMethod());
+   check_meth_eval(priv->theclass, method.getName(), method.getClass(), xsink);
+   return 0;
+}
+
+double QoreObject::floatEvalBuiltinMethodWithPrivateData(const QoreMethod &method, const BuiltinNormalMethodVariantBase *meth, const QoreListNode *args, ExceptionSink *xsink) {
+   // get referenced object
+   ReferenceHolder<AbstractPrivateData> pd(getReferencedPrivateData(meth->getClass()->getIDForMethod(), xsink), xsink);
+
+   if (pd)
+      return meth->floatEvalImpl(this, *pd, args, xsink);
+
+   //printd(5, "QoreObject::evalBuiltingMethodWithPrivateData() this=%p (%s) pd=%p, call=%s::%s(), class ID=%d, method class ID=%d\n", this, priv->theclass->getName(), *pd, method.getClass()->getName(), method.getName(), method.getClass()->getID(), method.getClass()->getIDForMethod());
+   check_meth_eval(priv->theclass, method.getName(), method.getClass(), xsink);
+   return 0;
+}
+
 void QoreObject::evalCopyMethodWithPrivateData(const QoreClass &thisclass, const BuiltinCopyVariantBase *meth, QoreObject *self, ExceptionSink *xsink) {
    // get referenced object
    AbstractPrivateData *pd = getReferencedPrivateData(thisclass.getID(), xsink);
@@ -241,8 +289,40 @@ AbstractQoreNode *QoreObject::evalMethod(const char *name, const QoreListNode *a
    return priv->theclass->evalMethod(this, name, args, xsink);
 }
 
+int64 QoreObject::bigIntEvalMethod(const char *name, const QoreListNode *args, ExceptionSink *xsink) {
+   return priv->theclass->bigIntEvalMethod(this, name, args, xsink);
+}
+
+int QoreObject::intEvalMethod(const char *name, const QoreListNode *args, ExceptionSink *xsink) {
+   return priv->theclass->bigIntEvalMethod(this, name, args, xsink);
+}
+
+bool QoreObject::boolEvalMethod(const char *name, const QoreListNode *args, ExceptionSink *xsink) {
+   return priv->theclass->boolEvalMethod(this, name, args, xsink);
+}
+
+double QoreObject::floatEvalMethod(const char *name, const QoreListNode *args, ExceptionSink *xsink) {
+   return priv->theclass->floatEvalMethod(this, name, args, xsink);
+}
+
 AbstractQoreNode *QoreObject::evalMethod(const QoreMethod &method, const QoreListNode *args, ExceptionSink *xsink) {
    return method.eval(this, args, xsink);
+}
+
+int64 QoreObject::bigIntEvalMethod(const QoreMethod &method, const QoreListNode *args, ExceptionSink *xsink) {
+   return method.bigIntEval(this, args, xsink);
+}
+
+int QoreObject::intEvalMethod(const QoreMethod &method, const QoreListNode *args, ExceptionSink *xsink) {
+   return method.intEval(this, args, xsink);
+}
+
+bool QoreObject::boolEvalMethod(const QoreMethod &method, const QoreListNode *args, ExceptionSink *xsink) {
+   return method.boolEval(this, args, xsink);
+}
+
+double QoreObject::floatEvalMethod(const QoreMethod &method, const QoreListNode *args, ExceptionSink *xsink) {
+   return method.floatEval(this, args, xsink);
 }
 
 AbstractQoreNode *QoreObject::evalMethodVariant(const QoreMethod &method, const QoreExternalMethodVariant *variant, const QoreListNode *args, ExceptionSink *xsink) {

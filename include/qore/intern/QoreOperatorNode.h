@@ -79,5 +79,6 @@ public:
 #include <qore/intern/QoreCastOperatorNode.h>
 #include <qore/intern/QoreUnaryMinusOperatorNode.h>
 #include <qore/intern/QoreDotEvalOperatorNode.h>
+#include <qore/intern/QoreLogicalEqualsOperatorNode.h>
 
 #endif

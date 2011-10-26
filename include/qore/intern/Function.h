@@ -237,6 +237,8 @@ public:
    DLLLOCAL void parseInitPopLocalVars();
 };
 
+class AbstractQoreFunctionVariant;
+
 class CodeEvaluationHelper {
 protected:
    qore_call_t ct;
@@ -250,14 +252,8 @@ protected:
 
 public:
    // saves current program location in case there's an exception
-   DLLLOCAL CodeEvaluationHelper(ExceptionSink *n_xsink, const char *n_name, const QoreListNode *args = 0, const char *n_class_name = 0, qore_call_t n_ct = CT_UNUSED)
-      : ct(n_ct), name(n_name), xsink(n_xsink), class_name(n_class_name), tmp(n_xsink), returnTypeInfo((const QoreTypeInfo *)-1), pgm(getProgram()) {
-      o_fn = get_pgm_counter(o_ln, o_eln);
-      tmp.assignEval(args);
-      // reset program position if arguments were evaluated
-      if (tmp.needsDeref())
-	 update_pgm_counter_pgm_file(o_ln, o_eln, o_fn);      
-   }
+   DLLLOCAL CodeEvaluationHelper(ExceptionSink *n_xsink, const AbstractQoreFunction *func, const AbstractQoreFunctionVariant *&variant, const char *n_name, const QoreListNode *args = 0, const char *n_class_name = 0, qore_call_t n_ct = CT_UNUSED);
+
    DLLLOCAL ~CodeEvaluationHelper() {
       if (returnTypeInfo != (const QoreTypeInfo *)-1)
          saveReturnTypeInfo(returnTypeInfo);
@@ -266,9 +262,6 @@ public:
    }
    DLLLOCAL void setReturnTypeInfo(const QoreTypeInfo *n_returnTypeInfo) {
       returnTypeInfo = saveReturnTypeInfo(n_returnTypeInfo);
-   }
-   DLLLOCAL void setClassName(const char *n_class_name) {
-      class_name = n_class_name;
    }
    // once this is set, exception information will be raised in the destructor if an exception has been raised
    DLLLOCAL void setCallType(qore_call_t n_ct) {
@@ -324,6 +317,35 @@ public:
    DLLLOCAL virtual AbstractQoreNode *evalFunction(const char *name, CodeEvaluationHelper &ceh, ExceptionSink *xsink) const {
       assert(false);
       return 0;
+   }
+
+   DLLLOCAL virtual int64 bigIntEvalFunction(const char *name, CodeEvaluationHelper &ceh, ExceptionSink *xsink) const {
+      ReferenceHolder<AbstractQoreNode> rv(evalFunction(name, ceh, xsink), xsink);
+      return rv ? rv->getAsBigInt() : 0;
+   }
+
+   DLLLOCAL virtual int intEvalFunction(const char *name, CodeEvaluationHelper &ceh, ExceptionSink *xsink) const {
+      ReferenceHolder<AbstractQoreNode> rv(evalFunction(name, ceh, xsink), xsink);
+      return rv ? rv->getAsInt() : 0;
+   }
+
+   DLLLOCAL virtual bool boolEvalFunction(const char *name, CodeEvaluationHelper &ceh, ExceptionSink *xsink) const {
+      ReferenceHolder<AbstractQoreNode> rv(evalFunction(name, ceh, xsink), xsink);
+      return rv ? rv->getAsBool() : false;
+   }
+
+   DLLLOCAL virtual double floatEvalFunction(const char *name, CodeEvaluationHelper &ceh, ExceptionSink *xsink) const {
+      ReferenceHolder<AbstractQoreNode> rv(evalFunction(name, ceh, xsink), xsink);
+      return rv ? rv->getAsFloat() : 0.0;
+   }
+
+   DLLLOCAL virtual const QoreClass *getClass() const {
+      return 0;
+   }
+
+   DLLLOCAL const char *className() const {
+      const QoreClass *qc = getClass();
+      return qc ? qc->getName() : 0;
    }
 
    DLLLOCAL AbstractQoreFunctionVariant *ref() { ROreference(); return this; }
@@ -683,6 +705,10 @@ public:
 
    // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
    DLLLOCAL AbstractQoreNode *evalFunction(const AbstractQoreFunctionVariant *variant, const QoreListNode *args, QoreProgram *pgm, ExceptionSink *xsink) const;
+   DLLLOCAL int64 bigIntEvalFunction(const AbstractQoreFunctionVariant *variant, const QoreListNode *args, QoreProgram *pgm, ExceptionSink *xsink) const;
+   DLLLOCAL int intEvalFunction(const AbstractQoreFunctionVariant *variant, const QoreListNode *args, QoreProgram *pgm, ExceptionSink *xsink) const;
+   DLLLOCAL bool boolEvalFunction(const AbstractQoreFunctionVariant *variant, const QoreListNode *args, QoreProgram *pgm, ExceptionSink *xsink) const;
+   DLLLOCAL double floatEvalFunction(const AbstractQoreFunctionVariant *variant, const QoreListNode *args, QoreProgram *pgm, ExceptionSink *xsink) const;
 
    // finds a variant and checks variant capabilities against current program parse options and executes the variant
    DLLLOCAL AbstractQoreNode *evalDynamic(const QoreListNode *args, ExceptionSink *xsink) const;
@@ -695,6 +721,7 @@ public:
       return vlist.empty();
    }
 
+   // returns true if there are no pending variants in the function
    DLLLOCAL bool pendingEmpty() const {
       return pending_vlist.empty();
    }

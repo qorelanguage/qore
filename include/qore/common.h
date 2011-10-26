@@ -191,6 +191,42 @@ typedef AbstractQoreNode *(*q_func_t)(const QoreListNode *args, ExceptionSink *x
  */
 typedef AbstractQoreNode *(*q_method_t)(QoreObject *self, AbstractPrivateData *private_data, const QoreListNode *args, ExceptionSink *xsink);
 
+//! the type used for builtin QoreClass method signatures, returns int64
+/** @param self the QoreObject that the function is being executed on
+    @param private_data the object's private data representing the state of the object
+    @param args the list of arguments to the function (could be 0), use inline functions in params.h to access
+    @param xsink Qore-language exception information should be stored here by calling ExceptionSink::raiseException()
+    @return the integer return value of the function
+ */
+typedef int64 (*q_method_int64_t)(QoreObject *self, AbstractPrivateData *private_data, const QoreListNode *args, ExceptionSink *xsink);
+
+//! the type used for builtin QoreClass method signatures when called with the even newer generic calling convention supporting hard typing and method variants, returns int
+/** @param self the QoreObject that the function is being executed on
+    @param private_data the object's private data representing the state of the object
+    @param args the list of arguments to the function (could be 0), use inline functions in params.h to access
+    @param xsink Qore-language exception information should be stored here by calling ExceptionSink::raiseException()
+    @return the integer return value of the function
+ */
+typedef int (*q_method_int_t)(QoreObject *self, AbstractPrivateData *private_data, const QoreListNode *args, ExceptionSink *xsink);
+
+//! the type used for builtin QoreClass method signatures when called with the even newer generic calling convention supporting hard typing and method variants, returns bool
+/** @param self the QoreObject that the function is being executed on
+    @param private_data the object's private data representing the state of the object
+    @param args the list of arguments to the function (could be 0), use inline functions in params.h to access
+    @param xsink Qore-language exception information should be stored here by calling ExceptionSink::raiseException()
+    @return the integer return value of the function
+ */
+typedef bool (*q_method_bool_t)(QoreObject *self, AbstractPrivateData *private_data, const QoreListNode *args, ExceptionSink *xsink);
+
+//! the type used for builtin QoreClass method signatures when called with the even newer generic calling convention supporting hard typing and method variants, returns double
+/** @param self the QoreObject that the function is being executed on
+    @param private_data the object's private data representing the state of the object
+    @param args the list of arguments to the function (could be 0), use inline functions in params.h to access
+    @param xsink Qore-language exception information should be stored here by calling ExceptionSink::raiseException()
+    @return the integer return value of the function
+ */
+typedef double (*q_method_double_t)(QoreObject *self, AbstractPrivateData *private_data, const QoreListNode *args, ExceptionSink *xsink);
+
 //! the type used for builtin QoreClass method signatures when called with the new generic calling convention
 /** @param method a constant reference to the QoreMethod being called
     @param self the QoreObject that the function is being executed on

@@ -73,7 +73,7 @@ bool compareHard(const AbstractQoreNode *l, const AbstractQoreNode *r, Exception
 // convert values to do the conversion
 // 0 = equal, 1 = not equal
 bool compareSoft(const AbstractQoreNode *l, const AbstractQoreNode *r, ExceptionSink *xsink) {
-   return !OP_LOG_EQ->bool_eval(l, r, xsink);
+   return !QoreLogicalEqualsOperatorNode::softEqual(l, r, xsink);
 }
 
 QoreTypeInfoHelper::QoreTypeInfoHelper(const char *n_tname) : typeInfo(new ExternalTypeInfo(n_tname, *this)) {

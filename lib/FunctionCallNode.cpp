@@ -47,6 +47,57 @@ AbstractQoreNode *AbstractMethodCallNode::exec(QoreObject *o, const char *c_str,
    return o->evalMethod(c_str, args, xsink);
 }
 
+// eval method against an object where the assumed qoreclass and method were saved at parse time
+int64 AbstractMethodCallNode::bigIntExec(QoreObject *o, const char *c_str, ExceptionSink *xsink) const {
+   if (qc && (o->getClass() == qc || o->getClass() == method->getClass())) {
+      //printd(5, "AbstractMethodCallNode::exec() using parse info for %s::%s() qc=%s\n", method->getClassName(), method->getName(), qc->getName());
+      assert(method);
+      return variant 
+	 ? method->bigIntEvalNormalVariant(o, reinterpret_cast<const QoreExternalMethodVariant*>(variant), args, xsink)
+	 : method->bigIntEval(o, args, xsink);
+   }
+   //printd(5, "AbstractMethodCallNode::exec() calling QoreObject::evalMethod() for %s::%s()\n", o->getClassName(), c_str);
+   return o->bigIntEvalMethod(c_str, args, xsink);
+}
+
+// eval method against an object where the assumed qoreclass and method were saved at parse time
+int AbstractMethodCallNode::intExec(QoreObject *o, const char *c_str, ExceptionSink *xsink) const {
+   if (qc && (o->getClass() == qc || o->getClass() == method->getClass())) {
+      //printd(5, "AbstractMethodCallNode::intExec() using parse info for %s::%s() qc=%s\n", method->getClassName(), method->getName(), qc->getName());
+      assert(method);
+      return variant 
+	 ? method->intEvalNormalVariant(o, reinterpret_cast<const QoreExternalMethodVariant*>(variant), args, xsink)
+	 : method->intEval(o, args, xsink);
+   }
+   //printd(5, "AbstractMethodCallNode::intExec() calling QoreObject::evalMethod() for %s::%s()\n", o->getClassName(), c_str);
+   return o->intEvalMethod(c_str, args, xsink);
+}
+
+// eval method against an object where the assumed qoreclass and method were saved at parse time
+bool AbstractMethodCallNode::boolExec(QoreObject *o, const char *c_str, ExceptionSink *xsink) const {
+   if (qc && (o->getClass() == qc || o->getClass() == method->getClass())) {
+      //printd(5, "AbstractMethodCallNode::boolExec() using parse info for %s::%s() qc=%s\n", method->getClassName(), method->getName(), qc->getName());
+      assert(method);
+      return variant 
+	 ? method->boolEvalNormalVariant(o, reinterpret_cast<const QoreExternalMethodVariant*>(variant), args, xsink)
+	 : method->boolEval(o, args, xsink);
+   }
+   //printd(5, "AbstractMethodCallNode::boolExec() calling QoreObject::evalMethod() for %s::%s()\n", o->getClassName(), c_str);
+   return o->boolEvalMethod(c_str, args, xsink);
+}
+
+// eval method against an object where the assumed qoreclass and method were saved at parse time
+double AbstractMethodCallNode::floatExec(QoreObject *o, const char *c_str, ExceptionSink *xsink) const {
+   if (qc && (o->getClass() == qc || o->getClass() == method->getClass())) {
+      //printd(5, "AbstractMethodCallNode::floatExec() using parse info for %s::%s() qc=%s\n", method->getClassName(), method->getName(), qc->getName());
+      assert(method);
+      return variant 
+	 ? method->floatEvalNormalVariant(o, reinterpret_cast<const QoreExternalMethodVariant*>(variant), args, xsink)
+	 : method->floatEval(o, args, xsink);
+   }
+   //printd(5, "AbstractMethodCallNode::floatExec() calling QoreObject::evalMethod() for %s::%s()\n", o->getClassName(), c_str);
+   return o->floatEvalMethod(c_str, args, xsink);
+}
 
 static void invalid_access(AbstractQoreFunction *func) {
    // func will always be non-zero with builtin functions
@@ -183,8 +234,7 @@ int64 AbstractFunctionCallNode::bigIntEvalImpl(ExceptionSink *xsink) const {
 }
 
 int AbstractFunctionCallNode::integerEvalImpl(ExceptionSink *xsink) const {
-   ReferenceHolder<AbstractQoreNode> rv(evalImpl(xsink), xsink);
-   return rv ? rv->getAsInt() : 0;
+   return bigIntEvalImpl(xsink);
 }
 
 bool AbstractFunctionCallNode::boolEvalImpl(ExceptionSink *xsink) const {
@@ -292,6 +342,26 @@ QoreString *FunctionCallNode::getAsString(bool &del, int foff, ExceptionSink *xs
 AbstractQoreNode *FunctionCallNode::evalImpl(ExceptionSink *xsink) const {
    //printd(5, "FunctionCallNode::evalImpl() calling %s() current pgm=%p new pgm=%p\n", func->getName(), ::getProgram(), pgm);
    return func->evalFunction(variant, args, pgm, xsink);
+}
+
+int64 FunctionCallNode::bigIntEvalImpl(ExceptionSink *xsink) const {
+   //printd(5, "FunctionCallNode::bigIntEvalImpl() calling %s() current pgm=%p new pgm=%p\n", func->getName(), ::getProgram(), pgm);
+   return func->bigIntEvalFunction(variant, args, pgm, xsink);
+}
+
+int FunctionCallNode::integerEvalImpl(ExceptionSink *xsink) const {
+   //printd(5, "FunctionCallNode::intEvalImpl() calling %s() current pgm=%p new pgm=%p\n", func->getName(), ::getProgram(), pgm);
+   return func->intEvalFunction(variant, args, pgm, xsink);
+}
+
+bool FunctionCallNode::boolEvalImpl(ExceptionSink *xsink) const {
+   //printd(5, "FunctionCallNode::boolEvalImpl() calling %s() current pgm=%p new pgm=%p\n", func->getName(), ::getProgram(), pgm);
+   return func->boolEvalFunction(variant, args, pgm, xsink);
+}
+
+double FunctionCallNode::floatEvalImpl(ExceptionSink *xsink) const {
+   //printd(5, "FunctionCallNode::floatEvalImpl() calling %s() current pgm=%p new pgm=%p\n", func->getName(), ::getProgram(), pgm);
+   return func->floatEvalFunction(variant, args, pgm, xsink);
 }
 
 AbstractQoreNode *FunctionCallNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo) {
@@ -478,6 +548,26 @@ AbstractQoreNode *ScopedObjectCallNode::parseInitImpl(LocalVar *oflag, int pflag
 AbstractQoreNode *MethodCallNode::execPseudo(const AbstractQoreNode *n, ExceptionSink *xsink) const {
    //printd(5, "MethodCallNode::execPseudo() %s::%s() variant=%p\n", qc->getName(), method->getName(), variant);
    return qore_class_private::evalPseudoMethod(qc, method, variant, n, args, xsink);
+}
+
+int64 MethodCallNode::bigIntExecPseudo(const AbstractQoreNode *n, ExceptionSink *xsink) const {
+   //printd(5, "MethodCallNode::execPseudo() %s::%s() variant=%p\n", qc->getName(), method->getName(), variant);
+   return qore_class_private::bigIntEvalPseudoMethod(qc, method, variant, n, args, xsink);
+}
+
+int MethodCallNode::intExecPseudo(const AbstractQoreNode *n, ExceptionSink *xsink) const {
+   //printd(5, "MethodCallNode::execPseudo() %s::%s() variant=%p\n", qc->getName(), method->getName(), variant);
+   return qore_class_private::intEvalPseudoMethod(qc, method, variant, n, args, xsink);
+}
+
+bool MethodCallNode::boolExecPseudo(const AbstractQoreNode *n, ExceptionSink *xsink) const {
+   //printd(5, "MethodCallNode::execPseudo() %s::%s() variant=%p\n", qc->getName(), method->getName(), variant);
+   return qore_class_private::boolEvalPseudoMethod(qc, method, variant, n, args, xsink);
+}
+
+double MethodCallNode::floatExecPseudo(const AbstractQoreNode *n, ExceptionSink *xsink) const {
+   //printd(5, "MethodCallNode::execPseudo() %s::%s() variant=%p\n", qc->getName(), method->getName(), variant);
+   return qore_class_private::floatEvalPseudoMethod(qc, method, variant, n, args, xsink);
 }
 
 AbstractQoreNode *StaticMethodCallNode::makeReferenceNodeAndDeref() {

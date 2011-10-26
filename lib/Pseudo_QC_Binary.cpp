@@ -22,41 +22,37 @@
 
 #include <qore/Qore.h>
 
-static QoreBigIntNode *n_BINARY;
-
 // int <binary>.typeCode() {}
-static AbstractQoreNode *PSEUDOBINARY_typeCode(QoreObject *ignored, AbstractQoreNode *node, const QoreListNode *args, ExceptionSink *xsink) {
-   return n_BINARY->refSelf();
+static int64 PSEUDOBINARY_typeCode(QoreObject *ignored, AbstractQoreNode *node, const QoreListNode *args, ExceptionSink *xsink) {
+   return NT_BINARY;
 }
 
 // int <binary>.size() {}
-static AbstractQoreNode *PSEUDOBINARY_size(QoreObject *ignored, BinaryNode *b, const QoreListNode *args, ExceptionSink *xsink) {
-   return new QoreBigIntNode(b->size());
+static int64 PSEUDOBINARY_size(QoreObject *ignored, BinaryNode *b, const QoreListNode *args, ExceptionSink *xsink) {
+   return b->size();
 }
 
 // bool <binary>.empty() {}
-static AbstractQoreNode *PSEUDOBINARY_empty(QoreObject *ignored, BinaryNode *b, const QoreListNode *args, ExceptionSink *xsink) {
-   return get_bool_node(b->empty());
+static bool PSEUDOBINARY_empty(QoreObject *ignored, BinaryNode *b, const QoreListNode *args, ExceptionSink *xsink) {
+   return b->empty();
 }
 
 QoreClass *initPseudoBinaryClass(QoreClass *pseudoAll) {   
-   n_BINARY = Node_NT_Array[NT_BINARY];
-
    QoreClass *QC_PseudoBinary = new QoreClass("<binary>");
 
    QC_PseudoBinary->addBuiltinVirtualBaseClass(pseudoAll);
 
    // int <binary>.typeCode() {}
-   QC_PseudoBinary->addMethodExtended("typeCode", (q_method_t)PSEUDOBINARY_typeCode, false, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_PseudoBinary->addMethodExtended("typeCode", (q_method_int64_t)PSEUDOBINARY_typeCode, false, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo);
 
    // int <binary>.size() {}
-   QC_PseudoBinary->addMethodExtended("size", (q_method_t)PSEUDOBINARY_size, false, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_PseudoBinary->addMethodExtended("size", (q_method_int64_t)PSEUDOBINARY_size, false, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo);
 
    // int <binary>.elements() {}
-   QC_PseudoBinary->addMethodExtended("elements", (q_method_t)PSEUDOBINARY_size, false, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_PseudoBinary->addMethodExtended("elements", (q_method_int64_t)PSEUDOBINARY_size, false, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo);
 
    // bool <binary>.empty() {}
-   QC_PseudoBinary->addMethodExtended("empty", (q_method_t)PSEUDOBINARY_empty, false, QC_CONSTANT, QDOM_DEFAULT, boolTypeInfo);
+   QC_PseudoBinary->addMethodExtended("empty", (q_method_bool_t)PSEUDOBINARY_empty, false, QC_CONSTANT, QDOM_DEFAULT, boolTypeInfo);
 
    return QC_PseudoBinary;
 }

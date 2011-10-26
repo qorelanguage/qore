@@ -22,38 +22,34 @@
 
 #include <qore/Qore.h>
 
-static QoreBigIntNode *n_DATE;
-
 // int <date>.typeCode() {}
-static AbstractQoreNode *PSEUDODATE_typeCode(QoreObject *ignored, AbstractQoreNode *node, const QoreListNode *args, ExceptionSink *xsink) {
-   return n_DATE->refSelf();
+static int64 PSEUDODATE_typeCode(QoreObject *ignored, AbstractQoreNode *node, const QoreListNode *args, ExceptionSink *xsink) {
+   return NT_DATE;
 }
 
 // bool <date>.absolute() {}
-static AbstractQoreNode *PSEUDODATE_absolute(QoreObject *ignored, DateTimeNode *dt, const QoreListNode *args, ExceptionSink *xsink) {
-   return get_bool_node(dt->isAbsolute());
+static bool PSEUDODATE_absolute(QoreObject *ignored, DateTimeNode *dt, const QoreListNode *args, ExceptionSink *xsink) {
+   return dt->isAbsolute();
 }
 
 // bool <date>.relative() {}
-static AbstractQoreNode *PSEUDODATE_relative(QoreObject *ignored, DateTimeNode *dt, const QoreListNode *args, ExceptionSink *xsink) {
-   return get_bool_node(dt->isRelative());
+static bool PSEUDODATE_relative(QoreObject *ignored, DateTimeNode *dt, const QoreListNode *args, ExceptionSink *xsink) {
+   return dt->isRelative();
 }
 
 QoreClass *initPseudoDateClass(QoreClass *pseudoAll) {   
-   n_DATE = Node_NT_Array[NT_DATE];
-
    QoreClass *QC_PseudoDate = new QoreClass("<date>");
 
    QC_PseudoDate->addBuiltinVirtualBaseClass(pseudoAll);
 
    // int <date>.typeCode() {}
-   QC_PseudoDate->addMethodExtended("typeCode", (q_method_t)PSEUDODATE_typeCode, false, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_PseudoDate->addMethodExtended("typeCode", (q_method_int64_t)PSEUDODATE_typeCode, false, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo);
 
    // bool <date>.absolute() {}
-   QC_PseudoDate->addMethodExtended("absolute", (q_method_t)PSEUDODATE_absolute, false, QC_CONSTANT, QDOM_DEFAULT, boolTypeInfo);
+   QC_PseudoDate->addMethodExtended("absolute", (q_method_bool_t)PSEUDODATE_absolute, false, QC_CONSTANT, QDOM_DEFAULT, boolTypeInfo);
 
    // bool <date>.relative() {}
-   QC_PseudoDate->addMethodExtended("relative", (q_method_t)PSEUDODATE_relative, false, QC_CONSTANT, QDOM_DEFAULT, boolTypeInfo);
+   QC_PseudoDate->addMethodExtended("relative", (q_method_bool_t)PSEUDODATE_relative, false, QC_CONSTANT, QDOM_DEFAULT, boolTypeInfo);
 
    return QC_PseudoDate;
 }

@@ -126,6 +126,7 @@
 #include "QoreCastOperatorNode.cpp"
 #include "QoreUnaryMinusOperatorNode.cpp"
 #include "QoreDotEvalOperatorNode.cpp"
+#include "QoreLogicalEqualsOperatorNode.cpp"
 #include "ql_thread.cpp"
 #include "ql_io.cpp"
 #include "ql_time.cpp"

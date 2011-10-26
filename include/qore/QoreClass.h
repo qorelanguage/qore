@@ -170,7 +170,16 @@ public:
        @return the result of the evaluation (can be 0)
    */
    DLLLOCAL AbstractQoreNode *eval(QoreObject *self, const QoreListNode *args, ExceptionSink *xsink) const;
+   DLLLOCAL int64 bigIntEval(QoreObject *self, const QoreListNode *args, ExceptionSink *xsink) const;
+   DLLLOCAL int intEval(QoreObject *self, const QoreListNode *args, ExceptionSink *xsink) const;
+   DLLLOCAL bool boolEval(QoreObject *self, const QoreListNode *args, ExceptionSink *xsink) const;
+   DLLLOCAL double floatEval(QoreObject *self, const QoreListNode *args, ExceptionSink *xsink) const;
+
    DLLLOCAL AbstractQoreNode *evalNormalVariant(QoreObject *self, const QoreExternalMethodVariant *ev, const QoreListNode *args, ExceptionSink *xsink) const;
+   DLLLOCAL int64 bigIntEvalNormalVariant(QoreObject *self, const QoreExternalMethodVariant *ev, const QoreListNode *args, ExceptionSink *xsink) const;
+   DLLLOCAL int intEvalNormalVariant(QoreObject *self, const QoreExternalMethodVariant *ev, const QoreListNode *args, ExceptionSink *xsink) const;
+   DLLLOCAL bool boolEvalNormalVariant(QoreObject *self, const QoreExternalMethodVariant *ev, const QoreListNode *args, ExceptionSink *xsink) const;
+   DLLLOCAL double floatEvalNormalVariant(QoreObject *self, const QoreExternalMethodVariant *ev, const QoreListNode *args, ExceptionSink *xsink) const;
 };
 
 //! defines a Qore-language class
@@ -217,6 +226,11 @@ private:
        @return the value returned by the method, can be 0
    */
    DLLLOCAL AbstractQoreNode *evalMethod(QoreObject *self, const char *method_name, const QoreListNode *args, ExceptionSink *xsink) const;
+   DLLLOCAL int64 bigIntEvalMethod(QoreObject *self, const char *method_name, const QoreListNode *args, ExceptionSink *xsink) const;
+   DLLLOCAL int intEvalMethod(QoreObject *self, const char *method_name, const QoreListNode *args, ExceptionSink *xsink) const;
+   DLLLOCAL bool boolEvalMethod(QoreObject *self, const char *method_name, const QoreListNode *args, ExceptionSink *xsink) const;
+   DLLLOCAL double floatEvalMethod(QoreObject *self, const char *method_name, const QoreListNode *args, ExceptionSink *xsink) const;
+
    // This function must only be called from QoreObject
    DLLLOCAL AbstractQoreNode *evalMemberGate(QoreObject *self, const QoreString *nme, ExceptionSink *xsink) const;
    // This function must only be called from QoreObject
@@ -281,6 +295,18 @@ public:
 
    //! adds a builtin method with extended information; additional functional domain info, return and parameter type info
    DLLEXPORT void addMethodExtended(const char *n_name, q_method_t meth, bool priv = false, int64 n_flags = QC_NO_FLAGS, int64 n_domain = QDOM_DEFAULT, const QoreTypeInfo *returnTypeInfo = 0, unsigned num_params = 0, ...);
+
+   //! adds a builtin method with extended information; additional functional domain info, return and parameter type info
+   DLLEXPORT void addMethodExtended(const char *n_name, q_method_int64_t meth, bool priv = false, int64 n_flags = QC_NO_FLAGS, int64 n_domain = QDOM_DEFAULT, const QoreTypeInfo *returnTypeInfo = 0, unsigned num_params = 0, ...);
+
+   //! adds a builtin method with extended information; additional functional domain info, return and parameter type info
+   DLLEXPORT void addMethodExtended(const char *n_name, q_method_int_t meth, bool priv = false, int64 n_flags = QC_NO_FLAGS, int64 n_domain = QDOM_DEFAULT, const QoreTypeInfo *returnTypeInfo = 0, unsigned num_params = 0, ...);
+
+   //! adds a builtin method with extended information; additional functional domain info, return and parameter type info
+   DLLEXPORT void addMethodExtended(const char *n_name, q_method_bool_t meth, bool priv = false, int64 n_flags = QC_NO_FLAGS, int64 n_domain = QDOM_DEFAULT, const QoreTypeInfo *returnTypeInfo = 0, unsigned num_params = 0, ...);
+
+   //! adds a builtin method with extended information; additional functional domain info, return and parameter type info
+   DLLEXPORT void addMethodExtended(const char *n_name, q_method_double_t meth, bool priv = false, int64 n_flags = QC_NO_FLAGS, int64 n_domain = QDOM_DEFAULT, const QoreTypeInfo *returnTypeInfo = 0, unsigned num_params = 0, ...);
 
    //! adds a builtin method with extended information; additional functional domain info, return and parameter type info from lists
    DLLEXPORT void addMethodExtendedList(const char *n_name, q_method_t meth, bool priv = false, int64 n_flags = QC_NO_FLAGS, int64 n_domain = QDOM_DEFAULT, const QoreTypeInfo *returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &defaultArgList = arg_vec_t());

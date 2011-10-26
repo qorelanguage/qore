@@ -23,11 +23,9 @@
 #include <qore/Qore.h>
 #include <qore/intern/QoreObjectIntern.h>
 
-static QoreBigIntNode *n_OBJECT;
-
 // int <object>.typeCode() {}
-static AbstractQoreNode *PSEUDOOBJECT_typeCode(QoreObject *ignored, AbstractQoreNode *node, const QoreListNode *args, ExceptionSink *xsink) {
-   return n_OBJECT->refSelf();
+static int64 PSEUDOOBJECT_typeCode(QoreObject *ignored, AbstractQoreNode *node, const QoreListNode *args, ExceptionSink *xsink) {
+   return NT_OBJECT;
 }
 
 // list <object>.keys() {}
@@ -35,16 +33,24 @@ static AbstractQoreNode *PSEUDOOBJECT_keys(QoreObject *ignored, QoreObject *obj,
    return obj->getMemberList(xsink);
 }
 
+// *string <object>.firstKey() {}
+static AbstractQoreNode *PSEUDOOBJECT_firstKey(QoreObject *ignored, QoreObject *obj, const QoreListNode *args, ExceptionSink *xsink) {
+   return qore_object_private::firstKey(obj, xsink);
+}
+
+// *string <object>.lastKey() {}
+static AbstractQoreNode *PSEUDOOBJECT_lastKey(QoreObject *ignored, QoreObject *obj, const QoreListNode *args, ExceptionSink *xsink) {
+   return qore_object_private::lastKey(obj, xsink);
+}
+
 // bool <object>.empty() {}
-static AbstractQoreNode *PSEUDOOBJECT_empty(QoreObject *ignored, QoreObject *obj, const QoreListNode *args, ExceptionSink *xsink) {
-   bool b = !obj->size(xsink);
-   return *xsink ? 0 : get_bool_node(b);
+static bool PSEUDOOBJECT_empty(QoreObject *ignored, QoreObject *obj, const QoreListNode *args, ExceptionSink *xsink) {
+   return !obj->size(xsink);
 }
 
 // int <object>.size() {}
-static AbstractQoreNode *PSEUDOOBJECT_size(QoreObject *ignored, QoreObject *obj, const QoreListNode *args, ExceptionSink *xsink) {
-   int size = obj->size(xsink);
-   return *xsink ? 0 : new QoreBigIntNode(size);
+static int64 PSEUDOOBJECT_size(QoreObject *ignored, QoreObject *obj, const QoreListNode *args, ExceptionSink *xsink) {
+   return obj->size(xsink);
 }
 
 // string <object>.className() {}
@@ -53,29 +59,17 @@ static AbstractQoreNode *PSEUDOOBJECT_className(QoreObject *ignored, QoreObject 
 }
 
 // bool <object>.isSystem() {}
-static AbstractQoreNode *PSEUDOOBJECT_isSystem(QoreObject *ignored, QoreObject *obj, const QoreListNode *args, ExceptionSink *xsink) {
+static bool PSEUDOOBJECT_isSystem(QoreObject *ignored, QoreObject *obj, const QoreListNode *args, ExceptionSink *xsink) {
    return get_bool_node(obj->isSystemObject());
 }
 
-// string <object>.firstKey() {}
-static AbstractQoreNode *PSEUDOOBJECT_firstKey(QoreObject *ignored, QoreObject *obj, const QoreListNode *args, ExceptionSink *xsink) {
-   return qore_object_private::firstKey(obj, xsink);
-}
-
-// string <object>.lastKey() {}
-static AbstractQoreNode *PSEUDOOBJECT_lastKey(QoreObject *ignored, QoreObject *obj, const QoreListNode *args, ExceptionSink *xsink) {
-   return qore_object_private::lastKey(obj, xsink);
-}
-
 QoreClass *initPseudoObjectClass(QoreClass *pseudoAll) {   
-   n_OBJECT = Node_NT_Array[NT_OBJECT];
-
    QoreClass *QC_PseudoObject = new QoreClass("<object>");
 
    QC_PseudoObject->addBuiltinVirtualBaseClass(pseudoAll);
 
    // int <object>.typeCode() {}
-   QC_PseudoObject->addMethodExtended("typeCode", (q_method_t)PSEUDOOBJECT_typeCode, false, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_PseudoObject->addMethodExtended("typeCode", (q_method_int64_t)PSEUDOOBJECT_typeCode, false, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo);
 
    // list <object>.keys() {}
    QC_PseudoObject->addMethodExtended("keys", (q_method_t)PSEUDOOBJECT_keys, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, listTypeInfo);
@@ -88,23 +82,23 @@ QoreClass *initPseudoObjectClass(QoreClass *pseudoAll) {
 
 /*
    // bool <object>.hasKey(softstring $key) {}
-   QC_PseudoObject->addMethodExtended("hasKey", (q_method_t)PSEUDOOBJECT_hasKey, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, boolTypeInfo, 1, softStringTypeInfo, NULL);
+   QC_PseudoObject->addMethodExtended("hasKey", (q_method_bool_t)PSEUDOOBJECT_hasKey, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, boolTypeInfo, 1, softStringTypeInfo, NULL);
 
    // bool <object>.hasKeyValue(softstring $key) {}
-   QC_PseudoObject->addMethodExtended("hasKeyValue", (q_method_t)PSEUDOOBJECT_hasKeyValue, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, boolTypeInfo, 1, softStringTypeInfo, NULL);
+   QC_PseudoObject->addMethodExtended("hasKeyValue", (q_method_bool_t)PSEUDOOBJECT_hasKeyValue, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, boolTypeInfo, 1, softStringTypeInfo, NULL);
 */
 
    // bool <object>.empty() {}
-   QC_PseudoObject->addMethodExtended("empty", (q_method_t)PSEUDOOBJECT_empty, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, boolTypeInfo);
+   QC_PseudoObject->addMethodExtended("empty", (q_method_bool_t)PSEUDOOBJECT_empty, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, boolTypeInfo);
 
    // int <object>.size() {}
-   QC_PseudoObject->addMethodExtended("size", (q_method_t)PSEUDOOBJECT_size, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo);
+   QC_PseudoObject->addMethodExtended("size", (q_method_int64_t)PSEUDOOBJECT_size, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo);
 
    // string <object>.className() {}
    QC_PseudoObject->addMethodExtended("className", (q_method_t)PSEUDOOBJECT_className, false, QC_CONSTANT, QDOM_DEFAULT, stringTypeInfo);
 
    // bool <object>.isSystem() {}
-   QC_PseudoObject->addMethodExtended("isSystem", (q_method_t)PSEUDOOBJECT_isSystem, false, QC_CONSTANT, QDOM_DEFAULT, boolTypeInfo);
+   QC_PseudoObject->addMethodExtended("isSystem", (q_method_bool_t)PSEUDOOBJECT_isSystem, false, QC_CONSTANT, QDOM_DEFAULT, boolTypeInfo);
   
    return QC_PseudoObject;
 }
