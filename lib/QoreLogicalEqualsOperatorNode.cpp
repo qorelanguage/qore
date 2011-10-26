@@ -55,13 +55,15 @@ AbstractQoreNode *QoreLogicalEqualsOperatorNode::parseInitImpl(LocalVar *oflag, 
       return rv;
    }
 
-   // check for optimizations based on type
-   if (lti->isType(NT_FLOAT) || rti->isType(NT_FLOAT))
-      pfunc = &QoreLogicalEqualsOperatorNode::floatSoftEqual;
-   else if (lti->isType(NT_INT) || rti->isType(NT_INT))
-      pfunc = &QoreLogicalEqualsOperatorNode::bigIntSoftEqual;
-   else if (lti->isType(NT_BOOLEAN) || rti->isType(NT_BOOLEAN))
-      pfunc = &QoreLogicalEqualsOperatorNode::boolSoftEqual;
+   // check for optimizations based on type, but only assign if neither side is a string (highest priority)
+   if (!lti->isType(NT_STRING) && !rti->isType(NT_STRING)) {
+      if (lti->isType(NT_FLOAT) || rti->isType(NT_FLOAT))
+	 pfunc = &QoreLogicalEqualsOperatorNode::floatSoftEqual;
+      else if (lti->isType(NT_INT) || rti->isType(NT_INT))
+	 pfunc = &QoreLogicalEqualsOperatorNode::bigIntSoftEqual;
+      else if (lti->isType(NT_BOOLEAN) || rti->isType(NT_BOOLEAN))
+	 pfunc = &QoreLogicalEqualsOperatorNode::boolSoftEqual;
+   }
 
    return this;
 }
