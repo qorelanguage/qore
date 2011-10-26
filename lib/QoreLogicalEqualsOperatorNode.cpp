@@ -52,7 +52,7 @@ bool QoreLogicalEqualsOperatorNode::boolEvalImpl(ExceptionSink *xsink) const {
 AbstractQoreNode *QoreLogicalEqualsOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    typeInfo = boolTypeInfo;
 
-   const QoreTypeInfo *lti, *rti;
+   const QoreTypeInfo *lti = 0, *rti = 0;
 
    left = left->parseInit(oflag, pflag, lvids, lti);
    right = right->parseInit(oflag, pflag, lvids, rti);
