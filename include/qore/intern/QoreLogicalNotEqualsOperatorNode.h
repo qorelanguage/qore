@@ -53,6 +53,14 @@ protected:
       return !QoreLogicalEqualsOperatorNode::boolEvalImpl(xsink);
    }
 
+   DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+      AbstractQoreNode *rv = QoreLogicalEqualsOperatorNode::parseInitImpl(oflag, pflag, lvids, typeInfo);
+      // make sure to reverse sense of comparison if this expression was resolved to a constant boolean value
+      if (rv != this)
+         return rv->getAsBool() ? (AbstractQoreNode *)&False : (AbstractQoreNode *)&True;
+      return rv;
+   }
+
 public:
    DLLLOCAL QoreLogicalNotEqualsOperatorNode(AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreLogicalEqualsOperatorNode(n_left, n_right) {
    }
