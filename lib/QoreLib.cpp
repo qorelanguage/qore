@@ -318,7 +318,7 @@ const qore_option_s qore_option_list_l[] = {
    { QORE_OPT_FUNC_STATVFS,
      "HAVE_STATVFS",
      QO_FUNCTION,
-#ifdef HAVE_STATVFS_H
+#ifdef HAVE_SYS_STATVFS_H
      true
 #else
      false
