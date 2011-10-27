@@ -56,7 +56,8 @@ AbstractQoreNode *QoreLogicalEqualsOperatorNode::parseInitImpl(LocalVar *oflag, 
    }
 
    // check for optimizations based on type, but only assign if neither side is a string (highest priority)
-   if (!lti->isType(NT_STRING) && !rti->isType(NT_STRING)) {
+   // and types are known for both operands (if not, QoreTypeInfo::parseReturnsType(NT_STRING) will return QTI_AMBIGUOUS
+   if (!lti->parseReturnsType(NT_STRING) && !rti->parseReturnsType(NT_STRING)) {
       if (lti->isType(NT_FLOAT) || rti->isType(NT_FLOAT))
 	 pfunc = &QoreLogicalEqualsOperatorNode::floatSoftEqual;
       else if (lti->isType(NT_INT) || rti->isType(NT_INT))

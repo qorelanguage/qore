@@ -522,6 +522,17 @@ public:
       return parseReturnsType(t, n_is_int) ? true : false;
    }
 
+   DLLLOCAL qore_type_result_e parseReturnsType(qore_type_t t) const {
+      if (!hasType())
+         return QTI_AMBIGUOUS;
+
+      bool n_is_int = t == NT_INT;
+      if (returns_mult)
+	 return parseReturnsTypeMult(t, n_is_int);
+
+      return matchTypeIntern(t, n_is_int);
+   }
+
    // returns true if this type only returns the value given
    DLLLOCAL bool isType(qore_type_t t) const {
       if (!this || returns_mult)
