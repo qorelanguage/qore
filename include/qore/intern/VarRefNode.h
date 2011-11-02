@@ -35,9 +35,9 @@ class VarRefNode : public ParseNode {
 
 protected:
    char *name;
-   qore_var_t type;
-   bool new_decl;  // is this a new variable declaration
-   bool explicit_scope; // scope was explicitly provided
+   qore_var_t type : 4;
+   bool new_decl : 1;       // is this a new variable declaration
+   bool explicit_scope : 1; // scope was explicitly provided
 
    DLLLOCAL ~VarRefNode();
 
