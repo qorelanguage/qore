@@ -105,21 +105,41 @@ AbstractQoreNode *VarRefNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) 
 }
 
 int64 VarRefNode::bigIntEvalImpl(ExceptionSink *xsink) const {
+/*
+   if (type == VT_LOCAL)
+      return ref.id->bigIntEval(xsink);
+*/
+
    VarRefNodeEvalOptionalRefHolder rv(this, xsink);
    return rv ? rv->getAsBigInt() : 0;
 }
 
 int VarRefNode::integerEvalImpl(ExceptionSink *xsink) const {
+/*
+   if (type == VT_LOCAL)
+      return ref.id->intEval(xsink);
+*/
+
    VarRefNodeEvalOptionalRefHolder rv(this, xsink);
    return rv ? rv->getAsInt() : 0;
 }
 
 bool VarRefNode::boolEvalImpl(ExceptionSink *xsink) const {
+/*
+   if (type == VT_LOCAL)
+      return ref.id->boolEval(xsink);
+*/
+
    VarRefNodeEvalOptionalRefHolder rv(this, xsink);
    return rv ? rv->getAsBool() : 0;
 }
 
 double VarRefNode::floatEvalImpl(ExceptionSink *xsink) const {
+/*
+   if (type == VT_LOCAL)
+      return ref.id->floatEval(xsink);
+*/
+
    VarRefNodeEvalOptionalRefHolder rv(this, xsink);
    return rv ? rv->getAsFloat() : 0;
 }

@@ -70,21 +70,22 @@ static void check_constant_cycle(QoreProgram *pgm, AbstractQoreNode *n) {
    }
 }
 
-void ConstantEntry::parseInit(const char *name, QoreClass *class_context) {
+int ConstantEntry::parseInit(const char *name, QoreClass *class_context) {
    //printd(5, "ConstantEntry::parseInit() this=%p %s init=%d node=%p (%s) class context=%p (%s)\n", this, name, init, node, get_type_name(node), class_context, class_context ? class_context->getName() : "<none>");
 
    ConstantCycleHelper cch(this, name);
    if (!cch) {
+      printd(5, "ConstantEntry::parseInit() cycle found in %s\n", name);
       assert(init);
-      return;
+      return -1;
    }
 
    if (init)
-      return;
+      return 0;
    init = true;
 
    if (!node)
-      return;
+      return 0;
 
    int lvids = 0;
 
@@ -99,16 +100,16 @@ void ConstantEntry::parseInit(const char *name, QoreClass *class_context) {
       parse_error("illegal local variable declaration in assignment expression for constant '%s'", name);
       while (lvids--)
 	 pop_local_var();
-      return;
+      return -1;
    }
 
    if (node->is_value())
-      return;
+      return 0;
 
    // do not evaluate expression if any parse exceptions have been thrown
    QoreProgram *pgm = getProgram();
    if (pgm->parseExceptionRaised())
-      return;
+      return -1;
 
    // evaluate expression
    ExceptionSink xsink;
@@ -132,6 +133,8 @@ void ConstantEntry::parseInit(const char *name, QoreClass *class_context) {
 
    if (xsink.isEvent())
       pgm->addParseException(xsink);
+
+   return 0;
 }
 
 ConstantList::ConstantList(const ConstantList &old) {
@@ -203,9 +206,12 @@ void ConstantList::add(const char *name, AbstractQoreNode *value, const QoreType
 AbstractQoreNode *ConstantList::find(const char *name, const QoreTypeInfo *&constantTypeInfo, QoreClass *class_context) {
    hm_qn_t::iterator i = hm.find(name);
    if (i != hm.end()) {
-      i->second.parseInit(i->first.c_str(), class_context);
-      constantTypeInfo = i->second.typeInfo;
-      return i->second.node;
+      if (!i->second.parseInit(i->first.c_str(), class_context)) {
+	 constantTypeInfo = i->second.typeInfo;
+	 return i->second.node;
+      }
+      constantTypeInfo = nothingTypeInfo;
+      return &Nothing;
    }
 
    constantTypeInfo = 0;

@@ -47,7 +47,7 @@ public:
 
    DLLLOCAL ConstantEntry() : typeInfo(0), node(0), init(false) {}
    DLLLOCAL ConstantEntry(AbstractQoreNode *v, const QoreTypeInfo *ti = 0, bool n_init = false) : typeInfo(ti), node(v), init(n_init) {}
-   DLLLOCAL void parseInit(const char *name, QoreClass *class_context);
+   DLLLOCAL int parseInit(const char *name, QoreClass *class_context);
 };
 
 typedef std::map<std::string, ConstantEntry> hm_qn_t;

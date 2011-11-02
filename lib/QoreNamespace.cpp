@@ -764,7 +764,8 @@ int RootQoreNamespace::resolveBareword(AbstractQoreNode **node, const QoreTypeIn
    }
 
    //printd(5, "RootQoreNamespace::resolveBareword(%s) %p %s-> %p %s\n", b->str, *node, (*node)->getTypeName(), rv, get_type_name(rv));
-   b.release();
+   *node = &Nothing;
+   //b.release();
    return -1;
 }
 

@@ -595,8 +595,8 @@ QoreHashNode *QoreHashNode::getSlice(const QoreListNode *value_list, ExceptionSi
    return rv.release();
 }
 
-// FIXME: xxx check for recursive references
 AbstractQoreNode *QoreHashNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+   //printd(5, "QoreHashNode::parseInit() this=%p\n", this);
    typeInfo = hashTypeInfo;
 
    HashIterator hi(this);
@@ -604,6 +604,8 @@ AbstractQoreNode *QoreHashNode::parseInit(LocalVar *oflag, int pflag, int &lvids
       const char *k = hi.getKey();
       AbstractQoreNode **val = hi.getValuePtr();
       
+      printd(5, "QoreHashNode::parseInit() this=%p resolving key '%s' val %p (%s)\n", this, k, *val, get_type_name(*val));
+
       // resolve constant references in keys
       if (k[0] == HE_TAG_CONST || k[0] == HE_TAG_SCOPED_CONST) {
          AbstractQoreNode *rv;
@@ -616,22 +618,19 @@ AbstractQoreNode *QoreHashNode::parseInit(LocalVar *oflag, int pflag, int &lvids
             rv = getRootNS()->findConstantValue(nscope, keyTypeInfo);
             delete nscope;
          }
+
+	 //printd(5, "QoreHashNode::parseInit() resolved constant '%s': %p\n", k + 1, rv);
+
          if (rv) {
             QoreStringValueHelper t(rv);
 
-            // reference value for new hash key
-            if (*val)
-               (*val)->ref();
-            
             // check for duplicate key definitions
             if (priv->existsKey(t->getBuffer()))
                doDuplicateKeyWarning(t->getBuffer());
 
-            // not possible to have an exception here
+            // move value to new hash key
             setKeyValue(t->getBuffer(), *val, 0);
-            
-            // now reget new value ptr
-            val = getKeyValuePtr(t->getBuffer());
+	    *val = 0;
          }
          
          // delete the old key (not possible to have an exception here)
@@ -639,10 +638,11 @@ AbstractQoreNode *QoreHashNode::parseInit(LocalVar *oflag, int pflag, int &lvids
          continue;
       }
 
-      if (val && *val) {
+      assert(val);
+      if (*val) {
          const QoreTypeInfo *argTypeInfo = 0;
 
-         //printd(5, "checking hash %p key '%s' val=%p (%s)\n", this, k, *val, get_type_name(*val));
+	 //printd(5, "QoreHashNode::parseInit() this=%p initializing key '%s' val=%p (%s)\n", this, k, *val, get_type_name(*val));
 
          (*val) = (*val)->parseInit(oflag, pflag & ~PF_REFERENCE_OK, lvids, argTypeInfo);
          if (!needs_eval_flag && *val && (*val)->needs_eval()) {
@@ -721,7 +721,7 @@ void HashIterator::deleteKey(ExceptionSink *xsink) {
    if (!ptr)
       return;
 
-   ptr->node->deref(xsink);
+   discard(ptr->node, xsink);
    ptr->node = 0;
    HashMember *w = ptr;
    ptr = ptr->prev;

@@ -435,7 +435,7 @@ public:
       return val->eval(xsink);
    }
 
-   DLLLOCAL AbstractQoreNode *eval(bool &needs_deref, ExceptionSink *xsink) const  {
+   DLLLOCAL AbstractQoreNode *eval(bool &needs_deref, ExceptionSink *xsink) const {
       if (!closure_use) {
          LocalVarValue *val = get_var();
          return val->eval(needs_deref, xsink);
@@ -445,6 +445,11 @@ public:
       return val->eval(needs_deref, xsink);
    }
 
+/*
+   DLLLOCAL int64 bigIntEval(ExceptionSink *xsink) const {
+      xxx
+   }
+*/
    DLLLOCAL const char *getName() const {
       return name.c_str();
    }
