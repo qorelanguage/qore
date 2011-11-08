@@ -578,7 +578,6 @@ static AbstractQoreNode *f_strmul(const QoreListNode *args, ExceptionSink *xsink
       return 0;
    }
 
-//   QoreStringNode * ret = reinterpret_cast<QoreStringNode*>(argStr->realCopy());
    QoreStringNode * ret = new QoreStringNode(argStr);
    while (smul != 1) {
       ret->concat(argStr);
@@ -586,8 +585,9 @@ static AbstractQoreNode *f_strmul(const QoreListNode *args, ExceptionSink *xsink
    }
    
    if (offset) {
-      offset = ret->length() - offset; 
-      ret = ret->substr(0, offset, xsink);
+      offset = ret->length() - offset;
+      SimpleRefHolder<QoreStringNode> t(ret);
+      return ret->substr(0, offset, xsink);
    }
        
    return ret;

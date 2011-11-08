@@ -87,6 +87,8 @@ void pseudo_classes_del() {
    // delete pseudo-classes
    for (unsigned i = 0; i < NODE_ARRAY_LEN; ++i)
       delete po_list[i];
+
+   delete pseudoAll;
 }
 
 // return the pseudo class for the given type
