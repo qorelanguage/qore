@@ -2292,7 +2292,7 @@ struct qore_class_private {
          if (t == NT_OBJECT)
             xsink->raiseException("METHOD-DOES-NOT-EXIST", "no method %s::%s() has been defined and no pseudo-method with this name is available", name, nme);
          else
-            xsink->raiseException("PSEUDO-METHOD-DOES-NOT-EXIST", "no pseduo method <%s>::%s() has been defined", get_type_name(n), nme);
+            xsink->raiseException("PSEUDO-METHOD-DOES-NOT-EXIST", "no pseudo method <%s>::%s() has been defined", get_type_name(n), nme);
          return 0;
       }
       
