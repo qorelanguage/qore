@@ -306,7 +306,7 @@ QoreThreadLock *QoreProgram::getParseLock() {
 }
 
 void QoreProgram::deref(ExceptionSink *xsink) {
-   //printd(5, "QoreProgram::deref() this=%p %d->%d\n", this, reference_count(), reference_count() - 1);
+   printd(5, "QoreProgram::deref() this=%p %d->%d\n", this, reference_count(), reference_count() - 1);
    if (ROdereference())
       priv->clear(xsink);
 }

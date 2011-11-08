@@ -64,6 +64,7 @@ public:
    DLLLOCAL ~ConstantList();
 
    DLLLOCAL ConstantList() {
+      //fprintf(stderr, "XXX ConstantList::ConstantList() this=%p\n", this);
    }
 
    DLLLOCAL ConstantList(const ConstantList &old);

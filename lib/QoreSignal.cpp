@@ -104,8 +104,34 @@ void QoreSignalManager::init(bool disable_signal_mask) {
 }
 
 void QoreSignalManager::del() {
+   SafeLocker sl(&mutex);
+   if (!enabled())
+      return;
+
+   ExceptionSink xsink;
+   bool changed = false;
+
+   // remove all signal handlers to ensure that all Programs are dereferenced
+   for (int i = 0; i < QORE_SIGNAL_MAX; ++i) {
+      if (i != QORE_STATUS_SIGNAL || !handlers[i].isSet())
+	 continue;
+      sigdelset(&mask, i);
+      changed = true;
+   }
+   if (changed)
+      reload();
+
+   for (int i = 0; i < QORE_SIGNAL_MAX; ++i) {
+      if (handlers[i].status == QoreSignalHandler::SH_InProgress)
+	 handlers[i].status = QoreSignalHandler::SH_Delete;
+      else // must be called in the signal lock
+	 handlers[i].del(i, &xsink);
+      --num_handlers;
+   }
+
    if (!running())
       return;
+   sl.unlock();
    stop_signal_thread();
 }
 

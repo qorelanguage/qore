@@ -70,7 +70,7 @@ struct qore_ns_private {
    }		    
 
    DLLLOCAL ~qore_ns_private() {
-      printd(5, "QoreNamespace::~QoreNamespace() this=%p '%s'\n", this, name.c_str());
+      printd(5, "qore_ns_private::~qore_ns_private() this=%p '%s'\n", this, name.c_str());
 
       if (nsl)
          purge();

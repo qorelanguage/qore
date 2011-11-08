@@ -2125,10 +2125,10 @@ QoreNamespace *qore_ns_private::parseFindLocalNamespace(const char *nname) const
    return rv ? rv : pendNSL->find(nname);
 }
 
-void StaticSystemNamespace::purge() {                                                                                                                                                          
-   if (priv->nsl) {                                                                                                                                                              
-      ExceptionSink xsink;                                                                                                                                                       
-      deleteData(&xsink);                                                                                                                                                        
-      QoreNamespace::purge();                                                                                                                                                    
-   }                                                                                                                                                                             
-}                                                                                                                                                                                
+void StaticSystemNamespace::purge() {
+   if (priv->nsl) {
+      ExceptionSink xsink;
+      deleteData(&xsink);
+      QoreNamespace::purge();
+   }
+}

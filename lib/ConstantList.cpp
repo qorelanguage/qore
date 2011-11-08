@@ -138,6 +138,8 @@ int ConstantEntry::parseInit(const char *name, QoreClass *class_context) {
 }
 
 ConstantList::ConstantList(const ConstantList &old) {
+   // DEBUG
+   //fprintf(stderr, "XXX ConstantList::ConstantList() this=%p copy constructor from %p called\n", this, &old);
    for (hm_qn_t::const_iterator i = old.hm.begin(), e = old.hm.end(); i != e; ++i) {
       assert(i->second.init);
 
@@ -153,8 +155,10 @@ ConstantList::ConstantList(const ConstantList &old) {
 ConstantList::~ConstantList() {
    //QORE_TRACE("ConstantList::~ConstantList()");
    // for non-debug mode with old modules: clear constants here
+   //fprintf(stderr, "XXX ConstantList::~ConstantList() this=%p size=%d\n", this, hm.size());
+
    if (!hm.empty())
-      deleteAll(0);
+      clearIntern(0);
 }
 
 void ConstantList::clearIntern(ExceptionSink *xsink) {
@@ -162,6 +166,7 @@ void ConstantList::clearIntern(ExceptionSink *xsink) {
       if (i->second.node) {
 	 // abort if an object is present and we are calling deref without an ExceptionSink object
 	 assert(get_node_type(i->second.node) != NT_OBJECT || xsink);
+	 printd(5, "ConstantList::clearIntern() this=%p clearing %s type %s refs %d\n", this, i->first.c_str(), get_type_name(i->second.node), i->second.node->reference_count());
 	 i->second.node->deref(xsink);
       }
    }

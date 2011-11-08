@@ -393,12 +393,15 @@ private:
 
 public:
    DLLLOCAL qore_program_private(QoreProgram *n_pgm, int64 n_parse_options) : qore_program_private_base(n_pgm, n_parse_options) {
+      printd(5, "qore_program_private::qore_program_private() this=%p pgm=%p\n", this, pgm);
    }
 
    DLLLOCAL qore_program_private(QoreProgram *n_pgm, int64 n_parse_options, QoreProgram *p_pgm) : qore_program_private_base(n_pgm, n_parse_options, p_pgm) {
+      printd(5, "qore_program_private::qore_program_private() this=%p pgm=%p\n", this, pgm);
    }
    
    DLLLOCAL ~qore_program_private() {
+      printd(5, "qore_program_private::~qore_program_private() this=%p pgm=%p\n", this, pgm);
       assert(!parseSink);
       assert(!warnSink);
       assert(!pendingParseSink);
@@ -406,7 +409,7 @@ public:
    }
 
    DLLLOCAL void depDeref(ExceptionSink *xsink) {
-      //printd(5, "QoreProgram::depDeref() this=%p %d->%d\n", this, priv->dc.reference_count(), priv->dc.reference_count() - 1);
+      printd(5, "qore_program_private::depDeref() this=%p pgm=%p %d->%d\n", this, pgm, dc.reference_count(), dc.reference_count() - 1);
       if (dc.ROdereference()) {
          del(xsink);
          delete pgm;

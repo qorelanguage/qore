@@ -270,7 +270,7 @@ qore_class_private::qore_class_private(QoreClass *n_cls, const char *nme, int64 
      ptr(0),
      new_copy(0) {
    assert(methodID == classID);
-   printd(5, "qore_class_private::qore_class_private() creating '%s' ID:%d this=%p cls=%p\n", name ? name : "(null)", classID, this, cls);
+   printd(5, "qore_class_private::qore_class_private() this=%p creating '%s' ID:%d cls=%p\n", this, name ? name : "(null)", classID, cls);
 }
 
 // only called while the parse lock for the QoreProgram owning "old" is held
@@ -311,7 +311,7 @@ qore_class_private::qore_class_private(const qore_class_private &old, QoreClass 
      ptr(old.ptr),
      new_copy(0) {
    QORE_TRACE("qore_class_private::qore_class_private(const qore_class_private &old)");
-   printd(5, "qore_class_private::qore_class_private() creating copy of '%s' ID:%d this=%p cls=%p old=%p\n", name, classID, this, cls, old.cls);
+   printd(5, "qore_class_private::qore_class_private() this=%p creating copy of '%s' ID:%d cls=%p old=%p\n", this, name, classID, cls, old.cls);
 
    if (!old.initialized)
       const_cast<qore_class_private &>(old).initialize();
@@ -370,7 +370,7 @@ qore_class_private::qore_class_private(const qore_class_private &old, QoreClass 
 }
 
 qore_class_private::~qore_class_private() {
-   printd(5, "qore_class_private::~qore_class_private() deleting %p %s\n", this, name ? name : "(null)");
+   printd(5, "qore_class_private::~qore_class_private() this=%p %s\n", this, name ? name : "(null)");
 
    assert(public_vars.empty());
    assert(private_vars.empty());
