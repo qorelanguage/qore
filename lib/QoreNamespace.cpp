@@ -786,7 +786,7 @@ int RootQoreNamespace::resolveScopedReference(AbstractQoreNode **node, const Qor
 
    if (ns.size() == 1) {
       //printd(5, "RootQoreNamespace::resolveBareword(%s) %p %s-> %p %s\n", b->str, *node, (*node)->getTypeName(), rv, get_type_name(rv));
-      parse_error("cannot resolve bareword '%s' to any reachable object", ns.ostr);
+      parse_error("cannot resolve bareword '%s' to any reachable definition", ns.ostr);
       return -1;
    }
 
