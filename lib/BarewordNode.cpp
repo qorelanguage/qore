@@ -78,9 +78,7 @@ AbstractQoreNode *BarewordNode::parseInitImpl(LocalVar *oflag, int pflag, int &l
    AbstractQoreNode *n = this;
    AbstractQoreNode **node = &n;
    printd(5, "BarewordNode::parseInitImpl() resolving bareword '%s'\n", reinterpret_cast<BarewordNode *>(*node)->str);
-   if (getRootNS()->resolveBareword(node, typeInfo))
-      parse_error("cannot resolve bareword '%s' to any reachable object", reinterpret_cast<BarewordNode *>(*node)->str);
-   else
+   if (!getRootNS()->resolveBareword(node, typeInfo))
       return (*node)->parseInit(oflag, pflag, lvids, typeInfo);
    return *node;
 }
