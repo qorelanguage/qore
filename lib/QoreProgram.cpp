@@ -786,8 +786,9 @@ AbstractQoreNode *QoreProgram::callFunction(const char *name, const QoreListNode
 	 }
       }
    }
-   
+
    ProgramThreadCountHelper tch(this);
+   ProgramContextHelper pch(this);
 
    AbstractQoreNode *rv = fc->eval(xsink);
 
