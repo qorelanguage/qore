@@ -604,7 +604,7 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::findVariant(const QoreL
       }
    }
 
-   //printd(5, "AbstractQoreFunction::findVariant() this=%p %s() returning %p %s(%s) class=%s\n", this, getName(), variant, getName(), variant ? variant->getSignature()->getSignatureText() : "n/a", variant && aqf && aqf->className() ? aqf->className() : "n/a");
+   printd(5, "AbstractQoreFunction::findVariant() this=%p %s() returning %p %s(%s) class=%s\n", this, getName(), variant, getName(), variant ? variant->getSignature()->getSignatureText() : "n/a", variant && aqf && aqf->className() ? aqf->className() : "n/a");
 
    return variant;
 }
@@ -753,7 +753,7 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
    const AbstractQoreFunctionVariant *pvariant = 0;
    unsigned num_args = argTypeInfo.size();
 
-   //printd(5, "AbstractQoreFunction::parseFindVariant() this=%p %s() vlist=%d pend=%d ilist=%d num_args=%d\n", this, getName(), vlist.size(), pending_vlist.size(), ilist.size(), num_args);
+   printd(5, "AbstractQoreFunction::parseFindVariant() this=%p %s() vlist=%d pend=%d ilist=%d num_args=%d\n", this, getName(), vlist.size(), pending_vlist.size(), ilist.size(), num_args);
 
    AbstractQoreFunction *aqf = 0;
    
@@ -786,7 +786,7 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
 	 }
 
 	 // skip variants with signatures with fewer possible elements than the best match already
-	 if ((int)(sig->getParamTypes() * 2) > match) {
+	 if ((int)(sig->numParams() * 2) > match) {
 	    int variant_pmatch = 0;
 	    int count = 0;
 	    int variant_nperfect = 0;
@@ -846,7 +846,7 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
 	    if (!ok)
 	       continue;
 
-	    // now check if additional args are present that could be NOTHING and cound as partial matches xxx
+	    // now check if additional args are present that could be NOTHING and count as partial matches xxx
 	    for (unsigned pi = sig->numParams(); pi < num_args; ++pi) {
 	       const QoreTypeInfo *a = argTypeInfo[pi];
 	       if (a->parseAcceptsReturns(NT_NOTHING)) {
@@ -913,7 +913,7 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
 	 }
 
 	 // skip variants with signatures with fewer possible elements than the best match already
-	 if ((int)(sig->getParamTypes() * 2) > match) {
+	 if ((int)(sig->numParams() * 2) > match) {
 	    int variant_pmatch = 0;
 	    int count = 0;
 	    int variant_nperfect = 0;
@@ -963,7 +963,7 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
 	       // only increment for actual type matches (t may be NULL)
 	       //if (t) {
 		  ++variant_pmatch;
-		  //printd(0, "AbstractQoreFunction::parseFindVariant() this=%p %s() variant=%p i=%d match (param %s == %s)\n", this, getName(), variant, pi, t->getName(), a->getName());
+		  //printd(5, "AbstractQoreFunction::parseFindVariant() this=%p %s() variant=%p i=%d match (param %s == %s)\n", this, getName(), variant, pi, t->getName(), a->getName());
 		  if (rc != QTI_IGNORE)
 		     count += rc;
 		  //}
@@ -1063,7 +1063,7 @@ const AbstractQoreFunctionVariant *AbstractQoreFunction::parseFindVariant(const 
 	 warn_excess_args(this, argTypeInfo, sig);
    }
 
-   //printd(5, "AbstractQoreFunction::parseFindVariant() this=%p %s%s%s() returning %p %s(%s) flags=%lld\n", this, className() ? className() : "", className() ? "::" : "", getName(), variant, getName(), variant ? variant->getSignature()->getSignatureText() : "n/a", variant ? variant->getFlags() : 0ll);
+   printd(5, "AbstractQoreFunction::parseFindVariant() this=%p %s%s%s() returning %p %s(%s) flags=%lld\n", this, className() ? className() : "", className() ? "::" : "", getName(), variant, getName(), variant ? variant->getSignature()->getSignatureText() : "n/a", variant ? variant->getFlags() : 0ll);
    return variant;
 }
 
@@ -1651,8 +1651,7 @@ AbstractQoreNode *UserClosureFunction::evalClosure(const QoreListNode *args, Qor
    if (*xsink)
       return 0;
 
-   //printd(0, "UserClosureFunction::evalClosure() this=%p (%s) variant=%p args=%p self=%p\n", this, getName(), variant, args, self);
-
+   //printd(5, "UserClosureFunction::evalClosure() this=%p (%s) variant=%p args=%p self=%p\n", this, getName(), variant, args, self);
    return UCLOV_const(variant)->evalClosure(ceh, self, xsink);
 }
 
