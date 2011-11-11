@@ -87,16 +87,41 @@ const Tests = (
 	    }
 	}
     },
+
+    "integer for loop":
+    sub (int total, hash h) {
+	int x1 = 0;
+	for (int i = 0; i < total; ++i)
+	    x1 += 1;
+    },
+
+    "float for loop":
+    sub (int total, hash h) {
+	float x1 = 0.0;
+	float end = total / 10.0;
+	for (float i = 0.1; i < end; i += 0.1)
+	    x1 += 0.1;
+    },
+
+    "string loop":
+    sub (int total, hash h) {
+	string str = "";
+	for (int i = 0; i < total; ++i)
+	    str += "A";
+    },
+
 );
 
 const ForEachTests = ("foreach specialized", "foreach non-specialized");
 const CheckTypeTests = ("check type pseudo-method", "check type string");
 const ListComparisonTests = ("inlist comparison", "if comparison", "switch comparison");
+const LoopTests = ("integer for loop", "float for loop", "string loop");
 
 const AllTests = ()
     #+ ForEachTests
-    + CheckTypeTests
+    #+ CheckTypeTests
     #+ ListComparisonTests
+    + LoopTests
     ;
 
 sub main() {
