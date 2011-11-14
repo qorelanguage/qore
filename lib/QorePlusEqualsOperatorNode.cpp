@@ -160,22 +160,14 @@ AbstractQoreNode *QorePlusEqualsOperatorNode::evalImpl(ExceptionSink *xsink) con
       }
    }
    else { // do integer plus-equals
-      int64 iv = new_right ? new_right->getAsBigInt() : 0;
-
-      // get new value if necessary
-      if (v.ensure_unique_int())
-	 return 0;
-      QoreBigIntNode *i = reinterpret_cast<QoreBigIntNode *>(v.get_value());
-      
-      // increment current value
-      i->val += iv;
+      v.plusEqualsBigInt(new_right ? new_right->getAsBigInt() : 0);
    }
    if (*xsink)
       return 0;
 
    // v has been assigned to a value by this point
    // reference return value
-   return ref_rv ? v.get_value()->refSelf() : 0;
+   return ref_rv ? v.getReferencedValue() : 0;
 }
 
 AbstractQoreNode *QorePlusEqualsOperatorNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {

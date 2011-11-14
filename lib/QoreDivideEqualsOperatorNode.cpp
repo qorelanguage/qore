@@ -44,31 +44,13 @@ AbstractQoreNode *QoreDivideEqualsOperatorNode::evalImpl(ExceptionSink *xsink) c
       return 0;
 
    // is either side a float?
-   if (res && res->getType() == NT_FLOAT) {
-      const QoreFloatNode *rf = reinterpret_cast<const QoreFloatNode *>(*res);
-
-      if (!rf->f) {
-	 xsink->raiseException("DIVISION-BY-ZERO", "division by zero in floating-point expression");
-	 return 0;
-      }
-
-      if (v.ensure_unique_float())
-	 return 0;
-
-      QoreFloatNode *vf = reinterpret_cast<QoreFloatNode *>(v.get_value());
-      // divide current value with arg val
-      vf->f /= rf->f;
-   }
-   else if (v.get_type() == NT_FLOAT) {
+   if ((res && res->getType() == NT_FLOAT) || v.get_type() == NT_FLOAT) {
       float val = res ? res->getAsFloat() : 0.0;
       if (val == 0.0) {
 	 xsink->raiseException("DIVISION-BY-ZERO", "division by zero in floating-point expression");
 	 return 0;
       }
-      v.ensure_unique();
-
-      QoreFloatNode *vf = reinterpret_cast<QoreFloatNode *>(v.get_value());
-      vf->f /= val;
+      v.divideEqualsFloat(val);
    }
    else { // do integer divide equals
       int64 val = res ? res->getAsBigInt() : 0;
@@ -77,24 +59,11 @@ AbstractQoreNode *QoreDivideEqualsOperatorNode::evalImpl(ExceptionSink *xsink) c
 	 return 0;
       }
       // get new value if necessary
-      if (v.get_type() == NT_NOTHING) {
-	 if (v.assign(new QoreBigIntNode))
-	    return 0;
-      }
-      else {
-	 if (v.ensure_unique_int())
-	    return 0;
-
-	 QoreBigIntNode *b = reinterpret_cast<QoreBigIntNode *>(v.get_value());
-	 
-	 // divide current value with arg val
-	 b->val /= val;
-      }
+      v.divideEqualsBigInt(val);
    }
 
-   assert(v.get_value());
    // reference return value and return
-   return ref_rv ? v.get_value()->refSelf() : 0;
+   return ref_rv ? v.getReferencedValue() : 0;
 }
 
 AbstractQoreNode *QoreDivideEqualsOperatorNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {

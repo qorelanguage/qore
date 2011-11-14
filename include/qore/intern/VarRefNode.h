@@ -171,6 +171,8 @@ public:
    DLLLOCAL int64 preIncrement(ExceptionSink *xsink);
    DLLLOCAL int64 postDecrement(ExceptionSink *xsink);
    DLLLOCAL int64 preDecrement(ExceptionSink *xsink);
+   DLLLOCAL double multiplyEqualsFloat(double v, ExceptionSink *xsink);
+   DLLLOCAL double divideEqualsFloat(double v, ExceptionSink *xsink);
 
    DLLLOCAL AbstractQoreNode **getValuePtr(AutoVLock *vl, const QoreTypeInfo *&typeInfo, ObjMap &omap, ExceptionSink *xsink) const;
    DLLLOCAL qore_var_t getType() const { return type; }

@@ -163,15 +163,7 @@ AbstractQoreNode *QoreMinusEqualsOperatorNode::evalImpl(ExceptionSink *xsink) co
       }
    }
    else { // do integer minus-equals
-      int64 iv = new_right->getAsBigInt();
-      
-      // get new value if necessary
-      if (v.ensure_unique_int())
-	 return 0;
-      QoreBigIntNode *i = reinterpret_cast<QoreBigIntNode *>(v.get_value());
-      
-      // decrement current value
-      i->val -= iv;
+      v.minusEqualsBigInt(new_right->getAsBigInt());
    }
 
    if (*xsink)
@@ -179,7 +171,7 @@ AbstractQoreNode *QoreMinusEqualsOperatorNode::evalImpl(ExceptionSink *xsink) co
 
    // here we know that v has a value
    // reference return value and return
-   return ref_rv ? v.get_value()->refSelf() : 0;
+   return ref_rv ? v.getReferencedValue() : 0;
 }
 
 AbstractQoreNode *QoreMinusEqualsOperatorNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {

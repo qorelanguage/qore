@@ -2499,7 +2499,7 @@ exp:    scalar
         | exp ABSOLUTE_NE exp        { $$ = new QoreTreeNode($1, OP_ABSOLUTE_NE, $3); }
         | exp LOGICAL_NE exp	     { $$ = new QoreLogicalNotEqualsOperatorNode($1, $3); }
         | exp LOGICAL_LE exp	     { $$ = new QoreLogicalLessThanOrEqualsOperatorNode($1, $3); }
-        | exp LOGICAL_GE exp	     { $$ = new QoreLogicalGreaterThanOperatorNode($1, $3); }
+        | exp LOGICAL_GE exp	     { $$ = new QoreLogicalGreaterThanOrEqualsOperatorNode($1, $3); }
         | exp SHIFT_LEFT exp	     { $$ = new QoreTreeNode($1, OP_SHIFT_LEFT, $3); }
         | exp SHIFT_RIGHT exp	     { $$ = new QoreTreeNode($1, OP_SHIFT_RIGHT, $3); }
         | exp '+' exp		     { $$ = new QoreTreeNode($1, OP_PLUS, $3); }

@@ -664,6 +664,86 @@ int LValueHelper::assign(AbstractQoreNode *val, const char *desc) {
    return lv.n->assign(val, xsink);
 }
 
+int64 LValueHelper::plusEqualsBigInt(int64 v) {
+   if (lvt == LVT_OptLocalVar)
+      return lv.v->plusEqualsBigInt(v, xsink);
+
+   // get new value if necessary
+   if (ensure_unique_int())
+      return 0;
+   QoreBigIntNode *i = reinterpret_cast<QoreBigIntNode *>(get_value());
+   // increment current value
+   i->val += v;
+   return i->val;
+}
+
+int64 LValueHelper::minusEqualsBigInt(int64 v) {
+   if (lvt == LVT_OptLocalVar)
+      return lv.v->minusEqualsBigInt(v, xsink);
+
+   // get new value if necessary
+   if (ensure_unique_int())
+      return 0;
+   QoreBigIntNode *i = reinterpret_cast<QoreBigIntNode *>(get_value());
+   // increment current value
+   i->val -= v;
+   return i->val;
+}
+
+int64 LValueHelper::multiplyEqualsBigInt(int64 v) {
+   if (lvt == LVT_OptLocalVar)
+      return lv.v->multiplyEqualsBigInt(v, xsink);
+
+   // get new value if necessary
+   if (ensure_unique_int())
+      return 0;
+   QoreBigIntNode *i = reinterpret_cast<QoreBigIntNode *>(get_value());
+   // increment current value
+   i->val *= v;
+   return i->val;
+}
+
+int64 LValueHelper::divideEqualsBigInt(int64 v) {
+   assert(v);
+   if (lvt == LVT_OptLocalVar)
+      return lv.v->divideEqualsBigInt(v, xsink);
+
+   // get new value if necessary
+   if (ensure_unique_int())
+      return 0;
+   QoreBigIntNode *i = reinterpret_cast<QoreBigIntNode *>(get_value());
+   // increment current value
+   i->val /= v;
+   return i->val;
+}
+
+double LValueHelper::multiplyEqualsFloat(double v) {
+   if (lvt == LVT_OptLocalVar)
+      return lv.v->multiplyEqualsFloat(v, xsink);
+
+   // get new value if necessary
+   if (ensure_unique_float())
+      return 0;
+   QoreFloatNode *i = reinterpret_cast<QoreFloatNode *>(get_value());
+   // increment current value
+   i->f *= v;
+   return i->f;
+}
+
+double LValueHelper::divideEqualsFloat(double v) {
+   assert(v);
+   if (lvt == LVT_OptLocalVar)
+      return lv.v->divideEqualsFloat(v, xsink);
+
+   // get new value if necessary
+   if (ensure_unique_float())
+      return 0;
+   QoreFloatNode *i = reinterpret_cast<QoreFloatNode *>(get_value());
+   // increment current value
+   i->f /= v;
+   return i->f;
+}
+
 void lvar_ref::assign(AbstractQoreNode *n_vexp, QoreObject *n_obj, QoreProgram *n_pgm) {
    vexp = n_vexp;
    obj = n_obj;
@@ -925,6 +1005,39 @@ int64 lvar_ref::shiftRightEqualsBigInt(int64 v, T *vv, ExceptionSink *xsink) {
    QoreBigIntNode *n = reinterpret_cast<QoreBigIntNode *>(valp->get_value());
    n->val >>= v;
    return n->val;
+}
+
+template <class T>
+double lvar_ref::multiplyEqualsFloat(double v, T *vv, ExceptionSink *xsink) {
+   if (is_vref)
+      return reinterpret_cast<VarRefNode*>(vexp)->multiplyEqualsFloat(v, xsink);
+
+   ReferenceHolder<AbstractQoreNode> value_holder(new QoreFloatNode(v), xsink);
+   LValueRefHelper<T> valp(vv, xsink);
+   if (!valp)
+      return 0;
+      
+   valp->ensure_unique_float();
+   QoreFloatNode *n = reinterpret_cast<QoreFloatNode *>(valp->get_value());
+   n->f *= v;
+   return n->f;
+}
+
+template <class T>
+double lvar_ref::divideEqualsFloat(double v, T *vv, ExceptionSink *xsink) {
+   assert(v);
+   if (is_vref)
+      return reinterpret_cast<VarRefNode*>(vexp)->divideEqualsFloat(v, xsink);
+
+   ReferenceHolder<AbstractQoreNode> value_holder(new QoreFloatNode(v), xsink);
+   LValueRefHelper<T> valp(vv, xsink);
+   if (!valp)
+      return 0;
+      
+   valp->ensure_unique_float();
+   QoreFloatNode *n = reinterpret_cast<QoreFloatNode *>(valp->get_value());
+   n->f /= v;
+   return n->f;
 }
 
 LocalVarValue* LocalVarValue::optimized(const QoreTypeInfo *&varTypeInfo) const {

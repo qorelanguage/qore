@@ -144,6 +144,12 @@ struct lvar_ref {
 
    template <class T>
    DLLLOCAL int64 preDecrement(T *vv, ExceptionSink *xsink);
+
+   template <class T>
+   DLLLOCAL double multiplyEqualsFloat(double v, T *vv, ExceptionSink *xsink);
+
+   template <class T>
+   DLLLOCAL double divideEqualsFloat(double v, T *vv, ExceptionSink *xsink);
 };
 
 union lvar_u {
@@ -321,6 +327,25 @@ union lvar_u {
          return 0;
 
       return --(reinterpret_cast<QoreBigIntNode *>(value)->val);
+   }
+
+   DLLLOCAL double value_multiplyEqualsFloat(double v, ExceptionSink *xsink) {
+      if (value_ensureUnique<QoreFloatNode, double, NT_FLOAT>(xsink))
+         return 0;
+
+      QoreFloatNode *vv = reinterpret_cast<QoreFloatNode *>(value);
+      vv->f *= v;
+      return vv->f;
+   }
+
+   DLLLOCAL double value_divideEqualsFloat(double v, ExceptionSink *xsink) {
+      assert(v);
+      if (value_ensureUnique<QoreFloatNode, double, NT_FLOAT>(xsink))
+         return 0;
+
+      QoreFloatNode *vv = reinterpret_cast<QoreFloatNode *>(value);
+      vv->f /= v;
+      return vv->f;
    }
 };
 
@@ -996,6 +1021,44 @@ public:
       return 0.0;
    }
 
+   DLLLOCAL double multiplyEqualsFloat(double v, ExceptionSink *xsink) {
+      switch (vvt) {
+         case VVT_Normal:
+            return val.value_multiplyEqualsFloat(v, xsink);
+
+         case VVT_Int:
+            return val.val_int *= v;
+
+         case VVT_Ref:
+            return val.ref.multiplyEqualsFloat<LocalVarValue>(v, this, xsink);
+      }      
+
+#ifdef DEBUG
+      assert(false);
+#endif
+      return 0;
+   }
+
+   DLLLOCAL double divideEqualsFloat(double v, ExceptionSink *xsink) {
+      assert(v);
+
+      switch (vvt) {
+         case VVT_Normal:
+            return val.value_divideEqualsFloat(v, xsink);
+
+         case VVT_Int:
+            return val.val_int /= v;
+
+         case VVT_Ref:
+            return val.ref.divideEqualsFloat<LocalVarValue>(v, this, xsink);
+      }      
+
+#ifdef DEBUG
+      assert(false);
+#endif
+      return 0;
+   }
+
    DLLLOCAL bool isRef() const {
       return vvt == VVT_Ref;
    }
@@ -1418,6 +1481,38 @@ public:
 #endif
       return 0;
    }
+
+   DLLLOCAL double multiplyEqualsFloat(double v, ExceptionSink *xsink) {
+      switch (vvt) {
+         case VVT_Normal: {
+            AutoLocker al(this);
+            return val.value_multiplyEqualsFloat(v, xsink);
+         }
+
+         case VVT_Ref:
+            return val.ref.multiplyEqualsFloat<ClosureVarValue>(v, this, xsink);
+      }
+#ifdef DEBUG
+      assert(false);
+#endif
+      return 0.0;
+   }
+
+   DLLLOCAL double divideEqualsFloat(double v, ExceptionSink *xsink) {
+      switch (vvt) {
+         case VVT_Normal: {
+            AutoLocker al(this);
+            return val.value_divideEqualsFloat(v, xsink);
+         }
+
+         case VVT_Ref:
+            return val.ref.divideEqualsFloat<ClosureVarValue>(v, this, xsink);
+      }
+#ifdef DEBUG
+      assert(false);
+#endif
+      return 0.0;
+   }
 };
 
 // now shared between parent and child Program objects for top-level local variables with global scope
@@ -1725,6 +1820,26 @@ public:
 
    DLLLOCAL int64 preDecrement(ExceptionSink *xsink) {
       return !closure_use ? get_var()->preDecrement(xsink) : thread_find_closure_var(name.c_str())->preDecrement(xsink);
+   }
+
+   DLLLOCAL double multiplyEqualsFloat(double v, ExceptionSink *xsink) {
+      if (!closure_use) {
+         LocalVarValue *val = get_var();
+         return val->multiplyEqualsFloat(v, xsink);
+      }
+
+      ClosureVarValue *val = thread_find_closure_var(name.c_str());
+      return val->multiplyEqualsFloat(v, xsink);      
+   }
+
+   DLLLOCAL double divideEqualsFloat(double v, ExceptionSink *xsink) {
+      if (!closure_use) {
+         LocalVarValue *val = get_var();
+         return val->divideEqualsFloat(v, xsink);
+      }
+
+      ClosureVarValue *val = thread_find_closure_var(name.c_str());
+      return val->divideEqualsFloat(v, xsink);      
    }
 
    DLLLOCAL const char *getName() const {

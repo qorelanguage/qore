@@ -410,6 +410,14 @@ public:
       return lv.n->swapValue(v);
    }
 
+   DLLLOCAL int64 plusEqualsBigInt(int64 v);
+   DLLLOCAL int64 minusEqualsBigInt(int64 v);
+   DLLLOCAL int64 multiplyEqualsBigInt(int64 v);
+   DLLLOCAL int64 divideEqualsBigInt(int64 v);
+
+   DLLLOCAL double multiplyEqualsFloat(double v);
+   DLLLOCAL double divideEqualsFloat(double v);
+
    DLLLOCAL int assign(AbstractQoreNode *val, const char *desc = "<lvalue>");
 
    DLLLOCAL int ensure_unique() {

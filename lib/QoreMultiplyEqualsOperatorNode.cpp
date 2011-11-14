@@ -59,39 +59,21 @@ AbstractQoreNode *QoreMultiplyEqualsOperatorNode::evalImpl(ExceptionSink *xsink)
    }
    else {
       if (res && res->getType() == NT_FLOAT) {
-	 if (v.ensure_unique_float())
-	    return 0;
-
-	 // multiply current value with arg val
-	 QoreFloatNode *vf = reinterpret_cast<QoreFloatNode *>(v.get_value());
-	 vf->f *= (reinterpret_cast<const QoreFloatNode *>(*res))->f;
+	 v.multiplyEqualsFloat((reinterpret_cast<const QoreFloatNode *>(*res))->f);
       }
       else { // do integer multiply equals
 	 // get new value if necessary
-	 if (v.get_type() == NT_NOTHING) {
+	 if (v.get_type() == NT_NOTHING || !res) {
 	    if (v.assign(new QoreBigIntNode))
 	       return 0;
 	 }
-	 else {
-	    if (res) {
-	       if (v.ensure_unique_int())
-		  return 0;
-
-	       QoreBigIntNode *b = reinterpret_cast<QoreBigIntNode *>(v.get_value());
-	       
-	       // multiply current value with arg val
-	       b->val *= res->getAsBigInt();
-	    }
-	    else { // if factor is NOTHING, assign 0
-	       if (v.assign(new QoreBigIntNode))
-		  return 0;
-	    }
-	 }
+	 else
+	    v.multiplyEqualsBigInt(res->getAsBigInt());
       }
    }
 
    // reference return value and return
-   return ref_rv ? v.get_value()->refSelf() : 0;
+   return ref_rv ? v.getReferencedValue() : 0;
 }
 
 AbstractQoreNode *QoreMultiplyEqualsOperatorNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {

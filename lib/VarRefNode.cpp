@@ -327,6 +327,24 @@ int64 VarRefNode::preDecrement(ExceptionSink *xsink) {
    return val->preDecrement(xsink);
 }
 
+double VarRefNode::multiplyEqualsFloat(double v, ExceptionSink *xsink) {
+   if (type == VT_LOCAL)
+      return ref.id->multiplyEqualsFloat(v, xsink);
+
+   assert(type == VT_CLOSURE);
+   ClosureVarValue *val = thread_get_runtime_closure_var(ref.id);
+   return val->multiplyEqualsFloat(v, xsink);
+}
+
+double VarRefNode::divideEqualsFloat(double v, ExceptionSink *xsink) {
+   if (type == VT_LOCAL)
+      return ref.id->divideEqualsFloat(v, xsink);
+
+   assert(type == VT_CLOSURE);
+   ClosureVarValue *val = thread_get_runtime_closure_var(ref.id);
+   return val->divideEqualsFloat(v, xsink);
+}
+
 char *VarRefNode::takeName() {
    assert(name);
    char *p = name;
