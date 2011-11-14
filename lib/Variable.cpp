@@ -835,7 +835,7 @@ double lvar_ref::plusEqualsFloat(double v, T *vv, ExceptionSink *xsink) {
    if (is_vref)
       return reinterpret_cast<VarRefNode*>(vexp)->plusEqualsFloat(v, xsink);
 
-   ReferenceHolder<AbstractQoreNode> value_holder(new QoreBigIntNode(v), xsink);
+   ReferenceHolder<AbstractQoreNode> value_holder(new QoreFloatNode(v), xsink);
    LValueRefHelper<T> valp(vv, xsink);
    if (!valp)
       return 0;
@@ -867,7 +867,7 @@ double lvar_ref::minusEqualsFloat(double v, T *vv, ExceptionSink *xsink) {
    if (is_vref)
       return reinterpret_cast<VarRefNode*>(vexp)->minusEqualsFloat(v, xsink);
 
-   ReferenceHolder<AbstractQoreNode> value_holder(new QoreBigIntNode(v), xsink);
+   ReferenceHolder<AbstractQoreNode> value_holder(new QoreFloatNode(v), xsink);
    LValueRefHelper<T> valp(vv, xsink);
    if (!valp)
       return 0;
