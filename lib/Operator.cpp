@@ -1030,7 +1030,7 @@ static AbstractQoreNode *op_trim(const AbstractQoreNode *arg, const AbstractQore
    }
 
    // reference for return value
-   return ref_rv ? val.get_value()->refSelf() : 0;
+   return ref_rv ? val.getReferencedValue() : 0;
 }
 
 static AbstractQoreNode *op_map(const AbstractQoreNode *left, const AbstractQoreNode *arg_exp, bool ref_rv, ExceptionSink *xsink) {

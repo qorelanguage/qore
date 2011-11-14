@@ -66,11 +66,7 @@ AbstractQoreNode *QoreMinusEqualsOperatorNode::evalImpl(ExceptionSink *xsink) co
       return 0;
 
    if (is_nothing(*new_right)) {
-      if (!ref_rv)
-	 return 0;
-
-      AbstractQoreNode *val = v.get_value();
-      return val ? val->refSelf() : 0;
+      return ref_rv ? v.getReferencedValue() : 0;
    }
 
    // do float minus-equals if left side is a float
@@ -100,7 +96,7 @@ AbstractQoreNode *QoreMinusEqualsOperatorNode::evalImpl(ExceptionSink *xsink) co
 
 	 // v has been assigned to a value by this point
 	 // reference return value
-	 return ref_rv ? v.get_value()->refSelf() : 0;
+	 return ref_rv ? v.getReferencedValue() : 0;
       }
    }
 

@@ -169,5 +169,5 @@ AbstractQoreNode *QoreSpliceOperatorNode::splice(ExceptionSink *xsink) const {
    }
 
    // reference for return value
-   return ref_rv ? val.get_value()->refSelf() : 0;
+   return ref_rv ? val.getReferencedValue() : 0;
 }

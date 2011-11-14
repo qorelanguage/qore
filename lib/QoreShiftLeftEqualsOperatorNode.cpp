@@ -50,7 +50,7 @@ AbstractQoreNode *QoreShiftLeftEqualsOperatorNode::evalImpl(ExceptionSink *xsink
    b->val <<= val;
 
    // reference return value and return
-   return ref_rv ? v.get_value()->refSelf() : 0;
+   return ref_rv ? v.getReferencedValue() : 0;
 }
 
 AbstractQoreNode *QoreShiftLeftEqualsOperatorNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {

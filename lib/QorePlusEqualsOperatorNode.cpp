@@ -89,7 +89,7 @@ AbstractQoreNode *QorePlusEqualsOperatorNode::evalImpl(ExceptionSink *xsink) con
 
 	 // v has been assigned to a value by this point
 	 // reference return value
-	 return ref_rv ? v.get_value()->refSelf() : 0;
+	 return ref_rv ? v.getReferencedValue() : 0;
       }
    }
 
