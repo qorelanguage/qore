@@ -626,24 +626,23 @@ void delete_lvalue(AbstractQoreNode *lvalue, ExceptionSink *xsink) {
    }
 }
 
-LValueHelper::LValueHelper(const AbstractQoreNode *exp, ExceptionSink *n_xsink) : xsink(n_xsink), lvt(LVT_Unknown) {
+LValueHelper::LValueHelper(const AbstractQoreNode *exp, ExceptionSink *n_xsink) : xsink(n_xsink), typeInfo(0), lvt(LVT_Unknown)  {
    qore_type_t t = exp->getType();
    // make sure it's an optimized (ie not global, not a reference, not a "normal" local var)
-   if (t == NT_VARREF && (lv.local.v = reinterpret_cast<const VarRefNode *>(exp)->isLocalOptimized(lv.local.typeInfo))) {
+   if (t == NT_VARREF && (lv.v = reinterpret_cast<const VarRefNode *>(exp)->isLocalOptimized(typeInfo)))
       lvt = LVT_OptLocalVar;
-   }
    else {
       lvt = LVT_Normal;
-      lv.n = new LValueExpressionHelper(exp, xsink);         
+      lv.n = new LValueExpressionHelper(exp, typeInfo, xsink);
    }         
 }
 
-const QoreTypeInfo *LValueHelper::get_type_info() const {
-   return lvt == LVT_OptLocalVar ? lv.local.typeInfo : lv.n->typeInfo;
+AbstractQoreNode *LValueHelper::getReferencedValue() const {
+   return lvt == LVT_OptLocalVar ? lv.v->eval(xsink) : lv.n->getReferencedValue();
 }
 
 const qore_type_t LValueHelper::get_type() const {
-   return lvt == LVT_OptLocalVar ? lv.local.v->getValueType() : *(lv.n->v) ? (*lv.n->v)->getType() : NT_NOTHING; 
+   return lvt == LVT_OptLocalVar ? lv.v->getValueType() : *(lv.n->v) ? (*(lv.n->v))->getType() : NT_NOTHING; 
 }
 
 int LValueHelper::assign(AbstractQoreNode *val, const char *desc) {
@@ -657,7 +656,7 @@ int LValueHelper::assign(AbstractQoreNode *val, const char *desc) {
    if (lvt == LVT_OptLocalVar) {
       // since we are only dealing with optimized local vars, it's not possible
       // to have an exception here on the assignment
-      lv.local.v->setValue(val, xsink);
+      lv.v->setValue(val, xsink);
       assert(!*xsink);
       return 0;
    }
@@ -926,4 +925,11 @@ int64 lvar_ref::shiftRightEqualsBigInt(int64 v, T *vv, ExceptionSink *xsink) {
    QoreBigIntNode *n = reinterpret_cast<QoreBigIntNode *>(valp->get_value());
    n->val >>= v;
    return n->val;
+}
+
+LocalVarValue* LocalVarValue::optimized(const QoreTypeInfo *&varTypeInfo) const {
+   if (vvt == VVT_Ref)
+      return val.ref.vexp->getType() == NT_VARREF ? reinterpret_cast<const VarRefNode*>(val.ref.vexp)->isLocalOptimized(varTypeInfo) : false;
+   
+   return vvt != VVT_Normal ? const_cast<LocalVarValue*>(this) : 0;
 }

@@ -80,7 +80,9 @@ bool QoreLogicalEqualsOperatorNode::softEqual(const AbstractQoreNode *left, cons
 
    if (lt == NT_STRING || rt == NT_STRING) {
       QoreStringValueHelper l(left);
-      QoreStringValueHelper r(right);
+      QoreStringValueHelper r(right, l->getEncoding(), xsink);
+      if (*xsink)
+	 return false;
       return !l->compareSoft(*r, xsink);
    }
  

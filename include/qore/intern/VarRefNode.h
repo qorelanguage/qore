@@ -144,6 +144,9 @@ public:
       return type == VT_LOCAL ? ref.id->optimized(varTypeInfo) : 0;
    }
 
+   //FIXME: implemented evalImpl as getReferencedValue()
+   //DLLLOCAL AbstractQoreNode *getReferencedValue() const;
+
    //DLLLOCAL void setValue(AbstractQoreNode *val, ExceptionSink *xsink);
 
    //DLLLOCAL AbstractQoreNode *assign(const AbstractQoreNode *expr, bool ref_rv, ExceptionSink *xsink);

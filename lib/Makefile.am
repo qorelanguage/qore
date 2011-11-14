@@ -171,7 +171,8 @@ libqore_la_SOURCES = \
 	QorePostDecrementOperatorNode.cpp \
 	QorePreIncrementOperatorNode.cpp \
 	QorePreDecrementOperatorNode.cpp \
-	ql_thread.cpp \
+	QoreLogicalLessThanOperatorNode.cpp \
+	QoreLogicalGreaterThanOperatorNode.cpp \
 	ql_io.cpp \
 	ql_time.cpp \
 	ql_lib.cpp \

@@ -111,7 +111,7 @@ struct qore_type_safe_ref_helper_priv_t : public LValueHelper {
 	 if (discardDummy())
 	    return 0;
 
-	 dummy = lv.local.v->eval(xsink);
+	 dummy = lv.v->eval(xsink);
 	 assign_dummy = true;
 	 return dummy;
       }
@@ -139,7 +139,7 @@ struct qore_type_safe_ref_helper_priv_t : public LValueHelper {
 	 if (discardDummy())
 	    return 0;
 
-	 dummy = lv.local.v->eval(xsink);
+	 dummy = lv.v->eval(xsink);
 	 return dummy;
       }
 

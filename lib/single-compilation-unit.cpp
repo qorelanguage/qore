@@ -157,6 +157,8 @@
 #include "QoreIntPreIncrementOperatorNode.cpp"
 #include "QorePreDecrementOperatorNode.cpp"
 #include "QoreIntPreDecrementOperatorNode.cpp"
+#include "QoreLogicalLessThanOperatorNode.cpp"
+#include "QoreLogicalGreaterThanOperatorNode.cpp"
 #include "ql_thread.cpp"
 #include "ql_io.cpp"
 #include "ql_time.cpp"

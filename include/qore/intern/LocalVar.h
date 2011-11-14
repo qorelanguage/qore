@@ -415,12 +415,14 @@ public:
       }
    }
 
-   DLLLOCAL bool optimized() const {
+   DLLLOCAL LocalVarValue* optimized(const QoreTypeInfo *&varTypeInfo) const;
+
+   DLLLOCAL bool optimizedLocal() const {
       return vvt != VVT_Normal && vvt != VVT_Ref;
    }
 
    DLLLOCAL const QoreTypeInfo *getTypeInfo() const {
-      assert(optimized());
+      assert(optimizedLocal());
       switch (vvt) {
          case VVT_Int:
             return bigIntTypeInfo;
@@ -434,7 +436,7 @@ public:
    }
 
    DLLLOCAL qore_type_t getValueType() const {
-      assert(optimized());
+      assert(optimizedLocal());
       //assert(vvt != VVT_Ref);
 
       switch (vvt) {
@@ -464,6 +466,7 @@ public:
          return const_cast<AbstractQoreNode **>(&val.value);
 
       if (vvt != VVT_Ref) {
+         assert(false);
          xsink->raiseException("DEPRECATED-API", "this module uses a deprecated API that is no longer supported; please either update the module with a newer version that uses newer APIs that work with lvalues/references in newer versions of Qore or contact the developer to update the module");
          return 0;
       }
@@ -1441,12 +1444,11 @@ public:
    DLLLOCAL LocalVarValue *optimized(const QoreTypeInfo *&varTypeInfo) const {
       if (closure_use)
          return 0;
-      LocalVarValue *vv = get_var();
-      if (vv->optimized()) {
+      
+      LocalVarValue *rv = get_var()->optimized(varTypeInfo);
+      if (rv && !varTypeInfo)
          varTypeInfo = typeInfo;
-         return vv;
-      }
-      return 0;
+      return rv;
    }
 
    DLLLOCAL void instantiate() const {

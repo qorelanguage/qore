@@ -775,6 +775,14 @@ static AbstractQoreNode *checkRewriteList(QoreListNode *l) {
    return l;
 }
 
+void ignore_return_value(AbstractQoreNode *n) {
+   qore_type_t t = get_node_type(n);
+   if (t == NT_TREE)
+      reinterpret_cast<QoreTreeNode *>(n)->ignoreReturnValue();
+   else if (t == NT_OPERATOR)
+      reinterpret_cast<QoreOperatorNode *>(n)->ignoreReturnValue();
+}
+
 static qore_var_t get_var_type() {
    return checkParseOption(PO_ASSUME_LOCAL) ? VT_LOCAL : VT_UNRESOLVED;
 }
@@ -1205,10 +1213,7 @@ statement:
 
 	   if (!ok && !hasEffect($1) && (t != NT_VARREF || !reinterpret_cast<VarRefNode*>($1)->parseIsDecl()))
 	      parse_error("statement has no effect (%s)", $1 ? $1->getTypeName() : "NOTHING");
-	   if (t == NT_TREE)
-	      reinterpret_cast<QoreTreeNode *>($1)->ignoreReturnValue();
-	   else if (t == NT_OPERATOR)
-	      reinterpret_cast<QoreOperatorNode *>($1)->ignoreReturnValue();
+           ignore_return_value($1);
 	   $$ = new ExpressionStatement(@1.first_line, @1.last_line, $1);
 	}
         // this should be covered as an expression, but for some reason it isn't...
@@ -2486,15 +2491,15 @@ exp:    scalar
 	}
         | exp REGEX_MATCH REGEX_EXTRACT
         { $$ = new QoreTreeNode($1, OP_REGEX_EXTRACT, $3); }
-        | exp '>' exp		     { $$ = new QoreTreeNode($1, OP_LOG_GT, $3); }
-        | exp '<' exp		     { $$ = new QoreTreeNode($1, OP_LOG_LT, $3); }
+        | exp '>' exp		     { $$ = new QoreLogicalGreaterThanOperatorNode($1, $3); }
+        | exp '<' exp                { $$ = new QoreLogicalLessThanOperatorNode($1, $3); }
         | exp LOGICAL_CMP exp	     { $$ = new QoreTreeNode($1, OP_LOG_CMP, $3); }
         | exp LOGICAL_EQ exp	     { $$ = new QoreLogicalEqualsOperatorNode($1, $3); }
         | exp ABSOLUTE_EQ exp        { $$ = new QoreTreeNode($1, OP_ABSOLUTE_EQ, $3); }
         | exp ABSOLUTE_NE exp        { $$ = new QoreTreeNode($1, OP_ABSOLUTE_NE, $3); }
         | exp LOGICAL_NE exp	     { $$ = new QoreLogicalNotEqualsOperatorNode($1, $3); }
-        | exp LOGICAL_LE exp	     { $$ = new QoreTreeNode($1, OP_LOG_LE, $3); }
-        | exp LOGICAL_GE exp	     { $$ = new QoreTreeNode($1, OP_LOG_GE, $3); }
+        | exp LOGICAL_LE exp	     { $$ = new QoreLogicalLessThanOrEqualsOperatorNode($1, $3); }
+        | exp LOGICAL_GE exp	     { $$ = new QoreLogicalGreaterThanOperatorNode($1, $3); }
         | exp SHIFT_LEFT exp	     { $$ = new QoreTreeNode($1, OP_SHIFT_LEFT, $3); }
         | exp SHIFT_RIGHT exp	     { $$ = new QoreTreeNode($1, OP_SHIFT_RIGHT, $3); }
         | exp '+' exp		     { $$ = new QoreTreeNode($1, OP_PLUS, $3); }

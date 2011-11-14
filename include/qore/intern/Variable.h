@@ -261,12 +261,11 @@ protected:
 public:
    AbstractQoreNode **v,  // ptr to ptr for lvalue expression
       *dr;                // old value to dereference outside the lock   
-   AutoVLock vl;   
-   const QoreTypeInfo *typeInfo;
+   AutoVLock vl;
    ObjMap omap;
    bool already_checked : 1;
 
-   DLLLOCAL LValueExpressionHelper(const AbstractQoreNode *exp, ExceptionSink *xsink) : v(0), dr(0), vl(xsink), typeInfo(0), already_checked(false) {
+   DLLLOCAL LValueExpressionHelper(const AbstractQoreNode *exp, const QoreTypeInfo *&typeInfo, ExceptionSink *xsink) : v(0), dr(0), vl(xsink), already_checked(false) {
       v = get_var_value_ptr(exp, &vl, typeInfo, omap, xsink);
    }
 
@@ -339,8 +338,11 @@ public:
       return 0;
    }
 
+   DLLLOCAL AbstractQoreNode *getReferencedValue() const {
+      return *v ? (*v)->refSelf() : 0;
+   }
+
    DLLLOCAL int assign(AbstractQoreNode *val, ExceptionSink *xsink) {
-      //printd(0, "LValueHelper::assign() this=%p val=%p (%s) typeInfo=%s calling checkType()\n", this, val, val ? val->getTypeName() : "NOTHING", typeInfo->getName());
       assert(!dr);
       dr = swapValue(val);
       return 0;
@@ -349,11 +351,6 @@ public:
 
 class LocalVarValue;
 
-struct LocalVarStruct {
-   LocalVarValue* v;
-   const QoreTypeInfo* typeInfo;
-};
-
 // this class grabs global variable or object locks for the duration of the scope of the object
 // no evaluations can be done while this object is in scope or a deadlock may result
 class LValueHelper {
@@ -361,8 +358,9 @@ protected:
    ExceptionSink* xsink;
    union {
       LValueExpressionHelper* n;
-      LocalVarStruct local;
+      LocalVarValue* v;
    } lv;
+   const QoreTypeInfo* typeInfo;
    lvt_e lvt : 2;
 
 public:
@@ -374,14 +372,16 @@ public:
    }
 
    DLLLOCAL operator bool() const {
-      return lvt == LVT_OptLocalVar || lv.n->v; 
+      return lvt == LVT_OptLocalVar || lv.n->v;
    }
 
    DLLLOCAL bool isOptimized() const {
       return lvt == LVT_OptLocalVar;
    }
 
-   const QoreTypeInfo *get_type_info() const;
+   const QoreTypeInfo *get_type_info() const {
+      return typeInfo;
+   }
 
    const qore_type_t get_type() const;
 
@@ -392,6 +392,8 @@ public:
    DLLLOCAL bool is_nothing() const {
       return check_type(NT_NOTHING);
    }
+
+   DLLLOCAL AbstractQoreNode *getReferencedValue() const;
 
    DLLLOCAL AbstractQoreNode *get_value() const {
       assert(lvt == LVT_Normal);

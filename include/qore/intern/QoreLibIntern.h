@@ -804,4 +804,6 @@ DLLLOCAL AbstractQoreNode *missing_method_error(const char *meth, const char *op
 // checks for illegal $self assignments in an object context                                        
 DLLLOCAL void check_self_assignment(AbstractQoreNode *n, LocalVar *selfid);
 
+DLLLOCAL void ignore_return_value(AbstractQoreNode *n);
+
 #endif

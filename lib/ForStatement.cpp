@@ -80,19 +80,14 @@ int ForStatement::parseInitImpl(LocalVar *oflag, int pflag) {
    if (assignment) {
       assignment = assignment->parseInit(oflag, pflag | PF_RETURN_VALUE_IGNORED, lvids, argTypeInfo);
        // enable optimizations when return value is ignored for operator expressions
-      QoreTreeNode *tree = dynamic_cast<QoreTreeNode *>(assignment);
-      if (tree)
-	 tree->ignoreReturnValue();
+      ignore_return_value(assignment);
    }
    if (cond)
       cond = cond->parseInit(oflag, pflag, lvids, argTypeInfo);
    if (iterator) {
       iterator = iterator->parseInit(oflag, pflag | PF_RETURN_VALUE_IGNORED, lvids, argTypeInfo);
       // enable optimizations when return value is ignored for operator expressions
-
-      QoreTreeNode *tree = dynamic_cast<QoreTreeNode *>(iterator);
-      if (tree)
-	 tree->ignoreReturnValue();
+      ignore_return_value(iterator);
    }
    if (code)
       code->parseInitImpl(oflag, pflag);

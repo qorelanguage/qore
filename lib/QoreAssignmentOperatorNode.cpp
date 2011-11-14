@@ -87,8 +87,7 @@ AbstractQoreNode *QoreAssignmentOperatorNode::evalImpl(ExceptionSink *xsink) con
 #endif
 
    // reference return value if necessary
-   const AbstractQoreNode *rv = v.get_value();
-   return ref_rv && rv ? rv->refSelf() : 0;   
+   return ref_rv ? v.getReferencedValue() : 0;
 }
 
 AbstractQoreNode *QoreAssignmentOperatorNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {

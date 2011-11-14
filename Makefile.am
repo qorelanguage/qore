@@ -243,6 +243,10 @@ noinst_HEADERS = \
 	include/qore/intern/QoreIntPreIncrementOperatorNode.h \
 	include/qore/intern/QorePreDecrementOperatorNode.h \
 	include/qore/intern/QoreIntPreDecrementOperatorNode.h \
+	include/qore/intern/QoreLogicalLessThanOperatorNode.h \
+	include/qore/intern/QoreLogicalGreaterThanOperatorNode.h \
+	include/qore/intern/QoreLogicalLessThanOrEqualsOperatorNode.h \
+	include/qore/intern/QoreLogicalGreaterThanOrEqualsOperatorNode.h \
 	include/qore/intern/QorePseudoMethods.h \
 	include/qore/intern/ql_string.h \
 	include/qore/intern/ql_list.h \

@@ -25,50 +25,16 @@
 
 #define _QORE_QOREBINARYLVALUEOPERATORNODE_H
 
-class QoreBinaryLValueOperatorNode : public LValueOperatorNode {
+class QoreBinaryLValueOperatorNode : public QoreBinaryOperatorNode<LValueOperatorNode> {
 protected:
    DLLLOCAL virtual const QoreTypeInfo *getTypeInfo() const {
       return ti;
    }
 
 public:
-   AbstractQoreNode *left, *right; // parts of the expression
    const QoreTypeInfo *ti;         // typeinfo of lhs
 
-   DLLLOCAL QoreBinaryLValueOperatorNode(AbstractQoreNode *n_left, AbstractQoreNode *n_right) : left(n_left), right(n_right), ti(0) {
-   }
-
-   DLLLOCAL virtual ~QoreBinaryLValueOperatorNode() {
-      if (left)
-         left->deref(0);
-      if (right)
-         right->deref(0);
-   }
-
-   template<typename T>
-   DLLLOCAL QoreBinaryLValueOperatorNode *makeSpecialization() {
-      // only generate the specialization if the lvalue is not a variable reference to a global var
-      if (get_node_type(left) != NT_VARREF || reinterpret_cast<VarRefNode *>(left)->isGlobalVar())
-         return this;
-
-      AbstractQoreNode *l = left, *r = right;
-      left = right = 0;
-      SimpleRefHolder<QoreBinaryLValueOperatorNode> del(this);
-      return new T(l, r);
-   }
-
-   DLLLOCAL AbstractQoreNode *swapRight(AbstractQoreNode *n_right) {
-      AbstractQoreNode *old_r = right;
-      right = n_right;
-      return old_r;
-   }
-
-   DLLLOCAL AbstractQoreNode *getLeft() {
-      return left;
-   }
-
-   DLLLOCAL AbstractQoreNode *getRight() {
-      return right;
+   DLLLOCAL QoreBinaryLValueOperatorNode(AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreBinaryOperatorNode<LValueOperatorNode>(n_left, n_right), ti(0) {
    }
 
    DLLLOCAL void parseInitIntLValue(const char *name, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {

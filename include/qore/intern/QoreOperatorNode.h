@@ -80,7 +80,70 @@ public:
       AbstractQoreNode *e = exp;
       exp = 0;
       SimpleRefHolder<QoreSingleExpressionOperatorNode> del(this);
-      return new O(e);
+      O* rv = new O(e);
+      if (!this->ref_rv)
+         rv->ignoreReturnValue();
+      return rv;
+   }
+};
+
+template <class T = QoreOperatorNode>
+class QoreBinaryOperatorNode : public T {
+protected:
+   AbstractQoreNode *left, *right;
+
+public:
+   DLLLOCAL QoreBinaryOperatorNode(AbstractQoreNode *n_left, AbstractQoreNode *n_right) : left(n_left), right(n_right) {
+   }
+
+   DLLLOCAL ~QoreBinaryOperatorNode() {
+      if (left)
+         left->deref(0);
+      if (right)
+         right->deref(0);
+   }
+
+   template<typename U>
+   DLLLOCAL QoreBinaryOperatorNode *makeSpecialization() {
+      // only generate the specialization if the lvalue is not a variable reference to a global var
+      if (get_node_type(left) != NT_VARREF || reinterpret_cast<VarRefNode *>(left)->isGlobalVar())
+         return this;
+
+      AbstractQoreNode *l = left, *r = right;
+      left = right = 0;
+      SimpleRefHolder<QoreBinaryOperatorNode> del(this);
+      U* rv = new U(l, r);
+      if (!this->ref_rv)
+         rv->ignoreReturnValue();
+      return rv;
+   }
+
+   DLLLOCAL AbstractQoreNode *swapRight(AbstractQoreNode *n_right) {
+      AbstractQoreNode *old_r = right;
+      right = n_right;
+      return old_r;
+   }
+
+   DLLLOCAL AbstractQoreNode *getLeft() {
+      return left;
+   }
+
+   DLLLOCAL AbstractQoreNode *getRight() {
+      return right;
+   }
+};
+
+class QoreBoolBinaryOperatorNode : public QoreBinaryOperatorNode<> {
+public:
+   DLLLOCAL QoreBoolBinaryOperatorNode(AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreBinaryOperatorNode<>(n_left, n_right) {
+   }
+
+   DLLLOCAL virtual const QoreTypeInfo *getTypeInfo() const {
+      return boolTypeInfo;
+   }
+
+   DLLLOCAL virtual bool hasEffect() const {
+      return false;
    }
 };
 
@@ -139,5 +202,9 @@ public:
 #include <qore/intern/QoreIntPreIncrementOperatorNode.h>
 #include <qore/intern/QorePreDecrementOperatorNode.h>
 #include <qore/intern/QoreIntPreDecrementOperatorNode.h>
+#include <qore/intern/QoreLogicalLessThanOperatorNode.h>
+#include <qore/intern/QoreLogicalGreaterThanOrEqualsOperatorNode.h>
+#include <qore/intern/QoreLogicalGreaterThanOperatorNode.h>
+#include <qore/intern/QoreLogicalLessThanOrEqualsOperatorNode.h>
 
 #endif
