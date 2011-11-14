@@ -380,6 +380,19 @@ public:
    }
 };
 
+struct SkipHelper {
+   VarValueBase *vvb;
+
+   DLLLOCAL SkipHelper(VarValueBase *n_vvb) : vvb(n_vvb) {
+      assert(!vvb->skip);
+      vvb->skip = true;
+   }
+
+   DLLLOCAL ~SkipHelper() {
+      vvb->skip = false;
+   }
+};
+
 class LocalVarValue : public VarValueBase {
 public:
    DLLLOCAL void set(const char *n_id, const QoreTypeInfo *typeInfo, AbstractQoreNode *value) {

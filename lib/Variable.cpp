@@ -1041,8 +1041,10 @@ double lvar_ref::divideEqualsFloat(double v, T *vv, ExceptionSink *xsink) {
 }
 
 LocalVarValue* LocalVarValue::optimized(const QoreTypeInfo *&varTypeInfo) const {
-   if (vvt == VVT_Ref)
+   if (vvt == VVT_Ref) {
+      SkipHelper sh(const_cast<LocalVarValue*>(this));
       return val.ref.vexp->getType() == NT_VARREF ? reinterpret_cast<const VarRefNode*>(val.ref.vexp)->isLocalOptimized(varTypeInfo) : false;
+   }
    
    return vvt != VVT_Normal ? const_cast<LocalVarValue*>(this) : 0;
 }
