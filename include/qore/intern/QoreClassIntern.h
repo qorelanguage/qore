@@ -376,16 +376,16 @@ public:
       return *xsink ? 0 : new Q(rv);
    }
    DLLLOCAL virtual int64 bigIntEvalImpl(QoreObject *self, AbstractPrivateData *private_data, const QoreListNode *args, ExceptionSink *xsink) const {
-      return method(self, private_data, args, xsink);
+      return (int64)method(self, private_data, args, xsink);
    }
    DLLLOCAL virtual int intEvalImpl(QoreObject *self, AbstractPrivateData *private_data, const QoreListNode *args, ExceptionSink *xsink) const {
-      return method(self, private_data, args, xsink);
+      return (int)method(self, private_data, args, xsink);
    }
    DLLLOCAL virtual bool boolEvalImpl(QoreObject *self, AbstractPrivateData *private_data, const QoreListNode *args, ExceptionSink *xsink) const {
-      return method(self, private_data, args, xsink);
+      return (bool)method(self, private_data, args, xsink);
    }
    DLLLOCAL virtual double floatEvalImpl(QoreObject *self, AbstractPrivateData *private_data, const QoreListNode *args, ExceptionSink *xsink) const {
-      return method(self, private_data, args, xsink);
+      return (double)method(self, private_data, args, xsink);
    }
 };
 

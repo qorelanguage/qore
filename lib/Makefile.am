@@ -145,6 +145,32 @@ libqore_la_SOURCES = \
 	QoreUnaryMinusOperatorNode.cpp \
 	QoreDotEvalOperatorNode.cpp \
 	QoreLogicalEqualsOperatorNode.cpp \
+	QoreAssignmentOperatorNode.cpp \
+	QoreIntAssignmentOperatorNode.cpp \
+	QorePlusEqualsOperatorNode.cpp \
+	QoreIntPlusEqualsOperatorNode.cpp \
+	QoreMinusEqualsOperatorNode.cpp \
+	QoreIntMinusEqualsOperatorNode.cpp \
+        QoreOrEqualsOperatorNode.cpp \
+        QoreIntOrEqualsOperatorNode.cpp \
+        QoreAndEqualsOperatorNode.cpp \
+        QoreIntAndEqualsOperatorNode.cpp \
+        QoreModulaEqualsOperatorNode.cpp \
+        QoreIntModulaEqualsOperatorNode.cpp \
+        QoreMultiplyEqualsOperatorNode.cpp \
+        QoreIntMultiplyEqualsOperatorNode.cpp \
+        QoreDivideEqualsOperatorNode.cpp \
+        QoreIntDivideEqualsOperatorNode.cpp \
+        QoreXorEqualsOperatorNode.cpp \
+        QoreIntXorEqualsOperatorNode.cpp \
+        QoreShiftLeftEqualsOperatorNode.cpp \
+        QoreIntShiftLeftEqualsOperatorNode.cpp \
+        QoreShiftRightEqualsOperatorNode.cpp \
+        QoreIntShiftRightEqualsOperatorNode.cpp \
+	QorePostIncrementOperatorNode.cpp \
+	QorePostDecrementOperatorNode.cpp \
+	QorePreIncrementOperatorNode.cpp \
+	QorePreDecrementOperatorNode.cpp \
 	ql_thread.cpp \
 	ql_io.cpp \
 	ql_time.cpp \

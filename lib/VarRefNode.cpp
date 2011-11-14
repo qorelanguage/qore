@@ -105,40 +105,48 @@ AbstractQoreNode *VarRefNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) 
 }
 
 int64 VarRefNode::bigIntEvalImpl(ExceptionSink *xsink) const {
-/*
    if (type == VT_LOCAL)
       return ref.id->bigIntEval(xsink);
-*/
+   if (type == VT_CLOSURE) {
+      ClosureVarValue *val = thread_get_runtime_closure_var(ref.id);
+      return val->bigIntEval(xsink);
+   }
 
    VarRefNodeEvalOptionalRefHolder rv(this, xsink);
    return rv ? rv->getAsBigInt() : 0;
 }
 
 int VarRefNode::integerEvalImpl(ExceptionSink *xsink) const {
-/*
    if (type == VT_LOCAL)
       return ref.id->intEval(xsink);
-*/
+   if (type == VT_CLOSURE) {
+      ClosureVarValue *val = thread_get_runtime_closure_var(ref.id);
+      return val->intEval(xsink);
+   }
 
    VarRefNodeEvalOptionalRefHolder rv(this, xsink);
    return rv ? rv->getAsInt() : 0;
 }
 
 bool VarRefNode::boolEvalImpl(ExceptionSink *xsink) const {
-/*
    if (type == VT_LOCAL)
       return ref.id->boolEval(xsink);
-*/
+   if (type == VT_CLOSURE) {
+      ClosureVarValue *val = thread_get_runtime_closure_var(ref.id);
+      return val->boolEval(xsink);
+   }
 
    VarRefNodeEvalOptionalRefHolder rv(this, xsink);
    return rv ? rv->getAsBool() : 0;
 }
 
 double VarRefNode::floatEvalImpl(ExceptionSink *xsink) const {
-/*
    if (type == VT_LOCAL)
       return ref.id->floatEval(xsink);
-*/
+   if (type == VT_CLOSURE) {
+      ClosureVarValue *val = thread_get_runtime_closure_var(ref.id);
+      return val->floatEval(xsink);
+   }
 
    VarRefNodeEvalOptionalRefHolder rv(this, xsink);
    return rv ? rv->getAsFloat() : 0;
@@ -155,16 +163,168 @@ AbstractQoreNode **VarRefNode::getValuePtr(AutoVLock *vl, const QoreTypeInfo *&t
    return ref.var->getValuePtr(vl, typeInfo, xsink);
 }
 
+/*
 void VarRefNode::setValue(AbstractQoreNode *n, ExceptionSink *xsink) {
    if (type == VT_LOCAL)
       ref.id->setValue(n, xsink);
    else if (type == VT_CLOSURE) {
-      printd(5, "VarRefNode::eval() closure var %p (%s)\n", ref.id, ref.id);
+      printd(5, "VarRefNode::setValue() closure var %p (%s)\n", ref.id, ref.id);
       ClosureVarValue *val = thread_get_runtime_closure_var(ref.id);
       val->setValue(n, xsink);
    }
    else
       ref.var->setValue(n, xsink);
+}
+*/
+
+void VarRefNode::assignBigInt(int64 v, ExceptionSink *xsink) {
+   assert(type == VT_LOCAL);
+   ref.id->assignBigInt(v, xsink);
+   return;
+}
+
+int64 VarRefNode::plusEqualsBigInt(int64 v, ExceptionSink *xsink) {
+   if (type == VT_LOCAL)
+      return ref.id->plusEqualsBigInt(v, xsink);
+
+   assert(type == VT_CLOSURE);
+   ClosureVarValue *val = thread_get_runtime_closure_var(ref.id);
+   return val->plusEqualsBigInt(v, xsink);
+}
+
+double VarRefNode::plusEqualsFloat(double v, ExceptionSink *xsink) {
+   if (type == VT_LOCAL)
+      return ref.id->plusEqualsFloat(v, xsink);
+
+   assert(type == VT_CLOSURE);
+   ClosureVarValue *val = thread_get_runtime_closure_var(ref.id);
+   return val->plusEqualsFloat(v, xsink);
+}
+
+int64 VarRefNode::minusEqualsBigInt(int64 v, ExceptionSink *xsink) {
+   if (type == VT_LOCAL)
+      return ref.id->minusEqualsBigInt(v, xsink);
+
+   assert(type == VT_CLOSURE);
+   ClosureVarValue *val = thread_get_runtime_closure_var(ref.id);
+   return val->minusEqualsBigInt(v, xsink);
+}
+
+double VarRefNode::minusEqualsFloat(double v, ExceptionSink *xsink) {
+   if (type == VT_LOCAL)
+      return ref.id->minusEqualsFloat(v, xsink);
+
+   assert(type == VT_CLOSURE);
+   ClosureVarValue *val = thread_get_runtime_closure_var(ref.id);
+   return val->minusEqualsFloat(v, xsink);
+}
+
+int64 VarRefNode::orEqualsBigInt(int64 v, ExceptionSink *xsink) {
+   if (type == VT_LOCAL)
+      return ref.id->orEqualsBigInt(v, xsink);
+
+   assert(type == VT_CLOSURE);
+   ClosureVarValue *val = thread_get_runtime_closure_var(ref.id);
+   return val->orEqualsBigInt(v, xsink);
+}
+
+int64 VarRefNode::andEqualsBigInt(int64 v, ExceptionSink *xsink) {
+   if (type == VT_LOCAL)
+      return ref.id->andEqualsBigInt(v, xsink);
+
+   assert(type == VT_CLOSURE);
+   ClosureVarValue *val = thread_get_runtime_closure_var(ref.id);
+   return val->andEqualsBigInt(v, xsink);
+}
+
+int64 VarRefNode::modulaEqualsBigInt(int64 v, ExceptionSink *xsink) {
+   if (type == VT_LOCAL)
+      return ref.id->modulaEqualsBigInt(v, xsink);
+
+   assert(type == VT_CLOSURE);
+   ClosureVarValue *val = thread_get_runtime_closure_var(ref.id);
+   return val->modulaEqualsBigInt(v, xsink);
+}
+
+int64 VarRefNode::multiplyEqualsBigInt(int64 v, ExceptionSink *xsink) {
+   if (type == VT_LOCAL)
+      return ref.id->multiplyEqualsBigInt(v, xsink);
+
+   assert(type == VT_CLOSURE);
+   ClosureVarValue *val = thread_get_runtime_closure_var(ref.id);
+   return val->multiplyEqualsBigInt(v, xsink);
+}
+
+int64 VarRefNode::divideEqualsBigInt(int64 v, ExceptionSink *xsink) {
+   if (type == VT_LOCAL)
+      return ref.id->divideEqualsBigInt(v, xsink);
+
+   assert(type == VT_CLOSURE);
+   ClosureVarValue *val = thread_get_runtime_closure_var(ref.id);
+   return val->divideEqualsBigInt(v, xsink);
+}
+
+int64 VarRefNode::xorEqualsBigInt(int64 v, ExceptionSink *xsink) {
+   if (type == VT_LOCAL)
+      return ref.id->xorEqualsBigInt(v, xsink);
+
+   assert(type == VT_CLOSURE);
+   ClosureVarValue *val = thread_get_runtime_closure_var(ref.id);
+   return val->xorEqualsBigInt(v, xsink);
+}
+
+int64 VarRefNode::shiftLeftEqualsBigInt(int64 v, ExceptionSink *xsink) {
+   if (type == VT_LOCAL)
+      return ref.id->shiftLeftEqualsBigInt(v, xsink);
+
+   assert(type == VT_CLOSURE);
+   ClosureVarValue *val = thread_get_runtime_closure_var(ref.id);
+   return val->shiftLeftEqualsBigInt(v, xsink);
+}
+
+int64 VarRefNode::shiftRightEqualsBigInt(int64 v, ExceptionSink *xsink) {
+   if (type == VT_LOCAL)
+      return ref.id->shiftRightEqualsBigInt(v, xsink);
+
+   assert(type == VT_CLOSURE);
+   ClosureVarValue *val = thread_get_runtime_closure_var(ref.id);
+   return val->shiftRightEqualsBigInt(v, xsink);
+}
+
+int64 VarRefNode::postIncrement(ExceptionSink *xsink) {
+   if (type == VT_LOCAL)
+      return ref.id->postIncrement(xsink);
+
+   assert(type == VT_CLOSURE);
+   ClosureVarValue *val = thread_get_runtime_closure_var(ref.id);
+   return val->postIncrement(xsink);
+}
+
+int64 VarRefNode::preIncrement(ExceptionSink *xsink) {
+   if (type == VT_LOCAL)
+      return ref.id->preIncrement(xsink);
+
+   assert(type == VT_CLOSURE);
+   ClosureVarValue *val = thread_get_runtime_closure_var(ref.id);
+   return val->preIncrement(xsink);
+}
+
+int64 VarRefNode::postDecrement(ExceptionSink *xsink) {
+   if (type == VT_LOCAL)
+      return ref.id->postDecrement(xsink);
+
+   assert(type == VT_CLOSURE);
+   ClosureVarValue *val = thread_get_runtime_closure_var(ref.id);
+   return val->postDecrement(xsink);
+}
+
+int64 VarRefNode::preDecrement(ExceptionSink *xsink) {
+   if (type == VT_LOCAL)
+      return ref.id->preDecrement(xsink);
+
+   assert(type == VT_CLOSURE);
+   ClosureVarValue *val = thread_get_runtime_closure_var(ref.id);
+   return val->preDecrement(xsink);
 }
 
 char *VarRefNode::takeName() {

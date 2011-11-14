@@ -25,7 +25,7 @@
 
 #define _QORE_QOREDELETEOPERATORNODE_H
 
-class QoreDeleteOperatorNode : public QoreSingleExpressionOperatorNode {
+class QoreDeleteOperatorNode : public QoreSingleExpressionOperatorNode<LValueOperatorNode> {
 protected:
    DLLLOCAL static QoreString delete_str;
 
@@ -39,17 +39,13 @@ protected:
    }
 
 public:
-   DLLLOCAL QoreDeleteOperatorNode(AbstractQoreNode *n_exp) : QoreSingleExpressionOperatorNode(n_exp) {
+   DLLLOCAL QoreDeleteOperatorNode(AbstractQoreNode *n_exp) : QoreSingleExpressionOperatorNode<LValueOperatorNode>(n_exp) {
    }
    DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const;
    DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const;
    // returns the type name as a c string
    DLLLOCAL virtual const char *getTypeName() const {
       return delete_str.getBuffer();
-   }
-
-   DLLLOCAL virtual bool hasEffect() const {
-      return true;
    }
 };
 

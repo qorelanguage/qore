@@ -35,22 +35,6 @@ QoreHashNode *ENV;
 #include <qore/intern/ParserSupport.h>
 #include <qore/intern/QoreObjectIntern.h>
 
-VarStackPointerHelper::VarStackPointerHelper(LocalVarValue *v) : orig(v) {
-   v->skip = true;
-}
-
-VarStackPointerHelper::~VarStackPointerHelper() {
-   orig->skip = false;
-}
-
-VarStackPointerClosureHelper::VarStackPointerClosureHelper(ClosureVarValue *v) : orig(v) {
-   v->skip = true;
-}
-
-VarStackPointerClosureHelper::~VarStackPointerClosureHelper() {
-   orig->skip = false;
-}
-
 VarValue::VarValue(Var *n_refptr, bool n_readonly) {
    ivar.refptr = n_refptr;
    ivar.readonly = n_readonly;
@@ -640,4 +624,306 @@ void delete_lvalue(AbstractQoreNode *lvalue, ExceptionSink *xsink) {
 	 o->doDelete(xsink);
       return;
    }
+}
+
+LValueHelper::LValueHelper(const AbstractQoreNode *exp, ExceptionSink *n_xsink) : xsink(n_xsink), lvt(LVT_Unknown) {
+   qore_type_t t = exp->getType();
+   // make sure it's an optimized (ie not global, not a reference, not a "normal" local var)
+   if (t == NT_VARREF && (lv.local.v = reinterpret_cast<const VarRefNode *>(exp)->isLocalOptimized(lv.local.typeInfo))) {
+      lvt = LVT_OptLocalVar;
+   }
+   else {
+      lvt = LVT_Normal;
+      lv.n = new LValueExpressionHelper(exp, xsink);         
+   }         
+}
+
+const QoreTypeInfo *LValueHelper::get_type_info() const {
+   return lvt == LVT_OptLocalVar ? lv.local.typeInfo : lv.n->typeInfo;
+}
+
+const qore_type_t LValueHelper::get_type() const {
+   return lvt == LVT_OptLocalVar ? lv.local.v->getValueType() : *(lv.n->v) ? (*lv.n->v)->getType() : NT_NOTHING; 
+}
+
+int LValueHelper::assign(AbstractQoreNode *val, const char *desc) {
+   // check type for assignment
+   val = get_type_info()->acceptAssignment(desc, val, xsink);
+   if (*xsink) {
+      discard(val, xsink);
+      return -1;
+   }
+
+   if (lvt == LVT_OptLocalVar) {
+      // since we are only dealing with optimized local vars, it's not possible
+      // to have an exception here on the assignment
+      lv.local.v->setValue(val, xsink);
+      assert(!*xsink);
+      return 0;
+   }
+
+   return lv.n->assign(val, xsink);
+}
+
+void lvar_ref::assign(AbstractQoreNode *n_vexp, QoreObject *n_obj, QoreProgram *n_pgm) {
+   vexp = n_vexp;
+   obj = n_obj;
+   pgm = n_pgm;
+   if (n_obj)
+      n_obj->tRef();
+
+   is_vref = vexp->getType() == NT_VARREF && !reinterpret_cast<VarRefNode*>(vexp)->isGlobalVar();
+}
+
+template <class T>
+int64 lvar_ref::postIncrement(T *vv, ExceptionSink *xsink) {
+   if (is_vref)
+      return reinterpret_cast<VarRefNode*>(vexp)->postIncrement(xsink);
+
+   LValueRefHelper<T> valp(vv, xsink);
+   if (!valp)
+      return 0;
+      
+   valp->ensure_unique_int();
+   QoreBigIntNode *n = reinterpret_cast<QoreBigIntNode *>(valp->get_value());
+   int64 rv = n->val;
+   ++n->val;
+   return rv;
+}
+
+template <class T>
+int64 lvar_ref::preIncrement(T *vv, ExceptionSink *xsink) {
+   if (is_vref)
+      return reinterpret_cast<VarRefNode*>(vexp)->preIncrement(xsink);
+   
+   LValueRefHelper<T> valp(vv, xsink);
+   if (!valp)
+      return 0;
+   
+   valp->ensure_unique_int();
+   QoreBigIntNode *n = reinterpret_cast<QoreBigIntNode *>(valp->get_value());
+   return ++n->val;
+}
+
+template <class T>
+int64 lvar_ref::postDecrement(T *vv, ExceptionSink *xsink) {
+   if (is_vref)
+      return reinterpret_cast<VarRefNode*>(vexp)->postDecrement(xsink);
+
+   LValueRefHelper<T> valp(vv, xsink);
+   if (!valp)
+      return 0;
+
+   valp->ensure_unique_int();
+   QoreBigIntNode *n = reinterpret_cast<QoreBigIntNode *>(valp->get_value());
+   int64 rv = n->val;
+   --n->val;
+   return rv;
+}
+
+template <class T>
+int64 lvar_ref::preDecrement(T *vv, ExceptionSink *xsink) {
+   if (is_vref)
+      return reinterpret_cast<VarRefNode*>(vexp)->preDecrement(xsink);
+
+   LValueRefHelper<T> valp(vv, xsink);
+   if (!valp)
+      return 0;
+
+   valp->ensure_unique_int();
+   QoreBigIntNode *n = reinterpret_cast<QoreBigIntNode *>(valp->get_value());
+   return --n->val;
+}
+
+template <class T>
+int64 lvar_ref::plusEqualsBigInt(int64 v, T *vv, ExceptionSink *xsink) {
+   if (is_vref)
+      return reinterpret_cast<VarRefNode*>(vexp)->plusEqualsBigInt(v, xsink);
+
+   ReferenceHolder<AbstractQoreNode> value_holder(new QoreBigIntNode(v), xsink);
+   LValueRefHelper<T> valp(vv, xsink);
+   if (!valp)
+      return 0;
+
+   valp->ensure_unique_int();
+   QoreBigIntNode *n = reinterpret_cast<QoreBigIntNode *>(valp->get_value());
+   n->val += v;
+   return n->val;
+}
+
+template <class T>
+double lvar_ref::plusEqualsFloat(double v, T *vv, ExceptionSink *xsink) {
+   if (is_vref)
+      return reinterpret_cast<VarRefNode*>(vexp)->plusEqualsFloat(v, xsink);
+
+   ReferenceHolder<AbstractQoreNode> value_holder(new QoreBigIntNode(v), xsink);
+   LValueRefHelper<T> valp(vv, xsink);
+   if (!valp)
+      return 0;
+
+   valp->ensure_unique_float();
+   QoreFloatNode *n = reinterpret_cast<QoreFloatNode *>(valp->get_value());
+   n->f += v;
+   return n->f;
+}
+
+template <class T>
+int64 lvar_ref::minusEqualsBigInt(int64 v, T *vv, ExceptionSink *xsink) {
+   if (is_vref)
+      return reinterpret_cast<VarRefNode*>(vexp)->minusEqualsBigInt(v, xsink);
+
+   ReferenceHolder<AbstractQoreNode> value_holder(new QoreBigIntNode(v), xsink);
+   LValueRefHelper<T> valp(vv, xsink);
+   if (!valp)
+      return 0;
+      
+   valp->ensure_unique_int();
+   QoreBigIntNode *n = reinterpret_cast<QoreBigIntNode *>(valp->get_value());
+   n->val -= v;
+   return n->val;
+}
+
+template <class T>
+double lvar_ref::minusEqualsFloat(double v, T *vv, ExceptionSink *xsink) {
+   if (is_vref)
+      return reinterpret_cast<VarRefNode*>(vexp)->minusEqualsFloat(v, xsink);
+
+   ReferenceHolder<AbstractQoreNode> value_holder(new QoreBigIntNode(v), xsink);
+   LValueRefHelper<T> valp(vv, xsink);
+   if (!valp)
+      return 0;
+
+   valp->ensure_unique_float();
+   QoreFloatNode *n = reinterpret_cast<QoreFloatNode *>(valp->get_value());
+   n->f -= v;
+   return n->f;
+}
+
+template <class T>
+int64 lvar_ref::orEqualsBigInt(int64 v, T *vv, ExceptionSink *xsink) {
+   if (is_vref)
+      return reinterpret_cast<VarRefNode*>(vexp)->orEqualsBigInt(v, xsink);
+
+   ReferenceHolder<AbstractQoreNode> value_holder(new QoreBigIntNode(v), xsink);
+   LValueRefHelper<T> valp(vv, xsink);
+   if (!valp)
+      return 0;
+      
+   valp->ensure_unique_int();
+   QoreBigIntNode *n = reinterpret_cast<QoreBigIntNode *>(valp->get_value());
+   n->val |= v;
+   return n->val;
+}
+
+template <class T>
+int64 lvar_ref::andEqualsBigInt(int64 v, T *vv, ExceptionSink *xsink) {
+   if (is_vref)
+      return reinterpret_cast<VarRefNode*>(vexp)->andEqualsBigInt(v, xsink);
+
+   ReferenceHolder<AbstractQoreNode> value_holder(new QoreBigIntNode(v), xsink);
+   LValueRefHelper<T> valp(vv, xsink);
+   if (!valp)
+      return 0;
+      
+   valp->ensure_unique_int();
+   QoreBigIntNode *n = reinterpret_cast<QoreBigIntNode *>(valp->get_value());
+   n->val &= v;
+   return n->val;
+}
+
+template <class T>
+int64 lvar_ref::modulaEqualsBigInt(int64 v, T *vv, ExceptionSink *xsink) {
+   if (is_vref)
+      return reinterpret_cast<VarRefNode*>(vexp)->modulaEqualsBigInt(v, xsink);
+
+   ReferenceHolder<AbstractQoreNode> value_holder(new QoreBigIntNode(v), xsink);
+   LValueRefHelper<T> valp(vv, xsink);
+   if (!valp)
+      return 0;
+      
+   valp->ensure_unique_int();
+   QoreBigIntNode *n = reinterpret_cast<QoreBigIntNode *>(valp->get_value());
+   n->val %= v;
+   return n->val;
+}
+
+template <class T>
+int64 lvar_ref::multiplyEqualsBigInt(int64 v, T *vv, ExceptionSink *xsink) {
+   if (is_vref)
+      return reinterpret_cast<VarRefNode*>(vexp)->multiplyEqualsBigInt(v, xsink);
+
+   ReferenceHolder<AbstractQoreNode> value_holder(new QoreBigIntNode(v), xsink);
+   LValueRefHelper<T> valp(vv, xsink);
+   if (!valp)
+      return 0;
+      
+   valp->ensure_unique_int();
+   QoreBigIntNode *n = reinterpret_cast<QoreBigIntNode *>(valp->get_value());
+   n->val *= v;
+   return n->val;
+}
+
+template <class T>
+int64 lvar_ref::divideEqualsBigInt(int64 v, T *vv, ExceptionSink *xsink) {
+   assert(v);
+   if (is_vref)
+      return reinterpret_cast<VarRefNode*>(vexp)->divideEqualsBigInt(v, xsink);
+
+   ReferenceHolder<AbstractQoreNode> value_holder(new QoreBigIntNode(v), xsink);
+   LValueRefHelper<T> valp(vv, xsink);
+   if (!valp)
+      return 0;
+      
+   valp->ensure_unique_int();
+   QoreBigIntNode *n = reinterpret_cast<QoreBigIntNode *>(valp->get_value());
+   n->val /= v;
+   return n->val;
+}
+
+template <class T>
+int64 lvar_ref::xorEqualsBigInt(int64 v, T *vv, ExceptionSink *xsink) {
+   if (is_vref)
+      return reinterpret_cast<VarRefNode*>(vexp)->xorEqualsBigInt(v, xsink);
+
+   ReferenceHolder<AbstractQoreNode> value_holder(new QoreBigIntNode(v), xsink);
+   LValueRefHelper<T> valp(vv, xsink);
+   if (!valp)
+      return 0;
+      
+   valp->ensure_unique_int();
+   QoreBigIntNode *n = reinterpret_cast<QoreBigIntNode *>(valp->get_value());
+   n->val ^= v;
+   return n->val;
+}
+
+template <class T>
+int64 lvar_ref::shiftLeftEqualsBigInt(int64 v, T *vv, ExceptionSink *xsink) {
+   if (is_vref)
+      return reinterpret_cast<VarRefNode*>(vexp)->shiftLeftEqualsBigInt(v, xsink);
+
+   ReferenceHolder<AbstractQoreNode> value_holder(new QoreBigIntNode(v), xsink);
+   LValueRefHelper<T> valp(vv, xsink);
+   if (!valp)
+      return 0;
+      
+   valp->ensure_unique_int();
+   QoreBigIntNode *n = reinterpret_cast<QoreBigIntNode *>(valp->get_value());
+   n->val <<= v;
+   return n->val;
+}
+
+template <class T>
+int64 lvar_ref::shiftRightEqualsBigInt(int64 v, T *vv, ExceptionSink *xsink) {
+   if (is_vref)
+      return reinterpret_cast<VarRefNode*>(vexp)->shiftRightEqualsBigInt(v, xsink);
+
+   ReferenceHolder<AbstractQoreNode> value_holder(new QoreBigIntNode(v), xsink);
+   LValueRefHelper<T> valp(vv, xsink);
+   if (!valp)
+      return 0;
+      
+   valp->ensure_unique_int();
+   QoreBigIntNode *n = reinterpret_cast<QoreBigIntNode *>(valp->get_value());
+   n->val >>= v;
+   return n->val;
 }

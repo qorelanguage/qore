@@ -58,7 +58,7 @@ DLLLOCAL AbstractQoreNode *class_int_noop(QoreObject *self, AbstractPrivateData 
 class LocalVar;
 class VarRefNode;
 class BCAList;
-class QoreTreeNode;
+class QoreOperatorNode;
 class BarewordNode;
 
 class AbstractFunctionSignature {
@@ -162,7 +162,7 @@ protected:
    const char *parse_file;
 
    DLLLOCAL void pushParam(BarewordNode *b, bool needs_types);
-   DLLLOCAL void pushParam(QoreTreeNode *t, bool needs_types);
+   DLLLOCAL void pushParam(QoreOperatorNode *t, bool needs_types);
    DLLLOCAL void pushParam(VarRefNode *v, AbstractQoreNode *defArg, bool needs_types);
 
    DLLLOCAL static void param_error() {

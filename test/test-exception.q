@@ -2,43 +2,32 @@
 
 $e = new Datasource(SQL::DSMySQL);
 
-try 
-{
+try  {
     throw "testing", "123", "test";
 }
-catch ($ex)
-{
+catch ($ex) {
     printf("%s\n", $ex.err == "testing" && $ex.desc == "123" && $ex.arg == "test" ? "OK" : "ERROR");
 }
-try
-{
+try {
     $e.open();
 }
-catch ($ex)
-{
+catch ($ex) {
     printf("%s\n", $ex.err == "DATASOURCE-MISSING-DBNAME" && !exists $ex.arg ? "OK" : "ERROR");
 }
-try
-{
-    try
-    {
-	try
-	{
+try {
+    try {
+	try {
 	    printf("%s\n", $snope.refresh());
 	}
-	catch ($ex)
-	{
-	    printf("%s\n", ($ex.err == "OBJECT-METHOD-EVAL-ON-NON-OBJECT" && !exists $ex.arg) ? "OK" : "ERROR");
+	catch ($ex) {
+	    printf("%s\n", ($ex.err == "PSEUDO-METHOD-DOES-NOT-EXIST" && !exists $ex.arg) ? "OK" : "ERROR: " + $ex.err);
 
-	    try
-	    {
-		try
-		{
+	    try {
+		try {
 		    context gee ($gee) where (%foo == "gee")
 			printf("%s\n", %sdfdas);
 		}
-		catch ($ex)
-		{
+		catch ($ex) {
 		    $desc = shift $argv;
 		    printf("QORE %s Exception in line %d of file %s: %s: %s\n", 
 			   $ex.type, $ex.line, $ex.file, $ex.err, $ex.desc);
@@ -46,20 +35,17 @@ try
 		}		
 		throw $snope.sdfds();
 	    }
-	    catch ($ex) 
-	    {
-		printf("%s\n", ($ex.err == "OBJECT-METHOD-EVAL-ON-NON-OBJECT" && !exists $ex.arg) ? "OK" : "ERROR");
+	    catch ($ex) {
+		printf("%s\n", ($ex.err == "PSEUDO-METHOD-DOES-NOT-EXIST" && !exists $ex.arg) ? "OK" : "ERROR: " + $ex.err);
 		throw "TEST";
 	    }
 	}
     }
-    catch ($ex)
-    {
+    catch ($ex) {
 	printf("%s\n", $ex.err == "TEST" && !exists $ex.arg ? "OK" : "ERROR");
     }
 }
-catch ($ex)
-{
+catch ($ex) {
     printf("QORE %s Exception in line %d of file %s: %s: %s\n", 
 	   $ex.type, $ex.line, $ex.file, $ex.err, $ex.desc);
     context ($gee) where (%whiz == "wdsf")
@@ -67,16 +53,13 @@ catch ($ex)
 }
 
 try {
-    try
-    {
+    try {
 	throw "TEST-ERROR", "this is a test";
     }
-    catch ()
-    {
+    catch () {
 	rethrow;
     }
 }
-catch ($ex)
-{
+catch ($ex) {
     printf("%s\n", $ex.err == "TEST-ERROR" && $ex.callstack[0].type == "rethrow" ? "OK" : "ERROR");
 }

@@ -35,12 +35,6 @@ QoreTreeNode::~QoreTreeNode() {
 }
 
 void QoreTreeNode::ignoreReturnValue() {
-   // OPTIMIZATION: change post incremement to pre increment for top-level expressions to avoid extra SMP cache invalidations
-   if (op == OP_POST_INCREMENT)
-      op = OP_PRE_INCREMENT;
-   else if (op == OP_POST_DECREMENT)
-      op = OP_PRE_DECREMENT;
-      
    ignore_rv();
 }
 

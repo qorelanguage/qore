@@ -1,21 +1,21 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
  QoreOperatorNode.h
- 
+
  Qore Programming Language
- 
+
  Copyright 2003 - 2011 David Nichols
- 
+
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public
  License as published by the Free Software Foundation; either
  version 2.1 of the License, or (at your option) any later version.
- 
+
  This library is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  Lesser General Public License for more details.
- 
+
  You should have received a copy of the GNU Lesser General Public
  License along with this library; if not, write to the Free Software
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
@@ -51,7 +51,8 @@ public:
    }
 };
 
-class QoreSingleExpressionOperatorNode : public QoreOperatorNode {
+template <class T>
+class QoreSingleExpressionOperatorNode : public T {
 protected:
    AbstractQoreNode *exp;
 
@@ -69,6 +70,32 @@ public:
    DLLLOCAL const AbstractQoreNode *getExp() const {
       return exp;
    }
+
+   template <class O>
+   DLLLOCAL QoreSingleExpressionOperatorNode *makeSpecialization() {
+      // only generate the specialization if the lvalue is not a variable reference to a global var
+      if (get_node_type(exp) != NT_VARREF || reinterpret_cast<VarRefNode *>(exp)->isGlobalVar())
+         return this;
+
+      AbstractQoreNode *e = exp;
+      exp = 0;
+      SimpleRefHolder<QoreSingleExpressionOperatorNode> del(this);
+      return new O(e);
+   }
+};
+
+#define OP_COMMON protected:\
+   DLLLOCAL static QoreString op_str;\
+public:\
+   DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const {del = false;return &op_str;}\
+   DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {str.concat(&op_str);return 0;}\
+   DLLLOCAL virtual const char *getTypeName() const {return op_str.getBuffer();}
+
+class LValueOperatorNode : public QoreOperatorNode {
+public:
+   DLLLOCAL virtual bool hasEffect() const {
+      return true;
+   }
 };
 
 // include operator headers
@@ -81,5 +108,36 @@ public:
 #include <qore/intern/QoreDotEvalOperatorNode.h>
 #include <qore/intern/QoreLogicalEqualsOperatorNode.h>
 #include <qore/intern/QoreLogicalNotEqualsOperatorNode.h>
+#include <qore/intern/QoreBinaryLValueOperatorNode.h>
+#include <qore/intern/QoreAssignmentOperatorNode.h>
+#include <qore/intern/QoreIntAssignmentOperatorNode.h>
+#include <qore/intern/QorePlusEqualsOperatorNode.h>
+#include <qore/intern/QoreIntPlusEqualsOperatorNode.h>
+#include <qore/intern/QoreMinusEqualsOperatorNode.h>
+#include <qore/intern/QoreIntMinusEqualsOperatorNode.h>
+#include <qore/intern/QoreOrEqualsOperatorNode.h>
+#include <qore/intern/QoreIntOrEqualsOperatorNode.h>
+#include <qore/intern/QoreAndEqualsOperatorNode.h>
+#include <qore/intern/QoreIntAndEqualsOperatorNode.h>
+#include <qore/intern/QoreModulaEqualsOperatorNode.h>
+#include <qore/intern/QoreIntModulaEqualsOperatorNode.h>
+#include <qore/intern/QoreMultiplyEqualsOperatorNode.h>
+#include <qore/intern/QoreIntMultiplyEqualsOperatorNode.h>
+#include <qore/intern/QoreDivideEqualsOperatorNode.h>
+#include <qore/intern/QoreIntDivideEqualsOperatorNode.h>
+#include <qore/intern/QoreXorEqualsOperatorNode.h>
+#include <qore/intern/QoreIntXorEqualsOperatorNode.h>
+#include <qore/intern/QoreShiftLeftEqualsOperatorNode.h>
+#include <qore/intern/QoreIntShiftLeftEqualsOperatorNode.h>
+#include <qore/intern/QoreShiftRightEqualsOperatorNode.h>
+#include <qore/intern/QoreIntShiftRightEqualsOperatorNode.h>
+#include <qore/intern/QorePostIncrementOperatorNode.h>
+#include <qore/intern/QoreIntPostIncrementOperatorNode.h>
+#include <qore/intern/QorePostDecrementOperatorNode.h>
+#include <qore/intern/QoreIntPostDecrementOperatorNode.h>
+#include <qore/intern/QorePreIncrementOperatorNode.h>
+#include <qore/intern/QoreIntPreIncrementOperatorNode.h>
+#include <qore/intern/QorePreDecrementOperatorNode.h>
+#include <qore/intern/QoreIntPreDecrementOperatorNode.h>
 
 #endif

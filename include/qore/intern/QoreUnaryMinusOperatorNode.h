@@ -25,7 +25,7 @@
 
 #define _QORE_QOREUNARYMINUSOPERATORNODE_H
 
-class QoreUnaryMinusOperatorNode : public QoreSingleExpressionOperatorNode {
+class QoreUnaryMinusOperatorNode : public QoreSingleExpressionOperatorNode<QoreOperatorNode> {
 protected:
    const QoreTypeInfo *returnTypeInfo;
 
@@ -41,7 +41,7 @@ protected:
    }   
 
 public:
-   DLLLOCAL QoreUnaryMinusOperatorNode(AbstractQoreNode *n_exp) : QoreSingleExpressionOperatorNode(n_exp), returnTypeInfo(0) {
+   DLLLOCAL QoreUnaryMinusOperatorNode(AbstractQoreNode *n_exp) : QoreSingleExpressionOperatorNode<QoreOperatorNode>(n_exp), returnTypeInfo(0) {
    }
    DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const;
    DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const;

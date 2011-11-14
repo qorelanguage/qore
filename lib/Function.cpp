@@ -226,8 +226,8 @@ UserSignature::UserSignature(int n_first_line, int n_last_line, AbstractQoreNode
       return;
    }
 
-   if (params->getType() == NT_TREE) {
-      pushParam(reinterpret_cast<QoreTreeNode *>(params), needs_types);
+   if (params->getType() == NT_OPERATOR) {
+      pushParam(reinterpret_cast<QoreOperatorNode *>(params), needs_types);
       return;
    }
 
@@ -246,8 +246,8 @@ UserSignature::UserSignature(int n_first_line, int n_last_line, AbstractQoreNode
    while (li.next()) {
       AbstractQoreNode *n = li.getValue();
       qore_type_t t = n ? n->getType() : 0;
-      if (t == NT_TREE)
-	 pushParam(reinterpret_cast<QoreTreeNode *>(n), needs_types);
+      if (t == NT_OPERATOR)
+	 pushParam(reinterpret_cast<QoreOperatorNode *>(n), needs_types);
       else if (t == NT_BAREWORD)
 	 pushParam(reinterpret_cast<BarewordNode *>(n), needs_types);
       else if (t == NT_VARREF)
@@ -264,17 +264,21 @@ UserSignature::UserSignature(int n_first_line, int n_last_line, AbstractQoreNode
    }
 }
 
-void UserSignature::pushParam(QoreTreeNode *t, bool needs_types) {
-   if (t->getOp() != OP_ASSIGNMENT)
-      parse_error("invalid expression with the '%s' operator in parameter list; only simple assignments to default values are allowed", t->getOp()->getName());
-   else if (t->left && t->left->getType() != NT_VARREF)
-      param_error();
-   else {
-      VarRefNode *v = reinterpret_cast<VarRefNode *>(t->left);
-      AbstractQoreNode *defArg = t->right;
-      t->right = 0;
-      pushParam(v, defArg, needs_types);
+void UserSignature::pushParam(QoreOperatorNode *t, bool needs_types) {
+   QoreAssignmentOperatorNode *op = dynamic_cast<QoreAssignmentOperatorNode *>(t);
+   if (!op) {
+      parse_error("invalid expression with the '%s' operator in parameter list; only simple assignments to default values are allowed", t->getTypeName());
+      return;
    }
+
+   AbstractQoreNode *l = op->getLeft();
+   if (l && l->getType() != NT_VARREF) {
+      param_error();
+      return;
+   }
+   VarRefNode *v = reinterpret_cast<VarRefNode *>(l);
+   AbstractQoreNode *defArg = op->swapRight(0);
+   pushParam(v, defArg, needs_types);
 }
 
 void UserSignature::pushParam(BarewordNode *b, bool needs_types) {
@@ -1293,7 +1297,7 @@ AbstractQoreNode *UserVariantBase::eval(const char *name, CodeEvaluationHelper *
    QORE_TRACE("UserVariantBase::eval()");
    printd(5, "UserVariantBase::eval() this=%p name=%s() args=%p (size=%d) self=%p\n", this, name, ceh ? ceh->getArgs() : 0, ceh && ceh->getArgs() ? ceh->getArgs()->size() : 0, self);
 
-   // if pgm is 0, then ProgramContextHelper does nothing                                                                                                                              
+   // if pgm is 0, then ProgramContextHelper does nothing
    ProgramContextHelper pch(self ? self->getProgram() : 0);
 
    UserVariantExecHelper uveh(this, ceh, xsink);

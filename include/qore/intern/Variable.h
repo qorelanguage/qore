@@ -212,6 +212,10 @@ public:
       return parseTypeInfo || typeInfo;
    }
 
+   DLLLOCAL bool isRef() const {
+      return type == GV_IMPORT;
+   }
+
    // only called with a new object declaration expression (ie our <class> $x())
    DLLLOCAL const char *getClassName() const {
       if (type == GV_IMPORT)
@@ -241,68 +245,62 @@ DLLLOCAL AbstractQoreNode **get_var_value_ptr(const AbstractQoreNode *lvalue, Au
 
 DLLLOCAL extern QoreHashNode *ENV;
 
-// this class grabs global variable or object locks for the duration of the scope of the object
-// no evaluations can be done while this object is in scope or a deadlock may result
-class LValueHelper {
+enum lvt_e { 
+   LVT_Unknown     = 0, //!< type not yet set
+   LVT_Normal      = 1, //!< normal lvalue (ie anything except an optimized local variable)
+   LVT_OptLocalVar = 2, //!< optimized local variable
+};
+
+class LValueExpressionHelper {
 protected:
-   AbstractQoreNode **v, // pointer to value ptr of lvalue 
-      *dr;               // old value to dereference outside the lock
-   ExceptionSink *xsink;
-   AutoVLock vl;
-   const QoreTypeInfo *typeInfo;
-   ObjMap omap;
-   bool already_checked;
+   DLLLOCAL ~LValueExpressionHelper() {
+      assert(!v);
+      assert(!dr);
+   }
 
 public:
-   DLLLOCAL LValueHelper(const AbstractQoreNode *exp, ExceptionSink *n_xsink) : dr(0), xsink(n_xsink), vl(n_xsink), typeInfo(0), already_checked(false) {
+   AbstractQoreNode **v,  // ptr to ptr for lvalue expression
+      *dr;                // old value to dereference outside the lock   
+   AutoVLock vl;   
+   const QoreTypeInfo *typeInfo;
+   ObjMap omap;
+   bool already_checked : 1;
+
+   DLLLOCAL LValueExpressionHelper(const AbstractQoreNode *exp, ExceptionSink *xsink) : v(0), dr(0), vl(xsink), typeInfo(0), already_checked(false) {
       v = get_var_value_ptr(exp, &vl, typeInfo, omap, xsink);
    }
 
-   DLLLOCAL ~LValueHelper() {
+   DLLLOCAL void del(ExceptionSink *xsink) {
 #ifdef _QORE_CYCLE_CHECK
-      printd(0, "LValueHelper::~LValueHelper() v=%p *v=%p *xsink=%d already_checked=%d\n", v, v ? *v : 0, (bool)*xsink, already_checked);
+      printd(0, "LValueExpressionHelper::~LValueExpressionHelper() v=%p *v=%p *xsink=%d already_checked=%d\n", v, v ? *v : 0, (bool)*xsink, already_checked);
       if (v && !*xsink && !already_checked) {
          omap.mark();
          qoreCheckContainer(*v, omap, vl, xsink);
       }
 #endif
+
+      // release locks
       vl.del();
+
+      // delete any value left over
       if (dr)
          dr->deref(xsink);
-   }
-   DLLLOCAL operator bool() const { return v != 0; }
-   DLLLOCAL const QoreTypeInfo *get_type_info() const {
-      return typeInfo;
-   }
-   DLLLOCAL const qore_type_t get_type() const { return *v ? (*v)->getType() : NT_NOTHING; }
-   DLLLOCAL bool check_type(const qore_type_t t) const {
-      if (!(*v))
-         return (t == NT_NOTHING) ? true : false;
-      return t == (*v)->getType();
-   }
-   DLLLOCAL bool is_nothing() const { return ::is_nothing(*v); }
-   DLLLOCAL AbstractQoreNode *get_value() { return *v; }
-   DLLLOCAL AbstractQoreNode *take_value() { AbstractQoreNode *rv = *v; *v = 0; return rv; }
 
-   DLLLOCAL int assign(AbstractQoreNode *val) {
-      //printd(0, "LValueHelper::assign() this=%p val=%p (%s) typeInfo=%s calling checkType()\n", this, val, val ? val->getTypeName() : "NOTHING", typeInfo->getName());
-      val = typeInfo->acceptAssignment("<lvalue>", val, xsink);
-      if (*xsink) {
-         discard(val, xsink);
-         return -1;
-      }
+#ifdef DEBUG
+      v = 0;
+      dr = 0;
+#endif
 
-      if (*v) {
-         // save value and dereference outside the lock in the destructor
-         if (dr)
-            dr->deref(xsink);
-         dr = (*v);
-      }
-      (*v) = val;
-      return 0;
+      delete this;
    }
 
-   DLLLOCAL int ensure_unique() {
+   DLLLOCAL AbstractQoreNode *swapValue(AbstractQoreNode *nv) {
+      AbstractQoreNode *rv = *v; 
+      *v = nv; 
+      return rv;
+   }
+
+   DLLLOCAL int ensureUnique(ExceptionSink *xsink) {
       assert((*v) && (*v)->getType() != NT_OBJECT);
 
       if (!(*v)->is_unique()) {
@@ -314,68 +312,136 @@ public:
       return 0;
    }
 
-   DLLLOCAL int ensure_unique_int() {
+   template <class T, typename t, int nt>
+   DLLLOCAL int ensureUnique(ExceptionSink *xsink) {
       if (!(*v)) {
-         (*v) = new QoreBigIntNode;
+         (*v) = new T;
          return 0;
       }
 
-      if ((*v)->getType() != NT_INT) {
-         int64 i = (*v)->getAsBigInt();
+      if ((*v)->getType() != nt) {
+         t i = T::getValue(*v);
          (*v)->deref(xsink);
          if (*xsink) {
             (*v) = 0;
             return -1;
          }
-         (*v) = new QoreBigIntNode(i);
+         (*v) = new T(i);
          return 0;
       }
 
       if ((*v)->is_unique())
          return 0;
 
-      QoreBigIntNode *old = reinterpret_cast<QoreBigIntNode *>(*v);
+      T *old = reinterpret_cast<T *>(*v);
       (*v) = old->realCopy();
       old->deref();
       return 0;
+   }
+
+   DLLLOCAL int assign(AbstractQoreNode *val, ExceptionSink *xsink) {
+      //printd(0, "LValueHelper::assign() this=%p val=%p (%s) typeInfo=%s calling checkType()\n", this, val, val ? val->getTypeName() : "NOTHING", typeInfo->getName());
+      assert(!dr);
+      dr = swapValue(val);
+      return 0;
+   }
+};
+
+class LocalVarValue;
+
+struct LocalVarStruct {
+   LocalVarValue* v;
+   const QoreTypeInfo* typeInfo;
+};
+
+// this class grabs global variable or object locks for the duration of the scope of the object
+// no evaluations can be done while this object is in scope or a deadlock may result
+class LValueHelper {
+protected:
+   ExceptionSink* xsink;
+   union {
+      LValueExpressionHelper* n;
+      LocalVarStruct local;
+   } lv;
+   lvt_e lvt : 2;
+
+public:
+   DLLLOCAL LValueHelper(const AbstractQoreNode *exp, ExceptionSink *n_xsink);
+
+   DLLLOCAL ~LValueHelper() {
+      if (lvt == LVT_Normal)
+         lv.n->del(xsink);
+   }
+
+   DLLLOCAL operator bool() const {
+      return lvt == LVT_OptLocalVar || lv.n->v; 
+   }
+
+   DLLLOCAL bool isOptimized() const {
+      return lvt == LVT_OptLocalVar;
+   }
+
+   const QoreTypeInfo *get_type_info() const;
+
+   const qore_type_t get_type() const;
+
+   DLLLOCAL bool check_type(const qore_type_t t) const {
+      return get_type() == t;
+   }
+
+   DLLLOCAL bool is_nothing() const {
+      return check_type(NT_NOTHING);
+   }
+
+   DLLLOCAL AbstractQoreNode *get_value() const {
+      assert(lvt == LVT_Normal);
+      return *(lv.n->v);
+   }
+
+   DLLLOCAL AbstractQoreNode *take_value() {
+      assert(lvt == LVT_Normal);
+      return lv.n->swapValue(0);
+   }
+
+   DLLLOCAL AbstractQoreNode *swapValue(AbstractQoreNode *v) {
+      assert(lvt == LVT_Normal);
+      return lv.n->swapValue(v);
+   }
+
+   DLLLOCAL int assign(AbstractQoreNode *val, const char *desc = "<lvalue>");
+
+   DLLLOCAL int ensure_unique() {
+      assert(lvt == LVT_Normal);
+      return lv.n->ensureUnique(xsink);
+   }
+
+   DLLLOCAL int ensure_unique_int() {
+      assert(lvt == LVT_Normal);
+      return lv.n->ensureUnique<QoreBigIntNode, int64, NT_INT>(xsink);
    }
 
    DLLLOCAL int ensure_unique_float() {
-      if (!(*v)) {
-         (*v) = new QoreFloatNode;
-         return 0;
-      }
-
-      if ((*v)->getType() != NT_FLOAT) {
-         double f = (*v)->getAsFloat();
-         (*v)->deref(xsink);
-         if (*xsink) {
-            (*v) = 0;
-            return -1;
-         }
-         (*v) = new QoreFloatNode(f);
-         return 0;
-      }
-      
-      if ((*v)->is_unique())
-         return 0;
-
-      QoreFloatNode *old = reinterpret_cast<QoreFloatNode *>(*v);
-      (*v) = old->realCopy();
-      old->deref();
-      return 0;
+      assert(lvt == LVT_Normal);
+      return lv.n->ensureUnique<QoreFloatNode, double, NT_FLOAT>(xsink);
    }
 
    DLLLOCAL AutoVLock &getAutoVLock() {
-      return vl;
+      assert(lvt == LVT_Normal);
+      return lv.n->vl;
    }
 
    DLLLOCAL ObjMap &getObjMap() {
-      return omap;
+      assert(lvt == LVT_Normal);
+      return lv.n->omap;
    }
 
    DLLLOCAL void alreadyChecked() {
-      already_checked = true;
+      assert(lvt == LVT_Normal);
+      lv.n->already_checked = true;
+   }
+
+   DLLLOCAL ExceptionSink *getExceptionSink() {
+      return xsink;
    }
 };
 

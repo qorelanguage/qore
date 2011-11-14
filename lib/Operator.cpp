@@ -33,16 +33,14 @@
 DLLLOCAL OperatorList oplist;
 
 // the standard, system-default operator pointers
-Operator *OP_ASSIGNMENT, *OP_MODULA, 
+Operator *OP_MODULA, 
    *OP_BIN_AND, *OP_BIN_OR, *OP_BIN_NOT, *OP_BIN_XOR, *OP_MINUS, *OP_PLUS, 
    *OP_MULT, *OP_DIV, *OP_SHIFT_LEFT, *OP_SHIFT_RIGHT, 
-   *OP_POST_INCREMENT, *OP_POST_DECREMENT, *OP_PRE_INCREMENT, *OP_PRE_DECREMENT, 
-   *OP_LOG_CMP, *OP_PLUS_EQUALS, *OP_MINUS_EQUALS, *OP_AND_EQUALS, *OP_OR_EQUALS, 
+   *OP_LOG_CMP, 
    *OP_LIST_REF, *OP_OBJECT_REF, *OP_ELEMENTS, *OP_KEYS, *OP_QUESTION_MARK, 
    *OP_SHIFT, *OP_POP, *OP_PUSH,
-   *OP_UNSHIFT, *OP_REGEX_SUBST, *OP_LIST_ASSIGNMENT, *OP_MODULA_EQUALS, 
-   *OP_MULTIPLY_EQUALS, *OP_DIVIDE_EQUALS, *OP_XOR_EQUALS, *OP_SHIFT_LEFT_EQUALS, 
-   *OP_SHIFT_RIGHT_EQUALS, *OP_REGEX_TRANS, *OP_REGEX_EXTRACT, 
+   *OP_UNSHIFT, *OP_REGEX_SUBST, *OP_LIST_ASSIGNMENT, 
+   *OP_REGEX_TRANS, *OP_REGEX_EXTRACT, 
    *OP_CHOMP, *OP_TRIM, *OP_LOG_AND, *OP_LOG_OR, *OP_LOG_LT, 
    *OP_LOG_GT, *OP_LOG_EQ, *OP_LOG_NE, *OP_LOG_LE, *OP_LOG_GE, *OP_NOT, 
    *OP_ABSOLUTE_EQ, *OP_ABSOLUTE_NE, *OP_REGEX_MATCH, *OP_REGEX_NMATCH,
@@ -50,11 +48,13 @@ Operator *OP_ASSIGNMENT, *OP_MODULA,
    *OP_SELECT;
 
 // call to get a node with reference count 1 (copy on write)
-static inline void ensure_unique(AbstractQoreNode **v, ExceptionSink *xsink) {
+void ensure_unique(AbstractQoreNode **v, ExceptionSink *xsink) {
+   assert(*v);
    if (!(*v)->is_unique()) {
       AbstractQoreNode *old = *v;
       (*v) = old->realCopy();
       old->deref(xsink);
+      assert(!*xsink);
    }
 }
 
@@ -635,37 +635,6 @@ static AbstractQoreNode *op_object_ref(const AbstractQoreNode *left, const Abstr
    return o->evalMember(*key, xsink);
 }
 
-static AbstractQoreNode *op_assignment(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink) {
-   /* assign new value, this value gets referenced with the
-      eval(xsink) call, so there's no need to reference it again
-      for the variable assignment - however it does need to be
-      copied/referenced for the return value
-   */
-   ReferenceHolder<AbstractQoreNode> new_value(right->eval(xsink), xsink);
-   if (*xsink)
-      return 0;
-
-   // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
-   LValueHelper v(left, xsink);
-   if (!v)
-      return 0;
-
-   // assign new value
-   if (v.assign(new_value.release()))
-      return 0;
-
-#if 0
-   printd(5, "op_assignment() *%p=%p (type=%s refs=%d)\n",
-	  v, new_value, 
-	  new_value ? new_value->getTypeName() : "(null)",
-	  new_value ? new_value->reference_count() : 0 );
-#endif
-
-   // reference return value if necessary
-   const AbstractQoreNode *rv = v.get_value();
-   return ref_rv && rv ? rv->refSelf() : 0;
-}
-
 static AbstractQoreNode *op_list_assignment(const AbstractQoreNode *n_left, const AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink) {
    assert(n_left && n_left->getType() == NT_LIST);
    const QoreListNode *left = reinterpret_cast<const QoreListNode *>(n_left);
@@ -705,579 +674,6 @@ static AbstractQoreNode *op_list_assignment(const AbstractQoreNode *n_left, cons
 
 
    return ref_rv ? new_value.getReferencedValue() : 0;
-}
-
-static AbstractQoreNode *op_plus_equals(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink) {
-   QoreNodeEvalOptionalRefHolder new_right(right, xsink);
-   if (*xsink)
-      return 0;
-
-   // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
-   LValueHelper v(left, xsink);
-   if (!v)
-      return 0;
-
-   // dereferences happen in each section so that the
-   // already referenced value can be passed to list->push()
-   // if necessary
-   // do list plus-equals if left-hand side is a list
-   qore_type_t vtype = v.get_type();
-
-   if (vtype == NT_NOTHING) {
-      // see if the lvalue has a default type
-      const QoreTypeInfo *typeInfo = v.get_type_info();
-      if (typeInfo->hasDefaultValue()) {
-	 if (v.assign(typeInfo->getDefaultValue()))
-	    return 0;
-	 vtype = v.get_type();
-      }
-      else if (new_right) {
-	 // assign rhs to lhs (take reference for assignment)
-	 if (v.assign(new_right.getReferencedValue()))
-	    return 0;
-
-	 // v has been assigned to a value by this point
-	 // reference return value
-	 return ref_rv ? v.get_value()->refSelf() : 0;
-      }
-   }
-
-   if (vtype == NT_LIST) {
-      v.ensure_unique(); // no exception possible here
-      QoreListNode *l = reinterpret_cast<QoreListNode *>(v.get_value());
-      if (new_right && new_right->getType() == NT_LIST)
-	 l->merge(reinterpret_cast<const QoreListNode *>(*new_right));
-      else
-	 l->push(new_right.getReferencedValue());
-   } // do hash plus-equals if left side is a hash
-   else if (vtype == NT_HASH) {
-      if (new_right) {
-	 if (new_right->getType() == NT_HASH) {
-	    v.ensure_unique();
-	    reinterpret_cast<QoreHashNode *>(v.get_value())->merge(reinterpret_cast<const QoreHashNode *>(*new_right), xsink);
-	 }
-	 else if (new_right->getType() == NT_OBJECT) {
-	    v.ensure_unique();
-	    const_cast<QoreObject *>(reinterpret_cast<const QoreObject *>(*new_right))->mergeDataToHash(reinterpret_cast<QoreHashNode *>(v.get_value()), xsink);
-	 }
-      }
-   }
-   // do hash/object plus-equals if left side is an object
-   else if (vtype == NT_OBJECT) {
-      QoreObject *o = reinterpret_cast<QoreObject *>(v.get_value());
-      qore_object_private::plusEquals(o, *new_right, v.getObjMap(), v.getAutoVLock(), xsink);
-      // duplicates are checked in the call above
-      v.alreadyChecked();
-   }
-   // do string plus-equals if left-hand side is a string
-   else if (vtype == NT_STRING) {
-      if (new_right) {
-	 QoreStringValueHelper str(*new_right);
-
-	 v.ensure_unique();
-	 QoreStringNode *vs = reinterpret_cast<QoreStringNode *>(v.get_value());
-	 vs->concat(*str, xsink);
-      }
-   }
-   else if (vtype == NT_FLOAT) {
-      double f = new_right ? new_right->getAsFloat() : 0.0;
-      if (f != 0.0) {
-	 v.ensure_unique();
-	 QoreFloatNode *vf = reinterpret_cast<QoreFloatNode *>(v.get_value());
-	 vf->f += f;
-      }
-   }
-   else if (vtype == NT_DATE) {
-      if (new_right) {
-	 DateTimeValueHelper date(*new_right);
-	 v.assign(reinterpret_cast<DateTimeNode *>(v.get_value())->add(*date));
-      }
-   }
-   else if (vtype == NT_BINARY) {
-      if (new_right) {
-	 v.ensure_unique();
-	 BinaryNode *b = reinterpret_cast<BinaryNode *>(v.get_value());
-	 if (new_right->getType() == NT_BINARY) {
-	    const BinaryNode *arg = reinterpret_cast<const BinaryNode *>(*new_right);
-	    b->append(arg);
-	 }
-	 else {
-	    QoreStringNodeValueHelper str(*new_right);
-	    if (str->strlen())
-	       b->append(str->getBuffer(), str->strlen());
-	 }
-      }
-   }
-   else { // do integer plus-equals
-      int64 iv = new_right ? new_right->getAsBigInt() : 0;
-
-      // get new value if necessary
-      if (v.ensure_unique_int())
-	 return 0;
-      QoreBigIntNode *i = reinterpret_cast<QoreBigIntNode *>(v.get_value());
-      
-      // increment current value
-      i->val += iv;
-   }
-   if (*xsink)
-      return 0;
-
-   // v has been assigned to a value by this point
-   // reference return value
-   return ref_rv ? v.get_value()->refSelf() : 0;
-}
-
-static AbstractQoreNode *op_minus_equals(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink) {
-   QoreNodeEvalOptionalRefHolder new_right(right, xsink);
-   if (*xsink)
-      return 0;
-
-   // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
-   LValueHelper v(left, xsink);
-   if (!v)
-      return 0;
-
-   if (is_nothing(*new_right)) {
-      if (!ref_rv)
-	 return 0;
-
-      AbstractQoreNode *val = v.get_value();
-      return val ? val->refSelf() : 0;
-   }
-
-   // do float minus-equals if left side is a float
-   qore_type_t vtype = v.get_type();
-
-   if (vtype == NT_NOTHING) {
-      // see if the lvalue has a default type
-      const QoreTypeInfo *typeInfo = v.get_type_info();
-      if (typeInfo->hasDefaultValue()) {
-	 if (v.assign(typeInfo->getDefaultValue()))
-	    return 0;
-	 vtype = v.get_type();
-      }
-      else if (new_right) {
-	 if (new_right->getType() == NT_FLOAT) {
-	    const QoreFloatNode *f = reinterpret_cast<const QoreFloatNode *>(*new_right);
-	    v.assign(new QoreFloatNode(-f->f));
-	 }
-	 else {
-	    // optimization to eliminate a virtual function call in the most common case
-	    int64 i = new_right->getAsBigInt();
-	    v.assign(new QoreBigIntNode(-i));
-	 }
-
-	 if (*xsink)
-	    return 0;
-
-	 // v has been assigned to a value by this point
-	 // reference return value
-	 return ref_rv ? v.get_value()->refSelf() : 0;
-      }
-   }
-
-   if (vtype == NT_FLOAT) {
-      double f = new_right->getAsFloat();
-
-      if (f) {
-	 v.ensure_unique();
-	 QoreFloatNode *vf = reinterpret_cast<QoreFloatNode *>(v.get_value());
-	 vf->f -= f;
-      }
-   }
-   else if (vtype == NT_DATE) {
-      DateTimeValueHelper date(*new_right);
-      v.assign(reinterpret_cast<DateTimeNode *>(v.get_value())->subtractBy(*date));
-   }
-   else if (vtype == NT_HASH) {
-      if (new_right->getType() != NT_HASH && new_right->getType() != NT_OBJECT) {
-	 v.ensure_unique();
-	 QoreHashNode *vh = reinterpret_cast<QoreHashNode *>(v.get_value());
-
-	 const QoreListNode *nrl = (new_right->getType() == NT_LIST) ? reinterpret_cast<const QoreListNode *>(*new_right) : 0;
-	 if (nrl && nrl->size()) {
-	    // treat each element in the list as a string giving a key to delete
-	    ConstListIterator li(nrl);
-	    while (li.next()) {
-	       QoreStringValueHelper val(li.getValue());
-	       
-	       vh->removeKey(*val, xsink);
-	       if (*xsink)
-		  return 0;
-	    }
-	 }
-	 else {
-	    QoreStringValueHelper str(*new_right);
-	    vh->removeKey(*str, xsink);
-	 }
-      }
-   }
-   else if (vtype == NT_OBJECT) {
-      if (new_right->getType() != NT_HASH && new_right->getType() != NT_OBJECT) {
-	 QoreObject *o = reinterpret_cast<QoreObject *>(v.get_value());
-
-	 const QoreListNode *nrl = (new_right->getType() == NT_LIST) ? reinterpret_cast<const QoreListNode *>(*new_right) : 0;
-	 if (nrl && nrl->size()) {
-	    // treat each element in the list as a string giving a key to delete
-	    ConstListIterator li(nrl);
-	    while (li.next()) {
-	       QoreStringValueHelper val(li.getValue());
-	       
-	       o->removeMember(*val, xsink);
-	       if (*xsink)
-		  return 0;
-	    }
-	 }
-	 else {
-	    QoreStringValueHelper str(*new_right);
-	    o->removeMember(*str, xsink);
-	 }
-      }
-   }
-   else { // do integer minus-equals
-      int64 iv = new_right->getAsBigInt();
-      
-      // get new value if necessary
-      if (v.ensure_unique_int())
-	 return 0;
-      QoreBigIntNode *i = reinterpret_cast<QoreBigIntNode *>(v.get_value());
-      
-      // decrement current value
-      i->val -= iv;
-   }
-
-   if (*xsink)
-      return 0;
-
-   // here we know that v has a value
-   // reference return value and return
-   return ref_rv ? v.get_value()->refSelf() : 0;
-}
-
-static AbstractQoreNode *op_and_equals(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink) {
-   //QORE_TRACE("op_and_equals()");
-   int64 val = right->bigIntEval(xsink);
-   if (*xsink)
-      return 0;
-
-   // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
-   LValueHelper v(left, xsink);
-   if (!v)
-      return 0;
-   
-   QoreBigIntNode *b;
-   // get new value if necessary
-   if (v.get_type() == NT_NOTHING) {
-      b = new QoreBigIntNode();
-      if (v.assign(b))
-	 return 0;
-   }
-   else {
-      if (v.ensure_unique_int())
-	 return 0;
-      b = reinterpret_cast<QoreBigIntNode *>(v.get_value());
-   }
-
-   // and current value with arg val
-   b->val &= val;
-
-   // reference return value and return
-   return ref_rv ? b->refSelf() : 0;
-}
-
-static AbstractQoreNode *op_or_equals(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink) {
-   int64 val = right->bigIntEval(xsink);
-   if (xsink->isEvent())
-      return 0;
-
-   // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
-   LValueHelper v(left, xsink);
-   if (!v)
-      return 0;
-
-   QoreBigIntNode *b;
-   // get new value if necessary
-   if (v.get_type() == NT_NOTHING) {
-      b = new QoreBigIntNode(0);
-      if (v.assign(b))
-	 return 0;
-   }
-   else {
-      if (v.ensure_unique_int())
-	 return 0;
-      b = reinterpret_cast<QoreBigIntNode *>(v.get_value());
-   }
-
-   // or current value with arg val
-   b->val |= val;
-
-   // reference return value and return
-   return ref_rv ? b->refSelf() : 0;
-}
-
-static AbstractQoreNode *op_modula_equals(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink) {
-   int64 val = right->bigIntEval(xsink);
-   if (xsink->isEvent())
-      return 0;
-   
-   // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
-   LValueHelper v(left, xsink);
-   if (!v)
-      return 0;
-
-   QoreBigIntNode *b;
-   // get new value if necessary
-   if (v.get_type() == NT_NOTHING) {
-      b = new QoreBigIntNode(0);
-      if (v.assign(b))
-	 return 0;
-   }
-   else {
-      if (v.ensure_unique_int())
-	 return 0;
-      b = reinterpret_cast<QoreBigIntNode *>(v.get_value());
-   }
-
-   if (val)
-      b->val %= val;
-   else
-      b->val = 0;
-
-   // reference return value and return
-   return ref_rv ? b->refSelf() : 0;
-}
-
-static AbstractQoreNode *op_multiply_equals(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink) {
-   QoreNodeEvalOptionalRefHolder res(right, xsink);
-   if (*xsink)
-      return 0;
-
-   // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
-   LValueHelper v(left, xsink);
-   if (!v)
-      return 0;
-
-   // is either side a float?
-   if (v.get_type() == NT_FLOAT) {
-      double f = res ? res->getAsFloat() : 0;
-
-      if (f) {
-	 v.ensure_unique();
-	 QoreFloatNode *vf = reinterpret_cast<QoreFloatNode *>(v.get_value());
-	 vf->f *= f;
-      }
-      else { // if factor is NOTHING, assign 0.0
-	 if (v.assign(new QoreFloatNode(0.0)))
-	    return 0;
-      }
-   }
-   else {
-      if (res && res->getType() == NT_FLOAT) {
-	 if (v.get_type() == NT_NOTHING) {
-	    if (v.assign(new QoreFloatNode(0.0)))
-	       return 0;
-	 }
-	 else {
-	    if (v.ensure_unique_float())
-	       return 0;
-	    
-	    // multiply current value with arg val
-	    QoreFloatNode *vf = reinterpret_cast<QoreFloatNode *>(v.get_value());
-	    vf->f *= (reinterpret_cast<const QoreFloatNode *>(*res))->f;
-	 }
-      }
-      else { // do integer multiply equals
-	 // get new value if necessary
-	 if (v.get_type() == NT_NOTHING) {
-	    if (v.assign(new QoreBigIntNode()))
-	       return 0;
-	 }
-	 else {
-	    if (res) {
-	       if (v.ensure_unique_int())
-		  return 0;
-
-	       QoreBigIntNode *b = reinterpret_cast<QoreBigIntNode *>(v.get_value());
-	       
-	       // multiply current value with arg val
-	       b->val *= res->getAsBigInt();
-	    }
-	    else { // if factor is NOTHING, assign 0
-	       if (v.assign(new QoreBigIntNode()))
-		  return 0;
-	    }
-	 }
-      }
-   }
-
-   // reference return value and return
-   return ref_rv ? v.get_value()->refSelf() : 0;
-}
-
-static AbstractQoreNode *op_divide_equals(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink) {
-   QoreNodeEvalOptionalRefHolder res(right, xsink);
-   if (*xsink)
-      return 0;
-
-   // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
-   LValueHelper v(left, xsink);
-   if (!v)
-      return 0;
-
-   // is either side a float?
-   if (res && res->getType() == NT_FLOAT) {
-      const QoreFloatNode *rf = reinterpret_cast<const QoreFloatNode *>(*res);
-
-      if (!rf->f) {
-	 xsink->raiseException("DIVISION-BY-ZERO", "division by zero in floating-point expression!");
-	 return 0;
-      }
-
-      if (v.get_type() == NT_NOTHING) {
-	 if (v.assign(new QoreFloatNode))
-	    return 0;
-      }
-      else {
-	 if (v.ensure_unique_float())
-	    return 0;
-
-	 QoreFloatNode *vf = reinterpret_cast<QoreFloatNode *>(v.get_value());
-	 // divide current value with arg val
-	 vf->f /= rf->f;
-      }
-   }
-   else if (v.get_type() == NT_FLOAT) {
-      float val = res ? res->getAsFloat() : 0.0;
-      if (val == 0.0) {
-	 xsink->raiseException("DIVISION-BY-ZERO", "division by zero in floating-point expression!");
-	 return 0;
-      }
-      v.ensure_unique();
-
-      QoreFloatNode *vf = reinterpret_cast<QoreFloatNode *>(v.get_value());
-      vf->f /= val;
-   }
-   else { // do integer divide equals
-      int64 val = res ? res->getAsBigInt() : 0;
-      if (!val) {
-	 xsink->raiseException("DIVISION-BY-ZERO", "division by zero in integer expression!");
-	 return 0;
-      }
-      // get new value if necessary
-      if (v.get_type() == NT_NOTHING) {
-	 if (v.assign(new QoreBigIntNode))
-	    return 0;
-      }
-      else {
-	 if (v.ensure_unique_int())
-	    return 0;
-
-	 QoreBigIntNode *b = reinterpret_cast<QoreBigIntNode *>(v.get_value());
-	 
-	 // divide current value with arg val
-	 b->val /= val;
-      }
-   }
-
-   assert(v.get_value());
-   // reference return value and return
-   return ref_rv ? v.get_value()->refSelf() : 0;
-}
-
-static AbstractQoreNode *op_xor_equals(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink) {
-   int64 val = right->bigIntEval(xsink);
-   if (*xsink)
-      return 0;
-
-   // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
-   LValueHelper v(left, xsink);
-   if (!v)
-      return 0;
-
-   QoreBigIntNode *b;
-
-   // get new value if necessary
-   if (v.get_type() == NT_NOTHING) {
-      b = new QoreBigIntNode;
-      if (v.assign(b))
-	 return 0;
-   }
-   else {
-      if (v.ensure_unique_int())
-	 return 0;
-
-      b = reinterpret_cast<QoreBigIntNode *>(v.get_value());
-   }
-
-   // xor current value with arg val
-   b->val ^= val;
-
-   // reference return value and return
-   return ref_rv ? v.get_value()->refSelf() : 0;
-}
-
-static AbstractQoreNode *op_shift_left_equals(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink) {
-   int64 val = right->bigIntEval(xsink);
-   if (*xsink)
-      return 0;
-
-   // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
-   LValueHelper v(left, xsink);
-   if (!v)
-      return 0;
-
-   QoreBigIntNode *b;
-   // get new value if necessary
-   if (v.get_type() == NT_NOTHING) {
-      b = new QoreBigIntNode;
-      if (v.assign(b))
-	 return 0;
-   }
-   else {
-      if (v.ensure_unique_int())
-	 return 0;
-
-      b = reinterpret_cast<QoreBigIntNode *>(v.get_value());
-   }
-
-   // shift left current value by arg val
-   b->val <<= val;
-
-   // reference return value and return
-   return ref_rv ? v.get_value()->refSelf() : 0;
-}
-
-static AbstractQoreNode *op_shift_right_equals(const AbstractQoreNode *left, const AbstractQoreNode *right, bool ref_rv, ExceptionSink *xsink) {
-   //QORE_TRACE("op_shift_right_equals()");
-
-   int64 val = right->bigIntEval(xsink);
-   if (*xsink)
-      return 0;
-
-   // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
-   LValueHelper v(left, xsink);
-   if (!v)
-      return 0;
-
-   QoreBigIntNode *b;
-   // get new value if necessary
-   if (v.get_type() == NT_NOTHING) {
-      b = new QoreBigIntNode;
-      if (v.assign(b))
-	 return 0;
-   }
-   else {
-      if (v.ensure_unique_int())
-	 return 0;
-
-      b = reinterpret_cast<QoreBigIntNode *>(v.get_value());
-   }
-
-   // shift right current value by arg val
-   b->val >>= val;
-
-   // reference return value and return
-   return ref_rv ? v.get_value()->refSelf() : 0;
 }
 
 // this is the default (highest-priority) function for the + operator, so any type could be sent here on either side
@@ -1409,105 +805,6 @@ static int64 op_shift_left_int(int64 left, int64 right) {
 
 static int64 op_shift_right_int(int64 left, int64 right) {
    return left >> right;
-}
-
-// variable assignment
-static AbstractQoreNode *op_post_inc(const AbstractQoreNode *left, bool ref_rv, ExceptionSink *xsink) {
-   // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
-   LValueHelper n(left, xsink);
-   if (!n)
-      return 0;
-
-   // reference for return value is reference for variable assignment (if not null)
-   ReferenceHolder<AbstractQoreNode> rv(n.take_value(), xsink);
-
-   // acquire new value
-   QoreBigIntNode *b = new QoreBigIntNode(!is_nothing(*rv) ? rv->getAsBigInt() : 0);
-   if (n.assign(b))
-      return 0;
-
-   // increment value
-   b->val++;
-
-   // return original value (may be null or non-integer)
-   return rv.release();
-}
-
-// variable assignment
-static AbstractQoreNode *op_post_dec(const AbstractQoreNode *left, bool ref_rv, ExceptionSink *xsink) {
-   // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
-   LValueHelper n(left, xsink);
-   if (!n)
-      return 0;
-
-   // reference for return value is reference for variable assignment (if not null)
-   ReferenceHolder<AbstractQoreNode> rv(n.take_value(), xsink);
-
-   // acquire new value
-   QoreBigIntNode *b = new QoreBigIntNode(!is_nothing(*rv) ? rv->getAsBigInt() : 0);
-   if (n.assign(b))
-      return 0;
-
-   // decrement value
-   b->val--;
-
-   // return original value (may be null or non-integer)
-   return rv.release();
-}
-
-// variable assignment
-static AbstractQoreNode *op_pre_inc(const AbstractQoreNode *left, bool ref_rv, ExceptionSink *xsink) {
-   // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
-   LValueHelper n(left, xsink);
-   if (!n)
-      return 0;
-
-   QoreBigIntNode *b;
-   // acquire new value if necessary
-   if (n.get_type() == NT_NOTHING) {
-      b = new QoreBigIntNode;
-      if (n.assign(b))
-	 return 0;
-   }
-   else {
-      if (n.ensure_unique_int())
-	 return 0;
-      b = reinterpret_cast<QoreBigIntNode *>(n.get_value());
-   }
-
-   // increment value
-   ++b->val;
-
-   //printd(5, "op_pre_inc() ref_rv=%s\n", ref_rv ? "true" : "false");
-   // reference for return value
-   return ref_rv ? b->refSelf() : 0;
-}
-
-// variable assignment
-static AbstractQoreNode *op_pre_dec(const AbstractQoreNode *left, bool ref_rv, ExceptionSink *xsink) {
-   // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
-   LValueHelper n(left, xsink);
-   if (!n)
-      return 0;
-
-   QoreBigIntNode *b;
-   // acquire new value if necessary
-   if (n.get_type() == NT_NOTHING) {
-      b = new QoreBigIntNode;
-      if (n.assign(b))
-	 return 0;
-   }
-   else {
-      if (n.ensure_unique_int())
-	 return 0;
-      b = reinterpret_cast<QoreBigIntNode *>(n.get_value());
-   }
-
-   // decrement value
-   b->val--;
-
-   // reference return value
-   return ref_rv ? b->refSelf() : 0;
 }
 
 // unshift lvalue, element
@@ -3384,8 +2681,8 @@ Operator *OperatorList::add(Operator *o) {
    return o;
 }
 
-// checks for illegal $self assignments in an object context                                                                                                              
-static inline void checkSelf(AbstractQoreNode *n, LocalVar *selfid) {
+// checks for illegal $self assignments in an object context                                        
+void check_self_assignment(AbstractQoreNode *n, LocalVar *selfid) {
    // if it's a variable reference                                                                                                                                        
    qore_type_t ntype = n->getType();
    if (ntype == NT_VARREF) {
@@ -3433,6 +2730,10 @@ static AbstractQoreNode *check_op_list_assignment(QoreTreeNode *tree, LocalVar *
 
       if (v && check_lvalue(v))
 	 parse_error("expecing lvalue in position %d of left-hand-side list in list assignment, got '%s' instead", li.index() + 1, v->getTypeName());
+
+      // check for illegal assignment to $self
+      if (oflag)
+	 check_self_assignment(v, oflag);
       
       ri.parseInit(argInfo);
 
@@ -3457,36 +2758,6 @@ static AbstractQoreNode *check_op_list_assignment(QoreTreeNode *tree, LocalVar *
    return tree;
 }
 
-static AbstractQoreNode *check_op_assignment(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&resultTypeInfo, const char *name, const char *desc) {
-   const QoreTypeInfo *l = 0;
-   tree->leftParseInit(oflag, pflag | PF_FOR_ASSIGNMENT, lvids, l);
-
-   const QoreTypeInfo *r = 0;
-   tree->rightParseInit(oflag, pflag, lvids, r);
-
-   // check for illegal assignment to $self
-   if (oflag)
-      checkSelf(tree->left, oflag);
-
-   if (r->hasType())
-      resultTypeInfo = r;
-
-   if (!l->hasType() || !r->hasType())
-      return tree;
-
-   if (l->parseAccepts(r))
-      return tree;
-
-   if (getProgram()->getParseExceptionSink()) {
-      QoreStringNode *edesc = new QoreStringNode("lvalue for assignment operator (=) expects ");
-      l->getThisType(*edesc);
-      edesc->concat(", but right-hand side is ");
-      r->getThisType(*edesc);
-      qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", edesc);
-   }
-   return tree;
-}
-
 // for logical operators that always return a boolean
 static AbstractQoreNode *check_op_logical(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo, const char *name, const char *desc) {
    returnTypeInfo = boolTypeInfo;
@@ -3499,18 +2770,22 @@ static AbstractQoreNode *check_op_returns_integer(QoreTreeNode *tree, LocalVar *
    return tree->defaultParseInit(oflag, pflag, lvids, returnTypeInfo);
 }
 
-static void check_lvalue_int(const QoreTypeInfo *&typeInfo, const char *name) {
+int check_lvalue_int(const QoreTypeInfo *&typeInfo, const char *name) {
    // make sure the lvalue can be assigned an integer value
    // raise a parse exception only if parse exceptions are not suppressed
-   if (!typeInfo->parseAcceptsReturns(NT_INT) && getProgram()->getParseExceptionSink()) {
-      QoreStringNode *desc = new QoreStringNode("lvalue has type ");
-      typeInfo->getThisType(*desc);
-      desc->sprintf(", but the %s operator will assign it an integer value", name);
-      qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", desc);
+   if (!typeInfo->parseAcceptsReturns(NT_INT)) {
+      if (getProgram()->getParseExceptionSink()) {
+	 QoreStringNode *desc = new QoreStringNode("lvalue has type ");
+	 typeInfo->getThisType(*desc);
+	 desc->sprintf(", but the %s operator will assign it an integer value", name);
+	 qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", desc);
+      }
+      return -1;
    }
+   return 0;
 }
 
-static void check_lvalue_float(const QoreTypeInfo *&typeInfo, const char *name) {
+int check_lvalue_float(const QoreTypeInfo *&typeInfo, const char *name) {
    // make sure the lvalue can be assigned a floating-point value
    // raise a parse exception only if parse exceptions are not suppressed
    if (!typeInfo->parseAcceptsReturns(NT_FLOAT) && getProgram()->getParseExceptionSink()) {
@@ -3518,38 +2793,9 @@ static void check_lvalue_float(const QoreTypeInfo *&typeInfo, const char *name) 
       typeInfo->getThisType(*desc);
       desc->sprintf(", but the %s operator will assign it a float value", name);
       qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", desc);
+      return -1;
    }
-}
-
-// for post increment/decrement operators
-static AbstractQoreNode *check_op_post_incdec(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&resultTypeInfo, const char *name, const char *desc) {
-   const QoreTypeInfo *typeInfo = 0;
-   tree->leftParseInit(oflag, pflag, lvids, typeInfo);
-   // returns the left side
-   resultTypeInfo = typeInfo;
-
-   // make sure left side can take an integer value
-   check_lvalue_int(typeInfo, name);
-
-   // FIXME: check for invalid operation - type cannot be converted to integer
-   tree->rightParseInit(oflag, pflag, lvids, typeInfo);
-   return tree;
-}
-
-// for operators that convert the lvalue to an int and return an int
-static AbstractQoreNode *check_op_lvalue_int(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&resultTypeInfo, const char *name, const char *desc) {
-   resultTypeInfo = bigIntTypeInfo;
-
-   const QoreTypeInfo *typeInfo = 0;
-   tree->leftParseInit(oflag, pflag | PF_FOR_ASSIGNMENT, lvids, typeInfo);
-
-   // make sure left side can take an integer value
-   check_lvalue_int(typeInfo, name);
-
-   // FIXME: check for invalid operation - type cannot be converted to integer
-   tree->rightParseInit(oflag, pflag, lvids, typeInfo);
-
-   return tree;
+   return 0;
 }
 
 // set the return value for op_minus (-)
@@ -3656,88 +2902,6 @@ static AbstractQoreNode *check_op_multiply(QoreTreeNode *tree, LocalVar *oflag, 
       returnTypeInfo = 0;
 
    //printd(5, "check_op_multiply() %s %s = %s\n", leftTypeInfo->getName(), rightTypeInfo->getName(), returnTypeInfo->getName());
-
-   return tree;
-}
-
-// set the return value for op_plus_equals (+=)
-static AbstractQoreNode *check_op_plus_equals(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo, const char *name, const char *desc) {
-   const QoreTypeInfo *leftTypeInfo = 0;
-   tree->leftParseInit(oflag, pflag | PF_FOR_ASSIGNMENT, lvids, leftTypeInfo);
-
-   const QoreTypeInfo *rightTypeInfo = 0;
-   tree->rightParseInit(oflag, pflag, lvids, rightTypeInfo);
-
-   if (leftTypeInfo->isType(NT_LIST)
-       || leftTypeInfo->isType(NT_HASH)
-       || leftTypeInfo->isType(NT_OBJECT)
-       || leftTypeInfo->isType(NT_STRING)
-       || leftTypeInfo->isType(NT_FLOAT)
-       || leftTypeInfo->isType(NT_DATE)
-       || leftTypeInfo->isType(NT_BINARY))
-      returnTypeInfo = leftTypeInfo;
-   // otherwise there are 2 possibilities: the lvalue has no value, in which
-   // case it takes the value of the right side, or if it's anything else it's
-   // converted to an integer, so we just check if it can be assigned an
-   // integer value below, this is enough
-   else if (leftTypeInfo->returnsSingle()) {
-      returnTypeInfo = bigIntTypeInfo;
-      check_lvalue_int(leftTypeInfo, name);
-   }
-   else
-      returnTypeInfo = 0;
-
-   return tree;
-}
-
-// set the return value for op_minus_equals (-=)
-static AbstractQoreNode *check_op_minus_equals(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo, const char *name, const char *desc) {
-   const QoreTypeInfo *leftTypeInfo = 0;
-   tree->leftParseInit(oflag, pflag | PF_FOR_ASSIGNMENT, lvids, leftTypeInfo);
-
-   const QoreTypeInfo *rightTypeInfo = 0;
-   tree->rightParseInit(oflag, pflag, lvids, rightTypeInfo);
-
-   if (leftTypeInfo->isType(NT_FLOAT)
-       || leftTypeInfo->isType(NT_DATE)
-       || leftTypeInfo->isType(NT_HASH)
-       || leftTypeInfo->isType(NT_OBJECT))
-      returnTypeInfo = leftTypeInfo;
-   // otherwise there are 2 possibilities: the lvalue has no value, in which
-   // case it takes the negative value of the right side if the right side
-   // evaluates to a float, or if it's anything else it's converted to an 
-   // integer, so we just check if it can be assigned an integer value below,
-   // this is enough
-   else if (leftTypeInfo->returnsSingle()) {
-      returnTypeInfo = bigIntTypeInfo;
-      check_lvalue_int(leftTypeInfo, name);
-   }
-   else
-      returnTypeInfo = 0;
-
-   return tree;
-}
-
-// set the return value for op_minus_equals (-=)
-static AbstractQoreNode *check_op_multdiv_equals(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo, const char *name, const char *desc) {
-   const QoreTypeInfo *leftTypeInfo = 0;
-   tree->leftParseInit(oflag, pflag | PF_FOR_ASSIGNMENT, lvids, leftTypeInfo);
-
-   const QoreTypeInfo *rightTypeInfo = 0;
-   tree->rightParseInit(oflag, pflag, lvids, rightTypeInfo);
-
-   if (leftTypeInfo->isType(NT_FLOAT))      
-      returnTypeInfo = floatTypeInfo;
-   else if (rightTypeInfo->isType(NT_FLOAT)) {
-      returnTypeInfo = floatTypeInfo;
-      check_lvalue_float(leftTypeInfo, name);
-   }
-   else if (leftTypeInfo->returnsSingle()) {
-      returnTypeInfo = bigIntTypeInfo;
-      check_lvalue_int(leftTypeInfo, name);
-   }
-   else
-      returnTypeInfo = 0;
 
    return tree;
 }
@@ -4060,9 +3224,6 @@ void OperatorList::init() {
    OP_MODULA->addFunction(op_modula_int);
 
    // non-boolean operators
-   OP_ASSIGNMENT = add(new Operator(2, "=", "assignment", 0, true, true, check_op_assignment));
-   OP_ASSIGNMENT->addFunction(NT_ALL, NT_ALL, op_assignment);
-   
    OP_LIST_ASSIGNMENT = add(new Operator(2, "(list) =", "list assignment", 0, true, true, check_op_list_assignment));
    OP_LIST_ASSIGNMENT->addFunction(NT_ALL, NT_ALL, op_list_assignment);
    
@@ -4112,48 +3273,6 @@ void OperatorList::init() {
 
    OP_SHIFT_RIGHT = add(new Operator(2, ">>", "shift-right", 1, false, false, check_op_returns_integer));
    OP_SHIFT_RIGHT->addFunction(op_shift_right_int);
-
-   OP_POST_INCREMENT = add(new Operator(1, "++", "post-increment", 0, true, true, check_op_post_incdec));
-   OP_POST_INCREMENT->addFunction(op_post_inc);
-
-   OP_POST_DECREMENT = add(new Operator(1, "--", "post-decrement", 0, true, true, check_op_post_incdec));
-   OP_POST_DECREMENT->addFunction(op_post_dec);
-
-   OP_PRE_INCREMENT = add(new Operator(1, "++", "pre-increment", 0, true, true, check_op_lvalue_int));
-   OP_PRE_INCREMENT->addFunction(op_pre_inc);
-
-   OP_PRE_DECREMENT = add(new Operator(1, "--", "pre-decrement", 0, true, true, check_op_lvalue_int));
-   OP_PRE_DECREMENT->addFunction(op_pre_dec);
-
-   OP_PLUS_EQUALS = add(new Operator(2, "+=", "plus-equals", 0, true, true, check_op_plus_equals));
-   OP_PLUS_EQUALS->addFunction(op_plus_equals);
-
-   OP_MINUS_EQUALS = add(new Operator(2, "-=", "minus-equals", 0, true, true, check_op_minus_equals));
-   OP_MINUS_EQUALS->addFunction(op_minus_equals);
-
-   OP_AND_EQUALS = add(new Operator(2, "&=", "and-equals", 0, true, true, check_op_lvalue_int));
-   OP_AND_EQUALS->addFunction(op_and_equals);
-
-   OP_OR_EQUALS = add(new Operator(2, "|=", "or-equals", 0, true, true, check_op_lvalue_int));
-   OP_OR_EQUALS->addFunction(op_or_equals);
-
-   OP_MODULA_EQUALS = add(new Operator(2, "%=", "modula-equals", 0, true, true, check_op_lvalue_int));
-   OP_MODULA_EQUALS->addFunction(op_modula_equals);
-
-   OP_MULTIPLY_EQUALS = add(new Operator(2, "*=", "multiply-equals", 0, true, true, check_op_multdiv_equals));
-   OP_MULTIPLY_EQUALS->addFunction(op_multiply_equals);
-
-   OP_DIVIDE_EQUALS = add(new Operator(2, "/=", "divide-equals", 0, true, true, check_op_multdiv_equals));
-   OP_DIVIDE_EQUALS->addFunction(op_divide_equals);
-
-   OP_XOR_EQUALS = add(new Operator(2, "^=", "xor-equals", 0, true, true, check_op_lvalue_int));
-   OP_XOR_EQUALS->addFunction(op_xor_equals);
-
-   OP_SHIFT_LEFT_EQUALS = add(new Operator(2, "<<=", "shift-left-equals", 0, true, true, check_op_lvalue_int));
-   OP_SHIFT_LEFT_EQUALS->addFunction(op_shift_left_equals);
-
-   OP_SHIFT_RIGHT_EQUALS = add(new Operator(2, ">>=", "shift-right-equals", 0, true, true, check_op_lvalue_int));
-   OP_SHIFT_RIGHT_EQUALS->addFunction(op_shift_right_equals);
 
    // cannot validate return type here yet
    OP_LIST_REF = add(new Operator(2, "[]", "list, string, or binary dereference", 0, false, false, check_op_list_ref));

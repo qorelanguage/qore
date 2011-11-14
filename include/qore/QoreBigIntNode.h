@@ -133,6 +133,10 @@ public:
    DLLLOCAL static const char *getStaticTypeName() {
       return "integer";
    }
+
+   DLLLOCAL static int64 getValue(AbstractQoreNode *v) {
+      return v->getAsBigInt();
+   }
 };
 
 #endif

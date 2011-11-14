@@ -471,6 +471,10 @@ protected:
          str.sprintf("'%s' ", param_name);
    }
 
+   DLLLOCAL bool returnsSingleIntern() const {
+      return this && !returns_mult && qt != NT_ALL;
+   }
+
    DLLLOCAL QoreTypeInfo(const QoreClass *n_qc, qore_type_t n_qt, bool n_returns_mult,
                          bool n_accepts_mult, bool n_input_filter, bool n_has_subtype,
                          bool n_has_name, bool n_has_defval, bool n_reverse_logic, 
@@ -567,11 +571,11 @@ public:
    }
 
    DLLLOCAL qore_type_result_e parseAccepts(const QoreTypeInfo *typeInfo, bool &may_not_match) const {
-      //printd(5, "QoreTypeInfo::parseAccepts() this=%p (%s) ti=%p (%s) ti->returnsSingle()=%d\n", this, getName(), typeInfo, typeInfo->getName(), typeInfo->returnsSingle());
+      //printd(5, "QoreTypeInfo::parseAccepts() this=%p (%s) ti=%p (%s) ti->returnsSingleIntern()=%d\n", this, getName(), typeInfo, typeInfo->getName(), typeInfo->returnsSingleIntern());
       if (!hasType() || !typeInfo->hasType() || accepts_all)
          return QTI_AMBIGUOUS;
 
-      if (!typeInfo->returnsSingle()) {
+      if (!typeInfo->returnsSingleIntern()) {
 	 if (!accepts_mult) {
             may_not_match = true;
 	    return qc ? typeInfo->parseReturnsClass(qc) : typeInfo->parseReturnsType(qt, is_int);
@@ -587,7 +591,7 @@ public:
    }
 
    DLLLOCAL bool returnsSingle() const {
-      return this && !returns_mult && qt != NT_ALL;
+      return returnsSingleIntern() && qt >= 0;
    }
 
    DLLLOCAL bool acceptsSingle() const {

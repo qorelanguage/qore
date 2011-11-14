@@ -28,6 +28,7 @@
 
 class GlobalVarRefNewObjectNode;
 class LocalVar;
+class LocalVarValue;
 class Var;
 
 class VarRefNode : public ParseNode {
@@ -130,7 +131,44 @@ public:
 
    DLLLOCAL bool isGlobalDecl() const { return new_decl; }
 
-   DLLLOCAL void setValue(AbstractQoreNode *val, ExceptionSink *xsink);
+   DLLLOCAL bool isGlobalVar() const { return type == VT_GLOBAL; }
+
+   DLLLOCAL bool isRef() const {
+      if (type == VT_LOCAL)
+         return ref.id->isRef();
+      assert(type == VT_GLOBAL);
+      return ref.var->isRef();
+   }
+
+   DLLLOCAL LocalVarValue *isLocalOptimized(const QoreTypeInfo *&varTypeInfo) const {
+      return type == VT_LOCAL ? ref.id->optimized(varTypeInfo) : 0;
+   }
+
+   //DLLLOCAL void setValue(AbstractQoreNode *val, ExceptionSink *xsink);
+
+   //DLLLOCAL AbstractQoreNode *assign(const AbstractQoreNode *expr, bool ref_rv, ExceptionSink *xsink);
+
+   DLLLOCAL void assignBigInt(int64 v, ExceptionSink *xsink);
+   DLLLOCAL void assignFloat(double v, ExceptionSink *xsink);
+   DLLLOCAL void assignBool(bool v, ExceptionSink *xsink);
+
+   DLLLOCAL int64 plusEqualsBigInt(int64 v, ExceptionSink *xsink);
+   DLLLOCAL double plusEqualsFloat(double v, ExceptionSink *xsink);
+   DLLLOCAL int64 minusEqualsBigInt(int64 v, ExceptionSink *xsink);
+   DLLLOCAL double minusEqualsFloat(double v, ExceptionSink *xsink);
+   DLLLOCAL int64 orEqualsBigInt(int64 v, ExceptionSink *xsink);
+   DLLLOCAL int64 andEqualsBigInt(int64 v, ExceptionSink *xsink);
+   DLLLOCAL int64 modulaEqualsBigInt(int64 v, ExceptionSink *xsink);
+   DLLLOCAL int64 multiplyEqualsBigInt(int64 v, ExceptionSink *xsink);
+   DLLLOCAL int64 divideEqualsBigInt(int64 v, ExceptionSink *xsink);
+   DLLLOCAL int64 xorEqualsBigInt(int64 v, ExceptionSink *xsink);
+   DLLLOCAL int64 shiftLeftEqualsBigInt(int64 v, ExceptionSink *xsink);
+   DLLLOCAL int64 shiftRightEqualsBigInt(int64 v, ExceptionSink *xsink);
+   DLLLOCAL int64 postIncrement(ExceptionSink *xsink);
+   DLLLOCAL int64 preIncrement(ExceptionSink *xsink);
+   DLLLOCAL int64 postDecrement(ExceptionSink *xsink);
+   DLLLOCAL int64 preDecrement(ExceptionSink *xsink);
+
    DLLLOCAL AbstractQoreNode **getValuePtr(AutoVLock *vl, const QoreTypeInfo *&typeInfo, ObjMap &omap, ExceptionSink *xsink) const;
    DLLLOCAL qore_var_t getType() const { return type; }
    DLLLOCAL const char *getName() const { return name; }

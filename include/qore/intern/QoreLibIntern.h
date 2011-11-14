@@ -187,6 +187,9 @@ DLLLOCAL bool parseCheckCompatibleClass(const QoreClass *shouldBeClass, const Qo
 // processes parameter information
 DLLLOCAL void qore_process_params(unsigned num_params, type_vec_t &typeList, arg_vec_t &defaultArgList, va_list args);
 
+// call to get a node with reference count 1 (copy on write)
+void ensure_unique(AbstractQoreNode **v, ExceptionSink *xsink);
+
 #ifndef HAVE_ATOLL
 #ifdef HAVE_STRTOIMAX
 #include <inttypes.h>
@@ -340,6 +343,8 @@ public:
 
 DLLLOCAL int qoreCheckContainer(AbstractQoreNode *v, ObjMap &omap, AutoVLock &vl, ExceptionSink *xsink);
 DLLLOCAL int check_lvalue(AbstractQoreNode *n);
+DLLLOCAL int check_lvalue_int(const QoreTypeInfo *&typeInfo, const char *name);
+DLLLOCAL int check_lvalue_float(const QoreTypeInfo *&typeInfo, const char *name);
 
 DLLLOCAL bool checkParseOption(int64 o);
 
@@ -795,5 +800,8 @@ DLLLOCAL int inet_pton(int af, const char *src, void *dst);
 DLLLOCAL AbstractQoreNode *missing_function_error(const char *func, ExceptionSink *xsink);
 DLLLOCAL AbstractQoreNode *missing_function_error(const char *func, const char *opt, ExceptionSink *xsink);
 DLLLOCAL AbstractQoreNode *missing_method_error(const char *meth, const char *opt, ExceptionSink *xsink);
+
+// checks for illegal $self assignments in an object context                                        
+DLLLOCAL void check_self_assignment(AbstractQoreNode *n, LocalVar *selfid);
 
 #endif

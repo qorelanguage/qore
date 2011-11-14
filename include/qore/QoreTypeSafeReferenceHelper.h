@@ -37,8 +37,7 @@
     const AbstractQoreNode *p = get_param(params, 0);   
     if (p && p->getType() == NT_REFERENCE) {
        const ReferenceNode *r = reinterpret_cast<const ReferenceNode *>(p);
-       AutoVLock vl;
-       QoreTypeSafeReferenceHelper ref(r, vl, xsink);
+       QoreTypeSafeReferenceHelper ref(r, xsink);
        // a deadlock exception occurred accessing the reference's value pointer
        if (!ref)
           return 0;
@@ -64,8 +63,16 @@ class QoreTypeSafeReferenceHelper {
    public:
       //! initializes the object and tries to get the pointer to the pointer of the lvalue expression target
       /** @param ref the ReferenceNode to use
-	  @param vl the reference to the AutoVLock structure for managing nested locks
 	  @param xsink Qore-language exceptions raised will be added here (for example, a deadlock accessing the object)
+       */
+      DLLEXPORT QoreTypeSafeReferenceHelper(const ReferenceNode *ref, ExceptionSink *xsink);
+
+      //! initializes the object and tries to get the pointer to the pointer of the lvalue expression target
+      /** @param ref the ReferenceNode to use
+	  @param vl this argument is ignored in this deprecated version of the function
+	  @param xsink Qore-language exceptions raised will be added here (for example, a deadlock accessing the object)
+
+          @deprecated the AutoVLock argument is ignored in this deprecated version
        */
       DLLEXPORT QoreTypeSafeReferenceHelper(const ReferenceNode *ref, AutoVLock &vl, ExceptionSink *xsink);
 
@@ -88,8 +95,7 @@ class QoreTypeSafeReferenceHelper {
 	  @note you must check that the reference is valid before calling this function
 	  @note take care to only call this function on types where the AbstractQoreNode::realCopy() function has a valid implementation (on all value types suitable for in-place modification this function has a valid implementation), as in debugging builds other types will abort(); in non-debugging builds this function will simply do nothing
 	  @code
-	  AutoVLock vl;
-	  QoreTypeSafeReferenceHelper rh(ref, vl, xsink);
+	  QoreTypeSafeReferenceHelper rh(ref, xsink);
 	  // if the reference is not valid, then return
 	  if (!rh)  
 	     return;
@@ -108,14 +114,31 @@ class QoreTypeSafeReferenceHelper {
 	  @return 0 if there was no error and the variable was assigned, -1 if a Qore-language exception occured dereferencing the current value, in this case no assignment was made and the reference count for val is dereferenced automatically by the QoreTypeSafeReferenceHelper object
 	  @note you must check that the reference is valid before calling this function
 	  @code
-	  AutoVLock vl;
-	  QoreTypeSafeReferenceHelper rh(ref, vl, xsink);
+	  QoreTypeSafeReferenceHelper rh(ref, xsink);
 	  // if the reference is not valid, then return
 	  if (!rh)  
 	     return;
 	  // make the assignment (if the assignment fails, the value will be dereferenced automatically)
 	  rh.assign(val->refSelf(), xsink);
 	  @endcode
+       */
+      DLLEXPORT int assign(AbstractQoreNode *val);
+
+      //! assigns a value to the reference, assumes the reference is valid
+      /** @param val the value to assign (must be already referenced for the assignment)
+	  @param xsink this argument is ignored; the ExceptionSink argument used in the constructor is used instead
+	  @return 0 if there was no error and the variable was assigned, -1 if a Qore-language exception occured dereferencing the current value, in this case no assignment was made and the reference count for val is dereferenced automatically by the QoreTypeSafeReferenceHelper object
+	  @note you must check that the reference is valid before calling this function
+	  @code
+	  QoreTypeSafeReferenceHelper rh(ref, xsink);
+	  // if the reference is not valid, then return
+	  if (!rh)  
+	     return;
+	  // make the assignment (if the assignment fails, the value will be dereferenced automatically)
+	  rh.assign(val->refSelf(), xsink);
+	  @endcode
+
+          @deprecated use QoreTypeSafeReferenceHelper::assign(AbstractQoreNode *val) instead
        */
       DLLEXPORT int assign(AbstractQoreNode *val, ExceptionSink *xsink);
 

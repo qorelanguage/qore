@@ -76,61 +76,79 @@ const AbstractQoreNode *ReferenceHelper::getValue() const {
    return *vp;
 }
 
-struct qore_type_safe_ref_helper_priv_t {
-   AbstractQoreNode **vp;
-   const QoreTypeInfo *typeInfo;
-   ObjMap omap;
+struct qore_type_safe_ref_helper_priv_t : public LValueHelper {
+   // dummy ptr for assignments to non-node-based lvalues
+   mutable AbstractQoreNode *dummy;
+   mutable bool assign_dummy : 1;
 
-   DLLLOCAL qore_type_safe_ref_helper_priv_t(const ReferenceNode *ref, AutoVLock &vl, ExceptionSink *xsink) : typeInfo(0) {
-      vp = get_var_value_ptr(ref->getExpression(), &vl, typeInfo, omap, xsink);
-   }
-   DLLLOCAL AbstractQoreNode *getUnique(ExceptionSink *xsink) {
-      if (!(*vp)) 
-	 return 0;
-   
-      if (!(*vp)->is_unique()) {
-	 AbstractQoreNode *old = *vp;
-	 (*vp) = old->realCopy();
-	 old->deref(xsink);
-      }
-      return *vp;
+   DLLLOCAL qore_type_safe_ref_helper_priv_t(const ReferenceNode *ref, AutoVLock &vl, ExceptionSink *xsink) : LValueHelper(ref->getExpression(), xsink), dummy(0), assign_dummy(false) {
    }
 
-   DLLLOCAL int assign(AbstractQoreNode *val, ExceptionSink *xsink) {
-      assert(vp);
-      if (typeInfo) {
-	 val = typeInfo->acceptAssignment("<reference>", val, xsink);
-	 if (*xsink)
-	    return -1;
-      }
+   DLLLOCAL qore_type_safe_ref_helper_priv_t(const AbstractQoreNode *exp, ExceptionSink *xsink) : LValueHelper(exp, xsink), dummy(0) {
+   }
 
-      if (*vp) {
-	 (*vp)->deref(xsink);
-	 if (*xsink) {
-	    (*vp) = 0;
-	    discard(val, xsink);
-	    return -1;
-	 }
+   DLLLOCAL ~qore_type_safe_ref_helper_priv_t() {
+      if (*this && assign_dummy) {
+	 assign(dummy);
       }
-      (*vp) = val;
+      else
+	 discardDummy();
+   }
+
+   DLLLOCAL int discardDummy() const {
+      if (assign_dummy)
+	 assign_dummy = false;
+      if (dummy) {
+	 dummy->deref(xsink);
+	 dummy = 0;
+	 return *xsink;
+      }
       return 0;
    }
 
+   DLLLOCAL AbstractQoreNode *getUnique(ExceptionSink *xsink) {
+      if (isOptimized()) {
+	 if (discardDummy())
+	    return 0;
+
+	 dummy = lv.local.v->eval(xsink);
+	 assign_dummy = true;
+	 return dummy;
+      }
+
+      if (ensure_unique())
+	 return 0;
+
+      return get_value();
+   }
+
+   DLLLOCAL int assign(AbstractQoreNode *val, ExceptionSink *xsink) {
+      return LValueHelper::assign(val, "<reference>");
+   }
+
+   DLLLOCAL int assign(AbstractQoreNode *val) {
+      return LValueHelper::assign(val, "<reference>");
+   }
+
    DLLLOCAL void swap(qore_type_safe_ref_helper_priv_t &other) {
-      assert(vp);
-      AbstractQoreNode *t = *other.vp;
-      *other.vp = *vp;
-      *vp = t;
+      assert(false);
    }
 
    DLLLOCAL const AbstractQoreNode *getValue() const {
-      assert(vp);
-      return *vp;
+      if (isOptimized()) {
+	 if (discardDummy())
+	    return 0;
+
+	 dummy = lv.local.v->eval(xsink);
+	 return dummy;
+      }
+
+      return LValueHelper::get_value();
    }
 
-   DLLLOCAL operator bool() const { return vp != 0; }
-
-   DLLLOCAL qore_type_t getType() const { return *vp ? (*vp)->getType() : NT_NOTHING; }
+   DLLLOCAL qore_type_t getType() const {
+      return LValueHelper::get_type();
+   }
 };
 
 

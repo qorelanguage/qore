@@ -25,7 +25,7 @@
 
 #define _QORE_QORECASTOPERATORNODE_H
 
-class QoreCastOperatorNode : public QoreSingleExpressionOperatorNode {
+class QoreCastOperatorNode : public QoreSingleExpressionOperatorNode<QoreOperatorNode> {
 protected:
    DLLLOCAL static QoreString cast_str;
    NamedScope *path;
@@ -42,9 +42,10 @@ protected:
    }
 
 public:
-   DLLLOCAL QoreCastOperatorNode(char *str, AbstractQoreNode *n_exp) : QoreSingleExpressionOperatorNode(n_exp), path(new NamedScope(str)), qc(0) {
+   DLLLOCAL QoreCastOperatorNode(char *str, AbstractQoreNode *n_exp) : QoreSingleExpressionOperatorNode<QoreOperatorNode>(n_exp), path(new NamedScope(str)), qc(0) {
    }
-   DLLLOCAL ~QoreCastOperatorNode() {
+
+   DLLLOCAL virtual ~QoreCastOperatorNode() {
       delete path;
    }
 
