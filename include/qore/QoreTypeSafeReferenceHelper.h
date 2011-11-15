@@ -47,108 +47,119 @@
     @endcode
  */
 class QoreTypeSafeReferenceHelper {
-   private:
-      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-      DLLLOCAL QoreTypeSafeReferenceHelper(const QoreTypeSafeReferenceHelper&);
+private:
+   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+   DLLLOCAL QoreTypeSafeReferenceHelper(const QoreTypeSafeReferenceHelper&);
 
-      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-      DLLLOCAL QoreTypeSafeReferenceHelper& operator=(const QoreTypeSafeReferenceHelper&);
+   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+   DLLLOCAL QoreTypeSafeReferenceHelper& operator=(const QoreTypeSafeReferenceHelper&);
 
-      //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-      DLLLOCAL void *operator new(size_t);
+   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+   DLLLOCAL void *operator new(size_t);
 
-      //! private implementation
-      struct qore_type_safe_ref_helper_priv_t *priv;
+   //! private implementation
+   struct qore_type_safe_ref_helper_priv_t *priv;
 
-   public:
-      //! initializes the object and tries to get the pointer to the pointer of the lvalue expression target
-      /** @param ref the ReferenceNode to use
-	  @param xsink Qore-language exceptions raised will be added here (for example, a deadlock accessing the object)
-       */
-      DLLEXPORT QoreTypeSafeReferenceHelper(const ReferenceNode *ref, ExceptionSink *xsink);
+public:
+   //! initializes the object and tries to get the pointer to the pointer of the lvalue expression target
+   /** @param ref the ReferenceNode to use
+       @param xsink Qore-language exceptions raised will be added here (for example, a deadlock accessing the object)
+   */
+   DLLEXPORT QoreTypeSafeReferenceHelper(const ReferenceNode *ref, ExceptionSink *xsink);
 
-      //! initializes the object and tries to get the pointer to the pointer of the lvalue expression target
-      /** @param ref the ReferenceNode to use
-	  @param vl this argument is ignored in this deprecated version of the function
-	  @param xsink Qore-language exceptions raised will be added here (for example, a deadlock accessing the object)
+   //! initializes the object and tries to get the pointer to the pointer of the lvalue expression target
+   /** @param ref the ReferenceNode to use
+       @param vl this argument is ignored in this deprecated version of the function
+       @param xsink Qore-language exceptions raised will be added here (for example, a deadlock accessing the object)
 
-          @deprecated the AutoVLock argument is ignored in this deprecated version
-       */
-      DLLEXPORT QoreTypeSafeReferenceHelper(const ReferenceNode *ref, AutoVLock &vl, ExceptionSink *xsink);
+       @deprecated the AutoVLock argument is ignored in this deprecated version
+   */
+   DLLEXPORT QoreTypeSafeReferenceHelper(const ReferenceNode *ref, AutoVLock &vl, ExceptionSink *xsink);
 
-      //! destroys the object
-      DLLEXPORT ~QoreTypeSafeReferenceHelper();
+   //! destroys the object
+   DLLEXPORT ~QoreTypeSafeReferenceHelper();
 
-      //! returns true if the reference is valid, false if not
-      /** false will only be returned if a Qore-language exception was raised in the constructor
-       */
-      DLLEXPORT operator bool() const;
+   //! returns true if the reference is valid, false if not
+   /** false will only be returned if a Qore-language exception was raised in the constructor
+    */
+   DLLEXPORT operator bool() const;
 
-      //! returns the type of the reference's value
-      /** @return the type of the reference's value
-       */
-      DLLEXPORT qore_type_t getType() const;
+   //! returns the type of the reference's value
+   /** @return the type of the reference's value
+    */
+   DLLEXPORT qore_type_t getType() const;
 
-      //! returns a pointer to the value with a unique reference count (so it can be updated in place), assumes the reference is valid
-      /** @param xsink required for the call to AbstractQoreNode::deref()
-	  @returns a pointer to the reference's value with a unique reference count (so it can be modified), or 0 if the value was 0 to start with or if a Qore-language exception was raised
-	  @note you must check that the reference is valid before calling this function
-	  @note take care to only call this function on types where the AbstractQoreNode::realCopy() function has a valid implementation (on all value types suitable for in-place modification this function has a valid implementation), as in debugging builds other types will abort(); in non-debugging builds this function will simply do nothing
-	  @code
-	  QoreTypeSafeReferenceHelper rh(ref, xsink);
-	  // if the reference is not valid, then return
-	  if (!rh)  
-	     return;
-	  // get the unique value
-	  AbstractQoreNode *val = rh.getUnique(xsink);
-	  // if a Qore-language exception was raised, then return
-	  if (*xsink)
-	      return;
-	  @endcode
-       */
-      DLLEXPORT AbstractQoreNode *getUnique(ExceptionSink *xsink);
+   //! returns a pointer to the value with a unique reference count (so it can be updated in place), assumes the reference is valid
+   /** @param xsink required for the call to AbstractQoreNode::deref()
+       @returns a pointer to the reference's value with a unique reference count (so it can be modified), or 0 if the value was 0 to start with or if a Qore-language exception was raised
+       @note you must check that the reference is valid before calling this function
+       @note take care to only call this function on types where the AbstractQoreNode::realCopy() function has a valid implementation (on all value types suitable for in-place modification this function has a valid implementation), as in debugging builds other types will abort(); in non-debugging builds this function will simply do nothing
+       @code
+       QoreTypeSafeReferenceHelper rh(ref, xsink);
+       // if the reference is not valid, then return
+       if (!rh)  
+          return;
+       // get the unique value
+       AbstractQoreNode *val = rh.getUnique(xsink);
+       // if a Qore-language exception was raised, then return
+       if (*xsink)
+          return;
+       @endcode
+   */
+   DLLEXPORT AbstractQoreNode *getUnique(ExceptionSink *xsink);
 
-      //! assigns a value to the reference, assumes the reference is valid
-      /** @param val the value to assign (must be already referenced for the assignment)
-	  @param xsink required for the call to AbstractQoreNode::deref() of the current value
-	  @return 0 if there was no error and the variable was assigned, -1 if a Qore-language exception occured dereferencing the current value, in this case no assignment was made and the reference count for val is dereferenced automatically by the QoreTypeSafeReferenceHelper object
-	  @note you must check that the reference is valid before calling this function
-	  @code
-	  QoreTypeSafeReferenceHelper rh(ref, xsink);
-	  // if the reference is not valid, then return
-	  if (!rh)  
-	     return;
-	  // make the assignment (if the assignment fails, the value will be dereferenced automatically)
-	  rh.assign(val->refSelf(), xsink);
-	  @endcode
-       */
-      DLLEXPORT int assign(AbstractQoreNode *val);
+   //! assigns a value to the reference, assumes the reference is valid
+   /** @param val the value to assign (must be already referenced for the assignment)
+       @return 0 if there was no error and the variable was assigned, -1 if a Qore-language exception occured dereferencing the current value, in this case no assignment was made and the reference count for val is dereferenced automatically by the QoreTypeSafeReferenceHelper object
+       @note you must check that the reference is valid before calling this function
+       @code
+       QoreTypeSafeReferenceHelper rh(ref, xsink);
+       // if the reference is not valid, then return
+       if (!rh)  
+          return;
+       // make the assignment (if the assignment fails, the value will be dereferenced automatically)
+       rh.assign(val->refSelf(), xsink);
+       @endcode
+   */
+   DLLEXPORT int assign(AbstractQoreNode *val);
 
-      //! assigns a value to the reference, assumes the reference is valid
-      /** @param val the value to assign (must be already referenced for the assignment)
-	  @param xsink this argument is ignored; the ExceptionSink argument used in the constructor is used instead
-	  @return 0 if there was no error and the variable was assigned, -1 if a Qore-language exception occured dereferencing the current value, in this case no assignment was made and the reference count for val is dereferenced automatically by the QoreTypeSafeReferenceHelper object
-	  @note you must check that the reference is valid before calling this function
-	  @code
-	  QoreTypeSafeReferenceHelper rh(ref, xsink);
-	  // if the reference is not valid, then return
-	  if (!rh)  
-	     return;
-	  // make the assignment (if the assignment fails, the value will be dereferenced automatically)
-	  rh.assign(val->refSelf(), xsink);
-	  @endcode
+   //! assigns a value to the reference, assumes the reference is valid
+   /** @param val the value to assign (must be already referenced for the assignment)
+       @param xsink this argument is ignored; the ExceptionSink argument used in the constructor is used instead
+       @return 0 if there was no error and the variable was assigned, -1 if a Qore-language exception occured dereferencing the current value, in this case no assignment was made and the reference count for val is dereferenced automatically by the QoreTypeSafeReferenceHelper object
+       @note you must check that the reference is valid before calling this function
+       @code
+       QoreTypeSafeReferenceHelper rh(ref, xsink);
+       // if the reference is not valid, then return
+       if (!rh)  
+          return;
+       // make the assignment (if the assignment fails, the value will be dereferenced automatically)
+       rh.assign(val->refSelf(), xsink);
+       @endcode
 
-          @deprecated use QoreTypeSafeReferenceHelper::assign(AbstractQoreNode *val) instead
-       */
-      DLLEXPORT int assign(AbstractQoreNode *val, ExceptionSink *xsink);
+       @deprecated use QoreTypeSafeReferenceHelper::assign(AbstractQoreNode *val) instead
+   */
+   DLLEXPORT int assign(AbstractQoreNode *val, ExceptionSink *xsink);
 
-      //! returns a constant pointer to the reference's value
-      /** @return the value of the lvalue reference (may be 0)
-       */
-      DLLEXPORT const AbstractQoreNode *getValue() const;
+   //! assigns an integer value to the reference
+   /** @param v the value to assign
+       @return 0 if there was no error and the variable was assigned, -1 if a Qore-language exception occured dereferencing the current value, in this case no assignment was made
+    */
+   DLLEXPORT int assignBigInt(int64 v);
 
-      //! swaps the values of two references
-      DLLEXPORT void swap(QoreTypeSafeReferenceHelper &other);
+   //! assigns an integer value to the reference
+   /** @param v the value to assign
+       @return 0 if there was no error and the variable was assigned, -1 if a Qore-language exception occured dereferencing the current value, in this case no assignment was made
+    */
+   DLLEXPORT int assignFloat(double v);
+
+   //! returns a constant pointer to the reference's value
+   /** @return the value of the lvalue reference (may be 0)
+    */
+   DLLEXPORT const AbstractQoreNode *getValue() const;
+
+   //! swaps the values of two references
+   DLLEXPORT void swap(QoreTypeSafeReferenceHelper &other);
 };
 
 #ifndef _QORE_LIB_INTERN

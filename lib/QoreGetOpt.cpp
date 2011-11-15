@@ -169,7 +169,7 @@ void QoreGetOpt::doOption(class QoreGetOptNode *n, class QoreHashNode *h, const 
 	 }
 	 else {
 	    if (!*ha)
-	       ha.assign(new QoreFloatNode(0.0), 0);
+	       ha.assign(ZeroFloat->refSelf(), 0);
 	    else {
 	       QoreFloatNode *f = reinterpret_cast<QoreFloatNode *>(*ha);
 	       f->f++;

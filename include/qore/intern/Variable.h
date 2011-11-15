@@ -420,6 +420,9 @@ public:
 
    DLLLOCAL int assign(AbstractQoreNode *val, const char *desc = "<lvalue>");
 
+   DLLLOCAL int assignBigInt(int64 v, const char *desc = "<lvalue>");
+   DLLLOCAL int assignFloat(double v, const char *desc = "<lvalue>");
+
    DLLLOCAL int ensure_unique() {
       assert(lvt == LVT_Normal);
       return lv.n->ensureUnique(xsink);

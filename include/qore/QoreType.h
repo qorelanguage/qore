@@ -36,6 +36,7 @@ DLLEXPORT extern QoreHashNode *emptyHash;
 DLLEXPORT extern QoreStringNode *NullString;
 DLLEXPORT extern DateTimeNode *ZeroDate;
 DLLEXPORT extern QoreBigIntNode *Zero;
+DLLEXPORT extern QoreFloatNode *ZeroFloat;
 
 DLLEXPORT extern QoreString NothingTypeString, NullTypeString, TrueString, 
    FalseString, EmptyHashString, EmptyListString;
@@ -108,7 +109,8 @@ static inline QoreBigIntNode *zero() {
 }
 
 static inline QoreFloatNode *zero_float() {
-   return new QoreFloatNode(0.0);
+   ZeroFloat->ref();
+   return ZeroFloat;
 }
 
 static inline DateTimeNode *zero_date() {

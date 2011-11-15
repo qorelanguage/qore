@@ -142,6 +142,7 @@ QoreHashNode *emptyHash;
 QoreStringNode *NullString;
 DateTimeNode *ZeroDate;
 QoreBigIntNode *Zero;
+QoreFloatNode *ZeroFloat;
 
 // map from types to default values
 typedef std::map<qore_type_t, AbstractQoreNode *> def_val_map_t;
@@ -181,6 +182,7 @@ void init_qore_types() {
    NullString    = new QoreStringNode;
    ZeroDate      = DateTimeNode::makeAbsolute(0, 0, 0);
    Zero          = new QoreBigIntNode;
+   ZeroFloat     = new QoreFloatNode;
 
    emptyList     = new QoreListNode;
    emptyHash     = new QoreHashNode;
@@ -189,7 +191,7 @@ void init_qore_types() {
    def_val_map[NT_STRING]  = NullString->refSelf();
    def_val_map[NT_BOOLEAN] = &False;
    def_val_map[NT_DATE]    = ZeroDate->refSelf();
-   def_val_map[NT_FLOAT]   = new QoreFloatNode;
+   def_val_map[NT_FLOAT]   = ZeroFloat->refSelf();
    def_val_map[NT_LIST]    = emptyList->refSelf();
    def_val_map[NT_HASH]    = emptyHash->refSelf();
    def_val_map[NT_BINARY]  = new BinaryNode;
@@ -245,6 +247,7 @@ void delete_qore_types() {
 
    // dereference global default values
    NullString->deref();
+   ZeroFloat->deref();
    Zero->deref();
    ZeroDate->deref();
    emptyList->deref(0);

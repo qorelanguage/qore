@@ -583,8 +583,35 @@ public:
             val.val_int = v;
             break;
 
+         case VVT_Float:
+            val.val_float = v;
+            break;
+
          case VVT_Ref: {
             ReferenceHolder<AbstractQoreNode> value_holder(new QoreBigIntNode(v), xsink);
+            setValueRef(value_holder, xsink);
+            break;
+         }
+
+#ifdef DEBUG
+         default:
+            assert(false);
+#endif
+      }      
+   }
+
+   DLLLOCAL void assignFloat(double v, ExceptionSink *xsink) {
+      switch (vvt) {
+         case VVT_Int:
+            val.val_int = v;
+            break;
+
+         case VVT_Float:
+            val.val_float = v;
+            break;
+
+         case VVT_Ref: {
+            ReferenceHolder<AbstractQoreNode> value_holder(new QoreFloatNode(v), xsink);
             setValueRef(value_holder, xsink);
             break;
          }

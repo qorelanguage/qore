@@ -664,6 +664,56 @@ int LValueHelper::assign(AbstractQoreNode *val, const char *desc) {
    return lv.n->assign(val, xsink);
 }
 
+int LValueHelper::assignBigInt(int64 v, const char *desc) {
+   // check type for assignment
+   if (!typeInfo->parseAccepts(bigIntTypeInfo)) {
+      typeInfo->doAcceptError(false, false, -1, desc, Zero, xsink);
+      return -1;
+   }
+
+   if (lvt == LVT_OptLocalVar) {
+      // since we are only dealing with optimized local vars, it's not possible
+      // to have an exception here on the assignment
+      lv.v->assignBigInt(v, xsink);
+      assert(!*xsink);
+      return 0;
+   }
+
+   AbstractQoreNode *val = new QoreBigIntNode(v);
+   val = typeInfo->acceptAssignment(desc, val, xsink);
+   if (*xsink) {
+      discard(val, xsink);
+      return -1;
+   }
+
+   return lv.n->assign(val, xsink);
+}
+
+int LValueHelper::assignFloat(double v, const char *desc) {
+   // check type for assignment
+   if (!typeInfo->parseAccepts(floatTypeInfo)) {
+      typeInfo->doAcceptError(false, false, -1, desc, ZeroFloat, xsink);
+      return -1;
+   }
+
+   if (lvt == LVT_OptLocalVar) {
+      // since we are only dealing with optimized local vars, it's not possible
+      // to have an exception here on the assignment
+      lv.v->assignFloat(v, xsink);
+      assert(!*xsink);
+      return 0;
+   }
+
+   AbstractQoreNode *val = new QoreFloatNode(v);
+   val = typeInfo->acceptAssignment(desc, val, xsink);
+   if (*xsink) {
+      discard(val, xsink);
+      return -1;
+   }
+
+   return lv.n->assign(val, xsink);
+}
+
 int64 LValueHelper::plusEqualsBigInt(int64 v) {
    if (lvt == LVT_OptLocalVar)
       return lv.v->plusEqualsBigInt(v, xsink);

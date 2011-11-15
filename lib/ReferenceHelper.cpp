@@ -81,7 +81,7 @@ struct qore_type_safe_ref_helper_priv_t : public LValueHelper {
    mutable AbstractQoreNode *dummy;
    mutable bool assign_dummy : 1;
 
-   DLLLOCAL qore_type_safe_ref_helper_priv_t(const ReferenceNode *ref, AutoVLock &vl, ExceptionSink *xsink) : LValueHelper(ref->getExpression(), xsink), dummy(0), assign_dummy(false) {
+   DLLLOCAL qore_type_safe_ref_helper_priv_t(const ReferenceNode *ref, ExceptionSink *xsink) : LValueHelper(ref->getExpression(), xsink), dummy(0), assign_dummy(false) {
    }
 
    DLLLOCAL qore_type_safe_ref_helper_priv_t(const AbstractQoreNode *exp, ExceptionSink *xsink) : LValueHelper(exp, xsink), dummy(0) {
@@ -122,10 +122,6 @@ struct qore_type_safe_ref_helper_priv_t : public LValueHelper {
       return get_value();
    }
 
-   DLLLOCAL int assign(AbstractQoreNode *val, ExceptionSink *xsink) {
-      return LValueHelper::assign(val, "<reference>");
-   }
-
    DLLLOCAL int assign(AbstractQoreNode *val) {
       return LValueHelper::assign(val, "<reference>");
    }
@@ -152,7 +148,10 @@ struct qore_type_safe_ref_helper_priv_t : public LValueHelper {
 };
 
 
-QoreTypeSafeReferenceHelper::QoreTypeSafeReferenceHelper(const ReferenceNode *ref, AutoVLock &vl, ExceptionSink *xsink) : priv(new qore_type_safe_ref_helper_priv_t(ref, vl, xsink)) {
+QoreTypeSafeReferenceHelper::QoreTypeSafeReferenceHelper(const ReferenceNode *ref, AutoVLock &vl, ExceptionSink *xsink) : priv(new qore_type_safe_ref_helper_priv_t(ref, xsink)) {
+}
+
+QoreTypeSafeReferenceHelper::QoreTypeSafeReferenceHelper(const ReferenceNode *ref, ExceptionSink *xsink) : priv(new qore_type_safe_ref_helper_priv_t(ref, xsink)) {
 }
 
 QoreTypeSafeReferenceHelper::~QoreTypeSafeReferenceHelper() {
@@ -164,7 +163,19 @@ AbstractQoreNode *QoreTypeSafeReferenceHelper::getUnique(ExceptionSink *xsink) {
 }
 
 int QoreTypeSafeReferenceHelper::assign(AbstractQoreNode *val, ExceptionSink *xsink) {
-   return priv->assign(val, xsink);
+   return priv->assign(val);
+}
+
+int QoreTypeSafeReferenceHelper::assign(AbstractQoreNode *val) {
+   return priv->assign(val);
+}
+
+int QoreTypeSafeReferenceHelper::assignBigInt(int64 v) {
+   return priv->assignBigInt(v);
+}
+
+int QoreTypeSafeReferenceHelper::assignFloat(double v) {
+   return priv->assignFloat(v);
 }
 
 void QoreTypeSafeReferenceHelper::swap(QoreTypeSafeReferenceHelper &other) {
