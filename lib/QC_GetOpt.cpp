@@ -210,8 +210,7 @@ static void GETOPT_copy(QoreObject *self, QoreObject *old, GetOpt *g, ExceptionS
 static QoreHashNode *GETOPT_parse_ref(QoreObject *self, GetOpt *g, const QoreListNode *args, ExceptionSink *xsink) {
    HARD_QORE_PARAM(r, const ReferenceNode, args, 0);
 
-   AutoVLock vl(xsink);
-   QoreTypeSafeReferenceHelper ref(r, vl, xsink);
+   QoreTypeSafeReferenceHelper ref(r, xsink);
    if (!ref)
       return 0;
 

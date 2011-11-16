@@ -486,8 +486,7 @@ static AbstractQoreNode *f_chomp_str(const QoreListNode *args, ExceptionSink *xs
 static AbstractQoreNode *f_chomp_ref(const QoreListNode *args, ExceptionSink *xsink) {
    HARD_QORE_PARAM(r, const ReferenceNode, args, 0);
 
-   AutoVLock vl(xsink);
-   QoreTypeSafeReferenceHelper ref(r, vl, xsink);
+   QoreTypeSafeReferenceHelper ref(r, xsink);
    if (!ref || ref.getType() != NT_STRING)
       return 0;
 
@@ -514,8 +513,7 @@ static AbstractQoreNode *f_trim_ref_str(const QoreListNode *args, ExceptionSink 
    HARD_QORE_PARAM(p1, const QoreStringNode, args, 1);
 
    const char *chars = p1->strlen() ? p1->getBuffer() : 0;
-   AutoVLock vl(xsink);
-   QoreTypeSafeReferenceHelper ref(r, vl, xsink);
+   QoreTypeSafeReferenceHelper ref(r, xsink);
    if (!ref || ref.getType() != NT_STRING)
       return 0;
 

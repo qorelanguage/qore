@@ -113,8 +113,7 @@ public:
       if (!ref)
 	 return;
 
-      AutoVLock vl(xsink);
-      QoreTypeSafeReferenceHelper rh(ref, vl, xsink);
+      QoreTypeSafeReferenceHelper rh(ref, xsink);
       if (!rh)
 	 return;
 
@@ -209,7 +208,7 @@ static AbstractQoreNode *HC_post(QoreObject *self, QoreHTTPClient *client, const
 
    const QoreHashNode *ph = HARD_QORE_HASH(args, 2);
 
-   OptHashRefHelper ohrh(args, 2, xsink);
+   OptHashRefHelper ohrh(args, 3, xsink);
    ReferenceHolder<AbstractQoreNode> rv(client->post(path, ph, ptr, size, *ohrh, xsink), xsink);
 
    return *xsink ? 0 : rv.release();
