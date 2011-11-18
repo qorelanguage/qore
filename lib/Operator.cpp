@@ -2809,13 +2809,14 @@ static AbstractQoreNode *check_op_minus(QoreTreeNode *tree, LocalVar *oflag, int
    if (tree->constArgs())
       return tree->evalSubst(returnTypeInfo);
 
-   // FIXME: set return type according to lhs
-   if (leftTypeInfo->hasType() || rightTypeInfo->hasType()) {
-      if (leftTypeInfo->isType(NT_DATE) 
-	  || rightTypeInfo->isType(NT_DATE))
-	 returnTypeInfo = dateTypeInfo;
-      else if (leftTypeInfo->isType(NT_FLOAT) 
-	       || rightTypeInfo->isType(NT_FLOAT))
+   // if either side is a date, then the return type is date (highest priority)
+   if (leftTypeInfo->isType(NT_DATE) 
+       || rightTypeInfo->isType(NT_DATE))
+      returnTypeInfo = dateTypeInfo;
+   // otherwise we have to make sure types are known on both sides of the expression
+   else if (leftTypeInfo->hasType() && rightTypeInfo->hasType()) {
+      if (leftTypeInfo->isType(NT_FLOAT) 
+	  || rightTypeInfo->isType(NT_FLOAT))
 	 returnTypeInfo = floatTypeInfo;
       else if (leftTypeInfo->isType(NT_INT) 
 	       || rightTypeInfo->isType(NT_INT))
@@ -2827,8 +2828,10 @@ static AbstractQoreNode *check_op_minus(QoreTreeNode *tree, LocalVar *oflag, int
 	 returnTypeInfo = hashTypeInfo;
       else if (leftTypeInfo->returnsSingle() && rightTypeInfo->returnsSingle()) 
 	 // only return type nothing if both types are available and return a single type
-	 returnTypeInfo = nothingTypeInfo;
+	 returnTypeInfo = nothingTypeInfo;   
    }
+   else
+      returnTypeInfo = 0;
 
    return tree;
 }
@@ -2844,13 +2847,15 @@ static AbstractQoreNode *check_op_plus(QoreTreeNode *tree, LocalVar *oflag, int 
    if (tree->constArgs())
       return tree->evalSubst(returnTypeInfo);
 
-   // only set return type if return types on both sides are known at parse time
-   if (leftTypeInfo->hasType() && rightTypeInfo->hasType()) {
-      if (leftTypeInfo->isType(NT_LIST) 
-	  || rightTypeInfo->isType(NT_LIST))
+   // if either side is a list, then the return type is list (highest priority)
+   if (leftTypeInfo->isType(NT_LIST) 
+       || rightTypeInfo->isType(NT_LIST))
 	 returnTypeInfo = listTypeInfo;
 
-      else if (leftTypeInfo->isType(NT_STRING) 
+   // otherwise only set return type if return types on both sides are known at parse time
+   else if (leftTypeInfo->hasType() && rightTypeInfo->hasType()) {
+
+      if (leftTypeInfo->isType(NT_STRING) 
 	       || rightTypeInfo->isType(NT_STRING))
 	 returnTypeInfo = stringTypeInfo;
 
@@ -2887,7 +2892,7 @@ static AbstractQoreNode *check_op_plus(QoreTreeNode *tree, LocalVar *oflag, int 
    return tree;
 }
 
-// set the return value for op_multiply (+)
+// set the return value for op_multiply (*) - also used for op_divide
 static AbstractQoreNode *check_op_multiply(QoreTreeNode *tree, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo, const char *name, const char *desc) {
    const QoreTypeInfo *leftTypeInfo = 0;
    tree->leftParseInit(oflag, pflag, lvids, leftTypeInfo);
@@ -2898,11 +2903,13 @@ static AbstractQoreNode *check_op_multiply(QoreTreeNode *tree, LocalVar *oflag, 
    if (tree->constArgs())
       return tree->evalSubst(returnTypeInfo);
 
-   // only set return type if return types on both sides are known at parse time
-   if (leftTypeInfo->hasType() || rightTypeInfo->hasType()) {
-      if (leftTypeInfo->isType(NT_FLOAT) || rightTypeInfo->isType(NT_FLOAT))
-	 returnTypeInfo = floatTypeInfo;
-      else if (leftTypeInfo->isType(NT_INT) && rightTypeInfo->isType(NT_INT))
+   // if either side is a float, then the return type is float (highest priority)
+   if (leftTypeInfo->isType(NT_FLOAT) || rightTypeInfo->isType(NT_FLOAT))
+      returnTypeInfo = floatTypeInfo;
+
+   // otherwise only set return type if return types on both sides are known at parse time
+   else if (leftTypeInfo->hasType() && rightTypeInfo->hasType()) {
+      if (leftTypeInfo->isType(NT_INT) && rightTypeInfo->isType(NT_INT))
 	 returnTypeInfo = bigIntTypeInfo;
    }
    else

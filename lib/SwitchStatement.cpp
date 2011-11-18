@@ -191,7 +191,7 @@ int SwitchStatement::parseInitImpl(LocalVar *oflag, int pflag) {
 }
 
 bool CaseNodeWithOperator::isCaseNodeImpl() const {
-  return false;
+   return false;
 }
 
 bool CaseNodeWithOperator::matches(AbstractQoreNode* lhs_value, ExceptionSink *xsink) {
@@ -209,6 +209,3 @@ bool CaseNodeNegRegex::matches(AbstractQoreNode *lhs_value, ExceptionSink *xsink
    
    return !re->exec(*str, xsink);
 }
-
-// EOF
-
