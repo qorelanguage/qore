@@ -2809,6 +2809,7 @@ static AbstractQoreNode *check_op_minus(QoreTreeNode *tree, LocalVar *oflag, int
    if (tree->constArgs())
       return tree->evalSubst(returnTypeInfo);
 
+   // FIXME: set return type according to lhs
    if (leftTypeInfo->hasType() || rightTypeInfo->hasType()) {
       if (leftTypeInfo->isType(NT_DATE) 
 	  || rightTypeInfo->isType(NT_DATE))
@@ -2843,7 +2844,8 @@ static AbstractQoreNode *check_op_plus(QoreTreeNode *tree, LocalVar *oflag, int 
    if (tree->constArgs())
       return tree->evalSubst(returnTypeInfo);
 
-   if (leftTypeInfo->hasType() || rightTypeInfo->hasType()) {
+   // only set return type if return types on both sides are known at parse time
+   if (leftTypeInfo->hasType() && rightTypeInfo->hasType()) {
       if (leftTypeInfo->isType(NT_LIST) 
 	  || rightTypeInfo->isType(NT_LIST))
 	 returnTypeInfo = listTypeInfo;
@@ -2879,6 +2881,8 @@ static AbstractQoreNode *check_op_plus(QoreTreeNode *tree, LocalVar *oflag, int 
 	 // only return type nothing if both types are available and return a single type
 	 returnTypeInfo = nothingTypeInfo;
    }
+   else
+      returnTypeInfo = 0;
 
    return tree;
 }
@@ -2894,10 +2898,13 @@ static AbstractQoreNode *check_op_multiply(QoreTreeNode *tree, LocalVar *oflag, 
    if (tree->constArgs())
       return tree->evalSubst(returnTypeInfo);
 
-   if (leftTypeInfo->isType(NT_FLOAT) || rightTypeInfo->isType(NT_FLOAT))
-      returnTypeInfo = floatTypeInfo;
-   else if (leftTypeInfo->isType(NT_INT) && rightTypeInfo->isType(NT_INT))
-      returnTypeInfo = bigIntTypeInfo;
+   // only set return type if return types on both sides are known at parse time
+   if (leftTypeInfo->hasType() || rightTypeInfo->hasType()) {
+      if (leftTypeInfo->isType(NT_FLOAT) || rightTypeInfo->isType(NT_FLOAT))
+	 returnTypeInfo = floatTypeInfo;
+      else if (leftTypeInfo->isType(NT_INT) && rightTypeInfo->isType(NT_INT))
+	 returnTypeInfo = bigIntTypeInfo;
+   }
    else
       returnTypeInfo = 0;
 
@@ -3021,14 +3028,19 @@ static AbstractQoreNode *check_op_keys(QoreTreeNode *tree, LocalVar *oflag, int 
    if (tree->constArgs())
       return tree->evalSubst(returnTypeInfo);
 
-   if (leftTypeInfo->hasType()
-       && !hashTypeInfo->parseAccepts(leftTypeInfo)
-       && !objectTypeInfo->parseAccepts(leftTypeInfo)) {
-      QoreStringNode *edesc = new QoreStringNode("the expression with the 'keys' operator is ");
-      leftTypeInfo->getThisType(*edesc);
-      edesc->concat(" and so this expression will always return NOTHING; the 'keys' operator can only return a value with hashes and objects");
-      getProgram()->makeParseWarning(QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
-      returnTypeInfo = nothingTypeInfo;
+   if (leftTypeInfo->hasType()) {
+      if (leftTypeInfo->isType(NT_HASH) || leftTypeInfo->isType(NT_OBJECT))
+	 returnTypeInfo = listTypeInfo;
+      else if (!hashTypeInfo->parseAccepts(leftTypeInfo)
+	       && !objectTypeInfo->parseAccepts(leftTypeInfo)) {
+	 QoreStringNode *edesc = new QoreStringNode("the expression with the 'keys' operator is ");
+	 leftTypeInfo->getThisType(*edesc);
+	 edesc->concat(" and so this expression will always return NOTHING; the 'keys' operator can only return a value with hashes and objects");
+	 getProgram()->makeParseWarning(QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
+	 returnTypeInfo = nothingTypeInfo;
+      }
+      else
+	 returnTypeInfo = listOrNothingTypeInfo;
    }
    return tree;
 }
