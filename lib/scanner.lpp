@@ -521,7 +521,7 @@ HEX_CONST       0x{HEX_DIGIT}+
 OCTAL_CONST     \\[0-7]{1,3}
 DIGIT		[0-9]
 WORD		[a-zA-Z][a-zA-Z0-9_]*
-WS		[ \t]
+WS		[ \t\r]
 WSNL		[ \t\r\n]
 YEAR            [0-9]{4}
 MONTH           (0[1-9])|(1[012])
