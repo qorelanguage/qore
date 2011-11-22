@@ -806,8 +806,10 @@ void lvar_ref::assign(AbstractQoreNode *n_vexp, QoreObject *n_obj, QoreProgram *
 
 template <class T>
 int64 lvar_ref::postIncrement(T *vv, ExceptionSink *xsink) {
-   if (is_vref)
+   if (is_vref) {
+      LocalRefHelper<T> lrh(vv);
       return reinterpret_cast<VarRefNode*>(vexp)->postIncrement(xsink);
+   }
 
    LValueRefHelper<T> valp(vv, xsink);
    if (!valp)
@@ -822,9 +824,10 @@ int64 lvar_ref::postIncrement(T *vv, ExceptionSink *xsink) {
 
 template <class T>
 int64 lvar_ref::preIncrement(T *vv, ExceptionSink *xsink) {
-   if (is_vref)
+   if (is_vref) {
+      LocalRefHelper<T> lrh(vv);
       return reinterpret_cast<VarRefNode*>(vexp)->preIncrement(xsink);
-   
+   }   
    LValueRefHelper<T> valp(vv, xsink);
    if (!valp)
       return 0;
@@ -836,8 +839,10 @@ int64 lvar_ref::preIncrement(T *vv, ExceptionSink *xsink) {
 
 template <class T>
 int64 lvar_ref::postDecrement(T *vv, ExceptionSink *xsink) {
-   if (is_vref)
+   if (is_vref) {
+      LocalRefHelper<T> lrh(vv);
       return reinterpret_cast<VarRefNode*>(vexp)->postDecrement(xsink);
+   }
 
    LValueRefHelper<T> valp(vv, xsink);
    if (!valp)
@@ -852,8 +857,10 @@ int64 lvar_ref::postDecrement(T *vv, ExceptionSink *xsink) {
 
 template <class T>
 int64 lvar_ref::preDecrement(T *vv, ExceptionSink *xsink) {
-   if (is_vref)
+   if (is_vref) {
+      LocalRefHelper<T> lrh(vv);
       return reinterpret_cast<VarRefNode*>(vexp)->preDecrement(xsink);
+   }
 
    LValueRefHelper<T> valp(vv, xsink);
    if (!valp)
@@ -866,10 +873,11 @@ int64 lvar_ref::preDecrement(T *vv, ExceptionSink *xsink) {
 
 template <class T>
 int64 lvar_ref::plusEqualsBigInt(int64 v, T *vv, ExceptionSink *xsink) {
-   if (is_vref)
+   if (is_vref) {
+      LocalRefHelper<T> lrh(vv);
       return reinterpret_cast<VarRefNode*>(vexp)->plusEqualsBigInt(v, xsink);
+   }
 
-   ReferenceHolder<AbstractQoreNode> value_holder(new QoreBigIntNode(v), xsink);
    LValueRefHelper<T> valp(vv, xsink);
    if (!valp)
       return 0;
@@ -882,10 +890,11 @@ int64 lvar_ref::plusEqualsBigInt(int64 v, T *vv, ExceptionSink *xsink) {
 
 template <class T>
 double lvar_ref::plusEqualsFloat(double v, T *vv, ExceptionSink *xsink) {
-   if (is_vref)
+   if (is_vref) {
+      LocalRefHelper<T> lrh(vv);
       return reinterpret_cast<VarRefNode*>(vexp)->plusEqualsFloat(v, xsink);
+   }
 
-   ReferenceHolder<AbstractQoreNode> value_holder(new QoreFloatNode(v), xsink);
    LValueRefHelper<T> valp(vv, xsink);
    if (!valp)
       return 0;
@@ -898,10 +907,11 @@ double lvar_ref::plusEqualsFloat(double v, T *vv, ExceptionSink *xsink) {
 
 template <class T>
 int64 lvar_ref::minusEqualsBigInt(int64 v, T *vv, ExceptionSink *xsink) {
-   if (is_vref)
+   if (is_vref) {
+      LocalRefHelper<T> lrh(vv);
       return reinterpret_cast<VarRefNode*>(vexp)->minusEqualsBigInt(v, xsink);
+   }
 
-   ReferenceHolder<AbstractQoreNode> value_holder(new QoreBigIntNode(v), xsink);
    LValueRefHelper<T> valp(vv, xsink);
    if (!valp)
       return 0;
@@ -914,10 +924,11 @@ int64 lvar_ref::minusEqualsBigInt(int64 v, T *vv, ExceptionSink *xsink) {
 
 template <class T>
 double lvar_ref::minusEqualsFloat(double v, T *vv, ExceptionSink *xsink) {
-   if (is_vref)
+   if (is_vref) {
+      LocalRefHelper<T> lrh(vv);
       return reinterpret_cast<VarRefNode*>(vexp)->minusEqualsFloat(v, xsink);
+   }
 
-   ReferenceHolder<AbstractQoreNode> value_holder(new QoreFloatNode(v), xsink);
    LValueRefHelper<T> valp(vv, xsink);
    if (!valp)
       return 0;
@@ -930,10 +941,11 @@ double lvar_ref::minusEqualsFloat(double v, T *vv, ExceptionSink *xsink) {
 
 template <class T>
 int64 lvar_ref::orEqualsBigInt(int64 v, T *vv, ExceptionSink *xsink) {
-   if (is_vref)
+   if (is_vref) {
+      LocalRefHelper<T> lrh(vv);
       return reinterpret_cast<VarRefNode*>(vexp)->orEqualsBigInt(v, xsink);
+   }
 
-   ReferenceHolder<AbstractQoreNode> value_holder(new QoreBigIntNode(v), xsink);
    LValueRefHelper<T> valp(vv, xsink);
    if (!valp)
       return 0;
@@ -946,10 +958,11 @@ int64 lvar_ref::orEqualsBigInt(int64 v, T *vv, ExceptionSink *xsink) {
 
 template <class T>
 int64 lvar_ref::andEqualsBigInt(int64 v, T *vv, ExceptionSink *xsink) {
-   if (is_vref)
+   if (is_vref) {
+      LocalRefHelper<T> lrh(vv);
       return reinterpret_cast<VarRefNode*>(vexp)->andEqualsBigInt(v, xsink);
+   }
 
-   ReferenceHolder<AbstractQoreNode> value_holder(new QoreBigIntNode(v), xsink);
    LValueRefHelper<T> valp(vv, xsink);
    if (!valp)
       return 0;
@@ -962,10 +975,11 @@ int64 lvar_ref::andEqualsBigInt(int64 v, T *vv, ExceptionSink *xsink) {
 
 template <class T>
 int64 lvar_ref::modulaEqualsBigInt(int64 v, T *vv, ExceptionSink *xsink) {
-   if (is_vref)
+   if (is_vref) {
+      LocalRefHelper<T> lrh(vv);
       return reinterpret_cast<VarRefNode*>(vexp)->modulaEqualsBigInt(v, xsink);
+   }
 
-   ReferenceHolder<AbstractQoreNode> value_holder(new QoreBigIntNode(v), xsink);
    LValueRefHelper<T> valp(vv, xsink);
    if (!valp)
       return 0;
@@ -978,10 +992,11 @@ int64 lvar_ref::modulaEqualsBigInt(int64 v, T *vv, ExceptionSink *xsink) {
 
 template <class T>
 int64 lvar_ref::multiplyEqualsBigInt(int64 v, T *vv, ExceptionSink *xsink) {
-   if (is_vref)
+   if (is_vref) {
+      LocalRefHelper<T> lrh(vv);
       return reinterpret_cast<VarRefNode*>(vexp)->multiplyEqualsBigInt(v, xsink);
+   }
 
-   ReferenceHolder<AbstractQoreNode> value_holder(new QoreBigIntNode(v), xsink);
    LValueRefHelper<T> valp(vv, xsink);
    if (!valp)
       return 0;
@@ -995,10 +1010,11 @@ int64 lvar_ref::multiplyEqualsBigInt(int64 v, T *vv, ExceptionSink *xsink) {
 template <class T>
 int64 lvar_ref::divideEqualsBigInt(int64 v, T *vv, ExceptionSink *xsink) {
    assert(v);
-   if (is_vref)
+   if (is_vref) {
+      LocalRefHelper<T> lrh(vv);
       return reinterpret_cast<VarRefNode*>(vexp)->divideEqualsBigInt(v, xsink);
+   }
 
-   ReferenceHolder<AbstractQoreNode> value_holder(new QoreBigIntNode(v), xsink);
    LValueRefHelper<T> valp(vv, xsink);
    if (!valp)
       return 0;
@@ -1011,10 +1027,11 @@ int64 lvar_ref::divideEqualsBigInt(int64 v, T *vv, ExceptionSink *xsink) {
 
 template <class T>
 int64 lvar_ref::xorEqualsBigInt(int64 v, T *vv, ExceptionSink *xsink) {
-   if (is_vref)
+   if (is_vref) {
+      LocalRefHelper<T> lrh(vv);
       return reinterpret_cast<VarRefNode*>(vexp)->xorEqualsBigInt(v, xsink);
+   }
 
-   ReferenceHolder<AbstractQoreNode> value_holder(new QoreBigIntNode(v), xsink);
    LValueRefHelper<T> valp(vv, xsink);
    if (!valp)
       return 0;
@@ -1027,10 +1044,11 @@ int64 lvar_ref::xorEqualsBigInt(int64 v, T *vv, ExceptionSink *xsink) {
 
 template <class T>
 int64 lvar_ref::shiftLeftEqualsBigInt(int64 v, T *vv, ExceptionSink *xsink) {
-   if (is_vref)
+   if (is_vref) {
+      LocalRefHelper<T> lrh(vv);
       return reinterpret_cast<VarRefNode*>(vexp)->shiftLeftEqualsBigInt(v, xsink);
+   }
 
-   ReferenceHolder<AbstractQoreNode> value_holder(new QoreBigIntNode(v), xsink);
    LValueRefHelper<T> valp(vv, xsink);
    if (!valp)
       return 0;
@@ -1043,10 +1061,11 @@ int64 lvar_ref::shiftLeftEqualsBigInt(int64 v, T *vv, ExceptionSink *xsink) {
 
 template <class T>
 int64 lvar_ref::shiftRightEqualsBigInt(int64 v, T *vv, ExceptionSink *xsink) {
-   if (is_vref)
+   if (is_vref) {
+      LocalRefHelper<T> lrh(vv);
       return reinterpret_cast<VarRefNode*>(vexp)->shiftRightEqualsBigInt(v, xsink);
+   }
 
-   ReferenceHolder<AbstractQoreNode> value_holder(new QoreBigIntNode(v), xsink);
    LValueRefHelper<T> valp(vv, xsink);
    if (!valp)
       return 0;
@@ -1059,10 +1078,11 @@ int64 lvar_ref::shiftRightEqualsBigInt(int64 v, T *vv, ExceptionSink *xsink) {
 
 template <class T>
 double lvar_ref::multiplyEqualsFloat(double v, T *vv, ExceptionSink *xsink) {
-   if (is_vref)
+   if (is_vref) {
+      LocalRefHelper<T> lrh(vv);
       return reinterpret_cast<VarRefNode*>(vexp)->multiplyEqualsFloat(v, xsink);
+   }
 
-   ReferenceHolder<AbstractQoreNode> value_holder(new QoreFloatNode(v), xsink);
    LValueRefHelper<T> valp(vv, xsink);
    if (!valp)
       return 0;
@@ -1076,10 +1096,11 @@ double lvar_ref::multiplyEqualsFloat(double v, T *vv, ExceptionSink *xsink) {
 template <class T>
 double lvar_ref::divideEqualsFloat(double v, T *vv, ExceptionSink *xsink) {
    assert(v);
-   if (is_vref)
+   if (is_vref) {
+      LocalRefHelper<T> lrh(vv);
       return reinterpret_cast<VarRefNode*>(vexp)->divideEqualsFloat(v, xsink);
+   }
 
-   ReferenceHolder<AbstractQoreNode> value_holder(new QoreFloatNode(v), xsink);
    LValueRefHelper<T> valp(vv, xsink);
    if (!valp)
       return 0;
@@ -1092,8 +1113,13 @@ double lvar_ref::divideEqualsFloat(double v, T *vv, ExceptionSink *xsink) {
 
 LocalVarValue* LocalVarValue::optimized(const QoreTypeInfo *&varTypeInfo) const {
    if (vvt == VVT_Ref) {
+      if (val.ref.vexp->getType() != NT_VARREF)
+	 return false;
+
       SkipHelper sh(const_cast<LocalVarValue*>(this));
-      return val.ref.vexp->getType() == NT_VARREF ? reinterpret_cast<const VarRefNode*>(val.ref.vexp)->isLocalOptimized(varTypeInfo) : false;
+      ProgramContextHelper pch(val.ref.pgm);
+
+      return reinterpret_cast<const VarRefNode*>(val.ref.vexp)->isLocalOptimized(varTypeInfo);
    }
    
    return vvt != VVT_Normal ? const_cast<LocalVarValue*>(this) : 0;
