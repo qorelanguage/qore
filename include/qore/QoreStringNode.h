@@ -478,14 +478,7 @@ private:
 
 public:
    //! makes the call to AbstractQoreNode::getAsString() and manages the return values
-   DLLLOCAL QoreNodeAsStringHelper(const AbstractQoreNode *n, int format_offset, ExceptionSink *xsink) {
-      if (n)
-         str = n->getAsString(del, format_offset, xsink);
-      else {
-         str = &NothingTypeString;
-         del = false;
-      }
-   }
+   DLLEXPORT QoreNodeAsStringHelper(const AbstractQoreNode *n, int format_offset, ExceptionSink *xsink);
 
    //! destroys the object and deletes the QoreString pointer being managed if it was a temporary pointer
    DLLLOCAL ~QoreNodeAsStringHelper() {

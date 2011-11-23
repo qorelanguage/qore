@@ -26,6 +26,8 @@
 static bool nothing_flag = 0;
 #endif
 
+QoreString YamlNullString("null");
+
 QoreNothingNode::QoreNothingNode() : UniqueValueQoreNode(NT_NOTHING) {
 #ifdef DEBUG
    assert(!nothing_flag);
@@ -47,14 +49,14 @@ AbstractQoreNode *QoreNothingNode::evalImpl(class ExceptionSink *xsink) const {
 // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
 // returns -1 for exception raised, 0 = OK
 int QoreNothingNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {
-   str.concat(&NothingTypeString);
+   str.concat(foff == FMT_YAML_SHORT ? &YamlNullString : &NothingTypeString);
    return 0;
 }
 
 // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
 QoreString *QoreNothingNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const {
    del = false;
-   return &NothingTypeString;
+   return foff == FMT_YAML_SHORT ? &YamlNullString : &NothingTypeString;
 }
 
 // performs a lexical compare, return -1, 0, or 1 if the "this" value is less than, equal, or greater than

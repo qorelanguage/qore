@@ -788,6 +788,8 @@ public:
 };
 */
 
+DLLLOCAL extern QoreString YamlNullString;
+
 DLLLOCAL AbstractQoreNode *qore_parse_get_define_value(const char *str, QoreString &arg, bool &ok);
 
 #ifndef HAVE_INET_NTOP

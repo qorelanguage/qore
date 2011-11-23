@@ -298,3 +298,12 @@ QoreStringNode *QoreStringNode::extract(qore_offset_t offset, qore_offset_t num,
       splice_complex(offset, num, *tmp, xsink, rv);
    return rv;
 }
+
+QoreNodeAsStringHelper::QoreNodeAsStringHelper(const AbstractQoreNode *n, int format_offset, ExceptionSink *xsink) {
+   if (n)
+      str = n->getAsString(del, format_offset, xsink);
+   else {
+      str = format_offset == FMT_YAML_SHORT ? &YamlNullString : &NothingTypeString;
+      del = false;
+   }
+}

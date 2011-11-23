@@ -41,68 +41,67 @@
     @see QoreNullNode
  */
 class QoreNothingNode : public UniqueValueQoreNode {
-   protected:
-      //! this function is never called for this type
-      /** @see AbstractQoreNode::evalImpl()
-       */
-      using SimpleValueQoreNode::evalImpl;
-      DLLLOCAL AbstractQoreNode *evalImpl(ExceptionSink *xsink) const;
+protected:
+   //! this function is never called for this type
+   /** @see AbstractQoreNode::evalImpl()
+    */
+   using SimpleValueQoreNode::evalImpl;
+   DLLLOCAL AbstractQoreNode *evalImpl(ExceptionSink *xsink) const;
 
-   public:
-      DLLEXPORT QoreNothingNode();
+public:
+   DLLEXPORT QoreNothingNode();
 
-      DLLEXPORT virtual ~QoreNothingNode();
+   DLLEXPORT virtual ~QoreNothingNode();
 
-      //! concatenate "<NOTHING>" to an existing QoreString
-      /** used for %n and %N printf formatting
-	  @param str the string representation of the type will be concatenated to this QoreString reference
-	  @param foff for multi-line formatting offset, -1 = no line breaks
-	  @param xsink if an error occurs, the Qore-language exception information will be added here
-	  @return -1 for exception raised, 0 = OK
-      */
-      DLLEXPORT virtual int getAsString(QoreString &str, int foff, class ExceptionSink *xsink) const;
+   //! concatenate "<NOTHING>" to an existing QoreString
+   /** used for %n and %N printf formatting
+       @param str the string representation of the type will be concatenated to this QoreString reference
+       @param foff for multi-line formatting offset, -1 = no line breaks
+       @param xsink if an error occurs, the Qore-language exception information will be added here
+       @return -1 for exception raised, 0 = OK
+   */
+   DLLEXPORT virtual int getAsString(QoreString &str, int foff, class ExceptionSink *xsink) const;
 
-      //! returns a QoreString with the text: "<NOTHING>"
-      /** used for %n and %N printf formatting
-	  @param del is always set to true for this implementation of the function, meaning that the returned QoreString pointer should be deleted
-	  @param foff for multi-line formatting offset, -1 = no line breaks (ignored by this version of the function)
-	  @param xsink ignored by this version of the function
-	  NOTE: Use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using this function directly
-	  @see QoreNodeAsStringHelper
-      */
-      DLLEXPORT virtual QoreString *getAsString(bool &del, int foff, class ExceptionSink *xsink) const;
+   //! returns a QoreString with the text: "<NOTHING>"
+   /** used for %n and %N printf formatting
+       @param del is always set to true for this implementation of the function, meaning that the returned QoreString pointer should be deleted
+       @param foff for multi-line formatting offset, -1 = no line breaks (ignored by this version of the function)
+       @param xsink ignored by this version of the function
+       NOTE: Use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using this function directly
+       @see QoreNodeAsStringHelper
+   */
+   DLLEXPORT virtual QoreString *getAsString(bool &del, int foff, class ExceptionSink *xsink) const;
 
-      //! tests for equality with possible type conversion (soft compare)
-      /** since no type can be implicitly converted to NOTHING, this comparison is the same as is_equal_hard() for QoreNothingNode
-	  @param v the value to compare
-	  @param xsink ignored for this version of the function
-       */
-      DLLEXPORT virtual bool is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const;
+   //! tests for equality with possible type conversion (soft compare)
+   /** since no type can be implicitly converted to NOTHING, this comparison is the same as is_equal_hard() for QoreNothingNode
+       @param v the value to compare
+       @param xsink ignored for this version of the function
+   */
+   DLLEXPORT virtual bool is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const;
 
-      //! tests for equality without type conversions (hard compare)
-      /**
-	 @param v the value to compare
-	  @param xsink ignored for this version of the function
-       */
-      DLLEXPORT virtual bool is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const;
+   //! tests for equality without type conversions (hard compare)
+   /**
+      @param v the value to compare
+      @param xsink ignored for this version of the function
+   */
+   DLLEXPORT virtual bool is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const;
 
-      //! returns the type name as a c string
-      DLLEXPORT virtual const char *getTypeName() const;
+   //! returns the type name as a c string
+   DLLEXPORT virtual const char *getTypeName() const;
 
-      //! returns the type information
-      DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
+   //! returns the type information
+   DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
 
-      DLLLOCAL static const char *getStaticTypeName() {
-	 return "nothing";
-      }
+   DLLLOCAL static const char *getStaticTypeName() {
+      return "nothing";
+   }
 };
 
 //! the global and unique NOTHING object in Qore
 DLLEXPORT extern QoreNothingNode Nothing;
 
 //! returns a pointer to Nothing
-static inline QoreNothingNode *nothing()
-{
+static inline QoreNothingNode *nothing() {
    return &Nothing;
 }
 
