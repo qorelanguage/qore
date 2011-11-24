@@ -95,7 +95,7 @@ int QoreStringNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink)
 }
 
 bool QoreStringNode::getAsBoolImpl() const {
-   return strtoll(getBuffer(), 0, 10) ? true : false;
+   return atof(getBuffer());
 }
 
 // get the value of the type in a string context, empty string for complex types (default implementation)
