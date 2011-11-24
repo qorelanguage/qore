@@ -1148,6 +1148,10 @@ sub string_tests() {
     $h = ( "key1" : "    hello\n \r  ", "key2" : 2045, "key3": "     test\r   \n \t\v   ", "key4" : 302.223 );
     trim $h;
     test_value($h, ( "key1" : "hello", "key2" : 2045, "key3": "test", "key4" : 302.223 ), "hash trim");    
+
+    # make sure strings containing floating-point numbers between -1.0 and 1.0 exclusive return True when evaluated in a boolean context
+    test_value(True, boolean("0.1"), "first string fp boolean");
+    test_value(True, boolean("-0.1"), "second string fp boolean");
 }
 
 sub pwd_tests() {
