@@ -394,7 +394,7 @@
         </row>
         <row>
           <entry><para><code><link linkend="int_type">int</link> <link linkend="chdir">chdir</link>(<link linkend="string_type">string</link>)</code></para></entry>
-          <entry><para>Y</para></entry>
+          <entry><para>N</para></entry>
           <entry><para>Changes the current working directory.</para></entry>
         </row>
         <row>
@@ -16638,23 +16638,6 @@ binary <command>sub</command> get_key(int $size) {
 </tbody>
 </tgroup>
 </table>
-
-  <table><title>Exceptions Thrown by chdir()</title>
-  <tgroup cols='2' align='left' colsep='1' rowsep='1'>
-    <thead>
-      <row>
-	<entry><para>err</para></entry>
-	<entry><para>desc</para></entry>
-      </row>
-    </thead>
-    <tbody>
-      <row>
-	<entry><para><code>CHDIR-PARAMETER-ERROR</code></para></entry>
-	<entry><para>The string for the new directory was missing from the call.</para></entry>
-      </row>
-    </tbody>
-  </tgroup>
-  </table>
 
 </sect2>
 
