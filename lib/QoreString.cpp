@@ -844,7 +844,7 @@ int QoreString::vsprintf(const char *fmt, va_list args) {
    int i = ::vsnprintf(priv->buf + priv->len, free, fmt, args);
 
 #ifdef HPUX
-   // vsnprintf failed but didn't tell us how bug the priv->buffer should be
+   // vsnprintf failed but didn't tell us how big the priv->buffer should be
    if (i < 0) {
       //printf("DEBUG: vsnprintf() failed: i=%d priv->allocated=%d priv->len=%d priv->buf=%p fmtlen=%d (new=i+%d = %d)\n", i, priv->allocated, priv->len, priv->buf, fmtlen, STR_CLASS_EXTRA, i + STR_CLASS_EXTRA);
       // resize priv->buffer
