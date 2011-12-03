@@ -51,6 +51,12 @@ typedef std::map<std::string, attr_t> amap_t;
 // code attribute map
 static amap_t amap;
 
+// qore type to qore c++ typeinfo map
+static strmap_t tmap;
+
+// qore value to c++ value map
+static strmap_t vmap;
+
 // parameter structure
 struct Param {
    std::string type, 
@@ -83,7 +89,7 @@ LogLevel LL = LL_DEBUG;
 
 #define BUFSIZE 1024
 
-void log(LogLevel ll, const char *fmt, ...) {
+static void log(LogLevel ll, const char *fmt, ...) {
    if (ll > LL)
       return;
 
@@ -106,7 +112,7 @@ void log(LogLevel ll, const char *fmt, ...) {
    fflush(stdout);
 }
 
-void error(const char *fmt, ...) {
+static void error(const char *fmt, ...) {
    va_list args;
 
    char buf[BUFSIZE];
@@ -126,7 +132,7 @@ void error(const char *fmt, ...) {
    fflush(stderr);
 }
 
-void getStringList(strlist_t &l, const std::string &str, char separator = ',') {
+static void get_string_list(strlist_t &l, const std::string &str, char separator = ',') {
    size_t start = 0;
    while (true) {
       size_t sep = str.find(separator, start);
@@ -139,6 +145,72 @@ void getStringList(strlist_t &l, const std::string &str, char separator = ',') {
 
    //for (unsigned i = 0; i < l.size(); ++i)
    //   printf("DBG: list %u/%lu: %s\n", i, l.size(), l[i].c_str());
+}
+
+static int get_qore_type(const std::string &qt, std::string &cppt) {
+   strmap_t::iterator i = tmap.find(qt);
+   if (i == tmap.end()) {
+      error("could not match qore type '%s' to a c++ qoreTypeInfo constant\n", qt.c_str());
+      return -1;
+   }
+   cppt = i->second;
+   return 0;
+}
+
+#define T_INT   0
+#define T_FLOAT 1
+#define T_OTHER 2
+static int get_val_type(const std::string &str) {
+   bool pint = false,  // has integers
+      pucus = false,   // has uppercase and/or underscore chars
+      pdec = false,    // has a decimal point
+      poth = false;    // has other chars
+
+   for (size_t i = 0, e = str.size(); i != e; ++i) {
+      char c = str[i];
+      if (isdigit(c))
+         pint = true;
+      else if (isupper(c) || c == '_')
+         pucus = true;
+      else if (c == '.')
+         pdec = true;
+      else
+         poth = true;
+   }
+
+   if (poth)
+      return T_OTHER;
+   if (pdec)
+      return pint && !pucus ? T_FLOAT : T_OTHER;
+   if (pucus || pint)
+      return T_INT;
+   return T_OTHER;
+}
+
+static int get_qore_value(const std::string &qv, std::string &v) {
+   strmap_t::iterator i = vmap.find(qv);
+   if (i != vmap.end()) {
+      v = i->second;
+      return 0;
+   }
+   
+   int t = get_val_type(qv);
+   switch (t) {
+      case T_INT: {
+         v = "new QoreBigIntNode(";
+         v += qv;
+         v += ")";
+         return 0;
+      }
+      case T_FLOAT: {
+         v = "new QoreFloatNode(";
+         v += qv;
+         v += ")";
+         return 0;
+      }
+   }
+   error("could not match qore value '%s' to a c++ value\n", qv.c_str());
+   return -1;
 }
 
 class AbstractElement {
@@ -172,7 +244,7 @@ public:
 
 class Method {
 protected:
-   std::string name, docs, return_type, code;
+   std::string name, docs, return_type, code, dom, flags;
    attr_t attr;
    paramlist_t params;
    bool rt_int, has_return;
@@ -195,13 +267,37 @@ protected:
       fputs("\n}\n\n", fp);
    }
 
-   void serializeCppConstructorBinding(FILE *fp, const char *UC) const {
+   int serializeCppConstructorBinding(FILE *fp, const char *cname, const char *UC) const {
+      fputc('\n', fp);
+      serializeQoreConstructorPrototypeComment(fp, cname, 3);
+
+      fprintf(fp, "   QC_%s->setConstructorExtended(%s_constructor, %s, %s, %s", 
+              UC, 
+              cname, 
+              attr & QCA_PRIVATE ? "true" : "false",
+              flags.empty() ? "QC_NO_FLAGS" : flags.c_str(),
+              dom.empty() ? "QDOM_DEFAULT" : dom.c_str());
+
+      if (serializeBindingArgs(fp))
+         return -1;
+
+      fputs(");\n", fp);
+      
+      return 0;
    }
 
-   void serializeCppDestructorBinding(FILE *fp, const char *UC) const {
+   int serializeCppDestructorBinding(FILE *fp, const char *cname, const char *UC) const {
+      fputc('\n', fp);
+      serializeQoreDestructorCopyPrototypeComment(fp, cname, 3);
+      fprintf(fp, "   QC_%s->setDestructor((q_destructor_t)%s_destructor);\n", UC, cname);
+      return 0;
    }
 
-   void serializeCppCopyBinding(FILE *fp, const char *UC) const {
+   int serializeCppCopyBinding(FILE *fp, const char *cname, const char *UC) const {
+      fputc('\n', fp);
+      serializeQoreDestructorCopyPrototypeComment(fp, cname, 3);
+      fprintf(fp, "   QC_%s->setCopy((q_copy_t)%s_copy);\n", UC, cname);
+      return 0;
    }
 
    void serializeArgs(FILE *fp) const {
@@ -220,35 +316,35 @@ protected:
             return;
          }
          if (p.type == "string" || p.type == "softstring") {
-            fprintf(fp, "   QoreStringNode* %s = HARD_QORE_STRING(args, %d);\n", p.name.c_str(), i);
+            fprintf(fp, "   const QoreStringNode* %s = HARD_QORE_STRING(args, %d);\n", p.name.c_str(), i);
             return;
          }
          if (p.type == "date" || p.type == "softdate") {
-            fprintf(fp, "   DateTimeNode* %s = HARD_QORE_DATE(args, %d);\n", p.name.c_str(), i);
+            fprintf(fp, "   const DateTimeNode* %s = HARD_QORE_DATE(args, %d);\n", p.name.c_str(), i);
             return;
          }
          if (p.type == "binary") {
-            fprintf(fp, "   BinaryNode* %s = HARD_QORE_BINARY(args, %d);\n", p.name.c_str(), i);
+            fprintf(fp, "   const BinaryNode* %s = HARD_QORE_BINARY(args, %d);\n", p.name.c_str(), i);
             return;
          }
          if (p.type == "list" || p.type == "softlist") {
-            fprintf(fp, "   QoreListNode* %s = HARD_QORE_LIST(args, %d);\n", p.name.c_str(), i);
+            fprintf(fp, "   const QoreListNode* %s = HARD_QORE_LIST(args, %d);\n", p.name.c_str(), i);
             return;
          }
          if (p.type == "hash") {
-            fprintf(fp, "   QoreHashNode* %s = HARD_QORE_HASH(args, %d);\n", p.name.c_str(), i);
+            fprintf(fp, "   const QoreHashNode* %s = HARD_QORE_HASH(args, %d);\n", p.name.c_str(), i);
             return;
          }
          if (p.type == "reference") {
-            fprintf(fp, "   ReferenceNode* %s = HARD_QORE_REF(args, %d);\n", p.name.c_str(), i);
+            fprintf(fp, "   const ReferenceNode* %s = HARD_QORE_REF(args, %d);\n", p.name.c_str(), i);
             return;
          }
          if (p.type == "object") {
-            fprintf(fp, "   QoreObject* %s = HARD_QORE_HASH(args, %d);\n", p.name.c_str(), i);
+            fprintf(fp, "   QoreObject* %s = HARD_QORE_OBJECT(args, %d);\n", p.name.c_str(), i);
             return;
          }
-         if (p.type == "any") {
-            fprintf(fp, "   AbstractQoreNode* %s = get_param(args, %d);\n", p.name.c_str(), i);
+         if (p.type == "any" || p.type == "data") {
+            fprintf(fp, "   const AbstractQoreNode* %s = get_param(args, %d);\n", p.name.c_str(), i);
             return;
          }
 
@@ -257,19 +353,69 @@ protected:
       }
    }
 
-   void serializeQorePrototypeComment(FILE *fp, const char *cname) const {
-      fprintf(fp, "// %s %s::%s(", return_type.empty() ? "nothing" : return_type.c_str(), cname, name.c_str());
+   void serializeQoreParams(FILE *fp) const {
       for (unsigned i = 0; i < params.size(); ++i) {
          const Param &p = params[i];
          fprintf(fp, "%s %s", p.type.c_str(), p.name.c_str());
          if (!p.val.empty())
             fprintf(fp, " = %s", p.val.c_str());
       }
+   }
+
+   int serializeBindingArgs(FILE *fp) const {
+      if (params.size()) {
+         fprintf(fp, ", %lu", params.size());
+         for (unsigned i = 0; i < params.size(); ++i) {
+            std::string str;
+            if (get_qore_type(params[i].type, str))
+               return -1;
+            fprintf(fp, ", %s, ", str.c_str());
+            if (params[i].val.empty())
+               fputs("NULL", fp);
+            else {
+               std::string vs;
+               if (get_qore_value(params[i].val, vs))
+                  return -1;
+               fputs(vs.c_str(), fp);
+            }
+         }
+      }
+      return 0;
+   }
+
+   void serializeQoreAttrComment(FILE *fp, unsigned indent = 0) const {
+      while (indent--)
+         fputc(' ', fp);
+      fputs("// ", fp);
+      if (attr & QCA_SYNCHRONIZED)
+         fputs("synchronized ", fp);
+      if (attr & QCA_STATIC)
+         fputs("static ", fp);
+      if (attr & QCA_PRIVATE)
+         fputs("private ", fp);
+   }
+
+   void serializeQoreDestructorCopyPrototypeComment(FILE *fp, const char *cname, unsigned indent = 0) const {
+      serializeQoreAttrComment(fp, indent);
+      fprintf(fp, "%s::%s() {}\n", cname, name.c_str());
+   }
+
+   void serializeQoreConstructorPrototypeComment(FILE *fp, const char *cname, unsigned indent = 0) const {
+      serializeQoreAttrComment(fp, indent);
+      fprintf(fp, "%s::constructor(", cname);
+      serializeQoreParams(fp);
+      fputs(") {}\n", fp);
+   }
+
+   void serializeQorePrototypeComment(FILE *fp, const char *cname, unsigned indent = 0) const {
+      serializeQoreAttrComment(fp, indent);
+      fprintf(fp, "%s %s::%s(", return_type.empty() ? "nothing" : return_type.c_str(), cname, name.c_str());
+      serializeQoreParams(fp);
       fputs(") {}\n", fp);
    }
 
 public:
-   Method(const std::string &n_name, attr_t n_attr, const paramlist_t &n_params, const std::string &n_docs, const std::string &n_return_type, const std::string &n_code) : name(n_name), docs(n_docs), return_type(n_return_type), code(n_code), attr(n_attr), params(n_params), rt_int(return_type == "int" || return_type == "softint" ? true : false), has_return(false) {
+   Method(const std::string &n_name, attr_t n_attr, const paramlist_t &n_params, const std::string &n_docs, const std::string &n_return_type, const std::string &n_flags, const std::string &n_dom, const std::string &n_code) : name(n_name), docs(n_docs), return_type(n_return_type), code(n_code), dom(n_dom), flags(n_flags), attr(n_attr), params(n_params), rt_int(return_type == "int" || return_type == "softint" ? true : false), has_return(false) {
       // check if there is a return statement on the last line
       size_t i = code.rfind('\n');
       if (i == std::string::npos)
@@ -277,8 +423,7 @@ public:
 
       has_return = code.find("return", i) != std::string::npos;
 
-      std::string tmp(code, i);
-      log(LL_DEBUG, "Method::Method() has_return: %d '%s'\n", has_return, tmp.c_str());
+      log(LL_DEBUG, "Method::Method() name %s flags '%s'\n", name.c_str(), flags.c_str());
    }
 
    const char *getName() const {
@@ -286,6 +431,8 @@ public:
    }
 
    virtual void serializeCppMethod(FILE *fp, const char *cname, const char *arg) const {
+      assert(!(attr & QCA_STATIC));
+
       if (name == "constructor") {
          serializeCppConstructor(fp, cname);
          return;
@@ -311,25 +458,37 @@ public:
       fputs("\n}\n\n", fp);
    }
 
-   virtual void serializeCppBinding(FILE *fp, const char *cname, const char *UC) const {
-      if (name == "constructor") {
-         serializeCppConstructorBinding(fp, UC);
-         return;
-      }
-      if (name == "destructor") {
-         serializeCppDestructorBinding(fp, UC);
-         return;
-      }
-      if (name == "copy") {
-         serializeCppCopyBinding(fp, UC);
-         return;
-      }
+   virtual int serializeCppBinding(FILE *fp, const char *cname, const char *UC) const {
+      if (name == "constructor")
+         return serializeCppConstructorBinding(fp, cname, UC);
 
-      fputs("   ", fp);
-      serializeQorePrototypeComment(fp, UC);
+      if (name == "destructor")
+         return serializeCppDestructorBinding(fp, cname, UC);
 
-      //fprintf("   %s\n");
-      //xxx;
+      if (name == "copy")
+         return serializeCppCopyBinding(fp, cname, UC);
+
+      fputc('\n', fp);
+      serializeQorePrototypeComment(fp, cname, 3);
+
+      // get return type
+      std::string cppt;
+      if (get_qore_type(return_type, cppt))
+         return -1;
+
+      fprintf(fp, "   QC_%s->addMethodExtended(\"%s\", (q_method%s_t)%s_%s, %s, %s, %s, %s", UC, 
+              name.c_str(),
+              rt_int ? "_int64" : "", cname, name.c_str(),
+              attr & QCA_PRIVATE ? "true" : "false",
+              flags.empty() ? "QC_NO_FLAGS" : flags.c_str(),
+              dom.empty() ? "QDOM_DEFAULT" : dom.c_str(), cppt.c_str());
+
+      if (serializeBindingArgs(fp))
+         return -1;
+
+      fputs(");\n", fp);
+
+      return 0;
    }
 
    virtual void serializeDox(FILE *fp) const {
@@ -383,7 +542,7 @@ public:
 
          // parse domain
          if (i->first == "dom") {
-            getStringList(dom, i->second);
+            get_string_list(dom, i->second);
             for (strlist_t::iterator di = dom.begin(), e = dom.end(); di != e; ++di)
                toupper(*di);
             continue;
@@ -397,7 +556,7 @@ public:
 
          if (i->first == "flags") {
             strlist_t l;
-            getStringList(l, i->second);
+            get_string_list(l, i->second);
             
             for (unsigned i = 0; i < l.size(); ++i) {
                if (l[i] == "unsetPublicMemberFlag") {
@@ -411,7 +570,7 @@ public:
          }
 
          if (i->first == "types") {
-            getStringList(deptypes, i->second);
+            get_string_list(deptypes, i->second);
             continue;
          }
 
@@ -439,11 +598,26 @@ public:
       return name.c_str();
    }
 
-   void addMethod(const std::string &mname, attr_t attr, const std::string &return_type, const paramlist_t &params, const std::string &code, const std::string &doc) {
+   int addMethod(const std::string &mname, attr_t attr, const std::string &return_type, const paramlist_t &params, const strmap_t &flags, const std::string &code, const std::string &doc) {
       log(LL_DETAIL, "adding method %s%s'%s'::'%s'()\n", return_type.c_str(), return_type.empty() ? "" : " ", name.c_str(), mname.c_str());
 
-      Method *m = new Method(mname, attr, params, doc, return_type, code);
+      std::string cf, dom;
+      // parse flags
+      for (strmap_t::const_iterator i = flags.begin(), e = flags.end(); i != e; ++i) {
+         //log(LL_DEBUG, "+ method %s::%s() flag '%s': '%s'\n", name.c_str(), mname.c_str(), i->first.c_str(), i->second.c_str());
+         if (i->first == "dom")
+            dom = i->second;
+         else if (i->first == "flags")
+            cf = i->second;
+         else {
+            error("unknown flag '%s' = '%s' defining method %s::%s()\n", i->first.c_str(), i->second.c_str(), name.c_str(), mname.c_str());
+            return -1;
+         }
+      }
+
+      Method *m = new Method(mname, attr, params, doc, return_type, cf, dom, code);
       mmap.insert(mmap_t::value_type(mname, m));
+      return 0;
    }
 
    virtual void serializeCpp(FILE *fp) const {
@@ -463,13 +637,13 @@ public:
       for (strlist_t::const_iterator i = dom.begin(), e = dom.end(); i != e; ++i) {
          fprintf(fp, ", QDOM_%s", (*i).c_str());
       }
-      fprintf(fp, ");\n   CID_%s = QC_%s->getID();\n\n", UC.c_str(), UC.c_str());
+      fprintf(fp, ");\n   CID_%s = QC_%s->getID();\n", UC.c_str(), UC.c_str());
 
       for (mmap_t::const_iterator i = mmap.begin(), e = mmap.end(); i != e; ++i) {
          i->second->serializeCppBinding(fp, name.c_str(), UC.c_str());
       }
 
-      fputs("}\n", fp);
+      fprintf(fp, "\n   return QC_%s;\n}\n", UC.c_str());
    }
 
    virtual void serializeDox(FILE *fp) const {
@@ -620,7 +794,7 @@ protected:
    }
 
    int missingValueError(const std::string &propstr) const {
-      error("%s:%d: missing '=' or value in class property string '%s'\n", fileName, lineNumber, propstr.c_str());
+      error("%s:%d: missing '=' or value in property string '%s'\n", fileName, lineNumber, propstr.c_str());
       return -1;
    }
 
@@ -631,7 +805,7 @@ protected:
       while (start < eq && propstr[start] == ' ')
          ++start;
       if (start == eq) {
-         error("%s:%d: missing property name in class property string '%s'\n", fileName, lineNumber, propstr.c_str());
+         error("%s:%d: missing property name in property string '%s'\n", fileName, lineNumber, propstr.c_str());
          return -1;
       }
       size_t tend = end;
@@ -800,7 +974,7 @@ protected:
          // get return type and flags
          std::string pstr(sc, 0, i - 1);
          //log(LL_DEBUG, "PSTR='%s'\n", pstr.c_str());
-         getStringList(pre, pstr);
+         get_string_list(pre, pstr);
 
          for (unsigned xi = 0; xi < pre.size(); ++xi) {
             //printf("DBG: METHOD list %u/%lu: %s\n", xi, pre.size(), pre[xi].c_str());
@@ -854,6 +1028,29 @@ protected:
          return -1;
       }
 
+      strmap_t flags;
+
+      // get flags if any
+      if (cs - i > 2) {
+         std::string fstr(sc, i + 1, cs - i - 2);
+         size_t f = fstr.find('[');
+         if (f != std::string::npos) {
+            fstr.erase(0, f + 1);
+            size_t fe = fstr.find(']');
+            if (fe == std::string::npos) {
+               error("%s:%d: premature EOL looking for ']' in flags for %s::%s()\n", fileName, lineNumber, cn.c_str(), mn.c_str());
+               return -1;
+            }
+            fstr.erase(fe);
+
+            log(LL_DEBUG, "fstr='%s'\n", fstr.c_str());
+
+            // parse properties
+            if (parseProperties(fstr, flags))
+               return -1;
+         }
+      }
+
       // get params
       paramlist_t params;
       if (i != p + 1) {
@@ -861,7 +1058,7 @@ protected:
          trim(pstr);
          if (!pstr.empty()) {
             strlist_t pl;
-            getStringList(pl, pstr);
+            get_string_list(pl, pstr);
 
             for (unsigned xi = 0; xi < pl.size(); ++xi) {
                trim(pl[xi]);
@@ -905,10 +1102,9 @@ protected:
       assert(sc[len - 1] == '}');
       do {
          sc.erase(--len);
-      } while (len && sc[len - 1] == ' ' || sc[len - 1] == '\n');
+      } while (len && (sc[len - 1] == ' ' || sc[len - 1] == '\n'));
 
-      ci->second->addMethod(mn, attr, return_type, params, sc, doc);
-      return 0;
+      return ci->second->addMethod(mn, attr, return_type, params, flags, sc, doc);
    }
 
 public:
@@ -960,6 +1156,61 @@ void init() {
    amap["private"] = QCA_PRIVATE;
    amap["static"] = QCA_STATIC;
    amap["synchronized"] = QCA_SYNCHRONIZED;
+
+   // initialize qore type to c++ typeinfo map
+   tmap["int"] = "bigIntTypeInfo";
+   tmap["softint"] = "softBigIntTypeInfo";
+   tmap["*int"] = "bigIntOrNothingTypeInfo";
+   tmap["*softint"] = "softBigIntOrNothingTypeInfo";
+
+   tmap["float"] = "floatTypeInfo";
+   tmap["softfloat"] = "softFloatTypeInfo";
+   tmap["*float"] = "floatOrNothingTypeInfo";
+   tmap["*softfloat"] = "softFloatOrNothingTypeInfo";
+
+   tmap["bool"] = "boolTypeInfo";
+   tmap["softbool"] = "softBoolTypeInfo";
+   tmap["*bool"] = "boolOrNothingTypeInfo";
+   tmap["*softbool"] = "softBoolOrNothingTypeInfo";
+
+   tmap["string"] = "stringTypeInfo";
+   tmap["softstring"] = "softStringTypeInfo";
+   tmap["*string"] = "stringOrNothingTypeInfo";
+   tmap["*softstring"] = "softStringOrNothingTypeInfo";
+
+   tmap["list"] = "listTypeInfo";
+   tmap["softlist"] = "softListTypeInfo";
+   tmap["*list"] = "listOrNothingTypeInfo";
+   tmap["*softlist"] = "softListOrNothingTypeInfo";
+
+   tmap["date"] = "dateTypeInfo";
+   tmap["softdate"] = "softDateTypeInfo";
+   tmap["*date"] = "dateOrNothingTypeInfo";
+   tmap["*softdate"] = "softDateOrNothingTypeInfo";
+
+   tmap["binary"] = "binaryTypeInfo";
+   tmap["*binary"] = "binaryOrNothingTypeInfo";
+
+   tmap["hash"] = "hashTypeInfo";
+   tmap["*hash"] = "hashOrNothingTypeInfo";
+
+   tmap["null"] = "nullTypeInfo";
+   tmap["*null"] = "nullOrNothingTypeInfo";
+
+   tmap["timeout"] = "timeoutTypeInfo";
+   tmap["*timeout"] = "timeoutOrNothingTypeInfo";
+
+   tmap["code"] = "codeTypeInfo";
+   tmap["*code"] = "codeOrNothingTypeInfo";
+
+   tmap["any"] = "anyTypeInfo";
+   tmap["nothing"] = "nothingTypeInfo";
+
+   // initialize qore value to c++ value map
+   vmap["0"] = "zero()";
+   vmap["0.0"] = "zero_float()";
+   vmap["binary()"] = "new BinaryNode";
+   vmap["QCS_DEFAULT->getCode()"] = "QCS_DEFAULT->getCode()";
 }
 
 void usage() {
@@ -988,3 +1239,4 @@ int main(int argc, char *argv[]) {
 
    return 0;
 }
+
