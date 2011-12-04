@@ -903,13 +903,13 @@ public:
    DLLLOCAL int64 preDecrement(ExceptionSink *xsink) {
       switch (vvt) {
          case VVT_Normal:
-            return val.value_preIncrement(xsink);
+            return val.value_preDecrement(xsink);
 
          case VVT_Int:
             return --val.val_int;
 
          case VVT_Ref:
-            return val.ref.preIncrement<LocalVarValue>(this, xsink);
+            return val.ref.preDecrement<LocalVarValue>(this, xsink);
       }      
 
 #ifdef DEBUG
