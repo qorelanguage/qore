@@ -9,16 +9,14 @@ const opts =
       "verbose"    : "v,verbose" );
 
 class thread_object_test {
-    constructor()
-    {
+    constructor() {
 	$.process_command_line();
 	new CounterTest($.threads, $.iters);
 	new QueueTest($.threads, $.iters);
         new ThreadTest($.threads, $.iters);
     }
 
-    usage()
-    {
+    usage() {
         printf("usage: %s -[options] [iterations [threads]]
   -h,--help           this help text
   -v,--verbose        more information
@@ -26,13 +24,11 @@ class thread_object_test {
         exit();
     }
 
-    process_command_line()
-    {
-        my $g = new GetOpt(opts);
+    process_command_line() {
+        my GetOpt $g(opts);
         $.o = $g.parse(\$ARGV);
         
-        if (exists $.o."_ERRORS_")
-        {
+        if (exists $.o."_ERRORS_") {
             printf("%s\n", $.o."_ERRORS_"[0]);
             exit(1);
         }
@@ -51,8 +47,7 @@ class thread_object_test {
 }
 
 class CounterTest {
-    constructor($threads, $iters)
-    {
+    constructor(int $threads, int $iters) {
 	printf("counter test: "); flush();
 	$.threads = $threads;
 	$.iters = $iters;
@@ -67,10 +62,8 @@ class CounterTest {
 	    printf("ERROR (%d) %d\n", $.obj.key.500.hello, $.c.getCount());
     }
 
-    private do_threads()
-    {
-	while ($.threads--)
-	{
+    private do_threads() {
+	while ($.threads--) {
 	    $.c.inc();
 	    background $.add();
 	    $.c.inc();
@@ -78,34 +71,30 @@ class CounterTest {
 	}
     }
 
-    private add()
-    {
-	for (my $i = 0; $i < $.iters; $i++)
+    private add() {
+	for (my int $i = 0; $i < $.iters; $i++)
 	    $.obj.key.500.hello++;
 	$.c.dec();
     }
 
-    private subtract()
-    {
-	for (my $i = 0; $i < $.iters; $i++)
+    private subtract() {
+	for (my int $i = 0; $i < $.iters; $i++)
 	    $.obj.key.500.hello--;
 	$.c.dec();
     }
 }
 
 class QueueTest {
-    constructor($threads, $iters)
-    {
+    constructor(softint $threads, softint $iters) {
 	printf("queue test: "); flush();
 	$.q = new Queue();
 	$.x = new Counter();
 	
-	for (my $i; $i < $threads; $i++)
-	{
+	for (my int $i; $i < $threads; $i++) {
 	    $.x.inc();
 	    background $.qt($threads, $iters);
 	}
-	my $c = $threads * $iters;
+	my int $c = $threads * $iters;
 	while ($c--)
 	    if (rand() % 2)
 	        $.q.pop();
@@ -119,8 +108,7 @@ class QueueTest {
 	    printf("ERROR: q=%N size=%d (%s)\n", $.q, $.q.size());
     }
 
-    private qt($threads, $iters)
-    {
+    private qt(int $threads, int $iters) {
 	for (my $i; $i < $iters; $i++)
 	    $.q.push(sprintf("tid-%d-%d", gettid(), $i));
 	$.x.dec();
@@ -128,15 +116,13 @@ class QueueTest {
 }
 
 class ThreadTest inherits Mutex {
-    constructor($threads, $iters)
-    {
+    constructor(softint $threads, softint $iters) {
 	print("thread object tests: "); flush();
 	$.iters = $iters;
         $.drw = new RWLock();
         $.g   = new Gate();
         $.c   = new Counter();
-        while ($threads)
-        {
+        while ($threads) {
 	    $.c.inc();
 	    background $.worker();
             $threads--;
@@ -144,55 +130,50 @@ class ThreadTest inherits Mutex {
 	$.c.waitForZero();
 	print("OK\n");
     }
-    getData($list)
-    {
+    getData(list $list) {
         my $rv;
         $.lock();
-        foreach my $key in ($list)
+        foreach my string $key in ($list)
             $rv.$key = $.data.$key;
         $.unlock();
         return $rv;
     }
-    setData($hash)
-    {
+    setData(hash $hash) {
         $.lock();
-        foreach my $key in (keys $hash)
+        foreach my string $key in (keys $hash)
             $.data.$key = $hash.$key;
         $.unlock();
     }
-    getRWData($list)
-    {
+    getRWData(list $list) {
         my $rv;
         $.drw.readLock();
-        foreach my $key in ($list)
+        foreach my string $key in ($list)
             $rv.$key = $.rwdata.$key;
         $.drw.readUnlock();
         return $rv;
     }
-    setRWData($hash)
-    {
+    setRWData(hash $hash) {
         $.drw.writeLock();
-        foreach my $key in (keys $hash)
+        foreach my string $key in (keys $hash)
             $.rwdata.$key = $hash.$key;
         $.drw.writeUnlock();
     }
-    getGateData($list)
-    {
+    getGateData(list $list) {
         my $rv;
         $.g.enter();
-        foreach my $key in ($list)
+        foreach my string $key in ($list)
             $rv.$key = $.gdata.$key;
         $.g.exit();
         return $rv;
     }
     setGateData($hash) {
         $.g.enter();
-        foreach my $key in (keys $hash)
+        foreach my string $key in (keys $hash)
             $.gdata.$key = $hash.$key;
         $.g.exit();
     }
     worker() {
-        for (my $i = 0; $i < $.iters; $i++) {
+        for (my int $i = 0; $i < $.iters; $i++) {
             #if (!($i % 1000))
             #    printf("TID %3d: %d/%d\n", gettid(), $i, $.iters);
             my $c = rand() % 6;
