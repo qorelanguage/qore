@@ -31,6 +31,8 @@ AbstractQoreNode *QoreAssignmentOperatorNode::parseInitImpl(LocalVar *oflag, int
    pflag &= ~(PF_REFERENCE_OK | PF_RETURN_VALUE_IGNORED);
   
    left = left->parseInit(oflag, pflag | PF_FOR_ASSIGNMENT, lvids, ti);
+   checkLValue(left);
+
    // return type info is the same as the lvalue's typeinfo
    typeInfo = ti;
 

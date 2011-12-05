@@ -1409,14 +1409,14 @@ int ObjMap::check(QoreObject *obj) {
 }
 
 // returns 0 for OK, -1 for error
-int check_lvalue(AbstractQoreNode *node) {
+int check_lvalue(const AbstractQoreNode *node) {
    qore_type_t ntype = node->getType();
    //printd(5, "type=%s\n", node->getTypeName());
    if (ntype == NT_VARREF || ntype == NT_SELF_VARREF || ntype == NT_CLASS_VARREF)
       return 0;
 
    if (ntype == NT_TREE) {
-      QoreTreeNode *t = reinterpret_cast<QoreTreeNode *>(node);
+      const QoreTreeNode *t = reinterpret_cast<const QoreTreeNode *>(node);
       if (t->getOp() == OP_LIST_REF || t->getOp() == OP_OBJECT_REF)
 	 return check_lvalue(t->left);
       else

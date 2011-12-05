@@ -159,6 +159,11 @@ public:
    DLLLOCAL virtual bool hasEffect() const {
       return true;
    }
+
+   DLLLOCAL void checkLValue(const AbstractQoreNode *exp) {
+      if (exp && check_lvalue(exp))
+         parse_error("expecing lvalue for %s, got '%s' instead", getTypeName(), exp->getTypeName());
+   }
 };
 
 // include operator headers

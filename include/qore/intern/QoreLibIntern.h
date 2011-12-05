@@ -342,7 +342,7 @@ public:
 };
 
 DLLLOCAL int qoreCheckContainer(AbstractQoreNode *v, ObjMap &omap, AutoVLock &vl, ExceptionSink *xsink);
-DLLLOCAL int check_lvalue(AbstractQoreNode *n);
+DLLLOCAL int check_lvalue(const AbstractQoreNode *n);
 DLLLOCAL int check_lvalue_int(const QoreTypeInfo *&typeInfo, const char *name);
 DLLLOCAL int check_lvalue_float(const QoreTypeInfo *&typeInfo, const char *name);
 

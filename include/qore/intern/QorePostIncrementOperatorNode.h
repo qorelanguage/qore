@@ -37,6 +37,7 @@ protected:
       pflag &= ~(PF_REFERENCE_OK | PF_RETURN_VALUE_IGNORED);
       
       exp = exp->parseInit(oflag, pflag, lvids, ti);
+      checkLValue(exp);
       // returns the left side
       typeInfo = ti;
 
