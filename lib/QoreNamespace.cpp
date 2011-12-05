@@ -1558,7 +1558,8 @@ void StaticSystemNamespace::init() {
    qoreNS->addConstant("NT_LIST",        new QoreBigIntNode(NT_LIST));
    qoreNS->addConstant("NT_HASH",        new QoreBigIntNode(NT_HASH));
    qoreNS->addConstant("NT_OBJECT",      new QoreBigIntNode(NT_OBJECT));
-   
+   qoreNS->addConstant("NT_CLOSURE",     new QoreBigIntNode(NT_RUNTIME_CLOSURE));
+
    // network constants
    qoreNS->addConstant("AF_INET",        new QoreBigIntNode(AF_INET));
    qoreNS->addConstant("AF_INET6",       new QoreBigIntNode(AF_INET6));
