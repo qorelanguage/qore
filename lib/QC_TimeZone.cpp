@@ -120,8 +120,7 @@ static AbstractQoreNode *f_TZ_setRegion(const QoreListNode *params, ExceptionSin
 QoreClass *initTimeZoneClass() {
    QORE_TRACE("initTimeZoneClass()");
 
-   // note that this class does not block therefore has no QDOM_THREAD
-   QC_TIMEZONE = new QoreClass("TimeZone", QDOM_TERMINAL_IO);
+   QC_TIMEZONE = new QoreClass("TimeZone");
    CID_TIMEZONE = QC_TIMEZONE->getID();
 
    QC_TIMEZONE->setConstructorExtended(TIMEZONE_constructor_str, false, QC_NO_FLAGS, QDOM_DEFAULT, 1, stringTypeInfo, QORE_PARAM_NO_ARG);

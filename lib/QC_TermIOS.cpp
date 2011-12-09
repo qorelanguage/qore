@@ -164,7 +164,6 @@ static AbstractQoreNode *f_TERMIOS_getWindowSize(const QoreListNode *params, Exc
 QoreClass *initTermIOSClass() {
    QORE_TRACE("initTermIOSClass()");
 
-   // note that this class does not block therefore has no QDOM_THREAD
    QC_TERMIOS = new QoreClass("TermIOS", QDOM_TERMINAL_IO);
    CID_TERMIOS = QC_TERMIOS->getID();
 

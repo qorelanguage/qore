@@ -34,11 +34,43 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <getopt.h>
 
 #include <string>
 #include <vector>
 #include <map>
 
+const char usage_str[] = "usage: %s [options] <input file(s)...>\n" \
+   " -d, --dox-output=arg     doxygen output file name\n" \
+   " -h, --help               this help text\n" \
+   " -v, --verbose            increases verbosity level\n" \
+   " -o, --output=arg         cpp output file name\n";
+
+static const option pgm_opts[] = {
+   {"dox-output", required_argument, NULL, 'd'},
+   {"help", no_argument, NULL, 'h'},
+   {"output", required_argument, NULL, 'o'},
+   {"verbose", optional_argument, NULL, 'v'},
+   {NULL, 0, NULL, 0}
+};
+
+enum LogLevel {
+   LL_CRITICAL = 0,
+   LL_IMPORANT = 1,
+   LL_INFO     = 2,
+   LL_DETAIL   = 3,
+   LL_DEBUG    = 4,
+};
+
+static struct qpp_opts {
+   std::string output_fn;
+   std::string dox_fn;
+   int verbose;
+   qpp_opts() : verbose(LL_INFO) {
+   }
+} opts;
+
+// program name
 std::string pn;
 
 // code attribute type
@@ -70,16 +102,6 @@ struct Param {
 // parameter list
 typedef std::vector<Param> paramlist_t;
 
-enum LogLevel {
-   LL_CRITICAL = 0,
-   LL_IMPORANT = 1,
-   LL_INFO     = 2,
-   LL_DETAIL   = 3,
-   LL_DEBUG    = 4,
-};
-
-LogLevel LL = LL_DEBUG;
-
 // code attribute bitfield defines
 #define QCA_NONE         0
 #define QCA_PUBLIC       (1 << 0)
@@ -89,47 +111,79 @@ LogLevel LL = LL_DEBUG;
 
 #define BUFSIZE 1024
 
-static void log(LogLevel ll, const char *fmt, ...) {
-   if (ll > LL)
-      return;
+static int my_vsprintf(std::string &buf, const char *fmt, va_list args) {
+   if (buf.size() < BUFSIZE)
+      buf.resize(BUFSIZE);
 
-   va_list args;
+   // copy formatted string to priv->buffer
+   int i = ::vsnprintf((char*)buf.c_str(), buf.size(), fmt, args);
 
-   char buf[BUFSIZE];
-
-   va_start(args, fmt);
-   int rc = vsnprintf(buf, BUFSIZE, fmt, args);
-   va_end(args);
-
-   if (rc < 0) {
-      fprintf(stderr, "output error in vsnprintf(%d, %s, ...)\n", ll, fmt);
-      return;
+#ifdef HPUX
+   // vsnprintf failed but didn't tell us how big the priv->buffer should be
+   if (i < 0) {
+      buf.resize(buf.size() << 1);
+      return -1;
    }
-   if (rc > BUFSIZE)
-      buf[BUFSIZE - 1] = '\0';
-
-   fputs(buf, stdout);
-   fflush(stdout);
+#endif
+   bool err = i >= (int)buf.size();
+   buf.resize(i);
+   return err ? -1 : 0;
 }
 
 static void error(const char *fmt, ...) {
+   std::string buf;
    va_list args;
 
-   char buf[BUFSIZE];
-
-   va_start(args, fmt);
-   int rc = vsnprintf(buf, BUFSIZE, fmt, args);
-   va_end(args);
-
-   if (rc < 0) {
-      fprintf(stderr, "output error in vsnprintf(%s, ...)\n", fmt);
-      return;
+   while (true) {
+      va_start(args, fmt);
+      int rc = my_vsprintf(buf, fmt, args);
+      va_end(args);
+      if (!rc)
+         break;
    }
-   if (rc > BUFSIZE)
-      buf[BUFSIZE - 1] = '\0';
+   
+   fprintf(stderr, "%s: ERROR: ", pn.c_str());
+   fputs(buf.c_str(), stderr);
+   //fflush(stderr);
+}
 
-   fputs(buf, stderr);
-   fflush(stderr);
+static void warning(const char *fmt, ...) {
+   std::string buf;
+   va_list args;
+
+   while (true) {
+      va_start(args, fmt);
+      int rc = my_vsprintf(buf, fmt, args);
+      va_end(args);
+      if (!rc)
+         break;
+   }
+   
+   fprintf(stderr, "%s: WARNING: ", pn.c_str());
+   fputs(buf.c_str(), stderr);
+   //fflush(stderr);
+}
+
+static void log(LogLevel ll, const char *fmt, ...) {
+   if (ll > opts.verbose)
+      return;
+
+   std::string buf;
+   va_list args;
+
+   while (true) {
+      va_start(args, fmt);
+      int rc = my_vsprintf(buf, fmt, args);
+      va_end(args);
+      if (!rc)
+         break;
+   }
+   
+   fprintf(stderr, "%s: ", pn.c_str());
+   if (ll == LL_DEBUG)
+      fputs("DEBUG: ", stdout);
+   fputs(buf.c_str(), stdout);
+   fflush(stdout);
 }
 
 static void get_string_list(strlist_t &l, const std::string &str, char separator = ',') {
@@ -244,7 +298,13 @@ public:
 
 class Method {
 protected:
-   std::string name, docs, return_type, code, dom, flags;
+   std::string name,   // method name
+      vname,           // method variant name
+      docs,            // method docs
+      return_type,     // method return type
+      code,            // method c++ code
+      dom,             // method domain
+      flags;           // method flags
    attr_t attr;
    paramlist_t params;
    bool rt_int, has_return;
@@ -415,13 +475,26 @@ protected:
    }
 
 public:
-   Method(const std::string &n_name, attr_t n_attr, const paramlist_t &n_params, const std::string &n_docs, const std::string &n_return_type, const std::string &n_flags, const std::string &n_dom, const std::string &n_code) : name(n_name), docs(n_docs), return_type(n_return_type), code(n_code), dom(n_dom), flags(n_flags), attr(n_attr), params(n_params), rt_int(return_type == "int" || return_type == "softint" ? true : false), has_return(false) {
+   Method(const std::string &n_name, attr_t n_attr, const paramlist_t &n_params, 
+          const std::string &n_docs, const std::string &n_return_type, 
+          const std::string &n_flags, const std::string &n_dom, const std::string &n_code, unsigned vnum) : 
+      name(n_name), vname(name), docs(n_docs), return_type(n_return_type), 
+      code(n_code), dom(n_dom), flags(n_flags), attr(n_attr), params(n_params), 
+      rt_int(return_type == "int" || return_type == "softint" ? true : false), has_return(false) {
       // check if there is a return statement on the last line
       size_t i = code.rfind('\n');
       if (i == std::string::npos)
          i = 0;
 
       has_return = code.find("return", i) != std::string::npos;
+
+      // assign enumerated variant name if vnum > 0
+      if (vnum) {
+         vname += '_';
+         char buf[20];
+         sprintf(buf, "%d", vnum);
+         vname += buf;
+      }
 
       log(LL_DEBUG, "Method::Method() name %s flags '%s'\n", name.c_str(), flags.c_str());
    }
@@ -430,7 +503,7 @@ public:
       return name.c_str();
    }
 
-   virtual void serializeCppMethod(FILE *fp, const char *cname, const char *arg) const {
+   virtual void serializeNormalCppMethod(FILE *fp, const char *cname, const char *arg) const {
       assert(!(attr & QCA_STATIC));
 
       if (name == "constructor") {
@@ -458,7 +531,7 @@ public:
       fputs("\n}\n\n", fp);
    }
 
-   virtual int serializeCppBinding(FILE *fp, const char *cname, const char *UC) const {
+   virtual int serializeNormalCppBinding(FILE *fp, const char *cname, const char *UC) const {
       if (name == "constructor")
          return serializeCppConstructorBinding(fp, cname, UC);
 
@@ -479,6 +552,47 @@ public:
       fprintf(fp, "   QC_%s->addMethodExtended(\"%s\", (q_method%s_t)%s_%s, %s, %s, %s, %s", UC, 
               name.c_str(),
               rt_int ? "_int64" : "", cname, name.c_str(),
+              attr & QCA_PRIVATE ? "true" : "false",
+              flags.empty() ? "QC_NO_FLAGS" : flags.c_str(),
+              dom.empty() ? "QDOM_DEFAULT" : dom.c_str(), cppt.c_str());
+
+      if (serializeBindingArgs(fp))
+         return -1;
+
+      fputs(");\n", fp);
+
+      return 0;
+   }
+
+   virtual void serializeStaticCppMethod(FILE *fp, const char *cname, const char *arg) const {
+      assert(attr & QCA_STATIC);
+
+      serializeQorePrototypeComment(fp, cname);
+
+      fprintf(fp, "static %s static_%s_%s(const QoreListNode *args, ExceptionSink *xsink) {\n", rt_int ? "int64" : "AbstractQoreNode*", cname, vname.c_str());
+      serializeArgs(fp);
+      fputs(code.c_str(), fp);
+
+      if (!has_return)
+         fprintf(fp, "\n   return 0;");
+
+      fputs("\n}\n\n", fp);
+   }
+
+   virtual int serializeStaticCppBinding(FILE *fp, const char *cname, const char *UC) const {
+      assert(attr & QCA_STATIC);
+
+      fputc('\n', fp);
+      serializeQorePrototypeComment(fp, cname, 3);
+
+      // get return type
+      std::string cppt;
+      if (get_qore_type(return_type, cppt))
+         return -1;
+
+      fprintf(fp, "   QC_%s->addStaticMethodExtended(\"%s\", %s_%s, %s, %s, %s, %s", UC, 
+              name.c_str(),
+              cname, vname.c_str(),
               attr & QCA_PRIVATE ? "true" : "false",
               flags.empty() ? "QC_NO_FLAGS" : flags.c_str(),
               dom.empty() ? "QDOM_DEFAULT" : dom.c_str(), cppt.c_str());
@@ -515,13 +629,21 @@ void trim(std::string &str) {
 class ClassElement : public AbstractElement {
 protected:
    typedef std::multimap<std::string, Method*> mmap_t;
+   // for tracking enumerated variants
+   typedef std::map<std::string, unsigned> vmap_t;
 
    std::string name,
       doc, 
       arg;
    strlist_t deptypes, 
       dom;              // functional domains
-   mmap_t mmap;         // method map
+
+   mmap_t normal_mmap,  // normal method map
+      static_mmap;      // static method map
+
+   vmap_t normal_vmap,  // normal variant enumeration map
+      static_vmap;      // static variant enumation map
+
    int64 flags;
    bool valid, 
       upm;              // unset public member flag
@@ -585,7 +707,11 @@ public:
    }
 
    virtual ~ClassElement() {
-      for (mmap_t::iterator i = mmap.begin(), e = mmap.end(); i != e; ++i) {
+      for (mmap_t::iterator i = normal_mmap.begin(), e = normal_mmap.end(); i != e; ++i) {
+         delete i->second;
+      }
+
+      for (mmap_t::iterator i = static_mmap.begin(), e = static_mmap.end(); i != e; ++i) {
          delete i->second;
       }
    }
@@ -615,7 +741,19 @@ public:
          }
       }
 
-      Method *m = new Method(mname, attr, params, doc, return_type, cf, dom, code);
+      mmap_t &mmap = (attr & QCA_STATIC) ? static_mmap : normal_mmap;
+      vmap_t &vmap = (attr & QCA_STATIC) ? static_vmap : normal_vmap;
+
+      unsigned vnum;
+      vmap_t::iterator i = vmap.find(mname);
+      if (i == vmap.end()) {
+         vnum = 0;
+         vmap[mname] = 0;
+      }
+      else
+         vnum = ++i->second;
+
+      Method *m = new Method(mname, attr, params, doc, return_type, cf, dom, code, vnum);
       mmap.insert(mmap_t::value_type(mname, m));
       return 0;
    }
@@ -629,8 +767,12 @@ public:
 
       fprintf(fp, "qore_classid_t CID_%s;\nQoreClass *QC_%s;\n\n", UC.c_str(), UC.c_str());
 
-      for (mmap_t::const_iterator i = mmap.begin(), e = mmap.end(); i != e; ++i) {
-         i->second->serializeCppMethod(fp, name.c_str(), arg.c_str());
+      for (mmap_t::const_iterator i = normal_mmap.begin(), e = normal_mmap.end(); i != e; ++i) {
+         i->second->serializeNormalCppMethod(fp, name.c_str(), arg.c_str());
+      }
+
+      for (mmap_t::const_iterator i = static_mmap.begin(), e = static_mmap.end(); i != e; ++i) {
+         i->second->serializeStaticCppMethod(fp, name.c_str(), arg.c_str());
       }
 
       fprintf(fp, "QoreClass* init%sClass() {\n   QC_%s = new QoreClass(\"%s\"", name.c_str(), UC.c_str(), name.c_str());
@@ -639,8 +781,12 @@ public:
       }
       fprintf(fp, ");\n   CID_%s = QC_%s->getID();\n", UC.c_str(), UC.c_str());
 
-      for (mmap_t::const_iterator i = mmap.begin(), e = mmap.end(); i != e; ++i) {
-         i->second->serializeCppBinding(fp, name.c_str(), UC.c_str());
+      for (mmap_t::const_iterator i = normal_mmap.begin(), e = normal_mmap.end(); i != e; ++i) {
+         i->second->serializeNormalCppBinding(fp, name.c_str(), UC.c_str());
+      }
+
+      for (mmap_t::const_iterator i = static_mmap.begin(), e = static_mmap.end(); i != e; ++i) {
+         i->second->serializeStaticCppBinding(fp, name.c_str(), UC.c_str());
       }
 
       fprintf(fp, "\n   return QC_%s;\n}\n", UC.c_str());
@@ -660,6 +806,9 @@ protected:
    const char *fileName;
    std::string cppFileName, 
       doxFileName;
+   // argument to fopen()
+   const char *cpp_open_flag,
+      *dox_open_flag;
    unsigned lineNumber;
    source_t source;
    cmap_t cmap;
@@ -1108,9 +1257,31 @@ protected:
    }
 
 public:
-   Code(const char *fn) : fileName(fn), lineNumber(0), valid(true) {
-      cppFileName = "t.cpp";
-      doxFileName = "dox.cpp";
+   Code(const char *fn, const std::string &ofn, const std::string &dfn, 
+        bool cpp_append = false, bool dox_append = false) : fileName(fn), 
+                                                            cpp_open_flag(cpp_append ? "a" : "w"), 
+                                                            dox_open_flag(dox_append ? "a" : "w"), 
+                                                            lineNumber(0),
+                                                            valid(true) {
+      std::string base;
+      std::string dir;
+      if (ofn.empty() || dfn.empty()) {
+         std::string bnc(fn);
+         base = basename((char*)bnc.c_str());
+         bnc = fn;
+         dir = dirname((char*)bnc.c_str());
+
+         if (base.size() > 4 && !strcmp(base.c_str() + base.size() - 4, ".qpp"))
+            base.erase(base.size() - 4);
+         else {
+            warning("'%s' does not end in extension '.qpp'\n", fn);
+            size_t d = base.rfind('.');
+            if (d != std::string::npos)
+               base.erase(d);
+         }
+      }
+      cppFileName = !ofn.empty() ? ofn : dir + "/" + base + ".cpp";
+      doxFileName = !dfn.empty() ? dfn : dir + "/" + base + ".dox.cpp";
       parse();
    }
 
@@ -1120,7 +1291,7 @@ public:
    }
 
    int serializeCpp() const {
-      FILE *fp = fopen(cppFileName.c_str(), "w");
+      FILE *fp = fopen(cppFileName.c_str(), cpp_open_flag);
       if (!fp) {
 	 error("%s: %s\n", cppFileName.c_str(), strerror(errno));
          return -1;
@@ -1133,7 +1304,7 @@ public:
    }
 
    int serializeDox() const {
-      FILE *fp = fopen(doxFileName.c_str(), "w");
+      FILE *fp = fopen(doxFileName.c_str(), dox_open_flag);
       if (!fp) {
 	 error("%s: %s\n", doxFileName.c_str(), strerror(errno));
          return -1;
@@ -1214,28 +1385,59 @@ void init() {
 }
 
 void usage() {
-   printf("syntax: %s <filename>\n", pn.c_str());
+   printf(usage_str, pn.c_str());
+   exit(1);
+}
+
+void process_command_line(int &argc, char **&argv) {
+   pn = basename(argv[0]);
+
+   int ch;
+   while ((ch = getopt_long(argc, argv, "dhov:", pgm_opts, NULL)) != -1) {
+      switch (ch) {
+         case 'h':
+            usage();
+
+         case 'd':
+            opts.dox_fn = optarg;
+            break;
+
+         case 'o':
+            opts.output_fn = optarg;
+            break;
+
+         case 'v':
+            if (optarg)
+               opts.verbose = strtoll(optarg, NULL, 10);
+            else
+               ++opts.verbose;
+      }
+   }
+
+   argc -= optind;
+   argv += optind;
+
+   if (!argc) {
+      error("at least one input file must be given\n");
+      usage();
+   }
 }
 
 int main(int argc, char *argv[]) {
-   pn = basename(argv[0]);
-
-   if (argc < 2) {
-      usage();
-      exit(1);
-   }
+   process_command_line(argc, argv);
 
    // initialize static reference data
    init();
 
-   Code code(argv[1]);
-   if (!code) {
-      error("please correct the errors above and try again\n");
-      exit(1);
+   for (int i = 0; i < argc; ++i) {
+      Code code(argv[i], opts.output_fn, opts.dox_fn, i && !opts.output_fn.empty(), i && !opts.dox_fn.empty());
+      if (!code) {
+         error("please correct the errors above and try again\n");
+         exit(1);
+      }
+      // create cpp output file
+      code.serializeCpp();
    }
-
-   // create cpp output file
-   code.serializeCpp();
 
    return 0;
 }

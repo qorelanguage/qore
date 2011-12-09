@@ -13,6 +13,21 @@ AM_YFLAGS = -d
 
 lib_LTLIBRARIES = libqore.la
 
+bin_PROGRAMS = qpp
+
+qpp_SOURCES = qpp.cpp
+
+QC_Queue.cpp: QC_Queue.qpp qpp
+	qpp $<
+
+EXTRA_libqore_la_SOURCES = \
+	QC_Queue.qpp
+
+QORE_GENERATED_SOURCES = \
+	QC_Queue.cpp
+
+CLEANFILES = $(QORE_GENERATED_SOURCES)
+
 if COND_SINGLE_COMPILATION_UNIT
 libqore_la_SOURCES = \
 	single-compilation-unit.cpp
@@ -22,6 +37,8 @@ scanner.cpp: scanner.lpp
 single-compilation-unit.cpp: parser.cpp scanner.cpp
 
 else
+nodist_libqore_la_SOURCES = $(QORE_GENERATED_SOURCES)
+
 libqore_la_SOURCES = \
 	parser.ypp \
 	scanner.lpp \
@@ -196,7 +213,6 @@ libqore_la_SOURCES = \
 	QC_Datasource.cpp \
 	QC_DatasourcePool.cpp \
 	QC_SQLStatement.cpp \
-	QC_Queue.cpp \
 	QC_Mutex.cpp \
 	QC_Condition.cpp \
 	QC_RWLock.cpp \
