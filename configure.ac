@@ -1260,7 +1260,7 @@ if test "$GXX" = "yes"; then
 else
    if test "$solaris" = yes; then
       # turn on all warnings for the oracle sun studio compiler
-      CXXFLAGS="$CXXFLAGS +w"
+      #CXXFLAGS="$CXXFLAGS +w"
       if test "$enable_64bit" = yes; then
          if test "$build_cpu" = sparc; then
 	    solaris_cc_sparc64=yes
