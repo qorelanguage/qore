@@ -35,7 +35,12 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <ctype.h>
+
+#ifdef HAVE_GETOPT_H
 #include <getopt.h>
+#else
+#include "getopt_long.h"
+#endif
 
 #include <string>
 #include <vector>

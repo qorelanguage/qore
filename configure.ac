@@ -1039,7 +1039,7 @@ AC_SEARCH_LIBS(rt, clock_gettime)
 # Checks for header files.
 AC_HEADER_STDC
 AC_HEADER_SYS_WAIT
-AC_CHECK_HEADERS([fcntl.h inttypes.h netdb.h netinet/in.h stddef.h stdlib.h string.h strings.h sys/socket.h sys/time.h unistd.h execinfo.h cxxabi.h arpa/inet.h sys/socket.h sys/statvfs.h winsock2.h ws2tcpip.h glob.h sys/un.h termios.h netinet/tcp.h pwd.h sys/wait.h])
+AC_CHECK_HEADERS([fcntl.h inttypes.h netdb.h netinet/in.h stddef.h stdlib.h string.h strings.h sys/socket.h sys/time.h unistd.h execinfo.h cxxabi.h arpa/inet.h sys/socket.h sys/statvfs.h winsock2.h ws2tcpip.h glob.h sys/un.h termios.h netinet/tcp.h pwd.h sys/wait.h getopt.h])
 
 # check for umem.h
 AC_CHECK_HEADER([umem.h], have_umem_h=yes, have_umem_h=no)
@@ -1339,6 +1339,7 @@ AM_CONDITIONAL([COND_NEED_GLOB],               [test "$ac_cv_func_glob" != yes])
 AM_CONDITIONAL([COND_HAVE_TERMIOS],            [test "$ac_cv_header_termios_h" = yes])
 AM_CONDITIONAL([COND_NEED_INET_NTOP],          [test "$ac_cv_func_inet_ntop" != yes])
 AM_CONDITIONAL([COND_NEED_INET_PTON],          [test "$ac_cv_func_inet_pton" != yes])
+AM_CONDITIONAL([COND_NEED_GETOPT_LONG],        [test "$ac_cv_header_getopt_h" != yes])
 
 # find prefix
 if test -n "${exec_prefix}" -a "${exec_prefix}" != NONE; then

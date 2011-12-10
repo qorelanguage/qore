@@ -17,6 +17,10 @@ bin_PROGRAMS = qpp
 
 qpp_SOURCES = qpp.cpp
 
+if COND_NEED_GETOPT_LONG
+qpp_SOURCES += getopt_long.cpp
+endif
+
 QC_Queue.cpp: QC_Queue.qpp qpp
 	qpp $<
 
@@ -34,7 +38,7 @@ libqore_la_SOURCES = \
 
 parser.cpp: parser.ypp
 scanner.cpp: scanner.lpp
-single-compilation-unit.cpp: parser.cpp scanner.cpp
+single-compilation-unit.cpp: parser.cpp scanner.cpp $(QORE_GENERATED_SOURCES)
 
 else
 nodist_libqore_la_SOURCES = $(QORE_GENERATED_SOURCES)
