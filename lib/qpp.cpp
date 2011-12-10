@@ -23,8 +23,9 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-// only static definitions can be used from the Qore headers - and no compiled code because the library is not available
-#include <qore/Qore.h>
+// cannot include Qore.h with the Oracle Sun Studio compiler
+// when not linking with libqore as link errors result
+#include <qore/common.h>
 
 #include <stdio.h>
 #include <errno.h>
@@ -59,7 +60,7 @@ enum LogLevel {
    LL_IMPORANT = 1,
    LL_INFO     = 2,
    LL_DETAIL   = 3,
-   LL_DEBUG    = 4,
+   LL_DEBUG    = 4
 };
 
 static struct qpp_opts {
