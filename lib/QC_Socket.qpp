@@ -95,7 +95,7 @@ static AbstractQoreNode *checkOpenResult(int rc, const char *method_name, Except
     |@ref EVENT_START_SSL|Raised when socket SSL negotiation starts.
     |@ref EVENT_SSL_ESTABLISHED|Raised when SSL communication has been negotiated and established.
  */
-qclass Socket [types=SSLCert,SSLPrivKey; flags=unsetPublicMemberFlag; arg=mySocket *s; dom=NETWORK];
+qclass Socket [types=SSLCert,SSLPrivKey; flags=unsetPublicMemberFlag; arg=mySocket* s; dom=NETWORK];
 
 //! Creates the socket object
 Socket::constructor() {
@@ -108,7 +108,7 @@ Socket::copy() {
 }
 
 //! Connects to a remote port (if the string has a format "host:port") or UNIX domain socket file with an optional timeout value with a millisecond resolution
-/** Connects the socket to a remote (or local) port or UNIX domain socket file, for network (ipv4 and ipv6) connections, accepts an optional timeout value in milliseconds (relative date/time values can be given instead of an integer in milliseconds to make the source more readable; ex: 20s). If any errors occur, an exception is thrown.
+/** Connects the socket to a remote (or local) port or UNIX domain socket file, for network (ipv4 and ipv6) connections, accepts an optional timeout value in milliseconds (@ref relative_dates "relative date/time values" can be given instead of an integer in milliseconds to make the source more readable; ex: 20s). If any errors occur, an exception is thrown.
 
     Examples:
     <code># connect to ipv4 adress 192.168.1.45 port 8080 with a 30 second timeout
@@ -139,7 +139,7 @@ nothing Socket::connect(string target, timeout timeout_ms = -1) {
 }
 
 //! Connects to the given host and port with an optional timeout value with a millisecond resolution
-/** Connects the socket to a remote (or local) port; accepts an optional timeout value in milliseconds (relative date/time values can be given instead of an integer in milliseconds to make the source more readable; ex: 20s). If any errors occur, an exception is thrown.
+/** Connects the socket to a remote (or local) port; accepts an optional timeout value in milliseconds (@ref relative_dates "relative date/time values" can be given instead of an integer in milliseconds to make the source more readable; ex: \c 20s). If any errors occur, an exception is thrown.
 
     Do not use square brackets to designate ipv6 addresses with this method; just give the address in its normal form (ex: \c "2001:0db8:85a3:0000:0000:8a2e:0370:7334").
 
@@ -172,8 +172,8 @@ nothing Socket::connectINET(string host, softstring service, timeout timeout_ms 
 /** Connects the socket to the given UNIX domain socket file; if any errors occur, an exception is thrown
 
     Example:
-    <code># connect to UNIX domain socket file "/tmp/socket"
-$sock.connectUNIX("/tmp/socket");</code>
+    @code # connect to UNIX domain socket file "/tmp/socket"
+$sock.connectUNIX("/tmp/socket");@endcode
 
     @par Events
     @ref EVENT_CONNECTING, @ref EVENT_CONNECTED
@@ -192,60 +192,135 @@ nothing Socket::connectUNIX(string path, softint socktype = SOCK_STREAM, softint
    s->connectUNIX(path->getBuffer(), socktype, protocol, xsink);
 }
 
-// currently hardcoded to SOCK_STREAM
-// opens and connects to a remote socket and negotiates an SSL connection
-// for AF_INET sockets:
-// * connectSSL("hostname:<port_number>");
-// for AF_UNIX sockets:
-// * connectSSL("filename");
-// Socket::connectSSL(string $sock, timeout $timeout_ms = -1)
-static AbstractQoreNode *SOCKET_connectSSL_str_timeout(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
-   const QoreStringNode *p0 = HARD_QORE_STRING(args, 0);
-   s->connectSSL(p0->getBuffer(), (int)HARD_QORE_INT(args, 1), xsink);
-   return 0;
+//! Connects to a remote socket and attempts to establish a TLS/SSL connection; accepts an optional timeout value with a millisecond resolution
+/** Connects to a remote socket and attempts to establish a TLS/SSL connection, for network (INET) connections, accepts an optional timeout value in milliseconds (@ref relative_dates "relative date/time values" can be given instead of an integer in milliseconds to make the source more readable; ex: \c 20s). If any errors occur, an exception is thrown.
+
+    Enclose ipv6 addresses in square brackets (ex: \c "[2001:0db8:85a3:0000:0000:8a2e:0370:7334]:80", will connect to port 80 on the given ipv6 address); also if a hostname is enclosed in square brackets, it will be resolved as an ipv6 adress (ex: \c "[localhost]:80" will connect to port \c 80 on \c ::1, assuming \c "localhost" can be resolved to the ipv6 loopback address on the system).
+
+    Examples:
+    @code # connect to ipv4 adress 192.168.1.45 port 8080 with a 30 second timeout
+$sock.connectSSL("192.168.1.45:8080", 30s);@endcode
+
+    @code # connect to ipv6 adress 2001:0db8:85a3:0000:0000:8a2e:0370:7334 port 80 with a 10 second timeout
+$sock.connectSSL("[2001:0db8:85a3:0000:0000:8a2e:0370:7334]:80", 10s);@endcode
+
+    @code # connect to localhost using ipv6 (::1) port 80 with a 10 second timeout
+$sock.connectSSL("[localhost]:80", 15s);@endcode
+
+    @code # connect to UNIX domain socket file "/tmp/socket"
+$sock.connectSSL("/tmp/socket");@endcode
+
+    @par Events
+    @ref EVENT_CONNECTING, @ref EVENT_CONNECTED, @ref EVENT_HOSTNAME_LOOKUP, @ref EVENT_HOSTNAME_RESOLVED, @ref EVENT_START_SSL, @ref EVENT_SSL_ESTABLISHED
+
+    @param $dest if a colon appears in the string, the string will be assumed to be a \c "target:port" specification to connect to (unless the host address is enclosed in square brackets, in which case it's interpreted as an IPv6 address). If the string contains no colon, the socket will try to connect to a UNIX domain socket file on the local filesystem with the given name.
+    @param $timeout_ms if a timeout value is passed and the connection takes longer to establish than the timeout, an exception is thrown
+
+    @throw SOCKET-CONNECT-ERROR An error occured connecting to the remote socket (cannot resolve hostname, no listener, timeout exceeded, etc)
+    @throw SOCKET-SSL-ERROR An error occurred establishing the TLS/SSL connection
+    @throw SOCKET-CLOSED The TLS/SSL connection was shut down by the remote end
+
+    @see Socket::connect(), Socket::connectUNIX(), Socket::connectUNIXSSL(), Socket::connectINETSSL(), and Socket::connectINET()
+ */
+nothing Socket::connectSSL(string $dest, timeout $timeout_ms = -1) {
+   s->connectSSL(args->getBuffer(), timeout_ms, xsink);
 }
 
-// nothing Socket::connectINETSSL(string $host, softstring $service, timeout $timeout_ms = -1, softint $family = AF_UNSPEC, softint $socktype = SOCK_STREAM, softint $protocol = 0)
-static AbstractQoreNode *SOCKET_connectINETSSL(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
-   const QoreStringNode *host = HARD_QORE_STRING(args, 0);
-   const QoreStringNode *service = HARD_QORE_STRING(args, 1);
-   int timeout_ms = (int)HARD_QORE_INT(args, 2);
-   int family = (int)HARD_QORE_INT(args, 3);
-   int socktype = (int)HARD_QORE_INT(args, 4);
-   int protocol = (int)HARD_QORE_INT(args, 5);
+//! Connects to the given host and port and attempts to establish a TLS/SSL connection; accepts an optional timeout value with a millisecond resolution
+/** Connects the socket to a remote (or local) port and attempts to establish a TLS/SSL connection; accepts an optional timeout value in milliseconds (@ref relative_dates "relative date/time values" can be given instead of an integer in milliseconds to make the source more readable; ex: \c 20s). If any errors occur, an exception is thrown.
+    
+    Do not use square brackets to designate ipv6 addresses with this method; just give the address in its normal form (ex: \c "2001:0db8:85a3:0000:0000:8a2e:0370:7334").
+
+    Examples:
+    @code # connect to 192.168.1.45 port 8080 with a 30 second timeout
+$sock.connectINETSSL("192.168.1.45", 8080, 30s);@endcode
+
+    @code # connect to ipv6 address 2001:0db8:85a3:0000:0000:8a2e:0370:7334 port 80 with a 20 second timeout
+$sock.connectINETSSL("2001:0db8:85a3:0000:0000:8a2e:0370:7334", 80, 20s);@endcode
+
+    @par Events
+    @ref EVENT_CONNECTING, @ref EVENT_CONNECTED, @ref EVENT_HOSTNAME_LOOKUP, @ref EVENT_HOSTNAME_RESOLVED, @ref EVENT_START_SSL, @ref EVENT_SSL_ESTABLISHED
+
+    @param host The host name or IP address to connect to
+    @param service The service name (ex: \c "http" or port number (given as or converted to a string) to connect to
+    @param timeout_ms If a timeout value is passed and the connection takes longer to establish than the timeout, a \c "SOCKET-CONNECT-ERROR" exception is thrown
+    @param family The address family to use to connect to the remote socket; see @ref network-address-family-constants
+    @param socktype The type of socket; see @ref socket-type-constants; typically @ref SOCK_STREAM for TCP sockets
+    @param protocol The protocol number for the socket (if not sure leave this 0)
+
+    @throw SOCKET-CONNECT-ERROR An error occured connecting to the remote socket (cannot resolve hostname, no listener, timeout exceeded, etc)
+    @throw SOCKET-SSL-ERROR An error occurred establishing the TLS/SSL connection
+    @throw SOCKET-CLOSED The TLS/SSL connection was shut down by the remote end
+
+    @see Socket::connect(), Socket::connectUNIX(), Socket::connectSSL(), Socket::connectINET(), and Socket::connectUNIXSSL()
+ */
+nothing Socket::connectINETSSL(string host, softstring service, timeout timeout_ms = -1, softint family = AF_UNSPEC, softint socktype = SOCK_STREAM, softint protocol = 0) {
    s->connectINET2SSL(host->getBuffer(), service->getBuffer(), family, socktype, protocol, timeout_ms, xsink);
-   return 0;
 }
 
-// nothing Socket::connectUNIXSSL(string $path, softint $socktype = SOCK_STREAM, softint $protocol = 0)  
-static AbstractQoreNode *SOCKET_connectUNIXSSL(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
-   const QoreStringNode *p0 = HARD_QORE_STRING(args, 0);
-   int socktype = (int)HARD_QORE_INT(args, 1);
-   int protocol = (int)HARD_QORE_INT(args, 2);
-   s->connectUNIXSSL(p0->getBuffer(), socktype, protocol, xsink);
-   return 0;
+//! Connects to the given UNIX domain socket file and attempts to establish a TLS/SSL connection
+/** Connects the socket to a UNIX domain socket file and attempts to establish a TLS/SSL connection. If any errors occur, an exception is thrown.
+
+    Example:
+    @code # connect to UNIX domain socket file "/tmp/socket"
+$sock.connectUNIXSSL("/tmp/socket");@endcode
+
+    @par Events
+    @ref EVENT_CONNECTING, @ref EVENT_CONNECTED, @ref EVENT_START_SSL, @ref EVENT_SSL_ESTABLISHED
+
+    @param path The socket will try to connect to a UNIX domain socket file on the local filesystem with the given name
+    @param socktype The type of socket; see @ref socket-type-constants; typically @ref SOCK_STREAM for TCP sockets
+    @param protocol The protocol number for the socket (if not sure leave this 0)
+
+    @throw SOCKET-CONNECT-ERROR An error occured connecting to the socket
+    @throw SOCKET-SSL-ERROR An error occurred establishing the TLS/SSL connection
+    @throw SOCKET-CLOSED The TLS/SSL connection was shut down by the remote end
+
+    @see Socket::connect(), Socket::connectUNIX(), Socket::connectSSL(), Socket::connectINETSSL(), and Socket::connectINET()
+
+    @note UNIX domain sockets are not available on native Windows ports
+ */
+nothing Socket::connectUNIXSSL(string path, softint socktype = SOCK_STREAM, softint protocol = 0) {
+   s->connectUNIXSSL(path->getBuffer(), socktype, protocol, xsink);
 }
 
-// opens and binds to a local socket
-// for AF_INET (tcp) sockets:
-// * Socket::bind(<port_number>);
-// for AF_UNIX (domain, file-based) sockets:
-// * Socket::bind("filename");
-// for INET (tcp) sockets
-// * Socket::bind("iterface:port");
+//! Opens and binds the socket to a port, interface and port (if the $bind_to string has a format "host:port"), or UNIX domain socket file. 
+/** If the second parameter is \c True, then the socket will set the \c SO_REUSEADDR option, which will allow the socket to be bound to a port that is not yet closed (for example, in a \c TIME_WAIT state). 
 
-// int Socket::bind(string $str, softbool $reuseaddr = False)  
-static AbstractQoreNode *SOCKET_bind_str_bool(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
-   const QoreStringNode *p0 = HARD_QORE_STRING(args, 0);
-   bool reuseaddr = HARD_QORE_BOOL(args, 1);
-   return new QoreBigIntNode(s->bind(p0->getBuffer(), reuseaddr));
+    If any errors occur a non-zero error code is returned.
+
+    This method tries to automatically pick the appropriate address family from the arguments; note that a hostname or address in square brackets (ex: \c "[localhost]") will be looked up and bound as an IPv6 address; additionally, the method recognizes ipv6 addresses by embedded colons (:) in the address string and binds them as such.
+
+    Internally, the getaddrinfo() function is used to look up bind addresses; internal \c bind() operations are tried in sequence for each address returned; as soon as a bind operation is successful, the method returns. If none of the addresses can be bound, then an error code is returned.
+
+    @param str If a colon appears in the string, the string will be assumed to be a \c "bind_address:port" specification, and the port on the named IP address will be bound, otherwise, if the string contains no colon, the socket will be bound to a UNIX domain socket file on the local filesystem with the given name.  Note that a hostname or address in square brackets (ex: \c "[localhost]") will be looked up and bound as an IPv6 address; additionally, the method recognizes ipv6 addresses by embedded colons (:) in the address string (if surrounded by square brackets) and binds them as such.
+    @param reuseaddr If this optional argument evaluates to \c True, the \c SO_REUSEADDR option will be set on the socket, which will allow the socket to be bound to a port that is not yet closed (for example, in a \c TIME_WAIT state); note that this only applies to IPv4 (@ref AF_INET) and IPv6 (@ref AF_INET6) sockets; this option is ignored for UNIX (@ref AF_UNIX) sockets.
+    
+    @see Socket::bindINET() and Socket::bindUNIX()
+
+    @note UNIX domain sockets are not available on native Windows ports
+*/
+int Socket::bind(string str, softbool reuseaddr = False) {
+   return s->bind(str->getBuffer(), reuseaddr);
 }
 
-// int Socket::bind(int $port, softbool $reuseaddr = False)  
-static AbstractQoreNode *SOCKET_bind_int_bool(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
-   int port = (int)HARD_QORE_INT(args, 0);
-   bool reuseaddr = HARD_QORE_BOOL(args, 1);
-   return new QoreBigIntNode(s->bind(port, reuseaddr));
+//! Opens and binds the socket to a port on all interfaces 
+/** If the second parameter is \c True, then the socket will set the \c SO_REUSEADDR option, which will allow the socket to be bound to a port that is not yet closed (for example, in a \c TIME_WAIT state). 
+
+    If any errors occur a non-zero error code is returned.
+
+    Example:
+    @code # bind to port 80 on all interfaces on the local system and reuse the address, check return code
+if ($sock.bind(80, True))
+    throw "BIND-ERROR", strerror(errno());@endcode
+
+    @param port A port number to bind to on all interfaces
+    @param reuseaddr If this optional argument evaluates to \c True, the \c SO_REUSEADDR option will be set on the socket, which will allow the socket to be bound to a port that is not yet closed (for example, in a \c TIME_WAIT state); note that this only applies to IPv4 (@ref AF_INET) and IPv6 (@ref AF_INET6) sockets; this option is ignored for UNIX (@ref AF_UNIX) sockets.
+    
+    @see Socket::bindINET() and Socket::bindUNIX()
+*/
+int Socket::bind(int port, softbool reuseaddr = False) {
+   return s->bind(port, reuseaddr);
 }
 
 // nothing bindUNIX(string $name, softint $socktype = SOCK_STREAM, softint $protocol = 0)
