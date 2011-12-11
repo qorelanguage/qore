@@ -94,6 +94,17 @@ static AbstractQoreNode *checkOpenResult(int rc, const char *method_name, Except
     |@ref EVENT_CONNECTED|Raised when the socket connection has been established.
     |@ref EVENT_START_SSL|Raised when socket SSL negotiation starts.
     |@ref EVENT_SSL_ESTABLISHED|Raised when SSL communication has been negotiated and established.
+
+    @section socket_info_hash Socket Information Hash
+
+    |!Key|!Description
+    |\c hostname|The interface name if available (ex: \c "localhost"; note that this key is not present when retrieving information about UNIX sockets)
+    |\c hostname_desc|A descriptive string giving the hostname and the address family if the hostname is available (ex: \c "ipv6[localhost]"; note that this key is not present when retrieving information about UNIX sockets)
+    |\c address|A string giving the address (ex: \c "::ffff:0.0.0.0")
+    |\c address_desc|A descriptive string giving the address and the address family (ex: \c "ipv6[::ffff:0.0.0.0]")
+    |\c port|An integer port number if available (note that this key is not present when retrieving information about UNIX sockets)
+    |\c family|The network address family (see @ref network_address_family_constants)
+    |\c familystr|A string describing the network address family (ex: \c "ipv4")
  */
 qclass Socket [types=SSLCert,SSLPrivKey; flags=unsetPublicMemberFlag; arg=mySocket* s; dom=NETWORK];
 
@@ -213,8 +224,8 @@ $sock.connectSSL("/tmp/socket");@endcode
     @par Events
     @ref EVENT_CONNECTING, @ref EVENT_CONNECTED, @ref EVENT_HOSTNAME_LOOKUP, @ref EVENT_HOSTNAME_RESOLVED, @ref EVENT_START_SSL, @ref EVENT_SSL_ESTABLISHED
 
-    @param $dest if a colon appears in the string, the string will be assumed to be a \c "target:port" specification to connect to (unless the host address is enclosed in square brackets, in which case it's interpreted as an IPv6 address). If the string contains no colon, the socket will try to connect to a UNIX domain socket file on the local filesystem with the given name.
-    @param $timeout_ms if a timeout value is passed and the connection takes longer to establish than the timeout, an exception is thrown
+    @param dest if a colon appears in the string, the string will be assumed to be a \c "target:port" specification to connect to (unless the host address is enclosed in square brackets, in which case it's interpreted as an IPv6 address). If the string contains no colon, the socket will try to connect to a UNIX domain socket file on the local filesystem with the given name.
+    @param timeout_ms if a timeout value is passed and the connection takes longer to establish than the timeout, an exception is thrown
 
     @throw SOCKET-CONNECT-ERROR An error occured connecting to the remote socket (cannot resolve hostname, no listener, timeout exceeded, etc)
     @throw SOCKET-SSL-ERROR An error occurred establishing the TLS/SSL connection
@@ -753,163 +764,443 @@ int Socket::sendi8LSB(softint i = 0) {
    return checkOpenResult(s->sendi8LSB(i), "sendi8LSB", xsink);
 }
 
-// string Socket::recv(int $size = 0, timeout $timeout_ms -1)  
-static AbstractQoreNode *SOCKET_recv(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
-   int bs = (int)HARD_QORE_INT(args, 0);
-   
-   // get timeout
-   int timeout = (int)HARD_QORE_INT(args, 1);
-   int rc;
-   QoreStringNodeHolder msg(bs > 0 ? s->recv(bs, timeout, &rc) : s->recv(timeout, &rc));
+//! Receives data from the socket and returns a string tagged with the Socket's character encoding
+/** If any errors occur reading from the socket, an exception is raised
 
+    Example
+    @code my string $data = $sock.recv(-1); # read all data available@endcode
+
+    @par Events
+    @ref EVENT_PACKET_READ
+    
+    @param size the amount of data to read in bytes; to read until the remote closes the connection, use -1
+    @param timeout_ms the timeout in milliseconds (1/1000 second). If no timeout is passed, then the call will not time out and will not return until all the data has been read or the remote end closes the connection
+
+    @return the data read, returned as a string tagged with the Socket's character encoding
+
+    @throw SOCKET-NOT-OPEN the socket is not connected
+    @throw SOCKET-CLOSED the remote end has closed the connection.
+    @throw SOCKET-RECV-ERROR there was an error receiving the data.
+    @throw SOCKET-TIMEOUT the data requested was not received in the timeout period
+    @throw SOCKET-SSL-ERROR there was an SSL error while reading data from the socket
+
+    @see Socket::setEncoding()
+ */
+string Socket::recv(int size = 0, timeout timeout_ms -1) {
+   int rc;
+   QoreStringNodeHolder msg(size > 0 ? s->recv(size, timeout_ms, &rc) : s->recv(timeout_ms, &rc));
    //printd(5, "SOCKET_recv() rc=%d msglen=%d\n", rc, msg ? msg->strlen() : -1);
-
-   if (rc > 0)
-      return msg.release();
-
-   QoreSocket::doException(rc, "recv", timeout, xsink);
-   return 0;
+   if (rc <= 0) {
+      QoreSocket::doException(rc, "recv", timeout_ms, xsink);
+      return 0;
+   }
+   return msg.release();
 }
 
-// binary Socket::recvBinary(softint $size = 0, timeout $timeout = -1)  
-static AbstractQoreNode *SOCKET_recvBinary(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
-   int bs = (int)HARD_QORE_INT(args, 0);
+//! Receives data from the socket and returns a binary object
+/** If any errors occur reading from the socket, an exception is raised
 
-   // get timeout
-   int timeout = (int)HARD_QORE_INT(args, 1);
+    Example
+    @code my binary $data = $sock.recvBinary(-1); # read all data available@endcode
+
+    @par Events
+    @ref EVENT_PACKET_READ
+    
+    @param size the amount of data to read in bytes; to read until the remote closes the connection, use -1
+    @param timeout_ms the timeout in milliseconds (1/1000 second). If no timeout is passed, then the call will not time out and will not return until all the data has been read or the remote end closes the connection
+
+    @return the data read, returned as a binary object
+
+    @throw SOCKET-NOT-OPEN the socket is not connected
+    @throw SOCKET-CLOSED the remote end has closed the connection.
+    @throw SOCKET-RECV-ERROR there was an error receiving the data.
+    @throw SOCKET-TIMEOUT the data requested was not received in the timeout period
+    @throw SOCKET-SSL-ERROR there was an SSL error while reading data from the socket
+ */
+binary Socket::recvBinary(softint size = 0, timeout timeout_ms = -1) {
    int rc;
-   SimpleRefHolder<BinaryNode> b(bs > 0 ? s->recvBinary(bs, timeout, &rc) : s->recvBinary(timeout, &rc));
-
-   if (rc > 0)
-      return b.release();
-
-   QoreSocket::doException(rc, "recvBinary", timeout, xsink);
-   return 0;
+   SimpleRefHolder<BinaryNode> b(size > 0 ? s->recvBinary(size, timeout_ms, &rc) : s->recvBinary(timeout_ms, &rc));
+   if (rc <= 0) {
+      QoreSocket::doException(rc, "recvBinary", timeout_ms, xsink);
+      return 0;
+   }
+   return b.release();
 }
 
-// Socket::recvi1(timeout $timeout = -1)
-static AbstractQoreNode *SOCKET_recvi1(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
-   // get timeout
-   int timeout = (int)HARD_QORE_INT(args, 0);
+//! Receives a 1-byte signed integer from the socket
+/** If any errors occur reading from the socket, an exception is raised
+
+    Example
+    @code my int $val = $sock.recvi1();@endcode
+
+    @par Events
+    @ref EVENT_PACKET_READ
+
+    @param timeout_ms the timeout in milliseconds (1/1000 second); If no timeout is passed or is negative, then the call will not time out and will not return until all the data has been read or the remote end closes the connection
+
+    @return The 1-byte signed integer read; if any errors occur reading from the socket, an exception is raised
+
+    @throw SOCKET-NOT-OPEN the socket is not connected
+    @throw SOCKET-CLOSED the remote end has closed the connection
+    @throw SOCKET-RECV-ERROR there was an error receiving the data
+    @throw SOCKET-TIMEOUT the data requested was not received in the timeout period
+    @throw SOCKET-SSL-ERROR there was an SSL error while reading data from the socket
+
+    @see Socket::recvu1()
+ */
+int Socket::recvi1(timeout timeout_ms = -1) {
    char b;
-   int rc = s->recvi1(timeout, &b);
-   return doReadResult(rc, (int64)b, "recvi1", timeout, xsink);
+   int rc = s->recvi1(timeout_ms, &b);
+   return doReadResult(rc, (int64)b, "recvi1", timeout_ms, xsink);
 }
 
-static AbstractQoreNode *SOCKET_recvi2(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
-   // get timeout
-   int timeout = (int)HARD_QORE_INT(args, 0);
+//! Receives a 2-byte (16-bit) signed integer in big-endian format (network byte order) from the socket
+/** If any errors occur reading from the socket, an exception is raised
+
+    Example
+    @code my int $val = $sock.recvi2();@endcode
+
+    @par Events
+    @ref EVENT_PACKET_READ
+
+    @param timeout_ms the timeout in milliseconds (1/1000 second); If no timeout is passed or is negative, then the call will not time out and will not return until all the data has been read or the remote end closes the connection
+
+    @return The 2-byte signed integer in big-endian format (network byte order) read; if any errors occur reading from the socket, an exception is raised
+
+    @throw SOCKET-NOT-OPEN the socket is not connected
+    @throw SOCKET-CLOSED the remote end has closed the connection
+    @throw SOCKET-RECV-ERROR there was an error receiving the data
+    @throw SOCKET-TIMEOUT the data requested was not received in the timeout period
+    @throw SOCKET-SSL-ERROR there was an SSL error while reading data from the socket
+
+    @see Socket::recvu2(), Socket::recvi2LSB(), Socket::recvu2LSB()
+ */
+int Socket::recvi2(timeout timeout_ms = -1) {
    short b;
-   int rc = s->recvi2(timeout, &b);
-   return doReadResult(rc, (int64)b, "recvi2", timeout, xsink);
+   int rc = s->recvi2(timeout_ms, &b);
+   return doReadResult(rc, (int64)b, "recvi2", timeout_ms, xsink);
 }
 
-static AbstractQoreNode *SOCKET_recvi4(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
-   // get timeout
-   int timeout = (int)HARD_QORE_INT(args, 0);
+//! Receives a 4-byte (32-bit) signed integer in big-endian format (network byte order) from the socket
+/** If any errors occur reading from the socket, an exception is raised
+
+    Example
+    @code my int $val = $sock.recvi4();@endcode
+
+    @par Events
+    @ref EVENT_PACKET_READ
+
+    @param timeout_ms the timeout in milliseconds (1/1000 second); If no timeout is passed or is negative, then the call will not time out and will not return until all the data has been read or the remote end closes the connection
+
+    @return The 4-byte signed integer in big-endian format (network byte order) read; if any errors occur reading from the socket, an exception is raised
+
+    @throw SOCKET-NOT-OPEN the socket is not connected
+    @throw SOCKET-CLOSED the remote end has closed the connection
+    @throw SOCKET-RECV-ERROR there was an error receiving the data
+    @throw SOCKET-TIMEOUT the data requested was not received in the timeout period
+    @throw SOCKET-SSL-ERROR there was an SSL error while reading data from the socket
+
+    @see Socket::recvu4(), Socket::recvi4LSB(), Socket::recvu4LSB()
+ */
+int Socket::recvi4(timeout timeout_ms = -1) {
    int b;
-   int rc = s->recvi4(timeout, &b);
-   return doReadResult(rc, (int64)b, "recvi4", timeout, xsink);
+   int rc = s->recvi4(timeout_ms, &b);
+   return doReadResult(rc, (int64)b, "recvi4", timeout_ms, xsink);
 }
 
-static AbstractQoreNode *SOCKET_recvi8(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
-   // get timeout
-   int timeout = (int)HARD_QORE_INT(args, 0);
+//! Receives an 8-byte (64-bit) signed integer in big-endian format (network byte order) from the socket
+/** If any errors occur reading from the socket, an exception is raised
+
+    Example
+    @code my int $val = $sock.recvi8();@endcode
+
+    @par Events
+    @ref EVENT_PACKET_READ
+
+    @param timeout_ms the timeout in milliseconds (1/1000 second); If no timeout is passed or is negative, then the call will not time out and will not return until all the data has been read or the remote end closes the connection
+
+    @return The 8-byte signed integer in big-endian format (network byte order) read; if any errors occur reading from the socket, an exception is raised
+
+    @throw SOCKET-NOT-OPEN the socket is not connected
+    @throw SOCKET-CLOSED the remote end has closed the connection
+    @throw SOCKET-RECV-ERROR there was an error receiving the data
+    @throw SOCKET-TIMEOUT the data requested was not received in the timeout period
+    @throw SOCKET-SSL-ERROR there was an SSL error while reading data from the socket
+
+    @see Socket::recvi8LSB()
+ */
+int Socket::recvi8(timeout timeout_ms = -1) {
    int64 b;
-   int rc = s->recvi8(timeout, &b);
-   return doReadResult(rc, b, "recvi8", timeout, xsink);
+   int rc = s->recvi8(timeout_ms, &b);
+   return doReadResult(rc, b, "recvi8", timeout_ms, xsink);
 }
 
-static AbstractQoreNode *SOCKET_recvi2LSB(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
-   // get timeout
-   int timeout = (int)HARD_QORE_INT(args, 0);
+//! Receives a 2-byte (16-bit) signed integer in little-endian format from the socket
+/** If any errors occur reading from the socket, an exception is raised
+
+    Example
+    @code my int $val = $sock.recvi2LSB();@endcode
+
+    @par Events
+    @ref EVENT_PACKET_READ
+
+    @param timeout_ms the timeout in milliseconds (1/1000 second); If no timeout is passed or is negative, then the call will not time out and will not return until all the data has been read or the remote end closes the connection
+
+    @return The 2-byte signed integer in little-endian format read; if any errors occur reading from the socket, an exception is raised
+
+    @throw SOCKET-NOT-OPEN the socket is not connected
+    @throw SOCKET-CLOSED the remote end has closed the connection
+    @throw SOCKET-RECV-ERROR there was an error receiving the data
+    @throw SOCKET-TIMEOUT the data requested was not received in the timeout period
+    @throw SOCKET-SSL-ERROR there was an SSL error while reading data from the socket
+
+    @see Socket::recvi2(), Socket::recvu2(), Socket::recvu2LSB()
+ */
+int Socket::recvi2LSB(timeout timeout_ms = -1) {
    short b;
-   int rc = s->recvi2LSB(timeout, &b);
-   return doReadResult(rc, (int64)b, "recvi2LSB", timeout, xsink);
+   int rc = s->recvi2LSB(timeout_ms, &b);
+   return doReadResult(rc, (int64)b, "recvi2LSB", timeout_ms, xsink);
 }
 
-static AbstractQoreNode *SOCKET_recvi4LSB(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
-   // get timeout
-   int timeout = (int)HARD_QORE_INT(args, 0);
+//! Receives a 4-byte (32-bit) signed integer in little-endian format from the socket
+/** If any errors occur reading from the socket, an exception is raised
+
+    Example
+    @code my int $val = $sock.recvi4LSB();@endcode
+
+    @par Events
+    @ref EVENT_PACKET_READ
+
+    @param timeout_ms the timeout in milliseconds (1/1000 second); If no timeout is passed or is negative, then the call will not time out and will not return until all the data has been read or the remote end closes the connection
+
+    @return The 4-byte signed integer in little-endian format read; if any errors occur reading from the socket, an exception is raised
+
+    @throw SOCKET-NOT-OPEN the socket is not connected
+    @throw SOCKET-CLOSED the remote end has closed the connection
+    @throw SOCKET-RECV-ERROR there was an error receiving the data
+    @throw SOCKET-TIMEOUT the data requested was not received in the timeout period
+    @throw SOCKET-SSL-ERROR there was an SSL error while reading data from the socket
+
+    @see Socket::recvi4(), Socket::recvu4(), Socket::recvu4LSB()
+ */
+int Socket::recvi4LSB(timeout timeout_ms = -1) {
    int b;
-   int rc = s->recvi4LSB(timeout, &b);
-   return doReadResult(rc, (int64)b, "recvi4LSB", timeout, xsink);
+   int rc = s->recvi4LSB(timeout_ms, &b);
+   return doReadResult(rc, (int64)b, "recvi4LSB", timeout_ms, xsink);
 }
 
-static AbstractQoreNode *SOCKET_recvi8LSB(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
-   // get timeout
-   int timeout = (int)HARD_QORE_INT(args, 0);
+//! Receives an 8-byte (64-bit) signed integer in little-endian format from the socket
+/** If any errors occur reading from the socket, an exception is raised
+
+    Example
+    @code my int $val = $sock.recvi8LSB();@endcode
+
+    @par Events
+    @ref EVENT_PACKET_READ
+
+    @param timeout_ms the timeout in milliseconds (1/1000 second); If no timeout is passed or is negative, then the call will not time out and will not return until all the data has been read or the remote end closes the connection
+
+    @return The 8-byte signed integer in little-endian format read; if any errors occur reading from the socket, an exception is raised
+
+    @throw SOCKET-NOT-OPEN the socket is not connected
+    @throw SOCKET-CLOSED the remote end has closed the connection
+    @throw SOCKET-RECV-ERROR there was an error receiving the data
+    @throw SOCKET-TIMEOUT the data requested was not received in the timeout period
+    @throw SOCKET-SSL-ERROR there was an SSL error while reading data from the socket
+
+    @see Socket::recvi8()
+ */
+int Socket::recvi8LSB(timeout timeout_ms = -1) {
    int64 b;
-   int rc = s->recvi8LSB(timeout, &b);
-   return doReadResult(rc, b, "recvi8LSB", timeout, xsink);
+   int rc = s->recvi8LSB(timeout_ms, &b);
+   return doReadResult(rc, b, "recvi8LSB", timeout_ms, xsink);
 }
 
-static AbstractQoreNode *SOCKET_recvu1(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
-   // get timeout
-   int timeout = (int)HARD_QORE_INT(args, 0);   
+//! Receives a 1-byte unsigned integer from the socket
+/** If any errors occur reading from the socket, an exception is raised
+
+    Example
+    @code my int $val = $sock.recvu1();@endcode
+
+    @par Events
+    @ref EVENT_PACKET_READ
+
+    @param timeout_ms the timeout in milliseconds (1/1000 second); If no timeout is passed or is negative, then the call will not time out and will not return until all the data has been read or the remote end closes the connection
+
+    @return The 1-byte unsigned integer read; if any errors occur reading from the socket, an exception is raised
+
+    @throw SOCKET-NOT-OPEN the socket is not connected
+    @throw SOCKET-CLOSED the remote end has closed the connection
+    @throw SOCKET-RECV-ERROR there was an error receiving the data
+    @throw SOCKET-TIMEOUT the data requested was not received in the timeout period
+    @throw SOCKET-SSL-ERROR there was an SSL error while reading data from the socket
+
+    @see Socket::recvi1()
+ */
+int Socket::recvu1(timeout timeout_ms = -1) {
    unsigned char b;
-   int rc = s->recvu1(timeout, &b);
-   return doReadResult(rc, (int64)b, "recvu1", timeout, xsink);
+   int rc = s->recvu1(timeout_ms, &b);
+   return doReadResult(rc, (int64)b, "recvu1", timeout_ms, xsink);
 }
 
-static AbstractQoreNode *SOCKET_recvu2(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
-   // get timeout
-   int timeout = (int)HARD_QORE_INT(args, 0);
+//! Receives a 2-byte (16-bit) unsigned integer in big-endian format (network byte order) from the socket
+/** If any errors occur reading from the socket, an exception is raised
+
+    Example
+    @code my int $val = $sock.recvu2();@endcode
+
+    @par Events
+    @ref EVENT_PACKET_READ
+
+    @param timeout_ms the timeout in milliseconds (1/1000 second); If no timeout is passed or is negative, then the call will not time out and will not return until all the data has been read or the remote end closes the connection
+
+    @return The 2-byte unsigned integer in big-endian format (network byte order) read; if any errors occur reading from the socket, an exception is raised
+
+    @throw SOCKET-NOT-OPEN the socket is not connected
+    @throw SOCKET-CLOSED the remote end has closed the connection
+    @throw SOCKET-RECV-ERROR there was an error receiving the data
+    @throw SOCKET-TIMEOUT the data requested was not received in the timeout period
+    @throw SOCKET-SSL-ERROR there was an SSL error while reading data from the socket
+
+    @see Socket::recvi2(), Socket::recvi2LSB(), Socket::recvu2LSB()
+ */
+int Socket::recvu2(timeout timeout_ms = -1) {
    unsigned short b;
-   int rc = s->recvu2(timeout, &b);
-   return doReadResult(rc, (int64)b, "recvu2", timeout, xsink);
+   int rc = s->recvu2(timeout_ms, &b);
+   return doReadResult(rc, (int64)b, "recvu2", timeout_ms, xsink);
 }
 
-static AbstractQoreNode *SOCKET_recvu4(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
-   // get timeout
-   int timeout = (int)HARD_QORE_INT(args, 0);   
+//! Receives a 4-byte (32-bit) unsigned integer in big-endian format (network byte order) from the socket
+/** If any errors occur reading from the socket, an exception is raised
+
+    Example
+    @code my int $val = $sock.recvu4();@endcode
+
+    @par Events
+    @ref EVENT_PACKET_READ
+
+    @param timeout_ms the timeout in milliseconds (1/1000 second); If no timeout is passed or is negative, then the call will not time out and will not return until all the data has been read or the remote end closes the connection
+
+    @return The 4-byte unsigned integer in big-endian format (network byte order) read; if any errors occur reading from the socket, an exception is raised
+
+    @throw SOCKET-NOT-OPEN the socket is not connected
+    @throw SOCKET-CLOSED the remote end has closed the connection
+    @throw SOCKET-RECV-ERROR there was an error receiving the data
+    @throw SOCKET-TIMEOUT the data requested was not received in the timeout period
+    @throw SOCKET-SSL-ERROR there was an SSL error while reading data from the socket
+
+    @see Socket::recvi4(), Socket::recvi4LSB(), Socket::recvu4LSB()
+ */
+int Socket::recvu4(timeout timeout_ms = -1) {
    unsigned int b;
-   int rc = s->recvu4(timeout, &b);
-   return doReadResult(rc, (int64)b, "recvu4", timeout, xsink);
+   int rc = s->recvu4(timeout_ms, &b);
+   return doReadResult(rc, (int64)b, "recvu4", timeout_ms, xsink);
 }
 
-static AbstractQoreNode *SOCKET_recvu2LSB(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
-   // get timeout
-   int timeout = (int)HARD_QORE_INT(args, 0);
+//! Receives a 2-byte (16-bit) unsigned integer in little-endian format from the socket
+/** If any errors occur reading from the socket, an exception is raised
+
+    Example
+    @code my int $val = $sock.recvi2LSB();@endcode
+
+    @par Events
+    @ref EVENT_PACKET_READ
+
+    @param timeout_ms the timeout in milliseconds (1/1000 second); If no timeout is passed or is negative, then the call will not time out and will not return until all the data has been read or the remote end closes the connection
+
+    @return The 2-byte unsigned integer in little-endian format read; if any errors occur reading from the socket, an exception is raised
+
+    @throw SOCKET-NOT-OPEN the socket is not connected
+    @throw SOCKET-CLOSED the remote end has closed the connection
+    @throw SOCKET-RECV-ERROR there was an error receiving the data
+    @throw SOCKET-TIMEOUT the data requested was not received in the timeout period
+    @throw SOCKET-SSL-ERROR there was an SSL error while reading data from the socket
+
+    @see Socket::recvi2(), Socket::recvu2(), Socket::recvi2LSB()
+ */
+int Socket::recvu2LSB(timeout timeout_ms = -1) {
    unsigned short b;
-   int rc = s->recvu2LSB(timeout, &b);
-   return doReadResult(rc, (int64)b, "recvu2LSB", timeout, xsink);
+   int rc = s->recvu2LSB(timeout_ms, &b);
+   return doReadResult(rc, (int64)b, "recvu2LSB", timeout_ms, xsink);
 }
 
-static AbstractQoreNode *SOCKET_recvu4LSB(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
-   // get timeout
-   int timeout = (int)HARD_QORE_INT(args, 0);
-   
+//! Receives a 4-byte (32-bit) unsigned integer in little-endian format from the socket
+/** If any errors occur reading from the socket, an exception is raised
+
+    Example
+    @code my int $val = $sock.recvu4LSB();@endcode
+
+    @par Events
+    @ref EVENT_PACKET_READ
+
+    @param timeout_ms the timeout in milliseconds (1/1000 second); If no timeout is passed or is negative, then the call will not time out and will not return until all the data has been read or the remote end closes the connection
+
+    @return The 4-byte unsigned integer in little-endian format read; if any errors occur reading from the socket, an exception is raised
+
+    @throw SOCKET-NOT-OPEN the socket is not connected
+    @throw SOCKET-CLOSED the remote end has closed the connection
+    @throw SOCKET-RECV-ERROR there was an error receiving the data
+    @throw SOCKET-TIMEOUT the data requested was not received in the timeout period
+    @throw SOCKET-SSL-ERROR there was an SSL error while reading data from the socket
+
+    @see Socket::recvi4(), Socket::recvu4(), Socket::recvi4LSB()
+ */
+int Socket::recvu4LSB(timeout timeout_ms = -1) {
    unsigned b;
-   int rc = s->recvu4LSB(timeout, &b);
-   return doReadResult(rc, (int64)b, "recvu4LSB", timeout, xsink);
+   int rc = s->recvu4LSB(timeout_ms, &b);
+   return doReadResult(rc, (int64)b, "recvu4LSB", timeout_ms, xsink);
 }
 
-// int Socket::sendHTTPMessage(string $method, string $path, string $http_version, hash $headers, data $data = binary())  
+//! Sends an HTTP message with a method and user-defined headers given as a hash and an optional message body
+/** Creates a properly-formatted HTTP message and sends it over the Socket
+
+    Example
+    @code $sock.sendHTTPMessage("POST", "/RPC2", "1.1", ("Content-Type" : "text/xml"), $xml);@endcode
+
+    @par Events
+    @ref EVENT_PACKET_SENT, @ref EVENT_HTTP_SEND_MESSAGE
+
+    @param method the HTTP method name to send (i.e. POST, HEAD, etc)
+    @param path the path component of the URL
+    @param http_version the HTTP protocol version (\c "1.0" or \c "1.1")
+    @param headers a hash of additional headers to send (key-value pairs)
+    @param body if present (and does not have a length of zero), the body to be sent with the message (if present, the \c "Content-Length" header will be automatically set)
+
+    @throw SOCKET-NOT-OPEN the socket is not connected
+    @throw SOCKET-SEND-ERROR Send failed
+
+    @see Socket::sendHTTPResponse(), Socket::readHTTPHeader()
+ */
+nothing Socket::sendHTTPMessage(string method, string path, string http_version, hash headers, *string data) {
 static AbstractQoreNode *SOCKET_sendHTTPMessage(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
-   const char *method = HARD_QORE_STRING(args, 0)->getBuffer();
-   const char *path = HARD_QORE_STRING(args, 1)->getBuffer();
-   const char *http_version = HARD_QORE_STRING(args, 2)->getBuffer();
-   const QoreHashNode *headers = HARD_QORE_HASH(args, 3);
-
-   // see if there is data to send as well
-   const AbstractQoreNode *p4 = get_param(args, 4);
-   const void *ptr = 0;
-   int size = 0;
-
-   if (p4->getType() == NT_STRING) {
-      const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(p4);
-      ptr = str->getBuffer();
-      size = str->strlen();
-   }
-   else {
-      assert(p4->getType() == NT_BINARY);
-      const BinaryNode *b = reinterpret_cast<const BinaryNode *>(p4);
-      ptr = b->getPtr();
-      size = b->size();
-   }
-
+   const void *ptr = data ? data->getBuffer() : 0;
+   qore_size_t size = data ? data->strlen() : 0;
    int rc = s->sendHTTPMessage(method, path, http_version, headers, ptr, size);
+   return doSendResult(rc, "sendHTTPMessage", xsink);
+}
+
+//! Sends an HTTP message with a method and user-defined headers given as a hash and an optional message body
+/** Creates a properly-formatted HTTP message and sends it over the Socket
+
+    Example
+    @code $sock.sendHTTPMessage("POST", "/RPC2", "1.1", ("Content-Type" : "text/xml"), $xml);@endcode
+
+    @par Events
+    @ref EVENT_PACKET_SENT, @ref EVENT_HTTP_SEND_MESSAGE
+
+    @param method the HTTP method name to send (i.e. POST, HEAD, etc)
+    @param path the path component of the URL
+    @param http_version the HTTP protocol version (\c "1.0" or \c "1.1")
+    @param headers a hash of additional headers to send (key-value pairs)
+    @param body if it does not have a length of zero, the body to be sent with the message (if present, the \c "Content-Length" header will be automatically set)
+
+    @throw SOCKET-NOT-OPEN the socket is not connected
+    @throw SOCKET-SEND-ERROR Send failed
+
+    @see Socket::sendHTTPResponse(), Socket::readHTTPHeader()
+ */
+nothing Socket::sendHTTPMessage(string method, string path, string http_version, hash headers, binary data) {
+   int rc = s->sendHTTPMessage(method, path, http_version, headers, data->getPtr(), data->size());
    return doSendResult(rc, "sendHTTPMessage", xsink);
 }
 
@@ -1018,14 +1309,33 @@ static AbstractQoreNode *SOCKET_getRecvTimeout(QoreObject *self, mySocket *s, co
    return new QoreBigIntNode(s->getRecvTimeout());
 }
 
-static AbstractQoreNode *SOCKET_getCharset(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
+//! Returns the @ref character_encoding "character encoding" for the socket
+/** @return the @ref character_encoding "character encoding" for the socket
+ */
+string Socket::getEncoding() [flags=QC_CONSTANT] {
    return new QoreStringNode(s->getEncoding()->getCode());
 }
 
-static AbstractQoreNode *SOCKET_setCharset(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
-   const QoreStringNode *p0 = HARD_QORE_STRING(args, 0);
-   s->setEncoding(QEM.findCreate(p0));
-   return 0; 
+//! Sets the @ref character_encoding "character encoding" for the socket
+/** @param encoding the @ref character_encoding "character encoding" for the socket  
+ */
+nothing Socket::setEncoding(string encoding) {
+   s->setEncoding(QEM.findCreate(encoding));
+}
+
+//! Returns the @ref character_encoding "character encoding" for the socket
+/** A method synonym for Socket::getEncoding(), kept for backwards-compatibility
+    @return the @ref character_encoding "character encoding" for the socket
+ */
+string Socket::getCharset() [flags=QC_CONSTANT] {
+   return new QoreStringNode(s->getEncoding()->getCode());
+}
+//! Sets the @ref character_encoding "character encoding" for the socket
+/** A method synonym for Socket::setEncoding(), kept for backwards-compatibility
+    @param encoding The @ref character_encoding "character encoding" for the socket
+ */
+nothing Socket::setCharset(string encoding) {
+   s->setEncoding(QEM.findCreate(encoding));
 }
 
 // Socket::isDataAvailable(timeout $timeout_ms = 0)
@@ -1165,11 +1475,30 @@ static AbstractQoreNode *SOCKET_getNoDelay(QoreObject *self, mySocket *s, const 
    return get_bool_node(s->getNoDelay());
 }
 
-static AbstractQoreNode *SOCKET_getPeerInfo(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
+//! Returns a @ref socket_info_hash "hash of information" about the remote end for connected sockets
+/** If the socket is not connected, an exception is thrown
+
+    Example
+    @code my hash $h = $sock.getPeerInfo();@endcode
+
+    @return a @ref socket_info_hash "hash of information" about the local socket
+
+    @throw SOCKET-GETPEERINFO-ERROR Socket is not open or error in getpeername()
+ */
+hash Socket::getPeerInfo() {
    return s->getPeerInfo(xsink);
 }
 
-static AbstractQoreNode *SOCKET_getSocketInfo(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
+//! Returns information about the local socket as a hash
+/** If the socket is not open, an exception is thrown
+
+    Example
+    @code my hash $h = $sock.getSocketInfo();@endcode
+
+    @return a @ref socket_info_hash "hash of information" about the remote end for connected sockets
+
+ */
+hash Socket::getSocketInfo() {
    return s->getSocketInfo(xsink);
 }
 
