@@ -304,7 +304,7 @@ int Socket::bind(string str, softbool reuseaddr = False) {
    return s->bind(str->getBuffer(), reuseaddr);
 }
 
-//! Opens and binds the socket to a port on all interfaces 
+//! Opens and binds the socket to an INET port on all interfaces 
 /** If the second parameter is \c True, then the socket will set the \c SO_REUSEADDR option, which will allow the socket to be bound to a port that is not yet closed (for example, in a \c TIME_WAIT state). 
 
     If any errors occur a non-zero error code is returned.
@@ -312,10 +312,10 @@ int Socket::bind(string str, softbool reuseaddr = False) {
     Example:
     @code # bind to port 80 on all interfaces on the local system and reuse the address, check return code
 if ($sock.bind(80, True))
-    throw "BIND-ERROR", strerror(errno());@endcode
-
+    @throw "BIND-ERROR", strerror(errno());@endcode
+    
     @param port A port number to bind to on all interfaces
-    @param reuseaddr If this optional argument evaluates to \c True, the \c SO_REUSEADDR option will be set on the socket, which will allow the socket to be bound to a port that is not yet closed (for example, in a \c TIME_WAIT state); note that this only applies to IPv4 (@ref AF_INET) and IPv6 (@ref AF_INET6) sockets; this option is ignored for UNIX (@ref AF_UNIX) sockets.
+    @param reuseaddr If this optional argument evaluates to \c True, the \c SO_REUSEADDR option will be set on the socket, which will allow the socket to be bound to a port that is not yet closed (for example, in a \c TIME_WAIT state)
     
     @see Socket::bindINET() and Socket::bindUNIX()
 */
@@ -323,38 +323,83 @@ int Socket::bind(int port, softbool reuseaddr = False) {
    return s->bind(port, reuseaddr);
 }
 
-// nothing bindUNIX(string $name, softint $socktype = SOCK_STREAM, softint $protocol = 0)
-static AbstractQoreNode *SOCKET_bindUNIX(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
-   const QoreStringNode *name = HARD_QORE_STRING(args, 0);
-   int socktype = (int)HARD_QORE_INT(args, 1);
-   int prot = (int)HARD_QORE_INT(args, 2);
+//! Opens and binds the socket to the given UNIX domain socket file as given by the filename argument. If any errors occur, an exception is thrown
+/** Opens and binds the socket to the given UNIX domain socket file as given by the filename argument. Note that the socket file is automatically deleted in the destructor when a UNIX socket is closed. If any errors occur, an exception is thrown.
 
-   s->bindUNIX(name->getBuffer(), socktype, prot, xsink);
-   return 0;
+    Example
+    @code # bind to UNIX domain socket file "/tmp/socket"
+$sock.bindUNIX("/tmp/socket");@endcode
+
+    @param path The path of the UNIX domain socket to create and bind to
+    @param socktype the type of socket; see Socket Type Constants; typically \c SOCK_STREAM for TCP sockets
+    @param protocol the protocol number for the socket; use 0 for the default protocol
+
+    @throw SOCKET-BIND-ERROR Error opening socket for bind; error binding on socket
+
+    @see Socket::bind() and Socket::bindINET()
+
+    @note UNIX domain sockets are not available on native Windows ports
+ */
+nothing Socket::bindUNIX(string name, softint socktype = SOCK_STREAM, softint protocol = 0) {
+   s->bindUNIX(name->getBuffer(), socktype, protocol, xsink);
 }
 
-// nothing bindINET(*string $interface, *softstring $service, softbool $reuseaddr = False, softint $family = AF_UNSPEC, softint $socktype = SOCK_STREAM, softint $protocol = 0)
-static AbstractQoreNode *SOCKET_bindINET(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
-   const QoreStringNode *iface = test_string_param(args, 0);
-   const QoreStringNode *service = test_string_param(args, 1);
+//! Opens and binds the socket to the given IPv4 or IPv6 interface (or if no interface is given, then to all interfaces on the local system) and port (the port number will be derived from the service name if a numeric port number is not given)
+/** Opens and binds the socket to a port, interface and port (if the interface string has a format \c "host:port"), or UNIX domain socket file (if no port or service name appears in the bind string). If the second parameter is \c True, then the socket will set the \c SO_REUSEADDR option, which will allow the socket to be bound to a port that is not yet closed (for example, in a \c TIME_WAIT state).
 
-   if ((!iface || !iface->strlen())
-       && (!service || !service->strlen())) {
+    Internally, the getaddrinfo() function is used to look up bind addresses; internal bind() operations are tried in sequence for each address returned; as soon as a bind operation is successful, the method returns. If none of the addresses can be bound, then an error code is returned.
+
+    If any errors occur, an exception is thrown.
+
+    Examples
+    @code # bind to port 80 on all interfaces on the local system and reuse the address
+$sock.bindINET(NOTHING, 80, True);@endcode
+    @code # bind to interface 192.168.2.23 port 8080 and do not reuse the address
+$sock.bindINET("192.168.2.23", 8080);@endcode
+    @code # bind to localhost port 8080 with ipv6 and do not reuse the address
+$sock.bindINET("localhost", 8080, False, AF_INET6);@endcode
+    @code # bind to ipv6 host address fe80::21c:42ff:fe00:8, port 1001, reuse the address
+$sock.bindINET("fe80::21c:42ff:fe00:8", 1001, True);@endcode
+
+    @param interface the host name or IP address to bind to
+    @param service the service name (ex: "http" or port number (given as or converted to a string) to bind to
+    @param reuseaddr if this optional argument evaluates to True, the \c SO_REUSEADDR option will be set on the socket, which will allow the socket to be bound to a port that is not yet closed (for example, in a \c TIME_WAIT state)
+    @param family the address family to use to bind; see Network Address Family Constants; \c AF_UNSPEC means to try all possible addres families
+    @param socktype the type of socket; see @ref socket_type_constants; typically \c SOCK_STREAM for TCP sockets
+    @param protocol the protocol number for the socket; use 0 for the default protocol
+
+    @throw SOCKET-BIND-ERROR Both hostname and service name are empty or not set; error opening socket for bind; error binding on socket.
+    @throw QOREADDRINFO-GETINFO-ERROR error looking up either nodename or servicename (or not known)
+
+    @see Socket::bind() and Socket::bindUNIX()
+ */
+nothing bindINET(*string interface, *softstring service, softbool reuseaddr = False, softint family = AF_UNSPEC, softint socktype = SOCK_STREAM, softint protocol = 0) {
+   if ((!interface || interface->empty())
+       && (!service || service->empty())) {
       xsink->raiseException("SOCKET-BIND-ERROR", "both interace (first parameter) and service (second parameter) were either not present or empty strings; at least one of the first 2 parameters must be present for a successful call to Socket::bindINET()");
       return 0;
    }
 
-   bool reuseaddr = HARD_QORE_BOOL(args, 2);
-   int family = (int)HARD_QORE_INT(args, 3);
-   int socktype = (int)HARD_QORE_INT(args, 4);
-   int prot = (int)HARD_QORE_INT(args, 5);
-
-   s->bindINET(iface ? iface->getBuffer() : 0, service ? service->getBuffer() : 0, reuseaddr, family, socktype, prot, xsink);
+   s->bindINET(interface ? interface->getBuffer() : 0, service ? service->getBuffer() : 0, reuseaddr, family, socktype, protocol, xsink);
    return 0;
 }
 
-// Socket Socket::accept()
-static AbstractQoreNode *SOCKET_accept(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
+//! Accepts connections on a listening socket
+/** Accepts connections on a listening socket; if any errors occur, an exception is thrown.
+
+    The new Socket object returned will have the same character encoding as the current object. Once a new connection has been accepted, call Socket::getPeerInfo() to get information about the remote socket.
+
+    Example
+    @code my Socket $new_socket = $sock.accept();@endcode
+
+    @return a new Socket object is returned for the new connection
+
+    @throw SOCKET-NOT-OPEN The socket is not bound
+    @throw SOCKET-ACCEPT-ERROR Error in accepting connection
+
+    @see Socket::acceptSSL(), Socket::listen(), Socket::getPeerInfo()
+ */
+Socket Socket::accept() {
    mySocket *n = s->accept(-1, xsink);
    if (!n) {
       assert(*xsink);
@@ -372,11 +417,24 @@ static AbstractQoreNode *SOCKET_accept(QoreObject *self, mySocket *s, const Qore
    return ns;
 }
 
-// *Socket Socket::accept(timeout timeout_ms)
-// returns a new Socket object, connection source address is in $.source, hostname in $.source_host
-static AbstractQoreNode *SOCKET_accept_timeout(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
-   int timeout_ms = (int)HARD_QORE_INT(args, 0);
+//! Accepts connections on a listening socket (see Socket::listen()) accepting a timeout value with a millisecond resolution
+/** If any errors occur, an exception is thrown.
 
+    The new Socket object returned will have the same character encoding as the current object. Once a new connection has been accepted, call Socket::getPeerInfo() to get information about the remote socket.
+
+    Example
+    @code my *Socket $new_socket = $sock.accept(30s);@endcode
+
+    @param timeout_ms If a timeout value is passed and the connection takes longer to establish than the timeout, then NOTHING is returned
+
+    @return If no connection is accepted within the timeout period, then NOTHING is returned, otherwise a Socket object for the new connection is returned.
+
+    @throw SOCKET-NOT-OPEN The socket is not bound
+    @throw SOCKET-ACCEPT-ERROR Error in accepting connection 
+
+    @see Socket::acceptSSL(), Socket::listen(), Socket::getPeerInfo()
+ */
+*Socket Socket::accept(timeout timeout_ms) {
    mySocket *n = s->accept(timeout_ms, xsink);
    if (!n)
       return 0;
@@ -390,8 +448,23 @@ static AbstractQoreNode *SOCKET_accept_timeout(QoreObject *self, mySocket *s, co
    return ns;
 }
 
-// Socket Socket::acceptSSL()
-static AbstractQoreNode *SOCKET_acceptSSL(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
+//! Accepts connections on a listening socket and attempts to negotiate a TLS/SSL connection
+/** Accepts connections on a listening socket and attempts to negotiate a TLS/SSL connection; if any errors occur, an exception is thrown.
+
+    The new Socket object returned will have the same character encoding as the current object. Once a new connection has been accepted, call Socket::getPeerInfo() to get information about the remote socket.
+
+    Example
+    @code my Socket $new_socket = $sock.acceptSSL();@endcode
+
+    @return When a new connection is accepted and a TLS/SSL session has been successfully negotated, a new Socket object is returned for the new connectio
+
+    @throw SOCKET-NOT-OPEN The socket is not bound
+    @throw SOCKET-ACCEPT-ERROR Error in accepting connection
+
+    @see Socket::accept(), Socket::listen(), Socket::getPeerInfo()
+ */
+
+Socket Socket::acceptSSL() {
    mySocket *n = s->acceptSSL(-1, xsink);
    if (!n) {
       assert(*xsink);
@@ -407,13 +480,24 @@ static AbstractQoreNode *SOCKET_acceptSSL(QoreObject *self, mySocket *s, const Q
    return ns;
 }
 
-// *Socket Socket::acceptSSL(timeout timeout_ms)
-/* accepts a new connection, negotiates an SSL connection, and returns the new socket
-   the connection source string is in the "$.source" member of new object, hostname in "$.source_host"
-*/
-static AbstractQoreNode *SOCKET_acceptSSL_timeout(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
-   int timeout_ms = (int)HARD_QORE_INT(args, 0);
+//! Accepts connections on a listening socket and attempts to negotiate a TLS/SSL connection accepting a timeout value with a millisecond resolution
+/** If any errors occur, an exception is thrown.
 
+    The new Socket object returned will have the same character encoding as the current object. Once a new connection has been accepted, call Socket::getPeerInfo() to get information about the remote socket.
+
+    Example
+    @code my *Socket $new_socket = $sock.acceptSSL(30s);@endcode
+
+    @param timeout_ms If a timeout value is passed and the connection takes longer to establish than the timeout, then NOTHING is returned
+
+    @return If no connection is accepted within the timeout period, then NOTHING is returned, otherwise a Socket object for the new connection is returned.
+
+    @throw SOCKET-NOT-OPEN The socket is not bound
+    @throw SOCKET-ACCEPT-ERROR Error in accepting connection 
+
+    @see Socket::acceptSSL(), Socket::listen(), Socket::getPeerInfo()
+ */
+*Socket Socket::acceptSSL(timeout timeout_ms) {
    mySocket *n = s->acceptSSL(timeout_ms, xsink);
    if (!n)
       return 0;
@@ -427,59 +511,245 @@ static AbstractQoreNode *SOCKET_acceptSSL_timeout(QoreObject *self, mySocket *s,
    return ns;
 }
 
-static AbstractQoreNode *SOCKET_listen(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
+//! Listens for connections on a bound socket; sets the socket in a listening state
+/** Listens for new connections on a bound socket.
+
+    Example
+    @code $sock.listen();@endcode
+
+    @return Returns 0 for success, -1 for error
+
+    @throw SOCKET-NOT-OPEN The socket is not bound
+ */
+int Socket::listen() {
    return checkOpenResult(s->listen(), "listen", xsink);
 }
 
-// int Socket::send(binary $bin)  
-static AbstractQoreNode *SOCKET_send_bin(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
-   return checkOpenResult(s->send(HARD_QORE_BINARY(args, 0)), "send", xsink);
+//! Sends binary data over the socket
+/** If an error occurs, -1 will be returned; in this case check errno() for the error number.
+
+    Example
+    @code if ($sock.send($data) == -1)
+    printf("error sending data: %s\n", strerror(errno()));@endcode
+
+    @par Events
+    @ref EVENT_PACKET_SENT
+
+    @param Sends the binary data over the socket
+
+    @return 0 for success, -1 for error; in this case check errno() for the error number
+
+    @throw SOCKET-NOT-OPEN The socket is not connected
+
+    @see Socket::sendBinary()
+ */
+int Socket::send(binary bin) {
+   return checkOpenResult(s->send(bin), "send", xsink);
 }
 
-// int Socket::send(string $str)  
-static AbstractQoreNode *SOCKET_send_str(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
-   return checkOpenResult(s->send(HARD_QORE_STRING(args, 0), xsink), "send", xsink);
+//! Sends string data over the socket; string data is converted to the socket's encoding if necessary
+/** String data will be converted to the encoding set for the socket if necessary. If an error occurs, -1 will be returned; in this case check errno() for the error number.
+
+    Example
+    @code if ($sock.send($str) == -1)
+    printf("error sending data: %s\n", strerror(errno()));@endcode
+
+    @par Events
+    @ref EVENT_PACKET_SENT
+
+    @param data dends the string data over the socket without the trailing null ('\0') character; the string's encoding is converted to the socket's encoding if necessary
+
+    @return 0 for success, -1 for error; in this case check errno() for the error number
+
+    @throw SOCKET-NOT-OPEN The socket is not connected
+
+    @see Socket::sendBinary()
+ */
+int Socket::send(string str) {
+   return checkOpenResult(s->send(str, xsink), "send", xsink);
 }
 
-// int Socket::sendBinary(string $str)  
-static AbstractQoreNode *SOCKET_sendBinary_str(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
-   const QoreStringNode *str = HARD_QORE_STRING(args, 0);
-   // send without any conversions
+//! Sends string data over the socket without converting the string to the socket's encoding, but instead is sent exactly as-is
+/** If an error occurs, -1 will be returned; in this case check errno() for the error number.
+
+    Example
+    @code if ($sock.sendBinary($str) == -1)
+    printf("error sending data: %s\n", strerror(errno()));@endcode
+
+    @par Events
+    @ref EVENT_PACKET_SENT
+
+    @param data dends the string data over the socket without the trailing null ('\0') character
+
+    @return 0 for success, -1 for error; in this case check errno() for the error number
+
+    @throw SOCKET-NOT-OPEN The socket is not connected
+
+    @see Socket::send()
+ */
+int Socket::sendBinary(string str) {
    return checkOpenResult(s->send(str->getBuffer(), str->strlen()), "send", xsink);
 }
 
-static AbstractQoreNode *SOCKET_sendi1(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
-   char i = (char)HARD_QORE_INT(args, 0);
-   return checkOpenResult(s->sendi1(i), "sendi1", xsink);
+//! Sends binary data over the socket
+/** If an error occurs, -1 will be returned; in this case check errno() for the error number.
+
+    Example
+    @code if ($sock.sendBinary($data) == -1)
+    printf("error sending data: %s\n", strerror(errno()));@endcode
+
+    @par Events
+    @ref EVENT_PACKET_SENT
+
+    @param Sends the binary data over the socket
+
+    @return 0 for success, -1 for error; in this case check errno() for the error number
+
+    @throw SOCKET-NOT-OPEN The socket is not connected
+
+    @see Socket::sendBinary()
+ */
+int Socket::sendBinary(binary bin) {
+   return checkOpenResult(s->send(bin), "send", xsink);
 }
 
-static AbstractQoreNode *SOCKET_sendi2(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
-   short i = (short)HARD_QORE_INT(args, 0);
-   return checkOpenResult(s->sendi2(i), "sendi2", xsink);
+//! Sends a 1-byte integer over the socket
+/** If an error occurs, -1 will be returned; in this case check errno() for the error number
+
+    Example
+    @code if ($sock.sendi1($val) == -1)
+    printf("error sending data: %s\n", strerror(errno()));@endcode
+
+    @par Events
+    @ref EVENT_PACKET_SENT
+
+    @param i the integer to send; only the least-significant byte will be sent
+
+    @return 0 for success, -1 for error; in this case check errno() for the error number
+
+    @throw SOCKET-NOT-OPEN The socket is not connected    
+ */
+int Socket::sendi1(softint i = 0) {
+   return checkOpenResult(s->sendi1((char)i), "sendi1", xsink);
 }
 
-static AbstractQoreNode *SOCKET_sendi4(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
-   int i = (int)HARD_QORE_INT(args, 0);
-   return checkOpenResult(s->sendi4(i), "sendi4", xsink);
+//! Sends a 2-byte (16-bit) integer in big-endian format (network byte order) over the socket
+/** If an error occurs, -1 will be returned; in this case check errno() for the error number
+
+    Example
+    @code if ($sock.sendi2($val) == -1)
+    printf("error sending data: %s\n", strerror(errno()));@endcode
+
+    @par Events
+    @ref EVENT_PACKET_SENT
+
+    @param i the integer to send; only the least-significant 2 bytes will be sent
+
+    @return 0 for success, -1 for error; in this case check errno() for the error number
+
+    @throw SOCKET-NOT-OPEN The socket is not connected    
+ */
+int Socket::sendi2(softint i = 0) {
+   return checkOpenResult(s->sendi2((short)i), "sendi2", xsink);
 }
 
-static AbstractQoreNode *SOCKET_sendi8(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
-   int64 i = HARD_QORE_INT(args, 0);
+//! Sends a 4-byte (32-bit) integer in big-endian format (network byte order) over the socket
+/** If an error occurs, -1 will be returned; in this case check errno() for the error number
+
+    Example
+    @code if ($sock.sendi4($val) == -1)
+    printf("error sending data: %s\n", strerror(errno()));@endcode
+
+    @par Events
+    @ref EVENT_PACKET_SENT
+
+    @param i the integer to send; only the least-significant 4 bytes will be sent
+
+    @return 0 for success, -1 for error; in this case check errno() for the error number
+
+    @throw SOCKET-NOT-OPEN The socket is not connected    
+ */
+int Socket::sendi4(softint i = 0) {
+   return checkOpenResult(s->sendi4((int)i), "sendi4", xsink);
+}
+
+//! Sends an 8-byte (64-bit) integer in big-endian format (network byte order) over the socket
+/** If an error occurs, -1 will be returned; in this case check errno() for the error number
+
+    Example
+    @code if ($sock.sendi8($val) == -1)
+    printf("error sending data: %s\n", strerror(errno()));@endcode
+
+    @par Events
+    @ref EVENT_PACKET_SENT
+
+    @param i the integer to send
+
+    @return 0 for success, -1 for error; in this case check errno() for the error number
+
+    @throw SOCKET-NOT-OPEN The socket is not connected    
+ */
+int Socket::sendi8(softint i = 0) {
    return checkOpenResult(s->sendi8(i), "sendi8", xsink);
 }
 
-static AbstractQoreNode *SOCKET_sendi2LSB(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
-   short i = (short)HARD_QORE_INT(args, 0);
-   return checkOpenResult(s->sendi2LSB(i), "sendi2LSB", xsink);
+//! Sends a 2-byte (16-bit) integer in little-endian format over the socket
+/** If an error occurs, -1 will be returned; in this case check errno() for the error number
+
+    Example
+    @code if ($sock.sendi2LSB($val) == -1)
+    printf("error sending data: %s\n", strerror(errno()));@endcode
+
+    @par Events
+    @ref EVENT_PACKET_SENT
+
+    @param i the integer to send; only the least-significant 2 bytes will be sent
+
+    @return 0 for success, -1 for error; in this case check errno() for the error number
+
+    @throw SOCKET-NOT-OPEN The socket is not connected    
+ */
+int Socket::sendi2LSB(softint i = 0) {
+   return checkOpenResult(s->sendi2LSB((short)i), "sendi2LSB", xsink);
 }
 
-static AbstractQoreNode *SOCKET_sendi4LSB(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
-   int i = (int)HARD_QORE_INT(args, 0);
-   return checkOpenResult(s->sendi4LSB(i), "sendi4LSB", xsink);
+//! Sends a 4-byte (32-bit) integer in little-endian format over the socket
+/** If an error occurs, -1 will be returned; in this case check errno() for the error number
+
+    Example
+    @code if ($sock.sendi4LSB($val) == -1)
+    printf("error sending data: %s\n", strerror(errno()));@endcode
+
+    @par Events
+    @ref EVENT_PACKET_SENT
+
+    @param i the integer to send; only the least-significant 4 bytes will be sent
+
+    @return 0 for success, -1 for error; in this case check errno() for the error number
+
+    @throw SOCKET-NOT-OPEN The socket is not connected    
+ */
+int Socket::sendi4LSB(softint i = 0) {
+   return checkOpenResult(s->sendi4LSB((int)i), "sendi4LSB", xsink);
 }
 
-static AbstractQoreNode *SOCKET_sendi8LSB(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
-   int64 i = HARD_QORE_INT(args, 0);
+//! Sends an 8-byte (64-bit) integer in little-endian format over the socket
+/** If an error occurs, -1 will be returned; in this case check errno() for the error number
+
+    Example
+    @code if ($sock.sendi8LSB($val) == -1)
+    printf("error sending data: %s\n", strerror(errno()));@endcode
+
+    @par Events
+    @ref EVENT_PACKET_SENT
+
+    @param i the integer to send
+
+    @return 0 for success, -1 for error; in this case check errno() for the error number
+
+    @throw SOCKET-NOT-OPEN The socket is not connected    
+ */
+int Socket::sendi8LSB(softint i = 0) {
    return checkOpenResult(s->sendi8LSB(i), "sendi8LSB", xsink);
 }
 
