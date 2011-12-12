@@ -1456,13 +1456,13 @@ void StaticSystemNamespace::init() {
 
    qoreNS->addInitialNamespace(get_thread_ns());
 
-   QoreClass *SSLCert, *File, *SSLPrivKey;
+   QoreClass *File;
 
    // add system object types
    qoreNS->addSystemClass(initTimeZoneClass());
-   qoreNS->addSystemClass(SSLCert = initSSLCertificateClass());
-   qoreNS->addSystemClass(SSLPrivKey = initSSLPrivateKeyClass());
-   qoreNS->addSystemClass(initSocketClass(SSLCert, SSLPrivKey));
+   qoreNS->addSystemClass(initSSLCertificateClass());
+   qoreNS->addSystemClass(initSSLPrivateKeyClass());
+   qoreNS->addSystemClass(initSocketClass());
    qoreNS->addSystemClass(initProgramClass());
 
    qoreNS->addSystemClass(initTermIOSClass());

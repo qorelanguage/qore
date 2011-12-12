@@ -27,7 +27,7 @@
 
 #define _QORE_CLASS_SOCKET_H
 
-DLLLOCAL QoreClass *initSocketClass(QoreClass *SSLCert, QoreClass *SSLPrivKey);
+DLLLOCAL QoreClass *initSocketClass();
 DLLEXPORT extern qore_classid_t CID_SOCKET;
 DLLLOCAL extern QoreClass *QC_SOCKET;
 

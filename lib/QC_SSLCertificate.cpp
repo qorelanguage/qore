@@ -24,6 +24,7 @@
 #include <qore/intern/QC_SSLCertificate.h>
 
 qore_classid_t CID_SSLCERTIFICATE;
+QoreClass *QC_SSLCERTIFICATE;
 
 // syntax: SSLCertificate(filename|binary)
 static void SSLCERT_constructor_str(QoreObject *self, const QoreListNode *args, ExceptionSink *xsink) {
@@ -119,7 +120,7 @@ static DateTimeNode *SSLCERT_getNotAfterDate(QoreObject *self, QoreSSLCertificat
 QoreClass *initSSLCertificateClass() {
    QORE_TRACE("initSSLCertificateClass()");
 
-   QoreClass *QC_SSLCERTIFICATE = new QoreClass("SSLCertificate");
+   QC_SSLCERTIFICATE = new QoreClass("SSLCertificate");
    CID_SSLCERTIFICATE = QC_SSLCERTIFICATE->getID();
 
    // overloaded constructor

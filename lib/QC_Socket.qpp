@@ -31,9 +31,9 @@
 #include <errno.h>
 #include <string.h>
 
-static AbstractQoreNode *doReadResult(int rc, int64 val, const char *method_name, int timeout_ms, ExceptionSink *xsink) {
+static int64 doReadResult(int rc, int64 val, const char *method_name, int timeout_ms, ExceptionSink *xsink) {
    if (rc > 0)
-      return new QoreBigIntNode(val);
+      return val;
 
    QoreSocket::doException(rc, method_name, timeout_ms, xsink);
    return 0;
@@ -47,14 +47,14 @@ static AbstractQoreNode *doSendResult(int rc, const char *method_name, Exception
    return 0;
 }
 
-static AbstractQoreNode *checkOpenResult(int rc, const char *method_name, ExceptionSink *xsink) {
+static int64 checkOpenResult(int rc, const char *method_name, ExceptionSink *xsink) {
    if (*xsink)
       return 0;
    if (rc == -2) {
       xsink->raiseException("SOCKET-NOT-OPEN", "socket must be open before Socket::%s() call", method_name);
       return 0;
    }
-   return new QoreBigIntNode(rc);
+   return rc;
 }
 
 //! The Socket class allows Qore programs safe access to network sockets
@@ -103,7 +103,7 @@ static AbstractQoreNode *checkOpenResult(int rc, const char *method_name, Except
     |\c family|The network address family (see @ref network_address_family_constants)
     |\c familystr|A string describing the network address family (ex: \c "ipv4")
  */
-qclass Socket [types=SSLCert,SSLPrivKey; flags=unsetPublicMemberFlag; arg=mySocket* s; dom=NETWORK];
+qclass Socket [public_members=*string source,*string source_host; flags=unsetPublicMemberFlag; arg=mySocket* s; dom=NETWORK];
 
 //! Creates the socket object
 /** Example
@@ -236,8 +236,8 @@ $sock.connectSSL("/tmp/socket");@endcode
 
     @see Socket::connect(), Socket::connectUNIX(), Socket::connectUNIXSSL(), Socket::connectINETSSL(), and Socket::connectINET()
  */
-nothing Socket::connectSSL(string $dest, timeout $timeout_ms = -1) {
-   s->connectSSL(args->getBuffer(), timeout_ms, xsink);
+nothing Socket::connectSSL(string dest, timeout timeout_ms = -1) {
+   s->connectSSL(dest->getBuffer(), timeout_ms, xsink);
 }
 
 //! Connects to the given host and port and attempts to establish a TLS/SSL connection; accepts an optional timeout value with a millisecond resolution
@@ -788,7 +788,7 @@ int Socket::sendi8LSB(softint i = 0) {
 
     @see Socket::setEncoding()
  */
-string Socket::recv(int size = 0, timeout timeout_ms -1) {
+string Socket::recv(softint size = 0, timeout timeout_ms = -1) {
    int rc;
    QoreStringNodeHolder msg(size > 0 ? s->recv(size, timeout_ms, &rc) : s->recv(timeout_ms, &rc));
    //printd(5, "SOCKET_recv() rc=%d msglen=%d\n", rc, msg ? msg->strlen() : -1);
@@ -1154,7 +1154,8 @@ int Socket::recvu4LSB(timeout timeout_ms = -1) {
 }
 
 //! Sends an HTTP message with a method and user-defined headers given as a hash and an optional message body
-/** Creates a properly-formatted HTTP message and sends it over the Socket
+/** Creates a properly-formatted HTTP message and sends it over the Socket.
+    To send a string without converting the encoding to the Socket's encoding, convert the string to a binary object using the binary() function and use the variant of this method that takes a binary object for the data argument.
 
     Example
     @code $sock.sendHTTPMessage("POST", "/RPC2", "1.1", ("Content-Type" : "text/xml"), $xml);@endcode
@@ -1166,17 +1167,20 @@ int Socket::recvu4LSB(timeout timeout_ms = -1) {
     @param path the path component of the URL
     @param http_version the HTTP protocol version (\c "1.0" or \c "1.1")
     @param headers a hash of additional headers to send (key-value pairs)
-    @param body if present (and does not have a length of zero), the body to be sent with the message (if present, the \c "Content-Length" header will be automatically set)
+    @param body if present (and does not have a length of zero), the body to be sent with the message (if present, the \c "Content-Length" header will be automatically set); string data will be automatically converted to the Socket's encoding if necessary
 
     @throw SOCKET-NOT-OPEN the socket is not connected
+    @throw ENCODING-CONVERSION-ERROR the given string could not be converted to the socket's character encoding
     @throw SOCKET-SEND-ERROR Send failed
 
     @see Socket::sendHTTPResponse(), Socket::readHTTPHeader()
  */
 nothing Socket::sendHTTPMessage(string method, string path, string http_version, hash headers, *string data) {
-   const void *ptr = data ? data->getBuffer() : 0;
-   qore_size_t size = data ? data->strlen() : 0;
-   int rc = s->sendHTTPMessage(method, path, http_version, headers, ptr, size);
+   TempEncodingHelper tmp_data;
+   if (data && !tmp_data.set(data, s->getEncoding(), xsink))
+      return 0;
+
+   int rc = s->sendHTTPMessage(method->getBuffer(), path->getBuffer(), http_version->getBuffer(), headers, data ? tmp_data->getBuffer() : 0, data ? tmp_data->strlen() : 0);
    return doSendResult(rc, "sendHTTPMessage", xsink);
 }
 
@@ -1201,7 +1205,7 @@ nothing Socket::sendHTTPMessage(string method, string path, string http_version,
     @see Socket::sendHTTPResponse(), Socket::readHTTPHeader()
  */
 nothing Socket::sendHTTPMessage(string method, string path, string http_version, hash headers, binary data) {
-   int rc = s->sendHTTPMessage(method, path, http_version, headers, data->getPtr(), data->size());
+   int rc = s->sendHTTPMessage(method->getBuffer(), path->getBuffer(), http_version->getBuffer(), headers, data->getPtr(), data->size());
    return doSendResult(rc, "sendHTTPMessage", xsink);
 }
 
@@ -1232,8 +1236,8 @@ nothing Socket::sendHTTPResponse(softint status_code, string status_desc, string
       return 0;
    }
 
-   TempEncodingHelper tmp_data();
-   if (data && tmp_data.set(data, s->getEncoding(), xsink))
+   TempEncodingHelper tmp_data;
+   if (data && !tmp_data.set(data, s->getEncoding(), xsink))
       return 0;
 
    int rc = s->sendHTTPResponse(status_code, status_desc->getBuffer(), http_version->getBuffer(), headers, data ? tmp_data->getBuffer() : 0, data ? tmp_data->strlen() : 0);
@@ -1299,7 +1303,9 @@ any Socket::readHTTPHeader(timeout timeout_ms = -1) {
    int rc;
    // when rc = -3 it's a timeout, but rv will be NULL anyway, so we do nothing
    AbstractQoreNode *rv = s->readHTTPHeader(timeout_ms, &rc);      
-   return rc <= 0 ? QoreSocket::doException(rc, "readHTTPHeader", timeout_ms, xsink) : rv;
+   if (rc <= 0)
+      QoreSocket::doException(rc, "readHTTPHeader", timeout_ms, xsink);
+   return rv;
 }
 
 //! Reads in an HTTP message body sent in chunked transfer encoding and returns it with any footers received as a string in the \c "body" key of a hash (including footers received)
@@ -1666,7 +1672,7 @@ nothing Socket::setEventQueue() {
 
     @see @ref event_handling for more information
  */
-nothing Socket::setEventQueue(Queue[QoreQueue] queue) {
+nothing Socket::setEventQueue(Queue[Queue] queue) {
    // pass reference from QoreObject::getReferencedPrivateData() to function
    s->setEventQueue(queue, xsink);
 }

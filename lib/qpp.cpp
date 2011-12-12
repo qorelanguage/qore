@@ -360,11 +360,12 @@ protected:
    attr_t attr;
    paramlist_t params;
    ReturnType rt;
-   bool has_return;
+   unsigned line;
+   bool has_return;   
 
    void serializeCppConstructor(FILE *fp, const char *cname) const {
       serializeQoreConstructorPrototypeComment(fp, cname);
-      fprintf(fp, "static void %s_constructor(QoreObject* self, const QoreListNode* args, ExceptionSink* xsink) {\n", cname);
+      fprintf(fp, "static void %s_%s(QoreObject* self, const QoreListNode* args, ExceptionSink* xsink) {\n", cname, vname.c_str());
       fputs(code.c_str(), fp);
       fputs("\n}\n\n", fp);
    }
@@ -387,9 +388,9 @@ protected:
       fputc('\n', fp);
       serializeQoreConstructorPrototypeComment(fp, cname, 3);
 
-      fprintf(fp, "   QC_%s->setConstructorExtended(%s_constructor, %s, %s, %s", 
+      fprintf(fp, "   QC_%s->setConstructorExtended(%s_%s, %s, %s, %s", 
               UC, 
-              cname, 
+              cname, vname.c_str(),
               attr & QCA_PRIVATE ? "true" : "false",
               flags.empty() ? "QC_NO_FLAGS" : flags.c_str(),
               dom.empty() ? "QDOM_DEFAULT" : dom.c_str());
@@ -596,10 +597,11 @@ protected:
 public:
    Method(const std::string &n_name, attr_t n_attr, const paramlist_t &n_params, 
           const std::string &n_docs, const std::string &n_return_type, 
-          const std::string &n_flags, const std::string &n_dom, const std::string &n_code, unsigned vnum) : 
+          const std::string &n_flags, const std::string &n_dom, const std::string &n_code,
+          unsigned vnum, unsigned n_line) : 
       name(n_name), vname(name), docs(n_docs), return_type(n_return_type), 
       code(n_code), dom(n_dom), flags(n_flags), attr(n_attr), params(n_params), 
-      rt(RT_ANY), has_return(false) {
+      rt(RT_ANY), line(n_line), has_return(false) {
       if (return_type == "int" || return_type == "softint")
          rt = RT_INT;
       else if (return_type == "bool" || return_type == "softbool")
@@ -647,7 +649,7 @@ public:
 
       serializeQorePrototypeComment(fp, cname);
 
-      fprintf(fp, "static %s %s_%s(QoreObject* self, %s, const QoreListNode* args, ExceptionSink* xsink) {\n", getReturnType(), cname, name.c_str(), arg);
+      fprintf(fp, "static %s %s_%s(QoreObject* self, %s, const QoreListNode* args, ExceptionSink* xsink) {\n", getReturnType(), cname, vname.c_str(), arg);
       serializeArgs(fp, cname);
       fputs(code.c_str(), fp);
 
@@ -677,7 +679,7 @@ public:
 
       fprintf(fp, "   QC_%s->addMethodExtended(\"%s\", (%s)%s_%s, %s, %s, %s, %s", UC, 
               name.c_str(),
-              getMethodType(), cname, name.c_str(),
+              getMethodType(), cname, vname.c_str(),
               attr & QCA_PRIVATE ? "true" : "false",
               flags.empty() ? "QC_NO_FLAGS" : flags.c_str(),
               dom.empty() ? "QDOM_DEFAULT" : dom.c_str(), cppt.c_str());
@@ -744,10 +746,11 @@ protected:
    typedef std::map<std::string, unsigned> vmap_t;
 
    std::string name,
-      doc, 
+      doc,
       arg;
-   strlist_t deptypes, 
-      dom;              // functional domains
+   paramlist_t public_members;  // public members
+
+   strlist_t dom;       // functional domains
 
    mmap_t normal_mmap,  // normal method map
       static_mmap;      // static method map
@@ -756,7 +759,7 @@ protected:
       static_vmap;      // static variant enumation map
 
    int64 flags;
-   bool valid, 
+   bool valid,
       upm;              // unset public member flag
 
    void addElement(strlist_t &l, const std::string &str, size_t start, size_t end = std::string::npos) {
@@ -767,7 +770,7 @@ protected:
 
 public:
    ClassElement(const std::string &n_name, const strmap_t &props, const std::string &n_doc) : name(n_name), doc(n_doc), valid(true), upm(false) {
-      log(LL_INFO, "registering class '%s'\n", name.c_str());
+      log(LL_INFO, "parsing Qore class '%s'\n", name.c_str());
 
       // process properties
       for (strmap_t::const_iterator i = props.begin(), e = props.end(); i != e; ++i) {
@@ -802,8 +805,22 @@ public:
             continue;
          }
 
-         if (i->first == "types") {
-            get_string_list(deptypes, i->second);
+         if (i->first == "public_members") {
+            strlist_t pml;
+            get_string_list(pml, i->second);
+
+            for (unsigned i = 0; i < pml.size(); ++i) {
+               size_t p = pml[i].find(' ');
+               if (p == std::string::npos) {
+                  error("class '%s' has member without type: '%s'\n", name.c_str(), pml[i].c_str());
+                  valid = false;
+                  continue;
+               }
+               std::string type(pml[i], 0, p);
+               std::string name(pml[i], p + 1);
+
+               public_members.push_back(Param(type, name, "", ""));
+            }
             continue;
          }
 
@@ -835,7 +852,7 @@ public:
       return name.c_str();
    }
 
-   int addMethod(const std::string &mname, attr_t attr, const std::string &return_type, const paramlist_t &params, const strmap_t &flags, const std::string &code, const std::string &doc) {
+   int addMethod(const std::string &mname, attr_t attr, const std::string &return_type, const paramlist_t &params, const strmap_t &flags, const std::string &code, const std::string &doc, unsigned line) {
       log(LL_DETAIL, "adding method %s%s'%s'::'%s'()\n", return_type.c_str(), return_type.empty() ? "" : " ", name.c_str(), mname.c_str());
 
       std::string cf, dom;
@@ -864,7 +881,7 @@ public:
       else
          vnum = ++i->second;
 
-      Method *m = new Method(mname, attr, params, doc, return_type, cf, dom, code, vnum);
+      Method *m = new Method(mname, attr, params, doc, return_type, cf, dom, code, vnum, line);
       mmap.insert(mmap_t::value_type(mname, m));
       return 0;
    }
@@ -891,6 +908,19 @@ public:
          fprintf(fp, ", QDOM_%s", (*i).c_str());
       }
       fprintf(fp, ");\n   CID_%s = QC_%s->getID();\n", UC.c_str(), UC.c_str());
+
+      // output public members if any
+      if (!public_members.empty()) {
+         fputs("\n   // public members\n", fp);
+         for (paramlist_t::iterator i = public_members.begin(), e = public_members.end(); i != e; ++i) {
+            std::string mt;
+            get_qore_type((*i).type, mt);
+            fprintf(fp, "   QC_%s->addPublicMember(\"%s\", %s);\n", UC.c_str(), (*i).name.c_str(), mt.c_str());
+         }
+      }
+
+      if (upm)
+         fprintf(fp, "\n   QC_%s->unsetPublicMemberFlag();\n", UC.c_str());
 
       for (mmap_t::const_iterator i = normal_mmap.begin(), e = normal_mmap.end(); i != e; ++i) {
          if (i->second->serializeNormalCppBinding(fp, name.c_str(), UC.c_str())) {
@@ -1407,7 +1437,7 @@ protected:
          sc.erase(--len);
       } while (len && (sc[len - 1] == ' ' || sc[len - 1] == '\n'));
 
-      return ci->second->addMethod(mn, attr, return_type, params, flags, sc, doc);
+      return ci->second->addMethod(mn, attr, return_type, params, flags, sc, doc, sl);
    }
 
 public:

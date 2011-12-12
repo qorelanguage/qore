@@ -26,7 +26,8 @@
 #define _QORE_CLASS_SSLCERTIFICATE_H
 
 DLLEXPORT extern qore_classid_t CID_SSLCERTIFICATE;
-DLLLOCAL class QoreClass *initSSLCertificateClass();
+DLLLOCAL QoreClass *initSSLCertificateClass();
+DLLLOCAL extern QoreClass *QC_SSLCERTIFICATE;
 
 #include <qore/QoreSSLCertificate.h>
 

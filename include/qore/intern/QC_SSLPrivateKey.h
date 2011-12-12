@@ -28,6 +28,7 @@
 #include <qore/QoreSSLPrivateKey.h>
 
 DLLEXPORT extern qore_classid_t CID_SSLPRIVATEKEY;
-DLLLOCAL class QoreClass *initSSLPrivateKeyClass();
+DLLLOCAL QoreClass *initSSLPrivateKeyClass();
+DLLLOCAL extern QoreClass *QC_SSLPRIVATEKEY;
 
 #endif // _QORE_CLASS_SSLPRIVATEKEY_H

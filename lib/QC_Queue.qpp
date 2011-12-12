@@ -26,9 +26,6 @@
 #include <qore/Qore.h>
 #include <qore/intern/QC_Queue.h>
 
-qore_classid_t CID_QUEUE;
-QoreClass *QC_QUEUE;
-
 //! Queue objects provide a blocking, thread-safe message-passing object to Qore programs
 /** Queue objects can also be used as a stack
 

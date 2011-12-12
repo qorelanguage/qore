@@ -11,6 +11,8 @@ dummy:
 INCLUDES = -I$(top_srcdir)/include
 AM_YFLAGS = -d
 
+QPP=./qpp
+
 lib_LTLIBRARIES = libqore.la
 
 bin_PROGRAMS = qpp
@@ -22,13 +24,16 @@ qpp_SOURCES += getopt_long.cpp
 endif
 
 QC_Queue.cpp: QC_Queue.qpp qpp
-	qpp $<
+	$(QPP) $<
+
+QC_Socket.cpp: QC_Socket.qpp qpp
+	$(QPP) $<
 
 EXTRA_libqore_la_SOURCES = \
-	QC_Queue.qpp
+	QC_Queue.qpp QC_Socket.qpp
 
 QORE_GENERATED_SOURCES = \
-	QC_Queue.cpp
+	QC_Queue.cpp QC_Socket.cpp
 
 CLEANFILES = $(QORE_GENERATED_SOURCES)
 

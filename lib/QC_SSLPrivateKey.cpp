@@ -27,6 +27,7 @@
 #include <openssl/pem.h>
 
 qore_classid_t CID_SSLPRIVATEKEY;
+QoreClass *QC_SSLPRIVATEKEY;
 
 // SSLPrivateKey::constructor(PEM_string, passphrase)
 static void SSLPKEY_constructor_str(QoreObject *self, const QoreListNode *args, ExceptionSink *xsink) {
@@ -83,7 +84,7 @@ static QoreBigIntNode *SSLPKEY_getBitLength(QoreObject *self, QoreSSLPrivateKey 
 QoreClass *initSSLPrivateKeyClass() {
    QORE_TRACE("initSSLPrivateKeyClass()");
 
-   QoreClass *QC_SSLPRIVATEKEY = new QoreClass("SSLPrivateKey");
+   QC_SSLPRIVATEKEY = new QoreClass("SSLPrivateKey");
    CID_SSLPRIVATEKEY = QC_SSLPRIVATEKEY->getID();
 
    QC_SSLPRIVATEKEY->setConstructorExtended(SSLPKEY_constructor_str, false, QC_NO_FLAGS, QDOM_DEFAULT, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, null_string());
