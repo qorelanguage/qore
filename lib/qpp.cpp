@@ -45,6 +45,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <set>
 
 const char usage_str[] = "usage: %s [options] <input file(s)...>\n" \
    " -d, --dox-output=arg     doxygen output file name\n" \
@@ -85,6 +86,7 @@ typedef unsigned int attr_t;
 typedef std::vector<std::string> strlist_t;
 typedef std::map<std::string, std::string> strmap_t;
 typedef std::map<std::string, attr_t> amap_t;
+typedef std::set<std::string> strset_t;
 
 // code attribute map
 static amap_t amap;
@@ -95,13 +97,17 @@ static strmap_t tmap;
 // qore value to c++ value map
 static strmap_t vmap;
 
+// set of types indicating objects
+static strset_t oset;
+
 // parameter structure
 struct Param {
-   std::string type, 
-      name,
-      val;
+   std::string type,  // param type
+      name,           // param name
+      val,            // param default value
+      qore;           // param Qore class name (for objects)
 
-   Param(const std::string &t, const std::string &n, const std::string &v) : type(t), name(n), val(v) {
+   Param(const std::string &t, const std::string &n, const std::string &v, const std::string &q) : type(t), name(n), val(v), qore(q) {
    }
 };
 
@@ -192,6 +198,22 @@ static void log(LogLevel ll, const char *fmt, ...) {
    fflush(stdout);
 }
 
+void toupper(std::string &str) {
+   for (unsigned i = 0; i < str.size(); ++i)
+      str[i] = toupper(str[i]);
+}
+
+void trim(std::string &str) {
+   while (str[0] == ' ')
+      str.erase(0, 1);
+   while (true) {
+      size_t len = str.size();
+      if (!len || str[len - 1] != ' ')
+         break;
+      str.erase(len - 1);
+   }
+}
+
 static void get_string_list(strlist_t &l, const std::string &str, char separator = ',') {
    size_t start = 0;
    while (true) {
@@ -210,11 +232,26 @@ static void get_string_list(strlist_t &l, const std::string &str, char separator
 static int get_qore_type(const std::string &qt, std::string &cppt) {
    strmap_t::iterator i = tmap.find(qt);
    if (i == tmap.end()) {
-      error("could not match qore type '%s' to a c++ qoreTypeInfo constant\n", qt.c_str());
-      return -1;
+      // assume a Qore object of the given class
+      std::string qc = qt;
+      bool on = qt[0] == '*';
+      if (on)
+         qc.erase(0, 1);
+      toupper(qc);
+      qc = "QC_" + qc;
+      qc += on ? "->getOrNothingTypeInfo()" : "->getTypeInfo()";
+      log(LL_DEBUG, "registering object return type '%s': '%s'\n", qt.c_str(), qc.c_str());
+      oset.insert(qt);
+      tmap[qt] = qc;
+      cppt = tmap[qt];
    }
-   cppt = i->second;
+   else
+      cppt = i->second;
    return 0;
+}
+
+static bool is_object(const std::string &qt) {
+   return oset.find(qt) != oset.end() || tmap.find(qt) == tmap.end();
 }
 
 #define T_INT   0
@@ -226,7 +263,12 @@ static int get_val_type(const std::string &str) {
       pdec = false,    // has a decimal point
       poth = false;    // has other chars
 
-   for (size_t i = 0, e = str.size(); i != e; ++i) {
+   size_t start = 0;
+   if (str[0] == '-') {
+      start = 1;
+      pint = true;
+   }
+   for (size_t i = start, e = str.size(); i != e; ++i) {
       char c = str[i];
       if (isdigit(c))
          pint = true;
@@ -280,8 +322,8 @@ public:
    virtual ~AbstractElement() {
    }
 
-   virtual void serializeCpp(FILE *fp) const = 0;
-   virtual void serializeDox(FILE *fp) const = 0;
+   virtual int serializeCpp(FILE *fp) = 0;
+   virtual int serializeDox(FILE *fp) = 0;
 };
 
 class TextElement : public AbstractElement {
@@ -293,17 +335,21 @@ public:
       //log(LL_DEBUG, "TextElement::TextElement() str=%s", n_buf.c_str());
    }
 
-   virtual void serializeCpp(FILE *fp) const {
-      //fputs(buf.c_str(), fp);
+   virtual int serializeCpp(FILE *fp) {
+      fputs(buf.c_str(), fp);
+      return 0;
    }
 
-   virtual void serializeDox(FILE *fp) const {
+   virtual int serializeDox(FILE *fp) {
       fputs(buf.c_str(), fp);
+      return 0;
    }   
 };
 
 class Method {
 protected:
+   enum ReturnType { RT_ANY = 0, RT_INT = 1, RT_BOOL = 2, RT_OBJ = 3, RT_FLOAT = 4 };
+
    std::string name,   // method name
       vname,           // method variant name
       docs,            // method docs
@@ -313,22 +359,26 @@ protected:
       flags;           // method flags
    attr_t attr;
    paramlist_t params;
-   bool rt_int, has_return;
+   ReturnType rt;
+   bool has_return;
 
    void serializeCppConstructor(FILE *fp, const char *cname) const {
-      fprintf(fp, "static void %s_constructor(QoreObject *self, const QoreListNode *args, ExceptionSink *xsink) {\n", cname);
+      serializeQoreConstructorPrototypeComment(fp, cname);
+      fprintf(fp, "static void %s_constructor(QoreObject* self, const QoreListNode* args, ExceptionSink* xsink) {\n", cname);
       fputs(code.c_str(), fp);
       fputs("\n}\n\n", fp);
    }
 
    void serializeCppDestructor(FILE *fp, const char *cname, const char *arg) const {
-      fprintf(fp, "static void %s_destructor(QoreObject *self, %s, ExceptionSink *xsink) {\n", cname, arg);
+      serializeQoreDestructorCopyPrototypeComment(fp, cname);
+      fprintf(fp, "static void %s_destructor(QoreObject* self, %s, ExceptionSink* xsink) {\n", cname, arg);
       fputs(code.c_str(), fp);
       fputs("\n}\n\n", fp);
    }
 
    void serializeCppCopy(FILE *fp, const char *cname, const char *arg) const {
-      fprintf(fp, "static void %s_copy(QoreObject *self, QoreObject *old, %s, ExceptionSink *xsink) {\n", cname, arg);
+      serializeQoreDestructorCopyPrototypeComment(fp, cname);
+      fprintf(fp, "static void %s_copy(QoreObject* self, QoreObject* old, %s, ExceptionSink* xsink) {\n", cname, arg);
       fputs(code.c_str(), fp);
       fputs("\n}\n\n", fp);
    }
@@ -366,52 +416,87 @@ protected:
       return 0;
    }
 
-   void serializeArgs(FILE *fp) const {
+   void serializeArgs(FILE *fp, const char *cname) const {
       for (unsigned i = 0; i < params.size(); ++i) {
          const Param &p = params[i];
+
+         if (!p.qore.empty()) {
+            //log(LL_DEBUG, "found object class '%s' param name '%s'\n", p.type.c_str(), p.name.c_str());
+            //HARD_QORE_OBJ_DATA(cert, QoreSSLCertificate, args, 0, CID_SSLCERTIFICATE, "Socket::setCertificate()", "SSLCertificate", xsink);
+            std::string cid = p.type.c_str();
+            toupper(cid);
+            fprintf(fp, "   HARD_QORE_OBJ_DATA(%s, %s, args, 0, CID_%s, \"%s::%s()\", \"%s\", xsink);\n   if (*xsink)\n      return 0;\n",
+                    p.name.c_str(), p.qore.c_str(), cid.c_str(), cname, name.c_str(), p.type.c_str());
+            continue;
+         }
+
          if (p.type == "int" || p.type == "softint" || p.type == "timeout") {
             fprintf(fp, "   int64 %s = HARD_QORE_INT(args, %d);\n", p.name.c_str(), i);
-            return;
+            continue;
          }
          if (p.type == "float" || p.type == "softfloat") {
             fprintf(fp, "   double %s = HARD_QORE_FLOAT(args, %d);\n", p.name.c_str(), i);
-            return;
+            continue;
          }
          if (p.type == "bool" || p.type == "softbool") {
             fprintf(fp, "   bool %s = HARD_QORE_BOOL(args, %d);\n", p.name.c_str(), i);
-            return;
+            continue;
          }
          if (p.type == "string" || p.type == "softstring") {
             fprintf(fp, "   const QoreStringNode* %s = HARD_QORE_STRING(args, %d);\n", p.name.c_str(), i);
-            return;
+            continue;
+         }
+         if (p.type == "*string" || p.type == "*softstring") {
+            fprintf(fp, "   const QoreStringNode* %s = reinterpret_cast<const QoreStringNode*>(args->retrieve_entry(%d));\n", p.name.c_str(), i);
+            continue;
          }
          if (p.type == "date" || p.type == "softdate") {
             fprintf(fp, "   const DateTimeNode* %s = HARD_QORE_DATE(args, %d);\n", p.name.c_str(), i);
-            return;
+            continue;
+         }
+         if (p.type == "*date" || p.type == "*softdate") {
+            fprintf(fp, "   const DateTimeNode* %s = reinterpret_cast<const DateTimeNode*>(args->retrieve_entry(%d));\n", p.name.c_str(), i);
+            continue;
          }
          if (p.type == "binary") {
             fprintf(fp, "   const BinaryNode* %s = HARD_QORE_BINARY(args, %d);\n", p.name.c_str(), i);
-            return;
+            continue;
+         }
+         if (p.type == "*binary") {
+            fprintf(fp, "   const BinaryNode* %s = reinterpret_cast<const BinaryNode*>(args->retrieve_entry(%d));\n", p.name.c_str(), i);
+            continue;
          }
          if (p.type == "list" || p.type == "softlist") {
             fprintf(fp, "   const QoreListNode* %s = HARD_QORE_LIST(args, %d);\n", p.name.c_str(), i);
-            return;
+            continue;
          }
          if (p.type == "hash") {
             fprintf(fp, "   const QoreHashNode* %s = HARD_QORE_HASH(args, %d);\n", p.name.c_str(), i);
-            return;
+            continue;
+         }
+         if (p.type == "*hash") {
+            fprintf(fp, "   const QoreHashNode* %s = reinterpret_cast<const QoreHashNode*>(args->retrieve_entry(%d));\n", p.name.c_str(), i);
+            continue;
          }
          if (p.type == "reference") {
             fprintf(fp, "   const ReferenceNode* %s = HARD_QORE_REF(args, %d);\n", p.name.c_str(), i);
-            return;
+            continue;
+         }
+         if (p.type == "*reference") {
+            fprintf(fp, "   const ReferenceNode* %s = reinterpret_cast<const ReferenceNode*>(args->retrieve_entry(%d));\n", p.name.c_str(), i);
+            continue;
          }
          if (p.type == "object") {
             fprintf(fp, "   QoreObject* %s = HARD_QORE_OBJECT(args, %d);\n", p.name.c_str(), i);
-            return;
+            continue;
+         }
+         if (p.type == "*reference") {
+            fprintf(fp, "   QoreObject* %s = const_cast<QoreObject*>(reinterpret_cast<const QoreObject*>(args->retrieve_entry(%d)));\n", p.name.c_str(), i);
+            continue;
          }
          if (p.type == "any" || p.type == "data") {
             fprintf(fp, "   const AbstractQoreNode* %s = get_param(args, %d);\n", p.name.c_str(), i);
-            return;
+            continue;
          }
 
          log(LL_CRITICAL, "don't know how to handle argument type '%s' (for arg %s)\n", p.type.c_str(), p.name.c_str());
@@ -421,6 +506,8 @@ protected:
 
    void serializeQoreParams(FILE *fp) const {
       for (unsigned i = 0; i < params.size(); ++i) {
+         if (i)
+            fputs(", ", fp);
          const Param &p = params[i];
          fprintf(fp, "%s %s", p.type.c_str(), p.name.c_str());
          if (!p.val.empty())
@@ -480,13 +567,46 @@ protected:
       fputs(") {}\n", fp);
    }
 
+   const char *getReturnType() const {
+      switch (rt) {
+         case RT_OBJ:
+            return "QoreObject*";
+         case RT_INT:
+            return "int64";
+         case RT_BOOL:
+            return "bool";
+         default:
+            return "AbstractQoreNode*";
+      }
+   }
+
+   const char *getMethodType() const {
+      switch (rt) {
+         case RT_INT:
+            return "q_method_int64_t";
+         case RT_BOOL:
+            return "q_method_bool_t";
+         case RT_FLOAT:
+            return "q_method_double_t";
+         default:
+            return "q_method_t";
+      }
+   }
+
 public:
    Method(const std::string &n_name, attr_t n_attr, const paramlist_t &n_params, 
           const std::string &n_docs, const std::string &n_return_type, 
           const std::string &n_flags, const std::string &n_dom, const std::string &n_code, unsigned vnum) : 
       name(n_name), vname(name), docs(n_docs), return_type(n_return_type), 
       code(n_code), dom(n_dom), flags(n_flags), attr(n_attr), params(n_params), 
-      rt_int(return_type == "int" || return_type == "softint" ? true : false), has_return(false) {
+      rt(RT_ANY), has_return(false) {
+      if (return_type == "int" || return_type == "softint")
+         rt = RT_INT;
+      else if (return_type == "bool" || return_type == "softbool")
+         rt = RT_BOOL;
+      else if (is_object(return_type))
+         rt = RT_OBJ;
+
       // check if there is a return statement on the last line
       size_t i = code.rfind('\n');
       if (i == std::string::npos)
@@ -527,8 +647,8 @@ public:
 
       serializeQorePrototypeComment(fp, cname);
 
-      fprintf(fp, "static %s %s_%s(QoreObject *self, %s, const QoreListNode *args, ExceptionSink *xsink) {\n", rt_int ? "int64" : "AbstractQoreNode*", cname, name.c_str(), arg);
-      serializeArgs(fp);
+      fprintf(fp, "static %s %s_%s(QoreObject* self, %s, const QoreListNode* args, ExceptionSink* xsink) {\n", getReturnType(), cname, name.c_str(), arg);
+      serializeArgs(fp, cname);
       fputs(code.c_str(), fp);
 
       if (!has_return)
@@ -555,9 +675,9 @@ public:
       if (get_qore_type(return_type, cppt))
          return -1;
 
-      fprintf(fp, "   QC_%s->addMethodExtended(\"%s\", (q_method%s_t)%s_%s, %s, %s, %s, %s", UC, 
+      fprintf(fp, "   QC_%s->addMethodExtended(\"%s\", (%s)%s_%s, %s, %s, %s, %s", UC, 
               name.c_str(),
-              rt_int ? "_int64" : "", cname, name.c_str(),
+              getMethodType(), cname, name.c_str(),
               attr & QCA_PRIVATE ? "true" : "false",
               flags.empty() ? "QC_NO_FLAGS" : flags.c_str(),
               dom.empty() ? "QDOM_DEFAULT" : dom.c_str(), cppt.c_str());
@@ -575,8 +695,8 @@ public:
 
       serializeQorePrototypeComment(fp, cname);
 
-      fprintf(fp, "static %s static_%s_%s(const QoreListNode *args, ExceptionSink *xsink) {\n", rt_int ? "int64" : "AbstractQoreNode*", cname, vname.c_str());
-      serializeArgs(fp);
+      fprintf(fp, "static %s static_%s_%s(const QoreListNode* args, ExceptionSink* xsink) {\n", getReturnType(), cname, vname.c_str());
+      serializeArgs(fp, cname);
       fputs(code.c_str(), fp);
 
       if (!has_return)
@@ -611,26 +731,11 @@ public:
       return 0;
    }
 
-   virtual void serializeDox(FILE *fp) const {
+   virtual int serializeDox(FILE *fp) {
       assert(false);
+      return 0;
    }
 };
-
-void toupper(std::string &str) {
-   for (unsigned i = 0; i < str.size(); ++i)
-      str[i] = toupper(str[i]);
-}
-
-void trim(std::string &str) {
-   while (str[0] == ' ')
-      str.erase(0, 1);
-   while (true) {
-      size_t len = str.size();
-      if (!len || str[len - 1] != ' ')
-         break;
-      str.erase(len - 1);
-   }
-}
 
 class ClassElement : public AbstractElement {
 protected:
@@ -764,7 +869,7 @@ public:
       return 0;
    }
 
-   virtual void serializeCpp(FILE *fp) const {
+   virtual int serializeCpp(FILE *fp) {
       fprintf(fp, "/* Qore class %s */\n\n", name.c_str());
 
       std::string UC;
@@ -788,18 +893,28 @@ public:
       fprintf(fp, ");\n   CID_%s = QC_%s->getID();\n", UC.c_str(), UC.c_str());
 
       for (mmap_t::const_iterator i = normal_mmap.begin(), e = normal_mmap.end(); i != e; ++i) {
-         i->second->serializeNormalCppBinding(fp, name.c_str(), UC.c_str());
+         if (i->second->serializeNormalCppBinding(fp, name.c_str(), UC.c_str())) {
+            error("error processing bindings for %s::%s()\n", name.c_str(), i->second->getName());
+            valid = false;
+            return -1;
+         }
       }
 
       for (mmap_t::const_iterator i = static_mmap.begin(), e = static_mmap.end(); i != e; ++i) {
-         i->second->serializeStaticCppBinding(fp, name.c_str(), UC.c_str());
+         if (i->second->serializeStaticCppBinding(fp, name.c_str(), UC.c_str())) {
+            error("error processing bindings for static method %s::%s()\n", name.c_str(), i->second->getName());
+            valid = false;
+            return -1;
+         }
       }
 
       fprintf(fp, "\n   return QC_%s;\n}\n", UC.c_str());
+      return 0;
    }
 
-   virtual void serializeDox(FILE *fp) const {
+   virtual int serializeDox(FILE *fp) {
       assert(false);
+      return 0;
    }   
 };
 
@@ -882,9 +997,15 @@ protected:
       unsigned bc = 1;
 
       bool backquote = false;
-      
+      bool line_comment = false;
+      // current character
+      int c = 0;
+      // last character read
+      int last;
+
       while (true) {
-         int c = fgetc(fp);
+         last = c;
+         c = fgetc(fp);
          if (c == EOF) {
             error("%s: premature EOF on line %d\n", fileName, lineNumber);
             return -1;
@@ -899,10 +1020,20 @@ protected:
 
          if (c == '\n') {
             ++lineNumber;
+            line_comment = false;
+            continue;
+         }
+         
+         if (line_comment)
+            continue;
+
+         if (c == '/' && last == '/') {
+            line_comment = true;
             continue;
          }
 
          if (c == '"' || c == '\'') {
+            log(LL_DEBUG, "found %c on line %d (quote: %c %d)\n", c, lineNumber, quote ? quote : 'x', quote);
             if (quote == c)
                quote = 0;
             else if (!quote)
@@ -917,11 +1048,13 @@ protected:
          }
 
          if (c == '{') {
+            log(LL_DEBUG, "found '{' on line %d (bc: %d)\n", lineNumber, bc);
             ++bc;
             continue;
          }
 
          if (c == '}') {
+            log(LL_DEBUG, "found '}' on line %d (bc: %d)\n", lineNumber, bc);
             if (!--bc)
                break;
          }
@@ -1090,8 +1223,9 @@ protected:
    }
 
    int parseMethod(std::string &sc, FILE *fp, std::string &doc) {
+      unsigned sl = lineNumber;
       if (readUntilClose(sc, fp)) {
-         error("%s:%d: premature EOF reading method definition\n", fileName, lineNumber);
+         error("%s:%d: premature EOF reading method definition starting on line %d\n", fileName, lineNumber, sl);
          return -1;
       }
 
@@ -1237,8 +1371,22 @@ protected:
                   trim(param);
                }
 
+               std::string qore;
+
+               // see if there's a Qore class name
+               if (type[type.size() - 1] == ']') {
+                  i = type.find('[');
+                  if (i == std::string::npos) {
+                     error("%s:%d: %s::%s(): cannot find open square bracket '[' in type name '%s' in parameter '%s'\n", fileName, lineNumber, cn.c_str(), mn.c_str(), type.c_str(), param.c_str());
+                     return -1;
+                  }
+                  type.erase(type.size() - 1);
+                  qore = type.c_str() + i + 1;
+                  type.erase(i);                  
+               }
+
                log(LL_DEBUG, "+ %s::%s() param %d type '%s' name '%s' default value '%s'\n", cn.c_str(), mn.c_str(), xi, type.c_str(), param.c_str(), val.c_str());
-               params.push_back(Param(type, param, val));
+               params.push_back(Param(type, param, val, qore));
             }
          }
       }
@@ -1296,28 +1444,36 @@ public:
 	 delete *i;
    }
 
-   int serializeCpp() const {
+   int serializeCpp() {
       FILE *fp = fopen(cppFileName.c_str(), cpp_open_flag);
       if (!fp) {
 	 error("%s: %s\n", cppFileName.c_str(), strerror(errno));
          return -1;
       }
 
-      for (source_t::const_iterator i = source.begin(), e = source.end(); i != e; ++i)
-	 (*i)->serializeCpp(fp);
+      for (source_t::const_iterator i = source.begin(), e = source.end(); i != e; ++i) {
+	 if ((*i)->serializeCpp(fp)) {
+            valid = false;
+            return -1;
+         }
+      }
 
       return 0;
    }
 
-   int serializeDox() const {
+   int serializeDox() {
       FILE *fp = fopen(doxFileName.c_str(), dox_open_flag);
       if (!fp) {
 	 error("%s: %s\n", doxFileName.c_str(), strerror(errno));
          return -1;
       }
 
-      for (source_t::const_iterator i = source.begin(), e = source.end(); i != e; ++i)
-	 (*i)->serializeDox(fp);
+      for (source_t::const_iterator i = source.begin(), e = source.end(); i != e; ++i) {
+         if ((*i)->serializeDox(fp)) {
+            valid = false;
+            return -1;
+         }
+      }
 
       return 0;
    }
@@ -1388,6 +1544,8 @@ void init() {
    vmap["0.0"] = "zero_float()";
    vmap["binary()"] = "new BinaryNode";
    vmap["QCS_DEFAULT->getCode()"] = "QCS_DEFAULT->getCode()";
+   vmap["True"] = "&True";
+   vmap["False"] = "&False";
 }
 
 void usage() {

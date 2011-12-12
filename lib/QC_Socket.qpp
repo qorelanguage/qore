@@ -31,9 +31,6 @@
 #include <errno.h>
 #include <string.h>
 
-qore_classid_t CID_SOCKET;
-QoreClass *QC_SOCKET;
-
 static AbstractQoreNode *doReadResult(int rc, int64 val, const char *method_name, int timeout_ms, ExceptionSink *xsink) {
    if (rc > 0)
       return new QoreBigIntNode(val);
@@ -109,11 +106,17 @@ static AbstractQoreNode *checkOpenResult(int rc, const char *method_name, Except
 qclass Socket [types=SSLCert,SSLPrivKey; flags=unsetPublicMemberFlag; arg=mySocket* s; dom=NETWORK];
 
 //! Creates the socket object
+/** Example
+    @code my Socket $sock();@endcode
+ */
 Socket::constructor() {
    self->setPrivate(CID_SOCKET, new mySocket);
 }
 
 //! Creates a new Socket object, not based on the source being copied
+/** Example
+    @code my Socket $newsock = $sock.copy();@endcode
+ */
 Socket::copy() {
    self->setPrivate(CID_SOCKET, new mySocket);
 }
@@ -384,7 +387,7 @@ $sock.bindINET("fe80::21c:42ff:fe00:8", 1001, True);@endcode
 
     @see Socket::bind() and Socket::bindUNIX()
  */
-nothing bindINET(*string interface, *softstring service, softbool reuseaddr = False, softint family = AF_UNSPEC, softint socktype = SOCK_STREAM, softint protocol = 0) {
+nothing Socket::bindINET(*string interface, *softstring service, softbool reuseaddr = False, softint family = AF_UNSPEC, softint socktype = SOCK_STREAM, softint protocol = 0) {
    if ((!interface || interface->empty())
        && (!service || service->empty())) {
       xsink->raiseException("SOCKET-BIND-ERROR", "both interace (first parameter) and service (second parameter) were either not present or empty strings; at least one of the first 2 parameters must be present for a successful call to Socket::bindINET()");
@@ -474,7 +477,6 @@ Socket Socket::accept() {
 
     @see Socket::accept(), Socket::listen(), Socket::getPeerInfo()
  */
-
 Socket Socket::acceptSSL() {
    mySocket *n = s->acceptSSL(-1, xsink);
    if (!n) {
@@ -1172,7 +1174,6 @@ int Socket::recvu4LSB(timeout timeout_ms = -1) {
     @see Socket::sendHTTPResponse(), Socket::readHTTPHeader()
  */
 nothing Socket::sendHTTPMessage(string method, string path, string http_version, hash headers, *string data) {
-static AbstractQoreNode *SOCKET_sendHTTPMessage(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
    const void *ptr = data ? data->getBuffer() : 0;
    qore_size_t size = data ? data->strlen() : 0;
    int rc = s->sendHTTPMessage(method, path, http_version, headers, ptr, size);
@@ -1204,109 +1205,256 @@ nothing Socket::sendHTTPMessage(string method, string path, string http_version,
    return doSendResult(rc, "sendHTTPMessage", xsink);
 }
 
-// nothing Socket::sendHTTPResponse(softint $status_code, string $desc, string $http_version, hash $headers, data $data = binary())  
-static AbstractQoreNode *SOCKET_sendHTTPResponse(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
-   int status_code = (int)HARD_QORE_INT(args, 0);
+//! Sends an HTTP response with user-defined headers given as a hash and an optional message body
+/** Creates a properly-formatted HTTP response message and sends it over the Socket (must already be connected).  If any errors occur, an exception is raised.
+    To send a string without converting the encoding to the Socket's encoding, convert the string to a binary object using the binary() function and use the variant of this method that takes a binary object for the data argument.
 
+    Example
+    @code $sock.sendHTTPResponse(200, "OK", "1.1", ("Connection":"Keep-Alive"));@endcode
+
+    @par Events
+    @ref EVENT_PACKET_SENT, @ref EVENT_HTTP_SEND_MESSAGE
+
+    @param status_code the HTTP status code to send (i.e. \c 200, \c 404, etc)
+    @param status_desc the descriptive text for the status code.
+    @param http_version the HTTP protocol version (normally \c "1.0" or \c "1.1", however this method allows any string to be sent)
+    @param headers a hash of additional headers to send (key-value pairs)
+    @param body if present (and does not have a length of zero), the body to be sent with the message (if present, the \c "Content-Length" header will be automatically set); string data will be automatically converted to the Socket's encoding if necessary
+
+    @throw SOCKET-SENDHTTPRESPONSE-STATUS-ERROR raised if the status_code (first argument) is < 100 or > 599
+    @throw ENCODING-CONVERSION-ERROR the given string could not be converted to the socket's character encoding
+    @throw SOCKET-NOT-OPEN the socket is not connected
+    @throw SOCKET-SEND-ERROR send failed
+ */
+nothing Socket::sendHTTPResponse(softint status_code, string status_desc, string http_version, hash headers, *string data) {
    if (status_code < 100 || status_code >= 600) {
-      xsink->raiseException("SOCKET-SENDHTTPRESPONSE-PARAMETER-ERROR", "expecting valid HTTP status code between 100 and 599 as first parameter of Socket::sendHTTPResponse() call, got value %d instead", status_code);
+      xsink->raiseException("SOCKET-SENDHTTPRESPONSE-STATUS-ERROR", "expecting valid HTTP status code between 100 and 599 as first parameter of Socket::sendHTTPResponse() call, got value %d instead", status_code);
       return 0;
    }
 
-   const char *status_desc = HARD_QORE_STRING(args, 1)->getBuffer();
-   const char *http_version = HARD_QORE_STRING(args, 2)->getBuffer();
-   const QoreHashNode *headers = HARD_QORE_HASH(args, 3);
+   TempEncodingHelper tmp_data();
+   if (data && tmp_data.set(data, s->getEncoding(), xsink))
+      return 0;
 
-   // see if there is data to send as well
-   const AbstractQoreNode *p4 = get_param(args, 4);
-   const void *ptr = 0;
-   int size = 0;
-
-   if (p4->getType() == NT_STRING) {
-      const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(p4);
-      ptr = str->getBuffer();
-      size = str->strlen();
-   }
-   else {
-      assert(p4->getType() == NT_BINARY);
-      const BinaryNode *b = reinterpret_cast<const BinaryNode *>(p4);
-      ptr = b->getPtr();
-      size = b->size();
-   }
-
-   int rc = s->sendHTTPResponse(status_code, status_desc, http_version, headers, ptr, size);
+   int rc = s->sendHTTPResponse(status_code, status_desc->getBuffer(), http_version->getBuffer(), headers, data ? tmp_data->getBuffer() : 0, data ? tmp_data->strlen() : 0);
    return doSendResult(rc, "sendHTTPResponse", xsink);
 }
 
-// string Socket::readHTTPHeader(timeout $timeout_ms = -1)  |hash
-static AbstractQoreNode *SOCKET_readHTTPHeader(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
-   int timeout = (int)HARD_QORE_INT(args, 0);
+//! Sends an HTTP response with user-defined headers given as a hash and a message body as literal binary data
+/** Creates a properly-formatted HTTP response message and sends it over the Socket (must already be connected).  If any errors occur, an exception is raised.
+
+    Example
+    @code $sock.sendHTTPResponse(200, "OK", "1.1", ("Connection":"Keep-Alive"), $bin);@endcode
+
+    @par Events
+    @ref EVENT_PACKET_SENT, @ref EVENT_HTTP_SEND_MESSAGE
+
+    @param status_code the HTTP status code to send (i.e. \c 200, \c 404, etc)
+    @param status_desc the descriptive text for the status code.
+    @param http_version the HTTP protocol version (normally \c "1.0" or \c "1.1", however this method allows any string to be sent)
+    @param headers a hash of additional headers to send (key-value pairs)
+    @param body if the binary object given does not have a length of zero, the body to be sent with the message (if present, the \c "Content-Length" header will be automatically set)
+
+    @throw SOCKET-SENDHTTPRESPONSE-STATUS-ERROR raised if the status_code (first argument) is < 100 or > 599
+    @throw SOCKET-NOT-OPEN the socket is not connected
+    @throw SOCKET-SEND-ERROR send failed
+ */
+nothing Socket::sendHTTPResponse(softint status_code, string status_desc, string http_version, hash headers, binary data) {
+   if (status_code < 100 || status_code >= 600) {
+      xsink->raiseException("SOCKET-SENDHTTPRESPONSE-STATUS-ERROR", "expecting valid HTTP status code between 100 and 599 as first parameter of Socket::sendHTTPResponse() call, got value %d instead", status_code);
+      return 0;
+   }
+
+   int rc = s->sendHTTPResponse(status_code, status_desc->getBuffer(), http_version->getBuffer(), headers, data ? data->getPtr() : 0, data ? data->size() : 0);
+   return doSendResult(rc, "sendHTTPResponse", xsink);
+}
+
+//! Retuns a hash representing the data in the HTTP header read, or, if the data cannot be parsed as an HTTP header, the data read is returned as a string
+/** If any errors occur reading from the socket, an exception is raised. Accepts an optional timeout value in milliseconds.
+
+    Example
+    @code my any $ans = $sock.readHTTPHeader(10s);
+if ($ans.typeCode() == NT_STRING)
+    throw "HTTP-ERROR", sprintf("could not parse HTTP header received: %y", $ans);@endcode
+
+    @par Events
+    @ref EVENT_PACKET_READ, @ref EVENT_HTTP_MESSAGE_RECEIVED
+
+    @param timeout_ms The timeout in milliseconds (1/1000 second). If no timeout or if a negative timeout is passed, then the call will not time out and will not return until all the data has been read or the remote end closes the connection.  If a timeout occurs, a \c "SOCKET-TIMEOUT" exception is raised.
+
+    @return either a string (indicating that the header could not be parsed), or, in the usual case, a hash of headers (where each header key is converted to lower-case) also including the following keys giving additional information about the HTTP header received:
+    - \c http_version: a string giving the HTTP version set in the header
+    - \c status_code: (HTTP responses only) an integer giving the status code
+    - \c status_message: (HTTP responses only) if present in an HTTP response, this key will be set to the message after the status code
+    - \c method: (HTTP requests only) a string giving the HTTP method (i.e. \c "GET", \c "POST", etc)
+    - \c path: (HTTP requests only) a string giving the path in a request without any decoding; use decode_url() to decode if necessary
+
+    @throw SOCKET-NOT-OPEN The socket is not connected
+    @throw SOCKET-CLOSED The remote end has closed the connection
+    @throw SOCKET-RECV-ERROR There was an error receiving the data
+    @throw SOCKET-TIMEOUT The data requested was not received in the timeout period
+    @throw SOCKET-SSL-ERROR There was an SSL error while reading data from the socket
+ */
+any Socket::readHTTPHeader(timeout timeout_ms = -1) {
    int rc;
-
    // when rc = -3 it's a timeout, but rv will be NULL anyway, so we do nothing
-   AbstractQoreNode *rv = s->readHTTPHeader(timeout, &rc);
-      
-   if (rc <= 0)
-      QoreSocket::doException(rc, "readHTTPHeader", timeout, xsink);
-
-   return rv;
+   AbstractQoreNode *rv = s->readHTTPHeader(timeout_ms, &rc);      
+   return rc <= 0 ? QoreSocket::doException(rc, "readHTTPHeader", timeout_ms, xsink) : rv;
 }
 
-// hash Socket::readHTTPChunkedBody(timeout $timeout_ms = -1)  
-static AbstractQoreNode *SOCKET_readHTTPChunkedBody(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
-   int timeout = (int)HARD_QORE_INT(args, 0);
+//! Reads in an HTTP message body sent in chunked transfer encoding and returns it with any footers received as a string in the \c "body" key of a hash (including footers received)
+/** If any errors are encountered, an exception is raised
 
+    @par Events
+    @ref EVENT_HTTP_CHUNK_SIZE, @ref EVENT_HTTP_FOOTERS_RECEIVED
+
+    @param timeout_ms The timeout in milliseconds (1/1000 second). If no timeout or if a negative timeout is passed, then the call will not time out and will not return until all the data has been read or the remote end closes the connection.  If a timeout occurs, a \c "SOCKET-TIMEOUT" exception is raised.
+
+    @return a hash of any HTTP footers received (with footer keys converted to lower case), with the body returned in the \c "body" key as a string in the Socket's encoding
+
+    @throw SOCKET-NOT-OPEN The socket is not connected
+    @throw SOCKET-CLOSED The remote end has closed the connection
+    @throw SOCKET-RECV-ERROR There was an error receiving the data
+    @throw SOCKET-TIMEOUT The data requested was not received in the timeout period
+    @throw SOCKET-SSL-ERROR There was an SSL error while reading data from the socket
+    @throw READ-HTTP-CHUNK-ERROR negative value given for chunk size by server
+ */
+hash Socket::readHTTPChunkedBody(timeout timeout_ms = -1) {
    // when rc = -3 it's a timeout, but rv will be NULL anyway, so we do nothing
-   return s->readHTTPChunkedBody(timeout, xsink);
+   return s->readHTTPChunkedBody(timeout_ms, xsink);
 }
 
-// hash Socket::readHTTPChunkedBodyBinary(timeout $timeout_ms = -1)  
-static AbstractQoreNode *SOCKET_readHTTPChunkedBodyBinary(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
-   int timeout = (int)HARD_QORE_INT(args, 0);
+//! Reads in an HTTP message body sent in chunked transfer encoding and returns it with any footers received as a binary object in the \c "body" key of a hash (including footers received)
+/** If any errors are encountered, an exception is raised
 
+    @par Events
+    @ref EVENT_HTTP_CHUNK_SIZE, @ref EVENT_HTTP_FOOTERS_RECEIVED
+
+    @param timeout_ms The timeout in milliseconds (1/1000 second). If no timeout or if a negative timeout is passed, then the call will not time out and will not return until all the data has been read or the remote end closes the connection.  If a timeout occurs, a \c "SOCKET-TIMEOUT" exception is raised.
+
+    @return a hash of any HTTP footers received (with footer keys converted to lower case), with the body returned in the \c "body" key as a binary object
+
+    @throw SOCKET-NOT-OPEN The socket is not connected
+    @throw SOCKET-CLOSED The remote end has closed the connection
+    @throw SOCKET-RECV-ERROR There was an error receiving the data
+    @throw SOCKET-TIMEOUT The data requested was not received in the timeout period
+    @throw SOCKET-SSL-ERROR There was an SSL error while reading data from the socket
+    @throw READ-HTTP-CHUNK-ERROR negative value given for chunk size by server
+ */
+hash Socket::readHTTPChunkedBodyBinary(timeout timeout_ms = -1) {
    // when rc = -3 it's a timeout, but rv will be NULL anyway, so we do nothing
-   return s->readHTTPChunkedBodyBinary(timeout, xsink);
+   return s->readHTTPChunkedBodyBinary(timeout_ms, xsink);
 }
 
-static AbstractQoreNode *SOCKET_close(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
-   return new QoreBigIntNode(s->close());
+//! Closes an open socket
+/** Also deletes the UNIX domain socket file if it was created by a call to Socket::bind(). Returns 0 for success, -1 for error; in this case check errno() for the error number
+
+    Example
+    @code if ($sock.close())
+    stderr.printf("Error closing socket: %s\n", strerror(errno()));@endcode
+
+    @par Events
+    @ref EVENT_CHANNEL_CLOSED
+
+    @return 0 for success, -1 for error; in this case check errno() for the error number
+ */
+int Socket::close() {
+   return s->close();
 }
 
-static AbstractQoreNode *SOCKET_shutdown(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
-   return new QoreBigIntNode(s->shutdown());
+//! Ensures that a socket will be closed even if the file descriptor is shared with other processes (for example, after a call to fork())
+/** Does not throw any exceptions; returns an error code in case of an error
+
+    Example
+    @code if ($sock.shutdown())
+    stderr.printf("Error calling Socket::shutdown(): %s\n", strerror(errno()));@endcode
+
+    @return 0 for success, -1 for error; in this case check errno() for the error number
+ */
+int Socket::shutdown() {
+   return s->shutdown();
 }
 
-static AbstractQoreNode *SOCKET_shutdownSSL(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
+//! Shuts down the SSL connection on a secure connection
+/** If any errors occur, an exception is raised
+
+    Example
+    @code $sock.shutdownSSL();@endcode
+
+    @throw SOCKET-SSL-ERROR an error occurred shutting down the TLS/SSL connection
+ */
+nothing Socket::shutdownSSL() {
    s->shutdownSSL(xsink);
-   return 0;
 }
 
-static AbstractQoreNode *SOCKET_getPort(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
-   return new QoreBigIntNode(s->getPort());
+//! Returns the port number of the socket for INET sockets
+/** Example
+    @code my int $port = $sock.getPort();@endcode
+
+    @return the port number for an INET connection, -1 if no INET connection has been established
+ */
+int Socket::getPort() [flags=QC_CONSTANT] {
+   return s->getPort();
 }
 
-static AbstractQoreNode *SOCKET_getSocket(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
-   return new QoreBigIntNode(s->getSocket());
+//! Returns the socket file descriptor number
+/** Example
+    @code my int $sock = $sock.getSocket();@endcode
+
+    @return the socket file descriptor number or -1 if the socket is not open
+ */
+int Socket::getSocket() [flags=QC_CONSTANT] {
+   return s->getSocket();
 }
 
-// int Socket::setSendTimeout(timeout $timeout_ms)  
-static AbstractQoreNode *SOCKET_setSendTimeout_int(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
-   int timeout_ms = (int)HARD_QORE_INT(args, 0);
-   return new QoreBigIntNode(s->setSendTimeout(timeout_ms));
+//! sets the send timeout as a socket option
+/** Returns 0 for success, -1 for error (check errno() for the actual error in this case)
+
+    Example
+    @code if ($sock.setSendTimeout(20s))
+    printf("error setting timeout on socket: %s\n", strerror(errno()));@endcode
+
+    @param timeout_ms the send timeout to set with a resolution of milliseconds
+
+    @return 0 for success, -1 for error (check errno() for the actual error in this case)
+ */
+int Socket::setSendTimeout(timeout timeout_ms) {
+   return s->setSendTimeout(timeout_ms);
 }
 
-// int Socket::setRecvTimeout(timeout $timeout_ms)  
-static AbstractQoreNode *SOCKET_setRecvTimeout_int(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
-   int timeout_ms = (int)HARD_QORE_INT(args, 0);
-   return new QoreBigIntNode(s->setRecvTimeout(timeout_ms));
+//! sets the receive timeout as a socket option
+/** Returns 0 for success, -1 for error (check errno() for the actual error in this case)
+
+    Example
+    @code if ($sock.setRecvTimeout(20s))
+    printf("error setting timeout on socket: %s\n", strerror(errno()));@endcode
+
+    @param timeout_ms the receive timeout to set with a resolution of milliseconds
+
+    @return 0 for success, -1 for error (check errno() for the actual error in this case)
+ */
+int Socket::setRecvTimeout(timeout timeout_ms) {
+   return s->setRecvTimeout(timeout_ms);
 }
 
-static AbstractQoreNode *SOCKET_getSendTimeout(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
-   return new QoreBigIntNode(s->getSendTimeout());
+//! Returns the send timeout socket option value as an integer in milliseconds
+/** Example
+    @code my int $to = $sock.getSendTimeout();@endcode
+
+    @return the send timeout socket option value as an integer in milliseconds
+ */
+int Socket::getSendTimeout() [flags=QC_CONSTANT] {
+   return s->getSendTimeout();
 }
 
-static AbstractQoreNode *SOCKET_getRecvTimeout(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
-   return new QoreBigIntNode(s->getRecvTimeout());
+//! Returns the receive timeout socket option value as an integer in milliseconds
+/** Example
+    @code my int $to = $sock.getRecvTimeout();@endcode
+
+    @return the receive timeout socket option value as an integer in milliseconds
+ */
+int Socket::getRecvTimeout() [flags=QC_CONSTANT] {
+   return s->getRecvTimeout();
 }
 
 //! Returns the @ref character_encoding "character encoding" for the socket
@@ -1338,141 +1486,222 @@ nothing Socket::setCharset(string encoding) {
    s->setEncoding(QEM.findCreate(encoding));
 }
 
-// Socket::isDataAvailable(timeout $timeout_ms = 0)
-static AbstractQoreNode *SOCKET_isDataAvailable(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
-   return get_bool_node(s->isDataAvailable((int)HARD_QORE_INT(args, 0)));
+//! Returns \c True or \c False depending on whether there is data to be read on the socket
+/** With a timeout of zero this method returns immediately and can be used for non-blocking polling the socket for data (can also be used to poll for new connections before Socket::accept()).
+
+    Example
+    @code my bool $b = $sock.isDataAvailable();@endcode
+
+    @param timeout_ms an optional timeout in milliseconds (1/1000 second); if no timeout is given, the method returns immediately
+
+    @return \c True if data is available on the Socket within the timeout period, \c False if not
+ */
+bool Socket::isDataAvailable(timeout timeout_ms = 0) {
+   return s->isDataAvailable((int)timeout_ms);
 }
 
-static AbstractQoreNode *SOCKET_isWriteFinished(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
-   return get_bool_node(s->isWriteFinished((int)HARD_QORE_INT(args, 0)));
+//! Returns \c True or \c False depending on whether all the data has been written to the socket
+/** With a timeout of zero this method returns immediately.
+
+    Example
+    @code my bool $b = $sock.isWriteFinished();@endcode
+
+    @param timeout_ms an optional timeout in milliseconds (1/1000 second); if no timeout is given, the method returns immediately
+
+    @return \c True if the send action completes within the timeout period, \c False if not
+ */
+bool Socket::isWriteFinished(timeout timeout_ms = 0) {
+   return s->isWriteFinished((int)timeout_ms);
 }
 
-static AbstractQoreNode *SOCKET_isOpen(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
-   return get_bool_node(s->isOpen());
+//! Returns \c True if the socket is open
+/** Example
+    @code my bool $b = $sock.isOpen();@endcode
+
+    @return \c True if the socket is open, \c False if not
+ */
+bool Socket::isOpen() [flags=QC_CONSTANT] {
+   return s->isOpen();
 }
 
-// *string Socket::getSSLCipherName()  
-static AbstractQoreNode *SOCKET_getSSLCipherName(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
+//! Returns the name of the cipher for an encrypted connection or \c NOTHING if a secure connection has not been established
+/** Example
+    @code my *string $str = $sock.getSSLCipherName();@endcode
+
+    @return the name of the cipher for an encrypted connection or \c NOTHING if a secure connection has not been established
+ */
+*string Socket::getSSLCipherName() [flags=QC_CONSTANT] {
    const char *str = s->getSSLCipherName();
    return str ? new QoreStringNode(str) : 0;
 }
 
-// *string Socket::getSSLCipherVersion()  
-static AbstractQoreNode *SOCKET_getSSLCipherVersion(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
+//! Returns the version string of the cipher for an encrypted connection or \c NOTHING if a secure connection has not been established
+/** Example
+    @code my *string $str = $sock.getSSLCipherVersion();@endcode
+
+    @return the version string of the cipher for an encrypted connection or \c NOTHING if a secure connection has not been established
+ */
+*string Socket::getSSLCipherVersion() [flags=QC_CONSTANT] {
    const char *str = s->getSSLCipherVersion();
    return str ? new QoreStringNode(str) : 0;
 }
 
-static AbstractQoreNode *SOCKET_isSecure(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
-   return get_bool_node(s->isSecure());
+//! Returns \c True if the connection is a secure TLS/SSL connection
+/** Example
+    @code my bool $b = $sock.isSecure();@endcode
+
+    @return \c True if the connection is encrypted, \c False if not
+ */
+bool Socket::isSecure() [flags=QC_CONSTANT] {
+   return s->isSecure();
 }
 
-// *string Socket::verifyPeerCertificate()  
-static AbstractQoreNode *SOCKET_verifyPeerCertificate(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
+//! Returns a string code giving the result of verifying the remote certificate or \c NOTHING if an encrypted connection is not currently established
+/** Example
+    @code my *string $str = $sock.verifyPeerCertificate();@endcode
+
+    @return A string code giving the result of verifying the peer's certificate. No value is returned if a secure connection has not been established.  The set of possible return values is made up of the keys of the @ref X509_VerificationReasons hash. This hash can also be used to generate a textual description of the verification result.
+ */
+*string Socket::verifyPeerCertificate() [flags=QC_CONSTANT] {
    const char *c = getSSLCVCode(s->verifyPeerCertificate());
    return c ? new QoreStringNode(c) : 0;
 }
 
-// nothing Socket::setCertificate(SSLCertificate $cert)  
-static AbstractQoreNode *SOCKET_setCertificate_cert(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
-   HARD_QORE_OBJ_DATA(cert, QoreSSLCertificate, args, 0, CID_SSLCERTIFICATE, "Socket::setCertificate()", "SSLCertificate", xsink);
-   if (*xsink)
-      return 0;
+//! Sets the X.509 certificate to use for negotiating encrypted connections
+/** Example
+    @code $sock.setCertificate($cert);@endcode
 
+    @param cert This must be an SSLCertificate object
+ */
+nothing Socket::setCertificate(SSLCertificate[QoreSSLCertificate] cert) {
    // pass reference from QoreObject::getReferencedPrivateData() to mySocket::setCertificate()
    s->setCertificate(cert);
-   return 0;
 }
 
-// nothing Socket::setCertificate(string $cert_pem)  
-static AbstractQoreNode *SOCKET_setCertificate_string(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
-   const QoreStringNode *p0 = HARD_QORE_STRING(args, 0);
-   SimpleRefHolder<QoreSSLCertificate> cert(new QoreSSLCertificate(p0, xsink));
+//! Sets the X.509 certificate to use for negotiating encrypted connections from the PEM-encoded string representing the X.509 certificate
+/** Example
+    @code $sock.setCertificate($cert_string);@endcode
+
+    @param cert_pem the PEM-encoded string representing the X.509 certificate
+ */
+nothing Socket::setCertificate(string cert_pem) {
+   SimpleRefHolder<QoreSSLCertificate> cert(new QoreSSLCertificate(cert_pem, xsink));
    if (*xsink)
       return 0;
 
    // mySocket::setCertificate() takes over ownership of certificate reference
    s->setCertificate(cert.release());
-   return 0;   
 }
 
-// nothing Socket::setCertificate(binary $cert_der)  
-static AbstractQoreNode *SOCKET_setCertificate_bin(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
-   const BinaryNode *p0 = HARD_QORE_BINARY(args, 0);
-   SimpleRefHolder<QoreSSLCertificate> cert(new QoreSSLCertificate(p0, xsink));
+//! Sets the X.509 certificate to use for negotiating encrypted connections from the DER-encoded binary object representing the X.509 certificate
+/** Example
+    @code $sock.setCertificate($cert_der);@endcode
+
+    @param cert_der the DER-encoded binary object representing the X.509 certificate
+ */
+nothing Socket::setCertificate(binary cert_der) {
+   SimpleRefHolder<QoreSSLCertificate> cert(new QoreSSLCertificate(cert_der, xsink));
    if (*xsink)
       return 0;
 
    // mySocket::setCertificate() takes over ownership of certificate reference
    s->setCertificate(cert.release());
-   return 0;   
 }
 
-// Socket::setPrivateKey(SSLPrivateKey $key)
-static AbstractQoreNode *SOCKET_setPrivateKey_key(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
-   HARD_QORE_OBJ_DATA(key, QoreSSLPrivateKey, args, 0, CID_SSLPRIVATEKEY, "Socket::setPrivateKey()", "SSLPrivateKey", xsink);
-   if (*xsink)
-      return 0;
+//! Sets the private key to use for negotiating encrypted connections along with the X.509 certificate
+/** Example
+    @code $sock.setPrivateKey($key);@endcode
 
+    @param key the private key for the X.509 certificate to use when establishing TLS/SSL encrypted connections
+ */
+nothing Socket::setPrivateKey(SSLPrivateKey[QoreSSLPrivateKey] key) {
    // pass reference from QoreObject::getReferencedPrivateData() to mySocket::setPrivateKey()
    s->setPrivateKey(key);
-   return 0;
 }
 
-// Socket::setPrivateKey(string $key_pem)
-static AbstractQoreNode *SOCKET_setPrivateKey_str(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
-   const QoreStringNode *p0 = HARD_QORE_STRING(args, 0);
-   SimpleRefHolder<QoreSSLPrivateKey> key(new QoreSSLPrivateKey(p0, 0, xsink));
+//! Sets the private key to use for negotiating encrypted connections along with the X.509 certificate from a PEM-encoded string representing the private key and an optional password
+/** Example
+    @code $sock.setPrivateKey($key_pem, $password);@endcode
+
+    @param key_pem the PEM-encoded string representing the private key for the X.509 certificate to use when establishing TLS/SSL encrypted connections
+    @param pass the password for the private key, if needed
+ */
+nothing Socket::setPrivateKey(string key_pem, *string pass) {
+   SimpleRefHolder<QoreSSLPrivateKey> key(new QoreSSLPrivateKey(key_pem, pass ? pass->getBuffer() : 0, xsink));
    if (*xsink)
       return 0;
 
    s->setPrivateKey(key.release());
-   return 0;
 }
 
-// Socket::setPrivateKey(string $key_pem, string $pass)
-static AbstractQoreNode *SOCKET_setPrivateKey_str_str(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
-   const QoreStringNode *p0 = HARD_QORE_STRING(args, 0);
-   const QoreStringNode *p1 = HARD_QORE_STRING(args, 1);
-   SimpleRefHolder<QoreSSLPrivateKey> key(new QoreSSLPrivateKey(p0, p1->getBuffer(), xsink));
+//! Sets the private key to use for negotiating encrypted connections along with the X.509 certificate from a DER-encoded binary object representing the private key
+/** Example
+    @code $sock.setPrivateKey($key_der);@endcode
+
+    @param key_der the DER-encoded binary object representing the private key for the X.509 certificate to use when establishing TLS/SSL encrypted connections
+ */
+nothing Socket::setPrivateKey(binary key_der) {
+   SimpleRefHolder<QoreSSLPrivateKey> key(new QoreSSLPrivateKey(key_der, xsink));
    if (*xsink)
       return 0;
 
    s->setPrivateKey(key.release());
-   return 0;
 }
 
-// Socket::setPrivateKey(binary $key_der)
-static AbstractQoreNode *SOCKET_setPrivateKey_bin(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
-   const BinaryNode *p0 = HARD_QORE_BINARY(args, 0);
-   SimpleRefHolder<QoreSSLPrivateKey> key(new QoreSSLPrivateKey(p0, xsink));
-   if (*xsink)
-      return 0;
+//! Removes any @ref Queue object from the Socket object so that @ref socket_events "socket events" are no longer added to the Queue
+/** Example
+    @code $sock.setEventQueue();@endcode
 
-   s->setPrivateKey(key.release());
-   return 0;
-}
-
-static AbstractQoreNode *SOCKET_setEventQueue_nothing(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
+    @see @ref event_handling for more information
+ */
+nothing Socket::setEventQueue() {
    s->setEventQueue(0, xsink);
-   return 0;
 }
 
-static AbstractQoreNode *SOCKET_setEventQueue_queue(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
-   HARD_QORE_OBJ_DATA(q, Queue, args, 0, CID_QUEUE, "Queue", "Socket::setEventQueue", xsink);
-   if (*xsink)
-      return 0;
+//! Sets a @ref Queue object to receive @ref socket_events "socket events"
+/** Example
+    @code $sock.setEventQueue($queue);@endcode
+
+    @param queue the @ref Queue object to receive @ref socket_events "socket events"
+
+    @see @ref event_handling for more information
+ */
+nothing Socket::setEventQueue(Queue[QoreQueue] queue) {
    // pass reference from QoreObject::getReferencedPrivateData() to function
-   s->setEventQueue(q, xsink);
-   return 0;
+   s->setEventQueue(queue, xsink);
 }
 
-static AbstractQoreNode *SOCKET_setNoDelay(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
-   return new QoreBigIntNode(s->setNoDelay(HARD_QORE_BOOL(args, 0)));
+//! Sets the boolean \c TCP_NODELAY setting for the socket
+/** When this setting is \c True, then data will be immediately sent out over the socket, when it is \c False, then data transmission may be delayed to be packaged with other data for the same target.
+
+    Delayed data transmissions may cause problems when the sender immediately closes the socket after sending data; in this case the receiver may not get the data even though the send succeeded.
+
+    Note that if no value is given to the method, the argument will be assumed to be \c True, and output buffering will be turned off for the socket.
+
+    Example
+    @code if ($sock.setNoDelay(True))
+    printf("error setting TCP_NODELAY: %s\n", strerror(errno()));@endcode
+
+    @param nd the boolean \c TCP_NODELAY setting for the socket
+
+    @return 0 for success, non-zero for errors; to get error information, see errno() and strerror()
+
+    @see Socket::getNoDelay()
+ */
+int Socket::setNoDelay(bool nd = True) {
+   return s->setNoDelay(nd);
 }
 
-static AbstractQoreNode *SOCKET_getNoDelay(QoreObject *self, mySocket *s, const QoreListNode *args, ExceptionSink *xsink) {
-   return get_bool_node(s->getNoDelay());
+//! Returns the \c TCP_NODELAY setting for the socket
+/** Example
+    @code my bool $b = $sock.getNoDelay();@endcode
+
+    @return the TCP_NODELAY setting for the socket
+
+    @see Socket::setNoDelay() for a description of the \c TCP_NODELAY setting
+ */
+bool Socket::getNoDelay() [flags=QC_CONSTANT] {
+   return s->getNoDelay();
 }
 
 //! Returns a @ref socket_info_hash "hash of information" about the remote end for connected sockets
@@ -1500,222 +1729,4 @@ hash Socket::getPeerInfo() {
  */
 hash Socket::getSocketInfo() {
    return s->getSocketInfo(xsink);
-}
-
-QoreClass *initSocketClass(QoreClass *SSLCert, QoreClass *SSLPrivKey) {
-   QORE_TRACE("initSocketClass()");
-
-   assert(QC_QUEUE);
-
-   QC_SOCKET = new QoreClass("Socket", QDOM_NETWORK);
-   CID_SOCKET = QC_SOCKET->getID();
-
-   // register public members
-   QC_SOCKET->addPublicMember("source", stringOrNothingTypeInfo);
-   QC_SOCKET->addPublicMember("source_host", stringOrNothingTypeInfo);
-
-   // unset the public member flag for backwards-compatibility
-   // this allows older code where a user class inherits this class to still be able
-   // to be run in new Qore >= 0.8
-   QC_SOCKET->unsetPublicMemberFlag();
-   
-   QC_SOCKET->setConstructorExtended(SOCKET_constructor);
-
-   QC_SOCKET->setCopy(SOCKET_copy);
-
-   // Socket::connect(string $sock, timeout $timeout_ms = -1)
-   QC_SOCKET->addMethodExtended("connect",                   (q_method_t)SOCKET_connect_str_timeout, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, timeoutTypeInfo, new QoreBigIntNode(-1));
-
-   // nothing Socket::connectINET(string $host, softstring $service, timeout $timeout_ms = -1, softint $family = AF_UNSPEC, softint $socktype = SOCK_STREAM, softint $protocol = 0) 
-   QC_SOCKET->addMethodExtended("connectINET",               (q_method_t)SOCKET_connectINET, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 6, stringTypeInfo, QORE_PARAM_NO_ARG, softStringTypeInfo, QORE_PARAM_NO_ARG, timeoutTypeInfo, new QoreBigIntNode(-1), softBigIntTypeInfo, new QoreBigIntNode(AF_UNSPEC), softBigIntTypeInfo, new QoreBigIntNode(SOCK_STREAM), softBigIntTypeInfo, zero());
-
-   // nothing Socket::connectUNIX(string $path, softint $socktype = SOCK_STREAM, softint $protocol = 0)
-   QC_SOCKET->addMethodExtended("connectUNIX",               (q_method_t)SOCKET_connectUNIX, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 3, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, new QoreBigIntNode(SOCK_STREAM), softBigIntTypeInfo, zero());
-
-   // Socket::connectSSL(string $sock, timeout $timeout_ms = -1)
-   QC_SOCKET->addMethodExtended("connectSSL",                (q_method_t)SOCKET_connectSSL_str_timeout, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, timeoutTypeInfo, new QoreBigIntNode(-1));
-
-   // nothing Socket::connectINETSSL(string $host, softstring $service, timeout $timeout_ms = -1, softint $family = AF_UNSPEC, softint $socktype = SOCK_STREAM, softint $protocol = 0)
-   QC_SOCKET->addMethodExtended("connectINETSSL",            (q_method_t)SOCKET_connectINETSSL, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 6, stringTypeInfo, QORE_PARAM_NO_ARG, softStringTypeInfo, QORE_PARAM_NO_ARG, timeoutTypeInfo, new QoreBigIntNode(-1), softBigIntTypeInfo, new QoreBigIntNode(AF_UNSPEC), softBigIntTypeInfo, new QoreBigIntNode(SOCK_STREAM), softBigIntTypeInfo, zero());
-
-   // nothing Socket::connectUNIXSSL(string $path, softint $socktype = SOCK_STREAM, softint $protocol = 0)  
-   QC_SOCKET->addMethodExtended("connectUNIXSSL",            (q_method_t)SOCKET_connectUNIXSSL, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 3, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, new QoreBigIntNode(SOCK_STREAM), softBigIntTypeInfo, zero());
-
-   // int Socket::bind(string $str, softbool $reuseaddr = False)  
-   QC_SOCKET->addMethodExtended("bind",                      (q_method_t)SOCKET_bind_str_bool, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, softBoolTypeInfo, &False);
-
-   // int Socket::bind(int $port, softbool $reuseaddr = False)  
-   QC_SOCKET->addMethodExtended("bind",                      (q_method_t)SOCKET_bind_int_bool, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 2, bigIntTypeInfo, QORE_PARAM_NO_ARG, softBoolTypeInfo, &False);
-
-   // nothing bindUNIX(string $name, softint $socktype = SOCK_STREAM, softint $protocol = 0)
-   QC_SOCKET->addMethodExtended("bindUNIX",                  (q_method_t)SOCKET_bindUNIX, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 3, stringTypeInfo, QORE_PARAM_NO_ARG, softBigIntTypeInfo, new QoreBigIntNode(SOCK_STREAM), bigIntTypeInfo, zero());
-
-   // nothing bindINET(*string $interface, *softstring $service, softbool $reuseaddr = False, softint $family = AF_UNSPEC, softint $socktype = SOCK_STREAM, int $protocol = 0)
-   QC_SOCKET->addMethodExtended("bindINET",                  (q_method_t)SOCKET_bindINET, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 6, stringOrNothingTypeInfo, QORE_PARAM_NO_ARG, softStringOrNothingTypeInfo, QORE_PARAM_NO_ARG, softBoolTypeInfo, &False, softBigIntTypeInfo, new QoreBigIntNode(AF_UNSPEC), softBigIntTypeInfo, new QoreBigIntNode(SOCK_STREAM), bigIntTypeInfo, zero());
-
-   // *Socket Socket::accept(timeout timeout_ms)
-   QC_SOCKET->addMethodExtended("accept",                    (q_method_t)SOCKET_accept_timeout, false, QC_NO_FLAGS, QDOM_DEFAULT, QC_SOCKET->getOrNothingTypeInfo(), 1, timeoutTypeInfo, QORE_PARAM_NO_ARG);
-   // Socket Socket::accept()
-   QC_SOCKET->addMethodExtended("accept",                    (q_method_t)SOCKET_accept, false, QC_NO_FLAGS, QDOM_DEFAULT, QC_SOCKET->getTypeInfo());
-
-   // *Socket Socket::acceptSSL(timeout timeout_ms)
-   QC_SOCKET->addMethodExtended("acceptSSL",                 (q_method_t)SOCKET_acceptSSL_timeout, false, QC_NO_FLAGS, QDOM_DEFAULT, QC_SOCKET->getOrNothingTypeInfo(), 1, timeoutTypeInfo, QORE_PARAM_NO_ARG);
-   // Socket Socket::acceptSSL()
-   QC_SOCKET->addMethodExtended("acceptSSL",                 (q_method_t)SOCKET_acceptSSL, false, QC_NO_FLAGS, QDOM_DEFAULT, QC_SOCKET->getTypeInfo());
-
-   QC_SOCKET->addMethodExtended("listen",                    (q_method_t)SOCKET_listen, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
-
-   // int Socket::send(binary $bin)  
-   QC_SOCKET->addMethodExtended("send",                      (q_method_t)SOCKET_send_bin, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, binaryTypeInfo, QORE_PARAM_NO_ARG);
-
-   // int Socket::send(string $str)  
-   QC_SOCKET->addMethodExtended("send",                      (q_method_t)SOCKET_send_str, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
-
-   // int Socket::sendBinary(binary $bin)  
-   QC_SOCKET->addMethodExtended("sendBinary",                (q_method_t)SOCKET_send_bin, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, binaryTypeInfo, QORE_PARAM_NO_ARG);
-
-   // int Socket::sendBinary(string $str)  
-   QC_SOCKET->addMethodExtended("sendBinary",                (q_method_t)SOCKET_sendBinary_str, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
-
-   QC_SOCKET->addMethodExtended("sendi1",                    (q_method_t)SOCKET_sendi1, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, softBigIntTypeInfo, zero());
-   QC_SOCKET->addMethodExtended("sendi2",                    (q_method_t)SOCKET_sendi2, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, softBigIntTypeInfo, zero());
-   QC_SOCKET->addMethodExtended("sendi4",                    (q_method_t)SOCKET_sendi4, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, softBigIntTypeInfo, zero());
-   QC_SOCKET->addMethodExtended("sendi8",                    (q_method_t)SOCKET_sendi8, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, softBigIntTypeInfo, zero());
-   QC_SOCKET->addMethodExtended("sendi2LSB",                 (q_method_t)SOCKET_sendi2LSB, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, softBigIntTypeInfo, zero());
-   QC_SOCKET->addMethodExtended("sendi4LSB",                 (q_method_t)SOCKET_sendi4LSB, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, softBigIntTypeInfo, zero());
-   QC_SOCKET->addMethodExtended("sendi8LSB",                 (q_method_t)SOCKET_sendi8LSB, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, softBigIntTypeInfo, zero());
-
-   // string Socket::recv(softint $size = 0, timeout $timeout = -1)  
-   QC_SOCKET->addMethodExtended("recv",                      (q_method_t)SOCKET_recv, false, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 2, softBigIntTypeInfo, zero(), timeoutTypeInfo, new QoreBigIntNode(-1));
-
-   // binary Socket::recvBinary(softint $size = 0, timeout $timeout = -1)  
-   QC_SOCKET->addMethodExtended("recvBinary",                (q_method_t)SOCKET_recvBinary, false, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo, 2, softBigIntTypeInfo, zero(), timeoutTypeInfo, new QoreBigIntNode(-1));
-
-   // int Socket::recvi1(timeout $timeout = -1)  
-   QC_SOCKET->addMethodExtended("recvi1",                    (q_method_t)SOCKET_recvi1, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, timeoutTypeInfo, new QoreBigIntNode(-1));
-
-   // int Socket::recvi2(timeout $timeout = -1)  
-   QC_SOCKET->addMethodExtended("recvi2",                    (q_method_t)SOCKET_recvi2, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, timeoutTypeInfo, new QoreBigIntNode(-1));
-
-   // int Socket::recvi4(timeout $timeout = -1)  
-   QC_SOCKET->addMethodExtended("recvi4",                    (q_method_t)SOCKET_recvi4, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, timeoutTypeInfo, new QoreBigIntNode(-1));
-
-   // int Socket::recvi8(timeout $timeout = -1)  
-   QC_SOCKET->addMethodExtended("recvi8",                    (q_method_t)SOCKET_recvi8, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, timeoutTypeInfo, new QoreBigIntNode(-1));
-
-   // int Socket::recvi2LSB(timeout $timeout = -1)  
-   QC_SOCKET->addMethodExtended("recvi2LSB",                 (q_method_t)SOCKET_recvi2LSB, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, timeoutTypeInfo, new QoreBigIntNode(-1));
-
-   // int Socket::recvi4LSB(timeout $timeout = -1)  
-   QC_SOCKET->addMethodExtended("recvi4LSB",                 (q_method_t)SOCKET_recvi4LSB, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, timeoutTypeInfo, new QoreBigIntNode(-1));
-
-   // int Socket::recvi8LSB(timeout $timeout = -1)  
-   QC_SOCKET->addMethodExtended("recvi8LSB",                 (q_method_t)SOCKET_recvi8LSB, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, timeoutTypeInfo, new QoreBigIntNode(-1));
-
-   // int Socket::recvu1(timeout $timeout = -1)  
-   QC_SOCKET->addMethodExtended("recvu1",                    (q_method_t)SOCKET_recvu1, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, timeoutTypeInfo, new QoreBigIntNode(-1));
-
-   // int Socket::recvu2(timeout $timeout = -1)  
-   QC_SOCKET->addMethodExtended("recvu2",                    (q_method_t)SOCKET_recvu2, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, timeoutTypeInfo, new QoreBigIntNode(-1));
-
-   // int Socket::recvu4(timeout $timeout = -1)  
-   QC_SOCKET->addMethodExtended("recvu4",                    (q_method_t)SOCKET_recvu4, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, timeoutTypeInfo, new QoreBigIntNode(-1));
-
-   // int Socket::recvu2LSB(timeout $timeout = -1)  
-   QC_SOCKET->addMethodExtended("recvu2LSB",                 (q_method_t)SOCKET_recvu2LSB, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, timeoutTypeInfo, new QoreBigIntNode(-1));
-
-   // int Socket::recvu4LSB(timeout $timeout = -1)  
-   QC_SOCKET->addMethodExtended("recvu4LSB",                 (q_method_t)SOCKET_recvu4LSB, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, timeoutTypeInfo, new QoreBigIntNode(-1));
-
-   // nothing Socket::sendHTTPMessage(string $method, string $path, string $http_version, hash $headers, data $data = binary())  
-   QC_SOCKET->addMethodExtended("sendHTTPMessage",           (q_method_t)SOCKET_sendHTTPMessage, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 5, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG, hashTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, new BinaryNode);
-
-   // nothing Socket::sendHTTPResponse(softint $status_code, string $desc, string $http_version, hash $headers, data $data = binary())  
-   QC_SOCKET->addMethodExtended("sendHTTPResponse",          (q_method_t)SOCKET_sendHTTPResponse, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 5, softBigIntTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG, hashTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, new BinaryNode);
-
-   // string Socket::readHTTPHeader(timeout $timeout_ms = -1)  |hash
-   QC_SOCKET->addMethodExtended("readHTTPHeader",            (q_method_t)SOCKET_readHTTPHeader, false, QC_NO_FLAGS, QDOM_DEFAULT, 0, 1, timeoutTypeInfo, new QoreBigIntNode(-1));
-
-   // hash Socket::readHTTPChunkedBody(timeout $timeout_ms = -1)  
-   QC_SOCKET->addMethodExtended("readHTTPChunkedBody",       (q_method_t)SOCKET_readHTTPChunkedBody, false, QC_NO_FLAGS, QDOM_DEFAULT, hashTypeInfo, 1, timeoutTypeInfo, new QoreBigIntNode(-1));
-
-   // hash Socket::readHTTPChunkedBodyBinary(timeout $timeout_ms = -1)  
-   QC_SOCKET->addMethodExtended("readHTTPChunkedBodyBinary", (q_method_t)SOCKET_readHTTPChunkedBodyBinary, false, QC_NO_FLAGS, QDOM_DEFAULT, hashTypeInfo, 1, timeoutTypeInfo, new QoreBigIntNode(-1));
-
-   QC_SOCKET->addMethodExtended("close",                     (q_method_t)SOCKET_close, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
-
-   QC_SOCKET->addMethodExtended("shutdown",                  (q_method_t)SOCKET_shutdown, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo);
-
-   QC_SOCKET->addMethodExtended("shutdownSSL",               (q_method_t)SOCKET_shutdownSSL, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
-
-   QC_SOCKET->addMethodExtended("getPort",                   (q_method_t)SOCKET_getPort, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo);
-
-   QC_SOCKET->addMethodExtended("getSocket",                 (q_method_t)SOCKET_getSocket, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo);
-
-   // int Socket::setSendTimeout(timeout $timeout_ms)  
-   QC_SOCKET->addMethodExtended("setSendTimeout",            (q_method_t)SOCKET_setSendTimeout_int, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, timeoutTypeInfo, QORE_PARAM_NO_ARG);
-
-   // int Socket::setRecvTimeout(timeout $timeout_ms)  
-   QC_SOCKET->addMethodExtended("setRecvTimeout",            (q_method_t)SOCKET_setRecvTimeout_int, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, timeoutTypeInfo, QORE_PARAM_NO_ARG);
-
-   QC_SOCKET->addMethodExtended("getSendTimeout",            (q_method_t)SOCKET_getSendTimeout, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo);
-
-   QC_SOCKET->addMethodExtended("getRecvTimeout",            (q_method_t)SOCKET_getRecvTimeout, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntTypeInfo);
-
-   QC_SOCKET->addMethodExtended("getCharset",                (q_method_t)SOCKET_getCharset, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringTypeInfo);
-
-   QC_SOCKET->addMethodExtended("setCharset",                (q_method_t)SOCKET_setCharset, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
-
-   // Socket::isDataAvailable(timeout $timeout_ms = 0)
-   QC_SOCKET->addMethodExtended("isDataAvailable",           (q_method_t)SOCKET_isDataAvailable, false, QC_NO_FLAGS, QDOM_DEFAULT, boolTypeInfo, 1, timeoutTypeInfo, zero());
-
-   // Socket::isWriteFinished(timeout $timeout_ms = 0)
-   QC_SOCKET->addMethodExtended("isWriteFinished",           (q_method_t)SOCKET_isWriteFinished, false, QC_NO_FLAGS, QDOM_DEFAULT, boolTypeInfo, 1, timeoutTypeInfo, zero());
-
-   // *string Socket::getSSLCipherName()  
-   QC_SOCKET->addMethodExtended("getSSLCipherName",          (q_method_t)SOCKET_getSSLCipherName, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringOrNothingTypeInfo);
-
-   // *string Socket::getSSLCipherVersion()  
-   QC_SOCKET->addMethodExtended("getSSLCipherVersion",       (q_method_t)SOCKET_getSSLCipherVersion, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringOrNothingTypeInfo);
-
-   QC_SOCKET->addMethodExtended("isSecure",                  (q_method_t)SOCKET_isSecure, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, boolTypeInfo);
-
-   // *string Socket::verifyPeerCertificate()  
-   QC_SOCKET->addMethodExtended("verifyPeerCertificate",     (q_method_t)SOCKET_verifyPeerCertificate, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, stringOrNothingTypeInfo);
-
-   // nothing Socket::setCertificate(SSLCertificate $cert)  
-   QC_SOCKET->addMethodExtended("setCertificate",            (q_method_t)SOCKET_setCertificate_cert, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, SSLCert->getTypeInfo(), QORE_PARAM_NO_ARG);
-   // nothing Socket::setCertificate(string $cert_pem)  
-   QC_SOCKET->addMethodExtended("setCertificate",            (q_method_t)SOCKET_setCertificate_string, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
-   // nothing Socket::setCertificate(binary $cert_der)  
-   QC_SOCKET->addMethodExtended("setCertificate",            (q_method_t)SOCKET_setCertificate_bin, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, binaryTypeInfo, QORE_PARAM_NO_ARG);
-
-   // Socket::setPrivateKey(SSLPrivateKey $key)
-   QC_SOCKET->addMethodExtended("setPrivateKey",             (q_method_t)SOCKET_setPrivateKey_key, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, SSLPrivKey->getTypeInfo(), QORE_PARAM_NO_ARG);
-   // Socket::setPrivateKey(string $key_pem)
-   QC_SOCKET->addMethodExtended("setPrivateKey",             (q_method_t)SOCKET_setPrivateKey_str, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
-   // Socket::setPrivateKey(string $key_pem, string $pass)
-   QC_SOCKET->addMethodExtended("setPrivateKey",             (q_method_t)SOCKET_setPrivateKey_str_str, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
-   // Socket::setPrivateKey(binary $key_der)
-   QC_SOCKET->addMethodExtended("setPrivateKey",             (q_method_t)SOCKET_setPrivateKey_bin, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, binaryTypeInfo, QORE_PARAM_NO_ARG);
-
-   QC_SOCKET->addMethodExtended("isOpen",                    (q_method_t)SOCKET_isOpen, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, boolTypeInfo);
-
-   // nothing Socket::setEventQueue()  
-   QC_SOCKET->addMethodExtended("setEventQueue",             (q_method_t)SOCKET_setEventQueue_nothing, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
-
-   // nothing Socket::setEventQueue(Queue $queue)  
-   QC_SOCKET->addMethodExtended("setEventQueue",             (q_method_t)SOCKET_setEventQueue_queue, false, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo, 1, QC_QUEUE->getTypeInfo(), QORE_PARAM_NO_ARG);
-
-   QC_SOCKET->addMethodExtended("setNoDelay",                (q_method_t)SOCKET_setNoDelay, false, QC_NO_FLAGS, QDOM_DEFAULT, bigIntTypeInfo, 1, boolTypeInfo, &True);
-
-   QC_SOCKET->addMethodExtended("getNoDelay",                (q_method_t)SOCKET_getNoDelay, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, boolTypeInfo);
-
-   // hash Socket::getPeerInfo()
-   QC_SOCKET->addMethodExtended("getPeerInfo",               (q_method_t)SOCKET_getPeerInfo, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, hashTypeInfo);
-
-   // hash Socket::getSocketInfo()
-   QC_SOCKET->addMethodExtended("getSocketInfo",             (q_method_t)SOCKET_getSocketInfo, false, QC_RET_VALUE_ONLY, QDOM_DEFAULT, hashTypeInfo);
-
-   return QC_SOCKET;
 }
