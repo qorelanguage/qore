@@ -389,12 +389,19 @@ public:
     */
    DLLEXPORT qore_size_t getPos();
 
-   //! reads a single character from the file and returns it as a new string, caller owns the reference count returned
-   /** can returns 0 if an error occurs
-       FIXME: reads a single byte, not a character
-       @return a new string consisting of the single character read from the file
+   //! reads a single byte from the file and returns it as a new string, caller owns the reference count returned
+   /** note that this function is not guaranteed to read a character if the File's encoding is a multi-byte character encoding
+       @return a new string consisting of the single character read from the file; can return 0 if an error occurs
    */
    DLLEXPORT QoreStringNode *getchar();
+
+   //! reads a single character from the file and returns it as a new string, caller owns the reference count returned
+   /** This function will return a single character in the File's encoding even for multi-byte character encodings.
+       However, a Qore-language exception will be thrown if invalid character data is read from the file (only thrown for multi-byte encodings).
+       @param xsink if an error occurs, the Qore-language exception info will be added here
+       @return a new string consisting of the single character read from the file
+   */
+   DLLEXPORT QoreStringNode *getchar(ExceptionSink *xsink);
 
    //! returns the filename of the file being read
    DLLEXPORT QoreStringNode *getFileName() const;

@@ -64,7 +64,7 @@ static int64 checkOpenResult(int rc, const char *method_name, ExceptionSink *xsi
 
     <code>my bool $rc = $socket.isDataAvailable(1250ms); # times out in 1.25 seconds</code>
 
-    Socket objects can automatically convert character encodings if desired when sending string data with Socket::send(). Use the Socket::setCharset() method to set the character encoding for the socket. If a character encoding is set, and string data is read with the Socket::recv() method, then it will be tagged with the encoding of the socket as well.
+    Socket objects can automatically convert character encodings if desired when sending string data with Socket::send(). Use the Socket::setEncoding() method to set the character encoding for the socket. If a character encoding is set, and string data is read with the Socket::recv() method, then it will be tagged with the encoding of the socket as well.
 
     Client applications should call Socket::connect() to connect to a remote port or a UNIX domain socket (socket file on the local server). However, if the remote end is expecting a TLS/SSL connection, use Socket::connectSSL() instead.
 

@@ -693,6 +693,53 @@ qore_size_t QoreFile::getPos() {
    return lseek(priv->fd, 0, SEEK_CUR);
 }
 
+QoreStringNode *QoreFile::getchar(ExceptionSink *xsink) {
+   SimpleRefHolder<QoreStringNode> str(new QoreStringNode(priv->charset));
+
+   int c;
+   {
+      AutoLocker al(priv->m);
+
+      if (priv->check_read_open(xsink))
+	 return 0;
+
+      c = priv->readChar();
+      if (c < 0)
+	 return 0;
+
+      str->concat((char)c);
+      if (priv->charset->isMultiByte())
+	 return str.release();
+
+      // read in more characters for multi-byte chars if needed
+      qore_size_t rc = priv->charset->getCharLen(str->getBuffer(), 1);
+      // rc == 0: invalid character; but we can't throw an exception here - anyway I think this can't happen with UTF-8 currently
+      //          which is the only multi-byte encoding we currently support
+      if (!rc) {
+	 xsink->raiseException("FILE-GETCHAR-ERROR", "invalid multi-byte character received: initial byte 0x%x is an invalid initial character for '%s' character encoding", c, priv->charset->getCode());
+	 return 0;
+      }
+
+      // rc == 1: we have a valid character already with the single byte
+      if (rc == 1)
+	 return str.release();
+
+      assert(rc < 0);
+      rc = -rc;
+      while (rc--) {
+	 c = priv->readChar();
+	 if (c < 0) {
+	    xsink->raiseException("FILE-GETCHAR-ERROR", "invalid multi-byte character received: EOF encountered after %d byte%s read of a %d byte %s character", str->strlen(), str->strlen() == 1 ? "" : "s", str->strlen() + rc + 1, priv->charset->getCode());
+	    return 0;
+	 }
+
+	 str->concat((char)c);
+      }
+   }
+
+   return str.release();
+}
+
 QoreStringNode *QoreFile::getchar() {
    int c;
    {
@@ -700,14 +747,14 @@ QoreStringNode *QoreFile::getchar() {
 
       if (!priv->is_open)
 	 return 0;
-   
+
       c = priv->readChar();
    }
 
    if (c < 0)
       return 0;
 
-   QoreStringNode *str = new QoreStringNode(priv->charset);
+   QoreStringNode * str = new QoreStringNode(priv->charset);
    str->concat((char)c);
    return str;
 }

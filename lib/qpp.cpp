@@ -361,11 +361,13 @@ protected:
    paramlist_t params;
    ReturnType rt;
    unsigned line;
-   bool has_return;   
+   bool has_return,
+      doconly;         // only for documentation
 
    void serializeCppConstructor(FILE *fp, const char *cname) const {
       serializeQoreConstructorPrototypeComment(fp, cname);
       fprintf(fp, "static void %s_%s(QoreObject* self, const QoreListNode* args, ExceptionSink* xsink) {\n", cname, vname.c_str());
+      serializeArgs(fp, cname);
       fputs(code.c_str(), fp);
       fputs("\n}\n\n", fp);
    }
@@ -499,6 +501,9 @@ protected:
             fprintf(fp, "   const AbstractQoreNode* %s = get_param(args, %d);\n", p.name.c_str(), i);
             continue;
          }
+         // skip "..." arg which is just for documentation
+         if (p.type == "...")
+            continue;
 
          log(LL_CRITICAL, "don't know how to handle argument type '%s' (for arg %s)\n", p.type.c_str(), p.name.c_str());
          assert(false);
@@ -510,16 +515,24 @@ protected:
          if (i)
             fputs(", ", fp);
          const Param &p = params[i];
-         fprintf(fp, "%s %s", p.type.c_str(), p.name.c_str());
-         if (!p.val.empty())
-            fprintf(fp, " = %s", p.val.c_str());
+         if (p.type == "...")
+            fputs("...", fp);
+         else {
+            fprintf(fp, "%s %s", p.type.c_str(), p.name.c_str());
+            if (!p.val.empty())
+               fprintf(fp, " = %s", p.val.c_str());
+         }
       }
    }
 
    int serializeBindingArgs(FILE *fp) const {
-      if (params.size()) {
-         fprintf(fp, ", %lu", params.size());
-         for (unsigned i = 0; i < params.size(); ++i) {
+      size_t size = params.size();
+      if (size && params[size - 1].type == "...")
+         --size;
+
+      if (size) {
+         fprintf(fp, ", %lu", size);
+         for (unsigned i = 0; i < size; ++i) {
             std::string str;
             if (get_qore_type(params[i].type, str))
                return -1;
@@ -598,10 +611,10 @@ public:
    Method(const std::string &n_name, attr_t n_attr, const paramlist_t &n_params, 
           const std::string &n_docs, const std::string &n_return_type, 
           const std::string &n_flags, const std::string &n_dom, const std::string &n_code,
-          unsigned vnum, unsigned n_line) : 
+          unsigned vnum, unsigned n_line, bool n_doconly) : 
       name(n_name), vname(name), docs(n_docs), return_type(n_return_type), 
       code(n_code), dom(n_dom), flags(n_flags), attr(n_attr), params(n_params), 
-      rt(RT_ANY), line(n_line), has_return(false) {
+      rt(RT_ANY), line(n_line), has_return(false), doconly(n_doconly) {
       if (return_type == "int" || return_type == "softint")
          rt = RT_INT;
       else if (return_type == "bool" || return_type == "softbool")
@@ -634,6 +647,9 @@ public:
    virtual void serializeNormalCppMethod(FILE *fp, const char *cname, const char *arg) const {
       assert(!(attr & QCA_STATIC));
 
+      if (doconly)
+         return;
+
       if (name == "constructor") {
          serializeCppConstructor(fp, cname);
          return;
@@ -660,6 +676,9 @@ public:
    }
 
    virtual int serializeNormalCppBinding(FILE *fp, const char *cname, const char *UC) const {
+      if (doconly)
+         return 0;
+
       if (name == "constructor")
          return serializeCppConstructorBinding(fp, cname, UC);
 
@@ -695,6 +714,9 @@ public:
    virtual void serializeStaticCppMethod(FILE *fp, const char *cname, const char *arg) const {
       assert(attr & QCA_STATIC);
 
+      if (doconly)
+         return;
+
       serializeQorePrototypeComment(fp, cname);
 
       fprintf(fp, "static %s static_%s_%s(const QoreListNode* args, ExceptionSink* xsink) {\n", getReturnType(), cname, vname.c_str());
@@ -710,6 +732,9 @@ public:
    virtual int serializeStaticCppBinding(FILE *fp, const char *cname, const char *UC) const {
       assert(attr & QCA_STATIC);
 
+      if (doconly)
+         return 0;
+
       fputc('\n', fp);
       serializeQorePrototypeComment(fp, cname, 3);
 
@@ -718,7 +743,7 @@ public:
       if (get_qore_type(return_type, cppt))
          return -1;
 
-      fprintf(fp, "   QC_%s->addStaticMethodExtended(\"%s\", %s_%s, %s, %s, %s, %s", UC, 
+      fprintf(fp, "   QC_%s->addStaticMethodExtended(\"%s\", static_%s_%s, %s, %s, %s, %s", UC, 
               name.c_str(),
               cname, vname.c_str(),
               attr & QCA_PRIVATE ? "true" : "false",
@@ -745,9 +770,10 @@ protected:
    // for tracking enumerated variants
    typedef std::map<std::string, unsigned> vmap_t;
 
-   std::string name,
-      doc,
-      arg;
+   std::string name,    // class name
+      doc,              // doc string
+      arg,              // argument for non-static methods
+      scons;            // system constructor
    paramlist_t public_members;  // public members
 
    strlist_t dom;       // functional domains
@@ -824,6 +850,12 @@ public:
             continue;
          }
 
+         if (i->first == "system_constructor") {
+            scons = i->second;
+            log(LL_DEBUG, "+ system_constructor: %s\n", scons.c_str());
+            continue;
+         }
+
          error("+ prop: '%s': '%s' - unknown property '%s'\n", i->first.c_str(), i->second.c_str(), i->first.c_str());
          valid = false;
       }
@@ -856,6 +888,7 @@ public:
       log(LL_DETAIL, "adding method %s%s'%s'::'%s'()\n", return_type.c_str(), return_type.empty() ? "" : " ", name.c_str(), mname.c_str());
 
       std::string cf, dom;
+      bool doconly = false;
       // parse flags
       for (strmap_t::const_iterator i = flags.begin(), e = flags.end(); i != e; ++i) {
          //log(LL_DEBUG, "+ method %s::%s() flag '%s': '%s'\n", name.c_str(), mname.c_str(), i->first.c_str(), i->second.c_str());
@@ -863,11 +896,15 @@ public:
             dom = i->second;
          else if (i->first == "flags")
             cf = i->second;
+         else if (i->first == "doconly")
+            doconly = true;
          else {
             error("unknown flag '%s' = '%s' defining method %s::%s()\n", i->first.c_str(), i->second.c_str(), name.c_str(), mname.c_str());
             return -1;
          }
       }
+
+      //log(LL_INFO, "+ method %s::%s() attr: 0x%x (static: %d)\n", name.c_str(), mname.c_str(), attr, attr & QCA_STATIC);
 
       mmap_t &mmap = (attr & QCA_STATIC) ? static_mmap : normal_mmap;
       vmap_t &vmap = (attr & QCA_STATIC) ? static_vmap : normal_vmap;
@@ -881,7 +918,7 @@ public:
       else
          vnum = ++i->second;
 
-      Method *m = new Method(mname, attr, params, doc, return_type, cf, dom, code, vnum, line);
+      Method *m = new Method(mname, attr, params, doc, return_type, cf, dom, code, vnum, line, doconly);
       mmap.insert(mmap_t::value_type(mname, m));
       return 0;
    }
@@ -909,6 +946,10 @@ public:
       }
       fprintf(fp, ");\n   CID_%s = QC_%s->getID();\n", UC.c_str(), UC.c_str());
 
+      // set system constructor if any
+      if (!scons.empty())
+         fprintf(fp, "\n   // set system constructor\n   QC_%s->setSystemConstructor(%s);\n", UC.c_str(), scons.c_str());
+      
       // output public members if any
       if (!public_members.empty()) {
          fputs("\n   // public members\n", fp);
@@ -1293,7 +1334,7 @@ protected:
          // get return type and flags
          std::string pstr(sc, 0, i - 1);
          //log(LL_DEBUG, "PSTR='%s'\n", pstr.c_str());
-         get_string_list(pre, pstr);
+         get_string_list(pre, pstr, ' ');
 
          for (unsigned xi = 0; xi < pre.size(); ++xi) {
             //printf("DBG: METHOD list %u/%lu: %s\n", xi, pre.size(), pre[xi].c_str());
@@ -1381,6 +1422,13 @@ protected:
 
             for (unsigned xi = 0; xi < pl.size(); ++xi) {
                trim(pl[xi]);
+
+               // handle special case arg "..." - which is just for documentation
+               if (pl[xi] == "...") {
+                  params.push_back(Param(pl[xi], pl[xi], "", ""));
+                  continue;
+               }
+
                i = pl[xi].find(' ');
                if (i == std::string::npos) {
                   error("%s:%d: %s::%s(): cannot find type for parameter '%s'\n", fileName, lineNumber, cn.c_str(), mn.c_str(), pl[xi].c_str());
