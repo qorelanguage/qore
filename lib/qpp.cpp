@@ -62,11 +62,11 @@ static const option pgm_opts[] = {
 };
 
 enum LogLevel {
-   LL_CRITICAL = 0,
-   LL_IMPORANT = 1,
-   LL_INFO     = 2,
-   LL_DETAIL   = 3,
-   LL_DEBUG    = 4
+   LL_CRITICAL  = 0,
+   LL_IMPORTANT = 1,
+   LL_INFO      = 2,
+   LL_DETAIL    = 3,
+   LL_DEBUG     = 4
 };
 
 static struct qpp_opts {
@@ -769,7 +769,26 @@ public:
    }
 
    virtual int serializeDox(FILE *fp) {
-      assert(false);
+      if (attr & QCA_PRIVATE)
+         fputs("\nprivate:\n", fp);
+      else
+         fputs("\npublic:\n", fp);
+
+      fputs(docs.c_str(), fp);
+      
+      fputs("   ", fp);
+      if (attr & QCA_STATIC)
+         fputs("static ", fp);
+
+      fprintf(fp, "%s %s(", return_type.c_str(), name.c_str());
+
+      for (unsigned i = 0; i < params.size(); ++i) {
+         if (i)
+            fputs(", ", fp);
+         const Param &p = params[i];
+         fprintf(fp, "%s %s", p.type.c_str(), p.name.c_str());
+      }
+      fputs(");\n", fp);
       return 0;
    }
 };
@@ -806,7 +825,7 @@ protected:
 
 public:
    ClassElement(const std::string &n_name, const strmap_t &props, const std::string &n_doc) : name(n_name), doc(n_doc), valid(true), upm(false) {
-      log(LL_INFO, "parsing Qore class '%s'\n", name.c_str());
+      log(LL_DETAIL, "parsing Qore class '%s'\n", name.c_str());
 
       // process properties
       for (strmap_t::const_iterator i = props.begin(), e = props.end(); i != e; ++i) {
@@ -994,7 +1013,16 @@ public:
    }
 
    virtual int serializeDox(FILE *fp) {
-      assert(false);
+      fputs(doc.c_str(), fp);
+      fprintf(fp, "class %s {\n", name.c_str());
+      
+      for (mmap_t::const_iterator i = normal_mmap.begin(), e = normal_mmap.end(); i != e; ++i)
+         i->second->serializeDox(fp);
+
+      for (mmap_t::const_iterator i = static_mmap.begin(), e = static_mmap.end(); i != e; ++i)
+         i->second->serializeDox(fp);
+
+      fputs("};\n", fp);
       return 0;
    }   
 };
@@ -1539,6 +1567,7 @@ public:
 	 error("%s: %s\n", cppFileName.c_str(), strerror(errno));
          return -1;
       }
+      log(LL_INFO, "creating cpp file %s -> %s\n", fileName, cppFileName.c_str());
 
       for (source_t::const_iterator i = source.begin(), e = source.end(); i != e; ++i) {
 	 if ((*i)->serializeCpp(fp)) {
@@ -1556,6 +1585,7 @@ public:
 	 error("%s: %s\n", doxFileName.c_str(), strerror(errno));
          return -1;
       }
+      log(LL_INFO, "creating dox file %s -> %s\n", fileName, doxFileName.c_str());
 
       for (source_t::const_iterator i = source.begin(), e = source.end(); i != e; ++i) {
          if ((*i)->serializeDox(fp)) {
@@ -1690,6 +1720,9 @@ int main(int argc, char *argv[]) {
       }
       // create cpp output file
       code.serializeCpp();
+
+      // create dox output file
+      code.serializeDox();
    }
 
    return 0;
