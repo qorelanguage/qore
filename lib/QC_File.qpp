@@ -582,7 +582,7 @@ int File::sync() {
     @throw FILE-READ-ERROR file is not open
     @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (\c stdio, \c stdin, \c stdout) when @ref no-terminal-io is set
  */
-*int File::readi4LSB() {
+*int File::readi8LSB() {
    if (check_terminal_io(self, "readi8LSB", xsink))
       return 0;
 

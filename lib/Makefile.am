@@ -29,11 +29,14 @@ QC_Queue.cpp: QC_Queue.qpp qpp
 QC_Socket.cpp: QC_Socket.qpp qpp
 	$(QPP) $<
 
+QC_File.cpp: QC_File.qpp qpp
+	$(QPP) $<
+
 EXTRA_libqore_la_SOURCES = \
-	QC_Queue.qpp QC_Socket.qpp
+	QC_Queue.qpp QC_Socket.qpp QC_File.qpp
 
 QORE_GENERATED_SOURCES = \
-	QC_Queue.cpp QC_Socket.cpp
+	QC_Queue.cpp QC_Socket.cpp QC_File.cpp
 
 CLEANFILES = $(QORE_GENERATED_SOURCES)
 
