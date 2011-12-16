@@ -612,6 +612,18 @@ protected:
       }
    }
 
+   static void serializeQoreCppType(FILE *fp, const std::string &tstr) {
+      size_t i = tstr.find('*');
+      if (i == std::string::npos) {
+         fputs(tstr.c_str(), fp);
+         return;
+      }
+
+      std::string t = tstr;
+      t.replace(i, 1, "__7_");
+      fputs(t.c_str(), fp);
+   }
+
 public:
    Method(const std::string &n_name, attr_t n_attr, const paramlist_t &n_params, 
           const std::string &n_docs, const std::string &n_return_type, 
@@ -776,17 +788,20 @@ public:
 
       fputs(docs.c_str(), fp);
       
-      fputs("   ", fp);
+      //fputs("   ", fp);
       if (attr & QCA_STATIC)
          fputs("static ", fp);
 
-      fprintf(fp, "%s %s(", return_type.c_str(), name.c_str());
+      serializeQoreCppType(fp, return_type);
+      fprintf(fp, " %s(", name.c_str());
 
       for (unsigned i = 0; i < params.size(); ++i) {
          if (i)
             fputs(", ", fp);
          const Param &p = params[i];
-         fprintf(fp, "%s %s", p.type.c_str(), p.name.c_str());
+         serializeQoreCppType(fp, p.type);
+         fputc(' ' , fp);
+         fputs(p.name.c_str(), fp);
       }
       fputs(");\n", fp);
       return 0;

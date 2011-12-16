@@ -1,8 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/*
-  QC_Queue.qpp
-
-  Queue class definition
+/* @file QC_Queue.qpp Queue class definition
 
   Qore Programming Language
   

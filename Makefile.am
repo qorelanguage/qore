@@ -10,15 +10,21 @@ SUBDIRS = lib
 
 INCLUDES = -I$(top_srcdir)/include
 
-DOXYFILES = \
-	doxygen/Doxyfile \
-	doxygen/mainpage.doxygen \
-	doxygen/10_embedding.doxygen \
-	doxygen/20_qore_data.doxygen \
-	doxygen/30_qore_builtin_functions.doxygen \
-	doxygen/40_class_implementation.doxygen \
-	doxygen/70_qore_modules.doxygen \
-	doxygen/75_dbi_drivers.doxygen
+LANG_QPP_SRC = lib/QC_Queue.qpp lib/QC_Socket.qpp lib/QC_File.qpp
+
+LIB_DOXYFILES = \
+	doxygen/lib/Doxyfile \
+	doxygen/lib/mainpage.doxygen \
+	doxygen/lib/10_embedding.doxygen \
+	doxygen/lib/20_qore_data.doxygen \
+	doxygen/lib/30_qore_builtin_functions.doxygen \
+	doxygen/lib/40_class_implementation.doxygen \
+	doxygen/lib/70_qore_modules.doxygen \
+	doxygen/lib/75_dbi_drivers.doxygen
+
+LANG_DOXYFILES = \
+	doxygen/lib/Doxyfile \
+	doxygen/lib/mainpage.doxygen
 
 include_HEADERS = \
 	include/qore/ReferenceArgumentHelper.h \
@@ -339,7 +345,9 @@ EXTRA_DIST = next_build.sh WHATISQORE RELEASE-NOTES \
 	docs/img/word.gif \
 	docs/library/html \
 	qore.spec \
-	$(DOXYFILES)
+	$(LIB_DOXYFILES) \
+	$(LANG_DOXYFILES) \
+	$(LANG_QPP_SRC)
 
 BUILT_SOURCES = dummy
 
@@ -349,10 +357,13 @@ dummy:
 if COND_DOXYGEN
 DX_CLEANFILES = docs/library
 
-docs/library/html/index.html: $(include_HEADERS) $(DOXYFILES)
-	$(DOXYGEN_CMD) doxygen/Doxyfile
+docs/library/html/index.html: $(include_HEADERS) $(LIB_DOXYFILES)
+	$(DOXYGEN_CMD) doxygen/lib/Doxyfile
 
-doxygen-doc: docs/library/html/index.html
+docs/lang/html/index.html: $(LANG_DOXYFILES) $(LANG_QPP_SRC)
+	$(DOXYGEN_CMD) doxygen/lang/Doxyfile
+
+doxygen-doc: docs/library/html/index.html docs/lang/html/index.html
 
 else
 doxygen-doc:

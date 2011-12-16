@@ -32,9 +32,6 @@ QC_Socket.cpp: QC_Socket.qpp qpp
 QC_File.cpp: QC_File.qpp qpp
 	$(QPP) $<
 
-EXTRA_libqore_la_SOURCES = \
-	QC_Queue.qpp QC_Socket.qpp QC_File.qpp
-
 QORE_GENERATED_SOURCES = \
 	QC_Queue.cpp QC_Socket.cpp QC_File.cpp
 
