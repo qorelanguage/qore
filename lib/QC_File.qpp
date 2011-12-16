@@ -920,6 +920,13 @@ int File::vprintf(string[doc] fmt, any[doc] fmt_args) {
    return f->write(*str, xsink);
 }
 
+//! This method variant does nothing except return a constant 0; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** @return a constant 0
+ */
+int File::vprintf() [flags=QC_RUNTIME_NOOP] {
+   return 0;
+}
+
 //! Writes a formatted string with hard field widths to the file
 /** This method does not allow arguments to overrun field width specifiers in the format string.
 
@@ -947,6 +954,13 @@ int File::f_printf(string[doc] fmt, ...) {
       return 0;
 
    return f->write(*str, xsink);
+}
+
+//! This method variant does nothing except return a constant 0; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** @return a constant 0
+ */
+int File::f_printf() [flags=QC_RUNTIME_NOOP] {
+   return 0;
 }
 
 //! Writes a formatted string with hard field widths to a file, where the second argument is the formatting argument list
@@ -977,6 +991,13 @@ int File::f_vprintf(string[doc] fmt, any[doc] fmt_args) {
       return 0;
 
    return f->write(*str, xsink);
+}
+
+//! This method variant does nothing except return a constant 0; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** @return a constant 0
+ */
+int File::f_vprintf() [flags=QC_RUNTIME_NOOP] {
+   return 0;
 }
 
 //! Reads until an EOL marker is found and returns the string read or NOTHING if no data can be read
