@@ -845,7 +845,7 @@ int File::writei8LSB(int i) {
 
     @see File::f_printf() for a similar method that enforces field widths
  */
-int File::printf(string fmt, ...) {
+int File::printf(string[doc] fmt, ...) {
    if (check_terminal_io(self, "printf", xsink))
       return 0;
 
@@ -882,7 +882,7 @@ int File::printf() [flags=QC_RUNTIME_NOOP] {
 
     @see File::f_vprintf() for a similar method that enforces field widths
  */
-int File::vprintf(string fmt, any fmt_args) {
+int File::vprintf(string[doc] fmt, any[doc] fmt_args) {
    if (check_terminal_io(self, "vprintf", xsink))
       return 0;
 
@@ -911,7 +911,7 @@ int File::vprintf(string fmt, any fmt_args) {
 
     @see File::printf() for a similar method that does not enforce field widths
  */
-int File::f_printf(string fmt, ...) {
+int File::f_printf(string[doc] fmt, ...) {
    if (check_terminal_io(self, "f_printf", xsink))
       return 0;
 
@@ -941,7 +941,7 @@ int File::f_printf(string fmt, ...) {
 
     @see File::vprintf() for a similar method that does not enforce field widths
  */
-int File::f_vprintf(string fmt, any fmt_args) {
+int File::f_vprintf(string[doc] fmt, any[doc] fmt_args) {
    if (check_terminal_io(self, "f_vprintf", xsink))
       return 0;
 
@@ -1110,7 +1110,7 @@ $f.lock(F_UNLCK);@endcode
 
     @see File::lockBlocking() for a blocking version of this method
  */
-int File::lock(softint type = F_RDLCK, softint start = 0, softint len = 0, softint whence = SEEK_SET) {
+int File::lock(softint[doc] type = F_RDLCK, softint[doc] start = 0, softint[doc] len = 0, softint[doc] whence = SEEK_SET) {
 #ifdef HAVE_STRUCT_FLOCK
    if (check_terminal_io(self, "lock", xsink))
       return 0;
@@ -1151,7 +1151,7 @@ $f.lockBlocking(F_UNLCK);@endcode
 
     @see File::lockBlocking() for a blocking version of this method
  */
-nothing File::lockBlocking(softint type = F_RDLCK, softint start = 0, softint len = 0, softint whence = SEEK_SET) {
+nothing File::lockBlocking(softint[doc] type = F_RDLCK, softint[doc] start = 0, softint[doc] len = 0, softint[doc] whence = SEEK_SET) {
 #ifdef HAVE_STRUCT_FLOCK
    if (check_terminal_io(self, "lockBlocking", xsink))
       return 0;

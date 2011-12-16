@@ -115,11 +115,12 @@ struct Param {
 typedef std::vector<Param> paramlist_t;
 
 // code attribute bitfield defines
-#define QCA_NONE         0
-#define QCA_PUBLIC       (1 << 0)
-#define QCA_PRIVATE      (1 << 1)
-#define QCA_STATIC       (1 << 2)
-#define QCA_SYNCHRONIZED (1 << 3)
+#define QCA_NONE            0
+#define QCA_PUBLIC          (1 << 0)
+#define QCA_PRIVATE         (1 << 1)
+#define QCA_STATIC          (1 << 2)
+#define QCA_SYNCHRONIZED    (1 << 3)
+#define QCA_USES_EXTRA_ARGS (1 << 4)
 
 #define BUFSIZE 1024
 
@@ -394,7 +395,7 @@ protected:
               UC, 
               cname, vname.c_str(),
               attr & QCA_PRIVATE ? "true" : "false",
-              flags.empty() ? "QC_NO_FLAGS" : flags.c_str(),
+              flags.c_str(),
               dom.empty() ? "QDOM_DEFAULT" : dom.c_str());
 
       if (serializeBindingArgs(fp))
@@ -424,6 +425,10 @@ protected:
          const Param &p = params[i];
 
          if (!p.qore.empty()) {
+            // skip args that are only there for documentation (otherwise we get unused variable warnings)
+            if (p.qore == "doc")
+               continue;
+
             //log(LL_DEBUG, "found object class '%s' param name '%s'\n", p.type.c_str(), p.name.c_str());
             //HARD_QORE_OBJ_DATA(cert, QoreSSLCertificate, args, 0, CID_SSLCERTIFICATE, "Socket::setCertificate()", "SSLCertificate", xsink);
             std::string cid = p.type.c_str();
@@ -637,6 +642,11 @@ public:
          vname += buf;
       }
 
+      if (flags.empty())
+         flags = attr & QCA_USES_EXTRA_ARGS ? "QC_USES_EXTRA_ARGS" : "QC_NO_FLAGS";
+      else if (attr & QCA_USES_EXTRA_ARGS)
+         flags += "|QC_USES_EXTRA_ARGS";
+
       log(LL_DEBUG, "Method::Method() name %s flags '%s'\n", name.c_str(), flags.c_str());
    }
 
@@ -700,7 +710,7 @@ public:
               name.c_str(),
               getMethodType(), cname, vname.c_str(),
               attr & QCA_PRIVATE ? "true" : "false",
-              flags.empty() ? "QC_NO_FLAGS" : flags.c_str(),
+              flags.c_str(),
               dom.empty() ? "QDOM_DEFAULT" : dom.c_str(), cppt.c_str());
 
       if (serializeBindingArgs(fp))
@@ -747,7 +757,7 @@ public:
               name.c_str(),
               cname, vname.c_str(),
               attr & QCA_PRIVATE ? "true" : "false",
-              flags.empty() ? "QC_NO_FLAGS" : flags.c_str(),
+              flags.c_str(),
               dom.empty() ? "QDOM_DEFAULT" : dom.c_str(), cppt.c_str());
 
       if (serializeBindingArgs(fp))
@@ -1426,6 +1436,7 @@ protected:
                // handle special case arg "..." - which is just for documentation
                if (pl[xi] == "...") {
                   params.push_back(Param(pl[xi], pl[xi], "", ""));
+                  attr |= QCA_USES_EXTRA_ARGS;
                   continue;
                }
 
