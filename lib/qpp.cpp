@@ -455,7 +455,7 @@ protected:
             continue;
          }
          if (p.type == "*string" || p.type == "*softstring") {
-            fprintf(fp, "   const QoreStringNode* %s = reinterpret_cast<const QoreStringNode*>(args->retrieve_entry(%d));\n", p.name.c_str(), i);
+            fprintf(fp, "   const QoreStringNode* %s = reinterpret_cast<const QoreStringNode*>(args ? args->retrieve_entry(%d) : 0);\n", p.name.c_str(), i);
             continue;
          }
          if (p.type == "date" || p.type == "softdate") {
@@ -463,7 +463,7 @@ protected:
             continue;
          }
          if (p.type == "*date" || p.type == "*softdate") {
-            fprintf(fp, "   const DateTimeNode* %s = reinterpret_cast<const DateTimeNode*>(args->retrieve_entry(%d));\n", p.name.c_str(), i);
+            fprintf(fp, "   const DateTimeNode* %s = reinterpret_cast<const DateTimeNode*>(args ? args->retrieve_entry(%d) : 0);\n", p.name.c_str(), i);
             continue;
          }
          if (p.type == "binary") {
@@ -471,7 +471,7 @@ protected:
             continue;
          }
          if (p.type == "*binary") {
-            fprintf(fp, "   const BinaryNode* %s = reinterpret_cast<const BinaryNode*>(args->retrieve_entry(%d));\n", p.name.c_str(), i);
+            fprintf(fp, "   const BinaryNode* %s = reinterpret_cast<const BinaryNode*>(args ? args->retrieve_entry(%d) : 0);\n", p.name.c_str(), i);
             continue;
          }
          if (p.type == "list" || p.type == "softlist") {
@@ -483,7 +483,7 @@ protected:
             continue;
          }
          if (p.type == "*hash") {
-            fprintf(fp, "   const QoreHashNode* %s = reinterpret_cast<const QoreHashNode*>(args->retrieve_entry(%d));\n", p.name.c_str(), i);
+            fprintf(fp, "   const QoreHashNode* %s = reinterpret_cast<const QoreHashNode*>(args ? args->retrieve_entry(%d) : 0);\n", p.name.c_str(), i);
             continue;
          }
          if (p.type == "reference") {
@@ -491,15 +491,15 @@ protected:
             continue;
          }
          if (p.type == "*reference") {
-            fprintf(fp, "   const ReferenceNode* %s = reinterpret_cast<const ReferenceNode*>(args->retrieve_entry(%d));\n", p.name.c_str(), i);
+            fprintf(fp, "   const ReferenceNode* %s = reinterpret_cast<const ReferenceNode*>(args ? args->retrieve_entry(%d) : 0);\n", p.name.c_str(), i);
             continue;
          }
          if (p.type == "object") {
             fprintf(fp, "   QoreObject* %s = HARD_QORE_OBJECT(args, %d);\n", p.name.c_str(), i);
             continue;
          }
-         if (p.type == "*reference") {
-            fprintf(fp, "   QoreObject* %s = const_cast<QoreObject*>(reinterpret_cast<const QoreObject*>(args->retrieve_entry(%d)));\n", p.name.c_str(), i);
+         if (p.type == "*object") {
+            fprintf(fp, "   QoreObject* %s = const_cast<QoreObject*>(reinterpret_cast<const QoreObject*>(args ? args->retrieve_entry(%d) : 0));\n", p.name.c_str(), i);
             continue;
          }
          if (p.type == "any" || p.type == "data") {

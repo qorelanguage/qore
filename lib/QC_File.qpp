@@ -665,8 +665,35 @@ int File::write(binary data) {
     @throw FILE-WRITE-ERROR File is not open
     @throw ENCODING-CONVERSION-ERROR error converting from the string's encoding to the File's encoding
     @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (\c stdio, \c stdin, \c stdout) when @ref no-terminal-io is set
+
+    @note this variant of this method is equivalent to File::print()
  */
 int File::write(string data) {
+   if (check_terminal_io(self, "write", xsink))
+      return 0;
+
+   return f->write(data, xsink);
+}
+
+//! Writes string data to a file; string data is converted to the File's character encoding if necessary before writing
+/** Example
+    @code if ($f.print($data))
+    printf("File::print() error: %s\n", strerror(errno()));@endcode
+
+    @par Events
+    @ref EVENT_DATA_WRITTEN
+
+    @param data the data to be written to the file; string data is converted to the File's character encoding if necessary before writing
+
+    @return the number of bytes written or -1 for error; if -1 is returned, the error can be checked with the errno() function
+
+    @throw FILE-WRITE-ERROR File is not open
+    @throw ENCODING-CONVERSION-ERROR error converting from the string's encoding to the File's encoding
+    @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (\c stdio, \c stdin, \c stdout) when @ref no-terminal-io is set
+
+    @note this method is equivalent to File::write(string)
+ */
+int File::print(string data) {
    if (check_terminal_io(self, "write", xsink))
       return 0;
 
