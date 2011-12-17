@@ -87,7 +87,7 @@ AbstractQoreNode *missing_method_error(const char *meth, const char *feat, Excep
     The events raised by this object are listed in the following table:
 
     @anchor file_events
-    @par File Events
+    <b>File Events</b>
     |!Name|!Description
     |@ref EVENT_DATA_READ|Raised when data is read from the file
     |@ref EVENT_DATA_WRITTEN|Raised when data is written to the file
@@ -97,7 +97,7 @@ AbstractQoreNode *missing_method_error(const char *meth, const char *feat, Excep
     |@ref EVENT_FILE_OPENED|Raised when the file has been successfully opened
 
     @anchor file_constants
-    @par File Constants in the Qore Namespace
+    <b>File Constants in the Qore Namespace</b>
     |!Name|!Description
     |\c O_RDONLY|Open the file read-only
     |\c O_WRONLY|Open the file write-only
@@ -107,21 +107,21 @@ AbstractQoreNode *missing_method_error(const char *meth, const char *feat, Excep
     |\c O_TRUNC|Truncate the size to zero
 
     @anchor file_locking_constants
-    @par File Locking Constants in the Qore Namespace
+    <b>File Locking Constants in the Qore Namespace</b>
     |!Name|!Description
     |\c F_RDLCK|Use for read-only locking
     |\c F_WRLCK|Use for exclusive write locking
     |\c F_UNLCK|Use for unlocking a lock
 
     @anchor file_seek_constants
-    @par File Seek Constants in the Qore Namespace
+    <b>File Seek Constants in the Qore Namespace</b>
     |!Name|!Description
     |\c SEEK_SET|Indicates that the offset is from the start of the file
     |\c SEEK_CUR|Indicates that the offset is from the current position in the file
     |\c SEEK_END|Indicates that the offset is from the end of the file
 
     @anchor file_stat_constants
-    @par Stat Constants in the Qore Namespace
+    <b>Stat Constants in the Qore Namespace</b>
     |!Name|!Description
     |\c S_IFMT|File type bitmask
     |\c S_IFCHR|Bit signifying if the file is a character special (device) file

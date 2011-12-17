@@ -316,6 +316,75 @@ static int get_qore_value(const std::string &qv, std::string &v) {
    return -1;
 }
 
+static void doRow(strlist_t &sl, std::string &tstr) {
+   tstr += "   <tr>\n";
+   for (unsigned k = 0; k < sl.size(); ++k) {
+      tstr += "      ";
+      if (sl[k][0] == '!') {
+         sl[k].erase(0, 1);
+         tstr += "<td class=\"qore\"><b>" + sl[k] + "</b></td>\n";
+      }
+      else
+         tstr += "<td>" + sl[k] + "</td>\n";
+   }
+   tstr += "   </tr>\n";
+}
+
+static int serializeDoxComment(FILE* fp, std::string &buf) {
+   size_t start = 0;
+   while (true) {
+      size_t i = buf.find("|!", start);
+      log(LL_DEBUG, "TextElement::serializeDox() looking for |! i: %d\n", i);
+      if (i == std::string::npos)
+         break;
+
+      size_t start = i;
+
+      size_t end;
+
+      // find end of line
+      size_t j = buf.find('\n', i + 2);
+      log(LL_DEBUG, "TextElement::serializeDox() looking for first EOL j: %d\n", j);
+      if (j == std::string::npos)
+         break;
+
+      end = j;
+
+      std::string tstr = "@htmlonly <style><!-- td.qore { background-color: #5b9409; color: white; } --></style> @endhtmlonly\n<table>";
+
+      std::string str(buf, i + 1, j - i - 1);
+
+      while (true) {
+         strlist_t sl;
+         get_string_list(sl, str, '|');
+
+         doRow(sl, tstr);
+         i = j + 1;
+            
+         // find next EOL
+         j = buf.find('\n', i);
+         if (j == std::string::npos)
+            break;
+
+         str.assign(buf, i, j - i);
+
+         // find start of next row, if any
+         size_t k = str.find('|');
+         if (k == std::string::npos)
+            break;
+
+         str.erase(0, k + 1);
+         end = j;
+      }
+
+      tstr += "</table>\n";
+
+      buf.replace(start, end - start, tstr);
+   }
+   fputs(buf.c_str(), fp);
+   return 0;
+}
+
 class AbstractElement {
 protected:
 
@@ -342,8 +411,7 @@ public:
    }
 
    virtual int serializeDox(FILE *fp) {
-      fputs(buf.c_str(), fp);
-      return 0;
+      return serializeDoxComment(fp, buf);
    }   
 };
 
@@ -789,7 +857,7 @@ public:
       else
          fputs("\npublic:\n", fp);
 
-      fputs(docs.c_str(), fp);
+      serializeDoxComment(fp, docs);
       
       //fputs("   ", fp);
       if (attr & QCA_STATIC)
@@ -1031,7 +1099,7 @@ public:
    }
 
    virtual int serializeDox(FILE *fp) {
-      fputs(doc.c_str(), fp);
+      serializeDoxComment(fp, doc);
       fprintf(fp, "class %s {\n", name.c_str());
       
       for (mmap_t::const_iterator i = normal_mmap.begin(), e = normal_mmap.end(); i != e; ++i)

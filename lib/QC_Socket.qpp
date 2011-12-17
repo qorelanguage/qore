@@ -78,8 +78,8 @@ static int64 checkOpenResult(int rc, const char *method_name, ExceptionSink *xsi
 
     The events raised by this object are listed in the following table:
 
+    @anchor socket_events
     <b>Socket Events</b>
-
     |!Name|!Description
     |@ref EVENT_PACKET_READ|Raised when a network packet is received.
     |@ref EVENT_PACKET_SENT|Raised when a network packet is sent.
@@ -94,8 +94,8 @@ static int64 checkOpenResult(int rc, const char *method_name, ExceptionSink *xsi
     |@ref EVENT_START_SSL|Raised when socket SSL negotiation starts.
     |@ref EVENT_SSL_ESTABLISHED|Raised when SSL communication has been negotiated and established.
 
-    @section socket_info_hash Socket Information Hash
-
+    @anchor socket_info_hash
+    <b>Socket Information Hash</b>
     |!Key|!Description
     |\c hostname|The interface name if available (ex: \c "localhost"; note that this key is not present when retrieving information about UNIX sockets)
     |\c hostname_desc|A descriptive string giving the hostname and the address family if the hostname is available (ex: \c "ipv6[localhost]"; note that this key is not present when retrieving information about UNIX sockets)
