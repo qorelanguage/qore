@@ -613,6 +613,8 @@ protected:
    }
 
    static void serializeQoreCppType(FILE *fp, const std::string &tstr) {
+      fputs(tstr.c_str(), fp);
+/*
       size_t i = tstr.find('*');
       if (i == std::string::npos) {
          fputs(tstr.c_str(), fp);
@@ -622,6 +624,7 @@ protected:
       std::string t = tstr;
       t.replace(i, 1, "__7_");
       fputs(t.c_str(), fp);
+*/
    }
 
 public:

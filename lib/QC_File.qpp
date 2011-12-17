@@ -151,7 +151,7 @@ qclass File [system_constructor=FILE_system_constructor; arg=File* f; dom=FILESY
 //! Creates the File object
 /** It accepts one optional argument that will set the default character encoding for the file (only affects reading and writing string data).  To open the file, call File::open() or File::open2().
 
-    Example
+    @par Example
     @code my File $f();
 $f.open2("/tmp/my-file.txt"); @endcode
 
@@ -173,7 +173,7 @@ File::destructor() [doconly=true] {
 }
 
 //! Creates a new file object with the same character encoding specification as the original, otherwise no other information is copied
-/** Example
+/** @par Example
     @code my File $f1 = $f.copy(); @endcode
  */
 File::copy() {
@@ -185,7 +185,7 @@ File::copy() {
 
     Note that if no encoding is specified, the file will be tagged with the default character encoding for the process. Any string data written to the file will be converted to the file's encoding, and any string data read from the file will be automatically tagged with the file's encoding.
 
-    Example
+    @par Example
     @code # open a file for writing, truncate data if already exists, create the file if doesn't exist
 # set 0644 permissions, and convert all string data to ISO-8859-1 encoding
 if ($f.open($fn, O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1"))
@@ -220,7 +220,7 @@ int File::open(string filename, softint flags = O_RDONLY, softint mode = 0666, *
 
     If an error occurs, a \c FILE-OPEN2-ERROR exception is thrown. For a version of this method that returns an error code, see File::open().
 
-    Example
+    @par Example
     @code # open a file for writing, truncate data if already exists, create the file if doesn't exist
 # set 0644 permissions, and convert all string data to ISO-8859-1 encoding
 try {
@@ -254,7 +254,7 @@ nothing File::open2(string filename, softint flags = O_RDONLY, softint mode = 06
 }
 
 //! Closes the file object
-/** Example
+/** @par Example
     @code if ($f.close())
     printf("error closing file: %s\n", strerror(errno())); @endcode
 
@@ -273,7 +273,7 @@ int File::close() {
 }
 
 //! Flushes the file's buffer to disk
-/** Example
+/** @par Example
     @code if ($f.sync())
     printf("error in File::sync(): %s\n", strerror(errno())); @endcode
 
@@ -295,7 +295,7 @@ int File::sync() {
 
     An optional timeout period in milliseconds can be passed as well (or a @ref relative_dates "relative date/time value" may be passed instead of an integer to make the timeout units clear; ex: 25ms). If a timeout value is passed and the data cannot be read within the timeout period, then a \c FILE-READ-TIMEOUT exception is thrown. If no timeout value is passed or a negative value is given, then the call will never timeout until either the requested amount of data has been read from the file or an end-of-file condition has been reached.
 
-    Example
+    @par Example
     @code my *string $data = $f.read(-1); # read an entire text file into a variable @endcode
 
     @par Events
@@ -325,7 +325,7 @@ int File::sync() {
 }
 
 //! Reads a 1-byte unsigned integer from the file in binary format or NOTHING if no data can be read 
-/** Example
+/** @par Example
     @code my *int $i = $f.readu1(); @endcode
 
     @par Events
@@ -347,7 +347,7 @@ int File::sync() {
 }
 
 //! Reads a 2-byte (16 bit) unsigned integer from the file in binary big-endian format or NOTHING if no data can be read
-/** Example
+/** @par Example
     @code my *int $i = $f.readu2(); @endcode
 
     @par Events
@@ -369,7 +369,7 @@ int File::sync() {
 }
 
 //! Reads a 4-byte (32 bit) unsigned integer from the file in big-endian format or NOTHING if no data can be read
-/** Example
+/** @par Example
     @code my *int $i = $f.readu4(); @endcode
 
     @par Events
@@ -391,7 +391,7 @@ int File::sync() {
 }
 
 //! Reads a 2-byte (16 bit) unsigned integer from the file in binary little-endian format or NOTHING if no data can be read
-/** Example
+/** @par Example
     @code my *int $i = $f.readu2LSB(); @endcode
 
     @par Events
@@ -414,7 +414,7 @@ int File::sync() {
 }
 
 //! Reads a 4-byte (32 bit) unsigned integer from the file in binary little-endian format or NOTHING if no data can be read
-/** Example
+/** @par Example
     @code my *int $i = $f.readu4LSB(); @endcode
 
     @par Events
@@ -437,7 +437,7 @@ int File::sync() {
 }
 
 //! Reads a 1-byte signed integer from the file in binary format or NOTHING if no data can be read 
-/** Example
+/** @par Example
     @code my *int $i = $f.readi1(); @endcode
 
     @par Events
@@ -459,7 +459,7 @@ int File::sync() {
 }
 
 //! Reads a 2-byte (16 bit) signed integer from the file in binary big-endian format or NOTHING if no data can be read
-/** Example
+/** @par Example
     @code my *int $i = $f.readi2(); @endcode
 
     @par Events
@@ -481,7 +481,7 @@ int File::sync() {
 }
 
 //! Reads a 4-byte (32 bit) signed integer from the file in binary big-endian format or NOTHING if no data can be read
-/** Example
+/** @par Example
     @code my *int $i = $f.readi4(); @endcode
 
     @par Events
@@ -503,7 +503,7 @@ int File::sync() {
 }
 
 //! Reads an 8-byte (64 bit) signed integer from the file in binary big-endian format or NOTHING if no data can be read
-/** Example
+/** @par Example
     @code my *int $i = $f.readi8(); @endcode
 
     @par Events
@@ -526,7 +526,7 @@ int File::sync() {
 }
 
 //! Reads a 2-byte (16 bit) signed integer from the file in binary little-endian format or NOTHING if no data can be read
-/** Example
+/** @par Example
     @code my *int $i = $f.readi2LSB(); @endcode
 
     @par Events
@@ -549,7 +549,7 @@ int File::sync() {
 }
 
 //! Reads a 4-byte (32 bit) signed integer from the file in binary little-endian format or NOTHING if no data can be read
-/** Example
+/** @par Example
     @code my *int $i = $f.readi4LSB(); @endcode
 
     @par Events
@@ -571,7 +571,7 @@ int File::sync() {
 }
 
 //! Reads an 8-byte (64 bit) signed integer from the file in binary little-endian format or NOTHING if no data can be read
-/** Example
+/** @par Example
     @code my *int $i = $f.readi8LSB(); @endcode
 
     @par Events
@@ -602,7 +602,7 @@ int File::sync() {
     @par Events
     @ref EVENT_DATA_READ
 
-    Example
+    @par Example
     @code my *binary $data = $f.readBinary(-1); # read an entire file into a variable @endcode
 
     @param size the number of bytes to read of the file, -1 will read the entire file
@@ -629,7 +629,7 @@ int File::sync() {
 }
 
 //! Writes binary data to a file
-/** Example
+/** @par Example
     @code if ($f.write($data))
     printf("File::write() error: %s\n", strerror(errno())); @endcode
 
@@ -651,7 +651,7 @@ int File::write(binary data) {
 }
 
 //! Writes string data to a file; string data is converted to the File's character encoding if necessary before writing
-/** Example
+/** @par Example
     @code if ($f.write($data))
     printf("File::write() error: %s\n", strerror(errno())); @endcode
 
@@ -676,7 +676,7 @@ int File::write(string data) {
 }
 
 //! Writes string data to a file; string data is converted to the File's character encoding if necessary before writing
-/** Example
+/** @par Example
     @code if ($f.print($data))
     printf("File::print() error: %s\n", strerror(errno())); @endcode
 
@@ -701,7 +701,7 @@ int File::print(string data) {
 }
 
 //! Writes a 1-byte integer to the file
-/** Example
+/** @par Example
     @code if ($f.writei1($val))
     printf("eror writing to file: %s\n", strerror(errno())); @endcode
 
@@ -723,7 +723,7 @@ int File::writei1(int c) {
 }
 
 //! Writes a 2-byte (16 bit) integer to the file in binary big-endian format
-/** Example
+/** @par Example
     @code if ($f.writei2($val))
     printf("eror writing to file: %s\n", strerror(errno())); @endcode
 
@@ -745,7 +745,7 @@ int File::writei2(int s) {
 }
 
 //! Writes a 4-byte (32 bit) integer to the file in binary big-endian format
-/** Example
+/** @par Example
     @code if ($f.writei4($val))
     printf("eror writing to file: %s\n", strerror(errno())); @endcode
 
@@ -767,7 +767,7 @@ int File::writei4(int i) {
 }
 
 //! Writes an 8-byte (64 bit) integer to the file in binary big-endian format
-/** Example
+/** @par Example
     @code if ($f.writei8($val))
     printf("eror writing to file: %s\n", strerror(errno())); @endcode
 
@@ -789,7 +789,7 @@ int File::writei8(int i) {
 }
 
 //! Writes a 2-byte (16 bit) integer to the file in binary little-endian format
-/** Example
+/** @par Example
     @code if ($f.writei2LSB($val))
     printf("eror writing to file: %s\n", strerror(errno())); @endcode
 
@@ -811,7 +811,7 @@ int File::writei2LSB(int s) {
 }
 
 //! Writes a 4-byte (32 bit) integer to the file in binary little-endian format
-/** Example
+/** @par Example
     @code if ($f.writei4LSB($val))
     printf("eror writing to file: %s\n", strerror(errno())); @endcode
 
@@ -833,7 +833,7 @@ int File::writei4LSB(int i) {
 }
 
 //! Writes an 8-byte (64 bit) integer to the file in binary little-endian format
-/** Example
+/** @par Example
     @code if ($f.writei8LSB($val))
     printf("eror writing to file: %s\n", strerror(errno())); @endcode
 
@@ -857,7 +857,7 @@ int File::writei8LSB(int i) {
 //! Writes a formatted string with soft field widths to the file
 /** This method will allow arguments to overrun field width specifiers in the format string.
 
-    Example
+    @par Example
     @code $f.printf("%5s\n", "hello there"); # outputs "hello there\n", exceeding field width @endcode
 
     @par Events
@@ -893,7 +893,7 @@ int File::printf() [flags=QC_RUNTIME_NOOP] {
 //! Writes a formatted string with soft field widths to a file, where the second argument is the formatting argument list
 /** This method will allow arguments to overrun field width specifiers in the format string.
 
-    Example
+    @par Example
     @code $f.vprintf("%5s: %d\n", ("hello there", 2)); # outputs "hello there: 2\n", exceeding field width @endcode
 
     @par Events
@@ -930,7 +930,7 @@ int File::vprintf() [flags=QC_RUNTIME_NOOP] {
 //! Writes a formatted string with hard field widths to the file
 /** This method does not allow arguments to overrun field width specifiers in the format string.
 
-    Example
+    @par Example
     @code $f.f_printf("%5s\n", "hello there"); # outputs "hello\n", enforcing the field width @endcode
 
     @par Events
@@ -966,7 +966,7 @@ int File::f_printf() [flags=QC_RUNTIME_NOOP] {
 //! Writes a formatted string with hard field widths to a file, where the second argument is the formatting argument list
 /** This method will not allow arguments to overrun field width specifiers in the format string.
 
-    Example
+    @par Example
     @code $f.f_vprintf("%5s: %d\n", ("hello there", 2)); # outputs "hello: 2\n", enforcing the field width @endcode
 
     @par Events
@@ -1003,7 +1003,7 @@ int File::f_vprintf() [flags=QC_RUNTIME_NOOP] {
 //! Reads until an EOL marker is found and returns the string read or NOTHING if no data can be read
 /** Any string returned wiill be tagged with the File's character encoding.
 
-    Example
+    @par Example
     @code while (exists (my *string $line = $f.readLine())) {
     # remove EOL marker
     chomp $line;
@@ -1027,7 +1027,7 @@ int File::f_vprintf() [flags=QC_RUNTIME_NOOP] {
 }
 
 //! Sets the character encoding for the file; if called with no argument, the default encoding is set
-/** Example
+/** @par Example
     @code $f.setEncoding("ISO-8859-1"); @endcode
 
     @param the character encoding for the file; if called with no argument, the default encoding is set
@@ -1057,7 +1057,7 @@ nothing File::setCharset(*string encoding) {
 }
 
 //! Returns the character encoding for the file
-/** Example
+/** @par Example
     @code my string $encoding = $f.getEncoding(); @endcode
 
     @return the character encoding for the file
@@ -1069,7 +1069,7 @@ string File::getEncoding() {
 //! Returns the character encoding for the file
 /** A method synonym for Socket::getEncoding(), kept for backwards-compatibility
 
-    Example
+    @par Example
     @code my string $encoding = $f.getCharset(); @endcode
 
     @return the character encoding for the file
@@ -1079,7 +1079,7 @@ string File::getCharset() {
 }
 
 //! Sets the current file position (in bytes from the beginning of the file)
-/** Example
+/** @par Example
     @code $f.setPos(0); # go to the beginning of the file @endcode
 
     @param pos the position in the file as offset from position 0
@@ -1096,7 +1096,7 @@ int File::setPos(int pos = 0) {
 }
 
 //! Returns the current file position as an integer giving the offset in bytes from the beginning of the file (starting from zero)
-/** Example
+/** @par Example
     @code my int $pos = $f.getPos(); @endcode
 
     @return the current file position as an integer giving the offset in bytes from the beginning of the file (starting from zero)
@@ -1113,7 +1113,7 @@ int File::getPos() {
 //! Reads one character from the file and returns it as a string; returns NOTHING if no data can be read from the file
 /** Multi-byte characters are also read; use File::readu1() or File::readi1() to read a single byte from a file regardless of the File's character encoding. 
 
-    Example
+    @par Example
     @code my *string $str = $f.getchar(); @endcode
 
     @return the single character read from the file or NOTHING if no data can be read from the file
@@ -1135,7 +1135,7 @@ int File::getPos() {
     @par Platform Availability
     @ref HAVE_FILE_LOCKING
 
-    Example
+    @par Example
     @code # lock the entire file exclusively
 $f.lock(F_WRLCK);
 
@@ -1178,7 +1178,7 @@ int File::lock(softint[doc] type = F_RDLCK, softint[doc] start = 0, softint[doc]
     @par Platform Availability
     @ref HAVE_FILE_LOCKING
 
-    Example
+    @par Example
     @code # lock the entire file exclusively
 $f.lockBlocking(F_WRLCK);
 
@@ -1219,7 +1219,7 @@ nothing File::lockBlocking(softint[doc] type = F_RDLCK, softint[doc] start = 0, 
 /** @par Platform Availability
     @ref HAVE_FILE_LOCKING
 
-    Example
+    @par Example
     @code my hash $hash = $f.getLockInfo(); @endcode
 
     @return a hash with the following keys: 
@@ -1259,7 +1259,7 @@ hash File::getLockInfo() {
 /** @par Platform Availability
     @ref HAVE_UNIX_FILEMGT
 
-    Example
+    @par Example
     @code $f.chown(0, 0); @endcode
 
     @param uid The user id of the user to change to; -1 means do not change uid
@@ -1303,7 +1303,7 @@ bool File::isDataAvailable(timeout timeout_ms = 0) {
     @par Platform Availability
     @ref HAVE_TERMIOS
 
-    Example
+    @par Example
     @code my TermIOS $termios();
 stdin.getTerminalAttributes($termios); @endcode
 
@@ -1331,7 +1331,7 @@ nothing File::getTerminalAttributes(TermIOS[QoreTermIOS] termios) {
 /** @par Platform Availability
     @ref HAVE_TERMIOS
 
-    Example
+    @par Example
     @code my TermIOS $termios();
     stdin.getTerminalAttributes($termios);
     my TermIOS $orig = $termios.copy();
@@ -1373,7 +1373,7 @@ nothing File::setTerminalAttributes(softint action = TCSANOW, TermIOS[QoreTermIO
 }
 
 //! Sets a @ref Queue object to receive @ref file_events "file events"
-/** Example
+/** @par Example
     @code $f.setEventQueue($queue); @endcode
 
     @param queue the @ref Queue object to receive @ref file_events "file events"
@@ -1392,7 +1392,7 @@ nothing File::setEventQueue(Queue[Queue] queue) {
 }
 
 //! Removes any @ref Queue object from the File object so that @ref file_events "file events" are no longer added to the Queue
-/** Example
+/** @par Example
     @code $f.setEventQueue(); @endcode
 
     @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (\c stdio, \c stdin, \c stdout) when @ref no-terminal-io is set
@@ -1410,7 +1410,7 @@ nothing File::setEventQueue() {
 //! Returns a @ref stat_list about the file's status or throws an exception if any errors occur
 /** If any errors occur, a \c FILE-STAT-ERROR exception is thrown.
 
-    Example
+    @par Example
     @code my int $mode = $file.stat()[2]; @endcode
 
     @return a @ref stat_list "list of file status values" for the current file (must be open).
@@ -1428,7 +1428,7 @@ list File::stat() {
 //! Returns a @ref stat_hash about the file's status or throws an exception if any errors occur
 /** If any errors occur, a \c FILE-HSTAT-ERROR exception is thrown
 
-    Example
+    @par Example
     @code my hash $h = $file.hstat(); @endcode
 
     @return a @ref stat_hash about the file's status
@@ -1449,7 +1449,7 @@ hash File::hstat() {
     @par Platform Availability
     @ref HAVE_STATVFS
 
-    Example
+    @par Example
     @code my hash $h = $file.statvfs(); @endcode
 
     @return a @ref filesystem_status_hash about the filesystem where the file resides
@@ -1476,7 +1476,7 @@ hash File::statvfs() {
     @par Restrictions
     Not available with @ref PO_NO_FILESYSTEM
 
-    Example
+    @par Example
     @code my int $mode = File::stat($path)[2]; @endcode
 
     @param path the file to stat()
@@ -1502,7 +1502,7 @@ static list File::stat(*string path) [dom=QDOM_FILESYSTEM] {
     @par Restrictions
     Not available with @ref PO_NO_FILESYSTEM
 
-    Example
+    @par Example
     @code my int $mode = File::lstat($path)[2]; @endcode
 
     @param path the file to stat()
@@ -1535,7 +1535,7 @@ static list File::lstat(string path) {
     @par Restrictions
     Not available with @ref PO_NO_FILESYSTEM
 
-    Example
+    @par Example
     @code my hash $h = File::hstat($path); @endcode
 
     @param path the file to stat()
@@ -1562,7 +1562,7 @@ static hash File::hstat(string path) {
     @par Restrictions
     Not available with @ref PO_NO_FILESYSTEM
 
-    Example
+    @par Example
     @code my hash $h = File::hstat($path); @endcode
 
     @param path the file to stat()
@@ -1596,7 +1596,7 @@ static hash File::hlstat(string path) {
     @par Platform Availability
     @ref HAVE_STATVFS
 
-    Example
+    @par Example
     @code my hash $h = File::statvfs($path); @endcode
 
     @param path the path to the filesystem to check
