@@ -356,8 +356,8 @@ $sock.bindUNIX("/tmp/socket"); @endcode
 
     @note UNIX domain sockets are not available on native Windows ports
  */
-nothing Socket::bindUNIX(string name, softint socktype = SOCK_STREAM, softint protocol = 0) {
-   s->bindUNIX(name->getBuffer(), socktype, protocol, xsink);
+nothing Socket::bindUNIX(string path, softint socktype = SOCK_STREAM, softint protocol = 0) {
+   s->bindUNIX(path->getBuffer(), socktype, protocol, xsink);
 }
 
 //! Opens and binds the socket to the given IPv4 or IPv6 interface (or if no interface is given, then to all interfaces on the local system) and port (the port number will be derived from the service name if a numeric port number is not given)
@@ -550,7 +550,7 @@ int Socket::listen() {
     @par Events
     @ref EVENT_PACKET_SENT
 
-    @param Sends the binary data over the socket
+    @param bin Sends the binary data over the socket
 
     @return 0 for success, -1 for error; in this case check errno() for the error number
 
@@ -566,13 +566,14 @@ int Socket::send(binary bin) {
 /** String data will be converted to the encoding set for the socket if necessary. If an error occurs, -1 will be returned; in this case check errno() for the error number.
 
     @par Example
-    @code if ($sock.send($str) == -1)
+    @code
+if ($sock.send($str) == -1)
     printf("error sending data: %s\n", strerror(errno())); @endcode
 
     @par Events
     @ref EVENT_PACKET_SENT
 
-    @param data dends the string data over the socket without the trailing null ('\0') character; the string's encoding is converted to the socket's encoding if necessary
+    @param str dends the string data over the socket without the trailing null ('\0') character; the string's encoding is converted to the socket's encoding if necessary
 
     @return 0 for success, -1 for error; in this case check errno() for the error number
 
@@ -588,13 +589,14 @@ int Socket::send(string str) {
 /** If an error occurs, -1 will be returned; in this case check errno() for the error number.
 
     @par Example
-    @code if ($sock.sendBinary($str) == -1)
+    @code
+if ($sock.sendBinary($str) == -1)
     printf("error sending data: %s\n", strerror(errno())); @endcode
 
     @par Events
     @ref EVENT_PACKET_SENT
 
-    @param data dends the string data over the socket without the trailing null ('\0') character
+    @param str dends the string data over the socket without the trailing null ('\0') character
 
     @return 0 for success, -1 for error; in this case check errno() for the error number
 
@@ -616,7 +618,7 @@ int Socket::sendBinary(string str) {
     @par Events
     @ref EVENT_PACKET_SENT
 
-    @param Sends the binary data over the socket
+    @param bin Sends the binary data over the socket
 
     @return 0 for success, -1 for error; in this case check errno() for the error number
 
@@ -1177,12 +1179,12 @@ int Socket::recvu4LSB(timeout timeout_ms = -1) {
 
     @see Socket::sendHTTPResponse(), Socket::readHTTPHeader()
  */
-nothing Socket::sendHTTPMessage(string method, string path, string http_version, hash headers, *string data) {
+nothing Socket::sendHTTPMessage(string method, string path, string http_version, hash headers, *string body) {
    TempEncodingHelper tmp_data;
-   if (data && !tmp_data.set(data, s->getEncoding(), xsink))
+   if (body && !tmp_data.set(body, s->getEncoding(), xsink))
       return 0;
 
-   int rc = s->sendHTTPMessage(method->getBuffer(), path->getBuffer(), http_version->getBuffer(), headers, data ? tmp_data->getBuffer() : 0, data ? tmp_data->strlen() : 0);
+   int rc = s->sendHTTPMessage(method->getBuffer(), path->getBuffer(), http_version->getBuffer(), headers, body ? tmp_data->getBuffer() : 0, body ? tmp_data->strlen() : 0);
    return doSendResult(rc, "sendHTTPMessage", xsink);
 }
 
@@ -1206,8 +1208,8 @@ nothing Socket::sendHTTPMessage(string method, string path, string http_version,
 
     @see Socket::sendHTTPResponse(), Socket::readHTTPHeader()
  */
-nothing Socket::sendHTTPMessage(string method, string path, string http_version, hash headers, binary data) {
-   int rc = s->sendHTTPMessage(method->getBuffer(), path->getBuffer(), http_version->getBuffer(), headers, data->getPtr(), data->size());
+nothing Socket::sendHTTPMessage(string method, string path, string http_version, hash headers, binary body) {
+   int rc = s->sendHTTPMessage(method->getBuffer(), path->getBuffer(), http_version->getBuffer(), headers, body->getPtr(), body->size());
    return doSendResult(rc, "sendHTTPMessage", xsink);
 }
 
@@ -1232,17 +1234,17 @@ nothing Socket::sendHTTPMessage(string method, string path, string http_version,
     @throw SOCKET-NOT-OPEN the socket is not connected
     @throw SOCKET-SEND-ERROR send failed
  */
-nothing Socket::sendHTTPResponse(softint status_code, string status_desc, string http_version, hash headers, *string data) {
+nothing Socket::sendHTTPResponse(softint status_code, string status_desc, string http_version, hash headers, *string body) {
    if (status_code < 100 || status_code >= 600) {
       xsink->raiseException("SOCKET-SENDHTTPRESPONSE-STATUS-ERROR", "expecting valid HTTP status code between 100 and 599 as first parameter of Socket::sendHTTPResponse() call, got value %d instead", status_code);
       return 0;
    }
 
    TempEncodingHelper tmp_data;
-   if (data && !tmp_data.set(data, s->getEncoding(), xsink))
+   if (body && !tmp_data.set(data, s->getEncoding(), xsink))
       return 0;
 
-   int rc = s->sendHTTPResponse(status_code, status_desc->getBuffer(), http_version->getBuffer(), headers, data ? tmp_data->getBuffer() : 0, data ? tmp_data->strlen() : 0);
+   int rc = s->sendHTTPResponse(status_code, status_desc->getBuffer(), http_version->getBuffer(), headers, body ? tmp_data->getBuffer() : 0, body ? tmp_data->strlen() : 0);
    return doSendResult(rc, "sendHTTPResponse", xsink);
 }
 
@@ -1265,13 +1267,13 @@ nothing Socket::sendHTTPResponse(softint status_code, string status_desc, string
     @throw SOCKET-NOT-OPEN the socket is not connected
     @throw SOCKET-SEND-ERROR send failed
  */
-nothing Socket::sendHTTPResponse(softint status_code, string status_desc, string http_version, hash headers, binary data) {
+nothing Socket::sendHTTPResponse(softint status_code, string status_desc, string http_version, hash headers, binary body) {
    if (status_code < 100 || status_code >= 600) {
       xsink->raiseException("SOCKET-SENDHTTPRESPONSE-STATUS-ERROR", "expecting valid HTTP status code between 100 and 599 as first parameter of Socket::sendHTTPResponse() call, got value %d instead", status_code);
       return 0;
    }
 
-   int rc = s->sendHTTPResponse(status_code, status_desc->getBuffer(), http_version->getBuffer(), headers, data ? data->getPtr() : 0, data ? data->size() : 0);
+   int rc = s->sendHTTPResponse(status_code, status_desc->getBuffer(), http_version->getBuffer(), headers, body ? body->getPtr() : 0, body ? body->size() : 0);
    return doSendResult(rc, "sendHTTPResponse", xsink);
 }
 

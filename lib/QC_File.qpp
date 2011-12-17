@@ -153,8 +153,10 @@ qclass File [system_constructor=FILE_system_constructor; arg=File* f; dom=FILESY
 /** It accepts one optional argument that will set the default character encoding for the file (only affects reading and writing string data).  To open the file, call File::open() or File::open2().
 
     @par Example
-    @code my File $f();
-$f.open2("/tmp/my-file.txt"); @endcode
+    @code
+my File $f();
+$f.open2("/tmp/my-file.txt");
+@endcode
 
     @param encoding The character encoding for the file. Any strings written to the file will be converted to this character encoding if necessary; if this argument is not given then the file will receive the default encoding
 
@@ -187,10 +189,12 @@ File::copy() {
     Note that if no encoding is specified, the file will be tagged with the default character encoding for the process. Any string data written to the file will be converted to the file's encoding, and any string data read from the file will be automatically tagged with the file's encoding.
 
     @par Example
-    @code # open a file for writing, truncate data if already exists, create the file if doesn't exist
+    @code
+# open a file for writing, truncate data if already exists, create the file if doesn't exist
 # set 0644 permissions, and convert all string data to ISO-8859-1 encoding
 if ($f.open($fn, O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1"))
-    printf("%s: %s\n", $fn, strerror(errno())); @endcode
+    printf("%s: %s\n", $fn, strerror(errno()));
+    @endcode
 
     @par Events
     @ref EVENT_OPEN_FILE, @ref EVENT_FILE_OPENED
@@ -198,7 +202,7 @@ if ($f.open($fn, O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1"))
     @param path the path to the file
     @param flags flags that determine the way the file is accessed, see @ref file_constants "file constants" for more information; if this argument is not given, \c O_RDONLY will be used as the default value.
     @param mode permission bits for when the file is to be created (default: 0666)
-    @param *string encoding the name of the default character encoding for this file; if this argument is not given, the file will be tagged with the default character encoding for the process
+    @param encoding the name of the default character encoding for this file; if this argument is not given, the file will be tagged with the default character encoding for the process
 
     @return 0 = no error, -1 = see errno() and strerror() for the error message
 
@@ -206,12 +210,12 @@ if ($f.open($fn, O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1"))
 
     @see File::open2() for a version of this method that throws an exception when errors occur opening the file
  */
-int File::open(string filename, softint flags = O_RDONLY, softint mode = 0666, *string encoding) {
+int File::open(string path, softint flags = O_RDONLY, softint mode = 0666, *string encoding) {
    if (check_terminal_io(self, "open", xsink))
       return 0;
 
    const QoreEncoding *qe = encoding ? QEM.findCreate(encoding) : QCS_DEFAULT;
-   return f->open(filename->getBuffer(), flags, mode, qe);
+   return f->open(path->getBuffer(), flags, mode, qe);
 }
 
 //! Opens a file in a particular mode; throws an exception on failure
@@ -222,14 +226,16 @@ int File::open(string filename, softint flags = O_RDONLY, softint mode = 0666, *
     If an error occurs, a \c FILE-OPEN2-ERROR exception is thrown. For a version of this method that returns an error code, see File::open().
 
     @par Example
-    @code # open a file for writing, truncate data if already exists, create the file if doesn't exist
+    @code
+# open a file for writing, truncate data if already exists, create the file if doesn't exist
 # set 0644 permissions, and convert all string data to ISO-8859-1 encoding
 try {
     $f.open2($fn, O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1");
 }
 catch (hash $ex) {
     printf("%s: %s: %s\n", $fn, $ex.err, $ex.desc);
-} @endcode
+}
+@endcode
 
     @par Events
     @ref EVENT_OPEN_FILE, @ref EVENT_FILE_OPENED
@@ -237,7 +243,7 @@ catch (hash $ex) {
     @param path the path to the file
     @param flags flags that determine the way the file is accessed, see @ref file_constants "file constants" for more information; if this argument is not given, \c O_RDONLY will be used as the default value.
     @param mode permission bits for when the file is to be created (default: 0666)
-    @param *string encoding the name of the default character encoding for this file; if this argument is not given, the file will be tagged with the default character encoding for the process
+    @param encoding the name of the default character encoding for this file; if this argument is not given, the file will be tagged with the default character encoding for the process
 
     @return 0 = no error, -1 = see errno() and strerror() for the error message
 
@@ -246,18 +252,20 @@ catch (hash $ex) {
 
     @see File::open2() for a version of this method that throws an exception when errors occur opening the file
  */
-nothing File::open2(string filename, softint flags = O_RDONLY, softint mode = 0666, *string encoding) {
+nothing File::open2(string path, softint flags = O_RDONLY, softint mode = 0666, *string encoding) {
    if (check_terminal_io(self, "open2", xsink))
       return 0;
 
    const QoreEncoding *qe = encoding ? QEM.findCreate(encoding) : QCS_DEFAULT;
-   f->open2(xsink, filename->getBuffer(), flags, mode, qe);
+   f->open2(xsink, path->getBuffer(), flags, mode, qe);
 }
 
 //! Closes the file object
 /** @par Example
-    @code if ($f.close())
-    printf("error closing file: %s\n", strerror(errno())); @endcode
+    @code
+ if ($f.close())
+    printf("error closing file: %s\n", strerror(errno()));
+@endcode
 
     @par Events
     @ref EVENT_CHANNEL_CLOSED
@@ -275,8 +283,10 @@ int File::close() {
 
 //! Flushes the file's buffer to disk
 /** @par Example
-    @code if ($f.sync())
-    printf("error in File::sync(): %s\n", strerror(errno())); @endcode
+    @code
+if ($f.sync())
+    printf("error in File::sync(): %s\n", strerror(errno()));
+@endcode
 
     @return 0 for success, -1 for error (see errno() and strerror() for the error information)
 
@@ -631,8 +641,10 @@ int File::sync() {
 
 //! Writes binary data to a file
 /** @par Example
-    @code if ($f.write($data))
-    printf("File::write() error: %s\n", strerror(errno())); @endcode
+    @code
+if ($f.write($data))
+    printf("File::write() error: %s\n", strerror(errno()));
+@endcode
 
     @par Events
     @ref EVENT_DATA_WRITTEN
@@ -653,8 +665,10 @@ int File::write(binary data) {
 
 //! Writes string data to a file; string data is converted to the File's character encoding if necessary before writing
 /** @par Example
-    @code if ($f.write($data))
-    printf("File::write() error: %s\n", strerror(errno())); @endcode
+    @code
+if ($f.write($data))
+    printf("File::write() error: %s\n", strerror(errno()));
+@endcode
 
     @par Events
     @ref EVENT_DATA_WRITTEN
@@ -678,8 +692,10 @@ int File::write(string data) {
 
 //! Writes string data to a file; string data is converted to the File's character encoding if necessary before writing
 /** @par Example
-    @code if ($f.print($data))
-    printf("File::print() error: %s\n", strerror(errno())); @endcode
+    @code
+if ($f.print($data))
+    printf("File::print() error: %s\n", strerror(errno()));
+@endcode
 
     @par Events
     @ref EVENT_DATA_WRITTEN
@@ -703,13 +719,15 @@ int File::print(string data) {
 
 //! Writes a 1-byte integer to the file
 /** @par Example
-    @code if ($f.writei1($val))
-    printf("eror writing to file: %s\n", strerror(errno())); @endcode
+    @code
+if ($f.writei1($val))
+    printf("eror writing to file: %s\n", strerror(errno()));
+@endcode
 
     @par Events
     @ref EVENT_DATA_WRITTEN
 
-    @param i the integer to write; only the least-significant 8 bits will be written to the file
+    @param c the integer to write; only the least-significant 8 bits will be written to the file
 
     @return 0 for success, -1 for error
 
@@ -725,13 +743,15 @@ int File::writei1(int c) {
 
 //! Writes a 2-byte (16 bit) integer to the file in binary big-endian format
 /** @par Example
-    @code if ($f.writei2($val))
-    printf("eror writing to file: %s\n", strerror(errno())); @endcode
+    @code
+if ($f.writei2($val))
+    printf("eror writing to file: %s\n", strerror(errno()));
+@endcode
 
     @par Events
     @ref EVENT_DATA_WRITTEN
 
-    @param i the integer to write in binary big-endian format; only the least-significant 16 bits of the integer will be written to the file
+    @param s the integer to write in binary big-endian format; only the least-significant 16 bits of the integer will be written to the file
 
     @return 0 for success, -1 for error
 
@@ -747,8 +767,10 @@ int File::writei2(int s) {
 
 //! Writes a 4-byte (32 bit) integer to the file in binary big-endian format
 /** @par Example
-    @code if ($f.writei4($val))
-    printf("eror writing to file: %s\n", strerror(errno())); @endcode
+    @code
+if ($f.writei4($val))
+    printf("eror writing to file: %s\n", strerror(errno()));
+@endcode
 
     @par Events
     @ref EVENT_DATA_WRITTEN
@@ -769,8 +791,10 @@ int File::writei4(int i) {
 
 //! Writes an 8-byte (64 bit) integer to the file in binary big-endian format
 /** @par Example
-    @code if ($f.writei8($val))
-    printf("eror writing to file: %s\n", strerror(errno())); @endcode
+    @code
+if ($f.writei8($val))
+    printf("eror writing to file: %s\n", strerror(errno()));
+@endcode
 
     @par Events
     @ref EVENT_DATA_WRITTEN
@@ -791,13 +815,15 @@ int File::writei8(int i) {
 
 //! Writes a 2-byte (16 bit) integer to the file in binary little-endian format
 /** @par Example
-    @code if ($f.writei2LSB($val))
-    printf("eror writing to file: %s\n", strerror(errno())); @endcode
+    @code
+if ($f.writei2LSB($val))
+    printf("eror writing to file: %s\n", strerror(errno()));
+@endcode
 
     @par Events
     @ref EVENT_DATA_WRITTEN
 
-    @param i the integer to write in binary little-endian format; only the least-significant 16 bits of the integer will be written to the file
+    @param s the integer to write in binary little-endian format; only the least-significant 16 bits of the integer will be written to the file
 
     @return 0 for success, -1 for error
 
@@ -813,8 +839,10 @@ int File::writei2LSB(int s) {
 
 //! Writes a 4-byte (32 bit) integer to the file in binary little-endian format
 /** @par Example
-    @code if ($f.writei4LSB($val))
-    printf("eror writing to file: %s\n", strerror(errno())); @endcode
+    @code
+if ($f.writei4LSB($val))
+    printf("eror writing to file: %s\n", strerror(errno()));
+@endcode
 
     @par Events
     @ref EVENT_DATA_WRITTEN
@@ -835,8 +863,10 @@ int File::writei4LSB(int i) {
 
 //! Writes an 8-byte (64 bit) integer to the file in binary little-endian format
 /** @par Example
-    @code if ($f.writei8LSB($val))
-    printf("eror writing to file: %s\n", strerror(errno())); @endcode
+    @code
+if ($f.writei8LSB($val))
+    printf("eror writing to file: %s\n", strerror(errno()));
+@endcode
 
     @par Events
     @ref EVENT_DATA_WRITTEN
@@ -1005,12 +1035,14 @@ int File::f_vprintf() [flags=QC_RUNTIME_NOOP] {
 /** Any string returned wiill be tagged with the File's character encoding.
 
     @par Example
-    @code while (exists (my *string $line = $f.readLine())) {
+    @code
+while (exists (my *string $line = $f.readLine())) {
     # remove EOL marker
     chomp $line;
     # print out the line just read
     printf("%s\n", $line);
-} @endcode
+}
+@endcode
 
     @par Events
     @ref EVENT_DATA_READ
@@ -1031,7 +1063,7 @@ int File::f_vprintf() [flags=QC_RUNTIME_NOOP] {
 /** @par Example
     @code $f.setEncoding("ISO-8859-1"); @endcode
 
-    @param the character encoding for the file; if called with no argument, the default encoding is set
+    @param encoding the character encoding for the file; if called with no argument, the default encoding is set
 
     @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (\c stdio, \c stdin, \c stdout) when @ref no-terminal-io is set
  */
@@ -1045,7 +1077,7 @@ nothing File::setEncoding(*string encoding) {
 
 //! Sets the character encoding for the file; if called with no argument, the default encoding is set
 /** A method synonym for Socket::setEncoding(), kept for backwards-compatibility
-    @param the character encoding for the file; if called with no argument, the default encoding is set
+    @param encoding the character encoding for the file; if called with no argument, the default encoding is set
 
     @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (\c stdio, \c stdin, \c stdout) when @ref no-terminal-io is set
  */
@@ -1137,14 +1169,16 @@ int File::getPos() {
     @ref HAVE_FILE_LOCKING
 
     @par Example
-    @code # lock the entire file exclusively
+    @code
+# lock the entire file exclusively
 $f.lock(F_WRLCK);
 
 # lock a section of the file for reading, start byte 512, 2K range
 $f.lock(F_RDLCK, 512, 2048);
 
 # release all locks
-$f.lock(F_UNLCK); @endcode
+$f.lock(F_UNLCK);
+@endcode
 
     @param type Type of lock (or unlock); see @ref file_locking_constants "file locking constants"
     @param start Start byte for lock, 0 is the default (start of file)
@@ -1180,14 +1214,16 @@ int File::lock(softint[doc] type = F_RDLCK, softint[doc] start = 0, softint[doc]
     @ref HAVE_FILE_LOCKING
 
     @par Example
-    @code # lock the entire file exclusively
+    @code
+# lock the entire file exclusively
 $f.lockBlocking(F_WRLCK);
 
 # lock a section of the file for reading, start byte 512, 2K range
 $f.lockBlocking(F_RDLCK, 512, 2048);
 
 # release all locks
-$f.lockBlocking(F_UNLCK); @endcode
+$f.lockBlocking(F_UNLCK);
+@endcode
 
     @param type Type of lock (or unlock); see @ref file_locking_constants "file locking constants"
     @param start Start byte for lock, 0 is the default (start of file)
@@ -1305,8 +1341,10 @@ bool File::isDataAvailable(timeout timeout_ms = 0) {
     @ref HAVE_TERMIOS
 
     @par Example
-    @code my TermIOS $termios();
-stdin.getTerminalAttributes($termios); @endcode
+    @code
+my TermIOS $termios();
+stdin.getTerminalAttributes($termios);
+@endcode
 
     @param termios The method writes the current terminal attributes for the file to the object passed
 
@@ -1333,20 +1371,22 @@ nothing File::getTerminalAttributes(TermIOS[QoreTermIOS] termios) {
     @ref HAVE_TERMIOS
 
     @par Example
-    @code my TermIOS $termios();
-    stdin.getTerminalAttributes($termios);
-    my TermIOS $orig = $termios.copy();
-    on_exit
-        stdin.setTerminalAttributes(TCSADRAIN, $orig);
+    @code
+my TermIOS $termios();
+stdin.getTerminalAttributes($termios);
+my TermIOS $orig = $termios.copy();
+on_exit
+    stdin.setTerminalAttributes(TCSADRAIN, $orig);
 
-    my int $lflag = $termios.getLFlag();
-    $lflag &= ~ICANON;
-    $lflag &= ~ECHO;
-    $lflag &= ~ISIG;
-    $termios.setLFlag($lflag);
-    $termios.setCC(VMIN, 1);
-    $termios.setCC(VTIME, 0);
-    stdin.setTerminalAttributes(TCSADRAIN, $termios); @endcode
+my int $lflag = $termios.getLFlag();
+$lflag &= ~ICANON;
+$lflag &= ~ECHO;
+$lflag &= ~ISIG;
+$termios.setLFlag($lflag);
+$termios.setCC(VMIN, 1);
+$termios.setCC(VTIME, 0);
+stdin.setTerminalAttributes(TCSADRAIN, $termios);
+@endcode
 
     @param action a binary or'ed value of the following actions: 
     - \c TCSANOW: the change occurs immediately
