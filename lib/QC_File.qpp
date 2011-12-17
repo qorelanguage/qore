@@ -86,7 +86,8 @@ AbstractQoreNode *missing_method_error(const char *meth, const char *feat, Excep
 
     The events raised by this object are listed in the following table:
 
-    @subsection file_events File Events
+    @anchor file_events
+    @par File Events
     |!Name|!Description
     |@ref EVENT_DATA_READ|Raised when data is read from the file
     |@ref EVENT_DATA_WRITTEN|Raised when data is written to the file
@@ -95,8 +96,8 @@ AbstractQoreNode *missing_method_error(const char *meth, const char *feat, Excep
     |@ref EVENT_OPEN_FILE|Raised right before an attempt to open a file is made
     |@ref EVENT_FILE_OPENED|Raised when the file has been successfully opened
 
-    @subsection file_constants File Constants in the Qore Namespace
-
+    @anchor file_constants
+    @par File Constants in the Qore Namespace
     |!Name|!Description
     |\c O_RDONLY|Open the file read-only
     |\c O_WRONLY|Open the file write-only
@@ -105,22 +106,22 @@ AbstractQoreNode *missing_method_error(const char *meth, const char *feat, Excep
     |\c O_RDWR|Open for reading and writing
     |\c O_TRUNC|Truncate the size to zero
 
-    @subsection file_locking_constants File Locking Constants in the Qore Namespace
-
+    @anchor file_locking_constants
+    @par File Locking Constants in the Qore Namespace
     |!Name|!Description
     |\c F_RDLCK|Use for read-only locking
     |\c F_WRLCK|Use for exclusive write locking
     |\c F_UNLCK|Use for unlocking a lock
 
-    @subsection file_seek_constants File Seek Constants in the Qore Namespace
-
+    @anchor file_seek_constants
+    @par File Seek Constants in the Qore Namespace
     |!Name|!Description
     |\c SEEK_SET|Indicates that the offset is from the start of the file
     |\c SEEK_CUR|Indicates that the offset is from the current position in the file
     |\c SEEK_END|Indicates that the offset is from the end of the file
 
-    @subsection file_stat_constants Stat Constants in the Qore Namespace
-
+    @anchor file_stat_constants
+    @par Stat Constants in the Qore Namespace
     |!Name|!Description
     |\c S_IFMT|File type bitmask
     |\c S_IFCHR|Bit signifying if the file is a character special (device) file
@@ -195,7 +196,7 @@ if ($f.open($fn, O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1"))
     @ref EVENT_OPEN_FILE, @ref EVENT_FILE_OPENED
 
     @param path the path to the file
-    @param flags flags that determine the way the file is accessed, see @ref file_constants for more information; if this argument is not given, \c O_RDONLY will be used as the default value.
+    @param flags flags that determine the way the file is accessed, see @ref file_constants "file constants" for more information; if this argument is not given, \c O_RDONLY will be used as the default value.
     @param mode permission bits for when the file is to be created (default: 0666)
     @param *string encoding the name of the default character encoding for this file; if this argument is not given, the file will be tagged with the default character encoding for the process
 
@@ -234,7 +235,7 @@ catch (hash $ex) {
     @ref EVENT_OPEN_FILE, @ref EVENT_FILE_OPENED
 
     @param path the path to the file
-    @param flags flags that determine the way the file is accessed, see @ref file_constants for more information; if this argument is not given, \c O_RDONLY will be used as the default value.
+    @param flags flags that determine the way the file is accessed, see @ref file_constants "file constants" for more information; if this argument is not given, \c O_RDONLY will be used as the default value.
     @param mode permission bits for when the file is to be created (default: 0666)
     @param *string encoding the name of the default character encoding for this file; if this argument is not given, the file will be tagged with the default character encoding for the process
 
@@ -1145,7 +1146,7 @@ $f.lock(F_RDLCK, 512, 2048);
 # release all locks
 $f.lock(F_UNLCK); @endcode
 
-    @param type Type of lock (or unlock); see @ref file_locking_constants
+    @param type Type of lock (or unlock); see @ref file_locking_constants "file locking constants"
     @param start Start byte for lock, 0 is the default (start of file)
     @param len Length in bytes for range to lock, 0 is the default (rest of file)
     @param whence Indicates how the relative offset of the file should be calculated for the lock; see File seek constants
@@ -1188,7 +1189,7 @@ $f.lockBlocking(F_RDLCK, 512, 2048);
 # release all locks
 $f.lockBlocking(F_UNLCK); @endcode
 
-    @param type Type of lock (or unlock); see @ref file_locking_constants
+    @param type Type of lock (or unlock); see @ref file_locking_constants "file locking constants"
     @param start Start byte for lock, 0 is the default (start of file)
     @param len Length in bytes for range to lock, 0 is the default (rest of file)
     @param whence Indicates how the relative offset of the file should be calculated for the lock; see File seek constants
@@ -1226,7 +1227,7 @@ nothing File::lockBlocking(softint[doc] type = F_RDLCK, softint[doc] start = 0, 
     - \c start: starting byte of the lock
     - \c len: the length in bytes of the locked region
     - \c pid: the PID of the process holding the lock
-    - \c type: see @ref file_locking_constants; if no lock is set on the file, the key type has the value \c F_UNLCK.
+    - \c type: see @ref file_locking_constants "file locking constants"; if no lock is set on the file, the key type has the value \c F_UNLCK.
     - \c whence: always returned as \c SEEK_SET when the call is successful
 
     @throw FILE-LOCK-ERROR File is not open or the fcntl operation failed
@@ -1485,7 +1486,7 @@ hash File::statvfs() {
 
     @throw FILE-STAT-ERROR stat() call failed
  */
-static list File::stat(*string path) [dom=QDOM_FILESYSTEM] {
+static list File::stat(string path) [dom=QDOM_FILESYSTEM] {
    struct stat sbuf;
    if (stat(path->getBuffer(), &sbuf)) {
       xsink->raiseErrnoException("FILE-STAT-ERROR", errno, "stat() command failed");

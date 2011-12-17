@@ -362,6 +362,7 @@ docs/library/html/index.html: $(include_HEADERS) $(LIB_DOXYFILES)
 
 docs/lang/html/index.html: $(LANG_DOXYFILES) $(LANG_QPP_SRC)
 	$(DOXYGEN_CMD) doxygen/lang/Doxyfile
+	./pdox docs/lang/html docs/lang/html/search
 
 doxygen-doc: docs/library/html/index.html docs/lang/html/index.html
 
