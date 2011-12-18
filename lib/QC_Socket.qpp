@@ -1241,7 +1241,7 @@ nothing Socket::sendHTTPResponse(softint status_code, string status_desc, string
    }
 
    TempEncodingHelper tmp_data;
-   if (body && !tmp_data.set(data, s->getEncoding(), xsink))
+   if (body && !tmp_data.set(body, s->getEncoding(), xsink))
       return 0;
 
    int rc = s->sendHTTPResponse(status_code, status_desc->getBuffer(), http_version->getBuffer(), headers, body ? tmp_data->getBuffer() : 0, body ? tmp_data->strlen() : 0);
