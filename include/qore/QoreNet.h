@@ -63,6 +63,7 @@ DLLEXPORT int q_get_port_from_addr(const struct sockaddr *ai_addr);
 //! returns address info as a hash
 DLLEXPORT QoreListNode *q_getaddrinfo_to_list(ExceptionSink *xsink, const char *node, const char *service, int family = Q_AF_UNSPEC, int flags = 0, int socktype = Q_SOCK_STREAM);
 
+//! provides an interface to getaddrinfo
 class QoreAddrInfo {
 protected:
    struct addrinfo *ai;
