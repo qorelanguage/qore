@@ -1603,6 +1603,8 @@ nothing File::setEventQueue() {
 
     @throw FILE-STAT-ERROR stat() call failed or file not open
     @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (\c stdio, \c stdin, \c stdout) when @ref no-terminal-io is set
+
+    @see @ref file_stat_constants
  */
 list File::stat() {
    if (check_terminal_io(self, "stat", xsink))
@@ -1621,6 +1623,8 @@ list File::stat() {
 
     @throw FILE-HSTAT-ERROR stat() call failed or file not open
     @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (\c stdio, \c stdin, \c stdout) when @ref no-terminal-io is set
+
+    @see @ref file_stat_constants
  */
 hash File::hstat() {
    if (check_terminal_io(self, "hstat", xsink))
@@ -1670,6 +1674,8 @@ hash File::statvfs() {
     @return a @ref stat_list "list of file status values" for the given file
 
     @throw FILE-STAT-ERROR stat() call failed
+
+    @see @ref file_stat_constants
  */
 static list File::stat(string path) [dom=QDOM_FILESYSTEM] {
    struct stat sbuf;
@@ -1698,6 +1704,7 @@ static list File::stat(string path) [dom=QDOM_FILESYSTEM] {
     @throw FILE-LSTAT-ERROR stat() call failed
 
     @see lstat() for a similar function that does not throw exceptions when errors occur, but rather returns @ref NOTHING
+    @see @ref file_stat_constants
  */
 static list File::lstat(string path) {
    struct stat sbuf;
@@ -1730,6 +1737,7 @@ static list File::lstat(string path) {
     @throw FILE-HSTAT-ERROR stat() call failed
 
     @see hstat() for a normal function returns @ref NOTHING instead of throwing an exception when errors occur
+    @see @ref file_stat_constants
  */
 static hash File::hstat(string path) {
    struct stat sbuf;
@@ -1757,6 +1765,7 @@ static hash File::hstat(string path) {
     @throw FILE-HSTAT-ERROR stat() call failed
 
     @see hstat() for a normal function returns @ref NOTHING instead of throwing an exception when errors occur
+    @see @ref file_stat_constants
  */
 static hash File::hlstat(string path) {
    struct stat sbuf;
