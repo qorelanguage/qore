@@ -377,7 +377,7 @@ public:
 #endif
 
 DLLLOCAL void init_qore_threads();
-DLLLOCAL QoreNamespace *get_thread_ns();
+DLLLOCAL QoreNamespace *get_thread_ns(QoreNamespace& qorens);
 DLLLOCAL void delete_qore_threads();
 DLLLOCAL QoreListNode *get_thread_list();
 DLLLOCAL QoreHashNode *getAllCallStacks();

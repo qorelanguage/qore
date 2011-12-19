@@ -77,6 +77,58 @@ AbstractQoreNode *missing_method_error(const char *meth, const char *feat, Excep
    return 0;
 }
 
+/** @defgroup file_constants File Open Constants
+    These are the possible values that can be or'ed together when calling File::open() or File::open2()
+*/
+//@{ 
+//! Mask for access modes (O_RDONLY|O_WRONLY|O_RDWR)
+const O_ACCMODE = O_ACCMODE;
+//! Open the file in append mode (append on each write)
+const O_APPEND = O_APPEND;
+//! Create the file if it doesn't exist
+const O_CREAT = O_CREAT;
+//! Open the file read-only
+const O_RDONLY = O_RDONLY;
+//! Open the file write-only
+const O_WRONLY = O_WRONLY;
+//! Open for reading and writing
+const O_RDWR = O_RDWR;
+//! Truncate the size to zero
+const O_TRUNC = O_TRUNC;
+//! Raise an error if used with O_CREAT and the file exists
+const O_EXCL = O_EXCL;
+
+// the following constants were defined earlier but are system-specific; they are included in the build
+// in case anyone is using them on the platforms where they are supported
+#ifdef O_NOCTTY
+const O_NOCTTY = O_NOCTTY;
+#endif
+#ifdef O_NONBLOCK
+const O_NONBLOCK = O_NONBLOCK;
+#endif
+#ifdef O_NDELAY
+const O_NDELAY = O_NDELAY;
+#endif
+#ifdef O_SYNC
+const O_SYNC = O_SYNC;
+#endif
+#ifdef O_DIRECT
+const O_DIRECT = O_DIRECT;
+#endif
+#ifdef O_LARGEFILE
+const O_LARGEFILE = O_LARGEFILE;
+#endif
+#ifdef O_DIRECTORY
+const O_DIRECTORY = O_DIRECTORY;
+#endif
+#ifdef O_NOFOLLOW
+const O_NOFOLLOW = O_NOFOLLOW;
+#endif
+#ifdef O_ATOMICLOOKUP
+const O_ATOMICLOOKUP = O_ATOMICLOOKUP;
+#endif
+//@}
+
 //! The File class allows Qore programs to read, write, and create files
 /** @note This class is not available with the @ref PO_NO_FILESYSTEM parse option
 
@@ -95,16 +147,6 @@ AbstractQoreNode *missing_method_error(const char *meth, const char *feat, Excep
     |@ref EVENT_DELETED|Raised when the object being monitored is deleted
     |@ref EVENT_OPEN_FILE|Raised right before an attempt to open a file is made
     |@ref EVENT_FILE_OPENED|Raised when the file has been successfully opened
-
-    @anchor file_constants
-    <b>File Constants in the Qore Namespace</b>
-    |!Name|!Description
-    |\c O_RDONLY|Open the file read-only
-    |\c O_WRONLY|Open the file write-only
-    |\c O_CREAT|Create the file if it doesn't exist
-    |\c O_APPEND|Open the file in append mode
-    |\c O_RDWR|Open for reading and writing
-    |\c O_TRUNC|Truncate the size to zero
 
     @anchor file_locking_constants
     <b>File Locking Constants in the Qore Namespace</b>

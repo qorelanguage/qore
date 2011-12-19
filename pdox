@@ -5,7 +5,7 @@
 while [ -n "$1" ]; do
     grep __[0-9]_ "$1"/*.html|cut -f1 -d:|uniq|while read a; do
     	echo processing $a 
-        sed 's/__7_/*/g' $a > t; mv t $a
+        sed 's/__7_ /*/g' $a > t; mv t $a
     done
     shift
 done

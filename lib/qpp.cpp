@@ -385,6 +385,203 @@ static int serializeDoxComment(FILE* fp, std::string &buf) {
    return 0;
 }
 
+class AbstractGroupElement {
+public:
+   DLLLOCAL virtual ~AbstractGroupElement() {
+   }
+
+   virtual int serializeCpp(FILE *fp) = 0;
+   virtual int serializeDox(FILE *fp) = 0;
+};
+
+class ConstantGroupElement : public AbstractGroupElement {
+protected:
+   std::string name,
+      value;
+
+public:
+   ConstantGroupElement(const std::string &n, const std::string &v) : name(n), value(v) {
+   }
+
+   virtual int serializeCpp(FILE *fp) {
+      std::string qv;
+      if (get_qore_value(value, qv))
+         return -1;
+      fprintf(fp, "   qorens.addConstant(\"%s\", %s);\n", name.c_str(), qv.c_str());
+      return 0;
+   }
+
+   virtual int serializeDox(FILE *fp) {
+      fprintf(fp, "   const %s = %s;\n", name.c_str(), value.c_str());
+      return 0;
+   }
+};
+
+class TextGroupElement : public AbstractGroupElement {
+protected:
+   std::string text;
+
+public:
+   TextGroupElement(const std::string &t) : text(t) {
+   }
+
+   virtual int serializeCpp(FILE *fp) {
+      fputs(text.c_str(), fp);
+      return 0;
+   }
+
+   virtual int serializeDox(FILE *fp) {
+      fputs(text.c_str(), fp);
+      return 0;
+   }
+};
+
+class Group {
+protected:
+   typedef std::vector<AbstractGroupElement*> glist_t;
+   glist_t glist;
+   bool valid;
+   const char *fileName;
+   unsigned &lineNumber;
+
+   int readLine(std::string &str, FILE *fp) {
+      while (true) {
+         int c = fgetc(fp);
+         if (c == EOF)
+            return -1;
+
+         str += c;
+         if (c == '\n') {
+            ++lineNumber;
+            break;
+         }
+      }
+      return 0;
+   }
+
+   void checkBuf(std::string &buf) {
+      if (!buf.empty()) {
+         glist.push_back(new TextGroupElement(buf));
+         buf.clear();
+      }
+   }
+
+public:
+   Group(std::string &buf, FILE *fp, const char *fn, unsigned &ln) : valid(true), fileName(fn), lineNumber(ln) {     
+      while (true) {
+         std::string line;
+         if (readLine(line, fp)) {
+            error("%s:%d: premature EOF reading constant group\n", fileName, lineNumber);
+            valid = false;
+            return;
+         }
+
+         if (!line.compare(0, 6, "const ")) {
+            checkBuf(buf);
+
+            // trim off trailing newline and spaces
+            line.erase(line.size() - 1);
+            trim(line);
+            if (line[line.size() - 1] != ';') {
+               error("%s:%d: expecting constant definition; got: %s (%c)\n", fileName, lineNumber, line.c_str(), line[line.size() - 1]);
+               valid = false;
+            }
+            line.erase(0, 6);
+            // erase trailing ';'
+            line.erase(line.size() - 1);
+            trim(line);
+
+            size_t i = line.find('=');
+            if (i == std::string::npos) {
+               error("%s:%d: invalid constant definition: const %s\n", fileName, lineNumber, line.c_str());
+               valid = false;
+            }
+            else {
+               std::string name, val;
+               name.assign(line, 0, i);
+               val.assign(line, i + 1, -1);
+               trim(name);
+               trim(val);
+               glist.push_back(new ConstantGroupElement(name, val));
+            }
+            continue;
+         }
+
+         //log(LL_INFO, "Group line: %s", line.c_str());
+         buf += line;
+         if (!line.compare(0, 4, "//@}"))
+             break;
+      }
+      checkBuf(buf);
+   }
+
+   ~Group() {
+      for (unsigned i = 0; i < glist.size(); ++i)
+         delete glist[i];
+   }
+
+   operator bool() const {
+      return valid;
+   }
+
+   int serializeCpp(FILE *fp) {
+      if (!glist.empty()) {
+         fputc('\n', fp);
+         for (unsigned i = 0; i < glist.size(); ++i)
+            if (glist[i]->serializeCpp(fp))
+               return -1;
+      }
+      return 0;
+   }
+
+   int serializeDox(FILE *fp) {
+      if (!glist.empty()) {
+         fputc('\n', fp);
+         for (unsigned i = 0; i < glist.size(); ++i)
+            if (glist[i]->serializeDox(fp))
+               return -1;
+      }
+      return 0;
+   }
+};
+
+typedef std::vector<Group*> grouplist_t;
+class Groups {
+protected:
+   grouplist_t grouplist;
+
+public:
+   ~Groups() {
+      for (unsigned i = 0; i < grouplist.size(); ++i)
+         delete grouplist[i];
+   }
+
+   int add(Group *g) {
+      grouplist.push_back(g);
+      return !(*g);
+   }
+
+   bool empty() const {
+      return grouplist.empty();
+   }
+
+   int serializeCpp(FILE *fp) {
+      for (unsigned i = 0; i < grouplist.size(); ++i)
+         if (grouplist[i]->serializeCpp(fp))
+            return -1;
+      return 0;
+   }
+
+   int serializeDox(FILE *fp) {
+      for (unsigned i = 0; i < grouplist.size(); ++i)
+         if (grouplist[i]->serializeDox(fp))
+            return -1;
+      return 0;
+   }   
+};
+
+static Groups groups;
+
 class AbstractElement {
 protected:
 
@@ -691,7 +888,7 @@ protected:
       }
 
       std::string t = tstr;
-      t.replace(i, 1, "__7_");
+      t.replace(i, 1, "__7_ ");
       fputs(t.c_str(), fp);
    }
 
@@ -1055,7 +1252,7 @@ public:
          i->second->serializeStaticCppMethod(fp, name.c_str(), arg.c_str());
       }
 
-      fprintf(fp, "QoreClass* init%sClass() {\n   QC_%s = new QoreClass(\"%s\"", name.c_str(), UC.c_str(), name.c_str());
+      fprintf(fp, "QoreClass* init%sClass(QoreNamespace &qorens) {\n   QC_%s = new QoreClass(\"%s\"", name.c_str(), UC.c_str(), name.c_str());
       for (strlist_t::const_iterator i = dom.begin(), e = dom.end(); i != e; ++i) {
          fprintf(fp, ", QDOM_%s", (*i).c_str());
       }
@@ -1094,12 +1291,16 @@ public:
          }
       }
 
+      groups.serializeCpp(fp);
+
       fprintf(fp, "\n   return QC_%s;\n}\n", UC.c_str());
       return 0;
    }
 
    virtual int serializeDox(FILE *fp) {
+      fputs("//! main Qore-language namespace\nnamespace OMQ {\n", fp);
       serializeDoxComment(fp, doc);
+      
       fprintf(fp, "class %s {\n", name.c_str());
       
       for (mmap_t::const_iterator i = normal_mmap.begin(), e = normal_mmap.end(); i != e; ++i)
@@ -1107,6 +1308,10 @@ public:
 
       for (mmap_t::const_iterator i = static_mmap.begin(), e = static_mmap.end(); i != e; ++i)
          i->second->serializeDox(fp);
+
+      fputs("};\n", fp);
+
+      groups.serializeDox(fp);
 
       fputs("};\n", fp);
       return 0;
@@ -1335,12 +1540,22 @@ protected:
          str.clear();
          readLine(str, fp);
 
-         //log(LL_DEBUG, "%d: %s", lineNumber, str.c_str());
+         log(LL_DEBUG, "%d: %s", lineNumber, str.c_str());
 
          if (str.empty())
             break;
 
-         if (!strncmp(str.c_str(), "//!", 3)) {
+         if (!str.compare(0, 13, "/** @defgroup")) {
+            checkBuf(buf);
+
+            if (groups.add(new Group(str, fp, fileName, lineNumber))) {
+               rc = -1;
+               break;
+            }            
+            continue;
+         }
+
+         if (!str.compare(0, 3, "//!")) {
             if (getDoxComment(str, fp)) {
                rc = -1;
                break;
@@ -1639,7 +1854,8 @@ public:
       }
       cppFileName = !ofn.empty() ? ofn : dir + "/" + base + ".cpp";
       doxFileName = !dfn.empty() ? dfn : dir + "/" + base + ".dox.cpp";
-      parse();
+      if (parse())
+         valid = false;
    }
 
    ~Code() {
@@ -1813,4 +2029,3 @@ int main(int argc, char *argv[]) {
 
    return 0;
 }
-

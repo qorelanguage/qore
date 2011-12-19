@@ -1454,7 +1454,7 @@ void StaticSystemNamespace::init() {
 
    qoreNS = new QoreNamespace("Qore");
 
-   qoreNS->addInitialNamespace(get_thread_ns());
+   qoreNS->addInitialNamespace(get_thread_ns(*qoreNS));
 
    QoreClass *File;
 
@@ -1462,11 +1462,11 @@ void StaticSystemNamespace::init() {
    qoreNS->addSystemClass(initTimeZoneClass());
    qoreNS->addSystemClass(initSSLCertificateClass());
    qoreNS->addSystemClass(initSSLPrivateKeyClass());
-   qoreNS->addSystemClass(initSocketClass());
+   qoreNS->addSystemClass(initSocketClass(*qoreNS));
    qoreNS->addSystemClass(initProgramClass());
 
    qoreNS->addSystemClass(initTermIOSClass());
-   qoreNS->addSystemClass(File = initFileClass());
+   qoreNS->addSystemClass(File = initFileClass(*qoreNS));
    qoreNS->addSystemClass(initDirClass());
    qoreNS->addSystemClass(initGetOptClass());
    qoreNS->addSystemClass(initFtpClientClass());

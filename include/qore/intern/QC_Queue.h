@@ -29,7 +29,7 @@
 
 DLLEXPORT extern qore_classid_t CID_QUEUE;
 DLLEXPORT extern QoreClass *QC_QUEUE;
-DLLLOCAL QoreClass *initQueueClass();
+DLLLOCAL QoreClass *initQueueClass(QoreNamespace &qorens);
 
 class Queue : public AbstractPrivateData, public QoreQueue {
 protected:

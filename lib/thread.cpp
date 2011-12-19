@@ -1493,12 +1493,12 @@ void init_qore_threads() {
 #endif
 }
 
-QoreNamespace *get_thread_ns() {
+QoreNamespace *get_thread_ns(QoreNamespace &qorens) {
    // create Qore::Thread namespace
    QoreNamespace *Thread = new QoreNamespace("Thread");
 
    QoreClass *Mutex, *Gate, *RWLock, *AbstractSmartLock;
-   Thread->addSystemClass(initQueueClass());
+   Thread->addSystemClass(initQueueClass(qorens));
    Thread->addSystemClass(AbstractSmartLock = initAbstractSmartLockClass());
    Thread->addSystemClass(Mutex = initMutexClass(AbstractSmartLock));
    Thread->addSystemClass(initRMutexClass());
