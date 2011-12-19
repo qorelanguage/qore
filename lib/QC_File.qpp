@@ -129,6 +129,136 @@ const O_ATOMICLOOKUP = O_ATOMICLOOKUP;
 #endif
 //@}
 
+/** @defgroup file_stat_constants File Stat Constants
+    These are values that can be and'ed with the \c "mode" element of a file's status as returned by File::hstat(), hstat(), etc, or with element 2 of the status list as returned from File::stat(), stat(), etc.
+*/
+//@{ 
+//! File type bitmask
+const S_IFMT = S_IFMT;
+
+//! Bit signifying if the file is a character special (device) file
+const S_IFCHR = S_IFCHR;
+
+//! Bit signifying if the entry is a directory
+const S_IFDIR = S_IFDIR;
+
+//! Bitmask signifying if the file is a block special (device) file
+const S_IFBLK = S_IFBLK;
+
+//! Bit signifying if the file is a regular file
+const S_IFREG = S_IFREG;
+
+#ifndef S_IFLNK
+#define S_IFLNK S_IFREG
+#endif
+
+//! Bitmask signifying if the file is a symbolic link; equal to S_IFREG on native Windows ports
+const S_IFLNK = S_IFLNK;
+
+#ifndef S_IFSOCK
+#define S_IFSOCK S_IFREG
+#endif
+
+//! Bitmask signifying if the file is a socket file; equal to S_IFREG on native Windows ports
+const S_IFSOCK = S_IFSOCK;
+
+#ifndef S_IFWHT
+#define S_IFWHT S_IFREG
+#endif
+
+//! Bitmask signifying if the file is a whiteout file; equal to S_IFREG on native Windows ports
+const S_IFWHT = S_IFWHT;
+
+//! Bitmask giving the RWX mask for the owner
+const S_IRWXU = S_IRWXU;
+
+//! Bit signifying if the file's owner has read permissions
+const S_IRUSR = S_IRUSR;
+
+//! Bit signifying if the file's owner has write permissions
+const S_IWUSR = S_IWUSR;
+
+//! Bit signifying if the file's owner has execute permissions
+const S_IXUSR = S_IXUSR;
+
+#ifndef S_IRWXG
+#define S_IRWXG S_IRWXU;
+#endif
+
+//! Bitmask giving the RWX mask for the group; equal to S_IRWXU on native Windows ports
+const S_IRWXG = S_IRWXG;
+
+#ifndef S_IRGRP
+#define S_IRGRP S_IRUSR;
+#endif
+
+//! Bit signifying if the file's group has read permissions; equal to S_IRUSR on native Windows ports
+const S_IRGRP = S_IRGRP;
+
+#ifndef S_IWGRP
+#define S_IWGRP S_IWUSR;
+#endif
+
+//! Bit signifying if the file's group has write permissions; equal to S_IWUSR on native Windows ports
+const S_IWGRP = S_IWGRP;
+
+#ifndef S_IXGRP
+#define S_IXGRP S_IXUSR;
+#endif
+
+//! Bit signifying if the file's group has execute permissions; equal to S_IXUSR on native Windows ports
+const S_IXGRP = S_IXGRP;
+
+#ifndef S_IRWXO
+#define S_IRWXO S_IRWXU;
+#endif
+
+//! Bitmask giving the RWX mask for other; equal to S_IRWXU on native Windows ports
+const S_IRWXO = S_IRWXO;
+
+#ifndef S_IROTH
+#define S_IROTH S_IRUSR;
+#endif
+
+//! Bit signifying if other has read permissions; equal to S_IRUSR on native Windows ports
+const S_IROTH = S_IROTH;
+
+#ifndef S_IWOTH
+#define S_IWOTH S_IWUSR;
+#endif
+
+//! Bit signifying if other has write permissions; equal to S_IWUSR on native Windows ports
+const S_IWOTH = S_IWOTH;
+
+#ifndef S_IXOTH
+#define S_IXOTH S_IXUSR;
+#endif
+
+//! Bit signifying if other has execute permissions; equal to S_IXUSR on native Windows ports
+const S_IXOTH = S_IXOTH;
+
+#ifndef S_ISUID
+#define S_ISUID 0
+#endif
+
+//! Bit signifying set user id on execution; equal to 0 on native Windows ports
+const S_ISUID = S_ISUID;
+
+#ifndef S_ISGID
+#define S_ISGID 0
+#endif
+
+//! Bit signifying set group id on execution; equal to 0 on native Windows ports
+const S_ISGID = S_ISGID;
+
+#ifndef S_ISVTX
+#define S_ISVTX 0
+#endif
+
+//! Bit signifying restricted deletes for directories; equal to 0 on native Windows ports
+const S_ISVTX = S_ISVTX;
+//@}
+
 //! The File class allows Qore programs to read, write, and create files
 /** @note This class is not available with the @ref PO_NO_FILESYSTEM parse option
 
@@ -161,33 +291,6 @@ const O_ATOMICLOOKUP = O_ATOMICLOOKUP;
     |\c SEEK_SET|Indicates that the offset is from the start of the file
     |\c SEEK_CUR|Indicates that the offset is from the current position in the file
     |\c SEEK_END|Indicates that the offset is from the end of the file
-
-    @anchor file_stat_constants
-    <b>Stat Constants in the Qore Namespace</b>
-    |!Name|!Description
-    |\c S_IFMT|File type bitmask
-    |\c S_IFCHR|Bit signifying if the file is a character special (device) file
-    |\c S_IFDIR|Bit signifying if the entry is a directory
-    |\c S_IFBLK|Bitmask signifying if the file is a block special (device) file
-    |\c S_IFREG|Bit signifying if the file is a regular file
-    |\c S_IFLNK|Bitmask signifying if the file is a symbolic link
-    |\c S_IFSOCK|Bitmask signifying if the file is a socket file
-    |\c S_IFWHT|Bitmask signifying if the file is a whiteout file
-    |\c S_IRWXU|Bitmask giving the RWX mask for the owner
-    |\c S_IRUSR|Bit signifying if the file's owner has read permissions
-    |\c S_IWUSR|Bit signifying if the file's owner has write permissions
-    |\c S_IXUSR|Bit signifying if the file's owner has execute permissions
-    |\c S_IRWXG|Bitmask giving the RWX mask for the group
-    |\c S_IRGRP|Bit signifying if the file's group has read permissions
-    |\c S_IWGRP|Bit signifying if the file's group has write permissions
-    |\c S_IXGRP|Bit signifying if the file's group has execute permissions
-    |\c S_IRWXO|Bitmask giving the RWX mask for other
-    |\c S_IROTH|Bit signifying if other has read permissions
-    |\c S_IWOTH|Bit signifying if other has write permissions
-    |\c S_IXOTH|Bit signifying if other has execute permissions
-    |\c S_ISUID|Bit signifying set user id on execution
-    |\c S_ISGID|Bit signifying set group id on execution
-    |\c S_ISVTX|Bit signifying restricted deletes for directories
  */
 qclass File [system_constructor=FILE_system_constructor; arg=File* f; dom=FILESYSTEM];
 
