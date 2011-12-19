@@ -1,0 +1,2362 @@
+/** @page description Language Description
+
+    @section desc_contents Contents of this Section
+    - @ref desc_overview
+    - @ref environment_variables
+    - @ref conditional_parsing
+    - @ref modules
+    - @ref include_files
+    - @ref identifiers
+    - @ref comments
+    - @ref variables
+    - @ref basic_data_types
+      - @ref boolean
+      - @ref string
+      - @ref integer
+      - @ref float
+      - @ref date
+      - @ref binary
+      - @ref null
+      - @ref nothing
+    - @ref container_data_types
+      - @ref list
+      - @ref hash
+      - @ref object
+    - @ref data_type_declarations
+    - @ref overloading
+    - @ref time_zones
+    - @ref character_encoding
+    
+    @section desc_overview Language Overview
+
+    A Qore program is composed of a series of declarations, statements, function definitions, and/or class definitions. Non-block statements are terminated by a semi-colon ";". Block statements are grouped by using curly brackets ("{" and "}"), as in C, C++, Java, and Perl.
+
+    Programmers familiar with C, C++, Java, and/or Perl should find the standard Qore syntax intuitive and should be productive fairly quickly with the language. However Qore has unique features that differentiate it from other languages, and these features must be mastered in order to leverage the full power of Qore.
+
+    Qore programs/scripts are free form. Formatting does not affect the execution of the program; formatting is at the discretion of the programmer and should be used to enhance readability and clarity of the source code.
+
+    Qore was created as a weakly typed language. That means that @ref variables "variables" (without type restrictions) can hold values of any type and functions (without a return type restriction or parameter type descriptions) can return any data type and take arguments of any type. Furthermore list elements can be of any type (they do not have to be uniform), and multidimensional lists can have a different number of elements in each list. The same type flexibility holds true of hashes, objects, and all combinations of container types.
+
+    Qore also allows variable, parameter, class member, and return types to be declared, so that APIs can be formally defined or the programmer can decide to declare types to catch more errors at parse time (which is often preferable to discovering a type error at runtime).
+
+    Qore can be used as a traditional function-based scripting language or as a pure object-oriented language, where the application is defined as a class. Aside from traditional local and global variables, constants, and functions, Qore also supports nested @ref namespaces "namespaces", @ref classes "classes", @ref inheritance "multiple inheritance", overriding base class constructor arguments, public and private @ref class_members "members" and @ref class_methods "methods", @ref static_class_methods "static class methods", and @ref static_class_variables "static class variables".
+
+    All elements of Qore are designed to work together: @ref Qore::Datasource "database access", @ref Qore::Socket "socket communication", @ref Qore::Program "embedding logic in subprograms", @ref regular_expressions "regular expressions", @ref operators "operators", @ref function_library "functions", and all other elements are thread-safe and built on an execution engine that was designed for SMP scalability.
+
+    Qore automatically converts data types when necessary when evaluating operators. The goal is to provide the expected result for the programmer without requiring the programmer to explicitly convert data types. Please see @ref operators for more information.
+
+    Qore supports @ref signal_handling "signal handling" by executing Qore-language signal handlers in special single-handling thread.
+
+    UNIX operating systems allow an executable script to specify their interpreter. This is done by setting the first line in the program to a special string indicating the location of the Qore binary. For the purposes of this document, the location for the Qore binary is assumed to be \c /usr/bin/qore. The first line of Qore scripts in this case should look as follows:
+
+    @code
+#!/usr/bin/qore
+    @endcode
+
+    If another installation directory is used (such as \c /usr/local/bin), then the correct path must be reflected in the first line of the Qore script.
+
+    Qore convention dictates that Qore script file names end with \c ".q".
+
+    @section environment_variables Environment Variables
+
+    This section will outline the environment variables that are used by Qore.
+
+    <b>Qore Environment Variables</b>
+    @htmlonly <style><!-- td.qore { background-color: #5b9409; color: white; } --></style> @endhtmlonly
+<table>   <tr>
+      <td class="qore"><b>Environment Variable</b></td>
+      <td class="qore"><b>Description</b></td>
+   </tr>
+   <tr>
+      <td>\c QORE_AUTO_MODULE_DIR</td>
+      <td>This environment variable should contain a colon-separated list of directories which will be searched for Qore modules when Qore starts. If any modules are found in any of these directories, they are loaded automatically before any parsing starts.</td>
+   </tr>
+   <tr>
+      <td>\c QORE_MODULE_DIR</td>
+      <td>This environment variable should contain a colon-separated list of directories which will be searched when modules are loaded with the @ref requires "%requires" parse directive</td>
+   </tr>
+   <tr>
+      <td>\c QORE_INCLUDE_DIR</td>
+      <td>This variable should be a colon-separated list of directories where the Qore binary should look for include files</td>
+   </tr>
+   <tr>
+      <td>\c QORE_CHARSET</td>
+      <td>If this variable is set, then the default character encoding name for the process will be the value of this variable. This variable takes precedence over the \c LANG variable, but can be overridden by the command line using option \c --charset (see @ref character_encoding for more information on this option)</td>
+   </tr>
+   <tr>
+      <td>\c LANG</td>
+      <td>If this variable is set and includes a character encoding specification, then, if the \c QORE_CHARSET variable is not set (and no character encoding was specified on the command line), this character encoding will be the default for the process.</td>
+   </tr>
+</table>
+
+
+    @section conditional_parsing Conditional Parsing and Parse Defines
+
+    Qore supports conditional parsing with parse defines similar to the C/C++ preprocessor. In the current version of Qore, the implementation is very simple; only the following parse directives are supported: @ref define "%define", @ref else "%else", @ref endif "%endif", @ref ifdef "%ifdef", and @ref ifndef "%ifndef".
+
+    Basically, the above allow for the existence (or lack thereof) of a parse define to affect which code is parsed into the program at parse time.
+
+    Parse defines are defined on the command-line (or through the C++ API when executed in embedded code), as well as created automatically based on sytem options; all library options (if the option is \c True, then it is defined as \c True, if the option is \c False, then it is not defined at all).
+
+    Note that \c "Unix" is defined on all Unix platforms (also on Cygwin), while \c "Windows" is defined on native Windows ports (but not on Cygwin, as this is treated as Unix when compiling, as all Unix features are available).
+
+    Additionally, the following options are defined in every program (however they are not yet useful when parsing as the value of parse options cannot be used yet at parse time; only the existence or lack thereof can affect parsing in this version of Qore when parsing at least).
+
+    <b>Qore Parse Defines</b>
+    @htmlonly <style><!-- td.qore { background-color: #5b9409; color: white; } --></style> @endhtmlonly
+<table>   <tr>
+      <td class="qore"><b>Define</b></td>
+      <td class="qore"><b>Value</b></td>
+   </tr>
+   <tr>
+      <td>\c QoreVersionString</td>
+      <td>Version string for the Qore library</td>
+   </tr>
+   <tr>
+      <td>\c QoreVersionMajor</td>
+      <td>Major version for the Qore library</td>
+   </tr>
+   <tr>
+      <td>\c QoreVersionMinor</td>
+      <td>Minor version for the Qore library</td>
+   </tr>
+   <tr>
+      <td>\c QoreVersionSub</td>
+      <td>Sub version for the Qore library</td>
+   </tr>
+   <tr>
+      <td>\c QoreVersionBuild</td>
+      <td>Build version for the Qore library</td>
+   </tr>
+   <tr>
+      <td>\c QoreVersionBits</td>
+      <td>32 or 64 depending on the library target</td>
+   </tr>
+   <tr>
+      <td>\c QorePlatformCPU</td>
+      <td>The CPU targeted by the library</td>
+   </tr>
+   <tr>
+      <td>\c QorePlatformOS</td>
+      <td>The OS targeted by the library</td>
+   </tr>
+</table>
+
+
+    Additionally, only if the Qore library was compiled with debugging support, the following parse define is present (otherwise it is not defined):
+
+    <b>Qore Optional Parse Defines</b>
+    @htmlonly <style><!-- td.qore { background-color: #5b9409; color: white; } --></style> @endhtmlonly
+<table>   <tr>
+      <td class="qore"><b>Define</b></td>
+      <td class="qore"><b>Value</b></td>
+   </tr>
+   <tr>
+      <td>\c QoreDebug</td>
+      <td>\c True</td>
+   </tr>
+</table>
+
+
+    Here is an example of using parse defines in a program:
+
+    @code
+%ifndef HAVE_TERMIOS
+printf("This program requires UNIX TermIOS features to be present; it does not run on platforms without this feature (current platform: %s); exiting...\n", Qore::PlatformOS);
+exit(1);
+%endif
+    @endcode
+
+    Furthermore, parse defines can be manipulated in embedded code using the following functions:
+    - Qore::Program::define()
+    - Qore::Program::getDefine()
+    - Qore::Program::isDefined()
+    - Qore::Program::undefine()
+
+    @section modules Qore Modules
+    
+    Qore modules allow the Qore language to be extended at run-time. Qore modules must conform to the Qore Module API and have the file extension \c "*.qmod". Qore modules normally depend on other shared libraries and therefore can only be loaded if the libraries they require are present on the system and can be found in the library path.
+
+    Please note that as of version 0.7.0 onwards, modules are no longer delivered with the Qore library. Modules must be downloaded separately; see <a href="http://www.qore.org">Qore's home page</a> for more information.
+
+    To load a module at parse time (normally required for most modules), use the @ref requires "%requires" parse directive. If the named feature is not already present in Qore, Qore looks for a module with this name in the directories listed in the \c QORE_MODULE_DIR environment variable (see @ref environment_variables).
+
+    Use the load_module() function to load Qore modules at run-time; however, note that any module providing parse support (classes, constants, functions, etc) must be loaded at parse time using the @ref requires "%requires" directive.
+
+    From Qore 0.7.1 onwards, you can specify a comparison operator (one of < <=, =, >=, or >) and version information after the module name as well. Version numbers are compared via integer comparisons of each element, where elements are separated by a '.'. If one of the versions does not have as many elements as another, the missing elements are assumed to be '0' (i.e. version \c "1.0" compared with version \c "1.0.1" will be exteneded to "1.0.0").
+
+    Also note that DBI drivers are loaded on demand by the @ref Qore::Datasource and @ref Qore::DatasourcePool classes.
+
+    At the time of writing this documentation, the following modules exist for Qore:
+
+    <b>Qore Modules</b>
+    @htmlonly <style><!-- td.qore { background-color: #5b9409; color: white; } --></style> @endhtmlonly
+<table>   <tr>
+      <td class="qore"><b>Module</b></td>
+      <td class="qore"><b>Description</b></td>
+   </tr>
+   <tr>
+      <td>\c asn1</td>
+      <td>Provides ASN.1 functionality to Qore</td>
+   </tr>
+   <tr>
+      <td>\c xml</td>
+      <td>Provides XML, XPath, etc functionality to Qore.</td>
+   </tr>
+   <tr>
+      <td>\c xmlsec</td>
+      <td>Provides xmldsig and xmlenc functionality to Qore.</td>
+   </tr>
+   <tr>
+      <td>\c json</td>
+      <td>Provides JSON functionality to Qore.</td>
+   </tr>
+   <tr>
+      <td>\c ssh2</td>
+      <td>Provides SSH2 and SFTP functionality to Qore.</td>
+   </tr>
+   <tr>
+      <td>\c tibrv</td>
+      <td>Provides TIBCO Rendezvous(R) (TIBCO, Inc) functionality to Qore.</td>
+   </tr>
+   <tr>
+      <td>\c tibae</td>
+      <td>Provides TIBCO ActiveEnterprise(TM) (TIBCO, Inc) functionality to Qore.</td>
+   </tr>
+   <tr>
+      <td>\c tuxedo</td>
+      <td>Provides Oracle (ex Bea) Tuxedo functionality to Qore.</td>
+   </tr>
+   <tr>
+      <td>\c mysql</td>
+      <td>Provides a MySQL DBI driver to Qore.</td>
+   </tr>
+   <tr>
+      <td>\c pgsql</td>
+      <td>Provides a PostgreSQL DBI driver to Qore.</td>
+   </tr>
+   <tr>
+      <td>\c sqlite3</td>
+      <td>Provides a SQLite3 DBI driver to Qore.</td>
+   </tr>
+   <tr>
+      <td>\c sybase</td>
+      <td>Provides a Sybase DBI driver to Qore.</td>
+   </tr>
+   <tr>
+      <td>\c freetds</td>
+      <td>Provides a FreeTDS-based DBI driver to Qore.</td>
+   </tr>
+   <tr>
+      <td>\c oracle</td>
+      <td>Provides an Oracle DBI driver to Qore.</td>
+   </tr>
+   <tr>
+      <td>\c db2</td>
+      <td>Provides an IBM DB2 driver to Qore.</td>
+   </tr>
+   <tr>
+      <td>\c glut</td>
+      <td>Provides GLUT functionality to Qore.</td>
+   </tr>
+   <tr>
+      <td>\c opengl</td>
+      <td>Provides an OpenGL API to Qore.</td>
+   </tr>
+   <tr>
+      <td>\c qt4</td>
+      <td>Provides Nokia (formerly Trolltech) QT4 APIs for GUI development in Qore.</td>
+   </tr>
+   <tr>
+      <td>\c ncurses</td>
+      <td>Provides curses APIs to Qore.</td>
+   </tr>
+   <tr>
+      <td>\c yaml</td>
+      <td>Provides YAML functionality to Qore.</td>
+   </tr>
+</table>
+
+
+    @section include_files Include Files
+
+    A Qore program can include other program code to be used and executed in the current program by using the @ref include "%include" directive. The @ref include "%include" directive must be the first text on the line, and the file name to include must follow. All text on the line after the @ref include "%include" directive will be used for the file name to include. The file name should not be quoted.
+
+    Here is an example:
+
+    @code
+#!/usr/bin/qore
+%include /usr/qore/lib/functions.ql
+    @endcode
+
+    After this, any variable, function, namespace, constant, or object declared in the above file can be used by the Qore program.
+
+    The \c QORE_INCLUDE_DIR environment variable determines the search path for include files (see @ref environment_variables).
+
+    @section identifiers Identifiers
+
+    Qore identifiers must start with an alphabetic character, and then may contain any number of alphabetic, numeric, or "_" characters. There is no length limit on Qore identifiers.
+
+    All Qore identifiers are case-sensitive, therefore the identifier \c hello_there is not the same as \c Hello_There or \c HELLO_THERE.
+
+    The following are examples of valid Qore identifiers:
+
+    <b>Examples of Valid Qore Identifiers</b>
+    @htmlonly <style><!-- td.qore { background-color: #5b9409; color: white; } --></style> @endhtmlonly
+<table>   <tr>
+      <td class="qore"><b>Identifier</b></td>
+      <td class="qore"><b>Description</b></td>
+   </tr>
+   <tr>
+      <td>\c i</td>
+      <td>Simple one-character identifier</td>
+   </tr>
+   <tr>
+      <td>\c foo21</td>
+      <td>Identifier with number</td>
+   </tr>
+   <tr>
+      <td>\c this_is_a_long_identifier</td>
+      <td>Long identifier with underline characters</td>
+   </tr>
+   <tr>
+      <td>\c Total_318</td>
+      <td>Identifier with underline and number</td>
+   </tr>
+   <tr>
+      <td>\c AVeryBigNumber</td>
+      <td>Mixed case identifier name</td>
+   </tr>
+   <tr>
+      <td>\c CAPS</td>
+      <td>Identifier in all capital letters</td>
+   </tr>
+</table>
+
+
+    The following are invalid identifiers:
+
+    <b>Examples of Invalid Qore Identifiers</b>
+    @htmlonly <style><!-- td.qore { background-color: #5b9409; color: white; } --></style> @endhtmlonly
+<table>   <tr>
+      <td class="qore"><b>Identifier</b></td>
+      <td class="qore"><b>Description</b></td>
+   </tr>
+   <tr>
+      <td>\c 1a</td>
+      <td>Does not start with an alphabetic character</td>
+   </tr>
+   <tr>
+      <td>\c this-and-that</td>
+      <td>Contains "-" characters</td>
+   </tr>
+   <tr>
+      <td>\c Start#10</td>
+      <td>Contains "#" character</td>
+   </tr>
+</table>
+
+
+    @section comments Comments
+
+    Comments are allowed in Qore scripts; line comments are preceded by a hash \c "#", and block comments are made C-style, ex:
+
+    @code
+# this is a line comment
+/* 
+   this is a block comment 
+*/
+    @endcode
+
+    For line comments, all text following a hash until the end-of-line character \c "\n" is considered a part of the comment.
+
+    For block comments, all text in the block comment is ignored by the parser.
+
+    Here is an example Qore script containing comments:
+
+    @code
+#!/usr/bin/env qore
+#
+# these are line comments
+# another line comment
+
+/*
+   --- this text is in block comments
+   print("hello"); <- this won't get executed 
+   --- because it's in the block comment
+*/
+    @endcode
+
+    @section variables Variables
+
+    Unless parse option @ref allow-bare-refs "%allow-bare-refs" or @ref new-style "%new-style" are set, variables are Qore identifiers prefixed by a \c "$" sign, similar to <a href="http://www.perl.org">Perl</a>. If a variable is declared without any type restriction, then it is assumed to have type @ref any_type "any". In this case, variables so declared can hold any data type.
+
+    @subsection special_variables
+
+    A few variables are set by the Qore language during the execution of Qore programs. These are normal variables that can be reassigned to other values by the user if necessary.
+
+    <b>Special Qore Variables</b>
+    @htmlonly <style><!-- td.qore { background-color: #5b9409; color: white; } --></style> @endhtmlonly
+<table>   <tr>
+      <td class="qore"><b>Variable</b></td>
+      <td class="qore"><b>Scope</b></td>
+      <td class="qore"><b>Data Type</b></td>
+      <td class="qore"><b>Explanation</b></td>
+   </tr>
+   <tr>
+      <td>\c $argv</td>
+      <td>Local</td>
+      <td>List</td>
+      <td>automatically assigned local variable containing the list of function or method arguments that were not assigned to parameter variables (see @ref functions_and_implicit_arguments for more information)</td>
+   </tr>
+   <tr>
+      <td>\c $ARGV</td>
+      <td>Global</td>
+      <td>List</td>
+      <td>script command-line arguments (use the @ref Qore::GetOpt class to parse command-line arguments)</td>
+   </tr>
+   <tr>
+      <td>\c $QORE_ARGV</td>
+      <td>Global</td>
+      <td>List</td>
+      <td>complete qore command-line arguments</td>
+   </tr>
+   <tr>
+      <td>\c $ENV</td>
+      <td>Global</td>
+      <td>Hash</td>
+      <td>UNIX program environment</td>
+   </tr>
+</table>
+
+
+    @note As of version 0.5.0, \c $STDERR and \c $STDOUT have been removed from Qore. Use the I/O constants @ref stderr, @ref stdout, and @ref stdin constants of the @ref Qore::File class instead.
+
+    @subsection variable_declarations Variable Declarations and Lexical Scope
+
+    Unless the @ref assume-local "%assume-local" parse directive is used, variables not in a parameter list automatically have global scope unless the first reference is prefixed with @ref my. Variable names in a parameter list are always local to their associated function, method, or catch block. Global variables can be explicitly declared with @ref our. The @ref our keyword is required if the parse option @ref require-our "%require-our" (\c -O or \c --require-our command-line option) is set for the parent program. See @ref parse_options for more information.
+
+    When the @ref assume-local "%assume-local" parse directive is used, variables without an explicit scope declaration (i.e. @ref my or @ref our) are assumed to be local variables.
+
+    Variables may be assigned any value unless restricted with a type declaration. If no type declaration is given, then the variable is assumed to be type @ref any_type "any". Note that type declarations are required for all variables (and for function and method parameters and class members) when the @ref require-types "%require-types" parse option is set.
+
+    Local variables are not shared between threads (local variables have a distinct value in each thread), however global variables are. See @ref threading (and in particular @ref threading_and_variables) for more information.
+
+    For example (in the following script, the @ref our keyword is optional):
+
+    @code
+#!/usr/bin/qore
+#
+# variable scoping example
+
+our int $a = 1;                    # this is a global variable
+our (string $b, any $c, hash $d);  # list of global variables
+
+if ($a == 1) {
+    my int $a = 2; 
+    my (string $b, any $c);
+    # $a, $b, and $c are local variables, 
+    # the use of which will not affect the 
+    # global variables of the same name
+    print("local a = %d\n", $a); 
+}
+
+print("global a = %d\n", $a); 
+    @endcode
+
+    The first print() statement will output:
+    @verbatim
+local a = 2@endverbatim
+
+    The second print() statement will output:
+    @verbatim
+global a = 1@endverbatim
+
+    @note If parse option @ref allow-bare-refs "%allow-bare-refs" is set, then variable references <b>must</b> be made without the "$" character.
+
+    @section basic_data_types Basic Data Types
+
+    The following are the basic data types in Qore (see @ref container_data_types for container data types):
+
+    <b>Basic Data Types</b>
+    @htmlonly <style><!-- td.qore { background-color: #5b9409; color: white; } --></style> @endhtmlonly
+<table>   <tr>
+      <td class="qore"><b>Type</b></td>
+      <td class="qore"><b>Description</b></td>
+      <td class="qore"><b>Example</b></td>
+      <td class="qore"><b>Default Value</b></td>
+   </tr>
+   <tr>
+      <td>@ref boolean</td>
+      <td>\c True or \c False value</td>
+      <td>\c True</td>
+      <td>\c False</td>
+   </tr>
+   <tr>
+      <td>@ref string</td>
+      <td>A sequence of characters with an encoding</td>
+      <td>\c "string"</td>
+      <td>Empty string (i.e. \c "")</td>
+   </tr>
+   <tr>
+      <td>@ref integer</td>
+      <td>A 64-bit signed integer</td>
+      <td>\c 1</td>
+      <td>\c 0</td>
+   </tr>
+   <tr>
+      <td>@ref float</td>
+      <td>A double-precision floating-point number</td>
+      <td>\c 1.00023</td>
+      <td>\c 0.0</td>
+   </tr>
+   <tr>
+      <td>@ref date</td>
+      <td>A date/time value with an optional time zone component, with resolution to the microsecond</td>
+      <td>\c 2010-05-10T18:35:21.001456-07:00</td>
+      <td>\c 1970-01-01Z</td>
+   </tr>
+   <tr>
+      <td>@ref binary</td>
+      <td>An opaque binary object</td>
+      <td><tt><23deadbeef></tt></td>
+      <td>an empty object of size 0</td>
+   </tr>
+   <tr>
+      <td>@ref null</td>
+      <td>Corresponds to a \c NULL value in a database query (not equivalent to \c NOTHING)</td>
+      <td>\c NULL</td>
+      <td>\c NULL</td>
+   </tr>
+   <tr>
+      <td>@ref nothing</td>
+      <td>Represents the state of a variable having no value or function returning no value (not equivalent to \c NULL)</td>
+      <td>\c NOTHING</td>
+      <td>\c NOTHING</td>
+   </tr>
+</table>
+
+
+    @subsection boolean Boolean
+
+    The Boolean type can have two values, \c True and \c False.
+
+    When converting other types to a Boolean, any value that converts to a non-zero integer will be evaluated as \c True. Otherwise the result of the conversion will be \c False.
+
+    @see @ref bool_type, @ref softbool_type
+
+    @subsection string String
+
+    String values are specified with text between double or single quotes. Text between double quotes is subject to interpretation of escape characters; text between single quotes is not with the exception of the single quote character, which may be escaped (ex: <tt>'hello \'there\''</tt>).
+
+    Strings are assumed by default to have the encoding given by the \c QORE_CHARSET or the \c LANG environment variable (see @ref environment_variables). If neither of these variables is set, then all strings will be assumed to have \c UTF-8 encoding.
+
+    For detailed information on Qore character encoding handling, please see @ref character_encoding.
+
+    It is legal to specify a string literal with newline characters like the following:
+
+    @code
+$str = "this string
+on more than 1 line";
+    @endcode
+
+    Internally, strings are stored as a pointer to the string data, an unsigned integer giving the length of the string, and a pointer to an encoding object, giving the string's character encoding.
+
+    @see @ref string_type, @ref softstring_type
+
+    @subsection integer Integer
+
+    Qore integers are 64-bit signed integers.
+
+    @see @ref int_type, @ref softint_type
+
+    @subsection float Float
+
+    Qore floats are double precision floating-point numbers (C/C++ type double), normally a 64-bit value.
+
+    @see @ref float_type, @ref softfloat_type
+
+    @subsection date Date
+
+    Qore dates have a time component supporting a resolution to the microsecond and can be either absolute or relative.
+
+    @see @ref date_and_time_functions for a list of functions related to date/time processing.
+
+    @subsection absolute_dates Absolute Date/Time Values
+    Absolute date/time values specify a specific point in time in a certain time zone, such as January 1, 2005 10:35:00 +01:00. They are stored interally as a 64-bit signed offset from the Qore epoch (\c 1970-01-01Z), a positive 4-byte integer for microseconds, and a pointer to a time zone description object that provides the UTC offset and daylight savings time information (see @ref time_zones for more information). Note that all absolute date/time values in Qore are stored internally in UTC and are converted for display purposes to the representation of wall time in their tagged time zone.
+
+    Absolute date/time values can be specified with a syntax based on ISO-8601 date formats as follows:
+
+    @verbatim
+YYYY-MM-DD[THH:mm:SS[.n*]][Z|[+-]HH[:mm[:SS]]]@endverbatim
+
+    Note that if no time zone information is given, the local time zone will be assumed. If a time zone UTC offset is given, it is given in units of time east of UTC (i.e. \c +05:00 means five hours east of UTC).
+
+    Or an alternative format (with a '-' instead ofa 'T' to separate the time component):
+
+    @verbatim
+YYYY-MM-DD[-HH:mm:SS[.n*]][Z|[+-]HH[:mm[:SS]]]@endverbatim
+
+    for example, for just the date in UTC, without a time component:
+    - \c 2010-05-26
+
+    or, for just the time, without a date component (note that in this case the date component will be set to Jan 1, 1970, in order for time arithmetic to function properly and will also be tagged with the local time zone):
+    - \c 20:05:10.458342
+
+    Some further examples (note that the date/time values without a time zone specification here are tagged with the local time zone):
+
+    @code
+prompt% qore -X '2005-03-29-18:12:25'
+2005-03-29 18:12:25 Tue +02:00 (CEST)
+prompt% qore -X '0512-01-01T01:49:59.002213Z'
+0512-01-01 01:49:59.002213 Fri Z (UTC)
+prompt% qore -X '2005-03-29'
+2005-03-29 00:00:00 Tue +02:00 (CEST)
+prompt% qore -X '18:35:26+08:00'
+1970-01-01 18:35:26 Thu +08:00 (+08)
+    @endcode
+
+    The year must be a four-digit number, and all other values except microseconds must be two-digit numbers. If microseconds are present, at least one and up to 6 digits may be given after the decimal point. Pad the numbers with leading zeros if the numbers are smaller than the required number of digits. The hour component must be in 24-hour time format. Except for the month and day values, all other values start with 0 (hour = 00 - 23, minute and second: 00 - 59). Any deviation from this format will cause a parse exception.
+
+    When a date/time value is converted to an integer or vice-versa, a 64-bit offset in seconds from the start of the "epoch" is used for the conversion. Qore's "zero date" (the start of Qore's "epoch") is January 1, 1970 UTC. When calculating second offsets from this date, a 64-bit integer is used.
+
+    @note The default local time zone for qore is set when the qore library is initialized; see @ref time_zones for more information.
+
+    @subsection relative_dates Relative Date/Time Values (Durations)
+    Relative dates (durations) are normally used for date addition and subtraction. See @ref date_time_arithmetic for more information.
+
+    Internally, durations are stored as a set of seven discrete signed integer values, one each for years, months, days, hours, minutes, seconds, and microseconds.
+
+    There are 3 different formats understood by the Qore parser for describing literal durations in Qore.
+
+    <b>Single Relative Time Format</b>\n
+    A single relative date/time value (or a duration) may be specified as follows (note that this format is specific to Qore and not based on ISO-8601):
+    - @verbatim <integer><date component specifier>@endverbatim
+
+    <b>Date Specifiers For Single Values For Relative Dates (non-ISO-8601 syntax)</b>
+    @htmlonly <style><!-- td.qore { background-color: #5b9409; color: white; } --></style> @endhtmlonly
+<table>   <tr>
+      <td class="qore"><b>Component</b></td>
+      <td class="qore"><b>Meaning</b></td>
+      <td class="qore"><b>Example</b></td>
+      <td class="qore"><b>Description</b></td>
+   </tr>
+   <tr>
+      <td>\c Y</td>
+      <td>Years</td>
+      <td>\c 2Y</td>
+      <td>2 Years</td>
+   </tr>
+   <tr>
+      <td>\c M</td>
+      <td>Months</td>
+      <td>\c 3M</td>
+      <td>3 Months</td>
+   </tr>
+   <tr>
+      <td>\c D</td>
+      <td>Days</td>
+      <td>\c 10D</td>
+      <td>10 Days</td>
+   </tr>
+   <tr>
+      <td>\c h</td>
+      <td>Hours</td>
+      <td>\c 15h</td>
+      <td>15 hours</td>
+   </tr>
+   <tr>
+      <td>\c m</td>
+      <td>Minutes</td>
+      <td>\c 25m</td>
+      <td>25 minutes</td>
+   </tr>
+   <tr>
+      <td>\c s</td>
+      <td>Seconds</td>
+      <td>\c 19s</td>
+      <td>19 seconds</td>
+   </tr>
+   <tr>
+      <td>\c ms</td>
+      <td>Milliseconds</td>
+      <td>\c 250ms</td>
+      <td>250 milliseconds</td>
+   </tr>
+   <tr>
+      <td>\c us</td>
+      <td>Microseconds</td>
+      <td>\c 21194us</td>
+      <td>21194 microseconds</td>
+   </tr>
+</table>
+
+
+    <b>Short Relative Time Format</b>\n
+    This and the next duration format for composite relative date/time values are both based on ISO-8601.
+
+    This first format has the following syntax:
+    - \c PnYnMnDTnHnMnSnu
+
+    Each element above is optional, but at least one element must be present. Note that "M" means months when before the "T" and minutes when found after the "T". The other elements are years, days, hours, seconds, and, as an extension to ISO-8601, "u" for microseconds. Additionally, the values may be negative.
+
+    Here are some examples (using qore's -X command-line option to evaluate and expression and print out the result):
+
+    @code
+prompt% qore -X 'P1Y3MT4S'
+<time: 1 year 3 months 4 seconds>
+prompt% qore -X 'PT4M551u'
+<time: 4 minutes 551 microseconds>
+prompt% qore -X 'P3DT21H'
+<time: 3 days 21 hours>
+    @endcode
+
+    <b>Long Relative Time Format</b>\n
+    The second ISO-8601-based format for specifing complex durations with multiple time units has the following syntax:
+    - \c PYYYY-MM-DDTHH:mm:SS
+
+    This format is more limited than the first format, in that all values must be positive, and furthermore, all values must be present (although they may be zero).
+
+    Here are some examples of the second format (equivalent to the first examples):
+
+    @code
+prompt% qore -X 'P0001-03-00T00:00:04'
+<time: 1 year 3 months 4 seconds>
+prompt% qore -X 'P0000-00-00T00:04:00.000551'
+<time: 4 minutes 551 microseconds>
+prompt% qore -X 'P0000-00-03T21:00:00'
+<time: 3 days 21 hours>
+    @endcode
+
+    @see @ref date_type, @ref softdate_type
+
+    @subsection binary Binary
+
+    The binary data type is used to hold binary arbitrary binary data. Internally it is represented by a pointer to a memory location for the data and a size indicator.
+
+    Binary data can be concatenated with the + and += operators.
+
+    This data can be manipulated by being written and read from @ref Qore::File, @ref Qore::Socket, @ref Qore::Datasource, @ref Qore::DatasourcePool, or @ref Qore::SQLStatement objects, or converted and parsed to/from base64 encoded strings using the makeBase64String() and parseBase64String() functions, or compressed and decompressed using the compress(), gzip(), bzip2(), etc. functions, and processed by most cryptographic funtions, among others.
+
+    Binary objects can be read from a @ref Qore::File object using the Qore::File::readBinary() method and can be written using the Qore::File::write() method. Please see the @ref Qore::File class for more information.
+
+    Binary objects can be read from a @ref Qore::Socket object using the Qore::Socket::recvBinary() method and can be written using the Qore::Socket::send() method. Please see the @ref Qore::Socket class for more information.
+
+    The @ref Qore::Datasource, @ref Qore::DatasourcePool, and @ref Qore::SQLStatement classes can also be used to read and write binary objects as BLOBs.
+
+    Note that this is not an exhaustive list; see the function and class library documentation for more examples.
+
+    @see @ref binary_type
+
+    @subsection null NULL
+
+    This data type represents an SQL \c NULL value. Note that \c NULL is not equivalent to \c NOTHING.
+
+    @subsection nothing NOTHING
+
+    This special data type represents no value.
+
+    @note The exists operator will return \c False when given \c NOTHING as an argument; for example: @verbatim prompt% qore -X 'exists NOTHING'
+False@endverbatim
+
+    @subsection conversions Data Conversions
+
+    Boolean, string, integer, date, and floating point data types can be freely converted from one type to the other, although data loss is possible depending on the conversion (particularly when converting to the boolan type as only two possible values are supported).
+
+    The special types @ref null and @ref nothing are not equivalent and cannot be converted to or from any other type.
+
+    When date types are converted from strings, any of the following formats can be used: \c "YYYYMMDDHHmmSS[.us][Z|+-HH[:MM[:SS]]]", \c "YYYY-MM-DD HH:mm:SS.us", \c "YYYY-MM-DDTHH:mm:SS", \c "YYYY-MM-DDTHH:mm:SS[.us][Z|+-HH[:MM[:SS]]]", and most reasonable combinations thereof. If the time zone component is missing, then the local time zone will be assumed (see @ref time_zones).
+
+    When dates are converted to and from integer values, the a 64-bit second offset from January 1, 1970 in the local time zone is used for the conversion. For example @code int(2006-01-01)@endcode gives \c 1136073600 (regardless of the local time zone the date is in). To get the second offset of a date from \c 1970-01-01Z (i.e. the true epoch offset), call get_epoch_seconds() instead.
+
+    When an expression requires a certain data type and the source data type cannot be converted to the desired data type, the default value for the desired data type will be used. The default values are given in @ref basic_data_types.
+
+    @section container_data_types Container Data Types
+
+    Qore supports three types of container types: @ref list "lists", @ref hash "hashes" (associative arrays), and @ref object "objects" (see @ref object and @ref classes for more information). These container types can be combined to make arbitrarily complex data structures.
+
+    The data type of any element can be any basic type or another aggregate type. The types do not have to be uniform in one container structure.
+
+    @subsection list Lists
+
+    Lists (or arrays) are simply ordered containers of values. A list element can be any Qore type (even another list, @ref hash "hash", or @ref object "object").
+
+    Lists are specified by giving expressions separated by commas as follows:
+
+    @code
+$list = (expression, expression [, expression ...]);
+    @endcode
+
+Here is a concrete example:
+
+    @code
+my list $list = (1, 2, "three", 4.0, 5, 6, 2001-01-15Z);
+    @endcode
+
+    @note Trailing commas can be left on the end of a list (or a hash, for that matter). This makes it easier to comment-out the last element of a multi-line list without having to worry about removing the trailing comma.
+
+    List elements are dereferenced using square brackets: \c "[" and \c "]". The first element in a list has index zero.
+
+    @code
+$element3 = $list[2];
+    @endcode
+
+    The following operators perform special processing on lists: @ref elements "elements", @ref shift "shift", @ref unshift "unshift", @ref push "push", @ref pop "pop", @ref splice "splice", @ref list_dereference "[]", @ref plus "+", @ref plus_equals "+=", @ref map "map", @ref foldl "foldl", @ref foldr "foldr", and @ref select "select".
+
+    @see @ref list_type, @ref softlist_type
+
+    @subsection hash Hashes
+
+    Hashes are containers that associate values to a string key.
+
+    @note Qore hashes preserve the insertion order in order to be able to guarantee the order of keys when hashes are serialized to XML strings, therefore the keys operator will always return the hash keys in insertion/creation order.
+
+    Hashes are specified using the following syntax:
+
+    @code
+$hash = ( "key1" : expression,
+          "key2" : expression,
+	  ... );
+    @endcode
+
+    Here is a concrete example:
+
+    @code
+my hash $hash = ( "apple" : 1 + 1,
+                  "pear"  : "good" );
+    @endcode
+
+    Hashes are dereferenced in one of two ways, either using curly brackets: \c "{" and \c "}", where any valid Qore expression can be used, or using the dot "." hash member dereferencing operator, where literal strings can be used.
+
+    @code
+$element3 = $hash{"pe" + "ar"};
+    @endcode
+
+    Is equivalent to:
+
+    @code
+$element3 = $hash.pear;
+    @endcode
+
+    and:
+
+    @code
+$element3 = $hash."pear";
+    @endcode
+
+    and:
+
+    @code
+$element3 = $hash.("pe" + "ar");
+    @endcode
+
+    Hash members can have the names of keywords, but in this case to dereference them, you cannot use the dot operator with a literal string, otherwise a parse error will be raised. Use quotes around the member name when dereferencing hash members with the same name as a qore keyword as follows:
+
+    @code
+$element3 = $hash."keys";
+$element3 = $hash{"keys"};
+    @endcode
+
+    A literal string after the dot "." hash member dereferencing operator must be a valid Qore identifier; therefore if you want to use a hash key that's not a valid identifier, enclose the string in quotes.
+
+    If you want to use the result of an expression to dereference the hash, then either the curly bracket syntax must be used or the expression must be enclosed in parentheses.
+
+    Note that hash keys can also be given by constants (as long as the constant resolves to a string) when using curly brackets.
+
+    @see @ref hash_type
+
+    @subsection object Objects
+
+    Qore objects are instantiations of a class. They have members (like a hash; values associated to string keys), and methods. The class definition specifies the methods that run on objects of that class, private members, and static methods associated with the class (however note that static methods do not run in the scope of an object). Qore classes are declared with a special syntax.
+
+    The recommend way to instantiate an object is to declare its type and give constructor arguments after the variable name in parentheses as follows:
+
+    @code
+my class_name_or_path $var_name([argument list])
+    @endcode
+
+    For example (for a constructor taking no arguments or having only default values for the aguments, the list is empty):
+    @code
+my Mutex $m();
+    @endcode
+
+    If parse option @ref new-style "%new-style" is set, the above example declaring a local variable of class @ref Qore::Mutex would look as follows:
+
+    @code
+Mutex m();
+    @endcode
+
+    Objects can also be instantiated using the @ref new "new operator" as follows.
+
+    @code
+new class_identifier([argument list])
+    @endcode
+
+    For example:
+
+    @code
+my Mutex $m = new Mutex();
+    @endcode
+
+    Or, with parse option %new-style:
+
+    @code
+Mutex m = new Mutex();
+    @endcode
+
+    Objects have named data members that are referenced like hash elements, although this behavior can be modified for objects using the memberGate() method. Object members are accessed by appending a dot '.' and the member name to the object reference as follows:
+
+    @code
+object_reference.member_name
+    @endcode
+
+    For more information, see @ref class_members.
+
+    Object methods are called by appending a dot '.' and a method name to the object reference as follows:
+
+    @code
+object_reference.method_name([argument_list])
+    @endcode
+
+    Or, from within the class code itself to call another method from inside the same class hierarchy:
+
+    @code
+$.method_name([argument_list])
+    @endcode
+
+    Or, with parse option %new-style, the method call is made without the "$.":
+
+    @code
+method_name([argument_list])
+    @endcode
+
+    For more information, see @ref object_method_calls.
+
+    The object references above are normally variable references holding an object, but could be any expression that returns an object, such as a @ref new "new expression" or even a function call.
+
+    @note Objects are treated differently than other Qore data types; they are only explicitly copied (see Object References for more informaion). Any object instantiated with the new operator will remain unique until deleted or explicitly copied. An explicit copy is made with the copy method, and does not always guarantee an exact copy of the source object (it depends on the definition of the copy method for the class in question).
+
+    Objects exist until they go out of scope, are explicitly deleted, or their last thread exits. For detailed information, see @ref classes.
+
+    @see @ref object_type
+
+    @section data_type_declarations Data Type Declarations and Restrictions
+
+    Starting in Qore 0.8.0, it is possible to restrict variables, class members, and function and method parameters to certain data types. This allows programmers to write safer code, as many more errors can be caught at parse time that would otherwise be caught at run time. Furthermore, providing type information to the parser allows Qore to implement performance optimizations by performing lookups and resolutions once at parse time rather than every time a variable or class member is accessed at run time.
+
+    When types are declared in a parameter list, functions and methods can be overloaded as well.
+
+    The types in the following table can be used as well as any class name or \c '*classname' (i.e. an asterix followed by the class name), meaning either the given class or @ref nothing (no value).
+
+    <b>Data Type Declaration Names</b>
+    @htmlonly <style><!-- td.qore { background-color: #5b9409; color: white; } --></style> @endhtmlonly
+<table>   <tr>
+      <td class="qore"><b>Name</b></td>
+      <td class="qore"><b>Accepts Qore Type(s)</b></td>
+      <td class="qore"><b>Returns Qore Type(s)</b></td>
+      <td class="qore"><b>Description</b></td>
+   </tr>
+   <tr>
+      <td>@ref int_type "int"</td>
+      <td>@ref integer</td>
+      <td>@ref integer</td>
+      <td>Restricts values @ref integer values</td>
+   </tr>
+   <tr>
+      <td>@ref float_type "float"</td>
+      <td>@ref float</td>
+      <td>@ref float</td>
+      <td>Restricts values to @ref float values</td>
+   </tr>
+   <tr>
+      <td>@ref bool_type "bool"</td>
+      <td>@ref boolean</td>
+      <td>@ref boolean</td>
+      <td>Restricts values to @ref boolean values</td>
+   </tr>
+   <tr>
+      <td>@ref string_type "string"</td>
+      <td>@ref string</td>
+      <td>@ref string</td>
+      <td>Restricts values to @ref string values</td>
+   </tr>
+   <tr>
+      <td>@ref date_type "date"</td>
+      <td>@ref date</td>
+      <td>@ref date</td>
+      <td>Restricts values to @ref date values; values may be either @ref absolute_dates "absolute" or @relative_dates "relative"</td>
+   </tr>
+   <tr>
+      <td>@ref binary_type "binary"</td>
+      <td>@ref binary</td>
+      <td>@ref binary</td>
+      <td>Restricts values to @ref binary values</td>
+   </tr>
+   <tr>
+      <td>@ref hash_type "hash"</td>
+      <td>@ref hash</td>
+      <td>@ref hash</td>
+      <td>Restricts values to @ref hash values</td>
+   </tr>
+   <tr>
+      <td>@ref list_type "list"</td>
+      <td>@ref list</td>
+      <td>@ref list</td>
+      <td>Restricts values to @ref list values</td>
+   </tr>
+   <tr>
+      <td>@ref object_type "object"</td>
+      <td>@ref object</td>
+      <td>@ref object</td>
+      <td>Restricts values to @ref object values</td>
+   </tr>
+   <tr>
+      <td>@ref classname_type "<classname>"</td>
+      <td>@ref object</td>
+      <td>@ref object</td>
+      <td>Restricts values to objects of the specific class given; either the class name can be given (ex: @ref Qore::Mutex "Mutex" or a qualified path to the class: @ref Qore::Mutex)</td>
+   </tr>
+   <tr>
+      <td>@ref null_type "null"</td>
+      <td>@ref null</td>
+      <td>@ref null</td>
+      <td>Restricts values to Qore's @ref null type; this type has few (if any) practical applications and has been included for completeness' sake</td>
+   </tr>
+   <tr>
+      <td>@ref nothing_type "nothing"</td>
+      <td>@ref nothing</td>
+      <td>@ref nothing</td>
+      <td>Restricts values to Qore's @ref nothing type; this type is mostly useful for declaring that a function or method returns no value</td>
+   </tr>
+   <tr>
+      <td>@ref timeout_type "timeout"</td>
+      <td>@ref integer, @ref date</td>
+      <td>@ref integer</td>
+      <td>Accepts @ref integer, @ref date and converts dates to an integer value representing milliseconds and returns the integer; incoming integers are assumed to represent milliseconds</td>
+   </tr>
+   <tr>
+      <td>@ref softint_type "softint"</td>
+      <td>@ref integer, @ref float, @ref boolean, @ref string, @ref null</td>
+      <td>@ref integer</td>
+      <td>Accepts @ref integer, @ref float, @ref boolean, @ref string, @ref null and converts non-integer values to an integer and returns the integer</td>
+   </tr>
+   <tr>
+      <td>@ref softfloat_type "softfloat"</td>
+      <td>@ref integer, @ref float, @ref boolean, @ref string, @ref null</td>
+      <td>@ref float</td>
+      <td>Accepts @ref integer, @ref float, @ref boolean, @ref string, @ref null and converts non-float values to a float and returns the new value</td>
+   </tr>
+   <tr>
+      <td>@ref softbool_type "softbool"</td>
+      <td>@ref integer, @ref float, @ref boolean, @ref string, @ref null</td>
+      <td>@ref boolean</td>
+      <td>Accepts @ref integer, @ref float, @ref boolean, @ref string, @ref null and converts non-boolean values to a boolean and returns the new value</td>
+   </tr>
+   <tr>
+      <td>@ref softstring_type "softstring"</td>
+      <td>@ref integer, @ref float, @ref boolean, @ref string, @ref null</td>
+      <td>@ref string</td>
+      <td>Accepts @ref integer, @ref float, @ref boolean, @ref string, @ref null and converts non-string values to a string and returns the new value</td>
+   </tr>
+   <tr>
+      <td>@ref softdate_type "softdate"</td>
+      <td>@ref integer, @ref float, @ref boolean, @ref string, @ref date, @ref null</td>
+      <td>@ref date</td>
+      <td>Accepts @ref integer, @ref float, @ref boolean, @ref string, @ref date, and @ref null and converts non-date values to a date and returns the new value</td>
+   </tr>
+   <tr>
+      <td>@ref softlist_type "softlist"</td>
+      <td>all types</td>
+      <td>@ref list</td>
+      <td>Accepts all types; @ref nothing is returned as an empty list; a list is returned unchanged, and any other type is returned as the first element of a new list</td>
+   </tr>
+   <tr>
+      <td>@ref data_type "data"</td>
+      <td>@ref string or @ref binary</td>
+      <td>same as received</td>
+      <td>Restricts input to @ref string and @ref binary and returns the same type</td>
+   </tr>
+   <tr>
+      <td>@ref code_type "code"</td>
+      <td>@ref closure, @ref call_reference</td>
+      <td>same as received</td>
+      <td>Restricts values to @ref closure "closures" and @ref call_reference "call references"</td>
+   </tr>
+   <tr>
+      <td>@ref reference_type "reference"</td>
+      <td>@ref lvalue_references</td>
+      <td>@ref lvalue_references</td>
+      <td>Restricts values to references to lvalues; currently only usable in function or method parameters</td>
+   </tr>
+   <tr>
+      <td>@ref int_or_nothing_type "*int"</td>
+      <td>@ref integer or @ref nothing</td>
+      <td>same as received</td>
+      <td>Restricts values to Qore's @ref integer or @ref nothing types</td>
+   </tr>
+   <tr>
+      <td>@ref float_or_nothing_type "*float"</td>
+      <td>@ref float or @ref nothing</td>
+      <td>same as received</td>
+      <td>Restricts values to Qore's @ref float or @ref nothing types</td>
+   </tr>
+   <tr>
+      <td>@ref bool_or_nothing_type "*bool"</td>
+      <td>@ref boolean or @ref nothing</td>
+      <td>same as received</td>
+      <td>Restricts values to Qore's @ref boolean or @ref nothing types</td>
+   </tr>
+   <tr>
+      <td>@ref string_or_nothing_type "*string"</td>
+      <td>@ref string or @ref nothing</td>
+      <td>same as received</td>
+      <td>Restricts values to Qore's @ref string or @ref nothing types</td>
+   </tr>
+   <tr>
+      <td>@ref date_or_nothing_type "*date"</td>
+      <td>@ref date or @ref nothing</td>
+      <td>same as received</td>
+      <td>Restricts values to Qore's @ref date or @ref nothing type; values may be either absolute or relative date/time values</td>
+   </tr>
+   <tr>
+      <td>@ref binary_or_nothing_type "*binary"</td>
+      <td>@ref binary or @ref nothing</td>
+      <td>same as received</td>
+      <td>Restricts values to Qore's @ref binary or @ref nothing types</td>
+   </tr>
+   <tr>
+      <td>@ref hash_or_nothing_type "*hash"</td>
+      <td>@ref hash or @ref nothing</td>
+      <td>same as received</td>
+      <td>Restricts values to Qore's @ref hash or @ref nothing types</td>
+   </tr>
+   <tr>
+      <td>@ref list_or_nothing_type "*list"</td>
+      <td>@ref list or @ref nothing</td>
+      <td>same as received</td>
+      <td>Accepts either a @ref list or @ref nothing</td>
+   </tr>
+   <tr>
+      <td>@ref data_or_nothing_type "*data"</td>
+      <td>@ref string, @ref binary, or @ref nothing</td>
+      <td>same as received</td>
+      <td>Restricts input to @ref string, @ref binary, or @ref nothing and returns the same type</td>
+   </tr>
+   <tr>
+      <td>@ref code_or_nothing_type "*code"</td>
+      <td>@ref closure, @ref call_reference, @ref nothing</td>
+      <td>same as received</td>
+      <td>Restricts values to @ref closure "closures", @ref call_reference "call references" and @ref nothing</td>
+   </tr>
+   <tr>
+      <td>@ref timeout_or_nothing_type "*timeout"</td>
+      <td>@ref integer, @ref date or @ref nothing</td>
+      <td>@ref integer or @ref nothing</td>
+      <td>Accepts @ref integer, @ref date and converts dates to an integer value representing milliseconds and returns the integer; incoming integers are assumed to represent milliseconds. If no value is passed, then @ref nothing is returned</td>
+   </tr>
+   <tr>
+      <td>@ref softint_or_nothing_type "*softint"</td>
+      <td>@ref integer, @ref float, @ref boolean, @ref string, @ref null or @ref nothing</td>
+      <td>@ref integer or @ref nothing</td>
+      <td>Accepts @ref integer, @ref float, @ref boolean, @ref string, @ref null and converts non-integer values to an integer and returns the integer. If no value is passed, then @ref nothing is returned</td>
+   </tr>
+   <tr>
+      <td>@ref softfloat_or_nothing_type "*softfloat"</td>
+      <td>@ref integer, @ref float, @ref boolean, @ref string, @ref null or @ref nothing</td>
+      <td>@ref float or @ref nothing</td>
+      <td>Accepts @ref integer, @ref float, @ref boolean, @ref string, @ref null and converts non-float values to a float and returns the new value. If no value is passed, then @ref nothing is returned</td>
+   </tr>
+   <tr>
+      <td>@ref softbool_or_nothing_type "*softbool"</td>
+      <td>@ref integer, @ref float, @ref boolean, @ref string, @ref null or @ref nothing</td>
+      <td>@ref boolean or @ref nothing</td>
+      <td>Accepts @ref integer, @ref float, @ref boolean, @ref string, @ref null and converts non-boolean values to a boolean and returns the new value. If no value is passed, then @ref nothing is returned</td>
+   </tr>
+   <tr>
+      <td>@ref softstring_or_nothing_type "*softstring"</td>
+      <td>@ref integer, @ref float, @ref boolean, @ref string, @ref null or @ref nothing</td>
+      <td>@ref string or @ref nothing</td>
+      <td>Accepts @ref integer, @ref float, @ref boolean, @ref string, @ref null and converts non-string values to a string and returns the new value. If no value is passed, then @ref nothing is returned</td>
+   </tr>
+   <tr>
+      <td>@ref softdate_or_nothing_type "*softdate"</td>
+      <td>@ref integer, @ref float, @ref boolean, @ref string, @ref date, @ref null or @ref nothing</td>
+      <td>@ref date or @ref nothing</td>
+      <td>Accepts @ref integer, @ref float, @ref boolean, @ref string, @ref date, and @ref null and converts non-date values to a date and returns the new value. If no value is passed, then @ref nothing is returned</td>
+   </tr>
+   <tr>
+      <td>@ref softlist_or_nothing_type "*softlist"</td>
+      <td>all types</td>
+      <td>@ref list or @ref nothing</td>
+      <td>Accepts all types; @ref nothing and list values are returned as the same value; any other type is returned as the first element of a new list</td>
+   </tr>
+   <tr>
+      <td>@ref any_type "any"</td>
+      <td>any</td>
+      <td>same as received</td>
+      <td>Provides no restrictions on the type of value it receives and returns the same value</td>
+   </tr>
+</table>
+
+
+    @subsection int_type "int" Type Restriction
+
+    @htmlonly <style><!-- td.qore { background-color: #5b9409; color: white; } --></style> @endhtmlonly
+<table>   <tr>
+      <td class="qore"><b>Name</b></td>
+      <td class="qore"><b>Accepts Qore Type(s)</b></td>
+      <td class="qore"><b>Returns Qore Type(s)</b></td>
+      <td class="qore"><b>Description</b></td>
+   </tr>
+   <tr>
+      <td>\c int</td>
+      <td>@ref integer</td>
+      <td>@ref integer</td>
+      <td>Restricts values to Qore's @ref integer type</td>
+   </tr>
+</table>
+
+
+    @par Example
+    @code
+my int $i = 0;
+    @endcode
+
+    @subsection float_type "float" Type Restriction
+
+    @htmlonly <style><!-- td.qore { background-color: #5b9409; color: white; } --></style> @endhtmlonly
+<table>   <tr>
+      <td class="qore"><b>Name</b></td>
+      <td class="qore"><b>Accepts Qore Type(s)</b></td>
+      <td class="qore"><b>Returns Qore Type(s)</b></td>
+      <td class="qore"><b>Description</b></td>
+   </tr>
+   <tr>
+      <td>\c float</td>
+      <td>@ref float</td>
+      <td>@ref float</td>
+      <td>Restricts values to Qore's @ref float type</td>
+   </tr>
+</table>
+
+
+    @par Example
+    @code
+my float $pi = M_PI;
+    @endcode
+
+    @subsection bool_type "bool" Type Restriction
+
+    @htmlonly <style><!-- td.qore { background-color: #5b9409; color: white; } --></style> @endhtmlonly
+<table>   <tr>
+      <td class="qore"><b>Name</b></td>
+      <td class="qore"><b>Accepts Qore Type(s)</b></td>
+      <td class="qore"><b>Returns Qore Type(s)</b></td>
+      <td class="qore"><b>Description</b></td>
+   </tr>
+   <tr>
+      <td>\c bool</td>
+      <td>@ref boolean</td>
+      <td>@ref boolean</td>
+      <td>Restricts values to Qore's @ref boolean type</td>
+   </tr>
+</table>
+
+
+    @par Example
+    @code
+my float $pi = M_PI;
+    @endcode
+
+    @subsection string_type "string" Type Restriction
+
+    @htmlonly <style><!-- td.qore { background-color: #5b9409; color: white; } --></style> @endhtmlonly
+<table>   <tr>
+      <td class="qore"><b>Name</b></td>
+      <td class="qore"><b>Accepts Qore Type(s)</b></td>
+      <td class="qore"><b>Returns Qore Type(s)</b></td>
+      <td class="qore"><b>Description</b></td>
+   </tr>
+   <tr>
+      <td>\c string</td>
+      <td>@ref string</td>
+      <td>@ref string</td>
+      <td>Restricts values to Qore's @ref string type</td>
+   </tr>
+</table>
+
+
+    @par Example
+    @code
+my string $str = "foo";
+    @endcode
+
+    @subsection date_type "date" Type Restriction
+
+    @htmlonly <style><!-- td.qore { background-color: #5b9409; color: white; } --></style> @endhtmlonly
+<table>   <tr>
+      <td class="qore"><b>Name</b></td>
+      <td class="qore"><b>Accepts Qore Type(s)</b></td>
+      <td class="qore"><b>Returns Qore Type(s)</b></td>
+      <td class="qore"><b>Description</b></td>
+   </tr>
+   <tr>
+      <td>\c date</td>
+      <td>@ref date</td>
+      <td>@ref date</td>
+      <td>Restricts values to Qore's @ref date type; date/time values can be either @ref absolute_dates "absolute" or @ref relative_dates "relative"</td>
+   </tr>
+</table>
+
+
+    @par Example
+    @code
+my date $now = now_us;
+    @endcode
+
+    @subsection binary_type "binary" Type Restriction
+
+    @htmlonly <style><!-- td.qore { background-color: #5b9409; color: white; } --></style> @endhtmlonly
+<table>   <tr>
+      <td class="qore"><b>Name</b></td>
+      <td class="qore"><b>Accepts Qore Type(s)</b></td>
+      <td class="qore"><b>Returns Qore Type(s)</b></td>
+      <td class="qore"><b>Description</b></td>
+   </tr>
+   <tr>
+      <td>\c binary</td>
+      <td>@ref binary</td>
+      <td>@ref binary</td>
+      <td>Restricts values to Qore's @ref binary type</td>
+   </tr>
+</table>
+
+
+    @par Example
+    @code
+my string $str = "foo";
+    @endcode
+
+    @subsection hash_type "hash" Type Restriction
+
+    @htmlonly <style><!-- td.qore { background-color: #5b9409; color: white; } --></style> @endhtmlonly
+<table>   <tr>
+      <td class="qore"><b>Name</b></td>
+      <td class="qore"><b>Accepts Qore Type(s)</b></td>
+      <td class="qore"><b>Returns Qore Type(s)</b></td>
+      <td class="qore"><b>Description</b></td>
+   </tr>
+   <tr>
+      <td>\c hash</td>
+      <td>@ref hash</td>
+      <td>@ref hash</td>
+      <td>Restricts values to Qore's @ref hash type</td>
+   </tr>
+</table>
+
+
+    @par Example
+    @code
+my hash $str = ("foo": "bar", "x": 2);
+    @endcode
+
+    @subsection list_type "list" Type Restriction
+
+    @htmlonly <style><!-- td.qore { background-color: #5b9409; color: white; } --></style> @endhtmlonly
+<table>   <tr>
+      <td class="qore"><b>Name</b></td>
+      <td class="qore"><b>Accepts Qore Type(s)</b></td>
+      <td class="qore"><b>Returns Qore Type(s)</b></td>
+      <td class="qore"><b>Description</b></td>
+   </tr>
+   <tr>
+      <td>\c list</td>
+      <td>@ref list</td>
+      <td>@ref list</td>
+      <td>Restricts values to Qore's @ref list type</td>
+   </tr>
+</table>
+
+
+    @par Example
+    @code
+my list $l = ("foo", "bar");
+    @endcode
+
+    @subsection object_type "object" Type Restriction
+
+    @htmlonly <style><!-- td.qore { background-color: #5b9409; color: white; } --></style> @endhtmlonly
+<table>   <tr>
+      <td class="qore"><b>Name</b></td>
+      <td class="qore"><b>Accepts Qore Type(s)</b></td>
+      <td class="qore"><b>Returns Qore Type(s)</b></td>
+      <td class="qore"><b>Description</b></td>
+   </tr>
+   <tr>
+      <td>\c object</td>
+      <td>@ref object</td>
+      <td>@ref object</td>
+      <td>Restricts values to Qore's @ref object type; note that any class name can also be used as a type restriction directly</td>
+   </tr>
+</table>
+
+
+    @par Example
+    @code
+my object $o = new Mutex();
+    @endcode
+
+    @subsection classname_type "<classname>" Type Restriction
+
+    @htmlonly <style><!-- td.qore { background-color: #5b9409; color: white; } --></style> @endhtmlonly
+<table>   <tr>
+      <td class="qore"><b>Name</b></td>
+      <td class="qore"><b>Accepts Qore Type(s)</b></td>
+      <td class="qore"><b>Returns Qore Type(s)</b></td>
+      <td class="qore"><b>Description</b></td>
+   </tr>
+   <tr>
+      <td><tt><any class name></tt></td>
+      <td>@ref object of the particular class given</td>
+      <td>@ref object of the particular class given</td>
+      <td>Restricts values to objects of the particular class given; subclasses are also accepted</td>
+   </tr>
+</table>
+
+
+    @par Example
+    @code
+my Qore::Mutex $o = new Mutex();
+    @endcode
+
+    @subsection null_type "null" Type Restriction
+
+    @htmlonly <style><!-- td.qore { background-color: #5b9409; color: white; } --></style> @endhtmlonly
+<table>   <tr>
+      <td class="qore"><b>Name</b></td>
+      <td class="qore"><b>Accepts Qore Type(s)</b></td>
+      <td class="qore"><b>Returns Qore Type(s)</b></td>
+      <td class="qore"><b>Description</b></td>
+   </tr>
+   <tr>
+      <td>\c null</td>
+      <td>@ref null</td>
+      <td>@ref null</td>
+      <td>Restricts values to Qore's @ref null type; this type has few (if any) practical applications and has been included for completeness' sake</td>
+   </tr>
+</table>
+
+
+    @par Example
+    @code
+my null $n = NULL;
+    @endcode
+
+    @subsection nothing_type "nothing" Type Restriction
+
+    @htmlonly <style><!-- td.qore { background-color: #5b9409; color: white; } --></style> @endhtmlonly
+<table>   <tr>
+      <td class="qore"><b>Name</b></td>
+      <td class="qore"><b>Accepts Qore Type(s)</b></td>
+      <td class="qore"><b>Returns Qore Type(s)</b></td>
+      <td class="qore"><b>Description</b></td>
+   </tr>
+   <tr>
+      <td>\c nothing</td>
+      <td>@ref nothing</td>
+      <td>@ref nothing</td>
+      <td>Restricts values to Qore's @ref nothing type; this type is mostly useful for declaring that a function or method returns no value</td>
+   </tr>
+</table>
+
+
+    @par Example
+    @code
+nothing sub bar() {
+    printf("foo\n");
+}
+    @endcode
+
+    @subsection timeout_type "timeout" Type Restriction
+
+    @htmlonly <style><!-- td.qore { background-color: #5b9409; color: white; } --></style> @endhtmlonly
+<table>   <tr>
+      <td class="qore"><b>Name</b></td>
+      <td class="qore"><b>Accepts Qore Type(s)</b></td>
+      <td class="qore"><b>Returns Qore Type(s)</b></td>
+      <td class="qore"><b>Description</b></td>
+   </tr>
+   <tr>
+      <td>\c timeout</td>
+      <td>@ref integer, @ref date</td>
+      <td>@ref integer</td>
+      <td>Accepts @ref integer, @ref date values and converts dates to an integer value representing milliseconds and returns the integer; incoming integers are assumed to represent milliseconds</td>
+   </tr>
+</table>
+
+
+    @par Example
+    @code
+my timeout $to = 1250ms;
+    @endcode
+
+    @subsection softint_type "softint" Type Restriction
+
+    @htmlonly <style><!-- td.qore { background-color: #5b9409; color: white; } --></style> @endhtmlonly
+<table>   <tr>
+      <td class="qore"><b>Name</b></td>
+      <td class="qore"><b>Accepts Qore Type(s)</b></td>
+      <td class="qore"><b>Returns Qore Type(s)</b></td>
+      <td class="qore"><b>Description</b></td>
+   </tr>
+   <tr>
+      <td>\c softint</td>
+      <td>@ref integer, @ref float, @ref boolean, @ref string, @ref null</td>
+      <td>@ref integer</td>
+      <td>Accepts @ref integer, @ref float, @ref boolean, @ref string, and @ref null values and converts non-integer values to an integer and returns the integer</td>
+   </tr>
+</table>
+
+
+    @par Example
+    @code
+my softint $i = "1000";
+    @endcode
+
+    @subsection softfloat_type "softfloat" Type Restriction
+
+    @htmlonly <style><!-- td.qore { background-color: #5b9409; color: white; } --></style> @endhtmlonly
+<table>   <tr>
+      <td class="qore"><b>Name</b></td>
+      <td class="qore"><b>Accepts Qore Type(s)</b></td>
+      <td class="qore"><b>Returns Qore Type(s)</b></td>
+      <td class="qore"><b>Description</b></td>
+   </tr>
+   <tr>
+      <td>\c softfloat</td>
+      <td>@ref integer, @ref float, @ref boolean, @ref string, @ref null</td>
+      <td>@ref float</td>
+      <td>Accepts @ref integer, @ref float, @ref boolean, @ref string, and @ref null values and converts non-float values to a float and returns the float</td>
+   </tr>
+</table>
+
+
+    @par Example
+    @code
+my softfloat $f = "1000.0";
+    @endcode
+
+    @subsection softbool_type "softbool" Type Restriction
+
+    @htmlonly <style><!-- td.qore { background-color: #5b9409; color: white; } --></style> @endhtmlonly
+<table>   <tr>
+      <td class="qore"><b>Name</b></td>
+      <td class="qore"><b>Accepts Qore Type(s)</b></td>
+      <td class="qore"><b>Returns Qore Type(s)</b></td>
+      <td class="qore"><b>Description</b></td>
+   </tr>
+   <tr>
+      <td>\c softbool</td>
+      <td>@ref integer, @ref float, @ref boolean, @ref string, @ref null</td>
+      <td>@ref boolean</td>
+      <td>Accepts @ref integer, @ref float, @ref boolean, @ref string, and @ref null values and converts non-boolean values to a boolean and returns the boolean</td>
+   </tr>
+</table>
+
+
+    @par Example
+    @code
+my softbool $b = "0.5";
+    @endcode
+
+    @subsection softstring_type "softstring" Type Restriction
+
+    @htmlonly <style><!-- td.qore { background-color: #5b9409; color: white; } --></style> @endhtmlonly
+<table>   <tr>
+      <td class="qore"><b>Name</b></td>
+      <td class="qore"><b>Accepts Qore Type(s)</b></td>
+      <td class="qore"><b>Returns Qore Type(s)</b></td>
+      <td class="qore"><b>Description</b></td>
+   </tr>
+   <tr>
+      <td>\c softstring</td>
+      <td>@ref integer, @ref float, @ref boolean, @ref string, @ref null</td>
+      <td>@ref string</td>
+      <td>Accepts @ref integer, @ref float, @ref boolean, @ref string, and @ref null values and converts non-string values to a string and returns the string</td>
+   </tr>
+</table>
+
+
+    @par Example
+    @code
+my softstring $str = 200;
+    @endcode
+
+    @subsection softdate_type "softdate" Type Restriction
+
+    @htmlonly <style><!-- td.qore { background-color: #5b9409; color: white; } --></style> @endhtmlonly
+<table>   <tr>
+      <td class="qore"><b>Name</b></td>
+      <td class="qore"><b>Accepts Qore Type(s)</b></td>
+      <td class="qore"><b>Returns Qore Type(s)</b></td>
+      <td class="qore"><b>Description</b></td>
+   </tr>
+   <tr>
+      <td>\c softdate</td>
+      <td>@ref integer, @ref float, @ref boolean, @ref string, @ref date, @ref null</td>
+      <td>@ref date</td>
+      <td>Accepts @ref integer, @ref float, @ref boolean, @ref string, @ref date, and @ref null values and converts non-date values to a date and returns the date</td>
+   </tr>
+</table>
+
+
+    @par Example
+    @code
+my softdate $d = "2001-10-10T20:00:05 +04:00";
+    @endcode
+
+    @subsection softlist_type "softlist" Type Restriction
+
+    @htmlonly <style><!-- td.qore { background-color: #5b9409; color: white; } --></style> @endhtmlonly
+<table>   <tr>
+      <td class="qore"><b>Name</b></td>
+      <td class="qore"><b>Accepts Qore Type(s)</b></td>
+      <td class="qore"><b>Returns Qore Type(s)</b></td>
+      <td class="qore"><b>Description</b></td>
+   </tr>
+   <tr>
+      <td>\c softlist</td>
+      <td>all data types</td>
+      <td>@ref list</td>
+      <td>Accepts all data types; @ref nothing is returned as an empty list; a list is returned unchanged, and any other type is returned as the first element of a new list</td>
+   </tr>
+</table>
+
+
+    @par Example
+    @code
+my softlist $d = $v;
+    @endcode
+
+    @subsection data_type "data" Type Restriction
+
+    @htmlonly <style><!-- td.qore { background-color: #5b9409; color: white; } --></style> @endhtmlonly
+<table>   <tr>
+      <td class="qore"><b>Name</b></td>
+      <td class="qore"><b>Accepts Qore Type(s)</b></td>
+      <td class="qore"><b>Returns Qore Type(s)</b></td>
+      <td class="qore"><b>Description</b></td>
+   </tr>
+   <tr>
+      <td>\c data</td>
+      <td>@ref string or @ref binary</td>
+      <td>same as received</td>
+      <td>Restricts values to @ref string and @ref binary</td>
+   </tr>
+</table>
+
+
+    @par Example
+    @code
+sub foo(data $d) {
+}
+    @endcode
+
+    @subsection code_type "code" Type Restriction
+
+    @htmlonly <style><!-- td.qore { background-color: #5b9409; color: white; } --></style> @endhtmlonly
+<table>   <tr>
+      <td class="qore"><b>Name</b></td>
+      <td class="qore"><b>Accepts Qore Type(s)</b></td>
+      <td class="qore"><b>Returns Qore Type(s)</b></td>
+      <td class="qore"><b>Description</b></td>
+   </tr>
+   <tr>
+      <td>\c code</td>
+      <td>@ref closure, @ref call_reference</td>
+      <td>same as received</td>
+      <td>Restricts values to @ref closure and @ref call_reference</td>
+   </tr>
+</table>
+
+
+    @par Example
+    @code
+sub foo(code $c) {
+}
+    @endcode
+
+    @note that also \c "closure" and \c "callref" are accepted as synonyms for \c "code" (they are not more specific than \c "code" but rather provide identical type restrictions)
+
+    @subsection reference_type "reference" Type Restriction
+
+    @htmlonly <style><!-- td.qore { background-color: #5b9409; color: white; } --></style> @endhtmlonly
+<table>   <tr>
+      <td class="qore"><b>Name</b></td>
+      <td class="qore"><b>Accepts Qore Type(s)</b></td>
+      <td class="qore"><b>Returns Qore Type(s)</b></td>
+      <td class="qore"><b>Description</b></td>
+   </tr>
+   <tr>
+      <td>\c reference</td>
+      <td>@ref reference</td>
+      <td>@ref reference</td>
+      <td>Requires a reference to an lvalue to be assigned; this type is only usable in parameter lists</td>
+   </tr>
+</table>
+
+
+    @par Example
+    @code
+sub foo(reference $f) {
+}
+    @endcode
+
+    @subsection int_or_nothing_type "*int" Type Restriction
+
+    @htmlonly <style><!-- td.qore { background-color: #5b9409; color: white; } --></style> @endhtmlonly
+<table>   <tr>
+      <td class="qore"><b>Name</b></td>
+      <td class="qore"><b>Accepts Qore Type(s)</b></td>
+      <td class="qore"><b>Returns Qore Type(s)</b></td>
+      <td class="qore"><b>Description</b></td>
+   </tr>
+   <tr>
+      <td>\c *int</td>
+      <td>@ref integer or @ref nothing</td>
+      <td>same as received</td>
+      <td>Restricts values to @ref integer and @ref nothing</td>
+   </tr>
+</table>
+
+
+    @par Example
+    @code
+sub foo(*int $i) {
+}
+    @endcode
+
+    @subsection float_or_nothing_type "*float" Type Restriction
+
+    @htmlonly <style><!-- td.qore { background-color: #5b9409; color: white; } --></style> @endhtmlonly
+<table>   <tr>
+      <td class="qore"><b>Name</b></td>
+      <td class="qore"><b>Accepts Qore Type(s)</b></td>
+      <td class="qore"><b>Returns Qore Type(s)</b></td>
+      <td class="qore"><b>Description</b></td>
+   </tr>
+   <tr>
+      <td>\c *float</td>
+      <td>@ref float or @ref nothing</td>
+      <td>same as received</td>
+      <td>Restricts values to @ref float and @ref nothing</td>
+   </tr>
+</table>
+
+
+    @par Example
+    @code
+sub foo(*float $f) {
+}
+    @endcode
+
+    @subsection bool_or_nothing_type "*bool" Type Restriction
+
+    @htmlonly <style><!-- td.qore { background-color: #5b9409; color: white; } --></style> @endhtmlonly
+<table>   <tr>
+      <td class="qore"><b>Name</b></td>
+      <td class="qore"><b>Accepts Qore Type(s)</b></td>
+      <td class="qore"><b>Returns Qore Type(s)</b></td>
+      <td class="qore"><b>Description</b></td>
+   </tr>
+   <tr>
+      <td>\c *bool</td>
+      <td>@ref float or @ref nothing</td>
+      <td>same as received</td>
+      <td>Restricts values to @ref bool and @ref nothing</td>
+   </tr>
+</table>
+
+
+    @par Example
+    @code
+sub foo(*bool $b) {
+}
+    @endcode
+
+    @subsection string_or_nothing_type "*string" Type Restriction
+
+    @htmlonly <style><!-- td.qore { background-color: #5b9409; color: white; } --></style> @endhtmlonly
+<table>   <tr>
+      <td class="qore"><b>Name</b></td>
+      <td class="qore"><b>Accepts Qore Type(s)</b></td>
+      <td class="qore"><b>Returns Qore Type(s)</b></td>
+      <td class="qore"><b>Description</b></td>
+   </tr>
+   <tr>
+      <td>\c *string</td>
+      <td>@ref string or @ref nothing</td>
+      <td>same as received</td>
+      <td>Restricts values to @ref string and @ref nothing</td>
+   </tr>
+</table>
+
+
+    @par Example
+    @code
+sub foo(*string $str) {
+}
+    @endcode
+
+    @subsection date_or_nothing_type "*date" Type Restriction
+
+    @htmlonly <style><!-- td.qore { background-color: #5b9409; color: white; } --></style> @endhtmlonly
+<table>   <tr>
+      <td class="qore"><b>Name</b></td>
+      <td class="qore"><b>Accepts Qore Type(s)</b></td>
+      <td class="qore"><b>Returns Qore Type(s)</b></td>
+      <td class="qore"><b>Description</b></td>
+   </tr>
+   <tr>
+      <td>\c *date</td>
+      <td>@ref date or @ref nothing</td>
+      <td>same as received</td>
+      <td>Restricts values to @ref date and @ref nothing</td>
+   </tr>
+</table>
+
+
+    @par Example
+    @code
+sub foo(*date $str) {
+}
+    @endcode
+
+    @subsection binary_or_nothing_type "*binary" Type Restriction
+
+    @htmlonly <style><!-- td.qore { background-color: #5b9409; color: white; } --></style> @endhtmlonly
+<table>   <tr>
+      <td class="qore"><b>Name</b></td>
+      <td class="qore"><b>Accepts Qore Type(s)</b></td>
+      <td class="qore"><b>Returns Qore Type(s)</b></td>
+      <td class="qore"><b>Description</b></td>
+   </tr>
+   <tr>
+      <td>\c *binary</td>
+      <td>@ref binary or @ref nothing</td>
+      <td>same as received</td>
+      <td>Restricts values to @ref binary and @ref nothing</td>
+   </tr>
+</table>
+
+
+    @par Example
+    @code
+sub foo(*binary $b) {
+}
+    @endcode
+
+    @subsection hash_or_nothing_type "*hash" Type Restriction
+
+    @htmlonly <style><!-- td.qore { background-color: #5b9409; color: white; } --></style> @endhtmlonly
+<table>   <tr>
+      <td class="qore"><b>Name</b></td>
+      <td class="qore"><b>Accepts Qore Type(s)</b></td>
+      <td class="qore"><b>Returns Qore Type(s)</b></td>
+      <td class="qore"><b>Description</b></td>
+   </tr>
+   <tr>
+      <td>\c *hash</td>
+      <td>@ref hash or @ref nothing</td>
+      <td>same as received</td>
+      <td>Restricts values to @ref hash and @ref nothing</td>
+   </tr>
+</table>
+
+
+    @par Example
+    @code
+sub foo(*hash $h) {
+}
+    @endcode
+
+    @subsection list_or_nothing_type "*list" Type Restriction
+
+    @htmlonly <style><!-- td.qore { background-color: #5b9409; color: white; } --></style> @endhtmlonly
+<table>   <tr>
+      <td class="qore"><b>Name</b></td>
+      <td class="qore"><b>Accepts Qore Type(s)</b></td>
+      <td class="qore"><b>Returns Qore Type(s)</b></td>
+      <td class="qore"><b>Description</b></td>
+   </tr>
+   <tr>
+      <td>\c *list</td>
+      <td>@ref list or @ref nothing</td>
+      <td>same as received</td>
+      <td>Restricts values to @ref list and @ref nothing</td>
+   </tr>
+</table>
+
+
+    @par Example
+    @code
+sub foo(*list $h) {
+}
+    @endcode
+
+    @subsection data_or_nothing_type "*data" Type Restriction
+
+    @htmlonly <style><!-- td.qore { background-color: #5b9409; color: white; } --></style> @endhtmlonly
+<table>   <tr>
+      <td class="qore"><b>Name</b></td>
+      <td class="qore"><b>Accepts Qore Type(s)</b></td>
+      <td class="qore"><b>Returns Qore Type(s)</b></td>
+      <td class="qore"><b>Description</b></td>
+   </tr>
+   <tr>
+      <td>\c *data</td>
+      <td>@ref string, @ref binary, or @ref nothing</td>
+      <td>same as received</td>
+      <td>Restricts values to @ref string, @ref binary, and @ref nothing</td>
+   </tr>
+</table>
+
+
+    @par Example
+    @code
+sub foo(*data $d) {
+}
+    @endcode
+
+    @subsection code_or_nothing_type "*code" Type Restriction
+
+    @htmlonly <style><!-- td.qore { background-color: #5b9409; color: white; } --></style> @endhtmlonly
+<table>   <tr>
+      <td class="qore"><b>Name</b></td>
+      <td class="qore"><b>Accepts Qore Type(s)</b></td>
+      <td class="qore"><b>Returns Qore Type(s)</b></td>
+      <td class="qore"><b>Description</b></td>
+   </tr>
+   <tr>
+      <td>\c *code</td>
+      <td>@ref closure, @ref call_reference, or @ref nothing</td>
+      <td>same as received</td>
+      <td>Restricts values to @ref closure, @ref call_reference, and @ref nothing</td>
+   </tr>
+</table>
+
+
+    @par Example
+    @code
+sub foo(*code $c) {
+}
+    @endcode
+
+    @subsection timeout_or_nothing_type "*timeout" Type Restriction
+
+    @htmlonly <style><!-- td.qore { background-color: #5b9409; color: white; } --></style> @endhtmlonly
+<table>   <tr>
+      <td class="qore"><b>Name</b></td>
+      <td class="qore"><b>Accepts Qore Type(s)</b></td>
+      <td class="qore"><b>Returns Qore Type(s)</b></td>
+      <td class="qore"><b>Description</b></td>
+   </tr>
+   <tr>
+      <td>\c *timeout</td>
+      <td>@ref integer, @ref date, or @ref nothing</td>
+      <td>same as received</td>
+      <td>Restricts values to @ref integer, @ref date, and @ref nothing</td>
+   </tr>
+</table>
+
+
+    @par Example
+    @code
+sub foo(*timeout $c) {
+}
+    @endcode
+
+    @subsection softint_or_nothing_type "*softint" Type Restriction
+
+    @htmlonly <style><!-- td.qore { background-color: #5b9409; color: white; } --></style> @endhtmlonly
+<table>   <tr>
+      <td class="qore"><b>Name</b></td>
+      <td class="qore"><b>Accepts Qore Type(s)</b></td>
+      <td class="qore"><b>Returns Qore Type(s)</b></td>
+      <td class="qore"><b>Description</b></td>
+   </tr>
+   <tr>
+      <td>\c *softint</td>
+      <td>@ref integer, @ref float, @ref boolean, @ref string, @ref null, @ref nothing</td>
+      <td>@ref integer or @ref nothing</td>
+      <td>Accepts @ref integer, @ref float, @ref boolean, @ref string, and @ref null values and converts non-integer values to an integer and returns the integer; also accepts @ref nothing and returns @ref nothing</td>
+   </tr>
+</table>
+
+
+    @par Example
+    @code
+sub foo(*softint $i) {
+}
+    @endcode
+
+    @subsection softfloat_or_nothing_type "*softfloat" Type Restriction
+
+    @htmlonly <style><!-- td.qore { background-color: #5b9409; color: white; } --></style> @endhtmlonly
+<table>   <tr>
+      <td class="qore"><b>Name</b></td>
+      <td class="qore"><b>Accepts Qore Type(s)</b></td>
+      <td class="qore"><b>Returns Qore Type(s)</b></td>
+      <td class="qore"><b>Description</b></td>
+   </tr>
+   <tr>
+      <td>\c *softfloat</td>
+      <td>@ref integer, @ref float, @ref boolean, @ref string, @ref null, @ref nothing</td>
+      <td>@ref float or @ref nothing</td>
+      <td>Accepts @ref integer, @ref float, @ref boolean, @ref string, and @ref null values and converts non-float values to a float and returns the float; also accepts @ref nothing and returns @ref nothing</td>
+   </tr>
+</table>
+
+
+    @par Example
+    @code
+sub foo(*softfloat $f) {
+}
+    @endcode
+
+    @subsection softbool_or_nothing_type "*softbool" Type Restriction
+
+    @htmlonly <style><!-- td.qore { background-color: #5b9409; color: white; } --></style> @endhtmlonly
+<table>   <tr>
+      <td class="qore"><b>Name</b></td>
+      <td class="qore"><b>Accepts Qore Type(s)</b></td>
+      <td class="qore"><b>Returns Qore Type(s)</b></td>
+      <td class="qore"><b>Description</b></td>
+   </tr>
+   <tr>
+      <td>\c *softbool</td>
+      <td>@ref integer, @ref float, @ref boolean, @ref string, @ref null, @ref nothing</td>
+      <td>@ref boolean or @ref nothing</td>
+      <td>Accepts @ref integer, @ref float, @ref boolean, @ref string, and @ref null values and converts non-boolean values to a boolean and returns the boolean; also accepts @ref nothing and returns @ref nothing</td>
+   </tr>
+</table>
+
+
+    @par Example
+    @code
+sub foo(*softbool $b) {
+}
+    @endcode
+
+    @subsection softstring_or_nothing_type "*softstring" Type Restriction
+
+    @htmlonly <style><!-- td.qore { background-color: #5b9409; color: white; } --></style> @endhtmlonly
+<table>   <tr>
+      <td class="qore"><b>Name</b></td>
+      <td class="qore"><b>Accepts Qore Type(s)</b></td>
+      <td class="qore"><b>Returns Qore Type(s)</b></td>
+      <td class="qore"><b>Description</b></td>
+   </tr>
+   <tr>
+      <td>\c *softstring</td>
+      <td>@ref integer, @ref float, @ref boolean, @ref string, @ref null, @ref nothing</td>
+      <td>@ref string or @ref nothing</td>
+      <td>Accepts @ref integer, @ref float, @ref boolean, @ref string, and @ref null values and converts non-string values to a string and returns the string; also accepts @ref nothing and returns @ref nothing</td>
+   </tr>
+</table>
+
+
+    @par Example
+    @code
+sub foo(*softstring $str) {
+}
+    @endcode
+
+    @subsection softdate_or_nothing_type "*softdate" Type Restriction
+
+    @htmlonly <style><!-- td.qore { background-color: #5b9409; color: white; } --></style> @endhtmlonly
+<table>   <tr>
+      <td class="qore"><b>Name</b></td>
+      <td class="qore"><b>Accepts Qore Type(s)</b></td>
+      <td class="qore"><b>Returns Qore Type(s)</b></td>
+      <td class="qore"><b>Description</b></td>
+   </tr>
+   <tr>
+      <td>\c *softdate</td>
+      <td>@ref integer, @ref float, @ref boolean, @ref string, @ref date, @ref null, @ref nothing</td>
+      <td>@ref string or @ref nothing</td>
+      <td>Accepts @ref integer, @ref float, @ref boolean, @ref string, @ref date, and @ref null values and converts non-date values to a date and returns the date; also accepts @ref nothing and returns @ref nothing</td>
+   </tr>
+</table>
+
+
+    @par Example
+    @code
+sub foo(*softdate $d) {
+}
+    @endcode
+
+    @subsection softlist_or_nothing_type "*softlist" Type Restriction
+
+    @htmlonly <style><!-- td.qore { background-color: #5b9409; color: white; } --></style> @endhtmlonly
+<table>   <tr>
+      <td class="qore"><b>Name</b></td>
+      <td class="qore"><b>Accepts Qore Type(s)</b></td>
+      <td class="qore"><b>Returns Qore Type(s)</b></td>
+      <td class="qore"><b>Description</b></td>
+   </tr>
+   <tr>
+      <td>\c *softlist</td>
+      <td>all data types</td>
+      <td>@ref list or @ref nothing</td>
+      <td>Accepts all data types; @ref nothing is returned as @ref nothing directly; a list is returned unchanged, and any other type is returned as the first element of a new list</td>
+   </tr>
+</table>
+
+
+    @par Example
+    @code
+my *softlist $d = $v;
+    @endcode
+
+    @subsection any_type "any" Type Restriction
+
+    @htmlonly <style><!-- td.qore { background-color: #5b9409; color: white; } --></style> @endhtmlonly
+<table>   <tr>
+      <td class="qore"><b>Name</b></td>
+      <td class="qore"><b>Accepts Qore Type(s)</b></td>
+      <td class="qore"><b>Returns Qore Type(s)</b></td>
+      <td class="qore"><b>Description</b></td>
+   </tr>
+   <tr>
+      <td>\c any</td>
+      <td>all data types</td>
+      <td>all data types</td>
+      <td>Accepts all data types and returns the same data type</td>
+   </tr>
+</table>
+
+
+    @par Example
+    @code
+my any $v = $bar;
+    @endcode
+
+    @note Complex types (hash of lists, reference to string, etc) are currently not possible to declare but support may be added in future versions of Qore for this.
+
+    @section overloading Overloading
+
+    Functions and methods can be overloaded if parameter types are declared as in the following example:
+
+    @code
+int sub example(int $i) {
+    printf("i=%d\n", $i);
+    return $i + 1;
+}
+
+string sub example(string $str) {
+    printf("str=%s\n", $str);
+    return $str + "foo";
+}
+    @endcode
+
+    In this case, the first version (<tt>example(int)</tt>) will be executed if called with an integer argument, and the second (<tt>example(string)</tt>) if called with a string argument.
+
+    Class methods may also be overloaded, but note that @ref destructors "destructor()", @ref copy_methods "copy()", @ref methodGate_methods "methodGate()", @ref memberGate_methods "memberGate()", and @ref memberNotification_methods "memberNotification()" methods may not be overloaded (see @ref classes for more information).
+
+    @section time_zones Time Zone Handling
+    
+    Qore assumes a default time zone for all programs when it starts up. The rules for determining the default time zone are similar to those for the C library in most UNIX or UNIX-like operating systems.
+
+    @subsection unix_time_zones UNIX Time Zone Handling
+
+    If the \c TZ environment variable is defined, then the contents of that variable are used to find a zoneinfo file that contains the time zone definition. If this file cannot be found, then the default time zone will default to \c UTC.
+
+    If the \c TZ environment variable is not defined or is empty, then the Qore library tries to find the default zoneinfo definition file (normally \c /etc/localtime). If found, this file is read in and provides the information about the local time zone. If not found, the default time zone will default to \c UTC.
+
+    When a zoneinfo file is found, information about local time zone names and daylight savings time is available for times tagged with that time zone.
+
+    Note that posix-style time zone rules are not understood if assigned to the \c TZ environment variable, only file names to a zoneinfo file can be processed at the moment. Furthermore if the zoneinfo file contains leap second information, it is currently ignored.
+
+    @subsection windows_time_zones Windows Time Zone Handling
+
+    Time zone information is read in from binary time zone data in the Windows registry under \c HKEY_LOCAL_MACHINE SOFTWARE\Microsoft\Windows NT\CurrentVersion\Time Zones.
+
+    Time zone region names must correspond to registry keys under the above key or the time zine information will not be loaded.
+
+    The region name reported by Qore::TimeZone::region() will be the display name for the time zone, as found in the registry.
+
+    For example:
+
+    @verbatim
+O:\bin>qore -ne "TimeZone tz('Central Europe Standard Time'); printf(\"%s\n\", tz.region());"
+(GMT+01:00) Belgrade, Bratislava, Budapest, Ljubljana, Prague@endverbatim
+
+    This differs from UNIX where the region name passed to the TimeZone constructor is the same region name that appears in the @ref Qore::TimeZone::region() output; this is because Windows uses \c "Standard Time" in the key name in the registry, even though the underlying zone definition is for both standard and daylight savings time.
+
+    @note Please be aware that the region names may differ in localized versions of Windows
+
+    @subsection time_zone_examples More Time Zone Information and Examples
+
+    See the @ref Qore::TimeZone class for information about retrieving, setting, and querying time zone information; see @ref date_and_time_functions for a list of functions related to date/time processing.
+
+    Here are some examples using Qore's '-X' option for evaluating an expression and displaying the result immediately:
+
+    @verbatim
+prompt% TZ=America/Chicago qore -X 'now_us()'
+2010-05-11 06:14:28.845857 Tue -05:00 (CDT)
+prompt% TZ=Europe/Rome qore -X 'now_us()'
+2010-05-11 13:14:35.070568 Tue +02:00 (CEST)
+prompt% TZ=Australia/Sydney qore -X 'now_us()'
+2010-05-11 21:14:45.422222 Tue +10:00 (EST)
+prompt% TZ=Asia/Tokyo qore -X 'now_us()'
+2010-05-11 20:14:59.609249 Tue +09:00 (CJT)@endverbatim
+
+    @section character_encoding Strings and Character Encoding
+
+    @subsection character_encoding_overview Overview
+
+    The Qore language is character-encoding aware. All strings are assumed to have the default character encoding, unless the program explicitly specified another encoding for certain objects and operations. Every Qore string has a character encoding ID attached to it, so, when another encoding is required, the Qore language will attempt to do an encoding translation.
+
+    Qore uses the operating system's \c iconv library functions to perform any encoding conversions.
+
+    Qore supports character encodings that are backwards compatible with 7-bit \c ASCII. This includes all \c ISO-8859-* character encodings, \c UTF-8, \c KOIR-8, \c KOIU-8, and \c KOI7, among others (see the table below: @ref known_encodings "Known Character Encodings").
+
+    However, mutibyte character encodings are currently only properly supported for \c UTF-8. For \c UTF-8 strings, the length(), index(), rindex(), substr(), reverse(), the @ref splice "splice operator", @ref printf_formatting "print formatting" (regarding field lengths) functions and methods taking format strings, and regular expression operators and functions, all work with character offsets, which may be different than byte offsets. For all character encodings other than \c UTF-8, a 1 byte=1 character relationship is assumed.
+
+    Qore will accept any encoding name given to it, even if it is not a known encoding name or alias. In this case, Qore will tag the strings with this encoding, and pass this user-defined encoding name to the \c iconv library when encodings must be converted. This allows programmers to use encodings known by the system's \c iconv library, but unknown to qore. In this case, Qore will assume that the strings are backwards compatible with \c ASCII, meanin that that one character is represented by one byte and that the strings are null-terminated.
+
+    Note that when Qore matches an encoding name to a code or alias in the following table, the comparison is not case-sensitive.
+
+    @subsection known_encodings Character Encodings Known to Qore
+
+    @htmlonly <style><!-- td.qore { background-color: #5b9409; color: white; } --></style> @endhtmlonly
+<table>   <tr>
+      <td class="qore"><b>Code</b></td>
+      <td class="qore"><b>Aliases</b></td>
+      <td class="qore"><b>Description</b></td>
+   </tr>
+   <tr>
+      <td>\c ISO-8859-1</td>
+      <td>\c ISO88591, \c ISO8859-1, \c ISO-88591, \c ISO8859P1, \c ISO81, \c LATIN1, \c LATIN-1</td>
+      <td>latin-1, Western European character set</td>
+   </tr>
+   <tr>
+      <td>\c ISO-8859-2</td>
+      <td>\c ISO88592, \c ISO8859-2, \c ISO-88592, \c ISO8859P2, \c ISO82, \c LATIN2, \c LATIN-2</td>
+      <td>latin-2, Central European character set</td>
+   </tr>
+   <tr>
+      <td>\c ISO-8859-3</td>
+      <td>\c ISO88593, \c ISO8859-3, \c ISO-88593, \c ISO8859P3, \c ISO83, \c LATIN3, \c LATIN-3</td>
+      <td>latin-3, Southern European character set</td>
+   </tr>
+   <tr>
+      <td>\c ISO-8859-4</td>
+      <td>\c ISO88594, \c ISO8859-4, \c ISO-88594, \c ISO8859P4, \c ISO84, \c LATIN4, \c LATIN-4</td>
+      <td>latin-4, Northern European character set</td>
+   </tr>
+   <tr>
+      <td>\c ISO-8859-5</td>
+      <td>\c ISO88595, \c ISO8859-5, \c ISO-88595, \c ISO8859P5, \c ISO85</td>
+      <td>Cyrillic character set</td>
+   </tr>
+   <tr>
+      <td>\c ISO-8859-6</td>
+      <td>\c ISO88596, \c ISO8859-6, \c ISO-88596, \c ISO8859P6, \c ISO86</td>
+      <td>Arabic character set</td>
+   </tr>
+   <tr>
+      <td>\c ISO-8859-7</td>
+      <td>\c ISO88597, \c ISO8859-7, \c ISO-88597, \c ISO8859P7, \c ISO87</td>
+      <td>Greek character set</td>
+   </tr>
+   <tr>
+      <td>\c ISO-8859-8</td>
+      <td>\c ISO88598, \c ISO8859-8, \c ISO-88598, \c ISO8859P8, \c ISO88</td>
+      <td>Hebrew character set</td>
+   </tr>
+   <tr>
+      <td>\c ISO-8859-9</td>
+      <td>\c ISO88599, \c ISO8859-9, \c ISO-88599, \c ISO8859P9, \c ISO89, \c LATIN5, \c LATIN-5</td>
+      <td>latin-5, Turkish character set</td>
+   </tr>
+   <tr>
+      <td>\c ISO-8859-10</td>
+      <td>\c ISO885910, \c ISO8859-10, \c ISO-885910, \c ISO8859P10, \c ISO810, \c LATIN6, \c LATIN-6</td>
+      <td>latin-6, Nordic character set</td>
+   </tr>
+   <tr>
+      <td>\c ISO-8859-11</td>
+      <td>\c ISO885911, \c ISO8859-11, \c ISO-885911, \c ISO8859P11, \c ISO811</td>
+      <td>Thai character set</td>
+   </tr>
+   <tr>
+      <td>\c ISO-8859-13</td>
+      <td>\c ISO885913, \c ISO8859-13, \c ISO-885913, \c ISO8859P13, \c ISO813, \c LATIN7, \c LATIN-7</td>
+      <td>latin-7, Baltic rim character set</td>
+   </tr>
+   <tr>
+      <td>\c ISO-8859-14</td>
+      <td>\c ISO885914, \c ISO8859-14, \c ISO-885914, \c ISO8859P14, \c ISO814, \c LATIN8, \c LATIN-8</td>
+      <td>latin-8, Celtic character set</td>
+   </tr>
+   <tr>
+      <td>\c ISO-8859-15</td>
+      <td>\c ISO885915, \c ISO8859-15, \c ISO-885915, \c ISO8859P15, \c ISO815, \c LATIN9, \c LATIN-9</td>
+      <td>latin-9, Western European with euro symbol</td>
+   </tr>
+   <tr>
+      <td>\c ISO-8859-16</td>
+      <td>\c ISO885916, \c ISO8859-16, \c ISO-885916, \c ISO8859P16, \c ISO816, \c LATIN10, \c LATIN-10</td>
+      <td>latin-10, Southeast European character set</td>
+   </tr>
+   <tr>
+      <td>\c KOI7</td>
+      <td>n/a</td>
+      <td>Russian: Kod Obmena Informatsiey, 7 bit characters</td>
+   </tr>
+   <tr>
+      <td>\c KOI8-R</td>
+      <td>\c KOI8R</td>
+      <td>Russian: Kod Obmena Informatsiey, 8 bit</td>
+   </tr>
+   <tr>
+      <td>\c KOI8-U</td>
+      <td>\c KOI8U</td>
+      <td>Ukrainian: Kod Obmena Informatsiey, 8 bit</td>
+   </tr>
+   <tr>
+      <td>\c US-ASCII</td>
+      <td>\c ASCII, USASCII</td>
+      <td>7-bit ASCII character set</td>
+   </tr>
+   <tr>
+      <td>\c UTF-8</td>
+      <td>\c UTF8</td>
+      <td>variable-width universal character set</td>
+   </tr>
+</table>
+
+
+    @subsection default_encoding Default Character Encoding
+
+    The default character encoding for Qore is determined by environment variables.
+
+    First, the \c QORE_CHARSET environment variable is checked. If it is set, then this character encoding will be the default character encoding for the process. If not, then the \c LANG environment variable is checked. If a character encoding is specified in the \c LANG environment variable, then it will be used as the default character encoding. Otherwise, if no character encoding can be derived from the environment, \c UTF-8 is assumed.
+
+qCharacter encodings are automatically converted by the Qore language when necessary. Encoding conversion errors will cause a Qore exception to be thrown. The character encoding conversions supported by Qore depend on the operating system's \c iconv library function.
+
+    @subsection encoding_examples Character Encoding Usage Examples
+
+    The following is a non-exhaustive list of examples in Qore where character encoding processing is performed.
+
+    Character encodings can be explicitly performed with the convert_encoding() function, and the encoding attached to a string can be checked with the get_encoding() function. If you have a string with incorrect encoding and want to change the encoding tag of the string (without changing the actual bytes of the string), use the force_encoding() function.
+
+    The @ref Qore::Datasource, @ref Qore::DatasourcePool, and @ref Qore::SQLStatement classes will translate character encodings to the encoding required by the database if necessary as well (this is actually the responsibility of the DBI driver for the database in question).
+
+    The @ref Qore::File and @ref Qore::Socket classes translate character encodings to the encoding specified for the object if necessary, as well as tagging strings received or read with the object's encoding.
+
+    The @ref Qore::HTTPClient class will translate character encodings to the encoding specified for the object if necessary, as well as tag strings received with the object's encoding. Additionally, if an HTTP server response specifies a specific encoding to use, the encoding of strings read from the server will be automatically set to this encoding as well.
+
+*/

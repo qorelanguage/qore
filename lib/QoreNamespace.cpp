@@ -2010,9 +2010,6 @@ void StaticSystemNamespace::init() {
    // create Qore::Type namespace with type constants
    qoreNS->addInitialNamespace(get_type_ns());
 
-   // add file constants
-   addFileConstants(qoreNS);
-
    // add parse option constants to Qore namespace
    addProgramConstants(qoreNS);
 

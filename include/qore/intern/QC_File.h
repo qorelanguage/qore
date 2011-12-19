@@ -29,7 +29,6 @@ DLLEXPORT extern qore_classid_t CID_FILE;
 DLLEXPORT extern QoreClass *QC_FILE;
 
 DLLLOCAL QoreClass *initFileClass(QoreNamespace &qorens);
-static inline void addFileConstants(QoreNamespace *ns);
 
 #include <qore/QoreFile.h>
 #include <qore/AbstractPrivateData.h>
@@ -56,20 +55,5 @@ class File : public AbstractPrivateData, public QoreFile {
          }
       }
 };
-
-static inline void addFileConstants(QoreNamespace *ns) {
-
-#ifdef HAVE_STRUCT_FLOCK
-   // file lock constants
-   ns->addConstant("F_RDLCK",       new QoreBigIntNode(F_RDLCK));
-   ns->addConstant("F_WRLCK",       new QoreBigIntNode(F_WRLCK));
-   ns->addConstant("F_UNLCK",       new QoreBigIntNode(F_UNLCK));
-#endif
-
-   // file seek constants
-   ns->addConstant("SEEK_SET",      new QoreBigIntNode(SEEK_SET));
-   ns->addConstant("SEEK_CUR",      new QoreBigIntNode(SEEK_CUR));
-   ns->addConstant("SEEK_END",      new QoreBigIntNode(SEEK_END));
-}
 
 #endif // _QORE_CLASS_FILE_H

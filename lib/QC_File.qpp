@@ -77,7 +77,7 @@ AbstractQoreNode *missing_method_error(const char *meth, const char *feat, Excep
    return 0;
 }
 
-/** @defgroup file_constants File Open Constants
+/** @defgroup file_open_constants File Open Constants
     These are the possible values that can be or'ed together when calling File::open() or File::open2()
 */
 //@{ 
@@ -149,24 +149,24 @@ const S_IFBLK = S_IFBLK;
 const S_IFREG = S_IFREG;
 
 #ifndef S_IFLNK
-#define S_IFLNK S_IFREG
+#define S_IFLNK 0
 #endif
 
-//! Bitmask signifying if the file is a symbolic link; equal to S_IFREG on native Windows ports
+//! Bitmask signifying if the file is a symbolic link; equal to 0 on native Windows ports
 const S_IFLNK = S_IFLNK;
 
 #ifndef S_IFSOCK
-#define S_IFSOCK S_IFREG
+#define S_IFSOCK 0
 #endif
 
-//! Bitmask signifying if the file is a socket file; equal to S_IFREG on native Windows ports
+//! Bitmask signifying if the file is a socket file; equal to 0 on native Windows ports
 const S_IFSOCK = S_IFSOCK;
 
 #ifndef S_IFWHT
 #define S_IFWHT S_IFREG
 #endif
 
-//! Bitmask signifying if the file is a whiteout file; equal to S_IFREG on native Windows ports
+//! Bitmask signifying if the file is a whiteout file; equal to 0 on native Windows ports
 const S_IFWHT = S_IFWHT;
 
 //! Bitmask giving the RWX mask for the owner
@@ -182,59 +182,59 @@ const S_IWUSR = S_IWUSR;
 const S_IXUSR = S_IXUSR;
 
 #ifndef S_IRWXG
-#define S_IRWXG S_IRWXU;
+#define S_IRWXG 0;
 #endif
 
-//! Bitmask giving the RWX mask for the group; equal to S_IRWXU on native Windows ports
+//! Bitmask giving the RWX mask for the group; equal to 0 on native Windows ports
 const S_IRWXG = S_IRWXG;
 
 #ifndef S_IRGRP
-#define S_IRGRP S_IRUSR;
+#define S_IRGRP 0;
 #endif
 
-//! Bit signifying if the file's group has read permissions; equal to S_IRUSR on native Windows ports
+//! Bit signifying if the file's group has read permissions; equal to 0 on native Windows ports
 const S_IRGRP = S_IRGRP;
 
 #ifndef S_IWGRP
-#define S_IWGRP S_IWUSR;
+#define S_IWGRP 0;
 #endif
 
-//! Bit signifying if the file's group has write permissions; equal to S_IWUSR on native Windows ports
+//! Bit signifying if the file's group has write permissions; equal to 0 on native Windows ports
 const S_IWGRP = S_IWGRP;
 
 #ifndef S_IXGRP
-#define S_IXGRP S_IXUSR;
+#define S_IXGRP 0;
 #endif
 
-//! Bit signifying if the file's group has execute permissions; equal to S_IXUSR on native Windows ports
+//! Bit signifying if the file's group has execute permissions; equal to 0 on native Windows ports
 const S_IXGRP = S_IXGRP;
 
 #ifndef S_IRWXO
-#define S_IRWXO S_IRWXU;
+#define S_IRWXO 0;
 #endif
 
-//! Bitmask giving the RWX mask for other; equal to S_IRWXU on native Windows ports
+//! Bitmask giving the RWX mask for other; equal to 0 on native Windows ports
 const S_IRWXO = S_IRWXO;
 
 #ifndef S_IROTH
-#define S_IROTH S_IRUSR;
+#define S_IROTH 0;
 #endif
 
-//! Bit signifying if other has read permissions; equal to S_IRUSR on native Windows ports
+//! Bit signifying if other has read permissions; equal to 0 on native Windows ports
 const S_IROTH = S_IROTH;
 
 #ifndef S_IWOTH
-#define S_IWOTH S_IWUSR;
+#define S_IWOTH 0;
 #endif
 
-//! Bit signifying if other has write permissions; equal to S_IWUSR on native Windows ports
+//! Bit signifying if other has write permissions; equal to 0 on native Windows ports
 const S_IWOTH = S_IWOTH;
 
 #ifndef S_IXOTH
-#define S_IXOTH S_IXUSR;
+#define S_IXOTH 0;
 #endif
 
-//! Bit signifying if other has execute permissions; equal to S_IXUSR on native Windows ports
+//! Bit signifying if other has execute permissions; equal to 0 on native Windows ports
 const S_IXOTH = S_IXOTH;
 
 #ifndef S_ISUID
@@ -259,6 +259,38 @@ const S_ISGID = S_ISGID;
 const S_ISVTX = S_ISVTX;
 //@}
 
+/** @defgroup file_locking_constants File Locking Constants
+    These are the possible values for the File::lock() or File::lockBlocking() methods.
+
+    @note These contants are set to 0 on platforms where HAVE_FILE_LOCKING is \c False (such as native Windows ports)
+*/
+//@{ 
+#ifndef HAVE_STRUCT_FLOCK
+#define F_RDLCK 0
+#define F_WRLCK 0
+#define F_UNLCK 0
+#endif
+
+//! Use for read-only locking
+const F_RDLCK = F_RDLCK;
+//! Use for exclusive write locking
+const F_WRLCK = F_WRLCK;
+//! Use for unlocking a lock
+const F_UNLCK = F_UNLCK;
+//@}
+
+/** @defgroup file_seek_constants File Seek Constants
+    These are the possible values for the \c whence parameter of the File::lock() and File::lockBlocking() methods
+ */
+//@{
+//! Indicates that the offset is from the start of the file
+const SEEK_SET = SEEK_SET;
+//! Indicates that the offset is from the current position in the file
+const SEEK_CUR = SEEK_CUR;
+//! Indicates that the offset is from the end of the file
+const SEEK_END = SEEK_END;
+//@}
+
 //! The File class allows Qore programs to read, write, and create files
 /** @note This class is not available with the @ref PO_NO_FILESYSTEM parse option
 
@@ -277,20 +309,6 @@ const S_ISVTX = S_ISVTX;
     |@ref EVENT_DELETED|Raised when the object being monitored is deleted
     |@ref EVENT_OPEN_FILE|Raised right before an attempt to open a file is made
     |@ref EVENT_FILE_OPENED|Raised when the file has been successfully opened
-
-    @anchor file_locking_constants
-    <b>File Locking Constants in the Qore Namespace</b>
-    |!Name|!Description
-    |\c F_RDLCK|Use for read-only locking
-    |\c F_WRLCK|Use for exclusive write locking
-    |\c F_UNLCK|Use for unlocking a lock
-
-    @anchor file_seek_constants
-    <b>File Seek Constants in the Qore Namespace</b>
-    |!Name|!Description
-    |\c SEEK_SET|Indicates that the offset is from the start of the file
-    |\c SEEK_CUR|Indicates that the offset is from the current position in the file
-    |\c SEEK_END|Indicates that the offset is from the end of the file
  */
 qclass File [system_constructor=FILE_system_constructor; arg=File* f; dom=FILESYSTEM];
 
@@ -345,7 +363,7 @@ if ($f.open($fn, O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1"))
     @ref EVENT_OPEN_FILE, @ref EVENT_FILE_OPENED
 
     @param path the path to the file
-    @param flags flags that determine the way the file is accessed, see @ref file_constants "file constants" for more information; if this argument is not given, \c O_RDONLY will be used as the default value.
+    @param flags flags that determine the way the file is accessed, see @ref file_open_constants for more information; if this argument is not given, \c O_RDONLY will be used as the default value.
     @param mode permission bits for when the file is to be created (default: 0666)
     @param encoding the name of the default character encoding for this file; if this argument is not given, the file will be tagged with the default character encoding for the process
 
@@ -386,7 +404,7 @@ catch (hash $ex) {
     @ref EVENT_OPEN_FILE, @ref EVENT_FILE_OPENED
 
     @param path the path to the file
-    @param flags flags that determine the way the file is accessed, see @ref file_constants "file constants" for more information; if this argument is not given, \c O_RDONLY will be used as the default value.
+    @param flags flags that determine the way the file is accessed, see @ref file_open_constants for more information; if this argument is not given, \c O_RDONLY will be used as the default value.
     @param mode permission bits for when the file is to be created (default: 0666)
     @param encoding the name of the default character encoding for this file; if this argument is not given, the file will be tagged with the default character encoding for the process
 
@@ -1325,10 +1343,10 @@ $f.lock(F_RDLCK, 512, 2048);
 $f.lock(F_UNLCK);
 @endcode
 
-    @param type Type of lock (or unlock); see @ref file_locking_constants "file locking constants"
+    @param type Type of lock (or unlock); see @ref file_locking_constants
     @param start Start byte for lock, 0 is the default (start of file)
     @param len Length in bytes for range to lock, 0 is the default (rest of file)
-    @param whence Indicates how the relative offset of the file should be calculated for the lock; see File seek constants
+    @param whence Indicates how the relative offset of the file should be calculated for the lock; see @ref file_seek_constants
 
     @return 0 for success, \c EACCES if the lock would block (only in the case that the lock would block is no exception thrown and \c EACCES returned)
 
@@ -1370,10 +1388,10 @@ $f.lockBlocking(F_RDLCK, 512, 2048);
 $f.lockBlocking(F_UNLCK);
 @endcode
 
-    @param type Type of lock (or unlock); see @ref file_locking_constants "file locking constants"
+    @param type Type of lock (or unlock); see @ref file_locking_constants
     @param start Start byte for lock, 0 is the default (start of file)
     @param len Length in bytes for range to lock, 0 is the default (rest of file)
-    @param whence Indicates how the relative offset of the file should be calculated for the lock; see File seek constants
+    @param whence Indicates how the relative offset of the file should be calculated for the lock; see @ref file_seek_constants
 
     @throw FILE-LOCK-ERROR File is not open, lock length is negative, or the fcntl operation failed
     @throw MISSING-FEATURE-ERROR this exception is thrown when the method is not available on the runtime platform; for maximum portability, check the constant @ref HAVE_FILE_LOCKING before calling this function.
@@ -1408,7 +1426,7 @@ nothing File::lockBlocking(softint[doc] type = F_RDLCK, softint[doc] start = 0, 
     - \c start: starting byte of the lock
     - \c len: the length in bytes of the locked region
     - \c pid: the PID of the process holding the lock
-    - \c type: see @ref file_locking_constants "file locking constants"; if no lock is set on the file, the key type has the value \c F_UNLCK.
+    - \c type: see @ref file_locking_constants; if no lock is set on the file, the key type has the value \c F_UNLCK.
     - \c whence: always returned as \c SEEK_SET when the call is successful
 
     @throw FILE-LOCK-ERROR File is not open or the fcntl operation failed

@@ -22,9 +22,20 @@ LIB_DOXYFILES = \
 	doxygen/lib/70_qore_modules.doxygen \
 	doxygen/lib/75_dbi_drivers.doxygen
 
+LANG_DOXYFILES_SRC = \
+	doxygen/lang/Doxyfile \
+	doxygen/lang/mainpage.doxygen \
+	doxygen/lang/00_intro.doxygen \
+	doxygen/lang/10_description.doxygen.tmpl
+
 LANG_DOXYFILES = \
-	doxygen/lib/Doxyfile \
-	doxygen/lib/mainpage.doxygen
+	doxygen/lang/Doxyfile \
+	doxygen/lang/mainpage.doxygen \
+	doxygen/lang/00_intro.doxygen \
+	doxygen/lang/10_description.doxygen
+
+doxygen/lang/10_description.doxygen: doxygen/lang/10_description.doxygen.tmpl lib
+	lib/qpp -t $< -o $@
 
 include_HEADERS = \
 	include/qore/ReferenceArgumentHelper.h \
@@ -346,7 +357,7 @@ EXTRA_DIST = next_build.sh WHATISQORE RELEASE-NOTES \
 	docs/library/html \
 	qore.spec \
 	$(LIB_DOXYFILES) \
-	$(LANG_DOXYFILES) \
+	$(LANG_DOXYFILES_SRC) \
 	$(LANG_QPP_SRC)
 
 BUILT_SOURCES = dummy

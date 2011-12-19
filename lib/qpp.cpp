@@ -48,15 +48,17 @@
 #include <set>
 
 const char usage_str[] = "usage: %s [options] <input file(s)...>\n" \
-   " -d, --dox-output=arg     doxygen output file name\n" \
-   " -h, --help               this help text\n" \
-   " -v, --verbose            increases verbosity level\n" \
-   " -o, --output=arg         cpp output file name\n";
+   " -d, --dox-output=arg   doxygen output file name\n" \
+   " -h, --help             this help text\n" \
+   " -o, --output=arg       cpp output file name\n" \
+   " -t, --table=arg        process the given file for doxygen tables (|!...)\n" \
+   " -v, --verbose          increases verbosity level\n";
 
 static const option pgm_opts[] = {
    {"dox-output", required_argument, NULL, 'd'},
    {"help", no_argument, NULL, 'h'},
    {"output", required_argument, NULL, 'o'},
+   {"table", required_argument, NULL, 't'},
    {"verbose", optional_argument, NULL, 'v'},
    {NULL, 0, NULL, 0}
 };
@@ -72,6 +74,7 @@ enum LogLevel {
 static struct qpp_opts {
    std::string output_fn;
    std::string dox_fn;
+   std::string table_fn;
    int verbose;
    qpp_opts() : verbose(LL_INFO) {
    }
@@ -1298,7 +1301,7 @@ public:
    }
 
    virtual int serializeDox(FILE *fp) {
-      fputs("//! main Qore-language namespace\nnamespace OMQ {\n", fp);
+      fputs("//! main Qore-language namespace\nnamespace Qore {\n", fp);
       serializeDoxComment(fp, doc);
       
       fprintf(fp, "class %s {\n", name.c_str());
@@ -1904,6 +1907,35 @@ public:
    }
 };
 
+int do_table_file() {
+   FILE *ifp = fopen(opts.table_fn.c_str(), "r");
+   if (!ifp) {
+      error("%s: %s\n", opts.table_fn.c_str(), strerror(errno));
+      return -1;
+   }
+
+   FILE *ofp = fopen(opts.output_fn.c_str(), "w");
+   if (!ofp) {
+      error("%s: %s\n", opts.output_fn.c_str(), strerror(errno));
+      return -1;
+   }
+
+   std::string buf;
+   while (true) {
+      int c = fgetc(ifp);
+      if (c == EOF)
+         break;
+      
+      buf += c;
+   }
+   fclose(ifp);
+
+   serializeDoxComment(ofp, buf);
+   fclose(ofp);
+
+   return 0;
+}
+
 void init() {
    // initialize attribute map
    amap["public"] = QCA_PUBLIC;
@@ -1978,7 +2010,9 @@ void process_command_line(int &argc, char **&argv) {
    pn = basename(argv[0]);
 
    int ch;
-   while ((ch = getopt_long(argc, argv, "dhov:", pgm_opts, NULL)) != -1) {
+   while ((ch = getopt_long(argc, argv, "d:ho:t:v:", pgm_opts, NULL)) != -1) {
+      //log(LL_INFO, "ch=%c optarg=%p (%s)\n", ch, optarg, optarg ? optarg : "(null)");
+
       switch (ch) {
          case 'h':
             usage();
@@ -1989,6 +2023,10 @@ void process_command_line(int &argc, char **&argv) {
 
          case 'o':
             opts.output_fn = optarg;
+            break;
+
+         case 't':
+            opts.table_fn = optarg;
             break;
 
          case 'v':
@@ -2003,9 +2041,19 @@ void process_command_line(int &argc, char **&argv) {
    argv += optind;
 
    if (!argc) {
-      error("at least one input file must be given\n");
-      usage();
+      if (opts.table_fn.empty()) {
+         error("at least one input file must be given\n");
+         usage();
+      }
+      else if (opts.output_fn.empty()) {
+         error("output file name must be given with -t\n");
+         usage();
+      }
    }
+   else if (!opts.table_fn.empty()) {
+      error("table file name must not be given along with an input file list\n");
+      usage();
+   }      
 }
 
 int main(int argc, char *argv[]) {
@@ -2026,6 +2074,9 @@ int main(int argc, char *argv[]) {
       // create dox output file
       code.serializeDox();
    }
+
+   if (!opts.table_fn.empty())
+      do_table_file();
 
    return 0;
 }
