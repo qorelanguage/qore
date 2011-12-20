@@ -233,6 +233,54 @@ static void get_string_list(strlist_t &l, const std::string &str, char separator
    //   printf("DBG: list %u/%lu: %s\n", i, l.size(), l[i].c_str());
 }
 
+// takes into account quotes and @code @endcode
+static void get_string_list2(strlist_t &l, const std::string &str, char separator = ',') {
+   size_t start = 0,
+      p = 0;
+   int quote = 0;
+   bool code = false;
+
+   while (p < str.size()) {
+      int c = str[p++];
+
+      if (c == '@') {
+         if (code) {
+            if (!str.compare(p, 7, "endcode")) {
+               code = false;
+               p += 7;
+            }
+            continue;
+         }
+         if (!str.compare(p, 4, "code")) {
+            code = true;
+            p += 4;
+         }
+         continue;
+      }
+      if (code)
+         continue;
+
+      if (c == '\'' || c == '\"') {
+         if (quote == c)
+            quote = 0;
+         else if (!quote)
+            quote = c;
+         continue;
+      }
+      if (quote)
+         continue;
+
+      if (c == separator) {
+         l.push_back(std::string(str, start, p - start - 1));
+         start = p;
+      }
+   }
+   l.push_back(std::string(str, start));
+
+   //for (unsigned i = 0; i < l.size(); ++i)
+   //   printf("DBG: list %u/%lu: %s\n", i, l.size(), l[i].c_str());
+}
+
 static int get_qore_type(const std::string &qt, std::string &cppt) {
    strmap_t::iterator i = tmap.find(qt);
    if (i == tmap.end()) {
@@ -359,7 +407,7 @@ static int serializeDoxComment(FILE* fp, std::string &buf) {
 
       while (true) {
          strlist_t sl;
-         get_string_list(sl, str, '|');
+         get_string_list2(sl, str, '|');
 
          doRow(sl, tstr);
          i = j + 1;
