@@ -1709,6 +1709,12 @@ my list $l = map $#, $list, ($1 < 0);
     @par Synopsis
     Start a background thread and return the TID (thread ID).
 
+    @note
+    - expressions that have no effect cannot be used with the background operator (a parse exception will be thrown)
+    - it is illegal to make changes to a local variable anywhere in a background expression (a parse exception will be thrown)
+    - local variables and find expressions are evaluated before the new thread is started and the result of the evaluation is used in the expression in the new thread
+    - it is not possible to pass local variables by reference anywhere in a background expression (a parse exception will be thrown)
+
     @par Syntax
     \c \b background \a expression
 
@@ -1721,13 +1727,6 @@ my list $l = map $#, $list, ($1 < 0);
     <b>Arguments Processed by background</b>
     |!Argument|!Processing
     |\a expression|The \a expression given as an argument will be executed in a new thread. The TID of the new thread will be returned as the return value of the operator
-
-    @par Limitations of the Background Operator
-    Please note the following when using the background operator:
-    - expressions that have no effect cannot be used with the background operator (a parse exception will be thrown)
-    - it is illegal to make changes to a local variable anywhere in a background expression (a parse exception will be thrown)
-    - local variables and find expressions are evaluated before the new thread is started and the result of the evaluation is used in the expression in the new thread
-    - it is not possible to pass local variables by reference anywhere in a background expression (a parse exception will be thrown)
 
     <b>Exceptions Thrown by background</b>
     |!err|!desc
