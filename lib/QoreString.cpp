@@ -572,6 +572,9 @@ public:
 // static function
 int QoreString::convert_encoding_intern(const char *src, qore_size_t src_len, const QoreEncoding *from, QoreString &targ, const QoreEncoding *nccs, ExceptionSink *xsink) {
    assert(targ.priv->charset == nccs);
+   assert(targ.empty());
+
+   //printd(5, "QoreString::convert_encoding_intern() %s -> %s len: %d src='%s'\n", from->getCode(), nccs->getCode(), src_len, src);
 
    IconvHelper c(nccs, from, xsink);
    if (*xsink)
@@ -1197,7 +1200,6 @@ void QoreString::splice_complex(qore_offset_t offset, ExceptionSink *xsink, Qore
       return;
 
    //printd(0, "splice_complex(offset=%d) clen=%d\n", offset, clen);
-
    if (offset < 0) {
       offset = clen + offset;
       if (offset < 0)

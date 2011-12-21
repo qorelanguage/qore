@@ -124,20 +124,14 @@ QoreStringNode *QoreStringNode::convertEncoding(const QoreEncoding *nccs, Except
 }
 
 // DLLLOCAL constructor
-QoreStringNode::QoreStringNode(const char *str, const QoreEncoding *from, const QoreEncoding *to, ExceptionSink *xsink) : SimpleValueQoreNode(NT_DATE), QoreString(to)
-{
+QoreStringNode::QoreStringNode(const char *str, const QoreEncoding *from, const QoreEncoding *to, ExceptionSink *xsink) : SimpleValueQoreNode(NT_STRING), QoreString(to) {
    convert_encoding_intern(str, ::strlen(str), from, *this, to, xsink);
 }
 
 // static function
-QoreStringNode *QoreStringNode::createAndConvertEncoding(const char *str, const QoreEncoding *from, const QoreEncoding *to, ExceptionSink *xsink)
-{
-   QoreStringNode *rv = new QoreStringNode(str, from, to, xsink);
-   if (!*xsink)
-      return rv;
-
-   rv->deref();
-   return 0;
+QoreStringNode *QoreStringNode::createAndConvertEncoding(const char *str, const QoreEncoding *from, const QoreEncoding *to, ExceptionSink *xsink) {
+   QoreStringNodeHolder rv(new QoreStringNode(str, from, to, xsink));
+   return *xsink ? 0 : rv.release();
 }
 
 AbstractQoreNode *QoreStringNode::realCopy() const {

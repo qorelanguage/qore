@@ -31,8 +31,7 @@ static inline void strindent(QoreString *s, int indent) {
 }
 
 static void dni(QoreStringNode *s, const AbstractQoreNode *n, int indent, ExceptionSink *xsink) {
-   if (!n)
-   {
+   if (!n) {
       s->concat("node=NULL");
       return;
    }
@@ -94,8 +93,7 @@ static void dni(QoreStringNode *s, const AbstractQoreNode *n, int indent, Except
       {
 	 // FIXME: this is inefficient, use copyData and a hashiterator instead
 	 ReferenceHolder<QoreListNode> l(o->getMemberList(xsink), xsink);
-	 if (l)
-	 {
+	 if (l) {
 	    for (unsigned i = 0; i < l->size(); i++) {
 	       s->concat('\n');
 	       strindent(s, indent);
@@ -116,8 +114,7 @@ static void dni(QoreStringNode *s, const AbstractQoreNode *n, int indent, Except
       {
 	 int i = 0;
 	 ConstHashIterator hi(h);
-	 while (hi.next())
-	 {
+	 while (hi.next()) {
 	    s->concat('\n');
 	    strindent(s, indent);
 	    s->sprintf("key %d/%d \"%s\" = ", i++, h->size(), hi.getKey());
