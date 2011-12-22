@@ -1170,9 +1170,10 @@ string sub example(string $str) {
 
     @subsection windows_time_zones Windows Time Zone Handling
 
-    Time zone information is read in from binary time zone data in the Windows registry under \c HKEY_LOCAL_MACHINE SOFTWARE\Microsoft\Windows NT\CurrentVersion\Time Zones.
+    Time zone information is read in from binary time zone data in the Windows registry under:\n
+    - <tt>HKEY_LOCAL_MACHINE SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Time Zones</tt>
 
-    Time zone region names must correspond to registry keys under the above key or the time zine information will not be loaded.
+    Time zone region names must correspond to registry keys under the above key or the time zone information will not be loaded.
 
     The region name reported by Qore::TimeZone::region() will be the display name for the time zone, as found in the registry.
 
@@ -1289,6 +1290,7 @@ prompt% TZ=Asia/Tokyo qore -X 'now_us()'
     |A reference to the entire @ref implicit_arguments "implicit argument" list (\c $$)|References the implicit argument list|@code $$@endcode
     |An @ref implicit_index "implicit index" reference|Gives the list index position when implicitly iterating a list|@code $#@endcode
 
+    <hr>
     @subsection static_method_calls Static Method Calls
 
     @par Synopsis
@@ -1308,10 +1310,13 @@ prompt% TZ=Asia/Tokyo qore -X 'now_us()'
     @par Example
     @code TimeZone::setRegion("Europe/Prague");@endcode
 
+    <hr>
     @subsection find Find Expressions
 
     @par Synopsis
-    The find expression can be used to quickly find data in a hash of lists (such as a query result set returned by the Qore::Datasource::select() or Qore::SQLStatement::fetchColumns() methods). The find expression will loop through a data structure, and for each element in the structure where the \c where expression is \c True, it will evaluate and return a result expression. If the \a where_expression only is \c True for one element in the list, it will return the result of evaluating the result expression directly, otherwise if the \a where_expression is \c True more than once, then a list of the results of evaluting the result expression for each element is returned. In each expression in the find expression, column values can be referred to by preceding the name with a \c "%" character (as with @ref context "context statements").
+    The find expression can be used to quickly find data in a hash of lists (such as a query result set returned by the Qore::Datasource::select() or Qore::SQLStatement::fetchColumns() methods). The find expression will loop through a data structure, and for each element in the structure where the \c where expression is \c True, it will evaluate and return a result expression.\n\n
+    If the \a where_expression only is \c True for one element in the list, it will return the result of evaluating the result expression directly, otherwise if the \a where_expression is \c True more than once, then a list of the results of evaluting the result expression for each element is returned.\n\n
+    In each expression in the find expression, column values can be referred to by preceding the name with a \c "%" character (as with @ref context "context statements").
 
     @par Syntax
     \c \b find \a result_expression \c \b in \a data_expression <tt>\b where (</tt>\a where_expression<tt>)</tt>
@@ -1327,10 +1332,12 @@ prompt% TZ=Asia/Tokyo qore -X 'now_us()'
     @par Example
     @code $rlist = find %fname, %id in $data where (%lname =~ /^Smith/);@endcode
 
+    <hr>
     @subsection call_reference Call References
 
     @par Synopsis
-    References to functions or object methods are called call references. A call reference can be used like a function pointer; a call reference is a %Qore data type that can be returned by functions or methods or assigned to variables.  Note that the empty parentheses after the call are required to identify the expression as a call reference.
+    References to functions or object methods are called call references. A call reference can be used like a function pointer; a call reference is a %Qore data type that can be returned by functions or methods or assigned to variables.\n\n
+    Note that the empty parentheses after the call are required to identify the expression as a call reference.
 
     @par Syntax
     <tt>\\</tt><em>function_name</em><tt>()</tt>\n
@@ -1346,7 +1353,8 @@ prompt% TZ=Asia/Tokyo qore -X 'now_us()'
     - \a object: can be any valid %Qore expression that evaluates to an object
     - \a method: must be an unquoted string (see example below) and must represent a valid method name of the object's class.
     .
-    This makes a call reference to an object method call, binding the object and the method in the call reference. Call references to object methods are executed and resolved at run time; if the object expression does not evaluate to an object at run-time, an \c OBJECT-METHOD-REFERENCE-ERROR exception will be thrown. If the method does not exist, a \c METHOD-DOES-NOT-EXIST run-time exception will be thrown.  When called, a call reference to an object method will be executed in the context of the object originally referenced. Object method call references do not prolong the lifetime of an object; if the object is deleted (for example, by going out of scope), then if called the call reference will cause an \nOBJECT-ALREADY-DELETED exception to be thrown.
+    This makes a call reference to an object method call, binding the object and the method in the call reference. Call references to object methods are executed and resolved at run time; if the object expression does not evaluate to an object at run-time, an \c OBJECT-METHOD-REFERENCE-ERROR exception will be thrown. If the method does not exist, a \c METHOD-DOES-NOT-EXIST run-time exception will be thrown.\n\n
+    When called, a call reference to an object method will be executed in the context of the object originally referenced. Object method call references do not prolong the lifetime of an object; if the object is deleted (for example, by going out of scope), then if called the call reference will cause an \nOBJECT-ALREADY-DELETED exception to be thrown.
 
     @par Example
     @code my code $c = \printf(); @endcode
@@ -1355,15 +1363,16 @@ prompt% TZ=Asia/Tokyo qore -X 'now_us()'
 
     @note The backslash at the beginning and the empty parentheses at the end; these are required when specifying a call reference.
 
+    <hr>
     @subsection closure Closures
 
     @par Synopsis
     A closure is an anonymous function used as a value. Closures can be returned from functions or methods, assigned to variables, or passed as arguments to other functions.
 
     @par Syntax
-    <em>[return_type]</em> <tt>sub (</tt> <em>[[type] variable1, ...]</em><tt>) {</tt> <em>[code]</em> <tt>}</tt>\n\n
+    <em>@ref data_type_declarations "[return_type]"</em> <tt>\b sub ([</tt><em>@ref data_type_declarations "[type]" variable1</em><tt>, ...]) {</tt> <em>[code]</em> <tt>}</tt>\n\n
     or the alternate (deprecated) syntax with the \c returns keyword after the parameters:\n\n
-    <tt>sub (</tt> <em>[[type] variable1, ...]</em><tt>) \c returns <em>return_type</em> {</tt> <em>[code]</em> <tt>}</tt>
+    <tt>\b sub ([</tt> <em>@ref data_type_declarations "[type]" variable1</em><tt>, ...]) \b returns</tt> <em>@ref data_type_declarations "return_type"</em> <tt>{</tt> <em>[code]</em> <tt>}</tt>
 
     @par Description
     Closures encapsulate the state and value of local variables of the outer code block referenced from within the closure when the closure is created. Whenever local variables are bound within a closure, these variables are subject to concurrent thread access protection (locking) just as with global variables, in order to allow closures to be used in any context without restriction and to preseve thread-safety regarding bound local variables.\n\n
@@ -1377,13 +1386,14 @@ prompt% TZ=Asia/Tokyo qore -X 'now_us()'
 my code $closure = int sub (int $a) { return $a + $b; };
     @endcode
 
+    <hr>
     @subsection implicit_arguments Implicit Argument References
 
     @par Synopsis
     Implicit arguments are arguments not captured by parameter variables as well as automatic arguments in list-processing operator expressions. A special syntax to reference these arguments is documented here.
 
     @par Syntax
-    <tt>$</tt><em>int</em>   (for a single implicit argument)\n
+    <tt>$</tt><em>int</em>   (for a single implicit argument; \a int is the argument number, where \c 1 is the first argument)\n
     <tt>$$</tt>              (for the entire implicit argument list)
 
     @par Description
@@ -1397,6 +1407,7 @@ my code $closure = int sub (int $a) { return $a + $b; };
 my list $l = select $list, !($1 % 2);
     @endcode
 
+    <hr>
     @subsection implicit_index Implicit Index
 
     @par Synopsis
