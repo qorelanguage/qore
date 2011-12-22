@@ -2490,7 +2490,7 @@ if ($x <= $y)
     @subsection logical_greater_than_or_equals_operator Greater Than Or Equals Operator (>=)
 
     @par Synopsis
-    Tests if a value is greater than or equals to another value; types are converted if necessary (ex: ("2" >= 1) is True).
+    Tests if a value is greater than or equals to another value; types are converted if necessary (ex: <tt>("2" >= 1)</tt> is \c True).
 
     @par Syntax
     \a expression1 >= \a expression2
@@ -3390,7 +3390,7 @@ for (my int $i = 0; $i < 10; $i++)
 foreach my string $str in (\$str_list)
     trim $str;@endcode
 
-    @note If a reference (<tt>\$lvalue_expression</tt>) is used as the list expression, any changes made to the \b \c foreach iterator variable will be written back to the list.
+    @note If a reference (<tt>\\$lvalue_expression</tt>) is used as the list expression, any changes made to the \b \c foreach iterator variable will be written back to the list.
 
     <hr>
     @subsection switch switch Statements
@@ -3460,7 +3460,7 @@ switch (1) {
     &nbsp;&nbsp;&nbsp;&nbsp;<em>@ref statements "statement"</em>
 
     @par Description
-First the expression will be evaluated; if it evaluates to \c True, then statement will be executed. If it evaluates to False, the loop terminates.
+First the expression will be evaluated; if it evaluates to \c True, then statement will be executed. If it evaluates to \c False, the loop terminates.
 
     @par Example
     @code 
@@ -3472,7 +3472,7 @@ while ($a < 10)
     @subsection do do while Statements
 
     @par Synopsis
-do while statements in %Qore are similar to do while statements in C. They are used to guarantee at least one iteration and loop until a given expression evaluates to False.
+do while statements in %Qore are similar to do while statements in C. They are used to guarantee at least one iteration and loop until a given expression evaluates to \c False.
 
     @par Syntax
     <b><tt>do</tt></b>\n
@@ -3527,7 +3527,8 @@ Skips the rest of a loop and jumps right to the evaluation of the iteration expr
 
     @par Description
     The expression will be passed to the \b \c catch block of a @ref try "try/catch statement", if the \b \c throw is executed in a @ref try "try block". Otherwise the default system exception handler will be run and the currently running thread will terminate.\n\n
-    %Qore convention dictates that a direct list is thrown with at least two string elements, the error code and a description. All system exceptions have this format. See @ref try "try/catch statements" for information on how to handle exceptions, and see @ref exception_handling for information about how throw arguments are mapped to the exception hash.
+    %Qore convention dictates that a direct list is thrown with at least two string elements, the error code and a description. All system exceptions have this format.\n\n
+    See @ref try "try/catch statements" for information on how to handle exceptions, and see @ref exception_handling for information about how throw arguments are mapped to the exception hash.
 
     <hr>
     @subsection try try and catch Statements
@@ -3591,7 +3592,7 @@ Skips the rest of a loop and jumps right to the evaluation of the iteration expr
     An optional \b\c where expression may be given, in which case for each row in the hash, the expression will be executed, and if the where expression evaluates to \c True, the row will be iterated in the context loop. If this expression evaluates to \c False, then the row will not be iterated. This option is given so the programmer can create multiple views of a single data structure (such as a query result set) in memory rather than build different data structures by hand (or retrieve the data multiple times from a database).\n\n
     <em>@ref expressions "sort_expression"</em>\n
     An optional \c \b sortBy by expression may also be given. In this case, the expression will be evaluated for each row of the query given, and then the result set will be sorted in ascending order by the results of the expressions according to the resulting type of the evaluated expression (i.e. if the result of the evaluation of the expression gives a string, then string order is used to sort, if the result of the evaluation is an integer, then integer order is used, etc).\n\n
-    <em>@ref expressions "sort_descending_expression"</em>
+    <em>@ref expressions "sort_descending_expression"</em>\n
     Another optional modifier to the \c\b context statement that behaves the same as above except that the results are sorted in descending order.
 
     @par Example
@@ -3690,11 +3691,12 @@ my string $name = getName();@endcode
     Queues a statement or statement block for unconditional execution when the block is exited, even in the case of exceptions or @ref return "return statements". For similar statement that queue code for execution depending on the exception status when the block exits, see @ref on_success "on_success statements" and @ref on_error "on_error statements".
 
     @par Syntax
-    \c\b on_exit
+    \c\b on_exit\n
     &nbsp;&nbsp;&nbsp;&nbsp;<em>@ref statements "statement"</em>
 
     @par Description
-    The \c\b on_exit statement provides a clean way to do exception-safe cleanup within %Qore code. Any single statment (or statement block) after the \c\b on_exit keyword will be executed when the current block exits (as long as the statement itself is reached when executing - \c\b on_exit statements that are never reached when executing will have no effect). The position of the \c\b on_exit statement in the block is important, as the immediate effect of this statement is to queue its code for execution when the block is exited. Even if an exception is raised or a @ref return "return statement" is executed, any \c\b on_exit code that is queued will be executed. Therefore it's ideal for putting cleanup code right next to the code that requires the cleanup.\n\n
+    The \c\b on_exit statement provides a clean way to do exception-safe cleanup within %Qore code. Any single statment (or statement block) after the \c\b on_exit keyword will be executed when the current block exits (as long as the statement itself is reached when executing - \c\b on_exit statements that are never reached when executing will have no effect).\n\n
+    The position of the \c\b on_exit statement in the block is important, as the immediate effect of this statement is to queue its code for execution when the block is exited. Even if an exception is raised or a @ref return "return statement" is executed, any \c\b on_exit code that is queued will be executed. Therefore it's ideal for putting cleanup code right next to the code that requires the cleanup.\n\n
     Note that if this statement is reached when executing in a loop, the \c\b on_exit code will be executed for each iteration of the loop.\n\n
     By using this statement, programmers ensure that necessary cleanup will be performed regardless of the exit status of the block (exception, @ref return "return", etc).
 
@@ -3718,11 +3720,12 @@ my string $name = getName();@endcode
     Queues a statement or statement block for execution when the block is exited in the case that no exception is active. Used often in conjunction with the @ref on_error "on_error statement" and related to the @ref on_exit "on_exit statement".
 
     @par Syntax
-    \c\b on_success
+    \c\b on_success\n
     &nbsp;&nbsp;&nbsp;&nbsp;<em>@ref statements "statement"</em>
 
     @par Description
-    The \c \b on_success statement provides a clean way to do block-level cleanup within %Qore code in the case that no exception is thrown in the block. Any single statment (or statement block) after the \c\b on_success keyword will be executed when the current block exits as long as no unhandled exception has been thrown (and as long as the statement itself is reached when executing - \c\b on_success statements that are never reached when executing will have no effect). The position of the \c\b on_success statement in the block is important, as the immediate effect of this statement is to queue its code for conditional execution when the block is exited. Even if a @ref return "return statement" is executed later in the block, any \c\b on_success code that is queued will be executed as long as there is no active (unhandled) exception. Therefore it's ideal for putting cleanup code right next to the code that requires the cleanup, along with @ref on_error "on_error statements", which are executed in a manner similar to \c\b on_success statements, except \c\b on_error statements are only executed when there is an active exception when the block is exited.\n\n
+    The \c \b on_success statement provides a clean way to do block-level cleanup within %Qore code in the case that no exception is thrown in the block. Any single statment (or statement block) after the \c\b on_success keyword will be executed when the current block exits as long as no unhandled exception has been thrown (and as long as the statement itself is reached when executing - \c\b on_success statements that are never reached when executing will have no effect).\n\n
+    The position of the \c\b on_success statement in the block is important, as the immediate effect of this statement is to queue its code for conditional execution when the block is exited. Even if a @ref return "return statement" is executed later in the block, any \c\b on_success code that is queued will be executed as long as there is no active (unhandled) exception. Therefore it's ideal for putting cleanup code right next to the code that requires the cleanup, along with @ref on_error "on_error statements", which are executed in a manner similar to \c\b on_success statements, except \c\b on_error statements are only executed when there is an active exception when the block is exited.\n\n
     Note that if this statement is reached when executing in a loop, the \c\b on_success code will be executed for each iteration of the loop (as long as there is no active exception).
 
     @par Example
@@ -3748,11 +3751,12 @@ my string $name = getName();@endcode
     Queues a statement or statement block for execution when the block is exited in the case that no exception is active. Used often in conjunction with the @ref on_success "on_success statement" and related to the @ref on_exit "on_exit statement".
 
     @par Syntax
-    \c\b on_error
+    \c\b on_error\n
     &nbsp;&nbsp;&nbsp;&nbsp;<em>@ref statements "statement"</em>
 
     @par Description
-    The \c\b on_error statement provides a clean way to do block-level cleanup within %Qore code in the case that an exception is thrown in the block. Any single statment (or statement block) after the \c\b on_error keyword will be executed when the current block exits as long as an unhandled exception has been thrown (and as long as the statement itself is reached when executing - \c\b on_error statements that are never reached when executing will have no effect). The the position of the \c\b on_error statement in the block is important, as the immediate effect of this statement is to queue its code for conditional execution when the block is exited. Even if a @ref return "return statement" is executed later in the block, any \c\b on_error code that is queued will be executed as long as there is an active (unhandled) exception. Therefore it's ideal for putting cleanup code right next to the code that requires the cleanup, along with @ref on_success "on_success statements", which are executed in a manner similar to \c\b on_error statements, except @ref on_success "on_success statements" are only executed when there is no active exception when the block is exited.\n\n
+    The \c\b on_error statement provides a clean way to do block-level cleanup within %Qore code in the case that an exception is thrown in the block. Any single statment (or statement block) after the \c\b on_error keyword will be executed when the current block exits as long as an unhandled exception has been thrown (and as long as the statement itself is reached when executing - \c\b on_error statements that are never reached when executing will have no effect).\n\n
+    The position of the \c\b on_error statement in the block is important, as the immediate effect of this statement is to queue its code for conditional execution when the block is exited. Even if a @ref return "return statement" is executed later in the block, any \c\b on_error code that is queued will be executed as long as there is an active (unhandled) exception. Therefore it's ideal for putting cleanup code right next to the code that requires the cleanup, along with @ref on_success "on_success statements", which are executed in a manner similar to \c\b on_error statements, except @ref on_success "on_success statements" are only executed when there is no active exception when the block is exited.\n\n
     Note that the code in this statement can only be executed once in any block, as a block (even a block within a loop) can only exit the loop once with an active exception (in contrast to @ref on_success "on_success" and @ref on_exit "on_exit statements", which are executed for every iteration of a loop).
 
     @par Example
