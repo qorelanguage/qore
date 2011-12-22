@@ -33,6 +33,11 @@
     - @ref statements
     - @ref functions
     - @ref namespaces
+    - @ref constants
+    - @ref classes
+    - @ref threading
+    - @ref exception_handling
+    - @ref signal_handling
     
     @section desc_overview Language Overview
 
@@ -52,7 +57,7 @@
 
     %Qore automatically converts data types when necessary when evaluating operators. The goal is to provide the expected result for the programmer without requiring the programmer to explicitly convert data types. Please see @ref operators for more information.
 
-    %Qore supports @ref signal_handling "signal handling" by executing %Qore-language signal handlers in special single-handling thread.
+    %Qore supports @ref signal_handling "signal handling" by executing %Qore-language signal handlers in special @ref signal_handling "single-handling thread".
 
     UNIX operating systems allow an executable script to specify their interpreter. This is done by setting the first line in the program to a special string indicating the location of the %Qore binary. For the purposes of this document, the location for the %Qore binary is assumed to be \c /usr/bin/qore. The first line of %Qore scripts in this case should look as follows:
 
@@ -303,6 +308,7 @@ global a = 1@endverbatim
     |@ref null|Corresponds to a \c NULL value in a database query (not equivalent to @ref nothing|\c NULL|\c NULL
     |@ref nothing|Represents the state of a variable having no value or function returning no value (not equivalent to @ref null)|\c NOTHING|\c NOTHING
 
+    <hr>
     @subsection boolean Boolean
 
     The Boolean type can have two values, \c True and \c False.
@@ -311,6 +317,7 @@ global a = 1@endverbatim
 
     @see @ref bool_type, @ref softbool_type
 
+    <hr>
     @subsection string String
 
     String values are specified with text between double or single quotes. Text between double quotes is subject to interpretation of escape characters; text between single quotes is not with the exception of the single quote character, which may be escaped (ex: <tt>'hello \'there\''</tt>).
@@ -330,18 +337,21 @@ on more than 1 line";
 
     @see @ref string_type, @ref softstring_type
 
+    <hr>
     @subsection integer Integer
 
     %Qore integers are 64-bit signed integers.
 
     @see @ref int_type, @ref softint_type
 
+    <hr>
     @subsection float Float
 
     %Qore floats are double precision floating-point numbers (C/C++ type double), normally a 64-bit value.
 
     @see @ref float_type, @ref softfloat_type
 
+    <hr>
     @subsection date Date
 
     %Qore dates have a time component supporting a resolution to the microsecond and can be either absolute or relative.
@@ -448,6 +458,7 @@ prompt% qore -X 'P0000-00-03T21:00:00'
 
     @see @ref date_type, @ref softdate_type
 
+    <hr>
     @subsection binary Binary
 
     The binary data type is used to hold binary arbitrary binary data. Internally it is represented by a pointer to a memory location for the data and a size indicator.
@@ -466,10 +477,12 @@ prompt% qore -X 'P0000-00-03T21:00:00'
 
     @see @ref binary_type
 
+    <hr>
     @subsection null NULL
 
     This data type represents an SQL \c NULL value. Note that \c NULL is not equivalent to @ref nothing.
 
+    <hr>
     @subsection nothing NOTHING
 
     This special data type represents no value.
@@ -495,6 +508,7 @@ False@endverbatim
 
     The data type of any element can be any basic type or another aggregate type. The types do not have to be uniform in one container structure.
 
+    <hr>
     @subsection list Lists
 
     Lists (or arrays) are simply ordered containers of values. A list element can be any %Qore type (even another list, @ref hash "hash", or @ref object "object").
@@ -523,6 +537,7 @@ $element3 = $list[2];
 
     @see @ref list_type, @ref softlist_type
 
+    <hr>
     @subsection hash Hashes
 
     Hashes are containers that associate values to a string key.
@@ -583,9 +598,10 @@ $element3 = $hash{"keys"};
 
     @see @ref hash_type
 
+    <hr>
     @subsection object Objects
 
-    %Qore objects are instantiations of a class. They have members (like a hash; values associated to string keys), and methods. The class definition specifies the methods that run on objects of that class, private members, and static methods associated with the class (however note that static methods do not run in the scope of an object). %Qore classes are declared with a special syntax.
+    %Qore objects are instantiations of a @ref classes "class". They have members (like a hash; values associated to string keys), and methods. The @ref classes "class definition" specifies the methods that run on objects of that class, public and private members, static methods and variables, etc associated with the class (however note that static methods do not run in the scope of an object).  See @ref classes for information on how to create a class in %Qore.
 
     The recommend way to instantiate an object is to declare its type and give constructor arguments after the variable name in parentheses as follows:
 
@@ -657,6 +673,88 @@ method_name([argument_list])
     Objects exist until they go out of scope, are explicitly deleted, or their last thread exits. For detailed information, see @ref classes.
 
     @see @ref object_type
+
+    @subsection object_references Object References
+
+    In %Qore objects are treated differently from all other data types in that they are by default passed as arguments to functions and methods by passing a copy of a reference to the object (similar to Java's handling of objects). That means that passing an object to a function that modifies the object will by default modify the original object and not a copy, however reassigning a local parameter variable assigned an object passed as an argument (that is only assigned to a local variable in the calling function) will not result in deleting the object, but rather decrement its scope reference count (note that if the object were created as a part of the call and reassigning the variable would cause the object's scope reference count to reach zero, then the object would be deleted in this case).
+
+    Assigning an object to a variable has the same effect; a copy of a reference to the object is assigned to the variable. This results in prolonging the object's scope (by owning a new copy of a reference to the object).
+
+    An example:
+    @code
+sub test2(any $x) {
+   # we can modify the original object like so:
+   $x.member = "tree";
+
+   # here we re-assign $x, but since the object is also assigned
+   # to $o in the calling function, the object's scope is still
+   # valid, and therefore nothing happens so the object
+   $x = 1;
+}
+
+sub test() {
+   my TestObject $o();
+
+   # here we pass a copy of a reference to the object in $o
+   test2($o);
+
+   # this will print out "ok\n", because the object is still
+   # valid and the member has been set by test2()
+   if ($o.member == "tree")
+      print("ok\n");
+}
+# when test() exits, the object in $o will go out of scope
+# and be deleted
+    @endcode
+
+    If, however, an object is passed by reference, then the local variable of the called function that accepts the object owns the scope reference of the calling functions's variable.
+
+    An example:
+    @code
+sub test2(any $x) {
+   # we can modify the original object like so:
+   $x.member = "tree";
+
+   # here we re-assign $x, and since we own the only scope 
+   # reference to the object, the object will go out of 
+   # scope here and be deleted
+   $x = 1;
+}
+
+sub test() {
+   my TestObject $o();
+
+   # here we pass a reference to the object in $o
+   test2(\$o);
+
+   # the object has already been deleted in test2() and
+   # therefore nothing will be printed out
+   if ($o.member == "tree")
+      print("ok\n");
+}
+    @endcode
+
+    @note that when parse option @ref allow-bare-refs "%allow-bare-refs" is set, then variable references as in the above examples are made without the \c "$" character.
+
+    @subsection object_scope Object Scope
+
+    Objects are automatically deleted when their scope-relevant reference count reaches zero (note that objects can be deleted manually at any time by using the @ref delete "delete operator"). Whenever an object is deleted, the object's class' destructor method is run on the object.
+
+    The following affect objects' scope:
+    - variable assignments: an object's automatic scope is prolonged as long as the object is assigned to a local variable
+    - existence of a closure created Within the object: any closures created from within the object encapsulate the object's state (along with any local variables referenced within the closure) and also prolong the object's automatic scope as long as the closure exists.
+    - object method thread launched within the object: if a member function thread was launched from within the object using the @ref background "background operator", the object's automatic scope is prolonged to the life of the new thread. Object threads started externally to the object (i.e. not directly from an expression with the @ref background "background operator" within a method) will not prolong the scope of the object.
+
+    @note If an object with running threads is explicitly deleted, and this case is not handled in the object's destructor() method (by ensuring that all other running threads terminate gracefully), exceptions will be thrown in other threads at any attempt to access the already-deleted object.\n\n
+    The fact that object threads and closures can prolong object scope means, for example, that objects assigned to local variables can exist for longer than the scope of their host variable if they have one or more methods running in other threads or if closures created from within the object still exist at the time the local variable goes out of scope.\n\n
+    For more information about threading, please see @ref threading
+
+    @subsection copying_objects Copying Objects
+
+    To explicitly generate a copy of an object, the \c copy() constructor must be called. This is a special method that exists implicitly for every class even if it is not explicitly defined (like \c constructor() and \c destructor() methods). The implicit behavior of the \c copy() constructor is to create a new object with new members that are copies of the original members (except objects are created as copies of references to the object). Then, if any \c copy() method exists, it will be executed in the new object, passing a copy of a reference to the old object as the first argument to the \c copy() method.
+
+    @note In a class hierarchy copy() methods are called in the same order as constructor() methods.\n\n
+    Not all built-in classes can be copied. Classes not supporting copying will throw an exception when the \c copy() methods are called. See the documentation for each class for more information.
 
     @section data_type_declarations Data Type Declarations and Restrictions
 
@@ -3702,7 +3800,7 @@ my string $name = getName();@endcode
     Queues a statement or statement block for unconditional execution when the block is exited, even in the case of exceptions or @ref return "return statements". For similar statement that queue code for execution depending on the exception status when the block exits, see @ref on_success "on_success statements" and @ref on_error "on_error statements".
 
     @par Syntax
-    \c\b on_exit\n
+    \c\b on_exit \n
     &nbsp;&nbsp;&nbsp;&nbsp;<em>@ref statements "statement"</em>
 
     @par Description
@@ -3731,7 +3829,7 @@ my string $name = getName();@endcode
     Queues a statement or statement block for execution when the block is exited in the case that no exception is active. Used often in conjunction with the @ref on_error "on_error statement" and related to the @ref on_exit "on_exit statement".
 
     @par Syntax
-    \c\b on_success\n
+    \c\b on_success \n
     &nbsp;&nbsp;&nbsp;&nbsp;<em>@ref statements "statement"</em>
 
     @par Description
@@ -3762,7 +3860,7 @@ my string $name = getName();@endcode
     Queues a statement or statement block for execution when the block is exited in the case that no exception is active. Used often in conjunction with the @ref on_success "on_success statement" and related to the @ref on_exit "on_exit statement".
 
     @par Syntax
-    \c\b on_error\n
+    \c\b on_error \n
     &nbsp;&nbsp;&nbsp;&nbsp;<em>@ref statements "statement"</em>
 
     @par Description
@@ -3825,31 +3923,433 @@ int sub fibonacci(int $num) {
     return $num * fibonacci($num - 1);
 }@endcode \n
     @note Function names are resolved during the second parse pass; therefore functions do not need to be declared before being referenced. This allows an easy definition of 2 or more self-referencing functions.\n\n
-    Variables passed as function arguments are passed by value by default, unless the caller places a \c "\" character before an lvalue in the argument list in the function call. In this case the function must have a parameter defined to accept the variable passed by reference. Any changes to the local variable will be reflected in the original variable for variables passed by reference. Also note that it is illegal to pass an argument by reference in a @red background "background" expression.
+    Variables passed as function arguments are passed by value by default, unless the caller places a \c "\" character before an lvalue in the argument list in the function call. In this case the function must have a parameter defined to accept the variable passed by reference. Any changes to the local variable will be reflected in the original variable for variables passed by reference. Also note that it is illegal to pass an argument by reference in a @ref background "background" expression.
 
     @section namespaces Namespaces
 
-    Namespaces allow @ref constants "constants", @ref classes "classes", and even other namespaces to co-exist in the same program by defining them in separate namespaces. Constants, classes, and sub-namespaces can be declared to belong to a particular namespace either by defining them in-line within a namespace declaration, or by including the namespace name/path prepended to the constant, class, or namespace declaration separated by two colons \c "::".
-
+    @par Description
+    Namespaces allow @ref constants "constants", @ref classes "classes", and even other namespaces to co-exist in the same program by defining them in separate namespaces. Constants, classes, and sub-namespaces can be declared to belong to a particular namespace either by defining them in-line within a namespace declaration, or by including the namespace name/path prepended to the constant, class, or namespace declaration separated by two colons \c "::".\n\n
     If the user does not specify the parent namespace with a namespace path in constant, class, or namespace declarations, the declaration will be by default in the unnamed default root namespace.
 
-    @subsection namespace_declarations Namespace Declarations
-
-    @par In-line namespace declaration:
+    @anchor namespace_declarations
+    @par In-Line Namespace Declaration
     \c\b namespace <em>[namespace_path::]namespace_identifier</em> <tt>{</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<em>[constant_declarations]</em>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<em>[class_declarations]</em>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<em>[namespace_declarations]</em>\n
     <tt>}</tt>
 
-    @par Out of line namespace declaration:
+    @par Out of Line Namespace Declaration
     \c\b namespace <em>[namespace_path::]namespace_identifier</em><tt>;</tt>
 
-    @subsection namespace_resolution Namespace Resolution
+    @anchor namespace_resolution
+    @par Namespace Resolution
+    Namespaces can either be resolved by giving a path to the constant, class, or namespace desired, or by leaving out the namespace path and allowing the system to search for the constant, class, or namespace. In either case, a depth-first search of the namespace tree is made for a match.\n\n
+    If a namespace path is included, then the tree is searched for the first namespace match. and, if the rest of the declaration cannot be matched, the search continues in the entire namespace tree until a complete match is found.
 
-    Namespaces can either be resolved by giving a path to the constant, class, or namespace desired, or by leaving out the namespace path and allowing the system to search for the constant, class, or namespace. In either case, a depth-first search of the namespace tree is made for a match. If a namespace path is included, then the tree is searched for the first namespace match. and, if the rest of the declaration cannot be matched, the search continues in the entire namespace tree until a complete match is found.
+    @anchor namespace_paths
+    @par Namespace Paths
+    Namespace paths look like the following:\n
+    - <em>starting_namespace::[sub_namespace(s)s::]constant|class|namespace</em>
 
-    Namespace paths look like the following:
+    @par Example
+    @code
+namespace MyNamspace {
+    const MyConst = 1;
+    class MyClass {
+    }
+    namespace MySubNamespace;
+}
+    @endcode
 
-    <em>starting_namespace::[sub_namespace(s)s::]constant|class|namespace</em>
+    @note No semicolon (\c ";") is required to terminate a namespace declaration (in fact using a semicolon would raise a parse exception).
+
+    @section constants Constants
+
+    @par Description
+    Constant definitions allow programmers to refer to values with %Qore identifiers rather than using the value or the expression that generates the value.
+
+    @par Constant Declaration Syntax
+    \c\b const <em>@ref namespace_paths "[namespace_path::]"constant_identifier</em> <tt>=</tt> <em>@ref expressions "initialization_expression"</em>;
+
+    @par Example
+    @code
+const PI_SQUARED = pow(Qore::M_PI, 2);
+    @endcode
+
+    @since 0.8.1 The expression used to initialize a constant can be any valid @ref expressions "Qore expression" as long as no variables are referenced. 
+
+    @note It is bad programming practice to assign a constant with an expression that has side effects. Furthermore if an expression used to initialize a constant throws an exception, that exception cannot be caught in the program being defined.\n\n
+    The order that constants are initialized and assigned does not necessarily correspond to declaration order, however constants may be defined using the values of other constants; if a circular reference is detected a parse exception is raised.\n\n
+    Constants are resolved in the second stage of parsing (during the parse commit stage, see also @ref Qore::Program::parseCommit() "Program::parseCommit()"\n\n
+    Classes can also declare constants; see @ref class_constants for more information.
+
+    @section classes Classes
+
+    @subsection class_overview Class Overview
+    Classes define types of %Qore @ref object "objects". Classes can define members and methods, which are attributes of the class and functions that operate only on the objects of that class, respectively.  Furthermore access to class members and methods can be restricted (see @ref class_protection), and classes can be @ref inheritance "subclassed" to support polymorphism.
+
+    @par In-Line Class Declaration Syntax
+    <tt>\b class [</tt><em>@ref namespace_paths "namespace_path"</em><tt>::...]</tt><em>class_identifier</em><tt>] [<b>inherits</b> [<b>private</b>|<b>public</b>] [</tt><em>@ref namespace_paths "namespace_path"</em><tt>::...]</tt><em>parent_class_identifier</em><tt>[, ...]] {</tt>\n
+    &nbsp;&nbsp;&nbsp;&nbsp;<tt>[[<b>private</b>] $.</tt><em>member_name</em><tt>[, ...];]</tt>\n\n
+    &nbsp;&nbsp;&nbsp;&nbsp;<tt>[<b>private</b>|<b>public</b> {</tt>\n
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<tt>[[</tt><em>@ref data_type_declarations "member_type"</em><tt>] $.</tt><em>member_name</em> <tt>[= </tt><em>@ref expressions "initialization_expression"</em><tt>];]</tt>\n
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<tt>[<b>static</b> [</tt><em>@ref data_type_declarations "static_member_type"</em><tt>] </tt><em>static_member_name</em> <tt>[= </tt><em>@ref expressions "initialization_expression"</em><tt>];]</tt>\n
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<tt>[<b>const</b> </tt><em>constant_name</em> <tt>=</tt> <em>@ref expressions "initialization_expression"</em><tt>;]</tt>\n
+    &nbsp;&nbsp;&nbsp;&nbsp;<tt>}]</tt>\n\n
+    &nbsp;&nbsp;&nbsp;&nbsp;<tt>[[<b>private</b>|<b>public</b>] <b>constructor</b>([</tt><em>@ref data_type_declarations "[param_type]"</em> <tt>$</tt><em>param_name</em> <tt>[=</tt> <em>@ref expressions "default_initialization_expression"</em><tt>], ...]) [: </tt><em>parent_class_name</em><tt>(</tt><em>args...</em><tt>), ...] {</tt>\n
+    &nbsp;&nbsp;&nbsp;&nbsp;<tt>}]</tt>\n
+    &nbsp;&nbsp;&nbsp;&nbsp;<tt>[[<b>static</b>] [<b>synchronized</b>] [<b>private</b>|<b>public</b>]</tt> <em>method_name</em><tt>([</tt><em>@ref data_type_declarations "[param_type]"</em> <tt>$</tt><em>param_name</em> <tt>[=</tt> <em>@ref expressions "default_initialization_expression"</em><tt>], ...]) {</tt>\n
+    &nbsp;&nbsp;&nbsp;&nbsp;<tt>}]</tt>\n
+    &nbsp;&nbsp;&nbsp;&nbsp;<tt>...</tt>\n
+    <tt>}</tt>
+
+    @par In-Line Class Declaration Example
+    @code
+class MyClass inherits MyBaseClass {
+    public {
+         string $.pub_attr = "hello";
+	 const pub_const = "foo";
+	 static pub_static_var = "bar";
+    }
+
+    constructor(string $arg) : MyBaseClass($arg + 1) {
+    }
+
+    softstring myMethod(softint $i) {
+        return $i + 2;
+    }
+}
+    @endcode
+
+    @note No semicolon (\c ";") is required to terminate a class declaration (in fact using a semicolon would raise a parse exception).    
+
+    @par Out-Of-Line Class Declaration Syntax
+    Alternatively class declarations and method declarations can be defined out of line as follows:\n
+    <tt>\b class [</tt><em>@ref namespace_paths "namespace_path"</em><tt>::...]</tt><em>class_identifier</em><tt> [<b>inherits</b> [<b>private</b>|<b>public</b>] [</tt><em>@ref namespace_paths "namespace_path"</em><tt>::...]</tt><em>parent_class_identifier</em><tt>[, ...]];</tt>\n\n
+    <tt>[[<b>private</b>|<b>public</b>] [</tt><em>@ref namespace_paths "namespace_path"</em><tt>::...]</tt>class_identifier</em><tt>::<b>constructor</b>([</tt><em>@ref data_type_declarations "[param_type]"</em> <tt>$</tt><em>param_name</em> <tt>[=</tt> <em>@ref expressions "default_initialization_expression"</em><tt>], ...]) [: </tt><em>parent_class_name</em><tt>(</tt><em>args...</em><tt>), ...] {</tt>\n
+    <tt>}]</tt>\n\n
+    <tt>[[<b>static</b>] [<b>synchronized</b>] [<b>private</b>|<b>public</b>] [</tt><em>@ref namespace_paths "namespace_path"<tt>::...]</tt>class_identifier</em><tt>::</tt><em>method_name</em><tt>([</tt><em>@ref data_type_declarations "[param_type]"</em> <tt>$</tt><em>param_name</em> <tt>[=</tt> <em>@ref expressions "default_initialization_expression"</em><tt>], ...]) {</tt>\n
+    <tt>}]</tt>
+
+    @par Out-Of-Line Class Declaration Example
+    @code
+class MyNamespace::MyClass inherits MyBaseClass;
+
+MyNamespace::MyClass::constructor(string $arg) : MyBaseClass($arg + 1) {
+}
+
+softstring MyNamespace::MyClass::myMethod(softint $i) {
+    return $i + 2;
+}
+    @endcode
+
+    @note Because method definitions are allowed out-of-line, this means that builtin classes may be extended with new user methods, however user constructor, destructor, and copy methods cannot be added to builtin classes; to customize the behavior of these methods for builtin classes, subclass the class instead.\n\n
+    When parse option @ref allow-bare-refs "%allow-bare-refs" is enabled, no \c "$" or \c "$." prefixes can be used with variable or method or member names as in the specifications above.
+    Class members, class constants, and static class variables can only be declared in an in-line class definition (the first example above). If a class has at least one public member declared (or inherits a class with at least one public member declared), then only those members declared as public can be accessed from outside the class, and from within the class only members explicitly declared can be accessed as well (unless the class also defines a memberGate() method). In this way typographical errors in member names can be caught (at parse time if types are declared).\n\n
+    In a class hierarchy, base class constructor methods can be explicitly specified using a special syntax unique to subclass constructor methods. Please see @ref inheritance for more information.\n\n
+    It's possible to write purely object-oriented scripts/programs in %Qore by defining an application class and using the \c "-x" or \c "--exec-class" command-line arguments to tell %Qore to instantiate the class instead of doing normal top-level execution (in fact, the \c "--exec-class" argument disallows the use of top-level statements entirely). For more information, please see @ref command_line_parsing and @ref parse_directives.
+
+    @subsection class_methods Class Methods
+
+    @anchor private_methods
+    @par Private Methods
+    Methods declared with the \c\b private keyword can only be called by other member functions of the same class. Any attempt to call these methods from outside the class will result in a run-time exception.
+
+    @anchor synchronized_methods
+    @par Synchronized Methods
+    Methods declared with the \c\b synchronized keyword will only run in one thread at a time.
+
+    @anchor static_methods
+    @par Static Methods
+    Methods declared with the \c\b static keyword are like regular functions that are attached to the class. These methods are not associated with a particular object's state and therefore are not allowed to refer to object members or call non-static methods. Also, no reference to the special <tt>$self</tt> variable is allowed within static methods.\n\n
+    Static methods may be declared \c\b private or \c\b public or \c\b synchronized like non-static methods; static methods can also access private members of a class (through an object of the class for non-static members).\n\n
+    Static method calls take a special syntax as documented in @ref static_method_calls.\n
+
+    @anchor class_special_methods
+    @par Constructors, Destructors, and Other Special Methods
+    All class methods are optional, but some methods have a special meaning.\n\n
+    <b>Special Methods</b>
+    |!Name|!Description
+    |<tt>constructor(</tt><em>[params...]</em>) {}</tt>|Called when objects are created when instantiated by a variable declaration with a class type and constructor arguments or explicitly with the new operator. User code may not explicitly call \c constructor() methods directly. In a class tree, \c constructor() methods are called for base classes first in left-to-right, depth-first declaration order.\n\n\c constructor() methods may be overloaded and also private constructors may be defined. Private constructors can only be called from within the class.
+    |<tt>copy() {}</tt>|When a user explicitly calls a copy method, %Qore will generate a new object with references to the same members as the source object. Then, if there are any base classes, base class \c copy() methods are called in the same order as the \c constructor() methods. If a \c copy() method is defined, it will be run in the new object with a reference to the old object passed as the first argument. Any other arguments passed to the \c copy() method are ignored.\n\n\c copy() methods cannot be overloaded and cannot be private.
+    |<tt>destructor() {}</tt>|Called when objects go out of scope or are explicitly deleted. User code may not explicitly call \c destructor() methods. In a class tree, \c destructor() methods are called for base classes in the opposite order in which the constructors are called.\n\n\c destructor() methods cannot be overloaded and cannot be private.
+    |@ref any_type "any" <tt>@ref memberGate_methods "memberGate"(</tt>@ref string_type "string" <tt>$</tt><em>member_param_name</em><tt>) {}</tt>|If this method is implemented in the class, it is called when read access is attempted to private member or members that do not exist in the current object; the return value of this method is returned as the value of the member.\n\n\c memberGate() methods cannot be overloaded and are not inherited by subclasses.
+    |@ref any_type "any" <tt>methodGate(</tt>@ref string_type "string" <tt>$</tt><em>method_param_name</em><tt>, ...) {}</tt>|If this method is implemented in the class, it is called when methods are called on the object that do not exist in the current object and the return value of this method is returned as the value of the method call.\n\n\c methodGate() methods cannot be overloaded and are not inherited by subclasses.
+    |<tt>@ref memberNotification_methods "memberNotification"(</tt>@ref string_type "string" <tt>$</tt><em>member_param_name</em><tt>) {}</tt>|If this method is implemented in the class, it is called when an object member is updated outside the class with the member name as the argument. Note that this method is called after the member has been updated and without locking; the call is not atomic respective to other threads that also may update the same member simultaneously.\n\n\c memberNotification() methods cannot be overloaded and are not inherited by subclasses.
+
+    @anchor class_constants
+    @par Class Constants
+    Class constants, like non-class constants, allow programmers to refer to values with %Qore identifiers rather than using the value or the expression that generates the value.\n\n
+    See @ref class_overview for a description of the syntax required to declare a class constant.\n\n
+    Like other attributes of classes, class constants may be declared \c\b private or \c\b public. The following is an example of a class constant definition:\n
+    @code
+class Test {
+    public {
+        const Version = "1.0";
+    }
+
+    private {
+        const Limit = 100;
+    }
+}
+    @endcode
+
+    @note Class constant cannot have the same names as @ref static_class_variables "static class variables".
+
+    @anchor static_class_variables
+    @par Static Class Variables
+    Static class variables are like global variables that belong to a class. They are not associated with any particular object.\n\n
+    See @ref class_overview for a description of the syntax required to declare a static class variable.\n\n
+    Like other attributes of classes, static class variables may be declared \c\b private or \c\b public. The following is an example of a static class variable definition:\n
+    @code
+class Test {
+    public {
+        static string lastFile = "none";
+    }
+
+    private {
+        static int numProcessed = 0;
+    }
+}
+    @endcode
+
+    @note Static class variables cannot have the same same as class constants.
+
+    @subsection class_members Class Members
+
+    @par Class Member References
+    When defining a class, members of instantiated objects are referred to with a special syntax as follows:\n
+    <tt>$.</tt><em>member_name</em>\n\n
+    Furthermore, the automatic variable <tt>$self</tt> is instantiated in every non-static method, representing the current object (similar to <tt>this</tt> in C++ or Java). Therefore if you need to access hash members which are not valid %Qore identifiers, then enclose the member name in double quotes after the dot operator as follows:\n
+    @code $self."&member-name"@endcode
+
+    @anchor memberGate_methods
+    @par memberGate() Method
+    If the class implements a \c memberGate() method, then whenever a non-existent member of the class is accessed (read), this method will be called with the name of the member as the sole argument, so that the class can create the member (or react in some other way) on demand. This method is also called when methods of the same class try to access (read) non-existent methods, but is not called from within the \c memberGate() method itself.
+
+    @anchor memberNotification_methods
+    @par memberNotification() Methods
+    To monitor writes to the object, the class can implement a \c memberNotification() method, which is called whenever an object member is modified from outside class member code. In this case, the \c memberNotification() method is called with the name of the member that was updated so that an object can automatically react to changes to its members (writes to members) from outside the class. This method is not called when members are updated from within class member code.
+
+    @par Classes With Public Member Declarations
+    If a class has at least one public member declared (or inherits a class with at least one public member declared), then only those members declared as public can be accessed from outside the class, and from within the class only members explicitly declared can be accessed as well (unless the class also defines a @ref memberGate_methods "memberGate() method"). In this way typographical errors in member names can be caught (at parse time if types are declared).
+
+    @par Member Initialization
+    Members that have intialization expressions in the class definition are initialized before the constructor is executed (but after any base class constructors have run).  An exception raised in a member initialization expression will cause the constructor to fail and for the object to be deleted immediately.
+
+    @note The automatic <tt>$argv</tt> local variable is instantiated as usual in all class methods where there are more arguments than variables declared in the method declaration.\n\n
+
+    @subsection object_method_calls Object Method Calls
+
+    @par In-Class Method Call Syntax
+    Within a class method definition, calls to methods in the same class hierarchy (of the current class or a base class) can be made as follows:\n
+    <tt>[[</tt><em>@ref namespace_paths "namespace_path"</em><tt>::...]</tt><em>parent_class_name</em><tt>::]$.</tt><em>method_name</em><tt>([</tt><em>args</em><tt>, ...])</tt>
+
+    @par In-Class Method Call Example
+    @code
+# to call a specific method in a base class
+Thread::Mutex::$.lock();
+# to call lock() in the current (or lower base) class
+$.lock();
+    @endcode
+
+    @par In-Class Method Calls with %allow-bare-refs
+    When the @ref allow-base-refs "%allow-bare-refs" parse directive is set, then object methods are called without the \c "$." prefix as in the following example:\n
+    @code
+# to call a specific method in a base class
+Thread::Mutex::lock();
+# to call lock() in the current (or lower base) class
+lock();
+    @endcode\n
+    Calls to object methods can be made outside the class by using the above syntax as well. If the object's class is not known at parse time, then the call is resolved at run-time, and if a call is attempted to a private function outside the defining class, then a run-time \c METHOD-IS-PRIVATE (if the method is private) or \c BASE-CLASS-IS-PRIVATE (if the method resolves to a privately-inherited base class) exception is raised.
+
+    @subsection inheritance Class Inheritance
+
+    Class inheritance is a powerful concept for easily extending and resuing object-oriented code, but is also subject to some limitations. This section will explain how class inheritance works in %Qore.
+
+    Classes inherit the methods of a parent class by using the inherits as specified above. Multiple inheritance is supported; a single %Qore class can inherit one or more classes. When a class is inherited by another class, it is called a base class. Private inheritance is speficied by including the keyword \c\b private before the inherited class name. When a class is privately inherited, it means that the inherited class' public members are treated as private members in the context of accesses outside the class.
+
+    Inheritance is \c\b public by default, to inherit a class privately, use the \c\b private keyword before the class name or class path to inherit as follows:
+    @code
+class ChildClass inherits private ParentClass {
+}
+    @endcode
+
+    It is not legal to directly inherit the same class directly more than once; that is; it is not legal to list the same class more than once after the \c\b inherits keyword. However, it is possible that a base class could appear more than once in the inheritance tree if that class is inherited separately by two or more classes in the tree. In this case, the base class will actually only be inherited once in the subclass, even though it appears in the inheritance tree more than once. This must be taken into consideration when designing class hierarchies, particularly if base class constructor parameters for that class are explicitly provided in a different way by the inheriting classes.
+
+    @note Class members only exist once for each object; therefore if classes in an inheritance tree have different uses for members with the same name, then a class hierarchy built of such classes will probably not function properly.
+
+    Subclasses can give explicit arguments to their base class constructors using a special syntax (only available to subclass constructors) similar to the C++ syntax for the same purpose as follows:\n
+    <tt>[[<b>private</b>|<b>public</b>] <b>constructor</b>([</tt><em>@ref data_type_declarations "[param_type]"</em> <tt>$</tt><em>param_name</em> <tt>[=</tt> <em>@ref expressions "default_initialization_expression"</em><tt>], ...]) [: </tt><em>parent_class_name</em><tt>(</tt><em>args...</em><tt>), ...] {</tt>\n
+    <tt>}]</tt>\n
+    Here is a concrete example of giving arguments to an inherited base class:
+    @code
+class XmlRpcClient inherits Qore::HTTPClient {
+    # calls the base class HTTPClient constructor, overrides the "protocols" key to "xmlrpc"
+    constructor(hash $opts = hash()) : Qore::HTTPClient($opts + ( "protocols" : "xmlrpc" )) {
+    }
+}
+    @endcode
+
+    Because base class constructors are executed before subclass constructors, the only local variables in the constructor that can be referenced are those declared in the subclass constructor declaration (if any). What this means is that if you declare local variables in the expressions giving base class arguments, these local variables are not accessible from the constructor body.
+
+    @note Base classes that give explicit arguments to their base class constructors can be overridden by subclasses by simply listing the base class in the base class constructor list and providing new arguments.
+
+    @section threading Threading
+
+    A thread is an independent sequence of execution of Qore code within a Qore program or script. Each thread has a thread ID or TID.
+
+    The first thread of execution in a Qore program has TID 1. TID 0 is always reserved for the special @ref signal_handling "signal handler thread".
+
+    The %Qore language is designed to be thread-safe and %Qore programs should not crash the %Qore executable due to threading errors. Threading errors should only cause exceptions to be thrown or application errors to occur.
+
+    Threading functionality in %Qore is provided by the operating system's POSIX threads library.
+
+    @subsection creating_and_terminating_threads Creating and Terminating Threads
+
+    New threads are created with the @ref background "background operator". This operator executes the expression given as an argument in a new thread and returns the TID (integer thread ID) of the new thread to the calling thread. This is most useful for calling user functions or object methods designed to run in a separate thread.
+
+    To terminate a thread, the @ref thread_exit "thread_exit statement" should be called, as calling the exit() function will terminate the entire process (and therefore all threads) immediately.
+
+    @subsection threading_and_variables Threading and Variables
+
+    All global variables are shared in %Qore programs, while local variables (declared with \c\b my) are generally local to each thread (and thus accessed without any mutual-exclusion locking), regardless of location. This means that if a variable is declared with \c\b my at the top level, it will actually have global scope, but also each thread will have its own copy of the variable. In effect, declaring a top-level local variable with \c\b my actually creates a global thread-local variable.
+
+    The following code gives an example of declaring a global thread-local variable by using \c\b my at the top-level:
+
+    @code
+%require-our
+sub t() {
+    printf("x=%y\n", $x);
+}
+my int $x = 2;
+t();
+background t();
+    @endcode
+
+    This will print out:
+    @verbatim
+x=2
+x=null@endverbatim
+
+    Note that the second time the local variable is accessed in the background thread, it has no value.
+
+    Due to the way %Qore's local variables work, it is illegal to declare a top-level local variable after first block is parsed in the program; that is; if any call to parse() or Qore::Program::parse() is made in an existing program (where a top-level block already exists), and an attempt to declare a new top-level local variable is made, then a \c ILLEGAL-TOP-LEVEL-LOCAL-VARIABLE parse exception will be raised.
+
+    Access to global variables in qore is wrapped in mutual-exclusion locks to guarantee safe access to global variable data in a multithreaded context. Local variables are thread-local and therefore not locked, except when referenced in a @ref closure "closure", in which case the local variable's scope is extended to that of the @ref closure "closure's", and all accesses to the bound local variable are made within mutual-exclusion locks as these variables may be used in multithreaded contexts.
+
+    An alternative to global thread-local variables is offered by the save_thread_data() and get_thread_data() functions (documented in @ref threading_functions).
+
+    @subsection thread_synchronization Thread Synchronization and Inter-Thread Communication
+
+    @anchor synchronized
+    @par synchronized
+    The \c\b synchronized keyword can be used before function or class method definitions in order to guarantee that the function or method call will only be executed in one thread at a time. As in Java, this keyword can also be used safely with recursive functions and methods (internally a recursive mutual exclusion lock that participates in %Qore's deadlock detection framework is used to guarantee thread-exclusivity and allow recursion).
+
+    @par Classes Useful With Threading
+    The following classes are useful when developing multi-threaded %Qore programs:\n
+    |!Class|!Description
+    |@ref Qore::Thread::Mutex "Mutex"|A mutual-exclusion thread lock
+    |@ref Qore::Thread::Gate "Gate"|A recursive thread lock
+    |@ref Qore::Thread::RWLock "RWLock"|A read-write thread lock
+    |@ref Qore::Thread::Condition "Condition"|Allows %Qore programs to block until a certain condition becomes true
+    |@ref Qore::Thread::Counter "Counter"|A blocking counter class
+    |@ref Qore::Thread::Queue "Queue"|A thread-safe, blocking queue class (useful for message passing)
+    |@ref Qore::Thread::Sequence "Sequence"|A simple, thread-atomic sequence object (increment-only)
+    |@ref Qore::Thread::AutoLock "AutoLock"|A helper class to automatically release Mutex locks when the AutoLock object is deleted
+    |@ref Qore::Thread::AutoGate "AutoGate"|A helper class to automatically exit Gate locks when the AutoGate object is deleted
+    |@ref Qore::Thread::AutoReadLock "AutoReadLock"|A helper class to automatically release read locks when the AutoReadLock object is deleted
+    |@ref Qore::Thread::AutoWriteLock "AutoWriteLock"|A helper class to automatically release read locks when the AutoWriteLock object is deleted
+
+    @par Functions Useful With Threading
+    The following functions assist writing safe and efficient multi-threaded %Qore programs:\n
+    |!Function|!Description
+    |save_thread_data()|Saves a thread-local value against a key.
+    |get_all_thread_data()|Retrieves the entire thread-local hash.
+    |get_thread_data()|Retrieves a thread-local value based on a key.
+    |delete_all_thread_data()|Deletes the entire thread-local data hash.
+    |delete_thread_data()|Delete the value of a key in the thread-local data hash.
+    |gettid()|Gets the thread's TID (thread identifier)
+    |thread_list()|Returns a list of TIDs of running threads
+    |num_threads()|Returns the number of running threads
+    |throwThreadResourceExceptions()|runs thread-resource cleanup routines and throws the associated exceptions
+
+    @subsection deadlocks Deadlocks
+
+    %Qore supports deadlock detection in complex locking scenarios and will throw a \c THREAD-DEADLOCK exception rather than allow an operation to be performed that would cause a deadlock. Deadlock detection is implemented for internal locking (global variable and object access), @ref synchronized "synchronized" methods and functions, etc, as well as for all %Qore threading classes.
+
+    %Qore can only detect deadlocks when a lock resource acquired by one thread is required by another who holds a lock that the first thread also needs. Other errors such as forgetting to unlock a global lock and trying to acquire that lock in another thread cannot be differentiated from valid use of threading primitives and will result in a process that never terminates (a deadlocked process). However, common threading errors such as trying to lock the same @ref Qore::Thread::Mutex "Mutex" twice in the same thread without unlocking it between the two @ref Qore::Thread::Mutex::lock() "Mutex::lock()" calls are caught in %Qore and exceptions are thrown. Additionally, locks are tracked as thread resources, so if a thread terminates while holding a lock, an exception will be thrown and the lock will be automatically released.  
+
+    @subsection exception_handling Exception Handling
+
+    Exceptions are errors that can only be handled using a @ref try "try catch block". Any exception that is thrown in a @ref try "try block" will immediately cause execution of that thread to begin with the first statement of the @ref try "catch block", regardless of the position of the program pointer of the running thread, even if nested function or object method calls have been made.
+
+    Exceptions can be thrown by the %Qore system for a number of reasons, see the documentation for each function and object method for details.
+
+    Programmers can also throw exceptions explicitly by using the @ref throw "throw" and @ref rethrow "rethrow" statements.
+
+    Information about the exception, including the context in which the exception occurred, is saved in the exception hash, which can be retrieved by using a parameter variable in the @ref try "catch block".
+
+    The exception hash contains the following members:
+
+    @anchor exception_hash
+    <b>Exception Hash Keys</b>
+    |!Name|!Type|!Description
+    |\c type|@ref string_type "string"|\c "System" or \c "User" depending on exception type
+    |\c file|@ref string_type "string"|File name of file where exception occurred
+    |\c line|@ref int_type "int"|Line number where exception occurred
+    |\c callStack|@ref list_type "list" of @ref hash_type "hashes"|@ref callstack "Backtrace information"
+    |\c err|@ref any_type "any"|This key is populated with the value of the first expression of the @ref throw "throw statement". For system exceptions, this is a string giving the exception code.
+    |\c desc|@ref any_type "any"|This key is populated with the value of the second expression of the @ref throw "throw statement" (if a list was thrown). For system exceptions, this is a string giving a text description of the error.
+    |\c arg|@ref any_type "any"|This key is populated with the value of the third expression of the @ref throw "throw statement" (if a list was thrown). For system exceptions, this is populated for some exceptions where additional information is provided.
+    
+    @anchor callstack
+    <b>Call Stack Description</b>
+    |!Name|!Type|!Description
+    |\c function|@ref string_type "string"|function name of the source where the exception was raised (if known)
+    |\c line|@ref int_type "int"|line number of the source where the exception was raised (if known, for user exceptions only)
+    |\c file|@ref string_type "string"|file name of the source where the exception was raised (if known, for user exceptions only)
+    |\c type|@ref string_type "string"|Exception Type (\c ET_*) constants; see @ref exception_constants for values.
+    |\c typecode|@ref int_type "int"|Call Type (\c CT_*) constants; see @ref exception_constants for values.
+
+    System exceptions always throw at least 2 values, populating the \c "err" and \c "desc" keys of the exception hash, giving the exception string code and the exception description string, respectively, and occassionally, depending on the function, the \c "arg" key may be populated with supporting information. User exceptions have no restrictions, any values given in the @ref throw "throw statement" will be mapped to exception keys as per the table above.
+
+    See the @ref on_exit "on_exit", @ref on_success "on_success" statement, and @ref on_error "on_error" statement for statements that allow for exception-safe and exception-dependent cleanup in %Qore code.
+
+    Classes that assist in exception-safe lock handling are the @ref Qore::Thread::AutoLock "AutoLock class", the @ref Qore::Thread::AutoGate "AutoGate class", the @ref Qore::Thread::AutoReadLock "AutoReadLock class", and the @ref Qore::Thread::AutoWriteLock "AutoWriteLock class".
+
+    @section signal_handling Signal Handling
+
+    %Qore implements safe signal handling on UNIX platforms (not available on native Microsoft Windows ports). Signals do not interrupt %Qore threads, rather %Qore uses a special signal handling thread with TID 0, dedicated to handling signals. The signal handling thread uses very few resources; it stays blocked (using no processor time and very little memory) until a signal with a %Qore signal handler is raised; it then executes the handler and resumes waiting for signals.
+
+    Because the signal Qore's signal handling thread is not a normal thread, it does not affect num_threads() and does not appear in the list returned by thread_list().
+
+    Internally, %Qore masks (blocks) all signals in every thread except the signal handling thread. In the signal handling thread, all signals are unmasked, except those with %Qore-language handlers, then an internal call to <tt>sigwait() (3)</tt> is made to receive and process signals raised one at a time.
+
+    Qore-language signal handlers are installed by passing a signal constant and a @ref closure "closure" or @ref call_reference "call reference" to the code to execute when the signal is raised to the set_signal_handler() function. Signal handlers are removed by passing a signal constant to the remove_signal_handler() function.
+
+    When a signal has been raised and the signal handler is called, the signal number is passed as the sole argument to the signal handler code.
+
+    <b>Signal Handling Functions</b>
+    |!Function Name|!Description
+    |set_signal_handler()|Sets up a %Qore signal handler using a signal number and a call reference.
+    |remove_signal_handler()|Removes a %Qore signal handler using a signal number.
+
+    See @ref signal_constants for a list of signal constants and @ref signal_mapping_hash_constants for two hash constants that can be used to map signal names to numbers and vice-versa. Note that signal constants are system-dependent; not all signals will be available in all systems; in case of doubt, see your system documentation for information on which signals are available.
+
+    The above functions are atomic, meaning that when they return to the caller, the signal handling thread has already acknowledged the changes.
+
+    It is not possible to set signal masks per thread; all signals are delivered to the signal handling thread. Signals not handled with a %Qore signal handler are handled with their default action. It is not possible to catch \c SIGPIPE. \c SIGPIPE is always ignored in Qore.
+
+    Some issues to be aware of in signal handlers:
+    - Thread-local storage is not persistent in signal handlers; it is deleted after every signal handler is run.
+    - A signal handler that does not terminate will block the execution of further signal handlers and will block signal handling changes (such as updating the signal mask), resulting in a %Qore process that must be killed manually. Because all %Qore signal handling code is executed serially in a single thread, %Qore signal handlers should execute and return quickly to give time to execute other handlers.
+    - Signal handlers may install or remove signal handlers using set_signal_handler() or remove_signal_handler(), however in this case, changes to signal handling are made after the signal handler returns.
+    - Signal handlers cannot call fork(); any attempt to call fork() in a signal handler will result in an an exception.
+    - fork() (called externally to a signal handler) is handled as follows: the signal handling thread is terminated, fork() is executed, all signals are masked in the primary thread in the new process, then the signal handling thread is resumed in both processes. No signals can be received or handled while the signal handling thread is terminated. After the fork(), the new process will have exactly the same signal handlers and signal masks as the parent process.
+    - Unhandled exceptions in signal handlers will simply be displayed on @ref stderr "stderr" as an unhandled exception and will have no other effect on %Qore or %Qore code (in particular, unhandled exceptions will not cause the signal handling thread to terminate).
+    - If a signal handler executes the @ref thread_exit "thread_exit statement", execution of the signal handler will terminate immediately, but the signal handling thread will not be stopped. Execution of further signal handlers (including that for the same signal being handled when @ref thread_exit "thread_exit" is executed) will not be affected.
+
+
 */
