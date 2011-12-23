@@ -1503,7 +1503,7 @@ QoreNamespace *get_thread_ns(QoreNamespace &qorens) {
    Thread->addSystemClass(initMutexClass(*Thread));
    //Thread->addSystemClass(initRMutexClass());
    Thread->addSystemClass(initConditionClass(AbstractSmartLock));
-   Thread->addSystemClass(RWLock = initRWLockClass(AbstractSmartLock));
+   Thread->addSystemClass(RWLock = initRWLockClass(*Thread));
    Thread->addSystemClass(initGateClass(*Thread));
    Thread->addSystemClass(initSequenceClass());
    Thread->addSystemClass(initCounterClass());

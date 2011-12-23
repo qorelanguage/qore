@@ -47,9 +47,12 @@ QC_Gate.cpp: QC_Gate.qpp qpp
 QC_AutoGate.cpp: QC_AutoGate.qpp qpp
 	$(QPP) $<
 
+QC_RWLock.cpp: QC_RWLock.qpp qpp
+	$(QPP) $<
+
 QORE_GENERATED_SOURCES = \
 	QC_Queue.cpp QC_Socket.cpp QC_File.cpp QC_AbstractSmartLock.cpp QC_Mutex.cpp QC_AutoLock.cpp \
-	QC_Gate.cpp QC_AutoGate.cpp
+	QC_Gate.cpp QC_AutoGate.cpp QC_RWLock.cpp
 
 CLEANFILES = $(QORE_GENERATED_SOURCES)
 

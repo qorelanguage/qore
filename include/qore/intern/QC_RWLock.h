@@ -30,6 +30,7 @@
 #include <qore/intern/RWLock.h>
 
 DLLEXPORT extern qore_classid_t CID_RWLOCK;
-DLLLOCAL QoreClass *initRWLockClass(QoreClass *AbstractSmartLock);
+DLLLOCAL extern QoreClass* QC_RWLOCK;
+DLLLOCAL QoreClass *initRWLockClass(QoreNamespace& ns);
 
 #endif // _QORE_CLASS_QORERWLOCK

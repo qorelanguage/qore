@@ -1,0 +1,286 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/*
+  QC_RWLock.qpp
+
+  Qore Programming Language
+
+  Copyright 2003 - 2011 David Nichols
+  
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+  
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+  
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
+#include <qore/Qore.h>
+#include <qore/intern/QC_RWLock.h>
+
+//! The RWLock class implements a read-write thread lock
+/** This class inherits AbstractSmartLock, so it can be used by @ref Qore::Thread::Condition "Condition" objects, while using either the read lock or the write lock.
+
+    The RWLock class implements a read-write lock for efficient thread locking when write actions must be atomic and reads can be made in parallel if no write is in progress. When a thread holds the write lock, no other thread can grab the read or write lock. Multiple threads can hold the read lock at one time.
+
+    As with all %Qore threading primitives, this class supports deadlock detection and throws exceptions when threading errors are encountered (for example, trying to free the read lock while holding the write lock, etc).
+
+    This read-write lock favors readers, so the read lock can be safely acquired recursively.
+
+    See the @ref Qore::Thread::AutoReadLock "AutoReadLock" and the @ref Qore::Thread::AutoWriteLock "AutoWriteLock" classes for classes that assist in exception-safe RWLock locking.
+
+    Additionally, the @ref on_exit "on_exit statement" can provide exception-safe RWLock handling at the lexical block level as in the following example:
+    @code
+{
+    $rwl.writeLock();
+    on_exit
+        $rwl.writeUnlock();
+
+    # ... when this block exits the lock will be released, even in the
+    #     case of return statements or exceptions
+}
+    @endcode
+
+    @note This class is not available with the @ref PO_NO_THREAD_CLASSES parse option.
+ */
+qclass RWLock [dom=THREAD_CLASS; arg=RWLock* rwl; ns=Thread; vparent=AbstractSmartLock];
+
+//! Creates the RWLock object
+/** 
+    @par Example
+    @code
+my RWLock $rwl();
+    @endcode
+ */
+RWLock::constructor() {
+   self->setPrivate(CID_RWLOCK, new RWLock);
+}
+
+//! Destroys the RWLock object
+/** Note that it is a programming error to delete this object while other threads are blocked on it; in this case an exception is thrown in the deleting thread, and in each thread blocked on this object when it is deleted.
+
+    @par Example
+    @code
+delete $rwl;
+    @endcode
+
+    @throw LOCK-ERROR Object deleted while other threads blocked on it
+ */
+RWLock::destructor() {
+   rwl->destructor(xsink);
+   rwl->deref(xsink);
+}
+
+//! Creates a new RWLock object, not based on the original
+/** 
+    @par Example
+    @code
+my RWLock $new_rwl = $rwl.copy();
+    @endcode
+ */
+RWLock::copy() {
+   self->setPrivate(CID_RWLOCK, new RWLock);
+}
+
+//! Acquires the read lock; blocks if the write lock is already acquired by another thread
+/** 
+    @par Example
+    @code
+$rwl.readLock();
+    @endcode
+
+    @throw THREAD-DEADLOCK A deadlock was detected while trying to acquire the lock
+    @throw LOCK-ERROR RWLock::readLock() called while already holding the write lock, object deleted in another thread, etc.
+ */
+nothing RWLock::readLock() {
+   rwl->readLock(xsink);
+}
+
+//! Acquires the read lock with a timeout value; blocks if the write lock is already acquired by another thread
+/** Returns 0 for success, non-zero for timeout; exceptions are thrown for other errors
+
+    @param timeout_ms a @ref timeout_type "timeout" value to wait to acquire the read lock; integers are interpreted as milliseconds; @ref relative_dates "relative date/time values" are interpreted literally (with a resolution of milliseconds)
+
+    @return 0 for success, non-zero for timeout; exceptions are thrown for other errors
+
+    @par Example
+    @code
+if ($rwl.readLock(1500ms))
+    throw "TIMEOUT", "timed out after 1.5s waiting for the read lock";
+    @endcode
+
+    @throw THREAD-DEADLOCK A deadlock was detected while trying to acquire the lock
+    @throw LOCK-ERROR RWLock::readLock() called while already holding the write lock, object deleted in another thread, etc.
+ */
+int RWLock::readLock(timeout timeout_ms) {
+   return rwl->readLock(xsink, timeout_ms);
+}
+
+//! Decrements the read lock counter and releases the read lock if the counter is zero. If at least one thread is blocked trying to acquire the write lock and the read counter reaches zero, then one thread waiting on the write lock is woken up
+/** 
+    @par Example
+    @code
+$rwl.readUnlock();
+    @endcode
+
+    @throw LOCK-ERROR RWLock::readUnlock() called while not holding the read lock, object deleted in another thread, etc
+ */
+nothing RWLock::readUnlock() {
+   rwl->readUnlock(xsink);
+}
+
+//! Acquires the write lock with a timeout value; blocks if the read lock is already acquired by another thread
+/** Returns 0 for success, non-zero for timeout; exceptions are thrown for other errors
+
+    @param timeout_ms a @ref timeout_type "timeout" value to wait to acquire the write lock; integers are interpreted as milliseconds; @ref relative_dates "relative date/time values" are interpreted literally (with a resolution of milliseconds)
+
+    @return 0 for success, non-zero for timeout; exceptions are thrown for other errors
+
+    @par Example
+    @code
+if ($rwl.writeLock(1500ms))
+    throw "TIMEOUT", "timed out after 1.5s waiting for the write lock";
+    @endcode
+
+    @throw THREAD-DEADLOCK A deadlock was detected while trying to acquire the lock
+    @throw LOCK-ERROR RWLock::writeLock() called while already holding the read lock, object deleted in another thread, etc.
+ */
+int RWLock::writeLock(timeout timeout_ms) {
+   return rwl->grab(xsink, timeout_ms);
+}
+
+//! Acquires the write lock; blocks if the read lock is already acquired by another thread
+/** 
+    @par Example
+    @code
+$rwl.writeLock();
+    @endcode
+
+    @throw THREAD-DEADLOCK A deadlock was detected while trying to acquire the lock
+    @throw LOCK-ERROR RWLock::writeLock() called while already holding the read lock, object deleted in another thread, etc.
+ */
+nothing RWLock::writeLock() {
+   rwl->grab(xsink);
+}
+
+//! Releases the write lock, if any readers are waiting, wakes up all readers, otherwise if any writers are waiting, then wakes one up
+/** 
+    @par Example
+    @code
+$rwl.writeUnlock();
+    @endcode
+
+    @throw LOCK-ERROR RWLock::writeUnlock() called while not holding the write lock, object deleted in another thread, etc
+ */
+nothing RWLock::writeUnlock() {
+   rwl->release(xsink);
+}
+
+//! Acquires the read lock only if it can be acquired immediately
+/** @return 0 for success (read lock acquired, read lock count incremented) or -1 if the call would block (write lock owned by another thread) or an error occured
+
+    @par Example
+    @code
+if (!$rwl.tryReadLock()) {
+    on_exit $rwl.readUnlock();
+}
+    @endcode
+ */
+int RWLock::tryReadLock() {
+   return rwl->tryReadLock();
+}
+
+//! Acquires the write lock only if it can be acquired immediately
+/** @return 0 for success (write lock acquired) or -1 if the call would block (read lock owned by another thread) or an error occured
+    @par Example
+    @code
+if (!$rwl.tryWriteLock()) {
+    on_exit $rwl.writeUnlock();
+}
+    @endcode
+ */
+int RWLock::tryWriteLock() {
+   return rwl->tryGrab();
+}
+
+//! Returns the read lock count
+/** 
+    @return the read lock count
+
+    @par Example
+    @code
+my int $num = $rwl.numReaders();
+    @endcode
+ */
+int RWLock::numReaders() [flags=QC_CONSTANT] {
+   return rwl->numReaders();
+}
+
+//! Returns the number of threads waiting on the read lock
+/** @return the number of threads waiting on the read lock
+
+    @par Example
+    @code
+my int $num = $rwl.getReadWaiting();
+    @endcode
+ */
+int RWLock::getReadWaiting() [flags=QC_CONSTANT] {
+   return rwl->getReadWaiting();
+}
+
+//! Returns the number of threads waiting on the write lock
+/** @return the number of threads waiting on the write lock
+
+    @par Example
+    @code
+my int $num = $rwl.getWriteWaiting();
+    @endcode
+ */
+int RWLock::getWriteWaiting() [flags=QC_CONSTANT] {
+   return rwl->getWriteWaiting();
+}
+
+//! Returns \c True if the current thread is holding either the read lock or the write lock, \c False if not
+/** @return \c True if the current thread is holding either the read lock or the write lock, \c False if not
+
+    @par Example
+    @code
+if ($rwl.lockOwner())
+    printf("TID %d has either the read lock or the write lock\n", gettid());
+    @endcode
+ */
+bool RWLock::lockOwner() [flags=QC_CONSTANT] {
+   return rwl->lockOwner();
+}
+
+//! Returns \c True if the current thread is holding the read lock, \c False if not
+/** @return \c True if the current thread is holding the read lock, \c False if not
+
+    @par Example
+    @code
+if ($rwl.readLockOwner())
+    printf("TID %d has the read lock\n", gettid());
+    @endcode
+ */
+bool RWLock::readLockOwner() [flags=QC_CONSTANT] {
+   return rwl->readLockOwner();
+}
+
+//! Returns \c True if the current thread is holding the write lock, \c False if not
+/** @return \c True if the current thread is holding the write lock, \c False if not
+
+    @par Example
+    @code
+if ($rwl.writeLockOwner())
+    printf("TID %d has the write lock\n", gettid());
+    @endcode
+ */
+bool RWLock::writeLockOwner() [flags=QC_CONSTANT] {
+   return rwl->writeLockOwner();
+}
