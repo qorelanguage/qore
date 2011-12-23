@@ -1,0 +1,35 @@
+/** @page qore_regex Regular Expressions
+
+    Regular expression functionality in %Qore is provided by <a href="http://www.pcre.org">PCRE: Perl-Compatible Regular Expression library</a>.
+
+    Using this library, %Qore implements regular expression pattern matching using the same syntax and semantics as <a href="http://www.perl.org">Perl 5</a>.
+
+    The following is a list of operators based on regular expressions (or similar to regular expressions in the case of the transliteration operator).
+
+    <b>Regular Expression Operators</b>
+    |!Operator|!Description
+    |@ref regex_match_operator|Returns \c True if the regular expression matches a string
+    |@ref regex_no_match_operator|Returns \c True if the regular expression does not match a string
+    |@ref regex_subst_operator|Substitutes text in a string based on matching a regular expression
+    |@ref regex_extract_operator|Returns a list of substrings in a string based on matching patterns defined by a regular expression
+    |@ref transliteration_operator|Not a regular expression operator; transliterates one or more characters to other characters in a string
+
+    See the table below for valid regular expression options.
+
+    @anchor regex_options
+    <b>Regular Expression Options</b>
+    |!Option|!Description
+    |\c i|Ignores case when matching
+    |\c m|makes start-of-line (<tt>^</tt>) or end-of-line (<tt>$</tt>) match after or before any newline in the subject string
+    |\c s|makes a dot (<tt>.</tt>) match a newline character
+    |\c x|ignores whitespace characters and enables comments prefixed by <tt>#</tt>
+    |\c g|makes global substitutions (only applicable with the substitution operator)
+
+    The following is a list of functions providing regular expression functionality where the pattern may be given at run-time:
+
+    <b>Regular Expression Functions</b>
+    |!Function|!Description
+    |regex()|Returns \c True if the regular expression matches a string
+    |regex_subst()|Substitutes a pattern in a string based on regular expressions and returns the new string
+    |regex_extract()|Returns a list of substrings in a string based on matching patterns defined by a regular expression
+*/

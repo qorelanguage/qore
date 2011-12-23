@@ -1,0 +1,85 @@
+/** @page threading Threading
+
+    A thread is an independent sequence of execution of Qore code within a Qore program or script. Each thread has a thread ID or TID.
+
+    The first thread of execution in a Qore program has TID 1. TID 0 is always reserved for the special @ref signal_handling "signal handler thread".
+
+    The %Qore language is designed to be thread-safe and %Qore programs should not crash the %Qore executable due to threading errors. Threading errors should only cause exceptions to be thrown or application errors to occur.
+
+    Threading functionality in %Qore is provided by the operating system's POSIX threads library.
+
+    @section creating_and_terminating_threads Creating and Terminating Threads
+
+    New threads are created with the @ref background "background operator". This operator executes the expression given as an argument in a new thread and returns the TID (integer thread ID) of the new thread to the calling thread. This is most useful for calling user functions or object methods designed to run in a separate thread.
+
+    To terminate a thread, the @ref thread_exit "thread_exit statement" should be called, as calling the exit() function will terminate the entire process (and therefore all threads) immediately.
+
+    @section threading_and_variables Threading and Variables
+
+    All global variables are shared in %Qore programs, while local variables (declared with \c\b my) are generally local to each thread (and thus accessed without any mutual-exclusion locking), regardless of location. This means that if a variable is declared with \c\b my at the top level, it will actually have global scope, but also each thread will have its own copy of the variable. In effect, declaring a top-level local variable with \c\b my actually creates a global thread-local variable.
+
+    The following code gives an example of declaring a global thread-local variable by using \c\b my at the top-level:
+
+    @code
+%require-our
+sub t() {
+    printf("x=%y\n", $x);
+}
+my int $x = 2;
+t();
+background t();
+    @endcode
+
+    This will print out:
+    @verbatim
+x=2
+x=null@endverbatim
+
+    Note that the second time the local variable is accessed in the background thread, it has no value.
+
+    Due to the way %Qore's local variables work, it is illegal to declare a top-level local variable after first block is parsed in the program; that is; if any call to parse() or Qore::Program::parse() is made in an existing program (where a top-level block already exists), and an attempt to declare a new top-level local variable is made, then a \c ILLEGAL-TOP-LEVEL-LOCAL-VARIABLE parse exception will be raised.
+
+    Access to global variables in qore is wrapped in mutual-exclusion locks to guarantee safe access to global variable data in a multithreaded context. Local variables are thread-local and therefore not locked, except when referenced in a @ref closure "closure", in which case the local variable's scope is extended to that of the @ref closure "closure's", and all accesses to the bound local variable are made within mutual-exclusion locks as these variables may be used in multithreaded contexts.
+
+    An alternative to global thread-local variables is offered by the save_thread_data() and get_thread_data() functions (documented in @ref threading_functions).
+
+    @section thread_synchronization Thread Synchronization and Inter-Thread Communication
+
+    @anchor synchronized
+    @par synchronized
+    The \c\b synchronized keyword can be used before function or class method definitions in order to guarantee that the function or method call will only be executed in one thread at a time. As in Java, this keyword can also be used safely with recursive functions and methods (internally a recursive mutual exclusion lock that participates in %Qore's deadlock detection framework is used to guarantee thread-exclusivity and allow recursion).
+
+    @par Classes Useful With Threading
+    The following classes are useful when developing multi-threaded %Qore programs:\n
+    |!Class|!Description
+    |@ref Qore::Thread::Mutex "Mutex"|A mutual-exclusion thread lock
+    |@ref Qore::Thread::Gate "Gate"|A recursive thread lock
+    |@ref Qore::Thread::RWLock "RWLock"|A read-write thread lock
+    |@ref Qore::Thread::Condition "Condition"|Allows %Qore programs to block until a certain condition becomes true
+    |@ref Qore::Thread::Counter "Counter"|A blocking counter class
+    |@ref Qore::Queue "Queue"|A thread-safe, blocking queue class (useful for message passing)
+    |@ref Qore::Thread::Sequence "Sequence"|A simple, thread-atomic sequence object (increment-only)
+    |@ref Qore::Thread::AutoLock "AutoLock"|A helper class to automatically release @ref Qore::Thread::Mutex "Mutex" locks when the @ref Qore::Thread::AutoLock "AutoLock" object is deleted
+    |@ref Qore::Thread::AutoGate "AutoGate"|A helper class to automatically exit @ref Qore::Thread::Gate "Gate" locks when the @ref Qore::Thread::AutoGate "AutoGate" object is deleted
+    |@ref Qore::Thread::AutoReadLock "AutoReadLock"|A helper class to automatically release read locks when the @ref Qore::Thread::AutoReadLock "AutoReadLock" object is deleted
+    |@ref Qore::Thread::AutoWriteLock "AutoWriteLock"|A helper class to automatically release read locks when the @ref Qore::Thread::AutoReadLock "AutoWriteLock" object is deleted
+
+    @par Functions Useful With Threading
+    The following functions assist writing safe and efficient multi-threaded %Qore programs:\n
+    |!Function|!Description
+    |save_thread_data()|Saves a thread-local value against a key.
+    |get_all_thread_data()|Retrieves the entire thread-local hash.
+    |get_thread_data()|Retrieves a thread-local value based on a key.
+    |delete_all_thread_data()|Deletes the entire thread-local data hash.
+    |delete_thread_data()|Delete the value of a key in the thread-local data hash.
+    |gettid()|Gets the thread's TID (thread identifier)
+    |thread_list()|Returns a list of TIDs of running threads
+    |num_threads()|Returns the number of running threads
+    |throwThreadResourceExceptions()|runs thread-resource cleanup routines and throws the associated exceptions
+
+    @section deadlocks Deadlocks
+
+    %Qore supports deadlock detection in complex locking scenarios and will throw a \c THREAD-DEADLOCK exception rather than allow an operation to be performed that would cause a deadlock. Deadlock detection is implemented for internal locking (global variable and object access), @ref synchronized "synchronized" methods and functions, etc, as well as for all %Qore threading classes.
+
+    %Qore can only detect deadlocks when a lock resource acquired by one thread is required by another who holds a lock that the first thread also needs. Other errors such as forgetting to unlock a global lock and trying to acquire that lock in another thread cannot be differentiated from valid use of threading primitives and will result in a process that never terminates (a deadlocked process). However, common threading errors such as trying to lock the same @ref Qore::Thread::Mutex "Mutex" twice in the same thread without unlocking it between the two @ref Qore::Thread::Mutex::lock() "Mutex::lock()" calls are caught in %Qore and exceptions are thrown. Additionally, locks are tracked as thread resources, so if a thread terminates while holding a lock, an exception will be thrown and the lock will be automatically released.
+*/

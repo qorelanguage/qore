@@ -1,0 +1,30 @@
+/** @page comments Comments
+
+    Comments are allowed in %Qore scripts; line comments are preceded by a hash \c "#", and block comments are made C-style, ex:
+
+    @code
+# this is a line comment
+/* 
+   this is a block comment 
+*/
+    @endcode
+
+    For line comments, all text following a hash until the end-of-line character \c "\n" is considered a part of the comment.
+
+    For block comments, all text in the block comment is ignored by the parser.
+
+    Here is an example %Qore script containing comments:
+
+    @code
+#!/usr/bin/env qore
+#
+# these are line comments
+# another line comment
+
+/*
+   --- this text is in block comments
+   print("hello"); <- this won't get executed 
+   --- because it's in the block comment
+*/
+    @endcode
+*/

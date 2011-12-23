@@ -1,0 +1,30 @@
+/** @page desc_overview Language Overview
+
+    A %Qore program is composed of a series of declarations, statements, function definitions, and/or class definitions. Non-block statements are terminated by a semi-colon ";". Block statements are grouped by using curly brackets ("{" and "}"), as in C, C++, Java, and Perl.
+
+    Programmers familiar with C, C++, Java, and/or Perl should find the standard %Qore syntax intuitive and should be productive fairly quickly with the language. However %Qore has unique features that differentiate it from other languages, and these features must be mastered in order to leverage the full power of %Qore.
+
+    %Qore programs/scripts are free form. Formatting does not affect the execution of the program; formatting is at the discretion of the programmer and should be used to enhance readability and clarity of the source code.
+
+    %Qore was created as a weakly typed language. That means that @ref variables "variables" (without type restrictions) can hold values of any type and functions (without a return type restriction or parameter type descriptions) can return any data type and take arguments of any type. Furthermore list elements can be of any type (they do not have to be uniform), and multidimensional lists can have a different number of elements in each list. The same type flexibility holds true of hashes, objects, and all combinations of container types.
+
+    %Qore also allows variable, parameter, class member, and return types to be declared, so that APIs can be formally defined or the programmer can decide to declare types to catch more errors at parse time (which is often preferable to discovering a type error at runtime).
+
+    %Qore can be used as a traditional function-based scripting language or as a pure object-oriented language, where the application is defined as a class. Aside from traditional local and global variables, constants, and functions, %Qore also supports nested @ref namespaces "namespaces", @ref classes "classes", @ref inheritance "multiple inheritance", overriding base class constructor arguments, public and private @ref class_members "members" and @ref class_methods "methods", @ref static_class_methods "static class methods", and @ref static_class_variables "static class variables".
+
+    All elements of %Qore are designed to work together: @ref Qore::Datasource "database access", @ref Qore::Socket "socket communication", @ref Qore::Program "embedding logic in subprograms", @ref regular_expressions "regular expressions", @ref operators "operators", @ref function_library "functions", and all other elements are thread-safe and built on an execution engine that was designed for SMP scalability.
+
+    %Qore automatically converts data types when necessary when evaluating operators. The goal is to provide the expected result for the programmer without requiring the programmer to explicitly convert data types. Please see @ref operators for more information.
+
+    %Qore supports @ref signal_handling "signal handling" by executing %Qore-language signal handlers in special @ref signal_handling "single-handling thread".
+
+    UNIX operating systems allow an executable script to specify their interpreter. This is done by setting the first line in the program to a special string indicating the location of the %Qore binary. For the purposes of this document, the location for the %Qore binary is assumed to be \c /usr/bin/qore. The first line of %Qore scripts in this case should look as follows:
+
+    @code
+#!/usr/bin/qore
+    @endcode
+
+    If another installation directory is used (such as \c /usr/local/bin), then the correct path must be reflected in the first line of the %Qore script.
+
+    %Qore convention dictates that %Qore script file names end with \c ".q".
+*/

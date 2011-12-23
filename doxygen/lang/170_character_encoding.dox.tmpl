@@ -1,0 +1,64 @@
+/** @page character_encoding Strings and Character Encoding
+
+    @section character_encoding_overview Overview
+
+    The %Qore language is character-encoding aware. All strings are assumed to have the default character encoding, unless the program explicitly specified another encoding for certain objects and operations. Every %Qore string has a character encoding ID attached to it, so, when another encoding is required, the %Qore language will attempt to do an encoding translation.
+
+    %Qore uses the operating system's \c iconv library functions to perform any encoding conversions.
+
+    %Qore supports character encodings that are backwards compatible with 7-bit \c ASCII. This includes all \c ISO-8859-* character encodings, \c UTF-8, \c KOIR-8, \c KOIU-8, and \c KOI7, among others (see the table below: @ref known_encodings "Known Character Encodings").
+
+    However, mutibyte character encodings are currently only properly supported for \c UTF-8. For \c UTF-8 strings, the length(), index(), rindex(), substr(), reverse(), the @ref splice "splice operator", @ref printf_formatting "print formatting" (regarding field lengths) functions and methods taking format strings, and regular expression operators and functions, all work with character offsets, which may be different than byte offsets. For all character encodings other than \c UTF-8, a 1 byte=1 character relationship is assumed.
+
+    %Qore will accept any encoding name given to it, even if it is not a known encoding name or alias. In this case, %Qore will tag the strings with this encoding, and pass this user-defined encoding name to the \c iconv library when encodings must be converted. This allows programmers to use encodings known by the system's \c iconv library, but unknown to %Qore. In this case, %Qore will assume that the strings are backwards compatible with \c ASCII, meanin that that one character is represented by one byte and that the strings are null-terminated.
+
+    Note that when %Qore matches an encoding name to a code or alias in the following table, the comparison is not case-sensitive.
+
+    @section known_encodings Character Encodings Known to Qore
+
+    |!Code|!Aliases|!Description
+    |\c ISO-8859-1|\c ISO88591, \c ISO8859-1, \c ISO-88591, \c ISO8859P1, \c ISO81, \c LATIN1, \c LATIN-1|latin-1, Western European character set
+    |\c ISO-8859-2|\c ISO88592, \c ISO8859-2, \c ISO-88592, \c ISO8859P2, \c ISO82, \c LATIN2, \c LATIN-2|latin-2, Central European character set
+    |\c ISO-8859-3|\c ISO88593, \c ISO8859-3, \c ISO-88593, \c ISO8859P3, \c ISO83, \c LATIN3, \c LATIN-3|latin-3, Southern European character set
+    |\c ISO-8859-4|\c ISO88594, \c ISO8859-4, \c ISO-88594, \c ISO8859P4, \c ISO84, \c LATIN4, \c LATIN-4|latin-4, Northern European character set
+    |\c ISO-8859-5|\c ISO88595, \c ISO8859-5, \c ISO-88595, \c ISO8859P5, \c ISO85|Cyrillic character set
+    |\c ISO-8859-6|\c ISO88596, \c ISO8859-6, \c ISO-88596, \c ISO8859P6, \c ISO86|Arabic character set
+    |\c ISO-8859-7|\c ISO88597, \c ISO8859-7, \c ISO-88597, \c ISO8859P7, \c ISO87|Greek character set
+    |\c ISO-8859-8|\c ISO88598, \c ISO8859-8, \c ISO-88598, \c ISO8859P8, \c ISO88|Hebrew character set
+    |\c ISO-8859-9|\c ISO88599, \c ISO8859-9, \c ISO-88599, \c ISO8859P9, \c ISO89, \c LATIN5, \c LATIN-5|latin-5, Turkish character set
+    |\c ISO-8859-10|\c ISO885910, \c ISO8859-10, \c ISO-885910, \c ISO8859P10, \c ISO810, \c LATIN6, \c LATIN-6|latin-6, Nordic character set
+    |\c ISO-8859-11|\c ISO885911, \c ISO8859-11, \c ISO-885911, \c ISO8859P11, \c ISO811|Thai character set
+    |\c ISO-8859-13|\c ISO885913, \c ISO8859-13, \c ISO-885913, \c ISO8859P13, \c ISO813, \c LATIN7, \c LATIN-7|latin-7, Baltic rim character set
+    |\c ISO-8859-14|\c ISO885914, \c ISO8859-14, \c ISO-885914, \c ISO8859P14, \c ISO814, \c LATIN8, \c LATIN-8|latin-8, Celtic character set
+    |\c ISO-8859-15|\c ISO885915, \c ISO8859-15, \c ISO-885915, \c ISO8859P15, \c ISO815, \c LATIN9, \c LATIN-9|latin-9, Western European with euro symbol
+    |\c ISO-8859-16|\c ISO885916, \c ISO8859-16, \c ISO-885916, \c ISO8859P16, \c ISO816, \c LATIN10, \c LATIN-10|latin-10, Southeast European character set
+    |\c KOI7|n/a|Russian: Kod Obmena Informatsiey, 7 bit characters
+    |\c KOI8-R|\c KOI8R|Russian: Kod Obmena Informatsiey, 8 bit
+    |\c KOI8-U|\c KOI8U|Ukrainian: Kod Obmena Informatsiey, 8 bit
+    |\c US-ASCII|\c ASCII, USASCII|7-bit ASCII character set
+    |\c UTF-8|\c UTF8|variable-width universal character set
+
+    @section default_encoding Default Character Encoding
+
+    The default character encoding for %Qore is determined by environment variables.
+
+    First, the \c QORE_CHARSET environment variable is checked. If it is set, then this character encoding will be the default character encoding for the process. If not, then the \c LANG environment variable is checked. If a character encoding is specified in the \c LANG environment variable, then it will be used as the default character encoding. Otherwise, if no character encoding can be derived from the environment, \c UTF-8 is assumed.
+
+    Character encodings are automatically converted by the %Qore language when necessary. Encoding conversion errors will cause a %Qore exception to be thrown. The character encoding conversions supported by %Qore depend on the operating system's \c iconv library function.
+
+    @note The get_default_encoding() function will return the default encoding for the Qore process.
+
+    @section encoding_examples Character Encoding Usage Examples
+
+    The following is a non-exhaustive list of examples in %Qore where character encoding processing is performed.
+
+    Character encodings can be explicitly performed with the convert_encoding() function, and the encoding attached to a string can be checked with the get_encoding() function. If you have a string with incorrect encoding and want to change the encoding tag of the string (without changing the actual bytes of the string), use the force_encoding() function.
+
+    get_default_encoding() returns the default encoding for the Qore process.
+
+    The @ref Qore::Datasource, @ref Qore::DatasourcePool, and @ref Qore::SQLStatement classes will translate character encodings to the encoding required by the database if necessary as well (this is actually the responsibility of the DBI driver for the database in question).
+
+    The @ref Qore::File and @ref Qore::Socket classes translate character encodings to the encoding specified for the object if necessary, as well as tagging strings received or read with the object's encoding.
+
+    The @ref Qore::HTTPClient class will translate character encodings to the encoding specified for the object if necessary, as well as tag strings received with the object's encoding. Additionally, if an HTTP server response specifies a specific encoding to use, the encoding of strings read from the server will be automatically set to this encoding as well.
+*/

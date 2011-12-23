@@ -1,0 +1,49 @@
+/** @page time_zones Time Zone Handling
+    
+    %Qore assumes a default time zone for all programs when it starts up. The rules for determining the default time zone are similar to those for the C library in most UNIX or UNIX-like operating systems.
+
+    @section unix_time_zones UNIX Time Zone Handling
+
+    If the \c TZ environment variable is defined, then the contents of that variable are used to find a zoneinfo file that contains the time zone definition. If this file cannot be found, then the default time zone will default to \c UTC.
+
+    If the \c TZ environment variable is not defined or is empty, then the %Qore library tries to find the default zoneinfo definition file (normally \c /etc/localtime). If found, this file is read in and provides the information about the local time zone. If not found, the default time zone will default to \c UTC.
+
+    When a zoneinfo file is found, information about local time zone names and daylight savings time is available for times tagged with that time zone.
+
+    Note that posix-style time zone rules are not understood if assigned to the \c TZ environment variable, only file names to a zoneinfo file can be processed at the moment. Furthermore if the zoneinfo file contains leap second information, it is currently ignored.
+
+    @section windows_time_zones Windows Time Zone Handling
+
+    Time zone information is read in from binary time zone data in the Windows registry under:\n
+    - <tt>HKEY_LOCAL_MACHINE SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Time Zones</tt>
+
+    Time zone region names must correspond to registry keys under the above key or the time zone information will not be loaded.
+
+    The region name reported by Qore::TimeZone::region() will be the display name for the time zone, as found in the registry.
+
+    For example:
+
+    @verbatim
+O:\bin>qore -ne "TimeZone tz('Central Europe Standard Time'); printf(\"%s\n\", tz.region());"
+(GMT+01:00) Belgrade, Bratislava, Budapest, Ljubljana, Prague@endverbatim
+
+    This differs from UNIX where the region name passed to the TimeZone constructor is the same region name that appears in the @ref Qore::TimeZone::region() output; this is because Windows uses \c "Standard Time" in the key name in the registry, even though the underlying zone definition is for both standard and daylight savings time.
+
+    @note Please be aware that the region names may differ in localized versions of Windows
+
+    @section time_zone_examples More Time Zone Information and Examples
+
+    See the @ref Qore::TimeZone class for information about retrieving, setting, and querying time zone information; see @ref date_and_time_functions for a list of functions related to date/time processing.
+
+    Here are some examples using %Qore's '-X' option for evaluating an expression and displaying the result immediately:
+
+    @verbatim
+prompt% TZ=America/Chicago qore -X 'now_us()'
+2010-05-11 06:14:28.845857 Tue -05:00 (CDT)
+prompt% TZ=Europe/Rome qore -X 'now_us()'
+2010-05-11 13:14:35.070568 Tue +02:00 (CEST)
+prompt% TZ=Australia/Sydney qore -X 'now_us()'
+2010-05-11 21:14:45.422222 Tue +10:00 (EST)
+prompt% TZ=Asia/Tokyo qore -X 'now_us()'
+2010-05-11 20:14:59.609249 Tue +09:00 (CJT)@endverbatim
+*/

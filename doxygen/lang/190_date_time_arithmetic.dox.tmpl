@@ -1,0 +1,56 @@
+/** @page date_time_arithmetic Date/Time Arithmetic
+
+    Date/time arithmetic is relatively straightforward and should normally produce the expected results. However with leap years, months with different lengths, and daylights savings time the situation can be confusing; this section will clarify how %Qore does date arithmetic considering these special cases.
+
+    @section date_time_arithmetic_adding_years_months Adding and Subtracting Years and Months
+
+    Adding or subtracting years and months (ex: <tt>$date += 2Y + 3M</tt>) will give you the same day on the desired month in the desired year. If the target month has fewer days than the source month, then you will get the last day of the month in that year. For example:
+
+    @verbatim
+prompt% qore -X '2004-02-29Z - 1Y'
+2003-02-28 00:00:00 Fri Z (UTC)@endverbatim
+
+    @section date_time_arithmetic_days Adding and Subtracting Days
+
+    Adding or subtracting days means adding or subtracting 24h periods; i.e. you will get the same time in the result of subtracting days, for example:
+
+    @verbatim
+prompt% qore -X '2004-02-29T10:15:00Z - 10D'
+2004-02-19 10:15:00 Thu Z (UTC)@endverbatim
+
+    @section date_time_arithmetic_difference Finding the Difference Between Two Dates
+
+    Subtracting one @ref absolute_dates "absolute date" from another will result in a @ref relative_dates "relative date", normalized to the hour (that is, microseconds over 999,999 are converted to seconds, seconds over 59 to minutes, and minutes over 59 to hours; days, months, and years will not appear in the result as they do not indicate a fixed period of time but rather can vary in length depending on the absolute date/time starting point. For example:
+
+    @verbatim
+prompt% qore -X '2007-02-29T10:15:03.255Z - 2004-02-29T10:14:02.100Z'
+<time: 26304 hours 1 minute 1 second 155 milliseconds>@endverbatim
+
+    To find the difference in seconds between two dates, convert each date value to an integer and subtract as follows:
+
+    @verbatim
+prompt% qore -X 'int(2004-02-29Z) - int(2004-02-28Z)'
+86400@endverbatim
+
+    Or use the get_duration_seconds() function as follows:
+
+    @verbatim
+prompt% qore -X 'get_duration_seconds(2004-02-29Z - 2004-02-28Z)'
+86400@endverbatim
+
+    @section date_time_arithmetic_zones Timezones and Daylight Savings Time
+
+    Time zones and daylight savings time information is supplied by the system's zoneinfo database (if any exists; see @ref time_zones for more information).
+
+    To find out if the current time zone has daylight savings time, execute the following:
+
+    @verbatim
+prompt% qore -X 'TimeZone::get().hasDST()'
+True@endverbatim
+
+    See the Qore::TimeZone class for more information on time zone information.
+
+    @section date_time_arithmetic_leap_years Leap Years and the Gregorian Calendar
+
+    %Qore is capable of representing and performing calculations on dates before the adoption of the Gregorian calendar (proposed in 1582 and adopted at various times in Europe after this point). However all calculations are made as if the Gregorian calendar were always in effect (%Qore implements a <a href="http://en.wikipedia.org/wiki/Proleptic_Gregorian_calendar">proleptic Gregorian calendar</a>).
+*/

@@ -1,0 +1,210 @@
+/** @page basic_data_types Basic Data Types
+
+    The following are the basic data types in %Qore (see @ref container_data_types for container data types):
+
+    <b>Basic Data Types</b>
+    |!Type|!Description|!Example|!Default Value
+    |@ref boolean|\c True or \c False value|\c True|\c False
+    |@ref string|A sequence of characters with an encoding|\c "string"|Empty string (i.e. \c "")
+    |@ref integer|A 64-bit signed integer|\c 1|\c 0
+    |@ref float|A double-precision floating-point number|\c 1.00023|\c 0.0
+    |@ref date|A date/time value with an optional time zone component, with resolution to the microsecond|\c 2010-05-10T18:35:21.001456-07:00|\c 1970-01-01Z
+    |@ref binary|An opaque binary object|<tt><23deadbeef></tt>|an empty object of size 0
+    |@ref null|Corresponds to a \c NULL value in a database query (not equivalent to @ref nothing|\c NULL|\c NULL
+    |@ref nothing|Represents the state of a variable having no value or function returning no value (not equivalent to @ref null)|\c NOTHING|\c NOTHING
+
+    <hr>
+    @section boolean Boolean
+
+    The Boolean type can have two values, \c True and \c False.
+
+    When converting other types to a Boolean, any value that converts to a non-zero integer will be evaluated as \c True. Otherwise the result of the conversion will be \c False.
+
+    @see @ref bool_type, @ref softbool_type
+
+    <hr>
+    @section string String
+
+    String values are specified with text between double or single quotes. Text between double quotes is subject to interpretation of escape characters; text between single quotes is not with the exception of the single quote character, which may be escaped (ex: <tt>'hello \'there\''</tt>).
+
+    Strings are assumed by default to have the encoding given by the \c QORE_CHARSET or the \c LANG environment variable (see @ref environment_variables). If neither of these variables is set, then all strings will be assumed to have \c UTF-8 encoding.
+
+    For detailed information on %Qore character encoding handling, please see @ref character_encoding.
+
+    It is legal to specify a string literal with newline characters like the following:
+
+    @code
+$str = "this string
+on more than 1 line";
+    @endcode
+
+    Internally, strings are stored as a pointer to the string data, an unsigned integer giving the length of the string, and a pointer to an encoding object, giving the string's character encoding.
+
+    @see @ref string_type, @ref softstring_type
+
+    <hr>
+    @section integer Integer
+
+    %Qore integers are 64-bit signed integers.
+
+    @see @ref int_type, @ref softint_type
+
+    <hr>
+    @section float Float
+
+    %Qore floats are double precision floating-point numbers (C/C++ type double), normally a 64-bit value.
+
+    @see @ref float_type, @ref softfloat_type
+
+    <hr>
+    @section date Date
+
+    %Qore dates have a time component supporting a resolution to the microsecond and can be either absolute or relative.
+
+    @see @ref date_and_time_functions for a list of functions related to date/time processing.
+
+    @section absolute_dates Absolute Date/Time Values
+    Absolute date/time values specify a specific point in time in a certain time zone, such as January 1, 2005 10:35:00 +01:00. They are stored interally as a 64-bit signed offset from the %Qore epoch (\c 1970-01-01Z), a positive 4-byte integer for microseconds, and a pointer to a time zone description object that provides the UTC offset and daylight savings time information (see @ref time_zones for more information). Note that all absolute date/time values in %Qore are stored internally in UTC and are converted for display purposes to the representation of wall time in their tagged time zone.
+
+    Absolute date/time values can be specified with a syntax based on ISO-8601 date formats as follows:
+
+    @verbatim
+YYYY-MM-DD[THH:mm:SS[.n*]][Z|[+-]HH[:mm[:SS]]]@endverbatim
+
+    Note that if no time zone information is given, the local time zone will be assumed. If a time zone UTC offset is given, it is given in units of time east of UTC (i.e. \c +05:00 means five hours east of UTC).
+
+    Or an alternative format (with a '-' instead ofa 'T' to separate the time component):
+
+    @verbatim
+YYYY-MM-DD[-HH:mm:SS[.n*]][Z|[+-]HH[:mm[:SS]]]@endverbatim
+
+    for example, for just the date in UTC, without a time component:
+    - \c 2010-05-26
+
+    or, for just the time, without a date component (note that in this case the date component will be set to Jan 1, 1970, in order for time arithmetic to function properly and will also be tagged with the local time zone):
+    - \c 20:05:10.458342
+
+    Some further examples (note that the date/time values without a time zone specification here are tagged with the local time zone):
+
+    @code
+prompt% qore -X '2005-03-29-18:12:25'
+2005-03-29 18:12:25 Tue +02:00 (CEST)
+prompt% qore -X '0512-01-01T01:49:59.002213Z'
+0512-01-01 01:49:59.002213 Fri Z (UTC)
+prompt% qore -X '2005-03-29'
+2005-03-29 00:00:00 Tue +02:00 (CEST)
+prompt% qore -X '18:35:26+08:00'
+1970-01-01 18:35:26 Thu +08:00 (+08)
+    @endcode
+
+    The year must be a four-digit number, and all other values except microseconds must be two-digit numbers. If microseconds are present, at least one and up to 6 digits may be given after the decimal point. Pad the numbers with leading zeros if the numbers are smaller than the required number of digits. The hour component must be in 24-hour time format. Except for the month and day values, all other values start with 0 (hour = 00 - 23, minute and second: 00 - 59). Any deviation from this format will cause a parse exception.
+
+    When a date/time value is converted to an integer or vice-versa, a 64-bit offset in seconds from the start of the "epoch" is used for the conversion. %Qore's "zero date" (the start of %Qore's "epoch") is January 1, 1970 UTC. When calculating second offsets from this date, a 64-bit integer is used.
+
+    @note The default local time zone for qore is set when the qore library is initialized; see @ref time_zones for more information.
+
+    @section relative_dates Relative Date/Time Values (Durations)
+    Relative dates (durations) are normally used for date addition and subtraction. See @ref date_time_arithmetic for more information.
+
+    Internally, durations are stored as a set of seven discrete signed integer values, one each for years, months, days, hours, minutes, seconds, and microseconds.
+
+    There are 3 different formats understood by the %Qore parser for describing literal durations in %Qore.
+
+    <b>Single Relative Time Format</b>\n
+    A single relative date/time value (or a duration) may be specified as follows (note that this format is specific to %Qore and not based on ISO-8601):
+    - @verbatim <integer><date component specifier>@endverbatim
+
+    <b>Date Specifiers For Single Values For Relative Dates (non-ISO-8601 syntax)</b>
+    |!Component|!Meaning|!Example|!Description
+    |\c Y|Years|\c 2Y|2 Years
+    |\c M|Months|\c 3M|3 Months
+    |\c D|Days|\c 10D|10 Days
+    |\c h|Hours|\c 15h|15 hours
+    |\c m|Minutes|\c 25m|25 minutes
+    |\c s|Seconds|\c 19s|19 seconds
+    |\c ms|Milliseconds|\c 250ms|250 milliseconds
+    |\c us|Microseconds|\c 21194us|21194 microseconds
+
+    <b>Short Relative Time Format</b>\n
+    This and the next duration format for composite relative date/time values are both based on ISO-8601.
+
+    This first format has the following syntax:
+    - \c PnYnMnDTnHnMnSnu
+
+    Each element above is optional, but at least one element must be present. Note that "M" means months when before the "T" and minutes when found after the "T". The other elements are years, days, hours, seconds, and, as an extension to ISO-8601, "u" for microseconds. Additionally, the values may be negative.
+
+    Here are some examples (using qore's -X command-line option to evaluate and expression and print out the result):
+
+    @code
+prompt% qore -X 'P1Y3MT4S'
+<time: 1 year 3 months 4 seconds>
+prompt% qore -X 'PT4M551u'
+<time: 4 minutes 551 microseconds>
+prompt% qore -X 'P3DT21H'
+<time: 3 days 21 hours>
+    @endcode
+
+    <b>Long Relative Time Format</b>\n
+    The second ISO-8601-based format for specifing complex durations with multiple time units has the following syntax:
+    - \c PYYYY-MM-DDTHH:mm:SS
+
+    This format is more limited than the first format, in that all values must be positive, and furthermore, all values must be present (although they may be zero).
+
+    Here are some examples of the second format (equivalent to the first examples):
+
+    @code
+prompt% qore -X 'P0001-03-00T00:00:04'
+<time: 1 year 3 months 4 seconds>
+prompt% qore -X 'P0000-00-00T00:04:00.000551'
+<time: 4 minutes 551 microseconds>
+prompt% qore -X 'P0000-00-03T21:00:00'
+<time: 3 days 21 hours>
+    @endcode
+
+    @see @ref date_type, @ref softdate_type
+
+    <hr>
+    @section binary Binary
+
+    The binary data type is used to hold binary arbitrary binary data. Internally it is represented by a pointer to a memory location for the data and a size indicator.
+
+    Binary data can be concatenated with the + and += operators.
+
+    This data can be manipulated by being written and read from @ref Qore::File, @ref Qore::Socket, @ref Qore::Datasource, @ref Qore::DatasourcePool, or @ref Qore::SQLStatement objects, or converted and parsed to/from base64 encoded strings using the makeBase64String() and parseBase64String() functions, or compressed and decompressed using the compress(), gzip(), bzip2(), etc. functions, and processed by most cryptographic funtions, among others.
+
+    Binary objects can be read from a @ref Qore::File object using the Qore::File::readBinary() method and can be written using the Qore::File::write() method. Please see the @ref Qore::File class for more information.
+
+    Binary objects can be read from a @ref Qore::Socket object using the Qore::Socket::recvBinary() method and can be written using the Qore::Socket::send() method. Please see the @ref Qore::Socket class for more information.
+
+    The @ref Qore::Datasource, @ref Qore::DatasourcePool, and @ref Qore::SQLStatement classes can also be used to read and write binary objects as BLOBs.
+
+    Note that this is not an exhaustive list; see the function and class library documentation for more examples.
+
+    @see @ref binary_type
+
+    <hr>
+    @section null NULL
+
+    This data type represents an SQL \c NULL value. Note that \c NULL is not equivalent to @ref nothing.
+
+    <hr>
+    @section nothing NOTHING
+
+    This special data type represents no value.
+
+    @note The exists operator will return \c False when given \c NOTHING as an argument; for example: @verbatim prompt% qore -X 'exists NOTHING'
+False@endverbatim
+
+    @section conversions Data Conversions
+
+    Boolean, string, integer, date, and floating point data types can be freely converted from one type to the other, although data loss is possible depending on the conversion (particularly when converting to the boolan type as only two possible values are supported).
+
+    The special types @ref null and @ref nothing are not equivalent and cannot be converted to or from any other type.
+
+    When date types are converted from strings, any of the following formats can be used: \c "YYYYMMDDHHmmSS[.us][Z|+-HH[:MM[:SS]]]", \c "YYYY-MM-DD HH:mm:SS.us", \c "YYYY-MM-DDTHH:mm:SS", \c "YYYY-MM-DDTHH:mm:SS[.us][Z|+-HH[:MM[:SS]]]", and most reasonable combinations thereof. If the time zone component is missing, then the local time zone will be assumed (see @ref time_zones).
+
+    When dates are converted to and from integer values, the a 64-bit second offset from January 1, 1970 in the local time zone is used for the conversion. For example @code int(2006-01-01)@endcode gives \c 1136073600 (regardless of the local time zone the date is in). To get the second offset of a date from \c 1970-01-01Z (i.e. the true epoch offset), call get_epoch_seconds() instead.
+
+    When an expression requires a certain data type and the source data type cannot be converted to the desired data type, the default value for the desired data type will be used. The default values are given in @ref basic_data_types.
+*/
+

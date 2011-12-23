@@ -24,17 +24,158 @@ LIB_DOXYFILES = \
 
 LANG_DOXYFILES_SRC = \
 	doxygen/lang/Doxyfile \
-	doxygen/lang/mainpage.doxygen \
-	doxygen/lang/00_intro.doxygen \
-	doxygen/lang/10_description.doxygen.tmpl
+	doxygen/lang/mainpage.dox.tmpl \
+	doxygen/lang/000_intro.dox.tmpl \
+	doxygen/lang/100_description.dox.tmpl \
+	doxygen/lang/105_desc_overview.dox.tmpl \
+	doxygen/lang/110_environment_variables.dox.tmpl \
+	doxygen/lang/115_conditional_parsing.dox.tmpl \
+	doxygen/lang/120_modules.dox.tmpl \
+	doxygen/lang/125_include_files.dox.tmpl \
+	doxygen/lang/130_identifiers.dox.tmpl \
+	doxygen/lang/135_comments.dox.tmpl \
+	doxygen/lang/140_variables.dox.tmpl \
+	doxygen/lang/145_basic_data_types.dox.tmpl \
+	doxygen/lang/150_container_data_types.dox.tmpl \
+	doxygen/lang/155_data_type_declarations.dox.tmpl \
+	doxygen/lang/160_overloading.dox.tmpl \
+	doxygen/lang/165_time_zones.dox.tmpl \
+	doxygen/lang/170_character_encoding.dox.tmpl \
+	doxygen/lang/175_expressions.dox.tmpl \
+	doxygen/lang/180_operators.dox.tmpl \
+	doxygen/lang/185_qore_regex.dox.tmpl \
+	doxygen/lang/190_date_time_arithmetic.dox.tmpl \
+	doxygen/lang/195_statements.dox.tmpl \
+	doxygen/lang/200_functions.dox.tmpl \
+	doxygen/lang/205_namespaces.dox.tmpl \
+	doxygen/lang/210_constants.dox.tmpl \
+	doxygen/lang/215_classes.dox.tmpl \
+	doxygen/lang/220_threading.dox.tmpl \
+	doxygen/lang/225_exception_handling.dox.tmpl \
+	doxygen/lang/230_signal_handling.dox.tmpl \
+	doxygen/lang/235_event_handling.dox.tmpl
 
-LANG_DOXYFILES = \
-	doxygen/lang/Doxyfile \
-	doxygen/lang/mainpage.doxygen \
-	doxygen/lang/00_intro.doxygen \
-	doxygen/lang/10_description.doxygen
+LANG_TMP_DOXYFILES = doxygen/lang/mainpage.dox \
+	doxygen/lang/000_intro.dox \
+	doxygen/lang/100_description.dox \
+	doxygen/lang/105_desc_overview.dox \
+	doxygen/lang/110_environment_variables.dox \
+	doxygen/lang/115_conditional_parsing.dox \
+	doxygen/lang/120_modules.dox \
+	doxygen/lang/125_include_files.dox \
+	doxygen/lang/130_identifiers.dox \
+	doxygen/lang/135_comments.dox \
+	doxygen/lang/140_variables.dox \
+	doxygen/lang/145_basic_data_types.dox \
+	doxygen/lang/150_container_data_types.dox \
+	doxygen/lang/155_data_type_declarations.dox \
+	doxygen/lang/160_overloading.dox \
+	doxygen/lang/165_time_zones.dox \
+	doxygen/lang/170_character_encoding.dox \
+	doxygen/lang/175_expressions.dox \
+	doxygen/lang/180_operators.dox \
+	doxygen/lang/185_qore_regex.dox \
+	doxygen/lang/190_date_time_arithmetic.dox \
+	doxygen/lang/195_statements.dox \
+	doxygen/lang/200_functions.dox \
+	doxygen/lang/205_namespaces.dox \
+	doxygen/lang/210_constants.dox \
+	doxygen/lang/215_classes.dox \
+	doxygen/lang/220_threading.dox \
+	doxygen/lang/225_exception_handling.dox \
+	doxygen/lang/230_signal_handling.dox \
+	doxygen/lang/235_event_handling.dox
 
-doxygen/lang/10_description.doxygen: doxygen/lang/10_description.doxygen.tmpl lib
+LANG_DOXYFILES = doxygen/lang/Doxyfile $(LANG_TMP_DOXYFILES)
+
+doxygen/lang/mainpage.dox: doxygen/lang/mainpage.dox.tmpl lib
+	lib/qpp -t $< -o $@
+
+doxygen/lang/000_intro.dox: doxygen/lang/000_intro.dox.tmpl lib
+	lib/qpp -t $< -o $@
+
+doxygen/lang/100_description.dox: doxygen/lang/100_description.dox.tmpl lib
+	lib/qpp -t $< -o $@
+
+doxygen/lang/105_desc_overview.dox: doxygen/lang/105_desc_overview.dox.tmpl lib
+	lib/qpp -t $< -o $@
+
+doxygen/lang/110_environment_variables.dox: doxygen/lang/110_environment_variables.dox.tmpl lib
+	lib/qpp -t $< -o $@
+
+doxygen/lang/115_conditional_parsing.dox: doxygen/lang/115_conditional_parsing.dox.tmpl lib
+	lib/qpp -t $< -o $@
+
+doxygen/lang/120_modules.dox: doxygen/lang/120_modules.dox.tmpl lib
+	lib/qpp -t $< -o $@
+
+doxygen/lang/125_include_files.dox: doxygen/lang/125_include_files.dox.tmpl lib
+	lib/qpp -t $< -o $@
+
+doxygen/lang/130_identifiers.dox: doxygen/lang/130_identifiers.dox.tmpl lib
+	lib/qpp -t $< -o $@
+
+doxygen/lang/135_comments.dox: doxygen/lang/135_comments.dox.tmpl lib
+	lib/qpp -t $< -o $@
+
+doxygen/lang/140_variables.dox: doxygen/lang/140_variables.dox.tmpl lib
+	lib/qpp -t $< -o $@
+
+doxygen/lang/145_basic_data_types.dox: doxygen/lang/145_basic_data_types.dox.tmpl lib
+	lib/qpp -t $< -o $@
+
+doxygen/lang/150_container_data_types.dox: doxygen/lang/150_container_data_types.dox.tmpl lib
+	lib/qpp -t $< -o $@
+
+doxygen/lang/155_data_type_declarations.dox: doxygen/lang/155_data_type_declarations.dox.tmpl lib
+	lib/qpp -t $< -o $@
+
+doxygen/lang/160_overloading.dox: doxygen/lang/160_overloading.dox.tmpl lib
+	lib/qpp -t $< -o $@
+
+doxygen/lang/165_time_zones.dox: doxygen/lang/165_time_zones.dox.tmpl lib
+	lib/qpp -t $< -o $@
+
+doxygen/lang/170_character_encoding.dox: doxygen/lang/170_character_encoding.dox.tmpl lib
+	lib/qpp -t $< -o $@
+
+doxygen/lang/175_expressions.dox: doxygen/lang/175_expressions.dox.tmpl lib
+	lib/qpp -t $< -o $@
+
+doxygen/lang/180_operators.dox: doxygen/lang/180_operators.dox.tmpl lib
+	lib/qpp -t $< -o $@
+
+doxygen/lang/185_qore_regex.dox: doxygen/lang/185_qore_regex.dox.tmpl lib
+	lib/qpp -t $< -o $@
+
+doxygen/lang/190_date_time_arithmetic.dox: doxygen/lang/190_date_time_arithmetic.dox.tmpl lib
+	lib/qpp -t $< -o $@
+
+doxygen/lang/195_statements.dox: doxygen/lang/195_statements.dox.tmpl lib
+	lib/qpp -t $< -o $@
+
+doxygen/lang/200_functions.dox: doxygen/lang/200_functions.dox.tmpl lib
+	lib/qpp -t $< -o $@
+
+doxygen/lang/205_namespaces.dox: doxygen/lang/205_namespaces.dox.tmpl lib
+	lib/qpp -t $< -o $@
+
+doxygen/lang/210_constants.dox: doxygen/lang/210_constants.dox.tmpl lib
+	lib/qpp -t $< -o $@
+
+doxygen/lang/215_classes.dox: doxygen/lang/215_classes.dox.tmpl lib
+	lib/qpp -t $< -o $@
+
+doxygen/lang/220_threading.dox: doxygen/lang/220_threading.dox.tmpl lib
+	lib/qpp -t $< -o $@
+
+doxygen/lang/225_exception_handling.dox: doxygen/lang/225_exception_handling.dox.tmpl lib
+	lib/qpp -t $< -o $@
+
+doxygen/lang/230_signal_handling.dox: doxygen/lang/230_signal_handling.dox.tmpl lib
+	lib/qpp -t $< -o $@
+
+doxygen/lang/235_event_handling.dox: doxygen/lang/235_event_handling.dox.tmpl lib
 	lib/qpp -t $< -o $@
 
 include_HEADERS = \
@@ -366,7 +507,7 @@ dummy:
 	./next_build.sh
 
 if COND_DOXYGEN
-DX_CLEANFILES = docs/library
+DX_CLEANFILES = docs/library $(LANG_TMP_DOXYFILES)
 
 docs/library/html/index.html: $(include_HEADERS) $(LIB_DOXYFILES)
 	$(DOXYGEN_CMD) doxygen/lib/Doxyfile

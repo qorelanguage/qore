@@ -1,0 +1,451 @@
+/** @page event_handling I/O Event Handling
+
+    %Qore supports a simple event-handling mechanism to provide notification and details of socket and network events in higher-level classes. Classes currently supporting events are the @ref Qore::Socket "Socket", @ref Qore::HTTPClient "HTTPClient", @ref Qore::FtpClient "FtpClient", and @ref Qore::File "File" classes.
+
+    See @ref event_constants for a list of all event constants; details about each event are documented in the following sections.
+
+    Event information is placed on the event queue (which must be a @ref Qore::Queue "Queue" object) in the form of a hash. Each event has at least the following keys:\n
+    <b>Event Hash Common Keys</b>
+    |!Key|!Value
+    |\c event|This key holds the event code; see information for individual events in the following sections
+    |\c source|This key holds the event source code
+    |\c id|The value of this key is a unique integer that can be used to uniquely identify the object generating the event.
+
+    <hr>
+    @section EVENT_PACKET_READ
+
+    @par Event
+    \c EVENT_PACKET_READ
+
+    @par Source
+    \c SOURCE_SOCKET
+
+    @par Description
+    This event is raised immediately after a network packet is received.\n\n The event hash contains the following keys:\n
+    |!Key|!Value
+    |\c event|\c EVENT_PACKET_READ
+    |\c source|\c SOURCE_SOCKET, indicating the @ref Qore::Socket "Socket class"
+    |\c id|A unique integer ID for the underlying socket object
+    |\c read|The number of bytes read in the packet.
+    |\c total_read|The total number of bytes read in the read loop.
+    |\c [total_to_read]|The total number of bytes to read in the read loop (this key is only present if the total number of bytes to read is known).
+
+    <hr>
+    @section EVENT_PACKET_SENT
+
+    @par Event
+    \c EVENT_PACKET_SENT
+
+    @par Source
+    \c SOURCE_SOCKET
+
+    @par Description
+    This event is raised immediately after a network packet is sent.\n\n The event hash contains the following keys:\n
+    |!Key|!Value
+    |\c event|\c EVENT_PACKET_SENT
+    |\c source|\c SOURCE_SOCKET, indicating the @ref Qore::Socket "Socket class"
+    |\c id|A unique integer ID for the underlying socket object
+    |\c socket|The file descriptor number of the socket.
+    |\c sent|The number of bytes sent in the packet.
+    |\c total_sent|The total number of bytes sent in the send loop.
+    |\c total_to_send|The total number of bytes to send in the send loop.
+
+    <hr>
+    @section EVENT_HTTP_CONTENT_LENGTH
+
+    @par Event
+    \c EVENT_HTTP_CONTENT_LENGTH
+
+    @par Source
+    \c SOURCE_HTTPCLIENT
+
+    @par Description
+    This event is raised immediately after an HTTP header is received containing a content length header line, but before the message body is received.\n\n The event hash contains the following keys:\n
+    |!Key|!Value
+    |\c event|\c EVENT_HTTP_CONTENT_LENGTH
+    |\c source|\c SOURCE_HTTPCLIENT, indicating the @ref Qore::HTTPClient "HTTPClient class"
+    |\c id|A unique integer ID for the underlying socket object
+    |\c len|The number of bytes given for the content length.
+
+    <hr>
+    @section EVENT_HTTP_CHUNKED_START
+
+    @par Event
+    \c EVENT_HTTP_CHUNKED_START
+
+    @par Source
+    \c SOURCE_HTTPCLIENT
+
+    @par Description
+    This event is raised after receiving an HTTP header with the \c Transfer-Encoding header set to \c chunked and before the chunked data is read.\n\n The event hash contains the following keys:\n
+    |!Key|!Value
+    |\c event|\c EVENT_HTTP_CHUNKED_START
+    |\c source|\c SOURCE_HTTPCLIENT, indicating the @ref Qore::HTTPClient "HTTPClient class"
+    |\c id|A unique integer ID for the socket object.
+
+    <hr>
+    @section EVENT_HTTP_CHUNKED_END
+
+    @par Event
+    \c EVENT_HTTP_CHUNKED_END
+
+    @par Source
+    \c SOURCE_HTTPCLIENT
+
+    @par Description
+    This event is raised after all chunked data is read from the socket.\n\n The event hash contains the following keys:\n
+    |!Key|!Value
+    |\c event|\c EVENT_HTTP_CHUNKED_END
+    |\c source|\c SOURCE_HTTPCLIENT, indicating the @ref Qore::HTTPClient "HTTPClient class"
+    |\c id|A unique integer ID for the socket object.
+
+    <hr>
+    @section EVENT_HTTP_REDIRECT
+
+    @par Event
+    \c EVENT_HTTP_REDIRECT
+
+    @par Source
+    \c SOURCE_HTTPCLIENT
+
+    @par Description
+    This event is raised after a redirect response is received from an HTTP server.\n\n The event hash contains the following keys:\n
+    |!Key|!Value
+    |\c event|\c EVENT_HTTP_REDIRECT
+    |\c source|\c SOURCE_HTTPCLIENT, indicating the @ref Qore::HTTPClient "HTTPClient class"
+    |\c id|A unique integer ID for the socket object.
+    |\c location|The redirect location given by the HTTP server
+    |\c [status_message]|Any status message sent by the HTTP server; if no message was sent, then this key will not be present in the event hash.
+
+    <hr>
+    @section EVENT_CHANNEL_CLOSED
+
+    @par Event
+    \c EVENT_CHANNEL_CLOSED
+
+    @par Source
+    \c SOURCE_SOCKET
+
+    @par Description
+    This event is raised immediately after the socket is closed.\n\n The event hash contains the following keys:\n
+    |!Key|!Value
+    |\c event|\c EVENT_CHANNEL_CLOSED
+    |\c source|\c SOURCE_SOCKET, indicating the @ref Qore::Socket "Socket class"
+    |\c id|A unique integer ID for the underlying socket object
+
+    <hr>
+    @section EVENT_DELETED
+
+    @par Event
+    \c EVENT_DELETED
+
+    @par Source
+    \c SOURCE_SOCKET
+
+    @par Description
+    This event is raised when the socket object is deleted.\n\n The event hash contains the following keys:\n
+    |!Key|!Value
+    |\c event|\c EVENT_DELETED
+    |\c source|\c SOURCE_SOCKET, indicating the @ref Qore::Socket "Socket class"
+    |\c id|A unique integer ID for the underlying socket object
+
+    <hr>
+    @section EVENT_FTP_SEND_MESSAGE
+
+    @par Event
+    \c EVENT_FTP_SEND_MESSAGE
+
+    @par Source
+    \c SOURCE_FTPCLIENT
+
+    @par Description
+    This event is raised immediately before a message is sent on the FTP control channel.\n\n The event hash contains the following keys:\n
+    |!Key|!Value
+    |\c event|\c EVENT_FTP_SEND_MESSAGE
+    |\c source|\c SOURCE_FTPCLIENT, indicating the @ref Qore::FtpClient "FtpClient class"
+    |\c id|A unique integer ID for the underlying socket object
+    |\c command|A string giving the FTP command sent (ex: \c "RETR").
+    |\c [arg]|The argument to the command; if no argument is sent, then this key will not be present.
+
+    <hr>
+    @section EVENT_FTP_MESSAGE_RECEIVED
+
+    @par Event
+    \c EVENT_FTP_MESSAGE_RECEIVED
+
+    @par Source
+    \c SOURCE_FTPCLIENT
+
+    @par Description
+    This event is raised immediately after a message is received on the FTP control channel.\n\n The event hash contains the following keys:\n
+    |!Key|!Value
+    |\c event|\c EVENT_FTP_MESSAGE_RECEIVED
+    |\c source|\c SOURCE_FTPCLIENT, indicating the @ref Qore::FtpClient "FtpClient class"
+    |\c id|A unique integer ID for the underlying socket object
+    |\c command|A string giving the FTP command sent (ex: \c "RETR").
+    |\c [arg]|The argument to the command; if no argument is sent, then this key will not be present.
+
+    <hr>
+    @section EVENT_HOSTNAME_LOOKUP
+
+    @par Event
+    \c EVENT_HOSTNAME_LOOKUP
+
+    @par Source
+    \c SOURCE_SOCKET
+
+    @par Description
+    This event is raised immediately before a hostname lookup is made.\n\n The event hash contains the following keys:\n
+    |!Key|!Value
+    |\c event|\c EVENT_HOSTNAME_LOOKUP
+    |\c source|\c SOURCE_SOCKET, indicating the @ref Qore::Socket "Socket class"
+    |\c id|A unique integer ID for the underlying socket object
+    |\c name|A string giving the name to be looked up.
+
+    <hr>
+    @section EVENT_HOSTNAME_RESOLVED
+
+    @par Event
+    \c EVENT_HOSTNAME_RESOLVED
+
+    @par Source
+    \c SOURCE_SOCKET
+
+    @par Description
+    This event is raised immediately after a successful hostname resolution.\n\n The event hash contains the following keys:\n
+    |!Key|!Value
+    |\c event|\c EVENT_HOSTNAME_RESOLVED
+    |\c source|\c SOURCE_SOCKET, indicating the @ref Qore::Socket "Socket class"
+    |\c id|A unique integer ID for the underlying socket object
+    |\c address|A string giving the network address the name was resolved to.
+
+    <hr>
+    @section EVENT_HTTP_SEND_MESSAGE
+
+    @par Event
+    \c EVENT_HTTP_SEND_MESSAGE
+
+    @par Source
+    \c SOURCE_HTTPCLIENT or \c SOURCE_SOCKET
+
+    @par Description
+    This event is raised immediately before an HTTP message is sent.\n\n The event hash contains the following keys:\n
+    |!Key|!Value
+    |\c event|\c EVENT_HTTP_SEND_MESSAGE
+    |\c source|\c SOURCE_HTTPCLIENT, indicating the @ref Qore::HTTPClient "HTTPClient class", or \c SOURCE_SOCKET, indicating the @ref Qore::Socket "Socket class"
+    |\c message|The first string in the HTTP message (ex: GET / HTTP/1.1).
+    |\c headers|a hash of all headers to send in the message.
+
+    <hr>
+    @section EVENT_HTTP_MESSAGE_RECEIVED
+
+    @par Event
+    \c EVENT_HTTP_MESSAGE_RECEIVED
+
+    @par Source
+    \c SOURCE_HTTPCLIENT or \c SOURCE_SOCKET
+
+    @par Description
+    This event is raised immediately after an HTTP message is received.\n\n The event hash contains the following keys:\n
+    |!Key|!Value
+    |\c event|\c EVENT_HTTP_MESSAGE_RECEIVED
+    |\c source|\c SOURCE_HTTPCLIENT, indicating the @ref Qore::HTTPClient "HTTPClient class", or \c SOURCE_SOCKET, indicating the @ref Qore::Socket "Socket class"
+    |\c headers|A hash of all headers received in the message, plus the following headers giving additional information about the message:\n - \c "http_version": giving the HTTP protocol version in the message\n - \c "status_code": giving the HTTP status code if the message is a response\n - \c "status_message": giving any HTTP status message if the message is a response\n - \c "method": giving the HTTP method if the message is a request\n - \c "path": providing the path in request messages.
+
+    <hr>
+    @section EVENT_HTTP_FOOTERS_RECEIVED
+
+    @par Event
+    \c EVENT_HTTP_FOOTERS_RECEIVED
+
+    @par Source
+    \c SOURCE_HTTPCLIENT
+
+    @par Description
+    This event is raised immediately after HTTP footers are received after receiving chunked data.\n\n The event hash contains the following keys:\n
+    |!Key|!Value
+    |\c event|\c EVENT_HTTP_FOOTERS_RECEIVED
+    |\c source|\c SOURCE_HTTPCLIENT, indicating the @ref Qore::HTTPClient "HTTPClient class"
+    |\c headers|A hash of all footers received in the message.
+
+    <hr>
+    @section EVENT_HTTP_CHUNKED_DATA_RECEIVED
+
+    @par Event
+    \c EVENT_HTTP_CHUNKED_DATA_RECEIVED
+
+    @par Source
+    \c SOURCE_HTTPCLIENT
+
+    @par Description
+    This event is raised immediately after chunked data is received.\n\n The event hash contains the following keys:\n
+    |!Key|!Value
+    |\c event|\c EVENT_HTTP_CHUNKED_DATA_RECEIVED
+    |\c source|\c SOURCE_HTTPCLIENT, indicating the @ref Qore::HTTPClient "HTTPClient class"
+    |\c read|An integer giving the number of bytes read in the chunk.
+    |\c total_read|An integer giving the total number of bytes of chunked data read in the current message.
+
+    <hr>
+    @section EVENT_HTTP_CHUNK_SIZE
+
+    @par Event
+    \c EVENT_HTTP_CHUNK_SIZE
+
+    @par Source
+    \c SOURCE_HTTPCLIENT
+
+    @par Description
+    This event is raised immediately after chunk information is received providing the size of the next chunk.\n\n The event hash contains the following keys:\n
+    |!Key|!Value
+    |\c event|\c EVENT_HTTP_CHUNK_SIZE_RECEIVED
+    |\c source|\c SOURCE_HTTPCLIENT, indicating the @ref Qore::HTTPClient "HTTPClient class"
+    |\c size|An integer giving the number of bytes in the next chunk.
+    |\c total_read|An integer giving the total number of bytes of chunked data read in the current message.
+
+    <hr>
+    @section EVENT_CONNECTING
+
+    @par Event
+    \c EVENT_CONNECTING
+
+    @par Source
+    \c SOURCE_SOCKET
+
+    @par Description
+    This event is raised immediately before a socket connection is attempted.\n\n The event hash contains the following keys:\n
+    |!Key|!Value
+    |\c event|\c EVENT_CONNECTING
+    |\c source|\c SOURCE_SOCKET, indicating the @ref Qore::Socket "Socket class"
+    |\c id|A unique integer ID for the underlying socket object
+    |\c type|The type of address for the socket; one of the @ref network_address_constants
+    |\c target|The target address for the connection.
+    |\c [port]|The target port for the connection; if not applicable for the address family then this hash key is not included.
+
+    <hr>
+    @section EVENT_CONNECTED
+
+    @par Event
+    \c EVENT_CONNECTED
+
+    @par Source
+    \c SOURCE_SOCKET
+
+    @par Description
+    This event is raised immediately after a socket connection is established.\n\n The event hash contains the following keys:\n
+    |!Key|!Value
+    |\c event|\c EVENT_CONNECTED
+    |\c source|\c SOURCE_SOCKET, indicating the @ref Qore::Socket "Socket class"
+    |\c id|A unique integer ID for the underlying socket object
+
+    <hr>
+    @section EVENT_START_SSL
+
+    @par Event
+    \c EVENT_START_SSL
+
+    @par Source
+    \c SOURCE_SOCKET
+
+    @par Description
+    This event is raised immediately before SSL negotiation is attempted.\n\n The event hash contains the following keys:\n
+    |!Key|!Value
+    |\c event|\c EVENT_START_SSL
+    |\c source|\c SOURCE_SOCKET, indicating the @ref Qore::Socket "Socket class"
+    |\c id|A unique integer ID for the underlying socket object
+
+    <hr>
+    @section EVENT_SSL_ESTABLISHED
+
+    @par Event
+    \c EVENT_SSL_ESTABLISHED
+
+    @par Source
+    \c SOURCE_SOCKET
+
+    @par Description
+    This event is raised immediately after SSL negotiation has been successfully established.\n\n The event hash contains the following keys:\n
+    |!Key|!Value
+    |\c event|\c EVENT_SSL_ESTABLISHED
+    |\c source|\c SOURCE_SOCKET, indicating the @ref Qore::Socket "Socket class"
+    |\c id|A unique integer ID for the underlying socket object
+    |\c cipher|A string giving the name of the cipher algorithm used for the connection.
+    |\c cipher_version|A string giving the version of the cipher algorithm used for the connection.
+
+    <hr>
+    @section EVENT_OPEN_FILE
+
+    @par Event
+    \c EVENT_OPEN_FILE
+
+    @par Source
+    \c SOURCE_FILE
+
+    @par Description
+    This event is raised immediately before a file is opened.\n\n The event hash contains the following keys:\n
+    |!Key|!Value
+    |\c event|\c EVENT_OPEN_FILE
+    |\c source|\c SOURCE_FILE, indicating the @ref Qore::File "File class"
+    |\c id|A unique integer ID for the @ref Qore::File "File" object
+    |\c filename|The file's name.
+    |\c flags|The flags used to open the file.
+    |\c mode|The mode to open the file with.
+    |\c encoding|The @ref character_encoding "character encoding" given used for reading from or writing to the file.
+
+    <hr>
+    @section EVENT_FILE_OPENED
+
+    @par Event
+    \c EVENT_FILE_OPENED
+
+    @par Source
+    \c SOURCE_FILE
+
+    @par Description
+    This event is raised immediately after a file has been successfully opened.\n\n The event hash contains the following keys:\n
+    |!Key|!Value
+    |\c event|\c EVENT_FILE_OPENED
+    |\c source|\c SOURCE_FILE, indicating the @ref Qore::File "File class"
+    |\c id|A unique integer ID for the @ref Qore::File "File" object
+    |\c filename|The file's name.
+    |\c flags|The flags used to open the file.
+    |\c mode|The mode to open the file with.
+    |\c encoding|The @ref character_encoding "character encoding" given used for reading from or writing to the file.
+
+    <hr>
+    @section EVENT_DATA_READ
+
+    @par Event
+    \c EVENT_DATA_READ
+
+    @par Source
+    \c SOURCE_FILE
+
+    @par Description
+    This event is raised immediately after data is read from a file.\n\n The event hash contains the following keys:\n
+    |!Key|!Value
+    |\c event|\c EVENT_DATA_READ
+    |\c source|\c SOURCE_FILE, indicating the @ref Qore::File "File class"
+    |\c id|A unique integer ID for the @ref Qore::File "File" object
+    |\c read|The number of bytes read from the file.
+    |\c total_read|The total number of bytes read in the read loop.
+    |\c total_to_read|The total number of bytes to read in the read loop.
+
+    <hr>
+    @section EVENT_DATA_WRITTEN
+
+    @par Event
+    \c EVENT_DATA_WRITTEN
+
+    @par Source
+    \c SOURCE_FILE
+
+    @par Description
+    This event is raised immediately after data is written from a file.\n\n The event hash contains the following keys:\n
+    |!Key|!Value
+    |\c event|\c EVENT_DATA_WRITTEN
+    |\c source|\c SOURCE_FILE, indicating the @ref Qore::File "File class"
+    |\c id|A unique integer ID for the @ref Qore::File "File" object
+    |\c written|The number of bytes written to the file.
+    |\c total_written|The total number of bytes written in the write loop.
+    |\c total_to_write|The total number of bytes to write in the write loop.
+*/

@@ -1,0 +1,38 @@
+/** @page exception_handling Exception Handling
+
+    Exceptions are errors that can only be handled using a @ref try "try catch block". Any exception that is thrown in a @ref try "try block" will immediately cause execution of that thread to begin with the first statement of the @ref try "catch block", regardless of the position of the program pointer of the running thread, even if nested function or object method calls have been made.
+
+    Exceptions can be thrown by the %Qore system for a number of reasons, see the documentation for each function and object method for details.
+
+    Programmers can also throw exceptions explicitly by using the @ref throw "throw" and @ref rethrow "rethrow" statements.
+
+    Information about the exception, including the context in which the exception occurred, is saved in the exception hash, which can be retrieved by using a parameter variable in the @ref try "catch block".
+
+    The exception hash contains the following members:
+
+    @anchor exception_hash
+    <b>Exception Hash Keys</b>
+    |!Name|!Type|!Description
+    |\c type|@ref string_type "string"|\c "System" or \c "User" depending on exception type
+    |\c file|@ref string_type "string"|File name of file where exception occurred
+    |\c line|@ref int_type "int"|Line number where exception occurred
+    |\c callStack|@ref list_type "list" of @ref hash_type "hashes"|@ref callstack "Backtrace information"
+    |\c err|@ref any_type "any"|This key is populated with the value of the first expression of the @ref throw "throw statement". For system exceptions, this is a string giving the exception code.
+    |\c desc|@ref any_type "any"|This key is populated with the value of the second expression of the @ref throw "throw statement" (if a list was thrown). For system exceptions, this is a string giving a text description of the error.
+    |\c arg|@ref any_type "any"|This key is populated with the value of the third expression of the @ref throw "throw statement" (if a list was thrown). For system exceptions, this is populated for some exceptions where additional information is provided.
+    
+    @anchor callstack
+    <b>Call Stack Description</b>
+    |!Name|!Type|!Description
+    |\c function|@ref string_type "string"|function name of the source where the exception was raised (if known)
+    |\c line|@ref int_type "int"|line number of the source where the exception was raised (if known, for user exceptions only)
+    |\c file|@ref string_type "string"|file name of the source where the exception was raised (if known, for user exceptions only)
+    |\c type|@ref string_type "string"|Exception Type (\c ET_*) constants; see @ref exception_constants for values.
+    |\c typecode|@ref int_type "int"|Call Type (\c CT_*) constants; see @ref exception_constants for values.
+
+    System exceptions always throw at least 2 values, populating the \c "err" and \c "desc" keys of the exception hash, giving the exception string code and the exception description string, respectively, and occassionally, depending on the function, the \c "arg" key may be populated with supporting information. User exceptions have no restrictions, any values given in the @ref throw "throw statement" will be mapped to exception keys as per the table above.
+
+    See the @ref on_exit "on_exit", @ref on_success "on_success" statement, and @ref on_error "on_error" statement for statements that allow for exception-safe and exception-dependent cleanup in %Qore code.
+
+    Classes that assist in exception-safe lock handling are the @ref Qore::Thread::AutoLock "AutoLock class", the @ref Qore::Thread::AutoGate "AutoGate class", the @ref Qore::Thread::AutoReadLock "AutoReadLock class", and the @ref Qore::Thread::AutoWriteLock "AutoWriteLock class".
+*/

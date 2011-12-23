@@ -1,0 +1,39 @@
+/** @page namespaces Namespaces
+
+    @par Description
+    Namespaces allow @ref constants "constants", @ref classes "classes", and even other namespaces to co-exist in the same program by defining them in separate namespaces. Constants, classes, and sub-namespaces can be declared to belong to a particular namespace either by defining them in-line within a namespace declaration, or by including the namespace name/path prepended to the constant, class, or namespace declaration separated by two colons \c "::".\n\n
+    If the user does not specify the parent namespace with a namespace path in constant, class, or namespace declarations, the declaration will be by default in the unnamed default root namespace.
+
+    @anchor namespace_declarations
+    @par In-Line Namespace Declaration
+    \c\b namespace <em>[namespace_path::]namespace_identifier</em> <tt>{</tt>\n
+    &nbsp;&nbsp;&nbsp;&nbsp;<em>[constant_declarations]</em>\n
+    &nbsp;&nbsp;&nbsp;&nbsp;<em>[class_declarations]</em>\n
+    &nbsp;&nbsp;&nbsp;&nbsp;<em>[namespace_declarations]</em>\n
+    <tt>}</tt>
+
+    @par Out of Line Namespace Declaration
+    \c\b namespace <em>[namespace_path::]namespace_identifier</em><tt>;</tt>
+
+    @anchor namespace_resolution
+    @par Namespace Resolution
+    Namespaces can either be resolved by giving a path to the constant, class, or namespace desired, or by leaving out the namespace path and allowing the system to search for the constant, class, or namespace. In either case, a depth-first search of the namespace tree is made for a match.\n\n
+    If a namespace path is included, then the tree is searched for the first namespace match. and, if the rest of the declaration cannot be matched, the search continues in the entire namespace tree until a complete match is found.
+
+    @anchor namespace_paths
+    @par Namespace Paths
+    Namespace paths look like the following:\n
+    - <em>starting_namespace::[sub_namespace(s)s::]constant|class|namespace</em>
+
+    @par Example
+    @code
+namespace MyNamspace {
+    const MyConst = 1;
+    class MyClass {
+    }
+    namespace MySubNamespace;
+}
+    @endcode
+
+    @note No semicolon (\c ";") is required to terminate a namespace declaration (in fact using a semicolon would raise a parse exception).
+*/

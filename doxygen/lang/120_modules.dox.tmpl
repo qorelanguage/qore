@@ -1,0 +1,39 @@
+/** @page qore_modules Qore Modules
+    
+    %Qore modules allow the %Qore language to be extended at run-time. %Qore modules must conform to the %Qore Module API and have the file extension \c "*.qmod". %Qore modules normally depend on other shared libraries and therefore can only be loaded if the libraries they require are present on the system and can be found in the library path.
+
+    Please note that as of version 0.7.0 onwards, modules are no longer delivered with the %Qore library. Modules must be downloaded separately; see <a href="http://www.qore.org">%Qore's home page</a> for more information.
+
+    To load a module at parse time (normally required for most modules), use the @ref requires "%requires" parse directive. If the named feature is not already present in %Qore, %Qore looks for a module with this name in the directories listed in the \c QORE_MODULE_DIR environment variable (see @ref environment_variables).
+
+    Use the load_module() function to load %Qore modules at run-time; however, note that any module providing parse support (classes, constants, functions, etc) must be loaded at parse time using the @ref requires "%requires" directive.
+
+    From %Qore 0.7.1 onwards, you can specify a comparison operator (one of < <=, =, >=, or >) and version information after the module name as well. Version numbers are compared via integer comparisons of each element, where elements are separated by a '.'. If one of the versions does not have as many elements as another, the missing elements are assumed to be '0' (i.e. version \c "1.0" compared with version \c "1.0.1" will be exteneded to "1.0.0").
+
+    Also note that DBI drivers are loaded on demand by the @ref Qore::Datasource and @ref Qore::DatasourcePool classes.
+
+    At the time of writing this documentation, the following modules exist for %Qore:
+
+    <b>%Qore Modules</b>
+    |!Module|!Description
+    |\c asn1|Provides ASN.1 functionality to %Qore
+    |\c xml|Provides XML, XPath, etc functionality to %Qore.
+    |\c xmlsec|Provides xmldsig and xmlenc functionality to %Qore.
+    |\c json|Provides JSON functionality to %Qore.
+    |\c ssh2|Provides SSH2 and SFTP functionality to %Qore.
+    |\c tibrv|Provides TIBCO Rendezvous(R) (TIBCO, Inc) functionality to %Qore.
+    |\c tibae|Provides TIBCO ActiveEnterprise(TM) (TIBCO, Inc) functionality to %Qore.
+    |\c tuxedo|Provides Oracle (ex Bea) Tuxedo functionality to %Qore.
+    |\c mysql|Provides a MySQL DBI driver to %Qore.
+    |\c pgsql|Provides a PostgreSQL DBI driver to %Qore.
+    |\c sqlite3|Provides a SQLite3 DBI driver to %Qore.
+    |\c sybase|Provides a Sybase DBI driver to %Qore.
+    |\c freetds|Provides a FreeTDS-based DBI driver to %Qore.
+    |\c oracle|Provides an Oracle DBI driver to %Qore.
+    |\c db2|Provides an IBM DB2 driver to %Qore.
+    |\c glut|Provides GLUT functionality to %Qore.
+    |\c opengl|Provides an OpenGL API to %Qore.
+    |\c qt4|Provides Nokia (formerly Trolltech) QT4 APIs for GUI development in %Qore.
+    |\c ncurses|Provides curses APIs to %Qore.
+    |\c yaml|Provides YAML functionality to %Qore.
+*/

@@ -1,0 +1,59 @@
+/** @page variables Variables
+
+    Unless parse option @ref allow-bare-refs "%allow-bare-refs" or @ref new-style "%new-style" are set, variables are %Qore identifiers prefixed by a \c "$" sign, similar to <a href="http://www.perl.org">Perl</a>. If a variable is declared without any type restriction, then it is assumed to have type @ref any_type "any". In this case, variables so declared can hold any data type.
+
+    @section special_variables
+
+    A few variables are set by the %Qore language during the execution of %Qore programs. These are normal variables that can be reassigned to other values by the user if necessary.
+
+    <b>Special %Qore Variables</b>
+    |!Variable|!Scope|!Data Type|!Explanation
+    |\c $argv|Local|List|automatically assigned local variable containing the list of function or method arguments that were not assigned to parameter variables (see @ref functions_and_implicit_arguments for more information)
+    |\c $ARGV|Global|List|script command-line arguments (use the @ref Qore::GetOpt class to parse command-line arguments)
+    |\c $QORE_ARGV|Global|List|complete qore command-line arguments
+    |\c $ENV|Global|Hash|UNIX program environment
+
+    @note As of version 0.5.0, \c $STDERR and \c $STDOUT have been removed from %Qore. Use the I/O constants @ref stderr, @ref stdout, and @ref stdin constants of the @ref Qore::File class instead.
+
+    @section variable_declarations Variable Declarations and Lexical Scope
+
+    Unless the @ref assume-local "%assume-local" parse directive is used, variables not in a parameter list automatically have global scope unless the first reference is prefixed with @ref my. Variable names in a parameter list are always local to their associated function, method, or catch block. Global variables can be explicitly declared with @ref our. The @ref our keyword is required if the parse option @ref require-our "%require-our" (\c -O or \c --require-our command-line option) is set for the parent program. See @ref parse_options for more information.
+
+    When the @ref assume-local "%assume-local" parse directive is used, variables without an explicit scope declaration (i.e. @ref my or @ref our) are assumed to be local variables.
+
+    Variables may be assigned any value unless restricted with a type declaration. If no type declaration is given, then the variable is assumed to be type @ref any_type "any". Note that type declarations are required for all variables (and for function and method parameters and class members) when the @ref require-types "%require-types" parse option is set.
+
+    Local variables are not shared between threads (local variables have a distinct value in each thread), however global variables are. See @ref threading (and in particular @ref threading_and_variables) for more information.
+
+    For example (in the following script, the @ref our keyword is optional):
+
+    @code
+#!/usr/bin/qore
+#
+# variable scoping example
+
+our int $a = 1;                    # this is a global variable
+our (string $b, any $c, hash $d);  # list of global variables
+
+if ($a == 1) {
+    my int $a = 2; 
+    my (string $b, any $c);
+    # $a, $b, and $c are local variables, 
+    # the use of which will not affect the 
+    # global variables of the same name
+    print("local a = %d\n", $a); 
+}
+
+print("global a = %d\n", $a); 
+    @endcode
+
+    The first print() statement will output:
+    @verbatim
+local a = 2@endverbatim
+
+    The second print() statement will output:
+    @verbatim
+global a = 1@endverbatim
+
+    @note If parse option @ref allow-bare-refs "%allow-bare-refs" is set, then variable references <b>must</b> be made without the "$" character.
+*/

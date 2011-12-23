@@ -1,0 +1,44 @@
+/** @page conditional_parsing Conditional Parsing and Parse Defines
+
+    %Qore supports conditional parsing with parse defines similar to the C/C++ preprocessor. In the current version of %Qore, the implementation is very simple; only the following parse directives are supported: @ref define "%define", @ref else "%else", @ref endif "%endif", @ref ifdef "%ifdef", and @ref ifndef "%ifndef".
+
+    Basically, the above allow for the existence (or lack thereof) of a parse define to affect which code is parsed into the program at parse time.
+
+    Parse defines are defined on the command-line (or through the C++ API when executed in embedded code), as well as created automatically based on sytem options; all library options (if the option is \c True, then it is defined as \c True, if the option is \c False, then it is not defined at all).
+
+    Note that \c "Unix" is defined on all Unix platforms (also on Cygwin), while \c "Windows" is defined on native Windows ports (but not on Cygwin, as this is treated as Unix when compiling, as all Unix features are available).
+
+    Additionally, the following options are defined in every program (however they are not yet useful when parsing as the value of parse options cannot be used yet at parse time; only the existence or lack thereof can affect parsing in this version of %Qore when parsing at least).
+
+    <b>%Qore Parse Defines</b>
+    |!Define|!Value
+    |\c %QoreVersionString|Version string for the %Qore library
+    |\c %QoreVersionMajor|Major version for the %Qore library
+    |\c %QoreVersionMinor|Minor version for the %Qore library
+    |\c %QoreVersionSub|Sub version for the %Qore library
+    |\c %QoreVersionBuild|Build version for the %Qore library
+    |\c %QoreVersionBits|32 or 64 depending on the library target
+    |\c %QorePlatformCPU|The CPU targeted by the library
+    |\c %QorePlatformOS|The OS targeted by the library
+
+    Additionally, only if the %Qore library was compiled with debugging support, the following parse define is present (otherwise it is not defined):
+
+    <b>%Qore Optional Parse Defines</b>
+    |!Define|!Value
+    |\c %QoreDebug|\c True
+
+    Here is an example of using parse defines in a program:
+
+    @code
+%ifndef HAVE_TERMIOS
+printf("This program requires UNIX TermIOS features to be present; it does not run on platforms without this feature (current platform: %s); exiting...\n", Qore::PlatformOS);
+exit(1);
+%endif
+    @endcode
+
+    Furthermore, parse defines can be manipulated in embedded code using the following functions:
+    - Qore::Program::define()
+    - Qore::Program::getDefine()
+    - Qore::Program::isDefined()
+    - Qore::Program::undefine()
+*/

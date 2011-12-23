@@ -1,0 +1,32 @@
+/** @page signal_handling Signal Handling
+
+    %Qore implements safe signal handling on UNIX platforms (not available on native Microsoft Windows ports). Signals do not interrupt %Qore threads, rather %Qore uses a special signal handling thread with TID 0, dedicated to handling signals. The signal handling thread uses very few resources; it stays blocked (using no processor time and very little memory) until a signal with a %Qore signal handler is raised; it then executes the handler and resumes waiting for signals.
+
+    Because the signal Qore's signal handling thread is not a normal thread, it does not affect num_threads() and does not appear in the list returned by thread_list().
+
+    Internally, %Qore masks (blocks) all signals in every thread except the signal handling thread. In the signal handling thread, all signals are unmasked, except those with %Qore-language handlers, then an internal call to <tt>sigwait() (3)</tt> is made to receive and process signals raised one at a time.
+
+    Qore-language signal handlers are installed by passing a signal constant and a @ref closure "closure" or @ref call_reference "call reference" to the code to execute when the signal is raised to the set_signal_handler() function. Signal handlers are removed by passing a signal constant to the remove_signal_handler() function.
+
+    When a signal has been raised and the signal handler is called, the signal number is passed as the sole argument to the signal handler code.
+
+    <b>Signal Handling Functions</b>
+    |!Function Name|!Description
+    |set_signal_handler()|Sets up a %Qore signal handler using a signal number and a call reference.
+    |remove_signal_handler()|Removes a %Qore signal handler using a signal number.
+
+    See @ref signal_constants for a list of signal constants and @ref signal_mapping_hash_constants for two hash constants that can be used to map signal names to numbers and vice-versa. Note that signal constants are system-dependent; not all signals will be available in all systems; in case of doubt, see your system documentation for information on which signals are available.
+
+    The above functions are atomic, meaning that when they return to the caller, the signal handling thread has already acknowledged the changes.
+
+    It is not possible to set signal masks per thread; all signals are delivered to the signal handling thread. Signals not handled with a %Qore signal handler are handled with their default action. It is not possible to catch \c SIGPIPE. \c SIGPIPE is always ignored in Qore.
+
+    Some issues to be aware of in signal handlers:
+    - Thread-local storage is not persistent in signal handlers; it is deleted after every signal handler is run.
+    - A signal handler that does not terminate will block the execution of further signal handlers and will block signal handling changes (such as updating the signal mask), resulting in a %Qore process that must be killed manually. Because all %Qore signal handling code is executed serially in a single thread, %Qore signal handlers should execute and return quickly to give time to execute other handlers.
+    - Signal handlers may install or remove signal handlers using set_signal_handler() or remove_signal_handler(), however in this case, changes to signal handling are made after the signal handler returns.
+    - Signal handlers cannot call fork(); any attempt to call fork() in a signal handler will result in an an exception.
+    - fork() (called externally to a signal handler) is handled as follows: the signal handling thread is terminated, fork() is executed, all signals are masked in the primary thread in the new process, then the signal handling thread is resumed in both processes. No signals can be received or handled while the signal handling thread is terminated. After the fork(), the new process will have exactly the same signal handlers and signal masks as the parent process.
+    - Unhandled exceptions in signal handlers will simply be displayed on @ref stderr "stderr" as an unhandled exception and will have no other effect on %Qore or %Qore code (in particular, unhandled exceptions will not cause the signal handling thread to terminate).
+    - If a signal handler executes the @ref thread_exit "thread_exit statement", execution of the signal handler will terminate immediately, but the signal handling thread will not be stopped. Execution of further signal handlers (including that for the same signal being handled when @ref thread_exit "thread_exit" is executed) will not be affected.
+*/

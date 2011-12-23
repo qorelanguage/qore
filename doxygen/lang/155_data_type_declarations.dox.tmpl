@@ -1,0 +1,628 @@
+/** @page data_type_declarations Data Type Declarations and Restrictions
+
+    Starting in %Qore 0.8.0, it is possible to restrict variables, class members, and function and method parameters to certain data types. This allows programmers to write safer code, as many more errors can be caught at parse time that would otherwise be caught at run time. Furthermore, providing type information to the parser allows %Qore to implement performance optimizations by performing lookups and resolutions once at parse time rather than every time a variable or class member is accessed at run time.
+
+    When types are declared in a parameter list, functions and methods can be overloaded as well.
+
+    The types in the following table can be used as well as any class name or \c '*classname' (i.e. an asterix followed by the class name), meaning either the given class or @ref nothing (no value).
+
+    <b>Data Type Declaration Names</b>
+    |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
+    |@ref int_type "int"|@ref integer|@ref integer|Restricts values @ref integer values
+    |@ref float_type "float"|@ref float|@ref float|Restricts values to @ref float values
+    |@ref bool_type "bool"|@ref boolean|@ref boolean|Restricts values to @ref boolean values
+    |@ref string_type "string"|@ref string|@ref string|Restricts values to @ref string values
+    |@ref date_type "date"|@ref date|@ref date|Restricts values to @ref date values; values may be either @ref absolute_dates "absolute" or @ref relative_dates "relative"
+    |@ref binary_type "binary"|@ref binary|@ref binary|Restricts values to @ref binary values
+    |@ref hash_type "hash"|@ref hash|@ref hash|Restricts values to @ref hash values
+    |@ref list_type "list"|@ref list|@ref list|Restricts values to @ref list values
+    |@ref object_type "object"|@ref object|@ref object|Restricts values to @ref object values
+    |@ref classname_type "<classname>"|@ref object|@ref object|Restricts values to objects of the specific class given; either the class name can be given (ex: @ref Qore::Mutex "Mutex" or a qualified path to the class: @ref Qore::Mutex)
+    |@ref null_type "null"|@ref null|@ref null|Restricts values to %Qore's @ref null type; this type has few (if any) practical applications and has been included for completeness' sake
+    |@ref nothing_type "nothing"|@ref nothing|@ref nothing|Restricts values to %Qore's @ref nothing type; this type is mostly useful for declaring that a function or method returns no value
+    |@ref timeout_type "timeout"|@ref integer, @ref date|@ref integer|Accepts @ref integer, @ref date and converts dates to an integer value representing milliseconds and returns the integer; incoming integers are assumed to represent milliseconds
+    |@ref softint_type "softint"|@ref integer, @ref float, @ref boolean, @ref string, @ref null|@ref integer|Accepts @ref integer, @ref float, @ref boolean, @ref string, @ref null and converts non-integer values to an integer and returns the integer
+    |@ref softfloat_type "softfloat"|@ref integer, @ref float, @ref boolean, @ref string, @ref null|@ref float|Accepts @ref integer, @ref float, @ref boolean, @ref string, @ref null and converts non-float values to a float and returns the new value
+    |@ref softbool_type "softbool"|@ref integer, @ref float, @ref boolean, @ref string, @ref null|@ref boolean|Accepts @ref integer, @ref float, @ref boolean, @ref string, @ref null and converts non-boolean values to a boolean and returns the new value
+    |@ref softstring_type "softstring"|@ref integer, @ref float, @ref boolean, @ref string, @ref null|@ref string|Accepts @ref integer, @ref float, @ref boolean, @ref string, @ref null and converts non-string values to a string and returns the new value
+    |@ref softdate_type "softdate"|@ref integer, @ref float, @ref boolean, @ref string, @ref date, @ref null|@ref date|Accepts @ref integer, @ref float, @ref boolean, @ref string, @ref date, and @ref null and converts non-date values to a date and returns the new value
+    |@ref softlist_type "softlist"|all types|@ref list|Accepts all types; @ref nothing is returned as an empty list; a list is returned unchanged, and any other type is returned as the first element of a new list
+    |@ref data_type "data"|@ref string or @ref binary|same as received|Restricts input to @ref string and @ref binary and returns the same type
+    |@ref code_type "code"|@ref closure, @ref call_reference|same as received|Restricts values to @ref closure "closures" and @ref call_reference "call references"
+    |@ref reference_type "reference"|@ref lvalue_references|@ref lvalue_references|Restricts values to references to lvalues; currently only usable in function or method parameters
+    |@ref int_or_nothing_type "*int"|@ref integer or @ref nothing|same as received|Restricts values to %Qore's @ref integer or @ref nothing types
+    |@ref float_or_nothing_type "*float"|@ref float or @ref nothing|same as received|Restricts values to %Qore's @ref float or @ref nothing types
+    |@ref bool_or_nothing_type "*bool"|@ref boolean or @ref nothing|same as received|Restricts values to %Qore's @ref boolean or @ref nothing types
+    |@ref string_or_nothing_type "*string"|@ref string or @ref nothing|same as received|Restricts values to %Qore's @ref string or @ref nothing types
+    |@ref date_or_nothing_type "*date"|@ref date or @ref nothing|same as received|Restricts values to %Qore's @ref date or @ref nothing type; values may be either absolute or relative date/time values
+    |@ref binary_or_nothing_type "*binary"|@ref binary or @ref nothing|same as received|Restricts values to %Qore's @ref binary or @ref nothing types
+    |@ref hash_or_nothing_type "*hash"|@ref hash or @ref nothing|same as received|Restricts values to %Qore's @ref hash or @ref nothing types
+    |@ref list_or_nothing_type "*list"|@ref list or @ref nothing|same as received|Accepts either a @ref list or @ref nothing
+    |@ref object_or_nothing_type "*object"|@ref object or @ref nothing|same as received|Accepts either an @ref object or @ref nothing
+    |@ref classname_type_or_nothing "*<classname>"|@ref object of the given class or @ref nothing|same as received|Restricts values to objects of the specific class given or @ref nothing; either the class name can be given (ex: @ref Qore::Mutex "*Mutex" or a qualified path to the class: @ref Qore::Mutex "*Qore::Mutex")
+    |@ref data_or_nothing_type "*data"|@ref string, @ref binary, or @ref nothing|same as received|Restricts input to @ref string, @ref binary, or @ref nothing and returns the same type
+    |@ref code_or_nothing_type "*code"|@ref closure, @ref call_reference, @ref nothing|same as received|Restricts values to @ref closure "closures", @ref call_reference "call references" and @ref nothing
+    |@ref timeout_or_nothing_type "*timeout"|@ref integer, @ref date or @ref nothing|@ref integer or @ref nothing|Accepts @ref integer, @ref date and converts dates to an integer value representing milliseconds and returns the integer; incoming integers are assumed to represent milliseconds. If no value is passed, then @ref nothing is returned
+    |@ref softint_or_nothing_type "*softint"|@ref integer, @ref float, @ref boolean, @ref string, @ref null or @ref nothing|@ref integer or @ref nothing|Accepts @ref integer, @ref float, @ref boolean, @ref string, @ref null and converts non-integer values to an integer and returns the integer. If no value is passed, then @ref nothing is returned
+    |@ref softfloat_or_nothing_type "*softfloat"|@ref integer, @ref float, @ref boolean, @ref string, @ref null or @ref nothing|@ref float or @ref nothing|Accepts @ref integer, @ref float, @ref boolean, @ref string, @ref null and converts non-float values to a float and returns the new value. If no value is passed, then @ref nothing is returned
+    |@ref softbool_or_nothing_type "*softbool"|@ref integer, @ref float, @ref boolean, @ref string, @ref null or @ref nothing|@ref boolean or @ref nothing|Accepts @ref integer, @ref float, @ref boolean, @ref string, @ref null and converts non-boolean values to a boolean and returns the new value. If no value is passed, then @ref nothing is returned
+    |@ref softstring_or_nothing_type "*softstring"|@ref integer, @ref float, @ref boolean, @ref string, @ref null or @ref nothing|@ref string or @ref nothing|Accepts @ref integer, @ref float, @ref boolean, @ref string, @ref null and converts non-string values to a string and returns the new value. If no value is passed, then @ref nothing is returned
+    |@ref softdate_or_nothing_type "*softdate"|@ref integer, @ref float, @ref boolean, @ref string, @ref date, @ref null or @ref nothing|@ref date or @ref nothing|Accepts @ref integer, @ref float, @ref boolean, @ref string, @ref date, and @ref null and converts non-date values to a date and returns the new value. If no value is passed, then @ref nothing is returned
+    |@ref softlist_or_nothing_type "*softlist"|all types|@ref list or @ref nothing|Accepts all types; @ref nothing and list values are returned as the same value; any other type is returned as the first element of a new list
+    |@ref any_type "any"|any|same as received|Provides no restrictions on the type of value it receives and returns the same value
+
+    <hr>
+    @section int_type int
+
+    <b>int Type Restriction</b>
+    |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
+    |\c int|@ref integer|@ref integer|Restricts values to %Qore's @ref integer type
+
+    @par Example
+    @code
+int sub foo(int $i) {
+    return $i;
+}
+    @endcode
+
+    <hr>
+    @section float_type float
+
+    <b>float Type Restriction</b>
+    |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
+    |\c float|@ref float|@ref float|Restricts values to %Qore's @ref float type
+
+    @par Example
+    @code
+float sub foo(float $f = M_PI) {
+    return $f;
+}
+    @endcode
+
+    <hr>
+    @section bool_type bool
+
+    <b>bool Type Restriction</b>
+    |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
+    |\c bool|@ref boolean|@ref boolean|Restricts values to %Qore's @ref boolean type
+
+    @par Example
+    @code
+bool sub foo(bool $b) {
+    return $b;
+}
+    @endcode
+
+    <hr>
+    @section string_type string
+
+    <b>string Type Restriction</b>
+    |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
+    |\c string|@ref string|@ref string|Restricts values to %Qore's @ref string type
+
+    @par Example
+    @code
+string sub foo(string $str = "bar") {
+    return $str;
+}
+    @endcode
+
+    <hr>
+    @section date_type date
+
+    <b>date Type Restriction</b>
+    |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
+    |\c date|@ref date|@ref date|Restricts values to %Qore's @ref date type; date/time values can be either @ref absolute_dates "absolute" or @ref relative_dates "relative"
+
+    @par Example
+    @code
+date sub foo(date $d = now_us()) {
+    return $d;
+}
+    @endcode
+
+    <hr>
+    @section binary_type binary
+
+    <b>binary Type Restriction</b>
+    |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
+    |\c binary|@ref binary|@ref binary|Restricts values to %Qore's @ref binary type
+
+    @par Example
+    @code
+binary sub foo(binary $b) {
+    return $b;
+}
+    @endcode
+
+    <hr>
+    @section hash_type hash
+
+    <b>hash Type Restriction</b>
+    |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
+    |\c hash|@ref hash|@ref hash|Restricts values to %Qore's @ref hash type
+
+    @par Example
+    @code
+hash sub foo(hash $h = ("foo": "bar", "x": 2)) {
+    return $h;
+}
+    @endcode
+
+    <hr>
+    @section list_type list
+
+    <b>list Type Restriction</b>
+    |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
+    |\c list|@ref list|@ref list|Restricts values to %Qore's @ref list type
+
+    @par Example
+    @code
+list sub foo(list $l = "foo", "bar")) {
+    return $l;
+}
+    @endcode
+
+    <hr>
+    @section object_type object
+
+    <b>object Type Restriction</b>
+    |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
+    |\c object|@ref object|@ref object|Restricts values to %Qore's @ref object type; note that any class name can also be used as a type restriction directly
+
+    @par Example
+    @code
+object sub foo(object $o = new Mutex()) {
+    return $o;
+}
+    @endcode
+
+    <hr>
+    @section classname_type \<classname\>
+
+    <b>\<classname\> Type Restriction</b>
+    |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
+    |<em>any class name</em>|@ref object of the particular class given|@ref object of the particular class given|Restricts values to objects of the particular class given; subclasses are also accepted
+
+    @par Example
+    @code
+Mutex sub foo(Qore::Mutex $m = new Mutex()) {
+    return $m;
+}
+    @endcode
+
+    <hr>
+    @section null_type null
+
+    <b>null Type Restriction</b>
+    |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
+    |\c null|@ref null|@ref null|Restricts values to %Qore's @ref null type; this type has few (if any) practical applications and has been included for completeness' sake
+
+    @par Example
+    @code
+# I don't know if this type has any useful/practical applications...
+my null $n = NULL;
+    @endcode
+
+    <hr>
+    @section nothing_type nothing
+
+    <b>nothing Type Restriction</b>
+    |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
+    |\c nothing|@ref nothing|@ref nothing|Restricts values to %Qore's @ref nothing type; this type is mostly useful for declaring that a function or method returns no value
+
+    @par Example
+    @code
+nothing sub bar() {
+    printf("foo\n");
+}
+    @endcode
+
+    <hr>
+    @section timeout_type timeout
+
+    <b>timeout Type Restriction</b>
+    |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
+    |\c timeout|@ref integer, @ref date|@ref integer|Accepts @ref integer, @ref date values and converts dates to an integer value representing milliseconds and returns the integer; incoming integers are assumed to represent milliseconds
+
+    @par Example
+    @code
+timeout sub foo(timeout $to = 1250ms) {
+    return $to;
+}
+    @endcode
+
+    <hr>
+    @section softint_type softint
+
+    <b>softint Type Restriction</b>
+    |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
+    |\c softint|@ref integer, @ref float, @ref boolean, @ref string, @ref null|@ref integer|Accepts @ref integer, @ref float, @ref boolean, @ref string, and @ref null values and converts non-integer values to an integer and returns the integer
+
+    @par Example
+    @code
+softint sub foo(softint $i = "1000") {
+    # note that "200" will be converted to an integer on return
+    return $i > 500 ? "200" : $i;
+}
+    @endcode
+
+    <hr>
+    @section softfloat_type softfloat
+
+    <b>softfloat Type Restriction</b>
+    |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
+    |\c softfloat|@ref integer, @ref float, @ref boolean, @ref string, @ref null|@ref float|Accepts @ref integer, @ref float, @ref boolean, @ref string, and @ref null values and converts non-float values to a float and returns the float
+
+    @par Example
+    @code
+softfloat sub foo(softfloat $f = "1000") {
+    # note that "200" will be converted to a float on return
+    return $f > 500.0 ? "200" : $f;
+}
+    @endcode
+
+    <hr>
+    @section softbool_type softbool
+
+    <b>softbool Type Restriction</b>
+    |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
+    |\c softbool|@ref integer, @ref float, @ref boolean, @ref string, @ref null|@ref boolean|Accepts @ref integer, @ref float, @ref boolean, @ref string, and @ref null values and converts non-boolean values to a boolean and returns the boolean
+
+    @par Example
+    @code
+my softbool $b = "0.5";
+    @endcode
+
+    <hr>
+    @section softstring_type softstring
+
+    <b>softstring Type Restriction</b>
+    |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
+    |\c softstring|@ref integer, @ref float, @ref boolean, @ref string, @ref null|@ref string|Accepts @ref integer, @ref float, @ref boolean, @ref string, and @ref null values and converts non-string values to a string and returns the string
+
+    @par Example
+    @code
+my softstring $str = 200;
+    @endcode
+
+    <hr>
+    @section softdate_type softdate
+
+    <b>softdate Type Restriction</b>
+    |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
+    |\c softdate|@ref integer, @ref float, @ref boolean, @ref string, @ref date, @ref null|@ref date|Accepts @ref integer, @ref float, @ref boolean, @ref string, @ref date, and @ref null values and converts non-date values to a date and returns the date
+
+    @par Example
+    @code
+my softdate $d = "2001-10-10T20:00:05 +04:00";
+    @endcode
+
+    <hr>
+    @section softlist_type softlist
+
+    <b>softlist Type Restriction</b>
+    |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
+    |\c softlist|all data types|@ref list|Accepts all data types; @ref nothing is returned as an empty list; a list is returned unchanged, and any other type is returned as the first element of a new list
+
+    @par Example
+    @code
+softlist sub foo(softlist $l) {
+    foreach my any $element in (\$l) {
+    }
+    return $l;
+}
+    @endcode
+
+    <hr>
+    @section data_type data
+
+    <b>data Type Restriction</b>
+    |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
+    |\c data|@ref string or @ref binary|same as received|Restricts values to @ref string and @ref binary
+
+    @par Example
+    @code
+data sub foo(data $d) {
+    return $d;
+}
+    @endcode
+
+    <hr>
+    @section code_type code
+
+    <b>code Type Restriction</b>
+    |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
+    |\c code|@ref closure, @ref call_reference|same as received|Restricts values to @ref closure and @ref call_reference
+
+    @par Example
+    @code
+sub foo(code $c) {
+    $c();
+}
+    @endcode
+
+    @note that also \c "closure" and \c "callref" are accepted as synonyms for \c "code" (they are not more specific than \c "code" but rather provide identical type restrictions)
+
+    <hr>
+    @section reference_type reference
+
+    <b>reference Type Restriction</b>
+    |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
+    |\c reference|@ref reference|@ref reference|Requires a reference to an lvalue to be assigned; this type is only usable in parameter lists
+
+    @par Example
+    @code
+sub foo(reference $f) {
+    $f = 10;
+}
+    @endcode
+
+    <hr>
+    @section int_or_nothing_type *int
+
+    <b>*int Type Restriction</b>
+    |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
+    |\c *int|@ref integer or @ref nothing|same as received|Restricts values to @ref integer and @ref nothing
+
+    @par Example
+    @code
+*int sub foo(*int $i) {
+    return $i;
+}
+    @endcode
+
+    <hr>
+    @section float_or_nothing_type *float
+
+    <b>*float Type Restriction</b>
+    |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
+    |\c *float|@ref float or @ref nothing|same as received|Restricts values to @ref float and @ref nothing
+
+    @par Example
+    @code
+*float sub foo(*float $f) {
+    return $f;
+}
+    @endcode
+
+    <hr>
+    @section bool_or_nothing_type *bool
+
+    <b>*bool Type Restriction</b>
+    |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
+    |\c *bool|@ref float or @ref nothing|same as received|Restricts values to @ref bool and @ref nothing
+
+    @par Example
+    @code
+*bool sub foo(*bool $b) {
+    return $b;
+}
+    @endcode
+
+    <hr>
+    @section string_or_nothing_type *string
+
+    <b>*string Type Restriction</b>
+    |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
+    |\c *string|@ref string or @ref nothing|same as received|Restricts values to @ref string and @ref nothing
+
+    @par Example
+    @code
+*string sub foo(*string $str) {
+    return $str;
+}
+    @endcode
+
+    <hr>
+    @section date_or_nothing_type *date
+
+    <b>*date Type Restriction</b>
+    |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
+    |\c *date|@ref date or @ref nothing|same as received|Restricts values to @ref date and @ref nothing
+
+    @par Example
+    @code
+*date sub foo(*date $str) {
+    return $str;
+}
+    @endcode
+
+    <hr>
+    @section binary_or_nothing_type *binary
+
+    <b>*binary Type Restriction</b>
+    |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
+    |\c *binary|@ref binary or @ref nothing|same as received|Restricts values to @ref binary and @ref nothing
+
+    @par Example
+    @code
+*binary sub foo(*binary $b) {
+    return $b;
+}
+    @endcode
+
+    <hr>
+    @section hash_or_nothing_type *hash
+
+    <b>*hash Type Restriction</b>
+    |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
+    |\c *hash|@ref hash or @ref nothing|same as received|Restricts values to @ref hash and @ref nothing
+
+    @par Example
+    @code
+*hash sub foo(*hash $h) {
+    return $h;
+}
+    @endcode
+
+    <hr>
+    @section list_or_nothing_type *list
+
+    <b>*list Type Restriction</b>
+    |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
+    |\c *list|@ref list or @ref nothing|same as received|Restricts values to @ref list and @ref nothing
+
+    @par Example
+    @code
+*list sub foo(*list $l) {
+    return $l;
+}
+    @endcode
+
+    <hr>
+    @section object_or_nothing_type *object
+
+    <b>*list Type Restriction</b>
+    |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
+    |\c *list|@ref object or @ref nothing|same as received|Restricts values to @ref object and @ref nothing
+
+    @par Example
+    @code
+*object sub foo(*object $obj) {
+    return $obj;
+}
+    @endcode
+
+    <hr>
+    @section classname_type_or_nothing *\<classname\>
+
+    <b>\<classname\> Type Restriction</b>
+    |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
+    |<em>any class name</em>|@ref object of the particular class given|@ref object of the particular class given|Restricts values to objects of the particular class given; subclasses are also accepted
+
+    @par Example
+    @code
+my Qore::Mutex $o = new Mutex();
+    @endcode
+
+    <hr>
+    @section data_or_nothing_type *date
+
+    <b>*data Type Restriction</b>
+    |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
+    |\c *data|@ref string, @ref binary, or @ref nothing|same as received|Restricts values to @ref string, @ref binary, and @ref nothing
+
+    @par Example
+    @code
+sub foo(*data $d) {
+}
+    @endcode
+
+    <hr>
+    @section code_or_nothing_type *code
+
+    <b>*code Type Restriction</b>
+    |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
+    |\c *code|@ref closure, @ref call_reference, or @ref nothing|same as received|Restricts values to @ref closure, @ref call_reference, and @ref nothing
+
+    @par Example
+    @code
+sub foo(*code $c) {
+}
+    @endcode
+
+    <hr>
+    @section timeout_or_nothing_type *timeout
+
+    <b>*timeout Type Restriction</b>
+    |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
+    |\c *timeout|@ref integer, @ref date, or @ref nothing|same as received|Restricts values to @ref integer, @ref date, and @ref nothing
+
+    @par Example
+    @code
+sub foo(*timeout $c) {
+}
+    @endcode
+
+    <hr>
+    @section softint_or_nothing_type *softint
+
+    <b>*softint Type Restriction</b>
+    |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
+    |\c *softint|@ref integer, @ref float, @ref boolean, @ref string, @ref null, @ref nothing|@ref integer or @ref nothing|Accepts @ref integer, @ref float, @ref boolean, @ref string, and @ref null values and converts non-integer values to an integer and returns the integer; also accepts @ref nothing and returns @ref nothing
+
+    @par Example
+    @code
+sub foo(*softint $i) {
+}
+    @endcode
+
+    <hr>
+    @section softfloat_or_nothing_type *softfloat
+
+    <b>*softfloat Type Restriction</b>
+    |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
+    |\c *softfloat|@ref integer, @ref float, @ref boolean, @ref string, @ref null, @ref nothing|@ref float or @ref nothing|Accepts @ref integer, @ref float, @ref boolean, @ref string, and @ref null values and converts non-float values to a float and returns the float; also accepts @ref nothing and returns @ref nothing
+
+    @par Example
+    @code
+sub foo(*softfloat $f) {
+}
+    @endcode
+
+    <hr>
+    @section softbool_or_nothing_type *softbool
+
+    <b>*softbool Type Restriction</b>
+    |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
+    |\c *softbool|@ref integer, @ref float, @ref boolean, @ref string, @ref null, @ref nothing|@ref boolean or @ref nothing|Accepts @ref integer, @ref float, @ref boolean, @ref string, and @ref null values and converts non-boolean values to a boolean and returns the boolean; also accepts @ref nothing and returns @ref nothing
+
+    @par Example
+    @code
+sub foo(*softbool $b) {
+}
+    @endcode
+
+    <hr>
+    @section softstring_or_nothing_type *softstring
+
+    <b>*softstring Type Restriction</b>
+    |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
+    |\c *softstring|@ref integer, @ref float, @ref boolean, @ref string, @ref null, @ref nothing|@ref string or @ref nothing|Accepts @ref integer, @ref float, @ref boolean, @ref string, and @ref null values and converts non-string values to a string and returns the string; also accepts @ref nothing and returns @ref nothing
+
+    @par Example
+    @code
+sub foo(*softstring $str) {
+}
+    @endcode
+
+    <hr>
+    @section softdate_or_nothing_type *softdate
+
+    <b>*softdate Type Restriction</b>
+    |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
+    |\c *softdate|@ref integer, @ref float, @ref boolean, @ref string, @ref date, @ref null, @ref nothing|@ref string or @ref nothing|Accepts @ref integer, @ref float, @ref boolean, @ref string, @ref date, and @ref null values and converts non-date values to a date and returns the date; also accepts @ref nothing and returns @ref nothing
+
+    @par Example
+    @code
+sub foo(*softdate $d) {
+}
+    @endcode
+
+    <hr>
+    @section softlist_or_nothing_type *softlist
+
+    <b>*softlist Type Restriction</b>
+    |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
+    |\c *softlist|all data types|@ref list or @ref nothing|Accepts all data types; @ref nothing is returned as @ref nothing directly; a list is returned unchanged, and any other type is returned as the first element of a new list
+
+    @par Example
+    @code
+my *softlist $d = $v;
+    @endcode
+
+    <hr>
+    @section any_type any
+
+    <b>any Type Restriction</b>
+    |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
+    |\c any|all data types|all data types|Accepts all data types and returns the same data type
+
+    @par Example
+    @code
+my any $v = $bar;
+    @endcode
+
+    @note Complex types (hash of lists, reference to string, etc) are currently not possible to declare but support may be added in future versions of %Qore for this.
+*/

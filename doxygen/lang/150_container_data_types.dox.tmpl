@@ -1,0 +1,257 @@
+/** @page container_data_types Container Data Types
+
+    %Qore supports three types of container types:
+    - @ref list "lists"
+    - @ref hash "hashes" (associative arrays)
+    - @ref object "objects" (see @ref object and @ref classes for more information)
+
+    These container types can be combined to make arbitrarily complex data structures. The data type of any element can be any basic type or another aggregate type. The types do not have to be uniform in one container structure.
+
+    <hr>
+    @section list List
+
+    Lists (or arrays) are simply ordered containers of values. A list element can be any %Qore type (even another list, @ref hash "hash", or @ref object "object").
+
+    Lists are specified by giving expressions separated by commas as follows:
+
+    @code
+$list = (expression, expression [, expression ...]);
+    @endcode
+
+Here is a concrete example:
+
+    @code
+my list $list = (1, 2, "three", 4.0, 5, 6, 2001-01-15Z);
+    @endcode
+
+    @note Trailing commas can be left on the end of a list (or a hash, for that matter). This makes it easier to comment-out the last element of a multi-line list without having to worry about removing the trailing comma.
+
+    List elements are dereferenced using square brackets: \c "[" and \c "]". The first element in a list has index zero.
+
+    @code
+$element3 = $list[2];
+    @endcode
+
+    The following operators perform special processing on lists: @ref elements "elements", @ref shift "shift", @ref unshift "unshift", @ref push "push", @ref pop "pop", @ref splice "splice", @ref list_element_operator "[]", @ref plus_operator "+", @ref plus_equals_operator "+=", @ref map "map", @ref foldl "foldl", @ref foldr "foldr", and @ref select "select".
+
+    @see @ref list_type, @ref softlist_type
+
+    <hr>
+    @section hash Hash
+
+    Hashes are containers that associate values to a string key.
+
+    @note %Qore hashes preserve the insertion order in order to be able to guarantee the order of keys when hashes are serialized to XML strings, therefore the keys operator will always return the hash keys in insertion/creation order.
+
+    Hashes are specified using the following syntax:
+
+    @code
+$hash = ( "key1" : expression,
+          "key2" : expression,
+	  ... );
+    @endcode
+
+    Here is a concrete example:
+
+    @code
+my hash $hash = ( "apple" : 1 + 1,
+                  "pear"  : "good" );
+    @endcode
+
+    Hashes are dereferenced in one of two ways, either using curly brackets: \c "{" and \c "}", where any valid %Qore expression can be used, or using the dot "." hash member dereferencing operator, where literal strings can be used.
+
+    @code
+$element3 = $hash{"pe" + "ar"};
+    @endcode
+
+    Is equivalent to:
+
+    @code
+$element3 = $hash.pear;
+    @endcode
+
+    and:
+
+    @code
+$element3 = $hash."pear";
+    @endcode
+
+    and:
+
+    @code
+$element3 = $hash.("pe" + "ar");
+    @endcode
+
+    Hash members can have the names of keywords, but in this case to dereference them, you cannot use the dot operator with a literal string, otherwise a parse error will be raised. Use quotes around the member name when dereferencing hash members with the same name as a qore keyword as follows:
+
+    @code
+$element3 = $hash."keys";
+$element3 = $hash{"keys"};
+    @endcode
+
+    A literal string after the dot "." hash member dereferencing operator must be a valid %Qore identifier; therefore if you want to use a hash key that's not a valid identifier, enclose the string in quotes.
+
+    If you want to use the result of an expression to dereference the hash, then either the curly bracket syntax must be used or the expression must be enclosed in parentheses.
+
+    Note that hash keys can also be given by constants (as long as the constant resolves to a string) when using curly brackets.
+
+    @see @ref hash_type
+
+    <hr>
+    @section object Object
+
+    %Qore objects are instantiations of a @ref classes "class". They have members (like a hash; values associated to string keys), and methods. The @ref classes "class definition" specifies the methods that run on objects of that class, public and private members, static methods and variables, etc associated with the class (however note that static methods do not run in the scope of an object).  See @ref classes for information on how to create a class in %Qore.
+
+    The recommend way to instantiate an object is to declare its type and give constructor arguments after the variable name in parentheses as follows:
+
+    @code
+my class_name_or_path $var_name([argument list])
+    @endcode
+
+    For example (for a constructor taking no arguments or having only default values for the aguments, the list is empty):
+    @code
+my Mutex $m();
+    @endcode
+
+    If parse option @ref new-style "%new-style" is set, the above example declaring a local variable of class @ref Qore::Mutex would look as follows:
+
+    @code
+Mutex m();
+    @endcode
+
+    Objects can also be instantiated using the @ref new "new operator" as follows.
+
+    @code
+new class_identifier([argument list])
+    @endcode
+
+    For example:
+
+    @code
+my Mutex $m = new Mutex();
+    @endcode
+
+    Or, with parse option %new-style:
+
+    @code
+Mutex m = new Mutex();
+    @endcode
+
+    Objects have named data members that are referenced like hash elements, although this behavior can be modified for objects using the memberGate() method. Object members are accessed by appending a dot '.' and the member name to the object reference as follows:
+
+    @code
+object_reference.member_name
+    @endcode
+
+    For more information, see @ref class_members.
+
+    Object methods are called by appending a dot '.' and a method name to the object reference as follows:
+
+    @code
+object_reference.method_name([argument_list])
+    @endcode
+
+    Or, from within the class code itself to call another method from inside the same class hierarchy:
+
+    @code
+$.method_name([argument_list])
+    @endcode
+
+    Or, with parse option %new-style, the method call is made without the "$.":
+
+    @code
+method_name([argument_list])
+    @endcode
+
+    For more information, see @ref object_method_calls.
+
+    The object references above are normally variable references holding an object, but could be any expression that returns an object, such as a @ref new "new expression" or even a function call.
+
+    @note Objects are treated differently than other %Qore data types; they are only explicitly copied (see @ref object_references for more informaion). Any object instantiated with the @ref new "new operator" will remain unique until deleted or explicitly copied. An explicit copy is made with the copy method, and does not always guarantee an exact copy of the source object (it depends on the definition of the copy method for the class in question).
+
+    Objects exist until they go out of scope, are explicitly deleted, or their last thread exits. For detailed information, see @ref classes.
+
+    @see @ref object_type
+
+    @section object_references Object References
+
+    In %Qore objects are treated differently from all other data types in that they are by default passed as arguments to functions and methods by passing a copy of a reference to the object (similar to Java's handling of objects). That means that passing an object to a function that modifies the object will by default modify the original object and not a copy, however reassigning a local parameter variable assigned an object passed as an argument (that is only assigned to a local variable in the calling function) will not result in deleting the object, but rather decrement its scope reference count (note that if the object were created as a part of the call and reassigning the variable would cause the object's scope reference count to reach zero, then the object would be deleted in this case).
+
+    Assigning an object to a variable has the same effect; a copy of a reference to the object is assigned to the variable. This results in prolonging the object's scope (by owning a new copy of a reference to the object).
+
+    An example:
+    @code
+sub test2(any $x) {
+   # we can modify the original object like so:
+   $x.member = "tree";
+
+   # here we re-assign $x, but since the object is also assigned
+   # to $o in the calling function, the object's scope is still
+   # valid, and therefore nothing happens so the object
+   $x = 1;
+}
+
+sub test() {
+   my TestObject $o();
+
+   # here we pass a copy of a reference to the object in $o
+   test2($o);
+
+   # this will print out "ok\n", because the object is still
+   # valid and the member has been set by test2()
+   if ($o.member == "tree")
+      print("ok\n");
+}
+# when test() exits, the object in $o will go out of scope
+# and be deleted
+    @endcode
+
+    If, however, an object is passed by reference, then the local variable of the called function that accepts the object owns the scope reference of the calling functions's variable.
+
+    An example:
+    @code
+sub test2(any $x) {
+   # we can modify the original object like so:
+   $x.member = "tree";
+
+   # here we re-assign $x, and since we own the only scope 
+   # reference to the object, the object will go out of 
+   # scope here and be deleted
+   $x = 1;
+}
+
+sub test() {
+   my TestObject $o();
+
+   # here we pass a reference to the object in $o
+   test2(\$o);
+
+   # the object has already been deleted in test2() and
+   # therefore nothing will be printed out
+   if ($o.member == "tree")
+      print("ok\n");
+}
+    @endcode
+
+    @note that when parse option @ref allow-bare-refs "%allow-bare-refs" is set, then variable references as in the above examples are made without the \c "$" character.
+
+    @section object_scope Object Scope
+
+    Objects are automatically deleted when their scope-relevant reference count reaches zero (note that objects can be deleted manually at any time by using the @ref delete "delete operator"). Whenever an object is deleted, the object's class' destructor method is run on the object.
+
+    The following affect objects' scope:
+    - variable assignments: an object's automatic scope is prolonged as long as the object is assigned to a local variable
+    - existence of a closure created Within the object: any closures created from within the object encapsulate the object's state (along with any local variables referenced within the closure) and also prolong the object's automatic scope as long as the closure exists.
+    - object method thread launched within the object: if a member function thread was launched from within the object using the @ref background "background operator", the object's automatic scope is prolonged to the life of the new thread. Object threads started externally to the object (i.e. not directly from an expression with the @ref background "background operator" within a method) will not prolong the scope of the object.
+
+    @note If an object with running threads is explicitly deleted, and this case is not handled in the object's destructor() method (by ensuring that all other running threads terminate gracefully), exceptions will be thrown in other threads at any attempt to access the already-deleted object.\n\n
+    The fact that object threads and closures can prolong object scope means, for example, that objects assigned to local variables can exist for longer than the scope of their host variable if they have one or more methods running in other threads or if closures created from within the object still exist at the time the local variable goes out of scope.\n\n
+    For more information about threading, please see @ref threading
+
+    @section copying_objects Copying Objects
+
+    To explicitly generate a copy of an object, the \c copy() constructor must be called. This is a special method that exists implicitly for every class even if it is not explicitly defined (like \c constructor() and \c destructor() methods). The implicit behavior of the \c copy() constructor is to create a new object with new members that are copies of the original members (except objects are created as copies of references to the object). Then, if any \c copy() method exists, it will be executed in the new object, passing a copy of a reference to the old object as the first argument to the \c copy() method.
+
+    @note In a class hierarchy copy() methods are called in the same order as constructor() methods.\n\n
+    Not all built-in classes can be copied. Classes not supporting copying will throw an exception when the \c copy() methods are called. See the documentation for each class for more information.
+*/
