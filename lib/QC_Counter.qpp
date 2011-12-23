@@ -1,0 +1,149 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/*
+  QC_Counter.cpp
+
+  Qore Programming Language
+  
+  Copyright 2003 - 2011 David Nichols
+  
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+  
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+  
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
+#include <qore/Qore.h>
+#include <qore/intern/QC_Counter.h>
+
+//! Implements a class that can be used for blocking a thread until a counter reaches zero
+/** Counter objects allow Qore threads to sleep until a counter reaches zero.
+
+    @note This class is not available with the @ref PO_NO_THREAD_CLASSES parse option.
+ */
+qclass Counter [dom=THREAD_CLASS; arg=Counter* c; ns=Thread];
+
+//! Creates the Counter object
+/** @param c an argument is supplied here, then the Counter will be initialized with this value, otherwise the Counter is initialized with 0
+
+    @par Example
+    @code
+my Counter $counter();
+    @endcode
+ */
+Counter::constructor(softint c = 0) {
+   self->setPrivate(CID_COUNTER, new Counter(c));
+}
+
+//! Destroys the Counter object
+/** Note that it is a programming error to delete this object while other threads are blocked on it; in this case an exception is thrown in the deleting thread, and also in each thread blocked on this object when it is deleted.
+
+    @par Example
+    @code
+delete $counter;
+    @endcode
+
+    @throw COUNTER-ERROR Object deleted while other threads blocked on it
+ */
+Counter::destructor() {
+   c->destructor(xsink);
+   c->deref(xsink);
+}
+
+//! Creates a new Counter object with the same count as the original
+/** 
+    @par Example
+    @code
+my Counter $new_counter = $counter.copy();
+    @endcode
+ */
+Counter::copy() {
+   self->setPrivate(CID_COUNTER, new Counter(c->getCount()));
+}
+
+//! Atomically increments the counter value
+/** 
+    @par Example
+    @code
+$counter.inc();
+    @endcode
+ */
+nothing Counter::inc() {
+   c->inc();
+}
+
+//! Atomically decrements the counter value
+/** A \c COUNTER-ERROR exception can only be thrown if the object is deleted in another thread while this call is in progress; this is a race condition caused by a user programming error and should not occur in practice with correct code.
+
+    @par Example
+    @code
+$counter.dec();
+    @endcode
+
+    @throw COUNTER-ERROR Counter has been deleted in another thread
+ */
+nothing Counter::dec() {
+   c->dec(xsink);
+}
+
+//! Blocks a thread until the counter reaches zero
+/** 
+    @par Example
+    @code
+$counter.waitForZero();
+    @endcode
+
+    @throw COUNTER-ERROR Counter has been deleted in another thread
+ */
+nothing Counter::waitForZero() {
+   c->waitForZero(xsink);
+}
+
+//! Blocks a thread until the counter reaches zero
+/** @param timeout_ms a @ref timeout_type "timeout" value to wait for the Counter to reach zero; integers are interpreted as milliseconds; @ref relative_dates "relative date/time values" are interpreted literally (with a resolution of milliseconds)
+
+    @return 0 on sucess, or non-zero if a timeout occurred
+
+    @par Example
+    @code
+if ($counter.waitForZero(1500))
+    throw "TIMEOUT", "counter did not reach 0 in 1.5s";
+    @endcode
+
+    @throw COUNTER-ERROR Counter has been deleted in another thread
+ */
+int Counter::waitForZero(timeout timeout_ms) {
+   return c->waitForZero(xsink, timeout_ms);
+}
+
+//! Returns the current counter value
+/** @return the current counter value
+
+    @par Example
+    @code
+my int $c = $counter.getCount();
+    @endcode
+ */
+int Counter::getCount() [flags=QC_CONSTANT] {
+   return c->getCount();
+}
+
+//! Returns the number of threads currently blocked on this object
+/** @return the number of threads currently blocked on this object
+
+    @par Example
+    @code
+my int $c = $counter.getWaiting();
+    @endcode
+ */
+int Counter::getWaiting() [flags=QC_CONSTANT] {
+   return c->getWaiting();
+}

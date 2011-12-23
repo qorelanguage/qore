@@ -50,9 +50,25 @@ QC_AutoGate.cpp: QC_AutoGate.qpp qpp
 QC_RWLock.cpp: QC_RWLock.qpp qpp
 	$(QPP) $<
 
+QC_AutoReadLock.cpp: QC_AutoReadLock.qpp qpp
+	$(QPP) $<
+
+QC_AutoWriteLock.cpp: QC_AutoWriteLock.qpp qpp
+	$(QPP) $<
+
+QC_Condition.cpp: QC_Condition.qpp qpp
+	$(QPP) $<
+
+QC_Sequence.cpp: QC_Sequence.qpp qpp
+	$(QPP) $<
+
+QC_Counter.cpp: QC_Counter.qpp qpp
+	$(QPP) $<
+
 QORE_GENERATED_SOURCES = \
 	QC_Queue.cpp QC_Socket.cpp QC_File.cpp QC_AbstractSmartLock.cpp QC_Mutex.cpp QC_AutoLock.cpp \
-	QC_Gate.cpp QC_AutoGate.cpp QC_RWLock.cpp
+	QC_Gate.cpp QC_AutoGate.cpp QC_RWLock.cpp QC_AutoReadLock.cpp QC_AutoWriteLock.cpp \
+	QC_Condition.cpp QC_Sequence.cpp QC_Counter.cpp
 
 CLEANFILES = $(QORE_GENERATED_SOURCES)
 

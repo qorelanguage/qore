@@ -30,11 +30,10 @@
 #include <qore/intern/Sequence.h>
 
 DLLEXPORT extern qore_classid_t CID_SEQUENCE;
+DLLLOCAL extern QoreClass* QC_SEQUENCE;
+DLLLOCAL QoreClass *initSequenceClass(QoreNamespace& ns);
 
-DLLLOCAL class QoreClass *initSequenceClass();
-
-class QoreSequence : public AbstractPrivateData, public Sequence
-{
+class QoreSequence : public AbstractPrivateData, public Sequence {
    protected:
       DLLLOCAL virtual ~QoreSequence() {}
 

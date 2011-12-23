@@ -1,0 +1,85 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/*
+  QC_Sequence.qpp
+  
+  Qore Programming Language
+  
+  Copyright 2003 - 2011 David Nichols
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+  
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+  
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
+#include <qore/Qore.h>
+#include <qore/intern/QC_Sequence.h>
+
+//! The Sequence class implements a thread-safe increment-only object
+/** 
+ */
+qclass Sequence [dom=THREAD_CLASS; arg=QoreSequence* s; ns=Thread];
+
+//! Creates a new Sequence object
+/** 
+    @par Example
+    @code
+my Sequence $seq();
+    @endcode
+ */
+Sequence::constructor() {
+   self->setPrivate(CID_SEQUENCE, new QoreSequence);
+}
+
+//! Creates a new Sequence object with a starting value
+/** 
+    @par Example
+    @code
+my Sequence $seq(20);
+    @endcode
+ */
+Sequence::constructor(softint start) {
+   self->setPrivate(CID_SEQUENCE, new QoreSequence((int)start));
+}
+
+//! Creates a new Sequence object, not based on the original
+/** 
+    @par Example
+    @code
+my Sequence $s2 = $seq.copy();
+    @endcode
+ */
+Sequence::copy() {
+   self->setPrivate(CID_SEQUENCE, new QoreSequence(s->getCurrent()));
+}
+
+//! Atomically increments the sequence value and returns the last value
+/** @return the last value of the sequence
+    @par Example
+    @code
+my int $next = $seq.next();
+    @endcode
+ */
+int Sequence::next() {
+   return s->next();
+}
+
+//! Returns the current value of the sequence
+/** @return current value of the sequence
+    @par Example
+    @code
+my int $v = $seq.getCurrent();
+    @endcode
+ */
+int Sequence::getCurrent() [flags=QC_CONSTANT] {
+   return s->getCurrent(); 
+}

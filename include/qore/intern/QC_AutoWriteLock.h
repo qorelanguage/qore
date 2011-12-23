@@ -29,8 +29,8 @@
 #include <qore/intern/QC_RWLock.h>
 
 DLLEXPORT extern qore_classid_t CID_AUTOWRITELOCK;
-
-DLLLOCAL QoreClass *initAutoWriteLockClass(QoreClass *RWLock);
+DLLLOCAL extern QoreClass* QC_AUTOWRITELOCK;
+DLLLOCAL QoreClass *initAutoWriteLockClass(QoreNamespace& ns);
 
 class QoreAutoWriteLock : public AbstractPrivateData {
    RWLock *rwl;

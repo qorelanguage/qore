@@ -1,0 +1,90 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/*
+ QC_AutoReadLock.qpp
+ 
+ Qore Programming Language
+ 
+ Copyright 2003 - 2011 David Nichols
+ 
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2.1 of the License, or (at your option) any later version.
+ 
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+ 
+ You should have received a copy of the GNU Lesser General Public
+ License along with this library; if not, write to the Free Software
+ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ */
+
+#include <qore/Qore.h>
+#include <qore/intern/QC_AutoReadLock.h>
+#include <qore/intern/QC_RWLock.h>
+
+//! A helper class for the @ref Qore::Thread::RWLock "RWLock" class for exception-safe read lock handling
+/** AutoReadLock objects, when used along with a @ref Qore::Thread::RWLock "RWLock" object, allow %Qore programmers to safely acquire and release a read lock, even if exceptions are thrown or return statements are executed in the block where the AutoReadLock object is created.
+
+    AutoReadLock objects are helper objects that acquire a read lock for the lifetime of the AutoReadLock object. For this reason, it is only appropriate to assign an AutoReadLock object to a local variable, so when the local variable goes out of scope, the AutoReadLock object will be deleted and the read lock will be automatically released.
+
+    For example:
+    @code
+our RWLock $rwl();
+
+sub check_error($error) {
+    # note that the read lock is acquired in the AutoReadLock constructor, and
+    # the read lock will be released as soon as the block is exited below.
+    # (with either the throw statement or the return statement)
+    my AutoReadLock $arl($rwl);
+    if ($error)
+        throw "ERROR", "sorry, an error happened";
+
+    return "OK";
+}
+    @endcode
+
+    @note This class is not available with the @ref PO_NO_THREAD_CLASSES parse option
+ */
+qclass AutoReadLock [dom=THREAD_CLASS; arg=QoreAutoReadLock* arwl; ns=Thread];
+
+//! Creates the AutoReadLock object based on the RWLock argument passed and immediately calls RWLock::readLock()
+/** Creates the AutoReadLock object based on the RWLock argument passed. The AutoReadLock object immediately calls RWLock::readLock() on the RWLock object passed, and saves it so it can be released when the AutoReadLock object is destroyed.
+
+    @par Example
+    @code
+my AutoReadLock $arl($rwlock);
+    @endcode
+
+    @throw THREAD-DEADLOCK A deadlock was detected while trying to acquire the lock
+    @throw LOCK-ERROR RWLock::readLock() called while already holding the write lock, object deleted in another thread, etc.
+ */
+AutoReadLock::constructor(RWLock[RWLock] rwl) {
+   ReferenceHolder<QoreAutoReadLock> arwl(new QoreAutoReadLock(rwl, xsink), xsink);
+   if (!*xsink)
+      self->setPrivate(CID_AUTOREADLOCK, arwl.release());
+}
+
+//! Calls RWLock::readUnlock() on the saved RWLock and destroys the AutoReadLock object
+/** 
+    @par Example
+    @code
+delete $arl;
+    @endcode
+
+    @throw LOCK-ERROR RWLock::readUnlock() called while not holding the read lock, RWLock object deleted in another thread, etc
+ */
+AutoReadLock::destructor() {
+   arwl->destructor(xsink);
+   arwl->deref(xsink);
+}
+
+//! Throws an exception; objects of this class cannot be copied
+/** 
+    @throw AUTOREADLOCK-COPY-ERROR objects of this class cannot be copied
+ */
+AutoReadLock::copy() {
+   xsink->raiseException("AUTOREADLOCK-COPY-ERROR", "objects of this class cannot be copied");
+}

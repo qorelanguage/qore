@@ -1,0 +1,142 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/*
+  QC_Condition.qpp
+
+  Qore Programming Language
+  
+  Copyright 2003 - 2011 David Nichols
+  
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+  
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+  
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
+#include <qore/Qore.h>
+#include <qore/intern/QC_Condition.h>
+#include <qore/intern/QC_AbstractSmartLock.h>
+#include <qore/ReferenceHolder.h>
+
+#include <errno.h>
+
+//! The Condition class can be used For blocking a thread until a condition becomes \c True
+/** Condition objects, when used along with an AbstractSmartLock object (such as RWLock and Mutex objects), allow %Qore threads to sleep until a certain condition becomes \c True.
+
+    @note This class is not available with the @ref PO_NO_THREAD_CLASSES parse option.
+ */
+qclass Condition [dom=THREAD_CLASS; arg=Condition* c; ns=Thread];
+
+//! Creates the Condition object
+/** 
+    @par Example
+    @code
+my Condition $cond();
+    @endcode
+ */
+Condition::constructor() {
+   self->setPrivate(CID_CONDITION, new Condition);
+}
+
+//! Creates a new Condition object, not based on the original
+/** 
+    @par Example
+    @code
+my Condition $new_cond = $cond.copy();
+    @endcode
+ */
+Condition::copy() {
+   self->setPrivate(CID_CONDITION, new Condition);
+}
+
+//! Signals a single blocked thread to wake up
+/** Normally this method call will be made while the same AbstractSmartLock object used for Condition::wait() calls is locked. Then, when the thread calling this method unlocks the AbstractSmartLock object, the thread woken up by this call can continue executing.
+
+    @par Example
+    @code
+$m.lock();
+$cond.signal();
+$m.unlock();
+    @endcode
+
+    @throw CONDITION-SIGNAL-ERROR This exception should never be thrown - it indicates a low-level error in executing the method
+ */
+nothing Condition::signal() {
+   if (c->signal())
+      xsink->raiseException("CONDITION-SIGNAL-ERROR", q_strerror(errno)); 
+}
+
+//! Signals all threads blocked on this Condition object to wake up
+/** Normally this method call will be made while the same AbstractSmartLock object used for Condition::wait() calls is locked. Then, when the thread calling this method unlocks the AbstractSmartLock object, the thread(s) woken up by this call can continue executing.
+
+    @par Example
+    @code
+$m.lock();
+$cond.broadcast();
+$m.unlock();
+    @endcode
+
+    @throw CONDITION-BROADCAST-ERROR This exception should never be thrown - it indicates a low-level error in executing the method
+ */
+nothing Condition::broadcast() {
+   if (c->broadcast())
+      xsink->raiseException("CONDITION-BROADCAST-ERROR", q_strerror(errno));
+}
+
+//! Blocks a thread until signaled; accepts an optional timeout value
+/** Must be called with an AbstractSmartLock argument, and the AbstractSmartLock must be locked before the call. This method will atomically unlock the AbstractSmartLock object and wait on this Condition object to be woken up with a Condition::signal() or Condition::broadcast() method call in another thread. At this point, the AbstractSmartLock will be reacquired with the same state as it was acquired previously before control returns to the blocked thread. The wait condition should always be tested again when the thread is unblocked.
+
+    @param lock the AbstractSmartLock object to use for synchronization on this Condition object. The AbstractSmartLock must be locked before calling this method
+    @param timeout_ms a @ref timeout_type "timeout" value to wait to acquire the read lock; integers are interpreted as milliseconds; @ref relative_dates "relative date/time values" are interpreted literally (with a resolution of milliseconds).  Timeout values <= 0 mean do not time out.  If a timeout value > 0 is given and the call times out, the AbstractSmartLock will also be acquired when the Condition::wait() call returns and \c ETIMEDOUT will be returned.
+
+    @return 0 for success, \c ETIMEDOUT if a timeout has occurred
+
+    @par Example
+    @code
+$m.lock();
+on_exit $m.unlock();
+while ($some_value > 0) {
+    $cond.wait($m);    
+}
+printf("finally $some_value is 0\n");
+    @endcode
+
+    @throw CONDITION-WAIT-ERROR This exception should never be thrown - it indicates a low-level error in executing the method
+ */
+int Condition::wait(AbstractSmartLock[AbstractSmartLock] lock, timeout timeout_ms = 0) {
+   ReferenceHolder<AbstractSmartLock> holder(lock, xsink);
+   
+   int rc = timeout_ms ? c->wait(lock, timeout_ms, xsink) : c->wait(lock, xsink);
+
+   //printd(5, "Condition::wait() m=%s (%p) timeout=%d rc=%d\n", lock->getName(), lock, timeout, rc);
+      
+   if (rc && rc != ETIMEDOUT && !*xsink)
+      xsink->raiseErrnoException("CONDITION-WAIT-ERROR", rc, "unknown system error code returned from Condition::wait(lock=%s, timeout=%d): rc=%d", lock->getName(), timeout_ms, rc);
+   return rc;
+}
+
+//! Returns the number of threads currently blocked on this object using the AbstractSmartLock passed
+/** 
+    @param lock the AbstractSmartLock object to check foir blocked threads on this Condition object; the AbstractSmartLock can be in any state (locked or unlocked) for this call (does not necessarily have to be locked).
+
+    @return The number of threads currently blocked on this object using the AbstractSmartLock object passed
+
+    @par Example
+    @code
+printf("%d thread(s) waiting on the Condition\n", $cond.wait_count($m));
+    @endcode
+ */
+int Condition::wait_count(AbstractSmartLock[AbstractSmartLock] lock) {
+   ReferenceHolder<AbstractSmartLock> holder(lock, xsink);
+
+   return c->wait_count(lock);
+}
+

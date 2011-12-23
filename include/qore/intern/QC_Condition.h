@@ -30,9 +30,10 @@
 #include <qore/intern/AbstractSmartLock.h>
 #include <qore/intern/SmartMutex.h>
 
-extern qore_classid_t CID_CONDITION;
+DLLEXPORT extern qore_classid_t CID_CONDITION;
+DLLLOCAL extern QoreClass* QC_CONDITION;
 
-QoreClass *initConditionClass(QoreClass *Mutex);
+QoreClass *initConditionClass(QoreNamespace& ns);
 
 class Condition : public AbstractPrivateData {
 private:

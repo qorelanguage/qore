@@ -28,12 +28,12 @@
 #include <qore/QoreCounter.h>
 #include <qore/AbstractPrivateData.h>
 
-extern qore_classid_t CID_COUNTER;
+DLLEXPORT extern qore_classid_t CID_COUNTER;
+DLLLOCAL extern QoreClass* QC_COUNTER;
 
-class QoreClass *initCounterClass();
+DLLLOCAL QoreClass *initCounterClass(QoreNamespace& ns);
 
-class Counter : public AbstractPrivateData, public QoreCounter
-{
+class Counter : public AbstractPrivateData, public QoreCounter {
    protected:
       DLLLOCAL virtual ~Counter() {}
 
