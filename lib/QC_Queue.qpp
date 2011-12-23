@@ -28,7 +28,7 @@
 
     @note This class is not available with the @ref PO_NO_THREAD_CLASSES parse option   
  */
-qclass Queue [dom=THREAD_CLASS; arg=Queue *q];
+qclass Queue [dom=THREAD_CLASS; arg=Queue *q; ns=Thread];
 
 //! Creates the Queue object
 /** @par Example

@@ -1,0 +1,85 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/*
+ QC_AbstractSmartLock.qpp
+ 
+ Qore Programming Language
+ 
+ Copyright 2003 - 2011 David Nichols
+ 
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2.1 of the License, or (at your option) any later version.
+ 
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+ 
+ You should have received a copy of the GNU Lesser General Public
+ License along with this library; if not, write to the Free Software
+ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ */
+
+#include <qore/Qore.h>
+#include <qore/intern/QC_AbstractSmartLock.h>
+
+//! The abstract base class for locks that support the internal API for use with the @ref Qore::Thread::Condition "Condition" class
+/** This is an abstract class to be inherited by builtin classes that implement the internal Qore API that allows them to be used by the @ref Qore::Thread::Condition "Condition" class. Currently the @ref Qore::Thread::RWLock "RWLock" and @ref Qore::Thread::Mutex "Mutex" classes inherit this class.
+
+    This class cannot be instantiated directly and also cannot be directly inherited by user-defined classes.
+
+    @note This class is not available with the @ref PO_NO_THREAD_CLASSES parse option.
+ */
+qclass AbstractSmartLock [dom=THREAD_CLASS; arg=AbstractSmartLock* asl; ns=Thread];
+
+//! Throws an exception if called directly; this class can only be instantiated by builtin subclasses
+/** @throw ABSTRACTSMARTLOCK-CONSTRUCTOR-ERROR this exception is thrown if this class is constructed directly (also if directly inherited by user classes)
+ */
+AbstractSmartLock::constructor() {
+   xsink->raiseException("ABSTRACTSMARTLOCK-CONSTRUCTOR-ERROR", "this class is an abstract class and cannot be constructed directly or inherited directly by a user-defined class");
+}
+
+//! Returns the name of the threading class directly inheriting this class
+/** @par Example
+    @code
+my string $name = $lock.getName();
+    @endcode
+
+    @return the name of the threading class directly inheriting this class
+ */
+string AbstractSmartLock::getName() [flags=QC_CONSTANT] {
+   return new QoreStringNode(asl->getName());
+}
+
+//! Returns \c True if the calling thread owns the lock, \c False if not
+/** @par Example
+    @code
+# only grab and release lock if we don't already own it
+if (!$lock.lockOwner())
+    $lock.lock();
+on_exit
+    if (!$lock.lockOwner())
+	$lock.unlock();
+    @endcode
+
+    @return \c True if the calling thread owns the lock, \c False if not
+ */
+bool AbstractSmartLock::lockOwner() [flags=QC_CONSTANT] {
+   return asl->get_tid() == gettid();
+}
+
+//! Returns the TID of the thread owning the lock or -1 if the lock is currently not acquired
+/** This method normally not useful in practice for anything except checking that the current thread owns the lock, in which case AbstractSmartLock::lockOwner() is better, because if the lock is not owned by the current thread the lock ownership can change at any time.
+
+    @par Example
+    @code
+my int $tid = $lock.lockTID();
+    @endcode
+
+    @return the TID of the thread owning the lock or -1 if the lock is currently not acquired
+ */
+int AbstractSmartLock::lockTID() [flags=QC_CONSTANT] {
+   int tid = asl->get_tid();
+   return !tid ? -1 : tid;
+}

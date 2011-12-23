@@ -32,8 +32,11 @@ QC_Socket.cpp: QC_Socket.qpp qpp
 QC_File.cpp: QC_File.qpp qpp
 	$(QPP) $<
 
+QC_AbstractSmartLock.cpp: QC_AbstractSmartLock.qpp qpp
+	$(QPP) $<
+
 QORE_GENERATED_SOURCES = \
-	QC_Queue.cpp QC_Socket.cpp QC_File.cpp
+	QC_Queue.cpp QC_Socket.cpp QC_File.cpp QC_AbstractSmartLock.cpp
 
 CLEANFILES = $(QORE_GENERATED_SOURCES)
 

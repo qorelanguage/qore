@@ -218,6 +218,14 @@ void trim(std::string &str) {
    }
 }
 
+static void get_type_name(std::string &t, const std::string &type) {
+   size_t cp = type.rfind("::");
+   if (cp == std::string::npos)
+      t = type;
+   else
+      t.assign(type, cp + 2, -1);
+}
+
 static void get_string_list(strlist_t &l, const std::string &str, char separator = ',') {
    size_t start = 0;
    while (true) {
@@ -285,7 +293,8 @@ static int get_qore_type(const std::string &qt, std::string &cppt) {
    strmap_t::iterator i = tmap.find(qt);
    if (i == tmap.end()) {
       // assume a Qore object of the given class
-      std::string qc = qt;
+      std::string qc;
+      get_type_name(qc, qt);
       bool on = qt[0] == '*';
       if (on)
          qc.erase(0, 1);
@@ -747,8 +756,9 @@ protected:
 
             //log(LL_DEBUG, "found object class '%s' param name '%s'\n", p.type.c_str(), p.name.c_str());
             //HARD_QORE_OBJ_DATA(cert, QoreSSLCertificate, args, 0, CID_SSLCERTIFICATE, "Socket::setCertificate()", "SSLCertificate", xsink);
-            std::string cid = p.type.c_str();
-            toupper(cid);
+            std::string cid;
+            get_type_name(cid, p.type);
+            toupper(cid);            
             fprintf(fp, "   HARD_QORE_OBJ_DATA(%s, %s, args, 0, CID_%s, \"%s::%s()\", \"%s\", xsink);\n   if (*xsink)\n      return 0;\n",
                     p.name.c_str(), p.qore.c_str(), cid.c_str(), cname, name.c_str(), p.type.c_str());
             continue;
@@ -1136,7 +1146,8 @@ protected:
    std::string name,    // class name
       doc,              // doc string
       arg,              // argument for non-static methods
-      scons;            // system constructor
+      scons,            // system constructor
+      ns;               // namespace name
    paramlist_t public_members;  // public members
 
    strlist_t dom;       // functional domains
@@ -1219,6 +1230,12 @@ public:
             continue;
          }
 
+         if (i->first == "ns") {
+            ns = i->second;
+            log(LL_DEBUG, "+ namespace: %s\n", ns.c_str());
+            continue;
+         }
+
          error("+ prop: '%s': '%s' - unknown property '%s'\n", i->first.c_str(), i->second.c_str(), i->first.c_str());
          valid = false;
       }
@@ -1287,7 +1304,7 @@ public:
    }
 
    virtual int serializeCpp(FILE *fp) {
-      fprintf(fp, "/* Qore class %s */\n\n", name.c_str());
+      fprintf(fp, "/* Qore class %s::%s */\n\n", ns.empty() ? "Qore" : ns.c_str(), name.c_str());
 
       std::string UC;
       for (unsigned i = 0; i < name.size(); ++i)
@@ -1349,7 +1366,11 @@ public:
    }
 
    virtual int serializeDox(FILE *fp) {
-      fputs("//! main Qore-language namespace\nnamespace Qore {\n", fp);
+      if (ns.empty())
+         fputs("//! main Qore-language namespace\nnamespace Qore {\n", fp);
+      else
+         fprintf(fp, "//! %s namespace\nnamespace Qore::%s {\n", ns.c_str(), ns.c_str());
+
       serializeDoxComment(fp, doc);
       
       fprintf(fp, "class %s {\n", name.c_str());

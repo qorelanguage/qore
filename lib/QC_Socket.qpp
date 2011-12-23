@@ -74,7 +74,7 @@ static int64 checkOpenResult(int rc, const char *method_name, ExceptionSink *xsi
 
     To support TLS/SSL server connections, first set the certificate and private key with the Socket::setCertificate() and Socket::setPrivateKey() methods (see the SSLCertificate Class and the SSLPrivateKey Class for more information on the parameters required for these methods). Then Socket::acceptSSL() should be called after the socket is in a listening state to accept client connections and negotiate a TLS/SSL connection.
 
-    This class supports posting events to a Queue. See @ref event-handling for more information.
+    This class supports posting events to a @ref Qore::Thread::Queue "Queue". See @ref event-handling for more information.
 
     The events raised by this object are listed in the following table:
 
@@ -1658,7 +1658,7 @@ nothing Socket::setPrivateKey(binary key_der) {
    s->setPrivateKey(key.release());
 }
 
-//! Removes any @ref Queue object from the Socket object so that @ref socket_events "socket events" are no longer added to the Queue
+//! Removes any @ref Qore::Thread::Queue "Queue" object from the Socket object so that @ref socket_events "socket events" are no longer added to the @ref Qore::Thread::Queue "Queue"
 /** @par Example
     @code $sock.setEventQueue(); @endcode
 
@@ -1668,11 +1668,11 @@ nothing Socket::setEventQueue() {
    s->setEventQueue(0, xsink);
 }
 
-//! Sets a @ref Queue object to receive @ref socket_events "socket events"
+//! Sets a @ref Qore::Thread::Queue "Queue" object to receive @ref socket_events "socket events"
 /** @par Example
     @code $sock.setEventQueue($queue); @endcode
 
-    @param queue the @ref Queue object to receive @ref socket_events "socket events"
+    @param queue the @ref Qore::Thread::Queue "Queue" object to receive @ref socket_events "socket events"
 
     @see @ref event_handling for more information
  */
