@@ -48,14 +48,14 @@ sub check_error($error) {
 }
     @endcode
 
-    The destructor will call @ref Qore::Thread::Mutex::unlock() "Mutex::unlock()" only if the current thread owns the lock, so it is safe to unlock the lock manually (or by calling @ref Qore::Thread::AutoLock::unlock() "AutoLock::unlock()") while the AutoLock object is in scope.
+    The destructor will call Mutex::unlock() only if the current thread owns the lock, so it is safe to unlock the lock manually (or by calling AutoLock::unlock()) while the AutoLock object is in scope.
 
     @note This class is not available with the @ref PO_NO_THREAD_CLASSES parse option.
  */
 qclass AutoLock [dom=THREAD_CLASS; arg=QoreAutoLock* al; ns=Thread];
 
-//! Creates the AutoLock object based on the @ref Qore::Thread::Mutex "Mutex" argument passed and immediately calls @ref Qore::Thread::Mutex::lock() "Mutex::lock()"
-/** The AutoLock object immediately calls @ref Qore::Thread::Mutex::lock() "Mutex::lock()" on the @ref Qore::Thread::Mutex "Mutex" object passed, and saves it; @ref Qore::Thread::Mutex::unlock() "Mutex::unlock()" is called in the destructor if the lock is still held by the current thread.
+//! Creates the AutoLock object based on the @ref Qore::Thread::Mutex "Mutex" argument passed and immediately calls Mutex::lock()
+/** The AutoLock object immediately calls Mutex::lock() on the @ref Qore::Thread::Mutex "Mutex" object passed, and saves it; Mutex::unlock() is called in the destructor if the lock is still held by the current thread.
  
     @par Example
     @code

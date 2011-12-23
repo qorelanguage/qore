@@ -30,10 +30,11 @@
 #include <qore/intern/VRMutex.h>
 
 DLLEXPORT extern qore_classid_t CID_GATE;
+DLLLOCAL extern QoreClass* QC_GATE;
 
-DLLLOCAL QoreClass *initGateClass();
+DLLLOCAL QoreClass *initGateClass(QoreNamespace& ns);
 // rmutex class is deprecated and will be removed in the next major release
-DLLLOCAL QoreClass *initRMutexClass();
+//DLLLOCAL QoreClass *initRMutexClass();
 
 class QoreGate : public VRMutex {
 protected:

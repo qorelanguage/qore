@@ -1,0 +1,86 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/*
+ QC_AutoGate.qpp
+ 
+ Qore Programming Language
+ 
+ Copyright 2003 - 2011 David Nichols
+ 
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2.1 of the License, or (at your option) any later version.
+ 
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+ 
+ You should have received a copy of the GNU Lesser General Public
+ License along with this library; if not, write to the Free Software
+ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ */
+
+#include <qore/Qore.h>
+#include <qore/intern/QC_AutoGate.h>
+#include <qore/intern/QC_Gate.h>
+
+//! A helper class for the @ref Qore::Thread::Gate "Gate" class for exception-safe @ref Qore::Thread::Gate "Gate" handling
+/** AutoGate objects, when used along with a @ref Qore::Thread::Gate "Gate" object, allow %Qore programmers to safely enter and exit a @ref Qore::Thread::Gate "Gate" lock, even if exceptions are thrown or return statements are executed in the block where the AutoGate object is created.
+
+    AutoGate objects enter the gate lock for the lifetime of the AutoGate object. For this reason, it is only appropriate to assign an AutoGate object to a local variable, so when the local variable goes out of scope, the AutoGate object will be deleted and the gate automatically exited.
+
+    For example:
+    @code
+our Gate $gate();
+
+sub check_error($error) {
+    # note that the Gate is entered in the AutoGate constructor, and
+    # the Gate will be exited as soon as the block is exited below.
+    # (with either the throw statement or the return statement)
+    my AutoGate $ag($gate);
+    if ($error)
+        throw "ERROR", "sorry, an error happened";
+
+    return "OK";
+}
+    @endcode
+
+    @note This class is not available with the @ref PO_NO_THREAD_CLASSES parse option.
+ */
+qclass AutoGate [dom=THREAD_CLASS; arg=QoreAutoGate* ag; ns=Thread];
+
+//! Creates the AutoGate object based on the Gate argument passed and immediately calls Gate::enter()
+/** @param gate the @ref Qore::Thread::Gate "Gate" object to enter for the lifetime of the AutoGate object
+    @par Example
+    @code
+my AutoGate $ag($gate);
+    @endcode
+ */
+AutoGate::constructor(Gate[QoreGate] gate) {
+   QoreAutoGate *ag = new QoreAutoGate(gate, xsink);
+   if (*xsink)
+      ag->deref(xsink);
+   else
+      self->setPrivate(CID_AUTOGATE, ag);
+}
+
+//! Calls Gate::exit() and destroys the AutoGate object
+/** 
+    @par Example
+    @code
+delete $ag;
+    @endcode
+ */
+AutoGate::destructor() {
+   ag->destructor(xsink);
+   ag->deref(xsink);
+}
+
+//! Throws an exception; objects of this class cannot be copied
+/** 
+    @throw AUTOGATE-COPY-ERROR objects of this class cannot be copied
+ */
+AutoGate::copy() {
+   xsink->raiseException("AUTOGATE-COPY-ERROR", "objects of this class cannot be copied");
+}

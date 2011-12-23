@@ -29,8 +29,9 @@
 #include <qore/intern/QC_Gate.h>
 
 DLLEXPORT extern qore_classid_t CID_AUTOGATE;
+DLLLOCAL extern QoreClass* QC_AUTOGATE;
 
-DLLLOCAL QoreClass *initAutoGateClass(QoreClass *Gate);
+DLLLOCAL QoreClass *initAutoGateClass(QoreNamespace& ns);
 
 class QoreAutoGate : public AbstractPrivateData {
    QoreGate *g;

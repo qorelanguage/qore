@@ -1,0 +1,171 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/*
+  QC_Gate.qpp
+
+  Qore Programming Language
+  
+  Copyright 2003 - 2011 David Nichols
+  
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+  
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+  
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
+#include <qore/Qore.h>
+#include <qore/intern/QC_Gate.h>
+
+//! The Gate class implements a reentrant thread lock
+/** Once a thread grabs the lock, it can call the Gate::enter() method again without blocking. Other threads that try to enter the lock will block until the thread holding the lock calls Gate::exit() an equal number of times to Gate::enter() calls.
+
+    See the @ref Qore::Thread::AutoGate "AutoGate" class for a class that assists in exception-safe Gate locking.
+
+    Additionally, the @ref on_exit "on_exit statement" can provide exception-safe Gate handling at the lexical block level as in the following example:
+    @code
+{
+    $g.enter();
+    on_exit
+        $g.exit();
+    # ... when this block exits the gate lock counter will be decremented,
+    #     even in the case of return statements or exceptions
+}
+    @endcode
+
+    @note This class is not available with the @ref PO_NO_THREAD_CLASSES parse option.
+ */
+qclass Gate [dom=THREAD_CLASS; arg=QoreGate* g; ns=Thread];
+
+//! Creates a new Gate object
+/** 
+    @par Example
+    @code
+my Gate $gate();
+    @endcode
+ */
+Gate::constructor() {
+   self->setPrivate(CID_GATE, new QoreGate);
+}
+
+//! Destroys the Gate object
+/** Note that it is a programming error to delete this object while other threads are blocked on it; in this case an exception is thrown in the deleting thread, and in each thread blocked on this object when it is deleted.
+
+    @par Example
+    @code
+delete $gate;
+    @endcode
+
+    @throw LOCK-ERROR Object deleted while other threads blocked on it
+ */
+Gate::destructor() {
+   g->destructor(xsink);
+   g->deref(xsink);
+}
+
+//! Creates a new Gate object, not based on the original
+/** 
+    @par Example
+    @code
+my Gate $new_gate = $gate.copy();
+    @endcode
+ */
+Gate::copy() {
+   self->setPrivate(CID_GATE, new QoreGate());
+}
+
+//! Acquires the lock if it is unlocked or locked by the same thread, otherwise blocks until the lock counter reaches zero
+/** 
+    @param timeout_ms a @ref timeout_type "timeout" value to wait to acquire the lock (enter the Gate); integers are interpreted as milliseconds; @ref relative_dates "relative date/time values" are interpreted literally (with a resolution of milliseconds)
+
+    @return 0 if no timeout occurred, non-zero if a timeout occurred.
+
+    @par Example
+    @code
+if ($gate.enter(1500ms))
+    throw "TIMEOUT-ERROR", "gate acquisition timed out after 1.5s";
+    @endcode
+
+    @throw LOCK-ERROR object deleted in another thread, etc
+    @throw THREAD-DEADLOCK a deadlock was detected while trying to acquire the lock
+ */
+int Gate::enter(timeout timeout_ms) {
+   return g->grab(xsink, timeout_ms);
+}
+
+//! Increments the lock count if the lock is unlocked or already owned by the same thread, otherwise blocks until the lock counter reaches zero
+/** 
+    @par Example
+    @code
+$gate.enter();
+    @endcode
+
+    @throw LOCK-ERROR object deleted in another thread, etc
+    @throw THREAD-DEADLOCK a deadlock was detected while trying to acquire the lock
+ */
+nothing Gate::enter() {
+   g->grab(xsink);
+}
+
+//! Decrements the lock counter; if it reaches zero then the lock is unlocked and any blocked threads are awoken; in this case 0 is returned; in all other cases, non-zero is returned
+/** 
+    @return returns 0 if the Gate was unlocked; otherwise returns non-zero
+
+    @par Example
+    @code
+$gate.exit();
+    @endcode
+
+    @throw LOCK-ERROR lock not owned by the current thread, object deleted in another thread, etc
+ */
+int Gate::exit() {
+   return g->release(xsink);
+}
+
+//! Acquires the lock if it is unlocked or locked by the same thread, in which case this method returns 0, otherwise returns immediately with -1
+/** 
+    @return 0 for success (acquired the lock) or -1 for failure (would block)
+
+    @par Example
+    @code
+if ($gate.tryEnter()) {
+    on_exit $gate.exit();
+    printf("YIPEE!  We finally got the gate!\n");
+}
+    @endcode
+
+    @throw LOCK-ERROR object deleted in another thread, etc
+ */
+int Gate::tryEnter() {
+   return g->tryGrab();
+}
+
+//! Returns the current lock count
+/** @return the current lock count
+
+    @par Example
+    @code
+my int $c = $gate.numInside();
+    @endcode
+ */
+int Gate::numInside() [flags=QC_CONSTANT] {
+   return g->get_count();
+}
+
+//! Returns the number of threads blocked on the Gate
+/** 
+    @par Example
+    @code
+my int $c = $gate.numWaiting();
+    @endcode
+ */
+int Gate::numWaiting() [flags=QC_CONSTANT] {
+   return g->get_waiting();
+}
