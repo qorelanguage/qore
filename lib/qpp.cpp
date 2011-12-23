@@ -1147,7 +1147,8 @@ protected:
       doc,              // doc string
       arg,              // argument for non-static methods
       scons,            // system constructor
-      ns;               // namespace name
+      ns,               // namespace name
+      virt_parent;      // builtin virtual base/parent class
    paramlist_t public_members;  // public members
 
    strlist_t dom;       // functional domains
@@ -1233,6 +1234,12 @@ public:
          if (i->first == "ns") {
             ns = i->second;
             log(LL_DEBUG, "+ namespace: %s\n", ns.c_str());
+            continue;
+         }
+
+         if (i->first == "vparent") {
+            virt_parent = i->second;
+            log(LL_DEBUG, "+ virtual base class: %s\n", virt_parent.c_str());
             continue;
          }
 
@@ -1326,6 +1333,13 @@ public:
       }
       fprintf(fp, ");\n   CID_%s = QC_%s->getID();\n", UC.c_str(), UC.c_str());
 
+      if (!virt_parent.empty()) {
+         std::string vp;
+         get_type_name(vp, virt_parent);
+         toupper(vp);
+         fprintf(fp, "\n   // set parent class\n   assert(QC_%s);\n   QC_%s->addBuiltinVirtualBaseClass(QC_%s);\n", vp.c_str(), UC.c_str(), vp.c_str());
+      }
+
       // set system constructor if any
       if (!scons.empty())
          fprintf(fp, "\n   // set system constructor\n   QC_%s->setSystemConstructor(%s);\n", UC.c_str(), scons.c_str());
@@ -1373,7 +1387,11 @@ public:
 
       serializeDoxComment(fp, doc);
       
-      fprintf(fp, "class %s {\n", name.c_str());
+      fprintf(fp, "class %s", name.c_str());
+      if (!virt_parent.empty())
+         fprintf(fp, " : public %s", virt_parent.c_str());
+
+      fputs(" {\n", fp);
       
       for (mmap_t::const_iterator i = normal_mmap.begin(), e = normal_mmap.end(); i != e; ++i)
          i->second->serializeDox(fp);

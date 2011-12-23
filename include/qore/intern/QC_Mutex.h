@@ -30,7 +30,8 @@
 #include <qore/safe_dslist>
 
 DLLEXPORT extern qore_classid_t CID_MUTEX;
+DLLLOCAL extern QoreClass* QC_MUTEX;
 
-DLLLOCAL QoreClass *initMutexClass(QoreClass *AbstractSmartLock);
+DLLLOCAL QoreClass *initMutexClass(QoreNamespace& ns);
 
 #endif // _QORE_CLASS_MUTEX

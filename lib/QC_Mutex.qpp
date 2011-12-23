@@ -1,0 +1,150 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/*
+  QC_Mutex.qpp
+
+  Qore Programming Language
+  
+  Copyright 2003 - 2011 David Nichols
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+  
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+  
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
+#include <qore/Qore.h>
+#include <qore/intern/QC_Mutex.h>
+#include <qore/intern/QC_AbstractSmartLock.h>
+
+//! A class providing an implementation for a simple thread lock
+/** This class inherits @ref Qore::Thread::AbstractSmartLock "AbstractSmartLock", so it can be used by  @ref Qore::Thread::Condition "Condition" objects.
+
+    The Mutex class implements a mutual-exclusion lock for thread locking. Like all %Qore thread primitives, objects of this class participate in deadlock detection and throw exceptions when threading errors occur (ex: unlocking a Mutex object locked by another thread, etc). See individual methods for more information on exceptions thrown.
+
+    See the  @ref Qore::Thread::AutoLock "AutoLock" class for a class that assists in exception-safe Mutex locking.
+
+    Additionally, the @ref on_exit "on_exit statement" can provide exception-safe unlocking at the lexical block level for Mutex objects as in the following example:
+    @code
+{
+    $m.lock();
+    on_exit
+        $m.unlock();
+
+    # ... when this block exits the lock will be released, even in the
+    #     case of return statements or exceptions
+}
+    @endcode
+
+    @note This class is not available with the @ref PO_NO_THREAD_CLASSES parse option
+ */
+qclass Mutex [dom=THREAD_CLASS; arg=SmartMutex* m; ns=Thread; vparent=AbstractSmartLock];
+
+//! Creates the Mutex object
+/** @par Example
+    @code
+my Mutex $mutex();
+    @endcode
+ */
+Mutex::constructor() {
+   self->setPrivate(CID_MUTEX, new SmartMutex);
+}
+
+//! Destroys the object
+/** Note that it is a programming error to delete this object while other threads are blocked on it; in this case an exception is thrown in the deleting thread, and in each thread blocked on this object when it is deleted.
+    
+    @par Example
+    @code
+delete $mutex;
+    @endcode
+
+    @throw LOCK-ERROR Object deleted while other threads blocked on it
+ */
+Mutex::destructor() {
+   m->destructor(xsink);
+   m->deref(xsink);
+}
+
+//! Creates a new Mutex object, not based on the original
+/** @par Example
+    @code
+my Mutex $nm = $m.copy();
+    @endcode
+*/
+Mutex::copy() {
+   self->setPrivate(CID_MUTEX, new SmartMutex);
+}
+
+//! Locks the Mutex object; blocks if the lock is already held
+/** To release the Mutex, use @ref Mutex::unlock()
+
+    @par Example
+    @code
+$mutex.lock();
+    @endcode
+
+    @throw LOCK-ERROR lock called twice in the same thread, object deleted in another thread, etc
+    @throw THREAD-DEADLOCK a deadlock was detected while trying to acquire the lock
+*/
+nothing Mutex::lock() {
+   m->grab(xsink);
+}
+
+//! Locks the Mutex object; blocks if the lock is already held
+/** An optional timeout value may be passed to this method, giving a time in milliseconds to wait for the lock to become free. Like all %Qore functions and methods taking @ref timeout_type "timeout" values, a @ref relative_dates "relative time value" may be passed instead of an integer to make the timeout units clear
+
+    To release the Mutex, use @ref Mutex::unlock()
+
+    @par Example
+    @code
+if ($mutex.lock(1250ms))
+    throw "TIMEOUT-ERROR", "lock acquisition timed out after 1.25s";
+    @endcode
+
+    @param timeout_ms a @ref timeout_type "timeout" value to wait to acquire the lock; integers are interpreted as milliseconds; @ref relative_dates "relative date/time values" are interpreted literally (with a resolution of milliseconds)
+
+    @return returns -1 for error, 0 for success
+
+    @throw LOCK-ERROR lock called twice in the same thread, object deleted in another thread, etc
+    @throw THREAD-DEADLOCK a deadlock was detected while trying to acquire the lock
+*/
+int Mutex::lock(timeout timeout_ms) {
+   return m->grab(xsink, timeout_ms);
+}
+
+//! Acquires the lock only if it is not already held; returns 0 for success (lock acquired) or -1 if the call would block
+/** 
+    @return 0 for success (lock acquired) or -1 if the call would block (lock not acquired)
+
+    @par Example
+    @code
+my int $i = $mutex.trylock();
+    @endcode
+
+    @throw LOCK-ERROR lock called twice in the same thread, object deleted in another thread, etc
+    @throw THREAD-DEADLOCK a deadlock was detected while trying to acquire the lock
+*/
+int Mutex::trylock() {
+   return m->tryGrab(); 
+}
+
+//! Unlocks the Mutex object; wakes up one thread if any threads are blocked on this lock
+/** 
+    @par Example
+    @code
+$mutex.unlock();
+    @endcode
+
+    @throw LOCK-ERROR unlock called by a thread that does not own the lock or the lock is not locked, object deleted in another thread, etc
+*/
+nothing Mutex::unlock() {
+   m->release(xsink);
+}
