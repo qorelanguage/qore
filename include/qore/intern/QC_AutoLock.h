@@ -29,8 +29,9 @@
 #include <qore/intern/QC_Mutex.h>
 
 DLLEXPORT extern qore_classid_t CID_AUTOLOCK;
+DLLLOCAL extern QoreClass* QC_AUTOLOCK;
 
-DLLLOCAL QoreClass *initAutoLockClass(QoreClass *QC_Mutex);
+DLLLOCAL QoreClass *initAutoLockClass(QoreNamespace& ns);
 
 class QoreAutoLock : public AbstractPrivateData {
    SmartMutex *m;

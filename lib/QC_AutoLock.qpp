@@ -1,0 +1,144 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/*
+ QC_AutoLock.qpp
+ 
+ Qore Programming Language
+ 
+ Copyright 2003 - 2011 David Nichols
+ 
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2.1 of the License, or (at your option) any later version.
+ 
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+ 
+ You should have received a copy of the GNU Lesser General Public
+ License along with this library; if not, write to the Free Software
+ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ */
+
+#include <qore/Qore.h>
+#include <qore/intern/QC_AutoLock.h>
+#include <qore/intern/QC_Mutex.h>
+
+//! A helper class for the @ref Qore::Thread::Mutex "Mutex" class for exception-safe @ref Qore::Thread::Mutex "Mutex" handling
+/** AutoLock objects, when used along with a @ref Qore::Thread::Mutex "Mutex" object, allow %Qore programmers to safely acquire and release a @ref Qore::Thread::Mutex "Mutex" lock, even if exceptions are thrown or @ref return "return statements" are executed in the block where the AutoLock object is created.
+
+    AutoLock objects are helper objects that acquire a @ref Qore::Thread::Mutex "Mutex" for the lifetime of the object.
+
+    For this reason, it is only appropriate to assign an AutoLock object to a local variable, so when the local variable goes out of scope, the AutoLock object will be deleted and the @ref Qore::Thread::Mutex "Mutex" will be automatically released.
+
+    For example:
+    @code
+our Mutex $mutex();
+
+sub check_error($error) {
+    # note that the Mutex is acquired in the AutoLock constructor, and
+    # the Mutex will be released as soon as the block is exited below.
+    # (with either the throw statement or the return statement)
+    my AutoLock $al($mutex);
+    if ($error)
+        throw "ERROR", "sorry, an error happened";
+
+    return "OK";
+}
+    @endcode
+
+    The destructor will call @ref Qore::Thread::Mutex::unlock() "Mutex::unlock()" only if the current thread owns the lock, so it is safe to unlock the lock manually (or by calling @ref Qore::Thread::AutoLock::unlock() "AutoLock::unlock()") while the AutoLock object is in scope.
+
+    @note This class is not available with the @ref PO_NO_THREAD_CLASSES parse option.
+ */
+qclass AutoLock [dom=THREAD_CLASS; arg=QoreAutoLock* al; ns=Thread];
+
+//! Creates the AutoLock object based on the @ref Qore::Thread::Mutex "Mutex" argument passed and immediately calls @ref Qore::Thread::Mutex::lock() "Mutex::lock()"
+/** The AutoLock object immediately calls @ref Qore::Thread::Mutex::lock() "Mutex::lock()" on the @ref Qore::Thread::Mutex "Mutex" object passed, and saves it; @ref Qore::Thread::Mutex::unlock() "Mutex::unlock()" is called in the destructor if the lock is still held by the current thread.
+ 
+    @par Example
+    @code
+{
+    # when the block exits, the lock is automatically released
+    my AutoLock $al($mutex);
+}
+    @endcode
+
+    @param mutex a @ref Qore::Thread::Mutex "Mutex" object to lock immediately and hold for the scope of the AutoLock object (unless manually unlocked)
+
+    @throw LOCK-ERROR lock called twice in the same thread, @ref Qore::Thread::Mutex "Mutex" object has already been deleted in another thread, etc
+    @throw THREAD-DEADLOCK a deadlock was detected while trying to acquire the lock
+ */
+AutoLock::constructor(Mutex[SmartMutex] mutex) {
+   QoreAutoLock *qsl = new QoreAutoLock(mutex, xsink);
+   if (*xsink)
+      qsl->deref(xsink);
+   else
+      self->setPrivate(CID_AUTOLOCK, qsl);
+}
+
+//! Calls @ref Qore::Thread::Mutex::unlock() "Mutex::unlock()" on the saved @ref Qore::Thread::Mutex "Mutex" object and destroys the AutoLock object
+/** @ref Qore::Thread::Mutex::unlock() "Mutex::unlock()" is only called if the current thread owns the lock
+
+    @par Example
+    @code
+delete $al;
+    @endcode
+ */
+AutoLock::destructor() {
+   al->destructor(xsink);
+   al->deref(xsink);
+}
+
+//! Throws an exception; objects of this class cannot be copied
+/** 
+    @throw AUTOLOCK-COPY-ERROR Objects of this class cannot be copied
+ */
+AutoLock::copy() {
+   xsink->raiseException("AUTOLOCK-COPY-ERROR", "objects of this class cannot be copied");
+}
+
+//! Attempts to relock the @ref Qore::Thread::Mutex "Mutex" object being managed
+/** Do not call this method unless the @ref Qore::Thread::Mutex "Mutex" object being managed has been unlocked since the constructor
+
+    @par Example
+    @code
+$al.lock();
+    @endcode
+
+    @throw LOCK-ERROR lock called twice in the same thread, @ref Qore::Thread::Mutex "Mutex" object has already been deleted in another thread, etc
+    @throw THREAD-DEADLOCK a deadlock was detected while trying to acquire the lock
+ */
+nothing AutoLock::lock() {
+   al->lock(xsink);
+}
+
+//! Attempts to relock the @ref Qore::Thread::Mutex "Mutex" object being managed; acquires the lock only if it is not already held; returns 0 for success (lock acquired) or -1 if the call would block
+/** 
+    @return 0 for success (lock acquired) or -1 if the call would block (lock not acquired because it's held by another thread)
+
+    @par Example
+    @code
+my int $i = $al.trylock();
+    @endcode
+
+    @throw LOCK-ERROR object deleted in another thread, etc
+    @throw THREAD-DEADLOCK a deadlock was detected while trying to acquire the lock
+*/
+int AutoLock::trylock() {
+   return al->trylock(); 
+}
+
+//! Unlocks the @ref Qore::Thread::Mutex "Mutex" object being managed; wakes up one thread if any threads are blocked on this lock
+/** 
+    @par Example
+    @code
+$al.unlock();
+    @endcode
+
+    @throw LOCK-ERROR unlock called by a thread that does not own the lock or the lock is not locked, object deleted in another thread, etc
+*/
+nothing AutoLock::unlock() {
+   al->unlock(xsink);
+}

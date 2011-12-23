@@ -693,7 +693,7 @@ protected:
    void serializeCppConstructor(FILE *fp, const char *cname) const {
       serializeQoreConstructorPrototypeComment(fp, cname);
       fprintf(fp, "static void %s_%s(QoreObject* self, const QoreListNode* args, ExceptionSink* xsink) {\n", cname, vname.c_str());
-      serializeArgs(fp, cname);
+      serializeArgs(fp, cname, false);
       fputs(code.c_str(), fp);
       fputs("\n}\n\n", fp);
    }
@@ -745,7 +745,7 @@ protected:
       return 0;
    }
 
-   void serializeArgs(FILE *fp, const char *cname) const {
+   void serializeArgs(FILE *fp, const char *cname, bool rv = true) const {
       for (unsigned i = 0; i < params.size(); ++i) {
          const Param &p = params[i];
 
@@ -759,8 +759,8 @@ protected:
             std::string cid;
             get_type_name(cid, p.type);
             toupper(cid);            
-            fprintf(fp, "   HARD_QORE_OBJ_DATA(%s, %s, args, 0, CID_%s, \"%s::%s()\", \"%s\", xsink);\n   if (*xsink)\n      return 0;\n",
-                    p.name.c_str(), p.qore.c_str(), cid.c_str(), cname, name.c_str(), p.type.c_str());
+            fprintf(fp, "   HARD_QORE_OBJ_DATA(%s, %s, args, 0, CID_%s, \"%s::%s()\", \"%s\", xsink);\n   if (*xsink)\n      return%s;\n",
+                    p.name.c_str(), p.qore.c_str(), cid.c_str(), cname, name.c_str(), p.type.c_str(), rv ? " 0" : "");
             continue;
          }
 

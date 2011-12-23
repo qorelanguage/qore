@@ -129,7 +129,7 @@ int Mutex::lock(timeout timeout_ms) {
 my int $i = $mutex.trylock();
     @endcode
 
-    @throw LOCK-ERROR lock called twice in the same thread, object deleted in another thread, etc
+    @throw LOCK-ERROR object deleted in another thread, etc
     @throw THREAD-DEADLOCK a deadlock was detected while trying to acquire the lock
 */
 int Mutex::trylock() {
