@@ -3,7 +3,7 @@
     %Qore supports three types of container types:
     - @ref list "lists"
     - @ref hash "hashes" (associative arrays)
-    - @ref object "objects" (see @ref object and @ref classes for more information)
+    - @ref object "objects" (see @ref object and @ref qore_classes for more information)
 
     These container types can be combined to make arbitrarily complex data structures. The data type of any element can be any basic type or another aggregate type. The types do not have to be uniform in one container structure.
 
@@ -100,7 +100,7 @@ $element3 = $hash{"keys"};
     <hr>
     @section object Object
 
-    %Qore objects are instantiations of a @ref classes "class". They have members (like a hash; values associated to string keys), and methods. The @ref classes "class definition" specifies the methods that run on objects of that class, public and private members, static methods and variables, etc associated with the class (however note that static methods do not run in the scope of an object).  See @ref classes for information on how to create a class in %Qore.
+    %Qore objects are instantiations of a @ref qore_classes "class". They have members (like a hash; values associated to string keys), and methods. The @ref qore_classes "class definition" specifies the methods that run on objects of that class, public and private members, static methods and variables, etc associated with the class (however note that static methods do not run in the scope of an object).  See @ref qore_classes for information on how to create a class in %Qore.
 
     The recommend way to instantiate an object is to declare its type and give constructor arguments after the variable name in parentheses as follows:
 
@@ -169,7 +169,7 @@ method_name([argument_list])
 
     @note Objects are treated differently than other %Qore data types; they are only explicitly copied (see @ref object_references for more informaion). Any object instantiated with the @ref new "new operator" will remain unique until deleted or explicitly copied. An explicit copy is made with the copy method, and does not always guarantee an exact copy of the source object (it depends on the definition of the copy method for the class in question).
 
-    Objects exist until they go out of scope, are explicitly deleted, or their last thread exits. For detailed information, see @ref classes.
+    Objects exist until they go out of scope, are explicitly deleted, or their last thread exits. For detailed information, see @ref qore_classes.
 
     @see @ref object_type
 

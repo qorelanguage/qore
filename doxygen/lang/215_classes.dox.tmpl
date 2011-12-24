@@ -1,4 +1,4 @@
-/** @page classes Classes
+/** @page qore_classes Classes
 
     @section class_overview Class Overview
     Classes define types of %Qore @ref object "objects". Classes can define members and methods, which are attributes of the class and functions that operate only on the objects of that class, respectively.  Furthermore access to class members and methods can be restricted (see @ref class_protection), and classes can be @ref inheritance "subclassed" to support polymorphism.
@@ -196,7 +196,7 @@ class ChildClass inherits private ParentClass {
 
     Subclasses can give explicit arguments to their base class constructors using a special syntax (only available to subclass constructors) similar to the C++ syntax for the same purpose as follows:\n
     <tt>[[<b>private</b>|<b>public</b>] <b>constructor</b>([</tt><em>@ref data_type_declarations "[param_type]"</em> <tt>$</tt><em>param_name</em> <tt>[=</tt> <em>@ref expressions "default_initialization_expression"</em><tt>], ...]) [: </tt><em>parent_class_name</em><tt>(</tt><em>args...</em><tt>), ...] {</tt>\n
-    <tt>}]</tt>\n
+    <tt>}]</tt>\n\n
     Here is a concrete example of giving arguments to an inherited base class:
     @code
 class XmlRpcClient inherits Qore::HTTPClient {

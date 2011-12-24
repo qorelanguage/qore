@@ -127,17 +127,14 @@ Socket::copy() {
 /** Connects the socket to a remote (or local) port or UNIX domain socket file, for network (ipv4 and ipv6) connections, accepts an optional timeout value in milliseconds (@ref relative_dates "relative date/time values" can be given instead of an integer in milliseconds to make the source more readable; ex: 20s). If any errors occur, an exception is thrown.
 
     @par Examples:
-    <code># connect to ipv4 adress 192.168.1.45 port 8080 with a 30 second timeout
-$sock.connect("192.168.1.45:8080", 30s);</code>
-
-    <code># connect to ipv6 adress 2001:0db8:85a3:0000:0000:8a2e:0370:7334 port 80 with a 10 second timeout
-$sock.connect("[2001:0db8:85a3:0000:0000:8a2e:0370:7334]:80", 10s);</code>
-
-    <code># connect to localhost using ipv6 (::1) port 80 with a 10 second timeout
-$sock.connect("[localhost]:80", 15s);</code>
-
-    <code># connect to UNIX domain socket file "/tmp/socket"
-$sock.connect("/tmp/socket");</code>
+    @code# connect to ipv4 adress 192.168.1.45 port 8080 with a 30 second timeout
+$sock.connect("192.168.1.45:8080", 30s);@endcode
+    @code# connect to ipv6 adress 2001:0db8:85a3:0000:0000:8a2e:0370:7334 port 80 with a 10 second timeout
+$sock.connect("[2001:0db8:85a3:0000:0000:8a2e:0370:7334]:80", 10s);@endcode
+    @code# connect to localhost using ipv6 (::1) port 80 with a 10 second timeout
+$sock.connect("[localhost]:80", 15s);@endcode
+    @code# connect to UNIX domain socket file "/tmp/socket"
+$sock.connect("/tmp/socket");@endcode
 
     @par Events
     @ref EVENT_CONNECTING, @ref EVENT_CONNECTED, @ref EVENT_HOSTNAME_LOOKUP, @ref EVENT_HOSTNAME_RESOLVED
@@ -160,11 +157,10 @@ nothing Socket::connect(string target, timeout timeout_ms = -1) {
     Do not use square brackets to designate ipv6 addresses with this method; just give the address in its normal form (ex: \c "2001:0db8:85a3:0000:0000:8a2e:0370:7334").
 
     @par Examples:
-    <code># connect to ipv4 address 192.168.1.45 port 8080 with a 30 second timeout
-$sock.connectINET("192.168.1.45", 8080, 30s);</code>
-
-    <code># connect to ipv6 address 2001:0db8:85a3:0000:0000:8a2e:0370:7334 port 80 with a 20 second timeout
-$sock.connectINET("2001:0db8:85a3:0000:0000:8a2e:0370:7334", 80, 20s);</code>
+    @code# connect to ipv4 address 192.168.1.45 port 8080 with a 30 second timeout
+$sock.connectINET("192.168.1.45", 8080, 30s);@endcode
+    @code# connect to ipv6 address 2001:0db8:85a3:0000:0000:8a2e:0370:7334 port 80 with a 20 second timeout
+$sock.connectINET("2001:0db8:85a3:0000:0000:8a2e:0370:7334", 80, 20s);@endcode
 
     @par Events
     @ref EVENT_CONNECTING, @ref EVENT_CONNECTED, @ref EVENT_HOSTNAME_LOOKUP, @ref EVENT_HOSTNAME_RESOLVED
@@ -216,13 +212,10 @@ nothing Socket::connectUNIX(string path, softint socktype = SOCK_STREAM, softint
     @par Examples:
     @code # connect to ipv4 adress 192.168.1.45 port 8080 with a 30 second timeout
 $sock.connectSSL("192.168.1.45:8080", 30s); @endcode
-
     @code # connect to ipv6 adress 2001:0db8:85a3:0000:0000:8a2e:0370:7334 port 80 with a 10 second timeout
 $sock.connectSSL("[2001:0db8:85a3:0000:0000:8a2e:0370:7334]:80", 10s); @endcode
-
     @code # connect to localhost using ipv6 (::1) port 80 with a 10 second timeout
 $sock.connectSSL("[localhost]:80", 15s); @endcode
-
     @code # connect to UNIX domain socket file "/tmp/socket"
 $sock.connectSSL("/tmp/socket"); @endcode
 
@@ -250,7 +243,6 @@ nothing Socket::connectSSL(string dest, timeout timeout_ms = -1) {
     @par Examples:
     @code # connect to 192.168.1.45 port 8080 with a 30 second timeout
 $sock.connectINETSSL("192.168.1.45", 8080, 30s); @endcode
-
     @code # connect to ipv6 address 2001:0db8:85a3:0000:0000:8a2e:0370:7334 port 80 with a 20 second timeout
 $sock.connectINETSSL("2001:0db8:85a3:0000:0000:8a2e:0370:7334", 80, 20s); @endcode
 
@@ -347,7 +339,7 @@ int Socket::bind(int port, softbool reuseaddr = False) {
 $sock.bindUNIX("/tmp/socket"); @endcode
 
     @param path The path of the UNIX domain socket to create and bind to
-    @param socktype the type of socket; see Socket Type Constants; typically \c SOCK_STREAM for TCP sockets
+    @param socktype the type of socket; see Socket Type Constants; typically @ref SOCK_STREAM for TCP sockets
     @param protocol the protocol number for the socket; use 0 for the default protocol
 
     @throw SOCKET-BIND-ERROR Error opening socket for bind; error binding on socket
@@ -381,7 +373,7 @@ $sock.bindINET("fe80::21c:42ff:fe00:8", 1001, True); @endcode
     @param service the service name (ex: "http" or port number (given as or converted to a string) to bind to
     @param reuseaddr if this optional argument evaluates to True, the \c SO_REUSEADDR option will be set on the socket, which will allow the socket to be bound to a port that is not yet closed (for example, in a \c TIME_WAIT state)
     @param family the address family to use to bind; see Network Address Family Constants; \c AF_UNSPEC means to try all possible addres families
-    @param socktype the type of socket; see @ref socket_type_constants; typically \c SOCK_STREAM for TCP sockets
+    @param socktype the type of socket; see @ref socket_type_constants; typically @ref SOCK_STREAM for TCP sockets
     @param protocol the protocol number for the socket; use 0 for the default protocol
 
     @throw SOCKET-BIND-ERROR Both hostname and service name are empty or not set; error opening socket for bind; error binding on socket.
@@ -441,9 +433,9 @@ Socket Socket::accept() {
     @par Example
     @code my *Socket $new_socket = $sock.accept(30s); @endcode
 
-    @param timeout_ms If a timeout value is passed and the connection takes longer to establish than the timeout, then NOTHING is returned
+    @param timeout_ms If a timeout value is passed and the connection takes longer to establish than the timeout, then @ref nothing is returned
 
-    @return If no connection is accepted within the timeout period, then NOTHING is returned, otherwise a Socket object for the new connection is returned.
+    @return If no connection is accepted within the timeout period, then @ref nothing is returned, otherwise a Socket object for the new connection is returned.
 
     @throw SOCKET-NOT-OPEN The socket is not bound
     @throw SOCKET-ACCEPT-ERROR Error in accepting connection 
@@ -503,9 +495,9 @@ Socket Socket::acceptSSL() {
     @par Example
     @code my *Socket $new_socket = $sock.acceptSSL(30s); @endcode
 
-    @param timeout_ms If a timeout value is passed and the connection takes longer to establish than the timeout, then NOTHING is returned
+    @param timeout_ms If a timeout value is passed and the connection takes longer to establish than the timeout, then @ref nothing is returned
 
-    @return If no connection is accepted within the timeout period, then NOTHING is returned, otherwise a Socket object for the new connection is returned.
+    @return If no connection is accepted within the timeout period, then @ref nothing is returned, otherwise a Socket object for the new connection is returned.
 
     @throw SOCKET-NOT-OPEN The socket is not bound
     @throw SOCKET-ACCEPT-ERROR Error in accepting connection 
@@ -1534,22 +1526,22 @@ bool Socket::isOpen() [flags=QC_CONSTANT] {
    return s->isOpen();
 }
 
-//! Returns the name of the cipher for an encrypted connection or \c NOTHING if a secure connection has not been established
+//! Returns the name of the cipher for an encrypted connection or @ref nothing if a secure connection has not been established
 /** @par Example
     @code my *string $str = $sock.getSSLCipherName(); @endcode
 
-    @return the name of the cipher for an encrypted connection or \c NOTHING if a secure connection has not been established
+    @return the name of the cipher for an encrypted connection or @ref nothing if a secure connection has not been established
  */
 *string Socket::getSSLCipherName() [flags=QC_CONSTANT] {
    const char *str = s->getSSLCipherName();
    return str ? new QoreStringNode(str) : 0;
 }
 
-//! Returns the version string of the cipher for an encrypted connection or \c NOTHING if a secure connection has not been established
+//! Returns the version string of the cipher for an encrypted connection or @ref nothing if a secure connection has not been established
 /** @par Example
     @code my *string $str = $sock.getSSLCipherVersion(); @endcode
 
-    @return the version string of the cipher for an encrypted connection or \c NOTHING if a secure connection has not been established
+    @return the version string of the cipher for an encrypted connection or @ref nothing if a secure connection has not been established
  */
 *string Socket::getSSLCipherVersion() [flags=QC_CONSTANT] {
    const char *str = s->getSSLCipherVersion();
@@ -1566,7 +1558,7 @@ bool Socket::isSecure() [flags=QC_CONSTANT] {
    return s->isSecure();
 }
 
-//! Returns a string code giving the result of verifying the remote certificate or \c NOTHING if an encrypted connection is not currently established
+//! Returns a string code giving the result of verifying the remote certificate or @ref nothing if an encrypted connection is not currently established
 /** @par Example
     @code my *string $str = $sock.verifyPeerCertificate(); @endcode
 
@@ -1706,7 +1698,7 @@ int Socket::setNoDelay(bool nd = True) {
 /** @par Example
     @code my bool $b = $sock.getNoDelay(); @endcode
 
-    @return the TCP_NODELAY setting for the socket
+    @return the \c TCP_NODELAY setting for the socket
 
     @see Socket::setNoDelay() for a description of the \c TCP_NODELAY setting
  */
