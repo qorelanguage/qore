@@ -25,7 +25,7 @@
 
 DLLEXPORT extern qore_classid_t CID_HTTPCLIENT;
 DLLEXPORT extern QoreClass *QC_HTTPCLIENT;
-DLLLOCAL class QoreClass *initHTTPClientClass();
+DLLLOCAL QoreClass *initHTTPClientClass(QoreNamespace& ns);
 
 class HTTPInfoRefHelper {
 protected:

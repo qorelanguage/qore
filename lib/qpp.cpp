@@ -290,6 +290,11 @@ static void get_string_list2(strlist_t &l, const std::string &str, char separato
 }
 
 static int get_qore_type(const std::string &qt, std::string &cppt) {
+   if (qt.empty()) {
+      cppt = "nothingTypeInfo";
+      return 0;
+   }
+      
    strmap_t::iterator i = tmap.find(qt);
    if (i == tmap.end()) {
       // assume a Qore object of the given class
@@ -312,7 +317,7 @@ static int get_qore_type(const std::string &qt, std::string &cppt) {
 }
 
 static bool is_object(const std::string &qt) {
-   return oset.find(qt) != oset.end() || tmap.find(qt) == tmap.end();
+   return !qt.empty() && (oset.find(qt) != oset.end() || tmap.find(qt) == tmap.end());
 }
 
 #define T_INT   0
@@ -2078,6 +2083,9 @@ void init() {
 
    tmap["any"] = "anyTypeInfo";
    tmap["nothing"] = "nothingTypeInfo";
+
+   tmap["reference"] = "referenceTypeInfo";
+   tmap["*reference"] = "anyTypeInfo";
 
    // initialize qore value to c++ value map
    vmap["0"] = "zero()";

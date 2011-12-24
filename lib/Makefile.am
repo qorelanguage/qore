@@ -65,10 +65,13 @@ QC_Sequence.cpp: QC_Sequence.qpp qpp
 QC_Counter.cpp: QC_Counter.qpp qpp
 	$(QPP) $<
 
+QC_HTTPClient.cpp: QC_HTTPClient.qpp qpp
+	$(QPP) $<
+
 QORE_GENERATED_SOURCES = \
 	QC_Queue.cpp QC_Socket.cpp QC_File.cpp QC_AbstractSmartLock.cpp QC_Mutex.cpp QC_AutoLock.cpp \
 	QC_Gate.cpp QC_AutoGate.cpp QC_RWLock.cpp QC_AutoReadLock.cpp QC_AutoWriteLock.cpp \
-	QC_Condition.cpp QC_Sequence.cpp QC_Counter.cpp
+	QC_Condition.cpp QC_Sequence.cpp QC_Counter.cpp QC_HTTPClient.cpp
 
 CLEANFILES = $(QORE_GENERATED_SOURCES)
 

@@ -1472,8 +1472,7 @@ void StaticSystemNamespace::init() {
    qoreNS->addSystemClass(initFtpClientClass());
 
    // add HTTPClient namespace
-   QoreClass *http_client_class;
-   qoreNS->addSystemClass((http_client_class = initHTTPClientClass()));
+   qoreNS->addSystemClass(initHTTPClientClass(*qoreNS));
 
    // add signal constants
    addSignalConstants(qoreNS);
