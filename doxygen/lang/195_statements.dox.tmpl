@@ -182,7 +182,7 @@ while ($a < 10)
     @section do do while Statements
 
     @par Synopsis
-do while statements in %Qore are similar to do while statements in C. They are used to guarantee at least one iteration and loop until a given expression evaluates to \c False.
+\c \b do \c \b while statements in %Qore are similar to do while statements in C. They are used to guarantee at least one iteration and loop until a given expression evaluates to \c False.
 
     @par Syntax
     <b><tt>do</tt></b>\n
@@ -247,9 +247,9 @@ Skips the rest of a loop and jumps right to the evaluation of the iteration expr
     Some error conditions can only be detected and handled using exception handlers. To catch exceptions, \c \b try and \b \c catch statements have to be used. When an exception occurs while executing the \c \b try block, execution control will immediately be passed to the \b \c catch block, which can capture information about the exception.
 
     @par Syntax
-    \b \c try\n
+    <b><tt>try</tt></b>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<em>@ref statements "statement"</em>\n
-    \b \c catch ([$exception_hash_variable])\n
+    <tt>\b catch ([</tt><em>$exception_hash_variable</em><tt>])</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<em>@ref statements "statement"</em>
 
     @par Description
