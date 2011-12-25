@@ -56,7 +56,7 @@
 
     get_default_encoding() returns the default encoding for the Qore process.
 
-    The @ref Qore::Datasource, @ref Qore::DatasourcePool, and @ref Qore::SQLStatement classes will translate character encodings to the encoding required by the database if necessary as well (this is actually the responsibility of the DBI driver for the database in question).
+    The @ref Qore::SQL::Datasource, @ref Qore::SQL::DatasourcePool, and @ref Qore::SQL::SQLStatement classes will translate character encodings to the encoding required by the database if necessary as well (this is actually the responsibility of the DBI driver for the database in question).
 
     The @ref Qore::File and @ref Qore::Socket classes translate character encodings to the encoding specified for the object if necessary, as well as tagging strings received or read with the object's encoding.
 

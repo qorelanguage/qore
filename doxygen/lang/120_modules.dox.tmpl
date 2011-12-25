@@ -10,7 +10,7 @@
 
     From %Qore 0.7.1 onwards, you can specify a comparison operator (one of < <=, =, >=, or >) and version information after the module name as well. Version numbers are compared via integer comparisons of each element, where elements are separated by a '.'. If one of the versions does not have as many elements as another, the missing elements are assumed to be '0' (i.e. version \c "1.0" compared with version \c "1.0.1" will be exteneded to "1.0.0").
 
-    Also note that DBI drivers are loaded on demand by the @ref Qore::Datasource and @ref Qore::DatasourcePool classes.
+    Also note that DBI drivers are loaded on demand by the @ref Qore::SQL::Datasource and @ref Qore::SQL::DatasourcePool classes.
 
     At the time of writing this documentation, the following modules exist for %Qore:
 

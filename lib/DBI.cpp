@@ -900,7 +900,7 @@ QoreNamespace *getSQLNamespace() {
    QoreNamespace *SQLNS = new QoreNamespace("SQL");
 
    QoreClass *ds, *dsp;
-   SQLNS->addSystemClass((ds = initDatasourceClass()));
+   SQLNS->addSystemClass((ds = initDatasourceClass(*SQLNS)));
    SQLNS->addSystemClass((dsp = initDatasourcePoolClass()));
    SQLNS->addSystemClass(initSQLStatementClass(ds, dsp));
 

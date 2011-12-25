@@ -809,6 +809,10 @@ protected:
             fprintf(fp, "   const QoreListNode* %s = HARD_QORE_LIST(args, %d);\n", p.name.c_str(), i);
             continue;
          }
+         if (p.type == "*list" || p.type == "*softlist") {
+            fprintf(fp, "   const QoreListNode* %s = reinterpret_cast<const QoreListNode*>(args ? args->retrieve_entry(%d) : 0);\n", p.name.c_str(), i);
+            continue;
+         }
          if (p.type == "hash") {
             fprintf(fp, "   const QoreHashNode* %s = HARD_QORE_HASH(args, %d);\n", p.name.c_str(), i);
             continue;

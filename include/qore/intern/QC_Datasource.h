@@ -38,10 +38,10 @@
 #ifdef _QORE_LIB_INTERN
 #include <qore/intern/ManagedDatasource.h>
 
-extern qore_classid_t CID_DATASOURCE;
+DLLEXPORT extern qore_classid_t CID_DATASOURCE;
+DLLLOCAL extern QoreClass* QC_DATASOURCE;
 
-DLLLOCAL class QoreClass *initDatasourceClass();
+DLLLOCAL QoreClass* initDatasourceClass(QoreNamespace& ns);
 
 #endif // _QORE_LIB_INTERN
-
 #endif // _QORE_SQL_OBJECTS_DATASOURCE_H

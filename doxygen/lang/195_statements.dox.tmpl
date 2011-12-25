@@ -286,7 +286,7 @@ Skips the rest of a loop and jumps right to the evaluation of the iteration expr
     @section context context Statements
 
     @par Synopsis
-    To easily iterate through multiple rows in a hash of arrays (such as a query result set returned by the Qore::Datasource::select() or Qore::SQLStatement::fetchColumns() methods), the \c \b context statement can be used. Column names can be referred to directly in expressions in the scope of the context statement by preceding the name with a \c "%" character.
+    To easily iterate through multiple rows in a hash of arrays (such as a query result set returned by the Qore::SQL::Datasource::select() or Qore::SQL::SQLStatement::fetchColumns() methods), the \c \b context statement can be used. Column names can be referred to directly in expressions in the scope of the context statement by preceding the name with a \c "%" character.
 
     @par Syntax
     \b \c context <em>[name]</em> <tt>(</tt><em>@ref expressions "data_expression"</em><tt>)</tt>\n

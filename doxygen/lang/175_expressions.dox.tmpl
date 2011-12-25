@@ -15,7 +15,7 @@
     |A @ref static_method_call "static method call"|Qore static method calls (see @ref static_methods)|@code ClassName::static_method("argument")@endcode
     |Expressions with operators|Use of @ref operators "Qore operators"|@code 1 + 2@endcode @code $a || $b@endcode @code background my_function()@endcode
     |An expression in parentheses|Use of parentheses for clarity or to specify evaluation precedence|@code (3 * (2 + $a))@endcode
-    |A @ref find "find expression"|Finds a value or values in a hash of lists, such as returned by the Qore::Datasource::select() or Qore::SQLStatement::fetchColumns() method|@code find %name, %id in $data where (%name =~ /Smith/)@endcode
+    |A @ref find "find expression"|Finds a value or values in a hash of lists, such as returned by the Qore::SQL::Datasource::select() or Qore::SQL::SQLStatement::fetchColumns() method|@code find %name, %id in $data where (%name =~ /Smith/)@endcode
     |A context reference (<tt>%name</tt>)|A contextual reference to the value of a key of the current row being iterated by a @ref context "context", @ref summarize "summarize", @ref subcontext "subcontext" statement, or a @ref find "find expression"|@code %name@endcode
     |A context row reference (<tt>%%</tt>)|A contextual reference to the current row being iterated by a @ref context "context", @ref summarize "summarize", @ref subcontext "subcontext" statement, or a @ref find "find expression"; this expression returns a hash of the current row|@code %%@endcode
     |A @ref call_reference "call reference"|A reference to a function or object method call (similar to a function pointer in C or C++). Function references are resolved in the second phase of parsing (commit phase), while object method references are resolved at run-time|@code \function_call()@endcode @code \$object_expression.method_name()@endcode
@@ -49,7 +49,7 @@
     @section find Find Expressions
 
     @par Synopsis
-    The find expression can be used to quickly find data in a hash of lists (such as a query result set returned by the Qore::Datasource::select() or Qore::SQLStatement::fetchColumns() methods). The find expression will loop through a data structure, and for each element in the structure where the \c where expression is \c True, it will evaluate and return a result expression.\n\n
+    The find expression can be used to quickly find data in a hash of lists (such as a query result set returned by the Qore::SQL::Datasource::select() or Qore::SQL::SQLStatement::fetchColumns() methods). The find expression will loop through a data structure, and for each element in the structure where the \c where expression is \c True, it will evaluate and return a result expression.\n\n
     If the \a where_expression only is \c True for one element in the list, it will return the result of evaluating the result expression directly, otherwise if the \a where_expression is \c True more than once, then a list of the results of evaluting the result expression for each element is returned.\n\n
     In each expression in the find expression, column values can be referred to by preceding the name with a \c "%" character (as with @ref context "context statements").
 

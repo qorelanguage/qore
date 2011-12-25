@@ -170,13 +170,13 @@ prompt% qore -X 'P0000-00-03T21:00:00'
 
     Binary data can be concatenated with the + and += operators.
 
-    This data can be manipulated by being written and read from @ref Qore::File, @ref Qore::Socket, @ref Qore::Datasource, @ref Qore::DatasourcePool, or @ref Qore::SQLStatement objects, or converted and parsed to/from base64 encoded strings using the makeBase64String() and parseBase64String() functions, or compressed and decompressed using the compress(), gzip(), bzip2(), etc. functions, and processed by most cryptographic funtions, among others.
+    This data can be manipulated by being written and read from @ref Qore::File, @ref Qore::Socket, @ref Qore::SQL::Datasource, @ref Qore::SQL::DatasourcePool, or @ref Qore::SQL::SQLStatement objects, or converted and parsed to/from base64 encoded strings using the makeBase64String() and parseBase64String() functions, or compressed and decompressed using the compress(), gzip(), bzip2(), etc. functions, and processed by most cryptographic funtions, among others.
 
     Binary objects can be read from a @ref Qore::File object using the Qore::File::readBinary() method and can be written using the Qore::File::write() method. Please see the @ref Qore::File class for more information.
 
     Binary objects can be read from a @ref Qore::Socket object using the Qore::Socket::recvBinary() method and can be written using the Qore::Socket::send() method. Please see the @ref Qore::Socket class for more information.
 
-    The @ref Qore::Datasource, @ref Qore::DatasourcePool, and @ref Qore::SQLStatement classes can also be used to read and write binary objects as BLOBs.
+    The @ref Qore::SQL::Datasource, @ref Qore::SQL::DatasourcePool, and @ref Qore::SQL::SQLStatement classes can also be used to read and write binary objects as BLOBs.
 
     Note that this is not an exhaustive list; see the function and class library documentation for more examples.
 
