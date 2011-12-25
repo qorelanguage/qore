@@ -1469,7 +1469,7 @@ void StaticSystemNamespace::init() {
    qoreNS->addSystemClass(File = initFileClass(*qoreNS));
    qoreNS->addSystemClass(initDirClass());
    qoreNS->addSystemClass(initGetOptClass());
-   qoreNS->addSystemClass(initFtpClientClass());
+   qoreNS->addSystemClass(initFtpClientClass(*qoreNS));
 
    // add HTTPClient namespace
    qoreNS->addSystemClass(initHTTPClientClass(*qoreNS));

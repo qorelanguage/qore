@@ -1,0 +1,710 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/*
+  QC_FtpClient.qpp
+
+  Qore Programming Language
+
+  Copyright 2003 - 2011 David Nichols
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
+#include <qore/Qore.h>
+#include <qore/intern/ssl_constants.h>
+
+#include <qore/intern/QC_FtpClient.h>
+#include <qore/intern/QC_Queue.h>
+
+//! The FtpClient class allows %Qore code to communicate with FTP servers with the FTP and FTPS protocols
+/** The constructor takes an optional URL with the following format:\n
+    <tt>[(ftp|ftps)://][</tt><em>username</em><tt>[:</tt><em>password</em><tt>]@]</tt><em>hostname</em><tt>[:</tt><em>port</em><tt>]</tt>
+
+    If the URL is not set with the constructor, then the connection parameters must be set with the FtpClient::set*() methods. At the very minimum the hostname must be set. If any path name is given in the URL, it is ignored. See the following table for default URL parameters.
+
+    <b>FtpClient::constructor() Default URL Parameters</b>
+    |!Field|!Default Value
+    |\c protocol|\c "ftp" (unencrypted)
+    |\c username|\c "anonymous"
+    |\c password|\c "qore@nohost.com"
+    |\c port|\c 21
+
+    Once the URL (at least the hostname) has been set, any method requiring a connection will make an implicit call to FtpClient::connect() to attempt to connect and login to the FTP server before executing the method.
+
+    Objects of this class are capable of making encrypted FTPS connections according to <a href="http://tools.ietf.org/html/rfc4217">RFC-4217</a>. TLS/SSL encrypted control and data connection will be attempted if the protocol is set to \c "ftps" or the FtpClient::setSecure() method is called before connecting.
+
+    Note that \c "sftp", or FTP over ssh, is not supported with this class; FTPS is an extension of the FTP protocol to allow for secure connections; while \c "sftp" is FTP over an encrypted ssh connection. For sftp and ssh support, use the ssh2 module.
+
+    When a data connection is required, by default the following modes are tried in series:
+    - \c EPSV (Extended Passive Mode)
+    - \c PASV (Passive Mode)
+    - \c PORT (Port mode)
+
+    If the FTP server does not support one of these methods, or network conditions do not allow a data connection of any of these types to be established, then an exception is thrown.
+
+    To manually control which modes are tried, see the FtpClient::setModeEPSV(), FtpClient::setModePASV(), and FtpClient::setModePORT() methods.
+
+    This class supports posting network events to a Queue, either events on the control or data channels or both can be monitored. See @ref event_handling for more information.
+
+    The events raised by this object are listed in the following table:
+
+    <b>FtpClient Events</b>
+    |!Name|!Value|!Description
+    |@ref EVENT_FTP_SEND_MESSAGE|\c 9|Raised immediately before an FTP control message is sent
+    |@ref EVENT_FTP_MESSAGE_RECEIVED|\c 10|Raised when an FTP reply is received on the control channel
+
+    @note This class is not available with the @ref PO_NO_NETWORK parse option.
+ */
+qclass FtpClient [dom=NETWORK; arg=QoreFtpClientClass* f];
+
+//! Creates an empty FtpClient object
+/** 
+    @par Example
+    @code
+my FtpClient $ftp();
+    @endcode
+ */
+FtpClient::constructor() {
+   self->setPrivate(CID_FTPCLIENT, new QoreFtpClientClass);
+}
+
+//! Creates an FtpClient object and initializes it with a URL
+/** It accepts one  argument that will set the URL for the FTP connection; the path is ignored in the URL, however the username, password, hostname and port are respected; additionally if the protocol (or scheme) is \c "ftps", the client will attempt to establish a secure connection to the server according to <a href="http://tools.ietf.org/html/rfc4217">RFC-4217</a> when the first connection is established.
+
+    @param url The URL of the server to connect to; must have at least a hostname
+
+    @par Example
+    @code
+my FtpClient $ftp("ftp://user:pass@example.com:2021");
+    @endcode
+
+    @throw UNSUPPORTED-PROTOCOL Only \c "ftp" or \c "ftps" are allowed as the protocol in the URL
+    @throw FTP-URL-ERROR No hostname given in the URL
+ */
+FtpClient::constructor(string url) {
+   ReferenceHolder<QoreFtpClientClass> f(new QoreFtpClientClass(url, xsink), xsink);
+   if (*xsink)
+      return;
+
+   self->setPrivate(CID_FTPCLIENT, f.release());
+}
+
+//! Throws an exception to prevent copying of objects this class
+/** 
+    @throw FTPCLIENT-COPY-ERROR FtpClient objects cannot be copied
+ */
+FtpClient::copy() {
+   xsink->raiseException("FTPCLIENT-COPY-ERROR", "FtpClient objects cannot be copied");
+}
+
+//! Disconnects any remote connection and destroys the object
+/** 
+    @par Events
+    @ref EVENT_CHANNEL_CLOSED, @ref EVENT_DELETED
+
+    @par Example
+    @code
+delete $ftp;
+    @endcode
+ */
+FtpClient::destructor() {
+   // have to clear callbacks before destroying
+   f->cleanup(xsink);
+   f->deref(xsink);
+}
+
+//! Connects to the FTP server and attempts a login; if any errors occur, an exception is thrown
+/** This method does not need to be called explicitly; connections are established implicitly by all methdods that communicate with FTP servers.
+
+    Connection parameters are set in the constructor or in the FtpClient::set*() methods
+
+    @par Events
+    @ref EVENT_CONNECTING, @ref EVENT_CONNECTED, @ref EVENT_HOSTNAME_LOOKUP, @ref EVENT_HOSTNAME_RESOLVED, @ref EVENT_START_SSL, @ref EVENT_SSL_ESTABLISHED, @ref EVENT_FTP_SEND_MESSAGE, @ref EVENT_FTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_PACKET_SENT
+
+    @par Example
+    @code
+$ftp.connect();
+    @endcode
+
+    @throw FTP-RESPONSE-ERROR Invalid response received from FTP server
+    @throw FTP-CONNECT-ERROR Cannot establish connection on data port, no hostname set, FTP server reported an error, etc
+    @throw FTP-LOGIN-ERROR Login denied by FTP server
+ */
+nothing FtpClient::connect() {
+   f->connect(xsink);
+}
+
+//! Disconnects from an FTP server
+/** @par Events
+    @ref EVENT_CHANNEL_CLOSED
+
+    @par Example
+    @code
+delete $ftp;
+    @endcode
+ */
+nothing FtpClient::disconnect() {
+   f->disconnect();
+}
+
+//! Returns a list of files from the FTP server in the server's long format in the current working directory or @ref nothing if the path cannot be found
+/** @par Events
+    @ref EVENT_FTP_SEND_MESSAGE, @ref EVENT_FTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_PACKET_SENT
+
+    @par Example
+    @code
+my *string $str = $ftp.list();
+    @endcode
+
+    @return a list of files from the FTP server in the server's long format in the current working directory or @ref nothing if the path cannot be found
+
+    @throw FTP-RECEIVE-ERROR Incomplete message received on control port
+    @throw FTP-LIST-ERROR FTP server returned an error in response to the LIST command
+
+    @note see FtpClient::connect() for additional exceptions that could be thrown when connections are implicitly established
+
+    @see FtpClient::nlst()
+ */
+*string FtpClient::list() {
+   return f->list(0, true, xsink);
+}
+
+//! Returns a list of files from the FTP server in the server's long format for the given path or @ref nothing if the path cannot be found
+/** @par Events
+    @ref EVENT_FTP_SEND_MESSAGE, @ref EVENT_FTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_PACKET_SENT
+
+    @par Example
+    @code
+my *string $str = $ftp.list("/tmp/*.txt");
+    @endcode
+
+    @param path The path or filename (or filename filter) to list (ex: \c "/tmp/*.txt")
+
+    @return a list of files from the FTP server in the server's long format for the given path or @ref nothing if the path cannot be found
+
+    @throw FTP-RECEIVE-ERROR Incomplete message received on control port
+    @throw FTP-LIST-ERROR FTP server returned an error in response to the LIST command
+
+    @note see FtpClient::connect() for additional exceptions that could be thrown when connections are implicitly established
+
+    @see FtpClient::nlst()
+ */
+*string FtpClient::list(string path) {
+   return f->list(path->getBuffer(), true, xsink);
+}
+
+//! Returns a list of file names from the FTP server in the current working directory or @ref nothing if the path cannot be found
+/** @par Events
+    @ref EVENT_FTP_SEND_MESSAGE, @ref EVENT_FTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_PACKET_SENT
+
+    @par Example
+    @code
+my *string $str = $ftp.nlst();
+    @endcode
+
+    @return a list of file names from the FTP server in the current working directory or @ref nothing if the path cannot be found
+
+    @throw FTP-RECEIVE-ERROR Incomplete message received on control port
+    @throw FTP-LIST-ERROR FTP server returned an error in response to the NLST command
+
+    @note see FtpClient::connect() for additional exceptions that could be thrown when connections are implicitly established
+
+    @see FtpClient::list()
+ */
+*string FtpClient::nlst() {
+   return f->list(0, false, xsink);
+}
+
+//! Returns a list of file names from the FTP server for the given path or @ref nothing if the path cannot be found
+/** @par Events
+    @ref EVENT_FTP_SEND_MESSAGE, @ref EVENT_FTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_PACKET_SENT
+
+    @par Example
+    @code
+my *string $str = $ftp.nlst("/tmp/*.txt");
+    @endcode
+
+    @param path The path or filename (or filename filter) to list (ex: \c "/tmp/*.txt")
+
+    @return a list of file names from the FTP server for the given path or @ref nothing if the path cannot be found
+
+    @throw FTP-RECEIVE-ERROR Incomplete message received on control port
+    @throw FTP-LIST-ERROR FTP server returned an error in response to the LIST command
+
+    @note see FtpClient::connect() for additional exceptions that could be thrown when connections are implicitly established
+
+    @see FtpClient::list()
+ */
+*string FtpClient::nlst(string path) {
+   return f->list(path->getBuffer(), false, xsink);
+}
+
+//! Returns the server-side current working directory
+/** @return the server-side current working directory
+
+    @par Events
+    @ref EVENT_FTP_SEND_MESSAGE, @ref EVENT_FTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_PACKET_SENT
+
+    @par Example
+    @code
+my string $str = $ftp.pwd();
+    @endcode
+
+    @throw FTP-RECEIVE-ERROR Incomplete message received on control port
+    @throw FTP-PWD-ERROR FTP server returned an error to the PWD command
+
+    @note see FtpClient::connect() for additional exceptions that could be thrown when connections are implicitly established
+ */
+string FtpClient::pwd() {
+   return f->pwd(xsink);
+}
+
+//! Changes the current working directory on the server
+/** @par Events
+    @ref EVENT_FTP_SEND_MESSAGE, @ref EVENT_FTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_PACKET_SENT
+
+    @par Example
+    @code
+$ftp.cwd("/foo/bar");
+    @endcode
+
+    @throw FTP-RECEIVE-ERROR Incomplete message received on control port
+    @throw FTP-CWD-ERROR FTP server returned an error to the CWD command
+
+    @note see FtpClient::connect() for additional exceptions that could be thrown when connections are implicitly established
+ */
+nothing FtpClient::cwd(string path) {
+   f->cwd(path->getBuffer(), xsink);
+}
+
+//! Transfers a local file to the FTP server; if any errors occur, an exception is thrown
+/** @par Restricted Functionality
+    Not available with @ref PO_NO_FILESYSTEM
+
+    @par Events
+    @ref EVENT_FTP_SEND_MESSAGE, @ref EVENT_FTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_PACKET_SENT
+
+    @par Example
+    @code
+$ftp.put("/tmp/file-1.txt", "file.txt");
+    @endcode
+
+    @param local_path The path on the local system of the file to send
+    @param remote_path If given, where to save the file on the server (otherwise the local path is used)
+
+    @throw FTP-RECEIVE-ERROR Incomplete message received on control port
+    @throw FTP-FILE-OPEN-ERROR Could not open local file for reading 
+    @throw FTP-FILE-PUT-ERROR Could not determine file size of local file (stat() failed)
+    @throw FTP-PUT-ERROR An error occurred while sending the file
+
+    @note see FtpClient::connect() for additional exceptions that could be thrown when connections are implicitly established
+
+    @see FtpClient::putData()
+ */
+nothing FtpClient::put(string local_path, *string remote_path) [flags=QDOM_FILESYSTEM] {
+   f->put(local_path->getBuffer(), remote_path ? remote_path->getBuffer() : 0, xsink);
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+nothing FtpClient::rename(string from, string to) {
+   f->rename(from->getBuffer(), to->getBuffer(), xsink);
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+FtpClient::get(string remote_path, *string local_path) [flags=QDOM_FILESYSTEM] {
+   f->get(remote_path->getBuffer(), local_path ? local_path->getBuffer() : 0, xsink);
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+nothing FtpClient::putData(string data, string remote_path) {
+   f->putData(data->getBuffer(), data->size(), remote_path->getBuffer(), xsink);
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+nothing FtpClient::putData(binary data, string remote_path) {
+   f->putData(data->getPtr(), data->size(), remote_path->getBuffer(), xsink);
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+string FtpClient::getAsString(string remote_path) {
+   return f->getAsString(remote_path->getBuffer(), xsink);
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+binary FtpClient::getAsBinary(string remote_path) {
+   return f->getAsBinary(remote_path->getBuffer(), xsink);
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+nothing FtpClient::del(string remote_path) {
+   f->del(remote_path->getBuffer(), xsink);
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+nothing FtpClient::mkdir(string remote_path) {
+   f->mkdir(remote_path->getBuffer(), xsink);
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+nothing FtpClient::rmdir(string remote_path) {
+   f->rmdir(remote_path->getBuffer(), xsink);
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+nothing FtpClient::setUserName(string user) {
+   f->setUserName(user->getBuffer());
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+nothing FtpClient::setPassword(string pass) {
+   f->setPassword(pass->getBuffer());
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+nothing FtpClient::setHostName(string host) {
+   f->setHostName(host->getBuffer());
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+
+    @throw FTPCLIENT-SETPORT-PARAMETER-ERROR negative port number passed as argument
+ */
+nothing FtpClient::setPort(int port) {
+   if (port <= 0)
+      xsink->raiseException("FTPCLIENT-SETPORT-PARAMETER-ERROR", "expecting positive port number as first parameter of FtpClient::setPort(softint $port); got %d", port);
+   else
+      f->setPort(port);
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+nothing FtpClient::setURL(string url) {
+   f->setURL(url, xsink);
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+*string FtpClient::getUserName() {
+   const char *u = f->getUserName();
+   return u ? new QoreStringNode(u) : 0;
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+*string FtpClient::getPassword() {
+   const char *p = f->getPassword();
+   return p ? new QoreStringNode(p) : 0;
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+*string FtpClient::getHostName() {
+   const char *h = f->getHostName();
+   return h ? new QoreStringNode(h) : 0;
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+int FtpClient::getPort() {
+   return f->getPort();
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+string FtpClient::getURL() {
+   return f->getURL();
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+
+    @throw SET-SECURE-ERROR this method cannot be called while the control connection is established
+ */
+nothing FtpClient::setSecure(bool secure = True) {
+   if (secure ? f->setSecure() : f->setInsecure())
+      xsink->raiseException("SET-SECURE-ERROR", "this method cannot be called while the control connection is established");
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+
+    @throw SET-INSECURE-ERROR this method cannot be called while the control connection is established
+ */
+nothing FtpClient::setInsecure() {
+   if (f->setInsecure())
+      xsink->raiseException("SET-INSECURE-ERROR", "this method cannot be called while the control connection is established");
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+
+    @throw SET-INSECUREDATA-ERROR this method cannot be called while the control connection is established
+ */
+nothing FtpClient::setInsecureData() {
+   if (f->setInsecureData())
+      xsink->raiseException("SET-INSECUREDATA-ERROR", "this method cannot be called while the control connection is established");
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+bool FtpClient::isSecure() [flags=QC_CONSTANT] {
+   return get_bool_node(f->isSecure());
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+bool FtpClient::isDataSecure() [flags=QC_CONSTANT] {
+   return f->isDataSecure();
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+*string FtpClient::getSSLCipherName() [flags=QC_CONSTANT] {
+   const char *str = f->getSSLCipherName();
+   return str ? new QoreStringNode(str) : 0;
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+*string FtpClient::getSSLCipherVersion() [flags=QC_CONSTANT] {
+   const char *str = f->getSSLCipherVersion();
+   return str ? new QoreStringNode(str) : 0;
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+*string FtpClient::verifyPeerCertificate() [flags=QC_CONSTANT] {
+   const char *c = getSSLCVCode(f->verifyPeerCertificate());
+   return c ? new QoreStringNode(c) : 0;
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+nothing FtpClient::setModeAuto() {
+   f->setModeAuto();
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+nothing FtpClient::setModeEPSV() {
+   f->setModeEPSV();
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+nothing FtpClient::setModePASV() {
+   f->setModePASV();
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+nothing FtpClient::setModePORT() {
+   f->setModePORT();
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+nothing FtpClient::setEventQueue() {
+   f->setEventQueue(0, xsink);
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+nothing FtpClient::setEventQueue(Qore::Thread::Queue[Queue] queue) {
+   // pass reference from QoreObject::getReferencedPrivateData() to function
+   f->setEventQueue(queue, xsink);
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+nothing FtpClient::setDataEventQueue() {
+   f->setDataEventQueue(0, xsink);
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+nothing FtpClient::setDataEventQueue(Qore::Thread::Queue[Queue] queue) {
+   // pass reference from QoreObject::getReferencedPrivateData() to function
+   f->setDataEventQueue(queue, xsink);
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+nothing FtpClient::setControlEventQueue() {
+    f->setControlEventQueue(0, xsink);
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+nothing FtpClient::setControlEventQueue(Qore::Thread::Queue[Queue] queue) {
+   // pass reference from QoreObject::getReferencedPrivateData() to function
+   f->setControlEventQueue(queue, xsink);
+}

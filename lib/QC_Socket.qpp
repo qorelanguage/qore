@@ -57,10 +57,10 @@ static int64 checkOpenResult(int rc, const char *method_name, ExceptionSink *xsi
    return rc;
 }
 
-//! The Socket class allows Qore programs safe access to network sockets
+//! The Socket class allows %Qore programs safe access to network sockets
 /** @note This class is not available with the @ref PO_NO_NETWORK parse option.
 
-    Non-blocking socket I/O can be performed by appending a timeout value in milliseconds to all Socket::recv*() methods, or by using the Socket::isDataAvailable() method with a timeout value in milliseconds (1000 ms = 1 second). Note that as with all Qore functions and methods accepting a timeout value, relative date/time values can be given instead of integers to make the source more readable, for example:
+    Non-blocking socket I/O can be performed by appending a timeout value in milliseconds to all Socket::recv*() methods, or by using the Socket::isDataAvailable() method with a timeout value in milliseconds (1000 ms = 1 second). Note that as with all %Qore functions and methods accepting a timeout value, relative date/time values can be given instead of integers to make the source more readable, for example:
 
     @code
     my bool $rc = $socket.isDataAvailable(1250ms); # times out in 1.25 seconds

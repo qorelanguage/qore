@@ -31,8 +31,9 @@
 #include <qore/QoreFtpClient.h>
 
 DLLEXPORT extern qore_classid_t CID_FTPCLIENT;
+DLLLOCAL extern QoreClass* QC_FTPCLIENT;
 
-DLLLOCAL QoreClass *initFtpClientClass();
+DLLLOCAL QoreClass *initFtpClientClass(QoreNamespace& ns);
 
 class QoreFtpClientClass : public AbstractPrivateData, public QoreFtpClient {
    protected:

@@ -23,7 +23,7 @@
 #include <qore/Qore.h>
 #include <qore/intern/QC_Queue.h>
 
-//! Queue objects provide a blocking, thread-safe message-passing object to Qore programs
+//! Queue objects provide a blocking, thread-safe message-passing object to %Qore programs
 /** Queue objects can also be used as a stack
 
     @note This class is not available with the @ref PO_NO_THREAD_CLASSES parse option   

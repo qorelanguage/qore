@@ -291,10 +291,10 @@ const SEEK_CUR = SEEK_CUR;
 const SEEK_END = SEEK_END;
 //@}
 
-//! The File class allows Qore programs to read, write, and create files
+//! The File class allows %Qore programs to read, write, and create files
 /** @note This class is not available with the @ref PO_NO_FILESYSTEM parse option
 
-    File objects are created and/or opened with a specific character encoding, meaning that any string read from the file will be tagged with the file's character encoding, and any string data written to the file will be transparently converted to that character encoding before being written (if necessary). If no character encoding is specified, then the default Qore character encoding is assumed for the file.
+    File objects are created and/or opened with a specific character encoding, meaning that any string read from the file will be tagged with the file's character encoding, and any string data written to the file will be transparently converted to that character encoding before being written (if necessary). If no character encoding is specified, then the default %Qore @ref character_encoding "character encoding" is assumed for the file.
 
     This class supports posting events to a @ref Qore::Thread::Queue "Queue". See @ref event_handling for more information.
 

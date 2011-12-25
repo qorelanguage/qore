@@ -282,7 +282,6 @@ if ($httpclient.isSecure())
     @par Events
     @ref EVENT_CONNECTING, @ref EVENT_CONNECTED, @ref EVENT_HOSTNAME_LOOKUP, @ref EVENT_HOSTNAME_RESOLVED, @ref EVENT_START_SSL, @ref EVENT_SSL_ESTABLISHED
 
-
     @par Example
     @code
 $httpclient.connect();
