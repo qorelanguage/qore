@@ -237,7 +237,7 @@ bool HTTPClient::isSecure() [flags=QC_CONSTANT] {
 
     @par Example
     @code
-if ($httpclient.isSecure() && exists (string $str = $httpclient.verifyPeerCertificate())) {
+if ($httpclient.isSecure() && exists (my *string $str = $httpclient.verifyPeerCertificate())) {
     printf("vertificate: %s: %s\n", $str, X509_VerificationReasons.$str);
     @endcode
  */
@@ -369,6 +369,12 @@ hash HTTPClient::send(*binary body, string method, string path, *hash headers, s
 
     If any content encoding is used for the message body in the reply, the content is decoded and returned as a string; if the content encoding uses an unknown method, then an exception is thrown.
 
+    @param path the path for the message (i.e. \c "/path/resource?method&param=value")
+    @param headers an optional hash of headers to include in the message
+    @param info an optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request
+
+    @return the message body in the reply to this message or @ref nothing in case of an error or an erroneous reply by the server with no body
+
     @par Events
     @ref EVENT_CONNECTING, @ref EVENT_CONNECTED, @ref EVENT_HOSTNAME_LOOKUP, @ref EVENT_HOSTNAME_RESOLVED, @ref EVENT_START_SSL, @ref EVENT_SSL_ESTABLISHED, @ref EVENT_HTTP_SEND_MESSAGE, @ref EVENT_PACKET_SENT, @ref EVENT_HTTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_HTTP_CONTENT_LENGTH, @ref EVENT_HTTP_CHUNKED_START, @ref EVENT_HTTP_CHUNKED_END, @ref EVENT_HTTP_CHUNKED_DATA_RECEIVED, @ref EVENT_HTTP_CHUNK_SIZE, @ref EVENT_HTTP_FOOTERS_RECEIVED, @ref EVENT_HTTP_REDIRECT
 
@@ -376,12 +382,6 @@ hash HTTPClient::send(*binary body, string method, string path, *hash headers, s
     @code
 my *string $html = $httpclient.get("/path/file.html");
     @endcode
-
-    @param path the path for the message (i.e. \c "/path/resource?method&param=value")
-    @param headers an optional hash of headers to include in the message
-    @param info an optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request
-
-    @return the message body in the reply to this message or @ref nothing in case of an error or an erroneous reply by the server with no body
 
     @throw HTTP-CLIENT-TIMEOUT timeout on response from HTTP server
     @throw HTTP-CLIENT-SEND-ERROR error sending data on the socket to the HTTP server
@@ -398,6 +398,13 @@ my *string $html = $httpclient.get("/path/file.html");
 //! Sends an HTTP \c HEAD request and returns as hash of the headers received
 /** If no connection is established, an internal call to HTTPClient::connect() will be made before sending the message.
 
+    @param path the path for the message (i.e. \c "/path/resource?method&param=value")
+    @param headers an optional hash of headers to include in the message
+    @param info an optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request
+
+    @return the headers received from the HTTP server with all key names converted to lower-case
+
+
     @par Events
     @ref EVENT_CONNECTING, @ref EVENT_CONNECTED, @ref EVENT_HOSTNAME_LOOKUP, @ref EVENT_HOSTNAME_RESOLVED, @ref EVENT_START_SSL, @ref EVENT_SSL_ESTABLISHED, @ref EVENT_HTTP_SEND_MESSAGE, @ref EVENT_PACKET_SENT, @ref EVENT_HTTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_HTTP_REDIRECT
 
@@ -405,12 +412,6 @@ my *string $html = $httpclient.get("/path/file.html");
     @code
 my hash $msg = $httpclient.head("/path");
     @endcode
-
-    @param path the path for the message (i.e. \c "/path/resource?method&param=value")
-    @param headers an optional hash of headers to include in the message
-    @param info an optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request
-
-    @return the headers received from the HTTP server with all key names converted to lower-case
 
     @throw HTTP-CLIENT-TIMEOUT timeout on response from HTTP server
     @throw HTTP-CLIENT-SEND-ERROR error sending data on the socket to the HTTP server
@@ -429,6 +430,13 @@ hash HTTPClient::head(string path, *hash headers, *reference info) {
 
     If no connection is established, an internal call to HTTPClient::connect() will be made before sending the message.
 
+    @param path the path for the message (i.e. \c "/path/resource?method&param=value")
+    @param body the string to use as the message body
+    @param headers an optional hash of headers to include in the message
+    @param info an optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request
+
+    @return the message body in the reply to this message or @ref nothing in case no body was present in the response
+
     @par Events
     @ref EVENT_CONNECTING, @ref EVENT_CONNECTED, @ref EVENT_HOSTNAME_LOOKUP, @ref EVENT_HOSTNAME_RESOLVED, @ref EVENT_START_SSL, @ref EVENT_SSL_ESTABLISHED, @ref EVENT_HTTP_SEND_MESSAGE, @ref EVENT_PACKET_SENT, @ref EVENT_HTTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_HTTP_CONTENT_LENGTH, @ref EVENT_HTTP_CHUNKED_START, @ref EVENT_HTTP_CHUNKED_END, @ref EVENT_HTTP_CHUNKED_DATA_RECEIVED, @ref EVENT_HTTP_CHUNK_SIZE, @ref EVENT_HTTP_FOOTERS_RECEIVED, @ref EVENT_HTTP_REDIRECT
 
@@ -436,13 +444,6 @@ hash HTTPClient::head(string path, *hash headers, *reference info) {
     @code
 $httpclient.post("/path", $body);
     @endcode
-
-    @param path the path for the message (i.e. \c "/path/resource?method&param=value")
-    @param body the string to use as the message body
-    @param headers an optional hash of headers to include in the message
-    @param info an optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request
-
-    @return the message body in the reply to this message or @ref nothing in case no body was present in the response
 
     @throw HTTP-CLIENT-TIMEOUT timeout on response from HTTP server
     @throw HTTP-CLIENT-SEND-ERROR error sending data on the socket to the HTTP server
@@ -464,6 +465,13 @@ $httpclient.post("/path", $body);
 
     If no connection is established, an internal call to HTTPClient::connect() will be made before sending the message.
 
+    @param path the path for the message (i.e. \c "/path/resource?method&param=value")
+    @param body the optional data to use as the message body
+    @param headers an optional hash of headers to include in the message
+    @param info an optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request
+
+    @return the message body in the reply to this message or @ref nothing in case no body was present in the response
+
     @par Events
     @ref EVENT_CONNECTING, @ref EVENT_CONNECTED, @ref EVENT_HOSTNAME_LOOKUP, @ref EVENT_HOSTNAME_RESOLVED, @ref EVENT_START_SSL, @ref EVENT_SSL_ESTABLISHED, @ref EVENT_HTTP_SEND_MESSAGE, @ref EVENT_PACKET_SENT, @ref EVENT_HTTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_HTTP_CONTENT_LENGTH, @ref EVENT_HTTP_CHUNKED_START, @ref EVENT_HTTP_CHUNKED_END, @ref EVENT_HTTP_CHUNKED_DATA_RECEIVED, @ref EVENT_HTTP_CHUNK_SIZE, @ref EVENT_HTTP_FOOTERS_RECEIVED, @ref EVENT_HTTP_REDIRECT
 
@@ -471,13 +479,6 @@ $httpclient.post("/path", $body);
     @code
 $httpclient.post("/path", $body);
     @endcode
-
-    @param path the path for the message (i.e. \c "/path/resource?method&param=value")
-    @param body the optional data to use as the message body
-    @param headers an optional hash of headers to include in the message
-    @param info an optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request
-
-    @return the message body in the reply to this message or @ref nothing in case no body was present in the response
 
     @throw HTTP-CLIENT-TIMEOUT timeout on response from HTTP server
     @throw HTTP-CLIENT-SEND-ERROR error sending data on the socket to the HTTP server
