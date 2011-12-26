@@ -42,6 +42,7 @@ static const char *DSC_ERR = "DATASOURCE-CONSTRUCTOR-ERROR";
 
     Datasource objects also have a default character encoding; all requests to the server will be made in this encoding, and all responses will be returned in the given encoding.  If no encoding is specifically given to the Datasource object, the Datasource object will use the @ref default_encoding.
 
+    @anchor sql_binding
     <b>Datasource Binding By Value and By Placeholder</b>
 
     All Datasource methods accepting SQL strings to execute understand a special syntax used in the query string to bind %Qore data by value and to specify placeholders for output variables (for example, when executing a stored procedure or database function). Placeholder binding is DBI driver specific, but binding by value is supported with the same syntax in all drivers. Additionally, the \c %d numeric specifier is supported equally in all %Qore DBI drivers.
@@ -63,6 +64,7 @@ my int $rows = $db.exec("insert into table (varchar_col, timestamp_col, blob_col
 
     For binding placeholders for output variables, write a unique name in the string and prefix it with a colon (ex: \c ":code"). In this case the method will return a hash of the output variables using the placeholder names as keys, but without the colon prefix. By default, a string type will be bound to the position. To bind other variable types to placeholder positions, include the type constant (see @ref sql_type_constants) as an argument after the command string. For BLOBs, use Binary, for CLOBs, use the string "clob" (constants will be provided in a future release). Not all DBI drivers require placeholder buffer specifications; see the documentation for the DBI driver in question for more information and examples regarding placeholder buffer specifications.
 
+    @anchor transaction_lock
     <b>Datasource Transaction Locks</b>
     Datasource objects have an internal transaction lock which will be grabbed when the Datasource::exec(), Datasource::vexec() Datasource::execRaw(), or Datasource::beginTransaction() methods are executed and autocommit is not enabled. This enables a single datasource to be safely used for transaction management by several threads simultaneously. Note that an exception in a Datasource method that would acquire the lock (such as the Datasource::exec() method) when it's not already held, will have the effect that the transaction lock is not acquired.
 
@@ -199,356 +201,589 @@ Datasource::constructor(hash opts) {
    self->setPrivate(CID_DATASOURCE, ds.release());
 }
 
-//! 
+//! Closes the datasource if it's open (if any operations are in progress, will block until the operations complete) and destroys the object
 /** 
     @par Example
     @code
+delete $db;
     @endcode
+
+    @throw DATASOURCE-TRANSACTION-EXCEPTION The Datasource was destroyed while a transaction was still in progress; the transaction will be automatically rolled back
  */
 Datasource::destructor() {
    ds->destructor(xsink);
    ds->deref(xsink);
 }
 
-//! 
+//! Creates a new Datasource object with the same driver as the original and copies of all the connection parameters
 /** 
     @par Example
     @code
+my Datasource $new_ds = $ds.copy();
     @endcode
  */
 Datasource::copy() {
    self->setPrivate(CID_DATASOURCE, ds->copy());
 }
 
-//! 
-/** 
+//! Opens a connection to the datasouce, using the connection parameters already set; an exception is thrown if any errors occur
+/** If the connection is already open, then no action is taken.
+
     @par Example
     @code
+$db.open();
     @endcode
+
+    @note see the documentation for the DBI driver being used for possible exceptions
+
+    @see Datasource::reset()
  */
 nothing Datasource::open() {
    ds->open(xsink);
 }
 
-//! 
+//! Closes the connection to the database; if any actions are in progress on the database, the close call will block until the actions complete. If any errors are encountered, an exception is raised
 /** 
     @par Example
     @code
+$db.close();
     @endcode
- */
+
+    @throw TRANSACTION-LOCK-TIMEOUT Timeout trying to acquire the transaction lock
+
+    @note see the documentation for the DBI driver being used for additional possible exceptions
+*/
 nothing Datasource::close() {
    ds->close(xsink);
 }
 
-//! 
+//! Commits the current transaction and releases the @ref transaction_lock "transaction lock"
 /** 
     @par Example
     @code
+$db.commit();
     @endcode
+
+    @throw TRANSACTION-LOCK-TIMEOUT Timeout trying to acquire the transaction lock
+
+    @note see the documentation for the DBI driver being used for additional possible exceptions
  */
 nothing Datasource::commit() {
    ds->commit(xsink);
 }
 
-//! 
+//! Rolls the current transaction back and releases the @ref transaction_lock "transaction lock"
 /** 
     @par Example
     @code
+$db.rollback();
     @endcode
+
+    @throw TRANSACTION-LOCK-TIMEOUT Timeout trying to acquire the transaction lock
+
+    @note see the documentation for the DBI driver being used for additional possible exceptions
  */
 nothing Datasource::rollback() {
    ds->rollback(xsink);
 }
 
-//! 
-/** 
+//! Turns autocommit on or off for this object
+/** @param ac \c True to turn on autocommit (a commit will be executed after every SQL call to the server), \c False to turn off autocommit (commits must be manually triggered)
     @par Example
     @code
+$db.setAutoCommit(False);
     @endcode
  */
 nothing Datasource::setAutoCommit(bool ac = True) {
    ds->setAutoCommit(ac, xsink);
 }
 
-//! 
-/** 
+//! Returns the autocommit status for the object
+/** @return the autocommit status for the object
+
     @par Example
     @code
+my bool $b = $db.getAutoCommit();
     @endcode
  */
 bool Datasource::getAutoCommit() [flags=QC_CONSTANT] {
    return ds->getAutoCommit();
 }
 
-//! 
-/** 
+//! Grabs the transaction lock (if autocommit is disabled) and executes an SQL command on the server and returns either the integer row count (for example, for updates, inserts, and deletes) or the data retrieved (for example, if a stored procedure is executed that returns values).
+/** @param sql The SQL command to execute on the server
+    @param ... Include any values to be bound (using <tt>%v</tt> in the command string) or placeholder specifications (using <tt>:</tt><em>key_name</em> in the command string) in order after the command string
+
+    @return The return value depends on the DBI driver; normally, for commands with placeholders, a hash is returned holding the values acquired from executing the SQL statement. For all other commands, normally an integer row count is returned. However, some DBI drivers also allow select statements to be executed through this interface, which would also return a hash (column names) of lists (values for each column).
+
     @par Example
     @code
+my int $rows = $db.exec("insert into table (varchar_col, timestamp_col, blob_col, numeric_col) values (%v, %v, %v, %d)", $string, now(), $binary, 100);
     @endcode
+
+    @throw TRANSACTION-LOCK-TIMEOUT Timeout trying to acquire the transaction lock
+
+    @note see the documentation for the DBI driver being used for additional possible exceptions
  */
 any Datasource::exec(string sql, ...) {
    ReferenceHolder<QoreListNode> argl((args->size() > 1 ? args->copyListFrom(1) : 0), xsink);
    return ds->exec(sql, *argl, xsink);
 }
 
-//! 
-/** 
+//! Executes SQL code on the DB connection, taking a list for all bind arguments
+/** Same as Datasource::exec() except takes an explicit list for bind arguments
+
+    @param sql The SQL command to execute on the server
+    @param vargs Include any values to be bound (using <tt>%v</tt> in the command string) or placeholder specifications (using <tt>:</tt><em>key_name</em> in the command string) in order after the command string
+
+    @return The return value depends on the DBI driver; normally, for commands with placeholders, a hash is returned holding the values acquired from executing the SQL statement. For all other commands, normally an integer row count is returned. However, some DBI drivers also allow select statements to be executed through this interface, which would also return a hash (column names) of lists (values for each column).
+
     @par Example
     @code
+my int $rows = $db.vexec("insert into example_table value (%v, %v, %v)", $arg_list);
     @endcode
+
+    @throw TRANSACTION-LOCK-TIMEOUT Timeout trying to acquire the transaction lock
+
+    @note see the documentation for the DBI driver being used for additional possible exceptions
  */
 any Datasource::vexec(string sql, *softlist vargs) {
    return ds->exec(sql, vargs, xsink);
 }
 
-//! 
-/** 
+//! Grabs the transaction lock (if autocommit is disabled) and executes an SQL command on the server and returns either the row count (for example, for updates and inserts) or the data retrieved (for example, if a stored procedure is executed that returns values)
+/** This method does not do any variable binding, so it's useful for example for DDL statements etc
+    
+    @par Warning
+    Using this method to execute pure dynamic SQL many times with different SQL strings (as opposed to using the same string and binding by value instead of dynamic SQL) can affect application performance by prohibiting the efficient usage of the DB server's statement cache. See DB server documentation for variable binding and the SQL statement cache for more information.
+
+    @param sql The SQL command to execute on the server; this string will not be subjected to any transformations for variable binding
+
+    @return The return value depends on the DBI driver; normally, for commands with placeholders, a hash is returned holding the values acquired from executing the SQL statement. For all other commands, normally an integer row count is returned. However, some DBI drivers also allow select statements to be executed through this interface, which would also return a hash (column names) of lists (values for each column).
+
     @par Example
     @code
+$db.exec("create table my_tab (id number, some_text varchar2(30))");
     @endcode
+
+    @throw TRANSACTION-LOCK-TIMEOUT Timeout trying to acquire the transaction lock
+
+    @note see the documentation for the DBI driver being used for additional possible exceptions
  */
 any Datasource::execRaw(string sql) {
    return ds->execRaw(sql, xsink);
 }
 
-//! 
-/** 
+//! Executes an SQL select statement on the server and returns the result as a hash (column names) of lists (column values per row)
+/** The return format of this method is suitable for use with @ref context_statements "context statements", for easy iteration and processing of query results.
+
+    Additionally, this format is more efficient format than that returned by the Datasource::selectRows() method, because the column names are not repeated for each row returned. Therefore, for retrieving anything greater than small amounts of data, it is recommended to use this method instead of Datasource::selectRows().
+
+    This method does not retain the transaction lock if it was not already acquired before this method is called, so to execute select statements that begin a transaction (such as \c "select for update"), execute Datasource::beginTransaction() first to ensure that the transaction lock is dedicated to the calling thread.
+
+    @param sql The SQL command to execute on the server
+    @param ... Include any values to be bound (using <tt>%v</tt> in the command string) or placeholder specifications (using <tt>:</tt><em>key_name</em> in the command string) in order after the command string
+
+    @return This method returns a hash (the keys are the column names) of lists (the column data per row) when executed with an SQL select statement, however some DBI drivers allow any SQL to be executed through this method, in which case other data types can be returned (such as an integer for a row count or a hash for output parameters when executing a stored procedure)
+
     @par Example
     @code
+# bind a string and a date/time value by value in a query
+$query = $db.select("select * from table where varchar_column = %v and timestamp_column > %v", $string, 2007-10-11T15:31:26.289);
     @endcode
+
+    @throw TRANSACTION-LOCK-TIMEOUT Timeout trying to acquire the transaction lock
+
+    @note see the documentation for the DBI driver being used for additional possible exceptions
  */
 any Datasource::select(string sql, ...) {
    ReferenceHolder<QoreListNode> argl((args->size() > 1 ? args->copyListFrom(1) : 0), xsink);
    return ds->select(sql, *argl, xsink);
 }
 
-//! 
-/** 
+//! Executes an SQL select statement on the server and returns the first row as a hash (the column values)
+/** If more than one row is returned, then it is treated as an error and a \c DBI-SELECT-ROW-ERROR is returned (however the DBI driver should raise its own exception here to avoid retrieving more than one row from the server). For a similar method taking a list for all bind arguments, see Datasource::vselectRow().
+
+    This method also accepts all bind parameters (<tt>%d</tt>, <tt>%v</tt>, etc) as documented in @ref sql_binding "Binding by Value and Placeholder"
+
+    This method does not retain the transaction lock if it was not already acquired before this method is called, so to execute select statements that begin a transaction (such as \c "select for update"), execute Datasource::beginTransaction() first to ensure that the transaction lock is dedicated to the calling thread.
+
+    @param sql The SQL command to execute on the server
+    @param ... Include any values to be bound (using <tt>%v</tt> in the command string) or placeholder specifications (using <tt>:</tt><em>key_name</em> in the command string) in order after the command string
+
+    @return This method normally returns a hash (the keys are the column names) of row data or @ref nothing if no row is found for the query when executed with an SQL select statement, however some DBI drivers allow any SQL statement to be executed through this method (not only select statements), in this case other data types can be returned
+
     @par Example
     @code
+my *hash $h = $db.selectRow("select * from example_table where id = 1");
     @endcode
+
+    @throw TRANSACTION-LOCK-TIMEOUT Timeout trying to acquire the transaction lock
+    @throw DBI-SELECT-ROW-ERROR more than 1 row retrieved from the server
+
+    @note see the documentation for the DBI driver being used for additional possible exceptions    
  */
 any Datasource::selectRow(string sql, ...) {
    ReferenceHolder<QoreListNode> argl((args->size() > 1 ? args->copyListFrom(1) : 0), xsink);
    return ds->selectRow(sql, *argl, xsink);
 }
 
-//! 
-/** 
+//! Executes an SQL select statement on the server and returns the result as a list (rows) of hashes (the column values)
+/** The return format of this method is not as memory efficient as that returned by the Datasource::select() method, therefore for larger amounts of data, it is recommended to use Datasource::select().
+
+   This method also accepts all bind parameters (<tt>%d</tt>, <tt>%v</tt>, etc) as documented in @ref sql_binding "Binding by Value and Placeholder"
+
+    This method does not retain the transaction lock if it was not already acquired before this method is called, so to execute select statements that begin a transaction (such as \c "select for update"), execute Datasource::beginTransaction() first to ensure that the transaction lock is dedicated to the calling thread.
+
+    @param sql The SQL command to execute on the server
+    @param ... Include any values to be bound (using <tt>%v</tt> in the command string) or placeholder specifications (using <tt>:</tt><em>key_name</em> in the command string) in order after the command string
+
+    @return Normally returns a list (rows) of hash (where the keys are the column names of each row) or @ref nothing if no rows are found for the query, however some DBI drivers allow any SQL statement to be executed through this method (not only select statements), in this case other data types can be returned
+
     @par Example
     @code
+my *list $list = $db.selectRows("select * from example_table");
     @endcode
+
+    @throw TRANSACTION-LOCK-TIMEOUT Timeout trying to acquire the transaction lock
+
+    @note see the documentation for the DBI driver being used for additional possible exceptions    
+
+    @see Datasoure::select()
  */
 any Datasource::selectRows(string sql, ...) {
    ReferenceHolder<QoreListNode> argl((args->size() > 1 ? args->copyListFrom(1) : 0), xsink);
    return ds->selectRows(sql, *argl, xsink);
 }
 
-//! 
-/** 
+//! Executes a select statement on the server and returns the results in a hash (column names) of lists (column values per row), taking a list for all bind arguments
+/** This method also accepts all bind parameters (<tt>%d</tt>, <tt>%v</tt>, etc) as documented in @ref sql_binding "Binding by Value and Placeholder"
+
+    This method does not retain the transaction lock if it was not already acquired before this method is called, so to execute select statements that begin a transaction (such as \c "select for update"), execute Datasource::beginTransaction() first to ensure that the transaction lock is dedicated to the calling thread.
+
+    @param sql The SQL command to execute on the server
+    @param vargs Include any values to be bound (using <tt>%v</tt> in the command string) or placeholder specifications (using <tt>:</tt><em>key_name</em> in the command string) in order after the command string
+
+    @return Normally returns a hash (the keys are the column names) of list (each hash key's value is a list giving the row data), however some DBI drivers allow any SQL statement to be executed through this method (not only select statements), in this case other data types can be returned
+
     @par Example
     @code
+my *hash $query = $db.vselect("select * from example_table where id = %v and name = %v", $arg_list);
     @endcode
+
+    @throw TRANSACTION-LOCK-TIMEOUT Timeout trying to acquire the transaction lock
+
+    @note see the documentation for the DBI driver being used for additional possible exceptions    
+
+    @see Datasoure::select()
  */
 any Datasource::vselect(string sql, *softlist vargs) {
    return ds->select(sql, vargs, xsink);
 }
 
-//! 
-/** 
+//! Executes a select statement on the server and returns the first row as a hash (column names and values), taking a list for all bind arguments
+/** This method is the same as the Datasource::selectRow() method, except this method takes a single argument after the SQL command giving the list of bind value parameters
+
+    This method also accepts all bind parameters (<tt>%d</tt>, <tt>%v</tt>, etc) as documented in @ref sql_binding "Binding by Value and Placeholder"
+
+    This method does not retain the transaction lock if it was not already acquired before this method is called, so to execute select statements that begin a transaction (such as \c "select for update"), execute Datasource::beginTransaction() first to ensure that the transaction lock is dedicated to the calling thread.
+
+    @param sql The SQL command to execute on the server
+    @param vargs Include any values to be bound (using <tt>%v</tt> in the command string) or placeholder specifications (using <tt>:</tt><em>key_name</em> in the command string) in order after the command string
+
+    @return This method normally returns a hash (the keys are the column names) of row data or @ref nothing if no row is found for the query when executed with an SQL select statement, however some DBI drivers allow any SQL statement to be executed through this method (not only select statements), in this case other data types can be returned
+
     @par Example
     @code
+my *hash $h = $db.vselectRow("select * from example_table where id = %v and type = %v", $arg_list);
     @endcode
+
+    @throw TRANSACTION-LOCK-TIMEOUT Timeout trying to acquire the transaction lock
+
+    @note see the documentation for the DBI driver being used for additional possible exceptions    
+
+    @see Datasoure::selectRow()
  */
 any Datasource::vselectRow(string sql, *softlist vargs) {
    return ds->selectRow(sql, vargs, xsink);
 }
 
-//! 
-/** 
+//! Executes a select statement on the server and returns the results in a list (rows) of hashes (column names and values), taking a list for all bind arguments
+/** Same as the Datasource::selectRows() method, except this method takes a single argument after the SQL command giving the list of bind value parameters.
+
+    The return format of this method is not as memory efficient as that returned by the Datasource::select() method, therefore for larger amounts of data, it is recommended to use Datasource::select().
+
+   This method also accepts all bind parameters (<tt>%d</tt>, <tt>%v</tt>, etc) as documented in @ref sql_binding "Binding by Value and Placeholder"
+
+    This method does not retain the transaction lock if it was not already acquired before this method is called, so to execute select statements that begin a transaction (such as \c "select for update"), execute Datasource::beginTransaction() first to ensure that the transaction lock is dedicated to the calling thread.
+
+    @param sql The SQL command to execute on the server
+    @param vargs Include any values to be bound (using <tt>%v</tt> in the command string) or placeholder specifications (using <tt>:</tt><em>key_name</em> in the command string) in order after the command string
+
+    @return Normally returns a list (rows) of hash (where the keys are the column names of each row) or @ref nothing if no rows are found for the query, however some DBI drivers allow any SQL statement to be executed through this method (not only select statements), in this case other data types can be returned
+
     @par Example
     @code
+my *list $list = $db.vselectRows("select * from example_table where id = %v and type = %v", $arg_list);
     @endcode
+
+    @throw TRANSACTION-LOCK-TIMEOUT Timeout trying to acquire the transaction lock
+
+    @note see the documentation for the DBI driver being used for additional possible exceptions    
+
+    @see Datasoure::selectRows()
  */
 any Datasource::vselectRows(string sql, *softlist vargs) {
    return ds->selectRows(sql, vargs, xsink);
 }
 
-//! 
-/** 
+//! Manually grabs the transaction lock
+/** This method should be called when the Datasource object will be shared between more than 1 thread, and a transaction will be started with a Datasource::select() method or the like.
+
+    This method does not make any communication with the server to start a transaction; it only allocates the transaction lock to the current thread in %Qore.
+
+    It is an error to call this method when autocommit is enabled for the Datasource.
+
     @par Example
     @code
+$db.beginTransaction();
     @endcode
+
+    @throw AUTOCOMMIT-ERROR Cannot start a transaction when autocommit is enabled
+    @throw TRANSACTION-LOCK-TIMEOUT Timeout trying to acquire the transaction lock
  */
 nothing Datasource::beginTransaction() {
    ds->beginTransaction(xsink);
 }
 
-//! 
+//! Closes and reopens the Datasource
 /** 
     @par Example
     @code
+$db.reset();
     @endcode
+
+    @throw TRANSACTION-LOCK-TIMEOUT Timeout trying to acquire the transaction lock
+
+    @note see the documentation for the DBI driver being used for additional possible exceptions    
  */
 nothing Datasource::reset() {
    ds->reset(xsink);
 }
 
-//! 
-/** 
+//! Returns an integer bitfield of DBI driver capabilities
+/** @return an integer bitfield of DBI driver capabilities; see @ref dbi_capabilities for the meaning of each bit
+
     @par Example
     @code
+my int $caps = $db.getCapabilities();
+if (!($caps & DBI_CAP_TRANSACTION_MANAGEMENT))
+    throw "DATASOURCE-ERROR", sprintf("DBI driver %y does not support transaction management", $db.getDriverName());
     @endcode
  */
 int Datasource::getCapabilities() [flags=QC_CONSTANT] {
    return ds->getCapabilities();
 }
 
-//! 
-/** 
+//! Returns a list of strings giving the capabilities of the current DBI driver
+/** @return a list of strings giving the capabilities of the current DBI driver
+
     @par Example
     @code
+printf("driver %y has the following capabilities:\n", $db.getDriverName());
+foreach my string $cap in ($db.getCapabilityList())
+    printf("- %s\n", $cap);
     @endcode
  */
 list Datasource::getCapabilityList() [flags=QC_CONSTANT] {
    return ds->getCapabilityList();
 }
 
-//! 
-/** 
+//! Sets the username parameter for the time a connection to the server is established
+/** Invalid usernames will cause an exception to be thrown when the connection is opened
+
+    @param user the username parameter for the time a connection to the server is established
+
     @par Example
     @code
+$db.setUserName($user);
     @endcode
  */
 nothing Datasource::setUserName(string user) {
    ds->setPendingUsername(user->getBuffer());
 }
 
-//! 
-/** 
+//! Sets the password parameter for the time a connection to the server is established
+/** Invalid passwords will cause an exception to be thrown when the connection is opened
+
+    @param pass the password parameter for the time a connection to the server is established
+
     @par Example
     @code
+$db.setPassword($pass);
     @endcode
  */
 nothing Datasource::setPassword(string pass) {
    ds->setPendingPassword(pass->getBuffer());
 }
 
-//! 
-/** 
+//! Sets the database name parameter for the time a connection to the server is established
+/** Invalid database names will cause an exception to be thrown when the connection is opened
+
+    @param db the database name parameter for the time a connection to the server is established
+
     @par Example
     @code
+$db.setDBName($db);
     @endcode
  */
 nothing Datasource::setDBName(string db) {
    ds->setPendingDBName(db->getBuffer());
 }
 
-//! 
-/** 
+//! Sets the database-specific character encoding name for the next connection to the server
+/** This is a method synonym for the Datasource::setDBEncoding() method, kept for backwards-compatibility.
+
+    Invalid character encoding names will cause an exception to be thrown when the connection is opened.
+
+    @param encoding the database-specific character encoding name for the next connection to the server
+
     @par Example
     @code
+$db.setDBCharset($encoding);
     @endcode
  */
 nothing Datasource::setDBCharset(string encoding) {
    ds->setPendingDBEncoding(encoding->getBuffer());
 }
 
-//! 
-/** 
+//! Sets the database-specific character encoding name for the next connection to the server
+/** Invalid character encoding names will cause an exception to be thrown when the connection is opened.
+
+    @param encoding the database-specific character encoding name for the next connection to the server
+
     @par Example
     @code
+$db.setDBEncoding($encoding);
     @endcode
  */
 nothing Datasource::setDBEncoding(string encoding) {
    ds->setPendingDBEncoding(encoding->getBuffer());
 }
 
-//! 
-/** 
+//! Sets the hostname to use for the next connection to the server
+/** Invalid hostnames will cause an exception to be thrown when the connection is opened.
+
+    @param host the hostname to use for the next connection to the server
+
     @par Example
     @code
+$db.setHostName($host);
     @endcode
  */
 nothing Datasource::setHostName(string host) {
    ds->setPendingHostName(host->getBuffer());
 }
 
-//! 
-/** 
+//! Sets the port number to use for the connection
+/** Invalid port numbers will cause an exception to be thrown when the connection is opened
+
+    @param port the port number to use for the connection
+
     @par Example
     @code
+$db.setPort($port);
     @endcode
  */
-nothing Datasource::setPort(int port) {
+nothing Datasource::setPort(softint port = 0) {
    ds->setPendingPort((int)port);
 }
 
-//! 
-/** 
+//! Returns the username parameter as a string or @ref nothing if none is set
+/** @return the username parameter as a string or @ref nothing if none is set
+
     @par Example
     @code
+my *string $user = $db.getUserName();
     @endcode
  */
 *string Datasource::getUserName() [flags=QC_CONSTANT] {
    return ds->getPendingUsername();
 }
 
-//! 
-/** 
+//! Returns the password parameter as a string or @ref nothing if none is set
+/** @return the password parameter as a string or @ref nothing if none is set
+
     @par Example
     @code
+my *string $pass = $db.getPassword();
     @endcode
  */
 *string Datasource::getPassword() [flags=QC_CONSTANT] {
    return ds->getPendingPassword();
 }
 
-//! 
-/** 
+//! Returns the database name parameter as a string or @ref nothing if none is set
+/** @return the database name parameter as a string or @ref nothing if none is set
+
     @par Example
     @code
+my *string $db = $db.getDBName();
     @endcode
  */
 *string Datasource::getDBName() [flags=QC_CONSTANT] {
    return ds->getPendingDBName();
 }
 
-//! 
-/** 
+//! Retrieves the database-specific charset set encoding for the current connection
+/** A method synonym for Datasource::getDBEncoding() kept for backwards-compatibility.
+
+    @return the database-specific charset set encoding for the current connection
+
     @par Example
     @code
+my string $enc = $db.getDBCharset();
     @endcode
  */
 string Datasource::getDBCharset() [flags=QC_CONSTANT] {
    return ds->getPendingDBEncoding();
 }
 
-//! 
-/** 
+//! Retrieves the database-specific charset set encoding for the current connection
+/** @return the database-specific charset set encoding for the current connection
+
     @par Example
     @code
+my string $enc = $db.getDBEncoding();
     @endcode
+
+    @see Datasource::getOSEncoding();
  */
 string Datasource::getDBEncoding() [flags=QC_CONSTANT] {
    return ds->getPendingDBEncoding();
 }
 
-//! 
-/** 
+//! Returns the Qore charset name for the current connection as a string or \c "(unknown)" if none is set
+/** @return the Qore charset name for the current connection as a string or \c "(unknown)" if none is set
+
     @par Example
     @code
+my string $enc = $db.getOSCharset();
     @endcode
+
+    @see Datasource::getOSEncoding()
  */
 string Datasource::getOSCharset() [flags=QC_CONSTANT] {
    const QoreEncoding *enc = ds->getQoreEncoding();
    return new QoreStringNode(enc ? enc->getCode() : "(unknown)");
 }
 
-//! 
-/** 
+//! Returns the Qore charset name for the current connection as a string or @ref nothing if none is set
+/** @return the Qore charset name for the current connection as a string or @ref nothing if none is set
+
     @par Example
     @code
+my *string $enc = $db.getOSEncoding();
     @endcode
  */
 *string Datasource::getOSEncoding() [flags=QC_CONSTANT] {
@@ -556,18 +791,21 @@ string Datasource::getOSCharset() [flags=QC_CONSTANT] {
    return enc ? new QoreStringNode(enc->getCode()) : 0;
 }
 
-//! 
-/** 
+//! Returns the hostname parameter as a string or @ref nothing if none is set
+/** @return the hostname parameter as a string or @ref nothing if none is set
+
     @par Example
     @code
+my *string $host = $db.getHostName();
     @endcode
  */
 *string Datasource::getHostName() [flags=QC_CONSTANT] {
    return ds->getPendingHostName();
 }
 
-//! 
-/** 
+//! Sets the port number to use for the next connection to the server
+/** Invalid port numbers will cause an exception to be thrown when the connection is opened
+
     @par Example
     @code
     @endcode
@@ -577,60 +815,78 @@ string Datasource::getOSCharset() [flags=QC_CONSTANT] {
    return port ? new QoreBigIntNode(port) : 0;
 }
 
-//! 
-/** 
+//! Sets the transaction lock timeout value in milliseconds; set to 0 for no timeout
+/** @param timeout_ms the transaction lock timeout value in milliseconds; set to 0 for no timeout.  Like all Qore functions and methods taking timeout values, a @relative_dates "relative date/time value" may be passed instead of an integer to make the timeout units clear (ex: \c 2500ms for 2.5 seconds).
+
     @par Example
     @code
+$db.setTransactionLockTimeout(4s);
     @endcode
  */
 nothing Datasource::setTransactionLockTimeout(timeout timeout_ms = 0) {
    ds->setTransactionLockTimeout((int)timeout_ms);
 }
 
-//! 
-/** 
+//! Retrieves the transaction lock timeout value as an integer in milliseconds
+/** @return the transaction lock timeout value as an integer in milliseconds
+
     @par Example
     @code
+my int $to_ms = $db.getTransactionLockTimeout();
     @endcode
  */
 int Datasource::getTransactionLockTimeout() [flags=QC_CONSTANT] {
    return ds->getTransactionLockTimeout();
 }
 
-//! 
-/** 
+//! Returns the name of the driver used for the object
+/** @return the name of the driver used for the object
+
     @par Example
     @code
+my string $driver = $db.getDriverName();
     @endcode
  */
 string Datasource::getDriverName() [flags=QC_CONSTANT] {
    return new QoreStringNode(ds->getDriver()->getName());
 }
 
-//! 
-/** 
+//! Returns the driver-specific server version data for the current connection
+/** @return the driver-specific server version data for the current connection; see the DBI driver documentation for the return data type and format
+
     @par Example
     @code
+my any $ver = $db.getServerVersion();
     @endcode
+
+    @throw TRANSACTION-LOCK-TIMEOUT Timeout trying to acquire the transaction lock
+
+    @note see the documentation for the DBI driver being used for additional possible exceptions    
  */
 any Datasource::getServerVersion() {
    return ds->getServerVersion(xsink);
 }
 
-//! 
-/** 
+//! Retrieves the driver-specific client library version information; this method may not be implemented for all drivers
+/** @return the driver-specific client library version information; this method may not be implemented for all drivers; see the DBI driver documentation for the return data type and format
+
     @par Example
     @code
+my any $ver = $db.getClientVersion();
     @endcode
+
+    @note see the documentation for the DBI driver being used for possible exceptions    
  */
 any Datasource::getClientVersion() {
    return ds->getClientVersion(xsink);
 }
 
-//! 
-/** 
+//! Returns \c True if a transaction is currently in progress, \c False if not
+/** @return \c True if a transaction is currently in progress, \c False if not
+
     @par Example
     @code
+my bool $b = $db.inTransaction();
     @endcode
  */
 bool Datasource::inTransaction() [flags=QC_CONSTANT] {
