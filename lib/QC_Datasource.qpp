@@ -25,6 +25,68 @@
 
 static const char *DSC_ERR = "DATASOURCE-CONSTRUCTOR-ERROR";
 
+/** @defgroup database_driver_constants Database Driver Constants
+    These are contants that stand for database driver names known to Qore
+*/
+//@{ 
+//! for the \c "oracle" driver
+const DSOracle = "oracle";
+
+//! for the \c "mysql" driver
+const DSMySQL = "mysql";
+
+//! for the \c "sybase" driver
+const DSSybase = "sybase";
+
+//! for the \c "pgsql" driver
+const DSPGSQL = "pgsql";
+
+//! for the \c "freetds" driver
+const DSFreeTDS = "freetds";
+
+//! another constant for the \c "freetds" driver
+const DSMSSQL = "freetds";
+
+//! for the \c "sqlite3" driver
+const DSSQLite3 = "sqlite3";
+
+//! for the \c "db2" driver
+const DSDB2 = "db2";
+
+// the following have no drivers yet
+//const DSInformix = "informix";
+//const DSTimesTen = "timesten";
+//@}
+
+/** @defgroup dbi_capabilities DBI Capability Constants
+    These are contants that define the meaning of bits in the capability mask such as returned by Datasource::getCapabilities()
+*/
+//@{ 
+//! Indicates that the DBI driver supports time zones in times
+const DBI_CAP_TIME_ZONE_SUPPORT = DBI_CAP_TIME_ZONE_SUPPORT;
+
+//! Indicates that the DBI driver supports proper character encoding conversions
+const DBI_CAP_CHARSET_SUPPORT = DBI_CAP_CHARSET_SUPPORT;
+
+//! Indicates that the DBI driver supports transaction management
+const DBI_CAP_TRANSACTION_MANAGEMENT = DBI_CAP_TRANSACTION_MANAGEMENT;
+
+//! Indicates that the DBI driver supports stored procedure execution
+const DBI_CAP_STORED_PROCEDURES = DBI_CAP_STORED_PROCEDURES;
+
+//! Indicates that the DBI driver supports LOB columns (BLOBs and CLOBs, for example)
+const DBI_CAP_LOB_SUPPORT = DBI_CAP_LOB_SUPPORT;
+
+//! Indicates that the DBI driver supports directly binding qore values into queries using the <tt>%v</tt> placeholder in the query string
+const DBI_CAP_BIND_BY_VALUE = DBI_CAP_BIND_BY_VALUE;
+
+//! Indicates that the DBI driver supports binding placeholder buffers when executing SQL to retrieve data from queries and procedures, etc
+const DBI_CAP_BIND_BY_PLACEHOLDER = DBI_CAP_BIND_BY_PLACEHOLDER;
+
+//! Indicates that the DBI driver supports the Datasource::execRaw() and DatasourcePool::execRaw() methods
+const DBI_CAP_HAS_EXECRAW = DBI_CAP_HAS_EXECRAW;
+//@}
+
 //! This class provides the %Qore interface to databases
 /** This class provides the main direct interface to DBI drivers (along with the SQLStatement and DatasourcePool classes).
 

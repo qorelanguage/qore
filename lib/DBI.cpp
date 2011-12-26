@@ -904,29 +904,6 @@ QoreNamespace *getSQLNamespace() {
    SQLNS->addSystemClass((dsp = initDatasourcePoolClass(*SQLNS)));
    SQLNS->addSystemClass(initSQLStatementClass(ds, dsp));
 
-   // datasource type/driver constants
-   SQLNS->addConstant("DSOracle",   new QoreStringNode("oracle"));
-   SQLNS->addConstant("DSMySQL",    new QoreStringNode("mysql"));
-   SQLNS->addConstant("DSSybase",   new QoreStringNode("sybase"));
-   SQLNS->addConstant("DSPGSQL",    new QoreStringNode("pgsql"));
-   SQLNS->addConstant("DSMSSQL",    new QoreStringNode("freetds"));
-   SQLNS->addConstant("DSFreeTDS",  new QoreStringNode("freetds"));
-   SQLNS->addConstant("DSSQLite3",  new QoreStringNode("sqlite3"));
-   SQLNS->addConstant("DSDB2",      new QoreStringNode("db2"));
-   // the following have no drivers yet
-   SQLNS->addConstant("DSInformix", new QoreStringNode("informix"));
-   SQLNS->addConstant("DSTimesTen", new QoreStringNode("timesten"));
-
-   // for DBI driver capabilities
-   SQLNS->addConstant("DBI_CAP_TIME_ZONE_SUPPORT",      new QoreBigIntNode(DBI_CAP_TIME_ZONE_SUPPORT));
-   SQLNS->addConstant("DBI_CAP_CHARSET_SUPPORT",        new QoreBigIntNode(DBI_CAP_CHARSET_SUPPORT));
-   SQLNS->addConstant("DBI_CAP_TRANSACTION_MANAGEMENT", new QoreBigIntNode(DBI_CAP_TRANSACTION_MANAGEMENT));
-   SQLNS->addConstant("DBI_CAP_STORED_PROCEDURES",      new QoreBigIntNode(DBI_CAP_STORED_PROCEDURES));
-   SQLNS->addConstant("DBI_CAP_LOB_SUPPORT",            new QoreBigIntNode(DBI_CAP_LOB_SUPPORT));
-   SQLNS->addConstant("DBI_CAP_BIND_BY_VALUE",          new QoreBigIntNode(DBI_CAP_BIND_BY_VALUE));
-   SQLNS->addConstant("DBI_CAP_BIND_BY_PLACEHOLDER",    new QoreBigIntNode(DBI_CAP_BIND_BY_PLACEHOLDER));
-   SQLNS->addConstant("DBI_CAP_HAS_EXECRAW",            new QoreBigIntNode(DBI_CAP_HAS_EXECRAW));
-
    // for column types for binding
    SQLNS->addConstant("VARCHAR",  new QoreStringNode("string"));
    SQLNS->addConstant("NUMBER",   new QoreStringNode("string"));

@@ -142,7 +142,7 @@ static int my_vsprintf(std::string &buf, const char *fmt, va_list args) {
    }
 #endif
    bool err = i >= (int)buf.size();
-   buf.resize(i);
+   buf.resize(i + 1);
    return err ? -1 : 0;
 }
 
@@ -207,12 +207,16 @@ void toupper(std::string &str) {
       str[i] = toupper(str[i]);
 }
 
+static bool whitespace(int c) {
+   return c == ' ' || c == '\n' || c == '\t';
+}
+
 void trim(std::string &str) {
-   while (str[0] == ' ')
+   while (whitespace(str[0]))
       str.erase(0, 1);
    while (true) {
       size_t len = str.size();
-      if (!len || str[len - 1] != ' ')
+      if (!len || !whitespace(str[len - 1]))
          break;
       str.erase(len - 1);
    }
@@ -320,10 +324,92 @@ static bool is_object(const std::string &qt) {
    return !qt.empty() && (oset.find(qt) != oset.end() || tmap.find(qt) == tmap.end());
 }
 
-#define T_INT   0
-#define T_FLOAT 1
-#define T_OTHER 2
+int readUntilClose(const char* fileName, unsigned& lineNumber, std::string& str, FILE* fp, int cchar = '}') {
+   int quote = 0;
+
+   // curly bracket count
+   unsigned bc = 1;
+
+   bool backquote = false;
+   bool line_comment = false;
+   // current character
+   int c = 0;
+   // last character read
+   int last;
+
+   while (true) {
+      last = c;
+      c = fgetc(fp);
+      if (c == EOF) {
+         error("%s: premature EOF on line %d\n", fileName, lineNumber);
+         return -1;
+      }
+
+      str += c;
+
+      if (backquote == true) {
+         backquote = false;
+         continue;
+      }
+
+      if (c == '\n') {
+         ++lineNumber;
+         line_comment = false;
+         continue;
+      }
+         
+      if (line_comment)
+         continue;
+
+      if (c == '/' && last == '/') {
+         line_comment = true;
+         continue;
+      }
+
+      if (c == '"' || c == '\'') {
+         log(LL_DEBUG, "found %c on line %d (quote: %c %d)\n", c, lineNumber, quote ? quote : 'x', quote);
+         if (quote == c)
+            quote = 0;
+         else if (!quote)
+            quote = c;
+         continue;
+      }
+
+      if (quote) {
+         if (c == '\\')
+            backquote = true;
+         continue;
+      }
+
+      if (cchar == '}' && c == '{') {
+         log(LL_DEBUG, "found '{' on line %d (bc: %d)\n", lineNumber, bc);
+         ++bc;
+         continue;
+      }
+
+      if (c == cchar) {
+         log(LL_DEBUG, "found '%c' on line %d (bc: %d)\n", cchar, lineNumber, bc);
+         if (!--bc)
+            break;
+      }
+   }
+
+   return 0;
+}
+
+#define T_INT    0
+#define T_FLOAT  1
+#define T_STRING 2
+#define T_HASH   3
+#define T_OTHER  4
 static int get_val_type(const std::string &str) {
+   if (!str.empty()) {
+      if ((str[0] == '"' && str[str.size() - 1] == '"') || (str[0] == '\'' && str[str.size() - 1] == '\''))
+         return T_STRING;
+      if (str[0] == '(' && str[str.size() - 1] == ')')
+         return T_HASH;
+   }
+
    bool pint = false,  // has integers
       pucus = false,   // has uppercase and/or underscore chars
       pdec = false,    // has a decimal point
@@ -355,7 +441,7 @@ static int get_val_type(const std::string &str) {
    return T_OTHER;
 }
 
-static int get_qore_value(const std::string &qv, std::string &v) {
+static int get_qore_value(const std::string &qv, std::string &v, const char *cname = 0, bool *hash = 0) {
    strmap_t::iterator i = vmap.find(qv);
    if (i != vmap.end()) {
       v = i->second;
@@ -374,6 +460,60 @@ static int get_qore_value(const std::string &qv, std::string &v) {
          v = "new QoreFloatNode(";
          v += qv;
          v += ")";
+         return 0;
+      }
+      case T_STRING: {
+         v = "new QoreStringNode(";
+         v += qv;
+         v += ")";
+         return 0;
+      }
+      case T_HASH: {
+         if (!cname) {
+            error("cannot create a hash for a non-constant value\n");
+            return -1;
+         }
+         assert(hash);
+         *hash = true;
+
+         v = "QoreHashNode* hash_";
+         v += cname;
+         v += " = new QoreHashNode;\n";
+
+         std::string hv(qv, 1, qv.size() -2);
+
+         strlist_t l;
+         get_string_list2(l, hv, ',');
+         
+         for (unsigned i = 0; i < l.size(); ++i) {
+            std::string& str = l[i];
+            trim(str);
+            if (str.empty())
+               continue;
+            size_t sep = str.find(':');
+            if (sep == std::string::npos) {
+               error("cannot find ':' in hash line: '%s' (line %d)\n", str.c_str(), i);
+               return -1;
+            }
+            std::string key(str, 0, sep);
+            trim(key);
+            if (key.empty() || key[0] != '"' || key[key.size() - 1] != '"') {
+               error("hash key '%s' is not a quoted string\n", key.c_str());
+               return -1;
+            }
+            key.erase(0, 1);
+            key.erase(key.size() - 1);
+
+            std::string value(str, sep + 1);
+            trim(value);
+            std::string qoreval;
+            if (get_qore_value(value, qoreval))
+               return -1;
+
+            v += "   hash_";
+            v += cname;
+            v += "->setKeyValue(\"" + key + "\", " + qoreval + ", 0);\n";
+         }
          return 0;
       }
    }
@@ -470,9 +610,13 @@ public:
 
    virtual int serializeCpp(FILE *fp) {
       std::string qv;
-      if (get_qore_value(value, qv))
+      bool hash = false;
+      if (get_qore_value(value, qv, name.c_str(), &hash))
          return -1;
-      fprintf(fp, "   qorens.addConstant(\"%s\", %s);\n", name.c_str(), qv.c_str());
+      if (hash)
+         fprintf(fp, "   %s\n   qorens.addConstant(\"%s\", hash_%s);\n", qv.c_str(), name.c_str(), name.c_str());
+      else
+         fprintf(fp, "   qorens.addConstant(\"%s\", %s);\n", name.c_str(), qv.c_str());
       return 0;
    }
 
@@ -548,9 +692,14 @@ public:
             line.erase(line.size() - 1);
             trim(line);
             if (line[line.size() - 1] != ';') {
-               error("%s:%d: expecting constant definition; got: %s (%c)\n", fileName, lineNumber, line.c_str(), line[line.size() - 1]);
-               valid = false;
+               // re-add newline
+               line += '\n';
+               if (readUntilClose(fileName, lineNumber, line, fp, ';')) {
+                  error("%s:%d: expecting constant definition; got: %s (%c)\n", fileName, lineNumber, line.c_str(), line[line.size() - 1]);
+                  valid = false;
+               }
             }
+
             line.erase(0, 6);
             // erase trailing ';'
             line.erase(line.size() - 1);
@@ -1382,7 +1531,8 @@ public:
          }
       }
 
-      groups.serializeCpp(fp);
+      if (groups.serializeCpp(fp))
+         return -1;
 
       fprintf(fp, "\n   return QC_%s;\n}\n", UC.c_str());
       return 0;
@@ -1486,79 +1636,6 @@ protected:
             break;
          }
       }
-      return 0;
-   }
-
-   int readUntilClose(std::string &str, FILE *fp) {
-      int quote = 0;
-
-      // curly bracket count
-      unsigned bc = 1;
-
-      bool backquote = false;
-      bool line_comment = false;
-      // current character
-      int c = 0;
-      // last character read
-      int last;
-
-      while (true) {
-         last = c;
-         c = fgetc(fp);
-         if (c == EOF) {
-            error("%s: premature EOF on line %d\n", fileName, lineNumber);
-            return -1;
-         }
-
-         str += c;
-
-         if (backquote == true) {
-            backquote = false;
-            continue;
-         }
-
-         if (c == '\n') {
-            ++lineNumber;
-            line_comment = false;
-            continue;
-         }
-         
-         if (line_comment)
-            continue;
-
-         if (c == '/' && last == '/') {
-            line_comment = true;
-            continue;
-         }
-
-         if (c == '"' || c == '\'') {
-            log(LL_DEBUG, "found %c on line %d (quote: %c %d)\n", c, lineNumber, quote ? quote : 'x', quote);
-            if (quote == c)
-               quote = 0;
-            else if (!quote)
-               quote = c;
-            continue;
-         }
-
-         if (quote) {
-            if (c == '\\')
-               backquote = true;
-            continue;
-         }
-
-         if (c == '{') {
-            log(LL_DEBUG, "found '{' on line %d (bc: %d)\n", lineNumber, bc);
-            ++bc;
-            continue;
-         }
-
-         if (c == '}') {
-            log(LL_DEBUG, "found '}' on line %d (bc: %d)\n", lineNumber, bc);
-            if (!--bc)
-               break;
-         }
-      }
-
       return 0;
    }
 
@@ -1733,7 +1810,7 @@ protected:
 
    int parseMethod(std::string &sc, FILE *fp, std::string &doc) {
       unsigned sl = lineNumber;
-      if (readUntilClose(sc, fp)) {
+      if (readUntilClose(fileName, lineNumber, sc, fp)) {
          error("%s:%d: premature EOF reading method definition starting on line %d\n", fileName, lineNumber, sl);
          return -1;
       }
@@ -2168,7 +2245,8 @@ int main(int argc, char *argv[]) {
          exit(1);
       }
       // create cpp output file
-      code.serializeCpp();
+      if (code.serializeCpp())
+         return -1;
 
       // create dox output file
       code.serializeDox();

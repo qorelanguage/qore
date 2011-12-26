@@ -1500,9 +1500,6 @@ void StaticSystemNamespace::init() {
 }
 #endif
 
-   // add ssl socket constants
-   addSSLConstants(qoreNS);
-
    // add boolean constants for true and false
    qoreNS->addConstant("True",           boolean_true());
    qoreNS->addConstant("False",          boolean_false());
@@ -1558,48 +1555,6 @@ void StaticSystemNamespace::init() {
    qoreNS->addConstant("NT_HASH",        new QoreBigIntNode(NT_HASH));
    qoreNS->addConstant("NT_OBJECT",      new QoreBigIntNode(NT_OBJECT));
    qoreNS->addConstant("NT_CLOSURE",     new QoreBigIntNode(NT_RUNTIME_CLOSURE));
-
-   // network constants
-   qoreNS->addConstant("AF_INET",        new QoreBigIntNode(AF_INET));
-   qoreNS->addConstant("AF_INET6",       new QoreBigIntNode(AF_INET6));
-   qoreNS->addConstant("AF_UNIX",        new QoreBigIntNode(AF_UNIX));
-#ifdef AF_LOCAL
-   qoreNS->addConstant("AF_LOCAL",       new QoreBigIntNode(AF_LOCAL)); // POSIX synonym for AF_UNIX
-#else
-   qoreNS->addConstant("AF_LOCAL",       new QoreBigIntNode(AF_UNIX));
-#endif
-   qoreNS->addConstant("AF_UNSPEC",      new QoreBigIntNode(AF_UNSPEC));
-
-#ifdef AI_ADDRCONFIG
-   qoreNS->addConstant("AI_ADDRCONFIG",  new QoreBigIntNode(AI_ADDRCONFIG));
-#else
-   // define to 0 in case it's not present
-   qoreNS->addConstant("AI_ADDRCONFIG",  new QoreBigIntNode(0));
-#endif
-#ifdef AI_ALL
-   qoreNS->addConstant("AI_ALL",         new QoreBigIntNode(AI_ALL));
-#endif
-#ifdef AI_CANONNAME
-   qoreNS->addConstant("AI_CANONNAME",   new QoreBigIntNode(AI_CANONNAME));
-#endif
-#ifdef AI_NUMERICHOST
-   qoreNS->addConstant("AI_NUMERICHOST", new QoreBigIntNode(AI_NUMERICHOST));
-#endif
-#ifdef AI_NUMERICSERV
-   qoreNS->addConstant("AI_NUMERICSERV", new QoreBigIntNode(AI_NUMERICSERV));
-#endif
-#ifdef AI_PASSIVE
-   qoreNS->addConstant("AI_PASSIVE",     new QoreBigIntNode(AI_PASSIVE));
-#endif
-#ifdef AI_V4MAPPED
-   qoreNS->addConstant("AI_V4MAPPED",    new QoreBigIntNode(AI_V4MAPPED));
-#endif
-   qoreNS->addConstant("IPPROTO_UDP",    new QoreBigIntNode(IPPROTO_UDP));
-   qoreNS->addConstant("IPPROTO_TCP",    new QoreBigIntNode(IPPROTO_TCP));
-
-   qoreNS->addConstant("SOCK_STREAM",    new QoreBigIntNode(SOCK_STREAM));
-   qoreNS->addConstant("SOCK_DGRAM",     new QoreBigIntNode(SOCK_DGRAM));
-   qoreNS->addConstant("SOCK_RAW",       new QoreBigIntNode(SOCK_RAW));
 
    // zlib constants
    qoreNS->addConstant("Z_DEFAULT_COMPRESSION", new QoreBigIntNode(Z_DEFAULT_COMPRESSION));
