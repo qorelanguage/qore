@@ -238,8 +238,8 @@ nothing SQLStatement::bind(...) {
     @code
 $stmt.prepare("insert into table (id, name) values (%v, %v)");
 foreach my hash $h in ($l) {
-    my list $l = ($h.id, $h.name);
-    $stmt.bindArgs($l);
+    my list $args = ($h.id, $h.name);
+    $stmt.bindArgs($args);
     $stmt.exec();
 }
     @endcode
@@ -358,8 +358,8 @@ nothing SQLStatement::bindValues(...) {
     @code
 $stmt.prepare("insert into table (id, name) values (%v, %v)");
 foreach my hash $h in ($l) {
-    my list $l = ($h.id, $h.name);
-    $stmt.bindValuesArgs($l);
+    my list $args = ($h.id, $h.name);
+    $stmt.bindValuesArgs($args);
     $stmt.exec();
 }
     @endcode
@@ -420,8 +420,8 @@ nothing SQLStatement::exec(...) {
     @code
 $stmt.prepare("insert into table (id, name) values (%v, %v)");
 foreach my hash $h in ($l) {
-    my list $l = ($h.id, $h.name);
-    $stmt.execArgs($l);
+    my list $args = ($h.id, $h.name);
+    $stmt.execArgs($args);
 }
     @endcode
 
