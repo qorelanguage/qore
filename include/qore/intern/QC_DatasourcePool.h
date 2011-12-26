@@ -39,8 +39,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-extern qore_classid_t CID_DATASOURCEPOOL;
+DLLEXPORT extern qore_classid_t CID_DATASOURCEPOOL;
+DLLLOCAL extern QoreClass* QC_DATASOURCEPOOL;
 
-class QoreClass *initDatasourcePoolClass();
+QoreClass *initDatasourcePoolClass(QoreNamespace& ns);
 
 #endif

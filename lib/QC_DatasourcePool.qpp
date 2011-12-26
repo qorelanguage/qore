@@ -1,0 +1,531 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/*
+  QC_DatasourcePool.cpp
+
+  Qore Programming Language
+
+  Copyright 2003 - 2011 David Nichols
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+  
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+  
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
+#include <qore/Qore.h>
+#include <qore/DBI.h>
+
+#include <qore/intern/QC_DatasourcePool.h>
+
+#define DP_MIN 5
+#define DP_MAX 20
+
+static const char *DSPC_ERR = "DATASOURCEPOOL-CONSTRUCTOR-ERROR";
+
+//! Provides transparent per-thread, per-transaction datasource connection pooling
+/** The DatasourcePool class provides transparent per-thread, per-transaction datasource connection pooling.
+
+    In most cases, the DatasourcePool class can be used as a drop-in replacement for the Datasource class with autocommit disabled; when a transaction begins, a datasource will be automatically assigned to the calling thread, and it will only be released when a commit or rollback is called on the object. If no datasource is available, the calling thread will block until a datasource comes available.
+
+    Note that the same principles apply to SQL and database driver usage as with the Datasource class, see the Datasource class documentation for more information.
+
+    The DatasourcePool class uses Qore's thread resource tracking infrastructure to raise an exception if a thread terminates while a connection is allocated to it. If Qore user code enters a transaction with a DatasourcePool object and the thread terminates without closing the transaction (via DatasourcePool::commit() or DatasourcePool::rollback()), an exception will automatically be raised, the transaction will be rolled back, and the Datasource connection will be freed to the pool.
+
+    @anchor datasourcepool_connection_allocations
+    <b>DatasourcePool Connection Allocations</b>
+
+    The following methods allocate a persistent connection to the calling thread:
+    - DatasourcePool::exec()
+    - DatasourcePool::vexec()
+    - DatasourcePool::execRaw()
+    - DatasourcePool::beginTransaction()
+
+    The connection is released to the pool when DatasourcePool::commit() or DatasourcePool::rollback() are called (or in the case the thread terminates, in which case an exception is raised as well).
+
+    To begin a transaction with one of the select methods (for example, with \c "select for update"), call DatasourcePool::beginTransaction() first to manually dedicate a Datasource to the thread before calling the select method. Otherwise statements that should be in the same transaction may be executed in different connections.
+
+    Executing a DatasourcePool method while not in a transaction is realized by allocating a temporary connection to the calling thread which is re-released when the method returns. No explicit commits are executed by the class, therefore it is an error to execute transaction-relevant commands without first calling DatasourcePool::exec(), DatasourcePool::vexec(), DatasourcePool::execRaw(), or DatasourcePool::beginTransaction().
+
+    Note that the SQLStatement class also grabs allocates a persistent connection to the calling thread when executing if it is created using a DatasourcePool object in the constructor; for more information see the SQLStatement class.
+
+    @note This class is not available with the @ref PO_NO_DATABASE parse option
+ */
+qclass DatasourcePool [dom=DATABASE; arg=DatasourcePool* ds; ns=SQL];
+
+
+//! 
+/** 
+    @par Example
+    @code
+
+    @endcode
+
+    @throw DATASOURCEPOOL-UNSUPPORTED-DATABASE DBI driver cannot be found
+    @throw DATASOURCEPOOL-CONSTRUCTOR-ERROR invalid min, max, or port argument
+ */
+DatasourcePool::constructor(string driver, *string user, *string pass, *string db, *string encoding, *string host, softint min = 5, softint max = 20, softint port = 0) {
+   DBIDriver *db_driver = DBI.find(driver->getBuffer());
+   if (!db_driver) {
+      xsink->raiseException("DATASOURCEPOOL-UNSUPPORTED-DATABASE", "no DBI driver can be found for database type '%s'", driver->getBuffer());
+      return;
+   }
+
+   if (min <= 0) {
+      xsink->raiseException(DSPC_ERR, "minimum connections must be > 0 (value given: "QLLD")", min);
+      return;
+   }
+
+   if (max < min) {
+      xsink->raiseException(DSPC_ERR, "maximum connections must be >= min(%d) (value given: "QLLD")", min, max);
+      return;
+   }
+   
+   if (port < 0) {
+      xsink->raiseException(DSPC_ERR, "port value must be zero (meaning use the default port) or positive (value given: "QLLD")", port);
+      return;
+   }
+
+   SimpleRefHolder<DatasourcePool> ds(new DatasourcePool(db_driver, user ? user->getBuffer() : 0, pass ? pass->getBuffer() : 0, 
+							 db ? db->getBuffer() : 0, encoding ? encoding->getBuffer() : 0, host ? host->getBuffer() : 0, 
+							 min, max, port, xsink));
+   if (!*xsink)
+      self->setPrivate(CID_DATASOURCEPOOL, ds.release());
+}
+
+//! 
+/** 
+    @par Example
+    @code
+
+    @endcode
+
+ */
+DatasourcePool::constructor(hash opts) {
+   const char *str = check_hash_key(opts, "type", DSPC_ERR, xsink);
+   if (*xsink) return;
+   
+   if (!str) {
+      xsink->raiseException(DSPC_ERR, "expecting a string value with the 'type' key giving the driver name");
+      return;
+   }
+
+   DBIDriver *db_driver = DBI.find(str);
+   if (!db_driver) {
+      if (!*xsink)
+	 xsink->raiseException("DATASOURCEPOOL-UNSUPPORTED-DATABASE", "no DBI driver can be found for database type '%s'", str);
+      return;
+   }
+
+   const char *user = check_hash_key(opts, "user", DSPC_ERR, xsink);
+   if (*xsink) return;
+
+   const char *pass = check_hash_key(opts, "pass", DSPC_ERR, xsink);
+   if (*xsink) return;
+
+   const char *db = check_hash_key(opts, "db", DSPC_ERR, xsink);
+   if (*xsink) return;
+
+   const char *charset = check_hash_key(opts, "charset", DSPC_ERR, xsink);
+   if (*xsink) return;
+
+   const char *host = check_hash_key(opts, "host", DSPC_ERR, xsink);
+   if (*xsink) return;
+
+   bool found;
+   int port = (int)opts->getKeyAsBigInt("port", found);
+   if (port < 0) {
+      xsink->raiseException(DSPC_ERR, "port value must be zero (meaning use the default port) or positive (value given: %d)", port);
+      return;
+   }
+
+   // get options
+   int min = 0, max = 0;
+
+   const AbstractQoreNode *p = opts->getKeyValue("options");
+   if (!is_nothing(p)) {
+      if (p->getType() != NT_HASH) {
+	 xsink->raiseException(DSPC_ERR, "'options' key is not hash, instead got type '%s'", p->getTypeName());
+	 return;
+      }
+      
+      const QoreHashNode* h = reinterpret_cast<const QoreHashNode *>(p);
+
+      min = (int)h->getKeyAsBigInt("min", found);
+      if (found) {
+	 if (min < 0) {
+	    xsink->raiseException(DSPC_ERR, "minimum connections must be > 0 (value given: %d)", min);
+	    return;
+	 }
+      }
+
+      max = (int)h->getKeyAsBigInt("max", found);
+      if (found ) {
+	 if (max < min) {
+	    xsink->raiseException(DSPC_ERR, "maximum connections must be >= min(%d) (value given: %d)", min, max);
+	    return;
+	 }
+      }
+   }
+
+   if (!min)
+      min = DP_MIN;
+   
+   if (!max)
+      max = DP_MAX;
+   
+   SimpleRefHolder<DatasourcePool> ds(new DatasourcePool(db_driver, user, pass, db, charset, host, min, max, port, xsink));
+   if (!*xsink)
+      self->setPrivate(CID_DATASOURCEPOOL, ds.release());
+}
+
+//! 
+/** 
+    @par Example
+    @code
+
+    @endcode
+
+ */
+DatasourcePool::destructor() {
+   ds->destructor(xsink);
+   ds->deref();
+}
+
+//! 
+/** 
+    @par Example
+    @code
+
+    @endcode
+
+ */
+DatasourcePool::copy() {
+   xsink->raiseException("COPY-ERROR", "DatasourcePool objects may not be copied");
+}
+
+//! 
+/** 
+    @par Example
+    @code
+
+    @endcode
+
+ */
+nothing DatasourcePool::commit() {
+   ds->commit(xsink);
+}
+
+//! 
+/** 
+    @par Example
+    @code
+
+    @endcode
+
+ */
+nothing DatasourcePool::rollback() {
+   ds->rollback(xsink);
+}
+
+//! 
+/** 
+    @par Example
+    @code
+
+    @endcode
+
+ */
+any DatasourcePool::exec(string sql, ...) {
+   ReferenceHolder<QoreListNode> vargs(args->size() > 1 ? args->copyListFrom(1) : 0, xsink);
+   return ds->exec(sql, *vargs, xsink);
+}
+
+//! 
+/** 
+    @par Example
+    @code
+
+    @endcode
+
+ */
+any DatasourcePool::vexec(string sql, *softlist vargs) {
+   return ds->exec(sql, vargs, xsink);
+}
+
+//! 
+/** 
+    @par Example
+    @code
+
+    @endcode
+
+ */
+any DatasourcePool::execRaw(string sql) {
+   return ds->execRaw(sql, xsink);
+}
+
+//! 
+/** 
+    @par Example
+    @code
+
+    @endcode
+
+ */
+any DatasourcePool::select(string sql, ...) {
+   ReferenceHolder<QoreListNode> vargs(args->size() > 1 ? args->copyListFrom(1) : 0, xsink);
+   return ds->select(sql, *vargs, xsink);
+}
+
+//! 
+/** 
+    @par Example
+    @code
+
+    @endcode
+
+ */
+any DatasourcePool::selectRow(string sql, ...) {
+   ReferenceHolder<QoreListNode> vargs(args->size() > 1 ? args->copyListFrom(1) : 0, xsink);
+   return ds->selectRow(sql, *vargs, xsink);
+}
+
+//! 
+/** 
+    @par Example
+    @code
+
+    @endcode
+
+ */
+any DatasourcePool::selectRows(string sql, ...) {
+   ReferenceHolder<QoreListNode> vargs(args->size() > 1 ? args->copyListFrom(1) : 0, xsink);
+   return ds->selectRows(sql, *vargs, xsink);
+}
+
+//! 
+/** 
+    @par Example
+    @code
+
+    @endcode
+
+ */
+any DatasourcePool::vselect(string sql, *softlist vargs) {
+   return ds->select(sql, vargs, xsink);
+}
+
+//! 
+/** 
+    @par Example
+    @code
+
+    @endcode
+
+ */
+any DatasourcePool::vselectRow(string sql, *softlist vargs) {
+   return ds->selectRow(sql, vargs, xsink);
+}
+
+//! 
+/** 
+    @par Example
+    @code
+
+    @endcode
+
+ */
+any DatasourcePool::vselectRows(string sql, *softlist vargs) {
+   return ds->selectRows(sql, vargs, xsink);
+}
+
+//! 
+/** 
+    @par Example
+    @code
+
+    @endcode
+
+ */
+nothing DatasourcePool::beginTransaction() {
+   ds->beginTransaction(xsink);
+}
+
+//! 
+/** 
+    @par Example
+    @code
+
+    @endcode
+
+ */
+*string DatasourcePool::getUserName() [flags=QC_CONSTANT] {
+   return ds->getPendingUsername();
+}
+
+//! 
+/** 
+    @par Example
+    @code
+
+    @endcode
+
+ */
+*string DatasourcePool::getPassword() [flags=QC_CONSTANT] {
+   return ds->getPendingPassword();
+}
+
+//! 
+/** 
+    @par Example
+    @code
+
+    @endcode
+
+ */
+*string DatasourcePool::getDBName() [flags=QC_CONSTANT] {
+   return ds->getPendingDBName();
+}
+
+//! 
+/** 
+    @par Example
+    @code
+
+    @endcode
+
+ */
+*string DatasourcePool::getDBCharset() [flags=QC_CONSTANT] {
+   return ds->getPendingDBEncoding();
+}
+
+//! 
+/** 
+    @par Example
+    @code
+
+    @endcode
+
+ */
+string DatasourcePool::getOSCharset() [flags=QC_CONSTANT] {
+   const QoreEncoding *enc = ds->getQoreEncoding();
+   return new QoreStringNode(enc ? enc->getCode() : "(unknown)");
+}
+
+//! 
+/** 
+    @par Example
+    @code
+
+    @endcode
+
+ */
+*string DatasourcePool::getHostName() [flags=QC_CONSTANT] {
+   return ds->getPendingHostName();
+}
+
+//! 
+/** 
+    @par Example
+    @code
+
+    @endcode
+
+ */
+*int DatasourcePool::getPort() [flags=QC_CONSTANT] {
+   int port = ds->getPendingPort();
+   return port ? new QoreBigIntNode(port) : 0;
+}
+
+//! 
+/** 
+    @par Example
+    @code
+
+    @endcode
+
+ */
+DatasourcePool::getDriverName() [flags=QC_CONSTANT] {
+   return new QoreStringNode(ds->getDriverName());
+}
+
+//! 
+/** 
+    @par Example
+    @code
+
+    @endcode
+
+ */
+int DatasourcePool::getMinimum() [flags=QC_CONSTANT] {
+   return ds->getMin();
+}
+
+//! 
+/** 
+    @par Example
+    @code
+
+    @endcode
+
+ */
+int DatasourcePool::getMaximum() [flags=QC_CONSTANT] {
+   return ds->getMax();
+}
+
+//! 
+/** 
+    @par Example
+    @code
+
+    @endcode
+
+ */
+string DatasourcePool::toString() [flags=QC_CONSTANT] {
+   return ds->toString();
+}
+
+//! 
+/** 
+    @par Example
+    @code
+
+    @endcode
+
+ */
+any DatasourcePool::getServerVersion() {
+   return ds->getServerVersion(xsink);
+}
+
+//! 
+/** 
+    @par Example
+    @code
+
+    @endcode
+
+ */
+any DatasourcePool::getClientVersion() {
+   return ds->getClientVersion(xsink);
+}
+
+//! 
+/** 
+    @par Example
+    @code
+
+    @endcode
+
+ */
+bool DatasourcePool::inTransaction() {
+   return ds->inTransaction();
+}

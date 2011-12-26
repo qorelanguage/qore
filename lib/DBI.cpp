@@ -901,7 +901,7 @@ QoreNamespace *getSQLNamespace() {
 
    QoreClass *ds, *dsp;
    SQLNS->addSystemClass((ds = initDatasourceClass(*SQLNS)));
-   SQLNS->addSystemClass((dsp = initDatasourcePoolClass()));
+   SQLNS->addSystemClass((dsp = initDatasourcePoolClass(*SQLNS)));
    SQLNS->addSystemClass(initSQLStatementClass(ds, dsp));
 
    // datasource type/driver constants
