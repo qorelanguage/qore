@@ -828,7 +828,7 @@ static void check_headers(const char *str, int len, bool &multipart, QoreHashNod
 }
 
 QoreHashNode *qore_qtc_private::send_internal(const char *meth, const char *mpath, const QoreHashNode *headers, const void *data, unsigned size, bool getbody, QoreHashNode *info, ExceptionSink *xsink, bool suppress_content_length) {
-   //printd(5, "QoreHTTPClient::send_internal(meth=%s, mpath=%s, info=%p)\n", meth, mpath, info);
+   //printd(5, "QoreHTTPClient::send_internal(meth: %s mpath: %s data: %p size: %u info: %p)\n", meth, mpath, data, size, info);
 
    // check if method is valid
    ccharcase_set_t::const_iterator i = method_set.find(meth);

@@ -935,7 +935,7 @@ protected:
             continue;
          }
          if (p.type == "*string" || p.type == "*softstring") {
-            fprintf(fp, "   const QoreStringNode* %s = reinterpret_cast<const QoreStringNode*>(args ? args->retrieve_entry(%d) : 0);\n", p.name.c_str(), i);
+            fprintf(fp, "   const QoreStringNode* %s = reinterpret_cast<const QoreStringNode*>(get_param(args, %d));\n", p.name.c_str(), i);
             continue;
          }
          if (p.type == "date" || p.type == "softdate") {
@@ -943,7 +943,7 @@ protected:
             continue;
          }
          if (p.type == "*date" || p.type == "*softdate") {
-            fprintf(fp, "   const DateTimeNode* %s = reinterpret_cast<const DateTimeNode*>(args ? args->retrieve_entry(%d) : 0);\n", p.name.c_str(), i);
+            fprintf(fp, "   const DateTimeNode* %s = reinterpret_cast<const DateTimeNode*>(get_param(args, %d));\n", p.name.c_str(), i);
             continue;
          }
          if (p.type == "binary") {
@@ -951,7 +951,7 @@ protected:
             continue;
          }
          if (p.type == "*binary") {
-            fprintf(fp, "   const BinaryNode* %s = reinterpret_cast<const BinaryNode*>(args ? args->retrieve_entry(%d) : 0);\n", p.name.c_str(), i);
+            fprintf(fp, "   const BinaryNode* %s = reinterpret_cast<const BinaryNode*>(get_param(args, %d));\n", p.name.c_str(), i);
             continue;
          }
          if (p.type == "list" || p.type == "softlist") {
@@ -959,7 +959,7 @@ protected:
             continue;
          }
          if (p.type == "*list" || p.type == "*softlist") {
-            fprintf(fp, "   const QoreListNode* %s = reinterpret_cast<const QoreListNode*>(args ? args->retrieve_entry(%d) : 0);\n", p.name.c_str(), i);
+            fprintf(fp, "   const QoreListNode* %s = reinterpret_cast<const QoreListNode*>(get_param(args, %d));\n", p.name.c_str(), i);
             continue;
          }
          if (p.type == "hash") {
@@ -967,7 +967,7 @@ protected:
             continue;
          }
          if (p.type == "*hash") {
-            fprintf(fp, "   const QoreHashNode* %s = reinterpret_cast<const QoreHashNode*>(args ? args->retrieve_entry(%d) : 0);\n", p.name.c_str(), i);
+            fprintf(fp, "   const QoreHashNode* %s = reinterpret_cast<const QoreHashNode*>(get_param(args, %d));\n", p.name.c_str(), i);
             continue;
          }
          if (p.type == "reference") {
@@ -975,7 +975,7 @@ protected:
             continue;
          }
          if (p.type == "*reference") {
-            fprintf(fp, "   const ReferenceNode* %s = reinterpret_cast<const ReferenceNode*>(args ? args->retrieve_entry(%d) : 0);\n", p.name.c_str(), i);
+            fprintf(fp, "   const ReferenceNode* %s = reinterpret_cast<const ReferenceNode*>(get_param(args, %d));\n", p.name.c_str(), i);
             continue;
          }
          if (p.type == "object") {
@@ -983,7 +983,7 @@ protected:
             continue;
          }
          if (p.type == "*object") {
-            fprintf(fp, "   QoreObject* %s = const_cast<QoreObject*>(reinterpret_cast<const QoreObject*>(args ? args->retrieve_entry(%d) : 0));\n", p.name.c_str(), i);
+            fprintf(fp, "   QoreObject* %s = const_cast<QoreObject*>(reinterpret_cast<const QoreObject*>(get_param(args, %d)));\n", p.name.c_str(), i);
             continue;
          }
          if (p.type == "any" || p.type == "data") {
