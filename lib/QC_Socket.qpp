@@ -266,10 +266,17 @@ const AI_CANONNAME = AI_CANONNAME;
 const AI_NUMERICHOST = AI_NUMERICHOST;
 
 //! If this bit is set, then the service is assumed to be a numeric port string, and no service lookup will be performed
+/** If the AI_NUMERICSERV bit is set, then any service name string supplied will be treated as a numeric port string. Otherwise, a \c QOREADDRINFO-GETINFO-ERROR exception will be thrown due to the \c EAI_NONAME error raised internally. This bit prevents any type of name resolution service (for example, NIS+) from being invoked (this constant is operating system dependent; it is not available on all operating systems; for example, it is not available on Solaris 8).
+
+ */
 const AI_NUMERICSERV = AI_NUMERICSERV;
 
 //! If this bit is set, then the returned information should be usable for a call to Socket::bind()
-/** In this case, if the hostname is not given, then the return value will be usable for binding on all addresses for the given family
+/** In this case, if the hostname is not given, then the return value will be usable for binding on all addresses for the given family.  
+
+    If the AI_PASSIVE bit is not set, the returned socket address structure will be ready for use in a call to Socket::connect().
+
+    The IP address portion of the socket address structure will be set to the loopback address if hostname is @ref nothing and AI_PASSIVE is not set.
 */
 const AI_PASSIVE = AI_PASSIVE;
 

@@ -56,7 +56,7 @@ public:
    }
 };
 
-//! The HHTPClient class can be used to communicate with HTTP servers with and without TSL/SSL encryption
+//! The HTTPxClient class can be used to communicate with HTTP servers with and without TLS/SSL encryption
 /** The HTTPClient class can be used to communicate with HTTP servers using the HTTP or HTTPS (HTTP using an SSL/TLS encrypted connection) protocol.
 
     By default \c "Connection: Keep-Alive" is always sent regardless of the HTTP protocol level set for the object, however if a server response contains \c "Connection: close", the connection will be closed as soon as the full response (including any message body if present) has been read.

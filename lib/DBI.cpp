@@ -899,10 +899,9 @@ QoreNamespace *getSQLNamespace() {
    // create Qore::SQL namespace
    QoreNamespace *SQLNS = new QoreNamespace("SQL");
 
-   QoreClass *ds, *dsp;
-   SQLNS->addSystemClass((ds = initDatasourceClass(*SQLNS)));
-   SQLNS->addSystemClass((dsp = initDatasourcePoolClass(*SQLNS)));
-   SQLNS->addSystemClass(initSQLStatementClass(ds, dsp));
+   SQLNS->addSystemClass(initDatasourceClass(*SQLNS));
+   SQLNS->addSystemClass(initDatasourcePoolClass(*SQLNS));
+   SQLNS->addSystemClass(initSQLStatementClass(*SQLNS));
 
    // for column types for binding
    SQLNS->addConstant("VARCHAR",  new QoreStringNode("string"));

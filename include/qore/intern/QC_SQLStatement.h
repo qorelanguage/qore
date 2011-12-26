@@ -27,6 +27,7 @@
 #include <qore/intern/QoreSQLStatement.h>
 
 DLLEXPORT extern qore_classid_t CID_SQLSTATEMENT;
-DLLLOCAL QoreClass *initSQLStatementClass(QoreClass *QC_Datasource, QoreClass *QC_DatasourcePool);
+DLLLOCAL extern QoreClass* QC_SQLSTATEMENT;
+DLLLOCAL QoreClass *initSQLStatementClass(QoreNamespace& ns);
 
 #endif
