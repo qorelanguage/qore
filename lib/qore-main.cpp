@@ -24,6 +24,7 @@
 
 #include <qore/DBI.h>
 #include <qore/intern/QoreSignal.h>
+#include <qore/QoreHTTPClient.h>
 
 #include <stdio.h>
 #include <string.h>
@@ -57,6 +58,8 @@ void qore_init(qore_license_t license, const char *def_charset, bool show_module
    OpenSSL_add_all_algorithms();
    SSL_load_error_strings();
    SSL_library_init();
+
+   QoreHTTPClient::static_init();
 
    // init threading infrastructure
    init_qore_threads();

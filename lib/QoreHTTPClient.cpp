@@ -828,12 +828,12 @@ static void check_headers(const char *str, int len, bool &multipart, QoreHashNod
 }
 
 QoreHashNode *qore_qtc_private::send_internal(const char *meth, const char *mpath, const QoreHashNode *headers, const void *data, unsigned size, bool getbody, QoreHashNode *info, ExceptionSink *xsink, bool suppress_content_length) {
-   //printd(5, "QoreHTTPClient::send_internal(meth=%s, mpath=%s, info=%08p)\n", meth, mpath, info);
+   //printd(5, "QoreHTTPClient::send_internal(meth=%s, mpath=%s, info=%p)\n", meth, mpath, info);
 
    // check if method is valid
    ccharcase_set_t::const_iterator i = method_set.find(meth);
    if (i == method_set.end()) {
-      xsink->raiseException("HTTP-CLIENT-METHOD-ERROR", "HTTP method (%n) not recognized.", meth);
+      xsink->raiseException("HTTP-CLIENT-METHOD-ERROR", "HTTP method (%s) not recognized.", meth);
       return 0;
    }
    // make sure the capitalized version is used
@@ -1163,7 +1163,7 @@ QoreHashNode *qore_qtc_private::send_internal(const char *meth, const char *mpat
 	    body = bstr.release();
       }
 
-      //printf("body=%08p\n", body);
+      //printf("body=%p\n", body);
       if (rc <= 0) {
 	 if (!rc) {             // remote end has closed the connection
 	    disconnect_unlocked();

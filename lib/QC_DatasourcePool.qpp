@@ -32,16 +32,14 @@
 static const char *DSPC_ERR = "DATASOURCEPOOL-CONSTRUCTOR-ERROR";
 
 //! Provides transparent per-thread, per-transaction datasource connection pooling
-/** The DatasourcePool class provides transparent per-thread, per-transaction datasource connection pooling.
-
-    In most cases, the DatasourcePool class can be used as a drop-in replacement for the Datasource class with autocommit disabled; when a transaction begins, a datasource will be automatically assigned to the calling thread, and it will only be released when a commit or rollback is called on the object. If no datasource is available, the calling thread will block until a datasource comes available.
+/** In most cases, the DatasourcePool class can be used as a drop-in replacement for the Datasource class with autocommit disabled; when a transaction begins, a datasource will be automatically assigned to the calling thread, and it will only be released when a commit or rollback is called on the object. If no datasource is available, the calling thread will block until a datasource comes available.
 
     Note that the same principles apply to SQL and database driver usage as with the Datasource class, see the Datasource class documentation for more information.
 
     The DatasourcePool class uses Qore's thread resource tracking infrastructure to raise an exception if a thread terminates while a connection is allocated to it. If Qore user code enters a transaction with a DatasourcePool object and the thread terminates without closing the transaction (via DatasourcePool::commit() or DatasourcePool::rollback()), an exception will automatically be raised, the transaction will be rolled back, and the Datasource connection will be freed to the pool.
 
     @anchor datasourcepool_connection_allocations
-    <b>DatasourcePool Connection Allocations</b>
+    <b>%DatasourcePool Connection Allocations</b>
 
     The following methods allocate a persistent connection to the calling thread:
     - DatasourcePool::exec()
@@ -61,12 +59,18 @@ static const char *DSPC_ERR = "DATASOURCEPOOL-CONSTRUCTOR-ERROR";
  */
 qclass DatasourcePool [dom=DATABASE; arg=DatasourcePool* ds; ns=SQL];
 
+//! Creates the DatasourcePool object; attempts to load a DBI driver if the driver is not already present in %Qore
+/** @param driver The name of the DBI driver for the Datasource. See @ref sql_constants for builtin constants for DBI drivers shipped with %Qore, or see the DBI driver documentation to use an add-on driver (this string should be the name of the driver to be loaded)
+    @param user The user name for the new connection. Also see Datasource::setUserName() for a method that allows this parameter to be set after the constructor.
+    @param pass The password for the new connection. Also see Datasource::setPassword() for a method that allows this parameter to be set after the constructor.
+    @param db The database name for the new connection. Also see Datasource::setDBName() for a method that allows this parameter to be set after the constructor.
+    @param encoding The database-specific name of the @character_encoding "character encoding" to use for the new connection. Also see Datasource::setDBCharset() for a method that allows this parameter to be set after the constructor. If no value is passed for this parameter, then the database character encoding corresponding to the @ref default_encoding "default character encoding" will be used instead.
+    @param host The host name for the new connection. Also see Datasource::setHostName() for a method that allows this parameter to be set after the constructor.
+    @param port The port number for the new connection. Also see Datasource::setPort() for a method that allows this parameter to be set after the constructor.
 
-//! 
-/** 
     @par Example
     @code
-
+my DatasourcePool $db(DSPGSQL, "user", "pass", "database", "utf8", "localhost", 3, 10, 5432);
     @endcode
 
     @throw DATASOURCEPOOL-UNSUPPORTED-DATABASE DBI driver cannot be found
@@ -101,13 +105,24 @@ DatasourcePool::constructor(string driver, *string user, *string pass, *string d
       self->setPrivate(CID_DATASOURCEPOOL, ds.release());
 }
 
-//! 
-/** 
+//! Creates a Datasource object from a hash argument giving parameters for the constructor
+/** @param opts a hash giving parameters for the new datasource with the following possible keys (the \c "type" key is mandatory, also usable with the output of the parseDatasource() function):
+    - \c type: (@ref string_or_nothing_type "*string") The name of the database driver to use; this key is mandatory; if not present, an exception will be raised. See @ref sql_constants for builtin constants for DBI drivers shipped with Qore, or see the DBI driver documentation to use an add-on driver (this string should be the name of the driver to be loaded)
+    - \c user: (@ref string_or_nothing_type "*string") The user name for the new connection
+    - \c pass: (@ref string_or_nothing_type "*string") The password for the new connection
+    - \c db: (@ref string_or_nothing_type "*string") The database name for the new connection
+    - \c charset: (@ref string_or_nothing_type "*string") The database-specific name of the character encoding to use for the new connection. Also see DatasourcePool::setDBCharset() for a method that allows this parameter to be set after the constructor. If no value is passed for this parameter, then the database character encoding corresponding to the default character encoding for the Qore process will be used instead.
+    - \c host: (@ref string_or_nothing_type "*string") The host name for the new connection
+    - \c port: (@ref softint_type "softint") The port number for the new connection
+    - \c options: (@ref hash_type "hash") An optional hash having \c "min" and \c "max" keys giving the minimum and maximum number of connections in the pool, respectively
+
     @par Example
     @code
-
+my Datasource $db(("type": DSPGSQL, "user": "username", "pass": "password", "db": "database", "charset": "utf8", "host": "localhost", "port": 5432, "options": ("min": 3, "max": 10)));
     @endcode
 
+    @throw DATASOURCEPOOL-UNSUPPORTED-DATABASE DBI driver cannot be loaded
+    @throw DATASOURCEPOOL-CONSTRUCTOR-ERROR missing or invalid \c "driver" key, other key name not assigned to a string; \c "port" value is \<= 0; invalid \c "min" or \c "max" keys
  */
 DatasourcePool::constructor(hash opts) {
    const char *str = check_hash_key(opts, "type", DSPC_ERR, xsink);
@@ -187,36 +202,33 @@ DatasourcePool::constructor(hash opts) {
       self->setPrivate(CID_DATASOURCEPOOL, ds.release());
 }
 
-//! 
+//! Throws an exception if any transactions are in progress and returns immediately; the object is destroyed after any in-progress requests are completed
 /** 
     @par Example
     @code
-
+delete $db;
     @endcode
 
+    @throw DATASOURCEPOOL-ERROR The destructor was called while a transaction was still in progress
  */
 DatasourcePool::destructor() {
    ds->destructor(xsink);
    ds->deref();
 }
 
-//! 
+//! Thows an exception; DatasourcePool objects cannot be copied in this version of Qore
 /** 
-    @par Example
-    @code
-
-    @endcode
-
+    @throw DATASOURCEPOOL-COPY-ERROR DatasourcePool objects may not be copied
  */
 DatasourcePool::copy() {
-   xsink->raiseException("COPY-ERROR", "DatasourcePool objects may not be copied");
+   xsink->raiseException("DATASOURCEPOOL-COPY-ERROR", "DatasourcePool objects may not be copied");
 }
 
-//! 
+//! Commits the current transaction and releases the connection to the pool
 /** 
     @par Example
     @code
-
+$db.commit();
     @endcode
 
  */
@@ -224,11 +236,11 @@ nothing DatasourcePool::commit() {
    ds->commit(xsink);
 }
 
-//! 
+//! Rolls back the current transaction and releases the connection to the pool
 /** 
     @par Example
     @code
-
+$db.rollback();
     @endcode
 
  */
@@ -236,231 +248,367 @@ nothing DatasourcePool::rollback() {
    ds->rollback(xsink);
 }
 
-//! 
-/** 
+//! Allocates a persistent connection to the current thread from the pool (if one has not already been allocated) and executes an SQL command on the server and returns either the integer row count (for example, for updates, inserts, and deletes) or the data retrieved (for example, if a stored procedure is executed that returns values)
+/** @param sql The SQL command to execute on the server
+    @param ... Include any values to be bound (using <tt>%v</tt> in the command string) or placeholder specifications (using <tt>:</tt><em>key_name</em> in the command string) in order after the command string
+
+    @return The return value depends on the DBI driver; normally, for commands with placeholders, a hash is returned holding the values acquired from executing the SQL statement. For all other commands, normally an integer row count is returned. However, some DBI drivers also allow select statements to be executed through this interface, which would also return a hash (column names) of lists (values for each column).
+
     @par Example
     @code
-
+my int $rows = $db.exec("insert into table (varchar_col, timestamp_col, blob_col, numeric_col) values (%v, %v, %v, %d)", $string, now(), $binary, 100);
     @endcode
 
+    @note see the documentation for the DBI driver being used for additional possible exceptions
  */
 any DatasourcePool::exec(string sql, ...) {
    ReferenceHolder<QoreListNode> vargs(args->size() > 1 ? args->copyListFrom(1) : 0, xsink);
    return ds->exec(sql, *vargs, xsink);
 }
 
-//! 
-/** 
+//! Allocates a persistent connection to the current thread from the pool (if one has not already been allocated) and executes SQL code on the DB connection, taking a list for all bind arguments
+/** Same as DatasourcePool::exec() except takes an explicit list for bind arguments
+
+    @param sql The SQL command to execute on the server
+    @param vargs Include any values to be bound (using <tt>%v</tt> in the command string) or placeholder specifications (using <tt>:</tt><em>key_name</em> in the command string) in order after the command string
+
+    @return The return value depends on the DBI driver; normally, for commands with placeholders, a hash is returned holding the values acquired from executing the SQL statement. For all other commands, normally an integer row count is returned. However, some DBI drivers also allow select statements to be executed through this interface, which would also return a hash (column names) of lists (values for each column).
+
     @par Example
     @code
-
+my int $rows = $db.vexec("insert into example_table value (%v, %v, %v)", $arg_list);
     @endcode
 
+    @note see the documentation for the DBI driver being used for additional possible exceptions
  */
 any DatasourcePool::vexec(string sql, *softlist vargs) {
    return ds->exec(sql, vargs, xsink);
 }
 
-//! 
-/** 
+//! Allocates a persistent connection to the current thread from the pool (if one has not already been allocated) and executes an SQL command on the server and returns either the row count (for example, for updates and inserts) or the data retrieved (for example, if a stored procedure is executed that returns values)
+/** This method does not do any variable binding, so it's useful for example for DDL statements etc
+    
+    @par Warning
+    Using this method to execute pure dynamic SQL many times with different SQL strings (as opposed to using the same string and binding by value instead of dynamic SQL) can affect application performance by prohibiting the efficient usage of the DB server's statement cache. See DB server documentation for variable binding and the SQL statement cache for more information.
+
+    @param sql The SQL command to execute on the server; this string will not be subjected to any transformations for variable binding
+
+    @return The return value depends on the DBI driver; normally, for commands with placeholders, a hash is returned holding the values acquired from executing the SQL statement. For all other commands, normally an integer row count is returned. However, some DBI drivers also allow select statements to be executed through this interface, which would also return a hash (column names) of lists (values for each column).
+
     @par Example
     @code
-
+$db.exec("create table my_tab (id number, some_text varchar2(30))");
     @endcode
 
+
+    @note see the documentation for the DBI driver being used for additional possible exceptions
  */
 any DatasourcePool::execRaw(string sql) {
    return ds->execRaw(sql, xsink);
 }
 
-//! 
-/** 
+//! Executes an SQL select statement on the server and returns the result as a hash (column names) of lists (column values per row)
+/** The return format of this method is suitable for use with @ref context_statements "context statements", for easy iteration and processing of query results.
+
+    Additionally, this format is more efficient format than that returned by the Datasource::selectRows() method, because the column names are not repeated for each row returned. Therefore, for retrieving anything greater than small amounts of data, it is recommended to use this method instead of Datasource::selectRows().
+
+    This method does not retain the datasource connection for the current thread if one was not already allocated before this method is called, so to execute select statements that begin a transaction (such as \c "select for update"), execute DatasourcePool::beginTransaction() first to ensure that the connection is dedicated to the calling thread.
+
+    @param sql The SQL command to execute on the server
+    @param ... Include any values to be bound (using <tt>%v</tt> in the command string) or placeholder specifications (using <tt>:</tt><em>key_name</em> in the command string) in order after the command string
+
+    @return This method returns a hash (the keys are the column names) of lists (the column data per row) when executed with an SQL select statement, however some DBI drivers allow any SQL to be executed through this method, in which case other data types can be returned (such as an integer for a row count or a hash for output parameters when executing a stored procedure)
+
     @par Example
     @code
-
+# bind a string and a date/time value by value in a query
+$query = $db.select("select * from table where varchar_column = %v and timestamp_column > %v", $string, 2007-10-11T15:31:26.289);
     @endcode
 
+    @note see the documentation for the DBI driver being used for additional possible exceptions
  */
 any DatasourcePool::select(string sql, ...) {
    ReferenceHolder<QoreListNode> vargs(args->size() > 1 ? args->copyListFrom(1) : 0, xsink);
    return ds->select(sql, *vargs, xsink);
 }
 
-//! 
-/** 
+//! Executes an SQL select statement on the server and returns the first row as a hash (the column values)
+/** If more than one row is returned, then it is treated as an error and a \c DBI-SELECT-ROW-ERROR is returned (however the DBI driver should raise its own exception here to avoid retrieving more than one row from the server). For a similar method taking a list for all bind arguments, see DatasourcePool::vselectRow().
+
+    This method also accepts all bind parameters (<tt>%d</tt>, <tt>%v</tt>, etc) as documented in @ref sql_binding "Binding by Value and Placeholder"
+
+    This method does not retain the datasource connection for the current thread if one was not already allocated before this method is called, so to execute select statements that begin a transaction (such as \c "select for update"), execute DatasourcePool::beginTransaction() first to ensure that the connection is dedicated to the calling thread.
+
+    @param sql The SQL command to execute on the server
+    @param ... Include any values to be bound (using <tt>%v</tt> in the command string) or placeholder specifications (using <tt>:</tt><em>key_name</em> in the command string) in order after the command string
+
+    @return This method normally returns a hash (the keys are the column names) of row data or @ref nothing if no row is found for the query when executed with an SQL select statement, however some DBI drivers allow any SQL statement to be executed through this method (not only select statements), in this case other data types can be returned
+
     @par Example
     @code
-
+my *hash $h = $db.selectRow("select * from example_table where id = 1");
     @endcode
 
+    @throw DBI-SELECT-ROW-ERROR more than 1 row retrieved from the server
+
+    @note see the documentation for the DBI driver being used for additional possible exceptions    
  */
 any DatasourcePool::selectRow(string sql, ...) {
    ReferenceHolder<QoreListNode> vargs(args->size() > 1 ? args->copyListFrom(1) : 0, xsink);
    return ds->selectRow(sql, *vargs, xsink);
 }
 
-//! 
-/** 
+//! Executes an SQL select statement on the server and returns the result as a list (rows) of hashes (the column values)
+/** The return format of this method is not as memory efficient as that returned by the DatasourcePool::select() method, therefore for larger amounts of data, it is recommended to use DatasourcePool::select().
+
+    This method also accepts all bind parameters (<tt>%d</tt>, <tt>%v</tt>, etc) as documented in @ref sql_binding "Binding by Value and Placeholder"
+
+    This method does not retain the datasource connection for the current thread if one was not already allocated before this method is called, so to execute select statements that begin a transaction (such as \c "select for update"), execute DatasourcePool::beginTransaction() first to ensure that the connection is dedicated to the calling thread.
+
+    @param sql The SQL command to execute on the server
+    @param ... Include any values to be bound (using <tt>%v</tt> in the command string) or placeholder specifications (using <tt>:</tt><em>key_name</em> in the command string) in order after the command string
+
+    @return Normally returns a list (rows) of hash (where the keys are the column names of each row) or @ref nothing if no rows are found for the query, however some DBI drivers allow any SQL statement to be executed through this method (not only select statements), in this case other data types can be returned
+
     @par Example
     @code
-
+my *list $list = $db.selectRows("select * from example_table");
     @endcode
 
+    @note see the documentation for the DBI driver being used for additional possible exceptions    
+
+    @see DatasourePool::select()
  */
 any DatasourcePool::selectRows(string sql, ...) {
    ReferenceHolder<QoreListNode> vargs(args->size() > 1 ? args->copyListFrom(1) : 0, xsink);
    return ds->selectRows(sql, *vargs, xsink);
 }
 
-//! 
-/** 
+//! Executes a select statement on the server and returns the results in a hash (column names) of lists (column values per row), taking a list for all bind arguments
+/** This method also accepts all bind parameters (<tt>%d</tt>, <tt>%v</tt>, etc) as documented in @ref sql_binding "Binding by Value and Placeholder"
+
+    This method does not retain the datasource connection for the current thread if one was not already allocated before this method is called, so to execute select statements that begin a transaction (such as \c "select for update"), execute DatasourcePool::beginTransaction() first to ensure that the connection is dedicated to the calling thread.
+
+    @param sql The SQL command to execute on the server
+    @param vargs Include any values to be bound (using <tt>%v</tt> in the command string) or placeholder specifications (using <tt>:</tt><em>key_name</em> in the command string) in order after the command string
+
+    @return Normally returns a hash (the keys are the column names) of list (each hash key's value is a list giving the row data), however some DBI drivers allow any SQL statement to be executed through this method (not only select statements), in this case other data types can be returned
+
     @par Example
     @code
-
+my *hash $query = $db.vselect("select * from example_table where id = %v and name = %v", $arg_list);
     @endcode
 
+    @note see the documentation for the DBI driver being used for additional possible exceptions    
+
+    @see Datasoure::select()
  */
 any DatasourcePool::vselect(string sql, *softlist vargs) {
    return ds->select(sql, vargs, xsink);
 }
 
-//! 
-/** 
+//! Executes a select statement on the server and returns the first row as a hash (column names and values), taking a list for all bind arguments
+/** This method is the same as the DatasourcePool::selectRow() method, except this method takes a single argument after the SQL command giving the list of bind value parameters
+
+    This method also accepts all bind parameters (<tt>%d</tt>, <tt>%v</tt>, etc) as documented in @ref sql_binding "Binding by Value and Placeholder"
+
+    This method does not retain the datasource connection for the current thread if one was not already allocated before this method is called, so to execute select statements that begin a transaction (such as \c "select for update"), execute DatasourcePool::beginTransaction() first to ensure that the connection is dedicated to the calling thread.
+
+    @param sql The SQL command to execute on the server
+    @param vargs Include any values to be bound (using <tt>%v</tt> in the command string) or placeholder specifications (using <tt>:</tt><em>key_name</em> in the command string) in order after the command string
+
+    @return This method normally returns a hash (the keys are the column names) of row data or @ref nothing if no row is found for the query when executed with an SQL select statement, however some DBI drivers allow any SQL statement to be executed through this method (not only select statements), in this case other data types can be returned
+
     @par Example
     @code
-
+my *hash $h = $db.vselectRow("select * from example_table where id = %v and type = %v", $arg_list);
     @endcode
 
+    @note see the documentation for the DBI driver being used for additional possible exceptions    
+
+    @see DatasourePool::selectRow()
  */
 any DatasourcePool::vselectRow(string sql, *softlist vargs) {
    return ds->selectRow(sql, vargs, xsink);
 }
 
-//! 
-/** 
+//! Executes a select statement on the server and returns the results in a list (rows) of hashes (column names and values), taking a list for all bind arguments
+/** Same as the Datasource::selectRows() method, except this method takes a single argument after the SQL command giving the list of bind value parameters.
+
+    The return format of this method is not as memory efficient as that returned by the DatasourcePool::select() method, therefore for larger amounts of data, it is recommended to use DatasourcePool::select().
+
+   This method also accepts all bind parameters (<tt>%d</tt>, <tt>%v</tt>, etc) as documented in @ref sql_binding "Binding by Value and Placeholder"
+
+    This method does not retain the datasource connection for the current thread if one was not already allocated before this method is called, so to execute select statements that begin a transaction (such as \c "select for update"), execute DatasourcePool::beginTransaction() first to ensure that the connection is dedicated to the calling thread.
+
+    @param sql The SQL command to execute on the server
+    @param vargs Include any values to be bound (using <tt>%v</tt> in the command string) or placeholder specifications (using <tt>:</tt><em>key_name</em> in the command string) in order after the command string
+
+    @return Normally returns a list (rows) of hash (where the keys are the column names of each row) or @ref nothing if no rows are found for the query, however some DBI drivers allow any SQL statement to be executed through this method (not only select statements), in this case other data types can be returned
+
     @par Example
     @code
-
+my *list $list = $db.vselectRows("select * from example_table where id = %v and type = %v", $arg_list);
     @endcode
 
+    @note see the documentation for the DBI driver being used for additional possible exceptions    
+
+    @see DatasourePool::selectRows()
  */
 any DatasourcePool::vselectRows(string sql, *softlist vargs) {
    return ds->selectRows(sql, vargs, xsink);
 }
 
-//! 
-/** 
+//! Manually allocates a persistent connection from the pool to the calling thread
+/** This method should be called when a transaction will be started with a DatasourcePool::select() method (or DatasourcePool::vselect(), etc).
+    
+    This method does not make any communication with the server to start a transaction; it only allocates a persistent connection to the current thread in %Qore.
+
+    To release the connection, call DatasourcePool::commit() or DatasourcePool::rollback()
+
     @par Example
     @code
-
+$db.beginTransaction();
     @endcode
-
  */
 nothing DatasourcePool::beginTransaction() {
    ds->beginTransaction(xsink);
 }
 
-//! 
-/** 
+//! Returns the username parameter as a string or @ref nothing if none is set
+/** @return the username parameter as a string or @ref nothing if none is set
+
     @par Example
     @code
-
+my *string $user = $db.getUserName();
     @endcode
-
  */
 *string DatasourcePool::getUserName() [flags=QC_CONSTANT] {
    return ds->getPendingUsername();
 }
 
-//! 
-/** 
+//! Returns the password parameter as a string or @ref nothing if none is set
+/** @return the password parameter as a string or @ref nothing if none is set
+
     @par Example
     @code
-
+my *string $pass = $db.getPassword();
     @endcode
-
  */
 *string DatasourcePool::getPassword() [flags=QC_CONSTANT] {
    return ds->getPendingPassword();
 }
 
-//! 
-/** 
+//! Returns the database name parameter as a string or @ref nothing if none is set
+/** @return the database name parameter as a string or @ref nothing if none is set
+
     @par Example
     @code
-
+my *string $db = $db.getDBName();
     @endcode
-
  */
 *string DatasourcePool::getDBName() [flags=QC_CONSTANT] {
    return ds->getPendingDBName();
 }
 
-//! 
-/** 
+//! Retrieves the database-specific charset set encoding for the object
+/** A method synonym for DatasourcePool::getDBEncoding() kept for backwards-compatibility
+
+    @return the database-specific charset set encoding for the object
+
     @par Example
     @code
-
+my string $enc = $db.getDBCharset();
     @endcode
-
  */
 *string DatasourcePool::getDBCharset() [flags=QC_CONSTANT] {
    return ds->getPendingDBEncoding();
 }
 
-//! 
-/** 
+//! Retrieves the database-specific charset set encoding for the object
+/** @return the database-specific charset set encoding for the object
+
     @par Example
     @code
-
+my string $enc = $db.getDBEncoding();
     @endcode
 
+    @see DatasourcePool::getOSEncoding();
+ */
+string DatasourcePool::getDBEncoding() [flags=QC_CONSTANT] {
+   return ds->getPendingDBEncoding();
+}
+
+//! Returns the Qore charset name for the object as a string or \c "(unknown)" if none is set
+/** @return the Qore charset name for the object as a string or \c "(unknown)" if none is set
+
+    @par Example
+    @code
+my string $enc = $db.getOSCharset();
+    @endcode
+
+    @see DatasourcePool::getOSEncoding()
  */
 string DatasourcePool::getOSCharset() [flags=QC_CONSTANT] {
    const QoreEncoding *enc = ds->getQoreEncoding();
    return new QoreStringNode(enc ? enc->getCode() : "(unknown)");
 }
 
-//! 
-/** 
+//! Returns the Qore charset name for the object as a string or @ref nothing if none is set
+/** @return the Qore charset name for the object as a string or @ref nothing if none is set
+
     @par Example
     @code
-
+my *string $enc = $db.getOSEncoding();
     @endcode
+ */
+*string DatasourcePool::getOSEncoding() [flags=QC_CONSTANT] {
+   const QoreEncoding *enc = ds->getQoreEncoding();
+   return enc ? new QoreStringNode(enc->getCode()) : 0;
+}
 
+//! Returns the hostname parameter as a string or @ref nothing if none is set
+/** @return the hostname parameter as a string or @ref nothing if none is set
+
+    @par Example
+    @code
+my *string $host = $db.getHostName();
+    @endcode
  */
 *string DatasourcePool::getHostName() [flags=QC_CONSTANT] {
    return ds->getPendingHostName();
 }
 
-//! 
-/** 
+//! Gets the port number that will be used for the next connection to the server
+/** Invalid port numbers will cause an exception to be thrown when the connection is opened
+
     @par Example
     @code
-
+my *int $port = $db.getPort();
     @endcode
-
  */
 *int DatasourcePool::getPort() [flags=QC_CONSTANT] {
    int port = ds->getPendingPort();
    return port ? new QoreBigIntNode(port) : 0;
 }
 
-//! 
-/** 
+//! Returns the name of the driver used for the object
+/** @return the name of the driver used for the object
+
     @par Example
     @code
-
+my string $driver = $db.getDriverName();
     @endcode
-
  */
-DatasourcePool::getDriverName() [flags=QC_CONSTANT] {
+string DatasourcePool::getDriverName() [flags=QC_CONSTANT] {
    return new QoreStringNode(ds->getDriverName());
 }
 
-//! 
-/** 
+//! Returns the minimum number of connections in this object
+/** @return the minimum number of connections in this object
+
     @par Example
+my int $min = $db.getMinimum();
     @code
 
     @endcode
@@ -470,11 +618,12 @@ int DatasourcePool::getMinimum() [flags=QC_CONSTANT] {
    return ds->getMin();
 }
 
-//! 
-/** 
+//! Returns the maximum number of connections in this object
+/** @return the maximum number of connections in this object
+
     @par Example
     @code
-
+my int $max = $db.getMaximum();
     @endcode
 
  */
@@ -482,9 +631,11 @@ int DatasourcePool::getMaximum() [flags=QC_CONSTANT] {
    return ds->getMax();
 }
 
-//! 
-/** 
+//! Returns a string with technical information about the object
+/** @return a string with technical information about the object
+
     @par Example
+my string $str = $db.toString();
     @code
 
     @endcode
@@ -494,38 +645,42 @@ string DatasourcePool::toString() [flags=QC_CONSTANT] {
    return ds->toString();
 }
 
-//! 
-/** 
+//! Returns the driver-specific server version data for the current connection
+/** @return the driver-specific server version data for the current connection; see the DBI driver documentation for the return data type and format
+
     @par Example
     @code
-
+my any $ver = $db.getServerVersion();
     @endcode
 
+    @note see the documentation for the DBI driver being used for additional possible exceptions    
  */
 any DatasourcePool::getServerVersion() {
    return ds->getServerVersion(xsink);
 }
 
-//! 
-/** 
+//! Retrieves the driver-specific client library version information; this method may not be implemented for all drivers
+/** @return the driver-specific client library version information; this method may not be implemented for all drivers; see the DBI driver documentation for the return data type and format
+
     @par Example
     @code
-
+my any $ver = $db.getClientVersion();
     @endcode
 
+    @note see the documentation for the DBI driver being used for possible exceptions    
  */
 any DatasourcePool::getClientVersion() {
    return ds->getClientVersion(xsink);
 }
 
-//! 
-/** 
+//! Returns \c True if a transaction is currently in progress (meaning in this case that a datasource form the pool is dedicated to the calling thread), \c False if not
+/** @return \c True if a transaction is currently in progress (meaning in this case that a datasource form the pool is dedicated to the calling thread), \c False if not
+
     @par Example
     @code
-
+my bool $b = $db.inTransaction();
     @endcode
-
  */
-bool DatasourcePool::inTransaction() {
+bool DatasourcePool::inTransaction() [flags=QC_CONSTANT] {
    return ds->inTransaction();
 }
