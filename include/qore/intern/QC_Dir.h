@@ -26,7 +26,8 @@
 #define _QORE_CLASS_DIR_H
 
 DLLEXPORT extern qore_classid_t CID_DIR;
-DLLLOCAL QoreClass *initDirClass();
+DLLLOCAL extern QoreClass* QC_DIR;
+DLLLOCAL QoreClass *initDirClass(QoreNamespace& ns);
 
 #include <qore/intern/QoreDir.h>
 
