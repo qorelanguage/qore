@@ -1,0 +1,459 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/*
+  QC_Dir.cpp
+
+  Qore Programming Language
+
+  Copyright (C) 2003 - 2011 David Nichols
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+  
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+  
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
+#include <qore/Qore.h>
+#include <qore/intern/QC_Dir.h>
+#include <qore/intern/QC_File.h>
+
+#include <sys/types.h>
+#include <errno.h>
+
+//! This class implements directory handling, file listing, creating/removing subdirectories, etc
+/** The %Dir class allows Qore programs to list and manipulate directories.
+
+    Directory objects can be created/opened with a specific character encoding. This means that any entry read from the directory will be tagged with the directory's character encoding. If no character encoding is given the @ref default_character_encoding "default character encoding" is assumed.
+
+    @note This class is not available with the @ref PO_NO_FILESYSTEM parse option
+ */
+qclass Dir [arg=Dir* d; dom=FILESYSTEM];
+
+//! 
+/** 
+    @par Example
+    @code
+
+    @endcode
+ */
+Dir::constructor(*string encoding) {
+   const QoreEncoding *qe = encoding ? QEM.findCreate(encoding) : QCS_DEFAULT;
+   SimpleRefHolder<Dir> d(new Dir(xsink, qe));
+   if (*xsink)
+      return;
+   self->setPrivate(CID_DIR, d.release());
+}
+
+//! 
+/** 
+    @par Example
+    @code
+
+    @endcode
+ */
+Dir::copy() {
+   SimpleRefHolder<Dir> nd(new Dir(xsink, *d));
+   if (*xsink)
+      return;
+  
+   self->setPrivate(CID_DIR, nd.release());
+}
+
+//! 
+/** 
+    @par Example
+    @code
+
+    @endcode
+ */
+bool Dir::chdir(string path) {
+   return !d->chdir(path->getBuffer(), xsink);
+}
+
+//! 
+/** 
+    @par Example
+    @code
+
+    @endcode
+ */
+*string Dir::path() {
+   return d->dirname();
+}
+
+//! 
+/** 
+    @par Example
+    @code
+
+    @endcode
+ */
+bool Dir::exists() {
+   return !d->checkPath(); 
+}
+
+//! 
+/** 
+    @par Example
+    @code
+
+    @endcode
+ */
+int Dir::create(softint mode = 0777) {
+   return d->create((int)mode, xsink); // throws exception
+}
+
+//! 
+/** 
+    @par Example
+    @code
+
+    @endcode
+ */
+nothing Dir::chmod(softint mode) {
+   d->chmod((int)mode, xsink);
+}
+
+//! 
+/** 
+    @par Platform Availability
+    @ref HAVE_UNIX_FILEMGT
+
+    @par Example
+    @code
+
+    @endcode
+ */
+nothing Dir::chown(int uid) {
+#ifdef HAVE_CHOWN
+    d->chown((uid_t)uid, (gid_t)-1, xsink);
+   return 0;
+#else
+   return missing_method_error("Dir::chown", "UNIX_FILEMGT", xsink);
+#endif
+}
+
+//! 
+/** 
+    @par Platform Availability
+    @ref HAVE_UNIX_FILEMGT
+
+    @par Example
+    @code
+
+    @endcode
+
+    @throw DIR-CHOWN-PARAMETER-ERROR no userid found for user
+ */
+nothing Dir::chown(string username) {
+#ifdef HAVE_CHOWN
+   uid_t uid;
+
+   // Try getting UID for username
+   int rc = q_uname2uid(username->getBuffer(), uid);
+   if (rc)
+      xsink->raiseException("DIR-CHOWN-PARAMETER-ERROR", "no userid found for user '%s'", username->getBuffer());
+   else
+      d->chown(uid, (gid_t)-1, xsink);
+   return 0;
+#else
+   return missing_method_error("Dir::chown", "UNIX_FILEMGT", xsink);
+#endif
+}
+
+//! 
+/** 
+    @par Platform Availability
+    @ref HAVE_UNIX_FILEMGT
+
+    @par Example
+    @code
+
+    @endcode
+ */
+nothing Dir::chgrp(int gid) {
+#ifdef HAVE_CHOWN
+   d->chown((uid_t)-1, (gid_t)gid, xsink);
+   return 0;
+#else
+   return missing_method_error("Dir::chgrp", "UNIX_FILEMGT", xsink);
+#endif
+}
+
+//! 
+/** 
+    @par Platform Availability
+    @ref HAVE_UNIX_FILEMGT
+
+    @par Example
+    @code
+
+    @endcode
+
+    @throw DIR-CHGRP-PARAMETER-ERROR no groupid found for group
+ */
+nothing Dir::chgrp(string groupname) {
+#ifdef HAVE_CHOWN
+   gid_t gid;
+
+   // Try getting GID for name
+   int rc = q_gname2gid(groupname->getBuffer(), gid);
+   if (rc)
+      xsink->raiseException("DIR-CHGRP-PARAMETER-ERROR", "no groupid found for group '%s'", groupname->getBuffer());
+   else
+      d->chown((uid_t)-1, gid, xsink);
+   return 0;
+#else
+   return missing_method_error("Dir::chgrp", "UNIX_FILEMGT", xsink);
+#endif
+}
+
+//! 
+/** 
+    @par Example
+    @code
+
+    @endcode
+
+    @throw DIR-MKDIR-PARAMETER-ERROR only direct subdirectories are allowed
+ */
+nothing Dir::mkdir(string subdir, softint mode = 0777) {
+   // check if there is a path delimiter
+   if (strchr(subdir->getBuffer(), QORE_DIR_SEP))
+      xsink->raiseException("DIR-MKDIR-PARAMETER-ERROR", "only single, direct subdirectories are allowed");
+   else
+      d->mkdir(xsink, subdir->getBuffer(), (int)mode);
+}
+
+//! 
+/** 
+    @par Example
+    @code
+
+    @endcode
+
+    @throw DIR-RMDIR-PARAMETER-ERROR only direct subdirectories are allowed
+ */
+nothing Dir::rmdir(string subdir) {
+   // check if there is a path delimiter
+   if (strchr(subdir->getBuffer(), QORE_DIR_SEP))
+      xsink->raiseException("DIR-RMDIR-PARAMETER-ERROR", "only direct subdirectories are allowed");
+   else
+      d->rmdir(subdir->getBuffer(), xsink);
+}
+
+//! 
+/** 
+    @par Example
+    @code
+
+    @endcode
+
+    @throw DIR-READ-ERROR cannot list directory; no directory is set; stat() error
+ */
+list Dir::list() {
+   return d->list(xsink, -1);
+}
+
+//! 
+/** 
+    @par Example
+    @code
+
+    @endcode
+
+    @throw DIR-READ-ERROR cannot list directory; no directory is set; stat() error
+    @throw REGEX-COMPILATION-ERROR error in regular expression
+    @throw REGEX-OPTION-ERROR regex option argument contains invalid option bits
+ */
+list Dir::list(string regex, softint regex_options = 0) {
+   return d->list(xsink, -1, regex, (int)regex_options);
+}
+
+//! 
+/** 
+    @par Example
+    @code
+
+    @endcode
+
+    @throw DIR-READ-ERROR cannot list directory; no directory is set; stat() error
+ */
+list Dir::listFiles() {
+   return d->list(xsink, S_IFMT^S_IFDIR);
+}
+
+//! 
+/** 
+    @par Example
+    @code
+
+    @endcode
+
+    @throw DIR-READ-ERROR cannot list directory; no directory is set; stat() error
+    @throw REGEX-COMPILATION-ERROR error in regular expression
+    @throw REGEX-OPTION-ERROR regex option argument contains invalid option bits
+ */
+list Dir::listFiles(string regex, softint regex_options = 0) {
+   return d->list(xsink, S_IFMT^S_IFDIR, regex, (int)regex_options);
+}
+
+//! 
+/** 
+    @par Example
+    @code
+
+    @endcode
+
+    @throw DIR-READ-ERROR cannot list directory; no directory is set; stat() error
+ */
+list Dir::listDirs() {
+   return d->list(xsink, S_IFDIR);
+}
+
+//! 
+/** 
+    @par Example
+    @code
+
+    @endcode
+
+    @throw DIR-READ-ERROR cannot list directory; no directory is set; stat() error
+    @throw REGEX-COMPILATION-ERROR error in regular expression
+    @throw REGEX-OPTION-ERROR regex option argument contains invalid option bits
+ */
+list Dir::listDirs(string regex, softint regex_options = 0) {
+   return d->list(xsink, S_IFDIR, regex, (int)regex_options);
+}
+
+//! 
+/** 
+    @par Example
+    @code
+
+    @endcode
+
+    @throw DIR-OPENFILE-PARAMETER-ERROR only direct subdirectory names without path separators are allowed
+ */
+File Dir::openFile(string filename, int flags = O_RDONLY, int mode = 0666, *string encoding) {
+   if (strchr(filename->getBuffer(), QORE_DIR_SEP)) {
+      xsink->raiseException("DIR-OPENFILE-PARAMETER-ERROR", "only filenames without path (i.e. without '%c' characters) are allowed", QORE_DIR_SEP);
+      return 0;
+   }
+  
+   const QoreEncoding *qe = encoding ? QEM.findCreate(encoding) : QCS_DEFAULT;
+
+   // open the file with exception
+   ReferenceHolder<File> f(new File(qe), xsink);
+   std::string path = d->getPath(filename->getBuffer());
+
+   if (f->open2(xsink, path.c_str(), flags, mode, qe)) {
+      assert(*xsink);
+      return 0;
+   }
+
+   // create the QoreObject and set the File object as private data of the class tagged with the CID_FILE class ID
+   return new QoreObject(QC_FILE, getProgram(), f.release());
+}
+
+//! 
+/** 
+    @par Example
+    @code
+
+    @endcode
+
+    @throw DIR-OPENDIR-PARAMETER-ERROR only direct subdirectory names without path separators are allowed
+ */
+Dir Dir::openDir(string subdir, *string encoding) {
+   // check if there is a path delimiter in
+   if (strchr(subdir->getBuffer(), QORE_DIR_SEP)) {
+      xsink->raiseException("DIR-OPENDIR-PARAMETER-ERROR", "only direct directory names without path (i.e. without '%c' characters) are allowed", QORE_DIR_SEP);
+      return 0;
+   }
+
+   const QoreEncoding *qe = encoding ? QEM.findCreate(encoding) : QCS_DEFAULT;
+
+   ReferenceHolder<Dir> dc(new Dir(xsink, qe, d->getPath(subdir->getBuffer()).c_str()), xsink);
+   
+   // create the qoreObject and set the Dir object as private data of the class tagged with the CID_DIR class ID
+   return new QoreObject(QC_DIR, getProgram(), dc.release());
+}
+
+//! 
+/** 
+    @par Example
+    @code
+
+    @endcode
+
+    @throw DIR-REMOVEFILE-PARAMETER-ERROR only filenames without path (i.e. without '%c' characters) are allowed
+    @throw DIR-REMOVEFILE-ERROR the unlink() function returned an error
+ */
+bool Dir::removeFile(string file) {
+   // check if there is a path delimiter in
+   if (strchr(file->getBuffer(), QORE_DIR_SEP)) {
+      xsink->raiseException("DIR-REMOVEFILE-PARAMETER-ERROR", "only filenames without path (i.e. without '%c' characters) are allowed", QORE_DIR_SEP);
+      return 0;
+   }
+
+   std::string path = d->getPath(file->getBuffer());
+   errno = 0; // clear errno flag
+   if (unlink(path.c_str()) && errno != ENOENT) {
+      xsink->raiseErrnoException("DIR-REMOVEFILE-ERROR", errno, "error removing file '%s'", file->getBuffer());
+      return 0;
+   }
+
+   // if an errno was set it must be ENOENT at this point.
+   // so we return that no file is removed
+   return errno ? false : true;
+}
+
+//! 
+/** 
+    @par Example
+    @code
+
+    @endcode
+ */
+list Dir::stat() {
+   return d->stat(xsink);
+}
+
+//! 
+/** 
+    @par Example
+    @code
+
+    @endcode
+ */
+hash Dir::hstat() {
+   return d->hstat(xsink);
+}
+
+//! 
+/** 
+
+    @par Platform Availability
+    @ref HAVE_STATVFS
+
+    @par Example
+    @code
+
+    @endcode
+ */
+hash Dir::statvfs() {
+#ifdef HAVE_SYS_STATVFS_H
+   return d->statvfs(xsink);
+#else
+   return missing_method_error("Dir::statvfs", "STATVFS", xsink);
+#endif
+}
