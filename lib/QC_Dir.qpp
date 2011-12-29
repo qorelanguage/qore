@@ -307,7 +307,7 @@ nothing Dir::chgrp(string groupname) {
 }
 
 //! Creates a direct subdirectory in the Dir object's current path
-/** @param subdir The subdirectory name to create; only direct subdirectories are allowed; directory separator strings are not allowed
+/** @param subdir The subdirectory name to create; only direct subdirectories are allowed; directory separator characters are not allowed
     @param mode The mode of the directory
 
     @par Example
@@ -335,7 +335,7 @@ nothing Dir::mkdir(string subdir, softint mode = 0777) {
 }
 
 //! Removes a direct subdirectory from the Dir object's current path
-/** @param subdir The subdirectory name to remove; only direct subdirectories are allowed; directory separator strings are not allowed
+/** @param subdir The subdirectory name to remove; only direct subdirectories are allowed; directory separator characters are not allowed
 
     @par Example
     @code
@@ -362,7 +362,8 @@ nothing Dir::rmdir(string subdir) {
 }
 
 //! Get all entries in this directory, except \c "." and \c ".." directories; if any errors occur an exception is thrown
-/** 
+/** @returns a list of all entries in the directory (except \c "." and \c ".." directories)
+
     @par Example
     @code
 try {
@@ -417,7 +418,7 @@ list Dir::list(string regex, softint regex_options = 0) {
 
 //! Retrieves all files in this directory; if any errors occur an exception is thrown
 /**
-    @return a list of all files in this directory
+    @return a list of all files in the current directory of the object
 
     @par Example
     @code
@@ -526,11 +527,18 @@ list Dir::listDirs(string regex, softint regex_options = 0) {
    return d->list(xsink, S_IFDIR, regex, (int)regex_options);
 }
 
-//! 
-/** 
+//! Create and open a File object in the current directory of the Dir object
+/** This method uses the File::open2() method to open the file.
+
+    @param filename The filename for the file which must be in the current directory (no path separator characters are allowed)
+    @param flags Flags that determine the way the file is accessed, see @ref file_open_constants for more information
+    @param mode Permission bits for when the file is to be created
+    @param encoding The name of the default character encoding for this file; if this argument is not given, the file will be tagged with the @ref default_character_encoding "default character encoding" for the process
+
     @par Example
     @code
-
+# open a file for writing in the directory and set the mode to 0644 and the encoding to UTF-8
+my File $f = $d.openFile("myfile.txt", O_CREAT|O_WRONLY, 0644, "utf-8");
     @endcode
 
     @throw DIR-OPENFILE-PARAMETER-ERROR only direct subdirectory names without path separators are allowed
@@ -558,11 +566,15 @@ File Dir::openFile(string filename, int flags = O_RDONLY, int mode = 0666, *stri
    return new QoreObject(QC_FILE, getProgram(), f.release());
 }
 
-//! 
-/** 
+//! Get a Dir object as an subdir entry of the current directory
+/** @param subdir The name of the subdirectory for the new Dir object (which must be in the current directory of the current Dir object; no path separator characters are allowed)
+    @param encoding The name of the default character encoding for the new Dir object; if this argument is not given, the new Dir object will be tagged with the character encoding of the current Dir object
+
+    @return The Dir object created for the directory
+
     @par Example
     @code
-
+my Dir $sd = $d.openDir("mysubdir");
     @endcode
 
     @throw DIR-OPENDIR-PARAMETER-ERROR only direct subdirectory names without path separators are allowed
@@ -574,16 +586,19 @@ Dir Dir::openDir(string subdir, *string encoding) {
       return 0;
    }
 
-   const QoreEncoding *qe = encoding ? QEM.findCreate(encoding) : QCS_DEFAULT;
-
-   ReferenceHolder<Dir> dc(new Dir(xsink, qe, d->getPath(subdir->getBuffer()).c_str()), xsink);
-   
+   const QoreEncoding *qe = encoding ? QEM.findCreate(encoding) : d->getEncoding();
+   ReferenceHolder<Dir> dc(new Dir(xsink, qe, d->getPath(subdir->getBuffer()).c_str()), xsink);   
    // create the qoreObject and set the Dir object as private data of the class tagged with the CID_DIR class ID
    return new QoreObject(QC_DIR, getProgram(), dc.release());
 }
 
-//! 
-/** 
+//! Remove the file with the given name in the Dir object's directory
+/** If any errors occur unlinking the file, then an exception occurs
+
+    @param file Remove the file with the given name in the Dir object's directory
+
+    @return \c True if the file was present and could be removed, \c False if the file did not exist
+
     @par Example
     @code
 try {
@@ -619,8 +634,11 @@ bool Dir::removeFile(string file) {
    return errno ? false : true;
 }
 
-//! 
-/** 
+//! Returns a list of file status information for the current directory
+/** If any errors occur an exception will be thrown
+
+    @return a @ref stat_list giving information about the current directory
+
     @par Example
     @code
 try {
@@ -641,8 +659,11 @@ list Dir::stat() {
    return d->stat(xsink);
 }
 
-//! 
-/** 
+//! Returns a hash of file status information for the current directory
+/** If any errors occur an exception will be thrown
+
+    @return a @ref stat_hash giving information about the current directory
+
     @par Example
     @code
 try {
@@ -663,8 +684,8 @@ hash Dir::hstat() {
    return d->hstat(xsink);
 }
 
-//! 
-/** 
+//! Returns a hash of @ref filesystem_status_hash "filesystem status values" for the current directory
+/** @return a hash of @ref filesystem_status_hash "filesystem status values" for the current directory
 
     @par Platform Availability
     @ref HAVE_STATVFS
