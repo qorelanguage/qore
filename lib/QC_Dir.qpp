@@ -37,11 +37,14 @@
  */
 qclass Dir [arg=Dir* d; dom=FILESYSTEM];
 
-//! 
-/** 
+//! Creates the Directory object
+/** The object will point to the currect directory of the process
+
+    @param encoding the name of the default character encoding for filenames retrieved; if this argument is not given, filename strings retrieved will be tagged with the @ref default_character_encoding "default character encoding" of the process
+
     @par Example
     @code
-
+my Dir $dir("utf-8");
     @endcode
  */
 Dir::constructor(*string encoding) {
@@ -52,11 +55,11 @@ Dir::constructor(*string encoding) {
    self->setPrivate(CID_DIR, d.release());
 }
 
-//! 
+//! Creates a new directory object with the same character encoding specification and the same path as the original
 /** 
     @par Example
     @code
-
+my Dir $nd = $dir.copy();
     @endcode
  */
 Dir::copy() {
@@ -67,43 +70,82 @@ Dir::copy() {
    self->setPrivate(CID_DIR, nd.release());
 }
 
-//! 
-/** 
+//! Changes the current directory of the Dir object to the path given
+/** If this method returns \c False then the directory can be created by calling Dir::create()
+
+    @param path The path can be either an absolute path (leading with '/') or a directory realtive to the actual path
+
+    @return \c True if the new path is openable as directory (see Dir::exists())
+
     @par Example
     @code
-
+if ($d.chdir("../doc")) {
+    $d.create(0755);
+}
     @endcode
 
-    @throw DIR-CHDIR-ERROR cannot change to relative directory; no directory is set
+    @throw DIR-CHDIR-ERROR cannot change to relative directory because no current directory is set
  */
 bool Dir::chdir(string path) {
    return !d->chdir(path->getBuffer(), xsink);
 }
 
-//! 
-/** 
+//! Returns the path of the Dir object or @ref nothing if no path is set
+/** This path does not necessarily need to exist; the path is adjusted to remove \c "." and \c ".." from the path if present
+
+    @return the path of the Dir object or @ref nothing if no path is set
+
     @par Example
     @code
-
+my *string $mypath = $d.path();
     @endcode
  */
 *string Dir::path() {
    return d->dirname();
 }
 
-//! 
-/** 
+//! Returns \c True if the path in the Dir object points to a directory that already exists and is openable by the current user, \c False otherwise
+/** @return \c True if the path in the Dir object points to a directory that already exists and is openable by the current user, \c False otherwise
+
     @par Example
     @code
-
+if (!$d.exists())
+   printf("%y: does not exist or cannot be opened\n", $d.path());
     @endcode
  */
 bool Dir::exists() {
    return !d->checkPath(); 
 }
 
-//! 
-/** 
+//! Creates the directory tree the Dir object points to, if it does not exist
+/** @param mode The mode of the directory
+
+    @par Example
+    @code
+try {
+    if (!$d.exists()) {
+        printf("%y: does not exist; creating...\n", $d.path());
+        $cnt = $d.create(0755);
+    }
+}
+catch (hash $ex) {
+    if ($ex.arg)
+        printf("%s: %s: %s", $ex.err, $ex.desc, strerror($ex.arg));
+    else
+        printf("%s: %s", $ex.err, $ex.desc);
+}
+    @endcode
+
+    @throw DIR-CREATE-ERROR cannot create directory; no directory is set
+    @throw DIR-CREATE-FAILURE error creating directory (\c arg will be assigned to the errno value)
+ */
+int Dir::create(softint mode = 0777) {
+   return d->create((int)mode, xsink); // throws exception
+}
+
+//! Changes the mode of the directory
+/** @param mode The mode of the directory
+
     @par Example
     @code
 try {
@@ -120,34 +162,13 @@ catch (hash $ex) {
     @throw DIR-CHMOD-ERROR cannot change directory's mode; no directory is set
     @throw DIR-CHMOD-FAILURE error changing directory's mode (\c arg will be assigned to the errno value)
  */
-int Dir::create(softint mode = 0777) {
-   return d->create((int)mode, xsink); // throws exception
-}
-
-//! 
-/** 
-    @par Example
-    @code
-try {
-    $dir.create(0750);
-}
-catch (hash $ex) {
-    if ($ex.arg)
-        printf("%s: %s: %s", $ex.err, $ex.desc, strerror($ex.arg));
-    else
-        printf("%s: %s", $ex.err, $ex.desc);
-}
-    @endcode
-
-    @throw DIR-CREATE-ERROR cannot create directory; no directory is set
-    @throw DIR-CREATE-FAILURE error creating directory (\c arg will be assigned to the errno value)
- */
 nothing Dir::chmod(softint mode) {
    d->chmod((int)mode, xsink);
 }
 
-//! 
-/** 
+//! Change the ownership of the directory from the userid
+/** @param uid the userid of the user to change the directory to
+
     @par Platform Availability
     @ref HAVE_UNIX_FILEMGT
 
@@ -176,8 +197,9 @@ nothing Dir::chown(int uid) {
 #endif
 }
 
-//! 
-/** 
+//! Change the ownership of the directory from the username
+/** @param username the username of the user to change the directory to
+
     @par Platform Availability
     @ref HAVE_UNIX_FILEMGT
 
@@ -214,15 +236,27 @@ nothing Dir::chown(string username) {
 #endif
 }
 
-//! 
-/** 
+//! Change the group membership of the directory from the group id
+/** @param gid the groupid of the user to change the directory to
+
     @par Platform Availability
     @ref HAVE_UNIX_FILEMGT
 
     @par Example
     @code
-
+try {
+    $dir.chgrp($gid);
+}
+catch (hash $ex) {
+    if ($ex.arg)
+        printf("%s: %s: %s", $ex.err, $ex.desc, strerror($ex.arg));
+    else
+        printf("%s: %s", $ex.err, $ex.desc);
+}
     @endcode
+
+    @throw DIR-CHOWN-ERROR cannot change directory owner; no directory is set
+    @throw DIR-CHOWN-FAILURE error changing directory owner (\c arg will be assigned to the errno value)
  */
 nothing Dir::chgrp(int gid) {
 #ifdef HAVE_CHOWN
@@ -233,17 +267,28 @@ nothing Dir::chgrp(int gid) {
 #endif
 }
 
-//! 
-/** 
+//! Change the group membership of the directory
+/** @param groupname the group name of the group to change the directory to
+
     @par Platform Availability
     @ref HAVE_UNIX_FILEMGT
 
     @par Example
     @code
-
+try {
+    $dir.chgrp($groupname);
+}
+catch (hash $ex) {
+    if ($ex.arg)
+        printf("%s: %s: %s", $ex.err, $ex.desc, strerror($ex.arg));
+    else
+        printf("%s: %s", $ex.err, $ex.desc);
+}
     @endcode
 
-    @throw DIR-CHGRP-PARAMETER-ERROR no groupid found for group
+    @throw DIR-CHGRP-PARAMETER-ERROR no userid found for user
+    @throw DIR-CHOWN-ERROR cannot change directory owner; no directory is set
+    @throw DIR-CHOWN-FAILURE error changing directory owner (\c arg will be assigned to the errno value)
  */
 nothing Dir::chgrp(string groupname) {
 #ifdef HAVE_CHOWN
@@ -261,8 +306,10 @@ nothing Dir::chgrp(string groupname) {
 #endif
 }
 
-//! 
-/** 
+//! Creates a direct subdirectory in the Dir object's current path
+/** @param subdir The subdirectory name to create; only direct subdirectories are allowed; directory separator strings are not allowed
+    @param mode The mode of the directory
+
     @par Example
     @code
 try {
@@ -287,8 +334,9 @@ nothing Dir::mkdir(string subdir, softint mode = 0777) {
       d->mkdir(xsink, subdir->getBuffer(), (int)mode);
 }
 
-//! 
-/** 
+//! Removes a direct subdirectory from the Dir object's current path
+/** @param subdir The subdirectory name to remove; only direct subdirectories are allowed; directory separator strings are not allowed
+
     @par Example
     @code
 try {
@@ -313,7 +361,7 @@ nothing Dir::rmdir(string subdir) {
       d->rmdir(subdir->getBuffer(), xsink);
 }
 
-//! Get all entries in this directory, except '.' and '..' directories; if any errors occur an exception is thrown
+//! Get all entries in this directory, except \c "." and \c ".." directories; if any errors occur an exception is thrown
 /** 
     @par Example
     @code
@@ -337,9 +385,11 @@ list Dir::list() {
    return d->list(xsink, -1);
 }
 
-//! Gets all entries in the directory that match the given regular expression (except '.' and '..' directories); if any errors occur an exception is thrown
+//! Gets all entries in the directory that match the given regular expression (except \c "." and \c ".." directories); if any errors occur an exception is thrown
 /** @param regex a regular expression string used to filter the arguments (note that this is not a glob, but rather a regular expression string)
     @param regex_options optional bitwise-or'ed @ref regex_option_constants "regex option constants"
+
+    @return a list of all entries in the directory that match the given regular expression (except \c "." and \c ".." directories)
 
     @par Example
     @code
@@ -365,8 +415,10 @@ list Dir::list(string regex, softint regex_options = 0) {
    return d->list(xsink, -1, regex, (int)regex_options);
 }
 
-//! Get all files in this directory; if any errors occur an exception is thrown
-/** 
+//! Retrieves all files in this directory; if any errors occur an exception is thrown
+/**
+    @return a list of all files in this directory
+
     @par Example
     @code
 try {
@@ -389,9 +441,11 @@ list Dir::listFiles() {
    return d->list(xsink, S_IFMT^S_IFDIR);
 }
 
-//! Gets all files in the directory that match the given regular expression; if any errors occur an exception is thrown
+//! Retrieves all files in the directory that match the given regular expression; if any errors occur an exception is thrown
 /** @param regex a regular expression string used to filter the arguments (note that this is not a glob, but rather a regular expression string)
     @param regex_options optional bitwise-or'ed @ref regex_option_constants "regex option constants"
+
+    @return a list of all files in the directory that match the given regular expression
 
     @par Example
     @code
@@ -417,8 +471,9 @@ list Dir::listFiles(string regex, softint regex_options = 0) {
    return d->list(xsink, S_IFMT^S_IFDIR, regex, (int)regex_options);
 }
 
-//! Get all subdirectory entries in this directory, except '.' and '..' directories; if any errors occur an exception is thrown
-/** 
+//! Retrieves all subdirectory entries in this directory, except \c "." and \c ".." directories; if any errors occur an exception is thrown
+/** @return a list of all subdirectory entries in this directory, except \c "." and \c ".." directories
+
     @par Example
     @code
 try {
@@ -441,9 +496,11 @@ list Dir::listDirs() {
    return d->list(xsink, S_IFDIR);
 }
 
-//! Gets all subdirectory entries in the directory that match the given regular expression (except '.' and '..' directories); if any errors occur an exception is thrown
+//! Gets all subdirectory entries in the directory that match the given regular expression (except \c "." and \c ".." directories); if any errors occur an exception is thrown
 /** @param regex a regular expression string used to filter the arguments (note that this is not a glob, but rather a regular expression string)
     @param regex_options optional bitwise-or'ed @ref regex_option_constants "regex option constants"
+
+    @return a list of all subdirectory entries in the directory that match the given regular expression (except \c "." and \c ".." directories)
 
     @par Example
     @code

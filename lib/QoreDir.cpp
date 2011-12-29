@@ -178,7 +178,7 @@ public:
       // FIXME: the check below is not sufficient on windows (check for drive name)
       if (ndir[0] != QORE_DIR_SEP) { // relative path
 	 if (dirname.empty()) {
-	    xsink->raiseException("DIR-CHDIR-ERROR", "cannot change to relative directory; no directory is set");
+	    xsink->raiseException("DIR-CHDIR-ERROR", "cannot change to relative directory because no current directory is set");
 	    return -1;
 	 }
       

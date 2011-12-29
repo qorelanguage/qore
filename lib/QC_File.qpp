@@ -365,7 +365,7 @@ if ($f.open($fn, O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1"))
     @param path the path to the file
     @param flags flags that determine the way the file is accessed, see @ref file_open_constants for more information; if this argument is not given, \c O_RDONLY will be used as the default value.
     @param mode permission bits for when the file is to be created (default: 0666)
-    @param encoding the name of the default character encoding for this file; if this argument is not given, the file will be tagged with the default character encoding for the process
+    @param encoding the name of the default character encoding for this file; if this argument is not given, the file will be tagged with the @ref default_character_encoding "default character encoding" of the process
 
     @return 0 = no error, -1 = see errno() and strerror() for the error message
 
