@@ -199,7 +199,7 @@ public:
 
       std::string path = getPathIntern(subdir);
       if (::mkdir(path.c_str(), mode)) {
-	 xsink->raiseErrnoException("DIR-MKDIR-ERROR", errno, "error creating directory '%s'", path.c_str());
+	 xsink->raiseErrnoException("DIR-MKDIR-FAILURE", errno, "error creating directory '%s'", path.c_str());
 	 return -1;
       }
       return 0;
@@ -211,7 +211,7 @@ public:
 
       std::string path = getPathIntern(subdir);
       if (::rmdir(path.c_str())) {
-	 xsink->raiseErrnoException("DIR-RMDIR-ERROR", errno, "error removing directory '%s'", path.c_str());
+	 xsink->raiseErrnoException("DIR-RMDIR-FAILURE", errno, "error removing directory '%s'", path.c_str());
 	 return -1;
       }
 	 
@@ -238,7 +238,7 @@ public:
 	 
       DIR *dptr = opendir(dirname.c_str());
       if (!dptr) {
-	 xsink->raiseErrnoException("DIR-READ-ERROR", errno, "error opening directory for reading");
+	 xsink->raiseErrnoException("DIR-READ-FAILURE", errno, "error opening directory for reading");
 	 return 0;
       }
       ON_BLOCK_EXIT(closedir, dptr);
@@ -260,7 +260,7 @@ public:
 	          ::stat(fname.getBuffer(), &buf);
 #endif
 	       if (rc) {
-		  xsink->raiseErrnoException("DIR-READ-ERROR", errno, "stat() failed on '%s'", fname.getBuffer());
+		  xsink->raiseErrnoException("DIR-READ-FAILURE", errno, "stat() failed on '%s'", fname.getBuffer());
 		  return 0;
 	       }
 	       ok = (bool)(buf.st_mode & stat_filter);
@@ -280,14 +280,6 @@ public:
 	 }
       }
 	    
-#if 0
-      // check for error of readdir - not necessary???
-      if (errno) {
-	 xsink->raiseErrnoException("DIR-READ-ERROR", errno, "error while reading directory");
-	 // but anyhow: close the dir pointer and ignore the message
-	 return 0;
-      }
-#endif
       return lst.release();
    }
 
@@ -314,7 +306,7 @@ public:
 	 path_str = path.c_str();
 	 if (verifyDirectory(path)) { // not existing
 	    if (::mkdir(path_str, mode)) { // failed
-	       xsink->raiseErrnoException("DIR-CREATE-ERROR", errno, "cannot mkdir '%s'", path_str);
+	       xsink->raiseErrnoException("DIR-CREATE-FAILURE", errno, "cannot mkdir '%s'", path_str);
 	       return -1;
 	    }
 	    cnt++;
@@ -333,7 +325,7 @@ public:
       }
 
       if (::chmod(dirname.c_str(), mode)) {
-	 xsink->raiseErrnoException("DIR-CHMOD-ERROR", errno, "error in Dir::chmod()");
+	 xsink->raiseErrnoException("DIR-CHMOD-FAILURE", errno, "error in Dir::chmod()");
 	 return -1;
       }
 
@@ -350,7 +342,7 @@ public:
       }
 
       if (::chown(dirname.c_str(), uid, gid)) {
-	 xsink->raiseErrnoException("DIR-CHOWN-ERROR", errno, "error in Dir::chown()");
+	 xsink->raiseErrnoException("DIR-CHOWN-FAILURE", errno, "error in Dir::chown()");
 	 return 0;
       }
 
@@ -368,7 +360,7 @@ public:
 
       struct stat sbuf;
       if (::stat(dirname.c_str(), &sbuf)) {
-	 xsink->raiseErrnoException("DIR-STAT-ERROR", errno, "stat() call failed");
+	 xsink->raiseErrnoException("DIR-STAT-FAILURE", errno, "stat() call failed");
 	 return 0;
       }
 
@@ -385,7 +377,7 @@ public:
 
       struct stat sbuf;
       if (::stat(dirname.c_str(), &sbuf)) {
-	 xsink->raiseErrnoException("DIR-HSTAT-ERROR", errno, "stat() call failed");
+	 xsink->raiseErrnoException("DIR-HSTAT-FAILURE", errno, "stat() call failed");
 	 return 0;
       }
 
@@ -403,7 +395,7 @@ public:
   
       struct statvfs vfs;
       if (::statvfs(dirname.c_str(), &vfs)) {
-	 xsink->raiseErrnoException("DIR-STATVFS-ERROR", errno, "statvfs() call failed");
+	 xsink->raiseErrnoException("DIR-STATVFS-FAILURE", errno, "statvfs() call failed");
 	 return 0;
       }
 
