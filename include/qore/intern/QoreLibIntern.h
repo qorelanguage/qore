@@ -432,8 +432,6 @@ DLLLOCAL QoreListNode *makeArgs(AbstractQoreNode *arg);
 
 DLLLOCAL AbstractQoreNode *copy_and_resolve_lvar_refs(const AbstractQoreNode *n, ExceptionSink *xsink);
 
-DLLLOCAL void addProgramConstants(QoreNamespace *ns);
-
 DLLLOCAL void init_qore_types();
 DLLLOCAL void delete_qore_types();
 

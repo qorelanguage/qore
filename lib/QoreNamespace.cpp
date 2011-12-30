@@ -1569,26 +1569,6 @@ void StaticSystemNamespace::init() {
    qoreNS->addConstant("MACHINE_MSB",   &False);
 #endif
 
-   // warning constants
-   qoreNS->addConstant("WARN_NONE",                      new QoreBigIntNode(QP_WARN_NONE));
-   qoreNS->addConstant("WARN_WARNING_MASK_UNCHANGED",    new QoreBigIntNode(QP_WARN_WARNING_MASK_UNCHANGED));
-   qoreNS->addConstant("WARN_DUPLICATE_LOCAL_VARS",      new QoreBigIntNode(QP_WARN_DUPLICATE_LOCAL_VARS));
-   qoreNS->addConstant("WARN_UNKNOWN_WARNING",           new QoreBigIntNode(QP_WARN_UNKNOWN_WARNING));
-   qoreNS->addConstant("WARN_UNDECLARED_VAR",            new QoreBigIntNode(QP_WARN_UNDECLARED_VAR));
-   qoreNS->addConstant("WARN_DUPLICATE_GLOBAL_VARS",     new QoreBigIntNode(QP_WARN_DUPLICATE_GLOBAL_VARS));
-   qoreNS->addConstant("WARN_UNREACHABLE_CODE",          new QoreBigIntNode(QP_WARN_UNREACHABLE_CODE));
-   qoreNS->addConstant("WARN_NONEXISTENT_METHOD_CALL",   new QoreBigIntNode(QP_WARN_NONEXISTENT_METHOD_CALL));
-   qoreNS->addConstant("WARN_INVALID_OPERATION",         new QoreBigIntNode(QP_WARN_INVALID_OPERATION));
-   qoreNS->addConstant("WARN_CALL_WITH_TYPE_ERRORS",     new QoreBigIntNode(QP_WARN_CALL_WITH_TYPE_ERRORS));
-   qoreNS->addConstant("WARN_RETURN_VALUE_IGNORED",      new QoreBigIntNode(QP_WARN_RETURN_VALUE_IGNORED));
-   qoreNS->addConstant("WARN_DEPRECATED",                new QoreBigIntNode(QP_WARN_DEPRECATED));
-   qoreNS->addConstant("WARN_EXCESS_ARGS",               new QoreBigIntNode(QP_WARN_EXCESS_ARGS));
-   qoreNS->addConstant("WARN_DUPLICATE_HASH_KEY",        new QoreBigIntNode(QP_WARN_DUPLICATE_HASH_KEY));
-   qoreNS->addConstant("WARN_UNREFERENCED_VARIABLE",     new QoreBigIntNode(QP_WARN_UNREFERENCED_VARIABLE));
-   qoreNS->addConstant("WARN_DUPLICATE_BLOCK_VARS",      new QoreBigIntNode(QP_WARN_DUPLICATE_BLOCK_VARS));
-   qoreNS->addConstant("WARN_ALL",                       new QoreBigIntNode(QP_WARN_ALL));
-   qoreNS->addConstant("WARN_DEFAULT",                   new QoreBigIntNode(QP_WARN_DEFAULT));
-
    // event constants
    QoreHashNode *qesm = new QoreHashNode;
    qesm->setKeyValue("1", new QoreStringNode("SOCKET"), 0);
@@ -1963,9 +1943,6 @@ void StaticSystemNamespace::init() {
 
    // create Qore::Type namespace with type constants
    qoreNS->addInitialNamespace(get_type_ns());
-
-   // add parse option constants to Qore namespace
-   addProgramConstants(qoreNS);
 
    addQoreNamespace(qoreNS);
 

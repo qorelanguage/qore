@@ -1088,34 +1088,3 @@ int get_warning_code(const char *str) {
          return 1 << i;
    return 0;
 }
-
-DLLLOCAL void addProgramConstants(QoreNamespace *ns) {
-   ns->addConstant("PO_DEFAULT",                  new QoreBigIntNode(PO_DEFAULT));
-   ns->addConstant("PO_NO_GLOBAL_VARS",           new QoreBigIntNode(PO_NO_GLOBAL_VARS));
-   ns->addConstant("PO_NO_SUBROUTINE_DEFS",       new QoreBigIntNode(PO_NO_SUBROUTINE_DEFS));  
-   ns->addConstant("PO_NO_THREAD_CONTROL",        new QoreBigIntNode(PO_NO_THREAD_CONTROL));
-   ns->addConstant("PO_NO_THREAD_CLASSES",        new QoreBigIntNode(PO_NO_THREAD_CLASSES));
-   ns->addConstant("PO_NO_THREADS",               new QoreBigIntNode(PO_NO_THREADS));
-   ns->addConstant("PO_NO_TOP_LEVEL_STATEMENTS",  new QoreBigIntNode(PO_NO_TOP_LEVEL_STATEMENTS));  
-   ns->addConstant("PO_NO_CLASS_DEFS",            new QoreBigIntNode(PO_NO_CLASS_DEFS));
-   ns->addConstant("PO_NO_NAMESPACE_DEFS",        new QoreBigIntNode(PO_NO_NAMESPACE_DEFS));
-   ns->addConstant("PO_NO_CONSTANT_DEFS",         new QoreBigIntNode(PO_NO_CONSTANT_DEFS));
-   ns->addConstant("PO_NO_NEW",                   new QoreBigIntNode(PO_NO_NEW));
-   ns->addConstant("PO_NO_SYSTEM_CLASSES",        new QoreBigIntNode(PO_NO_SYSTEM_CLASSES));
-   ns->addConstant("PO_NO_USER_CLASSES",          new QoreBigIntNode(PO_NO_USER_CLASSES));
-   ns->addConstant("PO_NO_CHILD_PO_RESTRICTIONS", new QoreBigIntNode(PO_NO_CHILD_PO_RESTRICTIONS));
-   ns->addConstant("PO_NO_EXTERNAL_PROCESS",      new QoreBigIntNode(PO_NO_EXTERNAL_PROCESS));
-   ns->addConstant("PO_REQUIRE_OUR",              new QoreBigIntNode(PO_REQUIRE_OUR));
-   ns->addConstant("PO_NO_PROCESS_CONTROL",       new QoreBigIntNode(PO_NO_PROCESS_CONTROL));
-   ns->addConstant("PO_NO_NETWORK",               new QoreBigIntNode(PO_NO_NETWORK));
-   ns->addConstant("PO_NO_FILESYSTEM",            new QoreBigIntNode(PO_NO_FILESYSTEM));
-   ns->addConstant("PO_LOCK_WARNINGS",            new QoreBigIntNode(PO_LOCK_WARNINGS));
-   ns->addConstant("PO_NO_GUI",                   new QoreBigIntNode(PO_NO_GUI));
-   ns->addConstant("PO_REQUIRE_TYPES",            new QoreBigIntNode(PO_REQUIRE_TYPES));
-   ns->addConstant("PO_NO_EXTERNAL_INFO",         new QoreBigIntNode(PO_NO_EXTERNAL_INFO));
-   ns->addConstant("PO_REQUIRE_PROTOTYPES",       new QoreBigIntNode(PO_REQUIRE_PROTOTYPES));
-   ns->addConstant("PO_STRICT_ARGS",              new QoreBigIntNode(PO_STRICT_ARGS));
-   ns->addConstant("PO_ALLOW_BARE_REFS",          new QoreBigIntNode(PO_ALLOW_BARE_REFS));
-   ns->addConstant("PO_ASSUME_LOCAL",             new QoreBigIntNode(PO_ASSUME_LOCAL));
-   ns->addConstant("PO_NEW_STYLE",                new QoreBigIntNode(PO_NEW_STYLE));
-}

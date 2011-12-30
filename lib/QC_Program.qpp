@@ -26,6 +26,345 @@
 #include <qore/intern/QC_TimeZone.h>
 #include <qore/intern/qore_program_private.h>
 
+/** @defgroup parse_options Parse Option Constants
+    These are the possible values that can be or'ed together to set @ref Qore::Program "Program" parse options
+*/
+//@{
+//! Prohibits the use of the '$' character in variable names, method calls, and object member references
+/** This option should probably be named \c "PO_REQUIRE_BARE_REFS" as it is an error to use the \c "$" character when this option is set
+
+    @see @ref allow-bare-refs "%allow-bare-refs"
+*/
+const PO_ALLOW_BARE_REFS = PO_ALLOW_BARE_REFS;
+
+//! Assume local variable scope when variables are first referenced if no \c \b my or \c \b our is present
+/** This option is set implicitly with @ref PO_NEW_STYLE
+
+    @see @ref assume-local "%assume-local"
+*/
+const PO_ASSUME_LOCAL = PO_ASSUME_LOCAL;
+
+//! This option is the empty option, meaning no options are set
+const PO_DEFAULT = PO_DEFAULT;
+
+//! mask of options that have no effect on code access or code safety but just affect programming style
+/** made up of @ref PO_ALLOW_BARE_REFS | @ref PO_ASSUME_LOCAL
+ */
+const PO_FREE_OPTIONS = PO_FREE_OPTIONS;
+
+//! Disallows changes to the warning mask
+/** 
+    @see @ref lock-warnings "%lock-warnings"
+*/
+const PO_LOCK_WARNINGS = PO_LOCK_WARNINGS;
+
+//! Sets very restrictive access; this restriction is designed to allow code to only execute logic, no I/O, no threading, no external access
+/** made up of @ref PO_NO_EXTERNAL_ACCESS | @ref PO_NO_THREADS | @ref PO_NO_IO
+ */
+const PO_LOCKDOWN = PO_LOCKDOWN;
+
+//! Set a more C++ or Java type programming style; prohibits usage of the \c "$" character and also assumes local variable scope without \c \b my
+/** made up of @ref PO_ALLOW_BARE_REFS | @ref PO_ASSUME_LOCAL
+
+    @see @ref new-style "%new-style"
+ */
+const PO_NEW_STYLE = PO_NEW_STYLE;
+
+//! Allows child program objects to have fewer parse restrictions (i.e. more capabilies) than the parent object
+/** 
+    @see @ref no-child-restrictions "%no-child-restrictions"
+*/
+const PO_NO_CHILD_PO_RESTRICTIONS = PO_NO_CHILD_PO_RESTRICTIONS;
+
+//! Disallows class definitions
+/** 
+    @see @ref no-class-defs "%no-class-defs"
+*/
+const PO_NO_CLASS_DEFS = PO_NO_CLASS_DEFS;
+
+//! Disallows constant definitions
+/** 
+    @see @ref no-constant-defs "%no-constant-defs"
+*/
+const PO_NO_CONSTANT_DEFS = PO_NO_CONSTANT_DEFS;
+
+//! Disallows access to database functionality
+/** 
+    @see @ref no-database "%no-database"
+*/
+const PO_NO_DATABASE = PO_NO_DATABASE;
+
+//! Prohibits any external access
+/** made up of @ref PO_NO_PROCESS_CONTROL | @ref PO_NO_NETWORK | @ref PO_NO_FILESYSTEM | @ref PO_NO_DATABASE | @ref PO_NO_EXTERNAL_INFO | @ref PO_NO_EXTERNAL_PROCESS
+
+    @see @ref no-external-access "%no-external-access"
+ */
+const PO_NO_EXTERNAL_ACCESS = PO_NO_EXTERNAL_ACCESS;
+
+//! Disallows access to functionality that provides information about the computing environment
+/** 
+    @see @ref no-external-info "%no-external-info"
+*/
+const PO_NO_EXTERNAL_INFO = PO_NO_EXTERNAL_INFO;
+
+//! Disallows any access to external processes (with system(), backquote(), exec(), etc)
+/** 
+    @see @ref no-external-process "%no-external-process"
+*/
+const PO_NO_EXTERNAL_PROCESS = PO_NO_EXTERNAL_PROCESS;
+
+//! Disallows access to the filesystem
+/** 
+    @see @ref no-filesystem "%no-filesystem"
+*/
+const PO_NO_FILESYSTEM = PO_NO_FILESYSTEM;
+
+//! Disallows the use of global variables
+/** 
+    @see @ref no-global-vars "%no-global-vars"
+*/
+const PO_NO_GLOBAL_VARS = PO_NO_GLOBAL_VARS;
+
+//! Disallows access to functionality that draws graphics to the display
+/** @see PO_NO_TERMINAL_IO 
+    @see @ref no-gui "%no-gui"
+ */
+const PO_NO_GUI = PO_NO_GUI;
+
+//! Prohibits all terminal and file I/O and GUI operations
+/** made up of @ref PO_NO_GUI | @ref PO_NO_TERMINAL_IO | @ref PO_NO_FILESYSTEM
+
+    @see @ref  "%"
+ */
+const PO_NO_IO = PO_NO_IO;
+
+//! Disallows access to functionality that can change locale parameters
+/** 
+    @see @ref no-locale-control "%no-locale-control"
+*/
+const PO_NO_LOCALE_CONTROL = PO_NO_LOCALE_CONTROL;
+
+//! Disallows new namespace definitions
+/** 
+    @see @ref no-namespace-defs "%no-namespace-defs"
+*/
+const PO_NO_NAMESPACE_DEFS = PO_NO_NAMESPACE_DEFS;
+
+//! Disallows access to network functionality
+/** 
+    @see @ref no-network "%no-network"
+*/
+const PO_NO_NETWORK = PO_NO_NETWORK;
+
+//! Disallows use of the @ref new "new operator"
+/** Note that objects can still be instantiated with syntax like:
+    @code
+my Mutex $m();
+    @endcode
+
+    @see @ref no-new "%no-new"
+ */
+const PO_NO_NEW = PO_NO_NEW;
+
+//! Disallows access to functions that would affect the current process (exit(), exec(), fork(), etc)
+/** 
+    @see @ref no-process-control "%no-process-control"
+*/
+const PO_NO_PROCESS_CONTROL = PO_NO_PROCESS_CONTROL;
+
+//! Disallows subroutine (function) definitions
+/** 
+    @see @ref no-subroutine-defs "%no-subroutine-defs"
+*/
+const PO_NO_SUBROUTINE_DEFS = PO_NO_SUBROUTINE_DEFS;
+
+//! Prohibits system classes from being imported into the new Program object
+/** 
+    @see @ref no-system-classes "%no-system-classes"
+*/
+const PO_NO_SYSTEM_CLASSES = PO_NO_SYSTEM_CLASSES;
+
+//! Disallows access to reading from and/or writing to the terminal
+/** 
+    @see @ref no-terminal-io "%no-terminal-io"
+*/
+const PO_NO_TERMINAL_IO = PO_NO_TERMINAL_IO;
+
+//! Disallows access to any thread-control functions and thread-relevant statements and operators (for example the @ref background "background operator" and the @ref thread_exit "thread_exit statement")
+/** 
+    @see @ref no-thread-control "%no-thread-control"
+*/
+const PO_NO_THREAD_CONTROL = PO_NO_THREAD_CONTROL;
+
+//! Disallows access to any thread classes
+/** 
+    @see @ref no-thread-classes "%no-thread-classes"
+*/
+const PO_NO_THREAD_CLASSES = PO_NO_THREAD_CLASSES;
+
+//! Disallows access to functionality that provides information about threading
+/** 
+    @see @ref no-thread-info "%no-thread-info"
+*/
+const PO_NO_THREAD_INFO = PO_NO_THREAD_INFO;
+
+//! Disallows top level code
+/** 
+    @see @ref no-top-level "%no-top-level"
+*/
+const PO_NO_TOP_LEVEL_STATEMENTS = PO_NO_TOP_LEVEL_STATEMENTS;
+
+//! Prohibits user classes from being imported into the new Program object
+/** 
+    @see @ref no-user-classes "%no-user-classes"
+*/
+const PO_NO_USER_CLASSES = PO_NO_USER_CLASSES;
+
+//! Prohibits access to all threading information
+/** made up of @ref PO_NO_THREAD_CONTROL | @ref PO_NO_THREAD_CLASSES | @ref PO_NO_THREAD_INFO
+
+    @see @ref no-threads "%no-threads"
+ */
+const PO_NO_THREADS = PO_NO_THREADS;
+
+//! mask of all parse options allowing for more freedom (instead of less)
+/** made up of only @ref PO_NO_CHILD_PO_RESTRICTIONS
+ */
+const PO_POSITIVE_OPTIONS = PO_POSITIVE_OPTIONS;
+
+//! Requires global variables to be declared with our before use
+/** 
+    @see @ref require-our "%require-our"
+*/
+const PO_REQUIRE_OUR = PO_REQUIRE_OUR;
+
+//! Requires all function and method parameters and return types to have type declarations
+/** However, variable declarations and object members are not required to have type declarations
+
+    @see PO_REQUIRE_TYPES
+
+    @see @ref require-prototypes "%require-prototypes"
+ */
+const PO_REQUIRE_PROTOTYPES = PO_REQUIRE_PROTOTYPES;
+
+//! Requires all function and method parameters, return types, variables, and object members to have type declarations
+/** @note This option also implies @ref PO_STRICT_ARGS
+    @see @ref PO_REQUIRE_PROTOTYPES
+
+    @see @ref require-types "%require-types"
+ */
+const PO_REQUIRE_TYPES = PO_REQUIRE_TYPES;
+
+//! Prohibits access to builtin functions and methods flagged with RT_NOOP and also causes errors to be raised if excess arguments are given to functions that do not access excess arguments
+/** This option is set implicitly with @ref PO_REQUIRE_TYPES 
+
+    @see @ref strict-args "%strict-args"
+ */
+const PO_STRICT_ARGS = PO_STRICT_ARGS;
+//@}
+
+/** @defgroup warning_constants Warning Constants
+    These are the possible values that can be or'ed together to set the @ref Qore::Program "Program" warning mask
+*/
+//@{
+//! Enables all warnings
+const WARN_ALL = QP_WARN_ALL;
+
+//! Enables warnings when the parser determines that the argument types of a function or method call are such that the operation is guaranteed to produce a constant value
+/** @see @ref call-with-type-errors
+ */
+const WARN_CALL_WITH_TYPE_ERRORS = QP_WARN_CALL_WITH_TYPE_ERRORS;
+
+//! The default warning mask
+/** This warning is made up of the following values combined with binary or:
+    - @ref WARN_UNKNOWN_WARNING
+    - @ref WARN_UNREACHABLE_CODE
+    - @ref WARN_NONEXISTENT_METHOD_CALL
+    - @ref WARN_INVALID_OPERATION
+    - @ref WARN_CALL_WITH_TYPE_ERRORS
+    - @ref WARN_RETURN_VALUE_IGNORED
+    - @ref WARN_DEPRECATED
+    - @ref WARN_DUPLICATE_HASH_KEY
+    - @ref WARN_DUPLICATE_BLOCK_VARS
+*/
+const WARN_DEFAULT = QP_WARN_DEFAULT;
+
+//! Enables a warning when deprecated code is used
+/** @see @ref deprecated
+ */
+const WARN_DEPRECATED = QP_WARN_DEPRECATED;
+
+//! Enables a warning when a program declares a local variable more than once in the same block; note that this is not a warning but rather an error when %assume-local or %new-style parse options are set
+/** @see @ref duplicate-block-vars
+ */
+const WARN_DUPLICATE_BLOCK_VARS = QP_WARN_DUPLICATE_BLOCK_VARS;
+
+//! Indicates that the embedded code has declared the same global variable more than once
+/** @see @ref duplicate-global-vars
+ */
+const WARN_DUPLICATE_GLOBAL_VARS = QP_WARN_DUPLICATE_GLOBAL_VARS;
+
+//! Enables a warning when an immediate hash is declared and at least one of the keys is repeated
+/** @see @ref duplicate-hash-key
+ */
+const WARN_DUPLICATE_HASH_KEY = QP_WARN_DUPLICATE_HASH_KEY;
+
+//! Enables a warning when a local variable with the same name is declared in a subblock (ie another local variable with the same name is reachable in the same lexical scope); note that this warning can raise false positives if the programmer is used to redeclaring the same variable names in subblocks
+/** @see @ref duplicate-local-vars and @ref WARN_DUPLICATE_BLOCK_VARS
+ */
+const WARN_DUPLICATE_LOCAL_VARS = QP_WARN_DUPLICATE_LOCAL_VARS;
+
+//! Enables a warning when a function or method call is made with more arguments than are used by the function or method
+/** @see @ref excess-args
+ */
+const WARN_EXCESS_ARGS = QP_WARN_EXCESS_ARGS;
+
+//! Indicates that the embedded code performs some operation that is guaranteed to produce no result (for example, using the @ref list_element_operator "[] operator" on an integer value)
+/** @see @ref invalid-operation
+ */
+const WARN_INVALID_OPERATION = QP_WARN_INVALID_OPERATION;
+
+//! Represents no warning
+const WARN_NONE = QP_WARN_NONE;
+
+//! Indicates that the embedded code is calling an unknown method in a class
+/** This warning may generate false positives; it may be vaild operation if the calling method is only called from a derived class that actually implements the method.  In this case, the @ref cast "cast<> operator" can be used to eliminate the warning.
+
+    @see @ref non-existent-method-call
+ */
+const WARN_NONEXISTENT_METHOD_CALL = QP_WARN_NONEXISTENT_METHOD_CALL;
+
+//! Enables a warning when a function or method call is made with no side effects and the return value is ignored
+/** @see @ref return-value-ignored
+ */
+const WARN_RETURN_VALUE_IGNORED = QP_WARN_RETURN_VALUE_IGNORED;
+
+//! Indicates that the embedded code referenced an undeclared variable that will be assumed to be a global variable
+/** @see @ref undeclared-var
+ */
+const WARN_UNDECLARED_VAR = QP_WARN_UNDECLARED_VAR;
+
+//! Indicates that the embedded code tried to enable or disable an unknown warning
+/** @see @ref unknown-warning
+ */
+const WARN_UNKNOWN_WARNING = QP_WARN_UNKNOWN_WARNING;
+
+//! Indicates that code cannot be reached (for example; code in the same local block after an unconditional @ref return "return" or @ref thread_exit "thread_exit" statement)
+/** @see @ref unreachable-code
+ */
+const WARN_UNREACHABLE_CODE = QP_WARN_UNREACHABLE_CODE;
+
+//! This warning is raised when a variable is declared in a block but never referenced
+/** @see @ref unreferenced-variable
+ */
+const WARN_UNREFERENCED_VARIABLE = QP_WARN_UNREFERENCED_VARIABLE;
+
+//! This warning means that the embedded code tried to change the warning mask, but it was locked, so the warning mask was actually unchanged
+/** @see @ref warning-mask-unchanged
+ */
+const WARN_WARNING_MASK_UNCHANGED = QP_WARN_WARNING_MASK_UNCHANGED;
+//@}
+
 //! Program objects allow Qore programs to support subprograms with the option to restrict capabilities, for example, to support user-defined logic for application actions
 /** Parsing in Qore happens in two steps; first all code is parsed to pending data structures, and then in the second stage, all references are resolved, and, if there are no errors, then all changes are committed to the Program object. Note that all parse actions (Program::parse(), Program::parsePending(), Program::parseCommit(), and Program::parseRollback()) are atomic; there is a thread lock on each Program object to ensure atomicity, and if any parse errors occur in any stage of parsing, any pending changes to the Program object are automatically rolled back. However parse actions that affect only one stage of the two stages of parsing (Program::parsePending(), Program::parseCommit() and Program::parseRollback()) are atomic within themselves, but not between calls, so one thread may inadvertently commit changes to a Program object if two or more threads are trying to perform transaction-safe two-stage parsing on a Program object without explicit user locking.
 
@@ -35,17 +374,25 @@
  */
 qclass Program [arg=QoreProgram* p];
 
-//! 
-/** 
+//! Creates the program object and optionally sets program capabilities (@ref parse_options "parse options")
+/** Note that if @ref PO_NO_CHILD_PO_RESTRICTIONS is not set in the parent Program when the new Program object is created, then the created Program object will have the parent's parse options added to its parse options as given by the argument to the constructor.
+
+    In other words, if @ref PO_NO_CHILD_PO_RESTRICTIONS is not set, it's not possible to create a child Program object with fewer restrictions than the parent Program object (any attempt to do so will be silently ignored). 
+
+    However, if @ref PO_NO_CHILD_PO_RESTRICTIONS is set in the parent Program object, then the parse option argument to the constructor will be applied literally to the child object.
+
+    @param po A binary OR'ed product of @ref parse_options "parse options"
+
     @par Example
     @code
+my Program $pgm();
     @endcode
  */
 Program::constructor(softint po = PO_DEFAULT) {
    self->setPrivate(CID_PROGRAM, new QoreProgram(getProgram(), po));
 }
 
-//! 
+//! Throws an exception to prevent objects of this class from being copied
 /** 
     @throw PROGRAM-COPY-ERROR copying Program objects is currently unsupported
  */
@@ -53,11 +400,21 @@ Program::copy() {
    xsink->raiseException("PROGRAM-COPY-ERROR", "copying Program objects is currently unsupported");
 }
 
-//! 
-/** 
+//! Parses the string argument and adds the code to the Program object
+/** This method causes both stages of parsing to be executed; if this method is successful, then the code parsed is committed to the Program object.
+    This method is equivalent to calling Program::parsePending() and Program::parseCommit() in one atomic call.
+
+    If an exception occurs in this method, all pending code is backed out, not just code parsed by this method (for example, in case uncommitted code added by Program::parsePending() also exists in the Program object before calling this method).
+
+    @param code The code to parse into the Program object
+    @param label The label for the code; this label will be given if any parse or run-time errors are raised for the code given
+
     @par Example
     @code
+$pgm.parse($code, "label");
     @endcode
+
+    @note This method could throw many parse exceptions which are not enumerated here; any parse errors will result in an appropriate exception.
  */
 nothing Program::parse(string code, string label) {
    // format label as "<run-time-loaded: xxx>"
@@ -70,11 +427,28 @@ nothing Program::parse(string code, string label) {
    p->parse(code, &nlabel, xsink);
 }
 
-//! 
-/** 
+//! Parses the string argument and adds the code to the Program object
+/** This method causes both stages of parsing to be executed; if this method is successful, then the code parsed is committed to the Program object.
+    This method is equivalent to calling Program::parsePending() and Program::parseCommit() in one atomic call.
+
+    If an exception occurs in this method, all pending code is backed out, not just code parsed by this method (for example, in case uncommitted code added by Program::parsePending() also exists in the Program object before calling this method).
+
+    @param code The code to parse into the Program object
+    @param label The label for the code; this label will be given if any parse or run-time errors are raised for the code given
+    @param warning_mask A warning mask; see @ref warning_constants for values to combine by binary-or
+
+    @return If warning included in the warning mask are raised during parsing, this method will return an @ref exception_hash "exception hash" with warning information, otherwise @ref nothing is returned
+
     @par Example
     @code
+my *hash $wh = $pgm.parse($code, "label", WARN_DEFAULT);
+while (exists $wh) {
+    printf("warning: %s:%d: %s: %s\n", $wh.file, $wh.line, $wh.err, $wh.desc);
+    $wh = $wh.next;
+}
     @endcode
+
+    @note This method could throw many parse exceptions which are not enumerated here; any parse errors will result in an appropriate exception.
  */
 *hash Program::parse(string code, string label, softint warning_mask) {
    // format label as "<run-time-loaded: xxx>"
@@ -93,11 +467,22 @@ nothing Program::parse(string code, string label) {
    return e->makeExceptionObjectAndDelete(xsink);
 }
 
-//! 
-/** 
+//! Parses the text passed to pending lists in the Program object; does not resolve all references or commit the code to the Program object
+/** References are resolved in the Program::parseCommit() method.  
+
+    Program::parseCommit() must be called to resolve all references and commit the code to the Program object; until Program::parseCommit() is called, none of the code parsed by this method will be available for execution in the Program object.
+
+    If an exception occurs in this method, all pending code is backed out, not just code parsed by this method.
+
+    @param code The code to parse into the Program object
+    @param label The label for the code; this label will be given if any parse or run-time errors are raised for the code given
+
     @par Example
     @code
+$pgm.parsePending($code, "label");
     @endcode
+
+    @note This method could throw many parse exceptions which are not enumerated here; any parse errors will result in an appropriate exception.
  */
 nothing Program::parsePending(string code, string label) {
    // format label as "<run-time-loaded: xxx>"
@@ -110,11 +495,30 @@ nothing Program::parsePending(string code, string label) {
    p->parsePending(code, &nlabel, xsink);
 }
 
-//! 
-/** 
+//! Parses the text passed to pending lists in the Program object; does not resolve all references or commit the code to the Program object
+/** References are resolved in the Program::parseCommit() method.  
+
+    Program::parseCommit() must be called to resolve all references and commit the code to the Program object; until Program::parseCommit() is called, none of the code parsed by this method will be available for execution in the Program object.
+
+    If an exception occurs in this method, all pending code is backed out, not just code parsed by this method.
+
+    @param code The code to parse into the Program object
+    @param label The label for the code; this label will be given if any parse or run-time errors are raised for the code given
+    @param warning_mask A warning mask; see @ref warning_constants for values to combine by binary-or
+
+    @return If warning included in the warning mask are raised during parsing, this method will return an @ref exception_hash "exception hash" with warning information, otherwise @ref nothing is returned
+
     @par Example
     @code
+my *hash $wh = $pgm.parsePending($code, "label", WARN_DEFAULT);
+while (exists $wh) {
+    printf("warning: %s:%d: %s: %s\n", $wh.file, $wh.line, $wh.err, $wh.desc);
+    $wh = $wh.next;
+}
+$pgm.parseCommit();
     @endcode
+
+    @note This method could throw many parse exceptions which are not enumerated here; any parse errors will result in an appropriate exception.
  */
 *hash Program::parsePending(string code, string label, softint warning_mask) {
    // format label as "<run-time-loaded: xxx>"
@@ -133,21 +537,33 @@ nothing Program::parsePending(string code, string label) {
    return e->makeExceptionObjectAndDelete(xsink);
 }
 
-//! 
-/** 
+//! Commits and pending code processed with Program::parsePending() to the Program object after resolving all outstanding references in the pending code
+/** An exception in this method causes all pending code to be rolled back immediately.
+
     @par Example
     @code
+$pgm.parseCommit();
     @endcode
+
+    @note This method could throw many parse exceptions related to resolving references which are not enumerated here; any parse errors will result in an appropriate exception.
  */
 nothing Program::parseCommit() {
    p->parseCommit(xsink);
 }
 
-//! 
-/** 
+//! Commits and pending code processed with Program::parsePending() to the Program object after resolving all outstanding references in the pending code
+/** An exception in this method causes all pending code to be rolled back immediately.
+
     @par Example
     @code
+my *hash $wh = $pgm.parseCommit(WARN_DEFAULT);
+while (exists $wh) {
+    printf("warning: %s:%d: %s: %s\n", $wh.file, $wh.line, $wh.err, $wh.desc);
+    $wh = $wh.next;
+}
     @endcode
+
+    @note This method could throw many parse exceptions related to resolving references which are not enumerated here; any parse errors will result in an appropriate exception.
  */
 *hash Program::parseCommit(int warning_mask) {
    ExceptionSink wsink;
@@ -159,21 +575,34 @@ nothing Program::parseCommit() {
    return e->makeExceptionObjectAndDelete(xsink);
 }
 
-//! 
+//! Rolls back any pending code processed with Program::parsePending() that has not yet been committed to the Program object with Program::parseCommit()
 /** 
     @par Example
     @code
+$pgm.parseRollback();
     @endcode
  */
 nothing Program::parseRollback() {
    p->parseRollback();
 }
 
-//! 
-/** 
+//! Calls a function in the program object and returns the return value
+/** The function runs with the permissions of the Program object containing the function.
+
+    @param name The name of the function to call
+    @param ... The remaining arguments passed to the method are passed to the function to be called
+
+    @return Depends on the function being called
+
     @par Example
     @code
+my any $result = $pgm.callFunction("func_name", $arg1, $arg2);
     @endcode
+
+    @throw INVALID-FUNCTION-ACCESS @ref parse_options "Parse options" do not allow this builtin function to be called
+    @throw NO-FUNCTION The function does not exist
+
+    @note The function called could also cause other exceptions to be thrown
  */
 any Program::callFunction(string name, ...) {
    ReferenceHolder<QoreListNode> vargs(xsink);
@@ -183,61 +612,102 @@ any Program::callFunction(string name, ...) {
    return p->callFunction(name->getBuffer(), *vargs, xsink);
 }
 
-//! 
-/** 
+//! Calls a function in the program object giving the arguments to the function as a list and returns the return value
+/** The function runs with the permissions of the Program object containing the function.
+
+    @param name The name of the function to call
+    @param vargs The arguments to the function to be called
+
+    @return Depends on the function being called
+
     @par Example
     @code
+my any $result = $pgm.callFunctionArgs("func_name", ($arg1, $arg2));
     @endcode
+
+    @throw INVALID-FUNCTION-ACCESS @ref parse_options "Parse options" do not allow this builtin function to be called
+    @throw NO-FUNCTION The function does not exist
+
+    @note The function called could also cause other exceptions to be thrown
  */
 any Program::callFunctionArgs(string name, *softlist vargs) {
    return p->callFunction(name->getBuffer(), vargs, xsink);
 }
 
-//! 
-/** 
+//! Checks if a user function exists in the program object
+/** @param name The name of the function to check
+
+    @return \c True if the function exists, \c False if not
+
     @par Example
     @code
+if ($pgm.existsFunction("my_func"))
+    printf("my_func() exists in the Program\n");
     @endcode
  */
 bool Program::existsFunction(string name) {
    return p->existsFunction(name->getBuffer());
 }
 
-//! 
-/** 
+//! Runs the program and optionally returns a value if the top-level code exits with a @ref return "return statement
+/** @return the value given to the @ref return "return statement" at the top-level, if any, otherwise @ref nothing
+
     @par Example
     @code
+$pgm.run();
     @endcode
  */
 any Program::run() {
    return p->run(xsink);
 }
 
-//! 
-/** 
+//! Imports a user function into the program object's space; any calls to the imported function will run with the parent Program object's permissions
+/** This allows a user-defined API with greater capabilities than the embedded Program object to be imported into the embedded code.
+
+    @param func the name of the function to import into the Program object
+
     @par Example
     @code
+$pgm.importFunction("log");
     @endcode
+
+    @throw FUNCTION-IMPORT-ERROR Cannot import a function into the same Program object; function with this name already exists.
+    @throw PROGRAM-IMPORTFUNCTION-NO-FUNCTION The function does not exist
  */
 nothing Program::importFunction(string func) {
    getProgram()->exportUserFunction(func->getBuffer(), p, xsink);
 }
 
-//! 
-/** 
+//! Imports a user function into the program object's space and gives it a new name; any calls to the imported function will run with the parent Program object's permissions
+/** This allows a user-defined API with greater capabilities than the embedded Program object to be imported into the embedded code.
+
+    @param func the name of the function to import into the Program object
+    @param new_name the name of the function as it will be known in the Program object once imported
+
     @par Example
     @code
+$pgm.importFunction("service_log", "log");
     @endcode
+
+    @throw FUNCTION-IMPORT-ERROR Cannot import a function into the same Program object; function with this name already exists.
+    @throw PROGRAM-IMPORTFUNCTION-NO-FUNCTION The function does not exist
  */
 nothing Program::importFunction(string func, string new_name) {
    getProgram()->exportUserFunction(func->getBuffer(), new_name->getBuffer(), p, xsink);
 }
 
-//! 
-/** 
+//! Imports a global variable into the program object's space
+/** If the variable is an object, then any methods called from the subprogram will run in the parent's space
+
+    @param varname The name of the global variable without the \c "$"
+    @param readonly If this argument is \c True, then the variable will be imported read-only, and cannot be changed by the subprogram (note that if the imported 
+
     @par Example
     @code
+$pgm.importGlobalVariable("var");
     @endcode
+
+    @throw PROGRAM-IMPORTGLOBALVARIABLE-EXCEPTION The global variable does not exist
  */
 nothing Program::importGlobalVariable(string varname, bool readonly = False) {
    class Var *var = getProgram()->findGlobalVar(varname->getBuffer());
@@ -247,113 +717,166 @@ nothing Program::importGlobalVariable(string varname, bool readonly = False) {
       xsink->raiseException("PROGRAM-IMPORTGLOBALVARIABLE-EXCEPTION", "there is no global variable \"%s\"", varname->getBuffer());
 }
 
-//! 
-/** 
+//! Returns a list of strings of all user functions defined in the program object
+/** @return a list of strings of all user functions defined in the program object
+
     @par Example
     @code
+my list $l = $pgm.getUserFunctionList();
     @endcode
  */
 list Program::getUserFunctionList() {
    return p->getUserFunctionList();
 }
 
-//! 
-/** 
+//! Returns the current binary-or'ed parse option mask for the Program object
+/** @return the current binary-or'ed parse option mask for the Program object
+
     @par Example
     @code
+my int $mask = $pgm.getParseOptions();
     @endcode
  */
 int Program::getParseOptions() {
    return p->getParseOptions();
 }
 
-//! 
-/** 
+//! Sets parse options in the parse option mask for the Program object
+/** An \c OPTIONS-LOCKED exception is thrown if parse options have been locked (for example with Program::lockOptions())
+
+    @param opt A single @ref parse_options "parse option" or binary-or'ed combination of @ref parse_options "parse options" to set in the parse option mask for the object
+
     @par Example
     @code
+# disable threading and GUI operations
+$pgm.setParseOptions(PO_NO_THREADS | PO_NO_GUI);
     @endcode
+
+    @throw OPTIONS-LOCKED Parse options have been locked and cannot be changed
+
+    @see Program::disableParseOptions() for a reciprocal method that disables parse options; also see Program::replaceParseOptions()
  */
 nothing Program::setParseOptions(softint opt = PO_DEFAULT) {
    p->setParseOptions(opt, xsink);
 }
 
-//! 
-/** 
+//! Removes the given parse options to the current parse option mask
+/** An \c OPTIONS-LOCKED exception is thrown if parse options have been locked (for example with Program::lockOptions())
+
+    @param opt A single @ref parse_options "parse option" or binary-or'ed combination of @ref parse_options "parse options" to unset in the parse option mask for the object
+
     @par Example
     @code
+# allow threading and GUI operations
+$pgm.disableParseOptions(PO_NO_THREADS | PO_NO_GUI);
     @endcode
+
+    @throw OPTIONS-LOCKED Parse options have been locked and cannot be changed
+
+    @see Program::setParseOptions() for a reciprocal method that enables parse options; also see Program::replaceParseOptions()
  */
 nothing Program::disableParseOptions(softint opt) {
    p->disableParseOptions(opt, xsink);
 }
 
-//! 
-/** 
+//! Replaces the parse options for the Program object
+/** An \c OPTION-ERROR exception is thrown if the calling Program object does not have @ref PO_NO_CHILD_PO_RESTRICTIONS set.
+
+    @param opt A single @ref parse_options "parse option" or binary-or'ed combination of @ref parse_options "parse options" to unset in the parse option mask for the object
+
     @par Example
     @code
+# disallow threading and GUI operations
+$pgm.replaceParseOptions(PO_NO_THREADS | PO_NO_GUI);
     @endcode
+
+    @throw OPTION-ERROR The calling Program does not have the @ref PO_NO_CHILD_PO_RESTRICTIONS option set, and therefore cannot call Program::replaceParseOptions()
+
+    @see Program::setParseOptions() and Program::disableParseOptions().
  */
 nothing Program::replaceParseOptions(softint opt) {
    p->replaceParseOptions(opt, xsink);
 }
 
-//! 
-/** 
+//! Sets (or clears) the script path (directory and filename) for the object
+/** @param path The path (directory and filename) for the current script; if the directory component is missing, then the current directory is assumed
+
     @par Example
     @code
+$pgm.setScriptPath("/users/test/test.q");
     @endcode
  */
 nothing Program::setScriptPath(*string path) {
    p->setScriptPath(path ? path->getBuffer() : 0);
 }
 
-//! 
-/** 
+//! Returns the current script directory as a string or @ref nothing if not set
+/** Gets the script directory set with Program::setScriptPath(). This is the same value that will be returned in the Qore program code with the get_script_dir() function if called from within the Program.
+
+    @return Returns the current script directory as a string or @ref nothing if not set; if a string is returned, it should normally include the trailing directory separator character (\c "/" on UNIX, \c "\\" on Windows)
+
     @par Example
     @code
+my *string $dir = $pgm.getScriptDir();
     @endcode
  */
 *string Program::getScriptDir() {
    return p->getScriptDir();
 }
 
-//! 
-/** 
+//! Returns the current script name as a string or @ref nothing if not set
+/** Gets the script filename set with Program::setScriptPath(). This is the same value that will be returned in the Qore program code with the get_script_name() function if called from within the Program.
+
+    @return the current script name as a string or @ref nothing if not set
+
     @par Example
     @code
+my *string $name = $pgm.getScriptName();
     @endcode
  */
 *string Program::getScriptName() {
    return p->getScriptName();
 }
 
-//! 
-/** 
+//! Returns the current script directory and filename if known, otherwise returns @ref nothing
+/** Gets the script directory and filename set with Program::setScriptPath(). This is the same value that will be returned in the Qore program code with the get_script_path() function if called from within the Program.
+
+    @return the current script directory and filename if known, otherwise returns @ref nothing
+
     @par Example
     @code
+my *string $path = $pgm.getScriptPath();
     @endcode
  */
 *string Program::getScriptPath() {
    return p->getScriptPath();
 }
 
-//! 
+//! Locks parse options so that they cannot be changed
 /** 
     @par Example
     @code
-    @endcode
+ $pgm.lockOptions();
+   @endcode
  */
 nothing Program::lockOptions() {
    p->lockOptions();
 }
 
-//! 
+//! Returns a the value of the global variable identified by the first string argument
 /** 
+    @param varname The string name of the global variable to find, not including the leading \c "$" character
+    @param rexists An lvalue reference to a @ref bool_type to determine if the global variable exists (because this method could return @ref nothing when the variable exists as well as when it does not)
+
+    @return the value of the global variable identified by the first string argument giving the name of the variable (without any leading \c "$" symbol)
+
     @par Example
     @code
+my bool $exists;
+my any $val = $pgm.getGlobalVariable("error_count", \$exists);
     @endcode
  */
-any Program::getGlobalVariable(string varname, *reference ref) {
+any Program::getGlobalVariable(string varname, *reference rexists) {
    TempEncodingHelper t(varname, QCS_DEFAULT, xsink);
    if (!t)
       return 0;
@@ -361,8 +884,8 @@ any Program::getGlobalVariable(string varname, *reference ref) {
     bool found;
     ReferenceHolder<AbstractQoreNode> rv(p->getGlobalVariableValue(t->getBuffer(), found), xsink);
 
-    if (ref) {
-	QoreTypeSafeReferenceHelper r(ref, xsink);
+    if (rexists) {
+	QoreTypeSafeReferenceHelper r(rexists, xsink);
 	if (!r)
 	    return 0;
 
@@ -373,11 +896,17 @@ any Program::getGlobalVariable(string varname, *reference ref) {
     return rv.release();
 }
 
-//! 
-/** 
+//! Sets the default local time zone for the object from a path to a zoneinfo time zone region file
+/** If there are errors opening, reading, or parsing the file (or the Windows registry entry, depending on the platform), an exception is thrown
+
+    @param region The path to the zoneinfo file for the time zone region to set as the local time zone for the Program object
+
     @par Example
     @code
+$pgm.setTimeZoneRegion("Europe/Prague");
     @endcode
+
+    @throw TZINFO-ERROR Unable to read zoneinfo file; invalid file magic; error parsing zoneinfo file, etc
  */
 nothing Program::setTimeZoneRegion(string region) {
    const AbstractQoreZoneInfo *zone = QTZM.findLoadRegion(region->getBuffer(), xsink);
@@ -385,41 +914,61 @@ nothing Program::setTimeZoneRegion(string region) {
       p->setTZ(zone);
 }
 
-//! 
-/** 
+//! Sets the default time zone for the Program object based on the number of seconds east of UTC; for zones west of UTC, use negative numbers
+/** Time zones set with this method cannot have any daylight savings time information; to set a zone with daylight savings time information, use Program::setTimeZoneRegion() instead
+
+    @param seconds_east The number of seconds east of UTC; for zones west of UTC, use negative numbers
+
     @par Example
+The following examples are all equivalent, setting the time zone to +02 UTC:
     @code
+$pgm.setTimeZoneUTCOffset(7200);
     @endcode
+    @code
+$pgm.setTimeZoneUTCOffset(2h);
+    @endcode
+    @code
+$pgm.setTimeZoneUTCOffset(PT2H);
+    @endcode
+
+    @see TimeZone::setUTCOffset()
  */
 nothing Program::setTimeZoneUTCOffset(softint seconds_east) {
    const AbstractQoreZoneInfo *zone = QTZM.findCreateOffsetZone(seconds_east);
    p->setTZ(zone);
 }
 
-//! 
+//! Sets the default local time zone for the object
 /** 
     @par Example
     @code
     @endcode
+
+    @see TimeZone::set()
  */
 nothing Program::setTimeZone(TimeZone[TimeZoneData] zone) {
    p->setTZ(zone->get());
 }
 
-//! 
-/** 
+//! Returns the default local time zone for the object
+/** @return the default local time zone for the object
+
     @par Example
     @code
+my TimeZone $tz = $pgm.getTimeZone();
     @endcode
  */
 TimeZone Program::getTimeZone() {
    return new QoreObject(QC_TIMEZONE, 0, new TimeZoneData(p->currentTZ()));
 }
 
-//! 
-/** 
+//! Sets a @ref conditional_parsing "parse define" for the current Program
+/** @param def The parse define to assign
+    @param val The value to assign to the define
+
     @par Example
     @code
+$pgm.define("PRODUCTION", True);
     @endcode
  */
 nothing Program::define(string def, any val) {
@@ -428,10 +977,12 @@ nothing Program::define(string def, any val) {
       qore_program_private::runTimeDefine(p, t->getBuffer(), val ? val->refSelf() : 0, xsink);
 }
 
-//! 
-/** 
+//! Unsets a @ref conditional_parsing "parse define" for the current Program
+/** @param def The name of the define to undefine; if the given define is not defined anyway, the operation is ignored
+
     @par Example
     @code
+$pgm.undefine("PRODUCTION");
     @endcode
  */
 nothing Program::undefine(string def) {
@@ -440,10 +991,14 @@ nothing Program::undefine(string def) {
       qore_program_private::runTimeUnDefine(p, t->getBuffer(), xsink);
 }
 
-//! 
-/** 
+//! Returns \c True if the given @ref conditional_parsing "parse define" is defined in the current Program (does not have to have a value defined to return \c True), \c False if not
+/** @param def The name of the define to check
+
+    @return \c True if the given @ref conditional_parsing "parse define" is defined in the current Program (does not have to have a value defined to return \c True), \c False if not
+
     @par Example
     @code
+my bool $b = $pgm.isDefined("PRODUCTION");
     @endcode
  */
 bool Program::isDefined(string def) {
@@ -451,11 +1006,15 @@ bool Program::isDefined(string def) {
    return t ? qore_program_private::runTimeIsDefined(p, t->getBuffer()) : false;
 }
 
-//! 
-/** 
+//! Retrieves the value of the given @ref conditional_parsing "parse define" in the current Program
+/** @return the value of the given @ref conditional_parsing "parse define" in the current Program
+
     @par Example
     @code
+my any $val = $pgm.getDefine("PRODUCTION");
     @endcode
+
+    @note A parse define may be defined with no value; use Program::isDefined to check if a parse define is actually defined or not
  */
 any Program::getDefine(string def) {
    TempEncodingHelper t(def, QCS_DEFAULT, xsink);
