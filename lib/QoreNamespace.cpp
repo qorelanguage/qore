@@ -1463,7 +1463,7 @@ void StaticSystemNamespace::init() {
    qoreNS->addSystemClass(initSSLCertificateClass());
    qoreNS->addSystemClass(initSSLPrivateKeyClass());
    qoreNS->addSystemClass(initSocketClass(*qoreNS));
-   qoreNS->addSystemClass(initProgramClass());
+   qoreNS->addSystemClass(initProgramClass(*qoreNS));
 
    qoreNS->addSystemClass(initTermIOSClass());
    qoreNS->addSystemClass(File = initFileClass(*qoreNS));

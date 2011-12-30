@@ -1,0 +1,463 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/*
+  QC_Program.qpp
+
+  Qore Programming Language
+
+  Copyright 2003 - 2011 David Nichols
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+  
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+  
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
+#include <qore/Qore.h>
+#include <qore/intern/QC_Program.h>
+#include <qore/intern/QC_TimeZone.h>
+#include <qore/intern/qore_program_private.h>
+
+//! Program objects allow Qore programs to support subprograms with the option to restrict capabilities, for example, to support user-defined logic for application actions
+/** Parsing in Qore happens in two steps; first all code is parsed to pending data structures, and then in the second stage, all references are resolved, and, if there are no errors, then all changes are committed to the Program object. Note that all parse actions (Program::parse(), Program::parsePending(), Program::parseCommit(), and Program::parseRollback()) are atomic; there is a thread lock on each Program object to ensure atomicity, and if any parse errors occur in any stage of parsing, any pending changes to the Program object are automatically rolled back. However parse actions that affect only one stage of the two stages of parsing (Program::parsePending(), Program::parseCommit() and Program::parseRollback()) are atomic within themselves, but not between calls, so one thread may inadvertently commit changes to a Program object if two or more threads are trying to perform transaction-safe two-stage parsing on a Program object without explicit user locking.
+
+    @ref parse_options "Parse option constants" can be used to limit the capabilities of a Program object. These options should be binary-OR'ed together and passed to the Program object's constructor. Also see @ref command_line_parsing for equivalent command-line options, and @ref parse_directives for equivalent parse directives.
+
+    Note that a program can provide controlled access to functionality otherwise restricted by parse options by exporting a custom API into the child program object using either the Program::importFunction() or Program::importGlobalVariable() method. This is possible because code (functions or object methods) imported into and called from a subprogram will run in the parent's space and therefore with the parent's capabilities.
+ */
+qclass Program [arg=QoreProgram* p];
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+Program::constructor(softint po = PO_DEFAULT) {
+   self->setPrivate(CID_PROGRAM, new QoreProgram(getProgram(), po));
+}
+
+//! 
+/** 
+    @throw PROGRAM-COPY-ERROR copying Program objects is currently unsupported
+ */
+Program::copy() {
+   xsink->raiseException("PROGRAM-COPY-ERROR", "copying Program objects is currently unsupported");
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+nothing Program::parse(string code, string label) {
+   // format label as "<run-time-loaded: xxx>"
+   QoreString nlabel("<run-time-loaded: ");
+   nlabel.concat(label, xsink);
+   if (*xsink)
+      return 0;
+   nlabel.concat('>');
+
+   p->parse(code, &nlabel, xsink);
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+*hash Program::parse(string code, string label, softint warning_mask) {
+   // format label as "<run-time-loaded: xxx>"
+   QoreString nlabel("<run-time-loaded: ");
+   nlabel.concat(label, xsink);
+   if (*xsink)
+      return 0;
+   nlabel.concat('>');
+
+   ExceptionSink wsink;
+   p->parse(code, &nlabel, xsink, &wsink, warning_mask);
+   if (!wsink.isException())
+      return 0;
+
+   QoreException *e = wsink.catchException();
+   return e->makeExceptionObjectAndDelete(xsink);
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+nothing Program::parsePending(string code, string label) {
+   // format label as "<run-time-loaded: xxx>"
+   QoreString nlabel("<run-time-loaded: ");
+   nlabel.concat(label, xsink);
+   if (*xsink)
+      return 0;
+   nlabel.concat('>');
+
+   p->parsePending(code, &nlabel, xsink);
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+*hash Program::parsePending(string code, string label, softint warning_mask) {
+   // format label as "<run-time-loaded: xxx>"
+   QoreString nlabel("<run-time-loaded: ");
+   nlabel.concat(label, xsink);
+   if (*xsink)
+      return 0;
+   nlabel.concat('>');
+
+   ExceptionSink wsink;
+   p->parsePending(code, &nlabel, xsink, &wsink, warning_mask);
+   if (!wsink.isException())
+      return 0;
+
+   QoreException *e = wsink.catchException();
+   return e->makeExceptionObjectAndDelete(xsink);
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+nothing Program::parseCommit() {
+   p->parseCommit(xsink);
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+*hash Program::parseCommit(int warning_mask) {
+   ExceptionSink wsink;
+   p->parseCommit(xsink, &wsink, warning_mask);
+   if (!wsink.isException())
+      return 0;
+
+   QoreException *e = wsink.catchException();
+   return e->makeExceptionObjectAndDelete(xsink);
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+nothing Program::parseRollback() {
+   p->parseRollback();
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+any Program::callFunction(string name, ...) {
+   ReferenceHolder<QoreListNode> vargs(xsink);
+   if (args->size() > 1)
+      vargs = args->copyListFrom(1);
+
+   return p->callFunction(name->getBuffer(), *vargs, xsink);
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+any Program::callFunctionArgs(string name, *softlist vargs) {
+   return p->callFunction(name->getBuffer(), vargs, xsink);
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+bool Program::existsFunction(string name) {
+   return p->existsFunction(name->getBuffer());
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+any Program::run() {
+   return p->run(xsink);
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+nothing Program::importFunction(string func) {
+   getProgram()->exportUserFunction(func->getBuffer(), p, xsink);
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+nothing Program::importFunction(string func, string new_name) {
+   getProgram()->exportUserFunction(func->getBuffer(), new_name->getBuffer(), p, xsink);
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+nothing Program::importGlobalVariable(string varname, bool readonly = False) {
+   class Var *var = getProgram()->findGlobalVar(varname->getBuffer());
+   if (var)
+      p->importGlobalVariable(var, xsink, readonly);
+   else
+      xsink->raiseException("PROGRAM-IMPORTGLOBALVARIABLE-EXCEPTION", "there is no global variable \"%s\"", varname->getBuffer());
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+list Program::getUserFunctionList() {
+   return p->getUserFunctionList();
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+int Program::getParseOptions() {
+   return p->getParseOptions();
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+nothing Program::setParseOptions(softint opt = PO_DEFAULT) {
+   p->setParseOptions(opt, xsink);
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+nothing Program::disableParseOptions(softint opt) {
+   p->disableParseOptions(opt, xsink);
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+nothing Program::replaceParseOptions(softint opt) {
+   p->replaceParseOptions(opt, xsink);
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+nothing Program::setScriptPath(*string path) {
+   p->setScriptPath(path ? path->getBuffer() : 0);
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+*string Program::getScriptDir() {
+   return p->getScriptDir();
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+*string Program::getScriptName() {
+   return p->getScriptName();
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+*string Program::getScriptPath() {
+   return p->getScriptPath();
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+nothing Program::lockOptions() {
+   p->lockOptions();
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+any Program::getGlobalVariable(string varname, *reference ref) {
+   TempEncodingHelper t(varname, QCS_DEFAULT, xsink);
+   if (!t)
+      return 0;
+
+    bool found;
+    ReferenceHolder<AbstractQoreNode> rv(p->getGlobalVariableValue(t->getBuffer(), found), xsink);
+
+    if (ref) {
+	QoreTypeSafeReferenceHelper r(ref, xsink);
+	if (!r)
+	    return 0;
+
+	if (r.assign(get_bool_node(found), xsink))
+	    return 0;
+    }
+
+    return rv.release();
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+nothing Program::setTimeZoneRegion(string region) {
+   const AbstractQoreZoneInfo *zone = QTZM.findLoadRegion(region->getBuffer(), xsink);
+   if (!*xsink)
+      p->setTZ(zone);
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+nothing Program::setTimeZoneUTCOffset(softint seconds_east) {
+   const AbstractQoreZoneInfo *zone = QTZM.findCreateOffsetZone(seconds_east);
+   p->setTZ(zone);
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+nothing Program::setTimeZone(TimeZone[TimeZoneData] zone) {
+   p->setTZ(zone->get());
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+TimeZone Program::getTimeZone() {
+   return new QoreObject(QC_TIMEZONE, 0, new TimeZoneData(p->currentTZ()));
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+nothing Program::define(string def, any val) {
+   TempEncodingHelper t(def, QCS_DEFAULT, xsink);
+   if (t)
+      qore_program_private::runTimeDefine(p, t->getBuffer(), val ? val->refSelf() : 0, xsink);
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+nothing Program::undefine(string def) {
+   TempEncodingHelper t(def, QCS_DEFAULT, xsink);
+   if (t)
+      qore_program_private::runTimeUnDefine(p, t->getBuffer(), xsink);
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+bool Program::isDefined(string def) {
+   TempEncodingHelper t(def, QCS_DEFAULT, xsink);
+   return t ? qore_program_private::runTimeIsDefined(p, t->getBuffer()) : false;
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+any Program::getDefine(string def) {
+   TempEncodingHelper t(def, QCS_DEFAULT, xsink);
+   return t ? qore_program_private::runTimeGetDefine(p, t->getBuffer()) : 0;
+}
