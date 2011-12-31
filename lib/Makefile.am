@@ -86,11 +86,15 @@ QC_Dir.cpp: QC_Dir.qpp qpp
 QC_Program.cpp: QC_Program.qpp qpp
 	$(QPP) $<
 
+QC_GetOpt.cpp: QC_GetOpt.qpp qpp
+	$(QPP) $<
+
 QORE_GENERATED_SOURCES = \
 	QC_Queue.cpp QC_Socket.cpp QC_File.cpp QC_AbstractSmartLock.cpp QC_Mutex.cpp QC_AutoLock.cpp \
 	QC_Gate.cpp QC_AutoGate.cpp QC_RWLock.cpp QC_AutoReadLock.cpp QC_AutoWriteLock.cpp \
 	QC_Condition.cpp QC_Sequence.cpp QC_Counter.cpp QC_HTTPClient.cpp QC_FtpClient.cpp \
-	QC_Datasource.cpp QC_DatasourcePool.cpp QC_SQLStatement.cpp QC_Dir.cpp QC_Program.cpp
+	QC_Datasource.cpp QC_DatasourcePool.cpp QC_SQLStatement.cpp QC_Dir.cpp QC_Program.cpp \
+	QC_GetOpt.cpp
 
 CLEANFILES = $(QORE_GENERATED_SOURCES)
 

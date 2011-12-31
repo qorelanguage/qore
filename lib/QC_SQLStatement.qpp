@@ -110,7 +110,7 @@ SQLStatement::constructor(Datasource[ManagedDatasource] ds) {
 //! Creates the SQLStatement object based on the given DatasourcePool object that provides the connection to the database
 /** This method will throw an exception only if the object passed as an argument uses a driver that does not support the prepared statement interface added in Qore version 0.8.1.
 
-    @param ds The DatasourcePool object to use for the DB connection for the SQLStatement object
+    @param dsp The DatasourcePool object to use for the DB connection for the SQLStatement object
 
     @par Example
     @code
@@ -558,7 +558,7 @@ nothing SQLStatement::beginTransaction() {
 //! Increments the row pointer when retrieving rows from a select statement; returns \c True if there is a row to retrieve, \c False if not
 /** If this method returns True, then call SQLStatement::fetchRow() afterwards to retrieve the row
 
-    @param Returns \c True if there is a row to retrieve, \c False if not (no more rows to be retrieved)
+    @return \c True if there is a row to retrieve, \c False if not (no more rows to be retrieved)
 
     @par Example
     @code

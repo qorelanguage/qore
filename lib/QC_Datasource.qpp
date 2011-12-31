@@ -145,7 +145,7 @@ qclass Datasource [dom=DATABASE; arg=ManagedDatasource* ds; ns=SQL];
     @param user The user name for the new connection. Also see Datasource::setUserName() for a method that allows this parameter to be set after the constructor.
     @param pass The password for the new connection. Also see Datasource::setPassword() for a method that allows this parameter to be set after the constructor.
     @param db The database name for the new connection. Also see Datasource::setDBName() for a method that allows this parameter to be set after the constructor.
-    @param encoding The database-specific name of the @character_encoding "character encoding" to use for the new connection. Also see Datasource::setDBCharset() for a method that allows this parameter to be set after the constructor. If no value is passed for this parameter, then the database character encoding corresponding to the @ref default_encoding "default character encoding" will be used instead.
+    @param encoding The database-specific name of the @ref character_encoding "character encoding" to use for the new connection. Also see Datasource::setDBCharset() for a method that allows this parameter to be set after the constructor. If no value is passed for this parameter, then the database character encoding corresponding to the @ref default_encoding "default character encoding" will be used instead.
     @param host The host name for the new connection. Also see Datasource::setHostName() for a method that allows this parameter to be set after the constructor.
     @param port The port number for the new connection. Also see Datasource::setPort() for a method that allows this parameter to be set after the constructor.
 
@@ -437,7 +437,7 @@ any Datasource::execRaw(string sql) {
 }
 
 //! Executes an SQL select statement on the server and returns the result as a hash (column names) of lists (column values per row)
-/** The return format of this method is suitable for use with @ref context_statements "context statements", for easy iteration and processing of query results.
+/** The return format of this method is suitable for use with @ref context "context statements", for easy iteration and processing of query results.
 
     Additionally, this format is more efficient format than that returned by the Datasource::selectRows() method, because the column names are not repeated for each row returned. Therefore, for retrieving anything greater than small amounts of data, it is recommended to use this method instead of Datasource::selectRows().
 
@@ -879,7 +879,7 @@ my *int $port = $db.getPort();
 }
 
 //! Sets the transaction lock timeout value in milliseconds; set to 0 for no timeout
-/** @param timeout_ms the transaction lock timeout value in milliseconds; set to 0 for no timeout.  Like all Qore functions and methods taking timeout values, a @relative_dates "relative date/time value" may be passed instead of an integer to make the timeout units clear (ex: \c 2500ms for 2.5 seconds).
+/** @param timeout_ms the transaction lock timeout value in milliseconds; set to 0 for no timeout.  Like all Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" may be passed instead of an integer to make the timeout units clear (ex: \c 2500ms for 2.5 seconds).
 
     @par Example
     @code

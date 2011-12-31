@@ -328,7 +328,7 @@ const SOCK_RAW = SOCK_RAW;
 
     To support TLS/SSL server connections, first set the certificate and private key with the Socket::setCertificate() and Socket::setPrivateKey() methods (see the SSLCertificate Class and the SSLPrivateKey Class for more information on the parameters required for these methods). Then Socket::acceptSSL() should be called after the socket is in a listening state to accept client connections and negotiate a TLS/SSL connection.
 
-    This class supports posting events to a @ref Qore::Thread::Queue "Queue". See @ref event-handling for more information.
+    This class supports posting events to a @ref Qore::Thread::Queue "Queue". See @ref event_handling for more information.
 
     The events raised by this object are listed in the following table:
 
@@ -422,8 +422,8 @@ $sock.connectINET("2001:0db8:85a3:0000:0000:8a2e:0370:7334", 80, 20s);@endcode
     @param host The host name or IP address to connect to
     @param service The service name (ex: \c "http" or port number (given as or converted to a string) to connect to
     @param timeout_ms If a timeout value is passed and the connection takes longer to establish than the timeout, a \c "SOCKET-CONNECT-ERROR" exception is thrown
-    @param family The address family to use to connect to the remote socket; see @ref network-address-family-constants
-    @param socktype The type of socket; see @ref socket-type-constants; typically @ref SOCK_STREAM for TCP sockets
+    @param family The address family to use to connect to the remote socket; see @ref network_address_family_constants
+    @param socktype The type of socket; see @ref socket_type_constants; typically @ref SOCK_STREAM for TCP sockets
     @param protocol The protocol number for the socket (if not sure leave this 0)
 
     @throw SOCKET-CONNECT-ERROR An error occured connecting to the remote socket (cannot resolve hostname, no listener, timeout exceeded, etc)
@@ -445,7 +445,7 @@ $sock.connectUNIX("/tmp/socket"); @endcode
     @ref EVENT_CONNECTING, @ref EVENT_CONNECTED
 
     @param path The socket will try to connect to a UNIX domain socket file on the local filesystem with the given name
-    @param socktype The type of socket; see @ref socket-type-constants; typically @ref SOCK_STREAM for TCP sockets
+    @param socktype The type of socket; see @ref socket_type_constants; typically @ref SOCK_STREAM for TCP sockets
     @param protocol The protocol number for the socket (if not sure leave this 0)
 
     @throw SOCKET-CONNECT-ERROR An error occured connecting to the socket
@@ -506,8 +506,8 @@ $sock.connectINETSSL("2001:0db8:85a3:0000:0000:8a2e:0370:7334", 80, 20s); @endco
     @param host The host name or IP address to connect to
     @param service The service name (ex: \c "http" or port number (given as or converted to a string) to connect to
     @param timeout_ms If a timeout value is passed and the connection takes longer to establish than the timeout, a \c "SOCKET-CONNECT-ERROR" exception is thrown
-    @param family The address family to use to connect to the remote socket; see @ref network-address-family-constants
-    @param socktype The type of socket; see @ref socket-type-constants; typically @ref SOCK_STREAM for TCP sockets
+    @param family The address family to use to connect to the remote socket; see @ref network_address_family_constants
+    @param socktype The type of socket; see @ref socket_type_constants; typically @ref SOCK_STREAM for TCP sockets
     @param protocol The protocol number for the socket (if not sure leave this 0)
 
     @throw SOCKET-CONNECT-ERROR An error occured connecting to the remote socket (cannot resolve hostname, no listener, timeout exceeded, etc)
@@ -531,7 +531,7 @@ $sock.connectUNIXSSL("/tmp/socket"); @endcode
     @ref EVENT_CONNECTING, @ref EVENT_CONNECTED, @ref EVENT_START_SSL, @ref EVENT_SSL_ESTABLISHED
 
     @param path The socket will try to connect to a UNIX domain socket file on the local filesystem with the given name
-    @param socktype The type of socket; see @ref socket-type-constants; typically @ref SOCK_STREAM for TCP sockets
+    @param socktype The type of socket; see @ref socket_type_constants; typically @ref SOCK_STREAM for TCP sockets
     @param protocol The protocol number for the socket (if not sure leave this 0)
 
     @throw SOCKET-CONNECT-ERROR An error occured connecting to the socket

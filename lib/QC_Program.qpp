@@ -133,8 +133,6 @@ const PO_NO_GUI = PO_NO_GUI;
 
 //! Prohibits all terminal and file I/O and GUI operations
 /** made up of @ref PO_NO_GUI | @ref PO_NO_TERMINAL_IO | @ref PO_NO_FILESYSTEM
-
-    @see @ref  "%"
  */
 const PO_NO_IO = PO_NO_IO;
 
