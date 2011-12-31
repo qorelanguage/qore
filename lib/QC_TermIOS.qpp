@@ -1,0 +1,318 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/*
+  QC_TermIOS.qpp
+  
+  Qore Programming Language
+  
+  Copyright 2003 - 2011 David Nichols
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+  
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+  
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
+#include <qore/Qore.h>
+#include <qore/intern/QC_TermIOS.h>
+
+//! This class allows %Qore scripts to get or set terminal settings on UNIX platforms
+/** On platforms without TermIOS support (such as Windows), none of the methods in this class are available; to write a portable program, check the @ref HAVE_TERMIOS constant at runtime before using this functionality.
+
+    This class contains the data structure used to read and set terminal attributes on terminal I/O constants (@ref stdin, @ref stdout, @ref stderr).
+
+    This class is used with File::getTerminalAttributes(), File::setTerminalAttributes(), and the terminal I/O constants to manipulate terminal attributes.
+
+    For example, here is some code to set terminal attributes, read in a character from standard input with a timeout, and reset the terminal attributes:
+    @code
+my TermIOS $t();
+stdin.getTerminalAttributes($t);
+my TermIOS $orig = $t.copy();
+on_exit
+    stdin.setTerminalAttributes(TCSADRAIN, $orig);
+
+my $lflag = $t.getLFlag();
+$lflag &= ~ICANON;
+$lflag &= ~ECHO;
+$lflag &= ~ISIG;
+$t.setLFlag($lflag);
+$t.setCC(VMIN, 1);
+$t.setCC(VTIME, 0);
+stdin.setTerminalAttributes(TCSADRAIN, $t);
+
+stdout.printf("Press any key: ");
+while (!stdin.isDataAvailable(20ms)) {
+    stdout.printf(".");
+    stdout.sync();
+    usleep(1ms);
+}
+my $c = stdin.read(1);
+stdout.printf(" GOT ASCII 0x%02x (%d) '%s'\n", ord($c), ord($c), $c);
+    @endcode
+
+    For more information on terminal attributes, see your system's manual pages for "termios".
+
+    @note This class is not available with the @ref PO_NO_TERMINAL_IO parse option.
+ */
+qclass TermIOS [dom=TERMINAL_IO; arg=QoreTermIOS*s];
+
+//! 
+/** @par Platform Availability
+    @ref HAVE_TERMIOS
+
+    @par Example
+    @code
+
+    @endcode
+ */
+TermIOS::constructor() {
+#ifdef HAVE_TERMIOS_H
+   self->setPrivate(CID_TERMIOS, new QoreTermIOS);
+#else
+   missing_method_error("TermIOS::constructor", "TERMIOS", xsink);
+#endif
+}
+
+//! 
+/** @par Platform Availability
+    @ref HAVE_TERMIOS
+
+    @par Example
+    @code
+
+    @endcode
+ */
+TermIOS::copy() {
+#ifdef HAVE_TERMIOS_H
+   self->setPrivate(CID_TERMIOS, new QoreTermIOS(*s));
+#else
+   missing_method_error("TermIOS::copy", "TERMIOS", xsink);
+#endif
+}
+
+//! 
+/** @par Platform Availability
+    @ref HAVE_TERMIOS
+
+    @par Example
+    @code
+
+    @endcode
+ */
+int TermIOS::getLFlag() {
+#ifdef HAVE_TERMIOS_H
+   return s->get_lflag();
+#else
+   return missing_method_error("TermIOS::getLFlag", "TERMIOS", xsink);
+#endif
+}
+
+//! 
+/** @par Platform Availability
+    @ref HAVE_TERMIOS
+
+    @par Example
+    @code
+
+    @endcode
+ */
+int TermIOS::getCFlag() {
+#ifdef HAVE_TERMIOS_H
+   return s->get_cflag();
+#else
+   return missing_method_error("TermIOS::getCFlag", "TERMIOS", xsink);
+#endif
+}
+
+//! 
+/** @par Platform Availability
+    @ref HAVE_TERMIOS
+
+    @par Example
+    @code
+
+    @endcode
+ */
+int TermIOS::getOFlag() {
+#ifdef HAVE_TERMIOS_H
+   return s->get_oflag();
+#else
+   return missing_method_error("TermIOS::getOFlag", "TERMIOS", xsink);
+#endif
+}
+
+//! 
+/** @par Platform Availability
+    @ref HAVE_TERMIOS
+
+    @par Example
+    @code
+
+    @endcode
+ */
+int TermIOS::getIFlag() {
+#ifdef HAVE_TERMIOS_H
+   return s->get_iflag();
+#else
+   return missing_method_error("TermIOS::getIFlag", "TERMIOS", xsink);
+#endif
+}
+
+//! 
+/** @par Platform Availability
+    @ref HAVE_TERMIOS
+
+    @par Example
+    @code
+
+    @endcode
+ */
+nothing TermIOS::setLFlag(softint flag = 0) {
+#ifdef HAVE_TERMIOS_H
+   s->set_lflag((int)flag);
+   return 0;
+#else
+   return missing_method_error("TermIOS::setLFlag", "TERMIOS", xsink);
+#endif
+}
+
+//! 
+/** @par Platform Availability
+    @ref HAVE_TERMIOS
+
+    @par Example
+    @code
+
+    @endcode
+ */
+nothing TermIOS::setCFlag(softint flag = 0) {
+#ifdef HAVE_TERMIOS_H
+   s->set_cflag((int)flag);
+   return 0;
+#else
+   return missing_method_error("TermIOS::setCFlag", "TERMIOS", xsink);
+#endif
+}
+
+//! 
+/** @par Platform Availability
+    @ref HAVE_TERMIOS
+
+    @par Example
+    @code
+
+    @endcode
+ */
+nothing TermIOS::setOFlag(softint flag = 0) {
+#ifdef HAVE_TERMIOS_H
+   s->set_oflag((int)flag);
+   return 0;
+#else
+   return missing_method_error("TermIOS::setOFlag", "TERMIOS", xsink);
+#endif
+}
+
+//! 
+/** @par Platform Availability
+    @ref HAVE_TERMIOS
+
+    @par Example
+    @code
+
+    @endcode
+ */
+nothing TermIOS::setIFlag(softint flag = 0) {
+#ifdef HAVE_TERMIOS_H
+   s->set_iflag((int)flag);
+   return 0;
+#else
+   return missing_method_error("TermIOS::setIFlag", "TERMIOS", xsink);
+#endif
+}
+
+//! 
+/** @par Platform Availability
+    @ref HAVE_TERMIOS
+
+    @par Example
+    @code
+
+    @endcode
+ */
+int TermIOS::getCC(softint cc = 0) {
+#ifdef HAVE_TERMIOS_H
+   return s->get_cc(cc, xsink);
+#else
+   return missing_method_error("TermIOS::getCC", "TERMIOS", xsink);
+#endif
+}
+
+//! 
+/** @par Platform Availability
+    @ref HAVE_TERMIOS
+
+    @par Example
+    @code
+
+    @endcode
+ */
+nothing TermIOS::setCC(softint offset = 0, softint value = 0) {
+#ifdef HAVE_TERMIOS_H
+   s->set_cc(offset, (cc_t)value, xsink);
+   return 0;
+#else
+   return missing_method_error("TermIOS::setCC", "TERMIOS", xsink);
+#endif
+}
+
+//! 
+/** @par Platform Availability
+    @ref HAVE_TERMIOS
+
+    @par Example
+    @code
+
+    @endcode
+ */
+bool TermIOS::isEqual(Termios[QoreTermIOS] termios) [flags=QC_CONSTANT] {
+#ifdef HAVE_TERMIOS_H
+   ReferenceHolder<QoreTermIOS> holder(termios, xsink);
+   return s->is_equal(termios);
+#else
+   termios = 0;
+   return missing_method_error("TermIOS::isEqual", "TERMIOS", xsink);
+#endif
+}
+
+//! 
+/** @par Platform Availability
+    @ref HAVE_TERMIOS
+
+    @par Example
+    @code
+
+    @endcode
+ */
+hash TermIOS::getWindowSize() [flags=QC_RET_VALUE_ONLY] {
+#ifdef HAVE_TERMIOS_H
+   int rows, columns;
+
+   if (QoreTermIOS::getWindowSize(rows, columns, xsink))
+      return 0;
+
+   QoreHashNode *rv = new QoreHashNode;
+   rv->setKeyValue("rows", new QoreBigIntNode(rows), xsink);
+   rv->setKeyValue("columns", new QoreBigIntNode(columns), xsink);
+   return rv;
+#else
+   return missing_method_error("TermIOS::getWindowSize", "TERMIOS", xsink);
+#endif
+}

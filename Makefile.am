@@ -10,7 +10,29 @@ SUBDIRS = lib
 
 INCLUDES = -I$(top_srcdir)/include
 
-LANG_QPP_SRC = lib/QC_Queue.qpp lib/QC_Socket.qpp lib/QC_File.qpp
+LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
+	lib/QC_AutoGate.qpp \
+	lib/QC_AutoLock.qpp \
+	lib/QC_AutoReadLock.qpp \
+	lib/QC_AutoWriteLock.qpp \
+	lib/QC_Condition.qpp \
+	lib/QC_Counter.qpp \
+	lib/QC_Datasource.qpp \
+	lib/QC_DatasourcePool.qpp \
+	lib/QC_Dir.qpp \
+	lib/QC_File.qpp \
+	lib/QC_FtpClient.qpp \
+	lib/QC_Gate.qpp \
+	lib/QC_GetOpt.qpp \
+	lib/QC_HTTPClient.qpp \
+	lib/QC_Mutex.qpp \
+	lib/QC_Program.qpp \
+	lib/QC_Queue.qpp \
+	lib/QC_RWLock.qpp \
+	lib/QC_SQLStatement.qpp \
+	lib/QC_Sequence.qpp \
+	lib/QC_Socket.qpp \
+	lib/QC_TermIOS.qpp
 
 LIB_DOXYFILES = \
 	doxygen/lib/Doxyfile \

@@ -1465,7 +1465,7 @@ void StaticSystemNamespace::init() {
    qoreNS->addSystemClass(initSocketClass(*qoreNS));
    qoreNS->addSystemClass(initProgramClass(*qoreNS));
 
-   qoreNS->addSystemClass(initTermIOSClass());
+   qoreNS->addSystemClass(initTermIOSClass(*qoreNS));
    qoreNS->addSystemClass(File = initFileClass(*qoreNS));
    qoreNS->addSystemClass(initDirClass(*qoreNS));
    qoreNS->addSystemClass(initGetOptClass(*qoreNS));

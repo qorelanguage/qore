@@ -913,8 +913,8 @@ protected:
             std::string cid;
             get_type_name(cid, p.type);
             toupper(cid);            
-            fprintf(fp, "   HARD_QORE_OBJ_DATA(%s, %s, args, 0, CID_%s, \"%s::%s()\", \"%s\", xsink);\n   if (*xsink)\n      return%s;\n",
-                    p.name.c_str(), p.qore.c_str(), cid.c_str(), cname, name.c_str(), p.type.c_str(), rv ? " 0" : "");
+            fprintf(fp, "   HARD_QORE_OBJ_DATA(%s, %s, args, %d, CID_%s, \"%s::%s()\", \"%s\", xsink);\n   if (*xsink)\n      return%s;\n",
+                    p.name.c_str(), p.qore.c_str(), i, cid.c_str(), cname, name.c_str(), p.type.c_str(), rv ? " 0" : "");
             continue;
          }
 

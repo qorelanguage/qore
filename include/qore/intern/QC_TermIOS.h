@@ -26,7 +26,7 @@
 
 DLLLOCAL extern QoreClass *QC_TERMIOS;
 DLLEXPORT extern qore_classid_t CID_TERMIOS;
-DLLLOCAL QoreClass *initTermIOSClass();
+DLLLOCAL QoreClass *initTermIOSClass(QoreNamespace& ns);
 
 #ifdef HAVE_TERMIOS_H
 
