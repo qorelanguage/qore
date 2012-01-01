@@ -16,9 +16,9 @@
 
     @section threading_and_variables Threading and Variables
 
-    All global variables are shared in %Qore programs, while local variables (declared with \c\b my) are generally local to each thread (and thus accessed without any mutual-exclusion locking), regardless of location. This means that if a variable is declared with \c\b my at the top level, it will actually have global scope, but also each thread will have its own copy of the variable. In effect, declaring a top-level local variable with \c\b my actually creates a global thread-local variable.
+    All global variables are shared in %Qore programs, while local variables (declared with \c \b my) are generally local to each thread (and thus accessed without any mutual-exclusion locking), regardless of location. This means that if a variable is declared with \c \b my at the top level, it will actually have global scope, but also each thread will have its own copy of the variable. In effect, declaring a top-level local variable with \c \b my actually creates a global thread-local variable.
 
-    The following code gives an example of declaring a global thread-local variable by using \c\b my at the top-level:
+    The following code gives an example of declaring a global thread-local variable by using \c \b my at the top-level:
 
     @code
 %require-our
@@ -47,7 +47,7 @@ x=null@endverbatim
 
     @anchor synchronized
     @par synchronized
-    The \c\b synchronized keyword can be used before function or class method definitions in order to guarantee that the function or method call will only be executed in one thread at a time. As in Java, this keyword can also be used safely with recursive functions and methods (internally a recursive mutual exclusion lock that participates in %Qore's deadlock detection framework is used to guarantee thread-exclusivity and allow recursion).
+    The \c \b synchronized keyword can be used before function or class method definitions in order to guarantee that the function or method call will only be executed in one thread at a time. As in Java, this keyword can also be used safely with recursive functions and methods (internally a recursive mutual exclusion lock that participates in %Qore's deadlock detection framework is used to guarantee thread-exclusivity and allow recursion).
 
     @par Classes Useful With Threading
     The following classes are useful when developing multi-threaded %Qore programs:\n

@@ -260,14 +260,14 @@ Skips the rest of a loop and jumps right to the evaluation of the iteration expr
     @section rethrow rethrow Statements
 
     @par Synopsis
-    A \c \b rethrow statement can be used to rethrow an exception in a \c\b catch block. In this case a entry tagged as a rethrow entry will be placed on the exception call stack.
+    A \c \b rethrow statement can be used to rethrow an exception in a \c \b catch block. In this case a entry tagged as a rethrow entry will be placed on the exception call stack.
 
     @par Syntax
     \b \c rethrow;
 
     @par Description
-    The rethrown exception will be either passed to the next higher-level \c\b catch block, or to the system default exception handler, as with a @ref throw "throw statement".\n\n
-    This statement can be used to maintain coherent call stacks even when exceptions are handled by more than one \c\b catch block (for detailed information about the exception hash and the format of call stacks, see @ref exception_handling).\n\n
+    The rethrown exception will be either passed to the next higher-level \c \b catch block, or to the system default exception handler, as with a @ref throw "throw statement".\n\n
+    This statement can be used to maintain coherent call stacks even when exceptions are handled by more than one \c \b catch block (for detailed information about the exception hash and the format of call stacks, see @ref exception_handling).\n\n
     Note that it is an error to use the \c \b rethrow statement outside of a \c \b catch block.
 
     <hr>
@@ -303,7 +303,7 @@ Skips the rest of a loop and jumps right to the evaluation of the iteration expr
     <em>@ref expressions "sort_expression"</em>\n
     An optional \c \b sortBy by expression may also be given. In this case, the expression will be evaluated for each row of the query given, and then the result set will be sorted in ascending order by the results of the expressions according to the resulting type of the evaluated expression (i.e. if the result of the evaluation of the expression gives a string, then string order is used to sort, if the result of the evaluation is an integer, then integer order is used, etc).\n\n
     <em>@ref expressions "sort_descending_expression"</em>\n
-    Another optional modifier to the \c\b context statement that behaves the same as above except that the results are sorted in descending order.
+    Another optional modifier to the \c \b context statement that behaves the same as above except that the results are sorted in descending order.
 
     @par Example
     @code 
@@ -318,19 +318,19 @@ sortBy (%effective_start_date) {
     @section summarize summarize Statements
 
     @par Synopsis
-    \c\b summarize statements are like context statements with one important difference: results sets are grouped by a by expression, and the statement is executed only once per discrete by expression result. This statement is designed to be used with the @ref subcontext "subcontext statement".
+    \c \b summarize statements are like context statements with one important difference: results sets are grouped by a by expression, and the statement is executed only once per discrete by expression result. This statement is designed to be used with the @ref subcontext "subcontext statement".
 
     @par Syntax
-    \c\b summarize <tt>(</tt><em>@ref expressions "data_expression"</em><tt>) \b by (</tt><em>@ref expressions "by_expression"</em><tt>)</tt>\n
+    \c \b summarize <tt>(</tt><em>@ref expressions "data_expression"</em><tt>) \b by (</tt><em>@ref expressions "by_expression"</em><tt>)</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<tt>[\b where (</tt><em>@ref expressions "where_expression"</em><tt>)]</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<tt>[\b sortBy (</tt><em>@ref expressions "sort_expression"</em><tt>)]</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<tt>[\b sortDescendingBy (</tt><em>@ref expressions "sort_descending_expression"</em><tt>)]</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<em>@ref statements "statement"</em>
 
     @par Description
-    \c\b summarize statements modifiers have the same effect as those for the @ref context "context statement", except for the following:\n\n
+    \c \b summarize statements modifiers have the same effect as those for the @ref context "context statement", except for the following:\n\n
     <tt>\b by (</tt><em>@ref expressions "by_expression"</em><tt>)</tt>\n
-    The \c\b by expression is executed for each row in the data structure indicated. The set of unique results defines groups of result rows. For each group of result rows, each row having an identical result of the evaluation of the by expression, the statement is executed only once.
+    The \c \b by expression is executed for each row in the data structure indicated. The set of unique results defines groups of result rows. For each group of result rows, each row having an identical result of the evaluation of the by expression, the statement is executed only once.
 
     @par Example
     @code 
@@ -352,14 +352,14 @@ summarize ($services)
     Statement used to loop through values within a @ref summarize "summarize statement".
 
     @par Syntax
-    \c\b subcontext \n
+    \c \b subcontext \n
     &nbsp;&nbsp;&nbsp;&nbsp;<tt>[\b where (</tt><em>@ref expressions "where_expression"</em><tt>)]</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<tt>[\b sortBy (</tt><em>@ref expressions "sort_expression"</em><tt>)]</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<tt>[\b sortDescendingBy (</tt><em>@ref expressions "sort_descending_expression"</em><tt>)]</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<em>@ref statements "statement"</em>
 
     @par Description
-    The \c\b subcontext statement is used in conjunction with @ref summarize "summarize statements". When result rows of a query should be grouped, and then each row in the result set should be individually processed, the %Qore programmer should first use a @ref summarize "summarize statement", and then a \c \b subcontext statement. The @ref summarize "summarize statement" will group rows, and then the nested \c\b subcontext statement will iterate through each row in the current summary group.
+    The \c \b subcontext statement is used in conjunction with @ref summarize "summarize statements". When result rows of a query should be grouped, and then each row in the result set should be individually processed, the %Qore programmer should first use a @ref summarize "summarize statement", and then a \c \b subcontext statement. The @ref summarize "summarize statement" will group rows, and then the nested \c \b subcontext statement will iterate through each row in the current summary group.
 
     @par Example
     @code 
@@ -379,10 +379,10 @@ summarize ($services)
     @section return return Statements
 
     @par Synopsis
-    \c\b return statements causes the flow of execution of the function, method or program to stop immediately and return to the caller. This statement can take an optional expression to return a value to the caller as well.
+    \c \b return statements causes the flow of execution of the function, method or program to stop immediately and return to the caller. This statement can take an optional expression to return a value to the caller as well.
 
     @par Syntax
-    \c\b return <em>@ref expressions "[expression]"</em>;
+    \c \b return <em>@ref expressions "[expression]"</em>;
 
     @par Description
     This statement causes execution of the current function, method, or program to returns to the caller, optionally with a return value.
@@ -401,13 +401,13 @@ my string $name = getName();@endcode
     Queues a statement or statement block for unconditional execution when the block is exited, even in the case of exceptions or @ref return "return statements". For similar statement that queue code for execution depending on the exception status when the block exits, see @ref on_success "on_success statements" and @ref on_error "on_error statements".
 
     @par Syntax
-    \c\b on_exit \n
+    \c \b on_exit \n
     &nbsp;&nbsp;&nbsp;&nbsp;<em>@ref statements "statement"</em>
 
     @par Description
-    The \c\b on_exit statement provides a clean way to do exception-safe cleanup within %Qore code. Any single statment (or statement block) after the \c\b on_exit keyword will be executed when the current block exits (as long as the statement itself is reached when executing - \c\b on_exit statements that are never reached when executing will have no effect).\n\n
-    The position of the \c\b on_exit statement in the block is important, as the immediate effect of this statement is to queue its code for execution when the block is exited. Even if an exception is raised or a @ref return "return statement" is executed, any \c\b on_exit code that is queued will be executed. Therefore it's ideal for putting cleanup code right next to the code that requires the cleanup.\n\n
-    Note that if this statement is reached when executing in a loop, the \c\b on_exit code will be executed for each iteration of the loop.\n\n
+    The \c \b on_exit statement provides a clean way to do exception-safe cleanup within %Qore code. Any single statment (or statement block) after the \c \b on_exit keyword will be executed when the current block exits (as long as the statement itself is reached when executing - \c \b on_exit statements that are never reached when executing will have no effect).\n\n
+    The position of the \c \b on_exit statement in the block is important, as the immediate effect of this statement is to queue its code for execution when the block is exited. Even if an exception is raised or a @ref return "return statement" is executed, any \c \b on_exit code that is queued will be executed. Therefore it's ideal for putting cleanup code right next to the code that requires the cleanup.\n\n
+    Note that if this statement is reached when executing in a loop, the \c \b on_exit code will be executed for each iteration of the loop.\n\n
     By using this statement, programmers ensure that necessary cleanup will be performed regardless of the exit status of the block (exception, @ref return "return", etc).
 
     @par Example
@@ -430,13 +430,13 @@ my string $name = getName();@endcode
     Queues a statement or statement block for execution when the block is exited in the case that no exception is active. Used often in conjunction with the @ref on_error "on_error statement" and related to the @ref on_exit "on_exit statement".
 
     @par Syntax
-    \c\b on_success \n
+    \c \b on_success \n
     &nbsp;&nbsp;&nbsp;&nbsp;<em>@ref statements "statement"</em>
 
     @par Description
-    The \c \b on_success statement provides a clean way to do block-level cleanup within %Qore code in the case that no exception is thrown in the block. Any single statment (or statement block) after the \c\b on_success keyword will be executed when the current block exits as long as no unhandled exception has been thrown (and as long as the statement itself is reached when executing - \c\b on_success statements that are never reached when executing will have no effect).\n\n
-    The position of the \c\b on_success statement in the block is important, as the immediate effect of this statement is to queue its code for conditional execution when the block is exited. Even if a @ref return "return statement" is executed later in the block, any \c\b on_success code that is queued will be executed as long as there is no active (unhandled) exception. Therefore it's ideal for putting cleanup code right next to the code that requires the cleanup, along with @ref on_error "on_error statements", which are executed in a manner similar to \c\b on_success statements, except \c\b on_error statements are only executed when there is an active exception when the block is exited.\n\n
-    Note that if this statement is reached when executing in a loop, the \c\b on_success code will be executed for each iteration of the loop (as long as there is no active exception).
+    The \c \b on_success statement provides a clean way to do block-level cleanup within %Qore code in the case that no exception is thrown in the block. Any single statment (or statement block) after the \c \b on_success keyword will be executed when the current block exits as long as no unhandled exception has been thrown (and as long as the statement itself is reached when executing - \c \b on_success statements that are never reached when executing will have no effect).\n\n
+    The position of the \c \b on_success statement in the block is important, as the immediate effect of this statement is to queue its code for conditional execution when the block is exited. Even if a @ref return "return statement" is executed later in the block, any \c \b on_success code that is queued will be executed as long as there is no active (unhandled) exception. Therefore it's ideal for putting cleanup code right next to the code that requires the cleanup, along with @ref on_error "on_error statements", which are executed in a manner similar to \c \b on_success statements, except \c \b on_error statements are only executed when there is an active exception when the block is exited.\n\n
+    Note that if this statement is reached when executing in a loop, the \c \b on_success code will be executed for each iteration of the loop (as long as there is no active exception).
 
     @par Example
 @code
@@ -461,12 +461,12 @@ my string $name = getName();@endcode
     Queues a statement or statement block for execution when the block is exited in the case that no exception is active. Used often in conjunction with the @ref on_success "on_success statement" and related to the @ref on_exit "on_exit statement".
 
     @par Syntax
-    \c\b on_error \n
+    \c \b on_error \n
     &nbsp;&nbsp;&nbsp;&nbsp;<em>@ref statements "statement"</em>
 
     @par Description
-    The \c\b on_error statement provides a clean way to do block-level cleanup within %Qore code in the case that an exception is thrown in the block. Any single statment (or statement block) after the \c\b on_error keyword will be executed when the current block exits as long as an unhandled exception has been thrown (and as long as the statement itself is reached when executing - \c\b on_error statements that are never reached when executing will have no effect).\n\n
-    The position of the \c\b on_error statement in the block is important, as the immediate effect of this statement is to queue its code for conditional execution when the block is exited. Even if a @ref return "return statement" is executed later in the block, any \c\b on_error code that is queued will be executed as long as there is an active (unhandled) exception. Therefore it's ideal for putting cleanup code right next to the code that requires the cleanup, along with @ref on_success "on_success statements", which are executed in a manner similar to \c\b on_error statements, except @ref on_success "on_success statements" are only executed when there is no active exception when the block is exited.\n\n
+    The \c \b on_error statement provides a clean way to do block-level cleanup within %Qore code in the case that an exception is thrown in the block. Any single statment (or statement block) after the \c \b on_error keyword will be executed when the current block exits as long as an unhandled exception has been thrown (and as long as the statement itself is reached when executing - \c \b on_error statements that are never reached when executing will have no effect).\n\n
+    The position of the \c \b on_error statement in the block is important, as the immediate effect of this statement is to queue its code for conditional execution when the block is exited. Even if a @ref return "return statement" is executed later in the block, any \c \b on_error code that is queued will be executed as long as there is an active (unhandled) exception. Therefore it's ideal for putting cleanup code right next to the code that requires the cleanup, along with @ref on_success "on_success statements", which are executed in a manner similar to \c \b on_error statements, except @ref on_success "on_success statements" are only executed when there is no active exception when the block is exited.\n\n
     Note that the code in this statement can only be executed once in any block, as a block (even a block within a loop) can only exit the loop once with an active exception (in contrast to @ref on_success "on_success" and @ref on_exit "on_exit statements", which are executed for every iteration of a loop).
 
     @par Example

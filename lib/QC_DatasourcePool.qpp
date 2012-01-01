@@ -310,7 +310,7 @@ any DatasourcePool::execRaw(string sql) {
 }
 
 //! Executes an SQL select statement on the server and returns the result as a hash (column names) of lists (column values per row)
-/** The return format of this method is suitable for use with @ref context_statements "context statements", for easy iteration and processing of query results.
+/** The return format of this method is suitable for use with @ref context "context statements", for easy iteration and processing of query results.
 
     Additionally, this format is more efficient format than that returned by the Datasource::selectRows() method, because the column names are not repeated for each row returned. Therefore, for retrieving anything greater than small amounts of data, it is recommended to use this method instead of Datasource::selectRows().
 

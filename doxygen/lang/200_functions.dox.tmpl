@@ -1,21 +1,21 @@
 /** @page functions Functions
 
-    A function is declared in %Qore by using the key word \c\b sub (for subroutine) as follows.
+    A function is declared in %Qore by using the key word \c \b sub (for subroutine) as follows.
 
     @par Function Declaration Syntax
-    <tt>[synchronized]</tt> <em>@ref data_type_declarations "[return_type]"</em> \c\b sub <em>function_name</em><tt>(</tt><em>@ref data_type_declarations "[param_type]"</em> <tt>$</tt><em>var_name</em> ...<tt>]) {</tt>\n
+    <tt>[synchronized]</tt> <em>@ref data_type_declarations "[return_type]"</em> \c \b sub <em>function_name</em><tt>(</tt><em>@ref data_type_declarations "[param_type]"</em> <tt>$</tt><em>var_name</em> ...<tt>]) {</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<em>@ref statements "statement(s)..."</em>\n
     }\n\n
-    or the deprecated alternate syntax with the \c\b returns keyword:\n
-    <tt>[synchronized]</tt> \c\b sub <em>function_name</em><tt>(</tt><em>@ref data_type_declarations "[param_type]"</em> <tt>$</tt><em>var_name</em> ...<tt>]) \b returns</tt> <em>@ref data_type_declarations "return_type"</em> <tt>{</tt>\n
+    or the deprecated alternate syntax with the \c \b returns keyword:\n
+    <tt>[synchronized]</tt> \c \b sub <em>function_name</em><tt>(</tt><em>@ref data_type_declarations "[param_type]"</em> <tt>$</tt><em>var_name</em> ...<tt>]) \b returns</tt> <em>@ref data_type_declarations "return_type"</em> <tt>{</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<em>@ref statements "statement(s)..."</em>\n
     }\n\n
 
     @par Function Declarations
     Variables listed in parentheses after the function name are the parameters to the function and automatically get local lexical scoping. In order to process a variable number of arguments to a function, the <tt>$argv</tt> variable (local variable) is instantiated as a list with the remaining arguments passed to the function. Type declarations optionally precede the parameter variable and will restrict any arguments passed to the type declared. The same function can be declared multiple times if each declaration has different parameter types; this is called @ref overloading "overloading" the function.\n\n
     Functions use the @ref return "return statement" to provide a return value. Function names must be valid Qore identifiers.\n\n
-    The return type of the function can be given by placing a type declaration before the \c\b sub keyword (the older syntax with the \c\b returns keyword after the parameter list is still accepted as well).\n\n
-    Note that parameter and return types are required when the @ref PO_REQUIRE_TYPES or @ref PO_REQUIRE_PROTOTYPES parse options are set.\n\n
+    The return type of the function can be given by placing a type declaration before the \c \b sub keyword (the older syntax with the \c \b returns keyword after the parameter list is still accepted as well).\n\n
+    Note that parameter and return types are required when the @ref Qore::PO_REQUIRE_TYPES or @ref Qore::PO_REQUIRE_PROTOTYPES parse options are set.\n\n
     Functions can return values to the calling expression by using the @ref return "return statement".\n
     Here is an example function declaration returning a value:\n
     @code

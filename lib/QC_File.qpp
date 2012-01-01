@@ -365,7 +365,7 @@ if ($f.open($fn, O_CREAT | O_TRUNC | O_WRONLY, 0644, "ISO-8859-1"))
     @param path the path to the file
     @param flags flags that determine the way the file is accessed, see @ref file_open_constants for more information; if this argument is not given, \c O_RDONLY will be used as the default value.
     @param mode permission bits for when the file is to be created (default: 0666)
-    @param encoding the name of the default character encoding for this file; if this argument is not given, the file will be tagged with the @ref default_character_encoding "default character encoding" of the process
+    @param encoding the name of the default character encoding for this file; if this argument is not given, the file will be tagged with the @ref default_encoding "default character encoding" of the process
 
     @return 0 = no error, -1 = see errno() and strerror() for the error message
 
@@ -1721,7 +1721,7 @@ static list File::stat(string path) [dom=QDOM_FILESYSTEM] {
 
     @throw FILE-LSTAT-ERROR stat() call failed
 
-    @see lstat() for a similar function that does not throw exceptions when errors occur, but rather returns @ref NOTHING
+    @see lstat() for a similar function that does not throw exceptions when errors occur, but rather returns @ref nothing
     @see @ref file_stat_constants
  */
 static list File::lstat(string path) {
@@ -1754,7 +1754,7 @@ static list File::lstat(string path) {
 
     @throw FILE-HSTAT-ERROR stat() call failed
 
-    @see hstat() for a normal function returns @ref NOTHING instead of throwing an exception when errors occur
+    @see hstat() for a normal function returns @ref nothing instead of throwing an exception when errors occur
     @see @ref file_stat_constants
  */
 static hash File::hstat(string path) {
@@ -1782,7 +1782,7 @@ static hash File::hstat(string path) {
 
     @throw FILE-HSTAT-ERROR stat() call failed
 
-    @see hstat() for a normal function returns @ref NOTHING instead of throwing an exception when errors occur
+    @see hstat() for a normal function returns @ref nothing instead of throwing an exception when errors occur
     @see @ref file_stat_constants
  */
 static hash File::hlstat(string path) {

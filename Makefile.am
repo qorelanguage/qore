@@ -34,7 +34,8 @@ LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
 	lib/QC_Socket.qpp \
 	lib/QC_TermIOS.qpp \
 	lib/QC_TimeZone.qpp \
-	lib/QC_SSLCertificate.qpp
+	lib/QC_SSLCertificate.qpp \
+	lib/QC_SSLPrivateKey.qpp
 
 LIB_DOXYFILES = \
 	doxygen/lib/Doxyfile \

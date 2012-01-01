@@ -1188,7 +1188,7 @@ if ($x !== $y)
 
     @par Synopsis
     Checks for a regular expression match; returns \c True if the expression matches the string, \c False if not. See @ref regex_options for the meaning of the \c i, \c s, \c x, and \c m options after the regular expression.\n\n
-    See @ref regular_expressions for more information about regular expression support in %Qore.
+    See @ref qore_regex for more information about regular expression support in %Qore.
 
     @par Syntax
     \a expression <tt>=~ [m]/</tt><em>regex</em><tt>/[isxm]</tt>
@@ -1213,7 +1213,7 @@ if ($str =~ /hello/)
 
     @par Synopsis
     Checks for a regular expression non match; returns \c True if the expression does not match the string, \c False if it does. See @ref regex_options for the meaning of the \c i, \c s, \c x, and \c m options after the regular expression.\n\n
-    See @ref regular_expressions for more information about regular expression support in %Qore.
+    See @ref qore_regex for more information about regular expression support in %Qore.
 
     @par Syntax
     \a expression <tt>!~ [m]/</tt><em>regex</em><tt>/[isxm]</tt>
@@ -1237,8 +1237,8 @@ if ($str !~ /hello/)
     @section regex_subst_operator Regular Expression Substitution Operator
 
     @par Synopsis
-    Looks for a regular expression match in a string, and, if found, substitutes the matched string with a new string. Subpattern backreferences are supported in the target string, <tt>$1</tt>=first subpattern, <tt>$2</tt>=second subpattern, etc... See @regex_options for the meaning of the \c i, \c s, \c x, and \c m options after the regular expression.\n\n
-    See @ref regular_expressions for more information about regular expression support in %Qore.
+    Looks for a regular expression match in a string, and, if found, substitutes the matched string with a new string. Subpattern backreferences are supported in the target string, <tt>$1</tt>=first subpattern, <tt>$2</tt>=second subpattern, etc... See @ref regex_options for the meaning of the \c i, \c s, \c x, and \c m options after the regular expression.\n\n
+    See @ref qore_regex for more information about regular expression support in %Qore.
 
     @par Syntax
     \a lvalue <tt>=~ s/</tt><em>regex_pattern</em><tt>/</tt><em>target_string</em><tt>/[isxmg]</tt>
@@ -1262,8 +1262,8 @@ $str =~ s/(\w+) +(\w+)/$2, $1/;
     @section regex_extract_operator Regular Expression Pattern Extraction Operator
 
     @par Synopsis
-    Matches regular expression patterns (enclosed in parentheses) in a string and returns a list giving the text matched for each pattern. If the regular expression does not match, then no value (@ref nothing) is returned. See @regex_options for the meaning of the \c i, \c s, \c x, and \c m options after the regular expression.\n\n
-    See @ref regular_expressions for more information about regular expression support in %Qore.
+    Matches regular expression patterns (enclosed in parentheses) in a string and returns a list giving the text matched for each pattern. If the regular expression does not match, then no value (@ref nothing) is returned. See @ref regex_options for the meaning of the \c i, \c s, \c x, and \c m options after the regular expression.\n\n
+    See @ref qore_regex for more information about regular expression support in %Qore.
 
     @par Syntax
     \a string <tt>=~ x/</tt><em>regex_with_patterns</em><tt>/[isxm]</tt>
@@ -1589,7 +1589,7 @@ if ($x || $y)
     <b>Arguments Processed by +=</b>
     |!Argument|!Processing
     |\a lvalue (@ref list_type "list")|
-the expression will be evaluated and concatenated to the lvalue. If \a expression is a list, the lists will be concatenated, to ensure adding a single element to a list, use the @push "push operator"
+the expression will be evaluated and concatenated to the lvalue. If \a expression is a list, the lists will be concatenated, to ensure adding a single element to a list, use the @ref push "push operator"
     |\a lvalue (@ref hash_type "hash" or (@ref object_type "object")|the \a expression will be evaluated, and, if it is a hash or object, then it's members will be added to the \a lvalue, any duplicate elements in the \a lvalue will be overridden by elements in the \a expression.
     |\a lvalue (@ref string_type "string")|the \a expression will be evaluated and converted to a string if necessary and concatenated to the \a lvalue.
     |\a lvalue (@ref float_type "float")|the \a expression will be evaluated and converted to a float if necessary and added to the \a lvalue.

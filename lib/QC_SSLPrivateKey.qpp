@@ -1,0 +1,138 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/*
+  QC_SSLPrivateKey.qpp
+
+  Qore Programming Language
+
+  Copyright 2003 - 2011 David Nichols
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+  
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+  
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
+#include <qore/Qore.h>
+#include <qore/intern/QC_SSLPrivateKey.h>
+
+#include <openssl/ssl.h>
+#include <openssl/pem.h>
+
+//! This class implements a container for private key data
+/** 
+ */
+qclass SSLPrivateKey [arg=QoreSSLPrivateKey* pk];
+
+//! Creates the SSLPrivateKey object from the PEM-encoded text representation of the private key passed
+/** @param pem The PEM-encoded text representation of the private key
+    @param pass The optional password or passphrase for the private key
+
+    @par Example
+    @code
+my SSLPrivateKey $key($pem);
+    @endcode
+
+    @throw SSLPRIVATEKEY-CONSTRUCTOR-ERROR error in private key data
+
+    @since 0.8.4: the deprecated functionality where the if the string passed was less than 200 bytes long, it was assumed to be a file name has been removed; the string is assumed to be the PEM-encoded private key itself
+ */
+SSLPrivateKey::constructor(string pem, *string pass) {
+   SimpleRefHolder<QoreSSLPrivateKey> qpk(new QoreSSLPrivateKey(pem, pass ? pass->getBuffer() : 0, xsink));
+
+   if (!*xsink)
+      self->setPrivate(CID_SSLPRIVATEKEY, qpk.release());
+}
+
+//! Creates the SSLPrivateKey object from the data argument passed
+/** @param der The DER-encoded binary representation of the private key
+
+    @par Example
+    @code
+my SSLPrivateKey $key($der);
+    @endcode
+
+    @throw SSLPRIVATEKEY-CONSTRUCTOR-ERROR error in private key data
+ */
+SSLPrivateKey::constructor(binary der) {
+   SimpleRefHolder<QoreSSLPrivateKey> qc(new QoreSSLPrivateKey(der, xsink));
+   if (!*xsink)
+      self->setPrivate(CID_SSLPRIVATEKEY, qc.release());           
+}
+
+//! Copying objects of this class is not supported, an exception will be thrown
+/** 
+    @throw SSLPRIVATEKEY-COPY-ERROR SSLPrivateKey objects cannot be copied
+ */
+SSLPrivateKey::copy() {
+   xsink->raiseException("SSLPRIVATEKEY-COPY-ERROR", "SSLPrivateKey objects cannot be copied");
+}
+
+//! Returns a hash of all information for the private key
+/** @return a hash of all information for the private key with the following keys:
+    - \c "type": The type of private key (see SSLPrivateKey::getType())
+    - \c "version": The version of the private key (see SSLPrivateKey::getVersion())
+    - \c "bitLength": The bit length of the private key (see SSLPrivateKey::getBitLength())
+
+    @par Example
+    @code
+my hash $h = $key.getInfo();
+    @endcode
+ */
+hash SSLPrivateKey::getInfo() [flags=QC_CONSTANT] {
+   return pk->getInfo();
+}
+
+//! Returns a string giving the algorithm used for the private key
+/** @return a string giving the algorithm used for the private key (ex: \c "RSA", \c "RSA2", \c "DSA", \c "DSA1", \c "DSA2", \c "DAS3", \c "DAS4", \c "DH", \c "unknown")
+
+    @par Example
+    @code
+my string $str = $pkey.getType();
+    @endcode
+ */
+string SSLPrivateKey::getType() [flags=QC_CONSTANT] {
+   return new QoreStringNode(pk->getType());
+}
+
+//! Returns a constant value of 1; do not use; only included for backwards-compatibility
+/** The openssl library never put any usable value into the internal fields that were used to provide this information; newer versions of openssl do not expose this information at all, therefore this method now returns a constant value of 1 for backwards-compatibility.
+
+    @return a constant value of 1; do not use; only included for backwards-compatibility
+ */
+int SSLPrivateKey::getVersion() [flags=QC_CONSTANT] {
+   return pk->getVersion();
+}
+
+//! Returns the bit length of the private key
+/** @return the bit length of the private key
+
+    @par Example
+    @code
+my int $len = $key.getBitLength();
+    @endcode
+ */
+int SSLPrivateKey::getBitLength() [flags=QC_CONSTANT] {
+   return pk->getBitLength();
+}
+
+//! Returns a string in PEM format representing the private key
+/** @return a string in PEM format representing the private key
+
+    @par Example
+    @code
+    @endcode
+
+    @throw SSLPRIVATEKEY-ERROR could not create PEM string from private key data
+*/
+string SSLPrivateKey::getPEM() {
+   return pk->getPEM(xsink);
+}

@@ -31,7 +31,7 @@
 //! This class implements directory handling, file listing, creating/removing subdirectories, etc
 /** The %Dir class allows Qore programs to list and manipulate directories.
 
-    Directory objects can be created/opened with a specific character encoding. This means that any entry read from the directory will be tagged with the directory's character encoding. If no character encoding is given the @ref default_character_encoding "default character encoding" is assumed.
+    Directory objects can be created/opened with a specific character encoding. This means that any entry read from the directory will be tagged with the directory's character encoding. If no character encoding is given the @ref default_encoding "default character encoding" is assumed.
 
     @note This class is not available with the @ref PO_NO_FILESYSTEM parse option
  */
@@ -40,7 +40,7 @@ qclass Dir [arg=Dir* d; dom=FILESYSTEM];
 //! Creates the Directory object
 /** The object will point to the currect directory of the process
 
-    @param encoding the name of the default character encoding for filenames retrieved; if this argument is not given, filename strings retrieved will be tagged with the @ref default_character_encoding "default character encoding" of the process
+    @param encoding the name of the default character encoding for filenames retrieved; if this argument is not given, filename strings retrieved will be tagged with the @ref default_encoding "default character encoding" of the process
 
     @par Example
     @code
@@ -533,7 +533,7 @@ list Dir::listDirs(string regex, softint regex_options = 0) {
     @param filename The filename for the file which must be in the current directory (no path separator characters are allowed)
     @param flags Flags that determine the way the file is accessed, see @ref file_open_constants for more information
     @param mode Permission bits for when the file is to be created
-    @param encoding The name of the default character encoding for this file; if this argument is not given, the file will be tagged with the @ref default_character_encoding "default character encoding" for the process
+    @param encoding The name of the default character encoding for this file; if this argument is not given, the file will be tagged with the @ref default_encoding "default character encoding" for the process
 
     @par Example
     @code
