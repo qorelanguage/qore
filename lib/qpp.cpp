@@ -1252,7 +1252,7 @@ public:
       if (get_qore_type(return_type, cppt))
          return -1;
 
-      fprintf(fp, "   QC_%s->addStaticMethodExtended(\"%s\", static_%s_%s, %s, %s, %s, %s", UC, 
+      fprintf(fp, "   QC_%s->addStaticMethodExtended(\"%s\", (q_func_t)static_%s_%s, %s, %s, %s, %s", UC, 
               name.c_str(),
               cname, vname.c_str(),
               attr & QCA_PRIVATE ? "true" : "false",

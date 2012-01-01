@@ -26,7 +26,7 @@
 
 DLLEXPORT extern qore_classid_t CID_TIMEZONE;
 DLLLOCAL extern QoreClass *QC_TIMEZONE;
-DLLLOCAL QoreClass *initTimeZoneClass();
+DLLLOCAL QoreClass *initTimeZoneClass(QoreNamespace& ns);
 
 #include <qore/AbstractPrivateData.h>
 
