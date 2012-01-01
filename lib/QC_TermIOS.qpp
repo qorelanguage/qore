@@ -24,6 +24,504 @@
 #include <qore/Qore.h>
 #include <qore/intern/QC_TermIOS.h>
 
+/** @defgroup tattr_local_mode_constants Terminal Attribute Local Mode Constants
+    If any of the constants in this group is not defined on the host system, then it will be assigned to 0 in Qore.
+ */
+//@{
+#ifndef ECHOKE
+#define ECHOKE 0
+#endif
+//! visual erase for line kill
+const ECHOKE = ECHOKE;
+
+#ifndef ECHOE
+#define ECHOE 0
+#endif
+//! visually erase chars
+const ECHOE = ECHOE;
+
+#ifndef ECHO
+#define ECHO 0
+#endif
+//! enable echoing
+const ECHO = ECHO;
+
+#ifndef ECHONL
+#define ECHONL 0
+#endif
+//! echo NL even if ECHO is off 
+const ECHONL = ECHONL;
+
+#ifndef ECHOPRT
+#define ECHOPRT 0
+#endif
+//! visual erase mode for hardcopy
+const ECHOPRT = ECHOPRT;
+
+#ifndef ECHOCTL
+#define ECHOCTL 0
+#endif
+//! echo control chars as ^(Char)
+const ECHOCTL = ECHOCTL;
+
+#ifndef ISIG
+#define ISIG 0
+#endif
+//! enable signals INTR, QUIT, [D]SUSP
+const ISIG = ISIG;
+
+#ifndef ICANON
+#define ICANON 0
+#endif
+//! canonicalize input lines
+const ICANON = ICANON;
+
+#ifndef ALTWERASE
+#define ALTWERASE 0
+#endif
+//! use alternate WERASE algorithm
+const ALTWERASE = ALTWERASE;
+
+#ifndef IEXTEN
+#define IEXTEN 0
+#endif
+//! enable DISCARD and LNEXT
+const IEXTEN = IEXTEN;
+
+#ifndef EXTPROC
+#define EXTPROC 0
+#endif
+//! external processing
+const EXTPROC = EXTPROC;
+
+#ifndef TOSTOP
+#define TOSTOP 0
+#endif
+//! stop background jobs from output
+const TOSTOP = TOSTOP;
+
+#ifndef FLUSHO
+#define FLUSHO 0
+#endif
+//! output being flushed (state)
+const FLUSHO = FLUSHO;
+
+#ifndef NOKERNINFO
+#define NOKERNINFO 0
+#endif
+//! no kernel output from VSTATUS
+const NOKERNINFO = NOKERNINFO;
+
+#ifndef PENDIN
+#define PENDIN 0
+#endif
+//! retype pending input (state) 
+const PENDIN = PENDIN;
+
+#ifndef NOFLSH
+#define NOFLSH 0
+#endif
+//! don't flush after interrupt
+const NOFLSH = NOFLSH; 
+//@}
+
+/** @defgroup tattr_control_mode_constants Terminal Attribute Control Mode Constants
+    If any of the constants in this group is not defined on the host system, then it will be assigned to 0 in Qore.
+ */
+//@{ 
+#ifndef CSIZE
+#define CSIZE 0
+#endif
+//! character size mask
+const CSIZE = CSIZE;
+
+#ifndef CS5
+#define CS5 0
+#endif
+//! character size mask: 5 bits
+const CS5 = CS5;
+
+#ifndef CS6
+#define CS6 0
+#endif
+//! character size mask: 6 bits
+const CS6 = CS6;
+
+#ifndef CS7
+#define CS7 0
+#endif
+//! character size mask: 7 bits
+const CS7 = CS7;
+
+#ifndef CS8
+#define CS8 0
+#endif
+//! character size mask: 8 bits
+const CS8 = CS8;
+
+#ifndef CSTOPB
+#define CSTOPB 0
+#endif
+//! send 2 stop bits
+const CSTOPB = CSTOPB;
+
+#ifndef CREAD
+#define CREAD 0
+#endif
+//! enable receiver
+const CREAD = CREAD;
+
+#ifndef PARENB
+#define PARENB 0
+#endif
+//! parity enable
+const PARENB = PARENB;
+
+#ifndef PARODD
+#define PARODD 0
+#endif
+//! odd parity, else even
+const PARODD = PARODD;
+
+#ifndef HUPCL
+#define HUPCL 0
+#endif
+//! hang up on last close
+const HUPCL = HUPCL;
+
+#ifndef CLOCAL
+#define CLOCAL 0
+#endif
+//! ignore modem status lines
+const CLOCAL = CLOCAL;
+
+#ifndef CCTS_OFLOW
+#define CCTS_OFLOW 0
+#endif
+//! CTS flow control of output
+const CCTS_OFLOW = CCTS_OFLOW;
+
+#ifndef CRTSCTS
+#define CRTSCTS 0
+#endif
+//! CTS flow control of output and RTS flow control of input
+const CRTSCTS = CRTSCTS;
+
+#ifndef CRTS_IFLOW
+#define CRTS_IFLOW 0
+#endif
+//! RTS flow control of input
+const CRTS_IFLOW = CRTS_IFLOW;
+
+#ifndef CDSR_OFLOW
+#define CDSR_OFLOW 0
+#endif
+//! DSR flow control of output
+const CDSR_OFLOW = CDSR_OFLOW;
+
+#ifndef CCAR_OFLOW
+#define CCAR_OFLOW 0
+#endif
+//! DCD flow control of output
+const CCAR_OFLOW = CCAR_OFLOW;
+
+#ifndef MDMBUF
+#define MDMBUF 0
+#endif
+//! old name for CCAR_OFLOW
+const MDMBUF = MDMBUF;
+//@}
+
+/** @defgroup tattr_output_mode_constants Terminal Attributes Output Mode Constants
+    If any of the constants in this group is not defined on the host system, then it will be assigned to 0 in Qore.
+ */
+//@{ 
+#ifndef OPOST
+#define OPOST 0
+#endif
+//! enable following output processing
+const OPOST = OPOST;
+
+#ifndef ONLCR
+#define ONLCR 0
+#endif
+//! map NL to CR-NL (ala CRMOD) 
+const ONLCR = ONLCR;
+
+#ifndef OXTABS
+#define OXTABS 0
+#endif
+//! expand tabs to spaces
+const OXTABS = OXTABS;
+
+#ifndef ONOEOT
+#define ONOEOT 0
+#endif
+//! discard EOT's (^D) on output
+const ONOEOT = ONOEOT;
+
+#ifndef OCRNL
+#define OCRNL 0
+#endif
+//! map CR to NL on output
+const OCRNL = OCRNL;
+
+#ifndef OLCUC
+#define OLCUC 0
+#endif
+//! 
+const OLCUC = OLCUC;
+
+#ifndef ONOCR
+#define ONOCR 0
+#endif
+//! no CR output at column 0 
+const ONOCR = ONOCR;
+
+#ifndef ONLRET
+#define ONLRET 0
+#endif
+//! NL performs CR function
+const ONLRET = ONLRET;
+//@}
+
+/** @defgroup tattr_input_mode_constants Terminal Attributes Input Mode Constants
+    If any of the constants in this group is not defined on the host system, then it will be assigned to 0 in Qore.
+ */
+//@{ 
+#ifndef IGNBRK
+#define IGNBRK 0
+#endif
+//! ignore BREAK condition
+const IGNBRK = IGNBRK;
+
+#ifndef BRKINT
+#define BRKINT 0
+#endif
+//! map BREAK to SIGINTR
+const BRKINT = BRKINT;
+
+#ifndef IGNPAR
+#define IGNPAR 0
+#endif
+//! ignore (discard) parity errors
+const IGNPAR = IGNPAR;
+
+#ifndef PARMRK
+#define PARMRK 0
+#endif
+//! mark parity and framing errors
+const PARMRK = PARMRK;
+
+#ifndef INPCK
+#define INPCK 0
+#endif
+//! enable checking of parity errors
+const INPCK = INPCK;
+
+#ifndef ISTRIP
+#define ISTRIP 0
+#endif
+//! strip 8th bit off chars
+const ISTRIP = ISTRIP;
+
+#ifndef INLCR
+#define INLCR 0
+#endif
+//! map NL into CR
+const INLCR = INLCR;
+
+#ifndef IGNCR
+#define IGNCR 0
+#endif
+//! ignore CR
+const IGNCR = IGNCR;
+
+#ifndef ICRNL
+#define ICRNL 0
+#endif
+//! map CR to NL (ala CRMOD)
+const ICRNL = ICRNL;
+
+#ifndef IXON
+#define IXON 0
+#endif
+//! enable output flow control
+const IXON = IXON;
+
+#ifndef IXOFF
+#define IXOFF 0
+#endif
+//! enable input flow control
+const IXOFF = IXOFF;
+
+#ifndef IXANY
+#define IXANY 0
+#endif
+//! any char will restart after stop
+const IXANY = IXANY;
+
+#ifndef IMAXBEL
+#define IMAXBEL 0
+#endif
+//! ring bell on input queue full
+const IMAXBEL = IMAXBEL;
+
+#ifndef IUCLC
+#define IUCLC 0
+#endif
+//! 
+const IUCLC = IUCLC;
+//@}
+
+/** @defgroup tattr_control_character_constants Terminal Attributes Control Character Constants
+    If any of the constants in this group is not defined on the host system, then it will be assigned to 0 in Qore.
+ */
+//@{ 
+#ifndef VEOF
+#define VEOF 0
+#endif
+//! subscript for the EOF character
+const VEOF = VEOF;
+
+#ifndef VEOL
+#define VEOL 0
+#endif
+//! subscript for the EOL character
+const VEOL = VEOL;
+
+#ifndef VEOL2
+#define VEOL2 0
+#endif
+//! subscript for the EOL2 character
+const VEOL2 = VEOL2;
+
+#ifndef VERASE
+#define VERASE 0
+#endif
+//! subscript for the VERASE character
+const VERASE = VERASE;
+
+#ifndef VWERASE
+#define VWERASE 0
+#endif
+//! subscript for the VWERASE character
+const VWERASE = VWERASE;
+
+#ifndef VKILL
+#define VKILL 0
+#endif
+//! subscript for the VKILL character
+const VKILL = VKILL;
+
+#ifndef VREPRINT
+#define VREPRINT 0
+#endif
+//! subscript for the VREPRINT character
+const VREPRINT = VREPRINT;
+
+#ifndef VINTR
+#define VINTR 0
+#endif
+//! subscript for the VINTR character
+const VINTR = VINTR;
+
+#ifndef VQUIT
+#define VQUIT 0
+#endif
+//! subscript for the VQUIT character
+const VQUIT = VQUIT;
+
+#ifndef VSUSP
+#define VSUSP 0
+#endif
+//! subscript for the VSUSP character
+const VSUSP = VSUSP;
+
+#ifndef VDSUSP
+#define VDSUSP 0
+#endif
+//! subscript for the VDSUSP character
+const VDSUSP = VDSUSP;
+
+#ifndef VSTART
+#define VSTART 0
+#endif
+//! subscript for the VSTART character
+const VSTART = VSTART;
+
+#ifndef VSTOP
+#define VSTOP 0
+#endif
+//! subscript for the VSTOP character
+const VSTOP = VSTOP;
+
+#ifndef VLNEXT
+#define VLNEXT 0
+#endif
+//! subscript for the VLNEXT character
+const VLNEXT = VLNEXT;
+
+#ifndef VDISCARD
+#define VDISCARD 0
+#endif
+//! subscript for the VDISCARD character
+const VDISCARD = VDISCARD;
+
+#ifndef VMIN
+#define VMIN 0
+#endif
+//! subscript for the VMIN value
+const VMIN = VMIN;
+
+#ifndef VTIME
+#define VTIME 0
+#endif
+//! subscript for the VTIME value
+const VTIME = VTIME;
+
+#ifndef VSTATUS
+#define VSTATUS 0
+#endif
+//! subscript for the  character
+const VSTATUS = VSTATUS;
+
+#ifndef _POSIX_VDISABLE
+#define _POSIX_VDISABLE 0xff
+#endif
+//! if the value of any key is this value, it means that the key is disabled
+const _POSIX_VDISABLE = _POSIX_VDISABLE;
+//@}
+
+/** @defgroup tattr_term_setting_constants Terminal Attributes Terminal Setting Constants
+    If any of the constants in this group is not defined on the host system, then it will be assigned to 0 in Qore.
+ */
+//@{ 
+#ifndef TCSANOW
+#define TCSANOW 0
+#endif
+//! make change immediate
+const TCSANOW = TCSANOW;
+
+#ifndef TCSADRAIN
+#define TCSADRAIN 0
+#endif
+//! drain output, then change
+const TCSADRAIN = TCSADRAIN;
+
+#ifndef TCSAFLUSH
+#define TCSAFLUSH 0
+#endif
+//! drain output, flush input
+const TCSAFLUSH = TCSAFLUSH;
+
+#ifndef TCSASOFT
+#define TCSASOFT 0
+#endif
+//! flag - don't alter hardware state
+const TCSASOFT = TCSASOFT;
+//@}
+
 //! This class allows %Qore scripts to get or set terminal settings on UNIX platforms
 /** On platforms without TermIOS support (such as Windows), none of the methods in this class are available; to write a portable program, check the @ref HAVE_TERMIOS constant at runtime before using this functionality.
 
@@ -64,13 +562,16 @@ stdout.printf(" GOT ASCII 0x%02x (%d) '%s'\n", ord($c), ord($c), $c);
  */
 qclass TermIOS [dom=TERMINAL_IO; arg=QoreTermIOS*s];
 
-//! 
-/** @par Platform Availability
+//! Creates the TermIOS object with random contents
+/** Use File::getTerminalAttributes() with a terminal I/O constant to initialize the object with terminal settings
+
+    @par Platform Availability
     @ref HAVE_TERMIOS
 
     @par Example
     @code
-
+my TermIOS $termios();
+stdin.getTerminalAttributes($termios);
     @endcode
  */
 TermIOS::constructor() {
@@ -81,13 +582,13 @@ TermIOS::constructor() {
 #endif
 }
 
-//! 
+//! Returns a copy of the object
 /** @par Platform Availability
     @ref HAVE_TERMIOS
 
     @par Example
     @code
-
+my TermIOS $t2 = $t.copy();
     @endcode
  */
 TermIOS::copy() {
@@ -98,13 +599,15 @@ TermIOS::copy() {
 #endif
 }
 
-//! 
-/** @par Platform Availability
+//! Returns the @ref tattr_local_mode_constants "local mode flag" for the object
+/** @return the @ref tattr_local_mode_constants "local mode flag" for the object
+
+    @par Platform Availability
     @ref HAVE_TERMIOS
 
     @par Example
     @code
-
+my int $flag = $termios.getLFlag();
     @endcode
  */
 int TermIOS::getLFlag() {
@@ -115,13 +618,15 @@ int TermIOS::getLFlag() {
 #endif
 }
 
-//! 
-/** @par Platform Availability
+//! Returns the @ref tattr_control_mode_constants "control mode flag" for the object
+/** @return the @ref tattr_control_mode_constants "control mode flag" for the object
+    
+    @par Platform Availability
     @ref HAVE_TERMIOS
 
     @par Example
     @code
-
+my int $flag = $termios.getCFlag();
     @endcode
  */
 int TermIOS::getCFlag() {
@@ -132,13 +637,15 @@ int TermIOS::getCFlag() {
 #endif
 }
 
-//! 
-/** @par Platform Availability
+//! Returns the @ref tattr_output_mode_constants "output mode flag" for the object
+/** @return the @ref tattr_output_mode_constants "output mode flag" for the object
+
+    @par Platform Availability
     @ref HAVE_TERMIOS
 
     @par Example
     @code
-
+my int $flag = $termios.getOFlag();
     @endcode
  */
 int TermIOS::getOFlag() {
@@ -149,13 +656,15 @@ int TermIOS::getOFlag() {
 #endif
 }
 
-//! 
-/** @par Platform Availability
+//! Returns the @ref tattr_input_mode_constants "input mode flag" for the object
+/** @return the @ref tattr_input_mode_constants "input mode flag" for the object
+
+    @par Platform Availability
     @ref HAVE_TERMIOS
 
     @par Example
     @code
-
+my int $flag = $termios.getIFlag();
     @endcode
  */
 int TermIOS::getIFlag() {
@@ -166,16 +675,25 @@ int TermIOS::getIFlag() {
 #endif
 }
 
-//! 
-/** @par Platform Availability
+//! Sets the local mode flag for the object from a mask of @ref tattr_local_mode_constants
+/** @param flag the local mode (see @ref tattr_local_mode_constants for masks for this value)
+
+    @par Platform Availability
     @ref HAVE_TERMIOS
 
     @par Example
     @code
-
+my int $lflag = $termios.getLFlag();
+# disable canonical input mode (= turn on "raw" mode)
+$lflag &= ~ICANON;
+# turn off echo mode
+$lflag &= ~ECHO;
+# do not check for special input characters (INTR, QUIT, and SUSP)
+$lflag &= ~ISIG;
+$termios.setLFlag($lflag);
     @endcode
  */
-nothing TermIOS::setLFlag(softint flag = 0) {
+nothing TermIOS::setLFlag(softint flag) {
 #ifdef HAVE_TERMIOS_H
    s->set_lflag((int)flag);
    return 0;
@@ -184,16 +702,21 @@ nothing TermIOS::setLFlag(softint flag = 0) {
 #endif
 }
 
-//! 
-/** @par Platform Availability
+//! Sets the control mode flag for the object from a mask of @ref tattr_control_mode_constants
+/** @param flag the control mode (see @ref tattr_control_mode_constants for masks for this value)
+
+    @par Platform Availability
     @ref HAVE_TERMIOS
 
     @par Example
     @code
-
+my int $cflag = $termios.getCFlag();
+$cflag = ($cflag & ~CSIZE) | CS8 | CSTOPB;
+$cflag = ($cflag | CLOCAL | CREAD) & ~CRTSCTS;
+$termios.setCFlag($cflag);
     @endcode
  */
-nothing TermIOS::setCFlag(softint flag = 0) {
+nothing TermIOS::setCFlag(softint flag) {
 #ifdef HAVE_TERMIOS_H
    s->set_cflag((int)flag);
    return 0;
@@ -202,16 +725,21 @@ nothing TermIOS::setCFlag(softint flag = 0) {
 #endif
 }
 
-//! 
-/** @par Platform Availability
+//! Sets the output mode flag for the object from a mask of @ref tattr_output_mode_constants
+/** @param flag the output mode (see @ref tattr_output_mode_constants for masks for this value)
+
+    @par Platform Availability
     @ref HAVE_TERMIOS
 
     @par Example
     @code
-
+my int $oflag = $termios.getOFlag();
+# translate linefeeds to crlf
+$oflag |= ONLCR;
+$termios.setOFlag($oflag);
     @endcode
  */
-nothing TermIOS::setOFlag(softint flag = 0) {
+nothing TermIOS::setOFlag(softint flag) {
 #ifdef HAVE_TERMIOS_H
    s->set_oflag((int)flag);
    return 0;
@@ -220,16 +748,21 @@ nothing TermIOS::setOFlag(softint flag = 0) {
 #endif
 }
 
-//! 
-/** @par Platform Availability
+//! Sets the input mode flag for the object from a mask of @ref tattr_input_mode_constants
+/** @param flag the input mode flag for the object from a mask of @ref tattr_input_mode_constants
+
+    @par Platform Availability
     @ref HAVE_TERMIOS
 
     @par Example
     @code
-
+my int $iflag = $termios.getIFlag();
+# ring bell on input queue full
+$iflag |= IMAXBEL;
+$termios.setIFlag($iflag);
     @endcode
  */
-nothing TermIOS::setIFlag(softint flag = 0) {
+nothing TermIOS::setIFlag(softint flag) {
 #ifdef HAVE_TERMIOS_H
    s->set_iflag((int)flag);
    return 0;
@@ -238,16 +771,25 @@ nothing TermIOS::setIFlag(softint flag = 0) {
 #endif
 }
 
-//! 
-/** @par Platform Availability
+//! Returns the integer value for the given control character from the given @ref tattr_control_character_constants "control character code"
+/** @param cc the @ref tattr_control_character_constants "control character code" for the character to retrieve
+
+    @return the integer value for the given control character from the given @ref tattr_control_character_constants "control character code"
+
+    @par Platform Availability
     @ref HAVE_TERMIOS
 
     @par Example
     @code
-
+# get minimum characters to return on a read
+my int $vmin = $t.getCC(VMIN);
+# get character input timer in 0.1 second increments
+my int $vtime = $t.getCC(VTIME);
     @endcode
+
+    @throw TERMIOS-CC-ERROR the @ref tattr_control_character_constants "control character" is invalid
  */
-int TermIOS::getCC(softint cc = 0) {
+int TermIOS::getCC(softint cc) {
 #ifdef HAVE_TERMIOS_H
    return s->get_cc(cc, xsink);
 #else
@@ -255,16 +797,25 @@ int TermIOS::getCC(softint cc = 0) {
 #endif
 }
 
-//! 
-/** @par Platform Availability
+//! Sets the value of the given @ref tattr_control_character_constants "control character"
+/** @param offset the @ref tattr_control_character_constants "control character" to set
+    @param value the value to set for the @ref tattr_control_character_constants "control character"
+
+    @par Platform Availability
     @ref HAVE_TERMIOS
 
     @par Example
     @code
+# set minimum characters to return on a read
+$t.setCC(VMIN, 1);
 
+# set character input timer in 0.1 second increments (= no timer)
+$t.setCC(VTIME, 0);
     @endcode
+
+    @throw TERMIOS-CC-ERROR the @ref tattr_control_character_constants "control character" is invalid
  */
-nothing TermIOS::setCC(softint offset = 0, softint value = 0) {
+nothing TermIOS::setCC(softint offset, softint value) {
 #ifdef HAVE_TERMIOS_H
    s->set_cc(offset, (cc_t)value, xsink);
    return 0;
@@ -273,13 +824,15 @@ nothing TermIOS::setCC(softint offset = 0, softint value = 0) {
 #endif
 }
 
-//! 
-/** @par Platform Availability
+//! Returns \c True if the TermIOS object passed as an argument is equal to the current object; \c False if not
+/** @return \c True if the TermIOS object passed as an argument is equal to the current object; \c False if not
+
+    @par Platform Availability
     @ref HAVE_TERMIOS
 
     @par Example
     @code
-
+my bool $b = $termios.isEqual($termios2);
     @endcode
  */
 bool TermIOS::isEqual(Termios[QoreTermIOS] termios) [flags=QC_CONSTANT] {
@@ -292,11 +845,14 @@ bool TermIOS::isEqual(Termios[QoreTermIOS] termios) [flags=QC_CONSTANT] {
 #endif
 }
 
-//! 
-/** @par Platform Availability
+//! Returns a hash giving the current terminal window size in hash keys \c "rows" and \c "columns"
+/** @return a hash giving the current terminal window size in hash keys \c "rows" and \c "columns"
+
+    @par Platform Availability
     @ref HAVE_TERMIOS
 
     @par Example
+my hash $wh = $termios.getWindowSize();
     @code
 
     @endcode
