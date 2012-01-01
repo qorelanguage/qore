@@ -1,0 +1,241 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/*
+  QC_SSLCertificate.qpp
+
+  Qore Programming Language
+
+  Copyright 2003 - 2011 David Nichols
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+  
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+  
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
+#include <qore/Qore.h>
+#include <qore/intern/QC_SSLCertificate.h>
+
+//! SSLCertificate objects allow @Qore code to work with X.509 certificate data
+/** 
+ */
+qclass SSLCertificate [arg=QoreSSLCertificate* s];
+
+//! Creates the SSLCertificate object from the PEM-encoded version of the X.509 certificate
+/** @param pem the PEM representation of the X.509 certificate
+
+    @par Example
+    @code
+my SSLCertificate $cert($pem_cert_string);
+    @endcode
+
+    @throw SSLCERTIFICATE-CONSTRUCTOR-ERROR invalid X.509 certificate data
+
+    @since 0.8.4: the deprecated functionality where the if the string passed was less than 200 bytes long, it was assumed to be a file name has been removed; the string is assumed to be the PEM-encoded X.509 Certificate itself
+ */
+SSLCertificate::constructor(string pem) {
+   // create assuming a certificate in PEM format
+   SimpleRefHolder<QoreSSLCertificate> qc(new QoreSSLCertificate(pem, xsink));
+   if (!*xsink)
+      self->setPrivate(CID_SSLCERTIFICATE, qc.release());
+}
+
+//! Creates the SSLCertificate object from the DER-encoded version of the X.509 certificate
+/** @param der the DER-encoded representation of the X.509 certificate
+
+    @par Example
+    @code
+my SSLCertificate $cert($der_cert);
+    @endcode
+
+    @throw SSLCERTIFICATE-CONSTRUCTOR-ERROR invalid X.509 certificate data
+ */
+SSLCertificate::constructor(binary der) {
+   SimpleRefHolder<QoreSSLCertificate> qc(new QoreSSLCertificate(der, xsink));
+   if (!*xsink)
+      self->setPrivate(CID_SSLCERTIFICATE, qc.release());	    
+}
+
+//! Copying objects of this class is not supported, an exception will be thrown
+/** 
+    @throw SSLCERTIFICATE-COPY-ERROR SSLCertificate objects cannot be copied
+ */
+SSLCertificate::copy() {
+   xsink->raiseException("SSLCERTIFICATE-COPY-ERROR", "SSLCertificate objects cannot be copied");
+}
+
+//! Returns a string in PEM format representing the certificate
+/** @return a string in PEM format representing the certificate
+
+    @par Example
+    @code
+my string $pem_str = $cert.getPEM();
+    @endcode
+
+    @throw X509-ERROR could not create PEM string from X509 certificate data
+ */
+string SSLCertificate::getPEM() {
+   return s->getPEM(xsink);
+}
+
+//! Returns a hash of all information for the certificate
+/** @return a hash of all information for the certificate with the following keys:
+    - \c "version": The version of the X.509 certificate (see SSLCertificate::getVersion())
+    - \c "serialNumber": The serial number of the X.509 certificate (see SSLCertificate::getSerialNumber())
+    - \c "subject": The subject hash of the X.509 certificate (see SSLCertificate::getSubjectHash())
+    - \c "issuer": The issuer hash of the X.509 certificate (see SSLCertificate::getIssuerHash())
+    - \c "purposes": The purpose hash of the X.509 certificate (see SSLCertificate::getPurposeHash())
+    - \c "notBefore": The "not before date" of the X.509 certificate (see SSLCertificate::getNotBeforeDate())
+    - \c "notAfter": The "not after date" of the X.509 certificate (see SSLCertificate::getNotAfterDate())
+    - \c "signatureType": The signature type string of the X.509 certificate (see SSLCertificate::getSignatureType())
+    - \c "signature": The binary signature of the X.509 certificate (see SSLCertificate::getSignature())
+    - \c "publicKey": The binary public key of the X.509 certificate (see SSLCertificate::getPublicKey())
+
+    @par Example
+    @code
+my hash $hash = $cert.getInfo();
+    @endcode
+ */
+hash SSLCertificate::getInfo() [flags=QC_CONSTANT] {
+   return s->getInfo();
+}
+
+//! Returns a binary object representing the signature of the certificate
+/** @return a binary object representing the signature of the certificate
+
+    @par Example
+    @code
+my binary $bin = $cert.getSignature();
+    @endcode
+ */
+binary SSLCertificate::getSignature() [flags=QC_CONSTANT] {
+   return s->getSignature();
+}
+
+//! Returns the signature type of the certificate
+/** @return the signature type of the certificate
+
+    @par Example
+    @code
+my string $str = $cert.getSignatureType();
+    @endcode
+ */
+string SSLCertificate::getSignatureType() [flags=QC_CONSTANT] {
+   return s->getSignatureType();
+}
+
+//! Returns a binary object representing the public key of the certificate in DER (Distinguished Encoding Rules) format or @ref nothing if no public key is present in the certificate
+/** @return a binary object representing the public key of the certificate in DER (Distinguished Encoding Rules) format or @ref nothing if no public key is present in the certificate
+
+    @par Example
+    @code
+my *binary $bin = $cert.getPublicKey();
+    @endcode
+ */
+*binary SSLCertificate::getPublicKey() [flags=QC_CONSTANT] {
+   return s->getPublicKey();
+}
+
+//! Returns the name of the public key algorithm of the certificate
+/** @return the name of the public key algorithm of the certificate
+
+    @par Example
+    @code
+my string $str = $cert.getPublicKeyAlgorithm();
+    @endcode
+ */
+string SSLCertificate::getPublicKeyAlgorithm() [flags=QC_CONSTANT] {
+   return s->getPublicKeyAlgorithm();
+}
+
+//! Returns a hash of strings representing the subject information of the certificate
+/** @return a hash of key-value pairs representing the subject information of the certificate
+
+    @par Example
+    @code
+my hash $h = $cert.getSubjectHash();
+    @endcode
+ */
+hash SSLCertificate::getSubjectHash() [flags=QC_CONSTANT] {
+   return s->getSubjectHash();
+}
+
+//! Returns a hash of strings representing the issuer information of the certificate
+/** @return a hash of key-value pairs representing the issuer information of the certificate
+
+    @par Example
+    @code
+my hash $h = $cert.getIssuerHash();
+    @endcode
+ */
+hash SSLCertificate::getIssuerHash() [flags=QC_CONSTANT] {
+   return s->getIssuerHash();
+}
+
+//! Returns the integer serial number of the certificate
+/** @return the integer serial number of the certificate
+
+    @par Example
+    @code
+my int $sn = $cert.getSerialNumber();
+    @endcode
+ */
+int SSLCertificate::getSerialNumber() [flags=QC_CONSTANT] {
+   return s->getSerialNumber();
+}
+
+//! Returns the version of the certificate as an integer
+/** @return the version of the certificate as an integer
+
+    @par Example
+    @code
+my int $ver = $cert.getVersion();
+    @endcode
+ */
+int SSLCertificate::getVersion() [flags=QC_CONSTANT] {
+   return s->getVersion();
+}
+
+//! Returns a hash of booleans representing the allowed purposes of the certificate
+/** @return a hash of booleans representing the allowed purposes of the certificate
+
+    @par Example
+    @code
+my hash $h = $cert.getPurposeHash();
+    @endcode
+ */
+hash SSLCertificate::getPurposeHash() [flags=QC_CONSTANT] {
+   return s->getPurposeHash();
+}
+
+//! Returns a date/time value representing the start date of the certificate
+/** @return a date/time value representing the start date of the certificate
+
+    @par Example
+    @code
+my date $start = $cert.getNotBeforeDate();
+    @endcode
+ */
+date SSLCertificate::getNotBeforeDate() [flags=QC_CONSTANT] {
+   return s->getNotBeforeDate();
+}
+
+//! Returns a date/time value representing the end date of the certificate
+/** @return a date/time value representing the end date of the certificate
+
+    @par Example
+    @code
+my date $end = $cert.getNotAfterDate();
+    @endcode
+ */
+date SSLCertificate::getNotAfterDate() [flags=QC_CONSTANT] {
+   return s->getNotAfterDate();
+}
