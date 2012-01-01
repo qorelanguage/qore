@@ -31,8 +31,7 @@
 #include <openssl/pem.h>
 
 //! represents an X509 certificate, reference-counted, dynamically-allocated only
-class QoreSSLCertificate : public AbstractPrivateData, public QoreSSLBase
-{
+class QoreSSLCertificate : public AbstractPrivateData, public QoreSSLBase {
    private:
       //! private implementation of the class
       struct qore_sslcert_private *priv; 

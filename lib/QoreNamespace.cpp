@@ -1460,7 +1460,7 @@ void StaticSystemNamespace::init() {
 
    // add system object types
    qoreNS->addSystemClass(initTimeZoneClass(*qoreNS));
-   qoreNS->addSystemClass(initSSLCertificateClass());
+   qoreNS->addSystemClass(initSSLCertificateClass(*qoreNS));
    qoreNS->addSystemClass(initSSLPrivateKeyClass());
    qoreNS->addSystemClass(initSocketClass(*qoreNS));
    qoreNS->addSystemClass(initProgramClass(*qoreNS));
