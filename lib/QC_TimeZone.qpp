@@ -1,0 +1,188 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/*
+  QC_TimeZone.qpp
+  
+  Qore Programming Language
+  
+  Copyright 2003 - 2011 David Nichols
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+  
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+  
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
+#include <qore/Qore.h>
+#include <qore/intern/QC_TimeZone.h>
+
+//! The TimeZone class provides access to time zone functionality
+/** TimeZone objects based on zoneinfo region files (on UNIX) or registry information (on Windows) can have daylight savings time information; those based on UTC offsets have none.
+*/
+qclass TimeZone [arg=TimeZoneData* z];
+
+//! Creates the TimeZone object based on the region name (ex: \c "America/Chicago")
+/** @param region The region name for the time zone (ex: \c "America/Chicago"); if the zoneinfo file for the region cannot be found or parsed (on UNIX) or if the registry entry cannot be found (on Windows), then an exception is thrown
+
+    @par Example
+    @code
+my TimeZone $tz("Europe/Prague");
+    @endcode
+
+    @throw TZINFO-ERROR Unable to read zoneinfo file; invalid file magic; error parsing zoneinfo file, etc
+ */
+TimeZone::constructor(string region) {
+   const AbstractQoreZoneInfo *zone = QTZM.findLoadRegion(region->getBuffer(), xsink);
+   if (*xsink)
+      return;
+
+   self->setPrivate(CID_TIMEZONE, new TimeZoneData(zone));
+}
+
+//! Creates the TimeZone object based on the number of seconds east of UTC (3600 = UTC +01)
+/** @param seconds_east The number of seconds east of UTC for the time zone; for zones west of UTC, use negative numbers
+
+    @par Example
+    @code
+my TimeZone $tz(3600);
+    @endcode
+ */
+TimeZone::constructor(softint seconds_east) {
+   const AbstractQoreZoneInfo *zone = QTZM.findCreateOffsetZone(seconds_east);
+   self->setPrivate(CID_TIMEZONE, new TimeZoneData(zone));
+}
+
+//! Creates a copy of the TimeZone object
+/** 
+    @par Example
+    @code
+my TimeZone $newzone = $tz.copy();
+    @endcode
+ */
+TimeZone::copy() {
+   self->setPrivate(CID_TIMEZONE, new TimeZoneData(*z));
+}
+
+//! Returns the number of seconds east of UTC for the zone; negative numbers indicate a zone west of UTC
+/** @return the number of seconds east of UTC for the zone; negative numbers indicate a zone west of UTC
+
+    @par Example
+    @code
+my int $offset = $tz.UTCOffset();
+    @endcode
+ */
+int TimeZone::UTCOffset() [flags=QC_CONSTANT] {
+   return (*z)->getUTCOffset();
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+bool TimeZone::hasDST() [flags=QC_CONSTANT] {
+   return (*z)->hasDST();
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+string TimeZone::region() [flags=QC_CONSTANT] {
+   return new QoreStringNode((*z)->getRegionName());
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+date TimeZone::date(softint secs, softint us = 0) [flags=QC_CONSTANT] {
+   return DateTimeNode::makeAbsolute(z->get(), secs, (int)us);
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+date TimeZone::date(date d) [flags=QC_CONSTANT] {
+   return DateTimeNode::makeAbsolute(z->get(), d->getEpochSecondsUTC(), d->getMicrosecond());
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+date TimeZone::dateMs(softint ms) [flags=QC_CONSTANT] {
+   return DateTimeNode::makeAbsolute(z->get(), ms / 1000, (int)((ms % 1000) * 1000));
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+date TimeZone::dateUs(softint us) [flags=QC_CONSTANT] {
+   return DateTimeNode::makeAbsolute(z->get(), us / 1000000, (int)(us % 1000000));
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+static TimeZone TimeZone::get() [flags=QC_CONSTANT] {
+   return new QoreObject(QC_TIMEZONE, 0, new TimeZoneData(currentTZ()));
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+static nothing TimeZone::set(TimeZone[TimeZoneData] zone) [dom=QDOM_LOCALE_CONTROL] {
+   ReferenceHolder<TimeZoneData> holder(zone, xsink);
+   getProgram()->setTZ(zone->get());
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+static nothing TimeZone::setUTCOffset(softint seconds_east) [dom=QDOM_LOCALE_CONTROL] {
+   const AbstractQoreZoneInfo *zone = QTZM.findCreateOffsetZone(seconds_east);
+   getProgram()->setTZ(zone);
+}
+
+//! 
+/** 
+    @par Example
+    @code
+    @endcode
+ */
+static nothing TimeZone::setRegion(string region) [dom=QDOM_LOCALE_CONTROL] {
+   const AbstractQoreZoneInfo *zone = QTZM.findLoadRegion(region->getBuffer(), xsink);
+   if (!*xsink)
+      getProgram()->setTZ(zone);
+}
