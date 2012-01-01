@@ -43,12 +43,12 @@ protected:
     
     DLLLOCAL int check_offset(int64 offset, ExceptionSink *xsink) {
        if (offset < 0) {
-	  xsink->raiseException("TERMIOS-SET-CC-ERROR", "cc offset (%lld) is < 0", offset);
+	  xsink->raiseException("TERMIOS-CC-ERROR", "cc offset (%lld) is < 0", offset);
 	  return -1;
        }
        
        if (offset > NCCS) {
-	  xsink->raiseException("TERMIOS-SET-CC-ERROR", "cc offset (%lld) is > NCCS (%d)", offset, NCCS);
+	  xsink->raiseException("TERMIOS-CC-ERROR", "cc offset (%lld) is > NCCS (%d)", offset, NCCS);
 	  return -1;
        }
        return 0;
