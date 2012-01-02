@@ -1796,6 +1796,11 @@ protected:
                }
                continue;
             }
+
+            if (parseFunction(sc, fp, str)) {
+               valid = false;
+               break;
+            }
          }
 
          buf += str;
@@ -1806,6 +1811,190 @@ protected:
       fclose(fp);
 
       return rc;
+   }
+
+   int parseAttributes(attr_t& attr, std::string& return_type, std::string& sc, size_t i) {
+      strlist_t pre;
+      // get return type and flags
+      std::string pstr(sc, 0, i - 1);
+      //log(LL_DEBUG, "PSTR='%s'\n", pstr.c_str());
+      get_string_list(pre, pstr, ' ');
+
+      for (unsigned xi = 0; xi < pre.size(); ++xi) {
+         //printf("DBG: METHOD list %u/%lu: %s\n", xi, pre.size(), pre[xi].c_str());
+         amap_t::iterator ai = amap.find(pre[xi]);
+         if (ai == amap.end()) {
+            if (!return_type.empty()) {
+               error("%s:%d: multiple return types or unknown code attribute '%s' given\n", fileName, lineNumber, pre[xi].c_str());
+               return -1;
+            }
+            return_type = pre[xi];
+         }
+         else
+            attr |= ai->second;
+      }
+
+      if (attr & QCA_PUBLIC && attr & QCA_PRIVATE) {
+         error("%s:%d: declared both public and private\n", fileName, lineNumber);
+         return -1;
+      }
+
+      return 0;
+   }
+
+   int parseParamsAndFlags(strmap_t& flags, paramlist_t& params, attr_t& attr, std::string& sc, size_t p, const std::string& dn) {
+      size_t i = sc.find(')', p);
+      if (i == std::string::npos) {
+         error("%s:%d: premature EOL reading parameters for %s()\n", fileName, lineNumber, dn.c_str());
+         return -1;
+      }
+
+      size_t cs = sc.find('{', i + 1);
+      if (cs == std::string::npos) {
+         error("%s:%d: premature EOL looking for open brace for %s()\n", fileName, lineNumber, dn.c_str());
+         return -1;
+      }
+
+      // get flags if any
+      if (cs - i > 2) {
+         std::string fstr(sc, i + 1, cs - i - 2);
+         size_t f = fstr.find('[');
+         if (f != std::string::npos) {
+            fstr.erase(0, f + 1);
+            size_t fe = fstr.find(']');
+            if (fe == std::string::npos) {
+               error("%s:%d: premature EOL looking for ']' in flags for %s()\n", fileName, lineNumber, dn.c_str());
+               return -1;
+            }
+            fstr.erase(fe);
+
+            log(LL_DEBUG, "fstr='%s'\n", fstr.c_str());
+
+            // parse properties
+            if (parseProperties(fstr, flags))
+               return -1;
+         }
+      }
+
+      // get params
+      if (i != p + 1) {
+         std::string pstr(sc, p , i - p);
+         trim(pstr);
+         if (!pstr.empty()) {
+            strlist_t pl;
+            get_string_list(pl, pstr);
+
+            for (unsigned xi = 0; xi < pl.size(); ++xi) {
+               trim(pl[xi]);
+
+               // handle special case arg "..." - which is just for documentation
+               if (pl[xi] == "...") {
+                  params.push_back(Param(pl[xi], pl[xi], "", ""));
+                  attr |= QCA_USES_EXTRA_ARGS;
+                  continue;
+               }
+
+               i = pl[xi].find(' ');
+               if (i == std::string::npos) {
+                  error("%s:%d: %s(): cannot find type for parameter '%s'\n", fileName, lineNumber, dn.c_str(), pl[xi].c_str());
+                  return -1;
+               }
+               std::string type(pl[xi], 0, i);
+               std::string param(pl[xi], i + 1);
+               trim(type);
+               trim(param);
+               
+               std::string val;
+               // see if there is a default value
+               i = param.find('=');
+               if (i != std::string::npos) {
+                  val.assign(param, i + 1, std::string::npos);
+                  param.erase(i);
+                  trim(val);
+                  trim(param);
+               }
+
+               std::string qore;
+
+               // see if there's a Qore class name
+               if (type[type.size() - 1] == ']') {
+                  i = type.find('[');
+                  if (i == std::string::npos) {
+                     error("%s:%d: %s(): cannot find open square bracket '[' in type name '%s' in parameter '%s'\n", fileName, lineNumber, dn.c_str(), type.c_str(), param.c_str());
+                     return -1;
+                  }
+                  type.erase(type.size() - 1);
+                  qore = type.c_str() + i + 1;
+                  type.erase(i);                  
+               }
+
+               log(LL_DEBUG, "+ %s() param %d type '%s' name '%s' default value '%s'\n", dn.c_str(), xi, type.c_str(), param.c_str(), val.c_str());
+               params.push_back(Param(type, param, val, qore));
+            }
+         }
+      }
+
+      // erase function/method header
+      sc.erase(0, cs + 1);
+      bool eol = false;
+      while (sc[0] == ' ' || sc[0] == '\n') {
+         if (!eol && sc[0] == '\n')
+            eol = true;
+         else if (eol && sc[0] == ' ')
+            break;
+         sc.erase(0, 1);
+      }
+
+      // remove trailing '}' and newlines
+      size_t len = sc.size();
+      assert(sc[len - 1] == '}');
+      do {
+         sc.erase(--len);
+      } while (len && (sc[len - 1] == ' ' || sc[len - 1] == '\n'));
+
+      return 0;
+   }
+
+   int parseFunction(std::string &sc, FILE *fp, std::string &doc) {
+      unsigned sl = lineNumber;
+      if (readUntilClose(fileName, lineNumber, sc, fp)) {
+         error("%s:%d: premature EOF reading method definition starting on line %d\n", fileName, lineNumber, sl);
+         return -1;
+      }
+
+      // find start of parameter list
+      size_t i = sc.find('(');
+      if (i == std::string::npos) {
+         error("%s:%d: expecting function definition\n", fileName, lineNumber);
+         return -1;
+      }
+
+      // save the position of the '('
+      size_t p = i;
+
+      // find beginning of function name
+      while (i && sc[i - 1] != ' ')
+         --i;
+
+      // get function name
+      std::string fn(sc, i, p - i);
+
+      // function attributes
+      attr_t attr = QCA_NONE;
+      // return type
+      std::string return_type;
+
+      if (i && parseAttributes(attr, return_type, sc, i))
+         return -1;
+
+      strmap_t flags;
+      paramlist_t params;
+
+      if (parseParamsAndFlags(flags, params, attr, sc, p, fn))
+         return -1;
+
+
+      return 0;
    }
 
    int parseMethod(std::string &sc, FILE *fp, std::string &doc) {
@@ -1844,27 +2033,8 @@ protected:
       // return type
       std::string return_type;
 
-      if (i) {
-         strlist_t pre;
-         // get return type and flags
-         std::string pstr(sc, 0, i - 1);
-         //log(LL_DEBUG, "PSTR='%s'\n", pstr.c_str());
-         get_string_list(pre, pstr, ' ');
-
-         for (unsigned xi = 0; xi < pre.size(); ++xi) {
-            //printf("DBG: METHOD list %u/%lu: %s\n", xi, pre.size(), pre[xi].c_str());
-            amap_t::iterator ai = amap.find(pre[xi]);
-            if (ai == amap.end()) {
-               if (!return_type.empty()) {
-                  error("%s:%d: multiple return types or unknown code attribute '%s' given\n", fileName, lineNumber, pre[xi].c_str());
-                  return -1;
-               }
-               return_type = pre[xi];
-            }
-            else
-               attr |= ai->second;
-         }
-      }
+      if (i && parseAttributes(attr, return_type, sc, i))
+         return -1;
 
       // get method name
       p += 2;
@@ -1879,11 +2049,6 @@ protected:
 
       std::string mn(sc, p, i - p);
 
-      if (attr & QCA_PUBLIC && attr & QCA_PRIVATE) {
-         error("%s:%d: %s::%s() declared both public and private\n", fileName, lineNumber, cn.c_str(), mn.c_str());
-         return -1;
-      }
-
       p = sc.find('(', i);
       if (p == std::string::npos) {
          error("%s:%d: premature EOL reading parameters for %s::%s()\n", fileName, lineNumber, cn.c_str(), mn.c_str());
@@ -1891,115 +2056,15 @@ protected:
       }
       ++p;
       
-      i = sc.find(')', p);
-      if (i == std::string::npos) {
-         error("%s:%d: premature EOL reading parameters for %s::%s()\n", fileName, lineNumber, cn.c_str(), mn.c_str());
-         return -1;
-      }
-
-      size_t cs = sc.find('{', i + 1);
-      if (cs == std::string::npos) {
-         error("%s:%d: premature EOL looking for open brace for %s::%s()\n", fileName, lineNumber, cn.c_str(), mn.c_str());
-         return -1;
-      }
-
       strmap_t flags;
-
-      // get flags if any
-      if (cs - i > 2) {
-         std::string fstr(sc, i + 1, cs - i - 2);
-         size_t f = fstr.find('[');
-         if (f != std::string::npos) {
-            fstr.erase(0, f + 1);
-            size_t fe = fstr.find(']');
-            if (fe == std::string::npos) {
-               error("%s:%d: premature EOL looking for ']' in flags for %s::%s()\n", fileName, lineNumber, cn.c_str(), mn.c_str());
-               return -1;
-            }
-            fstr.erase(fe);
-
-            log(LL_DEBUG, "fstr='%s'\n", fstr.c_str());
-
-            // parse properties
-            if (parseProperties(fstr, flags))
-               return -1;
-         }
-      }
-
-      // get params
       paramlist_t params;
-      if (i != p + 1) {
-         std::string pstr(sc, p , i - p);
-         trim(pstr);
-         if (!pstr.empty()) {
-            strlist_t pl;
-            get_string_list(pl, pstr);
 
-            for (unsigned xi = 0; xi < pl.size(); ++xi) {
-               trim(pl[xi]);
+      std::string dn(cn);
+      dn += "::";
+      dn += mn;
 
-               // handle special case arg "..." - which is just for documentation
-               if (pl[xi] == "...") {
-                  params.push_back(Param(pl[xi], pl[xi], "", ""));
-                  attr |= QCA_USES_EXTRA_ARGS;
-                  continue;
-               }
-
-               i = pl[xi].find(' ');
-               if (i == std::string::npos) {
-                  error("%s:%d: %s::%s(): cannot find type for parameter '%s'\n", fileName, lineNumber, cn.c_str(), mn.c_str(), pl[xi].c_str());
-                  return -1;
-               }
-               std::string type(pl[xi], 0, i);
-               std::string param(pl[xi], i + 1);
-               trim(type);
-               trim(param);
-               
-               std::string val;
-               // see if there is a default value
-               i = param.find('=');
-               if (i != std::string::npos) {
-                  val.assign(param, i + 1, std::string::npos);
-                  param.erase(i);
-                  trim(val);
-                  trim(param);
-               }
-
-               std::string qore;
-
-               // see if there's a Qore class name
-               if (type[type.size() - 1] == ']') {
-                  i = type.find('[');
-                  if (i == std::string::npos) {
-                     error("%s:%d: %s::%s(): cannot find open square bracket '[' in type name '%s' in parameter '%s'\n", fileName, lineNumber, cn.c_str(), mn.c_str(), type.c_str(), param.c_str());
-                     return -1;
-                  }
-                  type.erase(type.size() - 1);
-                  qore = type.c_str() + i + 1;
-                  type.erase(i);                  
-               }
-
-               log(LL_DEBUG, "+ %s::%s() param %d type '%s' name '%s' default value '%s'\n", cn.c_str(), mn.c_str(), xi, type.c_str(), param.c_str(), val.c_str());
-               params.push_back(Param(type, param, val, qore));
-            }
-         }
-      }
-      sc.erase(0, cs + 1);
-      bool eol = false;
-      while (sc[0] == ' ' || sc[0] == '\n') {
-         if (!eol && sc[0] == '\n')
-            eol = true;
-         else if (eol && sc[0] == ' ')
-            break;
-         sc.erase(0, 1);
-      }
-
-      // remove trailing '}' and newlines
-      size_t len = sc.size();
-      assert(sc[len - 1] == '}');
-      do {
-         sc.erase(--len);
-      } while (len && (sc[len - 1] == ' ' || sc[len - 1] == '\n'));
+      if (parseParamsAndFlags(flags, params, attr, sc, p, dn))
+         return -1;
 
       return ci->second->addMethod(mn, attr, return_type, params, flags, sc, doc, sl);
    }
