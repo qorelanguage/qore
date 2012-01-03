@@ -78,8 +78,6 @@ void qore_init(qore_license_t license, const char *def_charset, bool show_module
    // set up pseudo-methods
    pseudo_classes_init();
 
-   builtinFunctions.init();
-
    // init module subsystem
    MM.init(show_module_errors);
 

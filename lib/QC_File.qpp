@@ -100,33 +100,41 @@ const O_EXCL = O_EXCL;
 
 // the following constants were defined earlier but are system-specific; they are included in the build
 // in case anyone is using them on the platforms where they are supported
-#ifdef O_NOCTTY
+#ifndef O_NOCTTY
+#define O_NOCTTY 0
+#endif
+#ifndef O_NONBLOCK
+#define O_NONBLOCK 0
+#endif
+#ifndef O_NDELAY
+#define O_NDELAY 0
+#endif
+#ifndef O_SYNC
+#define O_SYNC 0
+#endif
+#ifndef O_DIRECT
+#define O_DIRECT 0
+#endif
+#ifndef O_DIRECTORY
+#define O_DIRECTORY 0
+#endif
+#ifndef O_NOFOLLOW
+#define O_NOFOLLOW 0
+#endif
+//! don't allocate controlling tty (0 on platforms where this is not available)
 const O_NOCTTY = O_NOCTTY;
-#endif
-#ifdef O_NONBLOCK
+//! non-blocking I/O (untested with Qore; 0 on platforms where this is not available)
 const O_NONBLOCK = O_NONBLOCK;
-#endif
-#ifdef O_NDELAY
+//! synonym for O_NONBLOCK (untested with Qore; 0 on platforms where this is not available)
 const O_NDELAY = O_NDELAY;
-#endif
-#ifdef O_SYNC
+//! synchronized file update option (0 on platforms where this is not available)
 const O_SYNC = O_SYNC;
-#endif
-#ifdef O_DIRECT
+//! direct disk access hint (0 on platforms where this is not available)
 const O_DIRECT = O_DIRECT;
-#endif
-#ifdef O_LARGEFILE
-const O_LARGEFILE = O_LARGEFILE;
-#endif
-#ifdef O_DIRECTORY
+//! must be a directory (0 on platforms where this is not available)
 const O_DIRECTORY = O_DIRECTORY;
-#endif
-#ifdef O_NOFOLLOW
+//! don't follow links (0 on platforms where this is not available)
 const O_NOFOLLOW = O_NOFOLLOW;
-#endif
-#ifdef O_ATOMICLOOKUP
-const O_ATOMICLOOKUP = O_ATOMICLOOKUP;
-#endif
 //@}
 
 /** @defgroup file_stat_constants File Stat Constants

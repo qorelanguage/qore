@@ -6,7 +6,7 @@
 
   Qore Programming Language
   
-  Copyright 2003 - 2011 David Nichols
+  Copyright 2003 - 2012 David Nichols
   
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -91,6 +91,9 @@ typedef std::map<std::string, std::string> strmap_t;
 typedef std::map<std::string, attr_t> amap_t;
 typedef std::set<std::string> strset_t;
 
+// for tracking enumerated variants
+typedef std::map<std::string, unsigned> vmap_t;
+
 // code attribute map
 static amap_t amap;
 
@@ -98,7 +101,7 @@ static amap_t amap;
 static strmap_t tmap;
 
 // qore value to c++ value map
-static strmap_t vmap;
+static strmap_t valmap;
 
 // set of types indicating objects
 static strset_t oset;
@@ -211,7 +214,7 @@ static bool whitespace(int c) {
    return c == ' ' || c == '\n' || c == '\t';
 }
 
-void trim(std::string &str) {
+static void trim(std::string &str) {
    while (whitespace(str[0]))
       str.erase(0, 1);
    while (true) {
@@ -222,12 +225,61 @@ void trim(std::string &str) {
    }
 }
 
-static void get_type_name(std::string &t, const std::string &type) {
-   size_t cp = type.rfind("::");
-   if (cp == std::string::npos)
-      t = type;
-   else
-      t.assign(type, cp + 2, -1);
+static int read_line(unsigned& lineNumber, std::string &str, FILE *fp) {
+   while (true) {
+      int c = fgetc(fp);
+      if (c == EOF)
+         return -1;
+
+      str += c;
+      if (c == '\n') {
+         ++lineNumber;
+         break;
+      }
+   }
+   return 0;
+}
+
+static int get_dox_comment(const char* fileName, unsigned& lineNumber, std::string& str, FILE* fp, bool already_started = false) {
+   if (!already_started) {
+      std::string buf;
+      if (read_line(lineNumber, buf, fp)) {
+         error("%s:%d: premature EOF reading doxygen comment\n", fileName, lineNumber);
+         return -1;
+      }
+      
+      if (buf.compare(0, 3, "/**")) {
+         error("%s:%d: missing block comment marker '/**' in line following //! comment (str='%s' buf='%s')\n", fileName, lineNumber, str.c_str(), buf.c_str());
+         return -1;
+      }
+
+      str += buf;
+   }
+
+   int lc = 0;
+
+   while (true) {
+      int c = fgetc(fp);
+      if (c == EOF) {
+         error("%s:%d: premature EOF reading doxygen comment\n", fileName, lineNumber);
+         return -1;
+      }
+
+      str += c;
+
+      if (lc && c == '/')
+         break;
+
+      lc = (c == '*');
+
+      if (c == '\n')
+         ++lineNumber;
+   }
+
+   // now read to EOL
+   read_line(lineNumber, str, fp);
+
+   return 0;
 }
 
 static void get_string_list(strlist_t &l, const std::string &str, char separator = ',') {
@@ -243,6 +295,198 @@ static void get_string_list(strlist_t &l, const std::string &str, char separator
 
    //for (unsigned i = 0; i < l.size(); ++i)
    //   printf("DBG: list %u/%lu: %s\n", i, l.size(), l[i].c_str());
+}
+
+int parse_attributes(const char* fileName, unsigned& lineNumber, attr_t& attr, std::string& return_type, std::string& sc, size_t i) {
+   strlist_t pre;
+   // get return type and flags
+   std::string pstr(sc, 0, i - 1);
+   //log(LL_DEBUG, "PSTR='%s'\n", pstr.c_str());
+   get_string_list(pre, pstr, ' ');
+
+   for (unsigned xi = 0; xi < pre.size(); ++xi) {
+      //printf("DBG: METHOD list %u/%lu: %s\n", xi, pre.size(), pre[xi].c_str());
+      amap_t::iterator ai = amap.find(pre[xi]);
+      if (ai == amap.end()) {
+         if (!return_type.empty()) {
+            error("%s:%d: multiple return types or unknown code attribute '%s' given\n", fileName, lineNumber, pre[xi].c_str());
+            return -1;
+         }
+         return_type = pre[xi];
+      }
+      else
+         attr |= ai->second;
+   }
+
+   if (attr & QCA_PUBLIC && attr & QCA_PRIVATE) {
+      error("%s:%d: declared both public and private\n", fileName, lineNumber);
+      return -1;
+   }
+
+   return 0;
+}
+
+static int missing_value_error(const char* fileName, unsigned lineNumber, const std::string &propstr) {
+   error("%s:%d: missing '=' or value in property string '%s'\n", fileName, lineNumber, propstr.c_str());
+   return -1;
+}
+
+static int add_element(const char* fileName, unsigned lineNumber, const std::string &propstr, strmap_t &props, size_t start, size_t end) {
+   size_t eq = propstr.find('=', start);
+   if (eq == std::string::npos || eq >= end)
+      return missing_value_error(fileName, lineNumber, propstr);
+   while (start < eq && propstr[start] == ' ')
+      ++start;
+   if (start == eq) {
+      error("%s:%d: missing property name in property string '%s'\n", fileName, lineNumber, propstr.c_str());
+      return -1;
+   }
+   size_t tend = end;
+   while (tend > eq && propstr[tend] == ' ')
+      --tend;
+
+   if (tend == eq)
+      return missing_value_error(fileName, lineNumber, propstr);
+
+   std::string key(propstr, start, eq - start);
+   std::string value(propstr, eq + 1, end - eq -1);
+   props[key] = value;
+   return 0;
+}
+
+int parse_properties(const char* fileName, unsigned lineNumber, std::string &propstr, strmap_t &props) {
+   size_t start = 0;
+   while (true) {
+      size_t end = propstr.find(';', start);
+      if (end == std::string::npos)
+         break;
+      if (add_element(fileName, lineNumber, propstr, props, start, end))
+         return -1;
+      start = end + 1;
+   }
+
+   return add_element(fileName, lineNumber, propstr, props, start, propstr.size());
+}
+
+int parse_params_and_flags(const char* fileName, unsigned& lineNumber, strmap_t& flags, paramlist_t& params, attr_t& attr, std::string& sc, size_t p, const std::string& dn) {
+   size_t i = sc.find(')', p);
+   if (i == std::string::npos) {
+      error("%s:%d: premature EOL reading parameters for %s()\n", fileName, lineNumber, dn.c_str());
+      return -1;
+   }
+
+   size_t cs = sc.find('{', i + 1);
+   if (cs == std::string::npos) {
+      error("%s:%d: premature EOL looking for open brace for %s()\n", fileName, lineNumber, dn.c_str());
+      return -1;
+   }
+
+   // get flags if any
+   if (cs - i > 2) {
+      std::string fstr(sc, i + 1, cs - i - 2);
+      size_t f = fstr.find('[');
+      if (f != std::string::npos) {
+         fstr.erase(0, f + 1);
+         size_t fe = fstr.find(']');
+         if (fe == std::string::npos) {
+            error("%s:%d: premature EOL looking for ']' in flags for %s()\n", fileName, lineNumber, dn.c_str());
+            return -1;
+         }
+         fstr.erase(fe);
+
+         log(LL_DEBUG, "fstr='%s'\n", fstr.c_str());
+
+         // parse properties
+         if (parse_properties(fileName, lineNumber, fstr, flags))
+            return -1;
+      }
+   }
+
+   // get params
+   if (i != p + 1) {
+      std::string pstr(sc, p , i - p);
+      trim(pstr);
+      if (!pstr.empty()) {
+         strlist_t pl;
+         get_string_list(pl, pstr);
+
+         for (unsigned xi = 0; xi < pl.size(); ++xi) {
+            trim(pl[xi]);
+
+            // handle special case arg "..." - which is just for documentation
+            if (pl[xi] == "...") {
+               params.push_back(Param(pl[xi], pl[xi], "", ""));
+               attr |= QCA_USES_EXTRA_ARGS;
+               continue;
+            }
+
+            i = pl[xi].find(' ');
+            if (i == std::string::npos) {
+               error("%s:%d: %s(): cannot find type for parameter '%s'\n", fileName, lineNumber, dn.c_str(), pl[xi].c_str());
+               return -1;
+            }
+            std::string type(pl[xi], 0, i);
+            std::string param(pl[xi], i + 1);
+            trim(type);
+            trim(param);
+               
+            std::string val;
+            // see if there is a default value
+            i = param.find('=');
+            if (i != std::string::npos) {
+               val.assign(param, i + 1, std::string::npos);
+               param.erase(i);
+               trim(val);
+               trim(param);
+            }
+
+            std::string qore;
+
+            // see if there's a Qore class name
+            if (type[type.size() - 1] == ']') {
+               i = type.find('[');
+               if (i == std::string::npos) {
+                  error("%s:%d: %s(): cannot find open square bracket '[' in type name '%s' in parameter '%s'\n", fileName, lineNumber, dn.c_str(), type.c_str(), param.c_str());
+                  return -1;
+               }
+               type.erase(type.size() - 1);
+               qore = type.c_str() + i + 1;
+               type.erase(i);                  
+            }
+
+            log(LL_DEBUG, "+ %s() param %d type '%s' name '%s' default value '%s'\n", dn.c_str(), xi, type.c_str(), param.c_str(), val.c_str());
+            params.push_back(Param(type, param, val, qore));
+         }
+      }
+   }
+
+   // erase function/method header
+   sc.erase(0, cs + 1);
+   bool eol = false;
+   while (sc[0] == ' ' || sc[0] == '\n') {
+      if (!eol && sc[0] == '\n')
+         eol = true;
+      else if (eol && sc[0] == ' ')
+         break;
+      sc.erase(0, 1);
+   }
+
+   // remove trailing '}' and newlines
+   size_t len = sc.size();
+   assert(sc[len - 1] == '}');
+   do {
+      sc.erase(--len);
+   } while (len && (sc[len - 1] == ' ' || sc[len - 1] == '\n'));
+
+   return 0;
+}
+
+static void get_type_name(std::string &t, const std::string &type) {
+   size_t cp = type.rfind("::");
+   if (cp == std::string::npos)
+      t = type;
+   else
+      t.assign(type, cp + 2, -1);
 }
 
 // takes into account quotes and @code @endcode
@@ -324,7 +568,7 @@ static bool is_object(const std::string &qt) {
    return !qt.empty() && (oset.find(qt) != oset.end() || tmap.find(qt) == tmap.end());
 }
 
-int readUntilClose(const char* fileName, unsigned& lineNumber, std::string& str, FILE* fp, int cchar = '}') {
+int read_until_close(const char* fileName, unsigned& lineNumber, std::string& str, FILE* fp, int cchar = '}') {
    int quote = 0;
 
    // curly bracket count
@@ -442,8 +686,8 @@ static int get_val_type(const std::string &str) {
 }
 
 static int get_qore_value(const std::string &qv, std::string &v, const char *cname = 0, bool *hash = 0) {
-   strmap_t::iterator i = vmap.find(qv);
-   if (i != vmap.end()) {
+   strmap_t::iterator i = valmap.find(qv);
+   if (i != valmap.end()) {
       v = i->second;
       return 0;
    }
@@ -535,7 +779,7 @@ static void doRow(strlist_t &sl, std::string &tstr) {
    tstr += "   </tr>\n";
 }
 
-static int serializeDoxComment(FILE* fp, std::string &buf) {
+static int serialize_dox_comment(FILE* fp, std::string &buf) {
    size_t start = 0;
    while (true) {
       size_t i = buf.find("|!", start);
@@ -590,25 +834,23 @@ static int serializeDoxComment(FILE* fp, std::string &buf) {
    return 0;
 }
 
-class AbstractGroupElement {
-public:
-   DLLLOCAL virtual ~AbstractGroupElement() {
-   }
-
-   virtual int serializeCpp(FILE *fp) = 0;
-   virtual int serializeDox(FILE *fp) = 0;
-};
-
-class ConstantGroupElement : public AbstractGroupElement {
+class ConstantGroupElement {
 protected:
    std::string name,
+      doc,
       value;
 
 public:
-   ConstantGroupElement(const std::string &n, const std::string &v) : name(n), value(v) {
+   ConstantGroupElement(const std::string& n, const std::string& d, const std::string& v) : name(n), doc(d), value(v) {
    }
 
-   virtual int serializeCpp(FILE *fp) {
+   int serializeCpp(FILE *fp) {
+      // should never be called
+      assert(false);
+      return 0;
+   }
+
+   int serializeCppBinding(FILE *fp) const {
       std::string qv;
       bool hash = false;
       if (get_qore_value(value, qv, name.c_str(), &hash))
@@ -620,13 +862,14 @@ public:
       return 0;
    }
 
-   virtual int serializeDox(FILE *fp) {
+   int serializeDox(FILE *fp) {
+      fputs(doc.c_str(), fp);
       fprintf(fp, "   const %s = %s;\n", name.c_str(), value.c_str());
       return 0;
    }
 };
 
-class TextGroupElement : public AbstractGroupElement {
+class TextGroupElement {
 protected:
    std::string text;
 
@@ -634,209 +877,33 @@ public:
    TextGroupElement(const std::string &t) : text(t) {
    }
 
-   virtual int serializeCpp(FILE *fp) {
+   int serializeCpp(FILE *fp) const {
       fputs(text.c_str(), fp);
       return 0;
    }
 
-   virtual int serializeDox(FILE *fp) {
+   int serializeCppBinding(FILE *fp) const {
+      fputs(text.c_str(), fp);
+      return 0;
+   }
+
+   int serializeDox(FILE *fp) const {
       fputs(text.c_str(), fp);
       return 0;
    }
 };
 
-class Group {
-protected:
-   typedef std::vector<AbstractGroupElement*> glist_t;
-   glist_t glist;
-   bool valid;
-   const char *fileName;
-   unsigned &lineNumber;
-
-   int readLine(std::string &str, FILE *fp) {
-      while (true) {
-         int c = fgetc(fp);
-         if (c == EOF)
-            return -1;
-
-         str += c;
-         if (c == '\n') {
-            ++lineNumber;
-            break;
-         }
-      }
-      return 0;
-   }
-
-   void checkBuf(std::string &buf) {
-      if (!buf.empty()) {
-         glist.push_back(new TextGroupElement(buf));
-         buf.clear();
-      }
-   }
-
-public:
-   Group(std::string &buf, FILE *fp, const char *fn, unsigned &ln) : valid(true), fileName(fn), lineNumber(ln) {     
-      while (true) {
-         std::string line;
-         if (readLine(line, fp)) {
-            error("%s:%d: premature EOF reading constant group\n", fileName, lineNumber);
-            valid = false;
-            return;
-         }
-
-         if (!line.compare(0, 6, "const ")) {
-            checkBuf(buf);
-
-            // trim off trailing newline and spaces
-            line.erase(line.size() - 1);
-            trim(line);
-            if (line[line.size() - 1] != ';') {
-               // re-add newline
-               line += '\n';
-               if (readUntilClose(fileName, lineNumber, line, fp, ';')) {
-                  error("%s:%d: expecting constant definition; got: %s (%c)\n", fileName, lineNumber, line.c_str(), line[line.size() - 1]);
-                  valid = false;
-               }
-            }
-
-            line.erase(0, 6);
-            // erase trailing ';'
-            line.erase(line.size() - 1);
-            trim(line);
-
-            size_t i = line.find('=');
-            if (i == std::string::npos) {
-               error("%s:%d: invalid constant definition: const %s\n", fileName, lineNumber, line.c_str());
-               valid = false;
-            }
-            else {
-               std::string name, val;
-               name.assign(line, 0, i);
-               val.assign(line, i + 1, -1);
-               trim(name);
-               trim(val);
-               glist.push_back(new ConstantGroupElement(name, val));
-            }
-            continue;
-         }
-
-         //log(LL_INFO, "Group line: %s", line.c_str());
-         buf += line;
-         if (!line.compare(0, 4, "//@}"))
-             break;
-      }
-      checkBuf(buf);
-   }
-
-   ~Group() {
-      for (unsigned i = 0; i < glist.size(); ++i)
-         delete glist[i];
-   }
-
-   operator bool() const {
-      return valid;
-   }
-
-   int serializeCpp(FILE *fp) {
-      if (!glist.empty()) {
-         fputc('\n', fp);
-         for (unsigned i = 0; i < glist.size(); ++i)
-            if (glist[i]->serializeCpp(fp))
-               return -1;
-      }
-      return 0;
-   }
-
-   int serializeDox(FILE *fp) {
-      if (!glist.empty()) {
-         fputc('\n', fp);
-         for (unsigned i = 0; i < glist.size(); ++i)
-            if (glist[i]->serializeDox(fp))
-               return -1;
-      }
-      return 0;
-   }
-};
-
-typedef std::vector<Group*> grouplist_t;
-class Groups {
-protected:
-   grouplist_t grouplist;
-
-public:
-   ~Groups() {
-      for (unsigned i = 0; i < grouplist.size(); ++i)
-         delete grouplist[i];
-   }
-
-   int add(Group *g) {
-      grouplist.push_back(g);
-      return !(*g);
-   }
-
-   bool empty() const {
-      return grouplist.empty();
-   }
-
-   int serializeCpp(FILE *fp) {
-      for (unsigned i = 0; i < grouplist.size(); ++i)
-         if (grouplist[i]->serializeCpp(fp))
-            return -1;
-      return 0;
-   }
-
-   int serializeDox(FILE *fp) {
-      for (unsigned i = 0; i < grouplist.size(); ++i)
-         if (grouplist[i]->serializeDox(fp))
-            return -1;
-      return 0;
-   }   
-};
-
-static Groups groups;
-
-class AbstractElement {
-protected:
-
-public:
-   virtual ~AbstractElement() {
-   }
-
-   virtual int serializeCpp(FILE *fp) = 0;
-   virtual int serializeDox(FILE *fp) = 0;
-};
-
-class TextElement : public AbstractElement {
-protected:
-   std::string buf;
-
-public:
-   TextElement(const std::string &n_buf) : buf(n_buf) {
-      //log(LL_DEBUG, "TextElement::TextElement() str=%s", n_buf.c_str());
-   }
-
-   virtual int serializeCpp(FILE *fp) {
-      fputs(buf.c_str(), fp);
-      return 0;
-   }
-
-   virtual int serializeDox(FILE *fp) {
-      return serializeDoxComment(fp, buf);
-   }   
-};
-
-class Method {
+class CodeBase {
 protected:
    enum ReturnType { RT_ANY = 0, RT_INT = 1, RT_BOOL = 2, RT_OBJ = 3, RT_FLOAT = 4 };
 
-   std::string name,   // method name
-      vname,           // method variant name
-      docs,            // method docs
-      return_type,     // method return type
-      code,            // method c++ code
-      dom,             // method domain
-      flags;           // method flags
+   std::string name,   // name
+      vname,           // variant name
+      docs,            // docs
+      return_type,     // return type
+      code,            // c++ code
+      dom,             // domain
+      flags;           // flags
    attr_t attr;
    paramlist_t params;
    ReturnType rt;
@@ -844,62 +911,7 @@ protected:
    bool has_return,
       doconly;         // only for documentation
 
-   void serializeCppConstructor(FILE *fp, const char *cname) const {
-      serializeQoreConstructorPrototypeComment(fp, cname);
-      fprintf(fp, "static void %s_%s(QoreObject* self, const QoreListNode* args, ExceptionSink* xsink) {\n", cname, vname.c_str());
-      serializeArgs(fp, cname, false);
-      fputs(code.c_str(), fp);
-      fputs("\n}\n\n", fp);
-   }
-
-   void serializeCppDestructor(FILE *fp, const char *cname, const char *arg) const {
-      serializeQoreDestructorCopyPrototypeComment(fp, cname);
-      fprintf(fp, "static void %s_destructor(QoreObject* self, %s, ExceptionSink* xsink) {\n", cname, arg);
-      fputs(code.c_str(), fp);
-      fputs("\n}\n\n", fp);
-   }
-
-   void serializeCppCopy(FILE *fp, const char *cname, const char *arg) const {
-      serializeQoreDestructorCopyPrototypeComment(fp, cname);
-      fprintf(fp, "static void %s_copy(QoreObject* self, QoreObject* old, %s, ExceptionSink* xsink) {\n", cname, arg);
-      fputs(code.c_str(), fp);
-      fputs("\n}\n\n", fp);
-   }
-
-   int serializeCppConstructorBinding(FILE *fp, const char *cname, const char *UC) const {
-      fputc('\n', fp);
-      serializeQoreConstructorPrototypeComment(fp, cname, 3);
-
-      fprintf(fp, "   QC_%s->setConstructorExtended(%s_%s, %s, %s, %s", 
-              UC, 
-              cname, vname.c_str(),
-              attr & QCA_PRIVATE ? "true" : "false",
-              flags.c_str(),
-              dom.empty() ? "QDOM_DEFAULT" : dom.c_str());
-
-      if (serializeBindingArgs(fp))
-         return -1;
-
-      fputs(");\n", fp);
-      
-      return 0;
-   }
-
-   int serializeCppDestructorBinding(FILE *fp, const char *cname, const char *UC) const {
-      fputc('\n', fp);
-      serializeQoreDestructorCopyPrototypeComment(fp, cname, 3);
-      fprintf(fp, "   QC_%s->setDestructor((q_destructor_t)%s_destructor);\n", UC, cname);
-      return 0;
-   }
-
-   int serializeCppCopyBinding(FILE *fp, const char *cname, const char *UC) const {
-      fputc('\n', fp);
-      serializeQoreDestructorCopyPrototypeComment(fp, cname, 3);
-      fprintf(fp, "   QC_%s->setCopy((q_copy_t)%s_copy);\n", UC, cname);
-      return 0;
-   }
-
-   void serializeArgs(FILE *fp, const char *cname, bool rv = true) const {
+   void serializeArgs(FILE *fp, const char *cname = 0, bool rv = true) const {
       for (unsigned i = 0; i < params.size(); ++i) {
          const Param &p = params[i];
 
@@ -913,8 +925,8 @@ protected:
             std::string cid;
             get_type_name(cid, p.type);
             toupper(cid);            
-            fprintf(fp, "   HARD_QORE_OBJ_DATA(%s, %s, args, %d, CID_%s, \"%s::%s()\", \"%s\", xsink);\n   if (*xsink)\n      return%s;\n",
-                    p.name.c_str(), p.qore.c_str(), i, cid.c_str(), cname, name.c_str(), p.type.c_str(), rv ? " 0" : "");
+            fprintf(fp, "   HARD_QORE_OBJ_DATA(%s, %s, args, %d, CID_%s, \"%s%s%s()\", \"%s\", xsink);\n   if (*xsink)\n      return%s;\n",
+                    p.name.c_str(), p.qore.c_str(), i, cid.c_str(), cname ? cname : "", cname ? "::" : "", name.c_str(), p.type.c_str(), rv ? " 0" : "");
             continue;
          }
 
@@ -986,6 +998,11 @@ protected:
             fprintf(fp, "   QoreObject* %s = const_cast<QoreObject*>(reinterpret_cast<const QoreObject*>(get_param(args, %d)));\n", p.name.c_str(), i);
             continue;
          }
+         if (p.type == "code" || p.type == "*code") {
+            fprintf(fp, "   const ResolvedCallReferenceNode* %s = reinterpret_cast<const ResolvedCallReferenceNode*>(get_param(args, %d));\n", p.name.c_str(), i);
+            continue;
+         }
+
          if (p.type == "any" || p.type == "data") {
             fprintf(fp, "   const AbstractQoreNode* %s = get_param(args, %d);\n", p.name.c_str(), i);
             continue;
@@ -1051,25 +1068,6 @@ protected:
          fputs("private ", fp);
    }
 
-   void serializeQoreDestructorCopyPrototypeComment(FILE *fp, const char *cname, unsigned indent = 0) const {
-      serializeQoreAttrComment(fp, indent);
-      fprintf(fp, "%s::%s() {}\n", cname, name.c_str());
-   }
-
-   void serializeQoreConstructorPrototypeComment(FILE *fp, const char *cname, unsigned indent = 0) const {
-      serializeQoreAttrComment(fp, indent);
-      fprintf(fp, "%s::constructor(", cname);
-      serializeQoreParams(fp);
-      fputs(") {}\n", fp);
-   }
-
-   void serializeQorePrototypeComment(FILE *fp, const char *cname, unsigned indent = 0) const {
-      serializeQoreAttrComment(fp, indent);
-      fprintf(fp, "%s %s::%s(", return_type.empty() ? "nothing" : return_type.c_str(), cname, name.c_str());
-      serializeQoreParams(fp);
-      fputs(") {}\n", fp);
-   }
-
    const char *getReturnType() const {
       switch (rt) {
          case RT_OBJ:
@@ -1080,19 +1078,6 @@ protected:
             return "bool";
          default:
             return "AbstractQoreNode*";
-      }
-   }
-
-   const char *getMethodType() const {
-      switch (rt) {
-         case RT_INT:
-            return "q_method_int64_t";
-         case RT_BOOL:
-            return "q_method_bool_t";
-         case RT_FLOAT:
-            return "q_method_double_t";
-         default:
-            return "q_method_t";
       }
    }
 
@@ -1111,14 +1096,26 @@ protected:
       fputs(t.c_str(), fp);
    }
 
+   const char *getFunctionType() const {
+      switch (rt) {
+         case RT_INT:
+            return "q_func_int64_t";
+         case RT_BOOL:
+            return "q_func_bool_t";
+         case RT_FLOAT:
+            return "q_func_double_t";
+         default:
+            return "q_func_t";
+      }
+   }
+
 public:
-   Method(const std::string &n_name, attr_t n_attr, const paramlist_t &n_params, 
-          const std::string &n_docs, const std::string &n_return_type, 
-          const std::string &n_flags, const std::string &n_dom, const std::string &n_code,
-          unsigned vnum, unsigned n_line, bool n_doconly) : 
-      name(n_name), vname(name), docs(n_docs), return_type(n_return_type), 
-      code(n_code), dom(n_dom), flags(n_flags), attr(n_attr), params(n_params), 
-      rt(RT_ANY), line(n_line), has_return(false), doconly(n_doconly) {
+   CodeBase(const std::string &n_name, attr_t n_attr, const paramlist_t &n_params, 
+            const std::string &n_docs, const std::string &n_return_type, 
+            const std::string &n_flags, const std::string &n_dom, const std::string &n_code,
+            unsigned vnum, unsigned n_line, bool n_doconly) : name(n_name), vname(name), docs(n_docs), return_type(n_return_type), 
+                                                              code(n_code), dom(n_dom), flags(n_flags), attr(n_attr), params(n_params), 
+                                                              rt(RT_ANY), line(n_line), has_return(false), doconly(n_doconly) {
       if (return_type == "int" || return_type == "softint")
          rt = RT_INT;
       else if (return_type == "bool" || return_type == "softbool")
@@ -1146,14 +1143,641 @@ public:
       else if (attr & QCA_USES_EXTRA_ARGS)
          flags += "|QC_USES_EXTRA_ARGS";
 
-      log(LL_DEBUG, "Method::Method() name %s flags '%s'\n", name.c_str(), flags.c_str());
+      log(LL_DEBUG, "CodeBase::CodeBase() name %s flags '%s'\n", name.c_str(), flags.c_str());
    }
 
    const char *getName() const {
       return name.c_str();
    }
+};
 
-   virtual void serializeNormalCppMethod(FILE *fp, const char *cname, const char *arg) const {
+class FunctionGroupElement : public CodeBase {
+protected:
+   void serializeQorePrototypeComment(FILE *fp, unsigned indent = 0) const {
+      serializeQoreAttrComment(fp, indent);
+      fprintf(fp, "%s %s(", return_type.empty() ? "nothing" : return_type.c_str(), name.c_str());
+      serializeQoreParams(fp);
+      fputs(") {}\n", fp);
+   }
+
+public:
+   FunctionGroupElement(const std::string &n_name, attr_t n_attr, const paramlist_t &n_params, 
+                        const std::string &n_docs, const std::string &n_return_type, 
+                        const std::string &n_flags, const std::string &n_dom, const std::string &n_code,
+                        unsigned vnum, unsigned n_line, bool n_doconly) : CodeBase(n_name, n_attr, n_params, n_docs, n_return_type, 
+                                                                                   n_flags, n_dom, n_code, vnum, n_line, n_doconly) {
+   }
+
+   int serializeCpp(FILE *fp) const {
+      if (doconly)
+         return 0;
+
+      serializeQorePrototypeComment(fp);
+
+      fprintf(fp, "static %s f_%s(const QoreListNode* args, ExceptionSink* xsink) {\n", getReturnType(), vname.c_str());
+      serializeArgs(fp);
+      fputs(code.c_str(), fp);
+
+      if (!has_return)
+         fprintf(fp, "\n   return 0;");
+
+      fputs("\n}\n\n", fp);
+      return 0;
+   }
+
+   int serializeCppBinding(FILE *fp) const {
+      if (doconly)
+         return 0;
+
+      fputc('\n', fp);
+      serializeQorePrototypeComment(fp, 3);
+
+      // get return type
+      std::string cppt;
+      if (get_qore_type(return_type, cppt))
+         return -1;
+
+      fprintf(fp, "   builtinFunctions.add2(\"%s\", (%s)f_%s, %s, %s, %s", 
+              name.c_str(),
+              getFunctionType(), 
+              vname.c_str(),
+              flags.c_str(),
+              dom.empty() ? "QDOM_DEFAULT" : dom.c_str(), cppt.c_str());
+
+      if (serializeBindingArgs(fp))
+         return -1;
+
+      fputs(");\n", fp);
+
+      return 0;
+   }
+
+   int serializeDox(FILE *fp) {
+      serialize_dox_comment(fp, docs);
+      
+      serializeQoreCppType(fp, return_type);
+      fprintf(fp, " %s(", name.c_str());
+
+      for (unsigned i = 0; i < params.size(); ++i) {
+         if (i)
+            fputs(", ", fp);
+         const Param &p = params[i];
+         serializeQoreCppType(fp, p.type);
+         fputc(' ' , fp);
+         fputs(p.name.c_str(), fp);
+      }
+      fputs(");\n\n", fp);
+
+      return 0;
+   }
+};
+
+typedef std::vector<TextGroupElement*> tlist_raw_t;
+class tlist_t : public tlist_raw_t {
+public:
+   ~tlist_t() {
+      clear();
+   }
+
+   void clear() {
+      for (unsigned i = 0; i < size(); ++i)
+         delete at(i);
+      tlist_raw_t::clear();
+   }
+};
+
+typedef std::map<std::string, ConstantGroupElement*> cmap_raw_t;
+typedef std::multimap<std::string, FunctionGroupElement*> fmap_raw_t;
+
+template <class T>
+class MyMap : public T {
+public:
+   ~MyMap() {
+      clear();
+   }
+
+   void clear() {
+      for (typename T::iterator i = T::begin(), e = T::end(); i != e; ++i)
+         delete i->second;
+      T::clear();
+   }
+};
+
+typedef MyMap<cmap_raw_t> cmap_t;
+typedef MyMap<fmap_raw_t> fmap_t;
+
+class Group {
+protected:
+   cmap_t cmap;     // constant map
+   fmap_t fmap;     // function multimap
+   tlist_t tlist;   // list of text elements
+
+   // function variant number map
+   vmap_t vmap;
+
+   std::string doc;
+
+   bool valid;
+   const char *fileName;
+   unsigned &lineNumber;
+
+   void checkBuf(std::string &buf) {
+      if (!buf.empty()) {
+         tlist.push_back(new TextGroupElement(buf));
+         buf.clear();
+      }
+   }
+
+   int readUntilOpenGroup(const char* fileName, unsigned& lineNumber, std::string& str, FILE* fp) {
+      while (true) {
+         std::string line;
+         if (read_line(lineNumber, line, fp)) {
+            error("%s:%d: premature EOF reading group description\n", fileName, lineNumber);
+            valid = false;
+            return -1;
+         }
+
+         str += line;
+
+         if (!line.compare(0, 4, "//@{"))
+            break;
+      }
+      
+      return 0;
+   }
+
+   int parseFunction(std::string &code, FILE *fp, std::string &doc) {
+      unsigned line = lineNumber;
+      if (read_until_close(fileName, lineNumber, code, fp)) {
+         error("%s:%d: premature EOF reading method definition starting on line %d\n", fileName, lineNumber, line);
+         return -1;
+      }
+
+      // find start of parameter list
+      size_t i = code.find('(');
+      if (i == std::string::npos) {
+         error("%s:%d: expecting function definition\n", fileName, lineNumber);
+         return -1;
+      }
+
+      // save the position of the '('
+      size_t p = i;
+
+      // find beginning of function name
+      while (i && code[i - 1] != ' ')
+         --i;
+
+      // get function name
+      std::string fn(code, i, p - i);
+
+      // function attributes
+      attr_t attr = QCA_NONE;
+      // return type
+      std::string return_type;
+
+      if (i && parse_attributes(fileName, lineNumber, attr, return_type, code, i))
+         return -1;
+
+      strmap_t flags;
+      paramlist_t params;
+
+      if (parse_params_and_flags(fileName, lineNumber, flags, params, attr, code, p + 1, fn))
+         return -1;
+
+      std::string cf, dom;
+      bool doconly = false;
+      // parse flags
+      for (strmap_t::const_iterator i = flags.begin(), e = flags.end(); i != e; ++i) {
+         //log(LL_DEBUG, "+ method %s::%s() flag '%s': '%s'\n", name.c_str(), mname.c_str(), i->first.c_str(), i->second.c_str());
+         if (i->first == "dom")
+            dom = i->second;
+         else if (i->first == "flags")
+            cf = i->second;
+         else if (i->first == "doconly")
+            doconly = true;
+         else {
+            error("unknown flag '%s' = '%s' defining function %s()\n", i->first.c_str(), i->second.c_str(), fn.c_str());
+            return -1;
+         }
+      }
+
+      //log(LL_INFO, "+ method %s::%s() attr: 0x%x (static: %d)\n", name.c_str(), mname.c_str(), attr, attr & QCA_STATIC);
+
+      unsigned vnum;
+      {
+         vmap_t::iterator vi = vmap.find(fn);
+         if (vi == vmap.end()) {
+            vnum = 0;
+            vmap[fn] = 0;
+         }
+         else
+            vnum = ++vi->second;
+      }
+
+      fmap.insert(fmap_t::value_type(fn, new FunctionGroupElement(fn, attr, params, doc, return_type, cf, dom, code, vnum, line, doconly)));
+      return 0;
+   }
+
+public:
+   Group(std::string &buf, FILE *fp, const char *fn, unsigned &ln) : valid(true), fileName(fn), lineNumber(ln) {     
+      doc = buf;
+      if (readUntilOpenGroup(fileName, lineNumber, doc, fp)) {
+         error("%s:%d: could not find start of group\n", fileName, lineNumber);
+         valid = false;
+         return;
+      }
+      buf.clear();
+
+      while (true) {
+         std::string line;
+         if (read_line(lineNumber, line, fp)) {
+            error("%s:%d: premature EOF reading group\n", fileName, lineNumber);
+            valid = false;
+            return;
+         }
+
+         if (!line.compare(0, 3, "//!")) {
+            checkBuf(buf);
+
+            // check for block comment
+            std::string cdoc = line;
+            line.clear();
+            if (read_line(lineNumber, line, fp)) {
+               error("%s:%d: premature EOF reading group\n", fileName, lineNumber);
+               valid = false;
+               return;
+            }
+            if (!line.compare(0, 3, "/**")) {
+               if (get_dox_comment(fileName, lineNumber, line, fp, true)) {
+                  valid = false;
+                  return;
+               }
+               cdoc += line;
+               line.clear();
+
+               if (read_line(lineNumber, line, fp)) {
+                  error("%s:%d: premature EOF reading group\n", fileName, lineNumber);
+                  valid = false;
+                  return;
+               }
+            }
+            
+
+            if (!line.compare(0, 6, "const ")) {
+               checkBuf(buf);
+
+               // trim off trailing newline and spaces
+               line.erase(line.size() - 1);
+               trim(line);
+               if (line[line.size() - 1] != ';') {
+                  // re-add newline
+                  line += '\n';
+                  if (read_until_close(fileName, lineNumber, line, fp, ';')) {
+                     error("%s:%d: expecting constant definition; got: %s (%c)\n", fileName, lineNumber, line.c_str(), line[line.size() - 1]);
+                     valid = false;
+                  }
+               }
+
+               line.erase(0, 6);
+               // erase trailing ';'
+               line.erase(line.size() - 1);
+               trim(line);
+
+               size_t i = line.find('=');
+               if (i == std::string::npos) {
+                  error("%s:%d: invalid constant definition: const %s\n", fileName, lineNumber, line.c_str());
+                  valid = false;
+                  return;
+               }
+
+               std::string name, val;
+               name.assign(line, 0, i);
+               val.assign(line, i + 1, -1);
+               trim(name);
+               trim(val);
+               if (cmap.find(name) != cmap.end()) {
+                  error("%s:%d: constant '%s' defined twice\n", fileName, lineNumber, name.c_str());
+                  valid = false;
+                  return;
+               }
+
+               cmap[name] = new ConstantGroupElement(name, cdoc, val);
+               continue;
+            }
+
+            if (parseFunction(line, fp, cdoc)) {
+               valid = false;
+               return;
+            }
+
+            continue;
+         }
+
+         //log(LL_INFO, "Group line: %s", line.c_str());
+         if (!line.compare(0, 4, "//@}"))
+             break;
+
+         buf += line;
+      }
+      checkBuf(buf);
+
+      if (!fmap.empty() && !cmap.empty()) {
+         error("group has both constants and functions defined in it; this is invalid\n");
+         valid = false;
+      }
+   }
+
+   operator bool() const {
+      return valid;
+   }
+
+   int serializeFunctionCpp(FILE *fp) const {
+      if (fmap.empty())
+         return 0;
+
+      // first serialize text
+      for (unsigned i = 0; i < tlist.size(); ++i)
+         tlist[i]->serializeCpp(fp);
+
+      // now serialize function group members
+      fputc('\n', fp);
+      for (fmap_t::const_iterator i = fmap.begin(), e = fmap.end(); i != e; ++i)
+         if (i->second->serializeCpp(fp))
+            return -1;
+
+      return 0;
+   }
+
+   int serializeCppConstantBindings(FILE *fp) const {
+      // first serialize text
+      for (unsigned i = 0; i < tlist.size(); ++i)
+         tlist[i]->serializeCpp(fp);
+
+      if (!cmap.empty()) {
+         fputc('\n', fp);
+         for (cmap_t::const_iterator i = cmap.begin(), e = cmap.end(); i != e; ++i)
+            if (i->second->serializeCppBinding(fp))
+               return -1;
+      }
+      return 0;
+   }
+
+   int serializeCppFunctionBindings(FILE *fp) const {
+      if (!fmap.empty()) {
+         fputc('\n', fp);
+         for (fmap_t::const_iterator i = fmap.begin(), e = fmap.end(); i != e; ++i)
+            if (i->second->serializeCppBinding(fp))
+               return -1;
+      }
+      return 0;
+   }
+
+   int serializeFunctionDox(FILE *fp) {
+      if (fmap.empty())
+         return 0;
+
+      // serialize group header doc
+      fputs(doc.c_str(), fp);
+
+      fputc('\n', fp);
+      for (fmap_t::const_iterator i = fmap.begin(), e = fmap.end(); i != e; ++i)
+         if (i->second->serializeDox(fp))
+            return -1;
+
+      // serialize group trailer
+      fputs("//@}\n", fp);
+
+      return 0;
+   }
+
+   int serializeConstantDox(FILE *fp) const {
+      if (cmap.empty())
+         return 0;
+
+      // serialize group header doc
+      fputs(doc.c_str(), fp);
+
+      fputc('\n', fp);
+      for (cmap_t::const_iterator i = cmap.begin(), e = cmap.end(); i != e; ++i)
+         if (i->second->serializeDox(fp))
+            return -1;
+
+      // serialize group trailer
+      fputs("//@}\n", fp);
+
+      return 0;
+   }
+
+   bool hasFunctions() const {
+      return !fmap.empty();
+   }
+};
+
+typedef std::vector<Group*> grouplist_t;
+class Groups {
+protected:
+   grouplist_t grouplist;
+   bool has_funcs;
+
+public:
+   Groups() : has_funcs(false) {
+   }
+
+   ~Groups() {
+      clear();
+   }
+
+   int add(Group *g) {
+      grouplist.push_back(g);
+      if (!has_funcs && g->hasFunctions())
+         has_funcs = true;
+      return !(*g);
+   }
+
+   bool empty() const {
+      return grouplist.empty();
+   }
+
+   int serializeFunctionCpp(FILE *fp, const char *rootName) {
+      if (!has_funcs)
+         return 0;
+
+      for (unsigned i = 0; i < grouplist.size(); ++i)
+         if (grouplist[i]->serializeFunctionCpp(fp))
+            return -1;
+
+      // now serialize function bindings
+      fprintf(fp, "\nvoid init_%s_functions(QoreNamespace& ns) {\n", rootName);
+
+      for (unsigned i = 0; i < grouplist.size(); ++i)
+         if (grouplist[i]->serializeCppFunctionBindings(fp))
+            return -1;
+
+      fputs("\n}\n", fp);
+
+      return 0;
+   }
+
+   int serializeCppBinding(FILE *fp) {
+      for (unsigned i = 0; i < grouplist.size(); ++i)
+         if (grouplist[i]->serializeCppConstantBindings(fp))
+            return -1;
+      return 0;
+   }
+
+   int serializeDox(FILE *fp, bool constants) {
+      for (unsigned i = 0; i < grouplist.size(); ++i)
+         if (constants) {
+            if (grouplist[i]->serializeConstantDox(fp))
+               return -1;
+         }
+         else
+            if (grouplist[i]->serializeFunctionDox(fp))
+               return -1;
+      return 0;
+   }
+
+   void clear() {
+      for (unsigned i = 0; i < grouplist.size(); ++i)
+         delete grouplist[i];
+      grouplist.clear();
+   }
+};
+
+static Groups groups;
+
+class AbstractElement {
+protected:
+
+public:
+   virtual ~AbstractElement() {
+   }
+
+   virtual int serializeCpp(FILE *fp) = 0;
+   virtual int serializeDox(FILE *fp) = 0;
+};
+
+class TextElement : public AbstractElement {
+protected:
+   std::string buf;
+
+public:
+   TextElement(const std::string &n_buf) : buf(n_buf) {
+      //log(LL_DEBUG, "TextElement::TextElement() str=%s", n_buf.c_str());
+   }
+
+   virtual int serializeCpp(FILE *fp) {
+      fputs(buf.c_str(), fp);
+      return 0;
+   }
+
+   virtual int serializeDox(FILE *fp) {
+      //return serialize_dox_comment(fp, buf);
+      return 0;
+   }   
+};
+
+class Method : public CodeBase {
+protected:
+   void serializeCppConstructor(FILE *fp, const char *cname) const {
+      serializeQoreConstructorPrototypeComment(fp, cname);
+      fprintf(fp, "static void %s_%s(QoreObject* self, const QoreListNode* args, ExceptionSink* xsink) {\n", cname, vname.c_str());
+      serializeArgs(fp, cname, false);
+      fputs(code.c_str(), fp);
+      fputs("\n}\n\n", fp);
+   }
+
+   void serializeCppDestructor(FILE *fp, const char *cname, const char *arg) const {
+      serializeQoreDestructorCopyPrototypeComment(fp, cname);
+      fprintf(fp, "static void %s_destructor(QoreObject* self, %s, ExceptionSink* xsink) {\n", cname, arg);
+      fputs(code.c_str(), fp);
+      fputs("\n}\n\n", fp);
+   }
+
+   void serializeCppCopy(FILE *fp, const char *cname, const char *arg) const {
+      serializeQoreDestructorCopyPrototypeComment(fp, cname);
+      fprintf(fp, "static void %s_copy(QoreObject* self, QoreObject* old, %s, ExceptionSink* xsink) {\n", cname, arg);
+      fputs(code.c_str(), fp);
+      fputs("\n}\n\n", fp);
+   }
+
+   int serializeCppConstructorBinding(FILE *fp, const char *cname, const char *UC) const {
+      fputc('\n', fp);
+      serializeQoreConstructorPrototypeComment(fp, cname, 3);
+
+      fprintf(fp, "   QC_%s->setConstructorExtended(%s_%s, %s, %s, %s", 
+              UC, 
+              cname, vname.c_str(),
+              attr & QCA_PRIVATE ? "true" : "false",
+              flags.c_str(),
+              dom.empty() ? "QDOM_DEFAULT" : dom.c_str());
+
+      if (serializeBindingArgs(fp))
+         return -1;
+
+      fputs(");\n", fp);
+      
+      return 0;
+   }
+
+   int serializeCppDestructorBinding(FILE *fp, const char *cname, const char *UC) const {
+      fputc('\n', fp);
+      serializeQoreDestructorCopyPrototypeComment(fp, cname, 3);
+      fprintf(fp, "   QC_%s->setDestructor((q_destructor_t)%s_destructor);\n", UC, cname);
+      return 0;
+   }
+
+   int serializeCppCopyBinding(FILE *fp, const char *cname, const char *UC) const {
+      fputc('\n', fp);
+      serializeQoreDestructorCopyPrototypeComment(fp, cname, 3);
+      fprintf(fp, "   QC_%s->setCopy((q_copy_t)%s_copy);\n", UC, cname);
+      return 0;
+   }
+
+   void serializeQoreDestructorCopyPrototypeComment(FILE *fp, const char *cname, unsigned indent = 0) const {
+      serializeQoreAttrComment(fp, indent);
+      fprintf(fp, "%s::%s() {}\n", cname, name.c_str());
+   }
+
+   void serializeQoreConstructorPrototypeComment(FILE *fp, const char *cname, unsigned indent = 0) const {
+      serializeQoreAttrComment(fp, indent);
+      fprintf(fp, "%s::constructor(", cname);
+      serializeQoreParams(fp);
+      fputs(") {}\n", fp);
+   }
+
+   void serializeQorePrototypeComment(FILE *fp, const char *cname, unsigned indent = 0) const {
+      serializeQoreAttrComment(fp, indent);
+      fprintf(fp, "%s %s::%s(", return_type.empty() ? "nothing" : return_type.c_str(), cname, name.c_str());
+      serializeQoreParams(fp);
+      fputs(") {}\n", fp);
+   }
+
+   const char *getMethodType() const {
+      switch (rt) {
+         case RT_INT:
+            return "q_method_int64_t";
+         case RT_BOOL:
+            return "q_method_bool_t";
+         case RT_FLOAT:
+            return "q_method_double_t";
+         default:
+            return "q_method_t";
+      }
+   }
+
+public:
+   Method(const std::string &n_name, attr_t n_attr, const paramlist_t &n_params, 
+          const std::string &n_docs, const std::string &n_return_type, 
+          const std::string &n_flags, const std::string &n_dom, const std::string &n_code,
+          unsigned vnum, unsigned n_line, bool n_doconly) : CodeBase(n_name, n_attr, n_params, n_docs, n_return_type, 
+                                                                     n_flags, n_dom, n_code, vnum, n_line, n_doconly) {
+   }
+
+   virtual ~Method() {
+   }
+
+   void serializeNormalCppMethod(FILE *fp, const char *cname, const char *arg) const {
       assert(!(attr & QCA_STATIC));
 
       if (doconly)
@@ -1184,7 +1808,7 @@ public:
       fputs("\n}\n\n", fp);
    }
 
-   virtual int serializeNormalCppBinding(FILE *fp, const char *cname, const char *UC) const {
+   int serializeNormalCppBinding(FILE *fp, const char *cname, const char *UC) const {
       if (doconly)
          return 0;
 
@@ -1220,7 +1844,7 @@ public:
       return 0;
    }
 
-   virtual void serializeStaticCppMethod(FILE *fp, const char *cname, const char *arg) const {
+   void serializeStaticCppMethod(FILE *fp, const char *cname, const char *arg) const {
       assert(attr & QCA_STATIC);
 
       if (doconly)
@@ -1238,7 +1862,7 @@ public:
       fputs("\n}\n\n", fp);
    }
 
-   virtual int serializeStaticCppBinding(FILE *fp, const char *cname, const char *UC) const {
+   int serializeStaticCppBinding(FILE *fp, const char *cname, const char *UC) const {
       assert(attr & QCA_STATIC);
 
       if (doconly)
@@ -1252,8 +1876,9 @@ public:
       if (get_qore_type(return_type, cppt))
          return -1;
 
-      fprintf(fp, "   QC_%s->addStaticMethodExtended(\"%s\", (q_func_t)static_%s_%s, %s, %s, %s, %s", UC, 
+      fprintf(fp, "   QC_%s->addStaticMethodExtended(\"%s\", (%s)static_%s_%s, %s, %s, %s, %s", UC, 
               name.c_str(),
+              getFunctionType(), 
               cname, vname.c_str(),
               attr & QCA_PRIVATE ? "true" : "false",
               flags.c_str(),
@@ -1267,13 +1892,13 @@ public:
       return 0;
    }
 
-   virtual int serializeDox(FILE *fp) {
+   int serializeDox(FILE *fp) {
       if (attr & QCA_PRIVATE)
          fputs("\nprivate:\n", fp);
       else
          fputs("\npublic:\n", fp);
 
-      serializeDoxComment(fp, docs);
+      serialize_dox_comment(fp, docs);
       
       //fputs("   ", fp);
       if (attr & QCA_STATIC)
@@ -1298,8 +1923,6 @@ public:
 class ClassElement : public AbstractElement {
 protected:
    typedef std::multimap<std::string, Method*> mmap_t;
-   // for tracking enumerated variants
-   typedef std::map<std::string, unsigned> vmap_t;
 
    std::string name,    // class name
       doc,              // doc string
@@ -1531,7 +2154,7 @@ public:
          }
       }
 
-      if (groups.serializeCpp(fp))
+      if (groups.serializeCppBinding(fp))
          return -1;
 
       fprintf(fp, "\n   return QC_%s;\n}\n", UC.c_str());
@@ -1544,7 +2167,7 @@ public:
       else
          fprintf(fp, "//! %s namespace\nnamespace Qore::%s {\n", ns.c_str(), ns.c_str());
 
-      serializeDoxComment(fp, doc);
+      serialize_dox_comment(fp, doc);
       
       fprintf(fp, "class %s", name.c_str());
       if (!virt_parent.empty())
@@ -1560,14 +2183,14 @@ public:
 
       fputs("};\n", fp);
 
-      groups.serializeDox(fp);
+      groups.serializeDox(fp, true);
 
       fputs("};\n", fp);
       return 0;
    }   
 };
 
-typedef std::map<std::string, ClassElement *> cmap_t;
+typedef std::map<std::string, ClassElement *> cemap_t;
 
 typedef std::vector<AbstractElement *> source_t;
 
@@ -1575,69 +2198,16 @@ class Code {
 protected:
    const char *fileName;
    std::string cppFileName, 
-      doxFileName;
+      doxFileName,
+      rootName;
    // argument to fopen()
    const char *cpp_open_flag,
       *dox_open_flag;
    unsigned lineNumber;
    source_t source;
-   cmap_t cmap;
-   bool valid;
-
-   int getDoxComment(std::string &str, FILE *fp) {
-      std::string buf;
-      if (readLine(buf, fp)) {
-         error("%s:%d: premature EOF reading doxygen comment\n", fileName, lineNumber);
-         return -1;
-      }
-
-      if (strncmp(buf.c_str(), "/**", 3)) {
-         error("%s:%d: missing block comment marker '/**' in line following //! comment (str=%s buf=%s)\n", fileName, lineNumber, str.c_str(), buf.c_str());
-         return -1;
-      }
-
-      str += buf;
-
-      int lc = 0;
-
-      while (true) {
-         int c = fgetc(fp);
-         if (c == EOF) {
-            error("%s:%d: premature EOF reading doxygen comment\n", fileName, lineNumber);
-            return -1;
-         }
-
-         str += c;
-
-         if (lc && c == '/')
-            break;
-
-         lc = (c == '*');
-
-         if (c == '\n')
-            ++lineNumber;
-      }
-
-      // now read to EOL
-      readLine(str, fp);
-
-      return 0;
-   }
-
-   int readLine(std::string &str, FILE *fp) {
-      while (true) {
-         int c = fgetc(fp);
-         if (c == EOF)
-            return -1;
-
-         str += c;
-         if (c == '\n') {
-            ++lineNumber;
-            break;
-         }
-      }
-      return 0;
-   }
+   cemap_t cemap;
+   bool valid, 
+      has_class; // has at least 1 class element
 
    void checkBuf(std::string &buf) {
       if (!buf.empty()) {
@@ -1657,48 +2227,6 @@ protected:
       }
    }
 
-   int missingValueError(const std::string &propstr) const {
-      error("%s:%d: missing '=' or value in property string '%s'\n", fileName, lineNumber, propstr.c_str());
-      return -1;
-   }
-
-   int addElement(const std::string &propstr, strmap_t &props, size_t start, size_t end) const {
-      size_t eq = propstr.find('=', start);
-      if (eq == std::string::npos || eq >= end)
-         return missingValueError(propstr);
-      while (start < eq && propstr[start] == ' ')
-         ++start;
-      if (start == eq) {
-         error("%s:%d: missing property name in property string '%s'\n", fileName, lineNumber, propstr.c_str());
-         return -1;
-      }
-      size_t tend = end;
-      while (tend > eq && propstr[tend] == ' ')
-         --tend;
-
-      if (tend == eq)
-         return missingValueError(propstr);
-
-      std::string key(propstr, start, eq - start);
-      std::string value(propstr, eq + 1, end - eq -1);
-      props[key] = value;
-      return 0;
-   }
-
-   int parseProperties(std::string &propstr, strmap_t &props) const {
-      size_t start = 0;
-      while (true) {
-         size_t end = propstr.find(';', start);
-         if (end == std::string::npos)
-            break;
-         if (addElement(propstr, props, start, end))
-            return -1;
-         start = end + 1;
-      }
-
-      return addElement(propstr, props, start, propstr.size());
-   }
-
    int parse() {
       FILE *fp = fopen(fileName, "r");
       if (!fp) {
@@ -1714,7 +2242,7 @@ protected:
       std::string buf;
       while (true) {
          str.clear();
-         readLine(str, fp);
+         read_line(lineNumber, str, fp);
 
          log(LL_DEBUG, "%d: %s", lineNumber, str.c_str());
 
@@ -1732,13 +2260,13 @@ protected:
          }
 
          if (!str.compare(0, 3, "//!")) {
-            if (getDoxComment(str, fp)) {
+            if (get_dox_comment(fileName, lineNumber, str, fp)) {
                rc = -1;
                break;
             }
 
             std::string sc;
-            if (readLine(sc, fp)) {
+            if (read_line(lineNumber, sc, fp)) {
                error("%s:%d: premature EOF reading code signature line\n", fileName, lineNumber);
                rc = -1;
                break;
@@ -1774,18 +2302,19 @@ protected:
 
                // parse properties
                strmap_t props;
-               if (parseProperties(propstr, props)) {
+               if (parse_properties(fileName, lineNumber, propstr, props)) {
                   rc = -1;
                   break;
                }
 
                ClassElement *ce = new ClassElement(cn, props, str);
-               cmap[cn] = ce;
+               cemap[cn] = ce;
                checkBuf(buf);
                source.push_back(ce);
                // mark code as invalid if class element is invalid
                if (!*ce)
                   valid = false;
+               has_class = true;
                continue;
             }
 
@@ -1797,10 +2326,7 @@ protected:
                continue;
             }
 
-            if (parseFunction(sc, fp, str)) {
-               valid = false;
-               break;
-            }
+            continue;
          }
 
          buf += str;
@@ -1813,193 +2339,9 @@ protected:
       return rc;
    }
 
-   int parseAttributes(attr_t& attr, std::string& return_type, std::string& sc, size_t i) {
-      strlist_t pre;
-      // get return type and flags
-      std::string pstr(sc, 0, i - 1);
-      //log(LL_DEBUG, "PSTR='%s'\n", pstr.c_str());
-      get_string_list(pre, pstr, ' ');
-
-      for (unsigned xi = 0; xi < pre.size(); ++xi) {
-         //printf("DBG: METHOD list %u/%lu: %s\n", xi, pre.size(), pre[xi].c_str());
-         amap_t::iterator ai = amap.find(pre[xi]);
-         if (ai == amap.end()) {
-            if (!return_type.empty()) {
-               error("%s:%d: multiple return types or unknown code attribute '%s' given\n", fileName, lineNumber, pre[xi].c_str());
-               return -1;
-            }
-            return_type = pre[xi];
-         }
-         else
-            attr |= ai->second;
-      }
-
-      if (attr & QCA_PUBLIC && attr & QCA_PRIVATE) {
-         error("%s:%d: declared both public and private\n", fileName, lineNumber);
-         return -1;
-      }
-
-      return 0;
-   }
-
-   int parseParamsAndFlags(strmap_t& flags, paramlist_t& params, attr_t& attr, std::string& sc, size_t p, const std::string& dn) {
-      size_t i = sc.find(')', p);
-      if (i == std::string::npos) {
-         error("%s:%d: premature EOL reading parameters for %s()\n", fileName, lineNumber, dn.c_str());
-         return -1;
-      }
-
-      size_t cs = sc.find('{', i + 1);
-      if (cs == std::string::npos) {
-         error("%s:%d: premature EOL looking for open brace for %s()\n", fileName, lineNumber, dn.c_str());
-         return -1;
-      }
-
-      // get flags if any
-      if (cs - i > 2) {
-         std::string fstr(sc, i + 1, cs - i - 2);
-         size_t f = fstr.find('[');
-         if (f != std::string::npos) {
-            fstr.erase(0, f + 1);
-            size_t fe = fstr.find(']');
-            if (fe == std::string::npos) {
-               error("%s:%d: premature EOL looking for ']' in flags for %s()\n", fileName, lineNumber, dn.c_str());
-               return -1;
-            }
-            fstr.erase(fe);
-
-            log(LL_DEBUG, "fstr='%s'\n", fstr.c_str());
-
-            // parse properties
-            if (parseProperties(fstr, flags))
-               return -1;
-         }
-      }
-
-      // get params
-      if (i != p + 1) {
-         std::string pstr(sc, p , i - p);
-         trim(pstr);
-         if (!pstr.empty()) {
-            strlist_t pl;
-            get_string_list(pl, pstr);
-
-            for (unsigned xi = 0; xi < pl.size(); ++xi) {
-               trim(pl[xi]);
-
-               // handle special case arg "..." - which is just for documentation
-               if (pl[xi] == "...") {
-                  params.push_back(Param(pl[xi], pl[xi], "", ""));
-                  attr |= QCA_USES_EXTRA_ARGS;
-                  continue;
-               }
-
-               i = pl[xi].find(' ');
-               if (i == std::string::npos) {
-                  error("%s:%d: %s(): cannot find type for parameter '%s'\n", fileName, lineNumber, dn.c_str(), pl[xi].c_str());
-                  return -1;
-               }
-               std::string type(pl[xi], 0, i);
-               std::string param(pl[xi], i + 1);
-               trim(type);
-               trim(param);
-               
-               std::string val;
-               // see if there is a default value
-               i = param.find('=');
-               if (i != std::string::npos) {
-                  val.assign(param, i + 1, std::string::npos);
-                  param.erase(i);
-                  trim(val);
-                  trim(param);
-               }
-
-               std::string qore;
-
-               // see if there's a Qore class name
-               if (type[type.size() - 1] == ']') {
-                  i = type.find('[');
-                  if (i == std::string::npos) {
-                     error("%s:%d: %s(): cannot find open square bracket '[' in type name '%s' in parameter '%s'\n", fileName, lineNumber, dn.c_str(), type.c_str(), param.c_str());
-                     return -1;
-                  }
-                  type.erase(type.size() - 1);
-                  qore = type.c_str() + i + 1;
-                  type.erase(i);                  
-               }
-
-               log(LL_DEBUG, "+ %s() param %d type '%s' name '%s' default value '%s'\n", dn.c_str(), xi, type.c_str(), param.c_str(), val.c_str());
-               params.push_back(Param(type, param, val, qore));
-            }
-         }
-      }
-
-      // erase function/method header
-      sc.erase(0, cs + 1);
-      bool eol = false;
-      while (sc[0] == ' ' || sc[0] == '\n') {
-         if (!eol && sc[0] == '\n')
-            eol = true;
-         else if (eol && sc[0] == ' ')
-            break;
-         sc.erase(0, 1);
-      }
-
-      // remove trailing '}' and newlines
-      size_t len = sc.size();
-      assert(sc[len - 1] == '}');
-      do {
-         sc.erase(--len);
-      } while (len && (sc[len - 1] == ' ' || sc[len - 1] == '\n'));
-
-      return 0;
-   }
-
-   int parseFunction(std::string &sc, FILE *fp, std::string &doc) {
-      unsigned sl = lineNumber;
-      if (readUntilClose(fileName, lineNumber, sc, fp)) {
-         error("%s:%d: premature EOF reading method definition starting on line %d\n", fileName, lineNumber, sl);
-         return -1;
-      }
-
-      // find start of parameter list
-      size_t i = sc.find('(');
-      if (i == std::string::npos) {
-         error("%s:%d: expecting function definition\n", fileName, lineNumber);
-         return -1;
-      }
-
-      // save the position of the '('
-      size_t p = i;
-
-      // find beginning of function name
-      while (i && sc[i - 1] != ' ')
-         --i;
-
-      // get function name
-      std::string fn(sc, i, p - i);
-
-      // function attributes
-      attr_t attr = QCA_NONE;
-      // return type
-      std::string return_type;
-
-      if (i && parseAttributes(attr, return_type, sc, i))
-         return -1;
-
-      strmap_t flags;
-      paramlist_t params;
-
-      if (parseParamsAndFlags(flags, params, attr, sc, p, fn))
-         return -1;
-
-
-      return 0;
-   }
-
    int parseMethod(std::string &sc, FILE *fp, std::string &doc) {
       unsigned sl = lineNumber;
-      if (readUntilClose(fileName, lineNumber, sc, fp)) {
+      if (read_until_close(fileName, lineNumber, sc, fp)) {
          error("%s:%d: premature EOF reading method definition starting on line %d\n", fileName, lineNumber, sl);
          return -1;
       }
@@ -2022,8 +2364,8 @@ protected:
       // get class name
       std::string cn(sc, i, p - i);
 
-      cmap_t::iterator ci = cmap.find(cn);
-      if (ci == cmap.end()) {
+      cemap_t::iterator ci = cemap.find(cn);
+      if (ci == cemap.end()) {
          error("%s:%d: reference to undefined class '%s'\n", fileName, lineNumber, cn.c_str());
          return -1;
       }
@@ -2033,7 +2375,7 @@ protected:
       // return type
       std::string return_type;
 
-      if (i && parseAttributes(attr, return_type, sc, i))
+      if (i && parse_attributes(fileName, lineNumber, attr, return_type, sc, i))
          return -1;
 
       // get method name
@@ -2063,7 +2405,7 @@ protected:
       dn += "::";
       dn += mn;
 
-      if (parseParamsAndFlags(flags, params, attr, sc, p, dn))
+      if (parse_params_and_flags(fileName, lineNumber, flags, params, attr, sc, p, dn))
          return -1;
 
       return ci->second->addMethod(mn, attr, return_type, params, flags, sc, doc, sl);
@@ -2075,28 +2417,34 @@ public:
                                                             cpp_open_flag(cpp_append ? "a" : "w"), 
                                                             dox_open_flag(dox_append ? "a" : "w"), 
                                                             lineNumber(0),
-                                                            valid(true) {
+                                                            valid(true), has_class(false) {
       std::string base;
       std::string dir;
-      if (ofn.empty() || dfn.empty()) {
-         std::string bnc(fn);
-         base = basename((char*)bnc.c_str());
-         bnc = fn;
-         dir = dirname((char*)bnc.c_str());
 
-         if (base.size() > 4 && !strcmp(base.c_str() + base.size() - 4, ".qpp"))
-            base.erase(base.size() - 4);
-         else {
-            warning("'%s' does not end in extension '.qpp'\n", fn);
-            size_t d = base.rfind('.');
-            if (d != std::string::npos)
-               base.erase(d);
-         }
+      std::string bnc(fn);
+      base = basename((char*)bnc.c_str());
+      bnc = fn;
+      dir = dirname((char*)bnc.c_str());
+      
+      if (base.size() > 4 && !strcmp(base.c_str() + base.size() - 4, ".qpp"))
+         base.erase(base.size() - 4);
+      else {
+         warning("'%s' does not end in extension '.qpp'\n", fn);
+         size_t d = base.rfind('.');
+         if (d != std::string::npos)
+            base.erase(d);
       }
+
       cppFileName = !ofn.empty() ? ofn : dir + "/" + base + ".cpp";
-      doxFileName = !dfn.empty() ? dfn : dir + "/" + base + ".dox.cpp";
+      doxFileName = !dfn.empty() ? dfn : dir + "/" + base + ".dox.h";
       if (parse())
          valid = false;
+
+      size_t i = base.find('_');
+      if ((i == std::string::npos) || (i == (base.size() - 1)))
+         rootName = base;
+      else
+         rootName.assign(base, i + 1, -1);
    }
 
    ~Code() {
@@ -2118,8 +2466,8 @@ public:
             return -1;
          }
       }
-
-      return 0;
+      
+      return groups.serializeFunctionCpp(fp, rootName.c_str());
    }
 
    int serializeDox() {
@@ -2136,6 +2484,8 @@ public:
             return -1;
          }
       }
+
+      groups.serializeDox(fp, false);
 
       return 0;
    }
@@ -2168,7 +2518,7 @@ int do_table_file() {
    }
    fclose(ifp);
 
-   serializeDoxComment(ofp, buf);
+   serialize_dox_comment(ofp, buf);
    fclose(ofp);
 
    return 0;
@@ -2224,6 +2574,9 @@ void init() {
    tmap["timeout"] = "timeoutTypeInfo";
    tmap["*timeout"] = "timeoutOrNothingTypeInfo";
 
+   tmap["object"] = "objectTypeInfo";
+   tmap["*object"] = "objectOrNothingTypeInfo";
+
    tmap["code"] = "codeTypeInfo";
    tmap["*code"] = "codeOrNothingTypeInfo";
 
@@ -2234,12 +2587,12 @@ void init() {
    tmap["*reference"] = "anyTypeInfo";
 
    // initialize qore value to c++ value map
-   vmap["0"] = "zero()";
-   vmap["0.0"] = "zero_float()";
-   vmap["binary()"] = "new BinaryNode";
-   vmap["QCS_DEFAULT->getCode()"] = "QCS_DEFAULT->getCode()";
-   vmap["True"] = "&True";
-   vmap["False"] = "&False";
+   valmap["0"] = "zero()";
+   valmap["0.0"] = "zero_float()";
+   valmap["binary()"] = "new BinaryNode";
+   valmap["QCS_DEFAULT->getCode()"] = "QCS_DEFAULT->getCode()";
+   valmap["True"] = "&True";
+   valmap["False"] = "&False";
 }
 
 void usage() {

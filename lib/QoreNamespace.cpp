@@ -1803,6 +1803,8 @@ void StaticSystemNamespace::init() {
    // create Qore::Type namespace with type constants
    qoreNS->addInitialNamespace(get_type_ns());
 
+   builtinFunctions.init(*qoreNS);
+
    addQoreNamespace(qoreNS);
 
    // add all changes in loaded modules

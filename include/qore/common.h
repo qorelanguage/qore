@@ -182,6 +182,15 @@ typedef long long int64;
  */
 typedef AbstractQoreNode *(*q_func_t)(const QoreListNode *args, ExceptionSink *xsink);
 
+//! the type used for builtin function signatures returning an integer value
+typedef int64 (*q_func_int64_t)(const QoreListNode* args, ExceptionSink* xsink);
+
+//! the type used for builtin function signatures returning a boolean value
+typedef bool (*q_func_bool_t)(const QoreListNode* args, ExceptionSink* xsink);
+
+//! the type used for builtin function signatures returning an double value
+typedef double (*q_func_double_t)(const QoreListNode* args, ExceptionSink* xsink);
+
 //! the type used for builtin QoreClass method signatures
 /** @param self the QoreObject that the function is being executed on
     @param private_data the object's private data representing the state of the object

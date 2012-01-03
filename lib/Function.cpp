@@ -49,6 +49,9 @@ CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink *n_xsink, const Abstrac
    if (tmp.needsDeref())
       update_pgm_counter_pgm_file(o_ln, o_eln, o_fn);      
 
+   if (*xsink)
+      return;
+
    bool check_args = variant;
    if (!variant) {
       variant = func->findVariant(getArgs(), false, xsink);
