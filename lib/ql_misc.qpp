@@ -375,7 +375,7 @@ const SignalToName = (
     @ref Qore::HAVE_SIGNAL_HANDLING
 
     @par Restrictions
-    @ref Qore::PO_PROCESS_CONTROL
+    @ref Qore::PO_NO_PROCESS_CONTROL
 
     By the time this function returns, changes to the signal handling thread have already been effected.
 
@@ -411,7 +411,7 @@ nothing set_signal_handler(softint signal, code f) [dom=QDOM_PROCESS] {
     @ref Qore::HAVE_SIGNAL_HANDLING
 
     @par Restrictions
-    @ref Qore::PO_PROCESS_CONTROL
+    @ref Qore::PO_NO_PROCESS_CONTROL
 
     By the time this function returns, changes to the signal handling thread have already been effected.
 
