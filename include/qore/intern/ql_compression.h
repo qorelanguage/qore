@@ -1,6 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  ql_bzip.h
+  ql_compression.h
 
   Qore Programming Language
 
@@ -21,10 +21,10 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef QORE_QL_BZIP_H
+#ifndef QORE_QL_COMPRESSION_H
 
-#define QORE_QL_BZIP_H
+#define QORE_QL_COMPRESSION_H
 
-DLLLOCAL void init_bzip_functions();
+DLLLOCAL void init_compression_functions(QoreNamespace& ns);
 
 #endif

@@ -36,7 +36,8 @@ LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
 	lib/QC_TimeZone.qpp \
 	lib/QC_SSLCertificate.qpp \
 	lib/QC_SSLPrivateKey.qpp \
-	lib/ql_misc.qpp
+	lib/ql_misc.qpp \
+	lib/ql_compression.qpp
 
 LIB_DOXYFILES = \
 	doxygen/lib/Doxyfile \
@@ -447,7 +448,7 @@ noinst_HEADERS = \
 	include/qore/intern/ql_crypto.h \
 	include/qore/intern/ql_file.h \
 	include/qore/intern/ql_object.h \
-	include/qore/intern/ql_bzip.h \
+	include/qore/intern/ql_compression.h \
 	include/qore/intern/QC_TermIOS.h \
 	include/qore/intern/QC_Queue.h \
 	include/qore/intern/QC_Socket.h \

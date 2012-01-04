@@ -104,13 +104,16 @@ QC_SSLPrivateKey.cpp: QC_SSLPrivateKey.qpp qpp
 ql_misc.cpp: ql_misc.qpp qpp
 	$(QPP) $<
 
+ql_compression.cpp: ql_compression.qpp qpp
+	$(QPP) $<
+
 QORE_GENERATED_SOURCES = \
 	QC_Queue.cpp QC_Socket.cpp QC_File.cpp QC_AbstractSmartLock.cpp QC_Mutex.cpp QC_AutoLock.cpp \
 	QC_Gate.cpp QC_AutoGate.cpp QC_RWLock.cpp QC_AutoReadLock.cpp QC_AutoWriteLock.cpp \
 	QC_Condition.cpp QC_Sequence.cpp QC_Counter.cpp QC_HTTPClient.cpp QC_FtpClient.cpp \
 	QC_Datasource.cpp QC_DatasourcePool.cpp QC_SQLStatement.cpp QC_Dir.cpp QC_Program.cpp \
 	QC_GetOpt.cpp QC_TermIOS.cpp QC_TimeZone.cpp QC_SSLCertificate.cpp QC_SSLPrivateKey.cpp \
-	ql_misc.cpp
+	ql_misc.cpp ql_compression.cpp
 
 CLEANFILES = $(QORE_GENERATED_SOURCES)
 
@@ -288,7 +291,7 @@ libqore_la_SOURCES = \
 	ql_crypto.cpp \
 	ql_object.cpp \
 	ql_file.cpp \
-	ql_bzip.cpp \
+	ql_compression.cpp \
 	ql_pwd.cpp \
 	QC_Socket.cpp \
 	QC_Program.cpp \

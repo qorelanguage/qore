@@ -173,7 +173,7 @@
 #include "ql_crypto.cpp"
 #include "ql_object.cpp"
 #include "ql_file.cpp"
-#include "ql_bzip.cpp"
+#include "ql_compression.cpp"
 #include "QC_Socket.cpp"
 #include "QC_Program.cpp"
 #include "QC_File.cpp"

@@ -741,12 +741,21 @@ static int get_qore_value(const std::string &qv, std::string &v, const char *cna
             }
             std::string key(str, 0, sep);
             trim(key);
-            if (key.empty() || key[0] != '"' || key[key.size() - 1] != '"') {
-               error("hash key '%s' is not a quoted string\n", key.c_str());
+            if (key.empty()) {
+               error("hash key is empty\n");
                return -1;
             }
-            key.erase(0, 1);
-            key.erase(key.size() - 1);
+         
+            if (key[0] == '"') {
+               if (key[key.size() - 1] != '"') {
+                  error("missing end quote in hash key '%s'\n", key.c_str());
+                  return -1;
+               }
+            }
+            else {
+               key.insert(0, "MAKE_STRING_FROM_SYMBOL(");
+               key += ")";
+            }
 
             std::string value(str, sep + 1);
             trim(value);
@@ -756,7 +765,7 @@ static int get_qore_value(const std::string &qv, std::string &v, const char *cna
 
             v += "   hash_";
             v += cname;
-            v += "->setKeyValue(\"" + key + "\", " + qoreval + ", 0);\n";
+            v += "->setKeyValue(" + key + ", " + qoreval + ", 0);\n";
          }
          return 0;
       }
@@ -1225,6 +1234,10 @@ public:
          serializeQoreCppType(fp, p.type);
          fputc(' ' , fp);
          fputs(p.name.c_str(), fp);
+         if (!p.val.empty()) {
+            fputs(" = ", fp);
+            fputs(p.val.c_str(), fp);
+         }
       }
       fputs(");\n\n", fp);
 
@@ -1275,7 +1288,8 @@ protected:
    // function variant number map
    vmap_t vmap;
 
-   std::string doc;
+   std::string doc,  // doc header for group
+      ns;            // namespace
 
    bool valid;
    const char *fileName;
@@ -1550,9 +1564,16 @@ public:
       return 0;
    }
 
-   int serializeConstantDox(FILE *fp) const {
+   int serializeConstantDox(FILE *fp, bool needs_prefix) const {
       if (cmap.empty())
          return 0;
+
+      if (needs_prefix) {
+         if (ns.empty())
+            fputs("\n//! main Qore-language namespace\nnamespace Qore {\n", fp);
+         else
+            fprintf(fp, "//! %s namespace\nnamespace Qore::%s {\n", ns.c_str(), ns.c_str());
+      }
 
       // serialize group header doc
       fputs(doc.c_str(), fp);
@@ -1565,11 +1586,18 @@ public:
       // serialize group trailer
       fputs("//@}\n", fp);
 
+      if (needs_prefix)
+         fputs("};\n", fp);
+
       return 0;
    }
 
    bool hasFunctions() const {
       return !fmap.empty();
+   }
+
+   bool hasConstants() const {
+      return !cmap.empty();
    }
 };
 
@@ -1577,10 +1605,10 @@ typedef std::vector<Group*> grouplist_t;
 class Groups {
 protected:
    grouplist_t grouplist;
-   bool has_funcs;
+   bool has_funcs, has_constants, cccp_done, cdox_done;
 
 public:
-   Groups() : has_funcs(false) {
+   Groups() : has_funcs(false), has_constants(false), cccp_done(false), cdox_done(false) {
    }
 
    ~Groups() {
@@ -1591,6 +1619,8 @@ public:
       grouplist.push_back(g);
       if (!has_funcs && g->hasFunctions())
          has_funcs = true;
+      else if (!has_constants && g->hasConstants())
+         has_constants = true;
       return !(*g);
    }
 
@@ -1607,33 +1637,54 @@ public:
             return -1;
 
       // now serialize function bindings
-      fprintf(fp, "\nvoid init_%s_functions(QoreNamespace& ns) {\n", rootName);
+      fprintf(fp, "\nvoid init_%s_functions(QoreNamespace& qorens) {\n", rootName);
 
       for (unsigned i = 0; i < grouplist.size(); ++i)
          if (grouplist[i]->serializeCppFunctionBindings(fp))
             return -1;
+
+      // serialize any constants
+      if (serializeCppConstantBindings(fp))
+         return -1;
 
       fputs("\n}\n", fp);
 
       return 0;
    }
 
-   int serializeCppBinding(FILE *fp) {
+   int serializeCppConstantBindings(FILE *fp) {
+      if (cccp_done || !has_constants)
+         return 0;
+      cccp_done = true;
+
       for (unsigned i = 0; i < grouplist.size(); ++i)
          if (grouplist[i]->serializeCppConstantBindings(fp))
             return -1;
       return 0;
    }
 
-   int serializeDox(FILE *fp, bool constants) {
+   int serializeFunctionDox(FILE *fp) {
+      if (!has_funcs)
+         return 0;
+
       for (unsigned i = 0; i < grouplist.size(); ++i)
-         if (constants) {
-            if (grouplist[i]->serializeConstantDox(fp))
-               return -1;
-         }
-         else
-            if (grouplist[i]->serializeFunctionDox(fp))
-               return -1;
+         if (grouplist[i]->serializeFunctionDox(fp))
+            return -1;
+
+      if (serializeConstantDox(fp, true))
+         return -1;
+
+      return 0;
+   }
+
+   int serializeConstantDox(FILE *fp, bool needs_prefix = false) {
+      if (cdox_done || !has_constants)
+         return 0;
+      cdox_done = true;
+
+      for (unsigned i = 0; i < grouplist.size(); ++i)
+         if (grouplist[i]->serializeConstantDox(fp, needs_prefix))
+            return -1;
       return 0;
    }
 
@@ -2154,7 +2205,7 @@ public:
          }
       }
 
-      if (groups.serializeCppBinding(fp))
+      if (groups.serializeCppConstantBindings(fp))
          return -1;
 
       fprintf(fp, "\n   return QC_%s;\n}\n", UC.c_str());
@@ -2183,7 +2234,7 @@ public:
 
       fputs("};\n", fp);
 
-      groups.serializeDox(fp, true);
+      groups.serializeConstantDox(fp);
 
       fputs("};\n", fp);
       return 0;
@@ -2485,7 +2536,7 @@ public:
          }
       }
 
-      groups.serializeDox(fp, false);
+      groups.serializeFunctionDox(fp);
 
       return 0;
    }
