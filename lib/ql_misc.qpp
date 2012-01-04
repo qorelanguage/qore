@@ -492,6 +492,12 @@ binary compress(binary bin, int level = Z_DEFAULT_COMPRESSION) {
 
 //! 
 /** 
+ */
+nothing compress() [flags=QC_RUNTIME_NOOP] {
+}
+
+//! 
+/** 
     @par Example
     @code
     @endcode
@@ -503,12 +509,24 @@ string uncompress_to_string(binary bin, *string encoding) {
 
 //! 
 /** 
+ */
+nothing uncompress_to_string() [flags=QC_RUNTIME_NOOP] {
+}
+
+//! 
+/** 
     @par Example
     @code
     @endcode
 */
 binary uncompress_to_binary(binary bin) {
    return qore_inflate_to_binary(bin, xsink);
+}
+
+//! 
+/** 
+ */
+nothing uncompress_to_binary() [flags=QC_RUNTIME_NOOP] {
 }
 
 //! 
@@ -553,6 +571,12 @@ binary gzip(binary bin, int level = Z_DEFAULT_COMPRESSION) {
 
 //! 
 /** 
+ */
+nothing gzip() [flags=QC_RUNTIME_NOOP] {
+}
+
+//! 
+/** 
     @par Example
     @code
     @endcode
@@ -564,12 +588,24 @@ string gunzip_to_string(binary bin, *string encoding) {
 
 //! 
 /** 
+ */
+nothing gunzip_to_string() [flags=QC_RUNTIME_NOOP] {
+}
+
+//! 
+/** 
     @par Example
     @code
     @endcode
 */
 binary gunzip_to_binary(binary bin) {
    return qore_gunzip_to_binary(bin, xsink);
+}
+
+//! 
+/** 
+ */
+nothing gunzip_to_binary() [flags=QC_RUNTIME_NOOP] {
 }
 //@}
 
@@ -760,6 +796,12 @@ bool existsFunction(code[doc] c) [flags=QC_NOOP] {
 
 //! 
 /** 
+ */
+nothing existsFunction() [flags=QC_RUNTIME_NOOP] {
+}
+
+//! 
+/** 
     @par Example
     @code
     @endcode
@@ -771,6 +813,12 @@ bool existsFunction(code[doc] c) [flags=QC_NOOP] {
       return new QoreStringNode("user");
 
    return builtinFunctions.find(str) ? new QoreStringNode("builtin") : 0;
+}
+
+//! 
+/** 
+ */
+nothing functionType() [flags=QC_RUNTIME_NOOP] {
 }
 
 //! 
@@ -787,6 +835,12 @@ string html_encode(string str) {
 
 //! 
 /** 
+ */
+nothing html_encode() [flags=QC_RUNTIME_NOOP] {
+}
+
+//! 
+/** 
     @par Example
     @code
     @endcode
@@ -795,6 +849,12 @@ string html_decode(string str) {
    QoreStringNode *ns = new QoreStringNode(str->getEncoding());
    ns->concatAndHTMLDecode(str);
    return ns;
+}
+
+//! 
+/** 
+ */
+nothing html_decode() [flags=QC_RUNTIME_NOOP] {
 }
 
 //! 
@@ -819,12 +879,24 @@ nothing parse(string code, string label) {
 
 //! 
 /** 
+ */
+nothing parse() [flags=QC_RUNTIME_NOOP] {
+}
+
+//! 
+/** 
     @par Example
     @code
     @endcode
 */
 string getClassName(object obj) {
    return new QoreStringNode(obj->getClass()->getName());
+}
+
+//! 
+/** 
+ */
+nothing getClassName() [flags=QC_RUNTIME_NOOP] {
 }
 
 //! 
@@ -854,6 +926,12 @@ hash parse_url(string url) {
    return qurl.isValid() ? qurl.getHash() : 0;
 }
 
+//! 
+/** 
+ */
+nothing parseURL() [flags=QC_RUNTIME_NOOP] {
+}
+
 //! Executes a process and returns a string of the output (stdout only)
 /** @par Restrictions
     Not available with @ref Qore::PO_NO_EXTERNAL_PROCESS
@@ -871,6 +949,12 @@ my string $files = $files = backquote("ls");
 */
 string backquote(string cmd) [dom=QDOM_EXTERNAL_PROCESS] {
    return backquoteEval(cmd->getBuffer(), xsink);
+}
+
+//! 
+/** 
+ */
+nothing backquote() [flags=QC_RUNTIME_NOOP] {
 }
 
 //! 
@@ -897,6 +981,12 @@ string makeBase64String(binary bin) {
 
 //! 
 /** 
+ */
+nothing makeBase64String() [flags=QC_RUNTIME_NOOP] {
+}
+
+//! 
+/** 
     @par Example
     @code
     @endcode
@@ -907,12 +997,24 @@ binary parseBase64String(string str) {
 
 //! 
 /** 
+ */
+nothing parseBase64String() [flags=QC_RUNTIME_NOOP] {
+}
+
+//! 
+/** 
     @par Example
     @code
     @endcode
 */
 string parseBase64StringToString(string str) {
    return str->parseBase64ToString(xsink);
+}
+
+//! 
+/** 
+ */
+nothing parseBase64StringToString() [flags=QC_RUNTIME_NOOP] {
 }
 
 //! 
@@ -959,6 +1061,12 @@ list hash_values(hash h) {
       l->push(hi.getReferencedValue());
 
    return l;
+}
+
+//! 
+/** 
+ */
+nothing hash_values() [flags=QC_RUNTIME_NOOP] {
 }
 
 //! 
@@ -1031,6 +1139,12 @@ bool has_key(object obj, string key) {
       return 0;
 
    return new QoreBigIntNode(ptr[offset]);  
+}
+
+//! 
+/** 
+ */
+nothing getByte() [flags=QC_RUNTIME_NOOP] {
 }
 
 //! 
@@ -1152,6 +1266,12 @@ bool has_key(object obj, string key) {
    int64 val = ntohl(*((unsigned int *)&ptr[offset]));
 
    return new QoreBigIntNode(val);
+}
+
+//! 
+/** 
+ */
+nothing getWord32() [flags=QC_RUNTIME_NOOP] {
 }
 
 //! 
@@ -1349,6 +1469,12 @@ list splice(list l, softint start, softint len, *list nlist) {
 
 //! 
 /** 
+ */
+nothing splice() [flags=QC_RUNTIME_NOOP] {
+}
+
+//! 
+/** 
     @par Example
     @code
     @endcode
@@ -1373,12 +1499,24 @@ string makeHexString(binary bin) {
 
 //! 
 /** 
+ */
+nothing makeHexString() [flags=QC_RUNTIME_NOOP] {
+}
+
+//! 
+/** 
     @par Example
     @code
     @endcode
 */
 binary parseHexString(string hexstr) {
    return hexstr->parseHex(xsink);
+}
+
+//! 
+/** 
+ */
+nothing parseHexString() [flags=QC_RUNTIME_NOOP] {
 }
 
 //! takes a string of hexadecimal digits (like \c "6d4f84e0"; with or without leading \c "x" or \c "0x") and returns the corresponding base-10 integer
@@ -1419,6 +1557,12 @@ int hextoint(string str) {
    return rc;
 }
 
+//! 
+/** 
+ */
+nothing hextoint() [flags=QC_RUNTIME_NOOP] {
+}
+
 //! parses a string representing a number in a configurable base and returns the integer
 /** 
     @par Example
@@ -1437,12 +1581,24 @@ int strtoint(string num, int base) {
 
 //! 
 /** 
+ */
+nothing strtoint() [flags=QC_RUNTIME_NOOP] {
+}
+
+//! 
+/** 
     @par Example
     @code
     @endcode
 */
 nothing load_module(string name) [flags=QC_CONSTANT] {
    MM.runTimeLoadModule(name->getBuffer(), xsink);
+}
+
+//! 
+/** 
+ */
+nothing load_module() [flags=QC_RUNTIME_NOOP] {
 }
 
 //! returns a string with percent-encodings substituted for characters
@@ -1471,6 +1627,12 @@ string decode_url(string url) [flags=QC_CONSTANT] {
       c++;
    }
    return str;
+}
+
+//! 
+/** 
+ */
+nothing decode_url() [flags=QC_RUNTIME_NOOP] {
 }
 
 //! 
