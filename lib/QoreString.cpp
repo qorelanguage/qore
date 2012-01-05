@@ -194,7 +194,15 @@ QoreString::QoreString(const BinaryNode *b) : priv(new qore_string_private) {
    priv->buf = (char *)malloc(sizeof(char) * priv->allocated);
    priv->len = 0;
    priv->charset = QCS_DEFAULT;
-   concatBase64(b);
+   concatBase64(b, -1);
+}
+
+QoreString::QoreString(const BinaryNode *b, qore_size_t maxlinelen) : priv(new qore_string_private) {
+   priv->allocated = b->size() + (b->size() * 4) / 10 + 10; // estimate for base64 encoding
+   priv->buf = (char *)malloc(sizeof(char) * priv->allocated);
+   priv->len = 0;
+   priv->charset = QCS_DEFAULT;
+   concatBase64(b, maxlinelen);
 }
 
 QoreString::QoreString(char *nbuf, qore_size_t nlen, qore_size_t nallocated, const QoreEncoding *enc) : priv(new qore_string_private) {
@@ -637,14 +645,26 @@ QoreString *QoreString::convertEncoding(const QoreEncoding *nccs, ExceptionSink 
    return targ;
 }
 
+static void base64_concat(QoreString& str, unsigned char c, qore_size_t& linelen, qore_size_t maxlinelen) {
+   str.concat(table64[c]);
+
+   ++linelen;
+   if (maxlinelen > 0 && linelen == maxlinelen) {
+      str.concat("\r\n");
+      linelen = 0;
+   }
+}
+
 // endian-agnostic binary object -> base64 string function
 // NOTE: not very high-performance - high-performance versions
 //       would likely be endian-aware and operate directly on 32-bit words
-void QoreString::concatBase64(const char *bbuf, qore_size_t size) {
+void QoreString::concatBase64(const char *bbuf, qore_size_t size, qore_size_t maxlinelen) {
    //printf("bbuf=%p, size=%d\n", bbuf, size);
    if (!size)
       return;
 
+   qore_size_t linelen = 0;
+   
    unsigned char *p = (unsigned char *)bbuf;
    unsigned char *endbuf = p + size;
    while (p < endbuf) {
@@ -652,14 +672,14 @@ void QoreString::concatBase64(const char *bbuf, qore_size_t size) {
       unsigned char c = p[0] >> 2;
 
       // byte 1: concat 1st 6-bit value
-      concat(table64[c]);
+      base64_concat(*this, c, linelen, maxlinelen);
 
       // byte 1: use remaining 2 bits in low order position
       c = (p[0] & 3) << 4;
 
       // check end
       if ((endbuf - p) == 1) {
-	 concat(table64[c]);
+	 base64_concat(*this, c, linelen, maxlinelen);
 	 concat("==");
 	 break;
       }
@@ -668,13 +688,13 @@ void QoreString::concatBase64(const char *bbuf, qore_size_t size) {
       c |= p[1] >> 4;
 
       // concat 2nd 6-bit value
-      concat(table64[c]);
+      base64_concat(*this, c, linelen, maxlinelen);
 
       // byte 2: get 4 low bits
       c = (p[1] & 15) << 2;
 
       if ((endbuf - p) == 2) {
-	 concat(table64[c]);
+	 base64_concat(*this, c, linelen, maxlinelen);
 	 concat('=');
 	 break;
       }
@@ -683,20 +703,32 @@ void QoreString::concatBase64(const char *bbuf, qore_size_t size) {
       c |= p[2] >> 6;
 
       // concat 3rd 6-bit value
-      concat(table64[c]);
+      base64_concat(*this, c, linelen, maxlinelen);
 
       // byte 3: concat final 6 bits
-      concat(table64[p[2] & 63]);
+      base64_concat(*this, p[2] & 63, linelen, maxlinelen);
       p += 3;
    }
 }
 
+void QoreString::concatBase64(const BinaryNode *b, qore_size_t maxlinelen) {
+   concatBase64((char *)b->getPtr(), b->size(), maxlinelen);
+}
+
+void QoreString::concatBase64(const QoreString *str, qore_size_t maxlinelen) {
+   concatBase64(str->priv->buf, str->priv->len, maxlinelen);
+}
+
 void QoreString::concatBase64(const BinaryNode *b) {
-   concatBase64((char *)b->getPtr(), b->size());
+   concatBase64((char *)b->getPtr(), b->size(), -1);
 }
 
 void QoreString::concatBase64(const QoreString *str) {
-   concatBase64(str->priv->buf, str->priv->len);
+   concatBase64(str->priv->buf, str->priv->len, -1);
+}
+
+void QoreString::concatBase64(const char *bbuf, qore_size_t size) {
+   concatBase64(bbuf, size, -1);
 }
 
 #define DO_HEX_CHAR(b) ((b) + (((b) > 9) ? 87 : 48))
@@ -1461,7 +1493,7 @@ BinaryNode *QoreString::parseBase64(ExceptionSink *xsink) const {
 }
 
 // FIXME: implement possibility to specify character encoding
-QoreString *QoreString::parseBase64ToString(ExceptionSink *xsink) const {
+QoreString *QoreString::parseBase64ToString(const QoreEncoding* qe, ExceptionSink* xsink) const {
    SimpleRefHolder<BinaryNode> b(::parseBase64(priv->buf, priv->len, xsink));
    if (!b)
       return 0;
@@ -1469,7 +1501,7 @@ QoreString *QoreString::parseBase64ToString(ExceptionSink *xsink) const {
    qore_string_private *p = new qore_string_private;
    p->len = b->size() - 1;
    p->buf = (char *)b->giveBuffer();
-   p->charset = QCS_DEFAULT;
+   p->charset = qe;
 
    // free binary object
    b = 0;
@@ -1483,6 +1515,10 @@ QoreString *QoreString::parseBase64ToString(ExceptionSink *xsink) const {
 
    p->allocated = p->len + 1;
    return new QoreString(p);
+}
+
+QoreString *QoreString::parseBase64ToString(ExceptionSink *xsink) const {
+   return parseBase64ToString(QCS_DEFAULT, xsink);
 }
 
 BinaryNode *QoreString::parseHex(ExceptionSink *xsink) const {

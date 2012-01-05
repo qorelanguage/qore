@@ -52,6 +52,9 @@ QoreStringNode::QoreStringNode(char c) : SimpleValueQoreNode(NT_STRING), QoreStr
 QoreStringNode::QoreStringNode(const BinaryNode *b) : SimpleValueQoreNode(NT_STRING), QoreString(b) {
 }
 
+QoreStringNode::QoreStringNode(const BinaryNode* b, qore_size_t maxlinelen) : SimpleValueQoreNode(NT_STRING), QoreString(b, maxlinelen) {
+}
+
 QoreStringNode::QoreStringNode(struct qore_string_private *p) : SimpleValueQoreNode(NT_STRING), QoreString(p) {
 }
 
@@ -172,7 +175,7 @@ QoreStringNode *QoreStringNode::reverse() const {
    return str;
 }
 
-QoreStringNode *QoreStringNode::parseBase64ToString(ExceptionSink *xsink) const {
+QoreStringNode *QoreStringNode::parseBase64ToString(const QoreEncoding* qe, ExceptionSink* xsink) const {
    SimpleRefHolder<BinaryNode> b(::parseBase64(priv->buf, priv->len, xsink));
    if (!b)
       return 0;
@@ -180,7 +183,7 @@ QoreStringNode *QoreStringNode::parseBase64ToString(ExceptionSink *xsink) const 
    qore_string_private *p = new qore_string_private;
    p->len = b->size() - 1;
    p->buf = (char *)b->giveBuffer();
-   p->charset = QCS_DEFAULT;
+   p->charset = qe;
 
    // free memory allocated to binary object
    b = 0;
@@ -194,6 +197,10 @@ QoreStringNode *QoreStringNode::parseBase64ToString(ExceptionSink *xsink) const 
 
    p->allocated = p->len + 1;
    return new QoreStringNode(p);
+}
+
+QoreStringNode *QoreStringNode::parseBase64ToString(ExceptionSink *xsink) const {
+   return parseBase64ToString(QCS_DEFAULT, xsink);
 }
 
 void QoreStringNode::getStringRepresentation(QoreString &str) const {

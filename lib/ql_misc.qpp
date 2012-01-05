@@ -36,6 +36,8 @@ static const BuiltinFunction *get_builtin_func(const QoreStringNode *str, Except
    return f;
 }
 
+static const char *tlist[] = { "OPTION", "ALGORITHM", "FUNCTION" };
+
 // signal constants - if they are not defined define them here
 #ifndef SIGABRT
 #define SIGABRT 0
@@ -444,9 +446,20 @@ nothing remove_signal_handler(softint signal) [dom=QDOM_PROCESS] {
 //@{
 //! Calls a function and returns the return value, passing the remaining arguments after the function name to the function
 /** 
+    @param name The name of the function to call
+    @param ... Any optional arguments to the function
+
+    @return The value returned by the called function
+
     @par Example
     @code
+my any $result = call_function("func_name", $arg1, $arg2);
     @endcode
+
+    @throw INVALID-FUNCTION-ACCESS Parse options do not allow access to the function
+    @throw NO-FUNCTION The function does not exist
+
+    @note The function called could also throw other exceptions
 */
 any call_function(string name, ...) {
    ReferenceHolder<QoreListNode> vargs(xsink);
@@ -457,11 +470,17 @@ any call_function(string name, ...) {
    return getProgram()->callFunction(name->getBuffer(), *vargs, xsink);
 }
 
-//! 
+//! Calls the given @ref call_reference "call reference" or @ref closure "closure" and returns the result, passing the remaining arguments to the @ref call_reference "call reference" or @ref closure "closure"
 /** 
+    @param f The @ref call_reference "call reference" or @ref closure "closure"
+    @param ... Any optional arguments to the @ref call_reference "call reference" or @ref closure "closure"
+
     @par Example
     @code
+my any $result = call_function($call_ref, $arg1, $arg2);
     @endcode
+
+    @note The @ref call_reference "call reference" or @ref closure "closure" called could also throw other exceptions
 */
 any call_function(code f, ...) {
    ReferenceHolder<QoreListNode> vargs(xsink);
@@ -472,33 +491,60 @@ any call_function(code f, ...) {
    return f->exec(*vargs, xsink);
 }
 
-//! 
+//! Calls a function and returns the return value, using the optional second argument as a list of arguments for the function
 /** 
+    @param name The name of the function to call
+    @param vargs Optionally a single argument to the function or a list of arguments to the function
+
+    @return The value returned by the called function
+
     @par Example
     @code
+my any $result = call_function_args("func_name", ($arg1, $arg2));
     @endcode
+
+    @throw INVALID-FUNCTION-ACCESS Parse options do not allow access to the function
+    @throw NO-FUNCTION The function does not exist
+
+    @note The function called could also throw other exceptions
 */
 any call_function_args(string name, *softlist vargs) {
    return getProgram()->callFunction(name->getBuffer(), vargs, xsink);
 }
 
-//! 
+//! Calls the given @ref call_reference "call reference" or @ref closure "closure" and returns the result, using the optional second argument as a list of arguments to the @ref call_reference "call reference" or @ref closure "closure"
 /** 
+    @param f The @ref call_reference "call reference" or @ref closure "closure"
+    @param vargs Optionally a single argument to the @ref call_reference "call reference" or @ref closure "closure" or a list of arguments to the @ref call_reference "call reference" or @ref closure "closure"
+
     @par Example
     @code
+my any $result = call_function_args($call_ref, ($arg1, $arg2));
     @endcode
+
+    @note The @ref call_reference "call reference" or @ref closure "closure" called could also throw other exceptions
 */
 any call_function_args(code f, *softlist vargs) {
    return f->exec(vargs, xsink);
 }
 
-//! 
-/** 
+//! Calls a builtin function and returns the return value, passing the remaining arguments after the function name to the builtin function
+/** This function can be used to call a builtin function even though there is a user function with the same name as the builtin funciton
+
+    @param name The name of the builtin function to call
+    @param ... Any optional arguments to the function
+
+    @return The value returned by the called function
+
     @par Example
     @code
+my any $result = call_builtin_function("func_name", $arg1, $arg2);
     @endcode
 
-    @throw NO-FUNCTION cannot find the given builtin function
+    @throw INVALID-FUNCTION-ACCESS Parse options do not allow access to the function
+    @throw NO-FUNCTION The function does not exist
+
+    @note The function called could also throw other exceptions
 */
 any call_builtin_function(string name, ...) {
    const BuiltinFunction *f = get_builtin_func(name, xsink);
@@ -513,11 +559,23 @@ any call_builtin_function(string name, ...) {
    return f->evalDynamic(*vargs, xsink);
 }
 
-//! 
-/** 
+//! Calls a builtin function and returns the return value, using the optional second argument as a list of arguments for the function
+/** This function can be used to call a builtin function even though there is a user function with the same name as the builtin funciton
+
+    @param name The name of the builtin function to call
+    @param vargs Optionally a single argument to the function or a list of arguments to the function
+
+    @return The value returned by the called function
+
     @par Example
     @code
+my any $result = call_builtin_function_args("func_name", ($arg1, $arg2));
     @endcode
+
+    @throw INVALID-FUNCTION-ACCESS Parse options do not allow access to the function
+    @throw NO-FUNCTION The function does not exist
+
+    @note The function called could also throw other exceptions
 */
 any call_builtin_function_args(string name, *softlist vargs) {
    const BuiltinFunction *f = get_builtin_func(name, xsink);
@@ -527,25 +585,33 @@ any call_builtin_function_args(string name, *softlist vargs) {
    return f->evalDynamic(vargs, xsink);
 }
 
-//! 
-/** 
+//! A function performing the same role as the @ref exists "exists operator"
+/** @param ... if only a single argument is passed, then this function returns \c True if the single argument exists, \c False if not; otherwise is multiple arguments are passed to the function, it always returns \c True; this is to emulate the behavior of the @ref exists "exists operator"
+
+    @return if only a single argument is passed, then this function returns \c True if the single argument exists, \c False if not; otherwise is multiple arguments are passed to the function, it always returns \c True; this is to emulate the behavior of the @ref exists "exists operator"
+
     @par Example
     @code
+my bool $b = exists($val);
     @endcode
 */
-bool exists(...) {
+bool exists(...) [flags=QC_CONSTANT] {
    // to emulate the exists operator, we must return True if more than one argument is passed
    // as this will appear to be a list to the exists operator, which is different from NOTHING
    return (num_args(args) <= 1) ? !is_nothing(get_param(args, 0)) : true;
 }
 
-//! 
-/** 
+//! Returns \c True if the function exists in the current program's function name space
+/** @param name the name of the function to check
+
+    @return \c True if the function exists in the current program's function name space, \c False if not
+
     @par Example
     @code
+my bool $b = existsFunction("func_name");
     @endcode
 */
-bool existsFunction(string name) {
+bool existsFunction(string name) [flags=QC_CONSTANT] {
    const char *str = name->getBuffer();
    
    if (getProgram()->existsFunction(str))
@@ -554,26 +620,31 @@ bool existsFunction(string name) {
    return builtinFunctions.find(str);
 }
 
-//! 
-/** 
-    @par Example
-    @code
-    @endcode
+//! Always returns \c True
+/** This function variant is included for backwards-compatibility
+
+    @par code a @ref call_reference "call reference" or @ref closure "closure"
+
+    @return always returns \c True
 */
 bool existsFunction(code[doc] c) [flags=QC_NOOP] {
    return true;
 }
 
-//! 
+//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
 nothing existsFunction() [flags=QC_RUNTIME_NOOP] {
 }
 
-//! 
+//! Returns \c "builtin" (for a builtin function), \c "user" (for a user function), or @ref nothing (if the function cannot be found) according to the function name passed
 /** 
+    @param name The function name to check
+    @return \c "builtin" (for a builtin function), \c "user" (for a user function), or @ref nothing (if the function cannot be found) according to the function name passed
+
     @par Example
     @code
+my *string $type = functionType("print");
     @endcode
 */
 *string functionType(string name) {
@@ -585,95 +656,132 @@ nothing existsFunction() [flags=QC_RUNTIME_NOOP] {
    return builtinFunctions.find(str) ? new QoreStringNode("builtin") : 0;
 }
 
-//! 
+//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
 nothing functionType() [flags=QC_RUNTIME_NOOP] {
 }
 
-//! 
-/** 
+//! Returns a string with characters needing HTML escaping translated to HTML escape codes
+/** @param str the argument to process
+
+    @return the string passed as an argument with characters needing HTML escaping translated to HTML escape codes
+
     @par Example
     @code
+my string $str = html_encode("<hello>"); # returns "&lt;hello&gt;"
     @endcode
 */
-string html_encode(string str) {
+string html_encode(string str) [flags=QC_CONSTANT] {
    QoreStringNode *ns = new QoreStringNode(str->getEncoding());
    ns->concatAndHTMLEncode(str->getBuffer());
    return ns;
 }
 
-//! 
+//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
 nothing html_encode() [flags=QC_RUNTIME_NOOP] {
 }
 
-//! 
-/** 
+//! Returns a string with any HTML escape codes translated to the original characters
+/** @param str the argument to decode
+
+    @return the string passed as an argument with any HTML escape codes translated to the original characters
+
     @par Example
     @code
+my string $str = html_decode("&lt;hello&gt;"); # returns "<hello>"
     @endcode
 */
-string html_decode(string str) {
+string html_decode(string str) [flags=QC_CONSTANT] {
    QoreStringNode *ns = new QoreStringNode(str->getEncoding());
    ns->concatAndHTMLDecode(str);
    return ns;
 }
 
-//! 
+//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
 nothing html_decode() [flags=QC_RUNTIME_NOOP] {
 }
 
-//! 
-/** 
+//! Returns the name of the @ref default_encoding "default character encoding"
+/** @return the name of the @ref default_encoding "default character encoding"
+
     @par Example
     @code
+my string $encoding = get_default_encoding();
     @endcode
 */
 string get_default_encoding() {
    return new QoreStringNode(QCS_DEFAULT->getCode());
 }
 
-//! 
+//! Adds the text passed to the current program's code, tagged with the given label
 /** 
+    @param code the string of %Qore source code to parse; the parsed code will be added to the current program
+    @param label a label identifying the code or the code's source
+
     @par Example
     @code
+parse($code, $filename);
     @endcode
+
+    @note This function could throw many parse exceptions which are not enumerated here; any parse errors will result in an appropriate exception.
+
+    @see Qore::Program::parse()
 */
 nothing parse(string code, string label) {
    getProgram()->parse(code, label, xsink);
 }
 
-//! 
+//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
 nothing parse() [flags=QC_RUNTIME_NOOP] {
 }
 
-//! 
+//! Returns the class name of the object passed
 /** 
+    @param obj the object to get the class name of
+    @return the class name of the object passed
+
     @par Example
     @code
+my string $name = getClassName($obj);
     @endcode
 */
 string getClassName(object obj) {
    return new QoreStringNode(obj->getClass()->getName());
 }
 
-//! 
+//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
 nothing getClassName() [flags=QC_RUNTIME_NOOP] {
 }
 
-//! 
-/** 
+//! Parses a URL string and returns a hash of the components; throws an exception if the string cannot be parsed as URL
+/**
+   @param url the URL to parse (ex: \c "https://user:pass@host:8080/path"); either a hostname or path is required at a minimum or a \c PARSE-URL-ERROR exception is raised
+
+   @return a hash of the components of the URL with the following keys (if data in the URL is present):
+    - \c protocol: the scheme in the URL (ex: \c "http")
+    - \c path: any path given in the URL; the path will be prefixed by \c "/" if a hostname is found in the URL argument string, otherwise it will not if it was not given as such in the argument string
+    - \c username: any username given in the URL
+    - \c password: any password given in the URL
+    - \c host: any hostname given in the URL; note that this key will be given if no other information can be found in the URL argument and the URL argument string has no \c "/" characters; depending on the usage context for this function, this may actually be a filename
+    - \c port: any port number given in the URL
+
     @par Example
     @code
+my hash $hash = parse_url($url_string);
     @endcode
+
+    @throw PARSE-URL-ERROR The URL string given could not be parsed
+
+    @see parseURL() for a version of this function that does not throw exceptions if the URL cannot be parsed
 */
 hash parse_url(string url) {
    QoreURL qurl(url);
@@ -685,18 +793,31 @@ hash parse_url(string url) {
    return qurl.getHash();
 }
 
-//! 
-/** 
+//! Parses a URL string and returns a hash of the components; if the URL cannot be parsed then @ref nothing is returned
+/**
+   @param url the URL to parse (ex: \c "https://user:pass@host:8080/path"); either a hostname or path is required at a minimum or the function will return @ref nothing
+
+   @return @ref nothing (in case the URL cannot be parsed) or a hash of the components of the URL with the following keys (if data in the URL is present):
+    - \c protocol: the scheme in the URL (ex: \c "http")
+    - \c path: any path given in the URL; the path will be prefixed by \c "/" if a hostname is found in the URL argument string, otherwise it will not if it was not given as such in the argument string
+    - \c username: any username given in the URL
+    - \c password: any password given in the URL
+    - \c host: any hostname given in the URL; note that this key will be given if no other information can be found in the URL argument and the URL argument string has no \c "/" characters; depending on the usage context for this function, this may actually be a filename
+    - \c port: any port number given in the URL
+
     @par Example
     @code
+my *hash $hash = parseURL($url_string);
     @endcode
+
+    @see parse_url() for a version of this function that throws exceptions if the URL cannot be parsed
 */
 *hash parseURL(string url) {
    QoreURL qurl(url);
    return qurl.isValid() ? qurl.getHash() : 0;
 }
 
-//! 
+//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
 nothing parseURL() [flags=QC_RUNTIME_NOOP] {
@@ -721,109 +842,183 @@ string backquote(string cmd) [dom=QDOM_EXTERNAL_PROCESS] {
    return backquoteEval(cmd->getBuffer(), xsink);
 }
 
-//! 
+//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
 nothing backquote() [flags=QC_RUNTIME_NOOP] {
 }
 
-//! 
-/** 
+//! Returns a base64-encoded representation of a string
+/** Implementation based on <a href="http://www.ietf.org/rfc/rfc1421.txt">RFC-1421</a> and <a href="http://www.ietf.org/rfc/rfc2045.txt">RFC-2045</a>
+
+    @param str the string to encode
+    @param maxlinelen the maximum length of a line in the resulting output string in bytes; if this value is > 0 then output lines will be separated by CRLF characters
+
+    @return the base64-encoded string of the data passed
+
     @par Example
     @code
+my string $base64 = makeBase64String($data, 64);
     @endcode
+
+    @since the maxlinelen parameter was added in %Qore 0.8.4
+
+    @see makeHexString()
 */
-string makeBase64String(string str) {
+string makeBase64String(string str, softint maxlinelen = -1) [flags=QC_CONSTANT] {
    QoreStringNode *rv = new QoreStringNode;
-   rv->concatBase64(str);
+   rv->concatBase64(str, maxlinelen);
    return rv;
 }
 
-//! 
-/** 
+//! Returns a base64-encoded representation of a binary object
+/** Implementation based on <a href="http://www.ietf.org/rfc/rfc1421.txt">RFC-1421</a> and <a href="http://www.ietf.org/rfc/rfc2045.txt">RFC-2045</a>
+
+    @param bin the data to encode
+    @param maxlinelen the maximum length of a line in the resulting output string in bytes; if this value is > 0 then output lines will be separated by CRLF characters
+
+    @return the base64-encoded string of the data passed
+
     @par Example
     @code
+my string $base64 = makeBase64String($data, 64);
     @endcode
+
+    @since the maxlinelen parameter was added in %Qore 0.8.4
 */
-string makeBase64String(binary bin) {
-   return new QoreStringNode(bin);
+string makeBase64String(binary bin, softint maxlinelen = -1) [flags=QC_CONSTANT] {
+   return new QoreStringNode(bin, maxlinelen);
 }
 
-//! 
+//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
 nothing makeBase64String() [flags=QC_RUNTIME_NOOP] {
 }
 
-//! 
-/** 
+//! Parses a base64 encoded string and returns a binary object of the decoded data
+/** Implementation based on <a href="http://www.ietf.org/rfc/rfc1421.txt">RFC-1421</a> and <a href="http://www.ietf.org/rfc/rfc2045.txt">RFC-2045</a>
+
+    @param str the base64-encoded input data to decode
+
+    @return a binary object of the decoded data
+
     @par Example
     @code
+my binary $bin = parseBase64String($base64_string);
     @endcode
+
+    @throw BASE64-PARSE-ERROR A syntax error occurred parsing the base64 string (invalid character, etc)
+
+    @see parseHexString(), parseBase64StringToString()
 */
 binary parseBase64String(string str) {
    return str->parseBase64(xsink);
 }
 
-//! 
+//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
 nothing parseBase64String() [flags=QC_RUNTIME_NOOP] {
 }
 
-//! 
-/** 
+//! Parses a base64 encoded string and returns a string of the decoded data
+/** Implementation based on <a href="http://www.ietf.org/rfc/rfc1421.txt">RFC-1421</a> and <a href="http://www.ietf.org/rfc/rfc2045.txt">RFC-2045</a>
+
+    @param str the base64-encoded input data to decode
+    @param encoding the character encoding tag for the string return value; if not present, the @ref default_encoding "default character encoding" is assumed.
+
+    @return a string of the decoded data tagged with the given encoding
+
     @par Example
     @code
+my string $str = parseBase64String($base64_string);
     @endcode
+
+    @throw BASE64-PARSE-ERROR A syntax error occurred parsing the base64 string (invalid character, etc)
+
+    @since the encoding parameter was added in %Qore 0.8.4
+
+    @see parseBase64String()
 */
-string parseBase64StringToString(string str) {
-   return str->parseBase64ToString(xsink);
+string parseBase64StringToString(string str, *string encoding) {
+   const QoreEncoding *qe = encoding ? QEM.findCreate(encoding) : QCS_DEFAULT;
+   return str->parseBase64ToString(qe, xsink);
 }
 
-//! 
+//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
 nothing parseBase64StringToString() [flags=QC_RUNTIME_NOOP] {
 }
 
-//! 
-/** 
+//! Returns a list of hashes describing the currently-loaded %Qore modules
+/** @return a list of hashes describing the currently-loaded %Qore modules; each element in the list is a hash with the following keys:
+    - \c filename: the path to the module
+    - \c name: the name of the module
+    - \c desc: the description of the module
+    - \c version: the version of the module
+    - \c author: the author of the module
+    - \c api_major: the major number of the %Qore module API version the module support
+    - \c api_minor: the minor number of the %Qore module API version the module support
+    - \c url: the module's URL
+
     @par Example
     @code
+my list $list = getModuleList();
     @endcode
+
+    @see getModuleHash()
 */
-list getModuleList() {
+list getModuleList() [flags=QC_CONSTANT] {
    return MM.getModuleList();
 }
 
-//! 
-/** 
+//! Returns a hash of hashes describing the currently-loaded %Qore modules; the top-level hash keys are the module names
+/** @return a hash of hashes describing the currently-loaded %Qore modules; the top-level hash keys are the module names; the values are hashes with the following keys:
+    - \c filename: the path to the module
+    - \c name: the name of the module
+    - \c desc: the description of the module
+    - \c version: the version of the module
+    - \c author: the author of the module
+    - \c api_major: the major number of the %Qore module API version the module support
+    - \c api_minor: the minor number of the %Qore module API version the module support
+    - \c url: the module's URL
+
     @par Example
     @code
+my hash $mh = getModuleHash();
     @endcode
+
+    @since %Qore 0.8.1
 */
-hash getModuleHash() {
+hash getModuleHash() [flags=QC_CONSTANT] {
    return MM.getModuleHash();
 }
 
-//! 
-/** 
+//! Returns a list of strings of the builtin and module-supplied features of Qore
+/** @return a list of strings of the builtin and module-supplied features of Qore
+
     @par Example
     @code
+my list $list = getFeatureList();
     @endcode
 */
-list getFeatureList() {
+list getFeatureList() [flags=QC_CONSTANT] {
    return getProgram()->getFeatureList();
 }
 
-//! 
-/** 
+//! Returns a list of all the values in the hash argument passed
+/** @param h a hash to get all the values of
+
+    @return a list of all the values in the hash argument passed
+
     @par Example
     @code
+my list $vl = hash_values($vl);
     @endcode
 */
-list hash_values(hash h) {
+list hash_values(hash h) [flags=QC_CONSTANT] {
    QoreListNode *l = new QoreListNode;
 
    ConstHashIterator hi(h);
@@ -833,17 +1028,25 @@ list hash_values(hash h) {
    return l;
 }
 
-//! 
+//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
 nothing hash_values() [flags=QC_RUNTIME_NOOP] {
 }
 
-//! 
+//! Returns \c True if the given key exists in the hash (does not necessarily have to have a value assigned); exceptions are only raised if string encoding errors are encountered
 /** 
+    @param h the hash to check
+    @param key the key name to check; this value will be converted to the @ref default_encoding "default character encoding" to check the hash
+
+    @return \c True if the given key exists in the hash (does not necessarily have to have a value assigned), \c False if the key is not present at all
+
     @par Example
     @code
+my bool $b = has_key($hash, "key");
     @endcode
+
+    @throw ENCODING-CONVERSION-ERROR this error is thrown if the given key cannot be converted to the @ref default_encoding "default character encoding"
 */
 bool has_key(hash h, string key) {
    bool exists;
@@ -851,11 +1054,16 @@ bool has_key(hash h, string key) {
    return exists;
 }
 
-//! 
+//! Returns \c True if the given key exists in the object (does not necessarily have to have a value assigned); exceptions are only raised if string encoding errors are encountered or in case of object access errors.
 /** 
     @par Example
     @code
+my bool $b = has_key($obj, "key");
     @endcode
+
+    @throw ENCODING-CONVERSION-ERROR this error is thrown if the given key cannot be converted to the @ref default_encoding "default character encoding"
+
+    @note object access exceptions could also be raised
 */
 bool has_key(object obj, string key) {
    AutoVLock vl(xsink);
@@ -863,11 +1071,20 @@ bool has_key(object obj, string key) {
    return (bool)ptr;
 }
 
-//! 
+//! Returns the byte value at the given byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
 /** 
+    @param str the string data to process
+    @param offset the byte offset of the data to retrieve (the first value is at offset 0)
+
+    @return the byte value at the given byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
+
     @par Example
     @code
+my *int $byte = get_byte($str, 2); # returns the third byte of the string
     @endcode
+
+    @note that for strings this function is not equivalent to the @ref list_element_operator "[] operator" for multi-byte character encodings, as this function works purely on bytes and the @ref list_element_operator "[] operator operates on characters\n\n
+    Furthermore this function is identical to getByte(), except this function has no QC_RUNTIME_NOOP variant
 */
 *int get_byte(string str, softint offset = 0) [flags=QC_CONSTANT] {
    unsigned char *ptr = (unsigned char *)str->getBuffer();
@@ -879,11 +1096,20 @@ bool has_key(object obj, string key) {
    return new QoreBigIntNode(ptr[offset]);  
 }
 
-//! 
+//! Returns the byte value at the given byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
 /** 
+    @param b the data to process
+    @param offset the byte offset of the data to retrieve (the first value is at offset 0)
+
+    @return the byte value at the given byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
+
     @par Example
     @code
+my *int $byte = get_byte($bin, 2); # returns the third byte of the binary object
     @endcode
+
+    @note this function is equivalent to the more efficient @ref list_element_operator "[] operator" when used with a binary argument\n\n
+    Furthermore this function is identical to getByte(), except this function has no QC_RUNTIME_NOOP variant
 */
 *int get_byte(binary b, softint offset = 0) [flags=QC_CONSTANT] {
    unsigned char *ptr = (unsigned char *)b->getPtr();
@@ -895,13 +1121,24 @@ bool has_key(object obj, string key) {
    return new QoreBigIntNode(ptr[offset]);  
 }
 
-//! 
+//! Returns the byte value at the given byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
 /** 
+    @param str the string data to process
+    @param offset the byte offset of the data to retrieve (the first value is at offset 0)
+
+    @return the byte value at the given byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
+
     @par Example
     @code
+my *int $byte = get_byte($str, 2); # returns the third byte of the string
     @endcode
+
+    @note that for strings this function is not equivalent to the @ref list_element_operator "[] operator" for multi-byte character encodings, as this function works purely on bytes and the @ref list_element_operator "[] operator operates on characters\n\n
+    Furthermore this function is identical to get_byte(), except this function has a QC_RUNTIME_NOOP variant
+
+    @since %Qore 0.8.4 marked as deprecated; use the get_byte() function instead
 */
-*int getByte(string str, softint offset = 0) [flags=QC_CONSTANT] {
+*int getByte(string str, softint offset = 0) [flags=QC_CONSTANT|QC_DEPRECATED] {
    unsigned char *ptr = (unsigned char *)str->getBuffer();
    int size = str->strlen();
 
@@ -911,19 +1148,30 @@ bool has_key(object obj, string key) {
    return new QoreBigIntNode(ptr[offset]);  
 }
 
-//! 
+//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
-nothing getByte() [flags=QC_RUNTIME_NOOP] {
+nothing getByte() [flags=QC_RUNTIME_NOOP|QC_DEPRECATED] {
 }
 
-//! 
+//! Returns the byte value at the given byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
 /** 
+    @param b the data to process
+    @param offset the byte offset of the data to retrieve (the first value is at offset 0)
+
+    @return the byte value at the given byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
+
     @par Example
     @code
+my *int $byte = get_byte($bin, 2); # returns the third byte of the binary object
     @endcode
+
+    @note this function is equivalent to the more efficient @ref list_element_operator "[] operator" when used with a binary argument\n\n
+    Furthermore this function is identical to get_byte(), except this function has a QC_RUNTIME_NOOP variant
+
+    @since %Qore 0.8.4 marked as deprecated; use the get_byte() function instead
 */
-*int getByte(binary b, softint offset = 0) [flags=QC_CONSTANT] {
+*int getByte(binary b, softint offset = 0) [flags=QC_CONSTANT|QC_DEPRECATED] {
    unsigned char *ptr = (unsigned char *)b->getPtr();
    int size = b->size();
 
@@ -933,11 +1181,20 @@ nothing getByte() [flags=QC_RUNTIME_NOOP] {
    return new QoreBigIntNode(ptr[offset]);  
 }
 
-//! 
-/** 
+//! Returns the 16-bit integer value at the given 2-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
+/** This function assumes <a href="http://en.wikipedia.org/wiki/Most_significant_bit">MSB byte order</a> when retrieving the value from the data
+
+    @param str the string data to process
+    @param offset the 2-byte offset of the data to retrieve (the first value is at offset 0)
+
+    @return the 16-bit integer value at the given 2-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
+
     @par Example
     @code
+my *int $val = get_word_16($str, 2); # returns the third 2-byte (16-bit) value in the string
     @endcode
+
+    @see get_word_16_lsb()
 */
 *int get_word_16(string str, softint offset = 0) [flags=QC_CONSTANT] {
    unsigned char *ptr = (unsigned char *)str->getBuffer();
@@ -950,11 +1207,20 @@ nothing getByte() [flags=QC_RUNTIME_NOOP] {
    return new QoreBigIntNode(val);
 }
 
-//! 
-/** 
+//! Returns the 16-bit integer value at the given 2-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
+/** This function assumes <a href="http://en.wikipedia.org/wiki/Most_significant_bit">MSB byte order</a> when retrieving the value from the data
+
+    @param b the data to process
+    @param offset the 2-byte offset of the data to retrieve (the first value is at offset 0)
+
+    @return the 16-bit integer value at the given 2-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
+
     @par Example
     @code
+my *int $val = get_word_16($bin, 2); # returns the third 2-byte (16-bit) value in the binary object
     @endcode
+
+    @see get_word_16_lsb()
 */
 *int get_word_16(binary b, softint offset = 0) [flags=QC_CONSTANT] {
    unsigned char *ptr = (unsigned char *)b->getPtr();
@@ -968,11 +1234,22 @@ nothing getByte() [flags=QC_RUNTIME_NOOP] {
    return new QoreBigIntNode(val);
 }
 
-//! 
-/** 
+//! Returns the 32-bit integer value at the given 4-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
+/** This function assumes <a href="http://en.wikipedia.org/wiki/Most_significant_bit">MSB byte order</a> when retrieving the value from the data
+
+    @param str the string data to process
+    @param offset the 4-byte offset of the data to retrieve (the first value is at offset 0)
+
+    @return the 32-bit integer value at the given 4-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
+
     @par Example
     @code
+my *int $val = get_word_32($str, 4); # returns the third 4-byte (32-bit) value in the string
     @endcode
+
+    @note This function is identical to getWord32(), except this function has no QC_RUNTIME_NOOP variant
+
+    @see get_word_32_lsb()
 */
 *int get_word_32(string str, softint offset = 0) [flags=QC_CONSTANT] {
    unsigned char *ptr = (unsigned char *)str->getBuffer();
@@ -985,11 +1262,22 @@ nothing getByte() [flags=QC_RUNTIME_NOOP] {
    return new QoreBigIntNode(val);
 }
 
-//! 
-/** 
+//! Returns the 32-bit integer value at the given 4-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
+/** This function assumes <a href="http://en.wikipedia.org/wiki/Most_significant_bit">MSB byte order</a> when retrieving the value from the data
+
+    @param b the data to process
+    @param offset the 4-byte offset of the data to retrieve (the first value is at offset 0)
+
+    @return the 32-bit integer value at the given 4-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
+
     @par Example
     @code
+my *int $val = get_word_32($bin, 2); # returns the third 4-byte (32-bit) value in the binary object
     @endcode
+
+    @note This function is identical to getWord32(), except this function has no QC_RUNTIME_NOOP variant
+
+    @see get_word_32_lsb()
 */
 *int get_word_32(binary b, softint offset = 0) [flags=QC_CONSTANT] {
    unsigned char *ptr = (unsigned char *)b->getPtr();
@@ -1003,11 +1291,22 @@ nothing getByte() [flags=QC_RUNTIME_NOOP] {
    return new QoreBigIntNode(val);
 }
 
-//! 
-/** 
+//! Returns the 32-bit integer value at the given 4-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
+/** This function assumes <a href="http://en.wikipedia.org/wiki/Most_significant_bit">MSB byte order</a> when retrieving the value from the data
+
+    @param str the string data to process
+    @param offset the 4-byte offset of the data to retrieve (the first value is at offset 0)
+
+    @return the 32-bit integer value at the given 4-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
+
     @par Example
     @code
+my *int $val = getWord32($str, 4); # returns the third 4-byte (32-bit) value in the string
     @endcode
+
+    @note This function is identical to get_word_32(), except this function has a QC_RUNTIME_NOOP variant
+
+    @since %Qore 0.8.4 marked as deprecated; use the get_word_32() function instead
 */
 *int getWord32(string str, softint offset = 0) [flags=QC_CONSTANT|QC_DEPRECATED] {
    unsigned char *ptr = (unsigned char *)str->getBuffer();
@@ -1020,11 +1319,22 @@ nothing getByte() [flags=QC_RUNTIME_NOOP] {
    return new QoreBigIntNode(val);
 }
 
-//! 
-/** 
+//! Returns the 32-bit integer value at the given 4-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
+/** This function assumes <a href="http://en.wikipedia.org/wiki/Most_significant_bit">MSB byte order</a> when retrieving the value from the data
+
+    @param b the data to process
+    @param offset the 4-byte offset of the data to retrieve (the first value is at offset 0)
+
+    @return the 32-bit integer value at the given 4-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
+
     @par Example
     @code
+my *int $val = getWord32($bin, 2); # returns the third 4-byte (32-bit) value in the binary object
     @endcode
+
+    @note This function is identical to get_word_32(), except this function has a QC_RUNTIME_NOOP variant
+
+    @since %Qore 0.8.4 marked as deprecated; use the get_word_32() function instead
 */
 *int getWord32(binary b, softint offset = 0) [flags=QC_CONSTANT|QC_DEPRECATED] {
    unsigned char *ptr = (unsigned char *)b->getPtr();
@@ -1038,17 +1348,26 @@ nothing getByte() [flags=QC_RUNTIME_NOOP] {
    return new QoreBigIntNode(val);
 }
 
-//! 
+//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
 nothing getWord32() [flags=QC_RUNTIME_NOOP] {
 }
 
-//! 
-/** 
+//! Returns the 64-bit integer value at the given 8-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
+/** This function assumes <a href="http://en.wikipedia.org/wiki/Most_significant_bit">MSB byte order</a> when retrieving the value from the data
+
+    @param str the string data to process
+    @param offset the 8-byte offset of the data to retrieve (the first value is at offset 0)
+
+    @return the 64-bit integer value at the given 8-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
+
     @par Example
     @code
+my *int $val = get_word_64($str, 4); # returns the third 8-byte (64-bit) value in the string
     @endcode
+
+    @see get_word_64_lsb()
 */
 *int get_word_64(string str, softint offset = 0) [flags=QC_CONSTANT] {
    unsigned char *ptr = (unsigned char *)str->getBuffer();
@@ -1061,11 +1380,20 @@ nothing getWord32() [flags=QC_RUNTIME_NOOP] {
    return new QoreBigIntNode(val);
 }
 
-//! 
-/** 
+//! Returns the 64-bit integer value at the given 8-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
+/** This function assumes <a href="http://en.wikipedia.org/wiki/Most_significant_bit">MSB byte order</a> when retrieving the value from the data
+
+    @param b the data to process
+    @param offset the 8-byte offset of the data to retrieve (the first value is at offset 0)
+
+    @return the 64-bit integer value at the given 8-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
+
     @par Example
     @code
+my *int $val = get_word_64($bin, 2); # returns the third 8-byte (64-bit) value in the binary object
     @endcode
+
+    @see get_word_64_lsb()
 */
 *int get_word_64(binary b, softint offset = 0) [flags=QC_CONSTANT] {
    unsigned char *ptr = (unsigned char *)b->getPtr();
@@ -1079,11 +1407,20 @@ nothing getWord32() [flags=QC_RUNTIME_NOOP] {
    return new QoreBigIntNode(val);
 }
 
-//! 
-/** 
+//! Returns the 16-bit integer value at the given 2-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
+/** This function assumes <a href="http://en.wikipedia.org/wiki/Least_significant_bit">LSB byte order</a> when retrieving the value from the data
+
+    @param str the string data to process
+    @param offset the 2-byte offset of the data to retrieve (the first value is at offset 0)
+
+    @return the 16-bit integer value at the given 2-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
+
     @par Example
     @code
+my *int $val = get_word_16_lsb($str, 2); # returns the third 2-byte (16-bit) value in the string
     @endcode
+
+    @see get_word_16()
 */
 *int get_word_16_lsb(string str, softint offset = 0) [flags=QC_CONSTANT] {
    unsigned char *ptr = (unsigned char *)str->getBuffer();
@@ -1096,11 +1433,20 @@ nothing getWord32() [flags=QC_RUNTIME_NOOP] {
    return new QoreBigIntNode(val);
 }
 
-//! 
-/** 
+//! Returns the 16-bit integer value at the given 2-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
+/** This function assumes <a href="http://en.wikipedia.org/wiki/Least_significant_bit">LSB byte order</a> when retrieving the value from the data
+
+    @param b the data to process
+    @param offset the 2-byte offset of the data to retrieve (the first value is at offset 0)
+
+    @return the 16-bit integer value at the given 2-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
+
     @par Example
     @code
+my *int $val = get_word_16_lsb($bin, 2); # returns the third 2-byte (16-bit) value in the binary object
     @endcode
+
+    @see get_word_16()
 */
 *int get_word_16_lsb(binary b, softint offset = 0) [flags=QC_CONSTANT] {
    unsigned char *ptr = (unsigned char *)b->getPtr();
@@ -1113,11 +1459,22 @@ nothing getWord32() [flags=QC_RUNTIME_NOOP] {
    return new QoreBigIntNode(val);
 }
 
-//! 
-/** 
+//! Returns the 32-bit integer value at the given 4-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
+/** This function assumes <a href="http://en.wikipedia.org/wiki/Least_significant_bit">LSB byte order</a> when retrieving the value from the data
+
+    @param str the string data to process
+    @param offset the 4-byte offset of the data to retrieve (the first value is at offset 0)
+
+    @return the 32-bit integer value at the given 4-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
+
     @par Example
     @code
+my *int $val = get_word_32_lsb($str, 4); # returns the third 4-byte (32-bit) value in the string
     @endcode
+
+    @note This function is identical to getWord32(), except this function has no QC_RUNTIME_NOOP variant
+
+    @see get_word_32()
 */
 *int get_word_32_lsb(string str, softint offset = 0) [flags=QC_CONSTANT] {
    unsigned char *ptr = (unsigned char *)str->getBuffer();
@@ -1130,11 +1487,20 @@ nothing getWord32() [flags=QC_RUNTIME_NOOP] {
    return new QoreBigIntNode(val);
 }
 
-//! 
-/** 
+//! Returns the 32-bit integer value at the given 4-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
+/** This function assumes <a href="http://en.wikipedia.org/wiki/Least_significant_bit">LSB byte order</a> when retrieving the value from the data
+
+    @param b the data to process
+    @param offset the 4-byte offset of the data to retrieve (the first value is at offset 0)
+
+    @return the 32-bit integer value at the given 4-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
+
     @par Example
     @code
+my *int $val = get_word_32_lsb($bin, 2); # returns the third 4-byte (32-bit) value in the binary object
     @endcode
+
+    @see get_word_32()
 */
 *int get_word_32_lsb(binary b, softint offset = 0) [flags=QC_CONSTANT] {
    unsigned char *ptr = (unsigned char *)b->getPtr();
@@ -1148,11 +1514,20 @@ nothing getWord32() [flags=QC_RUNTIME_NOOP] {
    return new QoreBigIntNode(val);
 }
 
-//! 
-/** 
+//! Returns the 64-bit integer value at the given 8-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
+/** This function assumes <a href="http://en.wikipedia.org/wiki/Least_significant_bit">LSB byte order</a> when retrieving the value from the data
+
+    @param str the string data to process
+    @param offset the 8-byte offset of the data to retrieve (the first value is at offset 0)
+
+    @return the 64-bit integer value at the given 8-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
+
     @par Example
     @code
+my *int $val = get_word_64_lsb($str, 4); # returns the third 8-byte (64-bit) value in the string
     @endcode
+
+    @see get_word_64()
 */
 *int get_word_64_lsb(string str, softint offset = 0) [flags=QC_CONSTANT] {
    unsigned char *ptr = (unsigned char *)str->getBuffer();
@@ -1165,11 +1540,20 @@ nothing getWord32() [flags=QC_RUNTIME_NOOP] {
    return new QoreBigIntNode(val);
 }
 
-//! 
-/** 
+//! Returns the 64-bit integer value at the given 8-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
+/** This function assumes <a href="http://en.wikipedia.org/wiki/Least_significant_bit">LSB byte order</a> when retrieving the value from the data
+
+    @param b the data to process
+    @param offset the 8-byte offset of the data to retrieve (the first value is at offset 0)
+
+    @return the 64-bit integer value at the given 8-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
+
     @par Example
     @code
+my *int $val = get_word_64_lsb($bin, 2); # returns the third 8-byte (64-bit) value in the binary object
     @endcode
+
+    @see get_word_64()
 */
 *int get_word_64_lsb(binary b, softint offset = 0) [flags=QC_CONSTANT] {
    unsigned char *ptr = (unsigned char *)b->getPtr();
@@ -1182,18 +1566,31 @@ nothing getWord32() [flags=QC_RUNTIME_NOOP] {
    return new QoreBigIntNode(val);
 }
 
-//! 
-/** 
+//! This function always returns an empty string \c ""
+/** This function variant is included for backwards-compatibility
+
+    @param str no action is taken on the argument
+
+    @return always returns an empty string \c ""
 */
 string splice(string[doc] str) [flags=QC_NOOP] {
    return new QoreStringNode;
 }
 
-//! 
-/** 
+//! Returns a string based on the argument string but with characters removed from a certain character index
+/** An exception can only be thrown here if an invalid multi-byte encoding is found
+
+    @param str the string to process
+    @param start the character index (where the first character is 0) to start removing characters
+
+    @return the processed string
+
     @par Example
     @code
+my string $str = splice($str2, 5);
     @endcode
+
+    @see the @ref splice "splice operator"
 */
 string splice(string str, softint start) {
    QoreStringNodeHolder pstr(str->copy());
@@ -1201,11 +1598,22 @@ string splice(string str, softint start) {
    return *xsink ? 0 : pstr.release();
 }
 
-//! 
-/** 
+//! Returns a string based on the argument string but optionally with characters removed and/or added from a certain character index
+/** An exception can only be thrown here if an invalid multi-byte encoding is found
+
+    @param str the string to process
+    @param start the character index (where the first character is 0) to start removing characters (and/or adding characters)
+    @param len the number of characters to remove; if this argument is 0 then no characters are removed
+    @param nstr the optional string for inserting new characters
+
+    @return the processed string with characters removed and/or added according to the arguments
+
     @par Example
     @code
+my string $str = splice($str2, 5, 7, "hello");
     @endcode
+
+    @see the @ref splice "splice operator"
 */
 string splice(string str, softint start, softint len, *string nstr) {
    QoreStringNodeHolder pstr(str->copy());
@@ -1213,11 +1621,18 @@ string splice(string str, softint start, softint len, *string nstr) {
    return *xsink ? 0 : pstr.release();
 }
 
-//! 
-/** 
+//! Returns a list based on the argument list but with elements removed from the given index to the end of the list
+/** Exceptions can only be thrown here if objects are removed from the list and this causes them to go out of scope and an exception is thrown in one of the destructors
+
+    @param l the list to process
+    @param start the starting element (where the first element is 0) to start removing elements
+
     @par Example
     @code
+my list $l = splice($l2, 5);
     @endcode
+
+    @see the @ref splice "splice operator"
 */
 list splice(list l, softint start) {
    ReferenceHolder<QoreListNode> lst(l->copy(), xsink);
@@ -1225,29 +1640,46 @@ list splice(list l, softint start) {
    return *xsink ? 0 : lst.release();
 }
 
-//! 
-/** 
+//! Returns a list based on the argument list but optionally with elements removed and/or added from a certain index
+/** Exceptions can only be thrown here if objects are removed from the list and this causes them to go out of scope and an exception is thrown in one of the destructors
+
+    @param l the list to process
+    @param start the index (where the first element is 0) to start removing elements (and/or adding elements)
+    @param len the number of characters to remove; if this argument is 0 then no characters are removed
+    @param nlist the optional list for inserting new elements
+
+    @return the processed list with characters removed and/or added according to the arguments
+
     @par Example
     @code
+my list $l = splice($l2, 5, 7, "hello");
     @endcode
+
+    @see the @ref splice "splice operator"
 */
-list splice(list l, softint start, softint len, *list nlist) {
+list splice(list l, softint start, softint len, *softlist nlist) {
    ReferenceHolder<QoreListNode> lst(l->copy(), xsink);
    lst->splice(start, len, nlist, xsink);
    return *xsink ? 0 : lst.release();
 }
 
-//! 
+//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
 nothing splice() [flags=QC_RUNTIME_NOOP] {
 }
 
-//! 
-/** 
+//! Returns a hex-encoded representation of a string
+/** @param str the string to encode
+
+    @return a string of hex digits repsenting the bytes of the argument passed
+
     @par Example
     @code
+my string $str = makeHexString($str2);
     @endcode
+
+    @see makeBase64String()
 */
 string makeHexString(string str) [flags=QC_CONSTANT] {
    QoreStringNode *rv = new QoreStringNode;
@@ -1255,11 +1687,17 @@ string makeHexString(string str) [flags=QC_CONSTANT] {
    return rv;
 }
 
-//! 
-/** 
+//! Returns a hex-encoded representation of a binary object
+/** @param bin the binary object to encode
+
+    @return a string of hex digits repsenting the bytes of the argument passed
+
     @par Example
     @code
+my string $str = makeHexString($bin);
     @endcode
+
+    @see makeBase64String()
 */
 string makeHexString(binary bin) {
    QoreStringNode *str = new QoreStringNode;
@@ -1267,33 +1705,47 @@ string makeHexString(binary bin) {
    return str;
 }
 
-//! 
+//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
 nothing makeHexString() [flags=QC_RUNTIME_NOOP] {
 }
 
-//! 
-/** 
+//! Parses a hex-encoded string and returns the binary object
+/** @param hexstr a string of an even-number of only hexadecimal digits
+
+    @return a binary object of the decoded data
+
     @par Example
     @code
+my binary $bin = parseHexString($hex_string);
     @endcode
+
+    @throw PARSE-HEX-ERROR A syntax error occurred parsing the hex string (odd number of digits, invalid hex character, etc)
+
+    @see parseBase64String()
 */
 binary parseHexString(string hexstr) {
    return hexstr->parseHex(xsink);
 }
 
-//! 
+//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
 nothing parseHexString() [flags=QC_RUNTIME_NOOP] {
 }
 
-//! takes a string of hexadecimal digits (like \c "6d4f84e0"; with or without leading \c "x" or \c "0x") and returns the corresponding base-10 integer
-/** 
+//! Returns an integer for a hexadecimal string value; throws an exception if non-hex digits are found
+/** @param str a string of hexadecimal digits (like \c "6d4f84e0"; with or without leading \c "x" or \c "0x")
+
+    @return the base-10 integer corresponding to the argument
+
     @par Example
     @code
+my int $i = hextoint("ab3d4e0f12");
     @endcode
+
+    @throw PARSE-HEX-ERROR invalid hex digit found
 */
 int hextoint(string str) {
    if (!str->strlen())
@@ -1327,21 +1779,26 @@ int hextoint(string str) {
    return rc;
 }
 
-//! 
+//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
 nothing hextoint() [flags=QC_RUNTIME_NOOP] {
 }
 
 //! parses a string representing a number in a configurable base and returns the integer
-/** 
+/** @param num a string representing a number
+    @param base the base of the number
+    
+    @return the integer represented by the string and the base
+
     @par Example
     @code
+my int $i = strtoint("41", 8);
     @endcode
     
     @throw STRTOINT-ERROR cannot parse string; unsupported base, etc
 */
-int strtoint(string num, int base) {
+int strtoint(string num, softint base = 10) {
    errno = 0;
    int64 rv = strtoll(num->getBuffer(), 0, base);
    if (errno == EINVAL || errno == ERANGE)
@@ -1349,32 +1806,49 @@ int strtoint(string num, int base) {
    return rv;
 }
 
-//! 
+//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
 nothing strtoint() [flags=QC_RUNTIME_NOOP] {
 }
 
-//! 
-/** 
+//! Loads in a %Qore module at run-time
+/** @par Restrictions
+    @ref Qore::PO_NO_PROCESS_CONTROL
+
+    If a feature with the same name already exists, then this feature's code is imported into the current Program object if necessary and no further action is taken.
+
+    Note that modules providing objects resolved at parse time (classes, constants, functions, etc) must be loaded with the @ref requires "%requires directive" instead, unless all references to the objects provided by the module will be made in code embedded in child Program objects.
+
+    @param name either a feature name (a module will be searched with this feature name) or a path to a module to load
+
     @par Example
     @code
+load_module("mysql");
     @endcode
+
+    @see getModuleHash(), getFeatureList()
+
+    @since %Qore 0.8.4 this function is not available when @ref Qore::PO_NO_PROCESS_CONTROL is set
 */
-nothing load_module(string name) [flags=QC_CONSTANT] {
+nothing load_module(string name) [flags=QC_CONSTANT;dom=QDOM_PROCESS] {
    MM.runTimeLoadModule(name->getBuffer(), xsink);
 }
 
-//! 
+//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
 nothing load_module() [flags=QC_RUNTIME_NOOP] {
 }
 
-//! returns a string with percent-encodings substituted for characters
-/** 
+//! Decodes percent numeric codes in a URL string and returns the decoded string
+/** @param url a URL string with percent-encodings to decode
+
+    @return the URL string with all percent-encodings decoded
+
     @par Example
     @code
+my string $decoded_url = decode_url($encoded_url);
     @endcode
 */
 string decode_url(string url) [flags=QC_CONSTANT] {
@@ -1399,50 +1873,63 @@ string decode_url(string url) [flags=QC_CONSTANT] {
    return str;
 }
 
-//! 
+//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
 nothing decode_url() [flags=QC_RUNTIME_NOOP] {
 }
 
-//! 
-/** 
+//! Returns the path (directory and filename) of the current script or @ref nothing if unknown (i.e. no parent script, script read from stdin, etc)
+/** @return the path (directory and filename) of the current script or @ref nothing if unknown (i.e. no parent script, script read from stdin, etc)
+
     @par Example
     @code
+my *string $str = get_script_path();
     @endcode
 */
 *string get_script_path() {
    return getProgram()->getScriptPath();
 }
 
-//! 
-/** 
+//! Returns the name of the directory from which the current script was executed or @ref nothing if unknown (i.e. no parent script, script read from stdin, etc)
+/** @return the name of the directory from which the current script was executed or @ref nothing if unknown (i.e. no parent script, script read from stdin, etc)
+
     @par Example
     @code
+my *string $str = get_script_dir();
     @endcode
 */
 *string get_script_dir() {
    return getProgram()->getScriptDir();
 }
 
-//! 
-/** 
+//! Returns the filename of the current script if known or @ref nothing if unknown (i.e. no parent script, script read from stdin, etc)
+/** @return the filename of the current script if known or @ref nothing if unknown (i.e. no parent script, script read from stdin, etc)
+
     @par Example
     @code
+my *string $str = get_script_name();
     @endcode
 */
 *string get_script_name() {
    return getProgram()->getScriptName();
 }
 
-//! 
-/** 
+//! Returns a list of hashes giving information about %Qore library options for the current build
+/** @return a list of hashes giving information about %Qore library options for the current build; each hash will have the following keys:
+    - \c option: The string description of the option
+    - \c constant: A string giving the name of the constant that has the boolean value for this option
+    - \c type: The type of option
+    - \c value: The boolean value of the option
+
     @par Example
     @code
+my list $l = get_qore_option_list();
     @endcode
+
+    @see get_qore_option_hash()
 */
 list get_qore_option_list() [flags=QC_CONSTANT] {
-   static const char *tlist[] = { "OPTION", "ALGORITHM", "FUNCTION" };
    QoreListNode *l = new QoreListNode;
 
    for (unsigned j = 0; j < qore_option_list_size; ++j) {
@@ -1456,10 +1943,55 @@ list get_qore_option_list() [flags=QC_CONSTANT] {
    return l;
 }
 
-//! 
-/** 
+//! Returns a hash of hashes giving information about %Qore library options for the current build
+/** @return a hash of hashes giving information about %Qore library options for the current build; the hash keys are the constant names and the values are hashes with the following keys:
+    - \c option: The string description of the option
+    - \c constant: A string giving the name of the constant that has the boolean value for this option (equal to the hash key name)
+    - \c type: The type of option
+    - \c value: The boolean value of the option
+
     @par Example
     @code
+my hash $h = get_qore_option_hash();
+    @endcode
+
+    @see get_qore_option_list()
+
+    @since %Qore 0.8.4
+*/
+hash get_qore_option_hash() [flags=QC_CONSTANT] {
+   QoreHashNode *rv = new QoreHashNode;
+
+   for (unsigned j = 0; j < qore_option_list_size; ++j) {
+      QoreHashNode *h = new QoreHashNode;
+      h->setKeyValue("option", new QoreStringNode(qore_option_list[j].option), xsink);
+      h->setKeyValue("constant", new QoreStringNode(qore_option_list[j].constant), xsink);
+      h->setKeyValue("type", new QoreStringNode(tlist[qore_option_list[j].type]), xsink);
+      h->setKeyValue("value", get_bool_node(qore_option_list[j].value), xsink);
+
+      rv->setKeyValue(qore_option_list[j].constant, h, 0);
+   }
+   return rv;
+}
+
+//! Returns a hash of library build and version info
+/** @return a hash of library build and version info with the following keys:
+    - \c PlatformOS: The operating system used to build the %Qore library
+    - \c PlatformCPU: The CPU used as a target for the %Qore library build
+    - \c VersionString: The full version string for this version of the %Qore library
+    - \c VersionMajor: An integer giving the %Qore library's major version number
+    - \c VersionMinor: An integer giving the %Qore library's minor version number
+    - \c VersionSub: An integer giving the %Qore library's release version number
+    - \c Build: An integer giving the %Qore library's subversion revision number
+    - \c BuildHost: A string giving information about the host used to compile the %Qore library
+    - \c Compiler: The compiler used to build the %Qore library
+    - \c ModuleDir: The module directory assumed by default in the %Qore library
+    - \c CFLAGS: The compiler flags used to compile the %Qore library
+    - \c LDFLAGS: The linker flags used to link the %Qore library
+
+    @par Example
+    @code
+my hash $h = get_qore_library_info();
     @endcode
 */
 hash get_qore_library_info() [flags=QC_CONSTANT] {

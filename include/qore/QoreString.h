@@ -108,6 +108,9 @@ public:
    //! creates a new string as the base64-encoded value of the binary object passed
    DLLEXPORT QoreString(const BinaryNode *bin);
 
+   //! creates a new string as the base64-encoded value of the binary object passed and ensures the maximum line length for the base64-encoded output
+   DLLEXPORT QoreString(const BinaryNode *bin, qore_size_t maxlinelen);
+
    //! takes ownership of the char * passed
    DLLEXPORT QoreString(char *nbuf, qore_size_t nlen, qore_size_t nallocated, const QoreEncoding *enc);
 
@@ -163,8 +166,17 @@ public:
    //! concatenates the base64-encoded version of the binary data passed
    DLLEXPORT void concatBase64(const BinaryNode *bin);
 
-   //! concatenates the base64-encoded version of the binary data passed
+   //! concatenates the base64-encoded version of the binary data passed (does not make any character encoding conversions)
    DLLEXPORT void concatBase64(const QoreString *str);
+
+   //! concatenates the base64-encoded version of the binary data passed and ensures the maximum line length for the base64-encoded output
+   DLLEXPORT void concatBase64(const char *buf, qore_size_t size, qore_size_t maxlinelen);
+
+   //! concatenates the base64-encoded version of the binary data passed and ensures the maximum line length for the base64-encoded output
+   DLLEXPORT void concatBase64(const BinaryNode *bin, qore_size_t maxlinelen);
+
+   //! concatenates the base64-encoded version of the binary data passed (does not make any character encoding conversions) and ensures the maximum line length for the base64-encoded output
+   DLLEXPORT void concatBase64(const QoreString *str, size_t maxlinelen);
 
    //! parses the current string data as base64-encoded data and returns it as a BinaryNode pointer (caller owns the reference count), throws a qore-language exception if any errors are encountered
    /**
@@ -176,9 +188,17 @@ public:
    //! parses the current string data as base64-encoded data and returns it as a QoreString pointer owned by the caller
    /**
       @param xsink if an error occurs, the Qore-language exception information will be added here
-      @return a QoreString of the decoded data (0 if an exception occurs), the QoreString pointer is owned by the caller
+      @return a QoreString of the decoded data tagged with the default encoding (0 if an exception occurs), the QoreString pointer is owned by the caller
    */
    DLLEXPORT QoreString *parseBase64ToString(ExceptionSink *xsink) const;
+
+   //! parses the current string data as base64-encoded data and returns it as a QoreString pointer owned by the caller
+   /** 
+       @param enc the encoding to tag the decoded string with
+       @param xsink if an error occurs, the Qore-language exception information will be added here
+       @return a QoreString of the decoded data (0 if an exception occurs), the QoreString pointer is owned by the caller
+   */
+   DLLEXPORT QoreString *parseBase64ToString(const QoreEncoding* enc, ExceptionSink* xsink) const;
 
    //! concatenates hexidecimal digits corresponding to the binary data passed up to byte "len"
    DLLEXPORT void concatHex(const char *buf, qore_size_t size);

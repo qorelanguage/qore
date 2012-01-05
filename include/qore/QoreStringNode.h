@@ -87,6 +87,9 @@ public:
    // copies binary object and makes a base64-encoded string out of it
    DLLEXPORT QoreStringNode(const BinaryNode *b);
 
+   //! creates a new string as the base64-encoded value of the binary object passed and ensures the maximum line length for the base64-encoded output
+   DLLEXPORT QoreStringNode(const BinaryNode *bin, qore_size_t maxlinelen);
+
    //! creates a new object; takes ownership of the char pointer passed, all parameters are mandatory
    /**
       @param nbuf the pointer for the character data
@@ -204,6 +207,14 @@ public:
 
    //! parses the string as a base64-encoded binary and returns the decoded value as a QoreStringNode
    DLLEXPORT QoreStringNode *parseBase64ToString(ExceptionSink *xsink) const;
+
+   //! parses the current string data as base64-encoded data and returns it as a QoreStringNode pointer owned by the caller
+   /** 
+       @param enc the encoding to tag the decoded string with
+       @param xsink if an error occurs, the Qore-language exception information will be added here
+       @return a QoreStringNode of the decoded data (0 if an exception occurs), the QoreStringNode pointer is owned by the caller
+   */
+   DLLEXPORT QoreStringNode* parseBase64ToString(const QoreEncoding* enc, ExceptionSink* xsink) const;
 
    //! references the object and returns a non-const pointer to "this"
    DLLEXPORT QoreStringNode *stringRefSelf() const;

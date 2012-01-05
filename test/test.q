@@ -898,7 +898,7 @@ sub date_time_tests() {
 
 sub binary_tests() {
     my binary $b = binary("this is a test");
-    test_value(getByte($b, 3), ord("s"), "getByte()");
+    test_value(get_byte($b, 3), ord("s"), "get_byte()");
     test_value($b, binary("this is a test"), "binary comparison");
     test_value($b != binary("this is a test"), False, "binary negative comparison");
 }
