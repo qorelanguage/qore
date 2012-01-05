@@ -631,7 +631,7 @@ bool existsFunction(code[doc] c) [flags=QC_NOOP] {
    return true;
 }
 
-//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
 nothing existsFunction() [flags=QC_RUNTIME_NOOP] {
@@ -656,7 +656,7 @@ my *string $type = functionType("print");
    return builtinFunctions.find(str) ? new QoreStringNode("builtin") : 0;
 }
 
-//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
 nothing functionType() [flags=QC_RUNTIME_NOOP] {
@@ -678,7 +678,7 @@ string html_encode(string str) [flags=QC_CONSTANT] {
    return ns;
 }
 
-//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
 nothing html_encode() [flags=QC_RUNTIME_NOOP] {
@@ -700,7 +700,7 @@ string html_decode(string str) [flags=QC_CONSTANT] {
    return ns;
 }
 
-//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
 nothing html_decode() [flags=QC_RUNTIME_NOOP] {
@@ -736,7 +736,7 @@ nothing parse(string code, string label) {
    getProgram()->parse(code, label, xsink);
 }
 
-//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
 nothing parse() [flags=QC_RUNTIME_NOOP] {
@@ -756,7 +756,7 @@ string getClassName(object obj) {
    return new QoreStringNode(obj->getClass()->getName());
 }
 
-//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
 nothing getClassName() [flags=QC_RUNTIME_NOOP] {
@@ -817,7 +817,7 @@ my *hash $hash = parseURL($url_string);
    return qurl.isValid() ? qurl.getHash() : 0;
 }
 
-//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
 nothing parseURL() [flags=QC_RUNTIME_NOOP] {
@@ -842,7 +842,7 @@ string backquote(string cmd) [dom=QDOM_EXTERNAL_PROCESS] {
    return backquoteEval(cmd->getBuffer(), xsink);
 }
 
-//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
 nothing backquote() [flags=QC_RUNTIME_NOOP] {
@@ -890,7 +890,7 @@ string makeBase64String(binary bin, softint maxlinelen = -1) [flags=QC_CONSTANT]
    return new QoreStringNode(bin, maxlinelen);
 }
 
-//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
 nothing makeBase64String() [flags=QC_RUNTIME_NOOP] {
@@ -916,7 +916,7 @@ binary parseBase64String(string str) {
    return str->parseBase64(xsink);
 }
 
-//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
 nothing parseBase64String() [flags=QC_RUNTIME_NOOP] {
@@ -946,7 +946,7 @@ string parseBase64StringToString(string str, *string encoding) {
    return str->parseBase64ToString(qe, xsink);
 }
 
-//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
 nothing parseBase64StringToString() [flags=QC_RUNTIME_NOOP] {
@@ -1028,7 +1028,7 @@ list hash_values(hash h) [flags=QC_CONSTANT] {
    return l;
 }
 
-//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
 nothing hash_values() [flags=QC_RUNTIME_NOOP] {
@@ -1148,7 +1148,7 @@ my *int $byte = get_byte($str, 2); # returns the third byte of the string
    return new QoreBigIntNode(ptr[offset]);  
 }
 
-//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
 nothing getByte() [flags=QC_RUNTIME_NOOP|QC_DEPRECATED] {
@@ -1348,7 +1348,7 @@ my *int $val = getWord32($bin, 2); # returns the third 4-byte (32-bit) value in 
    return new QoreBigIntNode(val);
 }
 
-//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
 nothing getWord32() [flags=QC_RUNTIME_NOOP] {
@@ -1663,7 +1663,7 @@ list splice(list l, softint start, softint len, *softlist nlist) {
    return *xsink ? 0 : lst.release();
 }
 
-//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
 nothing splice() [flags=QC_RUNTIME_NOOP] {
@@ -1705,7 +1705,7 @@ string makeHexString(binary bin) {
    return str;
 }
 
-//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
 nothing makeHexString() [flags=QC_RUNTIME_NOOP] {
@@ -1729,7 +1729,7 @@ binary parseHexString(string hexstr) {
    return hexstr->parseHex(xsink);
 }
 
-//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
 nothing parseHexString() [flags=QC_RUNTIME_NOOP] {
@@ -1779,7 +1779,7 @@ int hextoint(string str) {
    return rc;
 }
 
-//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
 nothing hextoint() [flags=QC_RUNTIME_NOOP] {
@@ -1806,7 +1806,7 @@ int strtoint(string num, softint base = 10) {
    return rv;
 }
 
-//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
 nothing strtoint() [flags=QC_RUNTIME_NOOP] {
@@ -1835,7 +1835,7 @@ nothing load_module(string name) [flags=QC_CONSTANT;dom=QDOM_PROCESS] {
    MM.runTimeLoadModule(name->getBuffer(), xsink);
 }
 
-//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
 nothing load_module() [flags=QC_RUNTIME_NOOP] {
@@ -1873,7 +1873,7 @@ string decode_url(string url) [flags=QC_CONSTANT] {
    return str;
 }
 
-//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
 nothing decode_url() [flags=QC_RUNTIME_NOOP] {

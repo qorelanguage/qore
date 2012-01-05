@@ -27,6 +27,6 @@
 
 #define _QORE_LIB_THREAD_H
 
-DLLLOCAL void init_thread_functions();
+DLLLOCAL void init_thread_functions(QoreNamespace& ns);
 
 #endif

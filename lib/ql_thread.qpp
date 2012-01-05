@@ -1,0 +1,361 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/*
+  ql_thread.qpp
+
+  POSIX thread library for Qore
+
+  Qore Programming Language
+
+  Copyright 2003 - 2011 David Nichols
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
+#include <qore/Qore.h>
+#include <qore/intern/ql_thread.h>
+
+#include <pthread.h>
+
+extern int num_threads;
+
+static void delete_thread_data_intern(const QoreListNode *args, ExceptionSink *xsink) {
+   // get thread data hash
+   QoreHashNode *data = getProgram()->getThreadData();
+      
+   // iterate through arguments and delete each key
+   for (unsigned i = 0; i < args->size(); i++) {
+      const AbstractQoreNode *p = get_param(args, i);
+      if (p) {
+         QoreStringValueHelper t(p, QCS_DEFAULT, xsink);
+	 if (*xsink)
+	    break;
+
+         data->deleteKey(*t, xsink);
+         if (*xsink)
+            break;
+      }
+   }
+}
+
+static QoreHashNode *remove_thread_data_intern(const QoreListNode *args, ExceptionSink *xsink) {
+   // get thread data hash
+   QoreHashNode *data = getProgram()->getThreadData();
+      
+   QoreHashNode* rv = new QoreHashNode;
+
+   // iterate through arguments and remove each key
+   for (unsigned i = 0; i < args->size(); i++) {
+      const AbstractQoreNode *p = get_param(args, i);
+      if (p) {
+         QoreStringValueHelper t(p, QCS_DEFAULT, xsink);
+	 if (*xsink)
+	    break;
+
+	 rv->setKeyValue(*t, data->takeKeyValue((*t)->getBuffer()), xsink);
+	 assert(!*xsink);
+      }
+   }
+
+   return rv;
+}
+
+/** @defgroup threading_functions Threading Functions
+    Threading functions
+ */
+//@{
+//! Returns the Qore thread ID (TID) of the current thread
+/** 
+    @par Restrictions
+    @ref Qore::PO_NO_THREAD_INFO
+
+    @return the Qore thread ID (TID) of the current thread
+
+    @par Example
+    @code
+my int $tid = gettid();
+    @endcode
+*/
+int gettid() [flags=QC_CONSTANT;dom=QDOM_THREAD_INFO] {
+   return gettid();
+}
+
+//! Returns the current number of threads in the process (not including the special @ref signal_handling "signal handling thread")
+/** 
+    @par Restrictions
+    @ref Qore::PO_NO_THREAD_INFO
+
+    @return the current number of threads in the process (not including the special @ref signal_handling "signal handling thread")
+
+    @par Example
+    @code
+my int $num = num_threads();
+    @endcode
+*/
+int num_threads() [flags=QC_CONSTANT;dom=QDOM_THREAD_INFO] {
+   return num_threads;
+}
+
+//! Returns a list of all current thread IDs
+/** Note that the special signal handling thread with TID 0 is never included in the list returned by this function
+
+    @par Restrictions
+    @ref Qore::PO_NO_THREAD_INFO
+
+    @return a list of all current thread IDs
+
+    @par Example
+    @code
+my list $l = thread_list();
+    @endcode
+*/
+list thread_list() [flags=QC_CONSTANT;dom=QDOM_THREAD_INFO] {
+   return get_thread_list();
+}
+
+//! Saves the data passed in the thread-local hash; all keys are merged into the thread-local hash, overwriting any information that may have been there before
+/** @param h a hash of data to save in the thread-local data hash
+
+    @par Restrictions
+    @ref Qore::PO_NO_THREAD_CONTROL
+
+    @par Example
+    @code
+save_thread_data($h);
+    @endcode
+
+    @note This function does not throw any exceptions, however if a value is removed from the thread-local data hash by being overwritten with a new value, and the value is an object that goes out of scope, then such an object could throw an exception in its destructor
+*/
+nothing save_thread_data(hash h) [dom=QDOM_THREAD_CONTROL] {
+   QoreHashNode *data = getProgram()->getThreadData();
+   data->merge(h, xsink);
+}
+
+//! Saves the data passed against the key passed as an argument in thread-local storage
+/** @param key the name of the key in the thread-local hash to save the data against
+    @param value the value to save in the thread-local hash against the key
+
+    @par Restrictions
+    @ref Qore::PO_NO_THREAD_CONTROL
+
+    @par Example
+    @code
+save_thread_data("key1", $value);
+    @endcode
+
+    @note This function does not throw any exceptions, however if a value is removed from the thread-local data hash by being overwritten with a new value, and the value is an object that goes out of scope, then such an object could throw an exception in its destructor
+*/
+nothing save_thread_data(string key, any value) [dom=QDOM_THREAD_CONTROL] {
+   QoreHashNode *data = getProgram()->getThreadData();
+   data->setKeyValue(key, value ? value->refSelf() : 0, xsink);
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+nothing save_thread_data() [dom=QDOM_THREAD_CONTROL;flags=QC_RUNTIME_NOOP] {
+}
+
+//! Deletes the data associated to one or more keys in the thread-local data hash; if the data is an object, then it is destroyed
+/** 
+    @par Restrictions
+    @ref Qore::PO_NO_THREAD_CONTROL
+
+    @param ... Deletes the data associated to one or more keys in the thread-local data hash corresponding to each string argument in the top-level argument list; arguments are converted to strings if necessary
+
+    @par Example
+    @code
+delete_thread_data("key1", "key2");
+    @endcode
+
+    @note This function does not throw any exceptions, however if an object is deleted from the thread-local data hash, then it could throw an exception in its destructor
+
+    @see remove_thread_data() for a similar function that does not explicitly destroy objects in the thread-local data hash
+*/
+nothing delete_thread_data(...) [dom=QDOM_THREAD_CONTROL] {
+   if (num_args(args))
+      delete_thread_data_intern(args, xsink);
+   return 0;
+}
+
+//! Deletes the data associated to one or more keys in the thread-local data hash; if the data is an object, then it is destroyed
+/** 
+    @par Restrictions
+    @ref Qore::PO_NO_THREAD_CONTROL
+
+    @param l a list of key names for deleting keys in the thread-local data hash; values are converted to strings if necessary
+
+    @par Example
+    @code
+delete_thread_data($list_of_keys);
+    @endcode
+
+    @note This function does not throw any exceptions, however if an object is deleted from the thread-local data hash, then it could throw an exception in its destructor
+
+    @see remove_thread_data() for a similar function that does not explicitly destroy objects in the thread-local data hash
+*/
+nothing delete_thread_data(list l) [dom=QDOM_THREAD_CONTROL] {
+   delete_thread_data_intern(l, xsink);
+}
+
+//! Removes the data associated to one or more keys in the thread-local data hash and returns the data removed
+/** 
+    @par Restrictions
+    @ref Qore::PO_NO_THREAD_CONTROL
+
+    @param ... the key names should be given directly in the argument list with this variant.  If the given hash keys do not exist in the thread-local data hash, then the given key in the return value will have no value assigned
+
+    @return a hash of the data removed or @ref nothing if no arguments were passed to the function
+
+    @par Example
+    @code
+my hash $h = remove_thread_data("filename");
+    @endcode
+
+    @since %Qore 0.8.4 this function returns the values it removes
+*/
+*hash remove_thread_data(...) [dom=QDOM_THREAD_CONTROL] {
+   return num_args(args) ? remove_thread_data_intern(args, xsink) : 0;
+}
+
+//! Removes the data associated to one or more keys in the thread-local data hash from a literal list passed as the first argument and returns the data removed
+/** 
+    @par Restrictions
+    @ref Qore::PO_NO_THREAD_CONTROL
+
+    @param l a list of key names to remove from the thread-local data hash.  If the given hash keys do not exist in the thread-local data hash, then the given key in the return value will have no value assigned
+
+    @return a hash of the data removed
+
+    @par Example
+    @code
+my hash $h = remove_thread_data($key_list);
+    @endcode
+
+    @since %Qore 0.8.4 this function returns the values it removes
+*/
+hash remove_thread_data(list l) [dom=QDOM_THREAD_CONTROL] {
+   return remove_thread_data_intern(l, xsink);
+}
+
+//! Deletes all keys in the thread-local data hash
+/** 
+    @par Restrictions
+    @ref Qore::PO_NO_THREAD_CONTROL
+
+    @par Example
+    @code
+delete_all_thread_data();
+    @endcode
+
+    @note This function does not throw any exceptions, however if an object is deleted from the thread-local data hash, then it could throw an exception in its destructor
+*/
+nothing delete_all_thread_data() [dom=QDOM_THREAD_CONTROL] {
+   getProgram()->clearThreadData(xsink);
+}
+
+//! Returns the value of the thread-local data attached to the key passed
+/** 
+    @par Restrictions
+    @ref Qore::PO_NO_THREAD_CONTROL, @ref Qore::PO_NO_THREAD_INFO
+
+    @return the value of the thread-local data attached to the key passed
+
+    @par Example
+    @code
+my any $data = get_thread_data("key1");
+    @endcode
+*/
+any get_thread_data(string key) [flags=QC_CONSTANT;dom=QDOM_THREAD_CONTROL|QDOM_THREAD_INFO] {
+   TempEncodingHelper tmp(key, QCS_DEFAULT, xsink);
+   return tmp ? getProgram()->getThreadData()->getReferencedKeyValue(tmp->getBuffer()) : 0;
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+nothing get_thread_data() [dom=QDOM_THREAD_CONTROL|QDOM_THREAD_INFO;flags=QC_RUNTIME_NOOP] {
+}
+
+//! Returns the entire thread-local data hash
+/** 
+    @par Restrictions
+    @ref Qore::PO_NO_THREAD_CONTROL, @ref Qore::PO_NO_THREAD_INFO
+
+    @return the entire thread-local data hash
+
+    @par Example
+    @code
+my hash $th = get_all_thread_data();
+    @endcode
+*/
+hash get_all_thread_data() [flags=QC_CONSTANT;dom=QDOM_THREAD_CONTROL|QDOM_THREAD_INFO] {
+   return getProgram()->getThreadData()->copy();
+}
+
+//! Returns a hash of call stacks keyed by each TID (thread ID)
+/** 
+    @par Availability
+    @ref Qore::HAVE_RUNTIME_THREAD_STACK_TRACE
+
+    @par Restrictions
+    @ref Qore::PO_NO_THREAD_CONTROL, @ref Qore::PO_NO_THREAD_INFO
+
+    @return a hash of call stacks keyed by each TID (thread ID); see @ref callstacks "call stacks" for the format of the hash values
+
+    @par Example
+    @code
+my hash $cs = getAllThreadCallStacks();
+foreach my string $tid in (keys $cs) {
+    printf("TID %d\n", $tid);
+    my int $i;
+    foreach my hash $l in ($cs.$tid)
+        if ($l.type != "new-thread")
+            printf(" %d: %s() called at %s:%d (%s function)\n", ++$i, $l.function, $l.file, $l.line, $l.type);
+        else
+            printf(" %d: *** thread started by background operator ***\n", ++$i);
+}
+    @endcode
+*/
+hash getAllThreadCallStacks() [dom=QDOM_THREAD_CONTROL|QDOM_THREAD_INFO] {
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
+   return getAllCallStacks();
+#else
+   xsink->raiseException("MISSING-FEATURE-ERROR", "this version of the Qore library was built without support for runtime thread stack tracing; check Qore::HAVE_RUNTIME_THREAD_STACK_TRACE before calling");
+   return 0;
+#endif
+}
+
+//! Immediately runs all thread resource cleanup routines for the current thread and throws all associated exceptions
+/** This function is particularly useful when used in combination with embedded code in order to catch (and log, for example) thread resource errors (ex: uncommitted transactions, unlocked locks, etc) - this can be used when control returns to the "master" program to ensure that no thread-local resources have been left active.
+
+    When exceptions are thrown, thread-local resources are also cleaned up at the same time.
+
+    @par Restrictions
+    @ref Qore::PO_NO_THREAD_CONTROL
+
+    @par Example
+    @code
+try {
+    throwThreadResourceExceptions();
+}
+catch ($ex) {
+    # ... log or handle exceptions
+}
+    @endcode
+*/
+nothing throwThreadResourceExceptions() [dom=QDOM_THREAD_CONTROL] {
+   purge_thread_resources(xsink);
+}
+//@}

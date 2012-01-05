@@ -37,7 +37,8 @@ LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
 	lib/QC_SSLCertificate.qpp \
 	lib/QC_SSLPrivateKey.qpp \
 	lib/ql_misc.qpp \
-	lib/ql_compression.qpp
+	lib/ql_compression.qpp \
+	lib/ql_thread.qpp
 
 LIB_DOXYFILES = \
 	doxygen/lib/Doxyfile \
@@ -53,7 +54,6 @@ LANG_DOXYFILES_SRC = \
 	doxygen/lang/Doxyfile \
 	doxygen/lang/mainpage.dox.tmpl \
 	doxygen/lang/000_intro.dox.tmpl \
-	doxygen/lang/100_description.dox.tmpl \
 	doxygen/lang/105_desc_overview.dox.tmpl \
 	doxygen/lang/110_environment_variables.dox.tmpl \
 	doxygen/lang/115_conditional_parsing.dox.tmpl \
@@ -84,7 +84,6 @@ LANG_DOXYFILES_SRC = \
 
 LANG_TMP_DOXYFILES = doxygen/lang/mainpage.dox \
 	doxygen/lang/000_intro.dox \
-	doxygen/lang/100_description.dox \
 	doxygen/lang/105_desc_overview.dox \
 	doxygen/lang/110_environment_variables.dox \
 	doxygen/lang/115_conditional_parsing.dox \
@@ -119,9 +118,6 @@ doxygen/lang/mainpage.dox: doxygen/lang/mainpage.dox.tmpl lib
 	lib/qpp -t $< -o $@
 
 doxygen/lang/000_intro.dox: doxygen/lang/000_intro.dox.tmpl lib
-	lib/qpp -t $< -o $@
-
-doxygen/lang/100_description.dox: doxygen/lang/100_description.dox.tmpl lib
 	lib/qpp -t $< -o $@
 
 doxygen/lang/105_desc_overview.dox: doxygen/lang/105_desc_overview.dox.tmpl lib

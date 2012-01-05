@@ -1,8 +1,8 @@
 /** @page threading Threading
 
-    A thread is an independent sequence of execution of Qore code within a Qore program or script. Each thread has a thread ID or TID.
+    A thread is an independent sequence of execution of %Qore code within a %Qore program or script. Each thread has a thread ID or TID.
 
-    The first thread of execution in a Qore program has TID 1. TID 0 is always reserved for the special @ref signal_handling "signal handler thread".
+    The first thread of execution in a %Qore program has TID 1. TID 0 is always reserved for the special @ref signal_handling "signal handler thread".
 
     The %Qore language is designed to be thread-safe and %Qore programs should not crash the %Qore executable due to threading errors. Threading errors should only cause exceptions to be thrown or application errors to occur.
 
