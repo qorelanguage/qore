@@ -116,12 +116,15 @@ class CryptoHelper : public BaseHelper {
 private:
    unsigned char *iv, *output;
    int output_len;
+   const QoreEncoding* qe;
 
    DLLLOCAL const char *getOrdinal(int n) {
+      assert(n > 0 && n <= 3);
       return n == 1 ? "first" : (n == 2 ? "second" : "third");
    }
 
    DLLLOCAL void setKey(const QoreListNode *args, int n) {
+      assert(n > 0 && n <= 3);
       const AbstractQoreNode *pt = get_param(args, n);
       if (pt->getType() == NT_STRING) {
 	 const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(pt);
@@ -135,8 +138,14 @@ private:
       keylen[n - 1] = b->size();
    }
 
+   DLLLOCAL void setEncoding(const QoreListNode* args, int n) {
+      const QoreStringNode* encoding = test_string_param(args, n);
+      qe = encoding ? QEM.findCreate(encoding) : QCS_DEFAULT;
+   }
+
    // set the initialization vector (used with hard typing)
    DLLLOCAL int setIV(const char *err, const AbstractQoreNode *pt, ExceptionSink *xsink) {
+      assert(pt);
       if (pt->getType() == NT_STRING) {
 	 const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(pt);
 	 if (str->strlen() < 8) {
@@ -147,6 +156,7 @@ private:
 	 return 0;
       }
       
+      assert(pt->getType() == NT_BINARY);
       const BinaryNode *b = reinterpret_cast<const BinaryNode *>(pt);
       if (b->size() < 8) {
 	 xsink->raiseException(err, "the input vector must be at least 8 bytes long (%d bytes passed)", b->size());
@@ -160,8 +170,7 @@ public:
    unsigned char *key[3];
    int keylen[3];
 
-   DLLLOCAL CryptoHelper() {
-      output = 0;
+   DLLLOCAL CryptoHelper() iv(0), output(0), output_len(0), qe(QCS_DEFAULT) {
    }
 
    DLLLOCAL ~CryptoHelper() {
@@ -178,40 +187,21 @@ public:
    DLLLOCAL QoreStringNode *getString(const QoreEncoding *enc = QCS_DEFAULT) {
       // create the string
       QoreStringNode *str = new QoreStringNode((char *)output, output_len, output_len, enc);
-      // add trialing '\0'
+      // add trailing '\0'
       str->terminate(output_len);
 
       output = 0;
       return str;
    }
 
-   DLLLOCAL int setSingleKey(const char *err, const QoreListNode *params, ExceptionSink *xsink) {
+   DLLLOCAL int setSingleKey(const char *err, const QoreListNode *params, ExceptionSink *xsink, bool has_encoding = false) {
       if (setIV(err, get_param(params, 2), xsink))
 	 return -1;
 
       setInput(get_param(params, 0));
       setKey(params, 1);
-      return 0;
-   }
-
-   DLLLOCAL int setTwoKeys(const char *err, const QoreListNode *params, ExceptionSink *xsink) {
-      if (setIV(err, get_param(params, 3), xsink))
-	 return -1;
-
-      setInput(get_param(params, 0));
-      setKey(params, 1);
-      setKey(params, 2);
-      return 0;
-   }
-
-   DLLLOCAL int setThreeKeys(const char *err, const QoreListNode *params, ExceptionSink *xsink) {
-      if (setIV(err, get_param(params, 4), xsink))
-	 return -1;
-
-      setInput(get_param(params, 0));
-      setKey(params, 1);
-      setKey(params, 2);
-      setKey(params, 3);
+      if (has_encoding)
+	 setEncoding(params, 2);
       return 0;
    }
 
@@ -264,6 +254,7 @@ public:
       return 0;
    }
 
+/*
    DLLLOCAL int setDESKey(int n, ExceptionSink *xsink) {
       // force odd parity 
       //DES_set_odd_parity((DES_cblock *)key[n]);
@@ -272,6 +263,7 @@ public:
       //key[n] = (unsigned char *)schedule;
       return 0;
    }
+*/
 };
 
 static void missing_openssl_feature(const char *f, ExceptionSink *xsink) {
@@ -282,16 +274,16 @@ static void missing_openssl_feature(const char *f, ExceptionSink *xsink) {
     Cryptographic functions
  */
 //@{
-//! Encrypts data using the Cipher Block Chaining function for the <a href="http://www.counterpane.com/blowfish.html">blowfish algorithm</a>
+//! Encrypts data using the <a href="http://en.wikipedia.org/wiki/Cipher_block_chaining#Cipher-block_chaining_.28CBC.29">Cipher Block Chaining</a> function for the <a href="http://www.counterpane.com/blowfish.html">blowfish algorithm</a>
 /** @param data the data to be encrypted
-    @param key accepts a variable-length key (recommended 16 bytes or more)
+    @param key a variable-length key (recommended 16 bytes or more)
     @param iv the initialization vector must be at least 8 bytes long if present
 
     @return a binary object of the encrypted data
 
     @par Example
     @code
-my binary $bin = blowfish_encrypt_cbc($string_data, $key);
+my binary $bin = blowfish_encrypt_cbc($data, $key);
     @endcode
 
     @throw BLOWFISH-ENCRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
@@ -307,7 +299,22 @@ binary blowfish_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = defaul
    return ch.getBinary();
 }
 
-static AbstractQoreNode *f_blowfish_decrypt_cbc(const QoreListNode *args, ExceptionSink *xsink) {
+//! Decrypts data using the <a href="http://en.wikipedia.org/wiki/Cipher_block_chaining#Cipher-block_chaining_.28CBC.29">Cipher Block Chaining</a> function for the <a href="http://www.counterpane.com/blowfish.html">blowfish algorithm</a> and returns a binary object of the decrypted data
+/** @param data the data to be decrypted
+    @param key a variable-length key (recommended 16 bytes or more)
+    @param iv the initialization vector must be at least 8 bytes long if present
+
+    @return a binary object of the decrypted data
+
+    @par Example
+    @code
+my binary $bin = blowfish_decrypt_cbc($data, $key);
+    @endcode
+
+    @throw BLOWFISH-DECRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
+    @throw DECRYPT-ERROR processing error decrypting the data (for example invalid data)
+ */
+binary blowfish_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = defaultIV) {
    CryptoHelper ch;
 
    if (ch.setSingleKey("BLOWFISH-DECRYPT-PARAM-ERROR", args, xsink)
@@ -317,17 +324,35 @@ static AbstractQoreNode *f_blowfish_decrypt_cbc(const QoreListNode *args, Except
    return ch.getBinary();
 }
 
-static AbstractQoreNode *f_blowfish_decrypt_cbc_to_string(const QoreListNode *args, ExceptionSink *xsink) {
+//! Decrypts data using the <a href="http://en.wikipedia.org/wiki/Cipher_block_chaining#Cipher-block_chaining_.28CBC.29">Cipher Block Chaining</a> function for the <a href="http://www.counterpane.com/blowfish.html">blowfish algorithm</a> and returns a string of the decrypted data
+/** @param data the data to be decrypted
+    @param key a variable-length key (recommended 16 bytes or more)
+    @param iv the initialization vector must be at least 8 bytes long if present
+    @param encoding the character encoding tag for the string return value; if not present, the @ref default_encoding "default character encoding" is assumed
+
+    @return a string of the decrypted data
+
+    @par Example
+    @code
+my string $str = blowfish_decrypt_cbc_to_string($data, $key, NOTHING, "iso-8859-1");
+    @endcode
+
+    @throw BLOWFISH-DECRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
+    @throw DECRYPT-ERROR processing error decrypting the data (for example invalid data)
+
+    @since %Qore 0.8.4 added the encoding parameter to specify the output encoding of the string
+ */
+string blowfish_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv = defaultIV, *string[doc] encoding) {
    CryptoHelper ch;
 
-   if (ch.setSingleKey("BLOWFISH-DECRYPT-PARAM-ERROR", args, xsink)
+   if (ch.setSingleKey("BLOWFISH-DECRYPT-PARAM-ERROR", args, xsink, true)
        || ch.doCipher(EVP_bf_cbc(), "blowfish", QCRYPTO_DECRYPT, xsink))
       return 0;
 
    return ch.getString();
 }
 
-//! Encrypts data using the Cipher Block Chaining function for the <a href="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES algorithm</a> using an 8-byte key
+//! Encrypts data using the <a href="http://en.wikipedia.org/wiki/Cipher_block_chaining#Cipher-block_chaining_.28CBC.29">Cipher Block Chaining</a> function for the <a href="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES algorithm</a> using an 8-byte key
 /** @param data the data to be encrypted
     @param key the encryption key must be at least 8 bytes long (only the first 8 bytes will be used)
     @param iv the initialization vector must be at least 8 bytes long if present
@@ -336,7 +361,7 @@ static AbstractQoreNode *f_blowfish_decrypt_cbc_to_string(const QoreListNode *ar
 
     @par Example
     @code
-my binary $bin = des_encrypt_cbc($string_data, $key);
+my binary $bin = des_encrypt_cbc($data, $key);
     @endcode
 
     @throw DES-ENCRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
@@ -354,7 +379,23 @@ binary des_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = defaultIV) 
    return ch.getBinary();
 }
 
-static AbstractQoreNode *f_des_decrypt_cbc(const QoreListNode *args, ExceptionSink *xsink) {
+//! Decrypts data using the <a href="http://en.wikipedia.org/wiki/Cipher_block_chaining#Cipher-block_chaining_.28CBC.29">Cipher Block Chaining</a> function for the <a href="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES algorithm</a> using an 8-byte key
+/** @param data the data to be decrypted
+    @param key the decryption key must be at least 8 bytes long (only the first 8 bytes will be used)
+    @param iv the initialization vector must be at least 8 bytes long if present
+
+    @return a binary object of the decrypted data
+
+    @par Example
+    @code
+my binary $bin = des_decrypt_cbc($data, $key);
+    @endcode
+
+    @throw DES-DECRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
+    @throw DES-KEY-ERROR invalid key (too short)
+    @throw DECRYPT-ERROR processing error decrypting the data (for example invalid data)
+ */
+binary des_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = defaultIV) {
    CryptoHelper ch;
 
    if (ch.setSingleKey("DES-DECRYPT-PARAM-ERROR", args, xsink) 
@@ -365,10 +406,29 @@ static AbstractQoreNode *f_des_decrypt_cbc(const QoreListNode *args, ExceptionSi
    return ch.getBinary();
 }
 
-static AbstractQoreNode *f_des_decrypt_cbc_to_string(const QoreListNode *args, ExceptionSink *xsink) {
+//! Decrypts data using the <a href="http://en.wikipedia.org/wiki/Cipher_block_chaining#Cipher-block_chaining_.28CBC.29">Cipher Block Chaining</a> function for the <a href="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES algorithm</a> using an 8-byte key
+/** @param data the data to be decrypted
+    @param key the decryption key must be at least 8 bytes long (only the first 8 bytes will be used)
+    @param iv the initialization vector must be at least 8 bytes long if present
+    @param encoding the character encoding tag for the string return value; if not present, the @ref default_encoding "default character encoding" is assumed
+
+    @return a string of the decrypted data
+
+    @par Example
+    @code
+my string $bin = des_decrypt_cbc_to_string($data, $key, NOTHING, "iso-8859-1");
+    @endcode
+
+    @throw DES-DECRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
+    @throw DES-KEY-ERROR invalid key (too short)
+    @throw DECRYPT-ERROR processing error decrypting the data (for example invalid data)
+
+    @since %Qore 0.8.4 added the encoding parameter to specify the output encoding of the string
+ */
+string des_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv = defaultIV, *string[doc] encoding) {
    CryptoHelper ch;
 
-   if (ch.setSingleKey("DES-DECRYPT-PARAM-ERROR", args, xsink) 
+   if (ch.setSingleKey("DES-DECRYPT-PARAM-ERROR", args, xsink, true) 
        || ch.checkKeyLen("DES-KEY-ERROR", 0, 8, xsink)
        || ch.doCipher(EVP_des_cbc(), "DES", QCRYPTO_DECRYPT, xsink))
 	    return 0;
@@ -376,7 +436,7 @@ static AbstractQoreNode *f_des_decrypt_cbc_to_string(const QoreListNode *args, E
    return ch.getString();
 }
 
-//! Encrypts data using the Cipher Block Chaining function for the two-key triple DES algorithm using two eight-byte keys (set by a single 16-byte key argument)
+//! Encrypts data using the <a href="http://en.wikipedia.org/wiki/Cipher_block_chaining#Cipher-block_chaining_.28CBC.29">Cipher Block Chaining</a> function for the two-key triple DES algorithm using two eight-byte keys (set by a single 16-byte key argument)
 /** @param data the data to be encrypted
     @param key the encryption key must be at least 16 bytes long (only the first 16 bytes will be used for the two 8-byte keys)
     @param iv the initialization vector must be at least 8 bytes long if present
@@ -385,7 +445,7 @@ static AbstractQoreNode *f_des_decrypt_cbc_to_string(const QoreListNode *args, E
 
     @par Example
     @code
-my binary $bin = des_ede_encrypt_cbc($string_data, $key);
+my binary $bin = des_ede_encrypt_cbc($data, $key);
     @endcode
 
     @throw DES-ENCRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
@@ -403,7 +463,23 @@ binary des_ede_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = default
    return ch.getBinary();
 }
 
-static AbstractQoreNode *f_des_ede_decrypt_cbc(const QoreListNode *args, ExceptionSink *xsink) {
+//! Decrypts data using the <a href="http://en.wikipedia.org/wiki/Cipher_block_chaining#Cipher-block_chaining_.28CBC.29">Cipher Block Chaining</a> function for the two-key triple DES algorithm using two eight-byte keys (set by a single 16-byte key argument)
+/** @param data the data to be decrypted
+    @param key the decryption key must be at least 16 bytes long (only the first 16 bytes will be used for the two 8-byte keys)
+    @param iv the initialization vector must be at least 8 bytes long if present
+
+    @return a binary object of the decrypted data
+
+    @par Example
+    @code
+my binary $bin = des_ede_decrypt_cbc($data, $key);
+    @endcode
+
+    @throw DES-ENCRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
+    @throw DES-KEY-ERROR invalid key (too short)
+    @throw DECRYPT-ERROR processing error decrypting the data (for example invalid data)
+ */
+binary des_ede_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = defaultIV) {
    CryptoHelper ch;
 
    if (ch.setSingleKey("DES-DECRYPT-PARAM-ERROR", args, xsink) 
@@ -414,10 +490,29 @@ static AbstractQoreNode *f_des_ede_decrypt_cbc(const QoreListNode *args, Excepti
    return ch.getBinary();
 }
 
-static AbstractQoreNode *f_des_ede_decrypt_cbc_to_string(const QoreListNode *args, ExceptionSink *xsink) {
+//! Decrypts data using the <a href="http://en.wikipedia.org/wiki/Cipher_block_chaining#Cipher-block_chaining_.28CBC.29">Cipher Block Chaining</a> function for the two-key triple DES algorithm using two eight-byte keys (set by a single 16-byte key argument)
+/** @param data the data to be decrypted
+    @param key the decryption key must be at least 16 bytes long (only the first 16 bytes will be used for the two 8-byte keys)
+    @param iv the initialization vector must be at least 8 bytes long if present
+    @param encoding the character encoding tag for the string return value; if not present, the @ref default_encoding "default character encoding" is assumed
+
+    @return a string of the decrypted data
+
+    @par Example
+    @code
+my string $bin = des_ede_decrypt_cbc_to_string($data, $key, NOTHING, "iso-8859-1");
+    @endcode
+
+    @throw DES-ENCRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
+    @throw DES-KEY-ERROR invalid key (too short)
+    @throw DECRYPT-ERROR processing error decrypting the data (for example invalid data)
+
+    @since %Qore 0.8.4 added the encoding parameter to specify the output encoding of the string
+ */
+string des_ede_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv = defaultIV, *string[doc] encoding) {
    CryptoHelper ch;
 
-   if (ch.setSingleKey("DES-DECRYPT-PARAM-ERROR", args, xsink) 
+   if (ch.setSingleKey("DES-DECRYPT-PARAM-ERROR", args, xsink, true) 
        || ch.checkKeyLen("DES-KEY-ERROR", 0, 16, xsink)
        || ch.doCipher(EVP_des_ede_cbc(), "DES", QCRYPTO_DECRYPT, xsink))
       return 0;
@@ -425,7 +520,7 @@ static AbstractQoreNode *f_des_ede_decrypt_cbc_to_string(const QoreListNode *arg
    return ch.getString();
 }
 
-//! Encrypts data using the Cipher Block Chaining function for the three-key triple <a href="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES algorithm</a> using three 8-byte keys (set by a single 24-byte key argument) and an optional 8-byte initialization vector
+//! Encrypts data using the <a href="http://en.wikipedia.org/wiki/Cipher_block_chaining#Cipher-block_chaining_.28CBC.29">Cipher Block Chaining</a> function for the three-key triple <a href="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES algorithm</a> using three 8-byte keys (set by a single 24-byte key argument) and an optional 8-byte initialization vector
 /** @param data the data to be encrypted
     @param key the encryption key must be at least 24 bytes long (only the first 24 bytes will be used for the three 8-byte keys)
     @param iv the initialization vector must be at least 8 bytes long if present
@@ -434,7 +529,7 @@ static AbstractQoreNode *f_des_ede_decrypt_cbc_to_string(const QoreListNode *arg
 
     @par Example
     @code
-my binary $bin = des_ede3_encrypt_cbc($string_data, $key);
+my binary $bin = des_ede3_encrypt_cbc($data, $key);
     @endcode
 
     @throw DES-ENCRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
@@ -452,7 +547,23 @@ binary des_ede3_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = defaul
    return ch.getBinary();
 }
 
-static AbstractQoreNode *f_des_ede3_decrypt_cbc(const QoreListNode *args, ExceptionSink *xsink) {
+//! Decrypts data using the <a href="http://en.wikipedia.org/wiki/Cipher_block_chaining#Cipher-block_chaining_.28CBC.29">Cipher Block Chaining</a> function for the three-key triple <a href="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES algorithm</a> using three 8-byte keys (set by a single 24-byte key argument) and an optional 8-byte initialization vector
+/** @param data the data to be decrypted
+    @param key the decryption key must be at least 24 bytes long (only the first 24 bytes will be used for the three 8-byte keys)
+    @param iv the initialization vector must be at least 8 bytes long if present
+
+    @return a binary object of the decrypted data
+
+    @par Example
+    @code
+my binary $bin = des_ede3_decrypt_cbc($data, $key);
+    @endcode
+
+    @throw DES-DECRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
+    @throw DES-KEY-ERROR invalid key (too short)
+    @throw DECRYPT-ERROR processing error decrypting the data (for example invalid data)
+ */
+binary des_ede3_decrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = defaultIV) {
    CryptoHelper ch;
 
    if (ch.setSingleKey("DES-DECRYPT-PARAM-ERROR", args, xsink) 
@@ -463,10 +574,29 @@ static AbstractQoreNode *f_des_ede3_decrypt_cbc(const QoreListNode *args, Except
    return ch.getBinary();
 }
 
-static AbstractQoreNode *f_des_ede3_decrypt_cbc_to_string(const QoreListNode *args, ExceptionSink *xsink) {
+//! Decrypts data using the <a href="http://en.wikipedia.org/wiki/Cipher_block_chaining#Cipher-block_chaining_.28CBC.29">Cipher Block Chaining</a> function for the three-key triple <a href="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES algorithm</a> using three 8-byte keys (set by a single 24-byte key argument) and an optional 8-byte initialization vector
+/** @param data the data to be decrypted
+    @param key the decryption key must be at least 24 bytes long (only the first 24 bytes will be used for the three 8-byte keys)
+    @param iv the initialization vector must be at least 8 bytes long if present
+    @param encoding the character encoding tag for the string return value; if not present, the @ref default_encoding "default character encoding" is assumed
+
+    @return a string of the decrypted data
+
+    @par Example
+    @code
+my string $bin = des_ede3_decrypt_cbc_to_string($data, $key, NOTHING, "iso-8859-1");
+    @endcode
+
+    @throw DES-DECRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
+    @throw DES-KEY-ERROR invalid key (too short)
+    @throw DECRYPT-ERROR processing error decrypting the data (for example invalid data)
+
+    @since %Qore 0.8.4 added the encoding parameter to specify the output encoding of the string
+ */
+string des_ede3_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv = defaultIV, *string[doc] encoding) {
    CryptoHelper ch;
 
-   if (ch.setSingleKey("DES-DECRYPT-PARAM-ERROR", args, xsink) 
+   if (ch.setSingleKey("DES-DECRYPT-PARAM-ERROR", args, xsink, true) 
        || ch.checkKeyLen("DES-KEY-ERROR", 0, 24, xsink)
        || ch.doCipher(EVP_des_ede3_cbc(), "DES", QCRYPTO_DECRYPT, xsink))
       return 0;
@@ -474,7 +604,7 @@ static AbstractQoreNode *f_des_ede3_decrypt_cbc_to_string(const QoreListNode *ar
    return ch.getString();
 }
 
-//! Encrypts data using the Cipher Block Chaining function for RSA's <a href="http://www.rsasecurity.com/">DESX algorithm</a> using a 24-byte key and an optional 8-byte initialization vector
+//! Encrypts data using the <a href="http://en.wikipedia.org/wiki/Cipher_block_chaining#Cipher-block_chaining_.28CBC.29">Cipher Block Chaining</a> function for RSA's <a href="http://www.rsasecurity.com/">DESX algorithm</a> using a 24-byte key and an optional 8-byte initialization vector
 /** @param data the data to be encrypted
     @param key the encryption key must be at least 24 bytes long (only the first 24 bytes will be used)
     @param iv the initialization vector must be at least 8 bytes long if present
@@ -483,7 +613,7 @@ static AbstractQoreNode *f_des_ede3_decrypt_cbc_to_string(const QoreListNode *ar
 
     @par Example
     @code
-my binary $bin = desx_encrypt_cbc($string_data, $key);
+my binary $bin = desx_encrypt_cbc($data, $key);
     @endcode
 
     @throw DESX-ENCRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
@@ -501,7 +631,23 @@ binary desx_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = defaultIV)
    return ch.getBinary();
 }
 
-static AbstractQoreNode *f_desx_decrypt_cbc(const QoreListNode *args, ExceptionSink *xsink) {
+//! Decrypts data using the <a href="http://en.wikipedia.org/wiki/Cipher_block_chaining#Cipher-block_chaining_.28CBC.29">Cipher Block Chaining</a> function for RSA's <a href="http://www.rsasecurity.com/">DESX algorithm</a> using a 24-byte key and an optional 8-byte initialization vector
+/** @param data the data to be decrypted
+    @param key the decryption key must be at least 24 bytes long (only the first 24 bytes will be used)
+    @param iv the initialization vector must be at least 8 bytes long if present
+
+    @return a binary object of the decrypted data
+
+    @par Example
+    @code
+my binary $bin = desx_decrypt_cbc($data, $key);
+    @endcode
+
+    @throw DESX-DECRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
+    @throw DESX-KEY-ERROR invalid key (too short)
+    @throw DECRYPT-ERROR processing error decrypting the data (for example invalid data)
+ */
+binary desx_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = defaultIV) {
    CryptoHelper ch;
 
    if (ch.setSingleKey("DESX-DECRYPT-PARAM-ERROR", args, xsink) 
@@ -512,10 +658,29 @@ static AbstractQoreNode *f_desx_decrypt_cbc(const QoreListNode *args, ExceptionS
    return ch.getBinary();
 }
 
-static AbstractQoreNode *f_desx_decrypt_cbc_to_string(const QoreListNode *args, ExceptionSink *xsink) {
+//! Decrypts data using the <a href="http://en.wikipedia.org/wiki/Cipher_block_chaining#Cipher-block_chaining_.28CBC.29">Cipher Block Chaining</a> function for RSA's <a href="http://www.rsasecurity.com/">DESX algorithm</a> using a 24-byte key and an optional 8-byte initialization vector
+/** @param data the data to be decrypted
+    @param key the decryption key must be at least 24 bytes long (only the first 24 bytes will be used)
+    @param iv the initialization vector must be at least 8 bytes long if present
+    @param encoding the character encoding tag for the string return value; if not present, the @ref default_encoding "default character encoding" is assumed
+
+    @return a binary object of the decrypted data
+
+    @par Example
+    @code
+my string $str = desx_decrypt_cbc_to_string($data, $key, NOTHING, "iso-8859-1");
+    @endcode
+
+    @throw DESX-DECRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
+    @throw DESX-KEY-ERROR invalid key (too short)
+    @throw DECRYPT-ERROR processing error decrypting the data (for example invalid data)
+
+    @since %Qore 0.8.4 added the encoding parameter to specify the output encoding of the string
+ */
+string desx_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv = defaultIV, *string[doc] encoding) {
    CryptoHelper ch;
 
-   if (ch.setSingleKey("DESX-DECRYPT-PARAM-ERROR", args, xsink) 
+   if (ch.setSingleKey("DESX-DECRYPT-PARAM-ERROR", args, xsink, true)
        || ch.checkKeyLen("DESX-KEY-ERROR", 0, 24, xsink)
        || ch.doCipher(EVP_desx_cbc(), "DESX", QCRYPTO_DECRYPT, xsink))
       return 0;
@@ -532,13 +697,13 @@ static AbstractQoreNode *f_desx_decrypt_cbc_to_string(const QoreListNode *args, 
 
     @par Example
     @code
-my binary $bin = rc4_encrypt_cbc($string_data, $key);
+my binary $bin = rc4_encrypt($data, $key);
     @endcode
 
     @throw RC4-ENCRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
     @throw ENCRYPT-ERROR processing error encrypting the data (should not normally happen)
  */
-binary rc4_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = defaultIV) {
+binary rc4_encrypt(data[doc] data, data[doc] key, data[doc] iv = defaultIV) {
    CryptoHelper ch;
 
    if (ch.setSingleKey("RC4-ENCRYPT-PARAM-ERROR", args, xsink)
@@ -548,7 +713,22 @@ binary rc4_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = defaultIV) 
    return ch.getBinary();
 }
 
-static AbstractQoreNode *f_rc4_decrypt(const QoreListNode *args, ExceptionSink *xsink) {
+//! Decrypts data using the Alleged <a href="http://en.wikipedia.org/wiki/RC4">RC4 cipher algorithm</a>, which should be compatible with RSA's RC4(tm) algorithm using a variable-length key and an optional 8-byte initialization vector
+/** @param data the data to be decrypted
+    @param key a variable-width decryption key
+    @param iv the initialization vector must be at least 8 bytes long if present
+
+    @return a binary object of the decrypted data
+
+    @par Example
+    @code
+my binary $bin = rc4_decrypt($data, $key);
+    @endcode
+
+    @throw RC4-DECRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
+    @throw DECRYPT-ERROR processing error decrypting the data (for example invalid data)
+ */
+binary rc4_decrypt(binary[doc] data, data[doc] key, data[doc] iv = defaultIV) {
    CryptoHelper ch;
 
    if (ch.setSingleKey("RC4-DECRYPT-PARAM-ERROR", args, xsink)
@@ -558,17 +738,35 @@ static AbstractQoreNode *f_rc4_decrypt(const QoreListNode *args, ExceptionSink *
    return ch.getBinary();
 }
 
-static AbstractQoreNode *f_rc4_decrypt_to_string(const QoreListNode *args, ExceptionSink *xsink) {
+//! Decrypts data using the Alleged <a href="http://en.wikipedia.org/wiki/RC4">RC4 cipher algorithm</a>, which should be compatible with RSA's RC4(tm) algorithm using a variable-length key and an optional 8-byte initialization vector
+/** @param data the data to be decrypted
+    @param key a variable-width decryption key
+    @param iv the initialization vector must be at least 8 bytes long if present
+    @param encoding the character encoding tag for the string return value; if not present, the @ref default_encoding "default character encoding" is assumed
+
+    @return a string of the decrypted data
+
+    @par Example
+    @code
+my string $str = rc4_decrypt_to_string($encrypted_data, $key, NOTHING, "iso-8859-1");
+    @endcode
+
+    @throw RC4-DECRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
+    @throw DECRYPT-ERROR processing error decrypting the data (for example invalid data)
+
+    @since %Qore 0.8.4 added the encoding parameter to specify the output encoding of the string
+ */
+string rc4_decrypt_to_string(binary[doc] data, data[doc] key, data[doc] iv = defaultIV, *string[doc] encoding) {
    CryptoHelper ch;
 
-   if (ch.setSingleKey("RC4-DECRYPT-PARAM-ERROR", args, xsink)
+   if (ch.setSingleKey("RC4-DECRYPT-PARAM-ERROR", args, xsink, true)
        || ch.doCipher(EVP_rc4(), "rc4", QCRYPTO_DECRYPT, xsink))
       return 0;
 
    return ch.getString();
 }
 
-//! Encrypts data using the Cipher Block Chaining function for RSA's <a href="http://en.wikipedia.org/wiki/RC2">RC2(tm) algorithm</a> using a variable-length key and an optional 8-byte initialization vector
+//! Encrypts data using the <a href="http://en.wikipedia.org/wiki/Cipher_block_chaining#Cipher-block_chaining_.28CBC.29">Cipher Block Chaining</a> function for RSA's <a href="http://en.wikipedia.org/wiki/RC2">RC2(tm) algorithm</a> using a variable-length key and an optional 8-byte initialization vector
 /** @param data the data to be encrypted
     @param key a variable-width encryption key
     @param iv the initialization vector must be at least 8 bytes long if present
@@ -577,7 +775,7 @@ static AbstractQoreNode *f_rc4_decrypt_to_string(const QoreListNode *args, Excep
 
     @par Example
     @code
-my binary $bin = rc2_encrypt_cbc($string_data, $key);
+my binary $bin = rc2_encrypt_cbc($data, $key);
     @endcode
 
     @throw RC2-ENCRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
@@ -593,7 +791,22 @@ binary rc2_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = defaultIV) 
    return ch.getBinary();
 }
 
-static AbstractQoreNode *f_rc2_decrypt_cbc(const QoreListNode *args, ExceptionSink *xsink) {
+//! Decrypts data using the <a href="http://en.wikipedia.org/wiki/Cipher_block_chaining#Cipher-block_chaining_.28CBC.29">Cipher Block Chaining</a> function for RSA's <a href="http://en.wikipedia.org/wiki/RC2">RC2(tm) algorithm</a> using a variable-length key and an optional 8-byte initialization vector
+/** @param data the data to be decrypted
+    @param key a variable-width decryption key
+    @param iv the initialization vector must be at least 8 bytes long if present
+
+    @return a binary object of the decrypted data
+
+    @par Example
+    @code
+my binary $bin = rc2_decrypt_cbc($data, $key);
+    @endcode
+
+    @throw RC2-DECRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
+    @throw DECRYPT-ERROR processing error decrypting the data (for example invalid data)
+ */
+binary rc2_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = defaultIV) {
    CryptoHelper ch;
 
    if (ch.setSingleKey("RC2-DECRYPT-PARAM-ERROR", args, xsink)
@@ -603,17 +816,35 @@ static AbstractQoreNode *f_rc2_decrypt_cbc(const QoreListNode *args, ExceptionSi
    return ch.getBinary();
 }
 
-static AbstractQoreNode *f_rc2_decrypt_cbc_to_string(const QoreListNode *args, ExceptionSink *xsink) {
+//! Decrypts data using the <a href="http://en.wikipedia.org/wiki/Cipher_block_chaining#Cipher-block_chaining_.28CBC.29">Cipher Block Chaining</a> function for RSA's <a href="http://en.wikipedia.org/wiki/RC2">RC2(tm) algorithm</a> using a variable-length key and an optional 8-byte initialization vector
+/** @param data the data to be decrypted
+    @param key a variable-width decryption key
+    @param iv the initialization vector must be at least 8 bytes long if present
+    @param encoding the character encoding tag for the string return value; if not present, the @ref default_encoding "default character encoding" is assumed
+
+    @return a string of the decrypted data
+
+    @par Example
+    @code
+my string $str = rc2_decrypt_cbc_to_string($data, $key);
+    @endcode
+
+    @throw RC2-DECRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
+    @throw DECRYPT-ERROR processing error decrypting the data (for example invalid data)
+
+    @since %Qore 0.8.4 added the encoding parameter to specify the output encoding of the string
+ */
+string rc2_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv = defaultIV, *string[doc] encoding) {
    CryptoHelper ch;
 
-   if (ch.setSingleKey("RC2-DECRYPT-PARAM-ERROR", args, xsink)
+   if (ch.setSingleKey("RC2-DECRYPT-PARAM-ERROR", args, xsink, true)
        || ch.doCipher(EVP_rc2_cbc(), "rc2", QCRYPTO_DECRYPT, xsink))
       return 0;
 
    return ch.getString();
 }
 
-//! Encrypts data using the Cipher Block Chaining function for the <a href="http://en.wikipedia.org/wiki/CAST5">CAST5 algorithm</a> using a variable-length key and an optional 8-byte initialization vector
+//! Encrypts data using the <a href="http://en.wikipedia.org/wiki/Cipher_block_chaining#Cipher-block_chaining_.28CBC.29">Cipher Block Chaining</a> function for the <a href="http://en.wikipedia.org/wiki/CAST5">CAST5 algorithm</a> using a variable-length key and an optional 8-byte initialization vector
 /** @param data the data to be encrypted
     @param key a variable-width encryption key
     @param iv the initialization vector must be at least 8 bytes long if present
@@ -622,7 +853,7 @@ static AbstractQoreNode *f_rc2_decrypt_cbc_to_string(const QoreListNode *args, E
 
     @par Example
     @code
-my binary $bin = cast5_encrypt_cbc($string_data, $key);
+my binary $bin = cast5_encrypt_cbc($data, $key);
     @endcode
 
     @throw CAST5-ENCRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
@@ -638,7 +869,22 @@ binary cast5_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = defaultIV
    return ch.getBinary();
 }
 
-static AbstractQoreNode *f_cast5_decrypt_cbc(const QoreListNode *args, ExceptionSink *xsink) {
+//! Decrypts data using the <a href="http://en.wikipedia.org/wiki/Cipher_block_chaining#Cipher-block_chaining_.28CBC.29">Cipher Block Chaining</a> function for the <a href="http://en.wikipedia.org/wiki/CAST5">CAST5 algorithm</a> using a variable-length key and an optional 8-byte initialization vector
+/** @param data the data to be decrypted
+    @param key a variable-width decryption key
+    @param iv the initialization vector must be at least 8 bytes long if present
+
+    @return a binary object of the decrypted data
+
+    @par Example
+    @code
+my binary $bin = cast5_decrypt_cbc($data, $key);
+    @endcode
+
+    @throw CAST5-DECRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
+    @throw DECRYPT-ERROR processing error decrypting the data (for example invalid data)
+ */
+binary cast5_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = defaultIV) {
    CryptoHelper ch;
 
    if (ch.setSingleKey("CAST5-DECRYPT-PARAM-ERROR", args, xsink)
@@ -648,17 +894,35 @@ static AbstractQoreNode *f_cast5_decrypt_cbc(const QoreListNode *args, Exception
    return ch.getBinary();
 }
 
-static AbstractQoreNode *f_cast5_decrypt_cbc_to_string(const QoreListNode *args, ExceptionSink *xsink) {
+//! Decrypts data using the <a href="http://en.wikipedia.org/wiki/Cipher_block_chaining#Cipher-block_chaining_.28CBC.29">Cipher Block Chaining</a> function for the <a href="http://en.wikipedia.org/wiki/CAST5">CAST5 algorithm</a> using a variable-length key and an optional 8-byte initialization vector
+/** @param data the data to be decrypted
+    @param key a variable-width decryption key
+    @param iv the initialization vector must be at least 8 bytes long if present
+    @param encoding the character encoding tag for the string return value; if not present, the @ref default_encoding "default character encoding" is assumed
+
+    @return a string of the decrypted data
+
+    @par Example
+    @code
+my string $bin = cast5_decrypt_cbc_to_string($data, $key, NOTHING, "iso-8859-1");
+    @endcode
+
+    @throw CAST5-DECRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
+    @throw DECRYPT-ERROR processing error decrypting the data (for example invalid data)
+
+    @since %Qore 0.8.4 added the encoding parameter to specify the output encoding of the string
+ */
+string cast5_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv = defaultIV, *string[doc] encoding) {
    CryptoHelper ch;
 
-   if (ch.setSingleKey("CAST5-DECRYPT-PARAM-ERROR", args, xsink)
+   if (ch.setSingleKey("CAST5-DECRYPT-PARAM-ERROR", args, xsink, true)
        || ch.doCipher(EVP_cast5_cbc(), "CAST5", QCRYPTO_DECRYPT, xsink))
       return 0;
 
    return ch.getString();
 }
 
-//! Encrypts data using the Cipher Block Chaining function for RSA's <a href="http://en.wikipedia.org/wiki/RC5">RC2(tm) algorithm</a> using a variable-length key and an optional 8-byte initialization vector
+//! Encrypts data using the <a href="http://en.wikipedia.org/wiki/Cipher_block_chaining#Cipher-block_chaining_.28CBC.29">Cipher Block Chaining</a> function for RSA's <a href="http://en.wikipedia.org/wiki/RC5">RC2(tm) algorithm</a> using a variable-length key and an optional 8-byte initialization vector
 /** @par Availability
     @ref Qore::HAVE_RC5
 
@@ -670,7 +934,7 @@ static AbstractQoreNode *f_cast5_decrypt_cbc_to_string(const QoreListNode *args,
 
     @par Example
     @code
-my binary $bin = rc2_encrypt_cbc($string_data, $key);
+my binary $bin = rc2_encrypt_cbc($data, $key);
     @endcode
 
     @throw RC5-ENCRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
@@ -691,7 +955,25 @@ binary rc5_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = defaultIV) 
 #endif
 }
 
-static AbstractQoreNode *f_rc5_decrypt_cbc(const QoreListNode *args, ExceptionSink *xsink) {
+//! Decrypts data using the <a href="http://en.wikipedia.org/wiki/Cipher_block_chaining#Cipher-block_chaining_.28CBC.29">Cipher Block Chaining</a> function for RSA's <a href="http://en.wikipedia.org/wiki/RC5">RC2(tm) algorithm</a> using a variable-length key and an optional 8-byte initialization vector
+/** @par Availability
+    @ref Qore::HAVE_RC5
+
+    @param data the data to be decrypted
+    @param key a variable-width decryption key
+    @param iv the initialization vector must be at least 8 bytes long if present
+
+    @return a binary object of the decrypted data
+
+    @par Example
+    @code
+my binary $bin = rc2_decrypt_cbc($data, $key);
+    @endcode
+
+    @throw RC5-DECRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
+    @throw DECRYPT-ERROR processing error decrypting the data (for example invalid data)
+ */
+binary rc5_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = defaultIV) {
 #ifndef OPENSSL_NO_RC5
    CryptoHelper ch;
 
@@ -706,11 +988,32 @@ static AbstractQoreNode *f_rc5_decrypt_cbc(const QoreListNode *args, ExceptionSi
 #endif
 }
 
-static AbstractQoreNode *f_rc5_decrypt_cbc_to_string(const QoreListNode *args, ExceptionSink *xsink) {
+//! Decrypts data using the <a href="http://en.wikipedia.org/wiki/Cipher_block_chaining#Cipher-block_chaining_.28CBC.29">Cipher Block Chaining</a> function for RSA's <a href="http://en.wikipedia.org/wiki/RC5">RC2(tm) algorithm</a> using a variable-length key and an optional 8-byte initialization vector
+/** @par Availability
+    @ref Qore::HAVE_RC5
+
+    @param data the data to be decrypted
+    @param key a variable-width decryption key
+    @param iv the initialization vector must be at least 8 bytes long if present
+    @param encoding the character encoding tag for the string return value; if not present, the @ref default_encoding "default character encoding" is assumed
+
+    @return a string of the decrypted data
+
+    @par Example
+    @code
+my string $str = rc2_decrypt_cbc_to_string($data, $key, NOTHING, "iso-8859-1");
+    @endcode
+
+    @throw RC5-DECRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
+    @throw DECRYPT-ERROR processing error decrypting the data (for example invalid data)
+
+    @since %Qore 0.8.4 added the encoding parameter to specify the output encoding of the string
+ */
+string rc5_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv = defaultIV, *string[doc] encoding) {
 #ifndef OPENSSL_NO_RC5
    CryptoHelper ch;
 
-   if (ch.setSingleKey("RC5-DECRYPT-PARAM-ERROR", args, xsink)
+   if (ch.setSingleKey("RC5-DECRYPT-PARAM-ERROR", args, xsink, true)
        || ch.doCipher(EVP_rc5_32_12_16_cbc(), "rc5", QCRYPTO_DECRYPT, xsink))
       return 0;
 
@@ -721,7 +1024,25 @@ static AbstractQoreNode *f_rc5_decrypt_cbc_to_string(const QoreListNode *args, E
 #endif
 }
 
-static AbstractQoreNode *f_MD2(const QoreListNode *args, ExceptionSink *xsink) {
+//! Returns the <a href="http://en.wikipedia.org/wiki/MD2_(cryptography)">MD2 message digest</a> of the supplied argument as a hex string
+/** 
+    @par Availability
+    @ref Qore::HAVE_MD2
+
+    @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
+
+    @return a hex string of the digest (ex: \c "a9046c73e00331af68917d3804f70655")
+
+    @par Example
+    @code
+my string $str = MD2("hello"); # returns "a9046c73e00331af68917d3804f70655"
+    @endcode
+
+    @throw MD2-DIGEST-ERROR error calculating digest (should not normally happen)
+
+    @see MD2_bin()
+ */
+string MD2(data[doc] data) {
 #if !defined(OPENSSL_NO_MD2) && !defined(NO_MD2)
    DigestHelper dh(args);
    if (dh.doDigest(MD2_ERR, EVP_md2(), xsink))
@@ -734,7 +1055,22 @@ static AbstractQoreNode *f_MD2(const QoreListNode *args, ExceptionSink *xsink) {
 #endif
 }
 
-static AbstractQoreNode *f_MD4(const QoreListNode *args, ExceptionSink *xsink) {
+//! Returns the <a href="http://en.wikipedia.org/wiki/MD4">MD4 message digest</a> of the supplied argument as a hex string
+/** 
+    @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
+
+    @return a hex string of the digest (ex: \c "866437cb7a794bce2b727acc0362ee27")
+
+    @par Example
+    @code
+my string $str = MD4("hello"); # returns "866437cb7a794bce2b727acc0362ee27"
+    @endcode
+
+    @throw MD4-DIGEST-ERROR error calculating digest (should not normally happen)
+
+    @see MD4_bin()
+ */
+string MD4(data[doc] data) {
    DigestHelper dh(args);
    if (dh.doDigest(MD4_ERR, EVP_md4(), xsink))
       return 0;
@@ -742,7 +1078,22 @@ static AbstractQoreNode *f_MD4(const QoreListNode *args, ExceptionSink *xsink) {
    return dh.getString();
 }
 
-static AbstractQoreNode *f_MD5(const QoreListNode *args, ExceptionSink *xsink) {
+//! Returns the <a href="http://en.wikipedia.org/wiki/MD5">MD5 message digest</a> of the supplied argument as a hex string
+/** 
+    @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
+
+    @return a hex string of the digest (ex: \c "5d41402abc4b2a76b9719d911017c592")
+
+    @par Example
+    @code
+my string $str = MD5("hello"); # returns "5d41402abc4b2a76b9719d911017c592"
+    @endcode
+
+    @throw MD5-DIGEST-ERROR error calculating digest (should not normally happen)
+
+    @see MD5_bin()
+ */
+string MD5(data[doc] data) {
    DigestHelper dh(args);
    if (dh.doDigest(MD5_ERR, EVP_md5(), xsink))
       return 0;
@@ -750,7 +1101,23 @@ static AbstractQoreNode *f_MD5(const QoreListNode *args, ExceptionSink *xsink) {
    return dh.getString();
 }
 
-static AbstractQoreNode *f_SHA(const QoreListNode *args, ExceptionSink *xsink) {
+//! Returns the SHA (outdated SHA-0) message digest of the supplied argument as a hex string
+/** This hash algorithm was withdrawn after publishing and is considered to have serious flaws.
+
+    @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
+
+    @return a hex string of the digest (ex: \c "ac62a630ca850b4ea07eda664eaecf9480843152")
+
+    @par Example
+    @code
+my string $str = SHA("hello"); returns "ac62a630ca850b4ea07eda664eaecf9480843152"
+    @endcode
+
+    @throw SHA-DIGEST-ERROR error calculating digest (should not normally happen)
+
+    @see SHA_bin()
+ */
+string SHA(data[doc] data) {
    DigestHelper dh(args);
    if (dh.doDigest(SHA_ERR, EVP_sha(), xsink))
       return 0;
@@ -758,7 +1125,22 @@ static AbstractQoreNode *f_SHA(const QoreListNode *args, ExceptionSink *xsink) {
    return dh.getString();
 }
 
-static AbstractQoreNode *f_SHA1(const QoreListNode *args, ExceptionSink *xsink) {
+//! Returns the <a href="http://en.wikipedia.org/wiki/SHA-1">SHA1</a> message digest of the supplied argument as a hex string
+/** 
+    @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
+
+    @return a hex string of the digest (ex: \c "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d")
+
+    @par Example
+    @code
+my string $str = SHA1("hello"); # "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d"
+    @endcode
+
+    @throw SHA1-DIGEST-ERROR error calculating digest (should not normally happen)
+
+    @see SHA1_bin()
+ */
+string SHA1(data[doc] data) {
    DigestHelper dh(args);
    if (dh.doDigest(SHA1_ERR, EVP_sha1(), xsink))
       return 0;
