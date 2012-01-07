@@ -33,7 +33,7 @@
 #define QCRYPTO_DECRYPT 0
 #define QCRYPTO_ENCRYPT 1
 
-// NOTE: the trailing null ('\0') is no longer included when encrypting strings
+// NOTE: the trailing null ('\0') is not included when encrypting strings or calculating digests
 
 // default initialization vector
 static unsigned char def_iv[] = { 0, 0, 0, 0, 0, 0, 0, 0 };
@@ -170,7 +170,7 @@ public:
    unsigned char *key[3];
    int keylen[3];
 
-   DLLLOCAL CryptoHelper() iv(0), output(0), output_len(0), qe(QCS_DEFAULT) {
+   DLLLOCAL CryptoHelper() : iv(0), output(0), output_len(0), qe(QCS_DEFAULT) {
    }
 
    DLLLOCAL ~CryptoHelper() {
@@ -270,6 +270,17 @@ static void missing_openssl_feature(const char *f, ExceptionSink *xsink) {
    xsink->raiseException("MISSING-FEATURE-ERROR", "the openssl library version that qore was compiled with did not support the %s algorithm; for maximum portability, check Option::HAVE_%s before calling this function", f, f);
 }
 
+//! @qppinit: SimpleRefHolder<BinaryNode> DefaultIV(new BinaryNode); DefaultIV->append(def_iv, 8);
+//! @qppval: DefaultIV=DefaultIV->refSelf()
+
+/** @defgroup cryptographic_constants Crytographic Contants
+    Cryptographic constants
+ */
+//@{
+//! The default initialization vector is simply a 8-byte string of nulls
+const DefaultIV = <0000000000000000>;
+//@}
+
 /** @defgroup cryptographic_functions Crytographic Functions
     Cryptographic functions
  */
@@ -289,7 +300,7 @@ my binary $bin = blowfish_encrypt_cbc($data, $key);
     @throw BLOWFISH-ENCRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
     @throw ENCRYPT-ERROR processing error encrypting the data (should not normally happen)
  */
-binary blowfish_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = defaultIV) {
+binary blowfish_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = DefaultIV) {
    CryptoHelper ch;
 
    if (ch.setSingleKey("BLOWFISH-ENCRYPT-PARAM-ERROR", args, xsink)
@@ -314,7 +325,7 @@ my binary $bin = blowfish_decrypt_cbc($data, $key);
     @throw BLOWFISH-DECRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
     @throw DECRYPT-ERROR processing error decrypting the data (for example invalid data)
  */
-binary blowfish_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = defaultIV) {
+binary blowfish_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = DefaultIV) {
    CryptoHelper ch;
 
    if (ch.setSingleKey("BLOWFISH-DECRYPT-PARAM-ERROR", args, xsink)
@@ -342,7 +353,7 @@ my string $str = blowfish_decrypt_cbc_to_string($data, $key, NOTHING, "iso-8859-
 
     @since %Qore 0.8.4 added the encoding parameter to specify the output encoding of the string
  */
-string blowfish_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv = defaultIV, *string[doc] encoding) {
+string blowfish_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv = DefaultIV, *string[doc] encoding) {
    CryptoHelper ch;
 
    if (ch.setSingleKey("BLOWFISH-DECRYPT-PARAM-ERROR", args, xsink, true)
@@ -368,7 +379,7 @@ my binary $bin = des_encrypt_cbc($data, $key);
     @throw DES-KEY-ERROR invalid key (too short)
     @throw ENCRYPT-ERROR processing error encrypting the data (should not normally happen)
  */
-binary des_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = defaultIV) {
+binary des_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = DefaultIV) {
    CryptoHelper ch;
 
    if (ch.setSingleKey("DES-ENCRYPT-PARAM-ERROR", args, xsink) 
@@ -395,7 +406,7 @@ my binary $bin = des_decrypt_cbc($data, $key);
     @throw DES-KEY-ERROR invalid key (too short)
     @throw DECRYPT-ERROR processing error decrypting the data (for example invalid data)
  */
-binary des_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = defaultIV) {
+binary des_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = DefaultIV) {
    CryptoHelper ch;
 
    if (ch.setSingleKey("DES-DECRYPT-PARAM-ERROR", args, xsink) 
@@ -425,7 +436,7 @@ my string $bin = des_decrypt_cbc_to_string($data, $key, NOTHING, "iso-8859-1");
 
     @since %Qore 0.8.4 added the encoding parameter to specify the output encoding of the string
  */
-string des_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv = defaultIV, *string[doc] encoding) {
+string des_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv = DefaultIV, *string[doc] encoding) {
    CryptoHelper ch;
 
    if (ch.setSingleKey("DES-DECRYPT-PARAM-ERROR", args, xsink, true) 
@@ -452,7 +463,7 @@ my binary $bin = des_ede_encrypt_cbc($data, $key);
     @throw DES-KEY-ERROR invalid key (too short)
     @throw ENCRYPT-ERROR processing error encrypting the data (should not normally happen)
  */
-binary des_ede_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = defaultIV) {
+binary des_ede_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = DefaultIV) {
    CryptoHelper ch;
 
    if (ch.setSingleKey("DES-ENCRYPT-PARAM-ERROR", args, xsink) 
@@ -479,7 +490,7 @@ my binary $bin = des_ede_decrypt_cbc($data, $key);
     @throw DES-KEY-ERROR invalid key (too short)
     @throw DECRYPT-ERROR processing error decrypting the data (for example invalid data)
  */
-binary des_ede_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = defaultIV) {
+binary des_ede_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = DefaultIV) {
    CryptoHelper ch;
 
    if (ch.setSingleKey("DES-DECRYPT-PARAM-ERROR", args, xsink) 
@@ -509,7 +520,7 @@ my string $bin = des_ede_decrypt_cbc_to_string($data, $key, NOTHING, "iso-8859-1
 
     @since %Qore 0.8.4 added the encoding parameter to specify the output encoding of the string
  */
-string des_ede_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv = defaultIV, *string[doc] encoding) {
+string des_ede_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv = DefaultIV, *string[doc] encoding) {
    CryptoHelper ch;
 
    if (ch.setSingleKey("DES-DECRYPT-PARAM-ERROR", args, xsink, true) 
@@ -536,7 +547,7 @@ my binary $bin = des_ede3_encrypt_cbc($data, $key);
     @throw DES-KEY-ERROR invalid key (too short)
     @throw ENCRYPT-ERROR processing error encrypting the data (should not normally happen)
  */
-binary des_ede3_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = defaultIV) {
+binary des_ede3_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = DefaultIV) {
    CryptoHelper ch;
 
    if (ch.setSingleKey("DES-ENCRYPT-PARAM-ERROR", args, xsink) 
@@ -563,7 +574,7 @@ my binary $bin = des_ede3_decrypt_cbc($data, $key);
     @throw DES-KEY-ERROR invalid key (too short)
     @throw DECRYPT-ERROR processing error decrypting the data (for example invalid data)
  */
-binary des_ede3_decrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = defaultIV) {
+binary des_ede3_decrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = DefaultIV) {
    CryptoHelper ch;
 
    if (ch.setSingleKey("DES-DECRYPT-PARAM-ERROR", args, xsink) 
@@ -593,7 +604,7 @@ my string $bin = des_ede3_decrypt_cbc_to_string($data, $key, NOTHING, "iso-8859-
 
     @since %Qore 0.8.4 added the encoding parameter to specify the output encoding of the string
  */
-string des_ede3_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv = defaultIV, *string[doc] encoding) {
+string des_ede3_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv = DefaultIV, *string[doc] encoding) {
    CryptoHelper ch;
 
    if (ch.setSingleKey("DES-DECRYPT-PARAM-ERROR", args, xsink, true) 
@@ -620,7 +631,7 @@ my binary $bin = desx_encrypt_cbc($data, $key);
     @throw DESX-KEY-ERROR invalid key (too short)
     @throw ENCRYPT-ERROR processing error encrypting the data (should not normally happen)
  */
-binary desx_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = defaultIV) {
+binary desx_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = DefaultIV) {
    CryptoHelper ch;
 
    if (ch.setSingleKey("DESX-ENCRYPT-PARAM-ERROR", args, xsink) 
@@ -647,7 +658,7 @@ my binary $bin = desx_decrypt_cbc($data, $key);
     @throw DESX-KEY-ERROR invalid key (too short)
     @throw DECRYPT-ERROR processing error decrypting the data (for example invalid data)
  */
-binary desx_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = defaultIV) {
+binary desx_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = DefaultIV) {
    CryptoHelper ch;
 
    if (ch.setSingleKey("DESX-DECRYPT-PARAM-ERROR", args, xsink) 
@@ -677,7 +688,7 @@ my string $str = desx_decrypt_cbc_to_string($data, $key, NOTHING, "iso-8859-1");
 
     @since %Qore 0.8.4 added the encoding parameter to specify the output encoding of the string
  */
-string desx_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv = defaultIV, *string[doc] encoding) {
+string desx_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv = DefaultIV, *string[doc] encoding) {
    CryptoHelper ch;
 
    if (ch.setSingleKey("DESX-DECRYPT-PARAM-ERROR", args, xsink, true)
@@ -703,7 +714,7 @@ my binary $bin = rc4_encrypt($data, $key);
     @throw RC4-ENCRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
     @throw ENCRYPT-ERROR processing error encrypting the data (should not normally happen)
  */
-binary rc4_encrypt(data[doc] data, data[doc] key, data[doc] iv = defaultIV) {
+binary rc4_encrypt(data[doc] data, data[doc] key, data[doc] iv = DefaultIV) {
    CryptoHelper ch;
 
    if (ch.setSingleKey("RC4-ENCRYPT-PARAM-ERROR", args, xsink)
@@ -728,7 +739,7 @@ my binary $bin = rc4_decrypt($data, $key);
     @throw RC4-DECRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
     @throw DECRYPT-ERROR processing error decrypting the data (for example invalid data)
  */
-binary rc4_decrypt(binary[doc] data, data[doc] key, data[doc] iv = defaultIV) {
+binary rc4_decrypt(binary[doc] data, data[doc] key, data[doc] iv = DefaultIV) {
    CryptoHelper ch;
 
    if (ch.setSingleKey("RC4-DECRYPT-PARAM-ERROR", args, xsink)
@@ -756,7 +767,7 @@ my string $str = rc4_decrypt_to_string($encrypted_data, $key, NOTHING, "iso-8859
 
     @since %Qore 0.8.4 added the encoding parameter to specify the output encoding of the string
  */
-string rc4_decrypt_to_string(binary[doc] data, data[doc] key, data[doc] iv = defaultIV, *string[doc] encoding) {
+string rc4_decrypt_to_string(binary[doc] data, data[doc] key, data[doc] iv = DefaultIV, *string[doc] encoding) {
    CryptoHelper ch;
 
    if (ch.setSingleKey("RC4-DECRYPT-PARAM-ERROR", args, xsink, true)
@@ -781,7 +792,7 @@ my binary $bin = rc2_encrypt_cbc($data, $key);
     @throw RC2-ENCRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
     @throw ENCRYPT-ERROR processing error encrypting the data (should not normally happen)
  */
-binary rc2_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = defaultIV) {
+binary rc2_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = DefaultIV) {
    CryptoHelper ch;
 
    if (ch.setSingleKey("RC2-ENCRYPT-PARAM-ERROR", args, xsink)
@@ -806,7 +817,7 @@ my binary $bin = rc2_decrypt_cbc($data, $key);
     @throw RC2-DECRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
     @throw DECRYPT-ERROR processing error decrypting the data (for example invalid data)
  */
-binary rc2_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = defaultIV) {
+binary rc2_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = DefaultIV) {
    CryptoHelper ch;
 
    if (ch.setSingleKey("RC2-DECRYPT-PARAM-ERROR", args, xsink)
@@ -834,7 +845,7 @@ my string $str = rc2_decrypt_cbc_to_string($data, $key);
 
     @since %Qore 0.8.4 added the encoding parameter to specify the output encoding of the string
  */
-string rc2_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv = defaultIV, *string[doc] encoding) {
+string rc2_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv = DefaultIV, *string[doc] encoding) {
    CryptoHelper ch;
 
    if (ch.setSingleKey("RC2-DECRYPT-PARAM-ERROR", args, xsink, true)
@@ -859,7 +870,7 @@ my binary $bin = cast5_encrypt_cbc($data, $key);
     @throw CAST5-ENCRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
     @throw ENCRYPT-ERROR processing error encrypting the data (should not normally happen)
  */
-binary cast5_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = defaultIV) {
+binary cast5_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = DefaultIV) {
    CryptoHelper ch;
 
    if (ch.setSingleKey("CAST5-ENCRYPT-PARAM-ERROR", args, xsink)
@@ -884,7 +895,7 @@ my binary $bin = cast5_decrypt_cbc($data, $key);
     @throw CAST5-DECRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
     @throw DECRYPT-ERROR processing error decrypting the data (for example invalid data)
  */
-binary cast5_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = defaultIV) {
+binary cast5_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = DefaultIV) {
    CryptoHelper ch;
 
    if (ch.setSingleKey("CAST5-DECRYPT-PARAM-ERROR", args, xsink)
@@ -912,7 +923,7 @@ my string $bin = cast5_decrypt_cbc_to_string($data, $key, NOTHING, "iso-8859-1")
 
     @since %Qore 0.8.4 added the encoding parameter to specify the output encoding of the string
  */
-string cast5_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv = defaultIV, *string[doc] encoding) {
+string cast5_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv = DefaultIV, *string[doc] encoding) {
    CryptoHelper ch;
 
    if (ch.setSingleKey("CAST5-DECRYPT-PARAM-ERROR", args, xsink, true)
@@ -940,7 +951,7 @@ my binary $bin = rc2_encrypt_cbc($data, $key);
     @throw RC5-ENCRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
     @throw ENCRYPT-ERROR processing error encrypting the data (should not normally happen)
  */
-binary rc5_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = defaultIV) {
+binary rc5_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = DefaultIV) {
 #ifndef OPENSSL_NO_RC5
    CryptoHelper ch;
 
@@ -973,7 +984,7 @@ my binary $bin = rc2_decrypt_cbc($data, $key);
     @throw RC5-DECRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
     @throw DECRYPT-ERROR processing error decrypting the data (for example invalid data)
  */
-binary rc5_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = defaultIV) {
+binary rc5_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = DefaultIV) {
 #ifndef OPENSSL_NO_RC5
    CryptoHelper ch;
 
@@ -1009,7 +1020,7 @@ my string $str = rc2_decrypt_cbc_to_string($data, $key, NOTHING, "iso-8859-1");
 
     @since %Qore 0.8.4 added the encoding parameter to specify the output encoding of the string
  */
-string rc5_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv = defaultIV, *string[doc] encoding) {
+string rc5_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv = DefaultIV, *string[doc] encoding) {
 #ifndef OPENSSL_NO_RC5
    CryptoHelper ch;
 
@@ -1148,7 +1159,25 @@ string SHA1(data[doc] data) {
    return dh.getString();
 }
 
-static AbstractQoreNode *f_SHA224(const QoreListNode *args, ExceptionSink *xsink) {
+//! Returns the SHA-224 message digest (a variant of <a href="http://en.wikipedia.org/wiki/SHA-2">SHA-2</a>) of the supplied argument as a hex string
+/** 
+    @par Availability
+    @ref Qore::HAVE_SHA224
+
+    @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
+
+    @return a hex string of the digest (ex: \c "ea09ae9cc6768c50fcee903ed054556e5bfc8347907f12598aa24193")
+
+    @par Example
+    @code
+my string $str = SHA224("hello"); # returns "ea09ae9cc6768c50fcee903ed054556e5bfc8347907f12598aa24193"
+    @endcode
+
+    @throw SHA224-DIGEST-ERROR error calculating digest (should not normally happen)
+
+    @see SHA224_bin()
+ */
+string SHA224(data[doc] data) {
 #if !defined(OPENSSL_NO_SHA256) && defined(HAVE_OPENSSL_SHA512)
    DigestHelper dh(args);
    if (dh.doDigest(SHA224_ERR, EVP_sha224(), xsink))
@@ -1161,7 +1190,25 @@ static AbstractQoreNode *f_SHA224(const QoreListNode *args, ExceptionSink *xsink
 #endif
 }
 
-static AbstractQoreNode *f_SHA256(const QoreListNode *args, ExceptionSink *xsink) {
+//! Returns the SHA-256 message digest (a variant of <a href="http://en.wikipedia.org/wiki/SHA-2">SHA-2</a>) of the supplied argument as a hex string
+/** 
+    @par Availability
+    @ref Qore::HAVE_SHA256
+
+    @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
+
+    @return a hex string of the digest (ex: \c "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824")
+
+    @par Example
+    @code
+my string $str = SHA256("hello"); # returns "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
+    @endcode
+
+    @throw SHA256-DIGEST-ERROR error calculating digest (should not normally happen)
+
+    @see SHA256_bin()
+ */
+string SHA256(data[doc] data) {
 #if !defined(OPENSSL_NO_SHA256) && defined(HAVE_OPENSSL_SHA512)
    DigestHelper dh(args);
    if (dh.doDigest(SHA256_ERR, EVP_sha256(), xsink))
@@ -1174,7 +1221,25 @@ static AbstractQoreNode *f_SHA256(const QoreListNode *args, ExceptionSink *xsink
 #endif
 }
 
-static AbstractQoreNode *f_SHA384(const QoreListNode *args, ExceptionSink *xsink) {
+//! Returns the SHA-384 message digest (a variant of <a href="http://en.wikipedia.org/wiki/SHA-2">SHA-2</a>) of the supplied argument as a hex string
+/** 
+    @par Availability
+    @ref Qore::HAVE_SHA384
+
+    @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
+
+    @return a hex string of the digest (ex: \c "59e1748777448c69de6b800d7a33bbfb9ff1b463e44354c3553bcdb9c666fa90125a3c79f90397bdf5f6a13de828684f")
+
+    @par Example
+    @code
+my string $str = SHA384("hello"); # returns "59e1748777448c69de6b800d7a33bbfb9ff1b463e44354c3553bcdb9c666fa90125a3c79f90397bdf5f6a13de828684f"
+    @endcode
+
+    @throw SHA384-DIGEST-ERROR error calculating digest (should not normally happen)
+
+    @see SHA384_bin()
+ */
+string SHA384(data[doc] data) {
 #if !defined(OPENSSL_NO_SHA512) && defined(HAVE_OPENSSL_SHA512)
    DigestHelper dh(args);
    if (dh.doDigest(SHA384_ERR, EVP_sha384(), xsink))
@@ -1187,7 +1252,25 @@ static AbstractQoreNode *f_SHA384(const QoreListNode *args, ExceptionSink *xsink
 #endif
 }
 
-static AbstractQoreNode *f_SHA512(const QoreListNode *args, ExceptionSink *xsink) {
+//! Returns the SHA-512 message digest (a variant of <a href="http://en.wikipedia.org/wiki/SHA-2">SHA-2</a>) of the supplied argument as a hex string
+/** 
+    @par Availability
+    @ref Qore::HAVE_SHA512
+
+    @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
+
+    @return a hex string of the digest (ex: \c "9b71d224bd62f3785d96d46ad3ea3d73319bfbc2890caadae2dff72519673ca72323c3d99ba5c11d7c7acc6e14b8c5da0c4663475c2e5c3adef46f73bcdec043")
+
+    @par Example
+    @code
+my string $str = SHA512("hello"); # returns "9b71d224bd62f3785d96d46ad3ea3d73319bfbc2890caadae2dff72519673ca72323c3d99ba5c11d7c7acc6e14b8c5da0c4663475c2e5c3adef46f73bcdec043"
+    @endcode
+
+    @throw SHA512-DIGEST-ERROR error calculating digest (should not normally happen)
+
+    @see SHA512_bin()
+ */
+string SHA512(data[doc] data) {
 #if !defined(OPENSSL_NO_SHA512) && defined(HAVE_OPENSSL_SHA512)
    DigestHelper dh(args);
    if (dh.doDigest(SHA512_ERR, EVP_sha512(), xsink))
@@ -1200,7 +1283,24 @@ static AbstractQoreNode *f_SHA512(const QoreListNode *args, ExceptionSink *xsink
 #endif
 }
 
-static AbstractQoreNode *f_DSS(const QoreListNode *args, ExceptionSink *xsink) {
+//! Returns the DSS message digest (based on SHA-0 and <a href="http://en.wikipedia.org/wiki/Digital_Signature_Algorithm">DSA</a>) of the supplied argument as a hex string
+/** 
+    @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
+
+    @return a hex string of the digest (ex: \c "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d")
+
+    @par Example
+    @code
+my string $str = DSS("hello"); # returns "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d"
+    @endcode
+
+    @throw DSS-DIGEST-ERROR error calculating digest (should not normally happen)
+
+    @see DSS_bin()
+
+    @note this digest algorithm is considered outdated and is included for backwards-compatibility
+ */
+string DSS(data[doc] data) {
    DigestHelper dh(args);
    if (dh.doDigest(DSS_ERR, EVP_dss(), xsink))
       return 0;
@@ -1208,7 +1308,24 @@ static AbstractQoreNode *f_DSS(const QoreListNode *args, ExceptionSink *xsink) {
    return dh.getString();
 }
 
-static AbstractQoreNode *f_DSS1(const QoreListNode *args, ExceptionSink *xsink) {
+//! Returns the DSS1 message digest (based on <a href="http://en.wikipedia.org/wiki/SHA-1">SHA1</a> and <a href="http://en.wikipedia.org/wiki/Digital_Signature_Algorithm">DSA</a>) of the supplied argument as a hex string
+/** 
+    @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
+
+    @return a hex string of the digest (ex: \c "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d")
+
+    @par Example
+    @code
+my string $str = DSS1("hello"); # returns "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d"
+    @endcode
+
+    @throw DSS1-DIGEST-ERROR error calculating digest (should not normally happen)
+
+    @see DSS1_bin()
+
+    @note this digest algorithm is considered outdated and is included for backwards-compatibility
+ */
+string DSS1(data[doc] data) {
    DigestHelper dh(args);
    if (dh.doDigest(DSS1_ERR, EVP_dss1(), xsink))
       return 0;
@@ -1216,7 +1333,25 @@ static AbstractQoreNode *f_DSS1(const QoreListNode *args, ExceptionSink *xsink) 
    return dh.getString();
 }
 
-static AbstractQoreNode *f_MDC2(const QoreListNode *args, ExceptionSink *xsink) {
+//! Returns the <a href="http://en.wikipedia.org/wiki/MDC2">MDC2 message digest</a> of the supplied argument as a hex string
+/** 
+    @par Availability
+    @ref Qore::HAVE_MDC2
+
+    @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
+
+    @return a hex string of the digest (ex: \c "4517036cf97b2407d6fe22aa5ab878a3")
+
+    @par Example
+    @code
+my string $str = MDC2("hello"); # returns "4517036cf97b2407d6fe22aa5ab878a3"
+    @endcode
+
+    @throw MDC2-DIGEST-ERROR error calculating digest (should not normally happen)
+
+    @see MDC2_bin()
+ */
+string MDC2(data[doc] data) {
 #ifndef OPENSSL_NO_MDC2
    DigestHelper dh(args);
    if (dh.doDigest(MDC2_ERR, EVP_mdc2(), xsink))
@@ -1229,7 +1364,22 @@ static AbstractQoreNode *f_MDC2(const QoreListNode *args, ExceptionSink *xsink) 
 #endif
 }
 
-static AbstractQoreNode *f_RIPEMD160(const QoreListNode *args, ExceptionSink *xsink) {
+//! Returns the <a href="http://en.wikipedia.org/wiki/RIPEMD">RIPEMD message digest</a> of the supplied argument as a hex string
+/** 
+    @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
+
+    @return a hex string of the digest (ex: \c "108f07b8382412612c048d07d13f814118445acd")
+
+    @par Example
+    @code
+my string $str = RIPEMD160("hello"); # returns "108f07b8382412612c048d07d13f814118445acd"
+    @endcode
+
+    @throw RIPEMD160-DIGEST-ERROR error calculating digest (should not normally happen)
+
+    @see RIPEMD160_bin()
+ */
+string RIPEMD160(data[doc] data) {
    DigestHelper dh(args);
    if (dh.doDigest(RIPEMD160_ERR, EVP_ripemd160(), xsink))
       return 0;
@@ -1237,7 +1387,25 @@ static AbstractQoreNode *f_RIPEMD160(const QoreListNode *args, ExceptionSink *xs
    return dh.getString();
 }
 
-static AbstractQoreNode *f_MD2_bin(const QoreListNode *args, ExceptionSink *xsink) {
+//! Returns the <a href="http://en.wikipedia.org/wiki/MD2_(cryptography)">MD2 message digest</a> of the supplied argument as binary object
+/** 
+    @par Availability
+    @ref Qore::HAVE_MD2
+
+    @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
+
+    @return a binary object of the digest
+
+    @par Example
+    @code
+my binary $bin = MD2_bin("hello");
+    @endcode
+
+    @throw MD2-DIGEST-ERROR error calculating digest (should not normally happen)
+
+    @see MD2()
+ */
+binary MD2_bin(data[doc] data) {
 #if !defined(OPENSSL_NO_MD2) && !defined(NO_MD2)
    DigestHelper dh(args);
    if (dh.doDigest(MD2_ERR, EVP_md2(), xsink))
@@ -1250,7 +1418,22 @@ static AbstractQoreNode *f_MD2_bin(const QoreListNode *args, ExceptionSink *xsin
 #endif
 }
 
-static AbstractQoreNode *f_MD4_bin(const QoreListNode *args, ExceptionSink *xsink) {
+//! Returns the <a href="http://en.wikipedia.org/wiki/MD4">MD4 message digest</a> of the supplied argument as a binary object
+/** 
+    @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
+
+    @return a binary object of the digest
+
+    @par Example
+    @code
+my binary $bin = MD4_bin("hello");
+    @endcode
+
+    @throw MD4-DIGEST-ERROR error calculating digest (should not normally happen)
+
+    @see MD4()
+ */
+binary MD4_bin(data[doc] data) {
    DigestHelper dh(args);
    if (dh.doDigest(MD4_ERR, EVP_md4(), xsink))
       return 0;
@@ -1258,7 +1441,22 @@ static AbstractQoreNode *f_MD4_bin(const QoreListNode *args, ExceptionSink *xsin
    return dh.getBinary();
 }
 
-static AbstractQoreNode *f_MD5_bin(const QoreListNode *args, ExceptionSink *xsink) {
+//! Returns the <a href="http://en.wikipedia.org/wiki/MD5">MD5 message digest</a> of the supplied argument as a binary object
+/** 
+    @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
+
+    @return a binary object of the digest
+
+    @par Example
+    @code
+my binary $bin = MD5_bin("hello");
+    @endcode
+
+    @throw MD5-DIGEST-ERROR error calculating digest (should not normally happen)
+
+    @see MD5()
+ */
+binary MD5_bin(data[doc] data) {
    DigestHelper dh(args);
    if (dh.doDigest(MD5_ERR, EVP_md5(), xsink))
       return 0;
@@ -1266,7 +1464,23 @@ static AbstractQoreNode *f_MD5_bin(const QoreListNode *args, ExceptionSink *xsin
    return dh.getBinary();
 }
 
-static AbstractQoreNode *f_SHA_bin(const QoreListNode *args, ExceptionSink *xsink) {
+//! Returns the SHA (outdated SHA-0) message digest of the supplied argument as a binary object
+/** This hash algorithm was withdrawn after publishing and is considered to have serious flaws.
+
+    @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
+
+    @return a binary object of the digest
+
+    @par Example
+    @code
+my binary $bin = SHA_bin("hello");
+    @endcode
+
+    @throw SHA-DIGEST-ERROR error calculating digest (should not normally happen)
+
+    @see SHA()
+ */
+binary SHA_bin(data[doc] data) {
    DigestHelper dh(args);
    if (dh.doDigest(SHA_ERR, EVP_sha(), xsink))
       return 0;
@@ -1274,7 +1488,22 @@ static AbstractQoreNode *f_SHA_bin(const QoreListNode *args, ExceptionSink *xsin
    return dh.getBinary();
 }
 
-static AbstractQoreNode *f_SHA1_bin(const QoreListNode *args, ExceptionSink *xsink) {
+//! Returns the <a href="http://en.wikipedia.org/wiki/SHA-1">SHA1</a> message digest of the supplied argument as a binary object
+/** 
+    @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
+
+    @return a binary object of the digest
+
+    @par Example
+    @code
+my binary $bin = SHA1_bin("hello");
+    @endcode
+
+    @throw SHA1-DIGEST-ERROR error calculating digest (should not normally happen)
+
+    @see SHA1()
+ */
+binary SHA1_bin(data[doc] data) {
    DigestHelper dh(args);
    if (dh.doDigest(SHA1_ERR, EVP_sha1(), xsink))
       return 0;
@@ -1282,7 +1511,25 @@ static AbstractQoreNode *f_SHA1_bin(const QoreListNode *args, ExceptionSink *xsi
    return dh.getBinary();
 }
 
-static AbstractQoreNode *f_SHA224_bin(const QoreListNode *args, ExceptionSink *xsink) {
+//! Returns the SHA-224 message digest (a variant of <a href="http://en.wikipedia.org/wiki/SHA-2">SHA-2</a>) of the supplied argument as a binary object
+/** 
+    @par Availability
+    @ref Qore::HAVE_SSH224
+
+    @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
+
+    @return a binary object of the digest
+
+    @par Example
+    @code
+my binary $bin = SHA224_bin("hello");
+    @endcode
+
+    @throw SHA224-DIGEST-ERROR error calculating digest (should not normally happen)
+
+    @see SHA224()
+ */
+binary SHA224_bin(data[doc] data) {
 #if !defined(OPENSSL_NO_SHA256) && defined(HAVE_OPENSSL_SHA512)
    DigestHelper dh(args);
    if (dh.doDigest(SHA224_ERR, EVP_sha224(), xsink))
@@ -1295,7 +1542,25 @@ static AbstractQoreNode *f_SHA224_bin(const QoreListNode *args, ExceptionSink *x
 #endif
 }
 
-static AbstractQoreNode *f_SHA256_bin(const QoreListNode *args, ExceptionSink *xsink) {
+//! Returns the SHA-256 message digest (a variant of <a href="http://en.wikipedia.org/wiki/SHA-2">SHA-2</a>) of the supplied argument as a binary object
+/** 
+    @par Availability
+    @ref Qore::HAVE_SSH256
+
+    @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
+
+    @return a binary object of the digest
+
+    @par Example
+    @code
+my binary $bin = SHA256_bin("hello");
+    @endcode
+
+    @throw SHA256-DIGEST-ERROR error calculating digest (should not normally happen)
+
+    @see SHA256()
+ */
+binary SHA256_bin(data[doc] data) {
 #if !defined(OPENSSL_NO_SHA256) && defined(HAVE_OPENSSL_SHA512)
    DigestHelper dh(args);
    if (dh.doDigest(SHA256_ERR, EVP_sha256(), xsink))
@@ -1308,7 +1573,25 @@ static AbstractQoreNode *f_SHA256_bin(const QoreListNode *args, ExceptionSink *x
 #endif
 }
 
-static AbstractQoreNode *f_SHA384_bin(const QoreListNode *args, ExceptionSink *xsink) {
+//! Returns the SHA-384 message digest (a variant of <a href="http://en.wikipedia.org/wiki/SHA-2">SHA-2</a>) of the supplied argument as a binary object
+/** 
+    @par Availability
+    @ref Qore::HAVE_SSH384
+
+    @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
+
+    @return a binary object of the digest
+
+    @par Example
+    @code
+my binary $bin = SHA384_bin("hello");
+    @endcode
+
+    @throw SHA384-DIGEST-ERROR error calculating digest (should not normally happen)
+
+    @see SHA384()
+ */
+binary SHA384_bin(data[doc] data) {
 #if !defined(OPENSSL_NO_SHA512) && defined(HAVE_OPENSSL_SHA512)
    DigestHelper dh(args);
    if (dh.doDigest(SHA384_ERR, EVP_sha384(), xsink))
@@ -1321,7 +1604,25 @@ static AbstractQoreNode *f_SHA384_bin(const QoreListNode *args, ExceptionSink *x
 #endif
 }
 
-static AbstractQoreNode *f_SHA512_bin(const QoreListNode *args, ExceptionSink *xsink) {
+//! Returns the SHA-512 message digest (a variant of <a href="http://en.wikipedia.org/wiki/SHA-2">SHA-2</a>) of the supplied argument as a binary object
+/** 
+    @par Availability
+    @ref Qore::HAVE_SSH512
+
+    @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
+
+    @return a binary object of the digest
+
+    @par Example
+    @code
+my binary $bin = SHA512_bin("hello");
+    @endcode
+
+    @throw SHA512-DIGEST-ERROR error calculating digest (should not normally happen)
+
+    @see SHA512()
+ */
+binary SHA512_bin(data[doc] data) {
 #if !defined(OPENSSL_NO_SHA512) && defined(HAVE_OPENSSL_SHA512)
    DigestHelper dh(args);
    if (dh.doDigest(SHA512_ERR, EVP_sha512(), xsink))
@@ -1334,7 +1635,24 @@ static AbstractQoreNode *f_SHA512_bin(const QoreListNode *args, ExceptionSink *x
 #endif
 }
 
-static AbstractQoreNode *f_DSS_bin(const QoreListNode *args, ExceptionSink *xsink) {
+//! Returns the DSS message digest (based on SHA-0 and <a href="http://en.wikipedia.org/wiki/Digital_Signature_Algorithm">DSA</a>) of the supplied argument as a binary object
+/** 
+    @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
+
+    @return a binary object of the digest
+
+    @par Example
+    @code
+my binary $bin = DSS_bin("hello");
+    @endcode
+
+    @throw DSS-DIGEST-ERROR error calculating digest (should not normally happen)
+
+    @see DSS()
+
+    @note this digest algorithm is considered outdated and is included for backwards-compatibility
+ */
+binary DSS_bin(data[doc] data) {
    DigestHelper dh(args);
    if (dh.doDigest(DSS_ERR, EVP_dss(), xsink))
       return 0;
@@ -1342,7 +1660,24 @@ static AbstractQoreNode *f_DSS_bin(const QoreListNode *args, ExceptionSink *xsin
    return dh.getBinary();
 }
 
-static AbstractQoreNode *f_DSS1_bin(const QoreListNode *args, ExceptionSink *xsink) {
+//! Returns the DSS1 message digest (based on SHA-0 and <a href="http://en.wikipedia.org/wiki/Digital_Signature_Algorithm">DSA</a>) of the supplied argument as a binary object
+/** 
+    @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
+
+    @return a binary object of the digest
+
+    @par Example
+    @code
+my binary $bin = DSS1_bin("hello");
+    @endcode
+
+    @throw DSS1-DIGEST-ERROR error calculating digest (should not normally happen)
+
+    @see DSS1()
+
+    @note this digest algorithm is considered outdated and is included for backwards-compatibility
+ */
+binary DSS1_bin(data[doc] data) {
    DigestHelper dh(args);
    if (dh.doDigest(DSS1_ERR, EVP_dss1(), xsink))
       return 0;
@@ -1350,7 +1685,25 @@ static AbstractQoreNode *f_DSS1_bin(const QoreListNode *args, ExceptionSink *xsi
    return dh.getBinary();
 }
 
-static AbstractQoreNode *f_MDC2_bin(const QoreListNode *args, ExceptionSink *xsink) {
+//! Returns the <a href="http://en.wikipedia.org/wiki/MDC2">MDC2 message digest</a> of the supplied argument as a binary object
+/** 
+    @par Availability
+    @ref Qore::HAVE_MDC2
+
+    @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
+
+    @return a binary object of the digest
+
+    @par Example
+    @code
+my binary $bin = MDC2_bin("hello");
+    @endcode
+
+    @throw MDC2-DIGEST-ERROR error calculating digest (should not normally happen)
+
+    @see MDC2_bin()
+ */
+binary MDC2_bin(data[doc] data) {
 #ifndef OPENSSL_NO_MDC2
    DigestHelper dh(args);
    if (dh.doDigest(MDC2_ERR, EVP_mdc2(), xsink))
@@ -1363,7 +1716,22 @@ static AbstractQoreNode *f_MDC2_bin(const QoreListNode *args, ExceptionSink *xsi
 #endif
 }
 
-static AbstractQoreNode *f_RIPEMD160_bin(const QoreListNode *args, ExceptionSink *xsink) {
+//! Returns the <a href="http://en.wikipedia.org/wiki/RIPEMD">RIPEMD message digest</a> of the supplied argument as a binary object
+/** 
+    @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
+
+    @return a binary object of the digest
+
+    @par Example
+    @code
+my binary $bin = RIPEMD160_bin("hello");
+    @endcode
+
+    @throw RIPEMD160-DIGEST-ERROR error calculating digest (should not normally happen)
+
+    @see RIPEMD160()
+ */
+binary RIPEMD160_binary(data[doc] data) {
    DigestHelper dh(args);
    if (dh.doDigest(RIPEMD160_ERR, EVP_ripemd160(), xsink))
       return 0;
@@ -1371,86 +1739,17 @@ static AbstractQoreNode *f_RIPEMD160_bin(const QoreListNode *args, ExceptionSink
    return dh.getBinary();
 }
 
-static AbstractQoreNode *f_des_random_key(const QoreListNode *args, ExceptionSink *xsink) {
+//! Returns a binary object of a random key for the <a href="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES algorithm</a>
+/** @return a binary object of a random key for the <a href="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES algorithm</a>
+
+    @par Example
+    @code
+my binary $bin = des_random_key();
+    @endcode
+ */
+binary des_random_key() [flags=QC_CONSTANT] {
    DES_cblock *db = (DES_cblock *)malloc(sizeof(DES_cblock));
    DES_random_key(db);
    return new BinaryNode(db, sizeof(DES_cblock));
 }
 //@}
-
-void init_crypto_functions() {
-   // create default argument for the initialization vector
-   SimpleRefHolder<BinaryNode> defaultIV(new BinaryNode);
-   defaultIV->append(def_iv, 8);
-   
-   builtinFunctions.add2("blowfish_encrypt_cbc", f_blowfish_encrypt_cbc, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo, 3, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, defaultIV->refSelf());
-   builtinFunctions.add2("blowfish_decrypt_cbc", f_blowfish_decrypt_cbc, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo, 3, binaryTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, defaultIV->refSelf());
-   builtinFunctions.add2("blowfish_decrypt_cbc_to_string", f_blowfish_decrypt_cbc_to_string, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 3, binaryTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, defaultIV->refSelf());
-
-   builtinFunctions.add2("des_encrypt_cbc", f_des_encrypt_cbc, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo, 3, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, defaultIV->refSelf());
-   builtinFunctions.add2("des_decrypt_cbc", f_des_decrypt_cbc, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo, 3, binaryTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, defaultIV->refSelf());
-   builtinFunctions.add2("des_decrypt_cbc_to_string", f_des_decrypt_cbc_to_string, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 3, binaryTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, defaultIV->refSelf());
-
-   builtinFunctions.add2("des_ede_encrypt_cbc", f_des_ede_encrypt_cbc, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo, 3, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, defaultIV->refSelf());
-   builtinFunctions.add2("des_ede_decrypt_cbc", f_des_ede_decrypt_cbc, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo, 3, binaryTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, defaultIV->refSelf());
-   builtinFunctions.add2("des_ede_decrypt_cbc_to_string", f_des_ede_decrypt_cbc_to_string, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 3, binaryTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, defaultIV->refSelf());
-
-   builtinFunctions.add2("des_ede3_encrypt_cbc", f_des_ede3_encrypt_cbc, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo, 3, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, defaultIV->refSelf());
-   builtinFunctions.add2("des_ede3_decrypt_cbc", f_des_ede3_decrypt_cbc, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo, 3, binaryTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, defaultIV->refSelf());
-   builtinFunctions.add2("des_ede3_decrypt_cbc_to_string", f_des_ede3_decrypt_cbc_to_string, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 3, binaryTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, defaultIV->refSelf());
-
-   builtinFunctions.add2("desx_encrypt_cbc", f_desx_encrypt_cbc, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo, 3, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, defaultIV->refSelf());
-   builtinFunctions.add2("desx_decrypt_cbc", f_desx_decrypt_cbc, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo, 3, binaryTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, defaultIV->refSelf());
-   builtinFunctions.add2("desx_decrypt_cbc_to_string", f_desx_decrypt_cbc_to_string, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 3, binaryTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, defaultIV->refSelf());
-
-   builtinFunctions.add2("rc4_encrypt", f_rc4_encrypt, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo, 3, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, defaultIV->refSelf());
-   builtinFunctions.add2("rc4_decrypt", f_rc4_decrypt, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo, 3, binaryTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, defaultIV->refSelf());
-   builtinFunctions.add2("rc4_decrypt_to_string", f_rc4_decrypt_to_string, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 3, binaryTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, defaultIV->refSelf());
-
-   builtinFunctions.add2("rc2_encrypt_cbc", f_rc2_encrypt_cbc, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo, 3, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, defaultIV->refSelf());
-   builtinFunctions.add2("rc2_decrypt_cbc", f_rc2_decrypt_cbc, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo, 3, binaryTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, defaultIV->refSelf());
-   builtinFunctions.add2("rc2_decrypt_cbc_to_string", f_rc2_decrypt_cbc_to_string, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 3, binaryTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, defaultIV->refSelf());
-
-   builtinFunctions.add2("cast5_encrypt_cbc", f_cast5_encrypt_cbc, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo, 3, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, defaultIV->refSelf());
-   builtinFunctions.add2("cast5_decrypt_cbc", f_cast5_decrypt_cbc, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo, 3, binaryTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, defaultIV->refSelf());
-   builtinFunctions.add2("cast5_decrypt_cbc_to_string", f_cast5_decrypt_cbc_to_string, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 3, binaryTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, defaultIV->refSelf());
-
-   builtinFunctions.add2("rc5_encrypt_cbc", f_rc5_encrypt_cbc, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo, 3, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, defaultIV->refSelf());
-   builtinFunctions.add2("rc5_decrypt_cbc", f_rc5_decrypt_cbc, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo, 3, binaryTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, defaultIV->refSelf());
-   builtinFunctions.add2("rc5_decrypt_cbc_to_string", f_rc5_decrypt_cbc_to_string, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 3, binaryTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, QORE_PARAM_NO_ARG, dataTypeInfo, defaultIV->refSelf());
-
-   // digest functions
-   builtinFunctions.add2("MD2",           f_MD2, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 1, dataTypeInfo, QORE_PARAM_NO_ARG);
-   builtinFunctions.add2("MD2_bin",       f_MD2_bin, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo, 1, dataTypeInfo, QORE_PARAM_NO_ARG);
-   builtinFunctions.add2("MD4",           f_MD4, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 1, dataTypeInfo, QORE_PARAM_NO_ARG);
-   builtinFunctions.add2("MD4_bin",       f_MD4_bin, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo, 1, dataTypeInfo, QORE_PARAM_NO_ARG);
-   builtinFunctions.add2("MD5",           f_MD5, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 1, dataTypeInfo, QORE_PARAM_NO_ARG);
-   builtinFunctions.add2("MD5_bin",       f_MD5_bin, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo, 1, dataTypeInfo, QORE_PARAM_NO_ARG);
-   builtinFunctions.add2("SHA",           f_SHA, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 1, dataTypeInfo, QORE_PARAM_NO_ARG);
-   builtinFunctions.add2("SHA_bin",       f_SHA_bin, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo, 1, dataTypeInfo, QORE_PARAM_NO_ARG);
-   builtinFunctions.add2("SHA1",          f_SHA1, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 1, dataTypeInfo, QORE_PARAM_NO_ARG);
-   builtinFunctions.add2("SHA1_bin",      f_SHA1_bin, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo, 1, dataTypeInfo, QORE_PARAM_NO_ARG);
-
-   builtinFunctions.add2("SHA224",        f_SHA224, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 1, dataTypeInfo, QORE_PARAM_NO_ARG);
-   builtinFunctions.add2("SHA224_bin",    f_SHA224_bin, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo, 1, dataTypeInfo, QORE_PARAM_NO_ARG);
-   builtinFunctions.add2("SHA256",        f_SHA256, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 1, dataTypeInfo, QORE_PARAM_NO_ARG);
-   builtinFunctions.add2("SHA256_bin",    f_SHA256_bin, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo, 1, dataTypeInfo, QORE_PARAM_NO_ARG);
-   builtinFunctions.add2("SHA384",        f_SHA384, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 1, dataTypeInfo, QORE_PARAM_NO_ARG);
-   builtinFunctions.add2("SHA384_bin",    f_SHA384_bin, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo, 1, dataTypeInfo, QORE_PARAM_NO_ARG);
-   builtinFunctions.add2("SHA512",        f_SHA512, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 1, dataTypeInfo, QORE_PARAM_NO_ARG);
-   builtinFunctions.add2("SHA512_bin",    f_SHA512_bin, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo, 1, dataTypeInfo, QORE_PARAM_NO_ARG);
-
-   builtinFunctions.add2("DSS",           f_DSS, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 1, dataTypeInfo, QORE_PARAM_NO_ARG);
-   builtinFunctions.add2("DSS_bin",       f_DSS_bin, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo, 1, dataTypeInfo, QORE_PARAM_NO_ARG);
-   builtinFunctions.add2("DSS1",          f_DSS1, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 1, dataTypeInfo, QORE_PARAM_NO_ARG);
-   builtinFunctions.add2("DSS1_bin",      f_DSS1_bin, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo, 1, dataTypeInfo, QORE_PARAM_NO_ARG);
-
-   builtinFunctions.add2("MDC2",          f_MDC2, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 1, dataTypeInfo, QORE_PARAM_NO_ARG);
-   builtinFunctions.add2("MDC2_bin",      f_MDC2_bin, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo, 1, dataTypeInfo, QORE_PARAM_NO_ARG);
-
-   builtinFunctions.add2("RIPEMD160",     f_RIPEMD160, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 1, dataTypeInfo, QORE_PARAM_NO_ARG);
-   builtinFunctions.add2("RIPEMD160_bin", f_RIPEMD160_bin, QC_NO_FLAGS, QDOM_DEFAULT, binaryTypeInfo, 1, dataTypeInfo, QORE_PARAM_NO_ARG);
-
-   // other functions
-   builtinFunctions.add2("des_random_key", f_des_random_key, QC_CONSTANT, QDOM_DEFAULT, binaryTypeInfo);
-}

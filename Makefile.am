@@ -38,7 +38,8 @@ LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
 	lib/QC_SSLPrivateKey.qpp \
 	lib/ql_misc.qpp \
 	lib/ql_compression.qpp \
-	lib/ql_thread.qpp
+	lib/ql_thread.qpp \
+	lib/ql_crypto.qpp
 
 LIB_DOXYFILES = \
 	doxygen/lib/Doxyfile \

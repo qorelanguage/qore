@@ -83,6 +83,9 @@ static struct qpp_opts {
 // program name
 std::string pn;
 
+// extra c++ initialization string
+std::string initcode;
+
 // code attribute type
 typedef unsigned int attr_t;
 
@@ -90,6 +93,9 @@ typedef std::vector<std::string> strlist_t;
 typedef std::map<std::string, std::string> strmap_t;
 typedef std::map<std::string, attr_t> amap_t;
 typedef std::set<std::string> strset_t;
+
+// for qppval values
+strmap_t qppval;
 
 // for tracking enumerated variants
 typedef std::map<std::string, unsigned> vmap_t;
@@ -641,17 +647,28 @@ int read_until_close(const char* fileName, unsigned& lineNumber, std::string& st
    return 0;
 }
 
+static void add_init_code(FILE* fp) {
+   if (initcode.empty())
+      return;
+
+   fprintf(fp, "\n   // initialization code added by qppinit\n   %s", initcode.c_str());
+   initcode.clear();
+}
+
 #define T_INT    0
 #define T_FLOAT  1
 #define T_STRING 2
 #define T_HASH   3
-#define T_OTHER  4
+#define T_BIN    4
+#define T_OTHER  5
 static int get_val_type(const std::string &str) {
    if (!str.empty()) {
       if ((str[0] == '"' && str[str.size() - 1] == '"') || (str[0] == '\'' && str[str.size() - 1] == '\''))
          return T_STRING;
       if (str[0] == '(' && str[str.size() - 1] == ')')
          return T_HASH;
+      if (str[0] == '<' && str[str.size() - 1] == '>')
+         return T_BIN;
    }
 
    bool pint = false,  // has integers
@@ -685,11 +702,13 @@ static int get_val_type(const std::string &str) {
    return T_OTHER;
 }
 
-static int get_qore_value(const std::string &qv, std::string &v, const char *cname = 0, bool *hash = 0) {
-   strmap_t::iterator i = valmap.find(qv);
-   if (i != valmap.end()) {
-      v = i->second;
-      return 0;
+static int get_qore_value(const std::string &qv, std::string &v, const char *cname = 0, const char** prefix = 0) {
+   {
+      strmap_t::iterator i = valmap.find(qv);
+      if (i != valmap.end()) {
+         v = i->second;
+         return 0;
+      }
    }
    
    int t = get_val_type(qv);
@@ -712,13 +731,40 @@ static int get_qore_value(const std::string &qv, std::string &v, const char *cna
          v += ")";
          return 0;
       }
+      case T_BIN: {
+         if (!cname) {
+            error("cannot create a hash for a non-constant value\n");
+            return -1;
+         }
+
+         assert(prefix);
+         (*prefix) = "bin";
+
+         v = "BinaryNode* bin_";
+         v += cname;
+         v += " = new BinaryNode;\n   bin_";
+         v += cname;
+         v += "->append(\"";
+
+         for (unsigned i = 1; i < qv.size() - 1; ++i) {
+            v += "\\x";
+            v += qv[i];
+            v += qv[++i];
+         }
+         v += "\", ";
+         char buf[20];
+         sprintf(buf, "%ld", qv.size() / 2 - 1);
+         v += buf;
+         v += ");\n";
+         return 0;
+      }
       case T_HASH: {
          if (!cname) {
             error("cannot create a hash for a non-constant value\n");
             return -1;
          }
-         assert(hash);
-         *hash = true;
+         assert(prefix);
+         (*prefix) = "hash";
 
          v = "QoreHashNode* hash_";
          v += cname;
@@ -770,6 +816,15 @@ static int get_qore_value(const std::string &qv, std::string &v, const char *cna
          return 0;
       }
    }
+
+   {
+      strmap_t::iterator i = qppval.find(qv);
+      if (i != qppval.end()) {
+         v = i->second;
+         return 0;
+      }
+   }
+
    error("could not match qore value '%s' to a c++ value\n", qv.c_str());
    return -1;
 }
@@ -861,11 +916,11 @@ public:
 
    int serializeCppBinding(FILE *fp) const {
       std::string qv;
-      bool hash = false;
-      if (get_qore_value(value, qv, name.c_str(), &hash))
+      const char* prefix = 0;
+      if (get_qore_value(value, qv, name.c_str(), &prefix))
          return -1;
-      if (hash)
-         fprintf(fp, "   %s\n   qorens.addConstant(\"%s\", hash_%s);\n", qv.c_str(), name.c_str(), name.c_str());
+      if (prefix)
+         fprintf(fp, "   %s\n   qorens.addConstant(\"%s\", %s_%s);\n", qv.c_str(), name.c_str(), prefix, name.c_str());
       else
          fprintf(fp, "   qorens.addConstant(\"%s\", %s);\n", name.c_str(), qv.c_str());
       return 0;
@@ -1639,6 +1694,8 @@ public:
       // now serialize function bindings
       fprintf(fp, "\nvoid init_%s_functions(QoreNamespace& qorens) {\n", rootName);
 
+      add_init_code(fp);
+
       for (unsigned i = 0; i < grouplist.size(); ++i)
          if (grouplist[i]->serializeCppFunctionBindings(fp))
             return -1;
@@ -2172,6 +2229,9 @@ public:
          fprintf(fp, "\n   // set parent class\n   assert(QC_%s);\n   QC_%s->addBuiltinVirtualBaseClass(QC_%s);\n", vp.c_str(), UC.c_str(), vp.c_str());
       }
 
+
+      add_init_code(fp);
+
       // set system constructor if any
       if (!scons.empty())
          fprintf(fp, "\n   // set system constructor\n   QC_%s->setSystemConstructor(%s);\n", UC.c_str(), scons.c_str());
@@ -2311,6 +2371,40 @@ protected:
          }
 
          if (!str.compare(0, 3, "//!")) {
+            if (!str.compare(0, 14, "//! @qppinit: ")) {
+               str.erase(0, 14);
+               log(LL_DEBUG, "got qppinit: %s", str.c_str());
+               
+               initcode += str;
+               continue;
+            }
+
+            if (!str.compare(0, 13, "//! @qppval: ")) {
+               str.erase(0, 13);
+
+               size_t i = str.find('=');
+               if (i == std::string::npos) {
+                  error("%s:%d: qppval has no '=' sign for key assignment: %s", fileName, lineNumber, str.c_str());
+                  rc = -1;
+                  break;
+               }
+               std::string key(str, 0, i);
+               trim(key);
+               std::string val(str, i + 1);
+               trim(val);
+
+               log(LL_DEBUG, "got qppval: '%s' = '%s'\n", key.c_str(), val.c_str());
+
+               if (qppval.find(key) != qppval.end()) {
+                  error("%s:%d: qppval '%s' given twice\n", fileName, lineNumber, key.c_str());
+                  rc = -1;
+                  break;
+               }
+
+               qppval[key] = val;
+               continue;
+            }
+
             if (get_dox_comment(fileName, lineNumber, str, fp)) {
                rc = -1;
                break;
@@ -2636,6 +2730,9 @@ void init() {
 
    tmap["reference"] = "referenceTypeInfo";
    tmap["*reference"] = "anyTypeInfo";
+
+   tmap["data"] = "dataTypeInfo";
+   tmap["*data"] = "dataOrNothingTypeInfo";
 
    // initialize qore value to c++ value map
    valmap["0"] = "zero()";

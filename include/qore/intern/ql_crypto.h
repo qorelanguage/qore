@@ -27,6 +27,6 @@
 
 #define _QORE_QL_CRYPTO_H
 
-DLLLOCAL void init_crypto_functions();
+DLLLOCAL void init_crypto_functions(QoreNamespace& ns);
 
 #endif // _QORE_QL_CRYPTO_H
