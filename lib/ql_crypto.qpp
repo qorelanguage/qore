@@ -282,7 +282,24 @@ const DefaultIV = <0000000000000000>;
 //@}
 
 /** @defgroup cryptographic_functions Crytographic Functions
-    Cryptographic functions
+    Qore's cryptography support is provided by the OpenSSL library. Each of the encryption and decryption functions in this section accept an optional initialization vector, which is data used as initial input for the first block in chained encryption algorithms. Subsequent blocks take input from the last block encrypted/decrypted. If an initialization vector is not supplied, a default value of 8 zero bytes will be used (see @ref Qore::DefaultIV).
+
+    Some functions require fixed-length keys, and some allow the use of variable-length keys. For functions requiring fixed-length keys any excess bytes are ignored. The same applies to initialization vector arguments.
+
+    The following is an example of a function that uses \c /dev/random on UNIX to read in a random key for use with encryption functions:
+
+    @code
+# read a key from /dev/random and return the key
+binary sub get_key(int $size) {
+    # throw an exception if an invalid key size was passed
+    if (!$size || $size < 0)
+        throw "GET-KEY-ERROR", sprintf("invalid size = %n", $size);
+    my File $f();
+    # File::open2() will throw an exception if /dev/random cannot be opened for reading
+    $f.open2("/dev/random");
+    return $f.readBinary($size);
+}
+    @endcode
  */
 //@{
 //! Encrypts data using the <a href="http://en.wikipedia.org/wiki/Cipher_block_chaining#Cipher-block_chaining_.28CBC.29">Cipher Block Chaining</a> function for the <a href="http://www.counterpane.com/blowfish.html">blowfish algorithm</a>

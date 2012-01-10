@@ -660,7 +660,8 @@ static void add_init_code(FILE* fp) {
 #define T_STRING 2
 #define T_HASH   3
 #define T_BIN    4
-#define T_OTHER  5
+#define T_FUNC   5
+#define T_OTHER  6
 static int get_val_type(const std::string &str) {
    if (!str.empty()) {
       if ((str[0] == '"' && str[str.size() - 1] == '"') || (str[0] == '\'' && str[str.size() - 1] == '\''))
