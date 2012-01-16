@@ -261,7 +261,10 @@ if test "$enable_64bit" = "yes"; then
       *linux*)	if test "$GXX" = "yes"; then
 		   CXXFLAGS="$CXXFLAGS -m64"
 		fi
-		LIBSUFFIX=64
+		# only set LIBSUFFIX=64 if /usr/lib64 exists
+		if test -d /usr/lib64; then
+		   LIBSUFFIX=64
+                fi
 		AC_SUBST(LIBSUFFIX)
 		;;
       *hpux*)	if test "$host_cpu" = "ia64"; then
@@ -304,8 +307,6 @@ if test "$enable_64bit" = "yes"; then
 		fi
 		;;
    esac
-   SYBLIBSUFFIX=64
-   RVLIBSUFFIX=64
    bits=64
 else
    case "${host_os}" in
