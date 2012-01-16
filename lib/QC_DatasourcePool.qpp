@@ -70,7 +70,7 @@ qclass DatasourcePool [dom=DATABASE; arg=DatasourcePool* ds; ns=SQL];
     @param max The maximum number of connections in the pool (not more than this number of connections will be opened)
     @param port The port number for the new connection. Also see Datasource::setPort() for a method that allows this parameter to be set after the constructor.
 
-    @par Example
+    @par Example:
     @code
 my DatasourcePool $db(DSPGSQL, "user", "pass", "database", "utf8", "localhost", 3, 10, 5432);
     @endcode
@@ -118,7 +118,7 @@ DatasourcePool::constructor(string driver, *string user, *string pass, *string d
     - \c port: (@ref softint_type "softint") The port number for the new connection
     - \c options: (@ref hash_type "hash") An optional hash having \c "min" and \c "max" keys giving the minimum and maximum number of connections in the pool, respectively
 
-    @par Example
+    @par Example:
     @code
 my Datasource $db(("type": DSPGSQL, "user": "username", "pass": "password", "db": "database", "charset": "utf8", "host": "localhost", "port": 5432, "options": ("min": 3, "max": 10)));
     @endcode
@@ -206,7 +206,7 @@ DatasourcePool::constructor(hash opts) {
 
 //! Throws an exception if any transactions are in progress and returns immediately; the object is destroyed after any in-progress requests are completed
 /** 
-    @par Example
+    @par Example:
     @code
 delete $db;
     @endcode
@@ -228,7 +228,7 @@ DatasourcePool::copy() {
 
 //! Commits the current transaction and releases the connection to the pool
 /** 
-    @par Example
+    @par Example:
     @code
 $db.commit();
     @endcode
@@ -240,7 +240,7 @@ nothing DatasourcePool::commit() {
 
 //! Rolls back the current transaction and releases the connection to the pool
 /** 
-    @par Example
+    @par Example:
     @code
 $db.rollback();
     @endcode
@@ -256,7 +256,7 @@ nothing DatasourcePool::rollback() {
 
     @return The return value depends on the DBI driver; normally, for commands with placeholders, a hash is returned holding the values acquired from executing the SQL statement. For all other commands, normally an integer row count is returned. However, some DBI drivers also allow select statements to be executed through this interface, which would also return a hash (column names) of lists (values for each column).
 
-    @par Example
+    @par Example:
     @code
 my int $rows = $db.exec("insert into table (varchar_col, timestamp_col, blob_col, numeric_col) values (%v, %v, %v, %d)", $string, now(), $binary, 100);
     @endcode
@@ -276,7 +276,7 @@ any DatasourcePool::exec(string sql, ...) {
 
     @return The return value depends on the DBI driver; normally, for commands with placeholders, a hash is returned holding the values acquired from executing the SQL statement. For all other commands, normally an integer row count is returned. However, some DBI drivers also allow select statements to be executed through this interface, which would also return a hash (column names) of lists (values for each column).
 
-    @par Example
+    @par Example:
     @code
 my int $rows = $db.vexec("insert into example_table value (%v, %v, %v)", $arg_list);
     @endcode
@@ -290,14 +290,14 @@ any DatasourcePool::vexec(string sql, *softlist vargs) {
 //! Allocates a persistent connection to the current thread from the pool (if one has not already been allocated) and executes an SQL command on the server and returns either the row count (for example, for updates and inserts) or the data retrieved (for example, if a stored procedure is executed that returns values)
 /** This method does not do any variable binding, so it's useful for example for DDL statements etc
     
-    @par Warning
+    @par Warning:
     Using this method to execute pure dynamic SQL many times with different SQL strings (as opposed to using the same string and binding by value instead of dynamic SQL) can affect application performance by prohibiting the efficient usage of the DB server's statement cache. See DB server documentation for variable binding and the SQL statement cache for more information.
 
     @param sql The SQL command to execute on the server; this string will not be subjected to any transformations for variable binding
 
     @return The return value depends on the DBI driver; normally, for commands with placeholders, a hash is returned holding the values acquired from executing the SQL statement. For all other commands, normally an integer row count is returned. However, some DBI drivers also allow select statements to be executed through this interface, which would also return a hash (column names) of lists (values for each column).
 
-    @par Example
+    @par Example:
     @code
 $db.exec("create table my_tab (id number, some_text varchar2(30))");
     @endcode
@@ -321,7 +321,7 @@ any DatasourcePool::execRaw(string sql) {
 
     @return This method returns a hash (the keys are the column names) of lists (the column data per row) when executed with an SQL select statement, however some DBI drivers allow any SQL to be executed through this method, in which case other data types can be returned (such as an integer for a row count or a hash for output parameters when executing a stored procedure)
 
-    @par Example
+    @par Example:
     @code
 # bind a string and a date/time value by value in a query
 $query = $db.select("select * from table where varchar_column = %v and timestamp_column > %v", $string, 2007-10-11T15:31:26.289);
@@ -346,7 +346,7 @@ any DatasourcePool::select(string sql, ...) {
 
     @return This method normally returns a hash (the keys are the column names) of row data or @ref nothing if no row is found for the query when executed with an SQL select statement, however some DBI drivers allow any SQL statement to be executed through this method (not only select statements), in this case other data types can be returned
 
-    @par Example
+    @par Example:
     @code
 my *hash $h = $db.selectRow("select * from example_table where id = 1");
     @endcode
@@ -372,7 +372,7 @@ any DatasourcePool::selectRow(string sql, ...) {
 
     @return Normally returns a list (rows) of hash (where the keys are the column names of each row) or @ref nothing if no rows are found for the query, however some DBI drivers allow any SQL statement to be executed through this method (not only select statements), in this case other data types can be returned
 
-    @par Example
+    @par Example:
     @code
 my *list $list = $db.selectRows("select * from example_table");
     @endcode
@@ -396,7 +396,7 @@ any DatasourcePool::selectRows(string sql, ...) {
 
     @return Normally returns a hash (the keys are the column names) of list (each hash key's value is a list giving the row data), however some DBI drivers allow any SQL statement to be executed through this method (not only select statements), in this case other data types can be returned
 
-    @par Example
+    @par Example:
     @code
 my *hash $query = $db.vselect("select * from example_table where id = %v and name = %v", $arg_list);
     @endcode
@@ -421,7 +421,7 @@ any DatasourcePool::vselect(string sql, *softlist vargs) {
 
     @return This method normally returns a hash (the keys are the column names) of row data or @ref nothing if no row is found for the query when executed with an SQL select statement, however some DBI drivers allow any SQL statement to be executed through this method (not only select statements), in this case other data types can be returned
 
-    @par Example
+    @par Example:
     @code
 my *hash $h = $db.vselectRow("select * from example_table where id = %v and type = %v", $arg_list);
     @endcode
@@ -448,7 +448,7 @@ any DatasourcePool::vselectRow(string sql, *softlist vargs) {
 
     @return Normally returns a list (rows) of hash (where the keys are the column names of each row) or @ref nothing if no rows are found for the query, however some DBI drivers allow any SQL statement to be executed through this method (not only select statements), in this case other data types can be returned
 
-    @par Example
+    @par Example:
     @code
 my *list $list = $db.vselectRows("select * from example_table where id = %v and type = %v", $arg_list);
     @endcode
@@ -468,7 +468,7 @@ any DatasourcePool::vselectRows(string sql, *softlist vargs) {
 
     To release the connection, call DatasourcePool::commit() or DatasourcePool::rollback()
 
-    @par Example
+    @par Example:
     @code
 $db.beginTransaction();
     @endcode
@@ -480,7 +480,7 @@ nothing DatasourcePool::beginTransaction() {
 //! Returns the username parameter as a string or @ref nothing if none is set
 /** @return the username parameter as a string or @ref nothing if none is set
 
-    @par Example
+    @par Example:
     @code
 my *string $user = $db.getUserName();
     @endcode
@@ -492,7 +492,7 @@ my *string $user = $db.getUserName();
 //! Returns the password parameter as a string or @ref nothing if none is set
 /** @return the password parameter as a string or @ref nothing if none is set
 
-    @par Example
+    @par Example:
     @code
 my *string $pass = $db.getPassword();
     @endcode
@@ -504,7 +504,7 @@ my *string $pass = $db.getPassword();
 //! Returns the database name parameter as a string or @ref nothing if none is set
 /** @return the database name parameter as a string or @ref nothing if none is set
 
-    @par Example
+    @par Example:
     @code
 my *string $db = $db.getDBName();
     @endcode
@@ -518,7 +518,7 @@ my *string $db = $db.getDBName();
 
     @return the database-specific charset set encoding for the object
 
-    @par Example
+    @par Example:
     @code
 my string $enc = $db.getDBCharset();
     @endcode
@@ -530,7 +530,7 @@ my string $enc = $db.getDBCharset();
 //! Retrieves the database-specific charset set encoding for the object
 /** @return the database-specific charset set encoding for the object
 
-    @par Example
+    @par Example:
     @code
 my string $enc = $db.getDBEncoding();
     @endcode
@@ -544,7 +544,7 @@ string DatasourcePool::getDBEncoding() [flags=CONSTANT] {
 //! Returns the Qore charset name for the object as a string or \c "(unknown)" if none is set
 /** @return the Qore charset name for the object as a string or \c "(unknown)" if none is set
 
-    @par Example
+    @par Example:
     @code
 my string $enc = $db.getOSCharset();
     @endcode
@@ -559,7 +559,7 @@ string DatasourcePool::getOSCharset() [flags=CONSTANT] {
 //! Returns the Qore charset name for the object as a string or @ref nothing if none is set
 /** @return the Qore charset name for the object as a string or @ref nothing if none is set
 
-    @par Example
+    @par Example:
     @code
 my *string $enc = $db.getOSEncoding();
     @endcode
@@ -572,7 +572,7 @@ my *string $enc = $db.getOSEncoding();
 //! Returns the hostname parameter as a string or @ref nothing if none is set
 /** @return the hostname parameter as a string or @ref nothing if none is set
 
-    @par Example
+    @par Example:
     @code
 my *string $host = $db.getHostName();
     @endcode
@@ -584,7 +584,7 @@ my *string $host = $db.getHostName();
 //! Gets the port number that will be used for the next connection to the server
 /** Invalid port numbers will cause an exception to be thrown when the connection is opened
 
-    @par Example
+    @par Example:
     @code
 my *int $port = $db.getPort();
     @endcode
@@ -597,7 +597,7 @@ my *int $port = $db.getPort();
 //! Returns the name of the driver used for the object
 /** @return the name of the driver used for the object
 
-    @par Example
+    @par Example:
     @code
 my string $driver = $db.getDriverName();
     @endcode
@@ -609,7 +609,7 @@ string DatasourcePool::getDriverName() [flags=CONSTANT] {
 //! Returns the minimum number of connections in this object
 /** @return the minimum number of connections in this object
 
-    @par Example
+    @par Example:
 my int $min = $db.getMinimum();
     @code
 
@@ -623,7 +623,7 @@ int DatasourcePool::getMinimum() [flags=CONSTANT] {
 //! Returns the maximum number of connections in this object
 /** @return the maximum number of connections in this object
 
-    @par Example
+    @par Example:
     @code
 my int $max = $db.getMaximum();
     @endcode
@@ -636,7 +636,7 @@ int DatasourcePool::getMaximum() [flags=CONSTANT] {
 //! Returns a string with technical information about the object
 /** @return a string with technical information about the object
 
-    @par Example
+    @par Example:
 my string $str = $db.toString();
     @code
 
@@ -650,7 +650,7 @@ string DatasourcePool::toString() [flags=CONSTANT] {
 //! Returns the driver-specific server version data for the current connection
 /** @return the driver-specific server version data for the current connection; see the DBI driver documentation for the return data type and format
 
-    @par Example
+    @par Example:
     @code
 my any $ver = $db.getServerVersion();
     @endcode
@@ -664,7 +664,7 @@ any DatasourcePool::getServerVersion() {
 //! Retrieves the driver-specific client library version information; this method may not be implemented for all drivers
 /** @return the driver-specific client library version information; this method may not be implemented for all drivers; see the DBI driver documentation for the return data type and format
 
-    @par Example
+    @par Example:
     @code
 my any $ver = $db.getClientVersion();
     @endcode
@@ -678,7 +678,7 @@ any DatasourcePool::getClientVersion() {
 //! Returns \c True if a transaction is currently in progress (meaning in this case that a datasource form the pool is dedicated to the calling thread), \c False if not
 /** @return \c True if a transaction is currently in progress (meaning in this case that a datasource form the pool is dedicated to the calling thread), \c False if not
 
-    @par Example
+    @par Example:
     @code
 my bool $b = $db.inTransaction();
     @endcode

@@ -34,7 +34,7 @@ qclass Counter [dom=THREAD_CLASS; arg=Counter* c; ns=Thread];
 //! Creates the Counter object
 /** @param c an argument is supplied here, then the Counter will be initialized with this value, otherwise the Counter is initialized with 0
 
-    @par Example
+    @par Example:
     @code
 my Counter $counter();
     @endcode
@@ -46,7 +46,7 @@ Counter::constructor(softint c = 0) {
 //! Destroys the Counter object
 /** Note that it is a programming error to delete this object while other threads are blocked on it; in this case an exception is thrown in the deleting thread, and also in each thread blocked on this object when it is deleted.
 
-    @par Example
+    @par Example:
     @code
 delete $counter;
     @endcode
@@ -60,7 +60,7 @@ Counter::destructor() {
 
 //! Creates a new Counter object with the same count as the original
 /** 
-    @par Example
+    @par Example:
     @code
 my Counter $new_counter = $counter.copy();
     @endcode
@@ -71,7 +71,7 @@ Counter::copy() {
 
 //! Atomically increments the counter value
 /** 
-    @par Example
+    @par Example:
     @code
 $counter.inc();
     @endcode
@@ -83,7 +83,7 @@ nothing Counter::inc() {
 //! Atomically decrements the counter value
 /** A \c COUNTER-ERROR exception can only be thrown if the object is deleted in another thread while this call is in progress; this is a race condition caused by a user programming error and should not occur in practice with correct code.
 
-    @par Example
+    @par Example:
     @code
 $counter.dec();
     @endcode
@@ -96,7 +96,7 @@ nothing Counter::dec() {
 
 //! Blocks a thread until the counter reaches zero
 /** 
-    @par Example
+    @par Example:
     @code
 $counter.waitForZero();
     @endcode
@@ -112,7 +112,7 @@ nothing Counter::waitForZero() {
 
     @return 0 on sucess, or non-zero if a timeout occurred
 
-    @par Example
+    @par Example:
     @code
 if ($counter.waitForZero(1500))
     throw "TIMEOUT", "counter did not reach 0 in 1.5s";
@@ -127,7 +127,7 @@ int Counter::waitForZero(timeout timeout_ms) {
 //! Returns the current counter value
 /** @return the current counter value
 
-    @par Example
+    @par Example:
     @code
 my int $c = $counter.getCount();
     @endcode
@@ -139,7 +139,7 @@ int Counter::getCount() [flags=CONSTANT] {
 //! Returns the number of threads currently blocked on this object
 /** @return the number of threads currently blocked on this object
 
-    @par Example
+    @par Example:
     @code
 my int $c = $counter.getWaiting();
     @endcode

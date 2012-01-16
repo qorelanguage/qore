@@ -362,7 +362,7 @@ const SOCK_RAW = SOCK_RAW;
 qclass Socket [public_members=*string source,*string source_host; flags=unsetPublicMemberFlag; arg=mySocket* s; dom=NETWORK];
 
 //! Creates the socket object
-/** @par Example
+/** @par Example:
     @code my Socket $sock(); @endcode
  */
 Socket::constructor() {
@@ -370,7 +370,7 @@ Socket::constructor() {
 }
 
 //! Creates a new Socket object, not based on the source being copied
-/** @par Example
+/** @par Example:
     @code my Socket $newsock = $sock.copy(); @endcode
  */
 Socket::copy() {
@@ -390,7 +390,7 @@ $sock.connect("[localhost]:80", 15s);@endcode
     @code# connect to UNIX domain socket file "/tmp/socket"
 $sock.connect("/tmp/socket");@endcode
 
-    @par Events
+    @par Events:
     @ref EVENT_CONNECTING, @ref EVENT_CONNECTED, @ref EVENT_HOSTNAME_LOOKUP, @ref EVENT_HOSTNAME_RESOLVED
 
     @param target If a colon appears in the string, the string will be assumed to be a hostname:port specification to connect to. If the string contains no colon, the socket will try to connect to a UNIX domain socket file on the local filesystem with the given name.  Enclose ipv6 addresses in square brackets (ex: \c "[2001:0db8:85a3:0000:0000:8a2e:0370:7334]:80", will connect to port 80 on the given ipv6 address); also if a hostname is enclosed in squark brackets, it will be resolved as an ipv6 adress (ex: \c "[localhost]:80" will connect to port \c 80 on \c ::1, assuming \c "localhost" can be resolved to the ipv6 loopback address on the system).
@@ -416,7 +416,7 @@ $sock.connectINET("192.168.1.45", 8080, 30s);@endcode
     @code# connect to ipv6 address 2001:0db8:85a3:0000:0000:8a2e:0370:7334 port 80 with a 20 second timeout
 $sock.connectINET("2001:0db8:85a3:0000:0000:8a2e:0370:7334", 80, 20s);@endcode
 
-    @par Events
+    @par Events:
     @ref EVENT_CONNECTING, @ref EVENT_CONNECTED, @ref EVENT_HOSTNAME_LOOKUP, @ref EVENT_HOSTNAME_RESOLVED
 
     @param host The host name or IP address to connect to
@@ -441,7 +441,7 @@ nothing Socket::connectINET(string host, softstring service, timeout timeout_ms 
     @code # connect to UNIX domain socket file "/tmp/socket"
 $sock.connectUNIX("/tmp/socket"); @endcode
 
-    @par Events
+    @par Events:
     @ref EVENT_CONNECTING, @ref EVENT_CONNECTED
 
     @param path The socket will try to connect to a UNIX domain socket file on the local filesystem with the given name
@@ -473,7 +473,7 @@ $sock.connectSSL("[localhost]:80", 15s); @endcode
     @code # connect to UNIX domain socket file "/tmp/socket"
 $sock.connectSSL("/tmp/socket"); @endcode
 
-    @par Events
+    @par Events:
     @ref EVENT_CONNECTING, @ref EVENT_CONNECTED, @ref EVENT_HOSTNAME_LOOKUP, @ref EVENT_HOSTNAME_RESOLVED, @ref EVENT_START_SSL, @ref EVENT_SSL_ESTABLISHED
 
     @param dest if a colon appears in the string, the string will be assumed to be a \c "target:port" specification to connect to (unless the host address is enclosed in square brackets, in which case it's interpreted as an IPv6 address). If the string contains no colon, the socket will try to connect to a UNIX domain socket file on the local filesystem with the given name.
@@ -500,7 +500,7 @@ $sock.connectINETSSL("192.168.1.45", 8080, 30s); @endcode
     @code # connect to ipv6 address 2001:0db8:85a3:0000:0000:8a2e:0370:7334 port 80 with a 20 second timeout
 $sock.connectINETSSL("2001:0db8:85a3:0000:0000:8a2e:0370:7334", 80, 20s); @endcode
 
-    @par Events
+    @par Events:
     @ref EVENT_CONNECTING, @ref EVENT_CONNECTED, @ref EVENT_HOSTNAME_LOOKUP, @ref EVENT_HOSTNAME_RESOLVED, @ref EVENT_START_SSL, @ref EVENT_SSL_ESTABLISHED
 
     @param host The host name or IP address to connect to
@@ -527,7 +527,7 @@ nothing Socket::connectINETSSL(string host, softstring service, timeout timeout_
     @code # connect to UNIX domain socket file "/tmp/socket"
 $sock.connectUNIXSSL("/tmp/socket"); @endcode
 
-    @par Events
+    @par Events:
     @ref EVENT_CONNECTING, @ref EVENT_CONNECTED, @ref EVENT_START_SSL, @ref EVENT_SSL_ESTABLISHED
 
     @param path The socket will try to connect to a UNIX domain socket file on the local filesystem with the given name
@@ -588,7 +588,7 @@ int Socket::bind(int port, softbool reuseaddr = False) {
 //! Opens and binds the socket to the given UNIX domain socket file as given by the filename argument. If any errors occur, an exception is thrown
 /** Opens and binds the socket to the given UNIX domain socket file as given by the filename argument. Note that the socket file is automatically deleted in the destructor when a UNIX socket is closed. If any errors occur, an exception is thrown.
 
-    @par Example
+    @par Example:
     @code # bind to UNIX domain socket file "/tmp/socket"
 $sock.bindUNIX("/tmp/socket"); @endcode
 
@@ -613,7 +613,7 @@ nothing Socket::bindUNIX(string path, softint socktype = SOCK_STREAM, softint pr
 
     If any errors occur, an exception is thrown.
 
-    @par Examples
+    @par Examples:
     @code # bind to port 80 on all interfaces on the local system and reuse the address
 $sock.bindINET(NOTHING, 80, True); @endcode
     @code # bind to interface 192.168.2.23 port 8080 and do not reuse the address
@@ -651,7 +651,7 @@ nothing Socket::bindINET(*string interface, *softstring service, softbool reusea
 
     The new Socket object returned will have the same character encoding as the current object. Once a new connection has been accepted, call Socket::getPeerInfo() to get information about the remote socket.
 
-    @par Example
+    @par Example:
     @code my Socket $new_socket = $sock.accept(); @endcode
 
     @return a new Socket object is returned for the new connection
@@ -684,7 +684,7 @@ Socket Socket::accept() {
 
     The new Socket object returned will have the same character encoding as the current object. Once a new connection has been accepted, call Socket::getPeerInfo() to get information about the remote socket.
 
-    @par Example
+    @par Example:
     @code my *Socket $new_socket = $sock.accept(30s); @endcode
 
     @param timeout_ms If a timeout value is passed and the connection takes longer to establish than the timeout, then @ref nothing is returned
@@ -715,7 +715,7 @@ Socket Socket::accept() {
 
     The new Socket object returned will have the same character encoding as the current object. Once a new connection has been accepted, call Socket::getPeerInfo() to get information about the remote socket.
 
-    @par Example
+    @par Example:
     @code my Socket $new_socket = $sock.acceptSSL(); @endcode
 
     @return When a new connection is accepted and a TLS/SSL session has been successfully negotated, a new Socket object is returned for the new connectio
@@ -746,7 +746,7 @@ Socket Socket::acceptSSL() {
 
     The new Socket object returned will have the same character encoding as the current object. Once a new connection has been accepted, call Socket::getPeerInfo() to get information about the remote socket.
 
-    @par Example
+    @par Example:
     @code my *Socket $new_socket = $sock.acceptSSL(30s); @endcode
 
     @param timeout_ms If a timeout value is passed and the connection takes longer to establish than the timeout, then @ref nothing is returned
@@ -775,7 +775,7 @@ Socket Socket::acceptSSL() {
 //! Listens for connections on a bound socket; sets the socket in a listening state
 /** Listens for new connections on a bound socket.
 
-    @par Example
+    @par Example:
     @code $sock.listen(); @endcode
 
     @return Returns 0 for success, -1 for error
@@ -789,11 +789,11 @@ int Socket::listen() {
 //! Sends binary data over the socket
 /** If an error occurs, -1 will be returned; in this case check errno() for the error number.
 
-    @par Example
+    @par Example:
     @code if ($sock.send($data) == -1)
     printf("error sending data: %s\n", strerror(errno())); @endcode
 
-    @par Events
+    @par Events:
     @ref EVENT_PACKET_SENT
 
     @param bin Sends the binary data over the socket
@@ -811,12 +811,12 @@ int Socket::send(binary bin) {
 //! Sends string data over the socket; string data is converted to the socket's encoding if necessary
 /** String data will be converted to the encoding set for the socket if necessary. If an error occurs, -1 will be returned; in this case check errno() for the error number.
 
-    @par Example
+    @par Example:
     @code
 if ($sock.send($str) == -1)
     printf("error sending data: %s\n", strerror(errno())); @endcode
 
-    @par Events
+    @par Events:
     @ref EVENT_PACKET_SENT
 
     @param str dends the string data over the socket without the trailing null ('\0') character; the string's encoding is converted to the socket's encoding if necessary
@@ -834,12 +834,12 @@ int Socket::send(string str) {
 //! Sends string data over the socket without converting the string to the socket's encoding, but instead is sent exactly as-is
 /** If an error occurs, -1 will be returned; in this case check errno() for the error number.
 
-    @par Example
+    @par Example:
     @code
 if ($sock.sendBinary($str) == -1)
     printf("error sending data: %s\n", strerror(errno())); @endcode
 
-    @par Events
+    @par Events:
     @ref EVENT_PACKET_SENT
 
     @param str dends the string data over the socket without the trailing null ('\0') character
@@ -857,11 +857,11 @@ int Socket::sendBinary(string str) {
 //! Sends binary data over the socket
 /** If an error occurs, -1 will be returned; in this case check errno() for the error number.
 
-    @par Example
+    @par Example:
     @code if ($sock.sendBinary($data) == -1)
     printf("error sending data: %s\n", strerror(errno())); @endcode
 
-    @par Events
+    @par Events:
     @ref EVENT_PACKET_SENT
 
     @param bin Sends the binary data over the socket
@@ -879,11 +879,11 @@ int Socket::sendBinary(binary bin) {
 //! Sends a 1-byte integer over the socket
 /** If an error occurs, -1 will be returned; in this case check errno() for the error number
 
-    @par Example
+    @par Example:
     @code if ($sock.sendi1($val) == -1)
     printf("error sending data: %s\n", strerror(errno())); @endcode
 
-    @par Events
+    @par Events:
     @ref EVENT_PACKET_SENT
 
     @param i the integer to send; only the least-significant byte will be sent
@@ -899,11 +899,11 @@ int Socket::sendi1(softint i = 0) {
 //! Sends a 2-byte (16-bit) integer in big-endian format (network byte order) over the socket
 /** If an error occurs, -1 will be returned; in this case check errno() for the error number
 
-    @par Example
+    @par Example:
     @code if ($sock.sendi2($val) == -1)
     printf("error sending data: %s\n", strerror(errno())); @endcode
 
-    @par Events
+    @par Events:
     @ref EVENT_PACKET_SENT
 
     @param i the integer to send; only the least-significant 2 bytes will be sent
@@ -919,11 +919,11 @@ int Socket::sendi2(softint i = 0) {
 //! Sends a 4-byte (32-bit) integer in big-endian format (network byte order) over the socket
 /** If an error occurs, -1 will be returned; in this case check errno() for the error number
 
-    @par Example
+    @par Example:
     @code if ($sock.sendi4($val) == -1)
     printf("error sending data: %s\n", strerror(errno())); @endcode
 
-    @par Events
+    @par Events:
     @ref EVENT_PACKET_SENT
 
     @param i the integer to send; only the least-significant 4 bytes will be sent
@@ -939,11 +939,11 @@ int Socket::sendi4(softint i = 0) {
 //! Sends an 8-byte (64-bit) integer in big-endian format (network byte order) over the socket
 /** If an error occurs, -1 will be returned; in this case check errno() for the error number
 
-    @par Example
+    @par Example:
     @code if ($sock.sendi8($val) == -1)
     printf("error sending data: %s\n", strerror(errno())); @endcode
 
-    @par Events
+    @par Events:
     @ref EVENT_PACKET_SENT
 
     @param i the integer to send
@@ -959,11 +959,11 @@ int Socket::sendi8(softint i = 0) {
 //! Sends a 2-byte (16-bit) integer in little-endian format over the socket
 /** If an error occurs, -1 will be returned; in this case check errno() for the error number
 
-    @par Example
+    @par Example:
     @code if ($sock.sendi2LSB($val) == -1)
     printf("error sending data: %s\n", strerror(errno())); @endcode
 
-    @par Events
+    @par Events:
     @ref EVENT_PACKET_SENT
 
     @param i the integer to send; only the least-significant 2 bytes will be sent
@@ -979,11 +979,11 @@ int Socket::sendi2LSB(softint i = 0) {
 //! Sends a 4-byte (32-bit) integer in little-endian format over the socket
 /** If an error occurs, -1 will be returned; in this case check errno() for the error number
 
-    @par Example
+    @par Example:
     @code if ($sock.sendi4LSB($val) == -1)
     printf("error sending data: %s\n", strerror(errno())); @endcode
 
-    @par Events
+    @par Events:
     @ref EVENT_PACKET_SENT
 
     @param i the integer to send; only the least-significant 4 bytes will be sent
@@ -999,11 +999,11 @@ int Socket::sendi4LSB(softint i = 0) {
 //! Sends an 8-byte (64-bit) integer in little-endian format over the socket
 /** If an error occurs, -1 will be returned; in this case check errno() for the error number
 
-    @par Example
+    @par Example:
     @code if ($sock.sendi8LSB($val) == -1)
     printf("error sending data: %s\n", strerror(errno())); @endcode
 
-    @par Events
+    @par Events:
     @ref EVENT_PACKET_SENT
 
     @param i the integer to send
@@ -1019,10 +1019,10 @@ int Socket::sendi8LSB(softint i = 0) {
 //! Receives data from the socket and returns a string tagged with the Socket's character encoding
 /** If any errors occur reading from the socket, an exception is raised
 
-    @par Example
+    @par Example:
     @code my string $data = $sock.recv(-1); # read all data available @endcode
 
-    @par Events
+    @par Events:
     @ref EVENT_PACKET_READ
     
     @param size the amount of data to read in bytes; to read until the remote closes the connection, use -1
@@ -1052,10 +1052,10 @@ string Socket::recv(softint size = 0, timeout timeout_ms = -1) {
 //! Receives data from the socket and returns a binary object
 /** If any errors occur reading from the socket, an exception is raised
 
-    @par Example
+    @par Example:
     @code my binary $data = $sock.recvBinary(-1); # read all data available @endcode
 
-    @par Events
+    @par Events:
     @ref EVENT_PACKET_READ
     
     @param size the amount of data to read in bytes; to read until the remote closes the connection, use -1
@@ -1082,10 +1082,10 @@ binary Socket::recvBinary(softint size = 0, timeout timeout_ms = -1) {
 //! Receives a 1-byte signed integer from the socket
 /** If any errors occur reading from the socket, an exception is raised
 
-    @par Example
+    @par Example:
     @code my int $val = $sock.recvi1(); @endcode
 
-    @par Events
+    @par Events:
     @ref EVENT_PACKET_READ
 
     @param timeout_ms the timeout in milliseconds (1/1000 second); If no timeout is passed or is negative, then the call will not time out and will not return until all the data has been read or the remote end closes the connection
@@ -1109,10 +1109,10 @@ int Socket::recvi1(timeout timeout_ms = -1) {
 //! Receives a 2-byte (16-bit) signed integer in big-endian format (network byte order) from the socket
 /** If any errors occur reading from the socket, an exception is raised
 
-    @par Example
+    @par Example:
     @code my int $val = $sock.recvi2(); @endcode
 
-    @par Events
+    @par Events:
     @ref EVENT_PACKET_READ
 
     @param timeout_ms the timeout in milliseconds (1/1000 second); If no timeout is passed or is negative, then the call will not time out and will not return until all the data has been read or the remote end closes the connection
@@ -1136,10 +1136,10 @@ int Socket::recvi2(timeout timeout_ms = -1) {
 //! Receives a 4-byte (32-bit) signed integer in big-endian format (network byte order) from the socket
 /** If any errors occur reading from the socket, an exception is raised
 
-    @par Example
+    @par Example:
     @code my int $val = $sock.recvi4(); @endcode
 
-    @par Events
+    @par Events:
     @ref EVENT_PACKET_READ
 
     @param timeout_ms the timeout in milliseconds (1/1000 second); If no timeout is passed or is negative, then the call will not time out and will not return until all the data has been read or the remote end closes the connection
@@ -1163,10 +1163,10 @@ int Socket::recvi4(timeout timeout_ms = -1) {
 //! Receives an 8-byte (64-bit) signed integer in big-endian format (network byte order) from the socket
 /** If any errors occur reading from the socket, an exception is raised
 
-    @par Example
+    @par Example:
     @code my int $val = $sock.recvi8(); @endcode
 
-    @par Events
+    @par Events:
     @ref EVENT_PACKET_READ
 
     @param timeout_ms the timeout in milliseconds (1/1000 second); If no timeout is passed or is negative, then the call will not time out and will not return until all the data has been read or the remote end closes the connection
@@ -1190,10 +1190,10 @@ int Socket::recvi8(timeout timeout_ms = -1) {
 //! Receives a 2-byte (16-bit) signed integer in little-endian format from the socket
 /** If any errors occur reading from the socket, an exception is raised
 
-    @par Example
+    @par Example:
     @code my int $val = $sock.recvi2LSB(); @endcode
 
-    @par Events
+    @par Events:
     @ref EVENT_PACKET_READ
 
     @param timeout_ms the timeout in milliseconds (1/1000 second); If no timeout is passed or is negative, then the call will not time out and will not return until all the data has been read or the remote end closes the connection
@@ -1217,10 +1217,10 @@ int Socket::recvi2LSB(timeout timeout_ms = -1) {
 //! Receives a 4-byte (32-bit) signed integer in little-endian format from the socket
 /** If any errors occur reading from the socket, an exception is raised
 
-    @par Example
+    @par Example:
     @code my int $val = $sock.recvi4LSB(); @endcode
 
-    @par Events
+    @par Events:
     @ref EVENT_PACKET_READ
 
     @param timeout_ms the timeout in milliseconds (1/1000 second); If no timeout is passed or is negative, then the call will not time out and will not return until all the data has been read or the remote end closes the connection
@@ -1244,10 +1244,10 @@ int Socket::recvi4LSB(timeout timeout_ms = -1) {
 //! Receives an 8-byte (64-bit) signed integer in little-endian format from the socket
 /** If any errors occur reading from the socket, an exception is raised
 
-    @par Example
+    @par Example:
     @code my int $val = $sock.recvi8LSB(); @endcode
 
-    @par Events
+    @par Events:
     @ref EVENT_PACKET_READ
 
     @param timeout_ms the timeout in milliseconds (1/1000 second); If no timeout is passed or is negative, then the call will not time out and will not return until all the data has been read or the remote end closes the connection
@@ -1271,10 +1271,10 @@ int Socket::recvi8LSB(timeout timeout_ms = -1) {
 //! Receives a 1-byte unsigned integer from the socket
 /** If any errors occur reading from the socket, an exception is raised
 
-    @par Example
+    @par Example:
     @code my int $val = $sock.recvu1(); @endcode
 
-    @par Events
+    @par Events:
     @ref EVENT_PACKET_READ
 
     @param timeout_ms the timeout in milliseconds (1/1000 second); If no timeout is passed or is negative, then the call will not time out and will not return until all the data has been read or the remote end closes the connection
@@ -1298,10 +1298,10 @@ int Socket::recvu1(timeout timeout_ms = -1) {
 //! Receives a 2-byte (16-bit) unsigned integer in big-endian format (network byte order) from the socket
 /** If any errors occur reading from the socket, an exception is raised
 
-    @par Example
+    @par Example:
     @code my int $val = $sock.recvu2(); @endcode
 
-    @par Events
+    @par Events:
     @ref EVENT_PACKET_READ
 
     @param timeout_ms the timeout in milliseconds (1/1000 second); If no timeout is passed or is negative, then the call will not time out and will not return until all the data has been read or the remote end closes the connection
@@ -1325,10 +1325,10 @@ int Socket::recvu2(timeout timeout_ms = -1) {
 //! Receives a 4-byte (32-bit) unsigned integer in big-endian format (network byte order) from the socket
 /** If any errors occur reading from the socket, an exception is raised
 
-    @par Example
+    @par Example:
     @code my int $val = $sock.recvu4(); @endcode
 
-    @par Events
+    @par Events:
     @ref EVENT_PACKET_READ
 
     @param timeout_ms the timeout in milliseconds (1/1000 second); If no timeout is passed or is negative, then the call will not time out and will not return until all the data has been read or the remote end closes the connection
@@ -1352,10 +1352,10 @@ int Socket::recvu4(timeout timeout_ms = -1) {
 //! Receives a 2-byte (16-bit) unsigned integer in little-endian format from the socket
 /** If any errors occur reading from the socket, an exception is raised
 
-    @par Example
+    @par Example:
     @code my int $val = $sock.recvi2LSB(); @endcode
 
-    @par Events
+    @par Events:
     @ref EVENT_PACKET_READ
 
     @param timeout_ms the timeout in milliseconds (1/1000 second); If no timeout is passed or is negative, then the call will not time out and will not return until all the data has been read or the remote end closes the connection
@@ -1379,10 +1379,10 @@ int Socket::recvu2LSB(timeout timeout_ms = -1) {
 //! Receives a 4-byte (32-bit) unsigned integer in little-endian format from the socket
 /** If any errors occur reading from the socket, an exception is raised
 
-    @par Example
+    @par Example:
     @code my int $val = $sock.recvu4LSB(); @endcode
 
-    @par Events
+    @par Events:
     @ref EVENT_PACKET_READ
 
     @param timeout_ms the timeout in milliseconds (1/1000 second); If no timeout is passed or is negative, then the call will not time out and will not return until all the data has been read or the remote end closes the connection
@@ -1407,10 +1407,10 @@ int Socket::recvu4LSB(timeout timeout_ms = -1) {
 /** Creates a properly-formatted HTTP message and sends it over the Socket.
     To send a string without converting the encoding to the Socket's encoding, convert the string to a binary object using the binary() function and use the variant of this method that takes a binary object for the data argument.
 
-    @par Example
+    @par Example:
     @code $sock.sendHTTPMessage("POST", "/RPC2", "1.1", ("Content-Type" : "text/xml"), $xml); @endcode
 
-    @par Events
+    @par Events:
     @ref EVENT_PACKET_SENT, @ref EVENT_HTTP_SEND_MESSAGE
 
     @param method the HTTP method name to send (i.e. POST, HEAD, etc)
@@ -1437,10 +1437,10 @@ nothing Socket::sendHTTPMessage(string method, string path, string http_version,
 //! Sends an HTTP message with a method and user-defined headers given as a hash and an optional message body
 /** Creates a properly-formatted HTTP message and sends it over the Socket
 
-    @par Example
+    @par Example:
     @code $sock.sendHTTPMessage("POST", "/RPC2", "1.1", ("Content-Type" : "text/xml"), $xml); @endcode
 
-    @par Events
+    @par Events:
     @ref EVENT_PACKET_SENT, @ref EVENT_HTTP_SEND_MESSAGE
 
     @param method the HTTP method name to send (i.e. POST, HEAD, etc)
@@ -1463,10 +1463,10 @@ nothing Socket::sendHTTPMessage(string method, string path, string http_version,
 /** Creates a properly-formatted HTTP response message and sends it over the Socket (must already be connected).  If any errors occur, an exception is raised.
     To send a string without converting the encoding to the Socket's encoding, convert the string to a binary object using the binary() function and use the variant of this method that takes a binary object for the data argument.
 
-    @par Example
+    @par Example:
     @code $sock.sendHTTPResponse(200, "OK", "1.1", ("Connection":"Keep-Alive")); @endcode
 
-    @par Events
+    @par Events:
     @ref EVENT_PACKET_SENT, @ref EVENT_HTTP_SEND_MESSAGE
 
     @param status_code the HTTP status code to send (i.e. \c 200, \c 404, etc)
@@ -1497,10 +1497,10 @@ nothing Socket::sendHTTPResponse(softint status_code, string status_desc, string
 //! Sends an HTTP response with user-defined headers given as a hash and a message body as literal binary data
 /** Creates a properly-formatted HTTP response message and sends it over the Socket (must already be connected).  If any errors occur, an exception is raised.
 
-    @par Example
+    @par Example:
     @code $sock.sendHTTPResponse(200, "OK", "1.1", ("Connection":"Keep-Alive"), $bin); @endcode
 
-    @par Events
+    @par Events:
     @ref EVENT_PACKET_SENT, @ref EVENT_HTTP_SEND_MESSAGE
 
     @param status_code the HTTP status code to send (i.e. \c 200, \c 404, etc)
@@ -1526,12 +1526,12 @@ nothing Socket::sendHTTPResponse(softint status_code, string status_desc, string
 //! Retuns a hash representing the data in the HTTP header read, or, if the data cannot be parsed as an HTTP header, the data read is returned as a string
 /** If any errors occur reading from the socket, an exception is raised. Accepts an optional timeout value in milliseconds.
 
-    @par Example
+    @par Example:
     @code my any $ans = $sock.readHTTPHeader(10s);
 if ($ans.typeCode() == NT_STRING)
     throw "HTTP-ERROR", sprintf("could not parse HTTP header received: %y", $ans); @endcode
 
-    @par Events
+    @par Events:
     @ref EVENT_PACKET_READ, @ref EVENT_HTTP_MESSAGE_RECEIVED
 
     @param timeout_ms The timeout in milliseconds (1/1000 second). If no timeout or if a negative timeout is passed, then the call will not time out and will not return until all the data has been read or the remote end closes the connection.  If a timeout occurs, a \c "SOCKET-TIMEOUT" exception is raised.
@@ -1561,7 +1561,7 @@ any Socket::readHTTPHeader(timeout timeout_ms = -1) {
 //! Reads in an HTTP message body sent in chunked transfer encoding and returns it with any footers received as a string in the \c "body" key of a hash (including footers received)
 /** If any errors are encountered, an exception is raised
 
-    @par Events
+    @par Events:
     @ref EVENT_HTTP_CHUNK_SIZE, @ref EVENT_HTTP_FOOTERS_RECEIVED
 
     @param timeout_ms The timeout in milliseconds (1/1000 second). If no timeout or if a negative timeout is passed, then the call will not time out and will not return until all the data has been read or the remote end closes the connection.  If a timeout occurs, a \c "SOCKET-TIMEOUT" exception is raised.
@@ -1583,7 +1583,7 @@ hash Socket::readHTTPChunkedBody(timeout timeout_ms = -1) {
 //! Reads in an HTTP message body sent in chunked transfer encoding and returns it with any footers received as a binary object in the \c "body" key of a hash (including footers received)
 /** If any errors are encountered, an exception is raised
 
-    @par Events
+    @par Events:
     @ref EVENT_HTTP_CHUNK_SIZE, @ref EVENT_HTTP_FOOTERS_RECEIVED
 
     @param timeout_ms The timeout in milliseconds (1/1000 second). If no timeout or if a negative timeout is passed, then the call will not time out and will not return until all the data has been read or the remote end closes the connection.  If a timeout occurs, a \c "SOCKET-TIMEOUT" exception is raised.
@@ -1605,11 +1605,11 @@ hash Socket::readHTTPChunkedBodyBinary(timeout timeout_ms = -1) {
 //! Closes an open socket
 /** Also deletes the UNIX domain socket file if it was created by a call to Socket::bind(). Returns 0 for success, -1 for error; in this case check errno() for the error number
 
-    @par Example
+    @par Example:
     @code if ($sock.close())
     stderr.printf("Error closing socket: %s\n", strerror(errno())); @endcode
 
-    @par Events
+    @par Events:
     @ref EVENT_CHANNEL_CLOSED
 
     @return 0 for success, -1 for error; in this case check errno() for the error number
@@ -1621,7 +1621,7 @@ int Socket::close() {
 //! Ensures that a socket will be closed even if the file descriptor is shared with other processes (for example, after a call to fork())
 /** Does not throw any exceptions; returns an error code in case of an error
 
-    @par Example
+    @par Example:
     @code if ($sock.shutdown())
     stderr.printf("Error calling Socket::shutdown(): %s\n", strerror(errno())); @endcode
 
@@ -1634,7 +1634,7 @@ int Socket::shutdown() {
 //! Shuts down the SSL connection on a secure connection
 /** If any errors occur, an exception is raised
 
-    @par Example
+    @par Example:
     @code $sock.shutdownSSL(); @endcode
 
     @throw SOCKET-SSL-ERROR an error occurred shutting down the TLS/SSL connection
@@ -1644,7 +1644,7 @@ nothing Socket::shutdownSSL() {
 }
 
 //! Returns the port number of the socket for INET sockets
-/** @par Example
+/** @par Example:
     @code my int $port = $sock.getPort(); @endcode
 
     @return the port number for an INET connection, -1 if no INET connection has been established
@@ -1654,7 +1654,7 @@ int Socket::getPort() [flags=CONSTANT] {
 }
 
 //! Returns the socket file descriptor number
-/** @par Example
+/** @par Example:
     @code my int $sock = $sock.getSocket(); @endcode
 
     @return the socket file descriptor number or -1 if the socket is not open
@@ -1666,7 +1666,7 @@ int Socket::getSocket() [flags=CONSTANT] {
 //! sets the send timeout as a socket option
 /** Returns 0 for success, -1 for error (check errno() for the actual error in this case)
 
-    @par Example
+    @par Example:
     @code if ($sock.setSendTimeout(20s))
     printf("error setting timeout on socket: %s\n", strerror(errno())); @endcode
 
@@ -1681,7 +1681,7 @@ int Socket::setSendTimeout(timeout timeout_ms) {
 //! sets the receive timeout as a socket option
 /** Returns 0 for success, -1 for error (check errno() for the actual error in this case)
 
-    @par Example
+    @par Example:
     @code if ($sock.setRecvTimeout(20s))
     printf("error setting timeout on socket: %s\n", strerror(errno())); @endcode
 
@@ -1694,7 +1694,7 @@ int Socket::setRecvTimeout(timeout timeout_ms) {
 }
 
 //! Returns the send timeout socket option value as an integer in milliseconds
-/** @par Example
+/** @par Example:
     @code my int $to = $sock.getSendTimeout(); @endcode
 
     @return the send timeout socket option value as an integer in milliseconds
@@ -1704,7 +1704,7 @@ int Socket::getSendTimeout() [flags=CONSTANT] {
 }
 
 //! Returns the receive timeout socket option value as an integer in milliseconds
-/** @par Example
+/** @par Example:
     @code my int $to = $sock.getRecvTimeout(); @endcode
 
     @return the receive timeout socket option value as an integer in milliseconds
@@ -1745,7 +1745,7 @@ nothing Socket::setCharset(string encoding) {
 //! Returns \c True or \c False depending on whether there is data to be read on the socket
 /** With a timeout of zero this method returns immediately and can be used for non-blocking polling the socket for data (can also be used to poll for new connections before Socket::accept()).
 
-    @par Example
+    @par Example:
     @code my bool $b = $sock.isDataAvailable(); @endcode
 
     @param timeout_ms an optional timeout in milliseconds (1/1000 second); if no timeout is given, the method returns immediately
@@ -1759,7 +1759,7 @@ bool Socket::isDataAvailable(timeout timeout_ms = 0) {
 //! Returns \c True or \c False depending on whether all the data has been written to the socket
 /** With a timeout of zero this method returns immediately.
 
-    @par Example
+    @par Example:
     @code my bool $b = $sock.isWriteFinished(); @endcode
 
     @param timeout_ms an optional timeout in milliseconds (1/1000 second); if no timeout is given, the method returns immediately
@@ -1771,7 +1771,7 @@ bool Socket::isWriteFinished(timeout timeout_ms = 0) {
 }
 
 //! Returns \c True if the socket is open
-/** @par Example
+/** @par Example:
     @code my bool $b = $sock.isOpen(); @endcode
 
     @return \c True if the socket is open, \c False if not
@@ -1781,7 +1781,7 @@ bool Socket::isOpen() [flags=CONSTANT] {
 }
 
 //! Returns the name of the cipher for an encrypted connection or @ref nothing if a secure connection has not been established
-/** @par Example
+/** @par Example:
     @code my *string $str = $sock.getSSLCipherName(); @endcode
 
     @return the name of the cipher for an encrypted connection or @ref nothing if a secure connection has not been established
@@ -1792,7 +1792,7 @@ bool Socket::isOpen() [flags=CONSTANT] {
 }
 
 //! Returns the version string of the cipher for an encrypted connection or @ref nothing if a secure connection has not been established
-/** @par Example
+/** @par Example:
     @code my *string $str = $sock.getSSLCipherVersion(); @endcode
 
     @return the version string of the cipher for an encrypted connection or @ref nothing if a secure connection has not been established
@@ -1803,7 +1803,7 @@ bool Socket::isOpen() [flags=CONSTANT] {
 }
 
 //! Returns \c True if the connection is a secure TLS/SSL connection
-/** @par Example
+/** @par Example:
     @code my bool $b = $sock.isSecure(); @endcode
 
     @return \c True if the connection is encrypted, \c False if not
@@ -1813,7 +1813,7 @@ bool Socket::isSecure() [flags=CONSTANT] {
 }
 
 //! Returns a string code giving the result of verifying the remote certificate or @ref nothing if an encrypted connection is not currently established
-/** @par Example
+/** @par Example:
     @code my *string $str = $sock.verifyPeerCertificate(); @endcode
 
     @return A string code giving the result of verifying the peer's certificate. No value is returned if a secure connection has not been established.  The set of possible return values is made up of the keys of the @ref X509_VerificationReasons hash. This hash can also be used to generate a textual description of the verification result.
@@ -1824,7 +1824,7 @@ bool Socket::isSecure() [flags=CONSTANT] {
 }
 
 //! Sets the X.509 certificate to use for negotiating encrypted connections
-/** @par Example
+/** @par Example:
     @code $sock.setCertificate($cert); @endcode
 
     @param cert This must be an SSLCertificate object
@@ -1835,7 +1835,7 @@ nothing Socket::setCertificate(SSLCertificate[QoreSSLCertificate] cert) {
 }
 
 //! Sets the X.509 certificate to use for negotiating encrypted connections from the PEM-encoded string representing the X.509 certificate
-/** @par Example
+/** @par Example:
     @code $sock.setCertificate($cert_string); @endcode
 
     @param cert_pem the PEM-encoded string representing the X.509 certificate
@@ -1850,7 +1850,7 @@ nothing Socket::setCertificate(string cert_pem) {
 }
 
 //! Sets the X.509 certificate to use for negotiating encrypted connections from the DER-encoded binary object representing the X.509 certificate
-/** @par Example
+/** @par Example:
     @code $sock.setCertificate($cert_der); @endcode
 
     @param cert_der the DER-encoded binary object representing the X.509 certificate
@@ -1865,7 +1865,7 @@ nothing Socket::setCertificate(binary cert_der) {
 }
 
 //! Sets the private key to use for negotiating encrypted connections along with the X.509 certificate
-/** @par Example
+/** @par Example:
     @code $sock.setPrivateKey($key); @endcode
 
     @param key the private key for the X.509 certificate to use when establishing TLS/SSL encrypted connections
@@ -1876,7 +1876,7 @@ nothing Socket::setPrivateKey(SSLPrivateKey[QoreSSLPrivateKey] key) {
 }
 
 //! Sets the private key to use for negotiating encrypted connections along with the X.509 certificate from a PEM-encoded string representing the private key and an optional password
-/** @par Example
+/** @par Example:
     @code $sock.setPrivateKey($key_pem, $password); @endcode
 
     @param key_pem the PEM-encoded string representing the private key for the X.509 certificate to use when establishing TLS/SSL encrypted connections
@@ -1891,7 +1891,7 @@ nothing Socket::setPrivateKey(string key_pem, *string pass) {
 }
 
 //! Sets the private key to use for negotiating encrypted connections along with the X.509 certificate from a DER-encoded binary object representing the private key
-/** @par Example
+/** @par Example:
     @code $sock.setPrivateKey($key_der); @endcode
 
     @param key_der the DER-encoded binary object representing the private key for the X.509 certificate to use when establishing TLS/SSL encrypted connections
@@ -1905,7 +1905,7 @@ nothing Socket::setPrivateKey(binary key_der) {
 }
 
 //! Removes any @ref Qore::Thread::Queue "Queue" object from the Socket object so that @ref socket_events "socket events" are no longer added to the @ref Qore::Thread::Queue "Queue"
-/** @par Example
+/** @par Example:
     @code $sock.setEventQueue(); @endcode
 
     @see @ref event_handling for more information
@@ -1915,7 +1915,7 @@ nothing Socket::setEventQueue() {
 }
 
 //! Sets a @ref Qore::Thread::Queue "Queue" object to receive @ref socket_events "socket events"
-/** @par Example
+/** @par Example:
     @code $sock.setEventQueue($queue); @endcode
 
     @param queue the @ref Qore::Thread::Queue "Queue" object to receive @ref socket_events "socket events"
@@ -1934,7 +1934,7 @@ nothing Socket::setEventQueue(Queue[Queue] queue) {
 
     Note that if no value is given to the method, the argument will be assumed to be \c True, and output buffering will be turned off for the socket.
 
-    @par Example
+    @par Example:
     @code if ($sock.setNoDelay(True))
     printf("error setting TCP_NODELAY: %s\n", strerror(errno())); @endcode
 
@@ -1949,7 +1949,7 @@ int Socket::setNoDelay(bool nd = True) {
 }
 
 //! Returns the \c TCP_NODELAY setting for the socket
-/** @par Example
+/** @par Example:
     @code my bool $b = $sock.getNoDelay(); @endcode
 
     @return the \c TCP_NODELAY setting for the socket
@@ -1963,7 +1963,7 @@ bool Socket::getNoDelay() [flags=CONSTANT] {
 //! Returns a @ref socket_info_hash "hash of information" about the remote end for connected sockets
 /** If the socket is not connected, an exception is thrown
 
-    @par Example
+    @par Example:
     @code my hash $h = $sock.getPeerInfo(); @endcode
 
     @return a @ref socket_info_hash "hash of information" about the local socket
@@ -1977,7 +1977,7 @@ hash Socket::getPeerInfo() {
 //! Returns information about the local socket as a hash
 /** If the socket is not open, an exception is thrown
 
-    @par Example
+    @par Example:
     @code my hash $h = $sock.getSocketInfo(); @endcode
 
     @return a @ref socket_info_hash "hash of information" about the remote end for connected sockets

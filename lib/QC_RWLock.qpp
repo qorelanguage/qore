@@ -53,7 +53,7 @@ qclass RWLock [dom=THREAD_CLASS; arg=RWLock* rwl; ns=Thread; vparent=AbstractSma
 
 //! Creates the RWLock object
 /** 
-    @par Example
+    @par Example:
     @code
 my RWLock $rwl();
     @endcode
@@ -65,7 +65,7 @@ RWLock::constructor() {
 //! Destroys the RWLock object
 /** Note that it is a programming error to delete this object while other threads are blocked on it; in this case an exception is thrown in the deleting thread, and in each thread blocked on this object when it is deleted.
 
-    @par Example
+    @par Example:
     @code
 delete $rwl;
     @endcode
@@ -79,7 +79,7 @@ RWLock::destructor() {
 
 //! Creates a new RWLock object, not based on the original
 /** 
-    @par Example
+    @par Example:
     @code
 my RWLock $new_rwl = $rwl.copy();
     @endcode
@@ -90,7 +90,7 @@ RWLock::copy() {
 
 //! Acquires the read lock; blocks if the write lock is already acquired by another thread
 /** 
-    @par Example
+    @par Example:
     @code
 $rwl.readLock();
     @endcode
@@ -109,7 +109,7 @@ nothing RWLock::readLock() {
 
     @return 0 for success, non-zero for timeout; exceptions are thrown for other errors
 
-    @par Example
+    @par Example:
     @code
 if ($rwl.readLock(1500ms))
     throw "TIMEOUT", "timed out after 1.5s waiting for the read lock";
@@ -124,7 +124,7 @@ int RWLock::readLock(timeout timeout_ms) {
 
 //! Decrements the read lock counter and releases the read lock if the counter is zero. If at least one thread is blocked trying to acquire the write lock and the read counter reaches zero, then one thread waiting on the write lock is woken up
 /** 
-    @par Example
+    @par Example:
     @code
 $rwl.readUnlock();
     @endcode
@@ -142,7 +142,7 @@ nothing RWLock::readUnlock() {
 
     @return 0 for success, non-zero for timeout; exceptions are thrown for other errors
 
-    @par Example
+    @par Example:
     @code
 if ($rwl.writeLock(1500ms))
     throw "TIMEOUT", "timed out after 1.5s waiting for the write lock";
@@ -157,7 +157,7 @@ int RWLock::writeLock(timeout timeout_ms) {
 
 //! Acquires the write lock; blocks if the read lock is already acquired by another thread
 /** 
-    @par Example
+    @par Example:
     @code
 $rwl.writeLock();
     @endcode
@@ -171,7 +171,7 @@ nothing RWLock::writeLock() {
 
 //! Releases the write lock, if any readers are waiting, wakes up all readers, otherwise if any writers are waiting, then wakes one up
 /** 
-    @par Example
+    @par Example:
     @code
 $rwl.writeUnlock();
     @endcode
@@ -185,7 +185,7 @@ nothing RWLock::writeUnlock() {
 //! Acquires the read lock only if it can be acquired immediately
 /** @return 0 for success (read lock acquired, read lock count incremented) or -1 if the call would block (write lock owned by another thread) or an error occured
 
-    @par Example
+    @par Example:
     @code
 if (!$rwl.tryReadLock()) {
     on_exit $rwl.readUnlock();
@@ -198,7 +198,7 @@ int RWLock::tryReadLock() {
 
 //! Acquires the write lock only if it can be acquired immediately
 /** @return 0 for success (write lock acquired) or -1 if the call would block (read lock owned by another thread) or an error occured
-    @par Example
+    @par Example:
     @code
 if (!$rwl.tryWriteLock()) {
     on_exit $rwl.writeUnlock();
@@ -213,7 +213,7 @@ int RWLock::tryWriteLock() {
 /** 
     @return the read lock count
 
-    @par Example
+    @par Example:
     @code
 my int $num = $rwl.numReaders();
     @endcode
@@ -225,7 +225,7 @@ int RWLock::numReaders() [flags=CONSTANT] {
 //! Returns the number of threads waiting on the read lock
 /** @return the number of threads waiting on the read lock
 
-    @par Example
+    @par Example:
     @code
 my int $num = $rwl.getReadWaiting();
     @endcode
@@ -237,7 +237,7 @@ int RWLock::getReadWaiting() [flags=CONSTANT] {
 //! Returns the number of threads waiting on the write lock
 /** @return the number of threads waiting on the write lock
 
-    @par Example
+    @par Example:
     @code
 my int $num = $rwl.getWriteWaiting();
     @endcode
@@ -249,7 +249,7 @@ int RWLock::getWriteWaiting() [flags=CONSTANT] {
 //! Returns \c True if the current thread is holding either the read lock or the write lock, \c False if not
 /** @return \c True if the current thread is holding either the read lock or the write lock, \c False if not
 
-    @par Example
+    @par Example:
     @code
 if ($rwl.lockOwner())
     printf("TID %d has either the read lock or the write lock\n", gettid());
@@ -262,7 +262,7 @@ bool RWLock::lockOwner() [flags=CONSTANT] {
 //! Returns \c True if the current thread is holding the read lock, \c False if not
 /** @return \c True if the current thread is holding the read lock, \c False if not
 
-    @par Example
+    @par Example:
     @code
 if ($rwl.readLockOwner())
     printf("TID %d has the read lock\n", gettid());
@@ -275,7 +275,7 @@ bool RWLock::readLockOwner() [flags=CONSTANT] {
 //! Returns \c True if the current thread is holding the write lock, \c False if not
 /** @return \c True if the current thread is holding the write lock, \c False if not
 
-    @par Example
+    @par Example:
     @code
 if ($rwl.writeLockOwner())
     printf("TID %d has the write lock\n", gettid());

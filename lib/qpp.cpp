@@ -902,7 +902,38 @@ static void doRow(strlist_t &sl, std::string &tstr) {
    tstr += "   </tr>\n";
 }
 
-static int serialize_dox_comment(FILE* fp, std::string &buf) {
+static size_t find_start(const std::string& str) {
+   // find start of long comment
+   size_t start = str.find("/**");
+   if (start == std::string::npos)
+      return start;
+
+   start += 3;
+   size_t lc_start = start;
+
+   size_t i = str.find("@par Platform Availability", start);
+   if (i != std::string::npos) {
+      start = str.find('\n', start);
+      if (start == std::string::npos) {
+         error("Error: cannot find end of Platform Availabily data\n");
+         return lc_start;
+      }
+      start = str.find('\n', start + 1);
+      if (start == std::string::npos) {
+         error("Error: cannot find end of Platform Availabily data\n");
+         return lc_start;
+      }
+      return start + 1;
+   }
+   i = str.find("@", start);
+   if (i == std::string::npos)
+      return start;
+   // find the beginning of the line if possible
+   i = str.find_last_of('\n', i);
+   return i == std::string::npos || i < lc_start ? lc_start : i + 1;
+}
+
+static int serialize_dox_comment(FILE* fp, std::string &buf, const strlist_t& dom = strlist_t(), const strlist_t& flags = strlist_t()) {
    size_t start = 0;
    while (true) {
       size_t i = buf.find("|!", start);
@@ -953,6 +984,46 @@ static int serialize_dox_comment(FILE* fp, std::string &buf) {
 
       buf.replace(start, end - start, tstr);
    }
+
+   start = 0;
+   if (!flags.empty()) {
+      start = find_start(buf);
+      if (start == std::string::npos) {
+         error("cannot insert code flags: missing long comment\n");
+      }
+      else {
+         std::string fbuf = "\n    @par Code Flags:\n    ";
+         for (strlist_t::const_iterator i = flags.begin(), e = flags.end(); i != e; ++i) {
+            if (i != flags.begin())
+               fbuf += ", ";
+            fbuf += "@ref ";
+            fbuf += *i;
+         }
+         fbuf += "\n\n";
+         buf.insert(start, fbuf);
+      }
+   }
+   if (!dom.empty()) {
+      if (!start)
+         start = find_start(buf);
+      if (start == std::string::npos) {
+         error("cannot insert domain flags: missing long comment\n");
+      }
+      else {
+         std::string fbuf = "\n    @par Restrictions:\n    ";
+         for (strlist_t::const_iterator i = dom.begin(), e = dom.end(); i != e; ++i) {
+            strmap_t::const_iterator di = dmap.find(*i);
+            assert(di != dmap.end());
+            if (i != dom.begin())
+               fbuf += ", ";
+            fbuf += "@ref Qore::";
+            fbuf += di->second;
+         }
+         fbuf += "\n\n";
+         buf.insert(start, fbuf);
+      }
+   }
+
    fputs(buf.c_str(), fp);
    return 0;
 }
@@ -1337,7 +1408,7 @@ public:
    }
 
    int serializeDox(FILE *fp) {
-      serialize_dox_comment(fp, docs);
+      serialize_dox_comment(fp, docs, dom, flags);
       
       serializeQoreCppType(fp, return_type);
       fprintf(fp, " %s(", name.c_str());
@@ -2076,7 +2147,7 @@ public:
       else
          fputs("\npublic:\n", fp);
 
-      serialize_dox_comment(fp, docs);
+      serialize_dox_comment(fp, docs, dom, flags);
       
       //fputs("   ", fp);
       if (attr & QCA_STATIC)

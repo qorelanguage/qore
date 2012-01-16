@@ -53,7 +53,7 @@ qclass AutoReadLock [dom=THREAD_CLASS; arg=QoreAutoReadLock* arwl; ns=Thread];
 //! Creates the AutoReadLock object based on the RWLock argument passed and immediately calls RWLock::readLock()
 /** Creates the AutoReadLock object based on the RWLock argument passed. The AutoReadLock object immediately calls RWLock::readLock() on the RWLock object passed, and saves it so it can be released when the AutoReadLock object is destroyed.
 
-    @par Example
+    @par Example:
     @code
 my AutoReadLock $arl($rwlock);
     @endcode
@@ -69,7 +69,7 @@ AutoReadLock::constructor(RWLock[RWLock] rwl) {
 
 //! Calls RWLock::readUnlock() on the saved RWLock and destroys the AutoReadLock object
 /** 
-    @par Example
+    @par Example:
     @code
 delete $arl;
     @endcode

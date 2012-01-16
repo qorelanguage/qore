@@ -32,7 +32,7 @@ qclass SSLCertificate [arg=QoreSSLCertificate* s];
 //! Creates the SSLCertificate object from the PEM-encoded version of the X.509 certificate
 /** @param pem the PEM representation of the X.509 certificate
 
-    @par Example
+    @par Example:
     @code
 my SSLCertificate $cert($pem_cert_string);
     @endcode
@@ -51,7 +51,7 @@ SSLCertificate::constructor(string pem) {
 //! Creates the SSLCertificate object from the DER-encoded version of the X.509 certificate
 /** @param der the DER-encoded representation of the X.509 certificate
 
-    @par Example
+    @par Example:
     @code
 my SSLCertificate $cert($der_cert);
     @endcode
@@ -75,7 +75,7 @@ SSLCertificate::copy() {
 //! Returns a string in PEM format representing the certificate
 /** @return a string in PEM format representing the certificate
 
-    @par Example
+    @par Example:
     @code
 my string $pem_str = $cert.getPEM();
     @endcode
@@ -99,7 +99,7 @@ string SSLCertificate::getPEM() {
     - \c "signature": The binary signature of the X.509 certificate (see SSLCertificate::getSignature())
     - \c "publicKey": The binary public key of the X.509 certificate (see SSLCertificate::getPublicKey())
 
-    @par Example
+    @par Example:
     @code
 my hash $hash = $cert.getInfo();
     @endcode
@@ -111,7 +111,7 @@ hash SSLCertificate::getInfo() [flags=CONSTANT] {
 //! Returns a binary object representing the signature of the certificate
 /** @return a binary object representing the signature of the certificate
 
-    @par Example
+    @par Example:
     @code
 my binary $bin = $cert.getSignature();
     @endcode
@@ -123,7 +123,7 @@ binary SSLCertificate::getSignature() [flags=CONSTANT] {
 //! Returns the signature type of the certificate
 /** @return the signature type of the certificate
 
-    @par Example
+    @par Example:
     @code
 my string $str = $cert.getSignatureType();
     @endcode
@@ -135,7 +135,7 @@ string SSLCertificate::getSignatureType() [flags=CONSTANT] {
 //! Returns a binary object representing the public key of the certificate in DER (Distinguished Encoding Rules) format or @ref nothing if no public key is present in the certificate
 /** @return a binary object representing the public key of the certificate in DER (Distinguished Encoding Rules) format or @ref nothing if no public key is present in the certificate
 
-    @par Example
+    @par Example:
     @code
 my *binary $bin = $cert.getPublicKey();
     @endcode
@@ -147,7 +147,7 @@ my *binary $bin = $cert.getPublicKey();
 //! Returns the name of the public key algorithm of the certificate
 /** @return the name of the public key algorithm of the certificate
 
-    @par Example
+    @par Example:
     @code
 my string $str = $cert.getPublicKeyAlgorithm();
     @endcode
@@ -159,7 +159,7 @@ string SSLCertificate::getPublicKeyAlgorithm() [flags=CONSTANT] {
 //! Returns a hash of strings representing the subject information of the certificate
 /** @return a hash of key-value pairs representing the subject information of the certificate
 
-    @par Example
+    @par Example:
     @code
 my hash $h = $cert.getSubjectHash();
     @endcode
@@ -171,7 +171,7 @@ hash SSLCertificate::getSubjectHash() [flags=CONSTANT] {
 //! Returns a hash of strings representing the issuer information of the certificate
 /** @return a hash of key-value pairs representing the issuer information of the certificate
 
-    @par Example
+    @par Example:
     @code
 my hash $h = $cert.getIssuerHash();
     @endcode
@@ -183,7 +183,7 @@ hash SSLCertificate::getIssuerHash() [flags=CONSTANT] {
 //! Returns the integer serial number of the certificate
 /** @return the integer serial number of the certificate
 
-    @par Example
+    @par Example:
     @code
 my int $sn = $cert.getSerialNumber();
     @endcode
@@ -195,7 +195,7 @@ int SSLCertificate::getSerialNumber() [flags=CONSTANT] {
 //! Returns the version of the certificate as an integer
 /** @return the version of the certificate as an integer
 
-    @par Example
+    @par Example:
     @code
 my int $ver = $cert.getVersion();
     @endcode
@@ -207,7 +207,7 @@ int SSLCertificate::getVersion() [flags=CONSTANT] {
 //! Returns a hash of booleans representing the allowed purposes of the certificate
 /** @return a hash of booleans representing the allowed purposes of the certificate
 
-    @par Example
+    @par Example:
     @code
 my hash $h = $cert.getPurposeHash();
     @endcode
@@ -219,7 +219,7 @@ hash SSLCertificate::getPurposeHash() [flags=CONSTANT] {
 //! Returns a date/time value representing the start date of the certificate
 /** @return a date/time value representing the start date of the certificate
 
-    @par Example
+    @par Example:
     @code
 my date $start = $cert.getNotBeforeDate();
     @endcode
@@ -231,7 +231,7 @@ date SSLCertificate::getNotBeforeDate() [flags=CONSTANT] {
 //! Returns a date/time value representing the end date of the certificate
 /** @return a date/time value representing the end date of the certificate
 
-    @par Example
+    @par Example:
     @code
 my date $end = $cert.getNotAfterDate();
     @endcode

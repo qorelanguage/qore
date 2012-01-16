@@ -70,7 +70,7 @@ qclass FtpClient [dom=NETWORK; arg=QoreFtpClientClass* f];
 
 //! Creates an empty FtpClient object
 /** 
-    @par Example
+    @par Example:
     @code
 my FtpClient $ftp();
     @endcode
@@ -84,7 +84,7 @@ FtpClient::constructor() {
 
     @param url The URL of the server to connect to; must have at least a hostname
 
-    @par Example
+    @par Example:
     @code
 my FtpClient $ftp("ftp://user:pass@example.com:2021");
     @endcode
@@ -110,10 +110,10 @@ FtpClient::copy() {
 
 //! Disconnects any remote connection and destroys the object
 /** 
-    @par Events
+    @par Events:
     @ref EVENT_CHANNEL_CLOSED, @ref EVENT_DELETED
 
-    @par Example
+    @par Example:
     @code
 delete $ftp;
     @endcode
@@ -129,10 +129,10 @@ FtpClient::destructor() {
 
     Connection parameters are set in the constructor or in the FtpClient::set*() methods
 
-    @par Events
+    @par Events:
     @ref EVENT_CONNECTING, @ref EVENT_CONNECTED, @ref EVENT_HOSTNAME_LOOKUP, @ref EVENT_HOSTNAME_RESOLVED, @ref EVENT_START_SSL, @ref EVENT_SSL_ESTABLISHED, @ref EVENT_FTP_SEND_MESSAGE, @ref EVENT_FTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_PACKET_SENT
 
-    @par Example
+    @par Example:
     @code
 $ftp.connect();
     @endcode
@@ -146,10 +146,10 @@ nothing FtpClient::connect() {
 }
 
 //! Disconnects from an FTP server
-/** @par Events
+/** @par Events:
     @ref EVENT_CHANNEL_CLOSED
 
-    @par Example
+    @par Example:
     @code
 delete $ftp;
     @endcode
@@ -159,12 +159,12 @@ nothing FtpClient::disconnect() {
 }
 
 //! Returns a list of files from the FTP server in the server's long format in the current working directory or @ref nothing if the path cannot be found
-/** @par Events
+/** @par Events:
     @ref EVENT_FTP_SEND_MESSAGE, @ref EVENT_FTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_PACKET_SENT
 
     @return a list of files from the FTP server in the server's long format in the current working directory or @ref nothing if the path cannot be found
 
-    @par Example
+    @par Example:
     @code
 my *string $str = $ftp.list();
     @endcode
@@ -186,10 +186,10 @@ my *string $str = $ftp.list();
 
     @return a list of files from the FTP server in the server's long format for the given path or @ref nothing if the path cannot be found
 
-    @par Events
+    @par Events:
     @ref EVENT_FTP_SEND_MESSAGE, @ref EVENT_FTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_PACKET_SENT
 
-    @par Example
+    @par Example:
     @code
 my *string $str = $ftp.list("/tmp/*.txt");
     @endcode
@@ -208,10 +208,10 @@ my *string $str = $ftp.list("/tmp/*.txt");
 //! Returns a list of file names from the FTP server in the current working directory or @ref nothing if the path cannot be found
 /** @return a list of file names from the FTP server in the current working directory or @ref nothing if the path cannot be found
 
-    @par Events
+    @par Events:
     @ref EVENT_FTP_SEND_MESSAGE, @ref EVENT_FTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_PACKET_SENT
 
-    @par Example
+    @par Example:
     @code
 my *string $str = $ftp.nlst();
     @endcode
@@ -232,10 +232,10 @@ my *string $str = $ftp.nlst();
 
     @return a list of file names from the FTP server for the given path or @ref nothing if the path cannot be found
 
-    @par Events
+    @par Events:
     @ref EVENT_FTP_SEND_MESSAGE, @ref EVENT_FTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_PACKET_SENT
 
-    @par Example
+    @par Example:
     @code
 my *string $str = $ftp.nlst("/tmp/*.txt");
     @endcode
@@ -254,10 +254,10 @@ my *string $str = $ftp.nlst("/tmp/*.txt");
 //! Returns the server-side current working directory
 /** @return the server-side current working directory
 
-    @par Events
+    @par Events:
     @ref EVENT_FTP_SEND_MESSAGE, @ref EVENT_FTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_PACKET_SENT
 
-    @par Example
+    @par Example:
     @code
 my string $str = $ftp.pwd();
     @endcode
@@ -272,10 +272,10 @@ string FtpClient::pwd() {
 }
 
 //! Changes the current working directory on the server
-/** @par Events
+/** @par Events:
     @ref EVENT_FTP_SEND_MESSAGE, @ref EVENT_FTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_PACKET_SENT
 
-    @par Example
+    @par Example:
     @code
 $ftp.cwd("/foo/bar");
     @endcode
@@ -293,13 +293,13 @@ nothing FtpClient::cwd(string path) {
 /** @param local_path The path on the local system of the file to send
     @param remote_path If given, where to save the file on the server (otherwise the local path is used)
 
-    @par Restricted Functionality
+    @par Restricted Functionality:
     Not available with @ref PO_NO_FILESYSTEM
 
-    @par Events
+    @par Events:
     @ref EVENT_FTP_SEND_MESSAGE, @ref EVENT_FTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_PACKET_SENT
 
-    @par Example
+    @par Example:
     @code
 $ftp.put("/tmp/file-1.txt", "file.txt");
     @endcode
@@ -321,10 +321,10 @@ nothing FtpClient::put(string local_path, *string remote_path) [dom=FILESYSTEM] 
 /** @param from The original file path on the server to rename/move
     @param to The new path on the server
 
-    @par Events
+    @par Events:
     @ref EVENT_FTP_SEND_MESSAGE, @ref EVENT_FTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_PACKET_SENT
 
-    @par Example
+    @par Example:
     @code
 $ftp.rename("file.txt", "file.txt.orig");
     @endcode
@@ -342,13 +342,13 @@ nothing FtpClient::rename(string from, string to) {
 /** @param remote_path The path on the server to the file to get
     @param local_path The optional local path for saving the file; if this parameter is not given in the call, then the server path is used for the local path as well
 
-    @par Restricted Functionality
+    @par Restricted Functionality:
     Not available with @ref PO_NO_FILESYSTEM
 
-    @par Events
+    @par Events:
     @ref EVENT_FTP_SEND_MESSAGE, @ref EVENT_FTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_PACKET_SENT
 
-    @par Example
+    @par Example:
     @code
 $ftp.get("file.txt", "/tmp/file-1.txt");
     @endcode
@@ -369,10 +369,10 @@ FtpClient::get(string remote_path, *string local_path) [dom=FILESYSTEM] {
 /** @param data The file data to save on the remote server
     @param remote_path The path on the remote server for the file to save the data under
 
-    @par Events
+    @par Events:
     @ref EVENT_FTP_SEND_MESSAGE, @ref EVENT_FTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_PACKET_SENT
 
-    @par Example
+    @par Example:
     @code
 $ftp.putData($str, "file.txt");
     @endcode
@@ -390,10 +390,10 @@ nothing FtpClient::putData(string data, string remote_path) {
 /** @param data The file data to save on the remote server
     @param remote_path The path on the remote server for the file to save the data under
 
-    @par Events
+    @par Events:
     @ref EVENT_FTP_SEND_MESSAGE, @ref EVENT_FTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_PACKET_SENT
 
-    @par Example
+    @par Example:
     @code
 $ftp.putData($bin, "file.pdf");
     @endcode
@@ -412,10 +412,10 @@ nothing FtpClient::putData(binary data, string remote_path) {
 
     @return The file retrieved as a string; if any errors occur an exception is raised
 
-    @par Events
+    @par Events:
     @ref EVENT_FTP_SEND_MESSAGE, @ref EVENT_FTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_PACKET_SENT
 
-    @par Example
+    @par Example:
     @code
 my string $str = $ftp.getAsString("file.txt");
     @endcode
@@ -437,10 +437,10 @@ string FtpClient::getAsString(string remote_path) {
 
     @return The file data retrieved; if any errors occur an exception is raised
 
-    @par Events
+    @par Events:
     @ref EVENT_FTP_SEND_MESSAGE, @ref EVENT_FTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_PACKET_SENT
 
-    @par Example
+    @par Example:
     @code
 my binary $b = $ftp.getAsBinary("file.pdf");
     @endcode
@@ -460,10 +460,10 @@ binary FtpClient::getAsBinary(string remote_path) {
 //! Deletes a file from the FTP server; if any errors occur, an exception is thrown
 /** @param remote_path The path on the server to the file to delete
 
-    @par Events
+    @par Events:
     @ref EVENT_FTP_SEND_MESSAGE, @ref EVENT_FTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_PACKET_SENT
 
-    @par Example
+    @par Example:
     @code
 $ftp.del("file-2.txt");
     @endcode
@@ -480,10 +480,10 @@ nothing FtpClient::del(string remote_path) {
 //! Creates a directory on the FTP server; if any errors occur, an exception is thrown
 /** @param remote_path The path on the server to the directory to create
 
-    @par Events
+    @par Events:
     @ref EVENT_FTP_SEND_MESSAGE, @ref EVENT_FTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_PACKET_SENT
 
-    @par Example
+    @par Example:
     @code
 $ftp.mkdir("tmp");
     @endcode
@@ -500,10 +500,10 @@ nothing FtpClient::mkdir(string remote_path) {
 //! Removes a directory on the remote FTP server; if any errors occur, an exception is thrown
 /** @param remote_path The path on the server to the directory to delete
 
-    @par Events
+    @par Events:
     @ref EVENT_FTP_SEND_MESSAGE, @ref EVENT_FTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_PACKET_SENT
 
-    @par Example
+    @par Example:
     @code
 $ftp.rmdir("tmp");
     @endcode
@@ -520,7 +520,7 @@ nothing FtpClient::rmdir(string remote_path) {
 //! Sets the user name to use for the next connection
 /** @param user the user name to use for the next connection
 
-    @par Example
+    @par Example:
     @code
 $ftp.setUserName("ftp");
     @endcode
@@ -532,7 +532,7 @@ nothing FtpClient::setUserName(string user) {
 //! Sets the password to use for the next connection
 /** @param pass the password to use for the next connection
 
-    @par Example
+    @par Example:
     @code
 $ftp.setPassword("ftp");
     @endcode
@@ -545,7 +545,7 @@ nothing FtpClient::setPassword(string pass) {
 /** 
     @param host the hostname or address to use to connect to for the next connection
 
-    @par Example
+    @par Example:
     @code
 $ftp.setHostName("example.com");
     @endcode
@@ -557,7 +557,7 @@ nothing FtpClient::setHostName(string host) {
 //! Sets the control port value to use for the next connection (the FTP protocol default is 21)
 /** @param port the control port value to use for the next connection (the FTP protocol default is 21); must be \> 0 or an FTPCLIENT-SETPORT-PARAMETER-ERROR exception is raised
 
-    @par Example
+    @par Example:
     @code
 $ftp.setPort(2021);
     @endcode
@@ -576,7 +576,7 @@ nothing FtpClient::setPort(int port) {
 
     @param url The URL to use for the next connection; the URL must contain at least a hostname
 
-    @par Example
+    @par Example:
     @code
 $ftp.setURL("ftps://user:pass@example.com:2021");
     @endcode
@@ -592,7 +592,7 @@ nothing FtpClient::setURL(string url) {
 /** 
     @return the current username value that will be used for the next connection or @ref nothing if none is set
 
-    @par Example
+    @par Example:
     @code
 my *string $user = $ftp.getUserName();
     @endcode
@@ -606,7 +606,7 @@ my *string $user = $ftp.getUserName();
 /** 
     @return the current password value that will be used for the next connection or @ref nothing if none is set
 
-    @par Example
+    @par Example:
     @code
 my *string $pass = $ftp.getPassword();
     @endcode
@@ -620,7 +620,7 @@ my *string $pass = $ftp.getPassword();
 /** 
     @return the current hostname value that will be used for the next connection or @ref nothing if none is set
 
-    @par Example
+    @par Example:
     @code
 my *string $host = $ftp.getHostName();
     @endcode
@@ -634,7 +634,7 @@ my *string $host = $ftp.getHostName();
 /** 
     @return the current port value that will be used for the next connection
 
-    @par Example
+    @par Example:
     @code
 my int $port = $ftp.getPort();
     @endcode
@@ -647,7 +647,7 @@ int FtpClient::getPort() {
 /** 
     @return the current connection URL string for this object
 
-    @par Example
+    @par Example:
     @code
 my string $url = $ftp.getURL();
     @endcode
@@ -659,7 +659,7 @@ string FtpClient::getURL() {
 //! Make an FTPS connection to the server on the next connect if the argument is \c True
 /** @param secure Make an FTPS connection to the server on the next connect if the argument is \c True; make a cleartext connection if the argument is \c False
 
-    @par Example
+    @par Example:
     @code
 $ftp.setSecure(True);
     @endcode
@@ -673,7 +673,7 @@ nothing FtpClient::setSecure(bool secure = True) {
 
 //! Make a non-encrypted connection to the server on the next connect
 /** 
-    @par Example
+    @par Example:
     @code
 $ftp.setInsecure();
     @endcode
@@ -687,7 +687,7 @@ nothing FtpClient::setInsecure() {
 
 //! Make a non-encrypted data connection to the server on the next connect even if the control connection is secure
 /** 
-    @par Example
+    @par Example:
     @code
 $ftp.setSecure();
 $ftp.setInsecureData();
@@ -703,7 +703,7 @@ nothing FtpClient::setInsecureData() {
 //! Returns \c True if the control connection is a secure TLS/SSL connection, \c False if not
 /** @return \c True if the control connection is a secure TLS/SSL connection, \c False if not
 
-    @par Example
+    @par Example:
     @code
 my bool $b = $ftp.isSecure();
     @endcode
@@ -716,7 +716,7 @@ bool FtpClient::isSecure() [flags=CONSTANT] {
 /** 
     @return \c True if the data connections are secure TLS/SSL connections, \c False if not
 
-    @par Example
+    @par Example:
     @code
 my bool $b = $ftp.isDataSecure();
     @endcode
@@ -729,7 +729,7 @@ bool FtpClient::isDataSecure() [flags=CONSTANT] {
 //! Returns the name of the cipher for an encrypted connection or @ref nothing if an encrypted connection is not established
 /** @return the name of the cipher for an encrypted connection or @ref nothing if an encrypted connection is not established
 
-    @par Example
+    @par Example:
     @code
 if ($ftp.isSecure())
     printf("secure connection: %s %s\n", $ftp.getSSLCipherName(), $ftp.getSSLCipherVersion());
@@ -743,7 +743,7 @@ if ($ftp.isSecure())
 //! Returns the version of the cipher for an encrypted connection or @ref nothing if an encrypted connection is not established
 /** @return the version of the cipher for an encrypted connection or @ref nothing if an encrypted connection is not established
 
-    @par Example
+    @par Example:
     @code
 if ($ftp.isSecure())
     printf("secure connection: %s %s\n", $ftp.getSSLCipherName(), $ftp.getSSLCipherVersion());
@@ -757,7 +757,7 @@ if ($ftp.isSecure())
 //! Returns a string code giving the result of verifying the remote certificate or @ref nothing if an encrypted connection is not established
 /** @return A string code giving the result of verifying the peer's certificate or @ref nothing if a secure connection has not been established. The possible values are found in the keys of the @ref X509_VerificationReasons hash constant. This hash can also be used to generate a textual description of the verification result.
 
-    @par Example
+    @par Example:
     @code
 if ($ftp.isSecure() && exists (my *string $str = $ftp.verifyPeerCertificate())) {
     printf("vertificate: %s: %s\n", $str, X509_VerificationReasons.$str);
@@ -770,7 +770,7 @@ if ($ftp.isSecure() && exists (my *string $str = $ftp.verifyPeerCertificate())) 
 
 //! Sets the object to automatically try to negotiate the data connections in \c EPSV, \c PASV, and \c PORT modes, in that order
 /** 
-    @par Example
+    @par Example:
     @code
 $ftp.setModeAuto();
     @endcode
@@ -781,7 +781,7 @@ nothing FtpClient::setModeAuto() {
 
 //! Sets the object to only try to make data connections using \c EPSV (<a href="http://tools.ietf.org/html/rfc2428">RFC-2428</a> extended passive) mode
 /** 
-    @par Example
+    @par Example:
     @code
 $ftp.setModeEPSV();
     @endcode
@@ -792,7 +792,7 @@ nothing FtpClient::setModeEPSV() {
 
 //! Sets the object to only try to make data connections using \c PASV (<a href="http://tools.ietf.org/html/rfc959">RFC-959</a> passive) mode
 /** 
-    @par Example
+    @par Example:
     @code
 $ftp.setModePASV();
     @endcode
@@ -803,7 +803,7 @@ nothing FtpClient::setModePASV() {
 
 //! Sets the object to only try to make data connections using \c PORT mode
 /** 
-    @par Example
+    @par Example:
     @code
 $ftp.setModePORT();
     @endcode
@@ -814,7 +814,7 @@ nothing FtpClient::setModePORT() {
 
 //! Clears any Queue object that may be set on the FtpClient object so that @ref event_handling "I/O events" are no longer captured on the object on either the data or control connections
 /** 
-    @par Example
+    @par Example:
     @code
 $ftp.setEventQueue();
     @endcode
@@ -826,7 +826,7 @@ nothing FtpClient::setEventQueue() {
 //! Sets a Queue object to receive FtpClient and Socket events on both the data and control connections
 /** @param queue a @ref Qore::Thread::Queue "Queue" object to receive FtpClient and Socket events on both the data and control connections
 
-    @par Example
+    @par Example:
     @code
 $ftp.setEventQueue($queue);
     @endcode
@@ -840,7 +840,7 @@ nothing FtpClient::setEventQueue(Qore::Thread::Queue[Queue] queue) {
 
 //! Clears any Queue object that may be set on the FtpClient object so that @ref event_handling "I/O events" are no longer captured on the object on the data connection
 /** 
-    @par Example
+    @par Example:
     @code
 $ftp.setDataEventQueue();
     @endcode
@@ -852,7 +852,7 @@ nothing FtpClient::setDataEventQueue() {
 //! Sets a Queue object to receive FtpClient and Socket events on the data connection
 /** @param queue a @ref Qore::Thread::Queue "Queue" object to receive FtpClient and Socket events on the data connection
 
-    @par Example
+    @par Example:
     @code
 $ftp.setDataEventQueue($queue);
     @endcode
@@ -866,7 +866,7 @@ nothing FtpClient::setDataEventQueue(Qore::Thread::Queue[Queue] queue) {
 
 //! Clears any Queue object that may be set on the FtpClient object so that @ref event_handling "I/O events" are no longer captured on the object on the control connection
 /** 
-    @par Example
+    @par Example:
     @code
 $ftp.setControlEventQueue();
     @endcode
@@ -878,7 +878,7 @@ nothing FtpClient::setControlEventQueue() {
 //! Sets a Queue object to receive FtpClient and Socket events on the control connection
 /** @param queue a @ref Qore::Thread::Queue "Queue" object to receive FtpClient and Socket events on the control connection
 
-    @par Example
+    @par Example:
     @code
 $ftp.setControlEventQueue($queue);
     @endcode

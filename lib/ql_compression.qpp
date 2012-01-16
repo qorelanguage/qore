@@ -619,7 +619,7 @@ const BZ2_DEFAULT_COMPRESSION = BZ2_DEFAULT_COMPRESSION;
 
     @return a binary object of the compressed data
 
-    @par Example
+    @par Example:
     @code
 my binary $bin = compress($str_data);
     @endcode
@@ -647,7 +647,7 @@ binary compress(string str, int level = Z_DEFAULT_COMPRESSION) {
 
     @return a binary object of the compressed data
 
-    @par Example
+    @par Example:
     @code
 my binary $bin = compress($bin_data);
     @endcode
@@ -680,7 +680,7 @@ nothing compress() [flags=RUNTIME_NOOP] {
 
     @return the uncompressed data as a string
 
-    @par Example
+    @par Example:
     @code
 my string $str = uncompress_to_string($bin, "iso-8859-1");
     @endcode
@@ -703,7 +703,7 @@ nothing uncompress_to_string() [flags=RUNTIME_NOOP] {
 
     @return a binary object of the decompressed data
 
-    @par Example
+    @par Example:
     @code
 my binary $bin = uncompress_to_binary($data);
     @endcode
@@ -728,7 +728,7 @@ nothing uncompress_to_binary() [flags=RUNTIME_NOOP] {
 
     @return the compressed data as a binary object
 
-    @par Example
+    @par Example:
     @code
 my binary $data = bzip($str);
     @endcode
@@ -755,7 +755,7 @@ binary gzip(string str, int level = Z_DEFAULT_COMPRESSION) {
 
     @return the compressed data as a binary object
 
-    @par Example
+    @par Example:
     @code
 my binary $data = gzip($bin);
     @endcode
@@ -787,7 +787,7 @@ nothing gzip() [flags=RUNTIME_NOOP] {
 
     @return the uncompressed data as a string
 
-    @par Example
+    @par Example:
     @code
 my string $str = gunzip_to_string($bin, "iso-8859-1");
     @endcode
@@ -810,7 +810,7 @@ nothing gunzip_to_string() [flags=RUNTIME_NOOP] {
 
     @return the uncompressed data as a binary object
 
-    @par Example
+    @par Example:
     @code
 my binary $bin = gunzip_to_string($data);
     @endcode
@@ -833,7 +833,7 @@ nothing gunzip_to_binary() [flags=RUNTIME_NOOP] {
 
     @return the compressed data as a binary object
 
-    @par Example
+    @par Example:
     @code
 my binary $bin = compress($data);
     @endcode
@@ -858,7 +858,7 @@ binary bzip2(binary bin, softint level = BZ2_DEFAULT_COMPRESSION) {
 
     @return the compressed data as a binary object
     
-    @par Example
+    @par Example:
     @code
 my binary $bin = compress($str);
     @endcode
@@ -886,7 +886,7 @@ nothing bzip2() [flags=RUNTIME_NOOP] {
 
     @return the uncompressed data as a binary object
 
-    @par Example
+    @par Example:
     @code
 my string $str = bunzip2_to_binary($bzip2_string);
     @endcode
@@ -909,7 +909,7 @@ nothing bunzip2_to_binary() [flags=RUNTIME_NOOP] {
 
     @return the uncompressed data as a string
 
-    @par Example
+    @par Example:
     @code
 my string $str = bunzip2_to_string($bzip2_string, "iso-8859-1");
     @endcode

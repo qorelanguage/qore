@@ -77,12 +77,9 @@ static QoreHashNode *remove_thread_data_intern(const QoreListNode *args, Excepti
 //@{
 //! Returns the Qore thread ID (TID) of the current thread
 /** 
-    @par Restrictions
-    @ref Qore::PO_NO_THREAD_INFO
-
     @return the Qore thread ID (TID) of the current thread
 
-    @par Example
+    @par Example:
     @code
 my int $tid = gettid();
     @endcode
@@ -93,12 +90,9 @@ int gettid() [flags=CONSTANT;dom=THREAD_INFO] {
 
 //! Returns the current number of threads in the process (not including the special @ref signal_handling "signal handling thread")
 /** 
-    @par Restrictions
-    @ref Qore::PO_NO_THREAD_INFO
-
     @return the current number of threads in the process (not including the special @ref signal_handling "signal handling thread")
 
-    @par Example
+    @par Example:
     @code
 my int $num = num_threads();
     @endcode
@@ -110,12 +104,9 @@ int num_threads() [flags=CONSTANT;dom=THREAD_INFO] {
 //! Returns a list of all current thread IDs
 /** Note that the special signal handling thread with TID 0 is never included in the list returned by this function
 
-    @par Restrictions
-    @ref Qore::PO_NO_THREAD_INFO
-
     @return a list of all current thread IDs
 
-    @par Example
+    @par Example:
     @code
 my list $l = thread_list();
     @endcode
@@ -127,10 +118,7 @@ list thread_list() [flags=CONSTANT;dom=THREAD_INFO] {
 //! Saves the data passed in the thread-local hash; all keys are merged into the thread-local hash, overwriting any information that may have been there before
 /** @param h a hash of data to save in the thread-local data hash
 
-    @par Restrictions
-    @ref Qore::PO_NO_THREAD_CONTROL
-
-    @par Example
+    @par Example:
     @code
 save_thread_data($h);
     @endcode
@@ -146,10 +134,7 @@ nothing save_thread_data(hash h) [dom=THREAD_CONTROL] {
 /** @param key the name of the key in the thread-local hash to save the data against
     @param value the value to save in the thread-local hash against the key
 
-    @par Restrictions
-    @ref Qore::PO_NO_THREAD_CONTROL
-
-    @par Example
+    @par Example:
     @code
 save_thread_data("key1", $value);
     @endcode
@@ -169,12 +154,9 @@ nothing save_thread_data() [dom=THREAD_CONTROL;flags=RUNTIME_NOOP] {
 
 //! Deletes the data associated to one or more keys in the thread-local data hash; if the data is an object, then it is destroyed
 /** 
-    @par Restrictions
-    @ref Qore::PO_NO_THREAD_CONTROL
-
     @param ... Deletes the data associated to one or more keys in the thread-local data hash corresponding to each string argument in the top-level argument list; arguments are converted to strings if necessary
 
-    @par Example
+    @par Example:
     @code
 delete_thread_data("key1", "key2");
     @endcode
@@ -191,12 +173,9 @@ nothing delete_thread_data(...) [dom=THREAD_CONTROL] {
 
 //! Deletes the data associated to one or more keys in the thread-local data hash; if the data is an object, then it is destroyed
 /** 
-    @par Restrictions
-    @ref Qore::PO_NO_THREAD_CONTROL
-
     @param l a list of key names for deleting keys in the thread-local data hash; values are converted to strings if necessary
 
-    @par Example
+    @par Example:
     @code
 delete_thread_data($list_of_keys);
     @endcode
@@ -211,14 +190,11 @@ nothing delete_thread_data(list l) [dom=THREAD_CONTROL] {
 
 //! Removes the data associated to one or more keys in the thread-local data hash and returns the data removed
 /** 
-    @par Restrictions
-    @ref Qore::PO_NO_THREAD_CONTROL
-
     @param ... the key names should be given directly in the argument list with this variant.  If the given hash keys do not exist in the thread-local data hash, then the given key in the return value will have no value assigned
 
     @return a hash of the data removed or @ref nothing if no arguments were passed to the function
 
-    @par Example
+    @par Example:
     @code
 my hash $h = remove_thread_data("filename");
     @endcode
@@ -231,14 +207,11 @@ my hash $h = remove_thread_data("filename");
 
 //! Removes the data associated to one or more keys in the thread-local data hash from a literal list passed as the first argument and returns the data removed
 /** 
-    @par Restrictions
-    @ref Qore::PO_NO_THREAD_CONTROL
-
     @param l a list of key names to remove from the thread-local data hash.  If the given hash keys do not exist in the thread-local data hash, then the given key in the return value will have no value assigned
 
     @return a hash of the data removed
 
-    @par Example
+    @par Example:
     @code
 my hash $h = remove_thread_data($key_list);
     @endcode
@@ -251,10 +224,7 @@ hash remove_thread_data(list l) [dom=THREAD_CONTROL] {
 
 //! Deletes all keys in the thread-local data hash
 /** 
-    @par Restrictions
-    @ref Qore::PO_NO_THREAD_CONTROL
-
-    @par Example
+    @par Example:
     @code
 delete_all_thread_data();
     @endcode
@@ -267,12 +237,9 @@ nothing delete_all_thread_data() [dom=THREAD_CONTROL] {
 
 //! Returns the value of the thread-local data attached to the key passed
 /** 
-    @par Restrictions
-    @ref Qore::PO_NO_THREAD_CONTROL, @ref Qore::PO_NO_THREAD_INFO
-
     @return the value of the thread-local data attached to the key passed
 
-    @par Example
+    @par Example:
     @code
 my any $data = get_thread_data("key1");
     @endcode
@@ -290,12 +257,9 @@ nothing get_thread_data() [dom=THREAD_CONTROL,THREAD_INFO;flags=RUNTIME_NOOP] {
 
 //! Returns the entire thread-local data hash
 /** 
-    @par Restrictions
-    @ref Qore::PO_NO_THREAD_CONTROL, @ref Qore::PO_NO_THREAD_INFO
-
     @return the entire thread-local data hash
 
-    @par Example
+    @par Example:
     @code
 my hash $th = get_all_thread_data();
     @endcode
@@ -306,15 +270,12 @@ hash get_all_thread_data() [flags=CONSTANT;dom=THREAD_CONTROL,THREAD_INFO] {
 
 //! Returns a hash of call stacks keyed by each TID (thread ID)
 /** 
-    @par Availability
+    @par Platform Availability:
     @ref Qore::HAVE_RUNTIME_THREAD_STACK_TRACE
-
-    @par Restrictions
-    @ref Qore::PO_NO_THREAD_CONTROL, @ref Qore::PO_NO_THREAD_INFO
 
     @return a hash of call stacks keyed by each TID (thread ID); see @ref callstacks "call stacks" for the format of the hash values
 
-    @par Example
+    @par Example:
     @code
 my hash $cs = getAllThreadCallStacks();
 foreach my string $tid in (keys $cs) {
@@ -342,10 +303,7 @@ hash getAllThreadCallStacks() [dom=THREAD_CONTROL,THREAD_INFO] {
 
     When exceptions are thrown, thread-local resources are also cleaned up at the same time.
 
-    @par Restrictions
-    @ref Qore::PO_NO_THREAD_CONTROL
-
-    @par Example
+    @par Example:
     @code
 try {
     throwThreadResourceExceptions();

@@ -309,7 +309,7 @@ binary sub get_key(int $size) {
 
     @return a binary object of the encrypted data
 
-    @par Example
+    @par Example:
     @code
 my binary $bin = blowfish_encrypt_cbc($data, $key);
     @endcode
@@ -334,7 +334,7 @@ binary blowfish_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::
 
     @return a binary object of the decrypted data
 
-    @par Example
+    @par Example:
     @code
 my binary $bin = blowfish_decrypt_cbc($data, $key);
     @endcode
@@ -360,7 +360,7 @@ binary blowfish_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = Qore
 
     @return a string of the decrypted data
 
-    @par Example
+    @par Example:
     @code
 my string $str = blowfish_decrypt_cbc_to_string($data, $key, NOTHING, "iso-8859-1");
     @endcode
@@ -387,7 +387,7 @@ string blowfish_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc]
 
     @return a binary object of the encrypted data
 
-    @par Example
+    @par Example:
     @code
 my binary $bin = des_encrypt_cbc($data, $key);
     @endcode
@@ -414,7 +414,7 @@ binary des_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::Defau
 
     @return a binary object of the decrypted data
 
-    @par Example
+    @par Example:
     @code
 my binary $bin = des_decrypt_cbc($data, $key);
     @endcode
@@ -442,7 +442,7 @@ binary des_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = Qore::Def
 
     @return a string of the decrypted data
 
-    @par Example
+    @par Example:
     @code
 my string $bin = des_decrypt_cbc_to_string($data, $key, NOTHING, "iso-8859-1");
     @endcode
@@ -471,7 +471,7 @@ string des_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv =
 
     @return a binary object of the encrypted data
 
-    @par Example
+    @par Example:
     @code
 my binary $bin = des_ede_encrypt_cbc($data, $key);
     @endcode
@@ -498,7 +498,7 @@ binary des_ede_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::D
 
     @return a binary object of the decrypted data
 
-    @par Example
+    @par Example:
     @code
 my binary $bin = des_ede_decrypt_cbc($data, $key);
     @endcode
@@ -526,7 +526,7 @@ binary des_ede_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = Qore:
 
     @return a string of the decrypted data
 
-    @par Example
+    @par Example:
     @code
 my string $bin = des_ede_decrypt_cbc_to_string($data, $key, NOTHING, "iso-8859-1");
     @endcode
@@ -555,7 +555,7 @@ string des_ede_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] 
 
     @return a binary object of the encrypted data
 
-    @par Example
+    @par Example:
     @code
 my binary $bin = des_ede3_encrypt_cbc($data, $key);
     @endcode
@@ -582,7 +582,7 @@ binary des_ede3_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::
 
     @return a binary object of the decrypted data
 
-    @par Example
+    @par Example:
     @code
 my binary $bin = des_ede3_decrypt_cbc($data, $key);
     @endcode
@@ -610,7 +610,7 @@ binary des_ede3_decrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::
 
     @return a string of the decrypted data
 
-    @par Example
+    @par Example:
     @code
 my string $bin = des_ede3_decrypt_cbc_to_string($data, $key, NOTHING, "iso-8859-1");
     @endcode
@@ -639,7 +639,7 @@ string des_ede3_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc]
 
     @return a binary object of the encrypted data
 
-    @par Example
+    @par Example:
     @code
 my binary $bin = desx_encrypt_cbc($data, $key);
     @endcode
@@ -666,7 +666,7 @@ binary desx_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::Defa
 
     @return a binary object of the decrypted data
 
-    @par Example
+    @par Example:
     @code
 my binary $bin = desx_decrypt_cbc($data, $key);
     @endcode
@@ -694,7 +694,7 @@ binary desx_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = Qore::De
 
     @return a binary object of the decrypted data
 
-    @par Example
+    @par Example:
     @code
 my string $str = desx_decrypt_cbc_to_string($data, $key, NOTHING, "iso-8859-1");
     @endcode
@@ -723,7 +723,7 @@ string desx_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv 
 
     @return a binary object of the encrypted data
 
-    @par Example
+    @par Example:
     @code
 my binary $bin = rc4_encrypt($data, $key);
     @endcode
@@ -748,7 +748,7 @@ binary rc4_encrypt(data[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV
 
     @return a binary object of the decrypted data
 
-    @par Example
+    @par Example:
     @code
 my binary $bin = rc4_decrypt($data, $key);
     @endcode
@@ -774,7 +774,7 @@ binary rc4_decrypt(binary[doc] data, data[doc] key, data[doc] iv = Qore::Default
 
     @return a string of the decrypted data
 
-    @par Example
+    @par Example:
     @code
 my string $str = rc4_decrypt_to_string($encrypted_data, $key, NOTHING, "iso-8859-1");
     @endcode
@@ -801,7 +801,7 @@ string rc4_decrypt_to_string(binary[doc] data, data[doc] key, data[doc] iv = Qor
 
     @return a binary object of the encrypted data
 
-    @par Example
+    @par Example:
     @code
 my binary $bin = rc2_encrypt_cbc($data, $key);
     @endcode
@@ -826,7 +826,7 @@ binary rc2_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::Defau
 
     @return a binary object of the decrypted data
 
-    @par Example
+    @par Example:
     @code
 my binary $bin = rc2_decrypt_cbc($data, $key);
     @endcode
@@ -852,7 +852,7 @@ binary rc2_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = Qore::Def
 
     @return a string of the decrypted data
 
-    @par Example
+    @par Example:
     @code
 my string $str = rc2_decrypt_cbc_to_string($data, $key);
     @endcode
@@ -879,7 +879,7 @@ string rc2_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv =
 
     @return a binary object of the encrypted data
 
-    @par Example
+    @par Example:
     @code
 my binary $bin = cast5_encrypt_cbc($data, $key);
     @endcode
@@ -904,7 +904,7 @@ binary cast5_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::Def
 
     @return a binary object of the decrypted data
 
-    @par Example
+    @par Example:
     @code
 my binary $bin = cast5_decrypt_cbc($data, $key);
     @endcode
@@ -930,7 +930,7 @@ binary cast5_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = Qore::D
 
     @return a string of the decrypted data
 
-    @par Example
+    @par Example:
     @code
 my string $bin = cast5_decrypt_cbc_to_string($data, $key, NOTHING, "iso-8859-1");
     @endcode
@@ -951,7 +951,7 @@ string cast5_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv
 }
 
 //! Encrypts data using the <a href="http://en.wikipedia.org/wiki/Cipher_block_chaining#Cipher-block_chaining_.28CBC.29">Cipher Block Chaining</a> function for RSA's <a href="http://en.wikipedia.org/wiki/RC5">RC2(tm) algorithm</a> using a variable-length key and an optional 8-byte initialization vector
-/** @par Availability
+/** @par Platform Availability:
     @ref Qore::HAVE_RC5
 
     @param data the data to be encrypted
@@ -960,7 +960,7 @@ string cast5_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv
 
     @return a binary object of the encrypted data
 
-    @par Example
+    @par Example:
     @code
 my binary $bin = rc2_encrypt_cbc($data, $key);
     @endcode
@@ -984,7 +984,7 @@ binary rc5_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::Defau
 }
 
 //! Decrypts data using the <a href="http://en.wikipedia.org/wiki/Cipher_block_chaining#Cipher-block_chaining_.28CBC.29">Cipher Block Chaining</a> function for RSA's <a href="http://en.wikipedia.org/wiki/RC5">RC2(tm) algorithm</a> using a variable-length key and an optional 8-byte initialization vector
-/** @par Availability
+/** @par Platform Availability:
     @ref Qore::HAVE_RC5
 
     @param data the data to be decrypted
@@ -993,7 +993,7 @@ binary rc5_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::Defau
 
     @return a binary object of the decrypted data
 
-    @par Example
+    @par Example:
     @code
 my binary $bin = rc2_decrypt_cbc($data, $key);
     @endcode
@@ -1017,7 +1017,7 @@ binary rc5_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = Qore::Def
 }
 
 //! Decrypts data using the <a href="http://en.wikipedia.org/wiki/Cipher_block_chaining#Cipher-block_chaining_.28CBC.29">Cipher Block Chaining</a> function for RSA's <a href="http://en.wikipedia.org/wiki/RC5">RC2(tm) algorithm</a> using a variable-length key and an optional 8-byte initialization vector
-/** @par Availability
+/** @par Platform Availability:
     @ref Qore::HAVE_RC5
 
     @param data the data to be decrypted
@@ -1027,7 +1027,7 @@ binary rc5_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = Qore::Def
 
     @return a string of the decrypted data
 
-    @par Example
+    @par Example:
     @code
 my string $str = rc2_decrypt_cbc_to_string($data, $key, NOTHING, "iso-8859-1");
     @endcode
@@ -1054,14 +1054,14 @@ string rc5_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv =
 
 //! Returns the <a href="http://en.wikipedia.org/wiki/MD2_(cryptography)">MD2 message digest</a> of the supplied argument as a hex string
 /** 
-    @par Availability
+    @par Platform Availability:
     @ref Qore::HAVE_MD2
 
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
 
     @return a hex string of the digest (ex: \c "a9046c73e00331af68917d3804f70655")
 
-    @par Example
+    @par Example:
     @code
 my string $str = MD2("hello"); # returns "a9046c73e00331af68917d3804f70655"
     @endcode
@@ -1089,7 +1089,7 @@ string MD2(data[doc] data) {
 
     @return a hex string of the digest (ex: \c "866437cb7a794bce2b727acc0362ee27")
 
-    @par Example
+    @par Example:
     @code
 my string $str = MD4("hello"); # returns "866437cb7a794bce2b727acc0362ee27"
     @endcode
@@ -1112,7 +1112,7 @@ string MD4(data[doc] data) {
 
     @return a hex string of the digest (ex: \c "5d41402abc4b2a76b9719d911017c592")
 
-    @par Example
+    @par Example:
     @code
 my string $str = MD5("hello"); # returns "5d41402abc4b2a76b9719d911017c592"
     @endcode
@@ -1136,7 +1136,7 @@ string MD5(data[doc] data) {
 
     @return a hex string of the digest (ex: \c "ac62a630ca850b4ea07eda664eaecf9480843152")
 
-    @par Example
+    @par Example:
     @code
 my string $str = SHA("hello"); returns "ac62a630ca850b4ea07eda664eaecf9480843152"
     @endcode
@@ -1159,7 +1159,7 @@ string SHA(data[doc] data) {
 
     @return a hex string of the digest (ex: \c "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d")
 
-    @par Example
+    @par Example:
     @code
 my string $str = SHA1("hello"); # "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d"
     @endcode
@@ -1178,14 +1178,14 @@ string SHA1(data[doc] data) {
 
 //! Returns the SHA-224 message digest (a variant of <a href="http://en.wikipedia.org/wiki/SHA-2">SHA-2</a>) of the supplied argument as a hex string
 /** 
-    @par Availability
+    @par Platform Availability:
     @ref Qore::HAVE_SHA224
 
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
 
     @return a hex string of the digest (ex: \c "ea09ae9cc6768c50fcee903ed054556e5bfc8347907f12598aa24193")
 
-    @par Example
+    @par Example:
     @code
 my string $str = SHA224("hello"); # returns "ea09ae9cc6768c50fcee903ed054556e5bfc8347907f12598aa24193"
     @endcode
@@ -1209,14 +1209,14 @@ string SHA224(data[doc] data) {
 
 //! Returns the SHA-256 message digest (a variant of <a href="http://en.wikipedia.org/wiki/SHA-2">SHA-2</a>) of the supplied argument as a hex string
 /** 
-    @par Availability
+    @par Platform Availability:
     @ref Qore::HAVE_SHA256
 
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
 
     @return a hex string of the digest (ex: \c "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824")
 
-    @par Example
+    @par Example:
     @code
 my string $str = SHA256("hello"); # returns "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
     @endcode
@@ -1240,14 +1240,14 @@ string SHA256(data[doc] data) {
 
 //! Returns the SHA-384 message digest (a variant of <a href="http://en.wikipedia.org/wiki/SHA-2">SHA-2</a>) of the supplied argument as a hex string
 /** 
-    @par Availability
+    @par Platform Availability:
     @ref Qore::HAVE_SHA384
 
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
 
     @return a hex string of the digest (ex: \c "59e1748777448c69de6b800d7a33bbfb9ff1b463e44354c3553bcdb9c666fa90125a3c79f90397bdf5f6a13de828684f")
 
-    @par Example
+    @par Example:
     @code
 my string $str = SHA384("hello"); # returns "59e1748777448c69de6b800d7a33bbfb9ff1b463e44354c3553bcdb9c666fa90125a3c79f90397bdf5f6a13de828684f"
     @endcode
@@ -1271,14 +1271,14 @@ string SHA384(data[doc] data) {
 
 //! Returns the SHA-512 message digest (a variant of <a href="http://en.wikipedia.org/wiki/SHA-2">SHA-2</a>) of the supplied argument as a hex string
 /** 
-    @par Availability
+    @par Platform Availability:
     @ref Qore::HAVE_SHA512
 
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
 
     @return a hex string of the digest (ex: \c "9b71d224bd62f3785d96d46ad3ea3d73319bfbc2890caadae2dff72519673ca72323c3d99ba5c11d7c7acc6e14b8c5da0c4663475c2e5c3adef46f73bcdec043")
 
-    @par Example
+    @par Example:
     @code
 my string $str = SHA512("hello"); # returns "9b71d224bd62f3785d96d46ad3ea3d73319bfbc2890caadae2dff72519673ca72323c3d99ba5c11d7c7acc6e14b8c5da0c4663475c2e5c3adef46f73bcdec043"
     @endcode
@@ -1306,7 +1306,7 @@ string SHA512(data[doc] data) {
 
     @return a hex string of the digest (ex: \c "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d")
 
-    @par Example
+    @par Example:
     @code
 my string $str = DSS("hello"); # returns "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d"
     @endcode
@@ -1331,7 +1331,7 @@ string DSS(data[doc] data) {
 
     @return a hex string of the digest (ex: \c "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d")
 
-    @par Example
+    @par Example:
     @code
 my string $str = DSS1("hello"); # returns "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d"
     @endcode
@@ -1352,14 +1352,14 @@ string DSS1(data[doc] data) {
 
 //! Returns the <a href="http://en.wikipedia.org/wiki/MDC2">MDC2 message digest</a> of the supplied argument as a hex string
 /** 
-    @par Availability
+    @par Platform Availability:
     @ref Qore::HAVE_MDC2
 
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
 
     @return a hex string of the digest (ex: \c "4517036cf97b2407d6fe22aa5ab878a3")
 
-    @par Example
+    @par Example:
     @code
 my string $str = MDC2("hello"); # returns "4517036cf97b2407d6fe22aa5ab878a3"
     @endcode
@@ -1387,7 +1387,7 @@ string MDC2(data[doc] data) {
 
     @return a hex string of the digest (ex: \c "108f07b8382412612c048d07d13f814118445acd")
 
-    @par Example
+    @par Example:
     @code
 my string $str = RIPEMD160("hello"); # returns "108f07b8382412612c048d07d13f814118445acd"
     @endcode
@@ -1406,14 +1406,14 @@ string RIPEMD160(data[doc] data) {
 
 //! Returns the <a href="http://en.wikipedia.org/wiki/MD2_(cryptography)">MD2 message digest</a> of the supplied argument as binary object
 /** 
-    @par Availability
+    @par Platform Availability:
     @ref Qore::HAVE_MD2
 
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
 
     @return a binary object of the digest
 
-    @par Example
+    @par Example:
     @code
 my binary $bin = MD2_bin("hello");
     @endcode
@@ -1441,7 +1441,7 @@ binary MD2_bin(data[doc] data) {
 
     @return a binary object of the digest
 
-    @par Example
+    @par Example:
     @code
 my binary $bin = MD4_bin("hello");
     @endcode
@@ -1464,7 +1464,7 @@ binary MD4_bin(data[doc] data) {
 
     @return a binary object of the digest
 
-    @par Example
+    @par Example:
     @code
 my binary $bin = MD5_bin("hello");
     @endcode
@@ -1488,7 +1488,7 @@ binary MD5_bin(data[doc] data) {
 
     @return a binary object of the digest
 
-    @par Example
+    @par Example:
     @code
 my binary $bin = SHA_bin("hello");
     @endcode
@@ -1511,7 +1511,7 @@ binary SHA_bin(data[doc] data) {
 
     @return a binary object of the digest
 
-    @par Example
+    @par Example:
     @code
 my binary $bin = SHA1_bin("hello");
     @endcode
@@ -1530,14 +1530,14 @@ binary SHA1_bin(data[doc] data) {
 
 //! Returns the SHA-224 message digest (a variant of <a href="http://en.wikipedia.org/wiki/SHA-2">SHA-2</a>) of the supplied argument as a binary object
 /** 
-    @par Availability
+    @par Platform Availability:
     @ref Qore::HAVE_SSH224
 
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
 
     @return a binary object of the digest
 
-    @par Example
+    @par Example:
     @code
 my binary $bin = SHA224_bin("hello");
     @endcode
@@ -1561,14 +1561,14 @@ binary SHA224_bin(data[doc] data) {
 
 //! Returns the SHA-256 message digest (a variant of <a href="http://en.wikipedia.org/wiki/SHA-2">SHA-2</a>) of the supplied argument as a binary object
 /** 
-    @par Availability
+    @par Platform Availability:
     @ref Qore::HAVE_SSH256
 
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
 
     @return a binary object of the digest
 
-    @par Example
+    @par Example:
     @code
 my binary $bin = SHA256_bin("hello");
     @endcode
@@ -1592,14 +1592,14 @@ binary SHA256_bin(data[doc] data) {
 
 //! Returns the SHA-384 message digest (a variant of <a href="http://en.wikipedia.org/wiki/SHA-2">SHA-2</a>) of the supplied argument as a binary object
 /** 
-    @par Availability
+    @par Platform Availability:
     @ref Qore::HAVE_SSH384
 
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
 
     @return a binary object of the digest
 
-    @par Example
+    @par Example:
     @code
 my binary $bin = SHA384_bin("hello");
     @endcode
@@ -1623,14 +1623,14 @@ binary SHA384_bin(data[doc] data) {
 
 //! Returns the SHA-512 message digest (a variant of <a href="http://en.wikipedia.org/wiki/SHA-2">SHA-2</a>) of the supplied argument as a binary object
 /** 
-    @par Availability
+    @par Platform Availability:
     @ref Qore::HAVE_SSH512
 
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
 
     @return a binary object of the digest
 
-    @par Example
+    @par Example:
     @code
 my binary $bin = SHA512_bin("hello");
     @endcode
@@ -1658,7 +1658,7 @@ binary SHA512_bin(data[doc] data) {
 
     @return a binary object of the digest
 
-    @par Example
+    @par Example:
     @code
 my binary $bin = DSS_bin("hello");
     @endcode
@@ -1683,7 +1683,7 @@ binary DSS_bin(data[doc] data) {
 
     @return a binary object of the digest
 
-    @par Example
+    @par Example:
     @code
 my binary $bin = DSS1_bin("hello");
     @endcode
@@ -1704,14 +1704,14 @@ binary DSS1_bin(data[doc] data) {
 
 //! Returns the <a href="http://en.wikipedia.org/wiki/MDC2">MDC2 message digest</a> of the supplied argument as a binary object
 /** 
-    @par Availability
+    @par Platform Availability:
     @ref Qore::HAVE_MDC2
 
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
 
     @return a binary object of the digest
 
-    @par Example
+    @par Example:
     @code
 my binary $bin = MDC2_bin("hello");
     @endcode
@@ -1739,7 +1739,7 @@ binary MDC2_bin(data[doc] data) {
 
     @return a binary object of the digest
 
-    @par Example
+    @par Example:
     @code
 my binary $bin = RIPEMD160_bin("hello");
     @endcode
@@ -1759,7 +1759,7 @@ binary RIPEMD160_binary(data[doc] data) {
 //! Returns a binary object of a random key for the <a href="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES algorithm</a>
 /** @return a binary object of a random key for the <a href="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES algorithm</a>
 
-    @par Example
+    @par Example:
     @code
 my binary $bin = des_random_key();
     @endcode

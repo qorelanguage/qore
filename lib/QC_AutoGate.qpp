@@ -52,7 +52,7 @@ qclass AutoGate [dom=THREAD_CLASS; arg=QoreAutoGate* ag; ns=Thread];
 
 //! Creates the AutoGate object based on the Gate argument passed and immediately calls Gate::enter()
 /** @param gate the @ref Qore::Thread::Gate "Gate" object to enter for the lifetime of the AutoGate object
-    @par Example
+    @par Example:
     @code
 my AutoGate $ag($gate);
     @endcode
@@ -67,7 +67,7 @@ AutoGate::constructor(Gate[QoreGate] gate) {
 
 //! Calls Gate::exit() and destroys the AutoGate object
 /** 
-    @par Example
+    @par Example:
     @code
 delete $ag;
     @endcode

@@ -76,6 +76,7 @@ LANG_DOXYFILES_SRC = \
 	doxygen/lang/190_date_time_arithmetic.dox.tmpl \
 	doxygen/lang/195_statements.dox.tmpl \
 	doxygen/lang/200_functions.dox.tmpl \
+	doxygen/lang/202_code_flags.dox.tmpl \
 	doxygen/lang/205_namespaces.dox.tmpl \
 	doxygen/lang/210_constants.dox.tmpl \
 	doxygen/lang/215_classes.dox.tmpl \
@@ -106,6 +107,7 @@ LANG_TMP_DOXYFILES = doxygen/lang/mainpage.dox \
 	doxygen/lang/190_date_time_arithmetic.dox \
 	doxygen/lang/195_statements.dox \
 	doxygen/lang/200_functions.dox \
+	doxygen/lang/202_code_flags.dox \
 	doxygen/lang/205_namespaces.dox \
 	doxygen/lang/210_constants.dox \
 	doxygen/lang/215_classes.dox \
@@ -180,6 +182,9 @@ doxygen/lang/195_statements.dox: doxygen/lang/195_statements.dox.tmpl lib
 	lib/qpp -t $< -o $@
 
 doxygen/lang/200_functions.dox: doxygen/lang/200_functions.dox.tmpl lib
+	lib/qpp -t $< -o $@
+
+doxygen/lang/202_code_flags.dox: doxygen/lang/202_code_flags.dox.tmpl lib
 	lib/qpp -t $< -o $@
 
 doxygen/lang/205_namespaces.dox: doxygen/lang/205_namespaces.dox.tmpl lib

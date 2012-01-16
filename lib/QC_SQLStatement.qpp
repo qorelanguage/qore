@@ -84,7 +84,7 @@ qclass SQLStatement [dom=DATABASE; arg=QoreSQLStatement* stmt; ns=SQL];
 
     @param ds The Datasource object to use for the DB connection for the SQLStatement object
 
-    @par Example
+    @par Example:
     @code
 my SQLStatement $stmt($db);
     @endcode
@@ -112,7 +112,7 @@ SQLStatement::constructor(Datasource[ManagedDatasource] ds) {
 
     @param dsp The DatasourcePool object to use for the DB connection for the SQLStatement object
 
-    @par Example
+    @par Example:
     @code
 my SQLStatement $stmt($db);
     @endcode
@@ -137,7 +137,7 @@ SQLStatement::constructor(DatasourcePool[DatasourcePool] dsp) {
 
 //! Closes the statement if it is open and destroys the object
 /** 
-    @par Example
+    @par Example:
     @code
 delete $stmt;
     @endcode
@@ -163,7 +163,7 @@ SQLStatement::copy() {
 
     @param sql The SQL string to prepare for execution on the DB server
 
-    @par Example
+    @par Example:
     @code
 $stmt.prepare("select * from table where id = %v");
     @endcode
@@ -184,7 +184,7 @@ nothing SQLStatement::prepare(string sql, ...) {
     
     @param sql The SQL string to prepare for execution on the DB server
 
-    @par Example
+    @par Example:
     @code
 $stmt.prepareRaw("select * from table");
     @endcode
@@ -204,7 +204,7 @@ nothing SQLStatement::prepareRaw(string sql) {
 
     @param ... Arguments to placeholder specifications (if required by the underlying DBI driver) and bind by value arguments
 
-    @par Example
+    @par Example:
     @code
 $stmt.prepare("insert into table (id, name) values (%v, %v)");
 foreach my hash $h in ($l) {
@@ -234,7 +234,7 @@ nothing SQLStatement::bind(...) {
 
     @param vargs Arguments to placeholder specifications (if required by the underlying DBI driver) and bind by value arguments
 
-    @par Example
+    @par Example:
     @code
 $stmt.prepare("insert into table (id, name) values (%v, %v)");
 foreach my hash $h in ($l) {
@@ -266,7 +266,7 @@ nothing SQLStatement::bindArgs(softlist vargs) {
 
     @param ... Arguments to placeholder specifications (if required by the underlying DBI driver)
 
-    @par Example
+    @par Example:
     @code
 $stmt.prepare("begin select sysdate into :sd from dual", Type::Date); end;
 $stmt.bindPlaceholders(Type::Date);
@@ -295,7 +295,7 @@ nothing SQLStatement::bindPlaceholders(...) {
 
     @param vargs Arguments to placeholder specifications (if required by the underlying DBI driver)
 
-    @par Example
+    @par Example:
     @code
 $stmt.prepare("begin select sysdate into :sd from dual", Type::Date); end;
 my list $l = list(Type::Date);
@@ -324,7 +324,7 @@ nothing SQLStatement::bindPlaceholdersArgs(softlist vargs) {
 
     @param ... Arguments to bind by value arguments
 
-    @par Example
+    @par Example:
     @code
 $stmt.prepare("insert into table (id, name) values (%v, %v)");
 foreach my hash $h in ($l) {
@@ -354,7 +354,7 @@ nothing SQLStatement::bindValues(...) {
 
     @param vargs Arguments to bind by value arguments
 
-    @par Example
+    @par Example:
     @code
 $stmt.prepare("insert into table (id, name) values (%v, %v)");
 foreach my hash $h in ($l) {
@@ -385,7 +385,7 @@ nothing SQLStatement::bindValuesArgs(softlist vargs) {
 
     @param ... Optional arguments to placeholder specifications (if required by the underlying DBI driver) and bind by value arguments can be given in the call to the method; if present, arguments are bound before the statement is executed
 
-    @par Example
+    @par Example:
     @code
 $stmt.prepare("insert into table (id, name) values (%v, %v)");
 foreach my hash $h in ($l) {
@@ -416,7 +416,7 @@ nothing SQLStatement::exec(...) {
 
     @param vargs Optional arguments to placeholder specifications (if required by the underlying DBI driver) and bind by value arguments can be given in the call to the method; if present, arguments are bound before the statement is executed
 
-    @par Example
+    @par Example:
     @code
 $stmt.prepare("insert into table (id, name) values (%v, %v)");
 foreach my hash $h in ($l) {
@@ -438,7 +438,7 @@ nothing SQLStatement::execArgs(softlist vargs) {
 //! Returns the number of rows affected by the last call to SQLStatement::exec()
 /** @return the number of rows affected by the last call to SQLStatement::exec()
 
-    @par Example
+    @par Example:
     @code
 my int $rc = $stmt.affectedRows();
     @endcode
@@ -454,7 +454,7 @@ int SQLStatement::affectedRows() {
 //! Retrieves output buffers as a hash; result sets will be returned as hashes of lists
 /** @return Returns a hash of output buffers; result sets will be returned as hashes of lists. Each key in the hash is the same as the name given to the placeholder specification in the call to SQLStatement::prepare() or SQLStatement::prepareRaw()
 
-    @par Example
+    @par Example:
     @code
 my hash $h = $stmt.getOutput();
     @endcode
@@ -470,7 +470,7 @@ hash SQLStatement::getOutput() {
 //! Retrieves output buffers as a hash; result sets will be returned as lists of hashes
 /** @return Retrieves output buffers as a hash; result sets will be returned as lists of hashes. Each key in the hash is the same as the name given to the placeholder specification in the call to SQLStatement::prepare() or SQLStatement::prepareRaw()
 
-    @par Example
+    @par Example:
     @code
 my hash $h = $stmt.getOutputRows();
     @endcode
@@ -486,7 +486,7 @@ hash SQLStatement::getOutputRows() {
 //! Performs an explicit define operation on the SQLStatement
 /** It is not encessary to call this method manually; define operations are implicitly executed when needed when retrieving values from a select statement
 
-    @par Example
+    @par Example:
     @code
 {
     my SQLStatement $stmt($ds);
@@ -509,7 +509,7 @@ nothing SQLStatement::define() {
 
 //! Closes the statement if it is open, however this method does not release the connection or transaction lock
 /** 
-    @par Example
+    @par Example:
     @code
 $stmt.close();
     @endcode
@@ -520,7 +520,7 @@ nothing SQLStatement::close() {
 
 //! Commits the transaction, releases the connection or the transaction lock according to the object used in the SQLStatement::constructor(), and closes the SQLStatement
 /** 
-    @par Example
+    @par Example:
     @code
 $stmt.commit();
     @endcode
@@ -533,7 +533,7 @@ nothing SQLStatement::commit() {
 
 //! Closes the SQLStatement, performs a transaction rollback, and releases the connection or the transaction lock according to the object used in the SQLStatement::constructor(), and closes the SQLStatement
 /** 
-    @par Example
+    @par Example:
     @code
 $stmt.rollback();
     @endcode
@@ -546,7 +546,7 @@ nothing SQLStatement::rollback() {
 
 //! Manually starts a transaction and allocates a connection or grabs the transaction lock according to the object used in the SQLStatement::constructor()
 /** 
-    @par Example
+    @par Example:
     @code
 $stmt.beginTransaction();
     @endcode
@@ -560,7 +560,7 @@ nothing SQLStatement::beginTransaction() {
 
     @return \c True if there is a row to retrieve, \c False if not (no more rows to be retrieved)
 
-    @par Example
+    @par Example:
     @code
 while ($stmt.next()) {
     my hash $h = $stmt.fetchRow();
@@ -580,7 +580,7 @@ bool SQLStatement::next() {
 
     @return the current row as a hash where the keys are the column names and the values are the column values
 
-    @par Example
+    @par Example:
     @code
 while ($stmt.next()) {
     my hash $h = $stmt.fetchRow();
@@ -602,7 +602,7 @@ while ($stmt.next()) {
 
     @param rows The maximum number of rows to retrieve, if this argument is omitted, negative, or equal to zero, then all available rows from the current row position are retrieved
 
-    @par Example
+    @par Example:
     @code
 my list $l = $stmt.fetchRows(-1);
     @endcode
@@ -622,7 +622,7 @@ list SQLStatement::fetchRows(softint rows = -1) {
 
     @param rows The maximum number of rows to retrieve, if this argument is omitted, negative, or equal to zero, then all available rows from the current row position are retrieved
 
-    @par Example
+    @par Example:
     @code
 my hash $h = $stmt.fetchColumns(-1);
     @endcode
@@ -638,7 +638,7 @@ hash SQLStatement::fetchColumns(softint rows = -1) {
 //! Returns the current SQL string set with the call to SQLStatement::prepare() or SQLStatement::prepareRaw() or @ref nothing if no SQL has been set
 /** @return Returns the current SQL string set with the call to SQLStatement::prepare() or SQLStatement::prepareRaw() or @ref nothing if no SQL has been set
 
-    @par Example
+    @par Example:
     @code
 my *string $sql = $stmt.getSQL();
     @endcode
@@ -650,7 +650,7 @@ my *string $sql = $stmt.getSQL();
 //! Returns \c True if the object is currently active and has a connection or transaction lock allocated to it, or \c False if not
 /** @return \c True if the object is currently active and has a connection or transaction lock allocated to it, or \c False if not
 
-    @par Example
+    @par Example:
     @code
 if ($stmt.active())
     $stmt.commit();

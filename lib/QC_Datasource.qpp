@@ -149,7 +149,7 @@ qclass Datasource [dom=DATABASE; arg=ManagedDatasource* ds; ns=SQL];
     @param host The host name for the new connection. Also see Datasource::setHostName() for a method that allows this parameter to be set after the constructor.
     @param port The port number for the new connection. Also see Datasource::setPort() for a method that allows this parameter to be set after the constructor.
 
-    @par Example
+    @par Example:
     @code
 my Datasource $db(DSPGSQL, "user", "pass", "database", "utf8", "localhost", 5432);
     @endcode
@@ -203,7 +203,7 @@ Datasource::constructor(string driver, *string user, *string pass, *string db, *
     - \c host: (@ref string_or_nothing_type "*string") The host name for the new connection. Also see Datasource::setHostName() for a method that allows this parameter to be set after the constructor.
     - \c port: (@ref softint_type "softint") The port number for the new connection. Also see Datasource::setPort() for a method that allows this parameter to be set after the constructor. If this key is present and is 0 then an exception will be raised.
 
-    @par Example
+    @par Example:
     @code
 my Datasource $db(("type": DSPGSQL, "user": "username", "pass": "password", "db": "database", "charset": "utf8", "host": "localhost", "port": 5432);
     @endcode
@@ -265,7 +265,7 @@ Datasource::constructor(hash opts) {
 
 //! Closes the datasource if it's open (if any operations are in progress, will block until the operations complete) and destroys the object
 /** 
-    @par Example
+    @par Example:
     @code
 delete $db;
     @endcode
@@ -279,7 +279,7 @@ Datasource::destructor() {
 
 //! Creates a new Datasource object with the same driver as the original and copies of all the connection parameters
 /** 
-    @par Example
+    @par Example:
     @code
 my Datasource $new_ds = $ds.copy();
     @endcode
@@ -291,7 +291,7 @@ Datasource::copy() {
 //! Opens a connection to the datasouce, using the connection parameters already set; an exception is thrown if any errors occur
 /** If the connection is already open, then no action is taken.
 
-    @par Example
+    @par Example:
     @code
 $db.open();
     @endcode
@@ -306,7 +306,7 @@ nothing Datasource::open() {
 
 //! Closes the connection to the database; if any actions are in progress on the database, the close call will block until the actions complete. If any errors are encountered, an exception is raised
 /** 
-    @par Example
+    @par Example:
     @code
 $db.close();
     @endcode
@@ -321,7 +321,7 @@ nothing Datasource::close() {
 
 //! Commits the current transaction and releases the @ref transaction_lock "transaction lock"
 /** 
-    @par Example
+    @par Example:
     @code
 $db.commit();
     @endcode
@@ -336,7 +336,7 @@ nothing Datasource::commit() {
 
 //! Rolls the current transaction back and releases the @ref transaction_lock "transaction lock"
 /** 
-    @par Example
+    @par Example:
     @code
 $db.rollback();
     @endcode
@@ -351,7 +351,7 @@ nothing Datasource::rollback() {
 
 //! Turns autocommit on or off for this object
 /** @param ac \c True to turn on autocommit (a commit will be executed after every SQL call to the server), \c False to turn off autocommit (commits must be manually triggered)
-    @par Example
+    @par Example:
     @code
 $db.setAutoCommit(False);
     @endcode
@@ -363,7 +363,7 @@ nothing Datasource::setAutoCommit(bool ac = True) {
 //! Returns the autocommit status for the object
 /** @return the autocommit status for the object
 
-    @par Example
+    @par Example:
     @code
 my bool $b = $db.getAutoCommit();
     @endcode
@@ -378,7 +378,7 @@ bool Datasource::getAutoCommit() [flags=CONSTANT] {
 
     @return The return value depends on the DBI driver; normally, for commands with placeholders, a hash is returned holding the values acquired from executing the SQL statement. For all other commands, normally an integer row count is returned. However, some DBI drivers also allow select statements to be executed through this interface, which would also return a hash (column names) of lists (values for each column).
 
-    @par Example
+    @par Example:
     @code
 my int $rows = $db.exec("insert into table (varchar_col, timestamp_col, blob_col, numeric_col) values (%v, %v, %v, %d)", $string, now(), $binary, 100);
     @endcode
@@ -400,7 +400,7 @@ any Datasource::exec(string sql, ...) {
 
     @return The return value depends on the DBI driver; normally, for commands with placeholders, a hash is returned holding the values acquired from executing the SQL statement. For all other commands, normally an integer row count is returned. However, some DBI drivers also allow select statements to be executed through this interface, which would also return a hash (column names) of lists (values for each column).
 
-    @par Example
+    @par Example:
     @code
 my int $rows = $db.vexec("insert into example_table value (%v, %v, %v)", $arg_list);
     @endcode
@@ -416,14 +416,14 @@ any Datasource::vexec(string sql, *softlist vargs) {
 //! Grabs the transaction lock (if autocommit is disabled) and executes an SQL command on the server and returns either the row count (for example, for updates and inserts) or the data retrieved (for example, if a stored procedure is executed that returns values)
 /** This method does not do any variable binding, so it's useful for example for DDL statements etc
     
-    @par Warning
+    @par Warning:
     Using this method to execute pure dynamic SQL many times with different SQL strings (as opposed to using the same string and binding by value instead of dynamic SQL) can affect application performance by prohibiting the efficient usage of the DB server's statement cache. See DB server documentation for variable binding and the SQL statement cache for more information.
 
     @param sql The SQL command to execute on the server; this string will not be subjected to any transformations for variable binding
 
     @return The return value depends on the DBI driver; normally, for commands with placeholders, a hash is returned holding the values acquired from executing the SQL statement. For all other commands, normally an integer row count is returned. However, some DBI drivers also allow select statements to be executed through this interface, which would also return a hash (column names) of lists (values for each column).
 
-    @par Example
+    @par Example:
     @code
 $db.exec("create table my_tab (id number, some_text varchar2(30))");
     @endcode
@@ -448,7 +448,7 @@ any Datasource::execRaw(string sql) {
 
     @return This method returns a hash (the keys are the column names) of lists (the column data per row) when executed with an SQL select statement, however some DBI drivers allow any SQL to be executed through this method, in which case other data types can be returned (such as an integer for a row count or a hash for output parameters when executing a stored procedure)
 
-    @par Example
+    @par Example:
     @code
 # bind a string and a date/time value by value in a query
 $query = $db.select("select * from table where varchar_column = %v and timestamp_column > %v", $string, 2007-10-11T15:31:26.289);
@@ -475,7 +475,7 @@ any Datasource::select(string sql, ...) {
 
     @return This method normally returns a hash (the keys are the column names) of row data or @ref nothing if no row is found for the query when executed with an SQL select statement, however some DBI drivers allow any SQL statement to be executed through this method (not only select statements), in this case other data types can be returned
 
-    @par Example
+    @par Example:
     @code
 my *hash $h = $db.selectRow("select * from example_table where id = 1");
     @endcode
@@ -502,7 +502,7 @@ any Datasource::selectRow(string sql, ...) {
 
     @return Normally returns a list (rows) of hash (where the keys are the column names of each row) or @ref nothing if no rows are found for the query, however some DBI drivers allow any SQL statement to be executed through this method (not only select statements), in this case other data types can be returned
 
-    @par Example
+    @par Example:
     @code
 my *list $list = $db.selectRows("select * from example_table");
     @endcode
@@ -528,7 +528,7 @@ any Datasource::selectRows(string sql, ...) {
 
     @return Normally returns a hash (the keys are the column names) of list (each hash key's value is a list giving the row data), however some DBI drivers allow any SQL statement to be executed through this method (not only select statements), in this case other data types can be returned
 
-    @par Example
+    @par Example:
     @code
 my *hash $query = $db.vselect("select * from example_table where id = %v and name = %v", $arg_list);
     @endcode
@@ -555,7 +555,7 @@ any Datasource::vselect(string sql, *softlist vargs) {
 
     @return This method normally returns a hash (the keys are the column names) of row data or @ref nothing if no row is found for the query when executed with an SQL select statement, however some DBI drivers allow any SQL statement to be executed through this method (not only select statements), in this case other data types can be returned
 
-    @par Example
+    @par Example:
     @code
 my *hash $h = $db.vselectRow("select * from example_table where id = %v and type = %v", $arg_list);
     @endcode
@@ -584,7 +584,7 @@ any Datasource::vselectRow(string sql, *softlist vargs) {
 
     @return Normally returns a list (rows) of hash (where the keys are the column names of each row) or @ref nothing if no rows are found for the query, however some DBI drivers allow any SQL statement to be executed through this method (not only select statements), in this case other data types can be returned
 
-    @par Example
+    @par Example:
     @code
 my *list $list = $db.vselectRows("select * from example_table where id = %v and type = %v", $arg_list);
     @endcode
@@ -606,7 +606,7 @@ any Datasource::vselectRows(string sql, *softlist vargs) {
 
     It is an error to call this method when autocommit is enabled for the Datasource.
 
-    @par Example
+    @par Example:
     @code
 $db.beginTransaction();
     @endcode
@@ -620,7 +620,7 @@ nothing Datasource::beginTransaction() {
 
 //! Closes and reopens the Datasource
 /** 
-    @par Example
+    @par Example:
     @code
 $db.reset();
     @endcode
@@ -636,7 +636,7 @@ nothing Datasource::reset() {
 //! Returns an integer bitfield of DBI driver capabilities
 /** @return an integer bitfield of DBI driver capabilities; see @ref dbi_capabilities for the meaning of each bit
 
-    @par Example
+    @par Example:
     @code
 my int $caps = $db.getCapabilities();
 if (!($caps & DBI_CAP_TRANSACTION_MANAGEMENT))
@@ -650,7 +650,7 @@ int Datasource::getCapabilities() [flags=CONSTANT] {
 //! Returns a list of strings giving the capabilities of the current DBI driver
 /** @return a list of strings giving the capabilities of the current DBI driver
 
-    @par Example
+    @par Example:
     @code
 printf("driver %y has the following capabilities:\n", $db.getDriverName());
 foreach my string $cap in ($db.getCapabilityList())
@@ -666,7 +666,7 @@ list Datasource::getCapabilityList() [flags=CONSTANT] {
 
     @param user the username parameter for the time a connection to the server is established
 
-    @par Example
+    @par Example:
     @code
 $db.setUserName($user);
     @endcode
@@ -680,7 +680,7 @@ nothing Datasource::setUserName(string user) {
 
     @param pass the password parameter for the time a connection to the server is established
 
-    @par Example
+    @par Example:
     @code
 $db.setPassword($pass);
     @endcode
@@ -694,7 +694,7 @@ nothing Datasource::setPassword(string pass) {
 
     @param db the database name parameter for the time a connection to the server is established
 
-    @par Example
+    @par Example:
     @code
 $db.setDBName($db);
     @endcode
@@ -710,7 +710,7 @@ nothing Datasource::setDBName(string db) {
 
     @param encoding the database-specific character encoding name for the next connection to the server
 
-    @par Example
+    @par Example:
     @code
 $db.setDBCharset($encoding);
     @endcode
@@ -724,7 +724,7 @@ nothing Datasource::setDBCharset(string encoding) {
 
     @param encoding the database-specific character encoding name for the next connection to the server
 
-    @par Example
+    @par Example:
     @code
 $db.setDBEncoding($encoding);
     @endcode
@@ -738,7 +738,7 @@ nothing Datasource::setDBEncoding(string encoding) {
 
     @param host the hostname to use for the next connection to the server
 
-    @par Example
+    @par Example:
     @code
 $db.setHostName($host);
     @endcode
@@ -752,7 +752,7 @@ nothing Datasource::setHostName(string host) {
 
     @param port the port number to use for the connection
 
-    @par Example
+    @par Example:
     @code
 $db.setPort($port);
     @endcode
@@ -764,7 +764,7 @@ nothing Datasource::setPort(softint port = 0) {
 //! Returns the username parameter as a string or @ref nothing if none is set
 /** @return the username parameter as a string or @ref nothing if none is set
 
-    @par Example
+    @par Example:
     @code
 my *string $user = $db.getUserName();
     @endcode
@@ -776,7 +776,7 @@ my *string $user = $db.getUserName();
 //! Returns the password parameter as a string or @ref nothing if none is set
 /** @return the password parameter as a string or @ref nothing if none is set
 
-    @par Example
+    @par Example:
     @code
 my *string $pass = $db.getPassword();
     @endcode
@@ -788,7 +788,7 @@ my *string $pass = $db.getPassword();
 //! Returns the database name parameter as a string or @ref nothing if none is set
 /** @return the database name parameter as a string or @ref nothing if none is set
 
-    @par Example
+    @par Example:
     @code
 my *string $db = $db.getDBName();
     @endcode
@@ -802,7 +802,7 @@ my *string $db = $db.getDBName();
 
     @return the database-specific charset set encoding for the current connection
 
-    @par Example
+    @par Example:
     @code
 my string $enc = $db.getDBCharset();
     @endcode
@@ -814,7 +814,7 @@ string Datasource::getDBCharset() [flags=CONSTANT] {
 //! Retrieves the database-specific charset set encoding for the current connection
 /** @return the database-specific charset set encoding for the current connection
 
-    @par Example
+    @par Example:
     @code
 my string $enc = $db.getDBEncoding();
     @endcode
@@ -828,7 +828,7 @@ string Datasource::getDBEncoding() [flags=CONSTANT] {
 //! Returns the Qore charset name for the current connection as a string or \c "(unknown)" if none is set
 /** @return the Qore charset name for the current connection as a string or \c "(unknown)" if none is set
 
-    @par Example
+    @par Example:
     @code
 my string $enc = $db.getOSCharset();
     @endcode
@@ -843,7 +843,7 @@ string Datasource::getOSCharset() [flags=CONSTANT] {
 //! Returns the Qore charset name for the current connection as a string or @ref nothing if none is set
 /** @return the Qore charset name for the current connection as a string or @ref nothing if none is set
 
-    @par Example
+    @par Example:
     @code
 my *string $enc = $db.getOSEncoding();
     @endcode
@@ -856,7 +856,7 @@ my *string $enc = $db.getOSEncoding();
 //! Returns the hostname parameter as a string or @ref nothing if none is set
 /** @return the hostname parameter as a string or @ref nothing if none is set
 
-    @par Example
+    @par Example:
     @code
 my *string $host = $db.getHostName();
     @endcode
@@ -868,7 +868,7 @@ my *string $host = $db.getHostName();
 //! Gets the port number that will be used for the next connection to the server
 /** Invalid port numbers will cause an exception to be thrown when the connection is opened
 
-    @par Example
+    @par Example:
     @code
 my *int $port = $db.getPort();
     @endcode
@@ -881,7 +881,7 @@ my *int $port = $db.getPort();
 //! Sets the transaction lock timeout value in milliseconds; set to 0 for no timeout
 /** @param timeout_ms the transaction lock timeout value in milliseconds; set to 0 for no timeout.  Like all Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" may be passed instead of an integer to make the timeout units clear (ex: \c 2500ms for 2.5 seconds).
 
-    @par Example
+    @par Example:
     @code
 $db.setTransactionLockTimeout(4s);
     @endcode
@@ -893,7 +893,7 @@ nothing Datasource::setTransactionLockTimeout(timeout timeout_ms = 0) {
 //! Retrieves the transaction lock timeout value as an integer in milliseconds
 /** @return the transaction lock timeout value as an integer in milliseconds
 
-    @par Example
+    @par Example:
     @code
 my int $to_ms = $db.getTransactionLockTimeout();
     @endcode
@@ -905,7 +905,7 @@ int Datasource::getTransactionLockTimeout() [flags=CONSTANT] {
 //! Returns the name of the driver used for the object
 /** @return the name of the driver used for the object
 
-    @par Example
+    @par Example:
     @code
 my string $driver = $db.getDriverName();
     @endcode
@@ -917,7 +917,7 @@ string Datasource::getDriverName() [flags=CONSTANT] {
 //! Returns the driver-specific server version data for the current connection
 /** @return the driver-specific server version data for the current connection; see the DBI driver documentation for the return data type and format
 
-    @par Example
+    @par Example:
     @code
 my any $ver = $db.getServerVersion();
     @endcode
@@ -933,7 +933,7 @@ any Datasource::getServerVersion() {
 //! Retrieves the driver-specific client library version information; this method may not be implemented for all drivers
 /** @return the driver-specific client library version information; this method may not be implemented for all drivers; see the DBI driver documentation for the return data type and format
 
-    @par Example
+    @par Example:
     @code
 my any $ver = $db.getClientVersion();
     @endcode
@@ -947,7 +947,7 @@ any Datasource::getClientVersion() {
 //! Returns \c True if a transaction is currently in progress, \c False if not
 /** @return \c True if a transaction is currently in progress, \c False if not
 
-    @par Example
+    @par Example:
     @code
 my bool $b = $db.inTransaction();
     @endcode

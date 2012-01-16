@@ -31,7 +31,7 @@
 qclass Queue [dom=THREAD_CLASS; arg=Queue *q; ns=Thread];
 
 //! Creates the Queue object
-/** @par Example
+/** @par Example:
     <code>my Queue $queue();</code>
  */
 Queue::constructor() {
@@ -56,7 +56,7 @@ Queue::copy() {
 }
 
 //! Pushes a value on the end of the queue
-/** @par Example
+/** @par Example:
     <code>$queue.push($value);</code>
 
     @param arg value to be put on the queue
@@ -66,7 +66,7 @@ nothing Queue::push(any arg) {
 }
 
 //! Inserts a value at the beginning of the queue
-/** @par Example
+/** @par Example:
     <code>$queue.insert($value);</code>
 
     @param arg value to be put on the queue
@@ -76,7 +76,7 @@ nothing Queue::insert(any arg) {
 }
 
 //! Blocks until at least one entry is available on the queue, then returns the first entry in the queue. If a timeout occurs, an exception is thrown. If the timeout is less than or equal to zero, then the call does not timeout until data is available
-/** @par Example
+/** @par Example:
     <code>my any $data = $queue.get();</code>
 
     @param timeout_ms a timeout value to wait for data to become available on the queue; integers are interpreted as milliseconds; relative date/time values are interpreted literally with a maximum resolution of milliseconds.  Values <= 0 mean do not timeout.  If a non-zero timeout argument is passed, and no data is available in the timeout period, a \c "QUEUE-TIMEOUT" exception is thrown.  If no value or a value that converts to integer 0 is passed as the argument, then the call does not timeout until data is available on the queue. 
@@ -104,7 +104,7 @@ any Queue::get(timeout timeout_ms = 0) {
 }
 
 //! Blocks until at least one entry is available on the queue, then returns the last entry in the queue. If a timeout occurs, an exception is thrown. If the timeout is less than or equal to zero, then the call does not timeout until data is available
-/** @par Example
+/** @par Example:
     <code>my any $data = $queue.pop();</code>
 
     @param timeout_ms a timeout value to wait for data to become available on the queue; integers are interpreted as milliseconds; relative date/time values are interpreted literally with a maximum resolution of milliseconds.  Values <= 0 mean do not timeout.  If a non-zero timeout argument is passed, and no data is available in the timeout period, a \c "QUEUE-TIMEOUT" exception is thrown.  If no value or a value that converts to integer 0 is passed as the argument, then the call does not timeout until data is available on the queue. 
@@ -132,7 +132,7 @@ any Queue::pop(timeout timeout_ms = 0) {
 }
 
 //! Returns the number of elements in the queue
-/** @par Example
+/** @par Example:
     <code>my int $size = $queue.size();</code>
 
     @return the number of elements in the queue
@@ -142,7 +142,7 @@ int Queue::size() [flags=CONSTANT] {
 }
 
 //! Returns the number of threads currently blocked on this queue
-/** @par Example
+/** @par Example:
     <code>my int $waiting = $queue.numWaiting();</code>
 
     @return the number of threads currently blocked on this queue

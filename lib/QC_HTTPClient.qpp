@@ -128,7 +128,7 @@ qclass HTTPClient [dom=NETWORK; arg=QoreHTTPClient* client];
     - \c timeout: The timeout value in milliseconds (also can be a @ref relative_dates "relative date-time value" for clarity, ex: \c 5m)
     - \c connect_timeout: The timeout value in milliseconds for establishing a new socket connection (also can be a @ref relative_dates "relative date-time value" for clarity, ex: \c 30s)
 
-    @par Example
+    @par Example:
     @code
 my HTTPClient $httpclient(("url":"http://hostname:8080/path"));
     @endcode
@@ -147,7 +147,7 @@ HTTPClient::constructor(hash opts) {
 
 //! Creates the HTTPClient object
 /** 
-    @par Example
+    @par Example:
     @code
 my HTTPClient $httpclient();
     @endcode
@@ -166,7 +166,7 @@ HTTPClient::copy() {
 
 //! Destroys the HTTPClient object and closes any open connections
 /** 
-    @par Example
+    @par Example:
     @code
 delete $httpclient;
     @endcode
@@ -180,7 +180,7 @@ HTTPClient::destructor() {
 //! Sets the HTTP protocol version string for headers in outgoing messages, allowed values are \c "1.0" and \"1.1\".
 /** @param ver \c "1.0" or \"1.1\" for the HTTP protocol compliance version
 
-    @par Example
+    @par Example:
     @code
 $httpclient.setHTTPVersion("1.1");
     @endcode
@@ -194,7 +194,7 @@ nothing HTTPClient::setHTTPVersion(string ver) {
 //! Returns the HTTP protocol version string used in outgoing messages
 /** @return the HTTP protocol version string used in outgoing messages
 
-    @par Example
+    @par Example:
     @code
 my string $version = $httpclient.getHTTPVersion();
     @endcode
@@ -210,7 +210,7 @@ string HTTPClient::getHTTPVersion() [flags=CONSTANT] {
 
     @param secure if \c True, a SSL/TLS connection will be attempted on the next connection. If \c False, an unencrypted cleartext connection will be established
 
-    @par Example
+    @par Example:
     @code
 $httpclient.setSecure(True);
     @endcode
@@ -222,7 +222,7 @@ nothing HTTPClient::setSecure(softbool secure = True) {
 //! Returns \c True if the current connection is encrypted, \c False if not
 /** @return \c True if the current connection is encrypted, \c False if not
 
-    @par Example
+    @par Example:
     @code
 if ($httpclient.isSecure())
     printf("secure connection: %s %s\n", $httpclient.getSSLCipherName(), $httpclient.getSSLCipherVersion());
@@ -235,7 +235,7 @@ bool HTTPClient::isSecure() [flags=CONSTANT] {
 //! Returns a string code giving the result of verifying the remote certificate or @ref nothing if an encrypted connection is not established
 /** @return A string code giving the result of verifying the peer's certificate or @ref nothing if a secure connection has not been established. The possible values are found in the keys of the @ref X509_VerificationReasons hash constant. This hash can also be used to generate a textual description of the verification result.
 
-    @par Example
+    @par Example:
     @code
 if ($httpclient.isSecure() && exists (my *string $str = $httpclient.verifyPeerCertificate())) {
     printf("vertificate: %s: %s\n", $str, X509_VerificationReasons.$str);
@@ -249,7 +249,7 @@ if ($httpclient.isSecure() && exists (my *string $str = $httpclient.verifyPeerCe
 //! Returns the name of the cipher for an encrypted connection or @ref nothing if an encrypted connection is not established
 /** @return the name of the cipher for an encrypted connection or @ref nothing if an encrypted connection is not established
 
-    @par Example
+    @par Example:
     @code
 if ($httpclient.isSecure())
     printf("secure connection: %s %s\n", $httpclient.getSSLCipherName(), $httpclient.getSSLCipherVersion());
@@ -263,7 +263,7 @@ if ($httpclient.isSecure())
 //! Returns the version of the cipher for an encrypted connection or @ref nothing if an encrypted connection is not established
 /** @return the version of the cipher for an encrypted connection or @ref nothing if an encrypted connection is not established
 
-    @par Example
+    @par Example:
     @code
 if ($httpclient.isSecure())
     printf("secure connection: %s %s\n", $httpclient.getSSLCipherName(), $httpclient.getSSLCipherVersion());
@@ -279,10 +279,10 @@ if ($httpclient.isSecure())
 
     If the \c TCP_NODELAY flag has been set (see HTTPClient::setNoDelay()), then after a successful connection to the remote socket, this option will be set on the socket. If an error occurs setting the \c TCP_NODELAY option, the internal flag is set to false (use HTTPClient::getNoDelay() to check the flag's state) and the error code can be retrieved with errno().
 
-    @par Events
+    @par Events:
     @ref EVENT_CONNECTING, @ref EVENT_CONNECTED, @ref EVENT_HOSTNAME_LOOKUP, @ref EVENT_HOSTNAME_RESOLVED, @ref EVENT_START_SSL, @ref EVENT_SSL_ESTABLISHED
 
-    @par Example
+    @par Example:
     @code
 $httpclient.connect();
     @endcode
@@ -295,7 +295,7 @@ nothing HTTPClient::connect() {
 
 //! Disconnects from the remote socket if a connection is established (otherwise does nothing)
 /** 
-    @par Example
+    @par Example:
     @code
 $httpclient.disconnect();
     @endcode
@@ -315,7 +315,7 @@ nothing HTTPClient::disconnect() {
     @param info An optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request.
     @return The headers received from the HTTP server with all key names converted to lower-case. The message body (if any) will be assigned to the value of the \c "body" key.
 
-    @par Example
+    @par Example:
     @code
 my hash $msg = $httpclient.send($body, "POST", "/path", ("Content-Type":"application/x-yaml"));
     @endcode
@@ -344,7 +344,7 @@ hash HTTPClient::send(string body, string method, *string path, *hash headers, s
     @param info An optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request.
     @return The headers received from the HTTP server with all key names converted to lower-case. The message body (if any) will be assigned to the value of the \c "body" key.
 
-    @par Example
+    @par Example:
     @code
 my hash $msg = $httpclient.send($body, "POST", "/path", ("Content-Type":"application/x-yaml"));
     @endcode
@@ -375,10 +375,10 @@ hash HTTPClient::send(*binary body, string method, string path, *hash headers, s
 
     @return the message body in the reply to this message or @ref nothing in case of an error or an erroneous reply by the server with no body
 
-    @par Events
+    @par Events:
     @ref EVENT_CONNECTING, @ref EVENT_CONNECTED, @ref EVENT_HOSTNAME_LOOKUP, @ref EVENT_HOSTNAME_RESOLVED, @ref EVENT_START_SSL, @ref EVENT_SSL_ESTABLISHED, @ref EVENT_HTTP_SEND_MESSAGE, @ref EVENT_PACKET_SENT, @ref EVENT_HTTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_HTTP_CONTENT_LENGTH, @ref EVENT_HTTP_CHUNKED_START, @ref EVENT_HTTP_CHUNKED_END, @ref EVENT_HTTP_CHUNKED_DATA_RECEIVED, @ref EVENT_HTTP_CHUNK_SIZE, @ref EVENT_HTTP_FOOTERS_RECEIVED, @ref EVENT_HTTP_REDIRECT
 
-    @par Example
+    @par Example:
     @code
 my *string $html = $httpclient.get("/path/file.html");
     @endcode
@@ -405,10 +405,10 @@ my *string $html = $httpclient.get("/path/file.html");
     @return the headers received from the HTTP server with all key names converted to lower-case
 
 
-    @par Events
+    @par Events:
     @ref EVENT_CONNECTING, @ref EVENT_CONNECTED, @ref EVENT_HOSTNAME_LOOKUP, @ref EVENT_HOSTNAME_RESOLVED, @ref EVENT_START_SSL, @ref EVENT_SSL_ESTABLISHED, @ref EVENT_HTTP_SEND_MESSAGE, @ref EVENT_PACKET_SENT, @ref EVENT_HTTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_HTTP_REDIRECT
 
-    @par Example
+    @par Example:
     @code
 my hash $msg = $httpclient.head("/path");
     @endcode
@@ -437,10 +437,10 @@ hash HTTPClient::head(string path, *hash headers, *reference info) {
 
     @return the message body in the reply to this message or @ref nothing in case no body was present in the response
 
-    @par Events
+    @par Events:
     @ref EVENT_CONNECTING, @ref EVENT_CONNECTED, @ref EVENT_HOSTNAME_LOOKUP, @ref EVENT_HOSTNAME_RESOLVED, @ref EVENT_START_SSL, @ref EVENT_SSL_ESTABLISHED, @ref EVENT_HTTP_SEND_MESSAGE, @ref EVENT_PACKET_SENT, @ref EVENT_HTTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_HTTP_CONTENT_LENGTH, @ref EVENT_HTTP_CHUNKED_START, @ref EVENT_HTTP_CHUNKED_END, @ref EVENT_HTTP_CHUNKED_DATA_RECEIVED, @ref EVENT_HTTP_CHUNK_SIZE, @ref EVENT_HTTP_FOOTERS_RECEIVED, @ref EVENT_HTTP_REDIRECT
 
-    @par Example
+    @par Example:
     @code
 $httpclient.post("/path", $body);
     @endcode
@@ -472,10 +472,10 @@ $httpclient.post("/path", $body);
 
     @return the message body in the reply to this message or @ref nothing in case no body was present in the response
 
-    @par Events
+    @par Events:
     @ref EVENT_CONNECTING, @ref EVENT_CONNECTED, @ref EVENT_HOSTNAME_LOOKUP, @ref EVENT_HOSTNAME_RESOLVED, @ref EVENT_START_SSL, @ref EVENT_SSL_ESTABLISHED, @ref EVENT_HTTP_SEND_MESSAGE, @ref EVENT_PACKET_SENT, @ref EVENT_HTTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_HTTP_CONTENT_LENGTH, @ref EVENT_HTTP_CHUNKED_START, @ref EVENT_HTTP_CHUNKED_END, @ref EVENT_HTTP_CHUNKED_DATA_RECEIVED, @ref EVENT_HTTP_CHUNK_SIZE, @ref EVENT_HTTP_FOOTERS_RECEIVED, @ref EVENT_HTTP_REDIRECT
 
-    @par Example
+    @par Example:
     @code
 $httpclient.post("/path", $body);
     @endcode
@@ -498,7 +498,7 @@ $httpclient.post("/path", $body);
 //! Sets the default read timeout in milliseconds
 /** @param timeout_ms 0 means immediate timeout (will return data only if it is already available), and negative numbers mean never timeout (wait forever for data). Note that like all Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. 2m = two minutes, etc.).
 
-    @par Example
+    @par Example:
     @code
 $httpclient.setTimeout(2m);
     @endcode
@@ -510,7 +510,7 @@ nothing HTTPClient::setTimeout(timeout timeout_ms = 0) {
 //! Returns the default read timeout as an integer in milliseconds
 /** @return the default read timeout as an integer in milliseconds; 0 means immediate timeout (only returns data if it is already available), and negative numbers mean never timeout (wait forever for data)
 
-    @par Example
+    @par Example:
     @code
 my int $timeout = $httpclient.getTimeout();
     @endcode
@@ -522,7 +522,7 @@ int HTTPClient::getTimeout() [flags=CONSTANT] {
 //! Sets the string encoding for the object; any strings deserialized with this object will be tagged with this character encoding
 /** @param encoding the string encoding for the object; any strings deserialized with this object will be tagged with this character encoding
 
-    @par Example
+    @par Example:
     @code
 $httpclient.setEncoding("UTF-8");
     @endcode
@@ -534,7 +534,7 @@ nothing HTTPClient::setEncoding(string encoding) {
 //! Returns the character encoding used for the object
 /** @return the character encoding used for the object
 
-    @par Example
+    @par Example:
     @code
 my string $encoding = $httpclient.getEncoding();
     @endcode
@@ -548,7 +548,7 @@ string HTTPClient::getEncoding() [flags=CONSTANT] {
 
     @param url the new URL for the object
 
-    @par Example
+    @par Example:
     @code
 $httpclient.setURL("https://user:password@hostname:8080/path");
     @endcode
@@ -565,7 +565,7 @@ HTTPClient::setURL(string url) {
 //! Returns the current URL
 /** @return the current URL
 
-    @par Example
+    @par Example:
     @code
 my string $url = $httpclient.getURL();
     @endcode
@@ -577,7 +577,7 @@ string HTTPClient::getURL() [flags=CONSTANT] {
 //! Clears the new proxy URL value for the next connection
 /** This variant of the method is equivalent to HTTPClient::clearProxyURL()
 
-    @par Example
+    @par Example:
     @code
 $httpclient.setProxyURL();
     @endcode
@@ -589,7 +589,7 @@ nothing HTTPClient::setProxyURL() {
 //! Sets a new proxy URL value for the next connection
 /** @param url the new proxy URL value for the next connection
 
-    @par Example
+    @par Example:
     @code
 $httpclient.setProxyURL("http://user:password@proxy_host:8080/path");
     @endcode
@@ -604,7 +604,7 @@ nothing HTTPClient::setProxyURL(string url) {
 //! Returns the current proxy URL as a string or @ref nothing if no proxy URL is set
 /** @return the current proxy URL as a string or @ref nothing if no proxy URL is set
 
-    @par Example
+    @par Example:
     @code
 my *string $proxy_url = $httpclient.getProxyURL();
     @endcode
@@ -615,7 +615,7 @@ my *string $proxy_url = $httpclient.getProxyURL();
 
 //! Clears the new proxy URL value for the next connection
 /** 
-    @par Example
+    @par Example:
     @code
 $httpclient.setProxyURL();
     @endcode
@@ -626,7 +626,7 @@ nothing HTTPClient::clearProxyURL() {
 
 //! Sets the SSL/TLS flag for the next connection to the proxy
 /** 
-    @par Example
+    @par Example:
     @code
 $httpclient.setProxySecure(True);
     @endcode
@@ -640,7 +640,7 @@ nothing HTTPClient::setProxySecure(softbool b = True) {
 //! Returns the SSL/TLS flag for the next proxy connection
 /** @return the SSL/TLS flag for the next proxy connection
 
-    @par Example
+    @par Example:
     @code
 my bool $b = $httpclient.isProxySecure();
     @endcode
@@ -652,7 +652,7 @@ bool HTTPClient::isProxySecure() [flags=CONSTANT] {
 //! Updates the setting for the \c max_redirects value for the object (maximum number of HTTP redirects that will be processed before an exception is raised)
 /** @param mr the setting for the maximum number of HTTP redirects that will be processed before an exception is raised
 
-    @par Example
+    @par Example:
     @code
 $httpclient.setMaxRedirects(5);
     @endcode
@@ -666,7 +666,7 @@ nothing HTTPClient::setMaxRedirects(softint mr = 0) {
 //! Returns the current \c max_redirects value for the object (the maximum number of HTTP redirects that will be processed before an exception is raised)
 /** @return the current \c max_redirects value for the object (the maximum number of HTTP redirects that will be processed before an exception is raised)
 
-    @par Example
+    @par Example:
     @code
 my int $mr = $httpclient.getMaxRedirects();
     @endcode
@@ -677,7 +677,7 @@ int HTTPClient::getMaxRedirects() [flags=CONSTANT] {
 
 //! Clears any Queue object that may be set on the HTTPClient object so that @ref event_handling "I/O events" are no longer captured on the object
 /** 
-    @par Example
+    @par Example:
     @code
 $httpclient.setEventQueue();
     @endcode
@@ -689,7 +689,7 @@ nothing HTTPClient::setEventQueue() {
 //! Sets a Queue object to receive HTTPClient and Socket events
 /** @param queue a @ref Qore::Thread::Queue "Queue" object to receive HTTPClient and Socket events
 
-    @par Example
+    @par Example:
     @code
 $httpclient.setEventQueue($queue);
     @endcode
@@ -704,7 +704,7 @@ nothing HTTPClient::setEventQueue(Qore::Thread::Queue[Queue] queue) {
 //! Sets the connect timeout in milliseconds
 /** @param timeout_ms the connect timeout in milliseconds; negative numbers mean use the default system connect timeout. Note that like all Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. 30s = 30 seconds, etc.).
 
-    @par Example
+    @par Example:
     @code
 $httpclient.setConnectTimeout(2m);
     @endcode
@@ -716,7 +716,7 @@ nothing HTTPClient::setConnectTimeout(timeout timeout_ms = -1) {
 //! Returns the connect timeout as an integer in milliseconds
 /** @return Returns the connect timeout as an integer in milliseconds; negative numbers mean the system default timeout is used
 
-    @par Example
+    @par Example:
     @code
 my int $to = $httpclient.getConnectTimeout();
     @endcode
@@ -736,7 +736,7 @@ int HTTPClient::getConnectTimeout() [flags=CONSTANT] {
 
     @param b the \c TCP_NODELAY setting for the object
 
-    @par Example
+    @par Example:
     @code
 $httpclient.setNoDelay(True);
     @endcode
@@ -749,7 +749,7 @@ int HTTPClient::setNoDelay(softbool b = True) {
 
 //! Returns the \c TCP_NODELAY setting for the HTTPClient object
 /** 
-    @par Example
+    @par Example:
     @code
 my bool $b = $httpclient.getNoDelay();
     @endcode
@@ -763,7 +763,7 @@ bool HTTPClient::getNoDelay() [flags=CONSTANT] {
 //! Returns \c True or \c False giving the current connection state
 /** @return \c True or \c False giving the current connection state
 
-    @par Example
+    @par Example:
     @code
 my bool $b = $httpclient.isConnected();
     @endcode
@@ -778,7 +778,7 @@ bool HTTPClient::isConnected() [flags=CONSTANT] {
     @param user the username to use for authentication in the next HTTP connection
     @param pass the password to use for authentication in the next HTTP connection
 
-    @par Example
+    @par Example:
     @code
 $httpclient.setUserPassword($user, $pass);
     @endcode
@@ -792,7 +792,7 @@ nothing HTTPClient::setUserPassword(string user, string pass) {
 
     This variant of the method is equivalent to HTTPClient::clearUserPassword()
 
-    @par Example
+    @par Example:
     @code
 $httpclient.setUserPassword();
     @endcode
@@ -806,7 +806,7 @@ nothing HTTPClient::setUserPassword() {
 //! Clears the username and password for the connection
 /** Call this method after calling HTTPClient::setURL() to clear any authentication information present in the URL used in HTTPClient::setURL()
 
-    @par Example
+    @par Example:
     @code
 $httpclient.clearUserPassword();
     @endcode
@@ -821,7 +821,7 @@ nothing HTTPClient::clearUserPassword() {
     @param user the username to use for proxy authentication in the next HTTP connection
     @param pass the password to use for proxy authentication in the next HTTP connection
 
-    @par Example
+    @par Example:
     @code
 $httpclient.setProxyUserPassword($user, $pass);
     @endcode
@@ -835,7 +835,7 @@ nothing HTTPClient::setProxyUserPassword(string user, string pass) {
 
     This variant of the method is equivalent to HTTPClient::clearProxyUserPassword()
 
-    @par Example
+    @par Example:
     @code
 $httpclient.setProxyUserPassword();
     @endcode
@@ -849,7 +849,7 @@ nothing HTTPClient::setProxyUserPassword() {
 //! Clears the username and password for the next proxy connection
 /** Call this method after calling HTTPClient::setProxyURL() to clear any proxy authentication information present in the URL used in HTTPClient::setProxyURL()
 
-    @par Example
+    @par Example:
     @code
 $httpclient.clearProxyUserPassword();
     @endcode

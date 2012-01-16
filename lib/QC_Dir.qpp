@@ -42,7 +42,7 @@ qclass Dir [arg=Dir* d; dom=FILESYSTEM];
 
     @param encoding the name of the default character encoding for filenames retrieved; if this argument is not given, filename strings retrieved will be tagged with the @ref default_encoding "default character encoding" of the process
 
-    @par Example
+    @par Example:
     @code
 my Dir $dir("utf-8");
     @endcode
@@ -57,7 +57,7 @@ Dir::constructor(*string encoding) {
 
 //! Creates a new directory object with the same character encoding specification and the same path as the original
 /** 
-    @par Example
+    @par Example:
     @code
 my Dir $nd = $dir.copy();
     @endcode
@@ -77,7 +77,7 @@ Dir::copy() {
 
     @return \c True if the new path is openable as directory (see Dir::exists())
 
-    @par Example
+    @par Example:
     @code
 if ($d.chdir("../doc")) {
     $d.create(0755);
@@ -95,7 +95,7 @@ bool Dir::chdir(string path) {
 
     @return the path of the Dir object or @ref nothing if no path is set
 
-    @par Example
+    @par Example:
     @code
 my *string $mypath = $d.path();
     @endcode
@@ -107,7 +107,7 @@ my *string $mypath = $d.path();
 //! Returns \c True if the path in the Dir object points to a directory that already exists and is openable by the current user, \c False otherwise
 /** @return \c True if the path in the Dir object points to a directory that already exists and is openable by the current user, \c False otherwise
 
-    @par Example
+    @par Example:
     @code
 if (!$d.exists())
    printf("%y: does not exist or cannot be opened\n", $d.path());
@@ -120,7 +120,7 @@ bool Dir::exists() {
 //! Creates the directory tree the Dir object points to, if it does not exist
 /** @param mode The mode of the directory
 
-    @par Example
+    @par Example:
     @code
 try {
     if (!$d.exists()) {
@@ -146,7 +146,7 @@ int Dir::create(softint mode = 0777) {
 //! Changes the mode of the directory
 /** @param mode The mode of the directory
 
-    @par Example
+    @par Example:
     @code
 try {
     $dir.chmod(0750);
@@ -169,10 +169,10 @@ nothing Dir::chmod(softint mode) {
 //! Change the ownership of the directory from the userid
 /** @param uid the userid of the user to change the directory to
 
-    @par Platform Availability
+    @par Platform Availability:
     @ref HAVE_UNIX_FILEMGT
 
-    @par Example
+    @par Example:
     @code
 try {
     $dir.chown($uid);
@@ -200,10 +200,10 @@ nothing Dir::chown(int uid) {
 //! Change the ownership of the directory from the username
 /** @param username the username of the user to change the directory to
 
-    @par Platform Availability
+    @par Platform Availability:
     @ref HAVE_UNIX_FILEMGT
 
-    @par Example
+    @par Example:
     @code
 try {
     $dir.chown($username);
@@ -239,10 +239,10 @@ nothing Dir::chown(string username) {
 //! Change the group membership of the directory from the group id
 /** @param gid the groupid of the user to change the directory to
 
-    @par Platform Availability
+    @par Platform Availability:
     @ref HAVE_UNIX_FILEMGT
 
-    @par Example
+    @par Example:
     @code
 try {
     $dir.chgrp($gid);
@@ -270,10 +270,10 @@ nothing Dir::chgrp(int gid) {
 //! Change the group membership of the directory
 /** @param groupname the group name of the group to change the directory to
 
-    @par Platform Availability
+    @par Platform Availability:
     @ref HAVE_UNIX_FILEMGT
 
-    @par Example
+    @par Example:
     @code
 try {
     $dir.chgrp($groupname);
@@ -310,7 +310,7 @@ nothing Dir::chgrp(string groupname) {
 /** @param subdir The subdirectory name to create; only direct subdirectories are allowed; directory separator characters are not allowed
     @param mode The mode of the directory
 
-    @par Example
+    @par Example:
     @code
 try {
     $dir.mkdir("subdir", 0750);
@@ -337,7 +337,7 @@ nothing Dir::mkdir(string subdir, softint mode = 0777) {
 //! Removes a direct subdirectory from the Dir object's current path
 /** @param subdir The subdirectory name to remove; only direct subdirectories are allowed; directory separator characters are not allowed
 
-    @par Example
+    @par Example:
     @code
 try {
     $dir.rmdir("subdir");
@@ -364,7 +364,7 @@ nothing Dir::rmdir(string subdir) {
 //! Get all entries in this directory, except \c "." and \c ".." directories; if any errors occur an exception is thrown
 /** @returns a list of all entries in the directory (except \c "." and \c ".." directories)
 
-    @par Example
+    @par Example:
     @code
 try {
     foreach my string $e in ($d.list()) {
@@ -392,7 +392,7 @@ list Dir::list() {
 
     @return a list of all entries in the directory that match the given regular expression (except \c "." and \c ".." directories)
 
-    @par Example
+    @par Example:
     @code
 try {
     foreach my string $e in ($d.list("\\.txt$")) {
@@ -420,7 +420,7 @@ list Dir::list(string regex, softint regex_options = 0) {
 /**
     @return a list of all files in the current directory of the object
 
-    @par Example
+    @par Example:
     @code
 try {
     foreach my string $e in ($d.listFiles()) {
@@ -448,7 +448,7 @@ list Dir::listFiles() {
 
     @return a list of all files in the directory that match the given regular expression
 
-    @par Example
+    @par Example:
     @code
 try {
     foreach my string $e in ($d.listFiles("\\.txt$")) {
@@ -475,7 +475,7 @@ list Dir::listFiles(string regex, softint regex_options = 0) {
 //! Retrieves all subdirectory entries in this directory, except \c "." and \c ".." directories; if any errors occur an exception is thrown
 /** @return a list of all subdirectory entries in this directory, except \c "." and \c ".." directories
 
-    @par Example
+    @par Example:
     @code
 try {
     foreach my string $e in ($d.listDirs()) {
@@ -503,7 +503,7 @@ list Dir::listDirs() {
 
     @return a list of all subdirectory entries in the directory that match the given regular expression (except \c "." and \c ".." directories)
 
-    @par Example
+    @par Example:
     @code
 try {
     foreach my string $e in ($d.listDirs("^pgsql-")) {
@@ -535,7 +535,7 @@ list Dir::listDirs(string regex, softint regex_options = 0) {
     @param mode Permission bits for when the file is to be created
     @param encoding The name of the default character encoding for this file; if this argument is not given, the file will be tagged with the @ref default_encoding "default character encoding" for the process
 
-    @par Example
+    @par Example:
     @code
 # open a file for writing in the directory and set the mode to 0644 and the encoding to UTF-8
 my File $f = $d.openFile("myfile.txt", O_CREAT|O_WRONLY, 0644, "utf-8");
@@ -572,7 +572,7 @@ File Dir::openFile(string filename, int flags = O_RDONLY, int mode = 0666, *stri
 
     @return The Dir object created for the directory
 
-    @par Example
+    @par Example:
     @code
 my Dir $sd = $d.openDir("mysubdir");
     @endcode
@@ -599,7 +599,7 @@ Dir Dir::openDir(string subdir, *string encoding) {
 
     @return \c True if the file was present and could be removed, \c False if the file did not exist
 
-    @par Example
+    @par Example:
     @code
 try {
     my bool $b = $dir.removeFile($filename);
@@ -639,7 +639,7 @@ bool Dir::removeFile(string file) {
 
     @return a @ref stat_list giving information about the current directory
 
-    @par Example
+    @par Example:
     @code
 try {
     my list $l = $dir.stat();
@@ -664,7 +664,7 @@ list Dir::stat() {
 
     @return a @ref stat_hash giving information about the current directory
 
-    @par Example
+    @par Example:
     @code
 try {
     my hash $h = $dir.hstat();
@@ -687,10 +687,10 @@ hash Dir::hstat() {
 //! Returns a hash of @ref filesystem_status_hash "filesystem status values" for the current directory
 /** @return a hash of @ref filesystem_status_hash "filesystem status values" for the current directory
 
-    @par Platform Availability
+    @par Platform Availability:
     @ref HAVE_STATVFS
 
-    @par Example
+    @par Example:
     @code
 try {
     my hash $h = $dir.statvfs();

@@ -41,7 +41,7 @@ AbstractSmartLock::constructor() {
 }
 
 //! Returns the name of the threading class directly inheriting this class
-/** @par Example
+/** @par Example:
     @code
 my string $name = $lock.getName();
     @endcode
@@ -53,7 +53,7 @@ string AbstractSmartLock::getName() [flags=CONSTANT] {
 }
 
 //! Returns \c True if the calling thread owns the lock, \c False if not
-/** @par Example
+/** @par Example:
     @code
 # only grab and release lock if we don't already own it
 if (!$lock.lockOwner())
@@ -72,7 +72,7 @@ bool AbstractSmartLock::lockOwner() [flags=CONSTANT] {
 //! Returns the TID of the thread owning the lock or -1 if the lock is currently not acquired
 /** This method normally not useful in practice for anything except checking that the current thread owns the lock, in which case AbstractSmartLock::lockOwner() is better, because if the lock is not owned by the current thread the lock ownership can change at any time.
 
-    @par Example
+    @par Example:
     @code
 my int $tid = $lock.lockTID();
     @endcode

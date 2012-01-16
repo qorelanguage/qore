@@ -49,7 +49,7 @@
 qclass Mutex [dom=THREAD_CLASS; arg=SmartMutex* m; ns=Thread; vparent=AbstractSmartLock];
 
 //! Creates the Mutex object
-/** @par Example
+/** @par Example:
     @code
 my Mutex $mutex();
     @endcode
@@ -61,7 +61,7 @@ Mutex::constructor() {
 //! Destroys the object
 /** Note that it is a programming error to delete this object while other threads are blocked on it; in this case an exception is thrown in the deleting thread, and in each thread blocked on this object when it is deleted.
     
-    @par Example
+    @par Example:
     @code
 delete $mutex;
     @endcode
@@ -74,7 +74,7 @@ Mutex::destructor() {
 }
 
 //! Creates a new Mutex object, not based on the original
-/** @par Example
+/** @par Example:
     @code
 my Mutex $nm = $m.copy();
     @endcode
@@ -86,7 +86,7 @@ Mutex::copy() {
 //! Locks the Mutex object; blocks if the lock is already held
 /** To release the Mutex, use @ref Mutex::unlock()
 
-    @par Example
+    @par Example:
     @code
 $mutex.lock();
     @endcode
@@ -103,7 +103,7 @@ nothing Mutex::lock() {
 
     To release the Mutex, use @ref Mutex::unlock()
 
-    @par Example
+    @par Example:
     @code
 if ($mutex.lock(1250ms))
     throw "TIMEOUT-ERROR", "lock acquisition timed out after 1.25s";
@@ -124,7 +124,7 @@ int Mutex::lock(timeout timeout_ms) {
 /** 
     @return 0 for success (lock acquired) or -1 if the call would block (lock not acquired)
 
-    @par Example
+    @par Example:
     @code
 my int $i = $mutex.trylock();
     @endcode
@@ -138,7 +138,7 @@ int Mutex::trylock() {
 
 //! Unlocks the Mutex object; wakes up one thread if any threads are blocked on this lock
 /** 
-    @par Example
+    @par Example:
     @code
 $mutex.unlock();
     @endcode

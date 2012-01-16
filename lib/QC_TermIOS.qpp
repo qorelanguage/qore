@@ -565,10 +565,10 @@ qclass TermIOS [dom=TERMINAL_IO; arg=QoreTermIOS*s];
 //! Creates the TermIOS object with random contents
 /** Use File::getTerminalAttributes() with a terminal I/O constant to initialize the object with terminal settings
 
-    @par Platform Availability
+    @par Platform Availability:
     @ref HAVE_TERMIOS
 
-    @par Example
+    @par Example:
     @code
 my TermIOS $termios();
 stdin.getTerminalAttributes($termios);
@@ -583,10 +583,10 @@ TermIOS::constructor() {
 }
 
 //! Returns a copy of the object
-/** @par Platform Availability
+/** @par Platform Availability:
     @ref HAVE_TERMIOS
 
-    @par Example
+    @par Example:
     @code
 my TermIOS $t2 = $t.copy();
     @endcode
@@ -602,10 +602,10 @@ TermIOS::copy() {
 //! Returns the @ref tattr_local_mode_constants "local mode flag" for the object
 /** @return the @ref tattr_local_mode_constants "local mode flag" for the object
 
-    @par Platform Availability
+    @par Platform Availability:
     @ref HAVE_TERMIOS
 
-    @par Example
+    @par Example:
     @code
 my int $flag = $termios.getLFlag();
     @endcode
@@ -621,10 +621,10 @@ int TermIOS::getLFlag() {
 //! Returns the @ref tattr_control_mode_constants "control mode flag" for the object
 /** @return the @ref tattr_control_mode_constants "control mode flag" for the object
     
-    @par Platform Availability
+    @par Platform Availability:
     @ref HAVE_TERMIOS
 
-    @par Example
+    @par Example:
     @code
 my int $flag = $termios.getCFlag();
     @endcode
@@ -640,10 +640,10 @@ int TermIOS::getCFlag() {
 //! Returns the @ref tattr_output_mode_constants "output mode flag" for the object
 /** @return the @ref tattr_output_mode_constants "output mode flag" for the object
 
-    @par Platform Availability
+    @par Platform Availability:
     @ref HAVE_TERMIOS
 
-    @par Example
+    @par Example:
     @code
 my int $flag = $termios.getOFlag();
     @endcode
@@ -659,10 +659,10 @@ int TermIOS::getOFlag() {
 //! Returns the @ref tattr_input_mode_constants "input mode flag" for the object
 /** @return the @ref tattr_input_mode_constants "input mode flag" for the object
 
-    @par Platform Availability
+    @par Platform Availability:
     @ref HAVE_TERMIOS
 
-    @par Example
+    @par Example:
     @code
 my int $flag = $termios.getIFlag();
     @endcode
@@ -678,10 +678,10 @@ int TermIOS::getIFlag() {
 //! Sets the local mode flag for the object from a mask of @ref tattr_local_mode_constants
 /** @param flag the local mode (see @ref tattr_local_mode_constants for masks for this value)
 
-    @par Platform Availability
+    @par Platform Availability:
     @ref HAVE_TERMIOS
 
-    @par Example
+    @par Example:
     @code
 my int $lflag = $termios.getLFlag();
 # disable canonical input mode (= turn on "raw" mode)
@@ -705,10 +705,10 @@ nothing TermIOS::setLFlag(softint flag) {
 //! Sets the control mode flag for the object from a mask of @ref tattr_control_mode_constants
 /** @param flag the control mode (see @ref tattr_control_mode_constants for masks for this value)
 
-    @par Platform Availability
+    @par Platform Availability:
     @ref HAVE_TERMIOS
 
-    @par Example
+    @par Example:
     @code
 my int $cflag = $termios.getCFlag();
 $cflag = ($cflag & ~CSIZE) | CS8 | CSTOPB;
@@ -728,10 +728,10 @@ nothing TermIOS::setCFlag(softint flag) {
 //! Sets the output mode flag for the object from a mask of @ref tattr_output_mode_constants
 /** @param flag the output mode (see @ref tattr_output_mode_constants for masks for this value)
 
-    @par Platform Availability
+    @par Platform Availability:
     @ref HAVE_TERMIOS
 
-    @par Example
+    @par Example:
     @code
 my int $oflag = $termios.getOFlag();
 # translate linefeeds to crlf
@@ -751,10 +751,10 @@ nothing TermIOS::setOFlag(softint flag) {
 //! Sets the input mode flag for the object from a mask of @ref tattr_input_mode_constants
 /** @param flag the input mode flag for the object from a mask of @ref tattr_input_mode_constants
 
-    @par Platform Availability
+    @par Platform Availability:
     @ref HAVE_TERMIOS
 
-    @par Example
+    @par Example:
     @code
 my int $iflag = $termios.getIFlag();
 # ring bell on input queue full
@@ -776,10 +776,10 @@ nothing TermIOS::setIFlag(softint flag) {
 
     @return the integer value for the given control character from the given @ref tattr_control_character_constants "control character code"
 
-    @par Platform Availability
+    @par Platform Availability:
     @ref HAVE_TERMIOS
 
-    @par Example
+    @par Example:
     @code
 # get minimum characters to return on a read
 my int $vmin = $t.getCC(VMIN);
@@ -801,10 +801,10 @@ int TermIOS::getCC(softint cc) {
 /** @param offset the @ref tattr_control_character_constants "control character" to set
     @param value the value to set for the @ref tattr_control_character_constants "control character"
 
-    @par Platform Availability
+    @par Platform Availability:
     @ref HAVE_TERMIOS
 
-    @par Example
+    @par Example:
     @code
 # set minimum characters to return on a read
 $t.setCC(VMIN, 1);
@@ -827,10 +827,10 @@ nothing TermIOS::setCC(softint offset, softint value) {
 //! Returns \c True if the TermIOS object passed as an argument is equal to the current object; \c False if not
 /** @return \c True if the TermIOS object passed as an argument is equal to the current object; \c False if not
 
-    @par Platform Availability
+    @par Platform Availability:
     @ref HAVE_TERMIOS
 
-    @par Example
+    @par Example:
     @code
 my bool $b = $termios.isEqual($termios2);
     @endcode
@@ -848,10 +848,10 @@ bool TermIOS::isEqual(Termios[QoreTermIOS] termios) [flags=CONSTANT] {
 //! Returns a hash giving the current terminal window size in hash keys \c "rows" and \c "columns"
 /** @return a hash giving the current terminal window size in hash keys \c "rows" and \c "columns"
 
-    @par Platform Availability
+    @par Platform Availability:
     @ref HAVE_TERMIOS
 
-    @par Example
+    @par Example:
 my hash $wh = $termios.getWindowSize();
     @code
 

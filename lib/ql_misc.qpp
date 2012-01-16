@@ -373,11 +373,8 @@ const SignalToName = (
 */
 //@{
 //! Sets or replaces a signal handler according to the signal number and closure or call reference (function or object method reference) passed
-/** @par Platform Availability
+/** @par Platform Availability:
     @ref Qore::HAVE_SIGNAL_HANDLING
-
-    @par Restrictions
-    @ref Qore::PO_NO_PROCESS_CONTROL
 
     By the time this function returns, changes to the signal handling thread have already been effected.
 
@@ -386,7 +383,7 @@ const SignalToName = (
     @param signal The signal number to process, see @ref signal_constants for possible values
     @param f The code to execute when the signal is caught; this should accept an integer argument giving the signal number
 
-    @par Example
+    @par Example:
     @code
 set_signal_handler(SIGINT, \signal_handler());
     @endcode
@@ -409,17 +406,14 @@ nothing set_signal_handler(softint signal, code f) [dom=PROCESS] {
 
 //! Removes a signal handler and returns the signal handling state to the default
 /** 
-    @par Platform Availability
+    @par Platform Availability:
     @ref Qore::HAVE_SIGNAL_HANDLING
-
-    @par Restrictions
-    @ref Qore::PO_NO_PROCESS_CONTROL
 
     By the time this function returns, changes to the signal handling thread have already been effected.
 
     @param signal The signal number to process, see @ref signal_constants for possible values
 
-    @par Example
+    @par Example:
     @code
 remove_signal_handler(SIGINT);
     @endcode
@@ -451,7 +445,7 @@ nothing remove_signal_handler(softint signal) [dom=PROCESS] {
 
     @return The value returned by the called function
 
-    @par Example
+    @par Example:
     @code
 my any $result = call_function("func_name", $arg1, $arg2);
     @endcode
@@ -475,7 +469,7 @@ any call_function(string name, ...) {
     @param f The @ref call_reference "call reference" or @ref closure "closure"
     @param ... Any optional arguments to the @ref call_reference "call reference" or @ref closure "closure"
 
-    @par Example
+    @par Example:
     @code
 my any $result = call_function($call_ref, $arg1, $arg2);
     @endcode
@@ -498,7 +492,7 @@ any call_function(code f, ...) {
 
     @return The value returned by the called function
 
-    @par Example
+    @par Example:
     @code
 my any $result = call_function_args("func_name", ($arg1, $arg2));
     @endcode
@@ -517,7 +511,7 @@ any call_function_args(string name, *softlist vargs) {
     @param f The @ref call_reference "call reference" or @ref closure "closure"
     @param vargs Optionally a single argument to the @ref call_reference "call reference" or @ref closure "closure" or a list of arguments to the @ref call_reference "call reference" or @ref closure "closure"
 
-    @par Example
+    @par Example:
     @code
 my any $result = call_function_args($call_ref, ($arg1, $arg2));
     @endcode
@@ -536,7 +530,7 @@ any call_function_args(code f, *softlist vargs) {
 
     @return The value returned by the called function
 
-    @par Example
+    @par Example:
     @code
 my any $result = call_builtin_function("func_name", $arg1, $arg2);
     @endcode
@@ -567,7 +561,7 @@ any call_builtin_function(string name, ...) {
 
     @return The value returned by the called function
 
-    @par Example
+    @par Example:
     @code
 my any $result = call_builtin_function_args("func_name", ($arg1, $arg2));
     @endcode
@@ -590,7 +584,7 @@ any call_builtin_function_args(string name, *softlist vargs) {
 
     @return if only a single argument is passed, then this function returns \c True if the single argument exists, \c False if not; otherwise is multiple arguments are passed to the function, it always returns \c True; this is to emulate the behavior of the @ref exists "exists operator"
 
-    @par Example
+    @par Example:
     @code
 my bool $b = exists($val);
     @endcode
@@ -606,7 +600,7 @@ bool exists(...) [flags=CONSTANT] {
 
     @return \c True if the function exists in the current program's function name space, \c False if not
 
-    @par Example
+    @par Example:
     @code
 my bool $b = existsFunction("func_name");
     @endcode
@@ -623,7 +617,7 @@ bool existsFunction(string name) [flags=CONSTANT] {
 //! Always returns \c True
 /** This function variant is included for backwards-compatibility
 
-    @par code a @ref call_reference "call reference" or @ref closure "closure"
+    @par code a @ref call_reference "call reference" or @ref closure "closure":
 
     @return always returns \c True
 */
@@ -642,7 +636,7 @@ nothing existsFunction() [flags=RUNTIME_NOOP] {
     @param name The function name to check
     @return \c "builtin" (for a builtin function), \c "user" (for a user function), or @ref nothing (if the function cannot be found) according to the function name passed
 
-    @par Example
+    @par Example:
     @code
 my *string $type = functionType("print");
     @endcode
@@ -667,7 +661,7 @@ nothing functionType() [flags=RUNTIME_NOOP] {
 
     @return the string passed as an argument with characters needing HTML escaping translated to HTML escape codes
 
-    @par Example
+    @par Example:
     @code
 my string $str = html_encode("<hello>"); # returns "&lt;hello&gt;"
     @endcode
@@ -689,7 +683,7 @@ nothing html_encode() [flags=RUNTIME_NOOP] {
 
     @return the string passed as an argument with any HTML escape codes translated to the original characters
 
-    @par Example
+    @par Example:
     @code
 my string $str = html_decode("&lt;hello&gt;"); # returns "<hello>"
     @endcode
@@ -709,7 +703,7 @@ nothing html_decode() [flags=RUNTIME_NOOP] {
 //! Returns the name of the @ref default_encoding "default character encoding"
 /** @return the name of the @ref default_encoding "default character encoding"
 
-    @par Example
+    @par Example:
     @code
 my string $encoding = get_default_encoding();
     @endcode
@@ -723,7 +717,7 @@ string get_default_encoding() {
     @param code the string of %Qore source code to parse; the parsed code will be added to the current program
     @param label a label identifying the code or the code's source
 
-    @par Example
+    @par Example:
     @code
 parse($code, $filename);
     @endcode
@@ -747,7 +741,7 @@ nothing parse() [flags=RUNTIME_NOOP] {
     @param obj the object to get the class name of
     @return the class name of the object passed
 
-    @par Example
+    @par Example:
     @code
 my string $name = getClassName($obj);
     @endcode
@@ -774,7 +768,7 @@ nothing getClassName() [flags=RUNTIME_NOOP] {
     - \c host: any hostname given in the URL; note that this key will be given if no other information can be found in the URL argument and the URL argument string has no \c "/" characters; depending on the usage context for this function, this may actually be a filename
     - \c port: any port number given in the URL
 
-    @par Example
+    @par Example:
     @code
 my hash $hash = parse_url($url_string);
     @endcode
@@ -805,7 +799,7 @@ hash parse_url(string url) {
     - \c host: any hostname given in the URL; note that this key will be given if no other information can be found in the URL argument and the URL argument string has no \c "/" characters; depending on the usage context for this function, this may actually be a filename
     - \c port: any port number given in the URL
 
-    @par Example
+    @par Example:
     @code
 my *hash $hash = parseURL($url_string);
     @endcode
@@ -824,14 +818,12 @@ nothing parseURL() [flags=RUNTIME_NOOP] {
 }
 
 //! Executes a process and returns a string of the output (stdout only)
-/** @par Restrictions
-    Not available with @ref Qore::PO_NO_EXTERNAL_PROCESS
-
+/** 
     @param cmd The shell command to executed as a subprocess
     
     @return The stdout of the shell command that was executed
 
-    @par Example
+    @par Example:
     @code
 my string $files = $files = backquote("ls");
     @endcode
@@ -856,7 +848,7 @@ nothing backquote() [flags=RUNTIME_NOOP] {
 
     @return the base64-encoded string of the data passed
 
-    @par Example
+    @par Example:
     @code
 my string $base64 = makeBase64String($data, 64);
     @endcode
@@ -879,7 +871,7 @@ string makeBase64String(string str, softint maxlinelen = -1) [flags=CONSTANT] {
 
     @return the base64-encoded string of the data passed
 
-    @par Example
+    @par Example:
     @code
 my string $base64 = makeBase64String($data, 64);
     @endcode
@@ -903,7 +895,7 @@ nothing makeBase64String() [flags=RUNTIME_NOOP] {
 
     @return a binary object of the decoded data
 
-    @par Example
+    @par Example:
     @code
 my binary $bin = parseBase64String($base64_string);
     @endcode
@@ -930,7 +922,7 @@ nothing parseBase64String() [flags=RUNTIME_NOOP] {
 
     @return a string of the decoded data tagged with the given encoding
 
-    @par Example
+    @par Example:
     @code
 my string $str = parseBase64String($base64_string);
     @endcode
@@ -963,7 +955,7 @@ nothing parseBase64StringToString() [flags=RUNTIME_NOOP] {
     - \c api_minor: the minor number of the %Qore module API version the module support
     - \c url: the module's URL
 
-    @par Example
+    @par Example:
     @code
 my list $list = getModuleList();
     @endcode
@@ -985,7 +977,7 @@ list getModuleList() [flags=CONSTANT] {
     - \c api_minor: the minor number of the %Qore module API version the module support
     - \c url: the module's URL
 
-    @par Example
+    @par Example:
     @code
 my hash $mh = getModuleHash();
     @endcode
@@ -999,7 +991,7 @@ hash getModuleHash() [flags=CONSTANT] {
 //! Returns a list of strings of the builtin and module-supplied features of Qore
 /** @return a list of strings of the builtin and module-supplied features of Qore
 
-    @par Example
+    @par Example:
     @code
 my list $list = getFeatureList();
     @endcode
@@ -1013,7 +1005,7 @@ list getFeatureList() [flags=CONSTANT] {
 
     @return a list of all the values in the hash argument passed
 
-    @par Example
+    @par Example:
     @code
 my list $vl = hash_values($vl);
     @endcode
@@ -1041,7 +1033,7 @@ nothing hash_values() [flags=RUNTIME_NOOP] {
 
     @return \c True if the given key exists in the hash (does not necessarily have to have a value assigned), \c False if the key is not present at all
 
-    @par Example
+    @par Example:
     @code
 my bool $b = has_key($hash, "key");
     @endcode
@@ -1056,7 +1048,7 @@ bool has_key(hash h, string key) {
 
 //! Returns \c True if the given key exists in the object (does not necessarily have to have a value assigned); exceptions are only raised if string encoding errors are encountered or in case of object access errors.
 /** 
-    @par Example
+    @par Example:
     @code
 my bool $b = has_key($obj, "key");
     @endcode
@@ -1078,7 +1070,7 @@ bool has_key(object obj, string key) {
 
     @return the byte value at the given byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
 
-    @par Example
+    @par Example:
     @code
 my *int $byte = get_byte($str, 2); # returns the third byte of the string
     @endcode
@@ -1103,7 +1095,7 @@ my *int $byte = get_byte($str, 2); # returns the third byte of the string
 
     @return the byte value at the given byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
 
-    @par Example
+    @par Example:
     @code
 my *int $byte = get_byte($bin, 2); # returns the third byte of the binary object
     @endcode
@@ -1128,7 +1120,7 @@ my *int $byte = get_byte($bin, 2); # returns the third byte of the binary object
 
     @return the byte value at the given byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
 
-    @par Example
+    @par Example:
     @code
 my *int $byte = get_byte($str, 2); # returns the third byte of the string
     @endcode
@@ -1161,7 +1153,7 @@ nothing getByte() [flags=RUNTIME_NOOP,DEPRECATED] {
 
     @return the byte value at the given byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
 
-    @par Example
+    @par Example:
     @code
 my *int $byte = get_byte($bin, 2); # returns the third byte of the binary object
     @endcode
@@ -1189,7 +1181,7 @@ my *int $byte = get_byte($bin, 2); # returns the third byte of the binary object
 
     @return the 16-bit integer value at the given 2-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
 
-    @par Example
+    @par Example:
     @code
 my *int $val = get_word_16($str, 2); # returns the third 2-byte (16-bit) value in the string
     @endcode
@@ -1215,7 +1207,7 @@ my *int $val = get_word_16($str, 2); # returns the third 2-byte (16-bit) value i
 
     @return the 16-bit integer value at the given 2-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
 
-    @par Example
+    @par Example:
     @code
 my *int $val = get_word_16($bin, 2); # returns the third 2-byte (16-bit) value in the binary object
     @endcode
@@ -1242,7 +1234,7 @@ my *int $val = get_word_16($bin, 2); # returns the third 2-byte (16-bit) value i
 
     @return the 32-bit integer value at the given 4-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
 
-    @par Example
+    @par Example:
     @code
 my *int $val = get_word_32($str, 4); # returns the third 4-byte (32-bit) value in the string
     @endcode
@@ -1270,7 +1262,7 @@ my *int $val = get_word_32($str, 4); # returns the third 4-byte (32-bit) value i
 
     @return the 32-bit integer value at the given 4-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
 
-    @par Example
+    @par Example:
     @code
 my *int $val = get_word_32($bin, 2); # returns the third 4-byte (32-bit) value in the binary object
     @endcode
@@ -1299,7 +1291,7 @@ my *int $val = get_word_32($bin, 2); # returns the third 4-byte (32-bit) value i
 
     @return the 32-bit integer value at the given 4-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
 
-    @par Example
+    @par Example:
     @code
 my *int $val = getWord32($str, 4); # returns the third 4-byte (32-bit) value in the string
     @endcode
@@ -1327,7 +1319,7 @@ my *int $val = getWord32($str, 4); # returns the third 4-byte (32-bit) value in 
 
     @return the 32-bit integer value at the given 4-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
 
-    @par Example
+    @par Example:
     @code
 my *int $val = getWord32($bin, 2); # returns the third 4-byte (32-bit) value in the binary object
     @endcode
@@ -1362,7 +1354,7 @@ nothing getWord32() [flags=RUNTIME_NOOP] {
 
     @return the 64-bit integer value at the given 8-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
 
-    @par Example
+    @par Example:
     @code
 my *int $val = get_word_64($str, 4); # returns the third 8-byte (64-bit) value in the string
     @endcode
@@ -1388,7 +1380,7 @@ my *int $val = get_word_64($str, 4); # returns the third 8-byte (64-bit) value i
 
     @return the 64-bit integer value at the given 8-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
 
-    @par Example
+    @par Example:
     @code
 my *int $val = get_word_64($bin, 2); # returns the third 8-byte (64-bit) value in the binary object
     @endcode
@@ -1415,7 +1407,7 @@ my *int $val = get_word_64($bin, 2); # returns the third 8-byte (64-bit) value i
 
     @return the 16-bit integer value at the given 2-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
 
-    @par Example
+    @par Example:
     @code
 my *int $val = get_word_16_lsb($str, 2); # returns the third 2-byte (16-bit) value in the string
     @endcode
@@ -1441,7 +1433,7 @@ my *int $val = get_word_16_lsb($str, 2); # returns the third 2-byte (16-bit) val
 
     @return the 16-bit integer value at the given 2-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
 
-    @par Example
+    @par Example:
     @code
 my *int $val = get_word_16_lsb($bin, 2); # returns the third 2-byte (16-bit) value in the binary object
     @endcode
@@ -1467,7 +1459,7 @@ my *int $val = get_word_16_lsb($bin, 2); # returns the third 2-byte (16-bit) val
 
     @return the 32-bit integer value at the given 4-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
 
-    @par Example
+    @par Example:
     @code
 my *int $val = get_word_32_lsb($str, 4); # returns the third 4-byte (32-bit) value in the string
     @endcode
@@ -1495,7 +1487,7 @@ my *int $val = get_word_32_lsb($str, 4); # returns the third 4-byte (32-bit) val
 
     @return the 32-bit integer value at the given 4-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
 
-    @par Example
+    @par Example:
     @code
 my *int $val = get_word_32_lsb($bin, 2); # returns the third 4-byte (32-bit) value in the binary object
     @endcode
@@ -1522,7 +1514,7 @@ my *int $val = get_word_32_lsb($bin, 2); # returns the third 4-byte (32-bit) val
 
     @return the 64-bit integer value at the given 8-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
 
-    @par Example
+    @par Example:
     @code
 my *int $val = get_word_64_lsb($str, 4); # returns the third 8-byte (64-bit) value in the string
     @endcode
@@ -1548,7 +1540,7 @@ my *int $val = get_word_64_lsb($str, 4); # returns the third 8-byte (64-bit) val
 
     @return the 64-bit integer value at the given 8-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
 
-    @par Example
+    @par Example:
     @code
 my *int $val = get_word_64_lsb($bin, 2); # returns the third 8-byte (64-bit) value in the binary object
     @endcode
@@ -1585,7 +1577,7 @@ string splice(string[doc] str) [flags=NOOP] {
 
     @return the processed string
 
-    @par Example
+    @par Example:
     @code
 my string $str = splice($str2, 5);
     @endcode
@@ -1608,7 +1600,7 @@ string splice(string str, softint start) {
 
     @return the processed string with characters removed and/or added according to the arguments
 
-    @par Example
+    @par Example:
     @code
 my string $str = splice($str2, 5, 7, "hello");
     @endcode
@@ -1627,7 +1619,7 @@ string splice(string str, softint start, softint len, *string nstr) {
     @param l the list to process
     @param start the starting element (where the first element is 0) to start removing elements
 
-    @par Example
+    @par Example:
     @code
 my list $l = splice($l2, 5);
     @endcode
@@ -1650,7 +1642,7 @@ list splice(list l, softint start) {
 
     @return the processed list with characters removed and/or added according to the arguments
 
-    @par Example
+    @par Example:
     @code
 my list $l = splice($l2, 5, 7, "hello");
     @endcode
@@ -1674,7 +1666,7 @@ nothing splice() [flags=RUNTIME_NOOP] {
 
     @return a string of hex digits repsenting the bytes of the argument passed
 
-    @par Example
+    @par Example:
     @code
 my string $str = makeHexString($str2);
     @endcode
@@ -1692,7 +1684,7 @@ string makeHexString(string str) [flags=CONSTANT] {
 
     @return a string of hex digits repsenting the bytes of the argument passed
 
-    @par Example
+    @par Example:
     @code
 my string $str = makeHexString($bin);
     @endcode
@@ -1716,7 +1708,7 @@ nothing makeHexString() [flags=RUNTIME_NOOP] {
 
     @return a binary object of the decoded data
 
-    @par Example
+    @par Example:
     @code
 my binary $bin = parseHexString($hex_string);
     @endcode
@@ -1740,7 +1732,7 @@ nothing parseHexString() [flags=RUNTIME_NOOP] {
 
     @return the base-10 integer corresponding to the argument
 
-    @par Example
+    @par Example:
     @code
 my int $i = hextoint("ab3d4e0f12");
     @endcode
@@ -1791,7 +1783,7 @@ nothing hextoint() [flags=RUNTIME_NOOP] {
     
     @return the integer represented by the string and the base
 
-    @par Example
+    @par Example:
     @code
 my int $i = strtoint("41", 8);
     @endcode
@@ -1813,16 +1805,13 @@ nothing strtoint() [flags=RUNTIME_NOOP] {
 }
 
 //! Loads in a %Qore module at run-time
-/** @par Restrictions
-    @ref Qore::PO_NO_PROCESS_CONTROL
-
-    If a feature with the same name already exists, then this feature's code is imported into the current Program object if necessary and no further action is taken.
+/** If a feature with the same name already exists, then this feature's code is imported into the current Program object if necessary and no further action is taken.
 
     Note that modules providing objects resolved at parse time (classes, constants, functions, etc) must be loaded with the @ref requires "%requires directive" instead, unless all references to the objects provided by the module will be made in code embedded in child Program objects.
 
     @param name either a feature name (a module will be searched with this feature name) or a path to a module to load
 
-    @par Example
+    @par Example:
     @code
 load_module("mysql");
     @endcode
@@ -1846,7 +1835,7 @@ nothing load_module() [flags=RUNTIME_NOOP] {
 
     @return the URL string with all percent-encodings decoded
 
-    @par Example
+    @par Example:
     @code
 my string $decoded_url = decode_url($encoded_url);
     @endcode
@@ -1882,7 +1871,7 @@ nothing decode_url() [flags=RUNTIME_NOOP] {
 //! Returns the path (directory and filename) of the current script or @ref nothing if unknown (i.e. no parent script, script read from stdin, etc)
 /** @return the path (directory and filename) of the current script or @ref nothing if unknown (i.e. no parent script, script read from stdin, etc)
 
-    @par Example
+    @par Example:
     @code
 my *string $str = get_script_path();
     @endcode
@@ -1894,7 +1883,7 @@ my *string $str = get_script_path();
 //! Returns the name of the directory from which the current script was executed or @ref nothing if unknown (i.e. no parent script, script read from stdin, etc)
 /** @return the name of the directory from which the current script was executed or @ref nothing if unknown (i.e. no parent script, script read from stdin, etc)
 
-    @par Example
+    @par Example:
     @code
 my *string $str = get_script_dir();
     @endcode
@@ -1906,7 +1895,7 @@ my *string $str = get_script_dir();
 //! Returns the filename of the current script if known or @ref nothing if unknown (i.e. no parent script, script read from stdin, etc)
 /** @return the filename of the current script if known or @ref nothing if unknown (i.e. no parent script, script read from stdin, etc)
 
-    @par Example
+    @par Example:
     @code
 my *string $str = get_script_name();
     @endcode
@@ -1922,7 +1911,7 @@ my *string $str = get_script_name();
     - \c type: The type of option
     - \c value: The boolean value of the option
 
-    @par Example
+    @par Example:
     @code
 my list $l = get_qore_option_list();
     @endcode
@@ -1950,7 +1939,7 @@ list get_qore_option_list() [flags=CONSTANT] {
     - \c type: The type of option
     - \c value: The boolean value of the option
 
-    @par Example
+    @par Example:
     @code
 my hash $h = get_qore_option_hash();
     @endcode
@@ -1989,7 +1978,7 @@ hash get_qore_option_hash() [flags=CONSTANT] {
     - \c CFLAGS: The compiler flags used to compile the %Qore library
     - \c LDFLAGS: The linker flags used to link the %Qore library
 
-    @par Example
+    @par Example:
     @code
 my hash $h = get_qore_library_info();
     @endcode

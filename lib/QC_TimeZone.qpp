@@ -32,7 +32,7 @@ qclass TimeZone [arg=TimeZoneData* z];
 //! Creates the TimeZone object based on the region name (ex: \c "America/Chicago")
 /** @param region The region name for the time zone (ex: \c "America/Chicago"); if the zoneinfo file for the region cannot be found or parsed (on UNIX) or if the registry entry cannot be found (on Windows), then an exception is thrown
 
-    @par Example
+    @par Example:
     @code
 my TimeZone $tz("Europe/Prague");
     @endcode
@@ -50,7 +50,7 @@ TimeZone::constructor(string region) {
 //! Creates the TimeZone object based on the number of seconds east of UTC (3600 = UTC +01)
 /** @param seconds_east The number of seconds east of UTC for the time zone; for zones west of UTC, use negative numbers
 
-    @par Example
+    @par Example:
     @code
 my TimeZone $tz(3600);
     @endcode
@@ -62,7 +62,7 @@ TimeZone::constructor(softint seconds_east) {
 
 //! Creates a copy of the TimeZone object
 /** 
-    @par Example
+    @par Example:
     @code
 my TimeZone $newzone = $tz.copy();
     @endcode
@@ -74,7 +74,7 @@ TimeZone::copy() {
 //! Returns the number of seconds east of UTC for the zone; negative numbers indicate a zone west of UTC
 /** @return the number of seconds east of UTC for the zone; negative numbers indicate a zone west of UTC
 
-    @par Example
+    @par Example:
     @code
 my int $offset = $tz.UTCOffset();
     @endcode
@@ -88,7 +88,7 @@ int TimeZone::UTCOffset() [flags=CONSTANT] {
 
     @return \c True if the current zone has daylight saving's time rules, \c False if not
 
-    @par Example
+    @par Example:
     @code
 my bool $hasdst = $tz.hasDST();
     @endcode
@@ -100,7 +100,7 @@ bool TimeZone::hasDST() [flags=CONSTANT] {
 //! Returns the region name as a string; if the current zone is based on a UTC offset, then the UTC offset is returned as a string like \c "+01:00"
 /** @return the region name as a string; if the current zone is based on a UTC offset, then the UTC offset is returned as a string like \c "+01:00"
 
-    @par Example
+    @par Example:
     @code
 my string $region = $tz.region();
     @endcode
@@ -113,7 +113,7 @@ string TimeZone::region() [flags=CONSTANT] {
 /** @param secs offset are in seconds from 1970-01-01Z
     @param us offset are in microseconds from \c 1970-01-01Z
 
-    @par Example
+    @par Example:
     @code
 my date $dt = $tz.date($secs);
     @endcode
@@ -125,7 +125,7 @@ date TimeZone::date(softint secs, softint us = 0) [flags=CONSTANT] {
 //! Returns the equivalent date in the time zone of the current object
 /** @param d A date that will be used to create the date in the time zone of the objects; the same point in time will be returned but in the time zone of the object
 
-    @par Example
+    @par Example:
     @code
 my date $dt = $tz.date(2012-01-01T13:56:23+01:00);
     @endcode
@@ -139,7 +139,7 @@ date TimeZone::date(date d) [flags=CONSTANT] {
 
     @return a date in the object's zone based on the given offsets in milliseconds from \c 1970-01-01Z
 
-    @par Example
+    @par Example:
     @code
     @endcode
  */
@@ -149,7 +149,7 @@ date TimeZone::dateMs(softint ms) [flags=CONSTANT] {
 
 //! 
 /** 
-    @par Example
+    @par Example:
     @code
     @endcode
  */
@@ -159,7 +159,7 @@ date TimeZone::dateUs(softint us) [flags=CONSTANT] {
 
 //! 
 /** 
-    @par Example
+    @par Example:
     @code
     @endcode
  */
@@ -169,7 +169,7 @@ static TimeZone TimeZone::get() [flags=CONSTANT] {
 
 //! 
 /** 
-    @par Example
+    @par Example:
     @code
     @endcode
  */
@@ -180,7 +180,7 @@ static nothing TimeZone::set(TimeZone[TimeZoneData] zone) [dom=LOCALE_CONTROL] {
 
 //! 
 /** 
-    @par Example
+    @par Example:
     @code
     @endcode
  */
@@ -191,7 +191,7 @@ static nothing TimeZone::setUTCOffset(softint seconds_east) [dom=LOCALE_CONTROL]
 
 //! 
 /** 
-    @par Example
+    @par Example:
     @code
     @endcode
  */

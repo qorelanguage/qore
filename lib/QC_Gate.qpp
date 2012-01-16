@@ -46,7 +46,7 @@ qclass Gate [dom=THREAD_CLASS; arg=QoreGate* g; ns=Thread];
 
 //! Creates a new Gate object
 /** 
-    @par Example
+    @par Example:
     @code
 my Gate $gate();
     @endcode
@@ -58,7 +58,7 @@ Gate::constructor() {
 //! Destroys the Gate object
 /** Note that it is a programming error to delete this object while other threads are blocked on it; in this case an exception is thrown in the deleting thread, and in each thread blocked on this object when it is deleted.
 
-    @par Example
+    @par Example:
     @code
 delete $gate;
     @endcode
@@ -72,7 +72,7 @@ Gate::destructor() {
 
 //! Creates a new Gate object, not based on the original
 /** 
-    @par Example
+    @par Example:
     @code
 my Gate $new_gate = $gate.copy();
     @endcode
@@ -87,7 +87,7 @@ Gate::copy() {
 
     @return 0 if no timeout occurred, non-zero if a timeout occurred.
 
-    @par Example
+    @par Example:
     @code
 if ($gate.enter(1500ms))
     throw "TIMEOUT-ERROR", "gate acquisition timed out after 1.5s";
@@ -102,7 +102,7 @@ int Gate::enter(timeout timeout_ms) {
 
 //! Increments the lock count if the lock is unlocked or already owned by the same thread, otherwise blocks until the lock counter reaches zero
 /** 
-    @par Example
+    @par Example:
     @code
 $gate.enter();
     @endcode
@@ -118,7 +118,7 @@ nothing Gate::enter() {
 /** 
     @return returns 0 if the Gate was unlocked; otherwise returns non-zero
 
-    @par Example
+    @par Example:
     @code
 $gate.exit();
     @endcode
@@ -133,7 +133,7 @@ int Gate::exit() {
 /** 
     @return 0 for success (acquired the lock) or -1 for failure (would block)
 
-    @par Example
+    @par Example:
     @code
 if ($gate.tryEnter()) {
     on_exit $gate.exit();
@@ -150,7 +150,7 @@ int Gate::tryEnter() {
 //! Returns the current lock count
 /** @return the current lock count
 
-    @par Example
+    @par Example:
     @code
 my int $c = $gate.numInside();
     @endcode
@@ -161,7 +161,7 @@ int Gate::numInside() [flags=CONSTANT] {
 
 //! Returns the number of threads blocked on the Gate
 /** 
-    @par Example
+    @par Example:
     @code
 my int $c = $gate.numWaiting();
     @endcode

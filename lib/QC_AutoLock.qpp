@@ -57,7 +57,7 @@ qclass AutoLock [dom=THREAD_CLASS; arg=QoreAutoLock* al; ns=Thread];
 //! Creates the AutoLock object based on the @ref Qore::Thread::Mutex "Mutex" argument passed and immediately calls Mutex::lock()
 /** The AutoLock object immediately calls Mutex::lock() on the @ref Qore::Thread::Mutex "Mutex" object passed, and saves it; Mutex::unlock() is called in the destructor if the lock is still held by the current thread.
  
-    @par Example
+    @par Example:
     @code
 {
     # when the block exits, the lock is automatically released
@@ -81,7 +81,7 @@ AutoLock::constructor(Mutex[SmartMutex] mutex) {
 //! Calls @ref Qore::Thread::Mutex::unlock() "Mutex::unlock()" on the saved @ref Qore::Thread::Mutex "Mutex" object and destroys the AutoLock object
 /** @ref Qore::Thread::Mutex::unlock() "Mutex::unlock()" is only called if the current thread owns the lock
 
-    @par Example
+    @par Example:
     @code
 delete $al;
     @endcode
@@ -102,7 +102,7 @@ AutoLock::copy() {
 //! Attempts to relock the @ref Qore::Thread::Mutex "Mutex" object being managed
 /** Do not call this method unless the @ref Qore::Thread::Mutex "Mutex" object being managed has been unlocked since the constructor
 
-    @par Example
+    @par Example:
     @code
 $al.lock();
     @endcode
@@ -118,7 +118,7 @@ nothing AutoLock::lock() {
 /** 
     @return 0 for success (lock acquired) or -1 if the call would block (lock not acquired because it's held by another thread)
 
-    @par Example
+    @par Example:
     @code
 my int $i = $al.trylock();
     @endcode
@@ -132,7 +132,7 @@ int AutoLock::trylock() {
 
 //! Unlocks the @ref Qore::Thread::Mutex "Mutex" object being managed; wakes up one thread if any threads are blocked on this lock
 /** 
-    @par Example
+    @par Example:
     @code
 $al.unlock();
     @endcode

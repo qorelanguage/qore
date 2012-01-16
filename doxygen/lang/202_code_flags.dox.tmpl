@@ -1,0 +1,18 @@
+/** @page code_flags Code Flags
+    Builtin functions (and methods) can be tagged with flags that give some properties of the code to be executed as in the following sections.
+    
+    @section NOOP
+    Code with this flag makes no calculations, but rather returns a constant value. This flag is given to function and method variants that return a default value depending on the type of argument(s). When variants with this flag are resolved at parse time, a @ref call-with-type-errors warning is raised (assuming this warning is enabled).
+
+    @section RUNTIME_NOOP
+    Code with this flag makes no calculations, but rather returns a constant value. This flag is given to function and method variants that return a default value depending on the type of argument(s). When variants with this flag are resolved at parse time, a @ref call-with-type-errors warning is raised (assuming this warning is enabled), unless Qore::PO_REQUIRE_TYPES or Qore::PO_STRICT_ARGS is set. If either Qore::PO_REQUIRE_TYPES or Qore::PO_STRICT_ARGS is set, then these variants are inaccessible; resolving to a variant with this flag set at parse time or run time causes an exception to be thrown. These variants are included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments.
+
+    @section CONSTANT
+    This flag indicates that the function or method has no side effects and does not throw any exceptions (see also @ref RET_VALUE_ONLY).
+
+    @section RET_VALUE_ONLY
+    This flag indicates that the function or method has no side effects but could throw an exception (see also @ref CONSTANT).
+
+    @section DEPRECATED
+    Code with this flag is deprecated and may be removed in a future version of Qore; if a variant with this flag is resolved at parse time, a @ref deprecated warning is raised (assuming this warning is enabled).
+*/

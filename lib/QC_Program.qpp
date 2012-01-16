@@ -381,7 +381,7 @@ qclass Program [arg=QoreProgram* p];
 
     @param po A binary OR'ed product of @ref parse_options "parse options"
 
-    @par Example
+    @par Example:
     @code
 my Program $pgm();
     @endcode
@@ -407,7 +407,7 @@ Program::copy() {
     @param code The code to parse into the Program object
     @param label The label for the code; this label will be given if any parse or run-time errors are raised for the code given
 
-    @par Example
+    @par Example:
     @code
 $pgm.parse($code, "label");
     @endcode
@@ -437,7 +437,7 @@ nothing Program::parse(string code, string label) {
 
     @return If warning included in the warning mask are raised during parsing, this method will return an @ref exception_hash "exception hash" with warning information, otherwise @ref nothing is returned
 
-    @par Example
+    @par Example:
     @code
 my *hash $wh = $pgm.parse($code, "label", WARN_DEFAULT);
 while (exists $wh) {
@@ -475,7 +475,7 @@ while (exists $wh) {
     @param code The code to parse into the Program object
     @param label The label for the code; this label will be given if any parse or run-time errors are raised for the code given
 
-    @par Example
+    @par Example:
     @code
 $pgm.parsePending($code, "label");
     @endcode
@@ -506,7 +506,7 @@ nothing Program::parsePending(string code, string label) {
 
     @return If warning included in the warning mask are raised during parsing, this method will return an @ref exception_hash "exception hash" with warning information, otherwise @ref nothing is returned
 
-    @par Example
+    @par Example:
     @code
 my *hash $wh = $pgm.parsePending($code, "label", WARN_DEFAULT);
 while (exists $wh) {
@@ -538,7 +538,7 @@ $pgm.parseCommit();
 //! Commits and pending code processed with Program::parsePending() to the Program object after resolving all outstanding references in the pending code
 /** An exception in this method causes all pending code to be rolled back immediately.
 
-    @par Example
+    @par Example:
     @code
 $pgm.parseCommit();
     @endcode
@@ -552,7 +552,7 @@ nothing Program::parseCommit() {
 //! Commits and pending code processed with Program::parsePending() to the Program object after resolving all outstanding references in the pending code
 /** An exception in this method causes all pending code to be rolled back immediately.
 
-    @par Example
+    @par Example:
     @code
 my *hash $wh = $pgm.parseCommit(WARN_DEFAULT);
 while (exists $wh) {
@@ -575,7 +575,7 @@ while (exists $wh) {
 
 //! Rolls back any pending code processed with Program::parsePending() that has not yet been committed to the Program object with Program::parseCommit()
 /** 
-    @par Example
+    @par Example:
     @code
 $pgm.parseRollback();
     @endcode
@@ -592,7 +592,7 @@ nothing Program::parseRollback() {
 
     @return Depends on the function being called
 
-    @par Example
+    @par Example:
     @code
 my any $result = $pgm.callFunction("func_name", $arg1, $arg2);
     @endcode
@@ -618,7 +618,7 @@ any Program::callFunction(string name, ...) {
 
     @return Depends on the function being called
 
-    @par Example
+    @par Example:
     @code
 my any $result = $pgm.callFunctionArgs("func_name", ($arg1, $arg2));
     @endcode
@@ -637,7 +637,7 @@ any Program::callFunctionArgs(string name, *softlist vargs) {
 
     @return \c True if the function exists, \c False if not
 
-    @par Example
+    @par Example:
     @code
 if ($pgm.existsFunction("my_func"))
     printf("my_func() exists in the Program\n");
@@ -650,7 +650,7 @@ bool Program::existsFunction(string name) {
 //! Runs the program and optionally returns a value if the top-level code exits with a @ref return "return statement
 /** @return the value given to the @ref return "return statement" at the top-level, if any, otherwise @ref nothing
 
-    @par Example
+    @par Example:
     @code
 $pgm.run();
     @endcode
@@ -664,7 +664,7 @@ any Program::run() {
 
     @param func the name of the function to import into the Program object
 
-    @par Example
+    @par Example:
     @code
 $pgm.importFunction("log");
     @endcode
@@ -682,7 +682,7 @@ nothing Program::importFunction(string func) {
     @param func the name of the function to import into the Program object
     @param new_name the name of the function as it will be known in the Program object once imported
 
-    @par Example
+    @par Example:
     @code
 $pgm.importFunction("service_log", "log");
     @endcode
@@ -700,7 +700,7 @@ nothing Program::importFunction(string func, string new_name) {
     @param varname The name of the global variable without the \c "$"
     @param readonly If this argument is \c True, then the variable will be imported read-only, and cannot be changed by the subprogram (note that if the imported 
 
-    @par Example
+    @par Example:
     @code
 $pgm.importGlobalVariable("var");
     @endcode
@@ -718,7 +718,7 @@ nothing Program::importGlobalVariable(string varname, bool readonly = False) {
 //! Returns a list of strings of all user functions defined in the program object
 /** @return a list of strings of all user functions defined in the program object
 
-    @par Example
+    @par Example:
     @code
 my list $l = $pgm.getUserFunctionList();
     @endcode
@@ -730,7 +730,7 @@ list Program::getUserFunctionList() {
 //! Returns the current binary-or'ed parse option mask for the Program object
 /** @return the current binary-or'ed parse option mask for the Program object
 
-    @par Example
+    @par Example:
     @code
 my int $mask = $pgm.getParseOptions();
     @endcode
@@ -744,7 +744,7 @@ int Program::getParseOptions() {
 
     @param opt A single @ref parse_options "parse option" or binary-or'ed combination of @ref parse_options "parse options" to set in the parse option mask for the object
 
-    @par Example
+    @par Example:
     @code
 # disable threading and GUI operations
 $pgm.setParseOptions(PO_NO_THREADS | PO_NO_GUI);
@@ -763,7 +763,7 @@ nothing Program::setParseOptions(softint opt = PO_DEFAULT) {
 
     @param opt A single @ref parse_options "parse option" or binary-or'ed combination of @ref parse_options "parse options" to unset in the parse option mask for the object
 
-    @par Example
+    @par Example:
     @code
 # allow threading and GUI operations
 $pgm.disableParseOptions(PO_NO_THREADS | PO_NO_GUI);
@@ -782,7 +782,7 @@ nothing Program::disableParseOptions(softint opt) {
 
     @param opt A single @ref parse_options "parse option" or binary-or'ed combination of @ref parse_options "parse options" to unset in the parse option mask for the object
 
-    @par Example
+    @par Example:
     @code
 # disallow threading and GUI operations
 $pgm.replaceParseOptions(PO_NO_THREADS | PO_NO_GUI);
@@ -799,7 +799,7 @@ nothing Program::replaceParseOptions(softint opt) {
 //! Sets (or clears) the script path (directory and filename) for the object
 /** @param path The path (directory and filename) for the current script; if the directory component is missing, then the current directory is assumed
 
-    @par Example
+    @par Example:
     @code
 $pgm.setScriptPath("/users/test/test.q");
     @endcode
@@ -813,7 +813,7 @@ nothing Program::setScriptPath(*string path) {
 
     @return Returns the current script directory as a string or @ref nothing if not set; if a string is returned, it should normally include the trailing directory separator character (\c "/" on UNIX, \c "\\" on Windows)
 
-    @par Example
+    @par Example:
     @code
 my *string $dir = $pgm.getScriptDir();
     @endcode
@@ -827,7 +827,7 @@ my *string $dir = $pgm.getScriptDir();
 
     @return the current script name as a string or @ref nothing if not set
 
-    @par Example
+    @par Example:
     @code
 my *string $name = $pgm.getScriptName();
     @endcode
@@ -841,7 +841,7 @@ my *string $name = $pgm.getScriptName();
 
     @return the current script directory and filename if known, otherwise returns @ref nothing
 
-    @par Example
+    @par Example:
     @code
 my *string $path = $pgm.getScriptPath();
     @endcode
@@ -852,7 +852,7 @@ my *string $path = $pgm.getScriptPath();
 
 //! Locks parse options so that they cannot be changed
 /** 
-    @par Example
+    @par Example:
     @code
  $pgm.lockOptions();
    @endcode
@@ -868,7 +868,7 @@ nothing Program::lockOptions() {
 
     @return the value of the global variable identified by the first string argument giving the name of the variable (without any leading \c "$" symbol)
 
-    @par Example
+    @par Example:
     @code
 my bool $exists;
 my any $val = $pgm.getGlobalVariable("error_count", \$exists);
@@ -899,7 +899,7 @@ any Program::getGlobalVariable(string varname, *reference rexists) {
 
     @param region The path to the zoneinfo file for the time zone region to set as the local time zone for the Program object
 
-    @par Example
+    @par Example:
     @code
 $pgm.setTimeZoneRegion("Europe/Prague");
     @endcode
@@ -917,7 +917,7 @@ nothing Program::setTimeZoneRegion(string region) {
 
     @param seconds_east The number of seconds east of UTC; for zones west of UTC, use negative numbers
 
-    @par Example
+    @par Example:
 The following examples are all equivalent, setting the time zone to +02 UTC:
     @code
 $pgm.setTimeZoneUTCOffset(7200);
@@ -938,7 +938,7 @@ nothing Program::setTimeZoneUTCOffset(softint seconds_east) {
 
 //! Sets the default local time zone for the object
 /** 
-    @par Example
+    @par Example:
     @code
     @endcode
 
@@ -951,7 +951,7 @@ nothing Program::setTimeZone(TimeZone[TimeZoneData] zone) {
 //! Returns the default local time zone for the object
 /** @return the default local time zone for the object
 
-    @par Example
+    @par Example:
     @code
 my TimeZone $tz = $pgm.getTimeZone();
     @endcode
@@ -964,7 +964,7 @@ TimeZone Program::getTimeZone() {
 /** @param def The parse define to assign
     @param val The value to assign to the define
 
-    @par Example
+    @par Example:
     @code
 $pgm.define("PRODUCTION", True);
     @endcode
@@ -978,7 +978,7 @@ nothing Program::define(string def, any val) {
 //! Unsets a @ref conditional_parsing "parse define" for the current Program
 /** @param def The name of the define to undefine; if the given define is not defined anyway, the operation is ignored
 
-    @par Example
+    @par Example:
     @code
 $pgm.undefine("PRODUCTION");
     @endcode
@@ -994,7 +994,7 @@ nothing Program::undefine(string def) {
 
     @return \c True if the given @ref conditional_parsing "parse define" is defined in the current Program (does not have to have a value defined to return \c True), \c False if not
 
-    @par Example
+    @par Example:
     @code
 my bool $b = $pgm.isDefined("PRODUCTION");
     @endcode
@@ -1007,7 +1007,7 @@ bool Program::isDefined(string def) {
 //! Retrieves the value of the given @ref conditional_parsing "parse define" in the current Program
 /** @return the value of the given @ref conditional_parsing "parse define" in the current Program
 
-    @par Example
+    @par Example:
     @code
 my any $val = $pgm.getDefine("PRODUCTION");
     @endcode

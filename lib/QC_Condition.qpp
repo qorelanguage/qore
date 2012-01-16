@@ -37,7 +37,7 @@ qclass Condition [dom=THREAD_CLASS; arg=Condition* c; ns=Thread];
 
 //! Creates the Condition object
 /** 
-    @par Example
+    @par Example:
     @code
 my Condition $cond();
     @endcode
@@ -48,7 +48,7 @@ Condition::constructor() {
 
 //! Creates a new Condition object, not based on the original
 /** 
-    @par Example
+    @par Example:
     @code
 my Condition $new_cond = $cond.copy();
     @endcode
@@ -60,7 +60,7 @@ Condition::copy() {
 //! Signals a single blocked thread to wake up
 /** Normally this method call will be made while the same AbstractSmartLock object used for Condition::wait() calls is locked. Then, when the thread calling this method unlocks the AbstractSmartLock object, the thread woken up by this call can continue executing.
 
-    @par Example
+    @par Example:
     @code
 $m.lock();
 $cond.signal();
@@ -77,7 +77,7 @@ nothing Condition::signal() {
 //! Signals all threads blocked on this Condition object to wake up
 /** Normally this method call will be made while the same AbstractSmartLock object used for Condition::wait() calls is locked. Then, when the thread calling this method unlocks the AbstractSmartLock object, the thread(s) woken up by this call can continue executing.
 
-    @par Example
+    @par Example:
     @code
 $m.lock();
 $cond.broadcast();
@@ -99,7 +99,7 @@ nothing Condition::broadcast() {
 
     @return 0 for success, \c ETIMEDOUT if a timeout has occurred
 
-    @par Example
+    @par Example:
     @code
 $m.lock();
 on_exit $m.unlock();
@@ -129,7 +129,7 @@ int Condition::wait(AbstractSmartLock[AbstractSmartLock] lock, timeout timeout_m
 
     @return The number of threads currently blocked on this object using the AbstractSmartLock object passed
 
-    @par Example
+    @par Example:
     @code
 printf("%d thread(s) waiting on the Condition\n", $cond.wait_count($m));
     @endcode

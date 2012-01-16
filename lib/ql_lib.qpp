@@ -239,7 +239,7 @@ static AbstractQoreNode *f_mknod(const QoreListNode *args, ExceptionSink *xsink)
 //! Exits the program with the return code passed (this function does not return)
 /** @param rc the return code for the process (0 = no error; success)
 
-    @par Example
+    @par Example:
     @code
 exit(0);
     @endcode
@@ -253,7 +253,7 @@ nothing exit(softint rc = 0) [dom=PROCESS] {
 //! Aborts the current program (this function does not return)
 /** This function causes the current process to terminate abnormally; a core dump or crash report may be generated if enabled
 
-    @par Example
+    @par Example:
     @code
 abort();
     @endcode
@@ -268,7 +268,7 @@ nothing abort() [dom=PROCESS] {
 //! Replaces the current process image with another; this function does not return
 /** @param command the executable to execute and any command-line arguments; the command is executed internally by a call to execvp() (3)
 
-    @par Example
+    @par Example:
     @code
 exec("/usr/bin/xterm -bg black -fg white -sb -sl 2000");
     @endcode
@@ -281,14 +281,14 @@ nothing exec(string command) [dom=EXTERNAL_PROCESS,PROCESS] {
 }
 
 //! executes a command and returns the exit code of the process
-/** @par Platform Availability
+/** @par Platform Availability:
     @ref Qore::HAVE_SYSTEM
 
     @param command the command to execute; if shell meta-characters are found (currently defined as any of <tt>$=*?\\><";</tt>) or if the current platform does not support fork(), then the command is executed with %system() (3), otherwise fork() and execvp() (3) are used instead
 
     @return the exit code of the process executed
 
-    @par Example
+    @par Example:
     @code
 int rc = system("ls -l");
     @endcode
@@ -338,12 +338,12 @@ nothing system() [flags=RUNTIME_NOOP;dom=EXTERNAL_PROCESS] {
 }
 
 //! Returns the real user ID of the current process
-/** @par Platform Availability
+/** @par Platform Availability:
     @ref Qore::HAVE_UNIX_USERMGT
 
     @return the real user ID of the current process
 
-    @par Example
+    @par Example:
     @code
 my int $uid = getuid();
     @endcode
@@ -358,12 +358,12 @@ int getuid() [dom=EXTERNAL_INFO] {
 }
 
 //! Returns the effective user ID of the current process
-/** @par Platform Availability
+/** @par Platform Availability:
     @ref Qore::HAVE_UNIX_USERMGT
 
     @return the effective user ID of the current process
 
-    @par Example
+    @par Example:
     @code
 my int $euid = geteuid();
     @endcode
@@ -378,12 +378,12 @@ int geteuid() [dom=EXTERNAL_INFO] {
 }
 
 //! Returns the real group ID of the current process
-/** @par Platform Availability
+/** @par Platform Availability:
     @ref Qore::HAVE_UNIX_USERMGT
 
     @return the real group ID of the current process
 
-    @par Example
+    @par Example:
     @code
 my int $gid = getgid();
     @endcode
@@ -398,12 +398,12 @@ int getgid() [dom=EXTERNAL_INFO] {
 }
 
 //! Returns the effective group ID of the current process
-/** @par Platform Availability
+/** @par Platform Availability:
     @ref Qore::HAVE_UNIX_USERMGT
 
     @return the effective group ID of the current process
 
-    @par Example
+    @par Example:
     @code
 my int $egid = getegid();
     @endcode
@@ -422,7 +422,7 @@ int getegid() [dom=EXTERNAL_INFO] {
 
     @return should always return 0 for success
 
-    @par Example
+    @par Example:
     @code
 sleep(10s);
     @endcode
@@ -447,7 +447,7 @@ nothing sleep() [flags=RUNTIME_NOOP;dom=PROCESS] {
 
     @return should always return 0 for success
 
-    @par Example
+    @par Example:
     @code
 usleep(250ms);
     @endcode
@@ -472,7 +472,7 @@ nothing usleep() [flags=RUNTIME_NOOP;dom=PROCESS] {
 //! Returns the PID (process ID) of the current process
 /** @return the PID (process ID) of the current process
 
-    @par Example
+    @par Example:
     @code
 my int $pid = getpid();
     @endcode
@@ -482,12 +482,12 @@ int getpid() [flags=RET_VALUE_ONLY;dom=EXTERNAL_INFO] {
 }
 
 //! Returns the PID (process ID) of the parent process of the current process
-/** @par Platform Availability
+/** @par Platform Availability:
     @ref Qore::HAVE_GETPPID
 
     @return the PID (process ID) of the parent process of the current process
 
-    @par Example
+    @par Example:
     @code
     @endcode
  */
@@ -503,12 +503,12 @@ int getppid() [flags=RET_VALUE_ONLY;dom=EXTERNAL_INFO] {
 //! Creates a copy of the current process with a new PID; returns 0 in the child process; returns the child's PID in the parent process
 /** This function will throw an \c ILLEGAL-FORK exception if more than one thread is running
 
-    @par Platform Availability
+    @par Platform Availability:
     @ref Qore::HAVE_FORK
 
     @return 0 in the child process; returns the child's PID in the parent process; if an error occurs, then -1 is returned, in this case no child process was started and the error number can be retrieved with the errno() function
 
-    @par Example
+    @par Example:
     @code
 my int $pid;
 if ($pid = fork())
@@ -552,7 +552,7 @@ int fork() [dom=PROCESS] {
 }
 
 //! Sends a signal to a process, if no signal number is given, then Qore::SIGHUP is sent by default
-/** @par Platform Availability
+/** @par Platform Availability:
     @ref Qore::HAVE_KILL
 
     @param pid the pid argument can have the following interpretations:
@@ -563,7 +563,7 @@ int fork() [dom=PROCESS] {
 
     @return 0 means success (no error), or -1 meaning an error occurred; in this case check errno() for the error
 
-    @par Example
+    @par Example:
     @code
 if (kill($pid, SIGTERM))
     printf("error sending signal to pid %d: %s\n", $pid, strerror());
@@ -585,14 +585,14 @@ nothing kill() [flags=RUNTIME_NOOP;dom=EXTERNAL_PROCESS] {
 }
 
 //! Returns a hash of filesystem status values for the file or directory path passed
-/** @par Platform Availability
+/** @par Platform Availability:
     @ref Qore::HAVE_STATVFS
 
     @param path the path to the filesystem (or on the filesystem)
 
     @return a @ref filesystem_status_hash; or, if any errors occur, @ref nothing is returned and errno() can be used to retrieve the error number
 
-    @par Example
+    @par Example:
     @code
 my *hash $h = statvfs("/tmp")
     @endcode
@@ -617,7 +617,7 @@ my *hash $h = statvfs("/tmp")
 
     @return a @ref stat_list "list of file status values" for the path argument, following any symbolic links; if any errors occur, @ref nothing is returned and errno() can be used to retrieve the error number
 
-    @par Example
+    @par Example:
     @code
 my *list $l = stat("/tmp/file.txt");
 if (!exists $l)
@@ -646,7 +646,7 @@ nothing stat() [flags=RUNTIME_NOOP;dom=FILESYSTEM] {
 /** @param path the path to retrieve information for
 
     @return a @ref stat_list "list of file status values" for the path argument and does not follow symbolic links; if any errors occur, @ref nothing is returned and errno() can be used to retrieve the error number
-    @par Example
+    @par Example:
     @code
 my *list $l = lstat("/tmp/file.txt");
 if (!exists $l)
@@ -682,7 +682,7 @@ nothing lstat() [flags=RUNTIME_NOOP;dom=FILESYSTEM] {
 
     @return a @ref stat_hash "hash of file status values" for the path argument, following any symbolic links; if any errors occur, @ref nothing is returned and errno() can be used to retrieve the error number
 
-    @par Example
+    @par Example:
     @code
 my *hash $h = hstat("/tmp/file.txt");
 if (!exists $h)
@@ -712,7 +712,7 @@ nothing hstat() [flags=RUNTIME_NOOP;dom=FILESYSTEM] {
 
     @return a @ref stat_hash "hash of file status values" for the path argument and does not follow symbolic links; if any errors occur, @ref nothing is returned and errno() can be used to retrieve the error number
 
-    @par Example
+    @par Example:
     @code
 my *hash $h = hlstat("/tmp/file.txt");
 if (!exists $h)
@@ -747,7 +747,7 @@ nothing hlstat() [flags=RUNTIME_NOOP;dom=FILESYSTEM] {
 
     @return a list of files matching the string argument or @ref nothing if the call to glob() fails, in which case errno() can be used to get the error
 
-    @par Example
+    @par Example:
     @code
 my *list $gl = glob("*.txt");
 if (!exists $gl)
@@ -782,7 +782,7 @@ nothing glob() [flags=RUNTIME_NOOP;dom=FILESYSTEM] {
 
     @return 0 for success, -1 for error (in which case errno() can be used to get the error)
 
-    @par Example
+    @par Example:
     @code
 if (unlink($path))
     printf("%s: %s\n", $path, strerror());
@@ -803,7 +803,7 @@ nothing unlink() [flags=RUNTIME_NOOP;dom=FILESYSTEM] {
 
     @return the old file creation mode mask for the process
 
-    @par Example
+    @par Example:
     @code
 if (unlink($path))
     printf("%s: %s\n", $path, strerror());
@@ -824,7 +824,7 @@ nothing umask() [flags=RUNTIME_NOOP;dom=PROCESS] {
 
     @return a random 64-bit integer number
     
-    @par Example
+    @par Example:
     @code
 my int $num = rand();
     @endcode
@@ -845,7 +845,7 @@ int rand() [flags=CONSTANT] {
 
     @param the seed for the random number generator (only the least-significant 32-bits are used)
 
-    @par Example
+    @par Example:
     @code
 srand(now());
     @endcode
@@ -868,7 +868,7 @@ nothing srand() [flags=RUNTIME_NOOP;dom=PROCESS] {
 //! Returns the hostname of the system
 /** @return the hostname of the system
 
-    @par Example
+    @par Example:
     @code
 my string $host = gethostname();
     @endcode
@@ -886,7 +886,7 @@ string gethostname() [flags=CONSTANT;dom=EXTERNAL_INFO] {
 //! Returns the error code of the last error that occurred in the current thread
 /** @return the error code of the last error that occurred in the current thread (see @ref error_constants for possible error code values)
 
-    @par Example
+    @par Example:
     @code
 if (unlink($path))
     printf("%s: %s\n", $path, strerror(errno()));
@@ -903,7 +903,7 @@ int errno() {
 
     @return the string corresponding to the error code passed; if the error code is unknown, then a string like \c "Unknown error: -1" is returned
 
-    @par Example
+    @par Example:
     @code
 if (unlink($path))
     printf("%s: %s\n", $path, strerror(errno()));
@@ -916,7 +916,7 @@ string strerror(softint err) [flags=CONSTANT] {
 //! Returns the string corresponding to the last error that occurred in the current thread
 /** @return the string corresponding to the last error that occurred in the current thread
 
-    @par Example
+    @par Example:
     @code
 if (unlink($path))
     printf("%s: %s\n", $path, strerror());
@@ -933,7 +933,7 @@ string strerror() [flags=CONSTANT] {
 
     @return a string giving the last element of the given file path (meant to be the filename)
 
-    @par Example
+    @par Example:
     @code
 my string $fn = basename("/usr/local/bin/file_name");
     @endcode
@@ -957,7 +957,7 @@ nothing basename() [flags=RUNTIME_NOOP] {
 
     @return a string giving the path up to a file but not the filename itself; if no directory separator characters can be found in the path, \c "." is returned (meaning the current directory)
 
-    @par Example
+    @par Example:
     @code
 my string $dir = dirname("/usr/local/bin/file_name");
     @endcode
@@ -982,7 +982,7 @@ nothing dirname() [flags=RUNTIME_NOOP] {
 
     @return 0 if no error occurred; -1 if an error occurred, in which case errno() and/or strerror() can be used to retrieve the error
 
-    @par Example
+    @par Example:
     @code
 if (mkdir("/tmp/newdir", 0755))
     printf("mkdir /tmp/newdir: %s\n", strerror());
@@ -999,7 +999,7 @@ int mkdir(string path, softint mode = 0777) [dom=FILESYSTEM] {
 
     @return 0 if no error occurred; -1 if an error occurred, in which case errno() and/or strerror() can be used to retrieve the error
 
-    @par Example
+    @par Example:
     @code
 if (rmdir("/tmp/newdir"))
     printf("rmdir /tmp/newdir: %s\n", strerror());
@@ -1015,7 +1015,7 @@ int rmdir(string path) [dom=FILESYSTEM] {
 
     @return 0 if no error occurred; -1 if an error occurred, in which case errno() and/or strerror() can be used to retrieve the error
 
-    @par Example
+    @par Example:
     @code
 if (chmod("/bin/login", 0755))
     printf("rmdir /tmp/newdir: %s\n", strerror());
@@ -1030,7 +1030,7 @@ int chmod(string path, softint mode) [dom=FILESYSTEM] {
     
     @return 0 if no error occurred; -1 if an error occurred, in which case errno() and/or strerror() can be used to retrieve the error
 
-    @par Example
+    @par Example:
     @code
 if (chdir($dir))
     printf("chdir %s: %s\n", $dir, strerror());
@@ -1045,7 +1045,7 @@ int chdir(string path) [dom=PROCESS,FILESYSTEM] {
 //! Returns a string giving the current working directory or @ref nothing if the current working directory could not be read
 /** @return a string giving the current working directory or @ref nothing if the current working directory could not be read
 
-    @par Example
+    @par Example:
     @code
 my *string $cwd = getcwd();
     @endcode
@@ -1058,7 +1058,7 @@ string getcwd() [flags=CONSTANT;dom=FILESYSTEM,EXTERNAL_INFO] {
 
 //! Returns a string giving the current working directory; throws an exception if the current directory cannot be read
 /** 
-    @par Example
+    @par Example:
     @code
 my string $cwd = getcwd2();
     @endcode
@@ -1070,7 +1070,7 @@ string getcwd2() [flags=RET_VALUE_ONLY;dom=FILESYSTEM,EXTERNAL_INFO] {
 }
 
 //! Creates a named pipe file with an optional file mode
-/** @par Platform Availability
+/** @par Platform Availability:
     @ref Qore::HAVE_UNIX_FILEMGT
 
     @param path the path to the new named pipe
@@ -1078,7 +1078,7 @@ string getcwd2() [flags=RET_VALUE_ONLY;dom=FILESYSTEM,EXTERNAL_INFO] {
 
     @return 0 if no error occurred; -1 if an error occurred, in which case errno() and/or strerror() can be used to retrieve the error
 
-    @par Example
+    @par Example:
     @code
 if (mkfifo("/tmp/pipe"))
     printf("mkfifo /tmp/pipe: %s\n", strerror());
@@ -1094,14 +1094,14 @@ int mkfifo(string path, softint mode = 0600) [dom=FILESYSTEM] {
 }
 
 //! Changes the process user ID according to the argument passed
-/** @par Platform Availability
+/** @par Platform Availability:
     @ref Qore::HAVE_UNIX_USERMGT
 
     @param uid the user ID to set
 
     @return 0 if no error occurred; -1 if an error occurred, in which case errno() and/or strerror() can be used to retrieve the error
 
-    @par Example
+    @par Example:
     @code
 if (setuid($uid))
     printf("setuid %d: %s\n", $uid, strerror());
@@ -1117,14 +1117,14 @@ int setuid(softint uid) [dom=PROCESS] {
 }
 
 //! Changes the effective process user ID according to the argument passed
-/** @par Platform Availability
+/** @par Platform Availability:
     @ref Qore::HAVE_SETEUID
 
     @param uid the user ID to set
 
     @return 0 if no error occurred; -1 if an error occurred, in which case errno() and/or strerror() can be used to retrieve the error
 
-    @par Example
+    @par Example:
     @code
 if (seteuid($uid))
     printf("seteuid %d: %s\n", $uid, strerror());
@@ -1140,14 +1140,14 @@ int seteuid(softint uid) [dom=PROCESS] {
 }
 
 //! Changes the process group ID according to the argument passed
-/** @par Platform Availability
+/** @par Platform Availability:
     @ref Qore::HAVE_UNIX_USERMGT
 
     @param gid the group ID to set
 
     @return 0 if no error occurred; -1 if an error occurred, in which case errno() and/or strerror() can be used to retrieve the error
 
-    @par Example
+    @par Example:
     @code
 if (setgid($gid))
     printf("setgid %d: %s\n", $gid, strerror());
@@ -1163,14 +1163,14 @@ int setgid(softint gid) [dom=PROCESS] {
 }
 
 //! Changes the process effective group ID according to the argument passed
-/** @par Platform Availability
+/** @par Platform Availability:
     @ref Qore::HAVE_UNIX_USERMGT
 
     @param gid the group ID to set
 
     @return 0 if no error occurred; -1 if an error occurred, in which case errno() and/or strerror() can be used to retrieve the error
 
-    @par Example
+    @par Example:
     @code
 if (setegid($gid))
     printf("setegid %d: %s\n", $gid, strerror());
@@ -1190,7 +1190,7 @@ int setegid(softint gid) [dom=PROCESS] {
 
     @return Upon successful completion, the setsid() function returns the value of the process group ID of the new process group, which is the same as the process ID of the calling process; if an error occurs, setsid() returns -1 and errno() and/or strerror() can be used to check the error.
 
-    @par Example
+    @par Example:
     @code
 if (setsid() == -1)
     printf("setsid(): %s\n", strerror());
@@ -1210,7 +1210,7 @@ int setsid() [dom=PROCESS] {
 
     @return the first address corresponding to the hostname passed as an argument or @ref nothing if the lookup fails
 
-    @par Example
+    @par Example:
     @code
 my *string $addr = gethostbyname($host);
 if (!exists $host)
@@ -1237,7 +1237,7 @@ nothing gethostbyname() [flags=RUNTIME_NOOP] {
 
     @return the official hostname corresponding to the network addressed passed as an argument
 
-    @par Example
+    @par Example:
     @code
 my *string $hostname = gethostbyaddr("192.168.0.33");
 if (!exists $hostname)
@@ -1264,7 +1264,7 @@ nothing gethostbyaddr() [flags=RUNTIME_NOOP] {
 
     @return @ref host_information_hash "a hash" representing all host and address information corresponding to the hostname passed as an argument
 
-    @par Example
+    @par Example:
     @code
 my *hash $ah = gethostbyname_long($host);
 if (!exists $host)
@@ -1291,7 +1291,7 @@ nothing gethostbyname_long() [flags=RUNTIME_NOOP] {
 
     @return @ref host_information_hash "a hash" representing all host and address information corresponding to the address and address type passed as arguments
 
-    @par Example
+    @par Example:
     @code
 my *hash $ah = gethostbyaddr_long("192.168.0.33");
 if (!exists $ah)
@@ -1322,7 +1322,7 @@ nothing gethostbyaddr_long() [flags=RUNTIME_NOOP] {
 
     @return a list of @ref address_information_hash for the given node name or string address; if no lookup can be performed then an exception is thrown
 
-    @par Example
+    @par Example:
     @code
 my list $l = getaddrinfo("localhost");
     @endcode
@@ -1334,7 +1334,7 @@ list getaddrinfo(*string node, *softstring service, softint family = AF_UNSPEC, 
 }
 
 //! Changes the user and group owners of a file, if the current user has permission to do so (normally only the superuser can change the user owner), follows symbolic links
-/** @par Platform Availability
+/** @par Platform Availability:
     Qore::HAVE_UNIX_FILEMGT
 
     @param path path to the file or directory to change
@@ -1343,7 +1343,7 @@ list getaddrinfo(*string node, *softstring service, softint family = AF_UNSPEC, 
 
     @return 0 if no error occurred; -1 if an error occurred, in which case errno() and/or strerror() can be used to retrieve the error
 
-    @par Example
+    @par Example:
     @code
 if (chown("/bin/login", 0, 0))
     printf("chown /bin/login: %s\n", strerror());
@@ -1361,7 +1361,7 @@ int chown(string path, softint owner = -1, softint group = -1) [dom=FILESYSTEM] 
 }
 
 //! Changes the user and group owners of a file, if the current user has permission to do so (normally only the superuser can change the user owner), does not follow symbolic links but rather operated on the symbolic link itself
-/** @par Platform Availability
+/** @par Platform Availability:
     Qore::HAVE_UNIX_FILEMGT
 
     @param path path to the file or directory to change
@@ -1370,7 +1370,7 @@ int chown(string path, softint owner = -1, softint group = -1) [dom=FILESYSTEM] 
 
     @return 0 if no error occurred; -1 if an error occurred, in which case errno() and/or strerror() can be used to retrieve the error
 
-    @par Example
+    @par Example:
     @code
 if (lchown("/tmp/socket", 0, 0))
     printf("lchown /tmp/socket: %s\n", strerror());
@@ -1388,14 +1388,14 @@ int lchown(string path, softint uid = -1, softint gid = -1) [dom=FILESYSTEM] {
 }
 
 //! Returns the target of a symbolic link; throws an exception if an error occurs (ex: file does not exist or is not a symbolic link)
-/** @par Platform Availability
+/** @par Platform Availability:
     Qore::HAVE_UNIX_FILEMGT
 
     @param path the path to the symbolic link
 
     @return the target of the link; throws an exception if the given path is not a symbolic link (or if another error occurs)
 
-    @par Example
+    @par Example:
     @code
 my string $str = readlink("/tmp/symbolic_link");
     @endcode
