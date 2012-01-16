@@ -1649,7 +1649,7 @@ nothing Socket::shutdownSSL() {
 
     @return the port number for an INET connection, -1 if no INET connection has been established
  */
-int Socket::getPort() [flags=QC_CONSTANT] {
+int Socket::getPort() [flags=CONSTANT] {
    return s->getPort();
 }
 
@@ -1659,7 +1659,7 @@ int Socket::getPort() [flags=QC_CONSTANT] {
 
     @return the socket file descriptor number or -1 if the socket is not open
  */
-int Socket::getSocket() [flags=QC_CONSTANT] {
+int Socket::getSocket() [flags=CONSTANT] {
    return s->getSocket();
 }
 
@@ -1699,7 +1699,7 @@ int Socket::setRecvTimeout(timeout timeout_ms) {
 
     @return the send timeout socket option value as an integer in milliseconds
  */
-int Socket::getSendTimeout() [flags=QC_CONSTANT] {
+int Socket::getSendTimeout() [flags=CONSTANT] {
    return s->getSendTimeout();
 }
 
@@ -1709,14 +1709,14 @@ int Socket::getSendTimeout() [flags=QC_CONSTANT] {
 
     @return the receive timeout socket option value as an integer in milliseconds
  */
-int Socket::getRecvTimeout() [flags=QC_CONSTANT] {
+int Socket::getRecvTimeout() [flags=CONSTANT] {
    return s->getRecvTimeout();
 }
 
 //! Returns the @ref character_encoding "character encoding" for the socket
 /** @return the @ref character_encoding "character encoding" for the socket
  */
-string Socket::getEncoding() [flags=QC_CONSTANT] {
+string Socket::getEncoding() [flags=CONSTANT] {
    return new QoreStringNode(s->getEncoding()->getCode());
 }
 
@@ -1731,7 +1731,7 @@ nothing Socket::setEncoding(string encoding) {
 /** A method synonym for Socket::getEncoding(), kept for backwards-compatibility
     @return the @ref character_encoding "character encoding" for the socket
  */
-string Socket::getCharset() [flags=QC_CONSTANT] {
+string Socket::getCharset() [flags=CONSTANT] {
    return new QoreStringNode(s->getEncoding()->getCode());
 }
 //! Sets the @ref character_encoding "character encoding" for the socket
@@ -1776,7 +1776,7 @@ bool Socket::isWriteFinished(timeout timeout_ms = 0) {
 
     @return \c True if the socket is open, \c False if not
  */
-bool Socket::isOpen() [flags=QC_CONSTANT] {
+bool Socket::isOpen() [flags=CONSTANT] {
    return s->isOpen();
 }
 
@@ -1786,7 +1786,7 @@ bool Socket::isOpen() [flags=QC_CONSTANT] {
 
     @return the name of the cipher for an encrypted connection or @ref nothing if a secure connection has not been established
  */
-*string Socket::getSSLCipherName() [flags=QC_CONSTANT] {
+*string Socket::getSSLCipherName() [flags=CONSTANT] {
    const char *str = s->getSSLCipherName();
    return str ? new QoreStringNode(str) : 0;
 }
@@ -1797,7 +1797,7 @@ bool Socket::isOpen() [flags=QC_CONSTANT] {
 
     @return the version string of the cipher for an encrypted connection or @ref nothing if a secure connection has not been established
  */
-*string Socket::getSSLCipherVersion() [flags=QC_CONSTANT] {
+*string Socket::getSSLCipherVersion() [flags=CONSTANT] {
    const char *str = s->getSSLCipherVersion();
    return str ? new QoreStringNode(str) : 0;
 }
@@ -1808,7 +1808,7 @@ bool Socket::isOpen() [flags=QC_CONSTANT] {
 
     @return \c True if the connection is encrypted, \c False if not
  */
-bool Socket::isSecure() [flags=QC_CONSTANT] {
+bool Socket::isSecure() [flags=CONSTANT] {
    return s->isSecure();
 }
 
@@ -1818,7 +1818,7 @@ bool Socket::isSecure() [flags=QC_CONSTANT] {
 
     @return A string code giving the result of verifying the peer's certificate. No value is returned if a secure connection has not been established.  The set of possible return values is made up of the keys of the @ref X509_VerificationReasons hash. This hash can also be used to generate a textual description of the verification result.
  */
-*string Socket::verifyPeerCertificate() [flags=QC_CONSTANT] {
+*string Socket::verifyPeerCertificate() [flags=CONSTANT] {
    const char *c = getSSLCVCode(s->verifyPeerCertificate());
    return c ? new QoreStringNode(c) : 0;
 }
@@ -1956,7 +1956,7 @@ int Socket::setNoDelay(bool nd = True) {
 
     @see Socket::setNoDelay() for a description of the \c TCP_NODELAY setting
  */
-bool Socket::getNoDelay() [flags=QC_CONSTANT] {
+bool Socket::getNoDelay() [flags=CONSTANT] {
    return s->getNoDelay();
 }
 

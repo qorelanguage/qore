@@ -368,7 +368,7 @@ nothing Datasource::setAutoCommit(bool ac = True) {
 my bool $b = $db.getAutoCommit();
     @endcode
  */
-bool Datasource::getAutoCommit() [flags=QC_CONSTANT] {
+bool Datasource::getAutoCommit() [flags=CONSTANT] {
    return ds->getAutoCommit();
 }
 
@@ -643,7 +643,7 @@ if (!($caps & DBI_CAP_TRANSACTION_MANAGEMENT))
     throw "DATASOURCE-ERROR", sprintf("DBI driver %y does not support transaction management", $db.getDriverName());
     @endcode
  */
-int Datasource::getCapabilities() [flags=QC_CONSTANT] {
+int Datasource::getCapabilities() [flags=CONSTANT] {
    return ds->getCapabilities();
 }
 
@@ -657,7 +657,7 @@ foreach my string $cap in ($db.getCapabilityList())
     printf("- %s\n", $cap);
     @endcode
  */
-list Datasource::getCapabilityList() [flags=QC_CONSTANT] {
+list Datasource::getCapabilityList() [flags=CONSTANT] {
    return ds->getCapabilityList();
 }
 
@@ -769,7 +769,7 @@ nothing Datasource::setPort(softint port = 0) {
 my *string $user = $db.getUserName();
     @endcode
  */
-*string Datasource::getUserName() [flags=QC_CONSTANT] {
+*string Datasource::getUserName() [flags=CONSTANT] {
    return ds->getPendingUsername();
 }
 
@@ -781,7 +781,7 @@ my *string $user = $db.getUserName();
 my *string $pass = $db.getPassword();
     @endcode
  */
-*string Datasource::getPassword() [flags=QC_CONSTANT] {
+*string Datasource::getPassword() [flags=CONSTANT] {
    return ds->getPendingPassword();
 }
 
@@ -793,7 +793,7 @@ my *string $pass = $db.getPassword();
 my *string $db = $db.getDBName();
     @endcode
  */
-*string Datasource::getDBName() [flags=QC_CONSTANT] {
+*string Datasource::getDBName() [flags=CONSTANT] {
    return ds->getPendingDBName();
 }
 
@@ -807,7 +807,7 @@ my *string $db = $db.getDBName();
 my string $enc = $db.getDBCharset();
     @endcode
  */
-string Datasource::getDBCharset() [flags=QC_CONSTANT] {
+string Datasource::getDBCharset() [flags=CONSTANT] {
    return ds->getPendingDBEncoding();
 }
 
@@ -821,7 +821,7 @@ my string $enc = $db.getDBEncoding();
 
     @see Datasource::getOSEncoding();
  */
-string Datasource::getDBEncoding() [flags=QC_CONSTANT] {
+string Datasource::getDBEncoding() [flags=CONSTANT] {
    return ds->getPendingDBEncoding();
 }
 
@@ -835,7 +835,7 @@ my string $enc = $db.getOSCharset();
 
     @see Datasource::getOSEncoding()
  */
-string Datasource::getOSCharset() [flags=QC_CONSTANT] {
+string Datasource::getOSCharset() [flags=CONSTANT] {
    const QoreEncoding *enc = ds->getQoreEncoding();
    return new QoreStringNode(enc ? enc->getCode() : "(unknown)");
 }
@@ -848,7 +848,7 @@ string Datasource::getOSCharset() [flags=QC_CONSTANT] {
 my *string $enc = $db.getOSEncoding();
     @endcode
  */
-*string Datasource::getOSEncoding() [flags=QC_CONSTANT] {
+*string Datasource::getOSEncoding() [flags=CONSTANT] {
    const QoreEncoding *enc = ds->getQoreEncoding();
    return enc ? new QoreStringNode(enc->getCode()) : 0;
 }
@@ -861,7 +861,7 @@ my *string $enc = $db.getOSEncoding();
 my *string $host = $db.getHostName();
     @endcode
  */
-*string Datasource::getHostName() [flags=QC_CONSTANT] {
+*string Datasource::getHostName() [flags=CONSTANT] {
    return ds->getPendingHostName();
 }
 
@@ -873,7 +873,7 @@ my *string $host = $db.getHostName();
 my *int $port = $db.getPort();
     @endcode
  */
-*int Datasource::getPort() [flags=QC_CONSTANT] {
+*int Datasource::getPort() [flags=CONSTANT] {
    int port = ds->getPort();
    return port ? new QoreBigIntNode(port) : 0;
 }
@@ -898,7 +898,7 @@ nothing Datasource::setTransactionLockTimeout(timeout timeout_ms = 0) {
 my int $to_ms = $db.getTransactionLockTimeout();
     @endcode
  */
-int Datasource::getTransactionLockTimeout() [flags=QC_CONSTANT] {
+int Datasource::getTransactionLockTimeout() [flags=CONSTANT] {
    return ds->getTransactionLockTimeout();
 }
 
@@ -910,7 +910,7 @@ int Datasource::getTransactionLockTimeout() [flags=QC_CONSTANT] {
 my string $driver = $db.getDriverName();
     @endcode
  */
-string Datasource::getDriverName() [flags=QC_CONSTANT] {
+string Datasource::getDriverName() [flags=CONSTANT] {
    return new QoreStringNode(ds->getDriver()->getName());
 }
 
@@ -952,6 +952,6 @@ any Datasource::getClientVersion() {
 my bool $b = $db.inTransaction();
     @endcode
  */
-bool Datasource::inTransaction() [flags=QC_CONSTANT] {
+bool Datasource::inTransaction() [flags=CONSTANT] {
    return ds->isInTransaction();
 }

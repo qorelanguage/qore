@@ -112,6 +112,12 @@ static strmap_t valmap;
 // set of types indicating objects
 static strset_t oset;
 
+// map of functional domains to parse restriction codes
+static strmap_t dmap;
+
+// set of possible code flags
+static strset_t fset;
+
 // parameter structure
 struct Param {
    std::string type,  // param type
@@ -830,6 +836,58 @@ static int get_qore_value(const std::string &qv, std::string &v, const char *cna
    return -1;
 }
 
+int dom_get(strlist_t& dom, const std::string& str) {
+   get_string_list(dom, str);
+   for (strlist_t::iterator di = dom.begin(), e = dom.end(); di != e; ++di) {
+      toupper(*di);
+      if (dmap.find(*di) == dmap.end()) {
+         error("unknown domain code: '%s'; domains must be listed separated by commas and without the QDOM_ prefix\n", (*di).c_str());
+         return -1;
+      }
+   }
+   return 0;
+}
+
+static void dom_output_cpp(FILE* fp, const strlist_t& dom) {
+   if (dom.empty()) {
+      fputs("QDOM_DEFAULT", fp);
+      return;
+   }
+
+   for (strlist_t::const_iterator i = dom.begin(), e = dom.end(); i != e; ++i) {
+      if (i != dom.begin())
+         fputc('|', fp);
+      fprintf(fp, "QDOM_%s", (*i).c_str());
+   }
+}
+
+int flags_get(strlist_t& flags, const std::string& str) {
+   get_string_list(flags, str);
+   for (strlist_t::iterator fi = flags.begin(), e = flags.end(); fi != e; ++fi) {
+      toupper(*fi);
+      if (fset.find(*fi) == fset.end()) {
+         error("unknown code flag: '%s'; code flags must be listed separated by commas and without the QC_ prefix\n", (*fi).c_str());
+         return -1;
+      }
+   }
+   return 0;
+}
+
+static void flags_output_cpp(FILE* fp, const strlist_t& flags, bool uses_extra_args) {
+   if (flags.empty()) {
+      fputs(uses_extra_args ? "QC_USES_EXTRA_ARGS" : "QC_NO_FLAGS", fp);
+      return;
+   }
+
+   for (strlist_t::const_iterator i = flags.begin(), e = flags.end(); i != e; ++i) {
+      if (i != flags.begin())
+         fputc('|', fp);
+      fprintf(fp, "QC_%s", (*i).c_str());
+   }
+   if (uses_extra_args)
+      fputs("|QC_USES_EXTRA_ARGS", fp);
+}
+
 static void doRow(strlist_t &sl, std::string &tstr) {
    tstr += "   <tr>\n";
    for (unsigned k = 0; k < sl.size(); ++k) {
@@ -966,9 +1024,11 @@ protected:
       vname,           // variant name
       docs,            // docs
       return_type,     // return type
-      code,            // c++ code
-      dom,             // domain
-      flags;           // flags
+      code;            // c++ code
+
+   strlist_t flags,    // flags
+      dom;             // functional domains
+
    attr_t attr;
    paramlist_t params;
    ReturnType rt;
@@ -1177,10 +1237,11 @@ protected:
 public:
    CodeBase(const std::string &n_name, attr_t n_attr, const paramlist_t &n_params, 
             const std::string &n_docs, const std::string &n_return_type, 
-            const std::string &n_flags, const std::string &n_dom, const std::string &n_code,
+            const strlist_t& n_flags, const strlist_t& n_dom, const std::string &n_code,
             unsigned vnum, unsigned n_line, bool n_doconly) : name(n_name), vname(name), docs(n_docs), return_type(n_return_type), 
-                                                              code(n_code), dom(n_dom), flags(n_flags), attr(n_attr), params(n_params), 
-                                                              rt(RT_ANY), line(n_line), has_return(false), doconly(n_doconly) {
+                                                              code(n_code), flags(n_flags), dom(n_dom), attr(n_attr),
+                                                              params(n_params), rt(RT_ANY), line(n_line), has_return(false),
+                                                              doconly(n_doconly) {
       if (return_type == "int" || return_type == "softint")
          rt = RT_INT;
       else if (return_type == "bool" || return_type == "softbool")
@@ -1203,12 +1264,7 @@ public:
          vname += buf;
       }
 
-      if (flags.empty())
-         flags = attr & QCA_USES_EXTRA_ARGS ? "QC_USES_EXTRA_ARGS" : "QC_NO_FLAGS";
-      else if (attr & QCA_USES_EXTRA_ARGS)
-         flags += "|QC_USES_EXTRA_ARGS";
-
-      log(LL_DEBUG, "CodeBase::CodeBase() name %s flags '%s'\n", name.c_str(), flags.c_str());
+      log(LL_DEBUG, "CodeBase::CodeBase() name %s\n", name.c_str());
    }
 
    const char *getName() const {
@@ -1228,7 +1284,7 @@ protected:
 public:
    FunctionGroupElement(const std::string &n_name, attr_t n_attr, const paramlist_t &n_params, 
                         const std::string &n_docs, const std::string &n_return_type, 
-                        const std::string &n_flags, const std::string &n_dom, const std::string &n_code,
+                        const strlist_t& n_flags, const strlist_t& n_dom, const std::string &n_code,
                         unsigned vnum, unsigned n_line, bool n_doconly) : CodeBase(n_name, n_attr, n_params, n_docs, n_return_type, 
                                                                                    n_flags, n_dom, n_code, vnum, n_line, n_doconly) {
    }
@@ -1262,12 +1318,15 @@ public:
       if (get_qore_type(return_type, cppt))
          return -1;
 
-      fprintf(fp, "   builtinFunctions.add2(\"%s\", (%s)f_%s, %s, %s, %s", 
+      fprintf(fp, "   builtinFunctions.add2(\"%s\", (%s)f_%s, ", 
               name.c_str(),
               getFunctionType(), 
-              vname.c_str(),
-              flags.c_str(),
-              dom.empty() ? "QDOM_DEFAULT" : dom.c_str(), cppt.c_str());
+              vname.c_str());
+
+      flags_output_cpp(fp, flags, attr & QCA_USES_EXTRA_ARGS);
+      fputs(", ", fp);
+      dom_output_cpp(fp, dom);
+      fprintf(fp, ", %s", cppt.c_str());
 
       if (serializeBindingArgs(fp))
          return -1;
@@ -1414,15 +1473,20 @@ protected:
       if (parse_params_and_flags(fileName, lineNumber, flags, params, attr, code, p + 1, fn))
          return -1;
 
-      std::string cf, dom;
+      strlist_t cf;
+      strlist_t dom;
       bool doconly = false;
       // parse flags
       for (strmap_t::const_iterator i = flags.begin(), e = flags.end(); i != e; ++i) {
          //log(LL_DEBUG, "+ method %s::%s() flag '%s': '%s'\n", name.c_str(), mname.c_str(), i->first.c_str(), i->second.c_str());
-         if (i->first == "dom")
-            dom = i->second;
-         else if (i->first == "flags")
-            cf = i->second;
+         if (i->first == "dom") {
+            if (dom_get(dom, i->second))
+               return -1;
+         }
+         else if (i->first == "flags") {
+            if (flags_get(cf, i->second))
+               return -1;
+         }
          else if (i->first == "doconly")
             doconly = true;
          else {
@@ -1607,7 +1671,7 @@ public:
          return 0;
 
       // serialize group header doc
-      fputs(doc.c_str(), fp);
+      serialize_dox_comment(fp, doc);
 
       fputc('\n', fp);
       for (fmap_t::const_iterator i = fmap.begin(), e = fmap.end(); i != e; ++i)
@@ -1620,7 +1684,7 @@ public:
       return 0;
    }
 
-   int serializeConstantDox(FILE *fp, bool needs_prefix) const {
+   int serializeConstantDox(FILE *fp, bool needs_prefix) {
       if (cmap.empty())
          return 0;
 
@@ -1632,7 +1696,7 @@ public:
       }
 
       // serialize group header doc
-      fputs(doc.c_str(), fp);
+      serialize_dox_comment(fp, doc);
 
       fputc('\n', fp);
       for (cmap_t::const_iterator i = cmap.begin(), e = cmap.end(); i != e; ++i)
@@ -1814,12 +1878,13 @@ protected:
       fputc('\n', fp);
       serializeQoreConstructorPrototypeComment(fp, cname, 3);
 
-      fprintf(fp, "   QC_%s->setConstructorExtended(%s_%s, %s, %s, %s", 
+      fprintf(fp, "   QC_%s->setConstructorExtended(%s_%s, %s, ", 
               UC, 
               cname, vname.c_str(),
-              attr & QCA_PRIVATE ? "true" : "false",
-              flags.c_str(),
-              dom.empty() ? "QDOM_DEFAULT" : dom.c_str());
+              attr & QCA_PRIVATE ? "true" : "false");
+      flags_output_cpp(fp, flags, attr & QCA_USES_EXTRA_ARGS);
+      fputs(", ", fp);
+      dom_output_cpp(fp, dom);
 
       if (serializeBindingArgs(fp))
          return -1;
@@ -1878,7 +1943,7 @@ protected:
 public:
    Method(const std::string &n_name, attr_t n_attr, const paramlist_t &n_params, 
           const std::string &n_docs, const std::string &n_return_type, 
-          const std::string &n_flags, const std::string &n_dom, const std::string &n_code,
+          const strlist_t& n_flags, const strlist_t& n_dom, const std::string &n_code,
           unsigned vnum, unsigned n_line, bool n_doconly) : CodeBase(n_name, n_attr, n_params, n_docs, n_return_type, 
                                                                      n_flags, n_dom, n_code, vnum, n_line, n_doconly) {
    }
@@ -1938,12 +2003,14 @@ public:
       if (get_qore_type(return_type, cppt))
          return -1;
 
-      fprintf(fp, "   QC_%s->addMethodExtended(\"%s\", (%s)%s_%s, %s, %s, %s, %s", UC, 
+      fprintf(fp, "   QC_%s->addMethodExtended(\"%s\", (%s)%s_%s, %s, ", UC, 
               name.c_str(),
               getMethodType(), cname, vname.c_str(),
-              attr & QCA_PRIVATE ? "true" : "false",
-              flags.c_str(),
-              dom.empty() ? "QDOM_DEFAULT" : dom.c_str(), cppt.c_str());
+              attr & QCA_PRIVATE ? "true" : "false");
+      flags_output_cpp(fp, flags, attr & QCA_USES_EXTRA_ARGS);
+      fputs(", ", fp);
+      dom_output_cpp(fp, dom);
+      fprintf(fp, ", %s", cppt.c_str());
 
       if (serializeBindingArgs(fp))
          return -1;
@@ -1985,13 +2052,15 @@ public:
       if (get_qore_type(return_type, cppt))
          return -1;
 
-      fprintf(fp, "   QC_%s->addStaticMethodExtended(\"%s\", (%s)static_%s_%s, %s, %s, %s, %s", UC, 
+      fprintf(fp, "   QC_%s->addStaticMethodExtended(\"%s\", (%s)static_%s_%s, %s, ", UC, 
               name.c_str(),
               getFunctionType(), 
               cname, vname.c_str(),
-              attr & QCA_PRIVATE ? "true" : "false",
-              flags.c_str(),
-              dom.empty() ? "QDOM_DEFAULT" : dom.c_str(), cppt.c_str());
+              attr & QCA_PRIVATE ? "true" : "false");
+      flags_output_cpp(fp, flags, attr & QCA_USES_EXTRA_ARGS);
+      fputs(", ", fp);
+      dom_output_cpp(fp, dom);
+      fprintf(fp, ", %s", cppt.c_str());
 
       if (serializeBindingArgs(fp))
          return -1;
@@ -2069,9 +2138,8 @@ public:
 
          // parse domain
          if (i->first == "dom") {
-            get_string_list(dom, i->second);
-            for (strlist_t::iterator di = dom.begin(), e = dom.end(); di != e; ++di)
-               toupper(*di);
+            if (dom_get(dom, i->second))
+               valid = false;
             continue;
          }
 
@@ -2164,15 +2232,21 @@ public:
    int addMethod(const std::string &mname, attr_t attr, const std::string &return_type, const paramlist_t &params, const strmap_t &flags, const std::string &code, const std::string &doc, unsigned line) {
       log(LL_DETAIL, "adding method %s%s'%s'::'%s'()\n", return_type.c_str(), return_type.empty() ? "" : " ", name.c_str(), mname.c_str());
 
-      std::string cf, dom;
+      strlist_t cf;
+      strlist_t dom;
+
       bool doconly = false;
       // parse flags
       for (strmap_t::const_iterator i = flags.begin(), e = flags.end(); i != e; ++i) {
          //log(LL_DEBUG, "+ method %s::%s() flag '%s': '%s'\n", name.c_str(), mname.c_str(), i->first.c_str(), i->second.c_str());
-         if (i->first == "dom")
-            dom = i->second;
-         else if (i->first == "flags")
-            cf = i->second;
+         if (i->first == "dom") {
+            if (dom_get(dom, i->second))
+               return -1;
+         }
+         else if (i->first == "flags") {
+            if (flags_get(cf, i->second))
+               return -1;
+         }
          else if (i->first == "doconly")
             doconly = true;
          else {
@@ -2217,10 +2291,8 @@ public:
          i->second->serializeStaticCppMethod(fp, name.c_str(), arg.c_str());
       }
 
-      fprintf(fp, "QoreClass* init%sClass(QoreNamespace &qorens) {\n   QC_%s = new QoreClass(\"%s\"", name.c_str(), UC.c_str(), name.c_str());
-      for (strlist_t::const_iterator i = dom.begin(), e = dom.end(); i != e; ++i) {
-         fprintf(fp, ", QDOM_%s", (*i).c_str());
-      }
+      fprintf(fp, "QoreClass* init%sClass(QoreNamespace &qorens) {\n   QC_%s = new QoreClass(\"%s\", ", name.c_str(), UC.c_str(), name.c_str());
+      dom_output_cpp(fp, dom);
       fprintf(fp, ");\n   CID_%s = QC_%s->getID();\n", UC.c_str(), UC.c_str());
 
       if (!virt_parent.empty()) {
@@ -2742,6 +2814,31 @@ void init() {
    valmap["QCS_DEFAULT->getCode()"] = "QCS_DEFAULT->getCode()";
    valmap["True"] = "&True";
    valmap["False"] = "&False";
+
+   // initialize domain maps
+   dmap["DEFAULT"] = "PO_DEFAULT";
+   dmap["PROCESS"] = "PO_NO_PROCESS_CONTROL";
+   dmap["NETWORK"] = "PO_NO_NETWORK";
+   dmap["EXTERNAL_PROCESS"] = "PO_NO_EXTERNAL_PROCESS";
+   dmap["FILESYSTEM"] = "PO_NO_FILESYSTEM";
+   dmap["THREAD_CLASS"] = "PO_NO_THREAD_CLASSES";
+   dmap["THREAD_CONTROL"] = "PO_NO_THREAD_CONTROL";
+   dmap["DATABASE"] = "PO_NO_DATABASE";
+   dmap["GUI"] = "PO_NO_GUI";
+   dmap["TERMINAL_IO"] = "PO_NO_TERMINAL_IO";
+   dmap["EXTERNAL_INFO"] = "PO_NO_EXTERNAL_INFO";
+   dmap["THREAD_INFO"] = "PO_NO_THREAD_INFO";
+   dmap["LOCALE_CONTROL"] = "PO_NO_LOCALE_CONTROL";
+
+   // initialize code flag set
+   fset.insert("NO_FLAGS");
+   fset.insert("NOOP");
+   fset.insert("USES_EXTRA_ARGS");
+   fset.insert("CONSTANT_INTERN");
+   fset.insert("DEPRECATED");
+   fset.insert("RET_VALUE_ONLY");
+   fset.insert("RUNTIME_NOOP");
+   fset.insert("CONSTANT");   
 }
 
 void usage() {

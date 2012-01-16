@@ -656,6 +656,6 @@ if ($stmt.active())
     $stmt.commit();
     @endcode
  */
-bool SQLStatement::active() [flags=QC_CONSTANT] {
+bool SQLStatement::active() [flags=CONSTANT] {
    return stmt->active();
 }

@@ -485,7 +485,7 @@ nothing DatasourcePool::beginTransaction() {
 my *string $user = $db.getUserName();
     @endcode
  */
-*string DatasourcePool::getUserName() [flags=QC_CONSTANT] {
+*string DatasourcePool::getUserName() [flags=CONSTANT] {
    return ds->getPendingUsername();
 }
 
@@ -497,7 +497,7 @@ my *string $user = $db.getUserName();
 my *string $pass = $db.getPassword();
     @endcode
  */
-*string DatasourcePool::getPassword() [flags=QC_CONSTANT] {
+*string DatasourcePool::getPassword() [flags=CONSTANT] {
    return ds->getPendingPassword();
 }
 
@@ -509,7 +509,7 @@ my *string $pass = $db.getPassword();
 my *string $db = $db.getDBName();
     @endcode
  */
-*string DatasourcePool::getDBName() [flags=QC_CONSTANT] {
+*string DatasourcePool::getDBName() [flags=CONSTANT] {
    return ds->getPendingDBName();
 }
 
@@ -523,7 +523,7 @@ my *string $db = $db.getDBName();
 my string $enc = $db.getDBCharset();
     @endcode
  */
-*string DatasourcePool::getDBCharset() [flags=QC_CONSTANT] {
+*string DatasourcePool::getDBCharset() [flags=CONSTANT] {
    return ds->getPendingDBEncoding();
 }
 
@@ -537,7 +537,7 @@ my string $enc = $db.getDBEncoding();
 
     @see DatasourcePool::getOSEncoding();
  */
-string DatasourcePool::getDBEncoding() [flags=QC_CONSTANT] {
+string DatasourcePool::getDBEncoding() [flags=CONSTANT] {
    return ds->getPendingDBEncoding();
 }
 
@@ -551,7 +551,7 @@ my string $enc = $db.getOSCharset();
 
     @see DatasourcePool::getOSEncoding()
  */
-string DatasourcePool::getOSCharset() [flags=QC_CONSTANT] {
+string DatasourcePool::getOSCharset() [flags=CONSTANT] {
    const QoreEncoding *enc = ds->getQoreEncoding();
    return new QoreStringNode(enc ? enc->getCode() : "(unknown)");
 }
@@ -564,7 +564,7 @@ string DatasourcePool::getOSCharset() [flags=QC_CONSTANT] {
 my *string $enc = $db.getOSEncoding();
     @endcode
  */
-*string DatasourcePool::getOSEncoding() [flags=QC_CONSTANT] {
+*string DatasourcePool::getOSEncoding() [flags=CONSTANT] {
    const QoreEncoding *enc = ds->getQoreEncoding();
    return enc ? new QoreStringNode(enc->getCode()) : 0;
 }
@@ -577,7 +577,7 @@ my *string $enc = $db.getOSEncoding();
 my *string $host = $db.getHostName();
     @endcode
  */
-*string DatasourcePool::getHostName() [flags=QC_CONSTANT] {
+*string DatasourcePool::getHostName() [flags=CONSTANT] {
    return ds->getPendingHostName();
 }
 
@@ -589,7 +589,7 @@ my *string $host = $db.getHostName();
 my *int $port = $db.getPort();
     @endcode
  */
-*int DatasourcePool::getPort() [flags=QC_CONSTANT] {
+*int DatasourcePool::getPort() [flags=CONSTANT] {
    int port = ds->getPendingPort();
    return port ? new QoreBigIntNode(port) : 0;
 }
@@ -602,7 +602,7 @@ my *int $port = $db.getPort();
 my string $driver = $db.getDriverName();
     @endcode
  */
-string DatasourcePool::getDriverName() [flags=QC_CONSTANT] {
+string DatasourcePool::getDriverName() [flags=CONSTANT] {
    return new QoreStringNode(ds->getDriverName());
 }
 
@@ -616,7 +616,7 @@ my int $min = $db.getMinimum();
     @endcode
 
  */
-int DatasourcePool::getMinimum() [flags=QC_CONSTANT] {
+int DatasourcePool::getMinimum() [flags=CONSTANT] {
    return ds->getMin();
 }
 
@@ -629,7 +629,7 @@ my int $max = $db.getMaximum();
     @endcode
 
  */
-int DatasourcePool::getMaximum() [flags=QC_CONSTANT] {
+int DatasourcePool::getMaximum() [flags=CONSTANT] {
    return ds->getMax();
 }
 
@@ -643,7 +643,7 @@ my string $str = $db.toString();
     @endcode
 
  */
-string DatasourcePool::toString() [flags=QC_CONSTANT] {
+string DatasourcePool::toString() [flags=CONSTANT] {
    return ds->toString();
 }
 
@@ -683,6 +683,6 @@ any DatasourcePool::getClientVersion() {
 my bool $b = $db.inTransaction();
     @endcode
  */
-bool DatasourcePool::inTransaction() [flags=QC_CONSTANT] {
+bool DatasourcePool::inTransaction() [flags=CONSTANT] {
    return ds->inTransaction();
 }

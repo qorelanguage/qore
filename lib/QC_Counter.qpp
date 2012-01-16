@@ -132,7 +132,7 @@ int Counter::waitForZero(timeout timeout_ms) {
 my int $c = $counter.getCount();
     @endcode
  */
-int Counter::getCount() [flags=QC_CONSTANT] {
+int Counter::getCount() [flags=CONSTANT] {
    return c->getCount();
 }
 
@@ -144,6 +144,6 @@ int Counter::getCount() [flags=QC_CONSTANT] {
 my int $c = $counter.getWaiting();
     @endcode
  */
-int Counter::getWaiting() [flags=QC_CONSTANT] {
+int Counter::getWaiting() [flags=CONSTANT] {
    return c->getWaiting();
 }

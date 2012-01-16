@@ -1425,6 +1425,19 @@ int check_lvalue(const AbstractQoreNode *node) {
    return -1;
 }
 
+static void stat_get_blocks(const struct stat &sbuf, int64& blksize, int64& blocks) {
+#ifdef HAVE_STRUCT_STAT_ST_BLKSIZE
+   blksize = sbuf.st_blksize;
+#else
+   blksize = 0;
+#endif
+#ifdef HAVE_STRUCT_STAT_ST_BLOCKS
+   blocks = sbuf.st_blocks;
+#else
+   blocks = 0;
+#endif
+}
+
 QoreListNode *stat_to_list(const struct stat &sbuf) {
    QoreListNode *l = new QoreListNode;
 
@@ -1443,12 +1456,10 @@ QoreListNode *stat_to_list(const struct stat &sbuf) {
    l->push(DateTimeNode::makeAbsolute(currentTZ(), (int64)sbuf.st_mtime));
    l->push(DateTimeNode::makeAbsolute(currentTZ(), (int64)sbuf.st_ctime));
 
-#ifdef HAVE_STRUCT_STAT_ST_BLKSIZE
-   l->push(new QoreBigIntNode(sbuf.st_blksize));
-#endif
-#ifdef HAVE_STRUCT_STAT_ST_BLOCKS
-   l->push(new QoreBigIntNode(sbuf.st_blocks));
-#endif
+   int64 blksize, blocks;
+   stat_get_blocks(sbuf, blksize, blocks);
+   l->push(new QoreBigIntNode(blksize));
+   l->push(new QoreBigIntNode(blocks));
 
    return l;
 }
@@ -1471,12 +1482,10 @@ QoreHashNode *stat_to_hash(const struct stat &sbuf) {
    h->setKeyValue("mtime",   DateTimeNode::makeAbsolute(currentTZ(), (int64)sbuf.st_mtime), 0);
    h->setKeyValue("ctime",   DateTimeNode::makeAbsolute(currentTZ(), (int64)sbuf.st_ctime), 0);
 
-#ifdef HAVE_STRUCT_STAT_ST_BLKSIZE
-   h->setKeyValue("blksize", new QoreBigIntNode(sbuf.st_blksize), 0);
-#endif
-#ifdef HAVE_STRUCT_STAT_ST_BLOCKS
-   h->setKeyValue("blocks",  new QoreBigIntNode(sbuf.st_blocks), 0);
-#endif
+   int64 blksize, blocks;
+   stat_get_blocks(sbuf, blksize, blocks);
+   h->setKeyValue("blksize", new QoreBigIntNode(blksize), 0);
+   h->setKeyValue("blocks",  new QoreBigIntNode(blocks), 0);
 
    // process permissions
    QoreStringNode *perm = new QoreStringNode;

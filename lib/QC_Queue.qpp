@@ -137,7 +137,7 @@ any Queue::pop(timeout timeout_ms = 0) {
 
     @return the number of elements in the queue
  */
-int Queue::size() [flags=QC_CONSTANT] {
+int Queue::size() [flags=CONSTANT] {
    return q->size();
 }
 
@@ -147,6 +147,6 @@ int Queue::size() [flags=QC_CONSTANT] {
 
     @return the number of threads currently blocked on this queue
  */
-int Queue::getWaiting() [flags=QC_CONSTANT] {
+int Queue::getWaiting() [flags=CONSTANT] {
    return q->getWaiting();
 }

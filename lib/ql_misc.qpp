@@ -393,7 +393,7 @@ set_signal_handler(SIGINT, \signal_handler());
 
     @see @ref signal_handling for more information
 */
-nothing set_signal_handler(softint signal, code f) [dom=QDOM_PROCESS] {
+nothing set_signal_handler(softint signal, code f) [dom=PROCESS] {
 #ifdef HAVE_SIGNAL_HANDLING
    if (!signal || signal > QORE_SIGNAL_MAX) {
       xsink->raiseException("SET-SIGNAL-HANDLER-ERROR", "%d is not a valid signal", signal);
@@ -426,7 +426,7 @@ remove_signal_handler(SIGINT);
 
     @see @ref signal_handling for more information
 */
-nothing remove_signal_handler(softint signal) [dom=QDOM_PROCESS] {
+nothing remove_signal_handler(softint signal) [dom=PROCESS] {
 #ifdef HAVE_SIGNAL_HANDLING
    if (!signal || signal > QORE_SIGNAL_MAX) {
       xsink->raiseException("REMOVE-SIGNAL-HANDLER-ERROR", "%d is not a valid signal", signal);
@@ -595,7 +595,7 @@ any call_builtin_function_args(string name, *softlist vargs) {
 my bool $b = exists($val);
     @endcode
 */
-bool exists(...) [flags=QC_CONSTANT] {
+bool exists(...) [flags=CONSTANT] {
    // to emulate the exists operator, we must return True if more than one argument is passed
    // as this will appear to be a list to the exists operator, which is different from NOTHING
    return (num_args(args) <= 1) ? !is_nothing(get_param(args, 0)) : true;
@@ -611,7 +611,7 @@ bool exists(...) [flags=QC_CONSTANT] {
 my bool $b = existsFunction("func_name");
     @endcode
 */
-bool existsFunction(string name) [flags=QC_CONSTANT] {
+bool existsFunction(string name) [flags=CONSTANT] {
    const char *str = name->getBuffer();
    
    if (getProgram()->existsFunction(str))
@@ -627,14 +627,14 @@ bool existsFunction(string name) [flags=QC_CONSTANT] {
 
     @return always returns \c True
 */
-bool existsFunction(code[doc] c) [flags=QC_NOOP] {
+bool existsFunction(code[doc] c) [flags=NOOP] {
    return true;
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
-nothing existsFunction() [flags=QC_RUNTIME_NOOP] {
+nothing existsFunction() [flags=RUNTIME_NOOP] {
 }
 
 //! Returns \c "builtin" (for a builtin function), \c "user" (for a user function), or @ref nothing (if the function cannot be found) according to the function name passed
@@ -659,7 +659,7 @@ my *string $type = functionType("print");
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
-nothing functionType() [flags=QC_RUNTIME_NOOP] {
+nothing functionType() [flags=RUNTIME_NOOP] {
 }
 
 //! Returns a string with characters needing HTML escaping translated to HTML escape codes
@@ -672,7 +672,7 @@ nothing functionType() [flags=QC_RUNTIME_NOOP] {
 my string $str = html_encode("<hello>"); # returns "&lt;hello&gt;"
     @endcode
 */
-string html_encode(string str) [flags=QC_CONSTANT] {
+string html_encode(string str) [flags=CONSTANT] {
    QoreStringNode *ns = new QoreStringNode(str->getEncoding());
    ns->concatAndHTMLEncode(str->getBuffer());
    return ns;
@@ -681,7 +681,7 @@ string html_encode(string str) [flags=QC_CONSTANT] {
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
-nothing html_encode() [flags=QC_RUNTIME_NOOP] {
+nothing html_encode() [flags=RUNTIME_NOOP] {
 }
 
 //! Returns a string with any HTML escape codes translated to the original characters
@@ -694,7 +694,7 @@ nothing html_encode() [flags=QC_RUNTIME_NOOP] {
 my string $str = html_decode("&lt;hello&gt;"); # returns "<hello>"
     @endcode
 */
-string html_decode(string str) [flags=QC_CONSTANT] {
+string html_decode(string str) [flags=CONSTANT] {
    QoreStringNode *ns = new QoreStringNode(str->getEncoding());
    ns->concatAndHTMLDecode(str);
    return ns;
@@ -703,7 +703,7 @@ string html_decode(string str) [flags=QC_CONSTANT] {
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
-nothing html_decode() [flags=QC_RUNTIME_NOOP] {
+nothing html_decode() [flags=RUNTIME_NOOP] {
 }
 
 //! Returns the name of the @ref default_encoding "default character encoding"
@@ -739,7 +739,7 @@ nothing parse(string code, string label) {
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
-nothing parse() [flags=QC_RUNTIME_NOOP] {
+nothing parse() [flags=RUNTIME_NOOP] {
 }
 
 //! Returns the class name of the object passed
@@ -759,7 +759,7 @@ string getClassName(object obj) {
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
-nothing getClassName() [flags=QC_RUNTIME_NOOP] {
+nothing getClassName() [flags=RUNTIME_NOOP] {
 }
 
 //! Parses a URL string and returns a hash of the components; throws an exception if the string cannot be parsed as URL
@@ -820,7 +820,7 @@ my *hash $hash = parseURL($url_string);
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
-nothing parseURL() [flags=QC_RUNTIME_NOOP] {
+nothing parseURL() [flags=RUNTIME_NOOP] {
 }
 
 //! Executes a process and returns a string of the output (stdout only)
@@ -838,14 +838,14 @@ my string $files = $files = backquote("ls");
 
     @throw BACKQUOTE-ERROR An error occurred with the fork() or opening the stdout pipe
 */
-string backquote(string cmd) [dom=QDOM_EXTERNAL_PROCESS] {
+string backquote(string cmd) [dom=EXTERNAL_PROCESS] {
    return backquoteEval(cmd->getBuffer(), xsink);
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
-nothing backquote() [flags=QC_RUNTIME_NOOP] {
+nothing backquote() [flags=RUNTIME_NOOP] {
 }
 
 //! Returns a base64-encoded representation of a string
@@ -865,7 +865,7 @@ my string $base64 = makeBase64String($data, 64);
 
     @see makeHexString()
 */
-string makeBase64String(string str, softint maxlinelen = -1) [flags=QC_CONSTANT] {
+string makeBase64String(string str, softint maxlinelen = -1) [flags=CONSTANT] {
    QoreStringNode *rv = new QoreStringNode;
    rv->concatBase64(str, maxlinelen);
    return rv;
@@ -886,14 +886,14 @@ my string $base64 = makeBase64String($data, 64);
 
     @since the maxlinelen parameter was added in %Qore 0.8.4
 */
-string makeBase64String(binary bin, softint maxlinelen = -1) [flags=QC_CONSTANT] {
+string makeBase64String(binary bin, softint maxlinelen = -1) [flags=CONSTANT] {
    return new QoreStringNode(bin, maxlinelen);
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
-nothing makeBase64String() [flags=QC_RUNTIME_NOOP] {
+nothing makeBase64String() [flags=RUNTIME_NOOP] {
 }
 
 //! Parses a base64 encoded string and returns a binary object of the decoded data
@@ -919,7 +919,7 @@ binary parseBase64String(string str) {
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
-nothing parseBase64String() [flags=QC_RUNTIME_NOOP] {
+nothing parseBase64String() [flags=RUNTIME_NOOP] {
 }
 
 //! Parses a base64 encoded string and returns a string of the decoded data
@@ -949,7 +949,7 @@ string parseBase64StringToString(string str, *string encoding) {
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
-nothing parseBase64StringToString() [flags=QC_RUNTIME_NOOP] {
+nothing parseBase64StringToString() [flags=RUNTIME_NOOP] {
 }
 
 //! Returns a list of hashes describing the currently-loaded %Qore modules
@@ -970,7 +970,7 @@ my list $list = getModuleList();
 
     @see getModuleHash()
 */
-list getModuleList() [flags=QC_CONSTANT] {
+list getModuleList() [flags=CONSTANT] {
    return MM.getModuleList();
 }
 
@@ -992,7 +992,7 @@ my hash $mh = getModuleHash();
 
     @since %Qore 0.8.1
 */
-hash getModuleHash() [flags=QC_CONSTANT] {
+hash getModuleHash() [flags=CONSTANT] {
    return MM.getModuleHash();
 }
 
@@ -1004,7 +1004,7 @@ hash getModuleHash() [flags=QC_CONSTANT] {
 my list $list = getFeatureList();
     @endcode
 */
-list getFeatureList() [flags=QC_CONSTANT] {
+list getFeatureList() [flags=CONSTANT] {
    return getProgram()->getFeatureList();
 }
 
@@ -1018,7 +1018,7 @@ list getFeatureList() [flags=QC_CONSTANT] {
 my list $vl = hash_values($vl);
     @endcode
 */
-list hash_values(hash h) [flags=QC_CONSTANT] {
+list hash_values(hash h) [flags=CONSTANT] {
    QoreListNode *l = new QoreListNode;
 
    ConstHashIterator hi(h);
@@ -1031,7 +1031,7 @@ list hash_values(hash h) [flags=QC_CONSTANT] {
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
-nothing hash_values() [flags=QC_RUNTIME_NOOP] {
+nothing hash_values() [flags=RUNTIME_NOOP] {
 }
 
 //! Returns \c True if the given key exists in the hash (does not necessarily have to have a value assigned); exceptions are only raised if string encoding errors are encountered
@@ -1086,7 +1086,7 @@ my *int $byte = get_byte($str, 2); # returns the third byte of the string
     @note that for strings this function is not equivalent to the @ref list_element_operator "[] operator" for multi-byte character encodings, as this function works purely on bytes and the @ref list_element_operator "[] operator operates on characters\n\n
     Furthermore this function is identical to getByte(), except this function has no QC_RUNTIME_NOOP variant
 */
-*int get_byte(string str, softint offset = 0) [flags=QC_CONSTANT] {
+*int get_byte(string str, softint offset = 0) [flags=CONSTANT] {
    unsigned char *ptr = (unsigned char *)str->getBuffer();
    int size = str->strlen();
 
@@ -1111,7 +1111,7 @@ my *int $byte = get_byte($bin, 2); # returns the third byte of the binary object
     @note this function is equivalent to the more efficient @ref list_element_operator "[] operator" when used with a binary argument\n\n
     Furthermore this function is identical to getByte(), except this function has no QC_RUNTIME_NOOP variant
 */
-*int get_byte(binary b, softint offset = 0) [flags=QC_CONSTANT] {
+*int get_byte(binary b, softint offset = 0) [flags=CONSTANT] {
    unsigned char *ptr = (unsigned char *)b->getPtr();
    int size = b->size();
 
@@ -1138,7 +1138,7 @@ my *int $byte = get_byte($str, 2); # returns the third byte of the string
 
     @since %Qore 0.8.4 marked as deprecated; use the get_byte() function instead
 */
-*int getByte(string str, softint offset = 0) [flags=QC_CONSTANT|QC_DEPRECATED] {
+*int getByte(string str, softint offset = 0) [flags=CONSTANT,DEPRECATED] {
    unsigned char *ptr = (unsigned char *)str->getBuffer();
    int size = str->strlen();
 
@@ -1151,7 +1151,7 @@ my *int $byte = get_byte($str, 2); # returns the third byte of the string
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
-nothing getByte() [flags=QC_RUNTIME_NOOP|QC_DEPRECATED] {
+nothing getByte() [flags=RUNTIME_NOOP,DEPRECATED] {
 }
 
 //! Returns the byte value at the given byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
@@ -1171,7 +1171,7 @@ my *int $byte = get_byte($bin, 2); # returns the third byte of the binary object
 
     @since %Qore 0.8.4 marked as deprecated; use the get_byte() function instead
 */
-*int getByte(binary b, softint offset = 0) [flags=QC_CONSTANT|QC_DEPRECATED] {
+*int getByte(binary b, softint offset = 0) [flags=CONSTANT,DEPRECATED] {
    unsigned char *ptr = (unsigned char *)b->getPtr();
    int size = b->size();
 
@@ -1196,7 +1196,7 @@ my *int $val = get_word_16($str, 2); # returns the third 2-byte (16-bit) value i
 
     @see get_word_16_lsb()
 */
-*int get_word_16(string str, softint offset = 0) [flags=QC_CONSTANT] {
+*int get_word_16(string str, softint offset = 0) [flags=CONSTANT] {
    unsigned char *ptr = (unsigned char *)str->getBuffer();
    int size = str->strlen();
 
@@ -1222,7 +1222,7 @@ my *int $val = get_word_16($bin, 2); # returns the third 2-byte (16-bit) value i
 
     @see get_word_16_lsb()
 */
-*int get_word_16(binary b, softint offset = 0) [flags=QC_CONSTANT] {
+*int get_word_16(binary b, softint offset = 0) [flags=CONSTANT] {
    unsigned char *ptr = (unsigned char *)b->getPtr();
    int size = b->size();
 
@@ -1251,7 +1251,7 @@ my *int $val = get_word_32($str, 4); # returns the third 4-byte (32-bit) value i
 
     @see get_word_32_lsb()
 */
-*int get_word_32(string str, softint offset = 0) [flags=QC_CONSTANT] {
+*int get_word_32(string str, softint offset = 0) [flags=CONSTANT] {
    unsigned char *ptr = (unsigned char *)str->getBuffer();
    int size = str->strlen();
 
@@ -1279,7 +1279,7 @@ my *int $val = get_word_32($bin, 2); # returns the third 4-byte (32-bit) value i
 
     @see get_word_32_lsb()
 */
-*int get_word_32(binary b, softint offset = 0) [flags=QC_CONSTANT] {
+*int get_word_32(binary b, softint offset = 0) [flags=CONSTANT] {
    unsigned char *ptr = (unsigned char *)b->getPtr();
    int size = b->size();
 
@@ -1308,7 +1308,7 @@ my *int $val = getWord32($str, 4); # returns the third 4-byte (32-bit) value in 
 
     @since %Qore 0.8.4 marked as deprecated; use the get_word_32() function instead
 */
-*int getWord32(string str, softint offset = 0) [flags=QC_CONSTANT|QC_DEPRECATED] {
+*int getWord32(string str, softint offset = 0) [flags=CONSTANT,DEPRECATED] {
    unsigned char *ptr = (unsigned char *)str->getBuffer();
    int size = str->strlen();
 
@@ -1336,7 +1336,7 @@ my *int $val = getWord32($bin, 2); # returns the third 4-byte (32-bit) value in 
 
     @since %Qore 0.8.4 marked as deprecated; use the get_word_32() function instead
 */
-*int getWord32(binary b, softint offset = 0) [flags=QC_CONSTANT|QC_DEPRECATED] {
+*int getWord32(binary b, softint offset = 0) [flags=CONSTANT,DEPRECATED] {
    unsigned char *ptr = (unsigned char *)b->getPtr();
    int size = b->size();
 
@@ -1351,7 +1351,7 @@ my *int $val = getWord32($bin, 2); # returns the third 4-byte (32-bit) value in 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
-nothing getWord32() [flags=QC_RUNTIME_NOOP] {
+nothing getWord32() [flags=RUNTIME_NOOP] {
 }
 
 //! Returns the 64-bit integer value at the given 8-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
@@ -1369,7 +1369,7 @@ my *int $val = get_word_64($str, 4); # returns the third 8-byte (64-bit) value i
 
     @see get_word_64_lsb()
 */
-*int get_word_64(string str, softint offset = 0) [flags=QC_CONSTANT] {
+*int get_word_64(string str, softint offset = 0) [flags=CONSTANT] {
    unsigned char *ptr = (unsigned char *)str->getBuffer();
    int size = str->strlen();
 
@@ -1395,7 +1395,7 @@ my *int $val = get_word_64($bin, 2); # returns the third 8-byte (64-bit) value i
 
     @see get_word_64_lsb()
 */
-*int get_word_64(binary b, softint offset = 0) [flags=QC_CONSTANT] {
+*int get_word_64(binary b, softint offset = 0) [flags=CONSTANT] {
    unsigned char *ptr = (unsigned char *)b->getPtr();
    int size = b->size();
 
@@ -1422,7 +1422,7 @@ my *int $val = get_word_16_lsb($str, 2); # returns the third 2-byte (16-bit) val
 
     @see get_word_16()
 */
-*int get_word_16_lsb(string str, softint offset = 0) [flags=QC_CONSTANT] {
+*int get_word_16_lsb(string str, softint offset = 0) [flags=CONSTANT] {
    unsigned char *ptr = (unsigned char *)str->getBuffer();
    int size = str->strlen();
 
@@ -1448,7 +1448,7 @@ my *int $val = get_word_16_lsb($bin, 2); # returns the third 2-byte (16-bit) val
 
     @see get_word_16()
 */
-*int get_word_16_lsb(binary b, softint offset = 0) [flags=QC_CONSTANT] {
+*int get_word_16_lsb(binary b, softint offset = 0) [flags=CONSTANT] {
    unsigned char *ptr = (unsigned char *)b->getPtr();
    int size = b->size();
 
@@ -1476,7 +1476,7 @@ my *int $val = get_word_32_lsb($str, 4); # returns the third 4-byte (32-bit) val
 
     @see get_word_32()
 */
-*int get_word_32_lsb(string str, softint offset = 0) [flags=QC_CONSTANT] {
+*int get_word_32_lsb(string str, softint offset = 0) [flags=CONSTANT] {
    unsigned char *ptr = (unsigned char *)str->getBuffer();
    int size = str->strlen();
 
@@ -1502,7 +1502,7 @@ my *int $val = get_word_32_lsb($bin, 2); # returns the third 4-byte (32-bit) val
 
     @see get_word_32()
 */
-*int get_word_32_lsb(binary b, softint offset = 0) [flags=QC_CONSTANT] {
+*int get_word_32_lsb(binary b, softint offset = 0) [flags=CONSTANT] {
    unsigned char *ptr = (unsigned char *)b->getPtr();
    int size = b->size();
 
@@ -1529,7 +1529,7 @@ my *int $val = get_word_64_lsb($str, 4); # returns the third 8-byte (64-bit) val
 
     @see get_word_64()
 */
-*int get_word_64_lsb(string str, softint offset = 0) [flags=QC_CONSTANT] {
+*int get_word_64_lsb(string str, softint offset = 0) [flags=CONSTANT] {
    unsigned char *ptr = (unsigned char *)str->getBuffer();
    int size = str->strlen();
 
@@ -1555,7 +1555,7 @@ my *int $val = get_word_64_lsb($bin, 2); # returns the third 8-byte (64-bit) val
 
     @see get_word_64()
 */
-*int get_word_64_lsb(binary b, softint offset = 0) [flags=QC_CONSTANT] {
+*int get_word_64_lsb(binary b, softint offset = 0) [flags=CONSTANT] {
    unsigned char *ptr = (unsigned char *)b->getPtr();
    int size = b->size();
 
@@ -1573,7 +1573,7 @@ my *int $val = get_word_64_lsb($bin, 2); # returns the third 8-byte (64-bit) val
 
     @return always returns an empty string \c ""
 */
-string splice(string[doc] str) [flags=QC_NOOP] {
+string splice(string[doc] str) [flags=NOOP] {
    return new QoreStringNode;
 }
 
@@ -1666,7 +1666,7 @@ list splice(list l, softint start, softint len, *softlist nlist) {
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
-nothing splice() [flags=QC_RUNTIME_NOOP] {
+nothing splice() [flags=RUNTIME_NOOP] {
 }
 
 //! Returns a hex-encoded representation of a string
@@ -1681,7 +1681,7 @@ my string $str = makeHexString($str2);
 
     @see makeBase64String()
 */
-string makeHexString(string str) [flags=QC_CONSTANT] {
+string makeHexString(string str) [flags=CONSTANT] {
    QoreStringNode *rv = new QoreStringNode;
    rv->concatHex(str);
    return rv;
@@ -1708,7 +1708,7 @@ string makeHexString(binary bin) {
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
-nothing makeHexString() [flags=QC_RUNTIME_NOOP] {
+nothing makeHexString() [flags=RUNTIME_NOOP] {
 }
 
 //! Parses a hex-encoded string and returns the binary object
@@ -1732,7 +1732,7 @@ binary parseHexString(string hexstr) {
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
-nothing parseHexString() [flags=QC_RUNTIME_NOOP] {
+nothing parseHexString() [flags=RUNTIME_NOOP] {
 }
 
 //! Returns an integer for a hexadecimal string value; throws an exception if non-hex digits are found
@@ -1782,7 +1782,7 @@ int hextoint(string str) {
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
-nothing hextoint() [flags=QC_RUNTIME_NOOP] {
+nothing hextoint() [flags=RUNTIME_NOOP] {
 }
 
 //! parses a string representing a number in a configurable base and returns the integer
@@ -1809,7 +1809,7 @@ int strtoint(string num, softint base = 10) {
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
-nothing strtoint() [flags=QC_RUNTIME_NOOP] {
+nothing strtoint() [flags=RUNTIME_NOOP] {
 }
 
 //! Loads in a %Qore module at run-time
@@ -1831,14 +1831,14 @@ load_module("mysql");
 
     @since %Qore 0.8.4 this function is not available when @ref Qore::PO_NO_PROCESS_CONTROL is set
 */
-nothing load_module(string name) [flags=QC_CONSTANT;dom=QDOM_PROCESS] {
+nothing load_module(string name) [flags=CONSTANT;dom=PROCESS] {
    MM.runTimeLoadModule(name->getBuffer(), xsink);
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
-nothing load_module() [flags=QC_RUNTIME_NOOP] {
+nothing load_module() [flags=RUNTIME_NOOP] {
 }
 
 //! Decodes percent numeric codes in a URL string and returns the decoded string
@@ -1851,7 +1851,7 @@ nothing load_module() [flags=QC_RUNTIME_NOOP] {
 my string $decoded_url = decode_url($encoded_url);
     @endcode
 */
-string decode_url(string url) [flags=QC_CONSTANT] {
+string decode_url(string url) [flags=CONSTANT] {
    QoreStringNode *str = new QoreStringNode(url->getEncoding());
    
    if (!url->strlen())
@@ -1876,7 +1876,7 @@ string decode_url(string url) [flags=QC_CONSTANT] {
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
-nothing decode_url() [flags=QC_RUNTIME_NOOP] {
+nothing decode_url() [flags=RUNTIME_NOOP] {
 }
 
 //! Returns the path (directory and filename) of the current script or @ref nothing if unknown (i.e. no parent script, script read from stdin, etc)
@@ -1929,7 +1929,7 @@ my list $l = get_qore_option_list();
 
     @see get_qore_option_hash()
 */
-list get_qore_option_list() [flags=QC_CONSTANT] {
+list get_qore_option_list() [flags=CONSTANT] {
    QoreListNode *l = new QoreListNode;
 
    for (unsigned j = 0; j < qore_option_list_size; ++j) {
@@ -1959,7 +1959,7 @@ my hash $h = get_qore_option_hash();
 
     @since %Qore 0.8.4
 */
-hash get_qore_option_hash() [flags=QC_CONSTANT] {
+hash get_qore_option_hash() [flags=CONSTANT] {
    QoreHashNode *rv = new QoreHashNode;
 
    for (unsigned j = 0; j < qore_option_list_size; ++j) {
@@ -1994,7 +1994,7 @@ hash get_qore_option_hash() [flags=QC_CONSTANT] {
 my hash $h = get_qore_library_info();
     @endcode
 */
-hash get_qore_library_info() [flags=QC_CONSTANT] {
+hash get_qore_library_info() [flags=CONSTANT] {
    QoreHashNode *h = new QoreHashNode;
 
    h->setKeyValue("PlatformOS", new QoreStringNode(qore_target_os), xsink);

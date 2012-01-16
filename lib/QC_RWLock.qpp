@@ -218,7 +218,7 @@ int RWLock::tryWriteLock() {
 my int $num = $rwl.numReaders();
     @endcode
  */
-int RWLock::numReaders() [flags=QC_CONSTANT] {
+int RWLock::numReaders() [flags=CONSTANT] {
    return rwl->numReaders();
 }
 
@@ -230,7 +230,7 @@ int RWLock::numReaders() [flags=QC_CONSTANT] {
 my int $num = $rwl.getReadWaiting();
     @endcode
  */
-int RWLock::getReadWaiting() [flags=QC_CONSTANT] {
+int RWLock::getReadWaiting() [flags=CONSTANT] {
    return rwl->getReadWaiting();
 }
 
@@ -242,7 +242,7 @@ int RWLock::getReadWaiting() [flags=QC_CONSTANT] {
 my int $num = $rwl.getWriteWaiting();
     @endcode
  */
-int RWLock::getWriteWaiting() [flags=QC_CONSTANT] {
+int RWLock::getWriteWaiting() [flags=CONSTANT] {
    return rwl->getWriteWaiting();
 }
 
@@ -255,7 +255,7 @@ if ($rwl.lockOwner())
     printf("TID %d has either the read lock or the write lock\n", gettid());
     @endcode
  */
-bool RWLock::lockOwner() [flags=QC_CONSTANT] {
+bool RWLock::lockOwner() [flags=CONSTANT] {
    return rwl->lockOwner();
 }
 
@@ -268,7 +268,7 @@ if ($rwl.readLockOwner())
     printf("TID %d has the read lock\n", gettid());
     @endcode
  */
-bool RWLock::readLockOwner() [flags=QC_CONSTANT] {
+bool RWLock::readLockOwner() [flags=CONSTANT] {
    return rwl->readLockOwner();
 }
 
@@ -281,6 +281,6 @@ if ($rwl.writeLockOwner())
     printf("TID %d has the write lock\n", gettid());
     @endcode
  */
-bool RWLock::writeLockOwner() [flags=QC_CONSTANT] {
+bool RWLock::writeLockOwner() [flags=CONSTANT] {
    return rwl->writeLockOwner();
 }

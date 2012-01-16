@@ -313,7 +313,7 @@ $ftp.put("/tmp/file-1.txt", "file.txt");
 
     @see FtpClient::putData()
  */
-nothing FtpClient::put(string local_path, *string remote_path) [flags=QDOM_FILESYSTEM] {
+nothing FtpClient::put(string local_path, *string remote_path) [dom=FILESYSTEM] {
    f->put(local_path->getBuffer(), remote_path ? remote_path->getBuffer() : 0, xsink);
 }
 
@@ -361,7 +361,7 @@ $ftp.get("file.txt", "/tmp/file-1.txt");
 
     @see FtpClient::getAsString(), FtpClient::getAsData()
  */
-FtpClient::get(string remote_path, *string local_path) [flags=QDOM_FILESYSTEM] {
+FtpClient::get(string remote_path, *string local_path) [dom=FILESYSTEM] {
    f->get(remote_path->getBuffer(), local_path ? local_path->getBuffer() : 0, xsink);
 }
 
@@ -708,7 +708,7 @@ nothing FtpClient::setInsecureData() {
 my bool $b = $ftp.isSecure();
     @endcode
  */
-bool FtpClient::isSecure() [flags=QC_CONSTANT] {
+bool FtpClient::isSecure() [flags=CONSTANT] {
    return get_bool_node(f->isSecure());
 }
 
@@ -722,7 +722,7 @@ my bool $b = $ftp.isDataSecure();
     @endcode
 
  */
-bool FtpClient::isDataSecure() [flags=QC_CONSTANT] {
+bool FtpClient::isDataSecure() [flags=CONSTANT] {
    return f->isDataSecure();
 }
 
@@ -735,7 +735,7 @@ if ($ftp.isSecure())
     printf("secure connection: %s %s\n", $ftp.getSSLCipherName(), $ftp.getSSLCipherVersion());
     @endcode
  */
-*string FtpClient::getSSLCipherName() [flags=QC_CONSTANT] {
+*string FtpClient::getSSLCipherName() [flags=CONSTANT] {
    const char *str = f->getSSLCipherName();
    return str ? new QoreStringNode(str) : 0;
 }
@@ -749,7 +749,7 @@ if ($ftp.isSecure())
     printf("secure connection: %s %s\n", $ftp.getSSLCipherName(), $ftp.getSSLCipherVersion());
     @endcode
  */
-*string FtpClient::getSSLCipherVersion() [flags=QC_CONSTANT] {
+*string FtpClient::getSSLCipherVersion() [flags=CONSTANT] {
    const char *str = f->getSSLCipherVersion();
    return str ? new QoreStringNode(str) : 0;
 }
@@ -763,7 +763,7 @@ if ($ftp.isSecure() && exists (my *string $str = $ftp.verifyPeerCertificate())) 
     printf("vertificate: %s: %s\n", $str, X509_VerificationReasons.$str);
     @endcode
  */
-*string FtpClient::verifyPeerCertificate() [flags=QC_CONSTANT] {
+*string FtpClient::verifyPeerCertificate() [flags=CONSTANT] {
    const char *c = getSSLCVCode(f->verifyPeerCertificate());
    return c ? new QoreStringNode(c) : 0;
 }

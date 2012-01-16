@@ -155,7 +155,7 @@ int Gate::tryEnter() {
 my int $c = $gate.numInside();
     @endcode
  */
-int Gate::numInside() [flags=QC_CONSTANT] {
+int Gate::numInside() [flags=CONSTANT] {
    return g->get_count();
 }
 
@@ -166,6 +166,6 @@ int Gate::numInside() [flags=QC_CONSTANT] {
 my int $c = $gate.numWaiting();
     @endcode
  */
-int Gate::numWaiting() [flags=QC_CONSTANT] {
+int Gate::numWaiting() [flags=CONSTANT] {
    return g->get_waiting();
 }

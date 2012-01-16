@@ -48,7 +48,7 @@ my string $name = $lock.getName();
 
     @return the name of the threading class directly inheriting this class
  */
-string AbstractSmartLock::getName() [flags=QC_CONSTANT] {
+string AbstractSmartLock::getName() [flags=CONSTANT] {
    return new QoreStringNode(asl->getName());
 }
 
@@ -65,7 +65,7 @@ on_exit
 
     @return \c True if the calling thread owns the lock, \c False if not
  */
-bool AbstractSmartLock::lockOwner() [flags=QC_CONSTANT] {
+bool AbstractSmartLock::lockOwner() [flags=CONSTANT] {
    return asl->get_tid() == gettid();
 }
 
@@ -79,7 +79,7 @@ my int $tid = $lock.lockTID();
 
     @return the TID of the thread owning the lock or -1 if the lock is currently not acquired
  */
-int AbstractSmartLock::lockTID() [flags=QC_CONSTANT] {
+int AbstractSmartLock::lockTID() [flags=CONSTANT] {
    int tid = asl->get_tid();
    return !tid ? -1 : tid;
 }

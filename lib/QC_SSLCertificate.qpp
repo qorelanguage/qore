@@ -104,7 +104,7 @@ string SSLCertificate::getPEM() {
 my hash $hash = $cert.getInfo();
     @endcode
  */
-hash SSLCertificate::getInfo() [flags=QC_CONSTANT] {
+hash SSLCertificate::getInfo() [flags=CONSTANT] {
    return s->getInfo();
 }
 
@@ -116,7 +116,7 @@ hash SSLCertificate::getInfo() [flags=QC_CONSTANT] {
 my binary $bin = $cert.getSignature();
     @endcode
  */
-binary SSLCertificate::getSignature() [flags=QC_CONSTANT] {
+binary SSLCertificate::getSignature() [flags=CONSTANT] {
    return s->getSignature();
 }
 
@@ -128,7 +128,7 @@ binary SSLCertificate::getSignature() [flags=QC_CONSTANT] {
 my string $str = $cert.getSignatureType();
     @endcode
  */
-string SSLCertificate::getSignatureType() [flags=QC_CONSTANT] {
+string SSLCertificate::getSignatureType() [flags=CONSTANT] {
    return s->getSignatureType();
 }
 
@@ -140,7 +140,7 @@ string SSLCertificate::getSignatureType() [flags=QC_CONSTANT] {
 my *binary $bin = $cert.getPublicKey();
     @endcode
  */
-*binary SSLCertificate::getPublicKey() [flags=QC_CONSTANT] {
+*binary SSLCertificate::getPublicKey() [flags=CONSTANT] {
    return s->getPublicKey();
 }
 
@@ -152,7 +152,7 @@ my *binary $bin = $cert.getPublicKey();
 my string $str = $cert.getPublicKeyAlgorithm();
     @endcode
  */
-string SSLCertificate::getPublicKeyAlgorithm() [flags=QC_CONSTANT] {
+string SSLCertificate::getPublicKeyAlgorithm() [flags=CONSTANT] {
    return s->getPublicKeyAlgorithm();
 }
 
@@ -164,7 +164,7 @@ string SSLCertificate::getPublicKeyAlgorithm() [flags=QC_CONSTANT] {
 my hash $h = $cert.getSubjectHash();
     @endcode
  */
-hash SSLCertificate::getSubjectHash() [flags=QC_CONSTANT] {
+hash SSLCertificate::getSubjectHash() [flags=CONSTANT] {
    return s->getSubjectHash();
 }
 
@@ -176,7 +176,7 @@ hash SSLCertificate::getSubjectHash() [flags=QC_CONSTANT] {
 my hash $h = $cert.getIssuerHash();
     @endcode
  */
-hash SSLCertificate::getIssuerHash() [flags=QC_CONSTANT] {
+hash SSLCertificate::getIssuerHash() [flags=CONSTANT] {
    return s->getIssuerHash();
 }
 
@@ -188,7 +188,7 @@ hash SSLCertificate::getIssuerHash() [flags=QC_CONSTANT] {
 my int $sn = $cert.getSerialNumber();
     @endcode
  */
-int SSLCertificate::getSerialNumber() [flags=QC_CONSTANT] {
+int SSLCertificate::getSerialNumber() [flags=CONSTANT] {
    return s->getSerialNumber();
 }
 
@@ -200,7 +200,7 @@ int SSLCertificate::getSerialNumber() [flags=QC_CONSTANT] {
 my int $ver = $cert.getVersion();
     @endcode
  */
-int SSLCertificate::getVersion() [flags=QC_CONSTANT] {
+int SSLCertificate::getVersion() [flags=CONSTANT] {
    return s->getVersion();
 }
 
@@ -212,7 +212,7 @@ int SSLCertificate::getVersion() [flags=QC_CONSTANT] {
 my hash $h = $cert.getPurposeHash();
     @endcode
  */
-hash SSLCertificate::getPurposeHash() [flags=QC_CONSTANT] {
+hash SSLCertificate::getPurposeHash() [flags=CONSTANT] {
    return s->getPurposeHash();
 }
 
@@ -224,7 +224,7 @@ hash SSLCertificate::getPurposeHash() [flags=QC_CONSTANT] {
 my date $start = $cert.getNotBeforeDate();
     @endcode
  */
-date SSLCertificate::getNotBeforeDate() [flags=QC_CONSTANT] {
+date SSLCertificate::getNotBeforeDate() [flags=CONSTANT] {
    return s->getNotBeforeDate();
 }
 
@@ -236,6 +236,6 @@ date SSLCertificate::getNotBeforeDate() [flags=QC_CONSTANT] {
 my date $end = $cert.getNotAfterDate();
     @endcode
  */
-date SSLCertificate::getNotAfterDate() [flags=QC_CONSTANT] {
+date SSLCertificate::getNotAfterDate() [flags=CONSTANT] {
    return s->getNotAfterDate();
 }

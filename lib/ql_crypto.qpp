@@ -1764,7 +1764,7 @@ binary RIPEMD160_binary(data[doc] data) {
 my binary $bin = des_random_key();
     @endcode
  */
-binary des_random_key() [flags=QC_CONSTANT] {
+binary des_random_key() [flags=CONSTANT] {
    DES_cblock *db = (DES_cblock *)malloc(sizeof(DES_cblock));
    DES_random_key(db);
    return new BinaryNode(db, sizeof(DES_cblock));

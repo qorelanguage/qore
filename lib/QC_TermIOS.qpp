@@ -835,7 +835,7 @@ nothing TermIOS::setCC(softint offset, softint value) {
 my bool $b = $termios.isEqual($termios2);
     @endcode
  */
-bool TermIOS::isEqual(Termios[QoreTermIOS] termios) [flags=QC_CONSTANT] {
+bool TermIOS::isEqual(Termios[QoreTermIOS] termios) [flags=CONSTANT] {
 #ifdef HAVE_TERMIOS_H
    ReferenceHolder<QoreTermIOS> holder(termios, xsink);
    return s->is_equal(termios);
@@ -857,7 +857,7 @@ my hash $wh = $termios.getWindowSize();
 
     @endcode
  */
-hash TermIOS::getWindowSize() [flags=QC_RET_VALUE_ONLY] {
+hash TermIOS::getWindowSize() [flags=RET_VALUE_ONLY] {
 #ifdef HAVE_TERMIOS_H
    int rows, columns;
 

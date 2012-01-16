@@ -87,7 +87,7 @@ static QoreHashNode *remove_thread_data_intern(const QoreListNode *args, Excepti
 my int $tid = gettid();
     @endcode
 */
-int gettid() [flags=QC_CONSTANT;dom=QDOM_THREAD_INFO] {
+int gettid() [flags=CONSTANT;dom=THREAD_INFO] {
    return gettid();
 }
 
@@ -103,7 +103,7 @@ int gettid() [flags=QC_CONSTANT;dom=QDOM_THREAD_INFO] {
 my int $num = num_threads();
     @endcode
 */
-int num_threads() [flags=QC_CONSTANT;dom=QDOM_THREAD_INFO] {
+int num_threads() [flags=CONSTANT;dom=THREAD_INFO] {
    return num_threads;
 }
 
@@ -120,7 +120,7 @@ int num_threads() [flags=QC_CONSTANT;dom=QDOM_THREAD_INFO] {
 my list $l = thread_list();
     @endcode
 */
-list thread_list() [flags=QC_CONSTANT;dom=QDOM_THREAD_INFO] {
+list thread_list() [flags=CONSTANT;dom=THREAD_INFO] {
    return get_thread_list();
 }
 
@@ -137,7 +137,7 @@ save_thread_data($h);
 
     @note This function does not throw any exceptions, however if a value is removed from the thread-local data hash by being overwritten with a new value, and the value is an object that goes out of scope, then such an object could throw an exception in its destructor
 */
-nothing save_thread_data(hash h) [dom=QDOM_THREAD_CONTROL] {
+nothing save_thread_data(hash h) [dom=THREAD_CONTROL] {
    QoreHashNode *data = getProgram()->getThreadData();
    data->merge(h, xsink);
 }
@@ -156,7 +156,7 @@ save_thread_data("key1", $value);
 
     @note This function does not throw any exceptions, however if a value is removed from the thread-local data hash by being overwritten with a new value, and the value is an object that goes out of scope, then such an object could throw an exception in its destructor
 */
-nothing save_thread_data(string key, any value) [dom=QDOM_THREAD_CONTROL] {
+nothing save_thread_data(string key, any value) [dom=THREAD_CONTROL] {
    QoreHashNode *data = getProgram()->getThreadData();
    data->setKeyValue(key, value ? value->refSelf() : 0, xsink);
 }
@@ -164,7 +164,7 @@ nothing save_thread_data(string key, any value) [dom=QDOM_THREAD_CONTROL] {
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
-nothing save_thread_data() [dom=QDOM_THREAD_CONTROL;flags=QC_RUNTIME_NOOP] {
+nothing save_thread_data() [dom=THREAD_CONTROL;flags=RUNTIME_NOOP] {
 }
 
 //! Deletes the data associated to one or more keys in the thread-local data hash; if the data is an object, then it is destroyed
@@ -183,7 +183,7 @@ delete_thread_data("key1", "key2");
 
     @see remove_thread_data() for a similar function that does not explicitly destroy objects in the thread-local data hash
 */
-nothing delete_thread_data(...) [dom=QDOM_THREAD_CONTROL] {
+nothing delete_thread_data(...) [dom=THREAD_CONTROL] {
    if (num_args(args))
       delete_thread_data_intern(args, xsink);
    return 0;
@@ -205,7 +205,7 @@ delete_thread_data($list_of_keys);
 
     @see remove_thread_data() for a similar function that does not explicitly destroy objects in the thread-local data hash
 */
-nothing delete_thread_data(list l) [dom=QDOM_THREAD_CONTROL] {
+nothing delete_thread_data(list l) [dom=THREAD_CONTROL] {
    delete_thread_data_intern(l, xsink);
 }
 
@@ -225,7 +225,7 @@ my hash $h = remove_thread_data("filename");
 
     @since %Qore 0.8.4 this function returns the values it removes
 */
-*hash remove_thread_data(...) [dom=QDOM_THREAD_CONTROL] {
+*hash remove_thread_data(...) [dom=THREAD_CONTROL] {
    return num_args(args) ? remove_thread_data_intern(args, xsink) : 0;
 }
 
@@ -245,7 +245,7 @@ my hash $h = remove_thread_data($key_list);
 
     @since %Qore 0.8.4 this function returns the values it removes
 */
-hash remove_thread_data(list l) [dom=QDOM_THREAD_CONTROL] {
+hash remove_thread_data(list l) [dom=THREAD_CONTROL] {
    return remove_thread_data_intern(l, xsink);
 }
 
@@ -261,7 +261,7 @@ delete_all_thread_data();
 
     @note This function does not throw any exceptions, however if an object is deleted from the thread-local data hash, then it could throw an exception in its destructor
 */
-nothing delete_all_thread_data() [dom=QDOM_THREAD_CONTROL] {
+nothing delete_all_thread_data() [dom=THREAD_CONTROL] {
    getProgram()->clearThreadData(xsink);
 }
 
@@ -277,7 +277,7 @@ nothing delete_all_thread_data() [dom=QDOM_THREAD_CONTROL] {
 my any $data = get_thread_data("key1");
     @endcode
 */
-any get_thread_data(string key) [flags=QC_CONSTANT;dom=QDOM_THREAD_CONTROL|QDOM_THREAD_INFO] {
+any get_thread_data(string key) [flags=CONSTANT;dom=THREAD_CONTROL,THREAD_INFO] {
    TempEncodingHelper tmp(key, QCS_DEFAULT, xsink);
    return tmp ? getProgram()->getThreadData()->getReferencedKeyValue(tmp->getBuffer()) : 0;
 }
@@ -285,7 +285,7 @@ any get_thread_data(string key) [flags=QC_CONSTANT;dom=QDOM_THREAD_CONTROL|QDOM_
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
-nothing get_thread_data() [dom=QDOM_THREAD_CONTROL|QDOM_THREAD_INFO;flags=QC_RUNTIME_NOOP] {
+nothing get_thread_data() [dom=THREAD_CONTROL,THREAD_INFO;flags=RUNTIME_NOOP] {
 }
 
 //! Returns the entire thread-local data hash
@@ -300,7 +300,7 @@ nothing get_thread_data() [dom=QDOM_THREAD_CONTROL|QDOM_THREAD_INFO;flags=QC_RUN
 my hash $th = get_all_thread_data();
     @endcode
 */
-hash get_all_thread_data() [flags=QC_CONSTANT;dom=QDOM_THREAD_CONTROL|QDOM_THREAD_INFO] {
+hash get_all_thread_data() [flags=CONSTANT;dom=THREAD_CONTROL,THREAD_INFO] {
    return getProgram()->getThreadData()->copy();
 }
 
@@ -328,7 +328,7 @@ foreach my string $tid in (keys $cs) {
 }
     @endcode
 */
-hash getAllThreadCallStacks() [dom=QDOM_THREAD_CONTROL|QDOM_THREAD_INFO] {
+hash getAllThreadCallStacks() [dom=THREAD_CONTROL,THREAD_INFO] {
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
    return getAllCallStacks();
 #else
@@ -355,7 +355,7 @@ catch ($ex) {
 }
     @endcode
 */
-nothing throwThreadResourceExceptions() [dom=QDOM_THREAD_CONTROL] {
+nothing throwThreadResourceExceptions() [dom=THREAD_CONTROL] {
    purge_thread_resources(xsink);
 }
 //@}

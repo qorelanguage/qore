@@ -670,7 +670,7 @@ binary compress(binary bin, int level = Z_DEFAULT_COMPRESSION) {
 //! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
-nothing compress() [flags=QC_RUNTIME_NOOP] {
+nothing compress() [flags=RUNTIME_NOOP] {
 }
 
 //! Performs zlib-based decompression of data compressed by the "deflate" algorithm (<a href="http://www.ietf.org/rfc/rfc1951.txt">RFC 1951</a>) and returns a string of the decompressed data
@@ -695,7 +695,7 @@ string uncompress_to_string(binary bin, *string encoding) {
 //! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
-nothing uncompress_to_string() [flags=QC_RUNTIME_NOOP] {
+nothing uncompress_to_string() [flags=RUNTIME_NOOP] {
 }
 
 //! Performs zlib-based decompression of data compressed by the "deflate" algorithm (<a href="http://www.ietf.org/rfc/rfc1951.txt">RFC 1951</a>) and returns a binary object of the decompressed data
@@ -717,7 +717,7 @@ binary uncompress_to_binary(binary bin) {
 //! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
-nothing uncompress_to_binary() [flags=QC_RUNTIME_NOOP] {
+nothing uncompress_to_binary() [flags=RUNTIME_NOOP] {
 }
 
 //! Performs <a href="http://zlib.net/">zlib</a>-based "gzip" data compression (<a href="http://www.ietf.org/rfc/rfc1952.txt">RFC 1952</a>) and returns a binary object of the compressed data
@@ -778,7 +778,7 @@ binary gzip(binary bin, int level = Z_DEFAULT_COMPRESSION) {
 //! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
-nothing gzip() [flags=QC_RUNTIME_NOOP] {
+nothing gzip() [flags=RUNTIME_NOOP] {
 }
 
 //! Performs <a href="http://zlib.net/">zlib</a>-based decompression of data compressed with the "gzip" algorithm (<a href="http://www.ietf.org/rfc/rfc1952.txt">RFC 1952</a>) and returns a string of the uncompressed datas
@@ -802,7 +802,7 @@ string gunzip_to_string(binary bin, *string encoding) {
 //! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
-nothing gunzip_to_string() [flags=QC_RUNTIME_NOOP] {
+nothing gunzip_to_string() [flags=RUNTIME_NOOP] {
 }
 
 //! Performs <a href="http://zlib.net/">zlib</a>-based decompression of data compressed with the \c "gzip" algorithm (<a href="http://www.ietf.org/rfc/rfc1952.txt">RFC 1952</a>) and returns a binary object of the uncompressed data
@@ -824,7 +824,7 @@ binary gunzip_to_binary(binary bin) {
 //! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
-nothing gunzip_to_binary() [flags=QC_RUNTIME_NOOP] {
+nothing gunzip_to_binary() [flags=RUNTIME_NOOP] {
 }
 
 //! Compresses the given data with the <a href="http://en.wikipedia.org/wiki/Bzip2">bzip2 algorithm</a> and returns the compressed data as a binary
@@ -878,7 +878,7 @@ binary bzip2(string str, softint level = BZ2_DEFAULT_COMPRESSION) {
 //! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
 */
-nothing bzip2() [flags=QC_RUNTIME_NOOP] {
+nothing bzip2() [flags=RUNTIME_NOOP] {
 }
 
 //! Uncompresses the given data with the <a href="http://en.wikipedia.org/wiki/Bzip2">bzip2 algorithm</a> and returns the uncompressed data as a binary object
@@ -900,7 +900,7 @@ binary bunzip2_to_binary(binary bin) {
 //! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
 */
-nothing bunzip2_to_binary() [flags=QC_RUNTIME_NOOP] {
+nothing bunzip2_to_binary() [flags=RUNTIME_NOOP] {
 }
 
 //! Uncompresses the given data with the <a href="http://en.wikipedia.org/wiki/Bzip2">bzip2 algorithm</a> and returns the uncompressed data as a string
@@ -924,6 +924,6 @@ string bunzip2_to_string(binary bin, *string encoding) {
 //! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
 */
-nothing bunzip2_to_string() [flags=QC_RUNTIME_NOOP] {
+nothing bunzip2_to_string() [flags=RUNTIME_NOOP] {
 }
 //@}

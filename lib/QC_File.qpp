@@ -1088,7 +1088,7 @@ int File::printf(string[doc] fmt, ...) {
 //! This method variant does nothing except return a constant 0; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** @return a constant 0
  */
-int File::printf() [flags=QC_RUNTIME_NOOP] {
+int File::printf() [flags=RUNTIME_NOOP] {
    return 0;
 }
 
@@ -1125,7 +1125,7 @@ int File::vprintf(string[doc] fmt, any[doc] fmt_args) {
 //! This method variant does nothing except return a constant 0; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** @return a constant 0
  */
-int File::vprintf() [flags=QC_RUNTIME_NOOP] {
+int File::vprintf() [flags=RUNTIME_NOOP] {
    return 0;
 }
 
@@ -1161,7 +1161,7 @@ int File::f_printf(string[doc] fmt, ...) {
 //! This method variant does nothing except return a constant 0; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** @return a constant 0
  */
-int File::f_printf() [flags=QC_RUNTIME_NOOP] {
+int File::f_printf() [flags=RUNTIME_NOOP] {
    return 0;
 }
 
@@ -1198,7 +1198,7 @@ int File::f_vprintf(string[doc] fmt, any[doc] fmt_args) {
 //! This method variant does nothing except return a constant 0; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** @return a constant 0
  */
-int File::f_vprintf() [flags=QC_RUNTIME_NOOP] {
+int File::f_vprintf() [flags=RUNTIME_NOOP] {
    return 0;
 }
 
@@ -1703,7 +1703,7 @@ hash File::statvfs() {
 
     @see @ref file_stat_constants
  */
-static list File::stat(string path) [dom=QDOM_FILESYSTEM] {
+static list File::stat(string path) [dom=FILESYSTEM] {
    struct stat sbuf;
    if (stat(path->getBuffer(), &sbuf)) {
       xsink->raiseErrnoException("FILE-STAT-ERROR", errno, "stat() command failed");
@@ -1732,7 +1732,7 @@ static list File::stat(string path) [dom=QDOM_FILESYSTEM] {
     @see lstat() for a similar function that does not throw exceptions when errors occur, but rather returns @ref nothing
     @see @ref file_stat_constants
  */
-static list File::lstat(string path) {
+static list File::lstat(string path) [dom=FILESYSTEM] {
    struct stat sbuf;
 #ifdef HAVE_LSTAT
    if (lstat(path->getBuffer(), &sbuf))
@@ -1765,7 +1765,7 @@ static list File::lstat(string path) {
     @see hstat() for a normal function returns @ref nothing instead of throwing an exception when errors occur
     @see @ref file_stat_constants
  */
-static hash File::hstat(string path) {
+static hash File::hstat(string path) [dom=FILESYSTEM] {
    struct stat sbuf;
    if (stat(path->getBuffer(), &sbuf)) {
       xsink->raiseErrnoException("FILE-HSTAT-ERROR", errno, "stat() command failed");
@@ -1793,7 +1793,7 @@ static hash File::hstat(string path) {
     @see hstat() for a normal function returns @ref nothing instead of throwing an exception when errors occur
     @see @ref file_stat_constants
  */
-static hash File::hlstat(string path) {
+static hash File::hlstat(string path) [dom=FILESYSTEM] {
    struct stat sbuf;
 #ifdef HAVE_LSTAT
    if (lstat(path->getBuffer(), &sbuf))
@@ -1826,7 +1826,7 @@ static hash File::hlstat(string path) {
     @throw FILE-STATVFS-ERROR statvfs() call failed
     @throw MISSING-FEATURE-ERROR this method is not supported on this platform; check \c Option::HAVE_STATVFS before calling this method to avoid this exception
  */
-static hash File::statvfs(string path) {
+static hash File::statvfs(string path) [dom=FILESYSTEM] {
 #ifdef HAVE_SYS_STATVFS_H
    struct statvfs vfs;
    if (statvfs(path->getBuffer(), &vfs)) {

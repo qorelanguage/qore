@@ -87,7 +87,7 @@ SSLPrivateKey::copy() {
 my hash $h = $key.getInfo();
     @endcode
  */
-hash SSLPrivateKey::getInfo() [flags=QC_CONSTANT] {
+hash SSLPrivateKey::getInfo() [flags=CONSTANT] {
    return pk->getInfo();
 }
 
@@ -99,7 +99,7 @@ hash SSLPrivateKey::getInfo() [flags=QC_CONSTANT] {
 my string $str = $pkey.getType();
     @endcode
  */
-string SSLPrivateKey::getType() [flags=QC_CONSTANT] {
+string SSLPrivateKey::getType() [flags=CONSTANT] {
    return new QoreStringNode(pk->getType());
 }
 
@@ -108,7 +108,7 @@ string SSLPrivateKey::getType() [flags=QC_CONSTANT] {
 
     @return a constant value of 1; do not use; only included for backwards-compatibility
  */
-int SSLPrivateKey::getVersion() [flags=QC_CONSTANT] {
+int SSLPrivateKey::getVersion() [flags=CONSTANT] {
    return pk->getVersion();
 }
 
@@ -120,7 +120,7 @@ int SSLPrivateKey::getVersion() [flags=QC_CONSTANT] {
 my int $len = $key.getBitLength();
     @endcode
  */
-int SSLPrivateKey::getBitLength() [flags=QC_CONSTANT] {
+int SSLPrivateKey::getBitLength() [flags=CONSTANT] {
    return pk->getBitLength();
 }
 

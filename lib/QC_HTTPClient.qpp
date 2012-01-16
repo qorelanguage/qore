@@ -199,7 +199,7 @@ nothing HTTPClient::setHTTPVersion(string ver) {
 my string $version = $httpclient.getHTTPVersion();
     @endcode
  */
-string HTTPClient::getHTTPVersion() [flags=QC_CONSTANT] {
+string HTTPClient::getHTTPVersion() [flags=CONSTANT] {
    return new QoreStringNode(client->getHTTPVersion());
 }
 
@@ -228,7 +228,7 @@ if ($httpclient.isSecure())
     printf("secure connection: %s %s\n", $httpclient.getSSLCipherName(), $httpclient.getSSLCipherVersion());
     @endcode
  */
-bool HTTPClient::isSecure() [flags=QC_CONSTANT] {
+bool HTTPClient::isSecure() [flags=CONSTANT] {
    return client->isSecure();
 }
 
@@ -241,7 +241,7 @@ if ($httpclient.isSecure() && exists (my *string $str = $httpclient.verifyPeerCe
     printf("vertificate: %s: %s\n", $str, X509_VerificationReasons.$str);
     @endcode
  */
-*string HTTPClient::verifyPeerCertificate() [flags=QC_CONSTANT] {
+*string HTTPClient::verifyPeerCertificate() [flags=CONSTANT] {
    const char *c = getSSLCVCode(client->verifyPeerCertificate());
    return c ? new QoreStringNode(c) : 0;
 }
@@ -255,7 +255,7 @@ if ($httpclient.isSecure())
     printf("secure connection: %s %s\n", $httpclient.getSSLCipherName(), $httpclient.getSSLCipherVersion());
     @endcode
  */
-*string HTTPClient::getSSLCipherName() [flags=QC_CONSTANT] {
+*string HTTPClient::getSSLCipherName() [flags=CONSTANT] {
    const char *str = client->getSSLCipherName();
    return str ? new QoreStringNode(str) : 0;
 }
@@ -269,7 +269,7 @@ if ($httpclient.isSecure())
     printf("secure connection: %s %s\n", $httpclient.getSSLCipherName(), $httpclient.getSSLCipherVersion());
     @endcode
  */
-*string HTTPClient::getSSLCipherVersion() [flags=QC_CONSTANT] {
+*string HTTPClient::getSSLCipherVersion() [flags=CONSTANT] {
    const char *str = client->getSSLCipherVersion();
    return str ? new QoreStringNode(str) : 0;
 }
@@ -515,7 +515,7 @@ nothing HTTPClient::setTimeout(timeout timeout_ms = 0) {
 my int $timeout = $httpclient.getTimeout();
     @endcode
  */
-int HTTPClient::getTimeout() [flags=QC_CONSTANT] {
+int HTTPClient::getTimeout() [flags=CONSTANT] {
    return client->getTimeout();
 }
 
@@ -539,7 +539,7 @@ nothing HTTPClient::setEncoding(string encoding) {
 my string $encoding = $httpclient.getEncoding();
     @endcode
  */
-string HTTPClient::getEncoding() [flags=QC_CONSTANT] {
+string HTTPClient::getEncoding() [flags=CONSTANT] {
    return new QoreStringNode(client->getEncoding()->getCode());
 }
 
@@ -570,7 +570,7 @@ HTTPClient::setURL(string url) {
 my string $url = $httpclient.getURL();
     @endcode
  */
-string HTTPClient::getURL() [flags=QC_CONSTANT] {
+string HTTPClient::getURL() [flags=CONSTANT] {
    return client->getURL();
 }
 
@@ -609,7 +609,7 @@ nothing HTTPClient::setProxyURL(string url) {
 my *string $proxy_url = $httpclient.getProxyURL();
     @endcode
  */
-*string HTTPClient::getProxyURL() [flags=QC_CONSTANT] {
+*string HTTPClient::getProxyURL() [flags=CONSTANT] {
    return client->getProxyURL();
 }
 
@@ -645,7 +645,7 @@ nothing HTTPClient::setProxySecure(softbool b = True) {
 my bool $b = $httpclient.isProxySecure();
     @endcode
  */
-bool HTTPClient::isProxySecure() [flags=QC_CONSTANT] {
+bool HTTPClient::isProxySecure() [flags=CONSTANT] {
    return client->isProxySecure();
 }
 
@@ -671,7 +671,7 @@ nothing HTTPClient::setMaxRedirects(softint mr = 0) {
 my int $mr = $httpclient.getMaxRedirects();
     @endcode
  */
-int HTTPClient::getMaxRedirects() [flags=QC_CONSTANT] {
+int HTTPClient::getMaxRedirects() [flags=CONSTANT] {
    return client->getMaxRedirects();
 }
 
@@ -721,7 +721,7 @@ nothing HTTPClient::setConnectTimeout(timeout timeout_ms = -1) {
 my int $to = $httpclient.getConnectTimeout();
     @endcode
  */
-int HTTPClient::getConnectTimeout() [flags=QC_CONSTANT] {
+int HTTPClient::getConnectTimeout() [flags=CONSTANT] {
    return client->getConnectTimeout();
 }
 
@@ -756,7 +756,7 @@ my bool $b = $httpclient.getNoDelay();
 
     @see also HTTPClient::setNoDelay()
  */
-bool HTTPClient::getNoDelay() [flags=QC_CONSTANT] {
+bool HTTPClient::getNoDelay() [flags=CONSTANT] {
     return client->getNoDelay();
 }
 
@@ -768,7 +768,7 @@ bool HTTPClient::getNoDelay() [flags=QC_CONSTANT] {
 my bool $b = $httpclient.isConnected();
     @endcode
  */
-bool HTTPClient::isConnected() [flags=QC_CONSTANT] {
+bool HTTPClient::isConnected() [flags=CONSTANT] {
     return client->isConnected();
 }
 

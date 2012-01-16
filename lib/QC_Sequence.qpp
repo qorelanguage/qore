@@ -80,6 +80,6 @@ int Sequence::next() {
 my int $v = $seq.getCurrent();
     @endcode
  */
-int Sequence::getCurrent() [flags=QC_CONSTANT] {
+int Sequence::getCurrent() [flags=CONSTANT] {
    return s->getCurrent(); 
 }
