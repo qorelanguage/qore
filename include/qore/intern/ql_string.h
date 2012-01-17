@@ -25,6 +25,6 @@
 
 #define QORE_LIB_STRING_H
 
-DLLLOCAL void init_string_functions();
+DLLLOCAL void init_string_functions(QoreNamespace& ns);
 
 #endif

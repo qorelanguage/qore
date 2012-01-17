@@ -1130,6 +1130,11 @@ protected:
             fprintf(fp, "   int64 %s = HARD_QORE_INT(args, %d);\n", p.name.c_str(), i);
             continue;
          }
+         if (p.type == "*int" || p.type == "*softint" || p.type == "*timeout") {
+            fprintf(fp, "   const QoreBigIntNode* tmp_%s = reinterpret_cast<const QoreBigIntNode*>(get_param(args, %d));\n", p.name.c_str(), i);
+            fprintf(fp, "   int64 %s = tmp_%s ? tmp_%s->val : 0;\n", p.name.c_str(), p.name.c_str(), p.name.c_str());
+            continue;
+         }
          if (p.type == "float" || p.type == "softfloat") {
             fprintf(fp, "   double %s = HARD_QORE_FLOAT(args, %d);\n", p.name.c_str(), i);
             continue;

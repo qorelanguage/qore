@@ -543,6 +543,8 @@ public:
    //! returns the byte (not character) at the given location; if the location is invalid, returns 0
    /** @param pos offset in string, negative offsets are form the end of the string
        @return the byte (not character) at the given location; if the location is invalid, returns 0
+
+       FIXME: return value should be int and should return -1 if location is invalid
     */
    DLLEXPORT char operator[](qore_offset_t pos) const;
 

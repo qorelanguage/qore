@@ -238,7 +238,7 @@ inline int BuiltinFunctionList::size() {
 void BuiltinFunctionList::init(QoreNamespace& qns) {
    QORE_TRACE("BuiltinFunctionList::init()");
 
-   init_string_functions();
+   init_string_functions(qns);
    init_io_functions();
    init_time_functions();
    init_lib_functions(qns);

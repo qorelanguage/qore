@@ -1,0 +1,815 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/*
+  ql_string.qpp
+
+  Qore Programming Language
+
+  Copyright 2003 - 2011 David Nichols
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
+#include <qore/Qore.h>
+#include <qore/intern/ql_string.h>
+
+#include <stdlib.h>
+#include <string.h>
+
+// finds the last occurrence of needle in haystack at or before position pos
+// pos must be a non-negative valid byte offset in haystack
+static inline int rindex_simple_intern(const char *haystack, int hlen, const char *needle, int nlen, int pos) {
+   // if the offset does not allow for the needle string to be present, then adjust
+   if ((pos + nlen) > hlen) {
+      pos = hlen - nlen;
+      if (pos < 0)
+	 return -1;
+   }
+
+   while (pos != -1) {
+      if (!strncmp(haystack + pos, needle, nlen))
+	 return pos;
+      pos--;
+   }
+   return -1;
+}
+
+static const char *memstr(const char *str, const char *pattern, qore_size_t pl, qore_size_t len) {
+   while (true) {
+      const char *p = (const char *)memchr(str, pattern[0], len);
+      if (!p)
+	 return 0;
+
+      //printd(5, "memstr() pattern=%s str=%p p=%p len=%d pl=%d remaining=%d (%c %c %c)\n", pattern, str, p, len, pl, len-(p-str), p[1], p[2], p[3]);
+
+      // if there is not enough string left for the pattern, then return
+      if ((len - (p - str)) < pl)
+	 return 0;
+
+      bool found = true;
+      for (qore_size_t i = 1; i < pl; ++i) {
+	 if (pattern[i] != p[i]) {
+	    len -= (p - str + 1);
+	    str = p + 1;
+	    found = false;
+	    break;
+	 }
+      }
+      if (!found)
+	 continue;
+     
+      // found
+      //printd(5, "memstr() got it! p=%p\n", p);
+      return p;
+   }
+   return 0;
+}
+
+static void split_add_element(QoreListNode *l, const char *str, unsigned len, const QoreEncoding *enc) {
+   if (enc)
+      l->push(new QoreStringNode(str, len, enc));
+   else {
+      BinaryNode *b = new BinaryNode;
+      b->append(str, len);
+      l->push(b);
+   }
+}
+
+static QoreListNode *split_intern(const char *pattern, qore_size_t pl, const char *str, qore_size_t sl, const QoreEncoding *enc, bool with_separator = false) {
+   QoreListNode *l = new QoreListNode();
+   const char *ostr = str;
+   while (const char *p = memstr(str, pattern, pl, sl - (str - ostr))) {
+      split_add_element(l, str, p - str + (with_separator ? pl : 0), enc);
+      str = p + pl;
+   }
+   // add last field if there is data remaining
+   if (sl - (str - ostr))
+      split_add_element(l, str, sl - (str - ostr), enc);
+
+   return l;
+}
+
+static QoreStringNode *join_intern(const QoreStringNode *p0, const QoreListNode *l, int offset = 0) {
+   QoreStringNode *str = new QoreStringNode();
+
+   for (unsigned i = offset; i < l->size(); i++) {
+      const AbstractQoreNode *p = l->retrieve_entry(i);
+      if (p) {
+	 QoreStringValueHelper t(p);	 
+	 str->concat(*t);
+      }
+      if (i < (l->size() - 1))
+	 str->concat(p0);
+   }
+   return str;
+}
+
+/** @defgroup string_functions String Functions
+    String functions
+ */
+//@{
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+ */
+int length(softstring str) [flags=CONSTANT] {
+   return str->length();
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+ */
+int length(binary bin) [flags=CONSTANT] {
+   return bin->size();
+}
+
+//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+nothing length() [flags=RUNTIME_NOOP] {
+}
+
+//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+int length(any[doc] arg) [flags=NOOP] {
+   return 0;
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+ */
+int strlen(softstring str) [flags=CONSTANT] {
+   return str->strlen();
+}
+
+//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+nothing strlen() [flags=RUNTIME_NOOP] {
+}
+
+//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+int strlen(any[doc] arg) [flags=NOOP] {
+   return 0;
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+ */
+string tolower(string str) [flags=CONSTANT] {
+   QoreStringNode *rv = str->copy();
+   rv->tolwr();
+   return rv;
+}
+
+//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+nothing tolower() [flags=RUNTIME_NOOP] {
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+ */
+string toupper(string str) [flags=CONSTANT] {
+   QoreStringNode *rv = str->copy();
+   rv->toupr();
+   return rv;
+}
+
+//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+nothing toupper() [flags=RUNTIME_NOOP] {
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+ */
+string substr(softstring str, softint start) [flags=RET_VALUE_ONLY] {
+   return str->substr(start, xsink);
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+ */
+string substr(softstring str, softint start, softint len) [flags=RET_VALUE_ONLY] {
+   return str->substr(start, len, xsink);
+}
+
+//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+nothing substr() [flags=NOOP] {
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+ */
+int index(softstring str, softstring substr, softint pos = 0) [flags=RET_VALUE_ONLY] {
+   return str->index(*substr, (qore_offset_t)pos, xsink);
+}
+
+//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+int index() [flags=RUNTIME_NOOP] {
+   return -1;
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+ */
+int bindex(softstring str, softstring substr, softint pos = 0) [flags=CONSTANT] {
+   return str->bindex(*substr, (qore_offset_t)pos);
+}
+
+//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+int bindex() [flags=RUNTIME_NOOP] {
+   return -1;
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+ */
+int rindex(softstring str, softstring substr, softint pos = -1) [flags=RET_VALUE_ONLY] {
+   return str->rindex(*substr, (qore_offset_t)pos, xsink);
+}
+
+//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+int rindex() [flags=RUNTIME_NOOP] {
+   return -1;
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+ */
+int brindex(softstring str, softstring substr, softint pos = -1) [flags=CONSTANT] {
+   return str->brindex(*substr, (qore_offset_t)pos);
+}
+
+//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+int brindex() [flags=RUNTIME_NOOP] {
+   return -1;
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+
+    @note ord() only works on byte offsets and gives byte values
+ */
+int ord(softstring str, softint offset = 0) [flags=CONSTANT] {
+   if (offset < 0 || (qore_size_t)offset >= str->strlen())
+      return -1;
+
+   return str->getBuffer()[offset];
+}
+
+//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+int ord() [flags=RUNTIME_NOOP] {
+   return 0;
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+ */
+string chr(softint val) [flags=CONSTANT] {
+   return new QoreStringNode((char)val);
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+ */
+string chr(any[doc] arg) [flags=NOOP] {
+   return new QoreStringNode('\0');
+}
+
+//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+nothing chr() [flags=RUNTIME_NOOP] {
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+ */
+list split(string pattern, string sep, bool with_separator = False) [flags=RET_VALUE_ONLY] {
+   // convert pattern encoding to string if necessary
+   TempEncodingHelper temp(pattern, sep->getEncoding(), xsink);
+   if (*xsink)
+      return 0;
+   
+   return split_intern(temp->getBuffer(), temp->strlen(), sep->getBuffer(), sep->strlen(), sep->getEncoding(), with_separator);
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+ */
+list split(string pattern, string sep, string quote) [flags=RET_VALUE_ONLY] {
+   // convert pattern encoding to string if necessary
+   TempEncodingHelper pat(pattern, sep->getEncoding(), xsink);
+   if (*xsink)
+      return 0;
+   
+   // convert quote to string if necessary
+   TempEncodingHelper tquote(quote, sep->getEncoding(), xsink);
+   if (*xsink)
+      return 0;
+
+   if (!tquote->strlen() || tquote->strlen() > sep->strlen())
+      return split_intern(pat->getBuffer(), pat->strlen(), sep->getBuffer(), sep->strlen(), sep->getEncoding());
+   
+   ReferenceHolder<QoreListNode> l(new QoreListNode, xsink);
+   const char *ostr = sep->getBuffer();
+   qore_size_t sl = sep->strlen();
+   const char *tpattern = pat->getBuffer();
+   qore_size_t pl = pat->strlen();
+
+   const char *str = ostr;
+
+   // remaining byte length
+   qore_size_t len = sl;
+
+   while (len > 0) {
+      // see if the field begins with the quote string
+      // and if the remaining string length is at least big enough for two quote strings
+      if ((tquote->strlen() * 2) <= len
+	  && !memcmp(tquote->getBuffer(), str, tquote->strlen())) {
+	 // advance pointer past quote
+	 str += tquote->strlen();
+	 // find next quote character, ignore escaped quotes
+	 const char *tstr = str;
+	 const char *p;
+	 while (true) {
+	    p = memstr(tstr, tquote->getBuffer(), tquote->strlen(), len);
+	    if (!p) {
+	       xsink->raiseException("SPLIT-ERROR", "cannot find closing quote '%s' in field "QLLD, tquote->getBuffer(), l->size() + 1);
+	       return 0;
+	    }
+	    if (p == tstr)
+	       break;
+	    if (*(p - 1) != '\\')
+	       break;
+	    tstr = p + 1;
+	 }
+	 // optimistically add the field to the list
+	 l->push(new QoreStringNode(str, p - str, sep->getEncoding()));
+
+	 str = p + tquote->strlen();
+	 // see if we are either at the end of the string
+	 len = sl + (ostr - str);
+
+	 if (!len)
+	    break;
+
+	 // or a separator string comes next
+	 if (len < pl || memcmp(tpattern, str, pl)) {
+	    xsink->raiseException("SPLIT-ERROR", "separator pattern '%s' does not follow end quote in field "QLLD, tpattern, l->size());
+	    return 0;
+	 }
+	 str += pl;
+	 len -= pl;
+	 continue;
+      }
+      
+      const char *p = memstr(str, tpattern, pl, sl - (str - ostr));
+      if (!p) {
+	 if (str != ostr)
+	    l->push(new QoreStringNode(str, sl - (str - ostr), sep->getEncoding()));
+	 break;
+      }
+
+      l->push(new QoreStringNode(str, p - str, sep->getEncoding()));
+      len -= (p - str);
+      str = p + pl;      
+   }
+   
+   return l.release();
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+ */
+list split(binary pattern, binary sep) [flags=CONSTANT] {
+   return split_intern((const char*)pattern->getPtr(), pattern->size(), (const char*)sep->getPtr(), sep->size(), 0);
+}
+
+//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+list split() [flags=RUNTIME_NOOP] {
+   return new QoreListNode;
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+ */
+string get_encoding(string str) [flags=CONSTANT] {
+   return new QoreStringNode(str->getEncoding()->getCode());
+}
+
+//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+nothing get_encoding() [flags=RUNTIME_NOOP] {
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+ */
+string convert_encoding(string str, string encoding) [flags=RET_VALUE_ONLY] {
+   return str->convertEncoding(QEM.findCreate(encoding), xsink);
+}
+
+//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+nothing convert_encoding() [flags=RUNTIME_NOOP] {
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+ */
+string force_encoding(string str, string encoding) [flags=CONSTANT] {
+   return new QoreStringNode(str->getBuffer(), str->strlen(), QEM.findCreate(encoding));
+}
+
+//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+nothing force_encoding() [flags=RUNTIME_NOOP] {
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+ */
+bool regex(string str, string regex, int options = 0) [flags=RET_VALUE_ONLY] {
+   QoreRegexNode qr(*regex, options, xsink);
+   if (*xsink)
+      return 0;
+
+   return qr.exec(str, xsink);
+}
+
+//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+nothing regex() [flags=RUNTIME_NOOP] {
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+ */
+string regex_subst(string str, string regex, string subst, int options = 0) [flags=RET_VALUE_ONLY] {
+   bool global;
+   if (options & QRE_GLOBAL) {
+      global = true;
+      options &= 0xffffffff;
+   }
+   else
+      global = false;
+
+   RegexSubstNode qrs(regex, (int)options, xsink);
+   if (*xsink)
+      return 0;
+
+   if (global)
+      qrs.setGlobal();
+   return qrs.exec(str, subst, xsink);
+}
+
+//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+nothing regex_subst() [flags=RUNTIME_NOOP] {
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+ */
+*list regex_extract(string str, string regex, int options = 0) [flags=RET_VALUE_ONLY] {
+   QoreRegexNode qr(*regex, options, xsink);
+   if (*xsink)
+      return 0;
+   
+   return qr.extractSubstrings(str, xsink);
+}
+
+//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+nothing regex_extract() [flags=RUNTIME_NOOP] {
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+ */
+string replace(string str, string source, string target) [flags=RET_VALUE_ONLY] {
+   const QoreEncoding *ccs = str->getEncoding();
+
+   TempEncodingHelper t1(source, ccs, xsink);
+   if (*xsink)
+      return 0;
+
+   TempEncodingHelper t2(target, ccs, xsink);
+   if (*xsink)
+      return 0;
+
+   if (!t1->strlen())
+      return str->refSelf();
+
+   QoreStringNode *nstr = new QoreStringNode(ccs);   
+
+   const char *cstr, *pattern;
+   cstr = str->getBuffer();
+   pattern = t1->getBuffer();
+   int plen = strlen(pattern);
+
+   while (const char *p = strstr(cstr, pattern)) {
+      //printd(5, "str=%08p p=%08p '%s' '%s'->'%s'\n", cstr, p, cstr, pattern, t1->getBuffer());
+      if (p != cstr)
+	 nstr->concat(cstr, p - cstr);
+      nstr->concat(*t2);
+
+      cstr = p + plen;
+   }
+   // add last field
+   if (*cstr)
+      nstr->concat(cstr);
+   
+   return nstr;
+}
+
+//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+nothing replace() [flags=RUNTIME_NOOP] {
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+ */
+string join(string str, ...) [flags=CONSTANT] {
+   return join_intern(str, args, 1);
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+ */
+string join(string str, list l) [flags=CONSTANT] {
+   return join_intern(str, l);
+}
+
+//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+nothing join() [flags=RUNTIME_NOOP] {
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+ */
+string chomp(string str) [flags=CONSTANT] {
+   QoreStringNode *rv = str->copy();
+   rv->chomp();
+   return rv;
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+ */
+string chomp(reference str) {
+   QoreTypeSafeReferenceHelper ref(str, xsink);
+   if (!ref || ref.getType() != NT_STRING)
+      return 0;
+
+   QoreStringNode *rv = reinterpret_cast<QoreStringNode *>(ref.getUnique(xsink));
+   if (*xsink)
+      return 0;
+
+   rv->chomp();
+   return rv->refSelf();
+}
+
+//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+nothing chomp() [flags=RUNTIME_NOOP] {
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+ */
+string trim(string str, *string chars) [flags=CONSTANT] {
+   const char *tchars = chars && chars->strlen() ? chars->getBuffer() : 0;
+   QoreStringNode *rv = str->copy();
+   rv->trim(tchars);
+   return rv;
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+ */
+any trim(reference str, *string chars) {
+   QoreTypeSafeReferenceHelper ref(str, xsink);
+   if (!ref || ref.getType() != NT_STRING)
+      return 0;
+
+   QoreStringNode *rv = reinterpret_cast<QoreStringNode *>(ref.getUnique(xsink));
+   if (*xsink)
+      return 0;
+
+   const char *tchars = chars && chars->strlen() ? chars->getBuffer() : 0;
+   rv->trim(tchars);
+   return rv->refSelf();
+}
+
+//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+nothing trim() [flags=RUNTIME_NOOP] {
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+ */
+string trunc_str(softstring str, softint len, *string encoding) [flags=RET_VALUE_ONLY] {
+   const QoreEncoding *enc = encoding ? QEM.findCreate(encoding) : QCS_DEFAULT;
+   if (len <= 0)
+      return new QoreStringNode(enc);
+
+   TempEncodingHelper tmp(str, enc, xsink);
+   if (!tmp)
+      return 0;
+
+   if (tmp->strlen() <= (qore_size_t)len) {
+      len = tmp->strlen();
+      return new QoreStringNode(tmp.giveBuffer(), len, len + 1, enc);
+   }
+
+   if (!enc->isMultiByte())
+      return new QoreStringNode(tmp->getBuffer(), len, enc);
+
+   // find position of last character fitting in len bytes
+   const char *p = tmp->getBuffer();
+   int64 sl = 0;
+   while (true) {
+      qore_size_t size = enc->getCharLen(p, len - sl);
+      if ((sl + size) > (qore_size_t)len)
+	 break;
+      sl += size;
+      p += size;
+   }
+
+   return new QoreStringNode(tmp->getBuffer(), sl, enc);
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+
+    @throw STRMUL-ERROR
+ */
+string strmul(softstring str, softint smul, *softint offset) [flags=RET_VALUE_ONLY] {
+   if (offset < 0) {
+      xsink->raiseException("STRMUL-ERROR", "Offset argument has to be 0 or greater than 0; value: "QLLD, offset);
+      return 0;
+   }
+   
+   if (smul < 1) {
+      xsink->raiseException("STRMUL-ERROR", "Multiple argument has to be greater than 0; value: "QLLD, smul);
+      return 0;
+   }
+
+   QoreStringNode* ret = new QoreStringNode(str);
+   while (smul != 1) {
+      ret->concat(str);
+      --smul;
+   }
+   
+   if (offset) {
+      offset = ret->length() - offset;
+      SimpleRefHolder<QoreStringNode> t(ret);
+      return ret->substr(0, offset, xsink);
+   }
+       
+   return ret;
+}
+//@}
