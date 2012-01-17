@@ -1,5 +1,6 @@
 #include "parser.cpp"
 #include "scanner.cpp"
+#undef ECHO
 #include "Operator.cpp"
 #include "QoreTreeNode.cpp"
 #include "BarewordNode.cpp"

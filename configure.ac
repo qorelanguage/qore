@@ -187,6 +187,19 @@ case "${host_os}" in
 		      AC_MSG_RESULT([not found])
 		   fi
 		fi
+		# need a native g++ compiler for native targets (ie qpp)
+		if test -z "$NATIVE_CXX"; then
+		   NATIVE_CXX=`which g++|head -1 2>/dev/null`
+		   if test -z "$NATIVE_CXX"; then
+		      AC_MSG_ERROR(unable to find a native c++ compiler; please set NATIVE_CXX to the path to the native c++ compiler for building qpp)
+		   fi
+		fi
+		if test -z "$NATIVE_CXX"; then
+		   NATIVE_CXX=$CXX
+		fi
+		AC_SUBST(NATIVE_CXX)
+		AC_SUBST(NATIVE_CPPFLAGS)
+		AC_SUBST(NATIVE_LDDFLAGS)
 		;;
      *)         AC_WARN(Unknown platform ${host_os})
      		;;
@@ -1341,6 +1354,7 @@ AM_CONDITIONAL([COND_HAVE_TERMIOS],            [test "$ac_cv_header_termios_h" =
 AM_CONDITIONAL([COND_NEED_INET_NTOP],          [test "$ac_cv_func_inet_ntop" != yes])
 AM_CONDITIONAL([COND_NEED_INET_PTON],          [test "$ac_cv_func_inet_pton" != yes])
 AM_CONDITIONAL([COND_NEED_GETOPT_LONG],        [test "$ac_cv_header_getopt_h" != yes])
+AM_CONDITIONAL([COND_MINGWCC],                 [test "$mingw" = yes])
 
 # find prefix
 if test -n "${exec_prefix}" -a "${exec_prefix}" != NONE; then

@@ -623,7 +623,7 @@ $sock.bindINET("localhost", 8080, False, AF_INET6); @endcode
     @code # bind to ipv6 host address fe80::21c:42ff:fe00:8, port 1001, reuse the address
 $sock.bindINET("fe80::21c:42ff:fe00:8", 1001, True); @endcode
 
-    @param interface the host name or IP address to bind to
+    @param iface the host name or IP address to bind to
     @param service the service name (ex: "http" or port number (given as or converted to a string) to bind to
     @param reuseaddr if this optional argument evaluates to True, the \c SO_REUSEADDR option will be set on the socket, which will allow the socket to be bound to a port that is not yet closed (for example, in a \c TIME_WAIT state)
     @param family the address family to use to bind; see Network Address Family Constants; \c AF_UNSPEC means to try all possible addres families
@@ -635,14 +635,14 @@ $sock.bindINET("fe80::21c:42ff:fe00:8", 1001, True); @endcode
 
     @see Socket::bind() and Socket::bindUNIX()
  */
-nothing Socket::bindINET(*string interface, *softstring service, softbool reuseaddr = False, softint family = AF_UNSPEC, softint socktype = SOCK_STREAM, softint protocol = 0) {
-   if ((!interface || interface->empty())
+nothing Socket::bindINET(*string iface, *softstring service, softbool reuseaddr = False, softint family = AF_UNSPEC, softint socktype = SOCK_STREAM, softint protocol = 0) {
+   if ((!iface || iface->empty())
        && (!service || service->empty())) {
       xsink->raiseException("SOCKET-BIND-ERROR", "both interace (first parameter) and service (second parameter) were either not present or empty strings; at least one of the first 2 parameters must be present for a successful call to Socket::bindINET()");
       return 0;
    }
 
-   s->bindINET(interface ? interface->getBuffer() : 0, service ? service->getBuffer() : 0, reuseaddr, family, socktype, protocol, xsink);
+   s->bindINET(iface ? iface->getBuffer() : 0, service ? service->getBuffer() : 0, reuseaddr, family, socktype, protocol, xsink);
    return 0;
 }
 

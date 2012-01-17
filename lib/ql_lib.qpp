@@ -1201,7 +1201,7 @@ int setsid() [dom=PROCESS] {
    return setsid();
 #else
    missing_function_error("setsid", xsink);
-   return;
+   return 0;
 #endif
 }
 

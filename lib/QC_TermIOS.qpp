@@ -614,7 +614,8 @@ int TermIOS::getLFlag() {
 #ifdef HAVE_TERMIOS_H
    return s->get_lflag();
 #else
-   return missing_method_error("TermIOS::getLFlag", "TERMIOS", xsink);
+   missing_method_error("TermIOS::getLFlag", "TERMIOS", xsink);
+   return 0;
 #endif
 }
 
@@ -633,7 +634,8 @@ int TermIOS::getCFlag() {
 #ifdef HAVE_TERMIOS_H
    return s->get_cflag();
 #else
-   return missing_method_error("TermIOS::getCFlag", "TERMIOS", xsink);
+   missing_method_error("TermIOS::getCFlag", "TERMIOS", xsink);
+   return 0;
 #endif
 }
 
@@ -652,7 +654,8 @@ int TermIOS::getOFlag() {
 #ifdef HAVE_TERMIOS_H
    return s->get_oflag();
 #else
-   return missing_method_error("TermIOS::getOFlag", "TERMIOS", xsink);
+   missing_method_error("TermIOS::getOFlag", "TERMIOS", xsink);
+   return 0;
 #endif
 }
 
@@ -671,7 +674,8 @@ int TermIOS::getIFlag() {
 #ifdef HAVE_TERMIOS_H
    return s->get_iflag();
 #else
-   return missing_method_error("TermIOS::getIFlag", "TERMIOS", xsink);
+   missing_method_error("TermIOS::getIFlag", "TERMIOS", xsink);
+   return 0;
 #endif
 }
 
@@ -793,7 +797,8 @@ int TermIOS::getCC(softint cc) {
 #ifdef HAVE_TERMIOS_H
    return s->get_cc(cc, xsink);
 #else
-   return missing_method_error("TermIOS::getCC", "TERMIOS", xsink);
+   missing_method_error("TermIOS::getCC", "TERMIOS", xsink);
+   return 0;
 #endif
 }
 
@@ -841,7 +846,8 @@ bool TermIOS::isEqual(Termios[QoreTermIOS] termios) [flags=CONSTANT] {
    return s->is_equal(termios);
 #else
    termios = 0;
-   return missing_method_error("TermIOS::isEqual", "TERMIOS", xsink);
+   missing_method_error("TermIOS::isEqual", "TERMIOS", xsink);
+   return 0;
 #endif
 }
 
@@ -869,6 +875,7 @@ hash TermIOS::getWindowSize() [flags=RET_VALUE_ONLY] {
    rv->setKeyValue("columns", new QoreBigIntNode(columns), xsink);
    return rv;
 #else
-   return missing_method_error("TermIOS::getWindowSize", "TERMIOS", xsink);
+   missing_method_error("TermIOS::getWindowSize", "TERMIOS", xsink);
+   return 0;
 #endif
 }

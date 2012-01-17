@@ -176,7 +176,7 @@ public:
    DLLEXPORT void concatBase64(const BinaryNode *bin, qore_size_t maxlinelen);
 
    //! concatenates the base64-encoded version of the binary data passed (does not make any character encoding conversions) and ensures the maximum line length for the base64-encoded output
-   DLLEXPORT void concatBase64(const QoreString *str, size_t maxlinelen);
+   DLLEXPORT void concatBase64(const QoreString *str, qore_size_t maxlinelen);
 
    //! parses the current string data as base64-encoded data and returns it as a BinaryNode pointer (caller owns the reference count), throws a qore-language exception if any errors are encountered
    /**

@@ -29,9 +29,7 @@
 #endif
 
 #ifndef TCSANOW
-#define Q_TCSANOW 0
-#else
-#define Q_TCSANOW TCSANOW
+#define TCSANOW 0
 #endif
 
 static int check_terminal_io(QoreObject *self, const char *m, ExceptionSink *xsink) {
@@ -68,7 +66,13 @@ static int file_lock_error(const char *f, ExceptionSink *xsink) {
    return 0;
 }
 #ifndef F_RDLCK
-#define F_RDLCK -1
+#define F_RDLCK 0
+#endif
+#ifndef F_UNLCK
+#define F_UNLCK 0
+#endif
+#ifndef F_WRLCK
+#define F_WRLCK 0
 #endif
 #endif
 
@@ -190,56 +194,56 @@ const S_IWUSR = S_IWUSR;
 const S_IXUSR = S_IXUSR;
 
 #ifndef S_IRWXG
-#define S_IRWXG 0;
+#define S_IRWXG 0
 #endif
 
 //! Bitmask giving the RWX mask for the group; equal to 0 on native Windows ports
 const S_IRWXG = S_IRWXG;
 
 #ifndef S_IRGRP
-#define S_IRGRP 0;
+#define S_IRGRP 0
 #endif
 
 //! Bit signifying if the file's group has read permissions; equal to 0 on native Windows ports
 const S_IRGRP = S_IRGRP;
 
 #ifndef S_IWGRP
-#define S_IWGRP 0;
+#define S_IWGRP 0
 #endif
 
 //! Bit signifying if the file's group has write permissions; equal to 0 on native Windows ports
 const S_IWGRP = S_IWGRP;
 
 #ifndef S_IXGRP
-#define S_IXGRP 0;
+#define S_IXGRP 0
 #endif
 
 //! Bit signifying if the file's group has execute permissions; equal to 0 on native Windows ports
 const S_IXGRP = S_IXGRP;
 
 #ifndef S_IRWXO
-#define S_IRWXO 0;
+#define S_IRWXO 0
 #endif
 
 //! Bitmask giving the RWX mask for other; equal to 0 on native Windows ports
 const S_IRWXO = S_IRWXO;
 
 #ifndef S_IROTH
-#define S_IROTH 0;
+#define S_IROTH 0
 #endif
 
 //! Bit signifying if other has read permissions; equal to 0 on native Windows ports
 const S_IROTH = S_IROTH;
 
 #ifndef S_IWOTH
-#define S_IWOTH 0;
+#define S_IWOTH 0
 #endif
 
 //! Bit signifying if other has write permissions; equal to 0 on native Windows ports
 const S_IWOTH = S_IWOTH;
 
 #ifndef S_IXOTH
-#define S_IXOTH 0;
+#define S_IXOTH 0
 #endif
 
 //! Bit signifying if other has execute permissions; equal to 0 on native Windows ports
@@ -273,12 +277,6 @@ const S_ISVTX = S_ISVTX;
     @note These contants are set to 0 on platforms where HAVE_FILE_LOCKING is \c False (such as native Windows ports)
 */
 //@{ 
-#ifndef HAVE_STRUCT_FLOCK
-#define F_RDLCK 0
-#define F_WRLCK 0
-#define F_UNLCK 0
-#endif
-
 //! Use for read-only locking
 const F_RDLCK = F_RDLCK;
 //! Use for exclusive write locking
@@ -1374,7 +1372,8 @@ int File::lock(softint[doc] type = F_RDLCK, softint[doc] start = 0, softint[doc]
       return 0;
    return f->lock(fl, xsink);
 #else
-   return file_lock_error("lock", xsink);
+   file_lock_error("lock", xsink);
+   return 0;
 #endif
 }
 
@@ -1419,7 +1418,8 @@ nothing File::lockBlocking(softint[doc] type = F_RDLCK, softint[doc] start = 0, 
    f->lockBlocking(fl, xsink);
    return 0;
 #else
-   return file_lock_error("lockBlocking", xsink);
+   file_lock_error("lockBlocking", xsink);
+   return 0;
 #endif
 }
 
@@ -1459,7 +1459,8 @@ hash File::getLockInfo() {
 
    return h;
 #else
-   return file_lock_error("getLockInfo", xsink);
+   file_lock_error("getLockInfo", xsink);
+   return 0;
 #endif
 }
 
@@ -1821,6 +1822,7 @@ static hash File::statvfs(string path) [dom=FILESYSTEM] {
 
    return statvfs_to_hash(vfs);
 #else
-   return file_lock_error("statvfs", xsink);
+   file_lock_error("statvfs", xsink);
+   return 0;
 #endif
 }

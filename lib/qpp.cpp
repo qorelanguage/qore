@@ -760,7 +760,7 @@ static int get_qore_value(const std::string &qv, std::string &v, const char *cna
          }
          v += "\", ";
          char buf[20];
-         sprintf(buf, "%ld", qv.size() / 2 - 1);
+         sprintf(buf, "%ld", (long)(qv.size() / 2 - 1));
          v += buf;
          v += ");\n";
          return 0;
@@ -1233,7 +1233,7 @@ protected:
          --size;
 
       if (size) {
-         fprintf(fp, ", %lu", size);
+         fprintf(fp, ", %lu", (unsigned long)size);
          for (unsigned i = 0; i < size; ++i) {
             std::string str;
             if (get_qore_type(params[i].type, str))

@@ -11,13 +11,23 @@ dummy:
 INCLUDES = -I$(top_srcdir)/include
 AM_YFLAGS = -d
 
-QPP=./qpp
-
 lib_LTLIBRARIES = libqore.la
 
 bin_PROGRAMS = qpp
 
 qpp_SOURCES = qpp.cpp
+
+if COND_MINGWCC
+BUILT_SOURCES += qpp_native
+QPP=./qpp_native
+qpp_native: qpp.cpp
+	$(NATIVE_CXX) $(INCLUDES) $(NATIVE_CPPFLAGS) $(NATIVE_LDFLAGS) -o $@ $<
+else
+QPP=./qpp
+endif
+
+qpp: qpp.cpp
+	$(CXX) $(AM_CPPFLAGS) $(AM_CXXFLAGS) $(AM_LDFLAGS) -o $@ $<
 
 if COND_NEED_GETOPT_LONG
 qpp_SOURCES += getopt_long.cpp
