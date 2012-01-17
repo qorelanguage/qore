@@ -25,6 +25,6 @@
 
 #define QORE_QL_FILE_H
 
-DLLLOCAL void init_file_functions();
+DLLLOCAL void init_file_functions(QoreNamespace& ns);
 
 #endif
