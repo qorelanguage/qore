@@ -104,20 +104,24 @@ public:
       return (int)(p - haystack);
    }
 
-   DLLLOCAL qore_offset_t index(const QoreString &needle, qore_offset_t pos, ExceptionSink *xsink) const {
+   DLLLOCAL qore_offset_t index(const QoreString &orig_needle, qore_offset_t pos, ExceptionSink *xsink) const {
+      TempEncodingHelper needle(orig_needle, charset, xsink);
+      if (!needle)
+         return -1;
+
       // do simple index
       if (!charset->isMultiByte()) {
          if (pos < 0) {
             pos = len + pos;
             if (pos < 0)
                pos = 0;
-            return index_simple(buf, needle.getBuffer(), pos);
+            return index_simple(buf, needle->getBuffer(), pos);
          }
 
          if (pos >= (qore_offset_t)len)
             return -1;
 
-         return index_simple(buf, needle.getBuffer(), pos);
+         return index_simple(buf, needle->getBuffer(), pos);
       }
 
       // do multibyte index()
@@ -138,7 +142,7 @@ public:
       else
          start = 0;
 
-      qore_offset_t ind = index_simple(buf + start, needle.getBuffer());
+      qore_offset_t ind = index_simple(buf + start, needle->getBuffer());
       if (ind != -1) {         
          ind = charset->getCharPos(buf, buf + start + ind, xsink);
          if (*xsink)
@@ -194,7 +198,11 @@ public:
       return -1;
    }
 
-   DLLLOCAL qore_offset_t rindex(const QoreString &needle, qore_offset_t pos, ExceptionSink *xsink) const {
+   DLLLOCAL qore_offset_t rindex(const QoreString &orig_needle, qore_offset_t pos, ExceptionSink *xsink) const {
+      TempEncodingHelper needle(orig_needle, charset, xsink);
+      if (!needle)
+         return -1;
+
       qore_offset_t ind;
       if (!charset->isMultiByte()) {
          if (pos == -1)
@@ -205,7 +213,7 @@ public:
          if (pos < 0)
             return -1;
 
-         return rindex_simple(buf, len, needle.getBuffer(), needle.strlen(), pos);      
+         return rindex_simple(buf, len, needle->getBuffer(), needle->strlen(), pos);      
       }
 
       // do multi-byte rindex
@@ -225,7 +233,7 @@ public:
             return 0;
       }
       // get byte rindex position
-      ind = rindex_simple(buf, len, needle.getBuffer(), needle.strlen(), pos);
+      ind = rindex_simple(buf, len, needle->getBuffer(), needle->strlen(), pos);
 
       // calculate character position from byte position
       if (ind && ind != -1) {

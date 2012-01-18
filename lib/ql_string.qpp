@@ -120,20 +120,34 @@ static QoreStringNode *join_intern(const QoreStringNode *p0, const QoreListNode 
  */
 //@{
 
-//! 
-/** 
+//! Returns the length in characters for the string passed
+/** Note that the byte length may differ from the character length with multi-byte @ref character_encoding "character encodings". To get the byte length of a string, see strlen().
+
+    @param str the string to return the character length of
+
+    @return the length in characters for the string passed
+
     @par Example:
     @code
+my int $len = length($str);
     @endcode
+
+    @see strlen()
  */
 int length(softstring str) [flags=CONSTANT] {
    return str->length();
 }
 
-//! 
-/** 
+//! Returns the number of bytes in the binary object passed as an argument
+/** This variant of the function accepting a binary object as an argument works identically to the @ref elements "elements operator"
+
+    @param bin the binary object to return the size of
+
+    @return the number of bytes in the binary object
+
     @par Example:
     @code
+my int $nbytes = length($bin);
     @endcode
  */
 int length(binary bin) [flags=CONSTANT] {
@@ -153,11 +167,19 @@ int length(any[doc] arg) [flags=NOOP] {
    return 0;
 }
 
-//! 
-/** 
+//! Returns the length in bytes of the string argument
+/** Note that the byte length may differ from the character length with multi-byte @ref character_encoding "character encodings". For the character length of a string, see length().
+
+    @param str the string to return the byte length of
+
+    @return the length in bytes for the string passed
+
     @par Example:
     @code
+my int $size = strlen($str);
     @endcode
+
+    @see length()
  */
 int strlen(softstring str) [flags=CONSTANT] {
    return str->strlen();
@@ -176,11 +198,20 @@ int strlen(any[doc] arg) [flags=NOOP] {
    return 0;
 }
 
-//! 
+//! Returns a string in all lower-case characters based on the argument passed
 /** 
+    @param str a string to process
+
+    @return a string in all lower-case characters based on the argument passed
+
     @par Example:
     @code
+my string $lwr = tolower($str);
     @endcode
+
+    @note This function only processes ASCII characters
+
+    @see toupper()
  */
 string tolower(string str) [flags=CONSTANT] {
    QoreStringNode *rv = str->copy();
@@ -194,11 +225,20 @@ string tolower(string str) [flags=CONSTANT] {
 nothing tolower() [flags=RUNTIME_NOOP] {
 }
 
-//! 
+//! Returns a string in all upper-case characters based on the argument passed
 /** 
+    @param str a string to process
+
+    @return a string in all upper-case characters based on the argument passed
+
     @par Example:
     @code
+my string $lwr = toupper($str);
     @endcode
+
+    @note This function only processes ASCII characters
+
+    @see tolower()
  */
 string toupper(string str) [flags=CONSTANT] {
    QoreStringNode *rv = str->copy();
@@ -212,21 +252,46 @@ string toupper(string str) [flags=CONSTANT] {
 nothing toupper() [flags=RUNTIME_NOOP] {
 }
 
-//! 
-/** 
+//! Returns a portion of a string starting from an integer offset
+/** Arguments can be negative, giving offsets from the end of the string. All offsets are character positions, not byte positions.
+
+    @param str The string to process
+    @param start The starting character for the substring where the first character is at offset 0; if the offset is negative, it designates the number of characters from the end of the string.  If the offset is 0, then the entire string is returned.
+
+    @return the substring of the string starting from an integer character offset; the rest of the string is returned after this offset
+
     @par Example:
     @code
+# get the last 10 characters of a string
+my string $substr = substr($str, -10);
     @endcode
+
+    @throw INVALID-ENCODING this exception could be thrown if a character offset calculation fails due to invalid encoding of multi-byte character data
  */
 string substr(softstring str, softint start) [flags=RET_VALUE_ONLY] {
    return str->substr(start, xsink);
 }
 
-//! 
-/** 
+//! Returns a portion of a string starting from an integer offset, with a length parameter
+/** Arguments can be negative, giving offsets from the end of the string. All offsets are character positions, not byte positions.
+
+    @param str The string to process
+    @param start The starting character for the substring where the first character is at offset 0; if the offset is negative, it designates the number of characters from the end of the string
+    @param len The maximum number of characters to copy; if this value is negative, the rest of the string from \a start will be copied to the substring, except without - \a len characters from the end of the string
+
+    @return the substring of the string according to the arguments passed
+
+    @par Example:
+    @code
+# get a substring 10 characters into the string except omitting the last 2 characters of the string
+my string $substr = substr($str, 10, -2);
+    @endcode
+
     @par Example:
     @code
     @endcode
+
+    @throw INVALID-ENCODING this exception could be thrown if a character offset calculation fails due to invalid encoding of multi-byte character data
  */
 string substr(softstring str, softint start, softint len) [flags=RET_VALUE_ONLY] {
    return str->substr(start, len, xsink);
@@ -238,14 +303,29 @@ string substr(softstring str, softint start, softint len) [flags=RET_VALUE_ONLY]
 nothing substr() [flags=NOOP] {
 }
 
-//! 
-/** 
+//! Retrieves the character position of a substring within a string
+/** The \a pos argument and the return value are in character positions; byte offsets may differ from the character offsets with multi-byte @ref character_encoding "character encodings".
+
+    @param str the string to search in
+    @param substr the substring to find in \a str; if the @ref character_encoding "character encoding" of this string does not match \a str, then it will be converted to <em>str</em>'s @ref character_encoding "character encoding" before processing
+    @param pos the starting character position for the search
+
+    @return the character position of a substring within a string, -1 is returned if the substring is not found
+
     @par Example:
     @code
+my int $i = index($str, $substr);
+if ($i == -1)
+    printf("could not find %y in %y\n", $substr, $str);
     @endcode
+
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string arguments have different @ref character_encoding "character encodings" and an error occurs during encoding conversion
+    @throw INVALID-ENCODING this exception could be thrown if a character offset calculation fails due to invalid encoding of multi-byte character data
+
+    @see rindex(), bindex(), brindex()
  */
 int index(softstring str, softstring substr, softint pos = 0) [flags=RET_VALUE_ONLY] {
-   return str->index(*substr, (qore_offset_t)pos, xsink);
+   return str->index(*substr, pos, xsink);
 }
 
 //! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
@@ -255,11 +335,25 @@ int index() [flags=RUNTIME_NOOP] {
    return -1;
 }
 
-//! 
-/** 
+//! Retrieves the byte position of a substring within a string
+/** The \a pos argument and the return value are in byte positions; byte offsets may differ from the character offsets with multi-byte @ref character_encoding "character encodings".
+
+    @param str the string to search in
+    @param substr the substring to find in \a str
+    @param pos the starting character position for the search
+
+    @return the byte position of a substring within a string, -1 is returned if the substring is not found
+
     @par Example:
     @code
+my int $i = bindex($str, $substr);
+if ($i == -1)
+    printf("could not find %y in %y\n", $substr, $str);
     @endcode
+
+    @note no character encoding conversions are made by this function even if the string arguments have different @ref character_encoding "character encodings"
+
+    @see index(), rindex(), brindex()
  */
 int bindex(softstring str, softstring substr, softint pos = 0) [flags=CONSTANT] {
    return str->bindex(*substr, (qore_offset_t)pos);
@@ -272,11 +366,26 @@ int bindex() [flags=RUNTIME_NOOP] {
    return -1;
 }
 
-//! 
-/** 
+//! Retrieves the character position of a substring within a string, starting the search from the end of the string
+/** The \a pos argument and the return value are in character positions; byte offsets may differ from the character offsets with multi-byte @ref character_encoding "character encodings".
+
+    @param str the string to search in
+    @param substr the substring to find in \a str; if the @ref character_encoding "character encoding" of this string does not match \a str, then it will be converted to <em>str</em>'s @ref character_encoding "character encoding" before processing
+    @param pos the starting character position for the search, -1 means start from the end of the string
+
+    @return the character position of a substring within a string, -1 is returned if the substring is not found
+
     @par Example:
     @code
+my int $i = rindex($str, $substr);
+if ($i == -1)
+    printf("could not find %y in %y\n", $substr, $str);
     @endcode
+
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string arguments have different @ref character_encoding "character encodings" and an error occurs during encoding conversion
+    @throw INVALID-ENCODING this exception could be thrown if a character offset calculation fails due to invalid encoding of multi-byte character data
+
+    @see index(), bindex(), brindex()
  */
 int rindex(softstring str, softstring substr, softint pos = -1) [flags=RET_VALUE_ONLY] {
    return str->rindex(*substr, (qore_offset_t)pos, xsink);
@@ -289,11 +398,25 @@ int rindex() [flags=RUNTIME_NOOP] {
    return -1;
 }
 
-//! 
-/** 
+//! Retrieves the byte position of a substring within a string, starting the search from the end of the string
+/** The \a pos argument and the return value are in byte positions; byte offsets may differ from the character offsets with multi-byte @ref character_encoding "character encodings".
+
+    @param str the string to search in
+    @param substr the substring to find in \a str
+    @param pos the starting character position for the search, -1 means start from the end of the string
+
+    @return the byte position of a substring within a string, -1 is returned if the substring is not found
+
     @par Example:
     @code
+my int $i = brindex($str, $substr);
+if ($i == -1)
+    printf("could not find %y in %y\n", $substr, $str);
     @endcode
+
+    @note no character encoding conversions are made by this function even if the string arguments have different @ref character_encoding "character encodings"
+
+    @see index(), bindex(), rindex()
  */
 int brindex(softstring str, softstring substr, softint pos = -1) [flags=CONSTANT] {
    return str->brindex(*substr, (qore_offset_t)pos);

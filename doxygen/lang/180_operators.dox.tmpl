@@ -76,8 +76,8 @@
     |@ref shift_left_equals_operator "<<="|\c 21|@ref shift_left_equals_operator "shift-left-equals operator"|@code $var <<= 0x2000@endcode
     |@ref shift_right_equals_operator ">>="|\c 21|@ref shift_right_equals_operator "shift-right-equals operator"|@code $var >>= 0x2000@endcode
 
-    @note All Qore operators perform thread-atomic actions with respect to the immediate arguments of the operator. If the operators are used in a complex expression, the entire expression is not thread-atomic unless explicit user-level locking is used. For example: <tt>$a += 5</tt> is a thread-atomic action, but <tt>$a += $b--</tt> is not atomic, but rather made up of two atomic actions.\n\n
-    When an operator taking more than one argument is used with arguments of different data types, Qore automatically converts one or both data types to a data type supported by the operator in order to evaluate the result, according to the precedence lists given for each operator. That is; when an operator operates on mixed types, the types listed first in the following sections have precedence over types listed farther down in the lists. The result type will always be equal to the final operation type after any conversions due to type precedence per operator. If no type of either argument matches a supported data type for the operator, both types will be converted to the highest precedence data type for the operator and then the operator will evaluate the result. For explicit type conversion, please see the boolean(), string(), date(), int(), float(), etc functions.
+    @note All %Qore operators perform thread-atomic actions with respect to the immediate arguments of the operator. If the operators are used in a complex expression, the entire expression is not thread-atomic unless explicit user-level locking is used. For example: <tt>$a += 5</tt> is a thread-atomic action, but <tt>$a += $b--</tt> is not atomic, but rather made up of two atomic actions.\n\n
+    When an operator taking more than one argument is used with arguments of different data types, %Qore automatically converts one or both data types to a data type supported by the operator in order to evaluate the result, according to the precedence lists given for each operator. That is; when an operator operates on mixed types, the types listed first in the following sections have precedence over types listed farther down in the lists. The result type will always be equal to the final operation type after any conversions due to type precedence per operator. If no type of either argument matches a supported data type for the operator, both types will be converted to the highest precedence data type for the operator and then the operator will evaluate the result. For explicit type conversion, please see the boolean(), string(), date(), int(), float(), etc functions.
 
     <hr>
     @section backquote_operator Backquote Operator (``)
@@ -129,7 +129,7 @@
     Retrieves the value of a hash key or object member using a literal identifier or an expression.
 
     @par Syntax
-    \a hash_or_object_expression <tt>.</tt> \a identifier\n
+    \a hash_or_object_expression <tt>.</tt> \a identifier \n
     \a object_expression <tt>.</tt> \a method_name<tt>(</tt><em>[args ...]</em><tt>)</tt>\n
     \a hash_or_object_expression <tt>.</tt> \a expression\n
 
@@ -140,14 +140,17 @@
     @code printf("%s\n", $hash.name);@endcode
     @code $obj.method("argument");@endcode
 
-    <b>Arguments Processed by .</b>
+    <b>Arguments Processed by . (hash key or object member literal dereference)</b>
     |!Argument|!Processing
     |\a hash_or_object_expression|This expression must evaluate to a hash or an object; if not, then the operator returns no value
-    |\a identifier|An unquoted string taken as the literal name of the hash key or object member. If no such key exists, then no value is returned. In order to use hash keys that are not valid Qore identifiers, please use the {} operator. If the member is a private member and access is made outside the class, a run-time exception will be thrown.  Also note that constants or static class member names will not be resolved, in this case the string given is used as the literal name of the hash key or object member
-    \n
+    |\a identifier|An unquoted string taken as the literal name of the hash key or object member. If no such key exists, then no value is returned. In order to use hash keys that are not valid %Qore identifiers, please use the {} operator. If the member is a private member and access is made outside the class, a run-time exception will be thrown.  Also note that constants or static class member names will not be resolved, in this case the string given is used as the literal name of the hash key or object member
+
+    <b>Arguments Processed by . (object method call)</b>
     |!Argument|!Processing
-    |\a object_expression|The \a object_expression must evaluate to an object or a run-time exception is thrown. If the method does not exist in the class a run-time exception is thrown. Otherwise the method is called with any optional arguments given and the return value of the method is returned.
-    \n
+    |\a object_expression|The \a object_expression must evaluate to an object or a run-time exception is thrown
+    |<em>method_name</em><tt>([</tt><em>args</em><tt>])</tt>|If the method does not exist in the class a run-time exception is thrown. Otherwise the method is called with any optional arguments given and the return value of the method is returned.
+
+    <b>Arguments Processed by . (hash key or object member expression dereference)</b>
     |!Argument|!Processing
     |\a hash_or_object_expression|This expression must evaluate to a hash or an object; if not, then the operator returns no value
     |\a expression|- @ref list "list": if the expression evaluates to a list, then a slice of the hash or object is returned as a hash containing keys given in the list that are present in the hash or object. If the key as given in the list (converted to a string if necessary) is not present in the hash or object, then it is also not present in the hash returned; of none of the given keys exist in the hash, an empty hash is returned.\n- anything other than @ref list "list": the expression is converted to a string (if necessary); the value of the hash key corresponding to this string will be returned; if the key or member does not exist, then no value is returned
@@ -277,7 +280,7 @@
     Creates an instance of a class by running the class' constructor on the new class (if any exists) and returns the new object.\n\n
     Note that if possible it is normally better to declare an object with its type and use the abbreviated form to construct the object as follows:\n
     @code my Mutex $m();@endcode
-    This provides type information to the parser which allows more errors to be caught at parse time (instead of at run time), and furthermore allows Qore improve performance by performing more work once at parse time rather than for every time the object is accessed at run time (for example, method and variant resolution), and normally requires less typing.
+    This provides type information to the parser which allows more errors to be caught at parse time (instead of at run time), and furthermore allows %Qore to improve performance by performing more work once at parse time rather than for every time the object is accessed at run time (for example, method and variant resolution), and normally requires less typing.
 
     @par Syntax
     \c \b new <em>class_identifier</em><tt>(</tt><em>constructor_args ...</em><tt>)</tt>
