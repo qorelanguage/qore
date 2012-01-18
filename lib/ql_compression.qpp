@@ -667,7 +667,7 @@ binary compress(binary bin, int level = Z_DEFAULT_COMPRESSION) {
    return qore_deflate(bin->getPtr(), bin->size(), level, xsink);
 }
 
-//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
 nothing compress() [flags=RUNTIME_NOOP] {
@@ -692,7 +692,7 @@ string uncompress_to_string(binary bin, *string encoding) {
    return qore_inflate_to_string(bin, qe, xsink);
 }
 
-//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
 nothing uncompress_to_string() [flags=RUNTIME_NOOP] {
@@ -714,7 +714,7 @@ binary uncompress_to_binary(binary bin) {
    return qore_inflate_to_binary(bin, xsink);
 }
 
-//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
 nothing uncompress_to_binary() [flags=RUNTIME_NOOP] {
@@ -775,7 +775,7 @@ binary gzip(binary bin, int level = Z_DEFAULT_COMPRESSION) {
    return qore_gzip(bin->getPtr(), bin->size(), level, xsink);
 }
 
-//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
 nothing gzip() [flags=RUNTIME_NOOP] {
@@ -799,7 +799,7 @@ string gunzip_to_string(binary bin, *string encoding) {
    return qore_gunzip_to_string(bin, qe, xsink);
 }
 
-//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
 nothing gunzip_to_string() [flags=RUNTIME_NOOP] {
@@ -821,7 +821,7 @@ binary gunzip_to_binary(binary bin) {
    return qore_gunzip_to_binary(bin, xsink);
 }
 
-//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
 nothing gunzip_to_binary() [flags=RUNTIME_NOOP] {
@@ -875,7 +875,7 @@ binary bzip2(string str, softint level = BZ2_DEFAULT_COMPRESSION) {
    return qore_bzip2(str->getBuffer(), str->strlen(), level, xsink);
 }
 
-//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
 */
 nothing bzip2() [flags=RUNTIME_NOOP] {
@@ -897,7 +897,7 @@ binary bunzip2_to_binary(binary bin) {
    return qore_bunzip2_to_binary(bin, xsink);
 }
 
-//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
 */
 nothing bunzip2_to_binary() [flags=RUNTIME_NOOP] {
@@ -921,7 +921,7 @@ string bunzip2_to_string(binary bin, *string encoding) {
    return qore_bunzip2_to_string(bin, qe, xsink);
 }
 
-//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
 */
 nothing bunzip2_to_string() [flags=RUNTIME_NOOP] {

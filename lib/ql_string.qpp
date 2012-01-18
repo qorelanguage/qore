@@ -154,13 +154,13 @@ int length(binary bin) [flags=CONSTANT] {
    return bin->size();
 }
 
-//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
 nothing length() [flags=RUNTIME_NOOP] {
 }
 
-//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
 int length(any[doc] arg) [flags=NOOP] {
@@ -185,13 +185,13 @@ int strlen(softstring str) [flags=CONSTANT] {
    return str->strlen();
 }
 
-//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
 nothing strlen() [flags=RUNTIME_NOOP] {
 }
 
-//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
 int strlen(any[doc] arg) [flags=NOOP] {
@@ -219,7 +219,7 @@ string tolower(string str) [flags=CONSTANT] {
    return rv;
 }
 
-//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
 nothing tolower() [flags=RUNTIME_NOOP] {
@@ -246,7 +246,7 @@ string toupper(string str) [flags=CONSTANT] {
    return rv;
 }
 
-//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
 nothing toupper() [flags=RUNTIME_NOOP] {
@@ -297,7 +297,7 @@ string substr(softstring str, softint start, softint len) [flags=RET_VALUE_ONLY]
    return str->substr(start, len, xsink);
 }
 
-//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
 nothing substr() [flags=NOOP] {
@@ -328,7 +328,7 @@ int index(softstring str, softstring substr, softint pos = 0) [flags=RET_VALUE_O
    return str->index(*substr, pos, xsink);
 }
 
-//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
 int index() [flags=RUNTIME_NOOP] {
@@ -359,7 +359,7 @@ int bindex(softstring str, softstring substr, softint pos = 0) [flags=CONSTANT] 
    return str->bindex(*substr, (qore_offset_t)pos);
 }
 
-//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
 int bindex() [flags=RUNTIME_NOOP] {
@@ -391,7 +391,7 @@ int rindex(softstring str, softstring substr, softint pos = -1) [flags=RET_VALUE
    return str->rindex(*substr, (qore_offset_t)pos, xsink);
 }
 
-//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
 int rindex() [flags=RUNTIME_NOOP] {
@@ -422,7 +422,7 @@ int brindex(softstring str, softstring substr, softint pos = -1) [flags=CONSTANT
    return str->brindex(*substr, (qore_offset_t)pos);
 }
 
-//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
 int brindex() [flags=RUNTIME_NOOP] {
@@ -444,7 +444,7 @@ int ord(softstring str, softint offset = 0) [flags=CONSTANT] {
    return str->getBuffer()[offset];
 }
 
-//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
 int ord() [flags=RUNTIME_NOOP] {
@@ -471,7 +471,7 @@ string chr(any[doc] arg) [flags=NOOP] {
    return new QoreStringNode('\0');
 }
 
-//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
 nothing chr() [flags=RUNTIME_NOOP] {
@@ -590,7 +590,7 @@ list split(binary pattern, binary sep) [flags=CONSTANT] {
    return split_intern((const char*)pattern->getPtr(), pattern->size(), (const char*)sep->getPtr(), sep->size(), 0);
 }
 
-//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
 list split() [flags=RUNTIME_NOOP] {
@@ -607,7 +607,7 @@ string get_encoding(string str) [flags=CONSTANT] {
    return new QoreStringNode(str->getEncoding()->getCode());
 }
 
-//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
 nothing get_encoding() [flags=RUNTIME_NOOP] {
@@ -623,7 +623,7 @@ string convert_encoding(string str, string encoding) [flags=RET_VALUE_ONLY] {
    return str->convertEncoding(QEM.findCreate(encoding), xsink);
 }
 
-//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
 nothing convert_encoding() [flags=RUNTIME_NOOP] {
@@ -639,7 +639,7 @@ string force_encoding(string str, string encoding) [flags=CONSTANT] {
    return new QoreStringNode(str->getBuffer(), str->strlen(), QEM.findCreate(encoding));
 }
 
-//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
 nothing force_encoding() [flags=RUNTIME_NOOP] {
@@ -659,7 +659,7 @@ bool regex(string str, string regex, int options = 0) [flags=RET_VALUE_ONLY] {
    return qr.exec(str, xsink);
 }
 
-//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
 nothing regex() [flags=RUNTIME_NOOP] {
@@ -689,7 +689,7 @@ string regex_subst(string str, string regex, string subst, int options = 0) [fla
    return qrs.exec(str, subst, xsink);
 }
 
-//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
 nothing regex_subst() [flags=RUNTIME_NOOP] {
@@ -709,7 +709,7 @@ nothing regex_subst() [flags=RUNTIME_NOOP] {
    return qr.extractSubstrings(str, xsink);
 }
 
-//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
 nothing regex_extract() [flags=RUNTIME_NOOP] {
@@ -757,7 +757,7 @@ string replace(string str, string source, string target) [flags=RET_VALUE_ONLY] 
    return nstr;
 }
 
-//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
 nothing replace() [flags=RUNTIME_NOOP] {
@@ -783,7 +783,7 @@ string join(string str, list l) [flags=CONSTANT] {
    return join_intern(str, l);
 }
 
-//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
 nothing join() [flags=RUNTIME_NOOP] {
@@ -820,7 +820,7 @@ string chomp(reference str) {
    return rv->refSelf();
 }
 
-//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
 nothing chomp() [flags=RUNTIME_NOOP] {
@@ -859,7 +859,7 @@ any trim(reference str, *string chars) {
    return rv->refSelf();
 }
 
-//! This method variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
 nothing trim() [flags=RUNTIME_NOOP] {
