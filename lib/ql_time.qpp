@@ -1,0 +1,805 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/*
+  ql_time.qpp
+
+  Qore Programming Language
+
+  Copyright 2003 - 2011 David Nichols
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
+#include <qore/Qore.h>
+#include <qore/intern/ql_time.h>
+#include <qore/intern/QC_TimeZone.h>
+
+#include <stdio.h>
+#include <time.h>
+#include <sys/time.h>
+
+static QoreHashNode *date_info(const DateTime &d) {
+   qore_tm info;
+   d.getInfo(info);
+
+   QoreHashNode *h = new QoreHashNode;
+   h->setKeyValue("relative", get_bool_node(d.isRelative()), 0);
+   h->setKeyValue("year", new QoreBigIntNode(info.year), 0);
+   h->setKeyValue("month", new QoreBigIntNode(info.month), 0);
+   h->setKeyValue("day", new QoreBigIntNode(info.day), 0);
+   h->setKeyValue("hour", new QoreBigIntNode(info.hour), 0);
+   h->setKeyValue("minute", new QoreBigIntNode(info.minute), 0);
+   h->setKeyValue("second", new QoreBigIntNode(info.second), 0);
+   h->setKeyValue("microsecond", new QoreBigIntNode(info.us), 0);
+
+   if (d.isAbsolute()) {
+      h->setKeyValue("dow", new QoreBigIntNode(d.getDayOfWeek()), 0);
+      h->setKeyValue("doy", new QoreBigIntNode(d.getDayNumber()), 0);
+      h->setKeyValue("utc_secs_east", new QoreBigIntNode(info.utc_secs_east), 0);
+      h->setKeyValue("dst", get_bool_node(info.dst), 0);
+      h->setKeyValue("zone_name", new QoreStringNode(info.zone_name), 0);
+      h->setKeyValue("zone", new QoreObject(QC_TIMEZONE, 0, new TimeZoneData(info.zone)), 0);
+   }
+
+   return h;
+}
+
+/** @defgroup date_time_functions Date and Time Functions
+    Date and time functions
+*/
+//@{
+
+//! Returns the current date and time with a resolution to the millisecond
+/** 
+    @return the current date and time with a resolution to the millisecond
+
+    @par Example:
+    @code
+my date $d = now_ms();
+    @endcode
+
+    @see
+    - now() For a similar function returning the current date and time in the local time zone with coarser granularity, when resolution only to the second is needed
+    - now_us() for a similar function returning the current date and time with a resolution to the microsecond
+    - now_utc();
+
+    @note There is no performance penalty for using now_ms() and now_us() versus now(); now() and now_ms() are kept for backwards compatibility
+*/
+date now_ms() [flags=CONSTANT] {
+   int us;
+   int64 seconds = q_epoch_us(us);
+
+   return DateTimeNode::makeAbsolute(currentTZ(), seconds, (us / 1000) * 1000);
+}
+
+//! Returns the current date and time with a resolution to the microsecond
+/** 
+    @return the current date and time with a resolution to the microsecond
+
+    @par Example:
+    @code
+my date $d = now_us();
+    @endcode
+
+    @see
+    - now() For a similar function returning the current date and time in the local time zone with coarser granularity, when resolution only to the second is needed
+    - now_ms() for a similar function returning the current date and time in the local time zone with coarser granularity, when resolution only to the millisecond is needed
+    - now_utc();
+
+    @note There is no performance penalty for using now_ms() and now_us() versus now(); now() and now_ms() are kept for backwards compatibility
+*/
+date now_us() [flags=CONSTANT] {
+   int us;
+   int64 seconds = q_epoch_us(us);
+
+   return DateTimeNode::makeAbsolute(currentTZ(), seconds, us);
+}
+
+//! Returns the current UTC date and time with a resolution to the microsecond
+/** 
+    @return the current UTC date and time with a resolution to the microsecond
+
+    @par Example:
+    @code
+my date $d = now_utc();
+    @endcode
+
+    @see now_us() for a similar function that returns the current date and time in the local time zone
+*/
+date now_utc() [flags=CONSTANT] {
+   int us;
+   int64 seconds = q_epoch_us(us);
+   return DateTimeNode::makeAbsolute(NULL, seconds, us);
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+*/
+string format_date(string format, date dt) [flags=CONSTANT] {
+   QoreStringNode *rv = new QoreStringNode;
+   dt->format(*rv, format->getBuffer());
+   //printd(5, "format_date() returning \"%s\"\n", rv->getBuffer());
+   return rv;
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+nothing format_date() [flags=RUNTIME_NOOP] {
+}
+
+//! Returns the current date and time with a resolution to the second 
+/** 
+    @return the current date and time with a resolution to the second 
+
+    @par Example:
+    @code
+my date $d = now();
+    @endcode
+*/
+date now() [flags=CONSTANT] {
+   return DateTimeNode::makeAbsolute(currentTZ(), (int64)time(0), 0);
+}
+
+//! Returns the current date and time with a resolution to the second 
+/** This variant is equivalent to now()
+
+    @return the current date and time with a resolution to the second 
+
+    @par Example:
+    @code
+my date $d = localtime();
+    @endcode
+*/
+date localtime() [flags=CONSTANT] {
+   return DateTimeNode::makeAbsolute(currentTZ(), (int64)time(0), 0);
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+*/
+date localtime(softint secs, softint us = 0) [flags=CONSTANT] {
+   return DateTimeNode::makeAbsolute(currentTZ(), secs, (int)us);
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+*/
+date localtime(date dt) [flags=CONSTANT] {
+   return DateTimeNode::makeAbsolute(currentTZ(), dt->getEpochSecondsUTC(), dt->getMicrosecond());
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+*/
+date gmtime() [flags=CONSTANT] {
+   return DateTimeNode::makeAbsolute(NULL, (int64)time(0), 0);
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+*/
+date gmtime(softint secs, softint us = 0) [flags=CONSTANT] {
+   return DateTimeNode::makeAbsolute(NULL, secs, (int)us);
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+*/
+date gmtime(date dt) [flags=CONSTANT] {
+   return DateTimeNode::makeAbsolute(NULL, dt->getEpochSecondsUTC(), dt->getMicrosecond());
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+*/
+int timegm(date dt) [flags=CONSTANT] {
+   return dt->getEpochSeconds();
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+nothing timegm() [flags=RUNTIME_NOOP] {
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+*/
+int get_epoch_seconds(date dt) [flags=CONSTANT] {
+   return dt->getEpochSecondsUTC();
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+nothing get_epoch_seconds() [flags=RUNTIME_NOOP] {
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+*/
+int mktime(date dt) [flags=CONSTANT] {
+   return dt->getEpochSecondsUTC();
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+nothing mktime() [flags=RUNTIME_NOOP] {
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+*/
+date years(softint years) [flags=CONSTANT] {
+   return new DateTimeNode((int)years, 0, 0, 0, 0, 0, 0, true);
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+nothing years() [flags=RUNTIME_NOOP] {
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+*/
+date months(softint months) [flags=CONSTANT] {
+   return new DateTimeNode(0, (int)months, 0, 0, 0, 0, 0, true);
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+nothing months() [flags=RUNTIME_NOOP] {
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+*/
+date days(softint days) [flags=CONSTANT] {
+   return new DateTimeNode(0, 0, (int)days, 0, 0, 0, 0, true);
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+nothing days() [flags=RUNTIME_NOOP] {
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+*/
+date hours(softint hours) [flags=CONSTANT] {
+   return new DateTimeNode(0, 0, 0, (int)hours, 0, 0, 0, true);
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+nothing hours() [flags=RUNTIME_NOOP] {
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+*/
+date minutes(softint minutes) [flags=CONSTANT] {
+   return new DateTimeNode(0, 0, 0, 0, (int)minutes, 0, 0, true);
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+nothing minutes() [flags=RUNTIME_NOOP] {
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+*/
+date seconds(softint seconds) [flags=CONSTANT] {
+   return new DateTimeNode(0, 0, 0, 0, 0, (int)seconds, 0, true);
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+nothing seconds() [flags=RUNTIME_NOOP] {
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+*/
+date milliseconds(int ms) [flags=CONSTANT] {
+   return new DateTimeNode(0, 0, 0, 0, 0, 0, (int)ms, true);
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+nothing milliseconds() [flags=RUNTIME_NOOP] {
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+*/
+date microseconds(int us) [flags=CONSTANT] {
+   return DateTimeNode::makeRelative(0, 0, 0, 0, 0, 0, (int)us);
+}
+
+//! Returns an integer corresponding to the year value in the date
+/** 
+    @param dt the date value; can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date
+
+    @return an integer corresponding to the year value in the date
+
+    @par Example:
+    @code
+my int $n = get_years($dt);
+    @endcode
+*/
+int get_years(date dt) [flags=CONSTANT] {
+   return dt->getYear();
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+nothing get_years() [flags=RUNTIME_NOOP] {
+}
+
+//! Returns an integer corresponding to the month value in the date
+/** 
+    @param dt the date value; can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date
+
+    @return an integer corresponding to the month value in the date
+
+    @par Example:
+    @code
+my int $n = get_months($dt);
+    @endcode
+*/
+int get_months(date dt) [flags=CONSTANT] {
+   return dt->getMonth();
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+nothing get_months() [flags=RUNTIME_NOOP] {
+}
+
+//! Returns an integer corresponding to the day value in the date
+/** 
+    @param dt the date value; can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date
+
+    @return an integer corresponding to the day value in the date
+
+    @par Example:
+    @code
+my int $n = get_days($dt);
+    @endcode
+*/
+int get_days(date dt) [flags=CONSTANT] {
+   return dt->getDay();
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+nothing get_days() [flags=RUNTIME_NOOP] {
+}
+
+//! Returns an integer corresponding to the hour value in the date
+/** 
+    @param dt the date value; can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date
+
+    @return an integer corresponding to the hour value in the date
+
+    @par Example:
+    @code
+my int $n = get_hours($dt);
+    @endcode
+*/
+int get_hours(date dt) [flags=CONSTANT] {
+   return dt->getHour();
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+nothing get_hours() [flags=RUNTIME_NOOP] {
+}
+
+//! Returns an integer corresponding to the minute value in the date
+/** 
+    @param dt the date value; can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date
+
+    @return an integer corresponding to the minute value in the date
+
+    @par Example:
+    @code
+my int $n = get_minutes($dt);
+    @endcode
+*/
+int get_minutes(date dt) [flags=CONSTANT] {
+   return dt->getMinute();
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+nothing get_minutes() [flags=RUNTIME_NOOP] {
+}
+
+//! Returns an integer corresponding to the second value in the date
+/** 
+    @param dt the date value; can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date
+
+    @return an integer corresponding to the second value in the date
+
+    @par Example:
+    @code
+my int $n = get_seconds($dt);
+    @endcode
+*/
+int get_seconds(date dt) [flags=CONSTANT] {
+   return dt->getSecond();
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+nothing get_seconds() [flags=RUNTIME_NOOP] {
+}
+
+//! Returns an integer corresponding to the millisecond value in the date
+/** 
+    @param dt the date value; can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date
+
+    @return an integer corresponding to the millisecond value in the date
+
+    @par Example:
+    @code
+my int $n = get_milliseconds($dt);
+    @endcode
+*/
+int get_milliseconds(date dt) [flags=CONSTANT] {
+   return dt->getMillisecond();
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+nothing get_milliseconds() [flags=RUNTIME_NOOP] {
+}
+
+//! Returns an integer corresponding to the microsecond value in the date
+/** 
+    @param dt the date value; can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date
+
+    @return an integer corresponding to the microsecond value in the date
+
+    @par Example:
+    @code
+my int $n = get_microseconds($dt);
+    @endcode
+*/
+int get_microseconds(date dt) [flags=CONSTANT] {
+   return dt->getMicrosecond();
+}
+
+//! Returns midnight on the date passed (strips the time component on the new value)
+/** 
+    @param dt the date to process
+
+    @return midnight on the date passed (strips the time component on the new value)
+
+    @par Example:
+    @code
+my date $midnight = get_midnight($dt);
+    @endcode
+*/
+date get_midnight(date dt) [flags=CONSTANT] {
+   DateTimeNode *rv = new DateTimeNode(*dt);
+   rv->setTime(0, 0, 0);
+   return rv;
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+nothing get_midnight() [flags=RUNTIME_NOOP] {
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+*/
+int getDayNumber(date dt) [flags=CONSTANT] {
+   return dt->getDayNumber();
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+nothing getDayNumber() [flags=RUNTIME_NOOP] {
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+*/
+int getDayOfWeek(date dt) [flags=CONSTANT] {
+   return dt->getDayOfWeek();
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+nothing getDayOfWeek() [flags=RUNTIME_NOOP] {
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+*/
+int getISODayOfWeek(date dt) [flags=CONSTANT] {
+   int d = dt->getDayOfWeek();
+   return (!d ? 7 : d);
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+nothing getISODayOfWeek() [flags=RUNTIME_NOOP] {
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+*/
+hash getISOWeekHash(date dt) [flags=CONSTANT] {
+   int year, week, day;
+   dt->getISOWeek(year, week, day);
+   QoreHashNode *h = new QoreHashNode;
+   h->setKeyValue("year", new QoreBigIntNode(year), 0);
+   h->setKeyValue("week", new QoreBigIntNode(week), 0);
+   h->setKeyValue("day", new QoreBigIntNode(day), 0);
+
+   return h;
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+nothing getISOWeekHash() [flags=RUNTIME_NOOP] {
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+*/
+string getISOWeekString(date dt) [flags=CONSTANT] {
+   int year, week, day;
+   dt->getISOWeek(year, week, day);
+   QoreStringNode *str = new QoreStringNode();
+   str->sprintf("%04d-W%02d-%d", year, week, day);
+   return str;
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+nothing getISOWeekString() [flags=RUNTIME_NOOP] {
+}
+
+//! Retuns an @ref absolute_dates "absolute date value" for the <a href="http://en.wikipedia.org/wiki/ISO_week_date">ISO-8601 calendar week information</a> passed (year, week number, optional: weekday, where 1=Monday, 7=Sunday) in the current time zone
+/** Throws an exception if the arguments are invalid
+
+    @param year the ISO-8601 year (which for some special days does not always correspond to the actual calendar year)
+    @param week the ISO-8601 week number; if this argument is invalid, an \c ISO-8601-INVALID-WEEK exception is thrown
+    @param day the day of the week, where 1=Monday and 7=Sunday; if this argument is invalid, an \c ISO-8601-INVALID-DAY exception is thrown
+
+    @return an @ref absolute_dates "absolute date value" for the <a href="http://en.wikipedia.org/wiki/ISO_week_date">ISO-8601 calendar week information</a> passed (year, week number, optional: weekday, where 1=Monday, 7=Sunday) in the current time zone
+
+    @par Example:
+    @code
+my date $d = getDateFromISOWeek(2007, 3); # returns 2007-01-15
+    @endcode
+
+    @throw ISO-8601-INVALID-WEEK The week number is not valid for the given year
+    @throw ISO-8601-INVALID-DAY The day number is not between 1 (Monday) and 7 (Sunday) inclusive
+*/
+date getDateFromISOWeek(softint year, softint week, softint day = 1) [flags=RET_VALUE_ONLY] {
+   return DateTimeNode::getDateFromISOWeek(year, week, day, xsink);
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+*/
+int clock_getmillis() [flags=CONSTANT] {
+   int us;
+   int64 seconds = q_epoch_us(us);
+   return seconds * 1000 + us / 1000;
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+*/
+int clock_getnanos() [flags=CONSTANT] {
+   int ns;
+   int64 seconds = q_epoch_ns(ns);
+   return seconds * 1000000000ll + ns;
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+*/
+int clock_getmicros() [flags=CONSTANT] {
+   int us;
+   int64 seconds = q_epoch_us(us);
+   return seconds * 1000000ll + us;
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+*/
+date date_ms(int ms) [flags=CONSTANT] {
+   return new DateTimeNode(ms / 1000, (int)(ms % 1000));
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+nothing date_ms() [flags=RUNTIME_NOOP] {
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+*/
+date date_us(int us) [flags=CONSTANT] {
+   return DateTimeNode::makeAbsoluteLocal(currentTZ(), us / 1000000, (int)(us % 1000000));
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+*/
+int get_duration_seconds(date dt) [flags=CONSTANT] {
+   return dt->getRelativeSeconds();
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+*/
+int get_duration_milliseconds(date dt) [flags=CONSTANT] {  
+   return dt->getRelativeMilliseconds();
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+*/
+int get_duration_microseconds(date dt) [flags=CONSTANT] {
+   return dt->getRelativeMicroseconds();
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+*/
+hash date_info(date dt) [flags=CONSTANT] {
+   return date_info(*dt);
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+*/
+hash date_info() [flags=CONSTANT] {
+   int us;
+   int64 seconds = q_epoch_us(us);
+   DateTime d;
+   d.setDate(currentTZ(), seconds, us);
+   return date_info(d);
+}
+//@}

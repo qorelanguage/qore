@@ -27,6 +27,6 @@
 
 #include <time.h>
 
-DLLLOCAL void init_time_functions();
+DLLLOCAL void init_time_functions(QoreNamespace& ns);
 
 #endif
