@@ -496,6 +496,29 @@ public:
       return NT_NOTHING;
    }
 
+   DLLLOCAL const char* getValueTypeName() const {
+      assert(optimizedLocal());
+      //assert(vvt != VVT_Ref);
+
+      switch (vvt) {
+         /*
+         case VVT_Normal:
+            return get_type_name(val.value);
+         */
+
+         case VVT_Int:
+            return QoreBigIntNode::getStaticTypeName();
+
+         case VVT_Float:
+            return QoreFloatNode::getStaticTypeName();
+
+         case VVT_Bool:
+            return QoreBoolNode::getStaticTypeName();
+      }
+      assert(false);
+      return "err";
+   }
+
    DLLLOCAL AbstractQoreNode **getValuePtr(AutoVLock *vl, const QoreTypeInfo *&typeInfo, ObjMap &omap, ExceptionSink *xsink) {
       if (checkFinalized(xsink))
          return 0;

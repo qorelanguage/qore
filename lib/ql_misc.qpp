@@ -617,7 +617,7 @@ bool existsFunction(string name) [flags=CONSTANT] {
 //! Always returns \c True
 /** This function variant is included for backwards-compatibility
 
-    @par code a @ref call_reference "call reference" or @ref closure "closure":
+    @param c a @ref call_reference "call reference" or @ref closure "closure":
 
     @return always returns \c True
 */

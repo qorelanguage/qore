@@ -384,6 +384,7 @@ public:
    }
 
    const qore_type_t get_type() const;
+   const char* get_type_name() const;
 
    DLLLOCAL bool check_type(const qore_type_t t) const {
       return get_type() == t;

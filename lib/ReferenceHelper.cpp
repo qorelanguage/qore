@@ -145,6 +145,10 @@ struct qore_type_safe_ref_helper_priv_t : public LValueHelper {
    DLLLOCAL qore_type_t getType() const {
       return LValueHelper::get_type();
    }
+
+   DLLLOCAL const char* getTypeName() const {
+      return LValueHelper::get_type_name();
+   }
 };
 
 
@@ -192,5 +196,9 @@ QoreTypeSafeReferenceHelper::operator bool() const {
 
 qore_type_t QoreTypeSafeReferenceHelper::getType() const { 
    return priv->getType();
+}
+
+const char* QoreTypeSafeReferenceHelper::getTypeName() const { 
+   return priv->getTypeName();
 }
 

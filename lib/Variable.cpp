@@ -645,6 +645,10 @@ const qore_type_t LValueHelper::get_type() const {
    return lvt == LVT_OptLocalVar ? lv.v->getValueType() : *(lv.n->v) ? (*(lv.n->v))->getType() : NT_NOTHING; 
 }
 
+const char* LValueHelper::get_type_name() const {
+   return lvt == LVT_OptLocalVar ? lv.v->getValueTypeName() : ::get_type_name(*(lv.n->v)); 
+}
+
 int LValueHelper::assign(AbstractQoreNode *val, const char *desc) {
    // check type for assignment
    val = get_type_info()->acceptAssignment(desc, val, xsink);

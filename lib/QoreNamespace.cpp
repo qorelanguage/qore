@@ -1298,14 +1298,6 @@ void StaticSystemNamespace::init() {
    qoreNS->addConstant("CFLAGS",         new QoreStringNode(qore_cflags));
    qoreNS->addConstant("LDFLAGS",        new QoreStringNode(qore_ldflags));
 
-   // add constants for regex() function options
-   qoreNS->addConstant("RE_Caseless",    new QoreBigIntNode(PCRE_CASELESS));
-   qoreNS->addConstant("RE_DotAll",      new QoreBigIntNode(PCRE_DOTALL));
-   qoreNS->addConstant("RE_Extended",    new QoreBigIntNode(PCRE_EXTENDED));
-   qoreNS->addConstant("RE_MultiLine",   new QoreBigIntNode(PCRE_MULTILINE));
-   // note that the following constant is > 32-bits so it can't collide with PCRE constants
-   qoreNS->addConstant("RE_Global",      new QoreBigIntNode(QRE_GLOBAL));
-
    // type constants (as reported from <all>.typeCode())
    qoreNS->addConstant("NT_NOTHING",     new QoreBigIntNode(NT_NOTHING));
    qoreNS->addConstant("NT_INT",         new QoreBigIntNode(NT_INT));

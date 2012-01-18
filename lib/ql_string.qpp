@@ -100,20 +100,45 @@ static QoreListNode *split_intern(const char *pattern, qore_size_t pl, const cha
    return l;
 }
 
-static QoreStringNode *join_intern(const QoreStringNode *p0, const QoreListNode *l, int offset = 0) {
-   QoreStringNode *str = new QoreStringNode();
+static QoreStringNode *join_intern(const QoreStringNode *p0, const QoreListNode *l, int offset, ExceptionSink* xsink) {
+   SimpleRefHolder<QoreStringNode> str(new QoreStringNode(p0->getEncoding()));
 
    for (unsigned i = offset; i < l->size(); i++) {
       const AbstractQoreNode *p = l->retrieve_entry(i);
       if (p) {
-	 QoreStringValueHelper t(p);	 
+	 QoreStringValueHelper t(p, p0->getEncoding(), xsink);	 
+	 if (*xsink)
+	    return 0;
+
 	 str->concat(*t);
       }
       if (i < (l->size() - 1))
 	 str->concat(p0);
    }
-   return str;
+
+   return str.release();
 }
+
+/** @defgroup regex_constants Regular Expression Constants
+    The constants in this group can be combined with @ref bitwise_or_operator "binary or" to give regular expression options
+    for the regex(), regex_subst(), and regex_extract() functions.
+ */
+//@{
+//! Ignores case when matching regular expressions, equivalent to <tt>/i</tt>
+const RE_Caseless = PCRE_CASELESS;
+
+//! makes a dot (.) match a newline character, equivalent to /s
+const RE_DotAll = PCRE_DOTALL;
+
+//! ignores whitespace characters and enables comments prefixed by #, equivalent to <tt>/x</tt>
+const RE_Extended = PCRE_EXTENDED;
+
+//! makes start-of-line (^) or end-of-line ($) match after or before any newline in the subject string, equivalent to <tt>/m</tt>
+const RE_MultiLine = PCRE_MULTILINE;
+
+//! replace all matches globally in the string, equivalent to <tt>/g</tt>
+const RE_Global = QRE_GLOBAL;
+//@}
 
 /** @defgroup string_functions String Functions
     String functions
@@ -429,13 +454,19 @@ int brindex() [flags=RUNTIME_NOOP] {
    return -1;
 }
 
-//! 
+//! Gives the numeric value of the given byte in the string passed; if no string is passed or the offset is after the end of the string, -1 is returned
 /** 
+    @param str the string containing the byte to be retrieved
+    @param offset the byte offset of the byte to be retrieved
+
+    @return the numeric value of the given byte in the string passed; if the offset is after the end of the string or negative, -1 is returned
+
     @par Example:
     @code
+my int $i = ord($str);
     @endcode
 
-    @note ord() only works on byte offsets and gives byte values
+    @note ord() only works on byte offsets and returns byte values
  */
 int ord(softstring str, softint offset = 0) [flags=CONSTANT] {
    if (offset < 0 || (qore_size_t)offset >= str->strlen())
@@ -451,21 +482,22 @@ int ord() [flags=RUNTIME_NOOP] {
    return 0;
 }
 
-//! 
-/** 
+//! Returns a string containing a single ASCII character represented by the numeric value passed
+/** @param val the byte value of the character; only the least-significant byte is used
+
+    @return a string containing a single ASCII character represented by the numeric value passed
+
     @par Example:
     @code
+my string $char = chr(13);
     @endcode
  */
 string chr(softint val) [flags=CONSTANT] {
    return new QoreStringNode((char)val);
 }
 
-//! 
-/** 
-    @par Example:
-    @code
-    @endcode
+//! This function variant returns a string with a single ASCII NULL ('\\0'); it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** @return a string with a single ASCII NULL ('\\0')
  */
 string chr(any[doc] arg) [flags=NOOP] {
    return new QoreStringNode('\0');
@@ -477,30 +509,50 @@ string chr(any[doc] arg) [flags=NOOP] {
 nothing chr() [flags=RUNTIME_NOOP] {
 }
 
-//! 
+//! Splits a string into a list of components based on a separator string
 /** 
+    @param str the string to split; if this string has a different @ref character_encoding "character encoding" than \a sep, then it will be converted to <em>sep</em>'s @ref character_encoding "character encoding"
+    @param sep the separator string; if the separator string is not found in the string to split, then a list with only one element containing the entire string argument is returned
+    @param with_separator include the separator string in every element
+
+    @return a list of each component of a string separated by a separator string, with the separator removed; the separator pattern will not be included in the elements of the list returned unless the \a with_separator argument is \c True
+    
     @par Example:
     @code
+my list $list = split(":", "some:text:here"); # returns ("some", "text", "here")
     @endcode
+
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string arguments have different @ref character_encoding "character encodings" and an error occurs during encoding conversion
  */
-list split(string pattern, string sep, bool with_separator = False) [flags=RET_VALUE_ONLY] {
+list split(string str, string sep, bool with_separator = False) [flags=RET_VALUE_ONLY] {
    // convert pattern encoding to string if necessary
-   TempEncodingHelper temp(pattern, sep->getEncoding(), xsink);
+   TempEncodingHelper temp(str, sep->getEncoding(), xsink);
    if (*xsink)
       return 0;
    
    return split_intern(temp->getBuffer(), temp->strlen(), sep->getBuffer(), sep->strlen(), sep->getEncoding(), with_separator);
 }
 
-//! 
-/** 
+//! Splits a string into a list of components based on a separator string and a quote character
+/** The quote character can appear as the first part of a field, in which case it is assumed to designate the entire field. If instances of the quote character are found in the field preceded by a backquote character (\c "\"), then these quote characters are included as part of the field's text and not treated as quote characters
+
+    @param str the string to split; if this string has a different @ref character_encoding "character encoding" than \a sep, then it will be converted to <em>sep</em>'s @ref character_encoding "character encoding"
+    @param sep the separator string; if the separator string is not found in the string to split, then a list with only one element containing the entire string argument is returned
+    @param quote the quote character
+
+    @return a list of each component of a string separated by a separator string, with the separator and any enclosing quote characters removed
+
     @par Example:
     @code
+my list $list = split(",", "some,'text with spaces',here", "'"); # returns ("some", "text with spaces", "here")
     @endcode
+
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string arguments have different @ref character_encoding "character encodings" and an error occurs during encoding conversion
+    @throw SPLIT-ERROR field missing closing quote character; extra text following quoted field
  */
-list split(string pattern, string sep, string quote) [flags=RET_VALUE_ONLY] {
+list split(string str, string sep, string quote) [flags=RET_VALUE_ONLY] {
    // convert pattern encoding to string if necessary
-   TempEncodingHelper pat(pattern, sep->getEncoding(), xsink);
+   TempEncodingHelper pat(str, sep->getEncoding(), xsink);
    if (*xsink)
       return 0;
    
@@ -518,7 +570,7 @@ list split(string pattern, string sep, string quote) [flags=RET_VALUE_ONLY] {
    const char *tpattern = pat->getBuffer();
    qore_size_t pl = pat->strlen();
 
-   const char *str = ostr;
+   const char *ststr = ostr;
 
    // remaining byte length
    qore_size_t len = sl;
@@ -527,11 +579,11 @@ list split(string pattern, string sep, string quote) [flags=RET_VALUE_ONLY] {
       // see if the field begins with the quote string
       // and if the remaining string length is at least big enough for two quote strings
       if ((tquote->strlen() * 2) <= len
-	  && !memcmp(tquote->getBuffer(), str, tquote->strlen())) {
+	  && !memcmp(tquote->getBuffer(), ststr, tquote->strlen())) {
 	 // advance pointer past quote
-	 str += tquote->strlen();
+	 ststr += tquote->strlen();
 	 // find next quote character, ignore escaped quotes
-	 const char *tstr = str;
+	 const char *tstr = ststr;
 	 const char *p;
 	 while (true) {
 	    p = memstr(tstr, tquote->getBuffer(), tquote->strlen(), len);
@@ -546,48 +598,54 @@ list split(string pattern, string sep, string quote) [flags=RET_VALUE_ONLY] {
 	    tstr = p + 1;
 	 }
 	 // optimistically add the field to the list
-	 l->push(new QoreStringNode(str, p - str, sep->getEncoding()));
+	 l->push(new QoreStringNode(ststr, p - ststr, sep->getEncoding()));
 
-	 str = p + tquote->strlen();
+	 ststr = p + tquote->strlen();
 	 // see if we are either at the end of the string
-	 len = sl + (ostr - str);
+	 len = sl + (ostr - ststr);
 
 	 if (!len)
 	    break;
 
 	 // or a separator string comes next
-	 if (len < pl || memcmp(tpattern, str, pl)) {
+	 if (len < pl || memcmp(tpattern, ststr, pl)) {
 	    xsink->raiseException("SPLIT-ERROR", "separator pattern '%s' does not follow end quote in field "QLLD, tpattern, l->size());
 	    return 0;
 	 }
-	 str += pl;
+	 ststr += pl;
 	 len -= pl;
 	 continue;
       }
       
-      const char *p = memstr(str, tpattern, pl, sl - (str - ostr));
+      const char *p = memstr(ststr, tpattern, pl, sl - (ststr - ostr));
       if (!p) {
-	 if (str != ostr)
-	    l->push(new QoreStringNode(str, sl - (str - ostr), sep->getEncoding()));
+	 if (ststr != ostr)
+	    l->push(new QoreStringNode(ststr, sl - (ststr - ostr), sep->getEncoding()));
 	 break;
       }
 
-      l->push(new QoreStringNode(str, p - str, sep->getEncoding()));
-      len -= (p - str);
-      str = p + pl;      
+      l->push(new QoreStringNode(ststr, p - ststr, sep->getEncoding()));
+      len -= (p - ststr);
+      ststr = p + pl;      
    }
    
    return l.release();
 }
 
-//! 
+//! Returns a list of binary objects representing each component of the binary object separated by the bytes identified by the separator argument, with the separator removed
 /** 
+    @param data the binary object to separate
+    @param sep the bytes that separate the fields
+
+    @return a list of binary objects representing each component of the binary object separated by the bytes identified by the separator argument, with the separator removed
+    
     @par Example:
     @code
+my list $l = split($bin, $sep);
     @endcode
  */
-list split(binary pattern, binary sep) [flags=CONSTANT] {
-   return split_intern((const char*)pattern->getPtr(), pattern->size(), (const char*)sep->getPtr(), sep->size(), 0);
+list split(binary data, binary sep) [flags=CONSTANT] {
+   return split_intern((const char*)data->getPtr(), data->size(), (const char*)sep->getPtr(), sep->size(), 0);
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
@@ -597,10 +655,15 @@ list split() [flags=RUNTIME_NOOP] {
    return new QoreListNode;
 }
 
-//! 
+//! Returns a string describing the character encoding of the string argument passed
 /** 
+    @param str the string to get the encoding for
+
+    @return a string describing the character encoding of the string argument passed
+
     @par Example:
     @code
+my string $enc = get_encoding($str);
     @endcode
  */
 string get_encoding(string str) [flags=CONSTANT] {
@@ -613,11 +676,19 @@ string get_encoding(string str) [flags=CONSTANT] {
 nothing get_encoding() [flags=RUNTIME_NOOP] {
 }
 
-//! 
+//! Performs explicit string character encoding conversions
 /** 
+    @param str the string to convert
+    @param encoding the encoding for the return value
+
+    @return a string corresponding to the string argument converted to the encoding given
+
     @par Example:
     @code
+my string $enc = convert_encoding($str, "iso-8859-1");
     @endcode
+
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string arguments have different @ref character_encoding "character encodings" and an error occurs during encoding conversion
  */
 string convert_encoding(string str, string encoding) [flags=RET_VALUE_ONLY] {
    return str->convertEncoding(QEM.findCreate(encoding), xsink);
@@ -629,10 +700,17 @@ string convert_encoding(string str, string encoding) [flags=RET_VALUE_ONLY] {
 nothing convert_encoding() [flags=RUNTIME_NOOP] {
 }
 
-//! 
-/** 
+//! Returns the first string argument tagged with the character encoding given as the second argument; does not actually change the string data
+/** Use only in the case that a string is tagged with the wrong encoding, for example, if a string from a @ref Qore::File "File" object has a different encoding than the @ref Qore::File "File" object.
+
+    @param str the string to be returned
+    @param encoding the encoding to tag the return value with
+
+    @return the first string argument tagged with the character encoding given as the second argument; does not actually change the string data
+
     @par Example:
     @code
+my string $nstr = force_encoding($str, "iso-8859-1");
     @endcode
  */
 string force_encoding(string str, string encoding) [flags=CONSTANT] {
@@ -645,11 +723,25 @@ string force_encoding(string str, string encoding) [flags=CONSTANT] {
 nothing force_encoding() [flags=RUNTIME_NOOP] {
 }
 
-//! 
-/** 
+//! Returns \c True if the regular expression matches the string passed, otherwise returns \c False
+/** Strings are converted to UTF-8 for pattern-matching; if any invalid encodings are encountered, an ENCODING-CONVERSION-ERROR is raised
+
+    @param str the string to test
+    @param regex the regular expression pattern
+    @param options regular expression options; see @ref regex_constants for possible values
+
+    @return \c True if the regular expression matches the string passed, otherwise returns \c False
+
     @par Example:
     @code
+my bool $b = regex("hello", "^hel"); # returns True
     @endcode
+
+    @throw REGEX-COMPILATION-ERROR There was an error compiling the regular expression
+    @throw REGEX-OPTION-ERROR the option argument contains invalid option bits
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if an encoding error is encountered when converting the given strings to UTF-8
+
+    @see @ref qore_regex for more information about regular expression support in Qore
  */
 bool regex(string str, string regex, int options = 0) [flags=RET_VALUE_ONLY] {
    QoreRegexNode qr(*regex, options, xsink);
@@ -665,11 +757,28 @@ bool regex(string str, string regex, int options = 0) [flags=RET_VALUE_ONLY] {
 nothing regex() [flags=RUNTIME_NOOP] {
 }
 
-//! 
-/** 
+//! Returns a string with patterns substituted according to the arguments passed
+/** Strings are converted to UTF-8 for pattern-matching; if any invalid encodings are encountered, an ENCODING-CONVERSION-ERROR is raised
+
+    @param str the source string for substitution
+    @param regex the regular expression pattern string
+    @param subst the pattern for substitution; use \c $1, \c $2, etc for patterns in parentheses in the \a regex argument
+    @param options regular expression options; see @ref regex_constants for possible values
+
+    @return a string with patterns substituted according to the arguments passed
+
     @par Example:
     @code
+regex_subst("hello there", "^(.*) there$", "you $1"); @returns "you hello"
     @endcode
+
+    @throw REGEX-COMPILATION-ERROR There was an error compiling the regular expression
+    @throw REGEX-OPTION-ERROR the option argument contains invalid option bits
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if an encoding error is encountered when converting the given strings to UTF-8
+
+    @see 
+    - replace()
+    - @ref qore_regex for more information about regular expression support in Qore
  */
 string regex_subst(string str, string regex, string subst, int options = 0) [flags=RET_VALUE_ONLY] {
    bool global;
@@ -695,11 +804,25 @@ string regex_subst(string str, string regex, string subst, int options = 0) [fla
 nothing regex_subst() [flags=RUNTIME_NOOP] {
 }
 
-//! 
-/** 
+//! Returns a list of substrings in a string based on matching patterns defined by a regular expression
+/** Strings are converted to UTF-8 for pattern-matching; if any invalid encodings are encountered, an ENCODING-CONVERSION-ERROR is raised
+
+    @param str the string to process
+    @param regex the regular expression to use for matching, elements should be given in parentheses
+    @param options regular expression options; see @ref regex_constants for possible values
+
+    @return a list of substrings in a string based on matching patterns defined by a regular expression or @ref nothing if no match was made
+
     @par Example:
     @code
+my *list $rv = regex_extract("ns:element", "(\\w+):(\\w+)");
     @endcode
+
+    @throw REGEX-COMPILATION-ERROR There was an error compiling the regular expression
+    @throw REGEX-OPTION-ERROR the option argument contains invalid option bits
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if an encoding error is encountered when converting the given strings to UTF-8
+
+    @see @ref qore_regex for more information about regular expression support in Qore
  */
 *list regex_extract(string str, string regex, int options = 0) [flags=RET_VALUE_ONLY] {
    QoreRegexNode qr(*regex, options, xsink);
@@ -715,11 +838,24 @@ nothing regex_subst() [flags=RUNTIME_NOOP] {
 nothing regex_extract() [flags=RUNTIME_NOOP] {
 }
 
-//! 
+//! Replaces all occurrences of a substring in a string with another string
 /** 
+    @param str the string to process
+    @param source the substring to replace; if this string has a different @ref character_encoding "character encoding" than \a str, then it will be converted to <em>str</em>'s @ref character_encoding "character encoding"
+    @param target the replacement value for \a source; if this string has a different @ref character_encoding "character encoding" than \a str, then it will be converted to <em>str</em>'s @ref character_encoding "character encoding"
+
+    @return a string with all occurrences of \a source replaced with \a target
+
     @par Example:
     @code
+my string $str = replace("hello there", "there", "you"); # returns "hello you"
     @endcode
+
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string arguments have different @ref character_encoding "character encodings" and an error occurs during encoding conversion
+
+    @note no regular expressions are used in this function, only direct replacements
+
+    @see regex_subst()
  */
 string replace(string str, string source, string target) [flags=RET_VALUE_ONLY] {
    const QoreEncoding *ccs = str->getEncoding();
@@ -763,24 +899,39 @@ string replace(string str, string source, string target) [flags=RET_VALUE_ONLY] 
 nothing replace() [flags=RUNTIME_NOOP] {
 }
 
-//! 
+//! Creates a string from separator string and a list of arguments
 /** 
+    @param str the separator string
+    @param ... the list of arguments to join; each argument will be converted to a string if necessary to be concatenated to the return value string; additionally if any string argument has a different @ref character_encoding "character encoding" than \a str, then it will be converted to <em>str</em>'s @ref character_encoding "character encoding" before concatentation to the return value string
+
+    @return a string created from a list and a seperator string, each element in the list will be present in the return value separated by the separator string
+
     @par Example:
     @code
+my string $str = join(":", "a", "b", "c"); # returns "a:b:c"
     @endcode
+
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string arguments have different @ref character_encoding "character encodings" and an error occurs during encoding conversion
  */
-string join(string str, ...) [flags=CONSTANT] {
-   return join_intern(str, args, 1);
+string join(string str, ...) [flags=RET_VALUE_ONLY] {
+   return join_intern(str, args, 1, xsink);
 }
 
-//! 
+//! Creates a string from separator string and a list of arguments
 /** 
+    @param str the separator string
+    @param l the list of arguments to join; each argument will be converted to a string if necessary to be concatenated to the return value string; additionally if any string argument has a different @ref character_encoding "character encoding" than \a str, then it will be converted to <em>str</em>'s @ref character_encoding "character encoding" before concatentation to the return value string
+
+    @return a string created from a list and a seperator string, each element in the list will be present in the return value separated by the separator string
     @par Example:
     @code
+my string $str = join(":", ("a", "b", "c")); # returns "a:b:c"
     @endcode
+
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string arguments have different @ref character_encoding "character encodings" and an error occurs during encoding conversion
  */
-string join(string str, list l) [flags=CONSTANT] {
-   return join_intern(str, l);
+string join(string str, list l) [flags=RET_VALUE_ONLY] {
+   return join_intern(str, l, 0, xsink);
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
@@ -789,11 +940,19 @@ string join(string str, list l) [flags=CONSTANT] {
 nothing join() [flags=RUNTIME_NOOP] {
 }
 
-//! 
-/** 
+//! Removes the trailing end-of-line indicator (\c "\n" or \c "\r\n") from a string and returns the new string (also see the @ref chomp "chomp operator")
+/** If no EOL indicator is present in the string, this function simply returns the original string unmodified.
+
+    @param str the string to process
+
+    @return the new string with any end-of-line character(s) removed
+
     @par Example:
     @code
+my string $line = chomp("hello\n"); # returns "hello"
     @endcode
+
+    @see the @ref chomp "chomp operator"
  */
 string chomp(string str) [flags=CONSTANT] {
    QoreStringNode *rv = str->copy();
@@ -801,13 +960,19 @@ string chomp(string str) [flags=CONSTANT] {
    return rv;
 }
 
-//! 
-/** 
+//! Removes the trailing end-of-line indicator (\c "\n" or \c "\r\n") from a reference to a string and returns the new string (also see the @ref chomp "chomp operator")
+/** This variant accepts variable references, in which case it will modify the string in place and also return the modified string
+
+    @param str a reference to an lvalue continaing the string value to process; if the lvalue does not have a string value @ref nothing is returned
+
+    @return the string as modified
+
     @par Example:
     @code
+chomp(\$str);
     @endcode
  */
-string chomp(reference str) {
+*string chomp(reference str) {
    QoreTypeSafeReferenceHelper ref(str, xsink);
    if (!ref || ref.getType() != NT_STRING)
       return 0;
@@ -826,11 +991,20 @@ string chomp(reference str) {
 nothing chomp() [flags=RUNTIME_NOOP] {
 }
 
-//! 
-/** 
+//! Removes byte characters from the start and end of a string and returns the new string (also see the @ref trim "trim operator")
+/** By default (if the second argument is omitted or passed as an empty string) the following whitespace byte characters are removed: \c " ", \c "\n", \c "\r", \c "\t", \c "\v" (vertical tab, ASCII 11), and \c "\0" (null character). To trim other characters, pass a string as the second argument specifying the byte characters to be removed.
+
+    @param str the string to trim
+    @param chars the characters to trim from the start and end of the string (default:  \c " ", \c "\n", \c "\r", \c "\t", \c "\v" (vertical tab, ASCII 11), and \c "\0" (null character))
+
+    @return the trimmed string
+
     @par Example:
     @code
+my string $tstr = trim($str);
     @endcode
+
+    @bug it is not possible to trim multi-byte characters from strings using this function; each byte is treated as a character.  No encoding conversions are done even if the \a chars argument has a different @ref character_encoding "character encoding" than the \a str argument.
  */
 string trim(string str, *string chars) [flags=CONSTANT] {
    const char *tchars = chars && chars->strlen() ? chars->getBuffer() : 0;
@@ -839,13 +1013,24 @@ string trim(string str, *string chars) [flags=CONSTANT] {
    return rv;
 }
 
-//! 
-/** 
+//! Removes byte characters from the start and end of a reference to an lvalue containing a string and returns string after processing (also see the @ref trim "trim operator")
+/** By default (if the second argument is omitted or passed as an empty string) the following whitespace byte characters are removed: \c " ", \c "\n", \c "\r", \c "\t", \c "\v" (vertical tab, ASCII 11), and \c "\0" (null character). To trim other characters, pass a string as the second argument specifying the byte characters to be removed.
+
+    This variant accepts variable references, in which case it will modify the string in place and also return the modified string.
+
+    @param str a reference to an lvalue continaing the string value to process; if the lvalue does not have a string value @ref nothing is returned
+    @param chars the characters to trim from the start and end of the string (default:  \c " ", \c "\n", \c "\r", \c "\t", \c "\v" (vertical tab, ASCII 11), and \c "\0" (null character))
+
+    @return the trimmed string
+
     @par Example:
     @code
+trim(\$str);
     @endcode
+
+    @bug it is not possible to trim multi-byte characters from strings using this function; each byte is treated as a character.  No encoding conversions are done even if the \a chars argument has a different @ref character_encoding "character encoding" than the \a str argument.
  */
-any trim(reference str, *string chars) {
+*string trim(reference str, *string chars) {
    QoreTypeSafeReferenceHelper ref(str, xsink);
    if (!ref || ref.getType() != NT_STRING)
       return 0;
@@ -865,14 +1050,23 @@ any trim(reference str, *string chars) {
 nothing trim() [flags=RUNTIME_NOOP] {
 }
 
-//! 
+//! Returns a truncated string with no more than the given number of bytes and optionally converted to a specific @ref character_encoding "character encoding"
 /** 
+    @param str the string to truncate
+    @param len the maximum byte length of the string
+    @param encoding if given, the string returned will be returned in the given encoding, otherwise the encoding of \ str is used for the return value
+
+    @return the string truncated to be no longer than the given byte length in the @ref character_encoding "character encoding" given (or in the original string's @ref character_encoding "character encoding" if no \a encoding argument was passed to the function); if the string has a multi-byte @ref character_encoding "character encoding", this function will guarantee that the returned string ends on a valid character (in this case the byte length of the string could be less than the limit given)
+
     @par Example:
     @code
+my string $column = trunc_str($str, 80, $dsp.getOSEncoding());
     @endcode
+
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if an explicit @ref character_encoding "character encoding" was given and an error occurs during encoding conversion
  */
 string trunc_str(softstring str, softint len, *string encoding) [flags=RET_VALUE_ONLY] {
-   const QoreEncoding *enc = encoding ? QEM.findCreate(encoding) : QCS_DEFAULT;
+   const QoreEncoding *enc = encoding ? QEM.findCreate(encoding) : str->getEncoding();
    if (len <= 0)
       return new QoreStringNode(enc);
 
@@ -902,22 +1096,27 @@ string trunc_str(softstring str, softint len, *string encoding) [flags=RET_VALUE
    return new QoreStringNode(tmp->getBuffer(), sl, enc);
 }
 
-//! 
+//! Returns a new string with a repeated string element and optionally removing trailing characters
 /** 
+    @param str the string element to repeat in the return value string
+    @param smul the number of times the element should repeat
+    @param offset the number of characters that should be removed from the end of the string after processing
+
     @par Example:
     @code
+my string $ret = strmul("%s,", 3, 1); # returns "%s,%s,%s"
     @endcode
 
-    @throw STRMUL-ERROR
+    @throw STRMUL-ERROR \a offset is < 0 or \a smul < 1
  */
 string strmul(softstring str, softint smul, *softint offset) [flags=RET_VALUE_ONLY] {
    if (offset < 0) {
-      xsink->raiseException("STRMUL-ERROR", "Offset argument has to be 0 or greater than 0; value: "QLLD, offset);
+      xsink->raiseException("STRMUL-ERROR", "Offset argument has to be >= 0; value: "QLLD, offset);
       return 0;
    }
    
    if (smul < 1) {
-      xsink->raiseException("STRMUL-ERROR", "Multiple argument has to be greater than 0; value: "QLLD, smul);
+      xsink->raiseException("STRMUL-ERROR", "Multiple argument has to be > 0; value: "QLLD, smul);
       return 0;
    }
 

@@ -89,6 +89,11 @@ public:
     */
    DLLEXPORT qore_type_t getType() const;
 
+   //! returns the type name of the reference's value
+   /** @return the type name of the reference's value
+    */
+   DLLEXPORT const char* getTypeName() const;
+
    //! returns a pointer to the value with a unique reference count (so it can be updated in place), assumes the reference is valid
    /** @param xsink required for the call to AbstractQoreNode::deref()
        @returns a pointer to the reference's value with a unique reference count (so it can be modified), or 0 if the value was 0 to start with or if a Qore-language exception was raised
