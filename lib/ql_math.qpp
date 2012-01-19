@@ -1,0 +1,614 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/*
+  ql_math.qpp
+
+  Qore Programming Language
+
+  Copyright 2003 - 2011 David Nichols
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
+#include <qore/Qore.h>
+#include <qore/intern/ql_math.h>
+
+#include <math.h>
+#include <stdlib.h>
+#include <stdio.h>
+
+static double minus_infinity() {
+#ifdef INFINITY
+   return -INFINITY;
+#else
+   // returns -infinity
+   return log10((double)0.0);
+#endif
+}
+
+/** @defgroup math_functions Math Functions
+    Math functions
+*/
+//@{
+
+//! Returns a floating-point number equal to the closest integer to the argument passed; numbers halfway between two integers are arounded away from zero
+/** @par Platform Availability
+    @ref Qore::Option::HAVE_ROUND
+
+    @param f a number to round
+    
+    @return a floating-point number equal to the closest integer to the argument passed; numbers halfway between two integers are arounded away from zero
+
+    @par Example:
+    @code
+    @endcode
+ */
+float round(softfloat f) [flags=CONSTANT] {
+#ifdef HAVE_ROUND
+   return round(f);
+#else
+   missing_function_error("round", "ROUND", xsink);
+   return 0;
+#endif
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+float round() [flags=RUNTIME_NOOP] {
+   return 0;
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+ */
+float ceil(softfloat f) [flags=CONSTANT] {
+   return ceil(f);
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+float ceil() [flags=RUNTIME_NOOP] {
+   return 0;
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+ */
+float floor(softfloat f) [flags=CONSTANT] {
+   return floor(f);
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+float floor() [flags=RUNTIME_NOOP] {
+   return 0;
+}
+
+//! Returns a number raised to the power of another number
+/** 
+    @oaram x the number to raise to the power of \a y
+    @param y the power to raise \a x to
+
+    @return a number raised to the power of another number
+
+    @par Example:
+    @code
+my float $z = pow($x, $y);
+    @endcode
+
+    @throw DIVISION-BY-ZERO in pow(x, y), y must be a non-negative value
+    @throw INVALID-POW-ARGUMENTS in pow(x, y), x cannot be negative when y is not an integer value
+ */
+float pow(softfloat x = 0.0, softfloat y = 0.0) [flags=CONSTANT] {
+   if (y < 0) {
+      xsink->raiseException("DIVISION-BY-ZERO", "pow(x, y) y must be a non-negative value");
+      return 0;
+   }
+   if (x < 0 && y != ceil(y)) {
+      xsink->raiseException("INVALID-POW-ARGUMENTS", "pow(x, y) x cannot be negative when y is not an integer value");
+      return 0;
+   }
+
+   return pow(x, y);
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+ */
+int abs(int i) [flags=CONSTANT] {
+   return i < 0 ? -i : i;
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+ */
+float abs(softfloat f) [flags=CONSTANT] {
+   return fabs(f);
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+float abs() [flags=RUNTIME_NOOP] {
+   return 0;
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+ */
+float hypot(softfloat x, softfloat y) [flags=CONSTANT] {
+   return hypot(x, y);
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+float hypot() [flags=RUNTIME_NOOP] {
+   return 0;
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+ */
+float sqrt(softfloat f) [flags=CONSTANT] {
+   return sqrt(f);
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+float sqrt() [flags=RUNTIME_NOOP] {
+   return 0;
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+ */
+float cbrt(softfloat f) [flags=CONSTANT] {
+   return cbrt(f);
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+float cbrt() [flags=RUNTIME_NOOP] {
+   return 0;
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+ */
+float sin(softfloat f) [flags=CONSTANT] {
+   return sin(f);
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+float sin() [flags=RUNTIME_NOOP] {
+   return 0;
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+ */
+float cos(float f) [flags=CONSTANT] {
+   return cos(f);
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+float cos() [flags=RUNTIME_NOOP] {
+   return 1;
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+ */
+float tan(softfloat f) [flags=CONSTANT] {
+   return tan(f);
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+float tan() [flags=RUNTIME_NOOP] {
+   return 0;
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+ */
+float asin(softfloat f) [flags=CONSTANT] {
+   return asin(f);
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+float asin() [flags=RUNTIME_NOOP] {
+   return 0;
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+ */
+float acos(softfloat f) [flags=CONSTANT] {
+   return acos(f);
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+ */
+float atan(softfloat f) [flags=CONSTANT] {
+   return atan(f);
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+float atan() [flags=RUNTIME_NOOP] {
+   return 0;
+}
+
+//! Returns the principal value of the arc tangent of y/x, using the signs of the two arguments to determine the quadrant of the result
+/** 
+    @param y the y value for the function
+    @param x the x value for the function
+
+    @return the principal value of the arc tangent of y/x, using the signs of the two arguments to determine the quadrant of the result
+
+    @par Example:
+    @code
+my float $f = atan2($y, $x);
+    @endcode
+ */
+float atan2(softfloat y, softfloat x) [flags=CONSTANT] {
+   return atan2(y, x);
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+float atan2() [flags=RUNTIME_NOOP] {
+   return 0;
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+ */
+float sinh(softfloat f) [flags=CONSTANT] {
+   return sinh(f);
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+float sinh() [flags=RUNTIME_NOOP] {
+   return 0;
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+ */
+float cosh(softfloat f) [flags=CONSTANT] {
+   return cosh(f);
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+float cosh() [flags=RUNTIME_NOOP] {
+   return 1;
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+ */
+float tanh(softfloat f) [flags=CONSTANT] {
+   return tanh(f);
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+float tanh() [flags=RUNTIME_NOOP] {
+   return 0;
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+ */
+float nlog(softfloat f) [flags=CONSTANT] {
+   return log(f);
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+float nlog() [flags=RUNTIME_NOOP] {
+   return minus_infinity();
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+ */
+float log10(softfloat f) [flags=CONSTANT] {
+   return log10(f);
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+float log10() [flags=RUNTIME_NOOP] {
+   return minus_infinity();
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+ */
+float log1p(softfloat f) [flags=CONSTANT] {
+   return log1p(f);
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+float log1p() [flags=RUNTIME_NOOP] {
+   return 0;
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+ */
+float logb(softfloat f) [flags=CONSTANT] {
+   return logb(f);
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+float logb() [flags=RUNTIME_NOOP] {
+   return minus_infinity();
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+ */
+float exp(softfloat f) [flags=CONSTANT] {
+   return exp(f);
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+float exp() [flags=RUNTIME_NOOP] {
+   return 1;
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+ */
+float exp2(softfloat f) [flags=CONSTANT] {
+#ifdef HAVE_EXP2
+   return exp2(f);
+#else
+   return pow(2, f);
+#endif
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+float exp2() [flags=RUNTIME_NOOP] {
+   return 1;
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+ */
+float expm1(softfloat f) [flags=CONSTANT] {
+   return expm1(f);
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+float expm1() [flags=RUNTIME_NOOP] {
+   return 0;
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+ */
+string format_number(string fmt, softfloat num) [flags=CONSTANT] {
+   int decimals = 0, neg = 1, len;
+   int64 tr, bi, mi, th, val;
+   char thousands_sep, decimal_sep = '.', chr[40], str[40], dec[20];
+
+   len = fmt->strlen();
+   if ((len != 1) && (len != 3))
+      return new QoreStringNode;
+
+   thousands_sep = fmt->getBuffer()[0];
+   if (len == 3) {
+      decimal_sep = fmt->getBuffer()[1];
+      decimals = atoi(fmt->getBuffer() + 2);
+   }
+
+   if (num < 0) {
+      neg = -1;
+      num *= -1;
+   }
+   val = (int64)num;
+   if (len == 3) {
+      num -= (double)val;
+      sprintf(chr, "%%.%df", decimals);
+      sprintf(dec, chr, num);
+   }
+   tr = val / 1000000000000ll;
+   val -= tr * 1000000000000ll;
+   bi = val / 1000000000ll;
+   val -= bi * 1000000000ll;
+   mi = val / 1000000ll;
+   val -= mi * 1000000ll;
+   th = val / 1000ll;
+   val -= th * 1000ll;
+   //printd(0, "tr=%lld bi=%lld mi=%lld th=%lld val=%lld\n", tr, bi, mi, th, val);
+
+   if (tr) {
+      if (len == 3)
+	 //sprintf(str, "%lld%c%03lld%c%03lld%c%03lld%c%03lld%c%s", 
+	 sprintf(str, QLLD "%c" QLLDx(03) "%c" QLLDx(03) "%c" QLLDx(03) "%c" QLLDx(03) "%c%s", 
+		 neg * tr, thousands_sep,
+		 bi, thousands_sep, 
+		 mi, thousands_sep,
+		 th, thousands_sep,
+		 val, decimal_sep,
+		 dec + 2);
+      else
+	 //sprintf(str, "%lld%c%03lld%c%03lld%c%03lld%c%03lld", 
+	 sprintf(str, QLLD "%c" QLLDx(03) "%c" QLLDx(03) "%c" QLLDx(03) "%c" QLLDx(03), 
+		 neg * tr, thousands_sep,
+		 bi, thousands_sep, 
+		 mi, thousands_sep,
+		 th, thousands_sep,
+		 val);
+   }
+   else if (bi)
+      if (len == 3)
+	 //sprintf(str, "%lld%c%03lld%c%03lld%c%03lld%c%s", 
+	 sprintf(str, QLLD "%c" QLLDx(03) "%c" QLLDx(03) "%c" QLLDx(03) "%c%s", 
+		 neg * bi, thousands_sep,
+		 mi, thousands_sep,
+		 th, thousands_sep,
+		 val, decimal_sep,
+		 dec + 2);
+      else
+	 //sprintf(str, "%lld%c%03lld%c%03lld%c%03lld", 
+	 sprintf(str, QLLD "%c" QLLDx(03) "%c" QLLDx(03) "%c" QLLDx(03), 
+		 neg * bi, thousands_sep, mi, thousands_sep, 
+		 th, thousands_sep, val);
+   else if (mi)
+      if (len == 3)
+	 //sprintf(str, "%lld%c%03lld%c%03lld%c%s", neg * mi, thousands_sep,
+	 sprintf(str, QLLD "%c" QLLDx(03) "%c" QLLDx(03) "%c%s", neg * mi, thousands_sep,
+		 th, thousands_sep, val, decimal_sep, dec + 2);
+      else
+	 //sprintf(str, "%lld%c%03lld%c%03lld", neg * mi, thousands_sep,
+	 sprintf(str, QLLD "%c" QLLDx(03) "%c" QLLDx(03), neg * mi, thousands_sep,
+		 th, thousands_sep, val);
+   else if (th)
+      if (len == 3)
+	 //sprintf(str, "%lld%c%03lld%c%s", neg * th, thousands_sep,
+	 sprintf(str, QLLD "%c" QLLDx(03) "%c%s", neg * th, thousands_sep,
+		 val, decimal_sep,
+		 dec + 2);
+      else
+	 //sprintf(str, "%lld%c%03lld", neg * th, thousands_sep, val);
+	 sprintf(str, QLLD "%c" QLLDx(03), neg * th, thousands_sep, val);
+   else
+      if (len == 3)
+	 //sprintf(str, "%lld%c%s", neg * val, decimal_sep, &dec[2]);
+	 sprintf(str, QLLD "%c%s", neg * val, decimal_sep, &dec[2]);
+      else
+	 //sprintf(str, "%lld", neg * val);
+	 sprintf(str, QLLD, neg * val);
+
+   return new QoreStringNode(str);
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+nothing format_number() [flags=RUNTIME_NOOP] {
+   return 0;
+}
+//@}

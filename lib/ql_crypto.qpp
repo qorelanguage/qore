@@ -952,7 +952,7 @@ string cast5_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv
 
 //! Encrypts data using the <a href="http://en.wikipedia.org/wiki/Cipher_block_chaining#Cipher-block_chaining_.28CBC.29">Cipher Block Chaining</a> function for RSA's <a href="http://en.wikipedia.org/wiki/RC5">RC2(tm) algorithm</a> using a variable-length key and an optional 8-byte initialization vector
 /** @par Platform Availability:
-    @ref Qore::HAVE_RC5
+    @ref Qore::Option::HAVE_RC5
 
     @param data the data to be encrypted
     @param key a variable-width encryption key
@@ -985,7 +985,7 @@ binary rc5_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::Defau
 
 //! Decrypts data using the <a href="http://en.wikipedia.org/wiki/Cipher_block_chaining#Cipher-block_chaining_.28CBC.29">Cipher Block Chaining</a> function for RSA's <a href="http://en.wikipedia.org/wiki/RC5">RC2(tm) algorithm</a> using a variable-length key and an optional 8-byte initialization vector
 /** @par Platform Availability:
-    @ref Qore::HAVE_RC5
+    @ref Qore::Option::HAVE_RC5
 
     @param data the data to be decrypted
     @param key a variable-width decryption key
@@ -1018,7 +1018,7 @@ binary rc5_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = Qore::Def
 
 //! Decrypts data using the <a href="http://en.wikipedia.org/wiki/Cipher_block_chaining#Cipher-block_chaining_.28CBC.29">Cipher Block Chaining</a> function for RSA's <a href="http://en.wikipedia.org/wiki/RC5">RC2(tm) algorithm</a> using a variable-length key and an optional 8-byte initialization vector
 /** @par Platform Availability:
-    @ref Qore::HAVE_RC5
+    @ref Qore::Option::HAVE_RC5
 
     @param data the data to be decrypted
     @param key a variable-width decryption key
@@ -1055,7 +1055,7 @@ string rc5_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv =
 //! Returns the <a href="http://en.wikipedia.org/wiki/MD2_(cryptography)">MD2 message digest</a> of the supplied argument as a hex string
 /** 
     @par Platform Availability:
-    @ref Qore::HAVE_MD2
+    @ref Qore::Option::HAVE_MD2
 
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
 
@@ -1179,7 +1179,7 @@ string SHA1(data[doc] data) {
 //! Returns the SHA-224 message digest (a variant of <a href="http://en.wikipedia.org/wiki/SHA-2">SHA-2</a>) of the supplied argument as a hex string
 /** 
     @par Platform Availability:
-    @ref Qore::HAVE_SHA224
+    @ref Qore::Option::HAVE_SHA224
 
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
 
@@ -1210,7 +1210,7 @@ string SHA224(data[doc] data) {
 //! Returns the SHA-256 message digest (a variant of <a href="http://en.wikipedia.org/wiki/SHA-2">SHA-2</a>) of the supplied argument as a hex string
 /** 
     @par Platform Availability:
-    @ref Qore::HAVE_SHA256
+    @ref Qore::Option::HAVE_SHA256
 
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
 
@@ -1241,7 +1241,7 @@ string SHA256(data[doc] data) {
 //! Returns the SHA-384 message digest (a variant of <a href="http://en.wikipedia.org/wiki/SHA-2">SHA-2</a>) of the supplied argument as a hex string
 /** 
     @par Platform Availability:
-    @ref Qore::HAVE_SHA384
+    @ref Qore::Option::HAVE_SHA384
 
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
 
@@ -1272,7 +1272,7 @@ string SHA384(data[doc] data) {
 //! Returns the SHA-512 message digest (a variant of <a href="http://en.wikipedia.org/wiki/SHA-2">SHA-2</a>) of the supplied argument as a hex string
 /** 
     @par Platform Availability:
-    @ref Qore::HAVE_SHA512
+    @ref Qore::Option::HAVE_SHA512
 
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
 
@@ -1353,7 +1353,7 @@ string DSS1(data[doc] data) {
 //! Returns the <a href="http://en.wikipedia.org/wiki/MDC2">MDC2 message digest</a> of the supplied argument as a hex string
 /** 
     @par Platform Availability:
-    @ref Qore::HAVE_MDC2
+    @ref Qore::Option::HAVE_MDC2
 
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
 
@@ -1407,7 +1407,7 @@ string RIPEMD160(data[doc] data) {
 //! Returns the <a href="http://en.wikipedia.org/wiki/MD2_(cryptography)">MD2 message digest</a> of the supplied argument as binary object
 /** 
     @par Platform Availability:
-    @ref Qore::HAVE_MD2
+    @ref Qore::Option::HAVE_MD2
 
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
 
@@ -1531,7 +1531,7 @@ binary SHA1_bin(data[doc] data) {
 //! Returns the SHA-224 message digest (a variant of <a href="http://en.wikipedia.org/wiki/SHA-2">SHA-2</a>) of the supplied argument as a binary object
 /** 
     @par Platform Availability:
-    @ref Qore::HAVE_SSH224
+    @ref Qore::Option::HAVE_SSH224
 
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
 
@@ -1562,7 +1562,7 @@ binary SHA224_bin(data[doc] data) {
 //! Returns the SHA-256 message digest (a variant of <a href="http://en.wikipedia.org/wiki/SHA-2">SHA-2</a>) of the supplied argument as a binary object
 /** 
     @par Platform Availability:
-    @ref Qore::HAVE_SSH256
+    @ref Qore::Option::HAVE_SSH256
 
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
 
@@ -1593,7 +1593,7 @@ binary SHA256_bin(data[doc] data) {
 //! Returns the SHA-384 message digest (a variant of <a href="http://en.wikipedia.org/wiki/SHA-2">SHA-2</a>) of the supplied argument as a binary object
 /** 
     @par Platform Availability:
-    @ref Qore::HAVE_SSH384
+    @ref Qore::Option::HAVE_SSH384
 
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
 
@@ -1624,7 +1624,7 @@ binary SHA384_bin(data[doc] data) {
 //! Returns the SHA-512 message digest (a variant of <a href="http://en.wikipedia.org/wiki/SHA-2">SHA-2</a>) of the supplied argument as a binary object
 /** 
     @par Platform Availability:
-    @ref Qore::HAVE_SSH512
+    @ref Qore::Option::HAVE_SSH512
 
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
 
@@ -1705,7 +1705,7 @@ binary DSS1_bin(data[doc] data) {
 //! Returns the <a href="http://en.wikipedia.org/wiki/MDC2">MDC2 message digest</a> of the supplied argument as a binary object
 /** 
     @par Platform Availability:
-    @ref Qore::HAVE_MDC2
+    @ref Qore::Option::HAVE_MDC2
 
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
 

@@ -164,7 +164,7 @@ bool is_dir(string path) [flags=CONSTANT;dom=FILESYSTEM] {
 
 //! Returns \c True if the string passed identifies a socket on the filesystem, \c False if not
 /** @par Platform Availability
-    @ref Qore::HAVE_UNIX_FILEMGT
+    @ref Qore::Option::HAVE_UNIX_FILEMGT
 
     @param path the path to check
 
@@ -256,7 +256,7 @@ bool is_dev(string path) [flags=CONSTANT;dom=FILESYSTEM] {
 
 //! Returns \c True if the string passed identifies a symbolic link on the filesystem, \c False if not
 /** @par Platform Availability
-    @ref Qore::HAVE_UNIX_FILEMGT
+    @ref Qore::Option::HAVE_UNIX_FILEMGT
 
     @param path the path to check
 
@@ -361,7 +361,7 @@ bool is_writeable(string path) [flags=CONSTANT;dom=FILESYSTEM] {
 
 //! Returns \c True if the string passed identifies an executable on the filesystem, \c False if not
 /** @par Platform Availability
-    @ref Qore::HAVE_IS_EXECUTABLE
+    @ref Qore::Option::HAVE_IS_EXECUTABLE
 
     @param path the path to check
 
@@ -428,7 +428,7 @@ nothing rename(string old_path, string new_path) [dom=FILESYSTEM] {
 
 //! Returns a hash of filesystem status values for the file or directory path passed
 /** @par Platform Availability:
-    @ref Qore::HAVE_STATVFS
+    @ref Qore::Option::HAVE_STATVFS
 
     @param path the path to the filesystem (or on the filesystem)
 
@@ -756,7 +756,7 @@ string getcwd2() [flags=RET_VALUE_ONLY;dom=FILESYSTEM,EXTERNAL_INFO] {
 
 //! Creates a named pipe file with an optional file mode
 /** @par Platform Availability:
-    @ref Qore::HAVE_UNIX_FILEMGT
+    @ref Qore::Option::HAVE_UNIX_FILEMGT
 
     @param path the path to the new named pipe
     @param mode the file mode for the new named pipe
@@ -780,7 +780,7 @@ int mkfifo(string path, softint mode = 0600) [dom=FILESYSTEM] {
 
 //! Changes the user and group owners of a file, if the current user has permission to do so (normally only the superuser can change the user owner), follows symbolic links
 /** @par Platform Availability:
-    Qore::HAVE_UNIX_FILEMGT
+    Qore::Option::HAVE_UNIX_FILEMGT
 
     @param path path to the file or directory to change
     @param uid the uid of the new user owner; -1 means do not change user owner
@@ -807,7 +807,7 @@ int chown(string path, softint owner = -1, softint group = -1) [dom=FILESYSTEM] 
 
 //! Changes the user and group owners of a file, if the current user has permission to do so (normally only the superuser can change the user owner), does not follow symbolic links but rather operated on the symbolic link itself
 /** @par Platform Availability:
-    Qore::HAVE_UNIX_FILEMGT
+    Qore::Option::HAVE_UNIX_FILEMGT
 
     @param path path to the file or directory to change
     @param uid the uid of the new user owner; -1 means do not change user owner
@@ -834,7 +834,7 @@ int lchown(string path, softint uid = -1, softint gid = -1) [dom=FILESYSTEM] {
 
 //! Returns the target of a symbolic link; throws an exception if an error occurs (ex: file does not exist or is not a symbolic link)
 /** @par Platform Availability:
-    Qore::HAVE_UNIX_FILEMGT
+    Qore::Option::HAVE_UNIX_FILEMGT
 
     @param path the path to the symbolic link
 

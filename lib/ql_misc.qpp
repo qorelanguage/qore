@@ -374,7 +374,7 @@ const SignalToName = (
 //@{
 //! Sets or replaces a signal handler according to the signal number and closure or call reference (function or object method reference) passed
 /** @par Platform Availability:
-    @ref Qore::HAVE_SIGNAL_HANDLING
+    @ref Qore::Option::HAVE_SIGNAL_HANDLING
 
     By the time this function returns, changes to the signal handling thread have already been effected.
 
@@ -407,7 +407,7 @@ nothing set_signal_handler(softint signal, code f) [dom=PROCESS] {
 //! Removes a signal handler and returns the signal handling state to the default
 /** 
     @par Platform Availability:
-    @ref Qore::HAVE_SIGNAL_HANDLING
+    @ref Qore::Option::HAVE_SIGNAL_HANDLING
 
     By the time this function returns, changes to the signal handling thread have already been effected.
 

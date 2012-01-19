@@ -1277,6 +1277,8 @@ protected:
             return "int64";
          case RT_BOOL:
             return "bool";
+         case RT_FLOAT:
+            return "double";
          default:
             return "AbstractQoreNode*";
       }
@@ -1322,6 +1324,8 @@ public:
          rt = RT_INT;
       else if (return_type == "bool" || return_type == "softbool")
          rt = RT_BOOL;
+      else if (return_type == "float" || return_type == "softfloat")
+         rt = RT_FLOAT;
       else if (is_object(return_type))
          rt = RT_OBJ;
 

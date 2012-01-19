@@ -234,7 +234,7 @@ nothing exec(string command) [dom=EXTERNAL_PROCESS,PROCESS] {
 
 //! executes a command and returns the exit code of the process
 /** @par Platform Availability:
-    @ref Qore::HAVE_SYSTEM
+    @ref Qore::Option::HAVE_SYSTEM
 
     @param command the command to execute; if shell meta-characters are found (currently defined as any of <tt>$=*?\\><";</tt>) or if the current platform does not support fork(), then the command is executed with %system() (3), otherwise fork() and execvp() (3) are used instead
 
@@ -291,7 +291,7 @@ nothing system() [flags=RUNTIME_NOOP;dom=EXTERNAL_PROCESS] {
 
 //! Returns the real user ID of the current process
 /** @par Platform Availability:
-    @ref Qore::HAVE_UNIX_USERMGT
+    @ref Qore::Option::HAVE_UNIX_USERMGT
 
     @return the real user ID of the current process
 
@@ -311,7 +311,7 @@ int getuid() [dom=EXTERNAL_INFO] {
 
 //! Returns the effective user ID of the current process
 /** @par Platform Availability:
-    @ref Qore::HAVE_UNIX_USERMGT
+    @ref Qore::Option::HAVE_UNIX_USERMGT
 
     @return the effective user ID of the current process
 
@@ -331,7 +331,7 @@ int geteuid() [dom=EXTERNAL_INFO] {
 
 //! Returns the real group ID of the current process
 /** @par Platform Availability:
-    @ref Qore::HAVE_UNIX_USERMGT
+    @ref Qore::Option::HAVE_UNIX_USERMGT
 
     @return the real group ID of the current process
 
@@ -351,7 +351,7 @@ int getgid() [dom=EXTERNAL_INFO] {
 
 //! Returns the effective group ID of the current process
 /** @par Platform Availability:
-    @ref Qore::HAVE_UNIX_USERMGT
+    @ref Qore::Option::HAVE_UNIX_USERMGT
 
     @return the effective group ID of the current process
 
@@ -435,7 +435,7 @@ int getpid() [flags=RET_VALUE_ONLY;dom=EXTERNAL_INFO] {
 
 //! Returns the PID (process ID) of the parent process of the current process
 /** @par Platform Availability:
-    @ref Qore::HAVE_GETPPID
+    @ref Qore::Option::HAVE_GETPPID
 
     @return the PID (process ID) of the parent process of the current process
 
@@ -456,7 +456,7 @@ int getppid() [flags=RET_VALUE_ONLY;dom=EXTERNAL_INFO] {
 /** This function will throw an \c ILLEGAL-FORK exception if more than one thread is running
 
     @par Platform Availability:
-    @ref Qore::HAVE_FORK
+    @ref Qore::Option::HAVE_FORK
 
     @return 0 in the child process; returns the child's PID in the parent process; if an error occurs, then -1 is returned, in this case no child process was started and the error number can be retrieved with the errno() function
 
@@ -505,7 +505,7 @@ int fork() [dom=PROCESS] {
 
 //! Sends a signal to a process, if no signal number is given, then Qore::SIGHUP is sent by default
 /** @par Platform Availability:
-    @ref Qore::HAVE_KILL
+    @ref Qore::Option::HAVE_KILL
 
     @param pid the pid argument can have the following interpretations:
     - <tt>\> 0</tt>: the signal is sent to the process ID given
@@ -695,7 +695,7 @@ nothing dirname() [flags=RUNTIME_NOOP] {
 
 //! Changes the process user ID according to the argument passed
 /** @par Platform Availability:
-    @ref Qore::HAVE_UNIX_USERMGT
+    @ref Qore::Option::HAVE_UNIX_USERMGT
 
     @param uid the user ID to set
 
@@ -718,7 +718,7 @@ int setuid(softint uid) [dom=PROCESS] {
 
 //! Changes the effective process user ID according to the argument passed
 /** @par Platform Availability:
-    @ref Qore::HAVE_SETEUID
+    @ref Qore::Option::HAVE_SETEUID
 
     @param uid the user ID to set
 
@@ -741,7 +741,7 @@ int seteuid(softint uid) [dom=PROCESS] {
 
 //! Changes the process group ID according to the argument passed
 /** @par Platform Availability:
-    @ref Qore::HAVE_UNIX_USERMGT
+    @ref Qore::Option::HAVE_UNIX_USERMGT
 
     @param gid the group ID to set
 
@@ -764,7 +764,7 @@ int setgid(softint gid) [dom=PROCESS] {
 
 //! Changes the process effective group ID according to the argument passed
 /** @par Platform Availability:
-    @ref Qore::HAVE_UNIX_USERMGT
+    @ref Qore::Option::HAVE_UNIX_USERMGT
 
     @param gid the group ID to set
 

@@ -271,7 +271,7 @@ hash get_all_thread_data() [flags=CONSTANT;dom=THREAD_CONTROL,THREAD_INFO] {
 //! Returns a hash of call stacks keyed by each TID (thread ID)
 /** 
     @par Platform Availability:
-    @ref Qore::HAVE_RUNTIME_THREAD_STACK_TRACE
+    @ref Qore::Option::HAVE_RUNTIME_THREAD_STACK_TRACE
 
     @return a hash of call stacks keyed by each TID (thread ID); see @ref callstacks "call stacks" for the format of the hash values
 
@@ -293,7 +293,7 @@ hash getAllThreadCallStacks() [dom=THREAD_CONTROL,THREAD_INFO] {
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
    return getAllCallStacks();
 #else
-   xsink->raiseException("MISSING-FEATURE-ERROR", "this version of the Qore library was built without support for runtime thread stack tracing; check Qore::HAVE_RUNTIME_THREAD_STACK_TRACE before calling");
+   xsink->raiseException("MISSING-FEATURE-ERROR", "this version of the Qore library was built without support for runtime thread stack tracing; check Qore::Option::HAVE_RUNTIME_THREAD_STACK_TRACE before calling");
    return 0;
 #endif
 }
