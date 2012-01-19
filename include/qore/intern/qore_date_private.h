@@ -284,7 +284,7 @@ struct qore_date_info {
 
    // get month number (0 starting) by its 3 char abbrevation
    // Or return -1 if the month is not found
-   DLLLOCAL static int getMonthIxFromAbbr(const char * abbr, bool uppercased);
+   DLLLOCAL static int getMonthIxFromAbbr(const char* abbr);
 };
 
 // normalize the given date to the last day of the month

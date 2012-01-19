@@ -36,6 +36,20 @@ struct qore_tm {
    const char *zone_name;
    const AbstractQoreZoneInfo *zone;
 
+   DLLLOCAL void clear() {
+      year = 0;
+      month = 0;
+      day = 0;
+      hour = 0;
+      minute = 0;
+      second = 0;
+      us = 0;
+      utc_secs_east = 0;
+      dst = false;
+      zone_name = 0;
+      zone = 0;
+   }
+
    DLLLOCAL bool isTimeNull() const {
       return !hour && !minute && !second && !us;
    }

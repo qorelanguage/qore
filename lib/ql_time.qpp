@@ -29,6 +29,69 @@
 #include <time.h>
 #include <sys/time.h>
 
+static int qd_get_digit(unsigned& rv, const char*& p, unsigned factor) {
+   if (*p < '0' || *p > '9')
+      return -1;
+
+   rv += (*p - '0') * factor;
+   ++p;
+   return 0;
+}
+
+// returns 0 if invalid data is encountered
+static unsigned parse_int_2(const char *p) {
+   unsigned rv = 0;
+   if (qd_get_digit(rv, p, 10))
+      return 0;
+   if (qd_get_digit(rv, p, 1))
+      return 0;
+   return rv;
+}
+
+// returns 0 if invalid data is encountered
+static unsigned parse_int_3(const char *p) {
+   unsigned rv = 0;
+   if (qd_get_digit(rv, p, 100))
+      return 0;
+   if (qd_get_digit(rv, p, 10))
+      return 0;
+   if (qd_get_digit(rv, p, 1))
+      return 0;
+   return rv;
+}
+
+// returns 0 if invalid data is encountered
+static unsigned parse_int_4(const char *p) {
+   unsigned rv = 0;
+   if (qd_get_digit(rv, p, 1000))
+      return 0;
+   if (qd_get_digit(rv, p, 100))
+      return 0;
+   if (qd_get_digit(rv, p, 10))
+      return 0;
+   if (qd_get_digit(rv, p, 1))
+      return 0;
+   return rv;
+}
+
+// returns 0 if invalid data is encountered
+static unsigned parse_int_6(const char *p) {
+   unsigned rv = 0;
+   if (qd_get_digit(rv, p, 100000))
+      return 0;
+   if (qd_get_digit(rv, p, 10000))
+      return 0;
+   if (qd_get_digit(rv, p, 1000))
+      return 0;
+   if (qd_get_digit(rv, p, 100))
+      return 0;
+   if (qd_get_digit(rv, p, 10))
+      return 0;
+   if (qd_get_digit(rv, p, 1))
+      return 0;
+   return rv;
+}
+
 static QoreHashNode *date_info(const DateTime &d) {
    qore_tm info;
    d.getInfo(info);
@@ -56,7 +119,56 @@ static QoreHashNode *date_info(const DateTime &d) {
 }
 
 /** @defgroup date_time_functions Date and Time Functions
-    Date and time functions
+    @section date_formatting Date Formatting Codes
+    |!Format Code|!Description
+    |\c YY|last two digits of year
+    |\c YYYY|four-digit year
+    |\c M|non zero-padded month number (1-12)
+    |\c MM|zero-padded two-digit month number (01-12)
+    |\c Month|long month string (ex: \c "January")
+    |\c MONTH|long month string capitalized (ex: \c "JANUARY")
+    |\c Mon|abbreviated month (ex: \c "Jan")
+    |\c MON|abbreviated month, capitalized (ex: \c "JAN")
+    |\c D|non zero-padded day number (1 - 31)
+    |\c DD|zero-padded day number (01 - 31)
+    |\c Day|long day of week string (ex: \c "Monday")
+    |\c DAY|long day of week string, capitalized (ex: \c "MONDAY")
+    |\c Dy|abbreviated day of week string (ex: \c "Mon")
+    |\c DY|abbreviated day of week string capitalised (ex: \c "MON")
+    |\c H|non zero-padded hour number (0 - 23)
+    |\c HH|zero-padded hour number (00 - 23)
+    |\c h|non zero-padded hour number, 12-hour clock (1 - 12)
+    |\c hh|zero-padded hour number, 12-hour clock (01 - 12)
+    |\c m|non zero-padded minute number (0 - 59)
+    |\c mm|zero-padded minute number (00 - 59)
+    |\c S|non zero-padded second number (0 - 59)
+    |\c SS|zero-padded second number (00 - 59)
+    |\c P|\c "AM" or \c "PM" (upper-case)
+    |\c p|\c "am" or \c "pm" (lower-case)
+    |\c u|non zero-padded millisecond number (0 - 999)
+    |\c uu or ms|zero-padded millisecond number (000 - 999)
+    |\c x|non zero-padded microsecond number (0 - 999999)
+    |\c xx or ms|zero-padded microsecond number (000000 - 999999)
+    |\c y|microseconds, with trailing zeros removed (suitable for use after the '.')
+    |\c z|local time zone name (ex: \c "EST") if available, otherwise the UTC offset (ex: \c "+01:00")
+    |\c Z|time zone UTC offset like +HH:mm[:SS] (ex: \c "+01:00"), seconds are only included if non-zero
+
+    @section date_info_hash Date/Time Information Hash
+    |!Key|!Type|!Absolute/Relative|!Description
+    |\c relative|@ref bool_type|Both|\c True if the date is a relative date, \c False if it is absolute
+    |\c year|@ref int_type|Both|The year value of the date
+    |\c month|@ref int_type|Both|The month value of the date
+    |\c day|@ref int_type|Both|The day value of the date (day of the month for absolute dates)
+    |\c hour|@ref int_type|Both|The hour value of the date
+    |\c minute|@ref int_type|Both|The minute value of the date
+    |\c second|@ref int_type|Both|The second value of the date
+    |\c microsecond|@ref int_type|Both|The microsecond value of the date
+    |\c dow|@ref int_type|@ref absolute_dates "Absolute" Only|The day of the week, where 0=Sunday, 1=Monday, ... 6=Saturday
+    |\c doy|@ref int_type|@ref absolute_dates "Absolute" Only|The ordinal day number in the year
+    |\c utc_secs_east|@ref int_type|@ref absolute_dates "Absolute" Only|Offset from UTC in seconds east; if the time zone is west of UTC then the value will be negative
+    |\c dst|@ref bool_type|@ref absolute_dates "Absolute" Only|A flag if daylight savings time is in effect
+    |\c zone|@ref Qore::TimeZone "TimeZone"|@ref absolute_dates "Absolute" Only|The time zone for the time
+    |\c zone_name|@ref string_type|@ref absolute_dates "Absolute" Only|The name of the time zone for the given time (ex: "CEST" for Central European Summer Time for a time during summer time or "CET" for Central European Time for the same time zone while daylight savings time is not active)
 */
 //@{
 
@@ -123,11 +235,20 @@ date now_utc() [flags=CONSTANT] {
    return DateTimeNode::makeAbsolute(NULL, seconds, us);
 }
 
-//! 
+//! Returns a formatted string for a date argument passed
 /** 
+    @param format a string giving the format for the date; see @ref date_formatting for more information about this string
+    @param dt the date to use for the string output
+
+    @return a formatted string for a date argument passed
+
     @par Example:
     @code
+my string $str = format_date("Day, Mon D, YYYY-MM-DD HH:mm:SS", 2004-02-01T12:30:00);
+# returns "Sunday, Feb 1, 2004-02-01 12:30:00"
     @endcode
+
+    @bug there is no locale support; day and month names and abbreviations are only returned in English
 */
 string format_date(string format, date dt) [flags=CONSTANT] {
    QoreStringNode *rv = new QoreStringNode;
@@ -150,80 +271,134 @@ nothing format_date() [flags=RUNTIME_NOOP] {
     @code
 my date $d = now();
     @endcode
+
+    @see
+    - now_ms()
+    - now_us()
+    - now_utc()
+
+    @note this function is equivalent to localtime()
 */
 date now() [flags=CONSTANT] {
    return DateTimeNode::makeAbsolute(currentTZ(), (int64)time(0), 0);
 }
 
 //! Returns the current date and time with a resolution to the second 
-/** This variant is equivalent to now()
-
+/** 
     @return the current date and time with a resolution to the second 
 
     @par Example:
     @code
 my date $d = localtime();
     @endcode
+
+    @see gmtime()
+
+    @note this variant of localtime() is equivalent to now()
 */
 date localtime() [flags=CONSTANT] {
    return DateTimeNode::makeAbsolute(currentTZ(), (int64)time(0), 0);
 }
 
-//! 
+//! Returns the date and time in the local time zone corresponding to the integer arguments passed, which are interpreted as the number of seconds and microseconds since Jan 1, 1970, 00:00:00 Z (UTC)
 /** 
+    @param secs the number of seconds and microseconds since Jan 1, 1970, 00:00:00 Z (UTC)
+    @param us a microsecond offset for the time returned
+
+    @return the date and time in the local time zone corresponding to the arguments passed
+
     @par Example:
     @code
+my date $dt = localtime(10);
     @endcode
+
+    @see gmtime(softint, softint)
 */
 date localtime(softint secs, softint us = 0) [flags=CONSTANT] {
    return DateTimeNode::makeAbsolute(currentTZ(), secs, (int)us);
 }
 
-//! 
+//! Returns the date and time in the local time zone corresponding to the date argument passed
 /** 
+    @param dt a date to process; if the date passed is in the local time zone, then the same value is returned
+
+    @return the date and time in the local time zone corresponding to the date argument passed
+
     @par Example:
     @code
+my date $dt = localtime(2012-01-19T15:00:00-07:00);
     @endcode
+    
+    @see gmtime(date)
 */
 date localtime(date dt) [flags=CONSTANT] {
    return DateTimeNode::makeAbsolute(currentTZ(), dt->getEpochSecondsUTC(), dt->getMicrosecond());
 }
 
-//! 
+//! Returns the current UTC (GMT) time with a resolution of a second
 /** 
+    @return the current UTC (GMT) time with a resolution of a second
+
     @par Example:
     @code
+my date $utc = gmtime();
     @endcode
+
+    @see
+    - now_utc()
+    - localtime()
 */
 date gmtime() [flags=CONSTANT] {
    return DateTimeNode::makeAbsolute(NULL, (int64)time(0), 0);
 }
 
-//! 
+//! Returns a date/time value in UTC (GMT) from arguments giving the number of seconds and microseconds since Jan 1, 1970, 00:00:00 Z (UTC)
 /** 
+    @param secs the number of seconds and microseconds since Jan 1, 1970, 00:00:00 Z (UTC)
+    @param us a microsecond offset for the time returned
+
+    @return a date/time value in UTC (GMT) from arguments giving the number of seconds and microseconds since Jan 1, 1970, 00:00:00 Z (UTC)
+
     @par Example:
     @code
+my date $dt = gmtime(10);
     @endcode
+
+    @see localtime(softint, softint)
 */
 date gmtime(softint secs, softint us = 0) [flags=CONSTANT] {
    return DateTimeNode::makeAbsolute(NULL, secs, (int)us);
 }
 
-//! 
+//! Returns the date and time in UTC (GMT) corresponding to the date argument passed
 /** 
+    @param dt a date to process; if the date passed is already in UTC, then the same value is returned
+
+    @return the date and time in UTC (GMT) corresponding to the date argument passed
+
     @par Example:
     @code
+my date $dt = gmtime(2012-01-19T15:00:00-07:00);
     @endcode
+
+    @see localtime(date)
 */
 date gmtime(date dt) [flags=CONSTANT] {
    return DateTimeNode::makeAbsolute(NULL, dt->getEpochSecondsUTC(), dt->getMicrosecond());
 }
 
-//! 
+//! Returns the number of seconds since January 1, 1970 00:00:00 in the local time zone for the given date
 /** 
+    @param dt The date to process
+
+    @return the number of seconds since January 1, 1970 00:00:00 in the local time zone for the given date
+    
     @par Example:
     @code
+int secs = timegm($dt);
     @endcode
+
+    @see get_epoch_seconds(date)
 */
 int timegm(date dt) [flags=CONSTANT] {
    return dt->getEpochSeconds();
@@ -235,11 +410,20 @@ int timegm(date dt) [flags=CONSTANT] {
 nothing timegm() [flags=RUNTIME_NOOP] {
 }
 
-//! 
+//! Returns the number of seconds of the date and time in local time passed since Jan 1, 1970, 00:00:00 Z (UTC); negative values are returned for dates before the epoch
 /** 
+    @param dt The date to process
+
+    @return the number of seconds of the date and time in local time passed since Jan 1, 1970, 00:00:00 Z (UTC); negative values are returned for dates before the epoch
+
     @par Example:
     @code
+my int $i = get_epoch_seconds(2012-01-19T08:02:15+01:00);
     @endcode
+
+    @see timegm(date)
+
+    @note This function is equivalent to mktime(date)
 */
 int get_epoch_seconds(date dt) [flags=CONSTANT] {
    return dt->getEpochSecondsUTC();
@@ -251,11 +435,20 @@ int get_epoch_seconds(date dt) [flags=CONSTANT] {
 nothing get_epoch_seconds() [flags=RUNTIME_NOOP] {
 }
 
-//! 
+//! Returns the number of seconds of the date and time in local time passed since Jan 1, 1970, 00:00:00 Z (UTC); negative values are returned for dates before the epoch
 /** 
+    @param dt The date to process
+
+    @return the number of seconds of the date and time in local time passed since Jan 1, 1970, 00:00:00 Z (UTC); negative values are returned for dates before the epoch
+
     @par Example:
     @code
+my int $i = mktime(2012-01-19T08:02:15+01:00);
     @endcode
+
+    @see timegm(date)
+
+    @note This function is equivalent to get_epoch_seconds(date)
 */
 int mktime(date dt) [flags=CONSTANT] {
    return dt->getEpochSecondsUTC();
@@ -267,11 +460,25 @@ int mktime(date dt) [flags=CONSTANT] {
 nothing mktime() [flags=RUNTIME_NOOP] {
 }
 
-//! 
+//! Returns a @ref relative_dates "relative date/time value" in years based on the integer argument passed to be used in date arithmetic
 /** 
+    @param years the number of years to return
+
+    @return a @ref relative_dates "relative date/time value" in years based on the integer argument passed to be used in date arithmetic
+
     @par Example:
     @code
+my date $y = years(100);
     @endcode
+
+    @see
+    - months(softint)
+    - days(softint)
+    - hours(softint)
+    - minutes(softint)
+    - seconds(softint)
+    - milliseconds(softint)
+    - microseconds(softint)
 */
 date years(softint years) [flags=CONSTANT] {
    return new DateTimeNode((int)years, 0, 0, 0, 0, 0, 0, true);
@@ -283,11 +490,25 @@ date years(softint years) [flags=CONSTANT] {
 nothing years() [flags=RUNTIME_NOOP] {
 }
 
-//! 
+//! Returns a @ref relative_dates "relative date/time value" in months based on the integer argument passed to be used in date arithmetic
 /** 
+    @param months the number of months to return
+
+    @return a @ref relative_dates "relative date/time value" in months based on the integer argument passed to be used in date arithmetic
+
     @par Example:
     @code
+my date $rd = months(100);
     @endcode
+
+    @see
+    - years(softint)
+    - days(softint)
+    - hours(softint)
+    - minutes(softint)
+    - seconds(softint)
+    - milliseconds(softint)
+    - microseconds(softint)
 */
 date months(softint months) [flags=CONSTANT] {
    return new DateTimeNode(0, (int)months, 0, 0, 0, 0, 0, true);
@@ -299,11 +520,25 @@ date months(softint months) [flags=CONSTANT] {
 nothing months() [flags=RUNTIME_NOOP] {
 }
 
-//! 
+//! Returns a @ref relative_dates "relative date/time value" in days based on the integer argument passed to be used in date arithmetic
 /** 
+    @param days the number of days to return
+
+    @return a @ref relative_dates "relative date/time value" in days based on the integer argument passed to be used in date arithmetic
+
     @par Example:
     @code
+my date $rd = days(100);
     @endcode
+
+    @see
+    - years(softint)
+    - months(softint)
+    - hours(softint)
+    - minutes(softint)
+    - seconds(softint)
+    - milliseconds(softint)
+    - microseconds(softint)
 */
 date days(softint days) [flags=CONSTANT] {
    return new DateTimeNode(0, 0, (int)days, 0, 0, 0, 0, true);
@@ -315,11 +550,25 @@ date days(softint days) [flags=CONSTANT] {
 nothing days() [flags=RUNTIME_NOOP] {
 }
 
-//! 
+//! Returns a @ref relative_dates "relative date/time value" in hours based on the integer argument passed to be used in date arithmetic
 /** 
+    @param hours the number of hours to return
+
+    @return a @ref relative_dates "relative date/time value" in hours based on the integer argument passed to be used in date arithmetic
+
     @par Example:
     @code
+my date $rd = hours(100);
     @endcode
+
+    @see
+    - years(softint)
+    - months(softint)
+    - hours(softint)
+    - minutes(softint)
+    - seconds(softint)
+    - milliseconds(softint)
+    - microseconds(softint)
 */
 date hours(softint hours) [flags=CONSTANT] {
    return new DateTimeNode(0, 0, 0, (int)hours, 0, 0, 0, true);
@@ -331,11 +580,25 @@ date hours(softint hours) [flags=CONSTANT] {
 nothing hours() [flags=RUNTIME_NOOP] {
 }
 
-//! 
+//! Returns a @ref relative_dates "relative date/time value" in minutes based on the integer argument passed to be used in date arithmetic
 /** 
+    @param minutes the number of minutes to return
+
+    @return a @ref relative_dates "relative date/time value" in minutes based on the integer argument passed to be used in date arithmetic
+
     @par Example:
     @code
+my date $rd = minutes(100);
     @endcode
+
+    @see
+    - years(softint)
+    - months(softint)
+    - days(softint)
+    - hours(softint)
+    - seconds(softint)
+    - milliseconds(softint)
+    - microseconds(softint)
 */
 date minutes(softint minutes) [flags=CONSTANT] {
    return new DateTimeNode(0, 0, 0, 0, (int)minutes, 0, 0, true);
@@ -347,11 +610,25 @@ date minutes(softint minutes) [flags=CONSTANT] {
 nothing minutes() [flags=RUNTIME_NOOP] {
 }
 
-//! 
+//! Returns a @ref relative_dates "relative date/time value" in seconds based on the integer argument passed to be used in date arithmetic
 /** 
+    @param seconds the number of seconds to return
+
+    @return a @ref relative_dates "relative date/time value" in seconds based on the integer argument passed to be used in date arithmetic
+
     @par Example:
     @code
+my date $rd = seconds(100);
     @endcode
+
+    @see
+    - years(softint)
+    - months(softint)
+    - days(softint)
+    - hours(softint)
+    - minutes(softint)
+    - milliseconds(softint)
+    - microseconds(softint)
 */
 date seconds(softint seconds) [flags=CONSTANT] {
    return new DateTimeNode(0, 0, 0, 0, 0, (int)seconds, 0, true);
@@ -363,11 +640,25 @@ date seconds(softint seconds) [flags=CONSTANT] {
 nothing seconds() [flags=RUNTIME_NOOP] {
 }
 
-//! 
+//! Returns a @ref relative_dates "relative date/time value" in milliseconds based on the integer argument passed to be used in date arithmetic
 /** 
+    @param ms the number of milliseconds to return
+
+    @return a @ref relative_dates "relative date/time value" in milliseconds based on the integer argument passed to be used in date arithmetic
+
     @par Example:
     @code
+my date $rd = milliseconds(100);
     @endcode
+
+    @see
+    - years(softint)
+    - months(softint)
+    - days(softint)
+    - hours(softint)
+    - minutes(softint)
+    - seconds(softint)
+    - microseconds(softint)
 */
 date milliseconds(int ms) [flags=CONSTANT] {
    return new DateTimeNode(0, 0, 0, 0, 0, 0, (int)ms, true);
@@ -379,11 +670,25 @@ date milliseconds(int ms) [flags=CONSTANT] {
 nothing milliseconds() [flags=RUNTIME_NOOP] {
 }
 
-//! 
+//! Returns a @ref relative_dates "relative date/time value" in microseconds based on the integer argument passed to be used in date arithmetic
 /** 
+    @param us the number of microseconds to return
+
+    @return a @ref relative_dates "relative date/time value" in microseconds based on the integer argument passed to be used in date arithmetic
+
     @par Example:
     @code
+my date $rd = microseconds(100);
     @endcode
+
+    @see
+    - years(softint)
+    - months(softint)
+    - days(softint)
+    - hours(softint)
+    - minutes(softint)
+    - seconds(softint)
+    - milliseconds(softint)
 */
 date microseconds(int us) [flags=CONSTANT] {
    return DateTimeNode::makeRelative(0, 0, 0, 0, 0, 0, (int)us);
@@ -574,10 +879,15 @@ date get_midnight(date dt) [flags=CONSTANT] {
 nothing get_midnight() [flags=RUNTIME_NOOP] {
 }
 
-//! 
+//! Returns an integer representing the ordinal day number in the year (corresponding to the <a href="http://en.wikipedia.org/wiki/ISO_8601#Ordinal_dates">ISO-8601 day number</a>) for the @ref absolute_dates "absolute date" value passed
 /** 
+    @param dt an @ref absolute_dates "absolute date" value to get the ordinal day number
+
+    @return an integer representing the ordinal day number in the year (corresponding to the <a href="http://en.wikipedia.org/wiki/ISO_8601#Ordinal_dates">ISO-8601 day number</a>) for the @ref absolute_dates "absolute date" value passed; if a @ref relative_dates "relative date" value is passed, then this function will return 0
+
     @par Example:
     @code
+my int $dn = getDayNumber($dt);
     @endcode
 */
 int getDayNumber(date dt) [flags=CONSTANT] {
@@ -590,11 +900,18 @@ int getDayNumber(date dt) [flags=CONSTANT] {
 nothing getDayNumber() [flags=RUNTIME_NOOP] {
 }
 
-//! 
+//! Returns an integer representing the day of the week for the @ref absolute_dates "absolute date" value passed (0=Sunday, 6=Saturday)
 /** 
+    @param dt an @ref absolute_dates "absolute date" value to get the number for the day of the week
+
+    @return an integer representing the day of the week for the @ref absolute_dates "absolute date" value passed (0=Sunday, 6=Saturday); if a @ref relative_dates "relative date" value is passed, then this function will return 0
+
     @par Example:
     @code
+my int $dn = getDayOfWeek($dt);
     @endcode
+
+    @see getISODayOfWeek(date)
 */
 int getDayOfWeek(date dt) [flags=CONSTANT] {
    return dt->getDayOfWeek();
@@ -606,11 +923,18 @@ int getDayOfWeek(date dt) [flags=CONSTANT] {
 nothing getDayOfWeek() [flags=RUNTIME_NOOP] {
 }
 
-//! 
+//! Returns an integer representing the ISO-8601 day of the week for the @ref absolute_dates "absolute date" value passed (1=Monday, 7=Sunday)
 /** 
+    @param dt an @ref absolute_dates "absolute date" value to get the number for the day of the week
+
+    @return an integer representing the day of the week for the @ref absolute_dates "absolute date" value passed (1=Monday, 7=Sunday); if a @ref relative_dates "relative date" value is passed, then this function will return 7
+
     @par Example:
     @code
+my int $dn = getISODayOfWeek($dt);
     @endcode
+
+    @see getDayOfWeek(date)
 */
 int getISODayOfWeek(date dt) [flags=CONSTANT] {
    int d = dt->getDayOfWeek();
@@ -623,11 +947,19 @@ int getISODayOfWeek(date dt) [flags=CONSTANT] {
 nothing getISODayOfWeek() [flags=RUNTIME_NOOP] {
 }
 
-//! 
-/** 
+//! Returns a hash representing the ISO-8601 calendar week information for the @ref absolute_dates "absolute date" passed (hash keys: \c "year", \c "week", \c "day")
+/** @note that the ISO-8601 year does not always correspond with the calendar year at the end and the beginning of every year (for example 2006-01-01 in ISO-8601 calendar week format is: year=2005, week=52, day=7)
+
+    @param dt the date to get information for
+
+    @return a hash representing the ISO-8601 calendar week information for the @ref absolute_dates "absolute date" passed (hash keys: \c "year", \c "week", \c "day"); if a @ref relative_dates "relative date" value is passed, then this function will return year=1970, week=1, day=1
+
     @par Example:
     @code
+my hash $h = getISOWeekHash(2007-05-15); # returns year=2007, week=20, day=2
     @endcode
+
+    @see getISOWeekString(date)
 */
 hash getISOWeekHash(date dt) [flags=CONSTANT] {
    int year, week, day;
@@ -646,11 +978,18 @@ hash getISOWeekHash(date dt) [flags=CONSTANT] {
 nothing getISOWeekHash() [flags=RUNTIME_NOOP] {
 }
 
-//! 
+//! Returns a string representing the ISO-8601 calendar week information for the @ref absolute_dates "absolute date" passed (ex: 2006-01-01 = "2005-W52-7")
 /** 
+    @param dt the date to get information for
+
+    @return a string representing the ISO-8601 calendar week information for the @ref absolute_dates "absolute date" passed (ex: 2006-01-01 = "2005-W52-7"); if a @ref relative_dates "relative date" value is passed, then this function will return \c "1970-W01-1"
+
     @par Example:
     @code
+my string $str = getISOWeekString(2007-05-15); # returns "2007-W20-2"
     @endcode
+
+    @see getISOWeekHash(date)
 */
 string getISOWeekString(date dt) [flags=CONSTANT] {
    int year, week, day;
@@ -687,11 +1026,18 @@ date getDateFromISOWeek(softint year, softint week, softint day = 1) [flags=RET_
    return DateTimeNode::getDateFromISOWeek(year, week, day, xsink);
 }
 
-//! 
+//! Returns an integer representing the system time in milliseconds (1/1000 second intervals since Jan 1, 1970 00:00)
 /** 
+    @return an integer representing the system time in milliseconds (1/1000 second intervals since Jan 1, 1970 00:00)
+
     @par Example:
     @code
+my int $ms = clock_getmillis();
     @endcode
+    
+    @see
+    - clock_getnanos()
+    - clock_getmicros()
 */
 int clock_getmillis() [flags=CONSTANT] {
    int us;
@@ -699,11 +1045,18 @@ int clock_getmillis() [flags=CONSTANT] {
    return seconds * 1000 + us / 1000;
 }
 
-//! 
+//! Returns an integer representing the system time in nanooseconds (1/1000000000 second intervals) since Jan 1, 1970 00:00:00Z
 /** 
+    @return an integer representing the system time in nanooseconds (1/1000000000 second intervals) since Jan 1, 1970 00:00:00Z
+
     @par Example:
     @code
+my int $ns = clock_getnanos();
     @endcode
+
+    @see
+    - clock_getmillis()
+    - clock_getmicros()
 */
 int clock_getnanos() [flags=CONSTANT] {
    int ns;
@@ -711,11 +1064,18 @@ int clock_getnanos() [flags=CONSTANT] {
    return seconds * 1000000000ll + ns;
 }
 
-//! 
+//! Returns an integer representing the system time in microseconds (1/1000000 second intervals) since Jan 1, 1970 00:00:00Z
 /** 
+    @return an integer representing the system time in microseconds (1/1000000 second intervals) since Jan 1, 1970 00:00:00Z
+
     @par Example:
     @code
+my int $us = clock_getmicros();
     @endcode
+
+    @see
+    - clock_getmillis()
+    - clock_getmicros()
 */
 int clock_getmicros() [flags=CONSTANT] {
    int us;
@@ -723,13 +1083,19 @@ int clock_getmicros() [flags=CONSTANT] {
    return seconds * 1000000ll + us;
 }
 
-//! 
-/** 
+//! Converts an integer argument representing the offset in milliseconds from January 1, 1970 in the local time zone to a date in the local time zone
+/** @param an integer argument representing the offset in milliseconds from January 1, 1970 in the local time zone
+
+    @return a date in the local time zone corresponding to the argument passed which is an offset in milliseconds from January 1, 1970 in the local time zone
+
     @par Example:
     @code
+my date $date = date_ms(1); # returns 1970-01-01T00:00:00.001 in the local time zone
     @endcode
+
+    @see date_us(softint)
 */
-date date_ms(int ms) [flags=CONSTANT] {
+date date_ms(softint ms) [flags=CONSTANT] {
    return new DateTimeNode(ms / 1000, (int)(ms % 1000));
 }
 
@@ -739,60 +1105,101 @@ date date_ms(int ms) [flags=CONSTANT] {
 nothing date_ms() [flags=RUNTIME_NOOP] {
 }
 
-//! 
-/** 
+//! Converts an integer argument representing the offset in microseconds from January 1, 1970 in the local time zone to a date in the local time zone
+/** @param an integer argument representing the offset in microseconds from January 1, 1970 in the local time zone
+
+    @return a date in the local time zone corresponding to the argument passed which is an offset in microseconds from January 1, 1970 in the local time zone
+
     @par Example:
     @code
+my date $date = date_us(1); # returns 1970-01-01T00:00:00.000001 in the local time zone
     @endcode
+
+    @see date_ms(softint)
 */
-date date_us(int us) [flags=CONSTANT] {
+date date_us(softint us) [flags=CONSTANT] {
    return DateTimeNode::makeAbsoluteLocal(currentTZ(), us / 1000000, (int)(us % 1000000));
 }
 
-//! 
+//! Returns an integer value representing the the number of seconds in the value of the date passed (can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date)
 /** 
+    @param dt a @ref relative_dates "relative" or @ref absolute_dates "absolute" date argument
+
+    @return an integer value representing the the number of seconds in the value of the date passed; if the argument is a @ref relative_dates "relative date", the value is normalized to seconds and the integer seconds value is returned, if the argument is an @ref absolute_dates "absolute date", the duration in seconds is calculated from the present time; so if the present time is sent as an argument, 0 is returned, if a future date is returned, the number of seconds from the present time to the future date is returned, if an @ref absolute_dates "absolute date" in the past is passed as an argument, also 0 is returned (the function does not calculate second differences for @ref absolute_dates "absolute dates" in the past (for this use @ref date_time_arithmetic instead); this function can only return a negative value if passed a relative date/time value
+
     @par Example:
     @code
+my int $us = get_duration_seconds(PT2M15S3u); # returns 135
     @endcode
+
+    @see
+    - get_duration_milliseconds()
+    - get_duration_microseconds()
 */
 int get_duration_seconds(date dt) [flags=CONSTANT] {
    return dt->getRelativeSeconds();
 }
 
-//! 
+//! Returns an integer value representing the the number of milliseconds in the value of the date passed (can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date)
 /** 
+    @param dt a @ref relative_dates "relative" or @ref absolute_dates "absolute" date argument
+
+    @return an integer value representing the the number of millseconds in the value of the date passed; if the argument is a @ref relative_dates "relative date", the value is normalized to milliseconds and the integer milliseconds value is returned, if the argument is an @ref absolute_dates "absolute date", the duration in milliseconds is calculated from the present time; so if the present time is sent as an argument, 0 is returned, if a future date is returned, the number of milliseconds from the present time to the future date is returned, if an @ref absolute_dates "absolute date" in the past is passed as an argument, also 0 is returned (the function does not calculate millisecond differences for @ref absolute_dates "absolute dates" in the past (for this use @ref date_time_arithmetic instead); this function can only return a negative value if passed a relative date/time value
+
     @par Example:
     @code
+my int $us = get_duration_milliseconds(PT2M15S3u); # returns 135
     @endcode
+
+    @see
+    - get_duration_seconds()
+    - get_duration_microseconds()
 */
 int get_duration_milliseconds(date dt) [flags=CONSTANT] {  
    return dt->getRelativeMilliseconds();
 }
 
-//! 
+//! Returns an integer value representing the the number of mcroseconds in the value of the date passed (can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date)
 /** 
+    @param dt a @ref relative_dates "relative" or @ref absolute_dates "absolute" date argument
+
+    @return an integer value representing the the number of millseconds in the value of the date passed; if the argument is a @ref relative_dates "relative date", the value is normalized to microseconds and the integer microseconds value is returned, if the argument is an @ref absolute_dates "absolute date", the duration in microseconds is calculated from the present time; so if the present time is sent as an argument, 0 is returned, if a future date is returned, the number of microseconds from the present time to the future date is returned, if an @ref absolute_dates "absolute date" in the past is passed as an argument, also 0 is returned (the function does not calculate microsecond differences for @ref absolute_dates "absolute dates" in the past (for this use @ref date_time_arithmetic instead); this function can only return a negative value if passed a relative date/time value
+
     @par Example:
     @code
+my int $us = get_duration_microseconds(PT2M15S3u); # returns 135
     @endcode
+
+    @see
+    - get_duration_seconds()
+    - get_duration_milliseconds()
 */
 int get_duration_microseconds(date dt) [flags=CONSTANT] {
    return dt->getRelativeMicroseconds();
 }
 
-//! 
+//! Returns a hash of @ref date_info_hash "broken-down date/time information" for the given date argument (can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date)
 /** 
+    @param dt the date to return information for
+
+    @return a hash of @ref date_info_hash "broken-down date/time information" for the given date argument
+
     @par Example:
     @code
+my hash $h = date_info($date);
     @endcode
 */
 hash date_info(date dt) [flags=CONSTANT] {
    return date_info(*dt);
 }
 
-//! 
+//! Returns a hash of @ref date_info_hash "broken-down date/time information" for the current date and time
 /** 
+    @return a hash of @ref date_info_hash "broken-down date/time information" for the current date and time
+
     @par Example:
     @code
+my hash $h = date_info();
     @endcode
 */
 hash date_info() [flags=CONSTANT] {
@@ -801,5 +1208,303 @@ hash date_info() [flags=CONSTANT] {
    DateTime d;
    d.setDate(currentTZ(), seconds, us);
    return date_info(d);
+}
+
+//! Returns \c True if the argument is an @ref relative_dates "relative date/time value", \c False if not
+/** 
+    @param dt the date to check
+
+    @return \c True if the argument is an @ref relative_dates "relative date/time value", \c False if not
+
+    @par Example:
+    @code
+my bool $b = is_date_relative($dt)
+    @endcode
+
+    @see is_date_absolute()
+*/
+bool is_date_relative(date dt) [flags=CONSTANT] {
+   return dt->isRelative();
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+bool is_date_relative() [flags=NOOP] {
+   return false;
+}
+
+//! Returns \c True if the argument is an @ref absolute_dates "absolute date/time value", \c False if not
+/** 
+    @param dt the date to check
+
+    @return \c True if the argument is an @ref absolute_dates "absolute date/time value", \c False if not
+
+    @par Example:
+    @code
+my bool $b = is_date_absolute($dt)
+    @endcode
+
+    @see is_date_relative()
+*/
+bool is_date_absolute(date dt) [flags=CONSTANT] {
+   return dt->isAbsolute();
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+bool is_date_absolute() [flags=NOOP] {
+   return false;
+}
+
+//! Returns the date passed
+/** This function is included because the date() function is used to convert values to dates (similar to a C/C++ cast)
+
+    @param dt the date to return
+    
+    @return the date passed
+ */
+date date(date dt) [flags=CONSTANT] {
+  return dt->refSelf();
+}
+
+//! Converts the argument to a date and returns the date
+/** 
+    @param dt string a string to bo converted literally to an @ref absolute_dates "absolute date/time value"
+
+    @return the @ref absolute_dates "absolute date/time value" corresponding to the string argument passed
+
+    @par Example:
+    @code
+my date $d = date("2001-01-01T15:35:23"); # returns 2001-01-01 15:35:23 Mon +01:00 (CET)
+my date $d = date("20010101 15:35:23Z"); # returns 2001-01-01 15:35:23 Mon Z (UTC)
+my date $d = date("20010101 153523Z"); # returns 2001-01-01 15:35:23 Mon Z (UTC)
+my date $d = date("20010101 153523-02"); # returns 2001-01-01 15:35:23 Mon -02:00 (-02:00)
+my date $d = date("20010101 153523-02:00:00"); # returns 2001-01-01 15:35:23 Mon -02:00 (-02:00)
+my date $d = date("2001-01-01-153523-020000"); # returns 2001-01-01 15:35:23 Mon -02:00 (-02:00)
+my date $d = date("20010101-153523"); # returns 2001-01-01 15:35:23 Mon +01:00 (CET)
+    @endcode
+
+    @see date(string, string)
+ */
+date date(string dtstr) [flags=CONSTANT] {
+   DateTimeNodeValueHelper date(dtstr);
+   return date.getReferencedValue();
+}
+
+//! The argument is assumed to be the number of seconds and fractions of a second since 1970-01-01 in the local time zone; this value is used to produce the date value that is returned
+/** 
+    @param f the number of seconds and fractions of a second since 1970-01-01 in the local time zone
+
+    @return a date corresponding to the number of seconds and fractions of a second since 1970-01-01 in the local time zone passed as the sole argument
+
+    @par Example:
+    @code
+my date $d = date($f);
+    @endcode
+ */
+date date(float f) [flags=CONSTANT] {
+   return DateTimeNode::makeAbsoluteLocal(currentTZ(), (int64)f, (int)((f - (float)((int)f)) * 1000000));
+}
+
+//! The argument is assumed to be the number of seconds since 1970-01-01 in the local time zone; this value is used to produce the date value that is returned
+/** 
+    @param i the number of seconds since 1970-01-01 in the local time zone
+
+    @return a date corresponding to the number of seconds since 1970-01-01 in the local time zone passed as the sole argument
+
+    @par Example:
+    @code
+my date $d = date($i);
+    @endcode
+ */
+date date(softint i) [flags=CONSTANT] {
+   return new DateTimeNode(i);
+}
+
+//! This function just returns 1970-01-01Z
+/** This function is included because the date() function is used to convert values to dates (similar to a C/C++ cast)
+
+    @return 1970-01-01Z
+ */
+date date() [flags=CONSTANT] {
+   return zero_date();
+}
+
+//! This function just returns 1970-01-01Z
+/** This function is included because the date() function is used to convert values to dates (similar to a C/C++ cast)
+
+    @return 1970-01-01Z
+ */
+date date(null[doc] null) [flags=CONSTANT] {
+   return zero_date();
+}
+
+//! Returns the date corresponding to parsing a string argument according to a format mask
+/** 
+    @param dtstr a string giving a date
+    @param mask the mask for the date value; the fields in the string are as follows:
+    - \c YY: The last 2 digits of the year; the current century is assumed
+    - \c YYYY: A 4-digit year value (ex: 1956, 0870)
+    - \c MM: A 2-digit month number (ex: 01, 11)
+    - \c Mon or \c MON: A 3-character English month name abbrevation (parsing is case-insensive: ex: \c "Apr" or \c "APR" or \c "apr" for April)
+    - \c DD: A 2-digit day number (ex: 29, 04)
+    - \c HH: A 2-digit hour number (ex: 23, 04)
+    - \c mm: A 2-digit minute number (ex: 11, 04)
+    - \c ms: A 3-digit millisecond number (ex: 511, 042)
+    - \c SS: A 2-digit second number (ex: 11, 04)
+    - \c sss: A 3-digit millisecond number (ex: 511, 042)
+    - \c ssssss: A 6-digit microsecond number (ex: 240511, 005142)
+    - \c us: A 6-digit microsecond number (ex: 240511, 005142)
+    
+    @return the date corresponding to parsing the \a dtstr string argument according to \a mask serving as a format mask
+
+    @par Example:
+    @code
+my date $dt = date("20100401 234520 230394", "YYYYMMDD HHmmSS ssssss"); # returns 2010-04-01T23:45:20.230394
+    @endcode
+
+    @throw DATE-CONVERT-ERROR invalid mask specification
+
+    @bug currently only English month abbreviations are accepted
+    @bug there is currently no way to specify the time zone or UTC offset of the time parsed
+*/
+date date(string dtstr, string mask) [flags=RET_VALUE_ONLY] {
+   // obtain the century
+   int century;
+   {
+      DateTime tmpdt(q_epoch());
+      century = tmpdt.getYear() / 100 * 100;
+   }
+
+   qore_tm dt;
+   dt.clear();
+
+   const char *d = dtstr->getBuffer();
+   const char *de = d + dtstr->strlen();
+
+   const char *s = mask->getBuffer();
+   const char *se = s + mask->strlen();
+
+   while (*s) {
+      // break if we run out of data in either the mask or the date string
+      if (d >= de || s >= se)
+	 break;
+      switch (*s) {
+         case 'Y':
+            if (s[1] != 'Y') {
+               xsink->raiseException("DATE-CONVERT-ERROR", "'Y' has to be used as 'YY' or 'YYYY'");
+               return 0;
+               break;
+            }
+            ++s;
+            if (s[2] == 'Y' && s[3] == 'Y') {
+               dt.year = parse_int_4(d) - 1900;
+               s += 2;
+               d += 3;
+            }
+            else {
+               dt.year = parse_int_2(d) + century;
+               ++d;
+            }
+            break;
+
+         case 'M':
+            if (s[1] == 'M') {
+               dt.month = parse_int_2(d) - 1;
+               s++;
+               d++;
+               break;
+            }
+            // 'M' is not supported because there is no clear way how to get eg. 1 or 11
+            if ((s[1] == 'o' || s[1] == 'O') && (s[2] == 'n' || s[2] == 'N')) {
+	       QoreString str(d, 3);
+               dt.month = str.strlen() == 3 ? qore_date_info::getMonthIxFromAbbr(str.getBuffer()) : -1;
+               if (dt.month < 0 || dt.month > 11) {
+		  if (!*xsink)
+		     xsink->raiseException("DATE-CONVERT-ERROR", "Invalid 'Mon' string: '%s'", !str.empty() ? str.getBuffer() : "<none>");
+		  return 0;
+               }
+
+               ++dt.month;
+               s += 2;
+               d += 2;
+               break;
+            }
+            break;
+
+         case 'm':
+            if (s[1] == 'm') {
+               dt.minute = parse_int_2(d);
+               s++;
+               d++;
+               break;
+            }
+            if (s[1] == 's') {
+               dt.us = parse_int_3(d) * 1000;
+               ++s;
+               d += 2;
+               break;
+            }
+            break;
+
+         case 'D':
+         case 'd':
+            if (s[1] == 'D' || s[1] == 'd') {
+               dt.day = parse_int_2(d);
+               s++;
+               d++;
+            }
+           break;
+
+         case 'H':
+         case 'h':
+            if (s[1] == 'H' || s[1] == 'h') {
+               dt.hour = parse_int_2(d);
+               s++;
+               d++;
+            }
+            break;
+
+         case 's':
+            if (s[1] == 's' && s[2] == 's') {
+               if (s[3] == 's' && s[4] == 's' && s[5] == 's') {
+                  dt.us = parse_int_6(d);
+                  s += 5;
+                  d += 5;
+               }
+               else {
+                  dt.us = parse_int_3(d) * 1000;
+                  s += 2;
+                  d += 2;
+               }
+            }
+            break;
+
+         case 'S':
+            if (s[1] == 'S') {
+               dt.second = parse_int_2(d);
+               s++;
+               d++;
+            }
+            break;
+
+         case 'u':
+            if (s[1] == 's') {
+               dt.us = parse_int_6(d);
+               ++s;
+               d += 5;
+               break;
+            }
+      }
+      s++;
+      d++;
+   }
+
+   if (*xsink)
+      return 0;
+
+   return DateTimeNode::makeAbsolute(currentTZ(), dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second, dt.us);
 }
 //@}

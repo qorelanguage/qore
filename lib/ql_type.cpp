@@ -53,201 +53,6 @@ static AbstractQoreNode *f_binary_bin(const QoreListNode *params, ExceptionSink 
    return HARD_QORE_BINARY(params, 0)->refSelf();
 }
 
-static AbstractQoreNode *f_date_date(const QoreListNode *params, ExceptionSink *xsink) {
-  return HARD_QORE_DATE(params, 0)->refSelf();
-}
-
-static AbstractQoreNode *f_date(const QoreListNode *params, ExceptionSink *xsink) {
-   DateTimeNodeValueHelper date(get_param(params, 0));
-   return date.getReferencedValue();
-}
-
-// returns 0 if invalid data is encountered
-static inline int parse_int_2(const char *p) {
-   if (*p < '0' || *p > '9')
-      return 0;
-   int rv = (*p - '0') * 10;
-   ++p;
-   if (*p < '0' || *p > '9')
-      return 0;
-   rv += (*p - '0');
-   return rv;
-}
-
-// returns 0 if invalid data is encountered
-static inline int parse_int_3(const char *p) {
-   if (*p < '0' || *p > '9')
-      return 0;
-   int rv = (*p - '0') * 100;
-   ++p;
-   if (*p < '0' || *p > '9')
-      return 0;
-   rv += (*p - '0') * 10;
-   ++p;
-   if (*p < '0' || *p > '9')
-      return 0;
-   rv += (*p - '0');
-   return rv;
-}
-
-// returns 0 if invalid data is encountered
-static inline int parse_int_4(const char *p) {
-   if (*p < '0' || *p > '9')
-      return 0;
-   int rv = (*p - '0') * 1000;
-   ++p;
-   if (*p < '0' || *p > '9')
-      return 0;
-   rv += (*p - '0') * 100;
-   ++p;
-   if (*p < '0' || *p > '9')
-      return 0;
-   rv += (*p - '0') * 10;
-   ++p;
-   if (*p < '0' || *p > '9')
-      return 0;
-   rv += (*p - '0');
-   return rv;
-}
-
-static AbstractQoreNode *f_date_mask(const QoreListNode *params, ExceptionSink *xsink) {
-   const QoreStringNode * dtstr = HARD_QORE_STRING(params, 0);
-   const QoreStringNode * mask = HARD_QORE_STRING(params, 1);
-
-   // obtain the century
-   int century;
-   {
-      DateTime tmpdt(q_epoch());
-      century = tmpdt.getYear() / 100 * 100;
-   }
-
-   struct tm dt;
-   zero_tm(dt);
-   // milliseconds
-   int ms = 0;
-
-   const char *d = dtstr->getBuffer();
-   const char *de = d + dtstr->strlen();
-
-   const char *s = mask->getBuffer();
-   const char *se = s + mask->strlen();
-
-   while (*s) {
-      // break if we run out of data in either the mask or the date string
-      if (d >= de || s >= se)
-	 break;
-      switch (*s) {
-         case 'Y':
-            if (s[1] != 'Y') {
-               xsink->raiseException("DATE-CONVERT-ERROR", "'Y' has to be used as 'YY' or 'YYYY'");
-               return 0;
-               break;
-            }
-            ++s;
-            if ((s[1] == 'Y') && (s[2] == 'Y')) {
-               dt.tm_year = parse_int_4(d) - 1900;
-               s += 2;
-               d += 3;
-            }
-            else {
-               dt.tm_year = parse_int_2(d) + century;
-               ++d;
-            }
-            break;
-         case 'M':
-            if (s[1] == 'M') {
-               dt.tm_mon = parse_int_2(d) - 1;
-               s++;
-               d++;
-               break;
-            }
-            // 'M' is not supported because there is no clear way how to get eg. 1 or 11
-            if ((s[1] == 'o') && (s[2] == 'n')) {
-	       QoreString str(d, 3);
-               dt.tm_mon = str.strlen() == 3 ? qore_date_info::getMonthIxFromAbbr(str.getBuffer(), false) : 0;
-               if (dt.tm_mon < 0 || dt.tm_mon > 11) {
-		  if (!*xsink)
-		     xsink->raiseException("DATE-CONVERT-ERROR", "Wrong 'Mon' string: '%s'", !str.empty() ? str.getBuffer() : "<none>");
-		  return 0;
-               }
-               s += 2;
-               d += 2;
-               break;
-            }
-            if ((s[1] == 'O') && (s[2] == 'N')) {
-	       QoreString str(d, 3);
-               dt.tm_mon = str.strlen() == 3 ? qore_date_info::getMonthIxFromAbbr(str.getBuffer(), true) : 0;
-               if (dt.tm_mon < 0 || dt.tm_mon > 11) {
-		  if (!*xsink)
-		     xsink->raiseException("DATE-CONVERT-ERROR", "Wrong 'MON' string: '%s'", !str.empty() ? str.getBuffer() : "<none>");
-		  return 0;
-               }
-               s += 2;
-               d += 2;
-               break;
-            }
-            break;
-         case 'D':
-            if (s[1] == 'D') {
-               dt.tm_mday = parse_int_2(d);
-               s++;
-               d++;
-            }
-           break;
-         case 'H':
-            if (s[1] == 'H') {
-               dt.tm_hour = parse_int_2(d);
-               s++;
-               d++;
-            }
-            break;
-         case 'm':
-            if (s[1] == 'm') {
-               dt.tm_min = parse_int_2(d);
-               s++;
-               d++;
-            }
-            break;
-         case 's':
-            if (s[1] == 's' && s[2] == 's') {
-               ms = parse_int_3(d);
-               s += 2;
-               d += 2;
-            }
-            break;
-         case 'S':
-            if (s[1] == 'S') {
-               dt.tm_sec = parse_int_2(d);
-               s++;
-               d++;
-            }
-            break;
-#if 0
-            TODO/FIXME: timezones?
-         case 'z':
-	    str.sprintf("%s", i.zname);
-            break;
-	    // add iso8601 UTC offset
-	 case 'Z':
-	    concatOffset(i.utcoffset, str);
-	    break;
-         default:
-	    str.concat(*s);
-            break;
-#endif
-      }
-      s++;
-      d++;
-   }
-
-   if (*xsink)
-      return 0;
-
-   DateTimeNode *n = new DateTimeNode;
-   n->setDate(&dt, ms);
-   return n;
-}
-
 static AbstractQoreNode *f_list(const QoreListNode *params, ExceptionSink *xsink) {
    QoreListNode *l;
    if (num_params(params) > 1)
@@ -333,16 +138,6 @@ static AbstractQoreNode *f_binary_to_string_bin_str(const QoreListNode *params, 
    return new QoreStringNode((const char *)b->getPtr(), b->size(), qcs);
 }
 
-static AbstractQoreNode *f_is_date_relative(const QoreListNode *params, ExceptionSink *xsink) {
-   const DateTimeNode *d = HARD_QORE_DATE(params, 0);
-   return get_bool_node(d->isRelative());
-}
-
-static AbstractQoreNode *f_is_date_absolute(const QoreListNode *params, ExceptionSink *xsink) {
-   const DateTimeNode *d = HARD_QORE_DATE(params, 0);
-   return get_bool_node(d->isAbsolute());
-}
-
 void init_type_functions() {
    // do not flag with QC_NOOP, as it is used as an initializer
    builtinFunctions.add2("boolean", f_bool_noop, QC_CONSTANT, QDOM_DEFAULT, boolTypeInfo);
@@ -370,15 +165,6 @@ void init_type_functions() {
    builtinFunctions.add2("binary", f_binary_str, QC_CONSTANT, QDOM_DEFAULT, binaryTypeInfo, 1, softStringTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("binary", f_binary_bin, QC_CONSTANT, QDOM_DEFAULT, binaryTypeInfo, 1, binaryTypeInfo, QORE_PARAM_NO_ARG);
 
-   // do not flag with QC_NOOP, as it is used as an initializer
-   builtinFunctions.add2("date", f_date_noop, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo);
-   builtinFunctions.add2("date", f_date_noop, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo, 1, nullTypeInfo, QORE_PARAM_NO_ARG);
-   builtinFunctions.add2("date", f_date, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
-   builtinFunctions.add2("date", f_date_mask, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo, 2, stringTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
-   builtinFunctions.add2("date", f_date, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo, 1, floatTypeInfo, QORE_PARAM_NO_ARG);
-   builtinFunctions.add2("date", f_date, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo, 1, softBigIntTypeInfo, QORE_PARAM_NO_ARG);
-   builtinFunctions.add2("date", f_date_date, QC_CONSTANT, QDOM_DEFAULT, dateTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
-
    builtinFunctions.add2("list", f_list, QC_CONSTANT | QC_USES_EXTRA_ARGS, QDOM_DEFAULT, listTypeInfo);
 
    builtinFunctions.add2("hash", f_hash, QC_CONSTANT, QDOM_DEFAULT, hashTypeInfo);
@@ -392,10 +178,4 @@ void init_type_functions() {
 
    builtinFunctions.add2("binary_to_string", f_binary_to_string, QC_CONSTANT, QDOM_DEFAULT, stringTypeInfo, 1, binaryTypeInfo, QORE_PARAM_NO_ARG);
    builtinFunctions.add2("binary_to_string", f_binary_to_string_bin_str, QC_CONSTANT, QDOM_DEFAULT, stringTypeInfo, 2, binaryTypeInfo, QORE_PARAM_NO_ARG, stringTypeInfo, QORE_PARAM_NO_ARG);
-
-   builtinFunctions.add2("is_date_relative", f_bool_noop, QC_NOOP, QDOM_DEFAULT, boolTypeInfo, 1, anyTypeInfo, QORE_PARAM_NO_ARG);
-   builtinFunctions.add2("is_date_relative", f_is_date_relative, QC_CONSTANT, QDOM_DEFAULT, boolTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
-
-   builtinFunctions.add2("is_date_absolute", f_bool_noop, QC_NOOP, QDOM_DEFAULT, boolTypeInfo, 1, anyTypeInfo, QORE_PARAM_NO_ARG);
-   builtinFunctions.add2("is_date_absolute", f_is_date_absolute, QC_CONSTANT, QDOM_DEFAULT, boolTypeInfo, 1, dateTypeInfo, QORE_PARAM_NO_ARG);
 }
