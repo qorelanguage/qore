@@ -70,11 +70,18 @@ float round() [flags=RUNTIME_NOOP] {
    return 0;
 }
 
-//! 
+//! Returns a floating-point number equal to the smallest integral value greater than or equal to the argument passed
 /** 
+    @param f the value to process
+
+    @return a floating-point number equal to the smallest integral value greater than or equal to the argument passed
+
     @par Example:
     @code
+my float $x = ceil(3.2); # returns 4.0
     @endcode
+
+    @see floor(softfloat)
  */
 float ceil(softfloat f) [flags=CONSTANT] {
    return ceil(f);
@@ -87,11 +94,16 @@ float ceil() [flags=RUNTIME_NOOP] {
    return 0;
 }
 
-//! 
+//! Returns a floating-point number equal to the largest integral value less than or equal to the argument passed
 /** 
+    @param f the value to process
+
     @par Example:
     @code
+my float $x = floor(3.9); # returns 3.0
     @endcode
+
+    @see ceil(softfloat)
  */
 float floor(softfloat f) [flags=CONSTANT] {
    return floor(f);
@@ -132,20 +144,30 @@ float pow(softfloat x = 0.0, softfloat y = 0.0) [flags=CONSTANT] {
    return pow(x, y);
 }
 
-//! 
+//! Returns the absolute value of the argument passed
 /** 
+    @param i the value to process
+
+    @return the absolute value of the argument passed
+
     @par Example:
     @code
+my int $i = abs(-20); # returns 20
     @endcode
  */
 int abs(int i) [flags=CONSTANT] {
    return i < 0 ? -i : i;
 }
 
-//! 
+//! Returns the absolute value of the argument passed
 /** 
+    @param f the value to process
+
+    @return the absolute value of the argument passed
+
     @par Example:
     @code
+my float $f = abs(-20.2); # returns 20.2
     @endcode
  */
 float abs(softfloat f) [flags=CONSTANT] {
@@ -159,10 +181,16 @@ float abs() [flags=RUNTIME_NOOP] {
    return 0;
 }
 
-//! 
+//! Returns the length of the hypotenuse of a right-angle triangle with sides given as the two arguments
 /** 
+    @param x the length of side x of the right-angle triangle
+    @param y the length of side y of the right-angle triangle
+
+    @return the length of the hypotenuse of a right-angle triangle with sides given as the two arguments
+
     @par Example:
     @code
+my float $z = hypot($x, $y);
     @endcode
  */
 float hypot(softfloat x, softfloat y) [flags=CONSTANT] {
@@ -176,10 +204,15 @@ float hypot() [flags=RUNTIME_NOOP] {
    return 0;
 }
 
-//! 
+//! Returns the square root of the number passed
 /** 
+    @param f the value to process
+
+    @return the square root of the number passed
+
     @par Example:
     @code
+my float $x = sqrt($y);
     @endcode
  */
 float sqrt(softfloat f) [flags=CONSTANT] {
@@ -193,10 +226,15 @@ float sqrt() [flags=RUNTIME_NOOP] {
    return 0;
 }
 
-//! 
+//! Returns the cube root of the number passed
 /** 
+    @param f the value to process
+
+    @return the cube root of the number passed
+
     @par Example:
     @code
+my float $x = cbrt($y);
     @endcode
  */
 float cbrt(softfloat f) [flags=CONSTANT] {
@@ -210,10 +248,15 @@ float cbrt() [flags=RUNTIME_NOOP] {
    return 0;
 }
 
-//! 
+//! Returns the sine of the number in radians passed
 /** 
+    @param f the angle in radians
+
+    @return the sine of the number in radians passed
+
     @par Example:
     @code
+my float $x = sin($y);
     @endcode
  */
 float sin(softfloat f) [flags=CONSTANT] {
@@ -231,6 +274,7 @@ float sin() [flags=RUNTIME_NOOP] {
 /** 
     @par Example:
     @code
+my float $x = cos($y);
     @endcode
  */
 float cos(float f) [flags=CONSTANT] {
@@ -248,6 +292,7 @@ float cos() [flags=RUNTIME_NOOP] {
 /** 
     @par Example:
     @code
+my float $x = tan($y);
     @endcode
  */
 float tan(softfloat f) [flags=CONSTANT] {
@@ -265,6 +310,7 @@ float tan() [flags=RUNTIME_NOOP] {
 /** 
     @par Example:
     @code
+my float $x = asin($y);
     @endcode
  */
 float asin(softfloat f) [flags=CONSTANT] {
@@ -282,6 +328,7 @@ float asin() [flags=RUNTIME_NOOP] {
 /** 
     @par Example:
     @code
+my float $x = acos($y);
     @endcode
  */
 float acos(softfloat f) [flags=CONSTANT] {
@@ -292,6 +339,7 @@ float acos(softfloat f) [flags=CONSTANT] {
 /** 
     @par Example:
     @code
+my float $x = atan($y);
     @endcode
  */
 float atan(softfloat f) [flags=CONSTANT] {
@@ -332,6 +380,7 @@ float atan2() [flags=RUNTIME_NOOP] {
 /** 
     @par Example:
     @code
+my float $x = sinh($y);
     @endcode
  */
 float sinh(softfloat f) [flags=CONSTANT] {
@@ -349,6 +398,7 @@ float sinh() [flags=RUNTIME_NOOP] {
 /** 
     @par Example:
     @code
+my float $x = cosh($y);
     @endcode
  */
 float cosh(softfloat f) [flags=CONSTANT] {
