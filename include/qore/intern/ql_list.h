@@ -25,6 +25,6 @@
 
 #define QORE_LIB_LIST_H
 
-DLLLOCAL void init_list_functions();
+DLLLOCAL void init_list_functions(QoreNamespace& ns);
 
 #endif

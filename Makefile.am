@@ -44,7 +44,8 @@ LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
 	lib/ql_file.qpp \
 	lib/ql_string.qpp \
 	lib/ql_time.qpp \
-	lib/ql_math.qpp
+	lib/ql_math.qpp \
+	lib/ql_list.qpp
 
 LIB_DOXYFILES = \
 	doxygen/lib/Doxyfile \

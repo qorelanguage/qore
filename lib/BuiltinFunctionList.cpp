@@ -243,7 +243,7 @@ void BuiltinFunctionList::init(QoreNamespace& qns) {
    init_time_functions(qns);
    init_lib_functions(qns);
    init_misc_functions(qns);
-   init_list_functions();
+   init_list_functions(qns);
    init_type_functions();
    init_pwd_functions();
    init_math_functions(qns);

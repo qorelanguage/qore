@@ -1,0 +1,596 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/*
+ ql_list.qpp
+ 
+ Qore Programming Language
+ 
+ Copyright 2003 - 2011 David Nichols
+ 
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2.1 of the License, or (at your option) any later version.
+ 
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+ 
+ You should have received a copy of the GNU Lesser General Public
+ License along with this library; if not, write to the Free Software
+ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ */
+
+#include <qore/Qore.h>
+#include <qore/intern/ql_list.h>
+
+/** @defgroup list_functions List Functions
+    List functions
+ */
+//@{
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+*/
+any sort(any arg) [flags=NOOP] {
+   return arg ? arg->refSelf() : 0;
+}
+
+//! Performs an unstable sort in ascending order and returns the new list
+/** This variant will only sort basic data types
+
+    @param l the list to sort
+
+    @return the sorted list
+
+    @par Example:
+    @code
+my list $nl = sort($l);
+    @endcode
+
+    @see
+    - sortStable(list)
+    - sortDescendingStable(list)
+    - sortDescending(list)
+*/
+list sort(list l) [flags=CONSTANT] {
+   return l->sort();
+}
+
+//! Performs an unstable sort in ascending order and returns the new list; accepts the name of a function to use to sort complex data types or to give a special sort order
+/** 
+    @param l the list to sort
+    @param func the name of a function accessible in the current scope that accepts 2 arguments of the data type in the list; the function must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively
+
+    @return the sorted list
+
+    @par Example:
+    @code
+my list $nl = sort($l, "my_sort_function");
+    @endcode
+
+    @see
+    - sortStable(list, string)
+    - sortDescendingStable(list, string)
+    - sortDescending(list, string)
+*/
+list sort(list l, string func) [flags=RET_VALUE_ONLY] {
+   ReferenceHolder<ResolvedCallReferenceNode> fr(getCallReference(func, xsink), xsink);
+   return !fr ? 0 : l->sort(*fr, xsink);
+}
+
+//! Performs an unstable sort in ascending order and returns the new list; accepts a @ref call_reference "call reference" or a @ref closure "closure" to use to sort complex data types or to give a special sort order
+/** 
+    @param l the list to sort
+    @param f a @ref call_reference "call reference" or a @ref closure "closure" that accepts 2 arguments of the data type in the list; the code must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively
+
+    @return the sorted list
+
+    @par Example:
+    @code
+my code $sort_func = int sub (hash $l, hash $r) { return $l.id <=> $r.id; };
+my list $nl = sort($l, $sort_func);
+    @endcode
+
+    @see
+    - sortStable(list, code)
+    - sortDescendingStable(list, code)
+    - sortDescending(list, code)
+*/
+list sort(list l, code f) [flags=RET_VALUE_ONLY] {
+   return l->sort(f, xsink);
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+*/
+any sortDescending(any arg) [flags=NOOP] {
+   return arg ? arg->refSelf() : 0;
+}
+
+//! Performs an unstable sort in descending order and returns the new list
+/** This variant will only sort basic data types
+
+    @param l the list to sort
+
+    @return the sorted list
+
+    @par Example:
+    @code
+my list $nl = sortDescending($l);
+    @endcode
+
+    @see
+    - sort(list)
+    - sortDescendingStable(list)
+    - sortStable(list)
+*/
+list sortDescending(list l) [flags=CONSTANT] {
+   return l->sortDescending();
+}
+
+//! Performs an unstable sort in descending order and returns the new list; accepts the name of a function to use to sort complex data types or to give a special sort order
+/** 
+    @param l the list to sort
+    @param func the name of a function accessible in the current scope that accepts 2 arguments of the data type in the list; the function must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively
+
+    @return the sorted list
+
+    @par Example:
+    @code
+my list $nl = sortDescending($l, "my_sort_function");
+    @endcode
+
+    @see
+    - sortStable(list, string)
+    - sortDescendingStable(list, string)
+    - sort(list, string)
+*/
+list sortDescending(list l, string func) [flags=CONSTANT] {
+   ReferenceHolder<ResolvedCallReferenceNode> fr(getCallReference(func, xsink), xsink);
+   return !fr ? 0 : l->sortDescending(*fr, xsink);
+}
+
+//! Performs an unstable sort in descending order and returns the new list; accepts a @ref call_reference "call reference" or a @ref closure "closure" to use to sort complex data types or to give a special sort order
+/** 
+    @param l the list to sort
+    @param f a @ref call_reference "call reference" or a @ref closure "closure" that accepts 2 arguments of the data type in the list; the code must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively
+
+    @return the sorted list
+
+    @par Example:
+    @code
+my code $sort_func = int sub (hash $l, hash $r) { return $l.id <=> $r.id; };
+my list $nl = sortDescending($l, $sort_func);
+    @endcode
+
+    @see
+    - sortStable(list, code)
+    - sortDescendingStable(list, code)
+    - sort(list, code)
+*/
+list sortDescending(list l, code f) [flags=RET_VALUE_ONLY] {
+   return l->sortDescending(f, xsink);
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+*/
+any sortStable(any arg) [flags=NOOP] {
+   return arg ? arg->refSelf() : 0;
+}
+
+//! Performs a stable sort in ascending order and returns the new list
+/** This variant will only sort basic data types
+
+    @param l the list to sort
+
+    @return the sorted list
+
+    @par Example:
+    @code
+my list $nl = sortStable($l);
+    @endcode
+
+    @see
+    - sort(list)
+    - sortDescendingStable(list)
+    - sortDescending(list)
+*/
+list sortStable(list l) [flags=CONSTANT] {
+   return l->sortStable();
+}
+
+//! Performs a stable sort in ascending order and returns the new list; accepts the name of a function to use to sort complex data types or to give a special sort order
+/** 
+    @param l the list to sort
+    @param func the name of a function accessible in the current scope that accepts 2 arguments of the data type in the list; the function must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively
+
+    @return the sorted list
+
+    @par Example:
+    @code
+my list $nl = sortStable($l, "my_sort_function");
+    @endcode
+
+    @see
+    - sort(list, string)
+    - sortDescendingStable(list, string)
+    - sortDescending(list, string)
+*/
+list sortStable(list l, string func) [flags=RET_VALUE_ONLY] {
+   ReferenceHolder<ResolvedCallReferenceNode> fr(getCallReference(func, xsink), xsink);
+   return !fr ? 0 : l->sortStable(*fr, xsink);
+}
+
+//! Performs a stable sort in ascending order and returns the new list; accepts a @ref call_reference "call reference" or a @ref closure "closure" to use to sort complex data types or to give a special sort order
+/** 
+    @param l the list to sort
+    @param f a @ref call_reference "call reference" or a @ref closure "closure" that accepts 2 arguments of the data type in the list; the code must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively
+
+    @return the sorted list
+
+    @par Example:
+    @code
+my code $sort_func = int sub (hash $l, hash $r) { return $l.id <=> $r.id; };
+my list $nl = sortStable($l, $sort_func);
+    @endcode
+
+    @see
+    - sort(list, code)
+    - sortDescendingStable(list, code)
+    - sortDescending(list, code)
+*/
+list sortStable(list l, code f) [flags=RET_VALUE_ONLY] {
+   return l->sortStable(f, xsink);
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+*/
+any sortDescendingStable(any arg) [flags=NOOP] {
+   return arg ? arg->refSelf() : 0;
+}
+
+//! Performs a stable sort in descending order and returns the new list
+/** This variant will only sort basic data types
+
+    @param l the list to sort
+
+    @return the sorted list
+
+    @par Example:
+    @code
+my list $nl = sortDescendingStable($l);
+    @endcode
+
+    @see
+    - sort(list)
+    - sortDescendingStable(list)
+    - sortStable(list)
+*/
+list sortDescendingStable(list l) [flags=CONSTANT] {
+   return l->sortDescendingStable();
+}
+
+//! Performs a stable sort in descending order and returns the new list; accepts the name of a function to use to sort complex data types or to give a special sort order
+/** 
+    @param l the list to sort
+    @param func the name of a function accessible in the current scope that accepts 2 arguments of the data type in the list; the function must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively
+
+    @return the sorted list
+
+    @par Example:
+    @code
+my list $nl = sortDescending($l, "my_sort_function");
+    @endcode
+
+    @see
+    - sortStable(list, string)
+    - sortDescendingStable(list, string)
+    - sort(list, string)
+*/
+list sortDescendingStable(list l, string func) [flags=RET_VALUE_ONLY] {
+   ReferenceHolder<ResolvedCallReferenceNode> fr(getCallReference(func, xsink), xsink);
+   return !fr ? 0 : l->sortDescendingStable(*fr, xsink);
+}
+
+//! Performs a stable sort in descending order and returns the new list; accepts a @ref call_reference "call reference" or a @ref closure "closure" to use to sort complex data types or to give a special sort order
+/** 
+    @param l the list to sort
+    @param f a @ref call_reference "call reference" or a @ref closure "closure" that accepts 2 arguments of the data type in the list; the code must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively
+
+    @return the sorted list
+
+    @par Example:
+    @code
+my code $sort_func = int sub (hash $l, hash $r) { return $l.id <=> $r.id; };
+my list $nl = sortDescending($l, $sort_func);
+    @endcode
+
+    @see
+    - sortStable(list, code)
+    - sortDescendingStable(list, code)
+    - sort(list, code)
+*/
+list sortDescendingStable(list l, code f) [flags=RET_VALUE_ONLY] {
+   return l->sortDescendingStable(f, xsink);
+}
+
+//! Returns the minumum value in a list
+/** This variant will only work on basic data types
+
+    @param l the list to process
+
+    @return the minumum value in a list
+
+    @par Example:
+    @code
+my any $v = min($l);
+    @endcode
+
+    @see max(list)
+*/
+any min(list l) [flags=CONSTANT] {
+   return l->min();
+}
+
+//! Returns the minumum value in a list; accepts the name of a function to use to compare complex data types or to give a special sort order
+/** 
+    @param l the list to sort
+    @param func the name of a function accessible in the current scope that accepts 2 arguments of the data type in the list; the function must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively
+
+    @return the minumum value in a list
+
+    @par Example:
+    @code
+my any $v = min($l, "my_sort_function");
+    @endcode
+
+    @see max(list, string)
+*/
+any min(list l, string func) [flags=RET_VALUE_ONLY] {
+   ReferenceHolder<ResolvedCallReferenceNode> fr(getCallReference(func, xsink), xsink);
+   return !fr ? 0 : l->min(*fr, xsink);
+}
+
+//! Returns the minumum value in a list; accepts a @ref call_reference "call reference" or a @ref closure "closure" to use to compare complex data types or to give a special sort order
+/** 
+    @param l the list to sort
+    @param f a @ref call_reference "call reference" or a @ref closure "closure" that accepts 2 arguments of the data type in the list; the @ref call_reference "call reference" or a @ref closure "closure" must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively
+
+    @return the minumum value in a list
+
+    @par Example:
+    @code
+my code $sort_func = int sub (hash $l, hash $r) { return $l.id <=> $r.id; };
+my any $v = min($l, $sort_func);
+    @endcode
+
+    @see max(list, code)
+*/
+any min(list l, code f) [flags=RET_VALUE_ONLY] {
+   return l->min(f, xsink);
+}
+
+//! Returns the minumum value of the arguments passed to the function
+/** This variant will only work on basic data types
+
+    @param ... the list of values to process given directly to the function
+
+    @return the minumum value in a list
+
+    @par Example:
+    @code
+my any $v = min($v1, $v2, $v3);
+    @endcode
+
+    @see max(...)
+*/
+any min(...) [flags=CONSTANT] {
+   return args ? args->min() : 0;
+}
+
+//! Returns the maximum value in a list
+/** This variant will only work on basic data types
+
+    @param l the list to process
+
+    @return the maximum value in a list
+
+    @par Example:
+    @code
+my any $v = max($l);
+    @endcode
+
+    @see min(list)
+*/
+any max(list l) [flags=CONSTANT] {
+   return l->max();
+}
+
+//! Returns the maximum value in a list; accepts the name of a function to use to compare complex data types or to give a special sort order
+/** 
+    @param l the list to sort
+    @param func the name of a function accessible in the current scope that accepts 2 arguments of the data type in the list; the function must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively
+
+    @return the maximum value in a list
+
+    @par Example:
+    @code
+my any $v = max($l, "my_sort_function");
+    @endcode
+
+    @see min(list, string)
+*/
+any max(list l, string func) [flags=RET_VALUE_ONLY] {
+   ReferenceHolder<ResolvedCallReferenceNode> fr(getCallReference(func, xsink), xsink);
+   return !fr ? 0 : l->max(*fr, xsink);
+}
+
+//! Returns the maximum value in a list; accepts a @ref call_reference "call reference" or a @ref closure "closure" to use to compare complex data types or to give a special sort order
+/** 
+    @param l the list to sort
+    @param f a @ref call_reference "call reference" or a @ref closure "closure" that accepts 2 arguments of the data type in the list; the @ref call_reference "call reference" or a @ref closure "closure" must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively
+
+    @return the maximum value in a list
+
+    @par Example:
+    @code
+my code $sort_func = int sub (hash $l, hash $r) { return $l.id <=> $r.id; };
+my any $v = max($l, $sort_func);
+    @endcode
+
+    @see min(list, code)
+*/
+any max(list l, code f) [flags=RET_VALUE_ONLY] {
+   return l->max(f, xsink);
+}
+
+//! Returns the maximum value of the arguments passed to the function
+/** This variant will only work on basic data types
+
+    @param ... the list of values to process given directly to the function
+
+    @return the maximum value in a list
+
+    @par Example:
+    @code
+my any $v = max($v1, $v2, $v3);
+    @endcode
+
+    @see min(...)
+*/
+any max(...) [flags=CONSTANT] {
+   return args ? args->max() : 0;
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+*/
+nothing reverse() [flags=NOOP] {
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+
+    @see reverse(list)
+*/
+string reverse(softstring arg) [flags=CONSTANT] {
+   return arg->reverse();
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+
+    @see reverse(string)
+*/
+list reverse(list l) [flags=CONSTANT] {
+   return l->reverse();
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+*/
+bool inlist() [flags=NOOP] {
+   return false;
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+*/
+bool inlist(any[doc] arg, nothing[doc] x) [flags=NOOP] {
+   return false;
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+*/
+bool inlist(any arg, list l) [flags=RET_VALUE_ONLY] {
+   ConstListIterator li(l);
+   while (li.next()) {
+      bool b = QoreLogicalEqualsOperatorNode::softEqual(arg, li.getValue(), xsink);
+      if (*xsink)
+	 return false;
+      if (b)
+	 return true;
+   }
+   return false;
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+*/
+bool inlist(any arg1, any arg2) [flags=RET_VALUE_ONLY] {
+   assert(arg2);
+   return QoreLogicalEqualsOperatorNode::softEqual(arg1, arg2, xsink);
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+*/
+bool inlist_hard() [flags=NOOP] {
+   return false;
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+*/
+bool inlist_hard(any[doc] arg, nothing[doc] x) [flags=NOOP] {
+   return false;
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+*/
+bool inlist_hard(any arg1, any arg2) [flags=RET_VALUE_ONLY] {
+   assert(arg2);
+   return OP_ABSOLUTE_EQ->bool_eval(arg1, arg2, xsink);
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+*/
+bool inlist_hard(any arg, list l) [flags=RET_VALUE_ONLY] {
+   bool arg_is_nothing = is_nothing(arg);
+
+   ConstListIterator li(l);
+   while (li.next()) {
+      const AbstractQoreNode *lp = li.getValue();
+
+      bool b;
+
+      // do hard comparison inline
+      if (is_nothing(lp))
+	 b = arg_is_nothing;
+      else if (arg_is_nothing)
+	 b = false;
+      else {
+	 b = arg->is_equal_hard(lp, xsink);
+	 if (*xsink)
+	    return 0;
+      }
+
+      if (b)
+	 return true;
+   }
+   return false;
+}
+//@}
