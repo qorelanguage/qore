@@ -270,8 +270,12 @@ float sin() [flags=RUNTIME_NOOP] {
    return 0;
 }
 
-//! 
+//! Returns the cosine of the number in radians passed
 /** 
+    @param f the angle in radians
+
+    @return the cosine of the number in radians passed
+
     @par Example:
     @code
 my float $x = cos($y);
@@ -288,8 +292,12 @@ float cos() [flags=RUNTIME_NOOP] {
    return 1;
 }
 
-//! 
+//! Returns the tangent of the number in radians passed
 /** 
+    @param f the angle in radians
+
+    @return the tangent of the number in radians passed
+
     @par Example:
     @code
 my float $x = tan($y);
@@ -306,8 +314,12 @@ float tan() [flags=RUNTIME_NOOP] {
    return 0;
 }
 
-//! 
+//! Returns the value in radians of the arc sine of the given value
 /** 
+    @param f the sine value to process
+
+    @return the value in radians of the arc sine of the given value
+
     @par Example:
     @code
 my float $x = asin($y);
@@ -324,8 +336,12 @@ float asin() [flags=RUNTIME_NOOP] {
    return 0;
 }
 
-//! 
+//! Returns the value in radians of the arc cosine of the given value
 /** 
+    @param f the cosine value to process
+
+    @return the value in radians of the arc cosine of the given value
+
     @par Example:
     @code
 my float $x = acos($y);
@@ -335,8 +351,12 @@ float acos(softfloat f) [flags=CONSTANT] {
    return acos(f);
 }
 
-//! 
+//! Returns the value in radians of the arc tangent of the given value
 /** 
+    @param f the tangent value to process
+
+    @return the value in radians of the arc tangent of the given value
+
     @par Example:
     @code
 my float $x = atan($y);
@@ -376,8 +396,12 @@ float atan2() [flags=RUNTIME_NOOP] {
    return 0;
 }
 
-//! 
+//! Returns the hyperbolic sine of the given value
 /** 
+    @param f the value to process
+
+    @return the hyperbolic sine of the given value
+
     @par Example:
     @code
 my float $x = sinh($y);
@@ -394,8 +418,12 @@ float sinh() [flags=RUNTIME_NOOP] {
    return 0;
 }
 
-//! 
+//! Returns the hyperbolic cosine of the given value
 /** 
+    @param f the value to process
+
+    @return the hyperbolic cosine of the given value
+
     @par Example:
     @code
 my float $x = cosh($y);
@@ -412,10 +440,15 @@ float cosh() [flags=RUNTIME_NOOP] {
    return 1;
 }
 
-//! 
+//! Returns the hyperbolic tangent of the given value
 /** 
+    @param f the value to process
+
+    @return the hyperbolic tangent of the given value
+
     @par Example:
     @code
+my float $x = tanh($y);
     @endcode
  */
 float tanh(softfloat f) [flags=CONSTANT] {
@@ -429,10 +462,15 @@ float tanh() [flags=RUNTIME_NOOP] {
    return 0;
 }
 
-//! 
+//! Returns the natural logarithm of the given value
 /** 
+    @param f the value to process
+
+    @return the natural logarithm of the given value
+
     @par Example:
     @code
+my float $x = nlog($y);
     @endcode
  */
 float nlog(softfloat f) [flags=CONSTANT] {
@@ -446,10 +484,15 @@ float nlog() [flags=RUNTIME_NOOP] {
    return minus_infinity();
 }
 
-//! 
+//! Returns the base 10 logarithm of the given number
 /** 
+    @param f the value to process
+
+    @return the base 10 logarithm of the given value
+
     @par Example:
     @code
+my float $x = log10($y);
     @endcode
  */
 float log10(softfloat f) [flags=CONSTANT] {
@@ -463,10 +506,15 @@ float log10() [flags=RUNTIME_NOOP] {
    return minus_infinity();
 }
 
-//! 
+//! Returns the natural logarithm of 1 + the given number
 /** 
+    @param f the value to process
+
+    @return the natural logarithm of 1 + the given number
+
     @par Example:
     @code
+my float $x = log1p($y);
     @endcode
  */
 float log1p(softfloat f) [flags=CONSTANT] {
@@ -480,10 +528,15 @@ float log1p() [flags=RUNTIME_NOOP] {
    return 0;
 }
 
-//! 
+//! Returns the exponent of the given number
 /** 
+    @param f the value to process
+
+    @return the exponent of the given number
+
     @par Example:
     @code
+my float $x = logb($y);
     @endcode
  */
 float logb(softfloat f) [flags=CONSTANT] {
@@ -497,10 +550,15 @@ float logb() [flags=RUNTIME_NOOP] {
    return minus_infinity();
 }
 
-//! 
+//! Returns the value of \a e (the base of natural logarithms) raised to the power of the given number
 /** 
+    @param f the value to process
+
+    @return the value of \a e (the base of natural logarithms) raised to the power of the given number
+    
     @par Example:
     @code
+my float $x = exp($y);
     @endcode
  */
 float exp(softfloat f) [flags=CONSTANT] {
@@ -514,10 +572,15 @@ float exp() [flags=RUNTIME_NOOP] {
    return 1;
 }
 
-//! 
+//! Returns the value of 2 raised to the power of the given number
 /** 
+    @param f the value to process
+
+    @return the value of 2 raised to the power of the given number
+
     @par Example:
     @code
+my float $x = exp2($y);
     @endcode
  */
 float exp2(softfloat f) [flags=CONSTANT] {
@@ -535,10 +598,15 @@ float exp2() [flags=RUNTIME_NOOP] {
    return 1;
 }
 
-//! 
+//! Returns the value of \a e (the base of natural logarithms) raised to the power of the given number - 1
 /** 
+    @param f the value to process
+
+    @return the value of \a e (the base of natural logarithms) raised to the power of the given number - 1
+
     @par Example:
     @code
+my float $x = exp1m($y);
     @endcode
  */
 float expm1(softfloat f) [flags=CONSTANT] {
@@ -550,114 +618,5 @@ float expm1(softfloat f) [flags=CONSTANT] {
  */
 float expm1() [flags=RUNTIME_NOOP] {
    return 0;
-}
-
-//! 
-/** 
-    @par Example:
-    @code
-    @endcode
- */
-string format_number(string fmt, softfloat num) [flags=CONSTANT] {
-   int decimals = 0, neg = 1, len;
-   int64 tr, bi, mi, th, val;
-   char thousands_sep, decimal_sep = '.', chr[40], str[40], dec[20];
-
-   len = fmt->strlen();
-   if ((len != 1) && (len != 3))
-      return new QoreStringNode;
-
-   thousands_sep = fmt->getBuffer()[0];
-   if (len == 3) {
-      decimal_sep = fmt->getBuffer()[1];
-      decimals = atoi(fmt->getBuffer() + 2);
-   }
-
-   if (num < 0) {
-      neg = -1;
-      num *= -1;
-   }
-   val = (int64)num;
-   if (len == 3) {
-      num -= (double)val;
-      sprintf(chr, "%%.%df", decimals);
-      sprintf(dec, chr, num);
-   }
-   tr = val / 1000000000000ll;
-   val -= tr * 1000000000000ll;
-   bi = val / 1000000000ll;
-   val -= bi * 1000000000ll;
-   mi = val / 1000000ll;
-   val -= mi * 1000000ll;
-   th = val / 1000ll;
-   val -= th * 1000ll;
-   //printd(0, "tr=%lld bi=%lld mi=%lld th=%lld val=%lld\n", tr, bi, mi, th, val);
-
-   if (tr) {
-      if (len == 3)
-	 //sprintf(str, "%lld%c%03lld%c%03lld%c%03lld%c%03lld%c%s", 
-	 sprintf(str, QLLD "%c" QLLDx(03) "%c" QLLDx(03) "%c" QLLDx(03) "%c" QLLDx(03) "%c%s", 
-		 neg * tr, thousands_sep,
-		 bi, thousands_sep, 
-		 mi, thousands_sep,
-		 th, thousands_sep,
-		 val, decimal_sep,
-		 dec + 2);
-      else
-	 //sprintf(str, "%lld%c%03lld%c%03lld%c%03lld%c%03lld", 
-	 sprintf(str, QLLD "%c" QLLDx(03) "%c" QLLDx(03) "%c" QLLDx(03) "%c" QLLDx(03), 
-		 neg * tr, thousands_sep,
-		 bi, thousands_sep, 
-		 mi, thousands_sep,
-		 th, thousands_sep,
-		 val);
-   }
-   else if (bi)
-      if (len == 3)
-	 //sprintf(str, "%lld%c%03lld%c%03lld%c%03lld%c%s", 
-	 sprintf(str, QLLD "%c" QLLDx(03) "%c" QLLDx(03) "%c" QLLDx(03) "%c%s", 
-		 neg * bi, thousands_sep,
-		 mi, thousands_sep,
-		 th, thousands_sep,
-		 val, decimal_sep,
-		 dec + 2);
-      else
-	 //sprintf(str, "%lld%c%03lld%c%03lld%c%03lld", 
-	 sprintf(str, QLLD "%c" QLLDx(03) "%c" QLLDx(03) "%c" QLLDx(03), 
-		 neg * bi, thousands_sep, mi, thousands_sep, 
-		 th, thousands_sep, val);
-   else if (mi)
-      if (len == 3)
-	 //sprintf(str, "%lld%c%03lld%c%03lld%c%s", neg * mi, thousands_sep,
-	 sprintf(str, QLLD "%c" QLLDx(03) "%c" QLLDx(03) "%c%s", neg * mi, thousands_sep,
-		 th, thousands_sep, val, decimal_sep, dec + 2);
-      else
-	 //sprintf(str, "%lld%c%03lld%c%03lld", neg * mi, thousands_sep,
-	 sprintf(str, QLLD "%c" QLLDx(03) "%c" QLLDx(03), neg * mi, thousands_sep,
-		 th, thousands_sep, val);
-   else if (th)
-      if (len == 3)
-	 //sprintf(str, "%lld%c%03lld%c%s", neg * th, thousands_sep,
-	 sprintf(str, QLLD "%c" QLLDx(03) "%c%s", neg * th, thousands_sep,
-		 val, decimal_sep,
-		 dec + 2);
-      else
-	 //sprintf(str, "%lld%c%03lld", neg * th, thousands_sep, val);
-	 sprintf(str, QLLD "%c" QLLDx(03), neg * th, thousands_sep, val);
-   else
-      if (len == 3)
-	 //sprintf(str, "%lld%c%s", neg * val, decimal_sep, &dec[2]);
-	 sprintf(str, QLLD "%c%s", neg * val, decimal_sep, &dec[2]);
-      else
-	 //sprintf(str, "%lld", neg * val);
-	 sprintf(str, QLLD, neg * val);
-
-   return new QoreStringNode(str);
-}
-
-//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
- */
-nothing format_number() [flags=RUNTIME_NOOP] {
 }
 //@}
