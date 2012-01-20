@@ -192,6 +192,7 @@ static void qore_socket_error(ExceptionSink *xsink, const char *err, const char 
 #endif
 
 int SSLSocketHelper::setIntern(int sd, X509* cert, EVP_PKEY *pk, ExceptionSink *xsink) {
+   assert(!ssl);
    ctx  = SSL_CTX_new(meth);
    if (!ctx) {
       sslError(xsink, "SSL_CTX_new");
@@ -217,19 +218,6 @@ int SSLSocketHelper::setIntern(int sd, X509* cert, EVP_PKEY *pk, ExceptionSink *
    }
    SSL_set_fd(ssl, sd);
    return 0;
-}
-
-SSLSocketHelper::SSLSocketHelper() {
-   meth = 0;
-   ctx = 0;
-   ssl = 0;
-}
-
-SSLSocketHelper::~SSLSocketHelper() {
-   if (ssl)
-      SSL_free(ssl);
-   if (ctx)
-      SSL_CTX_free(ctx);
 }
 
 void SSLSocketHelper::sslError(ExceptionSink *xsink, const char *func) {
@@ -1159,6 +1147,7 @@ struct qore_socket_private {
    }
 
    DLLLOCAL int upgradeClientToSSLIntern(X509 *cert, EVP_PKEY *pkey, ExceptionSink *xsink) {
+      assert(!ssl);
       ssl = new SSLSocketHelper();
       int rc;
       do_start_ssl_event();
@@ -1172,6 +1161,7 @@ struct qore_socket_private {
    }
 
    DLLLOCAL int upgradeServerToSSLIntern(X509 *cert, EVP_PKEY *pkey, ExceptionSink *xsink) {
+      assert(!ssl);
       ssl = new SSLSocketHelper();
       do_start_ssl_event();
       if (ssl->setServer(sock, cert, pkey, xsink) || ssl->accept(xsink)) {

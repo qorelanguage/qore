@@ -44,8 +44,16 @@ private:
    DLLLOCAL int setIntern(int sd, X509* cert, EVP_PKEY *pk, ExceptionSink *xsink);
 
 public:
-   DLLLOCAL SSLSocketHelper();
-   DLLLOCAL ~SSLSocketHelper();
+   DLLLOCAL SSLSocketHelper() : meth(0), ctx(0), ssl(0) {
+   }
+
+   ~SSLSocketHelper() {
+      if (ssl)
+         SSL_free(ssl);
+      if (ctx)
+         SSL_CTX_free(ctx);
+   }
+
    DLLLOCAL void sslError(ExceptionSink *xsink, const char *msg);
    DLLLOCAL int setClient(int sd, X509* cert, EVP_PKEY *pk, ExceptionSink *xsink);
    DLLLOCAL int setServer(int sd, X509* cert, EVP_PKEY *pk, ExceptionSink *xsink);
