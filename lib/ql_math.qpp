@@ -609,6 +609,5 @@ string format_number(string fmt, softfloat num) [flags=CONSTANT] {
 /** 
  */
 nothing format_number() [flags=RUNTIME_NOOP] {
-   return 0;
 }
 //@}
