@@ -97,14 +97,14 @@ typedef std::set<std::string> strset_t;
 // for qppval values
 strmap_t qppval;
 
-// for tracking enumerated variants
-typedef std::map<std::string, unsigned> vmap_t;
-
 // code attribute map
 static amap_t amap;
 
 // qore type to qore c++ typeinfo map
 static strmap_t tmap;
+
+// qore type to mangled qore type code
+static strmap_t mtmap;
 
 // qore value to c++ value map
 static strmap_t valmap;
@@ -1105,7 +1105,8 @@ protected:
    ReturnType rt;
    unsigned line;
    bool has_return,
-      doconly;         // only for documentation
+      doconly,         // only for documentation
+      valid;
 
    void serializeArgs(FILE *fp, const char *cname = 0, bool rv = true) const {
       for (unsigned i = 0; i < params.size(); ++i) {
@@ -1312,14 +1313,40 @@ protected:
       }
    }
 
+   int appendMangledParamCodes() {
+      for (paramlist_t::const_iterator i = params.begin(), e = params.end(); i != e; ++i) {
+         if (i == params.begin())
+            vname += '_';
+
+         strmap_t::iterator ti = mtmap.find((*i).type);
+         if (ti == mtmap.end()) {
+            size_t p = (*i).type.find_last_of("::");
+            std::string cn;
+            if (p != std::string::npos)
+               cn.append((*i).type, p + 1, -1);
+            else
+               cn = (*i).type;
+
+            char buf[20];
+            sprintf(buf, "%ld", cn.size());
+            vname += "C";
+            vname += buf;
+            vname += cn;
+         }
+         else
+            vname += ti->second;
+      }
+      return 0;
+   }
+
 public:
    CodeBase(const std::string &n_name, attr_t n_attr, const paramlist_t &n_params, 
             const std::string &n_docs, const std::string &n_return_type, 
             const strlist_t& n_flags, const strlist_t& n_dom, const std::string &n_code,
-            unsigned vnum, unsigned n_line, bool n_doconly) : name(n_name), vname(name), docs(n_docs), return_type(n_return_type), 
-                                                              code(n_code), flags(n_flags), dom(n_dom), attr(n_attr),
-                                                              params(n_params), rt(RT_ANY), line(n_line), has_return(false),
-                                                              doconly(n_doconly) {
+            unsigned n_line, bool n_doconly) : name(n_name), vname(name), docs(n_docs), return_type(n_return_type), 
+                                               code(n_code), flags(n_flags), dom(n_dom), attr(n_attr),
+                                               params(n_params), rt(RT_ANY), line(n_line), has_return(false),
+                                               doconly(n_doconly), valid(true) {
       if (return_type == "int" || return_type == "softint")
          rt = RT_INT;
       else if (return_type == "bool" || return_type == "softbool")
@@ -1336,19 +1363,18 @@ public:
 
       has_return = code.find("return", i) != std::string::npos;
 
-      // assign enumerated variant name if vnum > 0
-      if (vnum) {
-         vname += '_';
-         char buf[20];
-         sprintf(buf, "%d", vnum);
-         vname += buf;
-      }
+      // assign variant name based on args
+      appendMangledParamCodes();
 
       log(LL_DEBUG, "CodeBase::CodeBase() name %s\n", name.c_str());
    }
 
    const char *getName() const {
       return name.c_str();
+   }
+
+   operator bool() const {
+      return valid;
    }
 };
 
@@ -1365,12 +1391,8 @@ public:
    FunctionGroupElement(const std::string &n_name, attr_t n_attr, const paramlist_t &n_params, 
                         const std::string &n_docs, const std::string &n_return_type, 
                         const strlist_t& n_flags, const strlist_t& n_dom, const std::string &n_code,
-                        unsigned vnum, unsigned n_line, bool n_doconly, const std::string& name_suffix) 
-      : CodeBase(n_name, n_attr, n_params, n_docs, n_return_type, n_flags, n_dom, n_code, vnum, n_line, n_doconly) {
-      if (!name_suffix.empty()) {
-         vname += '_';
-         vname += name_suffix;
-      }
+                        unsigned n_line, bool n_doconly) 
+      : CodeBase(n_name, n_attr, n_params, n_docs, n_return_type, n_flags, n_dom, n_code, n_line, n_doconly) {
    }
 
    int serializeCpp(FILE *fp) const {
@@ -1484,9 +1506,6 @@ protected:
    fmap_t fmap;     // function multimap
    tlist_t tlist;   // list of text elements
 
-   // function variant number map
-   vmap_t vmap;
-
    std::string doc,  // doc header for group
       ns;            // namespace
 
@@ -1559,7 +1578,6 @@ protected:
 
       strlist_t cf;
       strlist_t dom;
-      std::string name_suffix;
       bool doconly = false;
       // parse flags
       for (strmap_t::const_iterator i = flags.begin(), e = flags.end(); i != e; ++i) {
@@ -1574,8 +1592,6 @@ protected:
          }
          else if (i->first == "doconly")
             doconly = true;
-         else if (i->first == "name_suffix")
-            name_suffix = i->second;
          else {
             error("unknown flag '%s' = '%s' defining function %s()\n", i->first.c_str(), i->second.c_str(), fn.c_str());
             return -1;
@@ -1584,19 +1600,10 @@ protected:
 
       //log(LL_INFO, "+ method %s::%s() attr: 0x%x (static: %d)\n", name.c_str(), mname.c_str(), attr, attr & QCA_STATIC);
 
-      unsigned vnum;
-      {
-         vmap_t::iterator vi = vmap.find(fn);
-         if (vi == vmap.end()) {
-            vnum = 0;
-            vmap[fn] = 0;
-         }
-         else
-            vnum = ++vi->second;
-      }
+      FunctionGroupElement* fge = new FunctionGroupElement(fn, attr, params, doc, return_type, cf, dom, code, line, doconly);
+      fmap.insert(fmap_t::value_type(fn, fge));
 
-      fmap.insert(fmap_t::value_type(fn, new FunctionGroupElement(fn, attr, params, doc, return_type, cf, dom, code, vnum, line, doconly, name_suffix)));
-      return 0;
+      return !*fge;
    }
 
 public:
@@ -2031,8 +2038,8 @@ public:
    Method(const std::string &n_name, attr_t n_attr, const paramlist_t &n_params, 
           const std::string &n_docs, const std::string &n_return_type, 
           const strlist_t& n_flags, const strlist_t& n_dom, const std::string &n_code,
-          unsigned vnum, unsigned n_line, bool n_doconly) : CodeBase(n_name, n_attr, n_params, n_docs, n_return_type, 
-                                                                     n_flags, n_dom, n_code, vnum, n_line, n_doconly) {
+          unsigned n_line, bool n_doconly) : CodeBase(n_name, n_attr, n_params, n_docs, n_return_type, 
+                                                      n_flags, n_dom, n_code, n_line, n_doconly) {
    }
 
    virtual ~Method() {
@@ -2202,9 +2209,6 @@ protected:
    mmap_t normal_mmap,  // normal method map
       static_mmap;      // static method map
 
-   vmap_t normal_vmap,  // normal variant enumeration map
-      static_vmap;      // static variant enumation map
-
    int64 flags;
    bool valid,
       upm;              // unset public member flag
@@ -2345,20 +2349,10 @@ public:
       //log(LL_INFO, "+ method %s::%s() attr: 0x%x (static: %d)\n", name.c_str(), mname.c_str(), attr, attr & QCA_STATIC);
 
       mmap_t &mmap = (attr & QCA_STATIC) ? static_mmap : normal_mmap;
-      vmap_t &vmap = (attr & QCA_STATIC) ? static_vmap : normal_vmap;
 
-      unsigned vnum;
-      vmap_t::iterator i = vmap.find(mname);
-      if (i == vmap.end()) {
-         vnum = 0;
-         vmap[mname] = 0;
-      }
-      else
-         vnum = ++i->second;
-
-      Method *m = new Method(mname, attr, params, doc, return_type, cf, dom, code, vnum, line, doconly);
+      Method *m = new Method(mname, attr, params, doc, return_type, cf, dom, code, line, doconly);
       mmap.insert(mmap_t::value_type(mname, m));
-      return 0;
+      return !*m;
    }
 
    virtual int serializeCpp(FILE *fp) {
@@ -2838,61 +2832,132 @@ void init() {
 
    // initialize qore type to c++ typeinfo map
    tmap["int"] = "bigIntTypeInfo";
+   mtmap["int"] = "Vi";
+
    tmap["softint"] = "softBigIntTypeInfo";
+   mtmap["softint"] = "vi";
+
    tmap["*int"] = "bigIntOrNothingTypeInfo";
+   mtmap["*int"] = "Ni";
+
    tmap["*softint"] = "softBigIntOrNothingTypeInfo";
+   mtmap["*softint"] = "ni";
 
    tmap["float"] = "floatTypeInfo";
+   mtmap["float"] = "Vf";
+
    tmap["softfloat"] = "softFloatTypeInfo";
+   mtmap["softfloat"] = "vf";
+
    tmap["*float"] = "floatOrNothingTypeInfo";
+   mtmap["*float"] = "Nf";
+
    tmap["*softfloat"] = "softFloatOrNothingTypeInfo";
+   mtmap["*softfloat"] = "nf";
 
    tmap["bool"] = "boolTypeInfo";
+   mtmap["bool"] = "Vb";
+
    tmap["softbool"] = "softBoolTypeInfo";
+   mtmap["softbool"] = "vb";
+
    tmap["*bool"] = "boolOrNothingTypeInfo";
+   mtmap["*bool"] = "Nb";
+
    tmap["*softbool"] = "softBoolOrNothingTypeInfo";
+   mtmap["*softbool"] = "nb";
 
    tmap["string"] = "stringTypeInfo";
+   mtmap["string"] = "Vs";
+
    tmap["softstring"] = "softStringTypeInfo";
+   mtmap["softstring"] = "vs";
+
    tmap["*string"] = "stringOrNothingTypeInfo";
+   mtmap["*string"] = "Ns";
+
    tmap["*softstring"] = "softStringOrNothingTypeInfo";
+   mtmap["*softstring"] = "ns";
 
    tmap["list"] = "listTypeInfo";
+   mtmap["list"] = "Vl";
+
    tmap["softlist"] = "softListTypeInfo";
+   mtmap["softlist"] = "vl";
+
    tmap["*list"] = "listOrNothingTypeInfo";
+   mtmap["*list"] = "Nl";
+
    tmap["*softlist"] = "softListOrNothingTypeInfo";
+   mtmap["*softlist"] = "nl";
 
    tmap["date"] = "dateTypeInfo";
+   mtmap["date"] = "Vd";
+
    tmap["softdate"] = "softDateTypeInfo";
+   mtmap["softdate"] = "vd";
+
    tmap["*date"] = "dateOrNothingTypeInfo";
+   mtmap["*date"] = "Nd";
+
    tmap["*softdate"] = "softDateOrNothingTypeInfo";
+   mtmap["*softdate"] = "nd";
 
    tmap["binary"] = "binaryTypeInfo";
+   mtmap["binary"] = "Vy";
+
    tmap["*binary"] = "binaryOrNothingTypeInfo";
+   mtmap["*binary"] = "Ny";
 
    tmap["hash"] = "hashTypeInfo";
+   mtmap["hash"] = "Vh";
+
    tmap["*hash"] = "hashOrNothingTypeInfo";
+   mtmap["*hash"] = "Nh";
 
    tmap["null"] = "nullTypeInfo";
+   mtmap["null"] = "Vu";
+
    tmap["*null"] = "nullOrNothingTypeInfo";
+   mtmap["*null"] = "Nu";
 
    tmap["timeout"] = "timeoutTypeInfo";
+   mtmap["timeout"] = "Vt";
+
    tmap["*timeout"] = "timeoutOrNothingTypeInfo";
+   mtmap["*timeout"] = "Nt";
 
    tmap["object"] = "objectTypeInfo";
+   mtmap["object"] = "Vo";
+
    tmap["*object"] = "objectOrNothingTypeInfo";
+   mtmap["*object"] = "No";
 
    tmap["code"] = "codeTypeInfo";
+   mtmap["code"] = "Vc";
+
    tmap["*code"] = "codeOrNothingTypeInfo";
+   mtmap["*code"] = "Nc";
 
    tmap["any"] = "anyTypeInfo";
+   mtmap["any"] = "Va";
+
    tmap["nothing"] = "nothingTypeInfo";
+   mtmap["nothing"] = "Vn";
 
    tmap["reference"] = "referenceTypeInfo";
+   mtmap["reference"] = "Vr";
+
    tmap["*reference"] = "anyTypeInfo";
+   mtmap["*reference"] = "Nr";
 
    tmap["data"] = "dataTypeInfo";
+   mtmap["data"] = "Vt";
+
    tmap["*data"] = "dataOrNothingTypeInfo";
+   mtmap["*data"] = "Nt";
+
+   mtmap["..."] = "VV";
 
    // initialize qore value to c++ value map
    valmap["0"] = "zero()";

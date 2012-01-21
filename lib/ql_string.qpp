@@ -1264,7 +1264,7 @@ my string $ns = reverse($str);
 
     @see reverse(list)
 */
-string reverse(softstring str) [flags=CONSTANT;name_suffix=str] {
+string reverse(softstring str) [flags=CONSTANT] {
    return str->reverse();
 }
 //@}
