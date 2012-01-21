@@ -487,24 +487,6 @@ list reverse(list l) [flags=CONSTANT] {
    return l->reverse();
 }
 
-//! Reverses a string and returns the new string
-/** Works properly on strings with multi-byte @ref character_encoding "character encodings" as well (such as UTF-8)
-
-    @param str the string to reverse
-
-    @return a string with all characters in reverse order
-
-    @par Example:
-    @code
-my string $ns = reverse($str);
-    @endcode
-
-    @see reverse(list)
-*/
-string reverse(softstring str) [flags=CONSTANT] {
-   return str->reverse();
-}
-
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
 */
