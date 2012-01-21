@@ -1365,8 +1365,12 @@ public:
    FunctionGroupElement(const std::string &n_name, attr_t n_attr, const paramlist_t &n_params, 
                         const std::string &n_docs, const std::string &n_return_type, 
                         const strlist_t& n_flags, const strlist_t& n_dom, const std::string &n_code,
-                        unsigned vnum, unsigned n_line, bool n_doconly) : CodeBase(n_name, n_attr, n_params, n_docs, n_return_type, 
-                                                                                   n_flags, n_dom, n_code, vnum, n_line, n_doconly) {
+                        unsigned vnum, unsigned n_line, bool n_doconly, const std::string& name_suffix) 
+      : CodeBase(n_name, n_attr, n_params, n_docs, n_return_type, n_flags, n_dom, n_code, vnum, n_line, n_doconly) {
+      if (!name_suffix.empty()) {
+         vname += '_';
+         vname += name_suffix;
+      }
    }
 
    int serializeCpp(FILE *fp) const {
@@ -1555,6 +1559,7 @@ protected:
 
       strlist_t cf;
       strlist_t dom;
+      std::string name_suffix;
       bool doconly = false;
       // parse flags
       for (strmap_t::const_iterator i = flags.begin(), e = flags.end(); i != e; ++i) {
@@ -1569,6 +1574,8 @@ protected:
          }
          else if (i->first == "doconly")
             doconly = true;
+         else if (i->first == "name_suffix")
+            name_suffix = i->second;
          else {
             error("unknown flag '%s' = '%s' defining function %s()\n", i->first.c_str(), i->second.c_str(), fn.c_str());
             return -1;
@@ -1588,7 +1595,7 @@ protected:
             vnum = ++vi->second;
       }
 
-      fmap.insert(fmap_t::value_type(fn, new FunctionGroupElement(fn, attr, params, doc, return_type, cf, dom, code, vnum, line, doconly)));
+      fmap.insert(fmap_t::value_type(fn, new FunctionGroupElement(fn, attr, params, doc, return_type, cf, dom, code, vnum, line, doconly, name_suffix)));
       return 0;
    }
 

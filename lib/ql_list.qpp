@@ -470,28 +470,39 @@ any max(...) [flags=CONSTANT] {
 nothing reverse() [flags=NOOP] {
 }
 
-//! 
+//! Reverses a list and returns the new list
 /** 
+    @param l the list to reverse
+    
+    @return the given list with all elements in reverse order
+
     @par Example:
     @code
-    @endcode
-
-    @see reverse(list)
-*/
-string reverse(softstring arg) [flags=CONSTANT] {
-   return arg->reverse();
-}
-
-//! 
-/** 
-    @par Example:
-    @code
+my list $nl = reverse($l);
     @endcode
 
     @see reverse(string)
 */
 list reverse(list l) [flags=CONSTANT] {
    return l->reverse();
+}
+
+//! Reverses a string and returns the new string
+/** Works properly on strings with multi-byte @ref character_encoding "character encodings" as well (such as UTF-8)
+
+    @param str the string to reverse
+
+    @return a string with all characters in reverse order
+
+    @par Example:
+    @code
+my string $ns = reverse($str);
+    @endcode
+
+    @see reverse(list)
+*/
+string reverse(softstring str) [flags=CONSTANT] {
+   return str->reverse();
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
@@ -508,13 +519,22 @@ bool inlist(any[doc] arg, nothing[doc] x) [flags=NOOP] {
    return false;
 }
 
-//! 
+//! Returns \c True if the first argument is a member of the second argument list using soft comparisons (with implicit type conversions), \c False if not
 /** 
+    @param arg the argument to look for in the list
+    @param l the list to search for the first argument \a arg
+
+    @return \c True if the first argument is a member of the second argument list using soft comparisons (with implicit type conversions), \c False if not
+
     @par Example:
     @code
+if (inlist($str, $strlist))
+    printf("%y is in %y\n", $str, $strlist);
     @endcode
+
+    @see inlist_hard(any, softlist)
 */
-bool inlist(any arg, list l) [flags=RET_VALUE_ONLY] {
+bool inlist(any arg, softlist l) [flags=RET_VALUE_ONLY] {
    ConstListIterator li(l);
    while (li.next()) {
       bool b = QoreLogicalEqualsOperatorNode::softEqual(arg, li.getValue(), xsink);
@@ -524,17 +544,6 @@ bool inlist(any arg, list l) [flags=RET_VALUE_ONLY] {
 	 return true;
    }
    return false;
-}
-
-//! 
-/** 
-    @par Example:
-    @code
-    @endcode
-*/
-bool inlist(any arg1, any arg2) [flags=RET_VALUE_ONLY] {
-   assert(arg2);
-   return QoreLogicalEqualsOperatorNode::softEqual(arg1, arg2, xsink);
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
@@ -551,24 +560,22 @@ bool inlist_hard(any[doc] arg, nothing[doc] x) [flags=NOOP] {
    return false;
 }
 
-//! 
+//! Returns \c True if the first argument is a member of the second argument list using hard comparisons (without any implicit type conversions), \c False if not
 /** 
-    @par Example:
-    @code
-    @endcode
-*/
-bool inlist_hard(any arg1, any arg2) [flags=RET_VALUE_ONLY] {
-   assert(arg2);
-   return OP_ABSOLUTE_EQ->bool_eval(arg1, arg2, xsink);
-}
+    @param arg the argument to look for in the list
+    @param l the list to search for the first argument \a arg
 
-//! 
-/** 
+    @return \c True if the first argument is a member of the second argument list using hard comparisons (without any implicit type conversions), \c False if not
+
     @par Example:
     @code
+if (inlist_hard($str, $strlist))
+    printf("%y is in %y\n", $str, $strlist);
     @endcode
+
+    @see inlist(any, softlist)
 */
-bool inlist_hard(any arg, list l) [flags=RET_VALUE_ONLY] {
+bool inlist_hard(any arg, softlist l) [flags=RET_VALUE_ONLY] {
    bool arg_is_nothing = is_nothing(arg);
 
    ConstListIterator li(l);
