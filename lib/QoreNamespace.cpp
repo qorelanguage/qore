@@ -24,7 +24,6 @@
 #include <qore/Qore.h>
 
 #include <qore/intern/ErrnoConstants.h>
-#include <qore/intern/TypeConstants.h>
 #include <qore/intern/ParserSupport.h>
 #include <qore/intern/CallStack.h>
 #include <qore/intern/QoreRegexBase.h>
@@ -57,13 +56,23 @@
 #include <pcre.h>
 #include <assert.h>
 
-// for Z_DEFAULT_COMPRESSION
-#include <zlib.h>
-
 #ifdef DEBUG_TESTS
 // the #include "test/Namespace_tests.cpp" is on the bottom
 #  include "tests/builtin_inheritance_tests.cpp"
 #endif
+
+DLLLOCAL void init_Datasource_constants(QoreNamespace& ns);
+DLLLOCAL void init_File_constants(QoreNamespace& ns);
+DLLLOCAL void init_Program_constants(QoreNamespace& ns);
+DLLLOCAL void init_Socket_constants(QoreNamespace& ns);
+DLLLOCAL void init_TermIOS_constants(QoreNamespace& ns);
+DLLLOCAL void init_type_constants(QoreNamespace& ns);
+DLLLOCAL void init_compression_constants(QoreNamespace& ns);
+DLLLOCAL void init_crypto_constants(QoreNamespace& ns);
+DLLLOCAL void init_misc_constants(QoreNamespace& ns);
+DLLLOCAL void init_string_constants(QoreNamespace& ns);
+DLLLOCAL void init_option_constants(QoreNamespace& ns);
+DLLLOCAL void init_math_constants(QoreNamespace& ns);
 
 #define MAX_RECURSION_DEPTH 20
 
@@ -1312,9 +1321,6 @@ void StaticSystemNamespace::init() {
    qoreNS->addConstant("NT_OBJECT",      new QoreBigIntNode(NT_OBJECT));
    qoreNS->addConstant("NT_CLOSURE",     new QoreBigIntNode(NT_RUNTIME_CLOSURE));
 
-   // math constants
-   qoreNS->addConstant("M_PI",           new QoreFloatNode(3.14159265358979323846));
-
    // system constants
 #ifdef WORDS_BIGENDIAN
    qoreNS->addConstant("MACHINE_MSB",   &True);
@@ -1391,160 +1397,8 @@ void StaticSystemNamespace::init() {
    //qoreNS->addConstant("EVENT_", new QoreBigIntNode(QORE_EVENT_));
 
    // set up Option namespace for Qore options
-   QoreNamespace *option = new QoreNamespace("Option");
-
-   // add constant for features found with configure
-#ifdef HAVE_ATOMIC_MACROS
-   option->addConstant("HAVE_ATOMIC_OPERATIONS", &True);
-#else
-   option->addConstant("HAVE_ATOMIC_OPERATIONS", &False);
-#endif
-
-#ifdef HAVE_CHECK_STACK_POS
-   option->addConstant("HAVE_STACK_GUARD", &True);
-#else
-   option->addConstant("HAVE_STACK_GUARD", &False);
-#endif
-
-#ifdef HAVE_SIGNAL_HANDLING
-   option->addConstant("HAVE_SIGNAL_HANDLING", &True);
-#else
-   option->addConstant("HAVE_SIGNAL_HANDLING", &False);
-#endif
-
-#ifdef DEBUG
-   option->addConstant("HAVE_LIBRARY_DEBUGGING", &True);
-#else
-   option->addConstant("HAVE_LIBRARY_DEBUGGING", &False);
-#endif
-
-#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
-   option->addConstant("HAVE_RUNTIME_THREAD_STACK_TRACE", &True);
-#else
-   option->addConstant("HAVE_RUNTIME_THREAD_STACK_TRACE", &False);
-#endif
-
-#ifdef HAVE_ROUND
-   option->addConstant("HAVE_ROUND",    &True);
-#else
-   option->addConstant("HAVE_ROUND",    &False);
-#endif
-
-   // HAVE_TIMEGM is always true now; we don't use the system function anyway anymore
-   option->addConstant("HAVE_TIMEGM",   &True);
-
-#ifdef HAVE_SETEUID
-   option->addConstant("HAVE_SETEUID",  &True);
-#else
-   option->addConstant("HAVE_SETEUID",  &False);
-#endif
-
-#ifdef HAVE_SETEGID
-   option->addConstant("HAVE_SETEGID",  &True);
-#else
-   option->addConstant("HAVE_SETEGID",  &False);
-#endif
-
-#ifdef HAVE_SYSTEM
-   option->addConstant("HAVE_SYSTEM",  &True);
-#else
-   option->addConstant("HAVE_SYSTEM",  &False);
-#endif
-
-#ifdef HAVE_KILL
-   option->addConstant("HAVE_KILL",  &True);
-#else
-   option->addConstant("HAVE_KILL",  &False);
-#endif
-
-#ifdef HAVE_FORK
-   option->addConstant("HAVE_FORK",  &True);
-#else
-   option->addConstant("HAVE_FORK",  &False);
-#endif
-
-#ifdef HAVE_GETPPID
-   option->addConstant("HAVE_GETPPID",  &True);
-#else
-   option->addConstant("HAVE_GETPPID",  &False);
-#endif
-
-#ifdef HAVE_SYS_STATVFS_H
-   option->addConstant("HAVE_STATVFS",  &True);
-#else
-   option->addConstant("HAVE_STATVFS",  &False);
-#endif
-
-#ifdef HAVE_SETSID
-   option->addConstant("HAVE_SETSID",  &True);
-#else
-   option->addConstant("HAVE_SETSID",  &False);
-#endif
-
-#ifdef HAVE_PWD_H
-   option->addConstant("HAVE_IS_EXECUTABLE",  &True);
-#else
-   option->addConstant("HAVE_IS_EXECUTABLE",  &False);
-#endif
-
-#ifdef HAVE_TERMIOS_H
-   option->addConstant("HAVE_TERMIOS",  &True);
-#else
-   option->addConstant("HAVE_TERMIOS",  &False);
-#endif
-
-#ifdef HAVE_GETUID
-   option->addConstant("HAVE_UNIX_USERMGT",  &True);
-#else
-   option->addConstant("HAVE_UNIX_USERMGT",  &False);
-#endif
-
-#ifdef HAVE_CHOWN
-   option->addConstant("HAVE_UNIX_FILEMGT",  &True);
-#else
-   option->addConstant("HAVE_UNIX_FILEMGT",  &False);
-#endif
-
-#ifdef HAVE_STRUCT_FLOCK
-   option->addConstant("HAVE_FILE_LOCKING",  &True);
-#else
-   option->addConstant("HAVE_FILE_LOCKING",  &False);
-#endif
-
-#if !defined(OPENSSL_NO_SHA256) && defined(HAVE_OPENSSL_SHA512)
-   option->addConstant("HAVE_SHA224",  &True);
-   option->addConstant("HAVE_SHA256",  &True);
-#else
-   option->addConstant("HAVE_SHA224",  &False);
-   option->addConstant("HAVE_SHA256",  &False);
-#endif
-
-#if !defined(OPENSSL_NO_SHA512) && defined(HAVE_OPENSSL_SHA512)
-   option->addConstant("HAVE_SHA384",  &True);
-   option->addConstant("HAVE_SHA512",  &True);
-#else
-   option->addConstant("HAVE_SHA384",  &False);
-   option->addConstant("HAVE_SHA512",  &False);
-#endif
-
-#ifndef OPENSSL_NO_MDC2
-   option->addConstant("HAVE_MDC2",  &True);
-#else
-   option->addConstant("HAVE_MDC2",  &False);
-#endif
-
-#ifndef OPENSSL_NO_MD2
-   option->addConstant("HAVE_MD2",  &True);
-#else
-   option->addConstant("HAVE_MD2",  &False);
-#endif
-
-#ifndef OPENSSL_NO_RC5
-   option->addConstant("HAVE_RC5",  &True);
-#else
-   option->addConstant("HAVE_RC5",  &False);
-#endif
-
+   QoreNamespace* option = new QoreNamespace("Option");
+   init_option_constants(*option);
    qoreNS->addInitialNamespace(option);
 
    // create Qore::SQL namespace
@@ -1553,8 +1407,21 @@ void StaticSystemNamespace::init() {
    // create get Qore::Err namespace with ERRNO constants
    qoreNS->addInitialNamespace(get_errno_ns());
 
-   // create Qore::Type namespace with type constants
-   qoreNS->addInitialNamespace(get_type_ns());
+   QoreNamespace* tns = new QoreNamespace("Type");
+   init_type_constants(*tns);
+   qoreNS->addInitialNamespace(tns);
+
+   init_Datasource_constants(*qoreNS);
+   init_File_constants(*qoreNS);
+   init_Program_constants(*qoreNS);
+   init_Socket_constants(*qoreNS);
+   init_TermIOS_constants(*qoreNS);
+   init_type_constants(*qoreNS);
+   init_compression_constants(*qoreNS);
+   init_crypto_constants(*qoreNS);
+   init_misc_constants(*qoreNS);
+   init_string_constants(*qoreNS);
+   init_math_constants(*qoreNS);
 
    builtinFunctions.init(*qoreNS);
 

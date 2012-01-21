@@ -1,0 +1,382 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/*
+  ql_type.qpp
+
+  Qore Programming Language
+
+  Copyright 2003 - 2011 David Nichols
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
+#include <qore/Qore.h>
+#include <qore/intern/ql_type.h>
+#include <qore/intern/qore_date_private.h>
+
+#include <memory>
+
+/** @defgroup string_type_constants String Type Constants
+    String type constants as returned by type() and typename()
+*/
+//@{
+namespace Type;
+
+//! Gives the type for @ref boolean "boolean" values
+const Boolean = "bool";
+
+//! Gives the type for @ref integer "integer" values
+const Int = "integer";
+
+//! Gives the type for @ref float "float" values
+const Float = "float";
+
+//! Gives the type for @ref string "string" values
+const String = "string";
+
+//! Gives the type for the @ref date "date" values
+const Date = "date";
+
+//! Gives the type when @ref nothing "no value" is available
+const NothingType = "nothing";
+
+//! Gives the type for @ref null "SQL null" values
+const NullType = "NULL";
+
+//! Gives the type for @ref binary "binary" values
+const Binary = "binary";
+
+//! Gives the type for @ref list "list" values
+const List = "list";
+
+//! Gives the type for @ref hash "hash" values
+const Hash = "hash";
+
+//! Gives the type for @ref object "object" values
+const Object = "object";
+
+//! Gives the type for @ref call_reference "call references"
+const CallReference = "call reference";
+
+//! Gives the type for @ref closure "closures"
+const Closure = "closure";
+//@}
+
+/** @defgroup type_conversion_functions Type Conversion Functions
+ */
+//@{
+
+//! Converts the argument to a boolean value
+/** 
+    @param b the argument to convert to a boolean
+
+    @return the boolean value corresponding to the argument
+
+    @par Example:
+    @code
+my bool $b = boolean(1); # returns True
+    @endcode
+*/
+bool boolean(softbool b) [flags=CONSTANT] {
+   return b;
+}
+
+//! Always returns \c False
+/** The boolean() function is used for type conversions, therefore this variant is not tagged with @ref NOOP
+
+    @see boolean(softbool)
+*/
+bool boolean() [flags=CONSTANT] {
+   return false;
+}
+
+//! Converts the argument to an integer value
+/** 
+    @param i the argument to convert to an integer
+
+    @return the integer value corresponding to the argument
+
+    @par Example:
+    @code
+my int $i = int("1");
+    @endcode
+*/
+int int(softint i) [flags=CONSTANT] {
+   return i;
+}
+
+//! Always returns 0
+/** The int() function is used for type conversions, therefore this variant is not tagged with @ref NOOP
+
+    @see int(softint)
+*/
+int int() [flags=CONSTANT] {
+   return 0;
+}
+
+//! Converts the argument to a floating-point (float) value
+/** 
+    @param f the argument to convert to a float
+
+    @return the float value corresponding to the argument
+
+    @par Example:
+    @code
+my float $i = float("3.1415");
+    @endcode
+*/
+float float(softfloat f) [flags=CONSTANT] {
+   return f;
+}
+
+//! Always returns 0.0
+/** The float() function is used for type conversions, therefore this variant is not tagged with @ref NOOP
+
+    @see float(softfloat)
+*/
+float float() [flags=CONSTANT] {
+   return 0.0;
+}
+
+//! Converts the argument to a string
+/** 
+    @param i the argument to convert to a string
+
+    @return the string value corresponding to the argument
+
+    @par Example:
+    @code
+my string $str = string(100);
+    @endcode
+*/
+string string(softstring str) [flags=CONSTANT] {
+   return str->refSelf();
+}
+
+//! Always returns an empty string
+/** The string() function is used for type conversions, therefore this variant is not tagged with @ref NOOP
+
+    @see string(softstring)
+*/
+string string() [flags=CONSTANT] {
+   return null_string();
+}
+
+//! Always returns an empty binary object (of zero length)
+/** The binary() function is used for type conversions, therefore this variant is not tagged with @ref NOOP
+
+    @see
+    - binary(softstring)
+    - binary(null)
+*/
+binary binary() [flags=CONSTANT] {
+   return new BinaryNode;
+}
+
+//! Always returns an empty binary object (of zero length)
+/** The binary() function is used for type conversions, therefore this variant is not tagged with @ref NOOP
+
+    @see binary(softstring)
+*/
+binary binary(null[doc] x) [flags=CONSTANT] {
+   return new BinaryNode;
+}
+
+//! Returns a binary data type of the string passed; data types other than string will first be converted to a string and then returned as binary data
+/** This function is useful if, for example, a string type actually contains binary data; using this function will ensure that all data in the string (even if it contains embedded nulls) is maintained in the binary object (Qore strings must normally be terminated by a single null, so some Qore string operations do not work on binary data with embedded nulls).
+
+    @par Example:
+    @code
+my binary $b = binary($str);
+    @endcode
+*/
+binary binary(softstring str) [flags=CONSTANT] {
+   BinaryNode *b = new BinaryNode;
+   b->append(str->getBuffer(), str->strlen());
+   return b;
+}
+
+//! Always returns the same binary object passed
+/** The binary() function is used for type conversions, therefore this variant is not tagged with @ref NOOP
+*/
+binary binary(binary bin) [flags=CONSTANT] {
+   return bin->refSelf();
+}
+
+//! Returns a list of the arguments passed at the top level
+/** @param ... the arguments that will be returned as a list
+
+    @return a list of the arguments passed at the top level; if a sole argument of @ref nothing is passed, then an empty list is returned
+
+    @par Example:
+    @code
+my list $l = list(1, 2, 3, 4);
+    @endcode
+*/
+list list(...) [flags=CONSTANT] {
+   QoreListNode *l;
+   if (num_args(args) > 1)
+      l = args->copy();
+   else {
+      l = new QoreListNode;
+      const AbstractQoreNode *p0 = get_param(args, 0);
+      if (p0)
+	 l->push(p0->refSelf());
+   }
+   return l;
+}
+
+//! Returns a hash of an object's members
+/** @note that if this function is called from outside the class' scope, the hash will only contain the object's public members
+
+    @param obj the object to process
+
+    @return a hash of an object's members
+
+    @par Example:
+    @code
+my hash $h = hash($obj);
+    @endcode
+*/
+hash hash(object obj) [flags=RET_VALUE_ONLY] {
+   return obj->getRuntimeMemberHash(xsink);
+}
+
+//! Returns a hash by taking even numbered list elements (starting with 0) and converting them to strings for the hash keys, and the odd numbered elements following the keys as the key value
+/** 
+    @param l the list to process in a manner similar to perl's hash initialization
+
+    @return a hash by taking even numbered list elements (starting with 0) and converting them to strings for the hash keys, and the odd numbered elements following the keys as the key value
+
+    @par Example:
+    @code
+my hash $h = hash(("a", 1, "b", "two"));
+    @endcode
+*/
+hash hash(list l) [flags=RET_VALUE_ONLY] {
+   ReferenceHolder<QoreHashNode> h(new QoreHashNode, xsink);
+
+   ConstListIterator li(l);
+   while (li.next()) {
+      QoreStringValueHelper str(li.getValue());
+      h->setKeyValue(str->getBuffer(), li.next() ? li.getReferencedValue() : 0, xsink);
+      if (*xsink)
+	 return 0;
+   }
+   return h.release();
+}
+
+//! Returns a hash by taking the first list as a list of keys, and the second list as a list of values
+/** If the two lists are of unequal sizes, then the keys list takes precedence (if the values list is longer, excess values are ignored, if the keys list is longer, then excess elements are assigned @ref nothing)
+
+    @param keys a list of key values for the hash
+    @param values a list of values for the hash, corresponding to the elements in \a keys
+
+    @return a hash by taking the first list as a list of keys, and the second list as a list of values
+
+    @par Example:
+    @code
+my hash $h = list($keys, $values);
+    @endcode
+*/
+hash hash(list keys, list values) [flags=RET_VALUE_ONLY] {
+   ReferenceHolder<QoreHashNode> h(new QoreHashNode, xsink);
+
+   ConstListIterator ki(keys);
+   ConstListIterator vi(values);
+
+   bool valid = true;
+   while (ki.next()) {
+      if (valid)
+	 valid = vi.next();
+
+      QoreStringValueHelper str(ki.getValue());
+      h->setKeyValue(str->getBuffer(), valid ? vi.getReferencedValue() : 0, xsink);      
+      if (*xsink)
+	 return 0;
+   }
+
+   return h.release();
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+*/
+hash hash(hash h) [flags=CONSTANT] {
+   return h->refSelf();
+}
+
+//! Always returns the same hash passed
+/** The hash() function is used for type conversions, therefore this variant is not tagged with @ref NOOP
+*/
+hash hash() [flags=CONSTANT] {
+   return new QoreHashNode;
+}
+
+//! Returns a string giving the data type of the argument passed; see @ref type_constants for the values returned by this function
+/** 
+    @param arg the argument to check
+
+    @return a string giving the data type of the argument passed; see @ref type_constants for the values returned by this function
+
+    @par Example:
+    @code
+my string $type = type($v);
+    @endcode
+
+    @note this function is identical to typename(any)
+*/
+string type(any arg) [flags=CONSTANT] {
+   return new QoreStringNode(arg ? arg->getTypeName() : "nothing");
+}
+
+//! Returns a string giving the data type of the argument passed; see @ref string_type_constants for the values returned by this function
+/** 
+    @param arg the argument to check
+
+    @return a string giving the data type of the argument passed; see @ref string_type_constants for the values returned by this function
+
+    @par Example:
+    @code
+my string $type = typename($v);
+    @endcode
+
+    @note this function is identical to type(any)
+*/
+string typename(any arg) [flags=CONSTANT] {
+   return new QoreStringNode(arg ? arg->getTypeName() : "nothing");
+}
+
+//! Returns a string created from the binary data passed, taking an optional second argument giving the string encoding; if no second argument is passed then the @ref default_encoding "default character encoding" is assumed
+/** 
+    @param b the binary object to convert directly to a string
+    @param encoding the character encoding tag for the string return value; if not present, the @ref default_encoding "default character encoding" is assumed
+
+    @return a string created from the binary data passed
+
+    @par Example:
+    @code
+my string $str = binary_to_string($b, "iso-8859-1");
+    @endcode
+*/
+string binary_to_string(binary b, *string encoding) [flags=CONSTANT] {
+   const QoreEncoding *qe = encoding ? QEM.findCreate(encoding) : QCS_DEFAULT;
+   if (!b->size())
+      return new QoreStringNode(qe);
+   return new QoreStringNode((const char *)b->getPtr(), b->size(), qe);
+}
+//@}

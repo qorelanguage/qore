@@ -661,21 +661,25 @@ static void add_init_code(FILE* fp) {
    initcode.clear();
 }
 
-#define T_INT    0
-#define T_FLOAT  1
-#define T_STRING 2
-#define T_HASH   3
-#define T_BIN    4
-#define T_FUNC   5
-#define T_OTHER  6
+#define T_INT        0
+#define T_FLOAT      1
+#define T_STRING     2
+#define T_BOOL       3
+#define T_HASH       4
+#define T_BIN        5
+#define T_FUNC       6
+#define T_OTHER      7
 static int get_val_type(const std::string &str) {
    if (!str.empty()) {
-      if ((str[0] == '"' && str[str.size() - 1] == '"') || (str[0] == '\'' && str[str.size() - 1] == '\''))
+      size_t lc = str.size() - 1;
+      if ((str[0] == '"' && str[lc] == '"') || (str[0] == '\'' && str[lc] == '\''))
          return T_STRING;
-      if (str[0] == '(' && str[str.size() - 1] == ')')
+      if (str[0] == '(' && str[lc] == ')')
          return T_HASH;
-      if (str[0] == '<' && str[str.size() - 1] == '>')
+      if (str[0] == '<' && str[lc] == '>')
          return T_BIN;
+      if (!str.compare(0, 5, "bool(") && str[lc] == ')')
+         return T_BOOL;
    }
 
    bool pint = false,  // has integers
@@ -735,6 +739,12 @@ static int get_qore_value(const std::string &qv, std::string &v, const char *cna
       case T_STRING: {
          v = "new QoreStringNode(";
          v += qv;
+         v += ")";
+         return 0;
+      }
+      case T_BOOL: {
+         v = "get_bool_node(";
+         v.append(qv, 5, qv.size() - 6);
          v += ")";
          return 0;
       }
@@ -1050,9 +1060,9 @@ public:
       if (get_qore_value(value, qv, name.c_str(), &prefix))
          return -1;
       if (prefix)
-         fprintf(fp, "   %s\n   qorens.addConstant(\"%s\", %s_%s);\n", qv.c_str(), name.c_str(), prefix, name.c_str());
+         fprintf(fp, "   %s\n   ns.addConstant(\"%s\", %s_%s);\n", qv.c_str(), name.c_str(), prefix, name.c_str());
       else
-         fprintf(fp, "   qorens.addConstant(\"%s\", %s);\n", name.c_str(), qv.c_str());
+         fprintf(fp, "   ns.addConstant(\"%s\", %s);\n", name.c_str(), qv.c_str());
       return 0;
    }
 
@@ -1624,6 +1634,24 @@ public:
             return;
          }
 
+         if (!line.compare(0, 10, "namespace ")) {
+            size_t p = line.find(';');
+            if (p == std::string::npos) {
+               error("%s:%d: cannot find ';' in namespace declaration\n", fileName, lineNumber);
+               valid = false;
+               return;
+            }
+            if (!ns.empty()) {
+               error("%s:%d: duplicate namespace declaration\n", fileName, lineNumber);
+               valid = false;
+               return;
+            }
+
+            ns.assign(line, 11, -1);
+            trim(ns);
+            continue;
+         }
+
          if (!line.compare(0, 3, "//!")) {
             checkBuf(buf);
 
@@ -1649,7 +1677,6 @@ public:
                   return;
                }
             }
-            
 
             if (!line.compare(0, 6, "const ")) {
                checkBuf(buf);
@@ -1851,7 +1878,7 @@ public:
             return -1;
 
       // now serialize function bindings
-      fprintf(fp, "\nvoid init_%s_functions(QoreNamespace& qorens) {\n", rootName);
+      fprintf(fp, "\nvoid init_%s_functions(QoreNamespace& ns) {\n", rootName);
 
       add_init_code(fp);
 
@@ -1860,6 +1887,25 @@ public:
             return -1;
 
       // serialize any constants
+      //if (serializeCppConstantBindings(fp))
+      //   return -1;
+
+      fputs("\n}\n", fp);
+
+      return 0;
+   }
+
+   int serializeConstantCpp(FILE *fp, const char *rootName) {
+      log(LL_DEBUG, "Groups::serializeConstantCpp() has_constants=%d\n", has_constants);
+      if (!has_constants)
+         return 0;
+
+      // now serialize constant bindings
+      fprintf(fp, "\nvoid init_%s_constants(QoreNamespace& ns) {\n", rootName);
+
+      add_init_code(fp);
+
+      // serialize constants
       if (serializeCppConstantBindings(fp))
          return -1;
 
@@ -2372,7 +2418,7 @@ public:
          i->second->serializeStaticCppMethod(fp, name.c_str(), arg.c_str());
       }
 
-      fprintf(fp, "QoreClass* init%sClass(QoreNamespace &qorens) {\n   QC_%s = new QoreClass(\"%s\", ", name.c_str(), UC.c_str(), name.c_str());
+      fprintf(fp, "QoreClass* init%sClass(QoreNamespace &ns) {\n   QC_%s = new QoreClass(\"%s\", ", name.c_str(), UC.c_str(), name.c_str());
       dom_output_cpp(fp, dom);
       fprintf(fp, ");\n   CID_%s = QC_%s->getID();\n", UC.c_str(), UC.c_str());
 
@@ -2382,7 +2428,6 @@ public:
          toupper(vp);
          fprintf(fp, "\n   // set parent class\n   assert(QC_%s);\n   QC_%s->addBuiltinVirtualBaseClass(QC_%s);\n", vp.c_str(), UC.c_str(), vp.c_str());
       }
-
 
       add_init_code(fp);
 
@@ -2766,7 +2811,12 @@ public:
          }
       }
       
-      return groups.serializeFunctionCpp(fp, rootName.c_str());
+      if (groups.serializeFunctionCpp(fp, rootName.c_str()))
+         return -1;
+      if (groups.serializeConstantCpp(fp, rootName.c_str()))
+         return -1;
+
+      return 0;
    }
 
    int serializeDox() {

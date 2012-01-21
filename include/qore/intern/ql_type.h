@@ -25,6 +25,6 @@
 
 #define QORE_LIB_TYPE_H
 
-DLLLOCAL void init_type_functions();
+DLLLOCAL void init_type_functions(QoreNamespace& ns);
 
 #endif

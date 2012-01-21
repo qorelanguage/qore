@@ -37,6 +37,14 @@ static double minus_infinity() {
 #endif
 }
 
+/** @defgroup math_constants Math Constants
+    Math constants
+ */
+//@{
+//! PI
+const M_PI = 3.14159265358979323846;
+//@}
+
 /** @defgroup math_functions Math Functions
     Math functions
 */

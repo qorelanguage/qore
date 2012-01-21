@@ -1,0 +1,286 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/*
+  qc_option.qpp
+
+  Qore Programming Language
+
+  Copyright 2003 - 2012 David Nichols
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
+#include <qore/Qore.h>
+
+#ifdef HAVE_ATOMIC_MACROS
+#define QORE_CONST_HAVE_ATOMIC_MACROS 1
+#else
+#define QORE_CONST_HAVE_ATOMIC_MACROS 0
+#endif
+
+#ifdef HAVE_CHECK_STACK_POS
+#define QORE_CONST_HAVE_CHECK_STACK_POS 1
+#else
+#define QORE_CONST_HAVE_CHECK_STACK_POS 0
+#endif
+
+#ifdef HAVE_SIGNAL_HANDLING
+#define QORE_CONST_HAVE_SIGNAL_HANDLING 1
+#else
+#define QORE_CONST_HAVE_SIGNAL_HANDLING 0
+#endif
+
+#ifdef DEBUG
+#define QORE_CONST_DEBUG 1
+#else
+#define QORE_CONST_DEBUG 0
+#endif
+
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
+#define QORE_CONST_QORE_RUNTIME_THREAD_STACK_TRACE 1
+#else
+#define QORE_CONST_QORE_RUNTIME_THREAD_STACK_TRACE 0
+#endif
+
+#ifdef HAVE_ROUND
+#define QORE_CONST_HAVE_ROUND 1
+#else
+#define QORE_CONST_HAVE_ROUND 0
+#endif
+
+#ifdef HAVE_SETEUID
+#define QORE_CONST_HAVE_SETEUID 1
+#else
+#define QORE_CONST_HAVE_SETEUID 0
+#endif
+
+#ifdef HAVE_SETEGID
+#define QORE_CONST_HAVE_SETEGID 1
+#else
+#define QORE_CONST_HAVE_SETEGID 0
+#endif
+
+#ifdef HAVE_SYSTEM
+#define QORE_CONST_HAVE_SYSTEM 1
+#else
+#define QORE_CONST_HAVE_SYSTEM 0
+#endif
+
+#ifdef HAVE_KILL
+#define QORE_CONST_HAVE_KILL 1
+#else
+#define QORE_CONST_HAVE_KILL 0
+#endif
+
+#ifdef HAVE_FORK
+#define QORE_CONST_HAVE_FORK 1
+#else
+#define QORE_CONST_HAVE_FORK 0
+#endif
+
+#ifdef HAVE_GETPPID
+#define QORE_CONST_HAVE_GETPPID 1
+#else
+#define QORE_CONST_HAVE_GETPPID 0
+#endif
+
+#ifdef HAVE_SYS_STATVFS_H
+#define QORE_CONST_HAVE_SYS_STATVFS_H 1
+#else
+#define QORE_CONST_HAVE_SYS_STATVFS_H 0
+#endif
+
+#ifdef HAVE_SETSID
+#define QORE_CONST_HAVE_SETSID 1
+#else
+#define QORE_CONST_HAVE_SETSID 0
+#endif
+
+#ifdef HAVE_PWD_H
+#define QORE_CONST_HAVE_PWD_H 1
+#else
+#define QORE_CONST_HAVE_PWD_H 0
+#endif
+
+#ifdef HAVE_TERMIOS_H
+#define QORE_CONST_HAVE_TERMIOS_H 1
+#else
+#define QORE_CONST_HAVE_TERMIOS_H 0
+#endif
+
+#ifdef HAVE_GETUID
+#define QORE_CONST_HAVE_GETUID 1
+#else
+#define QORE_CONST_HAVE_GETUID 0
+#endif
+
+#ifdef HAVE_CHOWN
+#define QORE_CONST_HAVE_CHOWN 1
+#else
+#define QORE_CONST_HAVE_CHOWN 0
+#endif
+
+#ifdef HAVE_STRUCT_FLOCK
+#define QORE_CONST_HAVE_STRUCT_FLOCK 1
+#else
+#define QORE_CONST_HAVE_STRUCT_FLOCK 0
+#endif
+
+#if !defined(OPENSSL_NO_SHA256) && defined(HAVE_OPENSSL_SHA512)
+#define QORE_CONST_HAVE_SHA256 1
+#else
+#define QORE_CONST_HAVE_SHA256 0
+#endif
+
+#if !defined(OPENSSL_NO_SHA512) && defined(HAVE_OPENSSL_SHA512)
+#define QORE_CONST_HAVE_SHA512 1
+#else
+#define QORE_CONST_HAVE_SHA512 0
+#endif
+
+#ifndef OPENSSL_NO_MDC2
+#define QORE_CONST_HAVE_MDC2 1
+#else
+#define QORE_CONST_HAVE_MDC2 0
+#endif
+
+#ifndef OPENSSL_NO_MD2
+#define QORE_CONST_HAVE_MD2 1
+#else
+#define QORE_CONST_HAVE_MD2 0
+#endif
+
+#ifndef OPENSSL_NO_RC5
+#define QORE_CONST_HAVE_RC5 1
+#else
+#define QORE_CONST_HAVE_RC5 0
+#endif
+
+/** @defgroup option_constants Option Constants
+    Option constants
+*/
+//@{
+namespace Option;
+//! Indicates if the Qore library supports fast atomic reference counting
+/** Note that if this constant is \c False, atomic operations are supported by mutexes and are therefore slower than with native atomic reference counting operations
+ */
+const HAVE_ATOMIC_OPERATIONS = bool(QORE_CONST_HAVE_ATOMIC_MACROS);
+
+//! Indicates if protection against stack overruns is provided
+const HAVE_STACK_GUARD = bool(QORE_CONST_HAVE_CHECK_STACK_POS);
+
+//! Indicates if UNIX-style signal handling is available
+/** If this constant is \c False, then the set_signal_handler() and remove_signal_handler() functions are not available.
+
+    @note This constant is always \c False on native Windows ports
+
+    @see signal_handling
+ */
+const HAVE_SIGNAL_HANDLING = bool(QORE_CONST_HAVE_SIGNAL_HANDLING);
+
+//! Indicates if the %Qore library has been built with debugging enabled
+const HAVE_LIBRARY_DEBUGGING = bool(QORE_CONST_DEBUG);
+
+//! Indicates if active thread stack tracing has been enabled as a debugging option and if the getAllThreadCallStacks() function is available
+const HAVE_RUNTIME_THREAD_STACK_TRACE = bool(QORE_CONST_QORE_RUNTIME_THREAD_STACK_TRACE);
+
+//! Indicates if the round() function is available; the availability of this function depends on the presence of the C-library's %round() function
+const HAVE_ROUND = bool(QORE_CONST_HAVE_ROUND);
+
+//! Indicates if the seteuid() function is available; the availabilty of this function depends on the system's underlying C-library
+/** @note This constant is always \c False on native Windows ports
+ */
+const HAVE_SETEUID = bool(QORE_CONST_HAVE_SETEUID);
+
+//! Indicates if the setegid() function is available; the availabilty of this function depends on the system's underlying C-library
+/** @note This constant is always \c False on native Windows ports
+ */
+const HAVE_SETEGID = bool(QORE_CONST_HAVE_SETEGID);
+
+//! Indicates if the system() function is available
+const HAVE_SYSTEM = bool(QORE_CONST_HAVE_SYSTEM);
+
+//! Indicates if the kill() function is available
+/** @note This constant is always \c False on native Windows ports
+ */
+const HAVE_KILL = bool(QORE_CONST_HAVE_KILL);
+
+//! Indicates if the fork() function is available
+/** @note This constant is always \c False on native Windows ports
+ */
+const HAVE_FORK = bool(QORE_CONST_HAVE_FORK);
+
+//! Indicates if the getppid() function is available
+/** @note This constant is always \c False on native Windows ports
+ */
+const HAVE_GETPPID = bool(QORE_CONST_HAVE_GETPPID);
+
+//! Indicates if the statvfs() function is available
+/** @note This constant is always \c False on native Windows ports
+ */
+const HAVE_STATVFS = bool(QORE_CONST_HAVE_SYS_STATVFS_H);
+
+//! Indicates if the setsid() function is available
+/** @note This constant is always \c False on native Windows ports
+ */
+const HAVE_SETSID = bool(QORE_CONST_HAVE_SETSID);
+
+//! Indicates if the Qore library supports the is_executable() function
+/** @note Currently this function is only available when running on UNIX or UNIX-like platforms
+ */
+const HAVE_IS_EXECUTABLE = bool(QORE_CONST_HAVE_PWD_H);
+
+//! Indicates if the TermIOS class is available
+/** @note This constant is always \c False on native Windows ports
+ */
+const HAVE_TERMIOS = bool(QORE_CONST_HAVE_TERMIOS_H);
+
+//! Indicates if UNIX-style user management functionality is available (ex: getuid(), setuid(), getgid(), setgid(), etc)
+/** @note This constant is always \c False on native Windows ports
+ */
+const HAVE_UNIX_USERMGT = bool(QORE_CONST_HAVE_GETUID);
+
+//! Indicates if UNIX-style file management functionality is available (ex: chown(), Dir::chgrp(), etc)
+/** @note This constant is always \c False on native Windows ports
+ */
+const HAVE_UNIX_FILEMGT = bool(QORE_CONST_HAVE_CHOWN);
+
+//! Indicates if the Qore library supports file locking; currently this depends on UNIX-style file locking with the fnctl() function
+/** @note Currently this function is only available when running on UNIX or UNIX-like platforms
+ */
+const HAVE_FILE_LOCKING = bool(QORE_CONST_HAVE_STRUCT_FLOCK);
+
+//! Indicates if the openssl library used to build the qore library supported the SHA224 algorithm and therefore if the SHA224() and SHA224_bin() functions are available
+const HAVE_SHA224 = bool(QORE_CONST_HAVE_SHA256);
+
+//! Indicates if the openssl library used to build the qore library supported the SHA256 algorithm and therefore if the SHA256() and SHA256_bin() functions are available
+const HAVE_SHA256 = bool(QORE_CONST_HAVE_SHA256);
+
+//! Indicates if the openssl library used to build the qore library supported the SHA384 algorithm and therefore if the SHA384() and SHA384_bin() functions are available
+const HAVE_SHA384 = bool(QORE_CONST_HAVE_SHA512);
+
+//! Indicates if the openssl library used to build the qore library supported the SHA512 algorithm and therefore if the SHA512() and SHA512_bin() functions are available
+const HAVE_SHA512 = bool(QORE_CONST_HAVE_SHA512);
+
+//! Indicates if the openssl library used to build the qore library supported the MDC2 algorithm and therefore if the MDC2() and MDC2_bin() functions are available
+const HAVE_MDC2 = bool(QORE_CONST_HAVE_MDC2);
+
+//! Indicates if the openssl library used to build the qore library supported the MD2 algorithm and therefore if the MD2() and MD2_bin() functions are available
+const HAVE_MD2 = bool(QORE_CONST_HAVE_MD2);
+
+//! Indicates if the openssl library used to build the qore library supported the RC5 encryption algorithm and therefore if the rc5_encrypt_cbc(), rc5_decrypt_cbc() and rc5_encrypt_cbc_to_string() functions are available
+const HAVE_RC5 = bool(QORE_CONST_HAVE_RC5);
+//@}
+
+

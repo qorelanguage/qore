@@ -141,6 +141,12 @@ ql_math.cpp: ql_math.qpp qpp
 ql_list.cpp: ql_list.qpp qpp
 	$(QPP) $<
 
+ql_type.cpp: ql_type.qpp qpp
+	$(QPP) $<
+
+qc_option.cpp: qc_option.qpp qpp
+	$(QPP) $<
+
 QORE_GENERATED_SOURCES = \
 	QC_Queue.cpp QC_Socket.cpp QC_File.cpp QC_AbstractSmartLock.cpp QC_Mutex.cpp QC_AutoLock.cpp \
 	QC_Gate.cpp QC_AutoGate.cpp QC_RWLock.cpp QC_AutoReadLock.cpp QC_AutoWriteLock.cpp \
@@ -148,7 +154,7 @@ QORE_GENERATED_SOURCES = \
 	QC_Datasource.cpp QC_DatasourcePool.cpp QC_SQLStatement.cpp QC_Dir.cpp QC_Program.cpp \
 	QC_GetOpt.cpp QC_TermIOS.cpp QC_TimeZone.cpp QC_SSLCertificate.cpp QC_SSLPrivateKey.cpp \
 	ql_misc.cpp ql_compression.cpp ql_thread.cpp ql_crypto.cpp ql_lib.cpp ql_file.cpp \
-	ql_string.cpp ql_time.cpp ql_math.cpp ql_list.cpp
+	ql_string.cpp ql_time.cpp ql_math.cpp ql_list.cpp ql_type.cpp qc_option.cpp
 
 CLEANFILES = $(QORE_GENERATED_SOURCES)
 
@@ -328,6 +334,7 @@ libqore_la_SOURCES = \
 	ql_file.cpp \
 	ql_compression.cpp \
 	ql_pwd.cpp \
+	qc_option.cpp \
 	QC_Socket.cpp \
 	QC_Program.cpp \
 	QC_File.cpp \
