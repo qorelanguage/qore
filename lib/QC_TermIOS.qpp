@@ -523,7 +523,7 @@ const TCSASOFT = TCSASOFT;
 //@}
 
 //! This class allows %Qore scripts to get or set terminal settings on UNIX platforms
-/** On platforms without TermIOS support (such as Windows), none of the methods in this class are available; to write a portable program, check the @ref HAVE_TERMIOS constant at runtime before using this functionality.
+/** On platforms without TermIOS support (such as Windows), none of the methods in this class are available; to write a portable program, check the @ref Qore::Option::HAVE_TERMIOS constant at runtime before using this functionality.
 
     This class contains the data structure used to read and set terminal attributes on terminal I/O constants (@ref stdin, @ref stdout, @ref stderr).
 
@@ -566,7 +566,7 @@ qclass TermIOS [dom=TERMINAL_IO; arg=QoreTermIOS*s];
 /** Use File::getTerminalAttributes() with a terminal I/O constant to initialize the object with terminal settings
 
     @par Platform Availability:
-    @ref HAVE_TERMIOS
+    @ref Qore::Option::HAVE_TERMIOS
 
     @par Example:
     @code
@@ -584,7 +584,7 @@ TermIOS::constructor() {
 
 //! Returns a copy of the object
 /** @par Platform Availability:
-    @ref HAVE_TERMIOS
+    @ref Qore::Option::HAVE_TERMIOS
 
     @par Example:
     @code
@@ -603,7 +603,7 @@ TermIOS::copy() {
 /** @return the @ref tattr_local_mode_constants "local mode flag" for the object
 
     @par Platform Availability:
-    @ref HAVE_TERMIOS
+    @ref Qore::Option::HAVE_TERMIOS
 
     @par Example:
     @code
@@ -623,7 +623,7 @@ int TermIOS::getLFlag() {
 /** @return the @ref tattr_control_mode_constants "control mode flag" for the object
     
     @par Platform Availability:
-    @ref HAVE_TERMIOS
+    @ref Qore::Option::HAVE_TERMIOS
 
     @par Example:
     @code
@@ -643,7 +643,7 @@ int TermIOS::getCFlag() {
 /** @return the @ref tattr_output_mode_constants "output mode flag" for the object
 
     @par Platform Availability:
-    @ref HAVE_TERMIOS
+    @ref Qore::Option::HAVE_TERMIOS
 
     @par Example:
     @code
@@ -663,7 +663,7 @@ int TermIOS::getOFlag() {
 /** @return the @ref tattr_input_mode_constants "input mode flag" for the object
 
     @par Platform Availability:
-    @ref HAVE_TERMIOS
+    @ref Qore::Option::HAVE_TERMIOS
 
     @par Example:
     @code
@@ -683,7 +683,7 @@ int TermIOS::getIFlag() {
 /** @param flag the local mode (see @ref tattr_local_mode_constants for masks for this value)
 
     @par Platform Availability:
-    @ref HAVE_TERMIOS
+    @ref Qore::Option::HAVE_TERMIOS
 
     @par Example:
     @code
@@ -710,7 +710,7 @@ nothing TermIOS::setLFlag(softint flag) {
 /** @param flag the control mode (see @ref tattr_control_mode_constants for masks for this value)
 
     @par Platform Availability:
-    @ref HAVE_TERMIOS
+    @ref Qore::Option::HAVE_TERMIOS
 
     @par Example:
     @code
@@ -733,7 +733,7 @@ nothing TermIOS::setCFlag(softint flag) {
 /** @param flag the output mode (see @ref tattr_output_mode_constants for masks for this value)
 
     @par Platform Availability:
-    @ref HAVE_TERMIOS
+    @ref Qore::Option::HAVE_TERMIOS
 
     @par Example:
     @code
@@ -756,7 +756,7 @@ nothing TermIOS::setOFlag(softint flag) {
 /** @param flag the input mode flag for the object from a mask of @ref tattr_input_mode_constants
 
     @par Platform Availability:
-    @ref HAVE_TERMIOS
+    @ref Qore::Option::HAVE_TERMIOS
 
     @par Example:
     @code
@@ -781,7 +781,7 @@ nothing TermIOS::setIFlag(softint flag) {
     @return the integer value for the given control character from the given @ref tattr_control_character_constants "control character code"
 
     @par Platform Availability:
-    @ref HAVE_TERMIOS
+    @ref Qore::Option::HAVE_TERMIOS
 
     @par Example:
     @code
@@ -807,7 +807,7 @@ int TermIOS::getCC(softint cc) {
     @param value the value to set for the @ref tattr_control_character_constants "control character"
 
     @par Platform Availability:
-    @ref HAVE_TERMIOS
+    @ref Qore::Option::HAVE_TERMIOS
 
     @par Example:
     @code
@@ -833,7 +833,7 @@ nothing TermIOS::setCC(softint offset, softint value) {
 /** @return \c True if the TermIOS object passed as an argument is equal to the current object; \c False if not
 
     @par Platform Availability:
-    @ref HAVE_TERMIOS
+    @ref Qore::Option::HAVE_TERMIOS
 
     @par Example:
     @code
@@ -855,7 +855,7 @@ bool TermIOS::isEqual(Termios[QoreTermIOS] termios) [flags=CONSTANT] {
 /** @return a hash giving the current terminal window size in hash keys \c "rows" and \c "columns"
 
     @par Platform Availability:
-    @ref HAVE_TERMIOS
+    @ref Qore::Option::HAVE_TERMIOS
 
     @par Example:
 my hash $wh = $termios.getWindowSize();

@@ -170,7 +170,7 @@ nothing Dir::chmod(softint mode) {
 /** @param uid the userid of the user to change the directory to
 
     @par Platform Availability:
-    @ref HAVE_UNIX_FILEMGT
+    @ref Qore::Option::HAVE_UNIX_FILEMGT
 
     @par Example:
     @code
@@ -201,7 +201,7 @@ nothing Dir::chown(int uid) {
 /** @param username the username of the user to change the directory to
 
     @par Platform Availability:
-    @ref HAVE_UNIX_FILEMGT
+    @ref Qore::Option::HAVE_UNIX_FILEMGT
 
     @par Example:
     @code
@@ -240,7 +240,7 @@ nothing Dir::chown(string username) {
 /** @param gid the groupid of the user to change the directory to
 
     @par Platform Availability:
-    @ref HAVE_UNIX_FILEMGT
+    @ref Qore::Option::HAVE_UNIX_FILEMGT
 
     @par Example:
     @code
@@ -271,7 +271,7 @@ nothing Dir::chgrp(int gid) {
 /** @param groupname the group name of the group to change the directory to
 
     @par Platform Availability:
-    @ref HAVE_UNIX_FILEMGT
+    @ref Qore::Option::HAVE_UNIX_FILEMGT
 
     @par Example:
     @code
@@ -688,7 +688,7 @@ hash Dir::hstat() {
 /** @return a hash of @ref filesystem_status_hash "filesystem status values" for the current directory
 
     @par Platform Availability:
-    @ref HAVE_STATVFS
+    @ref Qore::Option::HAVE_STATVFS
 
     @par Example:
     @code

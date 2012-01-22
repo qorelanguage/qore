@@ -1531,7 +1531,7 @@ binary SHA1_bin(data[doc] data) {
 //! Returns the SHA-224 message digest (a variant of <a href="http://en.wikipedia.org/wiki/SHA-2">SHA-2</a>) of the supplied argument as a binary object
 /** 
     @par Platform Availability:
-    @ref Qore::Option::HAVE_SSH224
+    @ref Qore::Option::HAVE_SHA224
 
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
 
@@ -1562,7 +1562,7 @@ binary SHA224_bin(data[doc] data) {
 //! Returns the SHA-256 message digest (a variant of <a href="http://en.wikipedia.org/wiki/SHA-2">SHA-2</a>) of the supplied argument as a binary object
 /** 
     @par Platform Availability:
-    @ref Qore::Option::HAVE_SSH256
+    @ref Qore::Option::HAVE_SHA256
 
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
 
@@ -1593,7 +1593,7 @@ binary SHA256_bin(data[doc] data) {
 //! Returns the SHA-384 message digest (a variant of <a href="http://en.wikipedia.org/wiki/SHA-2">SHA-2</a>) of the supplied argument as a binary object
 /** 
     @par Platform Availability:
-    @ref Qore::Option::HAVE_SSH384
+    @ref Qore::Option::HAVE_SHA384
 
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
 
@@ -1624,7 +1624,7 @@ binary SHA384_bin(data[doc] data) {
 //! Returns the SHA-512 message digest (a variant of <a href="http://en.wikipedia.org/wiki/SHA-2">SHA-2</a>) of the supplied argument as a binary object
 /** 
     @par Platform Availability:
-    @ref Qore::Option::HAVE_SSH512
+    @ref Qore::Option::HAVE_SHA512
 
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
 

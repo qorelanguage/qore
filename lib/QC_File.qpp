@@ -1335,7 +1335,7 @@ int File::getPos() {
 /** Locks or unlocks a portion of the file or the entire file, for reading or writing, non-blocking. The file must be opened in the appropriate mode before this call or the call will fail with an exception.
 
     @par Platform Availability:
-    @ref HAVE_FILE_LOCKING
+    @ref Qore::Option::HAVE_FILE_LOCKING
 
     @par Example:
     @code
@@ -1357,7 +1357,7 @@ $f.lock(F_UNLCK);
     @return 0 for success, \c EACCES if the lock would block (only in the case that the lock would block is no exception thrown and \c EACCES returned)
 
     @throw FILE-LOCK-ERROR File is not open, lock length is negative, or the fcntl operation failed
-    @throw MISSING-FEATURE-ERROR this exception is thrown when the method is not available on the runtime platform; for maximum portability, check the constant @ref HAVE_FILE_LOCKING before calling this function.
+    @throw MISSING-FEATURE-ERROR this exception is thrown when the method is not available on the runtime platform; for maximum portability, check the constant @ref Qore::Option::HAVE_FILE_LOCKING before calling this function.
     @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (\c stdio, \c stdin, \c stdout) when @ref no-terminal-io is set
 
     @see File::lockBlocking() for a blocking version of this method
@@ -1381,7 +1381,7 @@ int File::lock(softint[doc] type = F_RDLCK, softint[doc] start = 0, softint[doc]
 /** Locks or unlocks a portion of the file or the entire file, for reading or writing, blocking. The file must be opened in the appropriate mode before this call or the call will fail with an exception.
 
     @par Platform Availability:
-    @ref HAVE_FILE_LOCKING
+    @ref Qore::Option::HAVE_FILE_LOCKING
 
     @par Example:
     @code
@@ -1401,7 +1401,7 @@ $f.lockBlocking(F_UNLCK);
     @param whence Indicates how the relative offset of the file should be calculated for the lock; see @ref file_seek_constants
 
     @throw FILE-LOCK-ERROR File is not open, lock length is negative, or the fcntl operation failed
-    @throw MISSING-FEATURE-ERROR this exception is thrown when the method is not available on the runtime platform; for maximum portability, check the constant @ref HAVE_FILE_LOCKING before calling this function.
+    @throw MISSING-FEATURE-ERROR this exception is thrown when the method is not available on the runtime platform; for maximum portability, check the constant @ref Qore::Option::HAVE_FILE_LOCKING before calling this function.
     @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (\c stdio, \c stdin, \c stdout) when @ref no-terminal-io is set
 
     @see File::lockBlocking() for a blocking version of this method
@@ -1425,7 +1425,7 @@ nothing File::lockBlocking(softint[doc] type = F_RDLCK, softint[doc] start = 0, 
 
 //! Returns a hash of lock information
 /** @par Platform Availability:
-    @ref HAVE_FILE_LOCKING
+    @ref Qore::Option::HAVE_FILE_LOCKING
 
     @par Example:
     @code my hash $hash = $f.getLockInfo(); @endcode
@@ -1438,7 +1438,7 @@ nothing File::lockBlocking(softint[doc] type = F_RDLCK, softint[doc] start = 0, 
     - \c whence: always returned as \c SEEK_SET when the call is successful
 
     @throw FILE-LOCK-ERROR File is not open or the fcntl operation failed
-    @throw MISSING-FEATURE-ERROR this exception is thrown when the method is not available on the runtime platform; for maximum portability, check the constant @ref HAVE_FILE_LOCKING before calling this function.
+    @throw MISSING-FEATURE-ERROR this exception is thrown when the method is not available on the runtime platform; for maximum portability, check the constant @ref Qore::Option::HAVE_FILE_LOCKING before calling this function.
     @throw ILLEGAL-EXPRESSION this exception is only thown if called with a system constant object (\c stdio, \c stdin, \c stdout) when @ref no-terminal-io is set
  */
 hash File::getLockInfo() {
@@ -1466,7 +1466,7 @@ hash File::getLockInfo() {
 
 //! Changes the user and group owners of the file on the filesystem (if the current user has sufficient permission to do so)
 /** @par Platform Availability:
-    @ref HAVE_UNIX_FILEMGT
+    @ref Qore::Option::HAVE_UNIX_FILEMGT
 
     @par Example:
     @code $f.chown(0, 0); @endcode
@@ -1510,7 +1510,7 @@ bool File::isDataAvailable(timeout timeout_ms = 0) {
 /** Do not pass a reference to the TermIOS object; pass the object itself as an argument.
 
     @par Platform Availability:
-    @ref HAVE_TERMIOS
+    @ref Qore::Option::HAVE_TERMIOS
 
     @par Example:
     @code
@@ -1540,7 +1540,7 @@ nothing File::getTerminalAttributes(TermIOS[QoreTermIOS] termios) {
 
 //! Sets the current terminal attributes for the File from the TermIOS object passed; does not change the object passed
 /** @par Platform Availability:
-    @ref HAVE_TERMIOS
+    @ref Qore::Option::HAVE_TERMIOS
 
     @par Example:
     @code
@@ -1664,7 +1664,7 @@ hash File::hstat() {
 /** If any errors occur, a \c FILE-STATVFS-ERROR exception is thrown
 
     @par Platform Availability:
-    @ref HAVE_STATVFS
+    @ref Qore::Option::HAVE_STATVFS
 
     @par Example:
     @code my hash $h = $file.statvfs(); @endcode
@@ -1801,7 +1801,7 @@ static hash File::hlstat(string path) [dom=FILESYSTEM] {
 /** If any errors occur, a \c FILE-STATVFS-ERROR exception is thrown
 
     @par Platform Availability:
-    @ref HAVE_STATVFS
+    @ref Qore::Option::HAVE_STATVFS
 
     @par Example:
     @code my hash $h = File::statvfs($path); @endcode

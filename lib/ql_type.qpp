@@ -151,7 +151,7 @@ float float() [flags=CONSTANT] {
 
 //! Converts the argument to a string
 /** 
-    @param i the argument to convert to a string
+    @param str the argument to convert to a string
 
     @return the string value corresponding to the argument
 
@@ -327,11 +327,11 @@ hash hash() [flags=CONSTANT] {
    return new QoreHashNode;
 }
 
-//! Returns a string giving the data type of the argument passed; see @ref type_constants for the values returned by this function
+//! Returns a string giving the data type of the argument passed; see @ref string_type_constants for the values returned by this function
 /** 
     @param arg the argument to check
 
-    @return a string giving the data type of the argument passed; see @ref type_constants for the values returned by this function
+    @return a string giving the data type of the argument passed; see @ref string_type_constants for the values returned by this function
 
     @par Example:
     @code

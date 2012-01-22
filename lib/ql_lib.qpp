@@ -560,7 +560,7 @@ int rand() [flags=CONSTANT] {
 //! Seeds the random number generator with the integer passed
 /** This function uses the C library function srandom() if available on the current platform, otherwise uses %srand()
 
-    @param the seed for the random number generator (only the least-significant 32-bits are used)
+    @param seed the seed for the random number generator (only the least-significant 32-bits are used)
 
     @par Example:
     @code

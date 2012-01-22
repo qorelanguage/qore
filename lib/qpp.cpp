@@ -1641,13 +1641,14 @@ public:
                valid = false;
                return;
             }
+            
             if (!ns.empty()) {
                error("%s:%d: duplicate namespace declaration\n", fileName, lineNumber);
                valid = false;
                return;
             }
 
-            ns.assign(line, 11, -1);
+            ns.assign(line, 10, p - 10);
             trim(ns);
             continue;
          }
@@ -1932,9 +1933,6 @@ public:
       for (unsigned i = 0; i < grouplist.size(); ++i)
          if (grouplist[i]->serializeFunctionDox(fp))
             return -1;
-
-      if (serializeConstantDox(fp, true))
-         return -1;
 
       return 0;
    }
@@ -2835,6 +2833,7 @@ public:
       }
 
       groups.serializeFunctionDox(fp);
+      groups.serializeConstantDox(fp, true);
 
       return 0;
    }

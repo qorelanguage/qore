@@ -126,7 +126,7 @@ float floor() [flags=RUNTIME_NOOP] {
 
 //! Returns a number raised to the power of another number
 /** 
-    @oaram x the number to raise to the power of \a y
+    @param x the number to raise to the power of \a y
     @param y the power to raise \a x to
 
     @return a number raised to the power of another number

@@ -711,7 +711,8 @@ int chmod(string path, softint mode) [dom=FILESYSTEM] {
 }
 
 //! Changes the current working directory for the current process
-/** @param the new working directory for the current process
+/** 
+    @param path the new working directory for the current process
     
     @return 0 if no error occurred; -1 if an error occurred, in which case errno() and/or strerror() can be used to retrieve the error
 
@@ -721,7 +722,7 @@ if (chdir($dir))
     printf("chdir %s: %s\n", $dir, strerror());
     @endcode
 
-    @since %Qore 0.8.4 this function is tagged with @ref PO_NO_PROCESS_CONTROL
+    @since %Qore 0.8.4 this function is tagged with @ref Qore::PO_NO_PROCESS_CONTROL
  */
 int chdir(string path) [dom=PROCESS,FILESYSTEM] {
    return chdir(path->getBuffer());
@@ -748,7 +749,7 @@ string getcwd() [flags=CONSTANT;dom=FILESYSTEM,EXTERNAL_INFO] {
 my string $cwd = getcwd2();
     @endcode
 
-    @see getcwd() for a similar function that returns @ref nothin instead of throwing an exception if an error occurs
+    @see getcwd() for a similar function that returns @ref nothing instead of throwing an exception if an error occurs
 */
 string getcwd2() [flags=RET_VALUE_ONLY;dom=FILESYSTEM,EXTERNAL_INFO] {
    return f_getcwd_intern(xsink);
@@ -783,8 +784,8 @@ int mkfifo(string path, softint mode = 0600) [dom=FILESYSTEM] {
     Qore::Option::HAVE_UNIX_FILEMGT
 
     @param path path to the file or directory to change
-    @param uid the uid of the new user owner; -1 means do not change user owner
-    @param gid the gid of the new group owner; -1 means do not change group owner
+    @param owner the uid of the new user owner; -1 means do not change user owner
+    @param group the gid of the new group owner; -1 means do not change group owner
 
     @return 0 if no error occurred; -1 if an error occurred, in which case errno() and/or strerror() can be used to retrieve the error
 

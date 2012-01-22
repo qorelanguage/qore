@@ -118,7 +118,7 @@ static QoreHashNode *date_info(const DateTime &d) {
    return h;
 }
 
-/** @defgroup date_time_functions Date and Time Functions
+/** @defgroup date_and_time_functions Date and Time Functions
     @section date_formatting Date Formatting Codes
     |!Format Code|!Description
     |\c YY|last two digits of year
@@ -1084,7 +1084,7 @@ int clock_getmicros() [flags=CONSTANT] {
 }
 
 //! Converts an integer argument representing the offset in milliseconds from January 1, 1970 in the local time zone to a date in the local time zone
-/** @param an integer argument representing the offset in milliseconds from January 1, 1970 in the local time zone
+/** @param ms an integer argument representing the offset in milliseconds from January 1, 1970 in the local time zone
 
     @return a date in the local time zone corresponding to the argument passed which is an offset in milliseconds from January 1, 1970 in the local time zone
 
@@ -1106,7 +1106,7 @@ nothing date_ms() [flags=RUNTIME_NOOP] {
 }
 
 //! Converts an integer argument representing the offset in microseconds from January 1, 1970 in the local time zone to a date in the local time zone
-/** @param an integer argument representing the offset in microseconds from January 1, 1970 in the local time zone
+/** @param us an integer argument representing the offset in microseconds from January 1, 1970 in the local time zone
 
     @return a date in the local time zone corresponding to the argument passed which is an offset in microseconds from January 1, 1970 in the local time zone
 
@@ -1271,7 +1271,7 @@ date date(date dt) [flags=CONSTANT] {
 
 //! Converts the argument to a date and returns the date
 /** 
-    @param dt string a string to bo converted literally to an @ref absolute_dates "absolute date/time value"; if no time zone information is present, the local time zone is assumed
+    @param dtstr string a string to bo converted literally to an @ref absolute_dates "absolute date/time value"; if no time zone information is present, the local time zone is assumed
 
     @return the @ref absolute_dates "absolute date/time value" corresponding to the string argument passed
 
