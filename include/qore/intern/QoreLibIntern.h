@@ -150,6 +150,9 @@ struct QoreProgramLocation : QoreProgramLineLocation {
 
    // sets from current parse or runtime location in thread-local data
    DLLLOCAL QoreProgramLocation(prog_loc_e loc = ParseLocation);
+
+   DLLLOCAL QoreProgramLocation(const QoreProgramLocation& old) : QoreProgramLineLocation(old), file(old.file) {
+   }
 };
 
 struct QoreCommandLineLocation : public QoreProgramLocation {
