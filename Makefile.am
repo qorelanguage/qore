@@ -306,7 +306,6 @@ noinst_HEADERS = \
 	include/qore/intern/ModuleInfo.h \
 	include/qore/intern/QoreTimeZoneManager.h \
 	include/qore/intern/UserFunctionList.h \
-	include/qore/intern/TypeConstants.h \
 	include/qore/intern/QoreTreeNode.h \
 	include/qore/intern/BarewordNode.h \
 	include/qore/intern/StaticClassVarRefNode.h \

@@ -1372,17 +1372,17 @@ struct qore_socket_private {
 	    h->setKeyValue("address_desc", QoreAddrInfo::getAddressDesc(addr.ss_family, addrstr->getBuffer()), 0);
 	 }
 
-	 int port;
+	 int tport;
 	 if (addr.ss_family == AF_INET) {
 	    struct sockaddr_in *s = (struct sockaddr_in *)&addr;
-	    port = ntohs(s->sin_port);
+	    tport = ntohs(s->sin_port);
 	 }
 	 else {
 	    struct sockaddr_in6 *s = (struct sockaddr_in6 *)&addr;
-	    port = ntohs(s->sin6_port);
+	    tport = ntohs(s->sin6_port);
 	 }
 
-	 h->setKeyValue("port", new QoreBigIntNode(port), 0);
+	 h->setKeyValue("port", new QoreBigIntNode(tport), 0);
       }
 #if (!defined _WIN32 && !defined __WIN32__) || defined __CYGWIN__
       else if (addr.ss_family == AF_UNIX) {
