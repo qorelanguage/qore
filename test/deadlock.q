@@ -121,6 +121,17 @@ sub test_thread_resources() {
     catch ($ex) {
 	printf("%s: %s\n", $ex.err, $ex.desc); 
     }
+
+    $rw.readLock();
+    mark_thread_resources();
+    # no exception should be thrown here
+    throw_thread_resource_exceptions_to_mark();    
+    try {
+	throwThreadResourceExceptions();
+    }
+    catch ($ex) {
+	printf("%s: %s\n", $ex.err, $ex.desc); 
+    }
 }
 
 sub cond_test($c, $cond, $m) {
