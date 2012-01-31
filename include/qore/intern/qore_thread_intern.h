@@ -79,7 +79,10 @@ class VNode;
 class AbstractQoreZoneInfo;
 class ThreadData;
 
+// returns 0 if the last mark has been cleared, -1 if there are more marks to check
+DLLLOCAL int purge_thread_resources_to_mark(ExceptionSink *xsink);
 DLLLOCAL void purge_thread_resources(ExceptionSink *xsink);
+DLLLOCAL void mark_thread_resources();
 DLLLOCAL void beginParsing(char *file, void *ps = NULL);
 DLLLOCAL void *endParsing();
 DLLLOCAL Context *get_context_stack();

@@ -40,7 +40,9 @@ private:
    trmap_t trmap;
 
 public:
-   DLLLOCAL ThreadResourceList() {
+   ThreadResourceList* prev;
+
+   DLLLOCAL ThreadResourceList(ThreadResourceList* p = 0) : prev(p) {
    }
 
    DLLLOCAL ~ThreadResourceList() {

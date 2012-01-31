@@ -301,6 +301,8 @@ hash getAllThreadCallStacks() [dom=THREAD_CONTROL,THREAD_INFO] {
 //! Immediately runs all thread resource cleanup routines for the current thread and throws all associated exceptions
 /** This function is particularly useful when used in combination with embedded code in order to catch (and log, for example) thread resource errors (ex: uncommitted transactions, unlocked locks, etc) - this can be used when control returns to the "master" program to ensure that no thread-local resources have been left active.
 
+    This function will run all thread resource cleanup routines even if mark_thread_resources() has been called (i.e. it clears all marks as well).
+
     When exceptions are thrown, thread-local resources are also cleaned up at the same time.
 
     @par Example:
@@ -315,5 +317,19 @@ catch ($ex) {
 */
 nothing throwThreadResourceExceptions() [dom=THREAD_CONTROL] {
    purge_thread_resources(xsink);
+}
+
+//! 
+/** 
+ */
+bool throw_thread_resource_exceptions_to_mark() [dom=THREAD_CONTROL] {
+   return (bool)purge_thread_resources_to_mark(xsink);
+}
+
+//! 
+/** 
+ */
+nothing mark_thread_resources() [dom=THREAD_CONTROL] {
+   mark_thread_resources();
 }
 //@}

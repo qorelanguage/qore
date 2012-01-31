@@ -143,10 +143,11 @@ public:
 #endif
 
 #if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__  
-      if (ptid.p != PTHREAD_NA.p) {
+      if (ptid.p != PTHREAD_NA.p)
 #else
-         if (ptid != PTHREAD_NA) {
+      if (ptid != PTHREAD_NA)
 #endif
+      {
 	 if (!joined)
 	    pthread_detach(ptid);
 	    
@@ -154,7 +155,7 @@ public:
 	 ptid = PTHREAD_AVAIL;
       }
    }
-
+   
    DLLLOCAL void allocate(tid_node *tn) {
       ptid = PTHREAD_NA;
       tidnode = tn;
@@ -289,7 +290,7 @@ public:
    QoreClass *parseClass; // current class being parsed
    QoreException *catchException;
    std::list<block_list_t::iterator> on_block_exit_list;
-   ThreadResourceList trlist;
+   ThreadResourceList* trlist;
 
    // current function/method name
    const char *current_code;
@@ -349,7 +350,7 @@ public:
       parse_line_start(0), parse_line_end(0), parse_file(0), 
       pgm_counter_start(0), pgm_counter_end(0), pgm_file(0), 
       parse_code(0), parseState(0), vstack(0), cvarstack(0),
-      parseClass(0), catchException(0), current_code(0),
+      parseClass(0), catchException(0), trlist(new ThreadResourceList), current_code(0),
       current_obj(0), current_pgm(p), current_implicit_arg(0), tpd(new ThreadProgramData(this)), //lvstack(0), cvstack(0),
       closure_parse_env(0), closure_rt_env(0), 
       returnTypeInfo(0), element(0), global_vnode(0) {
@@ -373,6 +374,8 @@ public:
    DLLLOCAL ~ThreadData() {
       assert(on_block_exit_list.empty());
       assert(!tpd);
+      assert(!trlist->prev);
+      delete trlist;
    }
 
    DLLLOCAL int getElement() {
@@ -717,35 +720,59 @@ ClosureParseEnvironment *thread_get_closure_parse_env() {
 
 void set_thread_resource(AbstractThreadResource *atr) {
    ThreadData *td = thread_data.get();
-   td->trlist.set(atr);
+   td->trlist->set(atr);
 }
 
 int remove_thread_resource(AbstractThreadResource *atr) {
    ThreadData *td = thread_data.get();
-   return td->trlist.remove(atr);
+   return td->trlist->remove(atr);
 }
 
 void set_thread_resource_id(q_trid_t trid, AbstractThreadResource *atr) {
    ThreadData *td = thread_data.get();
-   td->trlist.set(trid, atr);   
+   td->trlist->set(trid, atr);   
 }
 
 int remove_thread_resource_id(q_trid_t trid) {
    ThreadData *td = thread_data.get();
-   return td->trlist.remove_id(trid);
+   return td->trlist->remove_id(trid);
 }
 
 bool check_thread_resource_id(q_trid_t trid) {
-   return thread_data.get()->trlist.check(trid);
+   return thread_data.get()->trlist->check(trid);
 }
 
 q_trid_t qore_get_trid() {
    return ThreadResourceList::get_resource_id();
 }
 
+void mark_thread_resources() {
+   ThreadData *td = thread_data.get();
+   ThreadResourceList* trl = new ThreadResourceList(td->trlist);
+   td->trlist = trl;
+}
+
+// returns 0 if the last mark has been cleared, -1 if there are more marks to check
+static int purge_thread_resources_to_mark(ThreadData* td, ExceptionSink *xsink) {
+   td->trlist->purge(xsink);
+   if (td->trlist->prev) {
+      ThreadResourceList* tr = td->trlist;
+      td->trlist = tr->prev;
+      delete tr;
+      return -1;
+   }
+   return 0;
+}
+
+// returns 0 if the last mark has been cleared, -1 if there are more marks to check
+int purge_thread_resources_to_mark(ExceptionSink *xsink) {
+   ThreadData *td = thread_data.get();
+   return purge_thread_resources_to_mark(td, xsink);
+}
+
 void purge_thread_resources(ExceptionSink *xsink) {
    ThreadData *td = thread_data.get();
-   td->trlist.purge(xsink);
+   while (purge_thread_resources_to_mark(td, xsink));
 }
 
 void parse_cond_push(bool mark) {
