@@ -342,6 +342,8 @@ catch ($ex) {
     @endcode
 
     @see throwThreadResourceExceptions(), throw_thread_resource_exceptions_to_mark()
+
+    @since Qore 0.8.4
  */
 bool throw_thread_resource_exceptions_to_mark() [dom=THREAD_CONTROL] {
    return (bool)purge_thread_resources_to_mark(xsink);
@@ -355,12 +357,13 @@ bool throw_thread_resource_exceptions_to_mark() [dom=THREAD_CONTROL] {
     @code
 try {
     mark_thread_resources();
-    # ... some code or calls that may allocate thread resources
 
-    # calling the following will ensure that any thread-resources allocated since
-    # the last call to mark_thread_resources() will be cleaned up and associated
-    # exceptions will be thrown
-    throw_thread_resource_exceptions_to_mark();
+    # calling the following function will ensure that any thread-resources
+    # allocated since the last call to mark_thread_resources() will be cleaned
+    # up and associated exceptions will be thrown
+    on_exit throw_thread_resource_exceptions_to_mark();
+
+    # ... some code or calls that may allocate thread resources
 }
 catch ($ex) {
     # ... log or handle exceptions
@@ -368,6 +371,8 @@ catch ($ex) {
     @endcode
 
     @see throwThreadResourceExceptions(), mark_thread_resources()
+
+    @since Qore 0.8.4
  */
 nothing mark_thread_resources() [dom=THREAD_CONTROL] {
    mark_thread_resources();
