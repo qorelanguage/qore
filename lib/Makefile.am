@@ -17,21 +17,21 @@ bin_PROGRAMS = qpp
 
 qpp_SOURCES = qpp.cpp
 
+if COND_NEED_GETOPT_LONG
+qpp_SOURCES += getopt_long.cpp
+endif
+
 if COND_MINGWCC
 BUILT_SOURCES += qpp_native
 QPP=./qpp_native
-qpp_native: qpp.cpp
-	$(NATIVE_CXX) $(INCLUDES) $(NATIVE_CPPFLAGS) $(NATIVE_LDFLAGS) -o $@ $<
+qpp_native: $(qpp_SOURCES)
+	$(NATIVE_CXX) $(INCLUDES) $(NATIVE_CPPFLAGS) $(NATIVE_LDFLAGS) -o $@ $(qpp_SOURCES_
 else
 QPP=./qpp
 endif
 
-qpp: qpp.cpp
-	$(CXX) $(AM_CPPFLAGS) $(AM_CXXFLAGS) $(AM_LDFLAGS) -o $@ $<
-
-if COND_NEED_GETOPT_LONG
-qpp_SOURCES += getopt_long.cpp
-endif
+qpp: $(qpp_SOURCES)
+	$(CXX) $(AM_CPPFLAGS) $(AM_CXXFLAGS) $(AM_LDFLAGS) -o $@ $(qpp_SOURCES)
 
 QC_Queue.cpp: QC_Queue.qpp qpp
 	$(QPP) $<
