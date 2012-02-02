@@ -1,9 +1,9 @@
 /*
-  main.cc
+  main.cpp
 
   Qore Programming Language
 
-  Copyright 2003 - 2011 David Nichols
+  Copyright (C) 2003 - 2012 David Nichols
 */
 
 #include <qore/Qore.h>
