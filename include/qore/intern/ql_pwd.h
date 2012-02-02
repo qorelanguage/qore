@@ -25,6 +25,6 @@
 
 #define QORE_LIB_PWD_H
 
-DLLLOCAL void init_pwd_functions();
+DLLLOCAL void init_pwd_functions(QoreNamespace& ns);
 
 #endif

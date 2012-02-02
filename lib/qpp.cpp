@@ -923,14 +923,14 @@ static size_t find_start(const std::string& str) {
 
    size_t i = str.find("@par Platform Availability", start);
    if (i != std::string::npos) {
-      start = str.find('\n', start);
+      start = str.find('\n', i);
       if (start == std::string::npos) {
-         error("Error: cannot find end of Platform Availabily data\n");
+         error("Error: cannot find end of Platform Availability data\n");
          return lc_start;
       }
       start = str.find('\n', start + 1);
       if (start == std::string::npos) {
-         error("Error: cannot find end of Platform Availabily data\n");
+         error("Error: cannot find end of Platform Availability data\n");
          return lc_start;
       }
       return start + 1;
