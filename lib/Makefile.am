@@ -147,6 +147,9 @@ ql_type.cpp: ql_type.qpp qpp
 ql_pwd.cpp: ql_pwd.qpp qpp
 	$(QPP) $<
 
+ql_object.cpp: ql_object.qpp qpp
+	$(QPP) $<
+
 qc_option.cpp: qc_option.qpp qpp
 	$(QPP) $<
 
@@ -157,7 +160,7 @@ QORE_GENERATED_SOURCES = \
 	QC_Datasource.cpp QC_DatasourcePool.cpp QC_SQLStatement.cpp QC_Dir.cpp QC_Program.cpp \
 	QC_GetOpt.cpp QC_TermIOS.cpp QC_TimeZone.cpp QC_SSLCertificate.cpp QC_SSLPrivateKey.cpp \
 	ql_misc.cpp ql_compression.cpp ql_thread.cpp ql_crypto.cpp ql_lib.cpp ql_file.cpp \
-	ql_string.cpp ql_time.cpp ql_math.cpp ql_list.cpp ql_type.cpp ql_pwd.cpp \
+	ql_string.cpp ql_time.cpp ql_math.cpp ql_list.cpp ql_type.cpp ql_pwd.cpp ql_object.cpp \
 	qc_option.cpp
 
 CLEANFILES = $(QORE_GENERATED_SOURCES)

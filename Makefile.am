@@ -48,6 +48,7 @@ LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
 	lib/ql_list.qpp \
 	lib/ql_type.qpp \
 	lib/ql_pwd.qpp \
+	lib/ql_object.qpp \
 	lib/qc_option.qpp
 
 LIB_DOXYFILES = \

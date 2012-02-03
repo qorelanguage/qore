@@ -25,6 +25,6 @@
 
 #define _QORE_QL_OBJECT_H
 
-DLLLOCAL void init_object_functions();
+DLLLOCAL void init_object_functions(QoreNamespace& qns);
 
 #endif // _QORE_QL_OBJECT_H
