@@ -161,7 +161,6 @@
 #include "QoreLogicalLessThanOperatorNode.cpp"
 #include "QoreLogicalGreaterThanOperatorNode.cpp"
 #include "ql_thread.cpp"
-#include "ql_io.cpp"
 #include "ql_time.cpp"
 #include "ql_lib.cpp"
 #include "ql_math.cpp"

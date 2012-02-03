@@ -26,6 +26,11 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
+#include <ctype.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 // finds the last occurrence of needle in haystack at or before position pos
 // pos must be a non-negative valid byte offset in haystack
@@ -142,6 +147,54 @@ const RE_Global = QRE_GLOBAL;
 
 /** @defgroup string_functions String Functions
     String functions
+
+    @section string_formatting String Formatting
+    String formatting in %Qore is based on c-style "printf" string formatting.
+
+    There are three types of objects in the format string:
+    - Plain characters, which are copied as-is to the output string
+    - Escape characters, which are converted and copied to the output string
+    - Format specifications for arguments to be included in the output string, which are preceded by the percent sign \c "%"
+
+    @note The percent sign \c "%" always starts a format specification unless it is followed by another \c "%" sign, in this case only one \c "%" is output (ie \c "%%" in the format string is output as a single \c "%")
+
+    @subsection format_specification 
+
+    After the "%" sign, there can be zero or more formatting flags as in the following table:
+
+    <b>Printf Formatting Flags</b>
+    |!Flag|!Description
+    |\c -|left-justify the field
+    |\c +|include the sign for the number (+ or -)
+    |\c 0|use zero left padding rather than space padding
+    |<em>space</em>|use space padding
+
+    Then a field width specifier can optionally be given as a string of digits specifying the length of the field. With "field" functions (function names preceded by \c "f_"), these width specifiers are hard limits; that is; arguments longer than the width specified are truncated to the specified width.
+
+    For floating-point arguments, a precision specifier may be given by including a period "." and another digit string, which indicates the number of digits to appear after the decimal point.
+
+    Then the format character is given as follows:
+
+    <b>Printf Formatting Characters</b>
+    |!Character|!Description
+    |\c s|string
+    |\c d|Integer, output in base 10 format
+    |\c f|Floating point value
+    |\c n|Any Qore value, formatted as a string, without any line breaks
+    |\c N|Any Qore value, formatted as a string, with line breaks and whitespace formatting for complex objects
+    |\c x|Integer, output in base 16 (hexadecimal) format with lower-case a-f
+    |\c X|Integer, output in base 16 (hexadecimal) format with upper-case A-F
+    |\c y|Any Qore value, formatted as a pseudo-YAML string, without any line breaks; this format option is similar to \c "%n", but uses a YAML-like format.  Note that the output is not guaranteed to be parsed by the yaml module's parseYAML() function; it is for display purposes only; to get real YAML functionality, use the yaml module.
+
+    <b>String Escape Characters</b>
+    |!Escape Characters|!Description
+    |\c \\n|a newline character
+    |\c \\r|a carriage-return character
+    |\c \\t|a tab character
+    |\c \\b|a backspace character
+    |\c \\f|a form-feed character
+    |\c \\<em>num</em>|an 8-bit character whose value is the 1, 2, or 3 digit octal number num
+    |\c \\"|a double-quote character
  */
 //@{
 
@@ -1266,5 +1319,265 @@ my string $ns = reverse($str);
 */
 string reverse(softstring str) [flags=CONSTANT] {
    return str->reverse();
+}
+
+//! Outputs a string to standard output with no formatting
+/** 
+    @param ... each of the arguments passed to this function will be output literally with no output formatting
+
+    @par Example:
+    @code
+print("hello\n");
+    @endcode
+
+    @see printf() for a function that allows for formatted output
+ */
+nothing print(...) [dom=TERMINAL_IO] {
+   if (!args)
+      return 0;
+
+   for (unsigned i = 0; i < args->size(); i++)
+      print_node(stdout, get_param(args, i));
+   return 0;
+}
+
+//! Returns a formatted string based on a @ref string_formatting "format string" and other arguments; enforces field widths on arguments larger than the given field width
+/** 
+    This function will truncate output longer than any field width given in the @ref string_formatting "format string"
+
+    @param fmt the @ref string_formatting "format string"
+    @param ... the argument(s) corresponding to format specifiers in the format string
+
+    @return a formatted string corresponding to the arguments given
+
+    @par Example:
+    @code
+my string $str = f_sprintf("%5s", "a long string"); # will return "a lon"
+    @endcode
+
+    @see
+    - @ref string_formatting for information on the formatting string
+    - sprintf() for a similar function that does not enforce field widths
+ */
+string f_sprintf(string[doc] fmt, ...) [flags=CONSTANT] {
+   return q_sprintf(args, 1, 0, xsink);
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+string f_sprintf() [flags=NOOP] {
+   return null_string();
+}
+
+//! Returns a formatted string based on a @ref string_formatting "format string" and other arguments; does not enforce field widths on arguments larger than the given field width
+/** 
+    This function will not truncate output longer than any field width given in the @ref string_formatting "format string"
+
+    @param fmt the @ref string_formatting "format string"
+    @param ... the argument(s) corresponding to format specifiers in the format string
+
+    @return a formatted string corresponding to the arguments given
+
+    @par Example:
+    @code
+my string $str = sprintf("%5s", "a long string"); # will return "a long string"
+    @endcode
+
+    @see
+    - @ref string_formatting for information on the formatting string
+    - f_sprintf() for a similar function that enforces field widths
+ */
+string sprintf(string[doc] fmt, ...) [flags=CONSTANT] {
+   return q_sprintf(args, 0, 0, xsink);
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+string sprintf() [flags=NOOP] {
+   return null_string();
+}
+
+//! Returns a formatted string based on a @ref string_formatting "format string" and other arguments given as a list after the format string; enforces field widths on arguments larger than the given field width
+/** 
+    This function will truncate output longer than any field width given in the @ref string_formatting "format string"
+
+    @param fmt the @ref string_formatting "format string"
+    @param varg the argument(s) corresponding to format specifiers in the format string
+
+    @return a formatted string corresponding to the arguments given
+
+    @par Example:
+    @code
+my string $str = f_vsprintf("%5s %3d\n", ("a lon", 500)); # will return "a lon 500"
+    @endcode
+
+    @see
+    - @ref string_formatting for information on the formatting string
+    - vsprintf() for a similar function that does not enforce field widths
+
+    @since %Qore 0.8.4
+ */
+string f_vsprintf(string[doc] fmt, any[doc] varg) [flags=CONSTANT] {
+   return q_vsprintf(args, 1, 0, xsink);
+}
+
+//! Returns a formatted string based on a @ref string_formatting "format string" and other arguments given as a list after the format string; does not enforce field widths on arguments larger than the given field width
+/** 
+    This function will not truncate output longer than any field width given in the @ref string_formatting "format string"
+
+    @param fmt the @ref string_formatting "format string"
+    @param varg the argument(s) corresponding to format specifiers in the format string
+
+    @return a formatted string corresponding to the arguments given
+
+    @par Example:
+    @code
+my string $str = vsprintf("%5s %3d\n", ("a long string", 5000)); # will return "a long string 5000"
+    @endcode
+
+    @see
+    - @ref string_formatting for information on the formatting string
+    - f_vsprintf() for a similar function that enforces field widths
+ */
+string vsprintf(string[doc] fmt, any[doc] varg) [flags=CONSTANT] {
+   return q_vsprintf(args, 0, 0, xsink);
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+string vsprintf() [flags=NOOP] {
+   return null_string();
+}
+
+//! Outputs the string passed to standard output, using the first argument as a @ref string_formatting "format string"; enforces field widths on arguments larger than the given field width
+/** 
+    This function will truncate output longer than any field width given in the @ref string_formatting "format string"
+
+    @param fmt the @ref string_formatting "format string"
+    @param ... the argument(s) corresponding to format specifiers in the format string
+
+    @return the formatted string output corresponding to the arguments given
+
+    @par Example:
+    @code
+f_printf("%5s", "a long string"); # will print out "a lon"
+    @endcode
+
+    @see
+    - @ref string_formatting for information on the formatting string
+    - printf() for a similar function that does not enforce field widths
+ */
+string f_printf(string[doc] fmt, ...) [dom=TERMINAL_IO] {
+   AbstractQoreNode *node;
+   print_node(stdout, node = q_sprintf(args, 1, 0, xsink));
+   return node;
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+string f_printf() [flags=NOOP] {
+   return null_string();
+}
+
+//! Outputs the string passed to standard output, using the first argument as a @ref string_formatting "format string"; does not enforce field widths on arguments larger than the given field width
+/** 
+    This function will not truncate output longer than any field width given in the @ref string_formatting "format string"
+
+    @param fmt the @ref string_formatting "format string"
+    @param ... the argument(s) corresponding to format specifiers in the format string
+
+    @return the formatted string output corresponding to the arguments given
+
+    @par Example:
+    @code
+printf("%5s", "a long string"); # will print out "a long string"
+    @endcode
+
+    @see
+    - @ref string_formatting for information on the formatting string
+    - f_printf() for a similar function that enforces field widths
+ */
+string printf(string[doc] fmt, ...) [dom=TERMINAL_IO] {
+   AbstractQoreNode *node;
+   print_node(stdout, node = q_sprintf(args, 0, 0, xsink));
+   return node;
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+string printf() [flags=NOOP;dom=TERMINAL_IO] {
+   return null_string();
+}
+
+//! Outputs the string passed to standard output, using the first argument as a @ref string_formatting "format string" and a second argument giving a list or a single argument to the format string; enforces field widths on arguments larger than the given field width
+/** 
+    This function will truncate output longer than any field width given in the @ref string_formatting "format string"
+
+    @param fmt the @ref string_formatting "format string"
+    @param varg the argument(s) corresponding to format specifiers in the format string
+
+    @return the formatted string output corresponding to the arguments given
+
+    @par Example:
+    @code
+f_vprintf("%5s %3d", ("a long string", 5000)); # will print out "a lon 500"
+    @endcode
+
+    @see
+    - @ref string_formatting for information on the formatting string
+    - vprintf() for a similar function that does not enforce field widths
+
+    @since %Qore 0.8.4
+ */
+string f_vprintf(string[doc] fmt, any[doc] argv) [dom=TERMINAL_IO] {
+   AbstractQoreNode *node;
+   print_node(stdout, node = q_vsprintf(args, 1, 0, xsink));
+   return node;
+}
+
+//! Outputs the string passed to standard output, using the first argument as a @ref string_formatting "format string" and a second argument giving a list or a single argument to the format string; does not enforce field widths on arguments larger than the given field width
+/** 
+    This function will not truncate output longer than any field width given in the @ref string_formatting "format string"
+
+    @param fmt the @ref string_formatting "format string"
+    @param varg the argument(s) corresponding to format specifiers in the format string
+
+    @return the formatted string output corresponding to the arguments given
+
+    @par Example:
+    @code
+vprintf("%5s %3d", ("a long string", 5000)); # will print out "a long string 5000"
+    @endcode
+
+    @see
+    - @ref string_formatting for information on the formatting string
+    - f_vprintf() for a similar function that enforces field widths
+ */
+string vprintf(string[doc] fmt, ...) [dom=TERMINAL_IO] {
+   AbstractQoreNode *node;
+   print_node(stdout, node = q_vsprintf(args, 0, 0, xsink));
+   return node;
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+string vprintf() [flags=NOOP] {
+   return null_string();
+}
+
+//! Flushes output to the console output with print(), printf(), etc
+/** 
+    @par Example:
+    @code
+    @endcode
+ */
+nothing flush() [dom=TERMINAL_IO] {
+   fflush(stdout);
 }
 //@}

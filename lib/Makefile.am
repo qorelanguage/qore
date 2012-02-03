@@ -324,7 +324,6 @@ libqore_la_SOURCES = \
 	QorePreDecrementOperatorNode.cpp \
 	QoreLogicalLessThanOperatorNode.cpp \
 	QoreLogicalGreaterThanOperatorNode.cpp \
-	ql_io.cpp \
 	ql_time.cpp \
 	ql_lib.cpp \
 	ql_math.cpp \

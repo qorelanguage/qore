@@ -22,7 +22,6 @@
 
 #include <qore/Qore.h>
 
-#include <qore/intern/ql_io.h>
 #include <qore/intern/ql_time.h>
 #include <qore/intern/ql_lib.h>
 #include <qore/intern/ql_math.h>
@@ -239,7 +238,6 @@ void BuiltinFunctionList::init(QoreNamespace& qns) {
    QORE_TRACE("BuiltinFunctionList::init()");
 
    init_string_functions(qns);
-   init_io_functions();
    init_time_functions(qns);
    init_lib_functions(qns);
    init_misc_functions(qns);

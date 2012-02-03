@@ -447,7 +447,6 @@ noinst_HEADERS = \
 	include/qore/intern/ql_list.h \
 	include/qore/intern/ql_misc.h \
 	include/qore/intern/ql_math.h \
-	include/qore/intern/ql_io.h \
 	include/qore/intern/ql_pwd.h \
 	include/qore/intern/ql_env.h \
 	include/qore/intern/ql_type.h \
