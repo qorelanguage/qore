@@ -528,6 +528,11 @@ static void get_string_list2(strlist_t &l, const std::string &str, char separato
       if (code)
          continue;
 
+      if (c == '\\') {
+         ++p;
+         continue;
+      }
+
       if (c == '\'' || c == '\"') {
          if (quote == c)
             quote = 0;
