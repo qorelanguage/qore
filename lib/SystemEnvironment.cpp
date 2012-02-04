@@ -71,8 +71,7 @@ QoreStringNode *SystemEnvironment::get_as_string_node_intern(const char *name) {
 
 int SystemEnvironment::unset_intern(const char *name) {
 #ifdef HAVE_UNSETENV
-   unsetenv(name);
-   return 0;
+   return unsetenv(name);
 #else
    // FIXME: here we fake it - we don't actually remove the variable from the environment, but we set it to nothing...
    std::string str = name;

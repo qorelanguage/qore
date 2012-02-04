@@ -1,6 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  ql_env.c
+  ql_env.h
 
   Qore Programming language
 
@@ -25,6 +25,6 @@
 
 #define QORE_LIB_ENV_H
 
-DLLLOCAL void init_env_functions();
+DLLLOCAL void init_env_functions(QoreNamespace& qns);
 
 #endif
