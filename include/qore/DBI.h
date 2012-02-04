@@ -423,7 +423,4 @@ DLLEXPORT void DBI_concat_numeric(QoreString *str, const AbstractQoreNode *v);
 */
 DLLEXPORT int DBI_concat_string(QoreString *str, const AbstractQoreNode *v, ExceptionSink *xsink);
 
-DLLLOCAL void init_dbi_functions();
-DLLLOCAL QoreNamespace *getSQLNamespace();
-
 #endif  // _QORE_DBI_H

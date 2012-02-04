@@ -51,6 +51,10 @@
 #include <qore/intern/QC_TermIOS.h>
 #include <qore/intern/QC_TimeZone.h>
 
+#include <qore/intern/QC_Datasource.h>
+#include <qore/intern/QC_DatasourcePool.h>
+#include <qore/intern/QC_SQLStatement.h>
+
 #include <string.h>
 #include <stdlib.h>
 #include <pcre.h>
@@ -73,6 +77,8 @@ DLLLOCAL void init_misc_constants(QoreNamespace& ns);
 DLLLOCAL void init_string_constants(QoreNamespace& ns);
 DLLLOCAL void init_option_constants(QoreNamespace& ns);
 DLLLOCAL void init_math_constants(QoreNamespace& ns);
+
+DLLLOCAL void init_dbi_functions(QoreNamespace& ns);
 
 #define MAX_RECURSION_DEPTH 20
 
@@ -1402,7 +1408,14 @@ void StaticSystemNamespace::init() {
    qoreNS->addInitialNamespace(option);
 
    // create Qore::SQL namespace
-   qoreNS->addInitialNamespace(getSQLNamespace());
+   QoreNamespace* sqlns = new QoreNamespace("SQL");
+
+   sqlns->addSystemClass(initDatasourceClass(*sqlns));
+   sqlns->addSystemClass(initDatasourcePoolClass(*sqlns));
+   sqlns->addSystemClass(initSQLStatementClass(*sqlns));
+
+   init_dbi_functions(*sqlns);
+   qoreNS->addInitialNamespace(sqlns);
 
    // create get Qore::Err namespace with ERRNO constants
    qoreNS->addInitialNamespace(get_errno_ns());

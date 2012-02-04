@@ -23,9 +23,6 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/QC_Datasource.h>
-#include <qore/intern/QC_DatasourcePool.h>
-#include <qore/intern/QC_SQLStatement.h>
 
 #include <string.h>
 #include <stdio.h>
@@ -853,64 +850,3 @@ QoreHashNode *parseDatasource(const char *ds, ExceptionSink *xsink) {
    return h.release();
 }
 
-AbstractQoreNode *f_parseDatasource(const QoreListNode *params, ExceptionSink *xsink) {
-   const QoreStringNode *p0 = HARD_QORE_STRING(params, 0);
-   return parseDatasource(p0->getBuffer(), xsink);
-}
-
-// *list getDBIDriverList()  
-AbstractQoreNode *f_getDBIDriverList(const QoreListNode *params, ExceptionSink *xsink) {
-   return DBI.getDriverList();
-}
-
-// *list getDBIDriverCapabilityList(string $driver)  
-AbstractQoreNode *f_getDBIDriverCapabilityList(const QoreListNode *params, ExceptionSink *xsink) {
-   const QoreStringNode *p0 = HARD_QORE_STRING(params, 0);
-
-   DBIDriver *dd = DBI.find(p0->getBuffer());
-   return !dd ? 0 : dd->getCapList();
-}
-
-// *int getDBIDriverCapabilities(string $driver)  
-AbstractQoreNode *f_getDBIDriverCapabilities(const QoreListNode *params, ExceptionSink *xsink) {
-   const QoreStringNode *p0 = HARD_QORE_STRING(params, 0);
-
-   DBIDriver *dd = DBI.find(p0->getBuffer());
-   return !dd ? 0 : new QoreBigIntNode(dd->getCaps());
-}
-
-void init_dbi_functions() {
-   // *list getDBIDriverList()  
-   builtinFunctions.add2("getDBIDriverList", f_getDBIDriverList, QC_RET_VALUE_ONLY, QDOM_DEFAULT, listOrNothingTypeInfo);
-
-   builtinFunctions.add2("getDBIDriverCapabilityList", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
-   // *list getDBIDriverCapabilityList(string $driver)  
-   builtinFunctions.add2("getDBIDriverCapabilityList", f_getDBIDriverCapabilityList, QC_RET_VALUE_ONLY, QDOM_DEFAULT, listOrNothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
-
-   builtinFunctions.add2("getDBIDriverCapabilities", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
-   // *int getDBIDriverCapabilities(string $driver)  
-   builtinFunctions.add2("getDBIDriverCapabilities", f_getDBIDriverCapabilities, QC_RET_VALUE_ONLY, QDOM_DEFAULT, bigIntOrNothingTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
-
-   builtinFunctions.add2("parseDatasource", f_noop, QC_NOOP, QDOM_DEFAULT, nothingTypeInfo);
-   builtinFunctions.add2("parseDatasource", f_parseDatasource, QC_RET_VALUE_ONLY, QDOM_DEFAULT, hashTypeInfo, 1, stringTypeInfo, QORE_PARAM_NO_ARG);
-}
-
-QoreNamespace *getSQLNamespace() {
-   // create Qore::SQL namespace
-   QoreNamespace *SQLNS = new QoreNamespace("SQL");
-
-   SQLNS->addSystemClass(initDatasourceClass(*SQLNS));
-   SQLNS->addSystemClass(initDatasourcePoolClass(*SQLNS));
-   SQLNS->addSystemClass(initSQLStatementClass(*SQLNS));
-
-   // for column types for binding
-   SQLNS->addConstant("VARCHAR",  new QoreStringNode("string"));
-   SQLNS->addConstant("NUMBER",   new QoreStringNode("string"));
-   SQLNS->addConstant("NUMERIC",  new QoreStringNode("string"));
-   SQLNS->addConstant("DECIMAL",  new QoreStringNode("string"));
-   SQLNS->addConstant("CLOB",     new QoreStringNode("clob"));
-   SQLNS->addConstant("BLOB",     new QoreStringNode("blob"));
-   SQLNS->addConstant("DATE",     new QoreStringNode("date"));
-
-   return SQLNS;
-}

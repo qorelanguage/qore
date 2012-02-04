@@ -153,6 +153,9 @@ ql_object.cpp: ql_object.qpp qpp
 ql_env.cpp: ql_env.qpp qpp
 	$(QPP) $<
 
+ql_dbi.cpp: ql_dbi.qpp qpp
+	$(QPP) $<
+
 qc_option.cpp: qc_option.qpp qpp
 	$(QPP) $<
 
@@ -164,7 +167,7 @@ QORE_GENERATED_SOURCES = \
 	QC_GetOpt.cpp QC_TermIOS.cpp QC_TimeZone.cpp QC_SSLCertificate.cpp QC_SSLPrivateKey.cpp \
 	ql_misc.cpp ql_compression.cpp ql_thread.cpp ql_crypto.cpp ql_lib.cpp ql_file.cpp \
 	ql_string.cpp ql_time.cpp ql_math.cpp ql_list.cpp ql_type.cpp ql_pwd.cpp ql_object.cpp \
-	ql_env.cpp \
+	ql_env.cpp ql_dbi.cpp \
 	qc_option.cpp
 
 CLEANFILES = $(QORE_GENERATED_SOURCES)
@@ -344,6 +347,7 @@ libqore_la_SOURCES = \
 	ql_file.cpp \
 	ql_compression.cpp \
 	ql_pwd.cpp \
+	ql_dbi.cpp \
 	qc_option.cpp \
 	QC_Socket.cpp \
 	QC_Program.cpp \

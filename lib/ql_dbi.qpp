@@ -1,0 +1,150 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/*
+  ql_dbi.qpp
+
+  Qore Programming Language
+
+  Copyright 2003 - 2012 David Nichols
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
+#include <qore/Qore.h>
+
+/** @defgroup dbi_functions DBI Functions
+    DBI functions
+
+    @section datasource_hash Datasource Hash
+    |!Key|!Description
+    |\c type|the name of the driver, if present
+    |\c user|the username given in the string
+    |\c pass|the password for the connection
+    |\c db|the database name for the connection
+    |\c charset|The name of the DB-specific character encoding to use for the connection, if present in the string
+    |\c host|the hostname for the connection, if present in the string
+    |\c port|the port number to use for the connection, if present in the string
+    |\c options|A hash of options given in the string, if present. Currently-supported options are \c "min" and \c "max", which are respected by the DatasourcePool::constructor(hash) variant for setting the minimum and maximum connections in the pool, respectively    
+ */
+//@{
+
+//! Returns a @ref datasource_hash "datasource hash" of the components of a datasource string
+/** 
+    @param ds a string describing the datasource with the following syntax: <tt>[<em>driver</em><tt>:][</tt><em>user</em><tt>]:[/</tt><em>pass</em><tt>]@</tt><em>db</em><tt>[(</tt><em>charset</em><tt>)][%</tt><em>host</em><tt>[:</tt><em>port</em><tt>][{</tt><em>option</em><tt>=</tt><em>val</em><tt>[,...]}]</tt>, where all elements except <tt>@</tt><em>db</em> are optional
+
+    @return a @ref datasource_hash "datasource hash" of the components of a datasource string
+
+    @par Example:
+    @code
+my hash $h = parseDatasource("pgsql:user/pass@dbname(al32utf8)%dbhost.internal:1521{min=4,max=10}");
+    @endcode
+
+    @throw DATASOURCE-PARSE-ERROR a syntax error occurred parsing the datasource string (missing field, unexpected character, etc)
+ */
+hash parseDatasource(string ds) [flags=RET_VALUE_ONLY] {
+   return parseDatasource(ds->getBuffer(), xsink);
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+nothing parseDatasource() [flags=NOOP] {
+}
+
+//! Returns a list of strings of DBI drivers currently loaded or @ref nothing if no drivers are loaded
+/** 
+    @return a list of strings of DBI drivers currently loaded or @ref nothing if no drivers are loaded
+
+    @par Example:
+    @code
+my *list $l = getDBIDriverList();
+    @endcode
+ */
+*list getDBIDriverList() [flags=CONSTANT] {
+   return DBI.getDriverList();
+}
+
+//! Returns a list of each capability supported by the given DBI driver (see @ref dbi_capabilities) or @ref nothing if the driver cannot be found
+/** 
+    @param driver the name of the driver; if the given driver is not loaded then the function returns @ref nothing
+
+    @return a list of each capability supported by the given DBI driver (see @ref dbi_capabilities) or @ref nothing if the driver cannot be found
+
+    @par Example:
+    @code
+my *list $l = getDBIDriverCapabilityList("pgsql");
+    @endcode
+ */
+*list getDBIDriverCapabilityList(string driver) [flags=CONSTANT] {
+   DBIDriver *dd = DBI.find(driver->getBuffer());
+   return !dd ? 0 : dd->getCapList();
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+nothing getDBIDriverCapabilityList() [flags=NOOP] {
+}
+
+//! Returns an integer representing the capabilities of a DBI driver binary-OR'ed together (see @ref dbi_capabilities) or @ref nothing if the driver cannot be found
+/** 
+    @param driver the name of the driver; if the given driver is not loaded then the function returns @ref nothing
+
+    @return an integer representing the capabilities of a DBI driver binary-OR'ed together (see @ref dbi_capabilities) or @ref nothing if the driver cannot be found
+
+    @par Example:
+    @code
+my *int getDBIDriverCapabilities("pgsql");
+    @endcode
+ */
+*int getDBIDriverCapabilities(string driver) [flags=CONSTANT] {
+   DBIDriver *dd = DBI.find(driver->getBuffer());
+   return !dd ? 0 : new QoreBigIntNode(dd->getCaps());
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+nothing getDBIDriverCapabilities() [flags=NOOP] {
+}
+//@}
+
+/** @defgroup sql_constants SQL Constants
+    SQL constants
+ */
+//@{
+namespace SQL;
+
+//! for binding string values
+const VARCHAR = "string";
+
+//! for binding number values as a string
+const NUMBER = "string";
+
+//! for binding numeric values as a string
+const NUMERIC = "string";
+
+//! for binding decimal values as a string
+const DECIMAL = "string";
+
+//! for binding CLOB values
+const CLOB = "clob";
+
+//! for binding BLOB values
+const BLOB = "blob";
+
+//! fod binding date/time values
+const DATE = "date";
+//@}
+
