@@ -76,6 +76,8 @@ x=null@endverbatim
     |thread_list()|Returns a list of TIDs of running threads
     |num_threads()|Returns the number of running threads
     |throwThreadResourceExceptions()|runs thread-resource cleanup routines and throws the associated exceptions
+    |mark_thread_resources()|sets a checkpoint for throwing thread resource exceptions
+    |throw_thread_resource_exceptions_to_mark()|runs thread-resource cleanup routines and throws the associated exceptions to the last mark and clears the mark
 
     @section deadlocks Deadlocks
 

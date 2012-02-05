@@ -341,9 +341,9 @@ catch ($ex) {
 }
     @endcode
 
-    @see throwThreadResourceExceptions(), throw_thread_resource_exceptions_to_mark()
+    @see throwThreadResourceExceptions(), mark_thread_resources()
 
-    @since Qore 0.8.4
+    @since %Qore 0.8.4
  */
 bool throw_thread_resource_exceptions_to_mark() [dom=THREAD_CONTROL] {
    return (bool)purge_thread_resources_to_mark(xsink);
@@ -372,7 +372,7 @@ catch ($ex) {
 
     @see throwThreadResourceExceptions(), mark_thread_resources()
 
-    @since Qore 0.8.4
+    @since %Qore 0.8.4
  */
 nothing mark_thread_resources() [dom=THREAD_CONTROL] {
    mark_thread_resources();

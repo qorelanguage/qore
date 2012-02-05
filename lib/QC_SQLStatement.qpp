@@ -91,7 +91,7 @@ my SQLStatement $stmt($db);
 
     @throw SQLSTATEMENT-ERROR the DBI driver for the given object does not support the prepared statement API
 
-    @since Qore 0.8.1
+    @since %Qore 0.8.1
  */
 SQLStatement::constructor(Datasource[ManagedDatasource] ds) {
    ReferenceHolder<ManagedDatasource> ds_holder(ds, xsink);
@@ -119,7 +119,7 @@ my SQLStatement $stmt($db);
 
     @throw SQLSTATEMENT-ERROR the DBI driver for the given object does not support the prepared statement API
 
-    @since Qore 0.8.1
+    @since %Qore 0.8.1
  */
 SQLStatement::constructor(DatasourcePool[DatasourcePool] dsp) {
    ReferenceHolder<DatasourcePool> dsp_holder(dsp, xsink);
