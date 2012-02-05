@@ -953,18 +953,24 @@ static int serialize_dox_comment(FILE* fp, std::string &buf, const strlist_t& do
 
    // edit references to pseudo-methods
    while (true) {
-      size_t i = buf.find(">::");
+      size_t i = buf.find(">::", start);
       if (i == std::string::npos || !i)
          break;
 
+      start = i + 1;
       size_t j = buf.find_last_of('<', i - 1);
-      if (j == std::string::npos || (i - j) > 20)
-         break;
+      if (j == std::string::npos)
+         continue;
+
+      size_t l = (i - j);
+      if (l > 20 || l < 4)
+         continue;
 
       buf.replace(i, 1, "zzz9");
       buf.replace(j, 1, "Qore::zzz8");
    }
 
+   start = 0;
    while (true) {
       size_t i = buf.find("|!", start);
       log(LL_DEBUG, "TextElement::serializeDox() looking for |! i: %d\n", i);
