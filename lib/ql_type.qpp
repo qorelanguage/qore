@@ -338,7 +338,11 @@ hash hash() [flags=CONSTANT] {
 my string $type = type($v);
     @endcode
 
-    @note this function is identical to typename(any)
+    @note
+    - This function is identical to typename(any) and to calling pseudo-method <value>::type()
+    - It is faster and more efficient to use <value>::typeCode() for comparing data types
+
+    @see pseudo-method <value>::typeCode()
 */
 string type(any arg) [flags=CONSTANT] {
    return new QoreStringNode(arg ? arg->getTypeName() : "nothing");
@@ -355,7 +359,9 @@ string type(any arg) [flags=CONSTANT] {
 my string $type = typename($v);
     @endcode
 
-    @note this function is identical to type(any)
+    @note
+    - This function is identical to type(any) and to calling pseudo-method <value>::type()
+    - It is faster and more efficient to use <value>::typeCode() for comparing data types
 */
 string typename(any arg) [flags=CONSTANT] {
    return new QoreStringNode(arg ? arg->getTypeName() : "nothing");

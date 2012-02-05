@@ -950,6 +950,21 @@ static size_t find_start(const std::string& str) {
 
 static int serialize_dox_comment(FILE* fp, std::string &buf, const strlist_t& dom = strlist_t(), const strlist_t& flags = strlist_t()) {
    size_t start = 0;
+
+   // edit references to pseudo-methods
+   while (true) {
+      size_t i = buf.find(">::");
+      if (i == std::string::npos || !i)
+         break;
+
+      size_t j = buf.find_last_of('<', i - 1);
+      if (j == std::string::npos || (i - j) > 20)
+         break;
+
+      buf.replace(i, 1, "zzz9");
+      buf.replace(j, 1, "Qore::zzz8");
+   }
+
    while (true) {
       size_t i = buf.find("|!", start);
       log(LL_DEBUG, "TextElement::serializeDox() looking for |! i: %d\n", i);
@@ -2411,17 +2426,32 @@ public:
       for (unsigned i = 0; i < name.size(); ++i)
          UC += toupper(name[i]);
 
+      size_t nl = name.size();
+      std::string lname = name;
+      if (name[0] == '<' && name[nl - 1] == '>') {
+         UC.erase(nl - 1);
+         UC.erase(0, 1);
+         lname.erase(nl - 1);
+         char c = lname[1];
+         lname.erase(0, 2);
+         lname.insert(0, 1, toupper(c));
+         lname.insert(0, "Pseudo");         
+      }
+
       fprintf(fp, "qore_classid_t CID_%s;\nQoreClass *QC_%s;\n\n", UC.c_str(), UC.c_str());
 
       for (mmap_t::const_iterator i = normal_mmap.begin(), e = normal_mmap.end(); i != e; ++i) {
-         i->second->serializeNormalCppMethod(fp, name.c_str(), arg.c_str());
+         i->second->serializeNormalCppMethod(fp, lname.c_str(), arg.c_str());
       }
 
       for (mmap_t::const_iterator i = static_mmap.begin(), e = static_mmap.end(); i != e; ++i) {
-         i->second->serializeStaticCppMethod(fp, name.c_str(), arg.c_str());
+         i->second->serializeStaticCppMethod(fp, lname.c_str(), arg.c_str());
       }
 
-      fprintf(fp, "QoreClass* init%sClass(QoreNamespace &ns) {\n   QC_%s = new QoreClass(\"%s\", ", name.c_str(), UC.c_str(), name.c_str());
+      if (lname.size() != name.size())
+         fprintf(fp, "QoreClass* init%sClass() {\n   QC_%s = new QoreClass(\"%s\", ", lname.c_str(), UC.c_str(), name.c_str());
+      else
+         fprintf(fp, "QoreClass* init%sClass(QoreNamespace &ns) {\n   QC_%s = new QoreClass(\"%s\", ", lname.c_str(), UC.c_str(), name.c_str());
       dom_output_cpp(fp, dom);
       fprintf(fp, ");\n   CID_%s = QC_%s->getID();\n", UC.c_str(), UC.c_str());
 
@@ -2452,7 +2482,7 @@ public:
          fprintf(fp, "\n   QC_%s->unsetPublicMemberFlag();\n", UC.c_str());
 
       for (mmap_t::const_iterator i = normal_mmap.begin(), e = normal_mmap.end(); i != e; ++i) {
-         if (i->second->serializeNormalCppBinding(fp, name.c_str(), UC.c_str())) {
+         if (i->second->serializeNormalCppBinding(fp, lname.c_str(), UC.c_str())) {
             error("error processing bindings for %s::%s()\n", name.c_str(), i->second->getName());
             valid = false;
             return -1;
@@ -2460,14 +2490,15 @@ public:
       }
 
       for (mmap_t::const_iterator i = static_mmap.begin(), e = static_mmap.end(); i != e; ++i) {
-         if (i->second->serializeStaticCppBinding(fp, name.c_str(), UC.c_str())) {
+         if (i->second->serializeStaticCppBinding(fp, lname.c_str(), UC.c_str())) {
             error("error processing bindings for static method %s::%s()\n", name.c_str(), i->second->getName());
             valid = false;
             return -1;
          }
       }
 
-      if (groups.serializeCppConstantBindings(fp))
+      // only serialize constants if we are not emitting a pseudo class
+      if (lname.size() == name.size() && groups.serializeCppConstantBindings(fp))
          return -1;
 
       fprintf(fp, "\n   return QC_%s;\n}\n", UC.c_str());
@@ -2482,7 +2513,15 @@ public:
 
       serialize_dox_comment(fp, doc);
       
-      fprintf(fp, "class %s", name.c_str());
+      size_t nl = name.size();
+      if (name[0] == '<' && name[nl - 1] == '>') {
+         std::string nn = "zzz8";
+         nn.append(name, 1, nl - 2);
+         nn += "zzz9";
+         fprintf(fp, "class %s", nn.c_str());
+      }
+      else
+         fprintf(fp, "class %s", name.c_str());
       if (!virt_parent.empty())
          fprintf(fp, " : public %s", virt_parent.c_str());
 

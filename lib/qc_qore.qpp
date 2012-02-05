@@ -1,0 +1,65 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/*
+  qc_qore.qpp
+
+  Qore Programming Language
+
+  Copyright 2003 - 2012 David Nichols
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
+#include <qore/Qore.h>
+
+/** @defgroup type_code_constants Type Code Constants
+    Type code constants as returned by <value>::typeCode()
+*/
+//@{
+//! type code for @ref nothing "no value" (@ref nothing)
+const NT_NOTHING = NT_NOTHING;
+
+//! type code for @ref integer "integer values"
+const NT_INT = NT_INT;
+
+//! type code for @ref float "float values"
+const NT_FLOAT = NT_FLOAT;
+
+//! type code for @ref string "string values"
+const NT_STRING = NT_STRING;
+
+//! type code for @ref date "date/time values"
+const NT_DATE = NT_DATE;
+
+//! type code for @ref boolean "boolean values"
+const NT_BOOLEAN = NT_BOOLEAN;
+
+//! type code for @ref null
+const NT_NULL = NT_NULL;
+
+//! type code for @ref binary "binary values"
+const NT_BINARY = NT_BINARY;
+
+//! type code for @ref list "list values"
+const NT_LIST = NT_LIST;
+
+//! type code for @ref hash "hash values"
+const NT_HASH = NT_HASH;
+
+//! type code for @ref object "objects"
+const NT_OBJECT = NT_OBJECT;
+
+//! type code for @ref closure "closures"
+const NT_CLOSURE = NT_RUNTIME_CLOSURE;
+//@}

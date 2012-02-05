@@ -668,7 +668,7 @@ int DBI_concat_string(QoreString *str, const AbstractQoreNode *v, ExceptionSink 
 /*
   parseDatasource()
   parses strings of the form: driver:user/pass@db(encoding)%host:post
-  driver, encoding, host, and port are optional
+  everything except "@db" is optional
 */
 QoreHashNode *parseDatasource(const char *ds, ExceptionSink *xsink) {
    static const char *DATASOURCE_PARSE_ERROR = "DATASOURCE-PARSE-ERROR";
@@ -849,4 +849,3 @@ QoreHashNode *parseDatasource(const char *ds, ExceptionSink *xsink) {
 
    return h.release();
 }
-

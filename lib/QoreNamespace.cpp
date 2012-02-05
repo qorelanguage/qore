@@ -77,6 +77,7 @@ DLLLOCAL void init_misc_constants(QoreNamespace& ns);
 DLLLOCAL void init_string_constants(QoreNamespace& ns);
 DLLLOCAL void init_option_constants(QoreNamespace& ns);
 DLLLOCAL void init_math_constants(QoreNamespace& ns);
+DLLLOCAL void init_qore_constants(QoreNamespace& ns);
 
 DLLLOCAL void init_dbi_functions(QoreNamespace& ns);
 
@@ -1313,20 +1314,6 @@ void StaticSystemNamespace::init() {
    qoreNS->addConstant("CFLAGS",         new QoreStringNode(qore_cflags));
    qoreNS->addConstant("LDFLAGS",        new QoreStringNode(qore_ldflags));
 
-   // type constants (as reported from <all>.typeCode())
-   qoreNS->addConstant("NT_NOTHING",     new QoreBigIntNode(NT_NOTHING));
-   qoreNS->addConstant("NT_INT",         new QoreBigIntNode(NT_INT));
-   qoreNS->addConstant("NT_FLOAT",       new QoreBigIntNode(NT_FLOAT));
-   qoreNS->addConstant("NT_STRING",      new QoreBigIntNode(NT_STRING));
-   qoreNS->addConstant("NT_DATE",        new QoreBigIntNode(NT_DATE));
-   qoreNS->addConstant("NT_BOOLEAN",     new QoreBigIntNode(NT_BOOLEAN));
-   qoreNS->addConstant("NT_NULL",        new QoreBigIntNode(NT_NULL));
-   qoreNS->addConstant("NT_BINARY",      new QoreBigIntNode(NT_BINARY));
-   qoreNS->addConstant("NT_LIST",        new QoreBigIntNode(NT_LIST));
-   qoreNS->addConstant("NT_HASH",        new QoreBigIntNode(NT_HASH));
-   qoreNS->addConstant("NT_OBJECT",      new QoreBigIntNode(NT_OBJECT));
-   qoreNS->addConstant("NT_CLOSURE",     new QoreBigIntNode(NT_RUNTIME_CLOSURE));
-
    // system constants
 #ifdef WORDS_BIGENDIAN
    qoreNS->addConstant("MACHINE_MSB",   &True);
@@ -1401,6 +1388,8 @@ void StaticSystemNamespace::init() {
    qoreNS->addConstant("EVENT_DATA_READ", new QoreBigIntNode(QORE_EVENT_DATA_READ));
    qoreNS->addConstant("EVENT_DATA_WRITTEN", new QoreBigIntNode(QORE_EVENT_DATA_WRITTEN));
    //qoreNS->addConstant("EVENT_", new QoreBigIntNode(QORE_EVENT_));
+
+   init_qore_constants(*qoreNS);
 
    // set up Option namespace for Qore options
    QoreNamespace* option = new QoreNamespace("Option");

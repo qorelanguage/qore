@@ -67,7 +67,7 @@ static QoreClass *do_type_code(const char *name, q_method_int64_t f) {
 
 void pseudo_classes_init() {
    // root, default pseudo-class
-   pseudoAll = initPseudoAllClass();
+   pseudoAll = initPseudoValueClass();
 
    // initialize list of pseudo-classes for basic types
    po_list[NT_NOTHING] = do_type_code("<nothing>", (q_method_int64_t)PSEUDONOTHING_typeCode);
