@@ -351,6 +351,8 @@ DLLLOCAL int check_lvalue_float(const QoreTypeInfo *&typeInfo, const char *name)
 
 DLLLOCAL bool checkParseOption(int64 o);
 
+DLLLOCAL extern QoreClass* QC_PSEUDOVALUE;
+
 #include <qore/intern/NamedScope.h>
 #include <qore/intern/QoreTypeInfo.h>
 #include <qore/intern/ParseNode.h>

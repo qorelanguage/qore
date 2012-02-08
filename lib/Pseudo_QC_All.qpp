@@ -35,7 +35,19 @@ qclass <value> [arg=AbstractQoreNode* node];
 
     @par Example:
     @code
-my int $t = $n.typeCode();
+switch ($v.typeCode()) {
+    case NT_INT:
+        printf("%y: is an integer\n", $v);
+	break;
+
+    case NT_DATE:
+        printf("%y: is a date\n", $v);
+	break;
+
+    default:
+        printf("%y: is something else entirely\n", $v);
+	break;
+}
     @endcode    
  */
 int <value>::typeCode() [flags=CONSTANT] {

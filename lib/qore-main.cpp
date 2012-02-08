@@ -75,9 +75,6 @@ void qore_init(qore_license_t license, const char *def_charset, bool show_module
    // set up core operators
    oplist.init();
 
-   // set up pseudo-methods
-   pseudo_classes_init();
-
    // init module subsystem
    MM.init(show_module_errors);
 
@@ -88,6 +85,9 @@ void qore_init(qore_license_t license, const char *def_charset, bool show_module
 
    // initialize static system namespaces
    staticSystemNamespace.init();
+
+   // set up pseudo-methods
+   pseudo_classes_init();
 
 #if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__ 
    WORD wsver = MAKEWORD(2, 2);

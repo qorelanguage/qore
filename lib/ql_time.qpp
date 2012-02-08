@@ -253,7 +253,6 @@ my string $str = format_date("Day, Mon D, YYYY-MM-DD HH:mm:SS", 2004-02-01T12:30
 string format_date(string format, date dt) [flags=CONSTANT] {
    QoreStringNode *rv = new QoreStringNode;
    dt->format(*rv, format->getBuffer());
-   //printd(5, "format_date() returning \"%s\"\n", rv->getBuffer());
    return rv;
 }
 
@@ -704,6 +703,8 @@ date microseconds(int us) [flags=CONSTANT] {
     @code
 my int $n = get_years($dt);
     @endcode
+
+    @note equivalent to pseud-method <date>::years()
 */
 int get_years(date dt) [flags=CONSTANT] {
    return dt->getYear();
@@ -725,6 +726,8 @@ nothing get_years() [flags=RUNTIME_NOOP] {
     @code
 my int $n = get_months($dt);
     @endcode
+
+    @note equivalent to pseud-method <date>::months()
 */
 int get_months(date dt) [flags=CONSTANT] {
    return dt->getMonth();
@@ -746,6 +749,8 @@ nothing get_months() [flags=RUNTIME_NOOP] {
     @code
 my int $n = get_days($dt);
     @endcode
+
+    @note equivalent to pseud-method <date>::days()
 */
 int get_days(date dt) [flags=CONSTANT] {
    return dt->getDay();
@@ -767,6 +772,8 @@ nothing get_days() [flags=RUNTIME_NOOP] {
     @code
 my int $n = get_hours($dt);
     @endcode
+
+    @note equivalent to pseud-method <date>::hours()
 */
 int get_hours(date dt) [flags=CONSTANT] {
    return dt->getHour();
@@ -788,6 +795,8 @@ nothing get_hours() [flags=RUNTIME_NOOP] {
     @code
 my int $n = get_minutes($dt);
     @endcode
+
+    @note equivalent to pseud-method <date>::minutes()
 */
 int get_minutes(date dt) [flags=CONSTANT] {
    return dt->getMinute();
@@ -809,6 +818,8 @@ nothing get_minutes() [flags=RUNTIME_NOOP] {
     @code
 my int $n = get_seconds($dt);
     @endcode
+
+    @note equivalent to pseud-method <date>::seconds()
 */
 int get_seconds(date dt) [flags=CONSTANT] {
    return dt->getSecond();
@@ -830,6 +841,8 @@ nothing get_seconds() [flags=RUNTIME_NOOP] {
     @code
 my int $n = get_milliseconds($dt);
     @endcode
+
+    @note equivalent to pseud-method <date>::milliseconds()
 */
 int get_milliseconds(date dt) [flags=CONSTANT] {
    return dt->getMillisecond();
@@ -851,6 +864,8 @@ nothing get_milliseconds() [flags=RUNTIME_NOOP] {
     @code
 my int $n = get_microseconds($dt);
     @endcode
+
+    @note equivalent to pseud-method <date>::microseconds()
 */
 int get_microseconds(date dt) [flags=CONSTANT] {
    return dt->getMicrosecond();

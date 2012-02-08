@@ -2281,7 +2281,8 @@ protected:
 
    int64 flags;
    bool valid,
-      upm;              // unset public member flag
+      upm,              // unset public member flag
+      is_pseudo;
 
    void addElement(strlist_t &l, const std::string &str, size_t start, size_t end = std::string::npos) {
       std::string se(str, start, end);
@@ -2290,8 +2291,11 @@ protected:
    }
 
 public:
-   ClassElement(const std::string &n_name, const strmap_t &props, const std::string &n_doc) : name(n_name), doc(n_doc), valid(true), upm(false) {
+   ClassElement(const std::string &n_name, const strmap_t &props, const std::string &n_doc) : name(n_name), doc(n_doc), valid(true), upm(false), is_pseudo(false) {
       log(LL_DETAIL, "parsing Qore class '%s'\n", name.c_str());
+
+      if (name.size() && name[0] == '<' && name[name.size() - 1] == '>')
+         is_pseudo = true;
 
       // process properties
       for (strmap_t::const_iterator i = props.begin(), e = props.end(); i != e; ++i) {
@@ -2359,10 +2363,17 @@ public:
          if (i->first == "vparent") {
             virt_parent = i->second;
             log(LL_DEBUG, "+ virtual base class: %s\n", virt_parent.c_str());
+            if (is_pseudo) {
+               size_t ps = virt_parent.size();
+               if (!ps || virt_parent[0] != '<' || virt_parent[ps - 1] != '>') {
+                  error("virtual parent '%s' is invalid for a pseudo-class (must be '<name>')\n", virt_parent.c_str());
+                  valid = false;
+               }
+            }
             continue;
          }
 
-         error("+ prop: '%s': '%s' - unknown property '%s'\n", i->first.c_str(), i->second.c_str(), i->first.c_str());
+         error("prop: '%s': '%s' - unknown property '%s'\n", i->first.c_str(), i->second.c_str(), i->first.c_str());
          valid = false;
       }
 
@@ -2432,16 +2443,18 @@ public:
       for (unsigned i = 0; i < name.size(); ++i)
          UC += toupper(name[i]);
 
-      size_t nl = name.size();
       std::string lname = name;
-      if (name[0] == '<' && name[nl - 1] == '>') {
+      if (is_pseudo) {
+         size_t nl = name.size();
          UC.erase(nl - 1);
          UC.erase(0, 1);
+         UC.insert(0, "PSEUDO");
+
          lname.erase(nl - 1);
          char c = lname[1];
          lname.erase(0, 2);
          lname.insert(0, 1, toupper(c));
-         lname.insert(0, "Pseudo");         
+         lname.insert(0, "Pseudo");
       }
 
       fprintf(fp, "qore_classid_t CID_%s;\nQoreClass *QC_%s;\n\n", UC.c_str(), UC.c_str());
@@ -2454,7 +2467,7 @@ public:
          i->second->serializeStaticCppMethod(fp, lname.c_str(), arg.c_str());
       }
 
-      if (lname.size() != name.size())
+      if (is_pseudo)
          fprintf(fp, "QoreClass* init%sClass() {\n   QC_%s = new QoreClass(\"%s\", ", lname.c_str(), UC.c_str(), name.c_str());
       else
          fprintf(fp, "QoreClass* init%sClass(QoreNamespace &ns) {\n   QC_%s = new QoreClass(\"%s\", ", lname.c_str(), UC.c_str(), name.c_str());
@@ -2463,8 +2476,13 @@ public:
 
       if (!virt_parent.empty()) {
          std::string vp;
-         get_type_name(vp, virt_parent);
+         if (is_pseudo)
+            vp.assign(virt_parent, 1, virt_parent.size() - 2);
+         else
+            get_type_name(vp, virt_parent);
          toupper(vp);
+         if (is_pseudo)
+            vp.insert(0, "PSEUDO");
          fprintf(fp, "\n   // set parent class\n   assert(QC_%s);\n   QC_%s->addBuiltinVirtualBaseClass(QC_%s);\n", vp.c_str(), UC.c_str(), vp.c_str());
       }
 
@@ -2504,7 +2522,7 @@ public:
       }
 
       // only serialize constants if we are not emitting a pseudo class
-      if (lname.size() == name.size() && groups.serializeCppConstantBindings(fp))
+      if (!is_pseudo && groups.serializeCppConstantBindings(fp))
          return -1;
 
       fprintf(fp, "\n   return QC_%s;\n}\n", UC.c_str());
@@ -2528,8 +2546,15 @@ public:
       }
       else
          fprintf(fp, "class %s", name.c_str());
-      if (!virt_parent.empty())
-         fprintf(fp, " : public %s", virt_parent.c_str());
+      if (!virt_parent.empty()) {
+         if (!is_pseudo)
+            fprintf(fp, " : public %s", virt_parent.c_str());
+         else {
+            std::string vp;
+            vp.assign(virt_parent, 1, virt_parent.size() - 2);
+            fprintf(fp, " : public zzz8%szzz9", vp.c_str());
+         }
+      }
 
       fputs(" {\n", fp);
       

@@ -311,6 +311,10 @@ DateTime *DateTime::makeRelative(int y, int mo, int d, int h, int mi, int s, int
    return new DateTime(new qore_date_private(y, mo, d, h, mi, s, u, true));
 }
 
+const AbstractQoreZoneInfo* DateTime::getZone() const {
+   return priv->getZone();
+}
+
 int qore_tm::secsEast() const {
    return zone->getUTCOffset();
 }

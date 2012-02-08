@@ -35,10 +35,7 @@
 #include "intern/QoreClassIntern.h"
 
 // list of pseudo-classes for basic types
-static QoreClass *po_list[NODE_ARRAY_LEN];
-
-// catch-all/base pseudo class
-static QoreClass *pseudoAll;
+static QoreClass* po_list[NODE_ARRAY_LEN];
 
 // int <x>.typeCode()
 static int64 PSEUDONOTHING_typeCode(QoreObject *ignored, AbstractQoreNode *node, const QoreListNode *args, ExceptionSink *xsink) {
@@ -60,14 +57,15 @@ static int64 PSEUDOBOOLEAN_typeCode(QoreObject *ignored, AbstractQoreNode *node,
 // create pseudo-class for type
 static QoreClass *do_type_code(const char *name, q_method_int64_t f) {
    QoreClass *qc = new QoreClass(name);
-   qc->addBuiltinVirtualBaseClass(pseudoAll);
+   qc->addBuiltinVirtualBaseClass(QC_PSEUDOVALUE);
    qc->addMethodExtended("typeCode", f, false, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo);
    return qc;
 }
 
 void pseudo_classes_init() {
    // root, default pseudo-class
-   pseudoAll = initPseudoValueClass();
+   initPseudoValueClass();
+   assert(QC_PSEUDOVALUE);
 
    // initialize list of pseudo-classes for basic types
    po_list[NT_NOTHING] = do_type_code("<nothing>", (q_method_int64_t)PSEUDONOTHING_typeCode);
@@ -76,12 +74,12 @@ void pseudo_classes_init() {
    po_list[NT_FLOAT] = do_type_code("<float>", (q_method_int64_t)PSEUDOFLOAT_typeCode);
    po_list[NT_BOOLEAN] = do_type_code("<boolean>", (q_method_int64_t)PSEUDOBOOLEAN_typeCode);
 
-   po_list[NT_STRING] = initPseudoStringClass(pseudoAll);
-   po_list[NT_DATE] = initPseudoDateClass(pseudoAll);
-   po_list[NT_BINARY] = initPseudoBinaryClass(pseudoAll);
-   po_list[NT_LIST] = initPseudoListClass(pseudoAll);
-   po_list[NT_HASH] = initPseudoHashClass(pseudoAll);
-   po_list[NT_OBJECT] = initPseudoObjectClass(pseudoAll);   
+   po_list[NT_STRING] = initPseudoStringClass(QC_PSEUDOVALUE);
+   po_list[NT_DATE] = initPseudoDateClass();
+   po_list[NT_BINARY] = initPseudoBinaryClass(QC_PSEUDOVALUE);
+   po_list[NT_LIST] = initPseudoListClass(QC_PSEUDOVALUE);
+   po_list[NT_HASH] = initPseudoHashClass(QC_PSEUDOVALUE);
+   po_list[NT_OBJECT] = initPseudoObjectClass(QC_PSEUDOVALUE);   
 }
 
 void pseudo_classes_del() {
@@ -89,13 +87,13 @@ void pseudo_classes_del() {
    for (unsigned i = 0; i < NODE_ARRAY_LEN; ++i)
       delete po_list[i];
 
-   delete pseudoAll;
+   delete QC_PSEUDOVALUE;
 }
 
 // return the pseudo class for the given type
 static QoreClass *pseudo_get_class(qore_type_t t) {
    assert(t >= 0);
-   return t < NODE_ARRAY_LEN ? po_list[t] : pseudoAll;
+   return t < NODE_ARRAY_LEN ? po_list[t] : QC_PSEUDOVALUE;
 }
 
 // return the pseudo class for the given node

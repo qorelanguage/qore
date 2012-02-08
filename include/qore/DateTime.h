@@ -393,6 +393,9 @@ public:
    //! changes the time zone for the time without updating the epoch offset
    DLLEXPORT void setZone(const AbstractQoreZoneInfo *n_zone);
 
+   //! gets the time zone for the object; returns 0 for relative date/time values
+   DLLEXPORT const AbstractQoreZoneInfo* getZone() const;
+
    // static methods
    //! returns true if the year passed is a leap year according to a proleptic gregorian calendar
    DLLEXPORT static bool isLeapYear(int year);

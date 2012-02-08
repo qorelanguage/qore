@@ -1,0 +1,291 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Pseudo_QC_Date.qpp
+
+  Qore Programming Language
+
+  Copyright 2003 - 2012 David Nichols
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
+#include <qore/Qore.h>
+
+//! Methods in this pseudo-class can be executed on @ref date "date/time value types"
+/** 
+ */
+qclass <date> [arg=DateTimeNode *dt;vparent=<value>];
+
+//! Returns NT_DATE
+/** 
+    @return NT_DATE
+
+    @par Example:
+    @code
+switch ($d.typeCode()) {
+    case NT_DATE:
+        printf("%y: is a date\n", $d);
+	break;
+}
+    @endcode
+ */
+int <date>::typeCode() {
+   return NT_DATE;
+}
+
+//! Returns \c True if the date is an @ref absolute_dates "absolute date/time value"
+/** 
+    @return \c True if the date is an @ref absolute_dates "absolute date/time value"
+
+    @par Example:
+    @code
+my bool $b = $d.absolute();
+    @endcode
+*/
+bool <date>::absolute() {
+   return dt->isAbsolute();
+}
+
+//! Returns \c True if the date is a @ref relative_dates "relative date/time value"
+/** 
+    @return \c True if the date is a @ref relative_dates "relative date/time value"
+
+    @par Example:
+    @code
+my bool $b = $d.relative();
+    @endcode
+*/
+bool <date>::relative() {
+   return dt->isRelative();
+}
+
+//! Returns an integer corresponding to the year value in the date
+/** 
+    @return an integer corresponding to the year value in the date
+
+    @par Example:
+    @code
+my int $n = $d.years();
+    @endcode
+
+    @note equivalent to get_years(date)
+*/
+int <date>::years() [flags=CONSTANT] {
+   return dt->getYear();
+}
+
+//! Returns an integer corresponding to the month value in the date
+/** 
+    @param dt the date value; can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date
+
+    @return an integer corresponding to the month value in the date
+
+    @par Example:
+    @code
+my int $n = $d.months();
+    @endcode
+
+    @note equivalent to get_months(date)
+*/
+int <date>::months() [flags=CONSTANT] {
+   return dt->getMonth();
+}
+
+//! Returns an integer corresponding to the day value in the date
+/** 
+    @param dt the date value; can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date
+
+    @return an integer corresponding to the day value in the date
+
+    @par Example:
+    @code
+my int $n = $d.days();
+    @endcode
+
+    @note equivalent to get_days(date)
+*/
+int <date>::days() [flags=CONSTANT] {
+   return dt->getDay();
+}
+
+//! Returns an integer corresponding to the hour value in the date
+/** 
+    @param dt the date value; can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date
+
+    @return an integer corresponding to the hour value in the date
+
+    @par Example:
+    @code
+my int $n = $d.hours();
+    @endcode
+
+    @note equivalent to get_hours(date)
+*/
+int <date>::hours() [flags=CONSTANT] {
+   return dt->getHour();
+}
+
+//! Returns an integer corresponding to the minute value in the date
+/** 
+    @param dt the date value; can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date
+
+    @return an integer corresponding to the minute value in the date
+
+    @par Example:
+    @code
+my int $n = $d.minutes();
+    @endcode
+
+    @note equivalent to get_minutes(date)
+*/
+int <date>::minutes() [flags=CONSTANT] {
+   return dt->getMinute();
+}
+
+//! Returns an integer corresponding to the second value in the date
+/** 
+    @param dt the date value; can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date
+
+    @return an integer corresponding to the second value in the date
+
+    @par Example:
+    @code
+my int $n = $d.seconds();
+    @endcode
+
+    @note equivalent to get_seconds(date)
+*/
+int <date>::seconds() [flags=CONSTANT] {
+   return dt->getSecond();
+}
+
+//! Returns an integer corresponding to the millisecond value in the date
+/** 
+    @param dt the date value; can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date
+
+    @return an integer corresponding to the millisecond value in the date
+
+    @par Example:
+    @code
+my int $n = $d.milliseconds();
+    @endcode
+
+    @note equivalent to get_milliseconds(date)
+*/
+int <date>::milliseconds() [flags=CONSTANT] {
+   return dt->getMillisecond();
+}
+
+//! Returns an integer corresponding to the microsecond value in the date
+/** 
+    @param dt the date value; can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date
+
+    @return an integer corresponding to the microsecond value in the date
+
+    @par Example:
+    @code
+my int $n = $d.microseconds();
+    @endcode
+
+    @note equivalent to get_microseconds(date)
+*/
+int <date>::microseconds() [flags=CONSTANT] {
+   return dt->getMicrosecond();
+}
+
+//! Returns a formatted string for the date value
+/** 
+    @param format a string giving the format for the date; see @ref date_formatting for more information about this string
+
+    @return a formatted string for a date argument passed
+
+    @par Example:
+    @code
+my string $str = $d.toString("Day, Mon D, YYYY-MM-DD HH:mm:SS");
+    @endcode
+
+    @bug there is no locale support; day and month names and abbreviations are only returned in English
+
+    @note equivalent to format_date(string, date)
+*/
+string <date>::format(string format) [flags=CONSTANT] {
+   QoreStringNode *rv = new QoreStringNode;
+   dt->format(*rv, format->getBuffer());
+   return rv;
+}
+
+//! Returns \c True if the current date/time value is currently in daylight savings time
+/** 
+    @return \c True if the current date/time value is currently in daylight savings time; always returns \c False for @ref relative_dates "relative date/time values"
+
+    @par Example:
+    @code
+my bool $b = $d.isDst();
+    @endcode
+ */
+bool <date>::isDst() [flags=CONSTANT] {
+   int64 epoch_offset;
+   bool is_dst;
+
+   dt->getZone()->getUTCOffset(epoch_offset, is_dst);
+   return is_dst;
+}
+
+//! Returns a Qore::TimeZone object for the time zone of the date/time value; returns @ref nothing for @ref relative_dates "relative date/time values"
+/** 
+    @return a Qore::TimeZone object for the time zone of the date/time value; returns @ref nothing for @ref relative_dates "relative date/time values"
+
+    @par Example:
+    @code
+my *TimeZone $zone = $d.zone();
+    @endcode
+ */
+*TimeZone <date>::zone() [flags=CONSTANT] {
+   return dt->isAbsolute() ? new QoreObject(QC_TIMEZONE, 0, new TimeZoneData(dt->getZone())) : 0;
+}
+
+//! Returns the name of the current time zone for the current @ref absolute_dates "absolute date/time value" (ex: \c "CEST" for Central European Summer Time for a time during summer time or \c "CET" for Central European Time for the same time zone while daylight savings time is not active) or a UTC offset (like \c "+01") or \c "UTC" or @ref nothing for @ref relative_dates "relative date/time values"
+/** 
+    @return the name of the current time zone for the current @ref absolute_dates "absolute date/time value" (ex: \c "CEST" for Central European Summer Time for a time during summer time or \c "CET" for Central European Time for the same time zone while daylight savings time is not active) or a UTC offset (like \c "+01") or \c "UTC" or @ref nothing for @ref relative_dates "relative date/time values"
+
+    @par Example:
+    @code
+my *string $zn = $d.currentZoneName();
+    @endcode
+ */
+*string <date>::currentZoneName() [flags=CONSTANT] {
+   if (dt->isRelative())
+      return 0;
+
+   int64 epoch_offset;
+   bool is_dst;
+   const char *zone_name;
+
+   dt->getZone()->getUTCOffset(epoch_offset, is_dst, zone_name);
+   return new QoreStringNode(zone_name);
+}
+
+//! Returns the time zone offset for the current time in seconds east of UTC or -1 for @ref relative_dates "relative date/time values"
+/** 
+    @return the time zone offset for the current time in seconds east of UTC or -1 for @ref relative_dates "relative date/time values"
+
+    @par Example:
+    @code
+my int $utcoffset = $d.getUtcOffset();
+    @endcode
+ */
+int <date>::getUtcOffset() [flags=CONSTANT] {
+   return dt->getZone()->getUTCOffset();
+}

@@ -717,6 +717,10 @@ public:
       epoch = -epoch;
       us = -us;
    }
+
+   const AbstractQoreZoneInfo* getZone() const {
+      return zone;
+   }
 };
    
 class qore_relative_time : public qore_simple_tm {
@@ -1304,6 +1308,10 @@ public:
       // get seconds for date of start of iso-8601 calendar year, add seconds for day offset and create new time
       result.setLocalDate(qore_date_info::getEpochSeconds(y, m, d) + ((week - 1) * 7 + (day - 1)) * 86400, 0);
       return 0;
+   }
+
+   DLLLOCAL const AbstractQoreZoneInfo* getZone() const {
+      return relative ? 0 : d.abs.getZone();
    }
 };
 
