@@ -1,0 +1,123 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/*
+ ql_object.qpp
+ 
+ Qore Programming Language
+ 
+ Copyright 2003 - 2012 David Nichols
+ 
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2.1 of the License, or (at your option) any later version.
+ 
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+ 
+ You should have received a copy of the GNU Lesser General Public
+ License along with this library; if not, write to the Free Software
+ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ */
+
+#include <qore/Qore.h>
+#include <qore/intern/ql_object.h>
+
+/** @defgroup object_functions Object Functions
+    Object functions
+*/
+//@{
+
+//! Returns a list of strings of the names of the methods of the class of the object passed as a parameter
+/** 
+    @param obj an object of the class to get the method list from
+
+    @return a list of strings of the names of the methods of the class of the object passed as a parameter; returns all methods in the class, both private and public but does not return inherited methods
+
+    @par Example:
+    @code
+my list $l = getMethodList($obj);
+    @endcode
+ */
+list getMethodList(object obj) [flags=CONSTANT] {
+   return obj->getClass()->getMethodList();
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+nothing getMethodList() [flags=RUNTIME_NOOP] {
+}
+
+//! Calls a method of an object, passing the remainder of the arguments to the function as arguments to the method
+/** 
+    @param obj the object to use for the call
+    @param method the method to call
+    @param ... any additional arguments to the method
+
+    @return the value returned by the method call
+
+    @par Example:
+    @code
+my any $result = callObjectMethod($obj, "method", $arg1, $arg2);
+    @endcode
+
+    @throw METHOD-DOES-NOT-EXIST The named method does not exist in this class
+    @throw ILLEGAL-EXPLICIT-METHOD-CALL The named method may not be called explicitly
+    @throw METHOD-IS-PRIVATE The named method is private and therefore can only be called within the class
+    @throw BASE-CLASS-IS-PRIVATE The named method is a member of a privately inherited base class
+
+    @note the method called could cause additional exceptions to be thrown
+ */
+any callObjectMethod(object obj, string method, ...) {
+   ReferenceHolder<QoreListNode> call_args(xsink);
+   
+   // if there are arguments to pass
+   if (num_args(args) > 2) {
+      // create argument list by copying current list
+      call_args = args->copyListFrom(2);
+   }
+
+   // make sure method call is internal (allows access to private methods) if this function was called internally
+   CodeContextHelper cch(0, obj, xsink);
+   return obj->evalMethod(method, *call_args, xsink);
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+nothing callObjectMethod() [flags=RUNTIME_NOOP] {
+}
+
+//! Calls a method of an object, using the optional third argument as the argument list to the method
+/** 
+    @param obj the object to use for the call
+    @param method the method to call
+    @param varg any additional arguments to the method
+
+    @return the value returned by the method call
+
+    @par Example:
+    @code
+my any $result = callObjectMethodArgs($obj, "method", $arglist);
+    @endcode
+
+    @throw METHOD-DOES-NOT-EXIST The named method does not exist in this class
+    @throw ILLEGAL-EXPLICIT-METHOD-CALL The named method may not be called explicitly
+    @throw METHOD-IS-PRIVATE The named method is private and therefore can only be called within the class
+    @throw BASE-CLASS-IS-PRIVATE The named method is a member of a privately inherited base class
+
+    @note the method called could cause additional exceptions to be thrown
+ */
+any callObjectMethodArgs(object obj, string method, *softlist varg) {
+   CodeContextHelper cch(0, obj, xsink);
+   return obj->evalMethod(method, varg, xsink);
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/** 
+ */
+nothing callObjectMethodArgs() [flags=RUNTIME_NOOP] {
+}
+//@}
