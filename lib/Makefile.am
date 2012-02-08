@@ -31,7 +31,7 @@ QPP=./qpp
 endif
 
 qpp: $(qpp_SOURCES)
-	$(CXX) $(AM_CPPFLAGS) $(AM_CXXFLAGS) $(AM_LDFLAGS) -o $@ $(qpp_SOURCES)
+	$(CXX) $(INCLUDES) $(AM_CPPFLAGS) $(AM_CXXFLAGS) $(AM_LDFLAGS) -o $@ $(qpp_SOURCES)
 
 QC_Queue.cpp: QC_Queue.qpp qpp
 	$(QPP) $<
