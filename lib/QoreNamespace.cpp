@@ -80,6 +80,7 @@ DLLLOCAL void init_math_constants(QoreNamespace& ns);
 DLLLOCAL void init_qore_constants(QoreNamespace& ns);
 
 DLLLOCAL void init_dbi_functions(QoreNamespace& ns);
+DLLLOCAL void init_dbi_constants(QoreNamespace& ns);
 
 #define MAX_RECURSION_DEPTH 20
 
@@ -1404,6 +1405,7 @@ void StaticSystemNamespace::init() {
    sqlns->addSystemClass(initSQLStatementClass(*sqlns));
 
    init_dbi_functions(*sqlns);
+   init_dbi_constants(*sqlns);
    qoreNS->addInitialNamespace(sqlns);
 
    // create get Qore::Err namespace with ERRNO constants
