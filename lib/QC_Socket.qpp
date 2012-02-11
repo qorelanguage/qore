@@ -39,14 +39,6 @@ static int64 doReadResult(int rc, int64 val, const char *method_name, int timeou
    return 0;
 }
 
-static AbstractQoreNode *doSendResult(int rc, const char *method_name, ExceptionSink *xsink) {
-   if (rc == -2)
-      xsink->raiseException("SOCKET-NOT-OPEN", "socket must be opened before Socket::%s() call", method_name);
-   else if (rc)
-      xsink->raiseErrnoException("SOCKET-SEND-ERROR", rc, "Socket::%s() failed with error code %d", method_name, rc);
-   return 0;
-}
-
 static int64 checkOpenResult(int rc, const char *method_name, ExceptionSink *xsink) {
    if (*xsink)
       return 0;
@@ -481,7 +473,6 @@ $sock.connectSSL("/tmp/socket"); @endcode
 
     @throw SOCKET-CONNECT-ERROR An error occured connecting to the remote socket (cannot resolve hostname, no listener, timeout exceeded, etc)
     @throw SOCKET-SSL-ERROR An error occurred establishing the TLS/SSL connection
-    @throw SOCKET-CLOSED The TLS/SSL connection was shut down by the remote end
 
     @see Socket::connect(), Socket::connectUNIX(), Socket::connectUNIXSSL(), Socket::connectINETSSL(), and Socket::connectINET()
  */
@@ -512,7 +503,6 @@ $sock.connectINETSSL("2001:0db8:85a3:0000:0000:8a2e:0370:7334", 80, 20s); @endco
 
     @throw SOCKET-CONNECT-ERROR An error occured connecting to the remote socket (cannot resolve hostname, no listener, timeout exceeded, etc)
     @throw SOCKET-SSL-ERROR An error occurred establishing the TLS/SSL connection
-    @throw SOCKET-CLOSED The TLS/SSL connection was shut down by the remote end
 
     @see Socket::connect(), Socket::connectUNIX(), Socket::connectSSL(), Socket::connectINET(), and Socket::connectUNIXSSL()
  */
@@ -536,7 +526,6 @@ $sock.connectUNIXSSL("/tmp/socket"); @endcode
 
     @throw SOCKET-CONNECT-ERROR An error occured connecting to the socket
     @throw SOCKET-SSL-ERROR An error occurred establishing the TLS/SSL connection
-    @throw SOCKET-CLOSED The TLS/SSL connection was shut down by the remote end
 
     @see Socket::connect(), Socket::connectUNIX(), Socket::connectSSL(), Socket::connectINETSSL(), and Socket::connectINET()
 
@@ -789,9 +778,13 @@ int Socket::listen() {
 //! Sends binary data over the socket
 /** If an error occurs, -1 will be returned; in this case check errno() for the error number.
 
+    @note In case of SSL errors, errno() will not provide any information; use Socket::send2() instead
+
     @par Example:
-    @code if ($sock.send($data) == -1)
-    printf("error sending data: %s\n", strerror(errno())); @endcode
+    @code
+if ($sock.send($data))
+    printf("error sending data: %s\n", strerror(errno()));
+    @endcode
 
     @par Events:
     @ref EVENT_PACKET_SENT
@@ -802,7 +795,9 @@ int Socket::listen() {
 
     @throw SOCKET-NOT-OPEN The socket is not connected
 
-    @see Socket::sendBinary()
+    @see
+    - Socket::sendBinary2()
+    - Socket::send2()
  */
 int Socket::send(binary bin) {
    return checkOpenResult(s->send(bin), "send", xsink);
@@ -810,6 +805,8 @@ int Socket::send(binary bin) {
 
 //! Sends string data over the socket; string data is converted to the socket's encoding if necessary
 /** String data will be converted to the encoding set for the socket if necessary. If an error occurs, -1 will be returned; in this case check errno() for the error number.
+
+    @note In case of SSL errors, errno() will not provide any information; use Socket::send2() instead
 
     @par Example:
     @code
@@ -825,14 +822,22 @@ if ($sock.send($str) == -1)
 
     @throw SOCKET-NOT-OPEN The socket is not connected
 
-    @see Socket::sendBinary()
+    @see
+    - Socket::sendBinary2()
+    - Socket::send2()
  */
 int Socket::send(string str) {
-   return checkOpenResult(s->send(str, xsink), "send", xsink);
+   TempEncodingHelper tmp(str, s->getEncoding(), xsink);
+   if (!tmp)
+      return 0;
+
+   return checkOpenResult(s->send(tmp->getBuffer(), tmp->size()), "send", xsink);
 }
 
 //! Sends string data over the socket without converting the string to the socket's encoding, but instead is sent exactly as-is
 /** If an error occurs, -1 will be returned; in this case check errno() for the error number.
+
+    @note In case of SSL errors, errno() will not provide any information; use Socket::sendBinary2() instead
 
     @par Example:
     @code
@@ -848,7 +853,9 @@ if ($sock.sendBinary($str) == -1)
 
     @throw SOCKET-NOT-OPEN The socket is not connected
 
-    @see Socket::send()
+    @see
+    - Socket::send2()
+    - Socket::sendBinary2()
  */
 int Socket::sendBinary(string str) {
    return checkOpenResult(s->send(str->getBuffer(), str->strlen()), "send", xsink);
@@ -856,6 +863,8 @@ int Socket::sendBinary(string str) {
 
 //! Sends binary data over the socket
 /** If an error occurs, -1 will be returned; in this case check errno() for the error number.
+
+    @note In case of SSL errors, errno() will not provide any information; use Socket::sendBinary2() instead
 
     @par Example:
     @code if ($sock.sendBinary($data) == -1)
@@ -870,10 +879,111 @@ int Socket::sendBinary(string str) {
 
     @throw SOCKET-NOT-OPEN The socket is not connected
 
-    @see Socket::sendBinary()
+    @see
+    - Socket::send2()
+    - Socket::sendBinary2()
  */
 int Socket::sendBinary(binary bin) {
    return checkOpenResult(s->send(bin), "send", xsink);
+}
+
+//! Sends binary data over the socket; if any errors occur, an exception is thrown
+/** 
+    @par Example:
+    @code
+$sock.send2($data);
+    @endcode
+
+    @par Events:
+    @ref EVENT_PACKET_SENT
+
+    @param bin Sends the binary data over the socket
+
+    @throw SOCKET-NOT-OPEN The socket is not connected
+    @throw SOCKET-SEND-ERROR an error occurred sending the socket data
+    @throw SOCKET-SSL-ERROR there was an SSL error while writing data to the socket
+
+    @see
+    - Socket::sendBinary2()
+
+    @since %Qore 0.8.4
+ */
+nothing Socket::send2(binary bin) {
+   s->send(bin, xsink);
+}
+
+//! Sends string data over the socket; string data is converted to the socket's encoding if necessary; if any errors occur, an exception is thrown
+/** String data will be converted to the encoding set for the socket if necessary.
+
+    @par Example:
+    @code
+$sock.send2($str);
+    @endcode
+
+    @par Events:
+    @ref EVENT_PACKET_SENT
+
+    @param str dends the string data over the socket without the trailing null ('\0') character; the string's encoding is converted to the socket's encoding if necessary
+
+    @throw SOCKET-NOT-OPEN The socket is not connected
+    @throw SOCKET-SEND-ERROR an error occurred sending the socket data
+    @throw SOCKET-SSL-ERROR there was an SSL error while writing data to the socket
+
+    @see
+    - Socket::sendBinary2()
+
+    @since %Qore 0.8.4
+ */
+nothing Socket::send2(string str) {
+   s->send(str, xsink);
+}
+
+//! Sends string data over the socket without converting the string to the socket's encoding, but instead is sent exactly as-is; if any errors occur, an exception is thrown
+/** 
+    @par Example:
+    @code
+$sock.sendBinary2($str);
+    @endcode
+
+    @par Events:
+    @ref EVENT_PACKET_SENT
+
+    @param str dends the string data over the socket without the trailing null ('\0') character
+
+    @throw SOCKET-NOT-OPEN The socket is not connected
+    @throw SOCKET-SEND-ERROR an error occurred sending the socket data
+    @throw SOCKET-SSL-ERROR there was an SSL error while writing data to the socket
+
+    @see Socket::send2()
+
+    @since %Qore 0.8.4
+ */
+nothing Socket::sendBinary2(string str) {
+   s->send(str->getBuffer(), str->strlen(), xsink);
+}
+
+//! Sends binary data over the socket; if any errors occur, an exception is thrown
+/** 
+    @par Example:
+    @code
+$sock.sendBinary2($data);
+    @endcode
+
+    @par Events:
+    @ref EVENT_PACKET_SENT
+
+    @param bin Sends the binary data over the socket
+
+    @throw SOCKET-NOT-OPEN The socket is not connected
+    @throw SOCKET-SEND-ERROR an error occurred sending the socket data
+    @throw SOCKET-SSL-ERROR there was an SSL error while writing data to the socket
+
+    @see Socket::send2()
+
+    @since %Qore 0.8.4
+ */
+nothing Socket::sendBinary2(binary bin) {
+   s->send(bin, xsink);
 }
 
 //! Sends a 1-byte integer over the socket
@@ -1025,7 +1135,7 @@ int Socket::sendi8LSB(softint i = 0) {
     @par Events:
     @ref EVENT_PACKET_READ
     
-    @param size the amount of data to read in bytes; to read until the remote closes the connection, use -1
+    @param size the amount of data to read in bytes; to read until the remote closes the connection, use -1; a value of 0 means to read all data currently available or available up until the timeout period (if non-negative)
     @param timeout_ms the timeout in milliseconds (1/1000 second). If no timeout is passed, then the call will not time out and will not return until all the data has been read or the remote end closes the connection
 
     @return the data read, returned as a string tagged with the Socket's character encoding
@@ -1036,17 +1146,12 @@ int Socket::sendi8LSB(softint i = 0) {
     @throw SOCKET-TIMEOUT the data requested was not received in the timeout period
     @throw SOCKET-SSL-ERROR there was an SSL error while reading data from the socket
 
-    @see Socket::setEncoding()
+    @see
+    - Socket::setEncoding()
+    - Socket::recvBinary()
  */
 string Socket::recv(softint size = 0, timeout timeout_ms = -1) {
-   int rc;
-   QoreStringNodeHolder msg(size > 0 ? s->recv(size, timeout_ms, &rc) : s->recv(timeout_ms, &rc));
-   //printd(5, "SOCKET_recv() rc=%d msglen=%d\n", rc, msg ? msg->strlen() : -1);
-   if (rc <= 0) {
-      QoreSocket::doException(rc, "recv", timeout_ms, xsink);
-      return 0;
-   }
-   return msg.release();
+   return size > 0 ? s->recv(size, timeout_ms, xsink) : s->recv(timeout_ms, xsink);
 }
 
 //! Receives data from the socket and returns a binary object
@@ -1058,7 +1163,7 @@ string Socket::recv(softint size = 0, timeout timeout_ms = -1) {
     @par Events:
     @ref EVENT_PACKET_READ
     
-    @param size the amount of data to read in bytes; to read until the remote closes the connection, use -1
+    @param size the amount of data to read in bytes; to read until the remote closes the connection, use -1; a value of 0 means to read all data currently available or available up until the timeout period (if non-negative)
     @param timeout_ms the timeout in milliseconds (1/1000 second). If no timeout is passed, then the call will not time out and will not return until all the data has been read or the remote end closes the connection
 
     @return the data read, returned as a binary object
@@ -1068,15 +1173,11 @@ string Socket::recv(softint size = 0, timeout timeout_ms = -1) {
     @throw SOCKET-RECV-ERROR there was an error receiving the data.
     @throw SOCKET-TIMEOUT the data requested was not received in the timeout period
     @throw SOCKET-SSL-ERROR there was an SSL error while reading data from the socket
+
+    @see Socket::recv()
  */
 binary Socket::recvBinary(softint size = 0, timeout timeout_ms = -1) {
-   int rc;
-   SimpleRefHolder<BinaryNode> b(size > 0 ? s->recvBinary(size, timeout_ms, &rc) : s->recvBinary(timeout_ms, &rc));
-   if (rc <= 0) {
-      QoreSocket::doException(rc, "recvBinary", timeout_ms, xsink);
-      return 0;
-   }
-   return b.release();
+   return size > 0 ? s->recvBinary(size, timeout_ms, xsink) : s->recvBinary(timeout_ms, xsink);
 }
 
 //! Receives a 1-byte signed integer from the socket
@@ -1418,20 +1519,23 @@ int Socket::recvu4LSB(timeout timeout_ms = -1) {
     @param http_version the HTTP protocol version (\c "1.0" or \c "1.1")
     @param headers a hash of additional headers to send (key-value pairs)
     @param body if present (and does not have a length of zero), the body to be sent with the message (if present, the \c "Content-Length" header will be automatically set); string data will be automatically converted to the Socket's encoding if necessary
+    @param info An optional reference to an lvalue that can accept a hash that will be used as an output variable with the following hash key:
+    - \c request-uri: The request URI as sent in the output message
 
     @throw SOCKET-NOT-OPEN the socket is not connected
     @throw ENCODING-CONVERSION-ERROR the given string could not be converted to the socket's character encoding
     @throw SOCKET-SEND-ERROR Send failed
+    @throw SOCKET-SSL-ERROR there was an error sending SSL data
 
     @see Socket::sendHTTPResponse(), Socket::readHTTPHeader()
  */
-nothing Socket::sendHTTPMessage(string method, string path, string http_version, hash headers, *string body) {
+nothing Socket::sendHTTPMessage(string method, string path, string http_version, hash headers, *string body, *reference info) {
    TempEncodingHelper tmp_data;
    if (body && !tmp_data.set(body, s->getEncoding(), xsink))
       return 0;
 
-   int rc = s->sendHTTPMessage(method->getBuffer(), path->getBuffer(), http_version->getBuffer(), headers, body ? tmp_data->getBuffer() : 0, body ? tmp_data->strlen() : 0);
-   return doSendResult(rc, "sendHTTPMessage", xsink);
+   OptHashRefHelper ohrh(info, xsink);
+   s->sendHTTPMessage(xsink, *ohrh, method->getBuffer(), path->getBuffer(), http_version->getBuffer(), headers, body ? tmp_data->getBuffer() : 0, body ? tmp_data->strlen() : 0);
 }
 
 //! Sends an HTTP message with a method and user-defined headers given as a hash and an optional message body
@@ -1448,15 +1552,18 @@ nothing Socket::sendHTTPMessage(string method, string path, string http_version,
     @param http_version the HTTP protocol version (\c "1.0" or \c "1.1")
     @param headers a hash of additional headers to send (key-value pairs)
     @param body if it does not have a length of zero, the body to be sent with the message (if present, the \c "Content-Length" header will be automatically set)
+    @param info An optional reference to an lvalue that can accept a hash that will be used as an output variable with the following hash key:
+    - \c request-uri: The request URI as sent in the output message
 
     @throw SOCKET-NOT-OPEN the socket is not connected
     @throw SOCKET-SEND-ERROR Send failed
+    @throw SOCKET-SSL-ERROR there was an error sending SSL data
 
     @see Socket::sendHTTPResponse(), Socket::readHTTPHeader()
  */
-nothing Socket::sendHTTPMessage(string method, string path, string http_version, hash headers, binary body) {
-   int rc = s->sendHTTPMessage(method->getBuffer(), path->getBuffer(), http_version->getBuffer(), headers, body->getPtr(), body->size());
-   return doSendResult(rc, "sendHTTPMessage", xsink);
+nothing Socket::sendHTTPMessage(string method, string path, string http_version, hash headers, binary body, *reference info) {
+   OptHashRefHelper ohrh(info, xsink);
+   s->sendHTTPMessage(xsink, *ohrh, method->getBuffer(), path->getBuffer(), http_version->getBuffer(), headers, body->getPtr(), body->size());
 }
 
 //! Sends an HTTP response with user-defined headers given as a hash and an optional message body
@@ -1490,8 +1597,7 @@ nothing Socket::sendHTTPResponse(softint status_code, string status_desc, string
    if (body && !tmp_data.set(body, s->getEncoding(), xsink))
       return 0;
 
-   int rc = s->sendHTTPResponse(status_code, status_desc->getBuffer(), http_version->getBuffer(), headers, body ? tmp_data->getBuffer() : 0, body ? tmp_data->strlen() : 0);
-   return doSendResult(rc, "sendHTTPResponse", xsink);
+   s->sendHTTPResponse(xsink, status_code, status_desc->getBuffer(), http_version->getBuffer(), headers, body ? tmp_data->getBuffer() : 0, body ? tmp_data->strlen() : 0);
 }
 
 //! Sends an HTTP response with user-defined headers given as a hash and a message body as literal binary data
@@ -1519,24 +1625,26 @@ nothing Socket::sendHTTPResponse(softint status_code, string status_desc, string
       return 0;
    }
 
-   int rc = s->sendHTTPResponse(status_code, status_desc->getBuffer(), http_version->getBuffer(), headers, body ? body->getPtr() : 0, body ? body->size() : 0);
-   return doSendResult(rc, "sendHTTPResponse", xsink);
+   s->sendHTTPResponse(xsink, status_code, status_desc->getBuffer(), http_version->getBuffer(), headers, body ? body->getPtr() : 0, body ? body->size() : 0);
 }
 
 //! Retuns a hash representing the data in the HTTP header read, or, if the data cannot be parsed as an HTTP header, the data read is returned as a string
-/** If any errors occur reading from the socket, an exception is raised. Accepts an optional timeout value in milliseconds.
+/** If any errors occur reading from the socket or if invalid HTTP data is received, an exception is raised. Accepts an optional timeout value in milliseconds.
 
     @par Example:
-    @code my any $ans = $sock.readHTTPHeader(10s);
-if ($ans.typeCode() == NT_STRING)
-    throw "HTTP-ERROR", sprintf("could not parse HTTP header received: %y", $ans); @endcode
+    @code
+my hash $ans = $sock.readHTTPHeader(10s);
+    @endcode
 
     @par Events:
     @ref EVENT_PACKET_READ, @ref EVENT_HTTP_MESSAGE_RECEIVED
 
     @param timeout_ms The timeout in milliseconds (1/1000 second). If no timeout or if a negative timeout is passed, then the call will not time out and will not return until all the data has been read or the remote end closes the connection.  If a timeout occurs, a \c "SOCKET-TIMEOUT" exception is raised.
+    @param info An optional reference to an lvalue that can accept a hash that will be used as an output variable with one of the following two keys:
+    - \c request-uri: (only set when parsing a request header) gives the request URI in an HTTP request
+    - \c response-uri: (only set when parsing a response header) gives the response URI in an HTTP response
 
-    @return either a string (indicating that the header could not be parsed), or, in the usual case, a hash of headers (where each header key is converted to lower-case) also including the following keys giving additional information about the HTTP header received:
+    @return a hash of headers (where each header key is converted to lower-case) also including the following keys giving additional information about the HTTP header received:
     - \c http_version: a string giving the HTTP version set in the header
     - \c status_code: (HTTP responses only) an integer giving the status code
     - \c status_message: (HTTP responses only) if present in an HTTP response, this key will be set to the message after the status code
@@ -1548,14 +1656,13 @@ if ($ans.typeCode() == NT_STRING)
     @throw SOCKET-RECV-ERROR There was an error receiving the data
     @throw SOCKET-TIMEOUT The data requested was not received in the timeout period
     @throw SOCKET-SSL-ERROR There was an SSL error while reading data from the socket
+    @throw SOCKET-HTTP-ERROR Invalid HTTP data was received
+
+    @since %Qore 0.8.4 this method always returns a hash and raises a \c SOCKET-HTTP-ERROR if invalid HTTP data is received
  */
-any Socket::readHTTPHeader(timeout timeout_ms = -1) {
-   int rc;
-   // when rc = -3 it's a timeout, but rv will be NULL anyway, so we do nothing
-   AbstractQoreNode *rv = s->readHTTPHeader(timeout_ms, &rc);      
-   if (rc <= 0)
-      QoreSocket::doException(rc, "readHTTPHeader", timeout_ms, xsink);
-   return rv;
+hash Socket::readHTTPHeader(timeout timeout_ms = -1, *reference info) {
+   OptHashRefHelper ohrh(info, xsink);
+   return s->readHTTPHeader(xsink, *ohrh, timeout_ms);
 }
 
 //! Reads in an HTTP message body sent in chunked transfer encoding and returns it with any footers received as a string in the \c "body" key of a hash (including footers received)

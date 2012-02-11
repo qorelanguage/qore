@@ -708,53 +708,26 @@ QoreHashNode *qore_qtc_private::getResponseHeader(const char *meth, const char *
       return 0;
 
    // send the message
-   int rc = m_socket.sendHTTPMessage(info, meth, msgpath, http11 ? "1.1" : "1.0", &nh, data, size, QORE_SOURCE_HTTPCLIENT);
+   int rc = m_socket.sendHTTPMessage(xsink, info, meth, msgpath, http11 ? "1.1" : "1.0", &nh, data, size, QORE_SOURCE_HTTPCLIENT);
 
    if (rc) {
-      if (rc == -2) {
+      assert(*xsink);
+      if (rc == QSE_NOT_OPEN)
 	 disconnect_unlocked();
-	 xsink->raiseException("HTTP-CLIENT-SEND-ERROR", "socket was closed at the remote end before the message could be sent");
-      }
-      else
-	 xsink->raiseException("HTTP-CLIENT-SEND-ERROR", q_strerror(errno));
       return 0;
    }
 
    QoreHashNode *ah = 0;
    while (true) {
-      ReferenceHolder<AbstractQoreNode> ans(m_socket.readHTTPHeader(info, timeout, &rc, QORE_SOURCE_HTTPCLIENT), xsink);
+      ReferenceHolder<QoreHashNode> ans(m_socket.readHTTPHeader(xsink, info, timeout, QORE_SOURCE_HTTPCLIENT), xsink);
       if (!(*ans)) {
 	 disconnect_unlocked();
-	 xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", "socket %s closed on remote end without a response", socketpath.c_str());
-	 return 0;
-      }
-      if ((*ans)->getType() != NT_HASH) {
-	 xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", "malformed HTTP header received from socket %s, could not parse header", socketpath.c_str());
-	 return 0;
-      }
-      ah = reinterpret_cast<QoreHashNode *>(*ans);
-
-      if (rc <= 0) {
-	 if (!rc) {           // remote end has closed the connection
-	    disconnect_unlocked();
-	    xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", "remote end has closed the connection");
-	 }
-	 else if (rc == -1)   // recv() error
-	    xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", q_strerror(errno));
-	 else if (rc == -2) {
-	    disconnect_unlocked();
-	    xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", "socket was closed at the remote end");
-	 }
-	 else if (rc == -3)   // timeout
-	    xsink->raiseException("HTTP-CLIENT-TIMEOUT", "timed out waiting %dms for response on socket %s", timeout, socketpath.c_str());
-	 else
-	    assert(false);
-
+	 assert(*xsink);
 	 return 0;
       }
 
       // check HTTP status code
-      AbstractQoreNode *v = ah->getKeyValue("status_code");
+      AbstractQoreNode *v = ans->getKeyValue("status_code");
       if (!v) {
 	 xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", "no HTTP status code received in response");
 	 return 0;
@@ -764,7 +737,8 @@ QoreHashNode *qore_qtc_private::getResponseHeader(const char *meth, const char *
       // continue processing if "100 Continue" response received (ignore this response)
       if (code == 100)
 	 continue;
-      ans.release();
+
+      ah = ans.release();
       break;
    }
 
@@ -1150,38 +1124,18 @@ QoreHashNode *qore_qtc_private::send_internal(const char *meth, const char *mpat
       ans->merge(*nah, xsink);
    }
    else if (getbody || (len && strcmp(meth, "HEAD"))) {
-      int rc;
-
       if (content_encoding) {
-	 SimpleRefHolder<BinaryNode> bobj(m_socket.recvBinary(len, timeout, &rc));
-	 if (rc > 0 && bobj)
+	 SimpleRefHolder<BinaryNode> bobj(m_socket.recvBinary(len, timeout, xsink));
+	 if (!(*xsink) && bobj)
 	    body = bobj.release();
       }
       else {
-	 QoreStringNodeHolder bstr(m_socket.recv(len, timeout, &rc));
-	 if (rc > 0 && bstr)
+	 QoreStringNodeHolder bstr(m_socket.recv(len, timeout, xsink));
+	 if (!(*xsink) && bstr)
 	    body = bstr.release();
       }
 
       //printf("body=%p\n", body);
-      if (rc <= 0) {
-	 if (!rc) {             // remote end has closed the connection
-	    disconnect_unlocked();
-	    xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", "remote end closed the connection while receiving response message body");
-	 }
-	 else if (rc == -1)   // recv() error
-	    xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", q_strerror(errno));
-	 else if (rc == -2) {
-	    disconnect_unlocked();
-	    xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", "socket was closed at the remote end while receiving response message body");
-	 }
-	 else if (rc == -3)   // timeout
-	    xsink->raiseException("HTTP-CLIENT-TIMEOUT", "timed out waiting %dms for response message body of length %d on socket %s", timeout, len, socketpath.c_str());
-	 else
-	    assert(false);
-
-	 return 0;
-      }
    }
 
    // check for connection: close header

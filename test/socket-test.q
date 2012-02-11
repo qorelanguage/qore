@@ -13,6 +13,7 @@ const opts =
       "ssl"        : "s,ssl",
       "key"        : "k,private-key=s",
       "cert"       : "c,cert=s",
+      "pass"       : "p,private-key-password=s",
       "clientkey"  : "K,client-private-key=s",
       "clientcert" : "C,client-cert=s",
       "events"     : "e,show-events",
@@ -105,7 +106,7 @@ class socket_test {
 		    $s.setCertificate($cert);
 		    if (strlen($.o.key)) {
 			$f.open2($.o.key);
-			$s.setPrivateKey(new SSLPrivateKey($f.read(-1)));
+			$s.setPrivateKey(new SSLPrivateKey($f.read(-1), $.o.pass));
 		    }
 		}
 		$s = $s.acceptSSL();

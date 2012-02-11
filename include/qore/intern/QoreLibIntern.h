@@ -791,6 +791,30 @@ public:
 };
 */
 
+class OptHashRefHelper {
+   const ReferenceNode *ref;
+   ExceptionSink *xsink;
+   ReferenceHolder<QoreHashNode> info;
+public:
+   DLLLOCAL OptHashRefHelper(QoreListNode *args, unsigned i, ExceptionSink *n_xsink) : ref(test_reference_param(args, i)), xsink(n_xsink), info(ref ? new QoreHashNode : 0, xsink) {
+   }
+   DLLLOCAL OptHashRefHelper(const ReferenceNode *n_ref, ExceptionSink *n_xsink) : ref(n_ref), xsink(n_xsink), info(ref ? new QoreHashNode : 0, xsink) {
+   }
+   DLLLOCAL ~OptHashRefHelper() {
+      if (!ref)
+         return;
+
+      QoreTypeSafeReferenceHelper rh(ref, xsink);
+      if (!rh)
+         return;
+
+      rh.assign(info.release(), xsink);
+   }
+   DLLLOCAL QoreHashNode *operator*() {
+      return *info;
+   }
+};
+
 DLLLOCAL extern QoreString YamlNullString;
 
 DLLLOCAL AbstractQoreNode *qore_parse_get_define_value(const char *str, QoreString &arg, bool &ok);

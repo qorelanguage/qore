@@ -156,4 +156,6 @@ public:
    DLLEXPORT void clear();
 };
 
-#endif // _QORE_BINARYOBJECT_H
+typedef SimpleRefHolder<BinaryNode> BinaryNodeHolder;
+
+#endif // _QORE_BINARYNODE_H

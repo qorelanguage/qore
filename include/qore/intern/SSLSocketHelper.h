@@ -41,7 +41,7 @@ private:
    SSL_CTX *ctx;
    SSL *ssl;
 
-   DLLLOCAL int setIntern(int sd, X509* cert, EVP_PKEY *pk, ExceptionSink *xsink);
+   DLLLOCAL int setIntern(const char* meth, int sd, X509* cert, EVP_PKEY *pk, ExceptionSink *xsink);
 
 public:
    DLLLOCAL SSLSocketHelper() : meth(0), ctx(0), ssl(0) {
@@ -54,21 +54,21 @@ public:
          SSL_CTX_free(ctx);
    }
 
-   DLLLOCAL void sslError(ExceptionSink *xsink, const char *msg);
-   DLLLOCAL int setClient(int sd, X509* cert, EVP_PKEY *pk, ExceptionSink *xsink);
-   DLLLOCAL int setServer(int sd, X509* cert, EVP_PKEY *pk, ExceptionSink *xsink);
+   DLLLOCAL bool sslError(ExceptionSink *xsink, const char* meth, const char *msg, bool always_error = true);
+   DLLLOCAL int setClient(const char* mname, int sd, X509* cert, EVP_PKEY *pk, ExceptionSink *xsink);
+   DLLLOCAL int setServer(const char* mname, int sd, X509* cert, EVP_PKEY *pk, ExceptionSink *xsink);
    // returns 0 for success
-   DLLLOCAL int connect(ExceptionSink *xsink);
+   DLLLOCAL int connect(const char* mname, ExceptionSink *xsink);
    // returns 0 for success
-   DLLLOCAL int accept(ExceptionSink *xsink);
+   DLLLOCAL int accept(const char* mname, ExceptionSink *xsink);
    // returns 0 for success
    DLLLOCAL int shutdown();
    // returns 0 for success
    DLLLOCAL int shutdown(ExceptionSink *xsink);
    // read with optional timeout in milliseconds
-   DLLLOCAL int read(char *buf, int size, int timeout_ms, qore_socket_private &sock);
+   DLLLOCAL int read(char *buf, int size, int timeout_ms, qore_socket_private &sock, const char* mname, ExceptionSink* xsink);
    // returns 0 for success
-   DLLLOCAL int write(const void *buf, int size, ExceptionSink *xsink);
+   DLLLOCAL int write(ExceptionSink* xsink, const char* mname, const void* buf, int size);
    DLLLOCAL int write(const void *buf, int size);
    DLLLOCAL const char *getCipherName() const;
    DLLLOCAL const char *getCipherVersion() const;

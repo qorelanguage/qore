@@ -32,31 +32,7 @@
 #  include "tests/QC_HTTPClient_tests.cpp"
 #endif
 
-class OptHashRefHelper {
-   const ReferenceNode *ref;
-   ExceptionSink *xsink;
-   ReferenceHolder<QoreHashNode> info;
-public:
-   DLLLOCAL OptHashRefHelper(QoreListNode *args, unsigned i, ExceptionSink *n_xsink) : ref(test_reference_param(args, i)), xsink(n_xsink), info(ref ? new QoreHashNode : 0, xsink) {
-   }
-   DLLLOCAL OptHashRefHelper(const ReferenceNode *n_ref, ExceptionSink *n_xsink) : ref(n_ref), xsink(n_xsink), info(ref ? new QoreHashNode : 0, xsink) {
-   }
-   DLLLOCAL ~OptHashRefHelper() {
-      if (!ref)
-	 return;
-
-      QoreTypeSafeReferenceHelper rh(ref, xsink);
-      if (!rh)
-	 return;
-
-      rh.assign(info.release(), xsink);
-   }
-   DLLLOCAL QoreHashNode *operator*() {
-      return *info;
-   }
-};
-
-//! The HTTPxClient class can be used to communicate with HTTP servers with and without TLS/SSL encryption
+//! The HTTPClient class can be used to communicate with HTTP servers with and without TLS/SSL encryption
 /** The HTTPClient class can be used to communicate with HTTP servers using the HTTP or HTTPS (HTTP using an SSL/TLS encrypted connection) protocol.
 
     By default \c "Connection: Keep-Alive" is always sent regardless of the HTTP protocol level set for the object, however if a server response contains \c "Connection: close", the connection will be closed as soon as the full response (including any message body if present) has been read.
@@ -320,10 +296,17 @@ nothing HTTPClient::disconnect() {
 my hash $msg = $httpclient.send($body, "POST", "/path", ("Content-Type":"application/x-yaml"));
     @endcode
 
-    @throw HTTP-CLIENT-TIMEOUT timeout on response from HTTP server
-    @throw HTTP-CLIENT-SEND-ERROR error sending data on the socket to the HTTP server
-    @throw HTTP-CLIENT-RECEIVE-ERROR error communicating with HTTP server
-    @throw HTTP-CLIENT-METHOD-ERROR invalid HTTP method passed
+    @throw HTTP-CLIENT-METHOD-ERROR invalid/unknown HTTP method passed
+    @throw HTTP-CLIENT-REDIRECT-ERROR invalid redirect location given by remote
+    @throw HTTP-CLIENT-MAXIMUM-REDIRECTS-EXCEEDED maximum redirect count exceeded
+    @throw HTTP-CLIENT-RECEIVE-ERROR unknown content encoding received or status error communicating with HTTP server (status code < 200 or > 299); in case of a status error the \c "arg" key of the exception hash will be set to a hash with a \c "code" key (giving the status code) and a \c "body" key (giving the message body returned by the server) 
+    @throw ENCODING-CONVERSION-ERROR the given string could not be converted to the socket's character encoding
+    @throw SOCKET-SEND-ERROR There was an error sending the data
+    @throw SOCKET-CLOSED The remote end closed the connection
+    @throw SOCKET-RECV-ERROR There was an error receiving the data
+    @throw SOCKET-TIMEOUT The data requested was not received in the timeout period
+    @throw SOCKET-SSL-ERROR There was an SSL error while reading data from the socket
+    @throw SOCKET-HTTP-ERROR Invalid HTTP data was received
 
     @note For possible exceptions when implicitly establishing a connection, see the Socket::connect() method (or Socket::connectSSL() for secure connections)
  */
@@ -349,10 +332,16 @@ hash HTTPClient::send(string body, string method, *string path, *hash headers, s
 my hash $msg = $httpclient.send($body, "POST", "/path", ("Content-Type":"application/x-yaml"));
     @endcode
 
-    @throw HTTP-CLIENT-TIMEOUT timeout on response from HTTP server
-    @throw HTTP-CLIENT-SEND-ERROR error sending data on the socket to the HTTP server
-    @throw HTTP-CLIENT-RECEIVE-ERROR error communicating with HTTP server
-    @throw HTTP-CLIENT-METHOD-ERROR invalid HTTP method passed
+    @throw HTTP-CLIENT-METHOD-ERROR invalid/unknown HTTP method passed
+    @throw HTTP-CLIENT-REDIRECT-ERROR invalid redirect location given by remote
+    @throw HTTP-CLIENT-MAXIMUM-REDIRECTS-EXCEEDED maximum redirect count exceeded
+    @throw HTTP-CLIENT-RECEIVE-ERROR unknown content encoding received or status error communicating with HTTP server (status code < 200 or > 299); in case of a status error the \c "arg" key of the exception hash will be set to a hash with a \c "code" key (giving the status code) and a \c "body" key (giving the message body returned by the server) 
+    @throw SOCKET-SEND-ERROR There was an error sending the data
+    @throw SOCKET-CLOSED The remote end closed the connection
+    @throw SOCKET-RECV-ERROR There was an error receiving the data
+    @throw SOCKET-TIMEOUT The data requested was not received in the timeout period
+    @throw SOCKET-SSL-ERROR There was an SSL error while reading data from the socket
+    @throw SOCKET-HTTP-ERROR Invalid HTTP data was received
 
     @note For possible exceptions when implicitly establishing a connection, see the Socket::connect() method (or Socket::connectSSL() for secure connections)
  */
@@ -383,9 +372,15 @@ hash HTTPClient::send(*binary body, string method, string path, *hash headers, s
 my *string $html = $httpclient.get("/path/file.html");
     @endcode
 
-    @throw HTTP-CLIENT-TIMEOUT timeout on response from HTTP server
-    @throw HTTP-CLIENT-SEND-ERROR error sending data on the socket to the HTTP server
-    @throw HTTP-CLIENT-RECEIVE-ERROR error communicating with HTTP server
+    @throw HTTP-CLIENT-REDIRECT-ERROR invalid redirect location given by remote
+    @throw HTTP-CLIENT-MAXIMUM-REDIRECTS-EXCEEDED maximum redirect count exceeded
+    @throw HTTP-CLIENT-RECEIVE-ERROR unknown content encoding received or status error communicating with HTTP server (status code < 200 or > 299); in case of a status error the \c "arg" key of the exception hash will be set to a hash with a \c "code" key (giving the status code) and a \c "body" key (giving the message body returned by the server) 
+    @throw SOCKET-SEND-ERROR There was an error sending the data
+    @throw SOCKET-CLOSED The remote end closed the connection
+    @throw SOCKET-RECV-ERROR There was an error receiving the data
+    @throw SOCKET-TIMEOUT The data requested was not received in the timeout period
+    @throw SOCKET-SSL-ERROR There was an SSL error while reading data from the socket
+    @throw SOCKET-HTTP-ERROR Invalid HTTP data was received
 
     @note For possible exceptions when implicitly establishing a connection, see the Socket::connect() method (or Socket::connectSSL() for secure connections)
  */
@@ -413,9 +408,15 @@ my *string $html = $httpclient.get("/path/file.html");
 my hash $msg = $httpclient.head("/path");
     @endcode
 
-    @throw HTTP-CLIENT-TIMEOUT timeout on response from HTTP server
-    @throw HTTP-CLIENT-SEND-ERROR error sending data on the socket to the HTTP server
-    @throw HTTP-CLIENT-RECEIVE-ERROR error communicating with HTTP server
+    @throw HTTP-CLIENT-REDIRECT-ERROR invalid redirect location given by remote
+    @throw HTTP-CLIENT-MAXIMUM-REDIRECTS-EXCEEDED maximum redirect count exceeded
+    @throw HTTP-CLIENT-RECEIVE-ERROR unknown content encoding received or status error communicating with HTTP server (status code < 200 or > 299); in case of a status error the \c "arg" key of the exception hash will be set to a hash with a \c "code" key (giving the status code) and a \c "body" key (giving the message body returned by the server) 
+    @throw SOCKET-SEND-ERROR There was an error sending the data
+    @throw SOCKET-CLOSED The remote end closed the connection
+    @throw SOCKET-RECV-ERROR There was an error receiving the data
+    @throw SOCKET-TIMEOUT The data requested was not received in the timeout period
+    @throw SOCKET-SSL-ERROR There was an SSL error while reading data from the socket
+    @throw SOCKET-HTTP-ERROR Invalid HTTP data was received
 
     @note For possible exceptions when implicitly establishing a connection, see the Socket::connect() method (or Socket::connectSSL() for secure connections)
  */
@@ -445,9 +446,16 @@ hash HTTPClient::head(string path, *hash headers, *reference info) {
 $httpclient.post("/path", $body);
     @endcode
 
-    @throw HTTP-CLIENT-TIMEOUT timeout on response from HTTP server
-    @throw HTTP-CLIENT-SEND-ERROR error sending data on the socket to the HTTP server
-    @throw HTTP-CLIENT-RECEIVE-ERROR error communicating with HTTP server
+    @throw HTTP-CLIENT-REDIRECT-ERROR invalid redirect location given by remote
+    @throw HTTP-CLIENT-MAXIMUM-REDIRECTS-EXCEEDED maximum redirect count exceeded
+    @throw HTTP-CLIENT-RECEIVE-ERROR unknown content encoding received or status error communicating with HTTP server (status code < 200 or > 299); in case of a status error the \c "arg" key of the exception hash will be set to a hash with a \c "code" key (giving the status code) and a \c "body" key (giving the message body returned by the server) 
+    @throw ENCODING-CONVERSION-ERROR the given string could not be converted to the socket's character encoding
+    @throw SOCKET-SEND-ERROR There was an error sending the data
+    @throw SOCKET-CLOSED The remote end closed the connection
+    @throw SOCKET-RECV-ERROR There was an error receiving the data
+    @throw SOCKET-TIMEOUT The data requested was not received in the timeout period
+    @throw SOCKET-SSL-ERROR There was an SSL error while reading data from the socket
+    @throw SOCKET-HTTP-ERROR Invalid HTTP data was received
 
     @note For possible exceptions when implicitly establishing a connection, see the Socket::connect() method (or Socket::connectSSL() for secure connections)
  */
@@ -480,9 +488,15 @@ $httpclient.post("/path", $body);
 $httpclient.post("/path", $body);
     @endcode
 
-    @throw HTTP-CLIENT-TIMEOUT timeout on response from HTTP server
-    @throw HTTP-CLIENT-SEND-ERROR error sending data on the socket to the HTTP server
-    @throw HTTP-CLIENT-RECEIVE-ERROR error communicating with HTTP server
+    @throw HTTP-CLIENT-REDIRECT-ERROR invalid redirect location given by remote
+    @throw HTTP-CLIENT-MAXIMUM-REDIRECTS-EXCEEDED maximum redirect count exceeded
+    @throw HTTP-CLIENT-RECEIVE-ERROR unknown content encoding received or status error communicating with HTTP server (status code < 200 or > 299); in case of a status error the \c "arg" key of the exception hash will be set to a hash with a \c "code" key (giving the status code) and a \c "body" key (giving the message body returned by the server) 
+    @throw SOCKET-SEND-ERROR There was an error sending the data
+    @throw SOCKET-CLOSED The remote end closed the connection
+    @throw SOCKET-RECV-ERROR There was an error receiving the data
+    @throw SOCKET-TIMEOUT The data requested was not received in the timeout period
+    @throw SOCKET-SSL-ERROR There was an SSL error while reading data from the socket
+    @throw SOCKET-HTTP-ERROR Invalid HTTP data was received
 
     @note For possible exceptions when implicitly establishing a connection, see the Socket::connect() method (or Socket::connectSSL() for secure connections)
  */
