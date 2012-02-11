@@ -1652,7 +1652,7 @@ my hash $ans = $sock.readHTTPHeader(10s);
     - \c path: (HTTP requests only) a string giving the path in a request without any decoding; use decode_url() to decode if necessary
 
     @throw SOCKET-NOT-OPEN The socket is not connected
-    @throw SOCKET-CLOSED The remote end has closed the connection
+    @throw SOCKET-CLOSED The remote end closed the connection without sending any data
     @throw SOCKET-RECV-ERROR There was an error receiving the data
     @throw SOCKET-TIMEOUT The data requested was not received in the timeout period
     @throw SOCKET-SSL-ERROR There was an SSL error while reading data from the socket

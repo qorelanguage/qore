@@ -1581,8 +1581,12 @@ struct qore_socket_private {
 	 rc = recv(xsink, meth, &c, 1, 0, timeout, false);
 	 //printd(5, "read char: %c (%03d) (old state: %d)\n", c > 30 ? c : '?', c, state);
 	 if (rc <= 0) {
-	    if (xsink && !*xsink)
-	       xsink->raiseException("SOCKET-HTTP-ERROR", "socket closed on remote end while reading head data after reading "QLLD" byte%s", count, count == 1 ? "" : "s");
+	    if (xsink && !*xsink) {
+	       if (!count)
+		  se_closed(meth, xsink);
+	       else
+		  xsink->raiseException("SOCKET-HTTP-ERROR", "socket closed on remote end while reading head data after reading "QLLD" byte%s", count, count == 1 ? "" : "s");
+	    }
 	    //printd(5, "qore_socket_private::readHTTPData(timeout=%d) hdr='%s' (len: %d), rc="QLLD", errno=%d: '%s'\n", timeout, hdr->getBuffer(), hdr->strlen(), rc, errno, strerror(errno));
 	    return 0;
 	 }
