@@ -236,10 +236,9 @@ my bool $b = $d.isDst();
     @endcode
  */
 bool <date>::isDst() [flags=CONSTANT] {
-   int64 epoch_offset;
    bool is_dst;
 
-   dt->getZone()->getUTCOffset(epoch_offset, is_dst);
+   dt->getZone()->getUTCOffset(dt->getEpochSecondsUTC(), is_dst);
    return is_dst;
 }
 
@@ -269,11 +268,10 @@ my *string $zn = $d.currentZoneName();
    if (dt->isRelative())
       return 0;
 
-   int64 epoch_offset;
    bool is_dst;
    const char *zone_name;
 
-   dt->getZone()->getUTCOffset(epoch_offset, is_dst, zone_name);
+   dt->getZone()->getUTCOffset(dt->getEpochSecondsUTC(), is_dst, zone_name);
    return new QoreStringNode(zone_name);
 }
 
