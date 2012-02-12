@@ -1,0 +1,17 @@
+#!/bin/sh
+
+# see which sed option gives extended regular expressions
+if [ -n "`sed -h 2>&1| grep -e -E`" ]; then
+    OPT=-E
+else
+    OPT=-r
+fi
+
+echo pre-processing dot file $1
+cp "$1" /tmp/qs/
+sed $OPT -e 's/label="Qore::zzz8([a-z]+)zzz9"/label="\&lt;\1\&gt;"/g' "$1" > t
+mv t "$1"
+cp "$1" /tmp/qs/new/
+
+dot $*
+

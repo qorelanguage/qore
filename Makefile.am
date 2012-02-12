@@ -41,6 +41,8 @@ LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
 	lib/Pseudo_QC_Object.qpp \
 	lib/Pseudo_QC_Hash.qpp \
 	lib/Pseudo_QC_String.qpp \
+	lib/Pseudo_QC_Binary.qpp \
+	lib/Pseudo_QC_List.qpp \
 	lib/ql_misc.qpp \
 	lib/ql_compression.qpp \
 	lib/ql_thread.qpp \
@@ -70,7 +72,7 @@ LIB_DOXYFILES = \
 	doxygen/lib/75_dbi_drivers.doxygen
 
 LANG_DOXYFILES_SRC = \
-	doxygen/lang/Doxyfile \
+	doxygen/lang/Doxyfile.tmpl \
 	doxygen/lang/mainpage.dox.tmpl \
 	doxygen/lang/000_intro.dox.tmpl \
 	doxygen/lang/105_desc_overview.dox.tmpl \
@@ -102,7 +104,8 @@ LANG_DOXYFILES_SRC = \
 	doxygen/lang/230_signal_handling.dox.tmpl \
 	doxygen/lang/235_event_handling.dox.tmpl
 
-LANG_TMP_DOXYFILES = doxygen/lang/mainpage.dox \
+LANG_TMP_DOXYFILES = doxygen/lang/Doxyfile \
+	doxygen/lang/mainpage.dox \
 	doxygen/lang/000_intro.dox \
 	doxygen/lang/105_desc_overview.dox \
 	doxygen/lang/110_environment_variables.dox \
@@ -134,6 +137,9 @@ LANG_TMP_DOXYFILES = doxygen/lang/mainpage.dox \
 	doxygen/lang/235_event_handling.dox
 
 LANG_DOXYFILES = doxygen/lang/Doxyfile $(LANG_TMP_DOXYFILES)
+
+doxygen/lang/Doxyfile: doxygen/lang/Doxyfile.tmpl
+	doxygen/dpp $< "$(top_srcdir)/doxygen/" > $@
 
 doxygen/lang/mainpage.dox: doxygen/lang/mainpage.dox.tmpl lib
 	lib/qpp -t $< -o $@
@@ -559,7 +565,7 @@ docs/library/html/index.html: $(include_HEADERS) $(LIB_DOXYFILES)
 
 docs/lang/html/index.html: $(LANG_DOXYFILES) $(LANG_QPP_SRC)
 	$(DOXYGEN_CMD) doxygen/lang/Doxyfile
-	./pdox docs/lang/html docs/lang/html/search
+	$(top_srcdir)/doxygen/pdox docs/lang/html docs/lang/html/search
 
 doxygen-doc: docs/library/html/index.html docs/lang/html/index.html
 

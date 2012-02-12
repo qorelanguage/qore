@@ -76,8 +76,8 @@ void pseudo_classes_init() {
 
    po_list[NT_STRING] = initPseudoStringClass();
    po_list[NT_DATE] = initPseudoDateClass();
-   po_list[NT_BINARY] = initPseudoBinaryClass(QC_PSEUDOVALUE);
-   po_list[NT_LIST] = initPseudoListClass(QC_PSEUDOVALUE);
+   po_list[NT_BINARY] = initPseudoBinaryClass();
+   po_list[NT_LIST] = initPseudoListClass();
    po_list[NT_HASH] = initPseudoHashClass();
    po_list[NT_OBJECT] = initPseudoObjectClass();
 }

@@ -1,0 +1,5 @@
+#!/bin/sh
+
+nd="`echo $2|sed 's/\//\\\\\//g'`"
+
+sed "s/MYDOT/$nd/" $1

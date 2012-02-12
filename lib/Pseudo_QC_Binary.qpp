@@ -1,0 +1,72 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Pseudo_QC_Binary.qpp
+
+  Qore Programming Language
+
+  Copyright 2003 - 2012 David Nichols
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
+#include <qore/Qore.h>
+
+//! Methods in this pseudo-class can be executed on @ref binary "binary values"
+/** 
+ */
+qclass <binary> [arg=BinaryNode* b;vparent=<value>];
+
+//! Returns NT_BINARY
+/** 
+    @return NT_BINARY
+
+    @par Example:
+    @code
+switch ($b.typeCode()) {
+    case NT_BINARY:
+        printf("%y: is a binary\n", $b);
+        break;
+}
+    @endcode
+*/
+int <binary>::typeCode() [flags=CONSTANT] {
+   return NT_BINARY;
+}
+
+//! Returns the number of bytes in the binary object
+/** 
+    @return the number of bytes in the binary object
+
+    @par Example:
+    @code
+my int $len = $b.size();
+    @endcode
+*/
+int <binary>::size() [flags=CONSTANT] {
+   return b->size();
+}
+
+//! Returns \c True if the binary object is empty (size = 0), \c False if not
+/** 
+    @return \c True if the binary object is empty (size = 0), \c False if not
+
+    @par Example:
+    @code
+my bool $b = $bin.empty();
+    @endcode
+*/
+bool <binary>::empty() [flags=CONSTANT] {
+   return b->empty();
+}
