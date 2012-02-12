@@ -2766,7 +2766,7 @@ int QoreSocket::recv(int fd, qore_offset_t size, int timeout) {
       if (rc <= 0)
 	 break;
 
-      if (size > 0 && br >= (qore_size_t)size) {
+      if (size > 0 && br >= size) {
 	 rc = 0;
 	 break;
       }
@@ -3013,7 +3013,7 @@ QoreHashNode *QoreSocket::readHTTPChunkedBody(int timeout, ExceptionSink *xsink,
 	 }
 	 br += rc;
 	 
-	 if (br >= (qore_size_t)size)
+	 if (br >= size)
 	    break;
 	 if (size - br < bs)
 	    bs = size - br;
