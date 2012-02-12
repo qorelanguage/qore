@@ -120,6 +120,18 @@ Pseudo_QC_Date.cpp: Pseudo_QC_Date.qpp
 Pseudo_QC_Object.cpp: Pseudo_QC_Object.qpp
 	$(QPP) $<
 
+Pseudo_QC_Hash.cpp: Pseudo_QC_Hash.qpp
+	$(QPP) $<
+
+#Pseudo_QC_String.cpp: Pseudo_QC_String.qpp
+#	$(QPP) $<
+
+#Pseudo_QC_Binary.cpp: Pseudo_QC_Binary.qpp
+#	$(QPP) $<
+
+#Pseudo_QC_List.cpp: Pseudo_QC_List.qpp
+#	$(QPP) $<
+
 ql_misc.cpp: ql_misc.qpp qpp
 	$(QPP) $<
 
@@ -177,7 +189,7 @@ QORE_GENERATED_SOURCES = \
 	QC_Condition.cpp QC_Sequence.cpp QC_Counter.cpp QC_HTTPClient.cpp QC_FtpClient.cpp \
 	QC_Datasource.cpp QC_DatasourcePool.cpp QC_SQLStatement.cpp QC_Dir.cpp QC_Program.cpp \
 	QC_GetOpt.cpp QC_TermIOS.cpp QC_TimeZone.cpp QC_SSLCertificate.cpp QC_SSLPrivateKey.cpp \
-	Pseudo_QC_All.cpp Pseudo_QC_Date.cpp Pseudo_QC_Object.cpp \
+	Pseudo_QC_All.cpp Pseudo_QC_Date.cpp Pseudo_QC_Object.cpp Pseudo_QC_Hash.cpp \
 	ql_misc.cpp ql_compression.cpp ql_thread.cpp ql_crypto.cpp ql_lib.cpp ql_file.cpp \
 	ql_string.cpp ql_time.cpp ql_math.cpp ql_list.cpp ql_type.cpp ql_pwd.cpp ql_object.cpp \
 	ql_env.cpp ql_dbi.cpp \

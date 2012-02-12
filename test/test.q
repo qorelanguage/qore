@@ -331,7 +331,6 @@ sub hash_tests() {
     test_value($c.firstKey(), "key", "<hash>.firstKey()");
     test_value($c.lastKey(), "barn", "<hash>.lastKey()");
     test_value($c.size(), 5, "<hash>.size()");
-    test_value($c.elements(), 5, "<hash>.elements()");
 
     # delete 3 keys from the $c hash
     $b = $c - "new" - "barn" - "asd";

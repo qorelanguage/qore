@@ -64,9 +64,6 @@ QoreClass *initPseudoStringClass(QoreClass *pseudoAll) {
    // int <string>.length() {}
    QC_PseudoString->addMethodExtended("length", (q_method_int64_t)PSEUDOSTRING_length, false, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo);
 
-   // int <string>.elements() {}
-   QC_PseudoString->addMethodExtended("elements", (q_method_int64_t)PSEUDOSTRING_length, false, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo);
-
    // bool <string>.empty() {}
    QC_PseudoString->addMethodExtended("empty", (q_method_bool_t)PSEUDOSTRING_empty, false, QC_CONSTANT, QDOM_DEFAULT, boolTypeInfo);
 

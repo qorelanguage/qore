@@ -1,0 +1,119 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Pseudo_QC_Hash.cpp
+
+  Qore Programming Language
+
+  Copyright 2003 - 2012 David Nichols
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
+#include <qore/Qore.h>
+
+//! Methods in this pseudo-class can be executed on @ref hash "hash values"
+/** 
+ */
+qclass <hash> [arg=QoreHashNode* h;vparent=<value>];
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+ */
+int <hash>::typeCode() [flags=CONSTANT] {
+   return NT_HASH;
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+ */
+list <hash>::keys() [flags=CONSTANT] {
+   return h->getKeys();
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+ */
+*string <hash>::firstKey() [flags=CONSTANT] {
+   const char *key = h->getFirstKey();
+   return key ? new QoreStringNode(key) : 0;
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+ */
+*string <hash>::lastKey() [flags=CONSTANT] {
+   const char *key = h->getLastKey();
+   return key ? new QoreStringNode(key) : 0;
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+ */
+bool <hash>::hasKey(softstring key) [flags=RET_VALUE_ONLY] {
+   TempEncodingHelper str(key, QCS_DEFAULT, xsink);
+   if (!str)
+      return false;
+
+   return h->existsKey(str->getBuffer());
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+ */
+bool <hash>::hasKeyValue(softstring key) [flags=RET_VALUE_ONLY] {
+   TempEncodingHelper str(key, QCS_DEFAULT, xsink);
+   if (!str)
+      return false;
+
+   return h->existsKeyValue(str->getBuffer());
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+ */
+bool <hash>::empty() [flags=CONSTANT] {
+   return h->empty();
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+ */
+int <hash>::size() [flags=CONSTANT] {
+   return h->size();
+}

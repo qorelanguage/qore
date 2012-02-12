@@ -48,9 +48,6 @@ QoreClass *initPseudoBinaryClass(QoreClass *pseudoAll) {
    // int <binary>.size() {}
    QC_PseudoBinary->addMethodExtended("size", (q_method_int64_t)PSEUDOBINARY_size, false, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo);
 
-   // int <binary>.elements() {}
-   QC_PseudoBinary->addMethodExtended("elements", (q_method_int64_t)PSEUDOBINARY_size, false, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo);
-
    // bool <binary>.empty() {}
    QC_PseudoBinary->addMethodExtended("empty", (q_method_bool_t)PSEUDOBINARY_empty, false, QC_CONSTANT, QDOM_DEFAULT, boolTypeInfo);
 

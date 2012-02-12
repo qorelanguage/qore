@@ -38,6 +38,8 @@ LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
 	lib/QC_SSLPrivateKey.qpp \
 	lib/Pseudo_QC_All.qpp \
 	lib/Pseudo_QC_Date.qpp \
+	lib/Pseudo_QC_Object.qpp \
+	lib/Pseudo_QC_Hash.qpp \
 	lib/ql_misc.qpp \
 	lib/ql_compression.qpp \
 	lib/ql_thread.qpp \

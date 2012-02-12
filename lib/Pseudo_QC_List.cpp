@@ -48,9 +48,6 @@ QoreClass *initPseudoListClass(QoreClass *pseudoAll) {
    // int <list>.size() {}
    QC_PseudoList->addMethodExtended("size", (q_method_int64_t)PSEUDOLIST_size, false, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo);
 
-   // int <list>.elements() {}
-   QC_PseudoList->addMethodExtended("elements", (q_method_int64_t)PSEUDOLIST_size, false, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo);
-
    // bool <list>.empty() {}
    QC_PseudoList->addMethodExtended("empty", (q_method_bool_t)PSEUDOLIST_empty, false, QC_CONSTANT, QDOM_DEFAULT, boolTypeInfo);
 
