@@ -1,0 +1,113 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Pseudo_QC_Object.cpp
+
+  Qore Programming Language
+
+  Copyright 2003 - 2012 David Nichols
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
+#include <qore/Qore.h>
+#include <qore/intern/QoreObjectIntern.h>
+
+//! Methods in this pseudo-class can be executed on @ref object "objects"
+/** 
+ */
+qclass <object> [arg=QoreObject* obj;vparent=<value>];
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+ */
+int <object>::typeCode() [flags=CONSTANT] {
+   return NT_OBJECT;
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+ */
+list <object>::keys() [flags=RET_VALUE_ONLY] {
+   return obj->getMemberList(xsink);
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+ */
+*string <object>::firstKey() [flags=RET_VALUE_ONLY] {
+   return qore_object_private::firstKey(obj, xsink);
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+ */
+*string <object>::lastKey() [flags=RET_VALUE_ONLY] {
+   return qore_object_private::lastKey(obj, xsink);
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+ */
+bool <object>::empty() [flags=RET_VALUE_ONLY] {
+   return !obj->size(xsink);
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+ */
+int <object>::size() [flags=RET_VALUE_ONLY] {
+   return obj->size(xsink);
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+ */
+string <object>::className() [flags=CONSTANT] {
+   return new QoreStringNode(obj->getClassName());
+}
+
+//! 
+/** 
+    @par Example:
+    @code
+    @endcode
+ */
+bool <object>::isSystem() [flags=CONSTANT] {
+   return get_bool_node(obj->isSystemObject());
+}
+
+// bool <object>::hasKey(softstring $key) [flags=RET_VALUE_ONLY] {}
+// bool <object>::hasKeyValue(softstring $key) [flags=RET_VALUE_ONLY] {}
