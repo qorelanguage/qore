@@ -29,80 +29,113 @@
  */
 qclass <object> [arg=QoreObject* obj;vparent=<value>];
 
-//! 
+//! Returns NT_OBJECT
 /** 
+    @return NT_OBJECT
+
     @par Example:
     @code
+switch ($o.typeCode()) {
+    case NT_OBJECT:
+        printf("%y: is an object\n", $o);
+        break;
+}
     @endcode
  */
 int <object>::typeCode() [flags=CONSTANT] {
    return NT_OBJECT;
 }
 
-//! 
+//! Returns a list of member names of the object; if called from outside the object, only public members are returned
 /** 
+    @return a list of member names of the object; if called from outside the object, only public members are returned
+
     @par Example:
     @code
+my list $l = $o.keys();
     @endcode
  */
 list <object>::keys() [flags=RET_VALUE_ONLY] {
    return obj->getMemberList(xsink);
 }
 
-//! 
+//! Returns the first member name in the object or @ref nothing if the object has no members; if called from outside the object, the first public member name is returned (if any)
 /** 
+    @return the first member name in the object or @ref nothing if the object has no members; if called from outside the object, the first public member name is returned (if any)
+
     @par Example:
     @code
+my *string $n = $o.firstKey();
     @endcode
+
+    @see <object>::lastKey()
  */
 *string <object>::firstKey() [flags=RET_VALUE_ONLY] {
    return qore_object_private::firstKey(obj, xsink);
 }
 
-//! 
+//! Returns the last member name in the object or @ref nothing if the object has no members; if called from outside the object, the last public member name is returned (if any)
 /** 
+    @return the last member name in the object or @ref nothing if the object has no members; if called from outside the object, the last public member name is returned (if any)
+
     @par Example:
     @code
+my *string $n = $o.lastKey();
     @endcode
+
+    @see <object>::firstKey()
  */
 *string <object>::lastKey() [flags=RET_VALUE_ONLY] {
    return qore_object_private::lastKey(obj, xsink);
 }
 
-//! 
+//! Returns \c True if the object has no public or private members, \c False if it does
 /** 
+    @return \c True if the object has no public or private members, \c False if it does
+
     @par Example:
     @code
+my bool $b = $o.empty();
     @endcode
  */
 bool <object>::empty() [flags=RET_VALUE_ONLY] {
    return !obj->size(xsink);
 }
 
-//! 
+//! Returns the number of members in the object, public and private
 /** 
+    @return the number of members in the object, public and private
+
     @par Example:
     @code
+my int $num = $o.size();
     @endcode
  */
 int <object>::size() [flags=RET_VALUE_ONLY] {
    return obj->size(xsink);
 }
 
-//! 
+//! Returns the class name of the object
 /** 
+    @return the class name of the object
+
     @par Example:
     @code
+my string $cn = $o.className();
     @endcode
  */
 string <object>::className() [flags=CONSTANT] {
    return new QoreStringNode(obj->getClassName());
 }
 
-//! 
+//! Returns \c True if the object is a system object (ie a constant object like @ref stdin, etc), \c False if not
 /** 
+
+    @return \c True if the object is a system object (ie a constant object like @ref stdin, etc), \c False if not
+
     @par Example:
     @code
+my bool $b = $i.isSystem();
     @endcode
  */
 bool <object>::isSystem() [flags=CONSTANT] {

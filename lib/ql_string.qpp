@@ -194,7 +194,7 @@ const RE_Global = QRE_GLOBAL;
     |\c \\b|a backspace character
     |\c \\f|a form-feed character
     |\c \\<em>num</em>|an 8-bit character whose value is the 1, 2, or 3 digit octal number num
-    |\c \\\"|a double-quote character (\c \")
+    |\c \\\"a double-quote character (\c \")
  */
 //@{
 
@@ -210,7 +210,12 @@ const RE_Global = QRE_GLOBAL;
 my int $len = length($str);
     @endcode
 
-    @see strlen()
+    @note equivalent to <string>::length()
+
+    @see
+    - strlen()
+    - <string>::strlen()
+    - <string>::size()
  */
 int length(softstring str) [flags=CONSTANT] {
    return str->length();
@@ -257,7 +262,11 @@ int length(any[doc] arg) [flags=NOOP] {
 my int $size = strlen($str);
     @endcode
 
-    @see length()
+    @note equivalent to <string>::strlen() and <string>::size()
+
+    @see
+    - length()
+    - <string>::length()
  */
 int strlen(softstring str) [flags=CONSTANT] {
    return str->strlen();
@@ -365,10 +374,6 @@ string substr(softstring str, softint start) [flags=RET_VALUE_ONLY] {
 my string $substr = substr($str, 10, -2);
     @endcode
 
-    @par Example:
-    @code
-    @endcode
-
     @throw INVALID-ENCODING this exception could be thrown if a character offset calculation fails due to invalid encoding of multi-byte character data
  */
 string substr(softstring str, softint start, softint len) [flags=RET_VALUE_ONLY] {
@@ -400,7 +405,13 @@ if ($i == -1)
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string arguments have different @ref character_encoding "character encodings" and an error occurs during encoding conversion
     @throw INVALID-ENCODING this exception could be thrown if a character offset calculation fails due to invalid encoding of multi-byte character data
 
-    @see rindex(), bindex(), brindex()
+    @note equivalent to <string>::find(softstring, softint)
+
+    @see 
+    - <string>::rfind(softstring, softint)
+    - rindex(softstring, softstring, softint)
+    - bindex(softstring, softstring, softint)
+    - brindex(softstring, softstring, softint)
  */
 int index(softstring str, softstring substr, softint pos = 0) [flags=RET_VALUE_ONLY] {
    return str->index(*substr, pos, xsink);
@@ -431,7 +442,12 @@ if ($i == -1)
 
     @note no character encoding conversions are made by this function even if the string arguments have different @ref character_encoding "character encodings"
 
-    @see index(), rindex(), brindex()
+    @see 
+    - <string>::find(softstring, softint)
+    - <string>::rfind(softstring, softint)
+    - index(softstring, softstring, softint)
+    - rindex(softstring, softstring, softint)
+    - brindex(softstring, softstring, softint)
  */
 int bindex(softstring str, softstring substr, softint pos = 0) [flags=CONSTANT] {
    return str->bindex(*substr, (qore_offset_t)pos);
@@ -463,7 +479,13 @@ if ($i == -1)
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string arguments have different @ref character_encoding "character encodings" and an error occurs during encoding conversion
     @throw INVALID-ENCODING this exception could be thrown if a character offset calculation fails due to invalid encoding of multi-byte character data
 
-    @see index(), bindex(), brindex()
+    @note equivalent to <string>::rfind(softstring, softint)
+
+    @see
+    - <string>::find(softstring, softint)
+    - index(softstring, softstring, softint)
+    - bindex(softstring, softstring, softint)
+    - brindex(softstring, softstring, softint)
  */
 int rindex(softstring str, softstring substr, softint pos = -1) [flags=RET_VALUE_ONLY] {
    return str->rindex(*substr, (qore_offset_t)pos, xsink);
@@ -494,7 +516,12 @@ if ($i == -1)
 
     @note no character encoding conversions are made by this function even if the string arguments have different @ref character_encoding "character encodings"
 
-    @see index(), bindex(), rindex()
+    @see
+    - <string>::find(softstring, softint)
+    - <string>::rfind(softstring, softint)
+    - index(softstring, softstring, softint)
+    - bindex(softstring, softstring, softint)
+    - rindex(softstring, softstring, softint)
  */
 int brindex(softstring str, softstring substr, softint pos = -1) [flags=CONSTANT] {
    return str->brindex(*substr, (qore_offset_t)pos);
@@ -718,6 +745,8 @@ list split() [flags=RUNTIME_NOOP] {
     @code
 my string $enc = get_encoding($str);
     @endcode
+
+    @note equivalent to <string>::encoding()
  */
 string get_encoding(string str) [flags=CONSTANT] {
    return new QoreStringNode(str->getEncoding()->getCode());

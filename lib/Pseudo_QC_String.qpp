@@ -1,0 +1,179 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Pseudo_QC_String.qpp
+
+  Qore Programming Language
+
+  Copyright 2003 - 2012 David Nichols
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
+#include <qore/Qore.h>
+
+//! Methods in this pseudo-class can be executed on @ref string "strings"
+/** 
+ */
+qclass <string> [arg=QoreStringNode* str;vparent=<value>];
+
+//! Returns NT_STRING
+/** 
+    @return NT_STRING
+    @code
+switch ($str.typeCode()) {
+    case NT_STRING:
+        printf("%y: is a string\n", $str);
+        break;
+}
+    @endcode
+*/
+int <string>::typeCode() [flags=CONSTANT] {
+   return NT_STRING;
+}
+
+//! Returns the number of bytes in the string (not including the terminating null character (\c '\0')
+/** 
+    @return the number of bytes in the string (not including the terminating null character (\c '\0')
+
+    @code
+my int $len = $str.strlen();
+    @endcode
+
+    @note equivalent to <string>::size()
+
+    @see <string>::length()
+*/
+int <string>::strlen() [flags=CONSTANT] {
+   return str->strlen();
+}
+
+//! Returns the number of bytes in the string (not including the terminating null character (\c '\0')
+/** 
+    @return the number of bytes in the string (not including the terminating null character (\c '\0')
+
+    @code
+my int $len = $str.size();
+    @endcode
+
+    @note equivalent to <string>::strlen()
+
+    @see <string>::length()
+*/
+int <string>::size() [flags=CONSTANT] {
+   return str->size();
+}
+
+//! Returns the number of characters in the string; may not be equal to the byte length (returned by <string>::strlen() and <string>::size()) for @ref character_encoding "multi-byte character encodings"
+/** 
+    @return the number of characters in the string; may not be equal to the byte length (returned by <string>::strlen() and <string>::size()) for @ref character_encoding "multi-byte character encodings"
+
+    @code
+my int $len = $str.length();
+    @endcode
+
+    @see
+    - <string>::strlen()
+    - <string>::size()
+*/
+int <string>::length() [flags=CONSTANT] {
+   return str->length();
+}
+
+//! Returns \c True if the string is empty, \c False if not
+/** 
+    @return \c True if the string is empty, \c False if not
+
+    @code
+my bool $b = $str.empty();
+    @endcode
+*/
+bool <string>::empty() [flags=CONSTANT] {
+   return str->empty();
+}
+
+//! Returns the name of the string's @ref character_encoding "character encoding"
+/** 
+    @return the name of the string's @ref character_encoding "character encoding"
+
+    @code
+my string $enc = $str.encoding();
+    @endcode
+
+    @note equivalent to get_encoding(string)
+*/
+string <string>::encoding() [flags=CONSTANT] {
+   return new QoreStringNode(str->getEncoding()->getCode());
+}
+
+//! Retrieves the character position of a substring within a string
+/** The \a pos argument and the return value are in character positions; byte offsets may differ from the character offsets with multi-byte @ref character_encoding "character encodings".
+
+    @param substr the substring to find in the string; if the @ref character_encoding "character encoding" of this string does not match \a str, then it will be converted to <em>str</em>'s @ref character_encoding "character encoding" before processing
+    @param pos the starting character position for the search
+
+    @return the character position of a substring within a string, -1 is returned if the substring is not found
+
+    @par Example:
+    @code
+my int $i = $str.find($substr);
+if ($i == -1)
+    printf("could not find %y in %y\n", $substr, $str);
+    @endcode
+
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string arguments have different @ref character_encoding "character encodings" and an error occurs during encoding conversion
+    @throw INVALID-ENCODING this exception could be thrown if a character offset calculation fails due to invalid encoding of multi-byte character data
+
+    @note equivalent to index(softstring, softstring, softint)
+
+    @see
+    - <string>::rfind(softstring, softint)
+    - rindex(softstring, softstring, softint)
+    - bindex(softstring, softstring, softint)
+    - brindex(softstring, softstring, softint)
+ */
+int <string>::find(softstring substr, softint pos = 0) [flags=RET_VALUE_ONLY] {
+   return str->index(*substr, pos, xsink);
+}
+
+//! Retrieves the character position of a substring within a string, starting the search from the end of the string
+/** The \a pos argument and the return value are in character positions; byte offsets may differ from the character offsets with multi-byte @ref character_encoding "character encodings".
+
+    @param str the string to search in
+    @param substr the substring to find in \a str; if the @ref character_encoding "character encoding" of this string does not match \a str, then it will be converted to <em>str</em>'s @ref character_encoding "character encoding" before processing
+    @param pos the starting character position for the search, -1 means start from the end of the string
+
+    @return the character position of a substring within a string, -1 is returned if the substring is not found
+
+    @par Example:
+    @code
+my int $i = $str.rfind($substr);
+if ($i == -1)
+    printf("could not find %y in %y\n", $substr, $str);
+    @endcode
+
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string arguments have different @ref character_encoding "character encodings" and an error occurs during encoding conversion
+    @throw INVALID-ENCODING this exception could be thrown if a character offset calculation fails due to invalid encoding of multi-byte character data
+
+    @note equivalent to rindex(softstring, softstring, softint)
+
+    @see
+    - <string>::find(softstring, softint)
+    - index(softstring, softstring, softint)
+    - bindex(softstring, softstring, softint)
+    - brindex(softstring, softstring, softint)
+ */
+int <string>::rfind(softstring substr, softint pos = -1) [flags=RET_VALUE_ONLY] {
+   return str->rindex(*substr, (qore_offset_t)pos, xsink);
+}

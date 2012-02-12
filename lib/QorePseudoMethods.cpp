@@ -74,7 +74,7 @@ void pseudo_classes_init() {
    po_list[NT_FLOAT] = do_type_code("<float>", (q_method_int64_t)PSEUDOFLOAT_typeCode);
    po_list[NT_BOOLEAN] = do_type_code("<boolean>", (q_method_int64_t)PSEUDOBOOLEAN_typeCode);
 
-   po_list[NT_STRING] = initPseudoStringClass(QC_PSEUDOVALUE);
+   po_list[NT_STRING] = initPseudoStringClass();
    po_list[NT_DATE] = initPseudoDateClass();
    po_list[NT_BINARY] = initPseudoBinaryClass(QC_PSEUDOVALUE);
    po_list[NT_LIST] = initPseudoListClass(QC_PSEUDOVALUE);

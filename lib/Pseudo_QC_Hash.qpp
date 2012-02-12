@@ -28,53 +28,80 @@
  */
 qclass <hash> [arg=QoreHashNode* h;vparent=<value>];
 
-//! 
+//! Returns NT_HASH
 /** 
+    @return NT_HASH
+
     @par Example:
     @code
+switch ($h.typeCode()) {
+    case NT_HASH:
+        printf("%y: is a hash\n", $h);
+        break;
+}
     @endcode
  */
 int <hash>::typeCode() [flags=CONSTANT] {
    return NT_HASH;
 }
 
-//! 
+//! Returns a list of key names of the hash
 /** 
+    @return a list of key names of the hash
+
     @par Example:
     @code
+my list $l = $h.keys();
     @endcode
  */
 list <hash>::keys() [flags=CONSTANT] {
    return h->getKeys();
 }
 
-//! 
+//! Returns the first key name in the hash or @ref nothing if the hash has no keys
 /** 
+    @return the first key name in the hash or @ref nothing if the hash has no keys
+
     @par Example:
     @code
+my *string $n = $h.firstKey();
     @endcode
+
+    @see <hash>::lastKey()
  */
 *string <hash>::firstKey() [flags=CONSTANT] {
    const char *key = h->getFirstKey();
    return key ? new QoreStringNode(key) : 0;
 }
 
-//! 
+//! Returns the last key name in the hash or @ref nothing if the hash has no keys
 /** 
+    @return the last key name in the hash or @ref nothing if the hash has no keys
+
     @par Example:
     @code
+my *string $n = $h.lastKey();
     @endcode
+
+    @see <hash>::firstKey()
  */
 *string <hash>::lastKey() [flags=CONSTANT] {
    const char *key = h->getLastKey();
    return key ? new QoreStringNode(key) : 0;
 }
 
-//! 
+//! Returns \c True if the key exists in the hash (may or may not be assigned a value), \c False if not
 /** 
+    @param key the key name to check
+
+    @return \c True if the key exists in the hash (may or may not be assigned a value), \c False if not
+
     @par Example:
     @code
+my bool $b = $h.hasKey($key);
     @endcode
+
+    @see <hash>::hasKeyValue(string)
  */
 bool <hash>::hasKey(softstring key) [flags=RET_VALUE_ONLY] {
    TempEncodingHelper str(key, QCS_DEFAULT, xsink);
@@ -84,11 +111,18 @@ bool <hash>::hasKey(softstring key) [flags=RET_VALUE_ONLY] {
    return h->existsKey(str->getBuffer());
 }
 
-//! 
+//! Returns \c True if the key exists and is assigned to a value, \c False if not
 /** 
+    @param key the key name to check
+
+    @return \c True if the key exists and is assigned to a value, \c False if not
+
     @par Example:
     @code
+my bool $b = $h.hasKeyValue($key);
     @endcode
+
+    @see <hash>::hasKey(string)
  */
 bool <hash>::hasKeyValue(softstring key) [flags=RET_VALUE_ONLY] {
    TempEncodingHelper str(key, QCS_DEFAULT, xsink);
@@ -98,20 +132,26 @@ bool <hash>::hasKeyValue(softstring key) [flags=RET_VALUE_ONLY] {
    return h->existsKeyValue(str->getBuffer());
 }
 
-//! 
+//! Returns \c True if the hash has no keys, \c False if it does
 /** 
+    @return \c True if the hash has no keys, \c False if it does
+
     @par Example:
     @code
+my bool $b = $h.empty();
     @endcode
  */
 bool <hash>::empty() [flags=CONSTANT] {
    return h->empty();
 }
 
-//! 
+//! Returns the number of keys in the hash
 /** 
+    @return the number of keys in the hash
+
     @par Example:
     @code
+my int $num = $h.size();
     @endcode
  */
 int <hash>::size() [flags=CONSTANT] {
