@@ -23,6 +23,12 @@
 
 #include <qore/Qore.h>
 
+#ifdef WORDS_BIGENDIAN
+#define Q_MACHINE_MSB 1
+#else
+#define Q_MACHINE_MSB 0
+#endif
+
 /** @defgroup type_code_constants Type Code Constants
     Type code constants as returned by <value>::typeCode()
 */
@@ -63,3 +69,232 @@ const NT_OBJECT = NT_OBJECT;
 //! type code for @ref closure "closures"
 const NT_CLOSURE = NT_RUNTIME_CLOSURE;
 //@}
+
+/** @defgroup boolean_constants Boolean Constants
+ */
+//@{
+//! logical \c True
+const True = bool(true);
+
+//! logical \c False
+const False = bool(false);
+//@}
+
+/** @defgroup exception_type_constants Exception Type Constants
+ */
+//@{
+//! Exception type code system exceptions (thrown in internal %Qore code or in modules)
+const ET_System = "System";
+
+//! Exception type for user exceptions (thrown by the @ref throw "throw statement")
+const ET_User = "User";
+//@}
+
+/** @defgroup call_type_constants Call Type Constants
+ */
+//@{
+//! Call type for user code
+const CT_User = CT_USER;
+
+//! Call type for builtin code
+const CT_Builtin = CT_BUILTIN;
+
+//! Call type for the start of a new thread by the @ref background "background operator"
+const CT_NewThread = CT_NEWTHREAD;
+
+//! Call type for an exception thrown by the @ref rethrow "rethrow statement"
+const CT_Rethrow = CT_RETHROW;
+//@}
+
+/** @defgroup system_and_build_constants System and Build Constants
+ */
+//@{
+//! The full %Qore version string
+const VersionString = qore(new QoreStringNode(qore_version_string));
+
+//! The integer %Qore major version number
+const VersionMajor =  qore(new QoreBigIntNode(qore_version_major));
+
+//! The integer %Qore minor version number
+const VersionMinor =  qore(new QoreBigIntNode(qore_version_minor));
+
+//! The integer %Qore sub version number
+const VersionSub =    qore(new QoreBigIntNode(qore_version_sub));
+
+//! The integer %Qore build number
+const Build =         qore(new QoreBigIntNode(qore_build_number));
+
+//! The string for the platform's CPU architecture
+const PlatformCPU =   qore(new QoreStringNode(TARGET_ARCH));
+
+//! A string giving the platform operating-system name
+const PlatformOS =    qore(new QoreStringNode(TARGET_OS));
+
+//! The host name of the host used to build the %Qore library
+const BuildHost =     qore(new QoreStringNode(qore_build_host));
+
+//! A string giving the C++ compiler used to build %Qore
+const Compiler =      qore(new QoreStringNode(qore_cplusplus_compiler));
+
+//! A string giving the C++ compiler flags used to build %Qore
+const CFLAGS =        qore(new QoreStringNode(qore_cflags));
+
+//! A string giving the linker flags used to build %Qore
+const LDFLAGS =       qore(new QoreStringNode(qore_ldflags));
+
+//! \c True if the current machine uses <a href="http://en.wikipedia.org/wiki/Most_significant_bit">big-endian or MSB byte order</a> or \c False if the current machine uses <a href="http://en.wikipedia.org/wiki/Least_significant_bit">little-endian or LSB byte order</a>
+const MACHINE_MSB =   bool(Q_MACHINE_MSB);
+//@}
+
+/** @defgroup event_source_constants Event Source Constants
+ */
+//@{
+//! @ref Socket "Socket class" source code
+const SOURCE_SOCKET = QORE_SOURCE_SOCKET;
+
+//! @ref HTTPClient "HTTPClient class" source code
+const SOURCE_HTTPCLIENT = QORE_SOURCE_HTTPCLIENT;
+
+//! @ref FtpClient "FtpClient class" source code
+const SOURCE_FTPCLIENT = QORE_SOURCE_FTPCLIENT;
+
+//! @ref File "File class" source code
+const SOURCE_FILE = QORE_SOURCE_FILE;
+//@}
+
+/** @defgroup event_map_constants Event Map Constants
+ */
+//@{
+//! Maps from @ref event_source_constants (the keys) to descriptive strings (the values)
+const EVENT_SOURCE_MAP = (
+   "1": "SOCKET",
+   "2": "HTTPCLIENT",
+   "3": "FTPCLIENT",
+   "4": "FILE",
+   );
+
+//! Maps from @ref event_constants (the keys) to descriptive strings (the values)
+const EVENT_MAP = (
+    "1": "PACKET_READ",
+    "2": "PACKET_SENT",
+    "3": "HTTP_CONTENT_LENGTH",
+    "4": "HTTP_CHUNKED_START",
+    "5": "HTTP_CHUNKED_END",
+    "6": "HTTP_REDIRECT",
+    "7": "CHANNEL_CLOSED",
+    "8": "DELETED",
+    "9": "FTP_SEND_MESSAGE",
+    "10": "FTP_MESSAGE_RECEIVED",
+    "11": "HOSTNAME_LOOKUP",
+    "12": "HOSTNAME_RESOLVED",
+    "13": "HTTP_SEND_MESSAGE",
+    "14": "HTTP_MESSAGE_RECEIVED",
+    "15": "HTTP_FOOTERS_RECEIVED",
+    "16": "HTTP_CHUNKED_DATA_RECEIVED",
+    "17": "HTTP_CHUNK_SIZE",
+    "18": "CONNECTING",
+    "19": "CONNECTED",
+    "20": "START_SSL",
+    "21": "SSL_ESTABLISHED",
+    "22": "OPEN_FILE",
+    "23": "FILE_OPENED",
+    "24": "DATA_READ",
+    "25": "DATA_WRITTEN",
+   );
+//@}
+
+/** @defgroup event_constants Event Constants
+ */
+//@{
+//! Raised when a network packet is received
+const EVENT_PACKET_READ = QORE_EVENT_PACKET_READ;
+
+//! Raised when a network packet is sent
+const EVENT_PACKET_SENT = QORE_EVENT_PACKET_SENT;
+
+//! Raised when the HTTP \c "Content-Length" header is received
+const EVENT_HTTP_CONTENT_LENGTH = QORE_EVENT_HTTP_CONTENT_LENGTH;
+
+//! Raised when HTTP chunked data is about to be received
+const EVENT_HTTP_CHUNKED_START = QORE_EVENT_HTTP_CHUNKED_START;
+
+//! Raised when all HTTP chunked data has been received
+const EVENT_HTTP_CHUNKED_END = QORE_EVENT_HTTP_CHUNKED_END;
+
+//! Raised when an HTTP redirect message is received
+const EVENT_HTTP_REDIRECT = QORE_EVENT_HTTP_REDIRECT;
+
+//! Raised when a socket or file is closed
+const EVENT_CHANNEL_CLOSED = QORE_EVENT_CHANNEL_CLOSED;
+
+//! Raised when the object being monitored is deleted
+const EVENT_DELETED = QORE_EVENT_DELETED;
+
+//! Raised immediately before an FTP control message is sent
+const EVENT_FTP_SEND_MESSAGE = QORE_EVENT_FTP_SEND_MESSAGE;
+
+//! Raised when an FTP reply is received on the control channel
+const EVENT_FTP_MESSAGE_RECEIVED = QORE_EVENT_FTP_MESSAGE_RECEIVED;
+
+//! Raised when a hostname lookup is started
+const EVENT_HOSTNAME_LOOKUP = QORE_EVENT_HOSTNAME_LOOKUP;
+
+//! Raised when a hostname lookup is resolved
+const EVENT_HOSTNAME_RESOLVED = QORE_EVENT_HOSTNAME_RESOLVED;
+
+//! Raised when an HTTP message is sent
+const EVENT_HTTP_SEND_MESSAGE = QORE_EVENT_HTTP_SEND_MESSAGE;
+
+//! Raised when an HTTP message is received
+const EVENT_HTTP_MESSAGE_RECEIVED = QORE_EVENT_HTTP_MESSAGE_RECEIVED;
+
+//! Raised when HTTP footers are received
+const EVENT_HTTP_FOOTERS_RECEIVED = QORE_EVENT_HTTP_FOOTERS_RECEIVED;
+
+//! Raised when a block of HTTP chunked data is received
+const EVENT_HTTP_CHUNKED_DATA_RECEIVED = QORE_EVENT_HTTP_CHUNKED_DATA_RECEIVED;
+
+//! Raised when the next chunk size for HTTP chunked data is known
+const EVENT_HTTP_CHUNK_SIZE = QORE_EVENT_HTTP_CHUNK_SIZE;
+
+//! Raised right before a socket connection attempt is made
+const EVENT_CONNECTING = QORE_EVENT_CONNECTING;
+
+//! Raised when the socket connection has been established
+const EVENT_CONNECTED = QORE_EVENT_CONNECTED;
+
+//! Raised when socket SSL negotiation starts
+const EVENT_START_SSL = QORE_EVENT_START_SSL;
+
+//! Raised when SSL communication has been negotiated and established
+const EVENT_SSL_ESTABLISHED = QORE_EVENT_SSL_ESTABLISHED;
+
+//! Raised right before a file is opened
+const EVENT_OPEN_FILE = QORE_EVENT_OPEN_FILE;
+
+//! Raised when a file has been successfully opened
+const EVENT_FILE_OPENED = QORE_EVENT_FILE_OPENED;
+
+//! Raised when data has been read from a file
+const EVENT_DATA_READ = QORE_EVENT_DATA_READ;
+
+//! Raised when data has been written to a file
+const EVENT_DATA_WRITTEN = QORE_EVENT_DATA_WRITTEN;
+//@}
+
+/** @defgroup io_constants I/O Constants
+    These constants are all instantiations of the @ref File "File class"
+
+    None of these constants are available if the parse option @ref PO_NO_TERMINAL_IO is set
+ */
+//@{
+//! system constant for stdin (file descriptor 0)
+const stdin = qore(QC_FILE->execSystemConstructor(0));
+
+//! system constant for stdout (file descriptor 1)
+const stdout = qore(QC_FILE->execSystemConstructor(1));
+
+//! system constant for stderr (file descriptor 2)
+const stderr = qore(QC_FILE->execSystemConstructor(2));
+//@}
+

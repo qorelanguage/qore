@@ -150,7 +150,6 @@ int <string>::find(softstring substr, softint pos = 0) [flags=RET_VALUE_ONLY] {
 //! Retrieves the character position of a substring within a string, starting the search from the end of the string
 /** The \a pos argument and the return value are in character positions; byte offsets may differ from the character offsets with multi-byte @ref character_encoding "character encodings".
 
-    @param str the string to search in
     @param substr the substring to find in \a str; if the @ref character_encoding "character encoding" of this string does not match \a str, then it will be converted to <em>str</em>'s @ref character_encoding "character encoding" before processing
     @param pos the starting character position for the search, -1 means start from the end of the string
 

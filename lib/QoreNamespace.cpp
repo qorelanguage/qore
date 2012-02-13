@@ -23,7 +23,6 @@
 
 #include <qore/Qore.h>
 
-#include <qore/intern/ErrnoConstants.h>
 #include <qore/intern/ParserSupport.h>
 #include <qore/intern/CallStack.h>
 #include <qore/intern/QoreRegexBase.h>
@@ -78,6 +77,7 @@ DLLLOCAL void init_string_constants(QoreNamespace& ns);
 DLLLOCAL void init_option_constants(QoreNamespace& ns);
 DLLLOCAL void init_math_constants(QoreNamespace& ns);
 DLLLOCAL void init_qore_constants(QoreNamespace& ns);
+DLLLOCAL void init_errno_constants(QoreNamespace& ns);
 
 DLLLOCAL void init_dbi_functions(QoreNamespace& ns);
 DLLLOCAL void init_dbi_constants(QoreNamespace& ns);
@@ -1259,136 +1259,27 @@ void StaticSystemNamespace::init() {
    qoreNS->addSystemClass(initHTTPClientClass(*qoreNS));
 
 #ifdef DEBUG_TESTS
-{ // tests
-   QoreClass* base = initBuiltinInheritanceTestBaseClass();
-   qoreNS->addSystemClass(base);
-   qoreNS->addSystemClass(initBuiltinInheritanceTestDescendant1(base));
-   // hierarchy with 3 levels
-   QoreClass* desc2 = initBuiltinInheritanceTestDescendant2(base);
-   qoreNS->addSystemClass(desc2);
-   QoreClass* desc3 = initBuiltinInheritanceTestDescendant3(desc2);
-   qoreNS->addSystemClass(desc3);
+   { // tests
+      QoreClass* base = initBuiltinInheritanceTestBaseClass();
+      qoreNS->addSystemClass(base);
+      qoreNS->addSystemClass(initBuiltinInheritanceTestDescendant1(base));
+      // hierarchy with 3 levels
+      QoreClass* desc2 = initBuiltinInheritanceTestDescendant2(base);
+      qoreNS->addSystemClass(desc2);
+      QoreClass* desc3 = initBuiltinInheritanceTestDescendant3(desc2);
+      qoreNS->addSystemClass(desc3);
 // BUGBUG : this fails. When desc2 is placed in the next line all is OK
-   QoreClass* desc4 = initBuiltinInheritanceTestDescendant4(desc3);
-   qoreNS->addSystemClass(desc4);
+      QoreClass* desc4 = initBuiltinInheritanceTestDescendant4(desc3);
+      qoreNS->addSystemClass(desc4);
 
-   QoreClass* base2 = initBuiltinInheritanceTestBase2Class();
-   qoreNS->addSystemClass(base2);
+      QoreClass* base2 = initBuiltinInheritanceTestBase2Class();
+      qoreNS->addSystemClass(base2);
 // BUGBUG - the function actually fails to deal with two base classes, see the 
 // code in tests/builtin_inheritance_tests.cpp
-   QoreClass* desc_multi = initBuiltinInheritanceTestDescendantMulti(base2, base);
-   qoreNS->addSystemClass(desc_multi);
-}
+      QoreClass* desc_multi = initBuiltinInheritanceTestDescendantMulti(base2, base);
+      qoreNS->addSystemClass(desc_multi);
+   }
 #endif
-
-   // add boolean constants for true and false
-   qoreNS->addConstant("True",           boolean_true());
-   qoreNS->addConstant("False",          boolean_false());
-
-   // add File object constants for stdin (0), stdout (1), stderr (2)
-   qoreNS->addConstant("stdin",          File->execSystemConstructor(0));
-   qoreNS->addConstant("stdout",         File->execSystemConstructor(1));
-   qoreNS->addConstant("stderr",         File->execSystemConstructor(2));
-
-   // add constants for exception types
-   qoreNS->addConstant("ET_System",      new QoreStringNode("System"));
-   qoreNS->addConstant("ET_User",        new QoreStringNode("User"));
-
-   // create constants for call types
-   qoreNS->addConstant("CT_User",        new QoreBigIntNode(CT_USER));
-   qoreNS->addConstant("CT_Builtin",     new QoreBigIntNode(CT_BUILTIN));
-   qoreNS->addConstant("CT_NewThread",   new QoreBigIntNode(CT_NEWTHREAD));
-   qoreNS->addConstant("CT_Rethrow",     new QoreBigIntNode(CT_RETHROW));
-
-   // create constants for version and platform information
-   qoreNS->addConstant("VersionString",  new QoreStringNode(qore_version_string));
-   qoreNS->addConstant("VersionMajor",   new QoreBigIntNode(qore_version_major));
-   qoreNS->addConstant("VersionMinor",   new QoreBigIntNode(qore_version_minor));
-   qoreNS->addConstant("VersionSub",     new QoreBigIntNode(qore_version_sub));
-   qoreNS->addConstant("Build",          new QoreBigIntNode(qore_build_number));
-   qoreNS->addConstant("PlatformCPU",    new QoreStringNode(TARGET_ARCH));
-   qoreNS->addConstant("PlatformOS",     new QoreStringNode(TARGET_OS));
-
-   // constants for build info
-   qoreNS->addConstant("BuildHost",      new QoreStringNode(qore_build_host));
-   qoreNS->addConstant("Compiler",       new QoreStringNode(qore_cplusplus_compiler));
-   qoreNS->addConstant("CFLAGS",         new QoreStringNode(qore_cflags));
-   qoreNS->addConstant("LDFLAGS",        new QoreStringNode(qore_ldflags));
-
-   // system constants
-#ifdef WORDS_BIGENDIAN
-   qoreNS->addConstant("MACHINE_MSB",   &True);
-#else
-   qoreNS->addConstant("MACHINE_MSB",   &False);
-#endif
-
-   // event constants
-   QoreHashNode *qesm = new QoreHashNode;
-   qesm->setKeyValue("1", new QoreStringNode("SOCKET"), 0);
-   qesm->setKeyValue("2", new QoreStringNode("HTTPCLIENT"), 0);
-   qesm->setKeyValue("3", new QoreStringNode("FTPCLIENT"), 0);
-   qesm->setKeyValue("4", new QoreStringNode("FILE"), 0);
-   qoreNS->addConstant("EVENT_SOURCE_MAP", qesm);
-
-   qoreNS->addConstant("SOURCE_SOCKET", new QoreBigIntNode(QORE_SOURCE_SOCKET));
-   qoreNS->addConstant("SOURCE_HTTPCLIENT", new QoreBigIntNode(QORE_SOURCE_HTTPCLIENT));
-   qoreNS->addConstant("SOURCE_FTPCLIENT", new QoreBigIntNode(QORE_SOURCE_FTPCLIENT));
-   qoreNS->addConstant("SOURCE_FILE", new QoreBigIntNode(QORE_SOURCE_FILE));
-
-   QoreHashNode *qsam = new QoreHashNode;
-   qsam->setKeyValue(MAKE_STRING_FROM_SYMBOL(QORE_EVENT_PACKET_READ), new QoreStringNode("PACKET_READ"), 0);
-   qsam->setKeyValue(MAKE_STRING_FROM_SYMBOL(QORE_EVENT_PACKET_SENT), new QoreStringNode("PACKET_SENT"), 0);
-   qsam->setKeyValue(MAKE_STRING_FROM_SYMBOL(QORE_EVENT_HTTP_CONTENT_LENGTH), new QoreStringNode("HTTP_CONTENT_LENGTH"), 0);
-   qsam->setKeyValue(MAKE_STRING_FROM_SYMBOL(QORE_EVENT_HTTP_CHUNKED_START), new QoreStringNode("HTTP_CHUNKED_START"), 0);
-   qsam->setKeyValue(MAKE_STRING_FROM_SYMBOL(QORE_EVENT_HTTP_CHUNKED_END), new QoreStringNode("HTTP_CHUNKED_END"), 0);
-   qsam->setKeyValue(MAKE_STRING_FROM_SYMBOL(QORE_EVENT_HTTP_REDIRECT), new QoreStringNode("HTTP_REDIRECT"), 0);
-   qsam->setKeyValue(MAKE_STRING_FROM_SYMBOL(QORE_EVENT_CHANNEL_CLOSED), new QoreStringNode("CHANNEL_CLOSED"), 0);
-   qsam->setKeyValue(MAKE_STRING_FROM_SYMBOL(QORE_EVENT_DELETED), new QoreStringNode("DELETED"), 0);
-   qsam->setKeyValue(MAKE_STRING_FROM_SYMBOL(QORE_EVENT_FTP_SEND_MESSAGE), new QoreStringNode("FTP_SEND_MESSAGE"), 0);
-   qsam->setKeyValue(MAKE_STRING_FROM_SYMBOL(QORE_EVENT_FTP_MESSAGE_RECEIVED), new QoreStringNode("FTP_MESSAGE_RECEIVED"), 0);
-   qsam->setKeyValue(MAKE_STRING_FROM_SYMBOL(QORE_EVENT_HOSTNAME_LOOKUP), new QoreStringNode("HOSTNAME_LOOKUP"), 0);
-   qsam->setKeyValue(MAKE_STRING_FROM_SYMBOL(QORE_EVENT_HOSTNAME_RESOLVED), new QoreStringNode("HOSTNAME_RESOLVED"), 0);
-   qsam->setKeyValue(MAKE_STRING_FROM_SYMBOL(QORE_EVENT_HTTP_SEND_MESSAGE), new QoreStringNode("HTTP_SEND_MESSAGE"), 0);
-   qsam->setKeyValue(MAKE_STRING_FROM_SYMBOL(QORE_EVENT_HTTP_MESSAGE_RECEIVED), new QoreStringNode("HTTP_MESSAGE_RECEIVED"), 0);
-   qsam->setKeyValue(MAKE_STRING_FROM_SYMBOL(QORE_EVENT_HTTP_FOOTERS_RECEIVED), new QoreStringNode("HTTP_FOOTERS_RECEIVED"), 0);
-   qsam->setKeyValue(MAKE_STRING_FROM_SYMBOL(QORE_EVENT_HTTP_CHUNKED_DATA_RECEIVED), new QoreStringNode("HTTP_CHUNKED_DATA_RECEIVED"), 0);
-   qsam->setKeyValue(MAKE_STRING_FROM_SYMBOL(QORE_EVENT_HTTP_CHUNK_SIZE), new QoreStringNode("HTTP_CHUNK_SIZE"), 0);
-   qsam->setKeyValue(MAKE_STRING_FROM_SYMBOL(QORE_EVENT_CONNECTING), new QoreStringNode("CONNECTING"), 0);
-   qsam->setKeyValue(MAKE_STRING_FROM_SYMBOL(QORE_EVENT_CONNECTED), new QoreStringNode("CONNECTED"), 0);
-   qsam->setKeyValue(MAKE_STRING_FROM_SYMBOL(QORE_EVENT_START_SSL), new QoreStringNode("START_SSL"), 0);
-   qsam->setKeyValue(MAKE_STRING_FROM_SYMBOL(QORE_EVENT_SSL_ESTABLISHED), new QoreStringNode("SSL_ESTABLISHED"), 0);
-   qsam->setKeyValue(MAKE_STRING_FROM_SYMBOL(QORE_EVENT_OPEN_FILE), new QoreStringNode("OPEN_FILE"), 0);
-   qsam->setKeyValue(MAKE_STRING_FROM_SYMBOL(QORE_EVENT_FILE_OPENED), new QoreStringNode("FILE_OPENED"), 0);
-   qsam->setKeyValue(MAKE_STRING_FROM_SYMBOL(QORE_EVENT_DATA_READ), new QoreStringNode("DATA_READ"), 0);
-   qsam->setKeyValue(MAKE_STRING_FROM_SYMBOL(QORE_EVENT_DATA_WRITTEN), new QoreStringNode("DATA_WRITTEN"), 0);
-   qoreNS->addConstant("EVENT_MAP", qsam);
-
-   qoreNS->addConstant("EVENT_PACKET_READ", new QoreBigIntNode(QORE_EVENT_PACKET_READ));
-   qoreNS->addConstant("EVENT_PACKET_SENT", new QoreBigIntNode(QORE_EVENT_PACKET_SENT));
-   qoreNS->addConstant("EVENT_HTTP_CONTENT_LENGTH", new QoreBigIntNode(QORE_EVENT_HTTP_CONTENT_LENGTH));
-   qoreNS->addConstant("EVENT_HTTP_CHUNKED_START", new QoreBigIntNode(QORE_EVENT_HTTP_CHUNKED_START));
-   qoreNS->addConstant("EVENT_HTTP_CHUNKED_END", new QoreBigIntNode(QORE_EVENT_HTTP_CHUNKED_END));
-   qoreNS->addConstant("EVENT_HTTP_REDIRECT", new QoreBigIntNode(QORE_EVENT_HTTP_REDIRECT));
-   qoreNS->addConstant("EVENT_CHANNEL_CLOSED", new QoreBigIntNode(QORE_EVENT_CHANNEL_CLOSED));
-   qoreNS->addConstant("EVENT_DELETED", new QoreBigIntNode(QORE_EVENT_DELETED));
-   qoreNS->addConstant("EVENT_FTP_SEND_MESSAGE", new QoreBigIntNode(QORE_EVENT_FTP_SEND_MESSAGE));
-   qoreNS->addConstant("EVENT_FTP_MESSAGE_RECEIVED", new QoreBigIntNode(QORE_EVENT_FTP_MESSAGE_RECEIVED));
-   qoreNS->addConstant("EVENT_HOSTNAME_LOOKUP", new QoreBigIntNode(QORE_EVENT_HOSTNAME_LOOKUP));
-   qoreNS->addConstant("EVENT_HOSTNAME_RESOLVED", new QoreBigIntNode(QORE_EVENT_HOSTNAME_RESOLVED));
-   qoreNS->addConstant("EVENT_HTTP_SEND_MESSAGE", new QoreBigIntNode(QORE_EVENT_HTTP_SEND_MESSAGE));
-   qoreNS->addConstant("EVENT_HTTP_MESSAGE_RECEIVED", new QoreBigIntNode(QORE_EVENT_HTTP_MESSAGE_RECEIVED));
-   qoreNS->addConstant("EVENT_HTTP_FOOTERS_RECEIVED", new QoreBigIntNode(QORE_EVENT_HTTP_FOOTERS_RECEIVED));
-   qoreNS->addConstant("EVENT_HTTP_CHUNKED_DATA_RECEIVED", new QoreBigIntNode(QORE_EVENT_HTTP_CHUNKED_DATA_RECEIVED));
-   qoreNS->addConstant("EVENT_HTTP_CHUNK_SIZE", new QoreBigIntNode(QORE_EVENT_HTTP_CHUNK_SIZE));
-   qoreNS->addConstant("EVENT_CONNECTING", new QoreBigIntNode(QORE_EVENT_CONNECTING));
-   qoreNS->addConstant("EVENT_CONNECTED", new QoreBigIntNode(QORE_EVENT_CONNECTED));
-   qoreNS->addConstant("EVENT_START_SSL", new QoreBigIntNode(QORE_EVENT_START_SSL));
-   qoreNS->addConstant("EVENT_SSL_ESTABLISHED", new QoreBigIntNode(QORE_EVENT_SSL_ESTABLISHED));
-   qoreNS->addConstant("EVENT_OPEN_FILE", new QoreBigIntNode(QORE_EVENT_OPEN_FILE));
-   qoreNS->addConstant("EVENT_FILE_OPENED", new QoreBigIntNode(QORE_EVENT_FILE_OPENED));
-   qoreNS->addConstant("EVENT_DATA_READ", new QoreBigIntNode(QORE_EVENT_DATA_READ));
-   qoreNS->addConstant("EVENT_DATA_WRITTEN", new QoreBigIntNode(QORE_EVENT_DATA_WRITTEN));
-   //qoreNS->addConstant("EVENT_", new QoreBigIntNode(QORE_EVENT_));
 
    init_qore_constants(*qoreNS);
 
@@ -1409,7 +1300,9 @@ void StaticSystemNamespace::init() {
    qoreNS->addInitialNamespace(sqlns);
 
    // create get Qore::Err namespace with ERRNO constants
-   qoreNS->addInitialNamespace(get_errno_ns());
+   QoreNamespace* Err = new QoreNamespace("Err");
+   init_errno_constants(*Err);
+   qoreNS->addInitialNamespace(Err);
 
    QoreNamespace* tns = new QoreNamespace("Type");
    init_type_constants(*tns);

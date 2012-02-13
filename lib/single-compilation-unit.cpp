@@ -176,6 +176,7 @@
 #include "ql_compression.cpp"
 #include "ql_dbi.cpp"
 #include "qc_option.cpp"
+#include "qc_errno.cpp"
 #include "qc_qore.cpp"
 #include "QC_Socket.cpp"
 #include "QC_Program.cpp"

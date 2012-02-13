@@ -332,7 +332,7 @@
     When called on a hash key, the key is removed from the hash entirely; when called on a list element, the element is assigned @ref nothing (i.e. the list size does not change).\n\n
     The delete operator will delete multiple keys from a hash (i.e. delete a slice from a hash) when called on a hash dereferenced by a list of strings, giving the keys to delete (see example below).\n\n
     In the case the delete operator operates on an object, any exception can be thrown that is thrown by the class' destructor.\n\n
-    For a similar operator that returns the value that is removed from the data structure, and does not delete objects, see the @ref remove_operator "remove operator".
+    For a similar operator that returns the value that is removed from the data structure, and does not delete objects, see the @ref remove "remove operator".
 
     @par Syntax
     \c \b delete \a lvalue_expression
@@ -358,7 +358,7 @@ delete $h.("a", "b", "c");
     When called on a hash key, the key is removed from the hash entirely, and the value returned is the value of the key removed from the hash; when called on a list element, the element is assigned @ref nothing (i.e. the list size does not change).\n\n
     The remove operator will remove and return a slice from a hash when called on a hash dereferenced by a list of strings, giving the keys to remove (see example below).\n\n
     The remove operator does not call destructors when operating on objects, but if removing an object from an lvalue or from a data structure within the lvalue causes the object to go out of scope, it will be destroyed, and then its destructor could throw an exception.\n\n
-    For a similar operator that deletes the value that is removed from the data structure, see the @ref delete_operator "delete operator".
+    For a similar operator that deletes the value that is removed from the data structure, see the @ref delete "delete operator".
 
     @par Syntax
     \c \b remove \a lvalue_expression

@@ -673,7 +673,8 @@ static void add_init_code(FILE* fp) {
 #define T_HASH       4
 #define T_BIN        5
 #define T_FUNC       6
-#define T_OTHER      7
+#define T_QORE       7
+#define T_OTHER      8
 static int get_val_type(const std::string &str) {
    if (!str.empty()) {
       size_t lc = str.size() - 1;
@@ -685,6 +686,8 @@ static int get_val_type(const std::string &str) {
          return T_BIN;
       if (!str.compare(0, 5, "bool(") && str[lc] == ')')
          return T_BOOL;
+      if (!str.compare(0, 5, "qore(") && str[lc] == ')')
+         return T_QORE;
    }
 
    bool pint = false,  // has integers
@@ -751,6 +754,10 @@ static int get_qore_value(const std::string &qv, std::string &v, const char *cna
          v = "get_bool_node(";
          v.append(qv, 5, qv.size() - 6);
          v += ")";
+         return 0;
+      }
+      case T_QORE: {
+         v.assign(qv, 4, qv.size() - 4);
          return 0;
       }
       case T_BIN: {
@@ -1818,6 +1825,11 @@ public:
       if (fmap.empty())
          return 0;
 
+      if (ns.empty())
+         fputs("\n//! main Qore-language namespace\nnamespace Qore {\n", fp);
+      else
+         fprintf(fp, "//! %s namespace\nnamespace Qore::%s {\n", ns.c_str(), ns.c_str());
+
       // serialize group header doc
       serialize_dox_comment(fp, doc);
 
@@ -1828,6 +1840,8 @@ public:
 
       // serialize group trailer
       fputs("//@}\n", fp);
+
+      fputs("};\n", fp);
 
       return 0;
    }

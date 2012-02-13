@@ -88,7 +88,7 @@ int <date>::years() [flags=CONSTANT] {
 
 //! Returns an integer corresponding to the month value in the date
 /** 
-    @param dt the date value; can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date
+    The date value can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date.
 
     @return an integer corresponding to the month value in the date
 
@@ -105,7 +105,7 @@ int <date>::months() [flags=CONSTANT] {
 
 //! Returns an integer corresponding to the day value in the date
 /** 
-    @param dt the date value; can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date
+    The date value can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date.
 
     @return an integer corresponding to the day value in the date
 
@@ -122,7 +122,7 @@ int <date>::days() [flags=CONSTANT] {
 
 //! Returns an integer corresponding to the hour value in the date
 /** 
-    @param dt the date value; can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date
+    The date value can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date.
 
     @return an integer corresponding to the hour value in the date
 
@@ -139,7 +139,7 @@ int <date>::hours() [flags=CONSTANT] {
 
 //! Returns an integer corresponding to the minute value in the date
 /** 
-    @param dt the date value; can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date
+    The date value can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date.
 
     @return an integer corresponding to the minute value in the date
 
@@ -156,7 +156,7 @@ int <date>::minutes() [flags=CONSTANT] {
 
 //! Returns an integer corresponding to the second value in the date
 /** 
-    @param dt the date value; can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date
+    The date value can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date.
 
     @return an integer corresponding to the second value in the date
 
@@ -173,7 +173,7 @@ int <date>::seconds() [flags=CONSTANT] {
 
 //! Returns an integer corresponding to the millisecond value in the date
 /** 
-    @param dt the date value; can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date
+    The date value can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date.
 
     @return an integer corresponding to the millisecond value in the date
 
@@ -190,7 +190,7 @@ int <date>::milliseconds() [flags=CONSTANT] {
 
 //! Returns an integer corresponding to the microsecond value in the date
 /** 
-    @param dt the date value; can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date
+    The date value can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date.
 
     @return an integer corresponding to the microsecond value in the date
 

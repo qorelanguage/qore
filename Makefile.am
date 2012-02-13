@@ -59,6 +59,7 @@ LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
 	lib/ql_env.qpp \
 	lib/ql_dbi.qpp \
 	lib/qc_option.qpp \
+	lib/qc_errno.qpp \
 	lib/qc_qore.qpp
 
 LIB_DOXYFILES = \
@@ -365,7 +366,6 @@ noinst_HEADERS = \
 	include/qore/intern/BuiltinFunction.h \
 	include/qore/intern/FindNode.h \
 	include/qore/intern/ExecArgList.h \
-	include/qore/intern/ErrnoConstants.h \
 	include/qore/intern/Context.h \
 	include/qore/intern/ConstantList.h \
 	include/qore/intern/CaseNodeWithOperator.h \
