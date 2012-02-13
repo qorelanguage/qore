@@ -8,10 +8,10 @@ else
 fi
 
 echo pre-processing dot file $1
-cp "$1" /tmp/qs/
+#cp "$1" /tmp/qs/
 sed $OPT -e 's/label="Qore::zzz8([a-z]+)zzz9"/label="\&lt;\1\&gt;"/g' "$1" > t
 mv t "$1"
-cp "$1" /tmp/qs/new/
+#cp "$1" /tmp/qs/new/
 
 dot $*
 

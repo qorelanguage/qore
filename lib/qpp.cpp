@@ -2453,7 +2453,7 @@ public:
          lname.erase(nl - 1);
          char c = lname[1];
          lname.erase(0, 2);
-         lname.insert(0, 1, toupper(c));
+         lname.insert((unsigned)0, (unsigned)1, (char)toupper(c));
          lname.insert(0, "Pseudo");
       }
 
