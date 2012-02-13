@@ -659,7 +659,7 @@ my date $rd = milliseconds(100);
     - seconds(softint)
     - microseconds(softint)
 */
-date milliseconds(int ms) [flags=CONSTANT] {
+date milliseconds(softint ms) [flags=CONSTANT] {
    return new DateTimeNode(0, 0, 0, 0, 0, 0, (int)ms, true);
 }
 
@@ -689,7 +689,7 @@ my date $rd = microseconds(100);
     - seconds(softint)
     - milliseconds(softint)
 */
-date microseconds(int us) [flags=CONSTANT] {
+date microseconds(softint us) [flags=CONSTANT] {
    return DateTimeNode::makeRelative(0, 0, 0, 0, 0, 0, (int)us);
 }
 
