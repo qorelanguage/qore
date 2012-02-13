@@ -310,10 +310,15 @@ hash hash(list keys, list values) [flags=RET_VALUE_ONLY] {
    return h.release();
 }
 
-//! 
-/** 
+//! Returns itself
+/** This function is used as an initializer and type converter, so this identity-variant is provided for consistency's sake
+    @param h the has to return
+
+    @return the hash passed
+
     @par Example:
     @code
+my hash $h = hash($h);
     @endcode
 */
 hash hash(hash h) [flags=CONSTANT] {

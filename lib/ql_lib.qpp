@@ -441,6 +441,7 @@ int getpid() [flags=RET_VALUE_ONLY;dom=EXTERNAL_INFO] {
 
     @par Example:
     @code
+my int $ppid = HAVE_GETPPID ? getppid() : -1;
     @endcode
  */
 int getppid() [flags=RET_VALUE_ONLY;dom=EXTERNAL_INFO] {

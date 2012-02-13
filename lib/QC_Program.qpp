@@ -940,6 +940,8 @@ nothing Program::setTimeZoneUTCOffset(softint seconds_east) {
 /** 
     @par Example:
     @code
+my TimeZone $tz("Europe/Prague");
+$pgm.setTimeZone($tz);
     @endcode
 
     @see TimeZone::set()

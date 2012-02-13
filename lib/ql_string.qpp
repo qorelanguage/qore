@@ -320,7 +320,7 @@ nothing tolower() [flags=RUNTIME_NOOP] {
 
     @par Example:
     @code
-my string $lwr = toupper($str);
+my string $upr = toupper($str);
     @endcode
 
     @note This function only processes ASCII characters
@@ -1604,6 +1604,7 @@ string vprintf() [flags=NOOP] {
 /** 
     @par Example:
     @code
+flush();
     @endcode
  */
 nothing flush() [dom=TERMINAL_IO] {

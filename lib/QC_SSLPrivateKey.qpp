@@ -129,6 +129,7 @@ int SSLPrivateKey::getBitLength() [flags=CONSTANT] {
 
     @par Example:
     @code
+my string $pem = $key.getPEM();
     @endcode
 
     @throw SSLPRIVATEKEY-ERROR could not create PEM string from private key data
