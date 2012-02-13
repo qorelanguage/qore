@@ -377,7 +377,7 @@ catch ($ex) {
 
     @see GetOpt::parse() for a similar method that puts error information in the \c "_ERRORS_" key of the hash value returned instead of throwing an exception
  */
-hash GetOpt::parse2(list pgm_args) {
+hash GetOpt::parse2(softlist pgm_args) {
    ReferenceHolder<QoreHashNode> rv(g->parse(const_cast<QoreListNode *>(pgm_args), false, xsink), xsink);
    if (*xsink)
       return 0;
