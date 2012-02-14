@@ -53,9 +53,34 @@ int <hash>::typeCode() [flags=CONSTANT] {
     @code
 my list $l = $h.keys();
     @endcode
+
+    @see <hash>::values()
  */
 list <hash>::keys() [flags=CONSTANT] {
    return h->getKeys();
+}
+
+//! Returns a list of values of the hash
+/** 
+    @return a list of values of the hash
+
+    @par Example:
+    @code
+my list $l = $h.values();
+    @endcode
+
+    @note equivalent to hash_values()
+    
+    @see <hash>::keys()
+ */
+list <hash>::values() [flags=CONSTANT] {
+   QoreListNode *l = new QoreListNode;
+
+   ConstHashIterator hi(h);
+   while (hi.next())
+      l->push(hi.getReferencedValue());
+
+   return l;
 }
 
 //! Returns the first key name in the hash or @ref nothing if the hash has no keys

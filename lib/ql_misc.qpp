@@ -1009,6 +1009,10 @@ list getFeatureList() [flags=CONSTANT] {
     @code
 my list $vl = hash_values($vl);
     @endcode
+
+    @note equivalent to <hash>::values()
+
+    @see <hash>::keys()
 */
 list hash_values(hash h) [flags=CONSTANT] {
    QoreListNode *l = new QoreListNode;
