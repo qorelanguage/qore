@@ -1,0 +1,167 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/*
+  ql_context.qpp
+
+  Qore Programming Language
+
+  Copyright 2003 - 2012 David Nichols
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
+#include <qore/Qore.h>
+#include <qore/intern/Context.h>
+
+static void cx_err(const char* func, ExceptionSink* xsink) {
+   xsink->raiseException("CONTEXT-ERROR", "function %s() called without a current data iteration context", func);
+}
+
+/** @defgroup context_functions Context Functions
+*/
+//@{
+//! Returns the current value of the given column while iterating a @ref context "context statement"
+/** 
+    @param key the column name to return the value for
+
+    @return the current value of the given column while iterating a @ref context "context statement"
+
+    @par Example: 
+    @code
+context ($ds.select($sql)) {
+    my any = cx_value("column1");
+}
+    @endcode
+
+    @throw CONTEXT-ERROR this exception is thrown if called without an active @ref context "context statement"
+    @throw ENCODING-CONVERSION-ERROR the given string could not be converted to the @ref default_encoding "default character encoding"
+
+    @since %Qore 0.8.4
+ */
+any cx_value(string key) [flags=RET_VALUE_ONLY] {
+   Context* c = get_context_stack();
+   if (!c) {
+      cx_err("cx_value", xsink);
+      return 0;
+   }
+
+   TempEncodingHelper tmp(key, QCS_DEFAULT, xsink);
+   if (!tmp)
+      return 0;
+
+   return c->evalValue(tmp->getBuffer(), xsink);
+}
+
+//! Returns \c True if currently iterating the first element in a context statement, \c False if not
+/** 
+    @return \c True if currently iterating the first element in a context statement, \c False if not
+
+    @par Example: 
+    @code
+context ($ds.select($sql)) {
+    if (cx_first())
+        print("first row!\n");
+}
+    @endcode
+
+    @throw CONTEXT-ERROR this exception is thrown if called without an active @ref context "context statement"
+
+    @since %Qore 0.8.4
+ */
+bool cx_first() [flags=RET_VALUE_ONLY] {
+   Context* c = get_context_stack();
+   if (!c) {
+      cx_err("cx_first", xsink);
+      return 0;
+   }
+
+   return c->isFirst();
+}
+
+//! Returns \c True if currently iterating the last element in a context statement, \c False if not
+/** 
+    @return \c True if currently iterating the last element in a context statement, \c False if not
+
+    @par Example: 
+    @code
+context ($ds.select($sql)) {
+    if (cx_last())
+        print("last row!\n");
+}
+    @endcode
+
+    @throw CONTEXT-ERROR this exception is thrown if called without an active @ref context "context statement"
+
+    @since %Qore 0.8.4
+ */
+bool cx_last() [flags=RET_VALUE_ONLY] {
+   Context* c = get_context_stack();
+   if (!c) {
+      cx_err("cx_last", xsink);
+      return 0;
+   }
+
+   return c->isLast();
+}
+
+//! Returns the current row number within the active @ref context "context statement" (starting from 0)
+/** 
+    @return the current row number within the active @ref context "context statement" (starting from 0)
+
+    @par Example: 
+    @code
+context ($ds.select($sql)) {
+    printf("row %d/%d:\n", cx_pos(), cx_total());
+}
+    @endcode
+
+    @throw CONTEXT-ERROR this exception is thrown if called without an active @ref context "context statement"
+
+    @since %Qore 0.8.4
+ */
+int cx_pos() [flags=RET_VALUE_ONLY] {
+   Context* c = get_context_stack();
+   if (!c) {
+      cx_err("cx_pos", xsink);
+      return 0;
+   }
+
+   return c->getPos();
+}
+
+//! Returns the total number of rows within the active @ref context "context statement"
+/** 
+    @return the total number of rows within the active @ref context "context statement"
+
+    @par Example: 
+    @code
+context ($ds.select($sql)) {
+    printf("row %d/%d:\n", cx_total(), cx_total());
+}
+    @endcode
+
+    @throw CONTEXT-ERROR this exception is thrown if called without an active @ref context "context statement"
+
+    @since %Qore 0.8.4
+ */
+int cx_total() [flags=RET_VALUE_ONLY] {
+   Context* c = get_context_stack();
+   if (!c) {
+      cx_err("cx_total", xsink);
+      return 0;
+   }
+
+   return c->getTotal();
+}
+//@}
