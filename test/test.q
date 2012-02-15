@@ -1547,6 +1547,11 @@ sub context_tests() {
     test_value($ages, (37, 1), "list find"); 
     context ($q) {
 	test_value(%%, ("name" : "david", "age" : 37), "context row");
+        test_value(cx_first(), True, "cx_first()");
+        test_value(cx_last(), False, "cx_last()");
+        test_value(cx_pos(), 0, "cx_pos()");
+        test_value(cx_total(), 5, "cx_total()");
+        test_value(cx_value("name"), "david", "cx_value()");
 	break;
     }
 }

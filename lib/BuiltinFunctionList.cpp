@@ -44,6 +44,8 @@
 #include <string.h>
 #include <assert.h>
 
+void init_context_functions(QoreNamespace& ns);
+
 static bool library_init_done = false;
 
 BuiltinFunctionList builtinFunctions;
@@ -251,6 +253,7 @@ void BuiltinFunctionList::init(QoreNamespace& qns) {
    init_object_functions(qns);
    init_file_functions(qns);
    init_compression_functions(qns);
+   init_context_functions(qns);
 #ifdef DEBUG
    init_debug_functions();
 #endif

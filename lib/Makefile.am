@@ -177,6 +177,9 @@ ql_env.cpp: ql_env.qpp qpp
 ql_dbi.cpp: ql_dbi.qpp qpp
 	$(QPP) $<
 
+ql_context.cpp: ql_context.qpp qpp
+	$(QPP) $<
+
 qc_option.cpp: qc_option.qpp qpp
 	$(QPP) $<
 
@@ -196,7 +199,7 @@ QORE_GENERATED_SOURCES = \
 	Pseudo_QC_String.cpp Pseudo_QC_Binary.cpp Pseudo_QC_List.cpp \
 	ql_misc.cpp ql_compression.cpp ql_thread.cpp ql_crypto.cpp ql_lib.cpp ql_file.cpp \
 	ql_string.cpp ql_time.cpp ql_math.cpp ql_list.cpp ql_type.cpp ql_pwd.cpp ql_object.cpp \
-	ql_env.cpp ql_dbi.cpp \
+	ql_env.cpp ql_dbi.cpp ql_context.cpp \
 	qc_option.cpp qc_errno.cpp qc_qore.cpp
 
 CLEANFILES = $(QORE_GENERATED_SOURCES)
@@ -377,6 +380,7 @@ libqore_la_SOURCES = \
 	ql_compression.cpp \
 	ql_pwd.cpp \
 	ql_dbi.cpp \
+	ql_context.cpp \
 	qc_option.cpp \
 	qc_errno.cpp \
 	qc_qore.cpp \

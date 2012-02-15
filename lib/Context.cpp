@@ -388,7 +388,7 @@ void Context::deref(ExceptionSink *xsink) {
    delete this;
 }
 
-AbstractQoreNode *evalContextRef(char *key, ExceptionSink *xsink) {
+AbstractQoreNode *evalContextRef(const char *key, ExceptionSink *xsink) {
    class Context *c = get_context_stack();
    return c->evalValue(key, xsink);
 }
@@ -397,7 +397,7 @@ AbstractQoreNode *evalContextRow(ExceptionSink *xsink) {
    return get_context_stack()->getRow(xsink);
 }
 
-AbstractQoreNode *Context::evalValue(char *field, ExceptionSink *xsink) {
+AbstractQoreNode *Context::evalValue(const char *field, ExceptionSink *xsink) {
    if (!value)
       return 0;
 

@@ -61,14 +61,30 @@ public:
 		    AbstractQoreNode *cond = NULL,
 		    int sort_type = -1, AbstractQoreNode *sort = NULL,
 		    AbstractQoreNode *summary = NULL, int ignore_key = 0);
-   DLLLOCAL AbstractQoreNode *evalValue(char *field, ExceptionSink *xsink);
+   DLLLOCAL AbstractQoreNode *evalValue(const char *field, ExceptionSink *xsink);
    DLLLOCAL QoreHashNode *getRow(ExceptionSink *xsink);
    DLLLOCAL int next_summary();
    DLLLOCAL int check_condition(AbstractQoreNode *cond, ExceptionSink *xsinkx);
    DLLLOCAL void deref(ExceptionSink *xsink);
+
+   DLLLOCAL bool isFirst() const {
+      return !pos;
+   }
+
+   DLLLOCAL bool isLast() const {
+      return pos == (max_pos - 1);
+   }
+
+   DLLLOCAL qore_size_t getPos() const {
+      return pos;
+   }
+
+   DLLLOCAL qore_size_t getTotal() const {
+      return max_pos;
+   }
 };
 
-DLLLOCAL AbstractQoreNode *evalContextRef(char *key, ExceptionSink *xsink);
+DLLLOCAL AbstractQoreNode *evalContextRef(const char *key, ExceptionSink *xsink);
 DLLLOCAL AbstractQoreNode *evalContextRow(ExceptionSink *xsink);
 
 #endif

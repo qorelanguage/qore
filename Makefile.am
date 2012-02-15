@@ -58,6 +58,7 @@ LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
 	lib/ql_object.qpp \
 	lib/ql_env.qpp \
 	lib/ql_dbi.qpp \
+	lib/ql_context.qpp \
 	lib/qc_option.qpp \
 	lib/qc_errno.qpp \
 	lib/qc_qore.qpp

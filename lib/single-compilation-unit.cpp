@@ -175,6 +175,7 @@
 #include "ql_file.cpp"
 #include "ql_compression.cpp"
 #include "ql_dbi.cpp"
+#include "ql_context.cpp"
 #include "qc_option.cpp"
 #include "qc_errno.cpp"
 #include "qc_qore.cpp"
