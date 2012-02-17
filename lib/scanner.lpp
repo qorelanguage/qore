@@ -508,6 +508,8 @@ bool parse_is_defined(const char *pstr, bool def = true) {
    return qore_program_private::parseIsDefined(getProgram(), str.getBuffer());
 }
 
+#define DO_DOT_KW_IDENTIFIER(kw) { yylval->String = new QoreStringNode(kw); qore_size_t pos = yylval->String->size() + 1; if (yytext[pos]) unput(yytext[pos]); return DOT_KW_IDENTIFIER; }
+
 #define QORE_FLEX_DO_EOF { /* delete current buffer */ yy_delete_buffer(YY_CURRENT_BUFFER, yyscanner); \
       /* get last parse state */ YY_BUFFER_STATE yybs = (YY_BUFFER_STATE)endParsing(); \
       if (yybs) { /* need to close file and switch to previous buffer */ \
@@ -1085,168 +1087,69 @@ static{WS}*\(                           yylval->string = strdup("static"); retur
 returns{WS}*\(                          yylval->string = strdup("returns"); return KW_IDENTIFIER_OPENPAREN;
 public{WS}*\(                           yylval->string = strdup("public"); return KW_IDENTIFIER_OPENPAREN;
 deprecated{WS}*\(                       yylval->string = strdup("deprecated"); return KW_IDENTIFIER_OPENPAREN;
-\.returns[^A-Za-z_0-9]                  {
-                                           yylval->String = new QoreStringNode("returns");
-					   if (yytext[4])
-					      unput(yytext[4]);
-					   return DOT_KW_IDENTIFIER;
-                                        }
-\.new[^A-Za-z_0-9]                      {
-                                           yylval->String = new QoreStringNode("new");
-					   if (yytext[4])
-					      unput(yytext[4]);
-					   return DOT_KW_IDENTIFIER;
-                                        }
-\.private[^A-Za-z_0-9]                  {
-                                           yylval->String = new QoreStringNode("private");
-					   if (yytext[8])
-					      unput(yytext[8]);
-					   return DOT_KW_IDENTIFIER;
-                                        }
-\.public[^A-Za-z_0-9]                   {
-                                           yylval->String = new QoreStringNode("public");
-					   if (yytext[8])
-					      unput(yytext[8]);
-					   return DOT_KW_IDENTIFIER;
-                                        }
-\.class[^A-Za-z_0-9]                    {
-                                           yylval->String = new QoreStringNode("class");
-					   if (yytext[6])
-					      unput(yytext[6]);
-					   return DOT_KW_IDENTIFIER;
-                                        }
-\.elements[^A-Za-z_0-9]                 {
-                                           yylval->String = new QoreStringNode("elements"); 
-					   if (yytext[9])
-					      unput(yytext[9]);
-					   return DOT_KW_IDENTIFIER;
-                                        }
-\.delete[^A-Za-z_0-9]                   {
-                                           yylval->String = new QoreStringNode("delete"); 
-					   if (yytext[7])
-					      unput(yytext[7]);
-					   return DOT_KW_IDENTIFIER;
-                                        }
-\.case[^A-Za-z_0-9]                     {
-                                           yylval->String = new QoreStringNode("case"); 
-					   if (yytext[5])
-					      unput(yytext[5]);
-					   return DOT_KW_IDENTIFIER;
-                                        }
-\.default[^A-Za-z_0-9]                  {
-                                           yylval->String = new QoreStringNode("default"); 
-					   if (yytext[8])
-					      unput(yytext[8]);
-					   return DOT_KW_IDENTIFIER;
-                                        }
-\.map[^A-Za-z_0-9]                      {
-                                           yylval->String = new QoreStringNode("map"); 
-					   if (yytext[4])
-					      unput(yytext[4]);
-					   return DOT_KW_IDENTIFIER;
-                                        }
-\.select[^A-Za-z_0-9]                   {
-                                           yylval->String = new QoreStringNode("select"); 
-					   if (yytext[7])
-					      unput(yytext[7]);
-					   return DOT_KW_IDENTIFIER;
-                                        }
-\.keys[^A-Za-z_0-9]                     {
-                                           yylval->String = new QoreStringNode("keys"); 
-					   if (yytext[5])
-					      unput(yytext[5]);
-					   return DOT_KW_IDENTIFIER;
-                                        }
-\.chomp[^A-Za-z_0-9]                    {
-                                           yylval->String = new QoreStringNode("chomp"); 
-					   if (yytext[6])
-					      unput(yytext[6]);
-					   return DOT_KW_IDENTIFIER;
-                                        }
-\.trim[^A-Za-z_0-9]                     {
-                                           yylval->String = new QoreStringNode("trim"); 
-					   if (yytext[5])
-					      unput(yytext[5]);
-					   return DOT_KW_IDENTIFIER;
-                                        }
-\.push[^A-Za-z_0-9]                     {
-                                           yylval->String = new QoreStringNode("push"); 
-					   if (yytext[5])
-					      unput(yytext[5]);
-					   return DOT_KW_IDENTIFIER;
-                                        }
-\.pop[^A-Za-z_0-9]                      {
-                                           yylval->String = new QoreStringNode("pop"); 
-					   if (yytext[4])
-					      unput(yytext[4]);
-					   return DOT_KW_IDENTIFIER;
-                                        }
-\.splice[^A-Za-z_0-9]                   {
-                                           yylval->String = new QoreStringNode("splice"); 
-					   if (yytext[7])
-					      unput(yytext[7]);
-					   return DOT_KW_IDENTIFIER;
-                                        }
-\.shift[^A-Za-z_0-9]                    {
-                                           yylval->String = new QoreStringNode("shift"); 
-					   if (yytext[6])
-					      unput(yytext[6]);
-					   return DOT_KW_IDENTIFIER;
-                                        }
-\.unshift[^A-Za-z_0-9]                  {
-                                           yylval->String = new QoreStringNode("unshift"); 
-					   if (yytext[8])
-					      unput(yytext[8]);
-					   return DOT_KW_IDENTIFIER;
-                                        }
-\.background[^A-Za-z_0-9]               {
-                                           yylval->String = new QoreStringNode("background"); 
-					   if (yytext[11])
-					      unput(yytext[11]);
-					   return DOT_KW_IDENTIFIER;
-                                        }
-\.find[^A-Za-z_0-9]                     {
-                                           yylval->String = new QoreStringNode("find"); 
-					   if (yytext[5])
-					      unput(yytext[5]);
-					   return DOT_KW_IDENTIFIER;
-                                        }
-\.exists[^A-Za-z_0-9]                   {
-                                           yylval->String = new QoreStringNode("exists"); 
-					   if (yytext[7])
-					      unput(yytext[7]);
-					   return DOT_KW_IDENTIFIER;
-                                        }
-\.foldr[^A-Za-z_0-9]                    {
-                                           yylval->String = new QoreStringNode("foldr"); 
-					   if (yytext[6])
-					      unput(yytext[6]);
-					   return DOT_KW_IDENTIFIER;
-                                        }
-\.foldl[^A-Za-z_0-9]                    {
-                                           yylval->String = new QoreStringNode("foldl"); 
-					   if (yytext[6])
-					      unput(yytext[6]);
-					   return DOT_KW_IDENTIFIER;
-                                        }
-\.static[^A-Za-z_0-9]                   {
-                                           yylval->String = new QoreStringNode("static"); 
-					   if (yytext[7])
-					      unput(yytext[7]);
-					   return DOT_KW_IDENTIFIER;
-                                        }
-\.abstract[^A-Za-z_0-9]                 {
-                                           yylval->String = new QoreStringNode("abstract");
-					   if (yytext[9])
-					      unput(yytext[9]);
-					   return DOT_KW_IDENTIFIER;
-                                        }
-\.deprecated[^A-Za-z_0-9]               {
-                                           yylval->String = new QoreStringNode("deprecated");
-					   if (yytext[9])
-					      unput(yytext[9]);
-					   return DOT_KW_IDENTIFIER;
-                                        }
+\.returns[^A-Za-z_0-9]                  DO_DOT_KW_IDENTIFIER("returns")
+\.new[^A-Za-z_0-9]                      DO_DOT_KW_IDENTIFIER("new")
+\.private[^A-Za-z_0-9]                  DO_DOT_KW_IDENTIFIER("private")
+\.public[^A-Za-z_0-9]                   DO_DOT_KW_IDENTIFIER("public")
+\.class[^A-Za-z_0-9]                    DO_DOT_KW_IDENTIFIER("class")
+\.elements[^A-Za-z_0-9]                 DO_DOT_KW_IDENTIFIER("elements")
+\.delete[^A-Za-z_0-9]                   DO_DOT_KW_IDENTIFIER("delete")
+\.case[^A-Za-z_0-9]                     DO_DOT_KW_IDENTIFIER("case")
+\.default[^A-Za-z_0-9]                  DO_DOT_KW_IDENTIFIER("default")
+\.map[^A-Za-z_0-9]                      DO_DOT_KW_IDENTIFIER("map")
+\.select[^A-Za-z_0-9]                   DO_DOT_KW_IDENTIFIER("select")
+\.keys[^A-Za-z_0-9]                     DO_DOT_KW_IDENTIFIER("keys")
+\.chomp[^A-Za-z_0-9]                    DO_DOT_KW_IDENTIFIER("chomp")
+\.trim[^A-Za-z_0-9]                     DO_DOT_KW_IDENTIFIER("trim")
+\.push[^A-Za-z_0-9]                     DO_DOT_KW_IDENTIFIER("push")
+\.pop[^A-Za-z_0-9]                      DO_DOT_KW_IDENTIFIER("pop")
+\.splice[^A-Za-z_0-9]                   DO_DOT_KW_IDENTIFIER("splice")
+\.shift[^A-Za-z_0-9]                    DO_DOT_KW_IDENTIFIER("shift")
+\.unshift[^A-Za-z_0-9]                  DO_DOT_KW_IDENTIFIER("unshift")
+\.background[^A-Za-z_0-9]               DO_DOT_KW_IDENTIFIER("background")
+\.find[^A-Za-z_0-9]                     DO_DOT_KW_IDENTIFIER("find")
+\.exists[^A-Za-z_0-9]                   DO_DOT_KW_IDENTIFIER("exists")
+\.foldr[^A-Za-z_0-9]                    DO_DOT_KW_IDENTIFIER("foldr")
+\.foldl[^A-Za-z_0-9]                    DO_DOT_KW_IDENTIFIER("foldl")
+\.static[^A-Za-z_0-9]                   DO_DOT_KW_IDENTIFIER("static")
+\.abstract[^A-Za-z_0-9]                 DO_DOT_KW_IDENTIFIER("abstract")
+\.deprecated[^A-Za-z_0-9]               DO_DOT_KW_IDENTIFIER("deprecated")
+\.summarize[^A-Za-z_0-9]		DO_DOT_KW_IDENTIFIER("summarize")
+\.sub                                   DO_DOT_KW_IDENTIFIER("sub")
+\.subcontext[^A-Za-z_0-9]		DO_DOT_KW_IDENTIFIER("subcontext")
+\.sortBy[^A-Za-z_0-9]           	DO_DOT_KW_IDENTIFIER("sortBy")
+\.sortDescendingBy[^A-Za-z_0-9]		DO_DOT_KW_IDENTIFIER("sortDescendingBy")
+\.by[^A-Za-z_0-9]                       DO_DOT_KW_IDENTIFIER("by")
+\.switch[^A-Za-z_0-9]                   DO_DOT_KW_IDENTIFIER("switch")
+\.return[^A-Za-z_0-9]                   DO_DOT_KW_IDENTIFIER("return")
+\.rethrow[^A-Za-z_0-9]                  DO_DOT_KW_IDENTIFIER("rethrow")
+\.break[^A-Za-z_0-9]                    DO_DOT_KW_IDENTIFIER("break")
+\.catch                                 DO_DOT_KW_IDENTIFIER("catch")
+\.const                                 DO_DOT_KW_IDENTIFIER("const")
+\.context                               DO_DOT_KW_IDENTIFIER("context")
+\.continue                              DO_DOT_KW_IDENTIFIER("continue")
+\.do                                    DO_DOT_KW_IDENTIFIER("do")
+\.else                                  DO_DOT_KW_IDENTIFIER("else")
+\.for                                   DO_DOT_KW_IDENTIFIER("for")
+\.foreach                               DO_DOT_KW_IDENTIFIER("foreach")
+\.if                                    DO_DOT_KW_IDENTIFIER("if")
+\.in                                    DO_DOT_KW_IDENTIFIER("in")
+\.inherits                              DO_DOT_KW_IDENTIFIER("inherits")
+\.instanceof                            DO_DOT_KW_IDENTIFIER("instanceof")
+\.namespace                             DO_DOT_KW_IDENTIFIER("namespace")
+\.my                                    DO_DOT_KW_IDENTIFIER("my")
+\.on_error                              DO_DOT_KW_IDENTIFIER("on_error")
+\.on_exit                               DO_DOT_KW_IDENTIFIER("on_exit")
+\.on_success                            DO_DOT_KW_IDENTIFIER("on_success")
+\.our                                   DO_DOT_KW_IDENTIFIER("our")
+\.synchronized                          DO_DOT_KW_IDENTIFIER("synchronized")
+\.thread_exit                           DO_DOT_KW_IDENTIFIER("thread_exit")
+\.throw                                 DO_DOT_KW_IDENTIFIER("throw")
+\.try                                   DO_DOT_KW_IDENTIFIER("try")
+\.where                                 DO_DOT_KW_IDENTIFIER("where")
+\.while                                 DO_DOT_KW_IDENTIFIER("while")
+\.interface                             DO_DOT_KW_IDENTIFIER("interface")
+
 {YEAR}-{MONTH}-{DAY}T{HOUR}:{MSEC}(:{MSEC}(\.{US})?)?{TZ}?   yylval->datetime = makeDateTime(yytext, true); return DATETIME;
 {YEAR}-{MONTH}-{DAY}-{HOUR}:{MSEC}:{MSEC}(\.{US})?{TZ}?      yylval->datetime = makeDateTime(yytext, true); return DATETIME;
 {YEAR}-{MONTH}-{DAY}?{TZ}?                                   yylval->datetime = makeDateTime(yytext, false); return DATETIME;

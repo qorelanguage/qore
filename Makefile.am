@@ -107,7 +107,8 @@ LANG_DOXYFILES_SRC = \
 	doxygen/lang/235_event_handling.dox.tmpl \
 	doxygen/lang/240_command_line_processing.dox.tmpl \
 	doxygen/lang/245_parse_directives.dox.tmpl \
-	doxygen/lang/250_warnings.dox.tmpl
+	doxygen/lang/250_warnings.dox.tmpl \
+	doxygen/lang/255_keywords.dox.tmpl
 
 LANG_TMP_DOXYFILES = doxygen/lang/Doxyfile \
 	doxygen/lang/mainpage.dox \
@@ -142,7 +143,8 @@ LANG_TMP_DOXYFILES = doxygen/lang/Doxyfile \
 	doxygen/lang/235_event_handling.dox \
 	doxygen/lang/240_command_line_processing.dox \
 	doxygen/lang/245_parse_directives.dox \
-	doxygen/lang/250_warnings.dox
+	doxygen/lang/250_warnings.dox \
+	doxygen/lang/255_keywords.dox
 
 LANG_DOXYFILES = doxygen/lang/Doxyfile $(LANG_TMP_DOXYFILES)
 
@@ -246,6 +248,9 @@ doxygen/lang/245_parse_directives.dox: doxygen/lang/245_parse_directives.dox.tmp
 	lib/qpp -t $< -o $@
 
 doxygen/lang/250_warnings.dox: doxygen/lang/250_warnings.dox.tmpl lib
+	lib/qpp -t $< -o $@
+
+doxygen/lang/255_keywords.dox: doxygen/lang/255_keywords.dox.tmpl lib
 	lib/qpp -t $< -o $@
 
 include_HEADERS = \

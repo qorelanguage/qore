@@ -1,0 +1,74 @@
+/** @page keywords Keywords
+
+    Keyword Types
+    |!Type|!Description
+    |Normal|Normal keywords cannot be used as function, method, or static variable names and also cannot be used as unquoted hash key or object member names with the @ref dot_operator ". operator"; at the moment there are only 2 normal keywords: @ref nothing "NOTHING" and @ref null "NULL"
+    |Soft 1|Keywords of this type cannot be used as static variable names but can be used as function or method names if they are followed immediately by an open parenthesis (with no whitespace between the keyword and the open parenthesis), and they can be referenced as unquoted object or hash member names only if they are immediately preceded by the @ref dot_operator ". operator" (again with no whitespace between the "." and the keyword):
+    |Soft 2|Keywords of this type cannot be used as static variable names but can be used as function or method names if they are followed by an open parenthesis (whitespace is allowed between the keyword and the open parenthesis), and they can be referenced as unquoted object or hash member names if they are immediately preceded by the @ref dot_operator ". operator" (again with no whitespace between the "." and the keyword):
+    |Soft 3|Keywords of this type be referenced as unquoted object or hash member names if preceded immediately by the "." operator, however they may not be used as function or class method names or static variable names
+
+    |!Keywords|!Type|!Description
+    |@ref nothing "NOTHING"|Normal|
+    |@ref null "NULL"|Normal|
+    |@ref background "background"|Soft 1|
+    |@ref case "case"|Soft 1|
+    |@ref chomp "chomp"|Soft 1|
+    |@ref class "class"|Soft 1|
+    |@ref delete "delete"|Soft 1|
+    |@ref exists "exists"|Soft 1|
+    |@ref foldl "foldl"|Soft 1|
+    |@ref foldr "foldr"|Soft 1|
+    |@ref map "map"|Soft 1|
+    |@ref pop "pop"|Soft 1|
+    |@ref private "private"|Soft 1|
+    |@ref push "push"|Soft 1|
+    |@ref new "new"|Soft 1|
+    |@ref select "select"|Soft 1|
+    |@ref shift "shift"|Soft 1|
+    |@ref splice "splice"|Soft 1|
+    |@ref trim "trim"|Soft 1|
+    |@ref unshift "unshift"|Soft 1|
+    |@ref default "default"|Soft 2|
+    |@ref static "static"|Soft 2|
+    |@ref break "break"|Soft 3|
+    |@ref catch "catch"|Soft 3|
+    |@ref const "const"|Soft 3|
+    |@ref continue "continue"|Soft 3|
+    |@ref do "do"|Soft 3|
+    |@ref else "else"|Soft 3|
+    |@ref for "for"|Soft 3|
+    |@ref foreach "foreach"|Soft 3|
+    |@ref if "if"|Soft 3|
+    |@ref in "in"|Soft 3|
+    |@ref inherits "inherits"|Soft 3|
+    |@ref instanceof "instanceof"|Soft 3|
+    |@ref namespace "namespace"|Soft 3|
+    |@ref my "my"|Soft 3|
+    |@ref elements "elements"|Soft 3|
+    |@ref find "find"|Soft 3|
+    |@ref keys "keys"|Soft 3|
+    |@ref returns "returns"|Soft 3|
+    |abstract|Soft 3|This keyword is reserved for future implementation
+    |@ref deprecated "deprecated"|Soft 3|
+    |@ref context "context"|Soft 3|
+    |@ref summarize "summarize"|Soft 3|
+    |@ref subcontext "subcontext"|Soft 3|
+    |@ref sortBy "sortBy"|Soft 3|
+    |@ref sortDescendingBy "sortDescendingBy"|Soft 3|
+    |@ref by "by"|Soft 3|
+    |@ref switch "switch"|Soft 3|
+    |@ref return "return"|Soft 3|
+    |@ref rethrow "rethrow"|Soft 3|
+    |@ref on_error "on_error"|Soft 3|
+    |@ref on_exit "on_exit"|Soft 3|
+    |@ref on_success "on_success"|Soft 3|
+    |@ref our "our"|Soft 3|
+    |@ref sub "sub"|Soft 3|
+    |@ref synchronized "synchronized"|Soft 3|
+    |@ref thread_exit "thread_exit"|Soft 3|
+    |@ref throw "throw"|Soft 3|
+    |@ref try "try"|Soft 3|
+    |@ref where "where"|Soft 3|
+    |@ref while "while"|Soft 3|
+    |interface|Soft 3|This keyword is reserved for future implementation
+*/
