@@ -199,7 +199,7 @@ Datasource::constructor(string driver, *string user, *string pass, *string db, *
     - \c user: (@ref string_or_nothing_type "*string") The user name for the new connection. Also see Datasource::setUserName() for a method that allows this parameter to be set after the constructor.
     - \c pass: (@ref string_or_nothing_type "*string") The password for the new connection. Also see Datasource::setPassword() for a method that allows this parameter to be set after the constructor.
     - \c db: (@ref string_or_nothing_type "*string") The database name for the new connection. Also see Datasource::setDBName() for a method that allows this parameter to be set after the constructor.
-    - \c charset: (@ref string_or_nothing_type "*string") The database-specific name of the character encoding to use for the new connection. Also see Datasource::setDBCharset() for a method that allows this parameter to be set after the constructor. If no value is passed for this parameter, then the database character encoding corresponding to the default character encoding for the Qore process will be used instead.
+    - \c charset: (@ref string_or_nothing_type "*string") The database-specific name of the character encoding to use for the new connection. Also see Datasource::setDBCharset() for a method that allows this parameter to be set after the constructor. If no value is passed for this parameter, then the database character encoding corresponding to the default character encoding for the %Qore process will be used instead.
     - \c host: (@ref string_or_nothing_type "*string") The host name for the new connection. Also see Datasource::setHostName() for a method that allows this parameter to be set after the constructor.
     - \c port: (@ref softint_type "softint") The port number for the new connection. Also see Datasource::setPort() for a method that allows this parameter to be set after the constructor. If this key is present and is 0 then an exception will be raised.
 
@@ -825,8 +825,8 @@ string Datasource::getDBEncoding() [flags=CONSTANT] {
    return ds->getPendingDBEncoding();
 }
 
-//! Returns the Qore charset name for the current connection as a string or \c "(unknown)" if none is set
-/** @return the Qore charset name for the current connection as a string or \c "(unknown)" if none is set
+//! Returns the %Qore character encoding name for the current connection as a string or \c "(unknown)" if none is set
+/** @return the %Qore character encoding name for the current connection as a string or \c "(unknown)" if none is set
 
     @par Example:
     @code
@@ -840,8 +840,8 @@ string Datasource::getOSCharset() [flags=CONSTANT] {
    return new QoreStringNode(enc ? enc->getCode() : "(unknown)");
 }
 
-//! Returns the Qore charset name for the current connection as a string or @ref nothing if none is set
-/** @return the Qore charset name for the current connection as a string or @ref nothing if none is set
+//! Returns the %Qore character encoding name for the current connection as a string or @ref nothing if none is set
+/** @return the %Qore character encoding for the current connection as a string or @ref nothing if none is set
 
     @par Example:
     @code
@@ -879,7 +879,7 @@ my *int $port = $db.getPort();
 }
 
 //! Sets the transaction lock timeout value in milliseconds; set to 0 for no timeout
-/** @param timeout_ms the transaction lock timeout value in milliseconds; set to 0 for no timeout.  Like all Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" may be passed instead of an integer to make the timeout units clear (ex: \c 2500ms for 2.5 seconds).
+/** @param timeout_ms the transaction lock timeout value in milliseconds; set to 0 for no timeout.  Like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" may be passed instead of an integer to make the timeout units clear (ex: \c 2500ms for 2.5 seconds).
 
     @par Example:
     @code

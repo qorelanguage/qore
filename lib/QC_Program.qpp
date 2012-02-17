@@ -363,8 +363,8 @@ const WARN_UNREFERENCED_VARIABLE = QP_WARN_UNREFERENCED_VARIABLE;
 const WARN_WARNING_MASK_UNCHANGED = QP_WARN_WARNING_MASK_UNCHANGED;
 //@}
 
-//! Program objects allow Qore programs to support subprograms with the option to restrict capabilities, for example, to support user-defined logic for application actions
-/** Parsing in Qore happens in two steps; first all code is parsed to pending data structures, and then in the second stage, all references are resolved, and, if there are no errors, then all changes are committed to the Program object. Note that all parse actions (Program::parse(), Program::parsePending(), Program::parseCommit(), and Program::parseRollback()) are atomic; there is a thread lock on each Program object to ensure atomicity, and if any parse errors occur in any stage of parsing, any pending changes to the Program object are automatically rolled back. However parse actions that affect only one stage of the two stages of parsing (Program::parsePending(), Program::parseCommit() and Program::parseRollback()) are atomic within themselves, but not between calls, so one thread may inadvertently commit changes to a Program object if two or more threads are trying to perform transaction-safe two-stage parsing on a Program object without explicit user locking.
+//! Program objects allow %Qore programs to support subprograms with the option to restrict capabilities, for example, to support user-defined logic for application actions
+/** Parsing in %Qore happens in two steps; first all code is parsed to pending data structures, and then in the second stage, all references are resolved, and, if there are no errors, then all changes are committed to the Program object. Note that all parse actions (Program::parse(), Program::parsePending(), Program::parseCommit(), and Program::parseRollback()) are atomic; there is a thread lock on each Program object to ensure atomicity, and if any parse errors occur in any stage of parsing, any pending changes to the Program object are automatically rolled back. However parse actions that affect only one stage of the two stages of parsing (Program::parsePending(), Program::parseCommit() and Program::parseRollback()) are atomic within themselves, but not between calls, so one thread may inadvertently commit changes to a Program object if two or more threads are trying to perform transaction-safe two-stage parsing on a Program object without explicit user locking.
 
     @ref parse_options "Parse option constants" can be used to limit the capabilities of a Program object. These options should be binary-OR'ed together and passed to the Program object's constructor. Also see @ref command_line_processing for equivalent command-line options, and @ref parse_directives for equivalent parse directives.
 
@@ -809,7 +809,7 @@ nothing Program::setScriptPath(*string path) {
 }
 
 //! Returns the current script directory as a string or @ref nothing if not set
-/** Gets the script directory set with Program::setScriptPath(). This is the same value that will be returned in the Qore program code with the get_script_dir() function if called from within the Program.
+/** Gets the script directory set with Program::setScriptPath(). This is the same value that will be returned in the %Qore program code with the get_script_dir() function if called from within the Program.
 
     @return Returns the current script directory as a string or @ref nothing if not set; if a string is returned, it should normally include the trailing directory separator character (\c "/" on UNIX, \c "\\" on Windows)
 
@@ -823,7 +823,7 @@ my *string $dir = $pgm.getScriptDir();
 }
 
 //! Returns the current script name as a string or @ref nothing if not set
-/** Gets the script filename set with Program::setScriptPath(). This is the same value that will be returned in the Qore program code with the get_script_name() function if called from within the Program.
+/** Gets the script filename set with Program::setScriptPath(). This is the same value that will be returned in the %Qore program code with the get_script_name() function if called from within the Program.
 
     @return the current script name as a string or @ref nothing if not set
 
@@ -837,7 +837,7 @@ my *string $name = $pgm.getScriptName();
 }
 
 //! Returns the current script directory and filename if known, otherwise returns @ref nothing
-/** Gets the script directory and filename set with Program::setScriptPath(). This is the same value that will be returned in the Qore program code with the get_script_path() function if called from within the Program.
+/** Gets the script directory and filename set with Program::setScriptPath(). This is the same value that will be returned in the %Qore program code with the get_script_path() function if called from within the Program.
 
     @return the current script directory and filename if known, otherwise returns @ref nothing
 

@@ -194,7 +194,7 @@ binary binary(null[doc] x) [flags=CONSTANT] {
 }
 
 //! Returns a binary data type of the string passed; data types other than string will first be converted to a string and then returned as binary data
-/** This function is useful if, for example, a string type actually contains binary data; using this function will ensure that all data in the string (even if it contains embedded nulls) is maintained in the binary object (Qore strings must normally be terminated by a single null, so some Qore string operations do not work on binary data with embedded nulls).
+/** This function is useful if, for example, a string type actually contains binary data; using this function will ensure that all data in the string (even if it contains embedded nulls) is maintained in the binary object (Qore strings must normally be terminated by a single null, so some %Qore string operations do not work on binary data with embedded nulls).
 
     @par Example:
     @code

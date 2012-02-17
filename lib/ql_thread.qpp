@@ -75,9 +75,9 @@ static QoreHashNode *remove_thread_data_intern(const QoreListNode *args, Excepti
     Threading functions
  */
 //@{
-//! Returns the Qore thread ID (TID) of the current thread
+//! Returns the %Qore thread ID (TID) of the current thread
 /** 
-    @return the Qore thread ID (TID) of the current thread
+    @return the %Qore thread ID (TID) of the current thread
 
     @par Example:
     @code

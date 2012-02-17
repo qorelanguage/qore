@@ -80,7 +80,7 @@
 qclass SQLStatement [dom=DATABASE; arg=QoreSQLStatement* stmt; ns=SQL];
 
 //! Creates the SQLStatement object based on the given Datasource object that provides the connection to the database
-/** This method will throw an exception only if the object passed as an argument uses a driver that does not support the prepared statement interface added in Qore version 0.8.1.
+/** This method will throw an exception only if the object passed as an argument uses a driver that does not support the prepared statement interface added in %Qore version 0.8.1.
 
     @param ds The Datasource object to use for the DB connection for the SQLStatement object
 
@@ -108,7 +108,7 @@ SQLStatement::constructor(Datasource[ManagedDatasource] ds) {
 }
 
 //! Creates the SQLStatement object based on the given DatasourcePool object that provides the connection to the database
-/** This method will throw an exception only if the object passed as an argument uses a driver that does not support the prepared statement interface added in Qore version 0.8.1.
+/** This method will throw an exception only if the object passed as an argument uses a driver that does not support the prepared statement interface added in %Qore version 0.8.1.
 
     @param dsp The DatasourcePool object to use for the DB connection for the SQLStatement object
 

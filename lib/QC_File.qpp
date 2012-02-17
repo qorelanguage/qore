@@ -1491,7 +1491,7 @@ nothing File::chown(softint uid, softint gid = -1) {
 }
 
 //! Returns True if there is data available for reading from the file within the timeout period
-/** With a timeout of zero (the default if no timeout value is passed), this method can be used for non-blocking polling the file for data. Like all Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" may be passed instead of an integer to make the timeout units clear (ex: 25ms).
+/** With a timeout of zero (the default if no timeout value is passed), this method can be used for non-blocking polling the file for data. Like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" may be passed instead of an integer to make the timeout units clear (ex: 25ms).
 
     @param timeout_ms An optional timeout in milliseconds (1/1000 second)
 

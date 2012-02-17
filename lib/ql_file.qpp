@@ -392,7 +392,7 @@ bool is_executable(string path) [flags=CONSTANT;dom=FILESYSTEM] {
 #endif
 }
 
-//! Renames (or moves) files or directories. Note that for this call to function properly, the Qore process must have sufficient permissions and access to the given filesystem objects or paths to execute the rename operation
+//! Renames (or moves) files or directories. Note that for this call to function properly, the %Qore process must have sufficient permissions and access to the given filesystem objects or paths to execute the rename operation
 /** This function does not return any value; if any errors occur, an exception is thrown.
 
     @param old_path The original path for the file to move

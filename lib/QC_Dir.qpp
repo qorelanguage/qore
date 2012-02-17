@@ -29,7 +29,7 @@
 #include <errno.h>
 
 //! This class implements directory handling, file listing, creating/removing subdirectories, etc
-/** The %Dir class allows Qore programs to list and manipulate directories.
+/** The %Dir class allows %Qore programs to list and manipulate directories.
 
     Directory objects can be created/opened with a specific character encoding. This means that any entry read from the directory will be tagged with the directory's character encoding. If no character encoding is given the @ref default_encoding "default character encoding" is assumed.
 

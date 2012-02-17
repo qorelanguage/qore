@@ -172,7 +172,7 @@
 */
 //@{
 namespace Option;
-//! Indicates if the Qore library supports fast atomic reference counting
+//! Indicates if the %Qore library supports fast atomic reference counting
 /** Note that if this constant is \c False, atomic operations are supported by mutexes and are therefore slower than with native atomic reference counting operations
  */
 const HAVE_ATOMIC_OPERATIONS = bool(QORE_CONST_HAVE_ATOMIC_MACROS);
@@ -236,7 +236,7 @@ const HAVE_STATVFS = bool(QORE_CONST_HAVE_SYS_STATVFS_H);
  */
 const HAVE_SETSID = bool(QORE_CONST_HAVE_SETSID);
 
-//! Indicates if the Qore library supports the is_executable() function
+//! Indicates if the %Qore library supports the is_executable() function
 /** @note Currently this function is only available when running on UNIX or UNIX-like platforms
  */
 const HAVE_IS_EXECUTABLE = bool(QORE_CONST_HAVE_PWD_H);
@@ -256,7 +256,7 @@ const HAVE_UNIX_USERMGT = bool(QORE_CONST_HAVE_GETUID);
  */
 const HAVE_UNIX_FILEMGT = bool(QORE_CONST_HAVE_CHOWN);
 
-//! Indicates if the Qore library supports file locking; currently this depends on UNIX-style file locking with the fnctl() function
+//! Indicates if the %Qore library supports file locking; currently this depends on UNIX-style file locking with the fnctl() function
 /** @note Currently this function is only available when running on UNIX or UNIX-like platforms
  */
 const HAVE_FILE_LOCKING = bool(QORE_CONST_HAVE_STRUCT_FLOCK);

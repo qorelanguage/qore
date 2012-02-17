@@ -510,7 +510,7 @@ $httpclient.post("/path", $body);
 }
 
 //! Sets the default read timeout in milliseconds
-/** @param timeout_ms 0 means immediate timeout (will return data only if it is already available), and negative numbers mean never timeout (wait forever for data). Note that like all Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. 2m = two minutes, etc.).
+/** @param timeout_ms 0 means immediate timeout (will return data only if it is already available), and negative numbers mean never timeout (wait forever for data). Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. 2m = two minutes, etc.).
 
     @par Example:
     @code
@@ -716,7 +716,7 @@ nothing HTTPClient::setEventQueue(Qore::Thread::Queue[Queue] queue) {
 }
 
 //! Sets the connect timeout in milliseconds
-/** @param timeout_ms the connect timeout in milliseconds; negative numbers mean use the default system connect timeout. Note that like all Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. 30s = 30 seconds, etc.).
+/** @param timeout_ms the connect timeout in milliseconds; negative numbers mean use the default system connect timeout. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. 30s = 30 seconds, etc.).
 
     @par Example:
     @code
